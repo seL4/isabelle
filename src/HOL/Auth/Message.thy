@@ -582,12 +582,13 @@ lemma synth_mono: "G\<subseteq>H ==> synth(G) \<subseteq> synth(H)"
 
 text{*NO @{text Agent_synth}, as any Agent name can be synthesized.  
   The same holds for @{term Number}*}
-inductive_cases Nonce_synth [elim!]: "Nonce n \<in> synth H"
-inductive_cases Key_synth   [elim!]: "Key K \<in> synth H"
-inductive_cases Hash_synth  [elim!]: "Hash X \<in> synth H"
-inductive_cases MPair_synth [elim!]: "{|X,Y|} \<in> synth H"
-inductive_cases Crypt_synth [elim!]: "Crypt K X \<in> synth H"
 
+inductive_simps synth_simps [iff]:
+ "Nonce n \<in> synth H"
+ "Key K \<in> synth H"
+ "Hash X \<in> synth H"
+ "{|X,Y|} \<in> synth H"
+ "Crypt K X \<in> synth H"
 
 lemma synth_increasing: "H \<subseteq> synth(H)"
 by blast
@@ -605,7 +606,7 @@ by (blast intro: synth_mono [THEN [2] rev_subsetD])
 subsubsection{*Idempotence and transitivity *}
 
 lemma synth_synthD [dest!]: "X\<in> synth (synth H) ==> X\<in> synth H"
-by (erule synth.induct, blast+)
+by (erule synth.induct, auto)
 
 lemma synth_idem: "synth (synth H) = synth H"
 by blast
@@ -782,7 +783,7 @@ lemma HPair_synth_analz [simp]:
      "X \<notin> synth (analz H)  
     ==> (Hash[X] Y \<in> synth (analz H)) =  
         (Hash {|X, Y|} \<in> analz H & Y \<in> synth (analz H))"
-by (simp add: HPair_def)
+by (auto simp add: HPair_def)
 
 
 text{*We do NOT want Crypt... messages broken up in protocols!!*}
