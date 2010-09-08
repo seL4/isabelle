@@ -67,7 +67,7 @@ val offset_of = the_default 0 o Position.offset_of;
 fun eval verbose pos toks =
   let
     val _ = Secure.secure_mltext ();
-    val {name_space = space, print, error = err, ...} = ML_Env.local_context;
+    val space = ML_Env.name_space;
 
 
     (* input *)
@@ -147,7 +147,7 @@ fun eval verbose pos toks =
         NONE => ()
       | SOME parse_tree => report_parse_tree depth space parse_tree);
       (case phase2 of
-        NONE => err "Static Errors"
+        NONE => error "Static Errors"
       | SOME code =>
           apply_result
             ((code
@@ -171,8 +171,8 @@ fun eval verbose pos toks =
         PolyML.compiler (get, parameters) ())
       handle exn =>
        (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-        err (output ()); reraise exn);
-  in if verbose then print (output ()) else () end;
+        error (output ()));
+  in if verbose then writeln (output ()) else () end;
 
 end;
 
