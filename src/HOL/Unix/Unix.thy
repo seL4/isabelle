@@ -945,7 +945,7 @@ proof -
 
   from inv1 inv3 inv4 and user\<^isub>1_not_root
   have not_writable: "Writable \<notin> others att"
-    by (auto simp add: access_def split: option.splits if_splits)
+    by (auto simp add: access_def split: option.splits)
 
   show ?thesis
   proof cases
@@ -1044,8 +1044,7 @@ proof -
             qed
             finally show ?thesis .
           qed
-          with ys show ?thesis
-            by (insert that, auto simp add: update_cons_cons_env)
+          with ys show ?thesis using that by auto
         qed
         also have "dir(y\<mapsto>file') \<noteq> empty" by simp
         ultimately show ?thesis ..
