@@ -46,14 +46,13 @@ lemma "EX x. x < y & x < z"
 
 datatype fm = And fm fm | Or fm fm | Imp fm fm | Iff fm fm | NOT fm | At nat
 
-consts Ifm :: "fm \<Rightarrow> bool list \<Rightarrow> bool"
-primrec
+primrec Ifm :: "fm \<Rightarrow> bool list \<Rightarrow> bool" where
   "Ifm (At n) vs = vs!n"
-  "Ifm (And p q) vs = (Ifm p vs \<and> Ifm q vs)"
-  "Ifm (Or p q) vs = (Ifm p vs \<or> Ifm q vs)"
-  "Ifm (Imp p q) vs = (Ifm p vs \<longrightarrow> Ifm q vs)"
-  "Ifm (Iff p q) vs = (Ifm p vs = Ifm q vs)"
-  "Ifm (NOT p) vs = (\<not> (Ifm p vs))"
+| "Ifm (And p q) vs = (Ifm p vs \<and> Ifm q vs)"
+| "Ifm (Or p q) vs = (Ifm p vs \<or> Ifm q vs)"
+| "Ifm (Imp p q) vs = (Ifm p vs \<longrightarrow> Ifm q vs)"
+| "Ifm (Iff p q) vs = (Ifm p vs = Ifm q vs)"
+| "Ifm (NOT p) vs = (\<not> (Ifm p vs))"
 
 lemma "Q \<longrightarrow> (D & F & ((~ D) & (~ F)))"
 apply (reify Ifm.simps)
@@ -399,7 +398,7 @@ where
 | "Iprod (Mul a b) vs = (Iprod a vs * Iprod b vs)"
 | "Iprod (Pw a n) vs = ((Iprod a vs) ^ n)"
 | "Iprod (PNM n k t) vs = (vs ! n)^k * Iprod t vs"
-consts prodmul:: "prod \<times> prod \<Rightarrow> prod"
+
 datatype sgn = Pos prod | Neg prod | ZeroEq prod | NZeroEq prod | Tr | F 
   | Or sgn sgn | And sgn sgn
 

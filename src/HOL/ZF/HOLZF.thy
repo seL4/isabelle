@@ -402,12 +402,9 @@ proof -
     done
 qed
 
-consts
-  nat2Nat :: "nat \<Rightarrow> ZF"
-
-primrec
-nat2Nat_0[intro]:  "nat2Nat 0 = Empty"
-nat2Nat_Suc[intro]:  "nat2Nat (Suc n) = SucNat (nat2Nat n)"
+primrec nat2Nat :: "nat \<Rightarrow> ZF" where
+  nat2Nat_0[intro]:  "nat2Nat 0 = Empty"
+| nat2Nat_Suc[intro]:  "nat2Nat (Suc n) = SucNat (nat2Nat n)"
 
 definition Nat2nat :: "ZF \<Rightarrow> nat" where
   "Nat2nat == inv nat2Nat"
@@ -500,12 +497,9 @@ lemma antisym_Elem: "Elem a b \<Longrightarrow> Not (Elem b a)"
   apply auto
   done
 
-consts
-  NatInterval :: "nat \<Rightarrow> nat \<Rightarrow> ZF"
-
-primrec
+primrec NatInterval :: "nat \<Rightarrow> nat \<Rightarrow> ZF" where
   "NatInterval n 0 = Singleton (nat2Nat n)"
-  "NatInterval n (Suc m) = union (NatInterval n m) (Singleton (nat2Nat (n+m+1)))"
+| "NatInterval n (Suc m) = union (NatInterval n m) (Singleton (nat2Nat (n+m+1)))"
 
 lemma n_Elem_NatInterval[rule_format]: "! q. q <= m \<longrightarrow> Elem (nat2Nat (n+q)) (NatInterval n m)"
   apply (induct m)
@@ -729,12 +723,9 @@ lemma Elem_Ext_ZF: "set_like R \<Longrightarrow> Elem x (Ext_ZF R s) = ((x,s) \<
   apply (simp add: Ext_def)
   done
 
-consts
-  Ext_ZF_n :: "(ZF * ZF) set \<Rightarrow> ZF \<Rightarrow> nat \<Rightarrow> ZF"
-
-primrec
+primrec Ext_ZF_n :: "(ZF * ZF) set \<Rightarrow> ZF \<Rightarrow> nat \<Rightarrow> ZF" where
   "Ext_ZF_n R s 0 = Ext_ZF R s"
-  "Ext_ZF_n R s (Suc n) = Sum (Repl (Ext_ZF_n R s n) (Ext_ZF R))"
+| "Ext_ZF_n R s (Suc n) = Sum (Repl (Ext_ZF_n R s n) (Ext_ZF R))"
 
 definition Ext_ZF_hull :: "(ZF * ZF) set \<Rightarrow> ZF \<Rightarrow> ZF" where
   "Ext_ZF_hull R s == SeqSum (Ext_ZF_n R s)"

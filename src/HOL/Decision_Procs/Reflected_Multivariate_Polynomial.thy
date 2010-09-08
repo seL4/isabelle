@@ -19,38 +19,35 @@ abbreviation poly_0 :: "poly" ("0\<^sub>p") where "0\<^sub>p \<equiv> C (0\<^sub
 abbreviation poly_p :: "int \<Rightarrow> poly" ("_\<^sub>p") where "i\<^sub>p \<equiv> C (i\<^sub>N)"
 
 subsection{* Boundedness, substitution and all that *}
-consts polysize:: "poly \<Rightarrow> nat"
-primrec
+primrec polysize:: "poly \<Rightarrow> nat" where
   "polysize (C c) = 1"
-  "polysize (Bound n) = 1"
-  "polysize (Neg p) = 1 + polysize p"
-  "polysize (Add p q) = 1 + polysize p + polysize q"
-  "polysize (Sub p q) = 1 + polysize p + polysize q"
-  "polysize (Mul p q) = 1 + polysize p + polysize q"
-  "polysize (Pw p n) = 1 + polysize p"
-  "polysize (CN c n p) = 4 + polysize c + polysize p"
+| "polysize (Bound n) = 1"
+| "polysize (Neg p) = 1 + polysize p"
+| "polysize (Add p q) = 1 + polysize p + polysize q"
+| "polysize (Sub p q) = 1 + polysize p + polysize q"
+| "polysize (Mul p q) = 1 + polysize p + polysize q"
+| "polysize (Pw p n) = 1 + polysize p"
+| "polysize (CN c n p) = 4 + polysize c + polysize p"
 
-consts 
-  polybound0:: "poly \<Rightarrow> bool" (* a poly is INDEPENDENT of Bound 0 *)
-  polysubst0:: "poly \<Rightarrow> poly \<Rightarrow> poly" (* substitute a poly into a poly for Bound 0 *)
-primrec
+primrec polybound0:: "poly \<Rightarrow> bool" (* a poly is INDEPENDENT of Bound 0 *) where
   "polybound0 (C c) = True"
-  "polybound0 (Bound n) = (n>0)"
-  "polybound0 (Neg a) = polybound0 a"
-  "polybound0 (Add a b) = (polybound0 a \<and> polybound0 b)"
-  "polybound0 (Sub a b) = (polybound0 a \<and> polybound0 b)" 
-  "polybound0 (Mul a b) = (polybound0 a \<and> polybound0 b)"
-  "polybound0 (Pw p n) = (polybound0 p)"
-  "polybound0 (CN c n p) = (n \<noteq> 0 \<and> polybound0 c \<and> polybound0 p)"
-primrec
+| "polybound0 (Bound n) = (n>0)"
+| "polybound0 (Neg a) = polybound0 a"
+| "polybound0 (Add a b) = (polybound0 a \<and> polybound0 b)"
+| "polybound0 (Sub a b) = (polybound0 a \<and> polybound0 b)" 
+| "polybound0 (Mul a b) = (polybound0 a \<and> polybound0 b)"
+| "polybound0 (Pw p n) = (polybound0 p)"
+| "polybound0 (CN c n p) = (n \<noteq> 0 \<and> polybound0 c \<and> polybound0 p)"
+
+primrec polysubst0:: "poly \<Rightarrow> poly \<Rightarrow> poly" (* substitute a poly into a poly for Bound 0 *) where
   "polysubst0 t (C c) = (C c)"
-  "polysubst0 t (Bound n) = (if n=0 then t else Bound n)"
-  "polysubst0 t (Neg a) = Neg (polysubst0 t a)"
-  "polysubst0 t (Add a b) = Add (polysubst0 t a) (polysubst0 t b)"
-  "polysubst0 t (Sub a b) = Sub (polysubst0 t a) (polysubst0 t b)" 
-  "polysubst0 t (Mul a b) = Mul (polysubst0 t a) (polysubst0 t b)"
-  "polysubst0 t (Pw p n) = Pw (polysubst0 t p) n"
-  "polysubst0 t (CN c n p) = (if n=0 then Add (polysubst0 t c) (Mul t (polysubst0 t p))
+| "polysubst0 t (Bound n) = (if n=0 then t else Bound n)"
+| "polysubst0 t (Neg a) = Neg (polysubst0 t a)"
+| "polysubst0 t (Add a b) = Add (polysubst0 t a) (polysubst0 t b)"
+| "polysubst0 t (Sub a b) = Sub (polysubst0 t a) (polysubst0 t b)" 
+| "polysubst0 t (Mul a b) = Mul (polysubst0 t a) (polysubst0 t b)"
+| "polysubst0 t (Pw p n) = Pw (polysubst0 t p) n"
+| "polysubst0 t (CN c n p) = (if n=0 then Add (polysubst0 t c) (Mul t (polysubst0 t p))
                              else CN (polysubst0 t c) n (polysubst0 t p))"
 
 consts 
@@ -195,11 +192,10 @@ subsection{* Pseudo-division *}
 
 definition shift1 :: "poly \<Rightarrow> poly" where
   "shift1 p \<equiv> CN 0\<^sub>p 0 p"
-consts funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
 
-primrec
-  "funpow 0 f x = x"
-  "funpow (Suc n) f x = funpow n f (f x)"
+abbreviation funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a)" where
+  "funpow \<equiv> compow"
+
 function (tailrec) polydivide_aux :: "(poly \<times> nat \<times> poly \<times> nat \<times> poly) \<Rightarrow> (nat \<times> poly)"
   where
   "polydivide_aux (a,n,p,k,s) = 
@@ -210,7 +206,6 @@ function (tailrec) polydivide_aux :: "(poly \<times> nat \<times> poly \<times> 
   (if a = b then polydivide_aux (a,n,p,k,s -\<^sub>p p') 
   else polydivide_aux (a,n,p,Suc k, (a *\<^sub>p s) -\<^sub>p (b *\<^sub>p p')))))))"
   by pat_completeness auto
-
 
 definition polydivide :: "poly \<Rightarrow> poly \<Rightarrow> (nat \<times> poly)" where
   "polydivide s p \<equiv> polydivide_aux (head p,degree p,p,0, s)"
@@ -230,16 +225,16 @@ by clarsimp
 
 subsection{* Semantics of the polynomial representation *}
 
-consts Ipoly :: "'a list \<Rightarrow> poly \<Rightarrow> 'a::{field_char_0, field_inverse_zero, power}"
-primrec
+primrec Ipoly :: "'a list \<Rightarrow> poly \<Rightarrow> 'a::{field_char_0, field_inverse_zero, power}" where
   "Ipoly bs (C c) = INum c"
-  "Ipoly bs (Bound n) = bs!n"
-  "Ipoly bs (Neg a) = - Ipoly bs a"
-  "Ipoly bs (Add a b) = Ipoly bs a + Ipoly bs b"
-  "Ipoly bs (Sub a b) = Ipoly bs a - Ipoly bs b"
-  "Ipoly bs (Mul a b) = Ipoly bs a * Ipoly bs b"
-  "Ipoly bs (Pw t n) = (Ipoly bs t) ^ n"
-  "Ipoly bs (CN c n p) = (Ipoly bs c) + (bs!n)*(Ipoly bs p)"
+| "Ipoly bs (Bound n) = bs!n"
+| "Ipoly bs (Neg a) = - Ipoly bs a"
+| "Ipoly bs (Add a b) = Ipoly bs a + Ipoly bs b"
+| "Ipoly bs (Sub a b) = Ipoly bs a - Ipoly bs b"
+| "Ipoly bs (Mul a b) = Ipoly bs a * Ipoly bs b"
+| "Ipoly bs (Pw t n) = (Ipoly bs t) ^ n"
+| "Ipoly bs (CN c n p) = (Ipoly bs c) + (bs!n)*(Ipoly bs p)"
+
 abbreviation
   Ipoly_syntax :: "poly \<Rightarrow> 'a list \<Rightarrow>'a::{field_char_0, field_inverse_zero, power}" ("\<lparr>_\<rparr>\<^sub>p\<^bsup>_\<^esup>")
   where "\<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<equiv> Ipoly bs p"
@@ -729,7 +724,7 @@ lemma shift1_nz[simp]:"shift1 p \<noteq> 0\<^sub>p"
   by (simp add: shift1_def)
 lemma funpow_shift1_isnpoly: 
   "\<lbrakk> isnpoly p ; p \<noteq> 0\<^sub>p\<rbrakk> \<Longrightarrow> isnpoly (funpow n shift1 p)"
-  by (induct n arbitrary: p, auto simp add: shift1_isnpoly)
+  by (induct n arbitrary: p) (auto simp add: shift1_isnpoly funpow_swap1)
 
 lemma funpow_isnpolyh: 
   assumes f: "\<And> p. isnpolyh p n \<Longrightarrow> isnpolyh (f p) n "and np: "isnpolyh p n"
@@ -767,7 +762,7 @@ lemma behead_isnpolyh:
 
 subsection{* Miscilanious lemmas about indexes, decrementation, substitution  etc ... *}
 lemma isnpolyh_polybound0: "isnpolyh p (Suc n) \<Longrightarrow> polybound0 p"
-proof(induct p arbitrary: n rule: polybound0.induct, auto)
+proof(induct p arbitrary: n rule: poly.induct, auto)
   case (goal1 c n p n')
   hence "n = Suc (n - 1)" by simp
   hence "isnpolyh p (Suc (n - 1))"  using `isnpolyh p n` by simp
@@ -793,7 +788,7 @@ lemma polybound0_I:
   assumes nb: "polybound0 a"
   shows "Ipoly (b#bs) a = Ipoly (b'#bs) a"
 using nb
-by (induct a rule: polybound0.induct) auto 
+by (induct a rule: poly.induct) auto 
 lemma polysubst0_I:
   shows "Ipoly (b#bs) (polysubst0 a t) = Ipoly ((Ipoly (b#bs) a)#bs) t"
   by (induct t) simp_all
@@ -809,12 +804,12 @@ lemma decrpoly: assumes nb: "polybound0 t"
 
 lemma polysubst0_polybound0: assumes nb: "polybound0 t"
   shows "polybound0 (polysubst0 t a)"
-using nb by (induct a rule: polysubst0.induct, auto)
+using nb by (induct a rule: poly.induct, auto)
 
 lemma degree0_polybound0: "isnpolyh p n \<Longrightarrow> degree p = 0 \<Longrightarrow> polybound0 p"
   by (induct p arbitrary: n rule: degree.induct, auto simp add: isnpolyh_polybound0)
 
-fun maxindex :: "poly \<Rightarrow> nat" where
+primrec maxindex :: "poly \<Rightarrow> nat" where
   "maxindex (Bound n) = n + 1"
 | "maxindex (CN c n p) = max  (n + 1) (max (maxindex c) (maxindex p))"
 | "maxindex (Add p q) = max (maxindex p) (maxindex q)"
@@ -1183,7 +1178,7 @@ proof(induct k arbitrary: n0 p)
   case (Suc k n0 p) hence "isnpolyh (shift1 p) 0" by (simp add: shift1_isnpolyh)
   with prems have "head (funpow k shift1 (shift1 p)) = head (shift1 p)"
     and "head (shift1 p) = head p" by (simp_all add: shift1_head) 
-  thus ?case by simp
+  thus ?case by (simp add: funpow_swap1)
 qed auto  
 
 lemma shift1_degree: "degree (shift1 p) = 1 + degree p"
@@ -1641,8 +1636,8 @@ qed
 
 lemma pnormal_length: "p\<noteq>[] \<Longrightarrow> pnormal p \<longleftrightarrow> length (pnormalize p) = length p"
   unfolding pnormal_def
- apply (induct p rule: pnormalize.induct, simp_all)
- apply (case_tac "p=[]", simp_all)
+ apply (induct p)
+ apply (simp_all, case_tac "p=[]", simp_all)
  done
 
 lemma degree_degree: assumes inc: "isnonconstant p"
@@ -1668,16 +1663,15 @@ next
 qed
 
 section{* Swaps ; Division by a certain variable *}
-consts swap:: "nat \<Rightarrow> nat \<Rightarrow> poly \<Rightarrow> poly"
-primrec
+primrec swap:: "nat \<Rightarrow> nat \<Rightarrow> poly \<Rightarrow> poly" where
   "swap n m (C x) = C x"
-  "swap n m (Bound k) = Bound (if k = n then m else if k=m then n else k)"
-  "swap n m (Neg t) = Neg (swap n m t)"
-  "swap n m (Add s t) = Add (swap n m s) (swap n m t)"
-  "swap n m (Sub s t) = Sub (swap n m s) (swap n m t)"
-  "swap n m (Mul s t) = Mul (swap n m s) (swap n m t)"
-  "swap n m (Pw t k) = Pw (swap n m t) k"
-  "swap n m (CN c k p) = CN (swap n m c) (if k = n then m else if k=m then n else k)
+| "swap n m (Bound k) = Bound (if k = n then m else if k=m then n else k)"
+| "swap n m (Neg t) = Neg (swap n m t)"
+| "swap n m (Add s t) = Add (swap n m s) (swap n m t)"
+| "swap n m (Sub s t) = Sub (swap n m s) (swap n m t)"
+| "swap n m (Mul s t) = Mul (swap n m s) (swap n m t)"
+| "swap n m (Pw t k) = Pw (swap n m t) k"
+| "swap n m (CN c k p) = CN (swap n m c) (if k = n then m else if k=m then n else k)
   (swap n m p)"
 
 lemma swap: assumes nbs: "n < length bs" and mbs: "m < length bs"

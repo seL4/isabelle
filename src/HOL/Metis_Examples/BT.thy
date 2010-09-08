@@ -15,53 +15,41 @@ datatype 'a bt =
     Lf
   | Br 'a  "'a bt"  "'a bt"
 
-consts
-  n_nodes   :: "'a bt => nat"
-  n_leaves  :: "'a bt => nat"
-  depth     :: "'a bt => nat"
-  reflect   :: "'a bt => 'a bt"
-  bt_map    :: "('a => 'b) => ('a bt => 'b bt)"
-  preorder  :: "'a bt => 'a list"
-  inorder   :: "'a bt => 'a list"
-  postorder :: "'a bt => 'a list"
-  appnd    :: "'a bt => 'a bt => 'a bt"
-
-primrec
+primrec n_nodes :: "'a bt => nat" where
   "n_nodes Lf = 0"
-  "n_nodes (Br a t1 t2) = Suc (n_nodes t1 + n_nodes t2)"
+| "n_nodes (Br a t1 t2) = Suc (n_nodes t1 + n_nodes t2)"
 
-primrec
+primrec n_leaves :: "'a bt => nat" where
   "n_leaves Lf = Suc 0"
-  "n_leaves (Br a t1 t2) = n_leaves t1 + n_leaves t2"
+| "n_leaves (Br a t1 t2) = n_leaves t1 + n_leaves t2"
 
-primrec
+primrec depth :: "'a bt => nat" where
   "depth Lf = 0"
-  "depth (Br a t1 t2) = Suc (max (depth t1) (depth t2))"
+| "depth (Br a t1 t2) = Suc (max (depth t1) (depth t2))"
 
-primrec
+primrec reflect :: "'a bt => 'a bt" where
   "reflect Lf = Lf"
-  "reflect (Br a t1 t2) = Br a (reflect t2) (reflect t1)"
+| "reflect (Br a t1 t2) = Br a (reflect t2) (reflect t1)"
 
-primrec
+primrec bt_map :: "('a => 'b) => ('a bt => 'b bt)" where
   "bt_map f Lf = Lf"
-  "bt_map f (Br a t1 t2) = Br (f a) (bt_map f t1) (bt_map f t2)"
+| "bt_map f (Br a t1 t2) = Br (f a) (bt_map f t1) (bt_map f t2)"
 
-primrec
+primrec preorder :: "'a bt => 'a list" where
   "preorder Lf = []"
-  "preorder (Br a t1 t2) = [a] @ (preorder t1) @ (preorder t2)"
+| "preorder (Br a t1 t2) = [a] @ (preorder t1) @ (preorder t2)"
 
-primrec
+primrec inorder :: "'a bt => 'a list" where
   "inorder Lf = []"
-  "inorder (Br a t1 t2) = (inorder t1) @ [a] @ (inorder t2)"
+| "inorder (Br a t1 t2) = (inorder t1) @ [a] @ (inorder t2)"
 
-primrec
+primrec postorder :: "'a bt => 'a list" where
   "postorder Lf = []"
-  "postorder (Br a t1 t2) = (postorder t1) @ (postorder t2) @ [a]"
+| "postorder (Br a t1 t2) = (postorder t1) @ (postorder t2) @ [a]"
 
-primrec
-  "appnd Lf t = t"
-  "appnd (Br a t1 t2) t = Br a (appnd t1 t) (appnd t2 t)"
-
+primrec append :: "'a bt => 'a bt => 'a bt" where
+  "append Lf t = t"
+| "append (Br a t1 t2) t = Br a (append t1 t) (append t2 t)"
 
 text {* \medskip BT simplification *}
 
@@ -135,12 +123,12 @@ apply (induct_tac y)
  apply (metis bt_map.simps(1))
 by (metis bt_map.simps(2))
 
-declare [[ sledgehammer_problem_prefix = "BT__bt_map_appnd" ]]
+declare [[ sledgehammer_problem_prefix = "BT__bt_map_append" ]]
 
-lemma bt_map_appnd: "bt_map f (appnd t u) = appnd (bt_map f t) (bt_map f u)"
+lemma bt_map_append: "bt_map f (append t u) = append (bt_map f t) (bt_map f u)"
 apply (induct t)
- apply (metis appnd.simps(1) bt_map.simps(1))
-by (metis appnd.simps(2) bt_map.simps(2))
+ apply (metis append.simps(1) bt_map.simps(1))
+by (metis append.simps(2) bt_map.simps(2))
 
 declare [[ sledgehammer_problem_prefix = "BT__bt_map_compose" ]]
 
@@ -219,8 +207,8 @@ lemma preorder_reflect: "preorder (reflect t) = rev (postorder t)"
 apply (induct t)
  apply (metis Nil_is_rev_conv postorder.simps(1) preorder.simps(1)
               reflect.simps(1))
-by (metis append.simps(1) append.simps(2) postorder.simps(2) preorder.simps(2)
-          reflect.simps(2) rev.simps(2) rev_append rev_swap)
+apply simp
+done
 
 declare [[ sledgehammer_problem_prefix = "BT__inorder_reflect" ]]
 
@@ -245,44 +233,44 @@ text {*
 Analogues of the standard properties of the append function for lists.
 *}
 
-declare [[ sledgehammer_problem_prefix = "BT__appnd_assoc" ]]
+declare [[ sledgehammer_problem_prefix = "BT__append_assoc" ]]
 
-lemma appnd_assoc [simp]: "appnd (appnd t1 t2) t3 = appnd t1 (appnd t2 t3)"
+lemma append_assoc [simp]: "append (append t1 t2) t3 = append t1 (append t2 t3)"
 apply (induct t1)
- apply (metis appnd.simps(1))
-by (metis appnd.simps(2))
+ apply (metis append.simps(1))
+by (metis append.simps(2))
 
-declare [[ sledgehammer_problem_prefix = "BT__appnd_Lf2" ]]
+declare [[ sledgehammer_problem_prefix = "BT__append_Lf2" ]]
 
-lemma appnd_Lf2 [simp]: "appnd t Lf = t"
+lemma append_Lf2 [simp]: "append t Lf = t"
 apply (induct t)
- apply (metis appnd.simps(1))
-by (metis appnd.simps(2))
+ apply (metis append.simps(1))
+by (metis append.simps(2))
 
 declare max_add_distrib_left [simp]
 
-declare [[ sledgehammer_problem_prefix = "BT__depth_appnd" ]]
+declare [[ sledgehammer_problem_prefix = "BT__depth_append" ]]
 
-lemma depth_appnd [simp]: "depth (appnd t1 t2) = depth t1 + depth t2"
+lemma depth_append [simp]: "depth (append t1 t2) = depth t1 + depth t2"
 apply (induct t1)
- apply (metis appnd.simps(1) depth.simps(1) plus_nat.simps(1))
+ apply (metis append.simps(1) depth.simps(1) plus_nat.simps(1))
 by simp
 
-declare [[ sledgehammer_problem_prefix = "BT__n_leaves_appnd" ]]
+declare [[ sledgehammer_problem_prefix = "BT__n_leaves_append" ]]
 
-lemma n_leaves_appnd [simp]:
-     "n_leaves (appnd t1 t2) = n_leaves t1 * n_leaves t2"
+lemma n_leaves_append [simp]:
+     "n_leaves (append t1 t2) = n_leaves t1 * n_leaves t2"
 apply (induct t1)
- apply (metis appnd.simps(1) n_leaves.simps(1) nat_mult_1 plus_nat.simps(1)
+ apply (metis append.simps(1) n_leaves.simps(1) nat_mult_1 plus_nat.simps(1)
               semiring_norm(111))
 by (simp add: left_distrib)
 
-declare [[ sledgehammer_problem_prefix = "BT__bt_map_appnd" ]]
+declare [[ sledgehammer_problem_prefix = "BT__bt_map_append" ]]
 
-lemma (*bt_map_appnd:*)
-     "bt_map f (appnd t1 t2) = appnd (bt_map f t1) (bt_map f t2)"
+lemma (*bt_map_append:*)
+     "bt_map f (append t1 t2) = append (bt_map f t1) (bt_map f t2)"
 apply (induct t1)
- apply (metis appnd.simps(1) bt_map.simps(1))
-by (metis bt_map_appnd)
+ apply (metis append.simps(1) bt_map.simps(1))
+by (metis bt_map_append)
 
 end

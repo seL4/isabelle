@@ -16,26 +16,24 @@ datatype tm = CP poly | Bound nat | Add tm tm | Mul poly tm
   | Neg tm | Sub tm tm | CNP nat poly tm
   (* A size for poly to make inductive proofs simpler*)
 
-consts tmsize :: "tm \<Rightarrow> nat"
-primrec 
+primrec tmsize :: "tm \<Rightarrow> nat" where
   "tmsize (CP c) = polysize c"
-  "tmsize (Bound n) = 1"
-  "tmsize (Neg a) = 1 + tmsize a"
-  "tmsize (Add a b) = 1 + tmsize a + tmsize b"
-  "tmsize (Sub a b) = 3 + tmsize a + tmsize b"
-  "tmsize (Mul c a) = 1 + polysize c + tmsize a"
-  "tmsize (CNP n c a) = 3 + polysize c + tmsize a "
+| "tmsize (Bound n) = 1"
+| "tmsize (Neg a) = 1 + tmsize a"
+| "tmsize (Add a b) = 1 + tmsize a + tmsize b"
+| "tmsize (Sub a b) = 3 + tmsize a + tmsize b"
+| "tmsize (Mul c a) = 1 + polysize c + tmsize a"
+| "tmsize (CNP n c a) = 3 + polysize c + tmsize a "
 
   (* Semantics of terms tm *)
-consts Itm :: "'a::{field_char_0, field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
-primrec
+primrec Itm :: "'a::{field_char_0, field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a" where
   "Itm vs bs (CP c) = (Ipoly vs c)"
-  "Itm vs bs (Bound n) = bs!n"
-  "Itm vs bs (Neg a) = -(Itm vs bs a)"
-  "Itm vs bs (Add a b) = Itm vs bs a + Itm vs bs b"
-  "Itm vs bs (Sub a b) = Itm vs bs a - Itm vs bs b"
-  "Itm vs bs (Mul c a) = (Ipoly vs c) * Itm vs bs a"
-  "Itm vs bs (CNP n c t) = (Ipoly vs c)*(bs!n) + Itm vs bs t"   
+| "Itm vs bs (Bound n) = bs!n"
+| "Itm vs bs (Neg a) = -(Itm vs bs a)"
+| "Itm vs bs (Add a b) = Itm vs bs a + Itm vs bs b"
+| "Itm vs bs (Sub a b) = Itm vs bs a - Itm vs bs b"
+| "Itm vs bs (Mul c a) = (Ipoly vs c) * Itm vs bs a"
+| "Itm vs bs (CNP n c t) = (Ipoly vs c)*(bs!n) + Itm vs bs t"   
 
 
 fun allpolys:: "(poly \<Rightarrow> bool) \<Rightarrow> tm \<Rightarrow> bool"  where
@@ -47,51 +45,48 @@ fun allpolys:: "(poly \<Rightarrow> bool) \<Rightarrow> tm \<Rightarrow> bool"  
 | "allpolys P (Sub p q) = (allpolys P p \<and> allpolys P q)"
 | "allpolys P p = True"
 
-consts 
-  tmboundslt:: "nat \<Rightarrow> tm \<Rightarrow> bool"
-  tmbound0:: "tm \<Rightarrow> bool" (* a tm is INDEPENDENT of Bound 0 *)
-  tmbound:: "nat \<Rightarrow> tm \<Rightarrow> bool" (* a tm is INDEPENDENT of Bound n *)
-  incrtm0:: "tm \<Rightarrow> tm"
-  incrtm:: "nat \<Rightarrow> tm \<Rightarrow> tm"
-  decrtm0:: "tm \<Rightarrow> tm" 
-  decrtm:: "nat \<Rightarrow> tm \<Rightarrow> tm" 
-primrec
+primrec tmboundslt:: "nat \<Rightarrow> tm \<Rightarrow> bool" where
   "tmboundslt n (CP c) = True"
-  "tmboundslt n (Bound m) = (m < n)"
-  "tmboundslt n (CNP m c a) = (m < n \<and> tmboundslt n a)"
-  "tmboundslt n (Neg a) = tmboundslt n a"
-  "tmboundslt n (Add a b) = (tmboundslt n a \<and> tmboundslt n b)"
-  "tmboundslt n (Sub a b) = (tmboundslt n a \<and> tmboundslt n b)" 
-  "tmboundslt n (Mul i a) = tmboundslt n a"
-primrec
+| "tmboundslt n (Bound m) = (m < n)"
+| "tmboundslt n (CNP m c a) = (m < n \<and> tmboundslt n a)"
+| "tmboundslt n (Neg a) = tmboundslt n a"
+| "tmboundslt n (Add a b) = (tmboundslt n a \<and> tmboundslt n b)"
+| "tmboundslt n (Sub a b) = (tmboundslt n a \<and> tmboundslt n b)" 
+| "tmboundslt n (Mul i a) = tmboundslt n a"
+
+primrec tmbound0:: "tm \<Rightarrow> bool" (* a tm is INDEPENDENT of Bound 0 *) where
   "tmbound0 (CP c) = True"
-  "tmbound0 (Bound n) = (n>0)"
-  "tmbound0 (CNP n c a) = (n\<noteq>0 \<and> tmbound0 a)"
-  "tmbound0 (Neg a) = tmbound0 a"
-  "tmbound0 (Add a b) = (tmbound0 a \<and> tmbound0 b)"
-  "tmbound0 (Sub a b) = (tmbound0 a \<and> tmbound0 b)" 
-  "tmbound0 (Mul i a) = tmbound0 a"
+| "tmbound0 (Bound n) = (n>0)"
+| "tmbound0 (CNP n c a) = (n\<noteq>0 \<and> tmbound0 a)"
+| "tmbound0 (Neg a) = tmbound0 a"
+| "tmbound0 (Add a b) = (tmbound0 a \<and> tmbound0 b)"
+| "tmbound0 (Sub a b) = (tmbound0 a \<and> tmbound0 b)" 
+| "tmbound0 (Mul i a) = tmbound0 a"
 lemma tmbound0_I:
   assumes nb: "tmbound0 a"
   shows "Itm vs (b#bs) a = Itm vs (b'#bs) a"
 using nb
-by (induct a rule: tmbound0.induct,auto simp add: nth_pos2)
+by (induct a rule: tm.induct,auto simp add: nth_pos2)
 
-primrec
+primrec tmbound:: "nat \<Rightarrow> tm \<Rightarrow> bool" (* a tm is INDEPENDENT of Bound n *) where
   "tmbound n (CP c) = True"
-  "tmbound n (Bound m) = (n \<noteq> m)"
-  "tmbound n (CNP m c a) = (n\<noteq>m \<and> tmbound n a)"
-  "tmbound n (Neg a) = tmbound n a"
-  "tmbound n (Add a b) = (tmbound n a \<and> tmbound n b)"
-  "tmbound n (Sub a b) = (tmbound n a \<and> tmbound n b)" 
-  "tmbound n (Mul i a) = tmbound n a"
+| "tmbound n (Bound m) = (n \<noteq> m)"
+| "tmbound n (CNP m c a) = (n\<noteq>m \<and> tmbound n a)"
+| "tmbound n (Neg a) = tmbound n a"
+| "tmbound n (Add a b) = (tmbound n a \<and> tmbound n b)"
+| "tmbound n (Sub a b) = (tmbound n a \<and> tmbound n b)" 
+| "tmbound n (Mul i a) = tmbound n a"
 lemma tmbound0_tmbound_iff: "tmbound 0 t = tmbound0 t" by (induct t, auto)
 
 lemma tmbound_I: 
   assumes bnd: "tmboundslt (length bs) t" and nb: "tmbound n t" and le: "n \<le> length bs"
   shows "Itm vs (bs[n:=x]) t = Itm vs bs t"
   using nb le bnd
-  by (induct t rule: tmbound.induct , auto)
+  by (induct t rule: tm.induct , auto)
+
+consts 
+  incrtm0:: "tm \<Rightarrow> tm"
+  decrtm0:: "tm \<Rightarrow> tm" 
 
 recdef decrtm0 "measure size"
   "decrtm0 (Bound n) = Bound (n - 1)"
@@ -101,6 +96,7 @@ recdef decrtm0 "measure size"
   "decrtm0 (Mul c a) = Mul c (decrtm0 a)"
   "decrtm0 (CNP n c a) = CNP (n - 1) c (decrtm0 a)"
   "decrtm0 a = a"
+
 recdef incrtm0 "measure size"
   "incrtm0 (Bound n) = Bound (n + 1)"
   "incrtm0 (Neg a) = Neg (incrtm0 a)"
@@ -109,25 +105,26 @@ recdef incrtm0 "measure size"
   "incrtm0 (Mul c a) = Mul c (incrtm0 a)"
   "incrtm0 (CNP n c a) = CNP (n + 1) c (incrtm0 a)"
   "incrtm0 a = a"
+
 lemma decrtm0: assumes nb: "tmbound0 t"
   shows "Itm vs (x#bs) t = Itm vs bs (decrtm0 t)"
   using nb by (induct t rule: decrtm0.induct, simp_all add: nth_pos2)
+
 lemma incrtm0: "Itm vs (x#bs) (incrtm0 t) = Itm vs bs t"
   by (induct t rule: decrtm0.induct, simp_all add: nth_pos2)
 
-primrec
+primrec decrtm:: "nat \<Rightarrow> tm \<Rightarrow> tm" where
   "decrtm m (CP c) = (CP c)"
-  "decrtm m (Bound n) = (if n < m then Bound n else Bound (n - 1))"
-  "decrtm m (Neg a) = Neg (decrtm m a)"
-  "decrtm m (Add a b) = Add (decrtm m a) (decrtm m b)"
-  "decrtm m (Sub a b) = Sub (decrtm m a) (decrtm m b)"
-  "decrtm m (Mul c a) = Mul c (decrtm m a)"
-  "decrtm m (CNP n c a) = (if n < m then CNP n c (decrtm m a) else CNP (n - 1) c (decrtm m a))"
+| "decrtm m (Bound n) = (if n < m then Bound n else Bound (n - 1))"
+| "decrtm m (Neg a) = Neg (decrtm m a)"
+| "decrtm m (Add a b) = Add (decrtm m a) (decrtm m b)"
+| "decrtm m (Sub a b) = Sub (decrtm m a) (decrtm m b)"
+| "decrtm m (Mul c a) = Mul c (decrtm m a)"
+| "decrtm m (CNP n c a) = (if n < m then CNP n c (decrtm m a) else CNP (n - 1) c (decrtm m a))"
 
-consts removen:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
-primrec
+primrec removen:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "removen n [] = []"
-  "removen n (x#xs) = (if n=0 then xs else (x#(removen (n - 1) xs)))"
+| "removen n (x#xs) = (if n=0 then xs else (x#(removen (n - 1) xs)))"
 
 lemma removen_same: "n \<ge> length xs \<Longrightarrow> removen n xs = xs"
   by (induct xs arbitrary: n, auto)
@@ -172,50 +169,47 @@ lemma decrtm: assumes bnd: "tmboundslt (length bs) t" and nb: "tmbound m t"
   and nle: "m \<le> length bs" 
   shows "Itm vs (removen m bs) (decrtm m t) = Itm vs bs t"
   using bnd nb nle
-  by (induct t rule: decrtm.induct, auto simp add: removen_nth)
+  by (induct t rule: tm.induct, auto simp add: removen_nth)
 
-consts tmsubst0:: "tm \<Rightarrow> tm \<Rightarrow> tm"
-primrec
+primrec tmsubst0:: "tm \<Rightarrow> tm \<Rightarrow> tm" where
   "tmsubst0 t (CP c) = CP c"
-  "tmsubst0 t (Bound n) = (if n=0 then t else Bound n)"
-  "tmsubst0 t (CNP n c a) = (if n=0 then Add (Mul c t) (tmsubst0 t a) else CNP n c (tmsubst0 t a))"
-  "tmsubst0 t (Neg a) = Neg (tmsubst0 t a)"
-  "tmsubst0 t (Add a b) = Add (tmsubst0 t a) (tmsubst0 t b)"
-  "tmsubst0 t (Sub a b) = Sub (tmsubst0 t a) (tmsubst0 t b)" 
-  "tmsubst0 t (Mul i a) = Mul i (tmsubst0 t a)"
+| "tmsubst0 t (Bound n) = (if n=0 then t else Bound n)"
+| "tmsubst0 t (CNP n c a) = (if n=0 then Add (Mul c t) (tmsubst0 t a) else CNP n c (tmsubst0 t a))"
+| "tmsubst0 t (Neg a) = Neg (tmsubst0 t a)"
+| "tmsubst0 t (Add a b) = Add (tmsubst0 t a) (tmsubst0 t b)"
+| "tmsubst0 t (Sub a b) = Sub (tmsubst0 t a) (tmsubst0 t b)" 
+| "tmsubst0 t (Mul i a) = Mul i (tmsubst0 t a)"
 lemma tmsubst0:
   shows "Itm vs (x#bs) (tmsubst0 t a) = Itm vs ((Itm vs (x#bs) t)#bs) a"
-by (induct a rule: tmsubst0.induct,auto simp add: nth_pos2)
+by (induct a rule: tm.induct,auto simp add: nth_pos2)
 
 lemma tmsubst0_nb: "tmbound0 t \<Longrightarrow> tmbound0 (tmsubst0 t a)"
-by (induct a rule: tmsubst0.induct,auto simp add: nth_pos2)
+by (induct a rule: tm.induct,auto simp add: nth_pos2)
 
-consts tmsubst:: "nat \<Rightarrow> tm \<Rightarrow> tm \<Rightarrow> tm" 
-
-primrec
+primrec tmsubst:: "nat \<Rightarrow> tm \<Rightarrow> tm \<Rightarrow> tm" where
   "tmsubst n t (CP c) = CP c"
-  "tmsubst n t (Bound m) = (if n=m then t else Bound m)"
-  "tmsubst n t (CNP m c a) = (if n=m then Add (Mul c t) (tmsubst n t a) 
+| "tmsubst n t (Bound m) = (if n=m then t else Bound m)"
+| "tmsubst n t (CNP m c a) = (if n=m then Add (Mul c t) (tmsubst n t a) 
              else CNP m c (tmsubst n t a))"
-  "tmsubst n t (Neg a) = Neg (tmsubst n t a)"
-  "tmsubst n t (Add a b) = Add (tmsubst n t a) (tmsubst n t b)"
-  "tmsubst n t (Sub a b) = Sub (tmsubst n t a) (tmsubst n t b)" 
-  "tmsubst n t (Mul i a) = Mul i (tmsubst n t a)"
+| "tmsubst n t (Neg a) = Neg (tmsubst n t a)"
+| "tmsubst n t (Add a b) = Add (tmsubst n t a) (tmsubst n t b)"
+| "tmsubst n t (Sub a b) = Sub (tmsubst n t a) (tmsubst n t b)" 
+| "tmsubst n t (Mul i a) = Mul i (tmsubst n t a)"
 
 lemma tmsubst: assumes nb: "tmboundslt (length bs) a" and nlt: "n \<le> length bs"
   shows "Itm vs bs (tmsubst n t a) = Itm vs (bs[n:= Itm vs bs t]) a"
 using nb nlt
-by (induct a rule: tmsubst0.induct,auto simp add: nth_pos2)
+by (induct a rule: tm.induct,auto simp add: nth_pos2)
 
 lemma tmsubst_nb0: assumes tnb: "tmbound0 t"
 shows "tmbound0 (tmsubst 0 t a)"
 using tnb
-by (induct a rule: tmsubst.induct, auto)
+by (induct a rule: tm.induct, auto)
 
 lemma tmsubst_nb: assumes tnb: "tmbound m t"
 shows "tmbound m (tmsubst m t a)"
 using tnb
-by (induct a rule: tmsubst.induct, auto)
+by (induct a rule: tm.induct, auto)
 lemma incrtm0_tmbound: "tmbound n t \<Longrightarrow> tmbound (Suc n) (incrtm0 t)"
   by (induct t, auto)
   (* Simplification *)
@@ -447,21 +441,20 @@ lemma fmsize_pos: "fmsize p > 0"
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
-consts Ifm ::"'a::{linordered_field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool"
-primrec
+primrec Ifm ::"'a::{linordered_field_inverse_zero} list \<Rightarrow> 'a list \<Rightarrow> fm \<Rightarrow> bool" where
   "Ifm vs bs T = True"
-  "Ifm vs bs F = False"
-  "Ifm vs bs (Lt a) = (Itm vs bs a < 0)"
-  "Ifm vs bs (Le a) = (Itm vs bs a \<le> 0)"
-  "Ifm vs bs (Eq a) = (Itm vs bs a = 0)"
-  "Ifm vs bs (NEq a) = (Itm vs bs a \<noteq> 0)"
-  "Ifm vs bs (NOT p) = (\<not> (Ifm vs bs p))"
-  "Ifm vs bs (And p q) = (Ifm vs bs p \<and> Ifm vs bs q)"
-  "Ifm vs bs (Or p q) = (Ifm vs bs p \<or> Ifm vs bs q)"
-  "Ifm vs bs (Imp p q) = ((Ifm vs bs p) \<longrightarrow> (Ifm vs bs q))"
-  "Ifm vs bs (Iff p q) = (Ifm vs bs p = Ifm vs bs q)"
-  "Ifm vs bs (E p) = (\<exists> x. Ifm vs (x#bs) p)"
-  "Ifm vs bs (A p) = (\<forall> x. Ifm vs (x#bs) p)"
+| "Ifm vs bs F = False"
+| "Ifm vs bs (Lt a) = (Itm vs bs a < 0)"
+| "Ifm vs bs (Le a) = (Itm vs bs a \<le> 0)"
+| "Ifm vs bs (Eq a) = (Itm vs bs a = 0)"
+| "Ifm vs bs (NEq a) = (Itm vs bs a \<noteq> 0)"
+| "Ifm vs bs (NOT p) = (\<not> (Ifm vs bs p))"
+| "Ifm vs bs (And p q) = (Ifm vs bs p \<and> Ifm vs bs q)"
+| "Ifm vs bs (Or p q) = (Ifm vs bs p \<or> Ifm vs bs q)"
+| "Ifm vs bs (Imp p q) = ((Ifm vs bs p) \<longrightarrow> (Ifm vs bs q))"
+| "Ifm vs bs (Iff p q) = (Ifm vs bs p = Ifm vs bs q)"
+| "Ifm vs bs (E p) = (\<exists> x. Ifm vs (x#bs) p)"
+| "Ifm vs bs (A p) = (\<forall> x. Ifm vs (x#bs) p)"
 
 consts not:: "fm \<Rightarrow> fm"
 recdef not "measure size"
@@ -516,27 +509,24 @@ recdef qfree "measure size"
 
   (* Boundedness and substitution *)
 
-consts boundslt :: "nat \<Rightarrow> fm \<Rightarrow> bool"
-primrec
+primrec boundslt :: "nat \<Rightarrow> fm \<Rightarrow> bool" where
   "boundslt n T = True"
-  "boundslt n F = True"
-  "boundslt n (Lt t) = (tmboundslt n t)"
-  "boundslt n (Le t) = (tmboundslt n t)"
-  "boundslt n (Eq t) = (tmboundslt n t)"
-  "boundslt n (NEq t) = (tmboundslt n t)"
-  "boundslt n (NOT p) = boundslt n p"
-  "boundslt n (And p q) = (boundslt n p \<and> boundslt n q)"
-  "boundslt n (Or p q) = (boundslt n p \<and> boundslt n q)"
-  "boundslt n (Imp p q) = ((boundslt n p) \<and> (boundslt n q))"
-  "boundslt n (Iff p q) = (boundslt n p \<and> boundslt n q)"
-  "boundslt n (E p) = boundslt (Suc n) p"
-  "boundslt n (A p) = boundslt (Suc n) p"
+| "boundslt n F = True"
+| "boundslt n (Lt t) = (tmboundslt n t)"
+| "boundslt n (Le t) = (tmboundslt n t)"
+| "boundslt n (Eq t) = (tmboundslt n t)"
+| "boundslt n (NEq t) = (tmboundslt n t)"
+| "boundslt n (NOT p) = boundslt n p"
+| "boundslt n (And p q) = (boundslt n p \<and> boundslt n q)"
+| "boundslt n (Or p q) = (boundslt n p \<and> boundslt n q)"
+| "boundslt n (Imp p q) = ((boundslt n p) \<and> (boundslt n q))"
+| "boundslt n (Iff p q) = (boundslt n p \<and> boundslt n q)"
+| "boundslt n (E p) = boundslt (Suc n) p"
+| "boundslt n (A p) = boundslt (Suc n) p"
 
 consts 
   bound0:: "fm \<Rightarrow> bool" (* A Formula is independent of Bound 0 *)
-  bound:: "nat \<Rightarrow> fm \<Rightarrow> bool" (* A Formula is independent of Bound n *)
   decr0 :: "fm \<Rightarrow> fm"
-  decr :: "nat \<Rightarrow> fm \<Rightarrow> fm"
 recdef bound0 "measure size"
   "bound0 T = True"
   "bound0 F = True"
@@ -556,26 +546,26 @@ lemma bound0_I:
 using bp tmbound0_I[where b="b" and bs="bs" and b'="b'"]
 by (induct p rule: bound0.induct,auto simp add: nth_pos2)
 
-primrec
+primrec bound:: "nat \<Rightarrow> fm \<Rightarrow> bool" (* A Formula is independent of Bound n *) where
   "bound m T = True"
-  "bound m F = True"
-  "bound m (Lt t) = tmbound m t"
-  "bound m (Le t) = tmbound m t"
-  "bound m (Eq t) = tmbound m t"
-  "bound m (NEq t) = tmbound m t"
-  "bound m (NOT p) = bound m p"
-  "bound m (And p q) = (bound m p \<and> bound m q)"
-  "bound m (Or p q) = (bound m p \<and> bound m q)"
-  "bound m (Imp p q) = ((bound m p) \<and> (bound m q))"
-  "bound m (Iff p q) = (bound m p \<and> bound m q)"
-  "bound m (E p) = bound (Suc m) p"
-  "bound m (A p) = bound (Suc m) p"
+| "bound m F = True"
+| "bound m (Lt t) = tmbound m t"
+| "bound m (Le t) = tmbound m t"
+| "bound m (Eq t) = tmbound m t"
+| "bound m (NEq t) = tmbound m t"
+| "bound m (NOT p) = bound m p"
+| "bound m (And p q) = (bound m p \<and> bound m q)"
+| "bound m (Or p q) = (bound m p \<and> bound m q)"
+| "bound m (Imp p q) = ((bound m p) \<and> (bound m q))"
+| "bound m (Iff p q) = (bound m p \<and> bound m q)"
+| "bound m (E p) = bound (Suc m) p"
+| "bound m (A p) = bound (Suc m) p"
 
 lemma bound_I:
   assumes bnd: "boundslt (length bs) p" and nb: "bound n p" and le: "n \<le> length bs"
   shows "Ifm vs (bs[n:=x]) p = Ifm vs bs p"
   using bnd nb le tmbound_I[where bs=bs and vs = vs]
-proof(induct p arbitrary: bs n rule: bound.induct)
+proof(induct p arbitrary: bs n rule: fm.induct)
   case (E p bs n) 
   {fix y
     from prems have bnd: "boundslt (length (y#bs)) p" 
@@ -607,26 +597,26 @@ lemma decr0: assumes nb: "bound0 p"
   using nb 
   by (induct p rule: decr0.induct, simp_all add: decrtm0)
 
-primrec
+primrec decr :: "nat \<Rightarrow> fm \<Rightarrow> fm" where
   "decr m T = T"
-  "decr m F = F"
-  "decr m (Lt t) = (Lt (decrtm m t))"
-  "decr m (Le t) = (Le (decrtm m t))"
-  "decr m (Eq t) = (Eq (decrtm m t))"
-  "decr m (NEq t) = (NEq (decrtm m t))"
-  "decr m (NOT p) = NOT (decr m p)" 
-  "decr m (And p q) = conj (decr m p) (decr m q)"
-  "decr m (Or p q) = disj (decr m p) (decr m q)"
-  "decr m (Imp p q) = imp (decr m p) (decr m q)"
-  "decr m (Iff p q) = iff (decr m p) (decr m q)"
-  "decr m (E p) = E (decr (Suc m) p)"
-  "decr m (A p) = A (decr (Suc m) p)"
+| "decr m F = F"
+| "decr m (Lt t) = (Lt (decrtm m t))"
+| "decr m (Le t) = (Le (decrtm m t))"
+| "decr m (Eq t) = (Eq (decrtm m t))"
+| "decr m (NEq t) = (NEq (decrtm m t))"
+| "decr m (NOT p) = NOT (decr m p)" 
+| "decr m (And p q) = conj (decr m p) (decr m q)"
+| "decr m (Or p q) = disj (decr m p) (decr m q)"
+| "decr m (Imp p q) = imp (decr m p) (decr m q)"
+| "decr m (Iff p q) = iff (decr m p) (decr m q)"
+| "decr m (E p) = E (decr (Suc m) p)"
+| "decr m (A p) = A (decr (Suc m) p)"
 
 lemma decr: assumes  bnd: "boundslt (length bs) p" and nb: "bound m p" 
   and nle: "m < length bs" 
   shows "Ifm vs (removen m bs) (decr m p) = Ifm vs bs p"
   using bnd nb nle
-proof(induct p arbitrary: bs m rule: decr.induct)
+proof(induct p arbitrary: bs m rule: fm.induct)
   case (E p bs m) 
   {fix x
     from prems have bnd: "boundslt (length (x#bs)) p" and nb: "bound (Suc m) p" 
@@ -642,55 +632,51 @@ next
   } thus ?case by auto
 qed (auto simp add: decrtm removen_nth)
 
-consts
-  subst0:: "tm \<Rightarrow> fm \<Rightarrow> fm"
-
-primrec
+primrec subst0:: "tm \<Rightarrow> fm \<Rightarrow> fm" where
   "subst0 t T = T"
-  "subst0 t F = F"
-  "subst0 t (Lt a) = Lt (tmsubst0 t a)"
-  "subst0 t (Le a) = Le (tmsubst0 t a)"
-  "subst0 t (Eq a) = Eq (tmsubst0 t a)"
-  "subst0 t (NEq a) = NEq (tmsubst0 t a)"
-  "subst0 t (NOT p) = NOT (subst0 t p)"
-  "subst0 t (And p q) = And (subst0 t p) (subst0 t q)"
-  "subst0 t (Or p q) = Or (subst0 t p) (subst0 t q)"
-  "subst0 t (Imp p q) = Imp (subst0 t p)  (subst0 t q)"
-  "subst0 t (Iff p q) = Iff (subst0 t p) (subst0 t q)"
-  "subst0 t (E p) = E p"
-  "subst0 t (A p) = A p"
+| "subst0 t F = F"
+| "subst0 t (Lt a) = Lt (tmsubst0 t a)"
+| "subst0 t (Le a) = Le (tmsubst0 t a)"
+| "subst0 t (Eq a) = Eq (tmsubst0 t a)"
+| "subst0 t (NEq a) = NEq (tmsubst0 t a)"
+| "subst0 t (NOT p) = NOT (subst0 t p)"
+| "subst0 t (And p q) = And (subst0 t p) (subst0 t q)"
+| "subst0 t (Or p q) = Or (subst0 t p) (subst0 t q)"
+| "subst0 t (Imp p q) = Imp (subst0 t p)  (subst0 t q)"
+| "subst0 t (Iff p q) = Iff (subst0 t p) (subst0 t q)"
+| "subst0 t (E p) = E p"
+| "subst0 t (A p) = A p"
 
 lemma subst0: assumes qf: "qfree p"
   shows "Ifm vs (x#bs) (subst0 t p) = Ifm vs ((Itm vs (x#bs) t)#bs) p"
 using qf tmsubst0[where x="x" and bs="bs" and t="t"]
-by (induct p rule: subst0.induct, auto)
+by (induct p rule: fm.induct, auto)
 
 lemma subst0_nb:
   assumes bp: "tmbound0 t" and qf: "qfree p"
   shows "bound0 (subst0 t p)"
 using qf tmsubst0_nb[OF bp] bp
-by (induct p rule: subst0.induct, auto)
+by (induct p rule: fm.induct, auto)
 
-consts   subst:: "nat \<Rightarrow> tm \<Rightarrow> fm \<Rightarrow> fm" 
-primrec
+primrec subst:: "nat \<Rightarrow> tm \<Rightarrow> fm \<Rightarrow> fm" where
   "subst n t T = T"
-  "subst n t F = F"
-  "subst n t (Lt a) = Lt (tmsubst n t a)"
-  "subst n t (Le a) = Le (tmsubst n t a)"
-  "subst n t (Eq a) = Eq (tmsubst n t a)"
-  "subst n t (NEq a) = NEq (tmsubst n t a)"
-  "subst n t (NOT p) = NOT (subst n t p)"
-  "subst n t (And p q) = And (subst n t p) (subst n t q)"
-  "subst n t (Or p q) = Or (subst n t p) (subst n t q)"
-  "subst n t (Imp p q) = Imp (subst n t p)  (subst n t q)"
-  "subst n t (Iff p q) = Iff (subst n t p) (subst n t q)"
-  "subst n t (E p) = E (subst (Suc n) (incrtm0 t) p)"
-  "subst n t (A p) = A (subst (Suc n) (incrtm0 t) p)"
+| "subst n t F = F"
+| "subst n t (Lt a) = Lt (tmsubst n t a)"
+| "subst n t (Le a) = Le (tmsubst n t a)"
+| "subst n t (Eq a) = Eq (tmsubst n t a)"
+| "subst n t (NEq a) = NEq (tmsubst n t a)"
+| "subst n t (NOT p) = NOT (subst n t p)"
+| "subst n t (And p q) = And (subst n t p) (subst n t q)"
+| "subst n t (Or p q) = Or (subst n t p) (subst n t q)"
+| "subst n t (Imp p q) = Imp (subst n t p)  (subst n t q)"
+| "subst n t (Iff p q) = Iff (subst n t p) (subst n t q)"
+| "subst n t (E p) = E (subst (Suc n) (incrtm0 t) p)"
+| "subst n t (A p) = A (subst (Suc n) (incrtm0 t) p)"
 
 lemma subst: assumes nb: "boundslt (length bs) p" and nlm: "n \<le> length bs"
   shows "Ifm vs bs (subst n t p) = Ifm vs (bs[n:= Itm vs bs t]) p"
   using nb nlm
-proof (induct p arbitrary: bs n t rule: subst0.induct)
+proof (induct p arbitrary: bs n t rule: fm.induct)
   case (E p bs n) 
   {fix x 
     from prems have bn: "boundslt (length (x#bs)) p" by simp 
@@ -713,7 +699,7 @@ qed(auto simp add: tmsubst)
 lemma subst_nb: assumes tnb: "tmbound m t"
 shows "bound m (subst m t p)"
 using tnb tmsubst_nb incrtm0_tmbound
-by (induct p arbitrary: m t rule: subst.induct, auto)
+by (induct p arbitrary: m t rule: fm.induct, auto)
 
 lemma not_qf[simp]: "qfree p \<Longrightarrow> qfree (not p)"
 by (induct p rule: not.induct, auto)
@@ -2475,10 +2461,9 @@ qed
 
 text {* Rest of the implementation *}
 
-consts alluopairs:: "'a list \<Rightarrow> ('a \<times> 'a) list"
-primrec
+primrec alluopairs:: "'a list \<Rightarrow> ('a \<times> 'a) list" where
   "alluopairs [] = []"
-  "alluopairs (x#xs) = (map (Pair x) (x#xs))@(alluopairs xs)"
+| "alluopairs (x#xs) = (map (Pair x) (x#xs))@(alluopairs xs)"
 
 lemma alluopairs_set1: "set (alluopairs xs) \<le> {(x,y). x\<in> set xs \<and> y\<in> set xs}"
 by (induct xs, auto)

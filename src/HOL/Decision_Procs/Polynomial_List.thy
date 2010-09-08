@@ -10,60 +10,52 @@ begin
 
 text{* Application of polynomial as a real function. *}
 
-consts poly :: "'a list => 'a  => ('a::{comm_ring})"
-primrec
+primrec poly :: "'a list => 'a  => ('a::{comm_ring})" where
   poly_Nil:  "poly [] x = 0"
-  poly_Cons: "poly (h#t) x = h + x * poly t x"
+| poly_Cons: "poly (h#t) x = h + x * poly t x"
 
 
 subsection{*Arithmetic Operations on Polynomials*}
 
 text{*addition*}
-consts padd :: "['a list, 'a list] => ('a::comm_ring_1) list"  (infixl "+++" 65)
-primrec
+primrec padd :: "['a list, 'a list] => ('a::comm_ring_1) list"  (infixl "+++" 65) where
   padd_Nil:  "[] +++ l2 = l2"
-  padd_Cons: "(h#t) +++ l2 = (if l2 = [] then h#t
+| padd_Cons: "(h#t) +++ l2 = (if l2 = [] then h#t
                             else (h + hd l2)#(t +++ tl l2))"
 
 text{*Multiplication by a constant*}
-consts cmult :: "['a :: comm_ring_1, 'a list] => 'a list"  (infixl "%*" 70)
-primrec
-   cmult_Nil:  "c %* [] = []"
-   cmult_Cons: "c %* (h#t) = (c * h)#(c %* t)"
+primrec cmult :: "['a :: comm_ring_1, 'a list] => 'a list"  (infixl "%*" 70) where
+  cmult_Nil:  "c %* [] = []"
+| cmult_Cons: "c %* (h#t) = (c * h)#(c %* t)"
 
 text{*Multiplication by a polynomial*}
-consts pmult :: "['a list, 'a list] => ('a::comm_ring_1) list"  (infixl "***" 70)
-primrec
-   pmult_Nil:  "[] *** l2 = []"
-   pmult_Cons: "(h#t) *** l2 = (if t = [] then h %* l2
+primrec pmult :: "['a list, 'a list] => ('a::comm_ring_1) list"  (infixl "***" 70) where
+  pmult_Nil:  "[] *** l2 = []"
+| pmult_Cons: "(h#t) *** l2 = (if t = [] then h %* l2
                               else (h %* l2) +++ ((0) # (t *** l2)))"
 
 text{*Repeated multiplication by a polynomial*}
-consts mulexp :: "[nat, 'a list, 'a  list] => ('a ::comm_ring_1) list"
-primrec
-   mulexp_zero:  "mulexp 0 p q = q"
-   mulexp_Suc:   "mulexp (Suc n) p q = p *** mulexp n p q"
+primrec mulexp :: "[nat, 'a list, 'a  list] => ('a ::comm_ring_1) list" where
+  mulexp_zero:  "mulexp 0 p q = q"
+| mulexp_Suc:   "mulexp (Suc n) p q = p *** mulexp n p q"
 
 text{*Exponential*}
-consts pexp :: "['a list, nat] => ('a::comm_ring_1) list"  (infixl "%^" 80)
-primrec
-   pexp_0:   "p %^ 0 = [1]"
-   pexp_Suc: "p %^ (Suc n) = p *** (p %^ n)"
+primrec pexp :: "['a list, nat] => ('a::comm_ring_1) list"  (infixl "%^" 80) where
+  pexp_0:   "p %^ 0 = [1]"
+| pexp_Suc: "p %^ (Suc n) = p *** (p %^ n)"
 
 text{*Quotient related value of dividing a polynomial by x + a*}
 (* Useful for divisor properties in inductive proofs *)
-consts "pquot" :: "['a list, 'a::field] => 'a list"
-primrec
-   pquot_Nil:  "pquot [] a= []"
-   pquot_Cons: "pquot (h#t) a = (if t = [] then [h]
+primrec pquot :: "['a list, 'a::field] => 'a list" where
+  pquot_Nil:  "pquot [] a= []"
+| pquot_Cons: "pquot (h#t) a = (if t = [] then [h]
                    else (inverse(a) * (h - hd( pquot t a)))#(pquot t a))"
 
 
 text{*normalization of polynomials (remove extra 0 coeff)*}
-consts pnormalize :: "('a::comm_ring_1) list => 'a list"
-primrec
-   pnormalize_Nil:  "pnormalize [] = []"
-   pnormalize_Cons: "pnormalize (h#p) = (if ( (pnormalize p) = [])
+primrec pnormalize :: "('a::comm_ring_1) list => 'a list" where
+  pnormalize_Nil:  "pnormalize [] = []"
+| pnormalize_Cons: "pnormalize (h#p) = (if ( (pnormalize p) = [])
                                      then (if (h = 0) then [] else [h])
                                      else (h#(pnormalize p)))"
 

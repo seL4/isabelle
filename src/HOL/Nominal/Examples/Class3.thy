@@ -5956,17 +5956,13 @@ next
     done
 qed
 
-consts
-  "idn" :: "(name\<times>ty) list\<Rightarrow>coname\<Rightarrow>(name\<times>coname\<times>trm) list"
-primrec
+primrec "idn" :: "(name\<times>ty) list\<Rightarrow>coname\<Rightarrow>(name\<times>coname\<times>trm) list" where
   "idn [] a   = []"
-  "idn (p#\<Gamma>) a = ((fst p),a,Ax (fst p) a)#(idn \<Gamma> a)"
+| "idn (p#\<Gamma>) a = ((fst p),a,Ax (fst p) a)#(idn \<Gamma> a)"
 
-consts
-  "idc" :: "(coname\<times>ty) list\<Rightarrow>name\<Rightarrow>(coname\<times>name\<times>trm) list"
-primrec
+primrec "idc" :: "(coname\<times>ty) list\<Rightarrow>name\<Rightarrow>(coname\<times>name\<times>trm) list" where
   "idc [] x    = []"
-  "idc (p#\<Delta>) x = ((fst p),x,Ax x (fst p))#(idc \<Delta> x)"
+| "idc (p#\<Delta>) x = ((fst p),x,Ax x (fst p))#(idc \<Delta> x)"
 
 lemma idn_eqvt[eqvt]:
   fixes pi1::"name prm"

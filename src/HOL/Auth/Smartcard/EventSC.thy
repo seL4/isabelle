@@ -19,7 +19,6 @@ datatype
     
 consts 
  bad     :: "agent set"  (*compromised agents*)
- knows   :: "agent => event list => msg set" (*agents' knowledge*)
  stolen    :: "card set" (* stolen smart cards *)
  cloned  :: "card set"   (* cloned smart cards*)
  secureM :: "bool"(*assumption of secure means between agents and their cards*)
@@ -50,7 +49,8 @@ specification (cloned)
 
 primrec (*This definition is extended over the new events, subject to the 
           assumption of secure means*)
-  knows_Nil:   "knows A [] = initState A"
+  knows   :: "agent => event list => msg set" (*agents' knowledge*) where
+  knows_Nil:   "knows A [] = initState A" |
   knows_Cons:  "knows A (ev # evs) =
          (case ev of
             Says A' B X => 
@@ -78,13 +78,11 @@ primrec (*This definition is extended over the new events, subject to the
 
 
 
-consts
+primrec
   (*The set of items that might be visible to someone is easily extended 
     over the new events*)
-  used :: "event list => msg set"
-
-primrec
-  used_Nil:   "used []         = (UN B. parts (initState B))"
+  used :: "event list => msg set" where
+  used_Nil:   "used []         = (UN B. parts (initState B))" |
   used_Cons:  "used (ev # evs) =
                  (case ev of
                     Says A B X => parts {X} \<union> (used evs)
@@ -97,7 +95,6 @@ primrec
     --{*@{term Gets} always follows @{term Says} in real protocols. 
        Likewise, @{term C_Gets} will always have to follow @{term Inputs}
        and @{term A_Gets} will always have to follow @{term Outpts}*}
-
 
 lemma Notes_imp_used [rule_format]: "Notes A X \<in> set evs \<longrightarrow> X \<in> used evs"
 apply (induct_tac evs)

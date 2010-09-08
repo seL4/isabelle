@@ -15,17 +15,11 @@ axioms
   NbT_pos:  "0 < NbT"
 
 (*This function merely sums the elements of a list*)
-consts tokens     :: "nat list => nat"
-primrec 
+primrec tokens :: "nat list => nat" where
   "tokens [] = 0"
-  "tokens (x#xs) = x + tokens xs"
+| "tokens (x#xs) = x + tokens xs"
 
-consts
-  bag_of :: "'a list => 'a multiset"
-
-primrec
-  "bag_of []     = {#}"
-  "bag_of (x#xs) = {#x#} + bag_of xs"
+abbreviation (input) "bag_of \<equiv> multiset_of"
 
 lemma setsum_fun_mono [rule_format]:
      "!!f :: nat=>nat.  

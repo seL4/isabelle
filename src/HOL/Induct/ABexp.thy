@@ -20,38 +20,32 @@ and 'a bexp =
 
 text {* \medskip Evaluation of arithmetic and boolean expressions *}
 
-consts
-  evala :: "('a => nat) => 'a aexp => nat"
-  evalb :: "('a => nat) => 'a bexp => bool"
-
-primrec
+primrec evala :: "('a => nat) => 'a aexp => nat"
+  and evalb :: "('a => nat) => 'a bexp => bool" where
   "evala env (IF b a1 a2) = (if evalb env b then evala env a1 else evala env a2)"
-  "evala env (Sum a1 a2) = evala env a1 + evala env a2"
-  "evala env (Diff a1 a2) = evala env a1 - evala env a2"
-  "evala env (Var v) = env v"
-  "evala env (Num n) = n"
+| "evala env (Sum a1 a2) = evala env a1 + evala env a2"
+| "evala env (Diff a1 a2) = evala env a1 - evala env a2"
+| "evala env (Var v) = env v"
+| "evala env (Num n) = n"
 
-  "evalb env (Less a1 a2) = (evala env a1 < evala env a2)"
-  "evalb env (And b1 b2) = (evalb env b1 \<and> evalb env b2)"
-  "evalb env (Neg b) = (\<not> evalb env b)"
+| "evalb env (Less a1 a2) = (evala env a1 < evala env a2)"
+| "evalb env (And b1 b2) = (evalb env b1 \<and> evalb env b2)"
+| "evalb env (Neg b) = (\<not> evalb env b)"
 
 
 text {* \medskip Substitution on arithmetic and boolean expressions *}
 
-consts
-  substa :: "('a => 'b aexp) => 'a aexp => 'b aexp"
-  substb :: "('a => 'b aexp) => 'a bexp => 'b bexp"
-
-primrec
+primrec substa :: "('a => 'b aexp) => 'a aexp => 'b aexp"
+  and substb :: "('a => 'b aexp) => 'a bexp => 'b bexp" where
   "substa f (IF b a1 a2) = IF (substb f b) (substa f a1) (substa f a2)"
-  "substa f (Sum a1 a2) = Sum (substa f a1) (substa f a2)"
-  "substa f (Diff a1 a2) = Diff (substa f a1) (substa f a2)"
-  "substa f (Var v) = f v"
-  "substa f (Num n) = Num n"
+| "substa f (Sum a1 a2) = Sum (substa f a1) (substa f a2)"
+| "substa f (Diff a1 a2) = Diff (substa f a1) (substa f a2)"
+| "substa f (Var v) = f v"
+| "substa f (Num n) = Num n"
 
-  "substb f (Less a1 a2) = Less (substa f a1) (substa f a2)"
-  "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
-  "substb f (Neg b) = Neg (substb f b)"
+| "substb f (Less a1 a2) = Less (substa f a1) (substa f a2)"
+| "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
+| "substb f (Neg b) = Neg (substb f b)"
 
 lemma subst1_aexp:
   "evala env (substa (Var (v := a')) a) = evala (env (v := evala env a')) a"

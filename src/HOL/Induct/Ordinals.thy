@@ -17,18 +17,13 @@ datatype ordinal =
   | Succ ordinal
   | Limit "nat => ordinal"
 
-consts
-  pred :: "ordinal => nat => ordinal option"
-primrec
+primrec pred :: "ordinal => nat => ordinal option" where
   "pred Zero n = None"
-  "pred (Succ a) n = Some a"
-  "pred (Limit f) n = Some (f n)"
+| "pred (Succ a) n = Some a"
+| "pred (Limit f) n = Some (f n)"
 
-consts
-  iter :: "('a => 'a) => nat => ('a => 'a)"
-primrec
-  "iter f 0 = id"
-  "iter f (Suc n) = f \<circ> (iter f n)"
+abbreviation (input) iter :: "('a => 'a) => nat => ('a => 'a)" where
+  "iter f n \<equiv> f ^^ n"
 
 definition
   OpLim :: "(nat => (ordinal => ordinal)) => (ordinal => ordinal)" where
@@ -38,30 +33,24 @@ definition
   OpItw :: "(ordinal => ordinal) => (ordinal => ordinal)"    ("\<Squnion>") where
   "\<Squnion>f = OpLim (iter f)"
 
-consts
-  cantor :: "ordinal => ordinal => ordinal"
-primrec
+primrec cantor :: "ordinal => ordinal => ordinal" where
   "cantor a Zero = Succ a"
-  "cantor a (Succ b) = \<Squnion>(\<lambda>x. cantor x b) a"
-  "cantor a (Limit f) = Limit (\<lambda>n. cantor a (f n))"
+| "cantor a (Succ b) = \<Squnion>(\<lambda>x. cantor x b) a"
+| "cantor a (Limit f) = Limit (\<lambda>n. cantor a (f n))"
 
-consts
-  Nabla :: "(ordinal => ordinal) => (ordinal => ordinal)"    ("\<nabla>")
-primrec
+primrec Nabla :: "(ordinal => ordinal) => (ordinal => ordinal)"    ("\<nabla>") where
   "\<nabla>f Zero = f Zero"
-  "\<nabla>f (Succ a) = f (Succ (\<nabla>f a))"
-  "\<nabla>f (Limit h) = Limit (\<lambda>n. \<nabla>f (h n))"
+| "\<nabla>f (Succ a) = f (Succ (\<nabla>f a))"
+| "\<nabla>f (Limit h) = Limit (\<lambda>n. \<nabla>f (h n))"
 
 definition
   deriv :: "(ordinal => ordinal) => (ordinal => ordinal)" where
   "deriv f = \<nabla>(\<Squnion>f)"
 
-consts
-  veblen :: "ordinal => ordinal => ordinal"
-primrec
+primrec veblen :: "ordinal => ordinal => ordinal" where
   "veblen Zero = \<nabla>(OpLim (iter (cantor Zero)))"
-  "veblen (Succ a) = \<nabla>(OpLim (iter (veblen a)))"
-  "veblen (Limit f) = \<nabla>(OpLim (\<lambda>n. veblen (f n)))"
+| "veblen (Succ a) = \<nabla>(OpLim (iter (veblen a)))"
+| "veblen (Limit f) = \<nabla>(OpLim (\<lambda>n. veblen (f n)))"
 
 definition "veb a = veblen a Zero"
 definition "\<epsilon>\<^isub>0 = veb Zero"

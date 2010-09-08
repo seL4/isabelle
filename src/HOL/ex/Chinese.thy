@@ -1,5 +1,4 @@
 (* -*- coding: utf-8 -*- :encoding=utf-8:
-    ID:         $Id$
     Author:     Ning Zhang and Christian Urban
 
 Example theory involving Unicode characters (UTF-8 encoding) -- both
@@ -30,20 +29,17 @@ datatype shuzi =
   | Nine  ("九")
   | Ten   ("十")
 
-consts
-  translate :: "shuzi \<Rightarrow> nat" ("|_|" [100] 100)
-
-primrec
+primrec translate :: "shuzi \<Rightarrow> nat" ("|_|" [100] 100) where
  "|一| = 1"
- "|二| = 2"
- "|三| = 3"
- "|四| = 4"
- "|五| = 5"
- "|六| = 6"
- "|七| = 7"
- "|八| = 8"
- "|九| = 9"
- "|十| = 10"
+|"|二| = 2"
+|"|三| = 3"
+|"|四| = 4"
+|"|五| = 5"
+|"|六| = 6"
+|"|七| = 7"
+|"|八| = 8"
+|"|九| = 9"
+|"|十| = 10"
 
 thm translate.simps
 

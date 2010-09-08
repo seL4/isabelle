@@ -41,25 +41,20 @@ subsection {* The semantics *}
 
 subsubsection {* Semantics of propositional logic. *}
 
-consts
-  eval  :: "['a set, 'a pl] => bool"      ("_[[_]]" [100,0] 100)
-
-primrec     "tt[[false]] = False"
-            "tt[[#v]]    = (v \<in> tt)"
-  eval_imp: "tt[[p->q]]  = (tt[[p]] --> tt[[q]])"
+primrec eval  :: "['a set, 'a pl] => bool"      ("_[[_]]" [100,0] 100) where
+            "tt[[false]] = False"
+|            "tt[[#v]]    = (v \<in> tt)"
+| eval_imp: "tt[[p->q]]  = (tt[[p]] --> tt[[q]])"
 
 text {*
   A finite set of hypotheses from @{text t} and the @{text Var}s in
   @{text p}.
 *}
 
-consts
-  hyps  :: "['a pl, 'a set] => 'a pl set"
-
-primrec
+primrec hyps  :: "['a pl, 'a set] => 'a pl set" where
   "hyps false  tt = {}"
-  "hyps (#v)   tt = {if v \<in> tt then #v else #v->false}"
-  "hyps (p->q) tt = hyps p tt Un hyps q tt"
+| "hyps (#v)   tt = {if v \<in> tt then #v else #v->false}"
+| "hyps (p->q) tt = hyps p tt Un hyps q tt"
 
 subsubsection {* Logical consequence *}
 

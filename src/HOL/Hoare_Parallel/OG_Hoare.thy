@@ -3,29 +3,27 @@ header {* \section{The Proof System} *}
 
 theory OG_Hoare imports OG_Tran begin
 
-consts assertions :: "'a ann_com \<Rightarrow> ('a assn) set"
-primrec
+primrec assertions :: "'a ann_com \<Rightarrow> ('a assn) set" where
   "assertions (AnnBasic r f) = {r}"
-  "assertions (AnnSeq c1 c2) = assertions c1 \<union> assertions c2"
-  "assertions (AnnCond1 r b c1 c2) = {r} \<union> assertions c1 \<union> assertions c2"
-  "assertions (AnnCond2 r b c) = {r} \<union> assertions c"
-  "assertions (AnnWhile r b i c) = {r, i} \<union> assertions c"
-  "assertions (AnnAwait r b c) = {r}" 
+| "assertions (AnnSeq c1 c2) = assertions c1 \<union> assertions c2"
+| "assertions (AnnCond1 r b c1 c2) = {r} \<union> assertions c1 \<union> assertions c2"
+| "assertions (AnnCond2 r b c) = {r} \<union> assertions c"
+| "assertions (AnnWhile r b i c) = {r, i} \<union> assertions c"
+| "assertions (AnnAwait r b c) = {r}" 
 
-consts atomics :: "'a ann_com \<Rightarrow> ('a assn \<times> 'a com) set"       
-primrec
+primrec atomics :: "'a ann_com \<Rightarrow> ('a assn \<times> 'a com) set" where
   "atomics (AnnBasic r f) = {(r, Basic f)}"
-  "atomics (AnnSeq c1 c2) = atomics c1 \<union> atomics c2"
-  "atomics (AnnCond1 r b c1 c2) = atomics c1 \<union> atomics c2"
-  "atomics (AnnCond2 r b c) = atomics c"
-  "atomics (AnnWhile r b i c) = atomics c" 
-  "atomics (AnnAwait r b c) = {(r \<inter> b, c)}"
+| "atomics (AnnSeq c1 c2) = atomics c1 \<union> atomics c2"
+| "atomics (AnnCond1 r b c1 c2) = atomics c1 \<union> atomics c2"
+| "atomics (AnnCond2 r b c) = atomics c"
+| "atomics (AnnWhile r b i c) = atomics c" 
+| "atomics (AnnAwait r b c) = {(r \<inter> b, c)}"
 
-consts com :: "'a ann_triple_op \<Rightarrow> 'a ann_com_op"
-primrec "com (c, q) = c"
+primrec com :: "'a ann_triple_op \<Rightarrow> 'a ann_com_op" where
+  "com (c, q) = c"
 
-consts post :: "'a ann_triple_op \<Rightarrow> 'a assn"
-primrec "post (c, q) = q"
+primrec post :: "'a ann_triple_op \<Rightarrow> 'a assn" where
+  "post (c, q) = q"
 
 definition interfree_aux :: "('a ann_com_op \<times> 'a assn \<times> 'a ann_com_op) \<Rightarrow> bool" where
   "interfree_aux \<equiv> \<lambda>(co, q, co'). co'= None \<or>  

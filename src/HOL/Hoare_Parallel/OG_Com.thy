@@ -32,24 +32,21 @@ and 'a com =
 text {* The function @{text pre} extracts the precondition of an
 annotated command: *}
 
-consts
-  pre ::"'a ann_com \<Rightarrow> 'a assn" 
-primrec 
+primrec pre ::"'a ann_com \<Rightarrow> 'a assn"  where
   "pre (AnnBasic r f) = r"
-  "pre (AnnSeq c1 c2) = pre c1"
-  "pre (AnnCond1 r b c1 c2) = r"
-  "pre (AnnCond2 r b c) = r"
-  "pre (AnnWhile r b i c) = r"
-  "pre (AnnAwait r b c) = r"
+| "pre (AnnSeq c1 c2) = pre c1"
+| "pre (AnnCond1 r b c1 c2) = r"
+| "pre (AnnCond2 r b c) = r"
+| "pre (AnnWhile r b i c) = r"
+| "pre (AnnAwait r b c) = r"
 
 text {* Well-formedness predicate for atomic programs: *}
 
-consts atom_com :: "'a com \<Rightarrow> bool"
-primrec  
+primrec atom_com :: "'a com \<Rightarrow> bool" where
   "atom_com (Parallel Ts) = False"
-  "atom_com (Basic f) = True"
-  "atom_com (Seq c1 c2) = (atom_com c1 \<and> atom_com c2)"
-  "atom_com (Cond b c1 c2) = (atom_com c1 \<and> atom_com c2)"
-  "atom_com (While b i c) = atom_com c"
+| "atom_com (Basic f) = True"
+| "atom_com (Seq c1 c2) = (atom_com c1 \<and> atom_com c2)"
+| "atom_com (Cond b c1 c2) = (atom_com c1 \<and> atom_com c2)"
+| "atom_com (While b i c) = atom_com c"
   
 end
