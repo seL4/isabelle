@@ -69,87 +69,6 @@ object Document_Model
           case _ => false
         }
     }
-
-
-    /* mapping to jEdit token types */
-    // TODO: as properties or CSS style sheet
-
-    val command_style: Map[String, Byte] =
-    {
-      import Token._
-      Map[String, Byte](
-        Keyword.THY_END -> KEYWORD2,
-        Keyword.THY_SCRIPT -> LABEL,
-        Keyword.PRF_SCRIPT -> LABEL,
-        Keyword.PRF_ASM -> KEYWORD3,
-        Keyword.PRF_ASM_GOAL -> KEYWORD3
-      ).withDefaultValue(KEYWORD1)
-    }
-
-    val token_style: Map[String, Byte] =
-    {
-      import Token._
-      Map[String, Byte](
-        // logical entities
-        Markup.TCLASS -> NULL,
-        Markup.TYCON -> NULL,
-        Markup.FIXED_DECL -> FUNCTION,
-        Markup.FIXED -> NULL,
-        Markup.CONST_DECL -> FUNCTION,
-        Markup.CONST -> NULL,
-        Markup.FACT_DECL -> FUNCTION,
-        Markup.FACT -> NULL,
-        Markup.DYNAMIC_FACT -> LABEL,
-        Markup.LOCAL_FACT_DECL -> FUNCTION,
-        Markup.LOCAL_FACT -> NULL,
-        // inner syntax
-        Markup.TFREE -> NULL,
-        Markup.FREE -> NULL,
-        Markup.TVAR -> NULL,
-        Markup.SKOLEM -> NULL,
-        Markup.BOUND -> NULL,
-        Markup.VAR -> NULL,
-        Markup.NUM -> DIGIT,
-        Markup.FLOAT -> DIGIT,
-        Markup.XNUM -> DIGIT,
-        Markup.XSTR -> LITERAL4,
-        Markup.LITERAL -> OPERATOR,
-        Markup.INNER_COMMENT -> COMMENT1,
-        Markup.SORT -> NULL,
-        Markup.TYP -> NULL,
-        Markup.TERM -> NULL,
-        Markup.PROP -> NULL,
-        Markup.ATTRIBUTE -> NULL,
-        Markup.METHOD -> NULL,
-        // ML syntax
-        Markup.ML_KEYWORD -> KEYWORD1,
-        Markup.ML_DELIMITER -> OPERATOR,
-        Markup.ML_IDENT -> NULL,
-        Markup.ML_TVAR -> NULL,
-        Markup.ML_NUMERAL -> DIGIT,
-        Markup.ML_CHAR -> LITERAL1,
-        Markup.ML_STRING -> LITERAL1,
-        Markup.ML_COMMENT -> COMMENT1,
-        Markup.ML_MALFORMED -> INVALID,
-        // embedded source text
-        Markup.ML_SOURCE -> COMMENT3,
-        Markup.DOC_SOURCE -> COMMENT3,
-        Markup.ANTIQ -> COMMENT4,
-        Markup.ML_ANTIQ -> COMMENT4,
-        Markup.DOC_ANTIQ -> COMMENT4,
-        // outer syntax
-        Markup.KEYWORD -> KEYWORD2,
-        Markup.OPERATOR -> OPERATOR,
-        Markup.COMMAND -> KEYWORD1,
-        Markup.IDENT -> NULL,
-        Markup.VERBATIM -> COMMENT3,
-        Markup.COMMENT -> COMMENT1,
-        Markup.CONTROL -> COMMENT3,
-        Markup.MALFORMED -> INVALID,
-        Markup.STRING -> LITERAL3,
-        Markup.ALTSTRING -> LITERAL1
-      ).withDefaultValue(NULL)
-    }
   }
 
 
@@ -272,27 +191,18 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
           handler.handleToken(line_segment, style, offset, length, context)
 
         val syntax = session.current_syntax()
-        val token_markup: PartialFunction[Text.Info[Any], Byte] =
-        {
-          case Text.Info(_, XML.Elem(Markup(Markup.COMMAND, List((Markup.NAME, name))), _))
-          if syntax.keyword_kind(name).isDefined =>
-            Document_Model.Token_Markup.command_style(syntax.keyword_kind(name).get)
-
-          case Text.Info(_, XML.Elem(Markup(name, _), _))
-          if Document_Model.Token_Markup.token_style(name) != Token.NULL =>
-            Document_Model.Token_Markup.token_style(name)
-        }
+        val tokens = snapshot.select_markup(Text.Range(start, stop))(Isabelle_Markup.tokens(syntax))
 
         var last = start
-        for (token <- snapshot.select_markup(Text.Range(start, stop))(token_markup)(Token.NULL)) {
+        for (token <- tokens.iterator) {
           val Text.Range(token_start, token_stop) = token.range
           if (last < token_start)
             handle_token(Token.COMMENT1, last - start, token_start - last)
-          handle_token(token.info, token_start - start, token_stop - token_start)
+          handle_token(token.info getOrElse Token.NULL,
+            token_start - start, token_stop - token_start)
           last = token_stop
         }
-        if (last < stop)
-          handle_token(Token.COMMENT1, last - start, stop - last)
+        if (last < stop) handle_token(Token.COMMENT1, last - start, stop - last)
 
         handle_token(Token.END, line_segment.count, 0)
         handler.setLineContext(context)

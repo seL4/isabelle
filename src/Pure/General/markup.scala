@@ -136,6 +136,8 @@ object Markup
   val LITERAL = "literal"
   val INNER_COMMENT = "inner_comment"
 
+  val TOKEN_RANGE = "token_range"
+
   val SORT = "sort"
   val TYP = "typ"
   val TERM = "term"
@@ -246,6 +248,8 @@ object Markup
   val STDOUT = "stdout"
   val SIGNAL = "signal"
   val EXIT = "exit"
+
+  val BAD = "bad"
 
   val Ready = Markup("ready", Nil)
 

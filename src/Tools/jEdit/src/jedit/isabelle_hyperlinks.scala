@@ -72,9 +72,11 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                       case _ => null
                     }
                 }
-            } { null }
-          if (markup.hasNext) markup.next.info else null
-
+            }
+          markup match {
+            case Text.Info(_, Some(link)) #:: _ => link
+            case _ => null
+          }
         case None => null
       }
     }

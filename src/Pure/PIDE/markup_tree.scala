@@ -43,6 +43,8 @@ object Markup_Tree
   }
 
   val empty = new Markup_Tree(Branches.empty)
+
+  type Select[A] = PartialFunction[Text.Info[Any], A]
 }
 
 
@@ -89,11 +91,13 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
   private def overlapping(range: Text.Range): Stream[(Text.Range, Branches.Entry)] =
     Branches.overlapping(range, branches).toStream
 
-  def select[A](root_range: Text.Range)
-    (result: PartialFunction[Text.Info[Any], A])(default: A): Iterator[Text.Info[A]] =
+  def select[A](root_range: Text.Range)(result: Markup_Tree.Select[A])
+    : Stream[Text.Info[Option[A]]] =
   {
-    def stream(last: Text.Offset, stack: List[(Text.Info[A], Stream[(Text.Range, Branches.Entry)])])
-      : Stream[Text.Info[A]] =
+    def stream(
+      last: Text.Offset,
+      stack: List[(Text.Info[Option[A]], Stream[(Text.Range, Branches.Entry)])])
+        : Stream[Text.Info[Option[A]]] =
     {
       stack match {
         case (parent, (range, (info, tree)) #:: more) :: rest =>
@@ -102,7 +106,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
           val start = subrange.start
 
           if (result.isDefinedAt(info)) {
-            val next = Text.Info(subrange, result(info))
+            val next = Text.Info[Option[A]](subrange, Some(result(info)))
             val nexts = stream(start, (next, subtree) :: (parent, more) :: rest)
             if (last < start) parent.restrict(Text.Range(last, start)) #:: nexts
             else nexts
@@ -117,12 +121,11 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
 
         case Nil =>
           val stop = root_range.stop
-          if (last < stop) Stream(Text.Info(Text.Range(last, stop), default))
+          if (last < stop) Stream(Text.Info(Text.Range(last, stop), None))
           else Stream.empty
       }
     }
-    stream(root_range.start, List((Text.Info(root_range, default), overlapping(root_range))))
-      .iterator
+    stream(root_range.start, List((Text.Info(root_range, None), overlapping(root_range))))
   }
 
   def swing_tree(parent: DefaultMutableTreeNode)

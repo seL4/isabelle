@@ -48,11 +48,11 @@ object Command
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
-              case XML.Elem(Markup(name, atts @ Position.Id_Range(id, range)), args)
-              if id == command.id =>
+              case XML.Elem(Markup(name, atts @ Position.Id_Range(id, raw_range)), args)
+              if id == command.id && command.range.contains(command.decode(raw_range)) =>
+                val range = command.decode(raw_range)
                 val props = Position.purge(atts)
-                val info =
-                  Text.Info[Any](command.decode(range), XML.Elem(Markup(name, props), args))
+                val info = Text.Info[Any](range, XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
               case _ => System.err.println("Ignored report message: " + msg); state
             })
@@ -60,8 +60,8 @@ object Command
           atts match {
             case Markup.Serial(i) =>
               val result = XML.Elem(Markup(name, Position.purge(atts)), body)
-              (add_result(i, result) /: Isar_Document.reported_positions(command.id, message))(
-                (st, range) => st.add_markup(Text.Info(command.decode(range), result)))
+              (add_result(i, result) /: Isar_Document.reported_positions(command, message))(
+                (st, range) => st.add_markup(Text.Info(range, result)))
             case _ => System.err.println("Ignored message without serial number: " + message); this
           }
       }

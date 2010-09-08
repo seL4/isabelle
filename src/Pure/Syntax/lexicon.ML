@@ -66,6 +66,7 @@ sig
   val terminals: string list
   val is_terminal: string -> bool
   val report_token: Proof.context -> token -> unit
+  val report_token_range: Proof.context -> token -> unit
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
   val predef_term: string -> token option
@@ -187,6 +188,11 @@ val token_kind_markup =
 
 fun report_token ctxt (Token (kind, _, (pos, _))) =
   Context_Position.report ctxt (token_kind_markup kind) pos;
+
+fun report_token_range ctxt tok =
+  if is_proper tok
+  then Context_Position.report ctxt Markup.token_range (pos_of_token tok)
+  else ();
 
 
 (* matching_tokens *)

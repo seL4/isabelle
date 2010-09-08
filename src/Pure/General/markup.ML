@@ -58,6 +58,7 @@ sig
   val literalN: string val literal: T
   val inner_stringN: string val inner_string: T
   val inner_commentN: string val inner_comment: T
+  val token_rangeN: string val token_range: T
   val sortN: string val sort: T
   val typN: string val typ: T
   val termN: string val term: T
@@ -119,6 +120,7 @@ sig
   val promptN: string val prompt: T
   val readyN: string val ready: T
   val reportN: string val report: T
+  val badN: string val bad: T
   val no_output: output * output
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
@@ -239,6 +241,8 @@ val (literalN, literal) = markup_elem "literal";
 val (inner_stringN, inner_string) = markup_elem "inner_string";
 val (inner_commentN, inner_comment) = markup_elem "inner_comment";
 
+val (token_rangeN, token_range) = markup_elem "token_range";
+
 val (sortN, sort) = markup_elem "sort";
 val (typN, typ) = markup_elem "typ";
 val (termN, term) = markup_elem "term";
@@ -344,6 +348,8 @@ val (promptN, prompt) = markup_elem "prompt";
 val (readyN, ready) = markup_elem "ready";
 
 val (reportN, report) = markup_elem "report";
+
+val (badN, bad) = markup_elem "bad";
 
 
 

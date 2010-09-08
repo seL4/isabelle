@@ -709,7 +709,8 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
     val _ = List.app (Lexicon.report_token ctxt) toks;
 
     val root' = if root <> "prop" andalso is_logtype root then Syn_Ext.logic else root;
-    val pts = Parser.parse ctxt gram root' (filter Lexicon.is_proper toks);
+    val pts = Parser.parse ctxt gram root' (filter Lexicon.is_proper toks)
+      handle ERROR msg => (List.app (Lexicon.report_token_range ctxt) toks; error msg);
     val len = length pts;
 
     val limit = Config.get ctxt ambiguity_limit;
