@@ -18,6 +18,8 @@ apply (rule ext)
 apply (simp (no_asm_simp))
 done
 
+lemmas expand_fun_eq = ext_iff
+
 lemma apply_inverse:
   "f x = u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
   by auto

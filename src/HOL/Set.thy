@@ -498,6 +498,8 @@ lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
 lemma set_ext_iff [no_atp]: "(A = B) = (ALL x. (x:A) = (x:B))"
 by(auto intro:set_ext)
 
+lemmas expand_set_eq [no_atp] = set_ext_iff
+
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
   -- {* Anti-symmetry of the subset relation. *}
   by (iprover intro: set_ext subsetD)
