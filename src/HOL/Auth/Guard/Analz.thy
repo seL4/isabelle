@@ -233,8 +233,7 @@ by (erule analz.induct, auto dest: kparts_analz_sub)
 lemma analz_kparts_analz: "X:analz (kparts H) ==> X:analz H"
 by (erule analz.induct, auto dest: kparts_analz)
 
-lemma analz_kparts_insert: "X:analz (kparts (insert Z H)) ==>
-X:analz (kparts {Z} Un kparts H)"
+lemma analz_kparts_insert: "X:analz (kparts (insert Z H)) ==> X:analz (kparts {Z} Un kparts H)"
 by (rule analz_sub, auto)
 
 lemma Nonce_kparts_synth [rule_format]: "Y:synth (analz G)
@@ -247,26 +246,21 @@ apply (drule parts_insert_substD [where P="%S. Y : S"], clarify)
 apply (drule in_sub, drule_tac X=Y in parts_sub, simp)
 by (auto dest: Nonce_kparts_synth)
 
-lemma Crypt_insert_synth: "[| Crypt K Y:parts (insert X G); X:synth (analz G);
-Nonce n:kparts {Y}; Nonce n ~:analz G |] ==> Crypt K Y:parts G"
-apply (drule parts_insert_substD [where P="%S. Crypt K Y : S"], clarify)
-apply (drule in_sub, drule_tac X="Crypt K Y" in parts_sub, simp, clarsimp)
-apply (ind_cases "Crypt K Y:synth (analz G)")
-by (auto dest: Nonce_kparts_synth)
+lemma Crypt_insert_synth:
+  "[| Crypt K Y:parts (insert X G); X:synth (analz G); Nonce n:kparts {Y}; Nonce n ~:analz G |] 
+   ==> Crypt K Y:parts G"
+by (metis Fake_parts_insert_in_Un Nonce_kparts_synth UnE analz_conj_parts synth_simps(5))
+
 
 subsection{*analz is pparts + analz of kparts*}
 
 lemma analz_pparts_kparts: "X:analz H ==> X:pparts H | X:analz (kparts H)"
-apply (erule analz.induct)
-apply (rule_tac X=X in is_MPairE, blast, blast)
-apply (erule disjE, rule_tac X=X in is_MPairE, blast, blast, blast)
-by (erule disjE, rule_tac X=Y in is_MPairE, blast+)
+by (erule analz.induct, auto) 
 
 lemma analz_pparts_kparts_eq: "analz H = pparts H Un analz (kparts H)"
 by (rule eq, auto dest: analz_pparts_kparts pparts_analz analz_kparts_analz)
 
 lemmas analz_pparts_kparts_substI = analz_pparts_kparts_eq [THEN ssubst]
-lemmas analz_pparts_kparts_substD
-= analz_pparts_kparts_eq [THEN sym, THEN ssubst]
+lemmas analz_pparts_kparts_substD = analz_pparts_kparts_eq [THEN sym, THEN ssubst]
 
 end
