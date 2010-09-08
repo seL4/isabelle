@@ -436,10 +436,10 @@ apply(rule oghoare_induct)
 apply(rule TrueI)+
 --{* Parallel *}     
       apply(simp add: SEM_def sem_def)
-      apply clarify
+      apply(clarify, rename_tac x y i Ts')
       apply(frule Parallel_length_post_PStar)
       apply clarify
-      apply(drule_tac j=xb in Parallel_Strong_Soundness)
+      apply(drule_tac j=i in Parallel_Strong_Soundness)
          apply clarify
         apply simp
        apply force
