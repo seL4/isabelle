@@ -158,12 +158,14 @@ fun eval verbose pos toks =
         List.app apply_val values
       end;
 
+    exception Static_Errors of unit;
+
     fun result_fun (phase1, phase2) () =
      ((case phase1 of
         NONE => ()
       | SOME parse_tree => report_parse_tree depth space parse_tree);
       (case phase2 of
-        NONE => error "Static Errors"
+        NONE => raise Static_Errors ()
       | SOME code =>
           apply_result
             ((code
@@ -188,7 +190,8 @@ fun eval verbose pos toks =
       handle exn =>
        (output_warnings ();
         output_writeln ();
-        raise_error ("Exception- " ^ General.exnMessage exn ^ " raised"));
+        (case exn of Static_Errors () => raise_error ""
+        | _ => raise_error ("Exception- " ^ General.exnMessage exn ^ " raised")));
   in
     if verbose then (output_warnings (); flush_error (); output_writeln ())
     else ()
