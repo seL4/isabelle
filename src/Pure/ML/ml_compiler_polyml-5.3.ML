@@ -99,15 +99,31 @@ fun eval verbose pos toks =
            SOME c));
 
 
-    (* output *)
+    (* output channels *)
 
-    val output_buffer = Unsynchronized.ref Buffer.empty;
-    fun output () = Buffer.content (! output_buffer);
-    fun put s = Unsynchronized.change output_buffer (Buffer.add s);
+    val writeln_buffer = Unsynchronized.ref Buffer.empty;
+    fun write s = Unsynchronized.change writeln_buffer (Buffer.add s);
+    fun output_writeln () = writeln (Buffer.content (! writeln_buffer));
 
-    fun put_message {message, hard, location, context = _} =
-     (put ((if hard then "Error" else "Warning") ^ Position.str_of (position_of location) ^ ":\n");
-      put (Pretty.string_of (Pretty.from_ML (pretty_ml message)) ^ "\n"));
+    val warnings = Unsynchronized.ref ([]: string list);
+    fun output_warnings () = List.app warning (rev (! warnings));
+
+    val error_buffer = Unsynchronized.ref Buffer.empty;
+    fun flush_error () = writeln (Buffer.content (! error_buffer));
+    fun raise_error msg = error (Buffer.content (Buffer.add msg (! error_buffer)));
+
+    fun message {message = msg, hard, location = loc, context = _} =
+      let
+        val pos = position_of loc;
+        val txt =
+          Markup.markup Markup.location
+            ((if hard then "Error" else "Warning") ^ Position.str_of pos ^ ":\n") ^
+          Pretty.string_of (Pretty.from_ML (pretty_ml msg)) ^
+          Markup.markup (Position.report_markup pos) "";
+      in
+        if hard then Unsynchronized.change error_buffer (Buffer.add txt #> Buffer.add "\n")
+        else Unsynchronized.change warnings (cons txt)
+      end;
 
 
     (* results *)
@@ -118,7 +134,7 @@ fun eval verbose pos toks =
       let
         fun display disp x =
           if depth > 0 then
-            (disp x |> pretty_ml |> Pretty.from_ML |> Pretty.string_of |> put; put "\n")
+            (disp x |> pretty_ml |> Pretty.from_ML |> Pretty.string_of |> write; write "\n")
           else ();
 
         fun apply_fix (a, b) =
@@ -158,9 +174,9 @@ fun eval verbose pos toks =
     (* compiler invocation *)
 
     val parameters =
-     [PolyML.Compiler.CPOutStream put,
+     [PolyML.Compiler.CPOutStream write,
       PolyML.Compiler.CPNameSpace space,
-      PolyML.Compiler.CPErrorMessageProc put_message,
+      PolyML.Compiler.CPErrorMessageProc message,
       PolyML.Compiler.CPLineNo (fn () => ! line),
       PolyML.Compiler.CPLineOffset get_offset,
       PolyML.Compiler.CPFileName location_props,
@@ -170,9 +186,13 @@ fun eval verbose pos toks =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
       handle exn =>
-       (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-        error (output ()));
-  in if verbose then writeln (output ()) else () end;
+       (output_warnings ();
+        output_writeln ();
+        raise_error ("Exception- " ^ General.exnMessage exn ^ " raised"));
+  in
+    if verbose then (output_warnings (); flush_error (); output_writeln ())
+    else ()
+  end;
 
 end;
 
