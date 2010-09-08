@@ -51,16 +51,21 @@ primrec illegalUse :: "card  => bool" where
 
 
 text{*initState must be defined with care*}
-primrec
+
+overloading
+  initState \<equiv> initState
+begin
+
+primrec initState where
 (*Server knows all long-term keys; adding cards' keys may be redundant but
   helps prove crdK_in_initState and crdK_in_used to distinguish cards' keys
   from fresh (session) keys*)
   initState_Server:  "initState Server = 
         (Key`(range shrK \<union> range crdK \<union> range pin \<union> range pairK)) \<union> 
-        (Nonce`(range Pairkey))"
+        (Nonce`(range Pairkey))" |
 
 (*Other agents know only their own*)
-  initState_Friend:  "initState (Friend i) = {Key (pin (Friend i))}"
+  initState_Friend:  "initState (Friend i) = {Key (pin (Friend i))}" |
 
 (*Spy knows bad agents' pins, cloned cards' keys, pairKs, and Pairkeys *)
   initState_Spy: "initState Spy  = 
@@ -70,6 +75,7 @@ primrec
                         (pairK`{(X,A). Card A \<in> cloned})))
            \<union> (Nonce`(Pairkey`{(A,B). Card A \<in> cloned & Card B \<in> cloned}))"
 
+end
 
 text{*Still relying on axioms*}
 axioms

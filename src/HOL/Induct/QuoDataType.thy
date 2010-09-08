@@ -58,14 +58,11 @@ subsubsection{*The Set of Nonces*}
 
 text{*A function to return the set of nonces present in a message.  It will
 be lifted to the initial algrebra, to serve as an example of that process.*}
-consts
-  freenonces :: "freemsg \<Rightarrow> nat set"
-
-primrec
-   "freenonces (NONCE N) = {N}"
-   "freenonces (MPAIR X Y) = freenonces X \<union> freenonces Y"
-   "freenonces (CRYPT K X) = freenonces X"
-   "freenonces (DECRYPT K X) = freenonces X"
+primrec freenonces :: "freemsg \<Rightarrow> nat set" where
+  "freenonces (NONCE N) = {N}"
+| "freenonces (MPAIR X Y) = freenonces X \<union> freenonces Y"
+| "freenonces (CRYPT K X) = freenonces X"
+| "freenonces (DECRYPT K X) = freenonces X"
 
 text{*This theorem lets us prove that the nonces function respects the
 equivalence relation.  It also helps us prove that Nonce
@@ -78,12 +75,11 @@ subsubsection{*The Left Projection*}
 
 text{*A function to return the left part of the top pair in a message.  It will
 be lifted to the initial algrebra, to serve as an example of that process.*}
-consts freeleft :: "freemsg \<Rightarrow> freemsg"
-primrec
-   "freeleft (NONCE N) = NONCE N"
-   "freeleft (MPAIR X Y) = X"
-   "freeleft (CRYPT K X) = freeleft X"
-   "freeleft (DECRYPT K X) = freeleft X"
+primrec freeleft :: "freemsg \<Rightarrow> freemsg" where
+  "freeleft (NONCE N) = NONCE N"
+| "freeleft (MPAIR X Y) = X"
+| "freeleft (CRYPT K X) = freeleft X"
+| "freeleft (DECRYPT K X) = freeleft X"
 
 text{*This theorem lets us prove that the left function respects the
 equivalence relation.  It also helps us prove that MPair
@@ -96,12 +92,11 @@ theorem msgrel_imp_eqv_freeleft:
 subsubsection{*The Right Projection*}
 
 text{*A function to return the right part of the top pair in a message.*}
-consts freeright :: "freemsg \<Rightarrow> freemsg"
-primrec
-   "freeright (NONCE N) = NONCE N"
-   "freeright (MPAIR X Y) = Y"
-   "freeright (CRYPT K X) = freeright X"
-   "freeright (DECRYPT K X) = freeright X"
+primrec freeright :: "freemsg \<Rightarrow> freemsg" where
+  "freeright (NONCE N) = NONCE N"
+| "freeright (MPAIR X Y) = Y"
+| "freeright (CRYPT K X) = freeright X"
+| "freeright (DECRYPT K X) = freeright X"
 
 text{*This theorem lets us prove that the right function respects the
 equivalence relation.  It also helps us prove that MPair
@@ -114,12 +109,11 @@ theorem msgrel_imp_eqv_freeright:
 subsubsection{*The Discriminator for Constructors*}
 
 text{*A function to distinguish nonces, mpairs and encryptions*}
-consts freediscrim :: "freemsg \<Rightarrow> int"
-primrec
-   "freediscrim (NONCE N) = 0"
-   "freediscrim (MPAIR X Y) = 1"
-   "freediscrim (CRYPT K X) = freediscrim X + 2"
-   "freediscrim (DECRYPT K X) = freediscrim X - 2"
+primrec freediscrim :: "freemsg \<Rightarrow> int" where
+  "freediscrim (NONCE N) = 0"
+| "freediscrim (MPAIR X Y) = 1"
+| "freediscrim (CRYPT K X) = freediscrim X + 2"
+| "freediscrim (DECRYPT K X) = freediscrim X - 2"
 
 text{*This theorem helps us prove @{term "Nonce N \<noteq> MPair X Y"}*}
 theorem msgrel_imp_eq_freediscrim:

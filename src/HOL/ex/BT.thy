@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/BT.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
@@ -14,53 +13,41 @@ datatype 'a bt =
     Lf
   | Br 'a  "'a bt"  "'a bt"
 
-consts
-  n_nodes   :: "'a bt => nat"
-  n_leaves  :: "'a bt => nat"
-  depth     :: "'a bt => nat"
-  reflect   :: "'a bt => 'a bt"
-  bt_map    :: "('a => 'b) => ('a bt => 'b bt)"
-  preorder  :: "'a bt => 'a list"
-  inorder   :: "'a bt => 'a list"
-  postorder :: "'a bt => 'a list"
-  append     :: "'a bt => 'a bt => 'a bt"
-
-primrec
+primrec n_nodes :: "'a bt => nat" where
   "n_nodes Lf = 0"
-  "n_nodes (Br a t1 t2) = Suc (n_nodes t1 + n_nodes t2)"
+| "n_nodes (Br a t1 t2) = Suc (n_nodes t1 + n_nodes t2)"
 
-primrec
+primrec n_leaves :: "'a bt => nat" where
   "n_leaves Lf = Suc 0"
-  "n_leaves (Br a t1 t2) = n_leaves t1 + n_leaves t2"
+| "n_leaves (Br a t1 t2) = n_leaves t1 + n_leaves t2"
 
-primrec
+primrec depth :: "'a bt => nat" where
   "depth Lf = 0"
-  "depth (Br a t1 t2) = Suc (max (depth t1) (depth t2))"
+| "depth (Br a t1 t2) = Suc (max (depth t1) (depth t2))"
 
-primrec
+primrec reflect :: "'a bt => 'a bt" where
   "reflect Lf = Lf"
-  "reflect (Br a t1 t2) = Br a (reflect t2) (reflect t1)"
+| "reflect (Br a t1 t2) = Br a (reflect t2) (reflect t1)"
 
-primrec
+primrec bt_map :: "('a => 'b) => ('a bt => 'b bt)" where
   "bt_map f Lf = Lf"
-  "bt_map f (Br a t1 t2) = Br (f a) (bt_map f t1) (bt_map f t2)"
+| "bt_map f (Br a t1 t2) = Br (f a) (bt_map f t1) (bt_map f t2)"
 
-primrec
+primrec preorder :: "'a bt => 'a list" where
   "preorder Lf = []"
-  "preorder (Br a t1 t2) = [a] @ (preorder t1) @ (preorder t2)"
+| "preorder (Br a t1 t2) = [a] @ (preorder t1) @ (preorder t2)"
 
-primrec
+primrec inorder :: "'a bt => 'a list" where
   "inorder Lf = []"
-  "inorder (Br a t1 t2) = (inorder t1) @ [a] @ (inorder t2)"
+| "inorder (Br a t1 t2) = (inorder t1) @ [a] @ (inorder t2)"
 
-primrec
+primrec postorder :: "'a bt => 'a list" where
   "postorder Lf = []"
-  "postorder (Br a t1 t2) = (postorder t1) @ (postorder t2) @ [a]"
+| "postorder (Br a t1 t2) = (postorder t1) @ (postorder t2) @ [a]"
 
-primrec
+primrec append :: "'a bt => 'a bt => 'a bt" where
   "append Lf t = t"
-  "append (Br a t1 t2) t = Br a (append t1 t) (append t2 t)"
-
+| "append (Br a t1 t2) t = Br a (append t1 t) (append t2 t)"
 
 text {* \medskip BT simplification *}
 

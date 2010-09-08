@@ -72,17 +72,14 @@ text{*A function to return the set of variables present in a message.  It will
 be lifted to the initial algrebra, to serve as an example of that process.
 Note that the "free" refers to the free datatype rather than to the concept
 of a free variable.*}
-consts
-  freevars      :: "freeExp \<Rightarrow> nat set"
-  freevars_list :: "freeExp list \<Rightarrow> nat set"
+primrec freevars :: "freeExp \<Rightarrow> nat set" 
+  and freevars_list :: "freeExp list \<Rightarrow> nat set" where
+  "freevars (VAR N) = {N}"
+| "freevars (PLUS X Y) = freevars X \<union> freevars Y"
+| "freevars (FNCALL F Xs) = freevars_list Xs"
 
-primrec
-   "freevars (VAR N) = {N}"
-   "freevars (PLUS X Y) = freevars X \<union> freevars Y"
-   "freevars (FNCALL F Xs) = freevars_list Xs"
-
-   "freevars_list [] = {}"
-   "freevars_list (X # Xs) = freevars X \<union> freevars_list Xs"
+| "freevars_list [] = {}"
+| "freevars_list (X # Xs) = freevars X \<union> freevars_list Xs"
 
 text{*This theorem lets us prove that the vars function respects the
 equivalence relation.  It also helps us prove that Variable
@@ -98,11 +95,10 @@ done
 subsubsection{*Functions for Freeness*}
 
 text{*A discriminator function to distinguish vars, sums and function calls*}
-consts freediscrim :: "freeExp \<Rightarrow> int"
-primrec
-   "freediscrim (VAR N) = 0"
-   "freediscrim (PLUS X Y) = 1"
-   "freediscrim (FNCALL F Xs) = 2"
+primrec freediscrim :: "freeExp \<Rightarrow> int" where
+  "freediscrim (VAR N) = 0"
+| "freediscrim (PLUS X Y) = 1"
+| "freediscrim (FNCALL F Xs) = 2"
 
 theorem exprel_imp_eq_freediscrim:
      "U \<sim> V \<Longrightarrow> freediscrim U = freediscrim V"
@@ -111,12 +107,10 @@ theorem exprel_imp_eq_freediscrim:
 
 text{*This function, which returns the function name, is used to
 prove part of the injectivity property for FnCall.*}
-consts  freefun :: "freeExp \<Rightarrow> nat"
-
-primrec
-   "freefun (VAR N) = 0"
-   "freefun (PLUS X Y) = 0"
-   "freefun (FNCALL F Xs) = F"
+primrec freefun :: "freeExp \<Rightarrow> nat" where
+  "freefun (VAR N) = 0"
+| "freefun (PLUS X Y) = 0"
+| "freefun (FNCALL F Xs) = F"
 
 theorem exprel_imp_eq_freefun:
      "U \<sim> V \<Longrightarrow> freefun U = freefun V"
@@ -125,11 +119,10 @@ theorem exprel_imp_eq_freefun:
 
 text{*This function, which returns the list of function arguments, is used to
 prove part of the injectivity property for FnCall.*}
-consts  freeargs      :: "freeExp \<Rightarrow> freeExp list"
-primrec
-   "freeargs (VAR N) = []"
-   "freeargs (PLUS X Y) = []"
-   "freeargs (FNCALL F Xs) = Xs"
+primrec freeargs :: "freeExp \<Rightarrow> freeExp list" where
+  "freeargs (VAR N) = []"
+| "freeargs (PLUS X Y) = []"
+| "freeargs (FNCALL F Xs) = Xs"
 
 theorem exprel_imp_eqv_freeargs:
      "U \<sim> V \<Longrightarrow> (freeargs U, freeargs V) \<in> listrel exprel"
@@ -285,10 +278,9 @@ lemma vars_respects: "freevars respects exprel"
 by (simp add: congruent_def exprel_imp_eq_freevars) 
 
 text{*The extension of the function @{term vars} to lists*}
-consts vars_list :: "exp list \<Rightarrow> nat set"
-primrec
-   "vars_list []    = {}"
-   "vars_list(E#Es) = vars E \<union> vars_list Es"
+primrec vars_list :: "exp list \<Rightarrow> nat set" where
+  "vars_list []    = {}"
+| "vars_list(E#Es) = vars E \<union> vars_list Es"
 
 
 text{*Now prove the three equations for @{term vars}*}

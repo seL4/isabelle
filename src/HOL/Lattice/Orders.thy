@@ -48,9 +48,7 @@ text {*
 
 datatype 'a dual = dual 'a
 
-consts
-  undual :: "'a dual \<Rightarrow> 'a"
-primrec
+primrec undual :: "'a dual \<Rightarrow> 'a" where
   undual_dual: "undual (dual x) = x"
 
 instantiation dual :: (leq) leq

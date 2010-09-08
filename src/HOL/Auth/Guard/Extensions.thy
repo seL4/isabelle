@@ -31,10 +31,8 @@ subsection{*Extensions to Theory @{text List}*}
 
 subsubsection{*"remove l x" erase the first element of "l" equal to "x"*}
 
-consts remove :: "'a list => 'a => 'a list"
-
-primrec
-"remove [] y = []"
+primrec remove :: "'a list => 'a => 'a list" where
+"remove [] y = []" |
 "remove (x#xs) y = (if x=y then xs else x # remove xs y)"
 
 lemma set_remove: "set (remove l x) <= set l"
@@ -348,13 +346,9 @@ by (auto dest: Says_imp_spies parts_parts)
 
 subsubsection{*knows without initState*}
 
-consts knows' :: "agent => event list => msg set"
-
-primrec
-knows'_Nil:
- "knows' A [] = {}"
-
-knows'_Cons0:
+primrec knows' :: "agent => event list => msg set" where
+  knows'_Nil: "knows' A [] = {}" |
+  knows'_Cons0:
  "knows' A (ev # evs) = (
    if A = Spy then (
      case ev of
@@ -426,10 +420,8 @@ by (case_tac a, auto simp: knows.simps)
 subsubsection{*maximum knowledge an agent can have
 includes messages sent to the agent*}
 
-consts knows_max' :: "agent => event list => msg set"
-
-primrec
-knows_max'_def_Nil: "knows_max' A [] = {}"
+primrec knows_max' :: "agent => event list => msg set" where
+knows_max'_def_Nil: "knows_max' A [] = {}" |
 knows_max'_def_Cons: "knows_max' A (ev # evs) = (
   if A=Spy then (
     case ev of
@@ -498,10 +490,8 @@ by (simp add: in_set_conv_decomp, clarify, simp add: knows_max'_app)
 
 subsubsection{*used without initState*}
 
-consts used' :: "event list => msg set"
-
-primrec
-"used' [] = {}"
+primrec used' :: "event list => msg set" where
+"used' [] = {}" |
 "used' (ev # evs) = (
   case ev of
     Says A B X => parts {X} Un used' evs

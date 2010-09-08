@@ -33,17 +33,13 @@ lemma INR_INL_11: "(ALL y x. (Inl x = Inl y) = (x = y)) & (ALL y x. (Inr x = Inr
 (*lemma INL_neq_INR: "ALL v1 v2. Sum_Type.Inr v2 ~= Sum_Type.Inl v1"
   by simp*)
 
-consts
-  ISL :: "'a + 'b => bool"
-  ISR :: "'a + 'b => bool"
-
-primrec ISL_def:
+primrec ISL :: "'a + 'b => bool" where
   "ISL (Inl x) = True"
-  "ISL (Inr x) = False"
+| "ISL (Inr x) = False"
 
-primrec ISR_def:
+primrec ISR :: "'a + 'b => bool" where
   "ISR (Inl x) = False"
-  "ISR (Inr x) = True"
+| "ISR (Inr x) = True"
 
 lemma ISL: "(ALL x. ISL (Inl x)) & (ALL y. ~ISL (Inr y))"
   by simp
@@ -51,14 +47,10 @@ lemma ISL: "(ALL x. ISL (Inl x)) & (ALL y. ~ISL (Inr y))"
 lemma ISR: "(ALL x. ISR (Inr x)) & (ALL y. ~ISR (Inl y))"
   by simp
 
-consts
-  OUTL :: "'a + 'b => 'a"
-  OUTR :: "'a + 'b => 'b"
-
-primrec OUTL_def:
+primrec OUTL :: "'a + 'b => 'a" where
   "OUTL (Inl x) = x"
 
-primrec OUTR_def:
+primrec OUTR :: "'a + 'b => 'b" where
   "OUTR (Inr x) = x"
 
 lemma OUTL: "OUTL (Inl x) = x"
@@ -79,17 +71,13 @@ lemma option_case_def: "(!u f. option_case u f None = u) & (!u f x. option_case 
 lemma OPTION_MAP_DEF: "(!f x. Option.map f (Some x) = Some (f x)) & (!f. Option.map f None = None)"
   by simp
 
-consts
-  IS_SOME :: "'a option => bool"
-  IS_NONE :: "'a option => bool"
-
-primrec IS_SOME_def:
+primrec IS_SOME :: "'a option => bool" where
   "IS_SOME (Some x) = True"
-  "IS_SOME None = False"
+| "IS_SOME None = False"
 
-primrec IS_NONE_def:
+primrec IS_NONE :: "'a option => bool" where
   "IS_NONE (Some x) = False"
-  "IS_NONE None = True"
+| "IS_NONE None = True"
 
 lemma IS_NONE_DEF: "(!x. IS_NONE (Some x) = False) & (IS_NONE None = True)"
   by simp
@@ -97,15 +85,12 @@ lemma IS_NONE_DEF: "(!x. IS_NONE (Some x) = False) & (IS_NONE None = True)"
 lemma IS_SOME_DEF: "(!x. IS_SOME (Some x) = True) & (IS_SOME None = False)"
   by simp
 
-consts
-  OPTION_JOIN :: "'a option option => 'a option"
-
-primrec OPTION_JOIN_def:
+primrec OPTION_JOIN :: "'a option option => 'a option" where
   "OPTION_JOIN None = None"
-  "OPTION_JOIN (Some x) = x"
+| "OPTION_JOIN (Some x) = x"
 
 lemma OPTION_JOIN_DEF: "(OPTION_JOIN None = None) & (ALL x. OPTION_JOIN (Some x) = x)"
-  by simp;
+  by simp
 
 lemma PAIR: "(fst x,snd x) = x"
   by simp
@@ -261,14 +246,11 @@ lemma divides_def: "(a::nat) dvd b = (? q. b = q * a)"
 lemma list_case_def: "(!v f. list_case v f [] = v) & (!v f a0 a1. list_case v f (a0#a1) = f a0 a1)"
   by simp
 
-consts
-  list_size :: "('a \<Rightarrow> nat) \<Rightarrow> 'a list \<Rightarrow> nat"
-
-primrec
+primrec list_size :: "('a \<Rightarrow> nat) \<Rightarrow> 'a list \<Rightarrow> nat" where
   "list_size f [] = 0"
-  "list_size f (a0#a1) = 1 + (f a0 + list_size f a1)"
+| "list_size f (a0#a1) = 1 + (f a0 + list_size f a1)"
 
-lemma list_size_def: "(!f. list_size f [] = 0) &
+lemma list_size_def': "(!f. list_size f [] = 0) &
          (!f a0 a1. list_size f (a0#a1) = 1 + (f a0 + list_size f a1))"
   by simp
 
@@ -377,12 +359,9 @@ lemma EVERY_DEF: "(!P. list_all P [] = True) & (!P h t. list_all P (h#t) = (P h 
 lemma list_exists_DEF: "(!P. list_ex P [] = False) & (!P h t. list_ex P (h#t) = (P h | list_ex P t))"
   by simp
 
-consts
-  map2 :: "[['a,'b]\<Rightarrow>'c,'a list,'b list] \<Rightarrow> 'c list"
-
-primrec
+primrec map2 :: "[['a,'b]\<Rightarrow>'c,'a list,'b list] \<Rightarrow> 'c list" where
   map2_Nil: "map2 f [] l2 = []"
-  map2_Cons: "map2 f (x#xs) l2 = f x (hd l2) # map2 f xs (tl l2)"
+| map2_Cons: "map2 f (x#xs) l2 = f x (hd l2) # map2 f xs (tl l2)"
 
 lemma MAP2: "(!f. map2 f [] [] = []) & (!f h1 t1 h2 t2. map2 f (h1#t1) (h2#t2) = f h1 h2#map2 f t1 t2)"
   by simp
@@ -419,12 +398,9 @@ lemma ZIP: "(zip [] [] = []) &
 lemma [hol4rew]: "ZIP (a,b) = zip a b"
   by (simp add: ZIP_def)
 
-consts
-  unzip :: "('a * 'b) list \<Rightarrow> 'a list * 'b list"
-
-primrec
+primrec unzip :: "('a * 'b) list \<Rightarrow> 'a list * 'b list" where
   unzip_Nil: "unzip [] = ([],[])"
-  unzip_Cons: "unzip (xy#xys) = (let zs = unzip xys in (fst xy # fst zs,snd xy # snd zs))"
+| unzip_Cons: "unzip (xy#xys) = (let zs = unzip xys in (fst xy # fst zs,snd xy # snd zs))"
 
 lemma UNZIP: "(unzip [] = ([],[])) &
          (!x l. unzip (x#l) = (fst x#fst (unzip l),snd x#snd (unzip l)))"

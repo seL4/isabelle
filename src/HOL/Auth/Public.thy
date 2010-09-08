@@ -199,23 +199,31 @@ text{*Note: for all practical purposes, all that matters is the initial
 knowledge of the Spy.  All other agents are automata, merely following the
 protocol.*}
 
-primrec
+term initState_Server
+
+overloading
+  initState \<equiv> initState
+begin
+
+primrec initState where
         (*Agents know their private key and all public keys*)
   initState_Server:
     "initState Server     =    
        {Key (priEK Server), Key (priSK Server)} \<union> 
        (Key ` range pubEK) \<union> (Key ` range pubSK) \<union> (Key ` range shrK)"
 
-  initState_Friend:
+| initState_Friend:
     "initState (Friend i) =    
        {Key (priEK(Friend i)), Key (priSK(Friend i)), Key (shrK(Friend i))} \<union> 
        (Key ` range pubEK) \<union> (Key ` range pubSK)"
 
-  initState_Spy:
+| initState_Spy:
     "initState Spy        =    
        (Key ` invKey ` pubEK ` bad) \<union> (Key ` invKey ` pubSK ` bad) \<union> 
        (Key ` shrK ` bad) \<union> 
        (Key ` range pubEK) \<union> (Key ` range pubSK)"
+
+end
 
 
 text{*These lemmas allow reasoning about @{term "used evs"} rather than

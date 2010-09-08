@@ -22,10 +22,17 @@ specification (shrK)
    done
 
 text{*Server knows all long-term keys; other agents know only their own*}
-primrec
+
+overloading
+  initState \<equiv> initState
+begin
+
+primrec initState where
   initState_Server:  "initState Server     = Key ` range shrK"
-  initState_Friend:  "initState (Friend i) = {Key (shrK (Friend i))}"
-  initState_Spy:     "initState Spy        = Key`shrK`bad"
+| initState_Friend:  "initState (Friend i) = {Key (shrK (Friend i))}"
+| initState_Spy:     "initState Spy        = Key`shrK`bad"
+
+end
 
 
 subsection{*Basic properties of shrK*}

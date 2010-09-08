@@ -150,12 +150,9 @@ where
 equivariance valid
 
 text {* General *}
-consts
-  gen :: "ty \<Rightarrow> tvar list \<Rightarrow> tyS"
-
-primrec 
+primrec gen :: "ty \<Rightarrow> tvar list \<Rightarrow> tyS" where
   "gen T [] = Ty T"
-  "gen T (X#Xs) = \<forall>[X].(gen T Xs)"
+| "gen T (X#Xs) = \<forall>[X].(gen T Xs)"
 
 lemma gen_eqvt[eqvt]:
   fixes pi::"tvar prm"

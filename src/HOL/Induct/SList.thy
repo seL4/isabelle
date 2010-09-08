@@ -133,10 +133,9 @@ definition
   map       :: "('a=>'b) => ('a list => 'b list)" where
   "map f xs = list_rec xs [] (%x l r. f(x)#r)"
 
-consts take      :: "['a list,nat] => 'a list"
-primrec
+primrec take :: "['a list,nat] => 'a list" where
   take_0:  "take xs 0 = []"
-  take_Suc: "take xs (Suc n) = list_case [] (%x l. x # take l n) xs"
+| take_Suc: "take xs (Suc n) = list_case [] (%x l. x # take l n) xs"
 
 lemma ListI: "x : list (range Leaf) ==> x : List"
 by (simp add: List_def)

@@ -1,5 +1,4 @@
 (*  Title:      HOL/IMP/Compiler.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, TUM
     Copyright   1996 TUM
 
@@ -49,14 +48,13 @@ abbreviation
 
 subsection "The compiler"
 
-consts compile :: "com \<Rightarrow> instr list"
-primrec
-"compile \<SKIP> = []"
-"compile (x:==a) = [ASIN x a]"
-"compile (c1;c2) = compile c1 @ compile c2"
+primrec compile :: "com \<Rightarrow> instr list" where
+"compile \<SKIP> = []" |
+"compile (x:==a) = [ASIN x a]" |
+"compile (c1;c2) = compile c1 @ compile c2" |
 "compile (\<IF> b \<THEN> c1 \<ELSE> c2) =
  [JMPF b (length(compile c1) + 2)] @ compile c1 @
- [JMPF (%x. False) (length(compile c2)+1)] @ compile c2"
+ [JMPF (%x. False) (length(compile c2)+1)] @ compile c2" |
 "compile (\<WHILE> b \<DO> c) = [JMPF b (length(compile c) + 2)] @ compile c @
  [JMPB (length(compile c)+1)]"
 

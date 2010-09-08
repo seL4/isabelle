@@ -95,15 +95,15 @@ lemma [simp]: "(f n, Lim f) : brouwer_order"
 text{*Example of a general function*}
 
 function
-  add2 :: "(brouwer*brouwer) => brouwer"
+  add2 :: "brouwer \<Rightarrow> brouwer \<Rightarrow> brouwer"
 where
-  "add2 (i, Zero) = i"
-| "add2 (i, (Succ j)) = Succ (add2 (i, j))"
-| "add2 (i, (Lim f)) = Lim (\<lambda> n. add2 (i, (f n)))"
+  "add2 i Zero = i"
+| "add2 i (Succ j) = Succ (add2 i j)"
+| "add2 i (Lim f) = Lim (\<lambda>n. add2 i (f n))"
 by pat_completeness auto
 termination by (relation "inv_image brouwer_order snd") auto
 
-lemma add2_assoc: "add2 (add2 (i, j), k) = add2 (i, add2 (j, k))"
+lemma add2_assoc: "add2 (add2 i j) k = add2 i (add2 j k)"
   by (induct k) auto
 
 end
