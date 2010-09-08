@@ -112,7 +112,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/class.ML						\
   Isar/class_declaration.ML				\
   Isar/code.ML						\
-  Isar/constdefs.ML					\
   Isar/context_rules.ML					\
   Isar/element.ML					\
   Isar/expression.ML					\

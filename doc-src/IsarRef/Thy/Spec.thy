@@ -1069,25 +1069,12 @@ text {*
   \begin{matharray}{rcl}
     @{command_def "consts"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "defs"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "constdefs"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
     'consts' ((name '::' type mixfix?) +)
     ;
     'defs' ('(' 'unchecked'? 'overloaded'? ')')? \\ (axmdecl prop +)
-    ;
-  \end{rail}
-
-  \begin{rail}
-    'constdefs' structs? (constdecl? constdef +)
-    ;
-
-    structs: '(' 'structure' (vars + 'and') ')'
-    ;
-    constdecl:  ((name '::' type mixfix | name '::' type | name mixfix) 'where'?) | name 'where'
-    ;
-    constdef: thmdecl? prop
     ;
   \end{rail}
 
@@ -1111,25 +1098,6 @@ text {*
   message would be issued for any definitional equation with a more
   special type than that of the corresponding constant declaration.
   
-  \item @{command "constdefs"} combines constant declarations and
-  definitions, with type-inference taking care of the most general
-  typing of the given specification (the optional type constraint may
-  refer to type-inference dummies ``@{text _}'' as usual).  The
-  resulting type declaration needs to agree with that of the
-  specification; overloading is \emph{not} supported here!
-  
-  The constant name may be omitted altogether, if neither type nor
-  syntax declarations are given.  The canonical name of the
-  definitional axiom for constant @{text c} will be @{text c_def},
-  unless specified otherwise.  Also note that the given list of
-  specifications is processed in a strictly sequential manner, with
-  type-checking being performed independently.
-  
-  An optional initial context of @{text "(structure)"} declarations
-  admits use of indexed syntax, using the special symbol @{verbatim
-  "\<index>"} (printed as ``@{text "\<index>"}'').  The latter concept is
-  particularly useful with locales (see also \secref{sec:locale}).
-
   \end{description}
 *}
 

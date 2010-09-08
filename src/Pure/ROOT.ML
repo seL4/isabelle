@@ -226,7 +226,6 @@ use "Isar/parse_spec.ML";
 use "Isar/spec_rules.ML";
 use "Isar/specification.ML";
 use "Isar/typedecl.ML";
-use "Isar/constdefs.ML";
 
 (*toplevel transactions*)
 use "Thy/thy_load.ML";

@@ -203,25 +203,6 @@ val _ =
       >> (Toplevel.theory o Isar_Cmd.add_defs));
 
 
-(* old constdefs *)
-
-val old_constdecl =
-  Parse.binding --| Parse.where_ >> (fn x => (x, NONE, NoSyn)) ||
-  Parse.binding -- (Parse.$$$ "::" |-- Parse.!!! Parse.typ >> SOME) -- Parse.opt_mixfix'
-    --| Scan.option Parse.where_ >> Parse.triple1 ||
-  Parse.binding -- (Parse.mixfix >> pair NONE) --| Scan.option Parse.where_ >> Parse.triple2;
-
-val old_constdef = Scan.option old_constdecl -- (Parse_Spec.opt_thm_name ":" -- Parse.prop);
-
-val structs =
-  Scan.optional ((Parse.$$$ "(" -- Parse.$$$ "structure")
-    |-- Parse.!!! (Parse.simple_fixes --| Parse.$$$ ")")) [];
-
-val _ =
-  Outer_Syntax.command "constdefs" "old-style constant definition" Keyword.thy_decl
-    (structs -- Scan.repeat1 old_constdef >> (Toplevel.theory o Constdefs.add_constdefs));
-
-
 (* constant definitions and abbreviations *)
 
 val _ =
