@@ -231,7 +231,7 @@ fun program body =
 
 fun thread interrupts body =
   Thread.fork
-    (((fn () => body () handle Exn.Interrupt => ())
+    (((fn () => body () handle exn => if Exn.is_interrupt exn then () else reraise exn)
         |> Runtime.debugging
         |> Runtime.toplevel_error
           (fn exn => priority ("## INTERNAL ERROR ##\n" ^ ML_Compiler.exn_message exn))),

@@ -148,7 +148,7 @@ fun timeLimit time f x = uninterruptible (fn restore_attributes => fn () =>
       (OS.Process.sleep time; timeout := true; Thread.interrupt worker), []);
 
     val result = Exn.capture (restore_attributes f) x;
-    val was_timeout = (case result of Exn.Exn Exn.Interrupt => ! timeout | _ => false);
+    val was_timeout = Exn.is_interrupt_exn result andalso ! timeout;
 
     val _ = Thread.interrupt watchdog handle Thread _ => ();
   in if was_timeout then raise TimeOut else Exn.release result end) ();
@@ -209,7 +209,7 @@ fun bash_output script = with_attributes no_interrupts (fn orig_atts =>
         let val res =
           sync_wait (SOME orig_atts)
             (SOME (Time.+ (Time.now (), Time.fromMilliseconds 100))) cond lock
-        in case res of Exn.Exn Exn.Interrupt => kill 10 | _ => () end;
+        in if Exn.is_interrupt_exn res then kill 10 else () end;
 
     (*cleanup*)
     val output = read_file output_name handle IO.Io _ => "";
@@ -217,7 +217,7 @@ fun bash_output script = with_attributes no_interrupts (fn orig_atts =>
     val _ = OS.FileSys.remove pid_name handle OS.SysErr _ => ();
     val _ = OS.FileSys.remove output_name handle OS.SysErr _ => ();
     val _ = Thread.interrupt system_thread handle Thread _ => ();
-    val rc = (case ! result of Signal => raise Exn.Interrupt | Result rc => rc);
+    val rc = (case ! result of Signal => Exn.interrupt () | Result rc => rc);
   in (output, rc) end);
 
 

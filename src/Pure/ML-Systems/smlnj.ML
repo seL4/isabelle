@@ -142,7 +142,7 @@ in
 
 fun interruptible (f: 'a -> 'b) x =
   let
-    val result = ref (Exn.Exn Interrupt: 'b Exn.result);
+    val result = ref (Exn.interrupt_exn: 'b Exn.result);
     val old_handler = Signals.inqHandler Signals.sigINT;
   in
     SMLofNJ.Cont.callcc (fn cont =>
@@ -165,7 +165,7 @@ structure TextIO =
 struct
   open TextIO;
   fun inputLine is = TextIO.inputLine is
-    handle IO.Io _ => raise Interrupt;
+    handle IO.Io _ => Exn.interrupt ();
 end;
 
 

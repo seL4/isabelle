@@ -186,17 +186,18 @@ fun eval verbose pos toks =
     val _ =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
-      handle exn as Exn.Interrupt => reraise exn
-        | exn =>
-            let
-              val exn_msg =
-                (case exn of
-                  STATIC_ERRORS () => ""
-                | Runtime.TOPLEVEL_ERROR => ""
-                | _ => "Exception- " ^ General.exnMessage exn ^ " raised");
-              val _ = output_warnings ();
-              val _ = output_writeln ();
-            in raise_error exn_msg end;
+      handle exn =>
+        if Exn.is_interrupt exn then reraise exn
+        else
+          let
+            val exn_msg =
+              (case exn of
+                STATIC_ERRORS () => ""
+              | Runtime.TOPLEVEL_ERROR => ""
+              | _ => "Exception- " ^ General.exnMessage exn ^ " raised");
+            val _ = output_warnings ();
+            val _ = output_writeln ();
+          in raise_error exn_msg end;
   in
     if verbose then (output_warnings (); flush_error (); output_writeln ())
     else ()

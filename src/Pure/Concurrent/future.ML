@@ -110,7 +110,7 @@ fun assign_result group result res =
     val _ = Single_Assignment.assign result res
       handle exn as Fail _ =>
         (case Single_Assignment.peek result of
-          SOME (Exn.Exn Exn.Interrupt) => raise Exn.Interrupt
+          SOME (Exn.Exn e) => reraise (if Exn.is_interrupt e then e else exn)
         | _ => reraise exn);
     val ok =
       (case the (Single_Assignment.peek result) of
@@ -184,7 +184,7 @@ fun future_job group (e: unit -> 'a) =
             Exn.capture (fn () =>
               Multithreading.with_attributes Multithreading.private_interrupts
                 (fn _ => Position.setmp_thread_data pos e ())) ()
-          else Exn.Exn Exn.Interrupt;
+          else Exn.interrupt_exn;
       in assign_result group result res end;
   in (result, job) end;
 
@@ -359,10 +359,12 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
     val _ = broadcast scheduler_event;
   in continue end
-  handle Exn.Interrupt =>
-   (Multithreading.tracing 1 (fn () => "Interrupt");
-    List.app cancel_later (Task_Queue.cancel_all (! queue));
-    broadcast_work (); true);
+  handle exn =>
+    if Exn.is_interrupt exn then
+     (Multithreading.tracing 1 (fn () => "Interrupt");
+      List.app cancel_later (Task_Queue.cancel_all (! queue));
+      broadcast_work (); true)
+    else reraise exn;
 
 fun scheduler_loop () =
   while
@@ -415,11 +417,12 @@ local
 fun get_result x =
   (case peek x of
     NONE => Exn.Exn (Fail "Unfinished future")
-  | SOME (exn as Exn.Exn Exn.Interrupt) =>
-      (case Exn.flatten_list (Task_Queue.group_status (group_of x)) of
-        [] => exn
-      | exns => Exn.Exn (Exn.EXCEPTIONS exns))
-  | SOME res => res);
+  | SOME res =>
+      if Exn.is_interrupt_exn res then
+        (case Exn.flatten_list (Task_Queue.group_status (group_of x)) of
+          [] => res
+        | exns => Exn.Exn (Exn.EXCEPTIONS exns))
+      else res);
 
 fun join_next deps = (*requires SYNCHRONIZED*)
   if null deps then NONE
@@ -486,7 +489,7 @@ fun map_future f x =
 fun promise_group group : 'a future =
   let
     val result = Single_Assignment.var "promise" : 'a result;
-    fun abort () = assign_result group result (Exn.Exn Exn.Interrupt) handle Fail _ => true;
+    fun abort () = assign_result group result Exn.interrupt_exn handle Fail _ => true;
     val task = SYNCHRONIZED "enqueue_passive" (fn () =>
       Unsynchronized.change_result queue (Task_Queue.enqueue_passive group abort));
   in Future {promised = true, task = task, group = group, result = result} end;
@@ -496,7 +499,7 @@ fun promise () = promise_group (worker_subgroup ());
 fun fulfill_result (Future {promised, task, group, result}) res =
   let
     val _ = promised orelse raise Fail "Not a promised future";
-    fun job ok = assign_result group result (if ok then res else Exn.Exn Exn.Interrupt);
+    fun job ok = assign_result group result (if ok then res else Exn.interrupt_exn);
     val _ = execute (task, group, [job]);
   in () end;
 

@@ -94,7 +94,7 @@ fun perhaps f x = the_default x (f x);
 (* partiality *)
 
 fun try f x = SOME (f x)
-  handle (exn as Exn.Interrupt) => reraise exn | _ => NONE;
+  handle exn => if Exn.is_interrupt exn then reraise exn else NONE;
 
 fun can f x = is_some (try f x);
 

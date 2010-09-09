@@ -983,17 +983,18 @@ fun loop ready src =
     end handle e => handler (e,SOME src)  (* error in XML parse or Ready issue *)
 
 and handler (e,srco) =
-    case (e,srco) of
-        (XML_PARSE,SOME src) =>
-        panic "Invalid XML input, aborting" (* TODO: attempt recovery  *)
-      | (Exn.Interrupt,SOME src) =>
-        (Output.error_msg "Interrupt during PGIP processing"; loop true src)
-      | (Toplevel.UNDEF,SOME src) =>
-        (Output.error_msg "No working context defined"; loop true src)
-      | (e,SOME src) =>
-        (Output.error_msg (ML_Compiler.exn_message e); loop true src)
-      | (PGIP_QUIT,_) => ()
-      | (_,NONE) => ()
+    if Exn.is_interrupt e andalso is_some srco then
+        (Output.error_msg "Interrupt during PGIP processing"; loop true (the srco))
+    else
+        case (e,srco) of
+            (XML_PARSE,SOME src) =>
+            panic "Invalid XML input, aborting" (* TODO: attempt recovery  *)
+          | (Toplevel.UNDEF,SOME src) =>
+            (Output.error_msg "No working context defined"; loop true src)
+          | (e,SOME src) =>
+            (Output.error_msg (ML_Compiler.exn_message e); loop true src)
+          | (PGIP_QUIT,_) => ()
+          | (_,NONE) => ()
 in
   (* TODO: add socket interface *)
 

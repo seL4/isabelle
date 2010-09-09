@@ -12,6 +12,10 @@ sig
   val capture: ('a -> 'b) -> 'a -> 'b result
   val release: 'a result -> 'a
   exception Interrupt
+  val interrupt: unit -> 'a
+  val is_interrupt: exn -> bool
+  val interrupt_exn: 'a result
+  val is_interrupt_exn: 'a result -> bool
   exception EXCEPTIONS of exn list
   val flatten: exn -> exn list
   val flatten_list: exn list -> exn list
@@ -40,14 +44,27 @@ fun release (Result y) = y
   | release (Exn e) = reraise e;
 
 
-(* interrupt and nested exceptions *)
+(* interrupts *)
 
 exception Interrupt = Interrupt;
+
+fun interrupt () = raise Interrupt;
+
+fun is_interrupt Interrupt = true
+  | is_interrupt _ = false;
+
+val interrupt_exn = Exn Interrupt;
+
+fun is_interrupt_exn (Exn exn) = is_interrupt exn
+  | is_interrupt_exn _ = false;
+
+
+(* nested exceptions *)
+
 exception EXCEPTIONS of exn list;
 
-fun flatten Interrupt = []
-  | flatten (EXCEPTIONS exns) = flatten_list exns
-  | flatten exn = [exn]
+fun flatten (EXCEPTIONS exns) = flatten_list exns
+  | flatten exn = if is_interrupt exn then [] else [exn]
 and flatten_list exns = List.concat (map flatten exns);
 
 fun release_all results =

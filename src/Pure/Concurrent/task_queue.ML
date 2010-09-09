@@ -80,9 +80,8 @@ fun group_ancestry (Group {parent, id, ...}) =
 fun cancel_group (Group {status, ...}) exn =
   Synchronized.change status
     (fn exns =>
-      (case exn of
-        Exn.Interrupt => if null exns then [exn] else exns
-      | _ => exn :: exns));
+      if not (Exn.is_interrupt exn) orelse null exns then exn :: exns
+      else exns);
 
 fun is_canceled (Group {parent, status, ...}) =
   not (null (Synchronized.value status)) orelse
