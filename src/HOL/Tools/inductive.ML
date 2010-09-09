@@ -789,14 +789,12 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
             val xs = map Free (Variable.variant_frees lthy intr_ts
               (mk_names "x" (length Ts) ~~ Ts))
           in
-            (name_mx, (Attrib.empty_binding, fold_rev lambda (params @ xs)
+            (name_mx, (apfst Binding.conceal Attrib.empty_binding, fold_rev lambda (params @ xs)
               (list_comb (rec_const, params @ make_bool_args' bs i @
                 make_args argTs (xs ~~ Ts)))))
           end) (cnames_syn ~~ cs);
     val (consts_defs, lthy'') = lthy'
-      |> Local_Theory.conceal
-      |> fold_map Local_Theory.define specs
-      ||> Local_Theory.restore_naming lthy';
+      |> fold_map Local_Theory.define specs;
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
     val (_, lthy''') = Variable.add_fixes (map (fst o dest_Free) params) lthy'';
