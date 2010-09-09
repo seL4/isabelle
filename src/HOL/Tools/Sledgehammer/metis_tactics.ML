@@ -432,9 +432,9 @@ fun inst_inf ctxt mode skolems thpairs fsubst th =
 
 (* INFERENCE RULE: RESOLVE *)
 
-(*Like RSN, but we rename apart only the type variables. Vars here typically have an index
-  of 1, and the use of RSN would increase this typically to 3. Instantiations of those Vars
-  could then fail. See comment on mk_var.*)
+(* Like RSN, but we rename apart only the type variables. Vars here typically
+   have an index of 1, and the use of RSN would increase this typically to 3.
+   Instantiations of those Vars could then fail. See comment on "mk_var". *)
 fun resolve_inc_tyvars thy tha i thb =
   let
     val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
@@ -447,9 +447,13 @@ fun resolve_inc_tyvars thy tha i thb =
   in
     aux tha thb
     handle TERM z =>
-           (* We could do it right the first time but this error occurs seldom
-              and we don't want to break existing proofs in subtle ways or slow
-              them down needlessly. *)
+           (* The unifier, which is invoked from "Thm.bicompose", will sometimes
+              refuse to unify "?a::?'a" with "?a::?'b" or "?a::nat" and throw a
+              "TERM" exception (with "add_ffpair" as first argument). We then
+              perform unification of the types of variables by hand and try
+              again. We could do this the first time around but this error
+              occurs seldom and we don't want to break existing proofs in subtle
+              ways or slow them down needlessly. *)
            case [] |> fold (Term.add_vars o prop_of) [tha, thb]
                    |> AList.group (op =)
                    |> maps (fn ((s, _), T :: Ts) =>
