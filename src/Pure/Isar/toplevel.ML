@@ -30,7 +30,6 @@ sig
   val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
   val skip_proofs: bool Unsynchronized.ref
-  exception TOPLEVEL_ERROR
   val program: (unit -> 'a) -> 'a
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
@@ -221,8 +220,6 @@ val interact = Unsynchronized.ref false;
 val timing = Output.timing;
 val profiling = Unsynchronized.ref 0;
 val skip_proofs = Unsynchronized.ref false;
-
-exception TOPLEVEL_ERROR = Runtime.TOPLEVEL_ERROR;
 
 fun program body =
  (body
