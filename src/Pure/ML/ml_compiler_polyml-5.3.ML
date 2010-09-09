@@ -25,6 +25,10 @@ fun position_of (loc: PolyML.location) =
     loc_props
   end |> Position.of_properties;
 
+fun offset_position_of loc =
+  let val pos = position_of loc
+  in if is_some (Position.offset_of pos) then pos else Position.none end;
+
 fun exn_position exn =
   (case PolyML.exceptionLocation exn of
     NONE => Position.none
@@ -44,12 +48,12 @@ fun report_parse_tree depth space =
       | _ => Position.report_text);
 
     fun report_decl markup loc decl =
-      report_text Markup.ML_ref (position_of loc)
+      report_text Markup.ML_ref (offset_position_of loc)
         (Markup.markup (Markup.properties (Position.properties_of (position_of decl)) markup) "");
     fun report loc (PolyML.PTtype types) =
           PolyML.NameSpace.displayTypeExpression (types, depth, space)
           |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
-          |> report_text Markup.ML_typing (position_of loc)
+          |> report_text Markup.ML_typing (offset_position_of loc)
       | report loc (PolyML.PTdeclaredAt decl) = report_decl Markup.ML_def loc decl
       | report loc (PolyML.PTopenedAt decl) = report_decl Markup.ML_open loc decl
       | report loc (PolyML.PTstructureAt decl) = report_decl Markup.ML_struct loc decl
@@ -116,12 +120,11 @@ fun eval verbose pos toks =
 
     fun message {message = msg, hard, location = loc, context = _} =
       let
-        val pos = position_of loc;
         val txt =
           Markup.markup Markup.location
-            ((if hard then "Error" else "Warning") ^ Position.str_of pos ^ ":\n") ^
+            ((if hard then "Error" else "Warning") ^ Position.str_of (position_of loc) ^ ":\n") ^
           Pretty.string_of (Pretty.from_ML (pretty_ml msg)) ^
-          Markup.markup (Position.report_markup pos) "";
+          Markup.markup (Position.report_markup (offset_position_of loc)) "";
       in if hard then err txt else warn txt end;
 
 
