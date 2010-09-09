@@ -404,6 +404,7 @@ fun compile_generator_expr thy report t =
 val setup =
   Datatype.interpretation ensure_random_datatype
   #> Code_Target.extend_target (target, (Code_Eval.target, K I))
-  #> Quickcheck.add_generator ("code", compile_generator_expr o ProofContext.theory_of);
+  #> Context.theory_map
+    (Quickcheck.add_generator ("code", compile_generator_expr o ProofContext.theory_of));
 
 end;

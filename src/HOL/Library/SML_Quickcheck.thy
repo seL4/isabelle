@@ -7,7 +7,7 @@ begin
 
 setup {*
   Inductive_Codegen.quickcheck_setup #>
-  Quickcheck.add_generator ("SML", Codegen.test_term)
+  Context.theory_map (Quickcheck.add_generator ("SML", Codegen.test_term))
 *}
 
 end

@@ -17,10 +17,10 @@ sig
   datatype test_params = Test_Params of
   { size: int, iterations: int, default_type: typ list, no_assms: bool,
     expect : expectation, report: bool, quiet : bool};
-  val test_params_of: theory -> test_params 
+  val test_params_of: Proof.context -> test_params 
   val add_generator:
     string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))
-      -> theory -> theory
+      -> Context.generic -> Context.generic
   (* testing terms and proof states *)
   val gen_test_term: Proof.context -> bool -> bool -> string option -> int -> int -> term ->
     (string * term) list option * ((string * int) list * ((int * report list) list) option)
@@ -99,7 +99,7 @@ fun merge_test_params
     ((merge (op =) (default_type1, default_type2), no_assms1 orelse no_assms2),
     ((merge_expectation (expect1, expect2), report1 orelse report2), quiet1 orelse quiet2)));
 
-structure Data = Theory_Data
+structure Data = Generic_Data
 (
   type T =
     (string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))) list
@@ -113,24 +113,24 @@ structure Data = Theory_Data
       merge_test_params (params1, params2));
 );
 
-val test_params_of = snd o Data.get;
+val test_params_of = snd o Data.get o Context.Proof;
 
 val add_generator = Data.map o apfst o AList.update (op =);
 
 (* generating tests *)
 
 fun mk_tester_select name ctxt =
-  case AList.lookup (op =) ((fst o Data.get o ProofContext.theory_of) ctxt) name
+  case AList.lookup (op =) ((fst o Data.get o Context.Proof) ctxt) name
    of NONE => error ("No such quickcheck generator: " ^ name)
     | SOME generator => generator ctxt;
 
 fun mk_testers ctxt report t =
-  (map snd o fst o Data.get o ProofContext.theory_of) ctxt
+  (map snd o fst o Data.get o Context.Proof) ctxt
   |> map_filter (fn generator => try (generator ctxt report) t);
 
 fun mk_testers_strict ctxt report t =
   let
-    val generators = ((map snd o fst o Data.get o ProofContext.theory_of) ctxt)
+    val generators = ((map snd o fst o Data.get  o Context.Proof) ctxt)
     val testers = map (fn generator => Exn.capture (generator ctxt report) t) generators;
   in if forall (is_none o Exn.get_result) testers
     then [(Exn.release o snd o split_last) testers]
@@ -296,7 +296,7 @@ fun auto_quickcheck state =
     let
       val ctxt = Proof.context_of state;
       val Test_Params {size, iterations, default_type, no_assms, ...} =
-        (snd o Data.get o Proof.theory_of) state;
+        (snd o Data.get o Context.Proof) ctxt;
       val res =
         try (test_goal true false NONE size iterations default_type no_assms [] 1) state;
     in
@@ -353,18 +353,17 @@ fun parse_test_param_inst ctxt ("generator", [arg]) =
 
 fun quickcheck_params_cmd args thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = ProofContext.init_global thy
     val f = fold (parse_test_param ctxt) args;
   in
     thy
-    |> (Data.map o apsnd o map_test_params) f
+    |> (Context.theory_map o Data.map o apsnd o map_test_params) f
   end;
 
 fun gen_quickcheck args i state =
   let
-    val thy = Proof.theory_of state;
     val ctxt = Proof.context_of state;
-    val default_params = (dest_test_params o snd o Data.get) thy;
+    val default_params = (dest_test_params o snd o Data.get o Context.Proof) ctxt;
     val f = fold (parse_test_param_inst ctxt) args;
     val (((size, iterations), ((default_type, no_assms), ((expect, report), quiet))), (generator_name, insts)) =
       f (default_params, (NONE, []));

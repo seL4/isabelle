@@ -853,6 +853,6 @@ val quickcheck_setup =
   setup_depth_start #>
   setup_random_values #>
   setup_size_offset #>
-  Quickcheck.add_generator ("SML_inductive", test_term);
+  Context.theory_map (Quickcheck.add_generator ("SML_inductive", test_term));
 
 end;
