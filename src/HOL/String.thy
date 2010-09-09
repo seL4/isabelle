@@ -152,18 +152,36 @@ definition chars :: string where
   Char NibbleF NibbleD, Char NibbleF NibbleE, Char NibbleF NibbleF]"
 
 
-subsection {* Strings as dedicated datatype *}
+subsection {* Strings as dedicated type *}
 
-datatype literal = STR string
+typedef (open) literal = "UNIV :: string \<Rightarrow> bool"
+  morphisms explode STR ..
 
-declare literal.cases [code del] literal.recs [code del]
+code_datatype STR
 
-lemma [code]: "size (s\<Colon>literal) = 0"
-  by (cases s) simp_all
+instantiation literal :: size
+begin
 
-lemma [code]: "literal_size (s\<Colon>literal) = 0"
-  by (cases s) simp_all
+definition size_literal :: "literal \<Rightarrow> nat"
+where
+  [code]: "size_literal (s\<Colon>literal) = 0"
 
+instance ..
+
+end
+
+instantiation literal :: equal
+begin
+
+definition equal_literal :: "literal \<Rightarrow> literal \<Rightarrow> bool"
+where
+  "equal_literal s1 s2 \<longleftrightarrow> explode s1 = explode s2"
+
+instance
+proof
+qed (auto simp add: equal_literal_def explode_inject)
+
+end
 
 subsection {* Code generator *}
 

@@ -71,6 +71,8 @@ feature is still required for historical reasons.
 
 *** HOL ***
 
+* String.literal is a type, but not a datatype. INCOMPATIBILITY.
+ 
 * Renamed lemmas: expand_fun_eq -> ext_iff, expand_set_eq -> set_ext_iff
 
 * Renamed class eq and constant eq (for code generation) to class equal

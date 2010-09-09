@@ -402,12 +402,15 @@ subsection {* Code generator setup *}
 
 subsubsection {* Logical intermediate layer *}
 
-primrec raise' :: "String.literal \<Rightarrow> 'a Heap" where
-  [code del, code_post]: "raise' (STR s) = raise s"
+definition raise' :: "String.literal \<Rightarrow> 'a Heap" where
+  [code del]: "raise' s = raise (explode s)"
+
+lemma [code_post]: "raise' (STR s) = raise s"
+unfolding raise'_def by (simp add: STR_inverse)
 
 lemma raise_raise' [code_inline]:
   "raise s = raise' (STR s)"
-  by simp
+  unfolding raise'_def by (simp add: STR_inverse)
 
 code_datatype raise' -- {* avoid @{const "Heap"} formally *}
 

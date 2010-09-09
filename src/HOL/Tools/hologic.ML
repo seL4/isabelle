@@ -596,9 +596,9 @@ val dest_string = implode o map (chr o dest_char) o dest_list;
 
 val literalT = Type ("String.literal", []);
 
-fun mk_literal s = Const ("String.literal.STR", stringT --> literalT)
+fun mk_literal s = Const ("String.STR", stringT --> literalT)
       $ mk_string s;
-fun dest_literal (Const ("String.literal.STR", _) $ t) =
+fun dest_literal (Const ("String.STR", _) $ t) =
       dest_string t
   | dest_literal t = raise TERM ("dest_literal", [t]);
 

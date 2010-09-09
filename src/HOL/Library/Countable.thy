@@ -100,8 +100,8 @@ instance list :: (countable) countable
 text {* Further *}
 
 instance String.literal :: countable
-  by (rule countable_classI [of "String.literal_case to_nat"])
-   (auto split: String.literal.splits)
+  by (rule countable_classI [of "to_nat o explode"])
+    (auto simp add: explode_inject)
 
 instantiation typerep :: countable
 begin

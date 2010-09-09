@@ -44,14 +44,6 @@ code_const "Code_Evaluation.term_of \<Colon> char \<Rightarrow> term"
 definition implode :: "string \<Rightarrow> String.literal" where
   "implode = STR"
 
-primrec explode :: "String.literal \<Rightarrow> string" where
-  "explode (STR s) = s"
-
-lemma [code]:
-  "literal_case f s = f (explode s)"
-  "literal_rec f s = f (explode s)"
-  by (cases s, simp)+
-
 code_reserved SML String
 
 code_const implode

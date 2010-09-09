@@ -30,10 +30,6 @@ instance option :: (heap) heap ..
 
 instance int :: heap ..
 
-instance String.literal :: countable
-  by (rule countable_classI [of "String.literal_case to_nat"])
-   (auto split: String.literal.splits)
-
 instance String.literal :: heap ..
 
 instance typerep :: heap ..
