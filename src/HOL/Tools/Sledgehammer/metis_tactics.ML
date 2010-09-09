@@ -437,33 +437,30 @@ fun inst_inf ctxt mode skolems thpairs fsubst th =
   could then fail. See comment on mk_var.*)
 fun resolve_inc_tyvars thy tha i thb =
   let
+    val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
     fun aux tha thb =
-      let val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha in
-        case Thm.bicompose false (false, tha, nprems_of tha) i thb
-             |> Seq.list_of |> distinct Thm.eq_thm of
-          [th] => th
-        | _ => raise THM ("resolve_inc_tyvars: unique result expected", i,
-                          [tha, thb])
-      end
+      case Thm.bicompose false (false, tha, nprems_of tha) i thb
+           |> Seq.list_of |> distinct Thm.eq_thm of
+        [th] => th
+      | _ => raise THM ("resolve_inc_tyvars: unique result expected", i,
+                        [tha, thb])
   in
     aux tha thb
-    handle TERM _ =>
+    handle TERM z =>
            (* We could do it right the first time but this error occurs seldom
               and we don't want to break existing proofs in subtle ways or slow
               them down needlessly. *)
-           let
-             val ctyp_pairs =
-               [] |> fold (Term.add_vars o prop_of) [tha, thb]
-                  |> AList.group (op =)
-                  |> maps (fn ((s, _), T :: Ts) =>
-                              map (fn T' => (Free (s, T), Free (s, T'))) Ts)
-                  |> rpair (Envir.empty ~1)
-                  |-> fold (Pattern.unify thy)
-                  |> Envir.type_env |> Vartab.dest
-                  |> map (fn (x, (S, T)) =>
-                             pairself (ctyp_of thy) (TVar (x, S), T))
-             val repair = instantiate (ctyp_pairs, [])
-           in aux (repair tha) (repair thb) end
+           case [] |> fold (Term.add_vars o prop_of) [tha, thb]
+                   |> AList.group (op =)
+                   |> maps (fn ((s, _), T :: Ts) =>
+                               map (fn T' => (Free (s, T), Free (s, T'))) Ts)
+                   |> rpair (Envir.empty ~1)
+                   |-> fold (Pattern.unify thy)
+                   |> Envir.type_env |> Vartab.dest
+                   |> map (fn (x, (S, T)) =>
+                              pairself (ctyp_of thy) (TVar (x, S), T)) of
+             [] => raise TERM z
+           | ps => aux (instantiate (ps, []) tha) (instantiate (ps, []) thb)
   end
 
 fun resolve_inf ctxt mode skolems thpairs atm th1 th2 =
