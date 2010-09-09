@@ -575,8 +575,7 @@ fun add_clauses th cls =
 
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
-fun make_clauses_unsorted ths = fold_rev add_clauses ths []
-handle exn => error (ML_Compiler.exn_message exn) (*###*)
+fun make_clauses_unsorted ths = fold_rev add_clauses ths [];
 val make_clauses = sort_clauses o make_clauses_unsorted;
 
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
