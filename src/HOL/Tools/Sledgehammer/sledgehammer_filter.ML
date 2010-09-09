@@ -91,12 +91,11 @@ fun name_thm_pairs_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
     val bracket =
       implode (map (fn arg => "[" ^ Pretty.str_of (Args.pretty_src ctxt arg)
                                ^ "]") args)
-    val space_bracket = if bracket = "" then "" else " " ^ bracket
     val name =
       case xref of
-        Facts.Fact s => "`" ^ s ^ "`" ^ space_bracket
+        Facts.Fact s => "`" ^ s ^ "`" ^ bracket
       | Facts.Named (("", _), _) => "[" ^ bracket ^ "]"
-      | _ => Facts.string_of_ref xref ^ space_bracket
+      | _ => Facts.string_of_ref xref ^ bracket
     val multi = length ths > 1
   in
     (ths, (1, []))
