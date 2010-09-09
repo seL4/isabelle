@@ -91,12 +91,11 @@ fun name_thm_pairs_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
     val bracket =
       implode (map (fn arg => "[" ^ Pretty.str_of (Args.pretty_src ctxt arg)
                                ^ "]") args)
-    val space_bracket = if bracket = "" then "" else " " ^ bracket
     val name =
       case xref of
-        Facts.Fact s => "`" ^ s ^ "`" ^ space_bracket
+        Facts.Fact s => "`" ^ s ^ "`" ^ bracket
       | Facts.Named (("", _), _) => "[" ^ bracket ^ "]"
-      | _ => Facts.string_of_ref xref ^ space_bracket
+      | _ => Facts.string_of_ref xref ^ bracket
     val multi = length ths > 1
   in
     (ths, (1, []))
@@ -686,6 +685,26 @@ fun clasimpset_rules_of ctxt =
     val simps = ctxt |> simpset_of |> dest_ss |> #simps |> map snd
   in (mk_fact_table I intros, mk_fact_table I elims, mk_fact_table I simps) end
 
+fun all_prefixes_of s =
+  map (fn i => String.extract (s, 0, SOME i)) (1 upto size s - 1)
+
+(* This is a terrible hack. Free variables are sometimes code as "M__" when they
+   are displayed as "M" and we want to avoid clashes with these. But sometimes
+   it's even worse: "Ma__" encodes "M". So we simply reserve all prefixes of all
+   free variables. In the worse case scenario, where the fact won't be resolved
+   correctly, the user can fix it manually, e.g., by naming the fact in
+   question. Ideally we would need nothing of it, but backticks just don't work
+   with schematic variables. *)
+fun close_form t =
+  (t, [] |> Term.add_free_names t |> maps all_prefixes_of)
+  |> fold (fn ((s, i), T) => fn (t', taken) =>
+              let val s' = Name.variant taken s in
+                (Term.all T $ Abs (s', T, abstract_over (Var ((s, i), T), t')),
+                 s' :: taken)
+              end)
+          (Term.add_vars t [] |> sort_wrt (fst o fst))
+  |> fst
+
 fun all_name_thms_pairs ctxt reserved full_types add_ths chained_ths =
   let
     val thy = ProofContext.theory_of ctxt
@@ -700,11 +719,8 @@ fun all_name_thms_pairs ctxt reserved full_types add_ths chained_ths =
         clasimpset_rules_of ctxt
       else
         (Termtab.empty, Termtab.empty, Termtab.empty)
-    (* Unnamed nonchained formulas with schematic variables are omitted, because
-       they are rejected by the backticks (`...`) parser for some reason. *)
     fun is_good_unnamed_local th =
       not (Thm.has_name_hint th) andalso
-      (not (exists_subterm is_Var (prop_of th)) orelse (is_chained th)) andalso
       forall (fn (_, ths) => not (member Thm.eq_thm ths th)) named_locals
     val unnamed_locals =
       union Thm.eq_thm (Facts.props local_facts) chained_ths
@@ -724,8 +740,10 @@ fun all_name_thms_pairs ctxt reserved full_types add_ths chained_ths =
           let
             val multi = length ths > 1
             fun backquotify th =
-              "`" ^ Print_Mode.setmp [Print_Mode.input]
-                                 (Syntax.string_of_term ctxt) (prop_of th) ^ "`"
+              "`" ^ Print_Mode.setmp (Print_Mode.input ::
+                                      filter (curry (op =) Symbol.xsymbolsN)
+                                             (print_mode_value ()))
+                   (Syntax.string_of_term ctxt) (close_form (prop_of th)) ^ "`"
               |> String.translate (fn c => if Char.isPrint c then str c else "")
               |> simplify_spaces
             fun check_thms a =

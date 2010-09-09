@@ -253,10 +253,9 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply (rule abs_triangle_ineq)
   apply (metis add_nonneg_nonneg)
   apply (rule add_mono)
-using [[ sledgehammer_problem_prefix = "BigO__bigo_plus_eq_simpler" ]] 
-(*Found by SPASS; SLOW*)
-apply (metis le_maxI2 linorder_linear linorder_not_le min_max.sup_absorb1 mult_le_cancel_right order_trans)
-apply (metis le_maxI2 linorder_not_le mult_le_cancel_right order_trans)
+using [[ sledgehammer_problem_prefix = "BigO__bigo_plus_eq_simpler" ]]
+  apply (metis le_maxI2 linorder_linear min_max.sup_absorb1 mult_right_mono xt1(6))
+  apply (metis le_maxI2 linorder_not_le mult_le_cancel_right order_trans)
 done
 
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_bounded_alt" ]]
@@ -619,9 +618,25 @@ lemma bigo_const_mult5 [simp]: "(c::'a::linordered_field) ~= 0 ==>
    prefer 2 
    apply simp
   apply (simp add: mult_assoc [symmetric] abs_mult)
-  (*couldn't get this proof without the step above; SLOW*)
-  apply (metis mult_assoc abs_ge_zero mult_left_mono)
-done
+  (* couldn't get this proof without the step above *)
+proof -
+  fix g :: "'b \<Rightarrow> 'a" and d :: 'a
+  assume A1: "c \<noteq> (0\<Colon>'a)"
+  assume A2: "\<forall>x\<Colon>'b. \<bar>g x\<bar> \<le> d * \<bar>f x\<bar>"
+  have F1: "inverse \<bar>c\<bar> = \<bar>inverse c\<bar>" using A1 by (metis nonzero_abs_inverse)
+  have F2: "(0\<Colon>'a) < \<bar>c\<bar>" using A1 by (metis zero_less_abs_iff)
+  have "(0\<Colon>'a) < \<bar>c\<bar> \<longrightarrow> (0\<Colon>'a) < \<bar>inverse c\<bar>" using F1 by (metis positive_imp_inverse_positive)
+  hence "(0\<Colon>'a) < \<bar>inverse c\<bar>" using F2 by metis
+  hence F3: "(0\<Colon>'a) \<le> \<bar>inverse c\<bar>" by (metis order_le_less)
+  have "\<exists>(u\<Colon>'a) SKF\<^isub>7\<Colon>'a \<Rightarrow> 'b. \<bar>g (SKF\<^isub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^isub>7 (\<bar>inverse c\<bar> * u))\<bar>"
+    using A2 by metis
+  hence F4: "\<exists>(u\<Colon>'a) SKF\<^isub>7\<Colon>'a \<Rightarrow> 'b. \<bar>g (SKF\<^isub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^isub>7 (\<bar>inverse c\<bar> * u))\<bar> \<and> (0\<Colon>'a) \<le> \<bar>inverse c\<bar>"
+    using F3 by metis
+  hence "\<exists>(v\<Colon>'a) (u\<Colon>'a) SKF\<^isub>7\<Colon>'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^isub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^isub>7 (u * v))\<bar>)"
+    by (metis comm_mult_left_mono)
+  thus "\<exists>ca\<Colon>'a. \<forall>x\<Colon>'b. \<bar>inverse c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
+    using A2 F4 by (metis ab_semigroup_mult_class.mult_ac(1) comm_mult_left_mono)
+qed
 
 
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_const_mult6" ]]

@@ -11,7 +11,8 @@ sig
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
   val flexflex_first_order: thm -> thm
   val size_of_subgoals: thm -> int
-  val too_many_clauses: Proof.context option -> term -> bool
+  val estimated_num_clauses: Proof.context -> int -> term -> int
+  val has_too_many_clauses: Proof.context -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val presimplify: thm -> thm
@@ -26,8 +27,8 @@ sig
   val gocls: thm list -> thm list
   val skolemize_prems_tac: Proof.context -> thm list -> int -> tactic
   val MESON:
-    (int -> tactic) -> (thm list -> thm list) -> (thm list -> tactic)
-    -> Proof.context -> int -> tactic
+    tactic -> (thm list -> thm list) -> (thm list -> tactic) -> Proof.context
+    -> int -> tactic
   val best_meson_tac: (thm -> int) -> Proof.context -> int -> tactic
   val safe_best_meson_tac: Proof.context -> int -> tactic
   val depth_meson_tac: Proof.context -> int -> tactic
@@ -262,13 +263,10 @@ fun nodups ctxt th =
 
 (*** The basic CNF transformation ***)
 
-fun too_many_clauses ctxto t = 
+fun estimated_num_clauses ctxt bound t =
  let
-  val max_cl = case ctxto of SOME ctxt => Config.get ctxt max_clauses
-                           | NONE => max_clauses_default
-  
-  fun sum x y = if x < max_cl andalso y < max_cl then x+y else max_cl;
-  fun prod x y = if x < max_cl andalso y < max_cl then x*y else max_cl;
+  fun sum x y = if x < bound andalso y < bound then x+y else bound
+  fun prod x y = if x < bound andalso y < bound then x*y else bound
   
   (*Estimate the number of clauses in order to detect infeasible theorems*)
   fun signed_nclauses b (Const(@{const_name Trueprop},_) $ t) = signed_nclauses b t
@@ -292,9 +290,12 @@ fun too_many_clauses ctxto t =
     | signed_nclauses b (Const(@{const_name Ex}, _) $ Abs (_,_,t)) = signed_nclauses b t
     | signed_nclauses b (Const(@{const_name All},_) $ Abs (_,_,t)) = signed_nclauses b t
     | signed_nclauses _ _ = 1; (* literal *)
- in 
-  signed_nclauses true t >= max_cl
- end;
+ in signed_nclauses true t end
+
+fun has_too_many_clauses ctxt t =
+  let val max_cl = Config.get ctxt max_clauses in
+    estimated_num_clauses ctxt (max_cl + 1) t > max_cl
+  end
 
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, generalize using Variable.export. *)
@@ -355,8 +356,8 @@ fun cnf skolem_ths ctxt (th, ths) =
               in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
           | _ => nodups ctxt th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th,[])
-      val cls = 
-            if too_many_clauses (SOME ctxt) (concl_of th)
+      val cls =
+            if has_too_many_clauses ctxt (concl_of th)
             then (trace_msg (fn () => "cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
             else cnf_aux (th,ths)
   in  (cls, !ctxtr)  end;
@@ -605,9 +606,9 @@ fun MESON preskolem_tac mkcl cltac ctxt i st =
   SELECT_GOAL
     (EVERY [Object_Logic.atomize_prems_tac 1,
             rtac ccontr 1,
+            preskolem_tac,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
-                      EVERY1 [preskolem_tac,
-                              skolemize_prems_tac ctxt negs,
+                      EVERY1 [skolemize_prems_tac ctxt negs,
                               Subgoal.FOCUS (cltac o mkcl o #prems) ctxt']) ctxt 1]) i st
   handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
 
@@ -616,7 +617,7 @@ fun MESON preskolem_tac mkcl cltac ctxt i st =
 
 (*ths is a list of additional clauses (HOL disjunctions) to use.*)
 fun best_meson_tac sizef =
-  MESON (K all_tac) make_clauses
+  MESON all_tac make_clauses
     (fn cls =>
          THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
                          (has_fewer_prems 1, sizef)
@@ -630,7 +631,7 @@ fun safe_best_meson_tac ctxt =
 (** Depth-first search version **)
 
 val depth_meson_tac =
-  MESON (K all_tac) make_clauses
+  MESON all_tac make_clauses
     (fn cls => EVERY [resolve_tac (gocls cls) 1, depth_prolog_tac (make_horns cls)]);
 
 
@@ -650,7 +651,7 @@ fun prolog_step_tac' horns =
 fun iter_deepen_prolog_tac horns =
     ITER_DEEPEN iter_deepen_limit (has_fewer_prems 1) (prolog_step_tac' horns);
 
-fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON (K all_tac) make_clauses
+fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac make_clauses
   (fn cls =>
     (case (gocls (cls @ ths)) of
       [] => no_tac  (*no goal clauses*)

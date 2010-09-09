@@ -85,7 +85,7 @@ by (metis parts.Body)
 
 text{*Equations hold because constructors are injective.*}
 lemma Friend_image_eq [simp]: "(Friend x \<in> Friend`A) = (x:A)"
-by (metis agent.inject imageI image_iff)
+by (metis agent.inject image_iff)
 
 lemma Key_image_eq [simp]: "(Key x \<in> Key`A) = (x \<in> A)"
 by (metis image_iff msg.inject(4))
@@ -241,7 +241,7 @@ done
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"
 by (blast dest: parts_mono); 
 
-lemma parts_cut: "[|Y\<in> parts(insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
+lemma parts_cut: "[|Y\<in> parts (insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
 by (metis Un_insert_left Un_insert_right insert_absorb mem_def parts_Un parts_idem sup1CI)
 
 
@@ -745,15 +745,12 @@ lemma Fake_analz_insert:
 by (metis Un_commute Un_insert_left Un_insert_right Un_upper1 analz_analz_Un
           analz_mono analz_synth_Un insert_absorb)
 
-(* Simpler problems?  BUT METIS CAN'T PROVE THE LAST STEP
 lemma Fake_analz_insert_simpler:
      "X \<in> synth (analz G) ==>  
       analz (insert X H) \<subseteq> synth (analz G) \<union> analz (G \<union> H)"
 apply (rule subsetI)
 apply (subgoal_tac "x \<in> analz (synth (analz G) \<union> H) ")
 apply (metis Un_commute analz_analz_Un analz_synth_Un)
-apply (metis Un_commute Un_upper1 Un_upper2 analz_cut analz_increasing analz_mono insert_absorb insert_mono insert_subset)
-done
-*)
+by (metis Un_upper1 Un_upper2 analz_mono insert_absorb insert_subset)
 
 end

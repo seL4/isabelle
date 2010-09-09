@@ -241,9 +241,13 @@ fun cnf_axiom thy th =
   let
     val ctxt0 = Variable.global_thm_context th
     val (nnf_th, ctxt) = to_nnf th ctxt0
-    val def_th = (* FIXME: to_definitional_cnf_with_quantifiers thy *) nnf_th
-    val sko_ths = map (skolem_theorem_of_def thy) (assume_skolem_funs def_th)
-    val (cnf_ths, ctxt) = Meson.make_cnf sko_ths def_th ctxt
+    fun aux th =
+      Meson.make_cnf (map (skolem_theorem_of_def thy) (assume_skolem_funs th))
+                     th ctxt
+    val (cnf_ths, ctxt) =
+      aux nnf_th
+      |> (fn ([], _) => aux (to_definitional_cnf_with_quantifiers thy nnf_th)
+           | p => p)
   in
     cnf_ths |> map introduce_combinators_in_theorem
             |> Variable.export ctxt ctxt0

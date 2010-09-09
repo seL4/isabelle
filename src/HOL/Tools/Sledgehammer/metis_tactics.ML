@@ -432,21 +432,44 @@ fun inst_inf ctxt mode skolems thpairs fsubst th =
 
 (* INFERENCE RULE: RESOLVE *)
 
-(*Like RSN, but we rename apart only the type variables. Vars here typically have an index
-  of 1, and the use of RSN would increase this typically to 3. Instantiations of those Vars
-  could then fail. See comment on mk_var.*)
-fun resolve_inc_tyvars(tha,i,thb) =
+(* Like RSN, but we rename apart only the type variables. Vars here typically
+   have an index of 1, and the use of RSN would increase this typically to 3.
+   Instantiations of those Vars could then fail. See comment on "mk_var". *)
+fun resolve_inc_tyvars thy tha i thb =
   let
-      val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
-      val ths = Seq.list_of (Thm.bicompose false (false,tha,nprems_of tha) i thb)
-  in
-      case distinct Thm.eq_thm ths of
+    val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
+    fun aux tha thb =
+      case Thm.bicompose false (false, tha, nprems_of tha) i thb
+           |> Seq.list_of |> distinct Thm.eq_thm of
         [th] => th
-      | _ => raise THM ("resolve_inc_tyvars: unique result expected", i, [tha,thb])
+      | _ => raise THM ("resolve_inc_tyvars: unique result expected", i,
+                        [tha, thb])
+  in
+    aux tha thb
+    handle TERM z =>
+           (* The unifier, which is invoked from "Thm.bicompose", will sometimes
+              refuse to unify "?a::?'a" with "?a::?'b" or "?a::nat" and throw a
+              "TERM" exception (with "add_ffpair" as first argument). We then
+              perform unification of the types of variables by hand and try
+              again. We could do this the first time around but this error
+              occurs seldom and we don't want to break existing proofs in subtle
+              ways or slow them down needlessly. *)
+           case [] |> fold (Term.add_vars o prop_of) [tha, thb]
+                   |> AList.group (op =)
+                   |> maps (fn ((s, _), T :: Ts) =>
+                               map (fn T' => (Free (s, T), Free (s, T'))) Ts)
+                   |> rpair (Envir.empty ~1)
+                   |-> fold (Pattern.unify thy)
+                   |> Envir.type_env |> Vartab.dest
+                   |> map (fn (x, (S, T)) =>
+                              pairself (ctyp_of thy) (TVar (x, S), T)) of
+             [] => raise TERM z
+           | ps => aux (instantiate (ps, []) tha) (instantiate (ps, []) thb)
   end
 
 fun resolve_inf ctxt mode skolems thpairs atm th1 th2 =
   let
+    val thy = ProofContext.theory_of ctxt
     val i_th1 = lookth thpairs th1 and i_th2 = lookth thpairs th2
     val _ = trace_msg (fn () => "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1)
     val _ = trace_msg (fn () => "  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
@@ -466,7 +489,10 @@ fun resolve_inf ctxt mode skolems thpairs atm th1 th2 =
         val index_th2 = get_index i_atm prems_th2
               handle Empty => raise Fail "Failed to find literal in th2"
         val _ = trace_msg (fn () => "  index_th2: " ^ Int.toString index_th2)
-    in  resolve_inc_tyvars (Meson.select_literal index_th1 i_th1, index_th2, i_th2)  end
+    in
+      resolve_inc_tyvars thy (Meson.select_literal index_th1 i_th1) index_th2
+                         i_th2
+    end
   end;
 
 (* INFERENCE RULE: REFL *)
@@ -790,6 +816,13 @@ val neg_clausify =
   #> map Clausifier.introduce_combinators_in_theorem
   #> Meson.finish_cnf
 
+fun preskolem_tac ctxt st0 =
+  (if exists (Meson.has_too_many_clauses ctxt)
+             (Logic.prems_of_goal (prop_of st0) 1) then
+     cnf.cnfx_rewrite_tac ctxt 1
+   else
+     all_tac) st0
+
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
@@ -802,8 +835,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
     if exists_type type_has_top_sort (prop_of st0) then
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
-      Meson.MESON (K all_tac) (* TODO: Try (cnf.cnfx_rewrite_tac ctxt) *)
-                  (maps neg_clausify)
+      Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
   end
