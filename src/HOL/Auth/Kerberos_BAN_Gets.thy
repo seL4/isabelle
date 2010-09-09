@@ -157,10 +157,7 @@ done
 
 lemma Gets_imp_knows:
      "\<lbrakk> Gets B X \<in> set evs; evs \<in> bankerb_gets \<rbrakk>  \<Longrightarrow> X \<in> knows B evs"
-apply (case_tac "B = Spy")
-apply (blast dest!: Gets_imp_knows_Spy)
-apply (blast dest!: Gets_imp_knows_agents)
-done
+by (metis Gets_imp_knows_Spy Gets_imp_knows_agents)
 
 lemma Gets_imp_knows_analz:
     "\<lbrakk> Gets B X \<in> set evs; evs \<in> bankerb_gets \<rbrakk>  \<Longrightarrow> X \<in> analz (knows B evs)"
@@ -168,21 +165,21 @@ apply (blast dest: Gets_imp_knows [THEN analz.Inj])
 done
 
 text{*Lemmas for reasoning about predicate "before"*}
-lemma used_Says_rev: "used (evs @ [Says A B X]) = parts {X} \<union> (used evs)";
+lemma used_Says_rev: "used (evs @ [Says A B X]) = parts {X} \<union> (used evs)"
 apply (induct_tac "evs")
 apply simp
 apply (induct_tac "a")
 apply auto
 done
 
-lemma used_Notes_rev: "used (evs @ [Notes A X]) = parts {X} \<union> (used evs)";
+lemma used_Notes_rev: "used (evs @ [Notes A X]) = parts {X} \<union> (used evs)"
 apply (induct_tac "evs")
 apply simp
 apply (induct_tac "a")
 apply auto
 done
 
-lemma used_Gets_rev: "used (evs @ [Gets B X]) = used evs";
+lemma used_Gets_rev: "used (evs @ [Gets B X]) = used evs"
 apply (induct_tac "evs")
 apply simp
 apply (induct_tac "a")

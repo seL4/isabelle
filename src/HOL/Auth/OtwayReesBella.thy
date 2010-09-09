@@ -104,11 +104,7 @@ declare Gets_imp_knows_Spy [THEN parts.Inj, dest]
 
 lemma Gets_imp_knows:
      "\<lbrakk>Gets B X \<in> set evs; evs \<in> orb\<rbrakk>  \<Longrightarrow> X \<in> knows B evs"
-apply (case_tac "B = Spy")
-apply (blast dest!: Gets_imp_knows_Spy)
-apply (blast dest!: Gets_imp_knows_agents)
-done
-
+by (metis Gets_imp_knows_Spy Gets_imp_knows_agents)
 
 lemma OR2_analz_knows_Spy: 
    "\<lbrakk>Gets B \<lbrace>Nonce M, Agent A, Agent B, X\<rbrace> \<in> set evs; evs \<in> orb\<rbrakk>   
@@ -218,15 +214,8 @@ lemma Gets_Server_message_form:
     evs \<in> orb\<rbrakk>                                              
  \<Longrightarrow> (K \<notin> range shrK & (\<exists> A Na. X = (Crypt (shrK A) \<lbrace>Nonce Na, Key K\<rbrace>)))    
              | X \<in> analz (knows Spy evs)"
-apply (case_tac "B \<in> bad")
-apply (drule Gets_imp_knows_Spy [THEN analz.Inj, THEN analz.Snd, 
-                                 THEN analz.Decrypt, THEN analz.Fst])
-prefer 3 apply blast
-prefer 3 apply (blast dest!: Gets_imp_knows_Spy [THEN parts.Inj, THEN 
-                                                 parts.Snd, THEN B_trusts_OR3]
-                             Says_Server_message_form)
-apply simp_all                                    
-done
+by (metis B_trusts_OR3 Crypt_Spy_analz_bad Gets_imp_Says MPair_analz MPair_parts
+          Says_Server_message_form Says_imp_analz_Spy Says_imp_parts_knows_Spy)
 
 lemma unique_Na: "\<lbrakk>Says A B  \<lbrace>Nonce M, Agent A, Agent B, Crypt (shrK A) \<lbrace>Nonce Na, Nonce M, Agent A, Agent B\<rbrace>\<rbrace> \<in> set evs;   
          Says A B' \<lbrace>Nonce M', Agent A, Agent B', Crypt (shrK A) \<lbrace>Nonce Na, Nonce M', Agent A, Agent B'\<rbrace>\<rbrace> \<in> set evs;  
@@ -240,7 +229,7 @@ by (erule rev_mp, erule rev_mp, erule orb.induct, simp_all, blast+)
 
 lemma analz_image_freshCryptK_lemma:
 "(Crypt K X \<in> analz (Key`nE \<union> H)) \<longrightarrow> (Crypt K X \<in> analz H) \<Longrightarrow>  
-        (Crypt K X \<in> analz (Key`nE \<union> H)) = (Crypt K X \<in> analz H)";
+        (Crypt K X \<in> analz (Key`nE \<union> H)) = (Crypt K X \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 ML
@@ -376,8 +365,6 @@ lemma A_keydist_to_B:
 apply (drule Gets_imp_knows_Spy [THEN analz.Inj, THEN analz.Snd], assumption)
 apply (drule analz_hard, assumption, assumption, assumption, assumption)
 apply (drule OR4_imp_Gets, assumption, assumption)
-apply (erule exE)
-(*blast doesn't do because it can't infer that Key (shrK P) \<in> (knows P evs)*)
 apply (fastsimp dest!: Gets_imp_knows [THEN analz.Inj] analz.Decrypt)
 done
 
