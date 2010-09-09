@@ -117,7 +117,7 @@ fun setup_channels in_fifo out_fifo =
 end;
 
 
-(* protocol loop *)
+(* protocol loop -- uninterruptible *)
 
 val crashes = Unsynchronized.ref ([]: exn list);
 
