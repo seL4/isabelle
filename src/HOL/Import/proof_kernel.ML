@@ -1299,10 +1299,13 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
                     end
                   | NONE => (thy,NONE)
             end
-    end  (* FIXME avoid handle _ *)
+    end
     handle e =>
-      (if_debug (fn () => writeln ("Exception in get_isabelle_thm:\n" ^ ML_Compiler.exn_message e)) ();
-        (thy,NONE))
+      if Exn.is_interrupt e then reraise e
+      else
+        (if_debug (fn () =>
+            writeln ("Exception in get_isabelle_thm:\n" ^ ML_Compiler.exn_message e)) ();
+          (thy,NONE))
 
 fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
   let
