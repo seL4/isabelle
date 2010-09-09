@@ -93,7 +93,7 @@ in
 fun print_results do_print ctxt ((kind, name), facts) =
   if not do_print orelse kind = "" then ()
   else if name = "" then
-    Pretty.writeln (Pretty.block (Pretty.str kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
+    Pretty.writeln (Pretty.block (Pretty.command kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
   else Pretty.writeln
     (case facts of
       [fact] => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
