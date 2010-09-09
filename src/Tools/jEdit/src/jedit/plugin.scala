@@ -15,11 +15,14 @@ import javax.swing.JTextArea
 
 import scala.collection.mutable
 
-import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View}
+import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
+  Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.msg.{BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
+
+import org.gjt.sp.util.Log
 
 
 object Isabelle
@@ -103,6 +106,17 @@ object Isabelle
       val manager = javax.swing.ToolTipManager.sharedInstance
       manager.setDismissDelay(tooltip_dismiss_delay())
     }
+  }
+
+
+  /* icons */
+
+  def load_icon(name: String): javax.swing.Icon =
+  {
+    val icon = GUIUtilities.loadIcon(name)
+    if (icon.getIconWidth < 0 || icon.getIconHeight < 0)
+      Log.log(Log.ERROR, icon, "Bad icon: " + name);
+    icon
   }
 
 
