@@ -17,7 +17,7 @@ sig
   val tracing : bool Unsynchronized.ref;
   val quiet : bool Unsynchronized.ref;
   val quickcheck_compile_term : Predicate_Compile_Aux.compilation -> bool -> bool -> int ->
-    Proof.context -> bool -> term -> int -> term list option * (bool list * bool);
+    Proof.context -> term -> int -> term list option * (bool list * bool);
 (*  val test_term : Proof.context -> bool -> int -> int -> int -> int -> term -> *)
   val nrandom : int Unsynchronized.ref;
   val debug : bool Unsynchronized.ref;
@@ -310,7 +310,7 @@ fun try_upto quiet f i =
 
 (* quickcheck interface functions *)
 
-fun compile_term' compilation options depth ctxt report t =
+fun compile_term' compilation options depth ctxt t =
   let
     val c = compile_term compilation options ctxt t
     val dummy_report = ([], false)

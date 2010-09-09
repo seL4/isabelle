@@ -18,11 +18,13 @@ sig
   { size: int, iterations: int, default_type: typ list, no_assms: bool,
     expect : expectation, report: bool, quiet : bool};
   val test_params_of: Proof.context -> test_params 
+  val report : Proof.context -> bool
+  val set_reporting : bool -> Proof.context -> Proof.context
   val add_generator:
-    string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))
+    string * (Proof.context -> term -> int -> term list option * (bool list * bool))
       -> Context.generic -> Context.generic
   (* testing terms and proof states *)
-  val gen_test_term: Proof.context -> bool -> bool -> string option -> int -> int -> term ->
+  val gen_test_term: Proof.context -> bool -> string option -> int -> int -> term ->
     (string * term) list option * ((string * int) list * ((int * report list) list) option)
   val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
     (string * term) list option
@@ -102,7 +104,7 @@ fun merge_test_params
 structure Data = Generic_Data
 (
   type T =
-    (string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))) list
+    (string * (Proof.context -> term -> int -> term list option * (bool list * bool))) list
       * test_params;
   val empty = ([], Test_Params
     { size = 10, iterations = 100, default_type = [], no_assms = false,
@@ -115,6 +117,13 @@ structure Data = Generic_Data
 
 val test_params_of = snd o Data.get o Context.Proof;
 
+val report = snd o fst o snd o snd o dest_test_params o test_params_of
+
+fun map_report f (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet }) =
+  make_test_params ((size, iterations), ((default_type, no_assms), ((expect, f report), quiet)));
+
+fun set_reporting report = Context.proof_map (Data.map (apsnd (map_report (K report))))
+
 val add_generator = Data.map o apfst o AList.update (op =);
 
 (* generating tests *)
@@ -124,14 +133,14 @@ fun mk_tester_select name ctxt =
    of NONE => error ("No such quickcheck generator: " ^ name)
     | SOME generator => generator ctxt;
 
-fun mk_testers ctxt report t =
+fun mk_testers ctxt t =
   (map snd o fst o Data.get o Context.Proof) ctxt
-  |> map_filter (fn generator => try (generator ctxt report) t);
+  |> map_filter (fn generator => try (generator ctxt) t);
 
-fun mk_testers_strict ctxt report t =
+fun mk_testers_strict ctxt t =
   let
     val generators = ((map snd o fst o Data.get  o Context.Proof) ctxt)
-    val testers = map (fn generator => Exn.capture (generator ctxt report) t) generators;
+    val testers = map (fn generator => Exn.capture (generator ctxt) t) generators;
   in if forall (is_none o Exn.get_result) testers
     then [(Exn.release o snd o split_last) testers]
     else map_filter Exn.get_result testers
@@ -156,13 +165,13 @@ fun cpu_time description f =
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
 
-fun gen_test_term ctxt quiet report generator_name size i t =
+fun gen_test_term ctxt quiet generator_name size i t =
   let
     val (names, t') = prep_test_term t;
     val (testers, comp_time) = cpu_time "quickcheck compilation"
       (fn () => (case generator_name
-       of NONE => if quiet then mk_testers ctxt report t' else mk_testers_strict ctxt report t'
-        | SOME name => [mk_tester_select name ctxt report t']));
+       of NONE => if quiet then mk_testers ctxt t' else mk_testers_strict ctxt t'
+        | SOME name => [mk_tester_select name ctxt t']));
     fun iterate f 0 report = (NONE, report)
       | iterate f j report =
         let
@@ -190,11 +199,13 @@ fun gen_test_term ctxt quiet report generator_name size i t =
          (fn result => case result of NONE => NONE
         | SOME ts => SOME (names ~~ ts)) (with_size 1 []))
   in
-    (result, ([exec_time, comp_time], if report then SOME reports else NONE))
+    (result, ([exec_time, comp_time], if report ctxt then SOME reports else NONE))
   end;
 
 fun test_term ctxt quiet generator_name size i t =
-  fst (gen_test_term ctxt quiet false generator_name size i t)
+  ctxt
+  |> set_reporting false
+  |> (fn ctxt' => fst (gen_test_term ctxt' quiet generator_name size i t))
 
 exception WELLSORTED of string
 
@@ -216,7 +227,7 @@ fun monomorphic_term thy insts default_T =
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term
 
-fun test_goal quiet report generator_name size iterations default_Ts no_assms insts i state =
+fun test_goal quiet generator_name size iterations default_Ts no_assms insts i state =
   let
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
@@ -249,7 +260,7 @@ fun test_goal quiet report generator_name size iterations default_Ts no_assms in
         case f t of
           (SOME res, report) => (SOME res, rev (report :: reports))
         | (NONE, report) => collect_results f (report :: reports) ts
-  in collect_results (gen_test_term lthy quiet report generator_name size iterations) [] correct_inst_goals end;
+  in collect_results (gen_test_term lthy quiet generator_name size iterations) [] correct_inst_goals end;
 
 (* pretty printing *)
 
@@ -298,7 +309,9 @@ fun auto_quickcheck state =
       val Test_Params {size, iterations, default_type, no_assms, ...} =
         (snd o Data.get o Context.Proof) ctxt;
       val res =
-        try (test_goal true false NONE size iterations default_type no_assms [] 1) state;
+        state
+        |> Proof.map_context (set_reporting false)
+        |> try (test_goal true NONE size iterations default_type no_assms [] 1);
     in
       case res of
         NONE => (false, state)
@@ -368,7 +381,9 @@ fun gen_quickcheck args i state =
     val (((size, iterations), ((default_type, no_assms), ((expect, report), quiet))), (generator_name, insts)) =
       f (default_params, (NONE, []));
   in
-    test_goal quiet report generator_name size iterations default_type no_assms insts i state
+    state
+    |> Proof.map_context (set_reporting report)
+    |> test_goal quiet generator_name size iterations default_type no_assms insts i
     |> tap (fn (SOME x, _) => if expect = No_Counterexample then
                  error ("quickcheck expected to find no counterexample but found one") else ()
              | (NONE, _) => if expect = Counterexample then

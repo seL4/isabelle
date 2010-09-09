@@ -14,7 +14,7 @@ sig
     -> (string * sort -> string * sort) option
   val ensure_random_datatype: Datatype.config -> string list -> theory -> theory
   val compile_generator_expr:
-    theory -> bool -> term -> int -> term list option * (bool list * bool)
+    Proof.context -> term -> int -> term list option * (bool list * bool)
   val eval_ref: (unit -> int -> seed -> term list option * seed) option Unsynchronized.ref
   val eval_report_ref:
     (unit -> int -> seed -> (term list option * (bool list * bool)) * seed) option Unsynchronized.ref
@@ -380,10 +380,11 @@ fun mk_reporting_generator_expr thy prop Ts =
     Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check))
   end
 
-fun compile_generator_expr thy report t =
+fun compile_generator_expr ctxt t =
   let
     val Ts = (map snd o fst o strip_abs) t;
-  in if report then
+    val thy = ProofContext.theory_of ctxt
+  in if Quickcheck.report ctxt then
     let
       val t' = mk_reporting_generator_expr thy t Ts;
       val compile = Code_Eval.eval (SOME target) ("Quickcheck_Generators.eval_report_ref", eval_report_ref)
@@ -405,6 +406,6 @@ val setup =
   Datatype.interpretation ensure_random_datatype
   #> Code_Target.extend_target (target, (Code_Eval.target, K I))
   #> Context.theory_map
-    (Quickcheck.add_generator ("code", compile_generator_expr o ProofContext.theory_of));
+    (Quickcheck.add_generator ("code", compile_generator_expr));
 
 end;

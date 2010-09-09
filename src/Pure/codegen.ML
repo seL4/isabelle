@@ -76,7 +76,7 @@ sig
   val mk_term_of: codegr -> string -> bool -> typ -> Pretty.T
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
   val test_fn: (int -> term list option) Unsynchronized.ref
-  val test_term: Proof.context -> bool -> term -> int -> term list option * (bool list * bool)
+  val test_term: Proof.context -> term -> int -> term list option * (bool list * bool)
   val eval_result: (unit -> term) Unsynchronized.ref
   val eval_term: theory -> term -> term
   val evaluation_conv: cterm -> thm
@@ -869,7 +869,7 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
 val test_fn : (int -> term list option) Unsynchronized.ref =
   Unsynchronized.ref (fn _ => NONE);
 
-fun test_term ctxt report t =
+fun test_term ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
     val (code, gr) = setmp_CRITICAL mode ["term_of", "test"]

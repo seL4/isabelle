@@ -96,7 +96,7 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
 fun invoke_quickcheck quickcheck_generator thy t =
   TimeLimit.timeLimit (Time.fromSeconds (! Auto_Counterexample.time_limit))
       (fn _ =>
-          case Quickcheck.gen_test_term (ProofContext.init_global thy) true true (SOME quickcheck_generator)
+          case Quickcheck.gen_test_term (ProofContext.init_global thy) true (SOME quickcheck_generator)
                                     size iterations (preprocess thy [] t) of
             (NONE, (time_report, report)) => (NoCex, (time_report, report))
           | (SOME _, (time_report, report)) => (GenuineCex, (time_report, report))) ()
