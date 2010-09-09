@@ -159,16 +159,6 @@ fun uninterruptible f =
 end;
 
 
-(* basis library fixes *)
-
-structure TextIO =
-struct
-  open TextIO;
-  fun inputLine is = TextIO.inputLine is
-    handle IO.Io _ => Exn.interrupt ();
-end;
-
-
 
 (** OS related **)
 

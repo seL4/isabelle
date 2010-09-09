@@ -51,6 +51,7 @@ exception Interrupt = Interrupt;
 fun interrupt () = raise Interrupt;
 
 fun is_interrupt Interrupt = true
+  | is_interrupt (IO.Io {cause = Interrupt, ...}) = true
   | is_interrupt _ = false;
 
 val interrupt_exn = Exn Interrupt;
