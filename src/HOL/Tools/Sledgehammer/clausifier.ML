@@ -7,6 +7,7 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature CLAUSIFIER =
 sig
+  val min_clauses_for_definitional_cnf : int
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
@@ -16,6 +17,11 @@ end;
 
 structure Clausifier : CLAUSIFIER =
 struct
+
+(* Cutoff beyond which definitional CNF is used. Definitional CNF has a certain
+   overhead, but it prevents the exponential explosion of the number of
+   clauses. *)
+val min_clauses_for_definitional_cnf = 30
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -241,9 +247,17 @@ fun cnf_axiom thy th =
   let
     val ctxt0 = Variable.global_thm_context th
     val (nnf_th, ctxt) = to_nnf th ctxt0
-    val def_th = (* FIXME: to_definitional_cnf_with_quantifiers thy *) nnf_th
-    val sko_ths = map (skolem_theorem_of_def thy) (assume_skolem_funs def_th)
-    val (cnf_ths, ctxt) = Meson.make_cnf sko_ths def_th ctxt
+    fun aux th =
+      Meson.make_cnf (map (skolem_theorem_of_def thy) (assume_skolem_funs th))
+                     th ctxt
+    val (cnf_ths, ctxt) =
+      aux nnf_th
+      |> (fn (cnf_ths, ctxt) =>
+             if null cnf_ths orelse
+                length cnf_ths >= min_clauses_for_definitional_cnf then
+               aux (to_definitional_cnf_with_quantifiers thy nnf_th)
+             else
+               (cnf_ths, ctxt))
   in
     cnf_ths |> map introduce_combinators_in_theorem
             |> Variable.export ctxt ctxt0

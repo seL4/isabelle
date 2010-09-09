@@ -447,7 +447,7 @@ fun resolve_inc_tyvars thy tha i thb =
       end
   in
     aux tha thb
-    handle TERM z =>
+    handle TERM _ =>
            (* We could do it right the first time but this error occurs seldom
               and we don't want to break existing proofs in subtle ways or slow
               them down needlessly. *)
@@ -827,8 +827,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
     if exists_type type_has_top_sort (prop_of st0) then
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
-      Meson.MESON (K all_tac) (* TODO: Try (cnf.cnfx_rewrite_tac ctxt) *)
-                  (maps neg_clausify)
+      Meson.MESON (K all_tac) (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
   end
