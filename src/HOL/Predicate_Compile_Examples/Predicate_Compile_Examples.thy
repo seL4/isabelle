@@ -1469,7 +1469,39 @@ the predicate compiler has very strict assumptions about the terms and their str
  
 (*code_pred hd_predicate_in_locale .*)
 
-subsection {* Examples for detecting switches *}
+section {* Integer example *}
+
+definition three :: int
+where "three = 3"
+
+inductive is_three
+where
+  "is_three three"
+
+code_pred is_three .
+
+thm is_three.equation
+
+section {* String.literal example *}
+
+definition Error_1
+where
+  "Error_1 = STR ''Error 1''"
+
+definition Error_2
+where
+  "Error_2 = STR ''Error 2''"
+
+inductive "is_error" :: "String.literal \<Rightarrow> bool"
+where
+  "is_error Error_1"
+| "is_error Error_2"
+
+code_pred is_error .
+
+thm is_error.equation
+
+section {* Examples for detecting switches *}
 
 inductive detect_switches1 where
   "detect_switches1 [] []"
