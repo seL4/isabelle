@@ -10,7 +10,8 @@ sig
   datatype failure =
     Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
     OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
-    MalformedInput | MalformedOutput | Interrupted | UnknownError
+    MalformedInput | MalformedOutput | Interrupted | InternalError |
+    UnknownError
 
   type prover_config =
     {exec: string * string,
@@ -42,7 +43,7 @@ struct
 datatype failure =
   Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
   SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl | MalformedInput |
-  MalformedOutput | Interrupted | UnknownError
+  MalformedOutput | Interrupted | InternalError | UnknownError
 
 type prover_config =
   {exec: string * string,
@@ -86,6 +87,7 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
     \developers."
   | string_for_failure MalformedOutput = "The ATP output is malformed."
   | string_for_failure Interrupted = "The ATP was interrupted."
+  | string_for_failure InternalError = "An internal ATP error occurred."
   | string_for_failure UnknownError = "An unknown ATP error occurred."
 
 fun known_failure_in_output output =
@@ -183,7 +185,8 @@ val spass_config : prover_config =
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
-      (SpassTooOld, "tptp2dfg")],
+      (SpassTooOld, "tptp2dfg"),
+      (InternalError, "Please report this error")],
    default_max_relevant = 350 (* FUDGE *),
    explicit_forall = true,
    use_conjecture_for_hypotheses = true}
@@ -212,7 +215,8 @@ val vampire_config : prover_config =
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
       (Unprovable, "Termination reason: Satisfiable"),
-      (VampireTooOld, "not a valid option")],
+      (VampireTooOld, "not a valid option"),
+      (Interrupted, "Aborted by signal SIGINT")],
    default_max_relevant = 400 (* FUDGE *),
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}

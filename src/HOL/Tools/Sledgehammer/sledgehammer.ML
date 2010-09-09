@@ -165,7 +165,7 @@ fun extract_proof_and_outcome complete res_code proof_delims known_failures
              "" => ("", SOME (if res_code = 0 andalso output = "" then
                                 Interrupted
                               else
-                                UnknownError))
+                                 UnknownError))
            | proof => if res_code = 0 then (proof, NONE)
                       else ("", SOME UnknownError))
   | SOME failure =>
