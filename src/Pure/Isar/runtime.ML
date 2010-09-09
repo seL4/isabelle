@@ -110,9 +110,14 @@ fun controlled_execution f =
   |> debugging
   |> Future.interruptible_task;
 
-fun toplevel_error output_exn f x =
-  let val ctxt = Option.map Context.proof_of (Context.thread_data ())
-  in f x handle exn => (output_exn (exn_context ctxt exn); raise TOPLEVEL_ERROR) end;
+fun toplevel_error output_exn f x = f x
+  handle exn =>
+    if Exn.is_interrupt exn then reraise exn
+    else
+      let
+        val ctxt = Option.map Context.proof_of (Context.thread_data ());
+        val _ = output_exn (exn_context ctxt exn);
+      in raise TOPLEVEL_ERROR end;
 
 end;
 
