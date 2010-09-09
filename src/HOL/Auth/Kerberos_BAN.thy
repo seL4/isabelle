@@ -171,21 +171,21 @@ lemmas parts_spies_takeWhile_mono = spies_takeWhile [THEN parts_mono]
 
 
 text{*Lemmas for reasoning about predicate "before"*}
-lemma used_Says_rev: "used (evs @ [Says A B X]) = parts {X} \<union> (used evs)";
+lemma used_Says_rev: "used (evs @ [Says A B X]) = parts {X} \<union> (used evs)"
 apply (induct_tac "evs")
 apply simp
 apply (induct_tac "a")
 apply auto
 done
 
-lemma used_Notes_rev: "used (evs @ [Notes A X]) = parts {X} \<union> (used evs)";
+lemma used_Notes_rev: "used (evs @ [Notes A X]) = parts {X} \<union> (used evs)"
 apply (induct_tac "evs")
 apply simp
 apply (induct_tac "a")
 apply auto
 done
 
-lemma used_Gets_rev: "used (evs @ [Gets B X]) = used evs";
+lemma used_Gets_rev: "used (evs @ [Gets B X]) = used evs"
 apply (induct_tac "evs")
 apply simp
 apply (induct_tac "a")
