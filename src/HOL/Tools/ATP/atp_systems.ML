@@ -10,7 +10,7 @@ sig
   datatype failure =
     Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
     OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
-    MalformedInput | MalformedOutput | UnknownError
+    MalformedInput | MalformedOutput | Interrupted | UnknownError
 
   type prover_config =
     {exec: string * string,
@@ -42,7 +42,7 @@ struct
 datatype failure =
   Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
   SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl | MalformedInput |
-  MalformedOutput | UnknownError
+  MalformedOutput | Interrupted | UnknownError
 
 type prover_config =
   {exec: string * string,
@@ -85,6 +85,7 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
     "The ATP problem is malformed. Please report this to the Isabelle \
     \developers."
   | string_for_failure MalformedOutput = "The ATP output is malformed."
+  | string_for_failure Interrupted = "The ATP was interrupted."
   | string_for_failure UnknownError = "An unknown ATP error occurred."
 
 fun known_failure_in_output output =
