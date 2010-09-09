@@ -106,9 +106,11 @@ fun eval verbose pos toks =
     fun output_writeln () = writeln (Buffer.content (! writeln_buffer));
 
     val warnings = Unsynchronized.ref ([]: string list);
+    fun warn msg = Unsynchronized.change warnings (cons msg);
     fun output_warnings () = List.app warning (rev (! warnings));
 
     val error_buffer = Unsynchronized.ref Buffer.empty;
+    fun err msg = Unsynchronized.change error_buffer (Buffer.add msg #> Buffer.add "\n");
     fun flush_error () = writeln (Buffer.content (! error_buffer));
     fun raise_error msg = error (Buffer.content (Buffer.add msg (! error_buffer)));
 
@@ -120,10 +122,7 @@ fun eval verbose pos toks =
             ((if hard then "Error" else "Warning") ^ Position.str_of pos ^ ":\n") ^
           Pretty.string_of (Pretty.from_ML (pretty_ml msg)) ^
           Markup.markup (Position.report_markup pos) "";
-      in
-        if hard then Unsynchronized.change error_buffer (Buffer.add txt #> Buffer.add "\n")
-        else Unsynchronized.change warnings (cons txt)
-      end;
+      in if hard then err txt else warn txt end;
 
 
     (* results *)
@@ -158,19 +157,19 @@ fun eval verbose pos toks =
         List.app apply_val values
       end;
 
-    exception Static_Errors of unit;
+    exception STATIC_ERRORS of unit;
 
     fun result_fun (phase1, phase2) () =
      ((case phase1 of
         NONE => ()
       | SOME parse_tree => report_parse_tree depth space parse_tree);
       (case phase2 of
-        NONE => raise Static_Errors ()
+        NONE => raise STATIC_ERRORS ()
       | SOME code =>
           apply_result
             ((code
               |> Runtime.debugging
-              |> Runtime.toplevel_error (Output.error_msg o exn_message)) ())));
+              |> Runtime.toplevel_error (err o exn_message)) ())));
 
 
     (* compiler invocation *)
@@ -187,11 +186,17 @@ fun eval verbose pos toks =
     val _ =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
-      handle exn =>
-       (output_warnings ();
-        output_writeln ();
-        (case exn of Static_Errors () => raise_error ""
-        | _ => raise_error ("Exception- " ^ General.exnMessage exn ^ " raised")));
+      handle exn as Exn.Interrupt => reraise exn
+        | exn =>
+            let
+              val exn_msg =
+                (case exn of
+                  STATIC_ERRORS () => ""
+                | Runtime.TOPLEVEL_ERROR => ""
+                | _ => "Exception- " ^ General.exnMessage exn ^ " raised");
+              val _ = output_warnings ();
+              val _ = output_writeln ();
+            in raise_error exn_msg end;
   in
     if verbose then (output_warnings (); flush_error (); output_writeln ())
     else ()
