@@ -252,6 +252,14 @@ theories from the ancestry of the current context, not any accidental
 theory loader state as before.  Potential INCOMPATIBILITY, subtle
 change in semantics.
 
+* Parallel and asynchronous execution requires special care concerning
+interrupts.  Structure Exn provides some convenience functions that
+avoid working directly with raw Interrupt.  User code must not absorb
+interrupts -- intermediate handling (for cleanup etc.) needs to be
+followed by re-raising of the original exception.  Another common
+source of mistakes are "handle _" patterns, which make the meaning of
+the program subject to physical effects of the environment.
+
 
 *** System ***
 
