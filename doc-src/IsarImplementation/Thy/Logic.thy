@@ -580,7 +580,7 @@ text %mlref {*
   \item @{ML_type thm} represents proven propositions.  This is an
   abstract datatype that guarantees that its values have been
   constructed by basic principles of the @{ML_struct Thm} module.
-  Every @{ML thm} value contains a sliding back-reference to the
+  Every @{ML_type thm} value contains a sliding back-reference to the
   enclosing theory, cf.\ \secref{sec:context-theory}.
 
   \item @{ML proofs} specifies the detail of proof recording within
