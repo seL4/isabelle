@@ -296,40 +296,40 @@ lemmas syan_impI = impI [where P = "Y \<notin> synth (analz (knows Spy evs))", s
 
 ML
 {*
-val knows_Cons     = thm "knows_Cons"
-val used_Nil       = thm "used_Nil"
-val used_Cons      = thm "used_Cons"
+val knows_Cons = @{thm knows_Cons};
+val used_Nil = @{thm used_Nil};
+val used_Cons = @{thm used_Cons};
 
-val Notes_imp_used = thm "Notes_imp_used";
-val Says_imp_used = thm "Says_imp_used";
-val Says_imp_knows_Spy = thm "Says_imp_knows_Spy";
-val Notes_imp_knows_Spy = thm "Notes_imp_knows_Spy";
-val knows_Spy_partsEs = thms "knows_Spy_partsEs";
-val spies_partsEs = thms "spies_partsEs";
-val Says_imp_spies = thm "Says_imp_spies";
-val parts_insert_spies = thm "parts_insert_spies";
-val Says_imp_knows = thm "Says_imp_knows";
-val Notes_imp_knows = thm "Notes_imp_knows";
-val Gets_imp_knows_agents = thm "Gets_imp_knows_agents";
-val knows_imp_Says_Gets_Notes_initState = thm "knows_imp_Says_Gets_Notes_initState";
-val knows_Spy_imp_Says_Notes_initState = thm "knows_Spy_imp_Says_Notes_initState";
-val usedI = thm "usedI";
-val initState_into_used = thm "initState_into_used";
-val used_Says = thm "used_Says";
-val used_Notes = thm "used_Notes";
-val used_Gets = thm "used_Gets";
-val used_nil_subset = thm "used_nil_subset";
-val analz_mono_contra = thms "analz_mono_contra";
-val knows_subset_knows_Cons = thm "knows_subset_knows_Cons";
-val initState_subset_knows = thm "initState_subset_knows";
-val keysFor_parts_insert = thm "keysFor_parts_insert";
+val Notes_imp_used = @{thm Notes_imp_used};
+val Says_imp_used = @{thm Says_imp_used};
+val Says_imp_knows_Spy = @{thm Says_imp_knows_Spy};
+val Notes_imp_knows_Spy = @{thm Notes_imp_knows_Spy};
+val knows_Spy_partsEs = @{thms knows_Spy_partsEs};
+val spies_partsEs = @{thms spies_partsEs};
+val Says_imp_spies = @{thm Says_imp_spies};
+val parts_insert_spies = @{thm parts_insert_spies};
+val Says_imp_knows = @{thm Says_imp_knows};
+val Notes_imp_knows = @{thm Notes_imp_knows};
+val Gets_imp_knows_agents = @{thm Gets_imp_knows_agents};
+val knows_imp_Says_Gets_Notes_initState = @{thm knows_imp_Says_Gets_Notes_initState};
+val knows_Spy_imp_Says_Notes_initState = @{thm knows_Spy_imp_Says_Notes_initState};
+val usedI = @{thm usedI};
+val initState_into_used = @{thm initState_into_used};
+val used_Says = @{thm used_Says};
+val used_Notes = @{thm used_Notes};
+val used_Gets = @{thm used_Gets};
+val used_nil_subset = @{thm used_nil_subset};
+val analz_mono_contra = @{thms analz_mono_contra};
+val knows_subset_knows_Cons = @{thm knows_subset_knows_Cons};
+val initState_subset_knows = @{thm initState_subset_knows};
+val keysFor_parts_insert = @{thm keysFor_parts_insert};
 
 
-val synth_analz_mono = thm "synth_analz_mono";
+val synth_analz_mono = @{thm synth_analz_mono};
 
-val knows_Spy_subset_knows_Spy_Says = thm "knows_Spy_subset_knows_Spy_Says";
-val knows_Spy_subset_knows_Spy_Notes = thm "knows_Spy_subset_knows_Spy_Notes";
-val knows_Spy_subset_knows_Spy_Gets = thm "knows_Spy_subset_knows_Spy_Gets";
+val knows_Spy_subset_knows_Spy_Says = @{thm knows_Spy_subset_knows_Spy_Says};
+val knows_Spy_subset_knows_Spy_Notes = @{thm knows_Spy_subset_knows_Spy_Notes};
+val knows_Spy_subset_knows_Spy_Gets = @{thm knows_Spy_subset_knows_Spy_Gets};
 
 
 val synth_analz_mono_contra_tac = 

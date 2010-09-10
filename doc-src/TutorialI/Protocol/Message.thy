@@ -809,19 +809,19 @@ lemmas pushes = pushKeys pushCrypts
 subsection{*Tactics useful for many protocol proofs*}
 ML
 {*
-val invKey = thm "invKey"
-val keysFor_def = thm "keysFor_def"
-val symKeys_def = thm "symKeys_def"
-val parts_mono = thm "parts_mono";
-val analz_mono = thm "analz_mono";
-val synth_mono = thm "synth_mono";
-val analz_increasing = thm "analz_increasing";
+val invKey = @{thm invKey};
+val keysFor_def = @{thm keysFor_def};
+val symKeys_def = @{thm symKeys_def};
+val parts_mono = @{thm parts_mono};
+val analz_mono = @{thm analz_mono};
+val synth_mono = @{thm synth_mono};
+val analz_increasing = @{thm analz_increasing};
 
-val analz_insertI = thm "analz_insertI";
-val analz_subset_parts = thm "analz_subset_parts";
-val Fake_parts_insert = thm "Fake_parts_insert";
-val Fake_analz_insert = thm "Fake_analz_insert";
-val pushes = thms "pushes";
+val analz_insertI = @{thm analz_insertI};
+val analz_subset_parts = @{thm analz_subset_parts};
+val Fake_parts_insert = @{thm Fake_parts_insert};
+val Fake_analz_insert = @{thm Fake_analz_insert};
+val pushes = @{thms pushes};
 
 
 (*Prove base case (subgoal i) and simplify others.  A typical base case
@@ -844,7 +844,7 @@ fun impOfSubs th = th RSN (2, @{thm rev_subsetD})
 val Fake_insert_tac = 
     dresolve_tac [impOfSubs Fake_analz_insert,
                   impOfSubs Fake_parts_insert] THEN'
-    eresolve_tac [asm_rl, thm"synth.Inj"];
+    eresolve_tac [asm_rl, @{thm synth.Inj}];
 
 fun Fake_insert_simp_tac ss i = 
     REPEAT (Fake_insert_tac i) THEN asm_full_simp_tac ss i;
