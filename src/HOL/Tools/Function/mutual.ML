@@ -72,7 +72,7 @@ fun mk_prod_abs e (t1, t2) =
 fun analyze_eqs ctxt defname fs eqs =
   let
     val num = length fs
-    val fqgars = map (split_def ctxt) eqs
+    val fqgars = map (split_def ctxt (K true)) eqs
     val arity_of = map (fn (fname,_,_,args,_) => (fname, length args)) fqgars
       |> AList.lookup (op =) #> the
 

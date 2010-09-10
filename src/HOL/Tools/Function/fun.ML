@@ -44,7 +44,7 @@ fun check_pats ctxt geq =
          ())
       end
 
-    val (_, qs, gs, args, _) = split_def ctxt geq
+    val (_, qs, gs, args, _) = split_def ctxt (K true) geq
 
     val _ = if not (null gs) then err "Conditional equations" else ()
     val _ = map check_constr_pattern args
@@ -76,7 +76,7 @@ fun mk_catchall fixes arity_of =
   end
 
 fun add_catchall ctxt fixes spec =
-  let val fqgars = map (split_def ctxt) spec
+  let val fqgars = map (split_def ctxt (K true)) spec
       val arity_of = map (fn (fname,_,_,args,_) => (fname, length args)) fqgars
                      |> AList.lookup (op =) #> the
   in

@@ -215,7 +215,7 @@ val default_config =
 
 (* Analyzing function equations *)
 
-fun split_def ctxt geq =
+fun split_def ctxt check_head geq =
   let
     fun input_error msg = cat_lines [msg, Syntax.string_of_term ctxt geq]
     val qs = Term.strip_qnt_vars "all" geq
@@ -227,8 +227,8 @@ fun split_def ctxt geq =
 
     val (head, args) = strip_comb f_args
 
-    val fname = fst (dest_Free head)
-      handle TERM _ => error (input_error "Head symbol must not be a bound variable")
+    val fname = fst (dest_Free head) handle TERM _ => ""
+    val _ = check_head fname
   in
     (fname, qs, gs, args, rhs)
   end
@@ -242,11 +242,11 @@ fun check_defs ctxt fixes eqs =
       let
         fun input_error msg = error (cat_lines [msg, Syntax.string_of_term ctxt geq])
 
-        val fqgar as (fname, qs, gs, args, rhs) = split_def ctxt geq
+        fun check_head fname =
+          member (op =) fnames fname orelse
+          input_error ("Illegal equation head. Expected " ^ commas_quote fnames)
 
-        val _ = member (op =) fnames fname 
-          orelse input_error ("Head symbol of left hand side must be " ^
-            plural "" "one out of " fnames ^ commas_quote fnames)
+        val (fname, qs, gs, args, rhs) = split_def ctxt check_head geq
 
         val _ = length args > 0 orelse input_error "Function has no arguments:"
 
