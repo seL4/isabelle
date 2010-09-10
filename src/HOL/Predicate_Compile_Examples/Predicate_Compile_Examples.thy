@@ -1501,6 +1501,27 @@ code_pred is_error .
 
 thm is_error.equation
 
+inductive is_error' :: "String.literal \<Rightarrow> bool"
+where
+  "is_error' (STR ''Error1'')"
+| "is_error' (STR ''Error2'')"
+
+code_pred is_error' .
+
+thm is_error'.equation
+
+datatype ErrorObject = Error String.literal int
+
+inductive is_error'' :: "ErrorObject \<Rightarrow> bool"
+where
+  "is_error'' (Error Error_1 3)"
+| "is_error'' (Error Error_2 4)"
+
+code_pred is_error'' .
+
+thm is_error''.equation
+
+
 section {* Examples for detecting switches *}
 
 inductive detect_switches1 where
