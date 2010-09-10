@@ -115,11 +115,11 @@ fun inspect_pair bnd novars (t, u) =
      | (_, Bound i) => if loose(i,t) orelse novars andalso has_vars t
                        then raise Match
                        else false               (*eliminates u*)
-     | (Free _, _) =>  if bnd orelse Logic.occs(t,u) orelse
+     | (t' as Free _, _) => if bnd orelse Logic.occs(t',u) orelse
                           novars andalso has_vars u
                        then raise Match
                        else true                (*eliminates t*)
-     | (_, Free _) =>  if bnd orelse Logic.occs(u,t) orelse
+     | (_, u' as Free _) => if bnd orelse Logic.occs(u',t) orelse
                           novars andalso has_vars t
                        then raise Match
                        else false               (*eliminates u*)
