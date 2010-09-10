@@ -27,6 +27,8 @@ sig
   val ho_arg_modes_of : mode -> mode list
   val ho_argsT_of : mode -> typ list -> typ list
   val ho_args_of : mode -> term list -> term list
+  val ho_args_of_typ : typ -> term list -> term list
+  val ho_argsT_of_typ : typ list -> typ list
   val split_map_mode : (mode -> term -> term option * term option)
     -> mode -> term list -> term list * term list
   val split_map_modeT : (mode -> typ -> typ option * typ option)
@@ -261,6 +263,31 @@ fun ho_args_of mode ts =
   in
     flat (map2_optional ho_arg (strip_fun_mode mode) ts)
   end
+
+fun ho_args_of_typ T ts =
+  let
+    fun ho_arg (Type("fun", [_,_])) (SOME t) = [t]
+      | ho_arg (Type("fun", [_,_])) NONE = raise Fail "mode and term do not match"
+      | ho_arg (Type(@{type_name "Product_Type.prod"}, [T1, T2]))
+         (SOME (Const (@{const_name Pair}, _) $ t1 $ t2)) =
+          ho_arg T1 (SOME t1) @ ho_arg T2 (SOME t2)
+      | ho_arg (Type(@{type_name "Product_Type.prod"}, [T1, T2])) NONE =
+          ho_arg T1 NONE @ ho_arg T2 NONE
+      | ho_arg _ _ = []
+  in
+    flat (map2_optional ho_arg (binder_types T) ts)
+  end
+
+fun ho_argsT_of_typ Ts =
+  let
+    fun ho_arg (T as Type("fun", [_,_])) = [T]
+      | ho_arg (Type(@{type_name "Product_Type.prod"}, [T1, T2])) =
+          ho_arg T1 @ ho_arg T2
+      | ho_arg _ = []
+  in
+    maps ho_arg Ts
+  end
+  
 
 (* temporary function should be replaced by unsplit_input or so? *)
 fun replace_ho_args mode hoargs ts =

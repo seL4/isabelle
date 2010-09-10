@@ -446,8 +446,7 @@ fun import_intros inp_pred [] ctxt =
   let
     val ([outp_pred], ctxt') = Variable.import_terms true [inp_pred] ctxt
     val T = fastype_of outp_pred
-    (* TODO: put in a function for this next line! *)
-    val paramTs = ho_argsT_of (hd (all_modes_of_typ T)) (binder_types T)
+    val paramTs = ho_argsT_of_typ (binder_types T)
     val (param_names, ctxt'') = Variable.variant_fixes
       (map (fn i => "p" ^ (string_of_int i)) (1 upto (length paramTs))) ctxt'
     val params = map2 (curry Free) param_names paramTs
@@ -460,7 +459,7 @@ fun import_intros inp_pred [] ctxt =
       val thy = ProofContext.theory_of ctxt'
       val (pred, args) = strip_intro_concl th'
       val T = fastype_of pred
-      val ho_args = ho_args_of (hd (all_modes_of_typ T)) args
+      val ho_args = ho_args_of_typ T args
       fun subst_of (pred', pred) =
         let
           val subst = Sign.typ_match thy (fastype_of pred', fastype_of pred) Vartab.empty
@@ -474,7 +473,7 @@ fun import_intros inp_pred [] ctxt =
       fun instantiate_ho_args th =
         let
           val (_, args') = (strip_comb o HOLogic.dest_Trueprop o Logic.strip_imp_concl o prop_of) th
-          val ho_args' = map dest_Var (ho_args_of (hd (all_modes_of_typ T)) args')
+          val ho_args' = map dest_Var (ho_args_of_typ T args')
         in Thm.certify_instantiate ([], ho_args' ~~ ho_args) th end
       val outp_pred =
         Term_Subst.instantiate (subst_of (inp_pred, pred), []) inp_pred
@@ -2710,7 +2709,7 @@ fun prepare_intrs options compilation thy prednames intros =
           let
             val T = snd (hd preds)
             val paramTs =
-              ho_argsT_of (hd (all_modes_of_typ T)) (binder_types T)
+              ho_argsT_of_typ (binder_types T)
             val param_names = Name.variant_list [] (map (fn i => "p" ^ string_of_int i)
               (1 upto length paramTs))
           in
@@ -3067,7 +3066,7 @@ fun generic_code_pred prep_const options raw_const lthy =
     val preds = Graph.all_succs (PredData.get thy') [const] |> filter_out (has_elim ctxt')
     fun mk_cases const =
       let
-        val T = Sign.the_const_type thy const
+        val T = Sign.the_const_type thy' const
         val pred = Const (const, T)
         val intros = intros_of ctxt' const
       in mk_casesrule lthy' pred intros end  
