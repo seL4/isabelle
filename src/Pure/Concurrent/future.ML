@@ -489,7 +489,11 @@ fun map_future f x =
 fun promise_group group : 'a future =
   let
     val result = Single_Assignment.var "promise" : 'a result;
-    fun abort () = assign_result group result Exn.interrupt_exn handle Fail _ => true;
+    fun abort () = assign_result group result Exn.interrupt_exn
+      handle Fail _ => true
+        | exn =>
+            if Exn.is_interrupt exn then raise Fail "Concurrent attempt to fulfill promise"
+            else reraise exn;
     val task = SYNCHRONIZED "enqueue_passive" (fn () =>
       Unsynchronized.change_result queue (Task_Queue.enqueue_passive group abort));
   in Future {promised = true, task = task, group = group, result = result} end;
@@ -497,11 +501,20 @@ fun promise_group group : 'a future =
 fun promise () = promise_group (worker_subgroup ());
 
 fun fulfill_result (Future {promised, task, group, result}) res =
-  let
-    val _ = promised orelse raise Fail "Not a promised future";
-    fun job ok = assign_result group result (if ok then res else Exn.interrupt_exn);
-    val _ = execute (task, group, [job]);
-  in () end;
+  if not promised then raise Fail "Not a promised future"
+  else
+    let
+      fun job ok = assign_result group result (if ok then res else Exn.interrupt_exn);
+      val _ =
+        Multithreading.with_attributes Multithreading.no_interrupts (fn _ =>
+          let
+            val still_passive =
+              SYNCHRONIZED "fulfill_result" (fn () =>
+                Unsynchronized.change_result queue
+                  (Task_Queue.dequeue_passive (Thread.self ()) task));
+          in if still_passive then execute (task, group, [job]) else () end);
+      val _ = Single_Assignment.await result;
+    in () end;
 
 fun fulfill x res = fulfill_result x (Exn.Result res);
 
