@@ -4829,7 +4829,7 @@ code_instance list :: equal
   (Haskell -)
 
 code_const "HOL.equal \<Colon> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
 
 code_reserved SML
   list

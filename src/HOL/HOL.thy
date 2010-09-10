@@ -1942,10 +1942,10 @@ code_class equal
   (Haskell "Eq")
 
 code_const "HOL.equal"
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
 
 code_const HOL.eq
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
 
 text {* undefined *}
 

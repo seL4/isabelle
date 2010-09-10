@@ -443,7 +443,7 @@ code_const divmod_nat
 code_const "HOL.equal \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
   (Scala infixl 5 "==")
   (Eval infixl 6 "=")
 

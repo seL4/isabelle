@@ -29,7 +29,7 @@ lemma
   by (simp_all add: equal)
 
 code_const "HOL.equal \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
 
 code_instance bool :: equal
   (Haskell -)
@@ -110,7 +110,7 @@ code_instance unit :: equal
   (Haskell -)
 
 code_const "HOL.equal \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
 
 code_reserved SML
   unit
@@ -281,7 +281,7 @@ code_instance prod :: equal
   (Haskell -)
 
 code_const "HOL.equal \<Colon> 'a \<times> 'b \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
 
 types_code
   "prod"     ("(_ */ _)")

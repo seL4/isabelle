@@ -207,7 +207,7 @@ code_instance literal :: equal
 code_const "HOL.equal \<Colon> literal \<Rightarrow> literal \<Rightarrow> bool"
   (SML "!((_ : string) = _)")
   (OCaml "!((_ : string) = _)")
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
   (Scala infixl 5 "==")
 
 types_code

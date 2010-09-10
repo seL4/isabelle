@@ -345,7 +345,7 @@ code_const div_mod_code_numeral
 code_const "HOL.equal \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
   (Scala infixl 5 "==")
   (Eval "!((_ : int) = _)")
 

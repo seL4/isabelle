@@ -128,7 +128,7 @@ code_instance option :: equal
   (Haskell -)
 
 code_const "HOL.equal \<Colon> 'a option \<Rightarrow> 'a option \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
 
 code_reserved SML
   option NONE SOME

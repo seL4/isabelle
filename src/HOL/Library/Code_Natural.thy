@@ -130,7 +130,7 @@ code_const div_mod_code_numeral
   (Scala infixl 8 "/%")
 
 code_const "HOL.equal \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
   (Scala infixl 5 "==")
 
 code_const "op \<le> \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"

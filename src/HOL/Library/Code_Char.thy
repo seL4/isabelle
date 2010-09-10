@@ -34,7 +34,7 @@ code_reserved Scala
 code_const "HOL.equal \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (SML "!((_ : char) = _)")
   (OCaml "!((_ : char) = _)")
-  (Haskell infixl 4 "==")
+  (Haskell infix 4 "==")
   (Scala infixl 5 "==")
 
 code_const "Code_Evaluation.term_of \<Colon> char \<Rightarrow> term"
