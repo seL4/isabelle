@@ -1107,25 +1107,12 @@ Definitions essentially express abbreviations within the logic.  The
   \begin{matharray}{rcl}
     \indexdef{}{command}{consts}\hypertarget{command.consts}{\hyperlink{command.consts}{\mbox{\isa{\isacommand{consts}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{}{command}{defs}\hypertarget{command.defs}{\hyperlink{command.defs}{\mbox{\isa{\isacommand{defs}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{}{command}{constdefs}\hypertarget{command.constdefs}{\hyperlink{command.constdefs}{\mbox{\isa{\isacommand{constdefs}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
   \end{matharray}
 
   \begin{rail}
     'consts' ((name '::' type mixfix?) +)
     ;
     'defs' ('(' 'unchecked'? 'overloaded'? ')')? \\ (axmdecl prop +)
-    ;
-  \end{rail}
-
-  \begin{rail}
-    'constdefs' structs? (constdecl? constdef +)
-    ;
-
-    structs: '(' 'structure' (vars + 'and') ')'
-    ;
-    constdecl:  ((name '::' type mixfix | name '::' type | name mixfix) 'where'?) | name 'where'
-    ;
-    constdef: thmdecl? prop
     ;
   \end{rail}
 
@@ -1148,24 +1135,6 @@ Definitions essentially express abbreviations within the logic.  The
   message would be issued for any definitional equation with a more
   special type than that of the corresponding constant declaration.
   
-  \item \hyperlink{command.constdefs}{\mbox{\isa{\isacommand{constdefs}}}} combines constant declarations and
-  definitions, with type-inference taking care of the most general
-  typing of the given specification (the optional type constraint may
-  refer to type-inference dummies ``\isa{{\isacharunderscore}}'' as usual).  The
-  resulting type declaration needs to agree with that of the
-  specification; overloading is \emph{not} supported here!
-  
-  The constant name may be omitted altogether, if neither type nor
-  syntax declarations are given.  The canonical name of the
-  definitional axiom for constant \isa{c} will be \isa{c{\isacharunderscore}def},
-  unless specified otherwise.  Also note that the given list of
-  specifications is processed in a strictly sequential manner, with
-  type-checking being performed independently.
-  
-  An optional initial context of \isa{{\isachardoublequote}{\isacharparenleft}structure{\isacharparenright}{\isachardoublequote}} declarations
-  admits use of indexed syntax, using the special symbol \verb|\<index>| (printed as ``\isa{{\isachardoublequote}{\isasymindex}{\isachardoublequote}}'').  The latter concept is
-  particularly useful with locales (see also \secref{sec:locale}).
-
   \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
