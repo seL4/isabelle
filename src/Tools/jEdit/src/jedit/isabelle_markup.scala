@@ -11,7 +11,6 @@ import isabelle._
 
 import java.awt.Color
 
-import org.gjt.sp.jedit.GUIUtilities
 import org.gjt.sp.jedit.syntax.Token
 
 
@@ -31,8 +30,8 @@ object Isabelle_Markup
   {
     def >= (that: Icon): Boolean = this.priority >= that.priority
   }
-  val warning_icon = new Icon(1, GUIUtilities.loadIcon("16x16/status/dialog-warning.png"))
-  val error_icon = new Icon(2, GUIUtilities.loadIcon("16x16/status/dialog-error.png"))
+  val warning_icon = new Icon(1, Isabelle.load_icon("16x16/status/dialog-warning.png"))
+  val error_icon = new Icon(2, Isabelle.load_icon("16x16/status/dialog-error.png"))
 
 
   /* command status */
@@ -100,7 +99,7 @@ object Isabelle_Markup
   val tooltip: Markup_Tree.Select[String] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
-      Pretty.string_of(List(Pretty.block(body)), margin = 40)
+      Pretty.string_of(List(Pretty.block(XML.Text("ML:") :: Pretty.Break(1) :: body)), margin = 40)
     case Text.Info(_, XML.Elem(Markup(Markup.SORT, _), _)) => "sort"
     case Text.Info(_, XML.Elem(Markup(Markup.TYP, _), _)) => "type"
     case Text.Info(_, XML.Elem(Markup(Markup.TERM, _), _)) => "term"

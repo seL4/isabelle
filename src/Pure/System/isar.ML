@@ -111,7 +111,7 @@ fun op >>> [] = ()
   | op >>> (tr :: trs) = if op >> tr then op >>> trs else ();
 
 
-(* toplevel loop *)
+(* toplevel loop -- uninterruptible *)
 
 val crashes = Unsynchronized.ref ([]: exn list);
 

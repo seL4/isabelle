@@ -26,9 +26,6 @@ Some limitations of the current implementation (as of Isabelle2009-2):
     previous commands (proof end on proof head), or markup produced by
     loading external files.
 
-  * Some performance bottlenecks for massive amount of markup,
-    e.g. when processing large ML sections.
-
   * General lack of various conveniences known from Proof General.
 
 Despite these shortcomings, Isabelle/jEdit already demonstrates that

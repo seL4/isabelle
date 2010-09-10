@@ -27,6 +27,7 @@ sig
   val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
   val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> (task * bool) * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
+  val dequeue_passive: Thread.thread -> task -> queue -> bool * queue
   val dequeue: Thread.thread -> queue -> (task * group * (bool -> bool) list) option * queue
   val depend: task -> task list -> queue -> queue
   val dequeue_towards: Thread.thread -> task list -> queue ->
@@ -80,9 +81,8 @@ fun group_ancestry (Group {parent, id, ...}) =
 fun cancel_group (Group {status, ...}) exn =
   Synchronized.change status
     (fn exns =>
-      (case exn of
-        Exn.Interrupt => if null exns then [exn] else exns
-      | _ => exn :: exns));
+      if not (Exn.is_interrupt exn) orelse null exns then exn :: exns
+      else exns);
 
 fun is_canceled (Group {parent, status, ...}) =
   not (null (Synchronized.value status)) orelse
@@ -217,12 +217,19 @@ fun extend task job (Queue {groups, jobs}) =
 
 (* dequeue *)
 
+fun dequeue_passive thread task (queue as Queue {groups, jobs}) =
+  (case try (get_job jobs) task of
+    SOME (Passive _) =>
+      let val jobs' = set_job task (Running thread) jobs
+      in (true, make_queue groups jobs') end
+  | _ => (false, queue));
+
 fun dequeue thread (queue as Queue {groups, jobs}) =
   (case Task_Graph.get_first (uncurry ready_job) jobs of
-    NONE => (NONE, queue)
-  | SOME (result as (task, _, _)) =>
+    SOME (result as (task, _, _)) =>
       let val jobs' = set_job task (Running thread) jobs
-      in (SOME result, make_queue groups jobs') end);
+      in (SOME result, make_queue groups jobs') end
+  | NONE => (NONE, queue));
 
 
 (* dequeue_towards -- adhoc dependencies *)

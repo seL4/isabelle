@@ -60,9 +60,9 @@ fun force_result (Lazy var) =
                 (*semantic race: some other threads might see the same
                   Interrupt, until there is a fresh start*)
                 val _ =
-                  (case res of
-                    Exn.Exn Exn.Interrupt => Synchronized.change var (fn _ => Expr e)
-                  | _ => ());
+                  if Exn.is_interrupt_exn res then
+                    Synchronized.change var (fn _ => Expr e)
+                  else ();
               in res end
           | NONE => restore_interrupts (fn () => Future.join_result x) ())
         end) ());

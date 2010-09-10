@@ -34,10 +34,7 @@ fun force_result (Lazy r) =
       (case ! r of
         Expr e => Exn.capture e ()
       | Result res => res);
-    val _ =
-      (case result of
-        Exn.Exn Exn.Interrupt => ()
-      | _ => r := Result result);
+    val _ = if Exn.is_interrupt_exn result then () else r := Result result;
   in result end;
 
 fun force r = Exn.release (force_result r);

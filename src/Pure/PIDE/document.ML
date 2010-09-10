@@ -225,7 +225,7 @@ fun run_command thy_name tr st =
             SOME (st', NONE) => ([], SOME st')
           | SOME (_, SOME exn_info) =>
               (case ML_Compiler.exn_messages (Runtime.EXCURSION_FAIL exn_info) of
-                [] => raise Exn.Interrupt
+                [] => Exn.interrupt ()
               | errs => (errs, NONE))
           | NONE => ([ML_Compiler.exn_message Runtime.TERMINATE], NONE));
         val _ = List.app (Toplevel.error_msg tr) errs;
@@ -238,7 +238,10 @@ fun run_command thy_name tr st =
               if int then () else async_state tr st'));
       in result end
   | Exn.Exn exn =>
-     (Toplevel.error_msg tr (ML_Compiler.exn_message exn); Toplevel.status tr Markup.failed; NONE))
+      if Exn.is_interrupt exn then reraise exn
+      else
+       (Toplevel.error_msg tr (ML_Compiler.exn_message exn);
+        Toplevel.status tr Markup.failed; NONE));
 
 end;
 

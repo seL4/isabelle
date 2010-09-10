@@ -19,7 +19,9 @@ fun attributes interrupts =
   if interrupts then Multithreading.public_interrupts else Multithreading.no_interrupts;
 
 fun fork interrupts body =
-  Thread.fork (fn () => exception_trace (fn () => body () handle Exn.Interrupt => ()),
+  Thread.fork (fn () =>
+    exception_trace (fn () =>
+      body () handle exn => if Exn.is_interrupt exn then () else reraise exn),
     attributes interrupts);
 
 fun interrupt thread = Thread.interrupt thread handle Thread _ => ();

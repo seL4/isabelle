@@ -30,7 +30,6 @@ sig
   val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
   val skip_proofs: bool Unsynchronized.ref
-  exception TOPLEVEL_ERROR
   val program: (unit -> 'a) -> 'a
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
@@ -222,8 +221,6 @@ val timing = Output.timing;
 val profiling = Unsynchronized.ref 0;
 val skip_proofs = Unsynchronized.ref false;
 
-exception TOPLEVEL_ERROR = Runtime.TOPLEVEL_ERROR;
-
 fun program body =
  (body
   |> Runtime.controlled_execution
@@ -231,7 +228,7 @@ fun program body =
 
 fun thread interrupts body =
   Thread.fork
-    (((fn () => body () handle Exn.Interrupt => ())
+    (((fn () => body () handle exn => if Exn.is_interrupt exn then () else reraise exn)
         |> Runtime.debugging
         |> Runtime.toplevel_error
           (fn exn => priority ("## INTERNAL ERROR ##\n" ^ ML_Compiler.exn_message exn))),

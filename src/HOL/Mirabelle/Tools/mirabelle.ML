@@ -73,12 +73,12 @@ structure Actions = Theory_Data
 fun log_exn log tag id e = log (tag id ^ "exception:\n" ^ General.exnMessage e)
 
 fun catch tag f id (st as {log, ...}: run_args) = (f id st; ())
-  handle (exn as Exn.Interrupt) => reraise exn
-       | exn => (log_exn log tag id exn; ())
+  handle exn =>
+    if Exn.is_interrupt exn then reraise exn else (log_exn log tag id exn; ())
 
 fun catch_result tag d f id (st as {log, ...}: run_args) = f id st
-  handle (exn as Exn.Interrupt) => reraise exn
-       | exn => (log_exn log tag id exn; d)
+  handle exn =>
+    if Exn.is_interrupt exn then reraise exn else (log_exn log tag id exn; d)
 
 fun register (init, run, done) thy =
   let val id = length (Actions.get thy) + 1
