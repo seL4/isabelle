@@ -106,8 +106,8 @@ text {*
     @{index_ML eta_contract: "bool Config.T"} & default @{ML true} \\
     @{index_ML Goal_Display.goals_limit: "int Config.T"} & default @{ML 10} \\
     @{index_ML Goal_Display.show_main_goal: "bool Config.T"} & default @{ML false} \\
-    @{index_ML show_hyps: "bool Unsynchronized.ref"} & default @{ML false} \\
-    @{index_ML show_tags: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML show_hyps: "bool Config.T"} & default @{ML false} \\
+    @{index_ML show_tags: "bool Config.T"} & default @{ML false} \\
     @{index_ML show_question_marks: "bool Config.T"} & default @{ML true} \\
   \end{mldecls}
 
