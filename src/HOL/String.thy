@@ -157,8 +157,6 @@ subsection {* Strings as dedicated type *}
 typedef (open) literal = "UNIV :: string \<Rightarrow> bool"
   morphisms explode STR ..
 
-code_datatype STR
-
 instantiation literal :: size
 begin
 
@@ -182,6 +180,10 @@ proof
 qed (auto simp add: equal_literal_def explode_inject)
 
 end
+
+lemma STR_inject' [simp]: "(STR xs = STR ys) = (xs = ys)"
+by(simp add: STR_inject)
+
 
 subsection {* Code generator *}
 

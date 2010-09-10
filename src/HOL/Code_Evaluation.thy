@@ -159,6 +159,18 @@ end
 *}
 
 
+instantiation String.literal :: term_of
+begin
+
+definition
+  "term_of s = App (Const (STR ''STR'')
+    (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''list'') [Typerep.Typerep (STR ''char'') []],
+      Typerep.Typerep (STR ''String.literal'') []])) (term_of (String.explode s))"
+
+instance ..
+
+end
+
 subsubsection {* Code generator setup *}
 
 lemmas [code del] = term.recs term.cases term.size
