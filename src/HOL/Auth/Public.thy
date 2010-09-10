@@ -199,8 +199,6 @@ text{*Note: for all practical purposes, all that matters is the initial
 knowledge of the Spy.  All other agents are automata, merely following the
 protocol.*}
 
-term initState_Server
-
 overloading
   initState \<equiv> initState
 begin
