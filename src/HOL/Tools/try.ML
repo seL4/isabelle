@@ -70,6 +70,8 @@ fun do_try auto st =
     [] => (if auto then () else writeln "No proof found."; (false, st))
   | xs as (s, _) :: _ =>
     let
+      val xs = xs |> map swap |> AList.coalesce (op =)
+                  |> map (swap o apsnd commas)
       val message =
         (if auto then "Auto Try found a proof" else "Try this command") ^ ": " ^
         Markup.markup Markup.sendback
