@@ -97,6 +97,13 @@ ATPs again. The reconstructed proof relies on the general-purpose Metis prover
 inferences going through the kernel. Thus its results are correct by
 construction.
 
+In this manual, we will explicitly invoke the \textbf{sledgehammer} command.
+Sledgehammer also provides an automatic mode that can be enabled via the
+``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof General. In
+this mode, Sledgehammer is run on every newly entered theorem. The time limit
+for Auto Sledgehammer and other automatic tools can be set using the ``Auto
+Tools Time Limit'' option.
+
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
 
@@ -248,10 +255,10 @@ can be tackled, but the success rate is better for first-order problems. Hence,
 you may get better results if you first simplify the problem to remove
 higher-order features.
 
-Note that problems can be easy for auto and difficult for ATPs, but the reverse
-is also true, so don't be discouraged if your first attempts fail. Because the
-system refers to all theorems known to Isabelle, it is particularly suitable
-when your goal has a short proof from lemmas that you don't know about.
+Note that problems can be easy for \textit{auto} and difficult for ATPs, but the
+reverse is also true, so don't be discouraged if your first attempts fail.
+Because the system refers to all theorems known to Isabelle, it is particularly
+suitable when your goal has a short proof from lemmas that you don't know about.
 
 \section{Command Syntax}
 \label{command-syntax}
@@ -319,11 +326,20 @@ The \textit{facts\_override} argument lets you alter the set of facts that go
 through the relevance filter. It may be of the form ``(\textit{facts})'', where
 \textit{facts} is a space-separated list of Isabelle facts (theorems, local
 assumptions, etc.), in which case the relevance filter is bypassed and the given
-facts are used. It may also be of the form (\textit{add}:\ \textit{facts}$_1$),
-(\textit{del}:\ \textit{facts}$_2$), or (\textit{add}:\ \textit{facts}$_1$\
-\textit{del}:\ \textit{facts}$_2$), where the relevance filter is instructed to
+facts are used. It may also be of the form ``(\textit{add}:\ \textit{facts}$_1$)'',
+``(\textit{del}:\ \textit{facts}$_2$)'', or ``(\textit{add}:\ \textit{facts}$_1$\
+\textit{del}:\ \textit{facts}$_2$)'', where the relevance filter is instructed to
 proceed as usual except that it should consider \textit{facts}$_1$
 highly-relevant and \textit{facts}$_2$ fully irrelevant.
+
+You can instruct Sledgehammer to run automatically on newly entered theorems by
+enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
+General. For automatic runs, only the first ATP set using \textit{atps}
+(\S\ref{mode-of-operation}) is considered, \textit{verbose}
+(\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled,
+fewer facts are passed to the ATP, and \textit{timeout} (\S\ref{timeouts}) is
+superseded by the ``Auto Tools Time Limit'' in Proof General's ``Isabelle''
+menu. Sledgehammer's output is also more concise.
 
 \section{Option Reference}
 \label{option-reference}
