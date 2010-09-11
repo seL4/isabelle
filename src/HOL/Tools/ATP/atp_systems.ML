@@ -303,9 +303,11 @@ fun is_installed ({exec, required_execs, ...} : prover_config) =
 fun maybe_remote (name, config) =
   name |> not (is_installed config) ? remotify_name
 
+(* The first prover of the list is used by Auto Sledgehammer. Because of the low
+   timeout, it makes sense to put SPASS first. *)
 fun default_atps_param_value () =
-  space_implode " " ([maybe_remote e] @
-                     (if is_installed (snd spass) then [fst spass] else []) @
+  space_implode " " ((if is_installed (snd spass) then [fst spass] else []) @
+                     [maybe_remote e] @
                      [if forall (is_installed o snd) [e, spass] then
                         remotify_name (fst vampire)
                       else
