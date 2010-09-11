@@ -660,7 +660,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                 |>> curry3 MFun bool_M (S Minus)
               | @{const_name Pair} => do_pair_constr T accum
               | @{const_name fst} => do_nth_pair_sel 0 T accum
-              | @{const_name snd} => do_nth_pair_sel 1 T accum 
+              | @{const_name snd} => do_nth_pair_sel 1 T accum
               | @{const_name Id} =>
                 (MFun (mtype_for (domain_type T), S Minus, bool_M), accum)
               | @{const_name converse} =>
@@ -894,7 +894,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
                in
                  (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
                   accum)
-               end 
+               end
              else
                do_term t accum
            | _ => do_term t accum)
@@ -1105,7 +1105,7 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
               val (T1, T2) = pairself (curry fastype_of1 new_Ts) (t1, t2)
               val (t1', T2') =
                 case T1 of
-                  Type (s, [T11, T12]) => 
+                  Type (s, [T11, T12]) =>
                   (if s = @{type_name fin_fun} then
                      select_nth_constr_arg ctxt stds (fin_fun_constr T11 T12) t1
                                            0 (T11 --> T12)

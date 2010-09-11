@@ -280,7 +280,7 @@ fun bounds_and_axioms_for_built_in_rels_in_formulas debug ofs univ_card nat_card
     (map (bound_for_built_in_rel debug ofs univ_card nat_card int_card main_j0)
          rels,
      map_filter axiom_for_built_in_rel rels)
-  end 
+  end
 
 fun bound_comment ctxt debug nick T R =
   short_name nick ^

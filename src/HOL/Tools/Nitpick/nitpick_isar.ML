@@ -10,7 +10,7 @@ signature NITPICK_ISAR =
 sig
   type params = Nitpick.params
 
-  val auto: bool Unsynchronized.ref
+  val auto : bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
   val setup : theory -> theory
 end;
@@ -24,7 +24,7 @@ open Nitpick_Rep
 open Nitpick_Nut
 open Nitpick
 
-val auto = Unsynchronized.ref false;
+val auto = Unsynchronized.ref false
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
@@ -109,7 +109,7 @@ fun is_known_raw_param s =
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
-  else error ("Unknown parameter: " ^ quote s ^ ".")  
+  else error ("Unknown parameter: " ^ quote s ^ ".")
 
 fun unnegate_param_name name =
   case AList.lookup (op =) negated_params name of
@@ -212,8 +212,8 @@ fun extract_params ctxt auto default_params override_params =
       lookup_assigns read prefix "" (space_explode " ")
     fun lookup_time name =
       case lookup name of
-        NONE => NONE
-      | SOME s => parse_time_option name s
+        SOME s => parse_time_option name s
+      | NONE => NONE
     val read_type_polymorphic =
       Syntax.read_typ ctxt #> Logic.mk_type
       #> singleton (Variable.polymorphic ctxt) #> Logic.dest_type
@@ -229,11 +229,12 @@ fun extract_params ctxt auto default_params override_params =
     val bisim_depths = lookup_int_seq "bisim_depth" ~1
     val boxes = lookup_bool_option_assigns read_type_polymorphic "box"
     val finitizes = lookup_bool_option_assigns read_type_polymorphic "finitize"
-    val monos = lookup_bool_option_assigns read_type_polymorphic "mono"
+    val monos = if auto then [(NONE, SOME true)]
+                else lookup_bool_option_assigns read_type_polymorphic "mono"
     val stds = lookup_bool_assigns read_type_polymorphic "std"
     val wfs = lookup_bool_option_assigns read_const_polymorphic "wf"
     val sat_solver = lookup_string "sat_solver"
-    val blocking = not auto andalso lookup_bool "blocking"
+    val blocking = auto orelse lookup_bool "blocking"
     val falsify = lookup_bool "falsify"
     val debug = not auto andalso lookup_bool "debug"
     val verbose = debug orelse (not auto andalso lookup_bool "verbose")
@@ -252,7 +253,7 @@ fun extract_params ctxt auto default_params override_params =
     val kodkod_sym_break = lookup_int "kodkod_sym_break"
     val timeout = if auto then NONE else lookup_time "timeout"
     val tac_timeout = lookup_time "tac_timeout"
-    val max_threads = Int.max (0, lookup_int "max_threads")
+    val max_threads = if auto then 1 else Int.max (0, lookup_int "max_threads")
     val show_datatypes = debug orelse lookup_bool "show_datatypes"
     val show_consts = debug orelse lookup_bool "show_consts"
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
@@ -346,10 +347,7 @@ fun pick_nits override_params auto i step state =
           else handle_exceptions ctxt)
          (fn (_, state) => pick_nits_in_subgoal state params auto i step
                            |>> curry (op =) "genuine")
-  in
-    if auto orelse blocking then go ()
-    else (Toplevel.thread true (tap go); (false, state))  (* FIXME no threads in user-space *)
-  end
+  in if blocking then go () else Future.fork (tap go) |> K (false, state) end
 
 fun nitpick_trans (params, i) =
   Toplevel.keep (fn st =>
@@ -362,7 +360,7 @@ fun string_for_raw_param (name, value) =
 fun nitpick_params_trans params =
   Toplevel.theory
       (fold set_default_raw_param params
-       #> tap (fn thy => 
+       #> tap (fn thy =>
                   writeln ("Default parameters for Nitpick:\n" ^
                            (case rev (default_raw_params thy) of
                               [] => "none"

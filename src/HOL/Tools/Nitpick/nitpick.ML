@@ -144,7 +144,7 @@ type problem_extension =
    rel_table: nut NameTable.table,
    unsound: bool,
    scope: scope}
- 
+
 type rich_problem = KK.problem * problem_extension
 
 fun pretties_for_formulas _ _ [] = []
