@@ -29,7 +29,7 @@ quickcheck_params [size = 5, iterations = 1000]
 nitpick_params [timeout = 5 s, sat_solver = MiniSat, no_overlord, verbose, card = 1-5, iter = 1,2,4,8,12]
 refute_params [maxtime = 10, minsize = 1, maxsize = 5, satsolver = jerusat]
 *)
-ML {* Auto_Counterexample.time_limit := 10 *}
+ML {* Auto_Tools.time_limit := 10 *}
 
 
 text {* Uncomment the following ML code to check the counterexample generation with all theorems of Complex_Main. *}

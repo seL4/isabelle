@@ -94,13 +94,13 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
  (map_types (inst_type insts) (Mutabelle.freeze t));
 
 fun invoke_quickcheck quickcheck_generator thy t =
-  TimeLimit.timeLimit (Time.fromSeconds (! Auto_Counterexample.time_limit))
+  TimeLimit.timeLimit (Time.fromSeconds (!Auto_Tools.time_limit))
       (fn _ =>
           case Quickcheck.gen_test_term (ProofContext.init_global thy) true (SOME quickcheck_generator)
                                     size iterations (preprocess thy [] t) of
             (NONE, (time_report, report)) => (NoCex, (time_report, report))
           | (SOME _, (time_report, report)) => (GenuineCex, (time_report, report))) ()
-  handle TimeLimit.TimeOut => (Timeout, ([("timelimit", !Auto_Counterexample.time_limit)], NONE))
+  handle TimeLimit.TimeOut => (Timeout, ([("timelimit", !Auto_Tools.time_limit)], NONE))
 
 fun quickcheck_mtd quickcheck_generator =
   ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck quickcheck_generator)

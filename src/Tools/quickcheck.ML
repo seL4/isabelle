@@ -320,7 +320,7 @@ fun auto_quickcheck state =
           Pretty.mark Markup.hilite (pretty_counterex ctxt cex)])) state)
     end
 
-val setup = Auto_Counterexample.register_tool ("quickcheck", auto_quickcheck)
+val setup = Auto_Tools.register_tool ("quickcheck", auto_quickcheck)
 
 
 (* Isar commands *)

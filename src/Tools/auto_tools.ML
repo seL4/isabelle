@@ -1,10 +1,10 @@
-(*  Title:      Tools/auto_counterexample.ML
+(*  Title:      Tools/auto_tools.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
-Counterexample Search Unit (do not abbreviate!).
+Manager for tools that should be run automatically on newly entered conjectures.
 *)
 
-signature AUTO_COUNTEREXAMPLE =
+signature AUTO_TOOLS =
 sig
   val time_limit: int Unsynchronized.ref
 
@@ -12,7 +12,7 @@ sig
     string * (Proof.state -> bool * Proof.state) -> theory -> theory
 end;
 
-structure Auto_Counterexample : AUTO_COUNTEREXAMPLE =
+structure Auto_Tools : AUTO_TOOLS =
 struct
 
 (* preferences *)
@@ -22,8 +22,8 @@ val time_limit = Unsynchronized.ref 2500
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
     (Preferences.nat_pref time_limit
-      "auto-counterexample-time-limit"
-      "Time limit for automatic counterexample search (in milliseconds).")
+      "auto-tools-time-limit"
+      "Time limit for automatic tools (in milliseconds).")
 
 
 (* configuration *)
@@ -53,7 +53,6 @@ val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
                    (Data.get (Proof.theory_of state)) (false, state) |> snd
             else
               state) ()
-    handle TimeLimit.TimeOut =>
-           (warning "Automatic counterexample search timed out."; state)))
+    handle TimeLimit.TimeOut => state))
 
 end;

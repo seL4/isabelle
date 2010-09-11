@@ -383,6 +383,6 @@ val _ = Outer_Syntax.command "nitpick_params"
 fun auto_nitpick state =
   if not (!auto) then (false, state) else pick_nits [] true 1 0 state
 
-val setup = Auto_Counterexample.register_tool ("nitpick", auto_nitpick)
+val setup = Auto_Tools.register_tool ("nitpick", auto_nitpick)
 
 end;
