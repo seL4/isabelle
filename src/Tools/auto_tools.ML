@@ -17,7 +17,7 @@ struct
 
 (* preferences *)
 
-val time_limit = Unsynchronized.ref 2500
+val time_limit = Unsynchronized.ref 4000
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
