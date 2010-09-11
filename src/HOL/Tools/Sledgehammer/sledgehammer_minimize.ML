@@ -60,7 +60,7 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types, isar_proof,
     val axioms = maps (fn (n, ths) => map (pair n) ths) axioms
     val {context = ctxt, goal, ...} = Proof.goal state
     val problem =
-      {ctxt = ctxt, goal = goal, subgoal = subgoal,
+      {state = state, goal = goal, subgoal = subgoal,
        axioms = map (prepare_axiom ctxt) axioms}
     val result as {outcome, used_thm_names, ...} = prover params (K "") problem
   in
