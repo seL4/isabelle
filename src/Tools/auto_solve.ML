@@ -4,16 +4,15 @@
 Check whether a newly stated theorem can be solved directly by an
 existing theorem.  Duplicate lemmas can be detected in this way.
 
-The implementation is based in part on Berghofer and Haftmann's
-quickcheck.ML.  It relies critically on the Find_Theorems solves
+The implementation relies critically on the Find_Theorems solves
 feature.
 *)
 
 signature AUTO_SOLVE =
 sig
   val auto : bool Unsynchronized.ref
-  val auto_time_limit : int Unsynchronized.ref
-  val limit : int Unsynchronized.ref
+  val max_solutions : int Unsynchronized.ref
+  val setup : theory -> theory
 end;
 
 structure Auto_Solve : AUTO_SOLVE =
@@ -22,31 +21,23 @@ struct
 (* preferences *)
 
 val auto = Unsynchronized.ref false;
-val auto_time_limit = Unsynchronized.ref 2500;
-val limit = Unsynchronized.ref 5;
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_tracing
-    (Preferences.nat_pref auto_time_limit
-      "auto-solve-time-limit"
-      "Time limit for seeking automatic solutions (in milliseconds).");
+val max_solutions = Unsynchronized.ref 5;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
   (setmp_noncritical auto true (fn () =>
     Preferences.bool_pref auto
-      "auto-solve"
-      "Try to solve newly declared lemmas with existing theorems.") ());
+      "auto-solve" "Try to solve conjectures with existing theorems.") ());
 
 
 (* hook *)
 
-val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
+fun auto_solve state =
   let
     val ctxt = Proof.context_of state;
 
     val crits = [(true, Find_Theorems.Solves)];
-    fun find g = snd (Find_Theorems.find_theorems ctxt (SOME g) (SOME (! limit)) false crits);
+    fun find g = snd (Find_Theorems.find_theorems ctxt (SOME g) (SOME (! max_solutions)) false crits);
 
     fun prt_result (goal, results) =
       let
@@ -74,28 +65,16 @@ val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
           in if null results then NONE else SOME results end);
 
     fun go () =
-      let
-        val res =
-          TimeLimit.timeLimit (Time.fromMilliseconds (! auto_time_limit))
-            (try seek_against_goal) ();
-      in
-        (case res of
-          SOME (SOME results) =>
-            state |> Proof.goal_message
-              (fn () => Pretty.chunks
-                [Pretty.str "",
-                  Pretty.markup Markup.hilite
-                    (separate (Pretty.brk 0) (map prt_result results))])
-        | _ => state)
-      end handle TimeLimit.TimeOut => (warning "Auto solve: timeout"; state);
-  in
-    if int andalso ! auto andalso not (! Toplevel.quiet)
-    then go ()
-    else state
-  end));
+      (case try seek_against_goal () of
+        SOME (SOME results) =>
+          (true, state |> Proof.goal_message
+                  (fn () => Pretty.chunks
+                    [Pretty.str "",
+                      Pretty.markup Markup.hilite
+                        (separate (Pretty.brk 0) (map prt_result results))]))
+      | _ => (false, state));
+  in if not (!auto) then (false, state) else go () end;
+
+val setup = Auto_Tools.register_tool ("solve", auto_solve)
 
 end;
-
-val auto_solve = Auto_Solve.auto;
-val auto_solve_time_limit = Auto_Solve.auto_time_limit;
-

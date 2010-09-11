@@ -26,7 +26,8 @@ uses
 begin
 
 setup {*
-  Code_Preproc.setup
+  Auto_Solve.setup
+  #> Code_Preproc.setup
   #> Code_Simp.setup
   #> Code_ML.setup
   #> Code_Haskell.setup

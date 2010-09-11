@@ -45,7 +45,7 @@ val _ =
   (setmp_noncritical auto true (fn () =>
     Preferences.bool_pref auto
       "auto-quickcheck"
-      "Whether to run Quickcheck automatically.") ());
+      "Run Quickcheck automatically.") ());
 
 (* quickcheck report *)
 
