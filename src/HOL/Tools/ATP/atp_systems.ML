@@ -122,10 +122,6 @@ fun available_atps thy =
   priority ("Available ATPs: " ^
             commas (sort_strings (Symtab.keys (Data.get thy))) ^ ".")
 
-fun available_atps thy =
-  priority ("Available ATPs: " ^
-            commas (sort_strings (Symtab.keys (Data.get thy))) ^ ".")
-
 fun to_secs bonus time = (Time.toMilliseconds time + bonus + 999) div 1000
 
 (* E prover *)
