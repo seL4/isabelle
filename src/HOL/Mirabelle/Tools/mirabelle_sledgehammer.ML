@@ -304,11 +304,12 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val thy = ProofContext.theory_of ctxt
     val i = 1
-    val change_dir = (fn SOME d => Config.put Sledgehammer.dest_dir d | _ => I)
-    val ctxt' =
-      ctxt
-      |> change_dir dir
-      |> Config.put Sledgehammer.measure_run_time true
+    fun change_dir (SOME dir) = Config.put Sledgehammer.dest_dir dir
+      | change_dir NONE = I
+    val st' =
+      st |> Proof.map_context
+                (change_dir dir
+                 #> Config.put Sledgehammer.measure_run_time true)
     val params as {full_types, relevance_thresholds, max_relevant, ...} =
       Sledgehammer_Isar.default_params thy
           [("timeout", Int.toString timeout ^ " s")]
@@ -320,7 +321,7 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
           (the_default default_max_relevant max_relevant)
           relevance_override chained_ths hyp_ts concl_t
     val problem =
-      {ctxt = ctxt', goal = goal, subgoal = i,
+      {state = st', goal = goal, subgoal = i,
        axioms = map (Sledgehammer_Translate.prepare_axiom ctxt) axioms}
     val time_limit =
       (case hard_timeout of
