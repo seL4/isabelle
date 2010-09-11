@@ -29,7 +29,7 @@ val auto = Unsynchronized.ref false
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
       (Preferences.bool_pref auto "auto-sledgehammer"
-           "Whether to run Sledgehammer automatically.")
+           "Run Sledgehammer automatically.")
 
 (** Sledgehammer commands **)
 
@@ -153,7 +153,6 @@ fun extract_params auto default_params override_params =
         SOME s => parse_bool_option option name s
       | NONE => default_value
     val lookup_bool = the o general_lookup_bool false (SOME false)
-    val lookup_bool_option = general_lookup_bool true NONE
     fun lookup_time name =
       case lookup name of
         SOME s => parse_time_option name s

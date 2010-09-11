@@ -11,8 +11,8 @@ sig
   type locality = Sledgehammer_Filter.locality
   type minimize_command = string list -> string
   type metis_params =
-    bool * minimize_command * string * (string * locality) list vector * thm
-    * int
+    string * bool * minimize_command * string * (string * locality) list vector
+    * thm * int
   type isar_params =
     string Symtab.table * bool * int * Proof.context * int list list
   type text_result = string * (string * locality) list
@@ -33,7 +33,8 @@ open Sledgehammer_Translate
 
 type minimize_command = string list -> string
 type metis_params =
-  bool * minimize_command * string * (string * locality) list vector * thm * int
+  string * bool * minimize_command * string * (string * locality) list vector
+  * thm * int
 type isar_params =
   string Symtab.table * bool * int * Proof.context * int list list
 type text_result = string * (string * locality) list
@@ -614,8 +615,8 @@ fun metis_call full_types [] = metis_name full_types
     "(" ^ metis_name full_types ^ " " ^ space_implode " " ss ^ ")"
 fun metis_command full_types i n (ls, ss) =
   metis_using ls ^ metis_apply i n ^ metis_call full_types ss
-fun metis_line full_types i n ss =
-  "Try this command: " ^
+fun metis_line banner full_types i n ss =
+  banner ^ ": " ^
   Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
@@ -630,13 +631,13 @@ fun used_facts axiom_names =
   #> List.partition (curry (op =) Chained o snd)
   #> pairself (sort_distinct (string_ord o pairself fst))
 
-fun metis_proof_text (full_types, minimize_command, atp_proof, axiom_names,
-                      goal, i) =
+fun metis_proof_text (banner, full_types, minimize_command, atp_proof,
+                      axiom_names, goal, i) =
   let
     val (chained_lemmas, other_lemmas) = used_facts axiom_names atp_proof
     val n = Logic.count_prems (prop_of goal)
   in
-    (metis_line full_types i n (map fst other_lemmas) ^
+    (metis_line banner full_types i n (map fst other_lemmas) ^
      minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
      other_lemmas @ chained_lemmas)
   end
@@ -1003,7 +1004,7 @@ fun string_for_proof ctxt0 full_types i n =
   in do_proof end
 
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-                    (other_params as (full_types, _, atp_proof, axiom_names,
+                    (other_params as (_, full_types, _, atp_proof, axiom_names,
                                       goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i

@@ -130,7 +130,8 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
          (SOME min_thms,
           proof_text isar_proof
               (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-              (full_types, K "", proof, axiom_names, goal, i) |> fst)
+              ("Minimized command", full_types, K "", proof, axiom_names, goal,
+               i) |> fst)
        end
      | {outcome = SOME TimedOut, ...} =>
        (NONE, "Timeout: You can increase the time limit using the \"timeout\" \

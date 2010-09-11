@@ -343,12 +343,15 @@ fun prover_fun auto atp_name
       repair_conjecture_shape_and_theorem_names output conjecture_shape
                                                 axiom_names
     val important_message = extract_important_message output
+    val banner = if auto then "Sledgehammer found a proof"
+                 else "Try this command"
     val (message, used_thm_names) =
       case outcome of
         NONE =>
         proof_text isar_proof
             (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-            (full_types, minimize_command, proof, axiom_names, goal, subgoal)
+            (banner, full_types, minimize_command, proof, axiom_names, goal,
+             subgoal)
         |>> (fn message =>
                 message ^ (if verbose then
                              "\nReal CPU time: " ^ string_of_int msecs ^ " ms."
@@ -414,7 +417,7 @@ fun run_prover (params as {blocking, verbose, max_relevant, timeout, expect,
       let val (success, message) = TimeLimit.timeLimit timeout go () in
         (success, state |> success ? Proof.goal_message (fn () =>
              Pretty.chunks [Pretty.str "", Pretty.mark Markup.hilite
-                 (Pretty.str ("Sledgehammer found a proof! " ^ message))]))
+                 (Pretty.str message)]))
       end
     else if blocking then
       let val (success, message) = TimeLimit.timeLimit timeout go () in
