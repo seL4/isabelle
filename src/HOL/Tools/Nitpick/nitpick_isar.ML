@@ -29,7 +29,7 @@ val auto = Unsynchronized.ref false
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
       (Preferences.bool_pref auto "auto-nitpick"
-           "Whether to run Nitpick automatically.")
+           "Run Nitpick automatically.")
 
 type raw_param = string * string list
 
