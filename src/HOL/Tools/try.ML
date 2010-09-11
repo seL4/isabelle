@@ -16,6 +16,12 @@ struct
 
 val auto = Unsynchronized.ref false
 
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_tracing
+  (setmp_noncritical auto true (fn () =>
+    Preferences.bool_pref auto
+      "auto-try" "Try standard proof methods.") ());
+
 val timeout = Time.fromSeconds 5
 
 fun can_apply pre post tac st =
