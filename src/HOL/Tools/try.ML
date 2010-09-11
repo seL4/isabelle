@@ -6,11 +6,15 @@ Try a combination of proof methods.
 
 signature TRY =
 sig
+  val auto : bool Unsynchronized.ref
   val invoke_try : Proof.state -> unit
+  val setup : theory -> theory
 end;
 
 structure Try : TRY =
 struct
+
+val auto = Unsynchronized.ref false
 
 val timeout = Time.fromSeconds 5
 
@@ -60,16 +64,29 @@ val do_methods =
 
 fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
 
-fun invoke_try st =
+fun do_try auto st =
   case do_methods |> Par_List.map (fn f => f st)
                   |> map_filter I |> sort (int_ord o pairself snd) of
-    [] => writeln "No proof found."
+    [] => (if auto then () else writeln "No proof found."; (false, st))
   | xs as (s, _) :: _ =>
-    priority ("Try this command: " ^
+    let
+      val message =
+        (if auto then "Auto Try found a proof" else "Try this command") ^ ": " ^
         Markup.markup Markup.sendback
             ((if nprems_of (#goal (Proof.goal st)) = 1 then "by" else "apply") ^
              " " ^ s) ^
-        ".\n(" ^ space_implode "; " (map time_string xs) ^ ")\n")
+        ".\n(" ^ space_implode "; " (map time_string xs) ^ ")\n"
+    in
+      (true, st |> (if auto then
+                      Proof.goal_message
+                          (fn () => Pretty.chunks [Pretty.str "",
+                                    Pretty.markup Markup.hilite
+                                                  [Pretty.str message]])
+                    else
+                      tap (fn _ => priority message)))
+    end
+
+val invoke_try = do_try false #> K ()
 
 val tryN = "try"
 
@@ -77,5 +94,9 @@ val _ =
   Outer_Syntax.improper_command tryN
       "try a combination of proof methods" Keyword.diag
       (Scan.succeed (Toplevel.keep (invoke_try o Toplevel.proof_of)))
+
+fun auto_try st = if not (!auto) then (false, st) else do_try true st
+
+val setup = Auto_Tools.register_tool (tryN, auto_try)
 
 end;
