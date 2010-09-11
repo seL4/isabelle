@@ -1126,7 +1126,7 @@ fun solve_any_problem overlord deadline max_threads max_solutions problems =
       | NONE =>
         let val outcome = do_solve () in
           (case outcome of
-             Normal (ps, js, "") =>
+             Normal (_, _, "") =>
              Synchronized.change cached_outcome
                                  (K (SOME ((max_solutions, problems), outcome)))
            | _ => ());
