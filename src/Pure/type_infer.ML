@@ -111,12 +111,12 @@ fun fold_pretyps f (PConst (_, T)) x = f T x
 
 (* pretyp_of *)
 
-fun pretyp_of is_para typ params_idx =
+fun pretyp_of typ params_idx =
   let
     val (params', idx) = fold_atyps
       (fn TVar (xi as (x, _), S) =>
           (fn ps_idx as (ps, idx) =>
-            if is_para xi andalso not (Vartab.defined ps xi)
+            if is_param xi andalso not (Vartab.defined ps xi)
             then (Vartab.update (xi, Param (idx, S)) ps, idx + 1) else ps_idx)
         | _ => I) typ params_idx;
 
@@ -138,7 +138,7 @@ fun pretyp_of is_para typ params_idx =
 
 (* preterm_of *)
 
-fun preterm_of const_type is_para tm (vparams, params, idx) =
+fun preterm_of const_type tm (vparams, params, idx) =
   let
     fun add_vparm xi (ps_idx as (ps, idx)) =
       if not (Vartab.defined ps xi) then
@@ -153,13 +153,12 @@ fun preterm_of const_type is_para tm (vparams, params, idx) =
       tm (vparams, idx);
     fun var_param xi = the (Vartab.lookup vparams' xi);
 
-    val preT_of = pretyp_of is_para;
-    fun polyT_of T idx = apsnd snd (pretyp_of (K true) T (Vartab.empty, idx));
+    fun polyT_of T idx = apsnd snd (pretyp_of (paramify_vars T) (Vartab.empty, idx));
 
     fun constraint T t ps =
       if T = dummyT then (t, ps)
       else
-        let val (T', ps') = preT_of T ps
+        let val (T', ps') = pretyp_of T ps
         in (Constraint (t, T'), ps') end;
 
     fun pre_of (Const (c, T)) (ps, idx) =
@@ -178,7 +177,7 @@ fun preterm_of const_type is_para tm (vparams, params, idx) =
       | pre_of (Bound i) ps_idx = (PBound i, ps_idx)
       | pre_of (Abs (x, T, t)) ps_idx =
           let
-            val (T', ps_idx') = preT_of T ps_idx;
+            val (T', ps_idx') = pretyp_of T ps_idx;
             val (t', ps_idx'') = pre_of t ps_idx';
           in (PAbs (x, T', t'), ps_idx'') end
       | pre_of (t $ u) ps_idx =
@@ -426,7 +425,7 @@ fun infer_types pp tsig check_typs const_type var_type used maxidx raw_ts =
     (*convert to preterms*)
     val ts = burrow_types check_typs raw_ts;
     val (ts', (_, _, idx)) =
-      fold_map (preterm_of const_type is_param o constrain_vars) ts
+      fold_map (preterm_of const_type o constrain_vars) ts
       (Vartab.empty, Vartab.empty, 0);
 
     (*do type inference*)
