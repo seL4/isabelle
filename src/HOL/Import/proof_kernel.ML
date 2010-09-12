@@ -222,7 +222,7 @@ fun smart_string_of_cterm ctxt0 ct =
                 val str =
                   G n Syntax.string_of_term (Config.put show_brackets false ctxt) (term_of ct)
                 val u = Syntax.parse_term ctxt str
-                  |> Type_Infer.constrain T |> Syntax.check_term ctxt
+                  |> Type.constraint T |> Syntax.check_term ctxt
             in
                 if match u
                 then quote str

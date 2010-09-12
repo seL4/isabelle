@@ -463,7 +463,7 @@ local
 
   fun legacy_infer_term thy t =
       singleton (Syntax.check_terms (ProofContext.init_global thy)) (intern_term thy t);
-  fun legacy_infer_prop thy t = legacy_infer_term thy (Type_Infer.constrain propT t);
+  fun legacy_infer_prop thy t = legacy_infer_term thy (Type.constraint propT t);
   fun infer_props thy = map (apsnd (legacy_infer_prop thy));
   fun add_defs_i x = PureThy.add_defs false (map Thm.no_attributes x);
   fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;

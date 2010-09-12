@@ -82,7 +82,7 @@ fun read_termTs ctxt schematic ss Ts =
     fun parse T = if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt;
     val ts = map2 parse Ts ss;
     val ts' =
-      map2 (Type_Infer.constrain o Type_Infer.paramify_vars) Ts ts
+      map2 (Type.constraint o Type_Infer.paramify_vars) Ts ts
       |> Syntax.check_terms ((schematic ? ProofContext.set_mode ProofContext.mode_schematic) ctxt)
       |> Variable.polymorphic ctxt;
     val Ts' = map Term.fastype_of ts';

@@ -551,7 +551,7 @@ fun normalize thy program ((vs0, (vs, ty)), t) deps =
     fun type_infer t =
       singleton (Type_Infer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
         (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE) Name.context 0)
-      (Type_Infer.constrain ty' t);
+      (Type.constraint ty' t);
     val string_of_term =
       Syntax.string_of_term (Config.put show_types true (Syntax.init_pretty_global thy));
     fun check_tvars t =

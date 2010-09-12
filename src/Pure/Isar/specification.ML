@@ -102,7 +102,7 @@ fun close_forms ctxt i xs As =
     fun abs_body lev y (Abs (x, T, b)) = Abs (x, T, abs_body (lev + 1) y b)
       | abs_body lev y (t $ u) = abs_body lev y t $ abs_body lev y u
       | abs_body lev y (t as Free (x, T)) =
-          if x = y then Type_Infer.constrain (uniform_typing x) (Type_Infer.constrain T (Bound lev))
+          if x = y then Type.constraint (uniform_typing x) (Type.constraint T (Bound lev))
           else t
       | abs_body _ _ a = a;
     fun close (y, U) B =

@@ -8,7 +8,6 @@ signature TYPE_INFER =
 sig
   val anyT: sort -> typ
   val polymorphicT: typ -> typ
-  val constrain: typ -> term -> term
   val is_param: indexname -> bool
   val param: int -> string * sort -> typ
   val paramify_vars: typ -> typ
@@ -30,8 +29,6 @@ fun anyT S = TFree ("'_dummy_", S);
 
 (*indicate polymorphic Vars*)
 fun polymorphicT T = Type ("_polymorphic_", [T]);
-
-val constrain = Syntax.type_constraint;
 
 
 (* type inference parameters -- may get instantiated *)
@@ -418,8 +415,8 @@ fun infer_types pp tsig check_typs const_type var_type used maxidx raw_ts =
     (*constrain vars*)
     val get_type = the_default dummyT o var_type;
     val constrain_vars = Term.map_aterms
-      (fn Free (x, T) => constrain T (Free (x, get_type (x, ~1)))
-        | Var (xi, T) => constrain T (Var (xi, get_type xi))
+      (fn Free (x, T) => Type.constraint T (Free (x, get_type (x, ~1)))
+        | Var (xi, T) => Type.constraint T (Var (xi, get_type xi))
         | t => t);
 
     (*convert to preterms*)

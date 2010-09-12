@@ -7,6 +7,8 @@ matching and unification of types, extend and merge type signatures.
 
 signature TYPE =
 sig
+  (*constraints*)
+  val constraint: typ -> term -> term
   (*type signatures and certified types*)
   datatype decl =
     LogicalType of int |
@@ -95,6 +97,14 @@ end;
 
 structure Type: TYPE =
 struct
+
+(** constraints **)
+
+fun constraint T t =
+  if T = dummyT then t
+  else Const ("_type_constraint_", T --> T) $ t;
+
+
 
 (** type signatures and certified types **)
 

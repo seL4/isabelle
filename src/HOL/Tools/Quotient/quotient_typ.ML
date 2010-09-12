@@ -276,7 +276,7 @@ let
     val lthy1 = Variable.declare_typ rty lthy
     val rel = 
       Syntax.parse_term lthy1 rel_str
-      |> Syntax.type_constraint (rty --> rty --> @{typ bool}) 
+      |> Type.constraint (rty --> rty --> @{typ bool}) 
       |> Syntax.check_term lthy1 
     val lthy2 = Variable.declare_term rel lthy1 
   in
