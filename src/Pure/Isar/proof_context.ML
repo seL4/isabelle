@@ -699,9 +699,7 @@ fun def_type ctxt =
   in Variable.def_type ctxt pattern end;
 
 fun standard_infer_types ctxt ts =
-  Type_Infer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
-    (try (Consts.the_constraint (consts_of ctxt))) (def_type ctxt)
-    (Variable.names_of ctxt) (Variable.maxidx_of ctxt) ts
+  Type_Infer.infer_types ctxt (try (Consts.the_constraint (consts_of ctxt))) (def_type ctxt) ts
   handle TYPE (msg, _, _) => error msg;
 
 local

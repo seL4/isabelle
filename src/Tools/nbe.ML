@@ -547,13 +547,13 @@ fun compile_eval thy program =
 
 fun normalize thy program ((vs0, (vs, ty)), t) deps =
   let
+    val ctxt = Syntax.init_pretty_global thy;
     val ty' = typ_of_itype program vs0 ty;
     fun type_infer t =
-      singleton (Type_Infer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
-        (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE) Name.context 0)
-      (Type.constraint ty' t);
-    val string_of_term =
-      Syntax.string_of_term (Config.put show_types true (Syntax.init_pretty_global thy));
+      singleton
+        (Type_Infer.infer_types ctxt (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE))
+        (Type.constraint ty' t);
+    val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
     fun check_tvars t =
       if null (Term.add_tvars t []) then t
       else error ("Illegal schematic type variables in normalized term: " ^ string_of_term t);

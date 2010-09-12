@@ -8,6 +8,7 @@ matching and unification of types, extend and merge type signatures.
 signature TYPE =
 sig
   (*constraints*)
+  val mark_polymorphic: typ -> typ
   val constraint: typ -> term -> term
   val appl_error: Pretty.pp -> term -> typ -> term -> typ -> string
   (*type signatures and certified types*)
@@ -100,6 +101,9 @@ structure Type: TYPE =
 struct
 
 (** constraints **)
+
+(*indicate polymorphic Vars*)
+fun mark_polymorphic T = Type ("_polymorphic_", [T]);
 
 fun constraint T t =
   if T = dummyT then t

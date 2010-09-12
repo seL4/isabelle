@@ -29,6 +29,7 @@ sig
   val defaultS: theory -> sort
   val subsort: theory -> sort * sort -> bool
   val of_sort: theory -> typ * sort -> bool
+  val inter_sort: theory -> sort * sort -> sort
   val witness_sorts: theory -> (typ * sort) list -> sort list -> (typ * sort) list
   val is_logtype: theory -> string -> bool
   val typ_instance: theory -> typ * typ -> bool
@@ -201,6 +202,7 @@ val set_defsort = map_tsig o Type.set_defsort;
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
+val inter_sort = Type.inter_sort o tsig_of;
 val witness_sorts = Type.witness_sorts o tsig_of;
 val is_logtype = member (op =) o Type.logical_types o tsig_of;
 
