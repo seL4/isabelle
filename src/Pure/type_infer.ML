@@ -76,8 +76,7 @@ datatype preterm =
   PVar of indexname * pretyp |
   PBound of int |
   PAbs of string * pretyp * preterm |
-  PAppl of preterm * preterm |
-  Constraint of preterm * pretyp;
+  PAppl of preterm * preterm;
 
 
 (* utils *)
@@ -93,8 +92,7 @@ fun fold_pretyps f (PConst (_, T)) x = f T x
   | fold_pretyps f (PVar (_, T)) x = f T x
   | fold_pretyps _ (PBound _) x = x
   | fold_pretyps f (PAbs (_, T, t)) x = fold_pretyps f t (f T x)
-  | fold_pretyps f (PAppl (t, u)) x = fold_pretyps f u (fold_pretyps f t x)
-  | fold_pretyps f (Constraint (t, T)) x = f T (fold_pretyps f t x);
+  | fold_pretyps f (PAppl (t, u)) x = fold_pretyps f u (fold_pretyps f t x);
 
 
 
@@ -150,7 +148,7 @@ fun preterm_of const_type tm (vparams, params, idx) =
       if T = dummyT then (t, ps)
       else
         let val (T', ps') = pretyp_of T ps
-        in (Constraint (t, T'), ps') end;
+        in (PAppl (PConst ("_type_constraint_", PType ("fun", [T', T'])), t), ps') end;
 
     fun pre_of (Const (c, T)) (ps, idx) =
           (case const_type c of
@@ -158,13 +156,16 @@ fun preterm_of const_type tm (vparams, params, idx) =
               let val (pU, idx') = polyT_of U idx
               in constraint T (PConst (c, pU)) (ps, idx') end
           | NONE => error ("Undeclared constant: " ^ quote c))
+      | pre_of (Const ("_type_constraint_", T) $ t) ps_idx =
+          let
+            val (T', ps_idx') = pretyp_of T ps_idx;
+            val (t', ps_idx'') = pre_of t ps_idx';
+          in (PAppl (PConst ("_type_constraint_", T'), t'), ps_idx'') end
       | pre_of (Var (xi, Type ("_polymorphic_", [T]))) (ps, idx) =
           let val (pT, idx') = polyT_of T idx
           in (PVar (xi, pT), (ps, idx')) end
       | pre_of (Var (xi, T)) ps_idx = constraint T (PVar (xi, var_param xi)) ps_idx
       | pre_of (Free (x, T)) ps_idx = constraint T (PFree (x, var_param (x, ~1))) ps_idx
-      | pre_of (Const ("_type_constraint_", Type ("fun", [T, _])) $ t) ps_idx =
-          pre_of t ps_idx |-> constraint T
       | pre_of (Bound i) ps_idx = (PBound i, ps_idx)
       | pre_of (Abs (x, T, t)) ps_idx =
           let
@@ -216,7 +217,6 @@ fun simple_typ_of tye f T =
   | PTVar v => TVar v
   | Param (i, S) => TVar (f i, S));
 
-(*convert types, drop constraints*)
 fun simple_term_of tye f (PConst (c, T)) = Const (c, simple_typ_of tye f T)
   | simple_term_of tye f (PFree (x, T)) = Free (x, simple_typ_of tye f T)
   | simple_term_of tye f (PVar (xi, T)) = Var (xi, simple_typ_of tye f T)
@@ -224,8 +224,7 @@ fun simple_term_of tye f (PConst (c, T)) = Const (c, simple_typ_of tye f T)
   | simple_term_of tye f (PAbs (x, T, t)) =
       Abs (x, simple_typ_of tye f T, simple_term_of tye f t)
   | simple_term_of tye f (PAppl (t, u)) =
-      simple_term_of tye f t $ simple_term_of tye f u
-  | simple_term_of tye f (Constraint (t, _)) = simple_term_of tye f t;
+      simple_term_of tye f t $ simple_term_of tye f u;
 
 
 (* typs_terms_of *)
@@ -239,7 +238,7 @@ fun typs_terms_of ctxt tye (Ts, ts) =
 
     val maxidx = Variable.maxidx_of ctxt;
     fun f i = (the (Inttab.lookup tab i), maxidx + 1);
-  in (map (simple_typ_of tye f) Ts, map (simple_term_of tye f) ts) end;
+  in (map (simple_typ_of tye f) Ts, map (Type.strip_constraints o simple_term_of tye f) ts) end;
 
 
 
@@ -344,12 +343,6 @@ fun infer ctxt =
       let val ([t', u'], [T', U']) = prep_output tye bs [t, u] [T, U]
       in error (unif_failed msg ^ Type.appl_error pp t' T' u' U' ^ "\n") end;
 
-    fun err_constraint msg tye bs t T U =
-      let val ([t'], [T', U']) = prep_output tye bs [t] [T, U] in
-        error (unif_failed msg ^
-          Type.appl_error pp (Const ("_type_constraint_", U' --> U')) (U' --> U') t' T' ^ "\n")
-      end;
-
 
     (* main *)
 
@@ -369,13 +362,7 @@ fun infer ctxt =
             val U_to_V = PType ("fun", [U, V]);
             val tye_idx'' = unify ctxt pp (U_to_V, T) (tye, idx + 1)
               handle NO_UNIFIER (msg, tye') => err_appl msg tye' bs t T u U;
-          in (V, tye_idx'') end
-      | inf bs (Constraint (t, U)) tye_idx =
-          let val (T, tye_idx') = inf bs t tye_idx in
-            (T,
-             unify ctxt pp (T, U) tye_idx'
-               handle NO_UNIFIER (msg, tye) => err_constraint msg tye bs t T U)
-          end;
+          in (V, tye_idx'') end;
 
   in inf [] end;
 

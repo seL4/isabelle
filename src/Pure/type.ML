@@ -10,6 +10,7 @@ sig
   (*constraints*)
   val mark_polymorphic: typ -> typ
   val constraint: typ -> term -> term
+  val strip_constraints: term -> term
   val appl_error: Pretty.pp -> term -> typ -> term -> typ -> string
   (*type signatures and certified types*)
   datatype decl =
@@ -108,6 +109,11 @@ fun mark_polymorphic T = Type ("_polymorphic_", [T]);
 fun constraint T t =
   if T = dummyT then t
   else Const ("_type_constraint_", T --> T) $ t;
+
+fun strip_constraints (Const ("_type_constraint_", _) $ t) = strip_constraints t
+  | strip_constraints (t $ u) = strip_constraints t $ strip_constraints u
+  | strip_constraints (Abs (x, T, t)) = Abs (x, T, strip_constraints t)
+  | strip_constraints a = a;
 
 fun appl_error pp (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
       cat_lines
