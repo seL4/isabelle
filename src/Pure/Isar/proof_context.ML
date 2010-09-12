@@ -698,9 +698,8 @@ fun def_type ctxt =
   let val Mode {pattern, ...} = get_mode ctxt
   in Variable.def_type ctxt pattern end;
 
-fun standard_infer_types ctxt ts =
-  Type_Infer.infer_types ctxt (try (Consts.the_constraint (consts_of ctxt))) (def_type ctxt) ts
-  handle TYPE (msg, _, _) => error msg;
+fun standard_infer_types ctxt =
+  Type_Infer.infer_types ctxt (try (Consts.the_constraint (consts_of ctxt))) (def_type ctxt);
 
 local
 

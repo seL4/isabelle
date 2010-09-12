@@ -157,7 +157,7 @@ fun preterm_of const_type tm (vparams, params, idx) =
             SOME U =>
               let val (pU, idx') = polyT_of U idx
               in constraint T (PConst (c, pU)) (ps, idx') end
-          | NONE => raise TYPE ("Undeclared constant: " ^ quote c, [], []))
+          | NONE => error ("Undeclared constant: " ^ quote c))
       | pre_of (Var (xi, Type ("_polymorphic_", [T]))) (ps, idx) =
           let val (pT, idx') = polyT_of T idx
           in (PVar (xi, pT), (ps, idx')) end
@@ -265,8 +265,7 @@ fun unify ctxt pp =
           else (Inttab.update_new (i,
             Param (idx, Sign.inter_sort thy (S', S))) tye, idx + 1)
       | meet (PType (a, Ts), S) (tye_idx as (tye, _)) =
-          meets (Ts, arity_sorts a S
-            handle ERROR msg => raise NO_UNIFIER (msg, tye)) tye_idx
+          meets (Ts, arity_sorts a S handle ERROR msg => raise NO_UNIFIER (msg, tye)) tye_idx
       | meet (PTFree (x, S'), S) (tye_idx as (tye, _)) =
           if Sign.subsort thy (S', S) then tye_idx
           else raise NO_UNIFIER (not_of_sort x S' S, tye)
@@ -336,25 +335,20 @@ fun infer ctxt =
           in Term.subst_bounds (map Syntax.mark_boundT xs, t) end;
       in (map prep ts', Ts') end;
 
-    fun err_loose i =
-      raise TYPE ("Loose bound variable: B." ^ string_of_int i, [], []);
+    fun err_loose i = error ("Loose bound variable: B." ^ string_of_int i);
 
     fun unif_failed msg =
       "Type unification failed" ^ (if msg = "" then "" else ": " ^ msg) ^ "\n\n";
 
     fun err_appl msg tye bs t T u U =
-      let
-        val ([t', u'], [T', U']) = prep_output tye bs [t, u] [T, U];
-        val text = unif_failed msg ^ Type.appl_error pp t' T' u' U' ^ "\n";
-      in raise TYPE (text, [T', U'], [t', u']) end;
+      let val ([t', u'], [T', U']) = prep_output tye bs [t, u] [T, U]
+      in error (unif_failed msg ^ Type.appl_error pp t' T' u' U' ^ "\n") end;
 
     fun err_constraint msg tye bs t T U =
-      let
-        val ([t'], [T', U']) = prep_output tye bs [t] [T, U];
-        val text =
-          unif_failed msg ^
-            Type.appl_error pp (Const ("_type_constraint_", U' --> U')) (U' --> U') t' T' ^ "\n";
-      in raise TYPE (text, [T', U'], [t']) end;
+      let val ([t'], [T', U']) = prep_output tye bs [t] [T, U] in
+        error (unif_failed msg ^
+          Type.appl_error pp (Const ("_type_constraint_", U' --> U')) (U' --> U') t' T' ^ "\n")
+      end;
 
 
     (* main *)
