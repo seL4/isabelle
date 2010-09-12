@@ -34,7 +34,7 @@ fun polymorphicT T = Type ("_polymorphic_", [T]);
 val constrain = Syntax.type_constraint;
 
 
-(* user parameters *)
+(* type inference parameters -- may get instantiated *)
 
 fun is_param (x, _: int) = String.isPrefix "?" x;
 fun param i (x, S) = TVar (("?" ^ x, i), S);
@@ -73,7 +73,6 @@ fun fixate_params name_context ts =
 
 (** pretyps and preterms **)
 
-(*parameters may get instantiated, anything else is rigid*)
 datatype pretyp =
   PType of string * pretyp list |
   PTFree of string * sort |
@@ -168,7 +167,7 @@ fun preterm_of const_type is_para tm (vparams, params, idx) =
             SOME U =>
               let val (pU, idx') = polyT_of U idx
               in constraint T (PConst (c, pU)) (ps, idx') end
-          | NONE => raise TYPE ("No such constant: " ^ quote c, [], []))
+          | NONE => raise TYPE ("Undeclared constant: " ^ quote c, [], []))
       | pre_of (Var (xi, Type ("_polymorphic_", [T]))) (ps, idx) =
           let val (pT, idx') = polyT_of T idx
           in (PVar (xi, pT), (ps, idx')) end
@@ -258,7 +257,6 @@ exception NO_UNIFIER of string * pretyp Inttab.table;
 
 fun unify pp tsig =
   let
-
     (* adjust sorts of parameters *)
 
     fun not_of_sort x S' S =
@@ -304,13 +302,17 @@ fun unify pp tsig =
 
     (* unification *)
 
+    fun show_tycon (a, Ts) =
+      quote (Pretty.string_of_typ pp (Type (a, replicate (length Ts) dummyT)));
+
     fun unif (T1, T2) (tye_idx as (tye, idx)) =
       (case (deref tye T1, deref tye T2) of
         (Param (i, S), T) => assign i T S tye_idx
       | (T, Param (i, S)) => assign i T S tye_idx
       | (PType (a, Ts), PType (b, Us)) =>
           if a <> b then
-            raise NO_UNIFIER ("Clash of types " ^ quote a ^ " and " ^ quote b, tye)
+            raise NO_UNIFIER
+              ("Clash of types " ^ show_tycon (a, Ts) ^ " and " ^ show_tycon (b, Us), tye)
           else fold unif (Ts ~~ Us) tye_idx
       | (T, U) => if T = U then tye_idx else raise NO_UNIFIER ("", tye));
 
