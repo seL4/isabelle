@@ -265,12 +265,12 @@ local
 
 fun type_check pp tm =
   let
-    fun err_appl why bs t T u U =
+    fun err_appl bs t T u U =
       let
         val xs = map Free bs;           (*we do not rename here*)
         val t' = subst_bounds (xs, t);
         val u' = subst_bounds (xs, u);
-        val msg = cat_lines (Type_Infer.appl_error pp why t' T u' U);
+        val msg = Type.appl_error pp t' T u' U;
       in raise TYPE (msg, [T, U], [t', u']) end;
 
     fun typ_of (_, Const (_, T)) = T
@@ -283,8 +283,8 @@ fun type_check pp tm =
           let val T = typ_of (bs, t) and U = typ_of (bs, u) in
             (case T of
               Type ("fun", [T1, T2]) =>
-                if T1 = U then T2 else err_appl "Incompatible operand type" bs t T u U
-            | _ => err_appl "Operator not of function type" bs t T u U)
+                if T1 = U then T2 else err_appl bs t T u U
+            | _ => err_appl bs t T u U)
           end;
   in typ_of ([], tm) end;
 

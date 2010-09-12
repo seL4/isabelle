@@ -9,6 +9,7 @@ signature TYPE =
 sig
   (*constraints*)
   val constraint: typ -> term -> term
+  val appl_error: Pretty.pp -> term -> typ -> term -> typ -> string
   (*type signatures and certified types*)
   datatype decl =
     LogicalType of int |
@@ -103,6 +104,28 @@ struct
 fun constraint T t =
   if T = dummyT then t
   else Const ("_type_constraint_", T --> T) $ t;
+
+fun appl_error pp (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
+      cat_lines
+       ["Failed to meet type constraint:", "",
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Term:", Pretty.brk 2, Pretty.term pp u,
+          Pretty.str " ::", Pretty.brk 1, Pretty.typ pp U]),
+        Pretty.string_of (Pretty.block
+         [Pretty.str "Type:", Pretty.brk 2, Pretty.typ pp T])]
+  | appl_error pp t T u U =
+      cat_lines
+       ["Type error in application: " ^
+          (case T of
+            Type ("fun", _) => "incompatible operand type"
+          | _ => "operator not of function type"),
+        "",
+        Pretty.string_of (Pretty.block
+          [Pretty.str "Operator:", Pretty.brk 2, Pretty.term pp t,
+            Pretty.str " ::", Pretty.brk 1, Pretty.typ pp T]),
+        Pretty.string_of (Pretty.block
+          [Pretty.str "Operand:", Pretty.brk 3, Pretty.term pp u,
+            Pretty.str " ::", Pretty.brk 1, Pretty.typ pp U])];
 
 
 

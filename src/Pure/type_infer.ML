@@ -13,7 +13,6 @@ sig
   val paramify_vars: typ -> typ
   val paramify_dummies: typ -> int -> typ * int
   val fixate_params: Name.context -> term list -> term list
-  val appl_error: Pretty.pp -> string -> term -> typ -> term -> typ -> string list
   val infer_types: Pretty.pp -> Type.tsig -> (typ list -> typ list) ->
     (string -> typ option) -> (indexname -> typ option) -> Name.context -> int ->
     term list -> term list
@@ -318,28 +317,11 @@ fun unify pp tsig =
 
 (** type inference **)
 
-(* appl_error *)
-
-fun appl_error pp why t T u U =
- ["Type error in application: " ^ why,
-  "",
-  Pretty.string_of (Pretty.block
-    [Pretty.str "Operator:", Pretty.brk 2, Pretty.term pp t,
-      Pretty.str " ::", Pretty.brk 1, Pretty.typ pp T]),
-  Pretty.string_of (Pretty.block
-    [Pretty.str "Operand:", Pretty.brk 3, Pretty.term pp u,
-      Pretty.str " ::", Pretty.brk 1, Pretty.typ pp U]),
-  ""];
-
-
 (* infer *)
 
 fun infer pp tsig =
   let
     (* errors *)
-
-    fun unif_failed msg =
-      "Type unification failed" ^ (if msg = "" then "" else ": " ^ msg) ^ "\n";
 
     fun prep_output tye bs ts Ts =
       let
@@ -353,27 +335,21 @@ fun infer pp tsig =
     fun err_loose i =
       raise TYPE ("Loose bound variable: B." ^ string_of_int i, [], []);
 
+    fun unif_failed msg =
+      "Type unification failed" ^ (if msg = "" then "" else ": " ^ msg) ^ "\n\n";
+
     fun err_appl msg tye bs t T u U =
       let
         val ([t', u'], [T', U']) = prep_output tye bs [t, u] [T, U];
-        val why =
-          (case T' of
-            Type ("fun", _) => "Incompatible operand type"
-          | _ => "Operator not of function type");
-        val text = unif_failed msg ^ cat_lines (appl_error pp why t' T' u' U');
+        val text = unif_failed msg ^ Type.appl_error pp t' T' u' U' ^ "\n";
       in raise TYPE (text, [T', U'], [t', u']) end;
 
     fun err_constraint msg tye bs t T U =
       let
         val ([t'], [T', U']) = prep_output tye bs [t] [T, U];
-        val text = cat_lines
-         [unif_failed msg,
-          "Cannot meet type constraint:", "",
-          Pretty.string_of (Pretty.block
-           [Pretty.str "Term:", Pretty.brk 2, Pretty.term pp t',
-            Pretty.str " ::", Pretty.brk 1, Pretty.typ pp T']),
-          Pretty.string_of (Pretty.block
-           [Pretty.str "Type:", Pretty.brk 2, Pretty.typ pp U']), ""];
+        val text =
+          unif_failed msg ^
+            Type.appl_error pp (Const ("_type_constraint_", U' --> U')) (U' --> U') t' T' ^ "\n";
       in raise TYPE (text, [T', U'], [t']) end;
 
 
