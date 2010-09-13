@@ -26,6 +26,10 @@ open Nitpick
 
 val auto = Unsynchronized.ref false
 
+(* Maximum number of scopes for Auto Nitpick. Be frugal since it has to share
+   its time slot with several other automatic tools. *)
+val max_auto_scopes = 6
+
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
       (Preferences.bool_pref auto "auto-nitpick"
@@ -223,6 +227,7 @@ fun extract_params ctxt auto default_params override_params =
       AList.lookup (op =) raw_params #> these #> map read_term_polymorphic
     val read_const_polymorphic = read_term_polymorphic #> dest_Const
     val cards_assigns = lookup_ints_assigns read_type_polymorphic "card" 1
+                        |> auto ? map (apsnd (take max_auto_scopes))
     val maxes_assigns = lookup_ints_assigns read_const_polymorphic "max" ~1
     val iters_assigns = lookup_ints_assigns read_const_polymorphic "iter" 0
     val bitss = lookup_int_seq "bits" 1
