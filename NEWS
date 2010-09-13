@@ -68,6 +68,9 @@ feature is still required for historical reasons.
 * Discontinued ancient 'constdefs' command.  INCOMPATIBILITY, use
 'definition' instead.
 
+* Document antiquotations 'class' and 'type' for printing classes
+and type constructors.
+
 
 *** HOL ***
 

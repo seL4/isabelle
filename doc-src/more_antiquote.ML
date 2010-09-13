@@ -47,29 +47,6 @@ fun typewriter s =
   end
 
 
-(* class and type constructor antiquotation *)
-
-local
-
-val pr_text = enclose "\\isa{" "}" o Pretty.output NONE o Pretty.str;
-
-fun pr_class ctxt = ProofContext.read_class ctxt
-  #> Type.extern_class (ProofContext.tsig_of ctxt)
-  #> pr_text;
-
-fun pr_type ctxt = ProofContext.read_type_name_proper ctxt true
-  #> (#1 o Term.dest_Type)
-  #> Type.extern_type (ProofContext.tsig_of ctxt)
-  #> pr_text;
-
-in
-
-val _ = Thy_Output.antiquotation "class" (Scan.lift Args.name) (pr_class o #context);
-val _ = Thy_Output.antiquotation "type" (Scan.lift Args.name) (pr_type o #context);
-
-end;
-
-
 (* code theorem antiquotation *)
 
 local
