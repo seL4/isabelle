@@ -293,7 +293,7 @@ fun begin sort base_sort ctxt =
   |> Variable.declare_term
       (Logic.mk_type (TFree (Name.aT, base_sort)))
   |> synchronize_class_syntax sort base_sort
-  |> Overloading.add_improvable_syntax;
+  |> Overloading.activate_improvable_syntax;
 
 fun init class thy =
   thy
@@ -548,7 +548,7 @@ fun instantiation (tycos, vs, sort) thy =
     |> fold (Variable.declare_names o Free o snd) params
     |> (Overloading.map_improvable_syntax o apfst)
          (K ((primary_constraints, []), (((improve, K NONE), false), [])))
-    |> Overloading.add_improvable_syntax
+    |> Overloading.activate_improvable_syntax
     |> Context.proof_map (Syntax.add_term_check 0 "resorting" resort_check)
     |> synchronize_inst_syntax
     |> Local_Theory.init NONE ""
