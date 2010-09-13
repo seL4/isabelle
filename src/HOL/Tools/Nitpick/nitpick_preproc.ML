@@ -982,7 +982,7 @@ fun axioms_for_term
              else if s = @{const_name TYPE} then
                accum
              else case def_of_const thy def_table x of
-               SOME def =>
+               SOME _ =>
                fold (add_eq_axiom depth) (equational_fun_axioms hol_ctxt x)
                     accum
              | NONE =>

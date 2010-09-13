@@ -23,7 +23,7 @@ sig
   val sequential_int_bounds : int -> Kodkod.int_bound list
   val pow_of_two_int_bounds : int -> int -> Kodkod.int_bound list
   val bounds_and_axioms_for_built_in_rels_in_formulas :
-    bool -> int Typtab.table -> int -> int -> int -> int -> Kodkod.formula list
+    bool -> int -> int -> int -> int -> Kodkod.formula list
     -> Kodkod.bound list * Kodkod.formula list
   val bound_for_plain_rel : Proof.context -> bool -> nut -> Kodkod.bound
   val bound_for_sel_rel :
@@ -130,7 +130,7 @@ fun pow_of_two_int_bounds bits j0 =
 
 fun built_in_rels_in_formulas formulas =
   let
-    fun rel_expr_func (KK.Rel (x as (n, j))) =
+    fun rel_expr_func (KK.Rel (x as (_, j))) =
         (j < 0 andalso x <> unsigned_bit_word_sel_rel andalso
          x <> signed_bit_word_sel_rel)
         ? insert (op =) x
@@ -204,7 +204,7 @@ fun isa_norm_frac (m, n) =
   else if m = 0 orelse n = 0 then (0, 1)
   else let val p = isa_zgcd (m, n) in (isa_div (m, p), isa_div (n, p)) end
 
-fun tabulate_built_in_rel debug ofs univ_card nat_card int_card j0
+fun tabulate_built_in_rel debug univ_card nat_card int_card j0
                           (x as (n, _)) =
   (check_arity "" univ_card n;
    if x = not3_rel then
@@ -245,7 +245,7 @@ fun tabulate_built_in_rel debug ofs univ_card nat_card int_card j0
    else
      raise ARG ("Nitpick_Kodkod.tabulate_built_in_rel", "unknown relation"))
 
-fun bound_for_built_in_rel debug ofs univ_card nat_card int_card main_j0
+fun bound_for_built_in_rel debug univ_card nat_card int_card main_j0
                            (x as (n, j)) =
   if n = 2 andalso j <= suc_rels_base then
     let val (y as (k, j0), tabulate) = atom_seq_for_suc_rel x in
@@ -258,8 +258,8 @@ fun bound_for_built_in_rel debug ofs univ_card nat_card int_card main_j0
     end
   else
     let
-      val (nick, ts) = tabulate_built_in_rel debug ofs univ_card nat_card
-                                             int_card main_j0 x
+      val (nick, ts) = tabulate_built_in_rel debug univ_card nat_card int_card
+                                             main_j0 x
     in ([(x, nick)], [KK.TupleSet ts]) end
 
 fun axiom_for_built_in_rel (x as (n, j)) =
@@ -274,10 +274,10 @@ fun axiom_for_built_in_rel (x as (n, j)) =
     end
   else
     NONE
-fun bounds_and_axioms_for_built_in_rels_in_formulas debug ofs univ_card nat_card
+fun bounds_and_axioms_for_built_in_rels_in_formulas debug univ_card nat_card
                                                     int_card main_j0 formulas =
   let val rels = built_in_rels_in_formulas formulas in
-    (map (bound_for_built_in_rel debug ofs univ_card nat_card int_card main_j0)
+    (map (bound_for_built_in_rel debug univ_card nat_card int_card main_j0)
          rels,
      map_filter axiom_for_built_in_rel rels)
   end
@@ -741,7 +741,7 @@ fun acyclicity_axiom_for_datatype (kk as {kk_no, kk_intersect, ...}) nfa
              KK.Iden)
 (* Cycle breaking in the bounds takes care of singly recursive datatypes, hence
    the first equation. *)
-fun acyclicity_axioms_for_datatypes kk [_] = []
+fun acyclicity_axioms_for_datatypes _ [_] = []
   | acyclicity_axioms_for_datatypes kk nfas =
     maps (fn nfa => map (acyclicity_axiom_for_datatype kk nfa o fst) nfa) nfas
 
@@ -800,11 +800,11 @@ fun is_nil_like_constr_type dtypes T =
   | NONE => false
 
 fun sym_break_axioms_for_constr_pair hol_ctxt binarize
-       (kk as {kk_all, kk_or, kk_iff, kk_implies, kk_and, kk_some, kk_subset,
-               kk_intersect, kk_join, kk_project, ...}) rel_table nfas dtypes
+       (kk as {kk_all, kk_or, kk_implies, kk_and, kk_some, kk_intersect,
+               kk_join, ...}) rel_table nfas dtypes
        (constr_ord,
         ({const = const1 as (_, T1), delta = delta1, epsilon = epsilon1, ...},
-         {const = const2 as (_, T2), delta = delta2, epsilon = epsilon2, ...})
+         {const = const2 as (_, _), delta = delta2, epsilon = epsilon2, ...})
         : constr_spec * constr_spec) =
   let
     val dataT = body_type T1
@@ -1418,8 +1418,8 @@ fun kodkod_formula_from_nut ofs
           kk_join (to_rep (Func (unopt_rep R, Opt bool_atom_R)) u1) true_atom
         else
           to_rep (Func (R, Formula Neut)) u1
-      | Op1 (First, T, R, u1) => to_nth_pair_sel 0 T R u1
-      | Op1 (Second, T, R, u1) => to_nth_pair_sel 1 T R u1
+      | Op1 (First, _, R, u1) => to_nth_pair_sel 0 R u1
+      | Op1 (Second, _, R, u1) => to_nth_pair_sel 1 R u1
       | Op1 (Cast, _, R, u1) =>
         ((case rep_of u1 of
             Formula _ =>
@@ -1685,7 +1685,7 @@ fun kodkod_formula_from_nut ofs
       | to_expr_assign (RelReg (j, _, R)) u =
         KK.AssignRelReg ((arity_of_rep R, j), to_r u)
       | to_expr_assign u1 _ = raise NUT ("Nitpick_Kodkod.to_expr_assign", [u1])
-    and to_atom (x as (k, j0)) u =
+    and to_atom (x as (_, j0)) u =
       case rep_of u of
         Formula _ => atom_from_formula kk j0 (to_f u)
       | R => atom_from_rel_expr kk x R (to_r u)
@@ -1727,7 +1727,7 @@ fun kodkod_formula_from_nut ofs
       rel_expr_from_rel_expr kk new_R old_R
                              (kk_project_seq r j0 (arity_of_rep old_R))
     and to_product Rs us = fold1 kk_product (map (uncurry to_opt) (Rs ~~ us))
-    and to_nth_pair_sel n res_T res_R u =
+    and to_nth_pair_sel n res_R u =
       case u of
         Tuple (_, _, us) => to_rep res_R (nth us n)
       | _ => let
@@ -1791,7 +1791,7 @@ fun kodkod_formula_from_nut ofs
                             [KK.IntEq (KK.IntReg 2,
                                        oper (KK.IntReg 0) (KK.IntReg 1))]))))
       end
-    and to_apply (R as Formula _) func_u arg_u =
+    and to_apply (R as Formula _) _ _ =
         raise REP ("Nitpick_Kodkod.to_apply", [R])
       | to_apply res_R func_u arg_u =
         case unopt_rep (rep_of func_u) of

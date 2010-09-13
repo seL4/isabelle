@@ -549,8 +549,7 @@ fun pop_bound {bound_Ts, bound_Ms, frees, consts} =
    consts = consts}
   handle List.Empty => initial_gamma (* FIXME: needed? *)
 
-fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
-                                          def_table, ...},
+fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, fast_descrs, ...},
                              alpha_T, max_fresh, ...}) =
   let
     fun is_enough_eta_expanded t =
@@ -617,7 +616,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
           accum ||> add_mtypes_equal expected_bound_M (mtype_of_mterm bound_m)
                 |> do_term body_t ||> apfst pop_bound
         val bound_M = mtype_of_mterm bound_m
-        val (M1, a, M2) = dest_MFun bound_M
+        val (M1, a, _) = dest_MFun bound_M
       in
         (MApp (MRaw (t0, MFun (bound_M, S Minus, bool_M)),
                MAbs (abs_s, abs_T, M1, a,
@@ -626,8 +625,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                                  MApp (bound_m, MRaw (Bound 0, M1))),
                            body_m))), accum)
       end
-    and do_term t (accum as (gamma as {bound_Ts, bound_Ms, frees, consts},
-                             cset)) =
+    and do_term t (accum as ({bound_Ts, bound_Ms, frees, consts}, cset)) =
         (trace_msg (fn () => "  \<Gamma> \<turnstile> " ^
                              Syntax.string_of_term ctxt t ^ " : _?");
          case t of
@@ -787,8 +785,6 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
              val (m2, accum) = do_term t2 accum
            in
              let
-               val T11 = domain_type (fastype_of1 (bound_Ts, t1))
-               val T2 = fastype_of1 (bound_Ts, t2)
                val M11 = mtype_of_mterm m1 |> dest_MFun |> #1
                val M2 = mtype_of_mterm m2
              in (MApp (m1, m2), accum ||> add_is_sub_mtype M2 M11) end
@@ -867,7 +863,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
              end
            | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
              do_quantifier x s1 T1 t1
-           | Const (x0 as (s0 as @{const_name Ex}, T0))
+           | Const (x0 as (@{const_name Ex}, T0))
              $ (t1 as Abs (s1, T1, t1')) =>
              (case sn of
                 Plus => do_quantifier x0 s1 T1 t1'

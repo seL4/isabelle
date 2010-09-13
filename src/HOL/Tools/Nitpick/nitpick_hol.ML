@@ -780,9 +780,11 @@ fun mate_of_rep_fun ctxt (x as (_, Type (@{type_name fun},
      | NONE => raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x]))
   | mate_of_rep_fun _ x = raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x])
 fun rep_type_for_quot_type thy (T as Type (s, _)) =
-  let val {qtyp, rtyp, ...} = Quotient_Info.quotdata_lookup thy s in
-    instantiate_type thy qtyp T rtyp
-  end
+    let val {qtyp, rtyp, ...} = Quotient_Info.quotdata_lookup thy s in
+      instantiate_type thy qtyp T rtyp
+    end
+  | rep_type_for_quot_type _ T =
+    raise TYPE ("Nitpick_HOL.rep_type_for_quot_type", [T], [])
 fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
     let
       val {qtyp, equiv_rel, equiv_thm, ...} =
@@ -1083,7 +1085,7 @@ fun coerce_bound_no f j t =
   | _ => t
 fun coerce_bound_0_in_term hol_ctxt new_T old_T =
   old_T <> new_T ? coerce_bound_no (coerce_term hol_ctxt [new_T] old_T new_T) 0
-and coerce_term (hol_ctxt as {ctxt, stds, fast_descrs, ...}) Ts new_T old_T t =
+and coerce_term (hol_ctxt as {ctxt, stds, ...}) Ts new_T old_T t =
   if old_T = new_T then
     t
   else
@@ -1960,7 +1962,7 @@ fun optimized_quot_type_axioms ctxt stds abs_z =
     |> partial ? cons (HOLogic.mk_Trueprop (equiv_rel $ sel_a_t $ sel_a_t))
   end
 
-fun codatatype_bisim_axioms (hol_ctxt as {thy, ctxt, stds, ...}) T =
+fun codatatype_bisim_axioms (hol_ctxt as {ctxt, stds, ...}) T =
   let
     val xs = datatype_constrs hol_ctxt T
     val set_T = T --> bool_T

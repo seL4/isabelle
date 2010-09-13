@@ -224,7 +224,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     fun pprint_v f = () |> verbose ? pprint o f
     fun pprint_d f = () |> debug ? pprint o f
     val print = pprint o curry Pretty.blk 0 o pstrs
+(*
     val print_g = pprint o Pretty.str
+*)
     val print_m = pprint_m o K o plazy
     val print_v = pprint_v o K o plazy
 
@@ -552,9 +554,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                                      (plain_bounds @ sel_bounds) formula,
                                  main_j0 |> bits > 0 ? Integer.add (bits + 1))
         val (built_in_bounds, built_in_axioms) =
-          bounds_and_axioms_for_built_in_rels_in_formulas debug ofs
-              univ_card nat_card int_card main_j0
-              (formula :: declarative_axioms)
+          bounds_and_axioms_for_built_in_rels_in_formulas debug univ_card
+              nat_card int_card main_j0 (formula :: declarative_axioms)
         val bounds = built_in_bounds @ plain_bounds @ sel_bounds
                      |> not debug ? merge_bounds
         val axioms = built_in_axioms @ declarative_axioms
