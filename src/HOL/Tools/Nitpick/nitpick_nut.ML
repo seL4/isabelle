@@ -653,7 +653,8 @@ fun is_fully_representable_set u =
     FreeName _ => true
   | Op1 (SingletonSet, _, _, _) => true
   | Op1 (Converse, _, _, u1) => is_fully_representable_set u1
-  | Op2 (oper, _, _, u1, u2) =>
+  | Op2 (Lambda, _, _, _, Cst (False, _, _)) => true
+  | Op2 (oper, _, _, u1, _) =>
     if oper = Apply then
       case u1 of
         ConstName (s, _, _) =>
@@ -661,7 +662,6 @@ fun is_fully_representable_set u =
       | _ => false
     else
       false
-  | Op2 (Lambda, _, _, _, Cst (False, _, _)) => true
   | _ => false
 
 fun rep_for_abs_fun scope T =
