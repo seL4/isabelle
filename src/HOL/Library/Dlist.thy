@@ -14,18 +14,20 @@ proof
   show "[] \<in> ?dlist" by simp
 qed
 
-lemma dlist_ext:
-  assumes "list_of_dlist dxs = list_of_dlist dys"
-  shows "dxs = dys"
-  using assms by (simp add: list_of_dlist_inject)
+lemma dlist_eq_iff:
+  "dxs = dys \<longleftrightarrow> list_of_dlist dxs = list_of_dlist dys"
+  by (simp add: list_of_dlist_inject)
 
+lemma dlist_eqI:
+  "list_of_dlist dxs = list_of_dlist dys \<Longrightarrow> dxs = dys"
+  by (simp add: dlist_eq_iff)
 
 text {* Formal, totalized constructor for @{typ "'a dlist"}: *}
 
 definition Dlist :: "'a list \<Rightarrow> 'a dlist" where
   "Dlist xs = Abs_dlist (remdups xs)"
 
-lemma distinct_list_of_dlist [simp]:
+lemma distinct_list_of_dlist [simp, intro]:
   "distinct (list_of_dlist dxs)"
   using list_of_dlist [of dxs] by simp
 
