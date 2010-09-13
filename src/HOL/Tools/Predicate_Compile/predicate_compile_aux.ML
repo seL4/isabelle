@@ -275,7 +275,7 @@ fun ho_args_of mode ts =
 
 fun ho_args_of_typ T ts =
   let
-    fun ho_arg (Type("fun", [_,_])) (SOME t) = [t]
+    fun ho_arg (T as Type("fun", [_,_])) (SOME t) = if body_type T = @{typ bool} then [t] else []
       | ho_arg (Type("fun", [_,_])) NONE = raise Fail "mode and term do not match"
       | ho_arg (Type(@{type_name "Product_Type.prod"}, [T1, T2]))
          (SOME (Const (@{const_name Pair}, _) $ t1 $ t2)) =
@@ -289,7 +289,7 @@ fun ho_args_of_typ T ts =
 
 fun ho_argsT_of_typ Ts =
   let
-    fun ho_arg (T as Type("fun", [_,_])) = [T]
+    fun ho_arg (T as Type("fun", [_,_])) = if body_type T = @{typ bool} then [T] else []
       | ho_arg (Type(@{type_name "Product_Type.prod"}, [T1, T2])) =
           ho_arg T1 @ ho_arg T2
       | ho_arg _ = []
