@@ -1521,6 +1521,64 @@ code_pred is_error'' .
 
 thm is_error''.equation
 
+section {* Another function example *}
+
+consts f :: "'a \<Rightarrow> 'a"
+
+inductive fun_upd :: "(('a * 'b) * ('a \<Rightarrow> 'b)) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
+where
+  "fun_upd ((x, a), s) (s(x := f a))"
+
+code_pred fun_upd .
+
+thm fun_upd.equation
+
+section {* Another semantics *}
+
+types
+  name = nat --"For simplicity in examples"
+  state' = "name \<Rightarrow> nat"
+
+datatype aexp = N nat | V name | Plus aexp aexp
+
+fun aval :: "aexp \<Rightarrow> state' \<Rightarrow> nat" where
+"aval (N n) _ = n" |
+"aval (V x) st = st x" |
+"aval (Plus e\<^isub>1 e\<^isub>2) st = aval e\<^isub>1 st + aval e\<^isub>2 st"
+
+datatype bexp = B bool | Not bexp | And bexp bexp | Less aexp aexp
+
+primrec bval :: "bexp \<Rightarrow> state' \<Rightarrow> bool" where
+"bval (B b) _ = b" |
+"bval (Not b) st = (\<not> bval b st)" |
+"bval (And b1 b2) st = (bval b1 st \<and> bval b2 st)" |
+"bval (Less a\<^isub>1 a\<^isub>2) st = (aval a\<^isub>1 st < aval a\<^isub>2 st)"
+
+datatype
+  com' = SKIP 
+      | Assign name aexp         ("_ ::= _" [1000, 61] 61)
+      | Semi   com'  com'          ("_; _"  [60, 61] 60)
+      | If     bexp com' com'     ("IF _ THEN _ ELSE _"  [0, 0, 61] 61)
+      | While  bexp com'         ("WHILE _ DO _"  [0, 61] 61)
+
+inductive
+  big_step :: "com' * state' \<Rightarrow> state' \<Rightarrow> bool" (infix "\<Rightarrow>" 55)
+where
+  Skip:    "(SKIP,s) \<Rightarrow> s"
+| Assign:  "(x ::= a,s) \<Rightarrow> s(x := aval a s)"
+
+| Semi:    "(c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2  \<Longrightarrow>  (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3  \<Longrightarrow> (c\<^isub>1;c\<^isub>2, s\<^isub>1) \<Rightarrow> s\<^isub>3"
+
+| IfTrue:  "bval b s  \<Longrightarrow>  (c\<^isub>1,s) \<Rightarrow> t  \<Longrightarrow>  (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t"
+| IfFalse: "\<not>bval b s  \<Longrightarrow>  (c\<^isub>2,s) \<Rightarrow> t  \<Longrightarrow>  (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t"
+
+| WhileFalse: "\<not>bval b s \<Longrightarrow> (WHILE b DO c,s) \<Rightarrow> s"
+| WhileTrue:  "bval b s\<^isub>1  \<Longrightarrow>  (c,s\<^isub>1) \<Rightarrow> s\<^isub>2  \<Longrightarrow>  (WHILE b DO c, s\<^isub>2) \<Rightarrow> s\<^isub>3
+               \<Longrightarrow> (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3"
+
+code_pred big_step .
+
+thm big_step.equation
 
 section {* Examples for detecting switches *}
 
