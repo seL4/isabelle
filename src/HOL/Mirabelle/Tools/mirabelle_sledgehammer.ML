@@ -388,6 +388,7 @@ in
 
 fun run_sledgehammer trivial args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
+    val triv_str = if trivial then "[T] " else ""
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_atp (Proof.theory_of st) args
@@ -411,14 +412,14 @@ fun run_sledgehammer trivial args named_thms id ({pre=st, log, ...}: Mirabelle.r
           change_data id (inc_sh_time_isa time_isa);
           change_data id (inc_sh_time_atp time_atp);
           named_thms := SOME (map_filter get_thms names);
-          log (sh_tag id ^ "succeeded (" ^ string_of_int time_isa ^ "+" ^
+          log (sh_tag id ^ triv_str ^ "succeeded (" ^ string_of_int time_isa ^ "+" ^
             string_of_int time_atp ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
         end
     | SH_FAIL (time_isa, time_atp) =>
         let
           val _ = change_data id (inc_sh_time_isa time_isa)
           val _ = change_data id (inc_sh_time_atp_fail time_atp)
-        in log (sh_tag id ^ "failed: " ^ msg) end
+        in log (sh_tag id ^ triv_str ^ "failed: " ^ msg) end
     | SH_ERROR => log (sh_tag id ^ "failed: " ^ msg)
   end
 
