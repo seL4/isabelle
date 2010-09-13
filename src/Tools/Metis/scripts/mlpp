@@ -18,8 +18,8 @@ if ($opt_h or scalar @ARGV == 0)
 }
 
 if (!$opt_c) { die "mlpp: you must specify the SML compiler\n"; }
-if ($opt_c ne "mosml" && $opt_c ne "mlton" && $opt_c ne "isabelle") {
-    die "mlpp: the SML compiler must be one of {mosml,mlton,isabelle}.\n";
+if ($opt_c ne "mosml" && $opt_c ne "mlton" && $opt_c ne "polyml") {
+    die "mlpp: the SML compiler must be one of {mosml,mlton,polyml}.\n";
 }
 
 # Autoflush STDIN
@@ -72,8 +72,17 @@ sub print_normal {
     my $text = shift @_;
 
     if ($opt_c eq "mosml") {
+        $text =~ s/Array\.copy/Array_copy/g;
+        $text =~ s/Array\.foldli/Array_foldli/g;
+        $text =~ s/Array\.foldri/Array_foldri/g;
+        $text =~ s/Array\.modifyi/Array_modifyi/g;
+        $text =~ s/OS\.Process\.isSuccess/OS_Process_isSuccess/g;
         $text =~ s/PP\.ppstream/ppstream/g;
+        $text =~ s/String\.isSuffix/String_isSuffix/g;
+        $text =~ s/Substring\.full/Substring_full/g;
         $text =~ s/TextIO\.inputLine/TextIO_inputLine/g;
+        $text =~ s/Vector\.foldli/Vector_foldli/g;
+        $text =~ s/Vector\.mapi/Vector_mapi/g;
     }
 
     print STDOUT $text;
@@ -88,7 +97,8 @@ sub process_file {
         print STDOUT "(*#line 0.0 \"$filename\"*)\n";
     }
 
-    open my $INPUT, "$filename";
+    open my $INPUT, "$filename" or
+        die "mlpp: couldn't open $filename: $!\n";
 
     my $state = "normal";
     my $comment = 0;
@@ -173,7 +183,7 @@ sub process_file {
                     my $pat = $2;
                     $line = $3;
                     print_normal $leadup;
-                    
+
                     if ($pat eq "`") {
                         $state = "quote";
                     }
@@ -197,7 +207,7 @@ sub process_file {
                     }
                     elsif ($pat eq "*)") {
                         if ($revealed_comment == 0) {
-                            die "Too many comment closers.\n"
+                            die "mlpp: too many comment closers.\n"
                         }
                         --$revealed_comment;
                     }
@@ -223,13 +233,13 @@ sub process_file {
     }
 
     if ($state eq "quote") {
-        die "EOF inside \` quote\n";
+        die "mlpp: EOF inside \` quote\n";
     }
     elsif ($state eq "dquote") {
-        die "EOF inside \" quote\n";
+        die "mlpp: EOF inside \" quote\n";
     }
     elsif ($state eq "comment") {
-        die "EOF inside comment\n";
+        die "mlpp: EOF inside comment\n";
     }
     else {
         ($state eq "normal") or die;
