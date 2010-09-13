@@ -1,0 +1,80 @@
+
+\documentclass[11pt,a4paper]{article}
+\usepackage{graphicx,isabelle,isabellesym,latexsym}
+\usepackage{amssymb}
+\usepackage[english]{babel}
+\usepackage[only,bigsqcap]{stmaryrd}
+\usepackage{pdfsetup}
+\usepackage{ifthen}
+
+\urlstyle{rm}
+\isabellestyle{it}
+\pagestyle{myheadings}
+
+
+% symbols
+\newcommand{\isasymbind}{\isamath{\mathbin{>\!\!\!>\mkern-6.7mu=}}}
+
+% canonical quotes
+\newcommand{\qt}[1]{``{#1}''}
+
+% xdash
+\renewcommand{\=}{\ ---\ }
+
+% ellipsis
+\newcommand{\dotspace}{\kern0.01ex}
+\renewcommand{\isasymdots}{.\dotspace.\dotspace.}
+\renewcommand{\isasymcdots}{$\cdot$\dotspace$\cdot$\dotspace$\cdot$}
+\newcommand{\isasymellipsis}{\isasymdots}
+
+% logical markup
+\newcommand{\strong}[1]{{\upshape\bfseries {#1}}}
+
+% description lists
+\newcommand{\ditem}[1]{\item[\isastyletext #1]}
+
+% quote environment
+\isakeeptag{quote}
+\renewenvironment{quote}
+  {\list{}{\leftmargin2em\rightmargin0pt}\parindent0pt\parskip0pt\item\relax}
+  {\endlist}
+\renewcommand{\isatagquote}{\begin{quote}}
+\renewcommand{\endisatagquote}{\end{quote}}
+\newcommand{\quotebreak}{\\[1.2ex]}
+
+% typographic conventions
+\newcommand{\qn}[1]{\emph{#1}}
+\newcommand{\secref}[1]{\S\ref{#1}}
+\newcommand{\figref}[1]{figure~\ref{#1}}
+
+% plain digits
+\renewcommand{\isadigit}[1]{\isamath{#1}}
+
+% invisibility
+\isadroptag{theory}
+
+% vectors
+\newcommand{\isactrlvec}[1]{\emph{$\overline{#1}$}}
+\newcommand{\isactrlbvec}{\emph\bgroup\begin{math}{}\overline\bgroup\mbox\bgroup\isastylescript}
+\newcommand{\isactrlevec}{\egroup\egroup\end{math}\egroup}
+
+% Isar proof
+\newcommand{\isasymproof}{$\;\langle\mathit{proof}\rangle$}
+
+% Isar sorry
+\renewcommand{\isacommand}[1]{\ifthenelse{\equal{sorry}{#1}}{\isasymproof}{\isakeyword{#1}}}
+
+
+\begin{document}
+
+\title{Imperative HOL -- a leightweight framework for imperative data structures in Isabelle/HOL}
+\maketitle
+
+\parindent 0pt\parskip 0.5ex
+\input{Overview}
+
+\pagestyle{headings}
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

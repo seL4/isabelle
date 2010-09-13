@@ -787,7 +787,7 @@ $(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy		\
 
 HOL-ZF: HOL $(LOG)/HOL-ZF.gz
 
-$(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/LProd.thy	\
+$(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/LProd.thy \
   ZF/HOLZF.thy ZF/MainZF.thy ZF/Games.thy ZF/document/root.tex
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ZF
 
@@ -796,18 +796,23 @@ $(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/LProd.thy	\
 
 HOL-Imperative_HOL: HOL $(LOG)/HOL-Imperative_HOL.gz
 
-$(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL Imperative_HOL/Array.thy	\
-  Imperative_HOL/Heap.thy Imperative_HOL/Heap_Monad.thy			\
-  Imperative_HOL/Imperative_HOL.thy Imperative_HOL/Imperative_HOL_ex.thy\
-  Imperative_HOL/Mrec.thy Imperative_HOL/Ref.thy			\
-  Imperative_HOL/ex/Imperative_Quicksort.thy				\
-  Imperative_HOL/ex/Imperative_Reverse.thy				\
-  Imperative_HOL/ex/Linked_Lists.thy					\
-  Imperative_HOL/ex/SatChecker.thy					\
-  Imperative_HOL/ex/Sorted_List.thy					\
-  Imperative_HOL/ex/Subarray.thy					\
+$(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL \
+  Imperative_HOL/Array.thy \
+  Imperative_HOL/Heap.thy \
+  Imperative_HOL/Heap_Monad.thy \
+  Imperative_HOL/Imperative_HOL.thy \
+  Imperative_HOL/Imperative_HOL_ex.thy \
+  Imperative_HOL/Mrec.thy \
+  Imperative_HOL/Ref.thy \
+  Imperative_HOL/ROOT.ML \
+  Imperative_HOL/ex/Imperative_Quicksort.thy \
+  Imperative_HOL/ex/Imperative_Reverse.thy \
+  Imperative_HOL/ex/Linked_Lists.thy \
+  Imperative_HOL/ex/SatChecker.thy \
+  Imperative_HOL/ex/Sorted_List.thy \
+  Imperative_HOL/ex/Subarray.thy \
   Imperative_HOL/ex/Sublist.thy
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Imperative_HOL
+	@$(ISABELLE_TOOL) usedir -g true -m iff -m no_brackets $(OUT)/HOL Imperative_HOL
 
 
 ## HOL-Decision_Procs

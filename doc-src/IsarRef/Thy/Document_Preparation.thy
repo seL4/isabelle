@@ -146,6 +146,8 @@ text {*
     @{antiquotation_def const} & : & @{text antiquotation} \\
     @{antiquotation_def abbrev} & : & @{text antiquotation} \\
     @{antiquotation_def typ} & : & @{text antiquotation} \\
+    @{antiquotation_def type} & : & @{text antiquotation} \\
+    @{antiquotation_def class} & : & @{text antiquotation} \\
     @{antiquotation_def "text"} & : & @{text antiquotation} \\
     @{antiquotation_def goals} & : & @{text antiquotation} \\
     @{antiquotation_def subgoals} & : & @{text antiquotation} \\
@@ -190,6 +192,8 @@ text {*
       'const' options term |
       'abbrev' options term |
       'typ' options type |
+      'type' options name |
+      'class' options name |
       'text' options name |
       'goals' options |
       'subgoals' options |
@@ -243,8 +247,14 @@ text {*
   
   \item @{text "@{abbrev c x\<^sub>1 \<dots> x\<^sub>n}"} prints a constant abbreviation
   @{text "c x\<^sub>1 \<dots> x\<^sub>n \<equiv> rhs"} as defined in the current context.
+
   \item @{text "@{typ \<tau>}"} prints a well-formed type @{text "\<tau>"}.
-  
+
+  \item @{text "@{type \<kappa>}"} prints a type constructor
+    (logical or abbreviation) @{text "\<kappa>"}.
+
+  \item @{text "@{class c}"} prints a class @{text c}.
+
   \item @{text "@{text s}"} prints uninterpreted source text @{text
   s}.  This is particularly useful to print portions of text according
   to the Isabelle document style, without demanding well-formedness,

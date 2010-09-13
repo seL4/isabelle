@@ -6,7 +6,7 @@
 header {* Monadic imperative HOL with examples *}
 
 theory Imperative_HOL_ex
-imports Imperative_HOL
+imports Imperative_HOL Overview
   "ex/Imperative_Quicksort" "ex/Imperative_Reverse" "ex/Linked_Lists" "ex/SatChecker"
 begin
 
