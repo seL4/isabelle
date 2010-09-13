@@ -63,12 +63,12 @@ sig
   val add_random_dseq_equations : options -> string list -> theory -> theory
   val add_new_random_dseq_equations : options -> string list -> theory -> theory
   val mk_tracing : string -> term -> term
-  val prepare_intrs : options -> compilation -> theory -> string list -> thm list ->
+  val prepare_intrs : options -> Proof.context -> string list -> thm list ->
     ((string * typ) list * string list * string list * (string * mode list) list *
       (string *  (Term.term list * Predicate_Compile_Aux.indprem list) list) list)
   type mode_analysis_options = {use_random : bool, reorder_premises : bool, infer_pos_and_neg_modes : bool}  
   datatype mode_derivation = Mode_App of mode_derivation * mode_derivation | Context of mode
-  | Mode_Pair of mode_derivation * mode_derivation | Term of mode
+    | Mode_Pair of mode_derivation * mode_derivation | Term of mode
   type moded_clause = term list * (Predicate_Compile_Aux.indprem * mode_derivation) list
   type 'a pred_mode_table = (string * ((bool * mode) * 'a) list) list
 
@@ -2684,9 +2684,9 @@ fun dest_prem ctxt params t =
     if is_registered ctxt s then Prem t else Sidecond t
   | _ => Sidecond t)
 
-fun prepare_intrs options compilation thy prednames intros =
+fun prepare_intrs options ctxt prednames intros =
   let
-    val ctxt = ProofContext.init_global thy
+    val thy = ProofContext.theory_of ctxt
     val intrs = map prop_of intros
     val preds = map (fn c => Const (c, Sign.the_const_type thy c)) prednames
     val (preds, intrs) = unify_consts thy preds intrs
@@ -2842,7 +2842,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
         tracing (commas (map (Display.string_of_thm ctxt) (maps (intros_of ctxt) prednames)))
       else ()
     val (preds, all_vs, param_vs, all_modes, clauses) =
-      prepare_intrs options compilation thy prednames (maps (intros_of ctxt) prednames)
+      prepare_intrs options ctxt prednames (maps (intros_of ctxt) prednames)
     val _ = print_step options "Infering modes..."
     val (lookup_mode, lookup_neg_mode, needs_random) = (modes_of compilation ctxt,
       modes_of (negative_compilation_of compilation) ctxt, needs_random ctxt)
