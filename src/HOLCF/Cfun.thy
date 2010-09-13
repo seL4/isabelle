@@ -178,7 +178,7 @@ by (rule Rep_CFun_inverse)
 text {* Extensionality for continuous functions *}
 
 lemma expand_cfun_eq: "(f = g) = (\<forall>x. f\<cdot>x = g\<cdot>x)"
-by (simp add: Rep_CFun_inject [symmetric] ext_iff)
+by (simp add: Rep_CFun_inject [symmetric] fun_eq_iff)
 
 lemma ext_cfun: "(\<And>x. f\<cdot>x = g\<cdot>x) \<Longrightarrow> f = g"
 by (simp add: expand_cfun_eq)

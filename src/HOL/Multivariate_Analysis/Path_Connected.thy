@@ -123,7 +123,7 @@ lemma path_join[simp]: assumes "pathfinish g1 = pathstart g2" shows "path (g1 ++
     qed (auto simp add:le_less joinpaths_def) qed
 next assume as:"continuous_on {0..1} g1" "continuous_on {0..1} g2"
   have *:"{0 .. 1::real} = {0.. (1/2)*\<^sub>R 1} \<union> {(1/2) *\<^sub>R 1 .. 1}" by auto
-  have **:"op *\<^sub>R 2 ` {0..(1 / 2) *\<^sub>R 1} = {0..1::real}" apply(rule set_ext, rule) unfolding image_iff 
+  have **:"op *\<^sub>R 2 ` {0..(1 / 2) *\<^sub>R 1} = {0..1::real}" apply(rule set_eqI, rule) unfolding image_iff 
     defer apply(rule_tac x="(1/2)*\<^sub>R x" in bexI) by auto
   have ***:"(\<lambda>x. 2 *\<^sub>R x - 1) ` {(1 / 2) *\<^sub>R 1..1} = {0..1::real}"
     apply (auto simp add: image_def)
@@ -322,7 +322,7 @@ lemma path_linepath[intro]: "path(linepath a b)"
   unfolding path_def by(rule continuous_on_linepath)
 
 lemma path_image_linepath[simp]: "path_image(linepath a b) = (closed_segment a b)"
-  unfolding path_image_def segment linepath_def apply (rule set_ext, rule) defer
+  unfolding path_image_def segment linepath_def apply (rule set_eqI, rule) defer
   unfolding mem_Collect_eq image_iff apply(erule exE) apply(rule_tac x="u *\<^sub>R 1" in bexI)
   by auto
 
@@ -388,7 +388,7 @@ lemma path_component_of_subset: "s \<subseteq> t \<Longrightarrow>  path_compone
 subsection {* Can also consider it as a set, as the name suggests. *}
 
 lemma path_component_set: "path_component s x = { y. (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y )}"
-  apply(rule set_ext) unfolding mem_Collect_eq unfolding mem_def path_component_def by auto
+  apply(rule set_eqI) unfolding mem_Collect_eq unfolding mem_def path_component_def by auto
 
 lemma mem_path_component_set:"x \<in> path_component s y \<longleftrightarrow> path_component s y x" unfolding mem_def by auto
 
@@ -564,9 +564,9 @@ next
   thus ?thesis using path_connected_singleton by simp
 next
   assume r: "0 < r"
-  hence *:"{x::'a. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}" apply -apply(rule set_ext,rule)
+  hence *:"{x::'a. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}" apply -apply(rule set_eqI,rule)
     unfolding image_iff apply(rule_tac x="(1/r) *\<^sub>R (x - a)" in bexI) unfolding mem_Collect_eq norm_scaleR by (auto simp add: scaleR_right_diff_distrib)
-  have **:"{x::'a. norm x = 1} = (\<lambda>x. (1/norm x) *\<^sub>R x) ` (UNIV - {0})" apply(rule set_ext,rule)
+  have **:"{x::'a. norm x = 1} = (\<lambda>x. (1/norm x) *\<^sub>R x) ` (UNIV - {0})" apply(rule set_eqI,rule)
     unfolding image_iff apply(rule_tac x=x in bexI) unfolding mem_Collect_eq by(auto split:split_if_asm)
   have "continuous_on (UNIV - {0}) (\<lambda>x::'a. 1 / norm x)" unfolding o_def continuous_on_eq_continuous_within
     apply(rule, rule continuous_at_within_inv[unfolded o_def inverse_eq_divide]) apply(rule continuous_at_within)

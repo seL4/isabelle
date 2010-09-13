@@ -716,7 +716,7 @@ definition binaryset :: "'a set \<Rightarrow> 'a set \<Rightarrow> nat \<Rightar
 
 lemma range_binaryset_eq: "range(binaryset A B) = {A,B,{}}"
   apply (simp add: binaryset_def)
-  apply (rule set_ext)
+  apply (rule set_eqI)
   apply (auto simp add: image_iff)
   done
 

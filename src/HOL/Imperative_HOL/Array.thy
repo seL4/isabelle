@@ -99,7 +99,7 @@ lemma set_same [simp]:
 
 lemma set_set_swap:
   "r =!!= r' \<Longrightarrow> set r x (set r' x' h) = set r' x' (set r x h)"
-  by (simp add: Let_def ext_iff noteq_def set_def)
+  by (simp add: Let_def fun_eq_iff noteq_def set_def)
 
 lemma get_update_eq [simp]:
   "get (update a i v h) a = (get h a) [i := v]"
@@ -115,7 +115,7 @@ lemma get_update_elem_neqIndex [simp]:
 
 lemma length_update [simp]: 
   "length (update b i v h) = length h"
-  by (simp add: update_def length_def set_def get_def ext_iff)
+  by (simp add: update_def length_def set_def get_def fun_eq_iff)
 
 lemma update_swap_neq:
   "a =!!= a' \<Longrightarrow> 
@@ -145,7 +145,7 @@ lemma set:
 
 lemma present_update [simp]: 
   "present (update b i v h) = present h"
-  by (simp add: update_def present_def set_def get_def ext_iff)
+  by (simp add: update_def present_def set_def get_def fun_eq_iff)
 
 lemma present_alloc [simp]:
   "present (snd (alloc xs h)) (fst (alloc xs h))"

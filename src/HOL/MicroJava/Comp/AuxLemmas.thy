@@ -68,7 +68,7 @@ lemma singleton_in_set: "A = {a} \<Longrightarrow> a \<in> A" by simp
 (**********************************************************************)
 
 lemma the_map_upd: "(the \<circ> f(x\<mapsto>v)) = (the \<circ> f)(x:=v)"
-by (simp add: ext_iff)
+by (simp add: fun_eq_iff)
 
 lemma map_of_in_set: 
   "(map_of xs x = None) = (x \<notin> set (map fst xs))"

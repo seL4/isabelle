@@ -53,14 +53,14 @@ lemma comp_Abs_inverse:
 
 lemma set_Rep: 
   "A = range Rep"
-proof (rule set_ext)
+proof (rule set_eqI)
   fix x
   show "(x \<in> A) = (x \<in> range Rep)"
     by (auto dest: Abs_inverse [of x, symmetric])
 qed  
 
 lemma set_Rep_Abs: "A = range (Rep o Abs)"
-proof (rule set_ext)
+proof (rule set_eqI)
   fix x
   show "(x \<in> A) = (x \<in> range (Rep o Abs))"
     by (auto dest: Abs_inverse [of x, symmetric])

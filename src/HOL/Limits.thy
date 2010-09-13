@@ -46,7 +46,7 @@ unfolding eventually_def using assms by (simp add: Abs_net_inverse)
 
 lemma expand_net_eq:
   shows "net = net' \<longleftrightarrow> (\<forall>P. eventually P net = eventually P net')"
-unfolding Rep_net_inject [symmetric] ext_iff eventually_def ..
+unfolding Rep_net_inject [symmetric] fun_eq_iff eventually_def ..
 
 lemma eventually_True [simp]: "eventually (\<lambda>x. True) net"
 unfolding eventually_def

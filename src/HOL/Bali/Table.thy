@@ -65,10 +65,10 @@ definition cond_override :: "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarro
                                          else Some old_val))))"
 
 lemma cond_override_empty1[simp]: "cond_override c empty t = t"
-by (simp add: cond_override_def ext_iff)
+by (simp add: cond_override_def fun_eq_iff)
 
 lemma cond_override_empty2[simp]: "cond_override c t empty = t"
-by (simp add: cond_override_def ext_iff)
+by (simp add: cond_override_def fun_eq_iff)
 
 lemma cond_override_None[simp]:
  "old k = None \<Longrightarrow> (cond_override c old new) k = new k"
@@ -105,10 +105,10 @@ lemma filter_tab_empty[simp]: "filter_tab c empty = empty"
 by (simp add: filter_tab_def empty_def)
 
 lemma filter_tab_True[simp]: "filter_tab (\<lambda>x y. True) t = t"
-by (simp add: ext_iff filter_tab_def)
+by (simp add: fun_eq_iff filter_tab_def)
 
 lemma filter_tab_False[simp]: "filter_tab (\<lambda>x y. False) t = empty"
-by (simp add: ext_iff filter_tab_def empty_def)
+by (simp add: fun_eq_iff filter_tab_def empty_def)
 
 lemma filter_tab_ran_subset: "ran (filter_tab c t) \<subseteq> ran t"
 by (auto simp add: filter_tab_def ran_def)
@@ -134,26 +134,26 @@ by (simp add: filter_tab_def)
 
 lemma filter_tab_all_True: 
  "\<forall> k y. t k = Some y \<longrightarrow> p k y \<Longrightarrow>filter_tab p t = t"
-apply (auto simp add: filter_tab_def ext_iff)
+apply (auto simp add: filter_tab_def fun_eq_iff)
 done
 
 lemma filter_tab_all_True_Some:
  "\<lbrakk>\<forall> k y. t k = Some y \<longrightarrow> p k y; t k = Some v\<rbrakk> \<Longrightarrow> filter_tab p t k = Some v"
-by (auto simp add: filter_tab_def ext_iff)
+by (auto simp add: filter_tab_def fun_eq_iff)
 
 lemma filter_tab_all_False: 
  "\<forall> k y. t k = Some y \<longrightarrow> \<not> p k y \<Longrightarrow>filter_tab p t = empty"
-by (auto simp add: filter_tab_def ext_iff)
+by (auto simp add: filter_tab_def fun_eq_iff)
 
 lemma filter_tab_None: "t k = None \<Longrightarrow> filter_tab p t k = None"
-apply (simp add: filter_tab_def ext_iff)
+apply (simp add: filter_tab_def fun_eq_iff)
 done
 
 lemma filter_tab_dom_subset: "dom (filter_tab C t) \<subseteq> dom t"
 by (auto simp add: filter_tab_def dom_def)
 
 lemma filter_tab_eq: "\<lbrakk>a=b\<rbrakk> \<Longrightarrow> filter_tab C a = filter_tab C b"
-by (auto simp add: ext_iff filter_tab_def)
+by (auto simp add: fun_eq_iff filter_tab_def)
 
 lemma finite_dom_filter_tab:
 "finite (dom t) \<Longrightarrow> finite (dom (filter_tab C t))"
@@ -175,7 +175,7 @@ lemma cond_override_filter:
    \<rbrakk> \<Longrightarrow>
     cond_override overC (filter_tab filterC t) (filter_tab filterC s) 
     = filter_tab filterC (cond_override overC t s)"
-by (auto simp add: ext_iff cond_override_def filter_tab_def )
+by (auto simp add: fun_eq_iff cond_override_def filter_tab_def )
 
 
 section {* Misc. *}

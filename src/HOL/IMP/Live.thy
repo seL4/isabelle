@@ -8,7 +8,7 @@ in the worst case all locations: *}
 consts Dep :: "((loc \<Rightarrow> 'a) \<Rightarrow> 'b) \<Rightarrow> loc set"
 specification (Dep)
 dep_on: "(\<forall>x\<in>Dep e. s x = t x) \<Longrightarrow> e s = e t"
-by(rule_tac x="%x. UNIV" in exI)(simp add: ext_iff[symmetric])
+by(rule_tac x="%x. UNIV" in exI)(simp add: fun_eq_iff[symmetric])
 
 text{* The following definition of @{const Dep} looks very tempting
 @{prop"Dep e = {a. EX s t. (ALL x. x\<noteq>a \<longrightarrow> s x = t x) \<and> e s \<noteq> e t}"}

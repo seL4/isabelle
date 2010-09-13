@@ -79,10 +79,10 @@ lemmas issued_simps[code, code_pred_def] = issued_nil issued.simps(2)
 declare Let_def[code_pred_inline]
 
 lemma [code_pred_inline]: "insert == (%y A x. y = x | A x)"
-by (auto simp add: insert_iff[unfolded mem_def] ext_iff intro!: eq_reflection)
+by (auto simp add: insert_iff[unfolded mem_def] fun_eq_iff intro!: eq_reflection)
 
 lemma [code_pred_inline]: "(op -) == (%A B x. A x \<and> \<not> B x)"
-by (auto simp add: Diff_iff[unfolded mem_def] ext_iff intro!: eq_reflection)
+by (auto simp add: Diff_iff[unfolded mem_def] fun_eq_iff intro!: eq_reflection)
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = true,

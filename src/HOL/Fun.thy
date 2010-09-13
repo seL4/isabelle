@@ -11,14 +11,12 @@ begin
 
 text{*As a simplification rule, it replaces all function equalities by
   first-order equalities.*}
-lemma ext_iff: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"
+lemma fun_eq_iff: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"
 apply (rule iffI)
 apply (simp (no_asm_simp))
 apply (rule ext)
 apply (simp (no_asm_simp))
 done
-
-lemmas expand_fun_eq = ext_iff
 
 lemma apply_inverse:
   "f x = u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
@@ -165,7 +163,7 @@ lemma inj_comp:
   by (simp add: inj_on_def)
 
 lemma inj_fun: "inj f \<Longrightarrow> inj (\<lambda>x y. f x)"
-  by (simp add: inj_on_def ext_iff)
+  by (simp add: inj_on_def fun_eq_iff)
 
 lemma inj_eq: "inj f ==> (f(x) = f(y)) = (x=y)"
 by (simp add: inj_on_eq_iff)
@@ -465,7 +463,7 @@ lemma fun_upd_other: "z~=x ==> (f(x:=y)) z = f z"
 by simp
 
 lemma fun_upd_upd [simp]: "f(x:=y,x:=z) = f(x:=z)"
-by (simp add: ext_iff)
+by (simp add: fun_eq_iff)
 
 lemma fun_upd_twist: "a ~= c ==> (m(a:=b))(c:=d) = (m(c:=d))(a:=b)"
 by (rule ext, auto)
@@ -517,7 +515,7 @@ by (rule ext, simp add: fun_upd_def swap_def)
 lemma swap_triple:
   assumes "a \<noteq> c" and "b \<noteq> c"
   shows "swap a b (swap b c (swap a b f)) = swap a c f"
-  using assms by (simp add: ext_iff swap_def)
+  using assms by (simp add: fun_eq_iff swap_def)
 
 lemma comp_swap: "f \<circ> swap a b g = swap a b (f \<circ> g)"
 by (rule ext, simp add: fun_upd_def swap_def)

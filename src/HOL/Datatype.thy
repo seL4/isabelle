@@ -109,12 +109,12 @@ by (force simp add: apfst_def)
 (** Push -- an injection, analogous to Cons on lists **)
 
 lemma Push_inject1: "Push i f = Push j g  ==> i=j"
-apply (simp add: Push_def ext_iff) 
+apply (simp add: Push_def fun_eq_iff) 
 apply (drule_tac x=0 in spec, simp) 
 done
 
 lemma Push_inject2: "Push i f = Push j g  ==> f=g"
-apply (auto simp add: Push_def ext_iff) 
+apply (auto simp add: Push_def fun_eq_iff) 
 apply (drule_tac x="Suc x" in spec, simp) 
 done
 
@@ -123,7 +123,7 @@ lemma Push_inject:
 by (blast dest: Push_inject1 Push_inject2) 
 
 lemma Push_neq_K0: "Push (Inr (Suc k)) f = (%z. Inr 0) ==> P"
-by (auto simp add: Push_def ext_iff split: nat.split_asm)
+by (auto simp add: Push_def fun_eq_iff split: nat.split_asm)
 
 lemmas Abs_Node_inj = Abs_Node_inject [THEN [2] rev_iffD1, standard]
 
@@ -399,7 +399,7 @@ done
 lemma ntrunc_o_equality: 
     "[| !!k. (ntrunc(k) o h1) = (ntrunc(k) o h2) |] ==> h1=h2"
 apply (rule ntrunc_equality [THEN ext])
-apply (simp add: ext_iff) 
+apply (simp add: fun_eq_iff) 
 done
 
 

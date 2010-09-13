@@ -73,7 +73,7 @@ thm_maps
   "EVEN_ODD_EXISTS_EQ" > "HOL4Prob.prob_extra.EVEN_ODD_EXISTS_EQ"
   "EVEN_ODD_BASIC" > "HOL4Prob.prob_extra.EVEN_ODD_BASIC"
   "EVEN_EXP_TWO" > "HOL4Prob.prob_extra.EVEN_EXP_TWO"
-  "EQ_EXT_EQ" > "Fun.ext_iff"
+  "EQ_EXT_EQ" > "Fun.fun_eq_iff"
   "DIV_TWO_UNIQUE" > "HOL4Prob.prob_extra.DIV_TWO_UNIQUE"
   "DIV_TWO_MONO_EVEN" > "HOL4Prob.prob_extra.DIV_TWO_MONO_EVEN"
   "DIV_TWO_MONO" > "HOL4Prob.prob_extra.DIV_TWO_MONO"

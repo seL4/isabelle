@@ -74,7 +74,7 @@ proof -
   let ?B = "{pos. Rep_matrix x (fst pos) (snd pos) \<noteq> 0}"
   have swap_image: "?swap`?A = ?B"
     apply (simp add: image_def)
-    apply (rule set_ext)
+    apply (rule set_eqI)
     apply (simp)
     proof
       fix y
@@ -208,7 +208,7 @@ apply (induct n)
 apply (simp)
 proof -
   fix n
-  have "{x. x < Suc n} = insert n {x. x < n}"  by (rule set_ext, simp, arith)
+  have "{x. x < Suc n} = insert n {x. x < n}"  by (rule set_eqI, simp, arith)
   moreover assume "finite {x. x < n}"
   ultimately show "finite {x. x < Suc n}" by (simp)
 qed
@@ -225,11 +225,11 @@ lemma finite_natarray2: "finite {pos. (fst pos) < (m::nat) & (snd pos) < (n::nat
     have f1: "finite ?sd"
     proof -
       let ?f = "% x. (m, x)"
-      have "{pos. fst pos = m & snd pos < n} = ?f ` {x. x < n}" by (rule set_ext, simp add: image_def, auto)
+      have "{pos. fst pos = m & snd pos < n} = ?f ` {x. x < n}" by (rule set_eqI, simp add: image_def, auto)
       moreover have "finite {x. x < n}" by (simp add: finite_natarray1)
       ultimately show "finite {pos. fst pos = m & snd pos < n}" by (simp)
     qed
-    have su: "?s0 \<union> ?sd = ?s1" by (rule set_ext, simp, arith)
+    have su: "?s0 \<union> ?sd = ?s1" by (rule set_eqI, simp, arith)
     from f0 f1 have "finite (?s0 \<union> ?sd)" by (rule finite_UnI)
     with su show "finite ?s1" by (simp)
 qed
@@ -247,7 +247,7 @@ proof -
   have c: "!! (m::nat) a. ~(m <= a) \<Longrightarrow> a < m" by (arith)
   from a b have "(?u \<inter> (-?v)) = {}"
     apply (simp)
-    apply (rule set_ext)
+    apply (rule set_eqI)
     apply (simp)
     apply auto
     by (rule c, auto)+

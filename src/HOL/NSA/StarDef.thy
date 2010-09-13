@@ -145,7 +145,7 @@ lemma transfer_fun_eq [transfer_intro]:
   "\<lbrakk>\<And>X. f (star_n X) = g (star_n X) 
     \<equiv> {n. F n (X n) = G n (X n)} \<in> \<U>\<rbrakk>
       \<Longrightarrow> f = g \<equiv> {n. F n = G n} \<in> \<U>"
-by (simp only: ext_iff transfer_all)
+by (simp only: fun_eq_iff transfer_all)
 
 lemma transfer_star_n [transfer_intro]: "star_n X \<equiv> star_n (\<lambda>n. X n)"
 by (rule reflexive)
@@ -351,12 +351,12 @@ by (simp only: Iset_star_n)
 lemma transfer_Collect [transfer_intro]:
   "\<lbrakk>\<And>X. p (star_n X) \<equiv> {n. P n (X n)} \<in> \<U>\<rbrakk>
     \<Longrightarrow> Collect p \<equiv> Iset (star_n (\<lambda>n. Collect (P n)))"
-by (simp add: atomize_eq set_ext_iff all_star_eq Iset_star_n)
+by (simp add: atomize_eq set_eq_iff all_star_eq Iset_star_n)
 
 lemma transfer_set_eq [transfer_intro]:
   "\<lbrakk>a \<equiv> Iset (star_n A); b \<equiv> Iset (star_n B)\<rbrakk>
     \<Longrightarrow> a = b \<equiv> {n. A n = B n} \<in> \<U>"
-by (simp only: set_ext_iff transfer_all transfer_iff transfer_mem)
+by (simp only: set_eq_iff transfer_all transfer_iff transfer_mem)
 
 lemma transfer_ball [transfer_intro]:
   "\<lbrakk>a \<equiv> Iset (star_n A); \<And>X. p (star_n X) \<equiv> {n. P n (X n)} \<in> \<U>\<rbrakk>

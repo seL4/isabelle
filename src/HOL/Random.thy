@@ -85,7 +85,7 @@ lemma pick_member:
 
 lemma pick_drop_zero:
   "pick (filter (\<lambda>(k, _). k > 0) xs) = pick xs"
-  by (induct xs) (auto simp add: ext_iff)
+  by (induct xs) (auto simp add: fun_eq_iff)
 
 lemma pick_same:
   "l < length xs \<Longrightarrow> Random.pick (map (Pair 1) xs) (Code_Numeral.of_nat l) = nth xs l"
@@ -132,7 +132,7 @@ proof -
     by (induct xs) simp_all
   ultimately show ?thesis
     by (auto simp add: select_weight_def select_def scomp_def split_def
-      ext_iff pick_same [symmetric])
+      fun_eq_iff pick_same [symmetric])
 qed
 
 

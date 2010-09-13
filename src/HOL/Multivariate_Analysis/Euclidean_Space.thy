@@ -1112,7 +1112,7 @@ proof-
       done}
   moreover
   {fix x assume x: "x \<in> span S"
-    have th0:"(\<lambda>a. f a \<in> span (f ` S)) = {x. f x \<in> span (f ` S)}" apply (rule set_ext)
+    have th0:"(\<lambda>a. f a \<in> span (f ` S)) = {x. f x \<in> span (f ` S)}" apply (rule set_eqI)
       unfolding mem_def Collect_def ..
     have "f x \<in> span (f ` S)"
       apply (rule span_induct[where S=S])
@@ -2363,7 +2363,7 @@ next
       apply (rule span_mul)
       by (rule span_superset)}
   then have SC: "span ?C = span (insert a B)"
-    unfolding set_ext_iff span_breakdown_eq C(3)[symmetric] by auto
+    unfolding set_eq_iff span_breakdown_eq C(3)[symmetric] by auto
   thm pairwise_def
   {fix x y assume xC: "x \<in> ?C" and yC: "y \<in> ?C" and xy: "x \<noteq> y"
     {assume xa: "x = ?a" and ya: "y = ?a"
@@ -2826,7 +2826,7 @@ proof-
     " \<forall>x \<in> f ` basis ` {..<DIM('a)}. h x = inv f x" by blast
   from h(2)
   have th: "\<forall>i<DIM('a). (h \<circ> f) (basis i) = id (basis i)"
-    using inv_o_cancel[OF fi, unfolded ext_iff id_def o_def]
+    using inv_o_cancel[OF fi, unfolded fun_eq_iff id_def o_def]
     by auto
 
   from linear_eq_stdbasis[OF linear_compose[OF lf h(1)] linear_id th]
@@ -2843,7 +2843,7 @@ proof-
     h: "linear h" "\<forall> x\<in> basis ` {..<DIM('b)}. h x = inv f x" by blast
   from h(2)
   have th: "\<forall>i<DIM('b). (f o h) (basis i) = id (basis i)"
-    using sf by(auto simp add: surj_iff o_def ext_iff)
+    using sf by(auto simp add: surj_iff o_def fun_eq_iff)
   from linear_eq_stdbasis[OF linear_compose[OF h(1) lf] linear_id th]
   have "f o h = id" .
   then show ?thesis using h(1) by blast
@@ -2970,7 +2970,7 @@ qed
 
 lemma isomorphism_expand:
   "f o g = id \<and> g o f = id \<longleftrightarrow> (\<forall>x. f(g x) = x) \<and> (\<forall>x. g(f x) = x)"
-  by (simp add: ext_iff o_def id_def)
+  by (simp add: fun_eq_iff o_def id_def)
 
 lemma linear_injective_isomorphism: fixes f::"'a::euclidean_space => 'a::euclidean_space"
   assumes lf: "linear f" and fi: "inj f"
@@ -2995,10 +2995,10 @@ proof-
   {fix f f':: "'a => 'a"
     assume lf: "linear f" "linear f'" and f: "f o f' = id"
     from f have sf: "surj f"
-      apply (auto simp add: o_def ext_iff id_def surj_def)
+      apply (auto simp add: o_def fun_eq_iff id_def surj_def)
       by metis
     from linear_surjective_isomorphism[OF lf(1) sf] lf f
-    have "f' o f = id" unfolding ext_iff o_def id_def
+    have "f' o f = id" unfolding fun_eq_iff o_def id_def
       by metis}
   then show ?thesis using lf lf' by metis
 qed
@@ -3009,13 +3009,13 @@ lemma left_inverse_linear: fixes f::"'a::euclidean_space => 'a::euclidean_space"
   assumes lf: "linear f" and gf: "g o f = id"
   shows "linear g"
 proof-
-  from gf have fi: "inj f" apply (auto simp add: inj_on_def o_def id_def ext_iff)
+  from gf have fi: "inj f" apply (auto simp add: inj_on_def o_def id_def fun_eq_iff)
     by metis
   from linear_injective_isomorphism[OF lf fi]
   obtain h:: "'a \<Rightarrow> 'a" where
     h: "linear h" "\<forall>x. h (f x) = x" "\<forall>x. f (h x) = x" by blast
   have "h = g" apply (rule ext) using gf h(2,3)
-    apply (simp add: o_def id_def ext_iff)
+    apply (simp add: o_def id_def fun_eq_iff)
     by metis
   with h(1) show ?thesis by blast
 qed

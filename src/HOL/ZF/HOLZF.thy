@@ -155,7 +155,7 @@ lemma Elem_explode_in: "\<lbrakk> Elem a A; explode A \<subseteq> B\<rbrakk> \<L
   by (auto simp add: explode_def)
 
 lemma explode_CartProd_eq: "explode (CartProd a b) = (% (x,y). Opair x y) ` ((explode a) \<times> (explode b))"
-  by (simp add: explode_def set_ext_iff CartProd image_def)
+  by (simp add: explode_def set_eq_iff CartProd image_def)
 
 lemma explode_Repl_eq: "explode (Repl A f) = image f (explode A)"
   by (simp add: explode_def Repl image_def)
@@ -830,7 +830,7 @@ lemma implodeable_Ext_trancl: "set_like R \<Longrightarrow> set_like (R^+)"
   apply (subst set_like_def)
   apply (auto simp add: image_def)
   apply (rule_tac x="Sep (Ext_ZF_hull R y) (\<lambda> z. z \<in> (Ext (R^+) y))" in exI)
-  apply (auto simp add: explode_def Sep set_ext 
+  apply (auto simp add: explode_def Sep set_eqI 
     in_Ext_RTrans_implies_Elem_Ext_ZF_hull)
   done
  

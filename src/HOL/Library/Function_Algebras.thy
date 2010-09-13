@@ -57,7 +57,7 @@ instance "fun" :: (type, semigroup_add) semigroup_add proof
 qed (simp add: plus_fun_def add.assoc)
 
 instance "fun" :: (type, cancel_semigroup_add) cancel_semigroup_add proof
-qed (simp_all add: plus_fun_def ext_iff)
+qed (simp_all add: plus_fun_def fun_eq_iff)
 
 instance "fun" :: (type, ab_semigroup_add) ab_semigroup_add proof
 qed (simp add: plus_fun_def add.commute)
@@ -106,7 +106,7 @@ instance "fun" :: (type, mult_zero) mult_zero proof
 qed (simp_all add: zero_fun_def times_fun_def)
 
 instance "fun" :: (type, zero_neq_one) zero_neq_one proof
-qed (simp add: zero_fun_def one_fun_def ext_iff)
+qed (simp add: zero_fun_def one_fun_def fun_eq_iff)
 
 
 text {* Ring structures *}

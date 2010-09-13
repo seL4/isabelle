@@ -73,7 +73,10 @@ feature is still required for historical reasons.
 
 * String.literal is a type, but not a datatype. INCOMPATIBILITY.
  
-* Renamed lemmas: expand_fun_eq -> ext_iff, expand_set_eq -> set_ext_iff
+* Renamed lemmas:
+  expand_fun_eq -> fun_eq_iff
+  expand_set_eq -> set_eq_iff
+  set_ext -> set_eqI
 
 * Renamed class eq and constant eq (for code generation) to class equal
 and constant equal, plus renaming of related facts and various tuning.

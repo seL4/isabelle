@@ -307,7 +307,7 @@ proof -
   have 1: "FDERIV (\<lambda>x. inner x x) x :> (\<lambda>h. inner x h + inner h x)"
     by (intro inner.FDERIV FDERIV_ident)
   have 2: "(\<lambda>h. inner x h + inner h x) = (\<lambda>h. inner h (scaleR 2 x))"
-    by (simp add: ext_iff inner_commute)
+    by (simp add: fun_eq_iff inner_commute)
   have "0 < inner x x" using `x \<noteq> 0` by simp
   then have 3: "DERIV sqrt (inner x x) :> (inverse (sqrt (inner x x)) / 2)"
     by (rule DERIV_real_sqrt)

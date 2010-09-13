@@ -337,10 +337,10 @@ subsection{*Lemmas to Handle Function Composition (o) More Consistently*}
 
 (*Lets us prove one version of a theorem and store others*)
 lemma o_equiv_assoc: "f o g = h ==> f' o f o g = f' o h"
-by (simp add: ext_iff o_def)
+by (simp add: fun_eq_iff o_def)
 
 lemma o_equiv_apply: "f o g = h ==> \<forall>x. f(g x) = h x"
-by (simp add: ext_iff o_def)
+by (simp add: fun_eq_iff o_def)
 
 lemma fst_o_lift_map: "sub i o fst o lift_map i = fst"
 apply (rule ext)

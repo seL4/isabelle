@@ -334,7 +334,7 @@ by (drule poly_roots_index_length, safe)
 
 lemma UNIV_nat_infinite: "\<not> finite (UNIV :: nat set)"
   unfolding finite_conv_nat_seg_image
-proof(auto simp add: set_ext_iff image_iff)
+proof(auto simp add: set_eq_iff image_iff)
   fix n::nat and f:: "nat \<Rightarrow> nat"
   let ?N = "{i. i < n}"
   let ?fN = "f ` ?N"

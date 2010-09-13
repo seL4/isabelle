@@ -191,7 +191,7 @@ next
 lemma affine_hull_finite:
   assumes "finite s"
   shows "affine hull s = {y. \<exists>u. setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
-  unfolding affine_hull_explicit and set_ext_iff and mem_Collect_eq apply (rule,rule)
+  unfolding affine_hull_explicit and set_eq_iff and mem_Collect_eq apply (rule,rule)
   apply(erule exE)+ apply(erule conjE)+ defer apply(erule exE) apply(erule conjE) proof-
   fix x u assume "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"
   thus "\<exists>sa u. finite sa \<and> \<not> (\<forall>x. (x \<in> sa) = (x \<in> {})) \<and> sa \<subseteq> s \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = x"
@@ -709,7 +709,7 @@ proof-
     ultimately have "\<exists>k u x. (\<forall>i\<in>{1..k}. 0 \<le> u i \<and> x i \<in> p) \<and> setsum u {1..k} = 1 \<and> (\<Sum>i::nat = 1..k. u i *\<^sub>R x i) = y"
       apply(rule_tac x="card s" in exI) apply(rule_tac x="u \<circ> f" in exI) apply(rule_tac x=f in exI) by fastsimp
     hence "y \<in> ?lhs" unfolding convex_hull_indexed by auto  }
-  ultimately show ?thesis unfolding set_ext_iff by blast
+  ultimately show ?thesis unfolding set_eq_iff by blast
 qed
 
 subsection {* A stepping theorem for that expansion. *}
@@ -882,7 +882,7 @@ subsection {* Caratheodory's theorem. *}
 lemma convex_hull_caratheodory: fixes p::"('a::euclidean_space) set"
   shows "convex hull p = {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and> card s \<le> DIM('a) + 1 \<and>
   (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
-  unfolding convex_hull_explicit set_ext_iff mem_Collect_eq
+  unfolding convex_hull_explicit set_eq_iff mem_Collect_eq
 proof(rule,rule)
   fix y let ?P = "\<lambda>n. \<exists>s u. finite s \<and> card s = n \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
   assume "\<exists>s u. finite s \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
@@ -939,7 +939,7 @@ qed auto
 lemma caratheodory:
  "convex hull p = {x::'a::euclidean_space. \<exists>s. finite s \<and> s \<subseteq> p \<and>
       card s \<le> DIM('a) + 1 \<and> x \<in> convex hull s}"
-  unfolding set_ext_iff apply(rule, rule) unfolding mem_Collect_eq proof-
+  unfolding set_eq_iff apply(rule, rule) unfolding mem_Collect_eq proof-
   fix x assume "x \<in> convex hull p"
   then obtain s u where "finite s" "s \<subseteq> p" "card s \<le> DIM('a) + 1"
      "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"unfolding convex_hull_caratheodory by auto
@@ -1000,7 +1000,7 @@ proof-
   let ?X = "{0..1} \<times> s \<times> t"
   let ?h = "(\<lambda>z. (1 - fst z) *\<^sub>R fst (snd z) + fst z *\<^sub>R snd (snd z))"
   have *:"{ (1 - u) *\<^sub>R x + u *\<^sub>R y | x y u. 0 \<le> u \<and> u \<le> 1 \<and> x \<in> s \<and> y \<in> t} = ?h ` ?X"
-    apply(rule set_ext) unfolding image_iff mem_Collect_eq
+    apply(rule set_eqI) unfolding image_iff mem_Collect_eq
     apply rule apply auto
     apply (rule_tac x=u in rev_bexI, simp)
     apply (erule rev_bexI, erule rev_bexI, simp)
@@ -1029,7 +1029,7 @@ next
     case (Suc n)
     show ?case proof(cases "n=0")
       case True have "{x. \<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> Suc n \<and> x \<in> convex hull t} = s"
-        unfolding set_ext_iff and mem_Collect_eq proof(rule, rule)
+        unfolding set_eq_iff and mem_Collect_eq proof(rule, rule)
         fix x assume "\<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> Suc n \<and> x \<in> convex hull t"
         then obtain t where t:"finite t" "t \<subseteq> s" "card t \<le> Suc n" "x \<in> convex hull t" by auto
         show "x\<in>s" proof(cases "card t = 0")
@@ -1048,7 +1048,7 @@ next
       case False have "{x. \<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> Suc n \<and> x \<in> convex hull t} =
         { (1 - u) *\<^sub>R x + u *\<^sub>R y | x y u. 
         0 \<le> u \<and> u \<le> 1 \<and> x \<in> s \<and> y \<in> {x. \<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> n \<and> x \<in> convex hull t}}"
-        unfolding set_ext_iff and mem_Collect_eq proof(rule,rule)
+        unfolding set_eq_iff and mem_Collect_eq proof(rule,rule)
         fix x assume "\<exists>u v c. x = (1 - c) *\<^sub>R u + c *\<^sub>R v \<and>
           0 \<le> c \<and> c \<le> 1 \<and> u \<in> s \<and> (\<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> n \<and> v \<in> convex hull t)"
         then obtain u v c t where obt:"x = (1 - c) *\<^sub>R u + c *\<^sub>R v"
@@ -1531,7 +1531,7 @@ lemma convex_halfspace_intersection:
   fixes s :: "('a::euclidean_space) set"
   assumes "closed s" "convex s"
   shows "s = \<Inter> {h. s \<subseteq> h \<and> (\<exists>a b. h = {x. inner a x \<le> b})}"
-  apply(rule set_ext, rule) unfolding Inter_iff Ball_def mem_Collect_eq apply(rule,rule,erule conjE) proof- 
+  apply(rule set_eqI, rule) unfolding Inter_iff Ball_def mem_Collect_eq apply(rule,rule,erule conjE) proof- 
   fix x  assume "\<forall>xa. s \<subseteq> xa \<and> (\<exists>a b. xa = {x. inner a x \<le> b}) \<longrightarrow> x \<in> xa"
   hence "\<forall>a b. s \<subseteq> {x. inner a x \<le> b} \<longrightarrow> x \<in> {x. inner a x \<le> b}" by blast
   thus "x\<in>s" apply(rule_tac ccontr) apply(drule separating_hyperplane_closed_point[OF assms(2,1)])
@@ -1752,7 +1752,7 @@ proof-
 
   have "\<exists>surf. homeomorphism (frontier s) sphere pi surf"
     apply(rule homeomorphism_compact) apply(rule compact_frontier[OF assms(1)])
-    apply(rule continuous_on_subset[OF contpi]) defer apply(rule set_ext,rule) 
+    apply(rule continuous_on_subset[OF contpi]) defer apply(rule set_eqI,rule) 
     unfolding inj_on_def prefer 3 apply(rule,rule,rule)
   proof- fix x assume "x\<in>pi ` frontier s" then obtain y where "y\<in>frontier s" "x = pi y" by auto
     thus "x \<in> sphere" using pi(1)[of y] and `0 \<notin> frontier s` by auto
@@ -1813,7 +1813,7 @@ proof-
     qed } note hom2 = this
 
   show ?thesis apply(subst homeomorphic_sym) apply(rule homeomorphic_compact[where f="\<lambda>x. norm x *\<^sub>R surf (pi x)"])
-    apply(rule compact_cball) defer apply(rule set_ext, rule, erule imageE, drule hom)
+    apply(rule compact_cball) defer apply(rule set_eqI, rule, erule imageE, drule hom)
     prefer 4 apply(rule continuous_at_imp_continuous_on, rule) apply(rule_tac [3] hom2) proof-
     fix x::"'a" assume as:"x \<in> cball 0 1"
     thus "continuous (at x) (\<lambda>x. norm x *\<^sub>R surf (pi x))" proof(cases "x=0")
@@ -2119,7 +2119,7 @@ lemma cube_convex_hull:
   assumes "0 < d" obtains s::"('a::ordered_euclidean_space) set" where
   "finite s" "{x - (\<chi>\<chi> i. d) .. x + (\<chi>\<chi> i. d)} = convex hull s" proof-
   let ?d = "(\<chi>\<chi> i. d)::'a"
-  have *:"{x - ?d .. x + ?d} = (\<lambda>y. x - ?d + (2 * d) *\<^sub>R y) ` {0 .. \<chi>\<chi> i. 1}" apply(rule set_ext, rule)
+  have *:"{x - ?d .. x + ?d} = (\<lambda>y. x - ?d + (2 * d) *\<^sub>R y) ` {0 .. \<chi>\<chi> i. 1}" apply(rule set_eqI, rule)
     unfolding image_iff defer apply(erule bexE) proof-
     fix y assume as:"y\<in>{x - ?d .. x + ?d}"
     { fix i assume i:"i<DIM('a)" have "x $$ i \<le> d + y $$ i" "y $$ i \<le> d + x $$ i"
@@ -2329,7 +2329,7 @@ lemma segment_convex_hull:
  "closed_segment a b = convex hull {a,b}" proof-
   have *:"\<And>x. {x} \<noteq> {}" by auto
   have **:"\<And>u v. u + v = 1 \<longleftrightarrow> u = 1 - (v::real)" by auto
-  show ?thesis unfolding segment convex_hull_insert[OF *] convex_hull_singleton apply(rule set_ext)
+  show ?thesis unfolding segment convex_hull_insert[OF *] convex_hull_singleton apply(rule set_eqI)
     unfolding mem_Collect_eq apply(rule,erule exE) 
     apply(rule_tac x="1 - u" in exI) apply rule defer apply(rule_tac x=u in exI) defer
     apply(erule exE, (erule conjE)?)+ apply(rule_tac x="1 - u" in exI) unfolding ** by auto qed
@@ -2454,7 +2454,7 @@ subsection {* Some obvious but surprisingly hard simplex lemmas. *}
 lemma simplex:
   assumes "finite s" "0 \<notin> s"
   shows "convex hull (insert 0 s) =  { y. (\<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s \<le> 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y)}"
-  unfolding convex_hull_finite[OF finite.insertI[OF assms(1)]] apply(rule set_ext, rule) unfolding mem_Collect_eq
+  unfolding convex_hull_finite[OF finite.insertI[OF assms(1)]] apply(rule set_eqI, rule) unfolding mem_Collect_eq
   apply(erule_tac[!] exE) apply(erule_tac[!] conjE)+ unfolding setsum_clauses(2)[OF assms(1)]
   apply(rule_tac x=u in exI) defer apply(rule_tac x="\<lambda>x. if x = 0 then 1 - setsum u s else u x" in exI) using assms(2)
   unfolding if_smult and setsum_delta_notmem[OF assms(2)] by auto
@@ -2467,7 +2467,7 @@ proof- let ?D = "{..<DIM('a)}"
   have *:"finite ?p" "0\<notin>?p" by auto
   have "{(basis i)::'a |i. i<DIM('a)} = basis ` ?D" by auto
   note sumbas = this  setsum_reindex[OF basis_inj, unfolded o_def]
-  show ?thesis unfolding simplex[OF *] apply(rule set_ext) unfolding mem_Collect_eq apply rule
+  show ?thesis unfolding simplex[OF *] apply(rule set_eqI) unfolding mem_Collect_eq apply rule
     apply(erule exE, (erule conjE)+) apply(erule_tac[2] conjE)+ proof-
     fix x::"'a" and u assume as: "\<forall>x\<in>{basis i |i. i<DIM('a)}. 0 \<le> u x"
       "setsum u {basis i |i. i<DIM('a)} \<le> 1" "(\<Sum>x\<in>{basis i |i. i<DIM('a)}. u x *\<^sub>R x) = x"
@@ -2500,7 +2500,7 @@ proof- let ?D = "{..<DIM('a)}"
 lemma interior_std_simplex:
   "interior (convex hull (insert 0 { basis i| i. i<DIM('a)})) =
   {x::'a::euclidean_space. (\<forall>i<DIM('a). 0 < x$$i) \<and> setsum (\<lambda>i. x$$i) {..<DIM('a)} < 1 }"
-  apply(rule set_ext) unfolding mem_interior std_simplex unfolding subset_eq mem_Collect_eq Ball_def mem_ball
+  apply(rule set_eqI) unfolding mem_interior std_simplex unfolding subset_eq mem_Collect_eq Ball_def mem_ball
   unfolding Ball_def[symmetric] apply rule apply(erule exE, (erule conjE)+) defer apply(erule conjE) proof-
   fix x::"'a" and e assume "0<e" and as:"\<forall>xa. dist x xa < e \<longrightarrow> (\<forall>x<DIM('a). 0 \<le> xa $$ x) \<and> setsum (op $$ xa) {..<DIM('a)} \<le> 1"
   show "(\<forall>xa<DIM('a). 0 < x $$ xa) \<and> setsum (op $$ x) {..<DIM('a)} < 1" apply(safe) proof-

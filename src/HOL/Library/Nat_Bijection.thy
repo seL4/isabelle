@@ -333,8 +333,8 @@ by auto
 lemma set_decode_plus_power_2:
   "n \<notin> set_decode z \<Longrightarrow> set_decode (2 ^ n + z) = insert n (set_decode z)"
  apply (induct n arbitrary: z, simp_all)
-  apply (rule set_ext, induct_tac x, simp, simp add: even_nat_Suc_div_2)
- apply (rule set_ext, induct_tac x, simp, simp add: add_commute)
+  apply (rule set_eqI, induct_tac x, simp, simp add: even_nat_Suc_div_2)
+ apply (rule set_eqI, induct_tac x, simp, simp add: add_commute)
 done
 
 lemma finite_set_decode [simp]: "finite (set_decode n)"

@@ -34,7 +34,7 @@ definition
 
 lemma equivp_reflp_symp_transp:
   shows "equivp E = (reflp E \<and> symp E \<and> transp E)"
-  unfolding equivp_def reflp_def symp_def transp_def ext_iff
+  unfolding equivp_def reflp_def symp_def transp_def fun_eq_iff
   by blast
 
 lemma equivp_reflp:
@@ -97,7 +97,7 @@ where
 
 lemma eq_comp_r:
   shows "((op =) OOO R) = R"
-  by (auto simp add: ext_iff)
+  by (auto simp add: fun_eq_iff)
 
 subsection {* Respects predicate *}
 
@@ -130,11 +130,11 @@ lemma fun_relI [intro]:
 
 lemma fun_map_id:
   shows "(id ---> id) = id"
-  by (simp add: ext_iff id_def)
+  by (simp add: fun_eq_iff id_def)
 
 lemma fun_rel_eq:
   shows "((op =) ===> (op =)) = (op =)"
-  by (simp add: ext_iff)
+  by (simp add: fun_eq_iff)
 
 
 subsection {* Quotient Predicate *}
@@ -209,7 +209,7 @@ proof -
   have "\<forall>a. (rep1 ---> abs2) ((abs1 ---> rep2) a) = a"
     using q1 q2
     unfolding Quotient_def
-    unfolding ext_iff
+    unfolding fun_eq_iff
     by simp
   moreover
   have "\<forall>a. (R1 ===> R2) ((abs1 ---> rep2) a) ((abs1 ---> rep2) a)"
@@ -219,7 +219,7 @@ proof -
   moreover
   have "\<forall>r s. (R1 ===> R2) r s = ((R1 ===> R2) r r \<and> (R1 ===> R2) s s \<and>
         (rep1 ---> abs2) r  = (rep1 ---> abs2) s)"
-    unfolding ext_iff
+    unfolding fun_eq_iff
     apply(auto)
     using q1 q2 unfolding Quotient_def
     apply(metis)
@@ -238,7 +238,7 @@ qed
 lemma abs_o_rep:
   assumes a: "Quotient R Abs Rep"
   shows "Abs o Rep = id"
-  unfolding ext_iff
+  unfolding fun_eq_iff
   by (simp add: Quotient_abs_rep[OF a])
 
 lemma equals_rsp:
@@ -253,7 +253,7 @@ lemma lambda_prs:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "(Rep1 ---> Abs2) (\<lambda>x. Rep2 (f (Abs1 x))) = (\<lambda>x. f x)"
-  unfolding ext_iff
+  unfolding fun_eq_iff
   using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2]
   by simp
 
@@ -261,7 +261,7 @@ lemma lambda_prs1:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "(Rep1 ---> Abs2) (\<lambda>x. (Abs1 ---> Rep2) f x) = (\<lambda>x. f x)"
-  unfolding ext_iff
+  unfolding fun_eq_iff
   using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2]
   by simp
 
@@ -445,7 +445,7 @@ lemma babs_simp:
    is an equivalence this may be useful in regularising *)
 lemma babs_reg_eqv:
   shows "equivp R \<Longrightarrow> Babs (Respects R) P = P"
-  by (simp add: ext_iff Babs_def in_respects equivp_reflp)
+  by (simp add: fun_eq_iff Babs_def in_respects equivp_reflp)
 
 
 (* 3 lemmas needed for proving repabs_inj *)
@@ -617,12 +617,12 @@ lemma o_prs:
   shows "((Abs2 ---> Rep3) ---> (Abs1 ---> Rep2) ---> (Rep1 ---> Abs3)) op \<circ> = op \<circ>"
   and   "(id ---> (Abs1 ---> id) ---> Rep1 ---> id) op \<circ> = op \<circ>"
   using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2] Quotient_abs_rep[OF q3]
-  unfolding o_def ext_iff by simp_all
+  unfolding o_def fun_eq_iff by simp_all
 
 lemma o_rsp:
   "((R2 ===> R3) ===> (R1 ===> R2) ===> (R1 ===> R3)) op \<circ> op \<circ>"
   "(op = ===> (R1 ===> op =) ===> R1 ===> op =) op \<circ> op \<circ>"
-  unfolding fun_rel_def o_def ext_iff by auto
+  unfolding fun_rel_def o_def fun_eq_iff by auto
 
 lemma cond_prs:
   assumes a: "Quotient R absf repf"
@@ -633,7 +633,7 @@ lemma if_prs:
   assumes q: "Quotient R Abs Rep"
   shows "(id ---> Rep ---> Rep ---> Abs) If = If"
   using Quotient_abs_rep[OF q]
-  by (auto simp add: ext_iff)
+  by (auto simp add: fun_eq_iff)
 
 lemma if_rsp:
   assumes q: "Quotient R Abs Rep"
@@ -645,7 +645,7 @@ lemma let_prs:
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "(Rep2 ---> (Abs2 ---> Rep1) ---> Abs1) Let = Let"
   using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2]
-  by (auto simp add: ext_iff)
+  by (auto simp add: fun_eq_iff)
 
 lemma let_rsp:
   shows "(R1 ===> (R1 ===> R2) ===> R2) Let Let"
@@ -659,7 +659,7 @@ lemma mem_prs:
   assumes a1: "Quotient R1 Abs1 Rep1"
   and     a2: "Quotient R2 Abs2 Rep2"
   shows "(Rep1 ---> (Abs1 ---> Rep2) ---> Abs2) op \<in> = op \<in>"
-  by (simp add: ext_iff mem_def Quotient_abs_rep[OF a1] Quotient_abs_rep[OF a2])
+  by (simp add: fun_eq_iff mem_def Quotient_abs_rep[OF a1] Quotient_abs_rep[OF a2])
 
 locale quot_type =
   fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
