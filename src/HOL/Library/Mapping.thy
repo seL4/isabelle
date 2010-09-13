@@ -94,11 +94,11 @@ lemma lookup_delete [simp]:
 
 lemma lookup_map_entry [simp]:
   "lookup (map_entry k f m) = (lookup m) (k := Option.map f (lookup m k))"
-  by (cases "lookup m k") (simp_all add: map_entry_def ext_iff)
+  by (cases "lookup m k") (simp_all add: map_entry_def fun_eq_iff)
 
 lemma lookup_tabulate [simp]:
   "lookup (tabulate ks f) = (Some o f) |` set ks"
-  by (induct ks) (auto simp add: tabulate_def restrict_map_def ext_iff)
+  by (induct ks) (auto simp add: tabulate_def restrict_map_def fun_eq_iff)
 
 lemma lookup_bulkload [simp]:
   "lookup (bulkload xs) = (\<lambda>k. if k < length xs then Some (xs ! k) else None)"
@@ -146,7 +146,7 @@ lemma size_tabulate [simp]:
 
 lemma bulkload_tabulate:
   "bulkload xs = tabulate [0..<length xs] (nth xs)"
-  by (rule mapping_eqI) (simp add: ext_iff)
+  by (rule mapping_eqI) (simp add: fun_eq_iff)
 
 lemma is_empty_empty: (*FIXME*)
   "is_empty m \<longleftrightarrow> m = Mapping Map.empty"

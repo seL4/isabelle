@@ -1031,7 +1031,7 @@ next
   have "f -` {\<omega>} \<inter> space M = {x\<in>space M. f x = \<omega>}" by auto
   with * have **: "{x\<in>space M. f x = \<omega>} \<in> sets M" by simp
   have f: "f = (\<lambda>x. if f x = \<omega> then \<omega> else Real (real (f x)))"
-    by (simp add: ext_iff Real_real)
+    by (simp add: fun_eq_iff Real_real)
   show "f \<in> borel_measurable M"
     apply (subst f)
     apply (rule measurable_If)
@@ -1264,7 +1264,7 @@ lemma (in sigma_algebra) borel_measurable_pinfreal_add[intro, simp]:
 proof -
   have *: "(\<lambda>x. f x + g x) =
      (\<lambda>x. if f x = \<omega> then \<omega> else if g x = \<omega> then \<omega> else Real (real (f x) + real (g x)))"
-     by (auto simp: ext_iff pinfreal_noteq_omega_Ex)
+     by (auto simp: fun_eq_iff pinfreal_noteq_omega_Ex)
   show ?thesis using assms unfolding *
     by (auto intro!: measurable_If)
 qed
@@ -1276,7 +1276,7 @@ proof -
   have *: "(\<lambda>x. f x * g x) =
      (\<lambda>x. if f x = 0 then 0 else if g x = 0 then 0 else if f x = \<omega> then \<omega> else if g x = \<omega> then \<omega> else
       Real (real (f x) * real (g x)))"
-     by (auto simp: ext_iff pinfreal_noteq_omega_Ex)
+     by (auto simp: fun_eq_iff pinfreal_noteq_omega_Ex)
   show ?thesis using assms unfolding *
     by (auto intro!: measurable_If)
 qed

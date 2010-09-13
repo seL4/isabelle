@@ -79,7 +79,7 @@ text {*
 
 lemma [code, code_unfold]:
   "nat_case = (\<lambda>f g n. if n = 0 then f else g (n - 1))"
-  by (auto simp add: ext_iff dest!: gr0_implies_Suc)
+  by (auto simp add: fun_eq_iff dest!: gr0_implies_Suc)
 
 
 subsection {* Preprocessors *}

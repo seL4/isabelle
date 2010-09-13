@@ -563,12 +563,12 @@ lemma [quot_respect]:
 
 lemma [quot_preserve]:
   "(rep_fset ---> (map rep_fset \<circ> rep_fset) ---> (abs_fset \<circ> map abs_fset)) op # = finsert"
-  by (simp add: ext_iff Quotient_abs_rep[OF Quotient_fset]
+  by (simp add: fun_eq_iff Quotient_abs_rep[OF Quotient_fset]
       abs_o_rep[OF Quotient_fset] map_id finsert_def)
 
 lemma [quot_preserve]:
   "((map rep_fset \<circ> rep_fset) ---> (map rep_fset \<circ> rep_fset) ---> (abs_fset \<circ> map abs_fset)) op @ = funion"
-  by (simp add: ext_iff Quotient_abs_rep[OF Quotient_fset]
+  by (simp add: fun_eq_iff Quotient_abs_rep[OF Quotient_fset]
       abs_o_rep[OF Quotient_fset] map_id sup_fset_def)
 
 lemma list_all2_app_l:
@@ -771,7 +771,7 @@ lemma set_cong:
 
 lemma inj_map_eq_iff:
   "inj f \<Longrightarrow> (map f l \<approx> map f m) = (l \<approx> m)"
-  by (simp add: set_ext_iff[symmetric] inj_image_eq_iff)
+  by (simp add: set_eq_iff[symmetric] inj_image_eq_iff)
 
 text {* alternate formulation with a different decomposition principle
   and a proof of equivalence *}

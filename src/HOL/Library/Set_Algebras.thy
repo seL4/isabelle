@@ -72,7 +72,7 @@ proof -
   show "monoid_add.listsum set_plus {0::'a} = listsum_set"
     by (simp only: listsum_set_def)
   show "comm_monoid_add.setsum set_plus {0::'a} = setsum_set"
-    by (simp add: set_add.setsum_def setsum_set_def ext_iff)
+    by (simp add: set_add.setsum_def setsum_set_def fun_eq_iff)
 qed
 
 interpretation set_mult!: semigroup "set_times :: 'a::semigroup_mult set \<Rightarrow> 'a set \<Rightarrow> 'a set" proof
@@ -117,7 +117,7 @@ proof -
   show "power.power {1} set_times = (\<lambda>A n. power_set n A)"
     by (simp add: power_set_def)
   show "comm_monoid_mult.setprod set_times {1::'a} = setprod_set"
-    by (simp add: set_mult.setprod_def setprod_set_def ext_iff)
+    by (simp add: set_mult.setprod_def setprod_set_def fun_eq_iff)
 qed
 
 lemma set_plus_intro [intro]: "a : C ==> b : D ==> a + b : C \<oplus> D"

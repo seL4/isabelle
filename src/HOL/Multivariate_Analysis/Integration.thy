@@ -102,7 +102,7 @@ subsection {* Some useful lemmas about intervals. *}
 abbreviation One  where "One \<equiv> ((\<chi>\<chi> i. 1)::_::ordered_euclidean_space)"
 
 lemma empty_as_interval: "{} = {One..0}"
-  apply(rule set_ext,rule) defer unfolding mem_interval
+  apply(rule set_eqI,rule) defer unfolding mem_interval
   using UNIV_witness[where 'a='n] apply(erule_tac exE,rule_tac x=x in allE) by auto
 
 lemma interior_subset_union_intervals: 
@@ -367,7 +367,7 @@ lemma division_inter: assumes "p1 division_of s1" "p2 division_of (s2::('a::orde
 let ?A = "{s. s \<in>  (\<lambda>(k1,k2). k1 \<inter> k2) ` (p1 \<times> p2) \<and> s \<noteq> {}}" have *:"?A' = ?A" by auto
 show ?thesis unfolding * proof(rule division_ofI) have "?A \<subseteq> (\<lambda>(x, y). x \<inter> y) ` (p1 \<times> p2)" by auto
   moreover have "finite (p1 \<times> p2)" using assms unfolding division_of_def by auto ultimately show "finite ?A" by auto
-  have *:"\<And>s. \<Union>{x\<in>s. x \<noteq> {}} = \<Union>s" by auto show "\<Union>?A = s1 \<inter> s2" apply(rule set_ext) unfolding * and Union_image_eq UN_iff
+  have *:"\<And>s. \<Union>{x\<in>s. x \<noteq> {}} = \<Union>s" by auto show "\<Union>?A = s1 \<inter> s2" apply(rule set_eqI) unfolding * and Union_image_eq UN_iff
     using division_ofD(6)[OF assms(1)] and division_ofD(6)[OF assms(2)] by auto
   { fix k assume "k\<in>?A" then obtain k1 k2 where k:"k = k1 \<inter> k2" "k1\<in>p1" "k2\<in>p2" "k\<noteq>{}" by auto thus "k \<noteq> {}" by auto
   show "k \<subseteq> s1 \<inter> s2" using division_ofD(2)[OF assms(1) k(2)] and division_ofD(2)[OF assms(2) k(3)] unfolding k by auto
@@ -1035,7 +1035,7 @@ proof- have "{a..b} \<noteq> {}" using assms(1,3) by auto
       next assume as:"c $$ i = (a $$ i + b $$ i) / 2" "d $$ i = b $$ i"
         show False using e_f(2)[of i] and i x unfolding as by(fastsimp simp add:field_simps)
       qed qed qed
-  also have "\<Union> ?A = {a..b}" proof(rule set_ext,rule)
+  also have "\<Union> ?A = {a..b}" proof(rule set_eqI,rule)
     fix x assume "x\<in>\<Union>?A" then guess Y unfolding Union_iff ..
     from this(1) guess c unfolding mem_Collect_eq .. then guess d ..
     note c_d = this[THEN conjunct2,rule_format] `x\<in>Y`[unfolded this[THEN conjunct1]]
@@ -1402,7 +1402,7 @@ lemma integral_empty[simp]: shows "integral {} f = 0"
   apply(rule integral_unique) using has_integral_empty .
 
 lemma has_integral_refl[intro]: shows "(f has_integral 0) {a..a}" "(f has_integral 0) {a::'a::ordered_euclidean_space}"
-proof- have *:"{a} = {a..a}" apply(rule set_ext) unfolding mem_interval singleton_iff euclidean_eq[where 'a='a]
+proof- have *:"{a} = {a..a}" apply(rule set_eqI) unfolding mem_interval singleton_iff euclidean_eq[where 'a='a]
     apply safe prefer 3 apply(erule_tac x=i in allE) by(auto simp add: field_simps)
   show "(f has_integral 0) {a..a}" "(f has_integral 0) {a}" unfolding *
     apply(rule_tac[!] has_integral_null) unfolding content_eq_0_interior
@@ -1466,7 +1466,7 @@ subsection {* Additivity of integral on abutting intervals. *}
 lemma interval_split: fixes a::"'a::ordered_euclidean_space" assumes "k<DIM('a)" shows
   "{a..b} \<inter> {x. x$$k \<le> c} = {a .. (\<chi>\<chi> i. if i = k then min (b$$k) c else b$$i)}"
   "{a..b} \<inter> {x. x$$k \<ge> c} = {(\<chi>\<chi> i. if i = k then max (a$$k) c else a$$i) .. b}"
-  apply(rule_tac[!] set_ext) unfolding Int_iff mem_interval mem_Collect_eq using assms by auto
+  apply(rule_tac[!] set_eqI) unfolding Int_iff mem_interval mem_Collect_eq using assms by auto
 
 lemma content_split: fixes a::"'a::ordered_euclidean_space" assumes "k<DIM('a)" shows
   "content {a..b} = content({a..b} \<inter> {x. x$$k \<le> c}) + content({a..b} \<inter> {x. x$$k >= c})"
@@ -2494,7 +2494,7 @@ proof- have *:"\<And>x c. abs(x - c) \<le> e \<longleftrightarrow> x \<ge> c - e
   note division_split(1)[OF assms, where c="c+e",unfolded interval_split[OF k]]
   note division_split(2)[OF this, where c="c-e" and k=k,OF k] 
   thus ?thesis apply(rule **) using k apply- unfolding interval_doublesplit unfolding * unfolding interval_split interval_doublesplit
-    apply(rule set_ext) unfolding mem_Collect_eq apply rule apply(erule conjE exE)+ apply(rule_tac x=la in exI) defer
+    apply(rule set_eqI) unfolding mem_Collect_eq apply rule apply(erule conjE exE)+ apply(rule_tac x=la in exI) defer
     apply(erule conjE exE)+ apply(rule_tac x="l \<inter> {x. c + e \<ge> x $$ k}" in exI) apply rule defer apply rule
     apply(rule_tac x=l in exI) by blast+ qed
 
@@ -2538,7 +2538,7 @@ proof-
       apply(cases,rule disjI1,assumption,rule disjI2)
     proof- fix x l assume as:"(x,l)\<in>p" "?i x \<noteq> 0" hence xk:"x$$k = c" unfolding indicator_def apply-by(rule ccontr,auto)
       show "content l = content (l \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d})" apply(rule arg_cong[where f=content])
-        apply(rule set_ext,rule,rule) unfolding mem_Collect_eq
+        apply(rule set_eqI,rule,rule) unfolding mem_Collect_eq
       proof- fix y assume y:"y\<in>l" note p[THEN conjunct2,unfolded fine_def,rule_format,OF as(1),unfolded split_conv]
         note this[unfolded subset_eq mem_ball dist_norm,rule_format,OF y] note le_less_trans[OF component_le_norm[of _ k] this]
         thus "\<bar>y $$ k - c\<bar> \<le> d" unfolding euclidean_simps xk by auto
@@ -3280,7 +3280,7 @@ lemma image_stretch_interval:
 proof(cases "{a..b}={}") case True thus ?thesis unfolding True by auto
 next have *:"\<And>P Q. (\<forall>i<DIM('a). P i) \<and> (\<forall>i<DIM('a). Q i) \<longleftrightarrow> (\<forall>i<DIM('a). P i \<and> Q i)" by auto
   case False note ab = this[unfolded interval_ne_empty]
-  show ?thesis apply-apply(rule set_ext)
+  show ?thesis apply-apply(rule set_eqI)
   proof- fix x::"'a" have **:"\<And>P Q. (\<forall>i<DIM('a). P i = Q i) \<Longrightarrow> (\<forall>i<DIM('a). P i) = (\<forall>i<DIM('a). Q i)" by auto
     show "x \<in> ?l \<longleftrightarrow> x \<in> ?r" unfolding if_not_P[OF False] 
       unfolding image_iff mem_interval Bex_def euclidean_simps euclidean_eq[where 'a='a] *
@@ -3334,7 +3334,7 @@ lemma integrable_stretch:  fixes f::"'a::ordered_euclidean_space => 'b::real_nor
 subsection {* even more special cases. *}
 
 lemma uminus_interval_vector[simp]:"uminus ` {a..b} = {-b .. -a::'a::ordered_euclidean_space}"
-  apply(rule set_ext,rule) defer unfolding image_iff
+  apply(rule set_eqI,rule) defer unfolding image_iff
   apply(rule_tac x="-x" in bexI) by(auto simp add:minus_le_iff le_minus_iff eucl_le[where 'a='a])
 
 lemma has_integral_reflect_lemma[intro]: assumes "(f has_integral i) {a..b}"
@@ -3694,7 +3694,7 @@ proof(unfold continuous_on_iff, safe)  fix x e assume as:"x\<in>{a..b}" "0<(e::r
   let ?thesis = "\<exists>d>0. \<forall>x'\<in>{a..b}. dist x' x < d \<longrightarrow> dist (integral {a..x'} f) (integral {a..x} f) < e"
   { presume *:"a<b \<Longrightarrow> ?thesis"
     show ?thesis apply(cases,rule *,assumption)
-    proof- case goal1 hence "{a..b} = {x}" using as(1) apply-apply(rule set_ext)
+    proof- case goal1 hence "{a..b} = {x}" using as(1) apply-apply(rule set_eqI)
         unfolding atLeastAtMost_iff by(auto simp only:field_simps not_less DIM_real)
       thus ?case using `e>0` by auto
     qed } assume "a<b"

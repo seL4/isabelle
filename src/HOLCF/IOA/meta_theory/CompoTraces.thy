@@ -962,7 +962,7 @@ lemma compositionality_tr_modules:
 
 apply (unfold Traces_def par_traces_def)
 apply (simp add: asig_of_par)
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (simp add: compositionality_tr externals_of_par)
 done
 

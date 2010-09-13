@@ -16,7 +16,7 @@ typedef (Poly) 'a poly = "{f::nat \<Rightarrow> 'a::zero. \<exists>n. \<forall>i
   by auto
 
 lemma expand_poly_eq: "p = q \<longleftrightarrow> (\<forall>n. coeff p n = coeff q n)"
-by (simp add: coeff_inject [symmetric] ext_iff)
+by (simp add: coeff_inject [symmetric] fun_eq_iff)
 
 lemma poly_ext: "(\<And>n. coeff p n = coeff q n) \<Longrightarrow> p = q"
 by (simp add: expand_poly_eq)
@@ -1403,7 +1403,7 @@ lemma poly_eq_iff:
   fixes p q :: "'a::{idom,ring_char_0} poly"
   shows "poly p = poly q \<longleftrightarrow> p = q"
   using poly_zero [of "p - q"]
-  by (simp add: ext_iff)
+  by (simp add: fun_eq_iff)
 
 
 subsection {* Composition of polynomials *}

@@ -19,7 +19,7 @@ lemma split_list_all:
 
 lemma map_id[id_simps]:
   shows "map id = id"
-  apply(simp add: ext_iff)
+  apply(simp add: fun_eq_iff)
   apply(rule allI)
   apply(induct_tac x)
   apply(simp_all)
@@ -92,7 +92,7 @@ lemma cons_prs_aux:
 lemma cons_prs[quot_preserve]:
   assumes q: "Quotient R Abs Rep"
   shows "(Rep ---> (map Rep) ---> (map Abs)) (op #) = (op #)"
-  by (simp only: ext_iff fun_map_def cons_prs_aux[OF q])
+  by (simp only: fun_eq_iff fun_map_def cons_prs_aux[OF q])
      (simp)
 
 lemma cons_rsp[quot_respect]:
@@ -122,7 +122,7 @@ lemma map_prs[quot_preserve]:
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> rep2) ---> (map rep1) ---> (map abs2)) map = map"
   and   "((abs1 ---> id) ---> map rep1 ---> id) map = map"
-  by (simp_all only: ext_iff fun_map_def map_prs_aux[OF a b])
+  by (simp_all only: fun_eq_iff fun_map_def map_prs_aux[OF a b])
      (simp_all add: Quotient_abs_rep[OF a])
 
 lemma map_rsp[quot_respect]:
@@ -148,7 +148,7 @@ lemma foldr_prs[quot_preserve]:
   assumes a: "Quotient R1 abs1 rep1"
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> abs2 ---> rep2) ---> (map rep1) ---> rep2 ---> abs2) foldr = foldr"
-  by (simp only: ext_iff fun_map_def foldr_prs_aux[OF a b])
+  by (simp only: fun_eq_iff fun_map_def foldr_prs_aux[OF a b])
      (simp)
 
 lemma foldl_prs_aux:
@@ -162,7 +162,7 @@ lemma foldl_prs[quot_preserve]:
   assumes a: "Quotient R1 abs1 rep1"
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> abs2 ---> rep1) ---> rep1 ---> (map rep2) ---> abs1) foldl = foldl"
-  by (simp only: ext_iff fun_map_def foldl_prs_aux[OF a b])
+  by (simp only: fun_eq_iff fun_map_def foldl_prs_aux[OF a b])
      (simp)
 
 lemma list_all2_empty:
@@ -231,7 +231,7 @@ lemma[quot_respect]:
 lemma[quot_preserve]:
   assumes a: "Quotient R abs1 rep1"
   shows "((abs1 ---> abs1 ---> id) ---> map rep1 ---> map rep1 ---> id) list_all2 = list_all2"
-  apply (simp add: ext_iff)
+  apply (simp add: fun_eq_iff)
   apply clarify
   apply (induct_tac xa xb rule: list_induct2')
   apply (simp_all add: Quotient_abs_rep[OF a])
@@ -244,7 +244,7 @@ lemma[quot_preserve]:
 
 lemma list_all2_eq[id_simps]:
   shows "(list_all2 (op =)) = (op =)"
-  unfolding ext_iff
+  unfolding fun_eq_iff
   apply(rule allI)+
   apply(induct_tac x xa rule: list_induct2')
   apply(simp_all)

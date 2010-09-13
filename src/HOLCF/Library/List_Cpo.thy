@@ -115,7 +115,7 @@ using assms
  apply (induct n arbitrary: S)
   apply (subgoal_tac "S = (\<lambda>i. [])")
   apply (fast intro: lub_const)
-  apply (simp add: ext_iff)
+  apply (simp add: fun_eq_iff)
  apply (drule_tac x="\<lambda>i. tl (S i)" in meta_spec, clarsimp)
  apply (rule_tac x="(\<Squnion>i. hd (S i)) # x" in exI)
  apply (subgoal_tac "range (\<lambda>i. hd (S i) # tl (S i)) = range S")

@@ -16,7 +16,7 @@ definition permutes (infixr "permutes" 41) where
 (* ------------------------------------------------------------------------- *)
 
 lemma swapid_sym: "Fun.swap a b id = Fun.swap b a id"
-  by (auto simp add: ext_iff swap_def fun_upd_def)
+  by (auto simp add: fun_eq_iff swap_def fun_upd_def)
 lemma swap_id_refl: "Fun.swap a a id = id" by simp
 lemma swap_id_sym: "Fun.swap a b id = Fun.swap b a id"
   by (rule ext, simp add: swap_def)
@@ -25,7 +25,7 @@ lemma swap_id_idempotent[simp]: "Fun.swap a b id o Fun.swap a b id = id"
 
 lemma inv_unique_comp: assumes fg: "f o g = id" and gf: "g o f = id"
   shows "inv f = g"
-  using fg gf inv_equality[of g f] by (auto simp add: ext_iff)
+  using fg gf inv_equality[of g f] by (auto simp add: fun_eq_iff)
 
 lemma inverse_swap_id: "inv (Fun.swap a b id) = Fun.swap a b id"
   by (rule inv_unique_comp, simp_all)
@@ -44,7 +44,7 @@ lemma permutes_image: assumes pS: "p permutes S" shows "p ` S = S"
   using pS
   unfolding permutes_def
   apply -
-  apply (rule set_ext)
+  apply (rule set_eqI)
   apply (simp add: image_iff)
   apply metis
   done
@@ -67,16 +67,16 @@ lemma permutes_inverses:
   assumes pS: "p permutes S"
   shows "p (inv p x) = x"
   and "inv p (p x) = x"
-  using permutes_inv_o[OF pS, unfolded ext_iff o_def] by auto
+  using permutes_inv_o[OF pS, unfolded fun_eq_iff o_def] by auto
 
 lemma permutes_subset: "p permutes S \<Longrightarrow> S \<subseteq> T ==> p permutes T"
   unfolding permutes_def by blast
 
 lemma permutes_empty[simp]: "p permutes {} \<longleftrightarrow> p = id"
-  unfolding ext_iff permutes_def apply simp by metis
+  unfolding fun_eq_iff permutes_def apply simp by metis
 
 lemma permutes_sing[simp]: "p permutes {a} \<longleftrightarrow> p = id"
-  unfolding ext_iff permutes_def apply simp by metis
+  unfolding fun_eq_iff permutes_def apply simp by metis
 
 lemma permutes_univ: "p permutes UNIV \<longleftrightarrow> (\<forall>y. \<exists>!x. p x = y)"
   unfolding permutes_def by simp
@@ -111,7 +111,7 @@ lemma permutes_inv: assumes pS: "p permutes S" shows "inv p permutes S"
   using pS unfolding permutes_def permutes_inv_eq[OF pS] by metis
 
 lemma permutes_inv_inv: assumes pS: "p permutes S" shows "inv (inv p) = p"
-  unfolding ext_iff permutes_inv_eq[OF pS] permutes_inv_eq[OF permutes_inv[OF pS]]
+  unfolding fun_eq_iff permutes_inv_eq[OF pS] permutes_inv_eq[OF permutes_inv[OF pS]]
   by blast
 
 (* ------------------------------------------------------------------------- *)
@@ -136,7 +136,7 @@ proof-
     {assume pS: "p permutes insert a S"
       let ?b = "p a"
       let ?q = "Fun.swap a (p a) id o p"
-      have th0: "p = Fun.swap a ?b id o ?q" unfolding ext_iff o_assoc by simp
+      have th0: "p = Fun.swap a ?b id o ?q" unfolding fun_eq_iff o_assoc by simp
       have th1: "?b \<in> insert a S " unfolding permutes_in_image[OF pS] by simp
       from permutes_insert_lemma[OF pS] th0 th1
       have "\<exists> b q. p = Fun.swap a b id o q \<and> b \<in> insert a S \<and> q permutes S" by blast}
@@ -180,11 +180,11 @@ next
           and eq: "?g (b,p) = ?g (c,q)"
         from bp cq have ths: "b \<in> insert x F" "c \<in> insert x F" "x \<in> insert x F" "p permutes F" "q permutes F" by auto
         from ths(4) `x \<notin> F` eq have "b = ?g (b,p) x" unfolding permutes_def
-          by (auto simp add: swap_def fun_upd_def ext_iff)
+          by (auto simp add: swap_def fun_upd_def fun_eq_iff)
         also have "\<dots> = ?g (c,q) x" using ths(5) `x \<notin> F` eq
-          by (auto simp add: swap_def fun_upd_def ext_iff)
+          by (auto simp add: swap_def fun_upd_def fun_eq_iff)
         also have "\<dots> = c"using ths(5) `x \<notin> F` unfolding permutes_def
-          by (auto simp add: swap_def fun_upd_def ext_iff)
+          by (auto simp add: swap_def fun_upd_def fun_eq_iff)
         finally have bc: "b = c" .
         hence "Fun.swap x b id = Fun.swap x c id" by simp
         with eq have "Fun.swap x b id o p = Fun.swap x b id o q" by simp
@@ -251,12 +251,12 @@ lemma setprod_permute_natseg:assumes pS: "p permutes {m .. n}"
 (* Various combinations of transpositions with 2, 1 and 0 common elements.   *)
 (* ------------------------------------------------------------------------- *)
 
-lemma swap_id_common:" a \<noteq> c \<Longrightarrow> b \<noteq> c \<Longrightarrow>  Fun.swap a b id o Fun.swap a c id = Fun.swap b c id o Fun.swap a b id" by (simp add: ext_iff swap_def)
+lemma swap_id_common:" a \<noteq> c \<Longrightarrow> b \<noteq> c \<Longrightarrow>  Fun.swap a b id o Fun.swap a c id = Fun.swap b c id o Fun.swap a b id" by (simp add: fun_eq_iff swap_def)
 
-lemma swap_id_common': "~(a = b) \<Longrightarrow> ~(a = c) \<Longrightarrow> Fun.swap a c id o Fun.swap b c id = Fun.swap b c id o Fun.swap a b id" by (simp add: ext_iff swap_def)
+lemma swap_id_common': "~(a = b) \<Longrightarrow> ~(a = c) \<Longrightarrow> Fun.swap a c id o Fun.swap b c id = Fun.swap b c id o Fun.swap a b id" by (simp add: fun_eq_iff swap_def)
 
 lemma swap_id_independent: "~(a = c) \<Longrightarrow> ~(a = d) \<Longrightarrow> ~(b = c) \<Longrightarrow> ~(b = d) ==> Fun.swap a b id o Fun.swap c d id = Fun.swap c d id o Fun.swap a b id"
-  by (simp add: swap_def ext_iff)
+  by (simp add: swap_def fun_eq_iff)
 
 (* ------------------------------------------------------------------------- *)
 (* Permutations as transposition sequences.                                  *)
@@ -352,18 +352,18 @@ have "a \<noteq> b \<longrightarrow> c \<noteq> d \<longrightarrow>
   apply (rule_tac x="b" in exI)
   apply (rule_tac x="d" in exI)
   apply (rule_tac x="b" in exI)
-  apply (clarsimp simp add: ext_iff swap_def)
+  apply (clarsimp simp add: fun_eq_iff swap_def)
   apply (case_tac "a \<noteq> c \<and> b = d")
   apply (rule disjI2)
   apply (rule_tac x="c" in exI)
   apply (rule_tac x="d" in exI)
   apply (rule_tac x="c" in exI)
-  apply (clarsimp simp add: ext_iff swap_def)
+  apply (clarsimp simp add: fun_eq_iff swap_def)
   apply (rule disjI2)
   apply (rule_tac x="c" in exI)
   apply (rule_tac x="d" in exI)
   apply (rule_tac x="b" in exI)
-  apply (clarsimp simp add: ext_iff swap_def)
+  apply (clarsimp simp add: fun_eq_iff swap_def)
   done
 with H show ?thesis by metis
 qed
@@ -518,7 +518,7 @@ proof-
   from p obtain n where n: "swapidseq n p" unfolding permutation_def by blast
   from swapidseq_inverse_exists[OF n] obtain q where
     q: "swapidseq n q" "p \<circ> q = id" "q \<circ> p = id" by blast
-  thus ?thesis unfolding bij_iff  apply (auto simp add: ext_iff) apply metis done
+  thus ?thesis unfolding bij_iff  apply (auto simp add: fun_eq_iff) apply metis done
 qed
 
 lemma permutation_finite_support: assumes p: "permutation p"
@@ -544,7 +544,7 @@ lemma bij_inv_eq_iff: "bij p ==> x = inv p y \<longleftrightarrow> p x = y"
 lemma bij_swap_comp:
   assumes bp: "bij p" shows "Fun.swap a b id o p = Fun.swap (inv p a) (inv p b) p"
   using surj_f_inv_f[OF bij_is_surj[OF bp]]
-  by (simp add: ext_iff swap_def bij_inv_eq_iff[OF bp])
+  by (simp add: fun_eq_iff swap_def bij_inv_eq_iff[OF bp])
 
 lemma bij_swap_ompose_bij: "bij p \<Longrightarrow> bij (Fun.swap a b id o p)"
 proof-
@@ -688,7 +688,7 @@ proof-
         ultimately have "p n = n" by blast }
       ultimately show "p n = n"  by blast
     qed}
-  thus ?thesis by (auto simp add: ext_iff)
+  thus ?thesis by (auto simp add: fun_eq_iff)
 qed
 
 lemma permutes_natset_ge:
@@ -709,7 +709,7 @@ proof-
 qed
 
 lemma image_inverse_permutations: "{inv p |p. p permutes S} = {p. p permutes S}"
-apply (rule set_ext)
+apply (rule set_eqI)
 apply auto
   using permutes_inv_inv permutes_inv apply auto
   apply (rule_tac x="inv x" in exI)
@@ -718,7 +718,7 @@ apply auto
 
 lemma image_compose_permutations_left:
   assumes q: "q permutes S" shows "{q o p | p. p permutes S} = {p . p permutes S}"
-apply (rule set_ext)
+apply (rule set_eqI)
 apply auto
 apply (rule permutes_compose)
 using q apply auto
@@ -728,7 +728,7 @@ by (simp add: o_assoc permutes_inv permutes_compose permutes_inv_o)
 lemma image_compose_permutations_right:
   assumes q: "q permutes S"
   shows "{p o q | p. p permutes S} = {p . p permutes S}"
-apply (rule set_ext)
+apply (rule set_eqI)
 apply auto
 apply (rule permutes_compose)
 using q apply auto
@@ -811,7 +811,7 @@ lemma setsum_over_permutations_insert:
   shows "setsum f {p. p permutes (insert a S)} = setsum (\<lambda>b. setsum (\<lambda>q. f (Fun.swap a b id o q)) {p. p permutes S}) (insert a S)"
 proof-
   have th0: "\<And>f a b. (\<lambda>(b,p). f (Fun.swap a b id o p)) = f o (\<lambda>(b,p). Fun.swap a b id o p)"
-    by (simp add: ext_iff)
+    by (simp add: fun_eq_iff)
   have th1: "\<And>P Q. P \<times> Q = {(a,b). a \<in> P \<and> b \<in> Q}" by blast
   have th2: "\<And>P Q. P \<Longrightarrow> (P \<Longrightarrow> Q) \<Longrightarrow> P \<and> Q" by blast
   show ?thesis

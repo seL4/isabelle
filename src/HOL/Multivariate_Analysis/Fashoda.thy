@@ -34,7 +34,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
     apply(subst infnorm_eq_0[THEN sym]) by auto
   let ?F = "(\<lambda>w::real^2. (f \<circ> (\<lambda>x. x$1)) w - (g \<circ> (\<lambda>x. x$2)) w)"
   have *:"\<And>i. (\<lambda>x::real^2. x $ i) ` {- 1..1} = {- 1..1::real}"
-    apply(rule set_ext) unfolding image_iff Bex_def mem_interval_cart apply rule defer 
+    apply(rule set_eqI) unfolding image_iff Bex_def mem_interval_cart apply rule defer 
     apply(rule_tac x="vec x" in exI) by auto
   { fix x assume "x \<in> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w) ` {- 1..1::real^2}"
     then guess w unfolding image_iff .. note w = this

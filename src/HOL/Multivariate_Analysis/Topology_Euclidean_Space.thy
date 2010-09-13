@@ -40,7 +40,7 @@ proof-
   {assume "T1=T2" hence "\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S" by simp}
   moreover
   {assume H: "\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S"
-    hence "openin T1 = openin T2" by (metis mem_def set_ext)
+    hence "openin T1 = openin T2" by (metis mem_def set_eqI)
     hence "topology (openin T1) = topology (openin T2)" by simp
     hence "T1 = T2" unfolding openin_inverse .}
   ultimately show ?thesis by blast
@@ -141,7 +141,7 @@ proof-
   moreover
   {fix K assume K: "K \<subseteq> ?L"
     have th0: "?L = (\<lambda>S. S \<inter> V) ` openin U "
-      apply (rule set_ext)
+      apply (rule set_eqI)
       apply (simp add: Ball_def image_iff)
       by (metis mem_def)
     from K[unfolded th0 subset_image_iff]
@@ -213,7 +213,7 @@ lemma open_openin: "open S \<longleftrightarrow> openin euclidean S"
 
 lemma topspace_euclidean: "topspace euclidean = UNIV"
   apply (simp add: topspace_def)
-  apply (rule set_ext)
+  apply (rule set_eqI)
   by (auto simp add: open_openin[symmetric])
 
 lemma topspace_euclidean_subtopology[simp]: "topspace (subtopology euclidean S) = S"
@@ -253,10 +253,10 @@ lemma ball_subset_cball[simp,intro]: "ball x e \<subseteq> cball x e" by (simp a
 lemma subset_ball[intro]: "d <= e ==> ball x d \<subseteq> ball x e" by (simp add: subset_eq)
 lemma subset_cball[intro]: "d <= e ==> cball x d \<subseteq> cball x e" by (simp add: subset_eq)
 lemma ball_max_Un: "ball a (max r s) = ball a r \<union> ball a s"
-  by (simp add: set_ext_iff) arith
+  by (simp add: set_eq_iff) arith
 
 lemma ball_min_Int: "ball a (min r s) = ball a r \<inter> ball a s"
-  by (simp add: set_ext_iff)
+  by (simp add: set_eq_iff)
 
 lemma diff_less_iff: "(a::real) - b > 0 \<longleftrightarrow> a > b"
   "(a::real) - b < 0 \<longleftrightarrow> a < b"
@@ -289,7 +289,7 @@ lemma open_contains_ball_eq: "open S \<Longrightarrow> \<forall>x. x\<in>S \<lon
   by (metis open_contains_ball subset_eq centre_in_ball)
 
 lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
-  unfolding mem_ball set_ext_iff
+  unfolding mem_ball set_eq_iff
   apply (simp add: not_less)
   by (metis zero_le_dist order_trans dist_self)
 
@@ -447,7 +447,7 @@ proof -
   let ?T = "\<Union>{S. open S \<and> a \<notin> S}"
   have "open ?T" by (simp add: open_Union)
   also have "?T = - {a}"
-    by (simp add: set_ext_iff separation_t1, auto)
+    by (simp add: set_eq_iff separation_t1, auto)
   finally show "closed {a}" unfolding closed_def .
 qed
 
@@ -483,7 +483,7 @@ proof
                ==> ~(d x y * 2 < d x z \<and> d z y * 2 < d x z)" by arith
   have "open ?U \<and> open ?V \<and> x \<in> ?U \<and> y \<in> ?V \<and> ?U \<inter> ?V = {}"
     using dist_pos_lt[OF xy] th0[of dist,OF dist_triangle dist_commute]
-    by (auto simp add: set_ext_iff)
+    by (auto simp add: set_eq_iff)
   then show "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
     by blast
 qed
@@ -641,7 +641,7 @@ subsection{* Interior of a Set *}
 definition "interior S = {x. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S}"
 
 lemma interior_eq: "interior S = S \<longleftrightarrow> open S"
-  apply (simp add: set_ext_iff interior_def)
+  apply (simp add: set_eq_iff interior_def)
   apply (subst (2) open_subopen) by (safe, blast+)
 
 lemma interior_open: "open S ==> (interior S = S)" by (metis interior_eq)
@@ -706,7 +706,7 @@ next
     proof (rule ccontr)
       assume "x \<notin> interior S"
       with `x \<in> R` `open R` obtain y where "y \<in> R - S"
-        unfolding interior_def set_ext_iff by fast
+        unfolding interior_def set_eq_iff by fast
       from `open R` `closed S` have "open (R - S)" by (rule open_Diff)
       from `R \<subseteq> S \<union> T` have "R - S \<subseteq> T" by fast
       from `y \<in> R - S` `open (R - S)` `R - S \<subseteq> T` `interior T = {}`
@@ -1006,7 +1006,7 @@ proof
     unfolding trivial_limit_def
     unfolding eventually_within eventually_at_topological
     unfolding islimpt_def
-    apply (clarsimp simp add: set_ext_iff)
+    apply (clarsimp simp add: set_eq_iff)
     apply (rename_tac T, rule_tac x=T in exI)
     apply (clarsimp, drule_tac x=y in bspec, simp_all)
     done
@@ -1904,18 +1904,18 @@ lemma frontier_ball:
   fixes a :: "'a::real_normed_vector"
   shows "0 < e ==> frontier(ball a e) = {x. dist a x = e}"
   apply (simp add: frontier_def closure_ball interior_open order_less_imp_le)
-  apply (simp add: set_ext_iff)
+  apply (simp add: set_eq_iff)
   by arith
 
 lemma frontier_cball:
   fixes a :: "'a::{real_normed_vector, perfect_space}"
   shows "frontier(cball a e) = {x. dist a x = e}"
   apply (simp add: frontier_def interior_cball closed_cball order_less_imp_le)
-  apply (simp add: set_ext_iff)
+  apply (simp add: set_eq_iff)
   by arith
 
 lemma cball_eq_empty: "(cball x e = {}) \<longleftrightarrow> e < 0"
-  apply (simp add: set_ext_iff not_le)
+  apply (simp add: set_eq_iff not_le)
   by (metis zero_le_dist dist_self order_less_le_trans)
 lemma cball_empty: "e < 0 ==> cball x e = {}" by (simp add: cball_eq_empty)
 
@@ -1927,13 +1927,13 @@ proof (rule linorder_cases)
   obtain a where "a \<noteq> x" "dist a x < e"
     using perfect_choose_dist [OF e] by auto
   hence "a \<noteq> x" "dist x a \<le> e" by (auto simp add: dist_commute)
-  with e show ?thesis by (auto simp add: set_ext_iff)
+  with e show ?thesis by (auto simp add: set_eq_iff)
 qed auto
 
 lemma cball_sing:
   fixes x :: "'a::metric_space"
   shows "e = 0 ==> cball x e = {x}"
-  by (auto simp add: set_ext_iff)
+  by (auto simp add: set_eq_iff)
 
 text{* For points in the interior, localization of limits makes no difference.   *}
 
@@ -3904,7 +3904,7 @@ qed
 lemma interior_translation:
   fixes s :: "'a::real_normed_vector set"
   shows "interior ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (interior s)"
-proof (rule set_ext, rule)
+proof (rule set_eqI, rule)
   fix x assume "x \<in> interior (op + a ` s)"
   then obtain e where "e>0" and e:"ball x e \<subseteq> op + a ` s" unfolding mem_interior by auto
   hence "ball (x - a) e \<subseteq> s" unfolding subset_eq Ball_def mem_ball dist_norm apply auto apply(erule_tac x="a + xa" in allE) unfolding ab_group_add_class.diff_diff_eq[THEN sym] by auto
@@ -4615,12 +4615,12 @@ subsection {* Intervals *}
 lemma interval: fixes a :: "'a::ordered_euclidean_space" shows
   "{a <..< b} = {x::'a. \<forall>i<DIM('a). a$$i < x$$i \<and> x$$i < b$$i}" and
   "{a .. b} = {x::'a. \<forall>i<DIM('a). a$$i \<le> x$$i \<and> x$$i \<le> b$$i}"
-  by(auto simp add:set_ext_iff eucl_le[where 'a='a] eucl_less[where 'a='a])
+  by(auto simp add:set_eq_iff eucl_le[where 'a='a] eucl_less[where 'a='a])
 
 lemma mem_interval: fixes a :: "'a::ordered_euclidean_space" shows
   "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i < x$$i \<and> x$$i < b$$i)"
   "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i \<le> x$$i \<and> x$$i \<le> b$$i)"
-  using interval[of a b] by(auto simp add: set_ext_iff eucl_le[where 'a='a] eucl_less[where 'a='a])
+  using interval[of a b] by(auto simp add: set_eq_iff eucl_le[where 'a='a] eucl_less[where 'a='a])
 
 lemma interval_eq_empty: fixes a :: "'a::ordered_euclidean_space" shows
  "({a <..< b} = {} \<longleftrightarrow> (\<exists>i<DIM('a). b$$i \<le> a$$i))" (is ?th1) and
@@ -4662,7 +4662,7 @@ lemma interval_ne_empty: fixes a :: "'a::ordered_euclidean_space" shows
 
 lemma interval_sing: fixes a :: "'a::ordered_euclidean_space" shows
  "{a .. a} = {a}" "{a<..<a} = {}"
-  apply(auto simp add: set_ext_iff euclidean_eq[where 'a='a] eucl_less[where 'a='a] eucl_le[where 'a='a])
+  apply(auto simp add: set_eq_iff euclidean_eq[where 'a='a] eucl_less[where 'a='a] eucl_le[where 'a='a])
   apply (simp add: order_eq_iff) apply(rule_tac x=0 in exI) by (auto simp add: not_less less_imp_le)
 
 lemma subset_interval_imp: fixes a :: "'a::ordered_euclidean_space" shows
@@ -4681,17 +4681,17 @@ proof(simp add: subset_eq, rule)
   { fix i assume "i<DIM('a)"
     hence "a $$ i \<le> x $$ i"
       using x order_less_imp_le[of "a$$i" "x$$i"] 
-      by(simp add: set_ext_iff eucl_less[where 'a='a] eucl_le[where 'a='a] euclidean_eq)
+      by(simp add: set_eq_iff eucl_less[where 'a='a] eucl_le[where 'a='a] euclidean_eq)
   }
   moreover
   { fix i assume "i<DIM('a)"
     hence "x $$ i \<le> b $$ i"
       using x order_less_imp_le[of "x$$i" "b$$i"]
-      by(simp add: set_ext_iff eucl_less[where 'a='a] eucl_le[where 'a='a] euclidean_eq)
+      by(simp add: set_eq_iff eucl_less[where 'a='a] eucl_le[where 'a='a] euclidean_eq)
   }
   ultimately
   show "a \<le> x \<and> x \<le> b"
-    by(simp add: set_ext_iff eucl_less[where 'a='a] eucl_le[where 'a='a] euclidean_eq)
+    by(simp add: set_eq_iff eucl_less[where 'a='a] eucl_le[where 'a='a] euclidean_eq)
 qed
 
 lemma subset_interval: fixes a :: "'a::ordered_euclidean_space" shows
@@ -4757,7 +4757,7 @@ lemma disjoint_interval: fixes a::"'a::ordered_euclidean_space" shows
   "{a<..<b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i<DIM('a). (b$$i \<le> a$$i \<or> d$$i \<le> c$$i \<or> b$$i \<le> c$$i \<or> d$$i \<le> a$$i))" (is ?th4)
 proof-
   let ?z = "(\<chi>\<chi> i. ((max (a$$i) (c$$i)) + (min (b$$i) (d$$i))) / 2)::'a"
-  note * = set_ext_iff Int_iff empty_iff mem_interval all_conj_distrib[THEN sym] eq_False
+  note * = set_eq_iff Int_iff empty_iff mem_interval all_conj_distrib[THEN sym] eq_False
   show ?th1 unfolding * apply safe apply(erule_tac x="?z" in allE)
     unfolding not_all apply(erule exE,rule_tac x=x in exI) apply(erule_tac[2-] x=i in allE) by auto
   show ?th2 unfolding * apply safe apply(erule_tac x="?z" in allE)
@@ -4770,7 +4770,7 @@ qed
 
 lemma inter_interval: fixes a :: "'a::ordered_euclidean_space" shows
  "{a .. b} \<inter> {c .. d} =  {(\<chi>\<chi> i. max (a$$i) (c$$i)) .. (\<chi>\<chi> i. min (b$$i) (d$$i))}"
-  unfolding set_ext_iff and Int_iff and mem_interval
+  unfolding set_eq_iff and Int_iff and mem_interval
   by auto
 
 (* Moved interval_open_subset_closed a bit upwards *)
@@ -5440,7 +5440,7 @@ proof-
     then obtain x where "\<forall>n. x n \<in> s \<and> g n = f (x n)" 
       using choice[of "\<lambda> n xa. xa \<in> s \<and> g n = f xa"] by auto
     hence x:"\<forall>n. x n \<in> s"  "\<forall>n. g n = f (x n)" by auto
-    hence "f \<circ> x = g" unfolding ext_iff by auto
+    hence "f \<circ> x = g" unfolding fun_eq_iff by auto
     then obtain l where "l\<in>s" and l:"(x ---> l) sequentially"
       using cs[unfolded complete_def, THEN spec[where x="x"]]
       using cauchy_isometric[OF `0<e` s f normf] and cfg and x(1) by auto

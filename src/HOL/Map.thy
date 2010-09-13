@@ -218,7 +218,7 @@ qed
 
 lemma map_of_zip_map:
   "map_of (zip xs (map f xs)) = (\<lambda>x. if x \<in> set xs then Some (f x) else None)"
-  by (induct xs) (simp_all add: ext_iff)
+  by (induct xs) (simp_all add: fun_eq_iff)
 
 lemma finite_range_map_of: "finite (range (map_of xys))"
 apply (induct xys)
@@ -245,7 +245,7 @@ by (induct xs) auto
 
 lemma map_of_map:
   "map_of (map (\<lambda>(k, v). (k, f v)) xs) = Option.map f \<circ> map_of xs"
-  by (induct xs) (auto simp add: ext_iff)
+  by (induct xs) (auto simp add: fun_eq_iff)
 
 lemma dom_option_map:
   "dom (\<lambda>k. Option.map (f k) (m k)) = dom m"
@@ -347,7 +347,7 @@ qed
 
 lemma map_add_map_of_foldr:
   "m ++ map_of ps = foldr (\<lambda>(k, v) m. m(k \<mapsto> v)) ps m"
-  by (induct ps) (auto simp add: ext_iff map_add_def)
+  by (induct ps) (auto simp add: fun_eq_iff map_add_def)
 
 
 subsection {* @{term [source] restrict_map} *}
@@ -381,26 +381,26 @@ by (rule ext) (auto simp: restrict_map_def)
 
 lemma restrict_fun_upd [simp]:
   "m(x := y)|`D = (if x \<in> D then (m|`(D-{x}))(x := y) else m|`D)"
-by (simp add: restrict_map_def ext_iff)
+by (simp add: restrict_map_def fun_eq_iff)
 
 lemma fun_upd_None_restrict [simp]:
   "(m|`D)(x := None) = (if x:D then m|`(D - {x}) else m|`D)"
-by (simp add: restrict_map_def ext_iff)
+by (simp add: restrict_map_def fun_eq_iff)
 
 lemma fun_upd_restrict: "(m|`D)(x := y) = (m|`(D-{x}))(x := y)"
-by (simp add: restrict_map_def ext_iff)
+by (simp add: restrict_map_def fun_eq_iff)
 
 lemma fun_upd_restrict_conv [simp]:
   "x \<in> D \<Longrightarrow> (m|`D)(x := y) = (m|`(D-{x}))(x := y)"
-by (simp add: restrict_map_def ext_iff)
+by (simp add: restrict_map_def fun_eq_iff)
 
 lemma map_of_map_restrict:
   "map_of (map (\<lambda>k. (k, f k)) ks) = (Some \<circ> f) |` set ks"
-  by (induct ks) (simp_all add: ext_iff restrict_map_insert)
+  by (induct ks) (simp_all add: fun_eq_iff restrict_map_insert)
 
 lemma restrict_complement_singleton_eq:
   "f |` (- {x}) = f(x := None)"
-  by (simp add: restrict_map_def ext_iff)
+  by (simp add: restrict_map_def fun_eq_iff)
 
 
 subsection {* @{term [source] map_upds} *}
@@ -641,7 +641,7 @@ lemma map_le_map_add [simp]: "f \<subseteq>\<^sub>m (g ++ f)"
 by (fastsimp simp add: map_le_def)
 
 lemma map_le_iff_map_add_commute: "(f \<subseteq>\<^sub>m f ++ g) = (f++g = g++f)"
-by(fastsimp simp: map_add_def map_le_def ext_iff split: option.splits)
+by(fastsimp simp: map_add_def map_le_def fun_eq_iff split: option.splits)
 
 lemma map_add_le_mapE: "f++g \<subseteq>\<^sub>m h \<Longrightarrow> g \<subseteq>\<^sub>m h"
 by (fastsimp simp add: map_le_def map_add_def dom_def)

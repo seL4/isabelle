@@ -210,7 +210,7 @@ done
 
 lemma compat_single_ch: "compatible srch_ioa rsch_ioa"
 apply (simp add: compatible_def Int_def)
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (induct_tac x)
 apply simp_all
 done
@@ -218,7 +218,7 @@ done
 text {* totally the same as before *}
 lemma compat_single_fin_ch: "compatible srch_fin_ioa rsch_fin_ioa"
 apply (simp add: compatible_def Int_def)
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (induct_tac x)
 apply simp_all
 done
@@ -232,7 +232,7 @@ lemma compat_rec: "compatible receiver_ioa (srch_ioa || rsch_ioa)"
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (induct_tac x)
 apply simp_all
 done
@@ -242,7 +242,7 @@ lemma compat_rec_fin: "compatible receiver_ioa (srch_fin_ioa || rsch_fin_ioa)"
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (induct_tac x)
 apply simp_all
 done
@@ -252,7 +252,7 @@ lemma compat_sen: "compatible sender_ioa
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (induct_tac x)
 apply simp_all
 done
@@ -262,7 +262,7 @@ lemma compat_sen_fin: "compatible sender_ioa
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (induct_tac x)
 apply simp_all
 done
@@ -272,7 +272,7 @@ lemma compat_env: "compatible env_ioa
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (induct_tac x)
 apply simp_all
 done
@@ -282,7 +282,7 @@ lemma compat_env_fin: "compatible env_ioa
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (induct_tac x)
 apply simp_all
 done

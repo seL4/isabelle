@@ -272,7 +272,7 @@ notation (xsymbols)
 
 lemma Union_eq:
   "\<Union>A = {x. \<exists>B \<in> A. x \<in> B}"
-proof (rule set_ext)
+proof (rule set_eqI)
   fix x
   have "(\<exists>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<exists>B\<in>A. x \<in> B)"
     by auto
@@ -508,7 +508,7 @@ notation (xsymbols)
 
 lemma Inter_eq:
   "\<Inter>A = {x. \<forall>B \<in> A. x \<in> B}"
-proof (rule set_ext)
+proof (rule set_eqI)
   fix x
   have "(\<forall>Q\<in>{P. \<exists>B\<in>A. P \<longleftrightarrow> x \<in> B}. Q) \<longleftrightarrow> (\<forall>B\<in>A. x \<in> B)"
     by auto

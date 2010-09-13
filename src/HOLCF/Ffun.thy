@@ -27,7 +27,7 @@ proof
 next
   fix f g :: "'a \<Rightarrow> 'b"
   assume "f \<sqsubseteq> g" and "g \<sqsubseteq> f" thus "f = g"
-    by (simp add: below_fun_def ext_iff below_antisym)
+    by (simp add: below_fun_def fun_eq_iff below_antisym)
 next
   fix f g h :: "'a \<Rightarrow> 'b"
   assume "f \<sqsubseteq> g" and "g \<sqsubseteq> h" thus "f \<sqsubseteq> h"
@@ -103,7 +103,7 @@ instance "fun" :: (type, discrete_cpo) discrete_cpo
 proof
   fix f g :: "'a \<Rightarrow> 'b"
   show "f \<sqsubseteq> g \<longleftrightarrow> f = g" 
-    unfolding expand_fun_below ext_iff
+    unfolding expand_fun_below fun_eq_iff
     by simp
 qed
 
@@ -111,7 +111,7 @@ text {* chain-finite function spaces *}
 
 lemma maxinch2maxinch_lambda:
   "(\<And>x. max_in_chain n (\<lambda>i. S i x)) \<Longrightarrow> max_in_chain n S"
-unfolding max_in_chain_def ext_iff by simp
+unfolding max_in_chain_def fun_eq_iff by simp
 
 lemma maxinch_mono:
   "\<lbrakk>max_in_chain i Y; i \<le> j\<rbrakk> \<Longrightarrow> max_in_chain j Y"

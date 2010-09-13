@@ -101,7 +101,7 @@ subsection {* The odd/even result for faces of complete vertices, generalized. *
 lemma card_1_exists: "card s = 1 \<longleftrightarrow> (\<exists>!x. x \<in> s)" unfolding One_nat_def
   apply rule apply(drule card_eq_SucD) defer apply(erule ex1E) proof-
   fix x assume as:"x \<in> s" "\<forall>y. y \<in> s \<longrightarrow> y = x"
-  have *:"s = insert x {}" apply- apply(rule set_ext,rule) unfolding singleton_iff
+  have *:"s = insert x {}" apply- apply(rule set_eqI,rule) unfolding singleton_iff
     apply(rule as(2)[rule_format]) using as(1) by auto
   show "card s = Suc 0" unfolding * using card_insert by auto qed auto
 
@@ -122,7 +122,7 @@ lemma image_lemma_1: assumes "finite s" "finite t" "card s = card t" "f ` s = t"
   shows "card {s'. \<exists>a\<in>s. s' = s - {a} \<and>  f ` s' = t - {b}} = 1" proof-
   obtain a where a:"b = f a" "a\<in>s" using assms(4-5) by auto
   have inj:"inj_on f s" apply(rule eq_card_imp_inj_on) using assms(1-4) by auto
-  have *:"{a \<in> s. f ` (s - {a}) = t - {b}} = {a}" apply(rule set_ext) unfolding singleton_iff
+  have *:"{a \<in> s. f ` (s - {a}) = t - {b}} = {a}" apply(rule set_eqI) unfolding singleton_iff
     apply(rule,rule inj[unfolded inj_on_def,rule_format]) unfolding a using a(2) and assms and inj[unfolded inj_on_def] by auto
   show ?thesis apply(rule image_lemma_0) unfolding *  by auto qed
 
@@ -135,7 +135,7 @@ next let ?M = "{a\<in>s. f ` (s - {a}) = t - {b}}"
   have "f a \<in> t - {b}" using a and assms by auto
   hence "\<exists>c \<in> s - {a}. f a = f c" unfolding image_iff[symmetric] and a by auto
   then obtain c where c:"c \<in> s" "a \<noteq> c" "f a = f c" by auto
-  hence *:"f ` (s - {c}) = f ` (s - {a})" apply-apply(rule set_ext,rule) proof-
+  hence *:"f ` (s - {c}) = f ` (s - {a})" apply-apply(rule set_eqI,rule) proof-
     fix x assume "x \<in> f ` (s - {a})" then obtain y where y:"f y = x" "y\<in>s- {a}" by auto
     thus "x \<in> f ` (s - {c})" unfolding image_iff apply(rule_tac x="if y = c then a else y" in bexI) using c a by auto qed auto
   have "c\<in>?M" unfolding mem_Collect_eq and * using a and c(1) by auto
@@ -165,7 +165,7 @@ lemma kuhn_complete_lemma:
     (\<exists>a\<in>s. (f = s - {a})) \<and> P f \<longleftrightarrow> (\<exists>a\<in>s. (f = s - {a}) \<and> P f)" by auto
   fix s assume s:"s\<in>simplices" let ?S = "{f \<in> {f. \<exists>s\<in>simplices. face f s}. face f s \<and> rl ` f = {0..n}}"
     have "{0..n + 1} - {n + 1} = {0..n}" by auto
-    hence S:"?S = {s'. \<exists>a\<in>s. s' = s - {a} \<and> rl ` s' = {0..n + 1} - {n + 1}}" apply- apply(rule set_ext)
+    hence S:"?S = {s'. \<exists>a\<in>s. s' = s - {a} \<and> rl ` s' = {0..n + 1} - {n + 1}}" apply- apply(rule set_eqI)
       unfolding assms(2)[rule_format] mem_Collect_eq and *[OF s, unfolded mem_Collect_eq, where P="\<lambda>x. rl ` x = {0..n}"] by auto
     show "rl ` s = {0..n+1} \<Longrightarrow> card ?S = 1" "rl ` s \<noteq> {0..n+1} \<Longrightarrow> card ?S = 0 \<or> card ?S = 2" unfolding S
       apply(rule_tac[!] image_lemma_1 image_lemma_2) using ** assms(4) and s by auto qed
@@ -493,13 +493,13 @@ subsection {* The lemmas about simplices that we need. *}
 lemma card_funspace': assumes "finite s" "finite t" "card s = m" "card t = n"
   shows "card {f. (\<forall>x\<in>s. f x \<in> t) \<and> (\<forall>x\<in>UNIV - s. f x = d)} = n ^ m" (is "card (?M s) = _")
   using assms apply - proof(induct m arbitrary: s)
-  have *:"{f. \<forall>x. f x = d} = {\<lambda>x. d}" apply(rule set_ext,rule)unfolding mem_Collect_eq apply(rule,rule ext) by auto
+  have *:"{f. \<forall>x. f x = d} = {\<lambda>x. d}" apply(rule set_eqI,rule)unfolding mem_Collect_eq apply(rule,rule ext) by auto
   case 0 thus ?case by(auto simp add: *) next
   case (Suc m) guess a using card_eq_SucD[OF Suc(4)] .. then guess s0
     apply(erule_tac exE) apply(erule conjE)+ . note as0 = this
   have **:"card s0 = m" using as0 using Suc(2) Suc(4) by auto
   let ?l = "(\<lambda>(b,g) x. if x = a then b else g x)" have *:"?M (insert a s0) = ?l ` {(b,g). b\<in>t \<and> g\<in>?M s0}"
-    apply(rule set_ext,rule) unfolding mem_Collect_eq image_iff apply(erule conjE)
+    apply(rule set_eqI,rule) unfolding mem_Collect_eq image_iff apply(erule conjE)
     apply(rule_tac x="(x a, \<lambda>y. if y\<in>s0 then x y else d)" in bexI) apply(rule ext) prefer 3 apply rule defer
     apply(erule bexE,rule) unfolding mem_Collect_eq apply(erule splitE)+ apply(erule conjE)+ proof-
     fix x xa xb xc y assume as:"x = (\<lambda>(b, g) x. if x = a then b else g x) xa" "xb \<in> UNIV - insert a s0" "xa = (xc, y)" "xc \<in> t"
@@ -725,7 +725,7 @@ lemma ksimplex_replace_2:
 	    hence "a_max = a'" using a' min_max by auto
 	    thus False unfolding True using min_max by auto qed qed
 	hence "\<forall>i. a_max i = a1 i" by auto
-	hence "a' = a" unfolding True `a=a0` apply-apply(subst ext_iff,rule)
+	hence "a' = a" unfolding True `a=a0` apply-apply(subst fun_eq_iff,rule)
 	  apply(erule_tac x=x in allE) unfolding a0a1(5)[rule_format] min_max(5)[rule_format]
 	proof- case goal1 thus ?case apply(cases "x\<in>{1..n}") by auto qed
 	hence "s' = s" apply-apply(rule lem1[OF a'(2)]) using `a\<in>s` `a'\<in>s'` by auto
@@ -738,7 +738,7 @@ lemma ksimplex_replace_2:
 	  have "a2 \<noteq> a" unfolding `a=a0` using k(2)[rule_format,of k] by auto
 	  hence "a2 \<in> s - {a}" using a2 by auto thus "a2 \<in> s'" unfolding a'(2)[THEN sym] by auto qed
 	hence "\<forall>i. a_min i = a2 i" by auto
-	hence "a' = a3" unfolding as `a=a0` apply-apply(subst ext_iff,rule)
+	hence "a' = a3" unfolding as `a=a0` apply-apply(subst fun_eq_iff,rule)
 	  apply(erule_tac x=x in allE) unfolding a0a1(5)[rule_format] min_max(5)[rule_format]
 	  unfolding a3_def k(2)[rule_format] unfolding a0a1(5)[rule_format] proof- case goal1
 	  show ?case unfolding goal1 apply(cases "x\<in>{1..n}") defer apply(cases "x=k")
@@ -834,7 +834,7 @@ lemma ksimplex_replace_2:
 	proof- case goal1 thus ?case apply(cases "j\<in>{1..n}",case_tac[!] "j=k") by auto qed
 	have "\<forall>i. a_min i = a3 i" using a_max apply-apply(rule,erule_tac x=i in allE)
 	  unfolding min_max(5)[rule_format] *[rule_format] proof- case goal1
-	  thus ?case apply(cases "i\<in>{1..n}") by auto qed hence "a_min = a3" unfolding ext_iff .
+	  thus ?case apply(cases "i\<in>{1..n}") by auto qed hence "a_min = a3" unfolding fun_eq_iff .
 	hence "s' = insert a3 (s - {a1})" using a' unfolding `a=a1` True by auto thus ?thesis by auto next
 	case False hence as:"a'=a_max" using ** by auto
 	have "a_min = a0" unfolding kle_antisym[THEN sym,of _ _ n] apply(rule)
@@ -843,7 +843,7 @@ lemma ksimplex_replace_2:
 	  thus "a_min \<in> s" by auto have "a0 \<in> s - {a1}" using a0a1(1-3) by auto thus "a0 \<in> s'"
 	    unfolding a'(2)[THEN sym,unfolded `a=a1`] by auto qed
 	hence "\<forall>i. a_max i = a1 i" unfolding a0a1(5)[rule_format] min_max(5)[rule_format] by auto
-	hence "s' = s" apply-apply(rule lem1[OF a'(2)]) using `a\<in>s` `a'\<in>s'` unfolding as `a=a1` unfolding ext_iff by auto
+	hence "s' = s" apply-apply(rule lem1[OF a'(2)]) using `a\<in>s` `a'\<in>s'` unfolding as `a=a1` unfolding fun_eq_iff by auto
 	thus ?thesis by auto qed qed 
     ultimately have *:"?A = {s, insert a3 (s - {a1})}" by blast
     have "s \<noteq> insert a3 (s - {a1})" using `a3\<notin>s` by auto
@@ -863,7 +863,7 @@ lemma ksimplex_replace_2:
       thus False using ksimplexD(6)[OF assms(1),rule_format,OF u v] unfolding kle_def
 	unfolding l(2) k(2) `k=l` apply-apply(erule disjE)apply(erule_tac[!] exE conjE)+
 	apply(erule_tac[!] x=l in allE)+ by(auto simp add: *) qed
-    hence aa':"a'\<noteq>a" apply-apply rule unfolding ext_iff unfolding a'_def k(2)
+    hence aa':"a'\<noteq>a" apply-apply rule unfolding fun_eq_iff unfolding a'_def k(2)
       apply(erule_tac x=l in allE) by auto
     have "a' \<notin> s" apply(rule) apply(drule ksimplexD(6)[OF assms(1),rule_format,OF `a\<in>s`]) proof(cases "kle n a a'")
       case goal2 hence "kle n a' a" by auto thus False apply(drule_tac kle_imp_pointwise)
@@ -877,22 +877,22 @@ lemma ksimplex_replace_2:
     have uxv:"\<And>x. kle n u x \<Longrightarrow> kle n x v \<Longrightarrow> (x = u) \<or> (x = a) \<or> (x = a') \<or> (x = v)"
     proof- case goal1 thus ?case proof(cases "x k = u k", case_tac[!] "x l = u l")
       assume as:"x l = u l" "x k = u k"
-      have "x = u" unfolding ext_iff
+      have "x = u" unfolding fun_eq_iff
 	using goal1(2)[THEN kle_imp_pointwise,unfolded l(2)] unfolding k(2) apply-
 	using goal1(1)[THEN kle_imp_pointwise] apply-apply rule apply(erule_tac x=xa in allE)+ proof- case goal1
 	thus ?case apply(cases "x=l") apply(case_tac[!] "x=k") using as by auto qed thus ?case by auto next
       assume as:"x l \<noteq> u l" "x k = u k"
-      have "x = a'" unfolding ext_iff unfolding a'_def
+      have "x = a'" unfolding fun_eq_iff unfolding a'_def
 	using goal1(2)[THEN kle_imp_pointwise] unfolding l(2) k(2) apply-
 	using goal1(1)[THEN kle_imp_pointwise] apply-apply rule apply(erule_tac x=xa in allE)+ proof- case goal1
 	thus ?case apply(cases "x=l") apply(case_tac[!] "x=k") using as by auto qed thus ?case by auto next
       assume as:"x l = u l" "x k \<noteq> u k"
-      have "x = a" unfolding ext_iff
+      have "x = a" unfolding fun_eq_iff
 	using goal1(2)[THEN kle_imp_pointwise] unfolding l(2) k(2) apply-
 	using goal1(1)[THEN kle_imp_pointwise] apply-apply rule apply(erule_tac x=xa in allE)+ proof- case goal1
 	thus ?case apply(cases "x=l") apply(case_tac[!] "x=k") using as by auto qed thus ?case by auto next
       assume as:"x l \<noteq> u l" "x k \<noteq> u k"
-      have "x = v" unfolding ext_iff
+      have "x = v" unfolding fun_eq_iff
 	using goal1(2)[THEN kle_imp_pointwise] unfolding l(2) k(2) apply-
 	using goal1(1)[THEN kle_imp_pointwise] apply-apply rule apply(erule_tac x=xa in allE)+ proof- case goal1
 	thus ?case apply(cases "x=l") apply(case_tac[!] "x=k") using as `k\<noteq>l` by auto qed thus ?case by auto qed qed
@@ -935,9 +935,9 @@ lemma ksimplex_replace_2:
     moreover have "?A \<subseteq> {s, insert a' (s - {a})}" apply(rule) unfolding mem_Collect_eq proof(erule conjE)
       fix s' assume as:"ksimplex p n s'" and "\<exists>b\<in>s'. s' - {b} = s - {a}"
       from this(2) guess a'' .. note a''=this
-      have "u\<noteq>v" unfolding ext_iff unfolding l(2) k(2) by auto
+      have "u\<noteq>v" unfolding fun_eq_iff unfolding l(2) k(2) by auto
       hence uv':"\<not> kle n v u" using uv using kle_antisym by auto
-      have "u\<noteq>a" "v\<noteq>a" unfolding ext_iff k(2) l(2) by auto 
+      have "u\<noteq>a" "v\<noteq>a" unfolding fun_eq_iff k(2) l(2) by auto 
       hence uvs':"u\<in>s'" "v\<in>s'" using `u\<in>s` `v\<in>s` using a'' by auto
       have lem6:"a \<in> s' \<or> a' \<in> s'" proof(cases "\<forall>x\<in>s'. kle n x u \<or> kle n v x")
 	case False then guess w unfolding ball_simps .. note w=this
@@ -1052,7 +1052,7 @@ lemma kuhn_induction:
   shows "odd (card {s. ksimplex p (n+1) s \<and>((reduced lab (n+1)) `  s = {0..n+1})})" proof-
   have *:"\<And>s t. odd (card s) \<Longrightarrow> s = t \<Longrightarrow> odd (card t)" "\<And>s f. (\<And>x. f x \<le> n +1 ) \<Longrightarrow> f ` s \<subseteq> {0..n+1}" by auto
   show ?thesis apply(rule kuhn_simplex_lemma[unfolded mem_Collect_eq]) apply(rule,rule,rule *,rule reduced_labelling)
-    apply(rule *(1)[OF assms(4)]) apply(rule set_ext) unfolding mem_Collect_eq apply(rule,erule conjE) defer apply(rule) proof-(*(rule,rule)*)
+    apply(rule *(1)[OF assms(4)]) apply(rule set_eqI) unfolding mem_Collect_eq apply(rule,erule conjE) defer apply(rule) proof-(*(rule,rule)*)
     fix f assume as:"ksimplex p n f" "reduced lab n ` f = {0..n}"
     have *:"\<forall>x\<in>f. \<forall>j\<in>{1..n + 1}. x j = 0 \<longrightarrow> lab x j = 0" "\<forall>x\<in>f. \<forall>j\<in>{1..n + 1}. x j = p \<longrightarrow> lab x j = 1"
       using assms(2-3) using as(1)[unfolded ksimplex_def] by auto
@@ -1060,7 +1060,7 @@ lemma kuhn_induction:
     { fix x assume "x\<in>f" hence "reduced lab (n + 1) x < n + 1" apply-apply(rule reduced_labelling_1)
 	defer using assms(3) using as(1)[unfolded ksimplex_def] by auto
       hence "reduced lab (n + 1) x = reduced lab n x" apply-apply(rule reduced_labelling_Suc) using reduced_labelling(1) by auto }
-    hence "reduced lab (n + 1) ` f = {0..n}" unfolding as(2)[THEN sym] apply- apply(rule set_ext) unfolding image_iff by auto
+    hence "reduced lab (n + 1) ` f = {0..n}" unfolding as(2)[THEN sym] apply- apply(rule set_eqI) unfolding image_iff by auto
     moreover guess s using as(1)[unfolded simplex_top_face[OF assms(1) allp,THEN sym]] .. then guess a ..
     ultimately show "\<exists>s a. ksimplex p (n + 1) s \<and>
       a \<in> s \<and> f = s - {a} \<and> reduced lab (n + 1) ` f = {0..n} \<and> ((\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0) \<or> (\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p))" (is ?ex)
@@ -1072,7 +1072,7 @@ lemma kuhn_induction:
       hence "reduced lab (n + 1) x < n + 1" using sa(4) by auto 
       hence "reduced lab (n + 1) x = reduced lab n x" apply-apply(rule reduced_labelling_Suc)
 	using reduced_labelling(1) by auto }
-    thus part1:"reduced lab n ` f = {0..n}" unfolding sa(4)[THEN sym] apply-apply(rule set_ext) unfolding image_iff by auto
+    thus part1:"reduced lab n ` f = {0..n}" unfolding sa(4)[THEN sym] apply-apply(rule set_eqI) unfolding image_iff by auto
     have *:"\<forall>x\<in>f. x (n + 1) = p" proof(cases "\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0")
       case True then guess j .. hence "\<And>x. x\<in>f \<Longrightarrow> reduced lab (n + 1) x \<noteq> j - 1" apply-apply(rule reduced_labelling_0) apply assumption
 	apply(rule assms(2)[rule_format]) using sa(1)[unfolded ksimplex_def] unfolding sa by auto moreover

@@ -42,7 +42,7 @@ definition
   "HOL.equal f g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
 
 instance proof
-qed (simp_all add: equal_fun_def enum_all ext_iff)
+qed (simp_all add: equal_fun_def enum_all fun_eq_iff)
 
 end
 
@@ -54,7 +54,7 @@ lemma order_fun [code]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
   shows "f \<le> g \<longleftrightarrow> list_all (\<lambda>x. f x \<le> g x) enum"
     and "f < g \<longleftrightarrow> f \<le> g \<and> list_ex (\<lambda>x. f x \<noteq> g x) enum"
-  by (simp_all add: list_all_iff list_ex_iff enum_all ext_iff le_fun_def order_less_le)
+  by (simp_all add: list_all_iff list_ex_iff enum_all fun_eq_iff le_fun_def order_less_le)
 
 
 subsection {* Quantifiers *}
@@ -82,7 +82,7 @@ lemma length_n_lists_elem: "ys \<in> set (n_lists n xs) \<Longrightarrow> length
   by (induct n arbitrary: ys) auto
 
 lemma set_n_lists: "set (n_lists n xs) = {ys. length ys = n \<and> set ys \<subseteq> set xs}"
-proof (rule set_ext)
+proof (rule set_eqI)
   fix ys :: "'a list"
   show "ys \<in> set (n_lists n xs) \<longleftrightarrow> ys \<in> {ys. length ys = n \<and> set ys \<subseteq> set xs}"
   proof -
@@ -160,7 +160,7 @@ instance proof
   proof (rule UNIV_eq_I)
     fix f :: "'a \<Rightarrow> 'b"
     have "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
-      by (auto simp add: map_of_zip_map ext_iff)
+      by (auto simp add: map_of_zip_map fun_eq_iff)
     then show "f \<in> set enum"
       by (auto simp add: enum_fun_def set_n_lists)
   qed

@@ -880,7 +880,7 @@ lemma column_transpose:
   by (simp add: row_def column_def transpose_def Cart_eq)
 
 lemma rows_transpose: "rows(transpose (A::'a::semiring_1^_^_)) = columns A"
-by (auto simp add: rows_def columns_def row_transpose intro: set_ext)
+by (auto simp add: rows_def columns_def row_transpose intro: set_eqI)
 
 lemma columns_transpose: "columns(transpose (A::'a::semiring_1^_^_)) = rows A" by (metis transpose_transpose rows_transpose)
 
@@ -986,7 +986,7 @@ qed
 subsection {* Standard bases are a spanning set, and obviously finite. *}
 
 lemma span_stdbasis:"span {cart_basis i :: real^'n | i. i \<in> (UNIV :: 'n set)} = UNIV"
-apply (rule set_ext)
+apply (rule set_eqI)
 apply auto
 apply (subst basis_expansion'[symmetric])
 apply (rule span_setsum)
@@ -1440,12 +1440,12 @@ unfolding continuous_on_def by (intro ballI tendsto_intros)
 lemma interval_cart: fixes a :: "'a::ord^'n" shows
   "{a <..< b} = {x::'a^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}" and
   "{a .. b} = {x::'a^'n. \<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i}"
-  by (auto simp add: set_ext_iff vector_less_def vector_le_def)
+  by (auto simp add: set_eq_iff vector_less_def vector_le_def)
 
 lemma mem_interval_cart: fixes a :: "'a::ord^'n" shows
   "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
   "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
-  using interval_cart[of a b] by(auto simp add: set_ext_iff vector_less_def vector_le_def)
+  using interval_cart[of a b] by(auto simp add: set_eq_iff vector_less_def vector_le_def)
 
 lemma interval_eq_empty_cart: fixes a :: "real^'n" shows
  "({a <..< b} = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1) and
@@ -1498,7 +1498,7 @@ lemma subset_interval_imp_cart: fixes a :: "real^'n" shows
 
 lemma interval_sing: fixes a :: "'a::linorder^'n" shows
  "{a .. a} = {a} \<and> {a<..<a} = {}"
-apply(auto simp add: set_ext_iff vector_less_def vector_le_def Cart_eq)
+apply(auto simp add: set_eq_iff vector_less_def vector_le_def Cart_eq)
 apply (simp add: order_eq_iff)
 apply (auto simp add: not_less less_imp_le)
 done
@@ -1511,17 +1511,17 @@ proof(simp add: subset_eq, rule)
   { fix i
     have "a $ i \<le> x $ i"
       using x order_less_imp_le[of "a$i" "x$i"]
-      by(simp add: set_ext_iff vector_less_def vector_le_def Cart_eq)
+      by(simp add: set_eq_iff vector_less_def vector_le_def Cart_eq)
   }
   moreover
   { fix i
     have "x $ i \<le> b $ i"
       using x order_less_imp_le[of "x$i" "b$i"]
-      by(simp add: set_ext_iff vector_less_def vector_le_def Cart_eq)
+      by(simp add: set_eq_iff vector_less_def vector_le_def Cart_eq)
   }
   ultimately
   show "a \<le> x \<and> x \<le> b"
-    by(simp add: set_ext_iff vector_less_def vector_le_def Cart_eq)
+    by(simp add: set_eq_iff vector_less_def vector_le_def Cart_eq)
 qed
 
 lemma subset_interval_cart: fixes a :: "real^'n" shows
@@ -1540,7 +1540,7 @@ lemma disjoint_interval_cart: fixes a::"real^'n" shows
 
 lemma inter_interval_cart: fixes a :: "'a::linorder^'n" shows
  "{a .. b} \<inter> {c .. d} =  {(\<chi> i. max (a$i) (c$i)) .. (\<chi> i. min (b$i) (d$i))}"
-  unfolding set_ext_iff and Int_iff and mem_interval_cart
+  unfolding set_eq_iff and Int_iff and mem_interval_cart
   by auto
 
 lemma closed_interval_left_cart: fixes b::"real^'n"
@@ -1656,7 +1656,7 @@ lemma affinity_inverses:
   shows "(\<lambda>x. m *s x + c) o (\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) = id"
   "(\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) o (\<lambda>x. m *s x + c) = id"
   using m0
-apply (auto simp add: ext_iff vector_add_ldistrib)
+apply (auto simp add: fun_eq_iff vector_add_ldistrib)
 by (simp_all add: vector_smult_lneg[symmetric] vector_smult_assoc vector_sneg_minus1[symmetric])
 
 lemma vector_affinity_eq:
@@ -1712,7 +1712,7 @@ lemma convex_positive_orthant_cart: "convex {x::real^'n. (\<forall>i. 0 \<le> x$
 lemma unit_interval_convex_hull_cart:
   "{0::real^'n .. 1} = convex hull {x. \<forall>i. (x$i = 0) \<or> (x$i = 1)}" (is "?int = convex hull ?points")
   unfolding Cart_1 unit_interval_convex_hull[where 'a="real^'n"]
-  apply(rule arg_cong[where f="\<lambda>x. convex hull x"]) apply(rule set_ext) unfolding mem_Collect_eq
+  apply(rule arg_cong[where f="\<lambda>x. convex hull x"]) apply(rule set_eqI) unfolding mem_Collect_eq
   apply safe apply(erule_tac x="\<pi>' i" in allE) unfolding nth_conv_component defer
   apply(erule_tac x="\<pi> i" in allE) by auto
 
@@ -1974,7 +1974,7 @@ lemma forall_vector_3: "(\<forall>v::'a::zero^3. P v) \<longleftrightarrow> (\<f
   apply (simp add: forall_3)
   done
 
-lemma range_vec1[simp]:"range vec1 = UNIV" apply(rule set_ext,rule) unfolding image_iff defer
+lemma range_vec1[simp]:"range vec1 = UNIV" apply(rule set_eqI,rule) unfolding image_iff defer
   apply(rule_tac x="dest_vec1 x" in bexI) by auto
 
 lemma dest_vec1_lambda: "dest_vec1(\<chi> i. x i) = x 1"
@@ -2069,7 +2069,7 @@ by(simp_all add: Cart_eq vector_less_def vector_le_def)
 lemma vec1_interval:fixes a::"real" shows
   "vec1 ` {a .. b} = {vec1 a .. vec1 b}"
   "vec1 ` {a<..<b} = {vec1 a<..<vec1 b}"
-  apply(rule_tac[!] set_ext) unfolding image_iff vector_less_def unfolding mem_interval_cart
+  apply(rule_tac[!] set_eqI) unfolding image_iff vector_less_def unfolding mem_interval_cart
   unfolding forall_1 unfolding vec1_dest_vec1_simps
   apply rule defer apply(rule_tac x="dest_vec1 x" in bexI) prefer 3 apply rule defer
   apply(rule_tac x="dest_vec1 x" in bexI) by auto
@@ -2119,10 +2119,10 @@ lemma disjoint_interval_1: fixes a :: "real^1" shows
 
 lemma open_closed_interval_1: fixes a :: "real^1" shows
  "{a<..<b} = {a .. b} - {a, b}"
-  unfolding set_ext_iff apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
+  unfolding set_eq_iff apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
 
 lemma closed_open_interval_1: "dest_vec1 (a::real^1) \<le> dest_vec1 b ==> {a .. b} = {a<..<b} \<union> {a,b}"
-  unfolding set_ext_iff apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
+  unfolding set_eq_iff apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
 
 lemma Lim_drop_le: fixes f :: "'a \<Rightarrow> real^1" shows
   "(f ---> l) net \<Longrightarrow> ~(trivial_limit net) \<Longrightarrow> eventually (\<lambda>x. dest_vec1 (f x) \<le> b) net ==> dest_vec1 l \<le> b"
@@ -2284,7 +2284,7 @@ lemma integral_component_eq_cart[simp]: fixes f::"'n::ordered_euclidean_space \<
 lemma interval_split_cart:
   "{a..b::real^'n} \<inter> {x. x$k \<le> c} = {a .. (\<chi> i. if i = k then min (b$k) c else b$i)}"
   "{a..b} \<inter> {x. x$k \<ge> c} = {(\<chi> i. if i = k then max (a$k) c else a$i) .. b}"
-  apply(rule_tac[!] set_ext) unfolding Int_iff mem_interval_cart mem_Collect_eq
+  apply(rule_tac[!] set_eqI) unfolding Int_iff mem_interval_cart mem_Collect_eq
   unfolding Cart_lambda_beta by auto
 
 (*lemma content_split_cart:

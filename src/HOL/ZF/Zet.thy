@@ -22,7 +22,7 @@ definition zimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a zet \<Rightarrow> '
   "zimage f A == Abs_zet (image f (Rep_zet A))"
 
 lemma zet_def': "zet = {A :: 'a set | A f z. inj_on f A \<and> f ` A = explode z}"
-  apply (rule set_ext)
+  apply (rule set_eqI)
   apply (auto simp add: zet_def)
   apply (rule_tac x=f in exI)
   apply auto
@@ -118,7 +118,7 @@ definition zsubset :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> bool" where
   "zsubset a b \<equiv> ! x. zin x a \<longrightarrow> zin x b"
 
 lemma explode_union: "explode (union a b) = (explode a) \<union> (explode b)"
-  apply (rule set_ext)
+  apply (rule set_eqI)
   apply (simp add: explode_def union)
   done
 
@@ -163,7 +163,7 @@ lemma zimage_zexplode_eq: "zimage f (zexplode z) = zexplode (Repl z f)"
   by (simp add: zet_ext_eq zin_zexplode_eq Repl zimage_iff)
 
 lemma range_explode_eq_zet: "range explode = zet"
-  apply (rule set_ext)
+  apply (rule set_eqI)
   apply (auto simp add: explode_mem_zet)
   apply (drule image_zet_rep)
   apply (simp add: image_def)

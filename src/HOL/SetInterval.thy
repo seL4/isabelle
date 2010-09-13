@@ -241,7 +241,7 @@ by (blast intro: order_trans)
 lemma atLeastatMost_psubset_iff:
   "{a..b} < {c..d} \<longleftrightarrow>
    ((~ a <= b) | c <= a & b <= d & (c < a | b < d))  &  c <= d"
-by(simp add: psubset_eq set_ext_iff less_le_not_le)(blast intro: order_trans)
+by(simp add: psubset_eq set_eq_iff less_le_not_le)(blast intro: order_trans)
 
 lemma atLeastAtMost_singleton_iff[simp]:
   "{a .. b} = {c} \<longleftrightarrow> a = b \<and> b = c"

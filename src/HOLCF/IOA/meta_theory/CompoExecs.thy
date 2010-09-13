@@ -296,7 +296,7 @@ lemma compositionality_ex_modules:
   "Execs (A||B) = par_execs (Execs A) (Execs B)"
 apply (unfold Execs_def par_execs_def)
 apply (simp add: asig_of_par)
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (simp add: compositionality_ex actions_of_par)
 done
 

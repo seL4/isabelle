@@ -489,20 +489,18 @@ lemmas basic_trans_rules [trans] =
 
 subsubsection {* Equality *}
 
-lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
+lemma set_eqI: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
   apply (rule prem [THEN ext, THEN arg_cong, THEN box_equals])
    apply (rule Collect_mem_eq)
   apply (rule Collect_mem_eq)
   done
 
-lemma set_ext_iff [no_atp]: "(A = B) = (ALL x. (x:A) = (x:B))"
-by(auto intro:set_ext)
-
-lemmas expand_set_eq [no_atp] = set_ext_iff
+lemma set_eq_iff [no_atp]: "(A = B) = (ALL x. (x:A) = (x:B))"
+by(auto intro:set_eqI)
 
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
   -- {* Anti-symmetry of the subset relation. *}
-  by (iprover intro: set_ext subsetD)
+  by (iprover intro: set_eqI subsetD)
 
 text {*
   \medskip Equality rules from ZF set theory -- are they appropriate

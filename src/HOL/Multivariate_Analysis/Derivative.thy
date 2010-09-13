@@ -665,7 +665,7 @@ proof -
   have "\<forall>i<DIM('a). f' (basis i) = 0"
     by (simp add: euclidean_eq[of _ "0::'a"])
   with derivative_is_linear[OF deriv, THEN linear_componentwise, of _ 0]
-  show ?thesis by (simp add: ext_iff)
+  show ?thesis by (simp add: fun_eq_iff)
 qed
 
 lemma rolle: fixes f::"real\<Rightarrow>real"
@@ -948,13 +948,13 @@ text {* Hence the following eccentric variant of the inverse function theorem.  
    assumes lf: "linear f" and gf: "f o g = id"
    shows "linear g"
  proof-
-   from gf have fi: "surj f" apply (auto simp add: surj_def o_def id_def ext_iff)
+   from gf have fi: "surj f" apply (auto simp add: surj_def o_def id_def fun_eq_iff)
      by metis 
    from linear_surjective_isomorphism[OF lf fi]
    obtain h:: "'a => 'a" where
      h: "linear h" "\<forall>x. h (f x) = x" "\<forall>x. f (h x) = x" by blast
    have "h = g" apply (rule ext) using gf h(2,3)
-     apply (simp add: o_def id_def ext_iff)
+     apply (simp add: o_def id_def fun_eq_iff)
      by metis
    with h(1) show ?thesis by blast
  qed
@@ -1268,7 +1268,7 @@ proof-
   have "(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')"
     using assms [unfolded has_vector_derivative_def]
     by (rule frechet_derivative_unique_at)
-  thus ?thesis unfolding ext_iff by auto
+  thus ?thesis unfolding fun_eq_iff by auto
 qed
 
 lemma vector_derivative_unique_within_closed_interval: fixes f::"real \<Rightarrow> 'n::ordered_euclidean_space"
@@ -1279,7 +1279,7 @@ lemma vector_derivative_unique_within_closed_interval: fixes f::"real \<Rightarr
     apply(rule frechet_derivative_unique_within_closed_interval[of "a" "b"])
     using assms(3-)[unfolded has_vector_derivative_def] using assms(1-2) by auto
   show ?thesis proof(rule ccontr) assume "f' \<noteq> f''" moreover
-    hence "(\<lambda>x. x *\<^sub>R f') 1 = (\<lambda>x. x *\<^sub>R f'') 1" using * by (auto simp: ext_iff)
+    hence "(\<lambda>x. x *\<^sub>R f') 1 = (\<lambda>x. x *\<^sub>R f'') 1" using * by (auto simp: fun_eq_iff)
     ultimately show False unfolding o_def by auto qed qed
 
 lemma vector_derivative_at:

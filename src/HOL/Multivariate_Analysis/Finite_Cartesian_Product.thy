@@ -42,7 +42,7 @@ lemma stupid_ext: "(\<forall>x. f x = g x) \<longleftrightarrow> (f = g)"
   by (auto intro: ext)
 
 lemma Cart_eq: "(x = y) \<longleftrightarrow> (\<forall>i. x$i = y$i)"
-  by (simp add: Cart_nth_inject [symmetric] ext_iff)
+  by (simp add: Cart_nth_inject [symmetric] fun_eq_iff)
 
 lemma Cart_lambda_beta [simp]: "Cart_lambda g $ i = g i"
   by (simp add: Cart_lambda_inverse)

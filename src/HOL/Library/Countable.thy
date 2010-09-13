@@ -139,7 +139,7 @@ proof
   show "\<exists>to_nat::('a \<Rightarrow> 'b) \<Rightarrow> nat. inj to_nat"
   proof
     show "inj (\<lambda>f. to_nat (map f xs))"
-      by (rule injI, simp add: xs ext_iff)
+      by (rule injI, simp add: xs fun_eq_iff)
   qed
 qed
 

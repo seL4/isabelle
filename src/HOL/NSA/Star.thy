@@ -87,7 +87,7 @@ text{*Nonstandard extension of a set (defined using a constant
    sequence) as a special case of an internal set*}
 
 lemma starset_n_starset: "\<forall>n. (As n = A) ==> *sn* As = *s* A"
-apply (drule ext_iff [THEN iffD2])
+apply (drule fun_eq_iff [THEN iffD2])
 apply (simp add: starset_n_def starset_def star_of_def)
 done
 
@@ -102,7 +102,7 @@ done
 (*----------------------------------------------------------------*)
 
 lemma starfun_n_starfun: "\<forall>n. (F n = f) ==> *fn* F = *f* f"
-apply (drule ext_iff [THEN iffD2])
+apply (drule fun_eq_iff [THEN iffD2])
 apply (simp add: starfun_n_def starfun_def star_of_def)
 done
 

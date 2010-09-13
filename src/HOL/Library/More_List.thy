@@ -30,7 +30,7 @@ lemma foldl_fold:
 
 lemma foldr_fold_rev:
   "foldr f xs = fold f (rev xs)"
-  by (simp add: foldr_foldl foldl_fold ext_iff)
+  by (simp add: foldr_foldl foldl_fold fun_eq_iff)
 
 lemma fold_rev_conv [code_unfold]:
   "fold f (rev xs) = foldr f xs"
@@ -49,7 +49,7 @@ lemma fold_id:
 lemma fold_apply:
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> h \<circ> g x = f x \<circ> h"
   shows "h \<circ> fold g xs = fold f xs \<circ> h"
-  using assms by (induct xs) (simp_all add: ext_iff)
+  using assms by (induct xs) (simp_all add: fun_eq_iff)
 
 lemma fold_invariant: 
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> Q x" and "P s"
@@ -164,7 +164,7 @@ qed
 
 lemma (in lattice) Inf_fin_set_foldr [code_unfold]:
   "Inf_fin (set (x # xs)) = foldr inf xs x"
-  by (simp add: Inf_fin_set_fold ac_simps foldr_fold ext_iff del: set.simps)
+  by (simp add: Inf_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
 
 lemma (in lattice) Sup_fin_set_fold:
   "Sup_fin (set (x # xs)) = fold sup xs x"
@@ -177,7 +177,7 @@ qed
 
 lemma (in lattice) Sup_fin_set_foldr [code_unfold]:
   "Sup_fin (set (x # xs)) = foldr sup xs x"
-  by (simp add: Sup_fin_set_fold ac_simps foldr_fold ext_iff del: set.simps)
+  by (simp add: Sup_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
 
 lemma (in linorder) Min_fin_set_fold:
   "Min (set (x # xs)) = fold min xs x"
@@ -190,7 +190,7 @@ qed
 
 lemma (in linorder) Min_fin_set_foldr [code_unfold]:
   "Min (set (x # xs)) = foldr min xs x"
-  by (simp add: Min_fin_set_fold ac_simps foldr_fold ext_iff del: set.simps)
+  by (simp add: Min_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
 
 lemma (in linorder) Max_fin_set_fold:
   "Max (set (x # xs)) = fold max xs x"
@@ -203,7 +203,7 @@ qed
 
 lemma (in linorder) Max_fin_set_foldr [code_unfold]:
   "Max (set (x # xs)) = foldr max xs x"
-  by (simp add: Max_fin_set_fold ac_simps foldr_fold ext_iff del: set.simps)
+  by (simp add: Max_fin_set_fold ac_simps foldr_fold fun_eq_iff del: set.simps)
 
 lemma (in complete_lattice) Inf_set_fold:
   "Inf (set xs) = fold inf xs top"
@@ -215,7 +215,7 @@ qed
 
 lemma (in complete_lattice) Inf_set_foldr [code_unfold]:
   "Inf (set xs) = foldr inf xs top"
-  by (simp add: Inf_set_fold ac_simps foldr_fold ext_iff)
+  by (simp add: Inf_set_fold ac_simps foldr_fold fun_eq_iff)
 
 lemma (in complete_lattice) Sup_set_fold:
   "Sup (set xs) = fold sup xs bot"
@@ -227,7 +227,7 @@ qed
 
 lemma (in complete_lattice) Sup_set_foldr [code_unfold]:
   "Sup (set xs) = foldr sup xs bot"
-  by (simp add: Sup_set_fold ac_simps foldr_fold ext_iff)
+  by (simp add: Sup_set_fold ac_simps foldr_fold fun_eq_iff)
 
 lemma (in complete_lattice) INFI_set_fold:
   "INFI (set xs) f = fold (inf \<circ> f) xs top"

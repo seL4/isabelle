@@ -32,17 +32,17 @@ lemma inj_on_Abs_sum: "A \<subseteq> sum \<Longrightarrow> inj_on Abs_sum A"
 lemma Inl_Rep_inject: "inj_on Inl_Rep A"
 proof (rule inj_onI)
   show "\<And>a c. Inl_Rep a = Inl_Rep c \<Longrightarrow> a = c"
-    by (auto simp add: Inl_Rep_def ext_iff)
+    by (auto simp add: Inl_Rep_def fun_eq_iff)
 qed
 
 lemma Inr_Rep_inject: "inj_on Inr_Rep A"
 proof (rule inj_onI)
   show "\<And>b d. Inr_Rep b = Inr_Rep d \<Longrightarrow> b = d"
-    by (auto simp add: Inr_Rep_def ext_iff)
+    by (auto simp add: Inr_Rep_def fun_eq_iff)
 qed
 
 lemma Inl_Rep_not_Inr_Rep: "Inl_Rep a \<noteq> Inr_Rep b"
-  by (auto simp add: Inl_Rep_def Inr_Rep_def ext_iff)
+  by (auto simp add: Inl_Rep_def Inr_Rep_def fun_eq_iff)
 
 definition Inl :: "'a \<Rightarrow> 'a + 'b" where
   "Inl = Abs_sum \<circ> Inl_Rep"
@@ -178,7 +178,7 @@ lemma Plus_eq_empty_conv [simp]: "A <+> B = {} \<longleftrightarrow> A = {} \<an
 by auto
 
 lemma UNIV_Plus_UNIV [simp]: "UNIV <+> UNIV = UNIV"
-proof (rule set_ext)
+proof (rule set_eqI)
   fix u :: "'a + 'b"
   show "u \<in> UNIV <+> UNIV \<longleftrightarrow> u \<in> UNIV" by (cases u) auto
 qed

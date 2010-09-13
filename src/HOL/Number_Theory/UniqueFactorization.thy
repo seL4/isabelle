@@ -213,7 +213,7 @@ proof -
     ultimately have "count M a = count N a"
       by auto
   }
-  thus ?thesis by (simp add:multiset_ext_iff)
+  thus ?thesis by (simp add:multiset_eq_iff)
 qed
 
 definition multiset_prime_factorization :: "nat => nat multiset" where

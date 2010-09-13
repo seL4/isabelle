@@ -781,7 +781,7 @@ proof (rule acc_wfI, intro allI)
 
           let ?N1 = "{ n \<in> N. (n, a) \<in> r }"
           let ?N2 = "{ n \<in> N. (n, a) \<notin> r }"
-          have N: "?N1 \<union> ?N2 = N" by (rule set_ext) auto
+          have N: "?N1 \<union> ?N2 = N" by (rule set_eqI) auto
           from Nless have "finite N" by (auto elim: max_ext.cases)
           then have finites: "finite ?N1" "finite ?N2" by auto
           

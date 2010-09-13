@@ -177,7 +177,7 @@ proof -
   hence "(\<lambda>h. F h - F' h) = (\<lambda>h. 0)"
     by (rule FDERIV_zero_unique)
   thus "F = F'"
-    unfolding ext_iff right_minus_eq .
+    unfolding fun_eq_iff right_minus_eq .
 qed
 
 subsection {* Continuity *}

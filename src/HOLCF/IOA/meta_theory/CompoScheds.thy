@@ -542,7 +542,7 @@ lemma compositionality_sch_modules:
 
 apply (unfold Scheds_def par_scheds_def)
 apply (simp add: asig_of_par)
-apply (rule set_ext)
+apply (rule set_eqI)
 apply (simp add: compositionality_sch actions_of_par)
 done
 

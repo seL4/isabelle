@@ -148,11 +148,11 @@ lemma neg_eqvt:
 (* permutation on sets *)
 lemma empty_eqvt:
   shows "pi\<bullet>{} = {}"
-  by (simp add: perm_fun_def perm_bool empty_iff [unfolded mem_def] ext_iff)
+  by (simp add: perm_fun_def perm_bool empty_iff [unfolded mem_def] fun_eq_iff)
 
 lemma union_eqvt:
   shows "(pi\<bullet>(X\<union>Y)) = (pi\<bullet>X) \<union> (pi\<bullet>Y)"
-  by (simp add: perm_fun_def perm_bool Un_iff [unfolded mem_def] ext_iff)
+  by (simp add: perm_fun_def perm_bool Un_iff [unfolded mem_def] fun_eq_iff)
 
 (* permutations on products *)
 lemma fst_eqvt:
@@ -2069,7 +2069,7 @@ next
   show "?LHS"
   proof (rule ccontr)
     assume "(pi\<bullet>f) \<noteq> f"
-    hence "\<exists>x. (pi\<bullet>f) x \<noteq> f x" by (simp add: ext_iff)
+    hence "\<exists>x. (pi\<bullet>f) x \<noteq> f x" by (simp add: fun_eq_iff)
     then obtain x where b1: "(pi\<bullet>f) x \<noteq> f x" by force
     from b have "pi\<bullet>(f ((rev pi)\<bullet>x)) = f (pi\<bullet>((rev pi)\<bullet>x))" by force
     hence "(pi\<bullet>f)(pi\<bullet>((rev pi)\<bullet>x)) = f (pi\<bullet>((rev pi)\<bullet>x))" 
@@ -2763,7 +2763,7 @@ lemma cp_fun_inst:
   and     at: "at TYPE ('x)"
   shows "cp TYPE ('a\<Rightarrow>'b) TYPE('x) TYPE('y)"
 using c1 c2
-apply(auto simp add: cp_def perm_fun_def ext_iff)
+apply(auto simp add: cp_def perm_fun_def fun_eq_iff)
 apply(simp add: rev_eqvt[symmetric])
 apply(simp add: pt_rev_pi[OF pt_list_inst[OF pt_prod_inst[OF pt, OF pt]], OF at])
 done
@@ -2988,7 +2988,7 @@ lemma abs_fun_pi_ineq:
   and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
   shows "pi\<bullet>([a].x) = [(pi\<bullet>a)].(pi\<bullet>x)"
   apply(simp add: abs_fun_def perm_fun_def abs_fun_if)
-  apply(simp only: ext_iff)
+  apply(simp only: fun_eq_iff)
   apply(rule allI)
   apply(subgoal_tac "(((rev pi)\<bullet>(xa::'y)) = (a::'y)) = (xa = pi\<bullet>a)")(*A*)
   apply(subgoal_tac "(((rev pi)\<bullet>xa)\<sharp>x) = (xa\<sharp>(pi\<bullet>x))")(*B*)
@@ -3029,7 +3029,7 @@ lemma abs_fun_eq1:
   and   a  :: "'x"
   shows "([a].x = [a].y) = (x = y)"
 apply(auto simp add: abs_fun_def)
-apply(auto simp add: ext_iff)
+apply(auto simp add: fun_eq_iff)
 apply(drule_tac x="a" in spec)
 apply(simp)
 done
@@ -3045,7 +3045,7 @@ lemma abs_fun_eq2:
       and a2: "[a].x = [b].y" 
   shows "x=[(a,b)]\<bullet>y \<and> a\<sharp>y"
 proof -
-  from a2 have "\<forall>c::'x. ([a].x) c = ([b].y) c" by (force simp add: ext_iff)
+  from a2 have "\<forall>c::'x. ([a].x) c = ([b].y) c" by (force simp add: fun_eq_iff)
   hence "([a].x) a = ([b].y) a" by simp
   hence a3: "nSome(x) = ([b].y) a" by (simp add: abs_fun_def)
   show "x=[(a,b)]\<bullet>y \<and> a\<sharp>y"
@@ -3076,7 +3076,7 @@ lemma abs_fun_eq3:
   shows "[a].x =[b].y"
 proof -
   show ?thesis 
-  proof (simp only: abs_fun_def ext_iff, intro strip)
+  proof (simp only: abs_fun_def fun_eq_iff, intro strip)
     fix c::"'x"
     let ?LHS = "if c=a then nSome(x) else if c\<sharp>x then nSome([(a,c)]\<bullet>x) else nNone"
     and ?RHS = "if c=b then nSome(y) else if c\<sharp>y then nSome([(b,c)]\<bullet>y) else nNone"
