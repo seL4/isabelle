@@ -24,16 +24,17 @@ val _ =
 
 val timeout = Time.fromSeconds 5
 
-fun can_apply pre post tac st =
+fun can_apply auto pre post tac st =
   let val {goal, ...} = Proof.goal st in
-    case TimeLimit.timeLimit timeout (Seq.pull o tac) (pre st) of
+    case (if auto then fn f => fn x => f x
+          else TimeLimit.timeLimit timeout) (Seq.pull o tac) (pre st) of
       SOME (x, _) => nprems_of (post x) < nprems_of goal
     | NONE => false
   end
 
-fun do_generic command pre post apply st =
+fun do_generic auto command pre post apply st =
   let val timer = Timer.startRealTimer () in
-    if can_apply pre post apply st then
+    if can_apply auto pre post apply st then
       SOME (command, Time.toMilliseconds (Timer.checkRealTimer timer))
     else
       NONE
@@ -47,8 +48,8 @@ fun apply_named_method name ctxt =
     Method.apply (named_method thy name) ctxt []
   end
 
-fun do_named_method name st =
-  do_generic name (#goal o Proof.goal) snd
+fun do_named_method name auto st =
+  do_generic auto name (#goal o Proof.goal) snd
              (apply_named_method name (Proof.context_of st)) st
 
 fun apply_named_method_on_first_goal name ctxt =
@@ -56,8 +57,8 @@ fun apply_named_method_on_first_goal name ctxt =
     Proof.refine (Method.SelectGoals (1, Method.Basic (named_method thy name)))
   end
 
-fun do_named_method_on_first_goal name st =
-  do_generic (name ^ (if nprems_of (#goal (Proof.goal st)) > 1 then "[1]"
+fun do_named_method_on_first_goal name auto st =
+  do_generic auto (name ^ (if nprems_of (#goal (Proof.goal st)) > 1 then "[1]"
                       else "")) I (#goal o Proof.goal)
              (apply_named_method_on_first_goal name (Proof.context_of st)) st
 
@@ -71,7 +72,7 @@ val do_methods =
 fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
 
 fun do_try auto st =
-  case do_methods |> Par_List.map (fn f => f st)
+  case do_methods |> Par_List.map (fn f => f auto st)
                   |> map_filter I |> sort (int_ord o pairself snd) of
     [] => (if auto then () else writeln "No proof found."; (false, st))
   | xs as (s, _) :: _ =>
