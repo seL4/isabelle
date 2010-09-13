@@ -50,7 +50,7 @@ fun merge_relevance_overrides rs =
 (*** parameters ***)
 
 val atps = Unsynchronized.ref ""
-val timeout = Unsynchronized.ref 60
+val timeout = Unsynchronized.ref 30
 val full_types = Unsynchronized.ref false
 
 val _ =
