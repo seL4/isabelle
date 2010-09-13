@@ -1,42 +1,61 @@
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
-(* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Useful :> Useful =
 struct
 
 (* ------------------------------------------------------------------------- *)
-(* Exceptions                                                                *)
+(* Exceptions.                                                               *)
 (* ------------------------------------------------------------------------- *)
 
 exception Error of string;
 
 exception Bug of string;
 
-fun errorToString (Error message) = "\nError: " ^ message ^ "\n"
-  | errorToString _ = raise Bug "errorToString: not an Error exception";
+fun errorToStringOption err =
+    case err of
+      Error message => SOME ("Error: " ^ message)
+    | _ => NONE;
 
-fun bugToString (Bug message) = "\nBug: " ^ message ^ "\n"
-  | bugToString _ = raise Bug "bugToString: not a Bug exception";
+(*mlton
+val () = MLton.Exn.addExnMessager errorToStringOption;
+*)
+
+fun errorToString err =
+    case errorToStringOption err of
+      SOME s => "\n" ^ s ^ "\n"
+    | NONE => raise Bug "errorToString: not an Error exception";
+
+fun bugToStringOption err =
+    case err of
+      Bug message => SOME ("Bug: " ^ message)
+    | _ => NONE;
+
+(*mlton
+val () = MLton.Exn.addExnMessager bugToStringOption;
+*)
+
+fun bugToString err =
+    case bugToStringOption err of
+      SOME s => "\n" ^ s ^ "\n"
+    | NONE => raise Bug "bugToString: not a Bug exception";
 
 fun total f x = SOME (f x) handle Error _ => NONE;
 
 fun can f = Option.isSome o total f;
 
-fun partial (e as Error _) f x = (case f x of SOME y => y | NONE => raise e)
-  | partial _ _ _ = raise Bug "partial: must take an Error exception";
-
 (* ------------------------------------------------------------------------- *)
-(* Tracing                                                                   *)
+(* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 val tracePrint = ref print;
 
-fun trace message = !tracePrint message;
+fun trace mesg = !tracePrint mesg;
 
 (* ------------------------------------------------------------------------- *)
-(* Combinators                                                               *)
+(* Combinators.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
 fun C f x y = f y x;
@@ -60,12 +79,8 @@ fun exp m =
       f
     end;
 
-val equal = fn x => fn y => x = y;
-
-val notEqual = fn x => fn y => x <> y;
-
 (* ------------------------------------------------------------------------- *)
-(* Pairs                                                                     *)
+(* Pairs.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 fun fst (x,_) = x;
@@ -83,7 +98,7 @@ fun uncurry f (x,y) = f x y;
 val op## = fn (f,g) => fn (x,y) => (f x, g y);
 
 (* ------------------------------------------------------------------------- *)
-(* State transformers                                                        *)
+(* State transformers.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
 val unit : 'a -> 's -> 'a * 's = pair;
@@ -97,118 +112,21 @@ fun mjoin (f : 's -> ('s -> 'a * 's) * 's) = bind f I;
 fun mwhile c b = let fun f a = if c a then bind (b a) f else unit a in f end;
 
 (* ------------------------------------------------------------------------- *)
-(* Lists                                                                     *)
+(* Equality.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun cons x y = x :: y;
+val equal = fn x => fn y => x = y;
 
-fun hdTl l = (hd l, tl l);
+val notEqual = fn x => fn y => x <> y;
 
-fun append xs ys = xs @ ys;
-
-fun singleton a = [a];
-
-fun first f [] = NONE
-  | first f (x :: xs) = (case f x of NONE => first f xs | s => s);
-
-fun index p =
-  let
-    fun idx _ [] = NONE
-      | idx n (x :: xs) = if p x then SOME n else idx (n + 1) xs
-  in
-    idx 0
-  end;
-
-fun maps (_ : 'a -> 's -> 'b * 's) [] = unit []
-  | maps f (x :: xs) =
-    bind (f x) (fn y => bind (maps f xs) (fn ys => unit (y :: ys)));
-
-fun mapsPartial (_ : 'a -> 's -> 'b option * 's) [] = unit []
-  | mapsPartial f (x :: xs) =
-    bind
-      (f x)
-      (fn yo =>
-          bind
-            (mapsPartial f xs)
-            (fn ys => unit (case yo of NONE => ys | SOME y => y :: ys)));
-
-fun enumerate l = fst (maps (fn x => fn m => ((m, x), m + 1)) l 0);
-
-fun zipwith f =
+fun listEqual xEq =
     let
-      fun z l [] [] = l
-        | z l (x :: xs) (y :: ys) = z (f x y :: l) xs ys
-        | z _ _ _ = raise Error "zipwith: lists different lengths";
+      fun xsEq [] [] = true
+        | xsEq (x1 :: xs1) (x2 :: xs2) = xEq x1 x2 andalso xsEq xs1 xs2
+        | xsEq _ _ = false
     in
-      fn xs => fn ys => rev (z [] xs ys)
+      xsEq
     end;
-
-fun zip xs ys = zipwith pair xs ys;
-
-fun unzip ab =
-    foldl (fn ((x, y), (xs, ys)) => (x :: xs, y :: ys)) ([], []) (rev ab);
-
-fun cartwith f =
-  let
-    fun aux _ res _ [] = res
-      | aux xsCopy res [] (y :: yt) = aux xsCopy res xsCopy yt
-      | aux xsCopy res (x :: xt) (ys as y :: _) =
-        aux xsCopy (f x y :: res) xt ys
-  in
-    fn xs => fn ys =>
-    let val xs' = rev xs in aux xs' [] xs' (rev ys) end
-  end;
-
-fun cart xs ys = cartwith pair xs ys;
-
-local
-  fun revDiv acc l 0 = (acc,l)
-    | revDiv _ [] _ = raise Subscript
-    | revDiv acc (h :: t) n = revDiv (h :: acc) t (n - 1);
-in
-  fun revDivide l = revDiv [] l;
-end;
-
-fun divide l n = let val (a,b) = revDivide l n in (rev a, b) end;
-
-fun updateNth (n,x) l =
-    let
-      val (a,b) = revDivide l n
-    in
-      case b of [] => raise Subscript | _ :: t => List.revAppend (a, x :: t)
-    end;
-
-fun deleteNth n l =
-    let
-      val (a,b) = revDivide l n
-    in
-      case b of [] => raise Subscript | _ :: t => List.revAppend (a,t)
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Sets implemented with lists                                               *)
-(* ------------------------------------------------------------------------- *)
-
-fun mem x = List.exists (equal x);
-
-fun insert x s = if mem x s then s else x :: s;
-
-fun delete x s = List.filter (not o equal x) s;
-
-fun setify s = rev (foldl (fn (v,x) => if mem v x then x else v :: x) [] s);
-
-fun union s t = foldl (fn (v,x) => if mem v t then x else v :: x) t (rev s);
-
-fun intersect s t =
-    foldl (fn (v,x) => if mem v t then v :: x else x) [] (rev s);
-
-fun difference s t =
-    foldl (fn (v,x) => if mem v t then x else v :: x) [] (rev s);
-
-fun subset s t = List.all (fn x => mem x t) s;
-
-fun distinct [] = true
-  | distinct (x :: rest) = not (mem x rest) andalso distinct rest;
 
 (* ------------------------------------------------------------------------- *)
 (* Comparisons.                                                              *)
@@ -244,9 +162,194 @@ fun optionCompare _ (NONE,NONE) = EQUAL
   | optionCompare _ (_,NONE) = GREATER
   | optionCompare cmp (SOME x, SOME y) = cmp (x,y);
 
-fun boolCompare (true,false) = LESS
-  | boolCompare (false,true) = GREATER
+fun boolCompare (false,true) = LESS
+  | boolCompare (true,false) = GREATER
   | boolCompare _ = EQUAL;
+
+(* ------------------------------------------------------------------------- *)
+(* Lists.                                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+fun cons x y = x :: y;
+
+fun hdTl l = (hd l, tl l);
+
+fun append xs ys = xs @ ys;
+
+fun singleton a = [a];
+
+fun first f [] = NONE
+  | first f (x :: xs) = (case f x of NONE => first f xs | s => s);
+
+fun maps (_ : 'a -> 's -> 'b * 's) [] = unit []
+  | maps f (x :: xs) =
+    bind (f x) (fn y => bind (maps f xs) (fn ys => unit (y :: ys)));
+
+fun mapsPartial (_ : 'a -> 's -> 'b option * 's) [] = unit []
+  | mapsPartial f (x :: xs) =
+    bind
+      (f x)
+      (fn yo =>
+          bind
+            (mapsPartial f xs)
+            (fn ys => unit (case yo of NONE => ys | SOME y => y :: ys)));
+
+fun zipWith f =
+    let
+      fun z l [] [] = l
+        | z l (x :: xs) (y :: ys) = z (f x y :: l) xs ys
+        | z _ _ _ = raise Error "zipWith: lists different lengths";
+    in
+      fn xs => fn ys => rev (z [] xs ys)
+    end;
+
+fun zip xs ys = zipWith pair xs ys;
+
+fun unzip ab =
+    foldl (fn ((x, y), (xs, ys)) => (x :: xs, y :: ys)) ([], []) (rev ab);
+
+fun cartwith f =
+  let
+    fun aux _ res _ [] = res
+      | aux xsCopy res [] (y :: yt) = aux xsCopy res xsCopy yt
+      | aux xsCopy res (x :: xt) (ys as y :: _) =
+        aux xsCopy (f x y :: res) xt ys
+  in
+    fn xs => fn ys =>
+       let val xs' = rev xs in aux xs' [] xs' (rev ys) end
+  end;
+
+fun cart xs ys = cartwith pair xs ys;
+
+fun takeWhile p =
+    let
+      fun f acc [] = rev acc
+        | f acc (x :: xs) = if p x then f (x :: acc) xs else rev acc
+    in
+      f []
+    end;
+
+fun dropWhile p =
+    let
+      fun f [] = []
+        | f (l as x :: xs) = if p x then f xs else l
+    in
+      f
+    end;
+
+fun divideWhile p =
+    let
+      fun f acc [] = (rev acc, [])
+        | f acc (l as x :: xs) = if p x then f (x :: acc) xs else (rev acc, l)
+    in
+      f []
+    end;
+
+fun groups f =
+    let
+      fun group acc row x l =
+          case l of
+            [] =>
+            let
+              val acc = if null row then acc else rev row :: acc
+            in
+              rev acc
+            end
+          | h :: t =>
+            let
+              val (eor,x) = f (h,x)
+            in
+              if eor then group (rev row :: acc) [h] x t
+              else group acc (h :: row) x t
+            end
+    in
+      group [] []
+    end;
+
+fun groupsBy eq =
+    let
+      fun f (x_y as (x,_)) = (not (eq x_y), x)
+    in
+      fn [] => []
+       | h :: t =>
+         case groups f h t of
+           [] => [[h]]
+         | hs :: ts => (h :: hs) :: ts
+    end;
+
+local
+  fun fstEq ((x,_),(y,_)) = x = y;
+
+  fun collapse l = (fst (hd l), map snd l);
+in
+  fun groupsByFst l = map collapse (groupsBy fstEq l);
+end;
+
+fun groupsOf n =
+    let
+      fun f (_,i) = if i = 1 then (true,n) else (false, i - 1)
+    in
+      groups f (n + 1)
+    end;
+
+fun index p =
+  let
+    fun idx _ [] = NONE
+      | idx n (x :: xs) = if p x then SOME n else idx (n + 1) xs
+  in
+    idx 0
+  end;
+
+fun enumerate l = fst (maps (fn x => fn m => ((m, x), m + 1)) l 0);
+
+local
+  fun revDiv acc l 0 = (acc,l)
+    | revDiv _ [] _ = raise Subscript
+    | revDiv acc (h :: t) n = revDiv (h :: acc) t (n - 1);
+in
+  fun revDivide l = revDiv [] l;
+end;
+
+fun divide l n = let val (a,b) = revDivide l n in (rev a, b) end;
+
+fun updateNth (n,x) l =
+    let
+      val (a,b) = revDivide l n
+    in
+      case b of [] => raise Subscript | _ :: t => List.revAppend (a, x :: t)
+    end;
+
+fun deleteNth n l =
+    let
+      val (a,b) = revDivide l n
+    in
+      case b of [] => raise Subscript | _ :: t => List.revAppend (a,t)
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Sets implemented with lists.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+fun mem x = List.exists (equal x);
+
+fun insert x s = if mem x s then s else x :: s;
+
+fun delete x s = List.filter (not o equal x) s;
+
+fun setify s = rev (foldl (fn (v,x) => if mem v x then x else v :: x) [] s);
+
+fun union s t = foldl (fn (v,x) => if mem v t then x else v :: x) t (rev s);
+
+fun intersect s t =
+    foldl (fn (v,x) => if mem v t then v :: x else x) [] (rev s);
+
+fun difference s t =
+    foldl (fn (v,x) => if mem v t then x else v :: x) [] (rev s);
+
+fun subset s t = List.all (fn x => mem x t) s;
+
+fun distinct [] = true
+  | distinct (x :: rest) = not (mem x rest) andalso distinct rest;
 
 (* ------------------------------------------------------------------------- *)
 (* Sorting and searching.                                                    *)
@@ -301,7 +404,7 @@ fun sort cmp =
        | l as [_] => l
        | h :: t => mergePairs (findRuns [] h [] t)
     end;
-    
+
 fun sortMap _ _ [] = []
   | sortMap _ _ (l as [_]) = l
   | sortMap f cmp xs =
@@ -339,49 +442,49 @@ in
 end;
 
 local
-  fun both f g n = f n andalso g n;
-
-  fun next f = let fun nx x = if f x then x else nx (x + 1) in nx end;
-
-  fun looking res 0 _ _ = rev res
-    | looking res n f x =
-      let
-        val p = next f x
-        val res' = p :: res
-        val f' = both f (not o divides p)
-      in
-        looking res' (n - 1) f' (p + 1)
-      end;
-
-  fun calcPrimes n = looking [] n (K true) 2
-
-  val primesList = ref (calcPrimes 10);
-in
-  fun primes n = CRITICAL (fn () =>
-      if length (!primesList) <= n then List.take (!primesList,n)
+  fun calcPrimes ps n i =
+      if List.exists (fn p => divides p i) ps then calcPrimes ps n (i + 1)
       else
         let
-          val l = calcPrimes n
-          val () = primesList := l
+          val ps = ps @ [i]
+          and n = n - 1
         in
-          l
-        end);
+          if n = 0 then ps else calcPrimes ps n (i + 1)
+        end;
 
-  fun primesUpTo n = CRITICAL (fn () =>
+  val primesList = ref [2];
+in
+  fun primes n =
       let
-        fun f k [] =
-            let
-              val l = calcPrimes (2 * k)
-              val () = primesList := l
-            in
-              f k (List.drop (l,k))
-            end
-          | f k (p :: ps) =
-            if p <= n then f (k + 1) ps else List.take (!primesList, k)
+        val ref ps = primesList
+
+        val k = n - length ps
       in
-        f 0 (!primesList)
-      end);
+        if k <= 0 then List.take (ps,n)
+        else
+          let
+            val ps = calcPrimes ps k (List.last ps + 1)
+
+            val () = primesList := ps
+          in
+            ps
+          end
+      end;
 end;
+
+fun primesUpTo n =
+    let
+      fun f k =
+          let
+            val l = primes k
+
+            val p = List.last l
+          in
+            if p < n then f (2 * k) else takeWhile (fn j => j <= n) l
+          end
+    in
+      f 8
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Strings.                                                                  *)
@@ -449,7 +552,8 @@ in
   val trim = implode o chop o rev o chop o rev o explode;
 end;
 
-fun join _ [] = "" | join s (h :: t) = foldl (fn (x,y) => y ^ s ^ x) h t;
+fun join _ [] = ""
+  | join s (h :: t) = foldl (fn (x,y) => y ^ s ^ x) h t;
 
 local
   fun match [] l = SOME l
@@ -472,22 +576,57 @@ in
       end;
 end;
 
-(***
-fun pluralize {singular,plural} = fn 1 => singular | _ => plural;
-***)
+fun capitalize s =
+    if s = "" then s
+    else str (Char.toUpper (String.sub (s,0))) ^ String.extract (s,1,NONE);
 
 fun mkPrefix p s = p ^ s;
 
 fun destPrefix p =
     let
-      fun check s = String.isPrefix p s orelse raise Error "destPrefix"
+      fun check s =
+          if String.isPrefix p s then ()
+          else raise Error "destPrefix"
 
       val sizeP = size p
     in
-      fn s => (check s; String.extract (s,sizeP,NONE))
+      fn s =>
+         let
+           val () = check s
+         in
+           String.extract (s,sizeP,NONE)
+         end
     end;
 
 fun isPrefix p = can (destPrefix p);
+
+fun stripPrefix pred s =
+    Substring.string (Substring.dropl pred (Substring.full s));
+
+fun mkSuffix p s = s ^ p;
+
+fun destSuffix p =
+    let
+      fun check s =
+          if String.isSuffix p s then ()
+          else raise Error "destSuffix"
+
+      val sizeP = size p
+    in
+      fn s =>
+         let
+           val () = check s
+
+           val sizeS = size s
+         in
+           String.substring (s, 0, sizeS - sizeP)
+         end
+    end;
+
+fun isSuffix p = can (destSuffix p);
+
+fun stripSuffix pred s =
+    Substring.string (Substring.dropr pred (Substring.full s));
 
 (* ------------------------------------------------------------------------- *)
 (* Tables.                                                                   *)
@@ -507,13 +646,20 @@ fun alignColumn {leftAlign,padChar} column =
             else padding ^ entry ^ row
           end
     in
-      zipwith pad column
+      zipWith pad column
     end;
 
-fun alignTable [] rows = map (K "") rows
-  | alignTable [{leftAlign = true, padChar = #" "}] rows = map hd rows
-  | alignTable (align :: aligns) rows =
-    alignColumn align (map hd rows) (alignTable aligns (map tl rows));
+local
+  fun alignTab aligns rows =
+      case aligns of
+        [] => map (K "") rows
+      | [{leftAlign = true, padChar = #" "}] => map hd rows
+      | align :: aligns =>
+        alignColumn align (map hd rows) (alignTab aligns (map tl rows));
+in
+  fun alignTable aligns rows =
+      if null rows then [] else alignTab aligns rows;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Reals.                                                                    *)
@@ -556,22 +702,22 @@ fun isRight (Left _) = false
 local
   val generator = ref 0
 in
-  fun newInt () = CRITICAL (fn () =>
+  fun newInt () =
       let
         val n = !generator
         val () = generator := n + 1
       in
         n
-      end);
+      end;
 
   fun newInts 0 = []
-    | newInts k = CRITICAL (fn () =>
+    | newInts k =
       let
         val n = !generator
         val () = generator := n + k
       in
         interval n k
-      end);
+      end;
 end;
 
 fun withRef (r,new) f x =
@@ -601,17 +747,43 @@ fun time () = Date.fmt "%H:%M:%S" (Date.fromTimeLocal (Time.now ()));
 
 fun date () = Date.fmt "%d/%m/%Y" (Date.fromTimeLocal (Time.now ()));
 
+fun readDirectory {directory = dir} =
+    let
+      val dirStrm = OS.FileSys.openDir dir
+
+      fun readAll acc =
+          case OS.FileSys.readDir dirStrm of
+            NONE => acc
+          | SOME file =>
+            let
+              val filename = OS.Path.joinDirFile {dir = dir, file = file}
+
+              val acc = {filename = filename} :: acc
+            in
+              readAll acc
+            end
+
+      val filenames = readAll []
+
+      val () = OS.FileSys.closeDir dirStrm
+    in
+      rev filenames
+    end;
+
 fun readTextFile {filename} =
   let
     open TextIO
+
     val h = openIn filename
+
     val contents = inputAll h
+
     val () = closeIn h
   in
     contents
   end;
 
-fun writeTextFile {filename,contents} =
+fun writeTextFile {contents,filename} =
   let
     open TextIO
     val h = openOut filename
@@ -622,11 +794,13 @@ fun writeTextFile {filename,contents} =
   end;
 
 (* ------------------------------------------------------------------------- *)
-(* Profiling                                                                 *)
+(* Profiling and error reporting.                                            *)
 (* ------------------------------------------------------------------------- *)
 
+fun chat s = TextIO.output (TextIO.stdErr, s ^ "\n");
+
 local
-  fun err x s = TextIO.output (TextIO.stdErr, x ^ ": " ^ s ^ "\n");
+  fun err x s = chat (x ^ ": " ^ s);
 in
   fun try f x = f x
       handle e as Error _ => (err "try" (errorToString e); raise e)

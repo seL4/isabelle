@@ -270,7 +270,7 @@ fun make_axiom_arity_clause (tcons, name, (cls,args)) =
     val tvars = gen_TVars (length args)
     val tvars_srts = ListPair.zip (tvars, args)
   in
-    ArityClause {name = name, 
+    ArityClause {name = name,
                  conclLit = TConsLit (`make_type_class cls,
                                       `make_fixed_type_const tcons,
                                       tvars ~~ tvars),

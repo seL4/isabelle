@@ -1,36 +1,78 @@
 (* ========================================================================= *)
 (* FINITE SETS WITH A FIXED ELEMENT TYPE                                     *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature ElementSet =
 sig
 
+(* ------------------------------------------------------------------------- *)
+(* A type of set elements.                                                   *)
+(* ------------------------------------------------------------------------- *)
+
 type element
 
 (* ------------------------------------------------------------------------- *)
-(* Finite sets                                                               *)
+(* A type of finite sets.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 type set
+
+(* ------------------------------------------------------------------------- *)
+(* Constructors.                                                             *)
+(* ------------------------------------------------------------------------- *)
 
 val empty : set
 
 val singleton : element -> set
 
+(* ------------------------------------------------------------------------- *)
+(* Set size.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
 val null : set -> bool
 
 val size : set -> int
 
+(* ------------------------------------------------------------------------- *)
+(* Querying.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val peek : set -> element -> element option
+
 val member : element -> set -> bool
+
+val pick : set -> element  (* an arbitrary element *)
+
+val nth : set -> int -> element  (* in the range [0,size-1] *)
+
+val random : set -> element
+
+(* ------------------------------------------------------------------------- *)
+(* Adding.                                                                   *)
+(* ------------------------------------------------------------------------- *)
 
 val add : set -> element -> set
 
 val addList : set -> element list -> set
 
-val delete : set -> element -> set  (* raises Error *)
+(* ------------------------------------------------------------------------- *)
+(* Removing.                                                                 *)
+(* ------------------------------------------------------------------------- *)
 
-(* Union and intersect prefer elements in the second set *)
+val delete : set -> element -> set  (* must be present *)
+
+val remove : set -> element -> set
+
+val deletePick : set -> element * set
+
+val deleteNth : set -> int -> element * set
+
+val deleteRandom : set -> element * set
+
+(* ------------------------------------------------------------------------- *)
+(* Joining.                                                                  *)
+(* ------------------------------------------------------------------------- *)
 
 val union : set -> set -> set
 
@@ -44,21 +86,23 @@ val difference : set -> set -> set
 
 val symmetricDifference : set -> set -> set
 
-val disjoint : set -> set -> bool
-
-val subset : set -> set -> bool
-
-val equal : set -> set -> bool
+(* ------------------------------------------------------------------------- *)
+(* Mapping and folding.                                                      *)
+(* ------------------------------------------------------------------------- *)
 
 val filter : (element -> bool) -> set -> set
 
 val partition : (element -> bool) -> set -> set * set
 
-val count : (element -> bool) -> set -> int
+val app : (element -> unit) -> set -> unit
 
 val foldl : (element * 's -> 's) -> 's -> set -> 's
 
 val foldr : (element * 's -> 's) -> 's -> set -> 's
+
+(* ------------------------------------------------------------------------- *)
+(* Searching.                                                                *)
+(* ------------------------------------------------------------------------- *)
 
 val findl : (element -> bool) -> set -> element option
 
@@ -72,27 +116,45 @@ val exists : (element -> bool) -> set -> bool
 
 val all : (element -> bool) -> set -> bool
 
-val map : (element -> 'a) -> set -> (element * 'a) list
+val count : (element -> bool) -> set -> int
+
+(* ------------------------------------------------------------------------- *)
+(* Comparing.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val compare : set * set -> order
+
+val equal : set -> set -> bool
+
+val subset : set -> set -> bool
+
+val disjoint : set -> set -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Converting to and from lists.                                             *)
+(* ------------------------------------------------------------------------- *)
 
 val transform : (element -> 'a) -> set -> 'a list
-
-val app : (element -> unit) -> set -> unit
 
 val toList : set -> element list
 
 val fromList : element list -> set
 
-val pick : set -> element  (* raises Empty *)
+(* ------------------------------------------------------------------------- *)
+(* Converting to and from maps.                                              *)
+(* ------------------------------------------------------------------------- *)
 
-val random : set -> element  (* raises Empty *)
+type 'a map
 
-val deletePick : set -> element * set  (* raises Empty *)
+val mapPartial : (element -> 'a option) -> set -> 'a map
 
-val deleteRandom : set -> element * set  (* raises Empty *)
+val map : (element -> 'a) -> set -> 'a map
 
-val compare : set * set -> order
+val domain : 'a map -> set
 
-val close : (set -> set) -> set -> set
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
 
 val toString : set -> string
 

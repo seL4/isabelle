@@ -1,6 +1,6 @@
 (* ========================================================================= *)
-(* SOME SAMPLE PROBLEMS TO TEST PROOF PROCEDURES                             *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* CNF PROBLEMS                                                              *)
+(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Problem =
@@ -10,16 +10,22 @@ sig
 (* Problems.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-type problem = Thm.clause list
+type problem =
+     {axioms : Thm.clause list,
+      conjecture : Thm.clause list}
 
 val size : problem -> {clauses : int,
                        literals : int,
                        symbols : int,
                        typedSymbols : int}
 
-val fromGoal : Formula.formula -> problem list
+val freeVars : problem -> NameSet.set
 
-val toClauses : problem -> Formula.formula
+val toClauses : problem -> Thm.clause list
+
+val toFormula : problem -> Formula.formula
+
+val toGoal : problem -> Formula.formula
 
 val toString : problem -> string
 

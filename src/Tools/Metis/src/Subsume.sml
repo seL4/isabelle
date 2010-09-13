@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SUBSUMPTION CHECKING FOR FIRST ORDER LOGIC CLAUSES                        *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Subsume :> Subsume =
@@ -159,7 +159,7 @@ fun filter pred (Subsume {empty,unit,nonunit}) =
 
 fun toString subsume = "Subsume{" ^ Int.toString (size subsume) ^ "}";
 
-fun pp p = Parser.ppMap toString Parser.ppString p;
+fun pp subsume = Print.ppMap toString Print.ppString subsume;
 
 (* ------------------------------------------------------------------------- *)
 (* Subsumption checking.                                                     *)
@@ -274,19 +274,19 @@ in
       genSubsumes pred subsume (SOME (LiteralSet.size cl)) cl;
 end;
 
-(*TRACE4
+(*MetisTrace4
 val subsumes = fn pred => fn subsume => fn cl =>
     let
       val ppCl = LiteralSet.pp
       val ppSub = Subst.pp
-      val () = Parser.ppTrace ppCl "Subsume.subsumes: cl" cl
+      val () = Print.trace ppCl "Subsume.subsumes: cl" cl
       val result = subsumes pred subsume cl
       val () =
           case result of
             NONE => trace "Subsume.subsumes: not subsumed\n"
           | SOME (cl,sub,_) =>
-            (Parser.ppTrace ppCl "Subsume.subsumes: subsuming cl" cl;
-             Parser.ppTrace ppSub "Subsume.subsumes: subsuming sub" sub)
+            (Print.trace ppCl "Subsume.subsumes: subsuming cl" cl;
+             Print.trace ppSub "Subsume.subsumes: subsuming sub" sub)
     in
       result
     end;
@@ -295,14 +295,14 @@ val strictlySubsumes = fn pred => fn subsume => fn cl =>
     let
       val ppCl = LiteralSet.pp
       val ppSub = Subst.pp
-      val () = Parser.ppTrace ppCl "Subsume.strictlySubsumes: cl" cl
+      val () = Print.trace ppCl "Subsume.strictlySubsumes: cl" cl
       val result = strictlySubsumes pred subsume cl
       val () =
           case result of
             NONE => trace "Subsume.subsumes: not subsumed\n"
           | SOME (cl,sub,_) =>
-            (Parser.ppTrace ppCl "Subsume.subsumes: subsuming cl" cl;
-             Parser.ppTrace ppSub "Subsume.subsumes: subsuming sub" sub)
+            (Print.trace ppCl "Subsume.subsumes: subsuming cl" cl;
+             Print.trace ppSub "Subsume.subsumes: subsuming sub" sub)
     in
       result
     end;

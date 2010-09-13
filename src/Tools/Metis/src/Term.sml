@@ -1,30 +1,12 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC TERMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Term :> Term =
 struct
 
 open Useful;
-
-(* ------------------------------------------------------------------------- *)
-(* Helper functions.                                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun stripSuffix pred s =
-    let
-      fun f 0 = ""
-        | f n =
-          let
-            val n' = n - 1
-          in
-            if pred (String.sub (s,n')) then f n'
-            else String.substring (s,0,n)
-          end
-    in
-      f (size s)
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* A type of first order logic terms.                                        *)
@@ -53,7 +35,7 @@ fun destVar (Var v) = v
 
 val isVar = can destVar;
 
-fun equalVar v (Var v') = v = v'
+fun equalVar v (Var v') = Name.equal v v'
   | equalVar _ _ = false;
 
 (* Functions *)
@@ -102,7 +84,7 @@ val isConst = can destConst;
 fun mkBinop f (a,b) = Fn (f,[a,b]);
 
 fun destBinop f (Fn (x,[a,b])) =
-    if x = f then (a,b) else raise Error "Term.destBinop: wrong binop"
+    if Name.equal x f then (a,b) else raise Error "Term.destBinop: wrong binop"
   | destBinop _ _ = raise Error "Term.destBinop: not a binop";
 
 fun isBinop f = can (destBinop f);
@@ -129,26 +111,36 @@ end;
 
 local
   fun cmp [] [] = EQUAL
-    | cmp (Var _ :: _) (Fn _ :: _) = LESS
-    | cmp (Fn _ :: _) (Var _ :: _) = GREATER
-    | cmp (Var v1 :: tms1) (Var v2 :: tms2) =
-      (case Name.compare (v1,v2) of
-         LESS => LESS
-       | EQUAL => cmp tms1 tms2
-       | GREATER => GREATER)
-    | cmp (Fn (f1,a1) :: tms1) (Fn (f2,a2) :: tms2) =
-      (case Name.compare (f1,f2) of
-         LESS => LESS
-       | EQUAL =>
-         (case Int.compare (length a1, length a2) of
-            LESS => LESS
-          | EQUAL => cmp (a1 @ tms1) (a2 @ tms2)
-          | GREATER => GREATER)
-       | GREATER => GREATER)
+    | cmp (tm1 :: tms1) (tm2 :: tms2) =
+      let
+        val tm1_tm2 = (tm1,tm2)
+      in
+        if Portable.pointerEqual tm1_tm2 then cmp tms1 tms2
+        else
+          case tm1_tm2 of
+            (Var v1, Var v2) =>
+            (case Name.compare (v1,v2) of
+               LESS => LESS
+             | EQUAL => cmp tms1 tms2
+             | GREATER => GREATER)
+          | (Var _, Fn _) => LESS
+          | (Fn _, Var _) => GREATER
+          | (Fn (f1,a1), Fn (f2,a2)) =>
+            (case Name.compare (f1,f2) of
+               LESS => LESS
+             | EQUAL =>
+               (case Int.compare (length a1, length a2) of
+                  LESS => LESS
+                | EQUAL => cmp (a1 @ tms1) (a2 @ tms2)
+                | GREATER => GREATER)
+             | GREATER => GREATER)
+      end
     | cmp _ _ = raise Bug "Term.compare";
 in
   fun compare (tm1,tm2) = cmp [tm1] [tm2];
 end;
+
+fun equal tm1 tm2 = compare (tm1,tm2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
 (* Subterms.                                                                 *)
@@ -178,7 +170,7 @@ in
   fun subterms tm = subtms [([],tm)] [];
 end;
 
-fun replace tm ([],res) = if res = tm then tm else res
+fun replace tm ([],res) = if equal res tm then tm else res
   | replace tm (h :: t, res) =
     case tm of
       Var _ => raise Error "Term.replace: Var"
@@ -189,7 +181,7 @@ fun replace tm ([],res) = if res = tm then tm else res
           val arg = List.nth (tms,h)
           val arg' = replace arg (t,res)
         in
-          if Sharing.pointerEqual (arg',arg) then tm
+          if Portable.pointerEqual (arg',arg) then tm
           else Fn (func, updateNth (h,arg') tms)
         end;
 
@@ -211,9 +203,9 @@ fun find pred =
       fn tm => search [([],tm)]
     end;
 
-val ppPath = Parser.ppList Parser.ppInt;
+val ppPath = Print.ppList Print.ppInt;
 
-val pathToString = Parser.toString ppPath;
+val pathToString = Print.toString ppPath;
 
 (* ------------------------------------------------------------------------- *)
 (* Free variables.                                                           *)
@@ -221,7 +213,7 @@ val pathToString = Parser.toString ppPath;
 
 local
   fun free _ [] = false
-    | free v (Var w :: tms) = v = w orelse free v tms
+    | free v (Var w :: tms) = Name.equal v w orelse free v tms
     | free v (Fn (_,args) :: tms) = free v (args @ tms);
 in
   fun freeIn v tm = free v [tm];
@@ -232,77 +224,100 @@ local
     | free vs (Var v :: tms) = free (NameSet.add vs v) tms
     | free vs (Fn (_,args) :: tms) = free vs (args @ tms);
 in
-  fun freeVars tm = free NameSet.empty [tm];
+  val freeVarsList = free NameSet.empty;
+
+  fun freeVars tm = freeVarsList [tm];
 end;
 
 (* ------------------------------------------------------------------------- *)
 (* Fresh variables.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+fun newVar () = Var (Name.newName ());
+
+fun newVars n = map Var (Name.newNames n);
+
 local
-  val prefix  = "_";
-
-  fun numVar i = Var (mkPrefix prefix (Int.toString i));
+  fun avoidAcceptable avoid n = not (NameSet.member n avoid);
 in
-  fun newVar () = numVar (newInt ());
+  fun variantPrime avoid = Name.variantPrime (avoidAcceptable avoid);
 
-  fun newVars n = map numVar (newInts n);
+  fun variantNum avoid = Name.variantNum (avoidAcceptable avoid);
 end;
-
-fun variantPrime avoid =
-    let
-      fun f v = if NameSet.member v avoid then f (v ^ "'") else v
-    in
-      f
-    end;
-
-fun variantNum avoid v =
-    if not (NameSet.member v avoid) then v
-    else
-      let
-        val v = stripSuffix Char.isDigit v
-                                                                    
-        fun f n =
-            let
-              val v_n = v ^ Int.toString n
-            in
-              if NameSet.member v_n avoid then f (n + 1) else v_n
-            end
-      in
-        f 0
-      end;
 
 (* ------------------------------------------------------------------------- *)
 (* Special support for terms with type annotations.                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun isTypedVar (Var _) = true
-  | isTypedVar (Fn (":", [Var _, _])) = true
-  | isTypedVar (Fn _) = false;
+val hasTypeFunctionName = Name.fromString ":";
+
+val hasTypeFunction = (hasTypeFunctionName,2);
+
+fun destFnHasType ((f,a) : functionName * term list) =
+    if not (Name.equal f hasTypeFunctionName) then
+      raise Error "Term.destFnHasType"
+    else
+      case a of
+        [tm,ty] => (tm,ty)
+      | _ => raise Error "Term.destFnHasType";
+
+val isFnHasType = can destFnHasType;
+
+fun isTypedVar tm =
+    case tm of
+      Var _ => true
+    | Fn func =>
+      case total destFnHasType func of
+        SOME (Var _, _) => true
+      | _ => false;
 
 local
   fun sz n [] = n
-    | sz n (Var _ :: tms) = sz (n + 1) tms
-    | sz n (Fn (":",[tm,_]) :: tms) = sz n (tm :: tms)
-    | sz n (Fn (_,args) :: tms) = sz (n + 1) (args @ tms);
+    | sz n (tm :: tms) =
+      case tm of
+        Var _ => sz (n + 1) tms
+      | Fn func =>
+        case total destFnHasType func of
+          SOME (tm,_) => sz n (tm :: tms)
+        | NONE =>
+          let
+            val (_,a) = func
+          in
+            sz (n + 1) (a @ tms)
+          end;
 in
   fun typedSymbols tm = sz 0 [tm];
 end;
 
 local
   fun subtms [] acc = acc
-    | subtms ((_, Var _) :: rest) acc = subtms rest acc
-    | subtms ((_, Fn (":", [Var _, _])) :: rest) acc = subtms rest acc
-    | subtms ((path, tm as Fn func) :: rest) acc =
-      let
-        fun f (n,arg) = (n :: path, arg)
+    | subtms ((path,tm) :: rest) acc =
+      case tm of
+        Var _ => subtms rest acc
+      | Fn func =>
+        case total destFnHasType func of
+          SOME (t,_) =>
+          (case t of
+             Var _ => subtms rest acc
+           | Fn _ =>
+             let
+               val acc = (rev path, tm) :: acc
+               val rest = (0 :: path, t) :: rest
+             in
+               subtms rest acc
+             end)
+        | NONE =>
+          let
+            fun f (n,arg) = (n :: path, arg)
 
-        val acc = (rev path, tm) :: acc
-      in
-        case func of
-          (":",[arg,_]) => subtms ((0 :: path, arg) :: rest) acc
-        | (_,args) => subtms (map f (enumerate args) @ rest) acc
-      end;
+            val (_,args) = func
+
+            val acc = (rev path, tm) :: acc
+
+            val rest = map f (enumerate args) @ rest
+          in
+            subtms rest acc
+          end;
 in
   fun nonVarTypedSubterms tm = subtms [([],tm)] [];
 end;
@@ -311,20 +326,37 @@ end;
 (* Special support for terms with an explicit function application operator. *)
 (* ------------------------------------------------------------------------- *)
 
-fun mkComb (f,a) = Fn (".",[f,a]);
+val appName = Name.fromString ".";
 
-fun destComb (Fn (".",[f,a])) = (f,a)
-  | destComb _ = raise Error "destComb";
+fun mkFnApp (fTm,aTm) = (appName, [fTm,aTm]);
 
-val isComb = can destComb;
+fun mkApp f_a = Fn (mkFnApp f_a);
 
-fun listMkComb (f,l) = foldl mkComb f l;
+fun destFnApp ((f,a) : Name.name * term list) =
+    if not (Name.equal f appName) then raise Error "Term.destFnApp"
+    else
+      case a of
+        [fTm,aTm] => (fTm,aTm)
+      | _ => raise Error "Term.destFnApp";
+
+val isFnApp = can destFnApp;
+
+fun destApp tm =
+    case tm of
+      Var _ => raise Error "Term.destApp"
+    | Fn func => destFnApp func;
+
+val isApp = can destApp;
+
+fun listMkApp (f,l) = foldl mkApp f l;
 
 local
-  fun strip tms (Fn (".",[f,a])) = strip (a :: tms) f
-    | strip tms tm = (tm,tms);
+  fun strip tms tm =
+      case total destApp tm of
+        SOME (f,a) => strip (a :: tms) f
+      | NONE => (tm,tms);
 in
-  fun stripComb tm = strip [] tm;
+  fun stripApp tm = strip [] tm;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -333,185 +365,204 @@ end;
 
 (* Operators parsed and printed infix *)
 
-val infixes : Parser.infixities ref = ref
-  [(* ML symbols *)
-   {token = " / ", precedence = 7, leftAssoc = true},
-   {token = " div ", precedence = 7, leftAssoc = true},
-   {token = " mod ", precedence = 7, leftAssoc = true},
-   {token = " * ", precedence = 7, leftAssoc = true},
-   {token = " + ", precedence = 6, leftAssoc = true},
-   {token = " - ", precedence = 6, leftAssoc = true},
-   {token = " ^ ", precedence = 6, leftAssoc = true},
-   {token = " @ ", precedence = 5, leftAssoc = false},
-   {token = " :: ", precedence = 5, leftAssoc = false},
-   {token = " = ", precedence = 4, leftAssoc = true},
-   {token = " <> ", precedence = 4, leftAssoc = true},
-   {token = " <= ", precedence = 4, leftAssoc = true},
-   {token = " < ", precedence = 4, leftAssoc = true},
-   {token = " >= ", precedence = 4, leftAssoc = true},
-   {token = " > ", precedence = 4, leftAssoc = true},
-   {token = " o ", precedence = 3, leftAssoc = true},
-   {token = " -> ", precedence = 2, leftAssoc = false},  (* inferred prec *)
-   {token = " : ", precedence = 1, leftAssoc = false},  (* inferred prec *)
-   {token = ", ", precedence = 0, leftAssoc = false},  (* inferred prec *)
+val infixes =
+    (ref o Print.Infixes)
+      [(* ML symbols *)
+       {token = " / ", precedence = 7, leftAssoc = true},
+       {token = " div ", precedence = 7, leftAssoc = true},
+       {token = " mod ", precedence = 7, leftAssoc = true},
+       {token = " * ", precedence = 7, leftAssoc = true},
+       {token = " + ", precedence = 6, leftAssoc = true},
+       {token = " - ", precedence = 6, leftAssoc = true},
+       {token = " ^ ", precedence = 6, leftAssoc = true},
+       {token = " @ ", precedence = 5, leftAssoc = false},
+       {token = " :: ", precedence = 5, leftAssoc = false},
+       {token = " = ", precedence = 4, leftAssoc = true},
+       {token = " <> ", precedence = 4, leftAssoc = true},
+       {token = " <= ", precedence = 4, leftAssoc = true},
+       {token = " < ", precedence = 4, leftAssoc = true},
+       {token = " >= ", precedence = 4, leftAssoc = true},
+       {token = " > ", precedence = 4, leftAssoc = true},
+       {token = " o ", precedence = 3, leftAssoc = true},
+       {token = " -> ", precedence = 2, leftAssoc = false},  (* inferred prec *)
+       {token = " : ", precedence = 1, leftAssoc = false},  (* inferred prec *)
+       {token = ", ", precedence = 0, leftAssoc = false},  (* inferred prec *)
 
-   (* Logical connectives *)
-   {token = " /\\ ", precedence = ~1, leftAssoc = false},
-   {token = " \\/ ", precedence = ~2, leftAssoc = false},
-   {token = " ==> ", precedence = ~3, leftAssoc = false},
-   {token = " <=> ", precedence = ~4, leftAssoc = false},
+       (* Logical connectives *)
+       {token = " /\\ ", precedence = ~1, leftAssoc = false},
+       {token = " \\/ ", precedence = ~2, leftAssoc = false},
+       {token = " ==> ", precedence = ~3, leftAssoc = false},
+       {token = " <=> ", precedence = ~4, leftAssoc = false},
 
-   (* Other symbols *)
-   {token = " . ", precedence = 9, leftAssoc = true},  (* function app *)
-   {token = " ** ", precedence = 8, leftAssoc = true},
-   {token = " ++ ", precedence = 6, leftAssoc = true},
-   {token = " -- ", precedence = 6, leftAssoc = true},
-   {token = " == ", precedence = 4, leftAssoc = true}];
+       (* Other symbols *)
+       {token = " . ", precedence = 9, leftAssoc = true},  (* function app *)
+       {token = " ** ", precedence = 8, leftAssoc = true},
+       {token = " ++ ", precedence = 6, leftAssoc = true},
+       {token = " -- ", precedence = 6, leftAssoc = true},
+       {token = " == ", precedence = 4, leftAssoc = true}];
 
 (* The negation symbol *)
 
-val negation : Name.name ref = ref "~";
+val negation : string ref = ref "~";
 
 (* Binder symbols *)
 
-val binders : Name.name list ref = ref ["\\","!","?","?!"];
+val binders : string list ref = ref ["\\","!","?","?!"];
 
 (* Bracket symbols *)
 
-val brackets : (Name.name * Name.name) list ref = ref [("[","]"),("{","}")];
+val brackets : (string * string) list ref = ref [("[","]"),("{","}")];
 
 (* Pretty printing *)
 
-local
-  open Parser;
-in
-  fun pp inputPpstrm inputTerm =
-      let
-        val quants = !binders
-        and iOps = !infixes
-        and neg = !negation
-        and bracks = !brackets
+fun pp inputTerm =
+    let
+      val quants = !binders
+      and iOps = !infixes
+      and neg = !negation
+      and bracks = !brackets
 
-        val bracks = map (fn (b1,b2) => (b1 ^ b2, b1, b2)) bracks
+      val bracks = map (fn (b1,b2) => (b1 ^ b2, b1, b2)) bracks
 
-        val bTokens = map #2 bracks @ map #3 bracks
+      val bTokens = map #2 bracks @ map #3 bracks
 
-        val iTokens = infixTokens iOps
+      val iTokens = Print.tokensInfixes iOps
 
-        fun destI (Fn (f,[a,b])) =
-            if mem f iTokens then SOME (f,a,b) else NONE
-          | destI _ = NONE
-
-        val iPrinter = ppInfixes iOps destI
-
-        val specialTokens = neg :: quants @ ["$","(",")"] @ bTokens @ iTokens
-
-        fun vName bv s = NameSet.member s bv
-
-        fun checkVarName bv s = if vName bv s then s else "$" ^ s
-
-        fun varName bv = ppMap (checkVarName bv) ppString
-
-        fun checkFunctionName bv s =
-            if mem s specialTokens orelse vName bv s then "(" ^ s ^ ")" else s
-
-        fun functionName bv = ppMap (checkFunctionName bv) ppString
-
-        fun isI tm = Option.isSome (destI tm)
-
-        fun stripNeg (tm as Fn (f,[a])) =
-            if f <> neg then (0,tm)
-            else let val (n,tm) = stripNeg a in (n + 1, tm) end
-          | stripNeg tm = (0,tm)
-
-        val destQuant =
+      fun destI tm =
+          case tm of
+            Fn (f,[a,b]) =>
             let
-              fun dest q (Fn (q', [Var v, body])) =
-                  if q <> q' then NONE
-                  else
-                    (case dest q body of
-                       NONE => SOME (q,v,[],body)
-                     | SOME (_,v',vs,body) => SOME (q, v, v' :: vs, body))
-                | dest _ _ = NONE
+              val f = Name.toString f
             in
-              fn tm => Useful.first (fn q => dest q tm) quants
+              if StringSet.member f iTokens then SOME (f,a,b) else NONE
             end
+          | _ => NONE
 
-        fun isQuant tm = Option.isSome (destQuant tm)
+      val iPrinter = Print.ppInfixes iOps destI
 
-        fun destBrack (Fn (b,[tm])) =
-            (case List.find (fn (n,_,_) => n = b) bracks of
-               NONE => NONE
-             | SOME (_,b1,b2) => SOME (b1,tm,b2))
-          | destBrack _ = NONE
+      val specialTokens =
+          StringSet.addList iTokens (neg :: quants @ ["$","(",")"] @ bTokens)
 
-        fun isBrack tm = Option.isSome (destBrack tm)
-            
-        fun functionArgument bv ppstrm tm =
-            (addBreak ppstrm (1,0);
-             if isBrack tm then customBracket bv ppstrm tm
-             else if isVar tm orelse isConst tm then basic bv ppstrm tm
-             else bracket bv ppstrm tm)
+      fun vName bv s = StringSet.member s bv
 
-        and basic bv ppstrm (Var v) = varName bv ppstrm v
-          | basic bv ppstrm (Fn (f,args)) =
-            (beginBlock ppstrm Inconsistent 2;
-             functionName bv ppstrm f;
-             app (functionArgument bv ppstrm) args;
-             endBlock ppstrm)
+      fun checkVarName bv n =
+          let
+            val s = Name.toString n
+          in
+            if vName bv s then s else "$" ^ s
+          end
 
-        and customBracket bv ppstrm tm =
-            case destBrack tm of
-              SOME (b1,tm,b2) => ppBracket b1 b2 (term bv) ppstrm tm
-            | NONE => basic bv ppstrm tm
+      fun varName bv = Print.ppMap (checkVarName bv) Print.ppString
 
-        and innerQuant bv ppstrm tm =
-            case destQuant tm of
-              NONE => term bv ppstrm tm
-            | SOME (q,v,vs,tm) =>
-              let
-                val bv = NameSet.addList (NameSet.add bv v) vs
-              in
-                addString ppstrm q;
-                varName bv ppstrm v;
-                app (fn v => (addBreak ppstrm (1,0); varName bv ppstrm v)) vs;
-                addString ppstrm ".";
-                addBreak ppstrm (1,0);
-                innerQuant bv ppstrm tm
-              end
-
-        and quantifier bv ppstrm tm =
-            if not (isQuant tm) then customBracket bv ppstrm tm
+      fun checkFunctionName bv n =
+          let
+            val s = Name.toString n
+          in
+            if StringSet.member s specialTokens orelse vName bv s then
+              "(" ^ s ^ ")"
             else
-              (beginBlock ppstrm Inconsistent 2;
-               innerQuant bv ppstrm tm;
-               endBlock ppstrm)
+              s
+          end
 
-        and molecule bv ppstrm (tm,r) =
+      fun functionName bv = Print.ppMap (checkFunctionName bv) Print.ppString
+
+      fun isI tm = Option.isSome (destI tm)
+
+      fun stripNeg tm =
+          case tm of
+            Fn (f,[a]) =>
+            if Name.toString f <> neg then (0,tm)
+            else let val (n,tm) = stripNeg a in (n + 1, tm) end
+          | _ => (0,tm)
+
+      val destQuant =
+          let
+            fun dest q (Fn (q', [Var v, body])) =
+                if Name.toString q' <> q then NONE
+                else
+                  (case dest q body of
+                     NONE => SOME (q,v,[],body)
+                   | SOME (_,v',vs,body) => SOME (q, v, v' :: vs, body))
+              | dest _ _ = NONE
+          in
+            fn tm => Useful.first (fn q => dest q tm) quants
+          end
+
+      fun isQuant tm = Option.isSome (destQuant tm)
+
+      fun destBrack (Fn (b,[tm])) =
+          let
+            val s = Name.toString b
+          in
+            case List.find (fn (n,_,_) => n = s) bracks of
+              NONE => NONE
+            | SOME (_,b1,b2) => SOME (b1,tm,b2)
+          end
+        | destBrack _ = NONE
+
+      fun isBrack tm = Option.isSome (destBrack tm)
+
+      fun functionArgument bv tm =
+          Print.sequence
+            (Print.addBreak 1)
+            (if isBrack tm then customBracket bv tm
+             else if isVar tm orelse isConst tm then basic bv tm
+             else bracket bv tm)
+
+      and basic bv (Var v) = varName bv v
+        | basic bv (Fn (f,args)) =
+          Print.blockProgram Print.Inconsistent 2
+            (functionName bv f :: map (functionArgument bv) args)
+
+      and customBracket bv tm =
+          case destBrack tm of
+            SOME (b1,tm,b2) => Print.ppBracket b1 b2 (term bv) tm
+          | NONE => basic bv tm
+
+      and innerQuant bv tm =
+          case destQuant tm of
+            NONE => term bv tm
+          | SOME (q,v,vs,tm) =>
             let
-              val (n,tm) = stripNeg tm
+              val bv = StringSet.addList bv (map Name.toString (v :: vs))
             in
-              beginBlock ppstrm Inconsistent n;
-              funpow n (fn () => addString ppstrm neg) ();
-              if isI tm orelse (r andalso isQuant tm) then bracket bv ppstrm tm
-              else quantifier bv ppstrm tm;
-              endBlock ppstrm
+              Print.program
+                [Print.addString q,
+                 varName bv v,
+                 Print.program
+                   (map (Print.sequence (Print.addBreak 1) o varName bv) vs),
+                 Print.addString ".",
+                 Print.addBreak 1,
+                 innerQuant bv tm]
             end
 
-        and term bv ppstrm tm = iPrinter (molecule bv) ppstrm (tm,false)
+      and quantifier bv tm =
+          if not (isQuant tm) then customBracket bv tm
+          else Print.block Print.Inconsistent 2 (innerQuant bv tm)
 
-        and bracket bv ppstrm tm = ppBracket "(" ")" (term bv) ppstrm tm
-  in
-    term NameSet.empty
-  end inputPpstrm inputTerm;
-end;
+      and molecule bv (tm,r) =
+          let
+            val (n,tm) = stripNeg tm
+          in
+            Print.blockProgram Print.Inconsistent n
+              [Print.duplicate n (Print.addString neg),
+               if isI tm orelse (r andalso isQuant tm) then bracket bv tm
+               else quantifier bv tm]
+          end
 
-fun toString tm = Parser.toString pp tm;
+      and term bv tm = iPrinter (molecule bv) (tm,false)
+
+      and bracket bv tm = Print.ppBracket "(" ")" (term bv) tm
+    in
+      term StringSet.empty
+    end inputTerm;
+
+val toString = Print.toString pp;
 
 (* Parsing *)
 
 local
-  open Parser;
+  open Parse;
 
   infixr 9 >>++
   infixr 8 ++
@@ -531,7 +582,7 @@ local
     val symbolToken =
         let
           fun isNeg c = str c = !negation
-                        
+
           val symbolChars = explode "<>=-*+/\\?@|!$%&#^:;~"
 
           fun isSymbol c = mem c symbolChars
@@ -572,42 +623,50 @@ local
         fun possibleVarName "" = false
           | possibleVarName s = isAlphaNum (String.sub (s,0))
 
-        fun vName bv s = NameSet.member s bv
+        fun vName bv s = StringSet.member s bv
 
-        val iTokens = infixTokens iOps
+        val iTokens = Print.tokensInfixes iOps
 
-        val iParser = parseInfixes iOps (fn (f,a,b) => Fn (f,[a,b]))
+        val iParser =
+            parseInfixes iOps (fn (f,a,b) => Fn (Name.fromString f, [a,b]))
 
-        val specialTokens = neg :: quants @ ["$"] @ bTokens @ iTokens
+        val specialTokens =
+            StringSet.addList iTokens (neg :: quants @ ["$"] @ bTokens)
 
         fun varName bv =
-            Parser.some (vName bv) ||
-            (exact "$" ++ some possibleVarName) >> (fn (_,s) => s)
+            some (vName bv) ||
+            (some (Useful.equal "$") ++ some possibleVarName) >> snd
 
-        fun fName bv s = not (mem s specialTokens) andalso not (vName bv s)
+        fun fName bv s =
+            not (StringSet.member s specialTokens) andalso not (vName bv s)
 
         fun functionName bv =
-            Parser.some (fName bv) ||
-            (exact "(" ++ any ++ exact ")") >> (fn (_,(s,_)) => s)
+            some (fName bv) ||
+            (some (Useful.equal "(") ++ any ++ some (Useful.equal ")")) >>
+            (fn (_,(s,_)) => s)
 
         fun basic bv tokens =
             let
-              val var = varName bv >> Var
+              val var = varName bv >> (Var o Name.fromString)
 
-              val const = functionName bv >> (fn f => Fn (f,[]))
+              val const =
+                  functionName bv >> (fn f => Fn (Name.fromString f, []))
 
               fun bracket (ab,a,b) =
-                  (exact a ++ term bv ++ exact b) >>
-                  (fn (_,(tm,_)) => if ab = "()" then tm else Fn (ab,[tm]))
+                  (some (Useful.equal a) ++ term bv ++ some (Useful.equal b)) >>
+                  (fn (_,(tm,_)) =>
+                      if ab = "()" then tm else Fn (Name.fromString ab, [tm]))
 
               fun quantifier q =
                   let
-                    fun bind (v,t) = Fn (q, [Var v, t])
+                    fun bind (v,t) =
+                        Fn (Name.fromString q, [Var (Name.fromString v), t])
                   in
-                    (exact q ++ atLeastOne (some possibleVarName) ++
-                     exact ".") >>++
+                    (some (Useful.equal q) ++
+                     atLeastOne (some possibleVarName) ++
+                     some (Useful.equal ".")) >>++
                     (fn (_,(vs,_)) =>
-                        term (NameSet.addList bv vs) >>
+                        term (StringSet.addList bv vs) >>
                         (fn body => foldr bind body vs))
                   end
             in
@@ -619,18 +678,20 @@ local
 
         and molecule bv tokens =
             let
-              val negations = many (exact neg) >> length
+              val negations = many (some (Useful.equal neg)) >> length
 
               val function =
-                  (functionName bv ++ many (basic bv)) >> Fn || basic bv
+                  (functionName bv ++ many (basic bv)) >>
+                  (fn (f,args) => Fn (Name.fromString f, args)) ||
+                  basic bv
             in
               (negations ++ function) >>
-              (fn (n,tm) => funpow n (fn t => Fn (neg,[t])) tm)
+              (fn (n,tm) => funpow n (fn t => Fn (Name.fromString neg, [t])) tm)
             end tokens
 
         and term bv tokens = iParser (molecule bv) tokens
       in
-        term NameSet.empty
+        term StringSet.empty
       end inputStream;
 in
   fun fromString input =
@@ -643,15 +704,14 @@ in
       in
         case Stream.toList terms of
           [tm] => tm
-        | _ => raise Error "Syntax.stringToTerm"
+        | _ => raise Error "Term.fromString"
       end;
 end;
 
 local
-  val antiquotedTermToString =
-      Parser.toString (Parser.ppBracket "(" ")" pp);
+  val antiquotedTermToString = Print.toString (Print.ppBracket "(" ")" pp);
 in
-  val parse = Parser.parseQuotation antiquotedTermToString fromString;
+  val parse = Parse.parseQuotation antiquotedTermToString fromString;
 end;
 
 end
@@ -659,6 +719,6 @@ end
 structure TermOrdered =
 struct type t = Term.term val compare = Term.compare end
 
-structure TermSet = ElementSet (TermOrdered);
-
 structure TermMap = KeyMap (TermOrdered);
+
+structure TermSet = ElementSet (TermMap);

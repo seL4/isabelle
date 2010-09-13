@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC TERMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature TermNet =
@@ -32,7 +32,7 @@ val filter : ('a -> bool) -> 'a termNet -> 'a termNet
 
 val toString : 'a termNet -> string
 
-val pp : 'a Parser.pp -> 'a termNet Parser.pp
+val pp : 'a Print.pp -> 'a termNet Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Matching and unification queries.                                         *)

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
-(* Copyright (c) 2002-2004 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002-2004 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Clause :> Clause =
@@ -16,8 +16,7 @@ val newId =
     let
       val r = ref 0
     in
-      fn () => CRITICAL (fn () =>
-        case r of ref n => let val () = r := n + 1 in n end)
+      fn () => case r of ref n => let val () = r := n + 1 in n end
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -47,19 +46,21 @@ datatype clause = Clause of clauseInfo;
 val showId = ref false;
 
 local
-  val ppIdThm = Parser.ppPair Parser.ppInt Thm.pp;
+  val ppIdThm = Print.ppPair Print.ppInt Thm.pp;
 in
-  fun pp p (Clause {id,thm,...}) =
-      if !showId then ppIdThm p (id,thm) else Thm.pp p thm;
+  fun pp (Clause {id,thm,...}) =
+      if !showId then ppIdThm (id,thm) else Thm.pp thm;
 end;
+
+fun toString cl = Print.toString pp cl;
 
 (* ------------------------------------------------------------------------- *)
 (* Basic operations.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-val default : parameters = 
+val default : parameters =
     {ordering = KnuthBendixOrder.default,
-     orderLiterals = UnsignedLiteralOrder, (*LCP: changed from PositiveLiteralOrder*)
+     orderLiterals = PositiveLiteralOrder,
      orderTerms = true};
 
 fun mk info = Clause info
@@ -142,13 +143,13 @@ fun largestLiterals (Clause {parameters,thm,...}) =
       LiteralSet.foldr addLit LiteralSet.empty litSet
     end;
 
-(*TRACE6
+(*MetisTrace6
 val largestLiterals = fn cl =>
     let
       val ppResult = LiteralSet.pp
-      val () = Parser.ppTrace pp "Clause.largestLiterals: cl" cl
+      val () = Print.trace pp "Clause.largestLiterals: cl" cl
       val result = largestLiterals cl
-      val () = Parser.ppTrace ppResult "Clause.largestLiterals: result" result
+      val () = Print.trace ppResult "Clause.largestLiterals: result" result
     in
       result
     end;
@@ -218,10 +219,10 @@ fun rewrite rewr (cl as Clause {parameters,id,thm}) =
             Rewrite.rewriteIdRule rewr cmp id th
           end
 
-(*TRACE4
-      val () = Parser.ppTrace Rewrite.pp "Clause.rewrite: rewr" rewr
-      val () = Parser.ppTrace Parser.ppInt "Clause.rewrite: id" id
-      val () = Parser.ppTrace pp "Clause.rewrite: cl" cl
+(*MetisTrace4
+      val () = Print.trace Rewrite.pp "Clause.rewrite: rewr" rewr
+      val () = Print.trace Print.ppInt "Clause.rewrite: id" id
+      val () = Print.trace pp "Clause.rewrite: cl" cl
 *)
 
       val thm =
@@ -231,13 +232,13 @@ fun rewrite rewr (cl as Clause {parameters,id,thm}) =
 
       val result = Clause {parameters = parameters, id = id, thm = thm}
 
-(*TRACE4
-      val () = Parser.ppTrace pp "Clause.rewrite: result" result
+(*MetisTrace4
+      val () = Print.trace pp "Clause.rewrite: result" result
 *)
     in
       result
     end
-(*DEBUG
+(*MetisDebug
     handle Error err => raise Error ("Clause.rewrite:\n" ^ err);
 *)
 
@@ -254,12 +255,12 @@ fun factor (cl as Clause {parameters,thm,...}) =
       map apply (Rule.factor' lits)
     end;
 
-(*TRACE5
+(*MetisTrace5
 val factor = fn cl =>
     let
-      val () = Parser.ppTrace pp "Clause.factor: cl" cl
+      val () = Print.trace pp "Clause.factor: cl" cl
       val result = factor cl
-      val () = Parser.ppTrace (Parser.ppList pp) "Clause.factor: result" result
+      val () = Print.trace (Print.ppList pp) "Clause.factor: result" result
     in
       result
     end;
@@ -267,51 +268,55 @@ val factor = fn cl =>
 
 fun resolve (cl1,lit1) (cl2,lit2) =
     let
-(*TRACE5
-      val () = Parser.ppTrace pp "Clause.resolve: cl1" cl1
-      val () = Parser.ppTrace Literal.pp "Clause.resolve: lit1" lit1
-      val () = Parser.ppTrace pp "Clause.resolve: cl2" cl2
-      val () = Parser.ppTrace Literal.pp "Clause.resolve: lit2" lit2
+(*MetisTrace5
+      val () = Print.trace pp "Clause.resolve: cl1" cl1
+      val () = Print.trace Literal.pp "Clause.resolve: lit1" lit1
+      val () = Print.trace pp "Clause.resolve: cl2" cl2
+      val () = Print.trace Literal.pp "Clause.resolve: lit2" lit2
 *)
       val Clause {parameters, thm = th1, ...} = cl1
       and Clause {thm = th2, ...} = cl2
       val sub = Literal.unify Subst.empty lit1 (Literal.negate lit2)
-(*TRACE5
-      val () = Parser.ppTrace Subst.pp "Clause.resolve: sub" sub
+(*MetisTrace5
+      val () = Print.trace Subst.pp "Clause.resolve: sub" sub
 *)
       val lit1 = Literal.subst sub lit1
       val lit2 = Literal.negate lit1
       val th1 = Thm.subst sub th1
       and th2 = Thm.subst sub th2
       val _ = isLargerLiteral parameters (Thm.clause th1) lit1 orelse
-(*TRACE5
+(*MetisTrace5
               (trace "Clause.resolve: th1 violates ordering\n"; false) orelse
 *)
               raise Error "resolve: clause1: ordering constraints"
       val _ = isLargerLiteral parameters (Thm.clause th2) lit2 orelse
-(*TRACE5
+(*MetisTrace5
               (trace "Clause.resolve: th2 violates ordering\n"; false) orelse
 *)
               raise Error "resolve: clause2: ordering constraints"
       val th = Thm.resolve lit1 th1 th2
-(*TRACE5
-      val () = Parser.ppTrace Thm.pp "Clause.resolve: th" th
+(*MetisTrace5
+      val () = Print.trace Thm.pp "Clause.resolve: th" th
 *)
       val cl = Clause {parameters = parameters, id = newId (), thm = th}
-(*TRACE5
-      val () = Parser.ppTrace pp "Clause.resolve: cl" cl
+(*MetisTrace5
+      val () = Print.trace pp "Clause.resolve: cl" cl
 *)
     in
       cl
     end;
 
-fun paramodulate (cl1,lit1,ort,tm1) (cl2,lit2,path,tm2) =
+fun paramodulate (cl1,lit1,ort1,tm1) (cl2,lit2,path2,tm2) =
     let
-(*TRACE5
-      val () = Parser.ppTrace pp "Clause.paramodulate: cl1" cl1
-      val () = Parser.ppTrace Literal.pp "Clause.paramodulate: lit1" lit1
-      val () = Parser.ppTrace pp "Clause.paramodulate: cl2" cl2
-      val () = Parser.ppTrace Literal.pp "Clause.paramodulate: lit2" lit2
+(*MetisTrace5
+      val () = Print.trace pp "Clause.paramodulate: cl1" cl1
+      val () = Print.trace Literal.pp "Clause.paramodulate: lit1" lit1
+      val () = Print.trace Rewrite.ppOrient "Clause.paramodulate: ort1" ort1
+      val () = Print.trace Term.pp "Clause.paramodulate: tm1" tm1
+      val () = Print.trace pp "Clause.paramodulate: cl2" cl2
+      val () = Print.trace Literal.pp "Clause.paramodulate: lit2" lit2
+      val () = Print.trace Term.ppPath "Clause.paramodulate: path2" path2
+      val () = Print.trace Term.pp "Clause.paramodulate: tm2" tm2
 *)
       val Clause {parameters, thm = th1, ...} = cl1
       and Clause {thm = th2, ...} = cl2
@@ -320,32 +325,36 @@ fun paramodulate (cl1,lit1,ort,tm1) (cl2,lit2,path,tm2) =
       and lit2 = Literal.subst sub lit2
       and th1 = Thm.subst sub th1
       and th2 = Thm.subst sub th2
+
       val _ = isLargerLiteral parameters (Thm.clause th1) lit1 orelse
-(*TRACE5
-              (trace "Clause.paramodulate: cl1 ordering\n"; false) orelse
-*)
-              raise Error "paramodulate: with clause: ordering constraints"
+              raise Error "Clause.paramodulate: with clause: ordering"
       val _ = isLargerLiteral parameters (Thm.clause th2) lit2 orelse
-(*TRACE5
-              (trace "Clause.paramodulate: cl2 ordering\n"; false) orelse
-*)
-              raise Error "paramodulate: into clause: ordering constraints"
+              raise Error "Clause.paramodulate: into clause: ordering"
+
       val eqn = (Literal.destEq lit1, th1)
       val eqn as (l_r,_) =
-          case ort of
+          case ort1 of
             Rewrite.LeftToRight => eqn
           | Rewrite.RightToLeft => Rule.symEqn eqn
-      val _ = isLargerTerm parameters l_r orelse
-(*TRACE5
-              (trace "Clause.paramodulate: eqn ordering\n"; false) orelse
+(*MetisTrace6
+      val () = Print.trace Rule.ppEquation "Clause.paramodulate: eqn" eqn
 *)
-              raise Error "paramodulate: equation: ordering constraints"
-      val th = Rule.rewrRule eqn lit2 path th2
-(*TRACE5
-      val () = Parser.ppTrace Thm.pp "Clause.paramodulate: th" th
+      val _ = isLargerTerm parameters l_r orelse
+              raise Error "Clause.paramodulate: equation: ordering constraints"
+      val th = Rule.rewrRule eqn lit2 path2 th2
+(*MetisTrace5
+      val () = Print.trace Thm.pp "Clause.paramodulate: th" th
 *)
     in
       Clause {parameters = parameters, id = newId (), thm = th}
-    end;
+    end
+(*MetisTrace5
+    handle Error err =>
+      let
+        val () = trace ("Clause.paramodulate: failed: " ^ err ^ "\n")
+      in
+        raise Error err
+      end;
+*)
 
 end

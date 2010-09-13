@@ -238,15 +238,14 @@ fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
     Vect (card_of_type card_assigns T1, (best_one_rep_for_type scope T2))
   | best_one_rep_for_type scope (Type (@{type_name prod}, Ts)) =
     Struct (map (best_one_rep_for_type scope) Ts)
-  | best_one_rep_for_type {card_assigns, datatypes, ofs, ...} T =
+  | best_one_rep_for_type {card_assigns, ofs, ...} T =
     Atom (card_of_type card_assigns T, offset_of_type ofs T)
 
 fun best_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
     Func (best_one_rep_for_type scope T1, best_opt_set_rep_for_type scope T2)
   | best_opt_set_rep_for_type (scope as {ofs, ...}) T =
     opt_rep ofs T (best_one_rep_for_type scope T)
-fun best_non_opt_set_rep_for_type (scope as {ofs, ...})
-                                  (Type (@{type_name fun}, [T1, T2])) =
+fun best_non_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
     (case (best_one_rep_for_type scope T1,
            best_non_opt_set_rep_for_type scope T2) of
        (R1, Atom (2, _)) => Func (R1, Formula Neut)

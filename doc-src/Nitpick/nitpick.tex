@@ -121,11 +121,10 @@ machine called \texttt{java}. The examples presented in this manual can be found
 in Isabelle's \texttt{src/HOL/Nitpick\_Examples/Manual\_Nits.thy} theory.
 
 Throughout this manual, we will explicitly invoke the \textbf{nitpick} command.
-Nitpick also provides an automatic mode that can be enabled using the
-``Auto Nitpick'' option from the ``Isabelle'' menu in Proof General. In this
-mode, Nitpick is run on every newly entered theorem, much like Auto Quickcheck.
-The collective time limit for Auto Nitpick and Auto Quickcheck can be set using
-the ``Auto Counterexample Time Limit'' option.
+Nitpick also provides an automatic mode that can be enabled via the ``Auto
+Nitpick'' option from the ``Isabelle'' menu in Proof General. In this mode,
+Nitpick is run on every newly entered theorem. The time limit for Auto Nitpick
+and other automatic tools can be set using the ``Auto Tools Time Limit'' option.
 
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
@@ -1883,14 +1882,15 @@ format (\S\ref{output-format}), automatic counterexample checks
 
 You can instruct Nitpick to run automatically on newly entered theorems by
 enabling the ``Auto Nitpick'' option from the ``Isabelle'' menu in Proof
-General. For automatic runs, \textit{user\_axioms} (\S\ref{mode-of-operation})
-and \textit{assms} (\S\ref{mode-of-operation}) are implicitly enabled,
-\textit{blocking} (\S\ref{mode-of-operation}), \textit{verbose}
-(\S\ref{output-format}), and \textit{debug} (\S\ref{output-format}) are
-disabled, \textit{max\_potential} (\S\ref{output-format}) is taken to be 0, and
-\textit{timeout} (\S\ref{timeouts}) is superseded by the ``Auto Counterexample
-Time Limit'' in Proof General's ``Isabelle'' menu. Nitpick's output is also more
-concise.
+General. For automatic runs, \textit{user\_axioms} (\S\ref{mode-of-operation}),
+\textit{assms} (\S\ref{mode-of-operation}), and \textit{mono}
+(\S\ref{scope-of-search}) are implicitly enabled, \textit{blocking}
+(\S\ref{mode-of-operation}), \textit{verbose} (\S\ref{output-format}), and
+\textit{debug} (\S\ref{output-format}) are disabled, \textit{max\_threads}
+(\S\ref{optimizations}) is taken to be 1, \textit{max\_potential}
+(\S\ref{output-format}) is taken to be 0, and \textit{timeout}
+(\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in
+Proof General's ``Isabelle'' menu. Nitpick's output is also more concise.
 
 The number of options can be overwhelming at first glance. Do not let that worry
 you: Nitpick's defaults have been chosen so that it almost always does the right
@@ -2171,7 +2171,8 @@ Specifies whether the given type should be considered monotonic when enumerating
 scopes and finitizing types. If the option is set to \textit{smart}, Nitpick
 performs a monotonicity check on the type. Setting this option to \textit{true}
 can reduce the number of scopes tried, but it can also diminish the chance of
-finding a counterexample, as demonstrated in \S\ref{scope-monotonicity}.
+finding a counterexample, as demonstrated in \S\ref{scope-monotonicity}. The
+option is implicitly set to \textit{true} for automatic runs.
 
 \nopagebreak
 {\small See also \textit{card} (\S\ref{scope-of-search}),
@@ -2527,7 +2528,7 @@ it down.
 \opdefault{max\_threads}{int}{0}
 Specifies the maximum number of threads to use in Kodkod. If this option is set
 to 0, Kodkod will compute an appropriate value based on the number of processor
-cores available.
+cores available. The option is implicitly set to 1 for automatic runs.
 
 \nopagebreak
 {\small See also \textit{batch\_size} (\S\ref{optimizations}) and

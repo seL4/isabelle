@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC ATOMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature AtomNet =
@@ -30,7 +30,7 @@ val filter : ('a -> bool) -> 'a atomNet -> 'a atomNet
 
 val toString : 'a atomNet -> string
 
-val pp : 'a Parser.pp -> 'a atomNet Parser.pp
+val pp : 'a Print.pp -> 'a atomNet Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Matching and unification queries.                                         *)

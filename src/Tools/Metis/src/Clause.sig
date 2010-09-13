@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Clause =
@@ -100,6 +100,8 @@ val paramodulate :
 
 val showId : bool ref
 
-val pp : clause Parser.pp
+val pp : clause Print.pp
+
+val toString : clause -> string
 
 end

@@ -8,10 +8,12 @@ signature SLEDGEHAMMER_ISAR =
 sig
   type params = Sledgehammer.params
 
-  val atps: string Unsynchronized.ref
-  val timeout: int Unsynchronized.ref
-  val full_types: bool Unsynchronized.ref
+  val auto : bool Unsynchronized.ref
+  val atps : string Unsynchronized.ref
+  val timeout : int Unsynchronized.ref
+  val full_types : bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
+  val setup : theory -> theory
 end;
 
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
@@ -22,11 +24,19 @@ open Sledgehammer_Util
 open Sledgehammer
 open Sledgehammer_Minimize
 
+val auto = Unsynchronized.ref false
+
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_tracing
+      (Preferences.bool_pref auto "auto-sledgehammer"
+           "Run Sledgehammer automatically.")
+
 (** Sledgehammer commands **)
 
-fun add_to_relevance_override ns : relevance_override =
+val no_relevance_override = {add = [], del = [], only = false}
+fun add_relevance_override ns : relevance_override =
   {add = ns, del = [], only = false}
-fun del_from_relevance_override ns : relevance_override =
+fun del_relevance_override ns : relevance_override =
   {add = [], del = ns, only = false}
 fun only_relevance_override ns : relevance_override =
   {add = ns, del = [], only = true}
@@ -40,7 +50,7 @@ fun merge_relevance_overrides rs =
 (*** parameters ***)
 
 val atps = Unsynchronized.ref ""
-val timeout = Unsynchronized.ref 60
+val timeout = Unsynchronized.ref 30
 val full_types = Unsynchronized.ref false
 
 val _ =
@@ -132,7 +142,7 @@ fun default_raw_params thy =
 val infinity_time_in_secs = 60 * 60 * 24 * 365
 val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
 
-fun extract_params default_params override_params =
+fun extract_params auto default_params override_params =
   let
     val override_params = map unalias_raw_param override_params
     val raw_params = rev override_params @ rev default_params
@@ -143,11 +153,10 @@ fun extract_params default_params override_params =
         SOME s => parse_bool_option option name s
       | NONE => default_value
     val lookup_bool = the o general_lookup_bool false (SOME false)
-    val lookup_bool_option = general_lookup_bool true NONE
     fun lookup_time name =
-      the_timeout (case lookup name of
-                     NONE => NONE
-                   | SOME s => parse_time_option name s)
+      case lookup name of
+        SOME s => parse_time_option name s
+      | NONE => NONE
     fun lookup_int name =
       case lookup name of
         NONE => 0
@@ -167,11 +176,11 @@ fun extract_params default_params override_params =
       case lookup name of
         SOME "smart" => NONE
       | _ => SOME (lookup_int name)
-    val blocking = lookup_bool "blocking"
-    val debug = lookup_bool "debug"
-    val verbose = debug orelse lookup_bool "verbose"
+    val blocking = auto orelse lookup_bool "blocking"
+    val debug = not auto andalso lookup_bool "debug"
+    val verbose = debug orelse (not auto andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
-    val atps = lookup_string "atps" |> space_explode " "
+    val atps = lookup_string "atps" |> space_explode " " |> auto ? single o hd
     val full_types = lookup_bool "full_types"
     val explicit_apply = lookup_bool "explicit_apply"
     val relevance_thresholds =
@@ -180,7 +189,7 @@ fun extract_params default_params override_params =
     val max_relevant = lookup_int_option "max_relevant"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
-    val timeout = lookup_time "timeout"
+    val timeout = (if auto then NONE else lookup_time "timeout") |> the_timeout
     val expect = lookup_string "expect"
   in
     {blocking = blocking, debug = debug, verbose = verbose, overlord = overlord,
@@ -190,8 +199,8 @@ fun extract_params default_params override_params =
      timeout = timeout, expect = expect}
   end
 
-fun get_params thy = extract_params (default_raw_params thy)
-fun default_params thy = get_params thy o map (apsnd single)
+fun get_params auto thy = extract_params auto (default_raw_params thy)
+fun default_params thy = get_params false thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
@@ -225,11 +234,13 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        run_sledgehammer (get_params thy override_params) i relevance_override
-                         (minimize_command override_params i) state
+        run_sledgehammer (get_params false thy override_params) false i
+                         relevance_override (minimize_command override_params i)
+                         state
+        |> K ()
       end
     else if subcommand = minimizeN then
-      run_minimize (get_params thy override_params) (the_default 1 opt_i)
+      run_minimize (get_params false thy override_params) (the_default 1 opt_i)
                    (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
@@ -254,7 +265,7 @@ fun string_for_raw_param (name, value) = name ^ " = " ^ space_implode " " value
 fun sledgehammer_params_trans params =
   Toplevel.theory
       (fold set_default_raw_param params
-       #> tap (fn thy => 
+       #> tap (fn thy =>
                   writeln ("Default parameters for Sledgehammer:\n" ^
                            (case rev (default_raw_params thy) of
                               [] => "none"
@@ -270,14 +281,13 @@ val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
   Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse_Spec.xthm)
 val parse_relevance_chunk =
-  (Args.add |-- Args.colon |-- parse_fact_refs >> add_to_relevance_override)
-  || (Args.del |-- Args.colon |-- parse_fact_refs
-      >> del_from_relevance_override)
+  (Args.add |-- Args.colon |-- parse_fact_refs >> add_relevance_override)
+  || (Args.del |-- Args.colon |-- parse_fact_refs >> del_relevance_override)
   || (parse_fact_refs >> only_relevance_override)
 val parse_relevance_override =
   Scan.optional (Args.parens (Scan.repeat parse_relevance_chunk
                               >> merge_relevance_overrides))
-                (add_to_relevance_override [])
+                no_relevance_override
 val parse_sledgehammer_command =
   (Scan.optional Parse.short_ident runN -- parse_params
    -- parse_relevance_override -- Scan.option Parse.nat) #>> sledgehammer_trans
@@ -292,5 +302,16 @@ val _ =
   Outer_Syntax.command sledgehammer_paramsN
       "set and display the default parameters for Sledgehammer" Keyword.thy_decl
       parse_sledgehammer_params_command
+
+fun auto_sledgehammer state =
+  if not (!auto) then
+    (false, state)
+  else
+    let val thy = Proof.theory_of state in
+      run_sledgehammer (get_params true thy []) true 1 no_relevance_override
+                       (minimize_command [] 1) state
+    end
+
+val setup = Auto_Tools.register_tool ("sledgehammer", auto_sledgehammer)
 
 end;

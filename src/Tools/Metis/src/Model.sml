@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* RANDOM FINITE MODELS                                                      *)
-(* Copyright (c) 2003-2007 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2003 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Model :> Model =
@@ -9,378 +9,912 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Constants.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val maxSpace = 1000;
+
+(* ------------------------------------------------------------------------- *)
 (* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun intExp x y = exp op* x y 1;
-
-fun natFromString "" = NONE
-  | natFromString "0" = SOME 0
-  | natFromString s =
-    case charToInt (String.sub (s,0)) of
-      NONE => NONE
-    | SOME 0 => NONE
-    | SOME d =>
+val multInt =
+    case Int.maxInt of
+      NONE => (fn x => fn y => SOME (x * y))
+    | SOME m =>
       let
-        fun parse 0 _ acc = SOME acc
-          | parse n i acc =
-            case charToInt (String.sub (s,i)) of
-              NONE => NONE
-            | SOME d => parse (n - 1) (i + 1) (10 * acc + d)
+        val m = Real.floor (Math.sqrt (Real.fromInt m))
       in
-        parse (size s - 1) 1 d
+        fn x => fn y => if x <= m andalso y <= m then SOME (x * y) else NONE
       end;
 
-fun projection (_,[]) = NONE
-  | projection ("#1", x :: _) = SOME x
-  | projection ("#2", _ :: x :: _) = SOME x
-  | projection ("#3", _ :: _ :: x :: _) = SOME x
-  | projection (func,args) =
-    let
-      val f = size func
-      and n = length args
+local
+  fun iexp x y acc =
+      if y mod 2 = 0 then iexp' x y acc
+      else
+        case multInt acc x of
+          SOME acc => iexp' x y acc
+        | NONE => NONE
 
-      val p =
-          if f < 2 orelse n <= 3 orelse String.sub (func,0) <> #"#" then NONE
-          else if f = 2 then
-            (case charToInt (String.sub (func,1)) of
-               NONE => NONE
-             | p as SOME d => if d <= 3 then NONE else p)
-          else if (n < intExp 10 (f - 2) handle Overflow => true) then NONE
-          else
-            (natFromString (String.extract (func,1,NONE))
-             handle Overflow => NONE)
+  and iexp' x y acc =
+      if y = 1 then SOME acc
+      else
+        let
+          val y = y div 2
+        in
+          case multInt x x of
+            SOME x => iexp x y acc
+          | NONE => NONE
+        end;
+in
+  fun expInt x y =
+      if y <= 1 then
+        if y = 0 then SOME 1
+        else if y = 1 then SOME x
+        else raise Bug "expInt: negative exponent"
+      else if x <= 1 then
+        if 0 <= x then SOME x
+        else raise Bug "expInt: negative exponand"
+      else iexp x y 1;
+end;
+
+fun boolToInt true = 1
+  | boolToInt false = 0;
+
+fun intToBool 1 = true
+  | intToBool 0 = false
+  | intToBool _ = raise Bug "Model.intToBool";
+
+fun minMaxInterval i j = interval i (1 + j - i);
+
+(* ------------------------------------------------------------------------- *)
+(* Model size.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+type size = {size : int};
+
+(* ------------------------------------------------------------------------- *)
+(* A model of size N has integer elements 0...N-1.                           *)
+(* ------------------------------------------------------------------------- *)
+
+type element = int;
+
+val zeroElement = 0;
+
+fun incrementElement {size = N} i =
+    let
+      val i = i + 1
     in
-      case p of
-        NONE => NONE
-      | SOME k => if k > n then NONE else SOME (List.nth (args, k - 1))
+      if i = N then NONE else SOME i
+    end;
+
+fun elementListSpace {size = N} arity =
+    case expInt N arity of
+      NONE => NONE
+    | s as SOME m => if m <= maxSpace then s else NONE;
+
+fun elementListIndex {size = N} =
+    let
+      fun f acc elts =
+          case elts of
+            [] => acc
+          | elt :: elts => f (N * acc + elt) elts
+    in
+      f 0
     end;
 
 (* ------------------------------------------------------------------------- *)
 (* The parts of the model that are fixed.                                    *)
-(* Note: a model of size N has integer elements 0...N-1.                     *)
 (* ------------------------------------------------------------------------- *)
 
-type fixedModel =
-     {functions : (Term.functionName * int list) -> int option,
-      relations : (Atom.relationName * int list) -> bool option};
+type fixedFunction = size -> element list -> element option;
 
-type fixed = {size : int} -> fixedModel
+type fixedRelation = size -> element list -> bool option;
 
-fun fixedMerge fixed1 fixed2 parm =
+datatype fixed =
+    Fixed of
+      {functions : fixedFunction NameArityMap.map,
+       relations : fixedRelation NameArityMap.map};
+
+val uselessFixedFunction : fixedFunction = K (K NONE);
+
+val uselessFixedRelation : fixedRelation = K (K NONE);
+
+val emptyFunctions : fixedFunction NameArityMap.map = NameArityMap.new ();
+
+val emptyRelations : fixedRelation NameArityMap.map = NameArityMap.new ();
+
+fun fixed0 f sz elts =
+    case elts of
+      [] => f sz
+    | _ => raise Bug "Model.fixed0: wrong arity";
+
+fun fixed1 f sz elts =
+    case elts of
+      [x] => f sz x
+    | _ => raise Bug "Model.fixed1: wrong arity";
+
+fun fixed2 f sz elts =
+    case elts of
+      [x,y] => f sz x y
+    | _ => raise Bug "Model.fixed2: wrong arity";
+
+val emptyFixed =
     let
-      val {functions = f1, relations = r1} = fixed1 parm
-      and {functions = f2, relations = r2} = fixed2 parm
-
-      fun functions x = case f2 x of NONE => f1 x | s => s
-
-      fun relations x = case r2 x of NONE => r1 x | s => s
+      val fns = emptyFunctions
+      and rels = emptyRelations
     in
-      {functions = functions, relations = relations}
+      Fixed
+        {functions = fns,
+         relations = rels}
     end;
 
-fun fixedMergeList [] = raise Bug "fixedMergeList: empty"
-  | fixedMergeList (f :: l) = foldl (uncurry fixedMerge) f l;
-
-fun fixedPure {size = _} =
+fun peekFunctionFixed fix name_arity =
     let
-      fun functions (":",[x,_]) = SOME x
-        | functions _ = NONE
-
-      fun relations (rel,[x,y]) =
-          if (rel,2) = Atom.eqRelation then SOME (x = y) else NONE
-        | relations _ = NONE
+      val Fixed {functions = fns, ...} = fix
     in
-      {functions = functions, relations = relations}
+      NameArityMap.peek fns name_arity
     end;
 
-fun fixedBasic {size = _} =
+fun peekRelationFixed fix name_arity =
     let
-      fun functions ("id",[x]) = SOME x
-        | functions ("fst",[x,_]) = SOME x
-        | functions ("snd",[_,x]) = SOME x
-        | functions func_args = projection func_args
-
-      fun relations ("<>",[x,y]) = SOME (x <> y)
-        | relations _ = NONE
+      val Fixed {relations = rels, ...} = fix
     in
-      {functions = functions, relations = relations}
+      NameArityMap.peek rels name_arity
     end;
 
-fun fixedModulo {size = N} =
+fun getFunctionFixed fix name_arity =
+    case peekFunctionFixed fix name_arity of
+      SOME f => f
+    | NONE => uselessFixedFunction;
+
+fun getRelationFixed fix name_arity =
+    case peekRelationFixed fix name_arity of
+      SOME rel => rel
+    | NONE => uselessFixedRelation;
+
+fun insertFunctionFixed fix name_arity_fn =
     let
-      fun mod_N k = k mod N
+      val Fixed {functions = fns, relations = rels} = fix
 
-      val one = mod_N 1
-                
-      fun mult (x,y) = mod_N (x * y)
-
-      fun divides_N 0 = false
-        | divides_N x = N mod x = 0
-
-      val even_N = divides_N 2
-
-      fun functions (numeral,[]) =
-          Option.map mod_N (natFromString numeral handle Overflow => NONE)
-        | functions ("suc",[x]) = SOME (if x = N - 1 then 0 else x + 1)
-        | functions ("pre",[x]) = SOME (if x = 0 then N - 1 else x - 1)
-        | functions ("~",[x]) = SOME (if x = 0 then 0 else N - x)
-        | functions ("+",[x,y]) = SOME (mod_N (x + y))
-        | functions ("-",[x,y]) = SOME (if x < y then N + x - y else x - y)
-        | functions ("*",[x,y]) = SOME (mult (x,y))
-        | functions ("exp",[x,y]) = SOME (exp mult x y one)
-        | functions ("div",[x,y]) = if divides_N y then SOME (x div y) else NONE
-        | functions ("mod",[x,y]) = if divides_N y then SOME (x mod y) else NONE
-        | functions _ = NONE
-
-      fun relations ("is_0",[x]) = SOME (x = 0)
-        | relations ("divides",[x,y]) =
-          if x = 0 then SOME (y = 0)
-          else if divides_N x then SOME (y mod x = 0) else NONE
-        | relations ("even",[x]) = if even_N then SOME (x mod 2 = 0) else NONE
-        | relations ("odd",[x]) = if even_N then SOME (x mod 2 = 1) else NONE
-        | relations _ = NONE
+      val fns = NameArityMap.insert fns name_arity_fn
     in
-      {functions = functions, relations = relations}
+      Fixed
+        {functions = fns,
+         relations = rels}
+    end;
+
+fun insertRelationFixed fix name_arity_rel =
+    let
+      val Fixed {functions = fns, relations = rels} = fix
+
+      val rels = NameArityMap.insert rels name_arity_rel
+    in
+      Fixed
+        {functions = fns,
+         relations = rels}
     end;
 
 local
-  datatype onum = ONeg | ONum of int | OInf;
-
-  val zero = ONum 0
-  and one = ONum 1
-  and two = ONum 2;
-
-  fun suc (ONum x) = ONum (x + 1)
-    | suc v = v;
-
-  fun pre (ONum 0) = ONeg
-    | pre (ONum x) = ONum (x - 1)
-    | pre v = v;
-
-  fun neg ONeg = NONE
-    | neg (n as ONum 0) = SOME n
-    | neg _ = SOME ONeg;
-
-  fun add ONeg ONeg = SOME ONeg
-    | add ONeg (ONum y) = if y = 0 then SOME ONeg else NONE
-    | add ONeg OInf = NONE
-    | add (ONum x) ONeg = if x = 0 then SOME ONeg else NONE
-    | add (ONum x) (ONum y) = SOME (ONum (x + y))
-    | add (ONum _) OInf = SOME OInf
-    | add OInf ONeg = NONE
-    | add OInf (ONum _) = SOME OInf
-    | add OInf OInf = SOME OInf;
-
-  fun sub ONeg ONeg = NONE
-    | sub ONeg (ONum _) = SOME ONeg
-    | sub ONeg OInf = SOME ONeg
-    | sub (ONum _) ONeg = NONE
-    | sub (ONum x) (ONum y) = SOME (if x < y then ONeg else ONum (x - y))
-    | sub (ONum _) OInf = SOME ONeg
-    | sub OInf ONeg = SOME OInf
-    | sub OInf (ONum y) = if y = 0 then SOME OInf else NONE
-    | sub OInf OInf = NONE;
-
-  fun mult ONeg ONeg = NONE
-    | mult ONeg (ONum y) = SOME (if y = 0 then zero else ONeg)
-    | mult ONeg OInf = SOME ONeg
-    | mult (ONum x) ONeg = SOME (if x = 0 then zero else ONeg)
-    | mult (ONum x) (ONum y) = SOME (ONum (x * y))
-    | mult (ONum x) OInf = SOME (if x = 0 then zero else OInf)
-    | mult OInf ONeg = SOME ONeg
-    | mult OInf (ONum y) = SOME (if y = 0 then zero else OInf)
-    | mult OInf OInf = SOME OInf;
-
-  fun exp ONeg ONeg = NONE
-    | exp ONeg (ONum y) =
-      if y = 0 then SOME one else if y mod 2 = 0 then NONE else SOME ONeg
-    | exp ONeg OInf = NONE
-    | exp (ONum x) ONeg = NONE
-    | exp (ONum x) (ONum y) = SOME (ONum (intExp x y) handle Overflow => OInf)
-    | exp (ONum x) OInf =
-      SOME (if x = 0 then zero else if x = 1 then one else OInf)
-    | exp OInf ONeg = NONE
-    | exp OInf (ONum y) = SOME (if y = 0 then one else OInf)
-    | exp OInf OInf = SOME OInf;
-
-  fun odiv ONeg ONeg = NONE
-    | odiv ONeg (ONum y) = if y = 1 then SOME ONeg else NONE
-    | odiv ONeg OInf = NONE
-    | odiv (ONum _) ONeg = NONE
-    | odiv (ONum x) (ONum y) = if y = 0 then NONE else SOME (ONum (x div y))
-    | odiv (ONum _) OInf = SOME zero
-    | odiv OInf ONeg = NONE
-    | odiv OInf (ONum y) = if y = 1 then SOME OInf else NONE
-    | odiv OInf OInf = NONE;
-
-  fun omod ONeg ONeg = NONE
-    | omod ONeg (ONum y) = if y = 1 then SOME zero else NONE
-    | omod ONeg OInf = NONE
-    | omod (ONum _) ONeg = NONE
-    | omod (ONum x) (ONum y) = if y = 0 then NONE else SOME (ONum (x mod y))
-    | omod (x as ONum _) OInf = SOME x
-    | omod OInf ONeg = NONE
-    | omod OInf (ONum y) = if y = 1 then SOME OInf else NONE
-    | omod OInf OInf = NONE;
-
-  fun le ONeg ONeg = NONE
-    | le ONeg (ONum y) = SOME true
-    | le ONeg OInf = SOME true
-    | le (ONum _) ONeg = SOME false
-    | le (ONum x) (ONum y) = SOME (x <= y)
-    | le (ONum _) OInf = SOME true
-    | le OInf ONeg = SOME false
-    | le OInf (ONum _) = SOME false
-    | le OInf OInf = NONE;
-
-  fun lt x y = Option.map not (le y x);
-  
-  fun ge x y = le y x;
-  
-  fun gt x y = lt y x;
-  
-  fun divides ONeg ONeg = NONE
-    | divides ONeg (ONum y) = if y = 0 then SOME true else NONE
-    | divides ONeg OInf = NONE
-    | divides (ONum x) ONeg =
-      if x = 0 then SOME false else if x = 1 then SOME true else NONE
-    | divides (ONum x) (ONum y) = SOME (Useful.divides x y)
-    | divides (ONum x) OInf =
-      if x = 0 then SOME false else if x = 1 then SOME true else NONE
-    | divides OInf ONeg = NONE
-    | divides OInf (ONum y) = SOME (y = 0)
-    | divides OInf OInf = NONE;
-  
-  fun even n = divides two n;
-  
-  fun odd n = Option.map not (even n);
-
-  fun fixedOverflow mk_onum dest_onum =
-      let
-        fun partial_dest_onum NONE = NONE
-          | partial_dest_onum (SOME n) = dest_onum n
-
-        fun functions (numeral,[]) =
-            (case (natFromString numeral handle Overflow => NONE) of
-               NONE => NONE
-             | SOME n => dest_onum (ONum n))
-          | functions ("suc",[x]) = dest_onum (suc (mk_onum x))
-          | functions ("pre",[x]) = dest_onum (pre (mk_onum x))
-          | functions ("~",[x]) = partial_dest_onum (neg (mk_onum x))
-          | functions ("+",[x,y]) =
-            partial_dest_onum (add (mk_onum x) (mk_onum y))
-          | functions ("-",[x,y]) =
-            partial_dest_onum (sub (mk_onum x) (mk_onum y))
-          | functions ("*",[x,y]) =
-            partial_dest_onum (mult (mk_onum x) (mk_onum y))
-          | functions ("exp",[x,y]) =
-            partial_dest_onum (exp (mk_onum x) (mk_onum y))
-          | functions ("div",[x,y]) =
-            partial_dest_onum (odiv (mk_onum x) (mk_onum y))
-          | functions ("mod",[x,y]) =
-            partial_dest_onum (omod (mk_onum x) (mk_onum y))
-          | functions _ = NONE
-  
-        fun relations ("is_0",[x]) = SOME (mk_onum x = zero)
-          | relations ("<=",[x,y]) = le (mk_onum x) (mk_onum y)
-          | relations ("<",[x,y]) = lt (mk_onum x) (mk_onum y)
-          | relations (">=",[x,y]) = ge (mk_onum x) (mk_onum y)
-          | relations (">",[x,y]) = gt (mk_onum x) (mk_onum y)
-          | relations ("divides",[x,y]) = divides (mk_onum x) (mk_onum y)
-          | relations ("even",[x]) = even (mk_onum x)
-          | relations ("odd",[x]) = odd (mk_onum x)
-          | relations _ = NONE
-      in
-        {functions = functions, relations = relations}
-      end;
+  fun union _ = raise Bug "Model.unionFixed: nameArity clash";
 in
-  fun fixedOverflowNum {size = N} =
+  fun unionFixed fix1 fix2 =
       let
-        val oinf = N - 1
-  
-        fun mk_onum x = if x = oinf then OInf else ONum x
-  
-        fun dest_onum ONeg = NONE
-          | dest_onum (ONum x) = SOME (if x < oinf then x else oinf)
-          | dest_onum OInf = SOME oinf
-      in
-        fixedOverflow mk_onum dest_onum
-      end;
+        val Fixed {functions = fns1, relations = rels1} = fix1
+        and Fixed {functions = fns2, relations = rels2} = fix2
 
-  fun fixedOverflowInt {size = N} =
-      let
-        val oinf = N - 2
-        val oneg = N - 1
-  
-        fun mk_onum x =
-            if x = oneg then ONeg else if x = oinf then OInf else ONum x
-  
-        fun dest_onum ONeg = SOME oneg
-          | dest_onum (ONum x) = SOME (if x < oinf then x else oinf)
-          | dest_onum OInf = SOME oinf
+        val fns = NameArityMap.union union fns1 fns2
+
+        val rels = NameArityMap.union union rels1 rels2
       in
-        fixedOverflow mk_onum dest_onum
+        Fixed
+          {functions = fns,
+           relations = rels}
       end;
 end;
 
-fun fixedSet {size = N} =
+val unionListFixed =
     let
-      val M =
-          let
-            fun f 0 acc = acc
-              | f x acc = f (x div 2) (acc + 1)
-          in
-            f N 0
-          end
-
-      val univ = IntSet.fromList (interval 0 M)
-
-      val mk_set =
-          let
-            fun f _ s 0 = s
-              | f k s x =
-                let
-                  val s = if x mod 2 = 0 then s else IntSet.add s k
-                in
-                  f (k + 1) s (x div 2)
-                end
-          in
-            f 0 IntSet.empty
-          end
-
-      fun dest_set s =
-          let
-            fun f 0 x = x
-              | f k x =
-                let
-                  val k = k - 1
-                in
-                  f k (if IntSet.member k s then 2 * x + 1 else 2 * x)
-                end
-
-            val x = case IntSet.findr (K true) s of NONE => 0 | SOME k => f k 1
-          in
-            if x < N then SOME x else NONE
-          end
-
-      fun functions ("empty",[]) = dest_set IntSet.empty
-        | functions ("univ",[]) = dest_set univ
-        | functions ("union",[x,y]) =
-          dest_set (IntSet.union (mk_set x) (mk_set y))
-        | functions ("intersect",[x,y]) =
-          dest_set (IntSet.intersect (mk_set x) (mk_set y))
-        | functions ("compl",[x]) =
-          dest_set (IntSet.difference univ (mk_set x))
-        | functions ("card",[x]) = SOME (IntSet.size (mk_set x))
-        | functions _ = NONE
-  
-      fun relations ("in",[x,y]) = SOME (IntSet.member (x mod M) (mk_set y))
-        | relations ("subset",[x,y]) =
-          SOME (IntSet.subset (mk_set x) (mk_set y))
-        | relations _ = NONE
+      fun union (fix,acc) = unionFixed acc fix
     in
-      {functions = functions, relations = relations}
+      List.foldl union emptyFixed
+    end;
+
+local
+  fun hasTypeFn _ elts =
+      case elts of
+        [x,_] => SOME x
+      | _ => raise Bug "Model.hasTypeFn: wrong arity";
+
+  fun eqRel _ elts =
+      case elts of
+        [x,y] => SOME (x = y)
+      | _ => raise Bug "Model.eqRel: wrong arity";
+in
+  val basicFixed =
+      let
+        val fns = NameArityMap.singleton (Term.hasTypeFunction,hasTypeFn)
+
+        val rels = NameArityMap.singleton (Atom.eqRelation,eqRel)
+      in
+        Fixed
+          {functions = fns,
+           relations = rels}
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Renaming fixed model parts.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+type fixedMap =
+     {functionMap : Name.name NameArityMap.map,
+      relationMap : Name.name NameArityMap.map};
+
+fun mapFixed fixMap fix =
+    let
+      val {functionMap = fnMap, relationMap = relMap} = fixMap
+      and Fixed {functions = fns, relations = rels} = fix
+
+      val fns = NameArityMap.compose fnMap fns
+
+      val rels = NameArityMap.compose relMap rels
+    in
+      Fixed
+        {functions = fns,
+         relations = rels}
+    end;
+
+local
+  fun mkEntry tag (na,n) = (tag,na,n);
+
+  fun mkList tag m = map (mkEntry tag) (NameArityMap.toList m);
+
+  fun ppEntry (tag,source_arity,target) =
+      Print.blockProgram Print.Inconsistent 2
+        [Print.addString tag,
+         Print.addBreak 1,
+         NameArity.pp source_arity,
+         Print.addString " ->",
+         Print.addBreak 1,
+         Name.pp target];
+in
+  fun ppFixedMap fixMap =
+      let
+        val {functionMap = fnMap, relationMap = relMap} = fixMap
+      in
+        case mkList "function" fnMap @ mkList "relation" relMap of
+          [] => Print.skip
+        | entry :: entries =>
+          Print.blockProgram Print.Consistent 0
+            (ppEntry entry ::
+             map (Print.sequence Print.addNewline o ppEntry) entries)
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Standard fixed model parts.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+(* Projections *)
+
+val projectionMin = 1
+and projectionMax = 9;
+
+val projectionList = minMaxInterval projectionMin projectionMax;
+
+fun projectionName i =
+    let
+      val _ = projectionMin <= i orelse
+              raise Bug "Model.projectionName: less than projectionMin"
+
+      val _ = i <= projectionMax orelse
+              raise Bug "Model.projectionName: greater than projectionMax"
+    in
+      Name.fromString ("project" ^ Int.toString i)
+    end;
+
+fun projectionFn i _ elts = SOME (List.nth (elts, i - 1));
+
+fun arityProjectionFixed arity =
+    let
+      fun mkProj i = ((projectionName i, arity), projectionFn i)
+
+      fun addProj i acc =
+          if i > arity then acc
+          else addProj (i + 1) (NameArityMap.insert acc (mkProj i))
+
+      val fns = addProj projectionMin emptyFunctions
+
+      val rels = emptyRelations
+    in
+      Fixed
+        {functions = fns,
+         relations = rels}
+    end;
+
+val projectionFixed =
+    unionListFixed (map arityProjectionFixed projectionList);
+
+(* Arithmetic *)
+
+val numeralMin = ~100
+and numeralMax = 100;
+
+val numeralList = minMaxInterval numeralMin numeralMax;
+
+fun numeralName i =
+    let
+      val _ = numeralMin <= i orelse
+              raise Bug "Model.numeralName: less than numeralMin"
+
+      val _ = i <= numeralMax orelse
+              raise Bug "Model.numeralName: greater than numeralMax"
+
+      val s = if i < 0 then "negative" ^ Int.toString (~i) else Int.toString i
+    in
+      Name.fromString s
+    end;
+
+val addName = Name.fromString "+"
+and divName = Name.fromString "div"
+and dividesName = Name.fromString "divides"
+and evenName = Name.fromString "even"
+and expName = Name.fromString "exp"
+and geName = Name.fromString ">="
+and gtName = Name.fromString ">"
+and isZeroName = Name.fromString "isZero"
+and leName = Name.fromString "<="
+and ltName = Name.fromString "<"
+and modName = Name.fromString "mod"
+and multName = Name.fromString "*"
+and negName = Name.fromString "~"
+and oddName = Name.fromString "odd"
+and preName = Name.fromString "pre"
+and subName = Name.fromString "-"
+and sucName = Name.fromString "suc";
+
+local
+  (* Support *)
+
+  fun modN {size = N} x = x mod N;
+
+  fun oneN sz = modN sz 1;
+
+  fun multN sz (x,y) = modN sz (x * y);
+
+  (* Functions *)
+
+  fun numeralFn i sz = SOME (modN sz i);
+
+  fun addFn sz x y = SOME (modN sz (x + y));
+
+  fun divFn {size = N} x y =
+      let
+        val y = if y = 0 then N else y
+      in
+        SOME (x div y)
+      end;
+
+  fun expFn sz x y = SOME (exp (multN sz) x y (oneN sz));
+
+  fun modFn {size = N} x y =
+      let
+        val y = if y = 0 then N else y
+      in
+        SOME (x mod y)
+      end;
+
+  fun multFn sz x y = SOME (multN sz (x,y));
+
+  fun negFn {size = N} x = SOME (if x = 0 then 0 else N - x);
+
+  fun preFn {size = N} x = SOME (if x = 0 then N - 1 else x - 1);
+
+  fun subFn {size = N} x y = SOME (if x < y then N + x - y else x - y);
+
+  fun sucFn {size = N} x = SOME (if x = N - 1 then 0 else x + 1);
+
+  (* Relations *)
+
+  fun dividesRel _ x y = SOME (divides x y);
+
+  fun evenRel _ x = SOME (x mod 2 = 0);
+
+  fun geRel _ x y = SOME (x >= y);
+
+  fun gtRel _ x y = SOME (x > y);
+
+  fun isZeroRel _ x = SOME (x = 0);
+
+  fun leRel _ x y = SOME (x <= y);
+
+  fun ltRel _ x y = SOME (x < y);
+
+  fun oddRel _ x = SOME (x mod 2 = 1);
+in
+  val modularFixed =
+      let
+        val fns =
+            NameArityMap.fromList
+              (map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
+                 numeralList @
+               [((addName,2), fixed2 addFn),
+                ((divName,2), fixed2 divFn),
+                ((expName,2), fixed2 expFn),
+                ((modName,2), fixed2 modFn),
+                ((multName,2), fixed2 multFn),
+                ((negName,1), fixed1 negFn),
+                ((preName,1), fixed1 preFn),
+                ((subName,2), fixed2 subFn),
+                ((sucName,1), fixed1 sucFn)])
+
+        val rels =
+            NameArityMap.fromList
+              [((dividesName,2), fixed2 dividesRel),
+               ((evenName,1), fixed1 evenRel),
+               ((geName,2), fixed2 geRel),
+               ((gtName,2), fixed2 gtRel),
+               ((isZeroName,1), fixed1 isZeroRel),
+               ((leName,2), fixed2 leRel),
+               ((ltName,2), fixed2 ltRel),
+               ((oddName,1), fixed1 oddRel)]
+      in
+        Fixed
+          {functions = fns,
+           relations = rels}
+      end;
+end;
+
+local
+  (* Support *)
+
+  fun cutN {size = N} x = if x >= N then N - 1 else x;
+
+  fun oneN sz = cutN sz 1;
+
+  fun multN sz (x,y) = cutN sz (x * y);
+
+  (* Functions *)
+
+  fun numeralFn i sz = if i < 0 then NONE else SOME (cutN sz i);
+
+  fun addFn sz x y = SOME (cutN sz (x + y));
+
+  fun divFn _ x y = if y = 0 then NONE else SOME (x div y);
+
+  fun expFn sz x y = SOME (exp (multN sz) x y (oneN sz));
+
+  fun modFn {size = N} x y =
+      if y = 0 orelse x = N - 1 then NONE else SOME (x mod y);
+
+  fun multFn sz x y = SOME (multN sz (x,y));
+
+  fun negFn _ x = if x = 0 then SOME 0 else NONE;
+
+  fun preFn _ x = if x = 0 then NONE else SOME (x - 1);
+
+  fun subFn {size = N} x y =
+      if y = 0 then SOME x
+      else if x = N - 1 orelse x < y then NONE
+      else SOME (x - y);
+
+  fun sucFn sz x = SOME (cutN sz (x + 1));
+
+  (* Relations *)
+
+  fun dividesRel {size = N} x y =
+      if x = 1 orelse y = 0 then SOME true
+      else if x = 0 then SOME false
+      else if y = N - 1 then NONE
+      else SOME (divides x y);
+
+  fun evenRel {size = N} x =
+      if x = N - 1 then NONE else SOME (x mod 2 = 0);
+
+  fun geRel {size = N} y x =
+      if x = N - 1 then if y = N - 1 then NONE else SOME false
+      else if y = N - 1 then SOME true else SOME (x <= y);
+
+  fun gtRel {size = N} y x =
+      if x = N - 1 then if y = N - 1 then NONE else SOME false
+      else if y = N - 1 then SOME true else SOME (x < y);
+
+  fun isZeroRel _ x = SOME (x = 0);
+
+  fun leRel {size = N} x y =
+      if x = N - 1 then if y = N - 1 then NONE else SOME false
+      else if y = N - 1 then SOME true else SOME (x <= y);
+
+  fun ltRel {size = N} x y =
+      if x = N - 1 then if y = N - 1 then NONE else SOME false
+      else if y = N - 1 then SOME true else SOME (x < y);
+
+  fun oddRel {size = N} x =
+      if x = N - 1 then NONE else SOME (x mod 2 = 1);
+in
+  val overflowFixed =
+      let
+        val fns =
+            NameArityMap.fromList
+              (map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
+                 numeralList @
+               [((addName,2), fixed2 addFn),
+                ((divName,2), fixed2 divFn),
+                ((expName,2), fixed2 expFn),
+                ((modName,2), fixed2 modFn),
+                ((multName,2), fixed2 multFn),
+                ((negName,1), fixed1 negFn),
+                ((preName,1), fixed1 preFn),
+                ((subName,2), fixed2 subFn),
+                ((sucName,1), fixed1 sucFn)])
+
+        val rels =
+            NameArityMap.fromList
+              [((dividesName,2), fixed2 dividesRel),
+               ((evenName,1), fixed1 evenRel),
+               ((geName,2), fixed2 geRel),
+               ((gtName,2), fixed2 gtRel),
+               ((isZeroName,1), fixed1 isZeroRel),
+               ((leName,2), fixed2 leRel),
+               ((ltName,2), fixed2 ltRel),
+               ((oddName,1), fixed1 oddRel)]
+      in
+        Fixed
+          {functions = fns,
+           relations = rels}
+      end;
+end;
+
+(* Sets *)
+
+val cardName = Name.fromString "card"
+and complementName = Name.fromString "complement"
+and differenceName = Name.fromString "difference"
+and emptyName = Name.fromString "empty"
+and memberName = Name.fromString "member"
+and insertName = Name.fromString "insert"
+and intersectName = Name.fromString "intersect"
+and singletonName = Name.fromString "singleton"
+and subsetName = Name.fromString "subset"
+and symmetricDifferenceName = Name.fromString "symmetricDifference"
+and unionName = Name.fromString "union"
+and universeName = Name.fromString "universe";
+
+local
+  (* Support *)
+
+  fun eltN {size = N} =
+      let
+        fun f 0 acc = acc
+          | f x acc = f (x div 2) (acc + 1)
+      in
+        f N ~1
+      end;
+
+  fun posN i = Word.<< (0w1, Word.fromInt i);
+
+  fun univN sz = Word.- (posN (eltN sz), 0w1);
+
+  fun setN sz x = Word.andb (Word.fromInt x, univN sz);
+
+  (* Functions *)
+
+  fun cardFn sz x =
+      let
+        fun f 0w0 acc = acc
+          | f s acc =
+            let
+              val acc = if Word.andb (s,0w1) = 0w0 then acc else acc + 1
+            in
+              f (Word.>> (s,0w1)) acc
+            end
+      in
+        SOME (f (setN sz x) 0)
+      end;
+
+  fun complementFn sz x = SOME (Word.toInt (Word.xorb (univN sz, setN sz x)));
+
+  fun differenceFn sz x y =
+      let
+        val x = setN sz x
+        and y = setN sz y
+      in
+        SOME (Word.toInt (Word.andb (x, Word.notb y)))
+      end;
+
+  fun emptyFn _ = SOME 0;
+
+  fun insertFn sz x y =
+      let
+        val x = x mod eltN sz
+        and y = setN sz y
+      in
+        SOME (Word.toInt (Word.orb (posN x, y)))
+      end;
+
+  fun intersectFn sz x y =
+      SOME (Word.toInt (Word.andb (setN sz x, setN sz y)));
+
+  fun singletonFn sz x =
+      let
+        val x = x mod eltN sz
+      in
+        SOME (Word.toInt (posN x))
+      end;
+
+  fun symmetricDifferenceFn sz x y =
+      let
+        val x = setN sz x
+        and y = setN sz y
+      in
+        SOME (Word.toInt (Word.xorb (x,y)))
+      end;
+
+  fun unionFn sz x y =
+      SOME (Word.toInt (Word.orb (setN sz x, setN sz y)));
+
+  fun universeFn sz = SOME (Word.toInt (univN sz));
+
+  (* Relations *)
+
+  fun memberRel sz x y =
+      let
+        val x = x mod eltN sz
+        and y = setN sz y
+      in
+        SOME (Word.andb (posN x, y) <> 0w0)
+      end;
+
+  fun subsetRel sz x y =
+      let
+        val x = setN sz x
+        and y = setN sz y
+      in
+        SOME (Word.andb (x, Word.notb y) = 0w0)
+      end;
+in
+  val setFixed =
+      let
+        val fns =
+            NameArityMap.fromList
+              [((cardName,1), fixed1 cardFn),
+               ((complementName,1), fixed1 complementFn),
+               ((differenceName,2), fixed2 differenceFn),
+               ((emptyName,0), fixed0 emptyFn),
+               ((insertName,2), fixed2 insertFn),
+               ((intersectName,2), fixed2 intersectFn),
+               ((singletonName,1), fixed1 singletonFn),
+               ((symmetricDifferenceName,2), fixed2 symmetricDifferenceFn),
+               ((unionName,2), fixed2 unionFn),
+               ((universeName,0), fixed0 universeFn)]
+
+        val rels =
+            NameArityMap.fromList
+              [((memberName,2), fixed2 memberRel),
+               ((subsetName,2), fixed2 subsetRel)]
+      in
+        Fixed
+          {functions = fns,
+           relations = rels}
+      end;
+end;
+
+(* Lists *)
+
+val appendName = Name.fromString "@"
+and consName = Name.fromString "::"
+and lengthName = Name.fromString "length"
+and nilName = Name.fromString "nil"
+and nullName = Name.fromString "null"
+and tailName = Name.fromString "tail";
+
+local
+  val baseFix =
+      let
+        val fix = unionFixed projectionFixed overflowFixed
+
+        val sucFn = getFunctionFixed fix (sucName,1)
+
+        fun suc2Fn sz _ x = sucFn sz [x]
+      in
+        insertFunctionFixed fix ((sucName,2), fixed2 suc2Fn)
+      end;
+
+  val fixMap =
+      {functionMap = NameArityMap.fromList
+                       [((appendName,2),addName),
+                        ((consName,2),sucName),
+                        ((lengthName,1), projectionName 1),
+                        ((nilName,0), numeralName 0),
+                        ((tailName,1),preName)],
+       relationMap = NameArityMap.fromList
+                       [((nullName,1),isZeroName)]};
+
+in
+  val listFixed = mapFixed fixMap baseFix;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Valuations.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+datatype valuation = Valuation of element NameMap.map;
+
+val emptyValuation = Valuation (NameMap.new ());
+
+fun insertValuation (Valuation m) v_i = Valuation (NameMap.insert m v_i);
+
+fun peekValuation (Valuation m) v = NameMap.peek m v;
+
+fun constantValuation i =
+    let
+      fun add (v,V) = insertValuation V (v,i)
+    in
+      NameSet.foldl add emptyValuation
+    end;
+
+val zeroValuation = constantValuation zeroElement;
+
+fun getValuation V v =
+    case peekValuation V v of
+      SOME i => i
+    | NONE => raise Error "Model.getValuation: incomplete valuation";
+
+fun randomValuation {size = N} vs =
+    let
+      fun f (v,V) = insertValuation V (v, Portable.randomInt N)
+    in
+      NameSet.foldl f emptyValuation vs
+    end;
+
+fun incrementValuation N vars =
+    let
+      fun inc vs V =
+          case vs of
+            [] => NONE
+          | v :: vs =>
+            let
+              val (carry,i) =
+                  case incrementElement N (getValuation V v) of
+                    SOME i => (false,i)
+                  | NONE => (true,zeroElement)
+
+              val V = insertValuation V (v,i)
+            in
+              if carry then inc vs V else SOME V
+            end
+    in
+      inc (NameSet.toList vars)
+    end;
+
+fun foldValuation N vars f =
+    let
+      val inc = incrementValuation N vars
+
+      fun fold V acc =
+          let
+            val acc = f (V,acc)
+          in
+            case inc V of
+              NONE => acc
+            | SOME V => fold V acc
+          end
+
+      val zero = zeroValuation vars
+    in
+      fold zero
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of random finite mapping Z^n -> Z.                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val UNKNOWN = ~1;
+
+datatype table =
+    ForgetfulTable
+  | ArrayTable of int Array.array;
+
+fun newTable N arity =
+    case elementListSpace {size = N} arity of
+      NONE => ForgetfulTable
+    | SOME space => ArrayTable (Array.array (space,UNKNOWN));
+
+local
+  fun randomResult R = Portable.randomInt R;
+in
+  fun lookupTable N R table elts =
+      case table of
+        ForgetfulTable => randomResult R
+      | ArrayTable a =>
+        let
+          val i = elementListIndex {size = N} elts
+
+          val r = Array.sub (a,i)
+        in
+          if r <> UNKNOWN then r
+          else
+            let
+              val r = randomResult R
+
+              val () = Array.update (a,i,r)
+            in
+              r
+            end
+        end;
+end;
+
+fun updateTable N table (elts,r) =
+    case table of
+      ForgetfulTable => ()
+    | ArrayTable a =>
+      let
+        val i = elementListIndex {size = N} elts
+
+        val () = Array.update (a,i,r)
+      in
+        ()
+      end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of random finite mappings name * arity -> Z^arity -> Z.            *)
+(* ------------------------------------------------------------------------- *)
+
+datatype tables =
+    Tables of
+      {domainSize : int,
+       rangeSize : int,
+       tableMap : table NameArityMap.map ref};
+
+fun newTables N R =
+    Tables
+      {domainSize = N,
+       rangeSize = R,
+       tableMap = ref (NameArityMap.new ())};
+
+fun getTables tables n_a =
+    let
+      val Tables {domainSize = N, rangeSize = _, tableMap = tm} = tables
+
+      val ref m = tm
+    in
+      case NameArityMap.peek m n_a of
+        SOME t => t
+      | NONE =>
+        let
+          val (_,a) = n_a
+
+          val t = newTable N a
+
+          val m = NameArityMap.insert m (n_a,t)
+
+          val () = tm := m
+        in
+          t
+        end
+    end;
+
+fun lookupTables tables (n,elts) =
+    let
+      val Tables {domainSize = N, rangeSize = R, ...} = tables
+
+      val a = length elts
+
+      val table = getTables tables (n,a)
+    in
+      lookupTable N R table elts
+    end;
+
+fun updateTables tables ((n,elts),r) =
+    let
+      val Tables {domainSize = N, ...} = tables
+
+      val a = length elts
+
+      val table = getTables tables (n,a)
+    in
+      updateTable N table (elts,r)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -392,166 +926,153 @@ type parameters = {size : int, fixed : fixed};
 datatype model =
     Model of
       {size : int,
-       fixed : fixedModel,
-       functions : (Term.functionName * int list, int) Map.map ref,
-       relations : (Atom.relationName * int list, bool) Map.map ref};
+       fixedFunctions : (element list -> element option) NameArityMap.map,
+       fixedRelations : (element list -> bool option) NameArityMap.map,
+       randomFunctions : tables,
+       randomRelations : tables};
 
-local
-  fun cmp ((n1,l1),(n2,l2)) =
-      case String.compare (n1,n2) of
-        LESS => LESS
-      | EQUAL => lexCompare Int.compare (l1,l2)
-      | GREATER => GREATER;
-in
-  fun new {size = N, fixed} =
+fun new {size = N, fixed} =
+    let
+      val Fixed {functions = fns, relations = rels} = fixed
+
+      val fixFns = NameArityMap.transform (fn f => f {size = N}) fns
+      and fixRels = NameArityMap.transform (fn r => r {size = N}) rels
+
+      val rndFns = newTables N N
+      and rndRels = newTables N 2
+    in
       Model
         {size = N,
-         fixed = fixed {size = N},
-         functions = ref (Map.new cmp),
-         relations = ref (Map.new cmp)};
-end;
-
-fun size (Model {size = s, ...}) = s;
-
-(* ------------------------------------------------------------------------- *)
-(* Valuations.                                                               *)
-(* ------------------------------------------------------------------------- *)
-
-type valuation = int NameMap.map;
-
-val valuationEmpty : valuation = NameMap.new ();
-
-fun valuationRandom {size = N} vs =
-    let
-      fun f (v,V) = NameMap.insert V (v, Portable.randomInt N)
-    in
-      NameSet.foldl f valuationEmpty vs
+         fixedFunctions = fixFns,
+         fixedRelations = fixRels,
+         randomFunctions = rndFns,
+         randomRelations = rndRels}
     end;
 
-fun valuationFold {size = N} vs f =
+fun size (Model {size = N, ...}) = N;
+
+fun peekFixedFunction M (n,elts) =
     let
-      val vs = NameSet.toList vs
-
-      fun inc [] _ = NONE
-        | inc (v :: l) V =
-          case NameMap.peek V v of
-            NONE => raise Bug "Model.valuationFold"
-          | SOME k =>
-            let
-              val k = if k = N - 1 then 0 else k + 1
-              val V = NameMap.insert V (v,k)
-            in
-              if k = 0 then inc l V else SOME V
-            end
-
-      val zero = foldl (fn (v,V) => NameMap.insert V (v,0)) valuationEmpty vs
-
-      fun fold V acc =
-          let
-            val acc = f (V,acc)
-          in
-            case inc vs V of NONE => acc | SOME V => fold V acc
-          end
+      val Model {fixedFunctions = fixFns, ...} = M
     in
-      fold zero
+      case NameArityMap.peek fixFns (n, length elts) of
+        NONE => NONE
+      | SOME fixFn => fixFn elts
     end;
+
+fun isFixedFunction M n_elts = Option.isSome (peekFixedFunction M n_elts);
+
+fun peekFixedRelation M (n,elts) =
+    let
+      val Model {fixedRelations = fixRels, ...} = M
+    in
+      case NameArityMap.peek fixRels (n, length elts) of
+        NONE => NONE
+      | SOME fixRel => fixRel elts
+    end;
+
+fun isFixedRelation M n_elts = Option.isSome (peekFixedRelation M n_elts);
+
+(* A default model *)
+
+val defaultSize = 8;
+
+val defaultFixed =
+    unionListFixed
+      [basicFixed,
+       projectionFixed,
+       modularFixed,
+       setFixed,
+       listFixed];
+
+val default = {size = defaultSize, fixed = defaultFixed};
+
+(* ------------------------------------------------------------------------- *)
+(* Taking apart terms to interpret them.                                     *)
+(* ------------------------------------------------------------------------- *)
+
+fun destTerm tm =
+    case tm of
+      Term.Var _ => tm
+    | Term.Fn f_tms =>
+      case Term.stripApp tm of
+        (_,[]) => tm
+      | (v as Term.Var _, tms) => Term.Fn (Term.appName, v :: tms)
+      | (Term.Fn (f,tms), tms') => Term.Fn (f, tms @ tms');
 
 (* ------------------------------------------------------------------------- *)
 (* Interpreting terms and formulas in the model.                             *)
 (* ------------------------------------------------------------------------- *)
 
+fun interpretFunction M n_elts =
+    case peekFixedFunction M n_elts of
+      SOME r => r
+    | NONE =>
+      let
+        val Model {randomFunctions = rndFns, ...} = M
+      in
+        lookupTables rndFns n_elts
+      end;
+
+fun interpretRelation M n_elts =
+    case peekFixedRelation M n_elts of
+      SOME r => r
+    | NONE =>
+      let
+        val Model {randomRelations = rndRels, ...} = M
+      in
+        intToBool (lookupTables rndRels n_elts)
+      end;
+
 fun interpretTerm M V =
     let
-      val Model {size = N, fixed, functions, ...} = M
-      val {functions = fixed_functions, ...} = fixed
-
-      fun interpret (Term.Var v) =
-          (case NameMap.peek V v of
-             NONE => raise Error "Model.interpretTerm: incomplete valuation"
-           | SOME i => i)
-        | interpret (tm as Term.Fn f_tms) =
-          let
-            val (f,tms) =
-                case Term.stripComb tm of
-                  (_,[]) => f_tms
-                | (v as Term.Var _, tms) => (".", v :: tms)
-                | (Term.Fn (f,tms), tms') => (f, tms @ tms')
-            val elts = map interpret tms
-            val f_elts = (f,elts)
-            val ref funcs = functions
-          in
-            case Map.peek funcs f_elts of
-              SOME k => k
-            | NONE =>
-              let
-                val k =
-                    case fixed_functions f_elts of
-                      SOME k => k
-                    | NONE => Portable.randomInt N
-
-                val () = functions := Map.insert funcs (f_elts,k)
-              in
-                k
-              end
-          end;
+      fun interpret tm =
+          case destTerm tm of
+            Term.Var v => getValuation V v
+          | Term.Fn (f,tms) => interpretFunction M (f, map interpret tms)
     in
       interpret
     end;
 
 fun interpretAtom M V (r,tms) =
-    let
-      val Model {fixed,relations,...} = M
-      val {relations = fixed_relations, ...} = fixed
-
-      val elts = map (interpretTerm M V) tms
-      val r_elts = (r,elts)
-      val ref rels = relations
-    in
-      case Map.peek rels r_elts of
-        SOME b => b
-      | NONE =>
-        let
-          val b =
-              case fixed_relations r_elts of
-                SOME b => b
-              | NONE => Portable.randomBool ()
-
-          val () = relations := Map.insert rels (r_elts,b)
-        in
-          b
-        end
-    end;
+    interpretRelation M (r, map (interpretTerm M V) tms);
 
 fun interpretFormula M =
     let
-      val Model {size = N, ...} = M
+      val N = size M
 
-      fun interpret _ Formula.True = true
-        | interpret _ Formula.False = false
-        | interpret V (Formula.Atom atm) = interpretAtom M V atm
-        | interpret V (Formula.Not p) = not (interpret V p)
-        | interpret V (Formula.Or (p,q)) = interpret V p orelse interpret V q
-        | interpret V (Formula.And (p,q)) = interpret V p andalso interpret V q
-        | interpret V (Formula.Imp (p,q)) =
-          interpret V (Formula.Or (Formula.Not p, q))
-        | interpret V (Formula.Iff (p,q)) = interpret V p = interpret V q
-        | interpret V (Formula.Forall (v,p)) = interpret' V v p N
-        | interpret V (Formula.Exists (v,p)) =
-          interpret V (Formula.Not (Formula.Forall (v, Formula.Not p)))
-      and interpret' _ _ _ 0 = true
-        | interpret' V v p i =
+      fun interpret V fm =
+          case fm of
+            Formula.True => true
+          | Formula.False => false
+          | Formula.Atom atm => interpretAtom M V atm
+          | Formula.Not p => not (interpret V p)
+          | Formula.Or (p,q) => interpret V p orelse interpret V q
+          | Formula.And (p,q) => interpret V p andalso interpret V q
+          | Formula.Imp (p,q) => interpret V (Formula.Or (Formula.Not p, q))
+          | Formula.Iff (p,q) => interpret V p = interpret V q
+          | Formula.Forall (v,p) => interpret' V p v N
+          | Formula.Exists (v,p) =>
+            interpret V (Formula.Not (Formula.Forall (v, Formula.Not p)))
+
+      and interpret' V fm v i =
+          i = 0 orelse
           let
             val i = i - 1
-            val V' = NameMap.insert V (v,i)
+            val V' = insertValuation V (v,i)
           in
-            interpret V' p andalso interpret' V v p i
+            interpret V' fm andalso interpret' V fm v i
           end
     in
       interpret
     end;
 
-fun interpretLiteral M V (true,atm) = interpretAtom M V atm
-  | interpretLiteral M V (false,atm) = not (interpretAtom M V atm);
+fun interpretLiteral M V (pol,atm) =
+    let
+      val b = interpretAtom M V atm
+    in
+      if pol then b else not b
+    end;
 
 fun interpretClause M V cl = LiteralSet.exists (interpretLiteral M V) cl;
 
@@ -560,32 +1081,198 @@ fun interpretClause M V cl = LiteralSet.exists (interpretLiteral M V) cl;
 (* Note: if it's cheaper, a systematic check will be performed instead.      *)
 (* ------------------------------------------------------------------------- *)
 
+fun check interpret {maxChecks} M fv x =
+    let
+      val N = size M
+
+      fun score (V,{T,F}) =
+          if interpret M V x then {T = T + 1, F = F} else {T = T, F = F + 1}
+
+      fun randomCheck acc = score (randomValuation {size = N} fv, acc)
+
+      val maxChecks =
+          case maxChecks of
+            NONE => maxChecks
+          | SOME m =>
+            case expInt N (NameSet.size fv) of
+              SOME n => if n <= m then NONE else maxChecks
+            | NONE => maxChecks
+    in
+      case maxChecks of
+        SOME m => funpow m randomCheck {T = 0, F = 0}
+      | NONE => foldValuation {size = N} fv score {T = 0, F = 0}
+    end;
+
+fun checkAtom maxChecks M atm =
+    check interpretAtom maxChecks M (Atom.freeVars atm) atm;
+
+fun checkFormula maxChecks M fm =
+    check interpretFormula maxChecks M (Formula.freeVars fm) fm;
+
+fun checkLiteral maxChecks M lit =
+    check interpretLiteral maxChecks M (Literal.freeVars lit) lit;
+
+fun checkClause maxChecks M cl =
+    check interpretClause maxChecks M (LiteralSet.freeVars cl) cl;
+
+(* ------------------------------------------------------------------------- *)
+(* Updating the model.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+fun updateFunction M func_elts_elt =
+    let
+      val Model {randomFunctions = rndFns, ...} = M
+
+      val () = updateTables rndFns func_elts_elt
+    in
+      ()
+    end;
+
+fun updateRelation M (rel_elts,pol) =
+    let
+      val Model {randomRelations = rndRels, ...} = M
+
+      val () = updateTables rndRels (rel_elts, boolToInt pol)
+    in
+      ()
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of terms with interpretations embedded in the subterms.            *)
+(* ------------------------------------------------------------------------- *)
+
+datatype modelTerm =
+    ModelVar
+  | ModelFn of Term.functionName * modelTerm list * int list;
+
+fun modelTerm M V =
+    let
+      fun modelTm tm =
+          case destTerm tm of
+            Term.Var v => (ModelVar, getValuation V v)
+          | Term.Fn (f,tms) =>
+            let
+              val (tms,xs) = unzip (map modelTm tms)
+            in
+              (ModelFn (f,tms,xs), interpretFunction M (f,xs))
+            end
+    in
+      modelTm
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Perturbing the model.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+datatype perturbation =
+    FunctionPerturbation of (Term.functionName * element list) * element
+  | RelationPerturbation of (Atom.relationName * element list) * bool;
+
+fun perturb M pert =
+    case pert of
+      FunctionPerturbation func_elts_elt => updateFunction M func_elts_elt
+    | RelationPerturbation rel_elts_pol => updateRelation M rel_elts_pol;
+
 local
-  fun checkGen freeVars interpret {maxChecks} M x =
+  fun pertTerm _ [] _ acc = acc
+    | pertTerm M target tm acc =
+      case tm of
+        ModelVar => acc
+      | ModelFn (func,tms,xs) =>
+        let
+          fun onTarget ys = mem (interpretFunction M (func,ys)) target
+
+          val func_xs = (func,xs)
+
+          val acc =
+              if isFixedFunction M func_xs then acc
+              else
+                let
+                  fun add (y,acc) = FunctionPerturbation (func_xs,y) :: acc
+                in
+                  foldl add acc target
+                end
+        in
+          pertTerms M onTarget tms xs acc
+        end
+
+  and pertTerms M onTarget =
       let
-        val Model {size = N, ...} = M
-            
-        fun score (V,{T,F}) =
-            if interpret M V x then {T = T + 1, F = F} else {T = T, F = F + 1}
+        val N = size M
 
-        val vs = freeVars x
+        fun filterElements pred =
+            let
+              fun filt 0 acc = acc
+                | filt i acc =
+                  let
+                    val i = i - 1
+                    val acc = if pred i then i :: acc else acc
+                  in
+                    filt i acc
+                  end
+            in
+              filt N []
+            end
 
-        fun randomCheck acc = score (valuationRandom {size = N} vs, acc)
+        fun pert _ [] [] acc = acc
+          | pert ys (tm :: tms) (x :: xs) acc =
+            let
+              fun pred y =
+                  y <> x andalso onTarget (List.revAppend (ys, y :: xs))
 
-        val small =
-            intExp N (NameSet.size vs) <= maxChecks handle Overflow => false
+              val target = filterElements pred
+
+              val acc = pertTerm M target tm acc
+            in
+              pert (x :: ys) tms xs acc
+            end
+          | pert _ _ _ _ = raise Bug "Model.pertTerms.pert"
       in
-        if small then valuationFold {size = N} vs score {T = 0, F = 0}
-        else funpow maxChecks randomCheck {T = 0, F = 0}
+        pert []
       end;
+
+  fun pertAtom M V target (rel,tms) acc =
+      let
+        fun onTarget ys = interpretRelation M (rel,ys) = target
+
+        val (tms,xs) = unzip (map (modelTerm M V) tms)
+
+        val rel_xs = (rel,xs)
+
+        val acc =
+            if isFixedRelation M rel_xs then acc
+            else RelationPerturbation (rel_xs,target) :: acc
+      in
+        pertTerms M onTarget tms xs acc
+      end;
+
+  fun pertLiteral M V ((pol,atm),acc) = pertAtom M V pol atm acc;
+
+  fun pertClause M V cl acc = LiteralSet.foldl (pertLiteral M V) acc cl;
+
+  fun pickPerturb M perts =
+      if null perts then ()
+      else perturb M (List.nth (perts, Portable.randomInt (length perts)));
 in
-  val checkAtom = checkGen Atom.freeVars interpretAtom;
+  fun perturbTerm M V (tm,target) =
+      pickPerturb M (pertTerm M target (fst (modelTerm M V tm)) []);
 
-  val checkFormula = checkGen Formula.freeVars interpretFormula;
+  fun perturbAtom M V (atm,target) =
+      pickPerturb M (pertAtom M V target atm []);
 
-  val checkLiteral = checkGen Literal.freeVars interpretLiteral;
+  fun perturbLiteral M V lit = pickPerturb M (pertLiteral M V (lit,[]));
 
-  val checkClause = checkGen LiteralSet.freeVars interpretClause;
+  fun perturbClause M V cl = pickPerturb M (pertClause M V cl []);
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun pp M =
+    Print.program
+      [Print.addString "Model{",
+       Print.ppInt (size M),
+       Print.addString "}"];
 
 end

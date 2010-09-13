@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* KNUTH-BENDIX TERM ORDERING CONSTRAINTS                                    *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure KnuthBendixOrder :> KnuthBendixOrder =
@@ -12,10 +12,12 @@ open Useful;
 (* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun firstNotEqual f l =
-    case List.find op<> l of
+fun notEqualTerm (x,y) = not (Term.equal x y);
+
+fun firstNotEqualTerm f l =
+    case List.find notEqualTerm l of
       SOME (x,y) => f x y
-    | NONE => raise Bug "firstNotEqual";
+    | NONE => raise Bug "firstNotEqualTerm";
 
 (* ------------------------------------------------------------------------- *)
 (* The weight of all constants must be at least 1, and there must be at most *)
@@ -36,7 +38,7 @@ val arityPrecedence : Term.function * Term.function -> order =
     fn ((f1,n1),(f2,n2)) =>
        case Int.compare (n1,n2) of
          LESS => LESS
-       | EQUAL => String.compare (f1,f2)
+       | EQUAL => Name.compare (f1,f2)
        | GREATER => GREATER;
 
 (* The default order *)
@@ -62,7 +64,7 @@ fun weightIsZero (Weight (m,c)) = c = 0 andalso NameMap.null m;
 fun weightNeg (Weight (m,c)) = Weight (NameMap.transform ~ m, ~c);
 
 local
-  fun add (n1,n2) =
+  fun add ((_,n1),(_,n2)) =
       let
         val n = n1 + n2
       in
@@ -74,15 +76,6 @@ in
 end;
 
 fun weightSubtract w1 w2 = weightAdd w1 (weightNeg w2);
-
-fun weightMult 0 _ = weightZero
-  | weightMult 1 w = w
-  | weightMult k (Weight (m,c)) =
-    let
-      fun mult n = k * n
-    in
-      Weight (NameMap.transform mult m, k * c)
-    end;
 
 fun weightTerm weight =
     let
@@ -99,80 +92,41 @@ fun weightTerm weight =
       fn tm => wt weightEmpty ~1 [tm]
     end;
 
-fun weightIsVar v (Weight (m,c)) =
-    c = 0 andalso NameMap.size m = 1 andalso NameMap.peek m v = SOME 1;
-
-fun weightConst (Weight (_,c)) = c;
-
-fun weightVars (Weight (m,_)) = 
-    NameMap.foldl (fn (v,_,s) => NameSet.add s v) NameSet.empty m;
-
-val weightsVars =
-    List.foldl (fn (w,s) => NameSet.union (weightVars w) s) NameSet.empty;
-
-fun weightVarList w = NameSet.toList (weightVars w);
-
-fun weightNumVars (Weight (m,_)) = NameMap.size m;
-
-fun weightNumVarsWithPositiveCoeff (Weight (m,_)) =
-    NameMap.foldl (fn (_,n,z) => if n > 0 then z + 1 else z) 0 m;
-
-fun weightCoeff var (Weight (m,_)) = Option.getOpt (NameMap.peek m var, 0);
-
-fun weightCoeffs varList w = map (fn var => weightCoeff var w) varList;
-
-fun weightCoeffSum (Weight (m,_)) = NameMap.foldl (fn (_,n,z) => n + z) 0 m;
-
 fun weightLowerBound (w as Weight (m,c)) =
     if NameMap.exists (fn (_,n) => n < 0) m then NONE else SOME c;
 
-fun weightNoLowerBound w = not (Option.isSome (weightLowerBound w));
-
-fun weightAlwaysPositive w =
-    case weightLowerBound w of NONE => false | SOME n => n > 0;
-
-fun weightUpperBound (w as Weight (m,c)) =
-    if NameMap.exists (fn (_,n) => n > 0) m then NONE else SOME c;
-
-fun weightNoUpperBound w = not (Option.isSome (weightUpperBound w));
-
-fun weightAlwaysNegative w =
-    case weightUpperBound w of NONE => false | SOME n => n < 0;
-
-fun weightGcd (w as Weight (m,c)) =
-    NameMap.foldl (fn (_,i,k) => gcd i k) (Int.abs c) m;
-
-fun ppWeightList pp =
+(*MetisDebug
+val ppWeightList =
     let
-      fun coeffToString n =
-          if n < 0 then "~" ^ coeffToString (~n)
-          else if n = 1 then ""
-          else Int.toString n
+      fun ppCoeff n =
+          if n < 0 then Print.sequence (Print.addString "~") (ppCoeff (~n))
+          else if n = 1 then Print.skip
+          else Print.ppInt n
 
-      fun pp_tm pp ("",n) = Parser.ppInt pp n
-        | pp_tm pp (v,n) = Parser.ppString pp (coeffToString n ^ v)
+      fun pp_tm (NONE,n) = Print.ppInt n
+        | pp_tm (SOME v, n) = Print.sequence (ppCoeff n) (Name.pp v)
     in
-      fn [] => Parser.ppInt pp 0
-       | tms => Parser.ppSequence " +" pp_tm pp tms
+      fn [] => Print.ppInt 0
+       | tms => Print.ppOpList " +" pp_tm tms
     end;
 
-fun ppWeight pp (Weight (m,c)) =
+fun ppWeight (Weight (m,c)) =
     let
       val l = NameMap.toList m
-      val l = if c = 0 then l else l @ [("",c)]
+      val l = map (fn (v,n) => (SOME v, n)) l
+      val l = if c = 0 then l else l @ [(NONE,c)]
     in
-      ppWeightList pp l
+      ppWeightList l
     end;
 
-val weightToString = Parser.toString ppWeight;
+val weightToString = Print.toString ppWeight;
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* The Knuth-Bendix term order.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-datatype kboOrder = Less | Equal | Greater | SignOf of weight;
-
-fun kboOrder {weight,precedence} =
+fun compare {weight,precedence} =
     let
       fun weightDifference tm1 tm2 =
           let
@@ -199,7 +153,7 @@ fun kboOrder {weight,precedence} =
       and precedenceLess (Term.Fn (f1,a1)) (Term.Fn (f2,a2)) =
           (case precedence ((f1, length a1), (f2, length a2)) of
              LESS => true
-           | EQUAL => firstNotEqual weightLess (zip a1 a2)
+           | EQUAL => firstNotEqualTerm weightLess (zip a1 a2)
            | GREATER => false)
         | precedenceLess _ _ = false
 
@@ -210,39 +164,33 @@ fun kboOrder {weight,precedence} =
             val w = weightDifference tm1 tm2
           in
             if weightIsZero w then precedenceCmp tm1 tm2
-            else if weightDiffLess w tm1 tm2 then Less
-            else if weightDiffGreater w tm1 tm2 then Greater
-            else SignOf w
+            else if weightDiffLess w tm1 tm2 then SOME LESS
+            else if weightDiffGreater w tm1 tm2 then SOME GREATER
+            else NONE
           end
 
       and precedenceCmp (Term.Fn (f1,a1)) (Term.Fn (f2,a2)) =
           (case precedence ((f1, length a1), (f2, length a2)) of
-             LESS => Less
-           | EQUAL => firstNotEqual weightCmp (zip a1 a2)
-           | GREATER => Greater)
+             LESS => SOME LESS
+           | EQUAL => firstNotEqualTerm weightCmp (zip a1 a2)
+           | GREATER => SOME GREATER)
         | precedenceCmp _ _ = raise Bug "kboOrder.precendenceCmp"
     in
-      fn (tm1,tm2) => if tm1 = tm2 then Equal else weightCmp tm1 tm2
+      fn (tm1,tm2) =>
+         if Term.equal tm1 tm2 then SOME EQUAL else weightCmp tm1 tm2
     end;
 
-fun compare kbo tm1_tm2 =
-    case kboOrder kbo tm1_tm2 of
-      Less => SOME LESS
-    | Equal => SOME EQUAL
-    | Greater => SOME GREATER
-    | SignOf _ => NONE;
-
-(*TRACE7
+(*MetisTrace7
 val compare = fn kbo => fn (tm1,tm2) =>
     let
-      val () = Parser.ppTrace Term.pp "KnuthBendixOrder.compare: tm1" tm1
-      val () = Parser.ppTrace Term.pp "KnuthBendixOrder.compare: tm2" tm2
+      val () = Print.trace Term.pp "KnuthBendixOrder.compare: tm1" tm1
+      val () = Print.trace Term.pp "KnuthBendixOrder.compare: tm2" tm2
       val result = compare kbo (tm1,tm2)
       val () =
           case result of
             NONE => trace "KnuthBendixOrder.compare: result = Incomparable\n"
           | SOME x =>
-            Parser.ppTrace Parser.ppOrder "KnuthBendixOrder.compare: result" x
+            Print.trace Print.ppOrder "KnuthBendixOrder.compare: result" x
     in
       result
     end;

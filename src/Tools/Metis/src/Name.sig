@@ -1,15 +1,45 @@
 (* ========================================================================= *)
 (* NAMES                                                                     *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Name =
 sig
 
-type name = string
+(* ------------------------------------------------------------------------- *)
+(* A type of names.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+type name
+
+(* ------------------------------------------------------------------------- *)
+(* A total ordering.                                                         *)
+(* ------------------------------------------------------------------------- *)
 
 val compare : name * name -> order
 
-val pp : name Parser.pp
+val equal : name -> name -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Fresh names.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val newName : unit -> name
+
+val newNames : int -> name list
+
+val variantPrime : (name -> bool) -> name -> name
+
+val variantNum : (name -> bool) -> name -> name
+
+(* ------------------------------------------------------------------------- *)
+(* Parsing and pretty printing.                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val pp : name Print.pp
+
+val toString : name -> string
+
+val fromString : string -> name
 
 end

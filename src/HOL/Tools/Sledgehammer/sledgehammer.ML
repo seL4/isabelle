@@ -28,7 +28,7 @@ sig
      timeout: Time.time,
      expect: string}
   type problem =
-    {ctxt: Proof.context,
+    {state: Proof.state,
      goal: thm,
      subgoal: int,
      axioms: (term * ((string * locality) * fol_formula) option) list}
@@ -52,8 +52,8 @@ sig
   val messages: int option -> unit
   val get_prover_fun : theory -> string -> prover
   val run_sledgehammer :
-    params -> int -> relevance_override -> (string -> minimize_command)
-    -> Proof.state -> unit
+    params -> bool -> int -> relevance_override -> (string -> minimize_command)
+    -> Proof.state -> bool * Proof.state
   val setup : theory -> theory
 end;
 
@@ -97,7 +97,7 @@ type params =
    expect: string}
 
 type problem =
-  {ctxt: Proof.context,
+  {state: Proof.state,
    goal: thm,
    subgoal: int,
    axioms: (term * ((string * locality) * fol_formula) option) list}
@@ -230,18 +230,18 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 
 (* generic TPTP-based provers *)
 
-fun prover_fun atp_name
+fun prover_fun auto atp_name
         {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
          known_failures, default_max_relevant, explicit_forall,
          use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
           max_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
-        minimize_command ({ctxt, goal, subgoal, axioms} : problem) =
+        minimize_command ({state, goal, subgoal, axioms} : problem) =
   let
+    val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val max_relevant = the_default default_max_relevant max_relevant
     val axioms = take max_relevant axioms
-    (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                        else Config.get ctxt dest_dir
     val the_problem_prefix = Config.get ctxt problem_prefix
@@ -285,7 +285,7 @@ fun prover_fun atp_name
       | [] =>
         if File.exists command then
           let
-            fun do_run complete timeout =
+            fun run complete timeout =
               let
                 val command = command_line complete timeout probfile
                 val ((output, msecs), res_code) =
@@ -309,17 +309,17 @@ fun prover_fun atp_name
             val conjecture_shape =
               conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
               |> map single
+            val run_twice = has_incomplete_mode andalso not auto
             val timer = Timer.startRealTimer ()
             val result =
-              do_run false (if has_incomplete_mode then
-                              Time.fromMilliseconds
+              run false (if run_twice then
+                           Time.fromMilliseconds
                                          (2 * Time.toMilliseconds timeout div 3)
-                            else
-                              timeout)
-              |> has_incomplete_mode
+                         else
+                           timeout)
+              |> run_twice
                  ? (fn (_, msecs0, _, SOME _) =>
-                       do_run true
-                              (Time.- (timeout, Timer.checkRealTimer timer))
+                       run true (Time.- (timeout, Timer.checkRealTimer timer))
                        |> (fn (output, msecs, proof, outcome) =>
                               (output, msecs0 + msecs, proof, outcome))
                      | result => result)
@@ -343,12 +343,15 @@ fun prover_fun atp_name
       repair_conjecture_shape_and_theorem_names output conjecture_shape
                                                 axiom_names
     val important_message = extract_important_message output
+    val banner = if auto then "Sledgehammer found a proof"
+                 else "Try this command"
     val (message, used_thm_names) =
       case outcome of
         NONE =>
         proof_text isar_proof
             (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-            (full_types, minimize_command, proof, axiom_names, goal, subgoal)
+            (banner, full_types, minimize_command, proof, axiom_names, goal,
+             subgoal)
         |>> (fn message =>
                 message ^ (if verbose then
                              "\nReal CPU time: " ^ string_of_int msecs ^ " ms."
@@ -367,14 +370,14 @@ fun prover_fun atp_name
      conjecture_shape = conjecture_shape}
   end
 
-fun get_prover_fun thy name = prover_fun name (get_prover thy name)
+fun get_prover_fun thy name = prover_fun false name (get_prover thy name)
 
-fun run_prover ctxt (params as {blocking, verbose, max_relevant, timeout,
-                                expect, ...})
-               i n relevance_override minimize_command
-               (problem as {goal, axioms, ...})
+fun run_prover (params as {blocking, verbose, max_relevant, timeout, expect,
+                           ...})
+               auto i n minimize_command (problem as {state, goal, axioms, ...})
                (prover as {default_max_relevant, ...}, atp_name) =
   let
+    val ctxt = Proof.context_of state
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
     val max_relevant = the_default default_max_relevant max_relevant
@@ -390,72 +393,91 @@ fun run_prover ctxt (params as {blocking, verbose, max_relevant, timeout,
          ""
        else
          "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
-    fun run () =
+    fun go () =
       let
         val (outcome_code, message) =
-          prover_fun atp_name prover params (minimize_command atp_name) problem
+          prover_fun auto atp_name prover params (minimize_command atp_name)
+                     problem
           |> (fn {outcome, message, ...} =>
                  (if is_some outcome then "none" else "some", message))
           handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
                | exn => ("unknown", "Internal error:\n" ^
                                     ML_Compiler.exn_message exn ^ "\n")
-      in
-        if expect = "" orelse outcome_code = expect then
-          ()
-        else if blocking then
-          error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
-        else
-          warning ("Unexpected outcome: " ^ quote outcome_code ^ ".");
-        message
-      end
+        val _ =
+          if expect = "" orelse outcome_code = expect then
+            ()
+          else if blocking then
+            error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
+          else
+            warning ("Unexpected outcome: " ^ quote outcome_code ^ ".");
+      in (outcome_code = "some", message) end
   in
-    if blocking then priority (desc ^ "\n" ^ TimeLimit.timeLimit timeout run ())
-    else Async_Manager.launch das_Tool birth_time death_time desc run
+    if auto then
+      let val (success, message) = TimeLimit.timeLimit timeout go () in
+        (success, state |> success ? Proof.goal_message (fn () =>
+             Pretty.chunks [Pretty.str "", Pretty.mark Markup.hilite
+                 (Pretty.str message)]))
+      end
+    else if blocking then
+      let val (success, message) = TimeLimit.timeLimit timeout go () in
+        priority (desc ^ "\n" ^ message); (success, state)
+      end
+    else
+      (Async_Manager.launch das_Tool birth_time death_time desc (snd o go);
+       (false, state))
   end
+
+val auto_max_relevant_divisor = 2
 
 fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
                                  relevance_thresholds, max_relevant, ...})
-                     i relevance_override minimize_command state =
-    if null atps then error "No ATP is set."
-    else case subgoal_count state of
-      0 => priority "No subgoal!"
-    | n =>
-      let
-        val thy = Proof.theory_of state
-        val timer = Timer.startRealTimer ()
-        val _ = () |> not blocking ? kill_atps
-        val _ = priority "Sledgehammering..."
-        val provers = map (`(get_prover thy)) atps
-        fun run () =
-          let
-            val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
-            val (_, hyp_ts, concl_t) = strip_subgoal goal i
-            val max_max_relevant =
-              case max_relevant of
-                SOME n => n
-              | NONE => fold (Integer.max o #default_max_relevant o fst)
-                             provers 0
-            val axioms =
-              relevant_facts ctxt full_types relevance_thresholds
-                             max_max_relevant relevance_override chained_ths
-                             hyp_ts concl_t
-            val problem =
-              {ctxt = ctxt, goal = goal, subgoal = i,
-               axioms = map (prepare_axiom ctxt) axioms}
-            val num_axioms = length axioms
-            val _ =
-              (if blocking then Par_List.map else map)
-                  (run_prover ctxt params i n relevance_override
-                              minimize_command problem) provers
-          in
-            if verbose andalso blocking then
-              priority ("Total time: " ^
-                        signed_string_of_int (Time.toMilliseconds
-                            (Timer.checkRealTimer timer)) ^ " ms.")
-            else
-              ()
-          end
-      in if blocking then run () else Future.fork run |> K () end
+                     auto i relevance_override minimize_command state =
+  if null atps then
+    error "No ATP is set."
+  else case subgoal_count state of
+    0 => (priority "No subgoal!"; (false, state))
+  | n =>
+    let
+      val thy = Proof.theory_of state
+      val timer = Timer.startRealTimer ()
+      val _ = () |> not blocking ? kill_atps
+      val _ = if auto then () else priority "Sledgehammering..."
+      val provers = map (`(get_prover thy)) atps
+      fun go () =
+        let
+          val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
+          val (_, hyp_ts, concl_t) = strip_subgoal goal i
+          val max_max_relevant =
+            case max_relevant of
+              SOME n => n
+            | NONE =>
+              0 |> fold (Integer.max o #default_max_relevant o fst) provers
+                |> auto ? (fn n => n div auto_max_relevant_divisor)
+          val axioms =
+            relevant_facts ctxt full_types relevance_thresholds
+                           max_max_relevant relevance_override chained_ths
+                           hyp_ts concl_t
+          val problem =
+            {state = state, goal = goal, subgoal = i,
+             axioms = map (prepare_axiom ctxt) axioms}
+          val run_prover = run_prover params auto i n minimize_command problem
+        in
+          if auto then
+            fold (fn prover => fn (true, state) => (true, state)
+                                | (false, _) => run_prover prover)
+                 provers (false, state)
+          else
+            (if blocking then Par_List.map else map) run_prover provers
+            |> tap (fn _ =>
+                       if verbose then
+                         priority ("Total time: " ^
+                                   signed_string_of_int (Time.toMilliseconds
+                                       (Timer.checkRealTimer timer)) ^ " ms.")
+                       else
+                         ())
+            |> exists fst |> rpair state
+        end
+    in if blocking then go () else Future.fork (tap go) |> K (false, state) end
 
 val setup =
   dest_dir_setup

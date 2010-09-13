@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A HEAP DATATYPE FOR ML                                                    *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Heap :> Heap =
@@ -63,12 +63,12 @@ fun toList h =
       end;
 
 fun toStream h =
-    if null h then Stream.NIL
+    if null h then Stream.Nil
     else
       let
         val (x,h) = remove h
       in
-        Stream.CONS (x, fn () => toStream h)
+        Stream.Cons (x, fn () => toStream h)
       end;
 
 fun toString h =

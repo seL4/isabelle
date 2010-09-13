@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MOSCOW ML SPECIFIC FUNCTIONS                                              *)
-(* Copyright (c) 2002-2004 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Portable :> Portable =
@@ -27,12 +27,6 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 val time = Mosml.time;
-
-(* ------------------------------------------------------------------------- *)
-(* Critical section markup (multiprocessing)                                 *)
-(* ------------------------------------------------------------------------- *)
-
-fun CRITICAL e = e ();     (*dummy*)
 
 (* ------------------------------------------------------------------------- *)
 (* Generating random values.                                                 *)
@@ -96,6 +90,24 @@ fun Array_modifyi f a =
       open Array
     in
       modifyi f (a,0,NONE)
+    end;
+
+fun OS_Process_isSuccess s = s = OS.Process.success;
+
+fun String_isSuffix p s =
+    let
+      val sizeP = size p
+      and sizeS = size s
+    in
+      sizeP <= sizeS andalso
+      String.extract (s, sizeS - sizeP, NONE) = p
+    end;
+
+fun Substring_full s =
+    let
+      open Substring
+    in
+      all s
     end;
 
 fun TextIO_inputLine h =

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC LITERALS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Literal =
@@ -65,6 +65,8 @@ val symbols : literal -> int
 (* ------------------------------------------------------------------------- *)
 
 val compare : literal * literal -> order  (* negative < positive *)
+
+val equal : literal -> literal -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Subterms.                                                                 *)
@@ -152,12 +154,12 @@ val nonVarTypedSubterms : literal -> (Term.path * Term.term) list
 (* Parsing and pretty-printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : literal Parser.pp
+val pp : literal Print.pp
 
 val toString : literal -> string
 
 val fromString : string -> literal
 
-val parse : Term.term Parser.quotation -> literal
+val parse : Term.term Parse.quotation -> literal
 
 end

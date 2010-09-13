@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PROCESSING COMMAND LINE OPTIONS                                           *)
-(* Copyright (c) 2003-2004 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2003-2004 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Options :> Options =
@@ -116,9 +116,10 @@ val basicOptions : opt list =
     description = "no more options",
     processor = fn _ => raise Fail "basicOptions: --"},
    {switches = ["-?","-h","--help"], arguments = [],
-    description = "display all options and exit",
+    description = "display option information and exit",
     processor = fn _ => raise OptionExit
-    {message = SOME "displaying all options", usage = true, success = true}},
+    {message = SOME "displaying option information",
+     usage = true, success = true}},
    {switches = ["-v", "--version"], arguments = [],
     description = "display version information",
     processor = fn _ => raise Fail "basicOptions: -v, --version"}];
@@ -127,8 +128,9 @@ val basicOptions : opt list =
 (* All the command line options of a program                                 *)
 (* ------------------------------------------------------------------------- *)
 
-type allOptions = {name : string, version : string, header : string,
-                   footer : string, options : opt list};
+type allOptions =
+     {name : string, version : string, header : string,
+      footer : string, options : opt list};
 
 (* ------------------------------------------------------------------------- *)
 (* Usage information                                                         *)

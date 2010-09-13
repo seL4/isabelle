@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MLTON SPECIFIC FUNCTIONS                                                  *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Portable :> Portable =
@@ -55,12 +55,6 @@ fun time f x =
     in
       y
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Critical section markup (multiprocessing)                                 *)
-(* ------------------------------------------------------------------------- *)
-
-fun CRITICAL e = e ();     (*dummy*)
 
 (* ------------------------------------------------------------------------- *)
 (* Generating random values.                                                 *)

@@ -1,10 +1,10 @@
 (* ========================================================================= *)
 (* METIS TESTS                                                               *)
-(* Copyright (c) 2004-2006 Joe Hurd                                          *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
-(* Dummy versions of Moscow ML declarations to stop MLton barfing.           *)
+(* Dummy versions of Moscow ML declarations to stop real compilers barfing.  *)
 (* ------------------------------------------------------------------------- *)
 
 (*mlton
@@ -12,7 +12,13 @@ val quotation = ref true;
 val quietdec  = ref true;
 val loadPath  = ref ([] : string list);
 val load = fn (_ : string) => ();
-val installPP = fn (_ : 'a Parser.pp) => ();
+*)
+
+(*polyml
+val quotation = ref true;
+val quietdec  = ref true;
+val loadPath  = ref ([] : string list);
+val load = fn (_ : string) => ();
 *)
 
 (* ------------------------------------------------------------------------- *)
@@ -20,22 +26,11 @@ val installPP = fn (_ : 'a Parser.pp) => ();
 (* ------------------------------------------------------------------------- *)
 
 val () = loadPath := !loadPath @ ["../bin/mosml"];
-val () = app load ["Tptp"];
+val () = app load ["Options"];
 
 open Useful;
 
-val () = installPP Term.pp;
-val () = installPP Formula.pp;
-val () = installPP Subst.pp;
-val () = installPP Thm.pp;
-val () = installPP Rewrite.pp;
-val () = installPP Clause.pp;
-
 val time = Portable.time;
-
-(*DEBUG
-  val () = print "Running in DEBUG mode.\n"
-*)
 
 (* ------------------------------------------------------------------------- *)
 (* Problem data.                                                             *)
@@ -57,48 +52,56 @@ fun partialOrderToString (SOME LESS) = "SOME LESS"
   | partialOrderToString NONE = "NONE";
 
 fun SAY s =
-  print
-  ("-------------------------------------" ^
-   "-------------------------------------\n" ^ s ^ "\n\n");
+    print
+      ("-------------------------------------" ^
+       "-------------------------------------\n" ^ s ^ "\n\n");
 
-fun printval p x = (print (PP.pp_to_string 79 p x ^ "\n\n"); x);
+fun printval p x = (print (Print.toString p x ^ "\n\n"); x);
 
-val pvBool = printval Parser.ppBool
-and pvPo = printval (Parser.ppMap partialOrderToString Parser.ppString)
+fun mkCl p th = Clause.mk {parameters = p, id = Clause.newId (), thm = th};
+
+val pvBool = printval Print.ppBool
+and pvPo = printval (Print.ppMap partialOrderToString Print.ppString)
 and pvFm = printval Formula.pp
-and pvFms = printval (Parser.ppList Formula.pp)
+and pvFms = printval (Print.ppList Formula.pp)
 and pvThm = printval Thm.pp
-and pvEqn : Rule.equation -> Rule.equation = printval (Parser.ppMap snd Thm.pp)
-and pvNet = printval (LiteralNet.pp Parser.ppInt)
+and pvEqn : Rule.equation -> Rule.equation = printval (Print.ppMap snd Thm.pp)
+and pvNet = printval (LiteralNet.pp Print.ppInt)
 and pvRw = printval Rewrite.pp
 and pvU = printval Units.pp
 and pvLits = printval LiteralSet.pp
 and pvCl = printval Clause.pp
-and pvCls = printval (Parser.ppList Clause.pp);
+and pvCls = printval (Print.ppList Clause.pp)
+and pvM = printval Model.pp;
 
-val T = Term.parse
+val NV = Name.fromString
+and NF = Name.fromString
+and NR = Name.fromString;
+val V = Term.Var o NV
+and C = (fn c => Term.Fn (NF c, []))
+and T = Term.parse
 and A = Atom.parse
 and L = Literal.parse
 and F = Formula.parse
 and S = Subst.fromList;
-val AX = Thm.axiom o LiteralSet.fromList o map L;
-fun CL q =
-    Clause.mk {parameters = Clause.default, id = Clause.newId (), thm = AX q};
+val LS = LiteralSet.fromList o map L;
+val AX = Thm.axiom o LS;
+val CL = mkCl Clause.default o AX;
 val Q = (fn th => (Thm.destUnitEq th, th)) o AX o singleton
 and U = (fn th => (Thm.destUnit th, th)) o AX o singleton;
 
-fun test_fun p r a =
-  if r = a then p a ^ "\n" else
+fun test_fun eq p r a =
+  if eq r a then p a ^ "\n" else
     (print ("\n\n" ^
             "test: should have\n-->" ^ p r ^ "<--\n\n" ^
             "test: actually have\n-->" ^ p a ^ "<--\n\n");
      raise Fail "test: failed a test");
 
-fun test p r a = print (test_fun p r a ^ "\n");
+fun test eq p r a = print (test_fun eq p r a ^ "\n");
 
-val test_tm = test Term.toString o Term.parse;
+val test_tm = test Term.equal Term.toString o Term.parse;
 
-val test_fm = test Formula.toString o Formula.parse;
+val test_fm = test Formula.equal Formula.toString o Formula.parse;
 
 fun test_id p f a = test p a (f a);
 
@@ -108,46 +111,16 @@ fun chop_newline s =
 fun unquote (QUOTE q) = q
   | unquote (ANTIQUOTE _) = raise Fail "unquote";
 
-(***
-fun quick_prove slv goal =
-  let
-    val {thms,hyps} = Thm.clauses goal
-    val solv = initialize slv
-  in
-    (printval (pp_map Option.isSome pp_bool) o (time o try) refute)
-    (solv {limit = unlimited, thms = thms, hyps = hyps})
-  end;
-
-val meson_prove =
-    quick_prove (Solver.apply_sos_filter Solver.all_negative meson);
-val resolution_prove = quick_prove resolution;
-val metis_prove = quick_prove metis;
-
-fun quick_solve slv n ruls =
-  printval (pp_list (pp_list pp_thm)) o
-  (time o try)
-  (solve
-   (initialize slv {limit = unlimited, thms = axiomatize ruls, hyps = []}) n);
-
-val meson_solve = quick_solve meson 1;
-val prolog_solve = quick_solve prolog 1;
-val resolution_solve = quick_solve resolution 1;
-val metis_solve = quick_solve metis 1;
-
-val pfm  = printval pp_formula;
-val pfms = printval (pp_list pp_formula);
-***)
-
 (* ------------------------------------------------------------------------- *)
 val () = SAY "The parser and pretty-printer";
 (* ------------------------------------------------------------------------- *)
 
 fun prep l = (chop_newline o String.concat o map unquote) l;
 
-fun mini_print n = withRef (Parser.lineLength,n) Formula.toString;
+fun mini_print n fm = withRef (Print.lineLength,n) Formula.toString fm;
 
 fun testlen_pp n q =
-    (fn s => test_fun I s ((mini_print n o Formula.fromString) s))
+    (fn s => test_fun equal I s ((mini_print n o Formula.fromString) s))
       (prep q);
 
 fun test_pp q = print (testlen_pp 40 q ^ "\n");
@@ -281,6 +254,11 @@ val () = test_pp `
                     (f (f x y) (f x y)))`;
 
 val () = test_pp `
+(!x.
+   extremely__long__predicate__name) /\
+F`;
+
+val () = test_pp `
 (!x. x = x) /\
 (!x y. ~(x = y) \/ y = x) /\
 (!x y z.
@@ -296,32 +274,45 @@ val () = test_pp `
 val () = SAY "Substitution";
 (* ------------------------------------------------------------------------- *)
 
-val () = test I "x" (Term.variantPrime (NameSet.fromList ["y","z" ]) "x");
+val () =
+    test Name.equal Name.toString (NV"x")
+      (Term.variantPrime (NameSet.fromList [NV"y",NV"z" ]) (NV"x"));
 
-val () = test I "x'" (Term.variantPrime (NameSet.fromList ["x","y" ]) "x");
+val () =
+    test Name.equal Name.toString (NV"x'")
+      (Term.variantPrime (NameSet.fromList [NV"x",NV"y" ]) (NV"x"));
 
-val () = test I "x''" (Term.variantPrime (NameSet.fromList ["x","x'"]) "x");
+val () =
+    test Name.equal Name.toString (NV"x''")
+      (Term.variantPrime (NameSet.fromList [NV"x",NV"x'"]) (NV"x"));
 
-val () = test I "x" (Term.variantNum (NameSet.fromList ["y","z"]) "x");
+val () =
+    test Name.equal Name.toString (NV"x")
+      (Term.variantNum (NameSet.fromList [NV"y",NV"z"]) (NV"x"));
 
-val () = test I "x0" (Term.variantNum (NameSet.fromList ["x","y"]) "x");
+val () =
+    test Name.equal Name.toString (NV"x0")
+      (Term.variantNum (NameSet.fromList [NV"x",NV"y"]) (NV"x"));
 
-val () = test I "x1" (Term.variantNum (NameSet.fromList ["x","x0"]) "x");
+val () =
+    test Name.equal Name.toString (NV"x1")
+      (Term.variantNum (NameSet.fromList [NV"x",NV"x0"]) (NV"x"));
 
 val () =
     test_fm
       `!x. x = $z`
-      (Formula.subst (S [("y", Term.Var "z")]) (F`!x. x = $y`));
+      (Formula.subst (S [(NV"y", V"z")]) (F`!x. x = $y`));
 
 val () =
     test_fm
       `!x'. x' = $x`
-      (Formula.subst (S [("y", Term.Var "x")]) (F`!x. x = $y`));
+      (Formula.subst (S [(NV"y", V"x")]) (F`!x. x = $y`));
 
 val () =
     test_fm
       `!x' x''. x' = $x ==> x' = x''`
-      (Formula.subst (S [("y", Term.Var "x")]) (F`!x x'. x = $y ==> x = x'`));
+      (Formula.subst (S [(NV"y", V"x")])
+         (F`!x x'. x = $y ==> x = x'`));
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Unification";
@@ -330,24 +321,24 @@ val () = SAY "Unification";
 fun unify_and_apply tm1 tm2 =
     Subst.subst (Subst.unify Subst.empty tm1 tm2) tm1;
 
-val () = test_tm `c` (unify_and_apply (Term.Var "x") (Term.Fn ("c", [])));
+val () = test_tm `c` (unify_and_apply (V"x") (C"c"));
 
-val () = test_tm `c` (unify_and_apply (Term.Fn ("c", [])) (Term.Var "x"));
+val () = test_tm `c` (unify_and_apply (C"c") (V"x"));
 
 val () =
     test_tm
       `f c`
       (unify_and_apply
-         (Term.Fn ("f", [Term.Var "x"]))
-         (Term.Fn ("f", [Term.Fn ("c", [])])));
-      
+         (Term.Fn (NF"f", [V"x"]))
+         (Term.Fn (NF"f", [C"c"])));
+
 val () = test_tm `f 0 0 0` (unify_and_apply (T`f 0 $x $x`) (T`f $y $y $z`));
 
 fun f x y = (printval Subst.pp (Atom.unify Subst.empty x y); ());
 
-val () = f ("P", [Term.Var "x"]) ("P", [Term.Var "x"]);
+val () = f (NR"P", [V"x"]) (NR"P", [V"x"]);
 
-val () = f ("P", [Term.Var "x"]) ("P", [Term.Fn ("c",[])]);
+val () = f (NR"P", [V"x"]) (NR"P", [C"c"]);
 
 val () = f (A`P c_x`) (A`P $x`);
 
@@ -364,7 +355,7 @@ val _ = printval Proof.pp (Proof.proof th2);
 
 val th0 = Rule.relationCongruence Atom.eqRelation;
 val th1 =
-    Thm.subst (S [("y0",T`$x`),("y1",T`$y`),("x1",T`$z`),("x0",T`$x`)]) th0;
+    Thm.subst (S [(NV"y0",T`$x`),(NV"y1",T`$y`),(NV"x1",T`$z`),(NV"x0",T`$x`)]) th0;
 val th2 = Thm.resolve (L`$x = $x`) Rule.reflexivity th1;
 val th3 = Rule.symNeq (L`~($z = $y)`) th2;
 val _ = printval Proof.pp (Proof.proof th3);
@@ -372,8 +363,8 @@ val _ = printval Proof.pp (Proof.proof th3);
 (* Testing the elimination of redundancies in proofs *)
 
 val th0 = Rule.reflexivity;
-val th1 = Thm.subst (S [("x", Term.Fn ("f", [Term.Var "y"]))]) th0;
-val th2 = Thm.subst (S [("y", Term.mkConst "c")]) th1;
+val th1 = Thm.subst (S [(NV"x", Term.Fn (NF"f", [V"y"]))]) th0;
+val th2 = Thm.subst (S [(NV"y", C"c")]) th1;
 val _ = printval Proof.pp (Proof.proof th2);
 
 (* ------------------------------------------------------------------------- *)
@@ -389,7 +380,7 @@ val th5 = pvThm (Rule.symNeq (L`~(a = b)`) th0);
 
 (* Testing the rewrConv conversion *)
 val (x_y as (x,y), eqTh) = pvEqn (Q`e * (i $z * $z) = e`);
-val tm = Term.Fn ("f",[x]);
+val tm = Term.Fn (NF"f",[x]);
 val path : int list = [0];
 val reflTh = Thm.refl tm;
 val reflLit = Thm.destUnit reflTh;
@@ -434,6 +425,7 @@ val x = pvPo (kboCmp (T`f (g $x a)`, T`f (h a $x)`));
 val x = pvPo (kboCmp (T`f (g a)`, T`f (h $x)`));
 val x = pvPo (kboCmp (T`f (h a)`, T`f (g $x)`));
 val x = pvPo (kboCmp (T`f $y`, T`f (g a b c)`));
+val x = pvPo (kboCmp (T`$x * $y + $x * $z`, T`$x * ($y + $z)`));
 
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Rewriting";
@@ -512,7 +504,17 @@ val _ = pvFm (nnf (F`~(~(p <=> q) <=> r) <=> ~(p <=> ~(q <=> r))`));
 val () = SAY "Conjunctive normal form";
 (* ------------------------------------------------------------------------- *)
 
-val cnf = pvFms o Normalize.cnf o Formula.Not o Formula.generalize o F;
+local
+  fun clauseToFormula cl =
+      Formula.listMkDisj (LiteralSet.transform Literal.toFormula cl);
+in
+  fun clausesToFormula cls = Formula.listMkConj (map clauseToFormula cls);
+end;
+
+val cnf' = pvFm o clausesToFormula o Normalize.cnf o F;
+
+val cnf = pvFm o clausesToFormula o Normalize.cnf o
+          Formula.Not o Formula.generalize o F;
 
 val _ = cnf `p \/ ~p`;
 val _ = cnf `~((p /\ (q \/ r /\ s)) /\ (~p \/ ~q \/ ~s))`;
@@ -522,97 +524,545 @@ val _ = cnf `((p <=> q) <=> r) <=> (p <=> (q <=> r))`;
 val _ = cnf `~(!x. ?y. x < y ==> !v. ?w. x * v < y * w)`;
 val _ = cnf `~(!x. P x ==> (?y z. Q y \/ ~(?z. P z /\ Q z)))`;
 val _ = cnf `~(?x y. x + y = 2)`;
+val _ = cnf' `(!x. p x) \/ (!y. r $x y)`;
 
 val _ = cnf
   `(!x. P x ==> (!x. Q x)) /\ ((!x. Q x \/ R x) ==> (?x. Q x /\ R x)) /\
    ((?x. R x) ==> (!x. L x ==> M x)) ==> (!x. P x /\ L x ==> M x)`;
 
-(* verbose
-use "../test/large-problem.sml";
-val large_problem = time F large_problem_quotation;
-val large_refute = time (Formula.Not o Formula.generalize) large_problem;
-val _ = time Normalize.cnf large_refute;
-
-User: 0.256  System: 0.002  GC: 0.060  Real: 0.261  (* Parsing *)
-User: 0.017  System: 0.000  GC: 0.000  Real: 0.017  (* Negation *)
-User: 0.706  System: 0.004  GC: 0.050  Real: 0.724  (* CNF *)
-*)
-
-(***
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Finite models";
 (* ------------------------------------------------------------------------- *)
 
-val pv = printval M.pp_model;
-fun f m fm =
-  let
-    val PRINT_TIMING_INFO = false
-    val TIME_PER_SAMPLE = false
-    val RANDOM_SAMPLES = 1000
-    val timex_fn = if PRINT_TIMING_INFO then timed_many else timed
-    val timey_fn = if PRINT_TIMING_INFO then timed_many else timed
-    val (tx,i) = timex_fn (M.checkn m fm) RANDOM_SAMPLES
-    val tx = if TIME_PER_SAMPLE then tx / Real.fromInt RANDOM_SAMPLES else tx
-    val rx = Real.round (100.0 * Real.fromInt i / Real.fromInt RANDOM_SAMPLES)
-    val (ty,(j,n)) = timey_fn (M.count m) fm
-    val ty = if TIME_PER_SAMPLE then ty / Real.fromInt n else ty
-    val ry = Real.round (100.0 * Real.fromInt j / Real.fromInt n)
-    val () =
-      if not PRINT_TIMING_INFO then () else
-        print ("random sample time =     " ^ real_to_string tx ^ "s\n" ^
-               "exhaustive search time = " ^ real_to_string ty ^ "s\n")
-  in
-    print (formula_to_string fm ^ "   random sampling = " ^ int_to_string rx ^
-           "%   exhaustive search = " ^ int_to_string ry ^ "%\n\n")
-  end;
+fun checkModelClause M cl =
+    let
+      val randomSamples = 100
 
-val group_axioms = map Syntax.parseFormula
-  [`e * x = x`, `i x * x = e`, `x * y * z = x * (y * z)`];
+      fun addRandomSample {T,F} =
+          let
+            val {T = T', F = F'} = Model.checkClause {maxChecks = SOME 1} M cl
+          in
+            {T = T + T', F = F + F'}
+          end
 
-val group_thms = map Syntax.parseFormula
-  [`x * e = x`, `x * i x = e`, `i (i x) = x`];
+      val {T,F} = funpow randomSamples addRandomSample {T = 0, F = 0}
+      val rx = Real.fromInt T / Real.fromInt (T + F)
 
-val m = pv (M.new M.defaults);
-val () = app (f m) (group_axioms @ group_thms);
-val m = pv (M.perturb group_axioms 1000 m);
-val () = app (f m) (group_axioms @ group_thms);
+      val {T,F} = Model.checkClause {maxChecks = NONE} M cl
+      val ry = Real.fromInt T / Real.fromInt (T + F)
+    in
+      [Formula.toString (LiteralSet.disjoin cl),
+       " | random sampling = " ^ percentToString rx,
+       " | exhaustive = " ^ percentToString ry]
+    end;
 
-(* Given the multiplication, can perturbations find inverse and identity? *)
-val gfix = M.map_fix (fn "*" => SOME "+" | _ => NONE) M.modulo_fix;
-val gparm = M.update_fix (M.fix_merge gfix) o M.update_size (K 10);
-val m = pv (M.new (gparm M.defaults));
-val () = app (f m) (group_axioms @ group_thms);
-val m = pv (M.perturb group_axioms 1000 m);
-val () = app (f m) (group_axioms @ group_thms);
-val () = print ("e = " ^ M.term_to_string m (Syntax.parseTerm `e`) ^ "\n\n");
-val () = print ("i x =\n" ^ M.term_to_string m (Syntax.parseTerm `i x`) ^ "\n");
-val () = print ("x * y =\n" ^ M.term_to_string m (Syntax.parseTerm `x * y`) ^ "\n");
-val () = print ("x = y =\n"^M.formula_to_string m (Syntax.parseFormula `x = y`)^"\n");
+local
+  val format =
+      [{leftAlign = true, padChar = #" "},
+       {leftAlign = true, padChar = #" "},
+       {leftAlign = true, padChar = #" "}];
+in
+  fun checkModel M cls =
+      let
+        val table = map (checkModelClause M) cls
+
+        val rows = alignTable format table
+
+        val () = print (join "\n" rows ^ "\n\n")
+      in
+        ()
+      end;
+end;
+
+fun perturbModel M cls n =
+    let
+      val N = {size = Model.size M}
+
+      fun perturbClause (fv,cl) =
+          let
+            val V = Model.randomValuation N fv
+          in
+            if Model.interpretClause M V cl then ()
+            else Model.perturbClause M V cl
+          end
+
+      val cls = map (fn cl => (LiteralSet.freeVars cl, cl)) cls
+
+      fun perturbClauses () = app perturbClause cls
+
+      val () = funpow n perturbClauses ()
+    in
+      M
+    end;
+
+val groupAxioms =
+    [LS[`0 + $x = $x`],
+     LS[`~$x + $x = 0`],
+     LS[`$x + $y + $z = $x + ($y + $z)`]];
+
+val groupThms =
+    [LS[`$x + 0 = $x`],
+     LS[`$x + ~$x = 0`],
+     LS[`~~$x = $x`]];
+
+fun newM fixed = Model.new {size = 8, fixed = fixed};
+val M = pvM (newM Model.basicFixed);
+val () = checkModel M (groupAxioms @ groupThms);
+val M = pvM (perturbModel M groupAxioms 1000);
+val () = checkModel M (groupAxioms @ groupThms);
+val M = pvM (newM (Model.unionFixed Model.modularFixed Model.basicFixed));
+val () = checkModel M (groupAxioms @ groupThms);
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Completion engine";
+val () = SAY "Checking the standard model";
 (* ------------------------------------------------------------------------- *)
 
-val pv = printval C.pp_completion;
-fun wght ("i",1) = 0 | wght ("*",2) = 2 | wght _ = 1;
-fun prec (("i",1),("i",1)) = EQUAL
-  | prec (_,("i",1)) = LESS
-  | prec (("i",1),_) = GREATER
-  | prec ((f,m),(g,n)) =
-  if m < n then LESS else if m > n then GREATER else String.compare (f,g);
-val c_parm = {weight = wght, precedence = prec, precision = 3};
-val c_emp = C.empty (T.empty c_parm);
-val add = try (foldl (fn (q,r) => C.add (axiom [q]) r) c_emp);
+fun ppPercentClause (r,cl) =
+    let
+      val ind = 6
 
-val c = pv (add [`f (f x) = g x`]);
-val c = pv (funpow 2 C.deduce c);
+      val p = percentToString r
 
-val c = pv (add [`x * y * z = x * (y * z)`, `1 * x = x`, `i x * x = 1`]);
-val c = pv (funpow 44 C.deduce c);
+      val fm = LiteralSet.disjoin cl
+    in
+      Print.blockProgram Print.Consistent ind
+        [Print.addString p,
+         Print.addString (nChars #" " (ind - size p)),
+         Formula.pp fm]
+    end;
 
-val c = pv (add [`x*y * z = x * (y*z)`, `1 * x = x`, `x * 1 = x`, `x * x = 1`]);
-val c = pv (funpow 4 C.deduce c);
-***)
+val standardModel = Model.new Model.default;
+
+fun checkStandardModelClause cl =
+    let
+      val {T,F} = Model.checkClause {maxChecks = SOME 1000} standardModel cl
+      val r = Real.fromInt T / Real.fromInt (T + F)
+    in
+      (r,cl)
+    end;
+
+val pvPCl = printval ppPercentClause
+
+(* Equality *)
+
+val cl = LS[`$x = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~($x = $y)`,`$y = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~($x = $y)`,`~($y = $z)`,`$x = $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Projections *)
+
+val cl = LS[`project1 $x1 = $x1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project1 $x1 $x2 = $x1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project2 $x1 $x2 = $x2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project1 $x1 $x2 $x3 = $x1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project2 $x1 $x2 $x3 = $x2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project3 $x1 $x2 $x3 = $x3`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project1 $x1 $x2 $x3 $x4 = $x1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project2 $x1 $x2 $x3 $x4 = $x2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project3 $x1 $x2 $x3 $x4 = $x3`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project4 $x1 $x2 $x3 $x4 = $x4`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project1 $x1 $x2 $x3 $x4 $x5 = $x1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project2 $x1 $x2 $x3 $x4 $x5 = $x2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project3 $x1 $x2 $x3 $x4 $x5 = $x3`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project4 $x1 $x2 $x3 $x4 $x5 = $x4`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project5 $x1 $x2 $x3 $x4 $x5 = $x5`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project1 $x1 $x2 $x3 $x4 $x5 $x6 = $x1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project2 $x1 $x2 $x3 $x4 $x5 $x6 = $x2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project3 $x1 $x2 $x3 $x4 $x5 $x6 = $x3`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project4 $x1 $x2 $x3 $x4 $x5 $x6 = $x4`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project5 $x1 $x2 $x3 $x4 $x5 $x6 = $x5`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project6 $x1 $x2 $x3 $x4 $x5 $x6 = $x6`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project1 $x1 $x2 $x3 $x4 $x5 $x6 $x7 = $x1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project2 $x1 $x2 $x3 $x4 $x5 $x6 $x7 = $x2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project3 $x1 $x2 $x3 $x4 $x5 $x6 $x7 = $x3`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project4 $x1 $x2 $x3 $x4 $x5 $x6 $x7 = $x4`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project5 $x1 $x2 $x3 $x4 $x5 $x6 $x7 = $x5`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project6 $x1 $x2 $x3 $x4 $x5 $x6 $x7 = $x6`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project7 $x1 $x2 $x3 $x4 $x5 $x6 $x7 = $x7`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project1 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 = $x1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project2 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 = $x2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project3 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 = $x3`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project4 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 = $x4`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project5 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 = $x5`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project6 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 = $x6`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project7 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 = $x7`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project8 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 = $x8`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project1 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 $x9 = $x1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project2 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 $x9 = $x2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project3 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 $x9 = $x3`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project4 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 $x9 = $x4`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project5 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 $x9 = $x5`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project6 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 $x9 = $x6`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project7 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 $x9 = $x7`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project8 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 $x9 = $x8`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`project9 $x1 $x2 $x3 $x4 $x5 $x6 $x7 $x8 $x9 = $x9`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Arithmetic *)
+
+(* Zero *)
+val cl = LS[`~isZero $x`,`$x = 0`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`isZero $x`,`~($x = 0)`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Positive numerals *)
+val cl = LS[`0 + 1 = 1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`1 + 1 = 2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`2 + 1 = 3`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`3 + 1 = 4`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`4 + 1 = 5`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`5 + 1 = 6`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`6 + 1 = 7`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`7 + 1 = 8`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`8 + 1 = 9`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`9 + 1 = 10`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Negative numerals *)
+val cl = LS[`~1 = negative1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~2 = negative2`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~3 = negative3`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~4 = negative4`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~5 = negative5`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~6 = negative6`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~7 = negative7`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~8 = negative8`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~9 = negative9`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~10 = negative10`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Addition *)
+val cl = LS[`0 + $x = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x + $y = $y + $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x + ($y + $z) = ($x + $y) + $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Negation *)
+val cl = LS[`~$x + $x = 0`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~~$x = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Subtraction *)
+val cl = LS[`$x - $y = $x + ~$y`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Successor *)
+val cl = LS[`suc $x = $x + 1`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Predecessor *)
+val cl = LS[`pre $x = $x - 1`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Ordering *)
+val cl = LS[`$x <= $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~($x <= $y)`,`~($y <= $z)`,`$x <= $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~($x <= $y)`,`~($y <= $x)`,`$x = $y`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`0 <= $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~($x >= $y)`,`$y <= $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x >= $y`,`~($y <= $x)`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x > $y`,`$x <= $y`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~($x > $y)`,`~($x <= $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x < $y`,`$y <= $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~($x < $y)`,`~($y <= $x)`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x = 0`,`~($x <= $y)`,`~$y <= ~$x`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Multiplication *)
+val cl = LS[`1 * $x = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`0 * $x = 0`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x * $y = $y * $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x * ($y * $z) = ($x * $y) * $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x * ($y + $z) = ($x * $y) + ($x * $z)`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x * ~$y = ~($x * $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Division *)
+val cl = LS[`$y = 0`,`$x mod $y < $y`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$y * ($x div $y) + $x mod $y = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Exponentiation *)
+val cl = LS[`exp $x 0 = 1`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$y = 0`,`exp $x $y = $x * exp $x (pre $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Divides *)
+val cl = LS[`divides $x $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~(divides $x $y)`,`~(divides $y $z)`,`divides $x $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~(divides $x $y)`,`~(divides $y $x)`,`$x = $y`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`divides 1 $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`divides $x 0`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Even and odd *)
+val cl = LS[`even 0`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x = 0`,`~(even (pre $x))`,`odd $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x = 0`,`~(odd (pre $x))`,`even $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Sets *)
+
+(* The empty set *)
+val cl = LS[`~member $x empty`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* The universal set *)
+val cl = LS[`member $x universe`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Complement *)
+val cl = LS[`member $x $y`,`member $x (complement $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~(member $x $y)`,`~member $x (complement $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`complement (complement $x) = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`complement empty = universe`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`complement universe = empty`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* The subset relation *)
+val cl = LS[`subset $x $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~subset $x $y`,`~subset $y $z`,`subset $x $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~subset $x $y`,`~subset $y $x`,`$x = $y`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`subset empty $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`subset $x universe`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~subset $x $y`,`subset (complement $y) (complement $x)`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~member $x $y`,`~subset $y $z`,`member $x $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Union *)
+val cl = LS[`union $x $y = union $y $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`union $x (union $y $z) = union (union $x $y) $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`union empty $x = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`union universe $x = universe`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`subset $x (union $x $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~member $x (union $y $z)`,`member $x $y`,`member $x $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Intersection *)
+val cl = LS[`intersect $x $y =
+             complement (union (complement $x) (complement $y))`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`subset (intersect $x $y) $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Difference *)
+val cl = LS[`difference $x $y = intersect $x (complement $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Symmetric difference *)
+val cl = LS[`symmetricDifference $x $y =
+             union (difference $x $y) (difference $y $x)`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Insert *)
+val cl = LS[`member $x (insert $x $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Singleton *)
+val cl = LS[`singleton $x = (insert $x empty)`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Cardinality *)
+val cl = LS[`card empty = 0`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`member $x $y`,`card (insert $x $y) = suc (card $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Lists *)
+
+(* Nil *)
+val cl = LS[`null nil`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`~null $x`, `$x = nil`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Cons *)
+val cl = LS[`~(nil = $x :: $y)`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Append *)
+val cl = LS[`$x @ ($y @ $z) = ($x @ $y) @ $z`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`nil @ $x = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`$x @ nil = $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Length *)
+val cl = LS[`length nil = 0`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`length ($x :: $y) >= length $y`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`length ($x @ $y) >= length $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+val cl = LS[`length ($x @ $y) >= length $y`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* Tail *)
+val cl = LS[`null $x`,`suc (length (tail $x)) = length $x`];
+val _ = pvPCl (checkStandardModelClause cl);
+
+(* ------------------------------------------------------------------------- *)
+val () = SAY "Clauses";
+(* ------------------------------------------------------------------------- *)
+
+val cl = pvCl (CL[`P $x`,`P $y`]);
+val _ = pvLits (Clause.largestLiterals cl);
+val _ = pvCls (Clause.factor cl);
+val cl = pvCl (CL[`P $x`,`~P (f $x)`]);
+val _ = pvLits (Clause.largestLiterals cl);
+val cl = pvCl (CL[`$x = $y`,`f $y = f $x`]);
+val _ = pvLits (Clause.largestLiterals cl);
+val cl = pvCl (CL[`$x = f $y`,`f $x = $y`]);
+val _ = pvLits (Clause.largestLiterals cl);
+val cl = pvCl (CL[`s = a`,`s = b`,`h b c`]);
+val _ = pvLits (Clause.largestLiterals cl);
+val cl = pvCl (CL[`a = a`,`a = b`,`h b c`]);
+val _ = pvLits (Clause.largestLiterals cl);
+
+(* Test cases contributed by Larry Paulson *)
+
+local
+  val lnFnName = Name.fromString "ln"
+  and expFnName = Name.fromString "exp"
+  and divFnName = Name.fromString "/"
+
+  val leRelName = Name.fromString "<";
+
+  fun weight na =
+      case na of
+        (n,1) =>
+        if Name.equal n lnFnName then 500
+        else if Name.equal n expFnName then 500
+        else 1
+      | (n,2) =>
+        if Name.equal n divFnName then 50
+        else if Name.equal n leRelName then 20
+        else 1
+      | _ => 1;
+
+  val ordering =
+      {weight = weight, precedence = #precedence KnuthBendixOrder.default};
+
+  val clauseParameters =
+      {ordering = ordering,
+       orderLiterals = Clause.UnsignedLiteralOrder,
+       orderTerms = true};
+in
+  val LcpCL = mkCl clauseParameters o AX;
+end;
+
+val cl = pvCl (LcpCL[`~($y <= (2 + (2 * $x + pow $x 2)) / 2)`, `~(0 <= $x)`,
+                     `$y <= exp $x`]);
+val _ = pvLits (Clause.largestLiterals cl);
+
 (* ------------------------------------------------------------------------- *)
 val () = SAY "Syntax checking the problem sets";
 (* ------------------------------------------------------------------------- *)
@@ -625,7 +1075,7 @@ local
 
   fun quot fm =
       let
-        fun f (v,s) = Subst.insert s (v, Term.Var "_")
+        fun f (v,s) = Subst.insert s (v,V"_")
 
         val sub = NameSet.foldl f Subst.empty (Formula.freeVars fm)
       in
@@ -645,19 +1095,19 @@ local
       val g = prep goal
       val p =
           Formula.fromString g
-          handle Parser.NoParse =>
+          handle Parse.NoParse =>
                  raise Error ("failed to parse problem " ^ name)
-        
+
       val () =
         case List.find (fn (n,_) => n = name) acc of NONE => ()
         | SOME _ => same name
 
       val () =
-        case List.find (fn (_,x) => x = p) acc of NONE => ()
+        case List.find (fn (_,x) => Formula.equal x p) acc of NONE => ()
         | SOME (n,_) => dup n name
 
       val _ =
-        test_fun I g (mini_print (!Parser.lineLength) p)
+        test_fun equal I g (mini_print (!Print.lineLength) p)
         handle e => (print ("Error in problem " ^ name ^ "\n\n"); raise e)
     in
       (name,p) :: acc
@@ -673,283 +1123,31 @@ val () = check_syntax problems;
 val () = SAY "Parsing TPTP problems";
 (* ------------------------------------------------------------------------- *)
 
-val TPTP_DIR = "../data/problems/all";
-
-fun tptp d f =
+fun tptp f =
     let
       val () = print ("parsing " ^ f ^ "... ")
-      val goal =
-          case Tptp.toGoal (Tptp.read {filename = d ^ "/" ^ f}) of
-            Tptp.Fof goal => goal
-          | Tptp.Cnf prob => Problem.toClauses prob
+      val filename = "tptp/" ^ f ^ ".tptp"
+      val mapping = Tptp.defaultMapping
+      val goal = Tptp.goal (Tptp.read {filename = filename, mapping = mapping})
       val () = print "ok\n"
     in
       pvFm goal
     end;
 
-val Agatha = tptp TPTP_DIR "PUZ001-1.tptp";
-val _ = tptp "tptp" "NUMBERED_FORMULAS.tptp";
-val _ = tptp "tptp" "DEFINED_TERMS.tptp";
-val _ = tptp "tptp" "SYSTEM_TERMS.tptp";
-val _ = tptp "tptp" "QUOTED_TERMS.tptp";
-val _ = tptp "tptp" "QUOTED_TERMS_IDENTITY.tptp";
-val _ = tptp "tptp" "QUOTED_TERMS_SPECIAL.tptp";
+val _ = tptp "PUZ001-1";
+val _ = tptp "NUMBERED_FORMULAS";
+val _ = tptp "DEFINED_TERMS";
+val _ = tptp "SYSTEM_TERMS";
+val _ = tptp "QUOTED_TERMS";
+val _ = tptp "QUOTED_TERMS_IDENTITY";
+val _ = tptp "QUOTED_TERMS_DIFFERENT";
+val _ = tptp "QUOTED_TERMS_SPECIAL";
+val _ = tptp "RENAMING_VARIABLES";
+val _ = tptp "MIXED_PROBLEM";
+val _ = tptp "BLOCK_COMMENTS";
 
 (* ------------------------------------------------------------------------- *)
-val () = SAY "Clauses";
+val () = SAY "The TPTP finite model";
 (* ------------------------------------------------------------------------- *)
 
-val cl = pvCl (CL[`P $x`,`P $y`]);
-val _ = pvLits (Clause.largestLiterals cl);
-val _ = pvCls (Clause.factor cl);
-val cl = pvCl (CL[`$x = $y`,`f $y = f $x`]);
-val _ = pvLits (Clause.largestLiterals cl);
-val cl = pvCl (CL[`$x = f $y`,`f $x = $y`]);
-val _ = pvLits (Clause.largestLiterals cl);
-val cl = pvCl (CL[`s = a`,`s = b`,`h b c`]);
-val _ = pvLits (Clause.largestLiterals cl);
-val cl = pvCl (CL[`a = a`,`a = b`,`h b c`]);
-val _ = pvLits (Clause.largestLiterals cl);
-
-(* ------------------------------------------------------------------------- *)
-(* Exporting problems to an external FOL datatype.                           *)
-(* ------------------------------------------------------------------------- *)
-
-(*
-printDepth := 10000000;
-
-datatype xterm =
-  Fun of string * xterm list
-| Var of string;
-
-datatype xformula =
-  All of xterm list * xformula
-| Exi of xterm list * xformula
-| Iff of xformula * xformula
-| Imp of xformula * xformula
-| And of xformula * xformula
-| Or of xformula * xformula
-| Not of xformula
-| Tm of xterm
-| BoolT
-| BoolF
-| Box; (*which can be ignored entirely*)
-
-fun xterm (Term.Var v) = Var v
-  | xterm (Term.Fn (f,a)) = Fun (f, map xterm a);
-
-fun xformula Term.True = BoolT
-  | xformula Term.False = BoolF
-  | xformula (Term.Atom tm) = Tm (xterm tm)
-  | xformula (Term.Not p) = Not (xformula p)
-  | xformula (Term.And (p,q)) = And (xformula p, xformula q)
-  | xformula (Term.Or (p,q)) = Or (xformula p, xformula q)
-  | xformula (Term.Imp (p,q)) = Imp (xformula p, xformula q)
-  | xformula (Term.Iff (p,q)) = Iff (xformula p, xformula q)
-  | xformula fm =
-  (case strip_exists fm of ([],_) =>
-    (case strip_forall fm of ([],_) => raise Fail "xformula: can't identify"
-     | (vs,p) => All (map Var vs, xformula p))
-   | (vs,p) => Exi (map Var vs, xformula p));
-
-fun xproblem {name, goal : thing quotation} =
-  {name = name, goal = xformula (Syntax.parseFormula goal)};
-
-val xset = map xproblem;
-
-val xnonequality = xset Problem.nonequality;
-*)
-
-(***
-(* ------------------------------------------------------------------------- *)
-val () = SAY "Problems for provers";
-(* ------------------------------------------------------------------------- *)
-
-(* Non-equality *)
-
-val p59 = pfm (Syntax.parseFormula `(!x. P x <=> ~P (f x)) ==> ?x. P x /\ ~P (f x)`);
-
-val p39 = pfm (Syntax.parseFormula `~?x. !y. P y x <=> ~P y y`);
-
-(* Equality *)
-
-val p48 = (pfm o Syntax.parseFormula)
-  `(a = b \/ c = d) /\ (a = c \/ b = d) ==> a = d \/ b = c`;
-
-val cong = (pfm o Syntax.parseFormula)
-  `(!x. f (f (f (f (f x)))) = x) /\ (!x. f (f (f x)) = x) ==> !x. f x = x`;
-
-(* Impossible problems to test failure modes *)
-
-val square = (pfm o Syntax.parseFormula)
-  `sq 0 should_be_zero_here /\
-   (!x. sq x x ==> sq 0 (s x)) /\ (!x y. sq x y ==> sq (s x) y) ==>
-   sq 0 (s (s (s (s (s (s (s (s (s (s (s (s 0))))))))))))`;
-
-(* ------------------------------------------------------------------------- *)
-val () = SAY "Problems for solvers";
-(* ------------------------------------------------------------------------- *)
-
-val fib_rules = (pfm o Syntax.parseFormula)
-  `(!x. x + 0 = x) /\ (!x y z. x + y = z ==> x + suc y = suc z) /\
-   fib 0 = 0 /\ fib (suc 0) = suc 0 /\
-   (!x y z w.
-      fib x = y /\ fib (suc x) = z /\ y + z = w ==> fib (suc (suc x)) = w)`;
-
-val fib_query = pfms [Syntax.parseFormula `fib x = suc (suc y)`];
-
-val agatha_rules = (pfm o Syntax.parseFormula)
-  `lives agatha /\ lives butler /\ lives charles /\
-   (killed agatha agatha \/ killed butler agatha \/ killed charles agatha) /\
-   (!x y. killed x y ==> hates x y /\ ~richer x y) /\
-   (!x. hates agatha x ==> ~hates charles x) /\
-   hates agatha agatha /\ hates agatha charles /\
-   (!x. lives x /\ ~richer x agatha ==> hates butler x) /\
-   (!x. hates agatha x ==> hates butler x) /\
-   (!x. ~hates x agatha \/ ~hates x butler \/ ~hates x charles)`;
-
-val agatha_query1 = pfms [Syntax.parseFormula `killed x agatha`];
-val agatha_query2 = pfms [Syntax.parseFormula `~killed x agatha`];
-val agatha_query3 = pfms (map Syntax.parseFormula [`killed x agatha`, `lives x`]);
-
-val subset_rules = (pfm o Syntax.parseFormula)
-  `subset nil nil /\
-   (!v x y. subset x y ==> subset (v :: x) (v :: y)) /\
-   (!v x y. subset x y ==> subset x        (v :: y))`;
-
-val subset_query1 = pfms [Syntax.parseFormula `subset x (0 :: 1 :: 2 :: nil)`];
-val subset_query2 = pfms [Syntax.parseFormula `subset (0 :: 1 :: 2 :: nil) x`];
-
-val matchorder_rules = (pfm o Syntax.parseFormula)
-  `p 0 3 /\
-   (!x. p x 4) /\
-   (!x. p x 3 ==> p (s (s (s x))) 3) /\
-   (!x. p (s x) 3 ==> p x 3)`;
-
-val matchorder_query = pfms [Syntax.parseFormula `p (s 0) 3`];
-
-val ackermann_rules = (pfm o Syntax.parseFormula)
-  `(!x. ack 0 x = s x) /\
-   (!x y. ack x (s 0) = y ==> ack (s x) 0 = y) /\
-   (!x y z. ack (s x) y = w /\ ack x w = z ==> ack (s x) (s y) = z)`;
-
-val ackermann_query = pfms [Syntax.parseFormula `ack (s (s (s 0))) 0 = x`];
-
-(* ------------------------------------------------------------------------- *)
-(* Debugging Central.                                                        *)
-(* ------------------------------------------------------------------------- *)
-
-(*
-val () = Useful.trace_level := 4;
-val () = Clause.show_constraint := true;
-
-local
-  open Resolution;
-  val to_parm = Termorder.update_precision I Termorder.defaults;
-  val cl_parm = {term_order = true, literal_order = true,
-                 order_stickiness = 0, termorder_parm = to_parm};
-in
-  val tres_prove = (quick_prove o resolution')
-    ("tres",
-     {clause_parm = cl_parm,
-      set_parm    = Clauseset.defaults,
-      sos_parm    = Support.defaults});
-end;
-
-val prob = Syntax.parseFormula `
-  (!x. x = x) /\ (!x y z v. x + y <= z + v \/ ~(x <= z) \/ ~(y <= v)) /\
-  (!x. x + 0 = x) /\ (!x. x + ~x = 0) /\
-  (!x y z. x + (y + z) = x + y + z) ==>
-  ~d <= 0 /\ c + d <= i /\ ~(c <= i) ==> F`;
-val prob = Syntax.parseFormula (get std "P21");
-val prob = Syntax.parseFormula (get std "ROB002-1");
-val prob = Syntax.parseFormula (get std "KLEIN_GROUP_COMMUTATIVE");
-val prob = Syntax.parseFormula (get hol "pred_set_1");
-
-(*
-(cnf o Not o generalize) prob;
-stop;
-*)
-
-tres_prove prob;
-stop;
-
-val SOME th = meson_prove prob;
-print (proof_to_string' 70 (proof th));
-
-stop;
-*)
-
-(* ------------------------------------------------------------------------- *)
-val () = SAY "Meson prover";
-(* ------------------------------------------------------------------------- *)
-
-val meson_prove_p59 = meson_prove p59;
-val meson_prove_p39 = meson_prove p39;
-
-val meson_prove_p48  = meson_prove p48;
-val meson_prove_cong = meson_prove cong;
-
-val meson_prove_square = meson_prove square;
-
-(* ------------------------------------------------------------------------- *)
-val () = SAY "Meson solver";
-(* ------------------------------------------------------------------------- *)
-
-val meson_solve_fib = meson_solve fib_rules fib_query;
-
-val meson_solve_agatha1 = meson_solve agatha_rules agatha_query1;
-val meson_solve_agatha2 = meson_solve agatha_rules agatha_query2;
-val meson_solve_agatha3 = meson_solve agatha_rules agatha_query3;
-
-val meson_solve_subset1 = meson_solve subset_rules subset_query1;
-val meson_solve_subset2 = meson_solve subset_rules subset_query2;
-
-val meson_solve_matchorder = meson_solve matchorder_rules matchorder_query;
-
-val meson_solve_ackermann = meson_solve ackermann_rules ackermann_query;
-
-(* ------------------------------------------------------------------------- *)
-val () = SAY "Prolog solver";
-(* ------------------------------------------------------------------------- *)
-
-val prolog_solve_subset1 = prolog_solve subset_rules subset_query1;
-val prolog_solve_subset2 = prolog_solve subset_rules subset_query2;
-
-val prolog_solve_matchorder = prolog_solve matchorder_rules matchorder_query;
-
-(* ------------------------------------------------------------------------- *)
-val () = SAY "Resolution prover";
-(* ------------------------------------------------------------------------- *)
-
-val resolution_prove_p59 = resolution_prove p59;
-val resolution_prove_p39 = resolution_prove p39;
-
-val resolution_prove_p48  = resolution_prove p48;
-val resolution_prove_cong = resolution_prove cong;
-
-(* It would appear that resolution can't detect that this is unprovable
-val resolution_prove_square = resolution_prove square; *)
-
-(* Printing proofs
-load "Problem";
-val p21 = Syntax.parseFormula (Problem.get Problem.std "P21");
-val p21_cnf = cnf (Not (generalize p21));
-val SOME th = resolution_prove p21;
-print (proof_to_string' 70 (proof th));
-*)
-
-(* ------------------------------------------------------------------------- *)
-val () = SAY "Metis prover";
-(* ------------------------------------------------------------------------- *)
-
-val metis_prove_p59 = metis_prove p59;
-val metis_prove_p39 = metis_prove p39;
-
-val metis_prove_p48  = metis_prove p48;
-val metis_prove_cong = metis_prove cong;
-
-(* Poor delta is terribly slow at giving up on impossible problems
-   and in any case resolution can't detect that this is unprovable.
-val metis_prove_square = metis_prove square; *)
-***)
+val _ = printval (Tptp.ppFixedMap Tptp.defaultMapping) Tptp.defaultFixedMap;

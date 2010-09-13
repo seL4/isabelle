@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC FORMULAS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Formula =
@@ -33,6 +33,10 @@ val mkBoolean : bool -> formula
 val destBoolean : formula -> bool
 
 val isBoolean : formula -> bool
+
+val isTrue : formula -> bool
+
+val isFalse : formula -> bool
 
 (* Functions *)
 
@@ -92,6 +96,8 @@ val isForall : formula -> bool
 
 val listMkForall : Term.var list * formula -> formula
 
+val setMkForall : NameSet.set * formula -> formula
+
 val stripForall : formula -> Term.var list * formula
 
 (* Existential quantification *)
@@ -101,6 +107,8 @@ val destExists : formula -> Term.var * formula
 val isExists : formula -> bool
 
 val listMkExists : Term.var list * formula -> formula
+
+val setMkExists : NameSet.set * formula -> formula
 
 val stripExists : formula -> Term.var list * formula
 
@@ -116,6 +124,8 @@ val symbols : formula -> int
 
 val compare : formula * formula -> order
 
+val equal : formula -> formula -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Free variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
@@ -123,6 +133,8 @@ val compare : formula * formula -> order
 val freeIn : Term.var -> formula -> bool
 
 val freeVars : formula -> NameSet.set
+
+val freeVarsList : formula list -> NameSet.set
 
 val specialize : formula -> formula
 
@@ -163,12 +175,18 @@ val lhs : formula -> Term.term
 val rhs : formula -> Term.term
 
 (* ------------------------------------------------------------------------- *)
+(* Splitting goals.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+val splitGoal : formula -> formula list
+
+(* ------------------------------------------------------------------------- *)
 (* Parsing and pretty-printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-type quotation = formula Parser.quotation
+type quotation = formula Parse.quotation
 
-val pp : formula Parser.pp
+val pp : formula Print.pp
 
 val toString : formula -> string
 

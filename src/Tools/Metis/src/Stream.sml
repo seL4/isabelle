@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A POSSIBLY-INFINITE STREAM DATATYPE FOR ML                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Stream :> Stream =
@@ -13,60 +13,61 @@ val pair = Useful.pair;
 val funpow = Useful.funpow;
 
 (* ------------------------------------------------------------------------- *)
-(* The datatype declaration encapsulates all the primitive operations        *)
+(* The stream type.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
 datatype 'a stream =
-    NIL
-  | CONS of 'a * (unit -> 'a stream);
+    Nil
+  | Cons of 'a * (unit -> 'a stream);
 
 (* ------------------------------------------------------------------------- *)
-(* Stream constructors                                                       *)
+(* Stream constructors.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-fun repeat x = let fun rep () = CONS (x,rep) in rep () end;
+fun repeat x = let fun rep () = Cons (x,rep) in rep () end;
 
-fun count n = CONS (n, fn () => count (n + 1));
+fun count n = Cons (n, fn () => count (n + 1));
 
-fun funpows f x = CONS (x, fn () => funpows f (f x));
+fun funpows f x = Cons (x, fn () => funpows f (f x));
 
 (* ------------------------------------------------------------------------- *)
-(* Stream versions of standard list operations: these should all terminate   *)
+(* Stream versions of standard list operations: these should all terminate.  *)
 (* ------------------------------------------------------------------------- *)
 
-fun cons h t = CONS (h,t);
+fun cons h t = Cons (h,t);
 
-fun null NIL = true | null (CONS _) = false;
+fun null Nil = true
+  | null (Cons _) = false;
 
-fun hd NIL = raise Empty
-  | hd (CONS (h,_)) = h;
+fun hd Nil = raise Empty
+  | hd (Cons (h,_)) = h;
 
-fun tl NIL = raise Empty
-  | tl (CONS (_,t)) = t ();
+fun tl Nil = raise Empty
+  | tl (Cons (_,t)) = t ();
 
 fun hdTl s = (hd s, tl s);
 
-fun singleton s = CONS (s, K NIL);
+fun singleton s = Cons (s, K Nil);
 
-fun append NIL s = s ()
-  | append (CONS (h,t)) s = CONS (h, fn () => append (t ()) s);
+fun append Nil s = s ()
+  | append (Cons (h,t)) s = Cons (h, fn () => append (t ()) s);
 
 fun map f =
     let
-      fun m NIL = NIL
-        | m (CONS (h, t)) = CONS (f h, fn () => m (t ()))
+      fun m Nil = Nil
+        | m (Cons (h,t)) = Cons (f h, m o t)
     in
       m
     end;
 
-fun maps f =
+fun maps f g =
     let
-      fun mm _ NIL = NIL
-        | mm s (CONS (x, xs)) =
+      fun mm s Nil = g s
+        | mm s (Cons (x,xs)) =
           let
-            val (y, s') = f x s
+            val (y,s') = f x s
           in
-            CONS (y, fn () => mm s' (xs ()))
+            Cons (y, mm s' o xs)
           end
     in
       mm
@@ -74,102 +75,129 @@ fun maps f =
 
 fun zipwith f =
     let
-      fun z NIL _ = NIL
-        | z _ NIL = NIL
-        | z (CONS (x,xs)) (CONS (y,ys)) =
-          CONS (f x y, fn () => z (xs ()) (ys ()))
+      fun z Nil _ = Nil
+        | z _ Nil = Nil
+        | z (Cons (x,xs)) (Cons (y,ys)) =
+          Cons (f x y, fn () => z (xs ()) (ys ()))
     in
       z
     end;
 
 fun zip s t = zipwith pair s t;
 
-fun take 0 _ = NIL
-  | take n NIL = raise Subscript
-  | take 1 (CONS (x,_)) = CONS (x, K NIL)
-  | take n (CONS (x,xs)) = CONS (x, fn () => take (n - 1) (xs ()));
+fun take 0 _ = Nil
+  | take n Nil = raise Subscript
+  | take 1 (Cons (x,_)) = Cons (x, K Nil)
+  | take n (Cons (x,xs)) = Cons (x, fn () => take (n - 1) (xs ()));
 
 fun drop n s = funpow n tl s handle Empty => raise Subscript;
 
 (* ------------------------------------------------------------------------- *)
-(* Stream versions of standard list operations: these might not terminate    *)
+(* Stream versions of standard list operations: these might not terminate.   *)
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun len n NIL = n
-    | len n (CONS (_,t)) = len (n + 1) (t ());
+  fun len n Nil = n
+    | len n (Cons (_,t)) = len (n + 1) (t ());
 in
   fun length s = len 0 s;
 end;
 
 fun exists pred =
     let
-      fun f NIL = false
-        | f (CONS (h,t)) = pred h orelse f (t ())
+      fun f Nil = false
+        | f (Cons (h,t)) = pred h orelse f (t ())
     in
       f
     end;
 
 fun all pred = not o exists (not o pred);
 
-fun filter p NIL = NIL
-  | filter p (CONS (x,xs)) =
-    if p x then CONS (x, fn () => filter p (xs ())) else filter p (xs ());
+fun filter p Nil = Nil
+  | filter p (Cons (x,xs)) =
+    if p x then Cons (x, fn () => filter p (xs ())) else filter p (xs ());
 
 fun foldl f =
     let
-      fun fold b NIL = b
-        | fold b (CONS (h,t)) = fold (f (h,b)) (t ())
+      fun fold b Nil = b
+        | fold b (Cons (h,t)) = fold (f (h,b)) (t ())
     in
       fold
     end;
 
-fun concat NIL = NIL
-  | concat (CONS (NIL, ss)) = concat (ss ())
-  | concat (CONS (CONS (x, xs), ss)) =
-    CONS (x, fn () => concat (CONS (xs (), ss)));
+fun concat Nil = Nil
+  | concat (Cons (Nil, ss)) = concat (ss ())
+  | concat (Cons (Cons (x, xs), ss)) =
+    Cons (x, fn () => concat (Cons (xs (), ss)));
 
 fun mapPartial f =
     let
-      fun mp NIL = NIL
-        | mp (CONS (h,t)) =
+      fun mp Nil = Nil
+        | mp (Cons (h,t)) =
           case f h of
             NONE => mp (t ())
-          | SOME h' => CONS (h', fn () => mp (t ()))
+          | SOME h' => Cons (h', fn () => mp (t ()))
     in
       mp
     end;
 
-fun mapsPartial f =
+fun mapsPartial f g =
     let
-      fun mm _ NIL = NIL
-        | mm s (CONS (x, xs)) =
+      fun mp s Nil = g s
+        | mp s (Cons (h,t)) =
           let
-            val (yo, s') = f x s
-            val t = mm s' o xs
+            val (h,s) = f h s
           in
-            case yo of NONE => t () | SOME y => CONS (y, t)
+            case h of
+              NONE => mp s (t ())
+            | SOME h => Cons (h, fn () => mp s (t ()))
           end
     in
-      mm
+      mp
+    end;
+
+fun mapConcat f =
+    let
+      fun mc Nil = Nil
+        | mc (Cons (h,t)) = append (f h) (fn () => mc (t ()))
+    in
+      mc
+    end;
+
+fun mapsConcat f g =
+    let
+      fun mc s Nil = g s
+        | mc s (Cons (h,t)) =
+          let
+            val (l,s) = f h s
+          in
+            append l (fn () => mc s (t ()))
+          end
+    in
+      mc
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Stream operations                                                         *)
+(* Stream operations.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
-fun memoize NIL = NIL
-  | memoize (CONS (h,t)) = CONS (h, Lazy.memoize (fn () => memoize (t ())));
+fun memoize Nil = Nil
+  | memoize (Cons (h,t)) = Cons (h, Lazy.memoize (fn () => memoize (t ())));
+
+fun concatList [] = Nil
+  | concatList (h :: t) = append h (fn () => concatList t);
 
 local
-  fun toLst res NIL = rev res
-    | toLst res (CONS (x, xs)) = toLst (x :: res) (xs ());
+  fun toLst res Nil = rev res
+    | toLst res (Cons (x, xs)) = toLst (x :: res) (xs ());
 in
   fun toList s = toLst [] s;
 end;
 
-fun fromList [] = NIL
-  | fromList (x :: xs) = CONS (x, fn () => fromList xs);
+fun fromList [] = Nil
+  | fromList (x :: xs) = Cons (x, fn () => fromList xs);
+
+fun listConcat s = concat (map fromList s);
 
 fun toString s = implode (toList s);
 
@@ -181,8 +209,8 @@ fun toTextFile {filename = f} s =
           if f = "-" then (TextIO.stdOut, K ())
           else (TextIO.openOut f, TextIO.closeOut)
 
-      fun toFile NIL = ()
-        | toFile (CONS (x,y)) = (TextIO.output (h,x); toFile (y ()))
+      fun toFile Nil = ()
+        | toFile (Cons (x,y)) = (TextIO.output (h,x); toFile (y ()))
 
       val () = toFile s
     in
@@ -197,8 +225,8 @@ fun fromTextFile {filename = f} =
 
       fun strm () =
           case TextIO.inputLine h of
-            NONE => (close h; NIL)
-          | SOME s => CONS (s,strm)
+            NONE => (close h; Nil)
+          | SOME s => Cons (s,strm)
     in
       memoize (strm ())
     end;

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SUPPORT FOR LAZY EVALUATION                                               *)
-(* Copyright (c) 2007 Joe Hurd, distributed under the BSD License      *)
+(* Copyright (c) 2007 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Lazy :> Lazy =
@@ -12,16 +12,21 @@ datatype 'a thunk =
 
 datatype 'a lazy = Lazy of 'a thunk ref;
 
+fun quickly v = Lazy (ref (Value v));
+
 fun delay f = Lazy (ref (Thunk f));
 
-fun force (Lazy (ref (Value v))) = v
-  | force (Lazy (s as ref (Thunk f))) =
-    let
-      val v = f ()
-      val () = s := Value v
-    in
-      v
-    end;
+fun force (Lazy s) =
+    case !s of
+      Value v => v
+    | Thunk f =>
+      let
+        val v = f ()
+
+        val () = s := Value v
+      in
+        v
+      end;
 
 fun memoize f =
     let

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE RESOLUTION PROOF PROCEDURE                                            *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Resolution =
@@ -22,13 +22,15 @@ type resolution
 
 val default : parameters
 
-val new : parameters -> Thm.thm list -> resolution
+val new :
+    parameters -> {axioms : Thm.thm list, conjecture : Thm.thm list} ->
+    resolution
 
 val active : resolution -> Active.active
 
 val waiting : resolution -> Waiting.waiting
 
-val pp : resolution Parser.pp
+val pp : resolution Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* The main proof loop.                                                      *)

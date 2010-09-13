@@ -735,7 +735,7 @@ fun build_map mode0 ctxt cls ths =
   in (mode, add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap) end
 
 fun refute cls =
-    Metis.Resolution.loop (Metis.Resolution.new Metis.Resolution.default cls);
+    Metis.Resolution.loop (Metis.Resolution.new Metis.Resolution.default {axioms = cls, conjecture = []});
 
 fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC LITERALS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Literal :> Literal =
@@ -70,11 +70,9 @@ fun symbols ((_,atm) : literal) = Atom.symbols atm;
 (* A total comparison function for literals.                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun compare ((pol1,atm1),(pol2,atm2)) =
-    case boolCompare (pol1,pol2) of
-      LESS => GREATER
-    | EQUAL => Atom.compare (atm1,atm2)
-    | GREATER => LESS;
+val compare = prodCompare boolCompare Atom.compare;
+
+fun equal (p1,atm1) (p2,atm2) = p1 = p2 andalso Atom.equal atm1 atm2;
 
 (* ------------------------------------------------------------------------- *)
 (* Subterms.                                                                 *)
@@ -88,7 +86,7 @@ fun replace (lit as (pol,atm)) path_tm =
     let
       val atm' = Atom.replace atm path_tm
     in
-      if Sharing.pointerEqual (atm,atm') then lit else (pol,atm')
+      if Portable.pointerEqual (atm,atm') then lit else (pol,atm')
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -107,7 +105,7 @@ fun subst sub (lit as (pol,atm)) : literal =
     let
       val atm' = Atom.subst sub atm
     in
-      if Sharing.pointerEqual (atm',atm) then lit else (pol,atm')
+      if Portable.pointerEqual (atm',atm) then lit else (pol,atm')
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -182,24 +180,26 @@ fun nonVarTypedSubterms ((_,atm) : literal) = Atom.nonVarTypedSubterms atm;
 (* Parsing and pretty-printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val pp = Parser.ppMap toFormula Formula.pp;
+val pp = Print.ppMap toFormula Formula.pp;
 
-val toString = Parser.toString pp;
+val toString = Print.toString pp;
 
 fun fromString s = fromFormula (Formula.fromString s);
 
-val parse = Parser.parseQuotation Term.toString fromString;
+val parse = Parse.parseQuotation Term.toString fromString;
 
 end
 
 structure LiteralOrdered =
 struct type t = Literal.literal val compare = Literal.compare end
 
+structure LiteralMap = KeyMap (LiteralOrdered);
+
 structure LiteralSet =
 struct
 
   local
-    structure S = ElementSet (LiteralOrdered);
+    structure S = ElementSet (LiteralMap);
   in
     open S;
   end;
@@ -227,11 +227,20 @@ struct
         foldl f NameAritySet.empty
       end;
 
+  fun freeIn v = exists (Literal.freeIn v);
+
   val freeVars =
       let
         fun f (lit,set) = NameSet.union set (Literal.freeVars lit)
       in
         foldl f NameSet.empty
+      end;
+
+  val freeVarsList =
+      let
+        fun f (lits,set) = NameSet.union set (freeVars lits)
+      in
+        List.foldl f NameSet.empty
       end;
 
   val symbols =
@@ -253,21 +262,32 @@ struct
         fun substLit (lit,(eq,lits')) =
             let
               val lit' = Literal.subst sub lit
-              val eq = eq andalso Sharing.pointerEqual (lit,lit')
+              val eq = eq andalso Portable.pointerEqual (lit,lit')
             in
               (eq, add lits' lit')
             end
-              
+
         val (eq,lits') = foldl substLit (true,empty) lits
       in
         if eq then lits else lits'
       end;
 
+  fun conjoin set =
+      Formula.listMkConj (List.map Literal.toFormula (toList set));
+
+  fun disjoin set =
+      Formula.listMkDisj (List.map Literal.toFormula (toList set));
+
   val pp =
-      Parser.ppMap
+      Print.ppMap
         toList
-        (Parser.ppBracket "{" "}" (Parser.ppSequence "," Literal.pp));
+        (Print.ppBracket "{" "}" (Print.ppOpList "," Literal.pp));
 
 end
 
-structure LiteralMap = KeyMap (LiteralOrdered);
+structure LiteralSetOrdered =
+struct type t = LiteralSet.set val compare = LiteralSet.compare end
+
+structure LiteralSetMap = KeyMap (LiteralSetOrdered);
+
+structure LiteralSetSet = ElementSet (LiteralSetMap);

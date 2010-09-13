@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC ATOMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Atom =
@@ -52,6 +52,8 @@ val symbols : atom -> int
 
 val compare : atom * atom -> order
 
+val equal : atom -> atom -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Subterms.                                                                 *)
 (* ------------------------------------------------------------------------- *)
@@ -94,6 +96,8 @@ val unify : Subst.subst -> atom -> atom -> Subst.subst  (* raises Error *)
 (* The equality relation.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
+val eqRelationName : relationName
+
 val eqRelation : relation
 
 val mkEq : Term.term * Term.term -> atom
@@ -126,12 +130,12 @@ val nonVarTypedSubterms : atom -> (Term.path * Term.term) list
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val pp : atom Parser.pp
+val pp : atom Print.pp
 
 val toString : atom -> string
 
 val fromString : string -> atom
 
-val parse : Term.term Parser.quotation -> atom
+val parse : Term.term Parse.quotation -> atom
 
 end

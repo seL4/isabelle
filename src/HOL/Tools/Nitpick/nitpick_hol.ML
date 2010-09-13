@@ -595,9 +595,13 @@ fun typedef_info ctxt s =
   else case Typedef.get_info ctxt s of
     (* When several entries are returned, it shouldn't matter much which one
        we take (according to Florian Haftmann). *)
+    (* The "Logic.varifyT_global" calls are a temporary hack because these
+       types's type variables sometimes clash with locally fixed type variables.
+       Remove these calls once "Typedef" is fully localized. *)
     ({abs_type, rep_type, Abs_name, Rep_name, ...},
      {set_def, Rep, Abs_inverse, Rep_inverse, ...}) :: _ =>
-    SOME {abs_type = abs_type, rep_type = rep_type, Abs_name = Abs_name,
+    SOME {abs_type = Logic.varifyT_global abs_type,
+          rep_type = Logic.varifyT_global rep_type, Abs_name = Abs_name,
           Rep_name = Rep_name, set_def = set_def, prop_of_Rep = prop_of Rep,
           set_name = set_prefix ^ s, Abs_inverse = SOME Abs_inverse,
           Rep_inverse = SOME Rep_inverse}
@@ -776,9 +780,11 @@ fun mate_of_rep_fun ctxt (x as (_, Type (@{type_name fun},
      | NONE => raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x]))
   | mate_of_rep_fun _ x = raise TERM ("Nitpick_HOL.mate_of_rep_fun", [Const x])
 fun rep_type_for_quot_type thy (T as Type (s, _)) =
-  let val {qtyp, rtyp, ...} = Quotient_Info.quotdata_lookup thy s in
-    instantiate_type thy qtyp T rtyp
-  end
+    let val {qtyp, rtyp, ...} = Quotient_Info.quotdata_lookup thy s in
+      instantiate_type thy qtyp T rtyp
+    end
+  | rep_type_for_quot_type _ T =
+    raise TYPE ("Nitpick_HOL.rep_type_for_quot_type", [T], [])
 fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
     let
       val {qtyp, equiv_rel, equiv_thm, ...} =
@@ -1079,7 +1085,7 @@ fun coerce_bound_no f j t =
   | _ => t
 fun coerce_bound_0_in_term hol_ctxt new_T old_T =
   old_T <> new_T ? coerce_bound_no (coerce_term hol_ctxt [new_T] old_T new_T) 0
-and coerce_term (hol_ctxt as {ctxt, stds, fast_descrs, ...}) Ts new_T old_T t =
+and coerce_term (hol_ctxt as {ctxt, stds, ...}) Ts new_T old_T t =
   if old_T = new_T then
     t
   else
@@ -1567,7 +1573,7 @@ fun optimized_case_def (hol_ctxt as {ctxt, stds, ...}) dataT res_T func_ts =
         | [_, (@{const True}, head_t2)] => head_t2
         | [_, (@{const False}, head_t2)] => @{const Not} $ head_t2
         | _ => raise BAD ("Nitpick_HOL.optimized_case_def", "impossible cases")
-      else 
+      else
         @{const True} |> fold_rev (add_constr_case res_T) cases
     else
       fst (hd cases) |> fold_rev (add_constr_case res_T) (tl cases)
@@ -1748,7 +1754,7 @@ fun unfold_defs_in_term
                   val rep_T = domain_type (domain_type T)
                   val eps_fun = Const (@{const_name Eps},
                                        (rep_T --> bool_T) --> rep_T)
-                  val normal_fun = 
+                  val normal_fun =
                     Const (quot_normal_name_for_type ctxt abs_T,
                            rep_T --> rep_T)
                   val abs_fun = Const (@{const_name Quot}, rep_T --> abs_T)
@@ -1956,7 +1962,7 @@ fun optimized_quot_type_axioms ctxt stds abs_z =
     |> partial ? cons (HOLogic.mk_Trueprop (equiv_rel $ sel_a_t $ sel_a_t))
   end
 
-fun codatatype_bisim_axioms (hol_ctxt as {thy, ctxt, stds, ...}) T =
+fun codatatype_bisim_axioms (hol_ctxt as {ctxt, stds, ...}) T =
   let
     val xs = datatype_constrs hol_ctxt T
     val set_T = T --> bool_T
@@ -2163,7 +2169,7 @@ val linear_pred_base_and_step_rhss =
                            (disjuncts_of body)
           val base_body = nonrecs |> List.foldl s_disj @{const False}
           val step_body = recs |> map (repair_rec j)
-                               |> List.foldl s_disj @{const False} 
+                               |> List.foldl s_disj @{const False}
         in
           (list_abs (tl xs, incr_bv (~1, j, base_body))
            |> ap_n_split (length arg_Ts) tuple_T bool_T,

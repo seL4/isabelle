@@ -8,8 +8,8 @@ theory Code_Generator
 imports Pure
 uses
   "~~/src/Tools/cache_io.ML"
+  "~~/src/Tools/auto_tools.ML"
   "~~/src/Tools/auto_solve.ML"
-  "~~/src/Tools/auto_counterexample.ML"
   "~~/src/Tools/quickcheck.ML"
   "~~/src/Tools/value.ML"
   "~~/src/Tools/Code/code_preproc.ML" 
@@ -26,7 +26,8 @@ uses
 begin
 
 setup {*
-  Code_Preproc.setup
+  Auto_Solve.setup
+  #> Code_Preproc.setup
   #> Code_Simp.setup
   #> Code_ML.setup
   #> Code_Haskell.setup

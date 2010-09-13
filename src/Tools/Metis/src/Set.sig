@@ -1,36 +1,72 @@
 (* ========================================================================= *)
-(* FINITE SETS                                                               *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
+(* FINITE SETS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Set =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Finite sets                                                               *)
+(* A type of finite sets.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 type 'elt set
 
-val comparison : 'elt set -> ('elt * 'elt -> order)
+(* ------------------------------------------------------------------------- *)
+(* Constructors.                                                             *)
+(* ------------------------------------------------------------------------- *)
 
 val empty : ('elt * 'elt -> order) -> 'elt set
 
 val singleton : ('elt * 'elt -> order) -> 'elt -> 'elt set
 
+(* ------------------------------------------------------------------------- *)
+(* Set size.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
 val null : 'elt set -> bool
 
 val size : 'elt set -> int
 
+(* ------------------------------------------------------------------------- *)
+(* Querying.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val peek : 'elt set -> 'elt -> 'elt option
+
 val member : 'elt -> 'elt set -> bool
+
+val pick : 'elt set -> 'elt  (* an arbitrary element *)
+
+val nth : 'elt set -> int -> 'elt  (* in the range [0,size-1] *)
+
+val random : 'elt set -> 'elt
+
+(* ------------------------------------------------------------------------- *)
+(* Adding.                                                                   *)
+(* ------------------------------------------------------------------------- *)
 
 val add : 'elt set -> 'elt -> 'elt set
 
 val addList : 'elt set -> 'elt list -> 'elt set
 
-val delete : 'elt set -> 'elt -> 'elt set  (* raises Error *)
+(* ------------------------------------------------------------------------- *)
+(* Removing.                                                                 *)
+(* ------------------------------------------------------------------------- *)
 
-(* Union and intersect prefer elements in the second set *)
+val delete : 'elt set -> 'elt -> 'elt set  (* must be present *)
+
+val remove : 'elt set -> 'elt -> 'elt set
+
+val deletePick : 'elt set -> 'elt * 'elt set
+
+val deleteNth : 'elt set -> int -> 'elt * 'elt set
+
+val deleteRandom : 'elt set -> 'elt * 'elt set
+
+(* ------------------------------------------------------------------------- *)
+(* Joining.                                                                  *)
+(* ------------------------------------------------------------------------- *)
 
 val union : 'elt set -> 'elt set -> 'elt set
 
@@ -44,21 +80,23 @@ val difference : 'elt set -> 'elt set -> 'elt set
 
 val symmetricDifference : 'elt set -> 'elt set -> 'elt set
 
-val disjoint : 'elt set -> 'elt set -> bool
-
-val subset : 'elt set -> 'elt set -> bool
-
-val equal : 'elt set -> 'elt set -> bool
+(* ------------------------------------------------------------------------- *)
+(* Mapping and folding.                                                      *)
+(* ------------------------------------------------------------------------- *)
 
 val filter : ('elt -> bool) -> 'elt set -> 'elt set
 
 val partition : ('elt -> bool) -> 'elt set -> 'elt set * 'elt set
 
-val count : ('elt -> bool) -> 'elt set -> int
+val app : ('elt -> unit) -> 'elt set -> unit
 
 val foldl : ('elt * 's -> 's) -> 's -> 'elt set -> 's
 
 val foldr : ('elt * 's -> 's) -> 's -> 'elt set -> 's
+
+(* ------------------------------------------------------------------------- *)
+(* Searching.                                                                *)
+(* ------------------------------------------------------------------------- *)
 
 val findl : ('elt -> bool) -> 'elt set -> 'elt option
 
@@ -72,27 +110,45 @@ val exists : ('elt -> bool) -> 'elt set -> bool
 
 val all : ('elt -> bool) -> 'elt set -> bool
 
-val map : ('elt -> 'a) -> 'elt set -> ('elt * 'a) list
+val count : ('elt -> bool) -> 'elt set -> int
+
+(* ------------------------------------------------------------------------- *)
+(* Comparing.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val compare : 'elt set * 'elt set -> order
+
+val equal : 'elt set -> 'elt set -> bool
+
+val subset : 'elt set -> 'elt set -> bool
+
+val disjoint : 'elt set -> 'elt set -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Converting to and from lists.                                             *)
+(* ------------------------------------------------------------------------- *)
 
 val transform : ('elt -> 'a) -> 'elt set -> 'a list
-
-val app : ('elt -> unit) -> 'elt set -> unit
 
 val toList : 'elt set -> 'elt list
 
 val fromList : ('elt * 'elt -> order) -> 'elt list -> 'elt set
 
-val pick : 'elt set -> 'elt  (* raises Empty *)
+(* ------------------------------------------------------------------------- *)
+(* Converting to and from maps.                                              *)
+(* ------------------------------------------------------------------------- *)
 
-val random : 'elt set -> 'elt  (* raises Empty *)
+type ('elt,'a) map = ('elt,'a) Map.map
 
-val deletePick : 'elt set -> 'elt * 'elt set  (* raises Empty *)
+val mapPartial : ('elt -> 'a option) -> 'elt set -> ('elt,'a) map
 
-val deleteRandom : 'elt set -> 'elt * 'elt set  (* raises Empty *)
+val map : ('elt -> 'a) -> 'elt set -> ('elt,'a) map
 
-val compare : 'elt set * 'elt set -> order
+val domain : ('elt,'a) map -> 'elt set
 
-val close : ('elt set -> 'elt set) -> 'elt set -> 'elt set
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
 
 val toString : 'elt set -> string
 

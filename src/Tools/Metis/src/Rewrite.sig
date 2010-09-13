@@ -1,16 +1,28 @@
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Rewrite =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* A type of rewrite systems.                                                *)
+(* Orientations of equations.                                                *)
 (* ------------------------------------------------------------------------- *)
 
 datatype orient = LeftToRight | RightToLeft
+
+val toStringOrient : orient -> string
+
+val ppOrient : orient Print.pp
+
+val toStringOrientOption : orient option -> string
+
+val ppOrientOption : orient option Print.pp
+
+(* ------------------------------------------------------------------------- *)
+(* A type of rewrite systems.                                                *)
+(* ------------------------------------------------------------------------- *)
 
 type reductionOrder = Term.term * Term.term -> order option
 
@@ -34,7 +46,7 @@ val equations : rewrite -> equation list
 
 val toString : rewrite -> string
 
-val pp : rewrite Parser.pp
+val pp : rewrite Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Add equations into the system.                                            *)

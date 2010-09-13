@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
-(* Copyright (c) 2001-2005 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Useful =
@@ -13,8 +13,6 @@ sig
 exception Error of string
 
 exception Bug of string
-
-val partial : exn -> ('a -> 'b option) -> 'a -> 'b
 
 val total : ('a -> 'b) -> 'a -> 'b option
 
@@ -45,10 +43,6 @@ val W : ('a -> 'a -> 'b) -> 'a -> 'b
 val funpow : int -> ('a -> 'a) -> 'a -> 'a
 
 val exp : ('a * 'a -> 'a) -> 'a -> int -> 'a -> 'a
-
-val equal : ''a -> ''a -> bool
-
-val notEqual : ''a -> ''a -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* Pairs.                                                                    *)
@@ -83,6 +77,33 @@ val mjoin : ('s -> ('s -> 'a * 's) * 's) -> 's -> 'a * 's
 val mwhile : ('a -> bool) -> ('a -> 's -> 'a * 's) -> 'a -> 's -> 'a * 's
 
 (* ------------------------------------------------------------------------- *)
+(* Equality.                                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val equal : ''a -> ''a -> bool
+
+val notEqual : ''a -> ''a -> bool
+
+val listEqual : ('a -> 'a -> bool) -> 'a list -> 'a list -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Comparisons.                                                              *)
+(* ------------------------------------------------------------------------- *)
+
+val mapCompare : ('a -> 'b) -> ('b * 'b -> order) -> 'a * 'a -> order
+
+val revCompare : ('a * 'a -> order) -> 'a * 'a -> order
+
+val prodCompare :
+    ('a * 'a -> order) -> ('b * 'b -> order) -> ('a * 'b) * ('a * 'b) -> order
+
+val lexCompare : ('a * 'a -> order) -> 'a list * 'a list -> order
+
+val optionCompare : ('a * 'a -> order) -> 'a option * 'a option -> order
+
+val boolCompare : bool * bool -> order  (* false < true *)
+
+(* ------------------------------------------------------------------------- *)
 (* Lists: note we count elements from 0.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -96,15 +117,11 @@ val singleton : 'a -> 'a list
 
 val first : ('a -> 'b option) -> 'a list -> 'b option
 
-val index : ('a -> bool) -> 'a list -> int option
-
 val maps : ('a -> 's -> 'b * 's) -> 'a list -> 's -> 'b list * 's
 
 val mapsPartial : ('a -> 's -> 'b option * 's) -> 'a list -> 's -> 'b list * 's
 
-val enumerate : 'a list -> (int * 'a) list
-
-val zipwith : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
+val zipWith : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
 
 val zip : 'a list -> 'b list -> ('a * 'b) list
 
@@ -113,6 +130,24 @@ val unzip : ('a * 'b) list -> 'a list * 'b list
 val cartwith : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
 
 val cart : 'a list -> 'b list -> ('a * 'b) list
+
+val takeWhile : ('a -> bool) -> 'a list -> 'a list
+
+val dropWhile : ('a -> bool) -> 'a list -> 'a list
+
+val divideWhile : ('a -> bool) -> 'a list -> 'a list * 'a list
+
+val groups : ('a * 's -> bool * 's) -> 's -> 'a list -> 'a list list
+
+val groupsBy : ('a * 'a -> bool) -> 'a list -> 'a list list
+
+val groupsByFst : (''a * 'b) list -> (''a * 'b list) list
+
+val groupsOf : int -> 'a list -> 'a list list
+
+val index : ('a -> bool) -> 'a list -> int option
+
+val enumerate : 'a list -> (int * 'a) list
 
 val divide : 'a list -> int -> 'a list * 'a list  (* Subscript *)
 
@@ -143,23 +178,6 @@ val difference : ''a list -> ''a list -> ''a list
 val subset : ''a list -> ''a list -> bool
 
 val distinct : ''a list -> bool
-
-(* ------------------------------------------------------------------------- *)
-(* Comparisons.                                                              *)
-(* ------------------------------------------------------------------------- *)
-
-val mapCompare : ('a -> 'b) -> ('b * 'b -> order) -> 'a * 'a -> order
-
-val revCompare : ('a * 'a -> order) -> 'a * 'a -> order
-
-val prodCompare :
-    ('a * 'a -> order) -> ('b * 'b -> order) -> ('a * 'b) * ('a * 'b) -> order
-
-val lexCompare : ('a * 'a -> order) -> 'a list * 'a list -> order
-
-val optionCompare : ('a * 'a -> order) -> 'a option * 'a option -> order
-
-val boolCompare : bool * bool -> order  (* true < false *)
 
 (* ------------------------------------------------------------------------- *)
 (* Sorting and searching.                                                    *)
@@ -209,11 +227,23 @@ val join : string -> string list -> string
 
 val split : string -> string -> string list
 
+val capitalize : string -> string
+
 val mkPrefix : string -> string -> string
 
 val destPrefix : string -> string -> string
 
 val isPrefix : string -> string -> bool
+
+val stripPrefix : (char -> bool) -> string -> string
+
+val mkSuffix : string -> string -> string
+
+val destSuffix : string -> string -> string
+
+val isSuffix : string -> string -> bool
+
+val stripSuffix : (char -> bool) -> string -> string
 
 (* ------------------------------------------------------------------------- *)
 (* Tables.                                                                   *)
@@ -271,15 +301,19 @@ val time : unit -> string
 
 val date : unit -> string
 
+val readDirectory : {directory : string} -> {filename : string} list
+
 val readTextFile : {filename : string} -> string
 
-val writeTextFile : {filename : string, contents : string} -> unit
+val writeTextFile : {contents : string, filename : string} -> unit
 
 (* ------------------------------------------------------------------------- *)
 (* Profiling and error reporting.                                            *)
 (* ------------------------------------------------------------------------- *)
 
 val try : ('a -> 'b) -> 'a -> 'b
+
+val chat : string -> unit
 
 val warn : string -> unit
 

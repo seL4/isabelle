@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PROOFS IN FIRST ORDER LOGIC                                               *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Proof =
@@ -39,14 +39,22 @@ val thmToInference : Thm.thm -> inference
 val proof : Thm.thm -> proof
 
 (* ------------------------------------------------------------------------- *)
+(* Free variables.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val freeIn : Term.var -> proof -> bool
+
+val freeVars : proof -> NameSet.set
+
+(* ------------------------------------------------------------------------- *)
 (* Printing.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-val ppInference : inference Parser.pp
+val ppInference : inference Print.pp
 
 val inferenceToString : inference -> string
 
-val pp : proof Parser.pp
+val pp : proof Print.pp
 
 val toString : proof -> string
 

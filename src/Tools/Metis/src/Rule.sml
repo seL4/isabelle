@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Rule :> Rule =
@@ -9,12 +9,33 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
+(* Variable names.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val xVarName = Name.fromString "x";
+val xVar = Term.Var xVarName;
+
+val yVarName = Name.fromString "y";
+val yVar = Term.Var yVarName;
+
+val zVarName = Name.fromString "z";
+val zVar = Term.Var zVarName;
+
+fun xIVarName i = Name.fromString ("x" ^ Int.toString i);
+fun xIVar i = Term.Var (xIVarName i);
+
+fun yIVarName i = Name.fromString ("y" ^ Int.toString i);
+fun yIVar i = Term.Var (yIVarName i);
+
+(* ------------------------------------------------------------------------- *)
 (*                                                                           *)
 (* --------- reflexivity                                                     *)
 (*   x = x                                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-val reflexivity = Thm.refl (Term.Var "x");
+fun reflexivityRule x = Thm.refl x;
+
+val reflexivity = reflexivityRule xVar;
 
 (* ------------------------------------------------------------------------- *)
 (*                                                                           *)
@@ -22,16 +43,16 @@ val reflexivity = Thm.refl (Term.Var "x");
 (*   ~(x = y) \/ y = x                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-val symmetry =
+fun symmetryRule x y =
     let
-      val x = Term.Var "x"
-      and y = Term.Var "y"
-      val reflTh = reflexivity
+      val reflTh = reflexivityRule x
       val reflLit = Thm.destUnit reflTh
       val eqTh = Thm.equality reflLit [0] y
     in
       Thm.resolve reflLit reflTh eqTh
     end;
+
+val symmetry = symmetryRule xVar yVar;
 
 (* ------------------------------------------------------------------------- *)
 (*                                                                           *)
@@ -41,12 +62,9 @@ val symmetry =
 
 val transitivity =
     let
-      val x = Term.Var "x"
-      and y = Term.Var "y"
-      and z = Term.Var "z"
-      val eqTh = Thm.equality (Literal.mkEq (y,z)) [0] x
+      val eqTh = Thm.equality (Literal.mkEq (yVar,zVar)) [0] xVar
     in
-      Thm.resolve (Literal.mkEq (y,x)) symmetry eqTh
+      Thm.resolve (Literal.mkEq (yVar,xVar)) symmetry eqTh
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -59,10 +77,10 @@ fun symEq lit th =
     let
       val (x,y) = Literal.destEq lit
     in
-      if x = y then th
+      if Term.equal x y then th
       else
         let
-          val sub = Subst.fromList [("x",x),("y",y)]
+          val sub = Subst.fromList [(xVarName,x),(yVarName,y)]
           val symTh = Thm.subst sub symmetry
         in
           Thm.resolve lit th symTh
@@ -76,9 +94,9 @@ fun symEq lit th =
 
 type equation = (Term.term * Term.term) * Thm.thm;
 
-fun ppEquation pp (eqn as (_,th)) = Thm.pp pp th;
+fun ppEquation (_,th) = Thm.pp th;
 
-fun equationToString x = Parser.toString ppEquation x;
+val equationToString = Print.toString ppEquation;
 
 fun equationLiteral (t_u,th) =
     let
@@ -90,7 +108,7 @@ fun equationLiteral (t_u,th) =
 fun reflEqn t = ((t,t), Thm.refl t);
 
 fun symEqn (eqn as ((t,u), th)) =
-    if t = u then eqn
+    if Term.equal t u then eqn
     else
       ((u,t),
        case equationLiteral eqn of
@@ -98,9 +116,9 @@ fun symEqn (eqn as ((t,u), th)) =
        | NONE => th);
 
 fun transEqn (eqn1 as ((x,y), th1)) (eqn2 as ((_,z), th2)) =
-    if x = y then eqn2
-    else if y = z then eqn1
-    else if x = z then reflEqn x
+    if Term.equal x y then eqn2
+    else if Term.equal y z then eqn1
+    else if Term.equal x z then reflEqn x
     else
       ((x,z),
        case equationLiteral eqn1 of
@@ -110,7 +128,7 @@ fun transEqn (eqn1 as ((x,y), th1)) (eqn2 as ((_,z), th2)) =
            NONE => th2
          | SOME y_z =>
            let
-             val sub = Subst.fromList [("x",x),("y",y),("z",z)]
+             val sub = Subst.fromList [(xVarName,x),(yVarName,y),(zVarName,z)]
              val th = Thm.subst sub transitivity
              val th = Thm.resolve x_y th1 th
              val th = Thm.resolve y_z th2 th
@@ -118,7 +136,7 @@ fun transEqn (eqn1 as ((x,y), th1)) (eqn2 as ((_,z), th2)) =
              th
            end);
 
-(*DEBUG
+(*MetisDebug
 val transEqn = fn eqn1 => fn eqn2 =>
     transEqn eqn1 eqn2
     handle Error err =>
@@ -149,7 +167,7 @@ fun traceConv s conv tm =
     handle Error err =>
       (print (s ^ ": " ^ Term.toString tm ^ " --> Error: " ^ err ^ "\n");
        raise Error (s ^ ": " ^ err));
-    
+
 fun thenConvTrans tm (tm',th1) (tm'',th2) =
     let
       val eqn1 = ((tm,tm'),th1)
@@ -189,7 +207,7 @@ fun everyConv [] tm = allConv tm
   | everyConv (conv :: convs) tm = thenConv conv (everyConv convs) tm;
 
 fun rewrConv (eqn as ((x,y), eqTh)) path tm =
-    if x = y then allConv tm
+    if Term.equal x y then allConv tm
     else if null path then (y,eqTh)
     else
       let
@@ -206,7 +224,7 @@ fun rewrConv (eqn as ((x,y), eqTh)) path tm =
         (tm',th)
       end;
 
-(*DEBUG
+(*MetisDebug
 val rewrConv = fn eqn as ((x,y),eqTh) => fn path => fn tm =>
     rewrConv eqn path tm
     handle Error err =>
@@ -250,7 +268,7 @@ fun repeatTopDownConv conv =
       f
     end;
 
-(*DEBUG
+(*MetisDebug
 val repeatTopDownConv = fn conv => fn tm =>
     repeatTopDownConv conv tm
     handle Error err => raise Error ("repeatTopDownConv: " ^ err);
@@ -273,9 +291,9 @@ fun thenLiterule literule1 literule2 lit =
       val res1 as (lit',th1) = literule1 lit
       val res2 as (lit'',th2) = literule2 lit'
     in
-      if lit = lit' then res2
-      else if lit' = lit'' then res1
-      else if lit = lit'' then allLiterule lit
+      if Literal.equal lit lit' then res2
+      else if Literal.equal lit' lit'' then res1
+      else if Literal.equal lit lit'' then allLiterule lit
       else
         (lit'',
          if not (Thm.member lit' th1) then th1
@@ -309,7 +327,7 @@ fun everyLiterule [] lit = allLiterule lit
     thenLiterule literule (everyLiterule literules) lit;
 
 fun rewrLiterule (eqn as ((x,y),eqTh)) path lit =
-    if x = y then allLiterule lit
+    if Term.equal x y then allLiterule lit
     else
       let
         val th = Thm.equality lit path y
@@ -322,7 +340,7 @@ fun rewrLiterule (eqn as ((x,y),eqTh)) path lit =
         (lit',th)
       end;
 
-(*DEBUG
+(*MetisDebug
 val rewrLiterule = fn eqn => fn path => fn lit =>
     rewrLiterule eqn path lit
     handle Error err =>
@@ -384,12 +402,12 @@ fun literalRule literule lit th =
     let
       val (lit',litTh) = literule lit
     in
-      if lit = lit' then th
+      if Literal.equal lit lit' then th
       else if not (Thm.negateMember lit litTh) then litTh
       else Thm.resolve lit th litTh
     end;
 
-(*DEBUG
+(*MetisDebug
 val literalRule = fn literule => fn lit => fn th =>
     literalRule literule lit th
     handle Error err =>
@@ -412,7 +430,7 @@ fun literalsRule literule =
 fun allLiteralsRule literule th = literalsRule literule (Thm.clause th) th;
 
 fun convRule conv = allLiteralsRule (allArgumentsLiterule conv);
-  
+
 (* ------------------------------------------------------------------------- *)
 (*                                                                           *)
 (* ---------------------------------------------- functionCongruence (f,n)   *)
@@ -422,8 +440,8 @@ fun convRule conv = allLiteralsRule (allArgumentsLiterule conv);
 
 fun functionCongruence (f,n) =
     let
-      val xs = List.tabulate (n, fn i => Term.Var ("x" ^ Int.toString i))
-      and ys = List.tabulate (n, fn i => Term.Var ("y" ^ Int.toString i))
+      val xs = List.tabulate (n,xIVar)
+      and ys = List.tabulate (n,yIVar)
 
       fun cong ((i,yi),(th,lit)) =
           let
@@ -449,8 +467,8 @@ fun functionCongruence (f,n) =
 
 fun relationCongruence (R,n) =
     let
-      val xs = List.tabulate (n, fn i => Term.Var ("x" ^ Int.toString i))
-      and ys = List.tabulate (n, fn i => Term.Var ("y" ^ Int.toString i))
+      val xs = List.tabulate (n,xIVar)
+      and ys = List.tabulate (n,yIVar)
 
       fun cong ((i,yi),(th,lit)) =
           let
@@ -477,10 +495,10 @@ fun symNeq lit th =
     let
       val (x,y) = Literal.destNeq lit
     in
-      if x = y then th
+      if Term.equal x y then th
       else
         let
-          val sub = Subst.fromList [("x",y),("y",x)]
+          val sub = Subst.fromList [(xVarName,y),(yVarName,x)]
           val symTh = Thm.subst sub symmetry
         in
           Thm.resolve lit th symTh
@@ -545,10 +563,12 @@ local
   fun expand lit =
       let
         val (x,y) = Literal.destNeq lit
+        val _ = Term.isTypedVar x orelse Term.isTypedVar y orelse
+                raise Error "Rule.expandAbbrevs: no vars"
+        val _ = not (Term.equal x y) orelse
+                raise Error "Rule.expandAbbrevs: equal vars"
       in
-        if (Term.isTypedVar x orelse Term.isTypedVar y) andalso x <> y then
-          Subst.unify Subst.empty x y
-        else raise Error "expand"
+        Subst.unify Subst.empty x y
       end;
 in
   fun expandAbbrevs th =
@@ -603,8 +623,8 @@ local
       FactorEdge of Atom.atom * Atom.atom
     | ReflEdge of Term.term * Term.term;
 
-  fun ppEdge p (FactorEdge atm_atm') = Parser.ppPair Atom.pp Atom.pp p atm_atm'
-    | ppEdge p (ReflEdge tm_tm') = Parser.ppPair Term.pp Term.pp p tm_tm';
+  fun ppEdge (FactorEdge atm_atm') = Print.ppPair Atom.pp Atom.pp atm_atm'
+    | ppEdge (ReflEdge tm_tm') = Print.ppPair Term.pp Term.pp tm_tm';
 
   datatype joinStatus =
       Joined
@@ -679,7 +699,7 @@ local
       end
     | init_edges acc apart ((sub,edge) :: sub_edges) =
       let
-(*DEBUG
+(*MetisDebug
         val () = if not (Subst.null sub) then ()
                  else raise Bug "Rule.factor.init_edges: empty subst"
 *)
@@ -732,21 +752,21 @@ local
 in
   fun factor' cl =
       let
-(*TRACE6
-        val () = Parser.ppTrace LiteralSet.pp "Rule.factor': cl" cl
+(*MetisTrace6
+        val () = Print.trace LiteralSet.pp "Rule.factor': cl" cl
 *)
         val edges = mk_edges [] [] (LiteralSet.toList cl)
-(*TRACE6
-        val ppEdgesSize = Parser.ppMap length Parser.ppInt
-        val ppEdgel = Parser.ppList ppEdge
-        val ppEdges = Parser.ppList (Parser.ppTriple ppEdgel Subst.pp ppEdgel)
-        val () = Parser.ppTrace ppEdgesSize "Rule.factor': |edges|" edges
-        val () = Parser.ppTrace ppEdges "Rule.factor': edges" edges
+(*MetisTrace6
+        val ppEdgesSize = Print.ppMap length Print.ppInt
+        val ppEdgel = Print.ppList ppEdge
+        val ppEdges = Print.ppList (Print.ppTriple ppEdgel Subst.pp ppEdgel)
+        val () = Print.trace ppEdgesSize "Rule.factor': |edges|" edges
+        val () = Print.trace ppEdges "Rule.factor': edges" edges
 *)
         val result = fact [] edges
-(*TRACE6
-        val ppResult = Parser.ppList Subst.pp
-        val () = Parser.ppTrace ppResult "Rule.factor': result" result
+(*MetisTrace6
+        val ppResult = Print.ppList Subst.pp
+        val () = Print.trace ppResult "Rule.factor': result" result
 *)
       in
         result

@@ -60,7 +60,7 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types, isar_proof,
     val axioms = maps (fn (n, ths) => map (pair n) ths) axioms
     val {context = ctxt, goal, ...} = Proof.goal state
     val problem =
-      {ctxt = ctxt, goal = goal, subgoal = subgoal,
+      {state = state, goal = goal, subgoal = subgoal,
        axioms = map (prepare_axiom ctxt) axioms}
     val result as {outcome, used_thm_names, ...} = prover params (K "") problem
   in
@@ -81,7 +81,7 @@ fun filter_used_facts used = filter (member (op =) used o fst)
 fun sublinear_minimize _ [] p = p
   | sublinear_minimize test (x :: xs) (seen, result) =
     case test (xs @ seen) of
-      result as {outcome = NONE, proof, used_thm_names, ...} : prover_result =>
+      result as {outcome = NONE, used_thm_names, ...} : prover_result =>
       sublinear_minimize test (filter_used_facts used_thm_names xs)
                          (filter_used_facts used_thm_names seen, result)
     | _ => sublinear_minimize test xs (x :: seen, result)
@@ -94,7 +94,7 @@ val fudge_msecs = 1000
 fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
   | minimize_theorems (params as {debug, atps = atp :: _, full_types,
                                   isar_proof, isar_shrink_factor, timeout, ...})
-                      i n state axioms =
+                      i (_ : int) state axioms =
   let
     val thy = Proof.theory_of state
     val prover = get_prover_fun thy atp
@@ -130,7 +130,8 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
          (SOME min_thms,
           proof_text isar_proof
               (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-              (full_types, K "", proof, axiom_names, goal, i) |> fst)
+              ("Minimized command", full_types, K "", proof, axiom_names, goal,
+               i) |> fst)
        end
      | {outcome = SOME TimedOut, ...} =>
        (NONE, "Timeout: You can increase the time limit using the \"timeout\" \
