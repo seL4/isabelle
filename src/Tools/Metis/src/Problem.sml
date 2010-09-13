@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* CNF PROBLEMS                                                              *)
-(* Copyright (c) 2001-2008 Joe Hurd, distributed under the GNU GPL version 2 *)
+(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Problem :> Problem =
