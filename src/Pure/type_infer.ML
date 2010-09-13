@@ -12,7 +12,7 @@ sig
   val param: int -> string * sort -> typ
   val paramify_vars: typ -> typ
   val paramify_dummies: typ -> int -> typ * int
-  val fixate_params: Name.context -> term list -> term list
+  val fixate_params: Proof.context -> term list -> term list
   val infer_types: Proof.context -> (string -> typ option) -> (indexname -> typ option) ->
     term list -> term list
 end;
@@ -54,7 +54,7 @@ val paramify_dummies =
       | paramify T maxidx = (T, maxidx);
   in paramify end;
 
-fun fixate_params name_context ts =
+fun fixate_params ctxt ts =
   let
     fun subst_param (xi, S) (inst, used) =
       if is_param xi then
@@ -63,8 +63,8 @@ fun fixate_params name_context ts =
           val used' = Name.declare a used;
         in (((xi, S), TFree (a, S)) :: inst, used') end
       else (inst, used);
-    val name_context' = (fold o fold_types) Term.declare_typ_names ts name_context;
-    val (inst, _) = fold_rev subst_param (fold Term.add_tvars ts []) ([], name_context');
+    val used = (fold o fold_types) Term.declare_typ_names ts (Variable.names_of ctxt);
+    val (inst, _) = fold_rev subst_param (fold Term.add_tvars ts []) ([], used);
   in (map o map_types) (Term_Subst.instantiateT inst) ts end;
 
 
@@ -188,7 +188,6 @@ fun finish ctxt tye (Ts, ts) =
     val parms = rev ((fold o fold_types) (add_parms tye) ts (fold (add_parms tye) Ts []));
     val names = Name.invents used ("?" ^ Name.aT) (length parms);
     val tab = Vartab.make (parms ~~ names);
-    val idx = Variable.maxidx_of ctxt + 1;
 
     fun finish_typ T =
       (case deref tye T of
@@ -197,7 +196,7 @@ fun finish ctxt tye (Ts, ts) =
       | U as TVar (xi, S) =>
           (case Vartab.lookup tab xi of
             NONE => U
-          | SOME a => TVar ((a, idx), S)));
+          | SOME a => TVar ((a, 0), S)));
   in (map finish_typ Ts, map (Type.strip_constraints o Term.map_types finish_typ) ts) end;
 
 
