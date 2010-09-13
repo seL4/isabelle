@@ -374,8 +374,7 @@ fun get_prover_fun thy name = prover_fun false name (get_prover thy name)
 
 fun run_prover (params as {blocking, verbose, max_relevant, timeout, expect,
                            ...})
-               auto i n relevance_override minimize_command
-               (problem as {state, goal, axioms, ...})
+               auto i n minimize_command (problem as {state, goal, axioms, ...})
                (prover as {default_max_relevant, ...}, atp_name) =
   let
     val ctxt = Proof.context_of state
@@ -461,10 +460,7 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
           val problem =
             {state = state, goal = goal, subgoal = i,
              axioms = map (prepare_axiom ctxt) axioms}
-          val run_prover =
-            run_prover params auto i n relevance_override minimize_command
-                       problem
-          val num_axioms = length axioms
+          val run_prover = run_prover params auto i n minimize_command problem
         in
           if auto then
             fold (fn prover => fn (true, state) => (true, state)
