@@ -8,6 +8,7 @@ signature Z3_SOLVER =
 sig
   val proofs: bool Config.T
   val options: string Config.T
+  val datatypes: bool Config.T
   val setup: theory -> theory
 end
 
@@ -19,6 +20,7 @@ val env_var = "Z3_SOLVER"
 
 val (proofs, proofs_setup) = Attrib.config_bool "z3_proofs" (K false)
 val (options, options_setup) = Attrib.config_string "z3_options" (K "")
+val (datatypes, datatypes_setup) = Attrib.config_bool "z3_datatypes" (K false)
 
 fun add xs ys = ys @ xs
 
@@ -62,17 +64,21 @@ val core_oracle = if_unsat (K @{cprop False})
 val prover = if_unsat Z3_Proof_Reconstruction.reconstruct
 
 fun solver oracle ctxt =
-  let val with_proof = Config.get ctxt proofs
+  let
+    val with_datatypes = Config.get ctxt datatypes
+    val with_proof = not with_datatypes andalso Config.get ctxt proofs
+                     (* FIXME: implement proof reconstruction for datatypes *)
   in
    {command = {env_var=env_var, remote_name=SOME solver_name},
     arguments = cmdline_options ctxt,
-    interface = Z3_Interface.interface,
+    interface = Z3_Interface.interface with_datatypes,
     reconstruct = if with_proof then prover else pair o oracle}
   end
 
 val setup =
   proofs_setup #>
   options_setup #>
+  datatypes_setup #>
   Thm.add_oracle (Binding.name solver_name, core_oracle) #-> (fn (_, oracle) =>
   Context.theory_map (SMT_Solver.add_solver (solver_name, solver oracle))) #>
   Context.theory_map (SMT_Solver.add_solver_info (solver_name, pretty_config))

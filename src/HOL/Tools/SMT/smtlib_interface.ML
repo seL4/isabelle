@@ -15,6 +15,7 @@ sig
   val add_builtins: builtins -> Context.generic -> Context.generic
   val add_logic: (term list -> string option) -> Context.generic ->
     Context.generic
+  val extra_norm: bool -> SMT_Normalize.extra_norm
   val interface: SMT_Solver.interface
 end
 
@@ -87,9 +88,9 @@ fun unfold_abs_min_max_defs ctxt thm =
 
 (* include additional facts *)
 
-fun extra_norm thms ctxt =
+fun extra_norm has_datatypes thms ctxt =
   thms
-  |> add_pair_rules
+  |> not has_datatypes ? add_pair_rules
   |> add_fun_upd_rules
   |> map (unfold_abs_min_max_defs ctxt)
   |> rpair ctxt
@@ -251,13 +252,22 @@ fun sterm l (T.SVar i) = sep (var (l - i - 1))
 fun ssort sorts = sort fast_string_ord sorts
 fun fsort funcs = sort (prod_ord fast_string_ord (K EQUAL)) funcs
 
-fun serialize comments {header, sorts, funcs} ts =
+fun sdatatypes decls =
+  let
+    fun con (n, []) = add n
+      | con (n, sels) = par (add n #>
+          fold (fn (n, s) => sep (par (add n #> sep (add s)))) sels)
+    fun dtyp (n, decl) = add n #> fold (sep o con) decl
+  in line (add ":datatypes " #> par (fold (par o dtyp) decls)) end
+
+fun serialize comments {header, sorts, dtyps, funcs} ts =
   Buffer.empty
   |> line (add "(benchmark Isabelle")
   |> line (add ":status unknown")
   |> fold (line o add) header
   |> length sorts > 0 ?
        line (add ":extrasorts" #> par (fold (sep o add) (ssort sorts)))
+  |> fold sdatatypes dtyps
   |> length funcs > 0 ? (
        line (add ":extrafuns" #> add " (") #>
        fold (fn (f, (ss, s)) =>
@@ -273,7 +283,7 @@ fun serialize comments {header, sorts, funcs} ts =
 (** interfaces **)
 
 val interface = {
-  extra_norm = extra_norm,
+  extra_norm = extra_norm false,
   translate = {
     prefixes = {
       sort_prefix = "S",
@@ -286,7 +296,8 @@ val interface = {
     builtins = {
       builtin_typ = builtin_typ,
       builtin_num = builtin_num,
-      builtin_fun = builtin_fun},
+      builtin_fun = builtin_fun,
+      has_datatypes = false},
     serialize = serialize}}
 
 end
