@@ -71,7 +71,6 @@ val default_default_params =
    ("show_datatypes", "false"),
    ("show_consts", "false"),
    ("format", "1"),
-   ("atoms", ""),
    ("max_potential", "1"),
    ("max_genuine", "1"),
    ("check_potential", "false"),
@@ -105,7 +104,7 @@ val negated_params =
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) negated_params s orelse
-  member (op =) ["max", "show_all", "whack", "eval", "expect"] s orelse
+  member (op =) ["max", "show_all", "whack", "atoms", "eval", "expect"] s orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
          ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",
           "mono", "non_mono", "std", "non_std", "wf", "non_wf", "format",
