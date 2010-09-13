@@ -241,6 +241,13 @@ can be configured by writing them literally as value for the option
 
 declare [[ z3_options = "" ]]
 
+text {*
+The following configuration option may be used to enable mapping of
+HOL datatypes and records to native datatypes provided by Z3.
+*}
+
+declare [[ z3_datatypes = false ]]
+
 
 
 subsection {* Schematic rules for Z3 proof reconstruction *}

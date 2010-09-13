@@ -8,7 +8,7 @@ signature Z3_INTERFACE =
 sig
   type builtin_fun = string * typ -> term list -> (string * term list) option
   val add_builtin_funs: builtin_fun -> Context.generic -> Context.generic
-  val interface: SMT_Solver.interface
+  val interface: bool -> SMT_Solver.interface
 
   datatype sym = Sym of string * sym list
   type mk_builtins = {
@@ -68,7 +68,7 @@ local
   val {extra_norm, translate} = SMTLIB_Interface.interface
   val {prefixes, strict, header, builtins, serialize} = translate
   val {is_builtin_pred, ...}= the strict
-  val {builtin_typ, builtin_num, builtin_fun} = builtins
+  val {builtin_typ, builtin_num, builtin_fun, ...} = builtins
 
   fun is_int_div_mod @{term "op div :: int => _"} = true
     | is_int_div_mod @{term "op mod :: int => _"} = true
@@ -79,7 +79,8 @@ local
     then [@{thm div_by_z3div}, @{thm mod_by_z3mod}] @ thms
     else thms
 
-  fun extra_norm' thms = extra_norm (add_div_mod thms)
+  fun extra_norm' has_datatypes thms =
+    SMTLIB_Interface.extra_norm has_datatypes (add_div_mod thms)
 
   fun z3_builtin_fun' _ (@{const_name z3div}, _) ts = SOME ("div", ts)
     | z3_builtin_fun' _ (@{const_name z3mod}, _) ts = SOME ("mod", ts)
@@ -94,8 +95,8 @@ fun is_builtin_fun ctxt (c as (n, T)) ts =
   is_some (z3_builtin_fun' ctxt c ts) orelse 
   is_builtin_pred ctxt (n, Term.strip_type T ||> as_propT |> (op --->))
 
-val interface = {
-  extra_norm = extra_norm',
+fun interface has_datatypes = {
+  extra_norm = extra_norm' has_datatypes,
   translate = {
     prefixes = prefixes,
     strict = strict,
@@ -103,7 +104,8 @@ val interface = {
     builtins = {
       builtin_typ = builtin_typ,
       builtin_num = builtin_num,
-      builtin_fun = z3_builtin_fun'},
+      builtin_fun = z3_builtin_fun',
+      has_datatypes = has_datatypes},
     serialize = serialize}}
 
 end
