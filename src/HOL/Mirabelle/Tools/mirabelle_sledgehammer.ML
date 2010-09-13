@@ -41,7 +41,7 @@ datatype me_data = MeData of {
   time: int,
   timeout: int,
   lemmas: int * int * int,
-  posns: Position.T list
+  posns: (Position.T * bool) list
   }
 
 datatype min_data = MinData of {
@@ -234,9 +234,12 @@ fun log_sh_data log
   )
 
 
-fun str_of_pos pos =
+fun str_of_pos (pos, triv) =
   let val str0 = string_of_int o the_default 0
-  in str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos) end
+  in
+    str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos) ^
+    (if triv then "[T]" else "")
+  end
 
 fun log_me_data log tag sh_calls (metis_calls, metis_success,
      metis_nontriv_calls, metis_nontriv_success,
@@ -470,7 +473,7 @@ fun run_metis trivial full m name named_thms id
           if trivial then () else change_data id (inc_metis_nontriv_success m);
           change_data id (inc_metis_lemmas m (length named_thms));
           change_data id (inc_metis_time m t);
-          change_data id (inc_metis_posns m pos);
+          change_data id (inc_metis_posns m (pos, trivial));
           if name = "proof" then change_data id (inc_metis_proofs m) else ();
           "succeeded (" ^ string_of_int t ^ ")")
     fun timed_metis thms =
