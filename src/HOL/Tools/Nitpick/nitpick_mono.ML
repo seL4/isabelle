@@ -253,7 +253,7 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
         MAlpha
       else case T of
         Type (@{type_name fun}, [T1, T2]) =>
-        MFun (fresh_mfun_for_fun_type mdata false T1 T2)
+        MFun (fresh_mfun_for_fun_type mdata all_minus T1 T2)
       | Type (@{type_name prod}, [T1, T2]) => MPair (pairself do_type (T1, T2))
       | Type (z as (s, _)) =>
         if could_exist_alpha_sub_mtype ctxt alpha_T T then
