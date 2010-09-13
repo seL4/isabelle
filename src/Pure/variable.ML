@@ -168,7 +168,7 @@ fun def_type ctxt pattern xi =
     (case Vartab.lookup types xi of
       NONE =>
         if pattern then NONE
-        else Vartab.lookup binds xi |> Option.map (Type_Infer.polymorphicT o #1)
+        else Vartab.lookup binds xi |> Option.map (Type.mark_polymorphic o #1)
     | some => some)
   end;
 

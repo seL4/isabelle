@@ -9,7 +9,6 @@ sig
   val sort_of_term: term -> sort
   val term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
-  val type_constraint: typ -> term -> term
   val decode_term: (((string * int) * sort) list -> string * int -> sort) ->
     (string -> bool * string) -> (string -> string option) -> term -> term
   val term_of_typ: bool -> typ -> term
@@ -104,19 +103,15 @@ fun typ_of_term get_sort tm =
 
 (* decode_term -- transform parse tree into raw term *)
 
-fun type_constraint T t =
-  if T = dummyT then t
-  else Const ("_type_constraint_", T --> T) $ t;
-
 fun decode_term get_sort map_const map_free tm =
   let
     val decodeT = typ_of_term (get_sort (term_sorts tm));
 
     fun decode (Const ("_constrain", _) $ t $ typ) =
-          type_constraint (decodeT typ) (decode t)
+          Type.constraint (decodeT typ) (decode t)
       | decode (Const ("_constrainAbs", _) $ (Abs (x, T, t)) $ typ) =
           if T = dummyT then Abs (x, decodeT typ, decode t)
-          else type_constraint (decodeT typ --> dummyT) (Abs (x, T, decode t))
+          else Type.constraint (decodeT typ --> dummyT) (Abs (x, T, decode t))
       | decode (Abs (x, T, t)) = Abs (x, T, decode t)
       | decode (t $ u) = decode t $ decode u
       | decode (Const (a, T)) =

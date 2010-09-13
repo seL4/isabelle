@@ -34,7 +34,7 @@ exception TOPLEVEL_ERROR;
 exception CONTEXT of Proof.context * exn;
 
 fun exn_context NONE exn = exn
-  | exn_context (SOME ctxt) exn = CONTEXT (ctxt, exn);
+  | exn_context (SOME ctxt) exn = if Exn.is_interrupt exn then exn else CONTEXT (ctxt, exn);
 
 
 (* exn_message *)

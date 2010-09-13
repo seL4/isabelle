@@ -599,7 +599,7 @@ val allow_dummies = Allow_Dummies.put true;
 
 fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
-    Type_Infer.fixate_params (Variable.names_of ctxt) #>
+    Type_Infer.fixate ctxt #>
     pattern ? Variable.polymorphic ctxt #>
     (map o Term.map_types) (prepare_patternT ctxt) #>
     (if pattern then prepare_dummies else map (check_dummies ctxt))
@@ -698,11 +698,8 @@ fun def_type ctxt =
   let val Mode {pattern, ...} = get_mode ctxt
   in Variable.def_type ctxt pattern end;
 
-fun standard_infer_types ctxt ts =
-  Type_Infer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
-    (try (Consts.the_constraint (consts_of ctxt))) (def_type ctxt)
-    (Variable.names_of ctxt) (Variable.maxidx_of ctxt) ts
-  handle TYPE (msg, _, _) => error msg;
+fun standard_infer_types ctxt =
+  Type_Infer.infer_types ctxt (try (Consts.the_constraint (consts_of ctxt))) (def_type ctxt);
 
 local
 
@@ -763,7 +760,7 @@ fun parse_term T ctxt text =
       if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
     val (syms, pos) = Syntax.parse_token ctxt markup text;
 
-    fun check t = (Syntax.check_term ctxt (Type_Infer.constrain T' t); NONE)
+    fun check t = (Syntax.check_term ctxt (Type.constraint T' t); NONE)
       handle ERROR msg => SOME msg;
     val t =
       Syntax.standard_parse_term check get_sort map_const map_free
@@ -888,7 +885,7 @@ fun gen_bind prep_terms gen raw_binds ctxt =
 in
 
 fun read_terms ctxt T =
-  map (Syntax.parse_term ctxt #> Type_Infer.constrain T) #> Syntax.check_terms ctxt;
+  map (Syntax.parse_term ctxt #> Type.constraint T) #> Syntax.check_terms ctxt;
 
 val match_bind = gen_bind read_terms;
 val match_bind_i = gen_bind (fn ctxt => fn _ => map (cert_term ctxt));

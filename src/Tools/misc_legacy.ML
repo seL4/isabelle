@@ -30,7 +30,7 @@ fun simple_read_term thy T s =
       |> ProofContext.allow_dummies
       |> ProofContext.set_mode ProofContext.mode_schematic;
     val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
-  in parse ctxt s |> Type_Infer.constrain T |> Syntax.check_term ctxt end;
+  in parse ctxt s |> Type.constraint T |> Syntax.check_term ctxt end;
 
 
 (**** METAHYPS -- tactical for using hypotheses as meta-level assumptions

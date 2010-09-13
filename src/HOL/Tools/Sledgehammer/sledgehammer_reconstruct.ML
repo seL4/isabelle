@@ -437,7 +437,7 @@ fun prop_from_formula thy full_types tfrees phi =
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
 fun check_formula ctxt =
-  Type_Infer.constrain HOLogic.boolT
+  Type.constraint HOLogic.boolT
   #> Syntax.check_term (ProofContext.set_mode ProofContext.mode_schematic ctxt)
 
 

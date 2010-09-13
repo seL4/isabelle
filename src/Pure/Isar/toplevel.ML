@@ -619,7 +619,8 @@ end;
 fun command tr st =
   (case transition (! interact) tr st of
     SOME (st', NONE) => st'
-  | SOME (_, SOME exn_info) => raise Runtime.EXCURSION_FAIL exn_info
+  | SOME (_, SOME (exn, info)) =>
+      if Exn.is_interrupt exn then reraise exn else raise Runtime.EXCURSION_FAIL (exn, info)
   | NONE => raise Runtime.EXCURSION_FAIL (Runtime.TERMINATE, at_command tr));
 
 fun command_result tr st =

@@ -420,7 +420,7 @@ fun map_types f =
     fun map_aux (Const (a, T)) = Const (a, f T)
       | map_aux (Free (a, T)) = Free (a, f T)
       | map_aux (Var (v, T)) = Var (v, f T)
-      | map_aux (t as Bound _)  = t
+      | map_aux (Bound i) = Bound i
       | map_aux (Abs (a, T, t)) = Abs (a, f T, map_aux t)
       | map_aux (t $ u) = map_aux t $ map_aux u;
   in map_aux end;

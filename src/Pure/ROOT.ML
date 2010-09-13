@@ -116,8 +116,6 @@ use "Syntax/mixfix.ML";
 use "Syntax/printer.ML";
 use "Syntax/syntax.ML";
 
-use "type_infer.ML";
-
 
 (* core of tactical proof system *)
 
@@ -159,6 +157,7 @@ use "Isar/object_logic.ML";
 use "Isar/rule_cases.ML";
 use "Isar/auto_bind.ML";
 use "Isar/local_syntax.ML";
+use "type_infer.ML";
 use "Isar/proof_context.ML";
 use "Isar/local_defs.ML";
 

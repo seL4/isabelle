@@ -286,7 +286,7 @@ fun add_term_uncheck stage = gen_add apsnd (stage, true);
 
 val check_typs = gen_check fst false;
 val check_terms = gen_check snd false;
-fun check_props ctxt = map (Type_Ext.type_constraint propT) #> check_terms ctxt;
+fun check_props ctxt = map (Type.constraint propT) #> check_terms ctxt;
 
 val check_typ = singleton o check_typs;
 val check_term = singleton o check_terms;

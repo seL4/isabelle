@@ -66,7 +66,7 @@ fun dest_mem (Const (@{const_name mem}, _) $ x $ A) = (x, A)
 
 (*read a constructor specification*)
 fun read_construct ctxt (id: string, sprems, syn: mixfix) =
-    let val prems = map (Syntax.parse_term ctxt #> Type_Infer.constrain FOLogic.oT) sprems
+    let val prems = map (Syntax.parse_term ctxt #> Type.constraint FOLogic.oT) sprems
           |> Syntax.check_terms ctxt
         val args = map (#1 o dest_mem) prems
         val T = (map (#2 o dest_Free) args) ---> iT
