@@ -182,6 +182,8 @@ INCOMPATIBILITY.
 * List.thy: use various operations from the Haskell prelude when
 generating Haskell code.
 
+* Multiset.thy: renamed empty_idemp -> empty_neutral
+
 * code_simp.ML and method code_simp: simplification with rules determined
 by code generator.
 

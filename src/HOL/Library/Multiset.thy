@@ -324,6 +324,9 @@ lemma mset_le_multiset_union_diff_commute:
   "B \<le> A \<Longrightarrow> (A::'a multiset) - B + C = A + C - B"
 by (simp add: multiset_ext_iff mset_le_def)
 
+lemma diff_le_self[simp]: "(M::'a multiset) - N \<le> M"
+by(simp add: mset_le_def)
+
 lemma mset_lessD: "A < B \<Longrightarrow> x \<in># A \<Longrightarrow> x \<in># B"
 apply (clarsimp simp: mset_le_def mset_less_def)
 apply (erule_tac x=x in allE)
@@ -1597,7 +1600,7 @@ proof -
   thus "(Z + {#}, Z' + {#}) \<in> ms_weak" by (simp add:add_ac)
 qed
 
-lemma empty_idemp: "{#} + x = x" "x + {#} = x"
+lemma empty_neutral: "{#} + x = x" "x + {#} = x"
 and nonempty_plus: "{# x #} + rs \<noteq> {#}"
 and nonempty_single: "{# x #} \<noteq> {#}"
 by auto
@@ -1623,7 +1626,7 @@ let
 
   val regroup_munion_conv =
       Function_Lib.regroup_conv @{const_abbrev Mempty} @{const_name plus}
-        (map (fn t => t RS eq_reflection) (@{thms add_ac} @ @{thms empty_idemp}))
+        (map (fn t => t RS eq_reflection) (@{thms add_ac} @ @{thms empty_neutral}))
 
   fun unfold_pwleq_tac i =
     (rtac @{thm pw_leq_step} i THEN (fn st => unfold_pwleq_tac (i + 1) st))
