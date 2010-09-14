@@ -389,8 +389,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         print_m (K ("Warning: The problem involves directly or indirectly the \
                     \internal type " ^ quote @{type_name Datatype.node} ^
                     ". This type is very Nitpick-unfriendly, and its presence \
-                    \usually indicates either a failure in abstraction or a \
-                    \bug in Nitpick."))
+                    \usually indicates either a failure of abstraction or a \
+                    \quirk in Nitpick."))
       else
         ()
     val (mono_Ts, nonmono_Ts) = List.partition is_type_monotonic all_Ts
@@ -918,8 +918,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       in
         "Nitpick " ^ did_so_and_so ^
         (if is_some (!checked_problems) andalso total > 0 then
-           " " ^ string_of_int (Int.min (total - 1, unsat)) ^ " of " ^
-           string_of_int total ^ " scope" ^ plural_s total
+           " " ^ string_of_int unsat ^ " of " ^ string_of_int total ^ " scope"
+           ^ plural_s total
          else
            "") ^ "."
       end
