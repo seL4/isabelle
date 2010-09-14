@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE RESOLUTION PROOF PROCEDURE                                            *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Resolution :> Resolution =
@@ -9,7 +9,7 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Parameters.                                                               *)
+(* A type of resolution proof procedures.                                    *)
 (* ------------------------------------------------------------------------- *)
 
 type parameters =
@@ -44,11 +44,11 @@ fun active (Resolution {active = a, ...}) = a;
 fun waiting (Resolution {waiting = w, ...}) = w;
 
 val pp =
-    Parser.ppMap
+    Print.ppMap
       (fn Resolution {active,waiting,...} =>
           "Resolution(" ^ Int.toString (Active.size active) ^
           "<-" ^ Int.toString (Waiting.size waiting) ^ ")")
-      Parser.ppString;
+      Print.ppString;
 
 (* ------------------------------------------------------------------------- *)
 (* The main proof loop.                                                      *)
@@ -65,21 +65,21 @@ datatype state =
 fun iterate resolution =
     let
       val Resolution {parameters,active,waiting} = resolution
-(*TRACE2
-      val () = Parser.ppTrace Active.pp "Resolution.iterate: active" active
-      val () = Parser.ppTrace Waiting.pp "Resolution.iterate: waiting" waiting
+(*MetisTrace2
+      val () = Print.trace Active.pp "Resolution.iterate: active" active
+      val () = Print.trace Waiting.pp "Resolution.iterate: waiting" waiting
 *)
     in
       case Waiting.remove waiting of
         NONE =>
-        Decided (Satisfiable (map Clause.thm (Active.saturated active)))
+        Decided (Satisfiable (map Clause.thm (Active.saturation active)))
       | SOME ((d,cl),waiting) =>
         if Clause.isContradiction cl then
           Decided (Contradiction (Clause.thm cl))
         else
           let
-(*TRACE1
-            val () = Parser.ppTrace Clause.pp "Resolution.iterate: cl" cl
+(*MetisTrace1
+            val () = Print.trace Clause.pp "Resolution.iterate: cl" cl
 *)
             val (active,cls) = Active.add active cl
             val waiting = Waiting.add waiting (d,cls)

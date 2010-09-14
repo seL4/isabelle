@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE WAITING SET OF CLAUSES                                                *)
-(* Copyright (c) 2002-2007 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002-2007 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Waiting :> Waiting =
@@ -12,34 +12,22 @@ open Useful;
 (* A type of waiting sets of clauses.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-(* The parameter type controls the heuristics for clause selection.          *)
-(* Increasing any of the *Weight parameters will favour clauses with low     *)
-(* values of that field.                                                     *)
+type weight = real;
 
-(* Note that there is an extra parameter of inference distance from the      *)
-(* starting axioms (a.k.a. time) which has a fixed weight of 1, so all       *)
-(* the other parameters should be set relative to this baseline.             *)
-
-(* The first two parameters, symbolsWeight and literalsWeight, control the   *)
-(* time:weight ratio, i.e., whether to favour clauses derived in a few       *)
-(* steps from the axioms (time) or whether to favour small clauses (weight). *)
-(* Small can be a combination of low number of symbols (the symbolWeight     *)
-(* parameter) or literals (the literalsWeight parameter).                    *)
-
-(* modelsWeight controls the semantic guidance. Increasing this parameter    *)
-(* favours clauses that return false more often when interpreted             *)
-(* modelChecks times over the given list of models.                          *)
+type modelParameters =
+     {model : Model.parameters,
+      initialPerturbations : int,
+      maxChecks : int option,
+      perturbations : int,
+      weight : weight}
 
 type parameters =
-     {symbolsWeight : real,
-      literalsWeight : real,
-      modelsWeight : real,
-      modelChecks : int,
-      models : Model.parameters list};
+     {symbolsWeight : weight,
+      variablesWeight : weight,
+      literalsWeight : weight,
+      models : modelParameters list};
 
 type distance = real;
-
-type weight = real;
 
 datatype waiting =
     Waiting of
@@ -51,27 +39,104 @@ datatype waiting =
 (* Basic operations.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
+val defaultModels : modelParameters list =
+    [{model = Model.default,
+      initialPerturbations = 100,
+      maxChecks = SOME 20,
+      perturbations = 0,
+      weight = 1.0}];
+
 val default : parameters =
      {symbolsWeight = 1.0,
-      literalsWeight = 0.0,
-      modelsWeight = 0.0,
-      modelChecks = 20,
-      models = []};
+      literalsWeight = 1.0,
+      variablesWeight = 1.0,
+      models = defaultModels};
 
 fun size (Waiting {clauses,...}) = Heap.size clauses;
 
 val pp =
-    Parser.ppMap
+    Print.ppMap
       (fn w => "Waiting{" ^ Int.toString (size w) ^ "}")
-      Parser.ppString;
+      Print.ppString;
 
-(*DEBUG
+(*MetisDebug
 val pp =
-    Parser.ppMap
+    Print.ppMap
       (fn Waiting {clauses,...} =>
           map (fn (w,(_,cl)) => (w, Clause.id cl, cl)) (Heap.toList clauses))
-      (Parser.ppList (Parser.ppTriple Parser.ppReal Parser.ppInt Clause.pp));
+      (Print.ppList (Print.ppTriple Print.ppReal Print.ppInt Clause.pp));
 *)
+
+(* ------------------------------------------------------------------------- *)
+(* Perturbing the models.                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+type modelClause = NameSet.set * Thm.clause;
+
+fun mkModelClause cl =
+    let
+      val lits = Clause.literals cl
+      val fvs = LiteralSet.freeVars lits
+    in
+      (fvs,lits)
+    end;
+
+val mkModelClauses = map mkModelClause;
+
+fun perturbModel M cls =
+    if null cls then K ()
+    else
+      let
+        val N = {size = Model.size M}
+
+        fun perturbClause (fv,cl) =
+            let
+              val V = Model.randomValuation N fv
+            in
+              if Model.interpretClause M V cl then ()
+              else Model.perturbClause M V cl
+            end
+
+        fun perturbClauses () = app perturbClause cls
+      in
+        fn n => funpow n perturbClauses ()
+      end;
+
+fun initialModel axioms conjecture parm =
+    let
+      val {model,initialPerturbations,...} : modelParameters = parm
+      val m = Model.new model
+      val () = perturbModel m conjecture initialPerturbations
+      val () = perturbModel m axioms initialPerturbations
+    in
+      m
+    end;
+
+fun checkModels parms models (fv,cl) =
+    let
+      fun check ((parm,model),z) =
+          let
+            val {maxChecks,weight,...} : modelParameters = parm
+            val n = {maxChecks = maxChecks}
+            val {T,F} = Model.check Model.interpretClause n model fv cl
+          in
+            Math.pow (1.0 + Real.fromInt T / Real.fromInt (T + F), weight) * z
+          end
+    in
+      List.foldl check 1.0 (zip parms models)
+    end;
+
+fun perturbModels parms models cls =
+    let
+      fun perturb (parm,model) =
+          let
+            val {perturbations,...} : modelParameters = parm
+          in
+            perturbModel model cls perturbations
+          end
+    in
+      app perturb (zip parms models)
+    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Clause weights.                                                           *)
@@ -80,40 +145,39 @@ val pp =
 local
   fun clauseSymbols cl = Real.fromInt (LiteralSet.typedSymbols cl);
 
+  fun clauseVariables cl =
+      Real.fromInt (NameSet.size (LiteralSet.freeVars cl) + 1);
+
   fun clauseLiterals cl = Real.fromInt (LiteralSet.size cl);
 
-  fun clauseSat modelChecks models cl =
-      let
-        fun g {T,F} = (Real.fromInt T / Real.fromInt (T + F)) + 1.0
-        fun f (m,z) = g (Model.checkClause {maxChecks = modelChecks} m cl) * z
-      in
-        foldl f 1.0 models
-      end;
-
-  fun priority cl = 1e~12 * Real.fromInt (Clause.id cl);
+  fun clausePriority cl = 1e~12 * Real.fromInt (Clause.id cl);
 in
-  fun clauseWeight (parm : parameters) models dist cl =
+  fun clauseWeight (parm : parameters) mods dist mcl cl =
       let
-(*TRACE3
-        val () = Parser.ppTrace Clause.pp "Waiting.clauseWeight: cl" cl
+(*MetisTrace3
+        val () = Print.trace Clause.pp "Waiting.clauseWeight: cl" cl
 *)
-        val {symbolsWeight,literalsWeight,modelsWeight,modelChecks,...} = parm
+        val {symbolsWeight,variablesWeight,literalsWeight,models,...} = parm
         val lits = Clause.literals cl
         val symbolsW = Math.pow (clauseSymbols lits, symbolsWeight)
+        val variablesW = Math.pow (clauseVariables lits, variablesWeight)
         val literalsW = Math.pow (clauseLiterals lits, literalsWeight)
-        val modelsW = Math.pow (clauseSat modelChecks models lits, modelsWeight)
-(*TRACE4
+        val modelsW = checkModels models mods mcl
+(*MetisTrace4
         val () = trace ("Waiting.clauseWeight: dist = " ^
                         Real.toString dist ^ "\n")
         val () = trace ("Waiting.clauseWeight: symbolsW = " ^
                         Real.toString symbolsW ^ "\n")
+        val () = trace ("Waiting.clauseWeight: variablesW = " ^
+                        Real.toString variablesW ^ "\n")
         val () = trace ("Waiting.clauseWeight: literalsW = " ^
                         Real.toString literalsW ^ "\n")
         val () = trace ("Waiting.clauseWeight: modelsW = " ^
                         Real.toString modelsW ^ "\n")
 *)
-        val weight = dist * symbolsW * literalsW * modelsW + priority cl
-(*TRACE3
+        val weight = dist * symbolsW * variablesW * literalsW * modelsW
+        val weight = weight + clausePriority cl
+(*MetisTrace3
         val () = trace ("Waiting.clauseWeight: weight = " ^
                         Real.toString weight ^ "\n")
 *)
@@ -126,29 +190,39 @@ end;
 (* Adding new clauses.                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-fun add waiting (_,[]) = waiting
-  | add waiting (dist,cls) =
+fun add' waiting dist mcls cls =
     let
-(*TRACE3
-      val () = Parser.ppTrace pp "Waiting.add: waiting" waiting
-      val () = Parser.ppTrace (Parser.ppList Clause.pp) "Waiting.add: cls" cls
-*)
-
       val Waiting {parameters,clauses,models} = waiting
+      val {models = modelParameters, ...} = parameters
 
       val dist = dist + Math.ln (Real.fromInt (length cls))
 
-      val weight = clauseWeight parameters models dist
+      fun addCl ((mcl,cl),acc) =
+          let
+            val weight = clauseWeight parameters models dist mcl cl
+          in
+            Heap.add acc (weight,(dist,cl))
+          end
 
-      fun f (cl,acc) = Heap.add acc (weight cl, (dist,cl))
+      val clauses = List.foldl addCl clauses (zip mcls cls)
 
-      val clauses = foldl f clauses cls
+      val () = perturbModels modelParameters models mcls
+    in
+      Waiting {parameters = parameters, clauses = clauses, models = models}
+    end;
 
-      val waiting =
-          Waiting {parameters = parameters, clauses = clauses, models = models}
+fun add waiting (_,[]) = waiting
+  | add waiting (dist,cls) =
+    let
+(*MetisTrace3
+      val () = Print.trace pp "Waiting.add: waiting" waiting
+      val () = Print.trace (Print.ppList Clause.pp) "Waiting.add: cls" cls
+*)
 
-(*TRACE3
-      val () = Parser.ppTrace pp "Waiting.add: waiting" waiting
+      val waiting = add' waiting dist (mkModelClauses cls) cls
+
+(*MetisTrace3
+      val () = Print.trace pp "Waiting.add: waiting" waiting
 *)
     in
       waiting
@@ -157,15 +231,24 @@ fun add waiting (_,[]) = waiting
 local
   fun cmp ((w1,_),(w2,_)) = Real.compare (w1,w2);
 
-  fun empty parameters =
+  fun empty parameters axioms conjecture =
       let
+        val {models = modelParameters, ...} = parameters
         val clauses = Heap.new cmp
-        and models = map Model.new (#models parameters)
+        and models = map (initialModel axioms conjecture) modelParameters
       in
         Waiting {parameters = parameters, clauses = clauses, models = models}
       end;
 in
-  fun new parameters cls = add (empty parameters) (0.0,cls);
+  fun new parameters {axioms,conjecture} =
+      let
+        val mAxioms = mkModelClauses axioms
+        and mConjecture = mkModelClauses conjecture
+
+        val waiting = empty parameters mAxioms mConjecture
+      in
+        add' waiting 0.0 (mAxioms @ mConjecture) (axioms @ conjecture)
+      end;
 end;
 
 (* ------------------------------------------------------------------------- *)

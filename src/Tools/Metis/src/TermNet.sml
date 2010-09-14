@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC TERMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure TermNet :> TermNet =
@@ -9,29 +9,65 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* Quotient terms                                                            *)
+(* Anonymous variables.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-datatype qterm = VAR | FN of NameArity.nameArity * qterm list;
+val anonymousName = Name.fromString "_";
+val anonymousVar = Term.Var anonymousName;
 
-fun termToQterm (Term.Var _) = VAR
-  | termToQterm (Term.Fn (f,l)) = FN ((f, length l), map termToQterm l);
+(* ------------------------------------------------------------------------- *)
+(* Quotient terms.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+datatype qterm =
+    Var
+  | Fn of NameArity.nameArity * qterm list;
+
+local
+  fun cmp [] = EQUAL
+    | cmp (q1_q2 :: qs) =
+      if Portable.pointerEqual q1_q2 then cmp qs
+      else
+        case q1_q2 of
+          (Var,Var) => EQUAL
+        | (Var, Fn _) => LESS
+        | (Fn _, Var) => GREATER
+        | (Fn f1, Fn f2) => fnCmp f1 f2 qs
+
+  and fnCmp (n1,q1) (n2,q2) qs =
+    case NameArity.compare (n1,n2) of
+      LESS => LESS
+    | EQUAL => cmp (zip q1 q2 @ qs)
+    | GREATER => GREATER;
+in
+  fun compareQterm q1_q2 = cmp [q1_q2];
+
+  fun compareFnQterm (f1,f2) = fnCmp f1 f2 [];
+end;
+
+fun equalQterm q1 q2 = compareQterm (q1,q2) = EQUAL;
+
+fun equalFnQterm f1 f2 = compareFnQterm (f1,f2) = EQUAL;
+
+fun termToQterm (Term.Var _) = Var
+  | termToQterm (Term.Fn (f,l)) = Fn ((f, length l), map termToQterm l);
 
 local
   fun qm [] = true
-    | qm ((VAR,_) :: rest) = qm rest
-    | qm ((FN _, VAR) :: _) = false
-    | qm ((FN (f,a), FN (g,b)) :: rest) = f = g andalso qm (zip a b @ rest);
+    | qm ((Var,_) :: rest) = qm rest
+    | qm ((Fn _, Var) :: _) = false
+    | qm ((Fn (f,a), Fn (g,b)) :: rest) =
+      NameArity.equal f g andalso qm (zip a b @ rest);
 in
   fun matchQtermQterm qtm qtm' = qm [(qtm,qtm')];
 end;
 
 local
   fun qm [] = true
-    | qm ((VAR,_) :: rest) = qm rest
-    | qm ((FN _, Term.Var _) :: _) = false
-    | qm ((FN ((f,n),a), Term.Fn (g,b)) :: rest) =
-      f = g andalso n = length b andalso qm (zip a b @ rest);
+    | qm ((Var,_) :: rest) = qm rest
+    | qm ((Fn _, Term.Var _) :: _) = false
+    | qm ((Fn ((f,n),a), Term.Fn (g,b)) :: rest) =
+      Name.equal f g andalso n = length b andalso qm (zip a b @ rest);
 in
   fun matchQtermTerm qtm tm = qm [(qtm,tm)];
 end;
@@ -41,26 +77,27 @@ local
     | qn qsub ((Term.Var v, qtm) :: rest) =
       (case NameMap.peek qsub v of
          NONE => qn (NameMap.insert qsub (v,qtm)) rest
-       | SOME qtm' => if qtm = qtm' then qn qsub rest else NONE)
-    | qn _ ((Term.Fn _, VAR) :: _) = NONE
-    | qn qsub ((Term.Fn (f,a), FN ((g,n),b)) :: rest) =
-      if f = g andalso length a = n then qn qsub (zip a b @ rest) else NONE;
+       | SOME qtm' => if equalQterm qtm qtm' then qn qsub rest else NONE)
+    | qn _ ((Term.Fn _, Var) :: _) = NONE
+    | qn qsub ((Term.Fn (f,a), Fn ((g,n),b)) :: rest) =
+      if Name.equal f g andalso length a = n then qn qsub (zip a b @ rest)
+      else NONE;
 in
   fun matchTermQterm qsub tm qtm = qn qsub [(tm,qtm)];
 end;
 
 local
-  fun qv VAR x = x
-    | qv x VAR = x
-    | qv (FN (f,a)) (FN (g,b)) =
+  fun qv Var x = x
+    | qv x Var = x
+    | qv (Fn (f,a)) (Fn (g,b)) =
       let
-        val _ = f = g orelse raise Error "TermNet.qv"
+        val _ = NameArity.equal f g orelse raise Error "TermNet.qv"
       in
-        FN (f, zipwith qv a b)
+        Fn (f, zipWith qv a b)
       end;
 
   fun qu qsub [] = qsub
-    | qu qsub ((VAR, _) :: rest) = qu qsub rest
+    | qu qsub ((Var, _) :: rest) = qu qsub rest
     | qu qsub ((qtm, Term.Var v) :: rest) =
       let
         val qtm =
@@ -68,8 +105,8 @@ local
       in
         qu (NameMap.insert qsub (v,qtm)) rest
       end
-    | qu qsub ((FN ((f,n),a), Term.Fn (g,b)) :: rest) =
-      if f = g andalso n = length b then qu qsub (zip a b @ rest)
+    | qu qsub ((Fn ((f,n),a), Term.Fn (g,b)) :: rest) =
+      if Name.equal f g andalso n = length b then qu qsub (zip a b @ rest)
       else raise Error "TermNet.qu";
 in
   fun unifyQtermQterm qtm qtm' = total (qv qtm) qtm';
@@ -78,10 +115,10 @@ in
 end;
 
 local
-  fun qtermToTerm VAR = Term.Var ""
-    | qtermToTerm (FN ((f,_),l)) = Term.Fn (f, map qtermToTerm l);
+  fun qtermToTerm Var = anonymousVar
+    | qtermToTerm (Fn ((f,_),l)) = Term.Fn (f, map qtermToTerm l);
 in
-  val ppQterm = Parser.ppMap qtermToTerm Term.pp;
+  val ppQterm = Print.ppMap qtermToTerm Term.pp;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -91,22 +128,22 @@ end;
 type parameters = {fifo : bool};
 
 datatype 'a net =
-    RESULT of 'a list
-  | SINGLE of qterm * 'a net
-  | MULTIPLE of 'a net option * 'a net NameArityMap.map;
+    Result of 'a list
+  | Single of qterm * 'a net
+  | Multiple of 'a net option * 'a net NameArityMap.map;
 
-datatype 'a termNet = NET of parameters * int * (int * (int * 'a) net) option;
+datatype 'a termNet = Net of parameters * int * (int * (int * 'a) net) option;
 
 (* ------------------------------------------------------------------------- *)
 (* Basic operations.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
-fun new parm = NET (parm,0,NONE);
+fun new parm = Net (parm,0,NONE);
 
 local
-  fun computeSize (RESULT l) = length l
-    | computeSize (SINGLE (_,n)) = computeSize n
-    | computeSize (MULTIPLE (vs,fs)) =
+  fun computeSize (Result l) = length l
+    | computeSize (Single (_,n)) = computeSize n
+    | computeSize (Multiple (vs,fs)) =
       NameArityMap.foldl
         (fn (_,n,acc) => acc + computeSize n)
         (case vs of SOME n => computeSize n | NONE => 0)
@@ -116,38 +153,38 @@ in
     | netSize (SOME n) = SOME (computeSize n, n);
 end;
 
-fun size (NET (_,_,NONE)) = 0
-  | size (NET (_, _, SOME (i,_))) = i;
+fun size (Net (_,_,NONE)) = 0
+  | size (Net (_, _, SOME (i,_))) = i;
 
 fun null net = size net = 0;
 
-fun singles qtms a = foldr SINGLE a qtms;
+fun singles qtms a = foldr Single a qtms;
 
 local
   fun pre NONE = (0,NONE)
     | pre (SOME (i,n)) = (i, SOME n);
 
-  fun add (RESULT l) [] (RESULT l') = RESULT (l @ l')
-    | add a (input1 as qtm :: qtms) (SINGLE (qtm',n)) =
-      if qtm = qtm' then SINGLE (qtm, add a qtms n)
-      else add a input1 (add n [qtm'] (MULTIPLE (NONE, NameArityMap.new ())))
-    | add a (VAR :: qtms) (MULTIPLE (vs,fs)) =
-      MULTIPLE (SOME (oadd a qtms vs), fs)
-    | add a (FN (f,l) :: qtms) (MULTIPLE (vs,fs)) =
+  fun add (Result l) [] (Result l') = Result (l @ l')
+    | add a (input1 as qtm :: qtms) (Single (qtm',n)) =
+      if equalQterm qtm qtm' then Single (qtm, add a qtms n)
+      else add a input1 (add n [qtm'] (Multiple (NONE, NameArityMap.new ())))
+    | add a (Var :: qtms) (Multiple (vs,fs)) =
+      Multiple (SOME (oadd a qtms vs), fs)
+    | add a (Fn (f,l) :: qtms) (Multiple (vs,fs)) =
       let
         val n = NameArityMap.peek fs f
       in
-        MULTIPLE (vs, NameArityMap.insert fs (f, oadd a (l @ qtms) n))
+        Multiple (vs, NameArityMap.insert fs (f, oadd a (l @ qtms) n))
       end
     | add _ _ _ = raise Bug "TermNet.insert: Match"
 
   and oadd a qtms NONE = singles qtms a
     | oadd a qtms (SOME n) = add a qtms n;
 
-  fun ins a qtm (i,n) = SOME (i + 1, oadd (RESULT [a]) [qtm] n);
+  fun ins a qtm (i,n) = SOME (i + 1, oadd (Result [a]) [qtm] n);
 in
-  fun insert (NET (p,k,n)) (tm,a) =
-      NET (p, k + 1, ins (k,a) (termToQterm tm) (pre n))
+  fun insert (Net (p,k,n)) (tm,a) =
+      Net (p, k + 1, ins (k,a) (termToQterm tm) (pre n))
       handle Error _ => raise Bug "TermNet.insert: should never fail";
 end;
 
@@ -155,26 +192,26 @@ fun fromList parm l = foldl (fn (tm_a,n) => insert n tm_a) (new parm) l;
 
 fun filter pred =
     let
-      fun filt (RESULT l) =
+      fun filt (Result l) =
           (case List.filter (fn (_,a) => pred a) l of
              [] => NONE
-           | l => SOME (RESULT l))
-        | filt (SINGLE (qtm,n)) =
+           | l => SOME (Result l))
+        | filt (Single (qtm,n)) =
           (case filt n of
              NONE => NONE
-           | SOME n => SOME (SINGLE (qtm,n)))
-        | filt (MULTIPLE (vs,fs)) =
+           | SOME n => SOME (Single (qtm,n)))
+        | filt (Multiple (vs,fs)) =
           let
             val vs = Option.mapPartial filt vs
 
             val fs = NameArityMap.mapPartial (fn (_,n) => filt n) fs
           in
             if not (Option.isSome vs) andalso NameArityMap.null fs then NONE
-            else SOME (MULTIPLE (vs,fs))
+            else SOME (Multiple (vs,fs))
           end
     in
-      fn net as NET (_,_,NONE) => net
-       | NET (p, k, SOME (_,n)) => NET (p, k, netSize (filt n))
+      fn net as Net (_,_,NONE) => net
+       | Net (p, k, SOME (_,n)) => Net (p, k, netSize (filt n))
     end
     handle Error _ => raise Bug "TermNet.filter: should never fail";
 
@@ -189,7 +226,7 @@ local
       let
         val (a,qtms) = revDivide qtms n
       in
-        addQterm (FN (f,a)) (ks,fs,qtms)
+        addQterm (Fn (f,a)) (ks,fs,qtms)
       end
     | norm stack = stack
 
@@ -203,7 +240,7 @@ local
   and addFn (f as (_,n)) (ks,fs,qtms) = norm (n :: ks, f :: fs, qtms);
 in
   val stackEmpty = ([],[],[]);
-    
+
   val stackAddQterm = addQterm;
 
   val stackAddFn = addFn;
@@ -216,16 +253,16 @@ local
   fun fold _ acc [] = acc
     | fold inc acc ((0,stack,net) :: rest) =
       fold inc (inc (stackValue stack, net, acc)) rest
-    | fold inc acc ((n, stack, SINGLE (qtm,net)) :: rest) =
+    | fold inc acc ((n, stack, Single (qtm,net)) :: rest) =
       fold inc acc ((n - 1, stackAddQterm qtm stack, net) :: rest)
-    | fold inc acc ((n, stack, MULTIPLE (v,fns)) :: rest) =
+    | fold inc acc ((n, stack, Multiple (v,fns)) :: rest) =
       let
         val n = n - 1
 
         val rest =
             case v of
               NONE => rest
-            | SOME net => (n, stackAddQterm VAR stack, net) :: rest
+            | SOME net => (n, stackAddQterm Var stack, net) :: rest
 
         fun getFns (f as (_,k), net, x) =
             (k + n, stackAddFn f stack, net) :: x
@@ -240,11 +277,11 @@ end;
 fun foldEqualTerms pat inc acc =
     let
       fun fold ([],net) = inc (pat,net,acc)
-        | fold (pat :: pats, SINGLE (qtm,net)) =
-          if pat = qtm then fold (pats,net) else acc
-        | fold (VAR :: pats, MULTIPLE (v,_)) =
+        | fold (pat :: pats, Single (qtm,net)) =
+          if equalQterm pat qtm then fold (pats,net) else acc
+        | fold (Var :: pats, Multiple (v,_)) =
           (case v of NONE => acc | SOME net => fold (pats,net))
-        | fold (FN (f,a) :: pats, MULTIPLE (_,fns)) =
+        | fold (Fn (f,a) :: pats, Multiple (_,fns)) =
           (case NameArityMap.peek fns f of
              NONE => acc
            | SOME net => fold (a @ pats, net))
@@ -257,20 +294,20 @@ local
   fun fold _ acc [] = acc
     | fold inc acc (([],stack,net) :: rest) =
       fold inc (inc (stackValue stack, net, acc)) rest
-    | fold inc acc ((VAR :: pats, stack, net) :: rest) =
+    | fold inc acc ((Var :: pats, stack, net) :: rest) =
       let
         fun harvest (qtm,n,l) = (pats, stackAddQterm qtm stack, n) :: l
       in
         fold inc acc (foldTerms harvest rest net)
       end
-    | fold inc acc ((pat :: pats, stack, SINGLE (qtm,net)) :: rest) =
+    | fold inc acc ((pat :: pats, stack, Single (qtm,net)) :: rest) =
       (case unifyQtermQterm pat qtm of
          NONE => fold inc acc rest
        | SOME qtm =>
          fold inc acc ((pats, stackAddQterm qtm stack, net) :: rest))
     | fold
         inc acc
-        (((pat as FN (f,a)) :: pats, stack, MULTIPLE (v,fns)) :: rest) =
+        (((pat as Fn (f,a)) :: pats, stack, Multiple (v,fns)) :: rest) =
       let
         val rest =
             case v of
@@ -307,10 +344,10 @@ end;
 
 local
   fun mat acc [] = acc
-    | mat acc ((RESULT l, []) :: rest) = mat (l @ acc) rest
-    | mat acc ((SINGLE (qtm,n), tm :: tms) :: rest) =
+    | mat acc ((Result l, []) :: rest) = mat (l @ acc) rest
+    | mat acc ((Single (qtm,n), tm :: tms) :: rest) =
       mat acc (if matchQtermTerm qtm tm then (n,tms) :: rest else rest)
-    | mat acc ((MULTIPLE (vs,fs), tm :: tms) :: rest) =
+    | mat acc ((Multiple (vs,fs), tm :: tms) :: rest) =
       let
         val rest = case vs of NONE => rest | SOME n => (n,tms) :: rest
 
@@ -326,8 +363,8 @@ local
       end
     | mat _ _ = raise Bug "TermNet.match: Match";
 in
-  fun match (NET (_,_,NONE)) _ = []
-    | match (NET (p, _, SOME (_,n))) tm =
+  fun match (Net (_,_,NONE)) _ = []
+    | match (Net (p, _, SOME (_,n))) tm =
       finally p (mat [] [(n,[tm])])
       handle Error _ => raise Bug "TermNet.match: should never fail";
 end;
@@ -339,16 +376,16 @@ local
   fun seenInc qsub tms (_,net,rest) = (qsub,net,tms) :: rest;
 
   fun mat acc [] = acc
-    | mat acc ((_, RESULT l, []) :: rest) = mat (l @ acc) rest
-    | mat acc ((qsub, SINGLE (qtm,net), tm :: tms) :: rest) =
+    | mat acc ((_, Result l, []) :: rest) = mat (l @ acc) rest
+    | mat acc ((qsub, Single (qtm,net), tm :: tms) :: rest) =
       (case matchTermQterm qsub tm qtm of
          NONE => mat acc rest
        | SOME qsub => mat acc ((qsub,net,tms) :: rest))
-    | mat acc ((qsub, net as MULTIPLE _, Term.Var v :: tms) :: rest) =
+    | mat acc ((qsub, net as Multiple _, Term.Var v :: tms) :: rest) =
       (case NameMap.peek qsub v of
          NONE => mat acc (foldTerms (unseenInc qsub v tms) rest net)
        | SOME qtm => mat acc (foldEqualTerms qtm (seenInc qsub tms) rest net))
-    | mat acc ((qsub, MULTIPLE (_,fns), Term.Fn (f,a) :: tms) :: rest) =
+    | mat acc ((qsub, Multiple (_,fns), Term.Fn (f,a) :: tms) :: rest) =
       let
         val rest =
             case NameArityMap.peek fns (f, length a) of
@@ -359,8 +396,8 @@ local
       end
     | mat _ _ = raise Bug "TermNet.matched.mat";
 in
-  fun matched (NET (_,_,NONE)) _ = []
-    | matched (NET (parm, _, SOME (_,net))) tm =
+  fun matched (Net (_,_,NONE)) _ = []
+    | matched (Net (parm, _, SOME (_,net))) tm =
       finally parm (mat [] [(NameMap.new (), net, [tm])])
       handle Error _ => raise Bug "TermNet.matched: should never fail";
 end;
@@ -370,16 +407,16 @@ local
       (NameMap.insert qsub (v,qtm), net, tms) :: rest;
 
   fun mat acc [] = acc
-    | mat acc ((_, RESULT l, []) :: rest) = mat (l @ acc) rest
-    | mat acc ((qsub, SINGLE (qtm,net), tm :: tms) :: rest) =
+    | mat acc ((_, Result l, []) :: rest) = mat (l @ acc) rest
+    | mat acc ((qsub, Single (qtm,net), tm :: tms) :: rest) =
       (case unifyQtermTerm qsub qtm tm of
          NONE => mat acc rest
        | SOME qsub => mat acc ((qsub,net,tms) :: rest))
-    | mat acc ((qsub, net as MULTIPLE _, Term.Var v :: tms) :: rest) =
+    | mat acc ((qsub, net as Multiple _, Term.Var v :: tms) :: rest) =
       (case NameMap.peek qsub v of
          NONE => mat acc (foldTerms (inc qsub v tms) rest net)
        | SOME qtm => mat acc (foldUnifiableTerms qtm (inc qsub v tms) rest net))
-    | mat acc ((qsub, MULTIPLE (v,fns), Term.Fn (f,a) :: tms) :: rest) =
+    | mat acc ((qsub, Multiple (v,fns), Term.Fn (f,a) :: tms) :: rest) =
       let
         val rest = case v of NONE => rest | SOME net => (qsub,net,tms) :: rest
 
@@ -392,8 +429,8 @@ local
       end
     | mat _ _ = raise Bug "TermNet.unify.mat";
 in
-  fun unify (NET (_,_,NONE)) _ = []
-    | unify (NET (parm, _, SOME (_,net))) tm =
+  fun unify (Net (_,_,NONE)) _ = []
+    | unify (Net (parm, _, SOME (_,net))) tm =
       finally parm (mat [] [(NameMap.new (), net, [tm])])
       handle Error _ => raise Bug "TermNet.unify: should never fail";
 end;
@@ -403,16 +440,16 @@ end;
 (* ------------------------------------------------------------------------- *)
 
 local
-  fun inc (qtm, RESULT l, acc) =
+  fun inc (qtm, Result l, acc) =
       foldl (fn ((n,a),acc) => (n,(qtm,a)) :: acc) acc l
     | inc _ = raise Bug "TermNet.pp.inc";
-      
-  fun toList (NET (_,_,NONE)) = []
-    | toList (NET (parm, _, SOME (_,net))) =
+
+  fun toList (Net (_,_,NONE)) = []
+    | toList (Net (parm, _, SOME (_,net))) =
       finally parm (foldTerms inc [] net);
 in
   fun pp ppA =
-      Parser.ppMap toList (Parser.ppList (Parser.ppBinop " |->" ppQterm ppA));
+      Print.ppMap toList (Print.ppList (Print.ppOp2 " |->" ppQterm ppA));
 end;
 
 end

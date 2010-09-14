@@ -1,54 +1,118 @@
 (* ========================================================================= *)
-(* FINITE MAPS                                                               *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
+(* FINITE MAPS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Map =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Finite maps                                                               *)
+(* A type of finite maps.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
 type ('key,'a) map
 
+(* ------------------------------------------------------------------------- *)
+(* Constructors.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
 val new : ('key * 'key -> order) -> ('key,'a) map
+
+val singleton : ('key * 'key -> order) -> 'key * 'a -> ('key,'a) map
+
+(* ------------------------------------------------------------------------- *)
+(* Map size.                                                                 *)
+(* ------------------------------------------------------------------------- *)
 
 val null : ('key,'a) map -> bool
 
 val size : ('key,'a) map -> int
 
-val singleton : ('key * 'key -> order) -> 'key * 'a -> ('key,'a) map
+(* ------------------------------------------------------------------------- *)
+(* Querying.                                                                 *)
+(* ------------------------------------------------------------------------- *)
 
-val inDomain : 'key -> ('key,'a) map -> bool
+val peekKey : ('key,'a) map -> 'key -> ('key * 'a) option
 
 val peek : ('key,'a) map -> 'key -> 'a option
+
+val get : ('key,'a) map -> 'key -> 'a  (* raises Error *)
+
+val pick : ('key,'a) map -> 'key * 'a  (* an arbitrary key/value pair *)
+
+val nth : ('key,'a) map -> int -> 'key * 'a  (* in the range [0,size-1] *)
+
+val random : ('key,'a) map -> 'key * 'a
+
+(* ------------------------------------------------------------------------- *)
+(* Adding.                                                                   *)
+(* ------------------------------------------------------------------------- *)
 
 val insert : ('key,'a) map -> 'key * 'a -> ('key,'a) map
 
 val insertList : ('key,'a) map -> ('key * 'a) list -> ('key,'a) map
 
-val get : ('key,'a) map -> 'key -> 'a  (* raises Error *)
+(* ------------------------------------------------------------------------- *)
+(* Removing.                                                                 *)
+(* ------------------------------------------------------------------------- *)
 
-(* Union and intersect prefer keys in the second map *)
+val delete : ('key,'a) map -> 'key -> ('key,'a) map  (* must be present *)
+
+val remove : ('key,'a) map -> 'key -> ('key,'a) map
+
+val deletePick : ('key,'a) map -> ('key * 'a) * ('key,'a) map
+
+val deleteNth : ('key,'a) map -> int -> ('key * 'a) * ('key,'a) map
+
+val deleteRandom : ('key,'a) map -> ('key * 'a) * ('key,'a) map
+
+(* ------------------------------------------------------------------------- *)
+(* Joining (all join operations prefer keys in the second map).              *)
+(* ------------------------------------------------------------------------- *)
+
+val merge :
+    {first : 'key * 'a -> 'c option,
+     second : 'key * 'b -> 'c option,
+     both : ('key * 'a) * ('key * 'b) -> 'c option} ->
+    ('key,'a) map -> ('key,'b) map -> ('key,'c) map
 
 val union :
-    ('a * 'a -> 'a option) -> ('key,'a) map -> ('key,'a) map -> ('key,'a) map
+    (('key * 'a) * ('key * 'a) -> 'a option) ->
+    ('key,'a) map -> ('key,'a) map -> ('key,'a) map
 
 val intersect :
-    ('a * 'a -> 'a option) -> ('key,'a) map -> ('key,'a) map -> ('key,'a) map
+    (('key * 'a) * ('key * 'b) -> 'c option) ->
+    ('key,'a) map -> ('key,'b) map -> ('key,'c) map
 
-val delete : ('key,'a) map -> 'key -> ('key,'a) map  (* raises Error *)
+(* ------------------------------------------------------------------------- *)
+(* Set operations on the domain.                                             *)
+(* ------------------------------------------------------------------------- *)
 
-val difference : ('key,'a) map -> ('key,'b) map -> ('key,'a) map
+val inDomain : 'key -> ('key,'a) map -> bool
 
-val subsetDomain : ('key,'a) map -> ('key,'a) map -> bool
+val unionDomain : ('key,'a) map -> ('key,'a) map -> ('key,'a) map
+
+val unionListDomain : ('key,'a) map list -> ('key,'a) map
+
+val intersectDomain : ('key,'a) map -> ('key,'a) map -> ('key,'a) map
+
+val intersectListDomain : ('key,'a) map list -> ('key,'a) map
+
+val differenceDomain : ('key,'a) map -> ('key,'a) map -> ('key,'a) map
+
+val symmetricDifferenceDomain : ('key,'a) map -> ('key,'a) map -> ('key,'a) map
 
 val equalDomain : ('key,'a) map -> ('key,'a) map -> bool
 
-val mapPartial : ('key * 'a -> 'b option) -> ('key,'a) map -> ('key,'b) map
+val subsetDomain : ('key,'a) map -> ('key,'a) map -> bool
 
-val filter : ('key * 'a -> bool) -> ('key,'a) map -> ('key,'a) map
+val disjointDomain : ('key,'a) map -> ('key,'a) map -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Mapping and folding.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+val mapPartial : ('key * 'a -> 'b option) -> ('key,'a) map -> ('key,'b) map
 
 val map : ('key * 'a -> 'b) -> ('key,'a) map -> ('key,'b) map
 
@@ -56,9 +120,18 @@ val app : ('key * 'a -> unit) -> ('key,'a) map -> unit
 
 val transform : ('a -> 'b) -> ('key,'a) map -> ('key,'b) map
 
+val filter : ('key * 'a -> bool) -> ('key,'a) map -> ('key,'a) map
+
+val partition :
+    ('key * 'a -> bool) -> ('key,'a) map -> ('key,'a) map * ('key,'a) map
+
 val foldl : ('key * 'a * 's -> 's) -> 's -> ('key,'a) map -> 's
 
 val foldr : ('key * 'a * 's -> 's) -> 's -> ('key,'a) map -> 's
+
+(* ------------------------------------------------------------------------- *)
+(* Searching.                                                                *)
+(* ------------------------------------------------------------------------- *)
 
 val findl : ('key * 'a -> bool) -> ('key,'a) map -> ('key * 'a) option
 
@@ -72,22 +145,36 @@ val exists : ('key * 'a -> bool) -> ('key,'a) map -> bool
 
 val all : ('key * 'a -> bool) -> ('key,'a) map -> bool
 
-val domain : ('key,'a) map -> 'key list
+val count : ('key * 'a -> bool) -> ('key,'a) map -> int
 
-val toList : ('key,'a) map -> ('key * 'a) list
-
-val fromList : ('key * 'key -> order) -> ('key * 'a) list -> ('key,'a) map
-
-val random : ('key,'a) map -> 'key * 'a  (* raises Empty *)
+(* ------------------------------------------------------------------------- *)
+(* Comparing.                                                                *)
+(* ------------------------------------------------------------------------- *)
 
 val compare : ('a * 'a -> order) -> ('key,'a) map * ('key,'a) map -> order
 
 val equal : ('a -> 'a -> bool) -> ('key,'a) map -> ('key,'a) map -> bool
 
+(* ------------------------------------------------------------------------- *)
+(* Converting to and from lists.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val keys : ('key,'a) map -> 'key list
+
+val values : ('key,'a) map -> 'a list
+
+val toList : ('key,'a) map -> ('key * 'a) list
+
+val fromList : ('key * 'key -> order) -> ('key * 'a) list -> ('key,'a) map
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
 val toString : ('key,'a) map -> string
 
 (* ------------------------------------------------------------------------- *)
-(* Iterators over maps                                                       *)
+(* Iterators over maps.                                                      *)
 (* ------------------------------------------------------------------------- *)
 
 type ('key,'a) iterator

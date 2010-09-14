@@ -253,7 +253,7 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
         MAlpha
       else case T of
         Type (@{type_name fun}, [T1, T2]) =>
-        MFun (fresh_mfun_for_fun_type mdata false T1 T2)
+        MFun (fresh_mfun_for_fun_type mdata all_minus T1 T2)
       | Type (@{type_name prod}, [T1, T2]) => MPair (pairself do_type (T1, T2))
       | Type (z as (s, _)) =>
         if could_exist_alpha_sub_mtype ctxt alpha_T T then
@@ -549,8 +549,7 @@ fun pop_bound {bound_Ts, bound_Ms, frees, consts} =
    consts = consts}
   handle List.Empty => initial_gamma (* FIXME: needed? *)
 
-fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
-                                          def_table, ...},
+fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, fast_descrs, ...},
                              alpha_T, max_fresh, ...}) =
   let
     fun is_enough_eta_expanded t =
@@ -617,7 +616,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
           accum ||> add_mtypes_equal expected_bound_M (mtype_of_mterm bound_m)
                 |> do_term body_t ||> apfst pop_bound
         val bound_M = mtype_of_mterm bound_m
-        val (M1, a, M2) = dest_MFun bound_M
+        val (M1, a, _) = dest_MFun bound_M
       in
         (MApp (MRaw (t0, MFun (bound_M, S Minus, bool_M)),
                MAbs (abs_s, abs_T, M1, a,
@@ -626,8 +625,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                                  MApp (bound_m, MRaw (Bound 0, M1))),
                            body_m))), accum)
       end
-    and do_term t (accum as (gamma as {bound_Ts, bound_Ms, frees, consts},
-                             cset)) =
+    and do_term t (accum as ({bound_Ts, bound_Ms, frees, consts}, cset)) =
         (trace_msg (fn () => "  \<Gamma> \<turnstile> " ^
                              Syntax.string_of_term ctxt t ^ " : _?");
          case t of
@@ -660,7 +658,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                 |>> curry3 MFun bool_M (S Minus)
               | @{const_name Pair} => do_pair_constr T accum
               | @{const_name fst} => do_nth_pair_sel 0 T accum
-              | @{const_name snd} => do_nth_pair_sel 1 T accum 
+              | @{const_name snd} => do_nth_pair_sel 1 T accum
               | @{const_name Id} =>
                 (MFun (mtype_for (domain_type T), S Minus, bool_M), accum)
               | @{const_name converse} =>
@@ -787,8 +785,6 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
              val (m2, accum) = do_term t2 accum
            in
              let
-               val T11 = domain_type (fastype_of1 (bound_Ts, t1))
-               val T2 = fastype_of1 (bound_Ts, t2)
                val M11 = mtype_of_mterm m1 |> dest_MFun |> #1
                val M2 = mtype_of_mterm m2
              in (MApp (m1, m2), accum ||> add_is_sub_mtype M2 M11) end
@@ -867,7 +863,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
              end
            | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
              do_quantifier x s1 T1 t1
-           | Const (x0 as (s0 as @{const_name Ex}, T0))
+           | Const (x0 as (@{const_name Ex}, T0))
              $ (t1 as Abs (s1, T1, t1')) =>
              (case sn of
                 Plus => do_quantifier x0 s1 T1 t1'
@@ -894,7 +890,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
                in
                  (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
                   accum)
-               end 
+               end
              else
                do_term t accum
            | _ => do_term t accum)
@@ -1105,7 +1101,7 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
               val (T1, T2) = pairself (curry fastype_of1 new_Ts) (t1, t2)
               val (t1', T2') =
                 case T1 of
-                  Type (s, [T11, T12]) => 
+                  Type (s, [T11, T12]) =>
                   (if s = @{type_name fin_fun} then
                      select_nth_constr_arg ctxt stds (fin_fun_constr T11 T12) t1
                                            0 (T11 --> T12)

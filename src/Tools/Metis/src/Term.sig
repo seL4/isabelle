@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC TERMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Term =
@@ -80,6 +80,8 @@ val symbols : term -> int
 
 val compare : term * term -> order
 
+val equal : term -> term -> bool
+
 (* ------------------------------------------------------------------------- *)
 (* Subterms.                                                                 *)
 (* ------------------------------------------------------------------------- *)
@@ -94,7 +96,7 @@ val replace : term -> path * term -> term
 
 val find : (term -> bool) -> term -> path option
 
-val ppPath : path Parser.pp
+val ppPath : path Print.pp
 
 val pathToString : path -> string
 
@@ -105,6 +107,8 @@ val pathToString : path -> string
 val freeIn : var -> term -> bool
 
 val freeVars : term -> NameSet.set
+
+val freeVarsList : term list -> NameSet.set
 
 (* ------------------------------------------------------------------------- *)
 (* Fresh variables.                                                          *)
@@ -122,6 +126,10 @@ val variantNum : NameSet.set -> var -> var
 (* Special support for terms with type annotations.                          *)
 (* ------------------------------------------------------------------------- *)
 
+val hasTypeFunctionName : functionName
+
+val hasTypeFunction : function
+
 val isTypedVar : term -> bool
 
 val typedSymbols : term -> int
@@ -132,15 +140,17 @@ val nonVarTypedSubterms : term -> (path * term) list
 (* Special support for terms with an explicit function application operator. *)
 (* ------------------------------------------------------------------------- *)
 
-val mkComb : term * term -> term
+val appName : Name.name
 
-val destComb : term -> term * term
+val mkApp : term * term -> term
 
-val isComb : term -> bool
+val destApp : term -> term * term
 
-val listMkComb : term * term list -> term
+val isApp : term -> bool
 
-val stripComb : term -> term * term list
+val listMkApp : term * term list -> term
+
+val stripApp : term -> term * term list
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
@@ -148,23 +158,23 @@ val stripComb : term -> term * term list
 
 (* Infix symbols *)
 
-val infixes : Parser.infixities ref
+val infixes : Print.infixes ref
 
 (* The negation symbol *)
 
-val negation : Name.name ref
+val negation : string ref
 
 (* Binder symbols *)
 
-val binders : Name.name list ref
+val binders : string list ref
 
 (* Bracket symbols *)
 
-val brackets : (Name.name * Name.name) list ref
+val brackets : (string * string) list ref
 
 (* Pretty printing *)
 
-val pp : term Parser.pp
+val pp : term Print.pp
 
 val toString : term -> string
 
@@ -172,6 +182,6 @@ val toString : term -> string
 
 val fromString : string -> term
 
-val parse : term Parser.quotation -> term
+val parse : term Parse.quotation -> term
 
 end

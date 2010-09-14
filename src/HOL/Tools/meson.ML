@@ -11,7 +11,6 @@ sig
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
   val flexflex_first_order: thm -> thm
   val size_of_subgoals: thm -> int
-  val estimated_num_clauses: Proof.context -> int -> term -> int
   val has_too_many_clauses: Proof.context -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
@@ -94,7 +93,6 @@ val disj_FalseD2 = @{thm meson_disj_FalseD2};
 
 (** First-order Resolution **)
 
-fun typ_pair_of (ix, (sort,ty)) = (TVar (ix,sort), ty);
 fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t);
 
 (*FIXME: currently does not "rename variables apart"*)
@@ -117,7 +115,7 @@ fun flexflex_first_order th =
       [] => th
     | pairs =>
         let val thy = theory_of_thm th
-            val (tyenv, tenv) =
+            val (_, tenv) =
               fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
             val t_pairs = map term_pair_of (Vartab.dest tenv)
             val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
@@ -154,7 +152,7 @@ fun forward_res ctxt nf st =
 
 (*Are any of the logical connectives in "bs" present in the term?*)
 fun has_conns bs =
-  let fun has (Const(a,_)) = false
+  let fun has (Const _) = false
         | has (Const(@{const_name Trueprop},_) $ p) = has p
         | has (Const(@{const_name Not},_) $ p) = has p
         | has (Const(@{const_name HOL.disj},_) $ p $ q) = member (op =) bs @{const_name HOL.disj} orelse has p orelse has q
@@ -238,7 +236,7 @@ fun refl_clause th =
 (*** Removal of duplicate literals ***)
 
 (*Forward proof, passing extra assumptions as theorems to the tactic*)
-fun forward_res2 ctxt nf hyps st =
+fun forward_res2 nf hyps st =
   case Seq.pull
         (REPEAT
          (Misc_Legacy.METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
@@ -250,7 +248,7 @@ fun forward_res2 ctxt nf hyps st =
   rls (initially []) accumulates assumptions of the form P==>False*)
 fun nodups_aux ctxt rls th = nodups_aux ctxt rls (th RS disj_assoc)
     handle THM _ => tryres(th,rls)
-    handle THM _ => tryres(forward_res2 ctxt (nodups_aux ctxt) rls (th RS disj_forward2),
+    handle THM _ => tryres(forward_res2 (nodups_aux ctxt) rls (th RS disj_forward2),
                            [disj_FalseD1, disj_FalseD2, asm_rl])
     handle THM _ => th;
 
@@ -263,7 +261,7 @@ fun nodups ctxt th =
 
 (*** The basic CNF transformation ***)
 
-fun estimated_num_clauses ctxt bound t =
+fun estimated_num_clauses bound t =
  let
   fun sum x y = if x < bound andalso y < bound then x+y else bound
   fun prod x y = if x < bound andalso y < bound then x*y else bound
@@ -294,7 +292,7 @@ fun estimated_num_clauses ctxt bound t =
 
 fun has_too_many_clauses ctxt t =
   let val max_cl = Config.get ctxt max_clauses in
-    estimated_num_clauses ctxt (max_cl + 1) t > max_cl
+    estimated_num_clauses (max_cl + 1) t > max_cl
   end
 
 (*Replaces universally quantified variables by FREE variables -- because
@@ -448,7 +446,7 @@ fun make_horn crules th =
 (*Generate Horn clauses for all contrapositives of a clause. The input, th,
   is a HOL disjunction.*)
 fun add_contras crules th hcs =
-  let fun rots (0,th) = hcs
+  let fun rots (0,_) = hcs
         | rots (k,th) = zero_var_indexes (make_horn crules th) ::
                         rots(k-1, assoc_right (th RS disj_comm))
   in case nliterals(prop_of th) of
@@ -639,7 +637,7 @@ val depth_meson_tac =
 (*This version does only one inference per call;
   having only one eq_assume_tac speeds it up!*)
 fun prolog_step_tac' horns =
-    let val (horn0s, hornps) = (*0 subgoals vs 1 or more*)
+    let val (horn0s, _) = (*0 subgoals vs 1 or more*)
             take_prefix Thm.no_prems horns
         val nrtac = net_resolve_tac horns
     in  fn i => eq_assume_tac i ORELSE

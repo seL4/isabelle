@@ -45,7 +45,7 @@ val _ =
   (setmp_noncritical auto true (fn () =>
     Preferences.bool_pref auto
       "auto-quickcheck"
-      "Whether to run Quickcheck automatically.") ());
+      "Run Quickcheck automatically.") ());
 
 (* quickcheck report *)
 
@@ -320,7 +320,7 @@ fun auto_quickcheck state =
           Pretty.mark Markup.hilite (pretty_counterex ctxt cex)])) state)
     end
 
-val setup = Auto_Counterexample.register_tool ("quickcheck", auto_quickcheck)
+val setup = Auto_Tools.register_tool ("quickcheck", auto_quickcheck)
 
 
 (* Isar commands *)

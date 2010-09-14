@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC LITERALS           *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure LiteralNet :> LiteralNet =
@@ -48,9 +48,9 @@ fun filter pred {positive,negative} =
 fun toString net = "LiteralNet[" ^ Int.toString (size net) ^ "]";
 
 fun pp ppA =
-    Parser.ppMap
+    Print.ppMap
       (fn {positive,negative} => (positive,negative))
-      (Parser.ppBinop " + NEGATIVE" (AtomNet.pp ppA) (AtomNet.pp ppA));
+      (Print.ppOp2 " + NEGATIVE" (AtomNet.pp ppA) (AtomNet.pp ppA));
 
 (* ------------------------------------------------------------------------- *)
 (* Matching and unification queries.                                         *)

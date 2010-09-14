@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SOME SAMPLE PROBLEMS TO TEST PROOF PROCEDURES                             *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 (* ========================================================================= *)
@@ -16,16 +16,25 @@ type problem =
 (* Helper functions.                                                         *)
 (* ========================================================================= *)
 
-fun mkProblem description (problem : problem) : problem =
-    let
-      val {name,comments,goal} = problem
-      val comments = if null comments then [] else "" :: comments
-      val comments = "Collection: " ^ description :: comments
-    in
-      {name = name, comments = comments, goal = goal}
-    end;
+local
+  fun mkCollection collection = "Collection: " ^ collection;
 
-fun mkProblems description problems = map (mkProblem description) problems;
+  fun mkProblem collection description (problem : problem) : problem =
+      let
+        val {name,comments,goal} = problem
+        val comments = if null comments then [] else "" :: comments
+        val comments = "Description: " ^ description :: comments
+        val comments = mkCollection collection :: comments
+      in
+        {name = name, comments = comments, goal = goal}
+      end;
+in
+  fun isCollection collection {name = _, comments, goal = _} =
+      Useful.mem (mkCollection collection) comments;
+
+  fun mkProblems collection description problems =
+      map (mkProblem collection description) problems;
+end;
 
 (* ========================================================================= *)
 (* The collection of problems.                                               *)
@@ -37,7 +46,7 @@ val problems : problem list =
 (* Problems without equality.                                                *)
 (* ========================================================================= *)
 
-mkProblems "Problems without equality from various sources" [
+mkProblems "nonequality" "Problems without equality from various sources" [
 
 (* ------------------------------------------------------------------------- *)
 (* Trivia (some of which demonstrate ex-bugs in provers).                    *)
@@ -68,6 +77,27 @@ T`},
  goal = `
 (!x. ?y. p x y) /\ (!x. ?y. q x y) /\
 (!x y z. p x y /\ q y z ==> r x z) ==> !x. ?y. r x y`},
+
+{name = "TOBIAS_NIPKOW",
+ comments = [],
+ goal = `
+(!x y. p x y ==> f x = f y) /\ (!x. f (g x) = f x) /\ p (g a) (g b) ==>
+f a = f b`},
+
+{name = "SLEDGEHAMMER",
+ comments = ["From Tobias Nipkow: A ==> A takes 1 minute in sledgehammer."],
+ goal = `
+(!x y z t.
+   x @ y = z @ t <=>
+   ?u. x = z @ u /\ u @ y = t \/ x @ u = z /\ y = u @ t) ==>
+!x y z t.
+  x @ y = z @ t <=> ?u. x = z @ u /\ u @ y = t \/ x @ u = z /\ y = u @ t`},
+
+{name = "SPLITTING_UNSOUNDNESS",
+ comments = ["A trivial example to illustrate a bug spotted by",
+             "Geoff Sutcliffe in Dec 2008."],
+ goal = `
+(!x. p x /\ q x ==> F) ==> !x. p x ==> !x. q x ==> F`},
 
 (* ------------------------------------------------------------------------- *)
 (* Propositional Logic.                                                      *)
@@ -184,6 +214,11 @@ p /\ (q ==> r) ==> s <=> (~p \/ q \/ s) /\ (~p \/ ~r \/ s)`},
  comments = [],
  goal = `
 (lit ==> clause) ==> (lit \/ clause <=> clause)`},
+
+{name = "SPLIT_NOT_IFF",
+ comments = ["A way to split a goal that looks like ~(p <=> q)"],
+ goal = `
+~(p <=> q) <=> (p ==> ~q) /\ (q ==> ~p)`},
 
 (* ------------------------------------------------------------------------- *)
 (* Monadic Predicate Logic.                                                  *)
@@ -542,9 +577,8 @@ p (f a b) (f b c) /\ p (f b c) (f a c) /\
 ?x y. p0 x /\ p0 y /\ ?z. q1 z /\ r y z /\ r x y`},
 
 {name = "MODEL_COMPLETENESS",
- comments =
-["An incestuous example used to establish completeness",
- "characterization. [JRH]"],
+ comments = ["An incestuous example used to establish completeness",
+             "characterization. [JRH]"],
  goal = `
 (!w x. sentence x ==> holds w x \/ holds w (not x)) /\
 (!w x. ~(holds w x /\ holds w (not x))) ==>
@@ -562,7 +596,7 @@ p (f a b) (f b c) /\ p (f b c) (f a c) /\
 (* Problems with equality.                                                   *)
 (* ========================================================================= *)
 
-mkProblems "Equality problems from various sources" [
+mkProblems "equality" "Equality problems from various sources" [
 
 (* ------------------------------------------------------------------------- *)
 (* Trivia (some of which demonstrate ex-bugs in the prover).                 *)
@@ -639,9 +673,9 @@ p a /\ p b /\ ~(a = b) /\ ~p c /\ (!x. x = a \/ x = d) ==> F`},
 f (g (h c)) = h c /\ g (h c) = b /\ f b = a /\ (!x. ~(a = h x)) ==> F`},
 
 {name = "EQUALITY_ORDERING",
- comments =
-["Positive resolution saturates if equality literals are ordered like other",
- "literals, instead of considering their left and right sides."],
+ comments = ["Positive resolution saturates if equality literals are",
+             "ordered like other literals, instead of considering their",
+             "left and right sides."],
  goal = `
 p a /\ q a /\ q b /\ r b /\ (~p c \/ c = a) /\ (~r c \/ c = b) /\
 (!x. ~q x \/ p x \/ r x) /\ (~p c \/ ~q c) /\ (~q c \/ ~r c) /\
@@ -677,7 +711,7 @@ p a /\ q a /\ q b /\ r b /\ (~p c \/ c = a) /\ (~r c \/ c = b) /\
  comments = ["The Melham problem after an inverse skolemization step."],
  goal = `
 (!x y. g x = g y ==> f x = f y) ==> !y. ?w. !x. y = g x ==> w = f x`},
- 
+
 {name = "CONGRUENCE_CLOSURE_EXAMPLE",
  comments = ["The example always given for congruence closure."],
  goal = `
@@ -736,6 +770,41 @@ killed agatha agatha /\ ~killed butler agatha /\ ~killed charles agatha`},
 (!x y. divides x y <=> ?z. z * x = y) ==>
 !x y z. divides x y ==> divides x (z * y)`},
 
+{name = "XOR_COUNT_COMMUTATIVE",
+ comments = ["The xor literal counting function in Normalize is commutative."],
+ goal = `
+(!x y. x + y = y + x) /\ (!x y z. x + (y + z) = x + y + z) /\
+(!x y. x * y = y * x) /\ (!x y z. x * (y * z) = x * y * z) /\
+pl = p1 * p2 + n1 * n2 /\ nl = p1 * n2 + n1 * p2 /\
+pr = p2 * p1 + n2 * n1 /\ nr = p2 * n1 + n2 * p1 ==> pl = pr /\ nl = nr`},
+
+{name = "XOR_COUNT_ASSOCIATIVE",
+ comments = ["The xor literal counting function in Normalize is associative."],
+ goal = `
+(!x y. x + y = y + x) /\ (!x y z. x + (y + z) = x + y + z) /\
+(!x y. x * y = y * x) /\ (!x y z. x * (y * z) = x * y * z) /\
+px = p1 * p2 + n1 * n2 /\ nx = p1 * n2 + n1 * p2 /\
+pl = px * p3 + nx * n3 /\ nl = px * n3 + nx * p3 /\
+py = p2 * p3 + n2 * n3 /\ ny = p2 * n3 + n2 * p3 /\
+pr = p1 * py + n1 * ny /\ nr = p1 * ny + n1 * py ==> pl = pr /\ nl = nr`},
+
+{name = "REVERSE_REVERSE",
+ comments = ["Proving the goal",
+             "  !l. finite l ==> rev (rev l) = l",
+             "after first generalizing it to",
+             "  !l k. finite l /\\ finite k ==> rev (rev l @ k) = rev k @ l",
+             "and then applying list induction."],
+ goal = `
+finite nil /\ (!h t. finite (h :: t) <=> finite t) /\
+(!l1 l2. finite (l1 @ l2) <=> finite l1 /\ finite l2) /\
+(!l. nil @ l = l) /\ (!h t l. (h :: t) @ l = h :: t @ l) /\
+rev nil = nil /\ (!h t. rev (h :: t) = rev t @ h :: nil) /\
+(!l. l @ nil = l) /\ (!l1 l2 l3. l1 @ l2 @ l3 = (l1 @ l2) @ l3) ==>
+(!k. finite k ==> rev (rev nil @ k) = rev k @ nil) /\
+!t.
+  finite t ==> (!k. finite k ==> rev (rev t @ k) = rev k @ t) ==>
+  !h k. finite k ==> rev (rev (h :: t) @ k) = rev k @ h :: t`},
+
 (* ------------------------------------------------------------------------- *)
 (* Group theory examples.                                                    *)
 (* ------------------------------------------------------------------------- *)
@@ -770,15 +839,34 @@ killed agatha agatha /\ ~killed butler agatha /\ ~killed charles agatha`},
 (!x y z. x * (y * z) = x * y * z) /\ (!x. e * x = x) /\ (!x. x * e = x) /\
 (!x. x * x = e) ==> !x y. x * y = y * x`},
 
+{name = "DOUBLE_DISTRIB",
+ comments = ["From a John Harrison post to hol-info on 2008-04-15"],
+ goal = `
+(!x y z. x * y * z = x * z * (y * z)) /\
+(!x y z. z * (x * y) = z * x * (z * y)) ==>
+!a b c. a * b * (c * a) = a * c * (b * a)`},
+
 (* ------------------------------------------------------------------------- *)
 (* Ring theory examples.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
+{name = "CONWAY_2",
+ comments = ["From a John Harrison post to hol-info on 2008-04-15"],
+ goal = `
+(!x. 0 + x = x) /\ (!x y. x + y = y + x) /\
+(!x y z. x + (y + z) = x + y + z) /\ (!x. 1 * x = x) /\ (!x. x * 1 = x) /\
+(!x y z. x * (y * z) = x * y * z) /\ (!x. 0 * x = 0) /\ (!x. x * 0 = 0) /\
+(!x y z. x * (y + z) = x * y + x * z) /\
+(!x y z. (x + y) * z = x * z + y * z) /\
+(!x y. star (x * y) = 1 + x * star (y * x) * y) /\
+(!x y. star (x + y) = star (star (x) * y) * star (x)) ==>
+!a. star (star (star (star (a)))) = star (star (star (a)))`},
+
 {name = "JACOBSON_2",
  comments = [],
  goal = `
-(!x. 0 + x = x) /\ (!x. x + 0 = x) /\ (!x. n x + x = 0) /\
-(!x. x + n x = 0) /\ (!x y z. x + (y + z) = x + y + z) /\
+(!x. 0 + x = x) /\ (!x. x + 0 = x) /\ (!x. ~x + x = 0) /\
+(!x. x + ~x = 0) /\ (!x y z. x + (y + z) = x + y + z) /\
 (!x y. x + y = y + x) /\ (!x y z. x * (y * z) = x * y * z) /\
 (!x y z. x * (y + z) = x * y + x * z) /\
 (!x y z. (x + y) * z = x * z + y * z) /\ (!x. x * x = x) ==>
@@ -787,21 +875,57 @@ killed agatha agatha /\ ~killed butler agatha /\ ~killed charles agatha`},
 {name = "JACOBSON_3",
  comments = [],
  goal = `
-(!x. 0 + x = x) /\ (!x. x + 0 = x) /\ (!x. n x + x = 0) /\
-(!x. x + n x = 0) /\ (!x y z. x + (y + z) = x + y + z) /\
+(!x. 0 + x = x) /\ (!x. x + 0 = x) /\ (!x. ~x + x = 0) /\
+(!x. x + ~x = 0) /\ (!x y z. x + (y + z) = x + y + z) /\
 (!x y. x + y = y + x) /\ (!x y z. x * (y * z) = x * y * z) /\
 (!x y z. x * (y + z) = x * y + x * z) /\
 (!x y z. (x + y) * z = x * z + y * z) /\ (!x. x * (x * x) = x) ==>
-!x y. x * y = y * x`}
+!x y. x * y = y * x`},
 
-] @
+(* ------------------------------------------------------------------------- *)
+(* Set theory examples.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+{name = "UNION_2_SUBSET",
+ comments = [],
+ goal = `
+(!x y. subset x y ==> subset y x ==> x = y) /\
+(!x y. (!z. member z x ==> member z y) ==> subset x y) /\
+(!x y z. member z (x + y) <=> member z x \/ member z y) ==>
+!x y. subset (x + y) (y + x)`},
+
+{name = "UNION_2",
+ comments = [],
+ goal = `
+(!x y. subset x y ==> subset y x ==> x = y) /\
+(!x y. (!z. member z x ==> member z y) ==> subset x y) /\
+(!x y z. member z (x + y) <=> member z x \/ member z y) ==>
+!x y. x + y = y + x`},
+
+{name = "UNION_3_SUBSET",
+ comments = ["From an email from Tobias Nipkow, 4 Nov 2008.",
+             "The Isabelle version of metis diverges on this goal"],
+ goal = `
+(!x y. subset x y ==> subset y x ==> x = y) /\
+(!x y. (!z. member z x ==> member z y) ==> subset x y) /\
+(!x y z. member z (x + y) <=> member z x \/ member z y) ==>
+!x y z. subset (x + y + z) (z + y + x)`},
+
+{name = "UNION_3",
+ comments = ["From an email from Tobias Nipkow, 28 Oct 2008.",
+             "The Isabelle version of metis diverges on this goal"],
+ goal = `
+(!x y. subset x y ==> subset y x ==> x = y) /\
+(!x y. (!z. member z x ==> member z y) ==> subset x y) /\
+(!x y z. member z (x + y) <=> member z x \/ member z y) ==>
+!x y z. x + y + z = z + y + x`}] @
 
 (* ========================================================================= *)
 (* Some sample problems from the TPTP archive.                               *)
 (* Note: for brevity some relation/function names have been shortened.       *)
 (* ========================================================================= *)
 
-mkProblems "Sample problems from the TPTP collection"
+mkProblems "tptp" "Sample problems from the TPTP collection"
 
 [
 
@@ -1219,7 +1343,7 @@ person wife /\ ~(husband = wife) /\ says husband (statement_by husband) /\
 (* Some problems from HOL.                                                   *)
 (* ========================================================================= *)
 
-mkProblems "HOL subgoals sent to MESON_TAC" [
+mkProblems "hol" "HOL subgoals sent to MESON_TAC" [
 
 {name = "Coder_4_0",
  comments = [],
@@ -1384,7 +1508,7 @@ SUC n * b = q * (SUC n * a) /\ 0 < SUC n /\ ~(b = q * a) ==> F`},
 (!x y z. divides x y \/ ~divides x z \/ ~divides x (z + y)) ==>
 ~(x + z <= x) /\ divides c (d * SUC x) /\ divides c (d * SUC (x + z)) /\
 ~divides c (d * z) ==> F`},
- 
+
 {name = "gcd_20",
  comments = [],
  goal = `

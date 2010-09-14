@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Rewrite :> Rewrite =
@@ -9,10 +9,28 @@ struct
 open Useful;
 
 (* ------------------------------------------------------------------------- *)
-(* A type of rewrite systems.                                                *)
+(* Orientations of equations.                                                *)
 (* ------------------------------------------------------------------------- *)
 
 datatype orient = LeftToRight | RightToLeft;
+
+fun toStringOrient ort =
+    case ort of
+      LeftToRight => "-->"
+    | RightToLeft => "<--";
+
+val ppOrient = Print.ppMap toStringOrient Print.ppString;
+
+fun toStringOrientOption orto =
+    case orto of
+      SOME ort => toStringOrient ort
+    | NONE => "<->";
+
+val ppOrientOption = Print.ppMap toStringOrientOption Print.ppString;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of rewrite systems.                                                *)
+(* ------------------------------------------------------------------------- *)
 
 type reductionOrder = Term.term * Term.term -> order option;
 
@@ -59,72 +77,63 @@ fun size (Rewrite {known,...}) = IntMap.size known;
 fun equations (Rewrite {known,...}) =
     IntMap.foldr (fn (_,(eqn,_),eqns) => eqn :: eqns) [] known;
 
-val pp = Parser.ppMap equations (Parser.ppList Rule.ppEquation);
+val pp = Print.ppMap equations (Print.ppList Rule.ppEquation);
 
-(*DEBUG
+(*MetisTrace1
 local
-  fun orientOptionToString ort =
-      case ort of
-        SOME LeftToRight => "-->"
-      | SOME RightToLeft => "<--"
-      | NONE => "<->";
+  fun ppEq ((x_y,_),ort) =
+      Print.ppOp2 (" " ^ toStringOrientOption ort) Term.pp Term.pp x_y;
 
-  open Parser;
-
-  fun ppEq p ((x_y,_),ort) =
-      ppBinop (" " ^ orientOptionToString ort) Term.pp Term.pp p x_y;
-
-  fun ppField f ppA p a =
-      (beginBlock p Inconsistent 2;
-       addString p (f ^ " =");
-       addBreak p (1,0);
-       ppA p a;
-       endBlock p);
+  fun ppField f ppA a =
+      Print.blockProgram Print.Inconsistent 2
+        [Print.addString (f ^ " ="),
+         Print.addBreak 1,
+         ppA a];
 
   val ppKnown =
-      ppField "known" (ppMap IntMap.toList (ppList (ppPair ppInt ppEq)));
+      ppField "known"
+        (Print.ppMap IntMap.toList
+           (Print.ppList (Print.ppPair Print.ppInt ppEq)));
 
   val ppRedexes =
-      ppField
-        "redexes"
-        (TermNet.pp
-           (ppPair ppInt (ppMap (orientOptionToString o SOME) ppString)));
+      ppField "redexes"
+        (TermNet.pp (Print.ppPair Print.ppInt ppOrient));
 
   val ppSubterms =
-      ppField
-        "subterms"
+      ppField "subterms"
         (TermNet.pp
-           (ppMap
+           (Print.ppMap
               (fn (i,l,p) => (i, (if l then 0 else 1) :: p))
-              (ppPair ppInt Term.ppPath)));
+              (Print.ppPair Print.ppInt Term.ppPath)));
 
-  val ppWaiting = ppField "waiting" (ppMap (IntSet.toList) (ppList ppInt));
+  val ppWaiting =
+      ppField "waiting"
+        (Print.ppMap (IntSet.toList) (Print.ppList Print.ppInt));
 in
-  fun pp p (Rewrite {known,redexes,subterms,waiting,...}) =
-      (beginBlock p Inconsistent 2;
-       addString p "Rewrite";
-       addBreak p (1,0);
-       beginBlock p Inconsistent 1;
-       addString p "{";
-       ppKnown p known;
-(*TRACE5
-       addString p ",";
-       addBreak p (1,0);
-       ppRedexes p redexes;
-       addString p ",";
-       addBreak p (1,0);
-       ppSubterms p subterms;
-       addString p ",";
-       addBreak p (1,0);
-       ppWaiting p waiting;
+  fun pp (Rewrite {known,redexes,subterms,waiting,...}) =
+      Print.blockProgram Print.Inconsistent 2
+        [Print.addString "Rewrite",
+         Print.addBreak 1,
+         Print.blockProgram Print.Inconsistent 1
+           [Print.addString "{",
+            ppKnown known,
+(*MetisTrace5
+            Print.addString ",",
+            Print.addBreak 1,
+            ppRedexes redexes,
+            Print.addString ",",
+            Print.addBreak 1,
+            ppSubterms subterms,
+            Print.addString ",",
+            Print.addBreak 1,
+            ppWaiting waiting,
 *)
-       endBlock p;
-       addString p "}";
-       endBlock p);
+            Print.skip],
+         Print.addString "}"]
 end;
 *)
 
-val toString = Parser.toString pp;
+val toString = Print.toString pp;
 
 (* ------------------------------------------------------------------------- *)
 (* Debug functions.                                                          *)
@@ -137,7 +146,7 @@ fun termReducible order known id =
             NONE => false
           | SOME sub =>
             order (tm, Subst.subst (Subst.normalize sub) r) = SOME GREATER
-      
+
       fun knownRed tm (eqnId,(eqn,ort)) =
           eqnId <> id andalso
           ((ort <> SOME RightToLeft andalso eqnRed eqn tm) orelse
@@ -191,8 +200,8 @@ fun add (rw as Rewrite {known,...}) (id,eqn) =
             Rewrite
               {order = order, known = known, redexes = redexes,
                subterms = subterms, waiting = waiting}
-(*TRACE5
-        val () = Parser.ppTrace pp "Rewrite.add: result" rw
+(*MetisTrace5
+        val () = Print.trace pp "Rewrite.add: result" rw
 *)
       in
         rw
@@ -256,17 +265,18 @@ fun mkNeqConv order lit =
         NONE => raise Error "incomparable"
       | SOME LESS =>
         let
-          val sub = Subst.fromList [("x",l),("y",r)]
-          val th = Thm.subst sub Rule.symmetry
+          val th = Rule.symmetryRule l r
         in
-          fn tm => if tm = r then (l,th) else raise Error "mkNeqConv: RL"
+          fn tm =>
+             if Term.equal tm r then (l,th) else raise Error "mkNeqConv: RL"
         end
       | SOME EQUAL => raise Error "irreflexive"
       | SOME GREATER =>
         let
           val th = Thm.assume lit
         in
-          fn tm => if tm = l then (r,th) else raise Error "mkNeqConv: LR"
+          fn tm =>
+             if Term.equal tm l then (r,th) else raise Error "mkNeqConv: LR"
         end
     end;
 
@@ -321,14 +331,14 @@ fun rewriteIdEqn' order known redexes id (eqn as (l_r,th)) =
           | SOME lit => (false,lit)
       val (lit',litTh) = literule lit
     in
-      if lit = lit' then eqn
+      if Literal.equal lit lit' then eqn
       else
         (Literal.destEq lit',
          if strongEqn then th
          else if not (Thm.negateMember lit litTh) then litTh
          else Thm.resolve lit th litTh)
     end
-(*DEBUG
+(*MetisDebug
     handle Error err => raise Error ("Rewrite.rewriteIdEqn':\n" ^ err);
 *)
 
@@ -341,7 +351,7 @@ fun rewriteIdLiteralsRule' order known redexes id lits th =
             val neq = neqConvsDelete neq lit
             val (lit',litTh) = mk_literule neq lit
           in
-            if lit = lit' then acc
+            if Literal.equal lit lit' then acc
             else
               let
                 val th = Thm.resolve lit th litTh
@@ -377,15 +387,15 @@ fun rewriteIdLiteralsRule' order known redexes id lits th =
 fun rewriteIdRule' order known redexes id th =
     rewriteIdLiteralsRule' order known redexes id (Thm.clause th) th;
 
-(*DEBUG
+(*MetisDebug
 val rewriteIdRule' = fn order => fn known => fn redexes => fn id => fn th =>
     let
-(*TRACE6
-      val () = Parser.ppTrace Thm.pp "Rewrite.rewriteIdRule': th" th
+(*MetisTrace6
+      val () = Print.trace Thm.pp "Rewrite.rewriteIdRule': th" th
 *)
       val result = rewriteIdRule' order known redexes id th
-(*TRACE6
-      val () = Parser.ppTrace Thm.pp "Rewrite.rewriteIdRule': result" result
+(*MetisTrace6
+      val () = Print.trace Thm.pp "Rewrite.rewriteIdRule': result" result
 *)
       val _ = not (thmReducible order known id result) orelse
               raise Bug "rewriteIdRule: should be normalized"
@@ -431,8 +441,8 @@ fun addSubterms id (((l,r),_) : equation) subterms =
     end;
 
 fun sameRedexes NONE _ _ = false
-  | sameRedexes (SOME LeftToRight) (l0,_) (l,_) = l0 = l
-  | sameRedexes (SOME RightToLeft) (_,r0) (_,r) = r0 = r;
+  | sameRedexes (SOME LeftToRight) (l0,_) (l,_) = Term.equal l0 l
+  | sameRedexes (SOME RightToLeft) (_,r0) (_,r) = Term.equal r0 r;
 
 fun redexResidues NONE (l,r) = [(l,r,false),(r,l,false)]
   | redexResidues (SOME LeftToRight) (l,r) = [(l,r,true)]
@@ -455,13 +465,13 @@ fun findReducibles order known subterms id =
                 else raise Error "order"
               end
           end
-            
+
       fun addRed lr ((id',left,path),todo) =
           if id <> id' andalso not (IntSet.member id' todo) andalso
              can (checkValidRewr lr id' left) path
           then IntSet.add todo id'
           else todo
-               
+
       fun findRed (lr as (l,_,_), todo) =
           List.foldl (addRed lr) todo (TermNet.matched subterms l)
     in
@@ -473,7 +483,13 @@ fun reduce1 new id (eqn0,ort0) (rpl,spl,todo,rw,changed) =
       val (eq0,_) = eqn0
       val Rewrite {order,known,redexes,subterms,waiting} = rw
       val eqn as (eq,_) = rewriteIdEqn' order known redexes id eqn0
-      val identical = eq = eq0
+      val identical =
+          let
+            val (l0,r0) = eq0
+            and (l,r) = eq
+          in
+            Term.equal l l0 andalso Term.equal r r0
+          end
       val same_redexes = identical orelse sameRedexes ort0 eq0 eq
       val rpl = if same_redexes then rpl else IntSet.add rpl id
       val spl = if new orelse identical then spl else IntSet.add spl id
@@ -543,7 +559,7 @@ local
               case IntMap.peek known id of
                 NONE => reds
               | SOME eqn_ort => addRedexes id eqn_ort reds
-                               
+
           val redexes = TermNet.filter filt redexes
           val redexes = IntSet.foldl addReds redexes rpl
         in
@@ -560,7 +576,7 @@ local
               case IntMap.peek known id of
                 NONE => subtms
               | SOME (eqn,_) => addSubterms id eqn subtms
-                               
+
           val subterms = TermNet.filter filt subterms
           val subterms = IntSet.foldl addSubtms subterms spl
         in
@@ -569,18 +585,21 @@ local
 in
   fun rebuild rpl spl rw =
       let
-(*TRACE5
-        val ppPl = Parser.ppMap IntSet.toList (Parser.ppList Parser.ppInt)
-        val () = Parser.ppTrace ppPl "Rewrite.rebuild: rpl" rpl
-        val () = Parser.ppTrace ppPl "Rewrite.rebuild: spl" spl
+(*MetisTrace5
+        val ppPl = Print.ppMap IntSet.toList (Print.ppList Print.ppInt)
+        val () = Print.trace ppPl "Rewrite.rebuild: rpl" rpl
+        val () = Print.trace ppPl "Rewrite.rebuild: spl" spl
 *)
         val Rewrite {order,known,redexes,subterms,waiting} = rw
         val redexes = cleanRedexes known redexes rpl
         val subterms = cleanSubterms known subterms spl
       in
         Rewrite
-          {order = order, known = known, redexes = redexes,
-           subterms = subterms, waiting = waiting}
+          {order = order,
+           known = known,
+           redexes = redexes,
+           subterms = subterms,
+           waiting = waiting}
       end;
 end;
 
@@ -608,17 +627,17 @@ fun reduce' rw =
     if isReduced rw then (rw,[])
     else reduceAcc (IntSet.empty,IntSet.empty,IntSet.empty,rw,IntSet.empty);
 
-(*DEBUG
+(*MetisDebug
 val reduce' = fn rw =>
     let
-(*TRACE4
-      val () = Parser.ppTrace pp "Rewrite.reduce': rw" rw
+(*MetisTrace4
+      val () = Print.trace pp "Rewrite.reduce': rw" rw
 *)
       val Rewrite {known,order,...} = rw
       val result as (Rewrite {known = known', ...}, _) = reduce' rw
-(*TRACE4
-      val ppResult = Parser.ppPair pp (Parser.ppList Parser.ppInt)
-      val () = Parser.ppTrace ppResult "Rewrite.reduce': result" result
+(*MetisTrace4
+      val ppResult = Print.ppPair pp (Print.ppList Print.ppInt)
+      val () = Print.trace ppResult "Rewrite.reduce': result" result
 *)
       val ths = map (fn (id,((_,th),_)) => (id,th)) (IntMap.toList known')
       val _ =

@@ -102,6 +102,7 @@ setup Meson_Tactic.setup
 
 use "Tools/Sledgehammer/metis_clauses.ML"
 use "Tools/Sledgehammer/metis_tactics.ML"
+setup Metis_Tactics.setup
 
 use "Tools/Sledgehammer/sledgehammer_util.ML"
 use "Tools/Sledgehammer/sledgehammer_filter.ML"
@@ -111,6 +112,6 @@ use "Tools/Sledgehammer/sledgehammer.ML"
 setup Sledgehammer.setup
 use "Tools/Sledgehammer/sledgehammer_minimize.ML"
 use "Tools/Sledgehammer/sledgehammer_isar.ML"
-setup Metis_Tactics.setup
+setup Sledgehammer_Isar.setup
 
 end

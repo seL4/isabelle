@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE ACTIVE SET OF CLAUSES                                                 *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Active :> Active =
@@ -12,10 +12,32 @@ open Useful;
 (* Helper functions.                                                         *)
 (* ------------------------------------------------------------------------- *)
 
+(*MetisDebug
 local
+  fun mkRewrite ordering =
+      let
+        fun add (cl,rw) =
+            let
+              val {id, thm = th, ...} = Clause.dest cl
+            in
+              case total Thm.destUnitEq th of
+                SOME l_r => Rewrite.add rw (id,(l_r,th))
+              | NONE => rw
+            end
+      in
+        foldl add (Rewrite.new (KnuthBendixOrder.compare ordering))
+      end;
+
   fun allFactors red =
       let
-        fun allClause cl = List.all red (cl :: Clause.factor cl)
+        fun allClause cl =
+            List.all red (cl :: Clause.factor cl) orelse
+            let
+              val () = Print.trace Clause.pp
+                         "Active.isSaturated.allFactors: cl" cl
+            in
+              false
+            end
       in
         List.all allClause
       end;
@@ -30,6 +52,12 @@ local
                   | SOME cl => allFactors red [cl]
             in
               LiteralSet.all allLiteral2 (Clause.literals cl)
+            end orelse
+            let
+              val () = Print.trace Clause.pp
+                         "Active.isSaturated.allResolutions: cl2" cl
+            in
+              false
             end
 
         fun allClause1 allCls cl =
@@ -39,7 +67,14 @@ local
               fun allLiteral1 lit = List.all (allClause2 (cl,lit)) allCls
             in
               LiteralSet.all allLiteral1 (Clause.literals cl)
+            end orelse
+            let
+              val () = Print.trace Clause.pp
+                         "Active.isSaturated.allResolutions: cl1" cl
+            in
+              false
             end
+
       in
         fn [] => true
          | allCls as cl :: cls =>
@@ -60,9 +95,24 @@ local
                         | SOME cl => allFactors red [cl]
                   in
                     List.all allSubterms (Literal.nonVarTypedSubterms lit)
+                  end orelse
+                  let
+                    val () = Print.trace Literal.pp
+                               "Active.isSaturated.allParamodulations: lit2" lit
+                  in
+                    false
                   end
             in
               LiteralSet.all allLiteral2 (Clause.literals cl)
+            end orelse
+            let
+              val () = Print.trace Clause.pp
+                         "Active.isSaturated.allParamodulations: cl2" cl
+              val (_,_,ort,_) = cl_lit_ort_tm
+              val () = Print.trace Rewrite.ppOrient
+                         "Active.isSaturated.allParamodulations: ort1" ort
+            in
+              false
             end
 
         fun allClause1 cl =
@@ -78,9 +128,21 @@ local
                     | SOME (l,r) =>
                       allCl2 (cl,lit,Rewrite.LeftToRight,l) andalso
                       allCl2 (cl,lit,Rewrite.RightToLeft,r)
+                  end orelse
+                  let
+                    val () = Print.trace Literal.pp
+                               "Active.isSaturated.allParamodulations: lit1" lit
+                  in
+                    false
                   end
             in
               LiteralSet.all allLiteral1 (Clause.literals cl)
+            end orelse
+            let
+              val () = Print.trace Clause.pp
+                         "Active.isSaturated.allParamodulations: cl1" cl
+            in
+              false
             end
       in
         List.all allClause1 cls
@@ -98,30 +160,49 @@ local
                 val cl' = Clause.reduce reduce cl'
                 val cl' = Clause.rewrite rewrite cl'
               in
-                not (Clause.equalThms cl cl') andalso simp cl'
+                not (Clause.equalThms cl cl') andalso
+                (simp cl' orelse
+                 let
+                   val () = Print.trace Clause.pp
+                              "Active.isSaturated.redundant: cl'" cl'
+                 in
+                   false
+                 end)
               end
       in
-        simp
+        fn cl =>
+           simp cl orelse
+           let
+             val () = Print.trace Clause.pp
+                        "Active.isSaturated.redundant: cl" cl
+           in
+             false
+           end
       end;
 in
   fun isSaturated ordering subs cls =
       let
-(*TRACE2
-        val ppCls = Parser.ppList Clause.pp
-        val () = Parser.ppTrace ppCls "Active.checkSaturated: clauses" cls
-*)
-        val red = Units.empty
-        val rw = Rewrite.new (KnuthBendixOrder.compare ordering)
-        val red = redundant {subsume = subs, reduce = red, rewrite = rw}
+        val rd = Units.empty
+        val rw = mkRewrite ordering cls
+        val red = redundant {subsume = subs, reduce = rd, rewrite = rw}
       in
-        allFactors red cls andalso
-        allResolutions red cls andalso
-        allParamodulations red cls
+        (allFactors red cls andalso
+         allResolutions red cls andalso
+         allParamodulations red cls) orelse
+        let
+          val () = Print.trace Rewrite.pp "Active.isSaturated: rw" rw
+          val () = Print.trace (Print.ppList Clause.pp)
+                     "Active.isSaturated: clauses" cls
+        in
+          false
+        end
       end;
-
-  fun checkSaturated ordering subs cls =
-      if isSaturated ordering subs cls then () else raise Bug "unsaturated";
 end;
+
+fun checkSaturated ordering subs cls =
+    if isSaturated ordering subs cls then ()
+    else raise Bug "Active.checkSaturated";
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* A type of active clause sets.                                             *)
@@ -201,7 +282,7 @@ fun clauses (Active {clauses = cls, ...}) =
       IntMap.foldr add [] cls
     end;
 
-fun saturated active =
+fun saturation active =
     let
       fun remove (cl,(cls,subs)) =
           let
@@ -215,7 +296,7 @@ fun saturated active =
       val (cls,_) = foldl remove ([], Subsume.new ()) cls
       val (cls,subs) = foldl remove ([], Subsume.new ()) cls
 
-(*DEBUG
+(*MetisDebug
       val Active {parameters,...} = active
       val {clause,...} = parameters
       val {ordering,...} = clause
@@ -233,57 +314,53 @@ val pp =
     let
       fun toStr active = "Active{" ^ Int.toString (size active) ^ "}"
     in
-      Parser.ppMap toStr Parser.ppString
+      Print.ppMap toStr Print.ppString
     end;
 
-(*DEBUG
+(*MetisDebug
 local
-  open Parser;
-
-  fun ppField f ppA p a =
-      (beginBlock p Inconsistent 2;
-       addString p (f ^ " =");
-       addBreak p (1,0);
-       ppA p a;
-       endBlock p);
+  fun ppField f ppA a =
+      Print.blockProgram Print.Inconsistent 2
+        [Print.addString (f ^ " ="),
+         Print.addBreak 1,
+         ppA a];
 
   val ppClauses =
       ppField "clauses"
-        (Parser.ppMap IntMap.toList
-           (Parser.ppList (Parser.ppPair Parser.ppInt Clause.pp)));
+        (Print.ppMap IntMap.toList
+           (Print.ppList (Print.ppPair Print.ppInt Clause.pp)));
 
   val ppRewrite = ppField "rewrite" Rewrite.pp;
 
   val ppSubterms =
       ppField "subterms"
         (TermNet.pp
-           (Parser.ppMap (fn (c,l,p,t) => ((Clause.id c, l, p), t))
-              (Parser.ppPair
-                 (Parser.ppTriple Parser.ppInt Literal.pp Term.ppPath)
+           (Print.ppMap (fn (c,l,p,t) => ((Clause.id c, l, p), t))
+              (Print.ppPair
+                 (Print.ppTriple Print.ppInt Literal.pp Term.ppPath)
                  Term.pp)));
 in
-  fun pp p (Active {clauses,rewrite,subterms,...}) =
-      (beginBlock p Inconsistent 2;
-       addString p "Active";
-       addBreak p (1,0);
-       beginBlock p Inconsistent 1;
-       addString p "{";
-       ppClauses p clauses;
-       addString p ",";
-       addBreak p (1,0);
-       ppRewrite p rewrite;
-(*TRACE5
-       addString p ",";
-       addBreak p (1,0);
-       ppSubterms p subterms;
+  fun pp (Active {clauses,rewrite,subterms,...}) =
+      Print.blockProgram Print.Inconsistent 2
+        [Print.addString "Active",
+         Print.addBreak 1,
+         Print.blockProgram Print.Inconsistent 1
+           [Print.addString "{",
+            ppClauses clauses,
+            Print.addString ",",
+            Print.addBreak 1,
+            ppRewrite rewrite,
+(*MetisTrace5
+            Print.addString ",",
+            Print.addBreak 1,
+            ppSubterms subterms,
 *)
-       endBlock p;
-       addString p "}";
-       endBlock p);
+            Print.skip],
+         Print.addString "}"];
 end;
 *)
 
-val toString = Parser.toString pp;
+val toString = Print.toString pp;
 
 (* ------------------------------------------------------------------------- *)
 (* Simplify clauses.                                                         *)
@@ -314,17 +391,17 @@ fun simplify simp units rewr subs =
              end
     end;
 
-(*DEBUG
+(*MetisDebug
 val simplify = fn simp => fn units => fn rewr => fn subs => fn cl =>
     let
-      fun traceCl s = Parser.ppTrace Clause.pp ("Active.simplify: " ^ s)
-(*TRACE4
-      val ppClOpt = Parser.ppOption Clause.pp
+      fun traceCl s = Print.trace Clause.pp ("Active.simplify: " ^ s)
+(*MetisTrace4
+      val ppClOpt = Print.ppOption Clause.pp
       val () = traceCl "cl" cl
 *)
       val cl' = simplify simp units rewr subs cl
-(*TRACE4
-      val () = Parser.ppTrace ppClOpt "Active.simplify: cl'" cl'
+(*MetisTrace4
+      val () = Print.trace ppClOpt "Active.simplify: cl'" cl'
 *)
       val () =
           case cl' of
@@ -459,8 +536,8 @@ fun deduceResolution literals cl (lit as (_,atm), acc) =
           case total (Clause.resolve cl_lit) (cl,lit) of
             SOME cl' => cl' :: acc
           | NONE => acc
-(*TRACE4
-      val () = Parser.ppTrace Literal.pp "Active.deduceResolution: lit" lit
+(*MetisTrace4
+      val () = Print.trace Literal.pp "Active.deduceResolution: lit" lit
 *)
     in
       if Atom.isEq atm then acc
@@ -495,13 +572,30 @@ fun deduce active cl =
       val eqns = Clause.largestEquations cl
       val subtms =
           if TermNet.null equations then [] else Clause.largestSubterms cl
+(*MetisTrace5
+      val () = Print.trace LiteralSet.pp "Active.deduce: lits" lits
+      val () = Print.trace
+                 (Print.ppList
+                    (Print.ppMap (fn (lit,ort,_) => (lit,ort))
+                      (Print.ppPair Literal.pp Rewrite.ppOrient)))
+                 "Active.deduce: eqns" eqns
+      val () = Print.trace
+                 (Print.ppList
+                    (Print.ppTriple Literal.pp Term.ppPath Term.pp))
+                 "Active.deduce: subtms" subtms
+*)
 
       val acc = []
       val acc = LiteralSet.foldl (deduceResolution literals cl) acc lits
       val acc = foldl (deduceParamodulationWith subterms cl) acc eqns
       val acc = foldl (deduceParamodulationInto equations cl) acc subtms
+      val acc = rev acc
+
+(*MetisTrace5
+      val () = Print.trace (Print.ppList Clause.pp) "Active.deduce: acc" acc
+*)
     in
-      rev acc
+      acc
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -555,12 +649,12 @@ local
                     in
                       order (tm,tm') = SOME GREATER
                     end
-                    
+
               fun addRed ((cl,tm),acc) =
                   let
-(*TRACE5
-                    val () = Parser.ppTrace Clause.pp "Active.addRed: cl" cl
-                    val () = Parser.ppTrace Term.pp "Active.addRed: tm" tm
+(*MetisTrace5
+                    val () = Print.trace Clause.pp "Active.addRed: cl" cl
+                    val () = Print.trace Term.pp "Active.addRed: tm" tm
 *)
                     val id = Clause.id cl
                   in
@@ -569,15 +663,15 @@ local
                     else IntSet.add acc id
                   end
 
-(*TRACE5
-              val () = Parser.ppTrace Term.pp "Active.addReduce: l" l
-              val () = Parser.ppTrace Term.pp "Active.addReduce: r" r
-              val () = Parser.ppTrace Parser.ppBool "Active.addReduce: ord" ord
+(*MetisTrace5
+              val () = Print.trace Term.pp "Active.addReduce: l" l
+              val () = Print.trace Term.pp "Active.addReduce: r" r
+              val () = Print.trace Print.ppBool "Active.addReduce: ord" ord
 *)
             in
               List.foldl addRed acc (TermNet.matched allSubterms l)
             end
-              
+
         fun addEquation redexResidues (id,acc) =
             case Rewrite.peek rewrite id of
               NONE => acc
@@ -601,7 +695,7 @@ local
       if choose_clause_rewritables active ids then clause_rewritables active
       else rewrite_rewritables active ids;
 
-(*DEBUG
+(*MetisDebug
   val rewritables = fn active => fn ids =>
       let
         val clause_ids = clause_rewritables active
@@ -611,13 +705,13 @@ local
             if IntSet.equal rewrite_ids clause_ids then ()
             else
               let
-                val ppIdl = Parser.ppList Parser.ppInt
-                val ppIds = Parser.ppMap IntSet.toList ppIdl
-                val () = Parser.ppTrace pp "Active.rewritables: active" active
-                val () = Parser.ppTrace ppIdl "Active.rewritables: ids" ids
-                val () = Parser.ppTrace ppIds
+                val ppIdl = Print.ppList Print.ppInt
+                val ppIds = Print.ppMap IntSet.toList ppIdl
+                val () = Print.trace pp "Active.rewritables: active" active
+                val () = Print.trace ppIdl "Active.rewritables: ids" ids
+                val () = Print.trace ppIds
                            "Active.rewritables: clause_ids" clause_ids
-                val () = Parser.ppTrace ppIds
+                val () = Print.trace ppIds
                            "Active.rewritables: rewrite_ids" rewrite_ids
               in
                 raise Bug "Active.rewritables: ~(rewrite_ids SUBSET clause_ids)"
@@ -632,12 +726,19 @@ local
       else
         let
           fun idPred id = not (IntSet.member id ids)
-                          
+
           fun clausePred cl = idPred (Clause.id cl)
-                              
+
           val Active
-                {parameters,clauses,units,rewrite,subsume,literals,
-                 equations,subterms,allSubterms} = active
+                {parameters,
+                 clauses,
+                 units,
+                 rewrite,
+                 subsume,
+                 literals,
+                 equations,
+                 subterms,
+                 allSubterms} = active
 
           val clauses = IntMap.filter (idPred o fst) clauses
           and subsume = Subsume.filter clausePred subsume
@@ -647,9 +748,14 @@ local
           and allSubterms = TermNet.filter (clausePred o fst) allSubterms
         in
           Active
-            {parameters = parameters, clauses = clauses, units = units,
-             rewrite = rewrite, subsume = subsume, literals = literals,
-             equations = equations, subterms = subterms,
+            {parameters = parameters,
+             clauses = clauses,
+             units = units,
+             rewrite = rewrite,
+             subsume = subsume,
+             literals = literals,
+             equations = equations,
+             subterms = subterms,
              allSubterms = allSubterms}
         end;
 in
@@ -657,21 +763,21 @@ in
       if Rewrite.isReduced rewrite then (active,[])
       else
         let
-(*TRACE3
+(*MetisTrace3
           val () = trace "Active.extract_rewritables: inter-reducing\n"
 *)
           val (rewrite,ids) = Rewrite.reduce' rewrite
           val active = setRewrite active rewrite
           val ids = rewritables active ids
           val cls = IntSet.transform (IntMap.get clauses) ids
-(*TRACE3
-          val ppCls = Parser.ppList Clause.pp
-          val () = Parser.ppTrace ppCls "Active.extract_rewritables: cls" cls
+(*MetisTrace3
+          val ppCls = Print.ppList Clause.pp
+          val () = Print.trace ppCls "Active.extract_rewritables: cls" cls
 *)
         in
           (delete active ids, cls)
         end
-(*DEBUG
+(*MetisDebug
         handle Error err =>
           raise Bug ("Active.extract_rewritables: shouldn't fail\n" ^ err);
 *)
@@ -745,13 +851,13 @@ in
   fun factor active cls = factor' active [] cls;
 end;
 
-(*TRACE4
+(*MetisTrace4
 val factor = fn active => fn cls =>
     let
-      val ppCls = Parser.ppList Clause.pp
-      val () = Parser.ppTrace ppCls "Active.factor: cls" cls
+      val ppCls = Print.ppList Clause.pp
+      val () = Print.trace ppCls "Active.factor: cls" cls
       val (active,cls') = factor active cls
-      val () = Parser.ppTrace ppCls "Active.factor: cls'" cls'
+      val () = Print.trace ppCls "Active.factor: cls'" cls'
     in
       (active,cls')
     end;
@@ -761,16 +867,18 @@ val factor = fn active => fn cls =>
 (* Create a new active clause set and initialize clauses.                    *)
 (* ------------------------------------------------------------------------- *)
 
-fun new parameters ths =
+fun new parameters {axioms,conjecture} =
     let
       val {clause,...} = parameters
 
       fun mk_clause th =
           Clause.mk {parameters = clause, id = Clause.newId (), thm = th}
 
-      val cls = map mk_clause ths
+      val active = empty parameters
+      val (active,axioms) = factor active (map mk_clause axioms)
+      val (active,conjecture) = factor active (map mk_clause conjecture)
     in
-      factor (empty parameters) cls
+      (active, {axioms = axioms, conjecture = conjecture})
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -785,16 +893,16 @@ fun add active cl =
       else if not (Clause.equalThms cl cl') then factor active [cl']
       else
         let
-(*TRACE3
-          val () = Parser.ppTrace Clause.pp "Active.add: cl" cl
+(*MetisTrace2
+          val () = Print.trace Clause.pp "Active.add: cl" cl
 *)
           val active = addClause active cl
           val cl = Clause.freshVars cl
           val cls = deduce active cl
           val (active,cls) = factor active cls
-(*TRACE2
-          val ppCls = Parser.ppList Clause.pp
-          val () = Parser.ppTrace ppCls "Active.add: cls" cls
+(*MetisTrace2
+          val ppCls = Print.ppList Clause.pp
+          val () = Print.trace ppCls "Active.add: cls" cls
 *)
         in
           (active,cls)

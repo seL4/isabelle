@@ -1,6 +1,6 @@
 (* ========================================================================= *)
-(* SOME SAMPLE PROBLEMS TO TEST PROOF PROCEDURES                             *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* CNF PROBLEMS                                                              *)
+(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Problem :> Problem =
@@ -12,83 +12,56 @@ open Useful;
 (* Problems.                                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-type problem = Thm.clause list;
+type problem =
+     {axioms : Thm.clause list,
+      conjecture : Thm.clause list};
 
-fun size cls =
-    {clauses = length cls,
-     literals = foldl (fn (cl,n) => n + LiteralSet.size cl) 0 cls,
-     symbols = foldl (fn (cl,n) => n + LiteralSet.symbols cl) 0 cls,
-     typedSymbols = foldl (fn (cl,n) => n + LiteralSet.typedSymbols cl) 0 cls};
+fun toClauses {axioms,conjecture} = axioms @ conjecture;
 
-fun checkFormula {models,checks} exp fm =
+fun size prob =
     let
-      fun check 0 = true
-        | check n =
-          let
-            val N = 3 + Portable.randomInt 3
-            val M = Model.new {size = N, fixed = Model.fixedPure}
-            val {T,F} = Model.checkFormula {maxChecks = checks} M fm
-          in
-            (if exp then F = 0 else T = 0) andalso check (n - 1)
-          end
+      fun lits (cl,n) = n + LiteralSet.size cl
+
+      fun syms (cl,n) = n + LiteralSet.symbols cl
+
+      fun typedSyms (cl,n) = n + LiteralSet.typedSymbols cl
+
+      val cls = toClauses prob
     in
-      check models
+      {clauses = length cls,
+       literals = foldl lits 0 cls,
+       symbols = foldl syms 0 cls,
+       typedSymbols = foldl typedSyms 0 cls}
     end;
 
-val checkGoal = checkFormula {models = 10, checks = 100} true;
+fun freeVars {axioms,conjecture} =
+    NameSet.union
+      (LiteralSet.freeVarsList axioms)
+      (LiteralSet.freeVarsList conjecture);
 
-val checkClauses = checkFormula {models = 10, checks = 100} false;
+local
+  fun clauseToFormula cl =
+      Formula.listMkDisj (LiteralSet.transform Literal.toFormula cl);
+in
+  fun toFormula prob =
+      Formula.listMkConj (map clauseToFormula (toClauses prob));
 
-fun fromGoal goal =
-    let
-      fun fromLiterals fms = LiteralSet.fromList (map Literal.fromFormula fms)
+  fun toGoal {axioms,conjecture} =
+      let
+        val clToFm = Formula.generalize o clauseToFormula
+        val clsToFm = Formula.listMkConj o map clToFm
 
-      fun fromClause fm = fromLiterals (Formula.stripDisj fm)
+        val fm = Formula.False
+        val fm =
+            if null conjecture then fm
+            else Formula.Imp (clsToFm conjecture, fm)
+        val fm = Formula.Imp (clsToFm axioms, fm)
+      in
+        fm
+      end;
+end;
 
-      fun fromCnf fm = map fromClause (Formula.stripConj fm)
-
-(*DEBUG
-      val () = if checkGoal goal then ()
-               else raise Error "goal failed the finite model test"
-*)
-
-      val refute = Formula.Not (Formula.generalize goal)
-
-(*TRACE2
-      val () = Parser.ppTrace Formula.pp "Problem.fromGoal: refute" refute
-*)
-
-      val cnfs = Normalize.cnf refute
-
-(*
-      val () =
-          let
-            fun check fm =
-                let
-(*TRACE2
-                  val () = Parser.ppTrace Formula.pp "Problem.fromGoal: cnf" fm
-*)
-                in
-                  if checkClauses fm then ()
-                  else raise Error "cnf failed the finite model test"
-                end
-          in
-            app check cnfs
-          end
-*)
-    in
-      map fromCnf cnfs
-    end;
-
-fun toClauses cls =
-    let
-      fun formulize cl =
-          Formula.listMkDisj (LiteralSet.transform Literal.toFormula cl)
-    in
-      Formula.listMkConj (map formulize cls)
-    end;
-
-fun toString cls = Formula.toString (toClauses cls);
+fun toString prob = Formula.toString (toFormula prob);
 
 (* ------------------------------------------------------------------------- *)
 (* Categorizing problems.                                                    *)
@@ -117,8 +90,10 @@ type category =
       equality : equality,
       horn : horn};
 
-fun categorize cls =
+fun categorize prob =
     let
+      val cls = toClauses prob
+
       val rels =
           let
             fun f (cl,set) = NameAritySet.union set (LiteralSet.relations cl)

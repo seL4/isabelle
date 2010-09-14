@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SUBSUMPTION CHECKING FOR FIRST ORDER LOGIC CLAUSES                        *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Subsume =
@@ -20,7 +20,7 @@ val insert : 'a subsume -> Thm.clause * 'a -> 'a subsume
 
 val filter : ('a -> bool) -> 'a subsume -> 'a subsume
 
-val pp : 'a subsume Parser.pp
+val pp : 'a subsume Print.pp
 
 val toString : 'a subsume -> string
 

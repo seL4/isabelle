@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A STORE FOR UNIT THEOREMS                                                 *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Units :> Units =
@@ -26,7 +26,7 @@ fun size (Units net) = LiteralNet.size net;
 
 fun toString units = "U{" ^ Int.toString (size units) ^ "}";
 
-val pp = Parser.ppMap toString Parser.ppString;
+val pp = Print.ppMap toString Print.ppString;
 
 (* ------------------------------------------------------------------------- *)
 (* Add units into the store.                                                 *)

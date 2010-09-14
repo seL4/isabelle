@@ -904,18 +904,6 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
     fun term_for_rep maybe_opt unfold =
       reconstruct_term maybe_opt unfold pool wacky_names scope atomss
                        sel_names rel_table bounds
-    fun nth_value_of_type card T n =
-      let
-        fun aux unfold = term_for_rep true unfold T T (Atom (card, 0)) [[n]]
-      in
-        case aux false of
-          t as Const (s, _) =>
-          if String.isPrefix (cyclic_const_prefix ()) s then
-            HOLogic.mk_eq (t, aux true)
-          else
-            t
-        | t => t
-      end
     val all_values =
       all_values_of_type pool wacky_names scope atomss sel_names rel_table
                          bounds

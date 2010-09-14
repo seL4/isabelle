@@ -1,18 +1,73 @@
 (* ========================================================================= *)
-(* THE TPTP PROBLEM FILE FORMAT (TPTP v2)                                    *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License *)
+(* THE TPTP PROBLEM FILE FORMAT                                              *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Tptp =
 sig
 
 (* ------------------------------------------------------------------------- *)
-(* Mapping TPTP functions and relations to different names.                  *)
+(* Mapping to and from TPTP variable, function and relation names.           *)
 (* ------------------------------------------------------------------------- *)
 
-val functionMapping : {name : string, arity : int, tptp : string} list ref
+type mapping
 
-val relationMapping : {name : string, arity : int, tptp : string} list ref
+val defaultMapping : mapping
+
+val mkMapping :
+    {functionMapping : {name : Name.name, arity : int, tptp : string} list,
+     relationMapping : {name : Name.name, arity : int, tptp : string} list} ->
+    mapping
+
+val addVarSetMapping : mapping -> NameSet.set -> mapping
+
+(* ------------------------------------------------------------------------- *)
+(* Interpreting TPTP functions and relations in a finite model.              *)
+(* ------------------------------------------------------------------------- *)
+
+val defaultFixedMap : Model.fixedMap
+
+val defaultModel : Model.parameters
+
+val ppFixedMap : mapping -> Model.fixedMap Print.pp
+
+(* ------------------------------------------------------------------------- *)
+(* TPTP roles.                                                               *)
+(* ------------------------------------------------------------------------- *)
+
+datatype role =
+    AxiomRole
+  | ConjectureRole
+  | DefinitionRole
+  | NegatedConjectureRole
+  | PlainRole
+  | TheoremRole
+  | OtherRole of string;
+
+val isCnfConjectureRole : role -> bool
+
+val isFofConjectureRole : role -> bool
+
+val toStringRole : role -> string
+
+val fromStringRole : string -> role
+
+val ppRole : role Print.pp
+
+(* ------------------------------------------------------------------------- *)
+(* SZS statuses.                                                             *)
+(* ------------------------------------------------------------------------- *)
+
+datatype status =
+    CounterSatisfiableStatus
+  | TheoremStatus
+  | SatisfiableStatus
+  | UnknownStatus
+  | UnsatisfiableStatus
+
+val toStringStatus : status -> string
+
+val ppStatus : status Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* TPTP literals.                                                            *)
@@ -22,66 +77,152 @@ datatype literal =
     Boolean of bool
   | Literal of Literal.literal
 
-val negate : literal -> literal
+val negateLiteral : literal -> literal
 
-val literalFunctions : literal -> NameAritySet.set
+val functionsLiteral : literal -> NameAritySet.set
 
-val literalRelation : literal -> Atom.relation option
+val relationLiteral : literal -> Atom.relation option
 
-val literalFreeVars : literal -> NameSet.set
+val freeVarsLiteral : literal -> NameSet.set
+
+(* ------------------------------------------------------------------------- *)
+(* TPTP formula names.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+datatype formulaName =
+    FormulaName of string
+
+val ppFormulaName : formulaName Print.pp
+
+(* ------------------------------------------------------------------------- *)
+(* TPTP formula bodies.                                                      *)
+(* ------------------------------------------------------------------------- *)
+
+datatype formulaBody =
+    CnfFormulaBody of literal list
+  | FofFormulaBody of Formula.formula
+
+(* ------------------------------------------------------------------------- *)
+(* TPTP formula sources.                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+datatype formulaSource =
+    NoFormulaSource
+  | StripFormulaSource of
+      {inference : string,
+       parents : formulaName list}
+  | NormalizeFormulaSource of
+      {inference : Normalize.inference,
+       parents : formulaName list}
+  | ProofFormulaSource of
+      {inference : Proof.inference,
+       parents : formulaName list}
 
 (* ------------------------------------------------------------------------- *)
 (* TPTP formulas.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
 datatype formula =
-    CnfFormula of {name : string, role : string, clause : literal list}
-  | FofFormula of {name : string, role : string, formula : Formula.formula}
+    Formula of
+      {name : formulaName,
+       role : role,
+       body : formulaBody,
+       source : formulaSource}
 
-val formulaFunctions : formula -> NameAritySet.set
+val nameFormula : formula -> formulaName
 
-val formulaRelations : formula -> NameAritySet.set
+val roleFormula : formula -> role
 
-val formulaFreeVars : formula -> NameSet.set
+val bodyFormula : formula -> formulaBody
 
-val formulaIsConjecture : formula -> bool
+val sourceFormula : formula -> formulaSource
 
-val ppFormula : formula Parser.pp
+val functionsFormula : formula -> NameAritySet.set
 
-val parseFormula : char Stream.stream -> formula Stream.stream
+val relationsFormula : formula -> NameAritySet.set
 
-val formulaToString : formula -> string
+val freeVarsFormula : formula -> NameSet.set
 
-val formulaFromString : string -> formula
+val freeVarsListFormula : formula list -> NameSet.set
+
+val isCnfConjectureFormula : formula -> bool
+val isFofConjectureFormula : formula -> bool
+val isConjectureFormula : formula -> bool
+
+(* ------------------------------------------------------------------------- *)
+(* Clause information.                                                       *)
+(* ------------------------------------------------------------------------- *)
+
+datatype clauseSource =
+    CnfClauseSource of formulaName * literal list
+  | FofClauseSource of Normalize.thm
+
+type 'a clauseInfo = 'a LiteralSetMap.map
+
+type clauseNames = formulaName clauseInfo
+
+type clauseRoles = role clauseInfo
+
+type clauseSources = clauseSource clauseInfo
+
+val noClauseNames : clauseNames
+
+val noClauseRoles : clauseRoles
+
+val noClauseSources : clauseSources
 
 (* ------------------------------------------------------------------------- *)
 (* TPTP problems.                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-datatype goal =
-    Cnf of Problem.problem
-  | Fof of Formula.formula
+type comments = string list
 
-type problem = {comments : string list, formulas : formula list}
+type includes = string list
 
-val read : {filename : string} -> problem
+datatype problem =
+    Problem of
+      {comments : comments,
+       includes : includes,
+       formulas : formula list}
 
-val write : {filename : string} -> problem -> unit
-
+val hasCnfConjecture : problem -> bool
+val hasFofConjecture : problem -> bool
 val hasConjecture : problem -> bool
 
-val toGoal : problem -> goal
+val freeVars : problem -> NameSet.set
 
-val fromProblem : Problem.problem -> problem
+val mkProblem :
+    {comments : comments,
+     includes : includes,
+     names : clauseNames,
+     roles : clauseRoles,
+     problem : Problem.problem} -> problem
 
-val prove : {filename : string} -> bool
+val normalize :
+    problem ->
+    {subgoal : Formula.formula * formulaName list,
+     problem : Problem.problem,
+     sources : clauseSources} list
+
+val goal : problem -> Formula.formula
+
+val read : {mapping : mapping, filename : string} -> problem
+
+val write :
+    {problem : problem,
+     mapping : mapping,
+     filename : string} -> unit
+
+val prove : {filename : string, mapping : mapping} -> bool
 
 (* ------------------------------------------------------------------------- *)
 (* TSTP proofs.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val ppProof : Proof.proof Parser.pp
-
-val proofToString : Proof.proof -> string
+val fromProof :
+    {problem : problem,
+     proofs : {subgoal : Formula.formula * formulaName list,
+               sources : clauseSources,
+               refutation : Thm.thm} list} -> formula list
 
 end

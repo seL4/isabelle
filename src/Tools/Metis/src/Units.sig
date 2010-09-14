@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A STORE FOR UNIT THEOREMS                                                 *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Units =
@@ -24,7 +24,7 @@ val size : units -> int
 
 val toString : units -> string
 
-val pp : units Parser.pp
+val pp : units Print.pp
 
 (* ------------------------------------------------------------------------- *)
 (* Add units into the store.                                                 *)

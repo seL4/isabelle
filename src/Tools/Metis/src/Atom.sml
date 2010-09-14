@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC ATOMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Atom :> Atom =
@@ -49,7 +49,7 @@ val functionNames =
 fun mkBinop p (a,b) : atom = (p,[a,b]);
 
 fun destBinop p (x,[a,b]) =
-    if x = p then (a,b) else raise Error "Atom.destBinop: wrong binop"
+    if Name.equal x p then (a,b) else raise Error "Atom.destBinop: wrong binop"
   | destBinop _ _ = raise Error "Atom.destBinop: not a binop";
 
 fun isBinop p = can (destBinop p);
@@ -69,6 +69,8 @@ fun compare ((p1,tms1),(p2,tms2)) =
       LESS => LESS
     | EQUAL => lexCompare Term.compare (tms1,tms2)
     | GREATER => GREATER;
+
+fun equal atm1 atm2 = compare (atm1,atm2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
 (* Subterms.                                                                 *)
@@ -94,7 +96,7 @@ fun replace _ ([],_) = raise Bug "Atom.replace: empty path"
         val tm = List.nth (tms,h)
         val tm' = Term.replace tm (t,res)
       in
-        if Sharing.pointerEqual (tm,tm') then atm
+        if Portable.pointerEqual (tm,tm') then atm
         else (rel, updateNth (h,tm') tms)
       end;
 
@@ -129,7 +131,7 @@ fun subst sub (atm as (p,tms)) : atom =
     let
       val tms' = Sharing.map (Subst.subst sub) tms
     in
-      if Sharing.pointerEqual (tms',tms) then atm else (p,tms')
+      if Portable.pointerEqual (tms',tms) then atm else (p,tms')
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -141,7 +143,7 @@ local
 in
   fun match sub (p1,tms1) (p2,tms2) =
       let
-        val _ = (p1 = p2 andalso length tms1 = length tms2) orelse
+        val _ = (Name.equal p1 p2 andalso length tms1 = length tms2) orelse
                 raise Error "Atom.match"
       in
         foldl matchArg sub (zip tms1 tms2)
@@ -157,7 +159,7 @@ local
 in
   fun unify sub (p1,tms1) (p2,tms2) =
       let
-        val _ = (p1 = p2 andalso length tms1 = length tms2) orelse
+        val _ = (Name.equal p1 p2 andalso length tms1 = length tms2) orelse
                 raise Error "Atom.unify"
       in
         foldl unifyArg sub (zip tms1 tms2)
@@ -168,24 +170,24 @@ end;
 (* The equality relation.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val eqName = "=";
+val eqRelationName = Name.fromString "=";
 
-val eqArity = 2;
+val eqRelationArity = 2;
 
-val eqRelation = (eqName,eqArity);
+val eqRelation = (eqRelationName,eqRelationArity);
 
-val mkEq = mkBinop eqName;
+val mkEq = mkBinop eqRelationName;
 
-fun destEq x = destBinop eqName x;
+fun destEq x = destBinop eqRelationName x;
 
-fun isEq x = isBinop eqName x;
+fun isEq x = isBinop eqRelationName x;
 
 fun mkRefl tm = mkEq (tm,tm);
 
 fun destRefl atm =
     let
       val (l,r) = destEq atm
-      val _ = l = r orelse raise Error "Atom.destRefl"
+      val _ = Term.equal l r orelse raise Error "Atom.destRefl"
     in
       l
     end;
@@ -195,7 +197,7 @@ fun isRefl x = can destRefl x;
 fun sym atm =
     let
       val (l,r) = destEq atm
-      val _ = l <> r orelse raise Error "Atom.sym: refl"
+      val _ = not (Term.equal l r) orelse raise Error "Atom.sym: refl"
     in
       mkEq (r,l)
     end;
@@ -227,19 +229,19 @@ fun nonVarTypedSubterms (_,tms) =
 (* Parsing and pretty printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val pp = Parser.ppMap Term.Fn Term.pp;
+val pp = Print.ppMap Term.Fn Term.pp;
 
-val toString = Parser.toString pp;
+val toString = Print.toString pp;
 
 fun fromString s = Term.destFn (Term.fromString s);
 
-val parse = Parser.parseQuotation Term.toString fromString;
+val parse = Parse.parseQuotation Term.toString fromString;
 
 end
 
 structure AtomOrdered =
 struct type t = Atom.atom val compare = Atom.compare end
 
-structure AtomSet = ElementSet (AtomOrdered);
-
 structure AtomMap = KeyMap (AtomOrdered);
+
+structure AtomSet = ElementSet (AtomMap);

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
-(* A LOGICAL KERNEL FOR FIRST ORDER CLAUSES                                  *)
-(* Copyright (c) 2001-2004 Joe Hurd, distributed under the BSD License *)
+(* A LOGICAL KERNEL FOR FIRST ORDER CLAUSAL THEOREMS                         *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Thm :> Thm =
@@ -85,13 +85,9 @@ fun equal th1 th2 = LiteralSet.equal (clause th1) (clause th2);
 (* Free variables.                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun freeIn v (Thm (cl,_)) = LiteralSet.exists (Literal.freeIn v) cl;
+fun freeIn v (Thm (cl,_)) = LiteralSet.freeIn v cl;
 
-local
-  fun free (lit,set) = NameSet.union (Literal.freeVars lit) set;
-in
-  fun freeVars (Thm (cl,_)) = LiteralSet.foldl free NameSet.empty cl;
-end;
+fun freeVars (Thm (cl,_)) = LiteralSet.freeVars cl;
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing.                                                          *)
@@ -105,26 +101,21 @@ fun inferenceTypeToString Axiom = "Axiom"
   | inferenceTypeToString Refl = "Refl"
   | inferenceTypeToString Equality = "Equality";
 
-fun ppInferenceType ppstrm inf =
-    Parser.ppString ppstrm (inferenceTypeToString inf);
+fun ppInferenceType inf =
+    Print.ppString (inferenceTypeToString inf);
 
 local
   fun toFormula th =
       Formula.listMkDisj
         (map Literal.toFormula (LiteralSet.toList (clause th)));
 in
-  fun pp ppstrm th =
-    let
-      open PP
-    in
-      begin_block ppstrm INCONSISTENT 3;
-      add_string ppstrm "|- ";
-      Formula.pp ppstrm (toFormula th);
-      end_block ppstrm
-    end;
+  fun pp th =
+      Print.blockProgram Print.Inconsistent 3
+        [Print.addString "|- ",
+         Formula.pp (toFormula th)];
 end;
 
-val toString = Parser.toString pp;
+val toString = Print.toString pp;
 
 (* ------------------------------------------------------------------------- *)
 (* Primitive rules of inference.                                             *)
@@ -157,7 +148,7 @@ fun subst sub (th as Thm (cl,inf)) =
     let
       val cl' = LiteralSet.subst sub cl
     in
-      if Sharing.pointerEqual (cl,cl') then th
+      if Portable.pointerEqual (cl,cl') then th
       else
         case inf of
           (Subst,_) => Thm (cl',inf)
@@ -181,7 +172,7 @@ fun resolve lit (th1 as Thm (cl1,_)) (th2 as Thm (cl2,_)) =
       Thm (LiteralSet.union cl1' cl2', (Resolve,[th1,th2]))
     end;
 
-(*DEBUG
+(*MetisDebug
 val resolve = fn lit => fn pos => fn neg =>
     resolve lit pos neg
     handle Error err =>

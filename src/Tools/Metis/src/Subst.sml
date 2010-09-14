@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC SUBSTITUTIONS                                           *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Subst :> Subst =
@@ -30,16 +30,6 @@ fun insert (Subst m) v_tm = Subst (NameMap.insert m v_tm);
 
 fun singleton v_tm = insert empty v_tm;
 
-local
-  fun compatible (tm1,tm2) =
-      if tm1 = tm2 then SOME tm1 else raise Error "Subst.union: incompatible";
-in
-  fun union (s1 as Subst m1) (s2 as Subst m2) =
-      if NameMap.null m1 then s2
-      else if NameMap.null m2 then s1
-      else Subst (NameMap.union compatible m1 m2);
-end;
-
 fun toList (Subst m) = NameMap.toList m;
 
 fun fromList l = Subst (NameMap.fromList l);
@@ -48,12 +38,12 @@ fun foldl f b (Subst m) = NameMap.foldl f b m;
 
 fun foldr f b (Subst m) = NameMap.foldr f b m;
 
-fun pp ppstrm sub =
-    Parser.ppBracket "<[" "]>"
-      (Parser.ppSequence "," (Parser.ppBinop " |->" Parser.ppString Term.pp))
-      ppstrm (toList sub);
+fun pp sub =
+    Print.ppBracket "<[" "]>"
+      (Print.ppOpList "," (Print.ppOp2 " |->" Name.pp Term.pp))
+      (toList sub);
 
-val toString = Parser.toString pp;
+val toString = Print.toString pp;
 
 (* ------------------------------------------------------------------------- *)
 (* Normalizing removes identity substitutions.                               *)
@@ -78,13 +68,13 @@ fun subst sub =
     let
       fun tmSub (tm as Term.Var v) =
           (case peek sub v of
-             SOME tm' => if Sharing.pointerEqual (tm,tm') then tm else tm'
+             SOME tm' => if Portable.pointerEqual (tm,tm') then tm else tm'
            | NONE => tm)
         | tmSub (tm as Term.Fn (f,args)) =
           let
             val args' = Sharing.map tmSub args
           in
-            if Sharing.pointerEqual (args,args') then tm
+            if Portable.pointerEqual (args,args') then tm
             else Term.Fn (f,args')
           end
     in
@@ -127,7 +117,22 @@ fun compose (sub1 as Subst m1) sub2 =
     end;
 
 (* ------------------------------------------------------------------------- *)
-(* Substitutions can be inverted iff they are renaming substitutions.        *) 
+(* Creating the union of two compatible substitutions.                       *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun compatible ((_,tm1),(_,tm2)) =
+      if Term.equal tm1 tm2 then SOME tm1
+      else raise Error "Subst.union: incompatible";
+in
+  fun union (s1 as Subst m1) (s2 as Subst m2) =
+      if NameMap.null m1 then s2
+      else if NameMap.null m2 then s1
+      else Subst (NameMap.union compatible m1 m2);
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Substitutions can be inverted iff they are renaming substitutions.        *)
 (* ------------------------------------------------------------------------- *)
 
 local
@@ -153,6 +158,42 @@ val freshVars =
     end;
 
 (* ------------------------------------------------------------------------- *)
+(* Free variables.                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+val redexes =
+    let
+      fun add (v,_,s) = NameSet.add s v
+    in
+      foldl add NameSet.empty
+    end;
+
+val residueFreeVars =
+    let
+      fun add (_,t,s) = NameSet.union s (Term.freeVars t)
+    in
+      foldl add NameSet.empty
+    end;
+
+val freeVars =
+    let
+      fun add (v,t,s) = NameSet.union (NameSet.add s v) (Term.freeVars t)
+    in
+      foldl add NameSet.empty
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Functions.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+val functions =
+    let
+      fun add (_,t,s) = NameAritySet.union s (Term.functions t)
+    in
+      foldl add NameAritySet.empty
+    end;
+
+(* ------------------------------------------------------------------------- *)
 (* Matching for first order logic terms.                                     *)
 (* ------------------------------------------------------------------------- *)
 
@@ -164,13 +205,13 @@ local
             case peek sub v of
               NONE => insert sub (v,tm)
             | SOME tm' =>
-              if tm = tm' then sub
+              if Term.equal tm tm' then sub
               else raise Error "Subst.match: incompatible matches"
       in
         matchList sub rest
       end
     | matchList sub ((Term.Fn (f1,args1), Term.Fn (f2,args2)) :: rest) =
-      if f1 = f2 andalso length args1 = length args2 then
+      if Name.equal f1 f2 andalso length args1 = length args2 then
         matchList sub (zip args1 args2 @ rest)
       else raise Error "Subst.match: different structure"
     | matchList _ _ = raise Error "Subst.match: functions can't match vars";
@@ -197,7 +238,7 @@ local
          | SOME tm' => solve' sub tm' tm rest)
     | solve' sub tm1 (tm2 as Term.Var _) rest = solve' sub tm2 tm1 rest
     | solve' sub (Term.Fn (f1,args1)) (Term.Fn (f2,args2)) rest =
-      if f1 = f2 andalso length args1 = length args2 then
+      if Name.equal f1 f2 andalso length args1 = length args2 then
         solve sub (zip args1 args2 @ rest)
       else
         raise Error "Subst.unify: different structure";

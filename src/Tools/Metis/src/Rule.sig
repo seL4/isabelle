@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 signature Rule =
@@ -13,7 +13,7 @@ sig
 
 type equation = (Term.term * Term.term) * Thm.thm
 
-val ppEquation : equation Parser.pp
+val ppEquation : equation Print.pp
 
 val equationToString : equation -> string
 
@@ -143,6 +143,8 @@ val convRule : conv -> rule  (* All arguments of all literals *)
 (*   x = x                                                                   *)
 (* ------------------------------------------------------------------------- *)
 
+val reflexivityRule : Term.term -> Thm.thm
+
 val reflexivity : Thm.thm
 
 (* ------------------------------------------------------------------------- *)
@@ -150,6 +152,8 @@ val reflexivity : Thm.thm
 (* --------------------- symmetry                                            *)
 (*   ~(x = y) \/ y = x                                                       *)
 (* ------------------------------------------------------------------------- *)
+
+val symmetryRule : Term.term -> Term.term -> Thm.thm
 
 val symmetry : Thm.thm
 

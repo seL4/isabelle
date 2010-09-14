@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC FORMULAS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
 (* ========================================================================= *)
 
 structure Formula :> Formula =
@@ -38,6 +38,16 @@ fun destBoolean True = true
   | destBoolean _ = raise Error "destBoolean";
 
 val isBoolean = can destBoolean;
+
+fun isTrue fm =
+    case fm of
+      True => true
+    | _ => false;
+
+fun isFalse fm =
+    case fm of
+      False => true
+    | _ => false;
 
 (* Functions *)
 
@@ -211,6 +221,8 @@ val isForall = can destForall;
 fun listMkForall ([],body) = body
   | listMkForall (v :: vs, body) = Forall (v, listMkForall (vs,body));
 
+fun setMkForall (vs,body) = NameSet.foldr Forall body vs;
+
 local
   fun strip vs (Forall (v,b)) = strip (v :: vs) b
     | strip vs tm = (rev vs, tm);
@@ -227,6 +239,8 @@ val isExists = can destExists;
 
 fun listMkExists ([],body) = body
   | listMkExists (v :: vs, body) = Exists (v, listMkExists (vs,body));
+
+fun setMkExists (vs,body) = NameSet.foldr Exists body vs;
 
 local
   fun strip vs (Exists (v,b)) = strip (v :: vs) b
@@ -261,49 +275,55 @@ end;
 
 local
   fun cmp [] = EQUAL
-    | cmp ((True,True) :: l) = cmp l
-    | cmp ((True,_) :: _) = LESS
-    | cmp ((_,True) :: _) = GREATER
-    | cmp ((False,False) :: l) = cmp l
-    | cmp ((False,_) :: _) = LESS
-    | cmp ((_,False) :: _) = GREATER
-    | cmp ((Atom atm1, Atom atm2) :: l) =
-      (case Atom.compare (atm1,atm2) of
-         LESS => LESS
-       | EQUAL => cmp l
-       | GREATER => GREATER)
-    | cmp ((Atom _, _) :: _) = LESS
-    | cmp ((_, Atom _) :: _) = GREATER
-    | cmp ((Not p1, Not p2) :: l) = cmp ((p1,p2) :: l)
-    | cmp ((Not _, _) :: _) = LESS
-    | cmp ((_, Not _) :: _) = GREATER
-    | cmp ((And (p1,q1), And (p2,q2)) :: l) = cmp ((p1,p2) :: (q1,q2) :: l)
-    | cmp ((And _, _) :: _) = LESS
-    | cmp ((_, And _) :: _) = GREATER
-    | cmp ((Or (p1,q1), Or (p2,q2)) :: l) = cmp ((p1,p2) :: (q1,q2) :: l)
-    | cmp ((Or _, _) :: _) = LESS
-    | cmp ((_, Or _) :: _) = GREATER
-    | cmp ((Imp (p1,q1), Imp (p2,q2)) :: l) = cmp ((p1,p2) :: (q1,q2) :: l)
-    | cmp ((Imp _, _) :: _) = LESS
-    | cmp ((_, Imp _) :: _) = GREATER
-    | cmp ((Iff (p1,q1), Iff (p2,q2)) :: l) = cmp ((p1,p2) :: (q1,q2) :: l)
-    | cmp ((Iff _, _) :: _) = LESS
-    | cmp ((_, Iff _) :: _) = GREATER
-    | cmp ((Forall (v1,p1), Forall (v2,p2)) :: l) =
-      (case Name.compare (v1,v2) of
-         LESS => LESS
-       | EQUAL => cmp ((p1,p2) :: l)
-       | GREATER => GREATER)
-    | cmp ((Forall _, Exists _) :: _) = LESS
-    | cmp ((Exists _, Forall _) :: _) = GREATER
-    | cmp ((Exists (v1,p1), Exists (v2,p2)) :: l) =
-      (case Name.compare (v1,v2) of
-         LESS => LESS
-       | EQUAL => cmp ((p1,p2) :: l)
-       | GREATER => GREATER);
+    | cmp (f1_f2 :: fs) =
+      if Portable.pointerEqual f1_f2 then cmp fs
+      else
+        case f1_f2 of
+          (True,True) => cmp fs
+        | (True,_) => LESS
+        | (_,True) => GREATER
+        | (False,False) => cmp fs
+        | (False,_) => LESS
+        | (_,False) => GREATER
+        | (Atom atm1, Atom atm2) =>
+          (case Atom.compare (atm1,atm2) of
+             LESS => LESS
+           | EQUAL => cmp fs
+           | GREATER => GREATER)
+        | (Atom _, _) => LESS
+        | (_, Atom _) => GREATER
+        | (Not p1, Not p2) => cmp ((p1,p2) :: fs)
+        | (Not _, _) => LESS
+        | (_, Not _) => GREATER
+        | (And (p1,q1), And (p2,q2)) => cmp ((p1,p2) :: (q1,q2) :: fs)
+        | (And _, _) => LESS
+        | (_, And _) => GREATER
+        | (Or (p1,q1), Or (p2,q2)) => cmp ((p1,p2) :: (q1,q2) :: fs)
+        | (Or _, _) => LESS
+        | (_, Or _) => GREATER
+        | (Imp (p1,q1), Imp (p2,q2)) => cmp ((p1,p2) :: (q1,q2) :: fs)
+        | (Imp _, _) => LESS
+        | (_, Imp _) => GREATER
+        | (Iff (p1,q1), Iff (p2,q2)) => cmp ((p1,p2) :: (q1,q2) :: fs)
+        | (Iff _, _) => LESS
+        | (_, Iff _) => GREATER
+        | (Forall (v1,p1), Forall (v2,p2)) =>
+          (case Name.compare (v1,v2) of
+             LESS => LESS
+           | EQUAL => cmp ((p1,p2) :: fs)
+           | GREATER => GREATER)
+        | (Forall _, Exists _) => LESS
+        | (Exists _, Forall _) => GREATER
+        | (Exists (v1,p1), Exists (v2,p2)) =>
+          (case Name.compare (v1,v2) of
+             LESS => LESS
+           | EQUAL => cmp ((p1,p2) :: fs)
+           | GREATER => GREATER);
 in
   fun compare fm1_fm2 = cmp [fm1_fm2];
 end;
+
+fun equal fm1 fm2 = compare (fm1,fm2) = EQUAL;
 
 (* ------------------------------------------------------------------------- *)
 (* Free variables.                                                           *)
@@ -320,8 +340,10 @@ fun freeIn v =
         | f (Or (p,q) :: fms) = f (p :: q :: fms)
         | f (Imp (p,q) :: fms) = f (p :: q :: fms)
         | f (Iff (p,q) :: fms) = f (p :: q :: fms)
-        | f (Forall (w,p) :: fms) = if v = w then f fms else f (p :: fms)
-        | f (Exists (w,p) :: fms) = if v = w then f fms else f (p :: fms)
+        | f (Forall (w,p) :: fms) =
+          if Name.equal v w then f fms else f (p :: fms)
+        | f (Exists (w,p) :: fms) =
+          if Name.equal v w then f fms else f (p :: fms)
     in
       fn fm => f [fm]
     end;
@@ -339,8 +361,12 @@ local
     | fv vs ((bv, Iff (p,q)) :: fms) = fv vs ((bv,p) :: (bv,q) :: fms)
     | fv vs ((bv, Forall (v,p)) :: fms) = fv vs ((NameSet.add bv v, p) :: fms)
     | fv vs ((bv, Exists (v,p)) :: fms) = fv vs ((NameSet.add bv v, p) :: fms);
+
+  fun add (fm,vs) = fv vs [(NameSet.empty,fm)];
 in
-  fun freeVars fm = fv NameSet.empty [(NameSet.empty,fm)];
+  fun freeVars fm = add (fm,NameSet.empty);
+
+  fun freeVarsList fms = List.foldl add NameSet.empty fms;
 end;
 
 fun specialize fm = snd (stripForall fm);
@@ -362,13 +388,13 @@ local
         let
           val tms' = Sharing.map (Subst.subst sub) tms
         in
-          if Sharing.pointerEqual (tms,tms') then fm else Atom (p,tms')
+          if Portable.pointerEqual (tms,tms') then fm else Atom (p,tms')
         end
       | Not p =>
         let
           val p' = substFm sub p
         in
-          if Sharing.pointerEqual (p,p') then fm else Not p'
+          if Portable.pointerEqual (p,p') then fm else Not p'
         end
       | And (p,q) => substConn sub fm And p q
       | Or (p,q) => substConn sub fm Or p q
@@ -382,8 +408,8 @@ local
         val p' = substFm sub p
         and q' = substFm sub q
       in
-        if Sharing.pointerEqual (p,p') andalso
-           Sharing.pointerEqual (q,q')
+        if Portable.pointerEqual (p,p') andalso
+           Portable.pointerEqual (q,q')
         then fm
         else conn (p',q')
       end
@@ -393,12 +419,12 @@ local
         val v' =
             let
               fun f (w,s) =
-                  if w = v then s
+                  if Name.equal w v then s
                   else
                     case Subst.peek sub w of
                       NONE => NameSet.add s w
                     | SOME tm => NameSet.union s (Term.freeVars tm)
-                  
+
               val vars = freeVars p
               val vars = NameSet.foldl f NameSet.empty vars
             in
@@ -406,12 +432,12 @@ local
             end
 
         val sub =
-            if v = v' then Subst.remove sub (NameSet.singleton v)
+            if Name.equal v v' then Subst.remove sub (NameSet.singleton v)
             else Subst.insert sub (v, Term.Var v')
 
         val p' = substCheck sub p
       in
-        if v = v' andalso Sharing.pointerEqual (p,p') then fm
+        if Name.equal v v' andalso Portable.pointerEqual (p,p') then fm
         else quant (v',p')
       end;
 in
@@ -451,34 +477,39 @@ fun rhs fm = snd (destEq fm);
 (* Parsing and pretty-printing.                                              *)
 (* ------------------------------------------------------------------------- *)
 
-type quotation = formula Parser.quotation
+type quotation = formula Parse.quotation;
 
-val truthSymbol = "T"
-and falsitySymbol = "F"
-and conjunctionSymbol = "/\\"
-and disjunctionSymbol = "\\/"
-and implicationSymbol = "==>"
-and equivalenceSymbol = "<=>"
-and universalSymbol = "!"
-and existentialSymbol = "?";
+val truthName = Name.fromString "T"
+and falsityName = Name.fromString "F"
+and conjunctionName = Name.fromString "/\\"
+and disjunctionName = Name.fromString "\\/"
+and implicationName = Name.fromString "==>"
+and equivalenceName = Name.fromString "<=>"
+and universalName = Name.fromString "!"
+and existentialName = Name.fromString "?";
 
 local
-  fun demote True = Term.Fn (truthSymbol,[])
-    | demote False = Term.Fn (falsitySymbol,[])
+  fun demote True = Term.Fn (truthName,[])
+    | demote False = Term.Fn (falsityName,[])
     | demote (Atom (p,tms)) = Term.Fn (p,tms)
-    | demote (Not p) = Term.Fn (!Term.negation, [demote p])
-    | demote (And (p,q)) = Term.Fn (conjunctionSymbol, [demote p, demote q])
-    | demote (Or (p,q)) = Term.Fn (disjunctionSymbol, [demote p, demote q])
-    | demote (Imp (p,q)) = Term.Fn (implicationSymbol, [demote p, demote q])
-    | demote (Iff (p,q)) = Term.Fn (equivalenceSymbol, [demote p, demote q])
-    | demote (Forall (v,b)) = Term.Fn (universalSymbol, [Term.Var v, demote b])
+    | demote (Not p) =
+      let
+        val ref s = Term.negation
+      in
+        Term.Fn (Name.fromString s, [demote p])
+      end
+    | demote (And (p,q)) = Term.Fn (conjunctionName, [demote p, demote q])
+    | demote (Or (p,q)) = Term.Fn (disjunctionName, [demote p, demote q])
+    | demote (Imp (p,q)) = Term.Fn (implicationName, [demote p, demote q])
+    | demote (Iff (p,q)) = Term.Fn (equivalenceName, [demote p, demote q])
+    | demote (Forall (v,b)) = Term.Fn (universalName, [Term.Var v, demote b])
     | demote (Exists (v,b)) =
-      Term.Fn (existentialSymbol, [Term.Var v, demote b]);
+      Term.Fn (existentialName, [Term.Var v, demote b]);
 in
-  fun pp ppstrm fm = Term.pp ppstrm (demote fm);
+  fun pp fm = Term.pp (demote fm);
 end;
 
-val toString = Parser.toString pp;
+val toString = Print.toString pp;
 
 local
   fun isQuant [Term.Var _, _] = true
@@ -486,23 +517,23 @@ local
 
   fun promote (Term.Var v) = Atom (v,[])
     | promote (Term.Fn (f,tms)) =
-      if f = truthSymbol andalso null tms then
+      if Name.equal f truthName andalso null tms then
         True
-      else if f = falsitySymbol andalso null tms then
+      else if Name.equal f falsityName andalso null tms then
         False
-      else if f = !Term.negation andalso length tms = 1 then
+      else if Name.toString f = !Term.negation andalso length tms = 1 then
         Not (promote (hd tms))
-      else if f = conjunctionSymbol andalso length tms = 2 then
+      else if Name.equal f conjunctionName andalso length tms = 2 then
         And (promote (hd tms), promote (List.nth (tms,1)))
-      else if f = disjunctionSymbol andalso length tms = 2 then
+      else if Name.equal f disjunctionName andalso length tms = 2 then
         Or (promote (hd tms), promote (List.nth (tms,1)))
-      else if f = implicationSymbol andalso length tms = 2 then
+      else if Name.equal f implicationName andalso length tms = 2 then
         Imp (promote (hd tms), promote (List.nth (tms,1)))
-      else if f = equivalenceSymbol andalso length tms = 2 then
+      else if Name.equal f equivalenceName andalso length tms = 2 then
         Iff (promote (hd tms), promote (List.nth (tms,1)))
-      else if f = universalSymbol andalso isQuant tms then
+      else if Name.equal f universalName andalso isQuant tms then
         Forall (Term.destVar (hd tms), promote (List.nth (tms,1)))
-      else if f = existentialSymbol andalso isQuant tms then
+      else if Name.equal f existentialName andalso isQuant tms then
         Exists (Term.destVar (hd tms), promote (List.nth (tms,1)))
       else
         Atom (f,tms);
@@ -510,6 +541,61 @@ in
   fun fromString s = promote (Term.fromString s);
 end;
 
-val parse = Parser.parseQuotation toString fromString;
+val parse = Parse.parseQuotation toString fromString;
+
+(* ------------------------------------------------------------------------- *)
+(* Splitting goals.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+local
+  fun add_asms asms goal =
+      if null asms then goal else Imp (listMkConj (rev asms), goal);
+
+  fun add_var_asms asms v goal = add_asms asms (Forall (v,goal));
+
+  fun split asms pol fm =
+      case (pol,fm) of
+        (* Positive splittables *)
+        (true,True) => []
+      | (true, Not f) => split asms false f
+      | (true, And (f1,f2)) => split asms true f1 @ split (f1 :: asms) true f2
+      | (true, Or (f1,f2)) => split (Not f1 :: asms) true f2
+      | (true, Imp (f1,f2)) => split (f1 :: asms) true f2
+      | (true, Iff (f1,f2)) =>
+        split (f1 :: asms) true f2 @ split (f2 :: asms) true f1
+      | (true, Forall (v,f)) => map (add_var_asms asms v) (split [] true f)
+        (* Negative splittables *)
+      | (false,False) => []
+      | (false, Not f) => split asms true f
+      | (false, And (f1,f2)) => split (f1 :: asms) false f2
+      | (false, Or (f1,f2)) =>
+        split asms false f1 @ split (Not f1 :: asms) false f2
+      | (false, Imp (f1,f2)) => split asms true f1 @ split (f1 :: asms) false f2
+      | (false, Iff (f1,f2)) =>
+        split (f1 :: asms) false f2 @ split (f2 :: asms) false f1
+      | (false, Exists (v,f)) => map (add_var_asms asms v) (split [] false f)
+        (* Unsplittables *)
+      | _ => [add_asms asms (if pol then fm else Not fm)];
+in
+  fun splitGoal fm = split [] true fm;
+end;
+
+(*MetisTrace3
+val splitGoal = fn fm =>
+    let
+      val result = splitGoal fm
+      val () = Print.trace pp "Formula.splitGoal: fm" fm
+      val () = Print.trace (Print.ppList pp) "Formula.splitGoal: result" result
+    in
+      result
+    end;
+*)
 
 end
+
+structure FormulaOrdered =
+struct type t = Formula.formula val compare = Formula.compare end
+
+structure FormulaMap = KeyMap (FormulaOrdered);
+
+structure FormulaSet = ElementSet (FormulaMap);

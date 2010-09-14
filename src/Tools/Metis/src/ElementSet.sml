@@ -1,123 +1,347 @@
 (* ========================================================================= *)
 (* FINITE SETS WITH A FIXED ELEMENT TYPE                                     *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
-functor ElementSet (Key : Ordered) :> ElementSet where type element = Key.t =
+functor ElementSet (KM : KeyMap) :> ElementSet
+where type element = KM.key and type 'a map = 'a KM.map =
 struct
 
-(*isabelle open Metis;*)
-
-type element = Key.t;
-
 (* ------------------------------------------------------------------------- *)
-(* Finite sets                                                               *)
+(* A type of set elements.                                                   *)
 (* ------------------------------------------------------------------------- *)
 
-type set = Key.t Set.set;
+type element = KM.key;
 
-val empty = Set.empty Key.compare;
+(* ------------------------------------------------------------------------- *)
+(* A type of finite sets.                                                    *)
+(* ------------------------------------------------------------------------- *)
 
-fun singleton key = Set.singleton Key.compare key;
+type 'a map = 'a KM.map;
 
-val null = Set.null;
+datatype set = Set of unit map;
 
-val size = Set.size;
+(* ------------------------------------------------------------------------- *)
+(* Converting to and from maps.                                              *)
+(* ------------------------------------------------------------------------- *)
 
-val member = Set.member;
+fun dest (Set m) = m;
 
-val add = Set.add;
+fun mapPartial f =
+    let
+      fun mf (elt,()) = f elt
+    in
+      fn Set m => KM.mapPartial mf m
+    end;
 
-val addList = Set.addList;
+fun map f =
+    let
+      fun mf (elt,()) = f elt
+    in
+      fn Set m => KM.map mf m
+    end;
 
-val delete = Set.delete;
+fun domain m = Set (KM.transform (fn _ => ()) m);
 
-val union = Set.union;
+(* ------------------------------------------------------------------------- *)
+(* Constructors.                                                             *)
+(* ------------------------------------------------------------------------- *)
 
-val unionList = Set.unionList;
+val empty = Set (KM.new ());
 
-val intersect = Set.intersect;
+fun singleton elt = Set (KM.singleton (elt,()));
 
-val intersectList = Set.intersectList;
+(* ------------------------------------------------------------------------- *)
+(* Set size.                                                                 *)
+(* ------------------------------------------------------------------------- *)
 
-val difference = Set.difference;
+fun null (Set m) = KM.null m;
 
-val symmetricDifference = Set.symmetricDifference;
+fun size (Set m) = KM.size m;
 
-val disjoint = Set.disjoint;
+(* ------------------------------------------------------------------------- *)
+(* Querying.                                                                 *)
+(* ------------------------------------------------------------------------- *)
 
-val subset = Set.subset;
+fun peek (Set m) elt =
+    case KM.peekKey m elt of
+      SOME (elt,()) => SOME elt
+    | NONE => NONE;
 
-val equal = Set.equal;
+fun member elt (Set m) = KM.inDomain elt m;
 
-val filter = Set.filter;
+fun pick (Set m) =
+    let
+      val (elt,_) = KM.pick m
+    in
+      elt
+    end;
 
-val partition = Set.partition;
+fun nth (Set m) n =
+    let
+      val (elt,_) = KM.nth m n
+    in
+      elt
+    end;
 
-val count = Set.count;
+fun random (Set m) =
+    let
+      val (elt,_) = KM.random m
+    in
+      elt
+    end;
 
-val foldl = Set.foldl;
+(* ------------------------------------------------------------------------- *)
+(* Adding.                                                                   *)
+(* ------------------------------------------------------------------------- *)
 
-val foldr = Set.foldr;
+fun add (Set m) elt =
+    let
+      val m = KM.insert m (elt,())
+    in
+      Set m
+    end;
 
-val findl = Set.findl;
+local
+  fun uncurriedAdd (elt,set) = add set elt;
+in
+  fun addList set = List.foldl uncurriedAdd set;
+end;
 
-val findr = Set.findr;
+(* ------------------------------------------------------------------------- *)
+(* Removing.                                                                 *)
+(* ------------------------------------------------------------------------- *)
 
-val firstl = Set.firstl;
+fun delete (Set m) elt =
+    let
+      val m = KM.delete m elt
+    in
+      Set m
+    end;
 
-val firstr = Set.firstr;
+fun remove (Set m) elt =
+    let
+      val m = KM.remove m elt
+    in
+      Set m
+    end;
 
-val exists = Set.exists;
+fun deletePick (Set m) =
+    let
+      val ((elt,()),m) = KM.deletePick m
+    in
+      (elt, Set m)
+    end;
 
-val all = Set.all;
+fun deleteNth (Set m) n =
+    let
+      val ((elt,()),m) = KM.deleteNth m n
+    in
+      (elt, Set m)
+    end;
 
-val map = Set.map;
+fun deleteRandom (Set m) =
+    let
+      val ((elt,()),m) = KM.deleteRandom m
+    in
+      (elt, Set m)
+    end;
 
-val transform = Set.transform;
+(* ------------------------------------------------------------------------- *)
+(* Joining.                                                                  *)
+(* ------------------------------------------------------------------------- *)
 
-val app = Set.app;
+fun union (Set m1) (Set m2) = Set (KM.unionDomain m1 m2);
 
-val toList = Set.toList;
+fun unionList sets =
+    let
+      val ms = List.map dest sets
+    in
+      Set (KM.unionListDomain ms)
+    end;
 
-fun fromList l = Set.fromList Key.compare l;
+fun intersect (Set m1) (Set m2) = Set (KM.intersectDomain m1 m2);
 
-val pick = Set.pick;
+fun intersectList sets =
+    let
+      val ms = List.map dest sets
+    in
+      Set (KM.intersectListDomain ms)
+    end;
 
-val random = Set.random;
+fun difference (Set m1) (Set m2) =
+    Set (KM.differenceDomain m1 m2);
 
-val deletePick = Set.deletePick;
+fun symmetricDifference (Set m1) (Set m2) =
+    Set (KM.symmetricDifferenceDomain m1 m2);
 
-val deleteRandom = Set.deleteRandom;
+(* ------------------------------------------------------------------------- *)
+(* Mapping and folding.                                                      *)
+(* ------------------------------------------------------------------------- *)
 
-val compare = Set.compare;
+fun filter pred =
+    let
+      fun mpred (elt,()) = pred elt
+    in
+      fn Set m => Set (KM.filter mpred m)
+    end;
 
-val close = Set.close;
+fun partition pred =
+    let
+      fun mpred (elt,()) = pred elt
+    in
+      fn Set m =>
+         let
+           val (m1,m2) = KM.partition mpred m
+         in
+           (Set m1, Set m2)
+         end
+    end;
 
-val toString = Set.toString;
+fun app f =
+    let
+      fun mf (elt,()) = f elt
+    in
+      fn Set m => KM.app mf m
+    end;
+
+fun foldl f =
+    let
+      fun mf (elt,(),acc) = f (elt,acc)
+    in
+      fn acc => fn Set m => KM.foldl mf acc m
+    end;
+
+fun foldr f =
+    let
+      fun mf (elt,(),acc) = f (elt,acc)
+    in
+      fn acc => fn Set m => KM.foldr mf acc m
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Searching.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun findl p =
+    let
+      fun mp (elt,()) = p elt
+    in
+      fn Set m =>
+         case KM.findl mp m of
+           SOME (elt,()) => SOME elt
+         | NONE => NONE
+    end;
+
+fun findr p =
+    let
+      fun mp (elt,()) = p elt
+    in
+      fn Set m =>
+         case KM.findr mp m of
+           SOME (elt,()) => SOME elt
+         | NONE => NONE
+    end;
+
+fun firstl f =
+    let
+      fun mf (elt,()) = f elt
+    in
+      fn Set m => KM.firstl mf m
+    end;
+
+fun firstr f =
+    let
+      fun mf (elt,()) = f elt
+    in
+      fn Set m => KM.firstr mf m
+    end;
+
+fun exists p =
+    let
+      fun mp (elt,()) = p elt
+    in
+      fn Set m => KM.exists mp m
+    end;
+
+fun all p =
+    let
+      fun mp (elt,()) = p elt
+    in
+      fn Set m => KM.all mp m
+    end;
+
+fun count p =
+    let
+      fun mp (elt,()) = p elt
+    in
+      fn Set m => KM.count mp m
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* Comparing.                                                                *)
+(* ------------------------------------------------------------------------- *)
+
+fun compareValue ((),()) = EQUAL;
+
+fun equalValue () () = true;
+
+fun compare (Set m1, Set m2) = KM.compare compareValue (m1,m2);
+
+fun equal (Set m1) (Set m2) = KM.equal equalValue m1 m2;
+
+fun subset (Set m1) (Set m2) = KM.subsetDomain m1 m2;
+
+fun disjoint (Set m1) (Set m2) = KM.disjointDomain m1 m2;
+
+(* ------------------------------------------------------------------------- *)
+(* Converting to and from lists.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+fun transform f =
+    let
+      fun inc (x,l) = f x :: l
+    in
+      foldr inc []
+    end;
+
+fun toList (Set m) = KM.keys m;
+
+fun fromList elts = addList empty elts;
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing.                                                          *)
+(* ------------------------------------------------------------------------- *)
+
+fun toString set =
+    "{" ^ (if null set then "" else Int.toString (size set)) ^ "}";
 
 (* ------------------------------------------------------------------------- *)
 (* Iterators over sets                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-type iterator = Key.t Set.iterator;
+type iterator = unit KM.iterator;
 
-val mkIterator = Set.mkIterator;
+fun mkIterator (Set m) = KM.mkIterator m;
 
-val mkRevIterator = Set.mkRevIterator;
+fun mkRevIterator (Set m) = KM.mkRevIterator m;
 
-val readIterator = Set.readIterator;
+fun readIterator iter =
+    let
+      val (elt,()) = KM.readIterator iter
+    in
+      elt
+    end;
 
-val advanceIterator = Set.advanceIterator;
+fun advanceIterator iter = KM.advanceIterator iter;
 
 end
 
-(*isabelle structure Metis = struct open Metis;*)
-
 structure IntSet =
-ElementSet (IntOrdered);
+ElementSet (IntMap);
+
+structure IntPairSet =
+ElementSet (IntPairMap);
 
 structure StringSet =
-ElementSet (StringOrdered);
-
-(*isabelle end;*)
+ElementSet (StringMap);

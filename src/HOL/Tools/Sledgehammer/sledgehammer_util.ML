@@ -25,7 +25,7 @@ sig
   val strip_subgoal : thm -> int -> (string * typ) list * term list * term
   val reserved_isar_keyword_table : unit -> unit Symtab.table
 end;
- 
+
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
 
