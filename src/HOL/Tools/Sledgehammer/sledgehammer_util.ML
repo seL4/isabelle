@@ -41,10 +41,10 @@ fun serial_commas _ [] = ["??"]
   | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
   | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
 
-fun strip_spaces_in_list _ [] = ""
-  | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then "" else str c1
+fun strip_spaces_in_list _ [] = []
+  | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
   | strip_spaces_in_list is_evil [c1, c2] =
-    strip_spaces_in_list is_evil [c1] ^ strip_spaces_in_list is_evil [c2]
+    strip_spaces_in_list is_evil [c1] @ strip_spaces_in_list is_evil [c2]
   | strip_spaces_in_list is_evil (c1 :: c2 :: c3 :: cs) =
     if Char.isSpace c1 then
       strip_spaces_in_list is_evil (c2 :: c3 :: cs)
@@ -52,11 +52,12 @@ fun strip_spaces_in_list _ [] = ""
       if Char.isSpace c3 then
         strip_spaces_in_list is_evil (c1 :: c3 :: cs)
       else
-        str c1 ^ (if forall is_evil [c1, c3] then " " else "") ^
+        str c1 :: (if forall is_evil [c1, c3] then [" "] else []) @
         strip_spaces_in_list is_evil (c3 :: cs)
     else
-      str c1 ^ strip_spaces_in_list is_evil (c2 :: c3 :: cs)
-fun strip_spaces is_evil = strip_spaces_in_list is_evil o String.explode
+      str c1 :: strip_spaces_in_list is_evil (c2 :: c3 :: cs)
+fun strip_spaces is_evil =
+  implode o strip_spaces_in_list is_evil o String.explode
 
 val simplify_spaces = strip_spaces (K true)
 
