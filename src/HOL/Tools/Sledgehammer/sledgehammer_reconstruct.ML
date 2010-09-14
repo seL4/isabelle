@@ -62,12 +62,27 @@ fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
+datatype tstp_name = Str of string | Num of int
+
+fun tstp_name_ord (Str s, Str t) = string_ord (s, t)
+  | tstp_name_ord (Str _, Num _) = LESS
+  | tstp_name_ord (Num i, Num j) = int_ord (i, j)
+  | tstp_name_ord (Num _, Str _) = GREATER
+
 fun index_in_shape x = find_index (exists (curry (op =) x))
-fun is_axiom_number axiom_names num =
-  num > 0 andalso num <= Vector.length axiom_names andalso
-  not (null (Vector.sub (axiom_names, num - 1)))
-fun is_conjecture_number conjecture_shape num =
-  index_in_shape num conjecture_shape >= 0
+fun resolve_axiom axiom_names (Str str) =
+    (case find_first_in_list_vector axiom_names str of
+       SOME x => [(str, x)]
+     | NONE => [])
+  | resolve_axiom axiom_names (Num num) =
+    if num > 0 andalso num <= Vector.length axiom_names then
+      Vector.sub (axiom_names, num - 1)
+    else
+      []
+val is_axiom_name = not o null oo resolve_axiom
+fun is_conjecture_name _ (Str str) = String.isPrefix conjecture_prefix str
+  | is_conjecture_name conjecture_shape (Num num) =
+    index_in_shape num conjecture_shape >= 0
 
 fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
     Const (@{const_name Ex}, T) $ Abs (s, T', negate_term t')
@@ -82,12 +97,12 @@ fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
   | negate_term (@{const Not} $ t) = t
   | negate_term t = @{const Not} $ t
 
-datatype ('a, 'b, 'c, 'd, 'e) raw_step =
-  Definition of 'a * 'b * 'c |
-  Inference of 'a * 'd * 'e list
+datatype ('a, 'b, 'c) raw_step =
+  Definition of tstp_name * 'a * 'b |
+  Inference of tstp_name * 'c * tstp_name list
 
-fun raw_step_number (Definition (num, _, _)) = num
-  | raw_step_number (Inference (num, _, _)) = num
+fun raw_step_name (Definition (name, _, _)) = name
+  | raw_step_name (Inference (name, _, _)) = name
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -184,18 +199,19 @@ val parse_tstp_extra_arguments =
              "definition" =>
              (case phi of
                 AConn (AIff, [phi1 as AAtom _, phi2]) =>
-                Definition (num, phi1, phi2)
+                Definition (Num num, phi1, phi2)
               | AAtom (ATerm ("c_equal", _)) =>
-                Inference (num, phi, deps) (* Vampire's equality proxy axiom *)
+                (* Vampire's equality proxy axiom *)
+                Inference (Num num, phi, map Num deps)
               | _ => raise Fail "malformed definition")
-           | _ => Inference (num, phi, deps))
+           | _ => Inference (Num num, phi, map Num deps))
 
 (**** PARSING OF VAMPIRE OUTPUT ****)
 
 (* Syntax: <num>. <formula> <annotation> *)
 fun parse_vampire_line pool =
   scan_integer --| $$ "." -- parse_formula pool -- parse_annotation
-  >> (fn ((num, phi), deps) => Inference (num, phi, deps))
+  >> (fn ((num, phi), deps) => Inference (Num num, phi, map Num deps))
 
 (**** PARSING OF SPASS OUTPUT ****)
 
@@ -230,7 +246,7 @@ fun parse_horn_clause pool =
 fun parse_spass_line pool =
   scan_integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
     -- parse_spass_annotations --| $$ "]" -- parse_horn_clause pool --| $$ "."
-  >> (fn ((num, deps), u) => Inference (num, u, deps))
+  >> (fn ((num, deps), u) => Inference (Num num, u, map Num deps))
 
 fun parse_line pool =
   parse_tstp_line pool || parse_vampire_line pool || parse_spass_line pool
@@ -447,7 +463,7 @@ fun check_formula ctxt =
 fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
   | unvarify_term t = raise TERM ("unvarify_term: non-Var", [t])
 
-fun decode_line full_types tfrees (Definition (num, phi1, phi2)) ctxt =
+fun decode_line full_types tfrees (Definition (name, phi1, phi2)) ctxt =
     let
       val thy = ProofContext.theory_of ctxt
       val t1 = prop_from_formula thy full_types tfrees phi1
@@ -460,16 +476,16 @@ fun decode_line full_types tfrees (Definition (num, phi1, phi2)) ctxt =
         |> unvarify_args |> uncombine_term |> check_formula ctxt
         |> HOLogic.dest_eq
     in
-      (Definition (num, t1, t2),
+      (Definition (name, t1, t2),
        fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
     end
-  | decode_line full_types tfrees (Inference (num, u, deps)) ctxt =
+  | decode_line full_types tfrees (Inference (name, u, deps)) ctxt =
     let
       val thy = ProofContext.theory_of ctxt
       val t = u |> prop_from_formula thy full_types tfrees
                 |> uncombine_term |> check_formula ctxt
     in
-      (Inference (num, t, deps),
+      (Inference (name, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
     end
 fun decode_lines ctxt full_types tfrees lines =
@@ -484,69 +500,69 @@ val is_only_type_information = curry (op aconv) HOLogic.true_const
 
 fun replace_one_dep (old, new) dep = if dep = old then new else [dep]
 fun replace_deps_in_line _ (line as Definition _) = line
-  | replace_deps_in_line p (Inference (num, t, deps)) =
-    Inference (num, t, fold (union (op =) o replace_one_dep p) deps [])
+  | replace_deps_in_line p (Inference (name, t, deps)) =
+    Inference (name, t, fold (union (op =) o replace_one_dep p) deps [])
 
 (* Discard axioms; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
 fun add_line _ _ (line as Definition _) lines = line :: lines
-  | add_line conjecture_shape axiom_names (Inference (num, t, [])) lines =
+  | add_line conjecture_shape axiom_names (Inference (name, t, [])) lines =
     (* No dependencies: axiom, conjecture, or (for Vampire) internal axioms or
        definitions. *)
-    if is_axiom_number axiom_names num then
+    if is_axiom_name axiom_names name then
       (* Axioms are not proof lines. *)
       if is_only_type_information t then
-        map (replace_deps_in_line (num, [])) lines
+        map (replace_deps_in_line (name, [])) lines
       (* Is there a repetition? If so, replace later line by earlier one. *)
       else case take_prefix (not o is_same_inference t) lines of
         (_, []) => lines (*no repetition of proof line*)
-      | (pre, Inference (num', _, _) :: post) =>
-        pre @ map (replace_deps_in_line (num', [num])) post
-    else if is_conjecture_number conjecture_shape num then
-      Inference (num, negate_term t, []) :: lines
+      | (pre, Inference (name', _, _) :: post) =>
+        pre @ map (replace_deps_in_line (name', [name])) post
+    else if is_conjecture_name conjecture_shape name then
+      Inference (name, negate_term t, []) :: lines
     else
-      map (replace_deps_in_line (num, [])) lines
-  | add_line _ _ (Inference (num, t, deps)) lines =
+      map (replace_deps_in_line (name, [])) lines
+  | add_line _ _ (Inference (name, t, deps)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
-      Inference (num, t, deps) :: lines
+      Inference (name, t, deps) :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
     else case take_prefix (not o is_same_inference t) lines of
       (* FIXME: Doesn't this code risk conflating proofs involving different
          types? *)
-       (_, []) => Inference (num, t, deps) :: lines
-     | (pre, Inference (num', t', _) :: post) =>
-       Inference (num, t', deps) ::
-       pre @ map (replace_deps_in_line (num', [num])) post
+       (_, []) => Inference (name, t, deps) :: lines
+     | (pre, Inference (name', t', _) :: post) =>
+       Inference (name, t', deps) ::
+       pre @ map (replace_deps_in_line (name', [name])) post
 
 (* Recursively delete empty lines (type information) from the proof. *)
-fun add_nontrivial_line (Inference (num, t, [])) lines =
-    if is_only_type_information t then delete_dep num lines
-    else Inference (num, t, []) :: lines
+fun add_nontrivial_line (Inference (name, t, [])) lines =
+    if is_only_type_information t then delete_dep name lines
+    else Inference (name, t, []) :: lines
   | add_nontrivial_line line lines = line :: lines
-and delete_dep num lines =
-  fold_rev add_nontrivial_line (map (replace_deps_in_line (num, [])) lines) []
+and delete_dep name lines =
+  fold_rev add_nontrivial_line (map (replace_deps_in_line (name, [])) lines) []
 
 (* ATPs sometimes reuse free variable names in the strangest ways. Removing
    offending lines often does the trick. *)
 fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
-fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
-    (j, line :: map (replace_deps_in_line (num, [])) lines)
+fun add_desired_line _ _ _ _ (line as Definition (name, _, _)) (j, lines) =
+    (j, line :: map (replace_deps_in_line (name, [])) lines)
   | add_desired_line isar_shrink_factor conjecture_shape axiom_names frees
-                     (Inference (num, t, deps)) (j, lines) =
+                     (Inference (name, t, deps)) (j, lines) =
     (j + 1,
-     if is_axiom_number axiom_names num orelse
-        is_conjecture_number conjecture_shape num orelse
+     if is_axiom_name axiom_names name orelse
+        is_conjecture_name conjecture_shape name orelse
         (not (is_only_type_information t) andalso
          null (Term.add_tvars t []) andalso
          not (exists_subterm (is_bad_free frees) t) andalso
          (null lines orelse (* last line must be kept *)
           (length deps >= 2 andalso j mod isar_shrink_factor = 0))) then
-       Inference (num, t, deps) :: lines  (* keep line *)
+       Inference (name, t, deps) :: lines  (* keep line *)
      else
-       map (replace_deps_in_line (num, deps)) lines)  (* drop line *)
+       map (replace_deps_in_line (name, deps)) lines)  (* drop line *)
 
 (** EXTRACTING LEMMAS **)
 
@@ -570,8 +586,7 @@ fun used_facts_in_atp_proof axiom_names atp_proof =
   let
     fun axiom_names_at_index num =
       let val j = Int.fromString num |> the_default ~1 in
-        if is_axiom_number axiom_names j then Vector.sub (axiom_names, j - 1)
-        else []
+        resolve_axiom axiom_names (Num j)
       end
     val tokens_of =
       String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
@@ -602,6 +617,9 @@ val assum_prefix = "A"
 val fact_prefix = "F"
 
 fun string_for_label (s, num) = s ^ string_of_int num
+
+fun raw_label_for_name (Str str) = (raw_prefix ^ str, 0)
+  | raw_label_for_name (Num num) = (raw_prefix, num)
 
 fun metis_using [] = ""
   | metis_using ls =
@@ -664,19 +682,20 @@ and byline =
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
 
-fun add_fact_from_dep axiom_names num =
-  if is_axiom_number axiom_names num then
-    apsnd (union (op =) (map fst (Vector.sub (axiom_names, num - 1))))
+fun add_fact_from_dep axiom_names name =
+  if is_axiom_name axiom_names name then
+    apsnd (union (op =) (map fst (resolve_axiom axiom_names name)))
   else
-    apfst (insert (op =) (raw_prefix, num))
+    apfst (insert (op =) (raw_label_for_name name))
 
 fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda v t
 fun forall_vars t = fold_rev forall_of (map Var (Term.add_vars t [])) t
 
 fun step_for_line _ _ (Definition (_, t1, t2)) = Let (t1, t2)
-  | step_for_line _ _ (Inference (num, t, [])) = Assume ((raw_prefix, num), t)
-  | step_for_line axiom_names j (Inference (num, t, deps)) =
-    Have (if j = 1 then [Show] else [], (raw_prefix, num),
+  | step_for_line _ _ (Inference (name, t, [])) =
+    Assume (raw_label_for_name name, t)
+  | step_for_line axiom_names j (Inference (name, t, deps)) =
+    Have (if j = 1 then [Show] else [], raw_label_for_name name,
           forall_vars t,
           ByMetis (fold (add_fact_from_dep axiom_names) deps ([], [])))
 
@@ -686,7 +705,7 @@ fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
     val lines =
       atp_proof ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof pool
-      |> sort (int_ord o pairself raw_step_number)
+      |> sort (tstp_name_ord o pairself raw_step_name)
       |> decode_lines ctxt full_types tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape axiom_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
