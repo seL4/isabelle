@@ -31,7 +31,8 @@ sig
     {state: Proof.state,
      goal: thm,
      subgoal: int,
-     axioms: (term * ((string * locality) * fol_formula) option) list}
+     axioms: (term * ((string * locality) * fol_formula) option) list,
+     only: bool}
   type prover_result =
     {outcome: failure option,
      message: string,
@@ -100,7 +101,8 @@ type problem =
   {state: Proof.state,
    goal: thm,
    subgoal: int,
-   axioms: (term * ((string * locality) * fol_formula) option) list}
+   axioms: (term * ((string * locality) * fol_formula) option) list,
+   only: bool}
 
 type prover_result =
   {outcome: failure option,
@@ -236,12 +238,12 @@ fun prover_fun auto atp_name
          use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
           max_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
-        minimize_command ({state, goal, subgoal, axioms} : problem) =
+        minimize_command ({state, goal, subgoal, axioms, only} : problem) =
   let
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
-    val max_relevant = the_default default_max_relevant max_relevant
-    val axioms = take max_relevant axioms
+    val axioms = axioms |> not only
+                          ? take (the_default default_max_relevant max_relevant)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                        else Config.get ctxt dest_dir
     val the_problem_prefix = Config.get ctxt problem_prefix
@@ -431,7 +433,8 @@ val auto_max_relevant_divisor = 2
 
 fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
                                  relevance_thresholds, max_relevant, ...})
-                     auto i relevance_override minimize_command state =
+                     auto i (relevance_override as {only, ...}) minimize_command
+                     state =
   if null atps then
     error "No ATP is set."
   else case subgoal_count state of
@@ -460,7 +463,7 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
                            hyp_ts concl_t
           val problem =
             {state = state, goal = goal, subgoal = i,
-             axioms = map (prepare_axiom ctxt) axioms}
+             axioms = map (prepare_axiom ctxt) axioms, only = only}
           val run_prover = run_prover params auto i n minimize_command problem
         in
           if auto then

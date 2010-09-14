@@ -817,10 +817,11 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
   in
     trace_msg (fn () => "Considering " ^ Int.toString (length axioms) ^
                         " theorems");
-    (if threshold0 > 1.0 orelse threshold0 > threshold1 then
-       []
-     else if threshold0 < 0.0 then
+    (if only orelse threshold1 < 0.0 then
        axioms
+     else if threshold0 > 1.0 orelse threshold0 > threshold1 orelse
+             max_relevant = 0 then
+       []
      else
        relevance_filter ctxt threshold0 decay max_relevant relevance_override
                         axioms (concl_t :: hyp_ts))

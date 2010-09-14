@@ -357,7 +357,8 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
           relevance_override chained_ths hyp_ts concl_t
     val problem =
       {state = st', goal = goal, subgoal = i,
-       axioms = map (Sledgehammer_Translate.prepare_axiom ctxt) axioms}
+       axioms = map (Sledgehammer_Translate.prepare_axiom ctxt) axioms,
+       only = true}
     val time_limit =
       (case hard_timeout of
         NONE => I
