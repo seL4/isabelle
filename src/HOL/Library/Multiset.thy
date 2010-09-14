@@ -1381,14 +1381,6 @@ unfolding fold_mset_def by (blast intro: fold_msetG_determ)
 
 lemma fold_mset_insert:
   "fold_mset f z (A + {#x#}) = f x (fold_mset f z A)"
-apply (simp add: fold_mset_def fold_mset_insert_aux add_commute)  
-apply (rule the_equality)
- apply (auto cong add: conj_cong 
-     simp add: fold_mset_def [symmetric] fold_mset_equality fold_msetG_nonempty)
-done
-
-lemma fold_mset_insert_idem:
-  "fold_mset f z (A + {#a#}) = f a (fold_mset f z A)"
 apply (simp add: fold_mset_def fold_mset_insert_aux)
 apply (rule the_equality)
  apply (auto cong add: conj_cong 
