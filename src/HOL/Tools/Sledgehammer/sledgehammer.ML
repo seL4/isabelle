@@ -434,7 +434,7 @@ fun run_prover (params as {blocking, verbose, max_relevant, timeout, expect,
 
 val auto_max_relevant_divisor = 2
 
-fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
+fun run_sledgehammer (params as {blocking, atps, full_types,
                                  relevance_thresholds, max_relevant, ...})
                      auto i (relevance_override as {only, ...}) minimize_command
                      state =
@@ -446,7 +446,6 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
     let
       val _ = Proof.assert_backward state
       val thy = Proof.theory_of state
-      val timer = Timer.startRealTimer ()
       val _ = () |> not blocking ? kill_atps
       val _ = if auto then () else priority "Sledgehammering..."
       val provers = map (`(get_prover thy)) atps

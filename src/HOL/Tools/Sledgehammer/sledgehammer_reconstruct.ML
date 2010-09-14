@@ -64,11 +64,13 @@ fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
 datatype raw_step_name = Str of string * string | Num of string
 
-fun raw_step_name_num (Str (num, _)) = num
-  | raw_step_name_num (Num num) = num
+fun raw_step_num (Str (num, _)) = num
+  | raw_step_num (Num num) = num
+
+fun same_raw_step s t = raw_step_num s = raw_step_num t
 
 fun raw_step_name_ord p =
-  let val q = pairself raw_step_name_num p in
+  let val q = pairself raw_step_num p in
     case pairself Int.fromString q of
       (NONE, NONE) => string_ord q
     | (NONE, SOME _) => LESS
@@ -77,9 +79,11 @@ fun raw_step_name_ord p =
   end
 
 fun index_in_shape x = find_index (exists (curry (op =) x))
-fun resolve_axiom axiom_names (Str (_, str)) =
-    (case find_first_in_list_vector axiom_names str of
-       SOME x => [(str, x)]
+fun resolve_axiom axiom_names (Str (_, s)) =
+    (case strip_prefix_and_unascii axiom_prefix s of
+       SOME s' => (case find_first_in_list_vector axiom_names s' of
+                     SOME x => [(s', x)]
+                   | NONE => [])
      | NONE => [])
   | resolve_axiom axiom_names (Num num) =
     case Int.fromString num of
@@ -93,9 +97,11 @@ val is_axiom = not o null oo resolve_axiom
 
 fun resolve_conjecture conjecture_shape (Str (num, s)) =
     let
-      val j = try (unprefix conjecture_prefix) s |> the_default num
-              |> Int.fromString |> the_default ~1
-      val k = index_in_shape j conjecture_shape
+      val k = case try (unprefix conjecture_prefix) s of
+                SOME s => Int.fromString s |> the_default ~1
+              | NONE => case Int.fromString num of
+                          SOME j => index_in_shape j conjecture_shape
+                        | NONE => ~1
     in if k >= 0 then [k] else [] end
   | resolve_conjecture conjecture_shape (Num num) =
     resolve_conjecture conjecture_shape (Str (num, "")) (* HACK *)
@@ -142,13 +148,13 @@ fun repair_name _ "$true" = "c_True"
 fun parse_annotation strict x =
   ((scan_general_id ::: Scan.repeat ($$ " " |-- scan_general_id)
       >> (strict ? filter (is_some o Int.fromString)))
-   -- Scan.optional (parse_annotation strict) [] >> uncurry (union (op =))
+   -- Scan.optional (parse_annotation strict) [] >> op @
    || $$ "(" |-- parse_annotations strict --| $$ ")"
    || $$ "[" |-- parse_annotations strict --| $$ "]") x
 and parse_annotations strict x =
   (Scan.optional (parse_annotation strict
                   ::: Scan.repeat ($$ "," |-- parse_annotation strict)) []
-   >> (fn numss => fold (union (op =)) numss [])) x
+   >> flat) x
 
 (* Vampire proof lines sometimes contain needless information such as "(0:3)",
    which can be hard to disambiguate from function application in an LL(1)
@@ -206,16 +212,23 @@ val parse_tstp_extra_arguments =
      |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
      -- parse_formula pool -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
     >> (fn (((num, role), phi), deps) =>
-           case role of
-             "definition" =>
-             (case phi of
-                AConn (AIff, [phi1 as AAtom _, phi2]) =>
-                Definition (Num num, phi1, phi2)
-              | AAtom (ATerm ("c_equal", _)) =>
-                (* Vampire's equality proxy axiom *)
-                Inference (Num num, phi, map Num deps)
-              | _ => raise Fail "malformed definition")
-           | _ => Inference (Num num, phi, map Num deps))
+           let
+             val (name, deps) =
+               case deps of
+                 ["file", _, s] => (Str (num, s), [])
+               | _ => (Num num, deps)
+           in
+             case role of
+               "definition" =>
+               (case phi of
+                  AConn (AIff, [phi1 as AAtom _, phi2]) =>
+                  Definition (name, phi1, phi2)
+                | AAtom (ATerm ("c_equal", _)) =>
+                  (* Vampire's equality proxy axiom *)
+                  Inference (name, phi, map Num deps)
+                | _ => raise Fail "malformed definition")
+             | _ => Inference (name, phi, map Num deps)
+           end)
 
 (**** PARSING OF VAMPIRE OUTPUT ****)
 
@@ -267,6 +280,14 @@ fun parse_proof pool =
             (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
                             (parse_lines pool)))
   o explode o strip_spaces_except_between_ident_chars
+
+fun clean_up_dependencies _ [] = []
+  | clean_up_dependencies seen ((step as Definition (name, _, _)) :: steps) =
+    step :: clean_up_dependencies (name :: seen) steps
+  | clean_up_dependencies seen (Inference (name, u, deps) :: steps) =
+    Inference (name, u,
+             map_filter (fn dep => find_first (same_raw_step dep) seen) deps) ::
+    clean_up_dependencies (name :: seen) steps
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
@@ -510,10 +531,11 @@ fun is_same_inference _ (Definition _) = false
    clsarity). *)
 val is_only_type_information = curry (op aconv) HOLogic.true_const
 
-fun replace_one_dep (old, new) dep = if dep = old then new else [dep]
-fun replace_deps_in_line _ (line as Definition _) = line
-  | replace_deps_in_line p (Inference (name, t, deps)) =
-    Inference (name, t, fold (union (op =) o replace_one_dep p) deps [])
+fun replace_one_dependency (old, new) dep =
+  if raw_step_num dep = raw_step_num old then new else [dep]
+fun replace_dependencies_in_line _ (line as Definition _) = line
+  | replace_dependencies_in_line p (Inference (name, t, deps)) =
+    Inference (name, t, fold (union (op =) o replace_one_dependency p) deps [])
 
 (* Discard axioms; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
@@ -524,16 +546,16 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
     if is_axiom axiom_names name then
       (* Axioms are not proof lines. *)
       if is_only_type_information t then
-        map (replace_deps_in_line (name, [])) lines
+        map (replace_dependencies_in_line (name, [])) lines
       (* Is there a repetition? If so, replace later line by earlier one. *)
       else case take_prefix (not o is_same_inference t) lines of
-        (_, []) => lines (*no repetition of proof line*)
+        (_, []) => lines (* no repetition of proof line *)
       | (pre, Inference (name', _, _) :: post) =>
-        pre @ map (replace_deps_in_line (name', [name])) post
+        pre @ map (replace_dependencies_in_line (name', [name])) post
     else if is_conjecture conjecture_shape name then
       Inference (name, negate_term t, []) :: lines
     else
-      map (replace_deps_in_line (name, [])) lines
+      map (replace_dependencies_in_line (name, [])) lines
   | add_line _ _ (Inference (name, t, deps)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
@@ -545,15 +567,16 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
        (_, []) => Inference (name, t, deps) :: lines
      | (pre, Inference (name', t', _) :: post) =>
        Inference (name, t', deps) ::
-       pre @ map (replace_deps_in_line (name', [name])) post
+       pre @ map (replace_dependencies_in_line (name', [name])) post
 
 (* Recursively delete empty lines (type information) from the proof. *)
 fun add_nontrivial_line (Inference (name, t, [])) lines =
-    if is_only_type_information t then delete_dep name lines
+    if is_only_type_information t then delete_dependency name lines
     else Inference (name, t, []) :: lines
   | add_nontrivial_line line lines = line :: lines
-and delete_dep name lines =
-  fold_rev add_nontrivial_line (map (replace_deps_in_line (name, [])) lines) []
+and delete_dependency name lines =
+  fold_rev add_nontrivial_line
+           (map (replace_dependencies_in_line (name, [])) lines) []
 
 (* ATPs sometimes reuse free variable names in the strangest ways. Removing
    offending lines often does the trick. *)
@@ -561,20 +584,23 @@ fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
 fun add_desired_line _ _ _ _ (line as Definition (name, _, _)) (j, lines) =
-    (j, line :: map (replace_deps_in_line (name, [])) lines)
+    (j, line :: map (replace_dependencies_in_line (name, [])) lines)
   | add_desired_line isar_shrink_factor conjecture_shape axiom_names frees
                      (Inference (name, t, deps)) (j, lines) =
     (j + 1,
      if is_axiom axiom_names name orelse
         is_conjecture conjecture_shape name orelse
+        (* the last line must be kept *)
+        j = 0 orelse
         (not (is_only_type_information t) andalso
          null (Term.add_tvars t []) andalso
          not (exists_subterm (is_bad_free frees) t) andalso
-         (null lines orelse (* last line must be kept *)
-          (length deps >= 2 andalso j mod isar_shrink_factor = 0))) then
+         length deps >= 2 andalso j mod isar_shrink_factor = 0 andalso
+         (* kill next to last line, which usually results in a trivial step *)
+         j <> 1) then
        Inference (name, t, deps) :: lines  (* keep line *)
      else
-       map (replace_deps_in_line (name, deps)) lines)  (* drop line *)
+       map (replace_dependencies_in_line (name, deps)) lines)  (* drop line *)
 
 (** EXTRACTING LEMMAS **)
 
@@ -631,9 +657,9 @@ fun string_for_label (s, num) = s ^ string_of_int num
 fun raw_label_for_name conjecture_shape name =
   case resolve_conjecture conjecture_shape name of
     [j] => (conjecture_prefix, j)
-  | _ => case Int.fromString (raw_step_name_num name) of
+  | _ => case Int.fromString (raw_step_num name) of
            SOME j => (raw_prefix, j)
-         | NONE => (raw_prefix ^ raw_step_name_num name, 0)
+         | NONE => (raw_prefix ^ raw_step_num name, 0)
 
 fun metis_using [] = ""
   | metis_using ls =
@@ -696,7 +722,7 @@ and byline =
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
 
-fun add_fact_from_dep conjecture_shape axiom_names name =
+fun add_fact_from_dependency conjecture_shape axiom_names name =
   if is_axiom axiom_names name then
     apsnd (union (op =) (map fst (resolve_axiom axiom_names name)))
   else
@@ -711,8 +737,8 @@ fun step_for_line _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
   | step_for_line conjecture_shape axiom_names j (Inference (name, t, deps)) =
     Have (if j = 1 then [Show] else [],
           raw_label_for_name conjecture_shape name, forall_vars t,
-          ByMetis (fold (add_fact_from_dep conjecture_shape axiom_names) deps
-                        ([], [])))
+          ByMetis (fold (add_fact_from_dependency conjecture_shape axiom_names)
+                        deps ([], [])))
 
 fun raw_step_name (Definition (name, _, _)) = name
   | raw_step_name (Inference (name, _, _)) = name
@@ -724,6 +750,7 @@ fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
       atp_proof ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof pool
       |> sort (raw_step_name_ord o pairself raw_step_name)
+      |> clean_up_dependencies []
       |> decode_lines ctxt full_types tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape axiom_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
@@ -819,60 +846,59 @@ fun redirect_proof hyp_ts concl_t proof =
         second_pass end_qs (proof, (t, l) :: assums, patches)
       | second_pass end_qs (Have (qs, l, t, ByMetis (ls, ss)) :: proof, assums,
                             patches) =
-        if member (op =) (snd (snd patches)) l andalso
-           not (member (op =) (fst (snd patches)) l) andalso
-           not (AList.defined (op =) (fst patches) l) then
-          second_pass end_qs (proof, assums, patches ||> apsnd (append ls))
-        else
-          (case List.partition (member (op =) contra_ls) ls of
-             ([contra_l], co_ls) =>
-             if member (op =) qs Show then
-               second_pass end_qs (proof, assums,
-                                   patches |>> cons (contra_l, (co_ls, ss)))
-             else
-               second_pass end_qs
-                           (proof, assums,
-                            patches |>> cons (contra_l, (l :: co_ls, ss)))
-               |>> cons (if member (op =) (fst (snd patches)) l then
-                           Assume (l, negate_term t)
-                         else
-                           Have (qs, l, negate_term t,
-                                 ByMetis (backpatch_label patches l)))
-           | (contra_ls as _ :: _, co_ls) =>
-             let
-               val proofs =
-                 map_filter
-                     (fn l =>
-                         if l = concl_l then
-                           NONE
-                         else
-                           let
-                             val drop_ls = filter (curry (op <>) l) contra_ls
-                           in
-                             second_pass []
-                                 (proof, assums,
-                                  patches ||> apfst (insert (op =) l)
-                                          ||> apsnd (union (op =) drop_ls))
-                             |> fst |> SOME
-                           end) contra_ls
-               val (assumes, facts) =
-                 if member (op =) (fst (snd patches)) l then
-                   ([Assume (l, negate_term t)], (l :: co_ls, ss))
-                 else
-                   ([], (co_ls, ss))
-             in
-               (case join_proofs proofs of
-                  SOME (l, t, proofs, proof_tail) =>
-                  Have (case_split_qualifiers proofs @
-                        (if null proof_tail then end_qs else []), l, t,
-                        smart_case_split proofs facts) :: proof_tail
-                | NONE =>
-                  [Have (case_split_qualifiers proofs @ end_qs, no_label,
-                         concl_t, smart_case_split proofs facts)],
-                patches)
-               |>> append assumes
-             end
-           | _ => raise Fail "malformed proof")
+        (if member (op =) (snd (snd patches)) l andalso
+            not (member (op =) (fst (snd patches)) l) andalso
+            not (AList.defined (op =) (fst patches) l) then
+           second_pass end_qs (proof, assums, patches ||> apsnd (append ls))
+         else case List.partition (member (op =) contra_ls) ls of
+           ([contra_l], co_ls) =>
+           if member (op =) qs Show then
+             second_pass end_qs (proof, assums,
+                                 patches |>> cons (contra_l, (co_ls, ss)))
+           else
+             second_pass end_qs
+                         (proof, assums,
+                          patches |>> cons (contra_l, (l :: co_ls, ss)))
+             |>> cons (if member (op =) (fst (snd patches)) l then
+                         Assume (l, negate_term t)
+                       else
+                         Have (qs, l, negate_term t,
+                               ByMetis (backpatch_label patches l)))
+         | (contra_ls as _ :: _, co_ls) =>
+           let
+             val proofs =
+               map_filter
+                   (fn l =>
+                       if l = concl_l then
+                         NONE
+                       else
+                         let
+                           val drop_ls = filter (curry (op <>) l) contra_ls
+                         in
+                           second_pass []
+                               (proof, assums,
+                                patches ||> apfst (insert (op =) l)
+                                        ||> apsnd (union (op =) drop_ls))
+                           |> fst |> SOME
+                         end) contra_ls
+             val (assumes, facts) =
+               if member (op =) (fst (snd patches)) l then
+                 ([Assume (l, negate_term t)], (l :: co_ls, ss))
+               else
+                 ([], (co_ls, ss))
+           in
+             (case join_proofs proofs of
+                SOME (l, t, proofs, proof_tail) =>
+                Have (case_split_qualifiers proofs @
+                      (if null proof_tail then end_qs else []), l, t,
+                      smart_case_split proofs facts) :: proof_tail
+              | NONE =>
+                [Have (case_split_qualifiers proofs @ end_qs, no_label,
+                       concl_t, smart_case_split proofs facts)],
+              patches)
+             |>> append assumes
+           end
+         | _ => raise Fail "malformed proof")
        | second_pass _ _ = raise Fail "malformed proof"
     val proof_bottom =
       second_pass [Show] (contra_proof, [], ([], ([], []))) |> fst
