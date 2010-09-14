@@ -438,6 +438,7 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
     0 => (priority "No subgoal!"; (false, state))
   | n =>
     let
+      val _ = Proof.assert_backward state
       val thy = Proof.theory_of state
       val timer = Timer.startRealTimer ()
       val _ = () |> not blocking ? kill_atps
