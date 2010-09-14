@@ -284,7 +284,7 @@ fun remotify_prover (name, config) system_name system_versions =
   (remotify_name name, remotify_config system_name system_versions config)
 
 val remote_e = remotify_prover e "EP" ["1.0", "1.1", "1.2"]
-val remote_vampire = remotify_prover vampire "Vampire" ["9.0", "1.0", "0.6"]
+val remote_vampire = remotify_prover vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_sine_e =
   remote_prover "sine_e" "SInE" [] [] [(IncompleteUnprovable, "says Unknown")]
                 800 (* FUDGE *) true
