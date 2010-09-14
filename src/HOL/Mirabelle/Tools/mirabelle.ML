@@ -160,7 +160,7 @@ fun can_apply time tac st =
     val full_tac = HEADGOAL (Method.insert_tac facts THEN' tac ctxt)
   in
     (case TimeLimit.timeLimit time (Seq.pull o full_tac) goal of
-      SOME (thm, _) => true
+      SOME _ => true
     | NONE => false)
   end
 

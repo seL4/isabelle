@@ -405,7 +405,7 @@ fun run_sledgehammer trivial args named_thms id ({pre=st, log, ...}: Mirabelle.r
     case result of
       SH_OK (time_isa, time_atp, names) =>
         let
-          fun get_thms (name, Sledgehammer_Filter.Chained) = NONE
+          fun get_thms (_, Sledgehammer_Filter.Chained) = NONE
             | get_thms (name, loc) =
               SOME ((name, loc), thms_of_name (Proof.context_of st) name)
         in
