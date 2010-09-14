@@ -443,10 +443,10 @@ fun skolem_name i j num_T_args =
   skolem_infix ^ "g"
 
 fun conceal_skolem_terms i skolems t =
-  if exists_Const (curry (op =) @{const_name skolem_id} o fst) t then
+  if exists_Const (curry (op =) @{const_name skolem} o fst) t then
     let
       fun aux skolems
-              (t as (Const (@{const_name skolem_id}, Type (_, [_, T])) $ _)) =
+              (t as (Const (@{const_name skolem}, Type (_, [_, T])) $ _)) =
           let
             val (skolems, s) =
               if i = ~1 then
@@ -513,7 +513,7 @@ fun add_type_consts_in_term thy =
     fun aux (Const x) =
         fold (fold_type_consts set_insert) (Sign.const_typargs thy x)
       | aux (Abs (_, _, u)) = aux u
-      | aux (Const (@{const_name skolem_id}, _) $ _) = I
+      | aux (Const (@{const_name skolem}, _) $ _) = I
       | aux (t $ u) = aux t #> aux u
       | aux _ = I
   in aux end

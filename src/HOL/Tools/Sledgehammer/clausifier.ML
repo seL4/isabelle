@@ -40,9 +40,9 @@ exception Clausify_failure of theory;
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
-fun mk_skolem_id t =
+fun mk_skolem t =
   let val T = fastype_of t in
-    Const (@{const_name skolem_id}, T --> T) $ t
+    Const (@{const_name skolem}, T --> T) $ t
   end
 
 fun beta_eta_under_lambdas (Abs (s, T, t')) =
@@ -62,7 +62,7 @@ fun assume_skolem_funs th =
           val rhs =
             list_abs_free (map dest_Free args,
                            HOLogic.choice_const T $ beta_eta_under_lambdas body)
-            |> mk_skolem_id
+            |> mk_skolem
           val comb = list_comb (rhs, args)
         in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end
       | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) rhss =
@@ -88,7 +88,7 @@ fun extensionalize_theorem th =
          $ _ $ Abs (s, _, _)) => extensionalize_theorem (th RS fun_cong_all)
   | _ => th
 
-fun is_quasi_lambda_free (Const (@{const_name skolem_id}, _) $ _) = true
+fun is_quasi_lambda_free (Const (@{const_name skolem}, _) $ _) = true
   | is_quasi_lambda_free (t1 $ t2) =
     is_quasi_lambda_free t1 andalso is_quasi_lambda_free t2
   | is_quasi_lambda_free (Abs _) = false
@@ -188,7 +188,7 @@ fun c_variant_abs_multi (ct0, vars) =
       in  c_variant_abs_multi (ct, cv::vars)  end
       handle CTERM _ => (ct0, rev vars);
 
-val skolem_id_def_raw = @{thms skolem_id_def_raw}
+val skolem_def_raw = @{thms skolem_def_raw}
 
 (* Given the definition of a Skolem function, return a theorem to replace
    an existential formula by a use of that function.
@@ -209,8 +209,8 @@ fun skolem_theorem_of_def thy rhs0 =
       Drule.list_comb (rhs, frees)
       |> Drule.beta_conv cabs |> Thm.capply cTrueprop
     fun tacf [prem] =
-      rewrite_goals_tac skolem_id_def_raw
-      THEN rtac ((prem |> rewrite_rule skolem_id_def_raw) RS @{thm someI_ex}) 1
+      rewrite_goals_tac skolem_def_raw
+      THEN rtac ((prem |> rewrite_rule skolem_def_raw) RS @{thm someI_ex}) 1
   in
     Goal.prove_internal [ex_tm] conc tacf
     |> forall_intr_list frees
