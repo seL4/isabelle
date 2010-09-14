@@ -30,13 +30,10 @@ typedecl bisim_iterator
 
 axiomatization unknown :: 'a
            and is_unknown :: "'a \<Rightarrow> bool"
-           and undefined_fast_The :: 'a
-           and undefined_fast_Eps :: 'a
            and bisim :: "bisim_iterator \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
            and bisim_iterator_max :: bisim_iterator
            and Quot :: "'a \<Rightarrow> 'b"
            and safe_The :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
-           and safe_Eps :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
 datatype ('a, 'b) fin_fun = FinFun "('a \<Rightarrow> 'b)"
 datatype ('a, 'b) fun_box = FunBox "('a \<Rightarrow> 'b)"
@@ -95,10 +92,10 @@ definition wfrec' ::  "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> (('a \<
                 else THE y. wfrec_rel R (%f x. F (Recdef.cut f R x) x) x y"
 
 definition card' :: "('a \<Rightarrow> bool) \<Rightarrow> nat" where
-"card' A \<equiv> if finite A then length (safe_Eps (\<lambda>xs. set xs = A \<and> distinct xs)) else 0"
+"card' A \<equiv> if finite A then length (SOME xs. set xs = A \<and> distinct xs) else 0"
 
 definition setsum' :: "('a \<Rightarrow> 'b\<Colon>comm_monoid_add) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'b" where
-"setsum' f A \<equiv> if finite A then listsum (map f (safe_Eps (\<lambda>xs. set xs = A \<and> distinct xs))) else 0"
+"setsum' f A \<equiv> if finite A then listsum (map f (SOME xs. set xs = A \<and> distinct xs)) else 0"
 
 inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'b \<Rightarrow> bool" where
 "fold_graph' f z {} z" |
@@ -239,12 +236,11 @@ use "Tools/Nitpick/nitpick_tests.ML"
 
 setup {* Nitpick_Isar.setup *}
 
-hide_const (open) unknown is_unknown undefined_fast_The undefined_fast_Eps bisim 
-    bisim_iterator_max Quot safe_The safe_Eps FinFun FunBox PairBox Word refl'
-    wf' wf_wfrec wf_wfrec' wfrec' card' setsum' fold_graph' nat_gcd nat_lcm
-    int_gcd int_lcm Frac Abs_Frac Rep_Frac zero_frac one_frac num denom
-    norm_frac frac plus_frac times_frac uminus_frac number_of_frac inverse_frac
-    less_frac less_eq_frac of_frac
+hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The
+    FinFun FunBox PairBox Word refl' wf' wf_wfrec wf_wfrec' wfrec' card' setsum'
+    fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac zero_frac
+    one_frac num denom norm_frac frac plus_frac times_frac uminus_frac
+    number_of_frac inverse_frac less_frac less_eq_frac of_frac
 hide_type (open) bisim_iterator fin_fun fun_box pair_box unsigned_bit signed_bit
     word
 hide_fact (open) If_def Ex1_def rtrancl_def rtranclp_def tranclp_def refl'_def
