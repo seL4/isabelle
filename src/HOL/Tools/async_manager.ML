@@ -8,6 +8,7 @@ Central manager for asynchronous diagnosis tool threads.
 
 signature ASYNC_MANAGER =
 sig
+  val break_into_chunks : string list -> string list
   val launch :
     string -> Time.time -> Time.time -> string -> (unit -> string) -> unit
   val kill_threads : string -> string -> unit
@@ -94,8 +95,7 @@ fun replace_all bef aft =
 
 (* This is a workaround for Proof General's off-by-a-few sendback display bug,
    whereby "pr" in "proof" is not highlighted. *)
-fun break_into_chunks xs =
-  maps (space_explode "\000" o replace_all "\n\n" "\000" o snd) xs
+val break_into_chunks = maps (space_explode "\000" o replace_all "\n\n" "\000")
 
 fun print_new_messages () =
   case Synchronized.change_result global_state
@@ -104,7 +104,7 @@ fun print_new_messages () =
                                    store)) of
     [] => ()
   | msgs as (tool, _) :: _ =>
-    let val ss = break_into_chunks msgs in
+    let val ss = break_into_chunks (map snd msgs) in
       List.app priority (tool ^ ": " ^ hd ss :: tl ss)
     end
 
@@ -229,6 +229,9 @@ fun thread_messages tool worker opt_limit =
       "Recent " ^ worker ^ " messages" ^
         (if length tool_store <= limit then ":"
          else " (" ^ string_of_int limit ^ " displayed):");
-  in List.app priority (header :: break_into_chunks (#1 (chop limit tool_store))) end
+  in
+    List.app priority (header :: break_into_chunks
+                                     (map snd (#1 (chop limit tool_store))))
+  end
 
 end;
