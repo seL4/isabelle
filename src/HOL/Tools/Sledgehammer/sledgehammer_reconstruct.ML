@@ -62,7 +62,19 @@ fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
-datatype tstp_name = Str of string * string | Num of string
+datatype raw_step_name = Str of string * string | Num of string
+
+fun raw_step_name_num (Str (num, _)) = num
+  | raw_step_name_num (Num num) = num
+
+fun raw_step_name_ord p =
+  let val q = pairself raw_step_name_num p in
+    case pairself Int.fromString q of
+      (NONE, NONE) => string_ord q
+    | (NONE, SOME _) => LESS
+    | (SOME _, NONE) => GREATER
+    | (SOME i, SOME j) => int_ord (i, j)
+  end
 
 fun index_in_shape x = find_index (exists (curry (op =) x))
 fun resolve_axiom axiom_names (Str (_, str)) =
@@ -103,8 +115,8 @@ fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
   | negate_term t = @{const Not} $ t
 
 datatype ('a, 'b, 'c) raw_step =
-  Definition of tstp_name * 'a * 'b |
-  Inference of tstp_name * 'c * tstp_name list
+  Definition of raw_step_name * 'a * 'b |
+  Inference of raw_step_name * 'c * raw_step_name list
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -127,14 +139,15 @@ fun repair_name _ "$true" = "c_True"
       else
         s
 (* Generalized first-order terms, which include file names, numbers, etc. *)
-fun parse_annotation x =
-  ((scan_general_id ::: Scan.repeat ($$ " " |-- scan_general_id))
-   -- Scan.optional parse_annotation [] >> uncurry (union (op =))
-   || $$ "(" |-- parse_annotations --| $$ ")"
-   || $$ "[" |-- parse_annotations --| $$ "]") x
-and parse_annotations x =
-  (Scan.optional (parse_annotation
-                  ::: Scan.repeat ($$ "," |-- parse_annotation)) []
+fun parse_annotation strict x =
+  ((scan_general_id ::: Scan.repeat ($$ " " |-- scan_general_id)
+      >> (strict ? filter (is_some o Int.fromString)))
+   -- Scan.optional (parse_annotation strict) [] >> uncurry (union (op =))
+   || $$ "(" |-- parse_annotations strict --| $$ ")"
+   || $$ "[" |-- parse_annotations strict --| $$ "]") x
+and parse_annotations strict x =
+  (Scan.optional (parse_annotation strict
+                  ::: Scan.repeat ($$ "," |-- parse_annotation strict)) []
    >> (fn numss => fold (union (op =)) numss [])) x
 
 (* Vampire proof lines sometimes contain needless information such as "(0:3)",
@@ -183,8 +196,8 @@ fun parse_formula pool x =
         | (phi1, SOME (c, phi2)) => mk_aconn c (phi1, phi2))) x
 
 val parse_tstp_extra_arguments =
-  Scan.optional ($$ "," |-- parse_annotation
-                 --| Scan.option ($$ "," |-- parse_annotations)) []
+  Scan.optional ($$ "," |-- parse_annotation false
+                 --| Scan.option ($$ "," |-- parse_annotations false)) []
 
 (* Syntax: (fof|cnf)\(<num>, <formula_role>, <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
@@ -208,7 +221,7 @@ val parse_tstp_extra_arguments =
 
 (* Syntax: <num>. <formula> <annotation> *)
 fun parse_vampire_line pool =
-  scan_general_id --| $$ "." -- parse_formula pool -- parse_annotation
+  scan_general_id --| $$ "." -- parse_formula pool -- parse_annotation true
   >> (fn ((num, phi), deps) => Inference (Num num, phi, map Num deps))
 
 (**** PARSING OF SPASS OUTPUT ****)
@@ -615,15 +628,12 @@ val fact_prefix = "F"
 
 fun string_for_label (s, num) = s ^ string_of_int num
 
-fun name_num (Str (num, _)) = num
-  | name_num (Num num) = num
-
 fun raw_label_for_name conjecture_shape name =
   case resolve_conjecture conjecture_shape name of
     [j] => (conjecture_prefix, j)
-  | _ => case Int.fromString (name_num name) of
+  | _ => case Int.fromString (raw_step_name_num name) of
            SOME j => (raw_prefix, j)
-         | NONE => (raw_prefix ^ name_num name, 0)
+         | NONE => (raw_prefix ^ raw_step_name_num name, 0)
 
 fun metis_using [] = ""
   | metis_using ls =
@@ -704,18 +714,16 @@ fun step_for_line _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
           ByMetis (fold (add_fact_from_dep conjecture_shape axiom_names) deps
                         ([], [])))
 
+fun raw_step_name (Definition (name, _, _)) = name
+  | raw_step_name (Inference (name, _, _)) = name
+
 fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
                          atp_proof conjecture_shape axiom_names params frees =
   let
     val lines =
       atp_proof ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof pool
-(*### FIXME
-      |> sort (tstp_name_ord o pairself raw_step_name)
-
-fun raw_step_name (Definition (name, _, _)) = name
-  | raw_step_name (Inference (name, _, _)) = name
-*)
+      |> sort (raw_step_name_ord o pairself raw_step_name)
       |> decode_lines ctxt full_types tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape axiom_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
@@ -776,36 +784,23 @@ fun case_split_qualifiers proofs =
   | 1 => [Then]
   | _ => [Ultimately]
 
-fun redirect_proof conjecture_shape hyp_ts concl_t proof =
+fun redirect_proof hyp_ts concl_t proof =
   let
     (* The first pass outputs those steps that are independent of the negated
        conjecture. The second pass flips the proof by contradiction to obtain a
        direct proof, introducing case splits when an inference depends on
        several facts that depend on the negated conjecture. *)
-    fun find_hyp j =
-      nth hyp_ts (index_in_shape j conjecture_shape)
-      handle Subscript =>
-             raise Fail ("Cannot find hypothesis " ^ Int.toString j)
-     val concl_ls = map (pair conjecture_prefix) (List.last conjecture_shape)
-val _ = priority ("*** " ^ PolyML.makestring concl_ls)(*###*)
-     val canonicalize_labels =
-       map (fn l => if member (op =) concl_ls l then hd concl_ls else l)
-       #> distinct (op =)
+     val concl_l = (conjecture_prefix, length hyp_ts)
      fun first_pass ([], contra) = ([], contra)
        | first_pass ((step as Fix _) :: proof, contra) =
          first_pass (proof, contra) |>> cons step
        | first_pass ((step as Let _) :: proof, contra) =
          first_pass (proof, contra) |>> cons step
        | first_pass ((step as Assume (l as (_, j), _)) :: proof, contra) =
-         if member (op =) concl_ls l then
-           first_pass (proof, contra ||> l = hd concl_ls ? cons step)
-         else
-           first_pass (proof, contra) |>> cons (Assume (l, find_hyp j))
+         if l = concl_l then first_pass (proof, contra ||> cons step)
+         else first_pass (proof, contra) |>> cons (Assume (l, nth hyp_ts j))
        | first_pass (Have (qs, l, t, ByMetis (ls, ss)) :: proof, contra) =
-         let
-           val ls = canonicalize_labels ls
-           val step = Have (qs, l, t, ByMetis (ls, ss))
-         in
+         let val step = Have (qs, l, t, ByMetis (ls, ss)) in
            if exists (member (op =) (fst contra)) ls then
              first_pass (proof, contra |>> cons l ||> cons step)
            else
@@ -813,7 +808,7 @@ val _ = priority ("*** " ^ PolyML.makestring concl_ls)(*###*)
          end
        | first_pass _ = raise Fail "malformed proof"
     val (proof_top, (contra_ls, contra_proof)) =
-      first_pass (proof, (concl_ls, []))
+      first_pass (proof, ([concl_l], []))
     val backpatch_label = the_default ([], []) oo AList.lookup (op =) o fst
     fun backpatch_labels patches ls =
       fold merge_fact_sets (map (backpatch_label patches) ls) ([], [])
@@ -848,7 +843,7 @@ val _ = priority ("*** " ^ PolyML.makestring concl_ls)(*###*)
                val proofs =
                  map_filter
                      (fn l =>
-                         if member (op =) concl_ls l then
+                         if l = concl_l then
                            NONE
                          else
                            let
@@ -1043,13 +1038,11 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
       case proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
                                 atp_proof conjecture_shape axiom_names params
                                 frees
-(*###
-           |> redirect_proof conjecture_shape hyp_ts concl_t
+           |> redirect_proof hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-*)
            |> string_for_proof ctxt full_types i n of
         "" => "\nNo structured proof available."
       | proof => "\n\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
