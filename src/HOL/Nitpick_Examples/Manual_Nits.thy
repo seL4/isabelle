@@ -38,8 +38,7 @@ subsection {* 3.3. Constants *}
 
 lemma "P x \<Longrightarrow> P (THE y. P y)"
 nitpick [show_consts, expect = genuine]
-nitpick [full_descrs, show_consts, expect = genuine]
-nitpick [dont_specialize, full_descrs, show_consts, expect = genuine]
+nitpick [dont_specialize, show_consts, expect = genuine]
 oops
 
 lemma "\<exists>!x. P x \<Longrightarrow> P (THE y. P y)"

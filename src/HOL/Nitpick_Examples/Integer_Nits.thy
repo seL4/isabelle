@@ -11,7 +11,7 @@ theory Integer_Nits
 imports Nitpick
 begin
 
-nitpick_params [card = 1\<midarrow>6, bits = 1,2,3,4,6,8,
+nitpick_params [card = 1\<midarrow>5, bits = 1,2,3,4,6,
                 sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
 
 lemma "Suc x = x + 1"
@@ -232,13 +232,13 @@ nitpick [dont_finitize, expect = potential]
 oops
 
 lemma "t \<noteq> Null \<Longrightarrow> (\<Sum>n \<in> labels t. n + 2) \<ge> 2"
-nitpick [expect = none]
-nitpick [dont_finitize, expect = none]
+nitpick [expect = potential] (* unfortunate *)
+nitpick [dont_finitize, expect = potential]
 sorry
 
 lemma "(\<Sum>i \<in> labels (Node x t u). f i\<Colon>nat) = f x + (\<Sum>i \<in> labels t. f i) + (\<Sum>i \<in> labels u. f i)"
-nitpick [expect = none] (* unfortunate *)
-nitpick [dont_finitize, expect = none]
+nitpick [expect = potential] (* unfortunate *)
+nitpick [dont_finitize, expect = potential]
 oops
 
 end
