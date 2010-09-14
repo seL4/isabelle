@@ -356,7 +356,8 @@ fun prover_fun auto atp_name
              subgoal)
         |>> (fn message =>
                 message ^ (if verbose then
-                             "\nReal CPU time: " ^ string_of_int msecs ^ " ms."
+                             "\nATP real CPU time: " ^ string_of_int msecs ^
+                             " ms."
                            else
                              "") ^
                 (if important_message <> "" then
