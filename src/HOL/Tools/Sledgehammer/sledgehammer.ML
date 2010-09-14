@@ -422,7 +422,9 @@ fun run_prover (params as {blocking, verbose, max_relevant, timeout, expect,
       end
     else if blocking then
       let val (success, message) = TimeLimit.timeLimit timeout go () in
-        priority (desc ^ "\n" ^ message); (success, state)
+        List.app priority
+                 (Async_Manager.break_into_chunks [desc ^ "\n" ^ message]);
+        (success, state)
       end
     else
       (Async_Manager.launch das_Tool birth_time death_time desc (snd o go);
@@ -472,13 +474,6 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
                  provers (false, state)
           else
             (if blocking then Par_List.map else map) run_prover provers
-            |> tap (fn _ =>
-                       if verbose then
-                         priority ("Total time: " ^
-                                   signed_string_of_int (Time.toMilliseconds
-                                       (Timer.checkRealTimer timer)) ^ " ms.")
-                       else
-                         ())
             |> exists fst |> rpair state
         end
     in if blocking then go () else Future.fork (tap go) |> K (false, state) end

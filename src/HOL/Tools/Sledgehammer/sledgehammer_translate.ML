@@ -144,7 +144,7 @@ fun introduce_combinators_in_term ctxt kind t =
                      |> Clausifier.introduce_combinators_in_cterm
                      |> prop_of |> Logic.dest_equals |> snd
                      |> reveal_bounds Ts
-        val ([t], ctxt') = Variable.import_terms true [t] ctxt
+        val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
       in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
       handle THM _ =>
              (* A type variable of sort "{}" will make abstraction fail. *)
