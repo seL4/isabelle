@@ -430,7 +430,7 @@ fun factorize (z as (Type (@{type_name prod}, _), _)) =
     maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
-fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
+fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
   let
     fun aux eq ss Ts t =
       let
@@ -470,12 +470,6 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
             val t1 = list_comb (t0, ts')
             val T1 = fastype_of1 (Ts, t1)
           in Op2 (Apply, range_type T1, Any, sub t1, sub t2) end
-        fun do_description_operator oper undef_s (x as (_, T)) t1 =
-          if fast_descrs then
-            Op2 (oper, range_type T, Any, sub t1,
-                 sub (Const (undef_s, range_type T)))
-          else
-            do_apply (Const x) [t1]
         fun do_construct (x as (_, T)) ts =
           case num_binder_types T - length ts of
             0 => Construct (map ((fn (s', T') => ConstName (s', T', Any))
@@ -511,10 +505,6 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
           do_quantifier Exist s T t1
         | (t0 as Const (@{const_name Ex}, _), [t1]) =>
           sub' (t0 $ eta_expand Ts t1 1)
-        | (Const (x as (@{const_name The}, _)), [t1]) =>
-          do_description_operator The @{const_name undefined_fast_The} x t1
-        | (Const (x as (@{const_name Eps}, _)), [t1]) =>
-          do_description_operator Eps @{const_name undefined_fast_Eps} x t1
         | (Const (@{const_name HOL.eq}, T), [t1]) =>
           Op1 (SingletonSet, range_type T, Any, sub t1)
         | (Const (@{const_name HOL.eq}, T), [t1, t2]) => sub_equals T t1 t2
@@ -549,7 +539,7 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
         | (Const (@{const_name image}, T), [t1, t2]) =>
           Op2 (Image, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (x as (s as @{const_name Suc}, T)), []) =>
-          if is_built_in_const thy stds false x then Cst (Suc, T, Any)
+          if is_built_in_const thy stds x then Cst (Suc, T, Any)
           else if is_constr ctxt stds x then do_construct x []
           else ConstName (s, T, Any)
         | (Const (@{const_name finite}, T), [t1]) =>
@@ -560,27 +550,27 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
            | _ => Op1 (Finite, bool_T, Any, sub t1))
         | (Const (@{const_name nat}, T), []) => Cst (IntToNat, T, Any)
         | (Const (x as (s as @{const_name zero_class.zero}, T)), []) =>
-          if is_built_in_const thy stds false x then Cst (Num 0, T, Any)
+          if is_built_in_const thy stds x then Cst (Num 0, T, Any)
           else if is_constr ctxt stds x then do_construct x []
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name one_class.one}, T)), []) =>
-          if is_built_in_const thy stds false x then Cst (Num 1, T, Any)
+          if is_built_in_const thy stds x then Cst (Num 1, T, Any)
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name plus_class.plus}, T)), []) =>
-          if is_built_in_const thy stds false x then Cst (Add, T, Any)
+          if is_built_in_const thy stds x then Cst (Add, T, Any)
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name minus_class.minus}, T)), []) =>
-          if is_built_in_const thy stds false x then Cst (Subtract, T, Any)
+          if is_built_in_const thy stds x then Cst (Subtract, T, Any)
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name times_class.times}, T)), []) =>
-          if is_built_in_const thy stds false x then Cst (Multiply, T, Any)
+          if is_built_in_const thy stds x then Cst (Multiply, T, Any)
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name div_class.div}, T)), []) =>
-          if is_built_in_const thy stds false x then Cst (Divide, T, Any)
+          if is_built_in_const thy stds x then Cst (Divide, T, Any)
           else ConstName (s, T, Any)
         | (t0 as Const (x as (@{const_name ord_class.less}, _)),
            ts as [t1, t2]) =>
-          if is_built_in_const thy stds false x then
+          if is_built_in_const thy stds x then
             Op2 (Less, bool_T, Any, sub t1, sub t2)
           else
             do_apply t0 ts
@@ -592,14 +582,14 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
         (* FIXME: find out if this case is necessary *)
         | (t0 as Const (x as (@{const_name ord_class.less_eq}, _)),
            ts as [t1, t2]) =>
-          if is_built_in_const thy stds false x then
+          if is_built_in_const thy stds x then
             Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
           else
             do_apply t0 ts
         | (Const (@{const_name nat_gcd}, T), []) => Cst (Gcd, T, Any)
         | (Const (@{const_name nat_lcm}, T), []) => Cst (Lcm, T, Any)
         | (Const (x as (s as @{const_name uminus_class.uminus}, T)), []) =>
-          if is_built_in_const thy stds false x then
+          if is_built_in_const thy stds x then
             let val num_T = domain_type T in
               Op2 (Apply, num_T --> num_T, Any,
                    Cst (Subtract, num_T --> num_T --> num_T, Any),
@@ -613,8 +603,6 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
         | (Const (@{const_name safe_The},
                   Type (@{type_name fun}, [_, T2])), [t1]) =>
           Op1 (SafeThe, T2, Any, sub t1)
-        | (Const (x as (@{const_name safe_Eps}, _)), [t1]) =>
-          do_description_operator Eps @{const_name undefined_fast_Eps} x t1
         | (Const (@{const_name Frac}, T), []) => Cst (Fracs, T, Any)
         | (Const (@{const_name norm_frac}, T), []) => Cst (NormFrac, T, Any)
         | (Const (@{const_name of_nat}, T as @{typ "nat => int"}), []) =>
@@ -628,7 +616,7 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
           else if String.isPrefix numeral_prefix s then
             Cst (Num (the (Int.fromString (unprefix numeral_prefix s))), T, Any)
           else
-            (case arity_of_built_in_const thy stds fast_descrs x of
+            (case arity_of_built_in_const thy stds x of
                SOME n =>
                (case n - length ts of
                   0 => raise TERM ("Nitpick_Nut.nut_from_term.aux", [t])

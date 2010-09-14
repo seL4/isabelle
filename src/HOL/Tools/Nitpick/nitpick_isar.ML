@@ -58,7 +58,6 @@ val default_default_params =
    ("destroy_constrs", "true"),
    ("specialize", "true"),
    ("star_linear_preds", "true"),
-   ("fast_descrs", "true"),
    ("peephole_optim", "true"),
    ("datatype_sym_break", "5"),
    ("kodkod_sym_break", "15"),
@@ -91,7 +90,6 @@ val negated_params =
    ("dont_destroy_constrs", "destroy_constrs"),
    ("dont_specialize", "specialize"),
    ("dont_star_linear_preds", "star_linear_preds"),
-   ("full_descrs", "fast_descrs"),
    ("no_peephole_optim", "peephole_optim"),
    ("no_debug", "debug"),
    ("quiet", "verbose"),
@@ -251,7 +249,6 @@ fun extract_params ctxt auto default_params override_params =
     val destroy_constrs = lookup_bool "destroy_constrs"
     val specialize = lookup_bool "specialize"
     val star_linear_preds = lookup_bool "star_linear_preds"
-    val fast_descrs = lookup_bool "fast_descrs"
     val peephole_optim = lookup_bool "peephole_optim"
     val datatype_sym_break = lookup_int "datatype_sym_break"
     val kodkod_sym_break = lookup_int "kodkod_sym_break"
@@ -282,8 +279,8 @@ fun extract_params ctxt auto default_params override_params =
      user_axioms = user_axioms, assms = assms, whacks = whacks,
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,
      destroy_constrs = destroy_constrs, specialize = specialize,
-     star_linear_preds = star_linear_preds, fast_descrs = fast_descrs,
-     peephole_optim = peephole_optim, datatype_sym_break = datatype_sym_break,
+     star_linear_preds = star_linear_preds, peephole_optim = peephole_optim,
+     datatype_sym_break = datatype_sym_break,
      kodkod_sym_break = kodkod_sym_break, timeout = timeout,
      tac_timeout = tac_timeout, max_threads = max_threads,
      show_datatypes = show_datatypes, show_consts = show_consts,

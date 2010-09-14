@@ -296,40 +296,18 @@ Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
 \hbox{}\qquad\qquad $x = a_3$ \\
 \hbox{}\qquad Constant: \nopagebreak \\
-\hbox{}\qquad\qquad $\textit{The}~\textsl{fallback} = a_1$
-\postw
-
-We can see more clearly now. Since the predicate $P$ isn't true for a unique
-value, $\textrm{THE}~y.\;P~y$ can denote any value of type $'a$, even
-$a_1$. Since $P~a_1$ is false, the entire formula is falsified.
-
-As an optimization, Nitpick's preprocessor introduced the special constant
-``\textit{The} fallback'' corresponding to $\textrm{THE}~y.\;P~y$ (i.e.,
-$\mathit{The}~(\lambda y.\;P~y)$) when there doesn't exist a unique $y$
-satisfying $P~y$. We disable this optimization by passing the
-\textit{full\_descrs} option:
-
-\prew
-\textbf{nitpick}~[\textit{full\_descrs},\, \textit{show\_consts}] \\[2\smallskipamount]
-\slshape
-Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
-\hbox{}\qquad Free variables: \nopagebreak \\
-\hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
-\hbox{}\qquad\qquad $x = a_3$ \\
-\hbox{}\qquad Constant: \nopagebreak \\
 \hbox{}\qquad\qquad $\hbox{\slshape THE}~y.\;P~y = a_1$
 \postw
 
-As the result of another optimization, Nitpick directly assigned a value to the
+As the result of an optimization, Nitpick directly assigned a value to the
 subterm $\textrm{THE}~y.\;P~y$, rather than to the \textit{The} constant. If we
-disable this second optimization by using the command
+disable this optimization by using the command
 
 \prew
-\textbf{nitpick}~[\textit{dont\_specialize},\, \textit{full\_descrs},\,
-\textit{show\_consts}]
+\textbf{nitpick}~[\textit{dont\_specialize},\, \textit{show\_consts}]
 \postw
 
-we finally get \textit{The}:
+we get \textit{The}:
 
 \prew
 \slshape Constant: \nopagebreak \\
@@ -2489,13 +2467,6 @@ domain, but it is usually more efficient.
 
 {\small See also \textit{wf} (\S\ref{scope-of-search}), \textit{debug}
 (\S\ref{output-format}), and \textit{iter} (\S\ref{scope-of-search}).}
-
-\optrue{fast\_descrs}{full\_descrs}
-Specifies whether Nitpick should optimize the definite and indefinite
-description operators (THE and SOME). The optimized versions usually help
-Nitpick generate more counterexamples or at least find them faster, but only the
-unoptimized versions are complete when all types occurring in the formula are
-finite.
 
 {\small See also \textit{debug} (\S\ref{output-format}).}
 

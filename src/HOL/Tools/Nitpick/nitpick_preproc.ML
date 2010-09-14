@@ -76,7 +76,7 @@ fun add_to_uncurry_table ctxt t =
         let val table = aux t2 [] table in aux t1 (t2 :: args) table end
       | aux (Abs (_, _, t')) _ table = aux t' [] table
       | aux (t as Const (x as (s, _))) args table =
-        if is_built_in_const thy [(NONE, true)] true x orelse
+        if is_built_in_const thy [(NONE, true)] x orelse
            is_constr_like ctxt x orelse
            is_sel s orelse s = @{const_name Sigma} then
           table
@@ -127,8 +127,7 @@ fun uncurry_term table t =
 
 (** Boxing **)
 
-fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
-                             def orig_t =
+fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, ...}) def orig_t =
   let
     fun box_relational_operator_type (Type (@{type_name fun}, Ts)) =
         Type (@{type_name fun}, map box_relational_operator_type Ts)
@@ -231,7 +230,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
                       let val T' = box_type hol_ctxt InFunLHS (domain_type T) in
                         T' --> T'
                       end
-                    else if is_built_in_const thy stds fast_descrs x orelse
+                    else if is_built_in_const thy stds x orelse
                             s = @{const_name Sigma} then
                       T
                     else if is_constr_like ctxt x then
@@ -732,8 +731,8 @@ fun special_fun_aconv ((x1, js1, ts1), (x2, js2, ts2)) =
   forall (op aconv) (ts1 ~~ ts2)
 
 fun specialize_consts_in_term
-        (hol_ctxt as {ctxt, thy, stds, specialize, fast_descrs, def_table,
-                      simp_table, special_funs, ...}) def depth t =
+        (hol_ctxt as {ctxt, thy, stds, specialize, def_table, simp_table,
+                      special_funs, ...}) def depth t =
   if not specialize orelse depth > special_max_depth then
     t
   else
@@ -743,7 +742,7 @@ fun specialize_consts_in_term
       fun aux args Ts (Const (x as (s, T))) =
           ((if not (member (op =) blacklist x) andalso not (null args) andalso
                not (String.isPrefix special_prefix s) andalso
-               not (is_built_in_const thy stds fast_descrs x) andalso
+               not (is_built_in_const thy stds x) andalso
                (is_equational_fun_but_no_plain_def hol_ctxt x orelse
                 (is_some (def_of_const thy def_table x) andalso
                  not (is_of_class_const thy x) andalso
@@ -894,8 +893,8 @@ val axioms_max_depth = 255
 
 fun axioms_for_term
         (hol_ctxt as {thy, ctxt, max_bisim_depth, stds, user_axioms,
-                      fast_descrs, evals, def_table, nondef_table,
-                      choice_spec_table, user_nondefs, ...}) assm_ts neg_t =
+                      evals, def_table, nondef_table, choice_spec_table,
+                      user_nondefs, ...}) assm_ts neg_t =
   let
     val (def_assm_ts, nondef_assm_ts) =
       List.partition (assumption_exclusively_defines_free assm_ts) assm_ts
@@ -926,8 +925,7 @@ fun axioms_for_term
       case t of
         t1 $ t2 => accum |> fold (add_axioms_for_term depth) [t1, t2]
       | Const (x as (s, T)) =>
-        (if member (op aconv) seen t orelse
-            is_built_in_const thy stds fast_descrs x then
+        (if member (op aconv) seen t orelse is_built_in_const thy stds x then
            accum
          else
            let val accum = (t :: seen, axs) in

@@ -549,13 +549,12 @@ fun pop_bound {bound_Ts, bound_Ms, frees, consts} =
    consts = consts}
   handle List.Empty => initial_gamma (* FIXME: needed? *)
 
-fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, fast_descrs, ...},
-                             alpha_T, max_fresh, ...}) =
+fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
+                             max_fresh, ...}) =
   let
     fun is_enough_eta_expanded t =
       case strip_comb t of
-        (Const x, ts) =>
-        the_default 0 (arity_of_built_in_const thy stds fast_descrs x)
+        (Const x, ts) => the_default 0 (arity_of_built_in_const thy stds x)
         <= length ts
       | _ => true
     val mtype_for = fresh_mtype_for_type mdata false
@@ -725,7 +724,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, fast_descrs, ...},
                   (mtype_for_sel mdata x, accum)
                 else if is_constr ctxt stds x then
                   (mtype_for_constr mdata x, accum)
-                else if is_built_in_const thy stds fast_descrs x then
+                else if is_built_in_const thy stds x then
                   (fresh_mtype_for_type mdata true T, accum)
                 else
                   let val M = mtype_for T in
@@ -908,9 +907,9 @@ val harmless_consts =
 val bounteous_consts = [@{const_name bisim}]
 
 fun is_harmless_axiom ({no_harmless = true, ...} : mdata) _ = false
-  | is_harmless_axiom {hol_ctxt = {thy, stds, fast_descrs, ...}, ...} t =
+  | is_harmless_axiom {hol_ctxt = {thy, stds, ...}, ...} t =
     Term.add_consts t []
-    |> filter_out (is_built_in_const thy stds fast_descrs)
+    |> filter_out (is_built_in_const thy stds)
     |> (forall (member (op =) harmless_consts o original_name o fst) orf
         exists (member (op =) bounteous_consts o fst))
 
@@ -1022,8 +1021,7 @@ val formulas_monotonic = is_some oooo infer "Monotonicity" false
 fun fin_fun_constr T1 T2 =
   (@{const_name FinFun}, (T1 --> T2) --> Type (@{type_name fin_fun}, [T1, T2]))
 
-fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
-                                ...})
+fun finitize_funs (hol_ctxt as {thy, ctxt, stds, constr_cache, ...})
                   binarize finitizes alpha_T tsp =
   case infer "Finiteness" true hol_ctxt binarize alpha_T tsp of
     SOME (lits, msp, constr_mtypes) =>
@@ -1074,7 +1072,7 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
                       | _ => raise TYPE ("Nitpick_Mono.finitize_funs.\
                                          \term_from_mterm", [T, T'], [])
                   in coerce_term hol_ctxt new_Ts T' T (Const (s, T)) end
-                else if is_built_in_const thy stds fast_descrs x then
+                else if is_built_in_const thy stds x then
                   coerce_term hol_ctxt new_Ts T' T t
                 else if is_constr ctxt stds x then
                   Const (finitize_constr x)

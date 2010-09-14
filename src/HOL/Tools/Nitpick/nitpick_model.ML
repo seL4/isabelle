@@ -872,9 +872,9 @@ fun bisimilar_values _ 0 _ = true
 fun reconstruct_hol_model {show_datatypes, show_consts}
         ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, stds, wfs, user_axioms,
                       debug, whacks, binary_ints, destroy_constrs, specialize,
-                      star_linear_preds, fast_descrs, tac_timeout, evals,
-                      case_names, def_table, nondef_table, user_nondefs,
-                      simp_table, psimp_table, choice_spec_table, intro_table,
+                      star_linear_preds, tac_timeout, evals, case_names,
+                      def_table, nondef_table, user_nondefs, simp_table,
+                      psimp_table, choice_spec_table, intro_table,
                       ground_thm_table, ersatz_table, skolems, special_funs,
                       unrolled_preds, wf_cache, constr_cache},
          binarize, card_assigns, bits, bisim_depth, datatypes, ofs} : scope)
@@ -889,15 +889,15 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
        stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
        whacks = whacks, binary_ints = binary_ints,
        destroy_constrs = destroy_constrs, specialize = specialize,
-       star_linear_preds = star_linear_preds, fast_descrs = fast_descrs,
-       tac_timeout = tac_timeout, evals = evals, case_names = case_names,
-       def_table = def_table, nondef_table = nondef_table,
-       user_nondefs = user_nondefs, simp_table = simp_table,
-       psimp_table = psimp_table, choice_spec_table = choice_spec_table,
-       intro_table = intro_table, ground_thm_table = ground_thm_table,
-       ersatz_table = ersatz_table, skolems = skolems,
-       special_funs = special_funs, unrolled_preds = unrolled_preds,
-       wf_cache = wf_cache, constr_cache = constr_cache}
+       star_linear_preds = star_linear_preds, tac_timeout = tac_timeout,
+       evals = evals, case_names = case_names, def_table = def_table,
+       nondef_table = nondef_table, user_nondefs = user_nondefs,
+       simp_table = simp_table, psimp_table = psimp_table,
+       choice_spec_table = choice_spec_table, intro_table = intro_table,
+       ground_thm_table = ground_thm_table, ersatz_table = ersatz_table,
+       skolems = skolems, special_funs = special_funs,
+       unrolled_preds = unrolled_preds, wf_cache = wf_cache,
+       constr_cache = constr_cache}
     val scope =
       {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
        bits = bits, bisim_depth = bisim_depth, datatypes = datatypes, ofs = ofs}

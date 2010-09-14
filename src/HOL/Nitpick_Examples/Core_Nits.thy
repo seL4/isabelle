@@ -892,7 +892,7 @@ lemma "Q = {x\<Colon>nat} \<Longrightarrow> (Q\<Colon>nat set) (The Q)"
 nitpick [expect = none]
 sorry
 
-nitpick_params [full_descrs, max_potential = 1]
+nitpick_params [max_potential = 1]
 
 lemma "(THE j. j > Suc 2 \<and> j \<le> 3) \<noteq> 0"
 nitpick [card nat = 2, expect = potential]
@@ -940,7 +940,7 @@ lemma "(SOME j. j > Suc 2 \<and> j \<le> 5) = x \<Longrightarrow> x = 4 \<or> x 
 nitpick [card nat = 6, expect = none]
 sorry
 
-nitpick_params [fast_descrs, max_potential = 0]
+nitpick_params [max_potential = 0]
 
 subsection {* Destructors and Recursors *}
 

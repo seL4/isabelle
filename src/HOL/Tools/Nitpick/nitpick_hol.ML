@@ -27,7 +27,6 @@ sig
      destroy_constrs: bool,
      specialize: bool,
      star_linear_preds: bool,
-     fast_descrs: bool,
      tac_timeout: Time.time option,
      evals: term list,
      case_names: (string * int) list,
@@ -181,9 +180,9 @@ sig
   val all_axioms_of :
     Proof.context -> (term * term) list -> term list * term list * term list
   val arity_of_built_in_const :
-    theory -> (typ option * bool) list -> bool -> styp -> int option
+    theory -> (typ option * bool) list -> styp -> int option
   val is_built_in_const :
-    theory -> (typ option * bool) list -> bool -> styp -> bool
+    theory -> (typ option * bool) list -> styp -> bool
   val term_under_def : term -> term
   val case_const_names :
     Proof.context -> (typ option * bool) list -> (string * int) list
@@ -254,7 +253,6 @@ type hol_context =
    destroy_constrs: bool,
    specialize: bool,
    star_linear_preds: bool,
-   fast_descrs: bool,
    tac_timeout: Time.time option,
    evals: term list,
    case_names: (string * int) list,
@@ -434,9 +432,6 @@ val built_in_nat_consts =
    (@{const_name nat}, 0),
    (@{const_name nat_gcd}, 0),
    (@{const_name nat_lcm}, 0)]
-val built_in_descr_consts =
-  [(@{const_name The}, 1),
-   (@{const_name Eps}, 1)]
 val built_in_typed_consts =
   [((@{const_name zero_class.zero}, int_T), 0),
    ((@{const_name one_class.one}, int_T), 0),
@@ -1317,15 +1312,14 @@ fun all_axioms_of ctxt subst =
       user_defs @ built_in_defs
   in (defs, built_in_nondefs, user_nondefs) end
 
-fun arity_of_built_in_const thy stds fast_descrs (s, T) =
+fun arity_of_built_in_const thy stds (s, T) =
   if s = @{const_name If} then
     if nth_range_type 3 T = @{typ bool} then NONE else SOME 3
   else
     let val std_nats = is_standard_datatype thy stds nat_T in
       case AList.lookup (op =)
                     (built_in_consts
-                     |> std_nats ? append built_in_nat_consts
-                     |> fast_descrs ? append built_in_descr_consts) s of
+                     |> std_nats ? append built_in_nat_consts) s of
         SOME n => SOME n
       | NONE =>
         case AList.lookup (op =)
@@ -1344,7 +1338,7 @@ fun arity_of_built_in_const thy stds fast_descrs (s, T) =
                  else
                    NONE
     end
-val is_built_in_const = is_some oooo arity_of_built_in_const
+val is_built_in_const = is_some ooo arity_of_built_in_const
 
 (* This function is designed to work for both real definition axioms and
    simplification rules (equational specifications). *)
@@ -1361,8 +1355,8 @@ fun term_under_def t =
 (* Here we crucially rely on "specialize_type" performing a preorder traversal
    of the term, without which the wrong occurrence of a constant could be
    matched in the face of overloading. *)
-fun def_props_for_const thy stds fast_descrs table (x as (s, _)) =
-  if is_built_in_const thy stds fast_descrs x then
+fun def_props_for_const thy stds table (x as (s, _)) =
+  if is_built_in_const thy stds x then
     []
   else
     these (Symtab.lookup table s)
@@ -1384,12 +1378,11 @@ fun normalized_rhs_of t =
   in fold_rev aux args (SOME rhs) end
 
 fun def_of_const thy table (x as (s, _)) =
-  if is_built_in_const thy [(NONE, false)] false x orelse
+  if is_built_in_const thy [(NONE, false)] x orelse
      original_name s <> s then
     NONE
   else
-    x |> def_props_for_const thy [(NONE, false)] false table
-      |> List.last
+    x |> def_props_for_const thy [(NONE, false)] table |> List.last
       |> normalized_rhs_of |> Option.map (prefix_abs_vars s)
     handle List.Empty => NONE
 
@@ -1438,16 +1431,14 @@ fun case_const_names ctxt stds =
   end
 
 fun fixpoint_kind_of_const thy table x =
-  if is_built_in_const thy [(NONE, false)] false x then
-    NoFp
-  else
-    fixpoint_kind_of_rhs (the (def_of_const thy table x))
-    handle Option.Option => NoFp
+  if is_built_in_const thy [(NONE, false)] x then NoFp
+  else fixpoint_kind_of_rhs (the (def_of_const thy table x))
+  handle Option.Option => NoFp
 
-fun is_real_inductive_pred ({thy, stds, fast_descrs, def_table, intro_table,
-                             ...} : hol_context) x =
+fun is_real_inductive_pred ({thy, stds, def_table, intro_table, ...}
+                            : hol_context) x =
   fixpoint_kind_of_const thy def_table x <> NoFp andalso
-  not (null (def_props_for_const thy stds fast_descrs intro_table x))
+  not (null (def_props_for_const thy stds intro_table x))
 fun is_inductive_pred hol_ctxt (x as (s, _)) =
   is_real_inductive_pred hol_ctxt x orelse String.isPrefix ubfp_prefix s orelse
   String.isPrefix lbfp_prefix s
@@ -1532,10 +1523,9 @@ fun is_choice_spec_axiom thy choice_spec_table t =
                     exists (curry (op aconv) t o axiom_for_choice_spec thy) ts)
                 choice_spec_table
 
-fun is_real_equational_fun ({thy, stds, fast_descrs, simp_table, psimp_table,
-                             ...} : hol_context) x =
-  exists (fn table => not (null (def_props_for_const thy stds fast_descrs table
-                                                     x)))
+fun is_real_equational_fun ({thy, stds, simp_table, psimp_table, ...}
+                            : hol_context) x =
+  exists (fn table => not (null (def_props_for_const thy stds table x)))
          [!simp_table, psimp_table]
 fun is_equational_fun_but_no_plain_def hol_ctxt =
   is_real_equational_fun hol_ctxt orf is_inductive_pred hol_ctxt
@@ -1625,8 +1615,8 @@ val def_inline_threshold_for_booleans = 50
 val def_inline_threshold_for_non_booleans = 20
 
 fun unfold_defs_in_term
-        (hol_ctxt as {thy, ctxt, stds, whacks, fast_descrs, case_names,
-                      def_table, ground_thm_table, ersatz_table, ...}) =
+        (hol_ctxt as {thy, ctxt, stds, whacks, case_names, def_table,
+                      ground_thm_table, ersatz_table, ...}) =
   let
     fun do_term depth Ts t =
       case t of
@@ -1702,7 +1692,7 @@ fun unfold_defs_in_term
             else
               def_inline_threshold_for_non_booleans
           val (const, ts) =
-            if is_built_in_const thy stds fast_descrs x then
+            if is_built_in_const thy stds x then
               (Const x, ts)
             else case AList.lookup (op =) case_names s of
               SOME n =>
@@ -2046,9 +2036,9 @@ val termination_tacs = [Lexicographic_Order.lex_order_tac true,
                         ScnpReconstruct.sizechange_tac]
 
 fun uncached_is_well_founded_inductive_pred
-        ({thy, ctxt, stds, debug, fast_descrs, tac_timeout, intro_table, ...}
-         : hol_context) (x as (_, T)) =
-  case def_props_for_const thy stds fast_descrs intro_table x of
+        ({thy, ctxt, stds, debug, tac_timeout, intro_table, ...} : hol_context)
+        (x as (_, T)) =
+  case def_props_for_const thy stds intro_table x of
     [] => raise TERM ("Nitpick_HOL.uncached_is_well_founded_inductive",
                       [Const x])
   | intro_ts =>
@@ -2281,10 +2271,10 @@ fun inductive_pred_axiom hol_ctxt (x as (s, T)) =
   else
     raw_inductive_pred_axiom hol_ctxt x
 
-fun equational_fun_axioms (hol_ctxt as {thy, ctxt, stds, fast_descrs, def_table,
-                                        simp_table, psimp_table, ...}) x =
-  case def_props_for_const thy stds fast_descrs (!simp_table) x of
-    [] => (case def_props_for_const thy stds fast_descrs psimp_table x of
+fun equational_fun_axioms (hol_ctxt as {thy, ctxt, stds, def_table, simp_table,
+                                        psimp_table, ...}) x =
+  case def_props_for_const thy stds (!simp_table) x of
+    [] => (case def_props_for_const thy stds psimp_table x of
              [] => (if is_inductive_pred hol_ctxt x then
                       [inductive_pred_axiom hol_ctxt x]
                     else case def_of_const thy def_table x of
