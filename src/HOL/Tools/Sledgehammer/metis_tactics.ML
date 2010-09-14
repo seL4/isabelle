@@ -406,7 +406,7 @@ fun inst_inf ctxt mode skolems thpairs fsubst th =
                 val t = hol_term_from_metis mode ctxt y
             in  SOME (cterm_of thy (Var v), t)  end
             handle Option =>
-                (trace_msg (fn() => "List.find failed for the variable " ^ x ^
+                (trace_msg (fn() => "\"find_var\" failed for the variable " ^ x ^
                                        " in " ^ Display.string_of_thm ctxt i_th);
                  NONE)
       fun remove_typeinst (a, t) =
