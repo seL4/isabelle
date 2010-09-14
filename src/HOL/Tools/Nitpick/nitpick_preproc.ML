@@ -26,8 +26,7 @@ fun is_positive_existential polar quant_s =
   (polar = Neg andalso quant_s <> @{const_name Ex})
 
 val is_descr =
-  member (op =) [@{const_name The}, @{const_name Eps}, @{const_name safe_The},
-                 @{const_name safe_Eps}]
+  member (op =) [@{const_name The}, @{const_name Eps}, @{const_name safe_The}]
 
 (** Binary coding of integers **)
 

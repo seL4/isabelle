@@ -816,16 +816,6 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
          let
            val t = nth evals (the (Int.fromString (unprefix eval_prefix s)))
          in (t, format_term_type thy def_table formats t) end
-       else if s = @{const_name undefined_fast_The} then
-         (Const (nitpick_prefix ^ "The fallback", T),
-          format_type default_format
-                      (lookup_format thy def_table formats
-                           (Const (@{const_name The}, (T --> bool_T) --> T))) T)
-       else if s = @{const_name undefined_fast_Eps} then
-         (Const (nitpick_prefix ^ "Eps fallback", T),
-          format_type default_format
-                      (lookup_format thy def_table formats
-                           (Const (@{const_name Eps}, (T --> bool_T) --> T))) T)
        else
          let val t = Const (original_name s, T) in
            (t, format_term_type thy def_table formats t)

@@ -711,8 +711,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                          MFun (a_to_b_set_M, S Minus, ab_set_M)), accum)
                 end
               | _ =>
-                if s = @{const_name safe_The} orelse
-                   s = @{const_name safe_Eps} then
+                if s = @{const_name safe_The} then
                   let
                     val a_set_M = mtype_for (domain_type T)
                     val a_M = dest_MFun a_set_M |> #1

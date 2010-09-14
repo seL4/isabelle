@@ -424,7 +424,6 @@ val built_in_consts =
    (@{const_name unknown}, 0),
    (@{const_name is_unknown}, 1),
    (@{const_name safe_The}, 1),
-   (@{const_name safe_Eps}, 1),
    (@{const_name Frac}, 0),
    (@{const_name norm_frac}, 0)]
 val built_in_nat_consts =

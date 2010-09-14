@@ -1039,10 +1039,6 @@ fun kodkod_formula_from_nut ofs
     fun kk_vect_set_bool_op connective k r1 r2 =
       fold1 kk_and (map2 connective (unpack_formulas k r1)
                          (unpack_formulas k r2))
-    fun is_surely_singleton R r =
-      kk_and (kk_subset (full_rel_for_rep R)
-                        (kk_join r (full_rel_for_rep bool_atom_R)))
-             (kk_one (kk_join r true_atom))
     fun to_f u =
       case rep_of u of
         Formula polar =>
@@ -1185,12 +1181,6 @@ fun kodkod_formula_from_nut ofs
                   else
                     kk_rel_eq r1 r2
                 end)
-         | Op2 (The, T, _, u1, u2) =>
-           to_f_with_polarity polar
-                              (Op2 (The, T, Opt (Atom (2, bool_j0)), u1, u2))
-         | Op2 (Eps, T, _, u1, u2) =>
-           to_f_with_polarity polar
-                              (Op2 (Eps, T, Opt (Atom (2, bool_j0)), u1, u2))
          | Op2 (Apply, T, _, u1, u2) =>
            (case (polar, rep_of u1) of
               (Neg, Func (R, Formula Neut)) => kk_subset (to_opt R u2) (to_r u1)
@@ -1473,41 +1463,6 @@ fun kodkod_formula_from_nut ofs
                          KK.None)
                  (to_rep R1 u1) (to_rep R1 u2)
             end)
-      | Op2 (The, _, R, u1, u2) =>
-        if is_opt_rep R then
-          let val r1 = to_opt (Func (unopt_rep R, bool_atom_R)) u1 in
-            kk_rel_if (is_surely_singleton R r1) (kk_join r1 true_atom)
-                      (kk_rel_if (kk_or (kk_some (kk_join r1 true_atom))
-                                        (kk_subset (full_rel_for_rep R)
-                                                   (kk_join r1 false_atom)))
-                                 (to_rep R u2) (empty_rel_for_rep R))
-          end
-        else
-          let val r1 = to_rep (Func (R, Formula Neut)) u1 in
-            kk_rel_if (kk_one r1) r1 (to_rep R u2)
-          end
-      | Op2 (Eps, _, R, u1, u2) =>
-        if is_opt_rep (rep_of u1) then
-          let
-            val r1 = to_rep (Func (unopt_rep R, Opt bool_atom_R)) u1
-            val r2 = to_rep R u2
-          in
-            kk_union (kk_rel_if (is_surely_singleton R r1)
-                                (kk_join r1 true_atom) (empty_rel_for_rep R))
-                     (kk_rel_if (kk_or (kk_subset r2 (kk_join r1 true_atom))
-                                       (kk_subset (full_rel_for_rep R)
-                                                  (kk_join r1 false_atom)))
-                                r2 (empty_rel_for_rep R))
-          end
-        else
-          let
-            val r1 = to_rep (Func (unopt_rep R, Formula Neut)) u1
-            val r2 = to_rep R u2
-          in
-            kk_union (kk_rel_if (kk_one r1) r1 (empty_rel_for_rep R))
-                     (kk_rel_if (kk_or (kk_no r1) (kk_subset r2 r1))
-                                r2 (empty_rel_for_rep R))
-          end
       | Op2 (Triad, _, Opt (Atom (2, j0)), u1, u2) =>
         let
           val f1 = to_f u1

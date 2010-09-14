@@ -53,8 +53,6 @@ sig
     Subset |
     DefEq |
     Eq |
-    The |
-    Eps |
     Triad |
     Composition |
     Product |
@@ -170,8 +168,6 @@ datatype op2 =
   Subset |
   DefEq |
   Eq |
-  The |
-  Eps |
   Triad |
   Composition |
   Product |
@@ -237,8 +233,6 @@ fun string_for_op2 All = "All"
   | string_for_op2 Subset = "Subset"
   | string_for_op2 DefEq = "DefEq"
   | string_for_op2 Eq = "Eq"
-  | string_for_op2 The = "The"
-  | string_for_op2 Eps = "Eps"
   | string_for_op2 Triad = "Triad"
   | string_for_op2 Composition = "Composition"
   | string_for_op2 Product = "Product"
@@ -674,16 +668,14 @@ fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) all_exact v
              else if is_rep_fun ctxt x then
                Func oo best_non_opt_symmetric_reps_for_fun_type
              else if all_exact orelse is_skolem_name v orelse
-                    member (op =) [@{const_name undefined_fast_The},
-                                   @{const_name undefined_fast_Eps},
-                                   @{const_name bisim},
-                                   @{const_name bisim_iterator_max}]
-                           (original_name s) then
+                     member (op =) [@{const_name bisim},
+                                    @{const_name bisim_iterator_max}]
+                            (original_name s) then
                best_non_opt_set_rep_for_type
              else if member (op =) [@{const_name set}, @{const_name distinct},
                                     @{const_name ord_class.less},
                                     @{const_name ord_class.less_eq}]
-                                   (original_name s) then
+                            (original_name s) then
                best_set_rep_for_type
              else
                best_opt_set_rep_for_type) scope T
@@ -1071,29 +1063,6 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                else
                  raise SAME ())
               handle SAME () => s_op2 oper T (Formula polar) u1' u2'
-            end
-          else if oper = The orelse oper = Eps then
-            let
-              val u1' = sub u1
-              val opt1 = is_opt_rep (rep_of u1')
-              val opt = (oper = Eps orelse opt1)
-              val unopt_R = best_one_rep_for_type scope T |> optable_rep ofs T
-              val R = if is_boolean_type T then bool_rep polar opt
-                      else unopt_R |> opt ? opt_rep ofs T
-              val u = Op2 (oper, T, R, u1', sub u2)
-            in
-              if is_complete_type datatypes true T orelse not opt1 then
-                u
-              else
-                let
-                  val x_u = BoundName (~1, T, unopt_R, "descr.x")
-                  val R = R |> opt_rep ofs T
-                in
-                  Op3 (If, T, R,
-                       Op2 (Exist, bool_T, Formula Pos, x_u,
-                            s_op2 Apply bool_T (Formula Pos) (gsub false Pos u1)
-                                  x_u), u, Cst (Unknown, T, R))
-                end
             end
           else
             let
