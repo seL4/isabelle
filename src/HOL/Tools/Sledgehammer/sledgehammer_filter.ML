@@ -155,7 +155,7 @@ fun pterm thy t =
   case strip_comb t of
     (Const x, ts) => PApp (pconst thy true x ts)
   | (Free x, ts) => PApp (pconst thy false x ts)
-  | (Var x, []) => PVar
+  | (Var _, []) => PVar
   | _ => PApp ("?", [])  (* equivalence class of higher-order constructs *)
 (* Pairs a constant with the list of its type instantiations. *)
 and ptype thy const x ts =
@@ -298,7 +298,7 @@ fun count_axiom_consts thy =
 
 (**** Actual Filtering Code ****)
 
-fun pow_int x 0 = 1.0
+fun pow_int _ 0 = 1.0
   | pow_int x 1 = x
   | pow_int x n = if n > 0 then x * pow_int x (n - 1) else pow_int x (n + 1) / x
 
@@ -314,7 +314,7 @@ fun pconst_freq match const_tab (c, ps) =
 (* "log" seems best in practice. A constant function of one ignores the constant
    frequencies. Rare constants give more points if they are relevant than less
    rare ones. *)
-fun rel_weight_for order freq = 1.0 + 2.0 / Math.ln (Real.fromInt freq + 1.0)
+fun rel_weight_for _ freq = 1.0 + 2.0 / Math.ln (Real.fromInt freq + 1.0)
 
 (* Irrelevant constants are treated differently. We associate lower penalties to
    very rare constants and very common ones -- the former because they can't
@@ -491,7 +491,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant
                       hopeless_rejects hopeful_rejects)
             end
           | relevant candidates rejects
-                     (((ax as (((_, loc), th), axiom_consts)), cached_weight)
+                     (((ax as (((_, loc), _), axiom_consts)), cached_weight)
                       :: hopeful) =
             let
               val weight =
@@ -799,7 +799,7 @@ fun name_thm_pairs ctxt respect_no_atp =
 (***************************************************************)
 
 fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
-                   (relevance_override as {add, del, only}) chained_ths hyp_ts
+                   (relevance_override as {add, only, ...}) chained_ths hyp_ts
                    concl_t =
   let
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
