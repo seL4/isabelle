@@ -52,12 +52,10 @@ fun beta_eta_under_lambdas (Abs (s, T, t')) =
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skolem_funs th =
   let
-    fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (s', T, p))) rhss =
+    fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (_, T, p))) rhss =
         (*Existential: declare a Skolem function, then insert into body and continue*)
         let
           val args = OldTerm.term_frees body
-          val Ts = map type_of args
-          val cT = Ts ---> T
           (* Forms a lambda-abstraction over the formal parameters *)
           val rhs =
             list_abs_free (map dest_Free args,
@@ -85,7 +83,7 @@ val fun_cong_all = @{thm fun_eq_iff [THEN iffD1]}
 fun extensionalize_theorem th =
   case prop_of th of
     _ $ (Const (@{const_name HOL.eq}, Type (_, [Type (@{type_name fun}, _), _]))
-         $ _ $ Abs (s, _, _)) => extensionalize_theorem (th RS fun_cong_all)
+         $ _ $ Abs _) => extensionalize_theorem (th RS fun_cong_all)
   | _ => th
 
 fun is_quasi_lambda_free (Const (@{const_name skolem}, _) $ _) = true

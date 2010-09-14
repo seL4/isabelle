@@ -64,7 +64,7 @@ fun unregister message thread =
   Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
     (case lookup_thread active thread of
-      SOME (tool, birth_time, _, desc) =>
+      SOME (tool, _, _, desc) =>
         let
           val active' = delete_thread thread active;
           val now = Time.now ()

@@ -362,10 +362,12 @@ val metis_eq = Metis.Term.Fn ("=", []);
 (* ------------------------------------------------------------------------- *)
 
 (*for debugging only*)
+(*
 fun print_thpair (fth,th) =
   (trace_msg (fn () => "=============================================");
    trace_msg (fn () => "Metis: " ^ Metis.Thm.toString fth);
    trace_msg (fn () => "Isabelle: " ^ Display.string_of_thm_without_context th));
+*)
 
 fun lookth thpairs (fth : Metis.Thm.thm) =
   the (AList.lookup (uncurry Metis.Thm.equal) thpairs fth)
@@ -828,7 +830,6 @@ val type_has_top_sort =
 
 fun generic_metis_tac mode ctxt ths i st0 =
   let
-    val thy = ProofContext.theory_of ctxt
     val _ = trace_msg (fn () =>
         "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
   in
