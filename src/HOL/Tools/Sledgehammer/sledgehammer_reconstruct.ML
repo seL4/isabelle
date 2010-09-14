@@ -71,7 +71,10 @@ fun same_raw_step s t = raw_step_num s = raw_step_num t
 
 fun raw_step_name_ord p =
   let val q = pairself raw_step_num p in
-    case pairself Int.fromString q of
+    (* The "unprefix" part is to cope with remote Vampire's output. The proper
+       solution would be to perform a topological sort, e.g. using the nice
+       "Graph" functor. *)
+    case pairself (Int.fromString o perhaps (try (unprefix "f"))) q of
       (NONE, NONE) => string_ord q
     | (NONE, SOME _) => LESS
     | (SOME _, NONE) => GREATER
@@ -604,14 +607,14 @@ fun add_desired_line _ _ _ _ (line as Definition (name, _, _)) (j, lines) =
 
 (** EXTRACTING LEMMAS **)
 
-(* Like "split_line", but ignores "\n" that follow a comma (as in SNARK's
-   output). *)
+(* Like "split_line" but splits on ".\n" (for TSTP and SPASS) or "]\n" (for
+   Vampire). *)
 val split_proof_lines =
   let
     fun aux [] [] = []
       | aux line [] = [implode (rev line)]
-      | aux line ("," :: "\n" :: rest) = aux ("," :: line) rest
-      | aux line ("\n" :: rest) = aux line [] @ aux [] rest
+      | aux line ("." :: "\n" :: rest) = aux line [] @ aux [] rest
+      | aux line ("]" :: "\n" :: rest) = aux line [] @ aux [] rest
       | aux line (s :: rest) = aux (s :: line) rest
   in aux [] o explode end
 
