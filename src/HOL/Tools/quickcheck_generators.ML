@@ -392,14 +392,14 @@ fun compile_generator_expr ctxt t =
   in if Quickcheck.report ctxt then
     let
       val t' = mk_reporting_generator_expr thy t Ts;
-      val compile = Code_Runtime.eval (SOME target)
+      val compile = Code_Runtime.value (SOME target)
         (Counterexample_Report.get, put_counterexample_report, "Quickcheck_Generators.put_counterexample_report")
         (fn proc => fn g => fn s => g s #>> (apfst o Option.map o map) proc) thy t' [];
     in compile #> Random_Engine.run end
   else
     let
       val t' = mk_generator_expr thy t Ts;
-      val compile = Code_Runtime.eval (SOME target)
+      val compile = Code_Runtime.value (SOME target)
         (Counterexample.get, put_counterexample, "Quickcheck_Generators.put_counterexample")
         (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) thy t' [];
       val dummy_report = ([], false)

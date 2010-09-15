@@ -272,7 +272,7 @@ fun compile_term compilation options ctxt t =
         Pos_Random_DSeq =>
           let
             val compiled_term =
-              Code_Runtime.eval (SOME target) (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
+              Code_Runtime.value (SOME target) (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
                 (fn proc => fn g => fn n => fn size => fn s => g n size s |>> (DSequence.map o map) proc)
                 thy4 qc_term []
           in
@@ -283,7 +283,7 @@ fun compile_term compilation options ctxt t =
       | New_Pos_Random_DSeq =>
           let
             val compiled_term =
-              Code_Runtime.eval (SOME target)
+              Code_Runtime.value (SOME target)
                 (Lseq_Result.get, put_lseq_result, "Predicate_Compile_Quickcheck.put_lseq_result")
                 (fn proc => fn g => fn nrandom => fn size => fn s => fn depth =>
                   g nrandom size s depth |> (Lazy_Sequence.mapa o map) proc)
@@ -297,7 +297,7 @@ fun compile_term compilation options ctxt t =
           end
       | Depth_Limited_Random =>
           let
-            val compiled_term = Code_Runtime.eval (SOME target)
+            val compiled_term = Code_Runtime.value (SOME target)
               (Pred_Result.get, put_pred_result, "Predicate_Compile_Quickcheck.put_pred_result")
                 (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
                   g depth nrandom size seed |> (Predicate.map o map) proc)

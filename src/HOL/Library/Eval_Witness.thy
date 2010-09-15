@@ -59,7 +59,7 @@ let
     | dest_exs _ _ = sys_error "dest_exs";
   val t = dest_exs (length ws) (HOLogic.dest_Trueprop goal);
 in
-  if Code_Runtime.eval NONE (Eval_Method.get, Eval_Method.put, "Eval_Method.put") (K I) thy t ws
+  if Code_Runtime.value NONE (Eval_Method.get, Eval_Method.put, "Eval_Method.put") (K I) thy t ws
   then Thm.cterm_of thy goal
   else @{cprop True} (*dummy*)
 end

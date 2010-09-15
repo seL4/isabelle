@@ -315,7 +315,7 @@ val put_term = Evaluation.put;
 
 fun tracing s x = (Output.tracing s; x);
 
-fun eval_term thy t = Code_Runtime.eval NONE (Evaluation.get, put_term, "Code_Evaluation.put_term")
+fun eval_term thy t = Code_Runtime.value NONE (Evaluation.get, put_term, "Code_Evaluation.put_term")
   I thy (HOLogic.mk_term_of (fastype_of t) t) [];
 
 end
