@@ -15,9 +15,10 @@ sig
   val ensure_random_datatype: Datatype.config -> string list -> theory -> theory
   val compile_generator_expr:
     Proof.context -> term -> int -> term list option * (bool list * bool)
-  val eval_ref: (unit -> int -> seed -> term list option * seed) option Unsynchronized.ref
-  val eval_report_ref:
-    (unit -> int -> seed -> (term list option * (bool list * bool)) * seed) option Unsynchronized.ref
+  val put_counterexample: (unit -> int -> seed -> term list option * seed)
+    -> Proof.context -> Proof.context
+  val put_counterexample_report: (unit -> int -> seed -> (term list option * (bool list * bool)) * seed)
+    -> Proof.context -> Proof.context
   val setup: theory -> theory
 end;
 
@@ -304,13 +305,17 @@ fun ensure_random_datatype config raw_tycos thy =
 
 (** building and compiling generator expressions **)
 
-val eval_ref :
-    (unit -> int -> int * int -> term list option * (int * int)) option Unsynchronized.ref =
-  Unsynchronized.ref NONE;
+structure Counterexample = Proof_Data (
+  type T = unit -> int -> int * int -> term list option * (int * int)
+  fun init _ () = error "Counterexample"
+);
+val put_counterexample = Counterexample.put;
 
-val eval_report_ref :
-    (unit -> int -> seed -> (term list option * (bool list * bool)) * seed) option Unsynchronized.ref =
-  Unsynchronized.ref NONE;
+structure Counterexample_Report = Proof_Data (
+  type T = unit -> int -> seed -> (term list option * (bool list * bool)) * seed
+  fun init _ () = error "Counterexample_Report"
+);
+val put_counterexample_report = Counterexample_Report.put;
 
 val target = "Quickcheck";
 
@@ -387,13 +392,15 @@ fun compile_generator_expr ctxt t =
   in if Quickcheck.report ctxt then
     let
       val t' = mk_reporting_generator_expr thy t Ts;
-      val compile = Code_Eval.eval (SOME target) ("Quickcheck_Generators.eval_report_ref", eval_report_ref)
+      val compile = Code_Eval.eval (SOME target)
+        (Counterexample_Report.get, put_counterexample_report, "Quickcheck_Generators.put_counterexample_report")
         (fn proc => fn g => fn s => g s #>> (apfst o Option.map o map) proc) thy t' [];
     in compile #> Random_Engine.run end
   else
     let
       val t' = mk_generator_expr thy t Ts;
-      val compile = Code_Eval.eval (SOME target) ("Quickcheck_Generators.eval_ref", eval_ref)
+      val compile = Code_Eval.eval (SOME target)
+        (Counterexample.get, put_counterexample, "Quickcheck_Generators.put_counterexample")
         (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) thy t' [];
       val dummy_report = ([], false)
     in compile #> Random_Engine.run #> rpair dummy_report end

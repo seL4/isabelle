@@ -1966,12 +1966,10 @@ setup {*
 *}
 
 ML {*
-structure Eval_Method =
-struct
-
-val eval_ref : (unit -> bool) option Unsynchronized.ref = Unsynchronized.ref NONE;
-
-end;
+structure Eval_Method = Proof_Data(
+  type T = unit -> bool
+  fun init thy () = error "Eval_Method"
+)
 *}
 
 oracle eval_oracle = {* fn ct =>
@@ -1981,7 +1979,7 @@ oracle eval_oracle = {* fn ct =>
     val dummy = @{cprop True};
   in case try HOLogic.dest_Trueprop t
    of SOME t' => if Code_Eval.eval NONE
-         ("Eval_Method.eval_ref", Eval_Method.eval_ref) (K I) thy t' [] 
+         (Eval_Method.get, Eval_Method.put, "Eval_Method.put") (K I) thy t' [] 
        then Thm.capply (Thm.capply @{cterm "op \<equiv> \<Colon> prop \<Rightarrow> prop \<Rightarrow> prop"} ct) dummy
        else dummy
     | NONE => dummy

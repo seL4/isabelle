@@ -7,12 +7,15 @@ A quickcheck generator based on the predicate compiler.
 signature PREDICATE_COMPILE_QUICKCHECK =
 sig
   (*val quickcheck : Proof.context -> term -> int -> term list option*)
-  val test_ref :
-    ((unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)) option) Unsynchronized.ref
-  val new_test_ref :
-    ((unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence) option) Unsynchronized.ref;
-  val eval_random_ref :
-    ((unit -> int -> int -> int -> int * int -> term list Predicate.pred) option) Unsynchronized.ref;
+  val put_pred_result :
+    (unit -> int -> int -> int -> int * int -> term list Predicate.pred) ->
+      Proof.context -> Proof.context;
+  val put_dseq_result :
+    (unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)) ->
+      Proof.context -> Proof.context;
+  val put_lseq_result :
+    (unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence) ->
+      Proof.context -> Proof.context;
 
   val tracing : bool Unsynchronized.ref;
   val quiet : bool Unsynchronized.ref;
@@ -30,15 +33,23 @@ struct
 
 open Predicate_Compile_Aux;
 
-val test_ref =
-  Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)) option);
+structure Pred_Result = Proof_Data (
+  type T = unit -> int -> int -> int -> int * int -> term list Predicate.pred
+  fun init _ () = error "Pred_Result"
+);
+val put_pred_result = Pred_Result.put;
 
-val new_test_ref =
-  Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence) option)
+structure Dseq_Result = Proof_Data (
+  type T = unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)
+  fun init _ () = error "Dseq_Result"
+);
+val put_dseq_result = Dseq_Result.put;
 
-val eval_random_ref =
-  Unsynchronized.ref (NONE : (unit -> int -> int -> int -> int * int -> term list Predicate.pred) option);
-
+structure Lseq_Result = Proof_Data (
+  type T = unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence
+  fun init _ () = error "Lseq_Result"
+);
+val put_lseq_result = Lseq_Result.put;
 
 val tracing = Unsynchronized.ref false;
 
@@ -253,7 +264,7 @@ fun compile_term compilation options ctxt t =
         Pos_Random_DSeq =>
           let
             val compiled_term =
-              Code_Eval.eval (SOME target) ("Predicate_Compile_Quickcheck.test_ref", test_ref)
+              Code_Eval.eval (SOME target) (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
                 (fn proc => fn g => fn n => fn size => fn s => g n size s |>> (DSequence.map o map) proc)
                 thy4 qc_term []
           in
@@ -265,7 +276,7 @@ fun compile_term compilation options ctxt t =
           let
             val compiled_term =
               Code_Eval.eval (SOME target)
-                ("Predicate_Compile_Quickcheck.new_test_ref", new_test_ref)
+                (Lseq_Result.get, put_lseq_result, "Predicate_Compile_Quickcheck.put_lseq_result")
                 (fn proc => fn g => fn nrandom => fn size => fn s => fn depth =>
                   g nrandom size s depth |> (Lazy_Sequence.mapa o map) proc)
                   thy4 qc_term []
@@ -279,7 +290,7 @@ fun compile_term compilation options ctxt t =
       | Depth_Limited_Random =>
           let
             val compiled_term = Code_Eval.eval (SOME target)
-              ("Predicate_Compile_Quickcheck.eval_random_ref", eval_random_ref)
+              (Pred_Result.get, put_pred_result, "Predicate_Compile_Quickcheck.put_pred_result")
                 (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
                   g depth nrandom size seed |> (Predicate.map o map) proc)
                 thy4 qc_term []
