@@ -179,7 +179,7 @@ val ml = "polyml";
 (* Pointer equality using the run-time system.                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun pointerEqual (x : 'a, y : 'a) = PolyML.pointerEq(x,y);
+fun pointerEqual (x : 'a, y : 'a) = pointer_eq (x, y) (* MODIFIED by Jasmin Blanchette *)
 
 (* ------------------------------------------------------------------------- *)
 (* Timing function applications.                                             *)
