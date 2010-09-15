@@ -676,7 +676,7 @@ fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
 
 val preprocess_options = Predicate_Compile_Aux.Options {
   expected_modes = NONE,
-  proposed_modes = NONE,
+  proposed_modes = [],
   proposed_names = [],
   show_steps = false,
   show_intermediate_results = false,
@@ -685,6 +685,7 @@ val preprocess_options = Predicate_Compile_Aux.Options {
   show_mode_inference = false,
   show_compilation = false,
   show_caught_failures = false,
+  show_invalid_clauses = false,
   skip_proof = true,
   no_topmost_reordering = false,
   function_flattening = true,

@@ -411,8 +411,9 @@ fun check_proposed_modes preds options modes errors =
             error ("expected modes were not inferred:\n"
             ^ "  inferred modes for " ^ s ^ ": " ^ commas (map string_of_mode modes')  ^ "\n"
             ^ "  expected modes for " ^ s ^ ": " ^ commas (map string_of_mode ms) ^ "\n"
-            ^ "For the following clauses, the following modes could not be inferred: " ^ "\n"
-            ^ cat_lines errors ^
+            ^ (if show_invalid_clauses options then
+            ("For the following clauses, the following modes could not be inferred: " ^ "\n"
+            ^ cat_lines errors) else "") ^
             (if not (null preds_without_modes) then
               "\n" ^ "No mode inferred for the predicates " ^ commas preds_without_modes
             else ""))
@@ -1503,7 +1504,6 @@ fun print_extra_modes options modes =
 fun infer_modes mode_analysis_options options (lookup_mode, lookup_neg_mode, needs_random) ctxt
   preds all_modes param_vs clauses =
   let
-    val collect_errors = false
     fun appair f (x1, x2) (y1, y2) = (f x1 y1, f x2 y2)
     fun add_needs_random s (false, m) = ((false, m), false)
       | add_needs_random s (true, m) = ((true, m), needs_random s m)
@@ -1549,7 +1549,7 @@ fun infer_modes mode_analysis_options options (lookup_mode, lookup_neg_mode, nee
         (modes @ extra_modes)) modes
     val ((modes : (string * ((bool * mode) * bool) list) list), errors) =
       Output.cond_timeit false "Fixpount computation of mode analysis" (fn () =>
-      if collect_errors then
+      if show_invalid_clauses options then
         fixp_with_state (fn (modes, errors) =>
           let
             val (modes', new_errors) = split_list (iteration modes)

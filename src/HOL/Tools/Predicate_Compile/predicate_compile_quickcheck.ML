@@ -65,6 +65,7 @@ val options = Options {
   show_mode_inference = false,
   show_compilation = false,
   show_caught_failures = false,
+  show_invalid_clauses = false, 
   skip_proof = false,
   compilation = Random,
   inductify = true,
@@ -78,7 +79,7 @@ val options = Options {
 
 val debug_options = Options {
   expected_modes = NONE,
-  proposed_modes = NONE,
+  proposed_modes = [],
   proposed_names = [],
   show_steps = true,
   show_intermediate_results = true,
@@ -87,6 +88,7 @@ val debug_options = Options {
   show_mode_inference = true,
   show_compilation = false,
   show_caught_failures = true,
+  show_invalid_clauses = false,
   skip_proof = false,
   compilation = Random,
   inductify = true,
@@ -102,13 +104,15 @@ val debug_options = Options {
 fun set_function_flattening b
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
-    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
+    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
+    show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
-    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
+    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
+    show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = b,
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re})
@@ -116,13 +120,15 @@ fun set_function_flattening b
 fun set_fail_safe_function_flattening b
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
-    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
+    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
+    show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
-    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
+    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
+    show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f,
     fail_safe_function_flattening = b, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re})
@@ -130,13 +136,15 @@ fun set_fail_safe_function_flattening b
 fun set_no_higher_order_predicate ss
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
-    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
+    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
+    show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
     no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
-    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf, skip_proof = s_p,
+    show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
+    show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f,
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = ss, no_topmost_reordering = re})
 

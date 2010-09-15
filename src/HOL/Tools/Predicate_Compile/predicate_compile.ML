@@ -164,6 +164,7 @@ fun extract_options lthy (((expected_modes, proposed_modes), (compilation, raw_o
       show_mode_inference = chk "show_mode_inference",
       show_compilation = chk "show_compilation",
       show_caught_failures = false,
+      show_invalid_clauses = chk "show_invalid_clauses",
       skip_proof = chk "skip_proof",
       function_flattening = not (chk "no_function_flattening"),
       specialise = chk "specialise",
