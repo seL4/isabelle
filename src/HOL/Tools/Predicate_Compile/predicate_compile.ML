@@ -139,16 +139,24 @@ fun preprocess options t thy =
         (Term_Graph.strong_conn gr) thy))
   end
 
-fun extract_options (((expected_modes, proposed_modes), (compilation, raw_options)), const) =
+datatype proposed_modes = Multiple_Preds of (string * (mode * string option) list) list
+  | Single_Pred of (mode * string option) list
+
+fun extract_options lthy (((expected_modes, proposed_modes), (compilation, raw_options)), const) =
   let
     fun chk s = member (op =) raw_options s
+    val proposed_modes = case proposed_modes of
+          Single_Pred proposed_modes => [(const, proposed_modes)]
+        | Multiple_Preds proposed_modes => map
+          (apfst (Code.read_const (ProofContext.theory_of lthy))) proposed_modes
   in
     Options {
       expected_modes = Option.map (pair const) expected_modes,
-      proposed_modes = Option.map (pair const o map fst) proposed_modes,
+      proposed_modes = 
+        map (apsnd (map fst)) proposed_modes,
       proposed_names =
-        the_default [] (Option.map (map_filter
-          (fn (m, NONE) => NONE | (m, SOME name) => SOME ((const, m), name))) proposed_modes),
+        maps (fn (predname, ms) => (map_filter
+          (fn (m, NONE) => NONE | (m, SOME name) => SOME ((predname, m), name))) ms) proposed_modes,
       show_steps = chk "show_steps",
       show_intermediate_results = chk "show_intermediate_results",
       show_proof_trace = chk "show_proof_trace",
@@ -174,7 +182,7 @@ fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) l
      val const = Code.read_const thy raw_const
      val T = Sign.the_const_type thy const
      val t = Const (const, T)
-     val options = extract_options (((expected_modes, proposed_modes), raw_options), const)
+     val options = extract_options lthy (((expected_modes, proposed_modes), raw_options), const)
   in
     if is_inductify options then
       let
@@ -208,9 +216,13 @@ and parse_mode_expr xs =
 val mode_and_opt_proposal = parse_mode_expr --
   Scan.optional (Args.$$$ "as" |-- Parse.xname >> SOME) NONE
 
+
 val opt_modes =
   Scan.optional (Parse.$$$ "(" |-- Args.$$$ "modes" |-- Parse.$$$ ":" |--
-    Parse.enum "," mode_and_opt_proposal --| Parse.$$$ ")" >> SOME) NONE
+    (((Parse.enum1 "and" (Parse.xname --| Parse.$$$ ":" --
+        (Parse.enum "," mode_and_opt_proposal))) >> Multiple_Preds)
+      || ((Parse.enum "," mode_and_opt_proposal) >> Single_Pred))
+    --| Parse.$$$ ")") (Multiple_Preds [])
 
 val opt_expected_modes =
   Scan.optional (Parse.$$$ "(" |-- Args.$$$ "expected_modes" |-- Parse.$$$ ":" |--

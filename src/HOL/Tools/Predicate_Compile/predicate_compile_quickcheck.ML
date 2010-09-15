@@ -56,7 +56,7 @@ val no_higher_order_predicate = Unsynchronized.ref ([] : string list);
 
 val options = Options {
   expected_modes = NONE,
-  proposed_modes = NONE,
+  proposed_modes = [],
   proposed_names = [],
   show_steps = false,
   show_intermediate_results = false,

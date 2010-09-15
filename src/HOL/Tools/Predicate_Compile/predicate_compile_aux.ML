@@ -99,7 +99,7 @@ sig
   (* Different options for compiler *)
   datatype options = Options of {  
     expected_modes : (string * mode list) option,
-    proposed_modes : (string * mode list) option,
+    proposed_modes : (string * mode list) list,
     proposed_names : ((string * mode) * string) list,
     show_steps : bool,
     show_proof_trace : bool,
@@ -119,7 +119,7 @@ sig
     compilation : compilation
   };
   val expected_modes : options -> (string * mode list) option
-  val proposed_modes : options -> (string * mode list) option
+  val proposed_modes : options -> string -> mode list option
   val proposed_names : options -> string -> mode -> string option
   val show_steps : options -> bool
   val show_proof_trace : options -> bool
@@ -703,7 +703,7 @@ fun funT_of compfuns mode T =
 
 datatype options = Options of {  
   expected_modes : (string * mode list) option,
-  proposed_modes : (string * mode list) option,
+  proposed_modes : (string * mode list) list,
   proposed_names : ((string * mode) * string) list,
   show_steps : bool,
   show_proof_trace : bool,
@@ -724,7 +724,7 @@ datatype options = Options of {
 };
 
 fun expected_modes (Options opt) = #expected_modes opt
-fun proposed_modes (Options opt) = #proposed_modes opt
+fun proposed_modes (Options opt) = AList.lookup (op =) (#proposed_modes opt)
 fun proposed_names (Options opt) name mode = AList.lookup (eq_pair (op =) eq_mode)
   (#proposed_names opt) (name, mode)
 
@@ -752,7 +752,7 @@ fun detect_switches (Options opt) = #detect_switches opt
 
 val default_options = Options {
   expected_modes = NONE,
-  proposed_modes = NONE,
+  proposed_modes = [],
   proposed_names = [],
   show_steps = false,
   show_intermediate_results = false,

@@ -400,8 +400,8 @@ fun check_expected_modes preds options modes =
   | NONE => ()
 
 fun check_proposed_modes preds options modes errors =
-  case proposed_modes options of
-    SOME (s, ms) => (case AList.lookup (op =) modes s of
+  map (fn (s, _) => case proposed_modes options s of
+    SOME ms => (case AList.lookup (op =) modes s of
       SOME inferred_ms =>
         let
           val preds_without_modes = map fst (filter (null o snd) modes)
@@ -419,7 +419,7 @@ fun check_proposed_modes preds options modes errors =
           else ()
         end
       | NONE => ())
-  | NONE => ()
+  | NONE => ()) preds
 
 (* importing introduction rules *)
 
@@ -2700,8 +2700,8 @@ fun prepare_intrs options ctxt prednames intros =
         all_modes_of_typ T
     val all_modes = 
       map (fn (s, T) =>
-        (s, case (proposed_modes options) of
-            SOME (s', ms) => if s = s' then ms else generate_modes s T
+        (s, case proposed_modes options s of
+            SOME ms => ms
           | NONE => generate_modes s T)) preds
     val params =
       case intrs of
@@ -2719,7 +2719,7 @@ fun prepare_intrs options ctxt prednames intros =
         let
           val (p, args) = strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl intr)) 
         in
-          ho_args_of (hd (the (AList.lookup (op =) all_modes (fst (dest_Const p))))) args
+          ho_args_of_typ (snd (dest_Const p)) args
         end
     val param_vs = map (fst o dest_Free) params
     fun add_clause intr clauses =
