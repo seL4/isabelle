@@ -218,42 +218,42 @@ fun taken_names (t : term) : bstring list =
     taken (t, [])
   end;
 
-(* builds a monadic term for matching a constructor pattern *)
-fun compile_pat match_name pat rhs vs taken =
-  case pat of
-    Const(@{const_name Rep_CFun},_)$f$(v as Free(n,T)) =>
-      compile_pat match_name f rhs (v::vs) taken
-  | Const(@{const_name Rep_CFun},_)$f$x =>
-      let val (rhs', v, taken') = compile_pat match_name x rhs [] taken;
-      in compile_pat match_name f rhs' (v::vs) taken' end
-  | f$(v as Free(n,T)) =>
-      compile_pat match_name f rhs (v::vs) taken
-  | f$x =>
-      let val (rhs', v, taken') = compile_pat match_name x rhs [] taken;
-      in compile_pat match_name f rhs' (v::vs) taken' end
-  | Const(c,T) =>
-      let
-        val n = Name.variant taken "v";
-        fun result_type (Type(@{type_name cfun},[_,T])) (x::xs) = result_type T xs
-          | result_type (Type (@{type_name "fun"},[_,T])) (x::xs) = result_type T xs
-          | result_type T _ = T;
-        val v = Free(n, result_type T vs);
-        val m = Const(match_name c, matcherT (T, fastype_of rhs));
-        val k = big_lambdas vs rhs;
-      in
-        (m`v`k, v, n::taken)
-      end
-  | Free(n,_) => fixrec_err ("expected constructor, found free variable " ^ quote n)
-  | _ => fixrec_err "compile_pat: invalid pattern";
+(* builds a monadic term for matching a pattern *)
+(* returns (rhs, free variable, used varnames) *)
+fun compile_pat match_name pat rhs taken =
+  let
+    fun comp_pat p rhs taken =
+      if is_Free p then (rhs, p, taken)
+      else comp_con (fastype_of p) p rhs [] taken
+    (* compiles a monadic term for a constructor pattern *)
+    and comp_con T p rhs vs taken =
+      case p of
+        Const(@{const_name Rep_CFun},_) $ f $ x =>
+          let val (rhs', v, taken') = comp_pat x rhs taken
+          in comp_con T f rhs' (v::vs) taken' end
+      | f $ x =>
+          let val (rhs', v, taken') = comp_pat x rhs taken
+          in comp_con T f rhs' (v::vs) taken' end
+      | Const (c, cT) =>
+          let
+            val n = Name.variant taken "v"
+            val v = Free(n, T)
+            val m = Const(match_name c, matcherT (cT, fastype_of rhs))
+            val k = big_lambdas vs rhs
+          in
+            (m`v`k, v, n::taken)
+          end
+      | _ => raise TERM ("fixrec: invalid pattern ", [p])
+  in
+    comp_pat pat rhs taken
+  end;
 
 (* builds a monadic term for matching a function definition pattern *)
 (* returns (name, arity, matcher) *)
 fun compile_lhs match_name pat rhs vs taken =
   case pat of
-    Const(@{const_name Rep_CFun}, _)$f$(v as Free(n,T)) =>
-      compile_lhs match_name f rhs (v::vs) taken
-  | Const(@{const_name Rep_CFun}, _)$f$x =>
-      let val (rhs', v, taken') = compile_pat match_name x rhs [] taken;
+    Const(@{const_name Rep_CFun}, _) $ f $ x =>
+      let val (rhs', v, taken') = compile_pat match_name x rhs taken;
       in compile_lhs match_name f rhs' (v::vs) taken' end
   | Free(_,_) => ((pat, length vs), big_lambdas vs rhs)
   | Const(_,_) => ((pat, length vs), big_lambdas vs rhs)
