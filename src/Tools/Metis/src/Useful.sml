@@ -454,7 +454,8 @@ local
 
   val primesList = ref [2];
 in
-  fun primes n =
+  (* MODIFIED by Jasmin Blanchette *)
+  fun primes n = CRITICAL (fn () =>
       let
         val ref ps = primesList
 
@@ -469,10 +470,11 @@ in
           in
             ps
           end
-      end;
+      end);
 end;
 
-fun primesUpTo n =
+(* MODIFIED by Jasmin Blanchette *)
+fun primesUpTo n = CRITICAL (fn () =>
     let
       fun f k =
           let
@@ -484,7 +486,7 @@ fun primesUpTo n =
           end
     in
       f 8
-    end;
+    end);
 
 (* ------------------------------------------------------------------------- *)
 (* Strings.                                                                  *)
@@ -702,22 +704,24 @@ fun isRight (Left _) = false
 local
   val generator = ref 0
 in
-  fun newInt () =
+  (* MODIFIED by Jasmin Blanchette *)
+  fun newInt () = CRITICAL (fn () =>
       let
         val n = !generator
         val () = generator := n + 1
       in
         n
-      end;
+      end);
 
   fun newInts 0 = []
-    | newInts k =
+      (* MODIFIED by Jasmin Blanchette *)
+    | newInts k = CRITICAL (fn () =>
       let
         val n = !generator
         val () = generator := n + k
       in
         interval n k
-      end;
+      end);
 end;
 
 fun withRef (r,new) f x =

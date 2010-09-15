@@ -9,6 +9,9 @@ randomness.
 structure Random :> Random =
 struct
 
+(* MODIFIED by Jasmin Blanchette *)
+fun CRITICAL e = NAMED_CRITICAL "metis" e;
+
 (* random words: 0w0 <= result <= max_word *)
 
 (*minimum length of unboxed words on all supported ML platforms*)
@@ -25,7 +28,8 @@ fun step x = Word.andb (a * x + 0w1, max_word);
 
 fun change r f = r := f (!r);
 local val rand = (*Unsynchronized.*)ref 0w1
-in fun nextWord () = ((*Unsynchronized.*)change rand step; ! rand) end;
+(* MODIFIED by Jasmin Blanchette *)
+in fun nextWord () = CRITICAL (fn () => ((*Unsynchronized.*)change rand step; ! rand)) end;
 
 (*NB: higher bits are more random than lower ones*)
 fun nextBool () = Word.andb (nextWord (), top_bit) = 0w0;
