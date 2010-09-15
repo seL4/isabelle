@@ -12,7 +12,6 @@ Sharing.sig Sharing.sml
 Heap.sig Heap.sml
 Print.sig Print.sml
 Parse.sig Parse.sml
-Options.sig Options.sml
 Name.sig Name.sml
 NameArity.sig NameArity.sml
 Term.sig Term.sml
