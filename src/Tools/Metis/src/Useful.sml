@@ -50,6 +50,8 @@ fun can f = Option.isSome o total f;
 (* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+val print = TextIO.print; (* MODIFIED by Jasmin Blanchette *)
+
 val tracePrint = ref print;
 
 fun trace mesg = !tracePrint mesg;
@@ -495,6 +497,10 @@ fun primesUpTo n = CRITICAL (fn () =>
 (* ------------------------------------------------------------------------- *)
 (* Strings.                                                                  *)
 (* ------------------------------------------------------------------------- *)
+
+val implode = String.implode (* MODIFIED by Jasmin Blanchette *)
+
+val explode = String.explode (* MODIFIED by Jasmin Blanchette *)
 
 local
   fun len l = (length l, l)
