@@ -3277,7 +3277,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
             val [nrandom, size, depth] = arguments
           in
             rpair NONE (fst (DSequence.yieldn k
-              (Code_Eval.eval NONE (Dseq_Random_Result.get, put_dseq_random_result, "Predicate_Compile_Core.put_dseq_random_result")
+              (Code_Runtime.eval NONE (Dseq_Random_Result.get, put_dseq_random_result, "Predicate_Compile_Core.put_dseq_random_result")
                 (fn proc => fn g => fn nrandom => fn size => fn s => g nrandom size s |>> DSequence.map proc)
                   thy t' [] nrandom size
                 |> Random_Engine.run)
@@ -3285,7 +3285,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
           end
       | DSeq =>
           rpair NONE (fst (DSequence.yieldn k
-            (Code_Eval.eval NONE (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Core.put_dseq_result")
+            (Code_Runtime.eval NONE (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Core.put_dseq_result")
               DSequence.map thy t' []) (the_single arguments) true))
       | New_Pos_Random_DSeq =>
           let
@@ -3295,14 +3295,14 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
             if stats then
               apsnd (SOME o accumulate) (split_list
               (fst (Lazy_Sequence.yieldn k
-                (Code_Eval.eval NONE
+                (Code_Runtime.eval NONE
                   (Lseq_Random_Stats_Result.get, put_lseq_random_stats_result, "Predicate_Compile_Core.put_lseq_random_stats_result")
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
                     |> Lazy_Sequence.mapa (apfst proc))
                     thy t' [] nrandom size seed depth))))
             else rpair NONE
               (fst (Lazy_Sequence.yieldn k
-                (Code_Eval.eval NONE
+                (Code_Runtime.eval NONE
                   (Lseq_Random_Result.get, put_lseq_random_result, "Predicate_Compile_Core.put_lseq_random_result")
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
                     |> Lazy_Sequence.mapa proc)
@@ -3310,7 +3310,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
           end
       | _ =>
           rpair NONE (fst (Predicate.yieldn k
-            (Code_Eval.eval NONE (Pred_Result.get, put_pred_result, "Predicate_Compile_Core.put_pred_result")
+            (Code_Runtime.eval NONE (Pred_Result.get, put_pred_result, "Predicate_Compile_Core.put_pred_result")
               Predicate.map thy t' [])))
   in ((T, ts), statistics) end;
 

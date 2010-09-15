@@ -1,10 +1,10 @@
-(*  Title:      Tools/Code/code_eval.ML
+(*  Title:      Tools/Code/code_runtime.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Runtime services building on code generation into implementation language SML.
 *)
 
-signature CODE_EVAL =
+signature CODE_RUNTIME =
 sig
   val target: string
   val eval: string option
@@ -13,7 +13,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure Code_Eval : CODE_EVAL =
+structure Code_Runtime : CODE_RUNTIME =
 struct
 
 (** generic **)
