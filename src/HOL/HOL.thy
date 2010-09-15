@@ -25,7 +25,6 @@ uses
   "~~/src/Tools/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
   ("Tools/simpdata.ML")
-  "~~/src/Tools/random_word.ML"
   "~~/src/Tools/atomize_elim.ML"
   "~~/src/Tools/induct.ML"
   ("~~/src/Tools/induct_tacs.ML")

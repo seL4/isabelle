@@ -134,7 +134,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/nbe.ML \
   $(SRC)/Tools/project_rule.ML \
   $(SRC)/Tools/quickcheck.ML \
-  $(SRC)/Tools/random_word.ML \
   $(SRC)/Tools/value.ML \
   HOL.thy \
   Tools/hologic.ML \
