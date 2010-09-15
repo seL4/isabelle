@@ -1802,20 +1802,9 @@ setup {*
 
 subsubsection {* Generic code generator foundation *}
 
-text {* Datatypes *}
+text {* Datatype @{typ bool} *}
 
 code_datatype True False
-
-code_datatype "TYPE('a\<Colon>{})"
-
-code_datatype "prop" Trueprop
-
-text {* Code equations *}
-
-lemma [code]:
-  shows "(True \<Longrightarrow> PROP Q) \<equiv> PROP Q" 
-    and "(PROP Q \<Longrightarrow> True) \<equiv> Trueprop True"
-    and "(P \<Longrightarrow> R) \<equiv> Trueprop (P \<longrightarrow> R)" by (auto intro!: equal_intr_rule)
 
 lemma [code]:
   shows "False \<and> P \<longleftrightarrow> False"
@@ -1835,6 +1824,23 @@ lemma [code]:
     and "(P \<longrightarrow> False) \<longleftrightarrow> \<not> P"
     and "(P \<longrightarrow> True) \<longleftrightarrow> True" by simp_all
 
+text {* More about @{typ prop} *}
+
+lemma [code nbe]:
+  shows "(True \<Longrightarrow> PROP Q) \<equiv> PROP Q" 
+    and "(PROP Q \<Longrightarrow> True) \<equiv> Trueprop True"
+    and "(P \<Longrightarrow> R) \<equiv> Trueprop (P \<longrightarrow> R)" by (auto intro!: equal_intr_rule)
+
+lemma Trueprop_code [code]:
+  "Trueprop True \<equiv> Code_Generator.holds"
+  by (auto intro!: equal_intr_rule holds)
+
+declare Trueprop_code [symmetric, code_post]
+
+text {* Equality *}
+
+declare simp_thms(6) [code nbe]
+
 instantiation itself :: (type) equal
 begin
 
@@ -1849,10 +1855,6 @@ end
 lemma equal_itself_code [code]:
   "equal TYPE('a) TYPE('a) \<longleftrightarrow> True"
   by (simp add: equal)
-
-text {* Equality *}
-
-declare simp_thms(6) [code nbe]
 
 setup {*
   Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a\<Colon>type \<Rightarrow> 'a \<Rightarrow> bool"})
