@@ -8,6 +8,7 @@ signature NBE =
 sig
   val dynamic_eval_conv: conv
   val dynamic_eval_value: theory -> term -> term
+  val static_eval_conv: theory -> string list -> conv
 
   datatype Univ =
       Const of int * Univ list               (*named (uninterpreted) constants*)
@@ -228,9 +229,9 @@ fun ml_fundefs ([(name, [([], e)])]) =
 
 (* nbe specific syntax and sandbox communication *)
 
-structure Univs = Proof_Data(
+structure Univs = Proof_Data (
   type T = unit -> Univ list -> Univ list
-  fun init thy () = error "Univs"
+  fun init _ () = error "Univs"
 );
 val put_result = Univs.put;
 
@@ -432,6 +433,12 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
 
 (* compile whole programs *)
 
+fun ensure_const_idx name (nbe_program, (maxidx, idx_tab)) =
+  if can (Graph.get_node nbe_program) name
+  then (nbe_program, (maxidx, idx_tab))
+  else (Graph.new_node (name, (NONE, maxidx)) nbe_program,
+    (maxidx + 1, Inttab.update_new (maxidx, name) idx_tab));
+
 fun compile_stmts thy stmts_deps =
   let
     val names = map (fst o fst) stmts_deps;
@@ -441,15 +448,11 @@ fun compile_stmts thy stmts_deps =
       |> maps snd
       |> distinct (op =)
       |> fold (insert (op =)) names;
-    fun new_node name (nbe_program, (maxidx, idx_tab)) = if can (Graph.get_node nbe_program) name
-      then (nbe_program, (maxidx, idx_tab))
-      else (Graph.new_node (name, (NONE, maxidx)) nbe_program,
-        (maxidx + 1, Inttab.update_new (maxidx, name) idx_tab));
     fun compile nbe_program = eqnss
       |> compile_eqnss thy nbe_program refl_deps
       |> rpair nbe_program;
   in
-    fold new_node refl_deps
+    fold ensure_const_idx refl_deps
     #> apfst (fold (fn (name, deps) => fold (curry Graph.add_edge name) deps) names_deps
       #> compile
       #-> fold (fn (name, univ) => (Graph.map_node name o apfst) (K (SOME univ))))
@@ -560,10 +563,11 @@ structure Nbe_Functions = Code_Data
   val empty = (Graph.empty, (0, Inttab.empty));
 );
 
-fun compile thy program =
+fun compile ignore_cache thy program =
   let
     val (nbe_program, (_, idx_tab)) =
-      Nbe_Functions.change thy (compile_program thy program);
+      Nbe_Functions.change (if ignore_cache then NONE else SOME thy)
+        (compile_program thy program);
   in (nbe_program, idx_tab) end;
 
 
@@ -577,10 +581,12 @@ fun mk_equals thy lhs raw_rhs =
   in Thm.mk_binop eq lhs rhs end;
 
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "norm", fn (thy, program, vsp_ty_t, deps, ct) =>
-    mk_equals thy ct (eval_term thy program (compile thy program) vsp_ty_t deps))));
+  (Thm.add_oracle (Binding.name "normalization_by_evaluation",
+    fn (thy, program, nbe_program_idx_tab, vsp_ty_t, deps, ct) =>
+      mk_equals thy ct (eval_term thy program nbe_program_idx_tab vsp_ty_t deps))));
 
-fun oracle thy program vsp_ty_t deps ct = raw_oracle (thy, program, vsp_ty_t, deps, ct);
+fun oracle thy program nbe_program_idx_tab vsp_ty_t deps ct =
+  raw_oracle (thy, program, nbe_program_idx_tab, vsp_ty_t, deps, ct);
 
 fun no_frees_rew rew t =
   let
@@ -592,12 +598,17 @@ fun no_frees_rew rew t =
     |> curry (Term.betapplys o swap) frees
   end;
 
-val dynamic_eval_conv = Code_Simp.no_frees_conv (Conv.tap_thy
-  (fn thy => lift_triv_classes_conv thy (Code_Thingol.dynamic_eval_conv thy (K (oracle thy)))));
+val dynamic_eval_conv = Conv.tap_thy (fn thy => Code_Simp.no_frees_conv
+  (lift_triv_classes_conv thy (Code_Thingol.dynamic_eval_conv thy
+    (K (fn program => oracle thy program (compile false thy program))))));
 
 fun dynamic_eval_value thy = lift_triv_classes_rew thy
   (no_frees_rew (Code_Thingol.dynamic_eval_value thy I
-    (K (fn program => eval_term thy program (compile thy program)))));
+    (K (fn program => eval_term thy program (compile false thy program)))));
+
+fun static_eval_conv thy consts = Code_Simp.no_frees_conv
+  (lift_triv_classes_conv thy (Code_Thingol.static_eval_conv thy consts
+    (K (fn program => oracle thy program (compile true thy program)))));
 
 
 (** setup **)
