@@ -21,9 +21,21 @@ uses
   "~~/src/Tools/Code/code_ml.ML"
   "~~/src/Tools/Code/code_haskell.ML"
   "~~/src/Tools/Code/code_scala.ML"
-  ("~~/src/Tools/Code/code_runtime.ML")
+  "~~/src/Tools/Code/code_runtime.ML"
   "~~/src/Tools/nbe.ML"
 begin
+
+setup {*
+  Auto_Solve.setup
+  #> Code_Preproc.setup
+  #> Code_Simp.setup
+  #> Code_ML.setup
+  #> Code_Haskell.setup
+  #> Code_Scala.setup
+  #> Code_Runtime.setup
+  #> Nbe.setup
+  #> Quickcheck.setup
+*}
 
 code_datatype "TYPE('a\<Colon>{})"
 
@@ -51,20 +63,6 @@ next
   show "(PROP P \<Longrightarrow> PROP holds) \<equiv> PROP holds"
     by rule (rule holds)+
 qed  
-
-use "~~/src/Tools/Code/code_runtime.ML"
-
-setup {*
-  Auto_Solve.setup
-  #> Code_Preproc.setup
-  #> Code_Simp.setup
-  #> Code_ML.setup
-  #> Code_Haskell.setup
-  #> Code_Scala.setup
-  #> Code_Runtime.setup
-  #> Nbe.setup
-  #> Quickcheck.setup
-*}
 
 hide_const (open) holds
 
