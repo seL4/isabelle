@@ -7,7 +7,7 @@ Runtime services building on code generation into implementation language SML.
 signature CODE_RUNTIME =
 sig
   val target: string
-  val eval: string option
+  val value: string option
     -> (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string
     -> ((term -> term) -> 'a -> 'a) -> theory -> term -> string list -> 'a
   val setup: theory -> theory
@@ -16,31 +16,11 @@ end;
 structure Code_Runtime : CODE_RUNTIME =
 struct
 
-(** generic **)
+(** evaluation **)
 
 val target = "Eval";
 
-fun evaluation_code thy module_name tycos consts =
-  let
-    val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
-    val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
-    val (ml_code, target_names) = Code_Target.produce_code_for thy
-      target NONE module_name [] naming program (consts' @ tycos');
-    val (consts'', tycos'') = chop (length consts') target_names;
-    val consts_map = map2 (fn const => fn NONE =>
-        error ("Constant " ^ (quote o Code.string_of_const thy) const
-          ^ "\nhas a user-defined serialization")
-      | SOME const'' => (const, const'')) consts consts''
-    val tycos_map = map2 (fn tyco => fn NONE =>
-        error ("Type " ^ (quote o Sign.extern_type thy) tyco
-          ^ "\nhas a user-defined serialization")
-      | SOME tyco'' => (tyco, tyco'')) tycos tycos'';
-  in (ml_code, (tycos_map, consts_map)) end;
-
-
-(** evaluation **)
-
-fun eval some_target cookie postproc thy t args =
+fun value some_target cookie postproc thy t args =
   let
     val ctxt = ProofContext.init_global thy;
     fun evaluator naming program ((_, (_, ty)), t) deps =
@@ -60,7 +40,27 @@ fun eval some_target cookie postproc thy t args =
   in Code_Thingol.dynamic_eval_value thy postproc evaluator t end;
 
 
-(** instrumentalization by antiquotation **)
+(** instrumentalization **)
+
+fun evaluation_code thy module_name tycos consts =
+  let
+    val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
+    val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
+    val (ml_code, target_names) = Code_Target.produce_code_for thy
+      target NONE module_name [] naming program (consts' @ tycos');
+    val (consts'', tycos'') = chop (length consts') target_names;
+    val consts_map = map2 (fn const => fn NONE =>
+        error ("Constant " ^ (quote o Code.string_of_const thy) const
+          ^ "\nhas a user-defined serialization")
+      | SOME const'' => (const, const'')) consts consts''
+    val tycos_map = map2 (fn tyco => fn NONE =>
+        error ("Type " ^ (quote o Sign.extern_type thy) tyco
+          ^ "\nhas a user-defined serialization")
+      | SOME tyco'' => (tyco, tyco'')) tycos tycos'';
+  in (ml_code, (tycos_map, consts_map)) end;
+
+
+(* by antiquotation *)
 
 local
 
@@ -110,7 +110,7 @@ fun ml_code_antiq raw_const background =
 end; (*local*)
 
 
-(** reflection support **)
+(* reflection support *)
 
 fun check_datatype thy tyco consts =
   let
