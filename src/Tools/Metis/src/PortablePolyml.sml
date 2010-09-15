@@ -56,6 +56,13 @@ fun time f x =
       y
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Critical section markup (multiprocessing)                                 *)
+(* ------------------------------------------------------------------------- *)
+
+(* MODIFIED by Jasmin Blanchette *)
+fun CRITICAL e = NAMED_CRITICAL "metis" e;
+
 
 (* ------------------------------------------------------------------------- *)
 (* Generating random values.                                                 *)

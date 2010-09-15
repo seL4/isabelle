@@ -29,8 +29,6 @@ randomness.
 
 signature Metis_Random =
 sig
-  val CRITICAL: (unit -> 'a) -> 'a (* MODIFIED by Jasmin Blanchette *)
-
   val nextWord : unit -> word
 
   val nextBool : unit -> bool
@@ -53,9 +51,6 @@ randomness.
 
 structure Metis_Random :> Metis_Random =
 struct
-
-(* MODIFIED by Jasmin Blanchette *)
-fun CRITICAL e = NAMED_CRITICAL "metis" e;
 
 (* random words: 0w0 <= result <= max_word *)
 
@@ -122,6 +117,13 @@ val pointerEqual : 'a * 'a -> bool
 (* ------------------------------------------------------------------------- *)
 
 val time : ('a -> 'b) -> 'a -> 'b
+
+(* ------------------------------------------------------------------------- *)
+(* Critical section markup (multiprocessing)                                 *)
+(* ------------------------------------------------------------------------- *)
+
+(* MODIFIED by Jasmin Blanchette *)
+val CRITICAL: (unit -> 'a) -> 'a
 
 (* ------------------------------------------------------------------------- *)
 (* Generating random values.                                                 *)
@@ -196,6 +198,13 @@ fun time f x =
     in
       y
     end;
+
+(* ------------------------------------------------------------------------- *)
+(* Critical section markup (multiprocessing)                                 *)
+(* ------------------------------------------------------------------------- *)
+
+(* MODIFIED by Jasmin Blanchette *)
+fun CRITICAL e = NAMED_CRITICAL "metis" e;
 
 
 (* ------------------------------------------------------------------------- *)

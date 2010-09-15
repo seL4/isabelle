@@ -9,9 +9,6 @@ randomness.
 structure Random :> Random =
 struct
 
-(* MODIFIED by Jasmin Blanchette *)
-fun CRITICAL e = NAMED_CRITICAL "metis" e;
-
 (* random words: 0w0 <= result <= max_word *)
 
 (*minimum length of unboxed words on all supported ML platforms*)
