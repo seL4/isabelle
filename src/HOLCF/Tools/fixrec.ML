@@ -219,18 +219,18 @@ fun taken_names (t : term) : bstring list =
   end;
 
 (* builds a monadic term for matching a constructor pattern *)
-fun pre_build match_name pat rhs vs taken =
+fun compile_pat match_name pat rhs vs taken =
   case pat of
     Const(@{const_name Rep_CFun},_)$f$(v as Free(n,T)) =>
-      pre_build match_name f rhs (v::vs) taken
+      compile_pat match_name f rhs (v::vs) taken
   | Const(@{const_name Rep_CFun},_)$f$x =>
-      let val (rhs', v, taken') = pre_build match_name x rhs [] taken;
-      in pre_build match_name f rhs' (v::vs) taken' end
+      let val (rhs', v, taken') = compile_pat match_name x rhs [] taken;
+      in compile_pat match_name f rhs' (v::vs) taken' end
   | f$(v as Free(n,T)) =>
-      pre_build match_name f rhs (v::vs) taken
+      compile_pat match_name f rhs (v::vs) taken
   | f$x =>
-      let val (rhs', v, taken') = pre_build match_name x rhs [] taken;
-      in pre_build match_name f rhs' (v::vs) taken' end
+      let val (rhs', v, taken') = compile_pat match_name x rhs [] taken;
+      in compile_pat match_name f rhs' (v::vs) taken' end
   | Const(c,T) =>
       let
         val n = Name.variant taken "v";
@@ -244,17 +244,17 @@ fun pre_build match_name pat rhs vs taken =
         (m`v`k, v, n::taken)
       end
   | Free(n,_) => fixrec_err ("expected constructor, found free variable " ^ quote n)
-  | _ => fixrec_err "pre_build: invalid pattern";
+  | _ => fixrec_err "compile_pat: invalid pattern";
 
 (* builds a monadic term for matching a function definition pattern *)
 (* returns (name, arity, matcher) *)
-fun building match_name pat rhs vs taken =
+fun compile_lhs match_name pat rhs vs taken =
   case pat of
     Const(@{const_name Rep_CFun}, _)$f$(v as Free(n,T)) =>
-      building match_name f rhs (v::vs) taken
+      compile_lhs match_name f rhs (v::vs) taken
   | Const(@{const_name Rep_CFun}, _)$f$x =>
-      let val (rhs', v, taken') = pre_build match_name x rhs [] taken;
-      in building match_name f rhs' (v::vs) taken' end
+      let val (rhs', v, taken') = compile_pat match_name x rhs [] taken;
+      in compile_lhs match_name f rhs' (v::vs) taken' end
   | Free(_,_) => ((pat, length vs), big_lambdas vs rhs)
   | Const(_,_) => ((pat, length vs), big_lambdas vs rhs)
   | _ => fixrec_err ("function is not declared as constant in theory: "
@@ -263,11 +263,11 @@ fun building match_name pat rhs vs taken =
 fun strip_alls t =
   if Logic.is_all t then strip_alls (snd (Logic.dest_all t)) else t;
 
-fun match_eq match_name eq =
+fun compile_eq match_name eq =
   let
     val (lhs,rhs) = dest_eqs (Logic.strip_imp_concl (strip_alls eq));
   in
-    building match_name lhs (mk_succeed rhs) [] (taken_names eq)
+    compile_lhs match_name lhs (mk_succeed rhs) [] (taken_names eq)
   end;
 
 (* returns the sum (using +++) of the terms in ms *)
@@ -290,10 +290,10 @@ fun fatbar arity ms =
   end;
 
 (* this is the pattern-matching compiler function *)
-fun compile_pats match_name eqs =
+fun compile_eqs match_name eqs =
   let
     val ((names, arities), mats) =
-      apfst ListPair.unzip (ListPair.unzip (map (match_eq match_name) eqs));
+      apfst ListPair.unzip (ListPair.unzip (map (compile_eq match_name) eqs));
     val cname =
         case distinct (op =) names of
           [n] => n
@@ -379,7 +379,7 @@ fun gen_fixrec
       case Symtab.lookup matcher_tab c of SOME m => m
         | NONE => fixrec_err ("unknown pattern constructor: " ^ c);
 
-    val matches = map (compile_pats match_name) (map (map snd) blocks);
+    val matches = map (compile_eqs match_name) (map (map snd) blocks);
     val spec' = map (pair Attrib.empty_binding) matches;
     val (lthy, cnames, fixdef_thms, unfold_thms) =
       add_fixdefs fixes spec' lthy;
