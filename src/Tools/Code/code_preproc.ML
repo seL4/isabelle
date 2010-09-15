@@ -23,7 +23,7 @@ sig
   val sortargs: code_graph -> string -> sort list
   val all: code_graph -> string list
   val pretty: theory -> code_graph -> Pretty.T
-  val obtain: theory -> string list -> term list -> code_algebra * code_graph
+  val obtain: bool -> theory -> string list -> term list -> code_algebra * code_graph
   val dynamic_eval_conv: theory
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
   val dynamic_eval_value: theory -> ((term -> term) -> 'a -> 'a)
@@ -422,8 +422,8 @@ structure Wellsorted = Code_Data
 
 (** retrieval and evaluation interfaces **)
 
-fun obtain thy consts ts = apsnd snd
-  (Wellsorted.change_yield thy (extend_arities_eqngr thy consts ts));
+fun obtain ignore_cache thy consts ts = apsnd snd
+  (Wellsorted.change_yield (if ignore_cache then NONE else SOME thy) (extend_arities_eqngr thy consts ts));
 
 fun dest_cterm ct = let val t = Thm.term_of ct in (Term.add_tfrees t [], t) end;
 
@@ -437,7 +437,7 @@ fun dynamic_eval thy cterm_of conclude_evaluation evaluator proto_ct =
     val (vs', t') = dest_cterm ct';
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
-    val (algebra', eqngr') = obtain thy consts [t'];
+    val (algebra', eqngr') = obtain false thy consts [t'];
   in conclude_evaluation (evaluator algebra' eqngr' vs' t' ct') thm end;
 
 fun dynamic_eval_conv thy =
@@ -457,15 +457,12 @@ fun dynamic_eval_value thy postproc evaluator = dynamic_eval thy (Thm.cterm_of t
 
 fun static_eval_conv thy consts conv =
   let
-    val (algebra, eqngr) = obtain thy consts [];
-    fun conv' ct =
-      let
-        val (vs, t) = dest_cterm ct;
-      in
-        Conv.tap_thy (fn thy => (preprocess_conv thy)
-          then_conv (conv algebra eqngr vs t) then_conv (postprocess_conv thy)) ct
-      end;
-  in conv' end;
+    val (algebra, eqngr) = obtain true thy consts [];
+  in
+    Conv.tap_thy (fn thy => (preprocess_conv thy)
+      then_conv (fn ct => uncurry (conv algebra eqngr) (dest_cterm ct) ct)
+      then_conv (postprocess_conv thy))
+  end;
 
 
 (** setup **)
