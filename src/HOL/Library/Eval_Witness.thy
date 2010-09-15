@@ -44,15 +44,6 @@ instance nat :: ml_equiv .. (* Attention: This conflicts with the "EfficientNat"
 instance bool :: ml_equiv ..
 instance list :: (ml_equiv) ml_equiv ..
 
-ML {*
-structure Eval_Witness_Method =
-struct
-
-val eval_ref : (unit -> bool) option Unsynchronized.ref = Unsynchronized.ref NONE;
-
-end;
-*}
-
 oracle eval_witness_oracle = {* fn (cgoal, ws) =>
 let
   val thy = Thm.theory_of_cterm cgoal;
@@ -68,7 +59,7 @@ let
     | dest_exs _ _ = sys_error "dest_exs";
   val t = dest_exs (length ws) (HOLogic.dest_Trueprop goal);
 in
-  if Code_Eval.eval NONE ("Eval_Witness_Method.eval_ref", Eval_Witness_Method.eval_ref) (K I) thy t ws
+  if Code_Eval.eval NONE (Eval_Method.get, Eval_Method.put, "Eval_Method.put") (K I) thy t ws
   then Thm.cterm_of thy goal
   else @{cprop True} (*dummy*)
 end

@@ -278,6 +278,7 @@ lemma (in term_syntax) term_of_code_numeral_code [code]:
   "term_of (k::code_numeral) = termify (number_of :: int \<Rightarrow> code_numeral) <\<cdot>> term_of_num (2::code_numeral) k"
   by (simp only: term_of_anything)
 
+
 subsection {* Obfuscate *}
 
 print_translation {*
@@ -292,52 +293,47 @@ in
 end
 *}
 
-hide_const dummy_term App valapp
-hide_const (open) Const termify valtermify term_of term_of_num
-
-subsection {* Tracing of generated and evaluated code *}
-
-definition tracing :: "String.literal => 'a => 'a"
-where
-  [code del]: "tracing s x = x"
-
-ML {*
-structure Code_Evaluation =
-struct
-
-fun tracing s x = (Output.tracing s; x)
-
-end
-*}
-
-code_const "tracing :: String.literal => 'a => 'a"
-  (Eval "Code'_Evaluation.tracing")
-
-hide_const (open) tracing
-code_reserved Eval Code_Evaluation
 
 subsection {* Evaluation setup *}
 
 ML {*
-signature EVAL =
+signature CODE_EVALUATION =
 sig
-  val eval_ref: (unit -> term) option Unsynchronized.ref
   val eval_term: theory -> term -> term
+  val put_term: (unit -> term) -> Proof.context -> Proof.context
+  val tracing: string -> 'a -> 'a
 end;
 
-structure Eval : EVAL =
+structure Code_Evaluation : CODE_EVALUATION =
 struct
 
-val eval_ref = Unsynchronized.ref (NONE : (unit -> term) option);
+structure Evaluation = Proof_Data (
+  type T = unit -> term
+  fun init _ () = error "Evaluation"
+);
+val put_term = Evaluation.put;
 
-fun eval_term thy t =
-  Code_Eval.eval NONE ("Eval.eval_ref", eval_ref) I thy (HOLogic.mk_term_of (fastype_of t) t) [];
+fun tracing s x = (Output.tracing s; x);
 
-end;
+fun eval_term thy t = Code_Eval.eval NONE (Evaluation.get, put_term, "Code_Evaluation.put_term")
+  I thy (HOLogic.mk_term_of (fastype_of t) t) [];
+
+end
 *}
 
 setup {*
-  Value.add_evaluator ("code", Eval.eval_term o ProofContext.theory_of)
+  Value.add_evaluator ("code", Code_Evaluation.eval_term o ProofContext.theory_of)
 *}
+
+definition tracing :: "String.literal \<Rightarrow> 'a \<Rightarrow> 'a" where
+  [code del]: "tracing s x = x"
+
+code_const "tracing :: String.literal => 'a => 'a"
+  (Eval "Code'_Evaluation.tracing")
+
+code_reserved Eval Code_Evaluation
+
+hide_const dummy_term App valapp
+hide_const (open) Const termify valtermify term_of term_of_num tracing
 
 end
