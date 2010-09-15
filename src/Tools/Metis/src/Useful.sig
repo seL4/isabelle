@@ -107,6 +107,10 @@ val boolCompare : bool * bool -> order  (* false < true *)
 (* Lists: note we count elements from 0.                                     *)
 (* ------------------------------------------------------------------------- *)
 
+val foldl : ('a * 'b -> 'b) -> 'b -> 'a list -> 'b (* MODIFIED by Jasmin Blanchette *)
+
+val foldr : ('a * 'b -> 'b) -> 'b -> 'a list -> 'b (* MODIFIED by Jasmin Blanchette *)
+
 val cons : 'a -> 'a list -> 'a list
 
 val hdTl : 'a list -> 'a * 'a list

@@ -170,6 +170,10 @@ fun boolCompare (false,true) = LESS
 (* Lists.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
+val foldl = List.foldl; (* MODIFIED by Jasmin Blanchette *)
+
+val foldr = List.foldr; (* MODIFIED by Jasmin Blanchette *)
+
 fun cons x y = x :: y;
 
 fun hdTl l = (hd l, tl l);
