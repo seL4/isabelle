@@ -568,6 +568,31 @@ lemma map_of_map_keys:
   "set xs = dom m \<Longrightarrow> map_of (map (\<lambda>k. (k, the (m k))) xs) = m"
   by (rule ext) (auto simp add: map_of_map_restrict restrict_map_def)
 
+lemma map_of_eqI:
+  assumes set_eq: "set (map fst xs) = set (map fst ys)"
+  assumes map_eq: "\<forall>k\<in>set (map fst xs). map_of xs k = map_of ys k"
+  shows "map_of xs = map_of ys"
+proof (rule ext)
+  fix k show "map_of xs k = map_of ys k"
+  proof (cases "map_of xs k")
+    case None then have "k \<notin> set (map fst xs)" by (simp add: map_of_eq_None_iff)
+    with set_eq have "k \<notin> set (map fst ys)" by simp
+    then have "map_of ys k = None" by (simp add: map_of_eq_None_iff)
+    with None show ?thesis by simp
+  next
+    case (Some v) then have "k \<in> set (map fst xs)" by (auto simp add: dom_map_of_conv_image_fst [symmetric])
+    with map_eq show ?thesis by auto
+  qed
+qed
+
+lemma map_of_eq_dom:
+  assumes "map_of xs = map_of ys"
+  shows "fst ` set xs = fst ` set ys"
+proof -
+  from assms have "dom (map_of xs) = dom (map_of ys)" by simp
+  then show ?thesis by (simp add: dom_map_of_conv_image_fst)
+qed
+
 
 subsection {* @{term [source] ran} *}
 

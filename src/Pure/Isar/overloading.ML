@@ -7,7 +7,7 @@ Overloaded definitions without any discipline.
 signature OVERLOADING =
 sig
   type improvable_syntax
-  val add_improvable_syntax: Proof.context -> Proof.context
+  val activate_improvable_syntax: Proof.context -> Proof.context
   val map_improvable_syntax: (improvable_syntax -> improvable_syntax)
     -> Proof.context -> Proof.context
   val set_primary_constraints: Proof.context -> Proof.context
@@ -104,7 +104,7 @@ fun set_primary_constraints ctxt =
     val { primary_constraints, ... } = ImprovableSyntax.get ctxt;
   in fold (ProofContext.add_const_constraint o apsnd SOME) primary_constraints ctxt end;
 
-val add_improvable_syntax =
+val activate_improvable_syntax =
   Context.proof_map
     (Syntax.add_term_check 0 "improvement" improve_term_check
     #> Syntax.add_term_uncheck 0 "improvement" improve_term_uncheck)
@@ -183,7 +183,7 @@ fun gen_overloading prep_const raw_overloading thy =
     |> ProofContext.init_global
     |> Data.put overloading
     |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
-    |> add_improvable_syntax
+    |> activate_improvable_syntax
     |> synchronize_syntax
     |> Local_Theory.init NONE ""
        {define = Generic_Target.define foundation,

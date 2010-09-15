@@ -19,16 +19,17 @@ lemma Mapping_lookup [simp]:
   "Mapping (lookup m) = m"
   by (fact lookup_inverse)
 
-declare lookup_inject [simp]
-
 lemma Mapping_inject [simp]:
   "Mapping f = Mapping g \<longleftrightarrow> f = g"
   by (simp add: Mapping_inject)
 
+lemma mapping_eq_iff:
+  "m = n \<longleftrightarrow> lookup m = lookup n"
+  by (simp add: lookup_inject)
+
 lemma mapping_eqI:
-  assumes "lookup m = lookup n"
-  shows "m = n"
-  using assms by simp
+  "lookup m = lookup n \<Longrightarrow> m = n"
+  by (simp add: mapping_eq_iff)
 
 definition empty :: "('a, 'b) mapping" where
   "empty = Mapping (\<lambda>_. None)"
@@ -287,7 +288,7 @@ definition [code del]:
   "HOL.equal m n \<longleftrightarrow> lookup m = lookup n"
 
 instance proof
-qed (simp add: equal_mapping_def)
+qed (simp add: equal_mapping_def mapping_eq_iff)
 
 end
 
