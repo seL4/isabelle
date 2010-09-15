@@ -43,18 +43,20 @@ sig
   val print_stored_rules : Proof.context -> unit
   val print_all_modes : compilation -> Proof.context -> unit
   val mk_casesrule : Proof.context -> term -> thm list -> term
-  val eval_ref : (unit -> term Predicate.pred) option Unsynchronized.ref
-  val random_eval_ref : (unit -> int * int -> term Predicate.pred * (int * int))
-    option Unsynchronized.ref
-  val dseq_eval_ref : (unit -> term DSequence.dseq) option Unsynchronized.ref
-  val random_dseq_eval_ref : (unit -> int -> int -> int * int -> term DSequence.dseq * (int * int))
-    option Unsynchronized.ref
-  val new_random_dseq_eval_ref :
-    (unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence)
-      option Unsynchronized.ref
-  val new_random_dseq_stats_eval_ref :
-    (unit -> int -> int -> int * int -> int -> (term * int) Lazy_Sequence.lazy_sequence)
-      option Unsynchronized.ref
+
+  val put_pred_result : (unit -> term Predicate.pred) -> Proof.context -> Proof.context
+  val put_pred_random_result : (unit -> int * int -> term Predicate.pred * (int * int)) ->
+    Proof.context -> Proof.context
+  val put_dseq_result : (unit -> term DSequence.dseq) -> Proof.context -> Proof.context
+  val put_dseq_random_result : (unit -> int -> int -> int * int -> term DSequence.dseq * (int * int)) ->
+    Proof.context -> Proof.context
+  val put_lseq_random_result :
+    (unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence) ->
+    Proof.context -> Proof.context
+  val put_lseq_random_stats_result :
+    (unit -> int -> int -> int * int -> int -> (term * int) Lazy_Sequence.lazy_sequence) ->
+    Proof.context -> Proof.context
+
   val code_pred_intro_attrib : attribute
   (* used by Quickcheck_Generator *) 
   (* temporary for testing of the compilation *)
@@ -3105,17 +3107,41 @@ val code_pred_cmd = generic_code_pred Code.read_const
 
 (* transformation for code generation *)
 
-val eval_ref = Unsynchronized.ref (NONE : (unit -> term Predicate.pred) option);
-val random_eval_ref =
-  Unsynchronized.ref (NONE : (unit -> int * int -> term Predicate.pred * (int * int)) option);
-val dseq_eval_ref = Unsynchronized.ref (NONE : (unit -> term DSequence.dseq) option);
-val random_dseq_eval_ref =
-  Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> term DSequence.dseq * (int * int)) option);
-val new_random_dseq_eval_ref =
-  Unsynchronized.ref (NONE : (unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence) option)
-val new_random_dseq_stats_eval_ref =
-    Unsynchronized.ref (NONE :
-      (unit -> int -> int -> int * int -> int -> (term * int) Lazy_Sequence.lazy_sequence) option)
+structure Pred_Result = Proof_Data (
+  type T = unit -> term Predicate.pred
+  fun init _ () = error "Pred_Result"
+);
+val put_pred_result = Pred_Result.put;
+
+structure Pred_Random_Result = Proof_Data (
+  type T = unit -> int * int -> term Predicate.pred * (int * int)
+  fun init _ () = error "Pred_Random_Result"
+);
+val put_pred_random_result = Pred_Random_Result.put;
+
+structure Dseq_Result = Proof_Data (
+  type T = unit -> term DSequence.dseq
+  fun init _ () = error "Dseq_Result"
+);
+val put_dseq_result = Dseq_Result.put;
+
+structure Dseq_Random_Result = Proof_Data (
+  type T = unit -> int -> int -> int * int -> term DSequence.dseq * (int * int)
+  fun init _ () = error "Dseq_Random_Result"
+);
+val put_dseq_random_result = Dseq_Random_Result.put;
+
+structure Lseq_Random_Result = Proof_Data (
+  type T = unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence
+  fun init _ () = error "Lseq_Random_Result"
+);
+val put_lseq_random_result = Lseq_Random_Result.put;
+
+structure Lseq_Random_Stats_Result = Proof_Data (
+  type T = unit -> int -> int -> int * int -> int -> (term * int) Lazy_Sequence.lazy_sequence
+  fun init _ () = error "Lseq_Random_Stats_Result"
+);
+val put_lseq_random_stats_result = Lseq_Random_Stats_Result.put;
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
 fun analyze_compr ctxt compfuns param_user_modes (compilation, arguments) t_compr =
@@ -3251,7 +3277,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
             val [nrandom, size, depth] = arguments
           in
             rpair NONE (fst (DSequence.yieldn k
-              (Code_Eval.eval NONE ("Predicate_Compile_Core.random_dseq_eval_ref", random_dseq_eval_ref)
+              (Code_Eval.eval NONE (Dseq_Random_Result.get, put_dseq_random_result, "Predicate_Compile_Core.put_dseq_random_result")
                 (fn proc => fn g => fn nrandom => fn size => fn s => g nrandom size s |>> DSequence.map proc)
                   thy t' [] nrandom size
                 |> Random_Engine.run)
@@ -3259,7 +3285,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
           end
       | DSeq =>
           rpair NONE (fst (DSequence.yieldn k
-            (Code_Eval.eval NONE ("Predicate_Compile_Core.dseq_eval_ref", dseq_eval_ref)
+            (Code_Eval.eval NONE (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Core.put_dseq_result")
               DSequence.map thy t' []) (the_single arguments) true))
       | New_Pos_Random_DSeq =>
           let
@@ -3270,21 +3296,21 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
               apsnd (SOME o accumulate) (split_list
               (fst (Lazy_Sequence.yieldn k
                 (Code_Eval.eval NONE
-                  ("Predicate_Compile_Core.new_random_dseq_stats_eval_ref", new_random_dseq_stats_eval_ref)
+                  (Lseq_Random_Stats_Result.get, put_lseq_random_stats_result, "Predicate_Compile_Core.put_lseq_random_stats_result")
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
                     |> Lazy_Sequence.mapa (apfst proc))
                     thy t' [] nrandom size seed depth))))
             else rpair NONE
               (fst (Lazy_Sequence.yieldn k
                 (Code_Eval.eval NONE
-                  ("Predicate_Compile_Core.new_random_dseq_eval_ref", new_random_dseq_eval_ref)
+                  (Lseq_Random_Result.get, put_lseq_random_result, "Predicate_Compile_Core.put_lseq_random_result")
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
                     |> Lazy_Sequence.mapa proc)
                     thy t' [] nrandom size seed depth)))
           end
       | _ =>
           rpair NONE (fst (Predicate.yieldn k
-            (Code_Eval.eval NONE ("Predicate_Compile_Core.eval_ref", eval_ref)
+            (Code_Eval.eval NONE (Pred_Result.get, put_pred_result, "Predicate_Compile_Core.put_pred_result")
               Predicate.map thy t' [])))
   in ((T, ts), statistics) end;
 

@@ -19,7 +19,7 @@ sig
                                              (*abstractions as closures*)
   val same: Univ -> Univ -> bool
 
-  val univs_ref: (unit -> Univ list -> Univ list) option Unsynchronized.ref
+  val put_result: (unit -> Univ list -> Univ list) -> Proof.context -> Proof.context
   val trace: bool Unsynchronized.ref
 
   val setup: theory -> theory
@@ -228,10 +228,15 @@ fun ml_fundefs ([(name, [([], e)])]) =
 
 (* nbe specific syntax and sandbox communication *)
 
-val univs_ref = Unsynchronized.ref (NONE : (unit -> Univ list -> Univ list) option);
+structure Univs = Proof_Data(
+  type T = unit -> Univ list -> Univ list
+  fun init thy () = error "Univs"
+);
+val put_result = Univs.put;
 
 local
   val prefix =      "Nbe.";
+  val name_put =    prefix ^ "put_result";
   val name_ref =    prefix ^ "univs_ref";
   val name_const =  prefix ^ "Const";
   val name_abss =   prefix ^ "abss";
@@ -239,7 +244,7 @@ local
   val name_same =   prefix ^ "same";
 in
 
-val univs_cookie = (name_ref, univs_ref);
+val univs_cookie = (Univs.get, put_result, name_put);
 
 fun nbe_fun 0 "" = "nbe_value"
   | nbe_fun i c = "c_" ^ translate_string (fn "." => "_" | c => c) c ^ "_" ^ string_of_int i;
@@ -389,7 +394,7 @@ fun compile_eqnss ctxt gr raw_deps [] = []
         s
         |> traced (fn s => "\n--- code to be evaluated:\n" ^ s)
         |> pair ""
-        |> ML_Context.evaluate ctxt (!trace) univs_cookie
+        |> ML_Context.value ctxt univs_cookie
         |> (fn f => f deps_vals)
         |> (fn univs => cs ~~ univs)
       end;

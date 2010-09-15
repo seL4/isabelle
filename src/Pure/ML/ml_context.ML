@@ -36,8 +36,9 @@ sig
   val eval_text_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
   val expression: Position.T -> string -> string -> ML_Lex.token Antiquote.antiquote list ->
     Context.generic -> Context.generic
-  val evaluate: Proof.context -> bool ->
-    string * (unit -> 'a) option Unsynchronized.ref -> string * string -> 'a
+  val value: Proof.context ->
+    (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string ->
+    string * string -> 'a
 end
 
 structure ML_Context: ML_CONTEXT =
@@ -213,17 +214,15 @@ fun expression pos bind body ants =
     (ML_Lex.read Position.none ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @ ants @
       ML_Lex.read Position.none (" in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
 
-
-(* FIXME not thread-safe -- reference can be accessed directly *)
-fun evaluate ctxt verbose (ref_name, r) (prelude, txt) = NAMED_CRITICAL "ML" (fn () =>
+fun value ctxt (get, put, put_ml) (prelude, value) =
   let
-    val s = prelude ^ "val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))"
-    val ants = ML_Lex.read Position.none s;
-    val _ = r := NONE;
-    val _ =
-      Context.setmp_thread_data (SOME (Context.Proof ctxt))
-        (fn () => eval verbose Position.none ants) ();
-  in (case ! r of NONE => error ("Bad evaluation for " ^ ref_name) | SOME e => e) end) ();
+    val read = ML_Lex.read Position.none;
+    val ants = read prelude @ read ("val _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
+      ^ " (fn () => " ^ value ^ ")) (ML_Context.the_generic_context ())))");
+    val ctxt' = ctxt
+      |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
+      |> Context.proof_map (exec (fn () => eval false Position.none ants));
+  in get ctxt' () end;
 
 end;
 

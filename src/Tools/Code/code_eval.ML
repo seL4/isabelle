@@ -7,7 +7,8 @@ Runtime services building on code generation into implementation language SML.
 signature CODE_EVAL =
 sig
   val target: string
-  val eval: string option -> string * (unit -> 'a) option Unsynchronized.ref
+  val eval: string option
+    -> (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string
     -> ((term -> term) -> 'a -> 'a) -> theory -> term -> string list -> 'a
   val setup: theory -> theory
 end;
@@ -39,7 +40,7 @@ fun evaluation_code thy module_name tycos consts =
 
 (** evaluation **)
 
-fun eval some_target reff postproc thy t args =
+fun eval some_target cookie postproc thy t args =
   let
     val ctxt = ProofContext.init_global thy;
     fun evaluator naming program ((_, (_, ty)), t) deps =
@@ -55,7 +56,7 @@ fun eval some_target reff postproc thy t args =
           (the_default target some_target) NONE "Code" [] naming program' [value_name];
         val value_code = space_implode " "
           (value_name' :: map (enclose "(" ")") args);
-      in ML_Context.evaluate ctxt false reff (program_code, value_code) end;
+      in ML_Context.value ctxt cookie (program_code, value_code) end;
   in Code_Thingol.dynamic_eval_value thy postproc evaluator t end;
 
 
