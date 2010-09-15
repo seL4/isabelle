@@ -37,4 +37,33 @@ setup {*
   #> Quickcheck.setup
 *}
 
+code_datatype "TYPE('a\<Colon>{})"
+
+definition holds :: "prop" where
+  "holds \<equiv> ((\<lambda>x::prop. x) \<equiv> (\<lambda>x. x))"
+
+lemma holds: "PROP holds"
+  by (unfold holds_def) (rule reflexive)
+
+code_datatype holds
+
+lemma implies_code [code]:
+  "(PROP holds \<Longrightarrow> PROP P) \<equiv> PROP P"
+  "(PROP P \<Longrightarrow> PROP holds) \<equiv> PROP holds"
+proof -
+  show "(PROP holds \<Longrightarrow> PROP P) \<equiv> PROP P"
+  proof
+    assume "PROP holds \<Longrightarrow> PROP P"
+    then show "PROP P" using holds .
+  next
+    assume "PROP P"
+    then show "PROP P" .
+  qed
+next
+  show "(PROP P \<Longrightarrow> PROP holds) \<equiv> PROP holds"
+    by rule (rule holds)+
+qed  
+
+hide_const (open) holds
+
 end
