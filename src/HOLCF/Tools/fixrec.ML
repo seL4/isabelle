@@ -10,8 +10,6 @@ sig
     -> (Attrib.binding * term) list -> local_theory -> local_theory
   val add_fixrec_cmd: bool -> (binding * string option * mixfix) list
     -> (Attrib.binding * string) list -> local_theory -> local_theory
-  val add_fixpat: Thm.binding * term list -> theory -> theory
-  val add_fixpat_cmd: Attrib.binding * string list -> theory -> theory
   val add_matchers: (string * string) list -> theory -> theory
   val fixrec_simp_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
@@ -409,34 +407,6 @@ val add_fixrec_cmd = gen_fixrec Specification.read_spec;
 
 end; (* local *)
 
-(*************************************************************************)
-(******************************** Fixpat *********************************)
-(*************************************************************************)
-
-fun fix_pat thy t = 
-  let
-    val T = fastype_of t;
-    val eq = mk_trp (HOLogic.eq_const T $ t $ Var (("x",0),T));
-    val cname = case chead_of t of Const(c,_) => c | _ =>
-              fixrec_err "function is not declared as constant in theory";
-    val unfold_thm = Global_Theory.get_thm thy (cname^".unfold");
-    val simp = Goal.prove_global thy [] [] eq
-          (fn _ => EVERY [stac unfold_thm 1, simp_tac (global_simpset_of thy) 1]);
-  in simp end;
-
-fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
-  let
-    val _ = legacy_feature "Old 'fixpat' command -- use \"fixrec_simp\" method instead";
-    val atts = map (prep_attrib thy) srcs;
-    val ts = map (prep_term thy) strings;
-    val simps = map (fix_pat thy) ts;
-  in
-    (snd o Global_Theory.add_thmss [((name, simps), atts)]) thy
-  end;
-
-val add_fixpat = gen_add_fixpat Sign.cert_term (K I);
-val add_fixpat_cmd = gen_add_fixpat Syntax.read_term_global Attrib.attribute;
-
 
 (*************************************************************************)
 (******************************** Parsers ********************************)
@@ -446,10 +416,6 @@ val _ =
   Outer_Syntax.local_theory "fixrec" "define recursive functions (HOLCF)" Keyword.thy_decl
     ((Parse.opt_keyword "permissive" >> not) -- Parse.fixes -- Parse_Spec.where_alt_specs
       >> (fn ((strict, fixes), specs) => add_fixrec_cmd strict fixes specs));
-
-val _ =
-  Outer_Syntax.command "fixpat" "define rewrites for fixrec functions" Keyword.thy_decl
-    (Parse_Spec.specs >> (Toplevel.theory o add_fixpat_cmd));
 
 val setup =
   Method.setup @{binding fixrec_simp}
