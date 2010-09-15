@@ -37,4 +37,3 @@ Clause.sig Clause.sml
 Active.sig Active.sml
 Waiting.sig Waiting.sml
 Resolution.sig Resolution.sml
-Tptp.sig Tptp.sml
