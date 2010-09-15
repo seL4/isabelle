@@ -16,15 +16,19 @@ proof -
   then show ?thesis ..
 qed
 
+lemma rbt_eq_iff:
+  "t1 = t2 \<longleftrightarrow> impl_of t1 = impl_of t2"
+  by (simp add: impl_of_inject)
+
+lemma rbt_eqI:
+  "impl_of t1 = impl_of t2 \<Longrightarrow> t1 = t2"
+  by (simp add: rbt_eq_iff)
+
 lemma is_rbt_impl_of [simp, intro]:
   "is_rbt (impl_of t)"
   using impl_of [of t] by simp
 
-lemma rbt_eq:
-  "t1 = t2 \<longleftrightarrow> impl_of t1 = impl_of t2"
-  by (simp add: impl_of_inject)
-
-lemma [code abstype]:
+lemma RBT_impl_of [simp, code abstype]:
   "RBT (impl_of t) = t"
   by (simp add: impl_of_inverse)
 
@@ -148,7 +152,7 @@ lemma fold_fold:
 
 lemma is_empty_empty [simp]:
   "is_empty t \<longleftrightarrow> t = empty"
-  by (simp add: rbt_eq is_empty_def impl_of_empty split: rbt.split)
+  by (simp add: rbt_eq_iff is_empty_def impl_of_empty split: rbt.split)
 
 lemma RBT_lookup_empty [simp]: (*FIXME*)
   "RBT_Impl.lookup t = Map.empty \<longleftrightarrow> t = RBT_Impl.Empty"
@@ -184,7 +188,7 @@ lemma empty_Mapping [code]:
 
 lemma is_empty_Mapping [code]:
   "Mapping.is_empty (Mapping t) \<longleftrightarrow> is_empty t"
-  by (simp add: rbt_eq Mapping.is_empty_empty Mapping_def)
+  by (simp add: rbt_eq_iff Mapping.is_empty_empty Mapping_def)
 
 lemma insert_Mapping [code]:
   "Mapping.update k v (Mapping t) = Mapping (insert k v t)"

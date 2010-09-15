@@ -99,7 +99,7 @@ sig
   (* Different options for compiler *)
   datatype options = Options of {  
     expected_modes : (string * mode list) option,
-    proposed_modes : (string * mode list) option,
+    proposed_modes : (string * mode list) list,
     proposed_names : ((string * mode) * string) list,
     show_steps : bool,
     show_proof_trace : bool,
@@ -108,6 +108,7 @@ sig
     show_modes : bool,
     show_compilation : bool,
     show_caught_failures : bool,
+    show_invalid_clauses : bool,
     skip_proof : bool,
     no_topmost_reordering : bool,
     function_flattening : bool,
@@ -119,7 +120,7 @@ sig
     compilation : compilation
   };
   val expected_modes : options -> (string * mode list) option
-  val proposed_modes : options -> (string * mode list) option
+  val proposed_modes : options -> string -> mode list option
   val proposed_names : options -> string -> mode -> string option
   val show_steps : options -> bool
   val show_proof_trace : options -> bool
@@ -128,6 +129,7 @@ sig
   val show_modes : options -> bool
   val show_compilation : options -> bool
   val show_caught_failures : options -> bool
+  val show_invalid_clauses : options -> bool
   val skip_proof : options -> bool
   val no_topmost_reordering : options -> bool
   val function_flattening : options -> bool
@@ -703,7 +705,7 @@ fun funT_of compfuns mode T =
 
 datatype options = Options of {  
   expected_modes : (string * mode list) option,
-  proposed_modes : (string * mode list) option,
+  proposed_modes : (string * mode list) list,
   proposed_names : ((string * mode) * string) list,
   show_steps : bool,
   show_proof_trace : bool,
@@ -712,6 +714,7 @@ datatype options = Options of {
   show_modes : bool,
   show_compilation : bool,
   show_caught_failures : bool,
+  show_invalid_clauses : bool,
   skip_proof : bool,
   no_topmost_reordering : bool,
   function_flattening : bool,
@@ -724,7 +727,7 @@ datatype options = Options of {
 };
 
 fun expected_modes (Options opt) = #expected_modes opt
-fun proposed_modes (Options opt) = #proposed_modes opt
+fun proposed_modes (Options opt) = AList.lookup (op =) (#proposed_modes opt)
 fun proposed_names (Options opt) name mode = AList.lookup (eq_pair (op =) eq_mode)
   (#proposed_names opt) (name, mode)
 
@@ -735,7 +738,7 @@ fun show_modes (Options opt) = #show_modes opt
 fun show_mode_inference (Options opt) = #show_mode_inference opt
 fun show_compilation (Options opt) = #show_compilation opt
 fun show_caught_failures (Options opt) = #show_caught_failures opt
-
+fun show_invalid_clauses (Options opt) = #show_invalid_clauses opt
 fun skip_proof (Options opt) = #skip_proof opt
 
 fun function_flattening (Options opt) = #function_flattening opt
@@ -752,7 +755,7 @@ fun detect_switches (Options opt) = #detect_switches opt
 
 val default_options = Options {
   expected_modes = NONE,
-  proposed_modes = NONE,
+  proposed_modes = [],
   proposed_names = [],
   show_steps = false,
   show_intermediate_results = false,
@@ -761,6 +764,7 @@ val default_options = Options {
   show_mode_inference = false,
   show_compilation = false,
   show_caught_failures = false,
+  show_invalid_clauses = false,
   skip_proof = true,
   no_topmost_reordering = false,
   function_flattening = false,
@@ -773,8 +777,8 @@ val default_options = Options {
 }
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
-  "show_mode_inference", "show_compilation", "skip_proof", "inductify", "no_function_flattening",
-  "detect_switches", "specialise", "no_topmost_reordering"]
+  "show_mode_inference", "show_compilation", "show_invalid_clauses", "skip_proof", "inductify",
+  "no_function_flattening", "detect_switches", "specialise", "no_topmost_reordering"]
 
 fun print_step options s =
   if show_steps options then tracing s else ()

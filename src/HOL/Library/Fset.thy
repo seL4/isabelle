@@ -20,15 +20,17 @@ lemma Fset_member [simp]:
   "Fset (member A) = A"
   by (fact member_inverse)
 
-declare member_inject [simp]
-
 lemma Fset_inject [simp]:
   "Fset A = Fset B \<longleftrightarrow> A = B"
   by (simp add: Fset_inject)
 
+lemma fset_eq_iff:
+  "A = B \<longleftrightarrow> member A = member B"
+  by (simp add: member_inject)
+
 lemma fset_eqI:
   "member A = member B \<Longrightarrow> A = B"
-  by simp
+  by (simp add: fset_eq_iff)
 
 declare mem_def [simp]
 
@@ -116,7 +118,7 @@ definition minus_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" w
   [simp]: "A - B = Fset (member A - member B)"
 
 instance proof
-qed auto
+qed (auto intro: fset_eqI)
 
 end
 
@@ -234,7 +236,7 @@ definition [code]:
   "HOL.equal A B \<longleftrightarrow> A \<le> B \<and> B \<le> (A :: 'a fset)"
 
 instance proof
-qed (simp add: equal_fset_def set_eq [symmetric])
+qed (simp add: equal_fset_def set_eq [symmetric] fset_eq_iff)
 
 end
 

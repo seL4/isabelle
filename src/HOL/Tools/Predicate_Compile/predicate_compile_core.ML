@@ -400,8 +400,8 @@ fun check_expected_modes preds options modes =
   | NONE => ()
 
 fun check_proposed_modes preds options modes errors =
-  case proposed_modes options of
-    SOME (s, ms) => (case AList.lookup (op =) modes s of
+  map (fn (s, _) => case proposed_modes options s of
+    SOME ms => (case AList.lookup (op =) modes s of
       SOME inferred_ms =>
         let
           val preds_without_modes = map fst (filter (null o snd) modes)
@@ -411,15 +411,16 @@ fun check_proposed_modes preds options modes errors =
             error ("expected modes were not inferred:\n"
             ^ "  inferred modes for " ^ s ^ ": " ^ commas (map string_of_mode modes')  ^ "\n"
             ^ "  expected modes for " ^ s ^ ": " ^ commas (map string_of_mode ms) ^ "\n"
-            ^ "For the following clauses, the following modes could not be inferred: " ^ "\n"
-            ^ cat_lines errors ^
+            ^ (if show_invalid_clauses options then
+            ("For the following clauses, the following modes could not be inferred: " ^ "\n"
+            ^ cat_lines errors) else "") ^
             (if not (null preds_without_modes) then
               "\n" ^ "No mode inferred for the predicates " ^ commas preds_without_modes
             else ""))
           else ()
         end
       | NONE => ())
-  | NONE => ()
+  | NONE => ()) preds
 
 (* importing introduction rules *)
 
@@ -1503,7 +1504,6 @@ fun print_extra_modes options modes =
 fun infer_modes mode_analysis_options options (lookup_mode, lookup_neg_mode, needs_random) ctxt
   preds all_modes param_vs clauses =
   let
-    val collect_errors = false
     fun appair f (x1, x2) (y1, y2) = (f x1 y1, f x2 y2)
     fun add_needs_random s (false, m) = ((false, m), false)
       | add_needs_random s (true, m) = ((true, m), needs_random s m)
@@ -1549,7 +1549,7 @@ fun infer_modes mode_analysis_options options (lookup_mode, lookup_neg_mode, nee
         (modes @ extra_modes)) modes
     val ((modes : (string * ((bool * mode) * bool) list) list), errors) =
       Output.cond_timeit false "Fixpount computation of mode analysis" (fn () =>
-      if collect_errors then
+      if show_invalid_clauses options then
         fixp_with_state (fn (modes, errors) =>
           let
             val (modes', new_errors) = split_list (iteration modes)
@@ -2700,8 +2700,8 @@ fun prepare_intrs options ctxt prednames intros =
         all_modes_of_typ T
     val all_modes = 
       map (fn (s, T) =>
-        (s, case (proposed_modes options) of
-            SOME (s', ms) => if s = s' then ms else generate_modes s T
+        (s, case proposed_modes options s of
+            SOME ms => ms
           | NONE => generate_modes s T)) preds
     val params =
       case intrs of
@@ -2719,7 +2719,7 @@ fun prepare_intrs options ctxt prednames intros =
         let
           val (p, args) = strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl intr)) 
         in
-          ho_args_of (hd (the (AList.lookup (op =) all_modes (fst (dest_Const p))))) args
+          ho_args_of_typ (snd (dest_Const p)) args
         end
     val param_vs = map (fst o dest_Free) params
     fun add_clause intr clauses =
