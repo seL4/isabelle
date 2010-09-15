@@ -204,10 +204,10 @@ fun proof_status tr st =
 fun async_state tr st =
   if Toplevel.print_of tr then
     ignore
-      (Future.fork
+      (Future.fork_group (Task_Queue.new_group NONE)
         (fn () =>
           Toplevel.setmp_thread_position tr
-            (fn () => Future.status (fn () => Toplevel.print_state false st)) ()))
+            (fn () => Toplevel.print_state false st) ()))
   else ();
 
 in
