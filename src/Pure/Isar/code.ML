@@ -89,16 +89,14 @@ end;
 signature CODE_DATA =
 sig
   type T
-  val change: theory -> (T -> T) -> T
-  val change_yield: theory -> (T -> 'a * T) -> 'a * T
+  val change: theory option -> (T -> T) -> T
+  val change_yield: theory option -> (T -> 'a * T) -> 'a * T
 end;
 
 signature PRIVATE_CODE =
 sig
   include CODE
   val declare_data: Object.T -> serial
-  val change_data: serial * ('a -> Object.T) * (Object.T -> 'a)
-    -> theory -> ('a -> 'a) -> 'a
   val change_yield_data: serial * ('a -> Object.T) * (Object.T -> 'a)
     -> theory -> ('a -> 'b * 'a) -> 'b * 'a
 end;
@@ -309,8 +307,6 @@ fun change_yield_data (kind, mk, dest) theory f =
     val _ = Synchronized.change dataref
       ((K o SOME) (Datatab.update (kind, mk data') datatab, thy_ref));
   in result end;
-
-fun change_data ops theory f = change_yield_data ops theory (f #> pair ()) |> snd;
 
 end; (*local*)
 
@@ -1277,8 +1273,10 @@ val kind = Code.declare_data (Data Data.empty);
 
 val data_op = (kind, Data, dest);
 
-val change = Code.change_data data_op;
-fun change_yield thy = Code.change_yield_data data_op thy;
+fun change_yield (SOME thy) f = Code.change_yield_data data_op thy f
+  | change_yield NONE f = f Data.empty
+
+fun change some_thy f = snd (change_yield some_thy (pair () o f));
 
 end;
 

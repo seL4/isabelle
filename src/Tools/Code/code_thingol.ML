@@ -832,15 +832,11 @@ structure Program = Code_Data
   val empty = (empty_naming, Graph.empty);
 );
 
-fun cache_generation thy (algebra, eqngr) f name =
-  Program.change_yield thy (fn naming_program => (NONE, naming_program)
-    |> f thy algebra eqngr name
-    |-> (fn name => fn (_, naming_program) => (name, naming_program)));
-
-fun transient_generation thy (algebra, eqngr) f name =
-  (NONE, (empty_naming, Graph.empty))
-  |> f thy algebra eqngr name
-  |-> (fn name => fn (_, naming_program) => (name, naming_program));
+fun invoke_generation ignore_cache thy (algebra, eqngr) f name =
+  Program.change_yield (if ignore_cache then NONE else SOME thy)
+    (fn naming_program => (NONE, naming_program)
+      |> f thy algebra eqngr name
+      |-> (fn name => fn (_, naming_program) => (name, naming_program)));
 
 
 (* program generation *)
@@ -853,10 +849,9 @@ fun consts_program thy permissive cs =
       in (cs, (naming, Graph.subgraph (member (op =) cs_all) program)) end;
     fun generate_consts thy algebra eqngr =
       fold_map (ensure_const thy algebra eqngr permissive);
-    val invoke_generation = if permissive
-      then transient_generation else cache_generation
   in
-    invoke_generation thy (Code_Preproc.obtain thy cs []) generate_consts cs
+    invoke_generation (not permissive) thy (Code_Preproc.obtain false thy cs [])
+      generate_consts cs
     |-> project_consts
   end;
 
@@ -892,7 +887,7 @@ fun ensure_value thy algbr eqngr t =
 fun base_evaluator thy evaluator algebra eqngr vs t =
   let
     val (((naming, program), (((vs', ty'), t'), deps)), _) =
-      cache_generation thy (algebra, eqngr) ensure_value t;
+      invoke_generation false thy (algebra, eqngr) ensure_value t;
     val vs'' = map (fn (v, _) => (v, (the o AList.lookup (op =) vs o prefix "'") v)) vs';
   in evaluator naming program ((vs'', (vs', ty')), t') deps end;
 
@@ -926,7 +921,7 @@ fun read_const_exprs thy =
 
 fun code_depgr thy consts =
   let
-    val (_, eqngr) = Code_Preproc.obtain thy consts [];
+    val (_, eqngr) = Code_Preproc.obtain true thy consts [];
     val all_consts = Graph.all_succs eqngr consts;
   in Graph.subgraph (member (op =) all_consts) eqngr end;
 
