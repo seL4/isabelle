@@ -41,9 +41,6 @@ EOF
 's/type name$/type name = string/;'\
 's/\bref\b/Unsynchronized.ref/g;'\
 's/\bPolyML.pointerEq\b/pointer_eq/g;'\
-'s/(?<!\.)\bexplode\b/String.explode/g;'\
-'s/(?<!\.)\bimplode\b/String.implode/g;'\
-'s/(?<!\.)\bprint\b/TextIO.print/g;'\
 's/\bRL\b/Metis_RL/g;'\
 "`grep "^\(signature\|structure\|functor\)" src/*.{sig,sml} | \
   sed "s/[^:]*:[a-z]* \([A-Za-z0-9_]*\).*/\1/" | \
