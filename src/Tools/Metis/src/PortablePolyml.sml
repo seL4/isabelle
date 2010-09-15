@@ -44,7 +44,7 @@ fun time f x =
             val {usr,sys} = Timer.checkCPUTimer c
             val real = Timer.checkRealTimer r
           in
-            print
+            TextIO.print (* MODIFIED by Jasmin Blanchette *)
               ("User: " ^ p usr ^ "  System: " ^ p sys ^
                "  Real: " ^ p real ^ "\n")
           end
@@ -55,6 +55,7 @@ fun time f x =
     in
       y
     end;
+
 
 (* ------------------------------------------------------------------------- *)
 (* Generating random values.                                                 *)

@@ -40,16 +40,17 @@ datatype waiting =
 (* ------------------------------------------------------------------------- *)
 
 val defaultModels : modelParameters list =
-    [{model = Model.default,
+    [(* MODIFIED by Jasmin Blanchette
+      {model = Model.default,
       initialPerturbations = 100,
       maxChecks = SOME 20,
       perturbations = 0,
-      weight = 1.0}];
+      weight = 1.0} *)];
 
 val default : parameters =
      {symbolsWeight = 1.0,
-      literalsWeight = 1.0,
-      variablesWeight = 1.0,
+      literalsWeight = (* 1.0 *) 0.0, (* MODIFIED by Jasmin Blanchette *)
+      variablesWeight = (* 1.0 *) 0.0, (* MODIFIED by Jasmin Blanchette *)
       models = defaultModels};
 
 fun size (Waiting {clauses,...}) = Heap.size clauses;
@@ -162,7 +163,7 @@ in
         val symbolsW = Math.pow (clauseSymbols lits, symbolsWeight)
         val variablesW = Math.pow (clauseVariables lits, variablesWeight)
         val literalsW = Math.pow (clauseLiterals lits, literalsWeight)
-        val modelsW = checkModels models mods mcl
+        val modelsW = (* checkModels models mods mcl *) 1.0 (* MODIFIED by Jasmin Blanchette *)
 (*MetisTrace4
         val () = trace ("Waiting.clauseWeight: dist = " ^
                         Real.toString dist ^ "\n")

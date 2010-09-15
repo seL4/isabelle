@@ -22,6 +22,8 @@ val can : ('a -> 'b) -> 'a -> bool
 (* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
+val print : string -> unit (* MODIFIED by Jasmin Blanchette *)
+
 val tracePrint : (string -> unit) ref
 
 val trace : string -> unit
@@ -106,6 +108,10 @@ val boolCompare : bool * bool -> order  (* false < true *)
 (* ------------------------------------------------------------------------- *)
 (* Lists: note we count elements from 0.                                     *)
 (* ------------------------------------------------------------------------- *)
+
+val foldl : ('a * 'b -> 'b) -> 'b -> 'a list -> 'b (* MODIFIED by Jasmin Blanchette *)
+
+val foldr : ('a * 'b -> 'b) -> 'b -> 'a list -> 'b (* MODIFIED by Jasmin Blanchette *)
 
 val cons : 'a -> 'a list -> 'a list
 
@@ -210,6 +216,10 @@ val primesUpTo : int -> int list
 (* ------------------------------------------------------------------------- *)
 (* Strings.                                                                  *)
 (* ------------------------------------------------------------------------- *)
+
+val implode : char list -> string (* MODIFIED by Jasmin Blanchette *)
+
+val explode : string -> char list (* MODIFIED by Jasmin Blanchette *)
 
 val rot : int -> char -> char
 

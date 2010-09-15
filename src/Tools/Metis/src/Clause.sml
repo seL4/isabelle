@@ -16,7 +16,9 @@ val newId =
     let
       val r = ref 0
     in
-      fn () => case r of ref n => let val () = r := n + 1 in n end
+      (* MODIFIED by Jasmin Blanchette *)
+      fn () => CRITICAL (fn () =>
+        case r of ref n => let val () = r := n + 1 in n end)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -60,7 +62,7 @@ fun toString cl = Print.toString pp cl;
 
 val default : parameters =
     {ordering = KnuthBendixOrder.default,
-     orderLiterals = PositiveLiteralOrder,
+     orderLiterals = UnsignedLiteralOrder (* PositiveLiteralOrder *) (* MODIFIED by Jasmin Blanchette *),
      orderTerms = true};
 
 fun mk info = Clause info

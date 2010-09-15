@@ -6,6 +6,8 @@
 structure Stream :> Stream =
 struct
 
+open Useful; (* MODIFIED by Jasmin Blanchette *)
+
 val K = Useful.K;
 
 val pair = Useful.pair;

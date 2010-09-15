@@ -689,7 +689,8 @@ val newSkolemFunction =
     let
       val counter : int StringMap.map ref = ref (StringMap.new ())
     in
-      fn n =>
+      (* MODIFIED by Jasmin Blanchette *)
+      fn n => CRITICAL (fn () =>
          let
            val ref m = counter
            val s = Name.toString n
@@ -699,7 +700,7 @@ val newSkolemFunction =
            val s = skolemPrefix ^ "_" ^ s ^ i
          in
            Name.fromString s
-         end
+         end)
     end;
 
 fun skolemize fv bv fm =
@@ -1243,13 +1244,14 @@ val newDefinitionRelation =
     let
       val counter : int ref = ref 0
     in
-      fn () =>
+      (* MODIFIED by Jasmin Blanchette *)
+      fn () => CRITICAL (fn () =>
          let
            val ref i = counter
            val () = counter := i + 1
          in
            definitionPrefix ^ "_" ^ Int.toString i
-         end
+         end)
     end;
 
 fun newDefinition def =
