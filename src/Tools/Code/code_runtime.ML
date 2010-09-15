@@ -10,6 +10,8 @@ sig
   val value: string option
     -> (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string
     -> ((term -> term) -> 'a -> 'a) -> theory -> term -> string list -> 'a
+  val code_reflect: (string * string list) list -> string list -> string -> string option
+    -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -19,6 +21,8 @@ struct
 (** evaluation **)
 
 val target = "Eval";
+
+val truth_struct = "Code_Truth";
 
 fun value some_target cookie postproc thy t args =
   let
@@ -184,7 +188,7 @@ fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_nam
     |> process result module_name some_file
   end;
 
-val code_reflect = gen_code_reflect Code_Target.cert_tyco Code.check_const;
+val code_reflect = gen_code_reflect Code_Target.cert_tyco (K I);
 val code_reflect_cmd = gen_code_reflect Code_Target.read_tyco Code.read_const;
 
 
