@@ -8,7 +8,7 @@ no_document use_thys [
   "Efficient_Nat_examples",
   "FuncSet",
   "Eval_Examples",
-  "NormalForm"
+  "Normalization_by_Evaluation"
 ];
 
 use_thys [

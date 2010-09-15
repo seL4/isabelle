@@ -2,7 +2,7 @@
 
 header {* Testing implementation of normalization by evaluation *}
 
-theory NormalForm
+theory Normalization_by_Evaluation
 imports Complex_Main
 begin
 
@@ -68,20 +68,20 @@ lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization
 lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"
   by normalization rule+
 lemma "rev [a, b, c] = [c, b, a]" by normalization
-normal_form "rev (a#b#cs) = rev cs @ [b, a]"
-normal_form "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
-normal_form "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
-normal_form "map (%F. F [Z,S Z,S(S Z)]) (map map [S,add (S Z),mul (S(S Z)),id])"
+value [nbe] "rev (a#b#cs) = rev cs @ [b, a]"
+value [nbe] "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
+value [nbe] "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
+value [nbe] "map (%F. F [Z,S Z,S(S Z)]) (map map [S,add (S Z),mul (S(S Z)),id])"
 lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]" 
   by normalization
-normal_form "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
-normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs = P"
+value [nbe] "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
+value [nbe] "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs = P"
 lemma "let x = y in [x, x] = [y, y]" by normalization
 lemma "Let y (%x. [x,x]) = [y, y]" by normalization
-normal_form "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
+value [nbe] "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
 lemma "(%(x,y). add x y) (S z,S z) = S (add z (S z))" by normalization
-normal_form "filter (%x. x) ([True,False,x]@xs)"
-normal_form "filter Not ([True,False,x]@xs)"
+value [nbe] "filter (%x. x) ([True,False,x]@xs)"
+value [nbe] "filter Not ([True,False,x]@xs)"
 
 lemma "[x,y,z] @ [a,b,c] = [x, y, z, a, b, c]" by normalization
 lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]" by normalization
@@ -106,19 +106,19 @@ lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "[Suc 0, 0] = [Suc 0, 0]" by normalization
 lemma "max (Suc 0) 0 = Suc 0" by normalization
 lemma "(42::rat) / 1704 = 1 / 284 + 3 / 142" by normalization
-normal_form "Suc 0 \<in> set ms"
+value [nbe] "Suc 0 \<in> set ms"
 
 lemma "f = f" by normalization
 lemma "f x = f x" by normalization
 lemma "(f o g) x = f (g x)" by normalization
 lemma "(f o id) x = f x" by normalization
-normal_form "(\<lambda>x. x)"
+value [nbe] "(\<lambda>x. x)"
 
 (* Church numerals: *)
 
-normal_form "(%m n f x. m f (n f x)) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
-normal_form "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
-normal_form "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+value [nbe] "(%m n f x. m f (n f x)) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+value [nbe] "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
+value [nbe] "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 
 (* handling of type classes in connection with equality *)
 
