@@ -106,12 +106,12 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/splitter.ML \
   $(SRC)/Tools/cache_io.ML \
-  $(SRC)/Tools/Code/code_eval.ML \
   $(SRC)/Tools/Code/code_haskell.ML \
   $(SRC)/Tools/Code/code_ml.ML \
   $(SRC)/Tools/Code/code_namespace.ML \
   $(SRC)/Tools/Code/code_preproc.ML \
   $(SRC)/Tools/Code/code_printer.ML \
+  $(SRC)/Tools/Code/code_runtime.ML \
   $(SRC)/Tools/Code/code_scala.ML \
   $(SRC)/Tools/Code/code_simp.ML \
   $(SRC)/Tools/Code/code_target.ML \
