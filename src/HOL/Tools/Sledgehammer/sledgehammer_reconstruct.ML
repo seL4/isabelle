@@ -62,6 +62,9 @@ fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
+fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda v t
+fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda v t
+
 datatype raw_step_name = Str of string * string | Num of string
 
 fun raw_step_num (Str (num, _)) = num
@@ -454,12 +457,11 @@ fun repair_tvar_sorts (t, tvar_tab) =
       | do_term (t1 $ t2) = do_term t1 $ do_term t2
   in t |> not (Vartab.is_empty tvar_tab) ? do_term end
 
-(* ### TODO: looks broken; see forall_of below *)
-fun quantify_over_free quant_s free_s body_t =
-  case Term.add_frees body_t [] |> filter (curry (op =) free_s o fst) of
-    [] => body_t
-  | frees as (_, free_T) :: _ =>
-    Abs (free_s, free_T, fold (curry abstract_over) (map Free frees) body_t)
+fun quantify_over_var quant_of var_s t =
+  let
+    val vars = [] |> Term.add_vars t |> filter (fn ((s, _), _) => s = var_s)
+                  |> map Var
+  in fold_rev quant_of vars t end
 
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they
    appear in the formula. *)
@@ -470,10 +472,10 @@ fun prop_from_formula thy full_types tfrees phi =
         AQuant (_, [], phi) => do_formula pos phi
       | AQuant (q, x :: xs, phi') =>
         do_formula pos (AQuant (q, xs, phi'))
-        #>> quantify_over_free (case q of
-                                  AForall => @{const_name All}
-                                | AExists => @{const_name Ex})
-                               (repair_atp_variable_name Char.toLower x)
+        #>> quantify_over_var (case q of
+                                 AForall => forall_of
+                               | AExists => exists_of)
+                              (repair_atp_variable_name Char.toLower x)
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1
@@ -731,15 +733,13 @@ fun add_fact_from_dependency conjecture_shape axiom_names name =
   else
     apfst (insert (op =) (raw_label_for_name conjecture_shape name))
 
-fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda v t
-fun forall_vars t = fold_rev forall_of (map Var (Term.add_vars t [])) t
-
 fun step_for_line _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
   | step_for_line conjecture_shape _ _ (Inference (name, t, [])) =
     Assume (raw_label_for_name conjecture_shape name, t)
   | step_for_line conjecture_shape axiom_names j (Inference (name, t, deps)) =
     Have (if j = 1 then [Show] else [],
-          raw_label_for_name conjecture_shape name, forall_vars t,
+          raw_label_for_name conjecture_shape name,
+          fold_rev forall_of (map Var (Term.add_vars t [])) t,
           ByMetis (fold (add_fact_from_dependency conjecture_shape axiom_names)
                         deps ([], [])))
 

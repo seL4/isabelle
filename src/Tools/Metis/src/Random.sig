@@ -8,8 +8,6 @@ randomness.
 
 signature Random =
 sig
-  val CRITICAL: (unit -> 'a) -> 'a (* MODIFIED by Jasmin Blanchette *)
-
   val nextWord : unit -> word
 
   val nextBool : unit -> bool
