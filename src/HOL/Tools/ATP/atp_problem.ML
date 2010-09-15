@@ -126,7 +126,9 @@ fun readable_name full_name s =
 
 fun nice_name (full_name, _) NONE = (full_name, NONE)
   | nice_name (full_name, desired_name) (SOME the_pool) =
-    case Symtab.lookup (fst the_pool) full_name of
+    if String.isPrefix "$" full_name then
+      (full_name, SOME the_pool)
+    else case Symtab.lookup (fst the_pool) full_name of
       SOME nice_name => (nice_name, SOME the_pool)
     | NONE =>
       let
