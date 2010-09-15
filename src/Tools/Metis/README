@@ -5,11 +5,12 @@ for Metis with the latest Metis package. The procedure is
 unfortunately somewhat involved and frustrating, and hopefully
 temporary.
 
- 1. The directories "src/" and "script/" were initially copied from
-    Joe Hurd's Metis package. (His "script/" directory has many files
-    in it, but we only need "mlpp".) The package that was used when
-    these notes where written was an unnumbered version of Metis, more
-    recent than 2.2 and dated 19 July 2010.
+ 1. The file "Makefile" and the directory "src/" and "script/" were
+    initially copied from Joe Hurd's Metis package. (His "script/"
+    directory has many files in it, but we only need "mlpp".) The
+    package that was used when these notes where written was an
+    unnumbered version of Metis, more recent than 2.2 and dated 19
+    July 2010.
 
  2. The license in each source file will probably not be something we
     can use in Isabelle. Lawrence C. Paulson's command
@@ -20,8 +21,9 @@ temporary.
     2010 email to Gerwin Klein, Joe Hurd, the sole copyright holder of
     Metis, wrote:
 
-        I hereby give permission to the Isabelle team to release Metis as part
-        of Isabelle, with the Metis code covered under the Isabelle BSD license.
+        I hereby give permission to the Isabelle team to release Metis
+        as part of Isabelle, with the Metis code covered under the
+        Isabelle BSD license.
 
  3. Some modifications have to be done manually to the source files.
     Some of these are necessary so that the sources compile at all
@@ -44,16 +46,16 @@ temporary.
 
  4. Isabelle itself only cares about "metis.ML", which is generated
     from the files in "src/" by the script "make_metis". The script
-    relies on "src/", "scripts/", and a hand-crafted "FILES" file
-    listing all the files needed to be included in "metis.ML". The
-    "FILES" file should be updated to reflect the contents of "src/",
-    although a few files in "src/" are not necessary. Also, the order
-    of the file names in "FILES" matters; X must appear before Y if Y
-    depends on X.
+    relies on "Makefile", "src/", and "scripts/", as well as a special
+    file "Makefile.FILES" used to determine all the files needed to be
+    included in "metis.ML".
 
  5. The output of "make_metis" should then work as is with Isabelle,
     but there are of course no guarantees. The script "make_metis" has
-    a few evil regex hacks that could go wrong.
+    a few evil regex hacks that could go wrong. It also produces a
+    few temporary files ("FILES", "Makefile.dev", and
+    "bin/mosml/Makefile.src") as side-effects; you can safely ignore
+    them or delete them.
 
  6. Once you have successfully regenerated "metis.ML", build all of
     Isabelle and keep an eye on the time taken by Metis.

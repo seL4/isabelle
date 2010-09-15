@@ -8,6 +8,8 @@
 
 THIS=$(cd "$(dirname "$0")"; echo $PWD)
 
+make -f Makefile.FILES refresh_FILES
+
 (
   cat <<EOF
 (*
