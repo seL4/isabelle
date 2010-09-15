@@ -567,7 +567,7 @@ fun compile thy program =
   in (nbe_program, idx_tab) end;
 
 
-(* evaluation oracle *)
+(* dynamic evaluation oracle *)
 
 fun mk_equals thy lhs raw_rhs =
   let
@@ -600,34 +600,9 @@ fun dynamic_eval_value thy = lift_triv_classes_rew thy
     (K (fn program => eval_term thy program (compile thy program)))));
 
 
-(* evaluation command *)
-
-fun norm_print_term ctxt modes t =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val t' = dynamic_eval_value thy t;
-    val ty' = Term.type_of t';
-    val ctxt' = Variable.auto_fixes t ctxt;
-    val p = Print_Mode.with_modes modes (fn () =>
-      Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
-  in Pretty.writeln p end;
-
-
-(** Isar setup **)
-
-fun norm_print_term_cmd (modes, s) state =
-  let val ctxt = Toplevel.context_of state
-  in norm_print_term ctxt modes (Syntax.read_term ctxt s) end;
+(** setup **)
 
 val setup = Value.add_evaluator ("nbe", dynamic_eval_value o ProofContext.theory_of);
-
-val opt_modes =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
-
-val _ =
-  Outer_Syntax.improper_command "normal_form" "normalize term by evaluation" Keyword.diag
-    (opt_modes -- Parse.term >> (Toplevel.keep o norm_print_term_cmd));
 
 end;
  
