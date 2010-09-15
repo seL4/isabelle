@@ -2,9 +2,9 @@
 #
 # make_metis - turn original Metis files into Isabelle ML source.
 #
-# Structure declarations etc. are made local by wrapping into a
-# collective structure Metis.  Signature and functor definitions are
-# global!
+# Signatures, structures, and functors are renamed to have a "Metis_" prefix.
+# A few other ad hoc transformations are performed to ensure that the sources
+# compile within Isabelle on Poly/ML and SML/NJ.
 
 THIS=$(cd "$(dirname "$0")"; echo $PWD)
 
