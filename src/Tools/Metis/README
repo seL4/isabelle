@@ -1,0 +1,70 @@
+It's a good idea to update the Metis source code regularly, to benefit
+from the latest developments, to avoid a permanent fork, and to detect
+Metis problems early. This file explains how to update the source code
+for Metis with the latest Metis package. The procedure is
+unfortunately somewhat involved and frustrating, and hopefully
+temporary.
+
+ 1. The directories "src/" and "script/" were initially copied from
+    Joe Hurd's Metis package. (His "script/" directory has many files
+    in it, but we only need "mlpp".) The package that was used when
+    these notes where written was an unnumbered version of Metis, more
+    recent than 2.2 and dated 19 July 2010.
+
+ 2. The license in each source file will probably not be something we
+    can use in Isabelle. Lawrence C. Paulson's command
+
+        perl -p -i~ -w -e 's/MIT license/BSD License/g' *sig *sml
+
+    run in the "src/" directory should do the trick. In a 13 Sept.
+    2010 email to Gerwin Klein, Joe Hurd, the sole copyright holder of
+    Metis, wrote:
+
+        I hereby give permission to the Isabelle team to release Metis as part
+        of Isabelle, with the Metis code covered under the Isabelle BSD license.
+
+ 3. Some modifications have to be done manually to the source files.
+    Some of these are necessary so that the sources compile at all
+    with Isabelle, some are necessary to avoid race conditions in a
+    multithreaded environment, and some affect the defaults of Metis's
+    heuristics and are needed for backward compatibility with older
+    Isabelle proofs and for performance reasons. These changes should
+    be identified by a comment
+
+        (* MODIFIED by ?Joe ?Blow *)
+
+    but the ultimate way to track them down is to use Mercurial. The
+    command
+
+        hg diff -r2d0a4361c3ef: src
+
+    should do the trick. (You might need to specify a different
+    revision number if somebody updated the Metis sources without
+    updating these instructions.)
+
+ 4. Isabelle itself only cares about "metis.ML", which is generated
+    from the files in "src/" by the script "make_metis". The script
+    relies on "src/", "scripts/", and a hand-crafted "FILES" file
+    listing all the files needed to be included in "metis.ML". The
+    "FILES" file should be updated to reflect the contents of "src/",
+    although a few files in "src/" are not necessary. Also, the order
+    of the file names in "FILES" matters; X must appear before Y if Y
+    depends on X.
+
+ 5. The output of "make_metis" should then work as is with Isabelle,
+    but there are of course no guarantees. The script "make_metis" has
+    a few evil regex hacks that could go wrong.
+
+ 6. Once you have successfully regenerated "metis.ML", build all of
+    Isabelle and keep an eye on the time taken by Metis.
+    "HOL-Metis_Examples" is a good test case. Running the Judgement
+    Day suite at this point is also a good idea.
+
+ 7. Once everything is fine and you are ready to push your changes to
+    the main Isabelle repository, take the time to update these
+    instructions, especially points 1 and 3 above.
+
+Good luck!
+
+    Jasmin Blanchette
+    15 Sept. 2010
