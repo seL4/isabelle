@@ -879,38 +879,40 @@ and nodeDeleteNth n node =
 (* ------------------------------------------------------------------------- *)
 
 datatype ('key,'value) iterator =
-    LR of ('key * 'value) * ('key,'value) tree * ('key,'value) node list
-  | RL of ('key * 'value) * ('key,'value) tree * ('key,'value) node list;
+    LeftToRightIterator of
+      ('key * 'value) * ('key,'value) tree * ('key,'value) node list
+  | RightToLeftIterator of
+      ('key * 'value) * ('key,'value) tree * ('key,'value) node list;
 
-fun fromSpineLR nodes =
+fun fromSpineLeftToRightIterator nodes =
     case nodes of
       [] => NONE
     | Node {key,value,right,...} :: nodes =>
-      SOME (LR ((key,value),right,nodes));
+      SOME (LeftToRightIterator ((key,value),right,nodes));
 
-fun fromSpineRL nodes =
+fun fromSpineRightToLeftIterator nodes =
     case nodes of
       [] => NONE
     | Node {key,value,left,...} :: nodes =>
-      SOME (RL ((key,value),left,nodes));
+      SOME (RightToLeftIterator ((key,value),left,nodes));
 
-fun addLR nodes tree = fromSpineLR (treeLeftSpine nodes tree);
+fun addLeftToRightIterator nodes tree = fromSpineLeftToRightIterator (treeLeftSpine nodes tree);
 
-fun addRL nodes tree = fromSpineRL (treeRightSpine nodes tree);
+fun addRightToLeftIterator nodes tree = fromSpineRightToLeftIterator (treeRightSpine nodes tree);
 
-fun treeMkIterator tree = addLR [] tree;
+fun treeMkIterator tree = addLeftToRightIterator [] tree;
 
-fun treeMkRevIterator tree = addRL [] tree;
+fun treeMkRevIterator tree = addRightToLeftIterator [] tree;
 
 fun readIterator iter =
     case iter of
-      LR (key_value,_,_) => key_value
-    | RL (key_value,_,_) => key_value;
+      LeftToRightIterator (key_value,_,_) => key_value
+    | RightToLeftIterator (key_value,_,_) => key_value;
 
 fun advanceIterator iter =
     case iter of
-      LR (_,tree,nodes) => addLR nodes tree
-    | RL (_,tree,nodes) => addRL nodes tree;
+      LeftToRightIterator (_,tree,nodes) => addLeftToRightIterator nodes tree
+    | RightToLeftIterator (_,tree,nodes) => addRightToLeftIterator nodes tree;
 
 fun foldIterator f acc io =
     case io of

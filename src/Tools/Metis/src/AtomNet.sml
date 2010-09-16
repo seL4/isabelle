@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC ATOMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure AtomNet :> AtomNet =
@@ -35,7 +35,7 @@ val size = TermNet.size;
 
 fun insert net (atm,a) = TermNet.insert net (atomToTerm atm, a);
 
-fun fromList parm l = foldl (fn (atm_a,n) => insert n atm_a) (new parm) l;
+fun fromList parm l = List.foldl (fn (atm_a,n) => insert n atm_a) (new parm) l;
 
 val filter = TermNet.filter;
 

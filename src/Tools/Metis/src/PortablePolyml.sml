@@ -19,6 +19,24 @@ val ml = "polyml";
 fun pointerEqual (x : 'a, y : 'a) = PolyML.pointerEq(x,y);
 
 (* ------------------------------------------------------------------------- *)
+(* Marking critical sections of code.                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun critical f () = f ();
+
+(* ------------------------------------------------------------------------- *)
+(* Generating random values.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+val randomWord = Random.nextWord;
+
+val randomBool = Random.nextBool;
+
+val randomInt = Random.nextInt;
+
+val randomReal = Random.nextReal;
+
+(* ------------------------------------------------------------------------- *)
 (* Timing function applications.                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -44,7 +62,7 @@ fun time f x =
             val {usr,sys} = Timer.checkCPUTimer c
             val real = Timer.checkRealTimer r
           in
-            TextIO.print (* MODIFIED by Jasmin Blanchette *)
+            print
               ("User: " ^ p usr ^ "  System: " ^ p sys ^
                "  Real: " ^ p real ^ "\n")
           end
@@ -55,26 +73,6 @@ fun time f x =
     in
       y
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Critical section markup (multiprocessing)                                 *)
-(* ------------------------------------------------------------------------- *)
-
-(* MODIFIED by Jasmin Blanchette *)
-fun CRITICAL e = NAMED_CRITICAL "metis" e;
-
-
-(* ------------------------------------------------------------------------- *)
-(* Generating random values.                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val randomWord = Random.nextWord;
-
-val randomBool = Random.nextBool;
-
-val randomInt = Random.nextInt;
-
-val randomReal = Random.nextReal;
 
 end
 

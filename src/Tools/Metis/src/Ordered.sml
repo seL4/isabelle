@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ORDERED TYPES                                                             *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure IntOrdered =

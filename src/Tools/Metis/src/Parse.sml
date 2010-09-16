@@ -134,7 +134,7 @@ fun initialize {lines} =
                   val ref (n,_,l2,l3) = lastLine
                   val () = lastLine := (n + 1, l2, l3, line)
                 in
-                  explode line
+                  String.explode line
                 end
           in
             Stream.memoize (Stream.map saveLast lines)
@@ -160,7 +160,7 @@ fun exactCharList cs =
       [] => nothing
     | c :: cs => (exactChar c ++ exactCharList cs) >> snd;
 
-fun exactString s = exactCharList (explode s);
+fun exactString s = exactCharList (String.explode s);
 
 fun escapeString {escape} =
     let
@@ -183,7 +183,7 @@ fun escapeString {escape} =
           ((exactChar #"\\" ++ escapeParser) >> snd) ||
           some isNormal
     in
-      many charParser >> implode
+      many charParser >> String.implode
     end;
 
 local
@@ -196,46 +196,51 @@ in
   val atLeastOneSpace = atLeastOne space >> K ();
 end;
 
-fun fromString parser s = fromList parser (explode s);
+fun fromString parser s = fromList parser (String.explode s);
 
 (* ------------------------------------------------------------------------- *)
 (* Infix operators.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun parseGenInfix update sof toks parse inp =
+fun parseLayeredInfixes {tokens,assoc} mk tokParser subParser =
     let
-      val (e,rest) = parse inp
+      fun layerTokParser inp =
+          let
+            val tok_rest as (tok,_) = tokParser inp
+          in
+            if StringSet.member tok tokens then tok_rest
+            else raise NoParse
+          end
 
-      val continue =
-          case rest of
-            Stream.Nil => NONE
-          | Stream.Cons (h_t as (h,_)) =>
-            if StringSet.member h toks then SOME h_t else NONE
+      fun layerMk (x,txs) =
+          case assoc of
+            Print.LeftAssoc =>
+            let
+              fun inc ((t,y),z) = mk (t,z,y)
+            in
+              List.foldl inc x txs
+            end
+          | Print.NonAssoc =>
+            (case txs of
+               [] => x
+             | [(t,y)] => mk (t,x,y)
+             | _ => raise NoParse)
+          | Print.RightAssoc =>
+            (case rev txs of
+               [] => x
+             | tx :: txs =>
+               let
+                 fun inc ((t,y),(u,z)) = (t, mk (u,y,z))
+
+                 val (t,y) = List.foldl inc tx txs
+               in
+                 mk (t,x,y)
+               end)
+
+      val layerParser = subParser ++ many (layerTokParser ++ subParser)
     in
-      case continue of
-        NONE => (sof e, rest)
-      | SOME (h,t) => parseGenInfix update (update sof h e) toks parse (t ())
+      layerParser >> layerMk
     end;
-
-local
-  fun add ({leftSpaces = _, token = t, rightSpaces = _}, s) = StringSet.add s t;
-
-  fun parse leftAssoc toks con =
-      let
-        val update =
-            if leftAssoc then (fn f => fn t => fn a => fn b => con (t, f a, b))
-            else (fn f => fn t => fn a => fn b => f (con (t, a, b)))
-      in
-        parseGenInfix update I toks
-      end;
-in
-  fun parseLayeredInfixes {tokens,leftAssoc} =
-      let
-        val toks = List.foldl add StringSet.empty tokens
-      in
-        parse leftAssoc toks
-      end;
-end;
 
 fun parseInfixes ops =
     let
@@ -243,7 +248,8 @@ fun parseInfixes ops =
 
       val iparsers = List.map parseLayeredInfixes layeredOps
     in
-      fn con => fn subparser => foldl (fn (p,sp) => p con sp) subparser iparsers
+      fn mk => fn tokParser => fn subParser =>
+         List.foldr (fn (p,sp) => p mk tokParser sp) subParser iparsers
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -257,7 +263,7 @@ fun parseQuotation printer parser quote =
     fun expand (QUOTE q, s) = s ^ q
       | expand (ANTIQUOTE a, s) = s ^ printer a
 
-    val string = foldl expand "" quote
+    val string = List.foldl expand "" quote
   in
     parser string
   end;

@@ -4,7 +4,7 @@ bin/mosml/Makefile.src:
 	echo > $@
 refresh_FILES:
 	echo $(POLYML_SRC) | \
-	sed "s/src\///g" | \
-	sed "s/ Tptp\.s[a-z][a-z]//g" | \
-	sed "s/ Options\.s[a-z][a-z]//g" \
+	sed "s/src\/PortablePolyml/PortableIsabelle/g" | \
+	sed "s/ src\/Tptp\.s[a-z][a-z]//g" | \
+	sed "s/ src\/Options\.s[a-z][a-z]//g" \
 	> FILES

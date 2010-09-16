@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2003 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Rewrite :> Rewrite =
@@ -207,7 +207,7 @@ fun add (rw as Rewrite {known,...}) (id,eqn) =
         rw
       end;
 
-val addList = foldl (fn (eqn,rw) => add rw eqn);
+val addList = List.foldl (fn (eqn,rw) => add rw eqn);
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting (the order must be a refinement of the rewrite order).          *)
@@ -434,8 +434,9 @@ fun addSubterms id (((l,r),_) : equation) subterms =
     let
       fun addSubterm b ((path,tm),net) = TermNet.insert net (tm,(id,b,path))
 
-      val subterms = foldl (addSubterm true) subterms (Term.subterms l)
-      val subterms = foldl (addSubterm false) subterms (Term.subterms r)
+      val subterms = List.foldl (addSubterm true) subterms (Term.subterms l)
+
+      val subterms = List.foldl (addSubterm false) subterms (Term.subterms r)
     in
       subterms
     end;
@@ -660,7 +661,7 @@ local
 in
   fun orderedRewrite order ths =
     let
-      val rw = foldl addEqn (new order) (enumerate ths)
+      val rw = List.foldl addEqn (new order) (enumerate ths)
     in
       rewriteRule rw order
     end;

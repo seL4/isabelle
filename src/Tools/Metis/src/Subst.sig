@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC SUBSTITUTIONS                                           *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Subst =

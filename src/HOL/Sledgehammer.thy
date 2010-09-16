@@ -11,6 +11,7 @@ theory Sledgehammer
 imports Plain Hilbert_Choice
 uses
   ("Tools/ATP/atp_problem.ML")
+  ("Tools/ATP/atp_proof.ML")
   ("Tools/ATP/atp_systems.ML")
   ("~~/src/Tools/Metis/metis.ML")
   ("Tools/Sledgehammer/clausifier.ML")
@@ -92,6 +93,7 @@ apply (simp add: COMBC_def)
 done
 
 use "Tools/ATP/atp_problem.ML"
+use "Tools/ATP/atp_proof.ML"
 use "Tools/ATP/atp_systems.ML"
 setup ATP_Systems.setup
 

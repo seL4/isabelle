@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Rule :> Rule =
@@ -156,17 +156,19 @@ fun allConv tm = (tm, Thm.refl tm);
 
 val noConv : conv = fn _ => raise Error "noConv";
 
+(*MetisDebug
 fun traceConv s conv tm =
     let
       val res as (tm',th) = conv tm
-      val () = print (s ^ ": " ^ Term.toString tm ^ " --> " ^
+      val () = trace (s ^ ": " ^ Term.toString tm ^ " --> " ^
                       Term.toString tm' ^ " " ^ Thm.toString th ^ "\n")
     in
       res
     end
     handle Error err =>
-      (print (s ^ ": " ^ Term.toString tm ^ " --> Error: " ^ err ^ "\n");
+      (trace (s ^ ": " ^ Term.toString tm ^ " --> Error: " ^ err ^ "\n");
        raise Error (s ^ ": " ^ err));
+*)
 
 fun thenConvTrans tm (tm',th1) (tm'',th2) =
     let
@@ -455,7 +457,7 @@ fun functionCongruence (f,n) =
       val reflTh = Thm.refl (Term.Fn (f,xs))
       val reflLit = Thm.destUnit reflTh
     in
-      fst (foldl cong (reflTh,reflLit) (enumerate ys))
+      fst (List.foldl cong (reflTh,reflLit) (enumerate ys))
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -482,7 +484,7 @@ fun relationCongruence (R,n) =
       val assumeLit = (false,(R,xs))
       val assumeTh = Thm.assume assumeLit
     in
-      fst (foldl cong (assumeTh,assumeLit) (enumerate ys))
+      fst (List.foldl cong (assumeTh,assumeLit) (enumerate ys))
     end;
 
 (* ------------------------------------------------------------------------- *)

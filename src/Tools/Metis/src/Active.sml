@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE ACTIVE SET OF CLAUSES                                                 *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Active :> Active =
@@ -25,7 +25,7 @@ local
               | NONE => rw
             end
       in
-        foldl add (Rewrite.new (KnuthBendixOrder.compare ordering))
+        List.foldl add (Rewrite.new (KnuthBendixOrder.compare ordering))
       end;
 
   fun allFactors red =
@@ -293,8 +293,8 @@ fun saturation active =
           end
 
       val cls = clauses active
-      val (cls,_) = foldl remove ([], Subsume.new ()) cls
-      val (cls,subs) = foldl remove ([], Subsume.new ()) cls
+      val (cls,_) = List.foldl remove ([], Subsume.new ()) cls
+      val (cls,subs) = List.foldl remove ([], Subsume.new ()) cls
 
 (*MetisDebug
       val Active {parameters,...} = active
@@ -321,7 +321,7 @@ val pp =
 local
   fun ppField f ppA a =
       Print.blockProgram Print.Inconsistent 2
-        [Print.addString (f ^ " ="),
+        [Print.ppString (f ^ " ="),
          Print.addBreak 1,
          ppA a];
 
@@ -342,21 +342,21 @@ local
 in
   fun pp (Active {clauses,rewrite,subterms,...}) =
       Print.blockProgram Print.Inconsistent 2
-        [Print.addString "Active",
+        [Print.ppString "Active",
          Print.addBreak 1,
          Print.blockProgram Print.Inconsistent 1
-           [Print.addString "{",
+           [Print.ppString "{",
             ppClauses clauses,
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             ppRewrite rewrite,
 (*MetisTrace5
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             ppSubterms subterms,
 *)
             Print.skip],
-         Print.addString "}"];
+         Print.ppString "}"];
 end;
 *)
 
@@ -474,7 +474,7 @@ fun addEquations equations cl =
       fun add ((lit,ort,tm),equations) =
           TermNet.insert equations (tm,(cl,lit,ort,tm))
     in
-      foldl add equations (Clause.largestEquations cl)
+      List.foldl add equations (Clause.largestEquations cl)
     end;
 
 fun addSubterms subterms cl =
@@ -482,7 +482,7 @@ fun addSubterms subterms cl =
       fun add ((lit,path,tm),subterms) =
           TermNet.insert subterms (tm,(cl,lit,path,tm))
     in
-      foldl add subterms (Clause.largestSubterms cl)
+      List.foldl add subterms (Clause.largestSubterms cl)
     end;
 
 fun addAllSubterms allSubterms cl =
@@ -490,7 +490,7 @@ fun addAllSubterms allSubterms cl =
       fun add ((_,_,tm),allSubterms) =
           TermNet.insert allSubterms (tm,(cl,tm))
     in
-      foldl add allSubterms (Clause.allSubterms cl)
+      List.foldl add allSubterms (Clause.allSubterms cl)
     end;
 
 fun addClause active cl =
@@ -541,7 +541,8 @@ fun deduceResolution literals cl (lit as (_,atm), acc) =
 *)
     in
       if Atom.isEq atm then acc
-      else foldl resolve acc (LiteralNet.unify literals (Literal.negate lit))
+      else
+        List.foldl resolve acc (LiteralNet.unify literals (Literal.negate lit))
     end;
 
 fun deduceParamodulationWith subterms cl ((lit,ort,tm),acc) =
@@ -551,7 +552,7 @@ fun deduceParamodulationWith subterms cl ((lit,ort,tm),acc) =
             SOME cl' => cl' :: acc
           | NONE => acc
     in
-      foldl para acc (TermNet.unify subterms tm)
+      List.foldl para acc (TermNet.unify subterms tm)
     end;
 
 fun deduceParamodulationInto equations cl ((lit,path,tm),acc) =
@@ -561,7 +562,7 @@ fun deduceParamodulationInto equations cl ((lit,path,tm),acc) =
             SOME cl' => cl' :: acc
           | NONE => acc
     in
-      foldl para acc (TermNet.unify equations tm)
+      List.foldl para acc (TermNet.unify equations tm)
     end;
 
 fun deduce active cl =
@@ -587,8 +588,8 @@ fun deduce active cl =
 
       val acc = []
       val acc = LiteralSet.foldl (deduceResolution literals cl) acc lits
-      val acc = foldl (deduceParamodulationWith subterms cl) acc eqns
-      val acc = foldl (deduceParamodulationInto equations cl) acc subtms
+      val acc = List.foldl (deduceParamodulationWith subterms cl) acc eqns
+      val acc = List.foldl (deduceParamodulationInto equations cl) acc subtms
       val acc = rev acc
 
 (*MetisTrace5
@@ -834,7 +835,7 @@ local
         let
           val cls = sort_utilitywise (cl :: Clause.factor cl)
         in
-          foldl factor_add active_subsume_acc cls
+          List.foldl factor_add active_subsume_acc cls
         end;
 
   fun factor' active acc [] = (active, rev acc)
@@ -842,7 +843,7 @@ local
       let
         val cls = sort_utilitywise cls
         val subsume = getSubsume active
-        val (active,_,acc) = foldl factor1 (active,subsume,acc) cls
+        val (active,_,acc) = List.foldl factor1 (active,subsume,acc) cls
         val (active,cls) = extract_rewritables active
       in
         factor' active acc cls

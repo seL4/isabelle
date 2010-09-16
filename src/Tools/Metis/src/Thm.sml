@@ -111,7 +111,7 @@ local
 in
   fun pp th =
       Print.blockProgram Print.Inconsistent 3
-        [Print.addString "|- ",
+        [Print.ppString "|- ",
          Formula.pp (toFormula th)];
 end;
 

@@ -736,8 +736,24 @@ fun build_map mode0 ctxt cls ths =
           in lmap |> fold (add_thm false) helper_ths end
   in (mode, add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap) end
 
+val clause_params =
+  {ordering = Metis_KnuthBendixOrder.default,
+   orderLiterals = Metis_Clause.UnsignedLiteralOrder,
+   orderTerms = true}
+val active_params =
+  {clause = clause_params,
+   prefactor = #prefactor Metis_Active.default,
+   postfactor = #postfactor Metis_Active.default}
+val waiting_params =
+  {symbolsWeight = 1.0,
+   variablesWeight = 0.0,
+   literalsWeight = 0.0,
+   models = []}
+val refute_params = {active = active_params, waiting = waiting_params}
+
 fun refute cls =
-    Metis_Resolution.loop (Metis_Resolution.new Metis_Resolution.default {axioms = cls, conjecture = []});
+  Metis_Resolution.new refute_params {axioms = cls, conjecture = []}
+  |> Metis_Resolution.loop
 
 fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 

@@ -26,6 +26,7 @@ structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
 struct
 
 open ATP_Problem
+open ATP_Proof
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Filter
@@ -38,6 +39,76 @@ type metis_params =
 type isar_params =
   string Symtab.table * bool * int * Proof.context * int list list
 type text_result = string * (string * locality) list
+
+
+(** Soft-core proof reconstruction: Metis one-liner **)
+
+fun string_for_label (s, num) = s ^ string_of_int num
+
+fun metis_using [] = ""
+  | metis_using ls =
+    "using " ^ space_implode " " (map string_for_label ls) ^ " "
+fun metis_apply _ 1 = "by "
+  | metis_apply 1 _ = "apply "
+  | metis_apply i _ = "prefer " ^ string_of_int i ^ " apply "
+fun metis_name full_types = if full_types then "metisFT" else "metis"
+fun metis_call full_types [] = metis_name full_types
+  | metis_call full_types ss =
+    "(" ^ metis_name full_types ^ " " ^ space_implode " " ss ^ ")"
+fun metis_command full_types i n (ls, ss) =
+  metis_using ls ^ metis_apply i n ^ metis_call full_types ss
+fun metis_line banner full_types i n ss =
+  banner ^ ": " ^
+  Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
+fun minimize_line _ [] = ""
+  | minimize_line minimize_command ss =
+    case minimize_command ss of
+      "" => ""
+    | command =>
+      "\nTo minimize the number of lemmas, try this: " ^
+      Markup.markup Markup.sendback command ^ "."
+
+fun resolve_axiom axiom_names ((_, SOME s)) =
+    (case strip_prefix_and_unascii axiom_prefix s of
+       SOME s' => (case find_first_in_list_vector axiom_names s' of
+                     SOME x => [(s', x)]
+                   | NONE => [])
+     | NONE => [])
+  | resolve_axiom axiom_names (num, NONE) =
+    case Int.fromString num of
+      SOME j =>
+      if j > 0 andalso j <= Vector.length axiom_names then
+        Vector.sub (axiom_names, j - 1)
+      else
+        []
+    | NONE => []
+
+fun add_fact axiom_names (Inference (name, _, [])) =
+    append (resolve_axiom axiom_names name)
+  | add_fact _ _ = I
+
+fun used_facts_in_tstplike_proof axiom_names =
+  atp_proof_from_tstplike_string #> rpair [] #-> fold (add_fact axiom_names)
+
+fun used_facts axiom_names =
+  used_facts_in_tstplike_proof axiom_names
+  #> List.partition (curry (op =) Chained o snd)
+  #> pairself (sort_distinct (string_ord o pairself fst))
+
+fun metis_proof_text (banner, full_types, minimize_command,
+                      tstplike_proof, axiom_names, goal, i) =
+  let
+    val (chained_lemmas, other_lemmas) =
+      used_facts axiom_names tstplike_proof
+    val n = Logic.count_prems (prop_of goal)
+  in
+    (metis_line banner full_types i n (map fst other_lemmas) ^
+     minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
+     other_lemmas @ chained_lemmas)
+  end
+
+
+(** Hard-core proof reconstruction: structured Isar proofs **)
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)
@@ -58,60 +129,8 @@ fun s_iff (@{const True}, t2) = t2
   | s_iff (t1, @{const True}) = t1
   | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
 
-fun mk_anot (AConn (ANot, [phi])) = phi
-  | mk_anot phi = AConn (ANot, [phi])
-fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
-
 fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda v t
 fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda v t
-
-datatype raw_step_name = Str of string * string | Num of string
-
-fun raw_step_num (Str (num, _)) = num
-  | raw_step_num (Num num) = num
-
-fun same_raw_step s t = raw_step_num s = raw_step_num t
-
-fun raw_step_name_ord p =
-  let val q = pairself raw_step_num p in
-    (* The "unprefix" part is to cope with remote Vampire's output. The proper
-       solution would be to perform a topological sort, e.g. using the nice
-       "Graph" functor. *)
-    case pairself (Int.fromString o perhaps (try (unprefix "f"))) q of
-      (NONE, NONE) => string_ord q
-    | (NONE, SOME _) => LESS
-    | (SOME _, NONE) => GREATER
-    | (SOME i, SOME j) => int_ord (i, j)
-  end
-
-fun index_in_shape x = find_index (exists (curry (op =) x))
-fun resolve_axiom axiom_names (Str (_, s)) =
-    (case strip_prefix_and_unascii axiom_prefix s of
-       SOME s' => (case find_first_in_list_vector axiom_names s' of
-                     SOME x => [(s', x)]
-                   | NONE => [])
-     | NONE => [])
-  | resolve_axiom axiom_names (Num num) =
-    case Int.fromString num of
-      SOME j =>
-      if j > 0 andalso j <= Vector.length axiom_names then
-        Vector.sub (axiom_names, j - 1)
-      else
-        []
-    | NONE => []
-val is_axiom = not o null oo resolve_axiom
-
-fun resolve_conjecture conjecture_shape (Str (num, s)) =
-    let
-      val k = case try (unprefix conjecture_prefix) s of
-                SOME s => Int.fromString s |> the_default ~1
-              | NONE => case Int.fromString num of
-                          SOME j => index_in_shape j conjecture_shape
-                        | NONE => ~1
-    in if k >= 0 then [k] else [] end
-  | resolve_conjecture conjecture_shape (Num num) =
-    resolve_conjecture conjecture_shape (Str (num, "")) (* HACK *)
-val is_conjecture = not o null oo resolve_conjecture
 
 fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
     Const (@{const_name Ex}, T) $ Abs (s, T', negate_term t')
@@ -126,174 +145,32 @@ fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
   | negate_term (@{const Not} $ t) = t
   | negate_term t = @{const Not} $ t
 
-datatype ('a, 'b, 'c) raw_step =
-  Definition of raw_step_name * 'a * 'b |
-  Inference of raw_step_name * 'c * raw_step_name list
+val indent_size = 2
+val no_label = ("", ~1)
 
-(**** PARSING OF TSTP FORMAT ****)
+val raw_prefix = "X"
+val assum_prefix = "A"
+val fact_prefix = "F"
 
-(*Strings enclosed in single quotes, e.g. filenames*)
-val scan_general_id =
-  $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
-  || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
-     >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
+fun resolve_conjecture conjecture_shape (num, s_opt) =
+  let
+    val k = case try (unprefix conjecture_prefix) (the_default "" s_opt) of
+              SOME s => Int.fromString s |> the_default ~1
+            | NONE => case Int.fromString num of
+                        SOME j => find_index (exists (curry (op =) j))
+                                             conjecture_shape
+                      | NONE => ~1
+  in if k >= 0 then [k] else [] end
 
-fun repair_name _ "$true" = "c_True"
-  | repair_name _ "$false" = "c_False"
-  | repair_name _ "$$e" = "c_equal" (* seen in Vampire proofs *)
-  | repair_name _ "equal" = "c_equal" (* needed by SPASS? *)
-  | repair_name pool s =
-    case Symtab.lookup pool s of
-      SOME s' => s'
-    | NONE =>
-      if String.isPrefix "sQ" s andalso String.isSuffix "_eqProxy" s then
-        "c_equal" (* seen in Vampire proofs *)
-      else
-        s
-(* Generalized first-order terms, which include file names, numbers, etc. *)
-fun parse_annotation strict x =
-  ((scan_general_id ::: Scan.repeat ($$ " " |-- scan_general_id)
-      >> (strict ? filter (is_some o Int.fromString)))
-   -- Scan.optional (parse_annotation strict) [] >> op @
-   || $$ "(" |-- parse_annotations strict --| $$ ")"
-   || $$ "[" |-- parse_annotations strict --| $$ "]") x
-and parse_annotations strict x =
-  (Scan.optional (parse_annotation strict
-                  ::: Scan.repeat ($$ "," |-- parse_annotation strict)) []
-   >> flat) x
+val is_axiom = not o null oo resolve_axiom
+val is_conjecture = not o null oo resolve_conjecture
 
-(* Vampire proof lines sometimes contain needless information such as "(0:3)",
-   which can be hard to disambiguate from function application in an LL(1)
-   parser. As a workaround, we extend the TPTP term syntax with such detritus
-   and ignore it. *)
-fun parse_vampire_detritus x =
-  (scan_general_id |-- $$ ":" --| scan_general_id >> K []) x
-
-fun parse_term pool x =
-  ((scan_general_id >> repair_name pool)
-    -- Scan.optional ($$ "(" |-- (parse_vampire_detritus || parse_terms pool)
-                      --| $$ ")") []
-    --| Scan.optional ($$ "(" |-- parse_vampire_detritus --| $$ ")") []
-   >> ATerm) x
-and parse_terms pool x =
-  (parse_term pool ::: Scan.repeat ($$ "," |-- parse_term pool)) x
-
-fun parse_atom pool =
-  parse_term pool -- Scan.option (Scan.option ($$ "!") --| $$ "="
-                                  -- parse_term pool)
-  >> (fn (u1, NONE) => AAtom u1
-       | (u1, SOME (NONE, u2)) => AAtom (ATerm ("c_equal", [u1, u2]))
-       | (u1, SOME (SOME _, u2)) =>
-         mk_anot (AAtom (ATerm ("c_equal", [u1, u2]))))
-
-fun fo_term_head (ATerm (s, _)) = s
-
-(* TPTP formulas are fully parenthesized, so we don't need to worry about
-   operator precedence. *)
-fun parse_formula pool x =
-  (($$ "(" |-- parse_formula pool --| $$ ")"
-    || ($$ "!" >> K AForall || $$ "?" >> K AExists)
-       --| $$ "[" -- parse_terms pool --| $$ "]" --| $$ ":"
-       -- parse_formula pool
-       >> (fn ((q, ts), phi) => AQuant (q, map fo_term_head ts, phi))
-    || $$ "~" |-- parse_formula pool >> mk_anot
-    || parse_atom pool)
-   -- Scan.option ((Scan.this_string "=>" >> K AImplies
-                    || Scan.this_string "<=>" >> K AIff
-                    || Scan.this_string "<~>" >> K ANotIff
-                    || Scan.this_string "<=" >> K AIf
-                    || $$ "|" >> K AOr || $$ "&" >> K AAnd)
-                   -- parse_formula pool)
-   >> (fn (phi1, NONE) => phi1
-        | (phi1, SOME (c, phi2)) => mk_aconn c (phi1, phi2))) x
-
-val parse_tstp_extra_arguments =
-  Scan.optional ($$ "," |-- parse_annotation false
-                 --| Scan.option ($$ "," |-- parse_annotations false)) []
-
-(* Syntax: (fof|cnf)\(<num>, <formula_role>, <formula> <extra_arguments>\).
-   The <num> could be an identifier, but we assume integers. *)
- fun parse_tstp_line pool =
-   ((Scan.this_string "fof" || Scan.this_string "cnf") -- $$ "(")
-     |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
-     -- parse_formula pool -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
-    >> (fn (((num, role), phi), deps) =>
-           let
-             val (name, deps) =
-               case deps of
-                 ["file", _, s] => (Str (num, s), [])
-               | _ => (Num num, deps)
-           in
-             case role of
-               "definition" =>
-               (case phi of
-                  AConn (AIff, [phi1 as AAtom _, phi2]) =>
-                  Definition (name, phi1, phi2)
-                | AAtom (ATerm ("c_equal", _)) =>
-                  (* Vampire's equality proxy axiom *)
-                  Inference (name, phi, map Num deps)
-                | _ => raise Fail "malformed definition")
-             | _ => Inference (name, phi, map Num deps)
-           end)
-
-(**** PARSING OF VAMPIRE OUTPUT ****)
-
-(* Syntax: <num>. <formula> <annotation> *)
-fun parse_vampire_line pool =
-  scan_general_id --| $$ "." -- parse_formula pool -- parse_annotation true
-  >> (fn ((num, phi), deps) => Inference (Num num, phi, map Num deps))
-
-(**** PARSING OF SPASS OUTPUT ****)
-
-(* SPASS returns clause references of the form "x.y". We ignore "y", whose role
-   is not clear anyway. *)
-val parse_dot_name = scan_general_id --| $$ "." --| scan_general_id
-
-val parse_spass_annotations =
-  Scan.optional ($$ ":" |-- Scan.repeat (parse_dot_name
-                                         --| Scan.option ($$ ","))) []
-
-(* It is not clear why some literals are followed by sequences of stars and/or
-   pluses. We ignore them. *)
-fun parse_decorated_atom pool =
-  parse_atom pool --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")
-
-fun mk_horn ([], []) = AAtom (ATerm ("c_False", []))
-  | mk_horn ([], pos_lits) = foldr1 (mk_aconn AOr) pos_lits
-  | mk_horn (neg_lits, []) = mk_anot (foldr1 (mk_aconn AAnd) neg_lits)
-  | mk_horn (neg_lits, pos_lits) =
-    mk_aconn AImplies (foldr1 (mk_aconn AAnd) neg_lits,
-                       foldr1 (mk_aconn AOr) pos_lits)
-
-fun parse_horn_clause pool =
-  Scan.repeat (parse_decorated_atom pool) --| $$ "|" --| $$ "|"
-    -- Scan.repeat (parse_decorated_atom pool) --| $$ "-" --| $$ ">"
-    -- Scan.repeat (parse_decorated_atom pool)
-  >> (mk_horn o apfst (op @))
-
-(* Syntax: <num>[0:<inference><annotations>]
-   <atoms> || <atoms> -> <atoms>. *)
-fun parse_spass_line pool =
-  scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
-    -- parse_spass_annotations --| $$ "]" -- parse_horn_clause pool --| $$ "."
-  >> (fn ((num, deps), u) => Inference (Num num, u, map Num deps))
-
-fun parse_line pool =
-  parse_tstp_line pool || parse_vampire_line pool || parse_spass_line pool
-fun parse_lines pool = Scan.repeat1 (parse_line pool)
-fun parse_proof pool =
-  fst o Scan.finite Symbol.stopper
-            (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
-                            (parse_lines pool)))
-  o explode o strip_spaces_except_between_ident_chars
-
-fun clean_up_dependencies _ [] = []
-  | clean_up_dependencies seen ((step as Definition (name, _, _)) :: steps) =
-    step :: clean_up_dependencies (name :: seen) steps
-  | clean_up_dependencies seen (Inference (name, u, deps) :: steps) =
-    Inference (name, u,
-             map_filter (fn dep => find_first (same_raw_step dep) seen) deps) ::
-    clean_up_dependencies (name :: seen) steps
+fun raw_label_for_name conjecture_shape name =
+  case resolve_conjecture conjecture_shape name of
+    [j] => (conjecture_prefix, j)
+  | _ => case Int.fromString (fst name) of
+           SOME j => (raw_prefix, j)
+         | NONE => (raw_prefix ^ fst name, 0)
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
@@ -411,7 +288,7 @@ fun raw_term_from_pred thy full_types tfrees =
                 case strip_prefix_and_unascii schematic_var_prefix a of
                   SOME b => Var ((b, 0), T)
                 | NONE =>
-                  if is_tptp_variable a then
+                  if is_atp_variable a then
                     Var ((repair_atp_variable_name Char.toLower a, 0), T)
                   else
                     (* Skolem constants? *)
@@ -537,7 +414,7 @@ fun is_same_inference _ (Definition _) = false
 val is_only_type_information = curry (op aconv) HOLogic.true_const
 
 fun replace_one_dependency (old, new) dep =
-  if raw_step_num dep = raw_step_num old then new else [dep]
+  if is_same_step (dep, old) then new else [dep]
 fun replace_dependencies_in_line _ (line as Definition _) = line
   | replace_dependencies_in_line p (Inference (name, t, deps)) =
     Inference (name, t, fold (union (op =) o replace_one_dependency p) deps [])
@@ -607,104 +484,6 @@ fun add_desired_line _ _ _ _ (line as Definition (name, _, _)) (j, lines) =
      else
        map (replace_dependencies_in_line (name, deps)) lines)  (* drop line *)
 
-(** EXTRACTING LEMMAS **)
-
-(* Like "split_line" but splits on ".\n" (for TSTP and SPASS) or "]\n" (for
-   Vampire). *)
-val split_proof_lines =
-  let
-    fun aux [] [] = []
-      | aux line [] = [implode (rev line)]
-      | aux line ("." :: "\n" :: rest) = aux line [] @ aux [] rest
-      | aux line ("]" :: "\n" :: rest) = aux line [] @ aux [] rest
-      | aux line (s :: rest) = aux (s :: line) rest
-  in aux [] o explode end
-
-(* A list consisting of the first number in each line is returned. For TSTP,
-   interesting lines have the form "fof(108, axiom, ...)", where the number
-   (108) is extracted. For SPASS, lines have the form "108[0:Inp] ...", where
-   the first number (108) is extracted. For Vampire, we look for
-   "108. ... [input]". *)
-fun used_facts_in_atp_proof axiom_names atp_proof =
-  let
-    val tokens_of =
-      String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
-    fun do_line (tag :: num :: "axiom" :: (rest as _ :: _)) =
-        if tag = "cnf" orelse tag = "fof" then
-          (case strip_prefix_and_unascii axiom_prefix (List.last rest) of
-             SOME name =>
-             if member (op =) rest "file" then
-               ([(name, name |> find_first_in_list_vector axiom_names |> the)]
-                handle Option.Option =>
-                       error ("No such fact: " ^ quote name ^ "."))
-             else
-               resolve_axiom axiom_names (Num num)
-           | NONE => resolve_axiom axiom_names (Num num))
-        else
-          []
-      | do_line (num :: "0" :: "Inp" :: _) = resolve_axiom axiom_names (Num num)
-      | do_line (num :: rest) =
-        (case List.last rest of
-           "input" => resolve_axiom axiom_names (Num num)
-         | _ => [])
-      | do_line _ = []
-  in atp_proof |> split_proof_lines |> maps (do_line o tokens_of) end
-
-val indent_size = 2
-val no_label = ("", ~1)
-
-val raw_prefix = "X"
-val assum_prefix = "A"
-val fact_prefix = "F"
-
-fun string_for_label (s, num) = s ^ string_of_int num
-
-fun raw_label_for_name conjecture_shape name =
-  case resolve_conjecture conjecture_shape name of
-    [j] => (conjecture_prefix, j)
-  | _ => case Int.fromString (raw_step_num name) of
-           SOME j => (raw_prefix, j)
-         | NONE => (raw_prefix ^ raw_step_num name, 0)
-
-fun metis_using [] = ""
-  | metis_using ls =
-    "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun metis_apply _ 1 = "by "
-  | metis_apply 1 _ = "apply "
-  | metis_apply i _ = "prefer " ^ string_of_int i ^ " apply "
-fun metis_name full_types = if full_types then "metisFT" else "metis"
-fun metis_call full_types [] = metis_name full_types
-  | metis_call full_types ss =
-    "(" ^ metis_name full_types ^ " " ^ space_implode " " ss ^ ")"
-fun metis_command full_types i n (ls, ss) =
-  metis_using ls ^ metis_apply i n ^ metis_call full_types ss
-fun metis_line banner full_types i n ss =
-  banner ^ ": " ^
-  Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
-fun minimize_line _ [] = ""
-  | minimize_line minimize_command ss =
-    case minimize_command ss of
-      "" => ""
-    | command =>
-      "\nTo minimize the number of lemmas, try this: " ^
-      Markup.markup Markup.sendback command ^ "."
-
-fun used_facts axiom_names =
-  used_facts_in_atp_proof axiom_names
-  #> List.partition (curry (op =) Chained o snd)
-  #> pairself (sort_distinct (string_ord o pairself fst))
-
-fun metis_proof_text (banner, full_types, minimize_command, atp_proof,
-                      axiom_names, goal, i) =
-  let
-    val (chained_lemmas, other_lemmas) = used_facts axiom_names atp_proof
-    val n = Logic.count_prems (prop_of goal)
-  in
-    (metis_line banner full_types i n (map fst other_lemmas) ^
-     minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
-     other_lemmas @ chained_lemmas)
-  end
-
 (** Isar proof construction and manipulation **)
 
 fun merge_fact_sets (ls1, ss1) (ls2, ss2) =
@@ -713,16 +492,16 @@ fun merge_fact_sets (ls1, ss1) (ls2, ss2) =
 type label = string * int
 type facts = label list * string list
 
-datatype qualifier = Show | Then | Moreover | Ultimately
+datatype isar_qualifier = Show | Then | Moreover | Ultimately
 
-datatype step =
+datatype isar_step =
   Fix of (string * typ) list |
   Let of term * term |
   Assume of label * term |
-  Have of qualifier list * label * term * byline
+  Have of isar_qualifier list * label * term * byline
 and byline =
   ByMetis of facts |
-  CaseSplit of step list list * facts
+  CaseSplit of isar_step list list * facts
 
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
@@ -743,17 +522,24 @@ fun step_for_line _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
           ByMetis (fold (add_fact_from_dependency conjecture_shape axiom_names)
                         deps ([], [])))
 
-fun raw_step_name (Definition (name, _, _)) = name
-  | raw_step_name (Inference (name, _, _)) = name
+fun repair_name "$true" = "c_True"
+  | repair_name "$false" = "c_False"
+  | repair_name "$$e" = "c_equal" (* seen in Vampire proofs *)
+  | repair_name "equal" = "c_equal" (* needed by SPASS? *)
+  | repair_name s =
+    if String.isPrefix "sQ" s andalso String.isSuffix "_eqProxy" s then
+      "c_equal" (* seen in Vampire proofs *)
+    else
+      s
 
-fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
-                         atp_proof conjecture_shape axiom_names params frees =
+fun isar_proof_from_tstplike_proof pool ctxt full_types tfrees isar_shrink_factor
+        tstplike_proof conjecture_shape axiom_names params frees =
   let
     val lines =
-      atp_proof ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-      |> parse_proof pool
-      |> sort (raw_step_name_ord o pairself raw_step_name)
-      |> clean_up_dependencies []
+      tstplike_proof
+      |> atp_proof_from_tstplike_string
+      |> nasty_atp_proof pool
+      |> map_term_names_in_atp_proof repair_name
       |> decode_lines ctxt full_types tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape axiom_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
@@ -1049,14 +835,13 @@ fun string_for_proof ctxt0 full_types i n =
     and do_proof [Have (_, _, _, ByMetis _)] = ""
       | do_proof proof =
         (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
-        do_indent 0 ^ "proof -\n" ^
-        do_steps "" "" 1 proof ^
-        do_indent 0 ^ (if n <> 1 then "next" else "qed")
+        do_indent 0 ^ "proof -\n" ^ do_steps "" "" 1 proof ^ do_indent 0 ^
+        (if n <> 1 then "next" else "qed")
   in do_proof end
 
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-                    (other_params as (_, full_types, _, atp_proof, axiom_names,
-                                      goal, i)) =
+                    (other_params as (_, full_types, _, tstplike_proof,
+                                      axiom_names, goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
@@ -1064,9 +849,9 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
     val n = Logic.count_prems (prop_of goal)
     val (one_line_proof, lemma_names) = metis_proof_text other_params
     fun isar_proof_for () =
-      case proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
-                                atp_proof conjecture_shape axiom_names params
-                                frees
+      case isar_proof_from_tstplike_proof pool ctxt full_types tfrees
+               isar_shrink_factor tstplike_proof conjecture_shape axiom_names
+               params frees
            |> redirect_proof hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof

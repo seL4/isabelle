@@ -348,7 +348,7 @@ fun destApp tm =
 
 val isApp = can destApp;
 
-fun listMkApp (f,l) = foldl mkApp f l;
+fun listMkApp (f,l) = List.foldl mkApp f l;
 
 local
   fun strip tms tm =
@@ -368,38 +368,38 @@ end;
 val infixes =
     (ref o Print.Infixes)
       [(* ML symbols *)
-       {token = " / ", precedence = 7, leftAssoc = true},
-       {token = " div ", precedence = 7, leftAssoc = true},
-       {token = " mod ", precedence = 7, leftAssoc = true},
-       {token = " * ", precedence = 7, leftAssoc = true},
-       {token = " + ", precedence = 6, leftAssoc = true},
-       {token = " - ", precedence = 6, leftAssoc = true},
-       {token = " ^ ", precedence = 6, leftAssoc = true},
-       {token = " @ ", precedence = 5, leftAssoc = false},
-       {token = " :: ", precedence = 5, leftAssoc = false},
-       {token = " = ", precedence = 4, leftAssoc = true},
-       {token = " <> ", precedence = 4, leftAssoc = true},
-       {token = " <= ", precedence = 4, leftAssoc = true},
-       {token = " < ", precedence = 4, leftAssoc = true},
-       {token = " >= ", precedence = 4, leftAssoc = true},
-       {token = " > ", precedence = 4, leftAssoc = true},
-       {token = " o ", precedence = 3, leftAssoc = true},
-       {token = " -> ", precedence = 2, leftAssoc = false},  (* inferred prec *)
-       {token = " : ", precedence = 1, leftAssoc = false},  (* inferred prec *)
-       {token = ", ", precedence = 0, leftAssoc = false},  (* inferred prec *)
+       {token = "/", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "div", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "mod", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "*", precedence = 7, assoc = Print.LeftAssoc},
+       {token = "+", precedence = 6, assoc = Print.LeftAssoc},
+       {token = "-", precedence = 6, assoc = Print.LeftAssoc},
+       {token = "^", precedence = 6, assoc = Print.LeftAssoc},
+       {token = "@", precedence = 5, assoc = Print.RightAssoc},
+       {token = "::", precedence = 5, assoc = Print.RightAssoc},
+       {token = "=", precedence = 4, assoc = Print.NonAssoc},
+       {token = "<>", precedence = 4, assoc = Print.NonAssoc},
+       {token = "<=", precedence = 4, assoc = Print.NonAssoc},
+       {token = "<", precedence = 4, assoc = Print.NonAssoc},
+       {token = ">=", precedence = 4, assoc = Print.NonAssoc},
+       {token = ">", precedence = 4, assoc = Print.NonAssoc},
+       {token = "o", precedence = 3, assoc = Print.LeftAssoc},
+       {token = "->", precedence = 2, assoc = Print.RightAssoc},
+       {token = ":", precedence = 1, assoc = Print.NonAssoc},
+       {token = ",", precedence = 0, assoc = Print.RightAssoc},
 
        (* Logical connectives *)
-       {token = " /\\ ", precedence = ~1, leftAssoc = false},
-       {token = " \\/ ", precedence = ~2, leftAssoc = false},
-       {token = " ==> ", precedence = ~3, leftAssoc = false},
-       {token = " <=> ", precedence = ~4, leftAssoc = false},
+       {token = "/\\", precedence = ~1, assoc = Print.RightAssoc},
+       {token = "\\/", precedence = ~2, assoc = Print.RightAssoc},
+       {token = "==>", precedence = ~3, assoc = Print.RightAssoc},
+       {token = "<=>", precedence = ~4, assoc = Print.RightAssoc},
 
        (* Other symbols *)
-       {token = " . ", precedence = 9, leftAssoc = true},  (* function app *)
-       {token = " ** ", precedence = 8, leftAssoc = true},
-       {token = " ++ ", precedence = 6, leftAssoc = true},
-       {token = " -- ", precedence = 6, leftAssoc = true},
-       {token = " == ", precedence = 4, leftAssoc = true}];
+       {token = ".", precedence = 9, assoc = Print.LeftAssoc},
+       {token = "**", precedence = 8, assoc = Print.LeftAssoc},
+       {token = "++", precedence = 6, assoc = Print.LeftAssoc},
+       {token = "--", precedence = 6, assoc = Print.LeftAssoc},
+       {token = "==", precedence = 4, assoc = Print.NonAssoc}];
 
 (* The negation symbol *)
 
@@ -422,9 +422,14 @@ fun pp inputTerm =
       and neg = !negation
       and bracks = !brackets
 
-      val bracks = map (fn (b1,b2) => (b1 ^ b2, b1, b2)) bracks
+      val bMap =
+          let
+            fun f (b1,b2) = (b1 ^ b2, b1, b2)
+          in
+            List.map f bracks
+          end
 
-      val bTokens = map #2 bracks @ map #3 bracks
+      val bTokens = op@ (unzip bracks)
 
       val iTokens = Print.tokensInfixes iOps
 
@@ -438,7 +443,15 @@ fun pp inputTerm =
             end
           | _ => NONE
 
-      val iPrinter = Print.ppInfixes iOps destI
+      fun isI tm = Option.isSome (destI tm)
+
+      fun iToken (_,tok) =
+          Print.program
+            [(if tok = "," then Print.skip else Print.ppString " "),
+             Print.ppString tok,
+             Print.addBreak 1];
+
+      val iPrinter = Print.ppInfixes iOps destI iToken
 
       val specialTokens =
           StringSet.addList iTokens (neg :: quants @ ["$","(",")"] @ bTokens)
@@ -466,8 +479,6 @@ fun pp inputTerm =
 
       fun functionName bv = Print.ppMap (checkFunctionName bv) Print.ppString
 
-      fun isI tm = Option.isSome (destI tm)
-
       fun stripNeg tm =
           case tm of
             Fn (f,[a]) =>
@@ -494,7 +505,7 @@ fun pp inputTerm =
           let
             val s = Name.toString b
           in
-            case List.find (fn (n,_,_) => n = s) bracks of
+            case List.find (fn (n,_,_) => n = s) bMap of
               NONE => NONE
             | SOME (_,b1,b2) => SOME (b1,tm,b2)
           end
@@ -527,11 +538,11 @@ fun pp inputTerm =
               val bv = StringSet.addList bv (map Name.toString (v :: vs))
             in
               Print.program
-                [Print.addString q,
+                [Print.ppString q,
                  varName bv v,
                  Print.program
                    (map (Print.sequence (Print.addBreak 1) o varName bv) vs),
-                 Print.addString ".",
+                 Print.ppString ".",
                  Print.addBreak 1,
                  innerQuant bv tm]
             end
@@ -545,7 +556,7 @@ fun pp inputTerm =
             val (n,tm) = stripNeg tm
           in
             Print.blockProgram Print.Inconsistent n
-              [Print.duplicate n (Print.addString neg),
+              [Print.duplicate n (Print.ppString neg),
                if isI tm orelse (r andalso isQuant tm) then bracket bv tm
                else quantifier bv tm]
           end
@@ -571,31 +582,32 @@ local
 
   val isAlphaNum =
       let
-        val alphaNumChars = explode "_'"
+        val alphaNumChars = String.explode "_'"
       in
         fn c => mem c alphaNumChars orelse Char.isAlphaNum c
       end;
 
   local
-    val alphaNumToken = atLeastOne (some isAlphaNum) >> implode;
+    val alphaNumToken = atLeastOne (some isAlphaNum) >> String.implode;
 
     val symbolToken =
         let
           fun isNeg c = str c = !negation
 
-          val symbolChars = explode "<>=-*+/\\?@|!$%&#^:;~"
+          val symbolChars = String.explode "<>=-*+/\\?@|!$%&#^:;~"
 
           fun isSymbol c = mem c symbolChars
 
           fun isNonNegSymbol c = not (isNeg c) andalso isSymbol c
         in
           some isNeg >> str ||
-          (some isNonNegSymbol ++ many (some isSymbol)) >> (implode o op::)
+          (some isNonNegSymbol ++ many (some isSymbol)) >>
+          (String.implode o op::)
         end;
 
     val punctToken =
         let
-          val punctChars = explode "()[]{}.,"
+          val punctChars = String.explode "()[]{}.,"
 
           fun isPunct c = mem c punctChars
         in
@@ -627,8 +639,9 @@ local
 
         val iTokens = Print.tokensInfixes iOps
 
-        val iParser =
-            parseInfixes iOps (fn (f,a,b) => Fn (Name.fromString f, [a,b]))
+        fun iMk (f,a,b) = Fn (Name.fromString f, [a,b])
+
+        val iParser = parseInfixes iOps iMk any
 
         val specialTokens =
             StringSet.addList iTokens (neg :: quants @ ["$"] @ bTokens)
@@ -667,7 +680,7 @@ local
                      some (Useful.equal ".")) >>++
                     (fn (_,(vs,_)) =>
                         term (StringSet.addList bv vs) >>
-                        (fn body => foldr bind body vs))
+                        (fn body => List.foldr bind body vs))
                   end
             in
               var ||
@@ -696,7 +709,7 @@ local
 in
   fun fromString input =
       let
-        val chars = Stream.fromList (explode input)
+        val chars = Stream.fromList (String.explode input)
 
         val tokens = everything (lexer >> singleton) chars
 
@@ -709,7 +722,8 @@ in
 end;
 
 local
-  val antiquotedTermToString = Print.toString (Print.ppBracket "(" ")" pp);
+  val antiquotedTermToString =
+      Print.toString (Print.ppBracket "(" ")" pp);
 in
   val parse = Parse.parseQuotation antiquotedTermToString fromString;
 end;

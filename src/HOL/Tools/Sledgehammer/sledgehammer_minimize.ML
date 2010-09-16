@@ -117,7 +117,7 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
          val new_timeout =
            Int.min (msecs, Time.toMilliseconds time + fudge_msecs)
            |> Time.fromMilliseconds
-         val (min_thms, {proof, axiom_names, ...}) =
+         val (min_thms, {tstplike_proof, axiom_names, ...}) =
            sublinear_minimize (do_test new_timeout)
                (filter_used_facts used_thm_names axioms) ([], result)
          val n = length min_thms
@@ -130,8 +130,8 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
          (SOME min_thms,
           proof_text isar_proof
               (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-              ("Minimized command", full_types, K "", proof, axiom_names, goal,
-               i) |> fst)
+              ("Minimized command", full_types, K "", tstplike_proof,
+               axiom_names, goal, i) |> fst)
        end
      | {outcome = SOME TimedOut, ...} =>
        (NONE, "Timeout: You can increase the time limit using the \"timeout\" \

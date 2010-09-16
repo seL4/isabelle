@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* CNF PROBLEMS                                                              *)
-(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Problem =
