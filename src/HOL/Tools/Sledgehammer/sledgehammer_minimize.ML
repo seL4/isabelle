@@ -20,6 +20,7 @@ end;
 structure Sledgehammer_Minimize : SLEDGEHAMMER_MINIMIZE =
 struct
 
+open ATP_Proof
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_Translate
@@ -28,9 +29,9 @@ open Sledgehammer
 
 (* wrapper for calling external prover *)
 
-fun string_for_failure ATP_Proof.Unprovable = "Unprovable."
-  | string_for_failure ATP_Proof.TimedOut = "Timed out."
-  | string_for_failure ATP_Proof.Interrupted = "Interrupted."
+fun string_for_failure Unprovable = "Unprovable."
+  | string_for_failure TimedOut = "Timed out."
+  | string_for_failure Interrupted = "Interrupted."
   | string_for_failure _ = "Unknown error."
 
 fun n_theorems names =
