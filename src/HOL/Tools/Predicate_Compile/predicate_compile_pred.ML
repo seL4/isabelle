@@ -333,11 +333,20 @@ fun flat_higher_order_arguments (intross, thy) =
               ((full_constname, [definition])::new_defs, thy'))
           end
         | replace_abs_arg arg (new_defs, thy) =
-          if (is_predT (fastype_of arg)) then
+          if is_some (try HOLogic.dest_prodT (fastype_of arg)) then
+            (case try HOLogic.dest_prod arg of
+              SOME (t1, t2) =>
+                (new_defs, thy)
+                |> process constname t1 
+                ||>> process constname t2
+                |>> HOLogic.mk_prod
+            | NONE => (warning ("Replacing higher order arguments " ^
+              "is not applied in an undestructable product type"); (arg, (new_defs, thy))))
+          else if (is_predT (fastype_of arg)) then
             process constname arg (new_defs, thy)
           else
             (arg, (new_defs, thy))
-        
+
         val (args', (new_defs', thy')) = fold_map replace_abs_arg
           (map Envir.beta_eta_contract args) (new_defs, thy)
       in
