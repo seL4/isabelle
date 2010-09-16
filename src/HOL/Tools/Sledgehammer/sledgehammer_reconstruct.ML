@@ -88,8 +88,7 @@ fun add_fact axiom_names (Inference (name, _, [])) =
   | add_fact _ _ = I
 
 fun used_facts_in_tstplike_proof axiom_names =
-  atp_proof_from_tstplike_string Symtab.empty
-  #> rpair [] #-> fold (add_fact axiom_names)
+  atp_proof_from_tstplike_string #> rpair [] #-> fold (add_fact axiom_names)
 
 fun used_facts axiom_names =
   used_facts_in_tstplike_proof axiom_names
@@ -525,12 +524,24 @@ fun step_for_line _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
           ByMetis (fold (add_fact_from_dependency conjecture_shape axiom_names)
                         deps ([], [])))
 
+fun repair_name "$true" = "c_True"
+  | repair_name "$false" = "c_False"
+  | repair_name "$$e" = "c_equal" (* seen in Vampire proofs *)
+  | repair_name "equal" = "c_equal" (* needed by SPASS? *)
+  | repair_name s =
+    if String.isPrefix "sQ" s andalso String.isSuffix "_eqProxy" s then
+      "c_equal" (* seen in Vampire proofs *)
+    else
+      s
+
 fun isar_proof_from_tstplike_proof pool ctxt full_types tfrees isar_shrink_factor
         tstplike_proof conjecture_shape axiom_names params frees =
   let
     val lines =
       tstplike_proof
-      |> atp_proof_from_tstplike_string pool
+      |> atp_proof_from_tstplike_string
+      |> nasty_atp_proof pool
+      |> map_term_names_in_atp_proof repair_name
       |> decode_lines ctxt full_types tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape axiom_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
