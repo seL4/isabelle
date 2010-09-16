@@ -164,6 +164,8 @@ Isabelle/Isar provides a simple document preparation system
     \indexdef{}{antiquotation}{const}\hypertarget{antiquotation.const}{\hyperlink{antiquotation.const}{\mbox{\isa{const}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{abbrev}\hypertarget{antiquotation.abbrev}{\hyperlink{antiquotation.abbrev}{\mbox{\isa{abbrev}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{typ}\hypertarget{antiquotation.typ}{\hyperlink{antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{type}\hypertarget{antiquotation.type}{\hyperlink{antiquotation.type}{\mbox{\isa{type}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{class}\hypertarget{antiquotation.class}{\hyperlink{antiquotation.class}{\mbox{\isa{class}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{text}\hypertarget{antiquotation.text}{\hyperlink{antiquotation.text}{\mbox{\isa{text}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{goals}\hypertarget{antiquotation.goals}{\hyperlink{antiquotation.goals}{\mbox{\isa{goals}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{subgoals}\hypertarget{antiquotation.subgoals}{\hyperlink{antiquotation.subgoals}{\mbox{\isa{subgoals}}}} & : & \isa{antiquotation} \\
@@ -208,6 +210,8 @@ Isabelle/Isar provides a simple document preparation system
       'const' options term |
       'abbrev' options term |
       'typ' options type |
+      'type' options name |
+      'class' options name |
       'text' options name |
       'goals' options |
       'subgoals' options |
@@ -259,8 +263,14 @@ Isabelle/Isar provides a simple document preparation system
   
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}abbrev\ c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isacharbraceright}{\isachardoublequote}} prints a constant abbreviation
   \isa{{\isachardoublequote}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ rhs{\isachardoublequote}} as defined in the current context.
+
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}{\isachardoublequote}} prints a well-formed type \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}}.
-  
+
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}type\ {\isasymkappa}{\isacharbraceright}{\isachardoublequote}} prints a type constructor
+    (logical or abbreviation) \isa{{\isachardoublequote}{\isasymkappa}{\isachardoublequote}}.
+
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}class\ c{\isacharbraceright}{\isachardoublequote}} prints a class \isa{c}.
+
   \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}text\ s{\isacharbraceright}{\isachardoublequote}} prints uninterpreted source text \isa{s}.  This is particularly useful to print portions of text according
   to the Isabelle document style, without demanding well-formedness,
   e.g.\ small pieces of terms that should not be parsed or
