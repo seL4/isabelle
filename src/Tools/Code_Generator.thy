@@ -21,8 +21,8 @@ uses
   "~~/src/Tools/Code/code_ml.ML"
   "~~/src/Tools/Code/code_haskell.ML"
   "~~/src/Tools/Code/code_scala.ML"
-  "~~/src/Tools/Code/code_runtime.ML"
   "~~/src/Tools/nbe.ML"
+  ("~~/src/Tools/Code/code_runtime.ML")
 begin
 
 setup {*
@@ -32,7 +32,6 @@ setup {*
   #> Code_ML.setup
   #> Code_Haskell.setup
   #> Code_Scala.setup
-  #> Code_Runtime.setup
   #> Nbe.setup
   #> Quickcheck.setup
 *}
@@ -63,6 +62,8 @@ next
   show "(PROP P \<Longrightarrow> PROP holds) \<equiv> PROP holds"
     by rule (rule holds)+
 qed  
+
+use "~~/src/Tools/Code/code_runtime.ML"
 
 hide_const (open) holds
 
