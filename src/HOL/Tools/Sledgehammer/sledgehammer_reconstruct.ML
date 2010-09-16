@@ -68,13 +68,13 @@ fun minimize_line _ [] = ""
       "\nTo minimize the number of lemmas, try this: " ^
       Markup.markup Markup.sendback command ^ "."
 
-fun resolve_axiom axiom_names (Str (_, s)) =
+fun resolve_axiom axiom_names ((_, SOME s)) =
     (case strip_prefix_and_unascii axiom_prefix s of
        SOME s' => (case find_first_in_list_vector axiom_names s' of
                      SOME x => [(s', x)]
                    | NONE => [])
      | NONE => [])
-  | resolve_axiom axiom_names (Num num) =
+  | resolve_axiom axiom_names (num, NONE) =
     case Int.fromString num of
       SOME j =>
       if j > 0 andalso j <= Vector.length axiom_names then
@@ -152,17 +152,15 @@ val raw_prefix = "X"
 val assum_prefix = "A"
 val fact_prefix = "F"
 
-fun resolve_conjecture conjecture_shape (Str (num, s)) =
-    let
-      val k = case try (unprefix conjecture_prefix) s of
-                SOME s => Int.fromString s |> the_default ~1
-              | NONE => case Int.fromString num of
-                          SOME j => find_index (exists (curry (op =) j))
-                                               conjecture_shape
-                        | NONE => ~1
-    in if k >= 0 then [k] else [] end
-  | resolve_conjecture conjecture_shape (Num num) =
-    resolve_conjecture conjecture_shape (Str (num, "")) (* HACK *)
+fun resolve_conjecture conjecture_shape (num, s_opt) =
+  let
+    val k = case try (unprefix conjecture_prefix) (the_default "" s_opt) of
+              SOME s => Int.fromString s |> the_default ~1
+            | NONE => case Int.fromString num of
+                        SOME j => find_index (exists (curry (op =) j))
+                                             conjecture_shape
+                      | NONE => ~1
+  in if k >= 0 then [k] else [] end
 
 val is_axiom = not o null oo resolve_axiom
 val is_conjecture = not o null oo resolve_conjecture
@@ -170,9 +168,9 @@ val is_conjecture = not o null oo resolve_conjecture
 fun raw_label_for_name conjecture_shape name =
   case resolve_conjecture conjecture_shape name of
     [j] => (conjecture_prefix, j)
-  | _ => case Int.fromString (step_num name) of
+  | _ => case Int.fromString (fst name) of
            SOME j => (raw_prefix, j)
-         | NONE => (raw_prefix ^ step_num name, 0)
+         | NONE => (raw_prefix ^ fst name, 0)
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 

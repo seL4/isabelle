@@ -11,7 +11,7 @@ sig
   type 'a fo_term = 'a ATP_Problem.fo_term
   type 'a uniform_formula = 'a ATP_Problem.uniform_formula
 
-  datatype step_name = Str of string * string | Num of string
+  type step_name = string * string option
 
   datatype 'a step =
     Definition of step_name * 'a * 'a |
@@ -19,7 +19,6 @@ sig
 
   type 'a proof = 'a uniform_formula step list
 
-  val step_num : step_name -> string
   val is_same_step : step_name * step_name -> bool
   val atp_proof_from_tstplike_string : string -> string proof
   val map_term_names_in_atp_proof :
@@ -58,15 +57,12 @@ fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
-datatype step_name = Str of string * string | Num of string
+type step_name = string * string option
 
-fun step_num (Str (num, _)) = num
-  | step_num (Num num) = num
-
-val is_same_step = op = o pairself step_num
+fun is_same_step p = p |> pairself fst |> op =
 
 fun step_name_ord p =
-  let val q = pairself step_num p in
+  let val q = pairself fst p in
     (* The "unprefix" part is to cope with remote Vampire's output. The proper
        solution would be to perform a topological sort, e.g. using the nice
        "Graph" functor. *)
@@ -162,8 +158,8 @@ val parse_tstp_line =
           let
             val (name, deps) =
               case deps of
-                ["file", _, s] => (Str (num, s), [])
-              | _ => (Num num, deps)
+                ["file", _, s] => ((num, SOME s), [])
+              | _ => ((num, NONE), deps)
           in
             case role of
               "definition" =>
@@ -172,9 +168,9 @@ val parse_tstp_line =
                  Definition (name, phi1, phi2)
                | AAtom (ATerm ("c_equal", _)) =>
                  (* Vampire's equality proxy axiom *)
-                 Inference (name, phi, map Num deps)
+                 Inference (name, phi, map (rpair NONE) deps)
                | _ => raise Fail "malformed definition")
-            | _ => Inference (name, phi, map Num deps)
+            | _ => Inference (name, phi, map (rpair NONE) deps)
           end)
 
 (**** PARSING OF VAMPIRE OUTPUT ****)
@@ -182,7 +178,8 @@ val parse_tstp_line =
 (* Syntax: <num>. <formula> <annotation> *)
 val parse_vampire_line =
   scan_general_id --| $$ "." -- parse_formula -- parse_annotation true
-  >> (fn ((num, phi), deps) => Inference (Num num, phi, map Num deps))
+  >> (fn ((num, phi), deps) =>
+         Inference ((num, NONE), phi, map (rpair NONE) deps))
 
 (**** PARSING OF SPASS OUTPUT ****)
 
@@ -217,7 +214,7 @@ val parse_horn_clause =
 val parse_spass_line =
   scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
     -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
-  >> (fn ((num, deps), u) => Inference (Num num, u, map Num deps))
+  >> (fn ((num, deps), u) => Inference ((num, NONE), u, map (rpair NONE) deps))
 
 val parse_line = parse_tstp_line || parse_vampire_line || parse_spass_line
 val parse_proof =
