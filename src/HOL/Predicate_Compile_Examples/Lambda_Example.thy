@@ -79,7 +79,7 @@ by simp
 
 section {* Manual setup to find counterexample *}
 
-setup {* Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck) *}
+setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}
 
 setup {* Code_Prolog.map_code_options (K 
   { ensure_groundness = true,
@@ -87,9 +87,7 @@ setup {* Code_Prolog.map_code_options (K
     limited_predicates = [(["typing"], 2), (["nthel1"], 2)],
     replacing = [(("typing", "limited_typing"), "quickcheck"),
                  (("nthel1", "limited_nthel1"), "lim_typing")],
-    manual_reorder = [],
-    timeout = Time.fromSeconds 10,
-    prolog_system = Code_Prolog.SWI_PROLOG}) *}
+    manual_reorder = []}) *}
 
 lemma
   "\<Gamma> \<turnstile> t : U \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> \<Gamma> \<turnstile> t' : U"

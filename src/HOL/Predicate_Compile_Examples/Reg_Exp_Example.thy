@@ -96,7 +96,7 @@ oops*)
 oops
 
 
-setup {* Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck) *}
+setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}
 
 setup {* Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
@@ -108,9 +108,7 @@ setup {* Code_Prolog.map_code_options (K
       (("subP", "limited_subP"), "repIntP"),
       (("repIntPa", "limited_repIntPa"), "repIntP"),
       (("accepts", "limited_accepts"), "quickcheck")],  
-   manual_reorder = [],
-   timeout = Time.fromSeconds 10,
-   prolog_system = Code_Prolog.SWI_PROLOG}) *}
+   manual_reorder = []}) *}
 
 text {* Finding the counterexample still seems out of reach for the
  prolog-style generation. *}

@@ -2,7 +2,7 @@ theory List_Examples
 imports Main "Predicate_Compile_Quickcheck" "Code_Prolog"
 begin
 
-setup {* Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck) *}
+setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}
 
 setup {* Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
@@ -12,9 +12,7 @@ setup {* Code_Prolog.map_code_options (K
      [(("appendP", "limited_appendP"), "quickcheck"),
       (("revP", "limited_revP"), "quickcheck"),
       (("appendP", "limited_appendP"), "lim_revP")],
-   manual_reorder = [],
-   timeout = Time.fromSeconds 10,
-   prolog_system = Code_Prolog.SWI_PROLOG}) *}
+   manual_reorder = []}) *}
 
 lemma "(xs :: nat list) = ys @ ys --> rev xs = xs"
 quickcheck[generator = code, iterations = 200000, expect = counterexample]

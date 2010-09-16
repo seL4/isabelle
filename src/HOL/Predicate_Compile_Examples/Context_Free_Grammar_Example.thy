@@ -19,7 +19,7 @@ declare size_list_simps[code_pred_def]
 declare size_list_def[symmetric, code_pred_inline]
 
 
-setup {* Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck) *}
+setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}
 
 datatype alphabet = a | b
 
@@ -61,9 +61,7 @@ setup {* Code_Prolog.map_code_options (K
   limited_types = [],
   limited_predicates = [(["s1", "a1", "b1"], 2)],
   replacing = [(("s1", "limited_s1"), "quickcheck")],
-  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])],
-  timeout = Time.fromSeconds 10,
-  prolog_system = Code_Prolog.SWI_PROLOG}) *}
+  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
 
 
 theorem S\<^isub>1_sound:
@@ -86,9 +84,7 @@ setup {* Code_Prolog.map_code_options (K
   limited_types = [],
   limited_predicates = [(["s2", "a2", "b2"], 3)],
   replacing = [(("s2", "limited_s2"), "quickcheck")],
-  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])],
-  timeout = Time.fromSeconds 10,
-  prolog_system = Code_Prolog.SWI_PROLOG}) *}
+  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
 
 
 theorem S\<^isub>2_sound:
@@ -110,9 +106,7 @@ setup {* Code_Prolog.map_code_options (K
   limited_types = [],
   limited_predicates = [(["s3", "a3", "b3"], 6)],
   replacing = [(("s3", "limited_s3"), "quickcheck")],
-  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])],
-  timeout = Time.fromSeconds 10,
-  prolog_system = Code_Prolog.SWI_PROLOG}) *}
+  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
 
 lemma S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
@@ -152,9 +146,7 @@ setup {* Code_Prolog.map_code_options (K
   limited_types = [],
   limited_predicates = [(["s4", "a4", "b4"], 6)],
   replacing = [(("s4", "limited_s4"), "quickcheck")],
-  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])],
-  timeout = Time.fromSeconds 10,
-  prolog_system = Code_Prolog.SWI_PROLOG}) *}
+  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
 
 
 theorem S\<^isub>4_sound:

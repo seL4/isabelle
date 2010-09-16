@@ -89,14 +89,12 @@ setup {* Code_Prolog.map_code_options (K
   limited_types = [],
   limited_predicates = [],
   replacing = [],
-  manual_reorder = [],
-  timeout = Time.fromSeconds 10,
-  prolog_system = Code_Prolog.SWI_PROLOG}) *}
+  manual_reorder = []}) *}
 
 values 40 "{s. hotel s}"
 
 
-setup {* Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck) *}
+setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}
 
 lemma "\<lbrakk> hotel s; g \<in> isin s r \<rbrakk> \<Longrightarrow> owns s r = Some g"
 quickcheck[generator = code, iterations = 100000, report]
@@ -119,9 +117,7 @@ setup {* Code_Prolog.map_code_options (K
    limited_types = [],
    limited_predicates = [(["hotel"], 5)],
    replacing = [(("hotel", "limited_hotel"), "quickcheck")],
-   manual_reorder = [],
-   timeout = Time.fromSeconds 10,
-   prolog_system = Code_Prolog.SWI_PROLOG}) *}
+   manual_reorder = []}) *}
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
