@@ -62,6 +62,7 @@ structure Sledgehammer : SLEDGEHAMMER =
 struct
 
 open ATP_Problem
+open ATP_Proof
 open ATP_Systems
 open Metis_Clauses
 open Sledgehammer_Util
@@ -134,47 +135,6 @@ fun with_path cleanup after f path =
   |> tap (fn _ => cleanup path)
   |> Exn.release
   |> tap (after path)
-
-fun extract_delimited (begin_delim, end_delim) output =
-  output |> first_field begin_delim |> the |> snd
-         |> first_field end_delim |> the |> fst
-         |> first_field "\n" |> the |> snd
-  handle Option.Option => ""
-
-val tstp_important_message_delims =
-  ("% SZS start RequiredInformation", "% SZS end RequiredInformation")
-
-fun extract_important_message output =
-  case extract_delimited tstp_important_message_delims output of
-    "" => ""
-  | s => s |> space_explode "\n" |> filter_out (curry (op =) "")
-           |> map (perhaps (try (unprefix "%")))
-           |> map (perhaps (try (unprefix " ")))
-           |> space_implode "\n " |> quote
-
-(* Splits by the first possible of a list of delimiters. *)
-fun extract_tstplike_proof delims output =
-  case pairself (find_first (fn s => String.isSubstring s output))
-                (ListPair.unzip delims) of
-    (SOME begin_delim, SOME end_delim) =>
-    extract_delimited (begin_delim, end_delim) output
-  | _ => ""
-
-fun extract_tstplike_proof_and_outcome complete res_code proof_delims
-                                       known_failures output =
-  case known_failure_in_output output known_failures of
-    NONE => (case extract_tstplike_proof proof_delims output of
-             "" => ("", SOME (if res_code = 0 andalso output = "" then
-                                Interrupted
-                              else
-                                 UnknownError))
-           | tstplike_proof => if res_code = 0 then (tstplike_proof, NONE)
-                               else ("", SOME UnknownError))
-  | SOME failure =>
-    ("", SOME (if failure = IncompleteUnprovable andalso complete then
-                 Unprovable
-               else
-                 failure))
 
 fun extract_clause_sequence output =
   let
