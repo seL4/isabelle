@@ -99,8 +99,9 @@ val fromString : (char,'a) parser -> string -> 'a
 (* ------------------------------------------------------------------------- *)
 
 val parseInfixes :
-    Print.infixes -> (string * 'a * 'a -> 'a) -> (string,'a) parser ->
-    (string,'a) parser
+    Print.infixes ->
+    (Print.token * 'a * 'a -> 'a) -> ('b,Print.token) parser ->
+    ('b,'a) parser -> ('b,'a) parser
 
 (* ------------------------------------------------------------------------- *)
 (* Quotations.                                                               *)

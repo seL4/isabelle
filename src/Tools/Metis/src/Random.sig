@@ -8,6 +8,7 @@ randomness.
 
 signature Random =
 sig
+
   val nextWord : unit -> word
 
   val nextBool : unit -> bool

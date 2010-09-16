@@ -39,7 +39,7 @@ fun checkProblems (problems : problem list) =
       dups names
     end;
 
-fun listProblem {name, comments = _, goal = _} = print (name ^ "\n");
+fun listProblem {name, comments = _, goal = _} = TextIO.print (name ^ "\n");
 
 fun outputProblem outputDir {name,comments,goal} =
     let

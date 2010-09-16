@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC TERMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure TermNet :> TermNet =
@@ -158,7 +158,7 @@ fun size (Net (_,_,NONE)) = 0
 
 fun null net = size net = 0;
 
-fun singles qtms a = foldr Single a qtms;
+fun singles qtms a = List.foldr Single a qtms;
 
 local
   fun pre NONE = (0,NONE)
@@ -188,7 +188,7 @@ in
       handle Error _ => raise Bug "TermNet.insert: should never fail";
 end;
 
-fun fromList parm l = foldl (fn (tm_a,n) => insert n tm_a) (new parm) l;
+fun fromList parm l = List.foldl (fn (tm_a,n) => insert n tm_a) (new parm) l;
 
 fun filter pred =
     let
@@ -441,7 +441,7 @@ end;
 
 local
   fun inc (qtm, Result l, acc) =
-      foldl (fn ((n,a),acc) => (n,(qtm,a)) :: acc) acc l
+      List.foldl (fn ((n,a),acc) => (n,(qtm,a)) :: acc) acc l
     | inc _ = raise Bug "TermNet.pp.inc";
 
   fun toList (Net (_,_,NONE)) = []

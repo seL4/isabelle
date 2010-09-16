@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* NAME/ARITY PAIRS                                                          *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure NameArity :> NameArity =
@@ -46,7 +46,7 @@ fun equal (n1,i1) (n2,i2) = i1 = i2 andalso Name.equal n1 n2;
 fun pp (n,i) =
     Print.blockProgram Print.Inconsistent 0
       [Name.pp n,
-       Print.addString "/",
+       Print.ppString "/",
        Print.ppInt i];
 
 end
@@ -57,35 +57,36 @@ struct type t = NameArity.nameArity val compare = NameArity.compare end
 structure NameArityMap =
 struct
 
-  local
-    structure S = KeyMap (NameArityOrdered);
-  in
-    open S;
-  end;
+local
+  structure S = KeyMap (NameArityOrdered);
+in
+  open S;
+end;
 
-  fun compose m1 m2 =
-      let
-        fun pk ((_,a),n) = peek m2 (n,a)
-      in
-        mapPartial pk m1
-      end;
+fun compose m1 m2 =
+    let
+      fun pk ((_,a),n) = peek m2 (n,a)
+    in
+      mapPartial pk m1
+    end;
 
 end
 
 structure NameAritySet =
 struct
 
-  local
-    structure S = ElementSet (NameArityMap);
-  in
-    open S;
-  end;
+local
+  structure S = ElementSet (NameArityMap);
+in
+  open S;
+end;
 
-  val allNullary = all NameArity.nullary;
+val allNullary = all NameArity.nullary;
 
-  val pp =
-      Print.ppMap
-        toList
-        (Print.ppBracket "{" "}" (Print.ppOpList "," NameArity.pp));
+val pp =
+    Print.ppMap
+      toList
+      (Print.ppBracket "{" "}" (Print.ppOpList "," NameArity.pp));
+
 
 end

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC ATOMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Atom :> Atom =
@@ -34,14 +34,14 @@ val functions =
     let
       fun f (tm,acc) = NameAritySet.union (Term.functions tm) acc
     in
-      fn atm => foldl f NameAritySet.empty (arguments atm)
+      fn atm => List.foldl f NameAritySet.empty (arguments atm)
     end;
 
 val functionNames =
     let
       fun f (tm,acc) = NameSet.union (Term.functionNames tm) acc
     in
-      fn atm => foldl f NameSet.empty (arguments atm)
+      fn atm => List.foldl f NameSet.empty (arguments atm)
     end;
 
 (* Binary relations *)
@@ -58,7 +58,8 @@ fun isBinop p = can (destBinop p);
 (* The size of an atom in symbols.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun symbols atm = foldl (fn (tm,z) => Term.symbols tm + z) 1 (arguments atm);
+fun symbols atm =
+    List.foldl (fn (tm,z) => Term.symbols tm + z) 1 (arguments atm);
 
 (* ------------------------------------------------------------------------- *)
 (* A total comparison function for atoms.                                    *)
@@ -85,7 +86,7 @@ fun subterms ((_,tms) : atom) =
     let
       fun f ((n,tm),l) = map (fn (p,s) => (n :: p, s)) (Term.subterms tm) @ l
     in
-      foldl f [] (enumerate tms)
+      List.foldl f [] (enumerate tms)
     end;
 
 fun replace _ ([],_) = raise Bug "Atom.replace: empty path"
@@ -120,7 +121,7 @@ val freeVars =
     let
       fun f (tm,acc) = NameSet.union (Term.freeVars tm) acc
     in
-      fn atm => foldl f NameSet.empty (arguments atm)
+      fn atm => List.foldl f NameSet.empty (arguments atm)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -146,7 +147,7 @@ in
         val _ = (Name.equal p1 p2 andalso length tms1 = length tms2) orelse
                 raise Error "Atom.match"
       in
-        foldl matchArg sub (zip tms1 tms2)
+        List.foldl matchArg sub (zip tms1 tms2)
       end;
 end;
 
@@ -162,7 +163,7 @@ in
         val _ = (Name.equal p1 p2 andalso length tms1 = length tms2) orelse
                 raise Error "Atom.unify"
       in
-        foldl unifyArg sub (zip tms1 tms2)
+        List.foldl unifyArg sub (zip tms1 tms2)
       end;
 end;
 
@@ -211,7 +212,7 @@ fun rhs atm = snd (destEq atm);
 (* ------------------------------------------------------------------------- *)
 
 fun typedSymbols ((_,tms) : atom) =
-    foldl (fn (tm,z) => Term.typedSymbols tm + z) 1 tms;
+    List.foldl (fn (tm,z) => Term.typedSymbols tm + z) 1 tms;
 
 fun nonVarTypedSubterms (_,tms) =
     let
@@ -219,10 +220,10 @@ fun nonVarTypedSubterms (_,tms) =
           let
             fun addTm ((path,tm),acc) = (n :: path, tm) :: acc
           in
-            foldl addTm acc (Term.nonVarTypedSubterms arg)
+            List.foldl addTm acc (Term.nonVarTypedSubterms arg)
           end
     in
-      foldl addArg [] (enumerate tms)
+      List.foldl addArg [] (enumerate tms)
     end;
 
 (* ------------------------------------------------------------------------- *)

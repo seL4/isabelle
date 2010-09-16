@@ -40,7 +40,7 @@ sig
      used_thm_names: (string * locality) list,
      atp_run_time_in_msecs: int,
      output: string,
-     proof: string,
+     tstplike_proof: string,
      axiom_names: (string * locality) list vector,
      conjecture_shape: int list list}
   type prover = params -> minimize_command -> problem -> prover_result
@@ -111,7 +111,7 @@ type prover_result =
    used_thm_names: (string * locality) list,
    atp_run_time_in_msecs: int,
    output: string,
-   proof: string,
+   tstplike_proof: string,
    axiom_names: (string * locality) list vector,
    conjecture_shape: int list list}
 
@@ -153,23 +153,23 @@ fun extract_important_message output =
            |> space_implode "\n " |> quote
 
 (* Splits by the first possible of a list of delimiters. *)
-fun extract_proof delims output =
+fun extract_tstplike_proof delims output =
   case pairself (find_first (fn s => String.isSubstring s output))
                 (ListPair.unzip delims) of
     (SOME begin_delim, SOME end_delim) =>
     extract_delimited (begin_delim, end_delim) output
   | _ => ""
 
-fun extract_proof_and_outcome complete res_code proof_delims known_failures
-                              output =
+fun extract_tstplike_proof_and_outcome complete res_code proof_delims
+                                       known_failures output =
   case known_failure_in_output output known_failures of
-    NONE => (case extract_proof proof_delims output of
+    NONE => (case extract_tstplike_proof proof_delims output of
              "" => ("", SOME (if res_code = 0 andalso output = "" then
                                 Interrupted
                               else
                                  UnknownError))
-           | proof => if res_code = 0 then (proof, NONE)
-                      else ("", SOME UnknownError))
+           | tstplike_proof => if res_code = 0 then (tstplike_proof, NONE)
+                               else ("", SOME UnknownError))
   | SOME failure =>
     ("", SOME (if failure = IncompleteUnprovable andalso complete then
                  Unprovable
@@ -297,16 +297,16 @@ fun prover_fun auto atp_name
                        else
                          I)
                   |>> (if measure_run_time then split_time else rpair 0)
-                val (proof, outcome) =
-                  extract_proof_and_outcome complete res_code proof_delims
-                                            known_failures output
-              in (output, msecs, proof, outcome) end
+                val (tstplike_proof, outcome) =
+                  extract_tstplike_proof_and_outcome complete res_code
+                      proof_delims known_failures output
+              in (output, msecs, tstplike_proof, outcome) end
             val readable_names = debug andalso overlord
             val (problem, pool, conjecture_offset, axiom_names) =
               prepare_problem ctxt readable_names explicit_forall full_types
                               explicit_apply hyp_ts concl_t axioms
-            val ss = strings_for_tptp_problem use_conjecture_for_hypotheses
-                                              problem
+            val ss = tptp_strings_for_atp_problem use_conjecture_for_hypotheses
+                                                  problem
             val _ = File.write_list probfile ss
             val conjecture_shape =
               conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
@@ -322,8 +322,8 @@ fun prover_fun auto atp_name
               |> run_twice
                  ? (fn (_, msecs0, _, SOME _) =>
                        run true (Time.- (timeout, Timer.checkRealTimer timer))
-                       |> (fn (output, msecs, proof, outcome) =>
-                              (output, msecs0 + msecs, proof, outcome))
+                       |> (fn (output, msecs, tstplike_proof, outcome) =>
+                              (output, msecs0 + msecs, tstplike_proof, outcome))
                      | result => result)
           in ((pool, conjecture_shape, axiom_names), result) end
         else
@@ -339,7 +339,7 @@ fun prover_fun auto atp_name
       else
         File.write (Path.explode (Path.implode probfile ^ "_proof")) output
     val ((pool, conjecture_shape, axiom_names),
-         (output, msecs, proof, outcome)) =
+         (output, msecs, tstplike_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val (conjecture_shape, axiom_names) =
       repair_conjecture_shape_and_theorem_names output conjecture_shape
@@ -352,8 +352,8 @@ fun prover_fun auto atp_name
         NONE =>
         proof_text isar_proof
             (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-            (banner, full_types, minimize_command, proof, axiom_names, goal,
-             subgoal)
+            (banner, full_types, minimize_command, tstplike_proof, axiom_names,
+             goal, subgoal)
         |>> (fn message =>
                 message ^ (if verbose then
                              "\nATP real CPU time: " ^ string_of_int msecs ^
@@ -369,14 +369,14 @@ fun prover_fun auto atp_name
   in
     {outcome = outcome, message = message, pool = pool,
      used_thm_names = used_thm_names, atp_run_time_in_msecs = msecs,
-     output = output, proof = proof, axiom_names = axiom_names,
-     conjecture_shape = conjecture_shape}
+     output = output, tstplike_proof = tstplike_proof,
+     axiom_names = axiom_names, conjecture_shape = conjecture_shape}
   end
 
 fun get_prover_fun thy name = prover_fun false name (get_prover thy name)
 
-fun run_prover (params as {blocking, verbose, max_relevant, timeout, expect,
-                           ...})
+fun run_prover (params as {blocking, debug, verbose, max_relevant, timeout,
+                           expect, ...})
                auto i n minimize_command (problem as {state, goal, axioms, ...})
                (prover as {default_max_relevant, ...}, atp_name) =
   let
@@ -398,14 +398,19 @@ fun run_prover (params as {blocking, verbose, max_relevant, timeout, expect,
          "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
     fun go () =
       let
-        val (outcome_code, message) =
+        fun really_go () =
           prover_fun auto atp_name prover params (minimize_command atp_name)
                      problem
           |> (fn {outcome, message, ...} =>
                  (if is_some outcome then "none" else "some", message))
-          handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
-               | exn => ("unknown", "Internal error:\n" ^
-                                    ML_Compiler.exn_message exn ^ "\n")
+        val (outcome_code, message) =
+          if debug then
+            really_go ()
+          else
+            (really_go ()
+             handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
+                  | exn => ("unknown", "Internal error:\n" ^
+                                       ML_Compiler.exn_message exn ^ "\n"))
         val _ =
           if expect = "" orelse outcome_code = expect then
             ()

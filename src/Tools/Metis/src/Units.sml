@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A STORE FOR UNIT THEOREMS                                                 *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Units :> Units =
@@ -47,7 +47,7 @@ fun add (units as Units net) (uTh as (lit,th)) =
         end
     end;
 
-val addList = foldl (fn (th,u) => add u th);
+val addList = List.foldl (fn (th,u) => add u th);
 
 (* ------------------------------------------------------------------------- *)
 (* Matching.                                                                 *)

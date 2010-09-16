@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Rule =

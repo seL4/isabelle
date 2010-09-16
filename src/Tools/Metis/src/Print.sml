@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PRETTY-PRINTING                                                           *)
-(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2008 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Print :> Print =
@@ -29,23 +29,47 @@ fun revConcat strm =
     | Stream.Cons (h,t) => revAppend h (revConcat o t);
 
 local
-  fun join current prev = (prev ^ "\n", current);
-in
-  fun joinNewline strm =
-      case strm of
-        Stream.Nil => Stream.Nil
-      | Stream.Cons (h,t) => Stream.maps join Stream.singleton h (t ());
-end;
-
-local
   fun calcSpaces n = nChars #" " n;
 
-  val cachedSpaces = Vector.tabulate (initialLineLength,calcSpaces);
+  val cacheSize = 2 * initialLineLength;
+
+  val cachedSpaces = Vector.tabulate (cacheSize,calcSpaces);
 in
   fun nSpaces n =
-      if n < initialLineLength then Vector.sub (cachedSpaces,n)
+      if n < cacheSize then Vector.sub (cachedSpaces,n)
       else calcSpaces n;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Escaping strings.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun escapeString {escape} =
+    let
+      val escapeMap = map (fn c => (c, "\\" ^ str c)) escape
+
+      fun escapeChar c =
+          case c of
+            #"\\" => "\\\\"
+          | #"\n" => "\\n"
+          | #"\t" => "\\t"
+          | _ =>
+            case List.find (equal c o fst) escapeMap of
+              SOME (_,s) => s
+            | NONE => str c
+    in
+      String.translate escapeChar
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of strings annotated with their size.                              *)
+(* ------------------------------------------------------------------------- *)
+
+type stringSize = string * int;
+
+fun mkStringSize s = (s, size s);
+
+val emptyStringSize = mkStringSize "";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of pretty-printers.                                                *)
@@ -53,23 +77,21 @@ end;
 
 datatype breakStyle = Consistent | Inconsistent;
 
-datatype ppStep =
+datatype step =
     BeginBlock of breakStyle * int
   | EndBlock
-  | AddString of string
+  | AddString of stringSize
   | AddBreak of int
   | AddNewline;
 
-type ppstream = ppStep Stream.stream;
-
-type 'a pp = 'a -> ppstream;
+type ppstream = step Stream.stream;
 
 fun breakStyleToString style =
     case style of
       Consistent => "Consistent"
     | Inconsistent => "Inconsistent";
 
-fun ppStepToString step =
+fun stepToString step =
     case step of
       BeginBlock _ => "BeginBlock"
     | EndBlock => "EndBlock"
@@ -108,330 +130,6 @@ val stream : ppstream Stream.stream -> ppstream = Stream.concat;
 fun block style indent pp = program [beginBlock style indent, pp, endBlock];
 
 fun blockProgram style indent pps = block style indent (program pps);
-
-fun bracket l r pp =
-    blockProgram Inconsistent (size l)
-      [addString l,
-       pp,
-       addString r];
-
-fun field f pp =
-    blockProgram Inconsistent 2
-      [addString (f ^ " ="),
-       addBreak 1,
-       pp];
-
-val record =
-    let
-      val sep = sequence (addString ",") (addBreak 1)
-
-      fun recordField (f,pp) = field f pp
-
-      fun sepField f = sequence sep (recordField f)
-
-      fun fields [] = []
-        | fields (f :: fs) = recordField f :: map sepField fs
-    in
-      bracket "{" "}" o blockProgram Consistent 0 o fields
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty-printer combinators.                                               *)
-(* ------------------------------------------------------------------------- *)
-
-fun ppMap f ppB a : ppstream = ppB (f a);
-
-fun ppBracket l r ppA a = bracket l r (ppA a);
-
-fun ppOp s = sequence (if s = "" then skip else addString s) (addBreak 1);
-
-fun ppOp2 ab ppA ppB (a,b) =
-    blockProgram Inconsistent 0
-      [ppA a,
-       ppOp ab,
-       ppB b];
-
-fun ppOp3 ab bc ppA ppB ppC (a,b,c) =
-    blockProgram Inconsistent 0
-      [ppA a,
-       ppOp ab,
-       ppB b,
-       ppOp bc,
-       ppC c];
-
-fun ppOpList s ppA =
-    let
-      fun ppOpA a = sequence (ppOp s) (ppA a)
-    in
-      fn [] => skip
-       | h :: t => blockProgram Inconsistent 0 (ppA h :: map ppOpA t)
-    end;
-
-fun ppOpStream s ppA =
-    let
-      fun ppOpA a = sequence (ppOp s) (ppA a)
-    in
-      fn Stream.Nil => skip
-       | Stream.Cons (h,t) =>
-         blockProgram Inconsistent 0
-           [ppA h,
-            Stream.concat (Stream.map ppOpA (t ()))]
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty-printers for common types.                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun ppChar c = addString (str c);
-
-val ppString = addString;
-
-fun ppEscapeString {escape} =
-    let
-      val escapeMap = map (fn c => (c, "\\" ^ str c)) escape
-
-      fun escapeChar c =
-          case c of
-            #"\\" => "\\\\"
-          | #"\n" => "\\n"
-          | #"\t" => "\\t"
-          | _ =>
-            case List.find (equal c o fst) escapeMap of
-              SOME (_,s) => s
-            | NONE => str c
-    in
-      fn s => addString (String.translate escapeChar s)
-    end;
-
-val ppUnit : unit pp = K (addString "()");
-
-fun ppBool b = addString (if b then "true" else "false");
-
-fun ppInt i = addString (Int.toString i);
-
-local
-  val ppNeg = addString "~"
-  and ppSep = addString ","
-  and ppZero = addString "0"
-  and ppZeroZero = addString "00";
-
-  fun ppIntBlock i =
-      if i < 10 then sequence ppZeroZero (ppInt i)
-      else if i < 100 then sequence ppZero (ppInt i)
-      else ppInt i;
-
-  fun ppIntBlocks i =
-      if i < 1000 then ppInt i
-      else sequence (ppIntBlocks (i div 1000))
-             (sequence ppSep (ppIntBlock (i mod 1000)));
-in
-  fun ppPrettyInt i =
-      if i < 0 then sequence ppNeg (ppIntBlocks (~i))
-      else ppIntBlocks i;
-end;
-
-fun ppReal r = addString (Real.toString r);
-
-fun ppPercent p = addString (percentToString p);
-
-fun ppOrder x =
-    addString
-      (case x of
-         LESS => "Less"
-       | EQUAL => "Equal"
-       | GREATER => "Greater");
-
-fun ppList ppA = ppBracket "[" "]" (ppOpList "," ppA);
-
-fun ppStream ppA = ppBracket "[" "]" (ppOpStream "," ppA);
-
-fun ppOption ppA ao =
-    case ao of
-      SOME a => ppA a
-    | NONE => addString "-";
-
-fun ppPair ppA ppB = ppBracket "(" ")" (ppOp2 "," ppA ppB);
-
-fun ppTriple ppA ppB ppC = ppBracket "(" ")" (ppOp3 "," "," ppA ppB ppC);
-
-fun ppBreakStyle style = addString (breakStyleToString style);
-
-fun ppPpStep step =
-    let
-      val cmd = ppStepToString step
-    in
-      blockProgram Inconsistent 2
-        (addString cmd ::
-         (case step of
-            BeginBlock style_indent =>
-              [addBreak 1,
-               ppPair ppBreakStyle ppInt style_indent]
-          | EndBlock => []
-          | AddString s =>
-              [addBreak 1,
-               addString ("\"" ^ s ^ "\"")]
-          | AddBreak n =>
-              [addBreak 1,
-               ppInt n]
-          | AddNewline => []))
-    end;
-
-val ppPpstream = ppStream ppPpStep;
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty-printing infix operators.                                          *)
-(* ------------------------------------------------------------------------- *)
-
-datatype infixes =
-    Infixes of
-      {token : string,
-       precedence : int,
-       leftAssoc : bool} list;
-
-local
-  fun chop l =
-      case l of
-        #" " :: l => let val (n,l) = chop l in (n + 1, l) end
-      | _ => (0,l);
-in
-  fun opSpaces tok =
-      let
-        val tok = explode tok
-        val (r,tok) = chop (rev tok)
-        val (l,tok) = chop (rev tok)
-        val tok = implode tok
-      in
-        {leftSpaces = l, token = tok, rightSpaces = r}
-      end;
-end;
-
-fun ppOpSpaces {leftSpaces,token,rightSpaces} =
-    let
-      val leftSpacesToken =
-          if leftSpaces = 0 then token else nSpaces leftSpaces ^ token
-    in
-      sequence
-        (addString leftSpacesToken)
-        (addBreak rightSpaces)
-    end;
-
-local
-  fun new t l acc = {tokens = [opSpaces t], leftAssoc = l} :: acc;
-
-  fun add t l acc =
-      case acc of
-        [] => raise Bug "Print.layerInfixOps.layer"
-      | {tokens = ts, leftAssoc = l'} :: acc =>
-        if l = l' then {tokens = opSpaces t :: ts, leftAssoc = l} :: acc
-        else raise Bug "Print.layerInfixOps: mixed assocs";
-
-  fun layer ({token = t, precedence = p, leftAssoc = l}, (acc,p')) =
-      let
-        val acc = if p = p' then add t l acc else new t l acc
-      in
-        (acc,p)
-      end;
-in
-  fun layerInfixes (Infixes i) =
-      case sortMap #precedence Int.compare i of
-        [] => []
-      | {token = t, precedence = p, leftAssoc = l} :: i =>
-        let
-          val acc = new t l []
-
-          val (acc,_) = List.foldl layer (acc,p) i
-        in
-          acc
-        end;
-end;
-
-val tokensLayeredInfixes =
-    let
-      fun addToken ({leftSpaces = _, token = t, rightSpaces = _}, s) =
-          StringSet.add s t
-
-      fun addTokens ({tokens = t, leftAssoc = _}, s) =
-          List.foldl addToken s t
-    in
-      List.foldl addTokens StringSet.empty
-    end;
-
-val tokensInfixes = tokensLayeredInfixes o layerInfixes;
-
-local
-  val mkTokenMap =
-      let
-        fun add (token,m) =
-            let
-              val {leftSpaces = _, token = t, rightSpaces = _} = token
-            in
-              StringMap.insert m (t, ppOpSpaces token)
-            end
-      in
-        List.foldl add (StringMap.new ())
-      end;
-in
-  fun ppGenInfix {tokens,leftAssoc} =
-      let
-        val tokenMap = mkTokenMap tokens
-      in
-        fn dest => fn ppSub =>
-           let
-             fun dest' tm =
-                 case dest tm of
-                   NONE => NONE
-                 | SOME (t,a,b) =>
-                   case StringMap.peek tokenMap t of
-                     NONE => NONE
-                   | SOME p => SOME (p,a,b)
-
-             fun ppGo (tmr as (tm,r)) =
-                 case dest' tm of
-                   NONE => ppSub tmr
-                 | SOME (p,a,b) =>
-                   program
-                     [(if leftAssoc then ppGo else ppSub) (a,true),
-                      p,
-                      (if leftAssoc then ppSub else ppGo) (b,r)]
-           in
-             fn tmr as (tm,_) =>
-                if Option.isSome (dest' tm) then
-                  block Inconsistent 0 (ppGo tmr)
-                else
-                  ppSub tmr
-           end
-      end;
-end
-
-fun ppInfixes ops =
-    let
-      val layeredOps = layerInfixes ops
-
-      val toks = tokensLayeredInfixes layeredOps
-
-      val iprinters = List.map ppGenInfix layeredOps
-    in
-      fn dest => fn ppSub =>
-         let
-           fun printer sub = foldl (fn (ip,p) => ip dest p) sub iprinters
-
-           fun isOp t =
-               case dest t of
-                 SOME (x,_,_) => StringSet.member x toks
-               | NONE => false
-
-           fun subpr (tmr as (tm,_)) =
-               if isOp tm then
-                 blockProgram Inconsistent 1
-                   [addString "(",
-                    printer subpr (tm,false),
-                    addString ")"]
-               else
-                 ppSub tmr
-         in
-           fn tmr => block Inconsistent 0 (printer subpr tmr)
-         end
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Executing pretty-printers to generate lines.                              *)
@@ -496,18 +194,22 @@ val splitChunks =
 val sizeChunks = List.foldl (fn (c,z) => sizeChunk c + z) 0;
 
 local
-  fun render acc [] = acc
-    | render acc (chunk :: chunks) =
-      case chunk of
-        StringChunk {string = s, ...} => render (acc ^ s) chunks
-      | BreakChunk n => render (acc ^ nSpaces n) chunks
-      | BlockChunk (Block {chunks = l, ...}) =>
-        render acc (List.revAppend (l,chunks));
+  fun flatten acc chunks =
+      case chunks of
+        [] => rev acc
+      | chunk :: chunks =>
+        case chunk of
+          StringChunk {string = s, ...} => flatten (s :: acc) chunks
+        | BreakChunk n => flatten (nSpaces n :: acc) chunks
+        | BlockChunk (Block {chunks = l, ...}) =>
+          flatten acc (List.revAppend (l,chunks));
 in
-  fun renderChunks indent chunks = render (nSpaces indent) (rev chunks);
-
-  fun renderChunk indent chunk = renderChunks indent [chunk];
+  fun renderChunks indent chunks =
+      {indent = indent,
+       line = String.concat (flatten [] (rev chunks))};
 end;
+
+fun renderChunk indent chunk = renderChunks indent [chunk];
 
 fun isEmptyBlock block =
     let
@@ -523,6 +225,7 @@ fun isEmptyBlock block =
       empty
     end;
 
+(*BasicDebug
 fun checkBlock ind block =
     let
       val Block {indent, style = _, size, chunks} = block
@@ -558,6 +261,7 @@ val checkBlocks =
     in
       check initialIndent o rev
     end;
+*)
 
 val initialBlock =
     let
@@ -969,11 +673,9 @@ local
         (lines,state)
       end;
 
-  fun executeAddString lineLength s lines state =
+  fun executeAddString lineLength (s,n) lines state =
       let
         val State {blocks,lineIndent,lineSize} = state
-
-        val n = size s
 
         val blocks =
             case blocks of
@@ -1061,10 +763,13 @@ local
 
   fun executeAddNewline lineLength lines state =
       let
-        val (lines,state) = executeAddString lineLength "" lines state
-        val (lines,state) = executeBigBreak lineLength lines state
+        val (lines,state) =
+            executeAddString lineLength emptyStringSize lines state
+
+        val (lines,state) =
+            executeBigBreak lineLength lines state
       in
-        executeAddString lineLength "" lines state
+        executeAddString lineLength emptyStringSize lines state
       end;
 
   fun final lineLength lines state =
@@ -1108,11 +813,347 @@ in
               (lines,state)
             end
             handle Bug bug =>
-              raise Bug ("Print.advance: after " ^ ppStepToString step ^
+              raise Bug ("Print.advance: after " ^ stepToString step ^
                          " command:\n" ^ bug)
 *)
       in
         revConcat o Stream.maps advance (final lineLength []) initialState
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printer combinators.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+type 'a pp = 'a -> ppstream;
+
+fun ppMap f ppB a : ppstream = ppB (f a);
+
+fun ppBracket' l r ppA a =
+    let
+      val (_,n) = l
+    in
+      blockProgram Inconsistent n
+        [addString l,
+         ppA a,
+         addString r]
+    end;
+
+fun ppOp' s = sequence (addString s) (addBreak 1);
+
+fun ppOp2' ab ppA ppB (a,b) =
+    blockProgram Inconsistent 0
+      [ppA a,
+       ppOp' ab,
+       ppB b];
+
+fun ppOp3' ab bc ppA ppB ppC (a,b,c) =
+    blockProgram Inconsistent 0
+      [ppA a,
+       ppOp' ab,
+       ppB b,
+       ppOp' bc,
+       ppC c];
+
+fun ppOpList' s ppA =
+    let
+      fun ppOpA a = sequence (ppOp' s) (ppA a)
+    in
+      fn [] => skip
+       | h :: t => blockProgram Inconsistent 0 (ppA h :: map ppOpA t)
+    end;
+
+fun ppOpStream' s ppA =
+    let
+      fun ppOpA a = sequence (ppOp' s) (ppA a)
+    in
+      fn Stream.Nil => skip
+       | Stream.Cons (h,t) =>
+         blockProgram Inconsistent 0
+           [ppA h,
+            Stream.concat (Stream.map ppOpA (t ()))]
+    end;
+
+fun ppBracket l r = ppBracket' (mkStringSize l) (mkStringSize r);
+
+fun ppOp s = ppOp' (mkStringSize s);
+
+fun ppOp2 ab = ppOp2' (mkStringSize ab);
+
+fun ppOp3 ab bc = ppOp3' (mkStringSize ab) (mkStringSize bc);
+
+fun ppOpList s = ppOpList' (mkStringSize s);
+
+fun ppOpStream s = ppOpStream' (mkStringSize s);
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printers for common types.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun ppChar c = addString (str c, 1);
+
+fun ppString s = addString (mkStringSize s);
+
+fun ppEscapeString escape = ppMap (escapeString escape) ppString;
+
+local
+  val pp = ppString "()";
+in
+  fun ppUnit () = pp;
+end;
+
+local
+  val ppTrue = ppString "true"
+  and ppFalse = ppString "false";
+in
+  fun ppBool b = if b then ppTrue else ppFalse;
+end;
+
+val ppInt = ppMap Int.toString ppString;
+
+local
+  val ppNeg = ppString "~"
+  and ppSep = ppString ","
+  and ppZero = ppString "0"
+  and ppZeroZero = ppString "00";
+
+  fun ppIntBlock i =
+      if i < 10 then sequence ppZeroZero (ppInt i)
+      else if i < 100 then sequence ppZero (ppInt i)
+      else ppInt i;
+
+  fun ppIntBlocks i =
+      if i < 1000 then ppInt i
+      else sequence (ppIntBlocks (i div 1000))
+             (sequence ppSep (ppIntBlock (i mod 1000)));
+in
+  fun ppPrettyInt i =
+      if i < 0 then sequence ppNeg (ppIntBlocks (~i))
+      else ppIntBlocks i;
+end;
+
+val ppReal = ppMap Real.toString ppString;
+
+val ppPercent = ppMap percentToString ppString;
+
+local
+  val ppLess = ppString "Less"
+  and ppEqual = ppString "Equal"
+  and ppGreater = ppString "Greater";
+in
+  fun ppOrder ord =
+      case ord of
+        LESS => ppLess
+      | EQUAL => ppEqual
+      | GREATER => ppGreater;
+end;
+
+local
+  val left = mkStringSize "["
+  and right = mkStringSize "]"
+  and sep = mkStringSize ",";
+in
+  fun ppList ppX xs = ppBracket' left right (ppOpList' sep ppX) xs;
+
+  fun ppStream ppX xs = ppBracket' left right (ppOpStream' sep ppX) xs;
+end;
+
+local
+  val ppNone = ppString "-";
+in
+  fun ppOption ppX xo =
+      case xo of
+        SOME x => ppX x
+      | NONE => ppNone;
+end;
+
+local
+  val left = mkStringSize "("
+  and right = mkStringSize ")"
+  and sep = mkStringSize ",";
+in
+  fun ppPair ppA ppB =
+      ppBracket' left right (ppOp2' sep ppA ppB);
+
+  fun ppTriple ppA ppB ppC =
+      ppBracket' left right (ppOp3' sep sep ppA ppB ppC);
+end;
+
+val ppBreakStyle = ppMap breakStyleToString ppString;
+
+val ppStep = ppMap stepToString ppString;
+
+val ppStringSize =
+    let
+      val left = mkStringSize "\""
+      and right = mkStringSize "\""
+      and escape = {escape = [#"\""]}
+
+      val pp = ppBracket' left right (ppEscapeString escape)
+    in
+      fn (s,n) => if size s = n then pp s else ppPair pp ppInt (s,n)
+    end;
+
+fun ppStep step =
+    blockProgram Inconsistent 2
+      (ppStep step ::
+       (case step of
+          BeginBlock style_indent =>
+            [addBreak 1,
+             ppPair ppBreakStyle ppInt style_indent]
+        | EndBlock => []
+        | AddString s =>
+            [addBreak 1,
+             ppStringSize s]
+        | AddBreak n =>
+            [addBreak 1,
+             ppInt n]
+        | AddNewline => []));
+
+val ppPpstream = ppStream ppStep;
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing infix operators.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+type token = string;
+
+datatype assoc =
+    LeftAssoc
+  | NonAssoc
+  | RightAssoc;
+
+datatype infixes =
+    Infixes of
+      {token : token,
+       precedence : int,
+       assoc : assoc} list;
+
+local
+  fun comparePrecedence (io1,io2) =
+      let
+        val {token = _, precedence = p1, assoc = _} = io1
+        and {token = _, precedence = p2, assoc = _} = io2
+      in
+        Int.compare (p2,p1)
+      end;
+
+  fun equalAssoc a a' =
+      case a of
+        LeftAssoc => (case a' of LeftAssoc => true | _ => false)
+      | NonAssoc => (case a' of NonAssoc => true | _ => false)
+      | RightAssoc => (case a' of RightAssoc => true | _ => false);
+
+  fun new t a acc = {tokens = StringSet.singleton t, assoc = a} :: acc;
+
+  fun add t a' acc =
+      case acc of
+        [] => raise Bug "Print.layerInfixes: null"
+      | {tokens = ts, assoc = a} :: acc =>
+        if equalAssoc a a' then {tokens = StringSet.add ts t, assoc = a} :: acc
+        else raise Bug "Print.layerInfixes: mixed assocs";
+
+  fun layer ({token = t, precedence = p, assoc = a}, (acc,p')) =
+      let
+        val acc = if p = p' then add t a acc else new t a acc
+      in
+        (acc,p)
+      end;
+in
+  fun layerInfixes (Infixes ios) =
+      case sort comparePrecedence ios of
+        [] => []
+      | {token = t, precedence = p, assoc = a} :: ios =>
+        let
+          val acc = new t a []
+
+          val (acc,_) = List.foldl layer (acc,p) ios
+        in
+          acc
+        end;
+end;
+
+local
+  fun add ({tokens = ts, assoc = _}, tokens) = StringSet.union ts tokens;
+in
+  fun tokensLayeredInfixes l = List.foldl add StringSet.empty l;
+end;
+
+fun tokensInfixes ios = tokensLayeredInfixes (layerInfixes ios);
+
+fun destInfixOp dest tokens tm =
+    case dest tm of
+      NONE => NONE
+    | s as SOME (t,a,b) => if StringSet.member t tokens then s else NONE;
+
+fun ppLayeredInfixes dest ppTok {tokens,assoc} ppLower ppSub =
+    let
+      fun isLayer t = StringSet.member t tokens
+
+      fun ppTerm aligned (tm,r) =
+          case dest tm of
+            NONE => ppSub (tm,r)
+          | SOME (t,a,b) =>
+            if aligned andalso isLayer t then ppLayer (tm,t,a,b,r)
+            else ppLower (tm,t,a,b,r)
+
+      and ppLeft tm_r =
+          let
+            val aligned = case assoc of LeftAssoc => true | _ => false
+          in
+            ppTerm aligned tm_r
+          end
+
+      and ppLayer (tm,t,a,b,r) =
+          program
+            [ppLeft (a,true),
+             ppTok (tm,t),
+             ppRight (b,r)]
+
+      and ppRight tm_r =
+          let
+            val aligned = case assoc of RightAssoc => true | _ => false
+          in
+            ppTerm aligned tm_r
+          end
+    in
+      fn tm_t_a_b_r as (_,t,_,_,_) =>
+         if isLayer t then block Inconsistent 0 (ppLayer tm_t_a_b_r)
+         else ppLower tm_t_a_b_r
+    end;
+
+local
+  val leftBrack = mkStringSize "("
+  and rightBrack = mkStringSize ")";
+in
+  fun ppInfixes ops =
+      let
+        val layers = layerInfixes ops
+
+        val toks = tokensLayeredInfixes layers
+      in
+        fn dest => fn ppTok => fn ppSub =>
+           let
+             fun destOp tm = destInfixOp dest toks tm
+
+             fun ppInfix tm_t_a_b_r = ppLayers layers tm_t_a_b_r
+
+             and ppLayers ls (tm,t,a,b,r) =
+                 case ls of
+                   [] =>
+                   ppBracket' leftBrack rightBrack ppInfix (tm,t,a,b,false)
+                 | l :: ls =>
+                   let
+                     val ppLower = ppLayers ls
+                   in
+                     ppLayeredInfixes destOp ppTok l ppLower ppSub (tm,t,a,b,r)
+                   end
+           in
+             fn (tm,r) =>
+                case destOp tm of
+                  SOME (t,a,b) => ppInfix (tm,t,a,b,r)
+                | NONE => ppSub (tm,r)
+           end
       end;
 end;
 
@@ -1123,15 +1164,30 @@ end;
 val lineLength = ref initialLineLength;
 
 fun toStream ppA a =
-    Stream.map (fn s => s ^ "\n")
+    Stream.map (fn {indent,line} => nSpaces indent ^ line ^ "\n")
       (execute {lineLength = !lineLength} (ppA a));
 
-fun toString ppA a =
-    case execute {lineLength = !lineLength} (ppA a) of
-      Stream.Nil => ""
-    | Stream.Cons (h,t) => Stream.foldl (fn (s,z) => z ^ "\n" ^ s) h (t ());
+local
+  fun inc {indent,line} acc = line :: nSpaces indent :: acc;
 
-fun trace ppX nameX x =
-    Useful.trace (toString (ppOp2 " =" ppString ppX) (nameX,x) ^ "\n");
+  fun incn (indent_line,acc) = inc indent_line ("\n" :: acc);
+in
+  fun toString ppA a =
+      case execute {lineLength = !lineLength} (ppA a) of
+        Stream.Nil => ""
+      | Stream.Cons (h,t) =>
+        let
+          val lines = Stream.foldl incn (inc h []) (t ())
+        in
+          String.concat (rev lines)
+        end;
+end;
+
+local
+  val sep = mkStringSize " =";
+in
+  fun trace ppX nameX x =
+      Useful.trace (toString (ppOp2' sep ppString ppX) (nameX,x) ^ "\n");
+end;
 
 end

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC FORMULAS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Formula :> Formula =
@@ -145,7 +145,7 @@ val stripNeg =
 (* Conjunctions *)
 
 fun listMkConj fms =
-    case rev fms of [] => True | fm :: fms => foldl And fm fms;
+    case rev fms of [] => True | fm :: fms => List.foldl And fm fms;
 
 local
   fun strip cs (And (p,q)) = strip (p :: cs) q
@@ -168,7 +168,7 @@ val flattenConj =
 (* Disjunctions *)
 
 fun listMkDisj fms =
-    case rev fms of [] => False | fm :: fms => foldl Or fm fms;
+    case rev fms of [] => False | fm :: fms => List.foldl Or fm fms;
 
 local
   fun strip cs (Or (p,q)) = strip (p :: cs) q
@@ -191,7 +191,7 @@ val flattenDisj =
 (* Equivalences *)
 
 fun listMkEquiv fms =
-    case rev fms of [] => True | fm :: fms => foldl Iff fm fms;
+    case rev fms of [] => True | fm :: fms => List.foldl Iff fm fms;
 
 local
   fun strip cs (Iff (p,q)) = strip (p :: cs) q

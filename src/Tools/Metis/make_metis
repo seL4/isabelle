@@ -7,8 +7,8 @@
 # compile within Isabelle on Poly/ML and SML/NJ.
 
 THIS=$(cd "$(dirname "$0")"; echo $PWD)
-
 make -f Makefile.FILES refresh_FILES
+FILES=$(cat "$THIS/FILES")
 
 (
   cat <<EOF
@@ -32,19 +32,17 @@ print_depth 0;
 
 EOF
 
-  for FILE in $(cat "$THIS/FILES")
+  for FILE in $FILES
   do
     echo
     echo "(**** Original file: $FILE ****)"
     echo
     echo -e "$FILE" >&2
-    "$THIS/scripts/mlpp" -c polyml "src/$FILE" | \
+    "$THIS/scripts/mlpp" -c polyml "$FILE" | \
     perl -p -e \
 's/type name$/type name = string/;'\
 's/\bref\b/Unsynchronized.ref/g;'\
-'s/\bPolyML.pointerEq\b/pointer_eq/g;'\
-'s/\bRL\b/Metis_RL/g;'\
-"`grep "^\(signature\|structure\|functor\)" src/*.{sig,sml} | \
+"`grep "^\(signature\|structure\|functor\)" $FILES | \
   sed "s/[^:]*:[a-z]* \([A-Za-z0-9_]*\).*/\1/" | \
   tr " " "\n" | \
   sort | \

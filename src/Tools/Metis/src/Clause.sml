@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
-(* Copyright (c) 2002-2004 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Clause :> Clause =
@@ -15,10 +15,17 @@ open Useful;
 val newId =
     let
       val r = ref 0
+
+      fun new () =
+          let
+            val ref n = r
+
+            val () = r := n + 1
+          in
+            n
+          end
     in
-      (* MODIFIED by Jasmin Blanchette *)
-      fn () => CRITICAL (fn () =>
-        case r of ref n => let val () = r := n + 1 in n end)
+      fn () => Portable.critical new ()
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -62,7 +69,7 @@ fun toString cl = Print.toString pp cl;
 
 val default : parameters =
     {ordering = KnuthBendixOrder.default,
-     orderLiterals = UnsignedLiteralOrder (* PositiveLiteralOrder *) (* MODIFIED by Jasmin Blanchette *),
+     orderLiterals = UnsignedLiteralOrder,
      orderTerms = true};
 
 fun mk info = Clause info
@@ -181,7 +188,7 @@ local
       let
         fun addTm ((path,tm),acc) = (lit,path,tm) :: acc
       in
-        foldl addTm acc (Literal.nonVarTypedSubterms lit)
+        List.foldl addTm acc (Literal.nonVarTypedSubterms lit)
       end;
 in
   fun largestSubterms cl = LiteralSet.foldl addLit [] (largestLiterals cl);

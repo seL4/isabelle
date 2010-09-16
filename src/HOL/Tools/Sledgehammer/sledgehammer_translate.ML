@@ -376,7 +376,7 @@ fun problem_lines_for_free_types conjectures =
 type const_info = {min_arity: int, max_arity: int, sub_level: bool}
 
 fun consider_term top_level (ATerm ((s, _), ts)) =
-  (if is_tptp_variable s then
+  (if is_atp_variable s then
      I
    else
      let val n = length ts in
@@ -468,7 +468,7 @@ fun repair_predicates_in_term const_tab (t as ATerm ((s, _), ts)) =
 fun close_universally phi =
   let
     fun term_vars bounds (ATerm (name as (s, _), tms)) =
-        (is_tptp_variable s andalso not (member (op =) bounds name))
+        (is_atp_variable s andalso not (member (op =) bounds name))
           ? insert (op =) name
         #> fold (term_vars bounds) tms
     fun formula_vars bounds (AQuant (_, xs, phi)) =
@@ -524,7 +524,7 @@ fun prepare_problem ctxt readable_names explicit_forall full_types
        ("Conjectures", conjecture_lines),
        ("Type variables", tfree_lines)]
       |> repair_problem thy explicit_forall full_types explicit_apply
-    val (problem, pool) = nice_tptp_problem readable_names problem
+    val (problem, pool) = nice_atp_problem readable_names problem
     val conjecture_offset =
       length axiom_lines + length class_rel_lines + length arity_lines
       + length helper_lines

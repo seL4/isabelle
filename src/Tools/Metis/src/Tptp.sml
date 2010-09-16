@@ -158,7 +158,7 @@ local
   fun isTptpChar #"_" = true
     | isTptpChar c = Char.isAlphaNum c;
 
-  fun isTptpName l s = nonEmptyPred (existsPred l) (explode s);
+  fun isTptpName l s = nonEmptyPred (existsPred l) (String.explode s);
 
   fun isRegular (c,cs) =
       Char.isLower c andalso List.all isTptpChar cs;
@@ -175,14 +175,14 @@ in
   fun mkTptpVarName s =
       let
         val s =
-            case List.filter isTptpChar (explode s) of
+            case List.filter isTptpChar (String.explode s) of
               [] => [#"X"]
             | l as c :: cs =>
               if Char.isUpper c then l
               else if Char.isLower c then Char.toUpper c :: cs
               else #"X" :: l
       in
-        implode s
+        String.implode s
       end;
 
   val isTptpConstName = isTptpName [isRegular,isNumber,isDefined,isSystem]
@@ -615,10 +615,10 @@ fun ppVar mapping v =
     let
       val s = varToTptp mapping v
     in
-      Print.addString s
+      Print.ppString s
     end;
 
-fun ppFnName mapping fa = Print.addString (fnToTptp mapping fa);
+fun ppFnName mapping fa = Print.ppString (fnToTptp mapping fa);
 
 fun ppConst mapping c = ppFnName mapping (c,0);
 
@@ -633,14 +633,14 @@ fun ppTerm mapping =
             | a =>
               Print.blockProgram Print.Inconsistent 2
                 [ppFnName mapping (f,a),
-                 Print.addString "(",
+                 Print.ppString "(",
                  Print.ppOpList "," term tms,
-                 Print.addString ")"]
+                 Print.ppString ")"]
     in
       Print.block Print.Inconsistent 0 o term
     end;
 
-fun ppRelName mapping ra = Print.addString (relToTptp mapping ra);
+fun ppRelName mapping ra = Print.ppString (relToTptp mapping ra);
 
 fun ppProp mapping p = ppRelName mapping (p,0);
 
@@ -650,12 +650,12 @@ fun ppAtom mapping (r,tms) =
     | a =>
       Print.blockProgram Print.Inconsistent 2
         [ppRelName mapping (r,a),
-         Print.addString "(",
+         Print.ppString "(",
          Print.ppOpList "," (ppTerm mapping) tms,
-         Print.addString ")"];
+         Print.ppString ")"];
 
 local
-  val neg = Print.sequence (Print.addString "~") (Print.addBreak 1);
+  val neg = Print.sequence (Print.ppString "~") (Print.addBreak 1);
 
   fun fof mapping fm =
       case fm of
@@ -672,8 +672,8 @@ local
 
   and unitary mapping fm =
       case fm of
-        Formula.True => Print.addString "$true"
-      | Formula.False => Print.addString "$false"
+        Formula.True => Print.ppString "$true"
+      | Formula.False => Print.ppString "$false"
       | Formula.Forall _ => quantified mapping ("!", Formula.stripForall fm)
       | Formula.Exists _ => quantified mapping ("?", Formula.stripExists fm)
       | Formula.Not _ =>
@@ -693,21 +693,21 @@ local
          | NONE => ppAtom mapping atm)
       | _ =>
         Print.blockProgram Print.Inconsistent 1
-          [Print.addString "(",
+          [Print.ppString "(",
            fof mapping fm,
-           Print.addString ")"]
+           Print.ppString ")"]
 
   and quantified mapping (q,(vs,fm)) =
       let
         val mapping = addVarListMapping mapping vs
       in
         Print.blockProgram Print.Inconsistent 2
-          [Print.addString q,
-           Print.addString " ",
+          [Print.ppString q,
+           Print.ppString " ",
            Print.blockProgram Print.Inconsistent (String.size q)
-             [Print.addString "[",
+             [Print.ppString "[",
               Print.ppOpList "," (ppVar mapping) vs,
-              Print.addString "] :"],
+              Print.ppString "] :"],
            Print.addBreak 1,
            unitary mapping fm]
       end;
@@ -735,7 +735,8 @@ local
   infixr 7 >>
   infixr 6 ||
 
-  val alphaNumToken = atLeastOne (some isAlphaNum) >> (AlphaNum o implode);
+  val alphaNumToken =
+      atLeastOne (some isAlphaNum) >> (AlphaNum o String.implode);
 
   val punctToken =
       let
@@ -759,7 +760,7 @@ local
             some (not o stopOn) >> singleton
       in
         exactChar #"'" ++ many quotedParser ++ exactChar #"'" >>
-        (fn (_,(l,_)) => Quote (implode (List.concat l)))
+        (fn (_,(l,_)) => Quote (String.implode (List.concat l)))
       end;
 
   val lexToken = alphaNumToken || punctToken || quoteToken;
@@ -779,7 +780,7 @@ val clauseFunctions =
     let
       fun funcs (lit,acc) = NameAritySet.union (functionsLiteral lit) acc
     in
-      foldl funcs NameAritySet.empty
+      List.foldl funcs NameAritySet.empty
     end;
 
 val clauseRelations =
@@ -789,14 +790,14 @@ val clauseRelations =
             NONE => acc
           | SOME r => NameAritySet.add acc r
     in
-      foldl rels NameAritySet.empty
+      List.foldl rels NameAritySet.empty
     end;
 
 val clauseFreeVars =
     let
       fun fvs (lit,acc) = NameSet.union (freeVarsLiteral lit) acc
     in
-      foldl fvs NameSet.empty
+      List.foldl fvs NameSet.empty
     end;
 
 fun clauseSubst sub lits = map (literalSubst sub) lits;
@@ -1013,7 +1014,7 @@ local
 
     fun ppLiteralInf mapping (pol,atm) =
         Print.sequence
-          (if pol then Print.skip else Print.addString "~ ")
+          (if pol then Print.skip else Print.ppString "~ ")
           (ppAtomInf mapping atm);
   in
     fun ppProofTerm mapping =
@@ -1032,7 +1033,7 @@ local
 
   fun ppProof mapping inf =
       Print.blockProgram Print.Inconsistent 1
-        [Print.addString "[",
+        [Print.ppString "[",
          (case inf of
             Proof.Axiom _ => Print.skip
           | Proof.Assume atm => ppProofAtom mapping atm
@@ -1042,13 +1043,13 @@ local
           | Proof.Equality (lit,path,tm) =>
             Print.program
               [ppProofLiteral mapping lit,
-               Print.addString ",",
+               Print.ppString ",",
                Print.addBreak 1,
                ppProofPath path,
-               Print.addString ",",
+               Print.ppString ",",
                Print.addBreak 1,
                ppProofTerm mapping tm]),
-         Print.addString "]"];
+         Print.ppString "]"];
 
   val ppParent = ppFormulaName;
 
@@ -1073,16 +1074,16 @@ in
           val name = nameStrip inference
         in
           Print.blockProgram Print.Inconsistent (size gen + 1)
-            [Print.addString gen,
-             Print.addString "(",
-             Print.addString name,
-             Print.addString ",",
+            [Print.ppString gen,
+             Print.ppString "(",
+             Print.ppString name,
+             Print.ppString ",",
              Print.addBreak 1,
              Print.ppBracket "[" "]" (ppStrip mapping) inference,
-             Print.addString ",",
+             Print.ppString ",",
              Print.addBreak 1,
              Print.ppList ppParent parents,
-             Print.addString ")"]
+             Print.ppString ")"]
         end
       | NormalizeFormulaSource {inference,parents} =>
         let
@@ -1091,16 +1092,16 @@ in
           val name = nameNormalize inference
         in
           Print.blockProgram Print.Inconsistent (size gen + 1)
-            [Print.addString gen,
-             Print.addString "(",
-             Print.addString name,
-             Print.addString ",",
+            [Print.ppString gen,
+             Print.ppString "(",
+             Print.ppString name,
+             Print.ppString ",",
              Print.addBreak 1,
              Print.ppBracket "[" "]" (ppNormalize mapping) inference,
-             Print.addString ",",
+             Print.ppString ",",
              Print.addBreak 1,
              Print.ppList ppParent parents,
-             Print.addString ")"]
+             Print.ppString ")"]
         end
       | ProofFormulaSource {inference,parents} =>
         let
@@ -1121,28 +1122,28 @@ in
               end
         in
           Print.blockProgram Print.Inconsistent (size gen + 1)
-            ([Print.addString gen,
-              Print.addString "("] @
+            ([Print.ppString gen,
+              Print.ppString "("] @
              (if isTaut then
-                [Print.addString "tautology",
-                 Print.addString ",",
+                [Print.ppString "tautology",
+                 Print.ppString ",",
                  Print.addBreak 1,
                  Print.blockProgram Print.Inconsistent 1
-                   [Print.addString "[",
-                    Print.addString name,
-                    Print.addString ",",
+                   [Print.ppString "[",
+                    Print.ppString name,
+                    Print.ppString ",",
                     Print.addBreak 1,
                     ppProof mapping inference,
-                    Print.addString "]"]]
+                    Print.ppString "]"]]
               else
-                [Print.addString name,
-                 Print.addString ",",
+                [Print.ppString name,
+                 Print.ppString ",",
                  Print.addBreak 1,
                  ppProof mapping inference,
-                 Print.addString ",",
+                 Print.ppString ",",
                  Print.addBreak 1,
                  Print.ppList (ppProofParent mapping) parents]) @
-             [Print.addString ")"])
+             [Print.ppString ")"])
         end
 end;
 
@@ -1208,14 +1209,14 @@ val formulasFunctions =
     let
       fun funcs (fm,acc) = NameAritySet.union (functionsFormula fm) acc
     in
-      foldl funcs NameAritySet.empty
+      List.foldl funcs NameAritySet.empty
     end;
 
 val formulasRelations =
     let
       fun rels (fm,acc) = NameAritySet.union (relationsFormula fm) acc
     in
-      foldl rels NameAritySet.empty
+      List.foldl rels NameAritySet.empty
     end;
 
 fun isCnfConjectureFormula fm =
@@ -1244,24 +1245,24 @@ fun ppFormula mapping fm =
           | FofFormulaBody _ => "fof"
     in
       Print.blockProgram Print.Inconsistent (size gen + 1)
-        ([Print.addString gen,
-          Print.addString "(",
+        ([Print.ppString gen,
+          Print.ppString "(",
           ppFormulaName name,
-          Print.addString ",",
+          Print.ppString ",",
           Print.addBreak 1,
           ppRole role,
-          Print.addString ",",
+          Print.ppString ",",
           Print.addBreak 1,
           Print.blockProgram Print.Consistent 1
-            [Print.addString "(",
+            [Print.ppString "(",
              ppFormulaBody mapping body,
-             Print.addString ")"]] @
+             Print.ppString ")"]] @
          (if isNoFormulaSource source then []
           else
-            [Print.addString ",",
+            [Print.ppString ",",
              Print.addBreak 1,
              ppFormulaSource mapping source]) @
-         [Print.addString ")."])
+         [Print.ppString ")."])
     end;
 
 fun formulaToString mapping = Print.toString (ppFormula mapping);
@@ -1285,7 +1286,7 @@ local
 
   val stringParser = lowerParser || upperParser;
 
-  val numberParser = someAlphaNum (List.all Char.isDigit o explode);
+  val numberParser = someAlphaNum (List.all Char.isDigit o String.explode);
 
   fun somePunct p =
       maybe (fn Punct c => if p c then SOME c else NONE | _ => NONE);
@@ -1299,7 +1300,7 @@ local
       | f [x] = x
       | f (h :: t) = (h ++ f t) >> K ();
   in
-    fun symbolParser s = f (map punctParser (explode s));
+    fun symbolParser s = f (map punctParser (String.explode s));
   end;
 
   val definedParser =
@@ -1641,9 +1642,9 @@ end;
 
 fun ppInclude i =
     Print.blockProgram Print.Inconsistent 2
-      [Print.addString "include('",
-       Print.addString i,
-       Print.addString "')."];
+      [Print.ppString "include('",
+       Print.ppString i,
+       Print.ppString "')."];
 
 val includeToString = Print.toString ppInclude;
 
@@ -1745,8 +1746,8 @@ fun mkLineComment "" = "%"
 fun destLineComment cs =
     case cs of
       [] => ""
-    | #"%" :: #" " :: rest => implode rest
-    | #"%" :: rest => implode rest
+    | #"%" :: #" " :: rest => String.implode rest
+    | #"%" :: rest => String.implode rest
     | _ => raise Error "Tptp.destLineComment";
 
 val isLineComment = can destLineComment;

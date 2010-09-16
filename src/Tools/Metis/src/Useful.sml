@@ -50,9 +50,7 @@ fun can f = Option.isSome o total f;
 (* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val print = TextIO.print; (* MODIFIED by Jasmin Blanchette *)
-
-val tracePrint = ref print;
+val tracePrint = ref TextIO.print;
 
 fun trace mesg = !tracePrint mesg;
 
@@ -172,10 +170,6 @@ fun boolCompare (false,true) = LESS
 (* Lists.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val foldl = List.foldl; (* MODIFIED by Jasmin Blanchette *)
-
-val foldr = List.foldr; (* MODIFIED by Jasmin Blanchette *)
-
 fun cons x y = x :: y;
 
 fun hdTl l = (hd l, tl l);
@@ -211,19 +205,22 @@ fun zipWith f =
 
 fun zip xs ys = zipWith pair xs ys;
 
-fun unzip ab =
-    foldl (fn ((x, y), (xs, ys)) => (x :: xs, y :: ys)) ([], []) (rev ab);
+local
+  fun inc ((x,y),(xs,ys)) = (x :: xs, y :: ys);
+in
+  fun unzip ab = List.foldl inc ([],[]) (rev ab);
+end;
 
 fun cartwith f =
-  let
-    fun aux _ res _ [] = res
-      | aux xsCopy res [] (y :: yt) = aux xsCopy res xsCopy yt
-      | aux xsCopy res (x :: xt) (ys as y :: _) =
-        aux xsCopy (f x y :: res) xt ys
-  in
-    fn xs => fn ys =>
-       let val xs' = rev xs in aux xs' [] xs' (rev ys) end
-  end;
+    let
+      fun aux _ res _ [] = res
+        | aux xsCopy res [] (y :: yt) = aux xsCopy res xsCopy yt
+        | aux xsCopy res (x :: xt) (ys as y :: _) =
+          aux xsCopy (f x y :: res) xt ys
+    in
+      fn xs => fn ys =>
+         let val xs' = rev xs in aux xs' [] xs' (rev ys) end
+    end;
 
 fun cart xs ys = cartwith pair xs ys;
 
@@ -342,15 +339,32 @@ fun insert x s = if mem x s then s else x :: s;
 
 fun delete x s = List.filter (not o equal x) s;
 
-fun setify s = rev (foldl (fn (v,x) => if mem v x then x else v :: x) [] s);
+local
+  fun inc (v,x) = if mem v x then x else v :: x;
+in
+  fun setify s = rev (List.foldl inc [] s);
+end;
 
-fun union s t = foldl (fn (v,x) => if mem v t then x else v :: x) t (rev s);
+fun union s t =
+    let
+      fun inc (v,x) = if mem v t then x else v :: x
+    in
+      List.foldl inc t (rev s)
+    end;
 
 fun intersect s t =
-    foldl (fn (v,x) => if mem v t then v :: x else x) [] (rev s);
+    let
+      fun inc (v,x) = if mem v t then v :: x else x
+    in
+      List.foldl inc [] (rev s)
+    end;
 
 fun difference s t =
-    foldl (fn (v,x) => if mem v t then x else v :: x) [] (rev s);
+    let
+      fun inc (v,x) = if mem v t then x else v :: x
+    in
+      List.foldl inc [] (rev s)
+    end;
 
 fun subset s t = List.all (fn x => mem x t) s;
 
@@ -460,8 +474,7 @@ local
 
   val primesList = ref [2];
 in
-  (* MODIFIED by Jasmin Blanchette *)
-  fun primes n = CRITICAL (fn () =>
+  fun primes n = Portable.critical (fn () =>
       let
         val ref ps = primesList
 
@@ -476,11 +489,10 @@ in
           in
             ps
           end
-      end);
+      end) ();
 end;
 
-(* MODIFIED by Jasmin Blanchette *)
-fun primesUpTo n = CRITICAL (fn () =>
+fun primesUpTo n = Portable.critical (fn () =>
     let
       fun f k =
           let
@@ -492,22 +504,18 @@ fun primesUpTo n = CRITICAL (fn () =>
           end
     in
       f 8
-    end);
+    end) ();
 
 (* ------------------------------------------------------------------------- *)
 (* Strings.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val implode = String.implode (* MODIFIED by Jasmin Blanchette *)
-
-val explode = String.explode (* MODIFIED by Jasmin Blanchette *)
-
 local
   fun len l = (length l, l)
 
-  val upper = len (explode "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+  val upper = len (String.explode "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
-  val lower = len (explode "abcdefghijklmnopqrstuvwxyz");
+  val lower = len (String.explode "abcdefghijklmnopqrstuvwxyz");
 
   fun rotate (n,l) c k =
       List.nth (l, (k + Option.valOf (index (equal c) l)) mod n);
@@ -546,7 +554,7 @@ fun nChars x =
     let
       fun dup 0 l = l | dup n l = dup (n - 1) (x :: l)
     in
-      fn n => implode (dup n [])
+      fn n => String.implode (dup n [])
     end;
 
 fun chomp s =
@@ -558,14 +566,15 @@ fun chomp s =
     end;
 
 local
-  fun chop [] = []
-    | chop (l as (h :: t)) = if Char.isSpace h then chop t else l;
+  fun chop l =
+      case l of
+        [] => []
+      | h :: t => if Char.isSpace h then chop t else l;
 in
-  val trim = implode o chop o rev o chop o rev o explode;
+  val trim = String.implode o chop o rev o chop o rev o String.explode;
 end;
 
-fun join _ [] = ""
-  | join s (h :: t) = foldl (fn (x,y) => y ^ s ^ x) h t;
+val join = String.concatWith;
 
 local
   fun match [] l = SOME l
@@ -573,18 +582,19 @@ local
     | match (x :: xs) (y :: ys) = if x = y then match xs ys else NONE;
 
   fun stringify acc [] = acc
-    | stringify acc (h :: t) = stringify (implode h :: acc) t;
+    | stringify acc (h :: t) = stringify (String.implode h :: acc) t;
 in
   fun split sep =
       let
         val pat = String.explode sep
+
         fun div1 prev recent [] = stringify [] (rev recent :: prev)
           | div1 prev recent (l as h :: t) =
             case match pat l of
               NONE => div1 prev (h :: recent) t
             | SOME rest => div1 (rev recent :: prev) [] rest
       in
-        fn s => div1 [] [] (explode s)
+        fn s => div1 [] [] (String.explode s)
       end;
 end;
 
@@ -714,24 +724,22 @@ fun isRight (Left _) = false
 local
   val generator = ref 0
 in
-  (* MODIFIED by Jasmin Blanchette *)
-  fun newInt () = CRITICAL (fn () =>
+  fun newInt () = Portable.critical (fn () =>
       let
         val n = !generator
         val () = generator := n + 1
       in
         n
-      end);
+      end) ();
 
   fun newInts 0 = []
-      (* MODIFIED by Jasmin Blanchette *)
-    | newInts k = CRITICAL (fn () =>
+    | newInts k = Portable.critical (fn () =>
       let
         val n = !generator
         val () = generator := n + k
       in
         interval n k
-      end);
+      end) ();
 end;
 
 fun withRef (r,new) f x =
@@ -811,10 +819,12 @@ fun writeTextFile {contents,filename} =
 (* Profiling and error reporting.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun chat s = TextIO.output (TextIO.stdErr, s ^ "\n");
+fun chat s = TextIO.output (TextIO.stdOut, s ^ "\n");
+
+fun chide s = TextIO.output (TextIO.stdErr, s ^ "\n");
 
 local
-  fun err x s = chat (x ^ ": " ^ s);
+  fun err x s = chide (x ^ ": " ^ s);
 in
   fun try f x = f x
       handle e as Error _ => (err "try" (errorToString e); raise e)
