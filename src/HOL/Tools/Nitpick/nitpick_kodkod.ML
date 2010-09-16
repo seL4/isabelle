@@ -1019,7 +1019,7 @@ fun declarative_axioms_for_datatypes hol_ctxt binarize datatype_sym_break bits
 fun kodkod_formula_from_nut ofs
         (kk as {kk_all, kk_exist, kk_formula_let, kk_formula_if, kk_or, kk_not,
                 kk_iff, kk_implies, kk_and, kk_subset, kk_rel_eq, kk_no,
-                kk_lone, kk_one, kk_some, kk_rel_let, kk_rel_if, kk_union,
+                kk_lone, kk_some, kk_rel_let, kk_rel_if, kk_union,
                 kk_difference, kk_intersect, kk_product, kk_join, kk_closure,
                 kk_comprehension, kk_project, kk_project_seq, kk_not3,
                 kk_nat_less, kk_int_less, ...}) u =
