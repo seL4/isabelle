@@ -258,7 +258,7 @@ fun make_sign header (_, typs, dtyps, _, terms) = {
   header = header,
   sorts = Typtab.fold (fn (_, (n, true)) => cons n | _ => I) typs [],
   funcs = Termtab.fold (fn (_, (n, SOME ss)) => cons (n,ss) | _ => I) terms [],
-  dtyps = dtyps }
+  dtyps = rev dtyps }
 
 fun make_recon (unfolds, assms) (_, typs, _, _, terms) = {
   typs = Symtab.make (map (apfst fst o swap) (Typtab.dest typs)),
