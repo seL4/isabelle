@@ -1,10 +1,24 @@
 (* ========================================================================= *)
 (* PRETTY-PRINTING                                                           *)
-(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2008 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 signature Print =
 sig
+
+(* ------------------------------------------------------------------------- *)
+(* Escaping strings.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val escapeString : {escape : char list} -> string -> string
+
+(* ------------------------------------------------------------------------- *)
+(* A type of strings annotated with their size.                              *)
+(* ------------------------------------------------------------------------- *)
+
+type stringSize = string * int
+
+val mkStringSize : string -> stringSize
 
 (* ------------------------------------------------------------------------- *)
 (* A type of pretty-printers.                                                *)
@@ -12,16 +26,14 @@ sig
 
 datatype breakStyle = Consistent | Inconsistent
 
-datatype ppStep =
+datatype step =
     BeginBlock of breakStyle * int
   | EndBlock
-  | AddString of string
+  | AddString of stringSize
   | AddBreak of int
   | AddNewline
 
-type ppstream = ppStep Stream.stream
-
-type 'a pp = 'a -> ppstream
+type ppstream = step Stream.stream
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printer primitives.                                                *)
@@ -31,7 +43,7 @@ val beginBlock : breakStyle -> int -> ppstream
 
 val endBlock : ppstream
 
-val addString : string -> ppstream
+val addString : stringSize -> ppstream
 
 val addBreak : int -> ppstream
 
@@ -51,17 +63,23 @@ val block : breakStyle -> int -> ppstream -> ppstream
 
 val blockProgram : breakStyle -> int -> ppstream list -> ppstream
 
-val bracket : string -> string -> ppstream -> ppstream
+(* ------------------------------------------------------------------------- *)
+(* Executing pretty-printers to generate lines.                              *)
+(* ------------------------------------------------------------------------- *)
 
-val field : string -> ppstream -> ppstream
-
-val record : (string * ppstream) list -> ppstream
+val execute :
+    {lineLength : int} -> ppstream ->
+    {indent : int, line : string} Stream.stream
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printer combinators.                                               *)
 (* ------------------------------------------------------------------------- *)
 
+type 'a pp = 'a -> ppstream
+
 val ppMap : ('a -> 'b) -> 'b pp -> 'a pp
+
+val ppString : string pp
 
 val ppBracket : string -> string -> 'a pp -> 'a pp
 
@@ -80,8 +98,6 @@ val ppOpStream : string -> 'a pp -> 'a Stream.stream pp
 (* ------------------------------------------------------------------------- *)
 
 val ppChar : char pp
-
-val ppString : string pp
 
 val ppEscapeString : {escape : char list} -> string pp
 
@@ -111,7 +127,7 @@ val ppTriple : 'a pp -> 'b pp -> 'c pp -> ('a * 'b * 'c) pp
 
 val ppBreakStyle : breakStyle pp
 
-val ppPpStep : ppStep pp
+val ppStep : step pp
 
 val ppPpstream : ppstream pp
 
@@ -119,28 +135,27 @@ val ppPpstream : ppstream pp
 (* Pretty-printing infix operators.                                          *)
 (* ------------------------------------------------------------------------- *)
 
+type token = string
+
+datatype assoc =
+    LeftAssoc
+  | NonAssoc
+  | RightAssoc
+
 datatype infixes =
     Infixes of
-      {token : string,
+      {token : token,
        precedence : int,
-       leftAssoc : bool} list
+       assoc : assoc} list
 
 val tokensInfixes : infixes -> StringSet.set
 
-val layerInfixes :
-    infixes ->
-    {tokens : {leftSpaces : int, token : string, rightSpaces : int} list,
-     leftAssoc : bool} list
+val layerInfixes : infixes -> {tokens : StringSet.set, assoc : assoc} list
 
 val ppInfixes :
-    infixes -> ('a -> (string * 'a * 'a) option) -> ('a * bool) pp ->
-    ('a * bool) pp
-
-(* ------------------------------------------------------------------------- *)
-(* Executing pretty-printers to generate lines.                              *)
-(* ------------------------------------------------------------------------- *)
-
-val execute : {lineLength : int} -> ppstream -> string Stream.stream
+    infixes ->
+    ('a -> (token * 'a * 'a) option) -> ('a * token) pp ->
+    ('a * bool) pp -> ('a * bool) pp
 
 (* ------------------------------------------------------------------------- *)
 (* Executing pretty-printers with a global line length.                      *)

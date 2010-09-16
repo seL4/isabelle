@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 signature Useful =
@@ -21,8 +21,6 @@ val can : ('a -> 'b) -> 'a -> bool
 (* ------------------------------------------------------------------------- *)
 (* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
-
-val print : string -> unit (* MODIFIED by Jasmin Blanchette *)
 
 val tracePrint : (string -> unit) ref
 
@@ -108,10 +106,6 @@ val boolCompare : bool * bool -> order  (* false < true *)
 (* ------------------------------------------------------------------------- *)
 (* Lists: note we count elements from 0.                                     *)
 (* ------------------------------------------------------------------------- *)
-
-val foldl : ('a * 'b -> 'b) -> 'b -> 'a list -> 'b (* MODIFIED by Jasmin Blanchette *)
-
-val foldr : ('a * 'b -> 'b) -> 'b -> 'a list -> 'b (* MODIFIED by Jasmin Blanchette *)
 
 val cons : 'a -> 'a list -> 'a list
 
@@ -217,10 +211,6 @@ val primesUpTo : int -> int list
 (* Strings.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val implode : char list -> string (* MODIFIED by Jasmin Blanchette *)
-
-val explode : string -> char list (* MODIFIED by Jasmin Blanchette *)
-
 val rot : int -> char -> char
 
 val charToInt : char -> int option
@@ -323,7 +313,9 @@ val writeTextFile : {contents : string, filename : string} -> unit
 
 val try : ('a -> 'b) -> 'a -> 'b
 
-val chat : string -> unit
+val chat : string -> unit  (* stdout *)
+
+val chide : string -> unit  (* stderr *)
 
 val warn : string -> unit
 

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MLTON SPECIFIC FUNCTIONS                                                  *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Portable :> Portable =
@@ -17,6 +17,33 @@ val ml = "mlton";
 (* ------------------------------------------------------------------------- *)
 
 val pointerEqual = MLton.eq;
+
+(* ------------------------------------------------------------------------- *)
+(* Marking critical sections of code.                                        *)
+(* ------------------------------------------------------------------------- *)
+
+fun critical f () = f ();
+
+(* ------------------------------------------------------------------------- *)
+(* Generating random values.                                                 *)
+(* ------------------------------------------------------------------------- *)
+
+fun randomWord () = MLton.Random.rand ();
+
+fun randomBool () = Word.andb (randomWord (),0w1) = 0w0;
+
+fun randomInt 1 = 0
+  | randomInt 2 = Word.toInt (Word.andb (randomWord (), 0w1))
+  | randomInt 4 = Word.toInt (Word.andb (randomWord (), 0w3))
+  | randomInt n = Word.toInt (Word.mod (randomWord (), Word.fromInt n));
+
+local
+  fun wordToReal w = Real.fromInt (Word.toInt (Word.>> (w,0w1)))
+
+  val normalizer = 1.0 / wordToReal (Word.notb 0w0);
+in
+  fun randomReal () = normalizer * wordToReal (randomWord ());
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Timing function applications.                                             *)
@@ -55,34 +82,6 @@ fun time f x =
     in
       y
     end;
-
-(* ------------------------------------------------------------------------- *)
-(* Critical section markup (multiprocessing)                                 *)
-(* ------------------------------------------------------------------------- *)
-
-(* MODIFIED by Jasmin Blanchette *)
-fun CRITICAL e = e ();     (*dummy*)
-
-(* ------------------------------------------------------------------------- *)
-(* Generating random values.                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-fun randomWord () = MLton.Random.rand ();
-
-fun randomBool () = Word.andb (randomWord (),0w1) = 0w0;
-
-fun randomInt 1 = 0
-  | randomInt 2 = Word.toInt (Word.andb (randomWord (), 0w1))
-  | randomInt 4 = Word.toInt (Word.andb (randomWord (), 0w3))
-  | randomInt n = Word.toInt (Word.mod (randomWord (), Word.fromInt n));
-
-local
-  fun wordToReal w = Real.fromInt (Word.toInt (Word.>> (w,0w1)))
-
-  val normalizer = 1.0 / wordToReal (Word.notb 0w0);
-in
-  fun randomReal () = normalizer * wordToReal (randomWord ());
-end;
 
 end
 

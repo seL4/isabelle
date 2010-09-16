@@ -1,21 +1,6 @@
 (* ========================================================================= *)
 (* METIS FIRST ORDER PROVER                                                  *)
-(*                                                                           *)
-(* Copyright (c) 2001 Joe Hurd                                               *)
-(*                                                                           *)
-(* Metis is free software; you can redistribute it and/or modify             *)
-(* it under the terms of the GNU General Public License as published by      *)
-(* the Free Software Foundation; either version 2 of the License, or         *)
-(* (at your option) any later version.                                       *)
-(*                                                                           *)
-(* Metis is distributed in the hope that it will be useful,                  *)
-(* but WITHOUT ANY WARRANTY; without even the implied warranty of            *)
-(* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *)
-(* GNU General Public License for more details.                              *)
-(*                                                                           *)
-(* You should have received a copy of the GNU General Public License         *)
-(* along with Metis; if not, write to the Free Software                      *)
-(* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 open Useful;
@@ -26,9 +11,9 @@ open Useful;
 
 val PROGRAM = "metis";
 
-val VERSION = "2.2";
+val VERSION = "2.3";
 
-val versionString = PROGRAM^" "^VERSION^" (release 20100825)"^"\n";
+val versionString = PROGRAM^" "^VERSION^" (release 20100915)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Program options.                                                          *)
@@ -146,11 +131,11 @@ val next_cnf =
 local
   fun display_sep () =
       if notshowing_any () then ()
-      else print (nChars #"-" (!Print.lineLength) ^ "\n");
+      else TextIO.print (nChars #"-" (!Print.lineLength) ^ "\n");
 
   fun display_name filename =
       if notshowing "name" then ()
-      else print ("Problem: " ^ filename ^ "\n\n");
+      else TextIO.print ("Problem: " ^ filename ^ "\n\n");
 
   fun display_goal tptp =
       if notshowing "goal" then ()
@@ -158,12 +143,12 @@ local
         let
           val goal = Tptp.goal tptp
         in
-          print ("Goal:\n" ^ Formula.toString goal ^ "\n\n")
+          TextIO.print ("Goal:\n" ^ Formula.toString goal ^ "\n\n")
         end;
 
   fun display_clauses cls =
       if notshowing "clauses" then ()
-      else print ("Clauses:\n" ^ Problem.toString cls ^ "\n\n");
+      else TextIO.print ("Clauses:\n" ^ Problem.toString cls ^ "\n\n");
 
   fun display_size cls =
       if notshowing "size" then ()
@@ -174,7 +159,7 @@ local
 
           val {clauses,literals,symbols,typedSymbols} = Problem.size cls
         in
-          print
+          TextIO.print
             ("Size: " ^
              plural clauses "clause" ^ ", " ^
              plural literals "literal" ^ ", " ^
@@ -188,12 +173,12 @@ local
         let
           val cat = Problem.categorize cls
         in
-          print ("Category: " ^ Problem.categoryToString cat ^ ".\n\n")
+          TextIO.print ("Category: " ^ Problem.categoryToString cat ^ ".\n\n")
         end;
 
   local
     fun display_proof_start filename =
-        print ("\nSZS output start CNFRefutation for " ^ filename ^ "\n");
+        TextIO.print ("\nSZS output start CNFRefutation for " ^ filename ^ "\n");
 
     fun display_proof_body problem proofs =
         let
@@ -224,7 +209,7 @@ local
         end;
 
     fun display_proof_end filename =
-        print ("SZS output end CNFRefutation for " ^ filename ^ "\n\n");
+        TextIO.print ("SZS output end CNFRefutation for " ^ filename ^ "\n\n");
   in
     fun display_proof filename problem proofs =
         if notshowing "proof" then ()
@@ -264,17 +249,24 @@ local
                    filename = "saturation.tptp"}
               end
 *)
-          val () = print ("\nSZS output start Saturation for " ^ filename ^ "\n")
-          val () = app (fn th => print (Thm.toString th ^ "\n")) ths
-          val () = print ("SZS output end Saturation for " ^ filename ^ "\n\n")
+          val () =
+              TextIO.print
+                ("\nSZS output start Saturation for " ^ filename ^ "\n")
+
+          val () = app (fn th => TextIO.print (Thm.toString th ^ "\n")) ths
+
+          val () =
+              TextIO.print
+                ("SZS output end Saturation for " ^ filename ^ "\n\n")
         in
           ()
         end;
 
   fun display_status filename status =
       if notshowing "status" then ()
-      else print ("SZS status " ^ Tptp.toStringStatus status ^
-                  " for " ^ filename ^ "\n");
+      else
+        TextIO.print ("SZS status " ^ Tptp.toStringStatus status ^
+                      " for " ^ filename ^ "\n");
 
   fun display_problem filename cls =
       let

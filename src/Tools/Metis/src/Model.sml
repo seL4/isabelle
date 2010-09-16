@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* RANDOM FINITE MODELS                                                      *)
-(* Copyright (c) 2003 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2003 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Model :> Model =
@@ -272,10 +272,10 @@ local
 
   fun ppEntry (tag,source_arity,target) =
       Print.blockProgram Print.Inconsistent 2
-        [Print.addString tag,
+        [Print.ppString tag,
          Print.addBreak 1,
          NameArity.pp source_arity,
-         Print.addString " ->",
+         Print.ppString " ->",
          Print.addBreak 1,
          Name.pp target];
 in
@@ -1190,7 +1190,7 @@ local
                 let
                   fun add (y,acc) = FunctionPerturbation (func_xs,y) :: acc
                 in
-                  foldl add acc target
+                  List.foldl add acc target
                 end
         in
           pertTerms M onTarget tms xs acc
@@ -1271,8 +1271,8 @@ end;
 
 fun pp M =
     Print.program
-      [Print.addString "Model{",
+      [Print.ppString "Model{",
        Print.ppInt (size M),
-       Print.addString "}"];
+       Print.ppString "}"];
 
 end

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* SOME SAMPLE PROBLEMS TO TEST PROOF PROCEDURES                             *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 open Useful;
@@ -39,7 +39,7 @@ fun checkProblems (problems : problem list) =
       dups names
     end;
 
-fun listProblem {name, comments = _, goal = _} = print (name ^ "\n");
+fun listProblem {name, comments = _, goal = _} = TextIO.print (name ^ "\n");
 
 fun outputProblem outputDir {name,comments,goal} =
     let

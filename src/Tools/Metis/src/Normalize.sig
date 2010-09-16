@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* NORMALIZING FORMULAS                                                      *)
-(* Copyright (c) 2001-2009 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 signature Normalize =

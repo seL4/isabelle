@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright (c) 2006 Joe Hurd, All Rights Reserved
+# Copyright (c) 2006 Joe Hurd, distributed under the MIT license
 
 use strict;
 use warnings;
@@ -78,6 +78,8 @@ sub print_normal {
         $text =~ s/Array\.modifyi/Array_modifyi/g;
         $text =~ s/OS\.Process\.isSuccess/OS_Process_isSuccess/g;
         $text =~ s/PP\.ppstream/ppstream/g;
+        $text =~ s/String\.concatWith/String_concatWith/g;
+        $text =~ s/String\.isSubstring/String_isSubstring/g;
         $text =~ s/String\.isSuffix/String_isSuffix/g;
         $text =~ s/Substring\.full/Substring_full/g;
         $text =~ s/TextIO\.inputLine/TextIO_inputLine/g;

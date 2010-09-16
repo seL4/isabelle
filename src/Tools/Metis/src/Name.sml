@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* NAMES                                                                     *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Name :> Name =
@@ -84,15 +84,15 @@ structure NameMap = KeyMap (NameOrdered);
 structure NameSet =
 struct
 
-  local
-    structure S = ElementSet (NameMap);
-  in
-    open S;
-  end;
+local
+  structure S = ElementSet (NameMap);
+in
+  open S;
+end;
 
-  val pp =
-      Print.ppMap
-        toList
-        (Print.ppBracket "{" "}" (Print.ppOpList "," Name.pp));
+val pp =
+    Print.ppMap
+      toList
+      (Print.ppBracket "{" "}" (Print.ppOpList "," Name.pp));
 
 end

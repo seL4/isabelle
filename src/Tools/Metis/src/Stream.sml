@@ -1,12 +1,10 @@
 (* ========================================================================= *)
 (* A POSSIBLY-INFINITE STREAM DATATYPE FOR ML                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Stream :> Stream =
 struct
-
-open Useful; (* MODIFIED by Jasmin Blanchette *)
 
 val K = Useful.K;
 
@@ -201,9 +199,9 @@ fun fromList [] = Nil
 
 fun listConcat s = concat (map fromList s);
 
-fun toString s = implode (toList s);
+fun toString s = String.implode (toList s);
 
-fun fromString s = fromList (explode s);
+fun fromString s = fromList (String.explode s);
 
 fun toTextFile {filename = f} s =
     let

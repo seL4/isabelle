@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A LOGICAL KERNEL FOR FIRST ORDER CLAUSAL THEOREMS                         *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Thm :> Thm =
@@ -111,7 +111,7 @@ local
 in
   fun pp th =
       Print.blockProgram Print.Inconsistent 3
-        [Print.addString "|- ",
+        [Print.ppString "|- ",
          Formula.pp (toFormula th)];
 end;
 

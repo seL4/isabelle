@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FINITE SETS WITH A FIXED ELEMENT TYPE                                     *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 functor ElementSet (KM : KeyMap) :> ElementSet

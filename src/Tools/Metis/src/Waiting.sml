@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* THE WAITING SET OF CLAUSES                                                *)
-(* Copyright (c) 2002-2007 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Waiting :> Waiting =
@@ -40,17 +40,16 @@ datatype waiting =
 (* ------------------------------------------------------------------------- *)
 
 val defaultModels : modelParameters list =
-    [(* MODIFIED by Jasmin Blanchette
-      {model = Model.default,
+    [{model = Model.default,
       initialPerturbations = 100,
       maxChecks = SOME 20,
       perturbations = 0,
-      weight = 1.0} *)];
+      weight = 1.0}];
 
 val default : parameters =
      {symbolsWeight = 1.0,
-      literalsWeight = (* 1.0 *) 0.0, (* MODIFIED by Jasmin Blanchette *)
-      variablesWeight = (* 1.0 *) 0.0, (* MODIFIED by Jasmin Blanchette *)
+      literalsWeight = 1.0,
+      variablesWeight = 1.0,
       models = defaultModels};
 
 fun size (Waiting {clauses,...}) = Heap.size clauses;
@@ -163,7 +162,7 @@ in
         val symbolsW = Math.pow (clauseSymbols lits, symbolsWeight)
         val variablesW = Math.pow (clauseVariables lits, variablesWeight)
         val literalsW = Math.pow (clauseLiterals lits, literalsWeight)
-        val modelsW = (* checkModels models mods mcl *) 1.0 (* MODIFIED by Jasmin Blanchette *)
+        val modelsW = checkModels models mods mcl
 (*MetisTrace4
         val () = trace ("Waiting.clauseWeight: dist = " ^
                         Real.toString dist ^ "\n")

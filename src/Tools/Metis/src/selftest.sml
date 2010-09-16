@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* METIS TESTS                                                               *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 (* ------------------------------------------------------------------------- *)
@@ -52,11 +52,11 @@ fun partialOrderToString (SOME LESS) = "SOME LESS"
   | partialOrderToString NONE = "NONE";
 
 fun SAY s =
-    print
+    TextIO.print
       ("-------------------------------------" ^
        "-------------------------------------\n" ^ s ^ "\n\n");
 
-fun printval p x = (print (Print.toString p x ^ "\n\n"); x);
+fun printval p x = (TextIO.print (Print.toString p x ^ "\n\n"); x);
 
 fun mkCl p th = Clause.mk {parameters = p, id = Clause.newId (), thm = th};
 
@@ -92,12 +92,13 @@ and U = (fn th => (Thm.destUnit th, th)) o AX o singleton;
 
 fun test_fun eq p r a =
   if eq r a then p a ^ "\n" else
-    (print ("\n\n" ^
-            "test: should have\n-->" ^ p r ^ "<--\n\n" ^
-            "test: actually have\n-->" ^ p a ^ "<--\n\n");
+    (TextIO.print
+       ("\n\n" ^
+        "test: should have\n-->" ^ p r ^ "<--\n\n" ^
+        "test: actually have\n-->" ^ p a ^ "<--\n\n");
      raise Fail "test: failed a test");
 
-fun test eq p r a = print (test_fun eq p r a ^ "\n");
+fun test eq p r a = TextIO.print (test_fun eq p r a ^ "\n");
 
 val test_tm = test Term.equal Term.toString o Term.parse;
 
@@ -123,7 +124,7 @@ fun testlen_pp n q =
     (fn s => test_fun equal I s ((mini_print n o Formula.fromString) s))
       (prep q);
 
-fun test_pp q = print (testlen_pp 40 q ^ "\n");
+fun test_pp q = TextIO.print (testlen_pp 40 q ^ "\n");
 
 val () = test_pp `3 = f x`;
 
@@ -568,7 +569,7 @@ in
 
         val rows = alignTable format table
 
-        val () = print (join "\n" rows ^ "\n\n")
+        val () = TextIO.print (join "\n" rows ^ "\n\n")
       in
         ()
       end;
@@ -626,8 +627,8 @@ fun ppPercentClause (r,cl) =
       val fm = LiteralSet.disjoin cl
     in
       Print.blockProgram Print.Consistent ind
-        [Print.addString p,
-         Print.addString (nChars #" " (ind - size p)),
+        [Print.ppString p,
+         Print.ppString (nChars #" " (ind - size p)),
          Formula.pp fm]
     end;
 
@@ -1108,13 +1109,19 @@ local
 
       val _ =
         test_fun equal I g (mini_print (!Print.lineLength) p)
-        handle e => (print ("Error in problem " ^ name ^ "\n\n"); raise e)
+        handle e =>
+          (TextIO.print ("Error in problem " ^ name ^ "\n\n");
+           raise e)
     in
       (name,p) :: acc
     end;
 in
   fun check_syntax (p : problem list) =
-      (foldl check [] p; print "ok\n\n");
+      let
+        val _ = List.foldl check [] p
+      in
+        TextIO.print "ok\n\n"
+      end;
 end;
 
 val () = check_syntax problems;
@@ -1125,11 +1132,11 @@ val () = SAY "Parsing TPTP problems";
 
 fun tptp f =
     let
-      val () = print ("parsing " ^ f ^ "... ")
+      val () = TextIO.print ("parsing " ^ f ^ "... ")
       val filename = "tptp/" ^ f ^ ".tptp"
       val mapping = Tptp.defaultMapping
       val goal = Tptp.goal (Tptp.read {filename = filename, mapping = mapping})
-      val () = print "ok\n"
+      val () = TextIO.print "ok\n"
     in
       pvFm goal
     end;

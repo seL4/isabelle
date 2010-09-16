@@ -1,6 +1,6 @@
 (* ========================================================================= *)
-(* ML SPECIFIC FUNCTIONS                                                     *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License       *)
+(* ML COMPILER SPECIFIC FUNCTIONS                                            *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 signature Portable =
@@ -19,17 +19,10 @@ val ml : string
 val pointerEqual : 'a * 'a -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Timing function applications.                                             *)
+(* Marking critical sections of code.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val time : ('a -> 'b) -> 'a -> 'b
-
-(* ------------------------------------------------------------------------- *)
-(* Critical section markup (multiprocessing)                                 *)
-(* ------------------------------------------------------------------------- *)
-
-(* MODIFIED by Jasmin Blanchette *)
-val CRITICAL: (unit -> 'a) -> 'a
+val critical : (unit -> 'a) -> unit -> 'a
 
 (* ------------------------------------------------------------------------- *)
 (* Generating random values.                                                 *)
@@ -42,5 +35,11 @@ val randomInt : int -> int  (* n |-> [0,n) *)
 val randomReal : unit -> real  (* () |-> [0,1] *)
 
 val randomWord : unit -> Word.word
+
+(* ------------------------------------------------------------------------- *)
+(* Timing function applications.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val time : ('a -> 'b) -> 'a -> 'b
 
 end

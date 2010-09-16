@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* KNUTH-BENDIX TERM ORDERING CONSTRAINTS                                    *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure KnuthBendixOrder :> KnuthBendixOrder =
@@ -99,7 +99,7 @@ fun weightLowerBound (w as Weight (m,c)) =
 val ppWeightList =
     let
       fun ppCoeff n =
-          if n < 0 then Print.sequence (Print.addString "~") (ppCoeff (~n))
+          if n < 0 then Print.sequence (Print.ppString "~") (ppCoeff (~n))
           else if n = 1 then Print.skip
           else Print.ppInt n
 

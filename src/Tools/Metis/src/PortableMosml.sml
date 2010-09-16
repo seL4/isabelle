@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MOSCOW ML SPECIFIC FUNCTIONS                                              *)
-(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Portable :> Portable =
@@ -23,17 +23,10 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* Timing function applications.                                             *)
+(* Marking critical sections of code.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val time = Mosml.time;
-
-(* ------------------------------------------------------------------------- *)
-(* Critical section markup (multiprocessing)                                 *)
-(* ------------------------------------------------------------------------- *)
-
-(* MODIFIED by Jasmin Blanchette *)
-fun CRITICAL e = e ();     (*dummy*)
+fun critical f () = f ();
 
 (* ------------------------------------------------------------------------- *)
 (* Generating random values.                                                 *)
@@ -57,6 +50,12 @@ fun randomWord () =
       Word.orb (Word.<< (h,0w16), l)
     end;
 
+(* ------------------------------------------------------------------------- *)
+(* Timing function applications.                                             *)
+(* ------------------------------------------------------------------------- *)
+
+val time = Mosml.time;
+
 end
 
 (* ------------------------------------------------------------------------- *)
@@ -66,6 +65,18 @@ end
 
 prim_val catch_interrupt : bool -> unit = 1 "sys_catch_break";
 val _ = catch_interrupt true;
+
+(* ------------------------------------------------------------------------- *)
+(* Forcing fully qualified names of some key functions.                      *)
+(* ------------------------------------------------------------------------- *)
+
+(*BasicDebug
+val explode = ()
+and foldl = ()
+and foldr = ()
+and implode = ()
+and print = ();
+*)
 
 (* ------------------------------------------------------------------------- *)
 (* Ad-hoc upgrading of the Moscow ML basis library.                          *)
@@ -100,6 +111,28 @@ fun Array_modifyi f a =
     end;
 
 fun OS_Process_isSuccess s = s = OS.Process.success;
+
+fun String_concatWith s l =
+    case l of
+      [] => ""
+    | h :: t => List.foldl (fn (x,y) => y ^ s ^ x) h t;
+
+fun String_isSubstring p s =
+    let
+      val sizeP = size p
+      and sizeS = size s
+    in
+      if sizeP > sizeS then false
+      else if sizeP = sizeS then p = s
+      else
+        let
+          fun check i = String.substring (s,i,sizeP) = p
+
+          fun checkn i = check i orelse (i > 0 andalso checkn (i - 1))
+        in
+          checkn (sizeS - sizeP)
+        end
+    end;
 
 fun String_isSuffix p s =
     let

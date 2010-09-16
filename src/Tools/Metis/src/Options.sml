@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PROCESSING COMMAND LINE OPTIONS                                           *)
-(* Copyright (c) 2003-2004 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2003 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Options :> Options =
@@ -146,7 +146,7 @@ fun usageInformation ({name,version,header,footer,options} : allOptions) =
           fun indent (s, "" :: l) = indent (s ^ "  ", l) | indent x = x
           val (res,n) = indent ("  ",n)
           val res = res ^ join ", " n
-          val res = foldl (fn (x,y) => y ^ " " ^ x) res r
+          val res = List.foldl (fn (x,y) => y ^ " " ^ x) res r
         in
           [res ^ " ...", " " ^ s]
         end
@@ -185,7 +185,7 @@ fun usage allopts mesg =
     exit allopts {message = SOME mesg, usage = true, success = false};
 
 fun version allopts =
-    (print (versionInformation allopts);
+    (TextIO.print (versionInformation allopts);
      exit allopts {message = NONE, usage = false, success = true});
 
 (* ------------------------------------------------------------------------- *)
@@ -220,7 +220,8 @@ fun processOptions (allopts : allOptions) =
       | process ("-v" :: _) = version allopts
       | process ("--version" :: _) = version allopts
       | process (x :: xs) =
-      if x = "" orelse x = "-" orelse hd (explode x) <> #"-" then ([], x :: xs)
+      if x = "" orelse x = "-" orelse hd (String.explode x) <> #"-" then
+        ([], x :: xs)
       else
         let
           val (r,f) = findOption x
@@ -233,7 +234,8 @@ fun processOptions (allopts : allOptions) =
     fn l =>
     let
       val (a,b) = process l
-      val a = foldl (fn ((x,xs),ys) => x :: xs @ ys) [] (rev a)
+
+      val a = List.foldl (fn ((x,xs),ys) => x :: xs @ ys) [] (rev a)
     in
       (a,b)
     end

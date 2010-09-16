@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PROOFS IN FIRST ORDER LOGIC                                               *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Proof :> Proof =
@@ -39,40 +39,40 @@ local
   fun ppSubst ppThm (sub,thm) =
       Print.sequence (Print.addBreak 1)
         (Print.blockProgram Print.Inconsistent 1
-           [Print.addString "{",
+           [Print.ppString "{",
             Print.ppOp2 " =" Print.ppString Subst.pp ("sub",sub),
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             Print.ppOp2 " =" Print.ppString ppThm ("thm",thm),
-            Print.addString "}"]);
+            Print.ppString "}"]);
 
   fun ppResolve ppThm (res,pos,neg) =
       Print.sequence (Print.addBreak 1)
         (Print.blockProgram Print.Inconsistent 1
-           [Print.addString "{",
+           [Print.ppString "{",
             Print.ppOp2 " =" Print.ppString Atom.pp ("res",res),
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             Print.ppOp2 " =" Print.ppString ppThm ("pos",pos),
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             Print.ppOp2 " =" Print.ppString ppThm ("neg",neg),
-            Print.addString "}"]);
+            Print.ppString "}"]);
 
   fun ppRefl tm = Print.sequence (Print.addBreak 1) (Term.pp tm);
 
   fun ppEquality (lit,path,res) =
       Print.sequence (Print.addBreak 1)
         (Print.blockProgram Print.Inconsistent 1
-           [Print.addString "{",
+           [Print.ppString "{",
             Print.ppOp2 " =" Print.ppString Literal.pp ("lit",lit),
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             Print.ppOp2 " =" Print.ppString Term.ppPath ("path",path),
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             Print.ppOp2 " =" Print.ppString Term.pp ("res",res),
-            Print.addString "}"]);
+            Print.ppString "}"]);
 
   fun ppInf ppAxiom ppThm inf =
       let
@@ -80,7 +80,7 @@ local
       in
         Print.block Print.Inconsistent 2
           (Print.sequence
-             (Print.addString infString)
+             (Print.ppString infString)
              (case inf of
                 Axiom cl => ppAxiom cl
               | Assume x => ppAssume x
@@ -106,7 +106,7 @@ in
         val prf = enumerate prf
 
         fun ppThm th =
-            Print.addString
+            Print.ppString
             let
               val cl = Thm.clause th
 
@@ -123,7 +123,7 @@ in
             in
               Print.sequence
                 (Print.blockProgram Print.Consistent (1 + size s)
-                   [Print.addString (s ^ " "),
+                   [Print.ppString (s ^ " "),
                     Thm.pp th,
                     Print.addBreak 2,
                     Print.ppBracket "[" "]" (ppInf (K Print.skip) ppThm) inf])
@@ -131,10 +131,10 @@ in
             end
       in
         Print.blockProgram Print.Consistent 0
-          [Print.addString "START OF PROOF",
+          [Print.ppString "START OF PROOF",
            Print.addNewline,
            Print.program (map ppStep prf),
-           Print.addString "END OF PROOF"]
+           Print.ppString "END OF PROOF"]
       end
 (*MetisDebug
       handle Error err => raise Bug ("Proof.pp: shouldn't fail:\n" ^ err);
