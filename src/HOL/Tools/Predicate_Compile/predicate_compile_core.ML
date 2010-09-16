@@ -3278,16 +3278,16 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
             val [nrandom, size, depth] = arguments
           in
             rpair NONE (fst (DSequence.yieldn k
-              (Code_Runtime.value NONE (Dseq_Random_Result.get, put_dseq_random_result, "Predicate_Compile_Core.put_dseq_random_result")
-                (fn proc => fn g => fn nrandom => fn size => fn s => g nrandom size s |>> DSequence.map proc)
-                  thy t' [] nrandom size
+              (Code_Runtime.dynamic_value_strict (Dseq_Random_Result.get, put_dseq_random_result, "Predicate_Compile_Core.put_dseq_random_result")
+                thy NONE (fn proc => fn g => fn nrandom => fn size => fn s => g nrandom size s |>> DSequence.map proc)
+                  t' [] nrandom size
                 |> Random_Engine.run)
               depth true))
           end
       | DSeq =>
           rpair NONE (fst (DSequence.yieldn k
-            (Code_Runtime.value NONE (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Core.put_dseq_result")
-              DSequence.map thy t' []) (the_single arguments) true))
+            (Code_Runtime.dynamic_value_strict (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Core.put_dseq_result")
+              thy NONE DSequence.map t' []) (the_single arguments) true))
       | New_Pos_Random_DSeq =>
           let
             val [nrandom, size, depth] = arguments
@@ -3296,23 +3296,25 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
             if stats then
               apsnd (SOME o accumulate) (split_list
               (fst (Lazy_Sequence.yieldn k
-                (Code_Runtime.value NONE
+                (Code_Runtime.dynamic_value_strict
                   (Lseq_Random_Stats_Result.get, put_lseq_random_stats_result, "Predicate_Compile_Core.put_lseq_random_stats_result")
+                  thy NONE
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
                     |> Lazy_Sequence.mapa (apfst proc))
-                    thy t' [] nrandom size seed depth))))
+                    t' [] nrandom size seed depth))))
             else rpair NONE
               (fst (Lazy_Sequence.yieldn k
-                (Code_Runtime.value NONE
+                (Code_Runtime.dynamic_value_strict
                   (Lseq_Random_Result.get, put_lseq_random_result, "Predicate_Compile_Core.put_lseq_random_result")
+                  thy NONE 
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
                     |> Lazy_Sequence.mapa proc)
-                    thy t' [] nrandom size seed depth)))
+                    t' [] nrandom size seed depth)))
           end
       | _ =>
           rpair NONE (fst (Predicate.yieldn k
-            (Code_Runtime.value NONE (Pred_Result.get, put_pred_result, "Predicate_Compile_Core.put_pred_result")
-              Predicate.map thy t' [])))
+            (Code_Runtime.dynamic_value_strict (Pred_Result.get, put_pred_result, "Predicate_Compile_Core.put_pred_result")
+              thy NONE Predicate.map t' [])))
   in ((T, ts), statistics) end;
 
 fun values ctxt param_user_modes ((raw_expected, stats), comp_options) k t_compr =

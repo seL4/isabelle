@@ -609,7 +609,8 @@ fun dynamic_eval_value thy = lift_triv_classes_rew thy
 
 fun static_eval_conv thy consts = Code_Simp.no_frees_conv
   (lift_triv_classes_conv thy (Code_Thingol.static_eval_conv thy consts
-    (K (fn program => oracle thy program (compile true thy program)))));
+    (K (fn program => let val nbe_program = compile true thy program
+      in fn thy => oracle thy program nbe_program end))));
 
 
 (** setup **)
