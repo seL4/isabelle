@@ -12,12 +12,13 @@ sig
      limited_types : (typ * int) list,
      limited_predicates : (string list * int) list,
      replacing : ((string * string) * string) list,
-     manual_reorder : ((string * int) * int list) list,
-     timeout : Time.time,
-     prolog_system : prolog_system}
+     manual_reorder : ((string * int) * int list) list}
+  val set_ensure_groundness : code_options -> code_options
+  val map_limit_predicates : ((string list * int) list -> (string list * int) list)
+    -> code_options -> code_options
   val code_options_of : theory -> code_options 
   val map_code_options : (code_options -> code_options) -> theory -> theory
-
+  
   datatype arith_op = Plus | Minus
   datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
     | Number of int | ArithOp of arith_op * prol_term list;
@@ -30,12 +31,13 @@ sig
   type clause = ((string * prol_term list) * prem);
   type logic_program = clause list;
   type constant_table = (string * string) list
-
-  val generate : bool -> Proof.context -> string -> (logic_program * constant_table)
+  
+  val generate : Predicate_Compile_Aux.mode option * bool ->
+    Proof.context -> string -> (logic_program * constant_table)
   val write_program : logic_program -> string
   val run : (Time.time * prolog_system) -> logic_program -> string -> string list -> int option -> prol_term list list
-
-  val quickcheck : Proof.context -> bool -> term -> int -> term list option * (bool list * bool)
+  
+  val quickcheck : Proof.context -> term -> int -> term list option * (bool list * bool)
 
   val trace : bool Unsynchronized.ref
   
@@ -53,43 +55,66 @@ fun tracing s = if !trace then Output.tracing s else ()
 
 (* code generation options *)
 
-datatype prolog_system = SWI_PROLOG | YAP
 
 type code_options =
   {ensure_groundness : bool,
    limited_types : (typ * int) list,
    limited_predicates : (string list * int) list,
    replacing : ((string * string) * string) list,
-   manual_reorder : ((string * int) * int list) list,
-   timeout : Time.time,
-   prolog_system : prolog_system}
+   manual_reorder : ((string * int) * int list) list}
 
+
+fun set_ensure_groundness {ensure_groundness, limited_types, limited_predicates,
+  replacing, manual_reorder} =
+  {ensure_groundness = true, limited_types = limited_types,
+   limited_predicates = limited_predicates, replacing = replacing,
+   manual_reorder = manual_reorder}
+
+fun map_limit_predicates f {ensure_groundness, limited_types, limited_predicates,
+  replacing, manual_reorder} =
+  {ensure_groundness = ensure_groundness, limited_types = limited_types,
+   limited_predicates = f limited_predicates, replacing = replacing,
+   manual_reorder = manual_reorder}
+  
 structure Options = Theory_Data
 (
   type T = code_options
   val empty = {ensure_groundness = false,
-    limited_types = [], limited_predicates = [], replacing = [], manual_reorder = [],
-    timeout = Time.fromSeconds 10, prolog_system = SWI_PROLOG}
+    limited_types = [], limited_predicates = [], replacing = [], manual_reorder = []}
   val extend = I;
   fun merge
     ({ensure_groundness = ensure_groundness1, limited_types = limited_types1,
       limited_predicates = limited_predicates1, replacing = replacing1,
-      manual_reorder = manual_reorder1, timeout = timeout1, prolog_system = prolog_system1},
+      manual_reorder = manual_reorder1},
      {ensure_groundness = ensure_groundness2, limited_types = limited_types2,
       limited_predicates = limited_predicates2, replacing = replacing2,
-      manual_reorder = manual_reorder2, timeout = timeout2, prolog_system = prolog_system2}) =
+      manual_reorder = manual_reorder2}) =
     {ensure_groundness = ensure_groundness1 orelse ensure_groundness2,
      limited_types = AList.merge (op =) (K true) (limited_types1, limited_types2),
      limited_predicates = AList.merge (op =) (K true) (limited_predicates1, limited_predicates2),
      manual_reorder = AList.merge (op =) (K true) (manual_reorder1, manual_reorder2),
-     replacing = Library.merge (op =) (replacing1, replacing2),
-     timeout = timeout1,
-     prolog_system = prolog_system1};
+     replacing = Library.merge (op =) (replacing1, replacing2)};
 );
 
 val code_options_of = Options.get
 
 val map_code_options = Options.map
+
+(* system configuration *)
+
+datatype prolog_system = SWI_PROLOG | YAP
+
+type system_configuration = {timeout : Time.time, prolog_system : prolog_system}
+
+structure System_Config = Generic_Data
+(
+  type T = system_configuration
+  val empty = {timeout = Time.fromSeconds 10, prolog_system = SWI_PROLOG}
+  val extend = I;
+  fun merge ({timeout = timeout1, prolog_system = prolog_system1},
+        {timeout = timeout2, prolog_system = prolog_system2}) =
+    {timeout = timeout1, prolog_system = prolog_system1}
+)
 
 (* general string functions *)
 
@@ -176,7 +201,6 @@ fun mk_conform f empty avoid name =
 
 type constant_table = (string * string) list
 
-(* assuming no clashing *)
 fun declare_consts consts constant_table =
   let
     fun update' c table =
@@ -281,7 +305,6 @@ fun translate_intros ensure_groundness ctxt gr const constant_table =
     val intros = map (preprocess_intro (ProofContext.theory_of ctxt)) (Graph.get_node gr const)
     val (intros', ctxt') = Variable.import_terms true (map prop_of intros) ctxt
     val constant_table' = declare_consts (fold Term.add_const_names intros' []) constant_table
-      |> declare_consts [@{const_name "Groups.zero_class.zero"}, @{const_name "Suc"}]
     fun translate_intro intro =
       let
         val head = HOLogic.dest_Trueprop (Logic.strip_imp_concl intro)
@@ -316,18 +339,153 @@ fun print_intros ctxt gr consts =
   tracing (cat_lines (map (fn const =>
     "Constant " ^ const ^ "has intros:\n" ^
     cat_lines (map (Display.string_of_thm ctxt) (Graph.get_node gr const))) consts))
-    
-fun generate ensure_groundness ctxt const =
+
+(* translation of moded predicates *)
+
+(** generating graph of moded predicates **)
+
+(* could be moved to Predicate_Compile_Core *)
+fun requires_modes polarity cls =
+  let
+    fun req_mode_of pol (t, derivation) =
+      (case fst (strip_comb t) of
+        Const (c, _) => SOME (c, (pol, Predicate_Compile_Core.head_mode_of derivation))
+      | _ => NONE)
+    fun req (Predicate_Compile_Aux.Prem t, derivation) = req_mode_of polarity (t, derivation)
+      | req (Predicate_Compile_Aux.Negprem t, derivation) = req_mode_of (not polarity) (t, derivation)
+      | req _ = NONE
+  in      
+    maps (fn (_, prems) => map_filter req prems) cls
+  end
+ 
+structure Mode_Graph = Graph(type key = string * (bool * Predicate_Compile_Aux.mode)
+  val ord = prod_ord fast_string_ord (prod_ord bool_ord Predicate_Compile_Aux.mode_ord));
+
+fun mk_moded_clauses_graph ctxt scc gr =
+  let
+    val options = Predicate_Compile_Aux.default_options
+    val mode_analysis_options =
+      {use_random = true, reorder_premises = true, infer_pos_and_neg_modes = true}
+    fun infer prednames (gr, (pos_modes, neg_modes, random)) =
+      let
+        val (lookup_modes, lookup_neg_modes, needs_random) =
+          ((fn s => the (AList.lookup (op =) pos_modes s)),
+           (fn s => the (AList.lookup (op =) neg_modes s)),
+           (fn s => member (op =) (the (AList.lookup (op =) random s))))
+        val (preds, all_vs, param_vs, all_modes, clauses) =
+          Predicate_Compile_Core.prepare_intrs options ctxt prednames
+            (maps (Predicate_Compile_Core.intros_of ctxt) prednames)
+        val ((moded_clauses, random'), _) =
+          Predicate_Compile_Core.infer_modes mode_analysis_options options 
+            (lookup_modes, lookup_neg_modes, needs_random) ctxt preds all_modes param_vs clauses
+        val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
+        val pos_modes' = map (apsnd (map_filter (fn (true, m) => SOME m | _ => NONE))) modes
+        val neg_modes' = map (apsnd (map_filter (fn (false, m) => SOME m | _ => NONE))) modes
+        val _ = tracing ("Inferred modes:\n" ^
+          cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
+            (fn (p, m) => Predicate_Compile_Aux.string_of_mode m ^ (if p then "pos" else "neg")) ms)) modes))
+        val gr' = gr
+          |> fold (fn (p, mps) => fold (fn (mode, cls) =>
+                Mode_Graph.new_node ((p, mode), cls)) mps)
+            moded_clauses
+          |> fold (fn (p, mps) => fold (fn (mode, cls) => fold (fn req =>
+              Mode_Graph.add_edge ((p, mode), req)) (requires_modes (fst mode) cls)) mps)
+            moded_clauses
+      in
+        (gr', (AList.merge (op =) (op =) (pos_modes, pos_modes'),
+          AList.merge (op =) (op =) (neg_modes, neg_modes'),
+          AList.merge (op =) (op =) (random, random')))
+      end
+  in  
+    fst (fold infer (rev scc) (Mode_Graph.empty, ([], [], []))) 
+  end
+
+fun declare_moded_predicate moded_preds table =
+  let
+    fun update' (p as (pred, (pol, mode))) table =
+      if AList.defined (op =) table p then table else
+        let
+          val name = Long_Name.base_name pred ^ (if pol then "p" else "n")
+            ^ Predicate_Compile_Aux.ascii_string_of_mode mode
+          val p' = mk_conform first_lower "pred" (map snd table) name
+        in
+          AList.update (op =) (p, p') table
+        end
+  in
+    fold update' moded_preds table
+  end
+
+fun mk_program ctxt moded_gr moded_preds (prog, (moded_pred_table, constant_table)) =
+  let
+    val moded_pred_table' = declare_moded_predicate moded_preds moded_pred_table
+    fun mk_literal pol derivation constant_table' t =
+      let
+        val (p, args) = strip_comb t
+        val mode = Predicate_Compile_Core.head_mode_of derivation 
+        val name = fst (dest_Const p)
+        
+        val p' = the (AList.lookup (op =) moded_pred_table' (name, (pol, mode)))
+        val args' = map (translate_term ctxt constant_table') args
+      in
+        Rel (p', args')
+      end
+    fun mk_prem pol (indprem, derivation) constant_table =
+      case indprem of
+        Predicate_Compile_Aux.Generator (s, T) => (Ground (s, T), constant_table)
+      | _ =>
+        declare_consts (Term.add_const_names (Predicate_Compile_Aux.dest_indprem indprem) []) constant_table
+        |> (fn constant_table' =>
+          (case indprem of Predicate_Compile_Aux.Negprem t =>
+            NegRel_of (mk_literal (not pol) derivation constant_table' t)
+          | _ =>
+            mk_literal pol derivation constant_table' (Predicate_Compile_Aux.dest_indprem indprem), constant_table'))
+    fun mk_clause pred_name pol (ts, prems) (prog, constant_table) =
+    let
+      val constant_table' = declare_consts (fold Term.add_const_names ts []) constant_table
+      val args = map (translate_term ctxt constant_table') ts
+      val (prems', constant_table'') = fold_map (mk_prem pol) prems constant_table'
+    in
+      (((pred_name, args), Conj prems') :: prog, constant_table'')
+    end
+    fun mk_clauses (pred, mode as (pol, _)) =
+      let
+        val clauses = Mode_Graph.get_node moded_gr (pred, mode)
+        val pred_name = the (AList.lookup (op =) moded_pred_table' (pred, mode))
+      in
+        fold (mk_clause pred_name pol) clauses
+      end
+  in
+    apsnd (pair moded_pred_table') (fold mk_clauses moded_preds (prog, constant_table))
+  end
+
+fun generate (use_modes, ensure_groundness) ctxt const =
   let 
     fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
     val gr = Predicate_Compile_Core.intros_graph_of ctxt
     val gr' = add_edges depending_preds_of const gr
     val scc = strong_conn_of gr' [const]
-    val _ = print_intros ctxt gr (flat scc)
-    val constant_table = declare_consts (flat scc) []
+    val initial_constant_table = 
+      declare_consts [@{const_name "Groups.zero_class.zero"}, @{const_name "Suc"}] []
   in
-    apfst flat (fold_map (translate_intros ensure_groundness ctxt gr) (flat scc) constant_table)
+    case use_modes of
+      SOME mode =>
+        let
+          val moded_gr = mk_moded_clauses_graph ctxt scc gr
+          val moded_gr' = Mode_Graph.subgraph
+            (member (op =) (Mode_Graph.all_succs moded_gr [(const, (true, mode))])) moded_gr
+          val scc = Mode_Graph.strong_conn moded_gr' 
+        in
+          apfst rev (apsnd snd
+            (fold (mk_program ctxt moded_gr') (rev scc) ([], ([], initial_constant_table))))
+        end
+      | NONE =>
+        let 
+          val _ = print_intros ctxt gr (flat scc)
+          val constant_table = declare_consts (flat scc) initial_constant_table
+        in
+          apfst flat (fold_map (translate_intros ensure_groundness ctxt gr) (flat scc) constant_table)
+        end
   end
   
 (* implementation for fully enumerating predicates and
@@ -521,6 +679,7 @@ fun write_prem (Conj prems) = space_implode ", " (map write_prem prems)
   | write_prem (NotEq (l, r)) = write_term l ^ " \\= " ^ write_term r
   | write_prem (ArithEq (l, r)) = write_term l ^ " is " ^ write_term r
   | write_prem (NotArithEq (l, r)) = write_term l ^ " =\\= " ^ write_term r
+  | write_prem _ = raise Fail "Not a valid prolog premise"
 
 fun write_clause (head, prem) =
   write_rel head ^ (if prem = Conj [] then "." else " :- " ^ write_prem prem ^ ".")
@@ -723,7 +882,7 @@ fun values ctxt soln t_compr =
       |> Predicate_Compile.preprocess preprocess_options t
     val ctxt' = ProofContext.init_global thy'
     val _ = tracing "Generating prolog program..."
-    val (p, constant_table) = generate (#ensure_groundness options) ctxt' name
+    val (p, constant_table) = generate (NONE, #ensure_groundness options) ctxt' name (* FIXME *)
       |> (if #ensure_groundness options then
           add_ground_predicates ctxt' (#limited_types options)
         else I)
@@ -731,7 +890,8 @@ fun values ctxt soln t_compr =
       |> apfst (fold replace (#replacing options))
       |> apfst (reorder_manually (#manual_reorder options))
     val _ = tracing "Running prolog program..."
-    val tss = run (#timeout options, #prolog_system options)
+    val system_config = System_Config.get (Context.Proof ctxt)
+    val tss = run (#timeout system_config, #prolog_system system_config)
       p (translate_const constant_table name) (map first_upper vnames) soln
     val _ = tracing "Restoring terms..."
     val empty = Const("Orderings.bot_class.bot", fastype_of t_compr)
@@ -798,7 +958,7 @@ fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ A $ B) = strip_imp_co
 
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
-fun quickcheck ctxt report t size =
+fun quickcheck ctxt t size =
   let
     val options = code_options_of (ProofContext.theory_of ctxt)
     val thy = Theory.copy (ProofContext.theory_of ctxt)
@@ -821,13 +981,14 @@ fun quickcheck ctxt report t size =
     val thy3 = Predicate_Compile.preprocess preprocess_options const thy2
     val ctxt' = ProofContext.init_global thy3
     val _ = tracing "Generating prolog program..."
-    val (p, constant_table) = generate true ctxt' full_constname
+    val (p, constant_table) = generate (NONE, true) ctxt' full_constname
       |> add_ground_predicates ctxt' (#limited_types options)
       |> add_limited_predicates (#limited_predicates options)
       |> apfst (fold replace (#replacing options))
       |> apfst (reorder_manually (#manual_reorder options))
     val _ = tracing "Running prolog program..."
-    val tss = run (#timeout options, #prolog_system options)
+    val system_config = System_Config.get (Context.Proof ctxt)
+    val tss = run (#timeout system_config, #prolog_system system_config)
       p (translate_const constant_table full_constname) (map fst vs') (SOME 1)
     val _ = tracing "Restoring terms..."
     val res =

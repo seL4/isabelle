@@ -71,6 +71,7 @@ sig
   type mode_analysis_options = {use_random : bool, reorder_premises : bool, infer_pos_and_neg_modes : bool}  
   datatype mode_derivation = Mode_App of mode_derivation * mode_derivation | Context of mode
     | Mode_Pair of mode_derivation * mode_derivation | Term of mode
+  val head_mode_of : mode_derivation -> mode
   type moded_clause = term list * (Predicate_Compile_Aux.indprem * mode_derivation) list
   type 'a pred_mode_table = (string * ((bool * mode) * 'a) list) list
 
