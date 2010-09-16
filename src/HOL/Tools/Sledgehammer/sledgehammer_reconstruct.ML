@@ -17,6 +17,9 @@ sig
     string Symtab.table * bool * int * Proof.context * int list list
   type text_result = string * (string * locality) list
 
+  val repair_conjecture_shape_and_axiom_names :
+    string -> int list list -> (string * locality) list vector
+    -> int list list * (string * locality) list vector
   val metis_proof_text : metis_params -> text_result
   val isar_proof_text : isar_params -> metis_params -> text_result
   val proof_text : bool -> isar_params -> metis_params -> text_result
@@ -39,6 +42,62 @@ type metis_params =
 type isar_params =
   string Symtab.table * bool * int * Proof.context * int list list
 type text_result = string * (string * locality) list
+
+
+(** SPASS's Flotter hack **)
+
+(* This is a hack required for keeping track of axioms after they have been
+   clausified by SPASS's Flotter tool. The "ATP/scripts/spass" script is also
+   part of this hack. *)
+
+val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
+
+fun extract_clause_sequence output =
+  let
+    val tokens_of = String.tokens (not o Char.isAlphaNum)
+    fun extract_num ("clause" :: (ss as _ :: _)) =
+    Int.fromString (List.last ss)
+      | extract_num _ = NONE
+  in output |> split_lines |> map_filter (extract_num o tokens_of) end
+
+val parse_clause_formula_pair =
+  $$ "(" |-- scan_integer --| $$ ","
+  -- (Symbol.scan_id ::: Scan.repeat ($$ "," |-- Symbol.scan_id)) --| $$ ")"
+  --| Scan.option ($$ ",")
+val parse_clause_formula_relation =
+  Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
+  |-- Scan.repeat parse_clause_formula_pair
+val extract_clause_formula_relation =
+  Substring.full #> Substring.position set_ClauseFormulaRelationN
+  #> snd #> Substring.position "." #> fst #> Substring.string
+  #> explode #> filter_out Symbol.is_blank #> parse_clause_formula_relation
+  #> fst
+
+fun repair_conjecture_shape_and_axiom_names output conjecture_shape
+                                            axiom_names =
+  if String.isSubstring set_ClauseFormulaRelationN output then
+    let
+      val j0 = hd (hd conjecture_shape)
+      val seq = extract_clause_sequence output
+      val name_map = extract_clause_formula_relation output
+      fun renumber_conjecture j =
+        conjecture_prefix ^ string_of_int (j - j0)
+        |> AList.find (fn (s, ss) => member (op =) ss s) name_map
+        |> map (fn s => find_index (curry (op =) s) seq + 1)
+      fun names_for_number j =
+        j |> AList.lookup (op =) name_map |> these
+          |> map_filter (try (unprefix axiom_prefix)) |> map unascii_of
+          |> map (fn name =>
+                     (name, name |> find_first_in_list_vector axiom_names
+                                 |> the)
+                     handle Option.Option =>
+                            error ("No such fact: " ^ quote name ^ "."))
+    in
+      (conjecture_shape |> map (maps renumber_conjecture),
+       seq |> map names_for_number |> Vector.fromList)
+    end
+  else
+    (conjecture_shape, axiom_names)
 
 
 (** Soft-core proof reconstruction: Metis one-liner **)

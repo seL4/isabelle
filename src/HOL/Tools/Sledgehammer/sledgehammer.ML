@@ -13,6 +13,7 @@ sig
   type relevance_override = Sledgehammer_Filter.relevance_override
   type fol_formula = Sledgehammer_Translate.fol_formula
   type minimize_command = Sledgehammer_Reconstruct.minimize_command
+
   type params =
     {blocking: bool,
      debug: bool,
@@ -27,12 +28,14 @@ sig
      isar_shrink_factor: int,
      timeout: Time.time,
      expect: string}
+
   type problem =
     {state: Proof.state,
      goal: thm,
      subgoal: int,
      axioms: (term * ((string * locality) * fol_formula) option) list,
      only: bool}
+
   type prover_result =
     {outcome: failure option,
      message: string,
@@ -43,6 +46,7 @@ sig
      tstplike_proof: string,
      axiom_names: (string * locality) list vector,
      conjecture_shape: int list list}
+
   type prover = params -> minimize_command -> problem -> prover_result
 
   val dest_dir : string Config.T
@@ -136,65 +140,11 @@ fun with_path cleanup after f path =
   |> Exn.release
   |> tap (after path)
 
-fun extract_clause_sequence output =
-  let
-    val tokens_of = String.tokens (not o Char.isAlphaNum)
-    fun extract_num ("clause" :: (ss as _ :: _)) =
-    Int.fromString (List.last ss)
-      | extract_num _ = NONE
-  in output |> split_lines |> map_filter (extract_num o tokens_of) end
-
-val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
-
-val parse_clause_formula_pair =
-  $$ "(" |-- scan_integer --| $$ ","
-  -- (Symbol.scan_id ::: Scan.repeat ($$ "," |-- Symbol.scan_id)) --| $$ ")"
-  --| Scan.option ($$ ",")
-val parse_clause_formula_relation =
-  Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
-  |-- Scan.repeat parse_clause_formula_pair
-val extract_clause_formula_relation =
-  Substring.full #> Substring.position set_ClauseFormulaRelationN
-  #> snd #> Substring.position "." #> fst #> Substring.string
-  #> explode #> filter_out Symbol.is_blank #> parse_clause_formula_relation
-  #> fst
-
-(* TODO: move to "Sledgehammer_Reconstruct" *)
-fun repair_conjecture_shape_and_theorem_names output conjecture_shape
-                                              axiom_names =
-  if String.isSubstring set_ClauseFormulaRelationN output then
-    (* This is a hack required for keeping track of axioms after they have been
-       clausified by SPASS's Flotter tool. The "ATP/scripts/spass" script is
-       also part of this hack. *)
-    let
-      val j0 = hd (hd conjecture_shape)
-      val seq = extract_clause_sequence output
-      val name_map = extract_clause_formula_relation output
-      fun renumber_conjecture j =
-        conjecture_prefix ^ string_of_int (j - j0)
-        |> AList.find (fn (s, ss) => member (op =) ss s) name_map
-        |> map (fn s => find_index (curry (op =) s) seq + 1)
-      fun names_for_number j =
-        j |> AList.lookup (op =) name_map |> these
-          |> map_filter (try (unprefix axiom_prefix)) |> map unascii_of
-          |> map (fn name =>
-                     (name, name |> find_first_in_list_vector axiom_names
-                                 |> the)
-                     handle Option.Option =>
-                            error ("No such fact: " ^ quote name ^ "."))
-    in
-      (conjecture_shape |> map (maps renumber_conjecture),
-       seq |> map names_for_number |> Vector.fromList)
-    end
-  else
-    (conjecture_shape, axiom_names)
-
-
 (* generic TPTP-based provers *)
 
 (* Important messages are important but not so important that users want to see
    them each time. *)
-val keep_every_nth_important_message = 10
+val important_message_keep_factor = 0.1
 
 fun prover_fun auto atp_name
         {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
@@ -306,11 +256,10 @@ fun prover_fun auto atp_name
          (output, msecs, tstplike_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val (conjecture_shape, axiom_names) =
-      repair_conjecture_shape_and_theorem_names output conjecture_shape
-                                                axiom_names
+      repair_conjecture_shape_and_axiom_names output conjecture_shape
+                                              axiom_names
     val important_message =
-      if Time.toSeconds (Time.now ())
-         mod keep_every_nth_important_message = 0 then
+      if random () <= important_message_keep_factor then
         extract_important_message output
       else
         ""
