@@ -10,7 +10,6 @@ sig
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
-  val strip_spaces_except_between_ident_chars : string -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
   val scan_integer : string list -> int * string list
@@ -41,28 +40,7 @@ fun serial_commas _ [] = ["??"]
   | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
   | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
 
-fun strip_spaces_in_list _ [] = []
-  | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
-  | strip_spaces_in_list is_evil [c1, c2] =
-    strip_spaces_in_list is_evil [c1] @ strip_spaces_in_list is_evil [c2]
-  | strip_spaces_in_list is_evil (c1 :: c2 :: c3 :: cs) =
-    if Char.isSpace c1 then
-      strip_spaces_in_list is_evil (c2 :: c3 :: cs)
-    else if Char.isSpace c2 then
-      if Char.isSpace c3 then
-        strip_spaces_in_list is_evil (c1 :: c3 :: cs)
-      else
-        str c1 :: (if forall is_evil [c1, c3] then [" "] else []) @
-        strip_spaces_in_list is_evil (c3 :: cs)
-    else
-      str c1 :: strip_spaces_in_list is_evil (c2 :: c3 :: cs)
-fun strip_spaces is_evil =
-  implode o strip_spaces_in_list is_evil o String.explode
-
-val simplify_spaces = strip_spaces (K true)
-
-fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
-val strip_spaces_except_between_ident_chars = strip_spaces is_ident_char
+val simplify_spaces = ATP_Proof.strip_spaces (K true)
 
 fun parse_bool_option option name s =
   (case s of

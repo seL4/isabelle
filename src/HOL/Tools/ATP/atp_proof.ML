@@ -19,6 +19,7 @@ sig
 
   type 'a proof = 'a uniform_formula step list
 
+  val strip_spaces : (char -> bool) -> string -> string
   val is_same_step : step_name * step_name -> bool
   val atp_proof_from_tstplike_string : string -> string proof
   val map_term_names_in_atp_proof :
@@ -29,7 +30,6 @@ end;
 structure ATP_Proof : ATP_PROOF =
 struct
 
-(*### FIXME: DUPLICATED FROM SLEDGEHAMMER_UTIL *)
 fun strip_spaces_in_list _ [] = []
   | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
   | strip_spaces_in_list is_evil [c1, c2] =
@@ -221,7 +221,7 @@ val parse_proof =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
                             (Scan.repeat1 parse_line)))
-  o explode o strip_spaces_except_between_ident_chars (*### FIXME: why isn't strip_spaces enough?*)
+  o explode o strip_spaces_except_between_ident_chars
 
 fun clean_up_dependency seen dep = find_first (curry is_same_step dep) seen
 fun clean_up_dependencies _ [] = []
