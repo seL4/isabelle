@@ -17,7 +17,7 @@
 print_depth 0;
 
 
-(**** Original file: Random.sig ****)
+(**** Original file: src/Random.sig ****)
 
 (*  Title:      Tools/random_word.ML
     Author:     Makarius
@@ -29,6 +29,7 @@ randomness.
 
 signature Metis_Random =
 sig
+
   val nextWord : unit -> word
 
   val nextBool : unit -> bool
@@ -39,7 +40,7 @@ sig
 
 end;
 
-(**** Original file: Random.sml ****)
+(**** Original file: src/Random.sml ****)
 
 (*  Title:      Tools/random_word.ML
     Author:     Makarius
@@ -90,11 +91,11 @@ fun nextReal () = real (Word.toInt (nextWord ())) / scaling;
 
 end;
 
-(**** Original file: Portable.sig ****)
+(**** Original file: src/Portable.sig ****)
 
 (* ========================================================================= *)
-(* ML SPECIFIC FUNCTIONS                                                     *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License       *)
+(* ML COMPILER SPECIFIC FUNCTIONS                                            *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Portable =
@@ -113,17 +114,10 @@ val ml : string
 val pointerEqual : 'a * 'a -> bool
 
 (* ------------------------------------------------------------------------- *)
-(* Timing function applications.                                             *)
+(* Marking critical sections of code.                                        *)
 (* ------------------------------------------------------------------------- *)
 
-val time : ('a -> 'b) -> 'a -> 'b
-
-(* ------------------------------------------------------------------------- *)
-(* Critical section markup (multiprocessing)                                 *)
-(* ------------------------------------------------------------------------- *)
-
-(* MODIFIED by Jasmin Blanchette *)
-val CRITICAL: (unit -> 'a) -> 'a
+val critical : (unit -> 'a) -> unit -> 'a
 
 (* ------------------------------------------------------------------------- *)
 (* Generating random values.                                                 *)
@@ -137,97 +131,44 @@ val randomReal : unit -> real  (* () |-> [0,1] *)
 
 val randomWord : unit -> Word.word
 
-end
-
-(**** Original file: PortablePolyml.sml ****)
-
-(* ========================================================================= *)
-(* POLY/ML SPECIFIC FUNCTIONS                                                *)
-(* Copyright (c) 2008 Joe Hurd, distributed under the BSD License            *)
-(* ========================================================================= *)
-
-structure Metis_Portable :> Metis_Portable =
-struct
-
-(* ------------------------------------------------------------------------- *)
-(* The ML implementation.                                                    *)
-(* ------------------------------------------------------------------------- *)
-
-val ml = "polyml";
-
-(* ------------------------------------------------------------------------- *)
-(* Pointer equality using the run-time system.                               *)
-(* ------------------------------------------------------------------------- *)
-
-fun pointerEqual (x : 'a, y : 'a) = pointer_eq(x,y);
-
 (* ------------------------------------------------------------------------- *)
 (* Timing function applications.                                             *)
 (* ------------------------------------------------------------------------- *)
 
-fun time f x =
-    let
-      fun p t =
-          let
-            val s = Time.fmt 3 t
-          in
-            case size (List.last (String.fields (fn x => x = #".") s)) of
-              3 => s
-            | 2 => s ^ "0"
-            | 1 => s ^ "00"
-            | _ => raise Fail "Metis_Portable.time"
-          end
-
-      val c = Timer.startCPUTimer ()
-
-      val r = Timer.startRealTimer ()
-
-      fun pt () =
-          let
-            val {usr,sys} = Timer.checkCPUTimer c
-            val real = Timer.checkRealTimer r
-          in
-            TextIO.print (* MODIFIED by Jasmin Blanchette *)
-              ("User: " ^ p usr ^ "  System: " ^ p sys ^
-               "  Real: " ^ p real ^ "\n")
-          end
-
-      val y = f x handle e => (pt (); raise e)
-
-      val () = pt ()
-    in
-      y
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Critical section markup (multiprocessing)                                 *)
-(* ------------------------------------------------------------------------- *)
-
-(* MODIFIED by Jasmin Blanchette *)
-fun CRITICAL e = NAMED_CRITICAL "metis" e;
-
-
-(* ------------------------------------------------------------------------- *)
-(* Generating random values.                                                 *)
-(* ------------------------------------------------------------------------- *)
-
-val randomWord = Metis_Random.nextWord;
-
-val randomBool = Metis_Random.nextBool;
-
-val randomInt = Metis_Random.nextInt;
-
-val randomReal = Metis_Random.nextReal;
+val time : ('a -> 'b) -> 'a -> 'b
 
 end
 
-(* ------------------------------------------------------------------------- *)
-(* Quotations a la Moscow ML.                                                *)
-(* ------------------------------------------------------------------------- *)
+(**** Original file: PortableIsabelle.sml ****)
 
-datatype 'a frag = QUOTE of string | ANTIQUOTE of 'a;
+(*  Title:      Tools/Metis/PortableIsabelle.sml
+    Author:     Jasmin Blanchette, TU Muenchen
+    Copyright   2010
 
-(**** Original file: Useful.sig ****)
+Isabelle-specific setup for Metis. Based on "src/PortablePolyml.sml".
+*)
+
+structure Metis_Portable :> Metis_Portable =
+struct
+
+val ml = "isabelle"
+
+fun pointerEqual (x : 'a, y : 'a) = pointer_eq (x, y)
+
+fun critical e () = NAMED_CRITICAL "metis" e
+
+val randomWord = Metis_Random.nextWord
+val randomBool = Metis_Random.nextBool
+val randomInt = Metis_Random.nextInt
+val randomReal = Metis_Random.nextReal
+
+fun time f x = f x (* dummy *)
+
+end
+
+datatype 'a frag = QUOTE of string | ANTIQUOTE of 'a
+
+(**** Original file: src/Useful.sig ****)
 
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
@@ -252,8 +193,6 @@ val can : ('a -> 'b) -> 'a -> bool
 (* ------------------------------------------------------------------------- *)
 (* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
-
-val print : string -> unit (* MODIFIED by Jasmin Blanchette *)
 
 val tracePrint : (string -> unit) Unsynchronized.ref
 
@@ -339,10 +278,6 @@ val boolCompare : bool * bool -> order  (* false < true *)
 (* ------------------------------------------------------------------------- *)
 (* Lists: note we count elements from 0.                                     *)
 (* ------------------------------------------------------------------------- *)
-
-val foldl : ('a * 'b -> 'b) -> 'b -> 'a list -> 'b (* MODIFIED by Jasmin Blanchette *)
-
-val foldr : ('a * 'b -> 'b) -> 'b -> 'a list -> 'b (* MODIFIED by Jasmin Blanchette *)
 
 val cons : 'a -> 'a list -> 'a list
 
@@ -448,10 +383,6 @@ val primesUpTo : int -> int list
 (* Strings.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val implode : char list -> string (* MODIFIED by Jasmin Blanchette *)
-
-val explode : string -> char list (* MODIFIED by Jasmin Blanchette *)
-
 val rot : int -> char -> char
 
 val charToInt : char -> int option
@@ -554,7 +485,9 @@ val writeTextFile : {contents : string, filename : string} -> unit
 
 val try : ('a -> 'b) -> 'a -> 'b
 
-val chat : string -> unit
+val chat : string -> unit  (* stdout *)
+
+val chide : string -> unit  (* stderr *)
 
 val warn : string -> unit
 
@@ -568,7 +501,7 @@ val executionTime : unit -> real  (* Wall clock execution time *)
 
 end
 
-(**** Original file: Useful.sml ****)
+(**** Original file: src/Useful.sml ****)
 
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
@@ -622,9 +555,7 @@ fun can f = Option.isSome o total f;
 (* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val print = TextIO.print; (* MODIFIED by Jasmin Blanchette *)
-
-val tracePrint = Unsynchronized.ref print;
+val tracePrint = Unsynchronized.ref TextIO.print;
 
 fun trace mesg = !tracePrint mesg;
 
@@ -744,10 +675,6 @@ fun boolCompare (false,true) = LESS
 (* Lists.                                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-val foldl = List.foldl; (* MODIFIED by Jasmin Blanchette *)
-
-val foldr = List.foldr; (* MODIFIED by Jasmin Blanchette *)
-
 fun cons x y = x :: y;
 
 fun hdTl l = (hd l, tl l);
@@ -783,19 +710,22 @@ fun zipWith f =
 
 fun zip xs ys = zipWith pair xs ys;
 
-fun unzip ab =
-    foldl (fn ((x, y), (xs, ys)) => (x :: xs, y :: ys)) ([], []) (rev ab);
+local
+  fun inc ((x,y),(xs,ys)) = (x :: xs, y :: ys);
+in
+  fun unzip ab = List.foldl inc ([],[]) (rev ab);
+end;
 
 fun cartwith f =
-  let
-    fun aux _ res _ [] = res
-      | aux xsCopy res [] (y :: yt) = aux xsCopy res xsCopy yt
-      | aux xsCopy res (x :: xt) (ys as y :: _) =
-        aux xsCopy (f x y :: res) xt ys
-  in
-    fn xs => fn ys =>
-       let val xs' = rev xs in aux xs' [] xs' (rev ys) end
-  end;
+    let
+      fun aux _ res _ [] = res
+        | aux xsCopy res [] (y :: yt) = aux xsCopy res xsCopy yt
+        | aux xsCopy res (x :: xt) (ys as y :: _) =
+          aux xsCopy (f x y :: res) xt ys
+    in
+      fn xs => fn ys =>
+         let val xs' = rev xs in aux xs' [] xs' (rev ys) end
+    end;
 
 fun cart xs ys = cartwith pair xs ys;
 
@@ -914,15 +844,32 @@ fun insert x s = if mem x s then s else x :: s;
 
 fun delete x s = List.filter (not o equal x) s;
 
-fun setify s = rev (foldl (fn (v,x) => if mem v x then x else v :: x) [] s);
+local
+  fun inc (v,x) = if mem v x then x else v :: x;
+in
+  fun setify s = rev (List.foldl inc [] s);
+end;
 
-fun union s t = foldl (fn (v,x) => if mem v t then x else v :: x) t (rev s);
+fun union s t =
+    let
+      fun inc (v,x) = if mem v t then x else v :: x
+    in
+      List.foldl inc t (rev s)
+    end;
 
 fun intersect s t =
-    foldl (fn (v,x) => if mem v t then v :: x else x) [] (rev s);
+    let
+      fun inc (v,x) = if mem v t then v :: x else x
+    in
+      List.foldl inc [] (rev s)
+    end;
 
 fun difference s t =
-    foldl (fn (v,x) => if mem v t then x else v :: x) [] (rev s);
+    let
+      fun inc (v,x) = if mem v t then x else v :: x
+    in
+      List.foldl inc [] (rev s)
+    end;
 
 fun subset s t = List.all (fn x => mem x t) s;
 
@@ -1032,8 +979,7 @@ local
 
   val primesList = Unsynchronized.ref [2];
 in
-  (* MODIFIED by Jasmin Blanchette *)
-  fun primes n = CRITICAL (fn () =>
+  fun primes n = Metis_Portable.critical (fn () =>
       let
         val Unsynchronized.ref ps = primesList
 
@@ -1048,11 +994,10 @@ in
           in
             ps
           end
-      end);
+      end) ();
 end;
 
-(* MODIFIED by Jasmin Blanchette *)
-fun primesUpTo n = CRITICAL (fn () =>
+fun primesUpTo n = Metis_Portable.critical (fn () =>
     let
       fun f k =
           let
@@ -1064,22 +1009,18 @@ fun primesUpTo n = CRITICAL (fn () =>
           end
     in
       f 8
-    end);
+    end) ();
 
 (* ------------------------------------------------------------------------- *)
 (* Strings.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val implode = String.implode (* MODIFIED by Jasmin Blanchette *)
-
-val explode = String.explode (* MODIFIED by Jasmin Blanchette *)
-
 local
   fun len l = (length l, l)
 
-  val upper = len (explode "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+  val upper = len (String.explode "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
-  val lower = len (explode "abcdefghijklmnopqrstuvwxyz");
+  val lower = len (String.explode "abcdefghijklmnopqrstuvwxyz");
 
   fun rotate (n,l) c k =
       List.nth (l, (k + Option.valOf (index (equal c) l)) mod n);
@@ -1118,7 +1059,7 @@ fun nChars x =
     let
       fun dup 0 l = l | dup n l = dup (n - 1) (x :: l)
     in
-      fn n => implode (dup n [])
+      fn n => String.implode (dup n [])
     end;
 
 fun chomp s =
@@ -1130,14 +1071,15 @@ fun chomp s =
     end;
 
 local
-  fun chop [] = []
-    | chop (l as (h :: t)) = if Char.isSpace h then chop t else l;
+  fun chop l =
+      case l of
+        [] => []
+      | h :: t => if Char.isSpace h then chop t else l;
 in
-  val trim = implode o chop o rev o chop o rev o explode;
+  val trim = String.implode o chop o rev o chop o rev o String.explode;
 end;
 
-fun join _ [] = ""
-  | join s (h :: t) = foldl (fn (x,y) => y ^ s ^ x) h t;
+val join = String.concatWith;
 
 local
   fun match [] l = SOME l
@@ -1145,18 +1087,19 @@ local
     | match (x :: xs) (y :: ys) = if x = y then match xs ys else NONE;
 
   fun stringify acc [] = acc
-    | stringify acc (h :: t) = stringify (implode h :: acc) t;
+    | stringify acc (h :: t) = stringify (String.implode h :: acc) t;
 in
   fun split sep =
       let
         val pat = String.explode sep
+
         fun div1 prev recent [] = stringify [] (rev recent :: prev)
           | div1 prev recent (l as h :: t) =
             case match pat l of
               NONE => div1 prev (h :: recent) t
             | SOME rest => div1 (rev recent :: prev) [] rest
       in
-        fn s => div1 [] [] (explode s)
+        fn s => div1 [] [] (String.explode s)
       end;
 end;
 
@@ -1286,24 +1229,22 @@ fun isRight (Left _) = false
 local
   val generator = Unsynchronized.ref 0
 in
-  (* MODIFIED by Jasmin Blanchette *)
-  fun newInt () = CRITICAL (fn () =>
+  fun newInt () = Metis_Portable.critical (fn () =>
       let
         val n = !generator
         val () = generator := n + 1
       in
         n
-      end);
+      end) ();
 
   fun newInts 0 = []
-      (* MODIFIED by Jasmin Blanchette *)
-    | newInts k = CRITICAL (fn () =>
+    | newInts k = Metis_Portable.critical (fn () =>
       let
         val n = !generator
         val () = generator := n + k
       in
         interval n k
-      end);
+      end) ();
 end;
 
 fun withRef (r,new) f x =
@@ -1383,10 +1324,12 @@ fun writeTextFile {contents,filename} =
 (* Profiling and error reporting.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-fun chat s = TextIO.output (TextIO.stdErr, s ^ "\n");
+fun chat s = TextIO.output (TextIO.stdOut, s ^ "\n");
+
+fun chide s = TextIO.output (TextIO.stdErr, s ^ "\n");
 
 local
-  fun err x s = chat (x ^ ": " ^ s);
+  fun err x s = chide (x ^ ": " ^ s);
 in
   fun try f x = f x
       handle e as Error _ => (err "try" (errorToString e); raise e)
@@ -1431,7 +1374,7 @@ val executionTime =
 
 end
 
-(**** Original file: Lazy.sig ****)
+(**** Original file: src/Lazy.sig ****)
 
 (* ========================================================================= *)
 (* SUPPORT FOR LAZY EVALUATION                                               *)
@@ -1453,7 +1396,7 @@ val memoize : (unit -> 'a) -> unit -> 'a
 
 end
 
-(**** Original file: Lazy.sml ****)
+(**** Original file: src/Lazy.sml ****)
 
 (* ========================================================================= *)
 (* SUPPORT FOR LAZY EVALUATION                                               *)
@@ -1494,11 +1437,11 @@ fun memoize f =
 
 end
 
-(**** Original file: Ordered.sig ****)
+(**** Original file: src/Ordered.sig ****)
 
 (* ========================================================================= *)
 (* ORDERED TYPES                                                             *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Ordered =
@@ -1530,11 +1473,11 @@ val compare : t * t -> order
 
 end
 
-(**** Original file: Ordered.sml ****)
+(**** Original file: src/Ordered.sml ****)
 
 (* ========================================================================= *)
 (* ORDERED TYPES                                                             *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_IntOrdered =
@@ -1556,7 +1499,7 @@ end;
 structure Metis_StringOrdered =
 struct type t = string val compare = String.compare end;
 
-(**** Original file: Map.sig ****)
+(**** Original file: src/Map.sig ****)
 
 (* ========================================================================= *)
 (* FINITE MAPS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
@@ -1749,7 +1692,7 @@ val advanceIterator : ('key,'a) iterator -> ('key,'a) iterator option
 
 end
 
-(**** Original file: Map.sml ****)
+(**** Original file: src/Map.sml ****)
 
 (* ========================================================================= *)
 (* FINITE MAPS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
@@ -2632,38 +2575,40 @@ and nodeDeleteNth n node =
 (* ------------------------------------------------------------------------- *)
 
 datatype ('key,'value) iterator =
-    LR of ('key * 'value) * ('key,'value) tree * ('key,'value) node list
-  | Metis_RL of ('key * 'value) * ('key,'value) tree * ('key,'value) node list;
+    LeftToRightIterator of
+      ('key * 'value) * ('key,'value) tree * ('key,'value) node list
+  | RightToLeftIterator of
+      ('key * 'value) * ('key,'value) tree * ('key,'value) node list;
 
-fun fromSpineLR nodes =
+fun fromSpineLeftToRightIterator nodes =
     case nodes of
       [] => NONE
     | Node {key,value,right,...} :: nodes =>
-      SOME (LR ((key,value),right,nodes));
+      SOME (LeftToRightIterator ((key,value),right,nodes));
 
-fun fromSpineRL nodes =
+fun fromSpineRightToLeftIterator nodes =
     case nodes of
       [] => NONE
     | Node {key,value,left,...} :: nodes =>
-      SOME (Metis_RL ((key,value),left,nodes));
+      SOME (RightToLeftIterator ((key,value),left,nodes));
 
-fun addLR nodes tree = fromSpineLR (treeLeftSpine nodes tree);
+fun addLeftToRightIterator nodes tree = fromSpineLeftToRightIterator (treeLeftSpine nodes tree);
 
-fun addRL nodes tree = fromSpineRL (treeRightSpine nodes tree);
+fun addRightToLeftIterator nodes tree = fromSpineRightToLeftIterator (treeRightSpine nodes tree);
 
-fun treeMkIterator tree = addLR [] tree;
+fun treeMkIterator tree = addLeftToRightIterator [] tree;
 
-fun treeMkRevIterator tree = addRL [] tree;
+fun treeMkRevIterator tree = addRightToLeftIterator [] tree;
 
 fun readIterator iter =
     case iter of
-      LR (key_value,_,_) => key_value
-    | Metis_RL (key_value,_,_) => key_value;
+      LeftToRightIterator (key_value,_,_) => key_value
+    | RightToLeftIterator (key_value,_,_) => key_value;
 
 fun advanceIterator iter =
     case iter of
-      LR (_,tree,nodes) => addLR nodes tree
-    | Metis_RL (_,tree,nodes) => addRL nodes tree;
+      LeftToRightIterator (_,tree,nodes) => addLeftToRightIterator nodes tree
+    | RightToLeftIterator (_,tree,nodes) => addRightToLeftIterator nodes tree;
 
 fun foldIterator f acc io =
     case io of
@@ -3177,7 +3122,7 @@ fun toString m = "<" ^ (if null m then "" else Int.toString (size m)) ^ ">";
 
 end
 
-(**** Original file: KeyMap.sig ****)
+(**** Original file: src/KeyMap.sig ****)
 
 (* ========================================================================= *)
 (* FINITE MAPS WITH A FIXED KEY TYPE                                         *)
@@ -3376,7 +3321,7 @@ val advanceIterator : 'a iterator -> 'a iterator option
 
 end
 
-(**** Original file: KeyMap.sml ****)
+(**** Original file: src/KeyMap.sml ****)
 
 (* ========================================================================= *)
 (* FINITE MAPS WITH A FIXED KEY TYPE                                         *)
@@ -4267,38 +4212,40 @@ and nodeDeleteNth n node =
 (* ------------------------------------------------------------------------- *)
 
 datatype 'value iterator =
-    LR of (key * 'value) * 'value tree * 'value node list
-  | Metis_RL of (key * 'value) * 'value tree * 'value node list;
+    LeftToRightIterator of
+      (key * 'value) * 'value tree * 'value node list
+  | RightToLeftIterator of
+      (key * 'value) * 'value tree * 'value node list;
 
-fun fromSpineLR nodes =
+fun fromSpineLeftToRightIterator nodes =
     case nodes of
       [] => NONE
     | Node {key,value,right,...} :: nodes =>
-      SOME (LR ((key,value),right,nodes));
+      SOME (LeftToRightIterator ((key,value),right,nodes));
 
-fun fromSpineRL nodes =
+fun fromSpineRightToLeftIterator nodes =
     case nodes of
       [] => NONE
     | Node {key,value,left,...} :: nodes =>
-      SOME (Metis_RL ((key,value),left,nodes));
+      SOME (RightToLeftIterator ((key,value),left,nodes));
 
-fun addLR nodes tree = fromSpineLR (treeLeftSpine nodes tree);
+fun addLeftToRightIterator nodes tree = fromSpineLeftToRightIterator (treeLeftSpine nodes tree);
 
-fun addRL nodes tree = fromSpineRL (treeRightSpine nodes tree);
+fun addRightToLeftIterator nodes tree = fromSpineRightToLeftIterator (treeRightSpine nodes tree);
 
-fun treeMkIterator tree = addLR [] tree;
+fun treeMkIterator tree = addLeftToRightIterator [] tree;
 
-fun treeMkRevIterator tree = addRL [] tree;
+fun treeMkRevIterator tree = addRightToLeftIterator [] tree;
 
 fun readIterator iter =
     case iter of
-      LR (key_value,_,_) => key_value
-    | Metis_RL (key_value,_,_) => key_value;
+      LeftToRightIterator (key_value,_,_) => key_value
+    | RightToLeftIterator (key_value,_,_) => key_value;
 
 fun advanceIterator iter =
     case iter of
-      LR (_,tree,nodes) => addLR nodes tree
-    | Metis_RL (_,tree,nodes) => addRL nodes tree;
+      LeftToRightIterator (_,tree,nodes) => addLeftToRightIterator nodes tree
+    | RightToLeftIterator (_,tree,nodes) => addRightToLeftIterator nodes tree;
 
 fun foldIterator f acc io =
     case io of
@@ -4821,7 +4768,7 @@ Metis_KeyMap (Metis_IntPairOrdered);
 structure Metis_StringMap =
 Metis_KeyMap (Metis_StringOrdered);
 
-(**** Original file: Set.sig ****)
+(**** Original file: src/Set.sig ****)
 
 (* ========================================================================= *)
 (* FINITE SETS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
@@ -4993,7 +4940,7 @@ val advanceIterator : 'elt iterator -> 'elt iterator option
 
 end
 
-(**** Original file: Set.sml ****)
+(**** Original file: src/Set.sml ****)
 
 (* ========================================================================= *)
 (* FINITE SETS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
@@ -5327,7 +5274,7 @@ fun advanceIterator iter = Metis_Map.advanceIterator iter;
 
 end
 
-(**** Original file: ElementSet.sig ****)
+(**** Original file: src/ElementSet.sig ****)
 
 (* ========================================================================= *)
 (* FINITE SETS WITH A FIXED ELEMENT TYPE                                     *)
@@ -5505,7 +5452,7 @@ val advanceIterator : iterator -> iterator option
 
 end
 
-(**** Original file: ElementSet.sml ****)
+(**** Original file: src/ElementSet.sml ****)
 
 (* ========================================================================= *)
 (* FINITE SETS WITH A FIXED ELEMENT TYPE                                     *)
@@ -5855,11 +5802,11 @@ Metis_ElementSet (Metis_IntPairMap);
 structure Metis_StringSet =
 Metis_ElementSet (Metis_StringMap);
 
-(**** Original file: Sharing.sig ****)
+(**** Original file: src/Sharing.sig ****)
 
 (* ========================================================================= *)
 (* PRESERVING SHARING OF ML VALUES                                           *)
-(* Copyright (c) 2005-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2005 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Sharing =
@@ -5903,11 +5850,11 @@ val hashCons : ('a * 'a -> order) -> 'a -> 'a
 
 end
 
-(**** Original file: Sharing.sml ****)
+(**** Original file: src/Sharing.sml ****)
 
 (* ========================================================================= *)
 (* PRESERVING SHARING OF ML VALUES                                           *)
-(* Copyright (c) 2005-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2005 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Sharing :> Metis_Sharing =
@@ -6064,11 +6011,11 @@ fun hashCons cmp = cache cmp Metis_Useful.I;
 
 end
 
-(**** Original file: Stream.sig ****)
+(**** Original file: src/Stream.sig ****)
 
 (* ========================================================================= *)
 (* A POSSIBLY-INFINITE STREAM DATATYPE FOR ML                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Stream =
@@ -6176,17 +6123,15 @@ val fromTextFile : {filename : string} -> string stream  (* line by line *)
 
 end
 
-(**** Original file: Stream.sml ****)
+(**** Original file: src/Stream.sml ****)
 
 (* ========================================================================= *)
 (* A POSSIBLY-INFINITE STREAM DATATYPE FOR ML                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Stream :> Metis_Stream =
 struct
-
-open Metis_Useful; (* MODIFIED by Jasmin Blanchette *)
 
 val K = Metis_Useful.K;
 
@@ -6381,9 +6326,9 @@ fun fromList [] = Nil
 
 fun listConcat s = concat (map fromList s);
 
-fun toString s = implode (toList s);
+fun toString s = String.implode (toList s);
 
-fun fromString s = fromList (explode s);
+fun fromString s = fromList (String.explode s);
 
 fun toTextFile {filename = f} s =
     let
@@ -6415,11 +6360,11 @@ fun fromTextFile {filename = f} =
 
 end
 
-(**** Original file: Heap.sig ****)
+(**** Original file: src/Heap.sig ****)
 
 (* ========================================================================= *)
 (* A HEAP DATATYPE FOR ML                                                    *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Heap =
@@ -6449,11 +6394,11 @@ val toString : 'a heap -> string
 
 end
 
-(**** Original file: Heap.sml ****)
+(**** Original file: src/Heap.sml ****)
 
 (* ========================================================================= *)
 (* A HEAP DATATYPE FOR ML                                                    *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Heap :> Metis_Heap =
@@ -6529,15 +6474,29 @@ fun toString h =
 
 end
 
-(**** Original file: Print.sig ****)
+(**** Original file: src/Print.sig ****)
 
 (* ========================================================================= *)
 (* PRETTY-PRINTING                                                           *)
-(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2008 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Print =
 sig
+
+(* ------------------------------------------------------------------------- *)
+(* Escaping strings.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+val escapeString : {escape : char list} -> string -> string
+
+(* ------------------------------------------------------------------------- *)
+(* A type of strings annotated with their size.                              *)
+(* ------------------------------------------------------------------------- *)
+
+type stringSize = string * int
+
+val mkStringSize : string -> stringSize
 
 (* ------------------------------------------------------------------------- *)
 (* A type of pretty-printers.                                                *)
@@ -6545,16 +6504,14 @@ sig
 
 datatype breakStyle = Consistent | Inconsistent
 
-datatype ppStep =
+datatype step =
     BeginBlock of breakStyle * int
   | EndBlock
-  | AddString of string
+  | AddString of stringSize
   | AddBreak of int
   | AddNewline
 
-type ppstream = ppStep Metis_Stream.stream
-
-type 'a pp = 'a -> ppstream
+type ppstream = step Metis_Stream.stream
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printer primitives.                                                *)
@@ -6564,7 +6521,7 @@ val beginBlock : breakStyle -> int -> ppstream
 
 val endBlock : ppstream
 
-val addString : string -> ppstream
+val addString : stringSize -> ppstream
 
 val addBreak : int -> ppstream
 
@@ -6584,17 +6541,23 @@ val block : breakStyle -> int -> ppstream -> ppstream
 
 val blockProgram : breakStyle -> int -> ppstream list -> ppstream
 
-val bracket : string -> string -> ppstream -> ppstream
+(* ------------------------------------------------------------------------- *)
+(* Executing pretty-printers to generate lines.                              *)
+(* ------------------------------------------------------------------------- *)
 
-val field : string -> ppstream -> ppstream
-
-val record : (string * ppstream) list -> ppstream
+val execute :
+    {lineLength : int} -> ppstream ->
+    {indent : int, line : string} Metis_Stream.stream
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printer combinators.                                               *)
 (* ------------------------------------------------------------------------- *)
 
+type 'a pp = 'a -> ppstream
+
 val ppMap : ('a -> 'b) -> 'b pp -> 'a pp
+
+val ppString : string pp
 
 val ppBracket : string -> string -> 'a pp -> 'a pp
 
@@ -6613,8 +6576,6 @@ val ppOpStream : string -> 'a pp -> 'a Metis_Stream.stream pp
 (* ------------------------------------------------------------------------- *)
 
 val ppChar : char pp
-
-val ppString : string pp
 
 val ppEscapeString : {escape : char list} -> string pp
 
@@ -6644,7 +6605,7 @@ val ppTriple : 'a pp -> 'b pp -> 'c pp -> ('a * 'b * 'c) pp
 
 val ppBreakStyle : breakStyle pp
 
-val ppPpStep : ppStep pp
+val ppStep : step pp
 
 val ppPpstream : ppstream pp
 
@@ -6652,28 +6613,27 @@ val ppPpstream : ppstream pp
 (* Pretty-printing infix operators.                                          *)
 (* ------------------------------------------------------------------------- *)
 
+type token = string
+
+datatype assoc =
+    LeftAssoc
+  | NonAssoc
+  | RightAssoc
+
 datatype infixes =
     Infixes of
-      {token : string,
+      {token : token,
        precedence : int,
-       leftAssoc : bool} list
+       assoc : assoc} list
 
 val tokensInfixes : infixes -> Metis_StringSet.set
 
-val layerInfixes :
-    infixes ->
-    {tokens : {leftSpaces : int, token : string, rightSpaces : int} list,
-     leftAssoc : bool} list
+val layerInfixes : infixes -> {tokens : Metis_StringSet.set, assoc : assoc} list
 
 val ppInfixes :
-    infixes -> ('a -> (string * 'a * 'a) option) -> ('a * bool) pp ->
-    ('a * bool) pp
-
-(* ------------------------------------------------------------------------- *)
-(* Executing pretty-printers to generate lines.                              *)
-(* ------------------------------------------------------------------------- *)
-
-val execute : {lineLength : int} -> ppstream -> string Metis_Stream.stream
+    infixes ->
+    ('a -> (token * 'a * 'a) option) -> ('a * token) pp ->
+    ('a * bool) pp -> ('a * bool) pp
 
 (* ------------------------------------------------------------------------- *)
 (* Executing pretty-printers with a global line length.                      *)
@@ -6689,11 +6649,11 @@ val trace : 'a pp -> string -> 'a -> unit
 
 end
 
-(**** Original file: Print.sml ****)
+(**** Original file: src/Print.sml ****)
 
 (* ========================================================================= *)
 (* PRETTY-PRINTING                                                           *)
-(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2008 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Print :> Metis_Print =
@@ -6722,23 +6682,47 @@ fun revConcat strm =
     | Metis_Stream.Cons (h,t) => revAppend h (revConcat o t);
 
 local
-  fun join current prev = (prev ^ "\n", current);
-in
-  fun joinNewline strm =
-      case strm of
-        Metis_Stream.Nil => Metis_Stream.Nil
-      | Metis_Stream.Cons (h,t) => Metis_Stream.maps join Metis_Stream.singleton h (t ());
-end;
-
-local
   fun calcSpaces n = nChars #" " n;
 
-  val cachedSpaces = Vector.tabulate (initialLineLength,calcSpaces);
+  val cacheSize = 2 * initialLineLength;
+
+  val cachedSpaces = Vector.tabulate (cacheSize,calcSpaces);
 in
   fun nSpaces n =
-      if n < initialLineLength then Vector.sub (cachedSpaces,n)
+      if n < cacheSize then Vector.sub (cachedSpaces,n)
       else calcSpaces n;
 end;
+
+(* ------------------------------------------------------------------------- *)
+(* Escaping strings.                                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun escapeString {escape} =
+    let
+      val escapeMap = map (fn c => (c, "\\" ^ str c)) escape
+
+      fun escapeChar c =
+          case c of
+            #"\\" => "\\\\"
+          | #"\n" => "\\n"
+          | #"\t" => "\\t"
+          | _ =>
+            case List.find (equal c o fst) escapeMap of
+              SOME (_,s) => s
+            | NONE => str c
+    in
+      String.translate escapeChar
+    end;
+
+(* ------------------------------------------------------------------------- *)
+(* A type of strings annotated with their size.                              *)
+(* ------------------------------------------------------------------------- *)
+
+type stringSize = string * int;
+
+fun mkStringSize s = (s, size s);
+
+val emptyStringSize = mkStringSize "";
 
 (* ------------------------------------------------------------------------- *)
 (* A type of pretty-printers.                                                *)
@@ -6746,23 +6730,21 @@ end;
 
 datatype breakStyle = Consistent | Inconsistent;
 
-datatype ppStep =
+datatype step =
     BeginBlock of breakStyle * int
   | EndBlock
-  | AddString of string
+  | AddString of stringSize
   | AddBreak of int
   | AddNewline;
 
-type ppstream = ppStep Metis_Stream.stream;
-
-type 'a pp = 'a -> ppstream;
+type ppstream = step Metis_Stream.stream;
 
 fun breakStyleToString style =
     case style of
       Consistent => "Consistent"
     | Inconsistent => "Inconsistent";
 
-fun ppStepToString step =
+fun stepToString step =
     case step of
       BeginBlock _ => "BeginBlock"
     | EndBlock => "EndBlock"
@@ -6801,330 +6783,6 @@ val stream : ppstream Metis_Stream.stream -> ppstream = Metis_Stream.concat;
 fun block style indent pp = program [beginBlock style indent, pp, endBlock];
 
 fun blockProgram style indent pps = block style indent (program pps);
-
-fun bracket l r pp =
-    blockProgram Inconsistent (size l)
-      [addString l,
-       pp,
-       addString r];
-
-fun field f pp =
-    blockProgram Inconsistent 2
-      [addString (f ^ " ="),
-       addBreak 1,
-       pp];
-
-val record =
-    let
-      val sep = sequence (addString ",") (addBreak 1)
-
-      fun recordField (f,pp) = field f pp
-
-      fun sepField f = sequence sep (recordField f)
-
-      fun fields [] = []
-        | fields (f :: fs) = recordField f :: map sepField fs
-    in
-      bracket "{" "}" o blockProgram Consistent 0 o fields
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty-printer combinators.                                               *)
-(* ------------------------------------------------------------------------- *)
-
-fun ppMap f ppB a : ppstream = ppB (f a);
-
-fun ppBracket l r ppA a = bracket l r (ppA a);
-
-fun ppOp s = sequence (if s = "" then skip else addString s) (addBreak 1);
-
-fun ppOp2 ab ppA ppB (a,b) =
-    blockProgram Inconsistent 0
-      [ppA a,
-       ppOp ab,
-       ppB b];
-
-fun ppOp3 ab bc ppA ppB ppC (a,b,c) =
-    blockProgram Inconsistent 0
-      [ppA a,
-       ppOp ab,
-       ppB b,
-       ppOp bc,
-       ppC c];
-
-fun ppOpList s ppA =
-    let
-      fun ppOpA a = sequence (ppOp s) (ppA a)
-    in
-      fn [] => skip
-       | h :: t => blockProgram Inconsistent 0 (ppA h :: map ppOpA t)
-    end;
-
-fun ppOpStream s ppA =
-    let
-      fun ppOpA a = sequence (ppOp s) (ppA a)
-    in
-      fn Metis_Stream.Nil => skip
-       | Metis_Stream.Cons (h,t) =>
-         blockProgram Inconsistent 0
-           [ppA h,
-            Metis_Stream.concat (Metis_Stream.map ppOpA (t ()))]
-    end;
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty-printers for common types.                                         *)
-(* ------------------------------------------------------------------------- *)
-
-fun ppChar c = addString (str c);
-
-val ppString = addString;
-
-fun ppEscapeString {escape} =
-    let
-      val escapeMap = map (fn c => (c, "\\" ^ str c)) escape
-
-      fun escapeChar c =
-          case c of
-            #"\\" => "\\\\"
-          | #"\n" => "\\n"
-          | #"\t" => "\\t"
-          | _ =>
-            case List.find (equal c o fst) escapeMap of
-              SOME (_,s) => s
-            | NONE => str c
-    in
-      fn s => addString (String.translate escapeChar s)
-    end;
-
-val ppUnit : unit pp = K (addString "()");
-
-fun ppBool b = addString (if b then "true" else "false");
-
-fun ppInt i = addString (Int.toString i);
-
-local
-  val ppNeg = addString "~"
-  and ppSep = addString ","
-  and ppZero = addString "0"
-  and ppZeroZero = addString "00";
-
-  fun ppIntBlock i =
-      if i < 10 then sequence ppZeroZero (ppInt i)
-      else if i < 100 then sequence ppZero (ppInt i)
-      else ppInt i;
-
-  fun ppIntBlocks i =
-      if i < 1000 then ppInt i
-      else sequence (ppIntBlocks (i div 1000))
-             (sequence ppSep (ppIntBlock (i mod 1000)));
-in
-  fun ppPrettyInt i =
-      if i < 0 then sequence ppNeg (ppIntBlocks (~i))
-      else ppIntBlocks i;
-end;
-
-fun ppReal r = addString (Real.toString r);
-
-fun ppPercent p = addString (percentToString p);
-
-fun ppOrder x =
-    addString
-      (case x of
-         LESS => "Less"
-       | EQUAL => "Equal"
-       | GREATER => "Greater");
-
-fun ppList ppA = ppBracket "[" "]" (ppOpList "," ppA);
-
-fun ppStream ppA = ppBracket "[" "]" (ppOpStream "," ppA);
-
-fun ppOption ppA ao =
-    case ao of
-      SOME a => ppA a
-    | NONE => addString "-";
-
-fun ppPair ppA ppB = ppBracket "(" ")" (ppOp2 "," ppA ppB);
-
-fun ppTriple ppA ppB ppC = ppBracket "(" ")" (ppOp3 "," "," ppA ppB ppC);
-
-fun ppBreakStyle style = addString (breakStyleToString style);
-
-fun ppPpStep step =
-    let
-      val cmd = ppStepToString step
-    in
-      blockProgram Inconsistent 2
-        (addString cmd ::
-         (case step of
-            BeginBlock style_indent =>
-              [addBreak 1,
-               ppPair ppBreakStyle ppInt style_indent]
-          | EndBlock => []
-          | AddString s =>
-              [addBreak 1,
-               addString ("\"" ^ s ^ "\"")]
-          | AddBreak n =>
-              [addBreak 1,
-               ppInt n]
-          | AddNewline => []))
-    end;
-
-val ppPpstream = ppStream ppPpStep;
-
-(* ------------------------------------------------------------------------- *)
-(* Pretty-printing infix operators.                                          *)
-(* ------------------------------------------------------------------------- *)
-
-datatype infixes =
-    Infixes of
-      {token : string,
-       precedence : int,
-       leftAssoc : bool} list;
-
-local
-  fun chop l =
-      case l of
-        #" " :: l => let val (n,l) = chop l in (n + 1, l) end
-      | _ => (0,l);
-in
-  fun opSpaces tok =
-      let
-        val tok = explode tok
-        val (r,tok) = chop (rev tok)
-        val (l,tok) = chop (rev tok)
-        val tok = implode tok
-      in
-        {leftSpaces = l, token = tok, rightSpaces = r}
-      end;
-end;
-
-fun ppOpSpaces {leftSpaces,token,rightSpaces} =
-    let
-      val leftSpacesToken =
-          if leftSpaces = 0 then token else nSpaces leftSpaces ^ token
-    in
-      sequence
-        (addString leftSpacesToken)
-        (addBreak rightSpaces)
-    end;
-
-local
-  fun new t l acc = {tokens = [opSpaces t], leftAssoc = l} :: acc;
-
-  fun add t l acc =
-      case acc of
-        [] => raise Bug "Metis_Print.layerInfixOps.layer"
-      | {tokens = ts, leftAssoc = l'} :: acc =>
-        if l = l' then {tokens = opSpaces t :: ts, leftAssoc = l} :: acc
-        else raise Bug "Metis_Print.layerInfixOps: mixed assocs";
-
-  fun layer ({token = t, precedence = p, leftAssoc = l}, (acc,p')) =
-      let
-        val acc = if p = p' then add t l acc else new t l acc
-      in
-        (acc,p)
-      end;
-in
-  fun layerInfixes (Infixes i) =
-      case sortMap #precedence Int.compare i of
-        [] => []
-      | {token = t, precedence = p, leftAssoc = l} :: i =>
-        let
-          val acc = new t l []
-
-          val (acc,_) = List.foldl layer (acc,p) i
-        in
-          acc
-        end;
-end;
-
-val tokensLayeredInfixes =
-    let
-      fun addToken ({leftSpaces = _, token = t, rightSpaces = _}, s) =
-          Metis_StringSet.add s t
-
-      fun addTokens ({tokens = t, leftAssoc = _}, s) =
-          List.foldl addToken s t
-    in
-      List.foldl addTokens Metis_StringSet.empty
-    end;
-
-val tokensInfixes = tokensLayeredInfixes o layerInfixes;
-
-local
-  val mkTokenMap =
-      let
-        fun add (token,m) =
-            let
-              val {leftSpaces = _, token = t, rightSpaces = _} = token
-            in
-              Metis_StringMap.insert m (t, ppOpSpaces token)
-            end
-      in
-        List.foldl add (Metis_StringMap.new ())
-      end;
-in
-  fun ppGenInfix {tokens,leftAssoc} =
-      let
-        val tokenMap = mkTokenMap tokens
-      in
-        fn dest => fn ppSub =>
-           let
-             fun dest' tm =
-                 case dest tm of
-                   NONE => NONE
-                 | SOME (t,a,b) =>
-                   case Metis_StringMap.peek tokenMap t of
-                     NONE => NONE
-                   | SOME p => SOME (p,a,b)
-
-             fun ppGo (tmr as (tm,r)) =
-                 case dest' tm of
-                   NONE => ppSub tmr
-                 | SOME (p,a,b) =>
-                   program
-                     [(if leftAssoc then ppGo else ppSub) (a,true),
-                      p,
-                      (if leftAssoc then ppSub else ppGo) (b,r)]
-           in
-             fn tmr as (tm,_) =>
-                if Option.isSome (dest' tm) then
-                  block Inconsistent 0 (ppGo tmr)
-                else
-                  ppSub tmr
-           end
-      end;
-end
-
-fun ppInfixes ops =
-    let
-      val layeredOps = layerInfixes ops
-
-      val toks = tokensLayeredInfixes layeredOps
-
-      val iprinters = List.map ppGenInfix layeredOps
-    in
-      fn dest => fn ppSub =>
-         let
-           fun printer sub = foldl (fn (ip,p) => ip dest p) sub iprinters
-
-           fun isOp t =
-               case dest t of
-                 SOME (x,_,_) => Metis_StringSet.member x toks
-               | NONE => false
-
-           fun subpr (tmr as (tm,_)) =
-               if isOp tm then
-                 blockProgram Inconsistent 1
-                   [addString "(",
-                    printer subpr (tm,false),
-                    addString ")"]
-               else
-                 ppSub tmr
-         in
-           fn tmr => block Inconsistent 0 (printer subpr tmr)
-         end
-    end;
 
 (* ------------------------------------------------------------------------- *)
 (* Executing pretty-printers to generate lines.                              *)
@@ -7189,18 +6847,22 @@ val splitChunks =
 val sizeChunks = List.foldl (fn (c,z) => sizeChunk c + z) 0;
 
 local
-  fun render acc [] = acc
-    | render acc (chunk :: chunks) =
-      case chunk of
-        StringChunk {string = s, ...} => render (acc ^ s) chunks
-      | BreakChunk n => render (acc ^ nSpaces n) chunks
-      | BlockChunk (Block {chunks = l, ...}) =>
-        render acc (List.revAppend (l,chunks));
+  fun flatten acc chunks =
+      case chunks of
+        [] => rev acc
+      | chunk :: chunks =>
+        case chunk of
+          StringChunk {string = s, ...} => flatten (s :: acc) chunks
+        | BreakChunk n => flatten (nSpaces n :: acc) chunks
+        | BlockChunk (Block {chunks = l, ...}) =>
+          flatten acc (List.revAppend (l,chunks));
 in
-  fun renderChunks indent chunks = render (nSpaces indent) (rev chunks);
-
-  fun renderChunk indent chunk = renderChunks indent [chunk];
+  fun renderChunks indent chunks =
+      {indent = indent,
+       line = String.concat (flatten [] (rev chunks))};
 end;
+
+fun renderChunk indent chunk = renderChunks indent [chunk];
 
 fun isEmptyBlock block =
     let
@@ -7216,6 +6878,7 @@ fun isEmptyBlock block =
       empty
     end;
 
+(*BasicDebug
 fun checkBlock ind block =
     let
       val Block {indent, style = _, size, chunks} = block
@@ -7251,6 +6914,7 @@ val checkBlocks =
     in
       check initialIndent o rev
     end;
+*)
 
 val initialBlock =
     let
@@ -7662,11 +7326,9 @@ local
         (lines,state)
       end;
 
-  fun executeAddString lineLength s lines state =
+  fun executeAddString lineLength (s,n) lines state =
       let
         val State {blocks,lineIndent,lineSize} = state
-
-        val n = size s
 
         val blocks =
             case blocks of
@@ -7754,10 +7416,13 @@ local
 
   fun executeAddNewline lineLength lines state =
       let
-        val (lines,state) = executeAddString lineLength "" lines state
-        val (lines,state) = executeBigBreak lineLength lines state
+        val (lines,state) =
+            executeAddString lineLength emptyStringSize lines state
+
+        val (lines,state) =
+            executeBigBreak lineLength lines state
       in
-        executeAddString lineLength "" lines state
+        executeAddString lineLength emptyStringSize lines state
       end;
 
   fun final lineLength lines state =
@@ -7801,11 +7466,347 @@ in
               (lines,state)
             end
             handle Bug bug =>
-              raise Bug ("Metis_Print.advance: after " ^ ppStepToString step ^
+              raise Bug ("Metis_Print.advance: after " ^ stepToString step ^
                          " command:\n" ^ bug)
 *)
       in
         revConcat o Metis_Stream.maps advance (final lineLength []) initialState
+      end;
+end;
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printer combinators.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+type 'a pp = 'a -> ppstream;
+
+fun ppMap f ppB a : ppstream = ppB (f a);
+
+fun ppBracket' l r ppA a =
+    let
+      val (_,n) = l
+    in
+      blockProgram Inconsistent n
+        [addString l,
+         ppA a,
+         addString r]
+    end;
+
+fun ppOp' s = sequence (addString s) (addBreak 1);
+
+fun ppOp2' ab ppA ppB (a,b) =
+    blockProgram Inconsistent 0
+      [ppA a,
+       ppOp' ab,
+       ppB b];
+
+fun ppOp3' ab bc ppA ppB ppC (a,b,c) =
+    blockProgram Inconsistent 0
+      [ppA a,
+       ppOp' ab,
+       ppB b,
+       ppOp' bc,
+       ppC c];
+
+fun ppOpList' s ppA =
+    let
+      fun ppOpA a = sequence (ppOp' s) (ppA a)
+    in
+      fn [] => skip
+       | h :: t => blockProgram Inconsistent 0 (ppA h :: map ppOpA t)
+    end;
+
+fun ppOpStream' s ppA =
+    let
+      fun ppOpA a = sequence (ppOp' s) (ppA a)
+    in
+      fn Metis_Stream.Nil => skip
+       | Metis_Stream.Cons (h,t) =>
+         blockProgram Inconsistent 0
+           [ppA h,
+            Metis_Stream.concat (Metis_Stream.map ppOpA (t ()))]
+    end;
+
+fun ppBracket l r = ppBracket' (mkStringSize l) (mkStringSize r);
+
+fun ppOp s = ppOp' (mkStringSize s);
+
+fun ppOp2 ab = ppOp2' (mkStringSize ab);
+
+fun ppOp3 ab bc = ppOp3' (mkStringSize ab) (mkStringSize bc);
+
+fun ppOpList s = ppOpList' (mkStringSize s);
+
+fun ppOpStream s = ppOpStream' (mkStringSize s);
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printers for common types.                                         *)
+(* ------------------------------------------------------------------------- *)
+
+fun ppChar c = addString (str c, 1);
+
+fun ppString s = addString (mkStringSize s);
+
+fun ppEscapeString escape = ppMap (escapeString escape) ppString;
+
+local
+  val pp = ppString "()";
+in
+  fun ppUnit () = pp;
+end;
+
+local
+  val ppTrue = ppString "true"
+  and ppFalse = ppString "false";
+in
+  fun ppBool b = if b then ppTrue else ppFalse;
+end;
+
+val ppInt = ppMap Int.toString ppString;
+
+local
+  val ppNeg = ppString "~"
+  and ppSep = ppString ","
+  and ppZero = ppString "0"
+  and ppZeroZero = ppString "00";
+
+  fun ppIntBlock i =
+      if i < 10 then sequence ppZeroZero (ppInt i)
+      else if i < 100 then sequence ppZero (ppInt i)
+      else ppInt i;
+
+  fun ppIntBlocks i =
+      if i < 1000 then ppInt i
+      else sequence (ppIntBlocks (i div 1000))
+             (sequence ppSep (ppIntBlock (i mod 1000)));
+in
+  fun ppPrettyInt i =
+      if i < 0 then sequence ppNeg (ppIntBlocks (~i))
+      else ppIntBlocks i;
+end;
+
+val ppReal = ppMap Real.toString ppString;
+
+val ppPercent = ppMap percentToString ppString;
+
+local
+  val ppLess = ppString "Less"
+  and ppEqual = ppString "Equal"
+  and ppGreater = ppString "Greater";
+in
+  fun ppOrder ord =
+      case ord of
+        LESS => ppLess
+      | EQUAL => ppEqual
+      | GREATER => ppGreater;
+end;
+
+local
+  val left = mkStringSize "["
+  and right = mkStringSize "]"
+  and sep = mkStringSize ",";
+in
+  fun ppList ppX xs = ppBracket' left right (ppOpList' sep ppX) xs;
+
+  fun ppStream ppX xs = ppBracket' left right (ppOpStream' sep ppX) xs;
+end;
+
+local
+  val ppNone = ppString "-";
+in
+  fun ppOption ppX xo =
+      case xo of
+        SOME x => ppX x
+      | NONE => ppNone;
+end;
+
+local
+  val left = mkStringSize "("
+  and right = mkStringSize ")"
+  and sep = mkStringSize ",";
+in
+  fun ppPair ppA ppB =
+      ppBracket' left right (ppOp2' sep ppA ppB);
+
+  fun ppTriple ppA ppB ppC =
+      ppBracket' left right (ppOp3' sep sep ppA ppB ppC);
+end;
+
+val ppBreakStyle = ppMap breakStyleToString ppString;
+
+val ppStep = ppMap stepToString ppString;
+
+val ppStringSize =
+    let
+      val left = mkStringSize "\""
+      and right = mkStringSize "\""
+      and escape = {escape = [#"\""]}
+
+      val pp = ppBracket' left right (ppEscapeString escape)
+    in
+      fn (s,n) => if size s = n then pp s else ppPair pp ppInt (s,n)
+    end;
+
+fun ppStep step =
+    blockProgram Inconsistent 2
+      (ppStep step ::
+       (case step of
+          BeginBlock style_indent =>
+            [addBreak 1,
+             ppPair ppBreakStyle ppInt style_indent]
+        | EndBlock => []
+        | AddString s =>
+            [addBreak 1,
+             ppStringSize s]
+        | AddBreak n =>
+            [addBreak 1,
+             ppInt n]
+        | AddNewline => []));
+
+val ppPpstream = ppStream ppStep;
+
+(* ------------------------------------------------------------------------- *)
+(* Pretty-printing infix operators.                                          *)
+(* ------------------------------------------------------------------------- *)
+
+type token = string;
+
+datatype assoc =
+    LeftAssoc
+  | NonAssoc
+  | RightAssoc;
+
+datatype infixes =
+    Infixes of
+      {token : token,
+       precedence : int,
+       assoc : assoc} list;
+
+local
+  fun comparePrecedence (io1,io2) =
+      let
+        val {token = _, precedence = p1, assoc = _} = io1
+        and {token = _, precedence = p2, assoc = _} = io2
+      in
+        Int.compare (p2,p1)
+      end;
+
+  fun equalAssoc a a' =
+      case a of
+        LeftAssoc => (case a' of LeftAssoc => true | _ => false)
+      | NonAssoc => (case a' of NonAssoc => true | _ => false)
+      | RightAssoc => (case a' of RightAssoc => true | _ => false);
+
+  fun new t a acc = {tokens = Metis_StringSet.singleton t, assoc = a} :: acc;
+
+  fun add t a' acc =
+      case acc of
+        [] => raise Bug "Metis_Print.layerInfixes: null"
+      | {tokens = ts, assoc = a} :: acc =>
+        if equalAssoc a a' then {tokens = Metis_StringSet.add ts t, assoc = a} :: acc
+        else raise Bug "Metis_Print.layerInfixes: mixed assocs";
+
+  fun layer ({token = t, precedence = p, assoc = a}, (acc,p')) =
+      let
+        val acc = if p = p' then add t a acc else new t a acc
+      in
+        (acc,p)
+      end;
+in
+  fun layerInfixes (Infixes ios) =
+      case sort comparePrecedence ios of
+        [] => []
+      | {token = t, precedence = p, assoc = a} :: ios =>
+        let
+          val acc = new t a []
+
+          val (acc,_) = List.foldl layer (acc,p) ios
+        in
+          acc
+        end;
+end;
+
+local
+  fun add ({tokens = ts, assoc = _}, tokens) = Metis_StringSet.union ts tokens;
+in
+  fun tokensLayeredInfixes l = List.foldl add Metis_StringSet.empty l;
+end;
+
+fun tokensInfixes ios = tokensLayeredInfixes (layerInfixes ios);
+
+fun destInfixOp dest tokens tm =
+    case dest tm of
+      NONE => NONE
+    | s as SOME (t,a,b) => if Metis_StringSet.member t tokens then s else NONE;
+
+fun ppLayeredInfixes dest ppTok {tokens,assoc} ppLower ppSub =
+    let
+      fun isLayer t = Metis_StringSet.member t tokens
+
+      fun ppTerm aligned (tm,r) =
+          case dest tm of
+            NONE => ppSub (tm,r)
+          | SOME (t,a,b) =>
+            if aligned andalso isLayer t then ppLayer (tm,t,a,b,r)
+            else ppLower (tm,t,a,b,r)
+
+      and ppLeft tm_r =
+          let
+            val aligned = case assoc of LeftAssoc => true | _ => false
+          in
+            ppTerm aligned tm_r
+          end
+
+      and ppLayer (tm,t,a,b,r) =
+          program
+            [ppLeft (a,true),
+             ppTok (tm,t),
+             ppRight (b,r)]
+
+      and ppRight tm_r =
+          let
+            val aligned = case assoc of RightAssoc => true | _ => false
+          in
+            ppTerm aligned tm_r
+          end
+    in
+      fn tm_t_a_b_r as (_,t,_,_,_) =>
+         if isLayer t then block Inconsistent 0 (ppLayer tm_t_a_b_r)
+         else ppLower tm_t_a_b_r
+    end;
+
+local
+  val leftBrack = mkStringSize "("
+  and rightBrack = mkStringSize ")";
+in
+  fun ppInfixes ops =
+      let
+        val layers = layerInfixes ops
+
+        val toks = tokensLayeredInfixes layers
+      in
+        fn dest => fn ppTok => fn ppSub =>
+           let
+             fun destOp tm = destInfixOp dest toks tm
+
+             fun ppInfix tm_t_a_b_r = ppLayers layers tm_t_a_b_r
+
+             and ppLayers ls (tm,t,a,b,r) =
+                 case ls of
+                   [] =>
+                   ppBracket' leftBrack rightBrack ppInfix (tm,t,a,b,false)
+                 | l :: ls =>
+                   let
+                     val ppLower = ppLayers ls
+                   in
+                     ppLayeredInfixes destOp ppTok l ppLower ppSub (tm,t,a,b,r)
+                   end
+           in
+             fn (tm,r) =>
+                case destOp tm of
+                  SOME (t,a,b) => ppInfix (tm,t,a,b,r)
+                | NONE => ppSub (tm,r)
+           end
       end;
 end;
 
@@ -7816,20 +7817,35 @@ end;
 val lineLength = Unsynchronized.ref initialLineLength;
 
 fun toStream ppA a =
-    Metis_Stream.map (fn s => s ^ "\n")
+    Metis_Stream.map (fn {indent,line} => nSpaces indent ^ line ^ "\n")
       (execute {lineLength = !lineLength} (ppA a));
 
-fun toString ppA a =
-    case execute {lineLength = !lineLength} (ppA a) of
-      Metis_Stream.Nil => ""
-    | Metis_Stream.Cons (h,t) => Metis_Stream.foldl (fn (s,z) => z ^ "\n" ^ s) h (t ());
+local
+  fun inc {indent,line} acc = line :: nSpaces indent :: acc;
 
-fun trace ppX nameX x =
-    Metis_Useful.trace (toString (ppOp2 " =" ppString ppX) (nameX,x) ^ "\n");
+  fun incn (indent_line,acc) = inc indent_line ("\n" :: acc);
+in
+  fun toString ppA a =
+      case execute {lineLength = !lineLength} (ppA a) of
+        Metis_Stream.Nil => ""
+      | Metis_Stream.Cons (h,t) =>
+        let
+          val lines = Metis_Stream.foldl incn (inc h []) (t ())
+        in
+          String.concat (rev lines)
+        end;
+end;
+
+local
+  val sep = mkStringSize " =";
+in
+  fun trace ppX nameX x =
+      Metis_Useful.trace (toString (ppOp2' sep ppString ppX) (nameX,x) ^ "\n");
+end;
 
 end
 
-(**** Original file: Parse.sig ****)
+(**** Original file: src/Parse.sig ****)
 
 (* ========================================================================= *)
 (* PARSING                                                                   *)
@@ -7932,8 +7948,9 @@ val fromString : (char,'a) parser -> string -> 'a
 (* ------------------------------------------------------------------------- *)
 
 val parseInfixes :
-    Metis_Print.infixes -> (string * 'a * 'a -> 'a) -> (string,'a) parser ->
-    (string,'a) parser
+    Metis_Print.infixes ->
+    (Metis_Print.token * 'a * 'a -> 'a) -> ('b,Metis_Print.token) parser ->
+    ('b,'a) parser -> ('b,'a) parser
 
 (* ------------------------------------------------------------------------- *)
 (* Quotations.                                                               *)
@@ -7945,7 +7962,7 @@ val parseQuotation : ('a -> string) -> (string -> 'b) -> 'a quotation -> 'b
 
 end
 
-(**** Original file: Parse.sml ****)
+(**** Original file: src/Parse.sml ****)
 
 (* ========================================================================= *)
 (* PARSING                                                                   *)
@@ -8083,7 +8100,7 @@ fun initialize {lines} =
                   val Unsynchronized.ref (n,_,l2,l3) = lastLine
                   val () = lastLine := (n + 1, l2, l3, line)
                 in
-                  explode line
+                  String.explode line
                 end
           in
             Metis_Stream.memoize (Metis_Stream.map saveLast lines)
@@ -8109,7 +8126,7 @@ fun exactCharList cs =
       [] => nothing
     | c :: cs => (exactChar c ++ exactCharList cs) >> snd;
 
-fun exactString s = exactCharList (explode s);
+fun exactString s = exactCharList (String.explode s);
 
 fun escapeString {escape} =
     let
@@ -8132,7 +8149,7 @@ fun escapeString {escape} =
           ((exactChar #"\\" ++ escapeParser) >> snd) ||
           some isNormal
     in
-      many charParser >> implode
+      many charParser >> String.implode
     end;
 
 local
@@ -8145,46 +8162,51 @@ in
   val atLeastOneSpace = atLeastOne space >> K ();
 end;
 
-fun fromString parser s = fromList parser (explode s);
+fun fromString parser s = fromList parser (String.explode s);
 
 (* ------------------------------------------------------------------------- *)
 (* Infix operators.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-fun parseGenInfix update sof toks parse inp =
+fun parseLayeredInfixes {tokens,assoc} mk tokParser subParser =
     let
-      val (e,rest) = parse inp
+      fun layerTokParser inp =
+          let
+            val tok_rest as (tok,_) = tokParser inp
+          in
+            if Metis_StringSet.member tok tokens then tok_rest
+            else raise NoParse
+          end
 
-      val continue =
-          case rest of
-            Metis_Stream.Nil => NONE
-          | Metis_Stream.Cons (h_t as (h,_)) =>
-            if Metis_StringSet.member h toks then SOME h_t else NONE
+      fun layerMk (x,txs) =
+          case assoc of
+            Metis_Print.LeftAssoc =>
+            let
+              fun inc ((t,y),z) = mk (t,z,y)
+            in
+              List.foldl inc x txs
+            end
+          | Metis_Print.NonAssoc =>
+            (case txs of
+               [] => x
+             | [(t,y)] => mk (t,x,y)
+             | _ => raise NoParse)
+          | Metis_Print.RightAssoc =>
+            (case rev txs of
+               [] => x
+             | tx :: txs =>
+               let
+                 fun inc ((t,y),(u,z)) = (t, mk (u,y,z))
+
+                 val (t,y) = List.foldl inc tx txs
+               in
+                 mk (t,x,y)
+               end)
+
+      val layerParser = subParser ++ many (layerTokParser ++ subParser)
     in
-      case continue of
-        NONE => (sof e, rest)
-      | SOME (h,t) => parseGenInfix update (update sof h e) toks parse (t ())
+      layerParser >> layerMk
     end;
-
-local
-  fun add ({leftSpaces = _, token = t, rightSpaces = _}, s) = Metis_StringSet.add s t;
-
-  fun parse leftAssoc toks con =
-      let
-        val update =
-            if leftAssoc then (fn f => fn t => fn a => fn b => con (t, f a, b))
-            else (fn f => fn t => fn a => fn b => f (con (t, a, b)))
-      in
-        parseGenInfix update I toks
-      end;
-in
-  fun parseLayeredInfixes {tokens,leftAssoc} =
-      let
-        val toks = List.foldl add Metis_StringSet.empty tokens
-      in
-        parse leftAssoc toks
-      end;
-end;
 
 fun parseInfixes ops =
     let
@@ -8192,7 +8214,8 @@ fun parseInfixes ops =
 
       val iparsers = List.map parseLayeredInfixes layeredOps
     in
-      fn con => fn subparser => foldl (fn (p,sp) => p con sp) subparser iparsers
+      fn mk => fn tokParser => fn subParser =>
+         List.foldr (fn (p,sp) => p mk tokParser sp) subParser iparsers
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -8206,14 +8229,14 @@ fun parseQuotation printer parser quote =
     fun expand (QUOTE q, s) = s ^ q
       | expand (ANTIQUOTE a, s) = s ^ printer a
 
-    val string = foldl expand "" quote
+    val string = List.foldl expand "" quote
   in
     parser string
   end;
 
 end
 
-(**** Original file: Name.sig ****)
+(**** Original file: src/Name.sig ****)
 
 (* ========================================================================= *)
 (* NAMES                                                                     *)
@@ -8261,7 +8284,7 @@ val fromString : string -> name
 
 end
 
-(**** Original file: Name.sml ****)
+(**** Original file: src/Name.sml ****)
 
 (* ========================================================================= *)
 (* NAMES                                                                     *)
@@ -8349,24 +8372,24 @@ structure Metis_NameMap = Metis_KeyMap (Metis_NameOrdered);
 structure Metis_NameSet =
 struct
 
-  local
-    structure S = Metis_ElementSet (Metis_NameMap);
-  in
-    open S;
-  end;
+local
+  structure S = Metis_ElementSet (Metis_NameMap);
+in
+  open S;
+end;
 
-  val pp =
-      Metis_Print.ppMap
-        toList
-        (Metis_Print.ppBracket "{" "}" (Metis_Print.ppOpList "," Metis_Name.pp));
+val pp =
+    Metis_Print.ppMap
+      toList
+      (Metis_Print.ppBracket "{" "}" (Metis_Print.ppOpList "," Metis_Name.pp));
 
 end
 
-(**** Original file: NameArity.sig ****)
+(**** Original file: src/NameArity.sig ****)
 
 (* ========================================================================= *)
 (* NAME/ARITY PAIRS                                                          *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_NameArity =
@@ -8412,11 +8435,11 @@ val pp : nameArity Metis_Print.pp
 
 end
 
-(**** Original file: NameArity.sml ****)
+(**** Original file: src/NameArity.sml ****)
 
 (* ========================================================================= *)
 (* NAME/ARITY PAIRS                                                          *)
-(* Copyright (c) 2004-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_NameArity :> Metis_NameArity =
@@ -8462,7 +8485,7 @@ fun equal (n1,i1) (n2,i2) = i1 = i2 andalso Metis_Name.equal n1 n2;
 fun pp (n,i) =
     Metis_Print.blockProgram Metis_Print.Inconsistent 0
       [Metis_Name.pp n,
-       Metis_Print.addString "/",
+       Metis_Print.ppString "/",
        Metis_Print.ppInt i];
 
 end
@@ -8473,40 +8496,41 @@ struct type t = Metis_NameArity.nameArity val compare = Metis_NameArity.compare 
 structure Metis_NameArityMap =
 struct
 
-  local
-    structure S = Metis_KeyMap (Metis_NameArityOrdered);
-  in
-    open S;
-  end;
+local
+  structure S = Metis_KeyMap (Metis_NameArityOrdered);
+in
+  open S;
+end;
 
-  fun compose m1 m2 =
-      let
-        fun pk ((_,a),n) = peek m2 (n,a)
-      in
-        mapPartial pk m1
-      end;
+fun compose m1 m2 =
+    let
+      fun pk ((_,a),n) = peek m2 (n,a)
+    in
+      mapPartial pk m1
+    end;
 
 end
 
 structure Metis_NameAritySet =
 struct
 
-  local
-    structure S = Metis_ElementSet (Metis_NameArityMap);
-  in
-    open S;
-  end;
+local
+  structure S = Metis_ElementSet (Metis_NameArityMap);
+in
+  open S;
+end;
 
-  val allNullary = all Metis_NameArity.nullary;
+val allNullary = all Metis_NameArity.nullary;
 
-  val pp =
-      Metis_Print.ppMap
-        toList
-        (Metis_Print.ppBracket "{" "}" (Metis_Print.ppOpList "," Metis_NameArity.pp));
+val pp =
+    Metis_Print.ppMap
+      toList
+      (Metis_Print.ppBracket "{" "}" (Metis_Print.ppOpList "," Metis_NameArity.pp));
+
 
 end
 
-(**** Original file: Term.sig ****)
+(**** Original file: src/Term.sig ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC TERMS                                                   *)
@@ -8696,7 +8720,7 @@ val parse : term Metis_Parse.quotation -> term
 
 end
 
-(**** Original file: Term.sml ****)
+(**** Original file: src/Term.sml ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC TERMS                                                   *)
@@ -9048,7 +9072,7 @@ fun destApp tm =
 
 val isApp = can destApp;
 
-fun listMkApp (f,l) = foldl mkApp f l;
+fun listMkApp (f,l) = List.foldl mkApp f l;
 
 local
   fun strip tms tm =
@@ -9068,38 +9092,38 @@ end;
 val infixes =
     (Unsynchronized.ref o Metis_Print.Infixes)
       [(* ML symbols *)
-       {token = " / ", precedence = 7, leftAssoc = true},
-       {token = " div ", precedence = 7, leftAssoc = true},
-       {token = " mod ", precedence = 7, leftAssoc = true},
-       {token = " * ", precedence = 7, leftAssoc = true},
-       {token = " + ", precedence = 6, leftAssoc = true},
-       {token = " - ", precedence = 6, leftAssoc = true},
-       {token = " ^ ", precedence = 6, leftAssoc = true},
-       {token = " @ ", precedence = 5, leftAssoc = false},
-       {token = " :: ", precedence = 5, leftAssoc = false},
-       {token = " = ", precedence = 4, leftAssoc = true},
-       {token = " <> ", precedence = 4, leftAssoc = true},
-       {token = " <= ", precedence = 4, leftAssoc = true},
-       {token = " < ", precedence = 4, leftAssoc = true},
-       {token = " >= ", precedence = 4, leftAssoc = true},
-       {token = " > ", precedence = 4, leftAssoc = true},
-       {token = " o ", precedence = 3, leftAssoc = true},
-       {token = " -> ", precedence = 2, leftAssoc = false},  (* inferred prec *)
-       {token = " : ", precedence = 1, leftAssoc = false},  (* inferred prec *)
-       {token = ", ", precedence = 0, leftAssoc = false},  (* inferred prec *)
+       {token = "/", precedence = 7, assoc = Metis_Print.LeftAssoc},
+       {token = "div", precedence = 7, assoc = Metis_Print.LeftAssoc},
+       {token = "mod", precedence = 7, assoc = Metis_Print.LeftAssoc},
+       {token = "*", precedence = 7, assoc = Metis_Print.LeftAssoc},
+       {token = "+", precedence = 6, assoc = Metis_Print.LeftAssoc},
+       {token = "-", precedence = 6, assoc = Metis_Print.LeftAssoc},
+       {token = "^", precedence = 6, assoc = Metis_Print.LeftAssoc},
+       {token = "@", precedence = 5, assoc = Metis_Print.RightAssoc},
+       {token = "::", precedence = 5, assoc = Metis_Print.RightAssoc},
+       {token = "=", precedence = 4, assoc = Metis_Print.NonAssoc},
+       {token = "<>", precedence = 4, assoc = Metis_Print.NonAssoc},
+       {token = "<=", precedence = 4, assoc = Metis_Print.NonAssoc},
+       {token = "<", precedence = 4, assoc = Metis_Print.NonAssoc},
+       {token = ">=", precedence = 4, assoc = Metis_Print.NonAssoc},
+       {token = ">", precedence = 4, assoc = Metis_Print.NonAssoc},
+       {token = "o", precedence = 3, assoc = Metis_Print.LeftAssoc},
+       {token = "->", precedence = 2, assoc = Metis_Print.RightAssoc},
+       {token = ":", precedence = 1, assoc = Metis_Print.NonAssoc},
+       {token = ",", precedence = 0, assoc = Metis_Print.RightAssoc},
 
        (* Logical connectives *)
-       {token = " /\\ ", precedence = ~1, leftAssoc = false},
-       {token = " \\/ ", precedence = ~2, leftAssoc = false},
-       {token = " ==> ", precedence = ~3, leftAssoc = false},
-       {token = " <=> ", precedence = ~4, leftAssoc = false},
+       {token = "/\\", precedence = ~1, assoc = Metis_Print.RightAssoc},
+       {token = "\\/", precedence = ~2, assoc = Metis_Print.RightAssoc},
+       {token = "==>", precedence = ~3, assoc = Metis_Print.RightAssoc},
+       {token = "<=>", precedence = ~4, assoc = Metis_Print.RightAssoc},
 
        (* Other symbols *)
-       {token = " . ", precedence = 9, leftAssoc = true},  (* function app *)
-       {token = " ** ", precedence = 8, leftAssoc = true},
-       {token = " ++ ", precedence = 6, leftAssoc = true},
-       {token = " -- ", precedence = 6, leftAssoc = true},
-       {token = " == ", precedence = 4, leftAssoc = true}];
+       {token = ".", precedence = 9, assoc = Metis_Print.LeftAssoc},
+       {token = "**", precedence = 8, assoc = Metis_Print.LeftAssoc},
+       {token = "++", precedence = 6, assoc = Metis_Print.LeftAssoc},
+       {token = "--", precedence = 6, assoc = Metis_Print.LeftAssoc},
+       {token = "==", precedence = 4, assoc = Metis_Print.NonAssoc}];
 
 (* The negation symbol *)
 
@@ -9122,9 +9146,14 @@ fun pp inputTerm =
       and neg = !negation
       and bracks = !brackets
 
-      val bracks = map (fn (b1,b2) => (b1 ^ b2, b1, b2)) bracks
+      val bMap =
+          let
+            fun f (b1,b2) = (b1 ^ b2, b1, b2)
+          in
+            List.map f bracks
+          end
 
-      val bTokens = map #2 bracks @ map #3 bracks
+      val bTokens = op@ (unzip bracks)
 
       val iTokens = Metis_Print.tokensInfixes iOps
 
@@ -9138,7 +9167,15 @@ fun pp inputTerm =
             end
           | _ => NONE
 
-      val iPrinter = Metis_Print.ppInfixes iOps destI
+      fun isI tm = Option.isSome (destI tm)
+
+      fun iToken (_,tok) =
+          Metis_Print.program
+            [(if tok = "," then Metis_Print.skip else Metis_Print.ppString " "),
+             Metis_Print.ppString tok,
+             Metis_Print.addBreak 1];
+
+      val iPrinter = Metis_Print.ppInfixes iOps destI iToken
 
       val specialTokens =
           Metis_StringSet.addList iTokens (neg :: quants @ ["$","(",")"] @ bTokens)
@@ -9166,8 +9203,6 @@ fun pp inputTerm =
 
       fun functionName bv = Metis_Print.ppMap (checkFunctionName bv) Metis_Print.ppString
 
-      fun isI tm = Option.isSome (destI tm)
-
       fun stripNeg tm =
           case tm of
             Fn (f,[a]) =>
@@ -9194,7 +9229,7 @@ fun pp inputTerm =
           let
             val s = Metis_Name.toString b
           in
-            case List.find (fn (n,_,_) => n = s) bracks of
+            case List.find (fn (n,_,_) => n = s) bMap of
               NONE => NONE
             | SOME (_,b1,b2) => SOME (b1,tm,b2)
           end
@@ -9227,11 +9262,11 @@ fun pp inputTerm =
               val bv = Metis_StringSet.addList bv (map Metis_Name.toString (v :: vs))
             in
               Metis_Print.program
-                [Metis_Print.addString q,
+                [Metis_Print.ppString q,
                  varName bv v,
                  Metis_Print.program
                    (map (Metis_Print.sequence (Metis_Print.addBreak 1) o varName bv) vs),
-                 Metis_Print.addString ".",
+                 Metis_Print.ppString ".",
                  Metis_Print.addBreak 1,
                  innerQuant bv tm]
             end
@@ -9245,7 +9280,7 @@ fun pp inputTerm =
             val (n,tm) = stripNeg tm
           in
             Metis_Print.blockProgram Metis_Print.Inconsistent n
-              [Metis_Print.duplicate n (Metis_Print.addString neg),
+              [Metis_Print.duplicate n (Metis_Print.ppString neg),
                if isI tm orelse (r andalso isQuant tm) then bracket bv tm
                else quantifier bv tm]
           end
@@ -9271,31 +9306,32 @@ local
 
   val isAlphaNum =
       let
-        val alphaNumChars = explode "_'"
+        val alphaNumChars = String.explode "_'"
       in
         fn c => mem c alphaNumChars orelse Char.isAlphaNum c
       end;
 
   local
-    val alphaNumToken = atLeastOne (some isAlphaNum) >> implode;
+    val alphaNumToken = atLeastOne (some isAlphaNum) >> String.implode;
 
     val symbolToken =
         let
           fun isNeg c = str c = !negation
 
-          val symbolChars = explode "<>=-*+/\\?@|!$%&#^:;~"
+          val symbolChars = String.explode "<>=-*+/\\?@|!$%&#^:;~"
 
           fun isSymbol c = mem c symbolChars
 
           fun isNonNegSymbol c = not (isNeg c) andalso isSymbol c
         in
           some isNeg >> str ||
-          (some isNonNegSymbol ++ many (some isSymbol)) >> (implode o op::)
+          (some isNonNegSymbol ++ many (some isSymbol)) >>
+          (String.implode o op::)
         end;
 
     val punctToken =
         let
-          val punctChars = explode "()[]{}.,"
+          val punctChars = String.explode "()[]{}.,"
 
           fun isPunct c = mem c punctChars
         in
@@ -9327,8 +9363,9 @@ local
 
         val iTokens = Metis_Print.tokensInfixes iOps
 
-        val iParser =
-            parseInfixes iOps (fn (f,a,b) => Fn (Metis_Name.fromString f, [a,b]))
+        fun iMk (f,a,b) = Fn (Metis_Name.fromString f, [a,b])
+
+        val iParser = parseInfixes iOps iMk any
 
         val specialTokens =
             Metis_StringSet.addList iTokens (neg :: quants @ ["$"] @ bTokens)
@@ -9367,7 +9404,7 @@ local
                      some (Metis_Useful.equal ".")) >>++
                     (fn (_,(vs,_)) =>
                         term (Metis_StringSet.addList bv vs) >>
-                        (fn body => foldr bind body vs))
+                        (fn body => List.foldr bind body vs))
                   end
             in
               var ||
@@ -9396,7 +9433,7 @@ local
 in
   fun fromString input =
       let
-        val chars = Metis_Stream.fromList (explode input)
+        val chars = Metis_Stream.fromList (String.explode input)
 
         val tokens = everything (lexer >> singleton) chars
 
@@ -9409,7 +9446,8 @@ in
 end;
 
 local
-  val antiquotedTermToString = Metis_Print.toString (Metis_Print.ppBracket "(" ")" pp);
+  val antiquotedTermToString =
+      Metis_Print.toString (Metis_Print.ppBracket "(" ")" pp);
 in
   val parse = Metis_Parse.parseQuotation antiquotedTermToString fromString;
 end;
@@ -9423,11 +9461,11 @@ structure Metis_TermMap = Metis_KeyMap (Metis_TermOrdered);
 
 structure Metis_TermSet = Metis_ElementSet (Metis_TermMap);
 
-(**** Original file: Subst.sig ****)
+(**** Original file: src/Subst.sig ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC SUBSTITUTIONS                                           *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Subst =
@@ -9545,11 +9583,11 @@ val unify : subst -> Metis_Term.term -> Metis_Term.term -> subst  (* raises Erro
 
 end
 
-(**** Original file: Subst.sml ****)
+(**** Original file: src/Subst.sml ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC SUBSTITUTIONS                                           *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Subst :> Metis_Subst =
@@ -9797,11 +9835,11 @@ end;
 
 end
 
-(**** Original file: Atom.sig ****)
+(**** Original file: src/Atom.sig ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC ATOMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Atom =
@@ -9941,11 +9979,11 @@ val parse : Metis_Term.term Metis_Parse.quotation -> atom
 
 end
 
-(**** Original file: Atom.sml ****)
+(**** Original file: src/Atom.sml ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC ATOMS                                                   *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Atom :> Metis_Atom =
@@ -9979,14 +10017,14 @@ val functions =
     let
       fun f (tm,acc) = Metis_NameAritySet.union (Metis_Term.functions tm) acc
     in
-      fn atm => foldl f Metis_NameAritySet.empty (arguments atm)
+      fn atm => List.foldl f Metis_NameAritySet.empty (arguments atm)
     end;
 
 val functionNames =
     let
       fun f (tm,acc) = Metis_NameSet.union (Metis_Term.functionNames tm) acc
     in
-      fn atm => foldl f Metis_NameSet.empty (arguments atm)
+      fn atm => List.foldl f Metis_NameSet.empty (arguments atm)
     end;
 
 (* Binary relations *)
@@ -10003,7 +10041,8 @@ fun isBinop p = can (destBinop p);
 (* The size of an atom in symbols.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun symbols atm = foldl (fn (tm,z) => Metis_Term.symbols tm + z) 1 (arguments atm);
+fun symbols atm =
+    List.foldl (fn (tm,z) => Metis_Term.symbols tm + z) 1 (arguments atm);
 
 (* ------------------------------------------------------------------------- *)
 (* A total comparison function for atoms.                                    *)
@@ -10030,7 +10069,7 @@ fun subterms ((_,tms) : atom) =
     let
       fun f ((n,tm),l) = map (fn (p,s) => (n :: p, s)) (Metis_Term.subterms tm) @ l
     in
-      foldl f [] (enumerate tms)
+      List.foldl f [] (enumerate tms)
     end;
 
 fun replace _ ([],_) = raise Bug "Metis_Atom.replace: empty path"
@@ -10065,7 +10104,7 @@ val freeVars =
     let
       fun f (tm,acc) = Metis_NameSet.union (Metis_Term.freeVars tm) acc
     in
-      fn atm => foldl f Metis_NameSet.empty (arguments atm)
+      fn atm => List.foldl f Metis_NameSet.empty (arguments atm)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -10091,7 +10130,7 @@ in
         val _ = (Metis_Name.equal p1 p2 andalso length tms1 = length tms2) orelse
                 raise Error "Metis_Atom.match"
       in
-        foldl matchArg sub (zip tms1 tms2)
+        List.foldl matchArg sub (zip tms1 tms2)
       end;
 end;
 
@@ -10107,7 +10146,7 @@ in
         val _ = (Metis_Name.equal p1 p2 andalso length tms1 = length tms2) orelse
                 raise Error "Metis_Atom.unify"
       in
-        foldl unifyArg sub (zip tms1 tms2)
+        List.foldl unifyArg sub (zip tms1 tms2)
       end;
 end;
 
@@ -10156,7 +10195,7 @@ fun rhs atm = snd (destEq atm);
 (* ------------------------------------------------------------------------- *)
 
 fun typedSymbols ((_,tms) : atom) =
-    foldl (fn (tm,z) => Metis_Term.typedSymbols tm + z) 1 tms;
+    List.foldl (fn (tm,z) => Metis_Term.typedSymbols tm + z) 1 tms;
 
 fun nonVarTypedSubterms (_,tms) =
     let
@@ -10164,10 +10203,10 @@ fun nonVarTypedSubterms (_,tms) =
           let
             fun addTm ((path,tm),acc) = (n :: path, tm) :: acc
           in
-            foldl addTm acc (Metis_Term.nonVarTypedSubterms arg)
+            List.foldl addTm acc (Metis_Term.nonVarTypedSubterms arg)
           end
     in
-      foldl addArg [] (enumerate tms)
+      List.foldl addArg [] (enumerate tms)
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -10191,11 +10230,11 @@ structure Metis_AtomMap = Metis_KeyMap (Metis_AtomOrdered);
 
 structure Metis_AtomSet = Metis_ElementSet (Metis_AtomMap);
 
-(**** Original file: Formula.sig ****)
+(**** Original file: src/Formula.sig ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC FORMULAS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Formula =
@@ -10391,11 +10430,11 @@ val parse : quotation -> formula
 
 end
 
-(**** Original file: Formula.sml ****)
+(**** Original file: src/Formula.sml ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC FORMULAS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Formula :> Metis_Formula =
@@ -10540,7 +10579,7 @@ val stripNeg =
 (* Conjunctions *)
 
 fun listMkConj fms =
-    case rev fms of [] => True | fm :: fms => foldl And fm fms;
+    case rev fms of [] => True | fm :: fms => List.foldl And fm fms;
 
 local
   fun strip cs (And (p,q)) = strip (p :: cs) q
@@ -10563,7 +10602,7 @@ val flattenConj =
 (* Disjunctions *)
 
 fun listMkDisj fms =
-    case rev fms of [] => False | fm :: fms => foldl Or fm fms;
+    case rev fms of [] => False | fm :: fms => List.foldl Or fm fms;
 
 local
   fun strip cs (Or (p,q)) = strip (p :: cs) q
@@ -10586,7 +10625,7 @@ val flattenDisj =
 (* Equivalences *)
 
 fun listMkEquiv fms =
-    case rev fms of [] => True | fm :: fms => foldl Iff fm fms;
+    case rev fms of [] => True | fm :: fms => List.foldl Iff fm fms;
 
 local
   fun strip cs (Iff (p,q)) = strip (p :: cs) q
@@ -10995,11 +11034,11 @@ structure Metis_FormulaMap = Metis_KeyMap (Metis_FormulaOrdered);
 
 structure Metis_FormulaSet = Metis_ElementSet (Metis_FormulaMap);
 
-(**** Original file: Literal.sig ****)
+(**** Original file: src/Literal.sig ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC LITERALS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Literal =
@@ -11163,11 +11202,11 @@ val parse : Metis_Term.term Metis_Parse.quotation -> literal
 
 end
 
-(**** Original file: Literal.sml ****)
+(**** Original file: src/Literal.sml ****)
 
 (* ========================================================================= *)
 (* FIRST ORDER LOGIC LITERALS                                                *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Literal :> Metis_Literal =
@@ -11459,7 +11498,7 @@ structure Metis_LiteralSetMap = Metis_KeyMap (Metis_LiteralSetOrdered);
 
 structure Metis_LiteralSetSet = Metis_ElementSet (Metis_LiteralSetMap);
 
-(**** Original file: Thm.sig ****)
+(**** Original file: src/Thm.sig ****)
 
 (* ========================================================================= *)
 (* A LOGICAL KERNEL FOR FIRST ORDER CLAUSAL THEOREMS                         *)
@@ -11610,7 +11649,7 @@ val equality : Metis_Literal.literal -> Metis_Term.path -> Metis_Term.term -> th
 
 end
 
-(**** Original file: Thm.sml ****)
+(**** Original file: src/Thm.sml ****)
 
 (* ========================================================================= *)
 (* A LOGICAL KERNEL FOR FIRST ORDER CLAUSAL THEOREMS                         *)
@@ -11725,7 +11764,7 @@ local
 in
   fun pp th =
       Metis_Print.blockProgram Metis_Print.Inconsistent 3
-        [Metis_Print.addString "|- ",
+        [Metis_Print.ppString "|- ",
          Metis_Formula.pp (toFormula th)];
 end;
 
@@ -11827,11 +11866,11 @@ fun equality lit path t =
 
 end
 
-(**** Original file: Proof.sig ****)
+(**** Original file: src/Proof.sig ****)
 
 (* ========================================================================= *)
 (* PROOFS IN FIRST ORDER LOGIC                                               *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Proof =
@@ -11891,11 +11930,11 @@ val toString : proof -> string
 
 end
 
-(**** Original file: Proof.sml ****)
+(**** Original file: src/Proof.sml ****)
 
 (* ========================================================================= *)
 (* PROOFS IN FIRST ORDER LOGIC                                               *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Proof :> Metis_Proof =
@@ -11934,40 +11973,40 @@ local
   fun ppSubst ppThm (sub,thm) =
       Metis_Print.sequence (Metis_Print.addBreak 1)
         (Metis_Print.blockProgram Metis_Print.Inconsistent 1
-           [Metis_Print.addString "{",
+           [Metis_Print.ppString "{",
             Metis_Print.ppOp2 " =" Metis_Print.ppString Metis_Subst.pp ("sub",sub),
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             Metis_Print.ppOp2 " =" Metis_Print.ppString ppThm ("thm",thm),
-            Metis_Print.addString "}"]);
+            Metis_Print.ppString "}"]);
 
   fun ppResolve ppThm (res,pos,neg) =
       Metis_Print.sequence (Metis_Print.addBreak 1)
         (Metis_Print.blockProgram Metis_Print.Inconsistent 1
-           [Metis_Print.addString "{",
+           [Metis_Print.ppString "{",
             Metis_Print.ppOp2 " =" Metis_Print.ppString Metis_Atom.pp ("res",res),
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             Metis_Print.ppOp2 " =" Metis_Print.ppString ppThm ("pos",pos),
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             Metis_Print.ppOp2 " =" Metis_Print.ppString ppThm ("neg",neg),
-            Metis_Print.addString "}"]);
+            Metis_Print.ppString "}"]);
 
   fun ppRefl tm = Metis_Print.sequence (Metis_Print.addBreak 1) (Metis_Term.pp tm);
 
   fun ppEquality (lit,path,res) =
       Metis_Print.sequence (Metis_Print.addBreak 1)
         (Metis_Print.blockProgram Metis_Print.Inconsistent 1
-           [Metis_Print.addString "{",
+           [Metis_Print.ppString "{",
             Metis_Print.ppOp2 " =" Metis_Print.ppString Metis_Literal.pp ("lit",lit),
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             Metis_Print.ppOp2 " =" Metis_Print.ppString Metis_Term.ppPath ("path",path),
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             Metis_Print.ppOp2 " =" Metis_Print.ppString Metis_Term.pp ("res",res),
-            Metis_Print.addString "}"]);
+            Metis_Print.ppString "}"]);
 
   fun ppInf ppAxiom ppThm inf =
       let
@@ -11975,7 +12014,7 @@ local
       in
         Metis_Print.block Metis_Print.Inconsistent 2
           (Metis_Print.sequence
-             (Metis_Print.addString infString)
+             (Metis_Print.ppString infString)
              (case inf of
                 Axiom cl => ppAxiom cl
               | Assume x => ppAssume x
@@ -12001,7 +12040,7 @@ in
         val prf = enumerate prf
 
         fun ppThm th =
-            Metis_Print.addString
+            Metis_Print.ppString
             let
               val cl = Metis_Thm.clause th
 
@@ -12018,7 +12057,7 @@ in
             in
               Metis_Print.sequence
                 (Metis_Print.blockProgram Metis_Print.Consistent (1 + size s)
-                   [Metis_Print.addString (s ^ " "),
+                   [Metis_Print.ppString (s ^ " "),
                     Metis_Thm.pp th,
                     Metis_Print.addBreak 2,
                     Metis_Print.ppBracket "[" "]" (ppInf (K Metis_Print.skip) ppThm) inf])
@@ -12026,10 +12065,10 @@ in
             end
       in
         Metis_Print.blockProgram Metis_Print.Consistent 0
-          [Metis_Print.addString "START OF PROOF",
+          [Metis_Print.ppString "START OF PROOF",
            Metis_Print.addNewline,
            Metis_Print.program (map ppStep prf),
-           Metis_Print.addString "END OF PROOF"]
+           Metis_Print.ppString "END OF PROOF"]
       end
 (*MetisDebug
       handle Error err => raise Bug ("Metis_Proof.pp: shouldn't fail:\n" ^ err);
@@ -12346,11 +12385,11 @@ val freeVars =
 
 end
 
-(**** Original file: Rule.sig ****)
+(**** Original file: src/Rule.sig ****)
 
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Rule =
@@ -12623,11 +12662,11 @@ val factor : Metis_Thm.thm -> Metis_Thm.thm list
 
 end
 
-(**** Original file: Rule.sml ****)
+(**** Original file: src/Rule.sml ****)
 
 (* ========================================================================= *)
 (* DERIVED RULES FOR CREATING FIRST ORDER LOGIC THEOREMS                     *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Rule :> Metis_Rule =
@@ -12783,17 +12822,19 @@ fun allConv tm = (tm, Metis_Thm.refl tm);
 
 val noConv : conv = fn _ => raise Error "noConv";
 
+(*MetisDebug
 fun traceConv s conv tm =
     let
       val res as (tm',th) = conv tm
-      val () = print (s ^ ": " ^ Metis_Term.toString tm ^ " --> " ^
+      val () = trace (s ^ ": " ^ Metis_Term.toString tm ^ " --> " ^
                       Metis_Term.toString tm' ^ " " ^ Metis_Thm.toString th ^ "\n")
     in
       res
     end
     handle Error err =>
-      (print (s ^ ": " ^ Metis_Term.toString tm ^ " --> Error: " ^ err ^ "\n");
+      (trace (s ^ ": " ^ Metis_Term.toString tm ^ " --> Error: " ^ err ^ "\n");
        raise Error (s ^ ": " ^ err));
+*)
 
 fun thenConvTrans tm (tm',th1) (tm'',th2) =
     let
@@ -13082,7 +13123,7 @@ fun functionCongruence (f,n) =
       val reflTh = Metis_Thm.refl (Metis_Term.Fn (f,xs))
       val reflLit = Metis_Thm.destUnit reflTh
     in
-      fst (foldl cong (reflTh,reflLit) (enumerate ys))
+      fst (List.foldl cong (reflTh,reflLit) (enumerate ys))
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -13109,7 +13150,7 @@ fun relationCongruence (R,n) =
       val assumeLit = (false,(R,xs))
       val assumeTh = Metis_Thm.assume assumeLit
     in
-      fst (foldl cong (assumeTh,assumeLit) (enumerate ys))
+      fst (List.foldl cong (assumeTh,assumeLit) (enumerate ys))
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -13409,11 +13450,11 @@ fun factor th =
 
 end
 
-(**** Original file: Normalize.sig ****)
+(**** Original file: src/Normalize.sig ****)
 
 (* ========================================================================= *)
 (* NORMALIZING FORMULAS                                                      *)
-(* Copyright (c) 2001-2009 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Normalize =
@@ -13467,11 +13508,11 @@ val cnf : Metis_Formula.formula -> Metis_Thm.clause list
 
 end
 
-(**** Original file: Normalize.sml ****)
+(**** Original file: src/Normalize.sml ****)
 
 (* ========================================================================= *)
 (* NORMALIZING FORMULAS                                                      *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Normalize :> Metis_Normalize =
@@ -14159,19 +14200,20 @@ fun nnf fm = toFormula (fromFormula fm);
 val newSkolemFunction =
     let
       val counter : int Metis_StringMap.map Unsynchronized.ref = Unsynchronized.ref (Metis_StringMap.new ())
+
+      fun new n () =
+          let
+            val Unsynchronized.ref m = counter
+            val s = Metis_Name.toString n
+            val i = Option.getOpt (Metis_StringMap.peek m s, 0)
+            val () = counter := Metis_StringMap.insert m (s, i + 1)
+            val i = if i = 0 then "" else "_" ^ Int.toString i
+            val s = skolemPrefix ^ "_" ^ s ^ i
+          in
+            Metis_Name.fromString s
+          end
     in
-      (* MODIFIED by Jasmin Blanchette *)
-      fn n => CRITICAL (fn () =>
-         let
-           val Unsynchronized.ref m = counter
-           val s = Metis_Name.toString n
-           val i = Option.getOpt (Metis_StringMap.peek m s, 0)
-           val () = counter := Metis_StringMap.insert m (s, i + 1)
-           val i = if i = 0 then "" else "_" ^ Int.toString i
-           val s = skolemPrefix ^ "_" ^ s ^ i
-         in
-           Metis_Name.fromString s
-         end)
+      fn n => Metis_Portable.critical (new n) ()
     end;
 
 fun skolemize fv bv fm =
@@ -14286,8 +14328,8 @@ local
                     (c2', s2', (c1,s1,fm,c2,s2) :: l)
                   end
 
-              val (c1,_,fms) = foldl fwd (count0,empty,[]) fms
-              val (c2,_,fms) = foldl bwd (count0,empty,[]) fms
+              val (c1,_,fms) = List.foldl fwd (count0,empty,[]) fms
+              val (c2,_,fms) = List.foldl bwd (count0,empty,[]) fms
 
 (*MetisDebug
               val _ = countEquivish c1 c2 orelse
@@ -14332,10 +14374,10 @@ local
             let
               val fms = sortMap (measure o count) countCompare fms
             in
-              foldl breakSet1 best (cumulatives fms)
+              List.foldl breakSet1 best (cumulatives fms)
             end
 
-        val best = foldl breakSing best (cumulatives fms)
+        val best = List.foldl breakSing best (cumulatives fms)
         val best = breakSet I best
         val best = breakSet countNegate best
         val best = breakSet countClauses best
@@ -14715,14 +14757,13 @@ val newDefinitionRelation =
     let
       val counter : int Unsynchronized.ref = Unsynchronized.ref 0
     in
-      (* MODIFIED by Jasmin Blanchette *)
-      fn () => CRITICAL (fn () =>
+      fn () => Metis_Portable.critical (fn () =>
          let
            val Unsynchronized.ref i = counter
            val () = counter := i + 1
          in
            definitionPrefix ^ "_" ^ Int.toString i
-         end)
+         end) ()
     end;
 
 fun newDefinition def =
@@ -14858,7 +14899,7 @@ fun cnf fm =
 
 end
 
-(**** Original file: Model.sig ****)
+(**** Original file: src/Model.sig ****)
 
 (* ========================================================================= *)
 (* RANDOM FINITE MODELS                                                      *)
@@ -15138,7 +15179,7 @@ val pp : model Metis_Print.pp
 
 end
 
-(**** Original file: Model.sml ****)
+(**** Original file: src/Model.sml ****)
 
 (* ========================================================================= *)
 (* RANDOM FINITE MODELS                                                      *)
@@ -15414,10 +15455,10 @@ local
 
   fun ppEntry (tag,source_arity,target) =
       Metis_Print.blockProgram Metis_Print.Inconsistent 2
-        [Metis_Print.addString tag,
+        [Metis_Print.ppString tag,
          Metis_Print.addBreak 1,
          Metis_NameArity.pp source_arity,
-         Metis_Print.addString " ->",
+         Metis_Print.ppString " ->",
          Metis_Print.addBreak 1,
          Metis_Name.pp target];
 in
@@ -16332,7 +16373,7 @@ local
                 let
                   fun add (y,acc) = FunctionPerturbation (func_xs,y) :: acc
                 in
-                  foldl add acc target
+                  List.foldl add acc target
                 end
         in
           pertTerms M onTarget tms xs acc
@@ -16413,17 +16454,17 @@ end;
 
 fun pp M =
     Metis_Print.program
-      [Metis_Print.addString "Metis_Model{",
+      [Metis_Print.ppString "Metis_Model{",
        Metis_Print.ppInt (size M),
-       Metis_Print.addString "}"];
+       Metis_Print.ppString "}"];
 
 end
 
-(**** Original file: Problem.sig ****)
+(**** Original file: src/Problem.sig ****)
 
 (* ========================================================================= *)
 (* CNF PROBLEMS                                                              *)
-(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Problem =
@@ -16485,11 +16526,11 @@ val categoryToString : category -> string
 
 end
 
-(**** Original file: Problem.sml ****)
+(**** Original file: src/Problem.sml ****)
 
 (* ========================================================================= *)
 (* CNF PROBLEMS                                                              *)
-(* Copyright (c) 2001-2008 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Problem :> Metis_Problem =
@@ -16518,9 +16559,9 @@ fun size prob =
       val cls = toClauses prob
     in
       {clauses = length cls,
-       literals = foldl lits 0 cls,
-       symbols = foldl syms 0 cls,
-       typedSymbols = foldl typedSyms 0 cls}
+       literals = List.foldl lits 0 cls,
+       symbols = List.foldl syms 0 cls,
+       typedSymbols = List.foldl typedSyms 0 cls}
     end;
 
 fun freeVars {axioms,conjecture} =
@@ -16648,11 +16689,11 @@ fun categoryToString {propositional,equality,horn} =
 
 end
 
-(**** Original file: TermNet.sig ****)
+(**** Original file: src/TermNet.sig ****)
 
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC TERMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_TermNet =
@@ -16701,11 +16742,11 @@ val unify : 'a termNet -> Metis_Term.term -> 'a list
 
 end
 
-(**** Original file: TermNet.sml ****)
+(**** Original file: src/TermNet.sml ****)
 
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC TERMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_TermNet :> Metis_TermNet =
@@ -16863,7 +16904,7 @@ fun size (Net (_,_,NONE)) = 0
 
 fun null net = size net = 0;
 
-fun singles qtms a = foldr Single a qtms;
+fun singles qtms a = List.foldr Single a qtms;
 
 local
   fun pre NONE = (0,NONE)
@@ -16893,7 +16934,7 @@ in
       handle Error _ => raise Bug "Metis_TermNet.insert: should never fail";
 end;
 
-fun fromList parm l = foldl (fn (tm_a,n) => insert n tm_a) (new parm) l;
+fun fromList parm l = List.foldl (fn (tm_a,n) => insert n tm_a) (new parm) l;
 
 fun filter pred =
     let
@@ -17146,7 +17187,7 @@ end;
 
 local
   fun inc (qtm, Result l, acc) =
-      foldl (fn ((n,a),acc) => (n,(qtm,a)) :: acc) acc l
+      List.foldl (fn ((n,a),acc) => (n,(qtm,a)) :: acc) acc l
     | inc _ = raise Bug "Metis_TermNet.pp.inc";
 
   fun toList (Net (_,_,NONE)) = []
@@ -17159,11 +17200,11 @@ end;
 
 end
 
-(**** Original file: AtomNet.sig ****)
+(**** Original file: src/AtomNet.sig ****)
 
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC ATOMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_AtomNet =
@@ -17210,11 +17251,11 @@ val unify : 'a atomNet -> Metis_Atom.atom -> 'a list
 
 end
 
-(**** Original file: AtomNet.sml ****)
+(**** Original file: src/AtomNet.sml ****)
 
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC ATOMS              *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_AtomNet :> Metis_AtomNet =
@@ -17249,7 +17290,7 @@ val size = Metis_TermNet.size;
 
 fun insert net (atm,a) = Metis_TermNet.insert net (atomToTerm atm, a);
 
-fun fromList parm l = foldl (fn (atm_a,n) => insert n atm_a) (new parm) l;
+fun fromList parm l = List.foldl (fn (atm_a,n) => insert n atm_a) (new parm) l;
 
 val filter = Metis_TermNet.filter;
 
@@ -17272,11 +17313,11 @@ fun unify net atm = Metis_TermNet.unify net (atomToTerm atm);
 
 end
 
-(**** Original file: LiteralNet.sig ****)
+(**** Original file: src/LiteralNet.sig ****)
 
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC LITERALS           *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_LiteralNet =
@@ -17325,11 +17366,11 @@ val unify : 'a literalNet -> Metis_Literal.literal -> 'a list
 
 end
 
-(**** Original file: LiteralNet.sml ****)
+(**** Original file: src/LiteralNet.sml ****)
 
 (* ========================================================================= *)
 (* MATCHING AND UNIFICATION FOR SETS OF FIRST ORDER LOGIC LITERALS           *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_LiteralNet :> Metis_LiteralNet =
@@ -17368,7 +17409,7 @@ fun insert {positive,negative} ((true,atm),a) =
   | insert {positive,negative} ((false,atm),a) =
     {positive = positive, negative = Metis_AtomNet.insert negative (atm,a)};
 
-fun fromList parm l = foldl (fn (lit_a,n) => insert n lit_a) (new parm) l;
+fun fromList parm l = List.foldl (fn (lit_a,n) => insert n lit_a) (new parm) l;
 
 fun filter pred {positive,negative} =
     {positive = Metis_AtomNet.filter pred positive,
@@ -17402,11 +17443,11 @@ fun unify ({positive,...} : 'a literalNet) (true,atm) =
 
 end
 
-(**** Original file: Subsume.sig ****)
+(**** Original file: src/Subsume.sig ****)
 
 (* ========================================================================= *)
 (* SUBSUMPTION CHECKING FOR FIRST ORDER LOGIC CLAUSES                        *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Subsume =
@@ -17456,11 +17497,11 @@ val clauseStrictlySubsumes : Metis_Thm.clause -> Metis_Thm.clause -> Metis_Subst
 
 end
 
-(**** Original file: Subsume.sml ****)
+(**** Original file: src/Subsume.sml ****)
 
 (* ========================================================================= *)
 (* SUBSUMPTION CHECKING FOR FIRST ORDER LOGIC CLAUSES                        *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Subsume :> Metis_Subsume =
@@ -17793,11 +17834,11 @@ fun clauseStrictlySubsumes cl' cl =
 
 end
 
-(**** Original file: KnuthBendixOrder.sig ****)
+(**** Original file: src/KnuthBendixOrder.sig ****)
 
 (* ========================================================================= *)
 (* THE KNUTH-BENDIX TERM ORDERING                                            *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_KnuthBendixOrder =
@@ -17818,11 +17859,11 @@ val compare : kbo -> Metis_Term.term * Metis_Term.term -> order option
 
 end
 
-(**** Original file: KnuthBendixOrder.sml ****)
+(**** Original file: src/KnuthBendixOrder.sml ****)
 
 (* ========================================================================= *)
 (* KNUTH-BENDIX TERM ORDERING CONSTRAINTS                                    *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_KnuthBendixOrder :> Metis_KnuthBendixOrder =
@@ -17921,7 +17962,7 @@ fun weightLowerBound (w as Weight (m,c)) =
 val ppWeightList =
     let
       fun ppCoeff n =
-          if n < 0 then Metis_Print.sequence (Metis_Print.addString "~") (ppCoeff (~n))
+          if n < 0 then Metis_Print.sequence (Metis_Print.ppString "~") (ppCoeff (~n))
           else if n = 1 then Metis_Print.skip
           else Metis_Print.ppInt n
 
@@ -18020,11 +18061,11 @@ val compare = fn kbo => fn (tm1,tm2) =>
 
 end
 
-(**** Original file: Rewrite.sig ****)
+(**** Original file: src/Rewrite.sig ****)
 
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2003 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Rewrite =
@@ -18122,11 +18163,11 @@ val orderedRewrite : reductionOrder -> equation list -> Metis_Thm.thm -> Metis_T
 
 end
 
-(**** Original file: Rewrite.sml ****)
+(**** Original file: src/Rewrite.sml ****)
 
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2003 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Rewrite :> Metis_Rewrite =
@@ -18333,7 +18374,7 @@ fun add (rw as Metis_Rewrite {known,...}) (id,eqn) =
         rw
       end;
 
-val addList = foldl (fn (eqn,rw) => add rw eqn);
+val addList = List.foldl (fn (eqn,rw) => add rw eqn);
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting (the order must be a refinement of the rewrite order).          *)
@@ -18394,7 +18435,7 @@ fun mkNeqConv order lit =
           val th = Metis_Rule.symmetryRule l r
         in
           fn tm =>
-             if Metis_Term.equal tm r then (l,th) else raise Error "mkNeqConv: Metis_RL"
+             if Metis_Term.equal tm r then (l,th) else raise Error "mkNeqConv: RL"
         end
       | SOME EQUAL => raise Error "irreflexive"
       | SOME GREATER =>
@@ -18560,8 +18601,9 @@ fun addSubterms id (((l,r),_) : equation) subterms =
     let
       fun addSubterm b ((path,tm),net) = Metis_TermNet.insert net (tm,(id,b,path))
 
-      val subterms = foldl (addSubterm true) subterms (Metis_Term.subterms l)
-      val subterms = foldl (addSubterm false) subterms (Metis_Term.subterms r)
+      val subterms = List.foldl (addSubterm true) subterms (Metis_Term.subterms l)
+
+      val subterms = List.foldl (addSubterm false) subterms (Metis_Term.subterms r)
     in
       subterms
     end;
@@ -18786,7 +18828,7 @@ local
 in
   fun orderedRewrite order ths =
     let
-      val rw = foldl addEqn (new order) (enumerate ths)
+      val rw = List.foldl addEqn (new order) (enumerate ths)
     in
       rewriteRule rw order
     end;
@@ -18796,11 +18838,11 @@ val rewrite = orderedRewrite (K (SOME GREATER));
 
 end
 
-(**** Original file: Units.sig ****)
+(**** Original file: src/Units.sig ****)
 
 (* ========================================================================= *)
 (* A STORE FOR UNIT THEOREMS                                                 *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Units =
@@ -18848,11 +18890,11 @@ val reduce : units -> Metis_Rule.rule
 
 end
 
-(**** Original file: Units.sml ****)
+(**** Original file: src/Units.sml ****)
 
 (* ========================================================================= *)
 (* A STORE FOR UNIT THEOREMS                                                 *)
-(* Copyright (c) 2001-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Units :> Metis_Units =
@@ -18899,7 +18941,7 @@ fun add (units as Metis_Units net) (uTh as (lit,th)) =
         end
     end;
 
-val addList = foldl (fn (th,u) => add u th);
+val addList = List.foldl (fn (th,u) => add u th);
 
 (* ------------------------------------------------------------------------- *)
 (* Matching.                                                                 *)
@@ -18957,11 +18999,11 @@ fun reduce units =
 
 end
 
-(**** Original file: Clause.sig ****)
+(**** Original file: src/Clause.sig ****)
 
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Clause =
@@ -19067,11 +19109,11 @@ val toString : clause -> string
 
 end
 
-(**** Original file: Clause.sml ****)
+(**** Original file: src/Clause.sml ****)
 
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
-(* Copyright (c) 2002-2004 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Clause :> Metis_Clause =
@@ -19086,10 +19128,17 @@ open Metis_Useful;
 val newId =
     let
       val r = Unsynchronized.ref 0
+
+      fun new () =
+          let
+            val Unsynchronized.ref n = r
+
+            val () = r := n + 1
+          in
+            n
+          end
     in
-      (* MODIFIED by Jasmin Blanchette *)
-      fn () => CRITICAL (fn () =>
-        case r of Unsynchronized.ref n => let val () = r := n + 1 in n end)
+      fn () => Metis_Portable.critical new ()
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -19133,7 +19182,7 @@ fun toString cl = Metis_Print.toString pp cl;
 
 val default : parameters =
     {ordering = Metis_KnuthBendixOrder.default,
-     orderLiterals = UnsignedLiteralOrder (* PositiveLiteralOrder *) (* MODIFIED by Jasmin Blanchette *),
+     orderLiterals = UnsignedLiteralOrder,
      orderTerms = true};
 
 fun mk info = Metis_Clause info
@@ -19252,7 +19301,7 @@ local
       let
         fun addTm ((path,tm),acc) = (lit,path,tm) :: acc
       in
-        foldl addTm acc (Metis_Literal.nonVarTypedSubterms lit)
+        List.foldl addTm acc (Metis_Literal.nonVarTypedSubterms lit)
       end;
 in
   fun largestSubterms cl = Metis_LiteralSet.foldl addLit [] (largestLiterals cl);
@@ -19432,11 +19481,11 @@ fun paramodulate (cl1,lit1,ort1,tm1) (cl2,lit2,path2,tm2) =
 
 end
 
-(**** Original file: Active.sig ****)
+(**** Original file: src/Active.sig ****)
 
 (* ========================================================================= *)
 (* THE ACTIVE SET OF CLAUSES                                                 *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Active =
@@ -19490,11 +19539,11 @@ val pp : active Metis_Print.pp
 
 end
 
-(**** Original file: Active.sml ****)
+(**** Original file: src/Active.sml ****)
 
 (* ========================================================================= *)
 (* THE ACTIVE SET OF CLAUSES                                                 *)
-(* Copyright (c) 2002-2006 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Active :> Metis_Active =
@@ -19519,7 +19568,7 @@ local
               | NONE => rw
             end
       in
-        foldl add (Metis_Rewrite.new (Metis_KnuthBendixOrder.compare ordering))
+        List.foldl add (Metis_Rewrite.new (Metis_KnuthBendixOrder.compare ordering))
       end;
 
   fun allFactors red =
@@ -19787,8 +19836,8 @@ fun saturation active =
           end
 
       val cls = clauses active
-      val (cls,_) = foldl remove ([], Metis_Subsume.new ()) cls
-      val (cls,subs) = foldl remove ([], Metis_Subsume.new ()) cls
+      val (cls,_) = List.foldl remove ([], Metis_Subsume.new ()) cls
+      val (cls,subs) = List.foldl remove ([], Metis_Subsume.new ()) cls
 
 (*MetisDebug
       val Metis_Active {parameters,...} = active
@@ -19815,7 +19864,7 @@ val pp =
 local
   fun ppField f ppA a =
       Metis_Print.blockProgram Metis_Print.Inconsistent 2
-        [Metis_Print.addString (f ^ " ="),
+        [Metis_Print.ppString (f ^ " ="),
          Metis_Print.addBreak 1,
          ppA a];
 
@@ -19836,21 +19885,21 @@ local
 in
   fun pp (Metis_Active {clauses,rewrite,subterms,...}) =
       Metis_Print.blockProgram Metis_Print.Inconsistent 2
-        [Metis_Print.addString "Metis_Active",
+        [Metis_Print.ppString "Metis_Active",
          Metis_Print.addBreak 1,
          Metis_Print.blockProgram Metis_Print.Inconsistent 1
-           [Metis_Print.addString "{",
+           [Metis_Print.ppString "{",
             ppClauses clauses,
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             ppRewrite rewrite,
 (*MetisTrace5
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             ppSubterms subterms,
 *)
             Metis_Print.skip],
-         Metis_Print.addString "}"];
+         Metis_Print.ppString "}"];
 end;
 *)
 
@@ -19968,7 +20017,7 @@ fun addEquations equations cl =
       fun add ((lit,ort,tm),equations) =
           Metis_TermNet.insert equations (tm,(cl,lit,ort,tm))
     in
-      foldl add equations (Metis_Clause.largestEquations cl)
+      List.foldl add equations (Metis_Clause.largestEquations cl)
     end;
 
 fun addSubterms subterms cl =
@@ -19976,7 +20025,7 @@ fun addSubterms subterms cl =
       fun add ((lit,path,tm),subterms) =
           Metis_TermNet.insert subterms (tm,(cl,lit,path,tm))
     in
-      foldl add subterms (Metis_Clause.largestSubterms cl)
+      List.foldl add subterms (Metis_Clause.largestSubterms cl)
     end;
 
 fun addAllSubterms allSubterms cl =
@@ -19984,7 +20033,7 @@ fun addAllSubterms allSubterms cl =
       fun add ((_,_,tm),allSubterms) =
           Metis_TermNet.insert allSubterms (tm,(cl,tm))
     in
-      foldl add allSubterms (Metis_Clause.allSubterms cl)
+      List.foldl add allSubterms (Metis_Clause.allSubterms cl)
     end;
 
 fun addClause active cl =
@@ -20035,7 +20084,8 @@ fun deduceResolution literals cl (lit as (_,atm), acc) =
 *)
     in
       if Metis_Atom.isEq atm then acc
-      else foldl resolve acc (Metis_LiteralNet.unify literals (Metis_Literal.negate lit))
+      else
+        List.foldl resolve acc (Metis_LiteralNet.unify literals (Metis_Literal.negate lit))
     end;
 
 fun deduceParamodulationWith subterms cl ((lit,ort,tm),acc) =
@@ -20045,7 +20095,7 @@ fun deduceParamodulationWith subterms cl ((lit,ort,tm),acc) =
             SOME cl' => cl' :: acc
           | NONE => acc
     in
-      foldl para acc (Metis_TermNet.unify subterms tm)
+      List.foldl para acc (Metis_TermNet.unify subterms tm)
     end;
 
 fun deduceParamodulationInto equations cl ((lit,path,tm),acc) =
@@ -20055,7 +20105,7 @@ fun deduceParamodulationInto equations cl ((lit,path,tm),acc) =
             SOME cl' => cl' :: acc
           | NONE => acc
     in
-      foldl para acc (Metis_TermNet.unify equations tm)
+      List.foldl para acc (Metis_TermNet.unify equations tm)
     end;
 
 fun deduce active cl =
@@ -20081,8 +20131,8 @@ fun deduce active cl =
 
       val acc = []
       val acc = Metis_LiteralSet.foldl (deduceResolution literals cl) acc lits
-      val acc = foldl (deduceParamodulationWith subterms cl) acc eqns
-      val acc = foldl (deduceParamodulationInto equations cl) acc subtms
+      val acc = List.foldl (deduceParamodulationWith subterms cl) acc eqns
+      val acc = List.foldl (deduceParamodulationInto equations cl) acc subtms
       val acc = rev acc
 
 (*MetisTrace5
@@ -20328,7 +20378,7 @@ local
         let
           val cls = sort_utilitywise (cl :: Metis_Clause.factor cl)
         in
-          foldl factor_add active_subsume_acc cls
+          List.foldl factor_add active_subsume_acc cls
         end;
 
   fun factor' active acc [] = (active, rev acc)
@@ -20336,7 +20386,7 @@ local
       let
         val cls = sort_utilitywise cls
         val subsume = getSubsume active
-        val (active,_,acc) = foldl factor1 (active,subsume,acc) cls
+        val (active,_,acc) = List.foldl factor1 (active,subsume,acc) cls
         val (active,cls) = extract_rewritables active
       in
         factor' active acc cls
@@ -20404,11 +20454,11 @@ fun add active cl =
 
 end
 
-(**** Original file: Waiting.sig ****)
+(**** Original file: src/Waiting.sig ****)
 
 (* ========================================================================= *)
 (* THE WAITING SET OF CLAUSES                                                *)
-(* Copyright (c) 2002-2007 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Waiting =
@@ -20484,11 +20534,11 @@ val remove : waiting -> ((distance * Metis_Clause.clause) * waiting) option
 
 end
 
-(**** Original file: Waiting.sml ****)
+(**** Original file: src/Waiting.sml ****)
 
 (* ========================================================================= *)
 (* THE WAITING SET OF CLAUSES                                                *)
-(* Copyright (c) 2002-2007 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Waiting :> Metis_Waiting =
@@ -20528,17 +20578,16 @@ datatype waiting =
 (* ------------------------------------------------------------------------- *)
 
 val defaultModels : modelParameters list =
-    [(* MODIFIED by Jasmin Blanchette
-      {model = Metis_Model.default,
+    [{model = Metis_Model.default,
       initialPerturbations = 100,
       maxChecks = SOME 20,
       perturbations = 0,
-      weight = 1.0} *)];
+      weight = 1.0}];
 
 val default : parameters =
      {symbolsWeight = 1.0,
-      literalsWeight = (* 1.0 *) 0.0, (* MODIFIED by Jasmin Blanchette *)
-      variablesWeight = (* 1.0 *) 0.0, (* MODIFIED by Jasmin Blanchette *)
+      literalsWeight = 1.0,
+      variablesWeight = 1.0,
       models = defaultModels};
 
 fun size (Metis_Waiting {clauses,...}) = Metis_Heap.size clauses;
@@ -20651,7 +20700,7 @@ in
         val symbolsW = Math.pow (clauseSymbols lits, symbolsWeight)
         val variablesW = Math.pow (clauseVariables lits, variablesWeight)
         val literalsW = Math.pow (clauseLiterals lits, literalsWeight)
-        val modelsW = (* checkModels models mods mcl *) 1.0 (* MODIFIED by Jasmin Blanchette *)
+        val modelsW = checkModels models mods mcl
 (*MetisTrace4
         val () = trace ("Metis_Waiting.clauseWeight: dist = " ^
                         Real.toString dist ^ "\n")
@@ -20758,11 +20807,11 @@ fun remove (Metis_Waiting {parameters,clauses,models}) =
 
 end
 
-(**** Original file: Resolution.sig ****)
+(**** Original file: src/Resolution.sig ****)
 
 (* ========================================================================= *)
 (* THE RESOLUTION PROOF PROCEDURE                                            *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Metis_Resolution =
@@ -20812,11 +20861,11 @@ val loop : resolution -> decision
 
 end
 
-(**** Original file: Resolution.sml ****)
+(**** Original file: src/Resolution.sml ****)
 
 (* ========================================================================= *)
 (* THE RESOLUTION PROOF PROCEDURE                                            *)
-(* Copyright (c) 2001-2007 Joe Hurd, distributed under the BSD License       *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Metis_Resolution :> Metis_Resolution =
