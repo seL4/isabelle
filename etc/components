@@ -17,3 +17,4 @@ src/HOL/Tools/ATP
 src/HOL/Mirabelle
 src/HOL/Library/Sum_Of_Squares
 src/HOL/Tools/SMT
+src/HOL/Tools/Predicate_Compile

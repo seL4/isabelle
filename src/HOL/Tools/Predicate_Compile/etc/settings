@@ -1,0 +1,13 @@
+
+EXEC_SWIPL=$(choosefrom \
+  "$ISABELLE_HOME/contrib/swipl/bin/swipl" \
+  "$ISABELLE_HOME/contrib_devel/swipl/bin/swipl" \
+  "$ISABELLE_HOME/../swipl" \
+  $(type -p swipl) \
+  "")
+
+EXEC_YAP=$(choosefrom \
+  "$ISABELLE_HOME/contrib/yap" \
+  "$ISABELLE_HOME/../yap" \
+  $(type -p yap) \
+  "")

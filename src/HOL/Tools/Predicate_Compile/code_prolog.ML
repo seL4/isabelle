@@ -104,8 +104,11 @@ val map_code_options = Options.map
 
 datatype prolog_system = SWI_PROLOG | YAP
 
-type system_configuration = {timeout : Time.time, prolog_system : prolog_system}
+fun string_of_system SWI_PROLOG = "swiprolog"
+  | string_of_system YAP = "yap"
 
+type system_configuration = {timeout : Time.time, prolog_system : prolog_system}
+                                                
 structure System_Config = Generic_Data
 (
   type T = system_configuration
@@ -638,6 +641,7 @@ fun reorder_manually reorder p =
   in
     fst (fold_map reorder' p [])
   end
+
 (* rename variables to prolog-friendly names *)
 
 fun rename_vars_term renaming = map_vars (fn v => the (AList.lookup (op =) renaming v))
@@ -739,9 +743,16 @@ fun prelude system =
 
 fun invoke system file_name =
   let
+    val env_var =
+      (case system of SWI_PROLOG => "EXEC_SWIPL"| YAP => "EXEC_YAP")
+    val prog = getenv env_var
     val cmd =
-      case system of SWI_PROLOG => "/usr/local/bin/swipl -f " | YAP => "/usr/local/bin/yap -L "
-  in fst (bash_output (cmd ^ file_name)) end
+      case system of SWI_PROLOG => prog ^ " -f " | YAP => prog ^ " -L "
+  in
+    if prog = "" then
+      (warning (env_var ^ " not set; could not execute code for " ^ string_of_system system); "")
+    else fst (bash_output (cmd ^ file_name))
+  end
 
 (* parsing prolog solution *)
 
