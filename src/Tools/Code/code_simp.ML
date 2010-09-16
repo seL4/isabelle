@@ -84,7 +84,8 @@ val setup = Method.setup (Binding.name "code_simp")
 (* evaluation with freezed code context *)
 
 fun static_eval_conv thy some_ss consts = no_frees_conv
-  (Code_Thingol.static_eval_conv_simple thy consts (rewrite_modulo thy some_ss));
+  (Code_Thingol.static_eval_conv_simple thy consts
+    (fn program => fn thy => rewrite_modulo thy some_ss program));
 
 fun static_eval_tac thy some_ss consts = CONVERSION (static_eval_conv thy some_ss consts)
   THEN' conclude_tac thy some_ss;

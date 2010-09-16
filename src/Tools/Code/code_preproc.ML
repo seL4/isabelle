@@ -29,7 +29,9 @@ sig
   val dynamic_eval_value: theory -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
   val static_eval_conv: theory -> string list
-    -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
+    -> (code_algebra -> code_graph -> theory -> (string * sort) list -> term -> conv) -> conv
+  val static_eval_value: theory -> ((term -> term) -> 'a -> 'a) -> string list
+    -> (code_algebra -> code_graph -> theory -> (string * sort) list -> term -> 'a) -> term -> 'a
 
   val setup: theory -> theory
 end
@@ -138,12 +140,16 @@ fun preprocess thy =
 
 fun preprocess_conv thy ct =
   let
+    val ctxt = ProofContext.init_global thy;
+    val _ = (Sign.no_frees ctxt o map_types (K dummyT) o Sign.no_vars ctxt) (Thm.term_of ct);
     val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
   in
     ct
     |> Simplifier.rewrite pre
     |> trans_conv_rule (AxClass.unoverload_conv thy)
   end;
+
+fun preprocess_term thy = term_of_conv thy (preprocess_conv thy);
 
 fun postprocess_conv thy ct =
   let
@@ -427,41 +433,54 @@ fun obtain ignore_cache thy consts ts = apsnd snd
 
 fun dest_cterm ct = let val t = Thm.term_of ct in (Term.add_tfrees t [], t) end;
 
-fun dynamic_eval thy cterm_of conclude_evaluation evaluator proto_ct =
+fun dynamic_eval_conv thy conv ct =
   let
-    val ctxt = Syntax.init_pretty_global thy;
-    val ct = cterm_of proto_ct;
-    val _ = (Sign.no_frees ctxt o map_types (K dummyT) o Sign.no_vars ctxt) (Thm.term_of ct);
-    val thm = preprocess_conv thy ct;
-    val ct' = Thm.rhs_of thm;
+    val thm1 = preprocess_conv thy ct;
+    val ct' = Thm.rhs_of thm1;
     val (vs', t') = dest_cterm ct';
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
     val (algebra', eqngr') = obtain false thy consts [t'];
-  in conclude_evaluation (evaluator algebra' eqngr' vs' t' ct') thm end;
+    val thm2 = conv algebra' eqngr' vs' t' ct';
+    val thm3 = postprocess_conv thy (Thm.rhs_of thm2);
+  in
+    Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
+      error ("could not construct evaluation proof:\n"
+      ^ (cat_lines o map (Display.string_of_thm_global thy)) [thm1, thm2, thm3])
+  end;
 
-fun dynamic_eval_conv thy =
+fun dynamic_eval_value thy postproc evaluator t =
   let
-    fun conclude_evaluation thm2 thm1 =
-      let
-        val thm3 = postprocess_conv thy (Thm.rhs_of thm2);
-      in
-        Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
-          error ("could not construct evaluation proof:\n"
-          ^ (cat_lines o map (Display.string_of_thm_global thy)) [thm1, thm2, thm3])
-      end;
-  in dynamic_eval thy I conclude_evaluation end;
-
-fun dynamic_eval_value thy postproc evaluator = dynamic_eval thy (Thm.cterm_of thy)
-  (K o postproc (postprocess_term thy)) (K oooo evaluator);
+    val t' = preprocess_term thy t;
+    val vs' = Term.add_tfrees t' [];
+    val consts = fold_aterms
+      (fn Const (c, _) => insert (op =) c | _ => I) t' [];
+    val (algebra', eqngr') = obtain false thy consts [t'];
+    val result = evaluator algebra' eqngr' vs' t';
+  in
+    evaluator algebra' eqngr' vs' t'
+    |> postproc (postprocess_term thy)
+  end;
 
 fun static_eval_conv thy consts conv =
   let
     val (algebra, eqngr) = obtain true thy consts [];
+    val conv' = conv algebra eqngr;
   in
     Conv.tap_thy (fn thy => (preprocess_conv thy)
-      then_conv (fn ct => uncurry (conv algebra eqngr) (dest_cterm ct) ct)
+      then_conv (fn ct => uncurry (conv' thy) (dest_cterm ct) ct)
       then_conv (postprocess_conv thy))
+  end;
+
+fun static_eval_value thy postproc consts evaluator =
+  let
+    val (algebra, eqngr) = obtain true thy consts [];
+    val evaluator' = evaluator algebra eqngr;
+  in fn t =>
+    t
+    |> preprocess_term thy
+    |> (fn t => evaluator' thy (Term.add_tfrees t [])  t)
+    |> postproc (postprocess_term thy)
   end;
 
 
