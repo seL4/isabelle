@@ -272,9 +272,10 @@ fun compile_term compilation options ctxt t =
         Pos_Random_DSeq =>
           let
             val compiled_term =
-              Code_Runtime.value (SOME target) (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
+              Code_Runtime.dynamic_value_strict (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
+                thy4 (SOME target)
                 (fn proc => fn g => fn n => fn size => fn s => g n size s |>> (DSequence.map o map) proc)
-                thy4 qc_term []
+                qc_term []
           in
             (fn size => fn nrandom => fn depth =>
               Option.map fst (DSequence.yield
@@ -283,11 +284,12 @@ fun compile_term compilation options ctxt t =
       | New_Pos_Random_DSeq =>
           let
             val compiled_term =
-              Code_Runtime.value (SOME target)
+              Code_Runtime.dynamic_value_strict
                 (Lseq_Result.get, put_lseq_result, "Predicate_Compile_Quickcheck.put_lseq_result")
+                thy4 (SOME target)
                 (fn proc => fn g => fn nrandom => fn size => fn s => fn depth =>
                   g nrandom size s depth |> (Lazy_Sequence.mapa o map) proc)
-                  thy4 qc_term []
+                  qc_term []
           in
             fn size => fn nrandom => fn depth => Option.map fst (Lazy_Sequence.yield 
                (
@@ -297,11 +299,11 @@ fun compile_term compilation options ctxt t =
           end
       | Depth_Limited_Random =>
           let
-            val compiled_term = Code_Runtime.value (SOME target)
+            val compiled_term = Code_Runtime.dynamic_value_strict
               (Pred_Result.get, put_pred_result, "Predicate_Compile_Quickcheck.put_pred_result")
-                (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
+                thy4 (SOME target) (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
                   g depth nrandom size seed |> (Predicate.map o map) proc)
-                thy4 qc_term []
+                qc_term []
           in
             fn size => fn nrandom => fn depth => Option.map fst (Predicate.yield 
               (compiled_term depth nrandom size (Random_Engine.run (fn s => (s, s)))))

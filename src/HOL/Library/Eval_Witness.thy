@@ -44,6 +44,13 @@ instance nat :: ml_equiv .. (* Attention: This conflicts with the "EfficientNat"
 instance bool :: ml_equiv ..
 instance list :: (ml_equiv) ml_equiv ..
 
+ML {*
+structure Eval_Method = Proof_Data (
+  type T = unit -> bool
+  fun init _ () = error "Eval_Method"
+)
+*}
+
 oracle eval_witness_oracle = {* fn (cgoal, ws) =>
 let
   val thy = Thm.theory_of_cterm cgoal;
@@ -59,7 +66,7 @@ let
     | dest_exs _ _ = sys_error "dest_exs";
   val t = dest_exs (length ws) (HOLogic.dest_Trueprop goal);
 in
-  if Code_Runtime.value NONE (Eval_Method.get, Eval_Method.put, "Eval_Method.put") (K I) thy t ws
+  if Code_Runtime.dynamic_value_strict (Eval_Method.get, Eval_Method.put, "Eval_Method.put") thy NONE (K I) t ws
   then Thm.cterm_of thy goal
   else @{cprop True} (*dummy*)
 end

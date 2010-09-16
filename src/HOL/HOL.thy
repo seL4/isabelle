@@ -1958,33 +1958,8 @@ code_const undefined
 
 subsubsection {* Evaluation and normalization by evaluation *}
 
-text {* Avoid some named infixes in evaluation environment *}
-
-code_reserved Eval oo ooo oooo upto downto orf andf
-
 setup {*
   Value.add_evaluator ("SML", Codegen.eval_term o ProofContext.theory_of)
-*}
-
-ML {*
-structure Eval_Method = Proof_Data(
-  type T = unit -> bool
-  fun init thy () = error "Eval_Method"
-)
-*}
-
-oracle eval_oracle = {* fn ct =>
-  let
-    val thy = Thm.theory_of_cterm ct;
-    val t = Thm.term_of ct;
-    val dummy = @{cprop True};
-  in case try HOLogic.dest_Trueprop t
-   of SOME t' => if Code_Runtime.value NONE
-         (Eval_Method.get, Eval_Method.put, "Eval_Method.put") (K I) thy t' [] 
-       then Thm.capply (Thm.capply @{cterm "op \<equiv> \<Colon> prop \<Rightarrow> prop \<Rightarrow> prop"} ct) dummy
-       else dummy
-    | NONE => dummy
-  end
 *}
 
 ML {*
@@ -1993,7 +1968,7 @@ fun gen_eval_method conv ctxt = SIMPLE_METHOD'
     THEN' rtac TrueI)
 *}
 
-method_setup eval = {* Scan.succeed (gen_eval_method eval_oracle) *}
+method_setup eval = {* Scan.succeed (gen_eval_method Code_Runtime.dynamic_holds_conv) *}
   "solve goal by evaluation"
 
 method_setup evaluation = {* Scan.succeed (gen_eval_method Codegen.evaluation_conv) *}

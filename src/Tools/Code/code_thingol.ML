@@ -99,10 +99,13 @@ sig
     -> (naming -> program -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
     -> term -> 'a
   val static_eval_conv: theory -> string list
-    -> (naming -> program -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
+    -> (naming -> program -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
     -> conv
   val static_eval_conv_simple: theory -> string list
-    -> (program -> conv) -> conv
+    -> (program -> theory -> conv) -> conv
+  val static_eval_value: theory -> ((term -> term) -> 'a -> 'a) -> string list
+    -> (naming -> program -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
+    -> term -> 'a
 end;
 
 structure Code_Thingol: CODE_THINGOL =
@@ -884,25 +887,34 @@ fun ensure_value thy algbr eqngr t =
     #> term_value
   end;
 
-fun base_evaluator thy evaluator algebra eqngr vs t =
+fun base_evaluator evaluator algebra eqngr thy vs t =
   let
     val (((naming, program), (((vs', ty'), t'), deps)), _) =
       invoke_generation false thy (algebra, eqngr) ensure_value t;
     val vs'' = map (fn (v, _) => (v, (the o AList.lookup (op =) vs o prefix "'") v)) vs';
-  in evaluator naming program ((vs'', (vs', ty')), t') deps end;
+  in evaluator naming program thy ((vs'', (vs', ty')), t') deps end;
 
-fun dynamic_eval_conv thy = Code_Preproc.dynamic_eval_conv thy o base_evaluator thy;
-fun dynamic_eval_value thy postproc = Code_Preproc.dynamic_eval_value thy postproc o base_evaluator thy;
+fun dynamic_evaluator thy evaluator algebra eqngr vs t =
+  base_evaluator (fn naming => fn program => fn _ => evaluator naming program) algebra eqngr thy vs t;
+
+fun dynamic_eval_conv thy evaluator =
+  Code_Preproc.dynamic_eval_conv thy (dynamic_evaluator thy evaluator);
+
+fun dynamic_eval_value thy postproc evaluator =
+  Code_Preproc.dynamic_eval_value thy postproc (dynamic_evaluator thy evaluator);
 
 fun static_eval_conv thy consts conv =
-  Code_Preproc.static_eval_conv thy consts (base_evaluator thy conv); (*FIXME avoid re-generation*)
+  Code_Preproc.static_eval_conv thy consts (base_evaluator conv); (*FIXME avoid re-generation*)
 
 fun static_eval_conv_simple thy consts conv =
-  Code_Preproc.static_eval_conv thy consts (fn algebra => fn eqngr => fn _ => fn _ => fn ct =>
+  Code_Preproc.static_eval_conv thy consts (fn algebra => fn eqngr => fn thy => fn _ => fn _ => fn ct =>
     conv ((NONE, (empty_naming, Graph.empty)) (*FIXME provide abstraction for this kind of invocation*)
       |> fold_map (ensure_const thy algebra eqngr false) consts
-      |> (snd o snd o snd)) ct);
+      |> (snd o snd o snd)) thy ct);
 
+fun static_eval_value thy postproc consts conv =
+  Code_Preproc.static_eval_value thy postproc consts (base_evaluator conv); (*FIXME avoid re-generation*)
+  
 
 (** diagnostic commands **)
 
