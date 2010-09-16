@@ -57,29 +57,23 @@ sig
   val make_fixed_const : string -> string
   val make_fixed_type_const : string -> string
   val make_type_class : string -> string
-  val skolem_theory_name: string
-  val skolem_prefix: string
-  val skolem_infix: string
-  val is_skolem_const_name: string -> bool
   val num_type_args: theory -> string -> int
   val type_literals_for_types : typ list -> type_literal list
-  val make_class_rel_clauses: theory -> class list -> class list -> class_rel_clause list
-  val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
+  val make_class_rel_clauses :
+    theory -> class list -> class list -> class_rel_clause list
+  val make_arity_clauses :
+    theory -> string list -> class list -> class list * arity_clause list
   val combtyp_of : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
   val combterm_from_term :
     theory -> (string * typ) list -> term -> combterm * typ list
-  val literals_of_term : theory -> term -> fol_literal list * typ list
-  val conceal_skolem_terms :
-    int -> (string * term) list -> term -> (string * term) list * term
   val reveal_skolem_terms : (string * term) list -> term -> term
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
   val string_of_mode : mode -> string
   val build_logic_map :
-    mode -> Proof.context -> bool -> thm list -> thm list
-    -> mode * logic_map
+    mode -> Proof.context -> bool -> thm list -> thm list -> mode * logic_map
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
@@ -204,24 +198,14 @@ fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
-val skolem_theory_name = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
-val skolem_prefix = "sko_"
-val skolem_infix = "$"
-
-(* Hack: Could return false positives (e.g., a user happens to declare a
-   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
-val is_skolem_const_name =
-  Long_Name.base_name
-  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
+val skolem_prefix = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
 
 (* The number of type arguments of a constant, zero if it's monomorphic. For
    (instances of) Skolem pseudoconstants, this information is encoded in the
    constant name. *)
 fun num_type_args thy s =
-  if String.isPrefix skolem_theory_name s then
-    s |> unprefix skolem_theory_name
-      |> space_explode skolem_infix |> hd
-      |> space_explode "_" |> List.last |> Int.fromString |> the
+  if String.isPrefix skolem_prefix s then
+    s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
@@ -410,7 +394,7 @@ fun combterm_from_term thy bs (P $ Q) =
       let
         val (tp, ts) = combtype_of T
         val tvar_list =
-          (if String.isPrefix skolem_theory_name c then
+          (if String.isPrefix skolem_prefix c then
              [] |> Term.add_tvarsT T |> map TVar
            else
              (c, T) |> Sign.const_typargs thy)
@@ -448,8 +432,8 @@ fun literals_of_term1 args thy (@{const Trueprop} $ P) =
 val literals_of_term = literals_of_term1 ([], [])
 
 fun skolem_name i j num_T_args =
-  skolem_prefix ^ (space_implode "_" (map Int.toString [i, j, num_T_args])) ^
-  skolem_infix ^ "g"
+  skolem_prefix ^ Long_Name.separator ^
+  (space_implode Long_Name.separator (map Int.toString [i, j, num_T_args]))
 
 fun conceal_skolem_terms i skolems t =
   if exists_Const (curry (op =) @{const_name skolem} o fst) t then
@@ -464,9 +448,8 @@ fun conceal_skolem_terms i skolems t =
                 s :: _ => (skolems, s)
               | [] =>
                 let
-                  val s = skolem_theory_name ^ "." ^
-                          skolem_name i (length skolems)
-                                        (length (Term.add_tvarsT T []))
+                  val s = skolem_name i (length skolems)
+                                      (length (Term.add_tvarsT T []))
                 in ((s, t) :: skolems, s) end
           in (skolems, Const (s, T)) end
         | aux skolems (t1 $ t2) =
@@ -485,7 +468,7 @@ fun conceal_skolem_terms i skolems t =
 
 fun reveal_skolem_terms skolems =
   map_aterms (fn t as Const (s, _) =>
-                 if String.isPrefix skolem_theory_name s then
+                 if String.isPrefix skolem_prefix s then
                    AList.lookup (op =) skolems s |> the
                    |> map_types Type_Infer.paramify_vars
                  else
