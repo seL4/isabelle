@@ -3,7 +3,7 @@
     Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
-Transfer of proofs from external provers.
+Proof reconstruction for Sledgehammer.
 *)
 
 signature SLEDGEHAMMER_RECONSTRUCT =
