@@ -43,6 +43,13 @@ type isar_params =
   string Symtab.table * bool * int * Proof.context * int list list
 type text_result = string * (string * locality) list
 
+fun is_head_digit s = Char.isDigit (String.sub (s, 0))
+val scan_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
+
+fun find_first_in_list_vector vec key =
+  Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
+                 | (_, value) => value) NONE vec
+
 
 (** SPASS's Flotter hack **)
 
