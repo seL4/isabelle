@@ -169,14 +169,9 @@ lemma Var_apps_neq_Abs_apps [iff]:
 lemma ex_head_tail:
   "\<exists>ts h. t = h \<degree>\<degree> ts \<and> ((\<exists>n. h = Var n) \<or> (\<exists>x u. h = (Lam [x].u)))"
   apply (induct t rule: lam.induct)
-    apply (rule_tac x = "[]" in exI)
-    apply (simp add: lam.inject)
-   apply clarify
-   apply (rename_tac ts1 ts2 h1 h2)
-   apply (rule_tac x = "ts1 @ [h2 \<degree>\<degree> ts2]" in exI)
-   apply (simp add: lam.inject)
-  apply simp
-  apply blast
+    apply (metis foldl_Nil)
+   apply (metis foldl_Cons foldl_Nil foldl_append)
+  apply (metis foldl_Nil)
   done
 
 lemma size_apps [simp]:
@@ -218,15 +213,11 @@ lemma lem:
     prefer 2
     apply (erule allE, erule impE, rule refl, erule spec)
    apply simp
-   apply (rule lem0)
-    apply force
-   apply (rule elem_le_sum)
-   apply force
+   apply (metis add_strict_increasing le_add1 length_pos_if_in_set listsum listsum_map_remove1 nat_add_commute)
   apply clarify
   apply (subgoal_tac "\<exists>y::name. y \<sharp> (x, u, z)")
-  prefer 2
-  apply (rule exists_fresh')
-  apply (rule fin_supp)
+   prefer 2
+   apply (blast intro: exists_fresh' fin_supp) 
   apply (erule exE)
   apply (subgoal_tac "(Lam [x].u) = (Lam [y].([(y, x)] \<bullet> u))")
   prefer 2
@@ -241,13 +232,8 @@ lemma lem:
   apply clarify
   apply (erule allE, erule impE)
    prefer 2
-   apply (erule allE, erule impE, rule refl, erule spec)
-  apply simp
-  apply (rule le_imp_less_Suc)
-  apply (rule trans_le_add1)
-  apply (rule trans_le_add2)
-  apply (rule elem_le_sum)
-  apply force
+   apply blast   
+  apply (force intro: le_imp_less_Suc trans_le_add1 trans_le_add2 elem_le_sum) 
   done
 
 theorem Apps_lam_induct:
@@ -441,13 +427,9 @@ lemma listrelp_eqvt [eqvt]:
   assumes xy: "listrelp f (x::'a::pt_name list) y"
   shows "listrelp ((pi::name prm) \<bullet> f) (pi \<bullet> x) (pi \<bullet> y)" using xy
   apply induct
+   apply (simp add: listrelp.intros)
   apply simp
-  apply (rule listrelp.intros)
-  apply simp
-  apply (rule listrelp.intros)
-  apply (drule_tac pi=pi in perm_boolI)
-  apply perm_simp
-  apply assumption
+  apply (metis listrelp.Cons in_eqvt mem_def perm_app pt_set_bij3)
   done
 
 inductive
@@ -745,12 +727,7 @@ next
     case (2 x u ts)
     show ?case
     proof (cases ts)
-      case Nil
-      from 2 have "\<forall>u'. \<not> u \<rightarrow>\<^sub>\<beta> u'"
-        by (auto intro: apps_preserves_beta)
-      then have "NF u" by (rule 2)
-      then have "NF (Lam [x].u)" by (rule NF.Abs)
-      with Nil show ?thesis by simp
+      case Nil thus ?thesis by (metis 2 NF.Abs abs foldl_Nil)
     next
       case (Cons r rs)
       have "(Lam [x].u) \<degree> r \<rightarrow>\<^sub>\<beta> u[x::=r]" ..
@@ -841,7 +818,7 @@ proof induct
     case Nil
     show ?case by (rule listrelp.Nil)
   next
-    case (Cons x y xs ys)
+    case (Cons x y xs ys) 
     hence "x \<rightarrow>\<^sub>l y" and "xs [\<rightarrow>\<^sub>l] ys" by (auto del: in_listspD)
     thus ?case by (rule listrelp.Cons)
   qed
