@@ -555,6 +555,7 @@ fun eval_term thy program (nbe_program, idx_tab) ((vs0, (vs, ty)), t) deps =
     |> traced (fn _ => "---\n")
   end;
 
+
 (* function store *)
 
 structure Nbe_Functions = Code_Data
