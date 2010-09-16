@@ -375,8 +375,8 @@ fun prover_fun auto atp_name
 
 fun get_prover_fun thy name = prover_fun false name (get_prover thy name)
 
-fun run_prover (params as {blocking, verbose, max_relevant, timeout, expect,
-                           ...})
+fun run_prover (params as {blocking, debug, verbose, max_relevant, timeout,
+                           expect, ...})
                auto i n minimize_command (problem as {state, goal, axioms, ...})
                (prover as {default_max_relevant, ...}, atp_name) =
   let
@@ -398,14 +398,19 @@ fun run_prover (params as {blocking, verbose, max_relevant, timeout, expect,
          "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
     fun go () =
       let
-        val (outcome_code, message) =
+        fun really_go () =
           prover_fun auto atp_name prover params (minimize_command atp_name)
                      problem
           |> (fn {outcome, message, ...} =>
                  (if is_some outcome then "none" else "some", message))
-          handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
-               | exn => ("unknown", "Internal error:\n" ^
-                                    ML_Compiler.exn_message exn ^ "\n")
+        val (outcome_code, message) =
+          if debug then
+            really_go ()
+          else
+            (really_go ()
+             handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
+                  | exn => ("unknown", "Internal error:\n" ^
+                                       ML_Compiler.exn_message exn ^ "\n"))
         val _ =
           if expect = "" orelse outcome_code = expect then
             ()

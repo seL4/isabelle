@@ -14,6 +14,7 @@ sig
     AQuant of quantifier * 'a list * ('a, 'b) formula |
     AConn of connective * ('a, 'b) formula list |
     AAtom of 'b
+  type 'a uniform_formula = ('a, 'a fo_term) formula
 
   datatype kind = Axiom | Hypothesis | Conjecture
   datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
@@ -41,6 +42,7 @@ datatype ('a, 'b) formula =
   AQuant of quantifier * 'a list * ('a, 'b) formula |
   AConn of connective * ('a, 'b) formula list |
   AAtom of 'b
+type 'a uniform_formula = ('a, 'a fo_term) formula
 
 datatype kind = Axiom | Hypothesis | Conjecture
 datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula

@@ -40,6 +40,77 @@ type isar_params =
   string Symtab.table * bool * int * Proof.context * int list list
 type text_result = string * (string * locality) list
 
+
+(** Soft-core proof reconstruction: Metis one-liner **)
+
+fun string_for_label (s, num) = s ^ string_of_int num
+
+fun metis_using [] = ""
+  | metis_using ls =
+    "using " ^ space_implode " " (map string_for_label ls) ^ " "
+fun metis_apply _ 1 = "by "
+  | metis_apply 1 _ = "apply "
+  | metis_apply i _ = "prefer " ^ string_of_int i ^ " apply "
+fun metis_name full_types = if full_types then "metisFT" else "metis"
+fun metis_call full_types [] = metis_name full_types
+  | metis_call full_types ss =
+    "(" ^ metis_name full_types ^ " " ^ space_implode " " ss ^ ")"
+fun metis_command full_types i n (ls, ss) =
+  metis_using ls ^ metis_apply i n ^ metis_call full_types ss
+fun metis_line banner full_types i n ss =
+  banner ^ ": " ^
+  Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
+fun minimize_line _ [] = ""
+  | minimize_line minimize_command ss =
+    case minimize_command ss of
+      "" => ""
+    | command =>
+      "\nTo minimize the number of lemmas, try this: " ^
+      Markup.markup Markup.sendback command ^ "."
+
+fun resolve_axiom axiom_names (Str (_, s)) =
+    (case strip_prefix_and_unascii axiom_prefix s of
+       SOME s' => (case find_first_in_list_vector axiom_names s' of
+                     SOME x => [(s', x)]
+                   | NONE => [])
+     | NONE => [])
+  | resolve_axiom axiom_names (Num num) =
+    case Int.fromString num of
+      SOME j =>
+      if j > 0 andalso j <= Vector.length axiom_names then
+        Vector.sub (axiom_names, j - 1)
+      else
+        []
+    | NONE => []
+
+fun add_fact axiom_names (Inference (name, _, [])) =
+    append (resolve_axiom axiom_names name)
+  | add_fact _ _ = I
+
+fun used_facts_in_tstplike_proof axiom_names =
+  atp_proof_from_tstplike_string Symtab.empty
+  #> rpair [] #-> fold (add_fact axiom_names)
+
+fun used_facts axiom_names =
+  used_facts_in_tstplike_proof axiom_names
+  #> List.partition (curry (op =) Chained o snd)
+  #> pairself (sort_distinct (string_ord o pairself fst))
+
+fun metis_proof_text (banner, full_types, minimize_command,
+                      tstplike_proof, axiom_names, goal, i) =
+  let
+    val (chained_lemmas, other_lemmas) =
+      used_facts axiom_names tstplike_proof
+    val n = Logic.count_prems (prop_of goal)
+  in
+    (metis_line banner full_types i n (map fst other_lemmas) ^
+     minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
+     other_lemmas @ chained_lemmas)
+  end
+
+
+(** Hard-core proof reconstruction: structured Isar proofs **)
+
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)
 fun s_not @{const False} = @{const True}
@@ -75,34 +146,34 @@ fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
   | negate_term (@{const Not} $ t) = t
   | negate_term t = @{const Not} $ t
 
-fun index_in_shape x = find_index (exists (curry (op =) x))
-fun resolve_axiom axiom_names (Str (_, s)) =
-    (case strip_prefix_and_unascii axiom_prefix s of
-       SOME s' => (case find_first_in_list_vector axiom_names s' of
-                     SOME x => [(s', x)]
-                   | NONE => [])
-     | NONE => [])
-  | resolve_axiom axiom_names (Num num) =
-    case Int.fromString num of
-      SOME j =>
-      if j > 0 andalso j <= Vector.length axiom_names then
-        Vector.sub (axiom_names, j - 1)
-      else
-        []
-    | NONE => []
-val is_axiom = not o null oo resolve_axiom
+val indent_size = 2
+val no_label = ("", ~1)
+
+val raw_prefix = "X"
+val assum_prefix = "A"
+val fact_prefix = "F"
 
 fun resolve_conjecture conjecture_shape (Str (num, s)) =
     let
       val k = case try (unprefix conjecture_prefix) s of
                 SOME s => Int.fromString s |> the_default ~1
               | NONE => case Int.fromString num of
-                          SOME j => index_in_shape j conjecture_shape
+                          SOME j => find_index (exists (curry (op =) j))
+                                               conjecture_shape
                         | NONE => ~1
     in if k >= 0 then [k] else [] end
   | resolve_conjecture conjecture_shape (Num num) =
     resolve_conjecture conjecture_shape (Str (num, "")) (* HACK *)
+
+val is_axiom = not o null oo resolve_axiom
 val is_conjecture = not o null oo resolve_conjecture
+
+fun raw_label_for_name conjecture_shape name =
+  case resolve_conjecture conjecture_shape name of
+    [j] => (conjecture_prefix, j)
+  | _ => case Int.fromString (step_num name) of
+           SOME j => (raw_prefix, j)
+         | NONE => (raw_prefix ^ step_num name, 0)
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
@@ -415,106 +486,6 @@ fun add_desired_line _ _ _ _ (line as Definition (name, _, _)) (j, lines) =
        Inference (name, t, deps) :: lines  (* keep line *)
      else
        map (replace_dependencies_in_line (name, deps)) lines)  (* drop line *)
-
-(** EXTRACTING LEMMAS **)
-
-(* Like "split_line" but splits on ".\n" (for TSTP and SPASS) or "]\n" (for
-   Vampire). *)
-val split_proof_lines =
-  let
-    fun aux [] [] = []
-      | aux line [] = [implode (rev line)]
-      | aux line ("." :: "\n" :: rest) = aux line [] @ aux [] rest
-      | aux line ("]" :: "\n" :: rest) = aux line [] @ aux [] rest
-      | aux line (s :: rest) = aux (s :: line) rest
-  in aux [] o explode end
-
-(* ### FIXME: Can do better *)
-(* A list consisting of the first number in each line is returned. For TSTP,
-   interesting lines have the form "fof(108, axiom, ...)", where the number
-   (108) is extracted. For SPASS, lines have the form "108[0:Inp] ...", where
-   the first number (108) is extracted. For Vampire, we look for
-   "108. ... [input]". *)
-fun used_facts_in_tstplike_proof axiom_names tstplike_proof =
-  let
-    val tokens_of =
-      String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
-    fun do_line (tag :: num :: "axiom" :: (rest as _ :: _)) =
-        if tag = "cnf" orelse tag = "fof" then
-          (case strip_prefix_and_unascii axiom_prefix (List.last rest) of
-             SOME name =>
-             if member (op =) rest "file" then
-               ([(name, name |> find_first_in_list_vector axiom_names |> the)]
-                handle Option.Option =>
-                       error ("No such fact: " ^ quote name ^ "."))
-             else
-               resolve_axiom axiom_names (Num num)
-           | NONE => resolve_axiom axiom_names (Num num))
-        else
-          []
-      | do_line (num :: "0" :: "Inp" :: _) = resolve_axiom axiom_names (Num num)
-      | do_line (num :: rest) =
-        (case List.last rest of
-           "input" => resolve_axiom axiom_names (Num num)
-         | _ => [])
-      | do_line _ = []
-  in tstplike_proof |> split_proof_lines |> maps (do_line o tokens_of) end
-
-val indent_size = 2
-val no_label = ("", ~1)
-
-val raw_prefix = "X"
-val assum_prefix = "A"
-val fact_prefix = "F"
-
-fun string_for_label (s, num) = s ^ string_of_int num
-
-fun raw_label_for_name conjecture_shape name =
-  case resolve_conjecture conjecture_shape name of
-    [j] => (conjecture_prefix, j)
-  | _ => case Int.fromString (step_num name) of
-           SOME j => (raw_prefix, j)
-         | NONE => (raw_prefix ^ step_num name, 0)
-
-fun metis_using [] = ""
-  | metis_using ls =
-    "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun metis_apply _ 1 = "by "
-  | metis_apply 1 _ = "apply "
-  | metis_apply i _ = "prefer " ^ string_of_int i ^ " apply "
-fun metis_name full_types = if full_types then "metisFT" else "metis"
-fun metis_call full_types [] = metis_name full_types
-  | metis_call full_types ss =
-    "(" ^ metis_name full_types ^ " " ^ space_implode " " ss ^ ")"
-fun metis_command full_types i n (ls, ss) =
-  metis_using ls ^ metis_apply i n ^ metis_call full_types ss
-fun metis_line banner full_types i n ss =
-  banner ^ ": " ^
-  Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
-fun minimize_line _ [] = ""
-  | minimize_line minimize_command ss =
-    case minimize_command ss of
-      "" => ""
-    | command =>
-      "\nTo minimize the number of lemmas, try this: " ^
-      Markup.markup Markup.sendback command ^ "."
-
-fun used_facts axiom_names =
-  used_facts_in_tstplike_proof axiom_names
-  #> List.partition (curry (op =) Chained o snd)
-  #> pairself (sort_distinct (string_ord o pairself fst))
-
-fun metis_proof_text (banner, full_types, minimize_command,
-                      tstplike_proof, axiom_names, goal, i) =
-  let
-    val (chained_lemmas, other_lemmas) =
-      used_facts axiom_names tstplike_proof
-    val n = Logic.count_prems (prop_of goal)
-  in
-    (metis_line banner full_types i n (map fst other_lemmas) ^
-     minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
-     other_lemmas @ chained_lemmas)
-  end
 
 (** Isar proof construction and manipulation **)
 

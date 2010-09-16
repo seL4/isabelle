@@ -9,22 +9,20 @@ Abstract representation of ATP proofs and TSTP/SPASS/Vampire syntax.
 signature ATP_PROOF =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
-  type ('a, 'b) formula = ('a, 'b) ATP_Problem.formula
+  type 'a uniform_formula = 'a ATP_Problem.uniform_formula
 
   datatype step_name = Str of string * string | Num of string
 
-  datatype ('a, 'b, 'c) step =
-    Definition of step_name * 'a * 'b |
-    Inference of step_name * 'c * step_name list
+  datatype 'a step =
+    Definition of step_name * 'a * 'a |
+    Inference of step_name * 'a * step_name list
 
-  type string_formula = (string, string fo_term) formula
-  type string_step =
-      (string_formula, string_formula, string_formula) step
+  type 'a proof = 'a uniform_formula step list
 
   val step_num : step_name -> string
   val is_same_step : step_name * step_name -> bool
   val atp_proof_from_tstplike_string :
-    string Symtab.table -> string -> string_step list
+    string Symtab.table -> string -> string proof
 end;
 
 structure ATP_Proof : ATP_PROOF =
@@ -77,13 +75,11 @@ fun step_name_ord p =
     | (SOME i, SOME j) => int_ord (i, j)
   end
 
-datatype ('a, 'b, 'c) step =
-  Definition of step_name * 'a * 'b |
-  Inference of step_name * 'c * step_name list
+datatype 'a step =
+  Definition of step_name * 'a * 'a |
+  Inference of step_name * 'a * step_name list
 
-type string_formula = (string, string fo_term) formula
-type string_step =
-    (string_formula, string_formula, string_formula) step
+type 'a proof = 'a uniform_formula step list
 
 fun step_name (Definition (name, _, _)) = name
   | step_name (Inference (name, _, _)) = name
