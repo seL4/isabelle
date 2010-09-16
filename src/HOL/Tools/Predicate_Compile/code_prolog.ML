@@ -35,7 +35,7 @@ sig
   val generate : Predicate_Compile_Aux.mode option * bool ->
     Proof.context -> string -> (logic_program * constant_table)
   val write_program : logic_program -> string
-  val run : (Time.time * prolog_system) -> logic_program -> string -> string list -> int option -> prol_term list list
+  val run : (Time.time * prolog_system) -> logic_program -> (string * prol_term list) -> string list -> int option -> prol_term list list
   
   val quickcheck : Proof.context -> term -> int -> term list option * (bool list * bool)
 
@@ -695,14 +695,14 @@ fun write_program p =
 
 (** query and prelude for swi-prolog **)
 
-fun swi_prolog_query_first rel vnames =
-  "eval :- once("  ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
+fun swi_prolog_query_first (rel, args) vnames =
+  "eval :- once("  ^ rel ^ "(" ^ space_implode ", " (map write_term args) ^ ")),\n" ^
   "writef('" ^ space_implode ";" (map (fn v => v ^ " = %w") vnames) ^
   "\\n', [" ^ space_implode ", " vnames ^ "]).\n"
   
-fun swi_prolog_query_firstn n rel vnames =
+fun swi_prolog_query_firstn n (rel, args) vnames =
   "eval :- findnsols(" ^ string_of_int n ^ ", (" ^ space_implode ", " vnames ^ "), " ^
-    rel ^ "(" ^ space_implode ", " vnames ^ "), Sols), writelist(Sols).\n" ^
+    rel ^ "(" ^ space_implode ", " (map write_term args) ^ "), Sols), writelist(Sols).\n" ^
     "writelist([]).\n" ^
     "writelist([(" ^ space_implode ", " vnames ^ ")|T]) :- " ^
     "writef('" ^ space_implode ";" (map (fn v => v ^ " = %w") vnames) ^
@@ -719,8 +719,8 @@ val swi_prolog_prelude =
 
 (** query and prelude for yap **)
 
-fun yap_query_first rel vnames =
-  "eval :- once(" ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
+fun yap_query_first (rel, args) vnames =
+  "eval :- once(" ^ rel ^ "(" ^ space_implode ", " (map write_term args) ^ ")),\n" ^
   "format('" ^ space_implode ";" (map (fn v => v ^ " = ~w") vnames) ^
   "\\n', [" ^ space_implode ", " vnames ^ "]).\n"
 
@@ -807,13 +807,14 @@ fun parse_solutions sol =
   
 (* calling external interpreter and getting results *)
 
-fun run (timeout, system) p query_rel vnames nsols =
+fun run (timeout, system) p (query_rel, args) vnames nsols =
   let
     val p' = rename_vars_program p
     val _ = tracing "Renaming variable names..."
-    val renaming = fold mk_renaming vnames [] 
+    val renaming = fold mk_renaming (fold add_vars args vnames) [] 
     val vnames' = map (fn v => the (AList.lookup (op =) renaming v)) vnames
-    val prog = prelude system ^ query system nsols query_rel vnames' ^ write_program p'
+    val args' = map (rename_vars_term renaming) args
+    val prog = prelude system ^ query system nsols (query_rel, args') vnames' ^ write_program p'
     val _ = tracing ("Generated prolog program:\n" ^ prog)
     val solution = TimeLimit.timeLimit timeout (fn prog => Cache_IO.with_tmp_file "prolog_file" (fn prolog_file =>
       (File.write prolog_file prog; invoke system (Path.implode prolog_file)))) prog
@@ -881,10 +882,6 @@ fun values ctxt soln t_compr =
       case strip_comb body of
         (Const (name, T), all_args) => (Const (name, T), all_args)
       | (head, _) => error ("Not a constant: " ^ Syntax.string_of_term ctxt head)
-    val vnames =
-      case try (map (fst o dest_Free)) all_args of
-        SOME vs => vs
-      | NONE => error ("Not only free variables in " ^ commas (map (Syntax.string_of_term ctxt) all_args))
     val _ = tracing "Preprocessing specification..."
     val T = Sign.the_const_type (ProofContext.theory_of ctxt) name
     val t = Const (name, T)
@@ -900,10 +897,12 @@ fun values ctxt soln t_compr =
       |> add_limited_predicates (#limited_predicates options)
       |> apfst (fold replace (#replacing options))
       |> apfst (reorder_manually (#manual_reorder options))
+    val constant_table' = declare_consts (fold Term.add_const_names all_args []) constant_table
+    val args' = map (translate_term ctxt constant_table') all_args
     val _ = tracing "Running prolog program..."
     val system_config = System_Config.get (Context.Proof ctxt)
     val tss = run (#timeout system_config, #prolog_system system_config)
-      p (translate_const constant_table name) (map first_upper vnames) soln
+      p (translate_const constant_table' name, args') output_names soln
     val _ = tracing "Restoring terms..."
     val empty = Const("Orderings.bot_class.bot", fastype_of t_compr)
     fun mk_insert x S =
@@ -1000,7 +999,7 @@ fun quickcheck ctxt t size =
     val _ = tracing "Running prolog program..."
     val system_config = System_Config.get (Context.Proof ctxt)
     val tss = run (#timeout system_config, #prolog_system system_config)
-      p (translate_const constant_table full_constname) (map fst vs') (SOME 1)
+      p (translate_const constant_table full_constname, map (Var o fst) vs') (map fst vs') (SOME 1)
     val _ = tracing "Restoring terms..."
     val res =
       case tss of
