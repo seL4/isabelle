@@ -1310,6 +1310,10 @@ values "{xs::int list. test_append [1,2] [3,4] xs}"
 values "{xs::int list. test_append (replicate 1000 1) (replicate 1000 2) xs}"
 values "{xs::int list. test_append (replicate 2000 1) (replicate 2000 2) xs}"
 
+text {* Redeclaring append.equation as code equation *}
+
+declare appendP.equation[code]
+
 subsection {* Function with tuples *}
 
 fun append'
@@ -1579,6 +1583,56 @@ where
 code_pred big_step .
 
 thm big_step.equation
+
+section {* General Context Free Grammars *}
+text {* a contribution by Aditi Barthwal *}
+
+datatype ('nts,'ts) symbol = NTS 'nts
+                            | TS 'ts
+
+                            
+datatype ('nts,'ts) rule = rule 'nts "('nts,'ts) symbol list"
+
+types ('nts,'ts) grammar = "('nts,'ts) rule set * 'nts"
+
+fun rules :: "('nts,'ts) grammar => ('nts,'ts) rule set"
+where
+  "rules (r, s) = r"
+
+definition derives 
+where
+"derives g = { (lsl,rsl). \<exists>s1 s2 lhs rhs. 
+                         (s1 @ [NTS lhs] @ s2 = lsl) \<and>
+                         (s1 @ rhs @ s2) = rsl \<and>
+                         (rule lhs rhs) \<in> fst g }"
+
+abbreviation "example_grammar == 
+({ rule ''S'' [NTS ''A'', NTS ''B''],
+   rule ''S'' [TS ''a''],
+  rule ''A'' [TS ''b'']}, ''S'')"
+
+
+code_pred [inductify,skip_proof] derives .
+
+thm derives.equation
+
+definition "test = { rhs. derives example_grammar ([NTS ''S''], rhs) }"
+
+code_pred (modes: o \<Rightarrow> bool) [inductify, show_modes, show_intermediate_results, skip_proof] test .
+thm test.equation
+
+values "{rhs. test rhs}"
+
+declare rtrancl.intros(1)[code_pred_def] converse_rtrancl_into_rtrancl[code_pred_def]
+
+code_pred [inductify] rtrancl .
+
+definition "test2 = { rhs. ([NTS ''S''],rhs) \<in> (derives example_grammar)^*  }"
+
+code_pred [inductify, skip_proof] test2 .
+
+values "{rhs. test2 rhs}"
+
 
 section {* Examples for detecting switches *}
 
