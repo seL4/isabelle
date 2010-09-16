@@ -843,6 +843,17 @@ fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
         map (restore_term ctxt constant_table) (args ~~ argsT'))
     end
 
+    
+(* restore numerals in natural numbers *)
+
+fun restore_nat_numerals t =
+  if fastype_of t = @{typ nat} andalso is_some (try HOLogic.dest_nat t) then
+    HOLogic.mk_number @{typ nat} (HOLogic.dest_nat t)
+  else
+    (case t of
+        t1 $ t2 => restore_nat_numerals t1 $ restore_nat_numerals t2
+      | t => t)
+  
 (* values command *)
 
 val preprocess_options = Predicate_Compile_Aux.Options {
@@ -929,7 +940,8 @@ fun values ctxt soln t_compr =
         end
   in
       foldl1 (HOLogic.mk_binop @{const_name sup}) (mk_set_compr []
-        (map (fn ts => HOLogic.mk_tuple (map (restore_term ctxt' constant_table) (ts ~~ Ts))) tss) [])
+        (map (fn ts => HOLogic.mk_tuple 
+          (map (restore_nat_numerals o restore_term ctxt' constant_table) (ts ~~ Ts))) tss) [])
   end
 
 fun values_cmd print_modes soln raw_t state =
