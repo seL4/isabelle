@@ -1245,13 +1245,13 @@ val newDefinitionRelation =
     let
       val counter : int ref = ref 0
     in
-      fn () =>
+      fn () => Portable.critical (fn () =>
          let
            val ref i = counter
            val () = counter := i + 1
          in
            definitionPrefix ^ "_" ^ Int.toString i
-         end
+         end) ()
     end;
 
 fun newDefinition def =
