@@ -19,6 +19,8 @@ setup {* Code_Prolog.map_code_options (K
 
 values "{(x, y, z). append x y z}"
 
+values 4 "{(z, x, y). append x y ((1::nat) # (2 # (3 # z)))}"
+
 values 3 "{(x, y, z). append x y z}"
 
 setup {* Code_Prolog.map_code_options (K
