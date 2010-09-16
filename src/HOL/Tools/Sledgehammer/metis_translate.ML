@@ -1,5 +1,7 @@
 (*  Title:      HOL/Tools/Sledgehammer/metis_translate.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
+    Author:     Kong W. Susanto, Cambridge University Computer Laboratory
+    Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
 Translation of HOL to FOL for Metis.
@@ -27,6 +29,12 @@ sig
     CombVar of name * combtyp |
     CombApp of combterm * combterm
   datatype fol_literal = FOLLiteral of bool * combterm
+
+  datatype mode = FO | HO | FT
+  type logic_map =
+    {axioms: (Metis_Thm.thm * thm) list,
+     tfrees: type_literal list,
+     skolems: (string * term) list}
 
   val type_wrapper_name : string
   val bound_var_prefix : string
@@ -68,6 +76,10 @@ sig
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
+  val string_of_mode : mode -> string
+  val build_logic_map :
+    mode -> Proof.context -> bool -> thm list -> thm list
+    -> mode * logic_map
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
@@ -369,23 +381,23 @@ fun strip_combterm_comb u =
         |   stripc  x =  x
     in stripc(u,[]) end
 
-fun type_of (Type (a, Ts)) =
-    let val (folTypes,ts) = types_of Ts in
+fun combtype_of (Type (a, Ts)) =
+    let val (folTypes, ts) = combtypes_of Ts in
       (CombType (`make_fixed_type_const a, folTypes), ts)
     end
-  | type_of (tp as TFree (a, _)) = (CombTFree (`make_fixed_type_var a), [tp])
-  | type_of (tp as TVar (x, _)) =
+  | combtype_of (tp as TFree (a, _)) = (CombTFree (`make_fixed_type_var a), [tp])
+  | combtype_of (tp as TVar (x, _)) =
     (CombTVar (make_schematic_type_var x, string_of_indexname x), [tp])
-and types_of Ts =
-    let val (folTyps, ts) = ListPair.unzip (map type_of Ts) in
-      (folTyps, union_all ts)
-    end
+and combtypes_of Ts =
+  let val (folTyps, ts) = ListPair.unzip (map combtype_of Ts) in
+    (folTyps, union_all ts)
+  end
 
 (* same as above, but no gathering of sort information *)
-fun simp_type_of (Type (a, Ts)) =
-      CombType (`make_fixed_type_const a, map simp_type_of Ts)
-  | simp_type_of (TFree (a, _)) = CombTFree (`make_fixed_type_var a)
-  | simp_type_of (TVar (x, _)) =
+fun simple_combtype_of (Type (a, Ts)) =
+    CombType (`make_fixed_type_const a, map simple_combtype_of Ts)
+  | simple_combtype_of (TFree (a, _)) = CombTFree (`make_fixed_type_var a)
+  | simple_combtype_of (TVar (x, _)) =
     CombTVar (make_schematic_type_var x, string_of_indexname x)
 
 (* Converts a term (with combinators) into a combterm. Also accummulates sort
@@ -396,27 +408,27 @@ fun combterm_from_term thy bs (P $ Q) =
       in  (CombApp (P', Q'), union (op =) tsP tsQ)  end
   | combterm_from_term thy _ (Const (c, T)) =
       let
-        val (tp, ts) = type_of T
+        val (tp, ts) = combtype_of T
         val tvar_list =
           (if String.isPrefix skolem_theory_name c then
              [] |> Term.add_tvarsT T |> map TVar
            else
              (c, T) |> Sign.const_typargs thy)
-          |> map simp_type_of
+          |> map simple_combtype_of
         val c' = CombConst (`make_fixed_const c, tp, tvar_list)
       in  (c',ts)  end
   | combterm_from_term _ _ (Free (v, T)) =
-      let val (tp,ts) = type_of T
+      let val (tp, ts) = combtype_of T
           val v' = CombConst (`make_fixed_var v, tp, [])
       in  (v',ts)  end
   | combterm_from_term _ _ (Var (v, T)) =
-      let val (tp,ts) = type_of T
+      let val (tp,ts) = combtype_of T
           val v' = CombVar ((make_schematic_var v, string_of_indexname v), tp)
       in  (v',ts)  end
   | combterm_from_term _ bs (Bound j) =
       let
         val (s, T) = nth bs j
-        val (tp, ts) = type_of T
+        val (tp, ts) = combtype_of T
         val v' = CombConst (`make_bound_var s, tp, [])
       in (v', ts) end
   | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"
@@ -517,5 +529,227 @@ fun add_type_consts_in_term thy =
 
 fun type_consts_of_terms thy ts =
   Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty);
+
+(* ------------------------------------------------------------------------- *)
+(* HOL to FOL  (Isabelle to Metis)                                           *)
+(* ------------------------------------------------------------------------- *)
+
+datatype mode = FO | HO | FT  (* first-order, higher-order, fully-typed *)
+
+fun string_of_mode FO = "FO"
+  | string_of_mode HO = "HO"
+  | string_of_mode FT = "FT"
+
+fun fn_isa_to_met_sublevel "equal" = "=" (* FIXME: "c_fequal" *)
+  | fn_isa_to_met_sublevel x = x
+fun fn_isa_to_met_toplevel "equal" = "="
+  | fn_isa_to_met_toplevel x = x
+
+fun metis_lit b c args = (b, (c, args));
+
+fun metis_term_from_combtyp (CombTVar (s, _)) = Metis_Term.Var s
+  | metis_term_from_combtyp (CombTFree (s, _)) = Metis_Term.Fn (s, [])
+  | metis_term_from_combtyp (CombType ((s, _), tps)) =
+    Metis_Term.Fn (s, map metis_term_from_combtyp tps);
+
+(*These two functions insert type literals before the real literals. That is the
+  opposite order from TPTP linkup, but maybe OK.*)
+
+fun hol_term_to_fol_FO tm =
+  case strip_combterm_comb tm of
+      (CombConst ((c, _), _, tys), tms) =>
+        let val tyargs = map metis_term_from_combtyp tys
+            val args   = map hol_term_to_fol_FO tms
+        in Metis_Term.Fn (c, tyargs @ args) end
+    | (CombVar ((v, _), _), []) => Metis_Term.Var v
+    | _ => raise Fail "non-first-order combterm"
+
+fun hol_term_to_fol_HO (CombConst ((a, _), _, tylist)) =
+      Metis_Term.Fn (fn_isa_to_met_sublevel a, map metis_term_from_combtyp tylist)
+  | hol_term_to_fol_HO (CombVar ((s, _), _)) = Metis_Term.Var s
+  | hol_term_to_fol_HO (CombApp (tm1, tm2)) =
+       Metis_Term.Fn (".", map hol_term_to_fol_HO [tm1, tm2]);
+
+(*The fully-typed translation, to avoid type errors*)
+fun wrap_type (tm, ty) = Metis_Term.Fn("ti", [tm, metis_term_from_combtyp ty]);
+
+fun hol_term_to_fol_FT (CombVar ((s, _), ty)) = wrap_type (Metis_Term.Var s, ty)
+  | hol_term_to_fol_FT (CombConst((a, _), ty, _)) =
+      wrap_type (Metis_Term.Fn(fn_isa_to_met_sublevel a, []), ty)
+  | hol_term_to_fol_FT (tm as CombApp(tm1,tm2)) =
+       wrap_type (Metis_Term.Fn(".", map hol_term_to_fol_FT [tm1,tm2]),
+                  combtyp_of tm)
+
+fun hol_literal_to_fol FO (FOLLiteral (pos, tm)) =
+      let val (CombConst((p, _), _, tys), tms) = strip_combterm_comb tm
+          val tylits = if p = "equal" then [] else map metis_term_from_combtyp tys
+          val lits = map hol_term_to_fol_FO tms
+      in metis_lit pos (fn_isa_to_met_toplevel p) (tylits @ lits) end
+  | hol_literal_to_fol HO (FOLLiteral (pos, tm)) =
+     (case strip_combterm_comb tm of
+          (CombConst(("equal", _), _, _), tms) =>
+            metis_lit pos "=" (map hol_term_to_fol_HO tms)
+        | _ => metis_lit pos "{}" [hol_term_to_fol_HO tm])   (*hBOOL*)
+  | hol_literal_to_fol FT (FOLLiteral (pos, tm)) =
+     (case strip_combterm_comb tm of
+          (CombConst(("equal", _), _, _), tms) =>
+            metis_lit pos "=" (map hol_term_to_fol_FT tms)
+        | _ => metis_lit pos "{}" [hol_term_to_fol_FT tm])   (*hBOOL*);
+
+fun literals_of_hol_term thy mode t =
+      let val (lits, types_sorts) = literals_of_term thy t
+      in  (map (hol_literal_to_fol mode) lits, types_sorts) end;
+
+(*Sign should be "true" for conjecture type constraints, "false" for type lits in clauses.*)
+fun metis_of_type_literals pos (TyLitVar ((s, _), (s', _))) =
+    metis_lit pos s [Metis_Term.Var s']
+  | metis_of_type_literals pos (TyLitFree ((s, _), (s', _))) =
+    metis_lit pos s [Metis_Term.Fn (s',[])]
+
+fun default_sort _ (TVar _) = false
+  | default_sort ctxt (TFree (x, s)) = (s = the_default [] (Variable.def_sort ctxt (x, ~1)));
+
+fun metis_of_tfree tf =
+  Metis_Thm.axiom (Metis_LiteralSet.singleton (metis_of_type_literals true tf));
+
+fun hol_thm_to_fol is_conjecture ctxt type_lits mode j skolems th =
+  let
+    val thy = ProofContext.theory_of ctxt
+    val (skolems, (mlits, types_sorts)) =
+     th |> prop_of |> conceal_skolem_terms j skolems
+        ||> (HOLogic.dest_Trueprop #> literals_of_hol_term thy mode)
+  in
+    if is_conjecture then
+      (Metis_Thm.axiom (Metis_LiteralSet.fromList mlits),
+       type_literals_for_types types_sorts, skolems)
+    else
+      let
+        val tylits = filter_out (default_sort ctxt) types_sorts
+                     |> type_literals_for_types
+        val mtylits =
+          if type_lits then map (metis_of_type_literals false) tylits else []
+      in
+        (Metis_Thm.axiom (Metis_LiteralSet.fromList(mtylits @ mlits)), [],
+         skolems)
+      end
+  end;
+
+val helpers =
+  [("c_COMBI", (false, map (`I) @{thms COMBI_def})),
+   ("c_COMBK", (false, map (`I) @{thms COMBK_def})),
+   ("c_COMBB", (false, map (`I) @{thms COMBB_def})),
+   ("c_COMBC", (false, map (`I) @{thms COMBC_def})),
+   ("c_COMBS", (false, map (`I) @{thms COMBS_def})),
+   ("c_fequal", (false, map (rpair @{thm equal_imp_equal})
+                            @{thms fequal_imp_equal equal_imp_fequal})),
+   ("c_True", (true, map (`I) @{thms True_or_False})),
+   ("c_False", (true, map (`I) @{thms True_or_False})),
+   ("c_If", (true, map (`I) @{thms if_True if_False True_or_False}))]
+
+(* ------------------------------------------------------------------------- *)
+(* Logic maps manage the interface between HOL and first-order logic.        *)
+(* ------------------------------------------------------------------------- *)
+
+type logic_map =
+  {axioms: (Metis_Thm.thm * thm) list,
+   tfrees: type_literal list,
+   skolems: (string * term) list}
+
+fun is_quasi_fol_clause thy =
+  Meson.is_fol_term thy o snd o conceal_skolem_terms ~1 [] o prop_of
+
+(*Extract TFree constraints from context to include as conjecture clauses*)
+fun init_tfrees ctxt =
+  let fun add ((a,i),s) Ts = if i = ~1 then TFree(a,s) :: Ts else Ts in
+    Vartab.fold add (#2 (Variable.constraints_of ctxt)) []
+    |> type_literals_for_types
+  end;
+
+(*Insert non-logical axioms corresponding to all accumulated TFrees*)
+fun add_tfrees {axioms, tfrees, skolems} : logic_map =
+     {axioms = map (rpair TrueI o metis_of_tfree) (distinct (op =) tfrees) @
+               axioms,
+      tfrees = tfrees, skolems = skolems}
+
+(*transform isabelle type / arity clause to metis clause *)
+fun add_type_thm [] lmap = lmap
+  | add_type_thm ((ith, mth) :: cls) {axioms, tfrees, skolems} =
+      add_type_thm cls {axioms = (mth, ith) :: axioms, tfrees = tfrees,
+                        skolems = skolems}
+
+fun const_in_metis c (pred, tm_list) =
+  let
+    fun in_mterm (Metis_Term.Var _) = false
+      | in_mterm (Metis_Term.Fn (".", tm_list)) = exists in_mterm tm_list
+      | in_mterm (Metis_Term.Fn (nm, tm_list)) = c=nm orelse exists in_mterm tm_list
+  in  c = pred orelse exists in_mterm tm_list  end;
+
+(* ARITY CLAUSE *)
+fun m_arity_cls (TConsLit ((c, _), (t, _), args)) =
+    metis_lit true c [Metis_Term.Fn(t, map (Metis_Term.Var o fst) args)]
+  | m_arity_cls (TVarLit ((c, _), (s, _))) =
+    metis_lit false c [Metis_Term.Var s]
+(*TrueI is returned as the Isabelle counterpart because there isn't any.*)
+fun arity_cls (ArityClause {conclLit, premLits, ...}) =
+  (TrueI,
+   Metis_Thm.axiom (Metis_LiteralSet.fromList (map m_arity_cls (conclLit :: premLits))));
+
+(* CLASSREL CLAUSE *)
+fun m_class_rel_cls (subclass, _) (superclass, _) =
+  [metis_lit false subclass [Metis_Term.Var "T"], metis_lit true superclass [Metis_Term.Var "T"]];
+fun class_rel_cls (ClassRelClause {subclass, superclass, ...}) =
+  (TrueI, Metis_Thm.axiom (Metis_LiteralSet.fromList (m_class_rel_cls subclass superclass)));
+
+fun type_ext thy tms =
+  let val subs = tfree_classes_of_terms tms
+      val supers = tvar_classes_of_terms tms
+      and tycons = type_consts_of_terms thy tms
+      val (supers', arity_clauses) = make_arity_clauses thy tycons supers
+      val class_rel_clauses = make_class_rel_clauses thy subs supers'
+  in  map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses
+  end;
+
+(* Function to generate metis clauses, including comb and type clauses *)
+fun build_logic_map mode0 ctxt type_lits cls ths =
+  let val thy = ProofContext.theory_of ctxt
+      (*The modes FO and FT are sticky. HO can be downgraded to FO.*)
+      fun set_mode FO = FO
+        | set_mode HO =
+          if forall (is_quasi_fol_clause thy) (cls @ ths) then FO else HO
+        | set_mode FT = FT
+      val mode = set_mode mode0
+      (*transform isabelle clause to metis clause *)
+      fun add_thm is_conjecture (metis_ith, isa_ith) {axioms, tfrees, skolems}
+                  : logic_map =
+        let
+          val (mth, tfree_lits, skolems) =
+            hol_thm_to_fol is_conjecture ctxt type_lits mode (length axioms)
+                           skolems metis_ith
+        in
+           {axioms = (mth, Meson.make_meta_clause isa_ith) :: axioms,
+            tfrees = union (op =) tfree_lits tfrees, skolems = skolems}
+        end;
+      val lmap = {axioms = [], tfrees = init_tfrees ctxt, skolems = []}
+                 |> fold (add_thm true o `I) cls
+                 |> add_tfrees
+                 |> fold (add_thm false o `I) ths
+      val clause_lists = map (Metis_Thm.clause o #1) (#axioms lmap)
+      fun is_used c =
+        exists (Metis_LiteralSet.exists (const_in_metis c o #2)) clause_lists
+      val lmap =
+        if mode = FO then
+          lmap
+        else
+          let
+            val helper_ths =
+              helpers |> filter (is_used o fst)
+                      |> maps (fn (c, (needs_full_types, thms)) =>
+                                  if not (is_used c) orelse
+                                     needs_full_types andalso mode <> FT then
+                                    []
+                                  else
+                                    thms)
+          in lmap |> fold (add_thm false) helper_ths end
+  in (mode, add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap) end
 
 end;
