@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ORDERED REWRITING FOR FIRST ORDER TERMS                                   *)
-(* Copyright (c) 2003 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2003 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Rewrite :> Rewrite =

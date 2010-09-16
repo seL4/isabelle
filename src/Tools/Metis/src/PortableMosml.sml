@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* MOSCOW ML SPECIFIC FUNCTIONS                                              *)
-(* Copyright (c) 2002 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Portable :> Portable =

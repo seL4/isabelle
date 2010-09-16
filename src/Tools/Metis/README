@@ -13,13 +13,10 @@ temporary.
     July 2010.
 
  2. The license in each source file will probably not be something we
-    can use in Isabelle. Lawrence C. Paulson's command
-
-        perl -p -i~ -w -e 's/MIT license/BSD License/g' *sig *sml
-
-    run in the "src/" directory should do the trick. In a 13 Sept.
-    2010 email to Gerwin Klein, Joe Hurd, the sole copyright holder of
-    Metis, wrote:
+    can use in Isabelle. The "fix_metis_license" script can be run to
+    replace all occurrences of "MIT license" with "BSD License". In a
+    13 Sept. 2010 email to Gerwin Klein, Joe Hurd, the sole copyright
+    holder of Metis, wrote:
 
         I hereby give permission to the Isabelle team to release Metis
         as part of Isabelle, with the Metis code covered under the

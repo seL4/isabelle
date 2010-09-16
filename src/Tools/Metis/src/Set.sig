@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FINITE SETS IMPLEMENTED WITH RANDOMLY BALANCED TREES                      *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Set =

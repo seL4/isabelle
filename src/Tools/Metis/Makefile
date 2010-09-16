@@ -1,6 +1,6 @@
 ###############################################################################
 # METIS MAKEFILE
-# Copyright (c) 2001 Joe Hurd, distributed under the MIT license
+# Copyright (c) 2001 Joe Hurd, distributed under the BSD License
 ###############################################################################
 
 .SUFFIXES:
