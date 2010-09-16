@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PRETTY-PRINTING                                                           *)
-(* Copyright (c) 2008 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2008 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Print :> Print =

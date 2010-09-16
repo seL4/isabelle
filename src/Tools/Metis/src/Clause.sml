@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* CLAUSE = ID + THEOREM                                                     *)
-(* Copyright (c) 2002 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2002 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 structure Clause :> Clause =

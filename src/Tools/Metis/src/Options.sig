@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* PROCESSING COMMAND LINE OPTIONS                                           *)
-(* Copyright (c) 2003 Joe Hurd, distributed under the MIT license            *)
+(* Copyright (c) 2003 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
 signature Options =
