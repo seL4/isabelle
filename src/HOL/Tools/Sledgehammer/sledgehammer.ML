@@ -192,6 +192,10 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 
 (* generic TPTP-based provers *)
 
+(* Important messages are important but not so important that users want to see
+   them each time. *)
+val keep_every_nth_important_message = 10
+
 fun prover_fun auto atp_name
         {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
          known_failures, default_max_relevant, explicit_forall,
@@ -304,7 +308,12 @@ fun prover_fun auto atp_name
     val (conjecture_shape, axiom_names) =
       repair_conjecture_shape_and_theorem_names output conjecture_shape
                                                 axiom_names
-    val important_message = extract_important_message output
+    val important_message =
+      if Time.toSeconds (Time.now ())
+         mod keep_every_nth_important_message = 0 then
+        extract_important_message output
+      else
+        ""
     val banner = if auto then "Sledgehammer found a proof"
                  else "Try this command"
     val (message, used_thm_names) =
