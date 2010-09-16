@@ -1,12 +1,11 @@
-(*  Title:      HOL/Tools/Sledgehammer/metis_clauses.ML
+(*  Title:      HOL/Tools/Sledgehammer/metis_translate.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 
-Storing/printing FOL clauses and arity clauses.  Typed equality is
-treated differently.
+Translation of HOL to FOL for Metis.
 *)
 
-signature METIS_CLAUSES =
+signature METIS_TRANSLATE =
 sig
   type name = string * string
   datatype type_literal =
@@ -71,7 +70,7 @@ sig
   val type_consts_of_terms : theory -> term list -> string list
 end
 
-structure Metis_Clauses : METIS_CLAUSES =
+structure Metis_Translate : METIS_TRANSLATE =
 struct
 
 val type_wrapper_name = "ti"
@@ -224,8 +223,6 @@ type name = string * string
 datatype type_literal =
   TyLitVar of name * name |
   TyLitFree of name * name
-
-exception CLAUSE of string * term;
 
 (*Make literals for sorted type variables*)
 fun sorts_on_typs_aux (_, [])   = []

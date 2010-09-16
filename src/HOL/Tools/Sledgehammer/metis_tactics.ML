@@ -20,7 +20,7 @@ end
 structure Metis_Tactics : METIS_TACTICS =
 struct
 
-open Metis_Clauses
+open Metis_Translate
 
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();

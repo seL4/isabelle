@@ -16,7 +16,7 @@ uses
   ("~~/src/Tools/Metis/metis.ML")
   ("Tools/Sledgehammer/clausifier.ML")
   ("Tools/Sledgehammer/meson_tactic.ML")
-  ("Tools/Sledgehammer/metis_clauses.ML")
+  ("Tools/Sledgehammer/metis_translate.ML")
   ("Tools/Sledgehammer/metis_tactics.ML")
   ("Tools/Sledgehammer/sledgehammer_util.ML")
   ("Tools/Sledgehammer/sledgehammer_filter.ML")
@@ -102,7 +102,7 @@ use "Tools/Sledgehammer/clausifier.ML"
 use "Tools/Sledgehammer/meson_tactic.ML"
 setup Meson_Tactic.setup
 
-use "Tools/Sledgehammer/metis_clauses.ML"
+use "Tools/Sledgehammer/metis_translate.ML"
 use "Tools/Sledgehammer/metis_tactics.ML"
 setup Metis_Tactics.setup
 

@@ -30,7 +30,7 @@ struct
 
 open ATP_Problem
 open ATP_Proof
-open Metis_Clauses
+open Metis_Translate
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_Translate
