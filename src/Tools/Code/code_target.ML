@@ -441,6 +441,43 @@ fun check_code thy cs seris =
 
 fun check_code_cmd raw_cs seris thy = check_code thy (read_const_exprs thy raw_cs) seris;
 
+local
+
+val parse_const_terms = Scan.repeat1 Args.term
+  >> (fn ts => fn thy => map (Code.check_const thy) ts);
+
+fun parse_names category parse internalize lookup =
+  Scan.lift (Args.parens (Args.$$$ category)) |-- Scan.repeat1 parse
+  >> (fn xs => fn thy => fn naming => map_filter (lookup naming o internalize thy) xs);
+  
+val parse_consts = parse_names "consts" Args.term
+  Code.check_const Code_Thingol.lookup_const ;
+
+val parse_types = parse_names "types" (Scan.lift Args.name)
+  Sign.intern_type Code_Thingol.lookup_tyco;
+
+val parse_classes = parse_names "classes" (Scan.lift Args.name)
+  Sign.intern_class Code_Thingol.lookup_class;
+
+val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$ "::" -- Args.name))
+  (fn thy => fn (raw_tyco, raw_class) => (Sign.intern_class thy raw_class, Sign.intern_type thy raw_tyco))
+    Code_Thingol.lookup_instance;
+
+in
+
+val _ = Thy_Output.antiquotation "code_stmts"
+  (parse_const_terms -- Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
+    -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
+  (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target, some_width)) =>
+    let val thy = ProofContext.theory_of ctxt in
+      present_code thy (mk_cs thy)
+        (fn naming => maps (fn f => f thy naming) mk_stmtss)
+        target some_width "Example" []
+      |> Latex.output_typewriter
+    end);
+
+end;
+
 
 (** serializer configuration **)
 
