@@ -791,7 +791,7 @@ inductive divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> n
     "k < l \<Longrightarrow> divmod_rel k l 0 k"
   | "k \<ge> l \<Longrightarrow> divmod_rel (k - l) l q r \<Longrightarrow> divmod_rel k l (Suc q) r"
 
-code_pred divmod_rel ..
+code_pred divmod_rel .
 thm divmod_rel.equation
 value [code] "Predicate.the (divmod_rel_i_i_o_o 1705 42)"
 
