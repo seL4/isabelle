@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* ML UTILITY FUNCTIONS                                                      *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Useful :> Useful =
@@ -462,49 +462,32 @@ in
 end;
 
 local
-  fun calcPrimes ps n i =
-      if List.exists (fn p => divides p i) ps then calcPrimes ps n (i + 1)
+  fun calcPrimes mode ps i n =
+      if n = 0 then ps
+      else if List.exists (fn p => divides p i) ps then
+        let
+          val i = i + 1
+          and n = if mode then n else n - 1
+        in
+          calcPrimes mode ps i n
+        end
       else
         let
           val ps = ps @ [i]
+          and i = i + 1
           and n = n - 1
         in
-          if n = 0 then ps else calcPrimes ps n (i + 1)
+          calcPrimes mode ps i n
         end;
-
-  val primesList = ref [2];
 in
-  fun primes n = Portable.critical (fn () =>
-      let
-        val ref ps = primesList
+  fun primes n =
+      if n <= 0 then []
+      else calcPrimes true [2] 3 (n - 1);
 
-        val k = n - length ps
-      in
-        if k <= 0 then List.take (ps,n)
-        else
-          let
-            val ps = calcPrimes ps k (List.last ps + 1)
-
-            val () = primesList := ps
-          in
-            ps
-          end
-      end) ();
+  fun primesUpTo n =
+      if n < 2 then []
+      else calcPrimes false [2] 3 (n - 2);
 end;
-
-fun primesUpTo n = Portable.critical (fn () =>
-    let
-      fun f k =
-          let
-            val l = primes k
-
-            val p = List.last l
-          in
-            if p < n then f (2 * k) else takeWhile (fn j => j <= n) l
-          end
-    in
-      f 8
-    end) ();
 
 (* ------------------------------------------------------------------------- *)
 (* Strings.                                                                  *)
@@ -723,23 +706,30 @@ fun isRight (Left _) = false
 
 local
   val generator = ref 0
-in
-  fun newInt () = Portable.critical (fn () =>
+
+  fun newIntThunk () =
       let
         val n = !generator
+
         val () = generator := n + 1
       in
         n
-      end) ();
+      end;
 
-  fun newInts 0 = []
-    | newInts k = Portable.critical (fn () =>
+  fun newIntsThunk k () =
       let
         val n = !generator
+
         val () = generator := n + k
       in
         interval n k
-      end) ();
+      end;
+in
+  fun newInt () = Portable.critical newIntThunk ();
+
+  fun newInts k =
+      if k <= 0 then []
+      else Portable.critical (newIntsThunk k) ();
 end;
 
 fun withRef (r,new) f x =

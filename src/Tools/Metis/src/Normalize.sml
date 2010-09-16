@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* NORMALIZING FORMULAS                                                      *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 structure Normalize :> Normalize =
@@ -685,24 +685,23 @@ fun nnf fm = toFormula (fromFormula fm);
 (* Basic conjunctive normal form.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val newSkolemFunction =
-    let
-      val counter : int StringMap.map ref = ref (StringMap.new ())
+local
+  val counter : int StringMap.map ref = ref (StringMap.new ());
 
-      fun new n () =
-          let
-            val ref m = counter
-            val s = Name.toString n
-            val i = Option.getOpt (StringMap.peek m s, 0)
-            val () = counter := StringMap.insert m (s, i + 1)
-            val i = if i = 0 then "" else "_" ^ Int.toString i
-            val s = skolemPrefix ^ "_" ^ s ^ i
-          in
-            Name.fromString s
-          end
-    in
-      fn n => Portable.critical (new n) ()
-    end;
+  fun new n () =
+      let
+        val ref m = counter
+        val s = Name.toString n
+        val i = Option.getOpt (StringMap.peek m s, 0)
+        val () = counter := StringMap.insert m (s, i + 1)
+        val i = if i = 0 then "" else "_" ^ Int.toString i
+        val s = skolemPrefix ^ "_" ^ s ^ i
+      in
+        Name.fromString s
+      end;
+in
+  fun newSkolemFunction n = Portable.critical (new n) ();
+end;
 
 fun skolemize fv bv fm =
     let
@@ -1241,18 +1240,19 @@ val simplify = fn simp => fn th as Thm (fm,_) =>
 (* Definitions.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val newDefinitionRelation =
-    let
-      val counter : int ref = ref 0
-    in
-      fn () => Portable.critical (fn () =>
-         let
-           val ref i = counter
-           val () = counter := i + 1
-         in
-           definitionPrefix ^ "_" ^ Int.toString i
-         end) ()
-    end;
+local
+  val counter : int ref = ref 0;
+
+  fun new () =
+      let
+        val ref i = counter
+        val () = counter := i + 1
+      in
+        definitionPrefix ^ "_" ^ Int.toString i
+      end;
+in
+  fun newDefinitionRelation () = Portable.critical new ();
+end;
 
 fun newDefinition def =
     let

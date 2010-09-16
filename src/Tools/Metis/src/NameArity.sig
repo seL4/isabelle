@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* NAME/ARITY PAIRS                                                          *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 signature NameArity =

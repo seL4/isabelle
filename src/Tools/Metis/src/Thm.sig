@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* A LOGICAL KERNEL FOR FIRST ORDER CLAUSAL THEOREMS                         *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 signature Thm =

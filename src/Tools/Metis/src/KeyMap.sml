@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* FINITE MAPS WITH A FIXED KEY TYPE                                         *)
-(* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2004 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 functor KeyMap (Key : Ordered) :> KeyMap where type key = Key.t =

@@ -1,6 +1,6 @@
 (* ========================================================================= *)
 (* METIS FIRST ORDER PROVER                                                  *)
-(* Copyright (c) 2001 Joe Hurd, distributed under the BSD License            *)
+(* Copyright (c) 2001 Joe Hurd, distributed under the MIT license            *)
 (* ========================================================================= *)
 
 open Useful;
@@ -13,7 +13,7 @@ val PROGRAM = "metis";
 
 val VERSION = "2.3";
 
-val versionString = PROGRAM^" "^VERSION^" (release 20100915)"^"\n";
+val versionString = PROGRAM^" "^VERSION^" (release 20100916)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Program options.                                                          *)
