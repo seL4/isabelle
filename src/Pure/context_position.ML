@@ -10,9 +10,9 @@ sig
   val set_visible: bool -> Proof.context -> Proof.context
   val restore_visible: Proof.context -> Proof.context -> Proof.context
   val if_visible: Proof.context -> ('a -> unit) -> 'a -> unit
-  val reported_text: Proof.context -> Markup.T -> Position.T -> string -> string
-  val report_text: Proof.context -> Markup.T -> Position.T -> string -> unit
-  val report: Proof.context -> Markup.T -> Position.T -> unit
+  val reported_text: Proof.context -> Position.T -> Markup.T -> string -> string
+  val report_text: Proof.context -> Position.T -> Markup.T -> string -> unit
+  val report: Proof.context -> Position.T -> Markup.T -> unit
 end;
 
 structure Context_Position: CONTEXT_POSITION =
@@ -30,10 +30,10 @@ val restore_visible = set_visible o is_visible;
 
 fun if_visible ctxt f x = if is_visible ctxt then f x else ();
 
-fun reported_text ctxt markup pos txt =
-  if is_visible ctxt then Position.reported_text markup pos txt else "";
+fun reported_text ctxt pos markup txt =
+  if is_visible ctxt then Position.reported_text pos markup txt else "";
 
-fun report_text ctxt markup pos txt = Output.report (reported_text ctxt markup pos txt);
-fun report ctxt markup pos = report_text ctxt markup pos "";
+fun report_text ctxt pos markup txt = Output.report (reported_text ctxt pos markup txt);
+fun report ctxt pos markup = report_text ctxt pos markup "";
 
 end;

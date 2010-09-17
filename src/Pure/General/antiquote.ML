@@ -36,7 +36,7 @@ fun is_text (Text _) = true
 
 (* report *)
 
-val report_antiq = Position.report Markup.antiq;
+fun report_antiq pos = Position.report pos Markup.antiq;
 
 fun report report_text (Text x) = report_text x
   | report _ (Antiq (_, (pos, _))) = report_antiq pos

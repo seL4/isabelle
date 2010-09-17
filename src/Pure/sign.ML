@@ -426,7 +426,7 @@ fun declare_const ((b, T), mx) thy =
   let
     val pos = Binding.pos_of b;
     val ([const as Const (c, _)], thy') = gen_add_consts (K I) [(b, T, mx)] thy;
-    val _ = Position.report (Markup.const_decl c) pos;
+    val _ = Position.report pos (Markup.const_decl c);
   in (const, thy') end;
 
 end;

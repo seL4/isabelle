@@ -187,11 +187,11 @@ val token_kind_markup =
   | EOF         => Markup.empty;
 
 fun report_token ctxt (Token (kind, _, (pos, _))) =
-  Context_Position.report ctxt (token_kind_markup kind) pos;
+  Context_Position.report ctxt pos (token_kind_markup kind);
 
 fun report_token_range ctxt tok =
   if is_proper tok
-  then Context_Position.report ctxt Markup.token_range (pos_of_token tok)
+  then Context_Position.report ctxt (pos_of_token tok) Markup.token_range
   else ();
 
 

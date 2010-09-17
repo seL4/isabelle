@@ -112,7 +112,7 @@ fun token_markup kind x =
 
 in
 
-fun report_token (Token ((pos, _), (kind, x))) = Position.report (token_markup kind x) pos;
+fun report_token (Token ((pos, _), (kind, x))) = Position.report pos (token_markup kind x);
 
 end;
 
@@ -265,7 +265,7 @@ val tokenize =
 
 fun read pos txt =
   let
-    val _ = Position.report Markup.ML_source pos;
+    val _ = Position.report pos Markup.ML_source;
     val syms = Symbol_Pos.explode (txt, pos);
     val termination =
       if null syms then []

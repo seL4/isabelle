@@ -182,7 +182,7 @@ fun read_token str =
 fun parse_token ctxt markup str =
   let
     val (syms, pos) = read_token str;
-    val _ = Context_Position.report ctxt markup pos;
+    val _ = Context_Position.report ctxt pos markup;
   in (syms, pos) end;
 
 local
