@@ -121,7 +121,7 @@ fun eval verbose pos toks =
     fun message {message = msg, hard, location = loc, context = _} =
       let
         val txt =
-          Markup.markup Markup.location
+          Markup.markup Markup.no_report
             ((if hard then "Error" else "Warning") ^ Position.str_of (position_of loc) ^ ":\n") ^
           Pretty.string_of (Pretty.from_ML (pretty_ml msg)) ^
           Markup.markup (Position.report_markup (offset_position_of loc)) "";

@@ -30,7 +30,6 @@ sig
   val position_properties': string list
   val position_properties: string list
   val positionN: string val position: T
-  val locationN: string val location: T
   val indentN: string
   val blockN: string val block: int -> T
   val widthN: string
@@ -120,6 +119,7 @@ sig
   val promptN: string val prompt: T
   val readyN: string val ready: T
   val reportN: string val report: T
+  val no_reportN: string val no_report: T
   val badN: string val bad: T
   val no_output: output * output
   val default_output: T -> output * output
@@ -194,7 +194,6 @@ val position_properties' = [end_lineN, end_columnN, end_offsetN, fileN, idN];
 val position_properties = [lineN, columnN, offsetN] @ position_properties';
 
 val (positionN, position) = markup_elem "position";
-val (locationN, location) = markup_elem "location";
 
 
 (* pretty printing *)
@@ -348,6 +347,7 @@ val (promptN, prompt) = markup_elem "prompt";
 val (readyN, ready) = markup_elem "ready";
 
 val (reportN, report) = markup_elem "report";
+val (no_reportN, no_report) = markup_elem "no_report";
 
 val (badN, bad) = markup_elem "bad";
 

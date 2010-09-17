@@ -56,10 +56,16 @@ object Isar_Document
   }
 
 
+  /* messages */
+
+  def clean_message(body: XML.Body): XML.Body =
+    body filter { case XML.Elem(Markup(Markup.NO_REPORT, _), _) => false case _ => true } map
+      { case XML.Elem(markup, ts) => XML.Elem(markup, clean_message(ts)) case t => t }
+
+
   /* reported positions */
 
   private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
-  private val exclude_pos = Set(Markup.LOCATION)
 
   private def is_state(msg: XML.Tree): Boolean =
     msg match {
@@ -75,8 +81,7 @@ object Isar_Document
         if include_pos(name) && id == command.id =>
           val range = command.decode(raw_range).restrict(command.range)
           body.foldLeft(if (range.is_singularity) set else set + range)(reported)
-        case XML.Elem(Markup(name, _), body) if !exclude_pos(name) =>
-          body.foldLeft(set)(reported)
+        case XML.Elem(Markup(name, _), body) => body.foldLeft(set)(reported)
         case _ => set
       }
     val set = reported(Set.empty, message)
