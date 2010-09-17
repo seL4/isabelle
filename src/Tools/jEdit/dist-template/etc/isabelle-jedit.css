@@ -8,7 +8,7 @@
 .error { background-color: #FFC1C1; }
 .debug { background-color: #FFE4E1; }
 
-.location { display: none; }
+.report { display: none; }
 
 .hilite { background-color: #FFFACD; }
 
