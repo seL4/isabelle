@@ -62,6 +62,9 @@ fun print_char s =
   if not (Symbol.is_char s) then s
   else if s = "\"" then "\\\""
   else if s = "\\" then "\\\\"
+  else if s = "\t" then "\\t"
+  else if s = "\n" then "\\n"
+  else if s = "\r" then "\\r"
   else
     let val c = ord s in
       if c < 32 then "\\^" ^ chr (c + ord "@")
