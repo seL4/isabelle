@@ -66,7 +66,7 @@ fun rewrite_modulo thy some_ss program = Simplifier.full_rewrite
 fun conclude_tac thy some_ss = Simplifier.full_simp_tac (simpset_default thy some_ss);
 
 
-(* evaluation with current code context *)
+(* evaluation with dynamic code context *)
 
 fun dynamic_eval_conv thy = no_frees_conv (Code_Thingol.dynamic_eval_conv thy
   (fn naming => fn program => fn t => fn deps => rewrite_modulo thy NONE program));
@@ -81,11 +81,11 @@ val setup = Method.setup (Binding.name "code_simp")
   #> Value.add_evaluator ("simp", dynamic_eval_value o ProofContext.theory_of);
 
 
-(* evaluation with freezed code context *)
+(* evaluation with static code context *)
 
 fun static_eval_conv thy some_ss consts = no_frees_conv
   (Code_Thingol.static_eval_conv_simple thy consts
-    (fn program => fn thy => rewrite_modulo thy some_ss program));
+    (fn program => fn thy => fn _ => fn _ => rewrite_modulo thy some_ss program));
 
 fun static_eval_tac thy some_ss consts = CONVERSION (static_eval_conv thy some_ss consts)
   THEN' conclude_tac thy some_ss;
