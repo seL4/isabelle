@@ -779,8 +779,8 @@ lemma multiset_of_compl_union [simp]:
   by (induct xs) (auto simp: add_ac)
 
 lemma count_filter:
-  "count (multiset_of xs) x = length [y \<leftarrow> xs. y = x]"
-by (induct xs) auto
+  "count (multiset_of xs) x = length (filter (\<lambda>y. x = y) xs)"
+  by (induct xs) auto
 
 lemma nth_mem_multiset_of: "i < length ls \<Longrightarrow> (ls ! i) :# multiset_of ls"
 apply (induct ls arbitrary: i)
@@ -809,12 +809,40 @@ next
     by (auto simp add: length_remove1 dest: length_pos_if_in_set)
 qed
 
-lemma (in linorder) multiset_of_insort [simp]:
-  "multiset_of (insort x xs) = {#x#} + multiset_of xs"
-  by (induct xs) (simp_all add: ac_simps)
+lemma multiset_of_eq_length_filter:
+  assumes "multiset_of xs = multiset_of ys"
+  shows "length (filter (\<lambda>x. z = x) xs) = length (filter (\<lambda>y. z = y) ys)"
+proof (cases "z \<in># multiset_of xs")
+  case False
+  moreover have "\<not> z \<in># multiset_of ys" using assms False by simp
+  ultimately show ?thesis by (simp add: count_filter)
+next
+  case True
+  moreover have "z \<in># multiset_of ys" using assms True by simp
+  show ?thesis using assms proof (induct xs arbitrary: ys)
+    case Nil then show ?case by simp
+  next
+    case (Cons x xs)
+    from `multiset_of (x # xs) = multiset_of ys` [symmetric]
+      have *: "multiset_of xs = multiset_of (remove1 x ys)"
+      and "x \<in> set ys"
+      by (auto simp add: mem_set_multiset_eq)
+    from * have "length (filter (\<lambda>x. z = x) xs) = length (filter (\<lambda>y. z = y) (remove1 x ys))" by (rule Cons.hyps)
+    moreover from `x \<in> set ys` have "length (filter (\<lambda>y. x = y) ys) > 0" by (simp add: filter_empty_conv)
+    ultimately show ?case using `x \<in> set ys`
+      by (simp add: filter_remove1) (auto simp add: length_remove1)
+  qed
+qed
 
-lemma (in linorder) multiset_of_sort [simp]:
-  "multiset_of (sort xs) = multiset_of xs"
+context linorder
+begin
+
+lemma multiset_of_insort_key [simp]:
+  "multiset_of (insort_key k x xs) = {#x#} + multiset_of xs"
+  by (induct xs) (simp_all add: ac_simps)
+ 
+lemma multiset_of_sort_key [simp]:
+  "multiset_of (sort_key k xs) = multiset_of xs"
   by (induct xs) (simp_all add: ac_simps)
 
 text {*
@@ -822,17 +850,41 @@ text {*
   @{text "f"} with @{text "f xs = ys"} behaves like sort.
 *}
 
-lemma (in linorder) properties_for_sort:
-  "multiset_of ys = multiset_of xs \<Longrightarrow> sorted ys \<Longrightarrow> sort xs = ys"
-proof (induct xs arbitrary: ys)
+lemma properties_for_sort_key:
+  assumes "multiset_of ys = multiset_of xs"
+  and "\<forall>k \<in> f ` set ys. filter (\<lambda>x. k = f x) ys = filter (\<lambda>x. k = f x) xs"
+  and "sorted (map f ys)"
+  shows "sort_key f xs = ys"
+using assms proof (induct xs arbitrary: ys)
   case Nil then show ?case by simp
 next
   case (Cons x xs)
-  then have "x \<in> set ys"
-    by (auto simp add:  mem_set_multiset_eq intro!: ccontr)
-  with Cons.prems Cons.hyps [of "remove1 x ys"] show ?case
-    by (simp add: sorted_remove1 multiset_of_remove1 insort_remove1)
+  from Cons.prems(2) have
+    "\<forall>k \<in> f ` set ys. filter (\<lambda>x. k = f x) (remove1 x ys) = filter (\<lambda>x. k = f x) xs"
+    by (simp add: filter_remove1)
+  with Cons.prems have "sort_key f xs = remove1 x ys"
+    by (auto intro!: Cons.hyps simp add: sorted_map_remove1)
+  moreover from Cons.prems have "x \<in> set ys"
+    by (auto simp add: mem_set_multiset_eq intro!: ccontr)
+  ultimately show ?case using Cons.prems by (simp add: insort_key_remove1)
 qed
+
+lemma properties_for_sort:
+  assumes multiset: "multiset_of ys = multiset_of xs"
+  and "sorted ys"
+  shows "sort xs = ys"
+proof (rule properties_for_sort_key)
+  from multiset show "multiset_of ys = multiset_of xs" .
+  from `sorted ys` show "sorted (map (\<lambda>x. x) ys)" by simp
+  from multiset have "\<And>k. length (filter (\<lambda>y. k = y) ys) = length (filter (\<lambda>x. k = x) xs)"
+    by (rule multiset_of_eq_length_filter)
+  then have "\<And>k. replicate (length (filter (\<lambda>y. k = y) ys)) k = replicate (length (filter (\<lambda>x. k = x) xs)) k"
+    by simp
+  then show "\<forall>k \<in> (\<lambda>x. x) ` set ys. filter (\<lambda>y. k = y) ys = filter (\<lambda>x. k = x) xs"
+    by (simp add: replicate_length_filter)
+qed
+
+end
 
 lemma multiset_of_remdups_le: "multiset_of (remdups xs) \<le> multiset_of xs"
   by (induct xs) (auto intro: order_trans)
