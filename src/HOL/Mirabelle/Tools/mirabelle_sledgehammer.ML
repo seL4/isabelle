@@ -434,7 +434,7 @@ val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
 
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
-    open Metis_Clauses
+    open Metis_Translate
     val thy = Proof.theory_of st
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_atp thy args

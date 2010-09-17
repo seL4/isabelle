@@ -90,7 +90,6 @@ object Markup
     Set(LINE, COLUMN, OFFSET, END_LINE, END_COLUMN, END_OFFSET, FILE, ID)
 
   val POSITION = "position"
-  val LOCATION = "location"
 
 
   /* pretty printing */
@@ -236,7 +235,6 @@ object Markup
 
   val INIT = "init"
   val STATUS = "status"
-  val REPORT = "report"
   val WRITELN = "writeln"
   val TRACING = "tracing"
   val WARNING = "warning"
@@ -248,6 +246,9 @@ object Markup
   val STDOUT = "stdout"
   val SIGNAL = "signal"
   val EXIT = "exit"
+
+  val REPORT = "report"
+  val NO_REPORT = "no_report"
 
   val BAD = "bad"
 

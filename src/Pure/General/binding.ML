@@ -124,10 +124,8 @@ val conceal =
 (* str_of *)
 
 fun str_of binding =
-  let
-    val text = qualified_name_of binding;
-    val props = Position.properties_of (pos_of binding);
-  in Markup.markup (Markup.properties props (Markup.binding (name_of binding))) text end;
+  qualified_name_of binding
+  |> Markup.markup (Position.markup (pos_of binding) (Markup.binding (name_of binding)));
 
 end;
 end;

@@ -100,7 +100,8 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
     if (pid.isEmpty && kind == Markup.INIT)
       pid = props.find(_._1 == Markup.PID).map(_._1)
 
-    xml_cache.cache_tree(XML.Elem(Markup(kind, props), body))((message: XML.Tree) =>
+    val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
+    xml_cache.cache_tree(msg)((message: XML.Tree) =>
       receiver ! new Result(message.asInstanceOf[XML.Elem]))
   }
 

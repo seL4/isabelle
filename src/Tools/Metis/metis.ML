@@ -967,49 +967,32 @@ in
 end;
 
 local
-  fun calcPrimes ps n i =
-      if List.exists (fn p => divides p i) ps then calcPrimes ps n (i + 1)
+  fun calcPrimes mode ps i n =
+      if n = 0 then ps
+      else if List.exists (fn p => divides p i) ps then
+        let
+          val i = i + 1
+          and n = if mode then n else n - 1
+        in
+          calcPrimes mode ps i n
+        end
       else
         let
           val ps = ps @ [i]
+          and i = i + 1
           and n = n - 1
         in
-          if n = 0 then ps else calcPrimes ps n (i + 1)
+          calcPrimes mode ps i n
         end;
-
-  val primesList = Unsynchronized.ref [2];
 in
-  fun primes n = Metis_Portable.critical (fn () =>
-      let
-        val Unsynchronized.ref ps = primesList
+  fun primes n =
+      if n <= 0 then []
+      else calcPrimes true [2] 3 (n - 1);
 
-        val k = n - length ps
-      in
-        if k <= 0 then List.take (ps,n)
-        else
-          let
-            val ps = calcPrimes ps k (List.last ps + 1)
-
-            val () = primesList := ps
-          in
-            ps
-          end
-      end) ();
+  fun primesUpTo n =
+      if n < 2 then []
+      else calcPrimes false [2] 3 (n - 2);
 end;
-
-fun primesUpTo n = Metis_Portable.critical (fn () =>
-    let
-      fun f k =
-          let
-            val l = primes k
-
-            val p = List.last l
-          in
-            if p < n then f (2 * k) else takeWhile (fn j => j <= n) l
-          end
-    in
-      f 8
-    end) ();
 
 (* ------------------------------------------------------------------------- *)
 (* Strings.                                                                  *)
@@ -1228,23 +1211,30 @@ fun isRight (Left _) = false
 
 local
   val generator = Unsynchronized.ref 0
-in
-  fun newInt () = Metis_Portable.critical (fn () =>
+
+  fun newIntThunk () =
       let
         val n = !generator
+
         val () = generator := n + 1
       in
         n
-      end) ();
+      end;
 
-  fun newInts 0 = []
-    | newInts k = Metis_Portable.critical (fn () =>
+  fun newIntsThunk k () =
       let
         val n = !generator
+
         val () = generator := n + k
       in
         interval n k
-      end) ();
+      end;
+in
+  fun newInt () = Metis_Portable.critical newIntThunk ();
+
+  fun newInts k =
+      if k <= 0 then []
+      else Metis_Portable.critical (newIntsThunk k) ();
 end;
 
 fun withRef (r,new) f x =
@@ -14197,24 +14187,23 @@ fun nnf fm = toFormula (fromFormula fm);
 (* Basic conjunctive normal form.                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val newSkolemFunction =
-    let
-      val counter : int Metis_StringMap.map Unsynchronized.ref = Unsynchronized.ref (Metis_StringMap.new ())
+local
+  val counter : int Metis_StringMap.map Unsynchronized.ref = Unsynchronized.ref (Metis_StringMap.new ());
 
-      fun new n () =
-          let
-            val Unsynchronized.ref m = counter
-            val s = Metis_Name.toString n
-            val i = Option.getOpt (Metis_StringMap.peek m s, 0)
-            val () = counter := Metis_StringMap.insert m (s, i + 1)
-            val i = if i = 0 then "" else "_" ^ Int.toString i
-            val s = skolemPrefix ^ "_" ^ s ^ i
-          in
-            Metis_Name.fromString s
-          end
-    in
-      fn n => Metis_Portable.critical (new n) ()
-    end;
+  fun new n () =
+      let
+        val Unsynchronized.ref m = counter
+        val s = Metis_Name.toString n
+        val i = Option.getOpt (Metis_StringMap.peek m s, 0)
+        val () = counter := Metis_StringMap.insert m (s, i + 1)
+        val i = if i = 0 then "" else "_" ^ Int.toString i
+        val s = skolemPrefix ^ "_" ^ s ^ i
+      in
+        Metis_Name.fromString s
+      end;
+in
+  fun newSkolemFunction n = Metis_Portable.critical (new n) ();
+end;
 
 fun skolemize fv bv fm =
     let
@@ -14753,18 +14742,19 @@ val simplify = fn simp => fn th as Metis_Thm (fm,_) =>
 (* Definitions.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val newDefinitionRelation =
-    let
-      val counter : int Unsynchronized.ref = Unsynchronized.ref 0
-    in
-      fn () => Metis_Portable.critical (fn () =>
-         let
-           val Unsynchronized.ref i = counter
-           val () = counter := i + 1
-         in
-           definitionPrefix ^ "_" ^ Int.toString i
-         end) ()
-    end;
+local
+  val counter : int Unsynchronized.ref = Unsynchronized.ref 0;
+
+  fun new () =
+      let
+        val Unsynchronized.ref i = counter
+        val () = counter := i + 1
+      in
+        definitionPrefix ^ "_" ^ Int.toString i
+      end;
+in
+  fun newDefinitionRelation () = Metis_Portable.critical new ();
+end;
 
 fun newDefinition def =
     let

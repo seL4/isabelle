@@ -29,7 +29,7 @@ end
 context monoid_mult
 begin
 
-subclass power ..
+subclass power .
 
 lemma power_one [simp]:
   "1 ^ n = 1"
