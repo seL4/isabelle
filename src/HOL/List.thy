@@ -3264,6 +3264,10 @@ apply(induct_tac n)
 apply auto
 done
 
+lemma replicate_length_filter:
+  "replicate (length (filter (\<lambda>y. x = y) xs)) x = filter (\<lambda>y. x = y) xs"
+  by (induct xs) auto
+
 
 subsubsection{*@{text rotate1} and @{text rotate}*}
 
@@ -3738,24 +3742,43 @@ lemma insort_not_Nil [simp]:
 lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
 by (cases xs) auto
 
-lemma sorted_remove1: "sorted xs \<Longrightarrow> sorted (remove1 a xs)"
-by(induct xs)(auto simp add: sorted_Cons)
+lemma sorted_map_remove1:
+  "sorted (map f xs) \<Longrightarrow> sorted (map f (remove1 x xs))"
+  by (induct xs) (auto simp add: sorted_Cons)
 
-lemma insort_key_remove1: "\<lbrakk> a \<in> set xs; sorted (map f xs) ; inj_on f (set xs) \<rbrakk>
-  \<Longrightarrow> insort_key f a (remove1 a xs) = xs"
-proof (induct xs)
+lemma sorted_remove1: "sorted xs \<Longrightarrow> sorted (remove1 a xs)"
+  using sorted_map_remove1 [of "\<lambda>x. x"] by simp
+
+lemma insort_key_remove1:
+  assumes "a \<in> set xs" and "sorted (map f xs)" and "hd (filter (\<lambda>x. f a = f x) xs) = a"
+  shows "insort_key f a (remove1 a xs) = xs"
+using assms proof (induct xs)
   case (Cons x xs)
-  thus ?case
+  then show ?case
   proof (cases "x = a")
     case False
-    hence "f x \<noteq> f a" using Cons.prems by auto
-    hence "f x < f a" using Cons.prems by (auto simp: sorted_Cons)
-    thus ?thesis using Cons by (auto simp: sorted_Cons insort_is_Cons)
+    then have "f x \<noteq> f a" using Cons.prems by auto
+    then have "f x < f a" using Cons.prems by (auto simp: sorted_Cons)
+    with `f x \<noteq> f a` show ?thesis using Cons by (auto simp: sorted_Cons insort_is_Cons)
   qed (auto simp: sorted_Cons insort_is_Cons)
 qed simp
 
-lemma insort_remove1: "\<lbrakk> a \<in> set xs; sorted xs \<rbrakk> \<Longrightarrow> insort a (remove1 a xs) = xs"
-using insort_key_remove1[where f="\<lambda>x. x"] by simp
+lemma insort_remove1:
+  assumes "a \<in> set xs" and "sorted xs"
+  shows "insort a (remove1 a xs) = xs"
+proof (rule insort_key_remove1)
+  from `a \<in> set xs` show "a \<in> set xs" .
+  from `sorted xs` show "sorted (map (\<lambda>x. x) xs)" by simp
+  from `a \<in> set xs` have "a \<in> set (filter (op = a) xs)" by auto
+  then have "set (filter (op = a) xs) \<noteq> {}" by auto
+  then have "filter (op = a) xs \<noteq> []" by (auto simp only: set_empty)
+  then have "length (filter (op = a) xs) > 0" by simp
+  then obtain n where n: "Suc n = length (filter (op = a) xs)"
+    by (cases "length (filter (op = a) xs)") simp_all
+  moreover have "replicate (Suc n) a = a # replicate n a"
+    by simp
+  ultimately show "hd (filter (op = a) xs) = a" by (simp add: replicate_length_filter)
+qed
 
 lemma sorted_remdups[simp]:
   "sorted l \<Longrightarrow> sorted (remdups l)"
