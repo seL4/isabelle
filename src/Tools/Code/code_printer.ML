@@ -147,13 +147,13 @@ fun maps_string s f [] = ""
         else s1 ^ s ^ s2
       end;
 
-fun plain_text (XML.Elem (_, xs)) = implode (map plain_text xs)
+fun plain_text (XML.Elem (_, xs)) = maps_string "" plain_text xs
   | plain_text (XML.Text s) = s
 
 fun format presentation_names width =
   Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width)
   #> YXML.parse_body
-  #> (if null presentation_names then implode o map plain_text
+  #> (if null presentation_names then maps_string "" plain_text
       else maps_string "\n\n" (filter_presentation presentation_names false))
   #> suffix "\n";
 
