@@ -195,9 +195,11 @@ fun gen_solver name solver ctxt prems =
       ("timeout: " ^ string_of_int (Config.get ctxt timeout)) ::
       "arguments:" :: arguments
     val {extra_norm, translate} = interface
+    val {builtins, ...} = translate
+    val {has_datatypes, ...} = builtins
   in
     (prems, ctxt)
-    |-> SMT_Normalize.normalize extra_norm
+    |-> SMT_Normalize.normalize extra_norm has_datatypes
     |-> invoke translate comments command arguments
     |-> reconstruct
     |-> (fn thm => fn ctxt' => thm

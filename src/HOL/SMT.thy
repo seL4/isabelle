@@ -7,6 +7,7 @@ header {* Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 theory SMT
 imports List
 uses
+  "Tools/Datatype/datatype_selectors.ML"
   ("Tools/SMT/smt_monomorph.ML")
   ("Tools/SMT/smt_normalize.ML")
   ("Tools/SMT/smt_translate.ML")
@@ -322,5 +323,14 @@ lemma [z3_rule]:
 hide_type (open) pattern
 hide_const Pattern term_eq
 hide_const (open) trigger pat nopat fun_app z3div z3mod
+
+
+
+subsection {* Selectors for datatypes *}
+
+setup {* Datatype_Selectors.setup *}
+
+declare [[ selector Pair 1 = fst, selector Pair 2 = snd ]]
+declare [[ selector Cons 1 = hd, selector Cons 2 = tl ]]
 
 end

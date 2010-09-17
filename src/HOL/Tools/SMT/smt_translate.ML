@@ -291,28 +291,31 @@ fun fresh_fun func_prefix t ss (cx as (_, _, _, _, terms)) =
     SOME (f, _) => (f, cx)
   | NONE => new_fun func_prefix t ss cx)
 
-fun inst_const f Ts t =
-  let
-    val (n, T) = Term.dest_Const (snd (Type.varify_global [] t))
-    val inst = map Term.dest_TVar (snd (Term.dest_Type (f T))) ~~ Ts
-  in Const (n, Term_Subst.instantiateT inst T) end
+fun mk_type (_, Tfs) (d as Datatype.DtTFree _) = the (AList.lookup (op =) Tfs d)
+  | mk_type Ts (Datatype.DtType (n, ds)) = Type (n, map (mk_type Ts) ds)
+  | mk_type (Tds, _) (Datatype.DtRec i) = nth Tds i
 
-fun inst_constructor Ts = inst_const Term.body_type Ts
-fun inst_selector Ts = inst_const Term.domain_type Ts
+fun mk_selector ctxt Ts T n (i, d) =
+  (case Datatype_Selectors.lookup_selector ctxt (n, i+1) of
+    NONE => raise Fail ("missing selector for datatype constructor " ^ quote n)
+  | SOME m => mk_type Ts d |> (fn U => (Const (m, T --> U), U)))
 
-fun lookup_datatype ctxt n Ts = (* FIXME: use Datatype/Record.get_info *)
-  if n = @{type_name prod}
-  then SOME [
-    (Type (n, Ts), [
-      (inst_constructor Ts @{term Pair},
-        map (inst_selector Ts) [@{term fst}, @{term snd}])])]
-  else if n = @{type_name list}
-  then SOME [
-    (Type (n, Ts), [
-      (inst_constructor Ts @{term Nil}, []),
-      (inst_constructor Ts @{term Cons},
-        map (inst_selector Ts) [@{term hd}, @{term tl}])])]
-  else NONE
+fun mk_constructor ctxt Ts T (n, args) =
+  let val (sels, Us) = split_list (map_index (mk_selector ctxt Ts T n) args)
+  in (Const (n, Us ---> T), sels) end
+
+fun lookup_datatype ctxt n Ts = if n = @{type_name bool} then NONE else
+  (case Datatype.get_info (ProofContext.theory_of ctxt) n of
+    NONE => NONE  (* FIXME: also use Record.get_info *)
+  | SOME {descr, ...} =>
+      let
+        val Tds = map (fn (_, (tn, _, _)) => Type (tn, Ts))
+          (sort (int_ord o pairself fst) descr)
+        val Tfs = (case hd descr of (_, (_, tfs, _)) => tfs ~~ Ts)
+      in
+        SOME (descr |> map (fn (i, (_, _, cs)) =>
+          (nth Tds i, map (mk_constructor ctxt (Tds, Tfs) (nth Tds i)) cs)))
+      end)
 
 fun relaxed thms = (([], thms), map prop_of thms)
 

@@ -9,14 +9,16 @@ Normalization steps on theorems required by SMT solvers:
   * embed natural numbers into integers,
   * add extra rules specifying types and constants which occur frequently,
   * fully translate into object logic, add universal closure,
+  * monomorphize (create instances of schematic rules),
   * lift lambda terms,
   * make applications explicit for functions with varying number of arguments.
+  * add (hypothetical definitions for) missing datatype selectors,
 *)
 
 signature SMT_NORMALIZE =
 sig
   type extra_norm = thm list -> Proof.context -> thm list * Proof.context
-  val normalize: extra_norm -> thm list -> Proof.context ->
+  val normalize: extra_norm -> bool -> thm list -> Proof.context ->
     thm list * Proof.context
   val atomize_conv: Proof.context -> conv
   val eta_expand_conv: (Proof.context -> conv) -> Proof.context -> conv
@@ -427,13 +429,60 @@ end
 
 
 
+(* add missing datatype selectors via hypothetical definitions *)
+
+local
+  val add = (fn Type (n, _) => Symtab.update (n, ()) | _ => I)
+
+  fun collect t =
+    (case Term.strip_comb t of
+      (Abs (_, T, t), _) => add T #> collect t
+    | (Const (_, T), ts) => collects T ts
+    | (Free (_, T), ts) => collects T ts
+    | _ => I)
+  and collects T ts =
+    let val ((Ts, Us), U) = Term.strip_type T |> apfst (chop (length ts))
+    in fold add Ts #> add (Us ---> U) #> fold collect ts end
+
+  fun add_constructors thy n =
+    (case Datatype.get_info thy n of
+      NONE => I
+    | SOME {descr, ...} => fold (fn (_, (_, _, cs)) => fold (fn (n, ds) =>
+        fold (insert (op =) o pair n) (1 upto length ds)) cs) descr)
+
+  fun add_selector (c as (n, i)) ctxt =
+    (case Datatype_Selectors.lookup_selector ctxt c of
+      SOME _ => ctxt
+    | NONE =>
+        let
+          val T = Sign.the_const_type (ProofContext.theory_of ctxt) n
+          val U = Term.body_type T --> nth (Term.binder_types T) (i-1)
+        in
+          ctxt
+          |> yield_singleton Variable.variant_fixes Name.uu
+          |>> pair ((n, T), i) o rpair U
+          |-> Context.proof_map o Datatype_Selectors.add_selector
+        end)
+in
+
+fun datatype_selectors thms ctxt =
+  let
+    val ns = Symtab.keys (fold (collect o Thm.prop_of) thms Symtab.empty)
+    val cs = fold (add_constructors (ProofContext.theory_of ctxt)) ns []
+  in (thms, fold add_selector cs ctxt) end
+    (* FIXME: also generate hypothetical definitions for the selectors *)
+
+end
+
+
+
 (* combined normalization *)
 
 type extra_norm = thm list -> Proof.context -> thm list * Proof.context
 
 fun with_context f thms ctxt = (f ctxt thms, ctxt)
 
-fun normalize extra_norm thms ctxt =
+fun normalize extra_norm with_datatypes thms ctxt =
   thms
   |> trivial_distinct ctxt
   |> rewrite_bool_cases ctxt
@@ -445,5 +494,6 @@ fun normalize extra_norm thms ctxt =
   |-> SMT_Monomorph.monomorph
   |-> lift_lambdas
   |-> with_context explicit_application
+  |-> (if with_datatypes then datatype_selectors else pair)
 
 end

@@ -607,7 +607,7 @@ lemma
 
 
 
-section {* Pairs *}
+section {* Pairs *}  (* FIXME: tests for datatypes and records *)
 
 lemma
   "x = fst (x, y)"
