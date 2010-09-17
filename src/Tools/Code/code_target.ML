@@ -241,7 +241,7 @@ fun the_literals thy = #literals o the_fundamental thy;
 
 local
 
-fun activate_target_for thy target naming program =
+fun activate_target thy target =
   let
     val ((targets, abortable), default_width) = Targets.get thy;
     fun collapse_hierarchy target =
@@ -250,13 +250,13 @@ fun activate_target_for thy target naming program =
          of SOME data => data
           | NONE => error ("Unknown code target language: " ^ quote target);
       in case the_description data
-       of Fundamental _ => (I, data)
+       of Fundamental _ => (K I, data)
         | Extension (super, modify) => let
             val (modify', data') = collapse_hierarchy super
-          in (modify' #> modify naming, merge_target false target (data', data)) end
+          in (fn naming => modify' naming #> modify naming, merge_target false target (data', data)) end
       end;
     val (modify, data) = collapse_hierarchy target;
-  in (default_width, abortable, data, modify program) end;
+  in (default_width, abortable, data, modify) end;
 
 fun activate_syntax lookup_name src_tab = Symtab.empty
   |> fold_map (fn thing_identifier => fn tab => case lookup_name thing_identifier
@@ -303,7 +303,7 @@ fun project_program thy abortable names_hidden names1 program2 =
     val program4 = Graph.subgraph (member (op =) names4) program3;
   in (names4, program4) end;
 
-fun invoke_serializer thy abortable serializer literals reserved abs_includes 
+fun invoke_serializer thy abortable serializer literals reserved all_includes
     module_alias proto_class_syntax proto_instance_syntax proto_tyco_syntax proto_const_syntax
     module_name args naming proto_program names =
   let
@@ -311,7 +311,12 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
       activate_symbol_syntax thy literals naming
         proto_class_syntax proto_instance_syntax proto_tyco_syntax proto_const_syntax;
     val (names_all, program) = project_program thy abortable names_hidden names proto_program;
-    val includes = abs_includes names_all;
+    fun select_include (name, (content, cs)) =
+      if null cs orelse exists (fn c => case Code_Thingol.lookup_const naming c
+       of SOME name => member (op =) names_all name
+        | NONE => false) cs
+      then SOME (name, content) else NONE;
+    val includes = map_filter select_include (Symtab.dest all_includes);
   in
     serializer args {
       labelled_name = Code_Thingol.labelled_name thy proto_program,
@@ -324,29 +329,20 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
       program = program }
   end;
 
-fun mount_serializer thy target some_width module_name args naming proto_program names =
+fun mount_serializer thy target some_width module_name args =
   let
-    val (default_width, abortable, data, program) =
-      activate_target_for thy target naming proto_program;
+    val (default_width, abortable, data, modify) = activate_target thy target;
     val serializer = case the_description data
      of Fundamental seri => #serializer seri;
     val reserved = the_reserved data;
-    fun select_include names_all (name, (content, cs)) =
-      if null cs then SOME (name, content)
-      else if exists (fn c => case Code_Thingol.lookup_const naming c
-       of SOME name => member (op =) names_all name
-        | NONE => false) cs
-      then SOME (name, content) else NONE;
-    fun includes names_all = map_filter (select_include names_all)
-      ((Symtab.dest o the_includes) data);
     val module_alias = the_module_alias data 
     val { class, instance, tyco, const } = the_symbol_syntax data;
     val literals = the_literals thy target;
     val width = the_default default_width some_width;
-  in
+  in fn naming => fn program => fn names =>
     invoke_serializer thy abortable serializer literals reserved
-      includes module_alias class instance tyco const module_name args
-        naming program names width
+      (the_includes data) module_alias class instance tyco const module_name args
+        naming (modify naming program) names width
   end;
 
 fun assert_module_name "" = error ("Empty module name not allowed.")
@@ -354,16 +350,22 @@ fun assert_module_name "" = error ("Empty module name not allowed.")
 
 in
 
-fun export_code_for thy some_path target some_width some_module_name args naming program names =
-  export some_path (mount_serializer thy target some_width some_module_name args naming program names);
+fun export_code_for thy some_path target some_width module_name args =
+  export some_path ooo mount_serializer thy target some_width module_name args;
 
-fun produce_code_for thy target some_width module_name args naming program names =
+fun produce_code_for thy target some_width module_name args =
   let
-    val (s, deresolve) = produce (mount_serializer thy target some_width (assert_module_name module_name) args naming program names)
-  in (s, map deresolve names) end;
+    val serializer = mount_serializer thy target some_width (assert_module_name module_name) args;
+  in fn naming => fn program => fn names =>
+    produce (serializer naming program names) |> apsnd (fn deresolve => map deresolve names)
+  end;
 
-fun present_code_for thy target some_width module_name args naming program (names, selects) =
-  present selects (mount_serializer thy target some_width (assert_module_name module_name) args naming program names);
+fun present_code_for thy target some_width module_name args =
+  let
+    val serializer = mount_serializer thy target some_width (assert_module_name module_name) args;
+  in fn naming => fn program => fn (names, selects) =>
+    present selects (serializer naming program names)
+  end;
 
 fun check_code_for thy target strict args naming program names_cs =
   let
