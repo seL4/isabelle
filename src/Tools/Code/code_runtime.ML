@@ -47,17 +47,23 @@ datatype truth = Holds;
 
 val _ = Context.>> (Context.map_theory
   (Code_Target.extend_target (target, (Code_ML.target_SML, K I))
-  #> Code_Target.add_tyco_syntax target @{type_name prop} (SOME (0, (K o K o K) (Code_Printer.str s_truth)))
-  #> Code_Target.add_const_syntax target @{const_name Code_Generator.holds} (SOME (Code_Printer.plain_const_syntax s_Holds))
+  #> Code_Target.add_tyco_syntax target @{type_name prop}
+       (SOME (0, (K o K o K) (Code_Printer.str s_truth)))
+  #> Code_Target.add_const_syntax target @{const_name Code_Generator.holds}
+       (SOME (Code_Printer.plain_const_syntax s_Holds))
   #> Code_Target.add_reserved target this
-  #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"])); (*avoid further pervasive infix names*)
+  #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"]));
+       (*avoid further pervasive infix names*)
 
 
 (* evaluation into target language values *)
 
 type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string;
 
-fun base_evaluator cookie thy some_target naming program ((vs, ty), t) deps args =
+fun obtain_serializer thy some_target = Code_Target.produce_code_for thy
+  (the_default target some_target) NONE "Code" [];
+
+fun base_evaluator cookie serializer naming thy program ((vs, ty), t) deps args =
   let
     val ctxt = ProofContext.init_global thy;
     val _ = if Code_Thingol.contains_dictvar t then
@@ -70,8 +76,7 @@ fun base_evaluator cookie thy some_target naming program ((vs, ty), t) deps args
       |> Graph.new_node (value_name,
           Code_Thingol.Fun (Term.dummy_patternN, (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE)))
       |> fold (curry Graph.add_edge value_name) deps;
-    val (program_code, [SOME value_name']) = Code_Target.produce_code_for thy
-      (the_default target some_target) NONE "Code" [] naming program' [value_name];
+    val (program_code, [SOME value_name']) = serializer naming program' [value_name];
     val value_code = space_implode " "
       (value_name' :: "()" :: map (enclose "(" ")") args);
   in Exn.capture (ML_Context.value ctxt cookie) (program_code, value_code) end;
@@ -84,7 +89,7 @@ fun partiality_as_none e = SOME (Exn.release e)
 fun dynamic_value_exn cookie thy some_target postproc t args =
   let
     fun evaluator naming program ((_, vs_ty), t) deps =
-      base_evaluator cookie thy some_target naming program (vs_ty, t) deps args;
+      base_evaluator cookie (obtain_serializer thy some_target) naming thy program (vs_ty, t) deps args;
   in Code_Thingol.dynamic_eval_value thy (Exn.map_result o postproc) evaluator t end;
 
 fun dynamic_value_strict cookie thy some_target postproc t args =
@@ -95,8 +100,9 @@ fun dynamic_value cookie thy some_target postproc t args =
 
 fun static_value_exn cookie thy some_target postproc consts =
   let
+    val serializer = obtain_serializer thy some_target;
     fun evaluator naming program thy ((_, vs_ty), t) deps =
-      base_evaluator cookie thy some_target naming program (vs_ty, t) deps [];
+      base_evaluator cookie serializer naming thy program (vs_ty, t) deps [];
   in Code_Thingol.static_eval_value thy (Exn.map_result o postproc) consts evaluator end;
 
 fun static_value_strict cookie thy some_target postproc consts t =
@@ -115,14 +121,14 @@ structure Truth_Result = Proof_Data (
 val put_truth = Truth_Result.put;
 val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append this "put_truth");
 
-fun check_holds thy naming program vs_t deps ct =
+fun check_holds serializer naming thy program vs_t deps ct =
   let
     val t = Thm.term_of ct;
     val _ = if fastype_of t <> propT
       then error ("Not a proposition: " ^ Syntax.string_of_term_global thy t)
       else ();
     val iff = Thm.cterm_of thy (Term.Const ("==", propT --> propT --> propT));
-    val result = case partiality_as_none (base_evaluator truth_cookie thy NONE naming program vs_t deps [])
+    val result = case partiality_as_none (base_evaluator truth_cookie serializer naming thy program vs_t deps [])
      of SOME Holds => true
       | _ => false;
   in
@@ -131,15 +137,21 @@ fun check_holds thy naming program vs_t deps ct =
 
 val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (Binding.name "holds_by_evaluation",
-  fn (thy, naming, program, vs_t, deps, ct) => check_holds thy naming program vs_t deps ct)));
+  fn (serializer, naming, thy, program, vs_t, deps, ct) => check_holds serializer naming thy program vs_t deps ct)));
 
-fun check_holds_oracle thy naming program ((_, vs_ty), t) deps ct =
-  raw_check_holds_oracle (thy, naming, program, (vs_ty, t), deps, ct);
+fun check_holds_oracle serializer naming thy program ((_, vs_ty), t) deps ct =
+  raw_check_holds_oracle (serializer, naming, thy, program, (vs_ty, t), deps, ct);
 
-val dynamic_holds_conv = Conv.tap_thy (fn thy => Code_Thingol.dynamic_eval_conv thy (check_holds_oracle thy));
+val dynamic_holds_conv = Conv.tap_thy (fn thy => Code_Thingol.dynamic_eval_conv thy
+  (fn naming => check_holds_oracle (obtain_serializer thy NONE) naming thy));
 
-fun static_holds_conv thy consts = Code_Thingol.static_eval_conv thy consts
-  (fn naming => fn program => fn thy => check_holds_oracle thy naming program);
+fun static_holds_conv thy consts =
+  let
+    val serializer = obtain_serializer thy NONE;
+  in
+    Code_Thingol.static_eval_conv thy consts
+      (fn naming => fn program => fn thy => check_holds_oracle serializer naming thy program)
+  end;
 
 
 (** instrumentalization **)
@@ -253,7 +265,7 @@ fun add_eval_constr (const, const') thy =
 fun add_eval_const (const, const') = Code_Target.add_const_syntax target
   const (SOME (Code_Printer.simple_const_syntax (0, (K o K o K) const')));
 
-fun process (code_body, (tyco_map, (constr_map, const_map))) module_name NONE thy =
+fun process_reflection (code_body, (tyco_map, (constr_map, const_map))) module_name NONE thy =
       thy
       |> Code_Target.add_reserved target module_name
       |> Context.theory_map
@@ -261,7 +273,7 @@ fun process (code_body, (tyco_map, (constr_map, const_map))) module_name NONE th
       |> fold (add_eval_tyco o apsnd Code_Printer.str) tyco_map
       |> fold (add_eval_constr o apsnd Code_Printer.str) constr_map
       |> fold (add_eval_const o apsnd Code_Printer.str) const_map
-  | process (code_body, _) _ (SOME file_name) thy =
+  | process_reflection (code_body, _) _ (SOME file_name) thy =
       let
         val preamble =
           "(* Generated from " ^ Path.implode (Thy_Header.thy_path (Context.theory_name thy))
@@ -283,7 +295,7 @@ fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_nam
       |> (apsnd o apsnd) (chop (length constrs));
   in
     thy
-    |> process result module_name some_file
+    |> process_reflection result module_name some_file
   end;
 
 val code_reflect = gen_code_reflect Code_Target.cert_tyco (K I);
