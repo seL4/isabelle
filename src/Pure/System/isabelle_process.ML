@@ -62,9 +62,10 @@ fun message _ _ _ "" = ()
 
 in
 
-fun standard_message out_stream ch body =
+fun standard_message out_stream with_serial ch body =
   message out_stream ch
-    ((Markup.serialN, serial_string ()) :: Position.properties_of (Position.thread_data ())) body;
+    ((if with_serial then cons (Markup.serialN, serial_string ()) else I)
+      (Position.properties_of (Position.thread_data ()))) body;
 
 fun init_message out_stream =
   message out_stream "A" [(Markup.pidN, process_id ())] (Session.welcome ());
@@ -102,13 +103,13 @@ fun setup_channels in_fifo out_fifo =
     val _ = Simple_Thread.fork false (auto_flush TextIO.stdOut);
     val _ = Simple_Thread.fork false (auto_flush TextIO.stdErr);
   in
-    Output.status_fn   := standard_message out_stream "B";
-    Output.report_fn   := standard_message out_stream "C";
-    Output.writeln_fn  := standard_message out_stream "D";
-    Output.tracing_fn  := standard_message out_stream "E";
-    Output.warning_fn  := standard_message out_stream "F";
-    Output.error_fn    := standard_message out_stream "G";
-    Output.debug_fn    := standard_message out_stream "H";
+    Output.status_fn   := standard_message out_stream false "B";
+    Output.report_fn   := standard_message out_stream false "C";
+    Output.writeln_fn  := standard_message out_stream true "D";
+    Output.tracing_fn  := standard_message out_stream true "E";
+    Output.warning_fn  := standard_message out_stream true "F";
+    Output.error_fn    := standard_message out_stream true "G";
+    Output.debug_fn    := standard_message out_stream true "H";
     Output.priority_fn := ! Output.writeln_fn;
     Output.prompt_fn   := ignore;
     (in_stream, out_stream)
