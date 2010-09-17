@@ -56,35 +56,42 @@ object Isar_Document
   }
 
 
-  /* messages */
+  /* result messages */
 
   def clean_message(body: XML.Body): XML.Body =
     body filter { case XML.Elem(Markup(Markup.NO_REPORT, _), _) => false case _ => true } map
       { case XML.Elem(markup, ts) => XML.Elem(markup, clean_message(ts)) case t => t }
 
+  def message_reports(msg: XML.Tree): List[XML.Elem] =
+    msg match {
+      case elem @ XML.Elem(Markup(Markup.REPORT, _), _) => List(elem)
+      case XML.Elem(_, body) => body.flatMap(message_reports)
+      case XML.Text(_) => Nil
+    }
+
 
   /* reported positions */
 
-  private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
-
-  private def is_state(msg: XML.Tree): Boolean =
+  def is_state(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.WRITELN, _), List(XML.Elem(Markup(Markup.STATE, _), _))) => true
       case _ => false
     }
 
-  def reported_positions(command: Command, message: XML.Elem): Set[Text.Range] =
+  private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
+
+  def message_positions(command: Command, message: XML.Elem): Set[Text.Range] =
   {
-    def reported(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
+    def positions(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
       tree match {
         case XML.Elem(Markup(name, Position.Id_Range(id, raw_range)), body)
         if include_pos(name) && id == command.id =>
           val range = command.decode(raw_range).restrict(command.range)
-          body.foldLeft(if (range.is_singularity) set else set + range)(reported)
-        case XML.Elem(Markup(name, _), body) => body.foldLeft(set)(reported)
+          body.foldLeft(if (range.is_singularity) set else set + range)(positions)
+        case XML.Elem(Markup(name, _), body) => body.foldLeft(set)(positions)
         case _ => set
       }
-    val set = reported(Set.empty, message)
+    val set = positions(Set.empty, message)
     if (set.isEmpty && !is_state(message))
       set ++ Position.Range.unapply(message.markup.properties).map(command.decode(_))
     else set

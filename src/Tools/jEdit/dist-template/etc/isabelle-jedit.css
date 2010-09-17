@@ -8,6 +8,8 @@
 .error { background-color: #FFC1C1; }
 .debug { background-color: #FFE4E1; }
 
+.report { display: none; }
+
 .hilite { background-color: #FFFACD; }
 
 .keyword { font-weight: bold; color: #009966; }

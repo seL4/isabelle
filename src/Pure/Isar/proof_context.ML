@@ -734,8 +734,8 @@ end;
 local
 
 fun parse_failed ctxt pos msg kind =
- (Context_Position.report ctxt Markup.bad pos;
-  cat_error msg ("Failed to parse " ^ kind));
+  cat_error msg ("Failed to parse " ^ kind ^
+    Markup.markup Markup.report (Context_Position.reported_text ctxt Markup.bad pos ""));
 
 fun parse_sort ctxt text =
   let
