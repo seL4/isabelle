@@ -28,8 +28,7 @@ object Isabelle_Process
       ('D' : Int) -> Markup.WRITELN,
       ('E' : Int) -> Markup.TRACING,
       ('F' : Int) -> Markup.WARNING,
-      ('G' : Int) -> Markup.ERROR,
-      ('H' : Int) -> Markup.DEBUG)
+      ('G' : Int) -> Markup.ERROR)
     def is_raw(kind: String) =
       kind == Markup.STDOUT
     def is_control(kind: String) =

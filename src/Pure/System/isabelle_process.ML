@@ -109,7 +109,6 @@ fun setup_channels in_fifo out_fifo =
     Output.tracing_fn  := standard_message out_stream true "E";
     Output.warning_fn  := standard_message out_stream true "F";
     Output.error_fn    := standard_message out_stream true "G";
-    Output.debug_fn    := standard_message out_stream true "H";
     Output.priority_fn := ! Output.writeln_fn;
     Output.prompt_fn   := ignore;
     (in_stream, out_stream)

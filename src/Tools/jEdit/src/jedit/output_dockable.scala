@@ -32,7 +32,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* component state -- owned by Swing thread */
 
   private var zoom_factor = 100
-  private var show_debug = false
   private var show_tracing = false
   private var follow_caret = true
   private var current_command: Option[Command] = None
@@ -68,8 +67,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
               val snapshot = doc_view.model.snapshot()
               val filtered_results =
                 snapshot.state(cmd).results.iterator.map(_._2) filter {
-                  case XML.Elem(Markup(Markup.TRACING, _), _) => show_tracing
-                  case XML.Elem(Markup(Markup.DEBUG, _), _) => show_debug
+                  case XML.Elem(Markup(Markup.TRACING, _), _) => show_tracing  // FIXME not scalable
                   case _ => true
                 }
               html_panel.render(filtered_results.toList)
@@ -122,13 +120,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
   zoom.tooltip = "Zoom factor for basic font size"
 
-  private val debug = new CheckBox("Debug") {
-    reactions += { case ButtonClicked(_) => show_debug = this.selected; handle_update() }
-  }
-  debug.selected = show_debug
-  debug.tooltip =
-    "<html>Indicate output of debug messages<br>(also needs to be enabled on the prover side)</html>"
-
   private val tracing = new CheckBox("Tracing") {
     reactions += { case ButtonClicked(_) => show_tracing = this.selected; handle_update() }
   }
@@ -146,7 +137,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   }
   update.tooltip = "Update display according to the command at cursor position"
 
-  val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, debug, tracing, auto_update, update)
+  val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, tracing, auto_update, update)
   add(controls.peer, BorderLayout.NORTH)
 
   handle_update()

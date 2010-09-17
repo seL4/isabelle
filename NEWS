@@ -244,6 +244,9 @@ The theorems bij_def and surj_def are unchanged.
 
 *** ML ***
 
+* Discontinued Output.debug.  Minor INCOMPATIBILITY, use plain writeln
+instead (or tracing for high-volume output).
+
 * Configuration option show_question_marks only affects regular pretty
 printing of types and terms, not raw Term.string_of_vname.
 

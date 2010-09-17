@@ -79,7 +79,6 @@ fun setup_messages () =
   Output.report_fn := (fn _ => ());
   Output.priority_fn := message (special "I") (special "J") "";
   Output.tracing_fn := message (special "I" ^ special "V") (special "J") "";
-  Output.debug_fn := message (special "K") (special "L") "+++ ";
   Output.warning_fn := message (special "K") (special "L") "### ";
   Output.error_fn := message (special "M") (special "N") "*** ";
   Output.prompt_fn := (fn s => Output.std_output (render s ^ special "S")));

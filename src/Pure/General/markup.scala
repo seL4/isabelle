@@ -239,7 +239,6 @@ object Markup
   val TRACING = "tracing"
   val WARNING = "warning"
   val ERROR = "error"
-  val DEBUG = "debug"
   val SYSTEM = "system"
   val INPUT = "input"
   val STDIN = "stdin"

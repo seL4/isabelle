@@ -215,7 +215,7 @@ fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 (** toplevel transitions **)
 
 val quiet = Unsynchronized.ref false;
-val debug = Output.debugging;
+val debug = Runtime.debug;
 val interact = Unsynchronized.ref false;
 val timing = Output.timing;
 val profiling = Unsynchronized.ref 0;
