@@ -57,7 +57,7 @@ val _ = Context.>> (Context.map_theory
 
 type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string;
 
-fun base_evaluator cookie thy some_target naming program ((_, (vs, ty)), t) deps args =
+fun base_evaluator cookie thy some_target naming program ((vs, ty), t) deps args =
   let
     val ctxt = ProofContext.init_global thy;
     val _ = if Code_Thingol.contains_dictvar t then
@@ -83,8 +83,8 @@ fun partiality_as_none e = SOME (Exn.release e)
 
 fun dynamic_value_exn cookie thy some_target postproc t args =
   let
-    fun evaluator naming program expr deps =
-      base_evaluator cookie thy some_target naming program expr deps args;
+    fun evaluator naming program ((_, vs_ty), t) deps =
+      base_evaluator cookie thy some_target naming program (vs_ty, t) deps args;
   in Code_Thingol.dynamic_eval_value thy (Exn.map_result o postproc) evaluator t end;
 
 fun dynamic_value_strict cookie thy some_target postproc t args =
@@ -95,8 +95,8 @@ fun dynamic_value cookie thy some_target postproc t args =
 
 fun static_value_exn cookie thy some_target postproc consts =
   let
-    fun evaluator naming program thy expr deps =
-      base_evaluator cookie thy some_target naming program expr deps [];
+    fun evaluator naming program thy ((_, vs_ty), t) deps =
+      base_evaluator cookie thy some_target naming program (vs_ty, t) deps [];
   in Code_Thingol.static_eval_value thy (Exn.map_result o postproc) consts evaluator end;
 
 fun static_value_strict cookie thy some_target postproc consts t =
@@ -115,14 +115,14 @@ structure Truth_Result = Proof_Data (
 val put_truth = Truth_Result.put;
 val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append this "put_truth");
 
-fun check_holds thy naming program expr deps ct =
+fun check_holds thy naming program vs_t deps ct =
   let
     val t = Thm.term_of ct;
     val _ = if fastype_of t <> propT
       then error ("Not a proposition: " ^ Syntax.string_of_term_global thy t)
       else ();
     val iff = Thm.cterm_of thy (Term.Const ("==", propT --> propT --> propT));
-    val result = case partiality_as_none (base_evaluator truth_cookie thy NONE naming program expr deps [])
+    val result = case partiality_as_none (base_evaluator truth_cookie thy NONE naming program vs_t deps [])
      of SOME Holds => true
       | _ => false;
   in
@@ -131,10 +131,10 @@ fun check_holds thy naming program expr deps ct =
 
 val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (Binding.name "holds_by_evaluation",
-  fn (thy, naming, program, expr, deps, ct) => check_holds thy naming program expr deps ct)));
+  fn (thy, naming, program, vs_t, deps, ct) => check_holds thy naming program vs_t deps ct)));
 
-fun check_holds_oracle thy naming program expr deps ct =
-  raw_check_holds_oracle (thy, naming, program, expr, deps, ct);
+fun check_holds_oracle thy naming program ((_, vs_ty), t) deps ct =
+  raw_check_holds_oracle (thy, naming, program, (vs_ty, t), deps, ct);
 
 val dynamic_holds_conv = Conv.tap_thy (fn thy => Code_Thingol.dynamic_eval_conv thy (check_holds_oracle thy));
 
