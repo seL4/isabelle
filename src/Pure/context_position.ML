@@ -18,14 +18,9 @@ end;
 structure Context_Position: CONTEXT_POSITION =
 struct
 
-structure Data = Proof_Data
-(
-  type T = bool;
-  fun init _ = true;
-);
-
-val is_visible = Data.get;
-val set_visible = Data.put;
+val visible = Config.bool (Config.declare "Context_Position.visible" (K (Config.Bool true)));
+fun is_visible ctxt = Config.get ctxt visible;
+val set_visible = Config.put visible;
 val restore_visible = set_visible o is_visible;
 
 fun if_visible ctxt f x = if is_visible ctxt then f x else ();

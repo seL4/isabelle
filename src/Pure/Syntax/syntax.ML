@@ -361,9 +361,9 @@ val string_of_arity = Pretty.string_of oo pretty_arity;
 
 (* global pretty printing *)
 
-structure PrettyGlobal = Proof_Data(type T = bool fun init _ = false);
-val is_pretty_global = PrettyGlobal.get;
-val set_pretty_global = PrettyGlobal.put;
+val pretty_global = Config.bool (Config.declare "Syntax.pretty_global" (K (Config.Bool false)));
+fun is_pretty_global ctxt = Config.get ctxt pretty_global;
+val set_pretty_global = Config.put pretty_global;
 val init_pretty_global = set_pretty_global true o ProofContext.init_global;
 
 val pretty_term_global = pretty_term o init_pretty_global;

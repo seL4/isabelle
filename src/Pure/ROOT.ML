@@ -96,13 +96,13 @@ use "term_subst.ML";
 use "old_term.ML";
 use "General/pretty.ML";
 use "context.ML";
+use "config.ML";
 use "context_position.ML";
 use "sorts.ML";
 use "type.ML";
 use "logic.ML";
 use "Syntax/lexicon.ML";
 use "Syntax/simple_syntax.ML";
-use "config.ML";
 
 
 (* inner syntax *)
