@@ -2183,6 +2183,18 @@ apply (simp add: mod_mult_mult1 pos_zmod_mult_2
 done
 
 
+lemma zdiv_eq_0_iff:
+ "(i::int) div k = 0 \<longleftrightarrow> k=0 \<or> 0\<le>i \<and> i<k \<or> i\<le>0 \<and> k<i" (is "?L = ?R")
+proof
+  assume ?L
+  have "?L \<longrightarrow> ?R" by (rule split_zdiv[THEN iffD2]) simp
+  with `?L` show ?R by blast
+next
+  assume ?R thus ?L
+    by(auto simp: div_pos_pos_trivial div_neg_neg_trivial)
+qed
+
+
 subsubsection{*Quotients of Signs*}
 
 lemma div_neg_pos_less0: "[| a < (0::int);  0 < b |] ==> a div b < 0"
@@ -2220,6 +2232,11 @@ done
 lemma pos_imp_zdiv_neg_iff: "(0::int) < b ==> (a div b < 0) = (a < 0)"
 by (simp add: linorder_not_le [symmetric] pos_imp_zdiv_nonneg_iff)
 
+lemma pos_imp_zdiv_pos_iff:
+  "0<k \<Longrightarrow> 0 < (i::int) div k \<longleftrightarrow> k \<le> i"
+using pos_imp_zdiv_nonneg_iff[of k i] zdiv_eq_0_iff[of i k]
+by arith
+
 (*Again the law fails for \<le>: consider a = -1, b = -2 when a div b = 0*)
 lemma neg_imp_zdiv_neg_iff: "b < (0::int) ==> (a div b < 0) = (0 < a)"
 by (simp add: linorder_not_le [symmetric] neg_imp_zdiv_nonneg_iff)
@@ -2232,6 +2249,12 @@ apply rule
  apply(cases "b=0")apply simp
  using div_nonneg_neg_le0[of a b]apply arith
 using int_one_le_iff_zero_less[of "a div b"] zdiv_mono1[of b a b]apply simp
+done
+
+
+lemma zmod_le_nonneg_dividend: "(m::int) \<ge> 0 ==> m mod k \<le> m"
+apply (rule split_zmod[THEN iffD2])
+apply(fastsimp dest: q_pos_lemma intro: split_mult_pos_le)
 done
 
 
