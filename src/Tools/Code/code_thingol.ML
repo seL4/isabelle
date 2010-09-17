@@ -92,19 +92,20 @@ sig
 
   val read_const_exprs: theory -> string list -> string list * string list
   val consts_program: theory -> bool -> string list -> string list * (naming * program)
-  val dynamic_eval_conv: theory
-    -> (naming -> program -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
+  val dynamic_eval_conv: theory -> (naming -> program
+    -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
     -> conv
-  val dynamic_eval_value: theory -> ((term -> term) -> 'a -> 'a)
-    -> (naming -> program -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
+  val dynamic_eval_value: theory -> ((term -> term) -> 'a -> 'a) -> (naming -> program
+    -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
     -> term -> 'a
-  val static_eval_conv: theory -> string list
-    -> (naming -> program -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
+  val static_eval_conv: theory -> string list -> (naming -> program
+    -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
     -> conv
   val static_eval_conv_simple: theory -> string list
-    -> (program -> theory -> conv) -> conv
-  val static_eval_value: theory -> ((term -> term) -> 'a -> 'a) -> string list
-    -> (naming -> program -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
+    -> (program -> theory -> (string * sort) list -> term -> conv) -> conv
+  val static_eval_value: theory -> ((term -> term) -> 'a -> 'a) -> string list ->
+    (naming -> program
+      -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
     -> term -> 'a
 end;
 
@@ -844,17 +845,17 @@ fun invoke_generation ignore_cache thy (algebra, eqngr) f name =
 
 (* program generation *)
 
-fun consts_program thy permissive cs =
+fun consts_program thy permissive consts =
   let
-    fun project_consts cs (naming, program) = (*FIXME only necessary for cache_generation*)
-      let
-        val cs_all = Graph.all_succs program cs;
-      in (cs, (naming, Graph.subgraph (member (op =) cs_all) program)) end;
+    fun project_consts consts (naming, program) =
+      if permissive then (consts, (naming, program))
+      else (consts, (naming, Graph.subgraph
+        (member (op =) (Graph.all_succs program consts)) program));
     fun generate_consts thy algebra eqngr =
       fold_map (ensure_const thy algebra eqngr permissive);
   in
-    invoke_generation (not permissive) thy (Code_Preproc.obtain false thy cs [])
-      generate_consts cs
+    invoke_generation permissive thy (Code_Preproc.obtain false thy consts [])
+      generate_consts consts
     |-> project_consts
   end;
 
@@ -887,15 +888,14 @@ fun ensure_value thy algbr eqngr t =
     #> term_value
   end;
 
-fun base_evaluator evaluator algebra eqngr thy vs t =
+fun original_sorts vs =
+  map (fn (v, _) => (v, (the o AList.lookup (op =) vs o prefix "'") v));
+
+fun dynamic_evaluator thy evaluator algebra eqngr vs t =
   let
     val (((naming, program), (((vs', ty'), t'), deps)), _) =
       invoke_generation false thy (algebra, eqngr) ensure_value t;
-    val vs'' = map (fn (v, _) => (v, (the o AList.lookup (op =) vs o prefix "'") v)) vs';
-  in evaluator naming program thy ((vs'', (vs', ty')), t') deps end;
-
-fun dynamic_evaluator thy evaluator algebra eqngr vs t =
-  base_evaluator (fn naming => fn program => fn _ => evaluator naming program) algebra eqngr thy vs t;
+  in evaluator naming program ((original_sorts vs vs', (vs', ty')), t') deps end;
 
 fun dynamic_eval_conv thy evaluator =
   Code_Preproc.dynamic_eval_conv thy (dynamic_evaluator thy evaluator);
@@ -903,18 +903,32 @@ fun dynamic_eval_conv thy evaluator =
 fun dynamic_eval_value thy postproc evaluator =
   Code_Preproc.dynamic_eval_value thy postproc (dynamic_evaluator thy evaluator);
 
+fun provide_program thy consts f algebra eqngr =
+  let
+    fun generate_consts thy algebra eqngr =
+      fold_map (ensure_const thy algebra eqngr false);
+    val (_, (naming, program)) = invoke_generation true thy (algebra, eqngr)
+      generate_consts consts;
+  in f algebra eqngr naming program end;
+
+fun static_evaluator evaluator algebra eqngr naming program thy vs t =
+  let
+    val (((_, program'), (((vs', ty'), t'), deps)), _) =
+      ensure_value thy algebra eqngr t (NONE, (naming, program));
+  in evaluator naming program' thy ((original_sorts vs vs', (vs', ty')), t') deps end;
+
 fun static_eval_conv thy consts conv =
-  Code_Preproc.static_eval_conv thy consts (base_evaluator conv); (*FIXME avoid re-generation*)
+  Code_Preproc.static_eval_conv thy consts
+    (provide_program thy consts (static_evaluator conv));
 
 fun static_eval_conv_simple thy consts conv =
-  Code_Preproc.static_eval_conv thy consts (fn algebra => fn eqngr => fn thy => fn _ => fn _ => fn ct =>
-    conv ((NONE, (empty_naming, Graph.empty)) (*FIXME provide abstraction for this kind of invocation*)
-      |> fold_map (ensure_const thy algebra eqngr false) consts
-      |> (snd o snd o snd)) thy ct);
+  Code_Preproc.static_eval_conv thy consts
+    (provide_program thy consts ((K o K o K) conv));
 
-fun static_eval_value thy postproc consts conv =
-  Code_Preproc.static_eval_value thy postproc consts (base_evaluator conv); (*FIXME avoid re-generation*)
-  
+fun static_eval_value thy postproc consts evaluator =
+  Code_Preproc.static_eval_value thy postproc consts
+    (provide_program thy consts (static_evaluator evaluator));
+
 
 (** diagnostic commands **)
 
