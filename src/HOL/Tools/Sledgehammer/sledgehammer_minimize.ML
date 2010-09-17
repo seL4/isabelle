@@ -20,7 +20,7 @@ end;
 structure Sledgehammer_Minimize : SLEDGEHAMMER_MINIMIZE =
 struct
 
-open ATP_Systems
+open ATP_Proof
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_Translate

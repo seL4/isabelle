@@ -6,13 +6,11 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
-  val find_first_in_list_vector : (''a * 'b) list vector -> ''a -> 'b option
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
-  val scan_integer : string list -> int * string list
   val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
@@ -27,10 +25,6 @@ end;
 
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
-
-fun find_first_in_list_vector vec key =
-  Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
-                 | (_, value) => value) NONE vec
 
 fun plural_s n = if n = 1 then "" else "s"
 
@@ -71,9 +65,6 @@ fun parse_time_option _ "none" = NONE
       else
         SOME (Time.fromMilliseconds msecs)
     end
-
-fun is_head_digit s = Char.isDigit (String.sub (s, 0))
-val scan_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
 
 val subscript = implode o map (prefix "\<^isub>") o explode
 fun nat_subscript n =

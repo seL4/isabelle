@@ -3,7 +3,7 @@
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
 
-Translation of HOL to FOL.
+Translation of HOL to FOL for Sledgehammer.
 *)
 
 signature SLEDGEHAMMER_TRANSLATE =
@@ -30,7 +30,7 @@ structure Sledgehammer_Translate : SLEDGEHAMMER_TRANSLATE =
 struct
 
 open ATP_Problem
-open Metis_Clauses
+open Metis_Translate
 open Sledgehammer_Util
 
 val axiom_prefix = "ax_"

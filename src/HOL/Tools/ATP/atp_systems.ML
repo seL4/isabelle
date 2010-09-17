@@ -7,11 +7,7 @@ Setup for supported ATPs.
 
 signature ATP_SYSTEMS =
 sig
-  datatype failure =
-    Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
-    OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
-    MalformedInput | MalformedOutput | Interrupted | InternalError |
-    UnknownError
+  type failure = ATP_Proof.failure
 
   type prover_config =
     {exec: string * string,
@@ -24,9 +20,6 @@ sig
      explicit_forall: bool,
      use_conjecture_for_hypotheses: bool}
 
-  val string_for_failure : failure -> string
-  val known_failure_in_output :
-    string -> (failure * string) list -> failure option
   val add_prover: string * prover_config -> theory -> theory
   val get_prover: theory -> string -> prover_config
   val available_atps: theory -> unit
@@ -38,12 +31,9 @@ end;
 structure ATP_Systems : ATP_SYSTEMS =
 struct
 
-(* prover configuration *)
+open ATP_Proof
 
-datatype failure =
-  Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
-  SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl | MalformedInput |
-  MalformedOutput | Interrupted | InternalError | UnknownError
+(* prover configuration *)
 
 type prover_config =
   {exec: string * string,
@@ -55,44 +45,6 @@ type prover_config =
    default_max_relevant: int,
    explicit_forall: bool,
    use_conjecture_for_hypotheses: bool}
-
-val missing_message_tail =
-  " appears to be missing. You will need to install it if you want to run \
-  \ATPs remotely."
-
-fun string_for_failure Unprovable = "The ATP problem is unprovable."
-  | string_for_failure IncompleteUnprovable =
-    "The ATP cannot prove the problem."
-  | string_for_failure CantConnect = "Can't connect to remote server."
-  | string_for_failure TimedOut = "Timed out."
-  | string_for_failure OutOfResources = "The ATP ran out of resources."
-  | string_for_failure SpassTooOld =
-    "Isabelle requires a more recent version of SPASS with support for the \
-    \TPTP syntax. To install it, download and extract the package \
-    \\"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and add the \
-    \\"spass-3.7\" directory's absolute path to " ^
-    quote (Path.implode (Path.expand (Path.appends
-               (Path.variable "ISABELLE_HOME_USER" ::
-                map Path.basic ["etc", "components"])))) ^
-    " on a line of its own."
-  | string_for_failure VampireTooOld =
-    "Isabelle requires a more recent version of Vampire. To install it, follow \
-    \the instructions from the Sledgehammer manual (\"isabelle doc\
-    \ sledgehammer\")."
-  | string_for_failure NoPerl = "Perl" ^ missing_message_tail
-  | string_for_failure NoLibwwwPerl =
-    "The Perl module \"libwww-perl\"" ^ missing_message_tail
-  | string_for_failure MalformedInput =
-    "The ATP problem is malformed. Please report this to the Isabelle \
-    \developers."
-  | string_for_failure MalformedOutput = "The ATP output is malformed."
-  | string_for_failure Interrupted = "The ATP was interrupted."
-  | string_for_failure InternalError = "An internal ATP error occurred."
-  | string_for_failure UnknownError = "An unknown ATP error occurred."
-
-fun known_failure_in_output output =
-  find_first (fn (_, pattern) => String.isSubstring pattern output)
-  #> Option.map fst
 
 val known_perl_failures =
   [(CantConnect, "HTTP error"),
@@ -123,6 +75,7 @@ fun available_atps thy =
             commas (sort_strings (Symtab.keys (Data.get thy))) ^ ".")
 
 fun to_secs bonus time = (Time.toMilliseconds time + bonus + 999) div 1000
+
 
 (* E prover *)
 
@@ -162,6 +115,8 @@ val e_config : prover_config =
 
 val e = ("e", e_config)
 
+
+(* SPASS *)
 
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
@@ -226,11 +181,11 @@ val systems = Synchronized.var "atp_systems" ([] : string list)
 
 fun get_systems () =
   case bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
-    (answer, 0) => split_lines answer
-  | (answer, _) =>
-    error (case known_failure_in_output answer known_perl_failures of
+    (output, 0) => split_lines output
+  | (output, _) =>
+    error (case extract_known_failure known_perl_failures output of
              SOME failure => string_for_failure failure
-           | NONE => perhaps (try (unsuffix "\n")) answer ^ ".")
+           | NONE => perhaps (try (unsuffix "\n")) output ^ ".")
 
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())

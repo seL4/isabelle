@@ -8,7 +8,7 @@ temporary.
  1. The files "Makefile" and "script/mlpp" and the directory "src/"
     were initially copied from Joe Hurd's official Metis package. The
     package that was used when these notes where written was Metis 2.3
-    (15 Sept. 2010).
+    (16 Sept. 2010).
 
  2. The license in each source file will probably not be something we
     can use in Isabelle. The "fix_metis_license" script can be run to
@@ -20,11 +20,11 @@ temporary.
         as part of Isabelle, with the Metis code covered under the
         Isabelle BSD license.
 
- 3. Some modifications have to be done manually to the source files.
-    The ultimate way to track them down is to use Mercurial. The
-    command
+ 3. Some modifications might have to be done manually to the source
+    files. The ultimate way to track them down is to use Mercurial.
+    The command
 
-        hg diff -rbeabb8443ee4: src
+        hg diff -rcffceed8e7fa: src
 
     should do the trick. You might need to specify a different
     revision number if somebody updated the Metis sources without
@@ -55,4 +55,4 @@ temporary.
 Good luck!
 
     Jasmin Blanchette
-    16 Sept. 2010
+    17 Sept. 2010
