@@ -10,6 +10,11 @@
 			return isabelle.jedit.Isabelle.is_active(view);
 		</IS_SELECTED>
 	</ACTION>
+	<ACTION NAME="isabelle.session-panel">
+		<CODE>
+			wm.addDockableWindow("isabelle-session");
+		</CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.show-output">
 		<CODE>
 			wm.addDockableWindow("isabelle-output");

@@ -170,6 +170,12 @@ object Isabelle
 
   private def wm(view: View): DockableWindowManager = view.getDockableWindowManager
 
+  def docked_session(view: View): Option[Session_Dockable] =
+    wm(view).getDockableWindow("isabelle-session") match {
+      case dockable: Session_Dockable => Some(dockable)
+      case _ => None
+    }
+
   def docked_output(view: View): Option[Output_Dockable] =
     wm(view).getDockableWindow("isabelle-output") match {
       case dockable: Output_Dockable => Some(dockable)
