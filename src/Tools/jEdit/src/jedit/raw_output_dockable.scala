@@ -19,6 +19,7 @@ class Raw_Output_Dockable(view: View, position: String)
   extends Dockable(view: View, position: String)
 {
   private val text_area = new TextArea
+  text_area.editable = false
   set_content(new ScrollPane(text_area))
 
 

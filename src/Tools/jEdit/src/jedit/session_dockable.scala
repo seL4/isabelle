@@ -18,6 +18,7 @@ import org.gjt.sp.jedit.View
 class Session_Dockable(view: View, position: String) extends Dockable(view: View, position: String)
 {
   private val text_area = new TextArea("Isabelle session")
+  text_area.editable = false
   set_content(new ScrollPane(text_area))
 
 
