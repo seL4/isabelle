@@ -14,6 +14,7 @@ import java.awt.Font
 import javax.swing.JTextArea
 
 import scala.collection.mutable
+import scala.swing.ComboBox
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
   Buffer, EditPane, ServiceManager, View}
@@ -120,27 +121,6 @@ object Isabelle
   }
 
 
-  /* settings */
-
-  def default_logic(): String =
-  {
-    val logic = system.getenv("JEDIT_LOGIC")
-    if (logic != "") logic
-    else system.getenv_strict("ISABELLE_LOGIC")
-  }
-
-  def isabelle_args(): List[String] =
-  {
-    val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
-    val logic = {
-      val logic = Property("logic")
-      if (logic != null && logic != "") logic
-      else default_logic()
-    }
-    modes ++ List(logic)
-  }
-
-
   /* main jEdit components */
 
   def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator
@@ -193,6 +173,45 @@ object Isabelle
       case dockable: Protocol_Dockable => Some(dockable)
       case _ => None
     }
+
+
+  /* logic image */
+
+  def default_logic(): String =
+  {
+    val logic = system.getenv("JEDIT_LOGIC")
+    if (logic != "") logic
+    else system.getenv_strict("ISABELLE_LOGIC")
+  }
+
+  class Logic_Entry(val name: String, val description: String)
+  {
+    override def toString = description
+  }
+
+  def logic_selector(logic: String): ComboBox[Logic_Entry] =
+  {
+    val entries =
+      new Logic_Entry("", "default (" + default_logic() + ")") ::
+        system.find_logics().map(name => new Logic_Entry(name, name))
+    val component = new ComboBox(entries)
+    entries.find(_.name == logic) match {
+      case None =>
+      case Some(entry) => component.selection.item = entry
+    }
+    component
+  }
+
+  def isabelle_args(): List[String] =
+  {
+    val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
+    val logic = {
+      val logic = Property("logic")
+      if (logic != null && logic != "") logic
+      else default_logic()
+    }
+    modes ++ List(logic)
+  }
 
 
   /* manage prover */  // FIXME async!?
