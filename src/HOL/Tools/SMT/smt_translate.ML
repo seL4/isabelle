@@ -304,18 +304,19 @@ fun mk_constructor ctxt Ts T (n, args) =
   let val (sels, Us) = split_list (map_index (mk_selector ctxt Ts T n) args)
   in (Const (n, Us ---> T), sels) end
 
-fun lookup_datatype ctxt n Ts = if n = @{type_name bool} then NONE else
-  (case Datatype.get_info (ProofContext.theory_of ctxt) n of
-    NONE => NONE  (* FIXME: also use Record.get_info *)
-  | SOME {descr, ...} =>
-      let
-        val Tds = map (fn (_, (tn, _, _)) => Type (tn, Ts))
-          (sort (int_ord o pairself fst) descr)
-        val Tfs = (case hd descr of (_, (_, tfs, _)) => tfs ~~ Ts)
-      in
-        SOME (descr |> map (fn (i, (_, _, cs)) =>
-          (nth Tds i, map (mk_constructor ctxt (Tds, Tfs) (nth Tds i)) cs)))
-      end)
+fun lookup_datatype ctxt n Ts =
+  if member (op =) [@{type_name bool}, @{type_name nat}] n then NONE
+  else
+    Datatype.get_info (ProofContext.theory_of ctxt) n
+    |> Option.map (fn {descr, ...} =>
+         let
+           val Tds = map (fn (_, (tn, _, _)) => Type (tn, Ts))
+             (sort (int_ord o pairself fst) descr)
+           val Tfs = (case hd descr of (_, (_, tfs, _)) => tfs ~~ Ts)
+         in
+           descr |> map (fn (i, (_, _, cs)) =>
+             (nth Tds i, map (mk_constructor ctxt (Tds, Tfs) (nth Tds i)) cs))
+         end)
 
 fun relaxed thms = (([], thms), map prop_of thms)
 
