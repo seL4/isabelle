@@ -247,7 +247,7 @@ class Session(system: Isabelle_System)
     }
 
 
-    /* main loop */
+    /* main loop */  // FIXME proper shutdown
 
     var finished = false
     while (!finished) {
@@ -282,9 +282,9 @@ class Session(system: Isabelle_System)
 
         case Stop => // FIXME synchronous!?
           if (prover != null) {
+            global_state.change(_ => Document.State.init)
             prover.kill
             prover = null
-            finished = true
           }
 
         case TIMEOUT =>  // FIXME clarify

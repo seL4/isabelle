@@ -163,7 +163,6 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
           //{{{
           receive {
             case Input_Text(text) =>
-              // FIXME echo input?!
               writer.write(text)
               writer.flush
             case Close =>
@@ -365,5 +364,5 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   def input(name: String, args: String*): Unit =
     input_bytes(name, args.map(Standard_System.string_bytes): _*)
 
-  def close(): Unit = command_input ! Close
+  def close(): Unit = { standard_input ! Close; command_input ! Close }
 }
