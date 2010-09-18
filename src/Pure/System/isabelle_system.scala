@@ -273,9 +273,16 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
   /* named pipes */
 
+  private var fifo_count: Long = 0
+  private def next_fifo(): String = synchronized {
+    require(fifo_count < java.lang.Long.MAX_VALUE)
+    fifo_count += 1
+    fifo_count.toString
+  }
+
   def mk_fifo(): String =
   {
-    val (result, rc) = isabelle_tool("mkfifo")
+    val (result, rc) = isabelle_tool("mkfifo", next_fifo())
     if (rc == 0) result.trim
     else error(result)
   }

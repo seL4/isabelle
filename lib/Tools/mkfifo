@@ -10,7 +10,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG"
+  echo "Usage: isabelle $PRG [SUFFIX]"
   echo
   echo "  Create a temporary named pipe and return its name."
   echo
@@ -26,10 +26,12 @@ function fail()
 
 ## main
 
+SUFFIX=""
+[ "$#" != 0 ] && { SUFFIX="-$1"; shift; }
+
 [ "$#" != 0 ] && usage
 
-#FIXME potential race condition wrt. future processes with same pid
-FIFO="/tmp/isabelle-fifo$$"
+FIFO="/tmp/isabelle-fifo${PPID}${SUFFIX}"
 
 mkfifo -m 600 "$FIFO" || fail "Failed to create fifo: $FIFO"
 echo "$FIFO"
