@@ -31,7 +31,10 @@ SUFFIX=""
 
 [ "$#" != 0 ] && usage
 
-FIFO="/tmp/isabelle-fifo${PPID}${SUFFIX}"
+ID="$PPID"
+[ "$ID" = 0 -o "$ID" = 1 ] && ID="$$"  # Cygwin workaround
+
+FIFO="/tmp/isabelle-fifo${ID}${SUFFIX}"
 
 mkfifo -m 600 "$FIFO" || fail "Failed to create fifo: $FIFO"
 echo "$FIFO"
