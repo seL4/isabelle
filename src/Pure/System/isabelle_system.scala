@@ -289,8 +289,7 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
   def rm_fifo(fifo: String)
   {
-    val (result, rc) = isabelle_tool("rmfifo", fifo)
-    if (rc != 0) error(result)
+    bash_output("rm -f '" + fifo + "'")
   }
 
   def fifo_input_stream(fifo: String): InputStream =

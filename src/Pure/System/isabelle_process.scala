@@ -147,10 +147,6 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /** stream actors **/
 
-  private val in_fifo = system.mk_fifo()
-  private val out_fifo = system.mk_fifo()
-  private def rm_fifos() = { system.rm_fifo(in_fifo); system.rm_fifo(out_fifo) }
-
   private case class Input_Text(text: String)
   private case class Input_Chunks(chunks: List[Array[Byte]])
   private case object Close
@@ -224,9 +220,9 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* command input */
 
-  private def input_actor(name: String): Actor =
+  private def input_actor(name: String, fifo: String): Actor =
     Simple_Thread.actor(name) {
-      val stream = new BufferedOutputStream(system.fifo_output_stream(in_fifo))  // FIXME potentially blocking forever
+      val stream = new BufferedOutputStream(system.fifo_output_stream(fifo))  // FIXME potentially blocking forever
       var finished = false
       while (!finished) {
         try {
@@ -256,9 +252,9 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   private class Protocol_Error(msg: String) extends Exception(msg)
 
-  private def message_actor(name: String): Actor =
+  private def message_actor(name: String, fifo: String): Actor =
     Simple_Thread.actor(name) {
-      val stream = system.fifo_input_stream(out_fifo)  // FIXME potentially blocking forever
+      val stream = system.fifo_input_stream(fifo)  // FIXME potentially blocking forever
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
@@ -322,22 +318,22 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* exec process */
 
+  private val in_fifo = system.mk_fifo()
+  private val out_fifo = system.mk_fifo()
+  private def rm_fifos() { system.rm_fifo(in_fifo); system.rm_fifo(out_fifo) }
+
   try {
     val cmdline =
       List(system.getenv_strict("ISABELLE_PROCESS"), "-W", in_fifo + ":" + out_fifo) ++ args
     proc = Some(system.execute(true, cmdline: _*))
   }
-  catch {
-    case e: IOException =>
-      rm_fifos()
-      error("Failed to execute Isabelle process: " + e.getMessage)
-  }
+  catch { case e: IOException => rm_fifos(); throw(e) }
 
 
   /* I/O actors */
 
-  private val command_input = input_actor("command_input")
-  message_actor("message_output")
+  private val command_input = input_actor("command_input", in_fifo)
+  message_actor("message_output", out_fifo)
 
   private val standard_input = stdin_actor("standard_input", proc.get.getOutputStream)
   stdout_actor("standard_output", proc.get.getInputStream)
@@ -351,7 +347,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
       case Some(p) =>
         val rc = p.waitFor()
         Thread.sleep(300)  // FIXME property!?
-        put_result(Markup.SYSTEM, "process_exit terminated")
+        put_result(Markup.SYSTEM, "Isabelle process terminated")
         put_result(Markup.EXIT, rc.toString)
     }
     rm_fifos()
