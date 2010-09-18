@@ -7,7 +7,7 @@ Editor pane for plugin options.
 package isabelle.jedit
 
 
-import javax.swing.{JComboBox, JSpinner}
+import javax.swing.JSpinner
 
 import org.gjt.sp.jedit.AbstractOptionPane
 

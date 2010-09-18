@@ -11,7 +11,6 @@ import isabelle._
 
 import java.io.{FileInputStream, IOException}
 import java.awt.Font
-import javax.swing.JTextArea
 
 import scala.collection.mutable
 import scala.swing.ComboBox
@@ -221,7 +220,8 @@ object Isabelle
     val timeout = Int_Property("startup-timeout") max 1000
     session.started(timeout, Isabelle.isabelle_args()) match {
       case Some(err) =>
-        val text = new JTextArea(err); text.setEditable(false)
+        val text = new scala.swing.TextArea(err)
+        text.editable = false
         Library.error_dialog(view, null, "Failed to start Isabelle process", text)
         false
       case None => true

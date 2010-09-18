@@ -26,7 +26,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   val html_panel =
     new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
-  add(html_panel, BorderLayout.CENTER)
+  set_content(html_panel)
 
 
   /* component state -- owned by Swing thread */
