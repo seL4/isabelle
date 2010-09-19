@@ -241,9 +241,11 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* message output */
 
-  private class Protocol_Error(msg: String) extends Exception(msg)
-
   private def message_actor(name: String, fifo: String): Actor =
+  {
+    class EOF extends Exception
+    class Protocol_Error(msg: String) extends Exception(msg)
+
     Simple_Thread.actor(name) {
       val stream = system.fifo_input_stream(fifo)  // FIXME potentially blocking forever
       val default_buffer = new Array[Byte](65536)
@@ -255,6 +257,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
         // chunk size
         var n = 0
         c = stream.read
+        if (c == -1) throw new EOF
         while (48 <= c && c <= 57) {
           n = 10 * n + (c - 48)
           c = stream.read
@@ -293,6 +296,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
         catch {
           case e: IOException => system_result("Cannot read message:\n" + e.getMessage)
           case e: Protocol_Error => system_result("Malformed message:\n" + e.getMessage)
+          case _: EOF =>
         }
       } while (c != -1)
       stream.close
@@ -300,6 +304,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
       system_result(name + " terminated")
     }
+  }
 
 
 
