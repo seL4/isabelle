@@ -41,11 +41,11 @@ fun cmdline_options ctxt =
   get_options ctxt
   |> add ["-smt"]
 
-fun raise_cex real recon ls =
-  let val cex = Z3_Model.parse_counterex recon ls
+fun raise_cex ctxt real recon ls =
+  let val cex = Z3_Model.parse_counterex ctxt recon ls
   in raise SMT_Solver.SMT_COUNTEREXAMPLE (real, cex) end
 
-fun if_unsat f (output, recon) =
+fun if_unsat f (output, recon) ctxt =
   let
     fun jnk l =
       String.isPrefix "WARNING" l orelse
@@ -53,13 +53,13 @@ fun if_unsat f (output, recon) =
       forall Symbol.is_ascii_blank (Symbol.explode l)
     val (ls, l) = the_default ([], "") (try split_last (filter_out jnk output))
   in
-    if String.isPrefix "unsat" l then f (ls, recon)
-    else if String.isPrefix "sat" l then raise_cex true recon ls
-    else if String.isPrefix "unknown" l then raise_cex false recon ls
+    if String.isPrefix "unsat" l then f (ls, recon) ctxt
+    else if String.isPrefix "sat" l then raise_cex ctxt true recon ls
+    else if String.isPrefix "unknown" l then raise_cex ctxt false recon ls
     else raise SMT_Solver.SMT (solver_name ^ " failed")
   end
 
-val core_oracle = if_unsat (K @{cprop False})
+val core_oracle = uncurry (if_unsat (K (K @{cprop False})))
 
 val prover = if_unsat Z3_Proof_Reconstruction.reconstruct
 
@@ -72,7 +72,7 @@ fun solver oracle ctxt =
    {command = {env_var=env_var, remote_name=SOME solver_name},
     arguments = cmdline_options ctxt,
     interface = Z3_Interface.interface with_datatypes,
-    reconstruct = if with_proof then prover else pair o oracle}
+    reconstruct = if with_proof then prover else (fn r => `(oracle o pair r))}
   end
 
 val setup =
