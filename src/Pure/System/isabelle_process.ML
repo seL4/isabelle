@@ -3,6 +3,16 @@
 
 Isabelle process wrapper, based on private fifos for maximum
 robustness and performance.
+
+Startup phases:
+  . raw Posix process startup with uncontrolled output on stdout/stderr
+  . stdout \002: ML running
+  .. stdin/stdout/stderr freely available (raw ML loop)
+  .. protocol thread initialization
+  ... switch to in_fifo/out_fifo channels (rendezvous via open)
+  ... out_fifo INIT(pid): channels ready
+  ... out_fifo STATUS(keywords)
+  ... out_fifo READY: main loop ready
 *)
 
 signature ISABELLE_PROCESS =
@@ -166,17 +176,21 @@ end;
 
 (* init *)
 
-fun init in_fifo out_fifo =
+fun init in_fifo out_fifo = ignore (Simple_Thread.fork false (fn () =>
   let
+    val _ = OS.Process.sleep (Time.fromMilliseconds 500);  (*yield to raw ML toplevel*)
+    val _ = Output.std_output Symbol.STX;
+
+    val _ = quick_and_dirty := true;  (* FIXME !? *)
+    val _ = Context.set_thread_data NONE;
     val _ = Unsynchronized.change print_mode
       (fold (update op =) [isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
+
     val (in_stream, out_stream) = setup_channels in_fifo out_fifo;
     val _ = init_message out_stream;
-    val _ = quick_and_dirty := true;  (* FIXME !? *)
     val _ = Keyword.status ();
     val _ = Output.status (Markup.markup Markup.ready "");
-    val _ = Context.set_thread_data NONE;
-    val _ = Simple_Thread.fork false (fn () => (loop in_stream; quit ()));
-  in () end;
+  in loop in_stream end));
 
 end;
+

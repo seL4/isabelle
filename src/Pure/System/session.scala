@@ -270,7 +270,7 @@ class Session(system: Isabelle_System)
 
         case Started(timeout, args) =>
           if (prover == null) {
-            prover = new Isabelle_Process(system, self, args:_*) with Isar_Document
+            prover = new Isabelle_Process(system, timeout, self, args:_*) with Isar_Document
             val origin = sender
             val opt_err = prover_startup(timeout)
             if (opt_err.isDefined) prover = null
