@@ -235,18 +235,15 @@ object Markup
 
   val INIT = "init"
   val STATUS = "status"
+  val REPORT = "report"
   val WRITELN = "writeln"
   val TRACING = "tracing"
   val WARNING = "warning"
   val ERROR = "error"
   val SYSTEM = "system"
-  val INPUT = "input"
-  val STDIN = "stdin"
   val STDOUT = "stdout"
-  val SIGNAL = "signal"
   val EXIT = "exit"
 
-  val REPORT = "report"
   val NO_REPORT = "no_report"
 
   val BAD = "bad"

@@ -19,9 +19,9 @@ object Isabelle_Process
 {
   /* results */
 
-  object Kind {
-    // message markup
-    val markup = Map(
+  object Kind
+  {
+    val message_markup = Map(
       ('A' : Int) -> Markup.INIT,
       ('B' : Int) -> Markup.STATUS,
       ('C' : Int) -> Markup.REPORT,
@@ -29,19 +29,6 @@ object Isabelle_Process
       ('E' : Int) -> Markup.TRACING,
       ('F' : Int) -> Markup.WARNING,
       ('G' : Int) -> Markup.ERROR)
-    def is_raw(kind: String) =
-      kind == Markup.STDOUT
-    def is_control(kind: String) =
-      kind == Markup.SYSTEM ||
-      kind == Markup.SIGNAL ||
-      kind == Markup.EXIT
-    def is_system(kind: String) =
-      kind == Markup.SYSTEM ||
-      kind == Markup.INPUT ||
-      kind == Markup.STDIN ||
-      kind == Markup.SIGNAL ||
-      kind == Markup.EXIT ||
-      kind == Markup.STATUS
   }
 
   class Result(val message: XML.Elem)
@@ -50,9 +37,10 @@ object Isabelle_Process
     def properties = message.markup.properties
     def body = message.body
 
-    def is_raw = Kind.is_raw(kind)
-    def is_control = Kind.is_control(kind)
-    def is_system = Kind.is_system(kind)
+    def is_init = kind == Markup.INIT
+    def is_exit = kind == Markup.EXIT
+    def is_stdout = kind == Markup.STDOUT
+    def is_system = kind == Markup.SYSTEM
     def is_status = kind == Markup.STATUS
     def is_report = kind == Markup.REPORT
     def is_ready = is_status && body == List(XML.Elem(Markup.Ready, Nil))
@@ -92,12 +80,22 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* results */
 
+  private def system_result(text: String)
+  {
+    receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
+  }
+
+
   private val xml_cache = new XML.Cache(131071)
 
   private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
   {
-    if (pid.isEmpty && kind == Markup.INIT)
-      pid = props.find(_._1 == Markup.PID).map(_._1)
+    if (pid.isEmpty && kind == Markup.INIT) {
+      props.find(_._1 == Markup.PID).map(_._1) match {
+        case None => system_result("Bad Isabelle process initialization: missing pid")
+        case p => pid = p
+      }
+    }
 
     val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
     xml_cache.cache_tree(msg)((message: XML.Tree) =>
@@ -114,16 +112,16 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   def interrupt()
   {
-    if (proc.isEmpty) put_result(Markup.SYSTEM, "Cannot interrupt Isabelle: no process")
+    if (proc.isEmpty) system_result("Cannot interrupt Isabelle: no process")
     else
       pid match {
-        case None => put_result(Markup.SYSTEM, "Cannot interrupt Isabelle: unknowd pid")
+        case None => system_result("Cannot interrupt Isabelle: unknowd pid")
         case Some(i) =>
           try {
             if (system.execute(true, "kill", "-INT", i).waitFor == 0)
-              put_result(Markup.SIGNAL, "INT")
+              system_result("Interrupt Isabelle")
             else
-              put_result(Markup.SYSTEM, "Cannot interrupt Isabelle: kill command failed")
+              system_result("Cannot interrupt Isabelle: kill command failed")
           }
           catch { case e: IOException => error("Cannot interrupt Isabelle: " + e.getMessage) }
       }
@@ -132,11 +130,11 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   def kill()
   {
     proc match {
-      case None => put_result(Markup.SYSTEM, "Cannot kill Isabelle: no process")
+      case None => system_result("Cannot kill Isabelle: no process")
       case Some(p) =>
         close()
         Thread.sleep(500)  // FIXME !?
-        put_result(Markup.SIGNAL, "KILL")
+        system_result("Kill Isabelle")
         p.destroy
         proc = None
         pid = None
@@ -172,11 +170,9 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
           }
           //}}}
         }
-        catch {
-          case e: IOException => put_result(Markup.SYSTEM, name + ": " + e.getMessage)
-        }
+        catch { case e: IOException => system_result(name + ": " + e.getMessage) }
       }
-      put_result(Markup.SYSTEM, name + " terminated")
+      system_result(name + " terminated")
     }
 
 
@@ -209,11 +205,9 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
           }
           //}}}
         }
-        catch {
-          case e: IOException => put_result(Markup.SYSTEM, name + ": " + e.getMessage)
-        }
+        catch { case e: IOException => system_result(name + ": " + e.getMessage) }
       }
-      put_result(Markup.SYSTEM, name + " terminated")
+      system_result(name + " terminated")
     }
 
 
@@ -239,11 +233,9 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
           }
           //}}}
         }
-        catch {
-          case e: IOException => put_result(Markup.SYSTEM, name + ": " + e.getMessage)
-        }
+        catch { case e: IOException => system_result(name + ": " + e.getMessage) }
       }
-      put_result(Markup.SYSTEM, name + " terminated")
+      system_result(name + " terminated")
     }
 
 
@@ -293,22 +285,20 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
           val body = read_chunk()
           header match {
             case List(XML.Elem(Markup(name, props), Nil))
-                if name.size == 1 && Kind.markup.isDefinedAt(name(0)) =>
-              put_result(Kind.markup(name(0)), props, body)
+                if name.size == 1 && Kind.message_markup.isDefinedAt(name(0)) =>
+              put_result(Kind.message_markup(name(0)), props, body)
             case _ => throw new Protocol_Error("bad header: " + header.toString)
           }
         }
         catch {
-          case e: IOException =>
-            put_result(Markup.SYSTEM, "Cannot read message:\n" + e.getMessage)
-          case e: Protocol_Error =>
-            put_result(Markup.SYSTEM, "Malformed message:\n" + e.getMessage)
+          case e: IOException => system_result("Cannot read message:\n" + e.getMessage)
+          case e: Protocol_Error => system_result("Malformed message:\n" + e.getMessage)
         }
       } while (c != -1)
       stream.close
       close()
 
-      put_result(Markup.SYSTEM, name + " terminated")
+      system_result(name + " terminated")
     }
 
 
@@ -346,7 +336,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
       case Some(p) =>
         val rc = p.waitFor()
         Thread.sleep(300)  // FIXME property!?
-        put_result(Markup.SYSTEM, "Isabelle process terminated")
+        system_result("Isabelle process terminated")
         put_result(Markup.EXIT, rc.toString)
     }
     rm_fifos()

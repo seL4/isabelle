@@ -200,8 +200,8 @@ class Session(system: Isabelle_System)
               case _ => if (!result.is_ready) bad_result(result)
             }
           }
-          else if (result.kind == Markup.EXIT) prover = null
-          else if (result.is_raw) raw_output.event(result)
+          else if (result.is_exit) prover = null  // FIXME ??
+          else if (result.is_stdout) raw_output.event(result)
           else if (!result.is_system) bad_result(result)  // FIXME syslog for system messages (!?)
         }
     }
@@ -216,7 +216,7 @@ class Session(system: Isabelle_System)
       while (
         receiveWithin(0) {
           case result: Isabelle_Process.Result =>
-            if (result.is_raw) {
+            if (result.is_stdout) {
               for (text <- XML.content(result.message))
                 buf.append(text)
             }
@@ -229,16 +229,14 @@ class Session(system: Isabelle_System)
     def prover_startup(timeout: Int): Option[String] =
     {
       receiveWithin(timeout) {
-        case result: Isabelle_Process.Result
-          if result.kind == Markup.INIT =>
+        case result: Isabelle_Process.Result if result.is_init =>
           while (receive {
             case result: Isabelle_Process.Result =>
               handle_result(result); !result.is_ready
             }) {}
           None
 
-        case result: Isabelle_Process.Result
-          if result.kind == Markup.EXIT =>
+        case result: Isabelle_Process.Result if result.is_exit =>
           Some(startup_error())
 
         case TIMEOUT =>  // FIXME clarify
