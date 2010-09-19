@@ -282,8 +282,13 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
   def mk_fifo(): String =
   {
-    val (result, rc) = isabelle_tool("mkfifo", next_fifo())
-    if (rc == 0) result.trim
+    val i = next_fifo()
+    val script =
+      "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$-" + i + "\"\n" +
+      "mkfifo -m 600 \"$FIFO\" || { echo \"Failed to create fifo: $FIFO\" >&2; exit 2; }\n" +
+      "echo -n \"$FIFO\"\n"
+    val (result, rc) = bash_output(script)
+    if (rc == 0) result
     else error(result)
   }
 
