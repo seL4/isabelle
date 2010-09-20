@@ -671,7 +671,7 @@ val da = Unsynchronized.ref refl;
 
 setup {*
 Theory.add_consts_i const_decls
-#> (fn thy  => let val ([thm],thy') = PureThy.add_axioms [(("dist_axiom",dist),[])] thy
+#> (fn thy  => let val ([thm],thy') = Global_Theory.add_axioms [(("dist_axiom",dist),[])] thy
                in (da := thm; thy') end)
 *}
 

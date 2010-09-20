@@ -88,7 +88,7 @@ fun add_proof_syntax thy =
 
 fun proof_of_term thy ty =
   let
-    val thms = PureThy.all_thms_of thy;
+    val thms = Global_Theory.all_thms_of thy;
     val axms = Theory.all_axioms_of thy;
 
     fun mk_term t = (if ty then I else map_types (K dummyT))
@@ -188,7 +188,7 @@ val term_of_proof = term_of [];
 
 fun cterm_of_proof thy prf =
   let
-    val thm_names = map fst (PureThy.all_thms_of thy);
+    val thm_names = map fst (Global_Theory.all_thms_of thy);
     val axm_names = map fst (Theory.all_axioms_of thy);
     val thy' = thy
       |> add_proof_syntax
@@ -207,7 +207,7 @@ fun strip_sorts_consttypes ctxt =
 
 fun read_term thy topsort =
   let
-    val thm_names = filter_out (fn s => s = "") (map fst (PureThy.all_thms_of thy));
+    val thm_names = filter_out (fn s => s = "") (map fst (Global_Theory.all_thms_of thy));
     val axm_names = map fst (Theory.all_axioms_of thy);
     val ctxt = thy
       |> add_proof_syntax

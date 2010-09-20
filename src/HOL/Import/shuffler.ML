@@ -623,7 +623,7 @@ fun find_potential thy t =
         val shuffles = ShuffleData.get thy
         val ignored = collect_ignored shuffles []
         val all_thms =
-          map (`Thm.get_name_hint) (maps #2 (Facts.dest_static [] (PureThy.facts_of thy)))
+          map (`Thm.get_name_hint) (maps #2 (Facts.dest_static [] (Global_Theory.facts_of thy)))
     in
         filter (match_consts ignored t) all_thms
     end

@@ -379,7 +379,7 @@ fun define_consts
       (Binding.suffix_name "_def" b, Logic.mk_equals (c, t));
     val defs = map2 mk_def consts specs;
     val (def_thms, thy) =
-      PureThy.add_defs false (map Thm.no_attributes defs) thy;
+      Global_Theory.add_defs false (map Thm.no_attributes defs) thy;
   in
     ((consts, def_thms), thy)
   end;

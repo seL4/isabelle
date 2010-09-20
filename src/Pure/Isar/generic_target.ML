@@ -122,7 +122,7 @@ fun import_export_proof ctxt (name, raw_th) =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val result = PureThy.name_thm true true name th'';
+    val result = Global_Theory.name_thm true true name th'';
 
     (*import fixes*)
     val (tvars, vars) =
@@ -142,7 +142,7 @@ fun import_export_proof ctxt (name, raw_th) =
         NONE => raise THM ("Failed to re-import result", 0, [result'])
       | SOME res => Local_Defs.contract ctxt defs (Thm.cprop_of th) res)
       |> Goal.norm_result
-      |> PureThy.name_thm false false name;
+      |> Global_Theory.name_thm false false name;
 
   in (result'', result) end;
 
@@ -150,11 +150,11 @@ fun notes target_notes kind facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val facts' = facts
-      |> map (fn (a, bs) => (a, PureThy.burrow_fact (PureThy.name_multi
+      |> map (fn (a, bs) => (a, Global_Theory.burrow_fact (Global_Theory.name_multi
           (Local_Theory.full_name lthy (fst a))) bs))
-      |> PureThy.map_facts (import_export_proof lthy);
-    val local_facts = PureThy.map_facts #1 facts';
-    val global_facts = PureThy.map_facts #2 facts';
+      |> Global_Theory.map_facts (import_export_proof lthy);
+    val local_facts = Global_Theory.map_facts #1 facts';
+    val global_facts = Global_Theory.map_facts #2 facts';
   in
     lthy
     |> target_notes kind global_facts local_facts
@@ -214,7 +214,7 @@ fun theory_notes kind global_facts lthy =
     val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
   in
     lthy
-    |> Local_Theory.background_theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)
     |> Local_Theory.target (ProofContext.note_thmss kind global_facts' #> snd)
   end;
 

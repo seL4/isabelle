@@ -57,7 +57,7 @@ fun by_schematic_rule ctxt ct =
 
 val z3_rules_setup =
   Attrib.setup (Binding.name z3_ruleN) (Attrib.add_del add del) description #>
-  PureThy.add_thms_dynamic (Binding.name z3_ruleN, Net.content o Z3_Rules.get)
+  Global_Theory.add_thms_dynamic (Binding.name z3_ruleN, Net.content o Z3_Rules.get)
 
 end
 

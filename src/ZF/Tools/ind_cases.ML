@@ -50,7 +50,7 @@ fun inductive_cases args thy =
     val facts = args |> map (fn ((name, srcs), props) =>
       ((name, map (Attrib.attribute thy) srcs),
         map (Thm.no_attributes o single o smart_cases ctxt) props));
-  in thy |> PureThy.note_thmss "" facts |> snd end;
+  in thy |> Global_Theory.note_thmss "" facts |> snd end;
 
 
 (* ind_cases method *)

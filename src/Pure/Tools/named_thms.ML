@@ -39,6 +39,6 @@ val del = Thm.declaration_attribute del_thm;
 
 val setup =
   Attrib.setup (Binding.name name) (Attrib.add_del add del) ("declaration of " ^ description) #>
-  PureThy.add_thms_dynamic (Binding.name name, content);
+  Global_Theory.add_thms_dynamic (Binding.name name, content);
 
 end;

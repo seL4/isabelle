@@ -174,8 +174,9 @@ fun oracle (name, pos) (body_txt, body_pos) =
 val add_axioms = fold (snd oo Specification.axiom_cmd);
 
 fun add_defs ((unchecked, overloaded), args) thy =
-  thy |> (if unchecked then PureThy.add_defs_unchecked_cmd else PureThy.add_defs_cmd) overloaded
-    (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute thy) srcs)) args)
+  thy |>
+    (if unchecked then Global_Theory.add_defs_unchecked_cmd else Global_Theory.add_defs_cmd)
+      overloaded (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute thy) srcs)) args)
   |> snd;
 
 
@@ -215,7 +216,8 @@ fun hide_names intern check hide fully xnames thy =
 val hide_class = hide_names Sign.intern_class (can o Sign.certify_class) Sign.hide_class;
 val hide_type = hide_names Sign.intern_type Sign.declared_tyname Sign.hide_type;
 val hide_const = hide_names Sign.intern_const Sign.declared_const Sign.hide_const;
-val hide_fact = hide_names PureThy.intern_fact PureThy.defined_fact PureThy.hide_fact;
+val hide_fact =
+  hide_names Global_Theory.intern_fact Global_Theory.defined_fact Global_Theory.hide_fact;
 
 
 (* goals *)

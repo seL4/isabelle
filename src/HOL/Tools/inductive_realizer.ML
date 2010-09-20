@@ -273,7 +273,7 @@ fun rename tab = map (fn x => the_default x (AList.lookup op = tab x));
 fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
   let
     val qualifier = Long_Name.qualifier (name_of_thm induct);
-    val inducts = PureThy.get_thms thy (Long_Name.qualify qualifier "inducts");
+    val inducts = Global_Theory.get_thms thy (Long_Name.qualify qualifier "inducts");
     val iTs = rev (Term.add_tvars (prop_of (hd intrs)) []);
     val ar = length vs + length iTs;
     val params = Inductive.params_of raw_induct;
@@ -356,7 +356,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
            subst_atomic rlzpreds' (Logic.unvarify_global rintr)))
              (rintrs ~~ maps snd rss)) [] ||>
       Sign.root_path;
-    val thy3 = fold (PureThy.hide_fact false o name_of_thm) (#intrs ind_info) thy3';
+    val thy3 = fold (Global_Theory.hide_fact false o name_of_thm) (#intrs ind_info) thy3';
 
     (** realizer for induction rule **)
 
@@ -395,11 +395,11 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
            REPEAT ((resolve_tac prems THEN_ALL_NEW EVERY'
              [K (rewrite_goals_tac rews), Object_Logic.atomize_prems_tac,
               DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE]]) 1)]);
-        val (thm', thy') = PureThy.store_thm (Binding.qualified_name (space_implode "_"
+        val (thm', thy') = Global_Theory.store_thm (Binding.qualified_name (space_implode "_"
           (Long_Name.qualify qualifier "induct" :: vs' @ Ps @ ["correctness"])), thm) thy;
         val thms = map (fn th => zero_var_indexes (rotate_prems ~1 (th RS mp)))
           (Datatype_Aux.split_conj_thm thm');
-        val ([thms'], thy'') = PureThy.add_thmss
+        val ([thms'], thy'') = Global_Theory.add_thmss
           [((Binding.qualified_name (space_implode "_"
              (Long_Name.qualify qualifier "inducts" :: vs' @ Ps @
                ["correctness"])), thms), [])] thy';
@@ -454,7 +454,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
            rewrite_goals_tac rews,
            REPEAT ((resolve_tac prems THEN_ALL_NEW (Object_Logic.atomize_prems_tac THEN'
              DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE])) 1)]);
-        val (thm', thy') = PureThy.store_thm (Binding.qualified_name (space_implode "_"
+        val (thm', thy') = Global_Theory.store_thm (Binding.qualified_name (space_implode "_"
           (name_of_thm elim :: vs @ Ps @ ["correctness"])), thm) thy
       in
         Extraction.add_realizers_i

@@ -81,7 +81,7 @@ fun extra_hyps ctxt th =
 
 (*named prems -- legacy feature*)
 val _ = Context.>>
-  (Context.map_theory (PureThy.add_thms_dynamic (Binding.name "prems",
+  (Context.map_theory (Global_Theory.add_thms_dynamic (Binding.name "prems",
     fn Context.Theory _ => [] | Context.Proof ctxt => all_prems_of ctxt)));
 
 

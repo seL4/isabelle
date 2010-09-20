@@ -2158,15 +2158,15 @@ fun create_definitions options preds (name, modes) thy =
         val def = Logic.mk_equals (lhs, predterm)
         val ([definition], thy') = thy |>
           Sign.add_consts_i [(Binding.name mode_cbasename, funT, NoSyn)] |>
-          PureThy.add_defs false [((Binding.name (mode_cbasename ^ "_def"), def), [])]
+          Global_Theory.add_defs false [((Binding.name (mode_cbasename ^ "_def"), def), [])]
         val ctxt' = ProofContext.init_global thy'
         val rules as ((intro, elim), _) =
           create_intro_elim_rule ctxt' mode definition mode_cname funT (Const (name, T))
         in thy'
           |> set_function_name Pred name mode mode_cname
           |> add_predfun_data name mode (definition, rules)
-          |> PureThy.store_thm (Binding.name (mode_cbasename ^ "I"), intro) |> snd
-          |> PureThy.store_thm (Binding.name (mode_cbasename ^ "E"), elim)  |> snd
+          |> Global_Theory.store_thm (Binding.name (mode_cbasename ^ "I"), intro) |> snd
+          |> Global_Theory.store_thm (Binding.name (mode_cbasename ^ "E"), elim)  |> snd
           |> Theory.checkpoint
         end;
   in
@@ -2883,7 +2883,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
       (fn thm => Context.mapping (Code.add_eqn thm) I))))
     val thy''' =
       Output.cond_timeit (!Quickcheck.timing) "Setting code equations...." (fn _ =>
-      fold (fn (name, result_thms) => fn thy => snd (PureThy.add_thmss
+      fold (fn (name, result_thms) => fn thy => snd (Global_Theory.add_thmss
       [((Binding.qualify true (Long_Name.base_name name) (Binding.name qname), result_thms),
         [attrib thy ])] thy))
       result_thms' thy'' |> Theory.checkpoint)

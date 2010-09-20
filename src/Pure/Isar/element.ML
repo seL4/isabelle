@@ -480,7 +480,7 @@ fun generic_note_thmss kind facts context =
     val facts' = Attrib.map_facts (Attrib.attribute_i (Context.theory_of context)) facts;
   in
     context |> Context.mapping_result
-      (PureThy.note_thmss kind facts')
+      (Global_Theory.note_thmss kind facts')
       (ProofContext.note_thmss kind facts')
   end;
 

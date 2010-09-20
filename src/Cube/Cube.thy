@@ -8,7 +8,7 @@ theory Cube
 imports Pure
 begin
 
-setup PureThy.old_appl_syntax_setup
+setup Pure_Thy.old_appl_syntax_setup
 
 typedecl "term"
 typedecl "context"

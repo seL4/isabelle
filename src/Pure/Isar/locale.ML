@@ -506,7 +506,7 @@ fun add_thmss loc kind args ctxt =
             let
               val args'' = snd args' |> Element.facts_map (Element.morph_ctxt morph) |>
                 Attrib.map_facts (Attrib.attribute_i thy)
-            in PureThy.note_thmss kind args'' #> snd end)
+            in Global_Theory.note_thmss kind args'' #> snd end)
         (registrations_of (Context.Theory thy) loc) thy))
   in ctxt'' end;
 

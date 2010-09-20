@@ -98,7 +98,7 @@ val _ = Context.>> (Context.map_theory
     "declaration of symmetry rule" #>
   Attrib.setup (Binding.name "symmetric") (Scan.succeed symmetric)
     "resolution with symmetry rule" #>
-  PureThy.add_thms
+  Global_Theory.add_thms
    [((Binding.empty, transitive_thm), [trans_add]),
     ((Binding.empty, symmetric_thm), [sym_add])] #> snd));
 

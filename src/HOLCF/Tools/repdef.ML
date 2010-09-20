@@ -139,7 +139,7 @@ fun gen_add_repdef
       [type_definition_thm, #below_def cpo_info, emb_def, prj_def];
     val (REP_thm, thy) = thy
       |> Sign.add_path (Binding.name_of name)
-      |> PureThy.add_thm
+      |> Global_Theory.add_thm
          ((Binding.prefix_name "REP_" name,
           Drule.zero_var_indexes (@{thm typedef_REP} OF typedef_thms')), [])
       ||> Sign.restore_naming thy;

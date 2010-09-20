@@ -124,7 +124,7 @@ val abs_const = #abs_const iso_info;
 val rep_const = #rep_const iso_info;
 
 local
-  fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
+  fun ga s dn = Global_Theory.get_thm thy (dn ^ "." ^ s);
 in
   val ax_take_0      = ga "take_0" dname;
   val ax_take_strict = ga "take_strict" dname;
@@ -200,7 +200,7 @@ val simp = Simplifier.simp_add;
 
 in
   thy
-  |> PureThy.add_thmss [
+  |> Global_Theory.add_thmss [
      ((qualified "iso_rews"  , iso_rews    ), [simp]),
      ((qualified "nchotomy"  , [nchotomy]  ), []),
      ((qualified "exhaust"   , [exhaust]   ),
@@ -240,8 +240,8 @@ let
   val pg = pg' thy;
 
   local
-    fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
-    fun gts s dn = PureThy.get_thms thy (dn ^ "." ^ s);
+    fun ga s dn = Global_Theory.get_thm thy (dn ^ "." ^ s);
+    fun gts s dn = Global_Theory.get_thms thy (dn ^ "." ^ s);
   in
     val axs_rep_iso = map (ga "rep_iso") dnames;
     val axs_abs_iso = map (ga "abs_iso") dnames;
@@ -421,10 +421,10 @@ fun ind_rule (dname, rule) =
 
 in
   thy
-  |> snd o PureThy.add_thmss [
+  |> snd o Global_Theory.add_thmss [
      ((Binding.qualified true "finite_induct" comp_dbind, [finite_ind]), []),
      ((Binding.qualified true "induct"        comp_dbind, [ind]       ), [])]
-  |> (snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
+  |> (snd o Global_Theory.add_thmss (map ind_rule (dnames ~~ inducts)))
 end; (* prove_induction *)
 
 (******************************************************************************)
@@ -444,7 +444,7 @@ val x_name = idx_name dnames "x";
 val n_eqs = length eqs;
 
 val take_rews =
-    maps (fn dn => PureThy.get_thms thy (dn ^ ".take_rews")) dnames;
+    maps (fn dn => Global_Theory.get_thms thy (dn ^ ".take_rews")) dnames;
 
 (* ----- define bisimulation predicate -------------------------------------- *)
 
@@ -465,7 +465,7 @@ local
       singleton (Syntax.check_terms (ProofContext.init_global thy)) (intern_term thy t);
   fun legacy_infer_prop thy t = legacy_infer_term thy (Type.constraint propT t);
   fun infer_props thy = map (apsnd (legacy_infer_prop thy));
-  fun add_defs_i x = PureThy.add_defs false (map Thm.no_attributes x);
+  fun add_defs_i x = Global_Theory.add_defs false (map Thm.no_attributes x);
   fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 
   fun one_con (con, args) =
@@ -568,7 +568,7 @@ in
     in pg [] goal (K tacs) end;
 end; (* local *)
 
-in thy |> snd o PureThy.add_thmss
+in thy |> snd o Global_Theory.add_thmss
     [((Binding.qualified true "coinduct" comp_dbind, [coind]), [])]
 end; (* let *)
 
@@ -603,7 +603,7 @@ end;
 val take_lemmas = #take_lemma_thms take_info;
 
 val take_rews =
-    maps (fn dn => PureThy.get_thms thy (dn ^ ".take_rews")) dnames;
+    maps (fn dn => Global_Theory.get_thms thy (dn ^ ".take_rews")) dnames;
 
 (* prove induction rules, unless definition is indirect recursive *)
 val thy =

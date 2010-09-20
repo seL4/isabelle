@@ -241,7 +241,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
         val ([def_thm], thy') =
           thy
           |> Sign.add_consts_i [(cname', constrT, mx)]
-          |> (PureThy.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)];
+          |> (Global_Theory.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)];
 
       in (thy', defs @ [def_thm], eqns @ [eqn], i + 1) end;
 
@@ -352,7 +352,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
           Logic.mk_equals (Const (iso_name, T --> Univ_elT),
             list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs)))) (rec_names ~~ isos);
         val (def_thms, thy') =
-          apsnd Theory.checkpoint ((PureThy.add_defs false o map Thm.no_attributes) defs thy);
+          apsnd Theory.checkpoint ((Global_Theory.add_defs false o map Thm.no_attributes) defs thy);
 
         (* prove characteristic equations *)
 
@@ -628,7 +628,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
     val ([dt_induct'], thy7) =
       thy6
       |> Sign.add_path big_name
-      |> PureThy.add_thms [((Binding.name "induct", dt_induct), [case_names_induct])]
+      |> Global_Theory.add_thms [((Binding.name "induct", dt_induct), [case_names_induct])]
       ||> Sign.parent_path
       ||> Theory.checkpoint;
 

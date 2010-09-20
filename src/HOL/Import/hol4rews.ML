@@ -370,7 +370,7 @@ fun export_hol4_pending thy =
         val thm2 = Drule.export_without_context thm1;
       in
         thy
-        |> PureThy.store_thm (Binding.name bthm, thm2)
+        |> Global_Theory.store_thm (Binding.name bthm, thm2)
         |> snd
         |> add_hol4_theorem bthy bthm hth
       end;

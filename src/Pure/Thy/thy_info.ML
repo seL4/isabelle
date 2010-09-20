@@ -194,7 +194,7 @@ fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
       tasks |> maps (fn name =>
         let
           val (thy, after_load) = Future.join (the (Symtab.lookup futures name));
-          val _ = PureThy.join_proofs thy;
+          val _ = Global_Theory.join_proofs thy;
           val _ = after_load ();
         in [] end handle exn => [Exn.Exn exn])
       |> rev |> Exn.release_all;

@@ -382,7 +382,7 @@ fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
                       $ functional
      val def_term = const_def thy (fid, Ty, wfrec_R_M)
      val ([def], thy') =
-      PureThy.add_defs false [Thm.no_attributes (Binding.name def_name, def_term)] thy
+      Global_Theory.add_defs false [Thm.no_attributes (Binding.name def_name, def_term)] thy
  in (thy', def) end;
 end;
 
@@ -539,7 +539,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val defn = const_def thy (name, Ty, S.list_mk_abs (args,rhs))
      val ([def0], theory) =
        thy
-       |> PureThy.add_defs false
+       |> Global_Theory.add_defs false
             [Thm.no_attributes (Binding.name (fid ^ "_def"), defn)]
      val def = Thm.unvarify_global def0;
      val dummy =
