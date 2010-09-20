@@ -722,7 +722,8 @@ fun add_rhss_of_eqn thy t =
     val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals o subst_signatures thy) t;
     fun add_const (Const (c, ty)) = insert (op =) (c, Sign.const_typargs thy (c, ty))
       | add_const _ = I
-  in fold_aterms add_const t end;
+    val add_consts = fold_aterms add_const
+  in add_consts rhs o fold add_consts args end;
 
 fun dest_eqn thy =
   apfst (snd o strip_comb) o Logic.dest_equals o subst_signatures thy o Logic.unvarify_global;

@@ -271,6 +271,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/ATP/atp_proof.ML \
   Tools/ATP/atp_systems.ML \
   Tools/choice_specification.ML \
+  Tools/code_evaluation.ML \
   Tools/Datatype/datatype_selectors.ML \
   Tools/int_arith.ML \
   Tools/groebner.ML \

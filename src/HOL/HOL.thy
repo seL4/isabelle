@@ -742,7 +742,7 @@ next
   then show False by (rule notE)
 qed
 
-lemma atomize_eq [atomize]: "(x == y) == Trueprop (x = y)"
+lemma atomize_eq [atomize, code]: "(x == y) == Trueprop (x = y)"
 proof
   assume "x == y"
   show "x = y" by (unfold `x == y`) (rule refl)

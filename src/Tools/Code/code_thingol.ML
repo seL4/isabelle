@@ -275,6 +275,7 @@ local
        of SOME (tyco, _) => Codegen.thyname_of_type thy tyco
         | NONE => Codegen.thyname_of_const thy c);
   fun purify_base "==>" = "follows"
+    | purify_base "==" = "meta_eq"
     | purify_base s = Name.desymbolize false s;
   fun namify thy get_basename get_thyname name =
     let
