@@ -716,9 +716,9 @@ fun swi_prolog_query_firstn n (rel, args) vnames =
   "eval :- findnsols(" ^ string_of_int n ^ ", (" ^ space_implode ", " vnames ^ "), " ^
     rel ^ "(" ^ space_implode ", " (map write_term args) ^ "), Sols), writelist(Sols).\n" ^
     "writelist([]).\n" ^
-    "writelist([(" ^ space_implode ", " vnames ^ ")|T]) :- " ^
+    "writelist([(" ^ space_implode ", " vnames ^ ")|SolutionTail]) :- " ^
     "writef('" ^ space_implode ";" (map (fn v => v ^ " = %w") vnames) ^
-    "\\n', [" ^ space_implode ", " vnames ^ "]), writelist(T).\n"
+    "\\n', [" ^ space_implode ", " vnames ^ "]), writelist(SolutionTail).\n"
   
 val swi_prolog_prelude =
   "#!/usr/bin/swipl -q -t main -f\n\n" ^
