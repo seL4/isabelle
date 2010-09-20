@@ -2,30 +2,33 @@
 #
 # Author: Makarius
 #
-# bash - invoke shell command line (with robust signal handling)
+# exec process - with optional process group and report of pid
 #
 
 use warnings;
 use strict;
 
-
 # args
 
-my ($group, $script_name, $pid_name, $output_name) = @ARGV;
+my ($group, $pid_name, $cmd_line) = @ARGV;
 
 
-# process id
+# process group
 
 if ($group eq "group") {
   use POSIX "setsid";
   POSIX::setsid || die $!;
 }
 
+
+# pid
+
 open (PID_FILE, ">", $pid_name) || die $!;
 print PID_FILE "$$";
 close PID_FILE;
 
 
-# exec script
+# exec process
 
-exec qq/exec bash '$script_name' > '$output_name'/;
+exec "$cmd_line";
+

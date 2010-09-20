@@ -8,7 +8,8 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{InputStream, FileInputStream, OutputStream, FileOutputStream, File, IOException}
+import java.io.{InputStream, FileInputStream, OutputStream, FileOutputStream, File,
+  BufferedReader, InputStreamReader, IOException}
 import java.awt.{GraphicsEnvironment, Font}
 import java.awt.font.TextAttribute
 
@@ -200,58 +201,67 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   {
     Standard_System.with_tmp_file("isabelle_script") { script_file =>
       Standard_System.with_tmp_file("isabelle_pid") { pid_file =>
-        Standard_System.with_tmp_file("isabelle_output") { output_file =>
 
-          Standard_System.write_file(script_file, script)
+        Standard_System.write_file(script_file, script)
 
-          val proc = execute(true, expand_path("$ISABELLE_HOME/lib/scripts/bash"), "group",
-            script_file.getPath, pid_file.getPath, output_file.getPath)
+        val proc = execute(true, expand_path("$ISABELLE_HOME/lib/scripts/process"), "group",
+          posix_path(pid_file.getPath), "exec bash " + posix_path(script_file.getPath))
 
-          def kill(strict: Boolean) =
-          {
-            val pid =
-              try { Some(Standard_System.read_file(pid_file)) }
-              catch { case _: IOException => None }
-            if (pid.isDefined) {
-              var running = true
-              var count = 10   // FIXME property!?
-              while (running && count > 0) {
-                if (execute(true, "kill", "-INT", "-" + pid.get).waitFor != 0)
-                  running = false
-                else {
-                  Thread.sleep(100)   // FIXME property!?
-                  if (!strict) count -= 1
-                }
+        val stdout = new StringBuilder(100)
+        val stdout_thread = Simple_Thread.fork("stdout")
+        {
+          val reader =
+            new BufferedReader(new InputStreamReader(proc.getInputStream, Standard_System.charset))
+          var c = -1
+          while ({ c = reader.read; c != -1 }) stdout += c.asInstanceOf[Char]
+          reader.close
+        }
+
+        def kill(strict: Boolean) =
+        {
+          val pid =
+            try { Some(Standard_System.read_file(pid_file)) }
+            catch { case _: IOException => None }
+          if (pid.isDefined) {
+            var running = true
+            var count = 10   // FIXME property!?
+            while (running && count > 0) {
+              if (execute(true, "kill", "-INT", "-" + pid.get).waitFor != 0)
+                running = false
+              else {
+                Thread.sleep(100)   // FIXME property!?
+                if (!strict) count -= 1
               }
             }
           }
-
-          val shutdown_hook = new Thread { override def run = kill(true) }
-          Runtime.getRuntime.addShutdownHook(shutdown_hook)  // FIXME tmp files during shutdown?!?
-
-          def cleanup() =
-            try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
-            catch { case _: IllegalStateException => }
-
-          val rc =
-            try {
-              try { proc.waitFor }  // FIXME read stderr (!??)
-              catch { case e: InterruptedException => Thread.interrupted; kill(false); throw e }
-            }
-            finally {
-              proc.getOutputStream.close
-              proc.getInputStream.close
-              proc.getErrorStream.close
-              proc.destroy
-              cleanup()
-            }
-
-          val output =
-            try { Standard_System.read_file(output_file) }
-            catch { case _: IOException => "" }
-
-          (output, rc)
         }
+
+        val shutdown_hook = new Thread { override def run = kill(true) }
+        Runtime.getRuntime.addShutdownHook(shutdown_hook)  // FIXME tmp files during shutdown?!?
+
+        def cleanup() =
+          try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
+          catch { case _: IllegalStateException => }
+
+        val rc =
+          try {
+            try {
+              val rc = proc.waitFor  // FIXME read stderr (!??)
+              stdout_thread.join
+              rc
+            }
+            catch { case e: InterruptedException => Thread.interrupted; kill(false); throw e }
+          }
+          finally {
+            proc.getOutputStream.close
+            proc.getInputStream.close
+            proc.getErrorStream.close
+            proc.destroy
+            cleanup()
+          }
+
+        stdout_thread.join()
+        (stdout.toString, rc)
       }
     }
   }
