@@ -173,6 +173,20 @@ subsection{*Bijections Between Sets*}
 text{*The definition of @{const bij_betw} is in @{text "Fun.thy"}, but most of
 the theorems belong here, or need at least @{term Hilbert_Choice}.*}
 
+lemma bij_betwI:
+assumes "f \<in> A \<rightarrow> B" and "g \<in> B \<rightarrow> A"
+    and g_f: "\<And>x. x\<in>A \<Longrightarrow> g (f x) = x" and f_g: "\<And>y. y\<in>B \<Longrightarrow> f (g y) = y"
+shows "bij_betw f A B"
+unfolding bij_betw_def
+proof
+  show "inj_on f A" by (metis g_f inj_on_def)
+next
+  have "f ` A \<subseteq> B" using `f \<in> A \<rightarrow> B` by auto
+  moreover
+  have "B \<subseteq> f ` A" by auto (metis Pi_mem `g \<in> B \<rightarrow> A` f_g image_iff)
+  ultimately show "f ` A = B" by blast
+qed
+
 lemma bij_betw_imp_funcset: "bij_betw f A B \<Longrightarrow> f \<in> A \<rightarrow> B"
 by (auto simp add: bij_betw_def)
 
@@ -206,6 +220,9 @@ lemma extensionalityI:
   "[| f \<in> extensional A; g \<in> extensional A;
       !!x. x\<in>A ==> f x = g x |] ==> f = g"
 by (force simp add: fun_eq_iff extensional_def)
+
+lemma extensional_restrict:  "f \<in> extensional A \<Longrightarrow> restrict f A = f"
+by(rule extensionalityI[OF restrict_extensional]) auto
 
 lemma inv_into_funcset: "f ` A = B ==> (\<lambda>x\<in>B. inv_into A f x) : B -> A"
 by (unfold inv_into_def) (fast intro: someI2)
