@@ -543,7 +543,8 @@ fun assert_abs_eqn thy some_tyco thm =
       handle TERM _ => bad "Not an abstract equation";
     val (rep_const, ty) = dest_Const rep;
     val (tyco, sorts) = ((apsnd o map) (snd o dest_TVar) o dest_Type o domain_type) ty
-      handle TERM _ => bad "Not an abstract equation";
+      handle TERM _ => bad "Not an abstract equation"
+           | TYPE _ => bad "Not an abstract equation";
     val _ = case some_tyco of SOME tyco' => if tyco = tyco' then ()
           else bad ("Abstract type mismatch:" ^ quote tyco ^ " vs. " ^ quote tyco')
       | NONE => ();
