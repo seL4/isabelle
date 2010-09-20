@@ -103,7 +103,7 @@ text {*
 interpretation %quote fun_power: power "\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n" where
   "power.powers (\<lambda>n f. f ^^ n) = funpows"
   by unfold_locales
-    (simp_all add: expand_fun_eq funpow_mult mult_commute funpows_def)
+    (simp_all add: fun_eq_iff funpow_mult mult_commute funpows_def)
 
 text {*
   \noindent This additional equation is trivially proved by the definition
