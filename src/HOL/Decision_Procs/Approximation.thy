@@ -3340,7 +3340,7 @@ ML {*
     (Object_Logic.judgment_conv (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
     THEN' rtac TrueI
 
-  val form_equations = PureThy.get_thms @{theory} "interpret_form_equations";
+  val form_equations = @{thms interpret_form_equations};
 
   fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
       fun lookup_splitting (Free (name, typ))
