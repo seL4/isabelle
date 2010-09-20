@@ -662,6 +662,18 @@ fun rename_vars_clause ((rel, args), prem) =
   
 val rename_vars_program = map rename_vars_clause
 
+(* post processing of generated prolog program *)
+
+fun post_process ctxt options (p, constant_table) =
+  (p, constant_table)
+  |> (if #ensure_groundness options then
+        add_ground_predicates ctxt (#limited_types options)
+      else I)
+  |> add_limited_predicates (#limited_predicates options)
+  |> apfst (fold replace (#replacing options))
+  |> apfst (reorder_manually (#manual_reorder options))
+  |> apfst rename_vars_program
+
 (* code printer *)
 
 fun write_arith_op Plus = "+"
@@ -809,12 +821,10 @@ fun parse_solutions sol =
 
 fun run (timeout, system) p (query_rel, args) vnames nsols =
   let
-    val p' = rename_vars_program p
-    val _ = tracing "Renaming variable names..."
     val renaming = fold mk_renaming (fold add_vars args vnames) [] 
     val vnames' = map (fn v => the (AList.lookup (op =) renaming v)) vnames
     val args' = map (rename_vars_term renaming) args
-    val prog = prelude system ^ query system nsols (query_rel, args') vnames' ^ write_program p'
+    val prog = prelude system ^ query system nsols (query_rel, args') vnames' ^ write_program p
     val _ = tracing ("Generated prolog program:\n" ^ prog)
     val solution = TimeLimit.timeLimit timeout (fn prog => Cache_IO.with_tmp_file "prolog_file" (fn prolog_file =>
       (File.write prolog_file prog; invoke system (Path.implode prolog_file)))) prog
@@ -902,12 +912,7 @@ fun values ctxt soln t_compr =
     val ctxt' = ProofContext.init_global thy'
     val _ = tracing "Generating prolog program..."
     val (p, constant_table) = generate (NONE, #ensure_groundness options) ctxt' name (* FIXME *)
-      |> (if #ensure_groundness options then
-          add_ground_predicates ctxt' (#limited_types options)
-        else I)
-      |> add_limited_predicates (#limited_predicates options)
-      |> apfst (fold replace (#replacing options))
-      |> apfst (reorder_manually (#manual_reorder options))
+      |> post_process ctxt' options
     val constant_table' = declare_consts (fold Term.add_const_names all_args []) constant_table
     val args' = map (translate_term ctxt constant_table') all_args
     val _ = tracing "Running prolog program..."
@@ -983,10 +988,7 @@ fun quickcheck ctxt t size =
     val ctxt' = ProofContext.init_global thy3
     val _ = tracing "Generating prolog program..."
     val (p, constant_table) = generate (NONE, true) ctxt' full_constname
-      |> add_ground_predicates ctxt' (#limited_types options)
-      |> add_limited_predicates (#limited_predicates options)
-      |> apfst (fold replace (#replacing options))
-      |> apfst (reorder_manually (#manual_reorder options))
+      |> post_process ctxt' (set_ensure_groundness options)
     val _ = tracing "Running prolog program..."
     val system_config = System_Config.get (Context.Proof ctxt)
     val tss = run (#timeout system_config, #prolog_system system_config)
