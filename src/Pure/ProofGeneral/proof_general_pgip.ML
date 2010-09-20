@@ -108,7 +108,7 @@ in
 
 fun pgml_terms (XML.Elem ((name, atts), body)) =
       if member (op =) token_markups name then
-        let val content = pgml_syms (Buffer.content (fold XML.add_content body Buffer.empty))
+        let val content = pgml_syms (XML.content_of body)
         in [Pgml.Atoms {kind = SOME name, content = content}] end
       else
         let val content = maps pgml_terms body in

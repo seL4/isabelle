@@ -363,11 +363,8 @@ fun string_of_mutant_subentry thy thm_name (t, results) =
     (map (fn (mtd_name, (outcome, timing)) => mtd_name ^ ": " ^ string_of_outcome outcome) results) ^
   "\n"
 
-(* XML.tree -> string *)
-fun plain_string_from_xml_tree t =
-  Buffer.empty |> XML.add_content t |> Buffer.content
 (* string -> string *)
-val unyxml = plain_string_from_xml_tree o YXML.parse
+val unyxml = XML.content_of o YXML.parse_body
 
 fun string_of_mutant_subentry' thy thm_name (t, results) =
   let
