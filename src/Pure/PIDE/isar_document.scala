@@ -70,13 +70,28 @@ object Isar_Document
     }
 
 
-  /* reported positions */
+  /* specific messages */
+
+  def is_warning(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.WARNING, _), _) => true
+      case _ => false
+    }
+
+  def is_error(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.ERROR, _), _) => true
+      case _ => false
+    }
 
   def is_state(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.WRITELN, _), List(XML.Elem(Markup(Markup.STATE, _), _))) => true
       case _ => false
     }
+
+
+  /* reported positions */
 
   private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 

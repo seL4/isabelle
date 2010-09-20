@@ -93,7 +93,7 @@ fun get_fact context thy xthmref =
     (case res of
       NONE => error ("Unknown fact " ^ quote name ^ Position.str_of pos)
     | SOME (static, ths) =>
-        (Position.report ((if static then Markup.fact else Markup.dynamic_fact) name) pos;
+        (Position.report pos ((if static then Markup.fact else Markup.dynamic_fact) name);
          Facts.select xthmref (map (Thm.transfer thy) ths)))
   end;
 
@@ -188,7 +188,7 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
   let
     val pos = Binding.pos_of b;
     val name = Sign.full_name thy b;
-    val _ = Position.report (Markup.fact_decl name) pos;
+    val _ = Position.report pos (Markup.fact_decl name);
 
     fun app (x, (ths, atts)) = Library.foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms

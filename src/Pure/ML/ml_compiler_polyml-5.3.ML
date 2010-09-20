@@ -48,12 +48,12 @@ fun report_parse_tree depth space =
       | _ => Position.report_text);
 
     fun report_decl markup loc decl =
-      report_text Markup.ML_ref (offset_position_of loc)
+      report_text (offset_position_of loc) Markup.ML_ref
         (Markup.markup (Position.markup (position_of decl) markup) "");
     fun report loc (PolyML.PTtype types) =
           PolyML.NameSpace.displayTypeExpression (types, depth, space)
           |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
-          |> report_text Markup.ML_typing (offset_position_of loc)
+          |> report_text (offset_position_of loc) Markup.ML_typing
       | report loc (PolyML.PTdeclaredAt decl) = report_decl Markup.ML_def loc decl
       | report loc (PolyML.PTopenedAt decl) = report_decl Markup.ML_open loc decl
       | report loc (PolyML.PTstructureAt decl) = report_decl Markup.ML_struct loc decl
@@ -124,7 +124,7 @@ fun eval verbose pos toks =
           Markup.markup Markup.no_report
             ((if hard then "Error" else "Warning") ^ Position.str_of (position_of loc) ^ ":\n") ^
           Pretty.string_of (Pretty.from_ML (pretty_ml msg)) ^
-          Position.reported_text Markup.report (offset_position_of loc) "";
+          Position.reported_text (offset_position_of loc)  Markup.report "";
       in if hard then err txt else warn txt end;
 
 

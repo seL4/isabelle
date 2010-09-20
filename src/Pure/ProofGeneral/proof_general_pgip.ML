@@ -166,8 +166,7 @@ fun setup_messages () =
   Output.priority_fn := (fn s => normalmsg Status s);
   Output.tracing_fn := (fn s => normalmsg Tracing s);
   Output.warning_fn := (fn s => errormsg Message Warning s);
-  Output.error_fn := (fn s => errormsg Message Fatal s);
-  Output.debug_fn := (fn s => errormsg Message Debug s));
+  Output.error_fn := (fn s => errormsg Message Fatal s));
 
 
 (* immediate messages *)

@@ -273,17 +273,28 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
   /* named pipes */
 
+  private var fifo_count: Long = 0
+  private def next_fifo(): String = synchronized {
+    require(fifo_count < java.lang.Long.MAX_VALUE)
+    fifo_count += 1
+    fifo_count.toString
+  }
+
   def mk_fifo(): String =
   {
-    val (result, rc) = isabelle_tool("mkfifo")
-    if (rc == 0) result.trim
+    val i = next_fifo()
+    val script =
+      "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$-" + i + "\"\n" +
+      "mkfifo -m 600 \"$FIFO\" || { echo \"Failed to create fifo: $FIFO\" >&2; exit 2; }\n" +
+      "echo -n \"$FIFO\"\n"
+    val (result, rc) = bash_output(script)
+    if (rc == 0) result
     else error(result)
   }
 
   def rm_fifo(fifo: String)
   {
-    val (result, rc) = isabelle_tool("rmfifo", fifo)
-    if (rc != 0) error(result)
+    bash_output("rm -f '" + fifo + "'")
   }
 
   def fifo_input_stream(fifo: String): InputStream =

@@ -54,10 +54,13 @@ object Isabelle_Markup
     if (snapshot.is_outdated) None
     else
       Isar_Document.command_status(state.status) match {
-        case Isar_Document.Forked(i) if i > 0 => Some(unfinished_color)
+        case Isar_Document.Forked(i) => if (i > 0) Some(unfinished_color) else None
         case Isar_Document.Unprocessed => Some(unfinished_color)
         case Isar_Document.Failed => Some(error_color)
-        case _ => None
+        case Isar_Document.Finished =>
+          if (state.results.exists(r => Isar_Document.is_error(r._2))) Some(error_color)
+          else if (state.results.exists(r => Isar_Document.is_warning(r._2))) Some(warning_color)
+          else None
       }
   }
 

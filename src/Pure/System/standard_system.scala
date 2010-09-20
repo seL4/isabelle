@@ -132,9 +132,7 @@ object Standard_System
       for ((x, y) <- env) proc.environment.put(x, y)
     }
     proc.redirectErrorStream(redirect)
-
-    try { proc.start }
-    catch { case e: IOException => error(e.getMessage) }
+    proc.start
   }
 
   def process_output(proc: Process): (String, Int) =
@@ -152,8 +150,8 @@ object Standard_System
     (output, rc)
   }
 
-  def raw_exec(cwd: File, env: Map[String, String], redirect: Boolean, args: String*):
-    (String, Int) = process_output(raw_execute(cwd, env, redirect, args: _*))
+  def raw_exec(cwd: File, env: Map[String, String], redirect: Boolean, args: String*)
+    : (String, Int) = process_output(raw_execute(cwd, env, redirect, args: _*))
 }
 
 

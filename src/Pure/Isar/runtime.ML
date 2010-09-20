@@ -10,6 +10,7 @@ sig
   exception TERMINATE
   exception EXCURSION_FAIL of exn * string
   exception TOPLEVEL_ERROR
+  val debug: bool Unsynchronized.ref
   val exn_context: Proof.context option -> exn -> exn
   val exn_messages: (exn -> Position.T) -> exn -> string list
   val exn_message: (exn -> Position.T) -> exn -> string
@@ -27,6 +28,8 @@ exception UNDEF;
 exception TERMINATE;
 exception EXCURSION_FAIL of exn * string;
 exception TOPLEVEL_ERROR;
+
+val debug = Unsynchronized.ref false;
 
 
 (* exn_context *)
@@ -52,7 +55,7 @@ fun exn_messages exn_position e =
         | _ => cat_lines (("exception " ^ name ^ " raised" ^ pos ^ ":") :: msgs))
       end;
 
-    val detailed = ! Output.debugging;
+    val detailed = ! debug;
 
     fun exn_msgs context exn =
       if Exn.is_interrupt exn then []
@@ -94,11 +97,10 @@ fun exn_message exn_position exn =
   | msgs => cat_lines msgs);
 
 
-
 (** controlled execution **)
 
 fun debugging f x =
-  if ! Output.debugging then
+  if ! debug then
     Exn.release (exception_trace (fn () =>
       Exn.Result (f x) handle
         exn as UNDEF => Exn.Exn exn

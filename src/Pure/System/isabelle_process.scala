@@ -19,30 +19,16 @@ object Isabelle_Process
 {
   /* results */
 
-  object Kind {
-    // message markup
-    val markup = Map(
+  object Kind
+  {
+    val message_markup = Map(
       ('A' : Int) -> Markup.INIT,
       ('B' : Int) -> Markup.STATUS,
       ('C' : Int) -> Markup.REPORT,
       ('D' : Int) -> Markup.WRITELN,
       ('E' : Int) -> Markup.TRACING,
       ('F' : Int) -> Markup.WARNING,
-      ('G' : Int) -> Markup.ERROR,
-      ('H' : Int) -> Markup.DEBUG)
-    def is_raw(kind: String) =
-      kind == Markup.STDOUT
-    def is_control(kind: String) =
-      kind == Markup.SYSTEM ||
-      kind == Markup.SIGNAL ||
-      kind == Markup.EXIT
-    def is_system(kind: String) =
-      kind == Markup.SYSTEM ||
-      kind == Markup.INPUT ||
-      kind == Markup.STDIN ||
-      kind == Markup.SIGNAL ||
-      kind == Markup.EXIT ||
-      kind == Markup.STATUS
+      ('G' : Int) -> Markup.ERROR)
   }
 
   class Result(val message: XML.Elem)
@@ -51,9 +37,10 @@ object Isabelle_Process
     def properties = message.markup.properties
     def body = message.body
 
-    def is_raw = Kind.is_raw(kind)
-    def is_control = Kind.is_control(kind)
-    def is_system = Kind.is_system(kind)
+    def is_init = kind == Markup.INIT
+    def is_exit = kind == Markup.EXIT
+    def is_stdout = kind == Markup.STDOUT
+    def is_system = kind == Markup.SYSTEM
     def is_status = kind == Markup.STATUS
     def is_report = kind == Markup.REPORT
     def is_ready = is_status && body == List(XML.Elem(Markup.Ready, Nil))
@@ -73,7 +60,7 @@ object Isabelle_Process
 }
 
 
-class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
+class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, args: String*)
 {
   import Isabelle_Process._
 
@@ -81,24 +68,107 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   /* demo constructor */
 
   def this(args: String*) =
-    this(new Isabelle_System,
+    this(new Isabelle_System, 10000,
       actor { loop { react { case res => Console.println(res) } } }, args: _*)
 
 
-  /* process information */
+  /* input actors */
 
-  @volatile private var proc: Option[Process] = None
-  @volatile private var pid: Option[String] = None
+  private case class Input_Text(text: String)
+  private case class Input_Chunks(chunks: List[Array[Byte]])
+
+  private case object Close
+  private def close(a: Actor) { if (a != null) a ! Close }
+
+  @volatile private var standard_input: Actor = null
+  @volatile private var command_input: Actor = null
+
+
+  /* process manager */
+
+  private val in_fifo = system.mk_fifo()
+  private val out_fifo = system.mk_fifo()
+  private def rm_fifos() { system.rm_fifo(in_fifo); system.rm_fifo(out_fifo) }
+
+  private val proc =
+    try {
+      val cmdline =
+        List(system.getenv_strict("ISABELLE_PROCESS"), "-W", in_fifo + ":" + out_fifo) ++ args
+      system.execute(true, cmdline: _*)
+    }
+    catch { case e: IOException => rm_fifos(); throw(e) }
+
+  private val stdout_reader =
+    new BufferedReader(new InputStreamReader(proc.getInputStream, Standard_System.charset))
+
+  private val stdin_writer =
+    new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, Standard_System.charset))
+
+  Simple_Thread.actor("process_manager") {
+    val (startup_failed, startup_output) =
+    {
+      val expired = System.currentTimeMillis() + timeout
+      val result = new StringBuilder(100)
+
+      var finished = false
+      while (!finished && System.currentTimeMillis() <= expired) {
+        while (!finished && stdout_reader.ready) {
+          val c = stdout_reader.read
+          if (c == 2) finished = true
+          else result += c.toChar
+        }
+        Thread.sleep(10)
+      }
+      (!finished, result.toString)
+    }
+    if (startup_failed) {
+      put_result(Markup.STDOUT, startup_output)
+      put_result(Markup.EXIT, "127")
+      stdin_writer.close
+      Thread.sleep(300)  // FIXME !?
+      proc.destroy  // FIXME reliable!?
+    }
+    else {
+      put_result(Markup.SYSTEM, startup_output)
+
+      standard_input = stdin_actor()
+      stdout_actor()
+
+      // rendezvous
+      val command_stream = system.fifo_output_stream(in_fifo)
+      val message_stream = system.fifo_input_stream(out_fifo)
+
+      command_input = input_actor(command_stream)
+      message_actor(message_stream)
+
+      val rc = proc.waitFor()
+      Thread.sleep(300)  // FIXME !?
+      system_result("Isabelle process terminated")
+      put_result(Markup.EXIT, rc.toString)
+    }
+    rm_fifos()
+  }
 
 
   /* results */
+
+  private def system_result(text: String)
+  {
+    receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
+  }
+
 
   private val xml_cache = new XML.Cache(131071)
 
   private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
   {
-    if (pid.isEmpty && kind == Markup.INIT)
-      pid = props.find(_._1 == Markup.PID).map(_._1)
+    if (pid.isEmpty && kind == Markup.INIT) {
+      rm_fifos()
+      props.find(_._1 == Markup.PID).map(_._1) match {
+        case None => system_result("Bad Isabelle process initialization: missing pid")
+        case p => pid = p
+      }
+    }
 
     val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
     xml_cache.cache_tree(msg)((message: XML.Tree) =>
@@ -113,34 +183,33 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* signals */
 
+  @volatile private var pid: Option[String] = None
+
   def interrupt()
   {
-    if (proc.isEmpty) put_result(Markup.SYSTEM, "Cannot interrupt Isabelle: no process")
-    else
-      pid match {
-        case None => put_result(Markup.SYSTEM, "Cannot interrupt Isabelle: unknowd pid")
-        case Some(i) =>
-          try {
-            if (system.execute(true, "kill", "-INT", i).waitFor == 0)
-              put_result(Markup.SIGNAL, "INT")
-            else
-              put_result(Markup.SYSTEM, "Cannot interrupt Isabelle: kill command failed")
-          }
-          catch { case e: IOException => error("Cannot interrupt Isabelle: " + e.getMessage) }
-      }
+    pid match {
+      case None => system_result("Cannot interrupt Isabelle: unknowd pid")
+      case Some(i) =>
+        try {
+          if (system.execute(true, "kill", "-INT", i).waitFor == 0)
+            system_result("Interrupt Isabelle")
+          else
+            system_result("Cannot interrupt Isabelle: kill command failed")
+        }
+        catch { case e: IOException => error("Cannot interrupt Isabelle: " + e.getMessage) }
+    }
   }
 
   def kill()
   {
-    proc match {
-      case None => put_result(Markup.SYSTEM, "Cannot kill Isabelle: no process")
-      case Some(p) =>
-        close()
-        Thread.sleep(500)  // FIXME !?
-        put_result(Markup.SIGNAL, "KILL")
-        p.destroy
-        proc = None
-        pid = None
+    val running =
+      try { proc.exitValue; false }
+      catch { case e: java.lang.IllegalThreadStateException => true }
+    if (running) {
+      close()
+      Thread.sleep(500)  // FIXME !?
+      system_result("Kill Isabelle")
+      proc.destroy
     }
   }
 
@@ -148,45 +217,40 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /** stream actors **/
 
-  case class Input_Text(text: String)
-  case class Input_Chunks(chunks: List[Array[Byte]])
-  case object Close
-
-
   /* raw stdin */
 
-  private def stdin_actor(name: String, stream: OutputStream): Actor =
+  private def stdin_actor(): Actor =
+  {
+    val name = "standard_input"
     Simple_Thread.actor(name) {
-      val writer = new BufferedWriter(new OutputStreamWriter(stream, Standard_System.charset))
       var finished = false
       while (!finished) {
         try {
           //{{{
           receive {
             case Input_Text(text) =>
-              // FIXME echo input?!
-              writer.write(text)
-              writer.flush
+              stdin_writer.write(text)
+              stdin_writer.flush
             case Close =>
-              writer.close
+              stdin_writer.close
               finished = true
             case bad => System.err.println(name + ": ignoring bad message " + bad)
           }
           //}}}
         }
-        catch {
-          case e: IOException => put_result(Markup.SYSTEM, name + ": " + e.getMessage)
-        }
+        catch { case e: IOException => system_result(name + ": " + e.getMessage) }
       }
-      put_result(Markup.SYSTEM, name + " terminated")
+      system_result(name + " terminated")
     }
+  }
 
 
   /* raw stdout */
 
-  private def stdout_actor(name: String, stream: InputStream): Actor =
+  private def stdout_actor(): Actor =
+  {
+    val name = "standard_output"
     Simple_Thread.actor(name) {
-      val reader = new BufferedReader(new InputStreamReader(stream, Standard_System.charset))
       var result = new StringBuilder(100)
 
       var finished = false
@@ -195,8 +259,8 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
           //{{{
           var c = -1
           var done = false
-          while (!done && (result.length == 0 || reader.ready)) {
-            c = reader.read
+          while (!done && (result.length == 0 || stdout_reader.ready)) {
+            c = stdout_reader.read
             if (c >= 0) result.append(c.asInstanceOf[Char])
             else done = true
           }
@@ -205,23 +269,23 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
             result.length = 0
           }
           else {
-            reader.close
+            stdout_reader.close
             finished = true
-            close()
           }
           //}}}
         }
-        catch {
-          case e: IOException => put_result(Markup.SYSTEM, name + ": " + e.getMessage)
-        }
+        catch { case e: IOException => system_result(name + ": " + e.getMessage) }
       }
-      put_result(Markup.SYSTEM, name + " terminated")
+      system_result(name + " terminated")
     }
+  }
 
 
   /* command input */
 
-  private def input_actor(name: String, raw_stream: OutputStream): Actor =
+  private def input_actor(raw_stream: OutputStream): Actor =
+  {
+    val name = "command_input"
     Simple_Thread.actor(name) {
       val stream = new BufferedOutputStream(raw_stream)
       var finished = false
@@ -241,19 +305,21 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
           }
           //}}}
         }
-        catch {
-          case e: IOException => put_result(Markup.SYSTEM, name + ": " + e.getMessage)
-        }
+        catch { case e: IOException => system_result(name + ": " + e.getMessage) }
       }
-      put_result(Markup.SYSTEM, name + " terminated")
+      system_result(name + " terminated")
     }
+  }
 
 
   /* message output */
 
-  private class Protocol_Error(msg: String) extends Exception(msg)
+  private def message_actor(stream: InputStream): Actor =
+  {
+    class EOF extends Exception
+    class Protocol_Error(msg: String) extends Exception(msg)
 
-  private def message_actor(name: String, stream: InputStream): Actor =
+    val name = "message_output"
     Simple_Thread.actor(name) {
       val default_buffer = new Array[Byte](65536)
       var c = -1
@@ -264,6 +330,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
         // chunk size
         var n = 0
         c = stream.read
+        if (c == -1) throw new EOF
         while (48 <= c && c <= 57) {
           n = 10 * n + (c - 48)
           c = stream.read
@@ -294,69 +361,22 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
           val body = read_chunk()
           header match {
             case List(XML.Elem(Markup(name, props), Nil))
-                if name.size == 1 && Kind.markup.isDefinedAt(name(0)) =>
-              put_result(Kind.markup(name(0)), props, body)
+                if name.size == 1 && Kind.message_markup.isDefinedAt(name(0)) =>
+              put_result(Kind.message_markup(name(0)), props, body)
             case _ => throw new Protocol_Error("bad header: " + header.toString)
           }
         }
         catch {
-          case e: IOException =>
-            put_result(Markup.SYSTEM, "Cannot read message:\n" + e.getMessage)
-          case e: Protocol_Error =>
-            put_result(Markup.SYSTEM, "Malformed message:\n" + e.getMessage)
+          case e: IOException => system_result("Cannot read message:\n" + e.getMessage)
+          case e: Protocol_Error => system_result("Malformed message:\n" + e.getMessage)
+          case _: EOF =>
         }
       } while (c != -1)
       stream.close
-      close()
 
-      put_result(Markup.SYSTEM, name + " terminated")
+      system_result(name + " terminated")
     }
-
-
-
-  /** init **/
-
-  /* exec process */
-
-  private val in_fifo = system.mk_fifo()
-  private val out_fifo = system.mk_fifo()
-  private def rm_fifos() = { system.rm_fifo(in_fifo); system.rm_fifo(out_fifo) }
-
-  try {
-    val cmdline =
-      List(system.getenv_strict("ISABELLE_PROCESS"), "-W", in_fifo + ":" + out_fifo) ++ args
-    proc = Some(system.execute(true, cmdline: _*))
   }
-  catch {
-    case e: IOException =>
-      rm_fifos()
-      error("Failed to execute Isabelle process: " + e.getMessage)
-  }
-
-
-  /* I/O actors */
-
-  private val standard_input = stdin_actor("standard_input", proc.get.getOutputStream)
-  stdout_actor("standard_output", proc.get.getInputStream)
-
-  private val command_input = input_actor("command_input", system.fifo_output_stream(in_fifo))
-  message_actor("message_output", system.fifo_input_stream(out_fifo))
-
-
-  /* exit process */
-
-  Simple_Thread.actor("process_exit") {
-    proc match {
-      case None =>
-      case Some(p) =>
-        val rc = p.waitFor()
-        Thread.sleep(300)  // FIXME property!?
-        put_result(Markup.SYSTEM, "process_exit terminated")
-        put_result(Markup.EXIT, rc.toString)
-    }
-    rm_fifos()
-  }
-
 
 
   /** main methods **/
@@ -369,5 +389,5 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   def input(name: String, args: String*): Unit =
     input_bytes(name, args.map(Standard_System.string_bytes): _*)
 
-  def close(): Unit = command_input ! Close
+  def close(): Unit = { close(command_input); close(standard_input) }
 }

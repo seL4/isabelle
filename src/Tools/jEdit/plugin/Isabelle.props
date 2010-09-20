@@ -1,6 +1,6 @@
 ## Isabelle plugin properties
 ##
-##:encoding=ISO-8859-1:
+##:encoding=ISO-8859-1:wrap=soft:maxLineLen=100:
 
 #identification
 plugin.isabelle.jedit.Plugin.name=Isabelle
@@ -35,13 +35,15 @@ options.isabelle.startup-timeout=10000
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.show-output isabelle.show-raw-output isabelle.show-protocol
+plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.session-panel isabelle.show-output isabelle.show-raw-output isabelle.show-protocol
 isabelle.activate.label=Activate current buffer
+isabelle.session-panel.label=Prover session panel
 isabelle.show-output.label=Show Output
 isabelle.show-raw-output.label=Show Raw Output
 isabelle.show-protocol.label=Show Protocol
 
 #dockables
+isabelle-session.title=Session
 isabelle-output.title=Output
 isabelle-raw-output.title=Raw Output
 isabelle-protocol.title=Protocol

@@ -3,6 +3,16 @@
 
 Isabelle process wrapper, based on private fifos for maximum
 robustness and performance.
+
+Startup phases:
+  . raw Posix process startup with uncontrolled output on stdout/stderr
+  . stdout \002: ML running
+  .. stdin/stdout/stderr freely available (raw ML loop)
+  .. protocol thread initialization
+  ... switch to in_fifo/out_fifo channels (rendezvous via open)
+  ... out_fifo INIT(pid): channels ready
+  ... out_fifo STATUS(keywords)
+  ... out_fifo READY: main loop ready
 *)
 
 signature ISABELLE_PROCESS =
@@ -62,9 +72,10 @@ fun message _ _ _ "" = ()
 
 in
 
-fun standard_message out_stream ch body =
+fun standard_message out_stream with_serial ch body =
   message out_stream ch
-    ((Markup.serialN, serial_string ()) :: Position.properties_of (Position.thread_data ())) body;
+    ((if with_serial then cons (Markup.serialN, serial_string ()) else I)
+      (Position.properties_of (Position.thread_data ()))) body;
 
 fun init_message out_stream =
   message out_stream "A" [(Markup.pidN, process_id ())] (Session.welcome ());
@@ -83,32 +94,24 @@ fun auto_flush stream =
       (OS.Process.sleep (Time.fromMilliseconds 20); try TextIO.flushOut stream; loop ());
   in loop end;
 
-fun rendezvous f fifo =
-  let
-    val path = File.platform_path (Path.explode fifo);
-    val result = f fifo;  (*should block until peer is ready*)
-    val _ =
-      if String.isSuffix "cygwin" ml_platform then ()  (*Cygwin 1.7: no proper blocking on open*)
-      else OS.FileSys.remove path;  (*prevent future access*)
-  in result end;
-
 in
 
 fun setup_channels in_fifo out_fifo =
   let
-    val in_stream = rendezvous TextIO.openIn in_fifo;
-    val out_stream = rendezvous TextIO.openOut out_fifo;
+    (*rendezvous*)
+    val in_stream = TextIO.openIn in_fifo;
+    val out_stream = TextIO.openOut out_fifo;
+
     val _ = Simple_Thread.fork false (auto_flush out_stream);
     val _ = Simple_Thread.fork false (auto_flush TextIO.stdOut);
     val _ = Simple_Thread.fork false (auto_flush TextIO.stdErr);
   in
-    Output.status_fn   := standard_message out_stream "B";
-    Output.report_fn   := standard_message out_stream "C";
-    Output.writeln_fn  := standard_message out_stream "D";
-    Output.tracing_fn  := standard_message out_stream "E";
-    Output.warning_fn  := standard_message out_stream "F";
-    Output.error_fn    := standard_message out_stream "G";
-    Output.debug_fn    := standard_message out_stream "H";
+    Output.status_fn   := standard_message out_stream false "B";
+    Output.report_fn   := standard_message out_stream false "C";
+    Output.writeln_fn  := standard_message out_stream true "D";
+    Output.tracing_fn  := standard_message out_stream true "E";
+    Output.warning_fn  := standard_message out_stream true "F";
+    Output.error_fn    := standard_message out_stream true "G";
     Output.priority_fn := ! Output.writeln_fn;
     Output.prompt_fn   := ignore;
     (in_stream, out_stream)
@@ -166,17 +169,21 @@ end;
 
 (* init *)
 
-fun init in_fifo out_fifo =
+fun init in_fifo out_fifo = ignore (Simple_Thread.fork false (fn () =>
   let
+    val _ = OS.Process.sleep (Time.fromMilliseconds 500);  (*yield to raw ML toplevel*)
+    val _ = Output.std_output Symbol.STX;
+
+    val _ = quick_and_dirty := true;  (* FIXME !? *)
+    val _ = Context.set_thread_data NONE;
     val _ = Unsynchronized.change print_mode
       (fold (update op =) [isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
+
     val (in_stream, out_stream) = setup_channels in_fifo out_fifo;
     val _ = init_message out_stream;
-    val _ = quick_and_dirty := true;  (* FIXME !? *)
     val _ = Keyword.status ();
     val _ = Output.status (Markup.markup Markup.ready "");
-    val _ = Context.set_thread_data NONE;
-    val _ = Simple_Thread.fork false (fn () => (loop in_stream; quit ()));
-  in () end;
+  in loop in_stream end));
 
 end;
+

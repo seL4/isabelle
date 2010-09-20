@@ -182,7 +182,7 @@ fun read_token str =
 fun parse_token ctxt markup str =
   let
     val (syms, pos) = read_token str;
-    val _ = Context_Position.report ctxt markup pos;
+    val _ = Context_Position.report ctxt pos markup;
   in (syms, pos) end;
 
 local
@@ -361,9 +361,9 @@ val string_of_arity = Pretty.string_of oo pretty_arity;
 
 (* global pretty printing *)
 
-structure PrettyGlobal = Proof_Data(type T = bool fun init _ = false);
-val is_pretty_global = PrettyGlobal.get;
-val set_pretty_global = PrettyGlobal.put;
+val pretty_global = Config.bool (Config.declare "Syntax.pretty_global" (K (Config.Bool false)));
+fun is_pretty_global ctxt = Config.get ctxt pretty_global;
+val set_pretty_global = Config.put pretty_global;
 val init_pretty_global = set_pretty_global true o ProofContext.init_global;
 
 val pretty_term_global = pretty_term o init_pretty_global;
@@ -710,7 +710,9 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
 
     val root' = if root <> "prop" andalso is_logtype root then Syn_Ext.logic else root;
     val pts = Parser.parse ctxt gram root' (filter Lexicon.is_proper toks)
-      handle ERROR msg => (List.app (Lexicon.report_token_range ctxt) toks; error msg);
+      handle ERROR msg =>
+        error (msg ^
+          implode (map (Markup.markup Markup.report o Lexicon.reported_token_range ctxt) toks));
     val len = length pts;
 
     val limit = Config.get ctxt ambiguity_limit;

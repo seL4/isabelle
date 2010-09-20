@@ -333,7 +333,7 @@ fun read_class ctxt text =
     val (syms, pos) = Syntax.read_token text;
     val c = Type.cert_class tsig (Type.intern_class tsig (Symbol_Pos.content syms))
       handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
-    val _ = Context_Position.report ctxt (Markup.tclass c) pos;
+    val _ = Context_Position.report ctxt pos (Markup.tclass c);
   in c end;
 
 
@@ -467,7 +467,7 @@ fun prep_const_proper ctxt strict (c, pos) =
     val _ =
       if strict then ignore (Consts.the_type consts d) handle TYPE (msg, _, _) => err msg
       else ();
-    val _ = Context_Position.report ctxt (Markup.const d) pos;
+    val _ = Context_Position.report ctxt pos (Markup.const d);
   in t end;
 
 in
@@ -478,13 +478,13 @@ fun read_type_name ctxt strict text =
     val (c, pos) = token_content text;
   in
     if Syntax.is_tid c then
-     (Context_Position.report ctxt Markup.tfree pos;
+     (Context_Position.report ctxt pos Markup.tfree;
       TFree (c, default_sort ctxt (c, ~1)))
     else
       let
         val d = Type.intern_type tsig c;
         val decl = Type.the_decl tsig d;
-        val _ = Context_Position.report ctxt (Markup.tycon d) pos;
+        val _ = Context_Position.report ctxt pos (Markup.tycon d);
         fun err () = error ("Bad type name: " ^ quote d);
         val args =
           (case decl of
@@ -509,8 +509,8 @@ fun read_const ctxt strict ty text =
   in
     (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
-        (Context_Position.report ctxt (Markup.name x
-            (if can Name.dest_skolem x then Markup.skolem else Markup.free)) pos;
+        (Context_Position.report ctxt pos
+            (Markup.name x (if can Name.dest_skolem x then Markup.skolem else Markup.free));
           Free (x, infer_type ctxt (x, ty)))
     | _ => prep_const_proper ctxt strict (c, pos))
   end;
@@ -585,17 +585,17 @@ fun prepare_patternT ctxt T =
 
 local
 
-structure Allow_Dummies = Proof_Data(type T = bool fun init _ = false);
+val dummies = Config.bool (Config.declare "ProofContext.dummies" (K (Config.Bool false)));
 
 fun check_dummies ctxt t =
-  if Allow_Dummies.get ctxt then t
+  if Config.get ctxt dummies then t
   else Term.no_dummy_patterns t handle TERM _ => error "Illegal dummy pattern(s) in term";
 
 fun prepare_dummies ts = #1 (fold_map Term.replace_dummy_patterns ts 1);
 
 in
 
-val allow_dummies = Allow_Dummies.put true;
+val allow_dummies = Config.put dummies true;
 
 fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
@@ -735,7 +735,7 @@ local
 
 fun parse_failed ctxt pos msg kind =
   cat_error msg ("Failed to parse " ^ kind ^
-    Markup.markup Markup.report (Context_Position.reported_text ctxt Markup.bad pos ""));
+    Markup.markup Markup.report (Context_Position.reported_text ctxt pos Markup.bad ""));
 
 fun parse_sort ctxt text =
   let
@@ -979,7 +979,8 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
           if name = "" then [Thm.transfer thy Drule.dummy_thm]
           else
             (case Facts.lookup (Context.Proof ctxt) local_facts name of
-              SOME (_, ths) => (Context_Position.report ctxt (Markup.local_fact name) pos;
+              SOME (_, ths) =>
+               (Context_Position.report ctxt pos (Markup.local_fact name);
                 map (Thm.transfer thy) (Facts.select thmref ths))
             | NONE => PureThy.get_fact (Context.Proof ctxt) thy xthmref);
       in pick name thms end;
@@ -1009,7 +1010,7 @@ fun note_thmss kind = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
   let
     val pos = Binding.pos_of b;
     val name = full_name ctxt b;
-    val _ = Context_Position.report ctxt (Markup.local_fact_decl name) pos;
+    val _ = Context_Position.report ctxt pos (Markup.local_fact_decl name);
 
     val facts = PureThy.name_thmss false name raw_facts;
     fun app (th, attrs) x =
@@ -1188,7 +1189,7 @@ fun add_fixes raw_vars ctxt =
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
       |-> (map_syntax o Local_Syntax.add_syntax (theory_of ctxt) o map (pair Local_Syntax.Fixed));
     val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
-      Context_Position.report ctxt (Markup.fixed_decl x') (Binding.pos_of b));
+      Context_Position.report ctxt (Binding.pos_of b) (Markup.fixed_decl x'));
   in (xs', ctxt'') end;
 
 

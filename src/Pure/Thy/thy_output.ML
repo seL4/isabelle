@@ -103,7 +103,7 @@ fun command src =
     (case Symtab.lookup (! global_commands) name of
       NONE => error ("Unknown document antiquotation: " ^ quote name ^ Position.str_of pos)
     | SOME f =>
-       (Position.report (Markup.doc_antiq name) pos;
+       (Position.report pos (Markup.doc_antiq name);
         (fn state => fn ctxt => f src state ctxt handle ERROR msg =>
           cat_error msg ("The error(s) above occurred in document antiquotation: " ^
             quote name ^ Position.str_of pos))))

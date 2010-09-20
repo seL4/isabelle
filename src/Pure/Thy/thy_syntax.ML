@@ -84,7 +84,7 @@ fun present_token tok =
   Markup.enclose (token_markup tok) (Output.output (Token.unparse tok));
 
 fun report_token tok =
-  Position.report (token_markup tok) (Token.position_of tok);
+  Position.report (Token.position_of tok) (token_markup tok);
 
 end;
 
@@ -152,7 +152,7 @@ fun present_span span =
   Markup.enclose (kind_markup (span_kind span)) (implode (map present_token (span_content span)));
 
 fun report_span span =
-  Position.report (kind_markup (span_kind span)) (Position.encode_range (span_range span));
+  Position.report (Position.encode_range (span_range span)) (kind_markup (span_kind span));
 
 end;
 
