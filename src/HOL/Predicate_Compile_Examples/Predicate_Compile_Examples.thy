@@ -1612,13 +1612,13 @@ abbreviation "example_grammar ==
   rule ''A'' [TS ''b'']}, ''S'')"
 
 
-code_pred [inductify,skip_proof] derives .
+code_pred [inductify, skip_proof] derives .
 
 thm derives.equation
 
 definition "test = { rhs. derives example_grammar ([NTS ''S''], rhs) }"
 
-code_pred (modes: o \<Rightarrow> bool) [inductify, show_modes, show_intermediate_results, skip_proof] test .
+code_pred (modes: o \<Rightarrow> bool) [inductify] test .
 thm test.equation
 
 values "{rhs. test rhs}"
