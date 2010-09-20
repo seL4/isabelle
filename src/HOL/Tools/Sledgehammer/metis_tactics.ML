@@ -23,7 +23,6 @@ struct
 open Metis_Translate
 open Metis_Reconstruct
 
-val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" (K true);
@@ -139,6 +138,8 @@ fun preskolem_tac ctxt st0 =
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
+val preproc_ss = HOL_basic_ss addsimps @{thms all_simps [symmetric]}
+
 fun generic_metis_tac mode ctxt ths i st0 =
   let
     val _ = trace_msg (fn () =>
@@ -147,9 +148,14 @@ fun generic_metis_tac mode ctxt ths i st0 =
     if exists_type type_has_top_sort (prop_of st0) then
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
-      Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
-                  (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
-                  ctxt i st0
+      Tactical.SOLVED'
+          ((TRY o Simplifier.simp_tac preproc_ss)
+           THEN'
+           (REPEAT_DETERM o match_tac @{thms allI})
+           THEN'
+           TRY o Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
+                     (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
+                     ctxt) i st0
   end
 
 val metis_tac = generic_metis_tac HO

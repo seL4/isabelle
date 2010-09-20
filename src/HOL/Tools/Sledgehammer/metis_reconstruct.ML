@@ -11,7 +11,7 @@ signature METIS_RECONSTRUCT =
 sig
   type mode = Metis_Translate.mode
 
-  val trace: bool Unsynchronized.ref
+  val trace : bool Unsynchronized.ref
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
   val replay_one_inference :
     Proof.context -> mode -> (string * term) list
