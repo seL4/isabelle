@@ -198,7 +198,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
   def interrupt()
   {
     pid match {
-      case None => system_result("Cannot interrupt Isabelle: unknowd pid")
+      case None => system_result("Cannot interrupt Isabelle: unknown pid")
       case Some(i) =>
         try {
           if (system.execute(true, "kill", "-INT", i).waitFor == 0)
