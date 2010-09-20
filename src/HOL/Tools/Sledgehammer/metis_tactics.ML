@@ -138,7 +138,8 @@ fun preskolem_tac ctxt st0 =
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
-val preproc_ss = HOL_basic_ss addsimps @{thms all_simps [symmetric]}
+val preproc_ss =
+  HOL_basic_ss addsimps @{thms all_simps[symmetric] ex_simps[symmetric]}
 
 fun generic_metis_tac mode ctxt ths i st0 =
   let
@@ -149,13 +150,12 @@ fun generic_metis_tac mode ctxt ths i st0 =
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
       Tactical.SOLVED'
-          ((TRY o Simplifier.simp_tac preproc_ss)
-           THEN'
-           (REPEAT_DETERM o match_tac @{thms allI})
-           THEN'
-           TRY o Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
-                     (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
-                     ctxt) i st0
+          ((TRY o Simplifier.full_simp_tac preproc_ss)
+           THEN' (REPEAT_DETERM o match_tac @{thms allI})
+           THEN' (REPEAT_DETERM o ematch_tac @{thms exE})
+           THEN' (TRY o Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
+                         (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
+                         ctxt)) i st0
   end
 
 val metis_tac = generic_metis_tac HO
