@@ -62,6 +62,11 @@ no_notation App (infixl "<\<cdot>>" 70)
 
 subsection {* Tools setup and evaluation *}
 
+lemma eq_eq_TrueD:
+  assumes "(x \<equiv> y) \<equiv> Trueprop True"
+  shows "x \<equiv> y"
+  using assms by simp
+
 use "Tools/code_evaluation.ML"
 
 code_reserved Eval Code_Evaluation

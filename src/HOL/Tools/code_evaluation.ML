@@ -12,6 +12,8 @@ sig
   val static_value: theory -> string list -> typ list -> term -> term option
   val static_value_strict: theory -> string list -> typ list -> term -> term
   val static_value_exn: theory -> string list -> typ list -> term -> term Exn.result
+  val dynamic_eval_conv: conv
+  val static_eval_conv: theory -> string list -> typ list -> conv
   val put_term: (unit -> term) -> Proof.context -> Proof.context
   val tracing: string -> 'a -> 'a
   val setup: theory -> theory
@@ -179,6 +181,31 @@ fun gen_static_value static_value thy consts Ts =
 val static_value = gen_static_value Code_Runtime.static_value;
 val static_value_strict = gen_static_value Code_Runtime.static_value_strict;
 val static_value_exn = gen_static_value Code_Runtime.static_value_exn;
+
+fun certify_eval thy value conv ct =
+  let
+    val t = Thm.term_of ct;
+    val T = fastype_of t;
+    val mk_eq = Thm.mk_binop (Thm.cterm_of thy (Const ("==", T --> T --> propT)));
+  in case value t
+   of NONE => Thm.reflexive ct
+    | SOME t' => conv (mk_eq ct (Thm.cterm_of thy t')) RS @{thm eq_eq_TrueD}
+        handle THM _ =>
+          error ("Failed to certify evaluation result of " ^ Syntax.string_of_term_global thy t)
+  end;
+
+val dynamic_eval_conv = Conv.tap_thy
+  (fn thy => certify_eval thy (dynamic_value thy) Code_Runtime.dynamic_holds_conv);
+
+fun static_eval_conv thy consts Ts =
+  let
+    val eqs = "==" :: @{const_name HOL.eq} ::
+      map (fn T => AxClass.unoverload_const thy (@{const_name HOL.equal}, T)) Ts;
+        (*assumes particular code equations for "==" etc.*)
+  in
+    certify_eval thy (static_value thy consts Ts)
+      (Code_Runtime.static_holds_conv thy (union (op =) eqs consts))
+  end;
 
 
 (** diagnostic **)
