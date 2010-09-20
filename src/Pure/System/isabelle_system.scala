@@ -292,10 +292,8 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
     else error(result)
   }
 
-  def rm_fifo(fifo: String)
-  {
-    bash_output("rm -f '" + fifo + "'")
-  }
+  def rm_fifo(fifo: String): Boolean =
+    (new File(jvm_path(if (Platform.is_windows) fifo + ".lnk" else fifo))).delete
 
   def fifo_input_stream(fifo: String): InputStream =
   {
