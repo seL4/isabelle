@@ -27,11 +27,11 @@ object Simple_Thread
 
   /* thread as actor */
 
-  def actor(name: String, daemon: Boolean = false)(body: => Unit): Actor =
+  def actor(name: String, daemon: Boolean = false)(body: => Unit): (Thread, Actor) =
   {
     val actor = Future.promise[Actor]
     val thread = fork(name, daemon) { actor.fulfill(Actor.self); body }
-    actor.join
+    (thread, actor.join)
   }
 }
 

@@ -63,7 +63,8 @@ class Session(system: Isabelle_System)
 
   private case object Stop
 
-  private val command_change_buffer = Simple_Thread.actor("command_change_buffer", daemon = true)
+  private val (_, command_change_buffer) =
+    Simple_Thread.actor("command_change_buffer", daemon = true)
   //{{{
   {
     import scala.compat.Platform.currentTime
@@ -118,7 +119,7 @@ class Session(system: Isabelle_System)
   private case class Edit_Version(edits: List[Document.Node_Text_Edit])
   private case class Started(timeout: Int, args: List[String])
 
-  private val session_actor = Simple_Thread.actor("session_actor", daemon = true)
+  private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
     var prover: Isabelle_Process with Isar_Document = null
 
@@ -202,7 +203,7 @@ class Session(system: Isabelle_System)
           }
           else if (result.is_exit) prover = null  // FIXME ??
           else if (result.is_stdout) raw_output.event(result)
-          else if (!result.is_system) bad_result(result)  // FIXME syslog for system messages (!?)
+          else if (!result.is_system) bad_result(result)
         }
     }
     //}}}
@@ -216,7 +217,7 @@ class Session(system: Isabelle_System)
       while (
         receiveWithin(0) {
           case result: Isabelle_Process.Result =>
-            if (result.is_stdout) {
+            if (result.is_system) {
               for (text <- XML.content(result.message))
                 buf.append(text)
             }
@@ -272,7 +273,7 @@ class Session(system: Isabelle_System)
           if (prover == null) {
             prover = new Isabelle_Process(system, timeout, self, args:_*) with Isar_Document
             val origin = sender
-            val opt_err = prover_startup(timeout)
+            val opt_err = prover_startup(timeout + 500)
             if (opt_err.isDefined) prover = null
             origin ! opt_err
           }

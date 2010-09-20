@@ -13,6 +13,7 @@ import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamW
 
 import scala.actors.Actor
 import Actor._
+import scala.collection.mutable
 
 
 object Isabelle_Process
@@ -104,7 +105,8 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
   private val stdin_writer =
     new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, Standard_System.charset))
 
-  Simple_Thread.actor("process_manager") {
+  private val (process_manager, _) = Simple_Thread.actor("process_manager")
+  {
     val (startup_failed, startup_output) =
     {
       val expired = System.currentTimeMillis() + timeout
@@ -121,42 +123,50 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       }
       (!finished, result.toString)
     }
+    system_result(startup_output)
+
     if (startup_failed) {
-      put_result(Markup.STDOUT, startup_output)
       put_result(Markup.EXIT, "127")
       stdin_writer.close
       Thread.sleep(300)  // FIXME !?
-      proc.destroy  // FIXME reliable!?
+      proc.destroy  // FIXME unreliable
     }
     else {
-      put_result(Markup.SYSTEM, startup_output)
-
-      standard_input = stdin_actor()
-      stdout_actor()
-
       // rendezvous
       val command_stream = system.fifo_output_stream(in_fifo)
       val message_stream = system.fifo_input_stream(out_fifo)
 
-      command_input = input_actor(command_stream)
-      message_actor(message_stream)
+      val stdin = stdin_actor(); standard_input = stdin._2
+      val stdout = stdout_actor()
+      val input = input_actor(command_stream); command_input = input._2
+      val message = message_actor(message_stream)
 
       val rc = proc.waitFor()
-      Thread.sleep(300)  // FIXME !?
       system_result("Isabelle process terminated")
+      for ((thread, _) <- List(stdin, stdout, input, message)) thread.join
+      system_result("process_manager terminated")
       put_result(Markup.EXIT, rc.toString)
     }
     rm_fifos()
   }
 
+  def join() { process_manager.join() }
 
-  /* results */
+
+  /* system log */
+
+  private val system_results = new mutable.ListBuffer[String]
 
   private def system_result(text: String)
   {
+    synchronized { system_results += text }
     receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
   }
 
+  def syslog(): List[String] = synchronized { system_results.toList }
+
+
+  /* results */
 
   private val xml_cache = new XML.Cache(131071)
 
@@ -219,7 +229,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
   /* raw stdin */
 
-  private def stdin_actor(): Actor =
+  private def stdin_actor(): (Thread, Actor) =
   {
     val name = "standard_input"
     Simple_Thread.actor(name) {
@@ -247,7 +257,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
   /* raw stdout */
 
-  private def stdout_actor(): Actor =
+  private def stdout_actor(): (Thread, Actor) =
   {
     val name = "standard_output"
     Simple_Thread.actor(name) {
@@ -283,7 +293,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
   /* command input */
 
-  private def input_actor(raw_stream: OutputStream): Actor =
+  private def input_actor(raw_stream: OutputStream): (Thread, Actor) =
   {
     val name = "command_input"
     Simple_Thread.actor(name) {
@@ -314,7 +324,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
   /* message output */
 
-  private def message_actor(stream: InputStream): Actor =
+  private def message_actor(stream: InputStream): (Thread, Actor) =
   {
     class EOF extends Exception
     class Protocol_Error(msg: String) extends Exception(msg)
