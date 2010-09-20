@@ -29,7 +29,7 @@ fun pretty_code_thm src ctxt raw_const =
   let
     val thy = ProofContext.theory_of ctxt;
     val const = Code.check_const thy raw_const;
-    val (_, eqngr) = Code_Preproc.obtain thy [const] [];
+    val (_, eqngr) = Code_Preproc.obtain true thy [const] [];
     fun holize thm = @{thm meta_eq_to_obj_eq} OF [thm];
     val thms = Code_Preproc.cert eqngr const
       |> Code.equations_of_cert thy
