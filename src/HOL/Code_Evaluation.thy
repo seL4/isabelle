@@ -6,6 +6,7 @@ header {* Term evaluation using the generic code generator *}
 
 theory Code_Evaluation
 imports Plain Typerep Code_Numeral
+uses ("Tools/code_evaluation.ML")
 begin
 
 subsection {* Term representation *}
@@ -37,171 +38,6 @@ lemma valapp_code [code, code_unfold]:
   by (simp only: valapp_def fst_conv snd_conv)
 
 
-subsubsection {* @{text term_of} instances *}
-
-instantiation "fun" :: (typerep, typerep) term_of
-begin
-
-definition
-  "term_of (f \<Colon> 'a \<Rightarrow> 'b) = Const (STR ''dummy_pattern'') (Typerep.Typerep (STR ''fun'')
-     [Typerep.typerep TYPE('a), Typerep.typerep TYPE('b)])"
-
-instance ..
-
-end
-
-setup {*
-let
-  fun add_term_of tyco raw_vs thy =
-    let
-      val vs = map (fn (v, _) => (v, @{sort typerep})) raw_vs;
-      val ty = Type (tyco, map TFree vs);
-      val lhs = Const (@{const_name term_of}, ty --> @{typ term})
-        $ Free ("x", ty);
-      val rhs = @{term "undefined \<Colon> term"};
-      val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
-      fun triv_name_of t = (fst o dest_Free o fst o strip_comb o fst
-        o HOLogic.dest_eq o HOLogic.dest_Trueprop) t ^ "_triv";
-    in
-      thy
-      |> Class.instantiation ([tyco], vs, @{sort term_of})
-      |> `(fn lthy => Syntax.check_term lthy eq)
-      |-> (fn eq => Specification.definition (NONE, ((Binding.name (triv_name_of eq), []), eq)))
-      |> snd
-      |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
-    end;
-  fun ensure_term_of (tyco, (raw_vs, _)) thy =
-    let
-      val need_inst = not (can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of})
-        andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep};
-    in if need_inst then add_term_of tyco raw_vs thy else thy end;
-in
-  Code.datatype_interpretation ensure_term_of
-  #> Code.abstype_interpretation ensure_term_of
-end
-*}
-
-setup {*
-let
-  fun mk_term_of_eq thy ty vs tyco (c, tys) =
-    let
-      val t = list_comb (Const (c, tys ---> ty),
-        map Free (Name.names Name.context "a" tys));
-      val (arg, rhs) =
-        pairself (Thm.cterm_of thy o map_types Logic.unvarifyT_global o Logic.varify_global)
-          (t, (map_aterms (fn t as Free (v, ty) => HOLogic.mk_term_of ty t | t => t) o HOLogic.reflect_term) t)
-      val cty = Thm.ctyp_of thy ty;
-    in
-      @{thm term_of_anything}
-      |> Drule.instantiate' [SOME cty] [SOME arg, SOME rhs]
-      |> Thm.varifyT_global
-    end;
-  fun add_term_of_code tyco raw_vs raw_cs thy =
-    let
-      val algebra = Sign.classes_of thy;
-      val vs = map (fn (v, sort) =>
-        (v, curry (Sorts.inter_sort algebra) @{sort typerep} sort)) raw_vs;
-      val ty = Type (tyco, map TFree vs);
-      val cs = (map o apsnd o map o map_atyps)
-        (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
-      val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
-      val eqs = map (mk_term_of_eq thy ty vs tyco) cs;
-   in
-      thy
-      |> Code.del_eqns const
-      |> fold Code.add_eqn eqs
-    end;
-  fun ensure_term_of_code (tyco, (raw_vs, cs)) thy =
-    let
-      val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
-    in if has_inst then add_term_of_code tyco raw_vs cs thy else thy end;
-in
-  Code.datatype_interpretation ensure_term_of_code
-end
-*}
-
-setup {*
-let
-  fun mk_term_of_eq thy ty vs tyco abs ty_rep proj =
-    let
-      val arg = Var (("x", 0), ty);
-      val rhs = Abs ("y", @{typ term}, HOLogic.reflect_term (Const (abs, ty_rep --> ty) $ Bound 0)) $
-        (HOLogic.mk_term_of ty_rep (Const (proj, ty --> ty_rep) $ arg))
-        |> Thm.cterm_of thy;
-      val cty = Thm.ctyp_of thy ty;
-    in
-      @{thm term_of_anything}
-      |> Drule.instantiate' [SOME cty] [SOME (Thm.cterm_of thy arg), SOME rhs]
-      |> Thm.varifyT_global
-    end;
-  fun add_term_of_code tyco raw_vs abs raw_ty_rep proj thy =
-    let
-      val algebra = Sign.classes_of thy;
-      val vs = map (fn (v, sort) =>
-        (v, curry (Sorts.inter_sort algebra) @{sort typerep} sort)) raw_vs;
-      val ty = Type (tyco, map TFree vs);
-      val ty_rep = map_atyps
-        (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_ty_rep;
-      val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
-      val eq = mk_term_of_eq thy ty vs tyco abs ty_rep proj;
-   in
-      thy
-      |> Code.del_eqns const
-      |> Code.add_eqn eq
-    end;
-  fun ensure_term_of_code (tyco, (raw_vs, ((abs, ty), (proj, _)))) thy =
-    let
-      val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
-    in if has_inst then add_term_of_code tyco raw_vs abs ty proj thy else thy end;
-in
-  Code.abstype_interpretation ensure_term_of_code
-end
-*}
-
-
-instantiation String.literal :: term_of
-begin
-
-definition
-  "term_of s = App (Const (STR ''STR'')
-    (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''list'') [Typerep.Typerep (STR ''char'') []],
-      Typerep.Typerep (STR ''String.literal'') []])) (term_of (String.explode s))"
-
-instance ..
-
-end
-
-subsubsection {* Code generator setup *}
-
-lemmas [code del] = term.recs term.cases term.size
-lemma [code, code del]: "HOL.equal (t1\<Colon>term) t2 \<longleftrightarrow> HOL.equal t1 t2" ..
-
-lemma [code, code del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..
-lemma [code, code del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
-lemma [code, code del]: "(term_of \<Colon> String.literal \<Rightarrow> term) = term_of" ..
-lemma [code, code del]:
-  "(Code_Evaluation.term_of \<Colon> 'a::{type, term_of} Predicate.pred \<Rightarrow> Code_Evaluation.term) = Code_Evaluation.term_of" ..
-lemma [code, code del]:
-  "(Code_Evaluation.term_of \<Colon> 'a::{type, term_of} Predicate.seq \<Rightarrow> Code_Evaluation.term) = Code_Evaluation.term_of" ..
-
-lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]: "Code_Evaluation.term_of c =
-    (let (n, m) = nibble_pair_of_char c
-  in Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.Const (STR ''String.char.Char'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
-    (Code_Evaluation.term_of n)) (Code_Evaluation.term_of m))"
-  by (subst term_of_anything) rule 
-
-code_type "term"
-  (Eval "Term.term")
-
-code_const Const and App
-  (Eval "Term.Const/ ((_), (_))" and "Term.$/ ((_), (_))")
-
-code_const "term_of \<Colon> String.literal \<Rightarrow> term"
-  (Eval "HOLogic.mk'_literal")
-
-code_reserved Eval HOLogic
-
-
 subsubsection {* Syntax *}
 
 definition termify :: "'a \<Rightarrow> term" where
@@ -209,34 +45,6 @@ definition termify :: "'a \<Rightarrow> term" where
 
 abbreviation valtermify :: "'a \<Rightarrow> 'a \<times> (unit \<Rightarrow> term)" where
   "valtermify x \<equiv> (x, \<lambda>u. termify x)"
-
-setup {*
-let
-  fun map_default f xs =
-    let val ys = map f xs
-    in if exists is_some ys
-      then SOME (map2 the_default xs ys)
-      else NONE
-    end;
-  fun subst_termify_app (Const (@{const_name termify}, T), [t]) =
-        if not (Term.has_abs t)
-        then if fold_aterms (fn Const _ => I | _ => K false) t true
-          then SOME (HOLogic.reflect_term t)
-          else error "Cannot termify expression containing variables"
-        else error "Cannot termify expression containing abstraction"
-    | subst_termify_app (t, ts) = case map_default subst_termify ts
-       of SOME ts' => SOME (list_comb (t, ts'))
-        | NONE => NONE
-  and subst_termify (Abs (v, T, t)) = (case subst_termify t
-       of SOME t' => SOME (Abs (v, T, t'))
-        | NONE => NONE)
-    | subst_termify t = subst_termify_app (strip_comb t) 
-  fun check_termify ts ctxt = map_default subst_termify ts
-    |> Option.map (rpair ctxt)
-in
-  Context.theory_map (Syntax.add_term_check 0 "termify" check_termify)
-end;
-*}
 
 locale term_syntax
 begin
@@ -252,7 +60,75 @@ no_notation App (infixl "<\<cdot>>" 70)
   and valapp (infixl "{\<cdot>}" 70)
 
 
-subsection {* Numeric types *}
+subsection {* Tools setup and evaluation *}
+
+use "Tools/code_evaluation.ML"
+
+code_reserved Eval Code_Evaluation
+
+setup {* Code_Evaluation.setup *}
+
+
+subsection {* @{text term_of} instances *}
+
+instantiation "fun" :: (typerep, typerep) term_of
+begin
+
+definition
+  "term_of (f \<Colon> 'a \<Rightarrow> 'b) = Const (STR ''dummy_pattern'') (Typerep.Typerep (STR ''fun'')
+     [Typerep.typerep TYPE('a), Typerep.typerep TYPE('b)])"
+
+instance ..
+
+end
+
+instantiation String.literal :: term_of
+begin
+
+definition
+  "term_of s = App (Const (STR ''STR'')
+    (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''list'') [Typerep.Typerep (STR ''char'') []],
+      Typerep.Typerep (STR ''String.literal'') []])) (term_of (String.explode s))"
+
+instance ..
+
+end
+
+
+subsubsection {* Code generator setup *}
+
+lemmas [code del] = term.recs term.cases term.size
+lemma [code, code del]: "HOL.equal (t1\<Colon>term) t2 \<longleftrightarrow> HOL.equal t1 t2" ..
+
+lemma [code, code del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..
+lemma [code, code del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
+lemma [code, code del]: "(term_of \<Colon> String.literal \<Rightarrow> term) = term_of" ..
+lemma [code, code del]: "(Code_Evaluation.term_of \<Colon> 'a::{type, term_of} Predicate.pred \<Rightarrow> Code_Evaluation.term)
+  = Code_Evaluation.term_of" ..
+lemma [code, code del]: "(Code_Evaluation.term_of \<Colon> 'a::{type, term_of} Predicate.seq \<Rightarrow> Code_Evaluation.term)
+  = Code_Evaluation.term_of" ..
+
+lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]:
+  "Code_Evaluation.term_of c =
+    (let (n, m) = nibble_pair_of_char c
+  in Code_Evaluation.App (Code_Evaluation.App
+    (Code_Evaluation.Const (STR ''String.char.Char'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
+      (Code_Evaluation.term_of n)) (Code_Evaluation.term_of m))"
+  by (subst term_of_anything) rule 
+
+code_type "term"
+  (Eval "Term.term")
+
+code_const Const and App
+  (Eval "Term.Const/ ((_), (_))" and "Term.$/ ((_), (_))")
+
+code_const "term_of \<Colon> String.literal \<Rightarrow> term"
+  (Eval "HOLogic.mk'_literal")
+
+code_reserved Eval HOLogic
+
+
+subsubsection {* Numeric types *}
 
 definition term_of_num :: "'a\<Colon>{semiring_div} \<Rightarrow> 'a\<Colon>{semiring_div} \<Rightarrow> term" where
   "term_of_num two = (\<lambda>_. dummy_term)"
@@ -279,7 +155,7 @@ lemma (in term_syntax) term_of_code_numeral_code [code]:
   by (simp only: term_of_anything)
 
 
-subsection {* Obfuscate *}
+subsubsection {* Obfuscation *}
 
 print_translation {*
 let
@@ -294,36 +170,7 @@ end
 *}
 
 
-subsection {* Evaluation setup *}
-
-ML {*
-signature CODE_EVALUATION =
-sig
-  val eval_term: theory -> term -> term
-  val put_term: (unit -> term) -> Proof.context -> Proof.context
-  val tracing: string -> 'a -> 'a
-end;
-
-structure Code_Evaluation : CODE_EVALUATION =
-struct
-
-structure Evaluation = Proof_Data (
-  type T = unit -> term
-  fun init _ () = error "Evaluation"
-);
-val put_term = Evaluation.put;
-
-fun tracing s x = (Output.tracing s; x);
-
-fun eval_term thy t = Code_Runtime.dynamic_value_strict (Evaluation.get, put_term, "Code_Evaluation.put_term")
-  thy NONE I (HOLogic.mk_term_of (fastype_of t) t) [];
-
-end
-*}
-
-setup {*
-  Value.add_evaluator ("code", Code_Evaluation.eval_term o ProofContext.theory_of)
-*}
+subsection {* Diagnostic *}
 
 definition tracing :: "String.literal \<Rightarrow> 'a \<Rightarrow> 'a" where
   [code del]: "tracing s x = x"
@@ -331,7 +178,6 @@ definition tracing :: "String.literal \<Rightarrow> 'a \<Rightarrow> 'a" where
 code_const "tracing :: String.literal => 'a => 'a"
   (Eval "Code'_Evaluation.tracing")
 
-code_reserved Eval Code_Evaluation
 
 hide_const dummy_term App valapp
 hide_const (open) Const termify valtermify term_of term_of_num tracing
