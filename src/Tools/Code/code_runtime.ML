@@ -63,7 +63,7 @@ type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context 
 fun obtain_serializer thy some_target = Code_Target.produce_code_for thy
   (the_default target some_target) NONE "Code" [];
 
-fun base_evaluator cookie serializer naming thy program ((vs, ty), t) deps args =
+fun base_evaluator cookie serializer (naming : Code_Thingol.naming) thy program ((vs, ty), t) deps args =
   let
     val ctxt = ProofContext.init_global thy;
     val _ = if Code_Thingol.contains_dictvar t then
