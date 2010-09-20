@@ -58,18 +58,19 @@ fun apply_named_method_on_first_goal name ctxt =
     Proof.refine (Method.SelectGoals (1, Method.Basic (named_method thy name)))
   end
 
-fun do_named_method_on_first_goal name timeout_opt st =
+fun do_named_method (name, all_goals) timeout_opt st =
   do_generic timeout_opt
-             (name ^ (if nprems_of (#goal (Proof.goal st)) > 1 then "[1]"
-                      else "")) I (#goal o Proof.goal)
+             (name ^ (if all_goals andalso
+                         nprems_of (#goal (Proof.goal st)) > 1 then
+                        "[1]"
+                      else
+                        "")) I (#goal o Proof.goal)
              (apply_named_method_on_first_goal name (Proof.context_of st)) st
 
-val all_goals_named_methods = ["auto"]
-val first_goal_named_methods =
-  ["simp", "fast", "fastsimp", "force", "best", "blast", "arith"]
-val do_methods =
-  map do_named_method_on_first_goal all_goals_named_methods @
-  map do_named_method first_goal_named_methods
+val named_methods =
+  [("simp", false), ("auto", true), ("fast", false), ("fastsimp", false),
+   ("force", false), ("blast", false), ("arith", false)]
+val do_methods = map do_named_method named_methods
 
 fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
 
