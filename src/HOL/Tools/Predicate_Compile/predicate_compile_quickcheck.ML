@@ -187,14 +187,6 @@ fun mk_split_lambda [] t = Abs ("u", HOLogic.unitT, t)
     mk_split_lambda' xs t
   end;
 
-fun strip_imp_prems (Const(@{const_name HOL.implies}, _) $ A $ B) = A :: strip_imp_prems B
-  | strip_imp_prems _ = [];
-
-fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ A $ B) = strip_imp_concl B
-  | strip_imp_concl A = A : term;
-
-fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
-
 fun cpu_time description f =
   let
     val start = start_timing ()
@@ -205,23 +197,11 @@ fun cpu_time description f =
 fun compile_term compilation options ctxt t =
   let
     val thy = Theory.copy (ProofContext.theory_of ctxt)
-    val (vs, t') = strip_abs t
-    val vs' = Variable.variant_frees ctxt [] vs
-    val t'' = subst_bounds (map Free (rev vs'), t')
-    val (prems, concl) = strip_horn t''
-    val constname = "pred_compile_quickcheck"
-    val full_constname = Sign.full_bname thy constname
-    val constT = map snd vs' ---> @{typ bool}
-    val thy1 = Sign.add_consts_i [(Binding.name constname, constT, NoSyn)] thy
-    val const = Const (full_constname, constT)
-    val t = Logic.list_implies
-      (map HOLogic.mk_Trueprop (prems @ [HOLogic.mk_not concl]),
-       HOLogic.mk_Trueprop (list_comb (Const (full_constname, constT), map Free vs')))
-    val tac = fn _ => Skip_Proof.cheat_tac thy1
-    val intro = Goal.prove (ProofContext.init_global thy1) (map fst vs') [] t tac
+    val ((((full_constname, constT), vs'), intro), thy1) =
+      Predicate_Compile_Aux.define_quickcheck_predicate t thy
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
     val (thy3, preproc_time) = cpu_time "predicate preprocessing"
-        (fn () => Predicate_Compile.preprocess options const thy2)
+        (fn () => Predicate_Compile.preprocess options (Const (full_constname, constT)) thy2)
     val (thy4, core_comp_time) = cpu_time "random_dseq core compilation"
         (fn () =>
           case compilation of

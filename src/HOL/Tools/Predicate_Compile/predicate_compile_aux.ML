@@ -148,6 +148,8 @@ sig
   val remove_equalities : theory -> thm -> thm
   val remove_pointless_clauses : thm -> thm list
   val peephole_optimisation : theory -> thm -> thm option
+  val define_quickcheck_predicate :
+    term -> theory -> (((string * typ) * (string * typ) list) * thm) * theory 
 end;
 
 structure Predicate_Compile_Aux : PREDICATE_COMPILE_AUX =
@@ -907,6 +909,36 @@ fun peephole_optimisation thy intro =
   in
     Option.map (Skip_Proof.make_thm thy)
       (process_False (process_True (prop_of (process intro))))
+  end
+
+(* defining a quickcheck predicate *)
+
+fun strip_imp_prems (Const(@{const_name HOL.implies}, _) $ A $ B) = A :: strip_imp_prems B
+  | strip_imp_prems _ = [];
+
+fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ A $ B) = strip_imp_concl B
+  | strip_imp_concl A = A : term;
+
+fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
+
+fun define_quickcheck_predicate t thy =
+  let
+    val (vs, t') = strip_abs t
+    val vs' = Variable.variant_frees (ProofContext.init_global thy) [] vs
+    val t'' = subst_bounds (map Free (rev vs'), t')
+    val (prems, concl) = strip_horn t''
+    val constname = "quickcheck"
+    val full_constname = Sign.full_bname thy constname
+    val constT = map snd vs' ---> @{typ bool}
+    val thy1 = Sign.add_consts_i [(Binding.name constname, constT, NoSyn)] thy
+    val const = Const (full_constname, constT)
+    val t = Logic.list_implies
+      (map HOLogic.mk_Trueprop (prems @ [HOLogic.mk_not concl]),
+       HOLogic.mk_Trueprop (list_comb (const, map Free vs')))
+    val tac = fn _ => Skip_Proof.cheat_tac thy1
+    val intro = Goal.prove (ProofContext.init_global thy1) (map fst vs') [] t tac
+  in
+    ((((full_constname, constT), vs'), intro), thy1)
   end
 
 end;
