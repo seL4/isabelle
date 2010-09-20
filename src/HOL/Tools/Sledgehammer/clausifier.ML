@@ -34,9 +34,6 @@ fun transform_elim_theorem th =
            Thm.instantiate ([], [(cterm_of @{theory HOL} v, ctp_false)]) th
     | _ => th
 
-(*To enforce single-threading*)
-exception Clausify_failure of theory;
-
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
