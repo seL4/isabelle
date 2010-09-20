@@ -6,7 +6,12 @@ Evaluation and reconstruction of terms in ML.
 
 signature CODE_EVALUATION =
 sig
+  val dynamic_value: theory -> term -> term option
   val dynamic_value_strict: theory -> term -> term
+  val dynamic_value_exn: theory -> term -> term Exn.result
+  val static_value: theory -> string list -> typ list -> term -> term option
+  val static_value_strict: theory -> string list -> typ list -> term -> term
+  val static_value_exn: theory -> string list -> typ list -> term -> term Exn.result
   val put_term: (unit -> term) -> Proof.context -> Proof.context
   val tracing: string -> 'a -> 'a
   val setup: theory -> theory
@@ -47,13 +52,13 @@ fun ensure_term_of (tyco, (raw_vs, _)) thy =
 
 (* code equations for datatypes *)
 
-fun mk_term_of_eq thy ty vs tyco (c, tys) =
+fun mk_term_of_eq thy ty (c, tys) =
   let
     val t = list_comb (Const (c, tys ---> ty),
       map Free (Name.names Name.context "a" tys));
     val (arg, rhs) =
       pairself (Thm.cterm_of thy o map_types Logic.unvarifyT_global o Logic.varify_global)
-        (t, (map_aterms (fn t as Free (v, ty) => HOLogic.mk_term_of ty t | t => t) o HOLogic.reflect_term) t)
+        (t, (map_aterms (fn t as Free (_, ty) => HOLogic.mk_term_of ty t | t => t) o HOLogic.reflect_term) t)
     val cty = Thm.ctyp_of thy ty;
   in
     @{thm term_of_anything}
@@ -70,7 +75,7 @@ fun add_term_of_code tyco raw_vs raw_cs thy =
     val cs = (map o apsnd o map o map_atyps)
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
     val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
-    val eqs = map (mk_term_of_eq thy ty vs tyco) cs;
+    val eqs = map (mk_term_of_eq thy ty) cs;
  in
     thy
     |> Code.del_eqns const
@@ -85,7 +90,7 @@ fun ensure_term_of_code (tyco, (raw_vs, cs)) thy =
 
 (* code equations for abstypes *)
 
-fun mk_abs_term_of_eq thy ty vs tyco abs ty_rep proj =
+fun mk_abs_term_of_eq thy ty abs ty_rep proj =
   let
     val arg = Var (("x", 0), ty);
     val rhs = Abs ("y", @{typ term}, HOLogic.reflect_term (Const (abs, ty_rep --> ty) $ Bound 0)) $
@@ -107,7 +112,7 @@ fun add_abs_term_of_code tyco raw_vs abs raw_ty_rep proj thy =
     val ty_rep = map_atyps
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_ty_rep;
     val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
-    val eq = mk_abs_term_of_eq thy ty vs tyco abs ty_rep proj;
+    val eq = mk_abs_term_of_eq thy ty abs ty_rep proj;
  in
     thy
     |> Code.del_eqns const
@@ -129,7 +134,7 @@ fun map_default f xs =
     else NONE
   end;
 
-fun subst_termify_app (Const (@{const_name termify}, T), [t]) =
+fun subst_termify_app (Const (@{const_name termify}, _), [t]) =
       if not (Term.has_abs t)
       then if fold_aterms (fn Const _ => I | _ => K false) t true
         then SOME (HOLogic.reflect_term t)
@@ -154,11 +159,31 @@ structure Evaluation = Proof_Data (
   fun init _ () = error "Evaluation"
 );
 val put_term = Evaluation.put;
+val cookie = (Evaluation.get, put_term, "Code_Evaluation.put_term");
+
+fun mk_term_of t = HOLogic.mk_term_of (fastype_of t) t;
+
+fun term_of_const_for thy = AxClass.unoverload_const thy o dest_Const o HOLogic.term_of_const;
+
+fun gen_dynamic_value dynamic_value thy t =
+  dynamic_value cookie thy NONE I (mk_term_of t) [];
+
+val dynamic_value = gen_dynamic_value Code_Runtime.dynamic_value;
+val dynamic_value_strict = gen_dynamic_value Code_Runtime.dynamic_value_strict;
+val dynamic_value_exn = gen_dynamic_value Code_Runtime.dynamic_value_exn;
+
+fun gen_static_value static_value thy consts Ts =
+  static_value cookie thy NONE I (union (op =) (map (term_of_const_for thy) Ts) consts)
+  o mk_term_of;
+
+val static_value = gen_static_value Code_Runtime.static_value;
+val static_value_strict = gen_static_value Code_Runtime.static_value_strict;
+val static_value_exn = gen_static_value Code_Runtime.static_value_exn;
+
+
+(** diagnostic **)
 
 fun tracing s x = (Output.tracing s; x);
-
-fun dynamic_value_strict thy t = Code_Runtime.dynamic_value_strict (Evaluation.get, put_term, "Code_Evaluation.put_term")
-  thy NONE I (HOLogic.mk_term_of (fastype_of t) t) [];
 
 
 (** setup **)
