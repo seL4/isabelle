@@ -640,7 +640,7 @@ fun def_pred binding parms defs ts norm_ts thy =
       thy
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
       |> Sign.declare_const ((Binding.conceal binding, predT), NoSyn) |> snd
-      |> PureThy.add_defs false
+      |> Global_Theory.add_defs false
         [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
     val defs_ctxt = ProofContext.init_global defs_thy |> Variable.declare_term head;
 
@@ -681,7 +681,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
           val (_, thy'') =
             thy'
             |> Sign.qualified_path true abinding
-            |> PureThy.note_thmss ""
+            |> Global_Theory.note_thmss ""
               [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.unfold_add])])]
             ||> Sign.restore_naming thy';
           in (SOME statement, SOME intro, axioms, thy'') end;
@@ -695,7 +695,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
           val (_, thy'''') =
             thy'''
             |> Sign.qualified_path true binding
-            |> PureThy.note_thmss ""
+            |> Global_Theory.note_thmss ""
                  [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.intro_add])]),
                   ((Binding.conceal (Binding.name axiomsN), []),
                     [(map (Drule.export_without_context o Element.conclude_witness) axioms, [])])]

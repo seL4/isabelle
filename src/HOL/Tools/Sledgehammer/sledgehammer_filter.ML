@@ -708,7 +708,7 @@ fun close_form t =
 fun all_name_thms_pairs ctxt reserved full_types add_ths chained_ths =
   let
     val thy = ProofContext.theory_of ctxt
-    val global_facts = PureThy.facts_of thy
+    val global_facts = Global_Theory.facts_of thy
     val local_facts = ProofContext.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val assms = Assumption.all_assms_of ctxt

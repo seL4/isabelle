@@ -118,7 +118,7 @@ fun locale_notes locale kind global_facts local_facts lthy =
       (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts;
   in
     lthy
-    |> Local_Theory.background_theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)
     |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
   end
 

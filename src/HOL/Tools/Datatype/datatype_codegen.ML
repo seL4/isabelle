@@ -109,7 +109,7 @@ fun add_equality vs tycos thy =
     fun add_eq_thms tyco =
       Theory.checkpoint
       #> `(fn thy => mk_eq_eqns thy tyco)
-      #-> (fn (thms, thm) => PureThy.note_thmss Thm.lemmaK
+      #-> (fn (thms, thm) => Global_Theory.note_thmss Thm.lemmaK
           [((prefix tyco "refl", [Code.add_nbe_default_eqn_attribute]), [([thm], [])]),
             ((prefix tyco "simps", [Code.add_default_eqn_attribute]), [(rev thms, [])])])
       #> snd

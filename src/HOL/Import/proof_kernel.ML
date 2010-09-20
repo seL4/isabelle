@@ -1261,10 +1261,10 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
         case get_hol4_mapping thyname thmname thy of
             SOME (SOME thmname) =>
             let
-                val th1 = (SOME (PureThy.get_thm thy thmname)
+                val th1 = (SOME (Global_Theory.get_thm thy thmname)
                            handle ERROR _ =>
                                   (case split_name thmname of
-                                       SOME (listname,idx) => (SOME (List.nth(PureThy.get_thms thy listname,idx-1))
+                                       SOME (listname,idx) => (SOME (List.nth(Global_Theory.get_thms thy listname,idx-1))
                                                                handle _ => NONE)  (* FIXME avoid handle _ *)
                                      | NONE => NONE))
             in
@@ -1922,7 +1922,7 @@ fun new_definition thyname constname rhs thy =
                      | _ => (ImportRecorder.add_consts [(constname, ctype, csyn)];
                               Sign.add_consts_i [(Binding.name constname,ctype,csyn)] thy)
         val eq = mk_defeq constname rhs' thy1
-        val (thms, thy2) = PureThy.add_defs false [((Binding.name thmname,eq),[])] thy1
+        val (thms, thy2) = Global_Theory.add_defs false [((Binding.name thmname,eq),[])] thy1
         val _ = ImportRecorder.add_defs thmname eq
         val def_thm = hd thms
         val thm' = def_thm RS meta_eq_to_obj_eq_thm
@@ -2144,7 +2144,7 @@ fun add_dump_syntax thy name =
 fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
     case HOL4DefThy.get thy of
         Replaying _ => (thy,
-          HOLThm([], PureThy.get_thm thy (thmname^"_@intern")) handle ERROR _ => hth)
+          HOLThm([], Global_Theory.get_thm thy (thmname^"_@intern")) handle ERROR _ => hth)
       | _ =>
         let
             val _ = message "TYPE_INTRO:"

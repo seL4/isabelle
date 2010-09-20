@@ -390,7 +390,7 @@ fun declare_overloaded (c, T) thy =
         (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
       #>> apsnd Thm.varifyT_global
       #-> (fn (_, thm) => add_inst_param (c, tyco) (c'', thm)
-        #> PureThy.add_thm ((Binding.conceal (Binding.name c'), thm), [])
+        #> Global_Theory.add_thm ((Binding.conceal (Binding.name c'), thm), [])
         #> #2
         #> pair (Const (c, T))))
     ||> Sign.restore_naming thy
@@ -419,7 +419,7 @@ fun add_classrel raw_th thy =
     fun err () = raise THM ("add_classrel: malformed class relation", 0, [th]);
     val rel = Logic.dest_classrel prop handle TERM _ => err ();
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
-    val (th', thy') = PureThy.store_thm
+    val (th', thy') = Global_Theory.store_thm
       (Binding.name (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th) thy;
     val th'' = th'
       |> Thm.unconstrainT
@@ -438,7 +438,7 @@ fun add_arity raw_th thy =
     fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
     val arity as (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
 
-    val (th', thy') = PureThy.store_thm
+    val (th', thy') = Global_Theory.store_thm
       (Binding.name (prefix arity_prefix (Logic.name_arity arity)), th) thy;
 
     val args = Name.names Name.context Name.aT Ss;
@@ -560,7 +560,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val ([def], def_thy) =
       thy
       |> Sign.primitive_class (bclass, super)
-      |> PureThy.add_defs false [((Thm.def_binding bconst, class_eq), [])];
+      |> Global_Theory.add_defs false [((Thm.def_binding bconst, class_eq), [])];
     val (raw_intro, (raw_classrel, raw_axioms)) =
       split_defined (length conjs) def ||> chop (length super);
 
@@ -571,7 +571,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val ([(_, [intro]), (_, classrel), (_, axioms)], facts_thy) =
       def_thy
       |> Sign.qualified_path true bconst
-      |> PureThy.note_thmss ""
+      |> Global_Theory.note_thmss ""
         [((Binding.name "intro", []), [([Drule.export_without_context raw_intro], [])]),
          ((Binding.name "super", []), [(map Drule.export_without_context raw_classrel, [])]),
          ((Binding.name "axioms", []),
@@ -586,7 +586,8 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       facts_thy
       |> fold (#2 oo put_trancl_classrel) (map (pair class) super ~~ classrel)
       |> Sign.qualified_path false bconst
-      |> PureThy.note_thmss "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> #2
+      |> Global_Theory.note_thmss "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms))
+      |> #2
       |> Sign.restore_naming facts_thy
       |> map_axclasses (Symtab.update (class, axclass))
       |> map_params (fold (fn (x, _) => add_param (Syntax.pp ctxt) (x, class)) params);

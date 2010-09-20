@@ -134,6 +134,7 @@ use "proofterm.ML";
 use "thm.ML";
 use "more_thm.ML";
 use "facts.ML";
+use "global_theory.ML";
 use "pure_thy.ML";
 use "drule.ML";
 use "morphism.ML";

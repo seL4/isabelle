@@ -108,7 +108,7 @@ fun flatten constname atom (defs, thy) =
       val def = Logic.mk_equals (lhs, atom)
       val ([definition], thy') = thy
         |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
-        |> PureThy.add_defs false [((Binding.name (constname ^ "_def"), def), [])]
+        |> Global_Theory.add_defs false [((Binding.name (constname ^ "_def"), def), [])]
     in
       (lhs, ((full_constname, [definition]) :: defs, thy'))
     end
@@ -327,7 +327,7 @@ fun flat_higher_order_arguments (intross, thy) =
             val def = Logic.mk_equals (lhs, abs_arg')
             val ([definition], thy') = thy
               |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
-              |> PureThy.add_defs false [((Binding.name (constname ^ "_def"), def), [])]
+              |> Global_Theory.add_defs false [((Binding.name (constname ^ "_def"), def), [])]
           in
             (list_comb (Logic.varify_global const, vars),
               ((full_constname, [definition])::new_defs, thy'))

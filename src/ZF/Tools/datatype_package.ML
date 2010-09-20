@@ -242,17 +242,18 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val need_recursor = (not coind andalso recursor_typ <> case_typ);
 
   fun add_recursor thy =
-      if need_recursor then
-           thy |> Sign.add_consts_i
-                    [(Binding.name recursor_base_name, recursor_typ, NoSyn)]
-               |> (snd o PureThy.add_defs false [(Thm.no_attributes o apfst Binding.name) recursor_def])
-      else thy;
+    if need_recursor then
+      thy
+      |> Sign.add_consts_i
+        [(Binding.name recursor_base_name, recursor_typ, NoSyn)]
+      |> (snd o Global_Theory.add_defs false [(Thm.no_attributes o apfst Binding.name) recursor_def])
+    else thy;
 
   val (con_defs, thy0) = thy_path
              |> Sign.add_consts_i
                  (map (fn (c, T, mx) => (Binding.name c, T, mx))
                   ((case_base_name, case_typ, NoSyn) :: map #1 (flat con_ty_lists)))
-             |> PureThy.add_defs false
+             |> Global_Theory.add_defs false
                  (map (Thm.no_attributes o apfst Binding.name)
                   (case_def ::
                    flat (ListPair.map mk_con_defs (1 upto npart, con_ty_lists))))
@@ -379,7 +380,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
  in
   (*Updating theory components: simprules and datatype info*)
   (thy1 |> Sign.add_path big_rec_base_name
-        |> PureThy.add_thmss
+        |> Global_Theory.add_thmss
          [((Binding.name "simps", simps), [Simplifier.simp_add]),
           ((Binding.empty , intrs), [Classical.safe_intro NONE]),
           ((Binding.name "con_defs", con_defs), []),

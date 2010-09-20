@@ -194,7 +194,7 @@ fun gen_add_domain
           ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
   in
     theorems_thy
-      |> PureThy.add_thmss
+      |> Global_Theory.add_thmss
            [((Binding.qualified true "rews" comp_dbind,
               flat rewss @ take_rews), [])]
       |> snd

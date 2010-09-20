@@ -1303,7 +1303,7 @@ fun all_axioms_of ctxt subst =
       List.partition (is_typedef_axiom ctxt false) user_nondefs
       |>> append built_in_nondefs
     val defs =
-      (thy |> PureThy.all_thms_of
+      (thy |> Global_Theory.all_thms_of
            |> filter (curry (op =) Thm.definitionK o Thm.get_kind o snd)
            |> map (prop_of o snd)
            |> filter_out is_trivial_definition
@@ -1867,7 +1867,7 @@ fun inductive_intro_table ctxt subst def_table =
 fun ground_theorem_table thy =
   fold ((fn @{const Trueprop} $ t1 =>
             is_ground_term t1 ? Inttab.map_default (hash_term t1, []) (cons t1)
-          | _ => I) o prop_of o snd) (PureThy.all_thms_of thy) Inttab.empty
+          | _ => I) o prop_of o snd) (Global_Theory.all_thms_of thy) Inttab.empty
 
 (* TODO: Move to "Nitpick.thy" *)
 val basic_ersatz_table =

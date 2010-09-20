@@ -153,7 +153,7 @@ fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
     val ([isom_def], cdef_thy) =
       typ_thy
       |> Sign.declare_const ((isom_binding, isomT), NoSyn) |> snd
-      |> PureThy.add_defs false
+      |> Global_Theory.add_defs false
         [((Binding.conceal (Thm.def_binding isom_binding), Logic.mk_equals (isom, body)), [])];
 
     val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
@@ -1658,7 +1658,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     fun mk_defs () =
       typ_thy
       |> Sign.declare_const ((ext_binding, ext_type), NoSyn) |> snd
-      |> PureThy.add_defs false [((Thm.def_binding ext_binding, ext_spec), [])]
+      |> Global_Theory.add_defs false [((Thm.def_binding ext_binding, ext_spec), [])]
       ||> Theory.checkpoint
     val ([ext_def], defs_thy) =
       timeit_msg "record extension constructor def:" mk_defs;
@@ -1749,7 +1749,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     val ([induct', inject', surjective', split_meta'], thm_thy) =
       defs_thy
-      |> PureThy.add_thms (map (Thm.no_attributes o apfst Binding.name)
+      |> Global_Theory.add_thms (map (Thm.no_attributes o apfst Binding.name)
            [("ext_induct", induct),
             ("ext_inject", inject),
             ("ext_surjective", surject),
@@ -2096,11 +2096,12 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         (sel_decls ~~ (field_syntax @ [NoSyn]))
       |> fold (fn (x, T) => snd o Sign.declare_const ((Binding.name x, T), NoSyn))
         (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
-      |> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
-        sel_specs
-      ||>> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
-        upd_specs
-      ||>> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
+      |> (Global_Theory.add_defs false o
+            map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) sel_specs
+      ||>> (Global_Theory.add_defs false o
+            map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) upd_specs
+      ||>> (Global_Theory.add_defs false o
+            map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
         [make_spec, fields_spec, extend_spec, truncate_spec]
       ||> Theory.checkpoint
     val (((sel_defs, upd_defs), derived_defs), defs_thy) =
@@ -2339,7 +2340,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           [surjective', equality']),
           [induct_scheme', induct', cases_scheme', cases']), thms_thy) =
       defs_thy
-      |> (PureThy.add_thmss o map (Thm.no_attributes o apfst Binding.name))
+      |> (Global_Theory.add_thmss o map (Thm.no_attributes o apfst Binding.name))
          [("select_convs", sel_convs_standard),
           ("update_convs", upd_convs_standard),
           ("select_defs", sel_defs),
@@ -2348,10 +2349,10 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           ("unfold_congs", unfold_congs),
           ("splits", [split_meta_standard, split_object, split_ex]),
           ("defs", derived_defs)]
-      ||>> (PureThy.add_thms o map (Thm.no_attributes o apfst Binding.name))
+      ||>> (Global_Theory.add_thms o map (Thm.no_attributes o apfst Binding.name))
           [("surjective", surjective),
            ("equality", equality)]
-      ||>> (PureThy.add_thms o (map o apfst o apfst) Binding.name)
+      ||>> (Global_Theory.add_thms o (map o apfst o apfst) Binding.name)
         [(("induct_scheme", induct_scheme), induct_type_global (suffix schemeN name)),
          (("induct", induct), induct_type_global name),
          (("cases_scheme", cases_scheme), cases_type_global (suffix schemeN name)),
@@ -2364,7 +2365,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val ([simps', iffs'], thms_thy') =
       thms_thy
-      |> PureThy.add_thmss
+      |> Global_Theory.add_thmss
           [((Binding.name "simps", sel_upd_simps), [Simplifier.simp_add]),
            ((Binding.name "iffs", iffs), [iff_add])];
 

@@ -218,6 +218,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   drule.ML						\
   envir.ML						\
   facts.ML						\
+  global_theory.ML					\
   goal.ML						\
   goal_display.ML					\
   interpretation.ML					\

@@ -306,7 +306,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val _ = warning ("length new_type_names: " ^ string_of_int (length new_type_names));
 
     val perm_indnames = Datatype_Prop.make_tnames (map body_type perm_types);
-    val perm_fun_def = PureThy.get_thm thy2 "perm_fun_def";
+    val perm_fun_def = Global_Theory.get_thm thy2 "perm_fun_def";
 
     val unfolded_perm_eq_thms =
       if length descr = length new_type_names then []
@@ -351,8 +351,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val _ = warning "perm_append_thms";
 
     (*FIXME: these should be looked up statically*)
-    val at_pt_inst = PureThy.get_thm thy2 "at_pt_inst";
-    val pt2 = PureThy.get_thm thy2 "pt2";
+    val at_pt_inst = Global_Theory.get_thm thy2 "at_pt_inst";
+    val pt2 = Global_Theory.get_thm thy2 "pt2";
 
     val perm_append_thms = maps (fn a =>
       let
@@ -361,7 +361,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val pi2 = Free ("pi2", permT);
         val pt_inst = pt_inst_of thy2 a;
         val pt2' = pt_inst RS pt2;
-        val pt2_ax = PureThy.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "2") a);
+        val pt2_ax = Global_Theory.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "2") a);
       in List.take (map Drule.export_without_context (split_conj_thm
         (Goal.prove_global thy2 [] []
            (augment_sort thy2 [pt_class_of thy2 a]
@@ -384,8 +384,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val _ = warning "perm_eq_thms";
 
-    val pt3 = PureThy.get_thm thy2 "pt3";
-    val pt3_rev = PureThy.get_thm thy2 "pt3_rev";
+    val pt3 = Global_Theory.get_thm thy2 "pt3";
+    val pt3_rev = Global_Theory.get_thm thy2 "pt3_rev";
 
     val perm_eq_thms = maps (fn a =>
       let
@@ -396,7 +396,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val pt_inst = pt_inst_of thy2 a;
         val pt3' = pt_inst RS pt3;
         val pt3_rev' = at_inst RS (pt_inst RS pt3_rev);
-        val pt3_ax = PureThy.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "3") a);
+        val pt3_ax = Global_Theory.get_thm thy2 (Long_Name.map_base_name (fn s => "pt_" ^ s ^ "3") a);
       in List.take (map Drule.export_without_context (split_conj_thm
         (Goal.prove_global thy2 [] []
           (augment_sort thy2 [pt_class_of thy2 a] (Logic.mk_implies
@@ -418,11 +418,11 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     (**** prove pi1 \<bullet> (pi2 \<bullet> t) = (pi1 \<bullet> pi2) \<bullet> (pi1 \<bullet> t) ****)
 
-    val cp1 = PureThy.get_thm thy2 "cp1";
-    val dj_cp = PureThy.get_thm thy2 "dj_cp";
-    val pt_perm_compose = PureThy.get_thm thy2 "pt_perm_compose";
-    val pt_perm_compose_rev = PureThy.get_thm thy2 "pt_perm_compose_rev";
-    val dj_perm_perm_forget = PureThy.get_thm thy2 "dj_perm_perm_forget";
+    val cp1 = Global_Theory.get_thm thy2 "cp1";
+    val dj_cp = Global_Theory.get_thm thy2 "dj_cp";
+    val pt_perm_compose = Global_Theory.get_thm thy2 "pt_perm_compose";
+    val pt_perm_compose_rev = Global_Theory.get_thm thy2 "pt_perm_compose_rev";
+    val dj_perm_perm_forget = Global_Theory.get_thm thy2 "dj_perm_perm_forget";
 
     fun composition_instance name1 name2 thy =
       let
@@ -486,7 +486,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                  resolve_tac perm_eq_thms 1, assume_tac 1]) thy)
             (full_new_type_names' ~~ tyvars) thy
         end) atoms |>
-      PureThy.add_thmss
+      Global_Theory.add_thmss
         [((Binding.name (space_implode "_" new_type_names ^ "_unfolded_perm_eq"),
           unfolded_perm_eq_thms), [Simplifier.simp_add]),
          ((Binding.name (space_implode "_" new_type_names ^ "_perm_empty"),
@@ -578,7 +578,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val _ = warning "proving closure under permutation...";
 
-    val abs_perm = PureThy.get_thms thy4 "abs_perm";
+    val abs_perm = Global_Theory.get_thms thy4 "abs_perm";
 
     val perm_indnames' = map_filter
       (fn (x, (_, ("Nominal.noption", _, _))) => NONE | (x, _) => SOME x)
@@ -626,7 +626,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           val pi = Free ("pi", permT);
           val T = Type (Sign.intern_type thy name, map TFree tvs);
         in apfst (pair r o hd)
-          (PureThy.add_defs_unchecked true [((Binding.name ("prm_" ^ name ^ "_def"), Logic.mk_equals
+          (Global_Theory.add_defs_unchecked true [((Binding.name ("prm_" ^ name ^ "_def"), Logic.mk_equals
             (Const ("Nominal.perm", permT --> T --> T) $ pi $ Free ("x", T),
              Const (Sign.intern_const thy ("Abs_" ^ name), U --> T) $
                (Const ("Nominal.perm", permT --> U --> U) $ pi $
@@ -662,7 +662,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
               asm_full_simp_tac (global_simpset_of thy addsimps [Rep_inverse]) 1,
               asm_full_simp_tac (global_simpset_of thy addsimps
                 [Rep RS perm_closed RS Abs_inverse]) 1,
-              asm_full_simp_tac (HOL_basic_ss addsimps [PureThy.get_thm thy
+              asm_full_simp_tac (HOL_basic_ss addsimps [Global_Theory.get_thm thy
                 ("pt_" ^ Long_Name.base_name atom ^ "3")]) 1]) thy
           end)
         (Abs_inverse_thms ~~ Rep_inverse_thms ~~ Rep_thms ~~ perm_defs ~~
@@ -801,7 +801,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val def_name = (Long_Name.base_name cname) ^ "_def";
         val ([def_thm], thy') = thy |>
           Sign.add_consts_i [(Binding.name cname', constrT, mx)] |>
-          (PureThy.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)]
+          (Global_Theory.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)]
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
 
     fun dt_constr_defs ((((((_, (_, _, constrs)),
@@ -935,8 +935,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     (** prove injectivity of constructors **)
 
     val rep_inject_thms' = map (fn th => th RS sym) rep_inject_thms;
-    val alpha = PureThy.get_thms thy8 "alpha";
-    val abs_fresh = PureThy.get_thms thy8 "abs_fresh";
+    val alpha = Global_Theory.get_thms thy8 "alpha";
+    val abs_fresh = Global_Theory.get_thms thy8 "abs_fresh";
 
     val pt_cp_sort =
       map (pt_class_of thy8) dt_atoms @
@@ -1087,8 +1087,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val indnames = Datatype_Prop.make_tnames recTs;
 
-    val abs_supp = PureThy.get_thms thy8 "abs_supp";
-    val supp_atm = PureThy.get_thms thy8 "supp_atm";
+    val abs_supp = Global_Theory.get_thms thy8 "abs_supp";
+    val supp_atm = Global_Theory.get_thms thy8 "supp_atm";
 
     val finite_supp_thms = map (fn atom =>
       let val atomT = Type (atom, [])
@@ -1103,7 +1103,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
            (fn _ => indtac dt_induct indnames 1 THEN
             ALLGOALS (asm_full_simp_tac (global_simpset_of thy8 addsimps
               (abs_supp @ supp_atm @
-               PureThy.get_thms thy8 ("fs_" ^ Long_Name.base_name atom ^ "1") @
+               Global_Theory.get_thms thy8 ("fs_" ^ Long_Name.base_name atom ^ "1") @
                flat supp_thms))))),
          length new_type_names))
       end) atoms;
@@ -1117,8 +1117,8 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
  
     val (_, thy9) = thy8 |>
       Sign.add_path big_name |>
-      PureThy.add_thms [((Binding.name "induct", dt_induct), [case_names_induct])] ||>>
-      PureThy.add_thmss [((Binding.name "inducts", projections dt_induct), [case_names_induct])] ||>
+      Global_Theory.add_thms [((Binding.name "induct", dt_induct), [case_names_induct])] ||>>
+      Global_Theory.add_thmss [((Binding.name "inducts", projections dt_induct), [case_names_induct])] ||>
       Sign.parent_path ||>>
       Datatype_Aux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
       Datatype_Aux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
@@ -1235,17 +1235,17 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val fin_set_fresh = map (fn s =>
       at_inst_of thy9 s RS at_fin_set_fresh) dt_atoms;
     val pt1_atoms = map (fn Type (s, _) =>
-      PureThy.get_thm thy9 ("pt_" ^ Long_Name.base_name s ^ "1")) dt_atomTs;
+      Global_Theory.get_thm thy9 ("pt_" ^ Long_Name.base_name s ^ "1")) dt_atomTs;
     val pt2_atoms = map (fn Type (s, _) =>
-      PureThy.get_thm thy9 ("pt_" ^ Long_Name.base_name s ^ "2") RS sym) dt_atomTs;
-    val exists_fresh' = PureThy.get_thms thy9 "exists_fresh'";
-    val fs_atoms = PureThy.get_thms thy9 "fin_supp";
-    val abs_supp = PureThy.get_thms thy9 "abs_supp";
-    val perm_fresh_fresh = PureThy.get_thms thy9 "perm_fresh_fresh";
-    val calc_atm = PureThy.get_thms thy9 "calc_atm";
-    val fresh_atm = PureThy.get_thms thy9 "fresh_atm";
-    val fresh_left = PureThy.get_thms thy9 "fresh_left";
-    val perm_swap = PureThy.get_thms thy9 "perm_swap";
+      Global_Theory.get_thm thy9 ("pt_" ^ Long_Name.base_name s ^ "2") RS sym) dt_atomTs;
+    val exists_fresh' = Global_Theory.get_thms thy9 "exists_fresh'";
+    val fs_atoms = Global_Theory.get_thms thy9 "fin_supp";
+    val abs_supp = Global_Theory.get_thms thy9 "abs_supp";
+    val perm_fresh_fresh = Global_Theory.get_thms thy9 "perm_fresh_fresh";
+    val calc_atm = Global_Theory.get_thms thy9 "calc_atm";
+    val fresh_atm = Global_Theory.get_thms thy9 "fresh_atm";
+    val fresh_left = Global_Theory.get_thms thy9 "fresh_left";
+    val perm_swap = Global_Theory.get_thms thy9 "perm_swap";
 
     fun obtain_fresh_name' ths ts T (freshs1, freshs2, ctxt) =
       let
@@ -1408,9 +1408,9 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val (_, thy10) = thy9 |>
       Sign.add_path big_name |>
-      PureThy.add_thms [((Binding.name "strong_induct'", induct_aux), [])] ||>>
-      PureThy.add_thms [((Binding.name "strong_induct", induct), [case_names_induct])] ||>>
-      PureThy.add_thmss [((Binding.name "strong_inducts", projections induct), [case_names_induct])];
+      Global_Theory.add_thms [((Binding.name "strong_induct'", induct_aux), [])] ||>>
+      Global_Theory.add_thms [((Binding.name "strong_induct", induct), [case_names_induct])] ||>>
+      Global_Theory.add_thmss [((Binding.name "strong_inducts", projections induct), [case_names_induct])];
 
     (**** recursion combinator ****)
 
@@ -1517,13 +1517,13 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
           (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) []
-      ||> PureThy.hide_fact true (Long_Name.append (Sign.full_bname thy10 big_rec_name) "induct")
+      ||> Global_Theory.hide_fact true (Long_Name.append (Sign.full_bname thy10 big_rec_name) "induct")
       ||> Sign.restore_naming thy10;
 
     (** equivariance **)
 
-    val fresh_bij = PureThy.get_thms thy11 "fresh_bij";
-    val perm_bij = PureThy.get_thms thy11 "perm_bij";
+    val fresh_bij = Global_Theory.get_thms thy11 "fresh_bij";
+    val perm_bij = Global_Theory.get_thms thy11 "perm_bij";
 
     val (rec_equiv_thms, rec_equiv_thms') = ListPair.unzip (map (fn aT =>
       let
@@ -1565,7 +1565,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val rec_fin_supp_thms = map (fn aT =>
       let
         val name = Long_Name.base_name (fst (dest_Type aT));
-        val fs_name = PureThy.get_thm thy11 ("fs_" ^ name ^ "1");
+        val fs_name = Global_Theory.get_thm thy11 ("fs_" ^ name ^ "1");
         val aset = HOLogic.mk_setT aT;
         val finite = Const ("Finite_Set.finite", aset --> HOLogic.boolT);
         val fins = map (fn (f, T) => HOLogic.mk_Trueprop
@@ -1604,7 +1604,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val rec_fresh_thms = map (fn ((aT, eqvt_ths), finite_prems) =>
       let
         val name = Long_Name.base_name (fst (dest_Type aT));
-        val fs_name = PureThy.get_thm thy11 ("fs_" ^ name ^ "1");
+        val fs_name = Global_Theory.get_thm thy11 ("fs_" ^ name ^ "1");
         val a = Free ("a", aT);
         val freshs = map (fn (f, fT) => HOLogic.mk_Trueprop
           (fresh_const aT fT $ a $ f)) (rec_fns ~~ rec_fn_Ts)
@@ -2018,7 +2018,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       |> Sign.add_consts_i (map (fn ((name, T), T') =>
           (Binding.name (Long_Name.base_name name), rec_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
-      |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
+      |> (Global_Theory.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
           (Binding.name (Long_Name.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
            Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
@@ -2055,7 +2055,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     (* FIXME: theorems are stored in database for testing only *)
     val (_, thy13) = thy12 |>
-      PureThy.add_thmss
+      Global_Theory.add_thmss
         [((Binding.name "rec_equiv", flat rec_equiv_thms), []),
          ((Binding.name "rec_equiv'", flat rec_equiv_thms'), []),
          ((Binding.name "rec_fin_supp", flat rec_fin_supp_thms), []),

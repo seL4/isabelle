@@ -56,7 +56,7 @@ fun prove_eqvt_tac ctxt orig_thm pi pi' =
     val mypi = Thm.cterm_of thy pi
     val T = fastype_of pi'
     val mypifree = Thm.cterm_of thy (Const (@{const_name "rev"}, T --> T) $ pi')
-    val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp"
+    val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp"
   in
     EVERY1 [tactic ctxt ("iffI applied", rtac @{thm iffI}),
             tactic ctxt ("remove pi with perm_boolE", dtac @{thm perm_boolE}),
@@ -175,7 +175,7 @@ val setup =
    "equivariance theorem declaration" #>
   Attrib.setup @{binding eqvt_force} (Attrib.add_del eqvt_force_add eqvt_force_del)
     "equivariance theorem declaration (without checking the form of the lemma)" #>
-  PureThy.add_thms_dynamic (@{binding eqvts}, Data.get);
+  Global_Theory.add_thms_dynamic (@{binding eqvts}, Data.get);
 
 
 end;

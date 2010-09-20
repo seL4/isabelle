@@ -75,12 +75,12 @@ fun is_executable_term thy t = can (Quickcheck.test_term
 fun thms_of thy = filter (fn (_, th) => not (Thm.is_internal th) andalso
    Context.theory_name (theory_of_thm th) = Context.theory_name thy andalso
    is_executable thy th)
- (PureThy.all_thms_of thy);
+ (Global_Theory.all_thms_of thy);
 
 fun find_thm thy = find_first (fn (_, th) => not (Thm.is_internal th) andalso
    Context.theory_name (theory_of_thm th) = Context.theory_name thy andalso
    is_executable thy th)
- (PureThy.all_thms_of thy);
+ (Global_Theory.all_thms_of thy);
 *}
 
 ML {*

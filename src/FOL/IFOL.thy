@@ -26,7 +26,7 @@ begin
 
 subsection {* Syntax and axiomatic basis *}
 
-setup PureThy.old_appl_syntax_setup
+setup Pure_Thy.old_appl_syntax_setup
 
 classes "term"
 default_sort "term"

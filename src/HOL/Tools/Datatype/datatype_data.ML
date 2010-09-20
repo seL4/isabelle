@@ -334,7 +334,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
         (drop (length dt_names) inducts);
   in
     thy9
-    |> PureThy.add_thmss ([((prfx (Binding.name "simps"), simps), []),
+    |> Global_Theory.add_thmss ([((prfx (Binding.name "simps"), simps), []),
         ((prfx (Binding.name "inducts"), inducts), []),
         ((prfx (Binding.name "splits"), maps (fn (x, y) => [x, y]) splits), []),
         ((Binding.empty, flat case_rewrites @ flat distinct @ rec_rewrites),
@@ -367,7 +367,8 @@ fun prove_rep_datatype config dt_names alt_names descr sorts
       |> store_thmss "inject" new_type_names raw_inject
       ||>> store_thmss "distinct" new_type_names raw_distinct
       ||> Sign.add_path (space_implode "_" new_type_names)
-      ||>> PureThy.add_thms [((Binding.name "induct", raw_induct), [mk_case_names_induct descr])]
+      ||>> Global_Theory.add_thms
+        [((Binding.name "induct", raw_induct), [mk_case_names_induct descr])]
       ||> Sign.restore_naming thy1;
   in
     thy2

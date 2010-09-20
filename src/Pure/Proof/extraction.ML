@@ -783,11 +783,11 @@ fun extract thms thy =
              val (def_thms, thy') = if t = nullt then ([], thy) else
                thy
                |> Sign.add_consts_i [(Binding.qualified_name (extr_name s vs), fastype_of ft, NoSyn)]
-               |> PureThy.add_defs false [((Binding.qualified_name (extr_name s vs ^ "_def"),
+               |> Global_Theory.add_defs false [((Binding.qualified_name (extr_name s vs ^ "_def"),
                     Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
            in
              thy'
-             |> PureThy.store_thm (Binding.qualified_name (corr_name s vs),
+             |> Global_Theory.store_thm (Binding.qualified_name (corr_name s vs),
                   Thm.varifyT_global (funpow (length (vars_of corr_prop))
                     (Thm.forall_elim_var 0) (Thm.forall_intr_frees
                       (ProofChecker.thm_of_proof thy'
@@ -815,7 +815,7 @@ val _ =
   Keyword.thy_decl
     (Scan.repeat1 (Parse.xname -- parse_vars --| Parse.$$$ ":" -- Parse.string -- Parse.string) >>
      (fn xs => Toplevel.theory (fn thy => add_realizers
-       (map (fn (((a, vs), s1), s2) => (PureThy.get_thm thy a, (vs, s1, s2))) xs) thy)));
+       (map (fn (((a, vs), s1), s2) => (Global_Theory.get_thm thy a, (vs, s1, s2))) xs) thy)));
 
 val _ =
   Outer_Syntax.command "realizability"
@@ -830,7 +830,7 @@ val _ =
 val _ =
   Outer_Syntax.command "extract" "extract terms from proofs" Keyword.thy_decl
     (Scan.repeat1 (Parse.xname -- parse_vars) >> (fn xs => Toplevel.theory (fn thy =>
-      extract (map (apfst (PureThy.get_thm thy)) xs) thy)));
+      extract (map (apfst (Global_Theory.get_thm thy)) xs) thy)));
 
 val etype_of = etype_of o add_syntax;
 

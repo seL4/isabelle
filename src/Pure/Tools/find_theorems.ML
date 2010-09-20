@@ -350,7 +350,7 @@ in
 fun nicer_shortest ctxt =
   let
     (* FIXME global name space!? *)
-    val space = Facts.space_of (PureThy.facts_of (ProofContext.theory_of ctxt));
+    val space = Facts.space_of (Global_Theory.facts_of (ProofContext.theory_of ctxt));
 
     val shorten =
       Name_Space.extern_flags
@@ -381,7 +381,7 @@ fun all_facts_of ctxt =
       |> filter_out (Facts.is_concealed facts o #1);
   in
     maps Facts.selections
-     (visible_facts (PureThy.facts_of (ProofContext.theory_of ctxt)) @
+     (visible_facts (Global_Theory.facts_of (ProofContext.theory_of ctxt)) @
       visible_facts (ProofContext.facts_of ctxt))
   end;
 

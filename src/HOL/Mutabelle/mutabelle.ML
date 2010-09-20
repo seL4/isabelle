@@ -59,7 +59,7 @@ val testgen_name = Unsynchronized.ref "SML";
 
 fun all_unconcealed_thms_of thy =
   let
-    val facts = PureThy.facts_of thy
+    val facts = Global_Theory.facts_of thy
   in
     Facts.fold_static
       (fn (s, ths) =>
