@@ -94,21 +94,14 @@ fun auto_flush stream =
       (OS.Process.sleep (Time.fromMilliseconds 20); try TextIO.flushOut stream; loop ());
   in loop end;
 
-fun rendezvous f fifo =
-  let
-    val path = File.platform_path (Path.explode fifo);
-    val result = f fifo;  (*should block until peer is ready*)
-    val _ =
-      if String.isSuffix "cygwin" ml_platform then ()  (*Cygwin 1.7: no proper blocking on open*)
-      else OS.FileSys.remove path;  (*prevent future access*)
-  in result end;
-
 in
 
 fun setup_channels in_fifo out_fifo =
   let
-    val in_stream = rendezvous TextIO.openIn in_fifo;
-    val out_stream = rendezvous TextIO.openOut out_fifo;
+    (*rendezvous*)
+    val in_stream = TextIO.openIn in_fifo;
+    val out_stream = TextIO.openOut out_fifo;
+
     val _ = Simple_Thread.fork false (auto_flush out_stream);
     val _ = Simple_Thread.fork false (auto_flush TextIO.stdOut);
     val _ = Simple_Thread.fork false (auto_flush TextIO.stdErr);

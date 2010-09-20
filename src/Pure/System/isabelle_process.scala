@@ -133,8 +133,13 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
       standard_input = stdin_actor()
       stdout_actor()
-      command_input = input_actor()
-      message_actor()
+
+      // rendezvous
+      val command_stream = system.fifo_output_stream(in_fifo)
+      val message_stream = system.fifo_input_stream(out_fifo)
+
+      command_input = input_actor(command_stream)
+      message_actor(message_stream)
 
       val rc = proc.waitFor()
       Thread.sleep(300)  // FIXME !?
@@ -158,6 +163,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
   private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
   {
     if (pid.isEmpty && kind == Markup.INIT) {
+      rm_fifos()
       props.find(_._1 == Markup.PID).map(_._1) match {
         case None => system_result("Bad Isabelle process initialization: missing pid")
         case p => pid = p
@@ -277,11 +283,11 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
   /* command input */
 
-  private def input_actor(): Actor =
+  private def input_actor(raw_stream: OutputStream): Actor =
   {
     val name = "command_input"
     Simple_Thread.actor(name) {
-      val stream = new BufferedOutputStream(system.fifo_output_stream(in_fifo))
+      val stream = new BufferedOutputStream(raw_stream)
       var finished = false
       while (!finished) {
         try {
@@ -308,14 +314,13 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
   /* message output */
 
-  private def message_actor(): Actor =
+  private def message_actor(stream: InputStream): Actor =
   {
     class EOF extends Exception
     class Protocol_Error(msg: String) extends Exception(msg)
 
     val name = "message_output"
     Simple_Thread.actor(name) {
-      val stream = system.fifo_input_stream(out_fifo)
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
