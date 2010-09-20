@@ -130,32 +130,30 @@ fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 fun markup_stmt name = Print_Mode.setmp [code_presentationN]
   (Pretty.mark (code_presentationN, [(stmt_nameN, name)]));
 
-fun filter_presentation presentation_names selected (XML.Elem ((name, attrs), xs)) =
-      implode (map (filter_presentation presentation_names
-        (selected orelse (name = code_presentationN
-          andalso member (op =) presentation_names (the (Properties.get attrs stmt_nameN))))) xs)
-  | filter_presentation presentation_names selected (XML.Text s) =
-      if selected then s else "";
-
-fun maps_string s f [] = ""
-  | maps_string s f (x :: xs) =
+fun filter_presentation [] tree =
+      Buffer.empty
+      |> fold XML.add_content tree 
+      |> Buffer.add "\n"
+  | filter_presentation presentation_names tree =
       let
-        val s1 = f x;
-        val s2 = maps_string s f xs;
-      in if s1 = "" then s2
-        else if s2 = "" then s1
-        else s1 ^ s ^ s2
-      end;
-
-fun plain_text (XML.Elem (_, xs)) = maps_string "" plain_text xs
-  | plain_text (XML.Text s) = s
+        fun is_selected (name, attrs) = 
+          name = code_presentationN
+          andalso member (op =) presentation_names (the (Properties.get attrs stmt_nameN));
+        fun add_content_with_space tree (is_first, buf) =
+          buf
+          |> not is_first ? Buffer.add "\n\n"
+          |> XML.add_content tree
+          |> pair false;
+        fun filter (XML.Elem (name_attrs, xs)) =
+              fold (if is_selected name_attrs then add_content_with_space else filter) xs
+          | filter (XML.Text s) = I;
+      in snd (fold filter tree (true, Buffer.empty)) end;
 
 fun format presentation_names width =
   Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width)
   #> YXML.parse_body
-  #> (if null presentation_names then maps_string "" plain_text
-      else maps_string "\n\n" (filter_presentation presentation_names false))
-  #> suffix "\n";
+  #> filter_presentation presentation_names
+  #> Buffer.content;
 
 
 (** names and variable name contexts **)
