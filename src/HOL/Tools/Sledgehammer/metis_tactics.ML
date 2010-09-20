@@ -23,7 +23,6 @@ struct
 open Metis_Translate
 open Metis_Reconstruct
 
-val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" (K true);
