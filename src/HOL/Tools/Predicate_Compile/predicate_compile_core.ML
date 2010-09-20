@@ -28,7 +28,7 @@ sig
   val all_random_modes_of : Proof.context -> (string * mode list) list
   val intros_of : Proof.context -> string -> thm list
   val intros_graph_of : Proof.context -> thm list Graph.T
-  val add_intro : thm -> theory -> theory
+  val add_intro : string option * thm -> theory -> theory
   val set_elim : thm -> theory -> theory
   val register_alternative_function : string -> mode -> string -> theory -> theory
   val alternative_compilation_of_global : theory -> string -> mode ->
@@ -216,7 +216,7 @@ fun mk_predfun_data (definition, ((intro, elim), neg_intro)) =
   PredfunData {definition = definition, intro = intro, elim = elim, neg_intro = neg_intro}
 
 datatype pred_data = PredData of {
-  intros : thm list,
+  intros : (string option * thm) list,
   elim : thm option,
   function_names : (compilation * (mode * string) list) list,
   predfun_data : (mode * predfun_data) list,
@@ -237,7 +237,7 @@ fun eq_option eq (NONE, NONE) = true
   | eq_option eq _ = false
 
 fun eq_pred_data (PredData d1, PredData d2) = 
-  eq_list Thm.eq_thm (#intros d1, #intros d2) andalso
+  eq_list (eq_pair (op =) Thm.eq_thm) (#intros d1, #intros d2) andalso
   eq_option Thm.eq_thm (#elim d1, #elim d2)
 
 structure PredData = Theory_Data
@@ -261,7 +261,9 @@ val is_registered = is_some oo lookup_pred_data
 
 val all_preds_of = Graph.keys o PredData.get o ProofContext.theory_of
 
-val intros_of = #intros oo the_pred_data
+val intros_of = map snd o #intros oo the_pred_data
+
+val names_of = map fst o #intros oo the_pred_data
 
 fun the_elim_of ctxt name = case #elim (the_pred_data ctxt name)
  of NONE => error ("No elimination rule for predicate " ^ quote name)
@@ -316,7 +318,7 @@ val predfun_elim_of = #elim ooo the_predfun_data
 val predfun_neg_intro_of = #neg_intro ooo the_predfun_data
 
 val intros_graph_of =
-  Graph.map (K (#intros o rep_pred_data)) o PredData.get o ProofContext.theory_of
+  Graph.map (K (map snd o #intros o rep_pred_data)) o PredData.get o ProofContext.theory_of
 
 (* diagnostic display functions *)
 
@@ -654,7 +656,7 @@ fun fetch_pred_data ctxt name =
         val elim =
           prove_casesrule ctxt (pred, (pre_elim, nparams)) elim_t
       in
-        mk_pred_data ((intros, SOME elim), no_compilation)
+        mk_pred_data ((map (pair NONE) intros, SOME elim), no_compilation)
       end
   | NONE => error ("No such predicate: " ^ quote name)
 
@@ -668,21 +670,21 @@ fun is_inductive_predicate ctxt name =
 
 fun depending_preds_of ctxt (key, value) =
   let
-    val intros = (#intros o rep_pred_data) value
+    val intros = map (Thm.prop_of o snd) ((#intros o rep_pred_data) value)
   in
-    fold Term.add_const_names (map Thm.prop_of intros) []
+    fold Term.add_const_names intros []
       |> filter (fn c => (not (c = key)) andalso
         (is_inductive_predicate ctxt c orelse is_registered ctxt c))
   end;
 
-fun add_intro thm thy =
+fun add_intro (opt_case_name, thm) thy =
   let
     val (name, T) = dest_Const (fst (strip_intro_concl thm))
     fun cons_intro gr =
      case try (Graph.get_node gr) name of
        SOME pred_data => Graph.map_node name (map_pred_data
-         (apfst (fn (intros, elim) => (intros @ [thm], elim)))) gr
-     | NONE => Graph.new_node (name, mk_pred_data (([thm], NONE), no_compilation)) gr
+         (apfst (apfst (fn intros => intros @ [(opt_case_name, thm)])))) gr
+     | NONE => Graph.new_node (name, mk_pred_data (([(opt_case_name, thm)], NONE), no_compilation)) gr
   in PredData.map cons_intro thy end
 
 fun set_elim thm =
@@ -694,7 +696,7 @@ fun set_elim thm =
 
 fun register_predicate (constname, pre_intros, pre_elim) thy =
   let
-    val intros = map (preprocess_intro thy) pre_intros
+    val intros = map (pair NONE o preprocess_intro thy) pre_intros
     val elim = preprocess_elim (ProofContext.init_global thy) pre_elim
   in
     if not (member (op =) (Graph.keys (PredData.get thy)) constname) then
@@ -3042,9 +3044,10 @@ val add_new_random_dseq_equations = gen_add_equations
 
 (* code_pred_intro attribute *)
 
-fun attrib f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
+fun attrib' f opt_case_name =
+  Thm.declaration_attribute (fn thm => Context.mapping (f (opt_case_name, thm)) I);
 
-val code_pred_intro_attrib = attrib add_intro;
+val code_pred_intro_attrib = attrib' add_intro NONE;
 
 
 (*FIXME
@@ -3052,7 +3055,7 @@ val code_pred_intro_attrib = attrib add_intro;
 *)
 
 val setup = PredData.put (Graph.empty) #>
-  Attrib.setup @{binding code_pred_intro} (Scan.succeed (attrib add_intro))
+  Attrib.setup @{binding code_pred_intro} (Scan.lift (Scan.option Args.name) >> attrib' add_intro)
     "adding alternative introduction rules for code generation of inductive predicates"
 
 (* TODO: make Theory_Data to Generic_Data & remove duplication of local theory and theory *)
@@ -3075,12 +3078,14 @@ fun generic_code_pred prep_const options raw_const lthy =
       in mk_casesrule lthy' pred intros end  
     val cases_rules = map mk_cases preds
     val cases =
-      map (fn case_rule => Rule_Cases.Case {fixes = [],
-        assumes = [("", Logic.strip_imp_prems case_rule)],
-        binds = [], cases = []}) cases_rules
+      map2 (fn pred_name => fn case_rule => Rule_Cases.Case {fixes = [],
+        assumes = ("", Logic.strip_imp_prems case_rule)
+          :: (map_filter (fn (fact_name, fact) => Option.map (rpair [fact]) fact_name)
+            ((SOME "prems" :: names_of ctxt' pred_name) ~~ Logic.strip_imp_prems case_rule)),
+        binds = [], cases = []}) preds cases_rules
     val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases
     val lthy'' = lthy'
-      |> fold Variable.auto_fixes cases_rules 
+      |> fold Variable.auto_fixes cases_rules
       |> ProofContext.add_cases true case_env
     fun after_qed thms goal_ctxt =
       let

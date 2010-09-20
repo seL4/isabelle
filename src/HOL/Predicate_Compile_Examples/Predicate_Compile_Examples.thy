@@ -216,6 +216,37 @@ proof -
   qed
 qed
 
+subsection {* Named alternative rules *}
+
+inductive appending
+where
+  nil: "appending [] ys ys"
+| cons: "appending xs ys zs \<Longrightarrow> appending (x#xs) ys (x#zs)"
+
+lemma appending_alt_nil: "ys = zs \<Longrightarrow> appending [] ys zs"
+by (auto intro: appending.intros)
+
+lemma appending_alt_cons: "xs' = x # xs \<Longrightarrow> appending xs ys zs \<Longrightarrow> zs' = x # zs \<Longrightarrow> appending xs' ys zs'"
+by (auto intro: appending.intros)
+
+text {* With code_pred_intro, we can give fact names to the alternative rules,
+  which are used for the code_pred command. *}
+
+declare appending_alt_nil[code_pred_intro alt_nil] appending_alt_cons[code_pred_intro alt_cons]
+ 
+code_pred appending
+proof -
+  case appending
+  from prems show thesis
+  proof(cases)
+    case nil
+    from alt_nil nil show thesis by auto
+  next
+    case cons
+    from alt_cons cons show thesis by fastsimp
+  qed
+qed
+
 subsection {* Preprocessor Inlining  *}
 
 definition "equals == (op =)"
