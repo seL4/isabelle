@@ -73,6 +73,44 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       actor { loop { react { case res => Console.println(res) } } }, args: _*)
 
 
+  /* system log */
+
+  private val system_results = new mutable.ListBuffer[String]
+
+  private def system_result(text: String)
+  {
+    synchronized { system_results += text }
+    receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
+  }
+
+  def syslog(): List[String] = synchronized { system_results.toList }
+
+
+  /* results */
+
+  private val xml_cache = new XML.Cache(131071)
+
+  private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
+  {
+    if (pid.isEmpty && kind == Markup.INIT) {
+      rm_fifos()
+      props.find(_._1 == Markup.PID).map(_._1) match {
+        case None => system_result("Bad Isabelle process initialization: missing pid")
+        case p => pid = p
+      }
+    }
+
+    val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
+    xml_cache.cache_tree(msg)((message: XML.Tree) =>
+      receiver ! new Result(message.asInstanceOf[XML.Elem]))
+  }
+
+  private def put_result(kind: String, text: String)
+  {
+    put_result(kind, Nil, List(XML.Text(system.symbols.decode(text))))
+  }
+
+
   /* input actors */
 
   private case class Input_Text(text: String)
@@ -151,44 +189,6 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
   }
 
   def join() { process_manager.join() }
-
-
-  /* system log */
-
-  private val system_results = new mutable.ListBuffer[String]
-
-  private def system_result(text: String)
-  {
-    synchronized { system_results += text }
-    receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
-  }
-
-  def syslog(): List[String] = synchronized { system_results.toList }
-
-
-  /* results */
-
-  private val xml_cache = new XML.Cache(131071)
-
-  private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
-  {
-    if (pid.isEmpty && kind == Markup.INIT) {
-      rm_fifos()
-      props.find(_._1 == Markup.PID).map(_._1) match {
-        case None => system_result("Bad Isabelle process initialization: missing pid")
-        case p => pid = p
-      }
-    }
-
-    val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
-    xml_cache.cache_tree(msg)((message: XML.Tree) =>
-      receiver ! new Result(message.asInstanceOf[XML.Elem]))
-  }
-
-  private def put_result(kind: String, text: String)
-  {
-    put_result(kind, Nil, List(XML.Text(system.symbols.decode(text))))
-  }
 
 
   /* signals */
