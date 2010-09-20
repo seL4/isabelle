@@ -329,7 +329,7 @@ fun target_const class ((c, mx), (type_params, dict)) thy =
     |> snd
     |> Thm.add_def false false (b_def, def_eq)
     |>> apsnd Thm.varifyT_global
-    |-> (fn (_, def_thm) => PureThy.store_thm (b_def, def_thm)
+    |-> (fn (_, def_thm) => Global_Theory.store_thm (b_def, def_thm)
       #> snd
       #> null type_params ? register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
     |> Sign.add_const_constraint (c', SOME ty')

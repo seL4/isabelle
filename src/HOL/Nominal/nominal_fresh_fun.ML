@@ -37,7 +37,7 @@ fun cut_inst_tac_term' tinst th =
   res_inst_tac_term' tinst false (RuleInsts.make_elim_preserve th);
 
 fun get_dyn_thm thy name atom_name =
-  PureThy.get_thm thy name handle ERROR _ =>
+  Global_Theory.get_thm thy name handle ERROR _ =>
     error ("The atom type "^atom_name^" is not defined.");
 
 (* End of function waiting to be in the library :o) *)
@@ -126,8 +126,8 @@ fun fresh_fun_tac no_asm i thm =
     val thy = theory_of_thm thm;
     val ctxt = ProofContext.init_global thy;
     val ss = global_simpset_of thy;
-    val abs_fresh = PureThy.get_thms thy "abs_fresh";
-    val fresh_perm_app = PureThy.get_thms thy "fresh_perm_app";
+    val abs_fresh = Global_Theory.get_thms thy "abs_fresh";
+    val fresh_perm_app = Global_Theory.get_thms thy "fresh_perm_app";
     val ss' = ss addsimps fresh_prod::abs_fresh;
     val ss'' = ss' addsimps fresh_perm_app;
     val x = hd (tl (OldTerm.term_vars (prop_of exI)));

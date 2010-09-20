@@ -297,7 +297,7 @@ fun background_theory_result f ctxt =
 fun extern_fact ctxt name =
   let
     val local_facts = facts_of ctxt;
-    val global_facts = PureThy.facts_of (theory_of ctxt);
+    val global_facts = Global_Theory.facts_of (theory_of ctxt);
   in
     if is_some (Facts.lookup (Context.Proof ctxt) local_facts name)
     then Facts.extern local_facts name
@@ -790,7 +790,7 @@ fun unparse_term ctxt =
       extern_const = Consts.extern consts};
   in
     Syntax.standard_unparse_term (Local_Syntax.idents_of syntax) extern ctxt
-      (Local_Syntax.syn_of syntax) (not (PureThy.old_appl_syntax (theory_of ctxt)))
+      (Local_Syntax.syn_of syntax) (not (Pure_Thy.old_appl_syntax (theory_of ctxt)))
   end;
 
 in
@@ -982,7 +982,7 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
               SOME (_, ths) =>
                (Context_Position.report ctxt pos (Markup.local_fact name);
                 map (Thm.transfer thy) (Facts.select thmref ths))
-            | NONE => PureThy.get_fact (Context.Proof ctxt) thy xthmref);
+            | NONE => Global_Theory.get_fact (Context.Proof ctxt) thy xthmref);
       in pick name thms end;
 
 in
@@ -1012,12 +1012,12 @@ fun note_thmss kind = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
     val name = full_name ctxt b;
     val _ = Context_Position.report ctxt pos (Markup.local_fact_decl name);
 
-    val facts = PureThy.name_thmss false name raw_facts;
+    val facts = Global_Theory.name_thmss false name raw_facts;
     fun app (th, attrs) x =
       swap (Library.foldl_map
         (Thm.proof_attributes (surround (Thm.kind kind) (attrs @ more_attrs))) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
-    val thms = PureThy.name_thms false false name (flat res);
+    val thms = Global_Theory.name_thms false false name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;
   in ((name, thms), ctxt' |> update_thms stmt (b, SOME thms)) end);
 

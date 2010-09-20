@@ -234,11 +234,13 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
       |> Sign.add_consts_i (map (fn ((name, T), T') =>
           (Binding.name (Long_Name.base_name name), reccomb_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
-      |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
-          (Binding.name (Long_Name.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
-           Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
-             set $ Free ("x", T) $ Free ("y", T'))))))
-               (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
+      |> (Global_Theory.add_defs false o map Thm.no_attributes)
+          (map (fn ((((name, comb), set), T), T') =>
+            (Binding.name (Long_Name.base_name name ^ "_def"),
+              Logic.mk_equals (comb, absfree ("x", T,
+               Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
+                 set $ Free ("x", T) $ Free ("y", T'))))))
+                   (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
       ||> Sign.parent_path
       ||> Theory.checkpoint;
 
@@ -259,7 +261,7 @@ fun prove_primrec_thms (config : config) new_type_names descr sorts
   in
     thy2
     |> Sign.add_path (space_implode "_" new_type_names)
-    |> PureThy.add_thmss [((Binding.name "recs", rec_thms), [Nitpick_Simps.add])]
+    |> Global_Theory.add_thmss [((Binding.name "recs", rec_thms), [Nitpick_Simps.add])]
     ||> Sign.parent_path
     ||> Theory.checkpoint
     |-> (fn thms => pair (reccomb_names, flat thms))
@@ -319,7 +321,7 @@ fun prove_case_thms (config : config) new_type_names descr sorts reccomb_names p
           val ([def_thm], thy') =
             thy
             |> Sign.declare_const decl |> snd
-            |> (PureThy.add_defs false o map Thm.no_attributes) [def];
+            |> (Global_Theory.add_defs false o map Thm.no_attributes) [def];
 
         in (defs @ [def_thm], thy')
         end) (hd descr ~~ newTs ~~ case_names ~~

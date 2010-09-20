@@ -172,7 +172,7 @@ let
   val (_, thy1) =
     thy
     |> Sign.add_path big_rec_base_name
-    |> PureThy.add_defs false (map (Thm.no_attributes o apfst Binding.name) axpairs);
+    |> Global_Theory.add_defs false (map (Thm.no_attributes o apfst Binding.name) axpairs);
 
   val ctxt1 = ProofContext.init_global thy1;
 
@@ -508,7 +508,7 @@ let
 
      val ([induct', mutual_induct'], thy') =
        thy
-       |> PureThy.add_thms [((Binding.name (co_prefix ^ "induct"), induct),
+       |> Global_Theory.add_thms [((Binding.name (co_prefix ^ "induct"), induct),
              [case_names, Induct.induct_pred big_rec_name]),
            ((Binding.name "mutual_induct", mutual_induct), [case_names])];
     in ((thy', induct'), mutual_induct')
@@ -520,7 +520,7 @@ let
     if not coind then induction_rules raw_induct thy1
     else
       (thy1
-      |> PureThy.add_thms [((Binding.name (co_prefix ^ "induct"), raw_induct), [])]
+      |> Global_Theory.add_thms [((Binding.name (co_prefix ^ "induct"), raw_induct), [])]
       |> apfst hd |> Library.swap, @{thm TrueI})
   and defs = big_rec_def :: part_rec_defs
 
@@ -528,16 +528,16 @@ let
   val (([bnd_mono', dom_subset', elim'], [defs', intrs']), thy3) =
     thy2
     |> IndCases.declare big_rec_name make_cases
-    |> PureThy.add_thms
+    |> Global_Theory.add_thms
       [((Binding.name "bnd_mono", bnd_mono), []),
        ((Binding.name "dom_subset", dom_subset), []),
        ((Binding.name "cases", elim), [case_names, Induct.cases_pred big_rec_name])]
-    ||>> (PureThy.add_thmss o map Thm.no_attributes)
+    ||>> (Global_Theory.add_thmss o map Thm.no_attributes)
         [(Binding.name "defs", defs),
          (Binding.name "intros", intrs)];
   val (intrs'', thy4) =
     thy3
-    |> PureThy.add_thms ((map Binding.name intr_names ~~ intrs') ~~ map #2 intr_specs)
+    |> Global_Theory.add_thms ((map Binding.name intr_names ~~ intrs') ~~ map #2 intr_specs)
     ||> Sign.parent_path;
   in
     (thy4,

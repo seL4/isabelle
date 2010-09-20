@@ -142,7 +142,7 @@ fun prove_size_thms (info : info) new_type_names thy =
       |> Sign.add_consts_i (map (fn (s, T) =>
            (Binding.name (Long_Name.base_name s), param_size_fTs @ [T] ---> HOLogic.natT, NoSyn))
            (size_names ~~ recTs1))
-      |> PureThy.add_defs false
+      |> Global_Theory.add_defs false
         (map (Thm.no_attributes o apsnd (Logic.mk_equals o apsnd (app fs)))
            (map Binding.name def_names ~~ (size_fns ~~ rec_combs1)))
       ||> Class.instantiation
@@ -207,11 +207,12 @@ fun prove_size_thms (info : info) new_type_names thy =
     val size_eqns = prove_size_eqs (is_poly thy') size_fns param_size simpset2 @
       prove_size_eqs is_rec_type overloaded_size_fns (K NONE) simpset3;
 
-    val ([size_thms], thy'') =  PureThy.add_thmss
-      [((Binding.name "size", size_eqns),
-        [Simplifier.simp_add, Nitpick_Simps.add,
-         Thm.declaration_attribute
-             (fn thm => Context.mapping (Code.add_default_eqn thm) I)])] thy'
+    val ([size_thms], thy'') =
+      Global_Theory.add_thmss
+        [((Binding.name "size", size_eqns),
+          [Simplifier.simp_add, Nitpick_Simps.add,
+           Thm.declaration_attribute
+               (fn thm => Context.mapping (Code.add_default_eqn thm) I)])] thy';
 
   in
     SizeData.map (fold (Symtab.update_new o apsnd (rpair size_thms))

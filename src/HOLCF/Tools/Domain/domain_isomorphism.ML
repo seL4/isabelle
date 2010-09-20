@@ -169,7 +169,7 @@ fun add_fixdefs
 
     (* register constant definitions *)
     val (fixdef_thms, thy) =
-      (PureThy.add_defs false o map Thm.no_attributes)
+      (Global_Theory.add_defs false o map Thm.no_attributes)
         (map (Binding.suffix_name "_def") binds ~~ eqns) thy;
 
     (* prove applied version of definitions *)
@@ -201,7 +201,7 @@ fun add_fixdefs
 
     (* register unfold theorems *)
     val (unfold_thms, thy) =
-      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
+      (Global_Theory.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (mk_unfold_thms unfold_binds tuple_unfold_thm) thy;
   in
     ((proj_thms, unfold_thms), thy)
@@ -242,13 +242,13 @@ fun define_const
     val (const, thy) = Sign.declare_const ((bind, typ), NoSyn) thy;
     val eqn = Logic.mk_equals (const, rhs);
     val def = Thm.no_attributes (Binding.suffix_name "_def" bind, eqn);
-    val (def_thm, thy) = yield_singleton (PureThy.add_defs false) def thy;
+    val (def_thm, thy) = yield_singleton (Global_Theory.add_defs false) def thy;
   in
     ((const, def_thm), thy)
   end;
 
 fun add_qualified_thm name (dbind, thm) =
-    yield_singleton PureThy.add_thms
+    yield_singleton Global_Theory.add_thms
       ((Binding.qualified true name dbind, thm), []);
 
 (******************************************************************************)
@@ -349,7 +349,7 @@ fun define_map_functions
     val deflation_map_binds = dbinds |>
         map (Binding.prefix_name "deflation_" o Binding.suffix_name "_map");
     val (deflation_map_thms, thy) = thy |>
-      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
+      (Global_Theory.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (conjuncts deflation_map_binds deflation_map_thm);
 
     (* register map functions in theory data *)
@@ -496,7 +496,7 @@ fun gen_domain_isomorphism
     (* register REP equations *)
     val REP_eq_binds = map (Binding.prefix_name "REP_eq_") dbinds;
     val (_, thy) = thy |>
-      (PureThy.add_thms o map Thm.no_attributes)
+      (Global_Theory.add_thms o map Thm.no_attributes)
         (REP_eq_binds ~~ REP_eq_thms);
 
     (* define rep/abs functions *)
@@ -607,7 +607,7 @@ fun gen_domain_isomorphism
           val thmR = thm RS @{thm conjunct2};
         in (n, thmL):: conjuncts ns thmR end;
     val (isodefl_thms, thy) = thy |>
-      (PureThy.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
+      (Global_Theory.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (conjuncts isodefl_binds isodefl_thm);
     val thy = IsodeflData.map (fold Thm.add_thm isodefl_thms) thy;
 
@@ -631,7 +631,7 @@ fun gen_domain_isomorphism
       map prove_map_ID_thm
         (map_consts ~~ dom_eqns ~~ REP_thms ~~ isodefl_thms);
     val (_, thy) = thy |>
-      (PureThy.add_thms o map Thm.no_attributes)
+      (Global_Theory.add_thms o map Thm.no_attributes)
         (map_ID_binds ~~ map_ID_thms);
     val thy = MapIdData.map (fold Thm.add_thm map_ID_thms) thy;
 

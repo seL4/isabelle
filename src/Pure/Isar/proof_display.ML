@@ -49,9 +49,9 @@ fun pp_cterm ct = pp_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
 fun pretty_theorems_diff verbose prev_thys thy =
   let
     val pretty_fact = ProofContext.pretty_fact (ProofContext.init_global thy);
-    val facts = PureThy.facts_of thy;
+    val facts = Global_Theory.facts_of thy;
     val thmss =
-      Facts.dest_static (map PureThy.facts_of prev_thys) facts
+      Facts.dest_static (map Global_Theory.facts_of prev_thys) facts
       |> not verbose ? filter_out (Facts.is_concealed facts o #1);
   in Pretty.big_list "theorems:" (map #1 (sort_wrt (#1 o #2) (map (`pretty_fact) thmss))) end;
 

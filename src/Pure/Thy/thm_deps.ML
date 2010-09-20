@@ -49,7 +49,7 @@ fun thm_deps thy thms =
 fun unused_thms (base_thys, thys) =
   let
     fun add_fact space (name, ths) =
-      if exists (fn thy => PureThy.defined_fact thy name) base_thys then I
+      if exists (fn thy => Global_Theory.defined_fact thy name) base_thys then I
       else
         let val {concealed, group, ...} = Name_Space.the_entry space name in
           fold_rev (fn th =>
@@ -60,7 +60,7 @@ fun unused_thms (base_thys, thys) =
     fun add_facts facts = Facts.fold_static (add_fact (Facts.space_of facts)) facts;
 
     val new_thms =
-      fold (add_facts o PureThy.facts_of) thys []
+      fold (add_facts o Global_Theory.facts_of) thys []
       |> sort_distinct (string_ord o pairself #1);
 
     val used =

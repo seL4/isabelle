@@ -419,7 +419,7 @@ fun fix_pat thy t =
     val eq = mk_trp (HOLogic.eq_const T $ t $ Var (("x",0),T));
     val cname = case chead_of t of Const(c,_) => c | _ =>
               fixrec_err "function is not declared as constant in theory";
-    val unfold_thm = PureThy.get_thm thy (cname^".unfold");
+    val unfold_thm = Global_Theory.get_thm thy (cname^".unfold");
     val simp = Goal.prove_global thy [] [] eq
           (fn _ => EVERY [stac unfold_thm 1, simp_tac (global_simpset_of thy) 1]);
   in simp end;
@@ -431,7 +431,7 @@ fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
     val ts = map (prep_term thy) strings;
     val simps = map (fix_pat thy) ts;
   in
-    (snd o PureThy.add_thmss [((name, simps), atts)]) thy
+    (snd o Global_Theory.add_thmss [((name, simps), atts)]) thy
   end;
 
 val add_fixpat = gen_add_fixpat Sign.cert_term (K I);

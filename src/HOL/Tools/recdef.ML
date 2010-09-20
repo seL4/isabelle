@@ -208,9 +208,9 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
     val ((simps' :: rules', [induct']), thy) =
       thy
       |> Sign.add_path bname
-      |> PureThy.add_thmss
+      |> Global_Theory.add_thmss
         (((Binding.name "simps", flat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
-      ||>> PureThy.add_thms [((Binding.name "induct", induct), [])]
+      ||>> Global_Theory.add_thms [((Binding.name "induct", induct), [])]
       ||> Spec_Rules.add_global Spec_Rules.Equational ([lhs], flat rules);
     val result = {lhs = lhs, simps = simps', rules = rules', induct = induct', tcs = tcs};
     val thy =
@@ -239,7 +239,7 @@ fun gen_defer_recdef tfl_fn eval_thms raw_name eqs raw_congs thy =
     val ([induct_rules'], thy3) =
       thy2
       |> Sign.add_path bname
-      |> PureThy.add_thms [((Binding.name "induct_rules", induct_rules), [])]
+      |> Global_Theory.add_thms [((Binding.name "induct_rules", induct_rules), [])]
       ||> Sign.parent_path;
   in (thy3, {induct_rules = induct_rules'}) end;
 

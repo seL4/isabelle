@@ -100,7 +100,7 @@ fun prove_cpo
     val (_, thy) =
       thy
       |> Sign.add_path (Binding.name_of name)
-      |> PureThy.add_thms
+      |> Global_Theory.add_thms
         ([((Binding.prefix_name "adm_"      name, admissible'), []),
           ((Binding.prefix_name "cont_" Rep_name, cont_Rep   ), []),
           ((Binding.prefix_name "cont_" Abs_name, cont_Abs   ), []),
@@ -143,7 +143,7 @@ fun prove_pcpo
     val (_, thy) =
       thy
       |> Sign.add_path (Binding.name_of name)
-      |> PureThy.add_thms
+      |> Global_Theory.add_thms
         ([((Binding.suffix_name "_strict"     Rep_name, Rep_strict), []),
           ((Binding.suffix_name "_strict"     Abs_name, Abs_strict), []),
           ((Binding.suffix_name "_strict_iff" Rep_name, Rep_strict_iff), []),

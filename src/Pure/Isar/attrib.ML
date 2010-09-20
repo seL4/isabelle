@@ -181,7 +181,7 @@ val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
 fun gen_thm pick = Scan.depend (fn context =>
   let
     val thy = Context.theory_of context;
-    val get = Context.cases (PureThy.get_fact context) ProofContext.get_fact context;
+    val get = Context.cases (Global_Theory.get_fact context) ProofContext.get_fact context;
     val get_fact = get o Facts.Fact;
     fun get_named pos name = get (Facts.Named ((name, pos), NONE));
   in

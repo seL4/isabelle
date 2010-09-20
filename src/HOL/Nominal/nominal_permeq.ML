@@ -71,8 +71,8 @@ val perm_aux_fold       = @{thm "perm_aux_fold"};
 val supports_fresh_rule = @{thm "supports_fresh"};
 
 (* pulls out dynamically a thm via the proof state *)
-fun dynamic_thms st name = PureThy.get_thms (theory_of_thm st) name;
-fun dynamic_thm  st name = PureThy.get_thm  (theory_of_thm st) name;
+fun dynamic_thms st name = Global_Theory.get_thms (theory_of_thm st) name;
+fun dynamic_thm  st name = Global_Theory.get_thm  (theory_of_thm st) name;
 
 
 (* needed in the process of fully simplifying permutations *)
@@ -107,8 +107,8 @@ fun perm_simproc_app' sg ss redex =
             (if (applicable_app f) then
               let
                 val name = Long_Name.base_name n
-                val at_inst = PureThy.get_thm sg ("at_" ^ name ^ "_inst")
-                val pt_inst = PureThy.get_thm sg ("pt_" ^ name ^ "_inst")
+                val at_inst = Global_Theory.get_thm sg ("at_" ^ name ^ "_inst")
+                val pt_inst = Global_Theory.get_thm sg ("pt_" ^ name ^ "_inst")
               in SOME ((at_inst RS (pt_inst RS perm_eq_app)) RS eq_reflection) end
             else NONE)
       | _ => NONE
@@ -202,13 +202,13 @@ fun perm_compose_simproc' sg ss redex =
           SOME (Drule.instantiate'
             [SOME (ctyp_of sg (fastype_of t))]
             [SOME (cterm_of sg pi1), SOME (cterm_of sg pi2), SOME (cterm_of sg t)]
-            (mk_meta_eq ([PureThy.get_thm sg ("pt_"^tname'^"_inst"),
-             PureThy.get_thm sg ("at_"^tname'^"_inst")] MRS pt_perm_compose_aux)))
+            (mk_meta_eq ([Global_Theory.get_thm sg ("pt_"^tname'^"_inst"),
+             Global_Theory.get_thm sg ("at_"^tname'^"_inst")] MRS pt_perm_compose_aux)))
         else
           SOME (Drule.instantiate'
             [SOME (ctyp_of sg (fastype_of t))]
             [SOME (cterm_of sg pi1), SOME (cterm_of sg pi2), SOME (cterm_of sg t)]
-            (mk_meta_eq (PureThy.get_thm sg ("cp_"^tname'^"_"^uname'^"_inst") RS 
+            (mk_meta_eq (Global_Theory.get_thm sg ("cp_"^tname'^"_"^uname'^"_inst") RS 
              cp1_aux)))
       else NONE
     end

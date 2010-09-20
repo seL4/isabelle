@@ -244,6 +244,10 @@ The theorems bij_def and surj_def are unchanged.
 
 *** ML ***
 
+* Renamed structure PureThy to Pure_Thy and moved most of its
+operations to structure Global_Theory, to emphasize that this is
+rarely-used global-only stuff.
+
 * Discontinued Output.debug.  Minor INCOMPATIBILITY, use plain writeln
 instead (or tracing for high-volume output).
 

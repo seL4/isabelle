@@ -108,7 +108,7 @@ in
 
 fun pgml_terms (XML.Elem ((name, atts), body)) =
       if member (op =) token_markups name then
-        let val content = pgml_syms (Buffer.content (fold XML.add_content body Buffer.empty))
+        let val content = pgml_syms (XML.content_of body)
         in [Pgml.Atoms {kind = SOME name, content = content}] end
       else
         let val content = maps pgml_terms body in
@@ -267,8 +267,8 @@ fun thms_deps ths =
 
 fun new_thms_deps thy thy' =
   let
-    val prev_facts = PureThy.facts_of thy;
-    val facts = PureThy.facts_of thy';
+    val prev_facts = Global_Theory.facts_of thy;
+    val facts = Global_Theory.facts_of thy';
   in thms_deps (maps #2 (Facts.dest_static [prev_facts] facts)) end;
 
 end;
@@ -519,7 +519,7 @@ local
 
 fun theory_facts name =
   let val thy = Thy_Info.get_theory name
-  in (map PureThy.facts_of (Theory.parents_of thy), PureThy.facts_of thy) end;
+  in (map Global_Theory.facts_of (Theory.parents_of thy), Global_Theory.facts_of thy) end;
 
 fun thms_of_thy name = map fst (theory_facts name |-> Facts.extern_static);
 fun qualified_thms_of_thy name = map fst (theory_facts name |-> Facts.dest_static);
@@ -608,7 +608,7 @@ fun askrefs (Askrefs vs) =
                    What we want is mapping onto simple PGIP name/context model. *)
                 val ctx = Toplevel.context_of (Isar.state ()) (* NB: raises UNDEF *)
                 val thy = ProofContext.theory_of ctx
-                val ths = [PureThy.get_thm thy thmname]
+                val ths = [Global_Theory.get_thm thy thmname]
                 val deps = #2 (thms_deps ths);
             in
                 if null deps then ()
@@ -649,7 +649,7 @@ fun showid (Showid vs) =
                                   text=[XML.Elem (("pgml", []), maps YXML.parse_body strings)] })
 
         fun strings_of_thm (thy, name) =
-          map (Display.string_of_thm_global thy) (PureThy.get_thms thy name)
+          map (Display.string_of_thm_global thy) (Global_Theory.get_thms thy name)
 
         val string_of_thy = Pretty.string_of o Proof_Display.pretty_full_theory false
     in

@@ -169,7 +169,7 @@ fun add_primrec_i args thy =
 
     val ([def_thm], thy1) = thy
       |> Sign.add_path (Long_Name.base_name fname)
-      |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name def)];
+      |> Global_Theory.add_defs false [Thm.no_attributes (apfst Binding.name def)];
 
     val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)
     val eqn_thms =
@@ -179,10 +179,10 @@ fun add_primrec_i args thy =
 
     val (eqn_thms', thy2) =
       thy1
-      |> PureThy.add_thms ((eqn_names ~~ eqn_thms) ~~ eqn_atts);
+      |> Global_Theory.add_thms ((eqn_names ~~ eqn_thms) ~~ eqn_atts);
     val (_, thy3) =
       thy2
-      |> PureThy.add_thmss [((Binding.name "simps", eqn_thms'), [Simplifier.simp_add])]
+      |> Global_Theory.add_thmss [((Binding.name "simps", eqn_thms'), [Simplifier.simp_add])]
       ||> Sign.parent_path;
   in (thy3, eqn_thms') end;
 

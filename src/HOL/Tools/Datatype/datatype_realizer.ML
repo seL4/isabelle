@@ -122,7 +122,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
     val vs = map (fn i => List.nth (pnames, i)) is;
     val (thm', thy') = thy
       |> Sign.root_path
-      |> PureThy.store_thm
+      |> Global_Theory.store_thm
         (Binding.qualified_name (space_implode "_" (ind_name :: vs @ ["correctness"])), thm)
       ||> Sign.restore_naming thy;
 
@@ -193,7 +193,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
     val exh_name = Thm.derivation_name exhaust;
     val (thm', thy') = thy
       |> Sign.root_path
-      |> PureThy.store_thm (Binding.qualified_name (exh_name ^ "_P_correctness"), thm)
+      |> Global_Theory.store_thm (Binding.qualified_name (exh_name ^ "_P_correctness"), thm)
       ||> Sign.restore_naming thy;
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);

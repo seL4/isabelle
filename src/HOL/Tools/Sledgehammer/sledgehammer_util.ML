@@ -70,9 +70,7 @@ val subscript = implode o map (prefix "\<^isub>") o explode
 fun nat_subscript n =
   n |> string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
 
-fun plain_string_from_xml_tree t =
-  Buffer.empty |> XML.add_content t |> Buffer.content
-val unyxml = plain_string_from_xml_tree o YXML.parse
+val unyxml = XML.content_of o YXML.parse_body
 
 val is_long_identifier = forall Syntax.is_identifier o space_explode "."
 fun maybe_quote y =

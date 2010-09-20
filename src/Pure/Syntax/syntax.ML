@@ -167,7 +167,7 @@ struct
 fun read_token str =
   let
     val tree = YXML.parse str handle Fail msg => error msg;
-    val text = Buffer.empty |> XML.add_content tree |> Buffer.content;
+    val text = XML.content_of [tree];
     val pos =
       (case tree of
         XML.Elem ((name, props), _) =>

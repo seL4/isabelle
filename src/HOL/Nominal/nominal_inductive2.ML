@@ -290,14 +290,14 @@ fun prove_strong_ind s alt_name avoids ctxt =
            HOLogic.mk_setT U --> HOLogic.boolT) $ u)) sets) |>
       split_list) prems |> split_list;
 
-    val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp";
-    val pt2_atoms = map (fn a => PureThy.get_thm thy
+    val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp";
+    val pt2_atoms = map (fn a => Global_Theory.get_thm thy
       ("pt_" ^ Long_Name.base_name a ^ "2")) atoms;
     val eqvt_ss = Simplifier.global_context thy HOL_basic_ss
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
       addsimprocs [mk_perm_bool_simproc ["Fun.id"],
         NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
-    val fresh_star_bij = PureThy.get_thms thy "fresh_star_bij";
+    val fresh_star_bij = Global_Theory.get_thms thy "fresh_star_bij";
     val pt_insts = map (NominalAtoms.pt_inst_of thy) atoms;
     val at_insts = map (NominalAtoms.at_inst_of thy) atoms;
     val dj_thms = maps (fn a =>
@@ -319,7 +319,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         val p = foldr1 HOLogic.mk_prod (map protect ts);
         val atom = fst (dest_Type T);
         val {at_inst, ...} = NominalAtoms.the_atom_info thy atom;
-        val fs_atom = PureThy.get_thm thy
+        val fs_atom = Global_Theory.get_thm thy
           ("fs_" ^ Long_Name.base_name atom ^ "1");
         val avoid_th = Drule.instantiate'
           [SOME (ctyp_of thy (fastype_of p))] [SOME (cterm_of thy p)]
