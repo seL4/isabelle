@@ -589,28 +589,18 @@ val (_, raw_oracle) = Context.>>> (Context.map_theory_result
 fun oracle thy program nbe_program_idx_tab vsp_ty_t deps ct =
   raw_oracle (thy, program, nbe_program_idx_tab, vsp_ty_t, deps, ct);
 
-fun no_frees_rew rew t =
-  let
-    val frees = map Free (Term.add_frees t []);
-  in
-    t
-    |> fold_rev lambda frees
-    |> rew
-    |> curry (Term.betapplys o swap) frees
-  end;
-
-val dynamic_eval_conv = Conv.tap_thy (fn thy => Code_Simp.no_frees_conv
-  (lift_triv_classes_conv thy (Code_Thingol.dynamic_eval_conv thy
-    (K (fn program => oracle thy program (compile false thy program))))));
+val dynamic_eval_conv = Conv.tap_thy (fn thy =>
+  lift_triv_classes_conv thy (Code_Thingol.dynamic_eval_conv thy
+    (K (fn program => oracle thy program (compile false thy program)))));
 
 fun dynamic_eval_value thy = lift_triv_classes_rew thy
-  (no_frees_rew (Code_Thingol.dynamic_eval_value thy I
-    (K (fn program => eval_term thy program (compile false thy program)))));
+  (Code_Thingol.dynamic_eval_value thy I
+    (K (fn program => eval_term thy program (compile false thy program))));
 
-fun static_eval_conv thy consts = Code_Simp.no_frees_conv
-  (lift_triv_classes_conv thy (Code_Thingol.static_eval_conv thy consts
+fun static_eval_conv thy consts =
+  lift_triv_classes_conv thy (Code_Thingol.static_eval_conv thy consts
     (K (fn program => let val nbe_program = compile true thy program
-      in fn thy => oracle thy program nbe_program end))));
+      in fn thy => oracle thy program nbe_program end)));
 
 
 (** setup **)
