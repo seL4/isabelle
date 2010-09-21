@@ -26,7 +26,10 @@ object Simple_Thread
     thread
   }
 
-  /* future result */
+  def fork(body: => Unit): Thread = fork()(body)
+
+
+  /* future result via thread */
 
   def future[A](name: String = "", daemon: Boolean = false)(body: => A): Future[A] =
   {
