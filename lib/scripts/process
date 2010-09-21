@@ -8,12 +8,9 @@
 use warnings;
 use strict;
 
-# args
-
-my ($group, $pid_name, $cmd_line) = @ARGV;
-
-
 # process group
+
+my $group = $ARGV[0]; shift(@ARGV);
 
 if ($group eq "group") {
   use POSIX "setsid";
@@ -21,7 +18,9 @@ if ($group eq "group") {
 }
 
 
-# pid
+# report pid
+
+my $pid_name = $ARGV[0]; shift(@ARGV);
 
 if ($pid_name eq "-") {
   print "$$\n";
@@ -35,5 +34,13 @@ else {
 
 # exec process
 
-exec $cmd_line;
+my $script = $ARGV[0]; shift(@ARGV);
+
+if ($script eq "script") {
+  my $cmd_line = $ARGV[0]; shift(@ARGV);
+  exec $cmd_line || die $!;
+}
+else {
+  (exec { $ARGV[0] } @ARGV) || die $!;
+}
 

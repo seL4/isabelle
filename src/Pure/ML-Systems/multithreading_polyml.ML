@@ -181,7 +181,7 @@ fun bash_output script = with_attributes no_interrupts (fn orig_atts =>
       let
         val status =
           OS.Process.system ("exec \"$ISABELLE_HOME/lib/scripts/process\" group " ^ pid_name ^
-            " \"exec bash " ^ script_name ^ " > " ^ output_name ^ "\"");
+            " script \"exec bash " ^ script_name ^ " > " ^ output_name ^ "\"");
         val res =
           (case Posix.Process.fromStatus status of
             Posix.Process.W_EXITED => Result 0

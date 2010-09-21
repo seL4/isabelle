@@ -25,8 +25,8 @@ fun bash_output script =
     val output_name = OS.FileSys.tmpName ();
 
     val status =
-      OS.Process.system ("exec \"$ISABELLE_HOME/lib/scripts/process\" nogroup /dev/null" ^
-        " \"exec bash " ^ script_name ^ " > " ^ output_name ^ "\"");
+      OS.Process.system ("exec \"$ISABELLE_HOME/lib/scripts/process\" no_group /dev/null" ^
+        " script \"exec bash " ^ script_name ^ " > " ^ output_name ^ "\"");
     val rc =
       (case Posix.Process.fromStatus status of
         Posix.Process.W_EXITED => 0
