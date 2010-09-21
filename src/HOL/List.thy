@@ -4206,6 +4206,9 @@ by (rule in_listsp_conv_set [THEN iffD2])
 
 lemmas in_listsI [intro!,no_atp] = in_listspI [to_set]
 
+lemma lists_eq_set: "lists A = {xs. set xs <= A}"
+by auto
+
 lemma lists_UNIV [simp]: "lists UNIV = UNIV"
 by auto
 
