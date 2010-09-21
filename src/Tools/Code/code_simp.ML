@@ -8,7 +8,7 @@ signature CODE_SIMP =
 sig
   val no_frees_conv: conv -> conv
   val map_ss: (simpset -> simpset) -> theory -> theory
-  val dynamic_eval_conv: theory -> conv
+  val dynamic_eval_conv: conv
   val dynamic_eval_tac: theory -> int -> tactic
   val dynamic_eval_value: theory -> term -> term
   val static_eval_conv: theory -> simpset option -> string list -> conv
@@ -68,12 +68,12 @@ fun conclude_tac thy some_ss = Simplifier.full_simp_tac (simpset_default thy som
 
 (* evaluation with dynamic code context *)
 
-fun dynamic_eval_conv thy = no_frees_conv (Code_Thingol.dynamic_eval_conv thy
-  (fn naming => fn program => fn t => fn deps => rewrite_modulo thy NONE program));
+val dynamic_eval_conv = Conv.tap_thy (fn thy => no_frees_conv (Code_Thingol.dynamic_eval_conv thy
+  (fn naming => fn program => fn t => fn deps => rewrite_modulo thy NONE program)));
 
-fun dynamic_eval_tac thy = CONVERSION (dynamic_eval_conv thy) THEN' conclude_tac thy NONE;
+fun dynamic_eval_tac thy = CONVERSION dynamic_eval_conv THEN' conclude_tac thy NONE;
 
-fun dynamic_eval_value thy = snd o Logic.dest_equals o Thm.prop_of o dynamic_eval_conv thy o Thm.cterm_of thy;
+fun dynamic_eval_value thy = snd o Logic.dest_equals o Thm.prop_of o dynamic_eval_conv o Thm.cterm_of thy;
 
 val setup = Method.setup (Binding.name "code_simp")
   (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_eval_tac o ProofContext.theory_of)))
