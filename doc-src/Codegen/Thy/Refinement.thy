@@ -167,7 +167,7 @@ text {*
 *}
 
 
-subsection {* Datatype refinement involving invariants *}
+subsection {* Datatype refinement involving invariants \label{sec:invariant} *}
 
 text {*
   Datatype representation involving invariants require a dedicated
