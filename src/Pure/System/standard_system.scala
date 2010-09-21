@@ -101,6 +101,7 @@ object Standard_System
   def with_tmp_file[A](prefix: String)(body: File => A): A =
   {
     val file = File.createTempFile(prefix, null)
+    file.deleteOnExit
     try { body(file) } finally { file.delete }
   }
 
