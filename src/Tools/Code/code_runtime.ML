@@ -60,6 +60,11 @@ val _ = Context.>> (Context.map_theory
 
 type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string;
 
+fun reject_vars thy t =
+  let
+    val ctxt = ProofContext.init_global thy;
+  in ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t) end;
+
 fun obtain_serializer thy some_target = Code_Target.produce_code_for thy
   (the_default target some_target) NONE "Code" [];
 
@@ -88,6 +93,7 @@ fun partiality_as_none e = SOME (Exn.release e)
 
 fun dynamic_value_exn cookie thy some_target postproc t args =
   let
+    val _ = reject_vars thy t;
     fun evaluator naming program ((_, vs_ty), t) deps =
       base_evaluator cookie (obtain_serializer thy some_target) naming thy program (vs_ty, t) deps args;
   in Code_Thingol.dynamic_eval_value thy (Exn.map_result o postproc) evaluator t end;
@@ -103,7 +109,7 @@ fun static_value_exn cookie thy some_target postproc consts =
     val serializer = obtain_serializer thy some_target;
     fun evaluator naming program thy ((_, vs_ty), t) deps =
       base_evaluator cookie serializer naming thy program (vs_ty, t) deps [];
-  in Code_Thingol.static_eval_value thy (Exn.map_result o postproc) consts evaluator end;
+  in Code_Thingol.static_eval_value thy (Exn.map_result o postproc) consts evaluator o reject_vars thy end;
 
 fun static_value_strict cookie thy some_target postproc consts t =
   Exn.release (static_value_exn cookie thy some_target postproc consts t);
@@ -120,6 +126,8 @@ structure Truth_Result = Proof_Data (
 );
 val put_truth = Truth_Result.put;
 val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append this "put_truth");
+
+val reject_vars = fn thy => tap (reject_vars thy o Thm.term_of);
 
 fun check_holds serializer naming thy program vs_t deps ct =
   let
@@ -143,7 +151,8 @@ fun check_holds_oracle serializer naming thy program ((_, vs_ty), t) deps ct =
   raw_check_holds_oracle (serializer, naming, thy, program, (vs_ty, t), deps, ct);
 
 val dynamic_holds_conv = Conv.tap_thy (fn thy => Code_Thingol.dynamic_eval_conv thy
-  (fn naming => check_holds_oracle (obtain_serializer thy NONE) naming thy));
+  (fn naming => check_holds_oracle (obtain_serializer thy NONE) naming thy)
+  o reject_vars thy);
 
 fun static_holds_conv thy consts =
   let
@@ -151,6 +160,7 @@ fun static_holds_conv thy consts =
   in
     Code_Thingol.static_eval_conv thy consts
       (fn naming => fn program => fn thy => check_holds_oracle serializer naming thy program)
+    o reject_vars thy
   end;
 
 
