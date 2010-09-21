@@ -16,13 +16,26 @@ object Simple_Thread
 {
   /* plain thread */
 
-  def fork(name: String, daemon: Boolean = false)(body: => Unit): Thread =
+  def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Thread =
   {
-    val thread = new Thread(name) { override def run = body }
+    val thread =
+      if (name == null || name == "") new Thread() { override def run = body }
+      else new Thread(name) { override def run = body }
     thread.setDaemon(daemon)
     thread.start
     thread
   }
+
+  /* future result */
+
+  def future[A](name: String = "", daemon: Boolean = false)(body: => A): Future[A] =
+  {
+    val result = Future.promise[A]
+    fork(name, daemon) { result.fulfill_result(Exn.capture(body)) }
+    result
+  }
+
+  def future[A](body: => A): Future[A] = future()(body)
 
 
   /* thread as actor */
