@@ -215,12 +215,12 @@ fun parse_term x =
    >> ATerm) x
 and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
-val parse_atom =
-  parse_term -- Scan.option (Scan.option ($$ "!") --| $$ "=" -- parse_term)
-  >> (fn (u1, NONE) => AAtom u1
-       | (u1, SOME (NONE, u2)) => AAtom (ATerm ("c_equal", [u1, u2]))
-       | (u1, SOME (SOME _, u2)) =>
-         mk_anot (AAtom (ATerm ("c_equal", [u1, u2]))))
+fun parse_atom x =
+  (parse_term -- Scan.option (Scan.option ($$ "!") --| $$ "=" -- parse_term)
+   >> (fn (u1, NONE) => AAtom u1
+        | (u1, SOME (NONE, u2)) => AAtom (ATerm ("c_equal", [u1, u2]))
+        | (u1, SOME (SOME _, u2)) =>
+          mk_anot (AAtom (ATerm ("c_equal", [u1, u2]))))) x
 
 fun fo_term_head (ATerm (s, _)) = s
 
