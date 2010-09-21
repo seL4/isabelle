@@ -23,12 +23,17 @@ if ($group eq "group") {
 
 # pid
 
-open (PID_FILE, ">", $pid_name) || die $!;
-print PID_FILE "$$";
-close PID_FILE;
+if ($pid_name eq "-") {
+  print "$$\n";
+}
+else {
+  open (PID_FILE, ">", $pid_name) || die $!;
+  print PID_FILE "$$";
+  close PID_FILE;
+}
 
 
 # exec process
 
-exec "$cmd_line";
+exec $cmd_line;
 

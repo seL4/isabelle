@@ -197,72 +197,60 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
   /** system tools **/
 
-  def bash_output(script: String): (String, Int) =
+  def bash(script: String): (String, String, Int) =
   {
     Standard_System.with_tmp_file("isabelle_script") { script_file =>
-      Standard_System.with_tmp_file("isabelle_pid") { pid_file =>
+      Standard_System.write_file(script_file, script)
 
-        Standard_System.write_file(script_file, script)
+      val proc =
+        execute(false, expand_path("$ISABELLE_HOME/lib/scripts/process"), "group", "-",
+          "exec bash " + posix_path(script_file.getPath))
 
-        val proc = execute(true, expand_path("$ISABELLE_HOME/lib/scripts/process"), "group",
-          posix_path(pid_file.getPath), "exec bash " + posix_path(script_file.getPath))
+      val stdout_reader =
+        new BufferedReader(new InputStreamReader(proc.getInputStream, Standard_System.charset))
 
-        val stdout = new StringBuilder(100)
-        val stdout_thread = Simple_Thread.fork("stdout")
-        {
-          val reader =
-            new BufferedReader(new InputStreamReader(proc.getInputStream, Standard_System.charset))
-          var c = -1
-          while ({ c = reader.read; c != -1 }) stdout += c.asInstanceOf[Char]
-          reader.close
-        }
+      val stderr_reader =
+        new BufferedReader(new InputStreamReader(proc.getErrorStream, Standard_System.charset))
 
-        def kill(strict: Boolean) =
-        {
-          val pid =
-            try { Some(Standard_System.read_file(pid_file)) }
-            catch { case _: IOException => None }
-          if (pid.isDefined) {
-            var running = true
-            var count = 10   // FIXME property!?
-            while (running && count > 0) {
-              if (execute(true, "kill", "-INT", "-" + pid.get).waitFor != 0)
-                running = false
-              else {
-                Thread.sleep(100)   // FIXME property!?
-                if (!strict) count -= 1
-              }
-            }
+      val pid = stdout_reader.readLine
+
+      def kill(strict: Boolean) =
+      {
+        var running = true
+        var count = 10   // FIXME property!?
+        while (running && count > 0) {
+          if (execute(true, "kill", "-INT", "-" + pid).waitFor != 0)
+            running = false
+          else {
+            Thread.sleep(100)   // FIXME property!?
+            if (!strict) count -= 1
           }
         }
-
-        val shutdown_hook = new Thread { override def run = kill(true) }
-        Runtime.getRuntime.addShutdownHook(shutdown_hook)  // FIXME tmp files during shutdown?!?
-
-        def cleanup() =
-          try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
-          catch { case _: IllegalStateException => }
-
-        val rc =
-          try {
-            try {
-              val rc = proc.waitFor  // FIXME read stderr (!??)
-              stdout_thread.join
-              rc
-            }
-            catch { case e: InterruptedException => Thread.interrupted; kill(false); throw e }
-          }
-          finally {
-            proc.getOutputStream.close
-            proc.getInputStream.close
-            proc.getErrorStream.close
-            proc.destroy
-            cleanup()
-          }
-
-        stdout_thread.join()
-        (stdout.toString, rc)
       }
+
+      val shutdown_hook = new Thread { override def run = kill(true) }
+      Runtime.getRuntime.addShutdownHook(shutdown_hook)  // FIXME tmp file during shutdown?!?
+
+      def cleanup() =
+        try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
+        catch { case _: IllegalStateException => }
+
+      val stdout = Simple_Thread.future { Standard_System.slurp(stdout_reader) }
+      val stderr = Simple_Thread.future { Standard_System.slurp(stderr_reader) }
+      proc.getOutputStream.close
+
+      val rc =
+        try {
+          try { proc.waitFor }
+          catch { case e: InterruptedException => Thread.interrupted; kill(false); 2 }
+        }
+        finally {
+          stdout.join
+          stderr.join
+          proc.destroy  // FIXME kill -TERM !?
+          cleanup()
+        }
+      (stdout.join, stderr.join, rc)
     }
   }
 
@@ -297,9 +285,8 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
       "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$-" + i + "\"\n" +
       "mkfifo -m 600 \"$FIFO\" || { echo \"Failed to create fifo: $FIFO\" >&2; exit 2; }\n" +
       "echo -n \"$FIFO\"\n"
-    val (result, rc) = bash_output(script)
-    if (rc == 0) result
-    else error(result)
+    val (out, err, rc) = bash(script)
+    if (rc == 0) out else error(err)
   }
 
   def rm_fifo(fifo: String): Boolean =
