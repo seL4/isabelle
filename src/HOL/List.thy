@@ -4157,8 +4157,8 @@ inductive_set
   lists :: "'a set => 'a list set"
   for A :: "'a set"
 where
-    Nil [intro!]: "[]: lists A"
-  | Cons [intro!,no_atp]: "[| a: A; l: lists A|] ==> a#l : lists A"
+    Nil [intro!, simp]: "[]: lists A"
+  | Cons [intro!, simp, no_atp]: "[| a: A; l: lists A|] ==> a#l : lists A"
 
 inductive_cases listsE [elim!,no_atp]: "x#l : lists A"
 inductive_cases listspE [elim!,no_atp]: "listsp A (x # l)"
@@ -4184,6 +4184,9 @@ lemmas listsp_conj_eq [simp] = listsp_inf_eq [simplified inf_fun_eq inf_bool_eq]
 
 lemmas lists_Int_eq [simp] = listsp_inf_eq [to_set pred_equals_eq]
 
+lemma Cons_in_lists_iff[simp]: "x#xs : lists A \<longleftrightarrow> x:A \<and> xs : lists A"
+by auto
+
 lemma append_in_listsp_conv [iff]:
      "(listsp A (xs @ ys)) = (listsp A xs \<and> listsp A ys)"
 by (induct xs) auto
@@ -4207,6 +4210,9 @@ by (rule in_listsp_conv_set [THEN iffD2])
 lemmas in_listsI [intro!,no_atp] = in_listspI [to_set]
 
 lemma lists_eq_set: "lists A = {xs. set xs <= A}"
+by auto
+
+lemma lists_empty [simp]: "lists {} = {[]}"
 by auto
 
 lemma lists_UNIV [simp]: "lists UNIV = UNIV"
