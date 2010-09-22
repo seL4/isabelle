@@ -44,7 +44,11 @@ object Isabelle_Process
     def is_system = kind == Markup.SYSTEM
     def is_status = kind == Markup.STATUS
     def is_report = kind == Markup.REPORT
-    def is_ready = is_status && body == List(XML.Elem(Markup.Ready, Nil))
+    def is_ready = is_status && {
+      body match {
+        case List(XML.Elem(Markup(Markup.READY, _), _)) => true
+        case _ => false
+      }}
 
     override def toString: String =
     {

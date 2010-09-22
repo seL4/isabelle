@@ -10,16 +10,27 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.{TextArea, ScrollPane}
+import scala.swing.{TextArea, ScrollPane, TabbedPane, Component}
 
 import org.gjt.sp.jedit.View
 
 
 class Session_Dockable(view: View, position: String) extends Dockable(view: View, position: String)
 {
-  private val text_area = new TextArea
-  text_area.editable = false
-  set_content(new ScrollPane(text_area))
+  /* main tabs */
+
+  private val readme = new HTML_Panel(Isabelle.system, "SansSerif", 12)
+  readme.render_document(Isabelle.system.try_read(List("$JEDIT_HOME/README.html")))
+
+  private val syslog = new TextArea
+  syslog.editable = false
+
+  private val tabs = new TabbedPane {
+    pages += new TabbedPane.Page("README", Component.wrap(readme))
+    pages += new TabbedPane.Page("System log", new ScrollPane(syslog))
+  }
+
+  set_content(tabs)
 
 
   /* main actor */
@@ -28,8 +39,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
     loop {
       react {
         case result: Isabelle_Process.Result =>
-          if (result.is_init || result.is_exit || result.is_system)
-            Swing_Thread.now { text_area.append(XML.content(result.message).mkString + "\n") }
+          if (result.is_init || result.is_exit || result.is_system || result.is_ready)
+            Swing_Thread.now { syslog.append(XML.content(result.message).mkString + "\n") }
 
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)
       }

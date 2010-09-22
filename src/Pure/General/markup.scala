@@ -247,7 +247,7 @@ object Markup
 
   val BAD = "bad"
 
-  val Ready = Markup("ready", Nil)
+  val READY = "ready"
 
 
   /* system data */
