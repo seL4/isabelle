@@ -273,8 +273,8 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
       val proc = new Managed_Process(false, "bash", posix_path(script_file.getPath))
 
       proc.stdin.close
-      val stdout = Simple_Thread.future { Standard_System.slurp(proc.stdout) }
-      val stderr = Simple_Thread.future { Standard_System.slurp(proc.stderr) }
+      val stdout = Simple_Thread.future("bash_stdout") { Standard_System.slurp(proc.stdout) }
+      val stderr = Simple_Thread.future("bash_stderr") { Standard_System.slurp(proc.stderr) }
 
       val rc =
         try { proc.join }

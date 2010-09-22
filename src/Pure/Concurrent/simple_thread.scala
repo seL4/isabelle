@@ -26,8 +26,6 @@ object Simple_Thread
     thread
   }
 
-  def fork(body: => Unit): Thread = fork()(body)
-
 
   /* future result via thread */
 
@@ -37,8 +35,6 @@ object Simple_Thread
     fork(name, daemon) { result.fulfill_result(Exn.capture(body)) }
     result
   }
-
-  def future[A](body: => A): Future[A] = future()(body)
 
 
   /* thread as actor */
