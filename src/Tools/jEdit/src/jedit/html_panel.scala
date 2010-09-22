@@ -116,6 +116,7 @@ class HTML_Panel(
   /* internal messages */
 
   private case class Resize(font_family: String, font_size: Int)
+  private case class Render_Document(text: String)
   private case class Render(body: XML.Body)
   private case object Refresh
 
@@ -152,6 +153,12 @@ class HTML_Panel(
 
     def refresh() { render(current_body) }
 
+    def render_document(text: String)
+    {
+      val doc = builder.parse(new InputSourceImpl(new StringReader(text), "http://localhost"))
+      Swing_Thread.later { setDocument(doc, rcontext) }
+    }
+
     def render(body: XML.Body)
     {
       current_body = body
@@ -179,6 +186,7 @@ class HTML_Panel(
       react {
         case Resize(font_family, font_size) => resize(font_family, font_size)
         case Refresh => refresh()
+        case Render_Document(text) => render_document(text)
         case Render(body) => render(body)
         case bad => System.err.println("main_actor: ignoring bad message " + bad)
       }
@@ -190,5 +198,6 @@ class HTML_Panel(
 
   def resize(font_family: String, font_size: Int) { main_actor ! Resize(font_family, font_size) }
   def refresh() { main_actor ! Refresh }
+  def render_document(text: String) { main_actor ! Render_Document(text) }
   def render(body: XML.Body) { main_actor ! Render(body) }
 }
