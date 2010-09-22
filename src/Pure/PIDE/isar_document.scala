@@ -72,6 +72,12 @@ object Isar_Document
 
   /* specific messages */
 
+  def is_tracing(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.TRACING, _), _) => true
+      case _ => false
+    }
+
   def is_warning(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.WARNING, _), _) => true
