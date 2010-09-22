@@ -57,17 +57,18 @@ else
 fi
 
 if [ -z "$OUTFILE" ]; then
-  COMMIT='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\n"); false);'
+  COMMIT='fun commit () = false;'
+  MLEXIT=""
 else
   COMMIT="fun commit () = not (SMLofNJ.exportML\"$OUTFILE\");"
   [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
+  MLEXIT="commit();"
 fi
 
 
 ## run it!
 
 MLTEXT="$EXIT $COMMIT $MLTEXT"
-MLEXIT="commit();"
 
 if [ -z "$TERMINATE" ]; then
   FEEDER_OPTS=""
