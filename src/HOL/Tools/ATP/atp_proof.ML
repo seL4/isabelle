@@ -291,8 +291,8 @@ val parse_spass_annotations =
 
 (* It is not clear why some literals are followed by sequences of stars and/or
    pluses. We ignore them. *)
-val parse_decorated_atom =
-  parse_atom --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")
+fun parse_decorated_atom x =
+  (parse_atom --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")) x
 
 fun mk_horn ([], []) = AAtom (ATerm ("c_False", []))
   | mk_horn ([], pos_lits) = foldr1 (mk_aconn AOr) pos_lits
