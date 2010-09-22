@@ -136,6 +136,9 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
     }
     catch { case e: IOException => rm_fifos(); throw(e) }
 
+  val process_result =
+    Simple_Thread.future("process_result") { process.join }
+
   private def terminate_process()
   {
     try { process.terminate }
@@ -149,16 +152,17 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       val expired = System.currentTimeMillis() + timeout
       val result = new StringBuilder(100)
 
-      var finished = false
-      while (!finished && System.currentTimeMillis() <= expired) {
-        while (!finished && process.stdout.ready) {
+      var finished: Option[Boolean] = None
+      while (finished.isEmpty && System.currentTimeMillis() <= expired) {
+        while (finished.isEmpty && process.stdout.ready) {
           val c = process.stdout.read
-          if (c == 2) finished = true
+          if (c == 2) finished = Some(true)
           else result += c.toChar
         }
-        Thread.sleep(10)
+        if (process_result.is_finished) finished = Some(false)
+        else Thread.sleep(10)
       }
-      (!finished, result.toString)
+      (finished.isEmpty || !finished.get, result.toString)
     }
     system_result(startup_output)
 
@@ -167,6 +171,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       process.stdin.close
       Thread.sleep(300)
       terminate_process()
+      process_result.join
     }
     else {
       // rendezvous
@@ -178,7 +183,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       command_input = input_actor(command_stream)
       val message = message_actor(message_stream)
 
-      val rc = process.join
+      val rc = process_result.join
       system_result("Isabelle process terminated")
       for ((thread, _) <- List(standard_input, stdout, command_input, message)) thread.join
       system_result("process_manager terminated")
