@@ -1012,6 +1012,7 @@ Isabelle/Pure provides two generic frameworks to support code
     \indexdef{HOL}{command}{code\_monad}\hypertarget{command.HOL.code-monad}{\hyperlink{command.HOL.code-monad}{\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{HOL}{command}{code\_include}\hypertarget{command.HOL.code-include}{\hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{HOL}{command}{code\_modulename}\hypertarget{command.HOL.code-modulename}{\hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_reflect}\hypertarget{command.HOL.code-reflect}{\hyperlink{command.HOL.code-reflect}{\mbox{\isa{\isacommand{code{\isacharunderscore}reflect}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}}
   \end{matharray}
 
   \begin{rail}
@@ -1084,6 +1085,10 @@ Isabelle/Pure provides two generic frameworks to support code
     'code\_modulename' target ( ( string string ) + )
     ;
 
+    'code\_reflect' string ( 'datatypes' ( string '=' ( string + '|' ) + 'and' ) ) ? \\
+      ( 'functions' ( string + ) ) ? ( 'file' string ) ?
+    ;
+
     syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
     ;
 
@@ -1092,8 +1097,9 @@ Isabelle/Pure provides two generic frameworks to support code
   \begin{description}
 
   \item \hyperlink{command.HOL.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} generates code for a given list
-  of constants in the specified target language(s).  If no serialization
-  instruction is given, only abstract code is generated internally.
+  of constants in the specified target language(s).  If no
+  serialization instruction is given, only abstract code is generated
+  internally.
 
   Constants may be specified by giving them literally, referring to
   all executable contants within a certain theory by giving \isa{{\isachardoublequote}name{\isachardot}{\isacharasterisk}{\isachardoublequote}}, or referring to \emph{all} executable constants currently
@@ -1104,18 +1110,20 @@ Isabelle/Pure provides two generic frameworks to support code
   after the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isacharunderscore}name}}}} keyword; then \emph{all} code is
   placed in this module.
 
-  For \emph{SML}, \emph{OCaml} and \emph{Scala} the file specification refers to a
-  single file; for \emph{Haskell}, it refers to a whole directory,
-  where code is generated in multiple files reflecting the module
-  hierarchy.  Omitting the file specification denotes standard
+  For \emph{SML}, \emph{OCaml} and \emph{Scala} the file specification
+  refers to a single file; for \emph{Haskell}, it refers to a whole
+  directory, where code is generated in multiple files reflecting the
+  module hierarchy.  Omitting the file specification denotes standard
   output.
 
   Serializers take an optional list of arguments in parentheses.  For
   \emph{SML} and \emph{OCaml}, ``\isa{no{\isacharunderscore}signatures}`` omits
   explicit module signatures.
   
-  For \emph{Haskell} a module name prefix may be given using the ``\isa{{\isachardoublequote}root{\isacharcolon}{\isachardoublequote}}'' argument; ``\isa{string{\isacharunderscore}classes}'' adds a ``\verb|deriving (Read, Show)|'' clause to each appropriate datatype
-  declaration.
+  For \emph{Haskell} a module name prefix may be given using the
+  ``\isa{{\isachardoublequote}root{\isacharcolon}{\isachardoublequote}}'' argument; ``\isa{string{\isacharunderscore}classes}'' adds a
+  ``\verb|deriving (Read, Show)|'' clause to each appropriate
+  datatype declaration.
 
   \item \hyperlink{attribute.HOL.code}{\mbox{\isa{code}}} explicitly selects (or with option
   ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' deselects) a code equation for code generation.
@@ -1125,8 +1133,8 @@ Isabelle/Pure provides two generic frameworks to support code
   code equations on abstract datatype representations respectively.
 
   \item \hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}} declares constants which are not
-  required to have a definition by means of code equations; if
-  needed these are implemented by program abort instead.
+  required to have a definition by means of code equations; if needed
+  these are implemented by program abort instead.
 
   \item \hyperlink{command.HOL.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}} specifies a constructor set
   for a logical type.
@@ -1134,17 +1142,15 @@ Isabelle/Pure provides two generic frameworks to support code
   \item \hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} gives an overview on
   selected code equations and code generator datatypes.
 
-  \item \hyperlink{attribute.HOL.code-inline}{\mbox{\isa{code{\isacharunderscore}inline}}} declares (or with
-  option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) inlining theorems which are
-  applied as rewrite rules to any code equation during
-  preprocessing.
+  \item \hyperlink{attribute.HOL.code-inline}{\mbox{\isa{code{\isacharunderscore}inline}}} declares (or with option
+  ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) inlining theorems which are applied as
+  rewrite rules to any code equation during preprocessing.
 
-  \item \hyperlink{attribute.HOL.code-post}{\mbox{\isa{code{\isacharunderscore}post}}} declares (or with
-  option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) theorems which are
-  applied as rewrite rules to any result of an evaluation.
+  \item \hyperlink{attribute.HOL.code-post}{\mbox{\isa{code{\isacharunderscore}post}}} declares (or with option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) theorems which are applied as rewrite rules to any
+  result of an evaluation.
 
-  \item \hyperlink{command.HOL.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}} prints the setup
-  of the code generator preprocessor.
+  \item \hyperlink{command.HOL.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}} prints the setup of the code
+  generator preprocessor.
 
   \item \hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} prints a list of theorems
   representing the corresponding program containing all given
@@ -1186,11 +1192,20 @@ Isabelle/Pure provides two generic frameworks to support code
   \item \hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}} declares aliasings from one
   module name onto another.
 
+  \item \hyperlink{command.HOL.code-reflect}{\mbox{\isa{\isacommand{code{\isacharunderscore}reflect}}}} without a ``\isa{{\isachardoublequote}file{\isachardoublequote}}''
+  argument compiles code into the system runtime environment and
+  modifies the code generator setup that future invocations of system
+  runtime code generation referring to one of the ``\isa{{\isachardoublequote}datatypes{\isachardoublequote}}'' or ``\isa{{\isachardoublequote}functions{\isachardoublequote}}'' entities use these precompiled
+  entities.  With a ``\isa{{\isachardoublequote}file{\isachardoublequote}}'' argument, the corresponding code
+  is generated into that specified file without modifying the code
+  generator setup.
+
   \end{description}
 
-  The other framework generates code from both functional and relational
-  programs to SML.  See \cite{isabelle-HOL} for further information
-  (this actually covers the new-style theory format as well).
+  The other framework generates code from both functional and
+  relational programs to SML.  See \cite{isabelle-HOL} for further
+  information (this actually covers the new-style theory format as
+  well).
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{code\_module}\hypertarget{command.HOL.code-module}{\hyperlink{command.HOL.code-module}{\mbox{\isa{\isacommand{code{\isacharunderscore}module}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
