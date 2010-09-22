@@ -165,7 +165,7 @@ fun change_browser_info f =
   CRITICAL (fn () => Unsynchronized.change browser_info (map_browser_info f));
 
 val suppress_tex_source = Unsynchronized.ref false;
-fun no_document f x = setmp_noncritical suppress_tex_source true f x;
+fun no_document f x = Unsynchronized.setmp suppress_tex_source true f x;  (* FIXME unreliable *)
 
 fun init_theory_info name info =
   change_browser_info (fn (theories, files, tex_index, html_index, graph) =>

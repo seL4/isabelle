@@ -7,7 +7,6 @@ exception Interrupt;
 fun reraise exn = raise exn;
 
 use "ML-Systems/proper_int.ML";
-use "ML-Systems/unsynchronized.ML";
 use "ML-Systems/overloading_smlnj.ML";
 use "General/exn.ML";
 use "ML-Systems/single_assignment.ML";
@@ -157,6 +156,9 @@ fun uninterruptible f =
     (fn old_handler => f (fn g => change_signal old_handler (fn _ => g)));
 
 end;
+
+
+use "ML-Systems/unsynchronized.ML";
 
 
 

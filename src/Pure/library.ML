@@ -56,7 +56,6 @@ sig
   val andf: ('a -> bool) * ('a -> bool) -> 'a -> bool
   val exists: ('a -> bool) -> 'a list -> bool
   val forall: ('a -> bool) -> 'a list -> bool
-  val setmp_noncritical: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp_CRITICAL: 'a Unsynchronized.ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp_thread_data: 'a Universal.tag -> 'a -> 'a -> ('b -> 'c) -> 'b -> 'c
 
@@ -306,18 +305,8 @@ val forall = List.all;
 
 (* flags *)
 
-(*temporarily set flag during execution*)
-fun setmp_noncritical flag value f x =
-  uninterruptible (fn restore_attributes => fn () =>
-    let
-      val orig_value = ! flag;
-      val _ = flag := value;
-      val result = Exn.capture (restore_attributes f) x;
-      val _ = flag := orig_value;
-    in Exn.release result end) ();
-
 fun setmp_CRITICAL flag value f x =
-  NAMED_CRITICAL "setmp" (fn () => setmp_noncritical flag value f x);
+  NAMED_CRITICAL "setmp" (fn () => Unsynchronized.setmp flag value f x);
 
 fun setmp_thread_data tag orig_data data f x =
   uninterruptible (fn restore_attributes => fn () =>

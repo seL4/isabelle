@@ -1,4 +1,4 @@
-setmp_noncritical quick_and_dirty true
+Unsynchronized.setmp quick_and_dirty true
   use_thys ["Common_Patterns"];
 
 use_thys ["QuoDataType", "QuoNestedDataType", "Term", "SList",

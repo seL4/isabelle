@@ -31,7 +31,7 @@ struct
 
 val available = true;
 
-val max_threads = Unsynchronized.ref 0;
+val max_threads = ref 0;
 
 fun max_threads_value () =
   let val m = ! max_threads in
@@ -109,7 +109,7 @@ fun sync_wait opt_atts time cond lock =
 
 (* tracing *)
 
-val trace = Unsynchronized.ref 0;
+val trace = ref 0;
 
 fun tracing level msg =
   if level > ! trace then ()
@@ -143,7 +143,7 @@ exception TimeOut;
 fun timeLimit time f x = uninterruptible (fn restore_attributes => fn () =>
   let
     val worker = Thread.self ();
-    val timeout = Unsynchronized.ref false;
+    val timeout = ref false;
     val watchdog = Thread.fork (fn () =>
       (OS.Process.sleep time; timeout := true; Thread.interrupt worker), []);
 
@@ -168,7 +168,7 @@ fun bash_output script = with_attributes no_interrupts (fn orig_atts =>
 
     (*result state*)
     datatype result = Wait | Signal | Result of int;
-    val result = Unsynchronized.ref Wait;
+    val result = ref Wait;
     val lock = Mutex.mutex ();
     val cond = ConditionVar.conditionVar ();
     fun set_result res =
@@ -226,8 +226,8 @@ fun bash_output script = with_attributes no_interrupts (fn orig_atts =>
 local
 
 val critical_lock = Mutex.mutex ();
-val critical_thread = Unsynchronized.ref (NONE: Thread.thread option);
-val critical_name = Unsynchronized.ref "";
+val critical_thread = ref (NONE: Thread.thread option);
+val critical_name = ref "";
 
 in
 
@@ -269,7 +269,7 @@ end;
 local
 
 val serial_lock = Mutex.mutex ();
-val serial_count = Unsynchronized.ref 0;
+val serial_count = ref 0;
 
 in
 

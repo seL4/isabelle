@@ -277,7 +277,7 @@ val verbatim = preform o output;
 (* document *)
 
 val charset = Unsynchronized.ref "ISO-8859-1";
-fun with_charset s = setmp_noncritical charset s;   (* FIXME unreliable *)
+fun with_charset s = Unsynchronized.setmp charset s;   (* FIXME unreliable *)
 
 fun begin_document title =
   let val cs = ! charset in

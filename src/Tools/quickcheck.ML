@@ -42,7 +42,7 @@ val timing = Unsynchronized.ref false;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-  (setmp_noncritical auto true (fn () =>
+  (Unsynchronized.setmp auto true (fn () =>
     Preferences.bool_pref auto
       "auto-quickcheck"
       "Run Quickcheck automatically.") ());

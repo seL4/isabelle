@@ -976,7 +976,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       else ();
     val test_proof =
       try (local_skip_proof true)
-      |> setmp_noncritical testing true
+      |> Unsynchronized.setmp testing true
       |> Exn.capture;
 
     fun after_qed' results =

@@ -25,7 +25,7 @@ val max_solutions = Unsynchronized.ref 5;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-  (setmp_noncritical auto true (fn () =>
+  (Unsynchronized.setmp auto true (fn () =>
     Preferences.bool_pref auto
       "auto-solve" "Try to solve conjectures with existing theorems.") ());
 

@@ -244,6 +244,9 @@ The theorems bij_def and surj_def are unchanged.
 
 *** ML ***
 
+* Renamed setmp_noncritical to Unsynchronized.setmp to emphasize its
+meaning.
+
 * Renamed structure PureThy to Pure_Thy and moved most of its
 operations to structure Global_Theory, to emphasize that this is
 rarely-used global-only stuff.

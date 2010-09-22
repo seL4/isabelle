@@ -5,4 +5,4 @@
 Nitpick examples.
 *)
 
-setmp_noncritical quick_and_dirty true use_thys ["Nitpick_Examples"];
+Unsynchronized.setmp quick_and_dirty true use_thys ["Nitpick_Examples"];

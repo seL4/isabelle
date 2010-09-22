@@ -3,8 +3,6 @@
 Compatibility wrapper for Poly/ML 5.3 and 5.4.
 *)
 
-use "ML-Systems/unsynchronized.ML";
-
 open Thread;
 
 structure ML_Name_Space =
@@ -21,6 +19,10 @@ fun reraise exn =
 
 use "ML-Systems/polyml_common.ML";
 use "ML-Systems/multithreading_polyml.ML";
+use "ML-Systems/unsynchronized.ML";
+
+val _ = PolyML.Compiler.forgetValue "ref";
+val _ = PolyML.Compiler.forgetType "ref";
 
 val pointer_eq = PolyML.pointerEq;
 

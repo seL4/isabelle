@@ -1044,7 +1044,7 @@ fun pgip_channel_emacs writefn =
    This works for preferences but not generally guaranteed
    because we haven't done full setup here (e.g., no pgml mode)  *)
 fun process_pgip_emacs str =
-     setmp_noncritical output_xml_fn (!pgip_output_channel) process_pgip_plain str
+     Unsynchronized.setmp output_xml_fn (!pgip_output_channel) process_pgip_plain str
 
 end
 

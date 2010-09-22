@@ -29,8 +29,6 @@ val _ = PolyML.Compiler.forgetValue "valOf";
 val _ = PolyML.Compiler.forgetValue "foldl";
 val _ = PolyML.Compiler.forgetValue "foldr";
 val _ = PolyML.Compiler.forgetValue "print";
-val _ = PolyML.Compiler.forgetValue "ref";
-val _ = PolyML.Compiler.forgetType "ref";
 
 
 (* Compiler options *)
@@ -62,7 +60,7 @@ fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 :
 (* toplevel printing *)
 
 local
-  val depth = Unsynchronized.ref 10;
+  val depth = ref 10;
 in
   fun get_print_depth () = ! depth;
   fun print_depth n = (depth := n; PolyML.print_depth n);

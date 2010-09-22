@@ -110,11 +110,11 @@ fun use_dir item root build modes reset info doc doc_graph doc_versions parent
         in () end
       else use root;
       finish ()))
-    |> setmp_noncritical Proofterm.proofs level
-    |> setmp_noncritical print_mode (modes @ print_mode_value ())
-    |> setmp_noncritical Goal.parallel_proofs parallel_proofs
-    |> setmp_noncritical Multithreading.trace trace_threads
-    |> setmp_noncritical Multithreading.max_threads
+    |> Unsynchronized.setmp Proofterm.proofs level
+    |> Unsynchronized.setmp print_mode (modes @ print_mode_value ())
+    |> Unsynchronized.setmp Goal.parallel_proofs parallel_proofs
+    |> Unsynchronized.setmp Multithreading.trace trace_threads
+    |> Unsynchronized.setmp Multithreading.max_threads
       (if Multithreading.available then max_threads
        else (if max_threads = 1 then () else warning "Multithreading support unavailable"; 1))) ()
   handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
