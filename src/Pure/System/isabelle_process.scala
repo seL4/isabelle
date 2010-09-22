@@ -188,7 +188,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       val message = message_actor(message_stream)
 
       val rc = process_result.join
-      system_result("Isabelle process terminated")
+      system_result("process terminated")
       for ((thread, _) <- List(standard_input, stdout, command_input, message)) thread.join
       system_result("process_manager terminated")
       put_result(Markup.EXIT, rc.toString)
