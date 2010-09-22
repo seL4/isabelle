@@ -172,9 +172,6 @@ val pwd = OS.FileSys.getDir;
 
 val bash_output = (fn (output, rc) => (output, mk_int rc)) o bash_output;
 
-fun process_id pid =
-  Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord (Posix.ProcEnv.getpid ())));
-
 
 (* getenv *)
 

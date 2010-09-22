@@ -227,7 +227,6 @@ object Markup
 
   /* messages */
 
-  val PID = "pid"
   val Serial = new Long_Property("serial")
 
   val MESSAGE = "message"
@@ -248,7 +247,7 @@ object Markup
 
   val BAD = "bad"
 
-  val Ready = Markup("ready", Nil)
+  val READY = "ready"
 
 
   /* system data */

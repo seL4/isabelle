@@ -27,9 +27,9 @@ $emitpid && (print $$, "\n");
 $head && (print "$head", "\n");
 
 if (!$quit) {
-    while (<STDIN>) {
-	print;
-    }
+  while (<STDIN>) {
+    print;
+  }
 }
 
 $tail && (print "$tail", "\n");

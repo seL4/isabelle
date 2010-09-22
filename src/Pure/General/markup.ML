@@ -114,7 +114,6 @@ sig
   val execN: string
   val assignN: string val assign: int -> T
   val editN: string val edit: int -> int -> T
-  val pidN: string
   val serialN: string
   val promptN: string val prompt: T
   val readyN: string val ready: T
@@ -340,7 +339,6 @@ fun edit cmd_id exec_id : T = (editN, [(idN, print_int cmd_id), (execN, print_in
 
 (* messages *)
 
-val pidN = "pid";
 val serialN = "serial";
 
 val (promptN, prompt) = markup_elem "prompt";

@@ -8,7 +8,8 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{InputStream, FileInputStream, OutputStream, FileOutputStream, File, IOException}
+import java.io.{InputStream, FileInputStream, OutputStream, FileOutputStream, File,
+  BufferedReader, InputStreamReader, BufferedWriter, OutputStreamWriter, IOException}
 import java.awt.{GraphicsEnvironment, Font}
 import java.awt.font.TextAttribute
 
@@ -67,17 +68,6 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
           ("HOME" -> java.lang.System.getenv("HOME")) +
           ("PATH" -> java.lang.System.getenv("PATH"))
       }
-  }
-
-
-  /* external processes */
-
-  def execute(redirect: Boolean, args: String*): Process =
-  {
-    val cmdline =
-      if (Platform.is_windows) List(platform_root + "\\bin\\env.exe") ++ args
-      else args
-    Standard_System.raw_execute(null, environment, redirect, cmdline: _*)
   }
 
 
@@ -194,67 +184,107 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
 
 
-  /** system tools **/
+  /** external processes **/
 
-  def bash_output(script: String): (String, Int) =
+  /* plain execute */
+
+  def execute(redirect: Boolean, args: String*): Process =
+  {
+    val cmdline =
+      if (Platform.is_windows) List(platform_root + "\\bin\\env.exe") ++ args
+      else args
+    Standard_System.raw_execute(null, environment, redirect, cmdline: _*)
+  }
+
+
+  /* managed process */
+
+  class Managed_Process(redirect: Boolean, args: String*)
+  {
+    private val params =
+      List(expand_path("$ISABELLE_HOME/lib/scripts/process"), "group", "-", "no_script")
+    private val proc = execute(redirect, (params ++ args):_*)
+
+
+    // channels
+
+    val stdin: BufferedWriter =
+      new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, Standard_System.charset))
+
+    val stdout: BufferedReader =
+      new BufferedReader(new InputStreamReader(proc.getInputStream, Standard_System.charset))
+
+    val stderr: BufferedReader =
+      new BufferedReader(new InputStreamReader(proc.getErrorStream, Standard_System.charset))
+
+
+    // signals
+
+    private val pid = stdout.readLine
+
+    private def kill(signal: String): Boolean =
+    {
+      execute(true, "kill", "-" + signal, "-" + pid).waitFor
+      execute(true, "kill", "-0", "-" + pid).waitFor == 0
+    }
+
+    private def multi_kill(signal: String): Boolean =
+    {
+      var running = true
+      var count = 10
+      while (running && count > 0) {
+        if (kill(signal)) {
+          Thread.sleep(100)
+          count -= 1
+        }
+        else running = false
+      }
+      running
+    }
+
+    def interrupt() { multi_kill("INT") }
+    def terminate() { multi_kill("INT") && multi_kill("TERM") && kill("KILL"); proc.destroy }
+
+
+    // JVM shutdown hook
+
+    private val shutdown_hook = new Thread { override def run = terminate() }
+
+    try { Runtime.getRuntime.addShutdownHook(shutdown_hook) }
+    catch { case _: IllegalStateException => }
+
+    private def cleanup() =
+      try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
+      catch { case _: IllegalStateException => }
+
+
+    /* result */
+
+    def join: Int = { val rc = proc.waitFor; cleanup(); rc }
+  }
+
+
+  /* bash */
+
+  def bash(script: String): (String, String, Int) =
   {
     Standard_System.with_tmp_file("isabelle_script") { script_file =>
-      Standard_System.with_tmp_file("isabelle_pid") { pid_file =>
-        Standard_System.with_tmp_file("isabelle_output") { output_file =>
+      Standard_System.write_file(script_file, script)
+      val proc = new Managed_Process(false, "bash", posix_path(script_file.getPath))
 
-          Standard_System.write_file(script_file, script)
+      proc.stdin.close
+      val stdout = Simple_Thread.future("bash_stdout") { Standard_System.slurp(proc.stdout) }
+      val stderr = Simple_Thread.future("bash_stderr") { Standard_System.slurp(proc.stderr) }
 
-          val proc = execute(true, expand_path("$ISABELLE_HOME/lib/scripts/bash"), "group",
-            script_file.getPath, pid_file.getPath, output_file.getPath)
-
-          def kill(strict: Boolean) =
-          {
-            val pid =
-              try { Some(Standard_System.read_file(pid_file)) }
-              catch { case _: IOException => None }
-            if (pid.isDefined) {
-              var running = true
-              var count = 10   // FIXME property!?
-              while (running && count > 0) {
-                if (execute(true, "kill", "-INT", "-" + pid.get).waitFor != 0)
-                  running = false
-                else {
-                  Thread.sleep(100)   // FIXME property!?
-                  if (!strict) count -= 1
-                }
-              }
-            }
-          }
-
-          val shutdown_hook = new Thread { override def run = kill(true) }
-          Runtime.getRuntime.addShutdownHook(shutdown_hook)  // FIXME tmp files during shutdown?!?
-
-          def cleanup() =
-            try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
-            catch { case _: IllegalStateException => }
-
-          val rc =
-            try {
-              try { proc.waitFor }  // FIXME read stderr (!??)
-              catch { case e: InterruptedException => Thread.interrupted; kill(false); throw e }
-            }
-            finally {
-              proc.getOutputStream.close
-              proc.getInputStream.close
-              proc.getErrorStream.close
-              proc.destroy
-              cleanup()
-            }
-
-          val output =
-            try { Standard_System.read_file(output_file) }
-            catch { case _: IOException => "" }
-
-          (output, rc)
-        }
-      }
+      val rc =
+        try { proc.join }
+        catch { case e: InterruptedException => Thread.interrupted; proc.terminate; 130 }
+      (stdout.join, stderr.join, rc)
     }
   }
+
+
+  /* system tools */
 
   def isabelle_tool(name: String, args: String*): (String, Int) =
   {
@@ -287,15 +317,12 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
       "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$-" + i + "\"\n" +
       "mkfifo -m 600 \"$FIFO\" || { echo \"Failed to create fifo: $FIFO\" >&2; exit 2; }\n" +
       "echo -n \"$FIFO\"\n"
-    val (result, rc) = bash_output(script)
-    if (rc == 0) result
-    else error(result)
+    val (out, err, rc) = bash(script)
+    if (rc == 0) out else error(err)
   }
 
-  def rm_fifo(fifo: String)
-  {
-    bash_output("rm -f '" + fifo + "'")
-  }
+  def rm_fifo(fifo: String): Boolean =
+    (new File(jvm_path(if (Platform.is_windows) fifo + ".lnk" else fifo))).delete
 
   def fifo_input_stream(fifo: String): InputStream =
   {

@@ -9,7 +9,7 @@ package isabelle
 import java.util.regex.Pattern
 import java.util.Locale
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream,
-  BufferedInputStream, FileInputStream, BufferedReader, InputStreamReader,
+  BufferedInputStream, InputStream, FileInputStream, BufferedReader, InputStreamReader,
   File, FileFilter, IOException}
 
 import scala.io.{Source, Codec}
@@ -77,30 +77,32 @@ object Standard_System
 
   /* basic file operations */
 
-  def with_tmp_file[A](prefix: String)(body: File => A): A =
+  def slurp(reader: BufferedReader): String =
   {
-    val file = File.createTempFile(prefix, null)
-    try { body(file) } finally { file.delete }
+    val output = new StringBuilder(100)
+    var c = -1
+    while ({ c = reader.read; c != -1 }) output += c.toChar
+    reader.close
+    output.toString
   }
 
-  def read_file(file: File): String =
-  {
-    val buf = new StringBuilder(file.length.toInt)
-    val reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))
-    var c = reader.read
-    while (c != -1) {
-      buf.append(c.toChar)
-      c = reader.read
-    }
-    reader.close
-    buf.toString
-  }
+  def slurp(stream: InputStream): String =
+    slurp(new BufferedReader(new InputStreamReader(stream, charset)))
+
+  def read_file(file: File): String = slurp(new FileInputStream(file))
 
   def write_file(file: File, text: CharSequence)
   {
     val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charset))
     try { writer.append(text) }
     finally { writer.close }
+  }
+
+  def with_tmp_file[A](prefix: String)(body: File => A): A =
+  {
+    val file = File.createTempFile(prefix, null)
+    file.deleteOnExit
+    try { body(file) } finally { file.delete }
   }
 
   // FIXME handle (potentially cyclic) directory graph
@@ -138,7 +140,7 @@ object Standard_System
   def process_output(proc: Process): (String, Int) =
   {
     proc.getOutputStream.close
-    val output = Source.fromInputStream(proc.getInputStream)(codec()).mkString  // FIXME
+    val output = slurp(proc.getInputStream)
     val rc =
       try { proc.waitFor }
       finally {

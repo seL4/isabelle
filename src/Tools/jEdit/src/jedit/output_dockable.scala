@@ -24,7 +24,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 {
   Swing_Thread.require()
 
-  val html_panel =
+  private val html_panel =
     new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
   set_content(html_panel)
 
@@ -137,7 +137,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   }
   update.tooltip = "Update display according to the command at cursor position"
 
-  val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, tracing, auto_update, update)
+  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, tracing, auto_update, update)
   add(controls.peer, BorderLayout.NORTH)
 
   handle_update()
