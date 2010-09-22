@@ -201,7 +201,8 @@ class Session(system: Isabelle_System)
             }
           }
           else if (result.is_exit) prover = null  // FIXME ??
-          else if (!result.is_system && !result.is_stdout) bad_result(result)
+          else if (!(result.is_init || result.is_exit || result.is_system || result.is_stdout))
+            bad_result(result)
         }
     }
     //}}}
@@ -229,6 +230,7 @@ class Session(system: Isabelle_System)
     {
       receiveWithin(timeout) {
         case result: Isabelle_Process.Result if result.is_init =>
+          handle_result(result)
           while (receive {
             case result: Isabelle_Process.Result =>
               handle_result(result); !result.is_ready
@@ -236,6 +238,7 @@ class Session(system: Isabelle_System)
           None
 
         case result: Isabelle_Process.Result if result.is_exit =>
+          handle_result(result)
           Some(startup_error())
 
         case TIMEOUT =>  // FIXME clarify
