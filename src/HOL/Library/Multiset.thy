@@ -1279,7 +1279,7 @@ lemma mult_less_irrefl [elim!]:
 subsubsection {* Monotonicity of multiset union *}
 
 lemma mult1_union:
-  "(B, D) \<in> mult1 r ==> trans r ==> (C + B, C + D) \<in> mult1 r"
+  "(B, D) \<in> mult1 r ==> (C + B, C + D) \<in> mult1 r"
 apply (unfold mult1_def)
 apply auto
 apply (rule_tac x = a in exI)
@@ -1290,8 +1290,8 @@ done
 lemma union_less_mono2: "B \<subset># D ==> C + B \<subset># C + (D::'a::order multiset)"
 apply (unfold less_multiset_def mult_def)
 apply (erule trancl_induct)
- apply (blast intro: mult1_union transI order_less_trans r_into_trancl)
-apply (blast intro: mult1_union transI order_less_trans r_into_trancl trancl_trans)
+ apply (blast intro: mult1_union)
+apply (blast intro: mult1_union trancl_trans)
 done
 
 lemma union_less_mono1: "B \<subset># D ==> B + C \<subset># D + (C::'a::order multiset)"
