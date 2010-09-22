@@ -654,7 +654,6 @@ lemma listsp_eqvt [eqvt]:
   shows "listsp ((pi::name prm) \<bullet> p) (pi \<bullet> xs)" using xs
   apply induct
   apply simp
-  apply (rule listsp.intros)
   apply simp
   apply (rule listsp.intros)
   apply (drule_tac pi=pi in perm_boolI)
