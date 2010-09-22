@@ -29,13 +29,14 @@ class Raw_Output_Dockable(view: View, position: String)
     loop {
       react {
         case result: Isabelle_Process.Result =>
-          Swing_Thread.now { text_area.append(XML.content(result.message).mkString) }
+          if (result.is_stdout)
+            Swing_Thread.now { text_area.append(XML.content(result.message).mkString) }
 
         case bad => System.err.println("Raw_Output_Dockable: ignoring bad message " + bad)
       }
     }
   }
 
-  override def init() { Isabelle.session.raw_output += main_actor }
-  override def exit() { Isabelle.session.raw_output -= main_actor }
+  override def init() { Isabelle.session.raw_messages += main_actor }
+  override def exit() { Isabelle.session.raw_messages -= main_actor }
 }

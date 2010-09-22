@@ -41,8 +41,7 @@ class Session(system: Isabelle_System)
   /* pervasive event buses */
 
   val global_settings = new Event_Bus[Session.Global_Settings.type]
-  val raw_protocol = new Event_Bus[Isabelle_Process.Result]
-  val raw_output = new Event_Bus[Isabelle_Process.Result]
+  val raw_messages = new Event_Bus[Isabelle_Process.Result]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val perspective = new Event_Bus[Session.Perspective.type]
   val assignments = new Event_Bus[Session.Assignment.type]
@@ -177,7 +176,7 @@ class Session(system: Isabelle_System)
     def handle_result(result: Isabelle_Process.Result)
     //{{{
     {
-      raw_protocol.event(result)
+      raw_messages.event(result)
 
       result.properties match {
         case Position.Id(state_id) =>
@@ -202,8 +201,7 @@ class Session(system: Isabelle_System)
             }
           }
           else if (result.is_exit) prover = null  // FIXME ??
-          else if (result.is_stdout) raw_output.event(result)
-          else if (!result.is_system) bad_result(result)
+          else if (!result.is_system && !result.is_stdout) bad_result(result)
         }
     }
     //}}}
