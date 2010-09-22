@@ -223,7 +223,10 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
     private val pid = stdout.readLine
 
     private def kill(signal: String): Boolean =
-      execute(true, "kill", "-" + signal, "-" + pid).waitFor == 0
+    {
+      execute(true, "kill", "-" + signal, "-" + pid).waitFor
+      execute(true, "kill", "-0", "-" + pid).waitFor == 0
+    }
 
     private def multi_kill(signal: String): Boolean =
     {
