@@ -10,7 +10,10 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.{TextArea, ScrollPane, TabbedPane, Component}
+import scala.swing.{FlowPanel, Button, TextArea, ScrollPane, TabbedPane, Component}
+import scala.swing.event.ButtonClicked
+
+import java.awt.BorderLayout
 
 import org.gjt.sp.jedit.View
 
@@ -31,6 +34,17 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   }
 
   set_content(tabs)
+
+
+  /* controls */
+
+  private val interrupt = new Button("Interrupt") {
+    reactions += { case ButtonClicked(_) => Isabelle.session.interrupt }
+  }
+  interrupt.tooltip = "Broadcast interrupt to all prover tasks"
+
+  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(interrupt)
+  add(controls.peer, BorderLayout.NORTH)
 
 
   /* main actor */

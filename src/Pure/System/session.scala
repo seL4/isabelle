@@ -115,6 +115,7 @@ class Session(system: Isabelle_System)
   private val global_state = new Volatile(Document.State.init)
   def current_state(): Document.State = global_state.peek()
 
+  private case object Interrupt_Prover
   private case class Edit_Version(edits: List[Document.Node_Text_Edit])
   private case class Started(timeout: Int, args: List[String])
 
@@ -252,6 +253,9 @@ class Session(system: Isabelle_System)
     var finished = false
     while (!finished) {
       receive {
+        case Interrupt_Prover =>
+          if (prover != null) prover.interrupt
+
         case Edit_Version(edits) =>
           val previous = global_state.peek().history.tip.current
           val result = Future.fork { Thy_Syntax.text_edits(Session.this, previous.join, edits) }
@@ -303,6 +307,8 @@ class Session(system: Isabelle_System)
     (session_actor !? Started(timeout, args)).asInstanceOf[Option[String]]
 
   def stop() { command_change_buffer ! Stop; session_actor ! Stop }
+
+  def interrupt() { session_actor ! Interrupt_Prover }
 
   def edit_version(edits: List[Document.Node_Text_Edit]) { session_actor !? Edit_Version(edits) }
 
