@@ -21,12 +21,7 @@ struct
 
 datatype target = Target of {target: string, is_locale: bool, is_class: bool};
 
-fun make_target target is_locale is_class =
-  Target {target = target, is_locale = is_locale, is_class = is_class};
-
-val global_target = Target {target = "", is_locale = false, is_class = false};
-
-fun named_target _ "" = global_target
+fun named_target _ "" = Target {target = "", is_locale = false, is_class = false}
   | named_target thy locale =
       if Locale.defined thy locale
       then Target {target = locale, is_locale = true, is_class = Class.is_class thy locale}
@@ -103,7 +98,7 @@ fun class_foundation (ta as Target {target, ...})
     #> Class.const target ((b, mx), (type_params, lhs))
     #> pair (lhs, def))
 
-fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
+fun target_foundation (ta as Target {is_locale, is_class, ...}) =
   if is_class then class_foundation ta
   else if is_locale then locale_foundation ta
   else Generic_Target.theory_foundation;
@@ -122,7 +117,7 @@ fun locale_notes locale kind global_facts local_facts lthy =
     |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
   end
 
-fun target_notes (ta as Target {target, is_locale, ...}) =
+fun target_notes (Target {target, is_locale, ...}) =
   if is_locale then locale_notes target
     else fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts;
 
@@ -148,7 +143,7 @@ fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
 
 (* pretty *)
 
-fun pretty_thy ctxt target is_class =
+fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val target_name =
@@ -161,57 +156,50 @@ fun pretty_thy ctxt target is_class =
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
+    val body_elems =  if not is_locale then []
+      else if null elems then [Pretty.block target_name]
+      else [Pretty.block (Pretty.fbreaks (Pretty.block (target_name @ [Pretty.str " ="]) ::
+        map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))]
   in
-    if target = "" then []
-    else if null elems then [Pretty.block target_name]
-    else [Pretty.block (Pretty.fbreaks (Pretty.block (target_name @ [Pretty.str " ="]) ::
-      map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))]
+    Pretty.block [Pretty.command "theory", Pretty.brk 1,
+      Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] :: body_elems
   end;
-
-fun pretty (Target {target, is_class, ...}) ctxt =
-  Pretty.block [Pretty.command "theory", Pretty.brk 1,
-      Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] ::
-    pretty_thy ctxt target is_class;
 
 
 (* init *)
-
-local
 
 fun init_context (Target {target, is_locale, is_class}) =
   if not is_locale then ProofContext.init_global
   else if not is_class then Locale.init target
   else Class.init target;
 
-fun init_target (ta as Target {target, ...}) thy =
-  thy
-  |> init_context ta
-  |> Data.put (SOME ta)
-  |> Local_Theory.init NONE (Long_Name.base_name target)
-     {define = Generic_Target.define (target_foundation ta),
-      notes = Generic_Target.notes (target_notes ta),
-      abbrev = Generic_Target.abbrev (target_abbrev ta),
-      declaration = fn pervasive => target_declaration ta
-        { syntax = false, pervasive = pervasive },
-      syntax_declaration = fn pervasive => target_declaration ta
-        { syntax = true, pervasive = pervasive },
-      pretty = pretty ta,
-      exit = Local_Theory.target_of};
+fun init target thy =
+  let
+    val ta = named_target thy target;
+  in
+    thy
+    |> init_context ta
+    |> Data.put (SOME ta)
+    |> Local_Theory.init NONE (Long_Name.base_name target)
+       {define = Generic_Target.define (target_foundation ta),
+        notes = Generic_Target.notes (target_notes ta),
+        abbrev = Generic_Target.abbrev (target_abbrev ta),
+        declaration = fn pervasive => target_declaration ta
+          { syntax = false, pervasive = pervasive },
+        syntax_declaration = fn pervasive => target_declaration ta
+          { syntax = true, pervasive = pervasive },
+        pretty = pretty ta,
+        exit = Local_Theory.target_of}
+  end;
 
-in
-
-fun init target thy = init_target (named_target thy target) thy;
+val theory_init = init "";
 
 fun reinit lthy =
   (case peek lthy of
     SOME {target, ...} => init target o Local_Theory.exit_global
   | NONE => error "Not in a named target");
 
-val theory_init = init_target global_target;
-
 fun context_cmd "-" thy = init "" thy
   | context_cmd target thy = init (Locale.intern thy target) thy;
-
-end;
 
 end;
