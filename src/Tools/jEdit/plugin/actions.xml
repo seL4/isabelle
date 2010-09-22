@@ -15,17 +15,17 @@
 			wm.addDockableWindow("isabelle-session");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.show-output">
+	<ACTION NAME="isabelle.output-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-output");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.show-raw-output">
+	<ACTION NAME="isabelle.raw-output-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-raw-output");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.show-protocol">
+	<ACTION NAME="isabelle.protocol-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-protocol");
 		</CODE>
