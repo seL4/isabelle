@@ -273,15 +273,17 @@ lemma [code]:
   by (simp add: ref'_def)
 
 
-text {* SML *}
+text {* SML / Eval *}
 
-code_type ref (SML "_/ Unsynchronized.ref")
+code_type ref (SML "_/ ref")
+code_type ref (Eval "_/ Unsynchronized.ref")
 code_const Ref (SML "raise/ (Fail/ \"bare Ref\")")
-code_const ref' (SML "(fn/ ()/ =>/ Unsynchronized.ref/ _)")
+code_const ref' (SML "(fn/ ()/ =>/ ref/ _)")
+code_const ref' (Eval "(fn/ ()/ =>/ Unsynchronized.ref/ _)")
 code_const Ref.lookup (SML "(fn/ ()/ =>/ !/ _)")
 code_const Ref.update (SML "(fn/ ()/ =>/ _/ :=/ _)")
 
-code_reserved SML Unsynchronized
+code_reserved Eval Unsynchronized
 
 
 text {* OCaml *}

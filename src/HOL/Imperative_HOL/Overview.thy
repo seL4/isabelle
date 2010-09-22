@@ -61,7 +61,7 @@ text {*
   fact collection @{text execute_simps} contains appropriate rewrites
   for all fundamental operations.
 
-  Primitive fine-granular control over heaps is avialable through rule
+  Primitive fine-granular control over heaps is available through rule
   @{text Heap_cases}:
 
   \begin{quote}
@@ -231,13 +231,13 @@ text {*
       
     \item Whether one should prefer equational reasoning (fact
       collection @{text execute_simps} or relational reasoning (fact
-      collections @{text crel_intros} and @{text crel_elims}) dependes
-      on the problems.  For complex expressions or expressions
-      involving binders, the relation style usually is superior but
-      requires more proof text.
+      collections @{text crel_intros} and @{text crel_elims}) depends
+      on the problems to solve.  For complex expressions or
+      expressions involving binders, the relation style usually is
+      superior but requires more proof text.
 
     \item Note that you can extend the fact collections of Imperative
-      HOL yourself.
+      HOL yourself whenever appropriate.
 
   \end{itemize}
 *}

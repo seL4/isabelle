@@ -70,9 +70,9 @@ text {*
   Evaluation is carried out in a target language \emph{Eval} which
   inherits from \emph{SML} but for convenience uses parts of the
   Isabelle runtime environment.  The soundness of computation carried
-  out there crucially on the correctness of the code generator; this
-  is one of the reasons why you should not use adaptation (see
-  \secref{sec:adaptation}) frivolously.
+  out there depends crucially on the correctness of the code
+  generator; this is one of the reasons why you should not use
+  adaptation (see \secref{sec:adaptation}) frivolously.
 *}
 
 
@@ -187,19 +187,19 @@ text {*
 
 subsection {* Intimate connection between logic and system runtime *}
 
-text {* FIXME *}
+text {*
+  The toolbox of static evaluation conversions forms a reasonable base
+  to interweave generated code and system tools.  However in some
+  situations more direct interaction is desirable.
+*}
 
 
-subsubsection {* Static embedding of generated code into system runtime -- the code antiquotation *}
+subsubsection {* Static embedding of generated code into system runtime -- the @{text code} antiquotation *}
 
 text {*
-  FIXME
-
-  In scenarios involving techniques like reflection it is quite common
-  that code generated from a theory forms the basis for implementing a
-  proof procedure in @{text SML}.  To facilitate interfacing of
-  generated code with system code, the code generator provides a
-  @{text code} antiquotation:
+  The @{text code} antiquotation allows to include constants from
+  generated code directly into ML system code, as in the following toy
+  example:
 *}
 
 datatype %quote form = T | F | And form form | Or form form (*<*)
@@ -214,23 +214,66 @@ datatype %quote form = T | F | And form form | Or form form (*<*)
 *}
 
 text {*
-  \noindent @{text code} takes as argument the name of a constant;  after the
-  whole @{text SML} is read, the necessary code is generated transparently
-  and the corresponding constant names are inserted.  This technique also
-  allows to use pattern matching on constructors stemming from compiled
-  @{text "datatypes"}.
+  \noindent @{text code} takes as argument the name of a constant;
+  after the whole ML is read, the necessary code is generated
+  transparently and the corresponding constant names are inserted.
+  This technique also allows to use pattern matching on constructors
+  stemming from compiled @{text "datatypes"}.  Note that it is not
+  possible to refer to constants which carry adaptations by means of
+  @{text code}; here you have to refer to the adapted code directly.
 
-  For a less simplistic example, theory @{text Ferrack} is
-  a good reference.
+  For a less simplistic example, theory @{text Approximation} in
+  the @{text Decision_Procs} session is a good reference.
 *}
 
 
 subsubsection {* Static embedding of generated code into system runtime -- @{text code_reflect} *}
 
-text {* FIXME @{command_def code_reflect} *}
+text {*
+  The @{text code} antiquoation is lightweight, but the generated code
+  is only accessible while the ML section is processed.  Sometimes this
+  is not appropriate, especially if the generated code contains datatype
+  declarations which are shared with other parts of the system.  In these
+  cases, @{command_def code_reflect} can be used:
+*}
+
+code_reflect %quote Sum_Type
+  datatypes sum = Inl | Inr
+  functions "Sum_Type.Projl" "Sum_Type.Projr"
+
+text {*
+  \noindent @{command_def code_reflect} takes a structure name and
+  references to datatypes and functions; for these code is compiled
+  into the named ML structure and the \emph{Eval} target is modified
+  in a way that future code generation will reference these
+  precompiled versions of the given datatypes and functions.  This
+  also allows to refer to the referenced datatypes and functions from
+  arbitrary ML code as well.
+
+  A typical example for @{command code_reflect} can be found in the
+  @{theory Predicate} theory.
+*}
+
 
 subsubsection {* Separate compilation -- @{text code_reflect} *}
 
-text {* FIXME *}
+text {*
+  For technical reasons it is sometimes necessary to separate
+  generation and compilation of code which is supposed to be used in
+  the system runtime.  For this @{command code_reflect} with an
+  optional @{text "file"} argument can be used:
+*}
+
+code_reflect %quote Rat
+  datatypes rat = Frct
+  functions Fract
+    "(plus :: rat \<Rightarrow> rat \<Rightarrow> rat)" "(minus :: rat \<Rightarrow> rat \<Rightarrow> rat)"
+    "(times :: rat \<Rightarrow> rat \<Rightarrow> rat)" "(divide :: rat \<Rightarrow> rat \<Rightarrow> rat)"
+  file "examples/rat.ML"
+
+text {*
+  \noindent This just generates the references code to the specified
+  file which can be included into the system runtime later on.
+*}
 
 end

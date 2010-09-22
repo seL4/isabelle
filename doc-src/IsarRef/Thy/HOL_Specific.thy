@@ -996,6 +996,7 @@ text {*
     @{command_def (HOL) "code_monad"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_include"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_modulename"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_reflect"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
 
   \begin{rail}
@@ -1068,6 +1069,10 @@ text {*
     'code\_modulename' target ( ( string string ) + )
     ;
 
+    'code\_reflect' string ( 'datatypes' ( string '=' ( string + '|' ) + 'and' ) ) ? \\
+      ( 'functions' ( string + ) ) ? ( 'file' string ) ?
+    ;
+
     syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
     ;
 
@@ -1076,8 +1081,9 @@ text {*
   \begin{description}
 
   \item @{command (HOL) "export_code"} generates code for a given list
-  of constants in the specified target language(s).  If no serialization
-  instruction is given, only abstract code is generated internally.
+  of constants in the specified target language(s).  If no
+  serialization instruction is given, only abstract code is generated
+  internally.
 
   Constants may be specified by giving them literally, referring to
   all executable contants within a certain theory by giving @{text
@@ -1089,20 +1095,20 @@ text {*
   after the @{keyword "module_name"} keyword; then \emph{all} code is
   placed in this module.
 
-  For \emph{SML}, \emph{OCaml} and \emph{Scala} the file specification refers to a
-  single file; for \emph{Haskell}, it refers to a whole directory,
-  where code is generated in multiple files reflecting the module
-  hierarchy.  Omitting the file specification denotes standard
+  For \emph{SML}, \emph{OCaml} and \emph{Scala} the file specification
+  refers to a single file; for \emph{Haskell}, it refers to a whole
+  directory, where code is generated in multiple files reflecting the
+  module hierarchy.  Omitting the file specification denotes standard
   output.
 
   Serializers take an optional list of arguments in parentheses.  For
   \emph{SML} and \emph{OCaml}, ``@{text no_signatures}`` omits
   explicit module signatures.
   
-  For \emph{Haskell} a module name prefix may be given using the ``@{text
-  "root:"}'' argument; ``@{text string_classes}'' adds a ``@{verbatim
-  "deriving (Read, Show)"}'' clause to each appropriate datatype
-  declaration.
+  For \emph{Haskell} a module name prefix may be given using the
+  ``@{text "root:"}'' argument; ``@{text string_classes}'' adds a
+  ``@{verbatim "deriving (Read, Show)"}'' clause to each appropriate
+  datatype declaration.
 
   \item @{attribute (HOL) code} explicitly selects (or with option
   ``@{text "del"}'' deselects) a code equation for code generation.
@@ -1112,8 +1118,8 @@ text {*
   code equations on abstract datatype representations respectively.
 
   \item @{command (HOL) "code_abort"} declares constants which are not
-  required to have a definition by means of code equations; if
-  needed these are implemented by program abort instead.
+  required to have a definition by means of code equations; if needed
+  these are implemented by program abort instead.
 
   \item @{command (HOL) "code_datatype"} specifies a constructor set
   for a logical type.
@@ -1121,17 +1127,16 @@ text {*
   \item @{command (HOL) "print_codesetup"} gives an overview on
   selected code equations and code generator datatypes.
 
-  \item @{attribute (HOL) code_inline} declares (or with
-  option ``@{text "del"}'' removes) inlining theorems which are
-  applied as rewrite rules to any code equation during
-  preprocessing.
+  \item @{attribute (HOL) code_inline} declares (or with option
+  ``@{text "del"}'' removes) inlining theorems which are applied as
+  rewrite rules to any code equation during preprocessing.
 
-  \item @{attribute (HOL) code_post} declares (or with
-  option ``@{text "del"}'' removes) theorems which are
-  applied as rewrite rules to any result of an evaluation.
+  \item @{attribute (HOL) code_post} declares (or with option ``@{text
+  "del"}'' removes) theorems which are applied as rewrite rules to any
+  result of an evaluation.
 
-  \item @{command (HOL) "print_codeproc"} prints the setup
-  of the code generator preprocessor.
+  \item @{command (HOL) "print_codeproc"} prints the setup of the code
+  generator preprocessor.
 
   \item @{command (HOL) "code_thms"} prints a list of theorems
   representing the corresponding program containing all given
@@ -1173,11 +1178,21 @@ text {*
   \item @{command (HOL) "code_modulename"} declares aliasings from one
   module name onto another.
 
+  \item @{command (HOL) "code_reflect"} without a ``@{text "file"}''
+  argument compiles code into the system runtime environment and
+  modifies the code generator setup that future invocations of system
+  runtime code generation referring to one of the ``@{text
+  "datatypes"}'' or ``@{text "functions"}'' entities use these precompiled
+  entities.  With a ``@{text "file"}'' argument, the corresponding code
+  is generated into that specified file without modifying the code
+  generator setup.
+
   \end{description}
 
-  The other framework generates code from both functional and relational
-  programs to SML.  See \cite{isabelle-HOL} for further information
-  (this actually covers the new-style theory format as well).
+  The other framework generates code from both functional and
+  relational programs to SML.  See \cite{isabelle-HOL} for further
+  information (this actually covers the new-style theory format as
+  well).
 
   \begin{matharray}{rcl}
     @{command_def (HOL) "code_module"} & : & @{text "theory \<rightarrow> theory"} \\

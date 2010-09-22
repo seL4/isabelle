@@ -6,7 +6,6 @@ Connecting the simplifier and the code generator.
 
 signature CODE_SIMP =
 sig
-  val no_frees_conv: conv -> conv
   val map_ss: (simpset -> simpset) -> theory -> theory
   val dynamic_eval_conv: conv
   val dynamic_eval_tac: theory -> int -> tactic
@@ -18,22 +17,6 @@ end;
 
 structure Code_Simp : CODE_SIMP =
 struct
-
-(* avoid free variables during conversion *)
-
-fun no_frees_conv conv ct =
-  let
-    val frees = Thm.add_cterm_frees ct [];
-    fun apply_beta free thm = Thm.combination thm (Thm.reflexive free)
-      |> Conv.fconv_rule (Conv.arg_conv (Conv.try_conv (Thm.beta_conversion false)))
-      |> Conv.fconv_rule (Conv.arg1_conv (Thm.beta_conversion false));
-  in
-    ct
-    |> fold_rev Thm.cabs frees
-    |> conv
-    |> fold apply_beta frees
-  end;
-
 
 (* dedicated simpset *)
 
@@ -68,8 +51,8 @@ fun conclude_tac thy some_ss = Simplifier.full_simp_tac (simpset_default thy som
 
 (* evaluation with dynamic code context *)
 
-val dynamic_eval_conv = Conv.tap_thy (fn thy => no_frees_conv (Code_Thingol.dynamic_eval_conv thy
-  (fn naming => fn program => fn t => fn deps => rewrite_modulo thy NONE program)));
+val dynamic_eval_conv = Conv.tap_thy (fn thy => Code_Thingol.dynamic_eval_conv thy
+  (fn naming => fn program => fn t => fn deps => rewrite_modulo thy NONE program));
 
 fun dynamic_eval_tac thy = CONVERSION dynamic_eval_conv THEN' conclude_tac thy NONE;
 
@@ -83,9 +66,9 @@ val setup = Method.setup (Binding.name "code_simp")
 
 (* evaluation with static code context *)
 
-fun static_eval_conv thy some_ss consts = no_frees_conv
-  (Code_Thingol.static_eval_conv_simple thy consts
-    (fn program => fn thy => fn _ => fn _ => rewrite_modulo thy some_ss program));
+fun static_eval_conv thy some_ss consts =
+  Code_Thingol.static_eval_conv_simple thy consts
+    (fn program => fn thy => fn _ => fn _ => rewrite_modulo thy some_ss program);
 
 fun static_eval_tac thy some_ss consts = CONVERSION (static_eval_conv thy some_ss consts)
   THEN' conclude_tac thy some_ss;
