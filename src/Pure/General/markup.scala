@@ -227,7 +227,6 @@ object Markup
 
   /* messages */
 
-  val PID = "pid"
   val Serial = new Long_Property("serial")
 
   val MESSAGE = "message"

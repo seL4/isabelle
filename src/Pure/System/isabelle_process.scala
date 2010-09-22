@@ -92,14 +92,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
   private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
   {
-    if (pid.isEmpty && kind == Markup.INIT) {
-      rm_fifos()
-      props.find(_._1 == Markup.PID).map(_._1) match {
-        case None => system_result("Bad Isabelle process initialization: missing pid")
-        case p => pid = p
-      }
-    }
-
+    if (kind == Markup.INIT) rm_fifos()
     val msg = XML.Elem(Markup(kind, props), Isar_Document.clean_message(body))
     xml_cache.cache_tree(msg)((message: XML.Tree) =>
       receiver ! new Result(message.asInstanceOf[XML.Elem]))
@@ -117,33 +110,39 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
   private case class Input_Chunks(chunks: List[Array[Byte]])
 
   private case object Close
-  private def close(a: Actor) { if (a != null) a ! Close }
+  private def close(p: (Thread, Actor))
+  {
+    if (p != null && p._1.isAlive) {
+      p._2 ! Close
+      p._1.join
+    }
+  }
 
-  @volatile private var standard_input: Actor = null
-  @volatile private var command_input: Actor = null
+  @volatile private var standard_input: (Thread, Actor) = null
+  @volatile private var command_input: (Thread, Actor) = null
 
 
-  /* process manager */
+  /** process manager **/
 
   private val in_fifo = system.mk_fifo()
   private val out_fifo = system.mk_fifo()
   private def rm_fifos() { system.rm_fifo(in_fifo); system.rm_fifo(out_fifo) }
 
-  private val proc =
+  private val process =
     try {
       val cmdline =
         List(system.getenv_strict("ISABELLE_PROCESS"), "-W", in_fifo + ":" + out_fifo) ++ args
-      system.execute(true, cmdline: _*)
+      new system.Managed_Process(true, cmdline: _*)
     }
     catch { case e: IOException => rm_fifos(); throw(e) }
 
-  private val stdout_reader =
-    new BufferedReader(new InputStreamReader(proc.getInputStream, Standard_System.charset))
+  private def terminate_process()
+  {
+    try { process.terminate }
+    catch { case e: IOException => system_result("Failed to terminate Isabelle: " + e.getMessage) }
+  }
 
-  private val stdin_writer =
-    new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, Standard_System.charset))
-
-  private val (process_manager, _) = Simple_Thread.actor("process_manager")
+  private val process_manager = Simple_Thread.fork("process_manager")
   {
     val (startup_failed, startup_output) =
     {
@@ -152,8 +151,8 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
       var finished = false
       while (!finished && System.currentTimeMillis() <= expired) {
-        while (!finished && stdout_reader.ready) {
-          val c = stdout_reader.read
+        while (!finished && process.stdout.ready) {
+          val c = process.stdout.read
           if (c == 2) finished = true
           else result += c.toChar
         }
@@ -165,62 +164,45 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
     if (startup_failed) {
       put_result(Markup.EXIT, "127")
-      stdin_writer.close
-      Thread.sleep(300)  // FIXME !?
-      proc.destroy  // FIXME unreliable
+      process.stdin.close
+      Thread.sleep(300)
+      terminate_process()
     }
     else {
       // rendezvous
       val command_stream = system.fifo_output_stream(in_fifo)
       val message_stream = system.fifo_input_stream(out_fifo)
 
-      val stdin = stdin_actor(); standard_input = stdin._2
+      standard_input = stdin_actor()
       val stdout = stdout_actor()
-      val input = input_actor(command_stream); command_input = input._2
+      command_input = input_actor(command_stream)
       val message = message_actor(message_stream)
 
-      val rc = proc.waitFor()
+      val rc = process.join
       system_result("Isabelle process terminated")
-      for ((thread, _) <- List(stdin, stdout, input, message)) thread.join
+      for ((thread, _) <- List(standard_input, stdout, command_input, message)) thread.join
       system_result("process_manager terminated")
       put_result(Markup.EXIT, rc.toString)
     }
     rm_fifos()
   }
 
+
+  /* management methods */
+
   def join() { process_manager.join() }
-
-
-  /* signals */
-
-  @volatile private var pid: Option[String] = None
 
   def interrupt()
   {
-    pid match {
-      case None => system_result("Cannot interrupt Isabelle: unknown pid")
-      case Some(i) =>
-        try {
-          if (system.execute(true, "kill", "-INT", i).waitFor == 0)
-            system_result("Interrupt Isabelle")
-          else
-            system_result("Cannot interrupt Isabelle: kill command failed")
-        }
-        catch { case e: IOException => error("Cannot interrupt Isabelle: " + e.getMessage) }
-    }
+    try { process.interrupt }
+    catch { case e: IOException => system_result("Failed to interrupt Isabelle: " + e.getMessage) }
   }
 
-  def kill()
+  def terminate()
   {
-    val running =
-      try { proc.exitValue; false }
-      catch { case e: java.lang.IllegalThreadStateException => true }
-    if (running) {
-      close()
-      Thread.sleep(500)  // FIXME !?
-      system_result("Kill Isabelle")
-      proc.destroy
-    }
+    close()
+    system_result("Terminating Isabelle process")
+    terminate_process()
   }
 
 
@@ -239,10 +221,10 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
           //{{{
           receive {
             case Input_Text(text) =>
-              stdin_writer.write(text)
-              stdin_writer.flush
+              process.stdin.write(text)
+              process.stdin.flush
             case Close =>
-              stdin_writer.close
+              process.stdin.close
               finished = true
             case bad => System.err.println(name + ": ignoring bad message " + bad)
           }
@@ -269,8 +251,8 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
           //{{{
           var c = -1
           var done = false
-          while (!done && (result.length == 0 || stdout_reader.ready)) {
-            c = stdout_reader.read
+          while (!done && (result.length == 0 || process.stdout.ready)) {
+            c = process.stdout.read
             if (c >= 0) result.append(c.asInstanceOf[Char])
             else done = true
           }
@@ -279,7 +261,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
             result.length = 0
           }
           else {
-            stdout_reader.close
+            process.stdout.close
             finished = true
           }
           //}}}
@@ -391,10 +373,10 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
 
   /** main methods **/
 
-  def input_raw(text: String): Unit = standard_input ! Input_Text(text)
+  def input_raw(text: String): Unit = standard_input._2 ! Input_Text(text)
 
   def input_bytes(name: String, args: Array[Byte]*): Unit =
-    command_input ! Input_Chunks(Standard_System.string_bytes(name) :: args.toList)
+    command_input._2 ! Input_Chunks(Standard_System.string_bytes(name) :: args.toList)
 
   def input(name: String, args: String*): Unit =
     input_bytes(name, args.map(Standard_System.string_bytes): _*)

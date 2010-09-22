@@ -111,9 +111,6 @@ end;
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
-fun process_id () =
-  Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord (Posix.ProcEnv.getpid ())));
-
 
 (* getenv *)
 

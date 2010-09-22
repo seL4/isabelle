@@ -241,7 +241,7 @@ class Session(system: Isabelle_System)
           Some(startup_error())
 
         case TIMEOUT =>  // FIXME clarify
-          prover.kill; Some(startup_error())
+          prover.terminate; Some(startup_error())
       }
     }
 
@@ -282,7 +282,7 @@ class Session(system: Isabelle_System)
         case Stop => // FIXME synchronous!?
           if (prover != null) {
             global_state.change(_ => Document.State.init)
-            prover.kill
+            prover.terminate
             prover = null
           }
 

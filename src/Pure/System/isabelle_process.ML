@@ -78,7 +78,7 @@ fun standard_message out_stream with_serial ch body =
       (Position.properties_of (Position.thread_data ()))) body;
 
 fun init_message out_stream =
-  message out_stream "A" [(Markup.pidN, process_id ())] (Session.welcome ());
+  message out_stream "A" [] (Session.welcome ());
 
 end;
 
