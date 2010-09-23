@@ -427,6 +427,26 @@ fun check_proposed_modes preds options modes errors =
       | NONE => ())
   | NONE => ()) preds
 
+fun check_matches_type ctxt predname T ms =
+  let
+    fun check (m as Fun (m1, m2)) (Type("fun", [T1,T2])) = check m1 T1 andalso check m2 T2
+      | check m (Type("fun", _)) = false
+      | check (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
+          check m1 T1 andalso check m2 T2 
+      | check Input T = true
+      | check Output T = true
+      | check Bool @{typ bool} = true
+      | check _ _ = false
+    val _ = map
+      (fn mode =>
+        if (forall (uncurry check) (strip_fun_mode mode ~~ binder_types T)) then ()
+        else error (string_of_mode mode ^ " is not a valid mode for " ^ Syntax.string_of_typ ctxt T
+        ^ " at predicate " ^ predname)) ms
+  in
+    ms
+  end
+
+
 (* importing introduction rules *)
 
 fun unify_consts thy cs intr_ts =
@@ -632,8 +652,6 @@ fun preprocess_elim ctxt elimrule =
   in
     Thm.equal_elim eq elimrule |> singleton (Variable.export ctxt' ctxt)
   end;
-
-fun expand_tuples_elim th = th
 
 val no_compilation = ([], ([], []))
 
@@ -2679,7 +2697,7 @@ fun prepare_intrs options ctxt prednames intros =
     val all_modes = 
       map (fn (s, T) =>
         (s, case proposed_modes options s of
-            SOME ms => ms
+            SOME ms => check_matches_type ctxt s T ms
           | NONE => generate_modes s T)) preds
     val params =
       case intrs of
