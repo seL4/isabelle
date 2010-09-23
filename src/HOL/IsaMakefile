@@ -1345,9 +1345,10 @@ HOL-Predicate_Compile_Examples: HOL $(LOG)/HOL-Predicate_Compile_Examples.gz
 
 $(LOG)/HOL-Predicate_Compile_Examples.gz: $(OUT)/HOL			\
   Predicate_Compile_Examples/ROOT.ML					\
-  Predicate_Compile_Examples/Predicate_Compile_Examples.thy		\
+  Predicate_Compile_Examples/Predicate_Compile_Tests.thy		\
   Predicate_Compile_Examples/Predicate_Compile_Quickcheck_Examples.thy  \
   Predicate_Compile_Examples/Code_Prolog_Examples.thy 			\
+  Predicate_Compile_Examples/Examples.thy				\
   Predicate_Compile_Examples/Context_Free_Grammar_Example.thy 		\
   Predicate_Compile_Examples/Hotel_Example.thy 				\
   Predicate_Compile_Examples/IMP_1.thy 					\

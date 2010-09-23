@@ -1,5 +1,6 @@
 use_thys [
-  "Predicate_Compile_Examples",
+  "Examples",
+  "Predicate_Compile_Tests",
   "Predicate_Compile_Quickcheck_Examples",
   "Specialisation_Examples",
   "IMP_1",
