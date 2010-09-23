@@ -72,7 +72,14 @@ object Isar_Document
 
   /* specific messages */
 
-  def is_tracing(msg: XML.Tree): Boolean =
+  def is_ready(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.STATUS, _),
+        List(XML.Elem(Markup(Markup.READY, _), _))) => true
+      case _ => false
+    }
+
+ def is_tracing(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.TRACING, _), _) => true
       case _ => false

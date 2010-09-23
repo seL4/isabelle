@@ -187,7 +187,9 @@ class Session(system: Isabelle_System)
           }
           catch { case _: Document.State.Fail => bad_result(result) }
         case _ =>
-          if (result.is_status) {
+          if (result.is_exit) prover = null  // FIXME ??
+          else if (result.is_syslog || result.is_stdout) { }
+          else if (result.is_status) {
             result.body match {
               case List(Isar_Document.Assign(id, edits)) =>
                 try {
@@ -198,12 +200,10 @@ class Session(system: Isabelle_System)
                 catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
-              case _ => if (!result.is_ready) bad_result(result)
+              case _ => bad_result(result)
             }
           }
-          else if (result.is_exit) prover = null  // FIXME ??
-          else if (!(result.is_init || result.is_exit || result.is_system || result.is_stdout))
-            bad_result(result)
+          else bad_result(result)
         }
     }
     //}}}

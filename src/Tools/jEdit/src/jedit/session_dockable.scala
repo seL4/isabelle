@@ -53,8 +53,10 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
     loop {
       react {
         case result: Isabelle_Process.Result =>
-          if (result.is_init || result.is_exit || result.is_system || result.is_ready)
-            Swing_Thread.now { syslog.append(XML.content(result.message).mkString + "\n") }
+          if (result.is_syslog)
+            Swing_Thread.now {
+              syslog.append(XML.content(result.message).mkString + "\n")
+            }
 
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)
       }

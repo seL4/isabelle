@@ -44,11 +44,8 @@ object Isabelle_Process
     def is_system = kind == Markup.SYSTEM
     def is_status = kind == Markup.STATUS
     def is_report = kind == Markup.REPORT
-    def is_ready = is_status && {
-      body match {
-        case List(XML.Elem(Markup(Markup.READY, _), _)) => true
-        case _ => false
-      }}
+    def is_ready = Isar_Document.is_ready(message)
+    def is_syslog = is_init || is_exit || is_system || is_ready
 
     override def toString: String =
     {
