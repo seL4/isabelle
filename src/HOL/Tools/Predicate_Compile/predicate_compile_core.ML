@@ -218,6 +218,7 @@ fun mk_predfun_data (definition, ((intro, elim), neg_intro)) =
 datatype pred_data = PredData of {
   intros : (string option * thm) list,
   elim : thm option,
+  preprocessed : bool,
   function_names : (compilation * (mode * string) list) list,
   predfun_data : (mode * predfun_data) list,
   needs_random : mode list
@@ -225,12 +226,12 @@ datatype pred_data = PredData of {
 
 fun rep_pred_data (PredData data) = data;
 
-fun mk_pred_data ((intros, elim), (function_names, (predfun_data, needs_random))) =
-  PredData {intros = intros, elim = elim,
+fun mk_pred_data (((intros, elim), preprocessed), (function_names, (predfun_data, needs_random))) =
+  PredData {intros = intros, elim = elim, preprocessed = preprocessed,
     function_names = function_names, predfun_data = predfun_data, needs_random = needs_random}
 
-fun map_pred_data f (PredData {intros, elim, function_names, predfun_data, needs_random}) =
-  mk_pred_data (f ((intros, elim), (function_names, (predfun_data, needs_random))))
+fun map_pred_data f (PredData {intros, elim, preprocessed, function_names, predfun_data, needs_random}) =
+  mk_pred_data (f (((intros, elim), preprocessed), (function_names, (predfun_data, needs_random))))
 
 fun eq_option eq (NONE, NONE) = true
   | eq_option eq (SOME x, SOME y) = eq (x, y)
@@ -613,23 +614,20 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
 
 (** preprocessing rules **)
 
-fun imp_prems_conv cv ct =
-  case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
-  | _ => Conv.all_conv ct
-
 fun Trueprop_conv cv ct =
   case Thm.term_of ct of
     Const (@{const_name Trueprop}, _) $ _ => Conv.arg_conv cv ct  
   | _ => raise Fail "Trueprop_conv"
 
-fun preprocess_intro thy rule =
+fun preprocess_equality thy rule =
   Conv.fconv_rule
     (imp_prems_conv
       (Trueprop_conv (Conv.try_conv (Conv.rewr_conv (Thm.symmetric @{thm Predicate.eq_is_eq})))))
     (Thm.transfer thy rule)
 
-fun preprocess_elim ctxt elimrule =
+fun preprocess_intro thy = expand_tuples thy #> preprocess_equality thy
+
+fun preprocess_equality_elim ctxt elimrule =
   let
     fun replace_eqs (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, T) $ lhs $ rhs)) =
        HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
@@ -640,11 +638,11 @@ fun preprocess_elim ctxt elimrule =
     val nargs = length (snd (strip_comb (HOLogic.dest_Trueprop (hd prems))))
     fun preprocess_case t =
       let
-       val params = Logic.strip_params t
-       val (assums1, assums2) = chop nargs (Logic.strip_assums_hyp t)
-       val assums_hyp' = assums1 @ (map replace_eqs assums2)
+        val params = Logic.strip_params t
+        val (assums1, assums2) = chop nargs (Logic.strip_assums_hyp t)
+        val assums_hyp' = assums1 @ (map replace_eqs assums2)
       in
-       list_all (params, Logic.list_implies (assums_hyp', Logic.strip_assums_concl t))
+        list_all (params, Logic.list_implies (assums_hyp', Logic.strip_assums_concl t))
       end
     val cases' = map preprocess_case (tl prems)
     val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
@@ -657,6 +655,8 @@ fun preprocess_elim ctxt elimrule =
     Thm.equal_elim eq elimrule |> singleton (Variable.export ctxt' ctxt)
   end;
 
+fun preprocess_elim ctxt = expand_tuples_elim ctxt #> preprocess_equality_elim ctxt
+  
 val no_compilation = ([], ([], []))
 
 fun fetch_pred_data ctxt name =
@@ -668,17 +668,15 @@ fun fetch_pred_data ctxt name =
             val (const, _) = strip_comb (HOLogic.dest_Trueprop (concl_of intro))
           in (fst (dest_Const const) = name) end;
         val thy = ProofContext.theory_of ctxt
-        val intros =
-          (map (expand_tuples thy #> preprocess_intro thy) (filter is_intro_of (#intrs result)))
+        val intros = map (preprocess_intro thy) (filter is_intro_of (#intrs result))
         val index = find_index (fn s => s = name) (#names (fst info))
         val pre_elim = nth (#elims result) index
         val pred = nth (#preds result) index
-        val nparams = length (Inductive.params_of (#raw_induct result))
         val elim_t = mk_casesrule ctxt pred intros
-        val elim =
-          prove_casesrule ctxt (pred, (pre_elim, nparams)) elim_t
+        val nparams = length (Inductive.params_of (#raw_induct result))
+        val elim = prove_casesrule ctxt (pred, (pre_elim, nparams)) elim_t
       in
-        mk_pred_data ((map (pair NONE) intros, SOME elim), no_compilation)
+        mk_pred_data (((map (pair NONE) intros, SOME elim), true), no_compilation)
       end
   | NONE => error ("No such predicate: " ^ quote name)
 
@@ -695,6 +693,10 @@ fun depending_preds_of ctxt (key, value) =
     val intros = map (Thm.prop_of o snd) ((#intros o rep_pred_data) value)
   in
     fold Term.add_const_names intros []
+      |> (fn cs =>
+        if member (op =) cs @{const_name "HOL.eq"} then
+          insert (op =) @{const_name Predicate.eq} cs
+        else cs)
       |> filter (fn c => (not (c = key)) andalso
         (is_inductive_predicate ctxt c orelse is_registered ctxt c))
   end;
@@ -705,26 +707,24 @@ fun add_intro (opt_case_name, thm) thy =
     fun cons_intro gr =
      case try (Graph.get_node gr) name of
        SOME pred_data => Graph.map_node name (map_pred_data
-         (apfst (apfst (fn intros => intros @ [(opt_case_name, thm)])))) gr
-     | NONE => Graph.new_node (name, mk_pred_data (([(opt_case_name, thm)], NONE), no_compilation)) gr
+         (apfst (apfst (apfst (fn intros => intros @ [(opt_case_name, thm)]))))) gr
+     | NONE => Graph.new_node (name, mk_pred_data ((([(opt_case_name, thm)], NONE), false), no_compilation)) gr
   in PredData.map cons_intro thy end
 
 fun set_elim thm =
   let
     val (name, _) = dest_Const (fst 
       (strip_comb (HOLogic.dest_Trueprop (hd (prems_of thm)))))
-    fun set (intros, _) = (intros, SOME thm)
-  in PredData.map (Graph.map_node name (map_pred_data (apfst set))) end
+  in PredData.map (Graph.map_node name (map_pred_data (apfst (apfst (apsnd (K (SOME thm))))))) end
 
-fun register_predicate (constname, pre_intros, pre_elim) thy =
+fun register_predicate (constname, intros, elim) thy =
   let
-    val intros = map (pair NONE o preprocess_intro thy) pre_intros
-    val elim = preprocess_elim (ProofContext.init_global thy) pre_elim
+    val named_intros = map (pair NONE) intros
   in
     if not (member (op =) (Graph.keys (PredData.get thy)) constname) then
       PredData.map
         (Graph.new_node (constname,
-          mk_pred_data ((intros, SOME elim), no_compilation))) thy
+          mk_pred_data (((named_intros, SOME elim), false), no_compilation))) thy
     else thy
   end
 
@@ -795,7 +795,7 @@ fun force_modes_and_compilations pred_name compilations =
     val alt_compilations = map (apsnd fst) compilations
   in
     PredData.map (Graph.new_node
-      (pred_name, mk_pred_data (([], SOME @{thm refl}), (dummy_function_names, ([], needs_random)))))
+      (pred_name, mk_pred_data ((([], SOME @{thm refl}), true), (dummy_function_names, ([], needs_random)))))
     #> Alt_Compilations_Data.map (Symtab.insert (K false) (pred_name, alt_compilations))
   end
 
@@ -2911,8 +2911,26 @@ fun gen_add_equations steps options names thy =
     fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
     val scc = strong_conn_of (PredData.get thy') names
-    
-    val thy'' = fold_rev
+    fun preprocess name thy =
+      PredData.map (Graph.map_node name (map_pred_data (apfst (fn (rules, preprocessed) =>
+        if preprocessed then (rules, preprocessed)
+        else
+          let
+            val (named_intros, SOME elim) = rules
+            val named_intros' = map (apsnd (preprocess_intro thy)) named_intros
+            val pred = Const (name, Sign.the_const_type thy name)
+            val ctxt = ProofContext.init_global thy
+            val elim_t = mk_casesrule ctxt pred (map snd named_intros')
+            val nparams = (case try (Inductive.the_inductive ctxt) name of
+                SOME (_, result) => length (Inductive.params_of (#raw_induct result))
+              | NONE => 0)
+            val elim' = prove_casesrule ctxt (pred, (elim, 0)) elim_t
+          in
+            ((named_intros', SOME elim'), true)
+          end))))
+        thy
+    val thy'' = fold preprocess (flat scc) thy'
+    val thy''' = fold_rev
       (fn preds => fn thy =>
         if not (forall (defined (ProofContext.init_global thy)) preds) then
           let
@@ -2924,8 +2942,8 @@ fun gen_add_equations steps options names thy =
             add_equations_of steps mode_analysis_options options preds thy
           end
         else thy)
-      scc thy' |> Theory.checkpoint
-  in thy'' end
+      scc thy'' |> Theory.checkpoint
+  in thy''' end
 
 val add_equations = gen_add_equations
   (Steps {

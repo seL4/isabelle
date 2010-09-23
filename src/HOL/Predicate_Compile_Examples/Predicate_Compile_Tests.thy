@@ -1327,10 +1327,10 @@ end
 text {* The global introduction rules must be redeclared as introduction rules and then 
   one could invoke code_pred. *}
 
-declare A.hd_predicate_in_locale.intros [unfolded Predicate.eq_is_eq[symmetric], code_pred_intro]
+declare A.hd_predicate_in_locale.intros [code_pred_intro]
 
 code_pred (expected_modes: i => i => i => bool, i => i => o => bool) A.hd_predicate_in_locale
-unfolding eq_is_eq by (auto elim: A.hd_predicate_in_locale.cases)
+by (auto elim: A.hd_predicate_in_locale.cases)
     
 interpretation A partial_hd .
 thm hd_predicate_in_locale.intros
