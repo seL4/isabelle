@@ -99,14 +99,16 @@ object Isar_Document
 
   def is_state(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Markup.WRITELN, _), List(XML.Elem(Markup(Markup.STATE, _), _))) => true
+      case XML.Elem(Markup(Markup.WRITELN, _),
+        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
       case _ => false
     }
 
 
   /* reported positions */
 
-  private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
+  private val include_pos =
+    Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
   def message_positions(command: Command, message: XML.Elem): Set[Text.Range] =
   {
@@ -129,9 +131,6 @@ object Isar_Document
 
 trait Isar_Document extends Isabelle_Process
 {
-  import Isar_Document._
-
-
   /* commands */
 
   def define_command(id: Document.Command_ID, text: String): Unit =
