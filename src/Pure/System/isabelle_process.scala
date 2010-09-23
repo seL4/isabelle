@@ -159,7 +159,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
     system_result(startup_output)
 
     if (startup_failed) {
-      put_result(Markup.EXIT, "127")
+      put_result(Markup.EXIT, "Return code: 127")
       process.stdin.close
       Thread.sleep(300)
       terminate_process()
@@ -179,7 +179,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       system_result("process terminated")
       for ((thread, _) <- List(standard_input, stdout, command_input, message)) thread.join
       system_result("process_manager terminated")
-      put_result(Markup.EXIT, rc.toString)
+      put_result(Markup.EXIT, "Return code: " + rc.toString)
     }
     rm_fifos()
   }
