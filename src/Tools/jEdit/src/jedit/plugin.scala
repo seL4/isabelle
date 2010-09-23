@@ -252,8 +252,7 @@ class Plugin extends EBPlugin
         case (Session.Startup, Session.Exit) =>
           val text = new scala.swing.TextArea(Isabelle.session.syslog())
           text.editable = false
-          // FIXME proper view!?
-          Library.error_dialog(null, null, "Failed to start Isabelle process", text)
+          Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)
           finished = true
 
         case (_, Session.Ready) => Isabelle.jedit_buffers.foreach(activate_buffer)
