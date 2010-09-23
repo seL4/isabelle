@@ -66,24 +66,28 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 
   override def complete(pane: EditPane, caret: Int): SideKickCompletion =
   {
-    // FIXME lock buffer (!?)
     val buffer = pane.getBuffer
+    Isabelle.swing_buffer_lock(buffer) {
+      Document_Model(buffer) match {
+        case None => null
+        case Some(model) =>
+          val line = buffer.getLineOfOffset(caret)
+          val start = buffer.getLineStartOffset(line)
+          val text = buffer.getSegment(start, caret - start)
 
-    val line = buffer.getLineOfOffset(caret)
-    val start = buffer.getLineStartOffset(line)
-    val text = buffer.getSegment(start, caret - start)
-
-    val completion = Isabelle.session.current_syntax().completion
-
-    completion.complete(text) match {
-      case None => null
-      case Some((word, cs)) =>
-        val ds =
-          (if (Isabelle_Encoding.is_active(buffer))
-            cs.map(Isabelle.system.symbols.decode(_)).sortWith(_ < _)
-           else cs).filter(_ != word)
-        if (ds.isEmpty) null
-        else new SideKickCompletion(pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) { }
+          val completion = model.session.current_syntax().completion
+          completion.complete(text) match {
+            case None => null
+            case Some((word, cs)) =>
+              val ds =
+                (if (Isabelle_Encoding.is_active(buffer))
+                  cs.map(Isabelle.system.symbols.decode(_)).sortWith(_ < _)
+                 else cs).filter(_ != word)
+              if (ds.isEmpty) null
+              else new SideKickCompletion(
+                pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) { }
+          }
+      }
     }
   }
 }
