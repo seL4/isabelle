@@ -16,6 +16,7 @@
 
 %% typographic conventions
 \newcommand{\qt}[1]{``{#1}''}
+\newcommand{\ditem}[1]{\item[\isastyletext #1]}
 
 %% quote environment
 \isakeeptag{quote}
@@ -28,9 +29,9 @@
 
 %% typewriter text
 \newenvironment{typewriter}{\renewcommand{\isadigit}[1]{{##1}}%
-\def\isacharunderscore{\_}%
-\parindent0pt\fontsize{9pt}{0pt}%
-\tt\setlength{\baselineskip}{8pt}\renewcommand{\baselinestretch}{1}}{}
+\parindent0pt%
+\fontsize{9pt}{0pt}%
+\isabellestyle{tt}\isastyle}{}
 
 %% presentation
 \setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
