@@ -485,7 +485,7 @@ Consider the following function and its corresponding SML code:%
   to introduce inconsistencies -- or, in other words: custom
   serialisations are completely axiomatic.
 
-  A further noteworthy details is that any special character in a
+  A further noteworthy detail is that any special character in a
   custom serialisation may be quoted using ``\verb|'|''; thus,
   in ``\verb|fn '_ => _|'' the first ``\verb|_|'' is a
   proper underscore while the second ``\verb|_|'' is a
@@ -501,7 +501,7 @@ Consider the following function and its corresponding SML code:%
 For convenience, the default \isa{HOL} setup for \isa{Haskell}
   maps the \isa{equal} class to its counterpart in \isa{Haskell},
   giving custom serialisations for the class \isa{equal} (by command
-  \indexdef{}{command}{code\_class}\hypertarget{command.code-class}{\hyperlink{command.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}}) and its operation \isa{equal{\isacharunderscore}class{\isachardot}equal}%
+  \indexdef{}{command}{code\_class}\hypertarget{command.code-class}{\hyperlink{command.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}}) and its operation \isa{HOL{\isachardot}equal}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -515,7 +515,7 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 \ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Eq{\isachardoublequoteclose}{\isacharparenright}\isanewline
 \isanewline
 \isacommand{code{\isacharunderscore}const}\isamarkupfalse%
-\ {\isachardoublequoteopen}op\ {\isacharequal}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}HOL{\isachardot}equal{\isachardoublequoteclose}\isanewline
 \ \ {\isacharparenleft}Haskell\ \isakeyword{infixl}\ {\isadigit{4}}\ {\isachardoublequoteopen}{\isacharequal}{\isacharequal}{\isachardoublequoteclose}{\isacharparenright}%
 \endisatagquotett
 {\isafoldquotett}%

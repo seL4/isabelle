@@ -71,7 +71,7 @@ text {*
   inherits from \emph{SML} but for convenience uses parts of the
   Isabelle runtime environment.  The soundness of computation carried
   out there depends crucially on the correctness of the code
-  generator; this is one of the reasons why you should not use
+  generator setup; this is one of the reasons why you should not use
   adaptation (see \secref{sec:adaptation}) frivolously.
 *}
 
@@ -139,13 +139,13 @@ text {*
       function.  As sketched in \secref{sec:partiality}, this can be
       interpreted as partiality.
      
-    \item Evaluation raise any other kind of exception.
+    \item Evaluation raises any other kind of exception.
      
   \end{itemize}
 
   \noindent For conversions, the first case yields the equation @{term
   "t = t'"}, the second defaults to reflexivity @{term "t = t"}.
-  Exceptions of the third kind are propagted to the user.
+  Exceptions of the third kind are propagated to the user.
 
   By default return values of plain evaluation are optional, yielding
   @{text "SOME t'"} in the first case, @{text "NONE"} and in the
@@ -218,9 +218,9 @@ text {*
   after the whole ML is read, the necessary code is generated
   transparently and the corresponding constant names are inserted.
   This technique also allows to use pattern matching on constructors
-  stemming from compiled @{text "datatypes"}.  Note that it is not
-  possible to refer to constants which carry adaptations by means of
-  @{text code}; here you have to refer to the adapted code directly.
+  stemming from compiled datatypes.  Note that the @{text code}
+  antiquotation may not refer to constants which carry adaptations;
+  here you have to refer to the corresponding adapted code directly.
 
   For a less simplistic example, theory @{text Approximation} in
   the @{text Decision_Procs} session is a good reference.
@@ -272,7 +272,7 @@ code_reflect %quote Rat
   file "examples/rat.ML"
 
 text {*
-  \noindent This just generates the references code to the specified
+  \noindent This merely generates the referenced code to the given
   file which can be included into the system runtime later on.
 *}
 

@@ -97,7 +97,7 @@ Highest performance can be achieved by evaluation in ML, at the cost
   inherits from \emph{SML} but for convenience uses parts of the
   Isabelle runtime environment.  The soundness of computation carried
   out there depends crucially on the correctness of the code
-  generator; this is one of the reasons why you should not use
+  generator setup; this is one of the reasons why you should not use
   adaptation (see \secref{sec:adaptation}) frivolously.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -192,12 +192,12 @@ Static evaluation freezes the code generator configuration at a
       function.  As sketched in \secref{sec:partiality}, this can be
       interpreted as partiality.
      
-    \item Evaluation raise any other kind of exception.
+    \item Evaluation raises any other kind of exception.
      
   \end{itemize}
 
   \noindent For conversions, the first case yields the equation \isa{t\ {\isacharequal}\ t{\isacharprime}}, the second defaults to reflexivity \isa{t\ {\isacharequal}\ t}.
-  Exceptions of the third kind are propagted to the user.
+  Exceptions of the third kind are propagated to the user.
 
   By default return values of plain evaluation are optional, yielding
   \isa{SOME\ t{\isacharprime}} in the first case, \isa{NONE} and in the
@@ -315,9 +315,9 @@ code\ Or%
   after the whole ML is read, the necessary code is generated
   transparently and the corresponding constant names are inserted.
   This technique also allows to use pattern matching on constructors
-  stemming from compiled \isa{datatypes}.  Note that it is not
-  possible to refer to constants which carry adaptations by means of
-  \isa{code}; here you have to refer to the adapted code directly.
+  stemming from compiled datatypes.  Note that the \isa{code}
+  antiquotation may not refer to constants which carry adaptations;
+  here you have to refer to the corresponding adapted code directly.
 
   For a less simplistic example, theory \isa{Approximation} in
   the \isa{Decision{\isacharunderscore}Procs} session is a good reference.%
@@ -399,7 +399,7 @@ For technical reasons it is sometimes necessary to separate
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent This just generates the references code to the specified
+\noindent This merely generates the referenced code to the given
   file which can be included into the system runtime later on.%
 \end{isamarkuptext}%
 \isamarkuptrue%
