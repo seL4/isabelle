@@ -182,7 +182,7 @@ fun init in_fifo out_fifo = ignore (Simple_Thread.fork false (fn () =>
     val (in_stream, out_stream) = setup_channels in_fifo out_fifo;
     val _ = init_message out_stream;
     val _ = Keyword.status ();
-    val _ = Output.status (Markup.markup Markup.ready "Prover ready");
+    val _ = Output.status (Markup.markup Markup.ready "process ready");
   in loop in_stream end));
 
 end;

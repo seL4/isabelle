@@ -25,7 +25,10 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val readme = new HTML_Panel(Isabelle.system, "SansSerif", 12)
   readme.render_document(Isabelle.system.try_read(List("$JEDIT_HOME/README.html")))
 
-  private val syslog = new TextArea
+  private def session_syslog(): String =
+    Isabelle.session.syslog.map(msg => XML.content(msg).mkString).mkString("\n")
+
+  private val syslog = new TextArea(session_syslog())
   syslog.editable = false
 
   private val tabs = new TabbedPane {
@@ -55,7 +58,10 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
         case result: Isabelle_Process.Result =>
           if (result.is_syslog)
             Swing_Thread.now {
-              syslog.append(XML.content(result.message).mkString + "\n")
+              val text = session_syslog()
+              if (text != syslog.text) {
+                syslog.text = text
+              }
             }
 
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)

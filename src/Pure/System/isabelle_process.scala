@@ -74,20 +74,12 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       actor { loop { react { case res => Console.println(res) } } }, args: _*)
 
 
-  /* system log */
-
-  private val system_results = new mutable.ListBuffer[String]
+  /* results */
 
   private def system_result(text: String)
   {
-    synchronized { system_results += text }
     receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
   }
-
-  def syslog(): List[String] = synchronized { system_results.toList }
-
-
-  /* results */
 
   private val xml_cache = new XML.Cache(131071)
 

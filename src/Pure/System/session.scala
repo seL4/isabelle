@@ -112,6 +112,9 @@ class Session(system: Isabelle_System)
   @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax(): Outer_Syntax = syntax
 
+  @volatile private var reverse_syslog = List[XML.Elem]()
+  def syslog(): List[XML.Elem] = reverse_syslog.reverse
+
   private val global_state = new Volatile(Document.State.init)
   def current_state(): Document.State = global_state.peek()
 
@@ -188,7 +191,8 @@ class Session(system: Isabelle_System)
           catch { case _: Document.State.Fail => bad_result(result) }
         case _ =>
           if (result.is_exit) prover = null  // FIXME ??
-          else if (result.is_syslog || result.is_stdout) { }
+          else if (result.is_syslog) reverse_syslog ::= result.message
+          else if (result.is_stdout) { }
           else if (result.is_status) {
             result.body match {
               case List(Isar_Document.Assign(id, edits)) =>
