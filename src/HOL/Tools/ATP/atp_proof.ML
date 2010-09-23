@@ -301,20 +301,21 @@ fun mk_horn ([], []) = AAtom (ATerm ("c_False", []))
     mk_aconn AImplies (foldr1 (mk_aconn AAnd) neg_lits,
                        foldr1 (mk_aconn AOr) pos_lits)
 
-val parse_horn_clause =
-  Scan.repeat parse_decorated_atom --| $$ "|" --| $$ "|"
-    -- Scan.repeat parse_decorated_atom --| $$ "-" --| $$ ">"
-    -- Scan.repeat parse_decorated_atom
-  >> (mk_horn o apfst (op @))
+fun parse_horn_clause x =
+  (Scan.repeat parse_decorated_atom --| $$ "|" --| $$ "|"
+     -- Scan.repeat parse_decorated_atom --| $$ "-" --| $$ ">"
+     -- Scan.repeat parse_decorated_atom
+   >> (mk_horn o apfst (op @))) x
 
 (* Syntax: <num>[0:<inference><annotations>]
    <atoms> || <atoms> -> <atoms>. *)
-val parse_spass_line =
-  scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
-    -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
-  >> (fn ((num, deps), u) => Inference ((num, NONE), u, map (rpair NONE) deps))
+fun parse_spass_line x =
+  (scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
+     -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
+   >> (fn ((num, deps), u) =>
+          Inference ((num, NONE), u, map (rpair NONE) deps))) x
 
-val parse_line = parse_tstp_line || parse_vampire_line || parse_spass_line
+fun parse_line x = (parse_tstp_line || parse_vampire_line || parse_spass_line) x
 val parse_proof =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
