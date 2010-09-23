@@ -3070,9 +3070,9 @@ fun generic_code_pred prep_const options raw_const lthy =
     val cases_rules = map mk_cases preds
     val cases =
       map2 (fn pred_name => fn case_rule => Rule_Cases.Case {fixes = [],
-        assumes = ("", Logic.strip_imp_prems case_rule)
+        assumes = ("that", tl (Logic.strip_imp_prems case_rule))
           :: (map_filter (fn (fact_name, fact) => Option.map (rpair [fact]) fact_name)
-            ((SOME "prems" :: names_of ctxt' pred_name) ~~ Logic.strip_imp_prems case_rule)),
+            ((SOME (Long_Name.base_name pred_name ^ ".prems") :: names_of ctxt' pred_name) ~~ Logic.strip_imp_prems case_rule)),
         binds = [], cases = []}) preds cases_rules
     val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases
     val lthy'' = lthy'
