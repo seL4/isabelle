@@ -19,7 +19,7 @@ sig
     expect : expectation, report: bool, quiet : bool};
   val test_params_of: Proof.context -> test_params 
   val report : Proof.context -> bool
-  val set_reporting : bool -> Proof.context -> Proof.context
+  val set_reporting : bool -> Context.generic -> Context.generic
   val add_generator:
     string * (Proof.context -> term -> int -> term list option * (bool list * bool))
       -> Context.generic -> Context.generic
@@ -122,7 +122,7 @@ val report = snd o fst o snd o snd o dest_test_params o test_params_of
 fun map_report f (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet }) =
   make_test_params ((size, iterations), ((default_type, no_assms), ((expect, f report), quiet)));
 
-fun set_reporting report = Context.proof_map (Data.map (apsnd (map_report (K report))))
+fun set_reporting report = Data.map (apsnd (map_report (K report)))
 
 val add_generator = Data.map o apfst o AList.update (op =);
 
@@ -204,7 +204,7 @@ fun gen_test_term ctxt quiet generator_name size i t =
 
 fun test_term ctxt quiet generator_name size i t =
   ctxt
-  |> set_reporting false
+  |> Context.proof_map (set_reporting false)
   |> (fn ctxt' => fst (gen_test_term ctxt' quiet generator_name size i t))
 
 exception WELLSORTED of string
@@ -310,7 +310,7 @@ fun auto_quickcheck state =
         (snd o Data.get o Context.Proof) ctxt;
       val res =
         state
-        |> Proof.map_context (set_reporting false)
+        |> Proof.map_context (Context.proof_map (set_reporting false))
         |> try (test_goal true NONE size iterations default_type no_assms [] 1);
     in
       case res of
@@ -382,7 +382,7 @@ fun gen_quickcheck args i state =
       f (default_params, (NONE, []));
   in
     state
-    |> Proof.map_context (set_reporting report)
+    |> Proof.map_context (Context.proof_map (set_reporting report))
     |> test_goal quiet generator_name size iterations default_type no_assms insts i
     |> tap (fn (SOME x, _) => if expect = No_Counterexample then
                  error ("quickcheck expected to find no counterexample but found one") else ()
