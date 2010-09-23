@@ -36,6 +36,21 @@ lemma
 quickcheck[generator=predicate_compile_wo_ff]
 oops
 
+section {* Equivalences *}
+
+inductive is_ten :: "nat => bool"
+where
+  "is_ten 10"
+
+inductive is_eleven :: "nat => bool"
+where
+  "is_eleven 11"
+
+lemma
+  "is_ten x = is_eleven x"
+quickcheck[generator = predicate_compile_wo_ff, iterations = 1, size = 1, expect = counterexample]
+oops
+
 section {* Context Free Grammar *}
 
 datatype alphabet = a | b

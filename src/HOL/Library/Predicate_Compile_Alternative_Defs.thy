@@ -14,6 +14,10 @@ declare le_bool_def_raw[code_pred_inline]
 lemma min_bool_eq [code_pred_inline]: "(min :: bool => bool => bool) == (op &)"
 by (rule eq_reflection) (auto simp add: fun_eq_iff min_def le_bool_def)
 
+lemma [code_pred_inline]: 
+  "((A::bool) ~= (B::bool)) = ((A & ~ B) | (B & ~ A))"
+by fast
+
 setup {* Predicate_Compile_Data.ignore_consts [@{const_name Let}] *}
 
 section {* Pairs *}
