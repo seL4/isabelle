@@ -2316,9 +2316,8 @@ fun prove_sidecond ctxt t =
         (all_input_of T))
         preds
   in 
-    (* remove not_False_eq_True when simpset in prove_match is better *)
     simp_tac (HOL_basic_ss addsimps
-      (@{thms HOL.simp_thms} @ (@{thm not_False_eq_True} :: @{thm eval_pred} :: defs))) 1 
+      (@{thms HOL.simp_thms} @ (@{thm eval_pred} :: defs))) 1 
     (* need better control here! *)
   end
 
