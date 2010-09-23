@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
   Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
-import org.gjt.sp.jedit.msg.{BufferUpdate, EditPaneUpdate, PropertiesChanged, ViewUpdate}
+import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 import org.gjt.sp.util.Log
@@ -210,16 +210,18 @@ class Plugin extends EBPlugin
 {
   /* session management */
 
-  private def session_startup()
+  private def start_session()
   {
-    val timeout = Isabelle.Int_Property("startup-timeout") max 1000
-    val modes = Isabelle.system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
-    val logic = {
-      val logic = Isabelle.Property("logic")
-      if (logic != null && logic != "") logic
-      else Isabelle.default_logic()
+    if (Isabelle.session.phase == Session.Inactive) {
+      val timeout = Isabelle.Int_Property("startup-timeout") max 1000
+      val modes = Isabelle.system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
+      val logic = {
+        val logic = Isabelle.Property("logic")
+        if (logic != null && logic != "") logic
+        else Isabelle.default_logic()
+      }
+      Isabelle.session.start(timeout, modes ::: List(logic))
     }
-    Isabelle.session.start(timeout, modes ::: List(logic))
   }
 
   private def activate_buffer(buffer: Buffer)
@@ -228,9 +230,13 @@ class Plugin extends EBPlugin
       Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath)) match {
         case None =>
         case Some((_, thy_name)) =>
-          val model = Document_Model.init(Isabelle.session, buffer, thy_name)
-          for (text_area <- Isabelle.jedit_text_areas(buffer))
-            Document_View.init(model, text_area)
+          if (Document_Model(buffer).isEmpty) {
+            val model = Document_Model.init(Isabelle.session, buffer, thy_name)
+            for (text_area <- Isabelle.jedit_text_areas(buffer)) {
+              if (Document_View(text_area).isEmpty)
+                Document_View.init(model, text_area)
+            }
+          }
       }
     }
   }
@@ -239,25 +245,26 @@ class Plugin extends EBPlugin
   {
     Isabelle.swing_buffer_lock(buffer) {
       for (text_area <- Isabelle.jedit_text_areas(buffer)) {
-        if (Document_View(text_area).isDefined) Document_View.exit(text_area)
+        if (Document_View(text_area).isDefined)
+          Document_View.exit(text_area)
       }
-      if (Document_Model(buffer).isDefined) Document_Model.exit(buffer)
+      if (Document_Model(buffer).isDefined)
+        Document_Model.exit(buffer)
     }
   }
 
-  private val session_manager = Simple_Thread.actor("session_manager", daemon = true) {
-    var finished = false
-    while (!finished) {
-      receive {
-        case (Session.Startup, Session.Exit) =>
+  private val session_manager = actor {
+    loop {
+      react {
+        case (Session.Inactive, Session.Exit) =>
           val text = new scala.swing.TextArea(Isabelle.session.syslog())
           text.editable = false
           Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)
-          finished = true
 
         case (_, Session.Ready) => Isabelle.jedit_buffers.foreach(activate_buffer)
         case (_, Session.Shutdown) => Isabelle.jedit_buffers.foreach(deactivate_buffer)
-        case (_, Session.Terminated) => finished = true
+
+        case _ =>
       }
     }
   }
@@ -268,15 +275,16 @@ class Plugin extends EBPlugin
   override def handleMessage(message: EBMessage)
   {
     message match {
-      case msg: ViewUpdate
-        if msg.getWhat == ViewUpdate.ACTIVATED =>
-        session_startup()
+      case msg: EditorStarted => start_session()
 
       case msg: BufferUpdate
-        if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
-        Document_Model(msg.getBuffer) match {
-          case Some(model) => model.refresh()
-          case _ =>
+      if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
+        val buffer = msg.getBuffer
+        Isabelle.swing_buffer_lock(buffer) {
+          Document_Model(buffer) match {
+            case None => // FIXME activate_buffer(buffer)
+            case Some(model) => model.refresh()
+          }
         }
 
       case msg: EditPaneUpdate =>
@@ -321,13 +329,12 @@ class Plugin extends EBPlugin
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
     Isabelle.session = new Session(Isabelle.system)
-    Isabelle.session.phase_changed += session_manager._2
+    Isabelle.session.phase_changed += session_manager
   }
 
   override def stop()
   {
     Isabelle.session.stop()
-    session_manager._1.join
-    Isabelle.session.phase_changed -= session_manager._2
+    Isabelle.session.phase_changed -= session_manager
   }
 }

@@ -24,11 +24,9 @@ object Session
 
   sealed abstract class Phase
   case object Inactive extends Phase
-  case object Startup extends Phase
   case object Exit extends Phase
   case object Ready extends Phase
   case object Shutdown extends Phase
-  case object Terminated extends Phase
 }
 
 
@@ -126,7 +124,7 @@ class Session(system: Isabelle_System)
 
   @volatile private var _phase: Session.Phase = Session.Inactive
   def phase = _phase
-  def phase_=(new_phase: Session.Phase)
+  private def phase_=(new_phase: Session.Phase)
   {
     val old_phase = _phase
     _phase = new_phase
@@ -211,7 +209,10 @@ class Session(system: Isabelle_System)
           if (result.is_syslog) {
             reverse_syslog ::= result.message
             if (result.is_ready) phase = Session.Ready
-            else if (result.is_exit) phase = Session.Exit
+            else if (result.is_exit) {
+              phase = Session.Exit
+              phase = Session.Inactive
+            }
           }
           else if (result.is_stdout) { }
           else if (result.is_status) {
@@ -259,14 +260,13 @@ class Session(system: Isabelle_System)
         case result: Isabelle_Process.Result => handle_result(result)
 
         case Start(timeout, args) if prover == null =>
-          phase = Session.Startup
           prover = new Isabelle_Process(system, timeout, self, args:_*) with Isar_Document
 
         case Stop if phase == Session.Ready =>
           global_state.change(_ => Document.State.init)  // FIXME event bus!?
           phase = Session.Shutdown
           prover.terminate
-          phase = Session.Terminated
+          phase = Session.Inactive
           finished = true
           reply(())
 
