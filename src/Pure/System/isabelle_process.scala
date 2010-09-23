@@ -13,7 +13,6 @@ import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamW
 
 import scala.actors.Actor
 import Actor._
-import scala.collection.mutable
 
 
 object Isabelle_Process

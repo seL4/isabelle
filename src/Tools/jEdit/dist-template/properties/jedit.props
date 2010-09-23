@@ -183,7 +183,6 @@ insert-newline.shortcut=ENTER
 isabelle-output.dock-position=bottom
 isabelle-raw-output.dock-position=bottom
 isabelle-session.dock-position=bottom
-isabelle.activate.shortcut=CS+ENTER
 line-end.shortcut=END
 line-home.shortcut=HOME
 lookAndFeel=com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel
