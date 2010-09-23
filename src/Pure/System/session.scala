@@ -113,7 +113,7 @@ class Session(system: Isabelle_System)
   def current_syntax(): Outer_Syntax = syntax
 
   @volatile private var reverse_syslog = List[XML.Elem]()
-  def syslog(): List[XML.Elem] = reverse_syslog.reverse
+  def syslog(): String = reverse_syslog.reverse.map(msg => XML.content(msg).mkString).mkString("\n")
 
   private val global_state = new Volatile(Document.State.init)
   def current_state(): Document.State = global_state.peek()
