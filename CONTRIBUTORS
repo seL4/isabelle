@@ -6,11 +6,14 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* September 2010: Florian Haftmann, TUM
+  Code generation for Scala.
+
 * August 2010: Johannes Hoelzl, Armin Heller, and Robert Himmelmann, TUM
   Rewriting the Probability theory.
 
 * July 2010: Florian Haftmann, TUM
-  Reworking and extension of the Isabelle/HOL framework.
+  Reworking and extension of the Imperative HOL framework.
 
 
 Contributions to Isabelle2009-2
@@ -86,7 +89,7 @@ Contributions to Isabelle2009-1
   New quickcheck implementation using new code generator.
 
 * July 2009: Florian Haftmann, TUM
-  HOL/Library/FSet: an explicit type of sets; finite sets ready to use
+  HOL/Library/Fset: an explicit type of sets; finite sets ready to use
   for code generation.
 
 * June 2009: Florian Haftmann, TUM
