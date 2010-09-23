@@ -522,7 +522,6 @@ code_pred [random_dseq] filter2 .
 thm filter2.equation
 thm filter2.random_dseq_equation
 
-(*
 inductive filter3
 for P
 where
@@ -530,9 +529,9 @@ where
 
 code_pred (expected_modes: (o => bool) => i => o => bool, (o => bool) => i => i => bool , (i => bool) => i => o => bool, (i => bool) => i => i => bool) [skip_proof] filter3 .
 
-code_pred [dseq] filter3 .
-thm filter3.dseq_equation
-*)
+code_pred filter3 .
+thm filter3.equation
+
 (*
 inductive filter4
 where

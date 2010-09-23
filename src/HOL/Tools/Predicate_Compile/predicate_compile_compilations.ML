@@ -47,7 +47,7 @@ fun mk_Enum f =
 
 fun mk_Eval (f, x) =
   let
-    val T = fastype_of x
+    val T = dest_predT (fastype_of f)
   in
     Const (@{const_name Predicate.eval}, mk_predT T --> T --> HOLogic.boolT) $ f $ x
   end;
