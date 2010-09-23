@@ -13,7 +13,6 @@ sig
   val output_markup: string -> string -> string
   val output_markup_env: string -> string -> string
   val output_verbatim: string -> string
-  val output_typewriter: string -> string
   val markup_true: string
   val markup_false: string
   val begin_delim: string -> string
@@ -97,38 +96,6 @@ val output_syms_antiq =
     | Antiquote.Close _ => "{\\isaantiqclose}");
 
 end;
-
-fun output_typewriter s =
-  let
-    val parse = Scan.repeat
-      (Scan.this_string "\n" |-- Scan.succeed "\\\\\n\\hspace*{0pt}"
-        || (Scan.this_string " "
-          || Scan.this_string "."
-          || Scan.this_string ","
-          || Scan.this_string ":"
-          || Scan.this_string ";"
-          || Scan.this_string "\"" |-- Scan.succeed "{\\char34}"
-          || Scan.this_string "#" |-- Scan.succeed "{\\char35}"
-          || Scan.this_string "$" |-- Scan.succeed "{\\char36}"
-          || Scan.this_string "%" |-- Scan.succeed "{\\char37}"
-          || Scan.this_string "&" |-- Scan.succeed "{\\char38}"
-          || Scan.this_string "\\" |-- Scan.succeed "{\\char92}"
-          || Scan.this_string "^" |-- Scan.succeed "{\\char94}"
-          || Scan.this_string "_" |-- Scan.succeed "{\\char95}"
-          || Scan.this_string "{" |-- Scan.succeed "{\\char123}"
-          || Scan.this_string "}" |-- Scan.succeed "{\\char125}"
-          || Scan.this_string "~" |-- Scan.succeed "{\\char126}")
-          -- Scan.repeat (Scan.this_string " ")
-          >> (fn (x, xs) => x ^ replicate_string (length xs) "~")
-        || Scan.one Symbol.not_eof);
-    fun is_newline s = (s = "\n");
-    val cs = explode s |> take_prefix is_newline |> snd
-      |> take_suffix is_newline |> fst;
-    val (texts, []) =  Scan.finite Symbol.stopper parse cs
-  in if null texts
-    then ""
-    else implode ("\\isatypewriter%\n\\noindent%\n\\hspace*{0pt}" :: texts)
-  end
 
 
 (* token output *)

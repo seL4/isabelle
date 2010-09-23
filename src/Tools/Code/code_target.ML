@@ -73,9 +73,14 @@ type const_syntax = Code_Printer.const_syntax;
 datatype destination = Export of Path.T option | Produce | Present of string list;
 type serialization = int -> destination -> (string * (string -> string option)) option;
 
-fun serialization output _ content width (Export some_path) = (output width some_path content; NONE)
-  | serialization _ string content width Produce = SOME (string [] width content)
-  | serialization _ string content width (Present stmt_names) = SOME (string stmt_names width content);
+fun serialization output _ content width (Export some_path) =
+      (output width some_path content; NONE)
+  | serialization _ string content width Produce =
+      string [] width content |> SOME
+  | serialization _ string content width (Present stmt_names) =
+     string stmt_names width content
+     |> apfst (Pretty.output (SOME width) o Pretty.str)
+     |> SOME;
 
 fun export some_path f = (f (Export some_path); ());
 fun produce f = the (f Produce);
@@ -475,7 +480,7 @@ val _ = Thy_Output.antiquotation "code_stmts"
       present_code thy (mk_cs thy)
         (fn naming => maps (fn f => f thy naming) mk_stmtss)
         target some_width "Example" []
-      |> Latex.output_typewriter
+      (*|> Latex.output_typewriter*)
     end);
 
 end;

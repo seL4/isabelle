@@ -8,6 +8,7 @@
 
 %% references
 \newcommand{\secref}[1]{\S\ref{#1}}
+\newcommand{\figref}[1]{figure~\ref{#1}}
 
 %% logical markup
 \newcommand{\strong}[1]{{\bfseries {#1}}}
@@ -26,9 +27,15 @@
 \renewcommand{\endisatagquote}{\end{quote}}
 \newcommand{\quotebreak}{\\[1.2ex]}
 
+%% typewriter text
+\newenvironment{typewriter}{\renewcommand{\isadigit}[1]{{##1}}%
+\parindent0pt%
+\fontsize{9pt}{0pt}%
+\isabellestyle{tt}\isastyle}{}
+
 \isakeeptag{quotett}
 \renewcommand{\isatagquotett}{\begin{quote}\isabellestyle{tt}\isastyle}
-\renewcommand{\endisatagquotett}{\end{quote}\isabellestyle{it}\isastyle}
+\renewcommand{\endisatagquotett}{\end{quote}}
 
 %% a trick
 \newcommand{\isasymSML}{SML}

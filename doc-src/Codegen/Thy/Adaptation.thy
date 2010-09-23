@@ -175,7 +175,11 @@ code_type %invisible bool
 code_const %invisible True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
-text %quote {*@{code_stmts in_interval (SML)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts in_interval (SML)}
+  \end{typewriter}
+*}
 
 text {*
   \noindent Though this is correct code, it is a little bit
@@ -204,7 +208,11 @@ text {*
   placeholder for the type constructor's (the constant's) arguments.
 *}
 
-text %quote {*@{code_stmts in_interval (SML)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts in_interval (SML)}
+  \end{typewriter}
+*}
 
 text {*
   \noindent This still is not perfect: the parentheses around the
@@ -217,7 +225,11 @@ text {*
 code_const %quotett "op \<and>"
   (SML infixl 1 "andalso")
 
-text %quote {*@{code_stmts in_interval (SML)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts in_interval (SML)}
+  \end{typewriter}
+*}
 
 text {*
   \noindent The attentive reader may ask how we assert that no

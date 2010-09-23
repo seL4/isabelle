@@ -245,13 +245,13 @@ As told in \secref{sec:principle}, the notion of code equations is
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}dequeue ::~forall a.~Queue a -> (Maybe a,~Queue a);\\
-\hspace*{0pt}dequeue (AQueue xs (y :~ys)) = (Just y,~AQueue xs ys);\\
-\hspace*{0pt}dequeue (AQueue xs []) =\\
-\hspace*{0pt} ~(if null xs then (Nothing,~AQueue [] [])\\
-\hspace*{0pt} ~~~else dequeue (AQueue [] (reverse xs)));%
+\begin{typewriter}
+    dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}Maybe\ a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
+dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Just\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
+dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ {\isacharparenleft}if\ null\ xs\ then\ {\isacharparenleft}Nothing{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \ \ else\ dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}reverse\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}
+  \end{typewriter}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -347,33 +347,34 @@ Implementation of equality deserves some attention.  Here an example
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt} ~type 'a equal\\
-\hspace*{0pt} ~val equal :~'a equal -> 'a -> 'a -> bool\\
-\hspace*{0pt} ~val eq :~'a equal -> 'a -> 'a -> bool\\
-\hspace*{0pt} ~val member :~'a equal -> 'a list -> 'a -> bool\\
-\hspace*{0pt} ~val collect{\char95}duplicates :\\
-\hspace*{0pt} ~~~'a equal -> 'a list -> 'a list -> 'a list -> 'a list\\
-\hspace*{0pt}end = struct\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a equal = {\char123}equal :~'a -> 'a -> bool{\char125};\\
-\hspace*{0pt}val equal = {\char35}equal :~'a equal -> 'a -> 'a -> bool;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun eq A{\char95}~a b = equal A{\char95}~a b;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun member A{\char95}~[] y = false\\
-\hspace*{0pt} ~| member A{\char95}~(x ::~xs) y = eq A{\char95}~x y orelse member A{\char95}~xs y;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun collect{\char95}duplicates A{\char95}~xs ys [] = xs\\
-\hspace*{0pt} ~| collect{\char95}duplicates A{\char95}~xs ys (z ::~zs) =\\
-\hspace*{0pt} ~~~(if member A{\char95}~xs z\\
-\hspace*{0pt} ~~~~~then (if member A{\char95}~ys z then collect{\char95}duplicates A{\char95}~xs ys zs\\
-\hspace*{0pt} ~~~~~~~~~~~~else collect{\char95}duplicates A{\char95}~xs (z ::~ys) zs)\\
-\hspace*{0pt} ~~~~~else collect{\char95}duplicates A{\char95}~(z ::~xs) (z ::~ys) zs);\\
-\hspace*{0pt}\\
-\hspace*{0pt}end;~(*struct Example*)%
+\begin{typewriter}
+    structure\ Example\ {\isacharcolon}\ sig\isanewline
+\ \ type\ {\isacharprime}a\ equal\isanewline
+\ \ val\ equal\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool\isanewline
+\ \ val\ eq\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool\isanewline
+\ \ val\ member\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool\isanewline
+\ \ val\ collect{\isacharunderscore}duplicates\ {\isacharcolon}\isanewline
+\ \ \ \ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\isanewline
+end\ {\isacharequal}\ struct\isanewline
+\isanewline
+type\ {\isacharprime}a\ equal\ {\isacharequal}\ {\isacharbraceleft}equal\ {\isacharcolon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool{\isacharbraceright}{\isacharsemicolon}\isanewline
+val\ equal\ {\isacharequal}\ {\isacharhash}equal\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool{\isacharsemicolon}\isanewline
+\isanewline
+fun\ eq\ A{\isacharunderscore}\ a\ b\ {\isacharequal}\ equal\ A{\isacharunderscore}\ a\ b{\isacharsemicolon}\isanewline
+\isanewline
+fun\ member\ A{\isacharunderscore}\ {\isacharbrackleft}{\isacharbrackright}\ y\ {\isacharequal}\ false\isanewline
+\ \ {\isacharbar}\ member\ A{\isacharunderscore}\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ xs{\isacharparenright}\ y\ {\isacharequal}\ eq\ A{\isacharunderscore}\ x\ y\ orelse\ member\ A{\isacharunderscore}\ xs\ y{\isacharsemicolon}\isanewline
+\isanewline
+fun\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ ys\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs\isanewline
+\ \ {\isacharbar}\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ ys\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ zs{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ {\isacharparenleft}if\ member\ A{\isacharunderscore}\ xs\ z\isanewline
+\ \ \ \ \ \ then\ {\isacharparenleft}if\ member\ A{\isacharunderscore}\ ys\ z\ then\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ ys\ zs\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ ys{\isacharparenright}\ zs{\isacharparenright}\isanewline
+\ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ xs{\isacharparenright}\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ ys{\isacharparenright}\ zs{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
+
+  \end{typewriter}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -442,14 +443,14 @@ Partiality usually enters the game by partial patterns, as
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}strict{\char95}dequeue ::~forall a.~Queue a -> (a,~Queue a);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs []) =\\
-\hspace*{0pt} ~let {\char123}\\
-\hspace*{0pt} ~~~(y :~ys) = reverse xs;\\
-\hspace*{0pt} ~{\char125}~in (y,~AQueue [] ys);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs (y :~ys)) = (y,~AQueue xs ys);%
+\begin{typewriter}
+    strict{\isacharunderscore}dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
+strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ let\ {\isacharbraceleft}\isanewline
+\ \ \ \ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}\ {\isacharequal}\ reverse\ xs{\isacharsemicolon}\isanewline
+\ \ {\isacharbraceright}\ in\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
+strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}
+  \end{typewriter}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -533,16 +534,16 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}empty{\char95}queue ::~forall a.~a;\\
-\hspace*{0pt}empty{\char95}queue = error {\char34}empty{\char95}queue{\char34};\\
-\hspace*{0pt}\\
-\hspace*{0pt}strict{\char95}dequeue ::~forall a.~Queue a -> (a,~Queue a);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs (y :~ys)) = (y,~AQueue xs ys);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs []) =\\
-\hspace*{0pt} ~(if null xs then empty{\char95}queue\\
-\hspace*{0pt} ~~~else strict{\char95}dequeue (AQueue [] (reverse xs)));%
+\begin{typewriter}
+    empty{\isacharunderscore}queue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ a{\isacharsemicolon}\isanewline
+empty{\isacharunderscore}queue\ {\isacharequal}\ error\ {\isachardoublequote}empty{\isacharunderscore}queue{\isachardoublequote}{\isacharsemicolon}\isanewline
+\isanewline
+strict{\isacharunderscore}dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
+strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
+strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ {\isacharparenleft}if\ null\ xs\ then\ empty{\isacharunderscore}queue\isanewline
+\ \ \ \ else\ strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}reverse\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}
+  \end{typewriter}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
