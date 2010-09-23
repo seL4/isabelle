@@ -73,13 +73,21 @@ type const_syntax = Code_Printer.const_syntax;
 datatype destination = Export of Path.T option | Produce | Present of string list;
 type serialization = int -> destination -> (string * (string -> string option)) option;
 
-fun serialization output _ content width (Export some_path) = (output width some_path content; NONE)
-  | serialization _ string content width Produce = SOME (string [] width content)
-  | serialization _ string content width (Present stmt_names) = SOME (string stmt_names width content);
+fun using_plain_output f x = Print_Mode.setmp [] f x;
 
-fun export some_path f = (f (Export some_path); ());
-fun produce f = the (f Produce);
-fun present stmt_names f = fst (the (f (Present stmt_names)));
+fun serialization output _ content width (Export some_path) =
+      (using_plain_output (output width some_path) content; NONE)
+  | serialization _ string content width Produce = 
+      SOME (using_plain_output (string [] width) content)
+  | serialization _ string content width (Present stmt_names) =
+      SOME (using_plain_output (string stmt_names width) content);
+
+fun export some_path serializer naming program names =
+  (using_plain_output (serializer naming program) names (Export some_path); ());
+fun produce serializer naming program names =
+  the (using_plain_output (serializer naming program) names Produce);
+fun present stmt_names serializer naming program names =
+  fst (the (using_plain_output (serializer naming program) names (Present stmt_names)));
 
 
 (** theory data **)
@@ -351,20 +359,20 @@ fun assert_module_name "" = error ("Empty module name not allowed.")
 in
 
 fun export_code_for thy some_path target some_width module_name args =
-  export some_path ooo mount_serializer thy target some_width module_name args;
+  export some_path (mount_serializer thy target some_width module_name args);
 
 fun produce_code_for thy target some_width module_name args =
   let
     val serializer = mount_serializer thy target some_width (assert_module_name module_name) args;
   in fn naming => fn program => fn names =>
-    produce (serializer naming program names) |> apsnd (fn deresolve => map deresolve names)
+    produce serializer naming program names |> apsnd (fn deresolve => map deresolve names)
   end;
 
 fun present_code_for thy target some_width module_name args =
   let
     val serializer = mount_serializer thy target some_width (assert_module_name module_name) args;
   in fn naming => fn program => fn (names, selects) =>
-    present selects (serializer naming program names)
+    present selects serializer naming program names
   end;
 
 fun check_code_for thy target strict args naming program names_cs =
@@ -377,7 +385,7 @@ fun check_code_for thy target strict args naming program names_cs =
       let 
         val destination = make_destination p;
         val _ = export (SOME destination) (mount_serializer thy target (SOME 80)
-          module_name args naming program names_cs);
+          module_name args) naming program names_cs;
         val cmd = make_command env_param module_name;
       in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
         then error ("Code check failed for " ^ target ^ ": " ^ cmd)
