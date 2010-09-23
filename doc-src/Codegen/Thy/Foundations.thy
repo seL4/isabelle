@@ -161,7 +161,11 @@ text {*
   is determined syntactically.  The resulting code:
 *}
 
-text %quote {*@{code_stmts dequeue (consts) dequeue (Haskell)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts dequeue (consts) dequeue (Haskell)}
+  \end{typewriter}
+*}
 
 text {*
   \noindent You may note that the equality test @{term "xs = []"} has
@@ -215,7 +219,11 @@ text {*
   equality check, as can be seen in the corresponding @{text SML} code:
 *}
 
-text %quote {*@{code_stmts collect_duplicates (SML)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts collect_duplicates (SML)}
+  \end{typewriter}
+*}
 
 text {*
   \noindent Obviously, polymorphic equality is implemented the Haskell
@@ -251,7 +259,11 @@ text {*
   for the pattern @{term "AQueue [] []"}:
 *}
 
-text %quote {*@{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}
+  \end{typewriter}
+*}
 
 text {*
   \noindent In some cases it is desirable to have this
@@ -290,7 +302,11 @@ text {*
   exception at the appropriate position:
 *}
 
-text %quote {*@{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}
+  \end{typewriter}
+*}
 
 text {*
   \noindent This feature however is rarely needed in practice.  Note

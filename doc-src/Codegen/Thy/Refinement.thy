@@ -31,7 +31,11 @@ text {*
   to two recursive calls:
 *}
 
-text %quote {*@{code_stmts fib (consts) fib (Haskell)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts fib (consts) fib (Haskell)}
+  \end{typewriter}
+*}
 
 text {*
   \noindent A more efficient implementation would use dynamic
@@ -67,7 +71,11 @@ text {*
   \noindent The resulting code shows only linear growth of runtime:
 *}
 
-text %quote {*@{code_stmts fib (consts) fib fib_step (Haskell)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts fib (consts) fib fib_step (Haskell)}
+  \end{typewriter}
+*}
 
 
 subsection {* Datatype refinement *}
@@ -153,7 +161,11 @@ text {*
   \noindent The resulting code looks as expected:
 *}
 
-text %quote {*@{code_stmts empty enqueue dequeue (SML)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts empty enqueue dequeue (SML)}
+  \end{typewriter}
+*}
 
 text {*
   The same techniques can also be applied to types which are not
@@ -248,7 +260,9 @@ text {*
 *}
 
 text %quote {*
-  @{code_stmts Dlist.empty Dlist.insert Dlist.remove list_of_dlist (Haskell)}
+  \begin{typewriter}
+    @{code_stmts Dlist.empty Dlist.insert Dlist.remove list_of_dlist (Haskell)}
+  \end{typewriter}
 *} (*(types) dlist (consts) dempty dinsert dremove list_of List.member insert remove *)
 
 text {*
