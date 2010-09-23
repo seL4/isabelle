@@ -10,7 +10,8 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.{FlowPanel, Button, TextArea, ScrollPane, TabbedPane, Component}
+import scala.swing.{FlowPanel, Button, TextArea, Label, ScrollPane, TabbedPane,
+  Component, Swing}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
@@ -38,12 +39,17 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   /* controls */
 
+  val session_phase = new Label(Isabelle.session.phase.toString)
+  session_phase.border = Swing.EtchedBorder(Swing.Lowered)
+  session_phase.tooltip = "Prover process status"
+
   private val interrupt = new Button("Interrupt") {
     reactions += { case ButtonClicked(_) => Isabelle.session.interrupt }
   }
   interrupt.tooltip = "Broadcast interrupt to all prover tasks"
 
-  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(interrupt)
+  private val controls =
+    new FlowPanel(FlowPanel.Alignment.Right)(session_phase, interrupt)
   add(controls.peer, BorderLayout.NORTH)
 
 
@@ -61,11 +67,21 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
               }
             }
 
+        case (_, phase: Session.Phase) =>
+          Swing_Thread.now { session_phase.text = phase.toString }
+
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)
       }
     }
   }
 
-  override def init() { Isabelle.session.raw_messages += main_actor }
-  override def exit() { Isabelle.session.raw_messages -= main_actor }
+  override def init() {
+    Isabelle.session.raw_messages += main_actor
+    Isabelle.session.phase_changed += main_actor
+  }
+
+  override def exit() {
+    Isabelle.session.raw_messages -= main_actor
+    Isabelle.session.phase_changed -= main_actor
+  }
 }
