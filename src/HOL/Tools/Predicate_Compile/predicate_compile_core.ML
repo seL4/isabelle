@@ -627,36 +627,8 @@ fun preprocess_equality thy rule =
 
 fun preprocess_intro thy = expand_tuples thy #> preprocess_equality thy
 
-fun preprocess_equality_elim ctxt elimrule =
-  let
-    fun replace_eqs (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, T) $ lhs $ rhs)) =
-       HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
-     | replace_eqs t = t
-    val thy = ProofContext.theory_of ctxt
-    val ((_, [elimrule]), ctxt') = Variable.import false [elimrule] ctxt
-    val prems = Thm.prems_of elimrule
-    val nargs = length (snd (strip_comb (HOLogic.dest_Trueprop (hd prems))))
-    fun preprocess_case t =
-      let
-        val params = Logic.strip_params t
-        val (assums1, assums2) = chop nargs (Logic.strip_assums_hyp t)
-        val assums_hyp' = assums1 @ (map replace_eqs assums2)
-      in
-        list_all (params, Logic.list_implies (assums_hyp', Logic.strip_assums_concl t))
-      end
-    val cases' = map preprocess_case (tl prems)
-    val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
-    val bigeq = (Thm.symmetric (Conv.implies_concl_conv
-      (MetaSimplifier.rewrite true [@{thm Predicate.eq_is_eq}])
-        (cterm_of thy elimrule')))
-    val tac = (fn _ => Skip_Proof.cheat_tac thy)
-    val eq = Goal.prove ctxt' [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) tac
-  in
-    Thm.equal_elim eq elimrule |> singleton (Variable.export ctxt' ctxt)
-  end;
+(* fetching introduction rules or registering introduction rules *)
 
-fun preprocess_elim ctxt = expand_tuples_elim ctxt #> preprocess_equality_elim ctxt
-  
 val no_compilation = ([], ([], []))
 
 fun fetch_pred_data ctxt name =

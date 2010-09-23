@@ -146,7 +146,6 @@ sig
   val imp_prems_conv : conv -> conv
   (* simple transformations *)
   val expand_tuples : theory -> thm -> thm
-  val expand_tuples_elim : Proof.context -> thm -> thm
   val eta_contract_ho_arguments : theory -> thm -> thm
   val remove_equalities : theory -> thm -> thm
   val remove_pointless_clauses : thm -> thm list
@@ -860,56 +859,6 @@ fun all_params_conv cv ctxt ct =
   then Conv.arg_conv (Conv.abs_conv (all_params_conv cv o #2) ctxt) ct
   else cv ctxt ct;
   
-fun expand_tuples_elim ctxt elimrule =
-  let
-    val thy = ProofContext.theory_of ctxt
-    val ((_, [elimrule]), ctxt1) = Variable.import false [elimrule] ctxt
-    val prems = Thm.prems_of elimrule
-    val nargs = length (snd (strip_comb (HOLogic.dest_Trueprop (hd prems))))
-    fun preprocess_case t =
-      let
-        val (param_names, param_Ts)  = split_list (Logic.strip_params t)
-        val prop = Logic.list_implies (Logic.strip_assums_hyp t, Logic.strip_assums_concl t)
-        val (free_names, ctxt2) = Variable.variant_fixes param_names ctxt1
-        val frees = map Free (free_names ~~ param_Ts)
-        val prop' = subst_bounds (rev frees, prop)
-        val (eqs, prems) = chop nargs (Logic.strip_imp_prems prop')
-        val rhss = map (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop) eqs
-        val (pats, prop'', ctxt2) = fold 
-          rewrite_prem (map HOLogic.dest_Trueprop prems)
-            (rewrite_args rhss ([], prop', ctxt2)) 
-        val new_frees = fold Term.add_frees (frees @ map snd pats) [] (* FIXME: frees are not minimal and not ordered *)
-      in
-        fold Logic.all (map Free new_frees) prop''
-      end
-    val cases' = map preprocess_case (tl prems)
-    val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
-    val tac = (fn _ => Skip_Proof.cheat_tac thy)
-    val eq = Goal.prove ctxt1 [] [] (Logic.mk_equals ((Thm.prop_of elimrule), elimrule')) tac
-    val exported_elimrule' = Thm.equal_elim eq elimrule |> singleton (Variable.export ctxt1 ctxt)
-    val elimrule'' = Conv.fconv_rule (imp_prems_conv (all_params_conv (fn ctxt => Conv.concl_conv nargs 
-      (Simplifier.full_rewrite
-        (HOL_basic_ss addsimps [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}]))) ctxt1)) 
-      exported_elimrule'
-    (* splitting conjunctions introduced by Pair_eq*)
-    fun split_conj prem =
-      map HOLogic.mk_Trueprop (conjuncts (HOLogic.dest_Trueprop prem))
-    fun map_cases f t =
-      let
-        val (prems, concl) = Logic.strip_horn t
-        val ([pred], prems') = chop 1 prems
-        fun map_params f t =
-          let
-            val prop = Logic.list_implies (Logic.strip_assums_hyp t, Logic.strip_assums_concl t)
-          in Term.list_all (Logic.strip_params t, f prop) end 
-        val prems'' = map (map_params f) prems'
-      in
-        Logic.list_implies (pred :: prems'', concl)
-      end
-    val elimrule''' = map_term thy (map_cases (maps_premises split_conj)) elimrule''
-   in
-     elimrule'''
-  end
 (** eta contract higher-order arguments **)
 
 fun eta_contract_ho_arguments thy intro =
