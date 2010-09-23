@@ -26,9 +26,15 @@
 \renewcommand{\endisatagquote}{\end{quote}}
 \newcommand{\quotebreak}{\\[1.2ex]}
 
+%% typewriter text
+\newenvironment{typewriter}{\renewcommand{\isadigit}[1]{{##1}}%
+\def\isacharunderscore{\_}%
+\parindent0pt\fontsize{9pt}{0pt}%
+\tt\setlength{\baselineskip}{8pt}\renewcommand{\baselinestretch}{1}}{}
+
 \isakeeptag{quotett}
 \renewcommand{\isatagquotett}{\begin{quote}\isabellestyle{tt}\isastyle}
-\renewcommand{\endisatagquotett}{\end{quote}\isabellestyle{it}\isastyle}
+\renewcommand{\endisatagquotett}{\end{quote}}
 
 %% a trick
 \newcommand{\isasymSML}{SML}

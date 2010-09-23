@@ -112,7 +112,11 @@ text {*
   After this setup procedure, code generation can continue as usual:
 *}
 
-text %quote {*@{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}*}
+text %quote {*
+  \begin{typewriter}
+    @{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}
+  \end{typewriter}
+*}
 
 
 subsection {* Imperative data structures *}

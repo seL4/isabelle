@@ -214,15 +214,15 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}funpow ::~forall a.~Nat -> (a -> a) -> a -> a;\\
-\hspace*{0pt}funpow Zero{\char95}nat f = id;\\
-\hspace*{0pt}funpow (Suc n) f = f .~funpow n f;\\
-\hspace*{0pt}\\
-\hspace*{0pt}funpows ::~forall a.~[Nat] -> (a -> a) -> a -> a;\\
-\hspace*{0pt}funpows [] = id;\\
-\hspace*{0pt}funpows (x :~xs) = funpow x .~funpows xs;%
+\begin{typewriter}
+    funpow\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Nat\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a\ {\isacharminus}{\isachargreater}\ a{\isacharparenright}\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
+funpow\ Zero{\isacharunderscore}nat\ f\ {\isacharequal}\ id{\isacharsemicolon}\isanewline
+funpow\ {\isacharparenleft}Suc\ n{\isacharparenright}\ f\ {\isacharequal}\ f\ {\isachardot}\ funpow\ n\ f{\isacharsemicolon}\isanewline
+\isanewline
+funpows\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ {\isacharbrackleft}Nat{\isacharbrackright}\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a\ {\isacharminus}{\isachargreater}\ a{\isacharparenright}\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
+funpows\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ id{\isacharsemicolon}\isanewline
+funpows\ {\isacharparenleft}x\ {\isacharcolon}\ xs{\isacharparenright}\ {\isacharequal}\ funpow\ x\ {\isachardot}\ funpows\ xs{\isacharsemicolon}
+  \end{typewriter}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

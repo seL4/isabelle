@@ -26,6 +26,12 @@
 \renewcommand{\endisatagquote}{\end{quote}}
 \newcommand{\quotebreak}{\\[1.2ex]}
 
+%% typewriter text
+\newenvironment{typewriter}{\renewcommand{\isadigit}[1]{{##1}}%
+\def\isacharunderscore{\_}%
+\parindent0pt\fontsize{9pt}{0pt}%
+\tt\setlength{\baselineskip}{8pt}\renewcommand{\baselinestretch}{1}}{}
+
 %% presentation
 \setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
 

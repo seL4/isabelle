@@ -1130,70 +1130,71 @@ Turning back to the first motivation for type classes, namely
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}module Example where {\char123}\\
-\hspace*{0pt}\\
-\hspace*{0pt}data Nat = Zero{\char95}nat | Suc Nat;\\
-\hspace*{0pt}\\
-\hspace*{0pt}nat{\char95}aux ::~Integer -> Nat -> Nat;\\
-\hspace*{0pt}nat{\char95}aux i n = (if i <= 0 then n else nat{\char95}aux (i - 1) (Suc n));\\
-\hspace*{0pt}\\
-\hspace*{0pt}nat ::~Integer -> Nat;\\
-\hspace*{0pt}nat i = nat{\char95}aux i Zero{\char95}nat;\\
-\hspace*{0pt}\\
-\hspace*{0pt}class Semigroup a where {\char123}\\
-\hspace*{0pt} ~mult ::~a -> a -> a;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}class (Semigroup a) => Monoidl a where {\char123}\\
-\hspace*{0pt} ~neutral ::~a;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}class (Monoidl a) => Monoid a where {\char123}\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}class (Monoid a) => Group a where {\char123}\\
-\hspace*{0pt} ~inverse ::~a -> a;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}pow{\char95}nat ::~forall a.~(Monoid a) => Nat -> a -> a;\\
-\hspace*{0pt}pow{\char95}nat Zero{\char95}nat x = neutral;\\
-\hspace*{0pt}pow{\char95}nat (Suc n) x = mult x (pow{\char95}nat n x);\\
-\hspace*{0pt}\\
-\hspace*{0pt}pow{\char95}int ::~forall a.~(Group a) => Integer -> a -> a;\\
-\hspace*{0pt}pow{\char95}int k x =\\
-\hspace*{0pt} ~(if 0 <= k then pow{\char95}nat (nat k) x\\
-\hspace*{0pt} ~~~else inverse (pow{\char95}nat (nat (negate k)) x));\\
-\hspace*{0pt}\\
-\hspace*{0pt}mult{\char95}int ::~Integer -> Integer -> Integer;\\
-\hspace*{0pt}mult{\char95}int i j = i + j;\\
-\hspace*{0pt}\\
-\hspace*{0pt}instance Semigroup Integer where {\char123}\\
-\hspace*{0pt} ~mult = mult{\char95}int;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}neutral{\char95}int ::~Integer;\\
-\hspace*{0pt}neutral{\char95}int = 0;\\
-\hspace*{0pt}\\
-\hspace*{0pt}instance Monoidl Integer where {\char123}\\
-\hspace*{0pt} ~neutral = neutral{\char95}int;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}instance Monoid Integer where {\char123}\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}inverse{\char95}int ::~Integer -> Integer;\\
-\hspace*{0pt}inverse{\char95}int i = negate i;\\
-\hspace*{0pt}\\
-\hspace*{0pt}instance Group Integer where {\char123}\\
-\hspace*{0pt} ~inverse = inverse{\char95}int;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}example ::~Integer;\\
-\hspace*{0pt}example = pow{\char95}int 10 (-2);\\
-\hspace*{0pt}\\
-\hspace*{0pt}{\char125}%
+\begin{typewriter}
+    module\ Example\ where\ {\isacharbraceleft}\isanewline
+\isanewline
+data\ Nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ Nat{\isacharsemicolon}\isanewline
+\isanewline
+nat{\isacharunderscore}aux\ {\isacharcolon}{\isacharcolon}\ Integer\ {\isacharminus}{\isachargreater}\ Nat\ {\isacharminus}{\isachargreater}\ Nat{\isacharsemicolon}\isanewline
+nat{\isacharunderscore}aux\ i\ n\ {\isacharequal}\ {\isacharparenleft}if\ i\ {\isacharless}{\isacharequal}\ {\isadigit{0}}\ then\ n\ else\ nat{\isacharunderscore}aux\ {\isacharparenleft}i\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+nat\ {\isacharcolon}{\isacharcolon}\ Integer\ {\isacharminus}{\isachargreater}\ Nat{\isacharsemicolon}\isanewline
+nat\ i\ {\isacharequal}\ nat{\isacharunderscore}aux\ i\ Zero{\isacharunderscore}nat{\isacharsemicolon}\isanewline
+\isanewline
+class\ Semigroup\ a\ where\ {\isacharbraceleft}\isanewline
+\ \ mult\ {\isacharcolon}{\isacharcolon}\ a\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
+{\isacharbraceright}{\isacharsemicolon}\isanewline
+\isanewline
+class\ {\isacharparenleft}Semigroup\ a{\isacharparenright}\ {\isacharequal}{\isachargreater}\ Monoidl\ a\ where\ {\isacharbraceleft}\isanewline
+\ \ neutral\ {\isacharcolon}{\isacharcolon}\ a{\isacharsemicolon}\isanewline
+{\isacharbraceright}{\isacharsemicolon}\isanewline
+\isanewline
+class\ {\isacharparenleft}Monoidl\ a{\isacharparenright}\ {\isacharequal}{\isachargreater}\ Monoid\ a\ where\ {\isacharbraceleft}\isanewline
+{\isacharbraceright}{\isacharsemicolon}\isanewline
+\isanewline
+class\ {\isacharparenleft}Monoid\ a{\isacharparenright}\ {\isacharequal}{\isachargreater}\ Group\ a\ where\ {\isacharbraceleft}\isanewline
+\ \ inverse\ {\isacharcolon}{\isacharcolon}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
+{\isacharbraceright}{\isacharsemicolon}\isanewline
+\isanewline
+pow{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ {\isacharparenleft}Monoid\ a{\isacharparenright}\ {\isacharequal}{\isachargreater}\ Nat\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
+pow{\isacharunderscore}nat\ Zero{\isacharunderscore}nat\ x\ {\isacharequal}\ neutral{\isacharsemicolon}\isanewline
+pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ mult\ x\ {\isacharparenleft}pow{\isacharunderscore}nat\ n\ x{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+pow{\isacharunderscore}int\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ {\isacharparenleft}Group\ a{\isacharparenright}\ {\isacharequal}{\isachargreater}\ Integer\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
+pow{\isacharunderscore}int\ k\ x\ {\isacharequal}\isanewline
+\ \ {\isacharparenleft}if\ {\isadigit{0}}\ {\isacharless}{\isacharequal}\ k\ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\isanewline
+\ \ \ \ else\ inverse\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}negate\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+mult{\isacharunderscore}int\ {\isacharcolon}{\isacharcolon}\ Integer\ {\isacharminus}{\isachargreater}\ Integer\ {\isacharminus}{\isachargreater}\ Integer{\isacharsemicolon}\isanewline
+mult{\isacharunderscore}int\ i\ j\ {\isacharequal}\ i\ {\isacharplus}\ j{\isacharsemicolon}\isanewline
+\isanewline
+instance\ Semigroup\ Integer\ where\ {\isacharbraceleft}\isanewline
+\ \ mult\ {\isacharequal}\ mult{\isacharunderscore}int{\isacharsemicolon}\isanewline
+{\isacharbraceright}{\isacharsemicolon}\isanewline
+\isanewline
+neutral{\isacharunderscore}int\ {\isacharcolon}{\isacharcolon}\ Integer{\isacharsemicolon}\isanewline
+neutral{\isacharunderscore}int\ {\isacharequal}\ {\isadigit{0}}{\isacharsemicolon}\isanewline
+\isanewline
+instance\ Monoidl\ Integer\ where\ {\isacharbraceleft}\isanewline
+\ \ neutral\ {\isacharequal}\ neutral{\isacharunderscore}int{\isacharsemicolon}\isanewline
+{\isacharbraceright}{\isacharsemicolon}\isanewline
+\isanewline
+instance\ Monoid\ Integer\ where\ {\isacharbraceleft}\isanewline
+{\isacharbraceright}{\isacharsemicolon}\isanewline
+\isanewline
+inverse{\isacharunderscore}int\ {\isacharcolon}{\isacharcolon}\ Integer\ {\isacharminus}{\isachargreater}\ Integer{\isacharsemicolon}\isanewline
+inverse{\isacharunderscore}int\ i\ {\isacharequal}\ negate\ i{\isacharsemicolon}\isanewline
+\isanewline
+instance\ Group\ Integer\ where\ {\isacharbraceleft}\isanewline
+\ \ inverse\ {\isacharequal}\ inverse{\isacharunderscore}int{\isacharsemicolon}\isanewline
+{\isacharbraceright}{\isacharsemicolon}\isanewline
+\isanewline
+example\ {\isacharcolon}{\isacharcolon}\ Integer{\isacharsemicolon}\isanewline
+example\ {\isacharequal}\ pow{\isacharunderscore}int\ {\isadigit{1}}{\isadigit{0}}\ {\isacharparenleft}{\isacharminus}{\isadigit{2}}{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+{\isacharbraceright}\isanewline
+
+  \end{typewriter}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1216,86 +1217,87 @@ Turning back to the first motivation for type classes, namely
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt} ~datatype nat = Zero{\char95}nat | Suc of nat\\
-\hspace*{0pt} ~val nat{\char95}aux :~IntInf.int -> nat -> nat\\
-\hspace*{0pt} ~val nat :~IntInf.int -> nat\\
-\hspace*{0pt} ~type 'a semigroup\\
-\hspace*{0pt} ~val mult :~'a semigroup -> 'a -> 'a -> 'a\\
-\hspace*{0pt} ~type 'a monoidl\\
-\hspace*{0pt} ~val semigroup{\char95}monoidl :~'a monoidl -> 'a semigroup\\
-\hspace*{0pt} ~val neutral :~'a monoidl -> 'a\\
-\hspace*{0pt} ~type 'a monoid\\
-\hspace*{0pt} ~val monoidl{\char95}monoid :~'a monoid -> 'a monoidl\\
-\hspace*{0pt} ~type 'a group\\
-\hspace*{0pt} ~val monoid{\char95}group :~'a group -> 'a monoid\\
-\hspace*{0pt} ~val inverse :~'a group -> 'a -> 'a\\
-\hspace*{0pt} ~val pow{\char95}nat :~'a monoid -> nat -> 'a -> 'a\\
-\hspace*{0pt} ~val pow{\char95}int :~'a group -> IntInf.int -> 'a -> 'a\\
-\hspace*{0pt} ~val mult{\char95}int :~IntInf.int -> IntInf.int -> IntInf.int\\
-\hspace*{0pt} ~val semigroup{\char95}int :~IntInf.int semigroup\\
-\hspace*{0pt} ~val neutral{\char95}int :~IntInf.int\\
-\hspace*{0pt} ~val monoidl{\char95}int :~IntInf.int monoidl\\
-\hspace*{0pt} ~val monoid{\char95}int :~IntInf.int monoid\\
-\hspace*{0pt} ~val inverse{\char95}int :~IntInf.int -> IntInf.int\\
-\hspace*{0pt} ~val group{\char95}int :~IntInf.int group\\
-\hspace*{0pt} ~val example :~IntInf.int\\
-\hspace*{0pt}end = struct\\
-\hspace*{0pt}\\
-\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun nat{\char95}aux i n =\\
-\hspace*{0pt} ~(if IntInf.<= (i,~(0 :~IntInf.int)) then n\\
-\hspace*{0pt} ~~~else nat{\char95}aux (IntInf.- (i,~(1 :~IntInf.int))) (Suc n));\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun nat i = nat{\char95}aux i Zero{\char95}nat;\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
-\hspace*{0pt}val mult = {\char35}mult :~'a semigroup -> 'a -> 'a -> 'a;\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a monoidl = {\char123}semigroup{\char95}monoidl :~'a semigroup,~neutral :~'a{\char125};\\
-\hspace*{0pt}val semigroup{\char95}monoidl = {\char35}semigroup{\char95}monoidl :~'a monoidl -> 'a semigroup;\\
-\hspace*{0pt}val neutral = {\char35}neutral :~'a monoidl -> 'a;\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a monoid = {\char123}monoidl{\char95}monoid :~'a monoidl{\char125};\\
-\hspace*{0pt}val monoidl{\char95}monoid = {\char35}monoidl{\char95}monoid :~'a monoid -> 'a monoidl;\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a group = {\char123}monoid{\char95}group :~'a monoid,~inverse :~'a -> 'a{\char125};\\
-\hspace*{0pt}val monoid{\char95}group = {\char35}monoid{\char95}group :~'a group -> 'a monoid;\\
-\hspace*{0pt}val inverse = {\char35}inverse :~'a group -> 'a -> 'a;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun pow{\char95}nat A{\char95}~Zero{\char95}nat x = neutral (monoidl{\char95}monoid A{\char95})\\
-\hspace*{0pt} ~| pow{\char95}nat A{\char95}~(Suc n) x =\\
-\hspace*{0pt} ~~~mult ((semigroup{\char95}monoidl o monoidl{\char95}monoid) A{\char95}) x (pow{\char95}nat A{\char95}~n x);\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun pow{\char95}int A{\char95}~k x =\\
-\hspace*{0pt} ~(if IntInf.<= ((0 :~IntInf.int),~k)\\
-\hspace*{0pt} ~~~then pow{\char95}nat (monoid{\char95}group A{\char95}) (nat k) x\\
-\hspace*{0pt} ~~~else inverse A{\char95}~(pow{\char95}nat (monoid{\char95}group A{\char95}) (nat (IntInf.{\char126}~k)) x));\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun mult{\char95}int i j = IntInf.+ (i,~j);\\
-\hspace*{0pt}\\
-\hspace*{0pt}val semigroup{\char95}int = {\char123}mult = mult{\char95}int{\char125}~:~IntInf.int semigroup;\\
-\hspace*{0pt}\\
-\hspace*{0pt}val neutral{\char95}int :~IntInf.int = (0 :~IntInf.int);\\
-\hspace*{0pt}\\
-\hspace*{0pt}val monoidl{\char95}int =\\
-\hspace*{0pt} ~{\char123}semigroup{\char95}monoidl = semigroup{\char95}int,~neutral = neutral{\char95}int{\char125}~:\\
-\hspace*{0pt} ~IntInf.int monoidl;\\
-\hspace*{0pt}\\
-\hspace*{0pt}val monoid{\char95}int = {\char123}monoidl{\char95}monoid = monoidl{\char95}int{\char125}~:~IntInf.int monoid;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun inverse{\char95}int i = IntInf.{\char126}~i;\\
-\hspace*{0pt}\\
-\hspace*{0pt}val group{\char95}int = {\char123}monoid{\char95}group = monoid{\char95}int,~inverse = inverse{\char95}int{\char125}~:\\
-\hspace*{0pt} ~IntInf.int group;\\
-\hspace*{0pt}\\
-\hspace*{0pt}val example :~IntInf.int =\\
-\hspace*{0pt} ~pow{\char95}int group{\char95}int (10 :~IntInf.int) ({\char126}2 :~IntInf.int);\\
-\hspace*{0pt}\\
-\hspace*{0pt}end;~(*struct Example*)%
+\begin{typewriter}
+    structure\ Example\ {\isacharcolon}\ sig\isanewline
+\ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
+\ \ val\ nat{\isacharunderscore}aux\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ nat\isanewline
+\ \ val\ nat\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharminus}{\isachargreater}\ nat\isanewline
+\ \ type\ {\isacharprime}a\ semigroup\isanewline
+\ \ val\ mult\ {\isacharcolon}\ {\isacharprime}a\ semigroup\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
+\ \ type\ {\isacharprime}a\ monoidl\isanewline
+\ \ val\ semigroup{\isacharunderscore}monoidl\ {\isacharcolon}\ {\isacharprime}a\ monoidl\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ semigroup\isanewline
+\ \ val\ neutral\ {\isacharcolon}\ {\isacharprime}a\ monoidl\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
+\ \ type\ {\isacharprime}a\ monoid\isanewline
+\ \ val\ monoidl{\isacharunderscore}monoid\ {\isacharcolon}\ {\isacharprime}a\ monoid\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ monoidl\isanewline
+\ \ type\ {\isacharprime}a\ group\isanewline
+\ \ val\ monoid{\isacharunderscore}group\ {\isacharcolon}\ {\isacharprime}a\ group\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ monoid\isanewline
+\ \ val\ inverse\ {\isacharcolon}\ {\isacharprime}a\ group\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
+\ \ val\ pow{\isacharunderscore}nat\ {\isacharcolon}\ {\isacharprime}a\ monoid\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
+\ \ val\ pow{\isacharunderscore}int\ {\isacharcolon}\ {\isacharprime}a\ group\ {\isacharminus}{\isachargreater}\ IntInf{\isachardot}int\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
+\ \ val\ mult{\isacharunderscore}int\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharminus}{\isachargreater}\ IntInf{\isachardot}int\ {\isacharminus}{\isachargreater}\ IntInf{\isachardot}int\isanewline
+\ \ val\ semigroup{\isacharunderscore}int\ {\isacharcolon}\ IntInf{\isachardot}int\ semigroup\isanewline
+\ \ val\ neutral{\isacharunderscore}int\ {\isacharcolon}\ IntInf{\isachardot}int\isanewline
+\ \ val\ monoidl{\isacharunderscore}int\ {\isacharcolon}\ IntInf{\isachardot}int\ monoidl\isanewline
+\ \ val\ monoid{\isacharunderscore}int\ {\isacharcolon}\ IntInf{\isachardot}int\ monoid\isanewline
+\ \ val\ inverse{\isacharunderscore}int\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharminus}{\isachargreater}\ IntInf{\isachardot}int\isanewline
+\ \ val\ group{\isacharunderscore}int\ {\isacharcolon}\ IntInf{\isachardot}int\ group\isanewline
+\ \ val\ example\ {\isacharcolon}\ IntInf{\isachardot}int\isanewline
+end\ {\isacharequal}\ struct\isanewline
+\isanewline
+datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat{\isacharsemicolon}\isanewline
+\isanewline
+fun\ nat{\isacharunderscore}aux\ i\ n\ {\isacharequal}\isanewline
+\ \ {\isacharparenleft}if\ IntInf{\isachardot}{\isacharless}{\isacharequal}\ {\isacharparenleft}i{\isacharcomma}\ {\isacharparenleft}{\isadigit{0}}\ {\isacharcolon}\ IntInf{\isachardot}int{\isacharparenright}{\isacharparenright}\ then\ n\isanewline
+\ \ \ \ else\ nat{\isacharunderscore}aux\ {\isacharparenleft}IntInf{\isachardot}{\isacharminus}\ {\isacharparenleft}i{\isacharcomma}\ {\isacharparenleft}{\isadigit{1}}\ {\isacharcolon}\ IntInf{\isachardot}int{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+fun\ nat\ i\ {\isacharequal}\ nat{\isacharunderscore}aux\ i\ Zero{\isacharunderscore}nat{\isacharsemicolon}\isanewline
+\isanewline
+type\ {\isacharprime}a\ semigroup\ {\isacharequal}\ {\isacharbraceleft}mult\ {\isacharcolon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a{\isacharbraceright}{\isacharsemicolon}\isanewline
+val\ mult\ {\isacharequal}\ {\isacharhash}mult\ {\isacharcolon}\ {\isacharprime}a\ semigroup\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a{\isacharsemicolon}\isanewline
+\isanewline
+type\ {\isacharprime}a\ monoidl\ {\isacharequal}\ {\isacharbraceleft}semigroup{\isacharunderscore}monoidl\ {\isacharcolon}\ {\isacharprime}a\ semigroup{\isacharcomma}\ neutral\ {\isacharcolon}\ {\isacharprime}a{\isacharbraceright}{\isacharsemicolon}\isanewline
+val\ semigroup{\isacharunderscore}monoidl\ {\isacharequal}\ {\isacharhash}semigroup{\isacharunderscore}monoidl\ {\isacharcolon}\ {\isacharprime}a\ monoidl\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ semigroup{\isacharsemicolon}\isanewline
+val\ neutral\ {\isacharequal}\ {\isacharhash}neutral\ {\isacharcolon}\ {\isacharprime}a\ monoidl\ {\isacharminus}{\isachargreater}\ {\isacharprime}a{\isacharsemicolon}\isanewline
+\isanewline
+type\ {\isacharprime}a\ monoid\ {\isacharequal}\ {\isacharbraceleft}monoidl{\isacharunderscore}monoid\ {\isacharcolon}\ {\isacharprime}a\ monoidl{\isacharbraceright}{\isacharsemicolon}\isanewline
+val\ monoidl{\isacharunderscore}monoid\ {\isacharequal}\ {\isacharhash}monoidl{\isacharunderscore}monoid\ {\isacharcolon}\ {\isacharprime}a\ monoid\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ monoidl{\isacharsemicolon}\isanewline
+\isanewline
+type\ {\isacharprime}a\ group\ {\isacharequal}\ {\isacharbraceleft}monoid{\isacharunderscore}group\ {\isacharcolon}\ {\isacharprime}a\ monoid{\isacharcomma}\ inverse\ {\isacharcolon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a{\isacharbraceright}{\isacharsemicolon}\isanewline
+val\ monoid{\isacharunderscore}group\ {\isacharequal}\ {\isacharhash}monoid{\isacharunderscore}group\ {\isacharcolon}\ {\isacharprime}a\ group\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ monoid{\isacharsemicolon}\isanewline
+val\ inverse\ {\isacharequal}\ {\isacharhash}inverse\ {\isacharcolon}\ {\isacharprime}a\ group\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a{\isacharsemicolon}\isanewline
+\isanewline
+fun\ pow{\isacharunderscore}nat\ A{\isacharunderscore}\ Zero{\isacharunderscore}nat\ x\ {\isacharequal}\ neutral\ {\isacharparenleft}monoidl{\isacharunderscore}monoid\ A{\isacharunderscore}{\isacharparenright}\isanewline
+\ \ {\isacharbar}\ pow{\isacharunderscore}nat\ A{\isacharunderscore}\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\isanewline
+\ \ \ \ mult\ {\isacharparenleft}{\isacharparenleft}semigroup{\isacharunderscore}monoidl\ o\ monoidl{\isacharunderscore}monoid{\isacharparenright}\ A{\isacharunderscore}{\isacharparenright}\ x\ {\isacharparenleft}pow{\isacharunderscore}nat\ A{\isacharunderscore}\ n\ x{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+fun\ pow{\isacharunderscore}int\ A{\isacharunderscore}\ k\ x\ {\isacharequal}\isanewline
+\ \ {\isacharparenleft}if\ IntInf{\isachardot}{\isacharless}{\isacharequal}\ {\isacharparenleft}{\isacharparenleft}{\isadigit{0}}\ {\isacharcolon}\ IntInf{\isachardot}int{\isacharparenright}{\isacharcomma}\ k{\isacharparenright}\isanewline
+\ \ \ \ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}monoid{\isacharunderscore}group\ A{\isacharunderscore}{\isacharparenright}\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\isanewline
+\ \ \ \ else\ inverse\ A{\isacharunderscore}\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}monoid{\isacharunderscore}group\ A{\isacharunderscore}{\isacharparenright}\ {\isacharparenleft}nat\ {\isacharparenleft}IntInf{\isachardot}{\isachartilde}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+fun\ mult{\isacharunderscore}int\ i\ j\ {\isacharequal}\ IntInf{\isachardot}{\isacharplus}\ {\isacharparenleft}i{\isacharcomma}\ j{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+val\ semigroup{\isacharunderscore}int\ {\isacharequal}\ {\isacharbraceleft}mult\ {\isacharequal}\ mult{\isacharunderscore}int{\isacharbraceright}\ {\isacharcolon}\ IntInf{\isachardot}int\ semigroup{\isacharsemicolon}\isanewline
+\isanewline
+val\ neutral{\isacharunderscore}int\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}\ {\isacharcolon}\ IntInf{\isachardot}int{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+val\ monoidl{\isacharunderscore}int\ {\isacharequal}\isanewline
+\ \ {\isacharbraceleft}semigroup{\isacharunderscore}monoidl\ {\isacharequal}\ semigroup{\isacharunderscore}int{\isacharcomma}\ neutral\ {\isacharequal}\ neutral{\isacharunderscore}int{\isacharbraceright}\ {\isacharcolon}\isanewline
+\ \ IntInf{\isachardot}int\ monoidl{\isacharsemicolon}\isanewline
+\isanewline
+val\ monoid{\isacharunderscore}int\ {\isacharequal}\ {\isacharbraceleft}monoidl{\isacharunderscore}monoid\ {\isacharequal}\ monoidl{\isacharunderscore}int{\isacharbraceright}\ {\isacharcolon}\ IntInf{\isachardot}int\ monoid{\isacharsemicolon}\isanewline
+\isanewline
+fun\ inverse{\isacharunderscore}int\ i\ {\isacharequal}\ IntInf{\isachardot}{\isachartilde}\ i{\isacharsemicolon}\isanewline
+\isanewline
+val\ group{\isacharunderscore}int\ {\isacharequal}\ {\isacharbraceleft}monoid{\isacharunderscore}group\ {\isacharequal}\ monoid{\isacharunderscore}int{\isacharcomma}\ inverse\ {\isacharequal}\ inverse{\isacharunderscore}int{\isacharbraceright}\ {\isacharcolon}\isanewline
+\ \ IntInf{\isachardot}int\ group{\isacharsemicolon}\isanewline
+\isanewline
+val\ example\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharequal}\isanewline
+\ \ pow{\isacharunderscore}int\ group{\isacharunderscore}int\ {\isacharparenleft}{\isadigit{1}}{\isadigit{0}}\ {\isacharcolon}\ IntInf{\isachardot}int{\isacharparenright}\ {\isacharparenleft}{\isachartilde}{\isadigit{2}}\ {\isacharcolon}\ IntInf{\isachardot}int{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
+
+  \end{typewriter}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1331,76 +1333,77 @@ Turning back to the first motivation for type classes, namely
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}object Example {\char123}\\
-\hspace*{0pt}\\
-\hspace*{0pt}abstract sealed class nat\\
-\hspace*{0pt}final case object Zero{\char95}nat extends nat\\
-\hspace*{0pt}final case class Suc(a:~nat) extends nat\\
-\hspace*{0pt}\\
-\hspace*{0pt}def nat{\char95}aux(i:~BigInt,~n:~nat):~nat =\\
-\hspace*{0pt} ~(if (i <= BigInt(0)) n else nat{\char95}aux(i - BigInt(1),~Suc(n)))\\
-\hspace*{0pt}\\
-\hspace*{0pt}def nat(i:~BigInt):~nat = nat{\char95}aux(i,~Zero{\char95}nat)\\
-\hspace*{0pt}\\
-\hspace*{0pt}trait semigroup[A] {\char123}\\
-\hspace*{0pt} ~val `Example.mult`:~(A,~A) => A\\
-\hspace*{0pt}{\char125}\\
-\hspace*{0pt}def mult[A](a:~A,~b:~A)(implicit A:~semigroup[A]):~A =\\
-\hspace*{0pt} ~A.`Example.mult`(a,~b)\\
-\hspace*{0pt}\\
-\hspace*{0pt}trait monoidl[A] extends semigroup[A] {\char123}\\
-\hspace*{0pt} ~val `Example.neutral`:~A\\
-\hspace*{0pt}{\char125}\\
-\hspace*{0pt}def neutral[A](implicit A:~monoidl[A]):~A = A.`Example.neutral`\\
-\hspace*{0pt}\\
-\hspace*{0pt}trait monoid[A] extends monoidl[A] {\char123}\\
-\hspace*{0pt}{\char125}\\
-\hspace*{0pt}\\
-\hspace*{0pt}trait group[A] extends monoid[A] {\char123}\\
-\hspace*{0pt} ~val `Example.inverse`:~A => A\\
-\hspace*{0pt}{\char125}\\
-\hspace*{0pt}def inverse[A](a:~A)(implicit A:~group[A]):~A = A.`Example.inverse`(a)\\
-\hspace*{0pt}\\
-\hspace*{0pt}def pow{\char95}nat[A:~monoid](xa0:~nat,~x:~A):~A = (xa0,~x) match {\char123}\\
-\hspace*{0pt} ~case (Zero{\char95}nat,~x) => neutral[A]\\
-\hspace*{0pt} ~case (Suc(n),~x) => mult[A](x,~pow{\char95}nat[A](n,~x))\\
-\hspace*{0pt}{\char125}\\
-\hspace*{0pt}\\
-\hspace*{0pt}def pow{\char95}int[A:~group](k:~BigInt,~x:~A):~A =\\
-\hspace*{0pt} ~(if (BigInt(0) <= k) pow{\char95}nat[A](nat(k),~x)\\
-\hspace*{0pt} ~~~else inverse[A](pow{\char95}nat[A](nat((- k)),~x)))\\
-\hspace*{0pt}\\
-\hspace*{0pt}def mult{\char95}int(i:~BigInt,~j:~BigInt):~BigInt = i + j\\
-\hspace*{0pt}\\
-\hspace*{0pt}implicit def semigroup{\char95}int:~semigroup[BigInt] = new semigroup[BigInt] {\char123}\\
-\hspace*{0pt} ~val `Example.mult` = (a:~BigInt,~b:~BigInt) => mult{\char95}int(a,~b)\\
-\hspace*{0pt}{\char125}\\
-\hspace*{0pt}\\
-\hspace*{0pt}def neutral{\char95}int:~BigInt = BigInt(0)\\
-\hspace*{0pt}\\
-\hspace*{0pt}implicit def monoidl{\char95}int:~monoidl[BigInt] = new monoidl[BigInt] {\char123}\\
-\hspace*{0pt} ~val `Example.neutral` = neutral{\char95}int\\
-\hspace*{0pt} ~val `Example.mult` = (a:~BigInt,~b:~BigInt) => mult{\char95}int(a,~b)\\
-\hspace*{0pt}{\char125}\\
-\hspace*{0pt}\\
-\hspace*{0pt}implicit def monoid{\char95}int:~monoid[BigInt] = new monoid[BigInt] {\char123}\\
-\hspace*{0pt} ~val `Example.neutral` = neutral{\char95}int\\
-\hspace*{0pt} ~val `Example.mult` = (a:~BigInt,~b:~BigInt) => mult{\char95}int(a,~b)\\
-\hspace*{0pt}{\char125}\\
-\hspace*{0pt}\\
-\hspace*{0pt}def inverse{\char95}int(i:~BigInt):~BigInt = (- i)\\
-\hspace*{0pt}\\
-\hspace*{0pt}implicit def group{\char95}int:~group[BigInt] = new group[BigInt] {\char123}\\
-\hspace*{0pt} ~val `Example.inverse` = (a:~BigInt) => inverse{\char95}int(a)\\
-\hspace*{0pt} ~val `Example.neutral` = neutral{\char95}int\\
-\hspace*{0pt} ~val `Example.mult` = (a:~BigInt,~b:~BigInt) => mult{\char95}int(a,~b)\\
-\hspace*{0pt}{\char125}\\
-\hspace*{0pt}\\
-\hspace*{0pt}def example:~BigInt = pow{\char95}int[BigInt](BigInt(10),~BigInt(- 2))\\
-\hspace*{0pt}\\
-\hspace*{0pt}{\char125}~/* object Example */%
+\begin{typewriter}
+    object\ Example\ {\isacharbraceleft}\isanewline
+\isanewline
+abstract\ sealed\ class\ nat\isanewline
+final\ case\ object\ Zero{\isacharunderscore}nat\ extends\ nat\isanewline
+final\ case\ class\ Suc{\isacharparenleft}a{\isacharcolon}\ nat{\isacharparenright}\ extends\ nat\isanewline
+\isanewline
+def\ nat{\isacharunderscore}aux{\isacharparenleft}i{\isacharcolon}\ BigInt{\isacharcomma}\ n{\isacharcolon}\ nat{\isacharparenright}{\isacharcolon}\ nat\ {\isacharequal}\isanewline
+\ \ {\isacharparenleft}if\ {\isacharparenleft}i\ {\isacharless}{\isacharequal}\ BigInt{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isacharparenright}\ n\ else\ nat{\isacharunderscore}aux{\isacharparenleft}i\ {\isacharminus}\ BigInt{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharcomma}\ Suc{\isacharparenleft}n{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
+\isanewline
+def\ nat{\isacharparenleft}i{\isacharcolon}\ BigInt{\isacharparenright}{\isacharcolon}\ nat\ {\isacharequal}\ nat{\isacharunderscore}aux{\isacharparenleft}i{\isacharcomma}\ Zero{\isacharunderscore}nat{\isacharparenright}\isanewline
+\isanewline
+trait\ semigroup{\isacharbrackleft}A{\isacharbrackright}\ {\isacharbraceleft}\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}mult{\isacharbackquote}{\isacharcolon}\ {\isacharparenleft}A{\isacharcomma}\ A{\isacharparenright}\ {\isacharequal}{\isachargreater}\ A\isanewline
+{\isacharbraceright}\isanewline
+def\ mult{\isacharbrackleft}A{\isacharbrackright}{\isacharparenleft}a{\isacharcolon}\ A{\isacharcomma}\ b{\isacharcolon}\ A{\isacharparenright}{\isacharparenleft}implicit\ A{\isacharcolon}\ semigroup{\isacharbrackleft}A{\isacharbrackright}{\isacharparenright}{\isacharcolon}\ A\ {\isacharequal}\isanewline
+\ \ A{\isachardot}{\isacharbackquote}Example{\isachardot}mult{\isacharbackquote}{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\isanewline
+\isanewline
+trait\ monoidl{\isacharbrackleft}A{\isacharbrackright}\ extends\ semigroup{\isacharbrackleft}A{\isacharbrackright}\ {\isacharbraceleft}\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}neutral{\isacharbackquote}{\isacharcolon}\ A\isanewline
+{\isacharbraceright}\isanewline
+def\ neutral{\isacharbrackleft}A{\isacharbrackright}{\isacharparenleft}implicit\ A{\isacharcolon}\ monoidl{\isacharbrackleft}A{\isacharbrackright}{\isacharparenright}{\isacharcolon}\ A\ {\isacharequal}\ A{\isachardot}{\isacharbackquote}Example{\isachardot}neutral{\isacharbackquote}\isanewline
+\isanewline
+trait\ monoid{\isacharbrackleft}A{\isacharbrackright}\ extends\ monoidl{\isacharbrackleft}A{\isacharbrackright}\ {\isacharbraceleft}\isanewline
+{\isacharbraceright}\isanewline
+\isanewline
+trait\ group{\isacharbrackleft}A{\isacharbrackright}\ extends\ monoid{\isacharbrackleft}A{\isacharbrackright}\ {\isacharbraceleft}\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}inverse{\isacharbackquote}{\isacharcolon}\ A\ {\isacharequal}{\isachargreater}\ A\isanewline
+{\isacharbraceright}\isanewline
+def\ inverse{\isacharbrackleft}A{\isacharbrackright}{\isacharparenleft}a{\isacharcolon}\ A{\isacharparenright}{\isacharparenleft}implicit\ A{\isacharcolon}\ group{\isacharbrackleft}A{\isacharbrackright}{\isacharparenright}{\isacharcolon}\ A\ {\isacharequal}\ A{\isachardot}{\isacharbackquote}Example{\isachardot}inverse{\isacharbackquote}{\isacharparenleft}a{\isacharparenright}\isanewline
+\isanewline
+def\ pow{\isacharunderscore}nat{\isacharbrackleft}A{\isacharcolon}\ monoid{\isacharbrackright}{\isacharparenleft}xa{\isadigit{0}}{\isacharcolon}\ nat{\isacharcomma}\ x{\isacharcolon}\ A{\isacharparenright}{\isacharcolon}\ A\ {\isacharequal}\ {\isacharparenleft}xa{\isadigit{0}}{\isacharcomma}\ x{\isacharparenright}\ match\ {\isacharbraceleft}\isanewline
+\ \ case\ {\isacharparenleft}Zero{\isacharunderscore}nat{\isacharcomma}\ x{\isacharparenright}\ {\isacharequal}{\isachargreater}\ neutral{\isacharbrackleft}A{\isacharbrackright}\isanewline
+\ \ case\ {\isacharparenleft}Suc{\isacharparenleft}n{\isacharparenright}{\isacharcomma}\ x{\isacharparenright}\ {\isacharequal}{\isachargreater}\ mult{\isacharbrackleft}A{\isacharbrackright}{\isacharparenleft}x{\isacharcomma}\ pow{\isacharunderscore}nat{\isacharbrackleft}A{\isacharbrackright}{\isacharparenleft}n{\isacharcomma}\ x{\isacharparenright}{\isacharparenright}\isanewline
+{\isacharbraceright}\isanewline
+\isanewline
+def\ pow{\isacharunderscore}int{\isacharbrackleft}A{\isacharcolon}\ group{\isacharbrackright}{\isacharparenleft}k{\isacharcolon}\ BigInt{\isacharcomma}\ x{\isacharcolon}\ A{\isacharparenright}{\isacharcolon}\ A\ {\isacharequal}\isanewline
+\ \ {\isacharparenleft}if\ {\isacharparenleft}BigInt{\isacharparenleft}{\isadigit{0}}{\isacharparenright}\ {\isacharless}{\isacharequal}\ k{\isacharparenright}\ pow{\isacharunderscore}nat{\isacharbrackleft}A{\isacharbrackright}{\isacharparenleft}nat{\isacharparenleft}k{\isacharparenright}{\isacharcomma}\ x{\isacharparenright}\isanewline
+\ \ \ \ else\ inverse{\isacharbrackleft}A{\isacharbrackright}{\isacharparenleft}pow{\isacharunderscore}nat{\isacharbrackleft}A{\isacharbrackright}{\isacharparenleft}nat{\isacharparenleft}{\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}{\isacharcomma}\ x{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
+\isanewline
+def\ mult{\isacharunderscore}int{\isacharparenleft}i{\isacharcolon}\ BigInt{\isacharcomma}\ j{\isacharcolon}\ BigInt{\isacharparenright}{\isacharcolon}\ BigInt\ {\isacharequal}\ i\ {\isacharplus}\ j\isanewline
+\isanewline
+implicit\ def\ semigroup{\isacharunderscore}int{\isacharcolon}\ semigroup{\isacharbrackleft}BigInt{\isacharbrackright}\ {\isacharequal}\ new\ semigroup{\isacharbrackleft}BigInt{\isacharbrackright}\ {\isacharbraceleft}\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}mult{\isacharbackquote}\ {\isacharequal}\ {\isacharparenleft}a{\isacharcolon}\ BigInt{\isacharcomma}\ b{\isacharcolon}\ BigInt{\isacharparenright}\ {\isacharequal}{\isachargreater}\ mult{\isacharunderscore}int{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\isanewline
+{\isacharbraceright}\isanewline
+\isanewline
+def\ neutral{\isacharunderscore}int{\isacharcolon}\ BigInt\ {\isacharequal}\ BigInt{\isacharparenleft}{\isadigit{0}}{\isacharparenright}\isanewline
+\isanewline
+implicit\ def\ monoidl{\isacharunderscore}int{\isacharcolon}\ monoidl{\isacharbrackleft}BigInt{\isacharbrackright}\ {\isacharequal}\ new\ monoidl{\isacharbrackleft}BigInt{\isacharbrackright}\ {\isacharbraceleft}\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}neutral{\isacharbackquote}\ {\isacharequal}\ neutral{\isacharunderscore}int\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}mult{\isacharbackquote}\ {\isacharequal}\ {\isacharparenleft}a{\isacharcolon}\ BigInt{\isacharcomma}\ b{\isacharcolon}\ BigInt{\isacharparenright}\ {\isacharequal}{\isachargreater}\ mult{\isacharunderscore}int{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\isanewline
+{\isacharbraceright}\isanewline
+\isanewline
+implicit\ def\ monoid{\isacharunderscore}int{\isacharcolon}\ monoid{\isacharbrackleft}BigInt{\isacharbrackright}\ {\isacharequal}\ new\ monoid{\isacharbrackleft}BigInt{\isacharbrackright}\ {\isacharbraceleft}\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}neutral{\isacharbackquote}\ {\isacharequal}\ neutral{\isacharunderscore}int\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}mult{\isacharbackquote}\ {\isacharequal}\ {\isacharparenleft}a{\isacharcolon}\ BigInt{\isacharcomma}\ b{\isacharcolon}\ BigInt{\isacharparenright}\ {\isacharequal}{\isachargreater}\ mult{\isacharunderscore}int{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\isanewline
+{\isacharbraceright}\isanewline
+\isanewline
+def\ inverse{\isacharunderscore}int{\isacharparenleft}i{\isacharcolon}\ BigInt{\isacharparenright}{\isacharcolon}\ BigInt\ {\isacharequal}\ {\isacharparenleft}{\isacharminus}\ i{\isacharparenright}\isanewline
+\isanewline
+implicit\ def\ group{\isacharunderscore}int{\isacharcolon}\ group{\isacharbrackleft}BigInt{\isacharbrackright}\ {\isacharequal}\ new\ group{\isacharbrackleft}BigInt{\isacharbrackright}\ {\isacharbraceleft}\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}inverse{\isacharbackquote}\ {\isacharequal}\ {\isacharparenleft}a{\isacharcolon}\ BigInt{\isacharparenright}\ {\isacharequal}{\isachargreater}\ inverse{\isacharunderscore}int{\isacharparenleft}a{\isacharparenright}\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}neutral{\isacharbackquote}\ {\isacharequal}\ neutral{\isacharunderscore}int\isanewline
+\ \ val\ {\isacharbackquote}Example{\isachardot}mult{\isacharbackquote}\ {\isacharequal}\ {\isacharparenleft}a{\isacharcolon}\ BigInt{\isacharcomma}\ b{\isacharcolon}\ BigInt{\isacharparenright}\ {\isacharequal}{\isachargreater}\ mult{\isacharunderscore}int{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\isanewline
+{\isacharbraceright}\isanewline
+\isanewline
+def\ example{\isacharcolon}\ BigInt\ {\isacharequal}\ pow{\isacharunderscore}int{\isacharbrackleft}BigInt{\isacharbrackright}{\isacharparenleft}BigInt{\isacharparenleft}{\isadigit{1}}{\isadigit{0}}{\isacharparenright}{\isacharcomma}\ BigInt{\isacharparenleft}{\isacharminus}\ {\isadigit{2}}{\isacharparenright}{\isacharparenright}\isanewline
+\isanewline
+{\isacharbraceright}\ {\isacharslash}{\isacharasterisk}\ object\ Example\ {\isacharasterisk}{\isacharslash}\isanewline
+
+  \end{typewriter}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
