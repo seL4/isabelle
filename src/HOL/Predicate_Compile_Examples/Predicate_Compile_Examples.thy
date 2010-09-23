@@ -162,7 +162,7 @@ by (auto intro: is_D_or_E.intros)
 code_pred (expected_modes: o => bool, i => bool) is_D_or_E
 proof -
   case is_D_or_E
-  from this(1) show thesis
+  from is_D_or_E.prems show thesis
   proof
     fix xa
     assume x: "x = xa"
@@ -244,6 +244,42 @@ proof -
   next
     case cons
     from alt_cons cons show thesis by fastsimp
+  qed
+qed
+
+
+inductive ya_even and ya_odd :: "nat => bool"
+where
+  even_zero: "ya_even 0"
+| odd_plus1: "ya_even x ==> ya_odd (x + 1)"
+| even_plus1: "ya_odd x ==> ya_even (x + 1)"
+
+
+declare even_zero[code_pred_intro even_0]
+
+lemma [code_pred_intro odd_Suc]: "ya_even x ==> ya_odd (Suc x)"
+by (auto simp only: Suc_eq_plus1 intro: ya_even_ya_odd.intros)
+
+lemma [code_pred_intro even_Suc]:"ya_odd x ==> ya_even (Suc x)"
+by (auto simp only: Suc_eq_plus1 intro: ya_even_ya_odd.intros)
+
+code_pred ya_even
+proof -
+  case ya_even
+  from ya_even.prems show thesis
+  proof (cases)
+    case even_zero
+    from even_zero even_0 show thesis by simp
+  next
+    case even_plus1
+    from even_plus1 even_Suc show thesis by simp
+  qed
+next
+  case ya_odd
+  from ya_odd.prems show thesis
+  proof (cases)
+    case odd_plus1
+    from odd_plus1 odd_Suc show thesis by simp
   qed
 qed
 
