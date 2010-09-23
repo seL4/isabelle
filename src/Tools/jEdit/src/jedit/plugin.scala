@@ -320,14 +320,12 @@ class Plugin extends EBPlugin
   {
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
-    Isabelle.session = new Session(Isabelle.system)  // FIXME dialog!?
-
+    Isabelle.session = new Session(Isabelle.system)
     Isabelle.setup_tooltips()
   }
 
-  override def stop()  // FIXME fragile
+  override def stop()
   {
-    Isabelle.session.stop()  // FIXME dialog!?
-    Isabelle.session = null
+    Isabelle.session.stop()
   }
 }
