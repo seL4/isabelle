@@ -28,8 +28,6 @@ sig
   val check_code: theory -> string list
     -> ((string * bool) * Token.T list) list -> unit
 
-  val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
-
   type serializer
   type literals = Code_Printer.literals
   val add_target: string * { serializer: serializer, literals: literals,
@@ -56,6 +54,8 @@ sig
   val add_const_syntax: string -> string -> const_syntax option -> theory -> theory
   val add_reserved: string -> string -> theory -> theory
   val add_include: string -> string * (string * string list) option -> theory -> theory
+
+  val codegen_tool: string (*theory name*) -> bool -> string (*export_code expr*) -> unit
 end;
 
 structure Code_Target : CODE_TARGET =
@@ -683,13 +683,20 @@ val _ =
   Outer_Syntax.command "export_code" "generate executable code for constants"
     Keyword.diag (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
-fun shell_command thyname cmd = Toplevel.program (fn _ =>
-  (use_thy thyname; case Scan.read Token.stopper (Parse.!!! code_exprP)
-    ((filter Token.is_proper o Outer_Syntax.scan Position.none) cmd)
-   of SOME f => (writeln "Now generating code..."; f (Thy_Info.get_theory thyname))
-    | NONE => error ("Bad directive " ^ quote cmd)))
-  handle Runtime.TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
-
 end; (*local*)
+
+
+(** external entrance point -- for codegen tool **)
+
+fun codegen_tool thyname qnd cmd_expr =
+  let
+    val thy = Thy_Info.get_theory thyname;
+    val _ = quick_and_dirty := qnd;
+    val parse = Scan.read Token.stopper (Parse.!!! code_exprP) o
+      (filter Token.is_proper o Outer_Syntax.scan Position.none);
+  in case parse cmd_expr
+   of SOME f => (writeln "Now generating code..."; f thy)
+    | NONE => error ("Bad directive " ^ quote cmd_expr)
+  end;
 
 end; (*struct*)

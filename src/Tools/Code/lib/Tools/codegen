@@ -10,27 +10,28 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [OPTIONS] IMAGE THY CMD"
+  echo "Usage: isabelle $PRG [OPTIONS] IMAGE THYNAME CMD"
   echo
   echo "  Options are:"
   echo "    -q    run in quick'n'dirty mode"
   echo
   echo "  Issues code generation using image IMAGE,"
-  echo "  theory THY,"
+  echo "  theory THYNAME,"
   echo "  with Isar command 'export_code CMD'"
   echo
   exit 1
 }
 
+
 ## process command line
 
-QUICK_AND_DIRTY=0
+QUICK_AND_DIRTY="false"
 
 while getopts "q" OPT
 do
   case "$OPT" in
     q)
-      QUICK_AND_DIRTY=1
+      QUICK_AND_DIRTY="true"
       ;;
     \?)
       usage
@@ -43,23 +44,20 @@ shift $(($OPTIND - 1))
 [ "$#" -ne 3 ] && usage
 
 IMAGE="$1"; shift
-THY="$1"; shift
-CMD="$1"
+THYNAME="$1"; shift
+CODE_EXPR=$(echo "$1" | perl -pe 's/\\/\\\\/g; s/"/\\\"/g')
 
 
-## main
+## invoke code generation
 
-CODE_CMD=$(echo $CMD | perl -pe 's/\\/\\\\/g; s/"/\\\"/g')
+FORMAL_CMD="Toplevel.program (fn () => ML_Context.eval_text_in \
+  (SOME (ProofContext.init_global (Thy_Info.get_theory thyname))) false Position.none ml_cmd) \
+  handle _ => OS.Process.exit OS.Process.failure;"
 
-if [ "$QUICK_AND_DIRTY" -eq 1 ]
-then
-  QND_FLAG="true"
-else
-  QND_FLAG="false"
-fi
+ACTUAL_CMD="val thyname = \"$THYNAME\"; \
+  val qnd = $QUICK_AND_DIRTY; \
+  val cmd_expr = \"$CODE_EXPR\"; \
+  val ml_cmd = \"Code_Target.codegen_tool thyname qnd cmd_expr\"; \
+  $FORMAL_CMD"
 
-CTXT_CMD="ML_Context.eval_text_in (SOME (ProofContext.init_global (Thy_Info.get_theory \"HOL\"))) false Position.none \"Code_Target.shell_command thyname cmd\";"
-
-FULL_CMD="quick_and_dirty := $QND_FLAG; val thyname = \"$THY\"; val cmd = \"$CODE_CMD\"; $CTXT_CMD"
-
-"$ISABELLE_PROCESS" -q -e "$FULL_CMD" "$IMAGE" || exit 1
+"$ISABELLE_PROCESS" -r -q -e "$ACTUAL_CMD" "$IMAGE" || exit 1
