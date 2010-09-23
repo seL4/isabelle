@@ -166,7 +166,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
         if (process_result.is_finished) finished = Some(false)
         else Thread.sleep(10)
       }
-      (finished.isEmpty || !finished.get, result.toString)
+      (finished.isEmpty || !finished.get, result.toString.trim)
     }
     system_result(startup_output)
 
