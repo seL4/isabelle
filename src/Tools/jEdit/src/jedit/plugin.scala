@@ -262,7 +262,7 @@ class Plugin extends EBPlugin
   private val session_manager = actor {
     loop {
       react {
-        case (Session.Inactive, Session.Exit) =>
+        case (Session.Startup, Session.Inactive) =>
           val text = new scala.swing.TextArea(Isabelle.session.syslog())
           text.editable = false
           Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)

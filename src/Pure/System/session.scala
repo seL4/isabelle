@@ -24,7 +24,7 @@ object Session
 
   sealed abstract class Phase
   case object Inactive extends Phase
-  case object Exit extends Phase
+  case object Startup extends Phase
   case object Ready extends Phase
   case object Shutdown extends Phase
 }
@@ -209,10 +209,7 @@ class Session(system: Isabelle_System)
           if (result.is_syslog) {
             reverse_syslog ::= result.message
             if (result.is_ready) phase = Session.Ready
-            else if (result.is_exit) {
-              phase = Session.Exit
-              phase = Session.Inactive
-            }
+            else if (result.is_exit) phase = Session.Inactive
           }
           else if (result.is_stdout) { }
           else if (result.is_status) {
@@ -260,6 +257,7 @@ class Session(system: Isabelle_System)
         case result: Isabelle_Process.Result => handle_result(result)
 
         case Start(timeout, args) if prover == null =>
+          phase = Session.Startup
           prover = new Isabelle_Process(system, timeout, self, args:_*) with Isar_Document
 
         case Stop if phase == Session.Ready =>
