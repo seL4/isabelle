@@ -43,11 +43,11 @@ structure Builtins = Generic_Data
   type T = (int * builtin_fun) list
   val empty = []
   val extend = I
-  fun merge (bs1, bs2) = OrdList.union fst_int_ord bs2 bs1
+  fun merge (bs1, bs2) = Ord_List.union fst_int_ord bs2 bs1
 )
 
 fun add_builtin_funs b =
-  Builtins.map (OrdList.insert fst_int_ord (serial (), b))
+  Builtins.map (Ord_List.insert fst_int_ord (serial (), b))
 
 fun get_builtin_funs ctxt c ts =
   let
@@ -143,11 +143,11 @@ structure Mk_Builtins = Generic_Data
   type T = (int * mk_builtins) list
   val empty = []
   val extend = I
-  fun merge (bs1, bs2) = OrdList.union fst_int_ord bs2 bs1
+  fun merge (bs1, bs2) = Ord_List.union fst_int_ord bs2 bs1
 )
 
 fun add_mk_builtins mk =
-  Mk_Builtins.map (OrdList.insert fst_int_ord (serial (), mk))
+  Mk_Builtins.map (Ord_List.insert fst_int_ord (serial (), mk))
 
 fun get_mk_builtins ctxt = map snd (Mk_Builtins.get (Context.Proof ctxt))
 

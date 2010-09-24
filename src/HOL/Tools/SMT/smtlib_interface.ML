@@ -136,10 +136,10 @@ structure Builtins = Generic_Data
   type T = (int * builtins) list
   val empty = []
   val extend = I
-  fun merge (bs1, bs2) = OrdList.union fst_int_ord bs2 bs1
+  fun merge (bs1, bs2) = Ord_List.union fst_int_ord bs2 bs1
 )
 
-fun add_builtins bs = Builtins.map (OrdList.insert fst_int_ord (serial (), bs))
+fun add_builtins bs = Builtins.map (Ord_List.insert fst_int_ord (serial (), bs))
 
 fun get_builtins ctxt = map snd (Builtins.get (Context.Proof ctxt))
 
@@ -212,10 +212,10 @@ structure Logics = Generic_Data
   type T = (int * (term list -> string option)) list
   val empty = []
   val extend = I
-  fun merge (bs1, bs2) = OrdList.union fst_int_ord bs2 bs1
+  fun merge (bs1, bs2) = Ord_List.union fst_int_ord bs2 bs1
 )
 
-fun add_logic l = Logics.map (OrdList.insert fst_int_ord (serial (), l))
+fun add_logic l = Logics.map (Ord_List.insert fst_int_ord (serial (), l))
 
 fun choose_logic ctxt ts =
   let

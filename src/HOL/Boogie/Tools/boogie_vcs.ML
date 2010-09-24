@@ -275,14 +275,14 @@ fun serial_ord ((i, _), (j, _)) = int_ord (i, j)
 
 structure Filters = Theory_Data
 (
-  type T = (serial * (term -> bool)) OrdList.T
+  type T = (serial * (term -> bool)) Ord_List.T
   val empty = []
   val extend = I
-  fun merge (fs1, fs2) = fold (OrdList.insert serial_ord) fs2 fs1
+  fun merge (fs1, fs2) = fold (Ord_List.insert serial_ord) fs2 fs1
 )
 
 fun add_assertion_filter f =
-  Filters.map (OrdList.insert serial_ord (serial (), f))
+  Filters.map (Ord_List.insert serial_ord (serial (), f))
 
 fun filter_assertions thy =
   let

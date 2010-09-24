@@ -29,7 +29,7 @@ fun collect_consts_if f g thm =
 fun add_consts f =
   collect_consts_if f (fn (n, T) => Symtab.map_entry n (insert (op =) T))
 
-val insert_const = OrdList.insert (prod_ord fast_string_ord Term_Ord.typ_ord)
+val insert_const = Ord_List.insert (prod_ord fast_string_ord Term_Ord.typ_ord)
 fun tvar_consts_of thm = collect_consts_if typ_has_tvars insert_const thm []
 
 

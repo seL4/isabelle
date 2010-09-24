@@ -1254,9 +1254,9 @@ val is_class_axiom =
 fun partition_axioms_by_definitionality ctxt axioms def_names =
   let
     val axioms = sort (fast_string_ord o pairself fst) axioms
-    val defs = OrdList.inter (fast_string_ord o apsnd fst) def_names axioms
+    val defs = Ord_List.inter (fast_string_ord o apsnd fst) def_names axioms
     val nondefs =
-      OrdList.subtract (fast_string_ord o apsnd fst) def_names axioms
+      Ord_List.subtract (fast_string_ord o apsnd fst) def_names axioms
       |> filter_out ((is_arity_type_axiom orf is_typedef_axiom ctxt true) o snd)
   in pairself (map snd) (defs, nondefs) end
 
@@ -1289,7 +1289,7 @@ fun all_axioms_of ctxt subst =
       #> filter_out (is_class_axiom o snd)
     val specs = Defs.all_specifications_of (Theory.defs_of thy)
     val def_names = specs |> maps snd |> map_filter #def
-                    |> OrdList.make fast_string_ord
+                    |> Ord_List.make fast_string_ord
     val thys = thy :: Theory.ancestors_of thy
     val (built_in_thys, user_thys) = List.partition is_built_in_theory thys
     val built_in_axioms = axioms_of_thys built_in_thys

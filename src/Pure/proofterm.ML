@@ -24,8 +24,8 @@ sig
    | Promise of serial * term * typ list
    | PThm of serial * ((string * term * typ list option) * proof_body future)
   and proof_body = PBody of
-    {oracles: (string * term) OrdList.T,
-     thms: (serial * (string * term * proof_body future)) OrdList.T,
+    {oracles: (string * term) Ord_List.T,
+     thms: (serial * (string * term * proof_body future)) Ord_List.T,
      proof: proof}
 
   val %> : proof * term -> proof
@@ -46,9 +46,9 @@ sig
 
   val oracle_ord: oracle * oracle -> order
   val thm_ord: pthm * pthm -> order
-  val merge_oracles: oracle OrdList.T -> oracle OrdList.T -> oracle OrdList.T
-  val merge_thms: pthm OrdList.T -> pthm OrdList.T -> pthm OrdList.T
-  val all_oracles_of: proof_body -> oracle OrdList.T
+  val merge_oracles: oracle Ord_List.T -> oracle Ord_List.T -> oracle Ord_List.T
+  val merge_thms: pthm Ord_List.T -> pthm Ord_List.T -> pthm Ord_List.T
+  val all_oracles_of: proof_body -> oracle Ord_List.T
   val approximate_proof_body: proof -> proof_body
 
   (** primitive operations **)
@@ -163,8 +163,8 @@ datatype proof =
  | Promise of serial * term * typ list
  | PThm of serial * ((string * term * typ list option) * proof_body future)
 and proof_body = PBody of
-  {oracles: (string * term) OrdList.T,
-   thms: (serial * (string * term * proof_body future)) OrdList.T,
+  {oracles: (string * term) Ord_List.T,
+   thms: (serial * (string * term * proof_body future)) Ord_List.T,
    proof: proof};
 
 type oracle = string * term;
@@ -235,8 +235,8 @@ fun status_of bodies =
 val oracle_ord = prod_ord fast_string_ord Term_Ord.fast_term_ord;
 fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
 
-val merge_oracles = OrdList.union oracle_ord;
-val merge_thms = OrdList.union thm_ord;
+val merge_oracles = Ord_List.union oracle_ord;
+val merge_thms = Ord_List.union thm_ord;
 
 val all_oracles_of =
   let
@@ -259,8 +259,8 @@ fun approximate_proof_body prf =
         | _ => I) [prf] ([], []);
   in
     PBody
-     {oracles = OrdList.make oracle_ord oracles,
-      thms = OrdList.make thm_ord thms,
+     {oracles = Ord_List.make oracle_ord oracles,
+      thms = Ord_List.make thm_ord thms,
       proof = prf}
   end;
 
