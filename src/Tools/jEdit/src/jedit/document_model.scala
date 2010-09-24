@@ -98,7 +98,7 @@ object Document_Model
   {
     Swing_Thread.require()
     apply(buffer) match {
-      case None => error("No document model for buffer: " + buffer)
+      case None =>
       case Some(model) =>
         model.deactivate()
         buffer.unsetProperty(key)
