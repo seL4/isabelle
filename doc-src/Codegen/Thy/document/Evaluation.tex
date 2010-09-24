@@ -217,22 +217,26 @@ Static evaluation freezes the code generator configuration at a
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{tabular}{ll||c|c|c}
+\newcommand{\ttsize}{\fontsize{5.8pt}{8pt}\selectfont}
+  \fontsize{9pt}{12pt}\selectfont
+  \begin{tabular}{ll||c|c|c}
     & & \isa{simp} & \isa{nbe} & \isa{code} \tabularnewline \hline \hline
-    dynamic & interactive evaluation 
+    \multirow{5}{1ex}{\rotatebox{90}{dynamic}}
+      & interactive evaluation 
       & \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} \isa{{\isacharbrackleft}simp{\isacharbrackright}} & \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} \isa{{\isacharbrackleft}nbe{\isacharbrackright}} & \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} \isa{{\isacharbrackleft}code{\isacharbrackright}}
       \tabularnewline
-    & plain evaluation & & & \verb|Code_Evaluation.dynamic_value| \tabularnewline \hline
+    & plain evaluation & & & \ttsize\verb|Code_Evaluation.dynamic_value| \tabularnewline \cline{2-5}
     & evaluation method & \hyperlink{method.code-simp}{\mbox{\isa{code{\isacharunderscore}simp}}} & \hyperlink{method.normalization}{\mbox{\isa{normalization}}} & \hyperlink{method.eval}{\mbox{\isa{eval}}} \tabularnewline
-    & property conversion & & & \verb|Code_Runtime.dynamic_holds_conv| \tabularnewline \hline
-    & conversion & \verb|Code_Simp.dynamic_eval_conv| & \verb|Nbe.dynamic_eval_conv|
-      & \verb|Code_Evaluation.dynamic_eval_conv| \tabularnewline \hline \hline
-    static & plain evaluation & & & \verb|Code_Evaluation.static_value| \tabularnewline \hline
+    & property conversion & & & \ttsize\verb|Code_Runtime.dynamic_holds_conv| \tabularnewline \cline{2-5}
+    & conversion & \ttsize\verb|Code_Simp.dynamic_eval_conv| & \ttsize\verb|Nbe.dynamic_eval_conv|
+      & \ttsize\verb|Code_Evaluation.dynamic_eval_conv| \tabularnewline \hline \hline
+    \multirow{3}{1ex}{\rotatebox{90}{static}}
+      & plain evaluation & & & \ttsize\verb|Code_Evaluation.static_value| \tabularnewline \cline{2-5}
     & property conversion & &
-      & \verb|Code_Runtime.static_holds_conv| \tabularnewline \hline
-    & conversion & \verb|Code_Simp.static_eval_conv|
-      & \verb|Nbe.static_eval_conv|
-      & \verb|Code_Evaluation.static_eval_conv|
+      & \ttsize\verb|Code_Runtime.static_holds_conv| \tabularnewline \cline{2-5}
+    & conversion & \ttsize\verb|Code_Simp.static_eval_conv|
+      & \ttsize\verb|Nbe.static_eval_conv|
+      & \ttsize\verb|Code_Evaluation.static_eval_conv|
   \end{tabular}%
 \end{isamarkuptext}%
 \isamarkuptrue%
