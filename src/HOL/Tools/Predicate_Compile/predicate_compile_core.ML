@@ -431,7 +431,8 @@ fun check_proposed_modes preds options modes errors =
 fun check_matches_type ctxt predname T ms =
   let
     fun check (m as Fun (m1, m2)) (Type("fun", [T1,T2])) = check m1 T1 andalso check m2 T2
-      | check m (Type("fun", _)) = false
+      | check m (T as Type("fun", _)) =
+        if body_type T = @{typ bool} then false else (m = Input orelse m = Output)
       | check (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
           check m1 T1 andalso check m2 T2 
       | check Input T = true
