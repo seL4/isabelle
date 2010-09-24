@@ -133,7 +133,6 @@ fun markup_stmt name = Print_Mode.setmp [code_presentationN]
 fun filter_presentation [] tree =
       Buffer.empty
       |> fold XML.add_content tree 
-      |> Buffer.add "\n"
   | filter_presentation presentation_names tree =
       let
         fun is_selected (name, attrs) = 
@@ -153,6 +152,7 @@ fun format presentation_names width =
   Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width)
   #> YXML.parse_body
   #> filter_presentation presentation_names
+  #> Buffer.add "\n"
   #> Buffer.content;
 
 
