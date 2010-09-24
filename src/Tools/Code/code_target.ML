@@ -480,7 +480,6 @@ val _ = Thy_Output.antiquotation "code_stmts"
       present_code thy (mk_cs thy)
         (fn naming => maps (fn f => f thy naming) mk_stmtss)
         target some_width "Example" []
-      (*|> Latex.output_typewriter*)
     end);
 
 end;
