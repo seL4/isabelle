@@ -230,14 +230,14 @@ class Document_View(val model: Document_Model, text_area: TextArea)
               case _ =>
             }
 
-            // boxed text
+            // background boxes
             for {
               Text.Info(range, Some(color)) <-
                 snapshot.select_markup(line_range)(Isabelle_Markup.box).iterator
               r <- Isabelle.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
-              gfx.drawRect(r.x + 1, y + i * line_height + 1, r.length - 2, line_height - 3)
+              gfx.fillRect(r.x + 1, y + i * line_height + 1, r.length - 2, line_height - 2)
             }
 
             // squiggly underline
