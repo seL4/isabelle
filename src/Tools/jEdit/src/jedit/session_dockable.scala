@@ -12,7 +12,7 @@ import isabelle._
 import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, TextArea, Label, ScrollPane, TabbedPane,
   Component, Swing}
-import scala.swing.event.ButtonClicked
+import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 import java.awt.BorderLayout
 
@@ -32,6 +32,17 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val tabs = new TabbedPane {
     pages += new TabbedPane.Page("README", Component.wrap(readme))
     pages += new TabbedPane.Page("System log", new ScrollPane(syslog))
+
+    selection.index =
+    {
+      val index = Isabelle.Int_Property("session-panel.selection", 0)
+      if (index >= pages.length) 0 else index
+    }
+    listenTo(selection)
+    reactions += {
+      case SelectionChanged(_) =>
+        Isabelle.Int_Property("session-panel.selection") = selection.index
+    }
   }
 
   set_content(tabs)
