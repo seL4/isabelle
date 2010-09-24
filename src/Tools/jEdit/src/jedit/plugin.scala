@@ -226,10 +226,14 @@ class Plugin extends EBPlugin
 
   private def init_model(buffer: Buffer): Option[Document_Model] =
   {
-    Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath)) match {
-      case Some((_, thy_name)) if Document_Model(buffer).isEmpty =>
-        Some(Document_Model.init(Isabelle.session, buffer, thy_name))
-      case _ => Document_Model(buffer)
+    Document_Model(buffer) match {
+      case Some(model) => model.refresh; Some(model)
+      case None =>
+        Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath)) match {
+          case Some((_, thy_name)) =>
+            Some(Document_Model.init(Isabelle.session, buffer, thy_name))
+          case None => None
+        }
     }
   }
 
@@ -240,7 +244,7 @@ class Plugin extends EBPlugin
         case None =>
         case Some(model) =>
           for (text_area <- Isabelle.jedit_text_areas(buffer)) {
-            if (Document_View(text_area).isEmpty)
+            if (Document_View(text_area).map(_.model) != Some(model))
               Document_View.init(model, text_area)
           }
       }
@@ -250,12 +254,8 @@ class Plugin extends EBPlugin
   private def deactivate_buffer(buffer: Buffer)
   {
     Isabelle.swing_buffer_lock(buffer) {
-      for (text_area <- Isabelle.jedit_text_areas(buffer)) {
-        if (Document_View(text_area).isDefined)
-          Document_View.exit(text_area)
-      }
-      if (Document_Model(buffer).isDefined)
-        Document_Model.exit(buffer)
+      Isabelle.jedit_text_areas(buffer).foreach(Document_View.exit)
+      Document_Model.exit(buffer)
     }
   }
 
@@ -288,16 +288,12 @@ class Plugin extends EBPlugin
         msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
 
         val buffer = msg.getBuffer
-        Isabelle.swing_buffer_lock(buffer) {
-          init_model(buffer) match {
-            case Some(model) => model.refresh()
-            case None =>
-          }
-        }
+        if (buffer != null) activate_buffer(buffer)
 
       case msg: EditPaneUpdate
       if Isabelle.session.phase == Session.Ready &&
-        (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
+        (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
+          msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
           msg.getWhat == EditPaneUpdate.CREATED ||
           msg.getWhat == EditPaneUpdate.DESTROYED) =>
 
@@ -305,25 +301,18 @@ class Plugin extends EBPlugin
         val buffer = edit_pane.getBuffer
         val text_area = edit_pane.getTextArea
 
-        def init_view()
-        {
-          Document_Model(buffer) match {
-            case Some(model) => Document_View.init(model, text_area)
-            case None =>
-          }
-        }
-        def exit_view()
-        {
-          if (Document_View(text_area).isDefined)
-            Document_View.exit(text_area)
-        }
-
-        Isabelle.swing_buffer_lock(buffer) {
-          msg.getWhat match {
-            case EditPaneUpdate.BUFFER_CHANGED => exit_view(); init_view()
-            case EditPaneUpdate.CREATED => init_view()
-            case EditPaneUpdate.DESTROYED => exit_view()
-            case _ =>
+        if (buffer != null && text_area != null) {
+          Isabelle.swing_buffer_lock(buffer) {
+            msg.getWhat match {
+              case EditPaneUpdate.BUFFER_CHANGING | EditPaneUpdate.DESTROYED =>
+                Document_View.exit(text_area)
+              case EditPaneUpdate.BUFFER_CHANGED | EditPaneUpdate.CREATED =>
+                Document_Model(buffer) match {
+                  case Some(model) => Document_View.init(model, text_area)
+                  case None =>
+                }
+              case _ =>
+            }
           }
         }
 
