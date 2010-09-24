@@ -10,8 +10,9 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.{FlowPanel, Button, TextArea, ScrollPane, TabbedPane, Component}
-import scala.swing.event.ButtonClicked
+import scala.swing.{FlowPanel, Button, TextArea, Label, ScrollPane, TabbedPane,
+  Component, Swing}
+import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 import java.awt.BorderLayout
 
@@ -25,12 +26,23 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   private val readme = new HTML_Panel(Isabelle.system, "SansSerif", 12)
   readme.render_document(Isabelle.system.try_read(List("$JEDIT_HOME/README.html")))
 
-  private val syslog = new TextArea
+  private val syslog = new TextArea(Isabelle.session.syslog())
   syslog.editable = false
 
   private val tabs = new TabbedPane {
     pages += new TabbedPane.Page("README", Component.wrap(readme))
     pages += new TabbedPane.Page("System log", new ScrollPane(syslog))
+
+    selection.index =
+    {
+      val index = Isabelle.Int_Property("session-panel.selection", 0)
+      if (index >= pages.length) 0 else index
+    }
+    listenTo(selection)
+    reactions += {
+      case SelectionChanged(_) =>
+        Isabelle.Int_Property("session-panel.selection") = selection.index
+    }
   }
 
   set_content(tabs)
@@ -38,12 +50,17 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 
   /* controls */
 
+  val session_phase = new Label(Isabelle.session.phase.toString)
+  session_phase.border = Swing.EtchedBorder(Swing.Lowered)
+  session_phase.tooltip = "Prover process status"
+
   private val interrupt = new Button("Interrupt") {
     reactions += { case ButtonClicked(_) => Isabelle.session.interrupt }
   }
   interrupt.tooltip = "Broadcast interrupt to all prover tasks"
 
-  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(interrupt)
+  private val controls =
+    new FlowPanel(FlowPanel.Alignment.Right)(session_phase, interrupt)
   add(controls.peer, BorderLayout.NORTH)
 
 
@@ -53,14 +70,29 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
     loop {
       react {
         case result: Isabelle_Process.Result =>
-          if (result.is_init || result.is_exit || result.is_system || result.is_ready)
-            Swing_Thread.now { syslog.append(XML.content(result.message).mkString + "\n") }
+          if (result.is_syslog)
+            Swing_Thread.now {
+              val text = Isabelle.session.syslog()
+              if (text != syslog.text) {
+                syslog.text = text
+              }
+            }
+
+        case (_, phase: Session.Phase) =>
+          Swing_Thread.now { session_phase.text = phase.toString }
 
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)
       }
     }
   }
 
-  override def init() { Isabelle.session.raw_messages += main_actor }
-  override def exit() { Isabelle.session.raw_messages -= main_actor }
+  override def init() {
+    Isabelle.session.raw_messages += main_actor
+    Isabelle.session.phase_changed += main_actor
+  }
+
+  override def exit() {
+    Isabelle.session.raw_messages -= main_actor
+    Isabelle.session.phase_changed -= main_actor
+  }
 }

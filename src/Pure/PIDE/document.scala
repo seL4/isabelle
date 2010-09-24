@@ -305,10 +305,18 @@ object Document
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
 
         def convert(range: Text.Range): Text.Range =
-          if (edits.isEmpty) range else range.map(convert(_))
+          try { if (edits.isEmpty) range else range.map(convert(_)) }
+          catch { // FIXME tmp
+            case e: IllegalArgumentException =>
+              System.err.println((true, range, edits)); throw(e)
+          }
 
         def revert(range: Text.Range): Text.Range =
-          if (edits.isEmpty) range else range.map(revert(_))
+          try { if (edits.isEmpty) range else range.map(revert(_)) }
+          catch { // FIXME tmp
+            case e: IllegalArgumentException =>
+              System.err.println((false, range, reverse_edits)); throw(e)
+          }
 
         def select_markup[A](range: Text.Range)(result: Markup_Tree.Select[A])
           : Stream[Text.Info[Option[A]]] =

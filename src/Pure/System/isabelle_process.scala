@@ -13,7 +13,6 @@ import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamW
 
 import scala.actors.Actor
 import Actor._
-import scala.collection.mutable
 
 
 object Isabelle_Process
@@ -44,11 +43,8 @@ object Isabelle_Process
     def is_system = kind == Markup.SYSTEM
     def is_status = kind == Markup.STATUS
     def is_report = kind == Markup.REPORT
-    def is_ready = is_status && {
-      body match {
-        case List(XML.Elem(Markup(Markup.READY, _), _)) => true
-        case _ => false
-      }}
+    def is_ready = Isar_Document.is_ready(message)
+    def is_syslog = is_init || is_exit || is_system || is_ready
 
     override def toString: String =
     {
@@ -77,20 +73,12 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       actor { loop { react { case res => Console.println(res) } } }, args: _*)
 
 
-  /* system log */
-
-  private val system_results = new mutable.ListBuffer[String]
+  /* results */
 
   private def system_result(text: String)
   {
-    synchronized { system_results += text }
     receiver ! new Result(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
   }
-
-  def syslog(): List[String] = synchronized { system_results.toList }
-
-
-  /* results */
 
   private val xml_cache = new XML.Cache(131071)
 
@@ -166,12 +154,12 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
         if (process_result.is_finished) finished = Some(false)
         else Thread.sleep(10)
       }
-      (finished.isEmpty || !finished.get, result.toString)
+      (finished.isEmpty || !finished.get, result.toString.trim)
     }
     system_result(startup_output)
 
     if (startup_failed) {
-      put_result(Markup.EXIT, "127")
+      put_result(Markup.EXIT, "Return code: 127")
       process.stdin.close
       Thread.sleep(300)
       terminate_process()
@@ -188,10 +176,10 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
       val message = message_actor(message_stream)
 
       val rc = process_result.join
-      system_result("Isabelle process terminated")
+      system_result("process terminated")
       for ((thread, _) <- List(standard_input, stdout, command_input, message)) thread.join
       system_result("process_manager terminated")
-      put_result(Markup.EXIT, rc.toString)
+      put_result(Markup.EXIT, "Return code: " + rc.toString)
     }
     rm_fifos()
   }

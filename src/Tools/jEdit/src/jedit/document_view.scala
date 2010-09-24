@@ -52,7 +52,7 @@ object Document_View
   {
     Swing_Thread.require()
     apply(text_area) match {
-      case None => error("No document view for text area: " + text_area)
+      case None =>
       case Some(doc_view) =>
         doc_view.deactivate()
         text_area.putClientProperty(key, null)

@@ -2,30 +2,22 @@
 <!DOCTYPE ACTIONS SYSTEM "actions.dtd">
 
 <ACTIONS>
-  <ACTION NAME="isabelle.activate">
-		<CODE>
-			isabelle.jedit.Isabelle.switch_active(view);
-		</CODE>
-		<IS_SELECTED>
-			return isabelle.jedit.Isabelle.is_active(view);
-		</IS_SELECTED>
-	</ACTION>
 	<ACTION NAME="isabelle.session-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-session");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.show-output">
+	<ACTION NAME="isabelle.output-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-output");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.show-raw-output">
+	<ACTION NAME="isabelle.raw-output-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-raw-output");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.show-protocol">
+	<ACTION NAME="isabelle.protocol-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-protocol");
 		</CODE>
