@@ -661,6 +661,17 @@ lemma mem_prs:
   shows "(Rep1 ---> (Abs1 ---> Rep2) ---> Abs2) op \<in> = op \<in>"
   by (simp add: fun_eq_iff mem_def Quotient_abs_rep[OF a1] Quotient_abs_rep[OF a2])
 
+lemma id_rsp:
+  shows "(R ===> R) id id"
+  by simp
+
+lemma id_prs:
+  assumes a: "Quotient R Abs Rep"
+  shows "(Rep ---> Abs) id = id"
+  unfolding fun_eq_iff
+  by (simp add: Quotient_abs_rep[OF a])
+
+
 locale quot_type =
   fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   and   Abs :: "('a \<Rightarrow> bool) \<Rightarrow> 'b"
@@ -731,8 +742,8 @@ use "Tools/Quotient/quotient_info.ML"
 declare [[map "fun" = (fun_map, fun_rel)]]
 
 lemmas [quot_thm] = fun_quotient
-lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp mem_rsp
-lemmas [quot_preserve] = if_prs o_prs let_prs mem_prs
+lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp mem_rsp id_rsp
+lemmas [quot_preserve] = if_prs o_prs let_prs mem_prs id_prs
 lemmas [quot_equiv] = identity_equivp
 
 
