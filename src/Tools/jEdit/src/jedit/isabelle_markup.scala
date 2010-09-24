@@ -23,7 +23,7 @@ object Isabelle_Markup
 
   val light_color = new Color(240, 240, 240)
   val regular_color = new Color(192, 192, 192)
-  val warning_color = new Color(255, 168, 0)
+  val warning_color = new Color(255, 140, 0)
   val error_color = new Color(178, 34, 34)
   val bad_color = new Color(255, 106, 106, 100)
 
