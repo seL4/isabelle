@@ -1123,15 +1123,14 @@ Turning back to the first motivation for type classes, namely
 %
 \endisadeliminvisible
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    module\ Example\ where\ {\isacharbraceleft}\isanewline
+module\ Example\ where\ {\isacharbraceleft}\isanewline
 \isanewline
 data\ Nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ Nat{\isacharsemicolon}\isanewline
 \isanewline
@@ -1192,33 +1191,30 @@ instance\ Group\ Integer\ where\ {\isacharbraceleft}\isanewline
 example\ {\isacharcolon}{\isacharcolon}\ Integer{\isacharsemicolon}\isanewline
 example\ {\isacharequal}\ pow{\isacharunderscore}int\ {\isadigit{1}}{\isadigit{0}}\ {\isacharparenleft}{\isacharminus}{\isadigit{2}}{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-{\isacharbraceright}\isanewline
-
-  \end{typewriter}%
+{\isacharbraceright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent The code in SML has explicit dictionary passing:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    structure\ Example\ {\isacharcolon}\ sig\isanewline
+structure\ Example\ {\isacharcolon}\ sig\isanewline
 \ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
 \ \ val\ nat{\isacharunderscore}aux\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ nat\isanewline
 \ \ val\ nat\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharminus}{\isachargreater}\ nat\isanewline
@@ -1295,18 +1291,16 @@ val\ group{\isacharunderscore}int\ {\isacharequal}\ {\isacharbraceleft}monoid{\i
 val\ example\ {\isacharcolon}\ IntInf{\isachardot}int\ {\isacharequal}\isanewline
 \ \ pow{\isacharunderscore}int\ group{\isacharunderscore}int\ {\isacharparenleft}{\isadigit{1}}{\isadigit{0}}\ {\isacharcolon}\ IntInf{\isachardot}int{\isacharparenright}\ {\isacharparenleft}{\isachartilde}{\isadigit{2}}\ {\isacharcolon}\ IntInf{\isachardot}int{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
-
-  \end{typewriter}%
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent In Scala, implicts are used as dictionaries:%
@@ -1326,15 +1320,14 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 %
 \endisadeliminvisible
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    object\ Example\ {\isacharbraceleft}\isanewline
+object\ Example\ {\isacharbraceleft}\isanewline
 \isanewline
 abstract\ sealed\ class\ nat\isanewline
 final\ case\ object\ Zero{\isacharunderscore}nat\ extends\ nat\isanewline
@@ -1401,18 +1394,16 @@ implicit\ def\ group{\isacharunderscore}int{\isacharcolon}\ group{\isacharbrackl
 \isanewline
 def\ example{\isacharcolon}\ BigInt\ {\isacharequal}\ pow{\isacharunderscore}int{\isacharbrackleft}BigInt{\isacharbrackright}{\isacharparenleft}BigInt{\isacharparenleft}{\isadigit{1}}{\isadigit{0}}{\isacharparenright}{\isacharcomma}\ BigInt{\isacharparenleft}{\isacharminus}\ {\isadigit{2}}{\isacharparenright}{\isacharparenright}\isanewline
 \isanewline
-{\isacharbraceright}\ {\isacharslash}{\isacharasterisk}\ object\ Example\ {\isacharasterisk}{\isacharslash}\isanewline
-
-  \end{typewriter}%
+{\isacharbraceright}\ {\isacharslash}{\isacharasterisk}\ object\ Example\ {\isacharasterisk}{\isacharslash}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \isamarkupsubsection{Inspecting the type class universe%
 }

@@ -601,19 +601,15 @@ text {*
   \noindent This maps to Haskell as follows:
 *}
 (*<*)code_include %invisible Haskell "Natural" -(*>*)
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts example (Haskell)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts example (Haskell)}
 *}
 
 text {*
   \noindent The code in SML has explicit dictionary passing:
 *}
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts example (SML)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts example (SML)}
 *}
 
 
@@ -621,10 +617,8 @@ text {*
   \noindent In Scala, implicts are used as dictionaries:
 *}
 (*<*)code_include %invisible Scala "Natural" -(*>*)
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts example (Scala)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts example (Scala)}
 *}
 
 
