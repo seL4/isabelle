@@ -50,7 +50,7 @@ CODE_EXPR=$(echo "$1" | perl -pe 's/\\/\\\\/g; s/"/\\\"/g')
 
 ## invoke code generation
 
-FORMAL_CMD="Toplevel.program (fn () => ML_Context.eval_text_in \
+FORMAL_CMD="Toplevel.program (fn () => use_thy thyname; ML_Context.eval_text_in \
   (SOME (ProofContext.init_global (Thy_Info.get_theory thyname))) false Position.none ml_cmd) \
   handle _ => OS.Process.exit OS.Process.failure;"
 
