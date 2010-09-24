@@ -491,7 +491,7 @@ fun import_intros inp_pred [] ctxt =
       fun subst_of (pred', pred) =
         let
           val subst = Sign.typ_match thy (fastype_of pred', fastype_of pred) Vartab.empty
-            handle TYPE_MATCH => error ("Type mismatch of predicate " ^ fst (dest_Const pred)
+            handle Type.TYPE_MATCH => error ("Type mismatch of predicate " ^ fst (dest_Const pred)
             ^ " (trying to match " ^ Syntax.string_of_typ ctxt (fastype_of pred')
             ^ " and " ^ Syntax.string_of_typ ctxt (fastype_of pred) ^ ")"
             ^ " in " ^ Display.string_of_thm ctxt th)
