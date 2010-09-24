@@ -245,8 +245,8 @@ Sometimes the introduction rules of an predicate are not executable
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isa{r\ a\ b\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ b} \\
-  \isa{r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ b\ {\isasymLongrightarrow}\ r\ b\ c\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ c}%
+\isa{{\isachardoublequote}r\ a\ b\ {\isasymLongrightarrow}\ tranclp\ r\ a\ b{\isachardoublequote}}\\
+  \isa{{\isachardoublequote}tranclp\ r\ a\ b\ {\isasymLongrightarrow}\ r\ b\ c\ {\isasymLongrightarrow}\ tranclp\ r\ a\ c{\isachardoublequote}}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -273,8 +273,8 @@ Sometimes the introduction rules of an predicate are not executable
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
 \ {\isacharbrackleft}code{\isacharunderscore}pred{\isacharunderscore}intro{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}r\ a\ b\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ b{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}r\ a\ b\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ b\ c\ {\isasymLongrightarrow}\ r\isactrlsup {\isacharplus}\isactrlsup {\isacharplus}\ a\ c{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}r\ a\ b\ {\isasymLongrightarrow}\ tranclp\ r\ a\ b{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}r\ a\ b\ {\isasymLongrightarrow}\ tranclp\ r\ b\ c\ {\isasymLongrightarrow}\ tranclp\ r\ a\ c{\isachardoublequoteclose}\isanewline
 \isacommand{by}\isamarkupfalse%
 \ auto%
 \endisatagquote
@@ -305,7 +305,7 @@ Sometimes the introduction rules of an predicate are not executable
 \ \ \isacommand{case}\isamarkupfalse%
 \ tranclp\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ this\ converse{\isacharunderscore}tranclpE\ {\isacharbrackleft}OF\ this{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharbrackright}\ \isacommand{show}\isamarkupfalse%
+\ this\ converse{\isacharunderscore}tranclpE\ {\isacharbrackleft}OF\ tranclp{\isachardot}prems{\isacharbrackright}\ \isacommand{show}\isamarkupfalse%
 \ thesis\ \isacommand{by}\isamarkupfalse%
 \ metis\isanewline
 \isacommand{qed}\isamarkupfalse%
@@ -471,7 +471,7 @@ To embed the computation of an inductive predicate into functions
 %
 \begin{isamarkuptext}%
 Further examples for compiling inductive predicates can be found in
-  the \isa{HOL{\isacharslash}ex{\isacharslash}Predicate{\isacharunderscore}Compile{\isacharunderscore}ex{\isacharcomma}thy} theory file.  There are
+  the \isa{HOL{\isacharslash}ex{\isacharslash}Predicate{\isacharunderscore}Compile{\isacharunderscore}ex{\isachardot}thy} theory file.  There are
   also some examples in the Archive of Formal Proofs, notably in the
   \isa{POPLmark{\isacharminus}deBruijn} and the \isa{FeatherweightJava}
   sessions.%

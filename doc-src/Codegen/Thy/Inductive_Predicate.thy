@@ -113,8 +113,8 @@ text {*
 *}
 
 text %quote {*
-  @{thm tranclp.intros(1)[of r a b]} \\
-  @{thm tranclp.intros(2)[of r a b c]}
+  @{lemma [source] "r a b \<Longrightarrow> tranclp r a b" by (fact tranclp.intros(1))}\\
+  @{lemma [source] "tranclp r a b \<Longrightarrow> r b c \<Longrightarrow> tranclp r a c" by (fact tranclp.intros(2))}
 *}
 
 text {*
@@ -127,8 +127,8 @@ text {*
 *}
 
 lemma %quote [code_pred_intro]:
-  "r a b \<Longrightarrow> r\<^sup>+\<^sup>+ a b"
-  "r a b \<Longrightarrow> r\<^sup>+\<^sup>+ b c \<Longrightarrow> r\<^sup>+\<^sup>+ a c"
+  "r a b \<Longrightarrow> tranclp r a b"
+  "r a b \<Longrightarrow> tranclp r b c \<Longrightarrow> tranclp r a c"
 by auto
 
 text {*
@@ -142,7 +142,7 @@ text {*
 code_pred %quote tranclp
 proof -
   case tranclp
-  from this converse_tranclpE [OF this(1)] show thesis by metis
+  from this converse_tranclpE [OF tranclp.prems] show thesis by metis
 qed
 
 text {*
@@ -152,7 +152,7 @@ text {*
 *}
 
 text %quote {*
-  @{thm [display] lexord_def[of "r"]}
+  @{thm [display] lexord_def [of r]}
 *}
 
 text {*
@@ -260,7 +260,7 @@ subsection {* Further Examples *}
 
 text {*
   Further examples for compiling inductive predicates can be found in
-  the @{text "HOL/ex/Predicate_Compile_ex,thy"} theory file.  There are
+  the @{text "HOL/ex/Predicate_Compile_ex.thy"} theory file.  There are
   also some examples in the Archive of Formal Proofs, notably in the
   @{text "POPLmark-deBruijn"} and the @{text "FeatherweightJava"}
   sessions.
