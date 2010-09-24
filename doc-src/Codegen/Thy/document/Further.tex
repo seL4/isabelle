@@ -207,31 +207,29 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    funpow\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Nat\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a\ {\isacharminus}{\isachargreater}\ a{\isacharparenright}\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
+funpow\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Nat\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a\ {\isacharminus}{\isachargreater}\ a{\isacharparenright}\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
 funpow\ Zero{\isacharunderscore}nat\ f\ {\isacharequal}\ id{\isacharsemicolon}\isanewline
 funpow\ {\isacharparenleft}Suc\ n{\isacharparenright}\ f\ {\isacharequal}\ f\ {\isachardot}\ funpow\ n\ f{\isacharsemicolon}\isanewline
 \isanewline
 funpows\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ {\isacharbrackleft}Nat{\isacharbrackright}\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a\ {\isacharminus}{\isachargreater}\ a{\isacharparenright}\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
 funpows\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ id{\isacharsemicolon}\isanewline
-funpows\ {\isacharparenleft}x\ {\isacharcolon}\ xs{\isacharparenright}\ {\isacharequal}\ funpow\ x\ {\isachardot}\ funpows\ xs{\isacharsemicolon}
-  \end{typewriter}%
+funpows\ {\isacharparenleft}x\ {\isacharcolon}\ xs{\isacharparenright}\ {\isacharequal}\ funpow\ x\ {\isachardot}\ funpows\ xs{\isacharsemicolon}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \isamarkupsubsection{Imperative data structures%
 }

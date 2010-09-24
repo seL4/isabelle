@@ -238,29 +238,27 @@ As told in \secref{sec:principle}, the notion of code equations is
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}Maybe\ a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
+dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}Maybe\ a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
 dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Just\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
 dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ {\isacharparenleft}if\ null\ xs\ then\ {\isacharparenleft}Nothing{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
-\ \ \ \ else\ dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}reverse\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}
-  \end{typewriter}%
+\ \ \ \ else\ dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}reverse\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent You may note that the equality test \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}} has
@@ -269,7 +267,7 @@ dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{
 
   This possibility to select arbitrary code equations is the key
   technique for program and datatype refinement (see
-  \secref{sec:refinement}.
+  \secref{sec:refinement}).
 
   Due to the preprocessor, there is the distinction of raw code
   equations (before preprocessing) and code equations (after
@@ -340,15 +338,14 @@ Implementation of equality deserves some attention.  Here an example
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    structure\ Example\ {\isacharcolon}\ sig\isanewline
+structure\ Example\ {\isacharcolon}\ sig\isanewline
 \ \ type\ {\isacharprime}a\ equal\isanewline
 \ \ val\ equal\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool\isanewline
 \ \ val\ eq\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool\isanewline
@@ -372,18 +369,16 @@ fun\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ ys\ {\isa
 \ \ \ \ \ \ \ \ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ ys{\isacharparenright}\ zs{\isacharparenright}\isanewline
 \ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ xs{\isacharparenright}\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ ys{\isacharparenright}\ zs{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
-
-  \end{typewriter}%
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent Obviously, polymorphic equality is implemented the Haskell
@@ -436,30 +431,28 @@ Partiality usually enters the game by partial patterns, as
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    strict{\isacharunderscore}dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
+strict{\isacharunderscore}dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
 strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ let\ {\isacharbraceleft}\isanewline
 \ \ \ \ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}\ {\isacharequal}\ reverse\ xs{\isacharsemicolon}\isanewline
 \ \ {\isacharbraceright}\ in\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
-strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}
-  \end{typewriter}%
+strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent In some cases it is desirable to have this
@@ -527,32 +520,30 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    empty{\isacharunderscore}queue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ a{\isacharsemicolon}\isanewline
+empty{\isacharunderscore}queue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ a{\isacharsemicolon}\isanewline
 empty{\isacharunderscore}queue\ {\isacharequal}\ error\ {\isachardoublequote}empty{\isacharunderscore}queue{\isachardoublequote}{\isacharsemicolon}\isanewline
 \isanewline
 strict{\isacharunderscore}dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
 strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
 strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ {\isacharparenleft}if\ null\ xs\ then\ empty{\isacharunderscore}queue\isanewline
-\ \ \ \ else\ strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}reverse\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}
-  \end{typewriter}%
+\ \ \ \ else\ strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}reverse\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent This feature however is rarely needed in practice.  Note

@@ -70,10 +70,8 @@ export_code %quote empty dequeue enqueue in SML
 
 text {* \noindent resulting in the following code: *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts empty enqueue dequeue (SML)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts empty enqueue dequeue (SML)}
 *}
 
 text {*
@@ -95,10 +93,8 @@ text {*
   \noindent This is the corresponding code:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts empty enqueue dequeue (Haskell)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts empty enqueue dequeue (Haskell)}
 *}
 
 text {*
@@ -172,10 +168,8 @@ text {*
   native classes:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts bexp (Haskell)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts bexp (Haskell)}
 *}
 
 text {*
@@ -184,10 +178,8 @@ text {*
   @{text SML}:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts bexp (SML)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts bexp (SML)}
 *}
 
 text {*

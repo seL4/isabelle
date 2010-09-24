@@ -65,28 +65,26 @@ Program refinement works by choosing appropriate code equations
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    fib\ {\isacharcolon}{\isacharcolon}\ Nat\ {\isacharminus}{\isachargreater}\ Nat{\isacharsemicolon}\isanewline
+fib\ {\isacharcolon}{\isacharcolon}\ Nat\ {\isacharminus}{\isachargreater}\ Nat{\isacharsemicolon}\isanewline
 fib\ Zero{\isacharunderscore}nat\ {\isacharequal}\ Zero{\isacharunderscore}nat{\isacharsemicolon}\isanewline
 fib\ {\isacharparenleft}Suc\ Zero{\isacharunderscore}nat{\isacharparenright}\ {\isacharequal}\ Suc\ Zero{\isacharunderscore}nat{\isacharsemicolon}\isanewline
-fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ plus{\isacharunderscore}nat\ {\isacharparenleft}fib\ n{\isacharparenright}\ {\isacharparenleft}fib\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isacharsemicolon}
-  \end{typewriter}%
+fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ plus{\isacharunderscore}nat\ {\isacharparenleft}fib\ n{\isacharparenright}\ {\isacharparenleft}fib\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent A more efficient implementation would use dynamic
@@ -163,15 +161,14 @@ fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isac
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    fib{\isacharunderscore}step\ {\isacharcolon}{\isacharcolon}\ Nat\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}Nat{\isacharcomma}\ Nat{\isacharparenright}{\isacharsemicolon}\isanewline
+fib{\isacharunderscore}step\ {\isacharcolon}{\isacharcolon}\ Nat\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}Nat{\isacharcomma}\ Nat{\isacharparenright}{\isacharsemicolon}\isanewline
 fib{\isacharunderscore}step\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ let\ {\isacharbraceleft}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}m{\isacharcomma}\ q{\isacharparenright}\ {\isacharequal}\ fib{\isacharunderscore}step\ n{\isacharsemicolon}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbraceright}\ in\ {\isacharparenleft}plus{\isacharunderscore}nat\ m\ q{\isacharcomma}\ m{\isacharparenright}{\isacharsemicolon}\isanewline
@@ -179,17 +176,16 @@ fib{\isacharunderscore}step\ Zero{\isacharunderscore}nat\ {\isacharequal}\ {\isa
 \isanewline
 fib\ {\isacharcolon}{\isacharcolon}\ Nat\ {\isacharminus}{\isachargreater}\ Nat{\isacharsemicolon}\isanewline
 fib\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ fst\ {\isacharparenleft}fib{\isacharunderscore}step\ n{\isacharparenright}{\isacharsemicolon}\isanewline
-fib\ Zero{\isacharunderscore}nat\ {\isacharequal}\ Zero{\isacharunderscore}nat{\isacharsemicolon}
-  \end{typewriter}%
+fib\ Zero{\isacharunderscore}nat\ {\isacharequal}\ Zero{\isacharunderscore}nat{\isacharsemicolon}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \isamarkupsubsection{Datatype refinement%
 }
@@ -341,15 +337,14 @@ Selecting specific code equations \emph{and} datatype constructors
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    structure\ Example\ {\isacharcolon}\ sig\isanewline
+structure\ Example\ {\isacharcolon}\ sig\isanewline
 \ \ val\ id\ {\isacharcolon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
 \ \ val\ fold\ {\isacharcolon}\ {\isacharparenleft}{\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b{\isacharparenright}\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\isanewline
 \ \ val\ rev\ {\isacharcolon}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\isanewline
@@ -381,18 +376,16 @@ fun\ dequeue\ {\isacharparenleft}AQueue\ {\isacharparenleft}xs{\isacharcomma}\ y
 \isanewline
 fun\ enqueue\ x\ {\isacharparenleft}AQueue\ {\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ AQueue\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ xs{\isacharcomma}\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
-
-  \end{typewriter}%
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 The same techniques can also be applied to types which are not
@@ -578,15 +571,14 @@ Datatype representation involving invariants require a dedicated
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    module\ Example\ where\ {\isacharbraceleft}\isanewline
+module\ Example\ where\ {\isacharbraceleft}\isanewline
 \isanewline
 newtype\ Dlist\ a\ {\isacharequal}\ Dlist\ {\isacharbrackleft}a{\isacharbrackright}{\isacharsemicolon}\isanewline
 \isanewline
@@ -613,18 +605,16 @@ remove{\isadigit{1}}\ x\ {\isacharparenleft}y\ {\isacharcolon}\ xs{\isacharparen
 remove\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ {\isacharparenleft}Eq\ a{\isacharparenright}\ {\isacharequal}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ Dlist\ a\ {\isacharminus}{\isachargreater}\ Dlist\ a{\isacharsemicolon}\isanewline
 remove\ x\ dxs\ {\isacharequal}\ Dlist\ {\isacharparenleft}remove{\isadigit{1}}\ x\ {\isacharparenleft}list{\isacharunderscore}of{\isacharunderscore}dlist\ dxs{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-{\isacharbraceright}\isanewline
-
-  \end{typewriter}%
+{\isacharbraceright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 Typical data structures implemented by representations involving

@@ -31,10 +31,8 @@ text {*
   to two recursive calls:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts fib (consts) fib (Haskell)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts fib (consts) fib (Haskell)}
 *}
 
 text {*
@@ -71,10 +69,8 @@ text {*
   \noindent The resulting code shows only linear growth of runtime:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts fib (consts) fib fib_step (Haskell)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts fib (consts) fib fib_step (Haskell)}
 *}
 
 
@@ -161,10 +157,8 @@ text {*
   \noindent The resulting code looks as expected:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts empty enqueue dequeue (SML)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts empty enqueue dequeue (SML)}
 *}
 
 text {*
@@ -259,10 +253,8 @@ text {*
   \noindent Then the corresponding code is as follows:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts Dlist.empty Dlist.insert Dlist.remove list_of_dlist (Haskell)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts Dlist.empty Dlist.insert Dlist.remove list_of_dlist (Haskell)}
 *} (*(types) dlist (consts) dempty dinsert dremove list_of List.member insert remove *)
 
 text {*

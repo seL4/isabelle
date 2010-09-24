@@ -133,15 +133,14 @@ In a HOL theory, the \indexdef{}{command}{datatype}\hypertarget{command.datatype
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    structure\ Example\ {\isacharcolon}\ sig\isanewline
+structure\ Example\ {\isacharcolon}\ sig\isanewline
 \ \ val\ id\ {\isacharcolon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
 \ \ val\ fold\ {\isacharcolon}\ {\isacharparenleft}{\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b{\isacharparenright}\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\isanewline
 \ \ val\ rev\ {\isacharcolon}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\isanewline
@@ -173,18 +172,16 @@ fun\ dequeue\ {\isacharparenleft}AQueue\ {\isacharparenleft}{\isacharbrackleft}{
 \isanewline
 fun\ enqueue\ x\ {\isacharparenleft}AQueue\ {\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ AQueue\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ xs{\isacharcomma}\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
-
-  \end{typewriter}%
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent The \indexdef{}{command}{export\_code}\hypertarget{command.export-code}{\hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}}} command takes a
@@ -219,15 +216,14 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    module\ Example\ where\ {\isacharbraceleft}\isanewline
+module\ Example\ where\ {\isacharbraceleft}\isanewline
 \isanewline
 data\ Queue\ a\ {\isacharequal}\ AQueue\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharbrackleft}a{\isacharbrackright}{\isacharsemicolon}\isanewline
 \isanewline
@@ -245,18 +241,16 @@ dequeue\ {\isacharparenleft}AQueue\ {\isacharparenleft}v\ {\isacharcolon}\ va{\i
 enqueue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ a\ {\isacharminus}{\isachargreater}\ Queue\ a\ {\isacharminus}{\isachargreater}\ Queue\ a{\isacharsemicolon}\isanewline
 enqueue\ x\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequal}\ AQueue\ {\isacharparenleft}x\ {\isacharcolon}\ xs{\isacharparenright}\ ys{\isacharsemicolon}\isanewline
 \isanewline
-{\isacharbraceright}\isanewline
-
-  \end{typewriter}%
+{\isacharbraceright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent For more details about \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} see
@@ -388,15 +382,14 @@ Code can also be generated from type classes in a Haskell-like
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    module\ Example\ where\ {\isacharbraceleft}\isanewline
+module\ Example\ where\ {\isacharbraceleft}\isanewline
 \isanewline
 data\ Nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ Nat{\isacharsemicolon}\isanewline
 \isanewline
@@ -434,18 +427,16 @@ instance\ Monoid\ Nat\ where\ {\isacharbraceleft}\isanewline
 bexp\ {\isacharcolon}{\isacharcolon}\ Nat\ {\isacharminus}{\isachargreater}\ Nat{\isacharsemicolon}\isanewline
 bexp\ n\ {\isacharequal}\ pow\ n\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ Zero{\isacharunderscore}nat{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-{\isacharbraceright}\isanewline
-
-  \end{typewriter}%
+{\isacharbraceright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent This is a convenient place to show how explicit dictionary
@@ -454,15 +445,14 @@ bexp\ n\ {\isacharequal}\ pow\ n\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    structure\ Example\ {\isacharcolon}\ sig\isanewline
+structure\ Example\ {\isacharcolon}\ sig\isanewline
 \ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
 \ \ val\ plus{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ nat\isanewline
 \ \ type\ {\isacharprime}a\ semigroup\isanewline
@@ -505,18 +495,16 @@ val\ monoid{\isacharunderscore}nat\ {\isacharequal}\ {\isacharbraceleft}semigrou
 \isanewline
 fun\ bexp\ n\ {\isacharequal}\ pow\ monoid{\isacharunderscore}nat\ n\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ Zero{\isacharunderscore}nat{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
-
-  \end{typewriter}%
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent Note the parameters with trailing underscore (\verb|A_|), which are the dictionary parameters.%

@@ -228,15 +228,14 @@ Consider the following function and its corresponding SML code:%
 %
 \endisadeliminvisible
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    structure\ Example\ {\isacharcolon}\ sig\isanewline
+structure\ Example\ {\isacharcolon}\ sig\isanewline
 \ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
 \ \ datatype\ boola\ {\isacharequal}\ True\ {\isacharbar}\ False\isanewline
 \ \ val\ conj\ {\isacharcolon}\ boola\ {\isacharminus}{\isachargreater}\ boola\ {\isacharminus}{\isachargreater}\ boola\isanewline
@@ -261,18 +260,16 @@ and\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharparenleft}Suc\ 
 \isanewline
 fun\ in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isacharequal}\ conj\ {\isacharparenleft}less{\isacharunderscore}eq{\isacharunderscore}nat\ k\ n{\isacharparenright}\ {\isacharparenleft}less{\isacharunderscore}eq{\isacharunderscore}nat\ n\ l{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
-
-  \end{typewriter}%
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent Though this is correct code, it is a little bit
@@ -314,15 +311,14 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    structure\ Example\ {\isacharcolon}\ sig\isanewline
+structure\ Example\ {\isacharcolon}\ sig\isanewline
 \ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
 \ \ val\ less{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
 \ \ val\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
@@ -338,18 +334,16 @@ and\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharparenleft}Suc\ 
 \isanewline
 fun\ in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isacharequal}\ {\isacharparenleft}less{\isacharunderscore}eq{\isacharunderscore}nat\ k\ n{\isacharparenright}\ andalso\ {\isacharparenleft}less{\isacharunderscore}eq{\isacharunderscore}nat\ n\ l{\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
-
-  \end{typewriter}%
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent This still is not perfect: the parentheses around the
@@ -375,15 +369,14 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 %
 \endisadelimquotett
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
-\isatagquote
+\isatagtypewriter
 %
 \begin{isamarkuptext}%
-\begin{typewriter}
-    structure\ Example\ {\isacharcolon}\ sig\isanewline
+structure\ Example\ {\isacharcolon}\ sig\isanewline
 \ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
 \ \ val\ less{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
 \ \ val\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
@@ -399,18 +392,16 @@ and\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharparenleft}Suc\ 
 \isanewline
 fun\ in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isacharequal}\ less{\isacharunderscore}eq{\isacharunderscore}nat\ k\ n\ andalso\ less{\isacharunderscore}eq{\isacharunderscore}nat\ n\ l{\isacharsemicolon}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline
-
-  \end{typewriter}%
+end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquote
-{\isafoldquote}%
+\endisatagtypewriter
+{\isafoldtypewriter}%
 %
-\isadelimquote
+\isadelimtypewriter
 %
-\endisadelimquote
+\endisadelimtypewriter
 %
 \begin{isamarkuptext}%
 \noindent The attentive reader may ask how we assert that no

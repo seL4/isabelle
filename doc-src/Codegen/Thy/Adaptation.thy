@@ -175,10 +175,8 @@ code_type %invisible bool
 code_const %invisible True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts in_interval (SML)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts in_interval (SML)}
 *}
 
 text {*
@@ -208,10 +206,8 @@ text {*
   placeholder for the type constructor's (the constant's) arguments.
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts in_interval (SML)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts in_interval (SML)}
 *}
 
 text {*
@@ -225,10 +221,8 @@ text {*
 code_const %quotett "op \<and>"
   (SML infixl 1 "andalso")
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts in_interval (SML)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts in_interval (SML)}
 *}
 
 text {*

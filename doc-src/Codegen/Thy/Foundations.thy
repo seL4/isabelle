@@ -161,10 +161,8 @@ text {*
   is determined syntactically.  The resulting code:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts dequeue (consts) dequeue (Haskell)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts dequeue (consts) dequeue (Haskell)}
 *}
 
 text {*
@@ -219,10 +217,8 @@ text {*
   equality check, as can be seen in the corresponding @{text SML} code:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts collect_duplicates (SML)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts collect_duplicates (SML)}
 *}
 
 text {*
@@ -259,10 +255,8 @@ text {*
   for the pattern @{term "AQueue [] []"}:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}
 *}
 
 text {*
@@ -302,10 +296,8 @@ text {*
   exception at the appropriate position:
 *}
 
-text %quote {*
-  \begin{typewriter}
-    @{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}
-  \end{typewriter}
+text %quote %typewriter {*
+  @{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}
 *}
 
 text {*
