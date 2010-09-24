@@ -600,7 +600,7 @@ let
       (* representation of clauses as ordered lists of literals (with duplicates removed) *)
       (* prop_formula -> int list *)
       fun clause_to_lit_list (PropLogic.Or (fm1, fm2)) =
-        OrdList.union int_ord (clause_to_lit_list fm1) (clause_to_lit_list fm2)
+        Ord_List.union int_ord (clause_to_lit_list fm1) (clause_to_lit_list fm2)
         | clause_to_lit_list (PropLogic.BoolVar i) =
         [i]
         | clause_to_lit_list (PropLogic.Not (PropLogic.BoolVar i)) =

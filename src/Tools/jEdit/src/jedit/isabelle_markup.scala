@@ -21,10 +21,11 @@ object Isabelle_Markup
   val outdated_color = new Color(240, 240, 240)
   val unfinished_color = new Color(255, 228, 225)
 
+  val light_color = new Color(240, 240, 240)
   val regular_color = new Color(192, 192, 192)
-  val warning_color = new Color(255, 168, 0)
-  val error_color = new Color(255, 80, 80)
-  val bad_color = new Color(255, 204, 153, 100)
+  val warning_color = new Color(255, 140, 0)
+  val error_color = new Color(178, 34, 34)
+  val bad_color = new Color(255, 106, 106, 100)
 
   class Icon(val priority: Int, val icon: javax.swing.Icon)
   {
@@ -96,7 +97,7 @@ object Isabelle_Markup
 
   val box: Markup_Tree.Select[Color] =
   {
-    case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => regular_color
+    case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
 
   val tooltip: Markup_Tree.Select[String] =

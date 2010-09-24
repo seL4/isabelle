@@ -14,16 +14,16 @@ minimal classes (wrt. current class inclusion).
 
 signature SORTS =
 sig
-  val make: sort list -> sort OrdList.T
-  val subset: sort OrdList.T * sort OrdList.T -> bool
-  val union: sort OrdList.T -> sort OrdList.T -> sort OrdList.T
-  val subtract: sort OrdList.T -> sort OrdList.T -> sort OrdList.T
-  val remove_sort: sort -> sort OrdList.T -> sort OrdList.T
-  val insert_sort: sort -> sort OrdList.T -> sort OrdList.T
-  val insert_typ: typ -> sort OrdList.T -> sort OrdList.T
-  val insert_typs: typ list -> sort OrdList.T -> sort OrdList.T
-  val insert_term: term -> sort OrdList.T -> sort OrdList.T
-  val insert_terms: term list -> sort OrdList.T -> sort OrdList.T
+  val make: sort list -> sort Ord_List.T
+  val subset: sort Ord_List.T * sort Ord_List.T -> bool
+  val union: sort Ord_List.T -> sort Ord_List.T -> sort Ord_List.T
+  val subtract: sort Ord_List.T -> sort Ord_List.T -> sort Ord_List.T
+  val remove_sort: sort -> sort Ord_List.T -> sort Ord_List.T
+  val insert_sort: sort -> sort Ord_List.T -> sort Ord_List.T
+  val insert_typ: typ -> sort Ord_List.T -> sort Ord_List.T
+  val insert_typs: typ list -> sort Ord_List.T -> sort Ord_List.T
+  val insert_term: term -> sort Ord_List.T -> sort Ord_List.T
+  val insert_terms: term list -> sort Ord_List.T -> sort Ord_List.T
   type algebra
   val classes_of: algebra -> serial Graph.T
   val arities_of: algebra -> (class * sort list) list Symtab.table
@@ -37,7 +37,7 @@ sig
   val inter_sort: algebra -> sort * sort -> sort
   val minimize_sort: algebra -> sort -> sort
   val complete_sort: algebra -> sort -> sort
-  val minimal_sorts: algebra -> sort list -> sort OrdList.T
+  val minimal_sorts: algebra -> sort list -> sort Ord_List.T
   val certify_class: algebra -> class -> class    (*exception TYPE*)
   val certify_sort: algebra -> sort -> sort       (*exception TYPE*)
   val add_class: Pretty.pp -> class * class list -> algebra -> algebra
@@ -71,13 +71,13 @@ struct
 
 (** ordered lists of sorts **)
 
-val make = OrdList.make Term_Ord.sort_ord;
-val subset = OrdList.subset Term_Ord.sort_ord;
-val union = OrdList.union Term_Ord.sort_ord;
-val subtract = OrdList.subtract Term_Ord.sort_ord;
+val make = Ord_List.make Term_Ord.sort_ord;
+val subset = Ord_List.subset Term_Ord.sort_ord;
+val union = Ord_List.union Term_Ord.sort_ord;
+val subtract = Ord_List.subtract Term_Ord.sort_ord;
 
-val remove_sort = OrdList.remove Term_Ord.sort_ord;
-val insert_sort = OrdList.insert Term_Ord.sort_ord;
+val remove_sort = Ord_List.remove Term_Ord.sort_ord;
+val insert_sort = Ord_List.insert Term_Ord.sort_ord;
 
 fun insert_typ (TFree (_, S)) Ss = insert_sort S Ss
   | insert_typ (TVar (_, S)) Ss = insert_sort S Ss

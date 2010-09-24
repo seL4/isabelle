@@ -432,30 +432,30 @@ ML {*
 
   structure Terms = Theory_Data
   (
-    type T = term OrdList.T;
+    type T = term Ord_List.T;
     val empty = [];
     val extend = I;
     fun merge (ts1, ts2) =
-      OrdList.union Term_Ord.fast_term_ord ts1 ts2;
+      Ord_List.union Term_Ord.fast_term_ord ts1 ts2;
   )
 
   val get = Terms.get;
 
   fun add raw_t thy =
     let val t = Sign.cert_term thy raw_t
-    in Terms.map (OrdList.insert Term_Ord.fast_term_ord t) thy end;
+    in Terms.map (Ord_List.insert Term_Ord.fast_term_ord t) thy end;
 
   end;
 *}
 
-text {* We use @{ML_type "term OrdList.T"} for reasonably efficient
+text {* We use @{ML_type "term Ord_List.T"} for reasonably efficient
   representation of a set of terms: all operations are linear in the
   number of stored elements.  Here we assume that our users do not
   care about the declaration order, since that data structure forces
   its own arrangement of elements.
 
   Observe how the @{verbatim merge} operation joins the data slots of
-  the two constituents: @{ML OrdList.union} prevents duplication of
+  the two constituents: @{ML Ord_List.union} prevents duplication of
   common data from different branches, thus avoiding the danger of
   exponential blowup.  (Plain list append etc.\ must never be used for
   theory data merges.)

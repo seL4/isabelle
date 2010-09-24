@@ -511,10 +511,8 @@ fun pretty_class ctxt =
   Pretty.str o Type.extern_class (ProofContext.tsig_of ctxt) o ProofContext.read_class ctxt;
 
 fun pretty_type ctxt s =
-  let
-    val tsig = ProofContext.tsig_of ctxt;
-    val _ = ProofContext.read_type_name ctxt false s;
-  in (Pretty.str o Type.extern_type tsig o Type.intern_type tsig) s end;
+  let val Type (name, _) = ProofContext.read_type_name_proper ctxt false s
+  in Pretty.str (Type.extern_type (ProofContext.tsig_of ctxt) name) end;
 
 fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
 

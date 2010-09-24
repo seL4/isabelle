@@ -77,7 +77,7 @@ datatype data = Data of
   binds: (typ * term) Vartab.table,     (*term bindings*)
   type_occs: string list Symtab.table,  (*type variables -- possibly within term variables*)
   maxidx: int,                          (*maximum var index*)
-  sorts: sort OrdList.T,                (*declared sort occurrences*)
+  sorts: sort Ord_List.T,                (*declared sort occurrences*)
   constraints:
     typ Vartab.table *                  (*type constraints*)
     sort Vartab.table};                 (*default sorts*)

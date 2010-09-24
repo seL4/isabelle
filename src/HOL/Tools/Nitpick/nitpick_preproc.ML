@@ -687,7 +687,7 @@ fun static_args_in_term ({ersatz_table, ...} : hol_context) x t =
       | call_sets [] uss vs = vs :: call_sets uss [] []
       | call_sets ([] :: _) _ _ = []
       | call_sets ((t :: ts) :: tss) uss vs =
-        OrdList.insert Term_Ord.term_ord t vs |> call_sets tss (ts :: uss)
+        Ord_List.insert Term_Ord.term_ord t vs |> call_sets tss (ts :: uss)
     val sets = call_sets (fun_calls t [] []) [] []
     val indexed_sets = sets ~~ (index_seq 0 (length sets))
   in
@@ -701,7 +701,7 @@ fun static_args_in_term ({ersatz_table, ...} : hol_context) x t =
   end
 fun static_args_in_terms hol_ctxt x =
   map (static_args_in_term hol_ctxt x)
-  #> fold1 (OrdList.inter (prod_ord int_ord (option_ord Term_Ord.term_ord)))
+  #> fold1 (Ord_List.inter (prod_ord int_ord (option_ord Term_Ord.term_ord)))
 
 fun overlapping_indices [] _ = []
   | overlapping_indices _ [] = []
@@ -844,7 +844,7 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) ts =
     fun generality (js, _, _) = ~(length js)
     fun is_more_specific (j1, t1, x1) (j2, t2, x2) =
       x1 <> x2 andalso length j2 < length j1 andalso
-      OrdList.subset (prod_ord int_ord Term_Ord.term_ord) (j2 ~~ t2, j1 ~~ t1)
+      Ord_List.subset (prod_ord int_ord Term_Ord.term_ord) (j2 ~~ t2, j1 ~~ t1)
     fun do_pass_1 _ [] [_] [_] = I
       | do_pass_1 T skipped _ [] = do_pass_2 T skipped
       | do_pass_1 T skipped all (z :: zs) =

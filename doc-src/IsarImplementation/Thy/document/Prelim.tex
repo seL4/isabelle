@@ -540,18 +540,18 @@ The following artificial example demonstrates theory
 \isanewline
 \ \ structure\ Terms\ {\isacharequal}\ Theory{\isacharunderscore}Data\isanewline
 \ \ {\isacharparenleft}\isanewline
-\ \ \ \ type\ T\ {\isacharequal}\ term\ OrdList{\isachardot}T{\isacharsemicolon}\isanewline
+\ \ \ \ type\ T\ {\isacharequal}\ term\ Ord{\isacharunderscore}List{\isachardot}T{\isacharsemicolon}\isanewline
 \ \ \ \ val\ empty\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\isanewline
 \ \ \ \ val\ extend\ {\isacharequal}\ I{\isacharsemicolon}\isanewline
 \ \ \ \ fun\ merge\ {\isacharparenleft}ts{\isadigit{1}}{\isacharcomma}\ ts{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ OrdList{\isachardot}union\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ ts{\isadigit{1}}\ ts{\isadigit{2}}{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ Ord{\isacharunderscore}List{\isachardot}union\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ ts{\isadigit{1}}\ ts{\isadigit{2}}{\isacharsemicolon}\isanewline
 \ \ {\isacharparenright}\isanewline
 \isanewline
 \ \ val\ get\ {\isacharequal}\ Terms{\isachardot}get{\isacharsemicolon}\isanewline
 \isanewline
 \ \ fun\ add\ raw{\isacharunderscore}t\ thy\ {\isacharequal}\isanewline
 \ \ \ \ let\ val\ t\ {\isacharequal}\ Sign{\isachardot}cert{\isacharunderscore}term\ thy\ raw{\isacharunderscore}t\isanewline
-\ \ \ \ in\ Terms{\isachardot}map\ {\isacharparenleft}OrdList{\isachardot}insert\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ t{\isacharparenright}\ thy\ end{\isacharsemicolon}\isanewline
+\ \ \ \ in\ Terms{\isachardot}map\ {\isacharparenleft}Ord{\isacharunderscore}List{\isachardot}insert\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ t{\isacharparenright}\ thy\ end{\isacharsemicolon}\isanewline
 \isanewline
 \ \ end{\isacharsemicolon}\isanewline
 {\isacharverbatimclose}%
@@ -563,14 +563,14 @@ The following artificial example demonstrates theory
 \endisadelimML
 %
 \begin{isamarkuptext}%
-We use \verb|term OrdList.T| for reasonably efficient
+We use \verb|term Ord_List.T| for reasonably efficient
   representation of a set of terms: all operations are linear in the
   number of stored elements.  Here we assume that our users do not
   care about the declaration order, since that data structure forces
   its own arrangement of elements.
 
   Observe how the \verb|merge| operation joins the data slots of
-  the two constituents: \verb|OrdList.union| prevents duplication of
+  the two constituents: \verb|Ord_List.union| prevents duplication of
   common data from different branches, thus avoiding the danger of
   exponential blowup.  (Plain list append etc.\ must never be used for
   theory data merges.)

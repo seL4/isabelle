@@ -18,7 +18,7 @@ sig
   val subtract: ('b * 'a -> order) -> 'b T -> 'a T -> 'a T
 end;
 
-structure OrdList: ORD_LIST =
+structure Ord_List: ORD_LIST =
 struct
 
 type 'a T = 'a list;

@@ -166,7 +166,7 @@ fun add_instances thy (Instances (cfilter, ctab,minsets,substs)) cs =
                               else case Consttab.lookup insttab constant of
                                        SOME _ => instantiations
                                      | NONE => ((constant', (constant, Sign.typ_match thy (ty', ty) empty_subst))::instantiations
-                                                handle TYPE_MATCH => instantiations))
+                                                handle Type.TYPE_MATCH => instantiations))
                           ctab instantiations
         val instantiations = fold calc_instantiations cs []
         (*val _ = writeln ("instantiations = "^(makestring (length instantiations)))*)
