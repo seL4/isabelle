@@ -162,25 +162,27 @@ text {*
 
 subsection {* Schematic overview *}
 
-(*FIXME rotatebox?*)
-
 text {*
+  \newcommand{\ttsize}{\fontsize{5.8pt}{8pt}\selectfont}
+  \fontsize{9pt}{12pt}\selectfont
   \begin{tabular}{ll||c|c|c}
     & & @{text simp} & @{text nbe} & @{text code} \tabularnewline \hline \hline
-    dynamic & interactive evaluation 
+    \multirow{5}{1ex}{\rotatebox{90}{dynamic}}
+      & interactive evaluation 
       & @{command value} @{text "[simp]"} & @{command value} @{text "[nbe]"} & @{command value} @{text "[code]"}
       \tabularnewline
-    & plain evaluation & & & @{ML "Code_Evaluation.dynamic_value"} \tabularnewline \hline
+    & plain evaluation & & & \ttsize@{ML "Code_Evaluation.dynamic_value"} \tabularnewline \cline{2-5}
     & evaluation method & @{method code_simp} & @{method normalization} & @{method eval} \tabularnewline
-    & property conversion & & & @{ML "Code_Runtime.dynamic_holds_conv"} \tabularnewline \hline
-    & conversion & @{ML "Code_Simp.dynamic_eval_conv"} & @{ML "Nbe.dynamic_eval_conv"}
-      & @{ML "Code_Evaluation.dynamic_eval_conv"} \tabularnewline \hline \hline
-    static & plain evaluation & & & @{ML "Code_Evaluation.static_value"} \tabularnewline \hline
+    & property conversion & & & \ttsize@{ML "Code_Runtime.dynamic_holds_conv"} \tabularnewline \cline{2-5}
+    & conversion & \ttsize@{ML "Code_Simp.dynamic_eval_conv"} & \ttsize@{ML "Nbe.dynamic_eval_conv"}
+      & \ttsize@{ML "Code_Evaluation.dynamic_eval_conv"} \tabularnewline \hline \hline
+    \multirow{3}{1ex}{\rotatebox{90}{static}}
+      & plain evaluation & & & \ttsize@{ML "Code_Evaluation.static_value"} \tabularnewline \cline{2-5}
     & property conversion & &
-      & @{ML "Code_Runtime.static_holds_conv"} \tabularnewline \hline
-    & conversion & @{ML "Code_Simp.static_eval_conv"}
-      & @{ML "Nbe.static_eval_conv"}
-      & @{ML "Code_Evaluation.static_eval_conv"}
+      & \ttsize@{ML "Code_Runtime.static_holds_conv"} \tabularnewline \cline{2-5}
+    & conversion & \ttsize@{ML "Code_Simp.static_eval_conv"}
+      & \ttsize@{ML "Nbe.static_eval_conv"}
+      & \ttsize@{ML "Code_Evaluation.static_eval_conv"}
   \end{tabular}
 *}
 
