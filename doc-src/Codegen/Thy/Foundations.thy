@@ -174,7 +174,7 @@ text {*
 
   This possibility to select arbitrary code equations is the key
   technique for program and datatype refinement (see
-  \secref{sec:refinement}.
+  \secref{sec:refinement}).
 
   Due to the preprocessor, there is the distinction of raw code
   equations (before preprocessing) and code equations (after
