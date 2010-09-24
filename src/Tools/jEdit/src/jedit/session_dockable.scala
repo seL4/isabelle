@@ -15,6 +15,7 @@ import scala.swing.{FlowPanel, Button, TextArea, Label, ScrollPane, TabbedPane,
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 import java.awt.BorderLayout
+import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
 import org.gjt.sp.jedit.View
 
@@ -51,8 +52,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   /* controls */
 
   val session_phase = new Label(Isabelle.session.phase.toString)
-  session_phase.border = Swing.EtchedBorder(Swing.Lowered)
-  session_phase.tooltip = "Prover process status"
+  session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
+  session_phase.tooltip = "Prover status"
 
   private val interrupt = new Button("Interrupt") {
     reactions += { case ButtonClicked(_) => Isabelle.session.interrupt }
