@@ -207,7 +207,7 @@ fun add (rw as Rewrite {known,...}) (id,eqn) =
         rw
       end;
 
-val addList = List.foldl (fn (eqn,rw) => add rw eqn);
+fun addList x = List.foldl (fn (eqn,rw) => add rw eqn) x;
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting (the order must be a refinement of the rewrite order).          *)
@@ -667,6 +667,6 @@ in
     end;
 end;
 
-val rewrite = orderedRewrite (K (SOME GREATER));
+fun rewrite x = orderedRewrite (K (SOME GREATER)) x;
 
 end

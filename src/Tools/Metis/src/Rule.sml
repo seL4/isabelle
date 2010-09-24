@@ -96,7 +96,7 @@ type equation = (Term.term * Term.term) * Thm.thm;
 
 fun ppEquation (_,th) = Thm.pp th;
 
-val equationToString = Print.toString ppEquation;
+fun equationToString x = Print.toString ppEquation x;
 
 fun equationLiteral (t_u,th) =
     let
