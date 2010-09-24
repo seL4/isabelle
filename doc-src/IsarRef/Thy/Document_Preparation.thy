@@ -250,8 +250,8 @@ text {*
 
   \item @{text "@{typ \<tau>}"} prints a well-formed type @{text "\<tau>"}.
 
-  \item @{text "@{type \<kappa>}"} prints a type constructor
-    (logical or abbreviation) @{text "\<kappa>"}.
+  \item @{text "@{type \<kappa>}"} prints a (logical or syntactic) type
+    constructor @{text "\<kappa>"}.
 
   \item @{text "@{class c}"} prints a class @{text c}.
 
