@@ -201,7 +201,20 @@ object Isabelle
       case None =>
       case Some(entry) => component.selection.item = entry
     }
+    component.tooltip = "Isabelle logic image"
     component
+  }
+
+  def start_session()
+  {
+    val timeout = Int_Property("startup-timeout") max 1000
+    val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
+    val logic = {
+      val logic = Property("logic")
+      if (logic != null && logic != "") logic
+      else Isabelle.default_logic()
+    }
+    session.start(timeout, modes ::: List(logic))
   }
 }
 
@@ -209,18 +222,6 @@ object Isabelle
 class Plugin extends EBPlugin
 {
   /* session management */
-
-  private def start_session()
-  {
-    val timeout = Isabelle.Int_Property("startup-timeout") max 1000
-    val modes = Isabelle.system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
-    val logic = {
-      val logic = Isabelle.Property("logic")
-      if (logic != null && logic != "") logic
-      else Isabelle.default_logic()
-    }
-    Isabelle.session.start(timeout, modes ::: List(logic))
-  }
 
   private def init_model(buffer: Buffer): Option[Document_Model] =
   {
@@ -278,7 +279,8 @@ class Plugin extends EBPlugin
   override def handleMessage(message: EBMessage)
   {
     message match {
-      case msg: EditorStarted => start_session()
+      case msg: EditorStarted
+      if Isabelle.Boolean_Property("auto-start") => Isabelle.start_session()
 
       case msg: BufferUpdate
       if Isabelle.session.phase == Session.Ready &&  // FIXME race!?
