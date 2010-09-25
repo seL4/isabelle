@@ -315,10 +315,10 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
     val i = next_fifo()
     val script =
       "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$-" + i + "\"\n" +
-      "mkfifo -m 600 \"$FIFO\" || { echo \"Failed to create fifo: $FIFO\" >&2; exit 2; }\n" +
-      "echo -n \"$FIFO\"\n"
+      "echo -n \"$FIFO\"\n" +
+      "mkfifo -m 600 \"$FIFO\"\n"
     val (out, err, rc) = bash(script)
-    if (rc == 0) out else error(err)
+    if (rc == 0) out else error(err.trim)
   }
 
   def rm_fifo(fifo: String): Boolean =
