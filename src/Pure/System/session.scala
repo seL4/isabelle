@@ -149,7 +149,7 @@ class Session(system: Isabelle_System)
     //{{{
     {
       val previous = change.previous.get_finished
-      val (node_edits, current) = change.result.get_finished
+      val (node_edits, version) = change.result.get_finished
 
       var former_assignment = global_state.peek().the_assignment(previous).get_finished
       for {
@@ -180,8 +180,8 @@ class Session(system: Isabelle_System)
               }
             (name -> Some(ids))
         }
-      global_state.change(_.define_version(current, former_assignment))
-      prover.edit_version(previous.id, current.id, id_edits)
+      global_state.change(_.define_version(version, former_assignment))
+      prover.edit_version(previous.id, version.id, id_edits)
     }
     //}}}
 
@@ -241,12 +241,12 @@ class Session(system: Isabelle_System)
           if (prover != null) prover.interrupt
 
         case Edit_Version(edits) if prover != null =>
-          val previous = global_state.peek().history.tip.current
+          val previous = global_state.peek().history.tip.version
           val result = Future.fork { Thy_Syntax.text_edits(Session.this, previous.join, edits) }
           val change = global_state.change_yield(_.extend_history(previous, edits, result))
 
           val this_actor = self
-          change.current.map(_ => {
+          change.version.map(_ => {
             assignments.await { global_state.peek().is_assigned(previous.get_finished) }
             this_actor ! change })
 
