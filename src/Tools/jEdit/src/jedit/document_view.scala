@@ -208,14 +208,24 @@ class Document_View(val model: Document_Model, text_area: TextArea)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
 
-            // background color: markup
+            // background color (1): markup
             for {
               Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Markup.background).iterator
+                snapshot.select_markup(line_range)(Isabelle_Markup.background1).iterator
               r <- Isabelle.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+            }
+
+            // background color (2): markup
+            for {
+              Text.Info(range, Some(color)) <-
+                snapshot.select_markup(line_range)(Isabelle_Markup.background2).iterator
+              r <- Isabelle.gfx_range(text_area, range)
+            } {
+              gfx.setColor(color)
+              gfx.fillRect(r.x + 2, y + i * line_height + 2, r.length - 4, line_height - 4)
             }
 
             // sub-expression highlighting -- potentially from other snapshot
@@ -225,19 +235,9 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                   case None =>
                   case Some(r) =>
                     gfx.setColor(color)
-                    gfx.drawRect(r.x, y + i * line_height, r.length, line_height - 1)
+                    gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
                 }
               case _ =>
-            }
-
-            // background boxes
-            for {
-              Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Markup.box).iterator
-              r <- Isabelle.gfx_range(text_area, range)
-            } {
-              gfx.setColor(color)
-              gfx.fillRect(r.x + 1, y + i * line_height + 1, r.length - 2, line_height - 2)
             }
 
             // squiggly underline

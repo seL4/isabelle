@@ -90,12 +90,12 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_icon
   }
 
-  val background: Markup_Tree.Select[Color] =
+  val background1: Markup_Tree.Select[Color] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _)) => bad_color
   }
 
-  val box: Markup_Tree.Select[Color] =
+  val background2: Markup_Tree.Select[Color] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
