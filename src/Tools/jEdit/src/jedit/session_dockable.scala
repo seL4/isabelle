@@ -79,7 +79,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
               }
             }
 
-        case (_, phase: Session.Phase) =>
+        case phase: Session.Phase =>
           Swing_Thread.now { session_phase.text = " " + phase.toString + " " }
 
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)

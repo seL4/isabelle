@@ -212,16 +212,14 @@ class Plugin extends EBPlugin
 
   private def start_session()
   {
-    if (Isabelle.session.phase == Session.Inactive) {
-      val timeout = Isabelle.Int_Property("startup-timeout") max 1000
-      val modes = Isabelle.system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
-      val logic = {
-        val logic = Isabelle.Property("logic")
-        if (logic != null && logic != "") logic
-        else Isabelle.default_logic()
-      }
-      Isabelle.session.start(timeout, modes ::: List(logic))
+    val timeout = Isabelle.Int_Property("startup-timeout") max 1000
+    val modes = Isabelle.system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
+    val logic = {
+      val logic = Isabelle.Property("logic")
+      if (logic != null && logic != "") logic
+      else Isabelle.default_logic()
     }
+    Isabelle.session.start(timeout, modes ::: List(logic))
   }
 
   private def init_model(buffer: Buffer): Option[Document_Model] =
@@ -262,14 +260,13 @@ class Plugin extends EBPlugin
   private val session_manager = actor {
     loop {
       react {
-        case (Session.Startup, Session.Inactive) =>
+        case Session.Failed =>
           val text = new scala.swing.TextArea(Isabelle.session.syslog())
           text.editable = false
           Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)
 
-        case (_, Session.Ready) => Isabelle.jedit_buffers.foreach(activate_buffer)
-        case (_, Session.Shutdown) => Isabelle.jedit_buffers.foreach(deactivate_buffer)
-
+        case Session.Ready => Isabelle.jedit_buffers.foreach(activate_buffer)
+        case Session.Shutdown => Isabelle.jedit_buffers.foreach(deactivate_buffer)
         case _ =>
       }
     }
@@ -284,14 +281,14 @@ class Plugin extends EBPlugin
       case msg: EditorStarted => start_session()
 
       case msg: BufferUpdate
-      if Isabelle.session.phase == Session.Ready &&
+      if Isabelle.session.phase == Session.Ready &&  // FIXME race!?
         msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
 
         val buffer = msg.getBuffer
         if (buffer != null) activate_buffer(buffer)
 
       case msg: EditPaneUpdate
-      if Isabelle.session.phase == Session.Ready &&
+      if Isabelle.session.phase == Session.Ready &&  // FIXME race!?
         (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
           msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
           msg.getWhat == EditPaneUpdate.CREATED ||
