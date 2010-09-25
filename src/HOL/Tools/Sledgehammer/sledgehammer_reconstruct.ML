@@ -228,8 +228,8 @@ fun resolve_conjecture conjecture_shape (num, s_opt) =
                       | NONE => ~1
   in if k >= 0 then [k] else [] end
 
-val is_axiom = not o null oo resolve_axiom
-val is_conjecture = not o null oo resolve_conjecture
+fun is_axiom conjecture_shape = not o null o resolve_axiom conjecture_shape
+fun is_conjecture conjecture_shape = not o null o resolve_conjecture conjecture_shape
 
 fun raw_label_for_name conjecture_shape name =
   case resolve_conjecture conjecture_shape name of
