@@ -189,18 +189,20 @@ object Standard_System
     }
     val gzip_stream = new GZIPInputStream(progress_stream)
 
-    val proc = raw_execute(null, null, false, tar, "-C", root.getCanonicalPath, "-x", "-f", "-")
+    val proc = raw_execute(root, null, false, tar, "-x", "-f", "-")
     val stdout = Simple_Thread.future("tar_stdout") { slurp(proc.getInputStream) }
     val stderr = Simple_Thread.future("tar_stderr") { slurp(proc.getErrorStream) }
     val stdin = new BufferedOutputStream(proc.getOutputStream)
 
     try {
       var c = -1
-      while ({ c = gzip_stream.read; c != -1 }) stdin.write(c)
+      val io_err =
+        try { while ({ c = gzip_stream.read; c != -1 }) stdin.write(c); false }
+        catch { case e: IOException => true }
       stdin.close
 
       val rc = try { proc.waitFor } finally { Thread.interrupted }
-      if (rc != 0) error(stderr.join.trim) else stdout.join
+      if (io_err || rc != 0) error(stderr.join.trim) else stdout.join
     }
     finally {
       gzip_stream.close
