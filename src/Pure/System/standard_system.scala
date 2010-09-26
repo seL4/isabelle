@@ -8,7 +8,9 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream,
+import java.util.zip.GZIPInputStream
+import java.net.URL
+import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   BufferedInputStream, InputStream, FileInputStream, BufferedReader, InputStreamReader,
   File, FileFilter, IOException}
 
@@ -154,6 +156,58 @@ object Standard_System
 
   def raw_exec(cwd: File, env: Map[String, String], redirect: Boolean, args: String*)
     : (String, Int) = process_output(raw_execute(cwd, env, redirect, args: _*))
+
+
+  /* unpack tar.gz */
+
+  def raw_untar(url: URL, root: File,
+    tar: String = "tar", progress: Int => Unit = _ => ()): String =
+  {
+    if (!root.isDirectory && !root.mkdirs) error("Failed to create root directory: " + root)
+
+    val connection = url.openConnection
+
+    val length = connection.getContentLength.toLong
+    require(length >= 0L)
+
+    val buffered_stream = new BufferedInputStream(connection.getInputStream)
+    val progress_stream = new InputStream {
+      private val total = length max 1L
+      private var index = 0L
+      private var percentage = 0L
+      override def read(): Int =
+      {
+        val c = buffered_stream.read
+        if (c != -1) {
+          index += 100
+          val p = index / total
+          if (percentage != p) { percentage = p; progress(percentage.toInt) }
+        }
+        c
+      }
+      override def close() { buffered_stream.close }
+    }
+    val gzip_stream = new GZIPInputStream(progress_stream)
+
+    val proc = raw_execute(null, null, false, tar, "-C", root.getCanonicalPath, "-x", "-f", "-")
+    val stdout = Simple_Thread.future("tar_stdout") { slurp(proc.getInputStream) }
+    val stderr = Simple_Thread.future("tar_stderr") { slurp(proc.getErrorStream) }
+    val stdin = new BufferedOutputStream(proc.getOutputStream)
+
+    try {
+      var c = -1
+      while ({ c = gzip_stream.read; c != -1 }) stdin.write(c)
+      stdin.close
+
+      val rc = try { proc.waitFor } finally { Thread.interrupted }
+      if (rc != 0) error(stderr.join.trim) else stdout.join
+    }
+    finally {
+      gzip_stream.close
+      stdin.close
+      proc.destroy
+    }
+  }
 }
 
 
