@@ -16,11 +16,11 @@ import javax.swing.ProgressMonitorInputStream
 
 object Download
 {
-  def stream(parent: Component, url: URL): (URLConnection, BufferedInputStream) =
+  def stream(parent: Component, title: String, url: URL): (URLConnection, BufferedInputStream) =
   {
     val connection = url.openConnection
 
-    val stream = new ProgressMonitorInputStream(null, "Downloading", connection.getInputStream)
+    val stream = new ProgressMonitorInputStream(parent, title, connection.getInputStream)
     val monitor = stream.getProgressMonitor
     monitor.setNote(connection.getURL.toString)
 
@@ -30,14 +30,14 @@ object Download
     (connection, new BufferedInputStream(stream))
   }
 
-  def file(parent: Component, url: URL, file: File)
+  def file(parent: Component, title: String, url: URL, file: File)
   {
-    val (connection, instream) = stream(parent, url)
+    val (connection, instream) = stream(parent, title, url)
     val mod_time = connection.getLastModified
 
     def read() =
       try { instream.read }
-      catch { case _ : InterruptedIOException => error("Download canceled!") }
+      catch { case _ : InterruptedIOException => error("Canceled by user") }
     try {
       val outstream = new BufferedOutputStream(new FileOutputStream(file))
       try {
