@@ -28,17 +28,20 @@
 \newcommand{\quotebreak}{\\[1.2ex]}
 
 %% typewriter text
-\isakeeptag{typewriter}
 \newenvironment{typewriter}{\renewcommand{\isastyletext}{}%
 \renewcommand{\isadigit}[1]{{##1}}%
 \parindent0pt%
+\makeatletter\isa@parindent0pt\makeatother%
 \isabellestyle{tt}\isastyle%
 \fontsize{9pt}{9pt}\selectfont}{}
-\renewcommand{\isatagtypewriter}{\begin{typewriter}}
-\renewcommand{\endisatagtypewriter}{\end{typewriter}}
 
-\isakeeptag{tt}
-\renewcommand{\isatagtt}{\isabellestyle{tt}\isastyle}
+\isakeeptag{quotetypewriter}
+\renewcommand{\isatagquotetypewriter}{\begin{quote}\begin{typewriter}}
+\renewcommand{\endisatagquotetypewriter}{\end{typewriter}\end{quote}}
+
+\isakeeptag{quotett}
+\renewcommand{\isatagquotett}{\begin{quote}\isabellestyle{tt}\isastyle}
+\renewcommand{\endisatagquotett}{\end{quote}}
 
 %% a trick
 \newcommand{\isasymSML}{SML}
