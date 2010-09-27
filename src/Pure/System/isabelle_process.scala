@@ -335,8 +335,8 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
         var m = 0
         do {
           m = stream.read(buf, i, n - i)
-          i += m
-        } while (m > 0 && n > i)
+          if (m != -1) i += m
+        } while (m != -1 && n > i)
 
         if (i != n) throw new Protocol_Error("bad message chunk content")
 
