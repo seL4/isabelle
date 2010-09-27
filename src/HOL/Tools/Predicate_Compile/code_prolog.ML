@@ -315,8 +315,9 @@ fun translate_intros ensure_groundness ctxt gr const constant_table =
         val prems' = Conj (map (translate_prem ensure_groundness ctxt' constant_table') prems)
         val clause = (dest_Rel (translate_literal ctxt' constant_table' head), prems')
       in clause end
-    val res = (map translate_intro intros', constant_table')
-  in res end
+  in
+    (map translate_intro intros', constant_table')
+  end
 
 fun depending_preds_of (key, intros) =
   fold Term.add_const_names (map Thm.prop_of intros) []
@@ -669,7 +670,9 @@ fun post_process ctxt options (p, constant_table) =
   |> (if #ensure_groundness options then
         add_ground_predicates ctxt (#limited_types options)
       else I)
+  |> tap (fn _ => tracing "Adding limited predicates...")
   |> add_limited_predicates (#limited_predicates options)
+  |> tap (fn _ => tracing "Replacing predicates...")
   |> apfst (fold replace (#replacing options))
   |> apfst (reorder_manually (#manual_reorder options))
   |> apfst rename_vars_program
