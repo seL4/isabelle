@@ -24,9 +24,10 @@ object Session
 
   sealed abstract class Phase
   case object Inactive extends Phase
-  case object Exit extends Phase
+  case object Startup extends Phase  // transient
+  case object Failed extends Phase
   case object Ready extends Phase
-  case object Shutdown extends Phase
+  case object Shutdown extends Phase  // transient
 }
 
 
@@ -46,7 +47,7 @@ class Session(system: Isabelle_System)
 
   /* pervasive event buses */
 
-  val phase_changed = new Event_Bus[(Session.Phase, Session.Phase)]
+  val phase_changed = new Event_Bus[Session.Phase]
   val global_settings = new Event_Bus[Session.Global_Settings.type]
   val raw_messages = new Event_Bus[Isabelle_Process.Result]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
@@ -126,9 +127,8 @@ class Session(system: Isabelle_System)
   def phase = _phase
   private def phase_=(new_phase: Session.Phase)
   {
-    val old_phase = _phase
     _phase = new_phase
-    phase_changed.event(old_phase, new_phase)
+    phase_changed.event(new_phase)
   }
 
   private val global_state = new Volatile(Document.State.init)
@@ -149,7 +149,7 @@ class Session(system: Isabelle_System)
     //{{{
     {
       val previous = change.previous.get_finished
-      val (node_edits, current) = change.result.get_finished
+      val (node_edits, version) = change.result.get_finished
 
       var former_assignment = global_state.peek().the_assignment(previous).get_finished
       for {
@@ -180,8 +180,8 @@ class Session(system: Isabelle_System)
               }
             (name -> Some(ids))
         }
-      global_state.change(_.define_version(current, former_assignment))
-      prover.edit_version(previous.id, current.id, id_edits)
+      global_state.change(_.define_version(version, former_assignment))
+      prover.edit_version(previous.id, version.id, id_edits)
     }
     //}}}
 
@@ -209,10 +209,8 @@ class Session(system: Isabelle_System)
           if (result.is_syslog) {
             reverse_syslog ::= result.message
             if (result.is_ready) phase = Session.Ready
-            else if (result.is_exit) {
-              phase = Session.Exit
-              phase = Session.Inactive
-            }
+            else if (result.is_exit && phase == Session.Startup) phase = Session.Failed
+            else if (result.is_exit) phase = Session.Inactive
           }
           else if (result.is_stdout) { }
           else if (result.is_status) {
@@ -244,12 +242,12 @@ class Session(system: Isabelle_System)
           if (prover != null) prover.interrupt
 
         case Edit_Version(edits) if prover != null =>
-          val previous = global_state.peek().history.tip.current
+          val previous = global_state.peek().history.tip.version
           val result = Future.fork { Thy_Syntax.text_edits(Session.this, previous.join, edits) }
           val change = global_state.change_yield(_.extend_history(previous, edits, result))
 
           val this_actor = self
-          change.current.map(_ => {
+          change.version.map(_ => {
             assignments.await { global_state.peek().is_assigned(previous.get_finished) }
             this_actor ! change })
 
@@ -260,13 +258,18 @@ class Session(system: Isabelle_System)
         case result: Isabelle_Process.Result => handle_result(result)
 
         case Start(timeout, args) if prover == null =>
-          prover = new Isabelle_Process(system, timeout, self, args:_*) with Isar_Document
+          if (phase == Session.Inactive || phase == Session.Failed) {
+            phase = Session.Startup
+            prover = new Isabelle_Process(system, timeout, self, args:_*) with Isar_Document
+          }
 
-        case Stop if phase == Session.Ready =>
-          global_state.change(_ => Document.State.init)  // FIXME event bus!?
-          phase = Session.Shutdown
-          prover.terminate
-          phase = Session.Inactive
+        case Stop =>
+          if (phase == Session.Ready) {
+            global_state.change(_ => Document.State.init)  // FIXME event bus!?
+            phase = Session.Shutdown
+            prover.terminate
+            phase = Session.Inactive
+          }
           finished = true
           reply(())
 

@@ -69,7 +69,7 @@ object Isabelle_Markup
   /* markup selectors */
 
   private val subexp_include =
-    Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING)
+    Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE)
 
   val subexp: Markup_Tree.Select[(Text.Range, Color)] =
   {
@@ -90,12 +90,12 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_icon
   }
 
-  val background: Markup_Tree.Select[Color] =
+  val background1: Markup_Tree.Select[Color] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _)) => bad_color
   }
 
-  val box: Markup_Tree.Select[Color] =
+  val background2: Markup_Tree.Select[Color] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
@@ -108,6 +108,7 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TYP, _), _)) => "type"
     case Text.Info(_, XML.Elem(Markup(Markup.TERM, _), _)) => "term"
     case Text.Info(_, XML.Elem(Markup(Markup.PROP, _), _)) => "proposition"
+    case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => "inner syntax token"
   }
 
 

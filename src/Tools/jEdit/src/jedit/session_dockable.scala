@@ -11,10 +11,11 @@ import isabelle._
 
 import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, TextArea, Label, ScrollPane, TabbedPane,
-  Component, Swing}
+  Component, Swing, CheckBox}
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 import java.awt.BorderLayout
+import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
 import org.gjt.sp.jedit.View
 
@@ -51,8 +52,23 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   /* controls */
 
   val session_phase = new Label(Isabelle.session.phase.toString)
-  session_phase.border = Swing.EtchedBorder(Swing.Lowered)
-  session_phase.tooltip = "Prover process status"
+  session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
+  session_phase.tooltip = "Prover status"
+
+  private val auto_start = new CheckBox("Auto start") {
+    selected = Isabelle.Boolean_Property("auto-start")
+    reactions += {
+      case ButtonClicked(_) =>
+        Isabelle.Boolean_Property("auto-start") = selected
+        if (selected) Isabelle.start_session()
+    }
+  }
+
+  private val logic = Isabelle.logic_selector(Isabelle.Property("logic"))
+  logic.listenTo(logic.selection)
+  logic.reactions += {
+    case SelectionChanged(_) => Isabelle.Property("logic") = logic.selection.item.name
+  }
 
   private val interrupt = new Button("Interrupt") {
     reactions += { case ButtonClicked(_) => Isabelle.session.interrupt }
@@ -60,7 +76,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
   interrupt.tooltip = "Broadcast interrupt to all prover tasks"
 
   private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(session_phase, interrupt)
+    new FlowPanel(FlowPanel.Alignment.Right)(session_phase, auto_start, logic, interrupt)
   add(controls.peer, BorderLayout.NORTH)
 
 
@@ -78,8 +94,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
               }
             }
 
-        case (_, phase: Session.Phase) =>
-          Swing_Thread.now { session_phase.text = phase.toString }
+        case phase: Session.Phase =>
+          Swing_Thread.now { session_phase.text = " " + phase.toString + " " }
 
         case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)
       }

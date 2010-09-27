@@ -8,7 +8,8 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream,
+import java.net.URL
+import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   BufferedInputStream, InputStream, FileInputStream, BufferedReader, InputStreamReader,
   File, FileFilter, IOException}
 
@@ -154,6 +155,65 @@ object Standard_System
 
   def raw_exec(cwd: File, env: Map[String, String], redirect: Boolean, args: String*)
     : (String, Int) = process_output(raw_execute(cwd, env, redirect, args: _*))
+
+
+  /* unpack tar archive */
+
+  def posix_untar(url: URL, root: File, gunzip: Boolean = false,
+    tar: String = "tar", gzip: String = "", progress: Int => Unit = _ => ()): String =
+  {
+    if (!root.isDirectory && !root.mkdirs)
+      error("Failed to create root directory: " + root)
+
+    val connection = url.openConnection
+
+    val length = connection.getContentLength.toLong
+    require(length >= 0L)
+
+    val stream = new BufferedInputStream(connection.getInputStream)
+    val progress_stream = new InputStream {
+      private val total = length max 1L
+      private var index = 0L
+      private var percentage = 0L
+      override def read(): Int =
+      {
+        val c = stream.read
+        if (c != -1) {
+          index += 100
+          val p = index / total
+          if (percentage != p) { percentage = p; progress(percentage.toInt) }
+        }
+        c
+      }
+      override def available(): Int = stream.available
+      override def close() { stream.close }
+    }
+
+    val cmdline =
+      List(tar, "-o", "-x", "-f-") :::
+        (if (!gunzip) Nil else if (gzip == "") List("-z") else List("-I", gzip))
+
+    val proc = raw_execute(root, null, false, cmdline:_*)
+    val stdout = Simple_Thread.future("tar_stdout") { slurp(proc.getInputStream) }
+    val stderr = Simple_Thread.future("tar_stderr") { slurp(proc.getErrorStream) }
+    val stdin = new BufferedOutputStream(proc.getOutputStream)
+
+    try {
+      var c = -1
+      val io_err =
+        try { while ({ c = progress_stream.read; c != -1 }) stdin.write(c); false }
+        catch { case e: IOException => true }
+      stdin.close
+
+      val rc = try { proc.waitFor } finally { Thread.interrupted }
+      if (io_err || rc != 0) error(stderr.join.trim) else stdout.join
+    }
+    finally {
+      progress_stream.close
+      stdin.close
+      proc.destroy
+    }
+  }
 }
 
 

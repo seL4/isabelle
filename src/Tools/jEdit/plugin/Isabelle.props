@@ -32,6 +32,7 @@ options.isabelle.tooltip-font-size=10
 options.isabelle.tooltip-dismiss-delay.title=Tooltip Dismiss Delay (global)
 options.isabelle.tooltip-dismiss-delay=8000
 options.isabelle.startup-timeout=10000
+options.isabelle.auto-start=true
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
