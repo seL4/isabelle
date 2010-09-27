@@ -28,14 +28,16 @@
 \newcommand{\quotebreak}{\\[1.2ex]}
 
 %% typewriter text
-\isakeeptag{typewriter}
 \newenvironment{typewriter}{\renewcommand{\isastyletext}{}%
 \renewcommand{\isadigit}[1]{{##1}}%
 \parindent0pt%
+\makeatletter\isa@parindent0pt\makeatother%
 \isabellestyle{tt}\isastyle%
 \fontsize{9pt}{9pt}\selectfont}{}
-\renewcommand{\isatagtypewriter}{\begin{typewriter}}
-\renewcommand{\endisatagtypewriter}{\end{typewriter}}
+
+\isakeeptag{quotetypewriter}
+\renewcommand{\isatagquotetypewriter}{\begin{quote}\begin{typewriter}}
+\renewcommand{\endisatagquotetypewriter}{\end{typewriter}\end{quote}}
 
 %% presentation
 \setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}

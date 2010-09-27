@@ -112,7 +112,7 @@ text {*
   After this setup procedure, code generation can continue as usual:
 *}
 
-text %quote %typewriter {*
+text %quotetypewriter {*
   @{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}
 *}
 

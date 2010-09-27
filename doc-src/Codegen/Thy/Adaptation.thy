@@ -175,7 +175,7 @@ code_type %invisible bool
 code_const %invisible True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
-text %quote %typewriter {*
+text %quotetypewriter {*
   @{code_stmts in_interval (SML)}
 *}
 
@@ -190,9 +190,9 @@ text {*
   "bool"}, we may use \qn{custom serialisations}:
 *}
 
-code_type %quote %tt bool
+code_type %quotett bool
   (SML "bool")
-code_const %quote %tt True and False and "op \<and>"
+code_const %quotett True and False and "op \<and>"
   (SML "true" and "false" and "_ andalso _")
 
 text {*
@@ -206,7 +206,7 @@ text {*
   placeholder for the type constructor's (the constant's) arguments.
 *}
 
-text %quote %typewriter {*
+text %quotetypewriter {*
   @{code_stmts in_interval (SML)}
 *}
 
@@ -218,10 +218,10 @@ text {*
   precedences which may be used here:
 *}
 
-code_const %quote %tt "op \<and>"
+code_const %quotett "op \<and>"
   (SML infixl 1 "andalso")
 
-text %quote %typewriter {*
+text %quotetypewriter {*
   @{code_stmts in_interval (SML)}
 *}
 
@@ -247,9 +247,9 @@ code_type %invisible prod
 code_const %invisible Pair
   (SML)
 (*>*)
-code_type %quote %tt prod
+code_type %quotett prod
   (SML infix 2 "*")
-code_const %quote %tt Pair
+code_const %quotett Pair
   (SML "!((_),/ (_))")
 
 text {*
@@ -283,10 +283,10 @@ text {*
   @{command_def code_class}) and its operation @{const [source] HOL.equal}
 *}
 
-code_class %quote %tt equal
+code_class %quotett equal
   (Haskell "Eq")
 
-code_const %quote %tt "HOL.equal"
+code_const %quotett "HOL.equal"
   (Haskell infixl 4 "==")
 
 text {*
@@ -307,7 +307,7 @@ instance %quote by default (simp add: equal_bar_def)
 
 end %quote (*<*)
 
-(*>*) code_type %quote %tt bar
+(*>*) code_type %quotett bar
   (Haskell "Integer")
 
 text {*
@@ -316,7 +316,7 @@ text {*
   suppress this additional instance, use @{command_def "code_instance"}:
 *}
 
-code_instance %quote %tt bar :: equal
+code_instance %quotett bar :: equal
   (Haskell -)
 
 
@@ -328,10 +328,10 @@ text {*
   "code_include"} command:
 *}
 
-code_include %quote %tt Haskell "Errno"
+code_include %quotett Haskell "Errno"
 {*errno i = error ("Error number: " ++ show i)*}
 
-code_reserved %quote %tt Haskell Errno
+code_reserved %quotett Haskell Errno
 
 text {*
   \noindent Such named @{text include}s are then prepended to every
