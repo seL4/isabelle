@@ -206,7 +206,7 @@ text {*
 
 datatype %quote form = T | F | And form form | Or form form (*<*)
 
-(*>*) ML %quotett {*
+(*>*) ML %tt %quote {*
   fun eval_form @{code T} = true
     | eval_form @{code F} = false
     | eval_form (@{code And} (p, q)) =
