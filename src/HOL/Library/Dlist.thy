@@ -35,6 +35,10 @@ lemma list_of_dlist_Dlist [simp]:
   "list_of_dlist (Dlist xs) = remdups xs"
   by (simp add: Dlist_def Abs_dlist_inverse)
 
+lemma remdups_list_of_dlist [simp]:
+  "remdups (list_of_dlist dxs) = list_of_dlist dxs"
+  by simp
+
 lemma Dlist_list_of_dlist [simp, code abstype]:
   "Dlist (list_of_dlist dxs) = dxs"
   by (simp add: Dlist_def list_of_dlist_inverse distinct_remdups_id)
