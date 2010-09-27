@@ -42,7 +42,7 @@ object Download
       val outstream = new BufferedOutputStream(new FileOutputStream(file))
       try {
         var c: Int = 0
-        while ({ c = read(); c != -1}) outstream.write(c)
+        while ({ c = read(); c != -1 }) outstream.write(c)
       }
       finally { outstream.close }
       if (mod_time > 0) file.setLastModified(mod_time)
