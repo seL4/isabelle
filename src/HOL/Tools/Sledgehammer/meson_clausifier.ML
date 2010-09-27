@@ -11,7 +11,7 @@ sig
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
-  val cnf_axiom : theory -> thm -> thm list
+  val meson_cnf_axiom : theory -> thm -> thm list
   val meson_general_tac : Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
@@ -234,7 +234,7 @@ fun to_definitional_cnf_with_quantifiers thy th =
   in Thm.equal_elim eqth th end
 
 (* Convert a theorem to CNF, with Skolem functions as additional premises. *)
-fun cnf_axiom thy th =
+fun meson_cnf_axiom thy th =
   let
     val ctxt0 = Variable.global_thm_context th
     val (nnf_th, ctxt) = to_nnf th ctxt0
@@ -257,7 +257,7 @@ fun meson_general_tac ctxt ths =
   let
     val thy = ProofContext.theory_of ctxt
     val ctxt0 = Classical.put_claset HOL_cs ctxt
-  in Meson.meson_tac ctxt0 (maps (cnf_axiom thy) ths) end
+  in Meson.meson_tac ctxt0 (maps (meson_cnf_axiom thy) ths) end
 
 val setup =
   Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>

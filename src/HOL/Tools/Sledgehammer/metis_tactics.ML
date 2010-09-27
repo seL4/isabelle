@@ -57,7 +57,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val type_lits = Config.get ctxt type_lits
       val th_cls_pairs =
         map (fn th => (Thm.get_name_hint th,
-                       Meson_Clausifier.cnf_axiom thy th)) ths0
+                       Meson_Clausifier.meson_cnf_axiom thy th)) ths0
       val ths = maps #2 th_cls_pairs
       val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) cls
