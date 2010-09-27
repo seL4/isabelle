@@ -2,18 +2,25 @@
     Author:     Jasmin Blanchette, TU Muenchen
 
 Try a combination of proof methods.
+
+FIXME: reintroduce or remove commented code (see also HOL.thy)
 *)
 
 signature TRY =
 sig
+(*
   val auto : bool Unsynchronized.ref
+*)
   val invoke_try : Time.time option -> Proof.state -> bool
+(*
   val setup : theory -> theory
+*)
 end;
 
 structure Try : TRY =
 struct
 
+(*
 val auto = Unsynchronized.ref false
 
 val _ =
@@ -21,6 +28,7 @@ val _ =
   (Unsynchronized.setmp auto true (fn () =>
     Preferences.bool_pref auto
       "auto-try" "Try standard proof methods.") ());
+*)
 
 val default_timeout = Time.fromSeconds 5
 
@@ -108,8 +116,10 @@ val _ =
       (Scan.succeed (Toplevel.keep (K () o do_try false (SOME default_timeout)
                                     o Toplevel.proof_of)))
 
+(*
 fun auto_try st = if not (!auto) then (false, st) else do_try true NONE st
 
 val setup = Auto_Tools.register_tool (tryN, auto_try)
+*)
 
 end;

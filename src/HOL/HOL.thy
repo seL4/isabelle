@@ -1980,9 +1980,11 @@ method_setup normalization = {*
 *} "solve goal by normalization"
 
 
+(*
 subsection {* Try *}
 
 setup {* Try.setup *}
+*)
 
 subsection {* Counterexample Search Units *}
 
