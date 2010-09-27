@@ -160,7 +160,7 @@ object Standard_System
   /* unpack tar archive */
 
   def posix_untar(url: URL, root: File, gunzip: Boolean = false,
-    tar: String = "tar", progress: Int => Unit = _ => ()): String =
+    tar: String = "tar", gzip: String = "", progress: Int => Unit = _ => ()): String =
   {
     if (!root.isDirectory && !root.mkdirs)
       error("Failed to create root directory: " + root)
@@ -189,7 +189,11 @@ object Standard_System
       override def close() { stream.close }
     }
 
-    val proc = raw_execute(root, null, false, tar, if (gunzip) "-xz" else "-x", "-f-")
+    val cmdline =
+      List(tar, "-o", "-x", "-f-") :::
+        (if (!gunzip) Nil else if (gzip == "") List("-z") else List("-I", gzip))
+
+    val proc = raw_execute(root, null, false, cmdline:_*)
     val stdout = Simple_Thread.future("tar_stdout") { slurp(proc.getInputStream) }
     val stderr = Simple_Thread.future("tar_stderr") { slurp(proc.getErrorStream) }
     val stdin = new BufferedOutputStream(proc.getOutputStream)
