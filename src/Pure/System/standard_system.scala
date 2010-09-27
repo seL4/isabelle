@@ -8,7 +8,6 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.util.zip.GZIPInputStream
 import java.net.URL
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   BufferedInputStream, InputStream, FileInputStream, BufferedReader, InputStreamReader,
@@ -158,26 +157,27 @@ object Standard_System
     : (String, Int) = process_output(raw_execute(cwd, env, redirect, args: _*))
 
 
-  /* unpack tar.gz */
+  /* unpack tar archive */
 
-  def raw_untar(url: URL, root: File,
+  def posix_untar(url: URL, root: File, gunzip: Boolean = false,
     tar: String = "tar", progress: Int => Unit = _ => ()): String =
   {
-    if (!root.isDirectory && !root.mkdirs) error("Failed to create root directory: " + root)
+    if (!root.isDirectory && !root.mkdirs)
+      error("Failed to create root directory: " + root)
 
     val connection = url.openConnection
 
     val length = connection.getContentLength.toLong
     require(length >= 0L)
 
-    val buffered_stream = new BufferedInputStream(connection.getInputStream)
+    val stream = new BufferedInputStream(connection.getInputStream)
     val progress_stream = new InputStream {
       private val total = length max 1L
       private var index = 0L
       private var percentage = 0L
       override def read(): Int =
       {
-        val c = buffered_stream.read
+        val c = stream.read
         if (c != -1) {
           index += 100
           val p = index / total
@@ -185,11 +185,11 @@ object Standard_System
         }
         c
       }
-      override def close() { buffered_stream.close }
+      override def available(): Int = stream.available
+      override def close() { stream.close }
     }
-    val gzip_stream = new GZIPInputStream(progress_stream)
 
-    val proc = raw_execute(root, null, false, tar, "-x", "-f", "-")
+    val proc = raw_execute(root, null, false, tar, if (gunzip) "-xz" else "-x", "-f-")
     val stdout = Simple_Thread.future("tar_stdout") { slurp(proc.getInputStream) }
     val stderr = Simple_Thread.future("tar_stderr") { slurp(proc.getErrorStream) }
     val stdin = new BufferedOutputStream(proc.getOutputStream)
@@ -197,7 +197,7 @@ object Standard_System
     try {
       var c = -1
       val io_err =
-        try { while ({ c = gzip_stream.read; c != -1 }) stdin.write(c); false }
+        try { while ({ c = progress_stream.read; c != -1 }) stdin.write(c); false }
         catch { case e: IOException => true }
       stdin.close
 
@@ -205,7 +205,7 @@ object Standard_System
       if (io_err || rc != 0) error(stderr.join.trim) else stdout.join
     }
     finally {
-      gzip_stream.close
+      progress_stream.close
       stdin.close
       proc.destroy
     }
