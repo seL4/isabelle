@@ -6,6 +6,7 @@ Standard system operations, with basic Cygwin/Posix compatibility.
 
 package isabelle
 
+import java.util.zip.{ZipEntry, ZipInputStream}
 import java.util.regex.Pattern
 import java.util.Locale
 import java.net.URL
@@ -157,7 +158,37 @@ object Standard_System
     : (String, Int) = process_output(raw_execute(cwd, env, redirect, args: _*))
 
 
-  /* unpack tar archive */
+  /* unpack zip archive -- platform file-system */
+
+  def unzip(url: URL, root: File)
+  {
+    import scala.collection.JavaConversions._
+
+    val buffer = new Array[Byte](4096)
+
+    val zip_stream = new ZipInputStream(new BufferedInputStream(url.openStream))
+    var entry: ZipEntry = null
+    try {
+      while ({ entry = zip_stream.getNextEntry; entry != null }) {
+        val file = new File(root, entry.getName.replace('/', File.separatorChar))
+        val dir = file.getParentFile
+        if (dir != null && !dir.isDirectory && !dir.mkdirs)
+          error("Failed to create directory: " + dir)
+
+        var len = 0
+        val out_stream = new BufferedOutputStream(new FileOutputStream(file))
+        try {
+          while ({ len = zip_stream.read(buffer); len != -1 })
+            out_stream.write(buffer, 0, len)
+        }
+        finally { out_stream.close }
+      }
+    }
+    finally { zip_stream.close }
+  }
+
+
+  /* unpack tar archive -- POSIX file-system */
 
   def posix_untar(url: URL, root: File, gunzip: Boolean = false,
     tar: String = "tar", gzip: String = "", progress: Int => Unit = _ => ()): String =
