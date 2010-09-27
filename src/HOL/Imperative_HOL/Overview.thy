@@ -138,6 +138,9 @@ text {*
 
   Provided proof rules are such that they reduce monad operations to
   operations on bare heaps.
+
+  Note that HOL equality coincides with reference equality and may be
+  used as primitive executable operation.
 *}
 
 subsection {* Arrays *}
