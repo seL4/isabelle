@@ -554,7 +554,8 @@ fun hol_term_to_fol_HO (CombConst ((a, _), _, tylist)) =
        Metis_Term.Fn (".", map hol_term_to_fol_HO [tm1, tm2]);
 
 (*The fully-typed translation, to avoid type errors*)
-fun wrap_type (tm, ty) = Metis_Term.Fn("ti", [tm, metis_term_from_combtyp ty]);
+fun wrap_type (tm, ty) =
+  Metis_Term.Fn (type_wrapper_name, [tm, metis_term_from_combtyp ty])
 
 fun hol_term_to_fol_FT (CombVar ((s, _), ty)) = wrap_type (Metis_Term.Var s, ty)
   | hol_term_to_fol_FT (CombConst((a, _), ty, _)) =

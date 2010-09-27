@@ -5,16 +5,18 @@
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
 
-signature CLAUSIFIER =
+signature MESON_CLAUSIFIER =
 sig
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
   val cnf_axiom : theory -> thm -> thm list
+  val meson_general_tac : Proof.context -> thm list -> int -> tactic
+  val setup: theory -> theory
 end;
 
-structure Clausifier : CLAUSIFIER =
+structure Meson_Clausifier : MESON_CLAUSIFIER =
 struct
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
@@ -250,5 +252,16 @@ fun cnf_axiom thy th =
             |> map Thm.close_derivation
   end
   handle THM _ => []
+
+fun meson_general_tac ctxt ths =
+  let
+    val thy = ProofContext.theory_of ctxt
+    val ctxt0 = Classical.put_claset HOL_cs ctxt
+  in Meson.meson_tac ctxt0 (maps (cnf_axiom thy) ths) end
+
+val setup =
+  Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
+    SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
+    "MESON resolution proof procedure";
 
 end;
