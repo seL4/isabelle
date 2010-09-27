@@ -28,9 +28,9 @@ sig
   val output_width: string -> output * int
   val output: string -> output
   val escape: output -> string
-  val std_output: output -> unit
-  val std_error: output -> unit
-  val writeln_default: output -> unit
+  val raw_stdout: output -> unit
+  val raw_stderr: output -> unit
+  val raw_writeln: output -> unit
   val writeln_fn: (output -> unit) Unsynchronized.ref
   val priority_fn: (output -> unit) Unsynchronized.ref
   val tracing_fn: (output -> unit) Unsynchronized.ref
@@ -77,24 +77,24 @@ fun escape x = #escape (get_mode ()) x;
 
 (** output channels **)
 
-(* output primitives -- normally NOT used directly!*)
+(* raw output primitives -- not to be used in user-space *)
 
-fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
-fun std_error s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
+fun raw_stdout s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
+fun raw_stderr s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
 
-fun writeln_default "" = ()
-  | writeln_default s = std_output (suffix "\n" s);
+fun raw_writeln "" = ()
+  | raw_writeln s = raw_stdout (suffix "\n" s);  (*atomic output!*)
 
 
 (* Isabelle output channels *)
 
-val writeln_fn = Unsynchronized.ref writeln_default;
+val writeln_fn = Unsynchronized.ref raw_writeln;
 val priority_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
 val tracing_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
-val warning_fn = Unsynchronized.ref (std_output o suffix "\n" o prefix_lines "### ");
-val error_fn = Unsynchronized.ref (std_output o suffix "\n" o prefix_lines "*** ");
-val debug_fn = Unsynchronized.ref (std_output o suffix "\n" o prefix_lines "::: ");
-val prompt_fn = Unsynchronized.ref std_output;
+val warning_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "### ");
+val error_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "*** ");
+val debug_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "::: ");
+val prompt_fn = Unsynchronized.ref raw_stdout;
 val status_fn = Unsynchronized.ref (fn _: string => ());
 val report_fn = Unsynchronized.ref (fn _: string => ());
 
