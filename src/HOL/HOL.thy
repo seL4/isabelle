@@ -1915,7 +1915,7 @@ code_const True and False and Not and HOL.conj and HOL.disj and If
     and infixl 1 "andalso" and infixl 0 "orelse"
     and "!(if (_)/ then (_)/ else (_))")
   (OCaml "true" and "false" and "not"
-    and infixl 4 "&&" and infixl 2 "||"
+    and infixl 3 "&&" and infixl 2 "||"
     and "!(if (_)/ then (_)/ else (_))")
   (Haskell "True" and "False" and "not"
     and infixl 3 "&&" and infixl 2 "||"
