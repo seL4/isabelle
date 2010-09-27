@@ -449,6 +449,7 @@ code_const Array.make' (SML "(fn/ ()/ =>/ Array.tabulate/ ((_),/ (_)))")
 code_const Array.len' (SML "(fn/ ()/ =>/ Array.length/ _)")
 code_const Array.nth' (SML "(fn/ ()/ =>/ Array.sub/ ((_),/ (_)))")
 code_const Array.upd' (SML "(fn/ ()/ =>/ Array.update/ ((_),/ (_),/ (_)))")
+code_const "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" (SML infixl 6 "=")
 
 code_reserved SML Array
 
@@ -464,6 +465,7 @@ code_const Array.make' (OCaml "(fun/ ()/ ->/ Array.init/ (Big'_int.int'_of'_big'
 code_const Array.len' (OCaml "(fun/ ()/ ->/ Big'_int.big'_int'_of'_int/ (Array.length/ _))")
 code_const Array.nth' (OCaml "(fun/ ()/ ->/ Array.get/ _/ (Big'_int.int'_of'_big'_int/ _))")
 code_const Array.upd' (OCaml "(fun/ ()/ ->/ Array.set/ _/ (Big'_int.int'_of'_big'_int/ _)/ _)")
+code_const "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" (OCaml infixl 4 "=")
 
 code_reserved OCaml Array
 
@@ -478,6 +480,8 @@ code_const Array.make' (Haskell "Heap.newFunArray")
 code_const Array.len' (Haskell "Heap.lengthArray")
 code_const Array.nth' (Haskell "Heap.readArray")
 code_const Array.upd' (Haskell "Heap.writeArray")
+code_const "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" (Haskell infix 4 "==")
+code_instance array :: HOL.equal (Haskell -)
 
 
 text {* Scala *}
@@ -490,5 +494,6 @@ code_const Array.len' (Scala "('_: Unit)/ =>/ Array.len((_))")
 code_const Array.nth' (Scala "('_: Unit)/ =>/ Array.nth((_), (_))")
 code_const Array.upd' (Scala "('_: Unit)/ =>/ Array.upd((_), (_), (_))")
 code_const Array.freeze (Scala "('_: Unit)/ =>/ Array.freeze((_))")
+code_const "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" (Scala infixl 5 "==")
 
 end

@@ -282,6 +282,7 @@ code_const ref' (SML "(fn/ ()/ =>/ ref/ _)")
 code_const ref' (Eval "(fn/ ()/ =>/ Unsynchronized.ref/ _)")
 code_const Ref.lookup (SML "(fn/ ()/ =>/ !/ _)")
 code_const Ref.update (SML "(fn/ ()/ =>/ _/ :=/ _)")
+code_const "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" (SML infixl 6 "=")
 
 code_reserved Eval Unsynchronized
 
@@ -293,6 +294,7 @@ code_const Ref (OCaml "failwith/ \"bare Ref\"")
 code_const ref' (OCaml "(fun/ ()/ ->/ ref/ _)")
 code_const Ref.lookup (OCaml "(fun/ ()/ ->/ !/ _)")
 code_const Ref.update (OCaml "(fun/ ()/ ->/ _/ :=/ _)")
+code_const "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" (OCaml infixl 4 "=")
 
 code_reserved OCaml ref
 
@@ -304,6 +306,8 @@ code_const Ref (Haskell "error/ \"bare Ref\"")
 code_const ref' (Haskell "Heap.newSTRef")
 code_const Ref.lookup (Haskell "Heap.readSTRef")
 code_const Ref.update (Haskell "Heap.writeSTRef")
+code_const "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" (Haskell infix 4 "==")
+code_instance ref :: HOL.equal (Haskell -)
 
 
 text {* Scala *}
@@ -313,5 +317,6 @@ code_const Ref (Scala "!error(\"bare Ref\")")
 code_const ref' (Scala "('_: Unit)/ =>/ Ref((_))")
 code_const Ref.lookup (Scala "('_: Unit)/ =>/ Ref.lookup((_))")
 code_const Ref.update (Scala "('_: Unit)/ =>/ Ref.update((_), (_))")
+code_const "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" (Scala infixl 5 "==")
 
 end
