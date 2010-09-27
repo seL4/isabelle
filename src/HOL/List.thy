@@ -2862,6 +2862,10 @@ proof -
   with `distinct xs` show ?thesis by simp
 qed
 
+lemma remdups_map_remdups:
+  "remdups (map f (remdups xs)) = remdups (map f xs)"
+  by (induct xs) simp_all
+
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 
