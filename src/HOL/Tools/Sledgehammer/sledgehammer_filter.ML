@@ -740,8 +740,7 @@ fun all_name_thms_pairs ctxt reserved full_types add_ths chained_ths =
           let
             val multi = length ths > 1
             fun backquotify th =
-              "`" ^ Print_Mode.setmp (Print_Mode.input ::
-                                      filter (curry (op =) Symbol.xsymbolsN)
+              "`" ^ Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
                                              (print_mode_value ()))
                    (Syntax.string_of_term ctxt) (close_form (prop_of th)) ^ "`"
               |> String.translate (fn c => if Char.isPrint c then str c else "")

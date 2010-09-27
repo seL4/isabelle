@@ -316,8 +316,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/recdef.ML \
   Tools/record.ML \
   Tools/semiring_normalizer.ML \
-  Tools/Sledgehammer/clausifier.ML \
-  Tools/Sledgehammer/meson_tactic.ML \
+  Tools/Sledgehammer/meson_clausifier.ML \
   Tools/Sledgehammer/metis_reconstruct.ML \
   Tools/Sledgehammer/metis_translate.ML \
   Tools/Sledgehammer/metis_tactics.ML \
