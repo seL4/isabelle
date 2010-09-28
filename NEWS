@@ -74,10 +74,12 @@ and type constructors.
 
 *** HOL ***
 
+* Dropped old primrec package.  INCOMPATIBILITY.
+
 * Improved infrastructure for term evaluation using code generator
 techniques, in particular static evaluation conversions.
 
-* String.literal is a type, but not a datatype. INCOMPATIBILITY.
+* String.literal is a type, but not a datatype.  INCOMPATIBILITY.
  
 * Renamed lemmas:
   expand_fun_eq -> fun_eq_iff

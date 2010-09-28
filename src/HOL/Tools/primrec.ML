@@ -320,12 +320,7 @@ val primrec_decl = Parse.opt_target -- Parse.fixes -- Parse_Spec.where_alt_specs
 val _ =
   Outer_Syntax.command "primrec" "define primitive recursive functions on datatypes"
   Keyword.thy_decl
-    ((primrec_decl >> (fn ((opt_target, fixes), specs) =>
-      Toplevel.local_theory opt_target (add_primrec_cmd fixes specs #> snd)))
-    || (old_primrec_decl >> (fn ((unchecked, alt_name), eqns) =>
-      Toplevel.theory (snd o
-        (if unchecked then OldPrimrec.add_primrec_unchecked else OldPrimrec.add_primrec)
-          alt_name (map Parse.triple_swap eqns) o
-        tap (fn _ => legacy_feature "Old variant of 'primrec' command -- use new syntax instead")))));
+    (primrec_decl >> (fn ((opt_target, fixes), specs) =>
+      Toplevel.local_theory opt_target (add_primrec_cmd fixes specs #> snd)));
 
 end;
