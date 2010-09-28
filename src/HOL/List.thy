@@ -94,10 +94,9 @@ primrec
     "concat [] = []"
   | "concat (x # xs) = x @ concat xs"
 
-primrec (in monoid_add)
+definition (in monoid_add)
   listsum :: "'a list \<Rightarrow> 'a" where
-    "listsum [] = 0"
-  | "listsum (x # xs) = x + listsum xs"
+  "listsum xs = foldr plus xs 0"
 
 primrec
   drop:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -261,7 +260,7 @@ text{*
 @{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate1_def rotate_def nat_number')}\\
 @{lemma "replicate 4 a = [a,a,a,a]" by (simp add:nat_number')}\\
 @{lemma "[2..<5] = [2,3,4]" by (simp add:nat_number')}\\
-@{lemma "listsum [1,2,3::nat] = 6" by simp}
+@{lemma "listsum [1,2,3::nat] = 6" by (simp add: listsum_def)}
 \end{tabular}}
 \caption{Characteristic examples}
 \label{fig:Characteristic}
@@ -2369,27 +2368,30 @@ next
 qed
 
 
-text{* The ``First Duality Theorem'' in Bird \& Wadler: *}
-
-lemma foldl_foldr1_lemma:
- "foldl op + a xs = a + foldr op + xs (0\<Colon>'a::monoid_add)"
-by (induct xs arbitrary: a) (auto simp:add_assoc)
-
-corollary foldl_foldr1:
- "foldl op + 0 xs = foldr op + xs (0\<Colon>'a::monoid_add)"
-by (simp add:foldl_foldr1_lemma)
-
-
 text{* The ``Third Duality Theorem'' in Bird \& Wadler: *}
 
-lemma foldr_foldl: "foldr f xs a = foldl (%x y. f y x) a (rev xs)"
-by (induct xs) auto
+lemma foldr_foldl:
+  "foldr f xs a = foldl (%x y. f y x) a (rev xs)"
+  by (induct xs) auto
 
-lemma foldl_foldr: "foldl f a xs = foldr (%x y. f y x) (rev xs) a"
-by (simp add: foldr_foldl [of "%x y. f y x" "rev xs"])
+lemma foldl_foldr:
+  "foldl f a xs = foldr (%x y. f y x) (rev xs) a"
+  by (simp add: foldr_foldl [of "%x y. f y x" "rev xs"])
 
-lemma (in ab_semigroup_add) foldr_conv_foldl: "foldr op + xs a = foldl op + a xs"
-  by (induct xs, auto simp add: foldl_assoc add_commute)
+
+text{* The ``First Duality Theorem'' in Bird \& Wadler: *}
+
+lemma (in monoid_add) foldl_foldr1_lemma:
+  "foldl op + a xs = a + foldr op + xs 0"
+  by (induct xs arbitrary: a) (auto simp: add_assoc)
+
+corollary (in monoid_add) foldl_foldr1:
+  "foldl op + 0 xs = foldr op + xs 0"
+  by (simp add: foldl_foldr1_lemma)
+
+lemma (in ab_semigroup_add) foldr_conv_foldl:
+  "foldr op + xs a = foldl op + a xs"
+  by (induct xs) (simp_all add: foldl_assoc add.commute)
 
 text {*
 Note: @{text "n \<le> foldl (op +) n ns"} looks simpler, but is more
@@ -2869,56 +2871,57 @@ lemma remdups_map_remdups:
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 
-lemma listsum_append [simp]: "listsum (xs @ ys) = listsum xs + listsum ys"
-by (induct xs) (simp_all add:add_assoc)
+lemma (in monoid_add) listsum_foldl [code]:
+  "listsum = foldl (op +) 0"
+  by (simp add: listsum_def foldl_foldr1 fun_eq_iff)
 
-lemma listsum_rev [simp]:
-  fixes xs :: "'a\<Colon>comm_monoid_add list"
-  shows "listsum (rev xs) = listsum xs"
-by (induct xs) (simp_all add:add_ac)
+lemma (in monoid_add) listsum_simps [simp]:
+  "listsum [] = 0"
+  "listsum (x#xs) = x + listsum xs"
+  by (simp_all add: listsum_def)
 
-lemma listsum_map_remove1:
-fixes f :: "'a \<Rightarrow> ('b::comm_monoid_add)"
-shows "x : set xs \<Longrightarrow> listsum(map f xs) = f x + listsum(map f (remove1 x xs))"
-by (induct xs)(auto simp add:add_ac)
+lemma (in monoid_add) listsum_append [simp]:
+  "listsum (xs @ ys) = listsum xs + listsum ys"
+  by (induct xs) (simp_all add: add.assoc)
 
-lemma list_size_conv_listsum:
+lemma (in comm_monoid_add) listsum_rev [simp]:
+  "listsum (rev xs) = listsum xs"
+  by (simp add: listsum_def [of "rev xs"]) (simp add: listsum_foldl foldr_foldl add.commute)
+
+lemma (in comm_monoid_add) listsum_map_remove1:
+  "x \<in> set xs \<Longrightarrow> listsum (map f xs) = f x + listsum (map f (remove1 x xs))"
+  by (induct xs) (auto simp add: ac_simps)
+
+lemma (in monoid_add) list_size_conv_listsum:
   "list_size f xs = listsum (map f xs) + size xs"
-by(induct xs) auto
+  by (induct xs) auto
 
-lemma listsum_foldr: "listsum xs = foldr (op +) xs 0"
-by (induct xs) auto
+lemma (in monoid_add) length_concat:
+  "length (concat xss) = listsum (map length xss)"
+  by (induct xss) simp_all
 
-lemma length_concat: "length (concat xss) = listsum (map length xss)"
-by (induct xss) simp_all
-
-lemma listsum_map_filter:
-  fixes f :: "'a \<Rightarrow> 'b \<Colon> comm_monoid_add"
-  assumes "\<And> x. \<lbrakk> x \<in> set xs ; \<not> P x \<rbrakk> \<Longrightarrow> f x = 0"
+lemma (in monoid_add) listsum_map_filter:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> \<not> P x \<Longrightarrow> f x = 0"
   shows "listsum (map f (filter P xs)) = listsum (map f xs)"
-using assms by (induct xs) auto
+  using assms by (induct xs) auto
 
-text{* For efficient code generation ---
-       @{const listsum} is not tail recursive but @{const foldl} is. *}
-lemma listsum[code_unfold]: "listsum xs = foldl (op +) 0 xs"
-by(simp add:listsum_foldr foldl_foldr1)
+lemma (in monoid_add) distinct_listsum_conv_Setsum:
+  "distinct xs \<Longrightarrow> listsum xs = Setsum (set xs)"
+  by (induct xs) simp_all
 
-lemma distinct_listsum_conv_Setsum:
-  "distinct xs \<Longrightarrow> listsum xs = Setsum(set xs)"
-by (induct xs) simp_all
+lemma listsum_eq_0_nat_iff_nat [simp]:
+  "listsum ns = (0::nat) \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
+  by (simp add: listsum_foldl)
 
-lemma listsum_eq_0_nat_iff_nat[simp]:
-  "listsum ns = (0::nat) \<longleftrightarrow> (\<forall> n \<in> set ns. n = 0)"
-by(simp add: listsum)
-
-lemma elem_le_listsum_nat: "k<size ns \<Longrightarrow> ns!k <= listsum(ns::nat list)"
+lemma elem_le_listsum_nat:
+  "k < size ns \<Longrightarrow> ns ! k \<le> listsum (ns::nat list)"
 apply(induct ns arbitrary: k)
  apply simp
 apply(fastsimp simp add:nth_Cons split: nat.split)
 done
 
-lemma listsum_update_nat: "k<size ns \<Longrightarrow>
-  listsum (ns[k := (n::nat)]) = listsum ns + n - ns!k"
+lemma listsum_update_nat:
+  "k<size ns \<Longrightarrow> listsum (ns[k := (n::nat)]) = listsum ns + n - ns ! k"
 apply(induct ns arbitrary:k)
  apply (auto split:nat.split)
 apply(drule elem_le_listsum_nat)
@@ -2938,62 +2941,58 @@ translations -- {* Beware of argument permutation! *}
   "SUM x<-xs. b" == "CONST listsum (CONST map (%x. b) xs)"
   "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (%x. b) xs)"
 
-lemma listsum_triv: "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"
+lemma (in monoid_add) listsum_triv:
+  "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"
   by (induct xs) (simp_all add: left_distrib)
 
-lemma listsum_0 [simp]: "(\<Sum>x\<leftarrow>xs. 0) = 0"
+lemma (in monoid_add) listsum_0 [simp]:
+  "(\<Sum>x\<leftarrow>xs. 0) = 0"
   by (induct xs) (simp_all add: left_distrib)
 
 text{* For non-Abelian groups @{text xs} needs to be reversed on one side: *}
-lemma uminus_listsum_map:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>ab_group_add"
-  shows "- listsum (map f xs) = (listsum (map (uminus o f) xs))"
-by (induct xs) simp_all
+lemma (in ab_group_add) uminus_listsum_map:
+  "- listsum (map f xs) = listsum (map (uminus \<circ> f) xs)"
+  by (induct xs) simp_all
 
-lemma listsum_addf:
-  fixes f g :: "'a \<Rightarrow> 'b::comm_monoid_add"
-  shows "(\<Sum>x\<leftarrow>xs. f x + g x) = listsum (map f xs) + listsum (map g xs)"
-by (induct xs) (simp_all add: algebra_simps)
+lemma (in comm_monoid_add) listsum_addf:
+  "(\<Sum>x\<leftarrow>xs. f x + g x) = listsum (map f xs) + listsum (map g xs)"
+  by (induct xs) (simp_all add: algebra_simps)
 
-lemma listsum_subtractf:
-  fixes f g :: "'a \<Rightarrow> 'b::ab_group_add"
-  shows "(\<Sum>x\<leftarrow>xs. f x - g x) = listsum (map f xs) - listsum (map g xs)"
-by (induct xs) simp_all
+lemma (in ab_group_add) listsum_subtractf:
+  "(\<Sum>x\<leftarrow>xs. f x - g x) = listsum (map f xs) - listsum (map g xs)"
+  by (induct xs) (simp_all add: algebra_simps)
 
-lemma listsum_const_mult:
-  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
-  shows "(\<Sum>x\<leftarrow>xs. c * f x) = c * (\<Sum>x\<leftarrow>xs. f x)"
-by (induct xs, simp_all add: algebra_simps)
+lemma (in semiring_0) listsum_const_mult:
+  "(\<Sum>x\<leftarrow>xs. c * f x) = c * (\<Sum>x\<leftarrow>xs. f x)"
+  by (induct xs) (simp_all add: algebra_simps)
 
-lemma listsum_mult_const:
-  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
-  shows "(\<Sum>x\<leftarrow>xs. f x * c) = (\<Sum>x\<leftarrow>xs. f x) * c"
-by (induct xs, simp_all add: algebra_simps)
+lemma (in semiring_0) listsum_mult_const:
+  "(\<Sum>x\<leftarrow>xs. f x * c) = (\<Sum>x\<leftarrow>xs. f x) * c"
+  by (induct xs) (simp_all add: algebra_simps)
 
-lemma listsum_abs:
-  fixes xs :: "'a::ordered_ab_group_add_abs list"
-  shows "\<bar>listsum xs\<bar> \<le> listsum (map abs xs)"
-by (induct xs, simp, simp add: order_trans [OF abs_triangle_ineq])
+lemma (in ordered_ab_group_add_abs) listsum_abs:
+  "\<bar>listsum xs\<bar> \<le> listsum (map abs xs)"
+  by (induct xs) (simp_all add: order_trans [OF abs_triangle_ineq])
 
 lemma listsum_mono:
-  fixes f g :: "'a \<Rightarrow> 'b::{comm_monoid_add, ordered_ab_semigroup_add}"
+  fixes f g :: "'a \<Rightarrow> 'b::{monoid_add, ordered_ab_semigroup_add}"
   shows "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> (\<Sum>x\<leftarrow>xs. f x) \<le> (\<Sum>x\<leftarrow>xs. g x)"
-by (induct xs, simp, simp add: add_mono)
+  by (induct xs) (simp, simp add: add_mono)
 
-lemma listsum_distinct_conv_setsum_set:
+lemma (in monoid_add) listsum_distinct_conv_setsum_set:
   "distinct xs \<Longrightarrow> listsum (map f xs) = setsum f (set xs)"
   by (induct xs) simp_all
 
-lemma interv_listsum_conv_setsum_set_nat:
+lemma (in monoid_add) interv_listsum_conv_setsum_set_nat:
   "listsum (map f [m..<n]) = setsum f (set [m..<n])"
   by (simp add: listsum_distinct_conv_setsum_set)
 
-lemma interv_listsum_conv_setsum_set_int:
+lemma (in monoid_add) interv_listsum_conv_setsum_set_int:
   "listsum (map f [k..l]) = setsum f (set [k..l])"
   by (simp add: listsum_distinct_conv_setsum_set)
 
 text {* General equivalence between @{const listsum} and @{const setsum} *}
-lemma listsum_setsum_nth:
+lemma (in monoid_add) listsum_setsum_nth:
   "listsum xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
   using interv_listsum_conv_setsum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
 
