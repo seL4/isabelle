@@ -2723,8 +2723,9 @@ fun prepare_intrs options ctxt prednames intros =
         [] =>
           let
             val T = snd (hd preds)
+            val one_mode = hd (the (AList.lookup (op =) all_modes (fst (hd preds))))
             val paramTs =
-              ho_argsT_of_typ (binder_types T)
+              ho_argsT_of one_mode (binder_types T)
             val param_names = Name.variant_list [] (map (fn i => "p" ^ string_of_int i)
               (1 upto length paramTs))
           in
@@ -2732,9 +2733,10 @@ fun prepare_intrs options ctxt prednames intros =
           end
       | (intr :: _) =>
         let
-          val (p, args) = strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl intr)) 
+          val (p, args) = strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl intr))
+          val one_mode = hd (the (AList.lookup (op =) all_modes (fst (dest_Const p))))
         in
-          ho_args_of_typ (snd (dest_Const p)) args
+          ho_args_of one_mode args
         end
     val param_vs = map (fst o dest_Free) params
     fun add_clause intr clauses =
