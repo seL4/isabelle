@@ -1340,7 +1340,7 @@ fun deriv_ord' ctxt pol pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
     (* prefer non-random modes *)
     fun random_mode_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
       int_ord (if random_mode_in_deriv modes t1 deriv1 then 1 else 0,
-        if random_mode_in_deriv modes t1 deriv1 then 1 else 0)
+               if random_mode_in_deriv modes t2 deriv2 then 1 else 0)
     (* prefer modes with more input and less output *)
     fun output_mode_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
       int_ord (number_of_output_positions (head_mode_of deriv1),
