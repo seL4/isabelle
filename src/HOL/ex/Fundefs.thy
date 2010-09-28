@@ -51,7 +51,7 @@ lemma nz_is_zero: -- {* A lemma we need to prove termination *}
   assumes trm: "nz_dom x"
   shows "nz x = 0"
 using trm
-by induct auto
+by induct (auto simp: nz.psimps)
 
 termination nz
   by (relation "less_than") (auto simp:nz_is_zero)
@@ -71,7 +71,7 @@ by pat_completeness auto
 lemma f91_estimate: 
   assumes trm: "f91_dom n"
   shows "n < f91 n + 11"
-using trm by induct auto
+using trm by induct (auto simp: f91.psimps)
 
 termination
 proof

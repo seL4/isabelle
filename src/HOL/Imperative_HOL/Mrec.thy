@@ -54,7 +54,7 @@ lemma mrec_rule:
            | None \<Rightarrow> None)
    | None \<Rightarrow> None
    )"
-apply (cases "mrec_dom (x,h)", simp)
+apply (cases "mrec_dom (x,h)", simp add: mrec.psimps)
 apply (frule mrec_default)
 apply (frule mrec_di_reverse, simp)
 by (auto split: sum.split option.split simp: mrec_default)
@@ -105,7 +105,7 @@ proof -
       proof (cases a)
         case (Inl aa)
         from this Inl' 1(1) exec_f mrec non_rec_case show ?thesis
-          by auto
+          by (auto simp: mrec.psimps)
       next
         case (Inr b)
         note Inr' = this
@@ -122,15 +122,15 @@ proof -
             apply auto
             apply (rule rec_case)
             apply auto
-            unfolding MREC_def by auto
+            unfolding MREC_def by (auto simp: mrec.psimps)
         next
           case None
-          from this 1(1) exec_f mrec Inr' 1(3) show ?thesis by auto
+          from this 1(1) exec_f mrec Inr' 1(3) show ?thesis by (auto simp: mrec.psimps)
         qed
       qed
     next
       case None
-      from this 1(1) mrec 1(3) show ?thesis by simp
+      from this 1(1) mrec 1(3) show ?thesis by (simp add: mrec.psimps)
     qed
   qed
   from this h'_r show ?thesis by simp

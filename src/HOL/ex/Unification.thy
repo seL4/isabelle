@@ -158,6 +158,7 @@ where
                                          Some \<sigma> \<Rightarrow> Some (\<theta> \<bullet> \<sigma>)))"
   by pat_completeness auto
 
+declare unify.psimps[simp]
 
 subsection {* Partial correctness *}
 
@@ -532,5 +533,7 @@ proof
        by (auto intro!: measures_less intro: psubset_card_mono)
   qed
 qed
+
+declare unify.psimps[simp del]
 
 end

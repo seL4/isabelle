@@ -763,11 +763,10 @@ txt {* \noindent This gives the following subgoals:
   \noindent The hypothesis in our lemma was used to satisfy the first premise in
   the induction rule. However, we also get @{term
   "findzero_dom (f, n)"} as a local assumption in the induction step. This
-  allows to unfold @{term "findzero f n"} using the @{text psimps}
-  rule, and the rest is trivial. Since the @{text psimps} rules carry the
-  @{text "[simp]"} attribute by default, we just need a single step:
+  allows unfolding @{term "findzero f n"} using the @{text psimps}
+  rule, and the rest is trivial.
  *}
-apply simp
+apply (simp add: findzero.psimps)
 done
 
 text {*
@@ -794,7 +793,7 @@ proof (induct rule: findzero.pinduct)
   have "f n \<noteq> 0"
   proof 
     assume "f n = 0"
-    with dom have "findzero f n = n" by simp
+    with dom have "findzero f n = n" by (simp add: findzero.psimps)
     with x_range show False by auto
   qed
   
@@ -805,7 +804,7 @@ proof (induct rule: findzero.pinduct)
     with `f n \<noteq> 0` show ?thesis by simp
   next
     assume "x \<in> {Suc n ..< findzero f n}"
-    with dom and `f n \<noteq> 0` have "x \<in> {Suc n ..< findzero f (Suc n)}" by simp
+    with dom and `f n \<noteq> 0` have "x \<in> {Suc n ..< findzero f (Suc n)}" by (simp add: findzero.psimps)
     with IH and `f n \<noteq> 0`
     show ?thesis by simp
   qed
@@ -1069,7 +1068,7 @@ txt {*
 *}
 (*<*)oops(*>*)
 lemma nz_is_zero: "nz_dom n \<Longrightarrow> nz n = 0"
-  by (induct rule:nz.pinduct) auto
+  by (induct rule:nz.pinduct) (auto simp: nz.psimps)
 
 text {*
   We formulate this as a partial correctness lemma with the condition
@@ -1105,7 +1104,7 @@ by pat_completeness auto
 lemma f91_estimate: 
   assumes trm: "f91_dom n" 
   shows "n < f91 n + 11"
-using trm by induct auto
+using trm by induct (auto simp: f91.psimps)
 
 termination
 proof

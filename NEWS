@@ -236,6 +236,9 @@ similar to inductive_cases.
 generalization of surj, and "surj f" is now a abbreviation of "surj_on f UNIV".
 The theorems bij_def and surj_def are unchanged.
 
+* Function package: .psimps rules are no longer implicitly declared [simp].
+INCOMPATIBILITY.
+
 *** FOL ***
 
 * All constant names are now qualified.  INCOMPATIBILITY.

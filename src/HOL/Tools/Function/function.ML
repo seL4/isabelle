@@ -52,8 +52,7 @@ val simp_attribs = map (Attrib.internal o K)
    Nitpick_Simps.add]
 
 val psimp_attribs = map (Attrib.internal o K)
-  [Simplifier.simp_add,
-   Nitpick_Psimps.add]
+  [Nitpick_Psimps.add]
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
