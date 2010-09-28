@@ -64,7 +64,11 @@ knowledge only.  However, the initial knowledge is as follows:
    RCA and CAs know their own respective keys;
    RCA (has already certified and therefore) knows all CAs public keys; 
    Spy knows all keys of all bad agents.*}
-primrec    
+
+overloading initState \<equiv> "initState"
+begin
+
+primrec initState where
 (*<*)
   initState_CA:
     "initState (CA i)  =
@@ -74,28 +78,30 @@ primrec
               Key (pubEK (CA i)), Key (pubSK (CA i)),
               Key (pubEK RCA), Key (pubSK RCA)})"
 
-  initState_Cardholder:
+| initState_Cardholder:
     "initState (Cardholder i)  =    
        {Key (priEK (Cardholder i)), Key (priSK (Cardholder i)),
         Key (pubEK (Cardholder i)), Key (pubSK (Cardholder i)),
         Key (pubEK RCA), Key (pubSK RCA)}"
 
-  initState_Merchant:
+| initState_Merchant:
     "initState (Merchant i)  =    
        {Key (priEK (Merchant i)), Key (priSK (Merchant i)),
         Key (pubEK (Merchant i)), Key (pubSK (Merchant i)),
         Key (pubEK RCA), Key (pubSK RCA)}"
 
-  initState_PG:
+| initState_PG:
     "initState (PG i)  = 
        {Key (priEK (PG i)), Key (priSK (PG i)),
         Key (pubEK (PG i)), Key (pubSK (PG i)),
         Key (pubEK RCA), Key (pubSK RCA)}"
 (*>*)
-  initState_Spy:
+| initState_Spy:
     "initState Spy = Key ` (invKey ` pubEK ` bad Un
                             invKey ` pubSK ` bad Un
                             range pubEK Un range pubSK)"
+
+end
 
 
 text{*Injective mapping from agents to PANs: an agent can have only one card*}

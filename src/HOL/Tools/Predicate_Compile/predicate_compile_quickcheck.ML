@@ -177,15 +177,7 @@ val mk_new_randompredT = Predicate_Compile_Aux.mk_predT New_Pos_Random_Sequence_
 val mk_new_return = Predicate_Compile_Aux.mk_single New_Pos_Random_Sequence_CompFuns.compfuns
 val mk_new_bind = Predicate_Compile_Aux.mk_bind New_Pos_Random_Sequence_CompFuns.compfuns
 
-fun mk_split_lambda [] t = Abs ("u", HOLogic.unitT, t)
-  | mk_split_lambda [x] t = lambda x t
-  | mk_split_lambda xs t =
-  let
-    fun mk_split_lambda' (x::y::[]) t = HOLogic.mk_split (lambda x (lambda y t))
-      | mk_split_lambda' (x::xs) t = HOLogic.mk_split (lambda x (mk_split_lambda' xs t))
-  in
-    mk_split_lambda' xs t
-  end;
+val mk_split_lambda = HOLogic.tupled_lambda o HOLogic.mk_tuple
 
 fun cpu_time description f =
   let

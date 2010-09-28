@@ -221,7 +221,7 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, parts, ...}) =
         val avars = map_index (fn (i,T) => Var (("a", i), T)) cargTs
         val atup = foldr1 HOLogic.mk_prod avars
       in
-        tupled_lambda atup (list_comb (P, avars))
+        HOLogic.tupled_lambda atup (list_comb (P, avars))
       end
 
     val Ps = map2 mk_P parts newPs

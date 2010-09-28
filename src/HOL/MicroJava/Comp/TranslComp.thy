@@ -8,71 +8,69 @@ theory TranslComp imports  TranslCompTp begin
 
 
 (* parameter java_mb only serves to define function index later *)
-consts
- compExpr  :: "java_mb => expr      => instr list"
- compExprs :: "java_mb => expr list => instr list"
- compStmt  :: "java_mb => stmt      => instr list"
-
 
 
 (**********************************************************************)
 (** code generation for expressions **)
 
-primrec
+primrec compExpr :: "java_mb => expr => instr list"
+  and compExprs :: "java_mb => expr list => instr list"
+where
+
 (*class instance creation*)
-"compExpr jmb (NewC c) = [New c]"
+"compExpr jmb (NewC c) = [New c]" |
 
 (*type cast*)
-"compExpr jmb (Cast c e) = compExpr jmb e @ [Checkcast c]" 
+"compExpr jmb (Cast c e) = compExpr jmb e @ [Checkcast c]" |
 
 
 (*literals*)
-"compExpr jmb (Lit val) = [LitPush val]" 
+"compExpr jmb (Lit val) = [LitPush val]" |
 
       
 (* binary operation *)                         
 "compExpr jmb (BinOp bo e1 e2) = compExpr jmb e1 @ compExpr jmb e2 @ 
   (case bo of Eq => [Ifcmpeq 3,LitPush(Bool False),Goto 2,LitPush(Bool True)]
-            | Add => [IAdd])" 
+            | Add => [IAdd])" |
 
 (*local variable*)
-"compExpr jmb (LAcc vn) = [Load (index jmb vn)]" 
+"compExpr jmb (LAcc vn) = [Load (index jmb vn)]" |
 
 
 (*assignement*)
-"compExpr jmb (vn::=e) = compExpr jmb e @ [Dup , Store (index jmb vn)]" 
+"compExpr jmb (vn::=e) = compExpr jmb e @ [Dup , Store (index jmb vn)]" |
 
 
 (*field access*)
-"compExpr jmb ( {cn}e..fn ) = compExpr jmb e @ [Getfield fn cn]"
+"compExpr jmb ( {cn}e..fn ) = compExpr jmb e @ [Getfield fn cn]" |
 
 
 (*field assignement - expected syntax:  {_}_.._:=_ *)
 "compExpr jmb (FAss cn e1 fn e2 ) = 
-       compExpr jmb e1 @ compExpr jmb e2 @ [Dup_x1 , Putfield fn cn]"
+       compExpr jmb e1 @ compExpr jmb e2 @ [Dup_x1 , Putfield fn cn]" |
 
 
 (*method call*)
 "compExpr jmb (Call cn e1 mn X ps) = 
-        compExpr jmb e1 @ compExprs jmb ps @ [Invoke cn mn X]"
+        compExpr jmb e1 @ compExprs jmb ps @ [Invoke cn mn X]" |
 
 
 (** code generation expression lists **)
 
-"compExprs jmb []     = []"
+"compExprs jmb []     = []" |
 
 "compExprs jmb (e#es) = compExpr jmb e @ compExprs jmb es"
 
-  
 
-primrec
+primrec compStmt :: "java_mb => stmt => instr list" where
+
 (** code generation for statements **)
 
-"compStmt jmb Skip = []"                        
+"compStmt jmb Skip = []" |
 
-"compStmt jmb (Expr e) = ((compExpr jmb e) @ [Pop])"
+"compStmt jmb (Expr e) = ((compExpr jmb e) @ [Pop])" |
 
-"compStmt jmb (c1;; c2) = ((compStmt jmb c1) @ (compStmt jmb c2))"
+"compStmt jmb (c1;; c2) = ((compStmt jmb c1) @ (compStmt jmb c2))" |
 
 "compStmt jmb (If(e) c1 Else c2) =
         (let cnstf = LitPush (Bool False);
@@ -82,7 +80,7 @@ primrec
              test  = Ifcmpeq (int(length thn +2)); 
              thnex = Goto (int(length els +1))
          in
-         [cnstf] @ cnd @ [test] @ thn @ [thnex] @ els)"
+         [cnstf] @ cnd @ [test] @ thn @ [thnex] @ els)" |
 
 "compStmt jmb (While(e) c) =
         (let cnstf = LitPush (Bool False);

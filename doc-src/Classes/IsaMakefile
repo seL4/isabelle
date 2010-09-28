@@ -23,10 +23,10 @@ THY = $(LOG)/HOL-Thy.gz
 
 Thy: $(THY)
 
-$(THY): Thy/ROOT.ML Thy/Setup.thy Thy/Classes.thy ../antiquote_setup.ML ../more_antiquote.ML
+$(THY): $(OUT)/HOL Thy/ROOT.ML Thy/Setup.thy Thy/Classes.thy ../antiquote_setup.ML ../more_antiquote.ML
 	@$(USEDIR) HOL Thy
 	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
-	 Thy/document/pdfsetup.sty Thy/document/session.tex
+	  Thy/document/pdfsetup.sty Thy/document/session.tex
 
 
 ## clean

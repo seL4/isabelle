@@ -13,12 +13,11 @@ definition match_exception_entry :: "jvm_prog \<Rightarrow> cname \<Rightarrow> 
                  start_pc <= pc \<and> pc < end_pc \<and> G\<turnstile> cn \<preceq>C catch_type"
 
 
-consts
-  match_exception_table :: "jvm_prog \<Rightarrow> cname \<Rightarrow> p_count \<Rightarrow> exception_table
-                          \<Rightarrow> p_count option"
-primrec
+primrec match_exception_table :: "jvm_prog \<Rightarrow> cname \<Rightarrow> p_count \<Rightarrow> exception_table
+    \<Rightarrow> p_count option"
+where
   "match_exception_table G cn pc []     = None"
-  "match_exception_table G cn pc (e#es) = (if match_exception_entry G cn pc e
+| "match_exception_table G cn pc (e#es) = (if match_exception_entry G cn pc e
                                            then Some (fst (snd (snd e))) 
                                            else match_exception_table G cn pc es)"
 
@@ -27,11 +26,11 @@ abbreviation
   where "ex_table_of m == snd (snd (snd m))"
 
 
-consts
-  find_handler :: "jvm_prog \<Rightarrow> val option \<Rightarrow> aheap \<Rightarrow> frame list \<Rightarrow> jvm_state"
-primrec
+primrec find_handler :: "jvm_prog \<Rightarrow> val option \<Rightarrow> aheap \<Rightarrow> frame list
+    \<Rightarrow> jvm_state"
+where
   "find_handler G xcpt hp [] = (xcpt, hp, [])"
-  "find_handler G xcpt hp (fr#frs) = 
+| "find_handler G xcpt hp (fr#frs) = 
       (case xcpt of
          None \<Rightarrow> (None, hp, fr#frs)
        | Some xc \<Rightarrow> 
