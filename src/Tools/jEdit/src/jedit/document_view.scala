@@ -13,8 +13,9 @@ import isabelle._
 import scala.actors.Actor._
 
 import java.awt.{BorderLayout, Graphics, Color, Dimension, Graphics2D, Point}
-import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent, FocusAdapter, FocusEvent}
-import javax.swing.{JPanel, ToolTipManager, Popup, PopupFactory, SwingUtilities}
+import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent,
+  FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
+import javax.swing.{JPanel, ToolTipManager, Popup, PopupFactory, SwingUtilities, BorderFactory}
 import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.{jEdit, OperatingSystem}
@@ -30,7 +31,7 @@ object Document_View
 
   private val key = new Object
 
-  def init(model: Document_Model, text_area: TextArea): Document_View =
+  def init(model: Document_Model, text_area: JEditTextArea): Document_View =
   {
     Swing_Thread.require()
     val doc_view = new Document_View(model, text_area)
@@ -39,7 +40,7 @@ object Document_View
     doc_view
   }
 
-  def apply(text_area: TextArea): Option[Document_View] =
+  def apply(text_area: JEditTextArea): Option[Document_View] =
   {
     Swing_Thread.require()
     text_area.getClientProperty(key) match {
@@ -48,7 +49,7 @@ object Document_View
     }
   }
 
-  def exit(text_area: TextArea)
+  def exit(text_area: JEditTextArea)
   {
     Swing_Thread.require()
     apply(text_area) match {
@@ -61,7 +62,7 @@ object Document_View
 }
 
 
-class Document_View(val model: Document_Model, text_area: TextArea)
+class Document_View(val model: Document_Model, text_area: JEditTextArea)
 {
   private val session = model.session
 
@@ -116,8 +117,8 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   private def exit_popup() { html_popup.map(_.hide) }
 
   private val html_panel =
-    new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size())) {
-    }
+    new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
+  html_panel.setBorder(BorderFactory.createLineBorder(Color.black))
 
   private def html_panel_resize()
   {
@@ -169,6 +170,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   private val focus_listener = new FocusAdapter {
     override def focusLost(e: FocusEvent) { exit_control() }
+  }
+
+  private val window_listener = new WindowAdapter {
+    override def windowIconified(e: WindowEvent) { exit_control() }
   }
 
   private val mouse_motion_listener = new MouseMotionAdapter {
@@ -460,6 +465,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, text_area_extension)
     text_area.getGutter.addExtension(gutter_extension)
     text_area.addFocusListener(focus_listener)
+    text_area.getView.addWindowListener(window_listener)
     text_area.getPainter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
@@ -472,6 +478,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     session.commands_changed -= main_actor
     session.global_settings -= main_actor
     text_area.removeFocusListener(focus_listener)
+    text_area.getView.removeWindowListener(window_listener)
     text_area.getPainter.removeMouseMotionListener(mouse_motion_listener)
     text_area.removeCaretListener(caret_listener)
     text_area.removeLeftOfScrollBar(overview)

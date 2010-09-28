@@ -255,8 +255,8 @@ class Plugin extends EBPlugin
 
   private case class Init_Model(buffer: Buffer)
   private case class Exit_Model(buffer: Buffer)
-  private case class Init_View(buffer: Buffer, text_area: TextArea)
-  private case class Exit_View(buffer: Buffer, text_area: TextArea)
+  private case class Init_View(buffer: Buffer, text_area: JEditTextArea)
+  private case class Exit_View(buffer: Buffer, text_area: JEditTextArea)
 
   private val session_manager = actor {
     var ready = false
