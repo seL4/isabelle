@@ -1053,7 +1053,7 @@ $(LOG)/HOL-SET_Protocol.gz: $(OUT)/HOL SET_Protocol/ROOT.ML		\
   SET_Protocol/Message_SET.thy SET_Protocol/Event_SET.thy		\
   SET_Protocol/Public_SET.thy SET_Protocol/Cardholder_Registration.thy	\
   SET_Protocol/Merchant_Registration.thy SET_Protocol/Purchase.thy	\
-  SET_Protocol/document/root.tex
+  SET_Protocol/SET_Protocol.thy SET_Protocol/document/root.tex
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL SET_Protocol
 
 
