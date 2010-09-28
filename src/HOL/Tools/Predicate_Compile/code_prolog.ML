@@ -369,7 +369,7 @@ fun mk_moded_clauses_graph ctxt scc gr =
   let
     val options = Predicate_Compile_Aux.default_options
     val mode_analysis_options =
-      {use_random = true, reorder_premises = true, infer_pos_and_neg_modes = true}
+      {use_generators = true, reorder_premises = true, infer_pos_and_neg_modes = true}
     fun infer prednames (gr, (pos_modes, neg_modes, random)) =
       let
         val (lookup_modes, lookup_neg_modes, needs_random) =

@@ -68,7 +68,10 @@ sig
   val prepare_intrs : options -> Proof.context -> string list -> thm list ->
     ((string * typ) list * string list * string list * (string * mode list) list *
       (string *  (Term.term list * Predicate_Compile_Aux.indprem list) list) list)
-  type mode_analysis_options = {use_random : bool, reorder_premises : bool, infer_pos_and_neg_modes : bool}  
+  type mode_analysis_options =
+   {use_generators : bool,
+    reorder_premises : bool,
+    infer_pos_and_neg_modes : bool}  
   datatype mode_derivation = Mode_App of mode_derivation * mode_derivation | Context of mode
     | Mode_Pair of mode_derivation * mode_derivation | Term of mode
   val head_mode_of : mode_derivation -> mode
@@ -1052,7 +1055,10 @@ fun negative_comp_modifiers_of comp_modifiers =
 
 (** mode analysis **)
 
-type mode_analysis_options = {use_random : bool, reorder_premises : bool, infer_pos_and_neg_modes : bool}
+type mode_analysis_options =
+  {use_generators : bool,
+  reorder_premises : bool,
+  infer_pos_and_neg_modes : bool}
 
 fun is_constrt thy =
   let
@@ -1411,7 +1417,7 @@ fun check_mode_clause' (mode_analysis_options : mode_analysis_options) ctxt pred
           SOME (p, SOME (deriv, [])) => check_mode_prems ((p, deriv) :: acc_ps) rnd
             (known_vs_after p vs) (filter_out (equal p) ps)
         | SOME (p, SOME (deriv, missing_vars)) =>
-          if #use_random mode_analysis_options andalso pol then
+          if #use_generators mode_analysis_options andalso pol then
             check_mode_prems ((p, deriv) :: (map
               (fn v => (Generator (v, the (AList.lookup (op =) vTs v)), Term Output))
                 (distinct (op =) missing_vars))
@@ -1426,7 +1432,7 @@ fun check_mode_clause' (mode_analysis_options : mode_analysis_options) ctxt pred
       if forall (is_constructable vs) (in_ts @ out_ts) then
         SOME (ts, rev acc_ps, rnd)
       else
-        if #use_random mode_analysis_options andalso pol then
+        if #use_generators mode_analysis_options andalso pol then
           let
              val generators = map
               (fn v => (Generator (v, the (AList.lookup (op =) vTs v)), Term Output))
@@ -2796,7 +2802,7 @@ datatype steps = Steps of
   add_code_equations : Proof.context -> (string * typ) list
     -> (string * thm list) list -> (string * thm list) list,
   comp_modifiers : Comp_Mod.comp_modifiers,
-  use_random : bool,
+  use_generators : bool,
   qname : bstring
   }
 
@@ -2907,10 +2913,10 @@ fun gen_add_equations steps options names thy =
       (fn preds => fn thy =>
         if not (forall (defined (ProofContext.init_global thy)) preds) then
           let
-            val mode_analysis_options = {use_random = #use_random (dest_steps steps),
+            val mode_analysis_options = {use_generators = #use_generators (dest_steps steps),
               reorder_premises =
                 not (no_topmost_reordering options andalso not (null (inter (op =) preds names))),
-              infer_pos_and_neg_modes = #use_random (dest_steps steps)}
+              infer_pos_and_neg_modes = #use_generators (dest_steps steps)}
           in
             add_equations_of steps mode_analysis_options options preds thy
           end
@@ -2927,7 +2933,7 @@ val add_equations = gen_add_equations
   prove = prove,
   add_code_equations = add_code_equations,
   comp_modifiers = predicate_comp_modifiers,
-  use_random = false,
+  use_generators = false,
   qname = "equation"})
 
 val add_depth_limited_equations = gen_add_equations
@@ -2939,7 +2945,7 @@ val add_depth_limited_equations = gen_add_equations
   prove = prove_by_skip,
   add_code_equations = K (K I),
   comp_modifiers = depth_limited_comp_modifiers,
-  use_random = false,
+  use_generators = false,
   qname = "depth_limited_equation"})
 
 val add_annotated_equations = gen_add_equations
@@ -2951,7 +2957,7 @@ val add_annotated_equations = gen_add_equations
   prove = prove_by_skip,
   add_code_equations = K (K I),
   comp_modifiers = annotated_comp_modifiers,
-  use_random = false,
+  use_generators = false,
   qname = "annotated_equation"})
 
 val add_random_equations = gen_add_equations
@@ -2963,7 +2969,7 @@ val add_random_equations = gen_add_equations
   comp_modifiers = random_comp_modifiers,
   prove = prove_by_skip,
   add_code_equations = K (K I),
-  use_random = true,
+  use_generators = true,
   qname = "random_equation"})
 
 val add_depth_limited_random_equations = gen_add_equations
@@ -2975,7 +2981,7 @@ val add_depth_limited_random_equations = gen_add_equations
   comp_modifiers = depth_limited_random_comp_modifiers,
   prove = prove_by_skip,
   add_code_equations = K (K I),
-  use_random = true,
+  use_generators = true,
   qname = "depth_limited_random_equation"})
 
 val add_dseq_equations = gen_add_equations
@@ -2987,7 +2993,7 @@ val add_dseq_equations = gen_add_equations
   prove = prove_by_skip,
   add_code_equations = K (K I),
   comp_modifiers = dseq_comp_modifiers,
-  use_random = false,
+  use_generators = false,
   qname = "dseq_equation"})
 
 val add_random_dseq_equations = gen_add_equations
@@ -3005,7 +3011,7 @@ val add_random_dseq_equations = gen_add_equations
   prove = prove_by_skip,
   add_code_equations = K (K I),
   comp_modifiers = pos_random_dseq_comp_modifiers,
-  use_random = true,
+  use_generators = true,
   qname = "random_dseq_equation"})
 
 val add_new_random_dseq_equations = gen_add_equations
@@ -3023,7 +3029,7 @@ val add_new_random_dseq_equations = gen_add_equations
   prove = prove_by_skip,
   add_code_equations = K (K I),
   comp_modifiers = new_pos_random_dseq_comp_modifiers,
-  use_random = true,
+  use_generators = true,
   qname = "new_random_dseq_equation"})
 
 (** user interface **)
