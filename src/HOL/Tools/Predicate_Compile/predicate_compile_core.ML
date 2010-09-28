@@ -2311,22 +2311,22 @@ fun prove_match options ctxt nargs out_ts =
      (* make this simpset better! *)
     asm_full_simp_tac (HOL_basic_ss' addsimps simprules) 1
     THEN print_tac options "after prove_match:"
-    THEN (DETERM (TRY (rtac eval_if_P 1
-           THEN (REPEAT_DETERM (rtac @{thm conjI} 1 THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1))))
-           THEN print_tac options "if condition to be solved:"
-           THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1
-           THEN Subgoal.FOCUS_PREMS
-             (fn {context = ctxt, params = params, prems, asms, concl, schematics} =>
-              let
-                val prems' = maps dest_conjunct_prem (take nargs prems)
-              in
-                MetaSimplifier.rewrite_goal_tac
-                  (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
-              end) ctxt 1
-           THEN REPEAT_DETERM (rtac @{thm refl} 1)
-           THEN print_tac options "after if simp; in SOLVED:"))
-           THEN check_format thy
-           THEN print_tac options "after if simplification - a TRY block")))
+    THEN (DETERM (TRY 
+           (rtac eval_if_P 1
+           THEN (SUBPROOF (fn {context = ctxt, params, prems, asms, concl, schematics} =>
+             (REPEAT_DETERM (rtac @{thm conjI} 1
+             THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1))))
+             THEN print_tac options "if condition to be solved:"
+             THEN asm_simp_tac HOL_basic_ss' 1
+             THEN TRY (
+                let
+                  val prems' = maps dest_conjunct_prem (take nargs prems)
+                in
+                  MetaSimplifier.rewrite_goal_tac
+                    (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
+                end
+             THEN REPEAT_DETERM (rtac @{thm refl} 1))
+             THEN print_tac options "after if simp; in SUBPROOF") ctxt 1))))
     THEN print_tac options "after if simplification"
   end;
 
