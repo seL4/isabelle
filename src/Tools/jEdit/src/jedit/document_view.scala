@@ -12,9 +12,9 @@ import isabelle._
 
 import scala.actors.Actor._
 
+import java.awt.{BorderLayout, Graphics, Color, Dimension, Graphics2D, Point}
 import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent, FocusAdapter, FocusEvent}
-import java.awt.{BorderLayout, Graphics, Color, Dimension, Graphics2D}
-import javax.swing.{JPanel, ToolTipManager}
+import javax.swing.{JPanel, ToolTipManager, Popup, PopupFactory, SwingUtilities}
 import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.{jEdit, OperatingSystem}
@@ -109,39 +109,37 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   }
 
 
-  /* commands_changed_actor */
+  /* HTML popups */
 
-  private val commands_changed_actor = actor {
-    loop {
-      react {
-        case Session.Commands_Changed(changed) =>
-          val buffer = model.buffer
-          Isabelle.swing_buffer_lock(buffer) {
-            val snapshot = model.snapshot()
+  private var html_popup: Option[Popup] = None
 
-            if (changed.exists(snapshot.node.commands.contains))
-              overview.repaint()
+  private def exit_popup() { html_popup.map(_.hide) }
 
-            val visible_range = screen_lines_range()
-            val visible_cmds = snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
-            if (visible_cmds.exists(changed)) {
-              for {
-                line <- 0 until text_area.getVisibleLines
-                val start = text_area.getScreenLineStartOffset(line) if start >= 0
-                val end = text_area.getScreenLineEndOffset(line) if end >= 0
-                val range = proper_line_range(start, end)
-                val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
-                if line_cmds.exists(changed)
-              } text_area.invalidateScreenLineRange(line, line)
+  private val html_panel =
+    new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size())) {
+    }
 
-              // FIXME danger of deadlock!?
-              // FIXME potentially slow!?
-              model.buffer.propertiesChanged()
-            }
-          }
+  private def html_panel_resize()
+  {
+    Swing_Thread.now {
+      html_panel.resize(Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
+    }
+  }
 
-        case bad => System.err.println("command_change_actor: ignoring bad message " + bad)
-      }
+  private def init_popup(snapshot: Document.Snapshot, x: Int, y: Int)
+  {
+    exit_popup()
+    val offset = text_area.xyToOffset(x, y)
+    val p = new Point(x, y); SwingUtilities.convertPointToScreen(p, text_area.getPainter)
+
+    // FIXME snapshot.cumulate
+    snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.popup) match {
+      case Text.Info(_, Some(msg)) #:: _ =>
+        val popup = PopupFactory.getSharedInstance().getPopup(text_area, html_panel, p.x, p.y + 60)
+        html_panel.render_sync(List(msg))
+        popup.show
+        html_popup = Some(popup)
+      case _ =>
     }
   }
 
@@ -160,19 +158,34 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   private var highlight_range: Option[(Text.Range, Color)] = None
 
+
+  /* CONTROL-mouse management */
+
+  private def exit_control()
+  {
+    exit_popup()
+    highlight_range = None
+  }
+
   private val focus_listener = new FocusAdapter {
-    override def focusLost(e: FocusEvent) { highlight_range = None }
+    override def focusLost(e: FocusEvent) { exit_control() }
   }
 
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent) {
       val control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
-      if (!model.buffer.isLoaded) highlight_range = None
+      val x = e.getX()
+      val y = e.getY()
+
+      if (!model.buffer.isLoaded) exit_control()
       else
         Isabelle.swing_buffer_lock(model.buffer) {
+          val snapshot = model.snapshot
+
+          if (control) init_popup(snapshot, x, y)
+
           highlight_range map { case (range, _) => invalidate_line_range(range) }
-          highlight_range =
-            if (control) subexp_range(model.snapshot(), e.getX(), e.getY()) else None
+          highlight_range = if (control) subexp_range(snapshot, x, y) else None
           highlight_range map { case (range, _) => invalidate_line_range(range) }
         }
     }
@@ -296,7 +309,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
               // gutter icons
               val icons =
-                (for (Text.Info(_, Some(icon)) <-
+                (for (Text.Info(_, Some(icon)) <- // FIXME snapshot.cumulate
                   snapshot.select_markup(line_range)(Isabelle_Markup.gutter_message).iterator)
                 yield icon).toList.sortWith(_ >= _)
               icons match {
@@ -400,6 +413,45 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   }
 
 
+  /* main actor */
+
+  private val main_actor = actor {
+    loop {
+      react {
+        case Session.Commands_Changed(changed) =>
+          val buffer = model.buffer
+          Isabelle.swing_buffer_lock(buffer) {
+            val snapshot = model.snapshot()
+
+            if (changed.exists(snapshot.node.commands.contains))
+              overview.repaint()
+
+            val visible_range = screen_lines_range()
+            val visible_cmds = snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
+            if (visible_cmds.exists(changed)) {
+              for {
+                line <- 0 until text_area.getVisibleLines
+                val start = text_area.getScreenLineStartOffset(line) if start >= 0
+                val end = text_area.getScreenLineEndOffset(line) if end >= 0
+                val range = proper_line_range(start, end)
+                val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
+                if line_cmds.exists(changed)
+              } text_area.invalidateScreenLineRange(line, line)
+
+              // FIXME danger of deadlock!?
+              // FIXME potentially slow!?
+              model.buffer.propertiesChanged()
+            }
+          }
+
+        case Session.Global_Settings => html_panel_resize()
+
+        case bad => System.err.println("command_change_actor: ignoring bad message " + bad)
+      }
+    }
+  }
+
+
   /* activation */
 
   private def activate()
@@ -411,17 +463,20 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     text_area.getPainter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
-    session.commands_changed += commands_changed_actor
+    session.commands_changed += main_actor
+    session.global_settings += main_actor
   }
 
   private def deactivate()
   {
-    session.commands_changed -= commands_changed_actor
+    session.commands_changed -= main_actor
+    session.global_settings -= main_actor
     text_area.removeFocusListener(focus_listener)
     text_area.getPainter.removeMouseMotionListener(mouse_motion_listener)
     text_area.removeCaretListener(caret_listener)
     text_area.removeLeftOfScrollBar(overview)
     text_area.getGutter.removeExtension(gutter_extension)
     text_area.getPainter.removeExtension(text_area_extension)
+    exit_popup()
   }
 }

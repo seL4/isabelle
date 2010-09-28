@@ -84,6 +84,12 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
   }
 
+  val popup: Markup_Tree.Select[XML.Tree] =
+  {
+    case Text.Info(_, msg @ XML.Elem(Markup(markup, _), _))
+    if markup == Markup.WRITELN || markup == Markup.WARNING || markup == Markup.ERROR => msg
+  }
+
   val gutter_message: Markup_Tree.Select[Icon] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_icon
