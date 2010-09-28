@@ -55,9 +55,9 @@ FORMAL_CMD="Toplevel.program (fn () => (use_thy thyname; ML_Context.eval_text_in
   handle _ => OS.Process.exit OS.Process.failure;"
 
 ACTUAL_CMD="val thyname = \"$THYNAME\"; \
-  val qnd = $QUICK_AND_DIRTY; \
+  val _ = quick_and_dirty := $QUICK_AND_DIRTY; \
   val cmd_expr = \"$CODE_EXPR\"; \
-  val ml_cmd = \"Code_Target.codegen_tool thyname qnd cmd_expr\"; \
+  val ml_cmd = \"Code_Target.codegen_tool thyname cmd_expr\"; \
   $FORMAL_CMD"
 
 "$ISABELLE_PROCESS" -r -q -e "$ACTUAL_CMD" "$IMAGE" || exit 1

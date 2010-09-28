@@ -55,7 +55,7 @@ sig
   val add_reserved: string -> string -> theory -> theory
   val add_include: string -> string * (string * string list) option -> theory -> theory
 
-  val codegen_tool: string (*theory name*) -> bool -> string (*export_code expr*) -> unit
+  val codegen_tool: string (*theory name*) -> string (*export_code expr*) -> unit
 end;
 
 structure Code_Target : CODE_TARGET =
@@ -692,10 +692,9 @@ end; (*local*)
 
 (** external entrance point -- for codegen tool **)
 
-fun codegen_tool thyname qnd cmd_expr =
+fun codegen_tool thyname cmd_expr =
   let
     val thy = Thy_Info.get_theory thyname;
-    val _ = quick_and_dirty := qnd;
     val parse = Scan.read Token.stopper (Parse.!!! code_exprP) o
       (filter Token.is_proper o Outer_Syntax.scan Position.none);
   in case parse cmd_expr
