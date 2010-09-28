@@ -18,11 +18,11 @@ definition opt_states :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarr
 
 
 section {*  Executability of @{term check_bounded} *}
-consts
-  list_all'_rec :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> bool"
-primrec
+
+primrec list_all'_rec :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> bool"
+where
   "list_all'_rec P n []     = True"
-  "list_all'_rec P n (x#xs) = (P x n \<and> list_all'_rec P (Suc n) xs)"
+| "list_all'_rec P n (x#xs) = (P x n \<and> list_all'_rec P (Suc n) xs)"
 
 definition list_all' :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
   "list_all' P xs \<equiv> list_all'_rec P 0 xs"

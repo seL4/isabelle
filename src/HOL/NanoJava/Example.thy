@@ -5,7 +5,9 @@
 
 header "Example"
 
-theory Example imports Equivalence begin
+theory Example
+imports Equivalence
+begin
 
 text {*
 
@@ -89,9 +91,9 @@ by (simp add: new_obj_def init_vars_def upd_obj_def Let_def)
 
 subsection "``atleast'' relation for interpretation of Nat ``values''"
 
-consts Nat_atleast :: "state \<Rightarrow> val \<Rightarrow> nat \<Rightarrow> bool" ("_:_ \<ge> _" [51, 51, 51] 50)
-primrec "s:x\<ge>0     = (x\<noteq>Null)"
-        "s:x\<ge>Suc n = (\<exists>a. x=Addr a \<and> heap s a \<noteq> None \<and> s:get_field s a pred\<ge>n)"
+primrec Nat_atleast :: "state \<Rightarrow> val \<Rightarrow> nat \<Rightarrow> bool" ("_:_ \<ge> _" [51, 51, 51] 50) where
+  "s:x\<ge>0     = (x\<noteq>Null)"
+| "s:x\<ge>Suc n = (\<exists>a. x=Addr a \<and> heap s a \<noteq> None \<and> s:get_field s a pred\<ge>n)"
 
 lemma Nat_atleast_lupd [rule_format, simp]: 
  "\<forall>s v::val. lupd(x\<mapsto>y) s:v \<ge> n = (s:v \<ge> n)"

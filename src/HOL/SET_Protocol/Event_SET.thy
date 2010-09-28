@@ -35,15 +35,14 @@ subsection{*Agents' Knowledge*}
 
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: "agent => msg set"
-  knows  :: "[agent, event list] => msg set"
 
 (* Message reception does not extend spy's knowledge because of
    reception invariant enforced by Reception rule in protocol definition*)
-primrec
-
-knows_Nil:
-  "knows A []       = initState A"
-knows_Cons:
+primrec knows :: "[agent, event list] => msg set"
+where
+  knows_Nil:
+    "knows A [] = initState A"
+| knows_Cons:
     "knows A (ev # evs) =
        (if A = Spy then
         (case ev of
@@ -63,15 +62,13 @@ knows_Cons:
 
 subsection{*Used Messages*}
 
-consts
+primrec used :: "event list => msg set"
+where
   (*Set of items that might be visible to somebody:
-    complement of the set of fresh items*)
-  used :: "event list => msg set"
-
-(* As above, message reception does extend used items *)
-primrec
+    complement of the set of fresh items.
+    As above, message reception does extend used items *)
   used_Nil:  "used []         = (UN B. parts (initState B))"
-  used_Cons: "used (ev # evs) =
+| used_Cons: "used (ev # evs) =
                  (case ev of
                     Says A B X => parts {X} Un (used evs)
                   | Gets A X   => used evs
