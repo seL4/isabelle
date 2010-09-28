@@ -223,34 +223,29 @@ class Plugin extends EBPlugin
 {
   /* session management */
 
-  private def init_model(buffer: Buffer): Option[Document_Model] =
-  {
-    Document_Model(buffer) match {
-      case Some(model) => model.refresh; Some(model)
-      case None =>
-        Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath)) match {
-          case Some((_, thy_name)) =>
-            Some(Document_Model.init(Isabelle.session, buffer, thy_name))
-          case None => None
-        }
-    }
-  }
-
-  private def activate_buffer(buffer: Buffer)
+  private def init_model(buffer: Buffer)
   {
     Isabelle.swing_buffer_lock(buffer) {
-      init_model(buffer) match {
-        case None =>
-        case Some(model) =>
-          for (text_area <- Isabelle.jedit_text_areas(buffer)) {
-            if (Document_View(text_area).map(_.model) != Some(model))
-              Document_View.init(model, text_area)
-          }
+      val opt_model =
+        Document_Model(buffer) match {
+          case Some(model) => model.refresh; Some(model)
+          case None =>
+            Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath)) match {
+              case Some((_, thy_name)) =>
+                Some(Document_Model.init(Isabelle.session, buffer, thy_name))
+              case None => None
+            }
+        }
+      if (opt_model.isDefined) {
+        for (text_area <- Isabelle.jedit_text_areas(buffer)) {
+          if (Document_View(text_area).map(_.model) != opt_model)
+            Document_View.init(opt_model.get, text_area)
+        }
       }
     }
   }
 
-  private def deactivate_buffer(buffer: Buffer)
+  private def exit_model(buffer: Buffer)
   {
     Isabelle.swing_buffer_lock(buffer) {
       Isabelle.jedit_text_areas(buffer).foreach(Document_View.exit)
@@ -258,17 +253,52 @@ class Plugin extends EBPlugin
     }
   }
 
+  private case class Init_Model(buffer: Buffer)
+  private case class Exit_Model(buffer: Buffer)
+  private case class Init_View(buffer: Buffer, text_area: TextArea)
+  private case class Exit_View(buffer: Buffer, text_area: TextArea)
+
   private val session_manager = actor {
+    var ready = false
     loop {
       react {
-        case Session.Failed =>
-          val text = new scala.swing.TextArea(Isabelle.session.syslog())
-          text.editable = false
-          Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)
+        case phase: Session.Phase =>
+          ready = phase == Session.Ready
+          phase match {
+            case Session.Failed =>
+              Swing_Thread.now {
+                val text = new scala.swing.TextArea(Isabelle.session.syslog())
+                text.editable = false
+                Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)
+              }
 
-        case Session.Ready => Isabelle.jedit_buffers.foreach(activate_buffer)
-        case Session.Shutdown => Isabelle.jedit_buffers.foreach(deactivate_buffer)
-        case _ =>
+            case Session.Ready => Isabelle.jedit_buffers.foreach(init_model)
+            case Session.Shutdown => Isabelle.jedit_buffers.foreach(exit_model)
+            case _ =>
+          }
+
+        case Init_Model(buffer) =>
+          if (ready) init_model(buffer)
+
+        case Exit_Model(buffer) =>
+          exit_model(buffer)
+
+        case Init_View(buffer, text_area) =>
+          if (ready) {
+            Isabelle.swing_buffer_lock(buffer) {
+              Document_Model(buffer) match {
+                case Some(model) => Document_View.init(model, text_area)
+                case None =>
+              }
+            }
+          }
+
+        case Exit_View(buffer, text_area) =>
+          Isabelle.swing_buffer_lock(buffer) {
+            Document_View.exit(text_area)
+          }
+
+        case bad => System.err.println("session_manager: ignoring bad message " + bad)
       }
     }
   }
@@ -283,15 +313,13 @@ class Plugin extends EBPlugin
       if Isabelle.Boolean_Property("auto-start") => Isabelle.start_session()
 
       case msg: BufferUpdate
-      if Isabelle.session.phase == Session.Ready &&  // FIXME race!?
-        msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
+      if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
 
         val buffer = msg.getBuffer
-        if (buffer != null) activate_buffer(buffer)
+        if (buffer != null) session_manager ! Init_Model(buffer)
 
       case msg: EditPaneUpdate
-      if Isabelle.session.phase == Session.Ready &&  // FIXME race!?
-        (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
+      if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
           msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
           msg.getWhat == EditPaneUpdate.CREATED ||
           msg.getWhat == EditPaneUpdate.DESTROYED) =>
@@ -301,18 +329,11 @@ class Plugin extends EBPlugin
         val text_area = edit_pane.getTextArea
 
         if (buffer != null && text_area != null) {
-          Isabelle.swing_buffer_lock(buffer) {
-            msg.getWhat match {
-              case EditPaneUpdate.BUFFER_CHANGING | EditPaneUpdate.DESTROYED =>
-                Document_View.exit(text_area)
-              case EditPaneUpdate.BUFFER_CHANGED | EditPaneUpdate.CREATED =>
-                Document_Model(buffer) match {
-                  case Some(model) => Document_View.init(model, text_area)
-                  case None =>
-                }
-              case _ =>
-            }
-          }
+          if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
+              msg.getWhat == EditPaneUpdate.CREATED)
+            session_manager ! Init_View(buffer, text_area)
+          else
+            session_manager ! Exit_View(buffer, text_area)
         }
 
       case msg: PropertiesChanged =>
