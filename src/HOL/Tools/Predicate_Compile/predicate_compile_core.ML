@@ -434,19 +434,33 @@ fun check_proposed_modes preds options modes errors =
 fun check_matches_type ctxt predname T ms =
   let
     fun check (m as Fun (m1, m2)) (Type("fun", [T1,T2])) = check m1 T1 andalso check m2 T2
-      | check m (T as Type("fun", _)) =
-        if body_type T = @{typ bool} then false else (m = Input orelse m = Output)
+      | check m (T as Type("fun", _)) = (m = Input orelse m = Output)
       | check (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
           check m1 T1 andalso check m2 T2 
       | check Input T = true
       | check Output T = true
       | check Bool @{typ bool} = true
       | check _ _ = false
+    fun check_consistent_modes ms =
+      if forall (fn Fun (m1', m2') => true | _ => false) ms then
+        pairself check_consistent_modes (split_list (map (fn Fun (m1, m2) => (m1, m2)) ms))
+        |> (fn (res1, res2) => res1 andalso res2) 
+      else if forall (fn Input => true | Output => true | Pair _ => true | _ => false) ms then
+        true
+      else if forall (fn Bool => true | _ => false) ms then
+        true
+      else
+        false
     val _ = map
       (fn mode =>
-        if (forall (uncurry check) (strip_fun_mode mode ~~ binder_types T)) then ()
+        if length (strip_fun_mode mode) = length (binder_types T)
+          andalso (forall (uncurry check) (strip_fun_mode mode ~~ binder_types T)) then ()
         else error (string_of_mode mode ^ " is not a valid mode for " ^ Syntax.string_of_typ ctxt T
         ^ " at predicate " ^ predname)) ms
+    val _ =
+     if check_consistent_modes ms then ()
+     else error (commas (map string_of_mode ms) ^
+       " are inconsistent modes for predicate " ^ predname)
   in
     ms
   end
