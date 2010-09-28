@@ -364,14 +364,24 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     {
       super.paintComponent(gfx)
       Swing_Thread.assert()
+
       val buffer = model.buffer
       Isabelle.buffer_lock(buffer) {
         val snapshot = model.snapshot()
+
+        def line_range(command: Command, start: Text.Offset): Option[(Int, Int)] =
+        {
+          try {
+            val line1 = buffer.getLineOfOffset(snapshot.convert(start))
+            val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
+            Some((line1, line2))
+          }
+          catch { case e: ArrayIndexOutOfBoundsException => None }
+        }
         for {
           (command, start) <- snapshot.node.command_starts
           if !command.is_ignored
-          val line1 = buffer.getLineOfOffset(snapshot.convert(start))
-          val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
+          (line1, line2) <- line_range(command, start)
           val y = line_to_y(line1)
           val height = HEIGHT * (line2 - line1)
           color <- Isabelle_Markup.overview_color(snapshot, command)
