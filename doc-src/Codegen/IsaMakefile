@@ -23,7 +23,7 @@ THY = $(LOG)/HOL-Thy.gz
 
 Thy: $(THY)
 
-$(THY): Thy/ROOT.ML Thy/*.thy ../antiquote_setup.ML ../more_antiquote.ML
+$(THY): $(OUT)/HOL-Library Thy/ROOT.ML Thy/*.thy ../antiquote_setup.ML ../more_antiquote.ML
 	@$(USEDIR) -m no_brackets -m iff HOL-Library Thy
 	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
 	  Thy/document/pdfsetup.sty Thy/document/session.tex
