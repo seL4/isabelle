@@ -18,17 +18,6 @@ fun fold_option f NONE y = y
 fun plural sg pl [x] = sg
   | plural sg pl _ = pl
 
-(* lambda-abstracts over an arbitrarily nested tuple
-  ==> hologic.ML? *)
-fun tupled_lambda vars t =
-  case vars of
-    (Free v) => lambda (Free v) t
-  | (Var v) => lambda (Var v) t
-  | (Const (@{const_name Pair}, Type ("fun", [Ta, Type ("fun", [Tb, _])]))) $ us $ vs =>
-      (HOLogic.split_const (Ta,Tb, fastype_of t)) $ (tupled_lambda us (tupled_lambda vs t))
-  | _ => raise Match
-
-
 fun dest_all (Const ("all", _) $ Abs (a as (_,T,_))) =
   let
     val (n, body) = Term.dest_abs a

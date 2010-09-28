@@ -196,7 +196,7 @@ fun mk_ind_goal thy branches =
       |> fold_rev (Logic.all o Free) ws
       |> term_conv thy ind_atomize
       |> Object_Logic.drop_judgment thy
-      |> tupled_lambda (foldr1 HOLogic.mk_prod (map Free xs))
+      |> HOLogic.tupled_lambda (foldr1 HOLogic.mk_prod (map Free xs))
   in
     SumTree.mk_sumcases HOLogic.boolT (map brnch branches)
   end

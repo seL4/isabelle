@@ -67,6 +67,7 @@ sig
   val split_const: typ * typ * typ -> term
   val mk_split: term -> term
   val flatten_tupleT: typ -> typ list
+  val tupled_lambda: term -> term -> term
   val mk_tupleT: typ list -> typ
   val strip_tupleT: typ -> typ list
   val mk_tuple: term list -> term
@@ -326,6 +327,15 @@ fun mk_split t =
 (*Maps the type T1 * ... * Tn to [T1, ..., Tn], however nested*)
 fun flatten_tupleT (Type ("Product_Type.prod", [T1, T2])) = flatten_tupleT T1 @ flatten_tupleT T2
   | flatten_tupleT T = [T];
+
+(*abstraction over nested tuples*)
+fun tupled_lambda (x as Free _) b = lambda x b
+  | tupled_lambda (x as Var _) b = lambda x b
+  | tupled_lambda (Const ("Product_Type.Pair", _) $ u $ v) b =
+      mk_split (tupled_lambda u (tupled_lambda v b))
+  | tupled_lambda (Const ("Product_Type.Unity", _)) b =
+      Abs ("x", unitT, b)
+  | tupled_lambda t _ = raise TERM ("tupled_lambda: bad tuple", [t]);
 
 
 (* tuples with right-fold structure *)

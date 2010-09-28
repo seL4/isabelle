@@ -1999,12 +1999,6 @@ fun print_arities arities = tracing ("Arities:\n" ^
       (fn NONE => "X" | SOME k' => string_of_int k')
         (ks @ [SOME k]))) arities));
 
-fun split_lambda (x as Free _) t = lambda x t
-  | split_lambda (Const (@{const_name Pair}, _) $ t1 $ t2) t =
-    HOLogic.mk_split (split_lambda t1 (split_lambda t2 t))
-  | split_lambda (Const ("Product_Type.Unity", _)) t = Abs ("x", HOLogic.unitT, t)
-  | split_lambda t _ = raise (TERM ("split_lambda", [t]))
-
 fun strip_split_abs (Const (@{const_name prod_case}, _) $ t) = strip_split_abs t
   | strip_split_abs (Abs (_, _, t)) = strip_split_abs t
   | strip_split_abs t = t
@@ -2029,7 +2023,7 @@ fun mk_args is_eval (m as Pair (m1, m2), T as Type (@{type_name Product_Type.pro
       val x = Name.variant names "x"
       val (args, _) = fold_map (mk_args is_eval) (strip_fun_mode m ~~ binder_types T) (x :: names)
       val (inargs, outargs) = split_map_mode (fn _ => fn t => (SOME t, NONE)) m args
-      val t = fold_rev split_lambda args (PredicateCompFuns.mk_Eval
+      val t = fold_rev HOLogic.tupled_lambda args (PredicateCompFuns.mk_Eval
         (list_comb (Free (x, funT), inargs), HOLogic.mk_tuple outargs))
     in
       (if is_eval then t else Free (x, funT), x :: names)
@@ -2120,8 +2114,8 @@ fun create_definitions options preds (name, modes) thy =
             val (r, _) = PredicateCompFuns.dest_Eval t'
           in (SOME (fst (strip_comb r)), NONE) end
         val (inargs, outargs) = split_map_mode strip_eval mode args
-        val predterm = fold_rev split_lambda inargs
-          (PredicateCompFuns.mk_Enum (split_lambda (HOLogic.mk_tuple outargs)
+        val predterm = fold_rev HOLogic.tupled_lambda inargs
+          (PredicateCompFuns.mk_Enum (HOLogic.tupled_lambda (HOLogic.mk_tuple outargs)
             (list_comb (Const (name, T), args))))
         val lhs = Const (mode_cname, funT)
         val def = Logic.mk_equals (lhs, predterm)
@@ -3224,7 +3218,7 @@ fun analyze_compr ctxt compfuns param_user_modes (compilation, arguments) t_comp
         val t_pred = compile_expr comp_modifiers ctxt
           (body, deriv) [] additional_arguments;
         val T_pred = dest_predT compfuns (fastype_of t_pred)
-        val arrange = split_lambda (HOLogic.mk_tuple outargs) output_tuple
+        val arrange = HOLogic.tupled_lambda (HOLogic.mk_tuple outargs) output_tuple
       in
         if null outargs then t_pred else mk_map compfuns T_pred T_compr arrange t_pred
       end
