@@ -2404,9 +2404,10 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
                  @{thm snd_conv}, @{thm pair_collapse}, @{thm Product_Type.split_conv}]) 1
               THEN (if (is_some name) then
                   print_tac options "before applying not introduction rule"
-                  THEN rotate_tac premposition 1
-                  THEN etac (the neg_intro_rule) 1
-                  THEN rotate_tac (~premposition) 1
+                  THEN Subgoal.FOCUS_PREMS
+                    (fn {context = ctxt, params = params, prems, asms, concl, schematics} =>
+                      rtac (the neg_intro_rule) 1
+                      THEN rtac (nth prems premposition) 1) ctxt 1
                   THEN print_tac options "after applying not introduction rule"
                   THEN (EVERY (map2 (prove_param options ctxt nargs) params param_derivations))
                   THEN (REPEAT_DETERM (atac 1))
