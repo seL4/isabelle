@@ -73,15 +73,13 @@ lemmas max_spec2mheads = insertI1 [THEN [2] equalityD2 [THEN subsetD],
                          THEN max_spec2appl_meths, THEN appl_methsD]
 
 
-consts
-  typeof :: "(loc => ty option) => val => ty option"
-
-primrec
+primrec typeof :: "(loc => ty option) => val => ty option"
+where
   "typeof dt  Unit    = Some (PrimT Void)"
-  "typeof dt  Null    = Some NT"
-  "typeof dt (Bool b) = Some (PrimT Boolean)"
-  "typeof dt (Intg i) = Some (PrimT Integer)"
-  "typeof dt (Addr a) = dt a"
+| "typeof dt  Null    = Some NT"
+| "typeof dt (Bool b) = Some (PrimT Boolean)"
+| "typeof dt (Intg i) = Some (PrimT Integer)"
+| "typeof dt (Addr a) = dt a"
 
 lemma is_type_typeof [rule_format (no_asm), simp]: 
   "(\<forall>a. v \<noteq> Addr a) --> (\<exists>T. typeof t v = Some T \<and> is_type G T)"

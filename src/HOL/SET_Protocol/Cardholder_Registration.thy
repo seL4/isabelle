@@ -21,44 +21,36 @@ and the rewriting is very sensitive to the set of rewrite rules given.*}
 
 subsection{*Predicate Formalizing the Encryption Association between Keys *}
 
-consts
-  KeyCryptKey :: "[key, key, event list] => bool"
-
-primrec
-
-KeyCryptKey_Nil:
-  "KeyCryptKey DK K [] = False"
-
-KeyCryptKey_Cons:
+primrec KeyCryptKey :: "[key, key, event list] => bool"
+where
+  KeyCryptKey_Nil:
+    "KeyCryptKey DK K [] = False"
+| KeyCryptKey_Cons:
       --{*Says is the only important case.
         1st case: CR5, where KC3 encrypts KC2.
         2nd case: any use of priEK C.
         Revision 1.12 has a more complicated version with separate treatment of
           the dependency of KC1, KC2 and KC3 on priEK (CA i.)  Not needed since
           priEK C is never sent (and so can't be lost except at the start). *}
-  "KeyCryptKey DK K (ev # evs) =
-   (KeyCryptKey DK K evs |
-    (case ev of
-      Says A B Z =>
-       ((\<exists>N X Y. A \<noteq> Spy &
+    "KeyCryptKey DK K (ev # evs) =
+     (KeyCryptKey DK K evs |
+      (case ev of
+        Says A B Z =>
+         ((\<exists>N X Y. A \<noteq> Spy &
                  DK \<in> symKeys &
                  Z = {|Crypt DK {|Agent A, Nonce N, Key K, X|}, Y|}) |
-        (\<exists>C. DK = priEK C))
-    | Gets A' X => False
-    | Notes A' X => False))"
+          (\<exists>C. DK = priEK C))
+      | Gets A' X => False
+      | Notes A' X => False))"
 
 
 subsection{*Predicate formalizing the association between keys and nonces *}
 
-consts
-  KeyCryptNonce :: "[key, key, event list] => bool"
-
-primrec
-
-KeyCryptNonce_Nil:
-  "KeyCryptNonce EK K [] = False"
-
-KeyCryptNonce_Cons:
+primrec KeyCryptNonce :: "[key, key, event list] => bool"
+where
+  KeyCryptNonce_Nil:
+    "KeyCryptNonce EK K [] = False"
+| KeyCryptNonce_Cons:
   --{*Says is the only important case.
     1st case: CR3, where KC1 encrypts NC2 (distinct from CR5 due to EXH);
     2nd case: CR5, where KC3 encrypts NC3;

@@ -22,31 +22,22 @@ datatype val
                    of clash with HOL/Set.thy" 
   | Addr loc    -- "addresses, i.e. locations of objects "
 
-consts
-  the_Bool :: "val => bool"
-  the_Intg :: "val => int"
-  the_Addr :: "val => loc"
-
-primrec
+primrec the_Bool :: "val => bool" where
   "the_Bool (Bool b) = b"
 
-primrec
+primrec the_Intg :: "val => int" where
   "the_Intg (Intg i) = i"
 
-primrec
+primrec the_Addr :: "val => loc" where
   "the_Addr (Addr a) = a"
 
-consts
-  defpval :: "prim_ty => val"  -- "default value for primitive types"
-  default_val :: "ty => val"   -- "default value for all types"
-
-primrec
+primrec defpval :: "prim_ty => val"  -- "default value for primitive types" where
   "defpval Void    = Unit"
-  "defpval Boolean = Bool False"
-  "defpval Integer = Intg 0"
+| "defpval Boolean = Bool False"
+| "defpval Integer = Intg 0"
 
-primrec
+primrec default_val :: "ty => val"   -- "default value for all types" where
   "default_val (PrimT pt) = defpval pt"
-  "default_val (RefT  r ) = Null"
+| "default_val (RefT  r ) = Null"
 
 end

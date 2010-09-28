@@ -45,16 +45,6 @@ abbreviation (input)
   sttp_of :: "method_type \<times> state_type \<Rightarrow> state_type"
   where "sttp_of == snd"
 
-consts
-  compTpExpr  :: "java_mb \<Rightarrow> java_mb prog \<Rightarrow> expr
-                   \<Rightarrow> state_type \<Rightarrow> method_type \<times> state_type"
-
-  compTpExprs :: "java_mb \<Rightarrow> java_mb prog \<Rightarrow> expr list
-                   \<Rightarrow> state_type \<Rightarrow> method_type \<times> state_type"
-
-  compTpStmt  :: "java_mb \<Rightarrow> java_mb prog \<Rightarrow> stmt
-                   \<Rightarrow> state_type \<Rightarrow> method_type \<times> state_type"
-
 definition nochangeST :: "state_type \<Rightarrow> method_type \<times> state_type" where
   "nochangeST sttp == ([Some sttp], sttp)"
 
@@ -80,60 +70,45 @@ definition storeST :: "[nat, ty, state_type] \<Rightarrow> method_type \<times> 
 
 (* Expressions *)
 
-primrec
-
+primrec compTpExpr :: "java_mb \<Rightarrow> java_mb prog \<Rightarrow> expr \<Rightarrow>
+    state_type \<Rightarrow> method_type \<times> state_type"
+  and compTpExprs :: "java_mb \<Rightarrow> java_mb prog \<Rightarrow> expr list \<Rightarrow>
+    state_type \<Rightarrow> method_type \<times> state_type"
+where
   "compTpExpr jmb G (NewC c) = pushST [Class c]"
-
-  "compTpExpr jmb G (Cast c e) = 
-  (compTpExpr jmb G e) \<box> (replST 1 (Class c))"
-
-  "compTpExpr jmb G (Lit val) = pushST [the (typeof (\<lambda>v. None) val)]"
-
-  "compTpExpr jmb G (BinOp bo e1 e2) = 
+| "compTpExpr jmb G (Cast c e) = (compTpExpr jmb G e) \<box> (replST 1 (Class c))"
+| "compTpExpr jmb G (Lit val) = pushST [the (typeof (\<lambda>v. None) val)]"
+| "compTpExpr jmb G (BinOp bo e1 e2) =
      (compTpExpr jmb G e1) \<box> (compTpExpr jmb G e2) \<box> 
      (case bo of 
        Eq => popST 2 \<box> pushST [PrimT Boolean] \<box> popST 1 \<box> pushST [PrimT Boolean]
      | Add => replST 2 (PrimT Integer))"
-
-  "compTpExpr jmb G (LAcc vn) = (\<lambda> (ST, LT). 
+| "compTpExpr jmb G (LAcc vn) = (\<lambda> (ST, LT). 
       pushST [ok_val (LT ! (index jmb vn))] (ST, LT))"
-
-  "compTpExpr jmb G (vn::=e) = 
+| "compTpExpr jmb G (vn::=e) = 
       (compTpExpr jmb G e) \<box> dupST \<box> (popST 1)"
-
-
-  "compTpExpr jmb G ( {cn}e..fn ) = 
+| "compTpExpr jmb G ( {cn}e..fn ) = 
       (compTpExpr jmb G e) \<box> replST 1 (snd (the (field (G,cn) fn)))"
-
-  "compTpExpr jmb G (FAss cn e1 fn e2 ) = 
+| "compTpExpr jmb G (FAss cn e1 fn e2 ) = 
       (compTpExpr jmb G e1) \<box> (compTpExpr jmb G e2) \<box> dup_x1ST \<box> (popST 2)"
-
-
-  "compTpExpr jmb G ({C}a..mn({fpTs}ps)) =
+| "compTpExpr jmb G ({C}a..mn({fpTs}ps)) =
        (compTpExpr jmb G a) \<box> (compTpExprs jmb G ps) \<box> 
        (replST ((length ps) + 1) (method_rT (the (method (G,C) (mn,fpTs)))))"
-
-
-(* Expression lists *)
-
-  "compTpExprs jmb G [] = comb_nil"
-
-  "compTpExprs jmb G (e#es) = (compTpExpr jmb G e) \<box> (compTpExprs jmb G es)"
+| "compTpExprs jmb G [] = comb_nil"
+| "compTpExprs jmb G (e#es) = (compTpExpr jmb G e) \<box> (compTpExprs jmb G es)"
 
 
 (* Statements *)
-primrec
-   "compTpStmt jmb G Skip = comb_nil"
-
-   "compTpStmt jmb G (Expr e) =  (compTpExpr jmb G e) \<box> popST 1"
-
-   "compTpStmt jmb G (c1;; c2) = (compTpStmt jmb G c1) \<box> (compTpStmt jmb G c2)"
-
-   "compTpStmt jmb G (If(e) c1 Else c2) = 
+primrec compTpStmt :: "java_mb \<Rightarrow> java_mb prog \<Rightarrow> stmt \<Rightarrow> 
+    state_type \<Rightarrow> method_type \<times> state_type"
+where
+  "compTpStmt jmb G Skip = comb_nil"
+| "compTpStmt jmb G (Expr e) =  (compTpExpr jmb G e) \<box> popST 1"
+| "compTpStmt jmb G (c1;; c2) = (compTpStmt jmb G c1) \<box> (compTpStmt jmb G c2)"
+| "compTpStmt jmb G (If(e) c1 Else c2) = 
       (pushST [PrimT Boolean]) \<box> (compTpExpr jmb G e) \<box> popST 2 \<box>
       (compTpStmt jmb G c1) \<box> nochangeST \<box> (compTpStmt jmb G c2)"
-
-   "compTpStmt jmb G (While(e) c) = 
+| "compTpStmt jmb G (While(e) c) = 
       (pushST [PrimT Boolean]) \<box> (compTpExpr jmb G e) \<box> popST 2 \<box>
       (compTpStmt jmb G c) \<box> nochangeST"
 
@@ -141,13 +116,11 @@ definition compTpInit :: "java_mb \<Rightarrow> (vname * ty)
                    \<Rightarrow> state_type \<Rightarrow> method_type \<times> state_type" where
   "compTpInit jmb == (\<lambda> (vn,ty). (pushST [ty]) \<box>  (storeST (index jmb vn) ty))"
 
-consts
-  compTpInitLvars :: "[java_mb, (vname \<times> ty) list] 
-                   \<Rightarrow> state_type \<Rightarrow> method_type \<times> state_type"
-
-primrec 
+primrec compTpInitLvars :: "[java_mb, (vname \<times> ty) list] \<Rightarrow>
+    state_type \<Rightarrow> method_type \<times> state_type"
+where
   "compTpInitLvars jmb [] = comb_nil"
-  "compTpInitLvars jmb (lv#lvars) = (compTpInit jmb lv) \<box> (compTpInitLvars jmb lvars)"
+| "compTpInitLvars jmb (lv#lvars) = (compTpInit jmb lv) \<box> (compTpInitLvars jmb lvars)"
 
 definition start_ST :: "opstack_type" where
   "start_ST == []"

@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/JVM/JVMExecInstr.thy
-    ID:         $Id$
     Author:     Cornelia Pusch, Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
 *)
@@ -11,18 +10,16 @@ header {* \isaheader{JVM Instruction Semantics} *}
 theory JVMExecInstr imports JVMInstructions JVMState begin
 
 
-consts
-  exec_instr :: "[instr, jvm_prog, aheap, opstack, locvars, 
-                  cname, sig, p_count, frame list] => jvm_state"
-primrec
+primrec exec_instr :: "[instr, jvm_prog, aheap, opstack, locvars, cname, sig, p_count, frame list] => jvm_state"
+where
  "exec_instr (Load idx) G hp stk vars Cl sig pc frs = 
-      (None, hp, ((vars ! idx) # stk, vars, Cl, sig, pc+1)#frs)"
+      (None, hp, ((vars ! idx) # stk, vars, Cl, sig, pc+1)#frs)" |
 
  "exec_instr (Store idx) G hp stk vars Cl sig pc frs = 
-      (None, hp, (tl stk, vars[idx:=hd stk], Cl, sig, pc+1)#frs)"
+      (None, hp, (tl stk, vars[idx:=hd stk], Cl, sig, pc+1)#frs)" |
 
  "exec_instr (LitPush v) G hp stk vars Cl sig pc frs = 
-      (None, hp, (v # stk, vars, Cl, sig, pc+1)#frs)"
+      (None, hp, (v # stk, vars, Cl, sig, pc+1)#frs)" |
 
  "exec_instr (New C) G hp stk vars Cl sig pc frs = 
   (let (oref,xp') = new_Addr hp;
@@ -30,7 +27,7 @@ primrec
        hp'  = if xp'=None then hp(oref \<mapsto> (C,fs)) else hp;
        pc'  = if xp'=None then pc+1 else pc
    in 
-      (xp', hp', (Addr oref#stk, vars, Cl, sig, pc')#frs))"
+      (xp', hp', (Addr oref#stk, vars, Cl, sig, pc')#frs))" |
 
  "exec_instr (Getfield F C) G hp stk vars Cl sig pc frs = 
   (let oref = hd stk;
@@ -38,7 +35,7 @@ primrec
        (oc,fs)  = the(hp(the_Addr oref));
        pc'  = if xp'=None then pc+1 else pc
    in
-      (xp', hp, (the(fs(F,C))#(tl stk), vars, Cl, sig, pc')#frs))"
+      (xp', hp, (the(fs(F,C))#(tl stk), vars, Cl, sig, pc')#frs))" |
 
  "exec_instr (Putfield F C) G hp stk vars Cl sig pc frs = 
   (let (fval,oref)= (hd stk, hd(tl stk));
@@ -48,7 +45,7 @@ primrec
        hp'  = if xp'=None then hp(a \<mapsto> (oc, fs((F,C) \<mapsto> fval))) else hp;
        pc'  = if xp'=None then pc+1 else pc
    in
-      (xp', hp', (tl (tl stk), vars, Cl, sig, pc')#frs))"
+      (xp', hp', (tl (tl stk), vars, Cl, sig, pc')#frs))" |
 
  "exec_instr (Checkcast C) G hp stk vars Cl sig pc frs =
   (let oref = hd stk;
@@ -56,7 +53,7 @@ primrec
        stk' = if xp'=None then stk else tl stk;
        pc'  = if xp'=None then pc+1 else pc
    in
-      (xp', hp, (stk', vars, Cl, sig, pc')#frs))"
+      (xp', hp, (stk', vars, Cl, sig, pc')#frs))" |
 
  "exec_instr (Invoke C mn ps) G hp stk vars Cl sig pc frs =
   (let n    = length ps;
@@ -69,7 +66,7 @@ primrec
                 [([],rev argsoref@replicate mxl undefined,dc,(mn,ps),0)]
               else []
    in 
-      (xp', hp, frs'@(stk, vars, Cl, sig, pc)#frs))" 
+      (xp', hp, frs'@(stk, vars, Cl, sig, pc)#frs))" |
   -- "Because exception handling needs the pc of the Invoke instruction,"
   -- "Invoke doesn't change stk and pc yet (@{text Return} does that)."
 
@@ -82,42 +79,42 @@ primrec
    in 
       (None, hp, (val#(drop (n+1) stk),loc,C,sig,pc+1)#tl frs))"
   -- "Return drops arguments from the caller's stack and increases"
-  -- "the program counter in the caller"
+  -- "the program counter in the caller" |
 
  "exec_instr Pop G hp stk vars Cl sig pc frs = 
-      (None, hp, (tl stk, vars, Cl, sig, pc+1)#frs)"
+      (None, hp, (tl stk, vars, Cl, sig, pc+1)#frs)" |
 
  "exec_instr Dup G hp stk vars Cl sig pc frs = 
-      (None, hp, (hd stk # stk, vars, Cl, sig, pc+1)#frs)"
+      (None, hp, (hd stk # stk, vars, Cl, sig, pc+1)#frs)" |
 
  "exec_instr Dup_x1 G hp stk vars Cl sig pc frs = 
       (None, hp, (hd stk # hd (tl stk) # hd stk # (tl (tl stk)), 
-                  vars, Cl, sig, pc+1)#frs)"
+                  vars, Cl, sig, pc+1)#frs)" |
 
  "exec_instr Dup_x2 G hp stk vars Cl sig pc frs = 
       (None, hp, 
        (hd stk # hd (tl stk) # (hd (tl (tl stk))) # hd stk # (tl (tl (tl stk))),
-       vars, Cl, sig, pc+1)#frs)"
+       vars, Cl, sig, pc+1)#frs)" |
 
  "exec_instr Swap G hp stk vars Cl sig pc frs =
   (let (val1,val2) = (hd stk,hd (tl stk))
    in
-      (None, hp, (val2#val1#(tl (tl stk)), vars, Cl, sig, pc+1)#frs))"
+      (None, hp, (val2#val1#(tl (tl stk)), vars, Cl, sig, pc+1)#frs))" |
 
  "exec_instr IAdd G hp stk vars Cl sig pc frs =
   (let (val1,val2) = (hd stk,hd (tl stk))
    in
       (None, hp, (Intg ((the_Intg val1)+(the_Intg val2))#(tl (tl stk)), 
-       vars, Cl, sig, pc+1)#frs))"
+       vars, Cl, sig, pc+1)#frs))" |
 
  "exec_instr (Ifcmpeq i) G hp stk vars Cl sig pc frs =
   (let (val1,val2) = (hd stk, hd (tl stk));
      pc' = if val1 = val2 then nat(int pc+i) else pc+1
    in
-      (None, hp, (tl (tl stk), vars, Cl, sig, pc')#frs))"
+      (None, hp, (tl (tl stk), vars, Cl, sig, pc')#frs))" |
 
  "exec_instr (Goto i) G hp stk vars Cl sig pc frs =
-      (None, hp, (stk, vars, Cl, sig, nat(int pc+i))#frs)"
+      (None, hp, (stk, vars, Cl, sig, nat(int pc+i))#frs)" |
 
  "exec_instr Throw G hp stk vars Cl sig pc frs =
   (let xcpt  = raise_system_xcpt (hd stk = Null) NullPointer;

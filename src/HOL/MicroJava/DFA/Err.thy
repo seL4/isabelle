@@ -47,11 +47,9 @@ abbreviation
   where "err_semilat L == semilat(Err.sl L)"
 
 
-consts
-  strict  :: "('a \<Rightarrow> 'b err) \<Rightarrow> ('a err \<Rightarrow> 'b err)"
-primrec
+primrec strict :: "('a \<Rightarrow> 'b err) \<Rightarrow> ('a err \<Rightarrow> 'b err)" where
   "strict f Err    = Err"
-  "strict f (OK x) = f x"
+| "strict f (OK x) = f x"
 
 lemma strict_Some [simp]: 
   "(strict f x = OK y) = (\<exists> z. x = OK z \<and> f z = OK y)"
