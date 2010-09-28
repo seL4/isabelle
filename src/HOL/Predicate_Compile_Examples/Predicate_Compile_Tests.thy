@@ -1496,8 +1496,21 @@ where
 
 code_pred test_relation_in_output_terms .
 
-
 thm test_relation_in_output_terms.equation
+
+
+text {*
+  We want that the argument r is not treated as a higher-order relation, but simply as input.
+*}
+
+inductive test_uninterpreted_relation :: "('a => bool) => 'a list => bool"
+where
+  "list_all r xs ==> test_uninterpreted_relation r xs"
+
+code_pred (modes: i => i => bool) test_uninterpreted_relation .
+
+thm test_uninterpreted_relation.equation
+
 
 
 end
