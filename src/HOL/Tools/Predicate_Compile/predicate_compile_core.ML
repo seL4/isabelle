@@ -1717,9 +1717,11 @@ fun compile_clause compilation_modifiers ctxt all_vs param_modes additional_argu
               fold_map (collect_non_invertible_subterms ctxt) out_ts' (names, []);
             val (out_ts''', (names'', constr_vs)) = fold_map distinct_v
               out_ts'' (names', map (rpair []) vs);
+            val processed_out_ts = map (compile_arg compilation_modifiers additional_arguments
+              ctxt param_modes) out_ts
           in
             compile_match constr_vs (eqs @ eqs') out_ts'''
-              (mk_single compfuns (HOLogic.mk_tuple out_ts))
+              (mk_single compfuns (HOLogic.mk_tuple processed_out_ts))
           end
       | compile_prems out_ts vs names ((p, deriv) :: ps) =
           let
@@ -2274,12 +2276,14 @@ fun check_format ctxt st =
     if valid_expr expr then
       ((*tracing "expression is valid";*) Seq.single st)
     else
-      ((*tracing "expression is not valid";*) Seq.empty) (*error "check_format: wrong format"*)
+      ((*tracing "expression is not valid";*) Seq.empty) (* error "check_format: wrong format" *)
   end
 
-fun prove_match options ctxt out_ts =
+fun prove_match options ctxt nargs out_ts =
   let
     val thy = ProofContext.theory_of ctxt
+    val eval_if_P =
+      @{lemma "P ==> Predicate.eval x z ==> Predicate.eval (if P then x else y) z" by simp} 
     fun get_case_rewrite t =
       if (is_constructor thy t) then let
         val case_rewrites = (#case_rewrites (Datatype.the_info thy
@@ -2293,10 +2297,20 @@ fun prove_match options ctxt out_ts =
      (* make this simpset better! *)
     asm_full_simp_tac (HOL_basic_ss' addsimps simprules) 1
     THEN print_tac options "after prove_match:"
-    THEN (DETERM (TRY (EqSubst.eqsubst_tac ctxt [0] [@{thm HOL.if_P}] 1
+    THEN (DETERM (TRY (rtac eval_if_P 1
            THEN (REPEAT_DETERM (rtac @{thm conjI} 1 THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1))))
            THEN print_tac options "if condition to be solved:"
-           THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1 THEN print_tac options "after if simp; in SOLVED:"))
+           THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1
+           THEN Subgoal.FOCUS_PREMS
+             (fn {context = ctxt, params = params, prems, asms, concl, schematics} =>
+              let
+                val prems' = maps dest_conjunct_prem (take nargs prems)
+              in
+                MetaSimplifier.rewrite_goal_tac
+                  (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
+              end) ctxt 1
+           THEN REPEAT_DETERM (rtac @{thm refl} 1)
+           THEN print_tac options "after if simp; in SOLVED:"))
            THEN check_format thy
            THEN print_tac options "after if simplification - a TRY block")))
     THEN print_tac options "after if simplification"
@@ -2326,10 +2340,18 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
   let
     val (in_ts, clause_out_ts) = split_mode mode ts;
     fun prove_prems out_ts [] =
-      (prove_match options ctxt out_ts)
+      (prove_match options ctxt nargs out_ts)
       THEN print_tac options "before simplifying assumptions"
       THEN asm_full_simp_tac HOL_basic_ss' 1
       THEN print_tac options "before single intro rule"
+      THEN Subgoal.FOCUS_PREMS
+             (fn {context = ctxt, params = params, prems, asms, concl, schematics} =>
+              let
+                val prems' = maps dest_conjunct_prem (take nargs prems)
+              in
+                MetaSimplifier.rewrite_goal_tac
+                  (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
+              end) ctxt 1
       THEN (rtac (if null clause_out_ts then @{thm singleI_unit} else @{thm singleI}) 1)
     | prove_prems out_ts ((p, deriv) :: ps) =
       let
@@ -2388,7 +2410,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
            THEN prove_sidecond ctxt t
            THEN print_tac options "after sidecond:"
            THEN prove_prems [] ps)
-      in (prove_match options ctxt out_ts)
+      in (prove_match options ctxt nargs out_ts)
           THEN rest_tac
       end;
     val prems_tac = prove_prems in_ts moded_ps
