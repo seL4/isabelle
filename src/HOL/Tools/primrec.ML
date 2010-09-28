@@ -306,15 +306,6 @@ fun add_primrec_overloaded ops fixes specs thy =
 
 (* outer syntax *)
 
-val opt_unchecked_name =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!!
-    (((Parse.$$$ "unchecked" >> K true) -- Scan.optional Parse.name "" ||
-      Parse.name >> pair false) --| Parse.$$$ ")")) (false, "");
-
-val old_primrec_decl =
-  opt_unchecked_name --
-    Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop);
-
 val primrec_decl = Parse.opt_target -- Parse.fixes -- Parse_Spec.where_alt_specs;
 
 val _ =

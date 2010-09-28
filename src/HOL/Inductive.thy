@@ -14,7 +14,6 @@ uses
   "Tools/Datatype/datatype_case.ML"
   ("Tools/Datatype/datatype_abs_proofs.ML")
   ("Tools/Datatype/datatype_data.ML")
-  ("Tools/old_primrec.ML")
   ("Tools/primrec.ML")
   ("Tools/Datatype/datatype_codegen.ML")
 begin
@@ -282,7 +281,6 @@ setup Datatype_Data.setup
 use "Tools/Datatype/datatype_codegen.ML"
 setup Datatype_Codegen.setup
 
-use "Tools/old_primrec.ML"
 use "Tools/primrec.ML"
 
 text{* Lambda-abstractions with pattern matching: *}

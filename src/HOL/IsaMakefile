@@ -202,7 +202,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/inductive_set.ML \
   Tools/lin_arith.ML \
   Tools/nat_arith.ML \
-  Tools/old_primrec.ML \
   Tools/primrec.ML \
   Tools/prop_logic.ML \
   Tools/refute.ML \
