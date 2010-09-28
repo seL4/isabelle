@@ -580,7 +580,6 @@ where
 | "fib2 1 = 1"
 | "fib2 (n + 2) = fib2 n + fib2 (Suc n)"
 
-(*<*)ML_val "goals_limit := 1"(*>*)
 txt {*
   This kind of matching is again justified by the proof of pattern
   completeness and compatibility. 
@@ -588,7 +587,7 @@ txt {*
   either @{term "0::nat"}, @{term "1::nat"} or @{term "n +
   (2::nat)"}:
 
-  @{subgoals[display,indent=0]}
+  @{subgoals[display,indent=0,goals_limit=1]}
 
   This is an arithmetic triviality, but unfortunately the
   @{text arith} method cannot handle this specific form of an
@@ -597,7 +596,6 @@ txt {*
   existentials, which can then be solved by the arithmetic decision procedure.
   Pattern compatibility and termination are automatic as usual.
 *}
-(*<*)ML_val "goals_limit := 10"(*>*)
 apply atomize_elim
 apply arith
 apply auto
