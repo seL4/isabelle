@@ -26,7 +26,7 @@ structure Data = Generic_Data
   type T = string Stringinttab.table
   val empty = Stringinttab.empty
   val extend = I
-  val merge = Stringinttab.merge (K true)
+  fun merge data : T = Stringinttab.merge (K true) data
 )
 
 fun pretty_term context = Syntax.pretty_term (Context.proof_of context)
