@@ -114,13 +114,18 @@ fun hol_term_from_metis_PT ctxt fol_tm =
         | applic_to_tt (a,ts) =
             case strip_prefix_and_unascii const_prefix a of
                 SOME b =>
-                  let val c = smart_invert_const b
-                      val ntypes = num_type_args thy c
-                      val nterms = length ts - ntypes
-                      val tts = map tm_to_tt ts
-                      val tys = types_of (List.take(tts,ntypes))
+                  let
+                    val c = smart_invert_const b
+                    val ntypes = num_type_args thy c
+                    val nterms = length ts - ntypes
+                    val tts = map tm_to_tt ts
+                    val tys = types_of (List.take(tts,ntypes))
+                    val t = if String.isPrefix new_skolem_prefix c then
+                              Var (new_skolem_var_from_const c, tl tys ---> hd tys)
+                            else
+                              Const (c, dummyT)
                   in if length tys = ntypes then
-                         apply_list (Const (c, dummyT)) nterms (List.drop(tts,ntypes))
+                         apply_list t nterms (List.drop(tts,ntypes))
                      else
                        raise Fail ("Constant " ^ c ^ " expects " ^ Int.toString ntypes ^
                                    " but gets " ^ Int.toString (length tys) ^
@@ -187,11 +192,12 @@ fun hol_term_from_metis_FT ctxt fol_tm =
 fun hol_term_from_metis FT = hol_term_from_metis_FT
   | hol_term_from_metis _ = hol_term_from_metis_PT
 
-fun hol_terms_from_fol ctxt mode skolems fol_tms =
+fun hol_terms_from_fol ctxt mode old_skolems fol_tms =
   let val ts = map (hol_term_from_metis mode ctxt) fol_tms
       val _ = trace_msg (fn () => "  calling type inference:")
       val _ = app (fn t => trace_msg (fn () => Syntax.string_of_term ctxt t)) ts
-      val ts' = ts |> map (reveal_skolem_terms skolems) |> infer_types ctxt
+      val ts' = ts |> map (reveal_old_skolem_terms old_skolems)
+                   |> infer_types ctxt
       val _ = app (fn t => trace_msg
                     (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
                               "  of type  " ^ Syntax.string_of_typ ctxt (type_of t)))
@@ -232,24 +238,24 @@ fun inst_excluded_middle thy i_atm =
       val substs = [(cterm_of thy (Var vx), cterm_of thy i_atm)]
   in  cterm_instantiate substs th  end;
 
-fun assume_inf ctxt mode skolems atm =
+fun assume_inf ctxt mode old_skolems atm =
   inst_excluded_middle
       (ProofContext.theory_of ctxt)
-      (singleton (hol_terms_from_fol ctxt mode skolems) (Metis_Term.Fn atm))
+      (singleton (hol_terms_from_fol ctxt mode old_skolems) (Metis_Term.Fn atm))
 
 (* INFERENCE RULE: INSTANTIATE (SUBST). Type instantiations are ignored. Trying
    to reconstruct them admits new possibilities of errors, e.g. concerning
    sorts. Instead we try to arrange that new TVars are distinct and that types
    can be inferred from terms. *)
 
-fun inst_inf ctxt mode skolems thpairs fsubst th =
+fun inst_inf ctxt mode old_skolems thpairs fsubst th =
   let val thy = ProofContext.theory_of ctxt
       val i_th = lookth thpairs th
       val i_th_vars = Term.add_vars (prop_of i_th) []
       fun find_var x = the (List.find (fn ((a,_),_) => a=x) i_th_vars)
       fun subst_translation (x,y) =
         let val v = find_var x
-            (* We call "reveal_skolem_terms" and "infer_types" below. *)
+            (* We call "reveal_old_skolem_terms" and "infer_types" below. *)
             val t = hol_term_from_metis mode ctxt y
         in  SOME (cterm_of thy (Var v), t)  end
         handle Option.Option =>
@@ -269,7 +275,8 @@ fun inst_inf ctxt mode skolems thpairs fsubst th =
       val _ = trace_msg (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
       val substs = map_filter remove_typeinst (Metis_Subst.toList fsubst)
       val (vars,rawtms) = ListPair.unzip (map_filter subst_translation substs)
-      val tms = rawtms |> map (reveal_skolem_terms skolems) |> infer_types ctxt
+      val tms = rawtms |> map (reveal_old_skolem_terms old_skolems)
+                       |> infer_types ctxt
       val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
       val substs' = ListPair.zip (vars, map ctm_of tms)
       val _ = trace_msg (fn () =>
@@ -344,7 +351,7 @@ fun literal_index lit =
           get (n+1) xs
   in get 1 end
 
-fun resolve_inf ctxt mode skolems thpairs atm th1 th2 =
+fun resolve_inf ctxt mode old_skolems thpairs atm th1 th2 =
   let
     val thy = ProofContext.theory_of ctxt
     val i_th1 = lookth thpairs th1 and i_th2 = lookth thpairs th2
@@ -358,7 +365,7 @@ fun resolve_inf ctxt mode skolems thpairs atm th1 th2 =
       i_th1
     else
       let
-        val i_atm = singleton (hol_terms_from_fol ctxt mode skolems)
+        val i_atm = singleton (hol_terms_from_fol ctxt mode old_skolems)
                               (Metis_Term.Fn atm)
         val _ = trace_msg (fn () => "  atom: " ^ Syntax.string_of_term ctxt i_atm)
         val prems_th1 = prems_of i_th1
@@ -382,9 +389,9 @@ val REFL_THM = Thm.incr_indexes 2 @{lemma "t ~= t ==> False" by simp}
 val refl_x = cterm_of @{theory} (Var (hd (Term.add_vars (prop_of REFL_THM) [])));
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
-fun refl_inf ctxt mode skolems t =
+fun refl_inf ctxt mode old_skolems t =
   let val thy = ProofContext.theory_of ctxt
-      val i_t = singleton (hol_terms_from_fol ctxt mode skolems) t
+      val i_t = singleton (hol_terms_from_fol ctxt mode old_skolems) t
       val _ = trace_msg (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
       val c_t = cterm_incr_types thy refl_idx i_t
   in  cterm_instantiate [(refl_x, c_t)] REFL_THM  end;
@@ -400,10 +407,10 @@ fun get_ty_arg_size _ (Const (@{const_name HOL.eq}, _)) = 0  (*equality has no t
   | get_ty_arg_size thy (Const (c, _)) = (num_type_args thy c handle TYPE _ => 0)
   | get_ty_arg_size _ _ = 0;
 
-fun equality_inf ctxt mode skolems (pos, atm) fp fr =
+fun equality_inf ctxt mode old_skolems (pos, atm) fp fr =
   let val thy = ProofContext.theory_of ctxt
       val m_tm = Metis_Term.Fn atm
-      val [i_atm,i_tm] = hol_terms_from_fol ctxt mode skolems [m_tm, fr]
+      val [i_atm,i_tm] = hol_terms_from_fol ctxt mode old_skolems [m_tm, fr]
       val _ = trace_msg (fn () => "sign of the literal: " ^ Bool.toString pos)
       fun replace_item_list lx 0 (_::ls) = lx::ls
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
@@ -482,33 +489,29 @@ fun equality_inf ctxt mode skolems (pos, atm) fp fr =
 
 val factor = Seq.hd o distinct_subgoals_tac;
 
-fun step ctxt mode skolems thpairs p =
+fun step ctxt mode old_skolems thpairs p =
   case p of
     (fol_th, Metis_Proof.Axiom _) => factor (axiom_inf thpairs fol_th)
-  | (_, Metis_Proof.Assume f_atm) => assume_inf ctxt mode skolems f_atm
+  | (_, Metis_Proof.Assume f_atm) => assume_inf ctxt mode old_skolems f_atm
   | (_, Metis_Proof.Metis_Subst (f_subst, f_th1)) =>
-    factor (inst_inf ctxt mode skolems thpairs f_subst f_th1)
+    factor (inst_inf ctxt mode old_skolems thpairs f_subst f_th1)
   | (_, Metis_Proof.Resolve(f_atm, f_th1, f_th2)) =>
-    factor (resolve_inf ctxt mode skolems thpairs f_atm f_th1 f_th2)
-  | (_, Metis_Proof.Refl f_tm) => refl_inf ctxt mode skolems f_tm
+    factor (resolve_inf ctxt mode old_skolems thpairs f_atm f_th1 f_th2)
+  | (_, Metis_Proof.Refl f_tm) => refl_inf ctxt mode old_skolems f_tm
   | (_, Metis_Proof.Equality (f_lit, f_p, f_r)) =>
-    equality_inf ctxt mode skolems f_lit f_p f_r
+    equality_inf ctxt mode old_skolems f_lit f_p f_r
 
 fun is_real_literal (_, (c, _)) = not (String.isPrefix class_prefix c)
 
-fun replay_one_inference ctxt mode skolems (fol_th, inf) thpairs =
+fun replay_one_inference ctxt mode old_skolems (fol_th, inf) thpairs =
   let
     val _ = trace_msg (fn () => "=============================================")
     val _ = trace_msg (fn () => "METIS THM: " ^ Metis_Thm.toString fol_th)
     val _ = trace_msg (fn () => "INFERENCE: " ^ Metis_Proof.inferenceToString inf)
-    val th = Meson.flexflex_first_order (step ctxt mode skolems
-                                              thpairs (fol_th, inf))
+    val th = step ctxt mode old_skolems thpairs (fol_th, inf)
+             |> Meson.flexflex_first_order
     val _ = trace_msg (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
     val _ = trace_msg (fn () => "=============================================")
-    val n_metis_lits =
-      length (filter is_real_literal (Metis_LiteralSet.toList (Metis_Thm.clause fol_th)))
-    val _ = if nprems_of th = n_metis_lits then ()
-            else error "Cannot replay Metis proof in Isabelle: Out of sync."
   in (fol_th, th) :: thpairs end
 
 end;

@@ -56,15 +56,15 @@ fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
       val type_lits = Config.get ctxt type_lits
       val th_cls_pairs =
-        map (fn th => (Thm.get_name_hint th,
-                       Meson_Clausifier.meson_cnf_axiom thy th)) ths0
-      val ths = maps #2 th_cls_pairs
+        map (fn th => (Thm.get_name_hint th, Meson_Clausifier.cnf_axiom thy th))
+            ths0
+      val thss = map #2 th_cls_pairs
       val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg (fn () => "THEOREM CLAUSES")
-      val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) ths
-      val (mode, {axioms, tfrees, skolems}) =
-        build_logic_map mode ctxt type_lits cls ths
+      val _ = app (app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th))) thss
+      val (mode, {axioms, tfrees, old_skolems}) =
+        build_logic_map mode ctxt type_lits cls thss
       val _ = if null tfrees then ()
               else (trace_msg (fn () => "TFREE CLAUSES");
                     app (fn TyLitFree ((s, _), (s', _)) =>
@@ -86,7 +86,8 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                 val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                              (*add constraints arising from converting goal to clause form*)
                 val proof = Metis_Proof.proof mth
-                val result = fold (replay_one_inference ctxt' mode skolems) proof axioms
+                val result =
+                  fold (replay_one_inference ctxt' mode old_skolems) proof axioms
                 and used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) used
@@ -138,9 +139,6 @@ fun preskolem_tac ctxt st0 =
 
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
-
-val preproc_ss =
-  HOL_basic_ss addsimps @{thms all_simps[symmetric] ex_simps[symmetric]}
 
 fun generic_metis_tac mode ctxt ths i st0 =
   let

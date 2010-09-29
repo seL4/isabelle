@@ -57,7 +57,7 @@ fun mk_ahorn [] phi = phi
 
 fun combformula_for_prop thy =
   let
-    val do_term = combterm_from_term thy
+    val do_term = combterm_from_term thy ~1
     fun do_quant bs q s T t' =
       let val s = Name.variant (map fst bs) s in
         do_formula ((s, T) :: bs) t'

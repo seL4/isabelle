@@ -330,7 +330,7 @@ fun apply_skolem_theorem (th, rls) =
 (* Conjunctive normal form, adding clauses from th in front of ths (for foldr).
    Strips universal quantifiers and breaks up conjunctions.
    Eliminates existential quantifiers using Skolemization theorems. *)
-fun cnf skolem_ths ctxt (th, ths) =
+fun cnf old_skolem_ths ctxt (th, ths) =
   let val ctxtr = Unsynchronized.ref ctxt   (* FIXME ??? *)
       fun cnf_aux (th,ths) =
         if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
@@ -344,7 +344,7 @@ fun cnf skolem_ths ctxt (th, ths) =
                 in  ctxtr := ctxt'; cnf_aux (th', ths) end
           | Const (@{const_name Ex}, _) =>
               (*existential quantifier: Insert Skolem functions*)
-              cnf_aux (apply_skolem_theorem (th, skolem_ths), ths)
+              cnf_aux (apply_skolem_theorem (th, old_skolem_ths), ths)
           | Const (@{const_name HOL.disj}, _) =>
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
@@ -360,7 +360,7 @@ fun cnf skolem_ths ctxt (th, ths) =
             else cnf_aux (th,ths)
   in  (cls, !ctxtr)  end;
 
-fun make_cnf skolem_ths th ctxt = cnf skolem_ths ctxt (th, []);
+fun make_cnf old_skolem_ths th ctxt = cnf old_skolem_ths ctxt (th, [])
 
 (*Generalization, removal of redundant equalities, removal of tautologies.*)
 fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);

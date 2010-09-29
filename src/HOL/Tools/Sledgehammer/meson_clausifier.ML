@@ -7,17 +7,21 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature MESON_CLAUSIFIER =
 sig
+  val new_skolemizer : bool Config.T
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
-  val meson_cnf_axiom : theory -> thm -> thm list
+  val cnf_axiom : theory -> thm -> thm list
   val meson_general_tac : Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
 
 structure Meson_Clausifier : MESON_CLAUSIFIER =
 struct
+
+val (new_skolemizer, new_skolemizer_setup) =
+  Attrib.config_bool "meson_new_skolemizer" (K false)
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -39,7 +43,7 @@ fun transform_elim_theorem th =
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
-fun mk_skolem t =
+fun mk_old_skolem_term_wrapper t =
   let val T = fastype_of t in
     Const (@{const_name skolem}, T --> T) $ t
   end
@@ -49,7 +53,7 @@ fun beta_eta_under_lambdas (Abs (s, T, t')) =
   | beta_eta_under_lambdas t = Envir.beta_eta_contract t
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
-fun assume_skolem_funs th =
+fun old_skolem_defs th =
   let
     fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (_, T, p))) rhss =
         (*Existential: declare a Skolem function, then insert into body and continue*)
@@ -59,7 +63,7 @@ fun assume_skolem_funs th =
           val rhs =
             list_abs_free (map dest_Free args,
                            HOLogic.choice_const T $ beta_eta_under_lambdas body)
-            |> mk_skolem
+            |> mk_old_skolem_term_wrapper
           val comb = list_comb (rhs, args)
         in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end
       | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) rhss =
@@ -190,7 +194,7 @@ val skolem_def_raw = @{thms skolem_def_raw}
 (* Given the definition of a Skolem function, return a theorem to replace
    an existential formula by a use of that function.
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
-fun skolem_theorem_of_def thy rhs0 =
+fun old_skolem_theorem_from_def thy rhs0 =
   let
     val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> cterm_of thy
     val rhs' = rhs |> Thm.dest_comb |> snd
@@ -199,7 +203,8 @@ fun skolem_theorem_of_def thy rhs0 =
     val T =
       case hilbert of
         Const (@{const_name Eps}, Type (@{type_name fun}, [_, T])) => T
-      | _ => raise TERM ("skolem_theorem_of_def: expected \"Eps\"", [hilbert])
+      | _ => raise TERM ("old_skolem_theorem_from_def: expected \"Eps\"",
+                         [hilbert])
     val cex = cterm_of thy (HOLogic.exists_const T)
     val ex_tm = Thm.capply cTrueprop (Thm.capply cex cabs)
     val conc =
@@ -217,7 +222,7 @@ fun skolem_theorem_of_def thy rhs0 =
 
 (* Converts an Isabelle theorem (intro, elim or simp format, even higher-order)
    into NNF. *)
-fun to_nnf th ctxt0 =
+fun nnf_axiom th ctxt0 =
   let
     val th1 = th |> transform_elim_theorem |> zero_var_indexes
     val ((_, [th2]), ctxt) = Variable.import true [th1] ctxt0
@@ -234,13 +239,13 @@ fun to_definitional_cnf_with_quantifiers thy th =
   in Thm.equal_elim eqth th end
 
 (* Convert a theorem to CNF, with Skolem functions as additional premises. *)
-fun meson_cnf_axiom thy th =
+fun cnf_axiom thy th =
   let
     val ctxt0 = Variable.global_thm_context th
-    val (nnf_th, ctxt) = to_nnf th ctxt0
+    val (nnf_th, ctxt) = nnf_axiom th ctxt0
     fun aux th =
-      Meson.make_cnf (map (skolem_theorem_of_def thy) (assume_skolem_funs th))
-                     th ctxt
+      Meson.make_cnf (map (old_skolem_theorem_from_def thy)
+                          (old_skolem_defs th)) th ctxt
     val (cnf_ths, ctxt) =
       aux nnf_th
       |> (fn ([], _) => aux (to_definitional_cnf_with_quantifiers thy nnf_th)
@@ -257,7 +262,7 @@ fun meson_general_tac ctxt ths =
   let
     val thy = ProofContext.theory_of ctxt
     val ctxt0 = Classical.put_claset HOL_cs ctxt
-  in Meson.meson_tac ctxt0 (maps (meson_cnf_axiom thy) ths) end
+  in Meson.meson_tac ctxt0 (maps (cnf_axiom thy) ths) end
 
 val setup =
   Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>

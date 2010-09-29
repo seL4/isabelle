@@ -34,7 +34,7 @@ sig
   type logic_map =
     {axioms: (Metis_Thm.thm * thm) list,
      tfrees: type_literal list,
-     skolems: (string * term) list}
+     old_skolems: (string * term) list}
 
   val type_wrapper_name : string
   val bound_var_prefix : string
@@ -45,6 +45,7 @@ sig
   val const_prefix: string
   val type_const_prefix: string
   val class_prefix: string
+  val new_skolem_prefix : string
   val invert_const: string -> string
   val ascii_of: string -> string
   val unascii_of: string -> string
@@ -58,6 +59,7 @@ sig
   val make_fixed_type_const : string -> string
   val make_type_class : string -> string
   val num_type_args: theory -> string -> int
+  val new_skolem_var_from_const: string -> indexname
   val type_literals_for_types : typ list -> type_literal list
   val make_class_rel_clauses :
     theory -> class list -> class list -> class_rel_clause list
@@ -66,14 +68,15 @@ sig
   val combtyp_of : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
   val combterm_from_term :
-    theory -> (string * typ) list -> term -> combterm * typ list
-  val reveal_skolem_terms : (string * term) list -> term -> term
+    theory -> int -> (string * typ) list -> term -> combterm * typ list
+  val reveal_old_skolem_terms : (string * term) list -> term -> term
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
   val string_of_mode : mode -> string
   val build_logic_map :
-    mode -> Proof.context -> bool -> thm list -> thm list -> mode * logic_map
+    mode -> Proof.context -> bool -> thm list -> thm list list
+    -> mode * logic_map
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
@@ -91,6 +94,12 @@ val tfree_prefix = "t_";
 val const_prefix = "c_";
 val type_const_prefix = "tc_";
 val class_prefix = "class_";
+
+val new_skolem_var_prefix = "SK?" (* purposedly won't parse *)
+
+val skolem_prefix = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
+val old_skolem_prefix = skolem_prefix ^ "o"
+val new_skolem_prefix = skolem_prefix ^ "n"
 
 fun union_all xss = fold (union (op =)) xss []
 
@@ -198,8 +207,6 @@ fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
-val skolem_prefix = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
-
 (* The number of type arguments of a constant, zero if it's monomorphic. For
    (instances of) Skolem pseudoconstants, this information is encoded in the
    constant name. *)
@@ -208,6 +215,13 @@ fun num_type_args thy s =
     s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
+
+fun new_skolem_var_from_const s =
+  let
+    val ss = s |> space_explode Long_Name.separator
+    val n = length ss
+  in (nth ss (n - 2), nth ss (n - 3) |> Int.fromString |> the) end
+
 
 (**** Definitions and functions for FOL clauses for TPTP format output ****)
 
@@ -384,92 +398,107 @@ fun simple_combtype_of (Type (a, Ts)) =
   | simple_combtype_of (TVar (x, _)) =
     CombTVar (make_schematic_type_var x, string_of_indexname x)
 
+fun new_skolem_name th_no s num_T_args =
+  [new_skolem_prefix, string_of_int th_no, s, string_of_int num_T_args]
+  |> space_implode Long_Name.separator
+
 (* Converts a term (with combinators) into a combterm. Also accummulates sort
    infomation. *)
-fun combterm_from_term thy bs (P $ Q) =
-      let val (P', tsP) = combterm_from_term thy bs P
-          val (Q', tsQ) = combterm_from_term thy bs Q
+fun combterm_from_term thy th_no bs (P $ Q) =
+      let val (P', tsP) = combterm_from_term thy th_no bs P
+          val (Q', tsQ) = combterm_from_term thy th_no bs Q
       in  (CombApp (P', Q'), union (op =) tsP tsQ)  end
-  | combterm_from_term thy _ (Const (c, T)) =
+  | combterm_from_term thy _ _ (Const (c, T)) =
       let
         val (tp, ts) = combtype_of T
         val tvar_list =
-          (if String.isPrefix skolem_prefix c then
+          (if String.isPrefix old_skolem_prefix c then
              [] |> Term.add_tvarsT T |> map TVar
            else
              (c, T) |> Sign.const_typargs thy)
           |> map simple_combtype_of
         val c' = CombConst (`make_fixed_const c, tp, tvar_list)
       in  (c',ts)  end
-  | combterm_from_term _ _ (Free (v, T)) =
+  | combterm_from_term _ _ _ (Free (v, T)) =
       let val (tp, ts) = combtype_of T
           val v' = CombConst (`make_fixed_var v, tp, [])
       in  (v',ts)  end
-  | combterm_from_term _ _ (Var (v, T)) =
-      let val (tp,ts) = combtype_of T
-          val v' = CombVar ((make_schematic_var v, string_of_indexname v), tp)
-      in  (v',ts)  end
-  | combterm_from_term _ bs (Bound j) =
+  | combterm_from_term _ th_no _ (Var (v as (s, _), T)) =
+    let
+      val (tp, ts) = combtype_of T
+      val v' =
+        if String.isPrefix new_skolem_var_prefix s then
+          let
+            val tys = T |> strip_type |> swap |> op ::
+            val s' = new_skolem_name th_no s (length tys)
+          in
+            CombConst (`make_fixed_const s', tp, map simple_combtype_of tys)
+          end
+        else
+          CombVar ((make_schematic_var v, string_of_indexname v), tp)
+    in (v', ts) end
+  | combterm_from_term _ _ bs (Bound j) =
       let
         val (s, T) = nth bs j
         val (tp, ts) = combtype_of T
         val v' = CombConst (`make_bound_var s, tp, [])
       in (v', ts) end
-  | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"
+  | combterm_from_term _ _ _ (Abs _) = raise Fail "HOL clause: Abs"
 
-fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
-  | predicate_of thy (t, pos) =
-    (combterm_from_term thy [] (Envir.eta_contract t), pos)
+fun predicate_of thy th_no ((@{const Not} $ P), pos) =
+    predicate_of thy th_no (P, not pos)
+  | predicate_of thy th_no (t, pos) =
+    (combterm_from_term thy th_no [] (Envir.eta_contract t), pos)
 
-fun literals_of_term1 args thy (@{const Trueprop} $ P) =
-    literals_of_term1 args thy P
-  | literals_of_term1 args thy (@{const HOL.disj} $ P $ Q) =
-    literals_of_term1 (literals_of_term1 args thy P) thy Q
-  | literals_of_term1 (lits, ts) thy P =
-    let val ((pred, ts'), pol) = predicate_of thy (P, true) in
+fun literals_of_term1 args thy th_no (@{const Trueprop} $ P) =
+    literals_of_term1 args thy th_no P
+  | literals_of_term1 args thy th_no (@{const HOL.disj} $ P $ Q) =
+    literals_of_term1 (literals_of_term1 args thy th_no P) thy th_no Q
+  | literals_of_term1 (lits, ts) thy th_no P =
+    let val ((pred, ts'), pol) = predicate_of thy th_no (P, true) in
       (FOLLiteral (pol, pred) :: lits, union (op =) ts ts')
     end
 val literals_of_term = literals_of_term1 ([], [])
 
-fun skolem_name i j num_T_args =
-  skolem_prefix ^ Long_Name.separator ^
+fun old_skolem_name i j num_T_args =
+  old_skolem_prefix ^ Long_Name.separator ^
   (space_implode Long_Name.separator (map Int.toString [i, j, num_T_args]))
 
-fun conceal_skolem_terms i skolems t =
+fun conceal_old_skolem_terms i old_skolems t =
   if exists_Const (curry (op =) @{const_name skolem} o fst) t then
     let
-      fun aux skolems
+      fun aux old_skolems
               (t as (Const (@{const_name skolem}, Type (_, [_, T])) $ _)) =
           let
-            val (skolems, s) =
+            val (old_skolems, s) =
               if i = ~1 then
-                (skolems, @{const_name undefined})
-              else case AList.find (op aconv) skolems t of
-                s :: _ => (skolems, s)
+                (old_skolems, @{const_name undefined})
+              else case AList.find (op aconv) old_skolems t of
+                s :: _ => (old_skolems, s)
               | [] =>
                 let
-                  val s = skolem_name i (length skolems)
-                                      (length (Term.add_tvarsT T []))
-                in ((s, t) :: skolems, s) end
-          in (skolems, Const (s, T)) end
-        | aux skolems (t1 $ t2) =
+                  val s = old_skolem_name i (length old_skolems)
+                                          (length (Term.add_tvarsT T []))
+                in ((s, t) :: old_skolems, s) end
+          in (old_skolems, Const (s, T)) end
+        | aux old_skolems (t1 $ t2) =
           let
-            val (skolems, t1) = aux skolems t1
-            val (skolems, t2) = aux skolems t2
-          in (skolems, t1 $ t2) end
-        | aux skolems (Abs (s, T, t')) =
-          let val (skolems, t') = aux skolems t' in
-            (skolems, Abs (s, T, t'))
+            val (old_skolems, t1) = aux old_skolems t1
+            val (old_skolems, t2) = aux old_skolems t2
+          in (old_skolems, t1 $ t2) end
+        | aux old_skolems (Abs (s, T, t')) =
+          let val (old_skolems, t') = aux old_skolems t' in
+            (old_skolems, Abs (s, T, t'))
           end
-        | aux skolems t = (skolems, t)
-    in aux skolems t end
+        | aux old_skolems t = (old_skolems, t)
+    in aux old_skolems t end
   else
-    (skolems, t)
+    (old_skolems, t)
 
-fun reveal_skolem_terms skolems =
+fun reveal_old_skolem_terms old_skolems =
   map_aterms (fn t as Const (s, _) =>
-                 if String.isPrefix skolem_prefix s then
-                   AList.lookup (op =) skolems s |> the
+                 if String.isPrefix old_skolem_prefix s then
+                   AList.lookup (op =) old_skolems s |> the
                    |> map_types Type_Infer.paramify_vars
                  else
                    t
@@ -580,8 +609,8 @@ fun hol_literal_to_fol FO (FOLLiteral (pos, tm)) =
             metis_lit pos "=" (map hol_term_to_fol_FT tms)
         | _ => metis_lit pos "{}" [hol_term_to_fol_FT tm])   (*hBOOL*);
 
-fun literals_of_hol_term thy mode t =
-      let val (lits, types_sorts) = literals_of_term thy t
+fun literals_of_hol_term thy th_no mode t =
+      let val (lits, types_sorts) = literals_of_term thy th_no t
       in  (map (hol_literal_to_fol mode) lits, types_sorts) end;
 
 (*Sign should be "true" for conjecture type constraints, "false" for type lits in clauses.*)
@@ -596,16 +625,16 @@ fun default_sort _ (TVar _) = false
 fun metis_of_tfree tf =
   Metis_Thm.axiom (Metis_LiteralSet.singleton (metis_of_type_literals true tf));
 
-fun hol_thm_to_fol is_conjecture ctxt type_lits mode j skolems th =
+fun hol_thm_to_fol is_conjecture th_no ctxt type_lits mode j old_skolems th =
   let
     val thy = ProofContext.theory_of ctxt
-    val (skolems, (mlits, types_sorts)) =
-     th |> prop_of |> conceal_skolem_terms j skolems
-        ||> (HOLogic.dest_Trueprop #> literals_of_hol_term thy mode)
+    val (old_skolems, (mlits, types_sorts)) =
+     th |> prop_of |> conceal_old_skolem_terms j old_skolems
+        ||> (HOLogic.dest_Trueprop #> literals_of_hol_term thy th_no mode)
   in
     if is_conjecture then
       (Metis_Thm.axiom (Metis_LiteralSet.fromList mlits),
-       type_literals_for_types types_sorts, skolems)
+       type_literals_for_types types_sorts, old_skolems)
     else
       let
         val tylits = filter_out (default_sort ctxt) types_sorts
@@ -614,7 +643,7 @@ fun hol_thm_to_fol is_conjecture ctxt type_lits mode j skolems th =
           if type_lits then map (metis_of_type_literals false) tylits else []
       in
         (Metis_Thm.axiom (Metis_LiteralSet.fromList(mtylits @ mlits)), [],
-         skolems)
+         old_skolems)
       end
   end;
 
@@ -637,10 +666,10 @@ val helpers =
 type logic_map =
   {axioms: (Metis_Thm.thm * thm) list,
    tfrees: type_literal list,
-   skolems: (string * term) list}
+   old_skolems: (string * term) list}
 
 fun is_quasi_fol_clause thy =
-  Meson.is_fol_term thy o snd o conceal_skolem_terms ~1 [] o prop_of
+  Meson.is_fol_term thy o snd o conceal_old_skolem_terms ~1 [] o prop_of
 
 (*Extract TFree constraints from context to include as conjecture clauses*)
 fun init_tfrees ctxt =
@@ -650,16 +679,16 @@ fun init_tfrees ctxt =
   end;
 
 (*Insert non-logical axioms corresponding to all accumulated TFrees*)
-fun add_tfrees {axioms, tfrees, skolems} : logic_map =
+fun add_tfrees {axioms, tfrees, old_skolems} : logic_map =
      {axioms = map (rpair TrueI o metis_of_tfree) (distinct (op =) tfrees) @
                axioms,
-      tfrees = tfrees, skolems = skolems}
+      tfrees = tfrees, old_skolems = old_skolems}
 
 (*transform isabelle type / arity clause to metis clause *)
 fun add_type_thm [] lmap = lmap
-  | add_type_thm ((ith, mth) :: cls) {axioms, tfrees, skolems} =
+  | add_type_thm ((ith, mth) :: cls) {axioms, tfrees, old_skolems} =
       add_type_thm cls {axioms = (mth, ith) :: axioms, tfrees = tfrees,
-                        skolems = skolems}
+                        old_skolems = old_skolems}
 
 fun const_in_metis c (pred, tm_list) =
   let
@@ -694,29 +723,31 @@ fun type_ext thy tms =
   end;
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun build_logic_map mode0 ctxt type_lits cls ths =
+fun build_logic_map mode0 ctxt type_lits cls thss =
   let val thy = ProofContext.theory_of ctxt
       (*The modes FO and FT are sticky. HO can be downgraded to FO.*)
       fun set_mode FO = FO
         | set_mode HO =
-          if forall (is_quasi_fol_clause thy) (cls @ ths) then FO else HO
+          if forall (forall (is_quasi_fol_clause thy)) (cls :: thss) then FO
+          else HO
         | set_mode FT = FT
       val mode = set_mode mode0
       (*transform isabelle clause to metis clause *)
-      fun add_thm is_conjecture (metis_ith, isa_ith) {axioms, tfrees, skolems}
-                  : logic_map =
+      fun add_thm th_no is_conjecture (metis_ith, isa_ith)
+                  {axioms, tfrees, old_skolems} : logic_map =
         let
-          val (mth, tfree_lits, skolems) =
-            hol_thm_to_fol is_conjecture ctxt type_lits mode (length axioms)
-                           skolems metis_ith
+          val (mth, tfree_lits, old_skolems) =
+            hol_thm_to_fol is_conjecture th_no ctxt type_lits mode (length axioms)
+                           old_skolems metis_ith
         in
            {axioms = (mth, Meson.make_meta_clause isa_ith) :: axioms,
-            tfrees = union (op =) tfree_lits tfrees, skolems = skolems}
+            tfrees = union (op =) tfree_lits tfrees, old_skolems = old_skolems}
         end;
-      val lmap = {axioms = [], tfrees = init_tfrees ctxt, skolems = []}
-                 |> fold (add_thm true o `I) cls
+      val lmap = {axioms = [], tfrees = init_tfrees ctxt, old_skolems = []}
+                 |> fold (add_thm 0 true o `I) cls
                  |> add_tfrees
-                 |> fold (add_thm false o `I) ths
+                 |> fold (fn (th_no, ths) => fold (add_thm th_no false o `I) ths)
+                         (1 upto length thss ~~ thss)
       val clause_lists = map (Metis_Thm.clause o #1) (#axioms lmap)
       fun is_used c =
         exists (Metis_LiteralSet.exists (const_in_metis c o #2)) clause_lists
@@ -733,7 +764,9 @@ fun build_logic_map mode0 ctxt type_lits cls ths =
                                     []
                                   else
                                     thms)
-          in lmap |> fold (add_thm false) helper_ths end
-  in (mode, add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap) end
+          in lmap |> fold (add_thm ~1 false) helper_ths end
+  in
+    (mode, add_type_thm (type_ext thy (maps (map prop_of) (cls :: thss))) lmap)
+  end
 
 end;
