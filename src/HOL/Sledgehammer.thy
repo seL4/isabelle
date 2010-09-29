@@ -14,7 +14,7 @@ uses
   ("Tools/ATP/atp_proof.ML")
   ("Tools/ATP/atp_systems.ML")
   ("~~/src/Tools/Metis/metis.ML")
-  ("Tools/Sledgehammer/meson_clausifier.ML")
+  ("Tools/Sledgehammer/meson_clausify.ML")
   ("Tools/Sledgehammer/metis_translate.ML")
   ("Tools/Sledgehammer/metis_reconstruct.ML")
   ("Tools/Sledgehammer/metis_tactics.ML")
@@ -98,7 +98,7 @@ use "Tools/ATP/atp_systems.ML"
 setup ATP_Systems.setup
 
 use "~~/src/Tools/Metis/metis.ML"
-use "Tools/Sledgehammer/meson_clausifier.ML"
+use "Tools/Sledgehammer/meson_clausify.ML"
 setup Meson_Clausifier.setup
 
 use "Tools/Sledgehammer/metis_translate.ML"
