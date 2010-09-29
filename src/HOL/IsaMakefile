@@ -1175,6 +1175,7 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML \
   Nominal/nominal_permeq.ML \
   Nominal/nominal_primrec.ML \
   Nominal/nominal_thmdecls.ML \
+  Nominal/old_primrec.ML \
   Library/Infinite_Set.thy
 	@cd Nominal; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Nominal
 

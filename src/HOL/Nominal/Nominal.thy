@@ -10,6 +10,7 @@ uses
   ("nominal_primrec.ML")
   ("nominal_inductive.ML")
   ("nominal_inductive2.ML")
+  ("old_primrec.ML")
 begin 
 
 section {* Permutations *}
@@ -3604,6 +3605,7 @@ lemmas [eqvt_force] = numeral_nat_eqvt numeral_int_eqvt
 (***************************************)
 (* setup for the individial atom-kinds *)
 (* and nominal datatypes               *)
+use "old_primrec.ML"
 use "nominal_atoms.ML"
 
 (************************************************************)
