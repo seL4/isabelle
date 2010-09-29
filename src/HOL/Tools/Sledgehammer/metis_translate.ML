@@ -627,7 +627,8 @@ fun hol_thm_to_fol is_conjecture th_no ctxt type_lits mode j old_skolems th =
   let
     val thy = ProofContext.theory_of ctxt
     val (old_skolems, (mlits, types_sorts)) =
-     th |> prop_of |> conceal_old_skolem_terms j old_skolems
+     th |> prop_of |> Logic.strip_imp_concl
+        |> conceal_old_skolem_terms j old_skolems
         ||> (HOLogic.dest_Trueprop #> literals_of_hol_term thy th_no mode)
   in
     if is_conjecture then
