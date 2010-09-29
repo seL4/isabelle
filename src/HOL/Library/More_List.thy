@@ -100,6 +100,8 @@ lemma fold_plus_listsum_rev:
   "fold plus xs = plus (listsum (rev xs))"
   by (induct xs) (simp_all add: add.assoc)
 
+declare listsum_foldl [code del]
+
 lemma (in monoid_add) listsum_conv_fold [code]:
   "listsum xs = fold (\<lambda>x y. y + x) xs 0"
   by (auto simp add: listsum_foldl foldl_fold fun_eq_iff)
