@@ -145,6 +145,7 @@ sig
   (* conversions *)
   val imp_prems_conv : conv -> conv
   (* simple transformations *)
+  val split_conjuncts_in_assms : Proof.context -> thm -> thm
   val expand_tuples : theory -> thm -> thm
   val eta_contract_ho_arguments : theory -> thm -> thm
   val remove_equalities : theory -> thm -> thm
@@ -821,6 +822,19 @@ fun rewrite_prem atom =
     val (_, args) = strip_comb atom
   in rewrite_args args end
 
+fun split_conjuncts_in_assms ctxt th =
+  let
+    val ((_, [fixed_th]), ctxt') = Variable.import false [th] ctxt 
+    fun split_conjs i nprems th =
+      if i > nprems then th
+      else
+        case try Drule.RSN (@{thm conjI}, (i, th)) of
+          SOME th' => split_conjs i (nprems+1) th'
+        | NONE => split_conjs (i+1) nprems th
+  in
+    singleton (Variable.export ctxt' ctxt) (split_conjs 1 (Thm.nprems_of fixed_th) fixed_th)
+  end
+  
 fun expand_tuples thy intro =
   let
     val ctxt = ProofContext.init_global thy
@@ -840,9 +854,7 @@ fun expand_tuples thy intro =
       (HOL_basic_ss addsimps [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}])
       intro'''
     (* splitting conjunctions introduced by Pair_eq*)
-    fun split_conj prem =
-      map HOLogic.mk_Trueprop (conjuncts (HOLogic.dest_Trueprop prem))
-    val intro''''' = map_term thy (maps_premises split_conj) intro''''
+    val intro''''' = split_conjuncts_in_assms ctxt intro''''
   in
     intro'''''
   end

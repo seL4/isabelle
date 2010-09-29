@@ -256,34 +256,18 @@ val rewrite =
   #> Conv.fconv_rule nnf_conv 
   #> Simplifier.simplify (HOL_basic_ss addsimps [@{thm ex_disj_distrib}])
 
-fun split_conjs thy t =
-  let 
-    fun split_conjunctions (Const (@{const_name HOL.conj}, _) $ t1 $ t2) =
-    (split_conjunctions t1) @ (split_conjunctions t2)
-    | split_conjunctions t = [t]
-  in
-    map HOLogic.mk_Trueprop (split_conjunctions (HOLogic.dest_Trueprop t))
-  end
-
 fun rewrite_intros thy =
   Simplifier.full_simplify (HOL_basic_ss addsimps [@{thm all_not_ex}])
   #> Simplifier.full_simplify
     (HOL_basic_ss addsimps (tl @{thms bool_simps}) addsimps @{thms nnf_simps})
-  #> map_term thy (maps_premises (split_conjs thy))
+  #> split_conjuncts_in_assms (ProofContext.init_global thy)
 
 fun print_specs options thy msg ths =
   if show_intermediate_results options then
     (tracing (msg); tracing (commas (map (Display.string_of_thm_global thy) ths)))
   else
     ()
-(*
-fun split_cases thy th =
-  let
-    
-  in
-    map_term thy th
-  end
-*)
+
 fun preprocess options (constname, specs) thy =
 (*  case Predicate_Compile_Data.processed_specs thy constname of
     SOME specss => (specss, thy)
@@ -292,7 +276,7 @@ fun preprocess options (constname, specs) thy =
       val ctxt = ProofContext.init_global thy
       val intros =
         if forall is_pred_equation specs then 
-          map (map_term thy (maps_premises (split_conjs thy))) (introrulify thy (map rewrite specs))
+          map (split_conjuncts_in_assms ctxt) (introrulify thy (map rewrite specs))
         else if forall (is_intro constname) specs then
           map (rewrite_intros thy) specs
         else
