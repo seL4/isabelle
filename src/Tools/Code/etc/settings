@@ -2,13 +2,13 @@
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
 
 EXEC_GHC=$(choosefrom \
-  "$ISABELLE_HOME/contrib/ghc" \
-  "$ISABELLE_HOME/../ghc" \
+  "$ISABELLE_HOME/contrib/ghc/$ISABELLE_PLATFORM/ghc" \
+  "$ISABELLE_HOME/../ghc/$ISABELLE_PLATFORM/ghc" \
   $(type -p ghc) \
   "")
 
 EXEC_OCAML=$(choosefrom \
-  "$ISABELLE_HOME/contrib/ocaml" \
-  "$ISABELLE_HOME/../ocaml" \
+  "$ISABELLE_HOME/contrib/ocaml/$ISABELLE_PLATFORM/ocaml" \
+  "$ISABELLE_HOME/../ocaml/$ISABELLE_PLATFORM/ocaml" \
   $(type -p ocaml) \
   "")
