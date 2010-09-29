@@ -1696,7 +1696,13 @@ fun compile_expr compilation_modifiers ctxt (t, deriv) param_modes additional_ar
             ctxt name mode,
             Comp_Mod.funT_of compilation_modifiers mode T)))
       | (Free (s, T), Context m) =>
-        SOME (Free (s, Comp_Mod.funT_of compilation_modifiers m T))
+        (case (AList.lookup (op =) param_modes s) of
+          SOME mode => SOME (Free (s, Comp_Mod.funT_of compilation_modifiers m T))
+        | NONE =>
+        let
+          val bs = map (pair "x") (binder_types (fastype_of t))
+          val bounds = map Bound (rev (0 upto (length bs) - 1))
+        in SOME (list_abs (bs, mk_if compfuns (list_comb (t, bounds)))) end)
       | (t, Context m) =>
         let
           val bs = map (pair "x") (binder_types (fastype_of t))
