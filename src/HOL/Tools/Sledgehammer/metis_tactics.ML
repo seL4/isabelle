@@ -148,7 +148,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
       val type_lits = Config.get ctxt type_lits
       val th_cls_pairs =
-        map (fn th => (Thm.get_name_hint th, Meson_Clausifier.cnf_axiom thy th))
+        map (fn th => (Thm.get_name_hint th, Meson_Clausify.cnf_axiom thy th))
             ths0
       val thss = map (snd o snd) th_cls_pairs
       val dischargers = map_filter (fst o snd) th_cls_pairs
@@ -211,7 +211,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
    does, but also keep an unextensionalized version of "th" for backward
    compatibility. *)
 fun also_extensionalize_theorem th =
-  let val th' = Meson_Clausifier.extensionalize_theorem th in
+  let val th' = Meson_Clausify.extensionalize_theorem th in
     if Thm.eq_thm (th, th') then [th]
     else th :: Meson.make_clauses_unsorted [th']
   end
@@ -220,7 +220,7 @@ val neg_clausify =
   single
   #> Meson.make_clauses_unsorted
   #> maps also_extensionalize_theorem
-  #> map Meson_Clausifier.introduce_combinators_in_theorem
+  #> map Meson_Clausify.introduce_combinators_in_theorem
   #> Meson.finish_cnf
 
 fun preskolem_tac ctxt st0 =

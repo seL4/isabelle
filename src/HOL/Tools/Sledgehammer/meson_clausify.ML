@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/Sledgehammer/clausifier.ML
+(*  Title:      HOL/Tools/Sledgehammer/meson_clausify.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
 
-signature MESON_CLAUSIFIER =
+signature MESON_CLAUSIFY =
 sig
   val new_skolemizer : bool Config.T
   val new_skolem_var_prefix : string
@@ -18,7 +18,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure Meson_Clausifier : MESON_CLAUSIFIER =
+structure Meson_Clausify : MESON_CLAUSIFY =
 struct
 
 val (new_skolemizer, new_skolemizer_setup) =

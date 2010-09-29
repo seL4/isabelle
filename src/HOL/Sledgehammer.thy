@@ -99,7 +99,7 @@ setup ATP_Systems.setup
 
 use "~~/src/Tools/Metis/metis.ML"
 use "Tools/Sledgehammer/meson_clausify.ML"
-setup Meson_Clausifier.setup
+setup Meson_Clausify.setup
 
 use "Tools/Sledgehammer/metis_translate.ML"
 use "Tools/Sledgehammer/metis_reconstruct.ML"

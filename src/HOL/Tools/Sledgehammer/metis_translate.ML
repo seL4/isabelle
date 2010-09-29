@@ -425,7 +425,7 @@ fun combterm_from_term thy th_no bs (P $ Q) =
     let
       val (tp, ts) = combtype_of T
       val v' =
-        if String.isPrefix Meson_Clausifier.new_skolem_var_prefix s then
+        if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
           let
             val tys = T |> strip_type |> swap |> op ::
             val s' = new_skolem_name th_no s (length tys)
