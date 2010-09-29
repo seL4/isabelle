@@ -84,7 +84,7 @@ fun unify_one_prem_with_concl thy i th =
       else tp :: map (apsnd (subst_atomic [tp])) inst
     fun is_flex t =
       case strip_comb t of
-        (Var _, args) => forall (is_Bound orf is_Var orf is_Free) args
+        (Var _, args) => forall (is_Bound orf is_Var (*FIXME: orf is_Free*)) args
       | _ => false
     fun unify_flex flex rigid =
       case strip_comb flex of
@@ -111,7 +111,11 @@ fun unify_one_prem_with_concl thy i th =
     fun unify_prem prem =
       let
         val inst = [] |> unify_terms (prem, concl)
-        val instT = fold (unify_types o pairself fastype_of) inst []
+        val _ = trace_msg (fn () => cat_lines (map (fn (t, u) =>
+            Syntax.string_of_term @{context} t ^ " |-> " ^
+            Syntax.string_of_term @{context} u) inst))
+        val instT = fold (fn Tp => unify_types (pairself fastype_of Tp)
+                                   handle TERM _ => I) inst []
         val inst = inst |> map (pairself (subst_atomic_types instT))
         val cinstT = instT |> map (pairself (ctyp_of thy))
         val cinst = inst |> map (pairself (cterm_of thy))
@@ -138,7 +142,8 @@ fun discharge_skolem_premises ctxt axioms premises_imp_false =
       Goal.prove ctxt [] [] @{prop False}
           (K (cut_rules_tac axioms 1
               THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
-(* FIXME: THEN etac @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast} 1 *)
+              (* two copies are better than one (FIXME) *)
+              THEN etac @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast} 1
               THEN TRY (REPEAT_ALL_NEW (etac @{thm allE}) 1)
               THEN match_tac [premises_imp_false] 1
               THEN DETERM_UNTIL_SOLVED
