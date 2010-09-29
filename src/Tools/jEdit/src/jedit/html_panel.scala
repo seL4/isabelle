@@ -118,6 +118,7 @@ class HTML_Panel(
   private case class Resize(font_family: String, font_size: Int)
   private case class Render_Document(text: String)
   private case class Render(body: XML.Body)
+  private case class Render_Sync(body: XML.Body)
   private case object Refresh
 
   private val main_actor = actor {
@@ -188,6 +189,7 @@ class HTML_Panel(
         case Refresh => refresh()
         case Render_Document(text) => render_document(text)
         case Render(body) => render(body)
+        case Render_Sync(body) => render(body); reply(())
         case bad => System.err.println("main_actor: ignoring bad message " + bad)
       }
     }
@@ -200,4 +202,5 @@ class HTML_Panel(
   def refresh() { main_actor ! Refresh }
   def render_document(text: String) { main_actor ! Render_Document(text) }
   def render(body: XML.Body) { main_actor ! Render(body) }
+  def render_sync(body: XML.Body) { main_actor !? Render_Sync(body) }
 }

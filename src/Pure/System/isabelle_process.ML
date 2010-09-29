@@ -172,7 +172,7 @@ end;
 fun init in_fifo out_fifo = ignore (Simple_Thread.fork false (fn () =>
   let
     val _ = OS.Process.sleep (Time.fromMilliseconds 500);  (*yield to raw ML toplevel*)
-    val _ = Output.std_output Symbol.STX;
+    val _ = Output.raw_stdout Symbol.STX;
 
     val _ = quick_and_dirty := true;  (* FIXME !? *)
     val _ = Context.set_thread_data NONE;

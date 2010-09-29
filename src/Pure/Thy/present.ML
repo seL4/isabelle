@@ -293,7 +293,7 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
       val (doc_prefix1, documents) =
         if doc = "" then (NONE, [])
         else if not (File.exists document_path) then
-          (if verbose then Output.std_error "Warning: missing document directory\n" else ();
+          (if verbose then Output.raw_stderr "Warning: missing document directory\n" else ();
             (NONE, []))
         else (SOME (Path.append html_prefix document_path, html_prefix),
           read_versions doc_versions);
@@ -409,12 +409,12 @@ fun finish () = CRITICAL (fn () =>
       File.copy (Path.explode "~~/lib/html/isabelle.css") html_prefix;
       List.app finish_html thys;
       List.app (uncurry File.write) files;
-      if verbose then Output.std_error ("Browser info at " ^ show_path html_prefix ^ "\n") else ())
+      if verbose then Output.raw_stderr ("Browser info at " ^ show_path html_prefix ^ "\n") else ())
     else ();
 
     (case doc_prefix2 of NONE => () | SOME (cp, path) =>
      (prepare_sources cp path;
-      if verbose then Output.std_error ("Document sources at " ^ show_path path ^ "\n") else ()));
+      if verbose then Output.raw_stderr ("Document sources at " ^ show_path path ^ "\n") else ()));
 
     (case doc_prefix1 of NONE => () | SOME (path, result_path) =>
       documents |> List.app (fn (name, tags) =>
@@ -422,7 +422,7 @@ fun finish () = CRITICAL (fn () =>
          val _ = prepare_sources true path;
          val doc_path = isabelle_document true doc_format name tags path result_path;
        in
-         if verbose then Output.std_error ("Document at " ^ show_path doc_path ^ "\n") else ()
+         if verbose then Output.raw_stderr ("Document at " ^ show_path doc_path ^ "\n") else ()
        end));
 
     browser_info := empty_browser_info;

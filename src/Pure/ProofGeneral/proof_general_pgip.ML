@@ -66,7 +66,7 @@ fun init_pgip_session_id () =
 
 fun matching_pgip_id id = (id = ! pgip_id)
 
-val output_xml_fn = Unsynchronized.ref Output.writeln_default
+val output_xml_fn = Unsynchronized.ref Output.raw_writeln
 fun output_xml s = ! output_xml_fn (XML.string_of s);
 
 val output_pgips = XML.string_of o PgipOutput.output o assemble_pgips o map PgipOutput.output;
@@ -1032,7 +1032,7 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
 (** Out-of-loop PGIP commands (for Emacs hybrid mode) **)
 
 local
-    val pgip_output_channel = Unsynchronized.ref Output.writeln_default
+    val pgip_output_channel = Unsynchronized.ref Output.raw_writeln
 in
 
 (* Set recipient for PGIP results *)
