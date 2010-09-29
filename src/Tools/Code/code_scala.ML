@@ -430,7 +430,7 @@ val setup =
       "true", "type", "val", "var", "while", "with", "yield"
     ]
   #> fold (Code_Target.add_reserved target) [
-      "apply", "error", "BigInt", "Nil", "List"
+      "apply", "error", "scala", "BigInt", "Nil", "List"
     ];
 
 end; (*struct*)

@@ -303,7 +303,7 @@ class Nat private(private val value: BigInt) {
   def equals(that: Nat): Boolean = this.value == that.value
 
   def as_BigInt: BigInt = this.value
-  def as_Int: Int = if (this.value >= Int.MinValue && this.value <= Int.MaxValue)
+  def as_Int: Int = if (this.value >= scala.Int.MinValue && this.value <= scala.Int.MaxValue)
       this.value.intValue
     else error("Int value out of range: " + this.value.toString)
 
