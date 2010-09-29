@@ -138,6 +138,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
       case Text.Info(_, Some(msg)) #:: _ =>
         val popup = PopupFactory.getSharedInstance().getPopup(text_area, html_panel, p.x, p.y + 60)
         html_panel.render_sync(List(msg))
+        Thread.sleep(10)  // FIXME !?
         popup.show
         html_popup = Some(popup)
       case _ =>
@@ -169,11 +170,14 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   }
 
   private val focus_listener = new FocusAdapter {
-    override def focusLost(e: FocusEvent) { exit_control() }
+    override def focusLost(e: FocusEvent) {
+      highlight_range = None // FIXME exit_control !?
+    }
   }
 
   private val window_listener = new WindowAdapter {
     override def windowIconified(e: WindowEvent) { exit_control() }
+    override def windowDeactivated(e: WindowEvent) { exit_control() }
   }
 
   private val mouse_motion_listener = new MouseMotionAdapter {
