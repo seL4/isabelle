@@ -7,22 +7,18 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature MESON_CLAUSIFY =
 sig
-  val new_skolemizer : bool Config.T
   val new_skolem_var_prefix : string
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
-  val cnf_axiom : theory -> thm -> thm option * thm list
+  val cnf_axiom : theory -> bool -> thm -> thm option * thm list
   val meson_general_tac : Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
 
 structure Meson_Clausify : MESON_CLAUSIFY =
 struct
-
-val (new_skolemizer, new_skolemizer_setup) =
-  Attrib.config_bool "meson_new_skolemizer" (K false)
 
 val new_skolem_var_prefix = "SK?" (* purposedly won't parse *)
 
@@ -306,10 +302,9 @@ fun nnf_axiom new_skolemizer th ctxt =
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
-fun cnf_axiom thy th =
+fun cnf_axiom thy new_skolemizer th =
   let
     val ctxt0 = Variable.global_thm_context th
-    val new_skolemizer = Config.get ctxt0 new_skolemizer
     val (opt, nnf_th, ctxt) = nnf_axiom new_skolemizer th ctxt0
     fun aux th =
       Meson.make_cnf (if new_skolemizer then
@@ -338,12 +333,11 @@ fun meson_general_tac ctxt ths =
   let
     val thy = ProofContext.theory_of ctxt
     val ctxt0 = Classical.put_claset HOL_cs ctxt
-  in Meson.meson_tac ctxt0 (maps (snd o cnf_axiom thy) ths) end
+  in Meson.meson_tac ctxt0 (maps (snd o cnf_axiom thy false) ths) end
 
 val setup =
-  new_skolemizer_setup
-  #> Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
-       SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
-       "MESON resolution proof procedure"
+  Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
+     SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
+     "MESON resolution proof procedure"
 
 end;

@@ -11,6 +11,7 @@ signature METIS_TACTICS =
 sig
   val trace : bool Unsynchronized.ref
   val type_lits : bool Config.T
+  val new_skolemizer : bool Config.T
   val metis_tac : Proof.context -> thm list -> int -> tactic
   val metisF_tac : Proof.context -> thm list -> int -> tactic
   val metisFT_tac : Proof.context -> thm list -> int -> tactic
@@ -25,7 +26,9 @@ open Metis_Reconstruct
 
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
-val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" (K true);
+val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" (K true)
+val (new_skolemizer, new_skolemizer_setup) =
+  Attrib.config_bool "metis_new_skolemizer" (K false)
 
 fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 
@@ -147,9 +150,10 @@ fun discharge_skolem_premises ctxt axioms premises_imp_false =
 fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
       val type_lits = Config.get ctxt type_lits
+      val new_skolemizer = Config.get ctxt new_skolemizer
       val th_cls_pairs =
-        map (fn th => (Thm.get_name_hint th, Meson_Clausify.cnf_axiom thy th))
-            ths0
+        map (fn th => (Thm.get_name_hint th,
+                       Meson_Clausify.cnf_axiom thy new_skolemizer th)) ths0
       val thss = map (snd o snd) th_cls_pairs
       val dischargers = map_filter (fst o snd) th_cls_pairs
       val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
@@ -271,6 +275,7 @@ fun method name mode =
 
 val setup =
   type_lits_setup
+  #> new_skolemizer_setup
   #> method @{binding metis} HO "Metis for FOL/HOL problems"
   #> method @{binding metisF} FO "Metis for FOL problems"
   #> method @{binding metisFT} FT
