@@ -8,11 +8,12 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 signature MESON_CLAUSIFIER =
 sig
   val new_skolemizer : bool Config.T
+  val new_skolem_var_prefix : string
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
-  val cnf_axiom : theory -> thm -> thm list
+  val cnf_axiom : theory -> thm -> thm option * thm list
   val meson_general_tac : Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
@@ -22,6 +23,8 @@ struct
 
 val (new_skolemizer, new_skolemizer_setup) =
   Attrib.config_bool "meson_new_skolemizer" (K false)
+
+val new_skolem_var_prefix = "SK?" (* purposedly won't parse *)
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -220,17 +223,6 @@ fun old_skolem_theorem_from_def thy rhs0 =
     |> Thm.varifyT_global
   end
 
-(* Converts an Isabelle theorem (intro, elim or simp format, even higher-order)
-   into NNF. *)
-fun nnf_axiom th ctxt0 =
-  let
-    val th1 = th |> transform_elim_theorem |> zero_var_indexes
-    val ((_, [th2]), ctxt) = Variable.import true [th1] ctxt0
-    val th3 = th2 |> Conv.fconv_rule Object_Logic.atomize
-                  |> extensionalize_theorem
-                  |> Meson.make_nnf ctxt
-  in (th3, ctxt) end
-
 fun to_definitional_cnf_with_quantifiers thy th =
   let
     val eqth = cnf.make_cnfx_thm thy (HOLogic.dest_Trueprop (prop_of th))
@@ -238,35 +230,120 @@ fun to_definitional_cnf_with_quantifiers thy th =
     val eqth = eqth RS @{thm TruepropI}
   in Thm.equal_elim eqth th end
 
-(* Convert a theorem to CNF, with Skolem functions as additional premises. *)
+val kill_quantifiers =
+  let
+    fun conv pos ct =
+      ct |> (case term_of ct of
+               Const (s, _) $ Abs (s', _, _) =>
+               if s = @{const_name all} orelse s = @{const_name All} orelse
+                  s = @{const_name Ex} then
+                 Thm.dest_comb #> snd
+                 #> Thm.dest_abs (SOME (s' |> pos = (s = @{const_name Ex})
+                                            ? prefix new_skolem_var_prefix))
+                 #> snd #> conv pos
+               else
+                 Conv.all_conv
+             | Const (s, _) $ _ $ _ =>
+               if s = @{const_name "==>"} orelse
+                  s = @{const_name HOL.implies} then
+                 Conv.combination_conv (Conv.arg_conv (conv (not pos)))
+                                       (conv pos)
+               else if s = @{const_name HOL.conj} orelse
+                       s = @{const_name HOL.disj} then
+                 Conv.combination_conv (Conv.arg_conv (conv pos)) (conv pos)
+               else
+                 Conv.all_conv
+             | Const (s, _) $ _ =>
+               if s = @{const_name Trueprop} then
+                 Conv.arg_conv (conv pos)
+               else if s = @{const_name Not} then
+                 Conv.arg_conv (conv (not pos))
+               else
+                 Conv.all_conv
+             | _ => Conv.all_conv)
+  in
+    conv true #> Drule.export_without_context
+    #> cprop_of #> Thm.dest_equals #> snd
+  end
+
+val pull_out_quant_ss =
+  MetaSimplifier.clear_ss HOL_basic_ss
+      addsimps @{thms all_simps[symmetric]}
+
+(* Converts an Isabelle theorem into NNF. *)
+fun nnf_axiom new_skolemizer th ctxt =
+  let
+    val thy = ProofContext.theory_of ctxt
+    val th =
+      th |> transform_elim_theorem
+         |> zero_var_indexes
+         |> new_skolemizer ? forall_intr_vars
+    val (th, ctxt) = Variable.import true [th] ctxt |>> snd |>> the_single
+    val th = th |> Conv.fconv_rule Object_Logic.atomize
+                |> extensionalize_theorem
+                |> Meson.make_nnf ctxt
+  in
+    if new_skolemizer then
+      let
+        val th' = th |> Meson.skolemize ctxt
+                     |> simplify pull_out_quant_ss
+                     |> Drule.eta_contraction_rule
+        val t = th' |> cprop_of |> kill_quantifiers |> term_of
+      in
+        if exists_subterm (fn Var ((s, _), _) =>
+                              String.isPrefix new_skolem_var_prefix s
+                            | _ => false) t then
+          let
+            val (ct, ctxt) =
+              Variable.import_terms true [t] ctxt
+              |>> the_single |>> cterm_of thy
+          in (SOME (th', ct), ct |> Thm.assume, ctxt) end
+       else
+          (NONE, th, ctxt)
+      end
+    else
+      (NONE, th, ctxt)
+  end
+
+(* Convert a theorem to CNF, with additional premises due to skolemization. *)
 fun cnf_axiom thy th =
   let
     val ctxt0 = Variable.global_thm_context th
-    val (nnf_th, ctxt) = nnf_axiom th ctxt0
+    val new_skolemizer = Config.get ctxt0 new_skolemizer
+    val (opt, nnf_th, ctxt) = nnf_axiom new_skolemizer th ctxt0
     fun aux th =
-      Meson.make_cnf (map (old_skolem_theorem_from_def thy)
-                          (old_skolem_defs th)) th ctxt
+      Meson.make_cnf (if new_skolemizer then
+                        []
+                      else
+                        map (old_skolem_theorem_from_def thy)
+                            (old_skolem_defs th)) th ctxt
     val (cnf_ths, ctxt) =
       aux nnf_th
       |> (fn ([], _) => aux (to_definitional_cnf_with_quantifiers thy nnf_th)
            | p => p)
+    val export = Variable.export ctxt ctxt0
   in
-    cnf_ths |> map introduce_combinators_in_theorem
-            |> Variable.export ctxt ctxt0
-            |> Meson.finish_cnf
-            |> map Thm.close_derivation
+    (opt |> Option.map (singleton export o fst),
+     cnf_ths |> map (introduce_combinators_in_theorem
+                     #> (case opt of
+                           SOME (_, ct) => Thm.implies_intr ct
+                         | NONE => I))
+             |> export
+             |> Meson.finish_cnf
+             |> map Thm.close_derivation)
   end
-  handle THM _ => []
+  handle THM _ => (NONE, [])
 
 fun meson_general_tac ctxt ths =
   let
     val thy = ProofContext.theory_of ctxt
     val ctxt0 = Classical.put_claset HOL_cs ctxt
-  in Meson.meson_tac ctxt0 (maps (cnf_axiom thy) ths) end
+  in Meson.meson_tac ctxt0 (maps (snd o cnf_axiom thy) ths) end
 
 val setup =
-  Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
-    SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
-    "MESON resolution proof procedure";
+  new_skolemizer_setup
+  #> Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
+       SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
+       "MESON resolution proof procedure"
 
 end;

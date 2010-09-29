@@ -95,8 +95,6 @@ val const_prefix = "c_";
 val type_const_prefix = "tc_";
 val class_prefix = "class_";
 
-val new_skolem_var_prefix = "SK?" (* purposedly won't parse *)
-
 val skolem_prefix = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
 val old_skolem_prefix = skolem_prefix ^ "o"
 val new_skolem_prefix = skolem_prefix ^ "n"
@@ -427,7 +425,7 @@ fun combterm_from_term thy th_no bs (P $ Q) =
     let
       val (tp, ts) = combtype_of T
       val v' =
-        if String.isPrefix new_skolem_var_prefix s then
+        if String.isPrefix Meson_Clausifier.new_skolem_var_prefix s then
           let
             val tys = T |> strip_type |> swap |> op ::
             val s' = new_skolem_name th_no s (length tys)

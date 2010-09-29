@@ -51,6 +51,98 @@ val waiting_params =
    models = []}
 val resolution_params = {active = active_params, waiting = waiting_params}
 
+(* In principle, it should be sufficient to apply "assume_tac" to unify the
+   conclusion with one of the premises. However, in practice, this fails
+   horribly because of the mildly higher-order nature of the unification
+   problems. Typical constraints are of the form "?x a b =?= b", where "a" and
+   "b" are goal parameters. *)
+fun unify_one_prem_with_concl thy i th =
+  let
+    val goal = Logic.get_goal (prop_of th) i |> Envir.beta_eta_contract
+    val prems = Logic.strip_assums_hyp goal
+    val concl = Logic.strip_assums_concl goal
+    fun add_types Tp instT =
+      if exists (curry (op =) Tp) instT then instT
+      else Tp :: map (apsnd (typ_subst_atomic [Tp])) instT
+    fun unify_types (T, U) =
+      if T = U then
+        I
+      else case (T, U) of
+        (TVar _, _) => add_types (T, U)
+      | (_, TVar _) => add_types (U, T)
+      | (Type (s, Ts), Type (t, Us)) =>
+        if s = t andalso length Ts = length Us then fold unify_types (Ts ~~ Us)
+        else raise TYPE ("unify_types", [T, U], [])
+      | _ => raise TYPE ("unify_types", [T, U], [])
+    fun pair_untyped_aconv (t1, t2) (u1, u2) =
+      untyped_aconv t1 u1 andalso untyped_aconv t2 u2
+    fun add_terms tp inst =
+      if exists (pair_untyped_aconv tp) inst then inst
+      else tp :: map (apsnd (subst_atomic [tp])) inst
+    fun is_flex t =
+      case strip_comb t of
+        (Var _, args) => forall (is_Bound orf is_Var orf is_Free) args
+      | _ => false
+    fun unify_flex flex rigid =
+      case strip_comb flex of
+        (Var (z as (_, T)), args) =>
+        add_terms (Var z,
+          (* FIXME: reindex bound variables *)
+          fold_rev (curry absdummy) (take (length args) (binder_types T)) rigid)
+      | _ => raise TERM ("unify_flex: expected flex", [flex])
+    fun unify_potential_flex comb atom =
+      if is_flex comb then unify_flex comb atom
+      else if is_Var atom then add_terms (atom, comb)
+      else raise TERM ("unify_terms", [comb, atom])
+    fun unify_terms (t, u) =
+      case (t, u) of
+        (t1 $ t2, u1 $ u2) =>
+        if is_flex t then unify_flex t u
+        else if is_flex u then unify_flex u t
+        else fold unify_terms [(t1, u1), (t2, u2)]
+      | (_ $ _, _) => unify_potential_flex t u
+      | (_, _ $ _) => unify_potential_flex u t
+      | (Var _, _) => add_terms (t, u)
+      | (_, Var _) => add_terms (u, t)
+      | _ => if untyped_aconv t u then I else raise TERM ("unify_terms", [t, u])
+    fun unify_prem prem =
+      let
+        val inst = [] |> unify_terms (prem, concl)
+        val instT = fold (unify_types o pairself fastype_of) inst []
+        val inst = inst |> map (pairself (subst_atomic_types instT))
+        val cinstT = instT |> map (pairself (ctyp_of thy))
+        val cinst = inst |> map (pairself (cterm_of thy))
+      in th |> Thm.instantiate (cinstT, []) |> Thm.instantiate ([], cinst) end
+  in
+    case prems of
+      [prem] => unify_prem prem
+    | _ =>
+      case fold (fn prem => fn th as SOME _ => th
+                             | NONE => try unify_prem prem) prems NONE of
+        SOME th => th
+      | NONE => raise Fail "unify_one_prem_with_concl"
+  end
+
+(* Attempts to derive the theorem "False" from a theorem of the form
+   "P1 ==> ... ==> Pn ==> False", where the "Pi"s are to be discharged using the
+   specified axioms. The axioms have leading "All" and "Ex" quantifiers, which
+   must be eliminated first. *)
+fun discharge_skolem_premises ctxt axioms premises_imp_false =
+  if prop_of premises_imp_false aconv @{prop False} then
+    premises_imp_false
+  else
+    let val thy = ProofContext.theory_of ctxt in
+      Goal.prove ctxt [] [] @{prop False}
+          (K (cut_rules_tac axioms 1
+              THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
+(* FIXME: THEN etac @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast} 1 *)
+              THEN TRY (REPEAT_ALL_NEW (etac @{thm allE}) 1)
+              THEN match_tac [premises_imp_false] 1
+              THEN DETERM_UNTIL_SOLVED
+                       (PRIMITIVE (unify_one_prem_with_concl thy 1)
+                        THEN assume_tac 1)))
+    end
+
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
@@ -58,7 +150,8 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val th_cls_pairs =
         map (fn th => (Thm.get_name_hint th, Meson_Clausifier.cnf_axiom thy th))
             ths0
-      val thss = map #2 th_cls_pairs
+      val thss = map (snd o snd) th_cls_pairs
+      val dischargers = map_filter (fst o snd) th_cls_pairs
       val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg (fn () => "THEOREM CLAUSES")
@@ -68,7 +161,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val _ = if null tfrees then ()
               else (trace_msg (fn () => "TFREE CLAUSES");
                     app (fn TyLitFree ((s, _), (s', _)) =>
-                            trace_msg (fn _ => s ^ "(" ^ s' ^ ")")) tfrees)
+                            trace_msg (fn () => s ^ "(" ^ s' ^ ")")) tfrees)
       val _ = trace_msg (fn () => "CLAUSES GIVEN TO METIS")
       val thms = map #1 axioms
       val _ = app (fn th => trace_msg (fn () => Metis_Thm.toString th)) thms
@@ -91,7 +184,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                 and used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) used
-                val unused = th_cls_pairs |> map_filter (fn (name, cls) =>
+                val unused = th_cls_pairs |> map_filter (fn (name, (_, cls)) =>
                   if have_common_thm used cls then NONE else SOME name)
             in
                 if not (null cls) andalso not (have_common_thm used cls) then
@@ -106,7 +199,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                 case result of
                     (_,ith)::_ =>
                         (trace_msg (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
-                         [ith])
+                         [discharge_skolem_premises ctxt dischargers ith])
                   | _ => (trace_msg (fn () => "Metis: No result"); [])
             end
         | Metis_Resolution.Satisfiable _ =>

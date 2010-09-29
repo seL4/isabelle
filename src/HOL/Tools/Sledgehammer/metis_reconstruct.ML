@@ -13,6 +13,7 @@ sig
 
   val trace : bool Unsynchronized.ref
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
+  val untyped_aconv : term -> term -> bool
   val replay_one_inference :
     Proof.context -> mode -> (string * term) list
     -> Metis_Thm.thm * Metis_Proof.inference -> (Metis_Thm.thm * thm) list
