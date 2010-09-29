@@ -1511,6 +1511,25 @@ code_pred (modes: i => i => bool) test_uninterpreted_relation .
 
 thm test_uninterpreted_relation.equation
 
+inductive list_ex'
+where
+  "P x ==> list_ex' P (x#xs)"
+| "list_ex' P xs ==> list_ex' P (x#xs)"
+
+code_pred list_ex' .
+
+inductive test_uninterpreted_relation2 :: "('a => bool) => 'a list => bool"
+where
+  "list_ex r xs ==> test_uninterpreted_relation2 r xs"
+| "list_ex' r xs ==> test_uninterpreted_relation2 r xs"
+
+text {* Proof procedure cannot handle this situation yet. *}
+
+code_pred (modes: i => i => bool) [skip_proof] test_uninterpreted_relation2 .
+
+thm test_uninterpreted_relation2.equation
+
+
 text {* Trivial predicate *}
 
 inductive implies_itself :: "'a => bool"
