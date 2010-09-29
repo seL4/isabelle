@@ -352,6 +352,21 @@ fun literal_index lit =
           get (n+1) xs
   in get 1 end
 
+(* Permute a rule's premises to move the i-th premise to the last position. *)
+fun make_last i th =
+  let val n = nprems_of th
+  in  if 1 <= i andalso i <= n
+      then Thm.permute_prems (i-1) 1 th
+      else raise THM("select_literal", i, [th])
+  end;
+
+(* Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
+   double-negations. *)
+val negate_head = rewrite_rule [@{thm atomize_not}, not_not RS eq_reflection]
+
+(* Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P *)
+val select_literal = negate_head oo make_last
+
 fun resolve_inf ctxt mode old_skolems thpairs atm th1 th2 =
   let
     val thy = ProofContext.theory_of ctxt
@@ -378,8 +393,7 @@ fun resolve_inf ctxt mode old_skolems thpairs atm th1 th2 =
               handle Empty => raise Fail "Failed to find literal in th2"
         val _ = trace_msg (fn () => "  index_th2: " ^ Int.toString index_th2)
     in
-      resolve_inc_tyvars thy (Meson.select_literal index_th1 i_th1) index_th2
-                         i_th2
+      resolve_inc_tyvars thy (select_literal index_th1 i_th1) index_th2 i_th2
     end
   end;
 
@@ -502,7 +516,17 @@ fun step ctxt mode old_skolems thpairs p =
   | (_, Metis_Proof.Equality (f_lit, f_p, f_r)) =>
     equality_inf ctxt mode old_skolems f_lit f_p f_r
 
-fun is_real_literal (_, (c, _)) = not (String.isPrefix class_prefix c)
+fun flexflex_first_order th =
+  case Thm.tpairs_of th of
+      [] => th
+    | pairs =>
+        let val thy = theory_of_thm th
+            val (_, tenv) =
+              fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
+            val t_pairs = map Meson.term_pair_of (Vartab.dest tenv)
+            val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
+        in  th'  end
+        handle THM _ => th;
 
 fun replay_one_inference ctxt mode old_skolems (fol_th, inf) thpairs =
   let
@@ -510,7 +534,7 @@ fun replay_one_inference ctxt mode old_skolems (fol_th, inf) thpairs =
     val _ = trace_msg (fn () => "METIS THM: " ^ Metis_Thm.toString fol_th)
     val _ = trace_msg (fn () => "INFERENCE: " ^ Metis_Proof.inferenceToString inf)
     val th = step ctxt mode old_skolems thpairs (fol_th, inf)
-             |> Meson.flexflex_first_order
+             |> flexflex_first_order
     val _ = trace_msg (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
     val _ = trace_msg (fn () => "=============================================")
   in (fol_th, th) :: thpairs end

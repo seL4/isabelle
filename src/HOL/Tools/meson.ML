@@ -9,7 +9,6 @@ signature MESON =
 sig
   val trace: bool Unsynchronized.ref
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
-  val flexflex_first_order: thm -> thm
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
@@ -37,9 +36,6 @@ sig
   val make_meta_clause: thm -> thm
   val make_meta_clauses: thm list -> thm list
   val meson_tac: Proof.context -> thm list -> int -> tactic
-  val negate_head: thm -> thm
-  val select_literal: int -> thm -> thm
-  val skolemize_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end
 
@@ -109,18 +105,6 @@ fun first_order_resolve thA thB =
       in  thA RS (cterm_instantiate ct_pairs thB)  end) () of
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
-
-fun flexflex_first_order th =
-  case Thm.tpairs_of th of
-      [] => th
-    | pairs =>
-        let val thy = theory_of_thm th
-            val (_, tenv) =
-              fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
-            val t_pairs = map term_pair_of (Vartab.dest tenv)
-            val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
-        in  th'  end
-        handle THM _ => th;
 
 (*Forward proof while preserving bound variables names*)
 fun rename_bvs_RS th rl =
@@ -693,38 +677,5 @@ fun make_meta_clause th =
 fun make_meta_clauses ths =
     name_thms "MClause#"
       (distinct Thm.eq_thm_prop (map make_meta_clause ths));
-
-(*Permute a rule's premises to move the i-th premise to the last position.*)
-fun make_last i th =
-  let val n = nprems_of th
-  in  if 1 <= i andalso i <= n
-      then Thm.permute_prems (i-1) 1 th
-      else raise THM("select_literal", i, [th])
-  end;
-
-(*Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
-  double-negations.*)
-val negate_head = rewrite_rule [@{thm atomize_not}, not_not RS eq_reflection];
-
-(*Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P*)
-fun select_literal i cl = negate_head (make_last i cl);
-
-
-(*Top-level Skolemization. Allows part of the conversion to clauses to be
-  expressed as a tactic (or Isar method).  Each assumption of the selected
-  goal is converted to NNF and then its existential quantifiers are pulled
-  to the front. Finally, all existential quantifiers are eliminated,
-  leaving !!-quantified variables. Perhaps Safe_tac should follow, but it
-  might generate many subgoals.*)
-
-fun skolemize_tac ctxt = SUBGOAL (fn (goal, i) =>
-  let val ts = Logic.strip_assums_hyp goal
-  in
-    EVERY'
-     [Misc_Legacy.METAHYPS (fn hyps =>
-        (cut_facts_tac (skolemize_nnf_list ctxt hyps) 1
-          THEN REPEAT (etac exE 1))),
-      REPEAT_DETERM_N (length ts) o (etac thin_rl)] i
-  end);
 
 end;
