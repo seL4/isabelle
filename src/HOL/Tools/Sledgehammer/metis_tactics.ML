@@ -147,7 +147,8 @@ fun discharge_skolem_premises ctxt axioms premises_imp_false =
               THEN TRY (REPEAT_ALL_NEW (etac @{thm allE}) 1)
               THEN match_tac [premises_imp_false] 1
               THEN DETERM_UNTIL_SOLVED
-                       (PRIMITIVE (unify_one_prem_with_concl thy 1)
+                       (rtac @{thm skolem_COMBK_I} 1
+                        THEN PRIMITIVE (unify_one_prem_with_concl thy 1)
                         THEN assume_tac 1)))
     end
 
@@ -157,8 +158,10 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val type_lits = Config.get ctxt type_lits
       val new_skolemizer = Config.get ctxt new_skolemizer
       val th_cls_pairs =
-        map (fn th => (Thm.get_name_hint th,
-                       Meson_Clausify.cnf_axiom thy new_skolemizer th)) ths0
+        map2 (fn j => fn th =>
+                (Thm.get_name_hint th,
+                 Meson_Clausify.cnf_axiom thy new_skolemizer j th))
+             (0 upto length ths0 - 1) ths0
       val thss = map (snd o snd) th_cls_pairs
       val dischargers = map_filter (fst o snd) th_cls_pairs
       val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")

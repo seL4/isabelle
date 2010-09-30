@@ -12,7 +12,7 @@ sig
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
-  val cnf_axiom : theory -> bool -> thm -> thm option * thm list
+  val cnf_axiom : theory -> bool -> int -> thm -> thm option * thm list
   val meson_general_tac : Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
@@ -293,7 +293,7 @@ fun nnf_axiom new_skolemizer th ctxt =
             val (ct, ctxt) =
               Variable.import_terms true [t] ctxt
               |>> the_single |>> cterm_of thy
-          in (SOME (th', ct), ct |> Thm.assume, ctxt) end
+          in (SOME (th', ct), Thm.assume ct, ctxt) end
        else
           (NONE, th, ctxt)
       end
@@ -302,27 +302,32 @@ fun nnf_axiom new_skolemizer th ctxt =
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
-fun cnf_axiom thy new_skolemizer th =
+fun cnf_axiom thy new_skolemizer ax_no th =
   let
     val ctxt0 = Variable.global_thm_context th
     val (opt, nnf_th, ctxt) = nnf_axiom new_skolemizer th ctxt0
-    fun aux th =
+    fun clausify th =
       Meson.make_cnf (if new_skolemizer then
                         []
                       else
                         map (old_skolem_theorem_from_def thy)
                             (old_skolem_defs th)) th ctxt
     val (cnf_ths, ctxt) =
-      aux nnf_th
-      |> (fn ([], _) => aux (to_definitional_cnf_with_quantifiers thy nnf_th)
+      clausify nnf_th
+      |> (fn ([], _) =>
+             clausify (to_definitional_cnf_with_quantifiers thy nnf_th)
            | p => p)
     val export = Variable.export ctxt ctxt0
+    fun intr_imp ct th =
+      Thm.instantiate ([], map (pairself (cterm_of @{theory}))
+                               [(Var (("i", 1), @{typ nat}),
+                                 HOLogic.mk_number @{typ nat} ax_no)])
+                      @{thm skolem_COMBK_D}
+      RS Thm.implies_intr ct th
   in
     (opt |> Option.map (singleton export o fst),
      cnf_ths |> map (introduce_combinators_in_theorem
-                     #> (case opt of
-                           SOME (_, ct) => Thm.implies_intr ct
-                         | NONE => I))
+                     #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
              |> export
              |> Meson.finish_cnf
              |> map Thm.close_derivation)
@@ -333,7 +338,7 @@ fun meson_general_tac ctxt ths =
   let
     val thy = ProofContext.theory_of ctxt
     val ctxt0 = Classical.put_claset HOL_cs ctxt
-  in Meson.meson_tac ctxt0 (maps (snd o cnf_axiom thy false) ths) end
+  in Meson.meson_tac ctxt0 (maps (snd o cnf_axiom thy false 0) ths) end
 
 val setup =
   Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
