@@ -149,11 +149,10 @@ lemma add_Suc_shift [code]: "Suc m + n = m + Suc n"
 
 primrec minus_nat
 where
-  diff_0:     "m - 0 = (m\<Colon>nat)"
-  | diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
+  diff_0 [code]: "m - 0 = (m\<Colon>nat)"
+| diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
 
 declare diff_Suc [simp del]
-declare diff_0 [code]
 
 lemma diff_0_eq_0 [simp, code]: "0 - n = (0::nat)"
   by (induct n) (simp_all add: diff_Suc)
