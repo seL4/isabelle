@@ -45,7 +45,7 @@ sig
   val const_prefix: string
   val type_const_prefix: string
   val class_prefix: string
-  val new_skolem_prefix : string
+  val new_skolem_const_prefix : string
   val invert_const: string -> string
   val ascii_of: string -> string
   val unascii_of: string -> string
@@ -95,9 +95,9 @@ val const_prefix = "c_";
 val type_const_prefix = "tc_";
 val class_prefix = "class_";
 
-val skolem_prefix = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
-val old_skolem_prefix = skolem_prefix ^ "o"
-val new_skolem_prefix = skolem_prefix ^ "n"
+val skolem_const_prefix = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
+val old_skolem_const_prefix = skolem_const_prefix ^ "o"
+val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 
 fun union_all xss = fold (union (op =)) xss []
 
@@ -209,7 +209,7 @@ fun make_type_class clas = class_prefix ^ ascii_of clas;
    (instances of) Skolem pseudoconstants, this information is encoded in the
    constant name. *)
 fun num_type_args thy s =
-  if String.isPrefix skolem_prefix s then
+  if String.isPrefix skolem_const_prefix s then
     s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
@@ -396,8 +396,8 @@ fun simple_combtype_of (Type (a, Ts)) =
   | simple_combtype_of (TVar (x, _)) =
     CombTVar (make_schematic_type_var x, string_of_indexname x)
 
-fun new_skolem_name th_no s num_T_args =
-  [new_skolem_prefix, string_of_int th_no, s, string_of_int num_T_args]
+fun new_skolem_const_name th_no s num_T_args =
+  [new_skolem_const_prefix, string_of_int th_no, s, string_of_int num_T_args]
   |> space_implode Long_Name.separator
 
 (* Converts a term (with combinators) into a combterm. Also accummulates sort
@@ -410,7 +410,7 @@ fun combterm_from_term thy th_no bs (P $ Q) =
       let
         val (tp, ts) = combtype_of T
         val tvar_list =
-          (if String.isPrefix old_skolem_prefix c then
+          (if String.isPrefix old_skolem_const_prefix c then
              [] |> Term.add_tvarsT T |> map TVar
            else
              (c, T) |> Sign.const_typargs thy)
@@ -428,7 +428,7 @@ fun combterm_from_term thy th_no bs (P $ Q) =
         if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
           let
             val tys = T |> strip_type |> swap |> op ::
-            val s' = new_skolem_name th_no s (length tys)
+            val s' = new_skolem_const_name th_no s (length tys)
           in
             CombConst (`make_fixed_const s', tp, map simple_combtype_of tys)
           end
@@ -458,8 +458,8 @@ fun literals_of_term1 args thy th_no (@{const Trueprop} $ P) =
     end
 val literals_of_term = literals_of_term1 ([], [])
 
-fun old_skolem_name i j num_T_args =
-  old_skolem_prefix ^ Long_Name.separator ^
+fun old_skolem_const_name i j num_T_args =
+  old_skolem_const_prefix ^ Long_Name.separator ^
   (space_implode Long_Name.separator (map Int.toString [i, j, num_T_args]))
 
 fun conceal_old_skolem_terms i old_skolems t =
@@ -475,8 +475,8 @@ fun conceal_old_skolem_terms i old_skolems t =
                 s :: _ => (old_skolems, s)
               | [] =>
                 let
-                  val s = old_skolem_name i (length old_skolems)
-                                          (length (Term.add_tvarsT T []))
+                  val s = old_skolem_const_name i (length old_skolems)
+                                                (length (Term.add_tvarsT T []))
                 in ((s, t) :: old_skolems, s) end
           in (old_skolems, Const (s, T)) end
         | aux old_skolems (t1 $ t2) =
@@ -495,7 +495,7 @@ fun conceal_old_skolem_terms i old_skolems t =
 
 fun reveal_old_skolem_terms old_skolems =
   map_aterms (fn t as Const (s, _) =>
-                 if String.isPrefix old_skolem_prefix s then
+                 if String.isPrefix old_skolem_const_prefix s then
                    AList.lookup (op =) old_skolems s |> the
                    |> map_types Type_Infer.paramify_vars
                  else

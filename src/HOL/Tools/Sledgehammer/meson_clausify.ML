@@ -20,7 +20,8 @@ end;
 structure Meson_Clausify : MESON_CLAUSIFY =
 struct
 
-val new_skolem_var_prefix = "SK?" (* purposedly won't parse *)
+val new_skolem_var_prefix = "SK?"
+val new_nonskolem_var_prefix = "V?"
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -226,39 +227,50 @@ fun to_definitional_cnf_with_quantifiers thy th =
     val eqth = eqth RS @{thm TruepropI}
   in Thm.equal_elim eqth th end
 
-val kill_quantifiers =
+fun zapped_var_name ax_no (skolem, cluster_no) s =
+  (if skolem then new_skolem_var_prefix else new_nonskolem_var_prefix) ^
+  string_of_int ax_no ^ "_" ^ string_of_int cluster_no ^ "_" ^ s
+
+fun zap_quantifiers ax_no =
   let
-    fun conv pos ct =
+    fun conv (cluster as (cluster_skolem, cluster_no)) pos ct =
       ct |> (case term_of ct of
                Const (s, _) $ Abs (s', _, _) =>
                if s = @{const_name all} orelse s = @{const_name All} orelse
                   s = @{const_name Ex} then
-                 Thm.dest_comb #> snd
-                 #> Thm.dest_abs (SOME (s' |> pos = (s = @{const_name Ex})
-                                            ? prefix new_skolem_var_prefix))
-                 #> snd #> conv pos
+                 let
+                   val skolem = (pos = (s = @{const_name Ex}))
+                   val cluster =
+                     if skolem = cluster_skolem then cluster
+                     else (skolem, cluster_no |> cluster_skolem ? Integer.add 1)
+                 in
+                   Thm.dest_comb #> snd
+                   #> Thm.dest_abs (SOME (zapped_var_name ax_no cluster s'))
+                   #> snd #> conv cluster pos
+                 end
                else
                  Conv.all_conv
              | Const (s, _) $ _ $ _ =>
                if s = @{const_name "==>"} orelse
                   s = @{const_name HOL.implies} then
-                 Conv.combination_conv (Conv.arg_conv (conv (not pos)))
-                                       (conv pos)
+                 Conv.combination_conv (Conv.arg_conv (conv cluster (not pos)))
+                                       (conv cluster pos)
                else if s = @{const_name HOL.conj} orelse
                        s = @{const_name HOL.disj} then
-                 Conv.combination_conv (Conv.arg_conv (conv pos)) (conv pos)
+                 Conv.combination_conv (Conv.arg_conv (conv cluster pos))
+                                       (conv cluster pos)
                else
                  Conv.all_conv
              | Const (s, _) $ _ =>
                if s = @{const_name Trueprop} then
-                 Conv.arg_conv (conv pos)
+                 Conv.arg_conv (conv cluster pos)
                else if s = @{const_name Not} then
-                 Conv.arg_conv (conv (not pos))
+                 Conv.arg_conv (conv cluster (not pos))
                else
                  Conv.all_conv
              | _ => Conv.all_conv)
   in
-    conv true #> Drule.export_without_context
+    conv (true, 0) true #> Drule.export_without_context
     #> cprop_of #> Thm.dest_equals #> snd
   end
 
@@ -267,7 +279,7 @@ val pull_out_quant_ss =
       addsimps @{thms all_simps[symmetric]}
 
 (* Converts an Isabelle theorem into NNF. *)
-fun nnf_axiom new_skolemizer th ctxt =
+fun nnf_axiom new_skolemizer ax_no th ctxt =
   let
     val thy = ProofContext.theory_of ctxt
     val th =
@@ -284,7 +296,7 @@ fun nnf_axiom new_skolemizer th ctxt =
         val th' = th |> Meson.skolemize ctxt
                      |> simplify pull_out_quant_ss
                      |> Drule.eta_contraction_rule
-        val t = th' |> cprop_of |> kill_quantifiers |> term_of
+        val t = th' |> cprop_of |> zap_quantifiers ax_no |> term_of
       in
         if exists_subterm (fn Var ((s, _), _) =>
                               String.isPrefix new_skolem_var_prefix s
@@ -305,7 +317,7 @@ fun nnf_axiom new_skolemizer th ctxt =
 fun cnf_axiom thy new_skolemizer ax_no th =
   let
     val ctxt0 = Variable.global_thm_context th
-    val (opt, nnf_th, ctxt) = nnf_axiom new_skolemizer th ctxt0
+    val (opt, nnf_th, ctxt) = nnf_axiom new_skolemizer ax_no th ctxt0
     fun clausify th =
       Meson.make_cnf (if new_skolemizer then
                         []
