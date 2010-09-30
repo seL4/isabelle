@@ -217,12 +217,13 @@ fun expression pos bind body ants =
 
 fun value ctxt (get, put, put_ml) (prelude, value) =
   let
-    val read = ML_Lex.read Position.none;
-    val ants = read prelude @ read ("val _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
+    val code = (prelude
+      ^ "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
       ^ " (fn () => " ^ value ^ ")) (ML_Context.the_generic_context ())))");
     val ctxt' = ctxt
       |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
-      |> Context.proof_map (exec (fn () => eval false Position.none ants));
+      |> Context.proof_map (exec
+          (fn () => Secure.use_text ML_Env.local_context (0, "value") false code));
   in get ctxt' () end;
 
 end;
