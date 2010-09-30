@@ -9,6 +9,7 @@ sig
   datatype prolog_system = SWI_PROLOG | YAP
   type code_options =
     {ensure_groundness : bool,
+     limit_globally : int option,
      limited_types : (typ * int) list,
      limited_predicates : (string list * int) list,
      replacing : ((string * string) * string) list,
@@ -58,38 +59,45 @@ fun tracing s = if !trace then Output.tracing s else ()
 
 type code_options =
   {ensure_groundness : bool,
+   limit_globally : int option,
    limited_types : (typ * int) list,
    limited_predicates : (string list * int) list,
    replacing : ((string * string) * string) list,
    manual_reorder : ((string * int) * int list) list}
 
 
-fun set_ensure_groundness {ensure_groundness, limited_types, limited_predicates,
+fun set_ensure_groundness {ensure_groundness, limit_globally, limited_types, limited_predicates,
   replacing, manual_reorder} =
-  {ensure_groundness = true, limited_types = limited_types,
+  {ensure_groundness = true, limit_globally = limit_globally, limited_types = limited_types,
    limited_predicates = limited_predicates, replacing = replacing,
    manual_reorder = manual_reorder}
 
-fun map_limit_predicates f {ensure_groundness, limited_types, limited_predicates,
+fun map_limit_predicates f {ensure_groundness, limit_globally, limited_types, limited_predicates,
   replacing, manual_reorder} =
-  {ensure_groundness = ensure_groundness, limited_types = limited_types,
+  {ensure_groundness = ensure_groundness, limit_globally = limit_globally, limited_types = limited_types,
    limited_predicates = f limited_predicates, replacing = replacing,
    manual_reorder = manual_reorder}
-  
+
+fun merge_global_limit (NONE, NONE) = NONE
+  | merge_global_limit (NONE, SOME n) = SOME n
+  | merge_global_limit (SOME n, NONE) = SOME n
+  | merge_global_limit (SOME n, SOME m) = SOME (Int.max (n, m))
+   
 structure Options = Theory_Data
 (
   type T = code_options
-  val empty = {ensure_groundness = false,
+  val empty = {ensure_groundness = false, limit_globally = NONE,
     limited_types = [], limited_predicates = [], replacing = [], manual_reorder = []}
   val extend = I;
   fun merge
-    ({ensure_groundness = ensure_groundness1, limited_types = limited_types1,
-      limited_predicates = limited_predicates1, replacing = replacing1,
-      manual_reorder = manual_reorder1},
-     {ensure_groundness = ensure_groundness2, limited_types = limited_types2,
-      limited_predicates = limited_predicates2, replacing = replacing2,
-      manual_reorder = manual_reorder2}) =
+    ({ensure_groundness = ensure_groundness1, limit_globally = limit_globally1,
+      limited_types = limited_types1, limited_predicates = limited_predicates1,
+      replacing = replacing1, manual_reorder = manual_reorder1},
+     {ensure_groundness = ensure_groundness2, limit_globally = limit_globally2,
+      limited_types = limited_types2, limited_predicates = limited_predicates2,
+      replacing = replacing2, manual_reorder = manual_reorder2}) =
     {ensure_groundness = ensure_groundness1 orelse ensure_groundness2,
+     limit_globally = merge_global_limit (limit_globally1, limit_globally2),
      limited_types = AList.merge (op =) (K true) (limited_types1, limited_types2),
      limited_predicates = AList.merge (op =) (K true) (limited_predicates1, limited_predicates2),
      manual_reorder = AList.merge (op =) (K true) (manual_reorder1, manual_reorder2),
@@ -188,7 +196,7 @@ fun fold_prem_terms f (Conj prems) = fold (fold_prem_terms f) prems
 type clause = ((string * prol_term list) * prem);
 
 type logic_program = clause list;
-
+ 
 (* translation from introduction rules to internal representation *)
 
 fun mk_conform f empty avoid name =
@@ -591,13 +599,14 @@ fun mk_depth_limited rel_names ((rel_name, ts), prem) =
       ((mk_lim_rel_name rel_name, (Var "Lim") :: ts), prem)
   end
 
-fun add_limited_predicates limited_predicates =
+fun nat_term_of n = funpow n (fn t => AppF ("suc", [t])) (Cons "zero")
+
+fun add_limited_predicates limited_predicates (p, constant_table) =
   let                                     
-    fun add (rel_names, limit) (p, constant_table) = 
+    fun add (rel_names, limit) p = 
       let
         val clauses = filter (fn ((rel, _), _) => member (op =) rel_names rel) p
         val clauses' = map (mk_depth_limited rel_names) clauses
-        fun nat_term_of n = funpow n (fn t => AppF ("suc", [t])) (Cons "zero")
         fun mk_entry_clause rel_name =
           let
             val nargs = length (snd (fst
@@ -606,9 +615,9 @@ fun add_limited_predicates limited_predicates =
           in
             (("limited_" ^ rel_name, vars), Rel ("lim_" ^ rel_name, nat_term_of limit :: vars))
           end
-      in (p @ (map mk_entry_clause rel_names) @ clauses', constant_table) end
+      in (p @ (map mk_entry_clause rel_names) @ clauses') end
   in
-    fold add limited_predicates
+    (fold add limited_predicates p, constant_table)
   end
 
 
@@ -663,10 +672,29 @@ fun rename_vars_clause ((rel, args), prem) =
   
 val rename_vars_program = map rename_vars_clause
 
+(* limit computation globally by some threshold *)
+
+fun limit_globally ctxt limit const_name (p, constant_table) =
+  let
+    val rel_names = fold (fn ((r, _), _) => insert (op =) r) p []
+    val p' = map (mk_depth_limited rel_names) p
+    val rel_name = translate_const constant_table const_name
+    val nargs = length (snd (fst
+      (the (find_first (fn ((rel, _), _) => rel = rel_name) p))))
+    val vars = map (fn i => Var ("x" ^ string_of_int i)) (1 upto nargs)
+    val entry_clause = ((rel_name, vars), Rel ("lim_" ^ rel_name, nat_term_of limit :: vars))
+    val p'' = filter_out (fn ((rel, _), _) => rel = rel_name) p
+  in
+    (entry_clause :: p' @ p'', constant_table)
+  end
+
 (* post processing of generated prolog program *)
 
-fun post_process ctxt options (p, constant_table) =
+fun post_process ctxt options const_name (p, constant_table) =
   (p, constant_table)
+  |> (case #limit_globally options of
+        SOME limit => limit_globally ctxt limit const_name
+      | NONE => I)
   |> (if #ensure_groundness options then
         add_ground_predicates ctxt (#limited_types options)
       else I)
@@ -915,7 +943,7 @@ fun values ctxt soln t_compr =
     val ctxt' = ProofContext.init_global thy'
     val _ = tracing "Generating prolog program..."
     val (p, constant_table) = generate (NONE, #ensure_groundness options) ctxt' name (* FIXME *)
-      |> post_process ctxt' options
+      |> post_process ctxt' options name
     val constant_table' = declare_consts (fold Term.add_const_names all_args []) constant_table
     val args' = map (translate_term ctxt constant_table') all_args
     val _ = tracing "Running prolog program..."
@@ -991,7 +1019,7 @@ fun quickcheck ctxt t size =
     val ctxt' = ProofContext.init_global thy3
     val _ = tracing "Generating prolog program..."
     val (p, constant_table) = generate (NONE, true) ctxt' full_constname
-      |> post_process ctxt' (set_ensure_groundness options)
+      |> post_process ctxt' (set_ensure_groundness options) full_constname
     val _ = tracing "Running prolog program..."
     val system_config = System_Config.get (Context.Proof ctxt)
     val tss = run (#timeout system_config, #prolog_system system_config)
