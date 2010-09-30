@@ -19,73 +19,6 @@ struct
 
 open Predicate_Compile_Aux
 
-
-fun datatype_names_of_case_name thy case_name =
-  map (#1 o #2) (#descr (the (Datatype_Data.info_of_case thy case_name)))
-
-fun make_case_distribs new_type_names descr sorts thy =
-  let
-    val case_combs = Datatype_Prop.make_case_combs new_type_names descr sorts thy "f";
-    fun make comb =
-      let
-        val Type ("fun", [T, T']) = fastype_of comb;
-        val (Const (case_name, _), fs) = strip_comb comb
-        val used = Term.add_tfree_names comb []
-        val U = TFree (Name.variant used "'t", HOLogic.typeS)
-        val x = Free ("x", T)
-        val f = Free ("f", T' --> U)
-        fun apply_f f' =
-          let
-            val Ts = binder_types (fastype_of f')
-            val bs = map Bound ((length Ts - 1) downto 0)
-          in
-            fold (curry absdummy) (rev Ts) (f $ (list_comb (f', bs)))
-          end
-        val fs' = map apply_f fs
-        val case_c' = Const (case_name, (map fastype_of fs') @ [T] ---> U)
-      in
-        HOLogic.mk_eq (f $ (comb $ x), list_comb (case_c', fs') $ x)
-      end
-  in
-    map make case_combs
-  end
-
-fun case_rewrites thy Tcon =
-  let
-    val info = Datatype.the_info thy Tcon
-    val descr = #descr info
-    val sorts = #sorts info
-    val typ_names = the_default [Tcon] (#alt_names info)
-  in
-    map (Drule.export_without_context o Skip_Proof.make_thm thy o HOLogic.mk_Trueprop)
-      (make_case_distribs typ_names [descr] sorts thy)
-  end
-
-fun instantiated_case_rewrites thy Tcon =
-  let
-    val rew_ths = case_rewrites thy Tcon
-    val ctxt = ProofContext.init_global thy
-    fun instantiate th =
-    let
-      val f = (fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th))))))
-      val Type ("fun", [uninst_T, uninst_T']) = fastype_of f
-      val ([tname, tname', uname, yname], ctxt') = Variable.add_fixes ["'t", "'t'", "'u", "y"] ctxt
-      val T = TFree (tname, HOLogic.typeS)
-      val T' = TFree (tname', HOLogic.typeS)
-      val U = TFree (uname, HOLogic.typeS)
-      val y = Free (yname, U)
-      val f' = absdummy (U --> T', Bound 0 $ y)
-      val th' = Thm.certify_instantiate
-        ([(dest_TVar uninst_T, U --> T'), (dest_TVar uninst_T', T')],
-         [((fst (dest_Var f), (U --> T') --> T'), f')]) th
-      val [th'] = Variable.export ctxt' ctxt [th']
-   in
-     th'
-   end
- in
-   map instantiate rew_ths
- end
-
 fun is_compound ((Const (@{const_name Not}, _)) $ t) =
     error "is_compound: Negation should not occur; preprocessing is defect"
   | is_compound ((Const (@{const_name Ex}, _)) $ _) = true
@@ -99,17 +32,13 @@ fun try_destruct_case thy names atom =
     NONE => NONE
   | SOME raw_split_thm =>
     let
-      val case_name = fst (dest_Const (fst (strip_comb atom)))
       val split_thm = prepare_split_thm (ProofContext.init_global thy) raw_split_thm
       (* TODO: contextify things - this line is to unvarify the split_thm *)
       (*val ((_, [isplit_thm]), _) =
         Variable.import true [split_thm] (ProofContext.init_global thy)*)
       val (assms, concl) = Logic.strip_horn (prop_of split_thm)
       val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl) 
-      val Tcons = datatype_names_of_case_name thy case_name
-      val ths = maps (instantiated_case_rewrites thy) Tcons
-      val atom' = MetaSimplifier.rewrite_term thy
-        (map (fn th => th RS @{thm eq_reflection}) ths) [] atom
+      val atom' = case_betapply thy atom
       val subst = Pattern.match thy (split_t, atom') (Vartab.empty, Vartab.empty)
       val names' = Term.add_free_names atom' names
       fun mk_subst_rhs assm =

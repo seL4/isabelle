@@ -185,8 +185,9 @@ fun flatten thy lookup_pred t (names, prems) =
             val (f, args) = strip_comb t
             val split_thm = prepare_split_thm (ProofContext.init_global thy) raw_split_thm
             val (assms, concl) = Logic.strip_horn (prop_of split_thm)
-            val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl) 
-            val subst = Pattern.match thy (split_t, t) (Vartab.empty, Vartab.empty)
+            val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl)
+            val t' = case_betapply thy t
+            val subst = Pattern.match thy (split_t, t') (Vartab.empty, Vartab.empty)
             fun flatten_of_assm assm =
               let
                 val (vTs, assm') = strip_all (Envir.beta_norm (Envir.subst_term subst assm))
