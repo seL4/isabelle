@@ -1053,8 +1053,13 @@ fun gen_add_eqn default (raw_thm, proper) thy =
           o map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
         val args = args_of thm;
         val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
-        fun matches_args args' = length args <= length args' andalso
-          Pattern.matchess thy (args, (map incr_idx o take (length args)) args');
+        fun matches_args args' =
+          let
+            val k = length args' - length args
+          in if k >= 0
+            then Pattern.matchess thy (args, (map incr_idx o drop k) args')
+            else false
+          end;
         fun drop (thm', proper') = if (proper orelse not proper')
           andalso matches_args (args_of thm') then 
             (warning ("Code generator: dropping subsumed code equation\n" ^
@@ -1066,7 +1071,8 @@ fun gen_add_eqn default (raw_thm, proper) thy =
     fun add_eqn' true (Default (eqns, _)) =
           Default (natural_order (Theory.check_thy thy) ((thm, proper) :: eqns))
           (*this restores the natural order and drops syntactic redundancies*)
-      | add_eqn' _ (Eqns eqns) = Eqns (update_subsume thy (thm, proper) eqns)
+      | add_eqn' true fun_spec = fun_spec
+      | add_eqn' false (Eqns eqns) = Eqns (update_subsume thy (thm, proper) eqns)
       | add_eqn' false _ = Eqns [(thm, proper)];
   in change_fun_spec false c (add_eqn' default) thy end;
 
