@@ -100,6 +100,7 @@ setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.qui
 
 setup {* Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
+   limit_globally = NONE,
    limited_types = [(@{typ Sym}, 0), (@{typ "Sym list"}, 2), (@{typ RE}, 6)],
    limited_predicates = [(["repIntPa"], 2), (["repP"], 2), (["subP"], 0),
     (["accepts", "acceptsaux", "seqSplit", "seqSplita", "seqSplitaux", "seqSplitb"], 25)],

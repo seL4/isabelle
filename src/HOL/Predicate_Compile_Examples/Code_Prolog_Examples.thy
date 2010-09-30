@@ -12,6 +12,7 @@ where
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = false,
+   limit_globally = NONE,
    limited_types = [],
    limited_predicates = [],
    replacing = [],
@@ -25,6 +26,7 @@ values 3 "{(x, y, z). append x y z}"
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = false,
+   limit_globally = NONE,
    limited_types = [],
    limited_predicates = [],
    replacing = [],
@@ -34,6 +36,7 @@ values "{(x, y, z). append x y z}"
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = false,
+   limit_globally = NONE,
    limited_types = [],
    limited_predicates = [],
    replacing = [],
@@ -202,6 +205,7 @@ where
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = true,
+   limit_globally = NONE,
    limited_types = [],
    limited_predicates = [],
    replacing = [],

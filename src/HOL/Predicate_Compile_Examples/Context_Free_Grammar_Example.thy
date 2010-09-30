@@ -58,6 +58,7 @@ declare filter_b_def[symmetric, code_pred_inline]
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = true,
+  limit_globally = NONE,
   limited_types = [],
   limited_predicates = [(["s1", "a1", "b1"], 2)],
   replacing = [(("s1", "limited_s1"), "quickcheck")],
@@ -81,6 +82,7 @@ inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = true,
+  limit_globally = NONE,
   limited_types = [],
   limited_predicates = [(["s2", "a2", "b2"], 3)],
   replacing = [(("s2", "limited_s2"), "quickcheck")],
@@ -103,6 +105,7 @@ inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = true,
+  limit_globally = NONE,
   limited_types = [],
   limited_predicates = [(["s3", "a3", "b3"], 6)],
   replacing = [(("s3", "limited_s3"), "quickcheck")],
@@ -117,6 +120,7 @@ oops
 (*
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = true,
+  limit_globally = NONE,
   limited_types = [],
   limited_predicates = [],
   replacing = [],
@@ -143,6 +147,7 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = true,
+  limit_globally = NONE,
   limited_types = [],
   limited_predicates = [(["s4", "a4", "b4"], 6)],
   replacing = [(("s4", "limited_s4"), "quickcheck")],

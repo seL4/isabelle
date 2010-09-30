@@ -6,6 +6,7 @@ setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.qui
 
 setup {* Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
+   limit_globally = NONE,
    limited_types = [(@{typ nat}, 2), (@{typ "nat list"}, 4)],
    limited_predicates = [(["appendP"], 4), (["revP"], 4)],
    replacing =

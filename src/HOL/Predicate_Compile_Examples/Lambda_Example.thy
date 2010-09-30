@@ -83,6 +83,7 @@ setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.qui
 
 setup {* Code_Prolog.map_code_options (K 
   { ensure_groundness = true,
+    limit_globally = NONE,
     limited_types = [(@{typ nat}, 1), (@{typ "type"}, 1), (@{typ dB}, 1), (@{typ "type list"}, 1)],
     limited_predicates = [(["typing"], 2), (["nthel1"], 2)],
     replacing = [(("typing", "limited_typing"), "quickcheck"),
