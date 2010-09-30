@@ -528,6 +528,12 @@ fun flexflex_first_order th =
         in  th'  end
         handle THM _ => th;
 
+fun is_metis_literal_genuine (_, (s, _)) = not (String.isPrefix class_prefix s)
+fun is_isabelle_literal_genuine t =
+  case t of _ $ (Const (@{const_name skolem}, _) $ _) => false | _ => true
+
+fun count p xs = fold (fn x => if p x then Integer.add 1 else I) xs 0
+
 fun replay_one_inference ctxt mode old_skolems (fol_th, inf) thpairs =
   let
     val _ = trace_msg (fn () => "=============================================")
@@ -537,6 +543,13 @@ fun replay_one_inference ctxt mode old_skolems (fol_th, inf) thpairs =
              |> flexflex_first_order
     val _ = trace_msg (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
     val _ = trace_msg (fn () => "=============================================")
+    val num_metis_lits =
+      fol_th |> Metis_Thm.clause |> Metis_LiteralSet.toList
+             |> count is_metis_literal_genuine
+    val num_isabelle_lits =
+      th |> prems_of |> count is_isabelle_literal_genuine
+    val _ = if num_metis_lits = num_isabelle_lits then ()
+            else error "Cannot replay Metis proof in Isabelle: Out of sync."
   in (fol_th, th) :: thpairs end
 
 end;
