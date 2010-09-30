@@ -66,20 +66,18 @@ text{*
 \rulename{o_inv_distrib}
 *}
 
-
-
 text{*
 small sample proof
 
 @{thm[display] ext[no_vars]}
 \rulename{ext}
 
-@{thm[display] expand_fun_eq[no_vars]}
-\rulename{expand_fun_eq}
+@{thm[display] fun_eq_iff[no_vars]}
+\rulename{fun_eq_iff}
 *}
 
 lemma "inj f \<Longrightarrow> (f o g = f o h) = (g = h)";
-  apply (simp add: expand_fun_eq inj_on_def)
+  apply (simp add: fun_eq_iff inj_on_def)
   apply (auto)
   done
 

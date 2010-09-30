@@ -1,4 +1,3 @@
-(* ID:         $Id$ *)
 (*<*)theory Advanced imports Even uses "../../antiquote_setup.ML" begin(*>*)
 
 text {*
@@ -360,11 +359,12 @@ text_raw {*
 (*<*)
 
 text{*the following declaration isn't actually used*}
-consts integer_arity :: "integer_op \<Rightarrow> nat"
 primrec
-"integer_arity (Number n)        = 0"
-"integer_arity UnaryMinus        = 1"
-"integer_arity Plus              = 2"
+  integer_arity :: "integer_op \<Rightarrow> nat"
+where
+  "integer_arity (Number n)        = 0"
+| "integer_arity UnaryMinus        = 1"
+| "integer_arity Plus              = 2"
 
 text{* the rest isn't used: too complicated.  OK for an exercise though.*}
 

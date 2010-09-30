@@ -111,14 +111,13 @@ done
 
 (* Exercise 2: *)
 
-consts trev :: "('v,'f) term \<Rightarrow> ('v,'f) term"
-       trevs:: "('v,'f) term list \<Rightarrow> ('v,'f) term list"
-primrec
-"trev (Var v)    = Var v"
-"trev (App f ts) = App f (trevs ts)"
-
-"trevs [] = []"
-"trevs (t#ts) = (trevs ts) @ [(trev t)]" 
+primrec trev :: "('v,'f) term \<Rightarrow> ('v,'f) term"
+  and trevs:: "('v,'f) term list \<Rightarrow> ('v,'f) term list"
+where
+  "trev (Var v)    = Var v"
+| "trev (App f ts) = App f (trevs ts)"
+| "trevs [] = []"
+| "trevs (t#ts) = (trevs ts) @ [(trev t)]" 
 
 lemma [simp]: "\<forall> ys. trevs (xs @ ys) = (trevs ys) @ (trevs xs)" 
 apply (induct_tac xs, auto)

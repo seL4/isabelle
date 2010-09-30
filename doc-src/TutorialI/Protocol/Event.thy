@@ -23,24 +23,15 @@ datatype
        
 consts 
   bad    :: "agent set"                         -- {* compromised agents *}
-  knows  :: "agent => event list => msg set"
 
 
 text{*The constant "spies" is retained for compatibility's sake*}
 
-abbreviation (input)
-  spies  :: "event list => msg set" where
-  "spies == knows Spy"
-
-text{*Spy has access to his own key for spoof messages, but Server is secure*}
-specification (bad)
-  Spy_in_bad     [iff]: "Spy \<in> bad"
-  Server_not_bad [iff]: "Server \<notin> bad"
-    by (rule exI [of _ "{Spy}"], simp)
-
 primrec
+  knows :: "agent => event list => msg set"
+where
   knows_Nil:   "knows A [] = initState A"
-  knows_Cons:
+| knows_Cons:
     "knows A (ev # evs) =
        (if A = Spy then 
         (case ev of
@@ -57,20 +48,29 @@ primrec
          | Notes A' X    => 
              if A'=A then insert X (knows A evs) else knows A evs))"
 
+abbreviation (input)
+  spies  :: "event list => msg set" where
+  "spies == knows Spy"
+
+text{*Spy has access to his own key for spoof messages, but Server is secure*}
+specification (bad)
+  Spy_in_bad     [iff]: "Spy \<in> bad"
+  Server_not_bad [iff]: "Server \<notin> bad"
+    by (rule exI [of _ "{Spy}"], simp)
+
 (*
   Case A=Spy on the Gets event
   enforces the fact that if a message is received then it must have been sent,
   therefore the oops case must use Notes
 *)
 
-consts
+primrec
   (*Set of items that might be visible to somebody:
     complement of the set of fresh items*)
   used :: "event list => msg set"
-
-primrec
+where
   used_Nil:   "used []         = (UN B. parts (initState B))"
-  used_Cons:  "used (ev # evs) =
+| used_Cons:  "used (ev # evs) =
                      (case ev of
                         Says A B X => parts {X} \<union> used evs
                       | Gets A X   => used evs

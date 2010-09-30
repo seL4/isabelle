@@ -22,14 +22,19 @@ consts pubK :: "agent \<Rightarrow> key"
 abbreviation priK :: "agent \<Rightarrow> key"
 where "priK x  \<equiv>  invKey(pubK x)"
 (*<*)
-primrec
+overloading initState \<equiv> initState
+begin
+
+primrec initState where
         (*Agents know their private key and all public keys*)
   initState_Server:  "initState Server     =    
                          insert (Key (priK Server)) (Key ` range pubK)"
-  initState_Friend:  "initState (Friend i) =    
+| initState_Friend:  "initState (Friend i) =    
                          insert (Key (priK (Friend i))) (Key ` range pubK)"
-  initState_Spy:     "initState Spy        =    
+| initState_Spy:     "initState Spy        =    
                          (Key`invKey`pubK`bad) Un (Key ` range pubK)"
+
+end
 (*>*)
 
 text {*

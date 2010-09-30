@@ -95,8 +95,8 @@ symbol notation?  Here the latter disambiguates.*}
 text{*
 set extensionality
 
-@{thm[display] set_ext[no_vars]}
-\rulename{set_ext}
+@{thm[display] set_eqI[no_vars]}
+\rulename{set_eqI}
 
 @{thm[display] equalityI[no_vars]}
 \rulename{equalityI}
