@@ -23,7 +23,7 @@ fun core_oracle (output, _) =
   let
     val empty_line = (fn "" => true | _ => false)
     val split_first = (fn [] => ("", []) | l :: ls => (l, ls))
-    val (l, _) = split_first (dropwhile empty_line output)
+    val (l, _) = split_first (drop_while empty_line output)
   in
     if String.isPrefix "unsat" l then @{cprop False}
     else if String.isPrefix "sat" l then raise_cex true
