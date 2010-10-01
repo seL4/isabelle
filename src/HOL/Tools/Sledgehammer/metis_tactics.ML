@@ -151,7 +151,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       fun subst_info_for_prem assm_no prem =
         case prem of
           _ $ (Const (@{const_name skolem}, _) $ (_ $ t $ num)) =>
-          let val ax_no = num |> HOLogic.dest_number |> snd in
+          let val ax_no = HOLogic.dest_nat num in
             (ax_no, (assm_no, match_term (nth axioms ax_no |> snd, t)))
           end
         | _ => raise TERM ("discharge_skolem_premises: Malformed premise",

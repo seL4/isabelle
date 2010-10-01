@@ -351,7 +351,7 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
     fun intr_imp ct th =
       Thm.instantiate ([], map (pairself (cterm_of @{theory}))
                                [(Var (("i", 1), @{typ nat}),
-                                 HOLogic.mk_number @{typ nat} ax_no)])
+                                 HOLogic.mk_nat ax_no)])
                       @{thm skolem_COMBK_D}
       RS Thm.implies_intr ct th
   in
