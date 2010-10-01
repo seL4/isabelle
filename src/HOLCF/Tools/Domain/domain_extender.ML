@@ -39,6 +39,7 @@ open Domain_Library;
 
 (* ----- general testing and preprocessing of constructor list -------------- *)
 fun check_and_sort_domain
+    (arg_sort : bool -> sort)
     (dtnvs : (string * typ list) list)
     (cons'' : (binding * (bool * binding option * typ) list * mixfix) list list)
     (thy : theory)
@@ -104,10 +105,11 @@ fun check_and_sort_domain
                              " with different arguments"))
           | analyse indirect (TVar _) = Imposs "extender:analyse";
         fun check_pcpo lazy T =
-            let val ok = if lazy then cpo_type else pcpo_type
-            in if ok thy T then T
-               else error ("Constructor argument type is not of sort pcpo: " ^
-                           string_of_typ thy T)
+            let val sort = arg_sort lazy in
+              if Sign.of_sort thy (T, sort) then T
+              else error ("Constructor argument type is not of sort " ^
+                          Syntax.string_of_sort_global thy sort ^ ": " ^
+                          string_of_typ thy T)
             end;
         fun analyse_arg (lazy, sel, T) =
             (lazy, sel, check_pcpo lazy (analyse false T));
@@ -124,6 +126,7 @@ type info =
 fun gen_add_domain
     (prep_typ : theory -> 'a -> typ)
     (add_isos : (binding * mixfix * (typ * typ)) list -> theory -> info * theory)
+    (arg_sort : bool -> sort)
     (comp_dbind : binding)
     (eqs''' : ((string * string option) list * binding * mixfix *
                (binding * (bool * binding option * 'a) list * mixfix) list) list)
@@ -161,7 +164,7 @@ fun gen_add_domain
         map (fn (dname,vs,mx) => (Sign.full_name thy dname,vs)) dtnvs;
     val eqs' : ((string * typ list) *
         (binding * (bool * binding option * typ) list * mixfix) list) list =
-        check_and_sort_domain dtnvs' cons'' tmp_thy;
+        check_and_sort_domain arg_sort dtnvs' cons'' tmp_thy;
     val dts : typ list = map (Type o fst) eqs';
 
     fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_uT T else T;
@@ -209,17 +212,20 @@ fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
     Domain_Isomorphism.domain_isomorphism (map prep spec)
   end;
 
+fun pcpo_arg lazy = if lazy then @{sort cpo} else @{sort pcpo};
+fun rep_arg lazy = @{sort rep};
+
 val add_domain =
-    gen_add_domain Sign.certify_typ Domain_Axioms.add_axioms;
+    gen_add_domain Sign.certify_typ Domain_Axioms.add_axioms pcpo_arg;
 
 val add_new_domain =
-    gen_add_domain Sign.certify_typ define_isos;
+    gen_add_domain Sign.certify_typ define_isos rep_arg;
 
 val add_domain_cmd =
-    gen_add_domain Syntax.read_typ_global Domain_Axioms.add_axioms;
+    gen_add_domain Syntax.read_typ_global Domain_Axioms.add_axioms pcpo_arg;
 
 val add_new_domain_cmd =
-    gen_add_domain Syntax.read_typ_global define_isos;
+    gen_add_domain Syntax.read_typ_global define_isos rep_arg;
 
 
 (** outer syntax **)
