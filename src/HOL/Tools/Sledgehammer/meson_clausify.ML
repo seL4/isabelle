@@ -312,8 +312,10 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
   in
     if new_skolemizer then
       let
-        val t = concl_of th
-        val th = Thm.rename_boundvars t (rename_vars_to_be_zapped ax_no t) th
+        fun rename_bound_vars th =
+          let val t = concl_of th in
+            th |> Thm.rename_boundvars t (rename_vars_to_be_zapped ax_no t)
+          end
         fun skolemize choice_ths =
           Meson.skolemize_with_choice_thms ctxt choice_ths
           #> simplify (ss_only @{thms all_simps[symmetric]})
@@ -321,9 +323,9 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
           simplify (ss_only @{thms all_simps[symmetric] ex_simps[symmetric]})
         val (discharger_th, fully_skolemized_th) =
           if null choice_ths then
-            (th |> pull_out, th |> skolemize [no_choice])
+            th |> rename_bound_vars |> `I |>> pull_out ||> skolemize [no_choice]
           else
-            th |> skolemize choice_ths |> `I
+            th |> skolemize choice_ths |> rename_bound_vars |> `I
         val t =
           fully_skolemized_th |> cprop_of
           |> zap true |> Drule.export_without_context
