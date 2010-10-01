@@ -73,8 +73,8 @@ fun old_skolem_defs th =
         (*Universal quant: insert a free variable into body and continue*)
         let val fname = Name.variant (OldTerm.add_term_names (p,[])) a
         in dec_sko (subst_bound (Free(fname,T), p)) rhss end
-      | dec_sko (@{const HOL.conj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
-      | dec_sko (@{const HOL.disj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
+      | dec_sko (@{const conj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
+      | dec_sko (@{const disj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
       | dec_sko (@{const Trueprop} $ p) rhss = dec_sko p rhss
       | dec_sko _ rhss = rhss
   in  dec_sko (prop_of th) []  end;
@@ -255,11 +255,9 @@ fun rename_vars_to_be_zapped ax_no =
         else
           t
       | (t1 as Const (s, _)) $ t2 $ t3 =>
-        if s = @{const_name "==>"} orelse
-           s = @{const_name HOL.implies} then
+        if s = @{const_name "==>"} orelse s = @{const_name implies} then
           t1 $ aux cluster (not pos) t2 $ aux cluster pos t3
-        else if s = @{const_name HOL.conj} orelse
-                s = @{const_name HOL.disj} then
+        else if s = @{const_name conj} orelse s = @{const_name disj} then
           t1 $ aux cluster pos t2 $ aux cluster pos t3
         else
           t
@@ -270,36 +268,27 @@ fun rename_vars_to_be_zapped ax_no =
       | _ => t
   in aux (0, true) true end
 
-val zap_quantifiers =
-  let
-    fun conv pos ct =
-      ct |> (case term_of ct of
-               Const (s, _) $ Abs (s', _, _) =>
-               if s = @{const_name all} orelse s = @{const_name All} orelse
-                  s = @{const_name Ex} then
-                 Thm.dest_comb #> snd #> Thm.dest_abs (SOME s') #> snd
-                 #> conv pos
-               else
-                 Conv.all_conv
-             | Const (s, _) $ _ $ _ =>
-               if s = @{const_name "==>"} orelse
-                  s = @{const_name HOL.implies} then
-                 Conv.combination_conv (Conv.arg_conv (conv (not pos)))
-                                       (conv pos)
-               else if s = @{const_name HOL.conj} orelse
-                       s = @{const_name HOL.disj} then
-                 Conv.combination_conv (Conv.arg_conv (conv pos)) (conv pos)
-               else
-                 Conv.all_conv
-             | Const (s, _) $ _ =>
-               if s = @{const_name Trueprop} then Conv.arg_conv (conv pos)
-               else if s = @{const_name Not} then Conv.arg_conv (conv (not pos))
-               else Conv.all_conv
-             | _ => Conv.all_conv)
-  in
-    conv true #> Drule.export_without_context
-    #> cprop_of #> Thm.dest_equals #> snd
-  end
+fun zap pos ct =
+  ct
+  |> (case term_of ct of
+        Const (s, _) $ Abs (s', _, _) =>
+        if s = @{const_name all} orelse s = @{const_name All} orelse
+           s = @{const_name Ex} then
+          Thm.dest_comb #> snd #> Thm.dest_abs (SOME s') #> snd #> zap pos
+        else
+          Conv.all_conv
+      | Const (s, _) $ _ $ _ =>
+        if s = @{const_name "==>"} orelse s = @{const_name implies} then
+          Conv.combination_conv (Conv.arg_conv (zap (not pos))) (zap pos)
+        else if s = @{const_name conj} orelse s = @{const_name disj} then
+          Conv.combination_conv (Conv.arg_conv (zap pos)) (zap pos)
+        else
+          Conv.all_conv
+      | Const (s, _) $ _ =>
+        if s = @{const_name Trueprop} then Conv.arg_conv (zap pos)
+        else if s = @{const_name Not} then Conv.arg_conv (zap (not pos))
+        else Conv.all_conv
+      | _ => Conv.all_conv)
 
 fun ss_only ths = MetaSimplifier.clear_ss HOL_basic_ss addsimps ths
 
@@ -336,7 +325,9 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
           else
             th |> skolemize choice_ths |> `I
         val t =
-          fully_skolemized_th |> cprop_of |> zap_quantifiers |> term_of
+          fully_skolemized_th |> cprop_of
+          |> zap true |> Drule.export_without_context
+          |> cprop_of |> Thm.dest_equals |> snd |> term_of
       in
         if exists_subterm (fn Var ((s, _), _) =>
                               String.isPrefix new_skolem_var_prefix s
