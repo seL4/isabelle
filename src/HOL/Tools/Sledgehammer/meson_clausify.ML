@@ -340,7 +340,7 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
               |>> the_single |>> cterm_of thy
           in (SOME (discharger_th, ct), Thm.assume ct, ctxt) end
        else
-          (NONE, th, ctxt)
+         (NONE, th, ctxt)
       end
     else
       (NONE, th, ctxt)
