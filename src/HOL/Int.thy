@@ -283,7 +283,7 @@ context ring_1
 begin
 
 definition of_int :: "int \<Rightarrow> 'a" where
-  "of_int z = contents (\<Union>(i, j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
+  "of_int z = the_elem (\<Union>(i, j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
 
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
 proof -
@@ -389,7 +389,7 @@ qed
 subsection {* Magnitude of an Integer, as a Natural Number: @{text nat} *}
 
 definition nat :: "int \<Rightarrow> nat" where
-  "nat z = contents (\<Union>(x, y) \<in> Rep_Integ z. {x-y})"
+  "nat z = the_elem (\<Union>(x, y) \<in> Rep_Integ z. {x-y})"
 
 lemma nat: "nat (Abs_Integ (intrel``{(x,y)})) = x-y"
 proof -

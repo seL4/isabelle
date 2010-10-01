@@ -470,7 +470,7 @@ begin
 
 definition
   le_rat_def:
-   "q \<le> r \<longleftrightarrow> contents (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
+   "q \<le> r \<longleftrightarrow> the_elem (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
       {(fst x * snd y) * (snd x * snd y) \<le> (fst y * snd x) * (snd x * snd y)})"
 
 lemma le_rat [simp]:
@@ -775,7 +775,7 @@ context field_char_0
 begin
 
 definition of_rat :: "rat \<Rightarrow> 'a" where
-  "of_rat q = contents (\<Union>(a,b) \<in> Rep_Rat q. {of_int a / of_int b})"
+  "of_rat q = the_elem (\<Union>(a,b) \<in> Rep_Rat q. {of_int a / of_int b})"
 
 end
 

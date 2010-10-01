@@ -495,7 +495,7 @@ qed
 
 lemma (in measure_space) simple_function_partition:
   assumes "simple_function f" and "simple_function g"
-  shows "simple_integral f = (\<Sum>A\<in>(\<lambda>x. f -` {f x} \<inter> g -` {g x} \<inter> space M) ` space M. contents (f`A) * \<mu> A)"
+  shows "simple_integral f = (\<Sum>A\<in>(\<lambda>x. f -` {f x} \<inter> g -` {g x} \<inter> space M) ` space M. the_elem (f`A) * \<mu> A)"
     (is "_ = setsum _ (?p ` space M)")
 proof-
   let "?sub x" = "?p ` (f -` {x} \<inter> space M)"
@@ -530,18 +530,18 @@ proof-
     unfolding simple_integral_def
     by (subst setsum_Sigma[symmetric],
        auto intro!: setsum_cong simp: setsum_right_distrib[symmetric])
-  also have "\<dots> = (\<Sum>A\<in>?p ` space M. contents (f`A) * \<mu> A)"
+  also have "\<dots> = (\<Sum>A\<in>?p ` space M. the_elem (f`A) * \<mu> A)"
   proof -
     have [simp]: "\<And>x. x \<in> space M \<Longrightarrow> f ` ?p x = {f x}" by (auto intro!: imageI)
-    have "(\<lambda>A. (contents (f ` A), A)) ` ?p ` space M
+    have "(\<lambda>A. (the_elem (f ` A), A)) ` ?p ` space M
       = (\<lambda>x. (f x, ?p x)) ` space M"
     proof safe
       fix x assume "x \<in> space M"
-      thus "(f x, ?p x) \<in> (\<lambda>A. (contents (f`A), A)) ` ?p ` space M"
+      thus "(f x, ?p x) \<in> (\<lambda>A. (the_elem (f`A), A)) ` ?p ` space M"
         by (auto intro!: image_eqI[of _ _ "?p x"])
     qed auto
     thus ?thesis
-      apply (auto intro!: setsum_reindex_cong[of "\<lambda>A. (contents (f`A), A)"] inj_onI)
+      apply (auto intro!: setsum_reindex_cong[of "\<lambda>A. (the_elem (f`A), A)"] inj_onI)
       apply (rule_tac x="xa" in image_eqI)
       by simp_all
   qed
@@ -602,7 +602,7 @@ proof (safe intro!: setsum_mono)
   fix x let ?S = "g -` {g x} \<inter> f -` {f x} \<inter> space M"
   assume "x \<in> space M"
   hence "f ` ?S = {f x}" "g ` ?S = {g x}" by auto
-  thus "contents (f`?S) * \<mu> ?S \<le> contents (g`?S) * \<mu> ?S"
+  thus "the_elem (f`?S) * \<mu> ?S \<le> the_elem (g`?S) * \<mu> ?S"
     using mono[OF `x \<in> space M`] by (auto intro!: mult_right_mono)
 qed
 

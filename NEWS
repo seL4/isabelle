@@ -74,6 +74,9 @@ and type constructors.
 
 *** HOL ***
 
+* Constant `contents` renamed to `the_elem`, to free the generic name
+contents for other uses.  INCOMPATIBILITY.
+
 * Dropped old primrec package.  INCOMPATIBILITY.
 
 * Improved infrastructure for term evaluation using code generator

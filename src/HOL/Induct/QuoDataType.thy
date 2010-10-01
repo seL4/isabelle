@@ -422,7 +422,7 @@ need this function in order to prove discrimination theorems.*}
 
 definition
   discrim :: "msg \<Rightarrow> int" where
-   "discrim X = contents (\<Union>U \<in> Rep_Msg X. {freediscrim U})"
+   "discrim X = the_elem (\<Union>U \<in> Rep_Msg X. {freediscrim U})"
 
 lemma discrim_congruent: "(\<lambda>U. {freediscrim U}) respects msgrel"
 by (simp add: congruent_def msgrel_imp_eq_freediscrim) 

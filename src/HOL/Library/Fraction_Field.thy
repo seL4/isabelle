@@ -319,7 +319,7 @@ begin
 
 definition
   le_fract_def:
-   "q \<le> r \<longleftrightarrow> contents (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
+   "q \<le> r \<longleftrightarrow> the_elem (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
       {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
 
 definition

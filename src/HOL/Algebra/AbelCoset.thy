@@ -607,20 +607,20 @@ lemma (in abelian_group_hom) A_FactGroup_nonempty:
 by (rule group_hom.FactGroup_nonempty[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps]) (rule X)
 
-lemma (in abelian_group_hom) FactGroup_contents_mem:
+lemma (in abelian_group_hom) FactGroup_the_elem_mem:
   assumes X: "X \<in> carrier (G A_Mod (a_kernel G H h))"
-  shows "contents (h`X) \<in> carrier H"
-by (rule group_hom.FactGroup_contents_mem[OF a_group_hom,
+  shows "the_elem (h`X) \<in> carrier H"
+by (rule group_hom.FactGroup_the_elem_mem[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps]) (rule X)
 
 lemma (in abelian_group_hom) A_FactGroup_hom:
-     "(\<lambda>X. contents (h`X)) \<in> hom (G A_Mod (a_kernel G H h))
+     "(\<lambda>X. the_elem (h`X)) \<in> hom (G A_Mod (a_kernel G H h))
           \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr>"
 by (rule group_hom.FactGroup_hom[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps])
 
 lemma (in abelian_group_hom) A_FactGroup_inj_on:
-     "inj_on (\<lambda>X. contents (h ` X)) (carrier (G A_Mod a_kernel G H h))"
+     "inj_on (\<lambda>X. the_elem (h ` X)) (carrier (G A_Mod a_kernel G H h))"
 by (rule group_hom.FactGroup_inj_on[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps])
 
@@ -628,7 +628,7 @@ text{*If the homomorphism @{term h} is onto @{term H}, then so is the
 homomorphism from the quotient group*}
 lemma (in abelian_group_hom) A_FactGroup_onto:
   assumes h: "h ` carrier G = carrier H"
-  shows "(\<lambda>X. contents (h ` X)) ` carrier (G A_Mod a_kernel G H h) = carrier H"
+  shows "(\<lambda>X. the_elem (h ` X)) ` carrier (G A_Mod a_kernel G H h) = carrier H"
 by (rule group_hom.FactGroup_onto[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps]) (rule h)
 
@@ -636,7 +636,7 @@ text{*If @{term h} is a homomorphism from @{term G} onto @{term H}, then the
  quotient group @{term "G Mod (kernel G H h)"} is isomorphic to @{term H}.*}
 theorem (in abelian_group_hom) A_FactGroup_iso:
   "h ` carrier G = carrier H
-   \<Longrightarrow> (\<lambda>X. contents (h`X)) \<in> (G A_Mod (a_kernel G H h)) \<cong>
+   \<Longrightarrow> (\<lambda>X. the_elem (h`X)) \<in> (G A_Mod (a_kernel G H h)) \<cong>
           (| carrier = carrier H, mult = add H, one = zero H |)"
 by (rule group_hom.FactGroup_iso[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps])

@@ -1772,7 +1772,7 @@ lemma word_of_nat: "of_nat n = word_of_int (int n)"
 lemma word_of_int: "of_int = word_of_int"
   apply (rule ext)
   apply (unfold of_int_def)
-  apply (rule contentsI)
+  apply (rule the_elemI)
   apply safe
   apply (simp_all add: word_of_nat word_of_int_homs)
    defer
