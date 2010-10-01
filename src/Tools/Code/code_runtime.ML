@@ -26,6 +26,7 @@ sig
     -> theory -> theory
   datatype truth = Holds
   val put_truth: (unit -> truth) -> Proof.context -> Proof.context
+  val polyml_as_definition: (binding * typ) list -> Path.T list -> theory -> theory
 end;
 
 structure Code_Runtime : CODE_RUNTIME =
@@ -340,5 +341,94 @@ val _ =
     (code_reflect_cmd raw_datatypes raw_functions module_name some_file)));
 
 end; (*local*)
+
+
+(** using external SML files as substitute for proper definitions -- only for polyml!  **)
+
+local
+
+structure Loaded_Values = Theory_Data(
+  type T = string list
+  val empty = []
+  val merge = merge (op =)
+  val extend = I
+);
+
+fun notify_val (string, value) = 
+  let
+    val _ = #enterVal ML_Env.name_space (string, value);
+    val _ = Context.>> ((Context.map_theory o Loaded_Values.map) (insert (op =) string));
+  in () end;
+
+fun abort _ = error "Only value bindings allowed.";
+
+val notifying_context : use_context =
+ {tune_source = #tune_source ML_Env.local_context,
+  name_space =
+   {lookupVal    = #lookupVal ML_Env.name_space,
+    lookupType   = #lookupType ML_Env.name_space,
+    lookupFix    = #lookupFix ML_Env.name_space,
+    lookupStruct = #lookupStruct ML_Env.name_space,
+    lookupSig    = #lookupSig ML_Env.name_space,
+    lookupFunct  = #lookupFunct ML_Env.name_space,
+    enterVal     = notify_val,
+    enterType    = abort,
+    enterFix     = abort,
+    enterStruct  = abort,
+    enterSig     = abort,
+    enterFunct   = abort,
+    allVal       = #allVal ML_Env.name_space,
+    allType      = #allType ML_Env.name_space,
+    allFix       = #allFix ML_Env.name_space,
+    allStruct    = #allStruct ML_Env.name_space,
+    allSig       = #allSig ML_Env.name_space,
+    allFunct     = #allFunct ML_Env.name_space},
+  str_of_pos = #str_of_pos ML_Env.local_context,
+  print = #print ML_Env.local_context,
+  error = #error ML_Env.local_context};
+
+in
+
+fun use_file filepath thy =
+  let
+    val thy' = Loaded_Values.put [] thy;
+    val _ = Context.set_thread_data ((SOME o Context.Theory) thy');
+    val _ = Secure.use_text notifying_context
+      (0, Path.implode filepath) false (File.read filepath);
+    val thy'' = (Context.the_theory o the) (Context.thread_data ())
+    val names = Loaded_Values.get thy''
+  in (names, thy'') end;
+
+end;
+
+fun add_definiendum (ml_name, (b, T)) thy =
+  thy
+  |> Code_Target.add_reserved target ml_name
+  |> Specification.axiomatization [(b, SOME T, NoSyn)] []
+  |-> (fn ([Const (const, _)], _) =>
+     Code_Target.add_const_syntax target const
+       (SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name))));
+
+fun process_file filepath (definienda, thy) =
+  let
+    val (ml_names, thy') = use_file filepath thy;
+    val superfluous = subtract (fn ((name1, _), name2) => name1 = name2) definienda ml_names;
+    val _ = if null superfluous then ()
+      else error ("Value binding(s) " ^ commas_quote superfluous
+        ^ " found in external file " ^ quote (Path.implode filepath)
+        ^ " not present among the given contants binding(s).");
+    val these_definienda = AList.make (the o AList.lookup (op =) definienda) ml_names;
+    val thy'' = fold add_definiendum these_definienda thy';
+    val definienda' = fold (AList.delete (op =)) ml_names definienda;
+  in (definienda', thy'') end;
+
+fun polyml_as_definition bTs filepaths thy =
+  let
+    val definienda = map (fn bT => ((Binding.name_of o fst) bT, bT)) bTs;
+    val (remaining, thy') = fold process_file filepaths (definienda, thy);
+    val _ = if null remaining then ()
+      else error ("Constant binding(s) " ^ commas_quote (map fst remaining)
+        ^ " not present in external file(s).");
+  in thy' end;
 
 end; (*struct*)
