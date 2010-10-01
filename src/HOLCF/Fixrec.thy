@@ -118,9 +118,9 @@ where
   "match_UU = strictify\<cdot>(\<Lambda> x k. fail)"
 
 definition
-  match_cpair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"
+  match_Pair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"
 where
-  "match_cpair = (\<Lambda> x k. csplit\<cdot>k\<cdot>x)"
+  "match_Pair = (\<Lambda> x k. csplit\<cdot>k\<cdot>x)"
 
 definition
   match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"
@@ -162,9 +162,9 @@ lemma match_UU_simps [simp]:
   "x \<noteq> \<bottom> \<Longrightarrow> match_UU\<cdot>x\<cdot>k = fail"
 by (simp_all add: match_UU_def)
 
-lemma match_cpair_simps [simp]:
-  "match_cpair\<cdot>(x, y)\<cdot>k = k\<cdot>x\<cdot>y"
-by (simp_all add: match_cpair_def)
+lemma match_Pair_simps [simp]:
+  "match_Pair\<cdot>(x, y)\<cdot>k = k\<cdot>x\<cdot>y"
+by (simp_all add: match_Pair_def)
 
 lemma match_spair_simps [simp]:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> match_spair\<cdot>(:x, y:)\<cdot>k = k\<cdot>x\<cdot>y"
@@ -248,7 +248,7 @@ setup {*
       (@{const_name sinl}, @{const_name match_sinl}),
       (@{const_name sinr}, @{const_name match_sinr}),
       (@{const_name spair}, @{const_name match_spair}),
-      (@{const_name Pair}, @{const_name match_cpair}),
+      (@{const_name Pair}, @{const_name match_Pair}),
       (@{const_name ONE}, @{const_name match_ONE}),
       (@{const_name TT}, @{const_name match_TT}),
       (@{const_name FF}, @{const_name match_FF}),
