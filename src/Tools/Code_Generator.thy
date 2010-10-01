@@ -2,7 +2,7 @@
     Author:  Florian Haftmann, TU Muenchen
 *)
 
-header {* Loading the code generator modules *}
+header {* Loading the code generator and related modules *}
 
 theory Code_Generator
 imports Pure
@@ -21,8 +21,8 @@ uses
   "~~/src/Tools/Code/code_ml.ML"
   "~~/src/Tools/Code/code_haskell.ML"
   "~~/src/Tools/Code/code_scala.ML"
-  "~~/src/Tools/nbe.ML"
   ("~~/src/Tools/Code/code_runtime.ML")
+  ("~~/src/Tools/nbe.ML")
 begin
 
 setup {*
@@ -32,7 +32,6 @@ setup {*
   #> Code_ML.setup
   #> Code_Haskell.setup
   #> Code_Scala.setup
-  #> Nbe.setup
   #> Quickcheck.setup
 *}
 
@@ -64,6 +63,9 @@ next
 qed  
 
 use "~~/src/Tools/Code/code_runtime.ML"
+use "~~/src/Tools/nbe.ML"
+
+setup Nbe.setup
 
 hide_const (open) holds
 

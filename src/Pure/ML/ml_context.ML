@@ -36,9 +36,6 @@ sig
   val eval_text_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
   val expression: Position.T -> string -> string -> ML_Lex.token Antiquote.antiquote list ->
     Context.generic -> Context.generic
-  val value: Proof.context ->
-    (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string ->
-    string * string -> 'a
 end
 
 structure ML_Context: ML_CONTEXT =
@@ -214,17 +211,6 @@ fun expression pos bind body ants =
   exec (fn () => eval false pos
     (ML_Lex.read Position.none ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @ ants @
       ML_Lex.read Position.none (" in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
-
-fun value ctxt (get, put, put_ml) (prelude, value) =
-  let
-    val code = (prelude
-      ^ "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
-      ^ " (fn () => " ^ value ^ ")) (ML_Context.the_generic_context ())))");
-    val ctxt' = ctxt
-      |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
-      |> Context.proof_map (exec
-          (fn () => Secure.use_text ML_Env.local_context (0, "value") false code));
-  in get ctxt' () end;
 
 end;
 
