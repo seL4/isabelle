@@ -12,7 +12,7 @@ sig
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
-  val cluster_for_zapped_var_name : string -> int * bool
+  val cluster_of_zapped_var_name : string -> (int * int) * bool
   val cnf_axiom :
     theory -> bool -> int -> thm -> (thm * term) option * thm list
   val meson_general_tac : Proof.context -> thm list -> int -> tactic
@@ -22,8 +22,9 @@ end;
 structure Meson_Clausify : MESON_CLAUSIFY =
 struct
 
-val new_skolem_var_prefix = "SK?"
-val new_nonskolem_var_prefix = "V?"
+(* the extra "?" helps prevent clashes *)
+val new_skolem_var_prefix = "?SK"
+val new_nonskolem_var_prefix = "?V"
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -231,10 +232,10 @@ fun to_definitional_cnf_with_quantifiers thy th =
 
 fun zapped_var_name ax_no (cluster_no, skolem) s =
   (if skolem then new_skolem_var_prefix else new_nonskolem_var_prefix) ^
-  string_of_int ax_no ^ "_" ^ string_of_int cluster_no ^ "_" ^ s
+  "_" ^ string_of_int ax_no ^ "_" ^ string_of_int cluster_no ^ "_" ^ s
 
-fun cluster_for_zapped_var_name s =
-  (nth (space_explode "_" s) 1 |> Int.fromString |> the,
+fun cluster_of_zapped_var_name s =
+  ((1, 2) |> pairself (the o Int.fromString o nth (space_explode "_" s)),
    String.isPrefix new_skolem_var_prefix s)
 
 fun zap_quantifiers ax_no =

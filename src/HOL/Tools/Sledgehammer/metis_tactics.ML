@@ -24,6 +24,9 @@ struct
 open Metis_Translate
 open Metis_Reconstruct
 
+structure Int_Pair_Graph =
+  Graph(type key = int * int val ord = prod_ord int_ord int_ord)
+
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" (K true)
@@ -121,6 +124,8 @@ fun unify_prem_with_concl thy i th =
   in th |> Thm.instantiate (cinstT, []) |> Thm.instantiate ([], cinst) end
   handle Empty => th (* ### FIXME *)
 
+val cluster_ord = prod_ord (prod_ord int_ord int_ord) bool_ord
+
 (* Attempts to derive the theorem "False" from a theorem of the form
    "P1 ==> ... ==> Pn ==> False", where the "Pi"s are to be discharged using the
    specified axioms. The axioms have leading "All" and "Ex" quantifiers, which
@@ -137,8 +142,8 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
             Pattern.first_order_match thy p (Vartab.empty, Vartab.empty)
           val tsubst =
             tenv |> Vartab.dest
-                 |> sort (prod_ord int_ord bool_ord
-                          o pairself (Meson_Clausify.cluster_for_zapped_var_name
+                 |> sort (cluster_ord
+                          o pairself (Meson_Clausify.cluster_of_zapped_var_name
                                       o fst o fst))
                  |> map (Meson.term_pair_of
                          #> pairself (Envir.subst_term_types tyenv))
@@ -151,8 +156,36 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
           end
         | _ => raise TERM ("discharge_skolem_premises: Malformed premise",
                            [prem])
+      fun cluster_of_var_name skolem s =
+        let val (jj, skolem') = Meson_Clausify.cluster_of_zapped_var_name s in
+          if skolem' = skolem then SOME jj else NONE
+        end
+      fun clusters_in_term skolem t =
+        Term.add_var_names t [] |> map_filter (cluster_of_var_name skolem o fst)
+      fun deps_for_term_subst (var, t) =
+        case clusters_in_term false var of
+          [] => NONE
+        | [(ax_no, cluster_no)] =>
+          SOME ((ax_no, cluster_no),
+                clusters_in_term true t
+                |> cluster_no > 0 ? cons (ax_no, cluster_no - 1))
+        | _ => raise TERM ("discharge_skolem_premises: Expected Var", [var])
       val prems = Logic.strip_imp_prems prems_imp_false_prop
       val substs = map2 subst_info_for_prem (0 upto length prems - 1) prems
+      val depss = maps (map_filter deps_for_term_subst o snd o snd o snd) substs
+      val clusters = maps (op ::) depss
+      val ordered_clusters =
+        Int_Pair_Graph.empty
+        |> fold Int_Pair_Graph.default_node (map (rpair ()) clusters)
+        |> fold Int_Pair_Graph.add_deps_acyclic depss
+        |> Int_Pair_Graph.topological_order
+        handle Int_Pair_Graph.CYCLES _ =>
+               error "Cannot replay Metis proof in Isabelle without axiom of \
+                     \choice."
+(*
+      val _ = tracing ("SUBSTS: " ^ PolyML.makestring substs)
+      val _ = tracing ("ORDERED: " ^ PolyML.makestring ordered_clusters)
+*)
     in
       Goal.prove ctxt [] [] @{prop False}
           (K (cut_rules_tac (map fst axioms) 1
