@@ -12,7 +12,9 @@ sig
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
-  val cnf_axiom : theory -> bool -> int -> thm -> thm option * thm list
+  val cluster_for_zapped_var_name : string -> int * bool
+  val cnf_axiom :
+    theory -> bool -> int -> thm -> (thm * term) option * thm list
   val meson_general_tac : Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
@@ -227,13 +229,17 @@ fun to_definitional_cnf_with_quantifiers thy th =
     val eqth = eqth RS @{thm TruepropI}
   in Thm.equal_elim eqth th end
 
-fun zapped_var_name ax_no (skolem, cluster_no) s =
+fun zapped_var_name ax_no (cluster_no, skolem) s =
   (if skolem then new_skolem_var_prefix else new_nonskolem_var_prefix) ^
   string_of_int ax_no ^ "_" ^ string_of_int cluster_no ^ "_" ^ s
 
+fun cluster_for_zapped_var_name s =
+  (nth (space_explode "_" s) 1 |> Int.fromString |> the,
+   String.isPrefix new_skolem_var_prefix s)
+
 fun zap_quantifiers ax_no =
   let
-    fun conv (cluster as (cluster_skolem, cluster_no)) pos ct =
+    fun conv (cluster as (cluster_no, cluster_skolem)) pos ct =
       ct |> (case term_of ct of
                Const (s, _) $ Abs (s', _, _) =>
                if s = @{const_name all} orelse s = @{const_name All} orelse
@@ -242,7 +248,7 @@ fun zap_quantifiers ax_no =
                    val skolem = (pos = (s = @{const_name Ex}))
                    val cluster =
                      if skolem = cluster_skolem then cluster
-                     else (skolem, cluster_no |> cluster_skolem ? Integer.add 1)
+                     else (cluster_no |> cluster_skolem ? Integer.add 1, skolem)
                  in
                    Thm.dest_comb #> snd
                    #> Thm.dest_abs (SOME (zapped_var_name ax_no cluster s'))
@@ -270,7 +276,7 @@ fun zap_quantifiers ax_no =
                  Conv.all_conv
              | _ => Conv.all_conv)
   in
-    conv (true, 0) true #> Drule.export_without_context
+    conv (0, true) true #> Drule.export_without_context
     #> cprop_of #> Thm.dest_equals #> snd
   end
 
@@ -329,7 +335,6 @@ fun cnf_axiom thy new_skolemizer ax_no th =
       |> (fn ([], _) =>
              clausify (to_definitional_cnf_with_quantifiers thy nnf_th)
            | p => p)
-    val export = Variable.export ctxt ctxt0
     fun intr_imp ct th =
       Thm.instantiate ([], map (pairself (cterm_of @{theory}))
                                [(Var (("i", 1), @{typ nat}),
@@ -337,10 +342,12 @@ fun cnf_axiom thy new_skolemizer ax_no th =
                       @{thm skolem_COMBK_D}
       RS Thm.implies_intr ct th
   in
-    (opt |> Option.map (singleton export o fst),
+    (opt |> Option.map (I #>> singleton (Variable.export ctxt ctxt0)
+                        ##> (term_of #> HOLogic.dest_Trueprop
+                             #> singleton (Variable.export_terms ctxt ctxt0))),
      cnf_ths |> map (introduce_combinators_in_theorem
                      #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
-             |> export
+             |> Variable.export ctxt ctxt0
              |> Meson.finish_cnf
              |> map Thm.close_derivation)
   end

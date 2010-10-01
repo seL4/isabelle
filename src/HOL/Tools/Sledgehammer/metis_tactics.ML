@@ -59,11 +59,11 @@ val resolution_params = {active = active_params, waiting = waiting_params}
    horribly because of the mildly higher-order nature of the unification
    problems. Typical constraints are of the form "?x a b =?= b", where "a" and
    "b" are goal parameters. *)
-fun unify_one_prem_with_concl thy i th =
+fun unify_prem_with_concl thy i th =
   let
     val goal = Logic.get_goal (prop_of th) i |> Envir.beta_eta_contract
-    val prems = Logic.strip_assums_hyp goal
-    val concl = Logic.strip_assums_concl goal
+    val prem = goal |> Logic.strip_assums_hyp |> the_single
+    val concl = goal |> Logic.strip_assums_concl
     fun add_types Tp instT =
       if exists (curry (op =) Tp) instT then instT
       else Tp :: map (apsnd (typ_subst_atomic [Tp])) instT
@@ -108,47 +108,62 @@ fun unify_one_prem_with_concl thy i th =
       | (Var _, _) => add_terms (t, u)
       | (_, Var _) => add_terms (u, t)
       | _ => if untyped_aconv t u then I else raise TERM ("unify_terms", [t, u])
-    fun unify_prem prem =
-      let
-        val inst = [] |> unify_terms (prem, concl)
-        val _ = trace_msg (fn () => cat_lines (map (fn (t, u) =>
-            Syntax.string_of_term @{context} t ^ " |-> " ^
-            Syntax.string_of_term @{context} u) inst))
-        val instT = fold (fn Tp => unify_types (pairself fastype_of Tp)
-                                   handle TERM _ => I) inst []
-        val inst = inst |> map (pairself (subst_atomic_types instT))
-        val cinstT = instT |> map (pairself (ctyp_of thy))
-        val cinst = inst |> map (pairself (cterm_of thy))
-      in th |> Thm.instantiate (cinstT, []) |> Thm.instantiate ([], cinst) end
-  in
-    case prems of
-      [prem] => unify_prem prem
-    | _ =>
-      case fold (fn prem => fn th as SOME _ => th
-                             | NONE => try unify_prem prem) prems NONE of
-        SOME th => th
-      | NONE => raise Fail "unify_one_prem_with_concl"
-  end
+
+    val inst = [] |> unify_terms (prem, concl)
+    val _ = trace_msg (fn () => cat_lines (map (fn (t, u) =>
+        Syntax.string_of_term @{context} t ^ " |-> " ^
+        Syntax.string_of_term @{context} u) inst))
+    val instT = fold (fn Tp => unify_types (pairself fastype_of Tp)
+                               handle TERM _ => I) inst []
+    val inst = inst |> map (pairself (subst_atomic_types instT))
+    val cinstT = instT |> map (pairself (ctyp_of thy))
+    val cinst = inst |> map (pairself (cterm_of thy))
+  in th |> Thm.instantiate (cinstT, []) |> Thm.instantiate ([], cinst) end
+  handle Empty => th (* ### FIXME *)
 
 (* Attempts to derive the theorem "False" from a theorem of the form
    "P1 ==> ... ==> Pn ==> False", where the "Pi"s are to be discharged using the
    specified axioms. The axioms have leading "All" and "Ex" quantifiers, which
    must be eliminated first. *)
-fun discharge_skolem_premises ctxt axioms premises_imp_false =
-  if prop_of premises_imp_false aconv @{prop False} then
-    premises_imp_false
-  else
-    let val thy = ProofContext.theory_of ctxt in
+fun discharge_skolem_premises ctxt axioms prems_imp_false =
+  case prop_of prems_imp_false of
+    @{prop False} => prems_imp_false
+  | prems_imp_false_prop =>
+    let
+      val thy = ProofContext.theory_of ctxt
+      fun match_term p =
+        let
+          val (tyenv, tenv) =
+            Pattern.first_order_match thy p (Vartab.empty, Vartab.empty)
+          val tsubst =
+            tenv |> Vartab.dest
+                 |> sort (prod_ord int_ord bool_ord
+                          o pairself (Meson_Clausify.cluster_for_zapped_var_name
+                                      o fst o fst))
+                 |> map (Meson.term_pair_of
+                         #> pairself (Envir.subst_term_types tyenv))
+        in (tyenv, tsubst) end
+      fun subst_info_for_prem assm_no prem =
+        case prem of
+          _ $ (Const (@{const_name skolem}, _) $ (_ $ t $ num)) =>
+          let val ax_no = num |> HOLogic.dest_number |> snd in
+            (ax_no, (assm_no, match_term (nth axioms ax_no |> snd, t)))
+          end
+        | _ => raise TERM ("discharge_skolem_premises: Malformed premise",
+                           [prem])
+      val prems = Logic.strip_imp_prems prems_imp_false_prop
+      val substs = map2 subst_info_for_prem (0 upto length prems - 1) prems
+    in
       Goal.prove ctxt [] [] @{prop False}
-          (K (cut_rules_tac axioms 1
+          (K (cut_rules_tac (map fst axioms) 1
               THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
               (* two copies are better than one (FIXME) *)
               THEN etac @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast} 1
               THEN TRY (REPEAT_ALL_NEW (etac @{thm allE}) 1)
-              THEN match_tac [premises_imp_false] 1
+              THEN match_tac [prems_imp_false] 1
               THEN DETERM_UNTIL_SOLVED
                        (rtac @{thm skolem_COMBK_I} 1
-                        THEN PRIMITIVE (unify_one_prem_with_concl thy 1)
+                        THEN PRIMITIVE (unify_prem_with_concl thy 1)
                         THEN assume_tac 1)))
     end
 
