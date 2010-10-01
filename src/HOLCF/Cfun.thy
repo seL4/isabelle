@@ -373,13 +373,7 @@ lemma cont2cont_LAM' [simp, cont2cont]:
   fixes f :: "'a::cpo \<Rightarrow> 'b::cpo \<Rightarrow> 'c::cpo"
   assumes f: "cont (\<lambda>p. f (fst p) (snd p))"
   shows "cont (\<lambda>x. \<Lambda> y. f x y)"
-proof (rule cont2cont_LAM)
-  fix x :: 'a show "cont (\<lambda>y. f x y)"
-    using f by (rule cont_fst_snd_D2)
-next
-  fix y :: 'b show "cont (\<lambda>x. f x y)"
-    using f by (rule cont_fst_snd_D1)
-qed
+using assms by (simp add: cont2cont_LAM prod_cont_iff)
 
 lemma cont2cont_LAM_discrete [simp, cont2cont]:
   "(\<And>y::'a::discrete_cpo. cont (\<lambda>x. f x y)) \<Longrightarrow> cont (\<lambda>x. \<Lambda> y. f x y)"

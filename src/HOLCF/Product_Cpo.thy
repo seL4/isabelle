@@ -234,7 +234,7 @@ lemmas cont2cont_fst [simp, cont2cont] = cont_compose [OF cont_fst]
 
 lemmas cont2cont_snd [simp, cont2cont] = cont_compose [OF cont_snd]
 
-lemma cont2cont_split:
+lemma cont2cont_prod_case:
   assumes f1: "\<And>a b. cont (\<lambda>x. f x a b)"
   assumes f2: "\<And>x b. cont (\<lambda>a. f x a b)"
   assumes f3: "\<And>x a. cont (\<lambda>b. f x a b)"
@@ -248,6 +248,25 @@ apply (rule cont_const)
 apply (rule f1)
 done
 
+lemma prod_contI:
+  assumes f1: "\<And>y. cont (\<lambda>x. f (x, y))"
+  assumes f2: "\<And>x. cont (\<lambda>y. f (x, y))"
+  shows "cont f"
+proof -
+  have "cont (\<lambda>(x, y). f (x, y))"
+    by (intro cont2cont_prod_case f1 f2 cont2cont)
+  thus "cont f"
+    by (simp only: split_eta)
+qed
+
+lemma prod_cont_iff:
+  "cont f \<longleftrightarrow> (\<forall>y. cont (\<lambda>x. f (x, y))) \<and> (\<forall>x. cont (\<lambda>y. f (x, y)))"
+apply safe
+apply (erule cont_compose [OF _ cont_pair1])
+apply (erule cont_compose [OF _ cont_pair2])
+apply (simp only: prod_contI)
+done
+
 lemma cont_fst_snd_D1:
   "cont (\<lambda>p. f (fst p) (snd p)) \<Longrightarrow> cont (\<lambda>x. f x y)"
 by (drule cont_compose [OF _ cont_pair1], simp)
@@ -256,23 +275,11 @@ lemma cont_fst_snd_D2:
   "cont (\<lambda>p. f (fst p) (snd p)) \<Longrightarrow> cont (\<lambda>y. f x y)"
 by (drule cont_compose [OF _ cont_pair2], simp)
 
-lemma cont2cont_split' [simp, cont2cont]:
+lemma cont2cont_prod_case' [simp, cont2cont]:
   assumes f: "cont (\<lambda>p. f (fst p) (fst (snd p)) (snd (snd p)))"
   assumes g: "cont (\<lambda>x. g x)"
-  shows "cont (\<lambda>x. split (f x) (g x))"
-proof -
-  note f1 = f [THEN cont_fst_snd_D1]
-  note f2 = f [THEN cont_fst_snd_D2, THEN cont_fst_snd_D1]
-  note f3 = f [THEN cont_fst_snd_D2, THEN cont_fst_snd_D2]
-  show ?thesis
-    unfolding split_def
-    apply (rule cont_apply [OF g])
-    apply (rule cont_apply [OF cont_fst f2])
-    apply (rule cont_apply [OF cont_snd f3])
-    apply (rule cont_const)
-    apply (rule f1)
-    done
-qed
+  shows "cont (\<lambda>x. prod_case (f x) (g x))"
+using assms by (simp add: cont2cont_prod_case prod_cont_iff)
 
 text {* The simple version (due to Joachim Breitner) is needed if
   either element type of the pair is not a cpo. *}

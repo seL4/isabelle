@@ -185,14 +185,7 @@ lemma cont2cont_list_case' [simp, cont2cont]:
   assumes g: "cont (\<lambda>x. g x)"
   assumes h: "cont (\<lambda>p. h (fst p) (fst (snd p)) (snd (snd p)))"
   shows "cont (\<lambda>x. case f x of [] \<Rightarrow> g x | y # ys \<Rightarrow> h x y ys)"
-proof -
-  have "\<And>y ys. cont (\<lambda>x. h x (fst (y, ys)) (snd (y, ys)))"
-    by (rule h [THEN cont_fst_snd_D1])
-  hence h1: "\<And>y ys. cont (\<lambda>x. h x y ys)" by simp
-  note h2 = h [THEN cont_fst_snd_D2, THEN cont_fst_snd_D1]
-  note h3 = h [THEN cont_fst_snd_D2, THEN cont_fst_snd_D2]
-  from f g h1 h2 h3 show ?thesis by (rule cont2cont_list_case)
-qed
+using assms by (simp add: cont2cont_list_case prod_cont_iff)
 
 text {* The simple version (due to Joachim Breitner) is needed if the
   element type of the list is not a cpo. *}

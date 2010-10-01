@@ -173,17 +173,7 @@ lemma cont2cont_sum_case' [simp, cont2cont]:
   assumes g: "cont (\<lambda>p. g (fst p) (snd p))"
   assumes h: "cont (\<lambda>x. h x)"
   shows "cont (\<lambda>x. case h x of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
-proof -
-  note f1 = f [THEN cont_fst_snd_D1]
-  note f2 = f [THEN cont_fst_snd_D2]
-  note g1 = g [THEN cont_fst_snd_D1]
-  note g2 = g [THEN cont_fst_snd_D2]
-  show ?thesis
-    apply (rule cont_apply [OF h])
-    apply (rule cont_sum_case2 [OF f2 g2])
-    apply (rule cont_sum_case1 [OF f1 g1])
-    done
-qed
+using assms by (simp add: cont2cont_sum_case prod_cont_iff)
 
 subsection {* Compactness and chain-finiteness *}
 

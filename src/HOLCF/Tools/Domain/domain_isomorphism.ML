@@ -36,7 +36,7 @@ struct
 
 val beta_rules =
   @{thms beta_cfun cont_id cont_const cont2cont_Rep_CFun cont2cont_LAM'} @
-  @{thms cont2cont_fst cont2cont_snd cont2cont_Pair cont2cont_split'};
+  @{thms cont2cont_fst cont2cont_snd cont2cont_Pair cont2cont_prod_case'};
 
 val beta_ss = HOL_basic_ss addsimps (simp_thms @ beta_rules);
 
