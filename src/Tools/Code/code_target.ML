@@ -244,12 +244,10 @@ fun the_fundamental thy =
 
 fun the_literals thy = #literals o the_fundamental thy;
 
-local
-
-fun activate_target thy target =
+fun collapse_hierarchy thy =
   let
-    val ((targets, abortable), default_width) = Targets.get thy;
-    fun collapse_hierarchy target =
+    val ((targets, _), _) = Targets.get thy;
+    fun collapse target = 
       let
         val data = case Symtab.lookup targets target
          of SOME data => data
@@ -257,10 +255,17 @@ fun activate_target thy target =
       in case the_description data
        of Fundamental _ => (K I, data)
         | Extension (super, modify) => let
-            val (modify', data') = collapse_hierarchy super
+            val (modify', data') = collapse super
           in (fn naming => modify' naming #> modify naming, merge_target false target (data', data)) end
       end;
-    val (modify, data) = collapse_hierarchy target;
+  in collapse end;
+
+local
+
+fun activate_target thy target =
+  let
+    val ((targets, abortable), default_width) = Targets.get thy;
+    val (modify, data) = collapse_hierarchy thy target;
   in (default_width, abortable, data, modify) end;
 
 fun activate_syntax lookup_name src_tab = Symtab.empty
@@ -537,12 +542,16 @@ fun gen_add_const_syntax prep_const =
       then error ("Too many arguments in syntax for constant " ^ quote c)
       else syn);
 
-fun add_reserved target =
+fun add_reserved target sym thy =
   let
-    fun add sym syms = if member (op =) syms sym
+    val (_, data) = collapse_hierarchy thy target;
+    val _ = if member (op =) (the_reserved data) sym
       then error ("Reserved symbol " ^ quote sym ^ " already declared")
-      else insert (op =) sym syms
-  in map_reserved target o add end;
+      else ();
+  in
+    thy
+    |> map_reserved target (insert (op =) sym)
+  end;
 
 fun gen_add_include read_const target args thy =
   let
