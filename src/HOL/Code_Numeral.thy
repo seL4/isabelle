@@ -340,7 +340,7 @@ code_const div_mod_code_numeral
   (OCaml "Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int _)/ (Big'_int.abs'_big'_int _)")
   (Haskell "divMod")
   (Scala "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))")
-  (Eval "!(fn n => fn m =>/ if m = 0/ then (0, n) else/ (n div m, n mod m))")
+  (Eval "!(fn n => fn m =>/ if m = 0/ then (0, n) else/ (Integer.div'_mod n m))")
 
 code_const "HOL.equal \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
