@@ -281,6 +281,7 @@ fun zap_quantifiers ax_no =
     #> cprop_of #> Thm.dest_equals #> snd
   end
 
+(* FIXME: needed? and should we add ex_simps[symmetric]? *)
 val pull_out_quant_ss =
   MetaSimplifier.clear_ss HOL_basic_ss
       addsimps @{thms all_simps[symmetric]}

@@ -23,7 +23,7 @@ sig
   val best_prolog_tac: (thm -> int) -> thm list -> tactic
   val depth_prolog_tac: thm list -> tactic
   val gocls: thm list -> thm list
-  val skolemize_prems_tac: Proof.context -> thm list -> int -> tactic
+  val skolemize_prems_tac : Proof.context -> thm list -> int -> tactic
   val MESON:
     tactic -> (thm list -> thm list) -> (thm list -> tactic) -> Proof.context
     -> int -> tactic
@@ -62,7 +62,6 @@ val make_neg_goal = @{thm make_neg_goal};
 val conj_forward = @{thm conj_forward};
 val all_forward = @{thm all_forward};
 val ex_forward = @{thm ex_forward};
-val choice = @{thm choice};
 
 val not_conjD = @{thm meson_not_conjD};
 val not_disjD = @{thm meson_not_disjD};
@@ -523,33 +522,38 @@ val nnf_ss =
     addsimprocs [defALL_regroup,defEX_regroup, @{simproc neq}, @{simproc let_simp}];
 
 val presimplify =
-  rewrite_rule (map safe_mk_meta_eq nnf_simps)
-  #> simplify nnf_ss
+  rewrite_rule (map safe_mk_meta_eq nnf_simps) #> simplify nnf_ss
 
 fun make_nnf ctxt th = case prems_of th of
     [] => th |> presimplify |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
-(*Pull existential quantifiers to front. This accomplishes Skolemization for
-  clauses that arise from a subgoal.*)
-fun skolemize1 ctxt th =
-  if not (has_conns [@{const_name Ex}] (prop_of th)) then th
-  else (skolemize1 ctxt (tryres(th, [choice, conj_exD1, conj_exD2,
-                              disj_exD, disj_exD1, disj_exD2])))
-    handle THM ("tryres", _, _) =>
-        skolemize1 ctxt (forward_res ctxt (skolemize1 ctxt)
-                   (tryres (th, [conj_forward, disj_forward, all_forward])))
-    handle THM ("tryres", _, _) => 
-        forward_res ctxt (skolemize1 ctxt) (rename_bvs_RS th ex_forward);
+(* Pull existential quantifiers to front. This accomplishes Skolemization for
+   clauses that arise from a subgoal. *)
+fun skolemize ctxt =
+  let
+    fun aux th =
+      if not (has_conns [@{const_name Ex}] (prop_of th)) then
+        th
+      else
+        tryres (th, Meson_Choices.get ctxt @
+                    [conj_exD1, conj_exD2, disj_exD, disj_exD1, disj_exD2])
+        |> aux
+        handle THM ("tryres", _, _) =>
+               tryres (th, [conj_forward, disj_forward, all_forward])
+               |> forward_res ctxt aux
+               |> aux
+               handle THM ("tryres", _, _) =>
+                      rename_bvs_RS th ex_forward
+                      |> forward_res ctxt aux
+  in aux o make_nnf ctxt end
 
-fun skolemize ctxt th = skolemize1 ctxt (make_nnf ctxt th);
-
-fun skolemize_nnf_list _ [] = []
-  | skolemize_nnf_list ctxt (th::ths) =
-      skolemize ctxt th :: skolemize_nnf_list ctxt ths
-      handle THM _ => (*RS can fail if Unify.search_bound is too small*)
-       (trace_msg (fn () => "Failed to Skolemize " ^ Display.string_of_thm ctxt th);
-        skolemize_nnf_list ctxt ths);
+(* "RS" can fail if "unify_search_bound" is too small. *)
+fun try_skolemize ctxt th =
+  try (skolemize ctxt) th
+  |> tap (fn NONE => trace_msg (fn () => "Failed to skolemize " ^
+                                         Display.string_of_thm ctxt th)
+           | _ => ())
 
 fun add_clauses th cls =
   let val ctxt0 = Variable.global_thm_context th
@@ -579,7 +583,7 @@ fun depth_prolog_tac horns =
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
 fun skolemize_prems_tac ctxt prems =
-  cut_facts_tac (skolemize_nnf_list ctxt prems) THEN' REPEAT o etac exE
+  cut_facts_tac (map_filter (try_skolemize ctxt) prems) THEN' REPEAT o etac exE
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
