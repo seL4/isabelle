@@ -50,6 +50,24 @@ by (cases xs, simp_all)
 lemma below_Nil_iff [simp]: "xs \<sqsubseteq> [] \<longleftrightarrow> xs = []"
 by (cases xs, simp_all)
 
+lemma list_below_induct [consumes 1, case_names Nil Cons]:
+  assumes "xs \<sqsubseteq> ys"
+  assumes 1: "P [] []"
+  assumes 2: "\<And>x y xs ys. \<lbrakk>x \<sqsubseteq> y; xs \<sqsubseteq> ys; P xs ys\<rbrakk> \<Longrightarrow> P (x # xs) (y # ys)"
+  shows "P xs ys"
+using `xs \<sqsubseteq> ys`
+proof (induct xs arbitrary: ys)
+  case Nil thus ?case by (simp add: 1)
+next
+  case (Cons x xs) thus ?case by (cases ys, simp_all add: 2)
+qed
+
+lemma list_below_cases:
+  assumes "xs \<sqsubseteq> ys"
+  obtains "xs = []" and "ys = []" |
+    x y xs' ys' where "xs = x # xs'" and "ys = y # ys'"
+using assms by (cases xs, simp, cases ys, auto)
+
 text "Thanks to Joachim Breitner"
 
 lemma list_Cons_below:
@@ -77,25 +95,36 @@ by (rule chainI, rule tl_mono, erule chainE)
 lemma below_same_length: "xs \<sqsubseteq> ys \<Longrightarrow> length xs = length ys"
 unfolding below_list_def by (rule list_all2_lengthD)
 
-lemma list_chain_cases:
-  assumes S: "chain S"
-  obtains "\<forall>i. S i = []" |
-    A B where "chain A" and "chain B" and "\<forall>i. S i = A i # B i"
-proof (cases "S 0")
+lemma list_chain_induct [consumes 1, case_names Nil Cons]:
+  assumes "chain S"
+  assumes 1: "P (\<lambda>i. [])"
+  assumes 2: "\<And>A B. chain A \<Longrightarrow> chain B \<Longrightarrow> P B \<Longrightarrow> P (\<lambda>i. A i # B i)"
+  shows "P S"
+using `chain S`
+proof (induct "S 0" arbitrary: S)
   case Nil
-  have "\<forall>i. S 0 \<sqsubseteq> S i" by (simp add: chain_mono [OF S])
+  have "\<forall>i. S 0 \<sqsubseteq> S i" by (simp add: chain_mono [OF `chain S`])
   with Nil have "\<forall>i. S i = []" by simp
-  thus ?thesis ..
+  thus ?case by (simp add: 1)
 next
   case (Cons x xs)
-  have "\<forall>i. S 0 \<sqsubseteq> S i" by (simp add: chain_mono [OF S])
-  hence *: "\<forall>i. S i \<noteq> []" by (rule all_forward) (auto simp add: Cons)
-  let ?A = "\<lambda>i. hd (S i)"
-  let ?B = "\<lambda>i. tl (S i)"
-  from S have "chain ?A" and "chain ?B" by simp_all
-  moreover have "\<forall>i. S i = ?A i # ?B i" by (simp add: *)
-  ultimately show ?thesis ..
+  have "\<forall>i. S 0 \<sqsubseteq> S i" by (simp add: chain_mono [OF `chain S`])
+  hence *: "\<forall>i. S i \<noteq> []" by (rule all_forward, insert Cons) auto
+  have "chain (\<lambda>i. hd (S i))" and "chain (\<lambda>i. tl (S i))"
+    using `chain S` by simp_all
+  moreover have "P (\<lambda>i. tl (S i))"
+    using `chain S` and `x # xs = S 0` [symmetric]
+    by (simp add: Cons(1))
+  ultimately have "P (\<lambda>i. hd (S i) # tl (S i))"
+    by (rule 2)
+  thus "P S" by (simp add: *)
 qed
+
+lemma list_chain_cases:
+  assumes S: "chain S"
+  obtains "S = (\<lambda>i. [])" |
+    A B where "chain A" and "chain B" and "S = (\<lambda>i. A i # B i)"
+using S by (induct rule: list_chain_induct) simp_all
 
 subsection {* Lists are a complete partial order *}
 
@@ -107,38 +136,15 @@ using assms
 unfolding is_lub_def is_ub_def Ball_def [symmetric]
 by (clarsimp, case_tac u, simp_all)
 
-lemma list_cpo_lemma:
-  fixes S :: "nat \<Rightarrow> 'a::cpo list"
-  assumes "chain S" and "\<forall>i. length (S i) = n"
-  shows "\<exists>x. range S <<| x"
-using assms
- apply (induct n arbitrary: S)
-  apply (subgoal_tac "S = (\<lambda>i. [])")
-  apply (fast intro: lub_const)
-  apply (simp add: fun_eq_iff)
- apply (drule_tac x="\<lambda>i. tl (S i)" in meta_spec, clarsimp)
- apply (rule_tac x="(\<Squnion>i. hd (S i)) # x" in exI)
- apply (subgoal_tac "range (\<lambda>i. hd (S i) # tl (S i)) = range S")
-  apply (erule subst)
-  apply (rule is_lub_Cons)
-   apply (rule thelubE [OF _ refl])
-   apply (erule ch2ch_hd)
-  apply assumption
- apply (rule_tac f="\<lambda>S. range S" in arg_cong)
- apply (rule ext)
- apply (rule hd_Cons_tl)
- apply (drule_tac x=i in spec, auto)
-done
-
 instance list :: (cpo) cpo
 proof
   fix S :: "nat \<Rightarrow> 'a list"
-  assume "chain S"
-  hence "\<forall>i. S 0 \<sqsubseteq> S i" by (simp add: chain_mono)
-  hence "\<forall>i. length (S i) = length (S 0)"
-    by (fast intro: below_same_length [symmetric])
-  with `chain S` show "\<exists>x. range S <<| x"
-    by (rule list_cpo_lemma)
+  assume "chain S" thus "\<exists>x. range S <<| x"
+  proof (induct rule: list_chain_induct)
+    case Nil thus ?case by (auto intro: lub_const)
+  next
+    case (Cons A B) thus ?case by (auto intro: is_lub_Cons cpo_lubI)
+  qed
 qed
 
 subsection {* Continuity of list operations *}
@@ -195,6 +201,37 @@ lemma cont2cont_list_case_simple [simp, cont2cont]:
   assumes "\<And>y ys. cont (\<lambda>x. f2 x y ys)"
   shows "cont (\<lambda>x. case l of [] \<Rightarrow> f1 x | y # ys \<Rightarrow> f2 x y ys)"
 using assms by (cases l) auto
+
+text {* Lemma for proving continuity of recursive list functions: *}
+
+lemma list_contI:
+  fixes f :: "'a::cpo list \<Rightarrow> 'b::cpo"
+  assumes f: "\<And>x xs. f (x # xs) = g x xs (f xs)"
+  assumes g1: "\<And>xs y. cont (\<lambda>x. g x xs y)"
+  assumes g2: "\<And>x y. cont (\<lambda>xs. g x xs y)"
+  assumes g3: "\<And>x xs. cont (\<lambda>y. g x xs y)"
+  shows "cont f"
+proof (rule contI2)
+  obtain h where h: "\<And>x xs y. g x xs y = h\<cdot>x\<cdot>xs\<cdot>y"
+  proof
+    fix x xs y show "g x xs y = (\<Lambda> x xs y. g x xs y)\<cdot>x\<cdot>xs\<cdot>y"
+    by (simp add: cont2cont_LAM g1 g2 g3)
+  qed
+  show mono: "monofun f"
+    apply (rule monofunI)
+    apply (erule list_below_induct)
+    apply simp
+    apply (simp add: f h monofun_cfun)
+    done
+  fix Y :: "nat \<Rightarrow> 'a list"
+  assume "chain Y" thus "f (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. f (Y i))"
+    apply (induct rule: list_chain_induct)
+    apply simp
+    apply (simp add: lub_Cons f h)
+    apply (simp add: contlub_cfun [symmetric] ch2ch_monofun [OF mono])
+    apply (simp add: monofun_cfun)
+    done
+qed
 
 text {* There are probably lots of other list operations that also
 deserve to have continuity lemmas.  I'll add more as they are
