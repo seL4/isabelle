@@ -160,7 +160,7 @@ fun run_solver ctxt cmd args input =
     val (res, err) = with_timeout ctxt (run ctxt cmd args) input
     val _ = trace_msg ctxt (pretty "SMT solver:") err
 
-    val ls = rev (drop_while (equal "") (rev res))
+    val ls = rev (snd (chop_while (equal "") (rev res)))
     val _ = trace_msg ctxt (pretty "SMT result:") ls
   in ls end
 

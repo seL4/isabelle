@@ -83,8 +83,7 @@ sig
   val take: int -> 'a list -> 'a list
   val drop: int -> 'a list -> 'a list
   val chop: int -> 'a list -> 'a list * 'a list
-  val take_while: ('a -> bool) -> 'a list -> 'a list
-  val drop_while: ('a -> bool) -> 'a list -> 'a list
+  val chop_while: ('a -> bool) -> 'a list -> 'a list * 'a list
   val nth: 'a list -> int -> 'a
   val nth_map: int -> ('a -> 'a) -> 'a list -> 'a list
   val nth_drop: int -> 'a list -> 'a list
@@ -422,11 +421,9 @@ fun chop (0: int) xs = ([], xs)
   | chop _ [] = ([], [])
   | chop n (x :: xs) = chop (n - 1) xs |>> cons x;
 
-fun drop_while P [] = []
-  | drop_while P (ys as x :: xs) = if P x then drop_while P xs else ys;
-
-fun take_while P [] = []
-  | take_while P (x :: xs) = if P x then x :: take_while P xs else [];
+fun chop_while P [] = ([], [])
+  | chop_while P (ys as x :: xs) =
+      if P x then chop_while P xs |>> cons x else ([], ys);
 
 (*return nth element of a list, where 0 designates the first element;
   raise Subscript if list too short*)

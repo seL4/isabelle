@@ -2772,8 +2772,8 @@ fun List_append_interpreter ctxt model args t =
               (* go back up the stack until we find a level where we can go *)
               (* to the next sibling node                                   *)
               let
-                val offsets' = drop_while
-                  (fn off' => off' mod size_elem = size_elem - 1) offsets
+                val offsets' = snd (chop_while
+                  (fn off' => off' mod size_elem = size_elem - 1) offsets)
               in
                 case offsets' of
                   [] =>
