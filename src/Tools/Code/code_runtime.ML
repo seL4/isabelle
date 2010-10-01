@@ -121,7 +121,8 @@ fun static_value cookie thy some_target postproc consts t =
 
 (* evaluation for truth or nothing *)
 
-structure Truth_Result = Proof_Data (
+structure Truth_Result = Proof_Data
+(
   type T = unit -> truth
   fun init _ () = error "Truth_Result"
 );
@@ -347,10 +348,11 @@ end; (*local*)
 
 local
 
-structure Loaded_Values = Theory_Data(
+structure Loaded_Values = Theory_Data
+(
   type T = string list
   val empty = []
-  val merge = merge (op =)
+  fun merge data : T = Library.merge (op =) data
   val extend = I
 );
 
