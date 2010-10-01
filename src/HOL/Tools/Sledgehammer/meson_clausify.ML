@@ -304,7 +304,7 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
     if new_skolemizer then
       let
         fun skolemize choice_ths =
-          Meson.skolemize ctxt choice_ths
+          Meson.skolemize_with_choice_thms ctxt choice_ths
           #> simplify (ss_only @{thms all_simps[symmetric]})
         val pull_out =
           simplify (ss_only @{thms all_simps[symmetric] ex_simps[symmetric]})

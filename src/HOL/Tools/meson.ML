@@ -15,7 +15,8 @@ sig
   val finish_cnf: thm list -> thm list
   val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
-  val skolemize : Proof.context -> thm list -> thm -> thm
+  val skolemize_with_choice_thms : Proof.context -> thm list -> thm -> thm
+  val skolemize : Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
   val make_clauses_unsorted: thm list -> thm list
   val make_clauses: thm list -> thm list
@@ -105,10 +106,24 @@ fun first_order_resolve thA thB =
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
 
-(*Forward proof while preserving bound variables names*)
+(* Applying "choice" swaps the bound variable names. We tweak
+   "Thm.rename_boundvars"'s input to get the desired names. *)
+fun tweak_bounds (_ $ (Const (@{const_name Ex}, _)
+                       $ Abs (_, _, Const (@{const_name All}, _) $ _)))
+                 (t0 $ (Const (@{const_name All}, T1)
+                        $ Abs (a1, T1', Const (@{const_name Ex}, T2)
+                                        $ Abs (a2, T2', t')))) =
+    t0 $ (Const (@{const_name All}, T1)
+          $ Abs (a2, T1', Const (@{const_name Ex}, T2) $ Abs (a1, T2', t')))
+  | tweak_bounds _ t = t
+
+(* Forward proof while preserving bound variables names*)
 fun rename_bvs_RS th rl =
-  let val th' = th RS rl
-  in  Thm.rename_boundvars (concl_of th') (concl_of th) th' end;
+  let
+    val th' = th RS rl
+    val t = concl_of th
+    val t' = concl_of th'
+  in Thm.rename_boundvars t' (tweak_bounds t' t) th' end
 
 (*raises exception if no rules apply*)
 fun tryres (th, rls) =
@@ -530,7 +545,7 @@ fun make_nnf ctxt th = case prems_of th of
 
 (* Pull existential quantifiers to front. This accomplishes Skolemization for
    clauses that arise from a subgoal. *)
-fun skolemize ctxt choice_ths =
+fun skolemize_with_choice_thms ctxt choice_ths =
   let
     fun aux th =
       if not (has_conns [@{const_name Ex}] (prop_of th)) then
@@ -548,9 +563,11 @@ fun skolemize ctxt choice_ths =
                       |> forward_res ctxt aux
   in aux o make_nnf ctxt end
 
+fun skolemize ctxt = skolemize_with_choice_thms ctxt (Meson_Choices.get ctxt)
+
 (* "RS" can fail if "unify_search_bound" is too small. *)
 fun try_skolemize ctxt th =
-  try (skolemize ctxt (Meson_Choices.get ctxt)) th
+  try (skolemize ctxt) th
   |> tap (fn NONE => trace_msg (fn () => "Failed to skolemize " ^
                                          Display.string_of_thm ctxt th)
            | _ => ())
