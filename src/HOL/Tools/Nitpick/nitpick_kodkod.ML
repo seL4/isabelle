@@ -49,8 +49,6 @@ open Nitpick_Nut
 
 structure KK = Kodkod
 
-structure NfaGraph = Typ_Graph
-
 fun pull x xs = x :: filter_out (curry (op =) x) xs
 
 fun is_datatype_acyclic ({co = false, standard = true, deep = true, ...}
@@ -720,19 +718,16 @@ and loop_path_rel_expr ({kk_union, ...} : kodkod_constrs) nfa [] start_T =
       kk_union (loop_path_rel_expr kk nfa Ts start_T)
                (knot_path_rel_expr kk nfa Ts start_T T start_T)
 
-fun graph_for_nfa nfa =
-  let
-    fun new_node T = perhaps (try (NfaGraph.new_node (T, ())))
-    fun add_nfa [] = I
-      | add_nfa ((_, []) :: nfa) = add_nfa nfa
-      | add_nfa ((T, ((_, T') :: transitions)) :: nfa) =
-        add_nfa ((T, transitions) :: nfa) o NfaGraph.add_edge (T, T') o
-        new_node T' o new_node T
-  in add_nfa nfa NfaGraph.empty end
+fun add_nfa_to_graph [] = I
+  | add_nfa_to_graph ((_, []) :: nfa) = add_nfa_to_graph nfa
+  | add_nfa_to_graph ((T, ((_, T') :: transitions)) :: nfa) =
+    add_nfa_to_graph ((T, transitions) :: nfa) o Typ_Graph.add_edge (T, T') o
+    Typ_Graph.default_node (T', ()) o Typ_Graph.default_node (T, ())
 
 fun strongly_connected_sub_nfas nfa =
-  nfa |> graph_for_nfa |> NfaGraph.strong_conn
-      |> map (fn keys => filter (member (op =) keys o fst) nfa)
+  add_nfa_to_graph nfa Typ_Graph.empty
+  |> Typ_Graph.strong_conn
+  |> map (fn keys => filter (member (op =) keys o fst) nfa)
 
 fun acyclicity_axiom_for_datatype (kk as {kk_no, kk_intersect, ...}) nfa
                                   start_T =

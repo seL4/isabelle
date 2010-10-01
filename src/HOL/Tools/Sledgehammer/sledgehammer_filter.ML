@@ -77,8 +77,8 @@ type relevance_override =
    only: bool}
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
-val abs_name = "Sledgehammer.abs"
-val skolem_prefix = "Sledgehammer.sko"
+val abs_name = sledgehammer_prefix ^ "abs"
+val skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
 fun repair_name reserved multi j name =

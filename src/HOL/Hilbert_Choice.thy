@@ -81,8 +81,17 @@ done
 
 subsection{*Axiom of Choice, Proved Using the Description Operator*}
 
-text{*Used in @{text "Tools/meson.ML"}*}
-lemma choice: "\<forall>x. \<exists>y. Q x y ==> \<exists>f. \<forall>x. Q x (f x)"
+ML {*
+structure Meson_Choices = Named_Thms
+(
+  val name = "meson_choice"
+  val description = "choice axioms for MESON's (and Metis's) skolemizer"
+)
+*}
+
+setup Meson_Choices.setup
+
+lemma choice [meson_choice]: "\<forall>x. \<exists>y. Q x y ==> \<exists>f. \<forall>x. Q x (f x)"
 by (fast elim: someI)
 
 lemma bchoice: "\<forall>x\<in>S. \<exists>y. Q x y ==> \<exists>f. \<forall>x\<in>S. Q x (f x)"

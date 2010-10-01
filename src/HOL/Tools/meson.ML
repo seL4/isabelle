@@ -9,14 +9,14 @@ signature MESON =
 sig
   val trace: bool Unsynchronized.ref
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
-  val flexflex_first_order: thm -> thm
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
-  val skolemize: Proof.context -> thm -> thm
+  val skolemize_with_choice_thms : Proof.context -> thm list -> thm -> thm
+  val skolemize : Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
   val make_clauses_unsorted: thm list -> thm list
   val make_clauses: thm list -> thm list
@@ -24,7 +24,7 @@ sig
   val best_prolog_tac: (thm -> int) -> thm list -> tactic
   val depth_prolog_tac: thm list -> tactic
   val gocls: thm list -> thm list
-  val skolemize_prems_tac: Proof.context -> thm list -> int -> tactic
+  val skolemize_prems_tac : Proof.context -> thm list -> int -> tactic
   val MESON:
     tactic -> (thm list -> thm list) -> (thm list -> tactic) -> Proof.context
     -> int -> tactic
@@ -37,13 +37,10 @@ sig
   val make_meta_clause: thm -> thm
   val make_meta_clauses: thm list -> thm list
   val meson_tac: Proof.context -> thm list -> int -> tactic
-  val negate_head: thm -> thm
-  val select_literal: int -> thm -> thm
-  val skolemize_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end
 
-structure Meson: MESON =
+structure Meson : MESON =
 struct
 
 val trace = Unsynchronized.ref false;
@@ -66,7 +63,6 @@ val make_neg_goal = @{thm make_neg_goal};
 val conj_forward = @{thm conj_forward};
 val all_forward = @{thm all_forward};
 val ex_forward = @{thm ex_forward};
-val choice = @{thm choice};
 
 val not_conjD = @{thm meson_not_conjD};
 val not_disjD = @{thm meson_not_disjD};
@@ -110,22 +106,24 @@ fun first_order_resolve thA thB =
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
 
-fun flexflex_first_order th =
-  case Thm.tpairs_of th of
-      [] => th
-    | pairs =>
-        let val thy = theory_of_thm th
-            val (_, tenv) =
-              fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
-            val t_pairs = map term_pair_of (Vartab.dest tenv)
-            val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
-        in  th'  end
-        handle THM _ => th;
+(* Applying "choice" swaps the bound variable names. We tweak
+   "Thm.rename_boundvars"'s input to get the desired names. *)
+fun tweak_bounds (_ $ (Const (@{const_name Ex}, _)
+                       $ Abs (_, _, Const (@{const_name All}, _) $ _)))
+                 (t0 $ (Const (@{const_name All}, T1)
+                        $ Abs (a1, T1', Const (@{const_name Ex}, T2)
+                                        $ Abs (a2, T2', t')))) =
+    t0 $ (Const (@{const_name All}, T1)
+          $ Abs (a2, T1', Const (@{const_name Ex}, T2) $ Abs (a1, T2', t')))
+  | tweak_bounds _ t = t
 
-(*Forward proof while preserving bound variables names*)
+(* Forward proof while preserving bound variables names*)
 fun rename_bvs_RS th rl =
-  let val th' = th RS rl
-  in  Thm.rename_boundvars (concl_of th') (concl_of th) th' end;
+  let
+    val th' = th RS rl
+    val t = concl_of th
+    val t' = concl_of th'
+  in Thm.rename_boundvars t' (tweak_bounds t' t) th' end
 
 (*raises exception if no rules apply*)
 fun tryres (th, rls) =
@@ -330,7 +328,7 @@ fun apply_skolem_theorem (th, rls) =
 (* Conjunctive normal form, adding clauses from th in front of ths (for foldr).
    Strips universal quantifiers and breaks up conjunctions.
    Eliminates existential quantifiers using Skolemization theorems. *)
-fun cnf skolem_ths ctxt (th, ths) =
+fun cnf old_skolem_ths ctxt (th, ths) =
   let val ctxtr = Unsynchronized.ref ctxt   (* FIXME ??? *)
       fun cnf_aux (th,ths) =
         if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
@@ -344,7 +342,7 @@ fun cnf skolem_ths ctxt (th, ths) =
                 in  ctxtr := ctxt'; cnf_aux (th', ths) end
           | Const (@{const_name Ex}, _) =>
               (*existential quantifier: Insert Skolem functions*)
-              cnf_aux (apply_skolem_theorem (th, skolem_ths), ths)
+              cnf_aux (apply_skolem_theorem (th, old_skolem_ths), ths)
           | Const (@{const_name HOL.disj}, _) =>
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
@@ -360,7 +358,7 @@ fun cnf skolem_ths ctxt (th, ths) =
             else cnf_aux (th,ths)
   in  (cls, !ctxtr)  end;
 
-fun make_cnf skolem_ths th ctxt = cnf skolem_ths ctxt (th, []);
+fun make_cnf old_skolem_ths th ctxt = cnf old_skolem_ths ctxt (th, [])
 
 (*Generalization, removal of redundant equalities, removal of tautologies.*)
 fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);
@@ -539,33 +537,40 @@ val nnf_ss =
     addsimprocs [defALL_regroup,defEX_regroup, @{simproc neq}, @{simproc let_simp}];
 
 val presimplify =
-  rewrite_rule (map safe_mk_meta_eq nnf_simps)
-  #> simplify nnf_ss
+  rewrite_rule (map safe_mk_meta_eq nnf_simps) #> simplify nnf_ss
 
 fun make_nnf ctxt th = case prems_of th of
     [] => th |> presimplify |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
-(*Pull existential quantifiers to front. This accomplishes Skolemization for
-  clauses that arise from a subgoal.*)
-fun skolemize1 ctxt th =
-  if not (has_conns [@{const_name Ex}] (prop_of th)) then th
-  else (skolemize1 ctxt (tryres(th, [choice, conj_exD1, conj_exD2,
-                              disj_exD, disj_exD1, disj_exD2])))
-    handle THM ("tryres", _, _) =>
-        skolemize1 ctxt (forward_res ctxt (skolemize1 ctxt)
-                   (tryres (th, [conj_forward, disj_forward, all_forward])))
-    handle THM ("tryres", _, _) => 
-        forward_res ctxt (skolemize1 ctxt) (rename_bvs_RS th ex_forward);
+(* Pull existential quantifiers to front. This accomplishes Skolemization for
+   clauses that arise from a subgoal. *)
+fun skolemize_with_choice_thms ctxt choice_ths =
+  let
+    fun aux th =
+      if not (has_conns [@{const_name Ex}] (prop_of th)) then
+        th
+      else
+        tryres (th, choice_ths @
+                    [conj_exD1, conj_exD2, disj_exD, disj_exD1, disj_exD2])
+        |> aux
+        handle THM ("tryres", _, _) =>
+               tryres (th, [conj_forward, disj_forward, all_forward])
+               |> forward_res ctxt aux
+               |> aux
+               handle THM ("tryres", _, _) =>
+                      rename_bvs_RS th ex_forward
+                      |> forward_res ctxt aux
+  in aux o make_nnf ctxt end
 
-fun skolemize ctxt th = skolemize1 ctxt (make_nnf ctxt th);
+fun skolemize ctxt = skolemize_with_choice_thms ctxt (Meson_Choices.get ctxt)
 
-fun skolemize_nnf_list _ [] = []
-  | skolemize_nnf_list ctxt (th::ths) =
-      skolemize ctxt th :: skolemize_nnf_list ctxt ths
-      handle THM _ => (*RS can fail if Unify.search_bound is too small*)
-       (trace_msg (fn () => "Failed to Skolemize " ^ Display.string_of_thm ctxt th);
-        skolemize_nnf_list ctxt ths);
+(* "RS" can fail if "unify_search_bound" is too small. *)
+fun try_skolemize ctxt th =
+  try (skolemize ctxt) th
+  |> tap (fn NONE => trace_msg (fn () => "Failed to skolemize " ^
+                                         Display.string_of_thm ctxt th)
+           | _ => ())
 
 fun add_clauses th cls =
   let val ctxt0 = Variable.global_thm_context th
@@ -595,7 +600,7 @@ fun depth_prolog_tac horns =
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
 fun skolemize_prems_tac ctxt prems =
-  cut_facts_tac (skolemize_nnf_list ctxt prems) THEN' REPEAT o etac exE
+  cut_facts_tac (map_filter (try_skolemize ctxt) prems) THEN' REPEAT o etac exE
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
@@ -693,38 +698,5 @@ fun make_meta_clause th =
 fun make_meta_clauses ths =
     name_thms "MClause#"
       (distinct Thm.eq_thm_prop (map make_meta_clause ths));
-
-(*Permute a rule's premises to move the i-th premise to the last position.*)
-fun make_last i th =
-  let val n = nprems_of th
-  in  if 1 <= i andalso i <= n
-      then Thm.permute_prems (i-1) 1 th
-      else raise THM("select_literal", i, [th])
-  end;
-
-(*Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
-  double-negations.*)
-val negate_head = rewrite_rule [@{thm atomize_not}, not_not RS eq_reflection];
-
-(*Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P*)
-fun select_literal i cl = negate_head (make_last i cl);
-
-
-(*Top-level Skolemization. Allows part of the conversion to clauses to be
-  expressed as a tactic (or Isar method).  Each assumption of the selected
-  goal is converted to NNF and then its existential quantifiers are pulled
-  to the front. Finally, all existential quantifiers are eliminated,
-  leaving !!-quantified variables. Perhaps Safe_tac should follow, but it
-  might generate many subgoals.*)
-
-fun skolemize_tac ctxt = SUBGOAL (fn (goal, i) =>
-  let val ts = Logic.strip_assums_hyp goal
-  in
-    EVERY'
-     [Misc_Legacy.METAHYPS (fn hyps =>
-        (cut_facts_tac (skolemize_nnf_list ctxt hyps) 1
-          THEN REPEAT (etac exE 1))),
-      REPEAT_DETERM_N (length ts) o (etac thin_rl)] i
-  end);
 
 end;
