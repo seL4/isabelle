@@ -337,7 +337,7 @@ subsection{*Injectivity of @{term FnCall}*}
 
 definition
   "fun" :: "exp \<Rightarrow> nat" where
-  "fun X = contents (\<Union>U \<in> Rep_Exp X. {freefun U})"
+  "fun X = the_elem (\<Union>U \<in> Rep_Exp X. {freefun U})"
 
 lemma fun_respects: "(%U. {freefun U}) respects exprel"
 by (simp add: congruent_def exprel_imp_eq_freefun) 
@@ -349,7 +349,7 @@ done
 
 definition
   args :: "exp \<Rightarrow> exp list" where
-  "args X = contents (\<Union>U \<in> Rep_Exp X. {Abs_ExpList (freeargs U)})"
+  "args X = the_elem (\<Union>U \<in> Rep_Exp X. {Abs_ExpList (freeargs U)})"
 
 text{*This result can probably be generalized to arbitrary equivalence
 relations, but with little benefit here.*}
@@ -384,7 +384,7 @@ function in order to prove discrimination theorems.*}
 
 definition
   discrim :: "exp \<Rightarrow> int" where
-  "discrim X = contents (\<Union>U \<in> Rep_Exp X. {freediscrim U})"
+  "discrim X = the_elem (\<Union>U \<in> Rep_Exp X. {freediscrim U})"
 
 lemma discrim_respects: "(\<lambda>U. {freediscrim U}) respects exprel"
 by (simp add: congruent_def exprel_imp_eq_freediscrim) 

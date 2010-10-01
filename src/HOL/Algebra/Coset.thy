@@ -924,9 +924,9 @@ proof -
 qed
 
 
-lemma (in group_hom) FactGroup_contents_mem:
+lemma (in group_hom) FactGroup_the_elem_mem:
   assumes X: "X \<in> carrier (G Mod (kernel G H h))"
-  shows "contents (h`X) \<in> carrier H"
+  shows "the_elem (h`X) \<in> carrier H"
 proof -
   from X
   obtain g where g: "g \<in> carrier G" 
@@ -937,8 +937,8 @@ proof -
 qed
 
 lemma (in group_hom) FactGroup_hom:
-     "(\<lambda>X. contents (h`X)) \<in> hom (G Mod (kernel G H h)) H"
-apply (simp add: hom_def FactGroup_contents_mem  normal.factorgroup_is_group [OF normal_kernel] group.axioms monoid.m_closed)
+     "(\<lambda>X. the_elem (h`X)) \<in> hom (G Mod (kernel G H h)) H"
+apply (simp add: hom_def FactGroup_the_elem_mem normal.factorgroup_is_group [OF normal_kernel] group.axioms monoid.m_closed)
 proof (intro ballI)
   fix X and X'
   assume X:  "X  \<in> carrier (G Mod kernel G H h)"
@@ -955,7 +955,7 @@ proof (intro ballI)
     by (auto dest!: FactGroup_nonempty
              simp add: set_mult_def image_eq_UN 
                        subsetD [OF Xsub] subsetD [OF X'sub]) 
-  thus "contents (h ` (X <#> X')) = contents (h ` X) \<otimes>\<^bsub>H\<^esub> contents (h ` X')"
+  thus "the_elem (h ` (X <#> X')) = the_elem (h ` X) \<otimes>\<^bsub>H\<^esub> the_elem (h ` X')"
     by (simp add: all image_eq_UN FactGroup_nonempty X X')
 qed
 
@@ -971,7 +971,7 @@ apply (simp add: G.m_assoc)
 done
 
 lemma (in group_hom) FactGroup_inj_on:
-     "inj_on (\<lambda>X. contents (h ` X)) (carrier (G Mod kernel G H h))"
+     "inj_on (\<lambda>X. the_elem (h ` X)) (carrier (G Mod kernel G H h))"
 proof (simp add: inj_on_def, clarify) 
   fix X and X'
   assume X:  "X  \<in> carrier (G Mod kernel G H h)"
@@ -983,7 +983,7 @@ proof (simp add: inj_on_def, clarify)
     by (auto simp add: FactGroup_def RCOSETS_def)
   hence all: "\<forall>x\<in>X. h x = h g" "\<forall>x\<in>X'. h x = h g'" 
     by (force simp add: kernel_def r_coset_def image_def)+
-  assume "contents (h ` X) = contents (h ` X')"
+  assume "the_elem (h ` X) = the_elem (h ` X')"
   hence h: "h g = h g'"
     by (simp add: image_eq_UN all FactGroup_nonempty X X') 
   show "X=X'" by (rule equalityI) (simp_all add: FactGroup_subset h gX) 
@@ -993,11 +993,11 @@ text{*If the homomorphism @{term h} is onto @{term H}, then so is the
 homomorphism from the quotient group*}
 lemma (in group_hom) FactGroup_onto:
   assumes h: "h ` carrier G = carrier H"
-  shows "(\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h) = carrier H"
+  shows "(\<lambda>X. the_elem (h ` X)) ` carrier (G Mod kernel G H h) = carrier H"
 proof
-  show "(\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h) \<subseteq> carrier H"
-    by (auto simp add: FactGroup_contents_mem)
-  show "carrier H \<subseteq> (\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h)"
+  show "(\<lambda>X. the_elem (h ` X)) ` carrier (G Mod kernel G H h) \<subseteq> carrier H"
+    by (auto simp add: FactGroup_the_elem_mem)
+  show "carrier H \<subseteq> (\<lambda>X. the_elem (h ` X)) ` carrier (G Mod kernel G H h)"
   proof
     fix y
     assume y: "y \<in> carrier H"
@@ -1005,7 +1005,7 @@ proof
       by (blast elim: equalityE) 
     hence "(\<Union>x\<in>kernel G H h #> g. {h x}) = {y}" 
       by (auto simp add: y kernel_def r_coset_def) 
-    with g show "y \<in> (\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h)" 
+    with g show "y \<in> (\<lambda>X. the_elem (h ` X)) ` carrier (G Mod kernel G H h)" 
       by (auto intro!: bexI simp add: FactGroup_def RCOSETS_def image_eq_UN)
   qed
 qed
@@ -1015,7 +1015,7 @@ text{*If @{term h} is a homomorphism from @{term G} onto @{term H}, then the
  quotient group @{term "G Mod (kernel G H h)"} is isomorphic to @{term H}.*}
 theorem (in group_hom) FactGroup_iso:
   "h ` carrier G = carrier H
-   \<Longrightarrow> (\<lambda>X. contents (h`X)) \<in> (G Mod (kernel G H h)) \<cong> H"
+   \<Longrightarrow> (\<lambda>X. the_elem (h`X)) \<in> (G Mod (kernel G H h)) \<cong> H"
 by (simp add: iso_def FactGroup_hom FactGroup_inj_on bij_betw_def 
               FactGroup_onto) 
 

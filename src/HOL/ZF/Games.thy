@@ -859,10 +859,10 @@ definition
   Pg_less_def: "G < H \<longleftrightarrow> G \<le> H \<and> G \<noteq> (H::Pg)"
 
 definition
-  Pg_minus_def: "- G = contents (\<Union> g \<in> Rep_Pg G. {Abs_Pg (eq_game_rel `` {neg_game g})})"
+  Pg_minus_def: "- G = the_elem (\<Union> g \<in> Rep_Pg G. {Abs_Pg (eq_game_rel `` {neg_game g})})"
 
 definition
-  Pg_plus_def: "G + H = contents (\<Union> g \<in> Rep_Pg G. \<Union> h \<in> Rep_Pg H. {Abs_Pg (eq_game_rel `` {plus_game g h})})"
+  Pg_plus_def: "G + H = the_elem (\<Union> g \<in> Rep_Pg G. \<Union> h \<in> Rep_Pg H. {Abs_Pg (eq_game_rel `` {plus_game g h})})"
 
 definition
   Pg_diff_def: "G - H = G + (- (H::Pg))"

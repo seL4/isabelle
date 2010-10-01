@@ -8,8 +8,8 @@ theory Misc_Numeric
 imports Main Parity
 begin
 
-lemma contentsI: "y = {x} ==> contents y = x" 
-  unfolding contents_def by auto -- {* FIXME move *}
+lemma the_elemI: "y = {x} ==> the_elem y = x" 
+  by simp
 
 lemmas split_split = prod.split
 lemmas split_split_asm = prod.split_asm

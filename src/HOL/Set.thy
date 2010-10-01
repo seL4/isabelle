@@ -1656,11 +1656,11 @@ by blast
 
 subsubsection {* Getting the Contents of a Singleton Set *}
 
-definition contents :: "'a set \<Rightarrow> 'a" where
-  "contents X = (THE x. X = {x})"
+definition the_elem :: "'a set \<Rightarrow> 'a" where
+  "the_elem X = (THE x. X = {x})"
 
-lemma contents_eq [simp]: "contents {x} = x"
-  by (simp add: contents_def)
+lemma the_elem_eq [simp]: "the_elem {x} = x"
+  by (simp add: the_elem_def)
 
 
 subsubsection {* Least value operator *}

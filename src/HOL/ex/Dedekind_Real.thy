@@ -1183,11 +1183,11 @@ definition
 
 definition
   real_add_def: "z + w =
-       contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
+       the_elem (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
                  { Abs_Real(realrel``{(x+u, y+v)}) })"
 
 definition
-  real_minus_def: "- r =  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
+  real_minus_def: "- r =  the_elem (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
 
 definition
   real_diff_def: "r - (s::real) = r + - s"
@@ -1195,7 +1195,7 @@ definition
 definition
   real_mult_def:
     "z * w =
-       contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
+       the_elem (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
                  { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })"
 
 definition

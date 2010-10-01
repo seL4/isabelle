@@ -7,6 +7,9 @@ Runtime services building on code generation into implementation language SML.
 signature CODE_RUNTIME =
 sig
   val target: string
+  val value: Proof.context ->
+    (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string ->
+    string * string -> 'a
   type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string
   val dynamic_value: 'a cookie -> theory -> string option
     -> ((term -> term) -> 'a -> 'a) -> term -> string list -> 'a option
@@ -56,6 +59,19 @@ val _ = Context.>> (Context.map_theory
   #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"]));
        (*avoid further pervasive infix names*)
 
+fun exec verbose code =
+  ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") false code);
+
+fun value ctxt (get, put, put_ml) (prelude, value) =
+  let
+    val code = (prelude
+      ^ "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
+      ^ " (fn () => " ^ value ^ ")) (ML_Context.the_generic_context ())))");
+    val ctxt' = ctxt
+      |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
+      |> Context.proof_map (exec false code);
+  in get ctxt' () end;
+
 
 (* evaluation into target language values *)
 
@@ -85,7 +101,7 @@ fun base_evaluator cookie serializer (naming : Code_Thingol.naming) thy program 
     val (program_code, [SOME value_name']) = serializer naming program' [value_name];
     val value_code = space_implode " "
       (value_name' :: "()" :: map (enclose "(" ")") args);
-  in Exn.capture (ML_Context.value ctxt cookie) (program_code, value_code) end;
+  in Exn.capture (value ctxt cookie) (program_code, value_code) end;
 
 fun partiality_as_none e = SOME (Exn.release e)
   handle General.Match => NONE
@@ -277,20 +293,19 @@ fun add_eval_constr (const, const') thy =
 fun add_eval_const (const, const') = Code_Target.add_const_syntax target
   const (SOME (Code_Printer.simple_const_syntax (0, (K o K o K) const')));
 
-fun process_reflection (code_body, (tyco_map, (constr_map, const_map))) module_name NONE thy =
+fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name NONE thy =
       thy
       |> Code_Target.add_reserved target module_name
-      |> Context.theory_map
-        (ML_Context.exec (fn () => ML_Context.eval_text true Position.none code_body))
+      |> Context.theory_map (exec true code)
       |> fold (add_eval_tyco o apsnd Code_Printer.str) tyco_map
       |> fold (add_eval_constr o apsnd Code_Printer.str) constr_map
       |> fold (add_eval_const o apsnd Code_Printer.str) const_map
-  | process_reflection (code_body, _) _ (SOME file_name) thy =
+  | process_reflection (code, _) _ (SOME file_name) thy =
       let
         val preamble =
           "(* Generated from " ^ Path.implode (Thy_Header.thy_path (Context.theory_name thy))
           ^ "; DO NOT EDIT! *)";
-        val _ = File.write (Path.explode file_name) (preamble ^ "\n\n" ^ code_body);
+        val _ = File.write (Path.explode file_name) (preamble ^ "\n\n" ^ code);
       in
         thy
       end;
@@ -397,9 +412,10 @@ fun use_file filepath thy =
     val _ = Context.set_thread_data ((SOME o Context.Theory) thy');
     val _ = Secure.use_text notifying_context
       (0, Path.implode filepath) false (File.read filepath);
-    val thy'' = (Context.the_theory o the) (Context.thread_data ())
-    val names = Loaded_Values.get thy''
-  in (names, thy'') end;
+    val thy'' = (Context.the_theory o the) (Context.thread_data ());
+    val names = Loaded_Values.get thy'';
+    val thy''' = Thy_Load.provide_file filepath thy'';
+  in (names, thy''') end;
 
 end;
 
@@ -409,7 +425,8 @@ fun add_definiendum (ml_name, (b, T)) thy =
   |> Specification.axiomatization [(b, SOME T, NoSyn)] []
   |-> (fn ([Const (const, _)], _) =>
      Code_Target.add_const_syntax target const
-       (SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name))));
+       (SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))
+  #> tap (fn thy => Code_Target.produce_code thy [const] target NONE "Code" []));
 
 fun process_file filepath (definienda, thy) =
   let

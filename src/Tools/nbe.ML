@@ -396,7 +396,7 @@ fun compile_eqnss thy nbe_program raw_deps [] = []
         s
         |> traced (fn s => "\n--- code to be evaluated:\n" ^ s)
         |> pair ""
-        |> ML_Context.value ctxt univs_cookie
+        |> Code_Runtime.value ctxt univs_cookie
         |> (fn f => f deps_vals)
         |> (fn univs => cs ~~ univs)
       end;
