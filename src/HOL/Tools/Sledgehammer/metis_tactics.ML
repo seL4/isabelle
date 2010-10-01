@@ -182,10 +182,9 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         handle Int_Pair_Graph.CYCLES _ =>
                error "Cannot replay Metis proof in Isabelle without axiom of \
                      \choice."
-(*
+(* FIXME *)
       val _ = tracing ("SUBSTS: " ^ PolyML.makestring substs)
       val _ = tracing ("ORDERED: " ^ PolyML.makestring ordered_clusters)
-*)
     in
       Goal.prove ctxt [] [] @{prop False}
           (K (cut_rules_tac (map fst axioms) 1
@@ -204,11 +203,12 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
 fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
       val type_lits = Config.get ctxt type_lits
-      val new_skolemizer = Config.get ctxt new_skolemizer
+      val new_skolemizer =
+        Config.get ctxt new_skolemizer orelse null (Meson_Choices.get ctxt)
       val th_cls_pairs =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,
-                 Meson_Clausify.cnf_axiom thy new_skolemizer j th))
+                 Meson_Clausify.cnf_axiom ctxt new_skolemizer j th))
              (0 upto length ths0 - 1) ths0
       val thss = map (snd o snd) th_cls_pairs
       val dischargers = map_filter (fst o snd) th_cls_pairs

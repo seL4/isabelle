@@ -14,7 +14,7 @@ sig
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
   val cluster_of_zapped_var_name : string -> (int * int) * bool
   val cnf_axiom :
-    theory -> bool -> int -> thm -> (thm * term) option * thm list
+    Proof.context -> bool -> int -> thm -> (thm * term) option * thm list
   val meson_general_tac : Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
@@ -281,13 +281,15 @@ fun zap_quantifiers ax_no =
     #> cprop_of #> Thm.dest_equals #> snd
   end
 
-(* FIXME: needed? and should we add ex_simps[symmetric]? *)
-val pull_out_quant_ss =
-  MetaSimplifier.clear_ss HOL_basic_ss
-      addsimps @{thms all_simps[symmetric]}
+fun ss_only ths = MetaSimplifier.clear_ss HOL_basic_ss addsimps ths
+
+val no_choice =
+  @{prop "ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)"}
+  |> Logic.varify_global
+  |> Skip_Proof.make_thm @{theory}
 
 (* Converts an Isabelle theorem into NNF. *)
-fun nnf_axiom new_skolemizer ax_no th ctxt =
+fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
   let
     val thy = ProofContext.theory_of ctxt
     val th =
@@ -301,10 +303,18 @@ fun nnf_axiom new_skolemizer ax_no th ctxt =
   in
     if new_skolemizer then
       let
-        val th' = th |> Meson.skolemize ctxt
-                     |> simplify pull_out_quant_ss
-                     |> Drule.eta_contraction_rule
-        val t = th' |> cprop_of |> zap_quantifiers ax_no |> term_of
+        fun skolemize choice_ths =
+          Meson.skolemize ctxt choice_ths
+          #> simplify (ss_only @{thms all_simps[symmetric]})
+        val pull_out =
+          simplify (ss_only @{thms all_simps[symmetric] ex_simps[symmetric]})
+        val (discharger_th, fully_skolemized_th) =
+          if null choice_ths then
+            (th |> pull_out, th |> skolemize [no_choice])
+          else
+            th |> skolemize choice_ths |> `I
+        val t =
+          fully_skolemized_th |> cprop_of |> zap_quantifiers ax_no |> term_of
       in
         if exists_subterm (fn Var ((s, _), _) =>
                               String.isPrefix new_skolem_var_prefix s
@@ -313,7 +323,7 @@ fun nnf_axiom new_skolemizer ax_no th ctxt =
             val (ct, ctxt) =
               Variable.import_terms true [t] ctxt
               |>> the_single |>> cterm_of thy
-          in (SOME (th', ct), Thm.assume ct, ctxt) end
+          in (SOME (discharger_th, ct), Thm.assume ct, ctxt) end
        else
           (NONE, th, ctxt)
       end
@@ -322,10 +332,11 @@ fun nnf_axiom new_skolemizer ax_no th ctxt =
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
-fun cnf_axiom thy new_skolemizer ax_no th =
+fun cnf_axiom ctxt0 new_skolemizer ax_no th =
   let
-    val ctxt0 = Variable.global_thm_context th
-    val (opt, nnf_th, ctxt) = nnf_axiom new_skolemizer ax_no th ctxt0
+    val thy = ProofContext.theory_of ctxt0
+    val choice_ths = Meson_Choices.get ctxt0
+    val (opt, nnf_th, ctxt) = nnf_axiom choice_ths new_skolemizer ax_no th ctxt0
     fun clausify th =
       Meson.make_cnf (if new_skolemizer then
                         []
@@ -356,10 +367,9 @@ fun cnf_axiom thy new_skolemizer ax_no th =
   handle THM _ => (NONE, [])
 
 fun meson_general_tac ctxt ths =
-  let
-    val thy = ProofContext.theory_of ctxt
-    val ctxt0 = Classical.put_claset HOL_cs ctxt
-  in Meson.meson_tac ctxt0 (maps (snd o cnf_axiom thy false 0) ths) end
+  let val ctxt = Classical.put_claset HOL_cs ctxt in
+    Meson.meson_tac ctxt (maps (snd o cnf_axiom ctxt false 0) ths)
+  end
 
 val setup =
   Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>

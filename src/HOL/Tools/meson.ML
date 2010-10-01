@@ -15,7 +15,7 @@ sig
   val finish_cnf: thm list -> thm list
   val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
-  val skolemize: Proof.context -> thm -> thm
+  val skolemize : Proof.context -> thm list -> thm -> thm
   val is_fol_term: theory -> term -> bool
   val make_clauses_unsorted: thm list -> thm list
   val make_clauses: thm list -> thm list
@@ -39,7 +39,7 @@ sig
   val setup: theory -> theory
 end
 
-structure Meson: MESON =
+structure Meson : MESON =
 struct
 
 val trace = Unsynchronized.ref false;
@@ -530,13 +530,13 @@ fun make_nnf ctxt th = case prems_of th of
 
 (* Pull existential quantifiers to front. This accomplishes Skolemization for
    clauses that arise from a subgoal. *)
-fun skolemize ctxt =
+fun skolemize ctxt choice_ths =
   let
     fun aux th =
       if not (has_conns [@{const_name Ex}] (prop_of th)) then
         th
       else
-        tryres (th, Meson_Choices.get ctxt @
+        tryres (th, choice_ths @
                     [conj_exD1, conj_exD2, disj_exD, disj_exD1, disj_exD2])
         |> aux
         handle THM ("tryres", _, _) =>
@@ -550,7 +550,7 @@ fun skolemize ctxt =
 
 (* "RS" can fail if "unify_search_bound" is too small. *)
 fun try_skolemize ctxt th =
-  try (skolemize ctxt) th
+  try (skolemize ctxt (Meson_Choices.get ctxt)) th
   |> tap (fn NONE => trace_msg (fn () => "Failed to skolemize " ^
                                          Display.string_of_thm ctxt th)
            | _ => ())
