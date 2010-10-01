@@ -57,7 +57,7 @@ fun mk_ahorn [] phi = phi
 
 fun combformula_for_prop thy =
   let
-    val do_term = combterm_from_term thy
+    val do_term = combterm_from_term thy ~1
     fun do_quant bs q s T t' =
       let val s = Name.variant (map fst bs) s in
         do_formula ((s, T) :: bs) t'
@@ -94,7 +94,7 @@ fun reveal_bounds Ts =
                     (0 upto length Ts - 1 ~~ Ts))
 
 (* Removes the lambdas from an equation of the form "t = (%x. u)".
-   (Cf. "extensionalize_theorem" in "Meson_Clausifier".) *)
+   (Cf. "extensionalize_theorem" in "Meson_Clausify".) *)
 fun extensionalize_term t =
   let
     fun aux j (@{const Trueprop} $ t') = @{const Trueprop} $ aux j t'
@@ -141,7 +141,7 @@ fun introduce_combinators_in_term ctxt kind t =
                    t |> conceal_bounds Ts
                      |> Envir.eta_contract
                      |> cterm_of thy
-                     |> Meson_Clausifier.introduce_combinators_in_cterm
+                     |> Meson_Clausify.introduce_combinators_in_cterm
                      |> prop_of |> Logic.dest_equals |> snd
                      |> reveal_bounds Ts
         val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single

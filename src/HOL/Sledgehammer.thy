@@ -14,7 +14,7 @@ uses
   ("Tools/ATP/atp_proof.ML")
   ("Tools/ATP/atp_systems.ML")
   ("~~/src/Tools/Metis/metis.ML")
-  ("Tools/Sledgehammer/meson_clausifier.ML")
+  ("Tools/Sledgehammer/meson_clausify.ML")
   ("Tools/Sledgehammer/metis_translate.ML")
   ("Tools/Sledgehammer/metis_reconstruct.ML")
   ("Tools/Sledgehammer/metis_tactics.ML")
@@ -60,6 +60,12 @@ by (simp add: fequal_def)
 lemma equal_imp_equal [no_atp]: "X = Y ==> X = Y"
 by auto
 
+lemma skolem_COMBK_iff: "P \<longleftrightarrow> skolem (COMBK P (i\<Colon>nat))"
+unfolding skolem_def COMBK_def by (rule refl)
+
+lemmas skolem_COMBK_I = iffD1 [OF skolem_COMBK_iff]
+lemmas skolem_COMBK_D = iffD2 [OF skolem_COMBK_iff]
+
 text{*Theorems for translation to combinators*}
 
 lemma abs_S [no_atp]: "\<lambda>x. (f x) (g x) \<equiv> COMBS f g"
@@ -98,8 +104,8 @@ use "Tools/ATP/atp_systems.ML"
 setup ATP_Systems.setup
 
 use "~~/src/Tools/Metis/metis.ML"
-use "Tools/Sledgehammer/meson_clausifier.ML"
-setup Meson_Clausifier.setup
+use "Tools/Sledgehammer/meson_clausify.ML"
+setup Meson_Clausify.setup
 
 use "Tools/Sledgehammer/metis_translate.ML"
 use "Tools/Sledgehammer/metis_reconstruct.ML"
