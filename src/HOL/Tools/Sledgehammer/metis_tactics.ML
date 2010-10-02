@@ -182,9 +182,10 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         handle Int_Pair_Graph.CYCLES _ =>
                error "Cannot replay Metis proof in Isabelle without axiom of \
                      \choice."
-(* FIXME *)
+(* for debugging:
       val _ = tracing ("SUBSTS: " ^ PolyML.makestring substs)
       val _ = tracing ("ORDERED: " ^ PolyML.makestring ordered_clusters)
+*)
     in
       Goal.prove ctxt [] [] @{prop False}
           (K (cut_rules_tac (map fst axioms) 1
