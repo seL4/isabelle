@@ -5,7 +5,7 @@
 header {* Defining bifinite domains by ideal completion *}
 
 theory Completion
-imports Bifinite
+imports Cfun
 begin
 
 subsection {* Ideals over a preorder *}

@@ -5,7 +5,7 @@
 header {* Algebraic deflations *}
 
 theory Algebraic
-imports Completion Fix Eventual
+imports Completion Fix Eventual Bifinite
 begin
 
 subsection {* Constructing finite deflations by iteration *}

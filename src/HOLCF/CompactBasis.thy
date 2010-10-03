@@ -5,7 +5,7 @@
 header {* Compact bases of domains *}
 
 theory CompactBasis
-imports Completion
+imports Completion Bifinite
 begin
 
 subsection {* Compact bases of bifinite domains *}
