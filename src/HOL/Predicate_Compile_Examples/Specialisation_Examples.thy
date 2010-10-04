@@ -4,7 +4,7 @@ begin
 
 section {* Specialisation Examples *}
 
-fun nth_el'
+primrec nth_el'
 where
   "nth_el' [] i = None"
 | "nth_el' (x # xs) i = (case i of 0 => Some x | Suc j => nth_el' xs j)"
@@ -48,7 +48,27 @@ values "{x. max_of_my_SucP x 6}"
 
 subsection {* Sorts *}
 
-code_pred [inductify] sorted .
+declare sorted.Nil [code_pred_intro]
+  sorted_single [code_pred_intro]
+  sorted_many [code_pred_intro]
+
+code_pred sorted proof -
+  assume "sorted xa"
+  assume 1: "xa = [] \<Longrightarrow> thesis"
+  assume 2: "\<And>x. xa = [x] \<Longrightarrow> thesis"
+  assume 3: "\<And>x y zs. xa = x # y # zs \<Longrightarrow> x \<le> y \<Longrightarrow> sorted (y # zs) \<Longrightarrow> thesis"
+  show thesis proof (cases xa)
+    case Nil with 1 show ?thesis .
+  next
+    case (Cons x xs) show ?thesis proof (cases xs)
+      case Nil with Cons 2 show ?thesis by simp
+    next
+      case (Cons y zs) with `xa = x # xs` have "xa = x # y # zs" by simp
+      moreover with `sorted xa` have "x \<le> y" and "sorted (y # zs)" by simp_all
+      ultimately show ?thesis by (rule 3)
+    qed
+  qed
+qed
 thm sorted.equation
 
 section {* Specialisation in POPLmark theory *}
@@ -212,10 +232,10 @@ inductive
 where
   T_Var: "\<Gamma> \<turnstile>\<^bsub>wf\<^esub> \<Longrightarrow> \<Gamma>\<langle>i\<rangle> = \<lfloor>VarB U\<rfloor> \<Longrightarrow> T = \<up>\<^isub>\<tau> (Suc i) 0 U \<Longrightarrow> \<Gamma> \<turnstile> Var i : T"
 | T_Abs: "VarB T\<^isub>1 \<Colon> \<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>2 \<Longrightarrow> \<Gamma> \<turnstile> (\<lambda>:T\<^isub>1. t\<^isub>2) : T\<^isub>1 \<rightarrow> \<down>\<^isub>\<tau> 1 0 T\<^isub>2"
-| T_App: "\<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>1\<^isub>1 \<rightarrow> T\<^isub>1\<^isub>2 \<Longrightarrow> \<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>1\<^isub>1 \<Longrightarrow> \<Gamma> \<turnstile> t\<^isub>1 \<bullet> t\<^isub>2 : T\<^isub>1\<^isub>2"
+| T_App: "\<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>11 \<rightarrow> T\<^isub>12 \<Longrightarrow> \<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>11 \<Longrightarrow> \<Gamma> \<turnstile> t\<^isub>1 \<bullet> t\<^isub>2 : T\<^isub>12"
 | T_TAbs: "TVarB T\<^isub>1 \<Colon> \<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>2 \<Longrightarrow> \<Gamma> \<turnstile> (\<lambda><:T\<^isub>1. t\<^isub>2) : (\<forall><:T\<^isub>1. T\<^isub>2)"
-| T_TApp: "\<Gamma> \<turnstile> t\<^isub>1 : (\<forall><:T\<^isub>1\<^isub>1. T\<^isub>1\<^isub>2) \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>2 <: T\<^isub>1\<^isub>1 \<Longrightarrow>
-    \<Gamma> \<turnstile> t\<^isub>1 \<bullet>\<^isub>\<tau> T\<^isub>2 : T\<^isub>1\<^isub>2[0 \<mapsto>\<^isub>\<tau> T\<^isub>2]\<^isub>\<tau>"
+| T_TApp: "\<Gamma> \<turnstile> t\<^isub>1 : (\<forall><:T\<^isub>11. T\<^isub>12) \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>2 <: T\<^isub>11 \<Longrightarrow>
+    \<Gamma> \<turnstile> t\<^isub>1 \<bullet>\<^isub>\<tau> T\<^isub>2 : T\<^isub>12[0 \<mapsto>\<^isub>\<tau> T\<^isub>2]\<^isub>\<tau>"
 | T_Sub: "\<Gamma> \<turnstile> t : S \<Longrightarrow> \<Gamma> \<turnstile> S <: T \<Longrightarrow> \<Gamma> \<turnstile> t : T"
 
 code_pred [inductify, skip_proof, specialise] typing .
