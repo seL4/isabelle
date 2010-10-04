@@ -133,7 +133,7 @@ lemma is_lub_Cons:
   assumes B: "range B <<| xs"
   shows "range (\<lambda>i. A i # B i) <<| x # xs"
 using assms
-unfolding is_lub_def is_ub_def Ball_def [symmetric]
+unfolding is_lub_def is_ub_def
 by (clarsimp, case_tac u, simp_all)
 
 instance list :: (cpo) cpo

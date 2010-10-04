@@ -70,7 +70,7 @@ begin
 subsection {* Upper bounds *}
 
 definition is_ub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "<|" 55) where
-  "S <| x \<longleftrightarrow> (\<forall>y. y \<in> S \<longrightarrow> y \<sqsubseteq> x)"
+  "S <| x \<longleftrightarrow> (\<forall>y\<in>S. y \<sqsubseteq> x)"
 
 lemma is_ubI: "(\<And>x. x \<in> S \<Longrightarrow> x \<sqsubseteq> u) \<Longrightarrow> S <| u"
   by (simp add: is_ub_def)
