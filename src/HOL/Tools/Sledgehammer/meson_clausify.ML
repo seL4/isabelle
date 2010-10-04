@@ -12,7 +12,7 @@ sig
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
-  val cluster_of_zapped_var_name : string -> (int * int) * bool
+  val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
   val cnf_axiom :
     Proof.context -> bool -> int -> thm -> (thm * term) option * thm list
   val meson_general_tac : Proof.context -> thm list -> int -> tactic
@@ -229,64 +229,51 @@ fun to_definitional_cnf_with_quantifiers thy th =
     val eqth = eqth RS @{thm TruepropI}
   in Thm.equal_elim eqth th end
 
-fun zapped_var_name ax_no (cluster_no, skolem) s =
+fun zapped_var_name ((ax_no, cluster_no), skolem) index_no s =
   (if skolem then new_skolem_var_prefix else new_nonskolem_var_prefix) ^
-  "_" ^ string_of_int ax_no ^ "_" ^ string_of_int cluster_no ^ "_" ^ s
+  "_" ^ string_of_int ax_no ^ "_" ^ string_of_int cluster_no ^ "_" ^
+  string_of_int index_no ^ "_" ^ s
 
 fun cluster_of_zapped_var_name s =
-  ((1, 2) |> pairself (the o Int.fromString o nth (space_explode "_" s)),
-   String.isPrefix new_skolem_var_prefix s)
+  let val get_int = the o Int.fromString o nth (space_explode "_" s) in
+    ((get_int 1, (get_int 2, get_int 3)),
+     String.isPrefix new_skolem_var_prefix s)
+  end
 
-fun rename_vars_to_be_zapped ax_no =
-  let
-    fun aux (cluster as (cluster_no, cluster_skolem)) pos t =
-      case t of
-        (t1 as Const (s, _)) $ Abs (s', T, t') =>
-        if s = @{const_name all} orelse s = @{const_name All} orelse
-           s = @{const_name Ex} then
-          let
-            val skolem = (pos = (s = @{const_name Ex}))
-            val cluster =
-              if skolem = cluster_skolem then cluster
-              else (cluster_no |> cluster_skolem ? Integer.add 1, skolem)
-            val s' = zapped_var_name ax_no cluster s'
-          in t1 $ Abs (s', T, aux cluster pos t') end
-        else
-          t
-      | (t1 as Const (s, _)) $ t2 $ t3 =>
-        if s = @{const_name "==>"} orelse s = @{const_name implies} then
-          t1 $ aux cluster (not pos) t2 $ aux cluster pos t3
-        else if s = @{const_name conj} orelse s = @{const_name disj} then
-          t1 $ aux cluster pos t2 $ aux cluster pos t3
-        else
-          t
-      | (t1 as Const (s, _)) $ t2 =>
-        if s = @{const_name Trueprop} then t1 $ aux cluster pos t2
-        else if s = @{const_name Not} then t1 $ aux cluster (not pos) t2
-        else t
-      | _ => t
-  in aux (0, true) true end
-
-fun zap pos ct =
+fun zap (cluster as (cluster_no, cluster_skolem)) index_no pos ct =
   ct
   |> (case term_of ct of
         Const (s, _) $ Abs (s', _, _) =>
         if s = @{const_name all} orelse s = @{const_name All} orelse
            s = @{const_name Ex} then
-          Thm.dest_comb #> snd #> Thm.dest_abs (SOME s') #> snd #> zap pos
+          let
+            val skolem = (pos = (s = @{const_name Ex}))
+            val (cluster, index_no) =
+              if skolem = cluster_skolem then (cluster, index_no)
+              else ((cluster_no ||> cluster_skolem ? Integer.add 1, skolem), 0)
+          in
+            Thm.dest_comb #> snd
+            #> Thm.dest_abs (SOME (zapped_var_name cluster index_no s'))
+            #> snd #> zap cluster (index_no + 1) pos
+          end
         else
           Conv.all_conv
       | Const (s, _) $ _ $ _ =>
         if s = @{const_name "==>"} orelse s = @{const_name implies} then
-          Conv.combination_conv (Conv.arg_conv (zap (not pos))) (zap pos)
+          Conv.combination_conv (Conv.arg_conv (zap cluster index_no (not pos)))
+                                (zap cluster index_no pos)
         else if s = @{const_name conj} orelse s = @{const_name disj} then
-          Conv.combination_conv (Conv.arg_conv (zap pos)) (zap pos)
+          Conv.combination_conv (Conv.arg_conv (zap cluster index_no pos))
+                                (zap cluster index_no pos)
         else
           Conv.all_conv
       | Const (s, _) $ _ =>
-        if s = @{const_name Trueprop} then Conv.arg_conv (zap pos)
-        else if s = @{const_name Not} then Conv.arg_conv (zap (not pos))
-        else Conv.all_conv
+        if s = @{const_name Trueprop} then
+          Conv.arg_conv (zap cluster index_no pos)
+        else if s = @{const_name Not} then
+          Conv.arg_conv (zap cluster index_no (not pos))
+        else
+          Conv.all_conv
       | _ => Conv.all_conv)
 
 fun ss_only ths = MetaSimplifier.clear_ss HOL_basic_ss addsimps ths
@@ -311,10 +298,6 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
   in
     if new_skolemizer then
       let
-        fun rename_bound_vars th =
-          let val t = concl_of th in
-            th |> Thm.rename_boundvars t (rename_vars_to_be_zapped ax_no t)
-          end
         fun skolemize choice_ths =
           Meson.skolemize_with_choice_thms ctxt choice_ths
           #> simplify (ss_only @{thms all_simps[symmetric]})
@@ -322,12 +305,12 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
           simplify (ss_only @{thms all_simps[symmetric] ex_simps[symmetric]})
         val (discharger_th, fully_skolemized_th) =
           if null choice_ths then
-            th |> rename_bound_vars |> `I |>> pull_out ||> skolemize [no_choice]
+            th |> `I |>> pull_out ||> skolemize [no_choice]
           else
-            th |> skolemize choice_ths |> rename_bound_vars |> `I
+            th |> skolemize choice_ths |> `I
         val t =
           fully_skolemized_th |> cprop_of
-          |> zap true |> Drule.export_without_context
+          |> zap ((ax_no, 0), true) 0 true |> Drule.export_without_context
           |> cprop_of |> Thm.dest_equals |> snd |> term_of
       in
         if exists_subterm (fn Var ((s, _), _) =>
