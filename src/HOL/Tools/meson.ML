@@ -108,22 +108,32 @@ fun first_order_resolve thA thB =
 
 (* Applying "choice" swaps the bound variable names. We tweak
    "Thm.rename_boundvars"'s input to get the desired names. *)
-fun tweak_bounds (_ $ (Const (@{const_name Ex}, _)
-                       $ Abs (_, _, Const (@{const_name All}, _) $ _)))
-                 (t0 $ (Const (@{const_name All}, T1)
-                        $ Abs (a1, T1', Const (@{const_name Ex}, T2)
-                                        $ Abs (a2, T2', t')))) =
+fun fix_bounds (_ $ (Const (@{const_name Ex}, _)
+                     $ Abs (_, _, Const (@{const_name All}, _) $ _)))
+               (t0 $ (Const (@{const_name All}, T1)
+                      $ Abs (a1, T1', Const (@{const_name Ex}, T2)
+                                      $ Abs (a2, T2', t')))) =
     t0 $ (Const (@{const_name All}, T1)
           $ Abs (a2, T1', Const (@{const_name Ex}, T2) $ Abs (a1, T2', t')))
-  | tweak_bounds _ t = t
+  | fix_bounds _ t = t
+
+(* Hack to make it less likely that we lose our precious bound variable names in
+   "rename_bvs_RS" below, because of a clash. *)
+val protect_prefix = "_"
+
+fun protect_bounds (t $ u) = protect_bounds t $ protect_bounds u
+  | protect_bounds (Abs (s, T, t')) =
+    Abs (protect_prefix ^ s, T, protect_bounds t')
+  | protect_bounds t = t
 
 (* Forward proof while preserving bound variables names*)
 fun rename_bvs_RS th rl =
   let
-    val th' = th RS rl
     val t = concl_of th
+    val r = concl_of rl
+    val th' = th RS Thm.rename_boundvars r (protect_bounds r) rl
     val t' = concl_of th'
-  in Thm.rename_boundvars t' (tweak_bounds t' t) th' end
+  in Thm.rename_boundvars t' (fix_bounds t' t) th' end
 
 (*raises exception if no rules apply*)
 fun tryres (th, rls) =
