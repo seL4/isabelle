@@ -204,7 +204,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       val thy = ProofContext.theory_of ctxt
       (* distinguish variables with same name but different types *)
       val prems_imp_false' =
-        prems_imp_false |> try (forall_intr_vars o gen_all)
+        prems_imp_false |> try (forall_intr_vars #> gen_all)
                         |> the_default prems_imp_false
       val prems_imp_false =
         if prop_of prems_imp_false aconv prop_of prems_imp_false' then
@@ -284,7 +284,8 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         "; tysubst: " ^ PolyML.makestring tysubst ^ "; tsubst: {" ^
         commas (map ((fn (s, t) => s ^ " |-> " ^ t)
                      o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
-      val _ = tracing ("SUBSTS:\n" ^ cat_lines (map string_for_subst_info substs))
+      val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
+                       cat_lines (map string_for_subst_info substs))
       val _ = tracing ("OUTERMOST SKOLEMS: " ^ PolyML.makestring params0)
       val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
       val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
