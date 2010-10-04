@@ -1,5 +1,7 @@
 (*  Title:      HOL/Meson.thy
-    Author:     Lawrence C Paulson, Tobias Nipkow
+    Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
+    Author:     Tobias Nipkow, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2001  University of Cambridge
 *)
 
