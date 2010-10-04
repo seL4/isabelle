@@ -1,8 +1,9 @@
-(*  Title:      HOL/Tools/Sledgehammer/meson_clausify.ML
+(*  Title:      HOL/Tools/Meson/meson_clausify.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 
-Transformation of axiom rules (elim/intro/etc) into CNF forms.
+Transformation of HOL theorems into CNF forms.
+The "meson" proof method for HOL.
 *)
 
 signature MESON_CLAUSIFY =
@@ -204,7 +205,7 @@ fun old_skolem_theorem_from_def thy rhs0 =
     val (hilbert, cabs) = ch |> Thm.dest_comb |>> term_of
     val T =
       case hilbert of
-        Const (@{const_name Eps}, Type (@{type_name fun}, [_, T])) => T
+        Const (_, Type (@{type_name fun}, [_, T])) => T
       | _ => raise TERM ("old_skolem_theorem_from_def: expected \"Eps\"",
                          [hilbert])
     val cex = cterm_of thy (HOLogic.exists_const T)
@@ -214,7 +215,8 @@ fun old_skolem_theorem_from_def thy rhs0 =
       |> Drule.beta_conv cabs |> Thm.capply cTrueprop
     fun tacf [prem] =
       rewrite_goals_tac skolem_def_raw
-      THEN rtac ((prem |> rewrite_rule skolem_def_raw) RS @{thm someI_ex}) 1
+      THEN rtac ((prem |> rewrite_rule skolem_def_raw)
+                 RS Global_Theory.get_thm thy "someI_ex") 1
   in
     Goal.prove_internal [ex_tm] conc tacf
     |> forall_intr_list frees

@@ -1,5 +1,6 @@
-(*  Title:      HOL/Tools/meson.ML
+(*  Title:      HOL/Tools/Meson/meson.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
 
 The MESON resolution proof procedure for HOL.
 When making clauses, avoids using the rewriter -- instead uses RS recursively.

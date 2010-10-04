@@ -1,7 +1,7 @@
 header {* Plain HOL *}
 
 theory Plain
-imports Datatype FunDef Extraction
+imports Datatype FunDef Extraction Meson
 begin
 
 text {*
