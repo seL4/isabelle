@@ -51,9 +51,8 @@ fun mk_old_skolem_term_wrapper t =
     Const (@{const_name skolem}, T --> T) $ t
   end
 
-fun beta_eta_under_lambdas (Abs (s, T, t')) =
-    Abs (s, T, beta_eta_under_lambdas t')
-  | beta_eta_under_lambdas t = Envir.beta_eta_contract t
+fun beta_eta_in_abs_body (Abs (s, T, t')) = Abs (s, T, beta_eta_in_abs_body t')
+  | beta_eta_in_abs_body t = Envir.beta_eta_contract t
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun old_skolem_defs th =
@@ -65,7 +64,7 @@ fun old_skolem_defs th =
           (* Forms a lambda-abstraction over the formal parameters *)
           val rhs =
             list_abs_free (map dest_Free args,
-                           HOLogic.choice_const T $ beta_eta_under_lambdas body)
+                           HOLogic.choice_const T $ beta_eta_in_abs_body body)
             |> mk_old_skolem_term_wrapper
           val comb = list_comb (rhs, args)
         in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end
