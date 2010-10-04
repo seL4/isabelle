@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/Comp/AuxLemmas.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 
@@ -78,30 +77,24 @@ lemma map_map_upd [simp]:
   "y \<notin> set xs \<Longrightarrow> map (the \<circ> f(y\<mapsto>v)) xs = map (the \<circ> f) xs"
 by (simp add: the_map_upd)
 
-lemma map_map_upds [rule_format (no_asm), simp]: 
-"\<forall> f vs. (\<forall>y\<in>set ys. y \<notin> set xs) \<longrightarrow> map (the \<circ> f(ys[\<mapsto>]vs)) xs = map (the \<circ> f) xs"
-apply (induct xs)
+lemma map_map_upds [simp]: 
+  "(\<forall>y\<in>set ys. y \<notin> set xs) \<Longrightarrow> map (the \<circ> f(ys[\<mapsto>]vs)) xs = map (the \<circ> f) xs"
+apply (induct xs arbitrary: f vs)
  apply simp
 apply fastsimp
 done
 
-lemma map_upds_distinct [rule_format (no_asm), simp]: 
-  "\<forall> f vs. length ys = length vs \<longrightarrow> distinct ys \<longrightarrow> map (the \<circ> f(ys[\<mapsto>]vs)) ys = vs"
-apply (induct ys)
+lemma map_upds_distinct [simp]: 
+  "distinct ys \<Longrightarrow> length ys = length vs \<Longrightarrow> map (the \<circ> f(ys[\<mapsto>]vs)) ys = vs"
+apply (induct ys arbitrary: f vs rule: distinct.induct)
 apply simp
-apply (intro strip)
 apply (case_tac vs)
-apply simp
-apply (simp only: map_upds_Cons distinct.simps hd.simps tl.simps map.simps)
-apply clarify
-apply (simp del: o_apply)
-apply simp
+apply simp_all
 done
 
-
-lemma map_of_map_as_map_upd [rule_format (no_asm)]: "distinct (map f zs) \<longrightarrow> 
-map_of (map (\<lambda> p. (f p, g p)) zs) = empty (map f zs [\<mapsto>] map g zs)"
-by (induct zs, auto)
+lemma map_of_map_as_map_upd:
+  "distinct (map f zs) \<Longrightarrow> map_of (map (\<lambda> p. (f p, g p)) zs) = empty (map f zs [\<mapsto>] map g zs)"
+  by (induct zs) auto
 
 (* In analogy to Map.map_of_SomeD *)
 lemma map_upds_SomeD [rule_format (no_asm)]: 
