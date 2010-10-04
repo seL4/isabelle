@@ -154,6 +154,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Groups.thy \
   Inductive.thy \
   Lattices.thy \
+  Meson.thy \
   Nat.thy \
   Option.thy \
   Orderings.thy \
