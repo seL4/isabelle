@@ -33,6 +33,9 @@ lemma is_lub_thelub:
   "\<lbrakk>chain S; range S <| x\<rbrakk> \<Longrightarrow> (\<Squnion>i. S i) \<sqsubseteq> x"
   by (blast dest: cpo intro: lubI [THEN is_lub_lub])
 
+lemma lub_below_iff: "chain S \<Longrightarrow> (\<Squnion>i. S i) \<sqsubseteq> x \<longleftrightarrow> (\<forall>i. S i \<sqsubseteq> x)"
+  by (simp add: is_lub_below_iff [OF cpo_lubI] is_ub_def)
+
 lemma lub_range_mono:
   "\<lbrakk>range X \<subseteq> range Y; chain Y; chain X\<rbrakk>
     \<Longrightarrow> (\<Squnion>i. X i) \<sqsubseteq> (\<Squnion>i. Y i)"

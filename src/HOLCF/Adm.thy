@@ -171,6 +171,10 @@ lemma compactD2:
   "\<lbrakk>compact x; chain Y; x \<sqsubseteq> (\<Squnion>i. Y i)\<rbrakk> \<Longrightarrow> \<exists>i. x \<sqsubseteq> Y i"
 unfolding compact_def adm_def by fast
 
+lemma compact_below_lub_iff:
+  "\<lbrakk>compact x; chain Y\<rbrakk> \<Longrightarrow> x \<sqsubseteq> (\<Squnion>i. Y i) \<longleftrightarrow> (\<exists>i. x \<sqsubseteq> Y i)"
+by (fast intro: compactD2 elim: below_trans is_ub_thelub)
+
 lemma compact_chfin [simp]: "compact (x::'a::chfin)"
 by (rule compactI [OF adm_chfin])
 
