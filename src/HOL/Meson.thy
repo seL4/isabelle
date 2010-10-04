@@ -5,7 +5,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-header {* MESON Proof Procedure (Model Elimination) *}
+header {* MESON Proof Method *}
 
 theory Meson
 imports Datatype

@@ -29,7 +29,6 @@ by auto
 use "Tools/Metis/metis_translate.ML"
 use "Tools/Metis/metis_reconstruct.ML"
 use "Tools/Metis/metis_tactics.ML"
-
 setup Metis_Tactics.setup
 
 end
