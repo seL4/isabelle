@@ -157,16 +157,6 @@ primrec
     upt_0: "[i..<0] = []"
   | upt_Suc: "[i..<(Suc j)] = (if i <= j then [i..<j] @ [j] else [])"
 
-primrec
-  distinct :: "'a list \<Rightarrow> bool" where
-    "distinct [] \<longleftrightarrow> True"
-  | "distinct (x # xs) \<longleftrightarrow> x \<notin> set xs \<and> distinct xs"
-
-primrec
-  remdups :: "'a list \<Rightarrow> 'a list" where
-    "remdups [] = []"
-  | "remdups (x # xs) = (if x \<in> set xs then remdups xs else x # remdups xs)"
-
 definition
   insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "insert x xs = (if x \<in> set xs then xs else x # xs)"
@@ -183,6 +173,21 @@ primrec
   removeAll :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
     "removeAll x [] = []"
   | "removeAll x (y # xs) = (if x = y then removeAll x xs else y # removeAll x xs)"
+
+inductive
+  distinct :: "'a list \<Rightarrow> bool" where
+    Nil: "distinct []"
+  | insert: "x \<notin> set xs \<Longrightarrow> distinct xs \<Longrightarrow> distinct (x # xs)"
+
+lemma distinct_simps [simp, code]:
+  "distinct [] \<longleftrightarrow> True"
+  "distinct (x # xs) \<longleftrightarrow> x \<notin> set xs \<and> distinct xs"
+  by (auto intro: distinct.intros elim: distinct.cases)
+
+primrec
+  remdups :: "'a list \<Rightarrow> 'a list" where
+    "remdups [] = []"
+  | "remdups (x # xs) = (if x \<in> set xs then remdups xs else x # remdups xs)"
 
 primrec
   replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
@@ -275,10 +280,26 @@ not for efficient implementations. *}
 context linorder
 begin
 
-fun sorted :: "'a list \<Rightarrow> bool" where
-"sorted [] \<longleftrightarrow> True" |
-"sorted [x] \<longleftrightarrow> True" |
-"sorted (x#y#zs) \<longleftrightarrow> x <= y \<and> sorted (y#zs)"
+inductive sorted :: "'a list \<Rightarrow> bool" where
+  Nil [iff]: "sorted []"
+| Cons: "\<forall>y\<in>set xs. x \<le> y \<Longrightarrow> sorted xs \<Longrightarrow> sorted (x # xs)"
+
+lemma sorted_single [iff]:
+  "sorted [x]"
+  by (rule sorted.Cons) auto
+
+lemma sorted_many:
+  "x \<le> y \<Longrightarrow> sorted (y # zs) \<Longrightarrow> sorted (x # y # zs)"
+  by (rule sorted.Cons) (cases "y # zs" rule: sorted.cases, auto)
+
+lemma sorted_many_eq [simp, code]:
+  "sorted (x # y # zs) \<longleftrightarrow> x \<le> y \<and> sorted (y # zs)"
+  by (auto intro: sorted_many elim: sorted.cases)
+
+lemma [code]:
+  "sorted [] \<longleftrightarrow> True"
+  "sorted [x] \<longleftrightarrow> True"
+  by simp_all
 
 primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
 "insort_key f x [] = [x]" |
@@ -2118,36 +2139,6 @@ lemma zip_eq_conv:
   "length xs = length ys \<Longrightarrow> zip xs ys = zs \<longleftrightarrow> map fst zs = xs \<and> map snd zs = ys"
   by (auto simp add: zip_map_fst_snd)
 
-lemma distinct_zipI1:
-  "distinct xs \<Longrightarrow> distinct (zip xs ys)"
-proof (induct xs arbitrary: ys)
-  case (Cons x xs)
-  show ?case
-  proof (cases ys)
-    case (Cons y ys')
-    have "(x, y) \<notin> set (zip xs ys')"
-      using Cons.prems by (auto simp: set_zip)
-    thus ?thesis
-      unfolding Cons zip_Cons_Cons distinct.simps
-      using Cons.hyps Cons.prems by simp
-  qed simp
-qed simp
-
-lemma distinct_zipI2:
-  "distinct xs \<Longrightarrow> distinct (zip xs ys)"
-proof (induct xs arbitrary: ys)
-  case (Cons x xs)
-  show ?case
-  proof (cases ys)
-    case (Cons y ys')
-     have "(x, y) \<notin> set (zip xs ys')"
-      using Cons.prems by (auto simp: set_zip)
-    thus ?thesis
-      unfolding Cons zip_Cons_Cons distinct.simps
-      using Cons.hyps Cons.prems by simp
-  qed simp
-qed simp
-
 
 subsubsection {* @{text list_all2} *}
 
@@ -2868,6 +2859,30 @@ lemma remdups_map_remdups:
   "remdups (map f (remdups xs)) = remdups (map f xs)"
   by (induct xs) simp_all
 
+lemma distinct_zipI1:
+  assumes "distinct xs"
+  shows "distinct (zip xs ys)"
+proof (rule zip_obtain_same_length)
+  fix xs' :: "'a list" and ys' :: "'b list" and n
+  assume "length xs' = length ys'"
+  assume "xs' = take n xs"
+  with assms have "distinct xs'" by simp
+  with `length xs' = length ys'` show "distinct (zip xs' ys')"
+    by (induct xs' ys' rule: list_induct2) (auto elim: in_set_zipE)
+qed
+
+lemma distinct_zipI2:
+  assumes "distinct ys"
+  shows "distinct (zip xs ys)"
+proof (rule zip_obtain_same_length)
+  fix xs' :: "'b list" and ys' :: "'a list" and n
+  assume "length xs' = length ys'"
+  assume "ys' = take n ys"
+  with assms have "distinct ys'" by simp
+  with `length xs' = length ys'` show "distinct (zip xs' ys')"
+    by (induct xs' ys' rule: list_induct2) (auto elim: in_set_zipE)
+qed
+
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 
@@ -3022,21 +3037,6 @@ lemma distinct_insert [simp]:
 lemma insert_remdups:
   "List.insert x (remdups xs) = remdups (List.insert x xs)"
   by (simp add: List.insert_def)
-
-lemma distinct_induct [consumes 1, case_names Nil insert]:
-  assumes "distinct xs"
-  assumes "P []"
-  assumes insert: "\<And>x xs. distinct xs \<Longrightarrow> x \<notin> set xs
-    \<Longrightarrow> P xs \<Longrightarrow> P (List.insert x xs)"
-  shows "P xs"
-using `distinct xs` proof (induct xs)
-  case Nil from `P []` show ?case .
-next
-  case (Cons x xs)
-  then have "distinct xs" and "x \<notin> set xs" and "P xs" by simp_all
-  with insert have "P (List.insert x xs)" .
-  with `x \<notin> set xs` show ?case by simp
-qed
 
 
 subsubsection {* @{text remove1} *}
@@ -3822,39 +3822,21 @@ apply(rule_tac a="sort xs" in ex1I)
 apply (auto simp: sorted_distinct_set_unique)
 done
 
-lemma sorted_take:
-  "sorted xs \<Longrightarrow> sorted (take n xs)"
-proof (induct xs arbitrary: n rule: sorted.induct)
-  case 1 show ?case by simp
-next
-  case 2 show ?case by (cases n) simp_all
-next
-  case (3 x y xs)
-  then have "x \<le> y" by simp
-  show ?case proof (cases n)
-    case 0 then show ?thesis by simp
-  next
-    case (Suc m) 
-    with 3 have "sorted (take m (y # xs))" by simp
-    with Suc  `x \<le> y` show ?thesis by (cases m) simp_all
-  qed
-qed
-
-lemma sorted_drop:
-  "sorted xs \<Longrightarrow> sorted (drop n xs)"
-proof (induct xs arbitrary: n rule: sorted.induct)
-  case 1 show ?case by simp
-next
-  case 2 show ?case by (cases n) simp_all
-next
-  case 3 then show ?case by (cases n) simp_all
+lemma
+  assumes "sorted xs"
+  shows sorted_take: "sorted (take n xs)"
+  and sorted_drop: "sorted (drop n xs)"
+proof -
+  from assms have "sorted (take n xs @ drop n xs)" by simp
+  then show "sorted (take n xs)" and "sorted (drop n xs)"
+    unfolding sorted_append by simp_all
 qed
 
 lemma sorted_dropWhile: "sorted xs \<Longrightarrow> sorted (dropWhile P xs)"
-  unfolding dropWhile_eq_drop by (rule sorted_drop)
+  by (auto dest: sorted_drop simp add: dropWhile_eq_drop)
 
 lemma sorted_takeWhile: "sorted xs \<Longrightarrow> sorted (takeWhile P xs)"
-  apply (subst takeWhile_eq_take) by (rule sorted_take)
+  by (subst takeWhile_eq_take) (auto dest: sorted_take)
 
 lemma sorted_filter:
   "sorted (map f xs) \<Longrightarrow> sorted (map f (filter P xs))"
@@ -4151,7 +4133,6 @@ end
 lemma sorted_list_of_set_range [simp]:
   "sorted_list_of_set {m..<n} = [m..<n]"
   by (rule sorted_distinct_set_unique) simp_all
-
 
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}

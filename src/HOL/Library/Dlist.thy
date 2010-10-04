@@ -140,7 +140,7 @@ proof (cases dxs)
   case (Abs_dlist xs)
   then have "distinct xs" and dxs: "dxs = Dlist xs" by (simp_all add: Dlist_def distinct_remdups_id)
   from `distinct xs` have "P (Dlist xs)"
-  proof (induct xs rule: distinct_induct)
+  proof (induct xs)
     case Nil from empty show ?case by (simp add: empty_def)
   next
     case (insert x xs)
