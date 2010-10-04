@@ -58,11 +58,12 @@ val waiting_params =
 val resolution_params = {active = active_params, waiting = waiting_params}
 
 (* In principle, it should be sufficient to apply "assume_tac" to unify the
-   conclusion with one of the premises. However, in practice, this fails
-   horribly because of the mildly higher-order nature of the unification
-   problems. Typical constraints are of the form "?x a b =?= b", where "a" and
-   "b" are goal parameters. *)
-fun unify_prem_with_concl thy i th =
+   conclusion with one of the premises. However, in practice, this is unreliable
+   because of the mildly higher-order nature of the unification problems.
+   Typical constraints are of the form
+   "?SK_a_b_c_x SK_d_e_f_y ... SK_a_b_c_x ... SK_g_h_i_z =?= SK_a_b_c_x",
+   where the nonvariables are goal parameters. *)
+fun unify_first_prem_with_concl thy i th =
   let
     val goal = Logic.get_goal (prop_of th) i |> Envir.beta_eta_contract
     val prem = goal |> Logic.strip_assums_hyp |> hd
@@ -87,7 +88,7 @@ fun unify_prem_with_concl thy i th =
       else tp :: map (apsnd (subst_atomic [tp])) inst
     fun is_flex t =
       case strip_comb t of
-        (Var _, args) => forall (is_Bound orf is_Var) args
+        (Var _, args) => forall is_Bound args
       | _ => false
     fun unify_flex flex rigid =
       case strip_comb flex of
@@ -154,32 +155,32 @@ fun instantiate_forall_tac thy params t i =
     THEN PRIMITIVE do_instantiate
   end
 
-(*### TODO: fix confusion between ax_no and goal_no *)
 fun release_clusters_tac _ _ _ _ [] = K all_tac
   | release_clusters_tac thy ax_counts substs params
                          ((ax_no, cluster_no) :: clusters) =
     let
-(*      val n = AList.lookup (op =) ax_counts ax_no |> the (*###*) *)
       fun in_right_cluster s =
         (s |> Meson_Clausify.cluster_of_zapped_var_name |> fst |> snd |> fst)
         = cluster_no
-      val alls =
+      val cluster_substs =
         substs
-        |> maps (fn (ax_no', (_, (_, tsubst))) =>
-                    if ax_no' = ax_no then
-                      tsubst |> filter (in_right_cluster
-                                        o fst o fst o dest_Var o fst)
-                             |> map snd
-                    else
-                      [])
-      val params' = params
+        |> map_filter (fn (ax_no', (_, (_, tsubst))) =>
+                          if ax_no' = ax_no then
+                            tsubst |> filter (in_right_cluster
+                                               o fst o fst o dest_Var o fst)
+                                    |> map snd |> SOME
+                           else
+                             NONE)
+      val n = length cluster_substs
+      fun do_cluster_subst cluster_subst =
+        map (instantiate_forall_tac thy params) cluster_subst @ [rotate_tac 1]
+      val params' = params (*### existentials! *)
     in
       rotate_tac ax_no
-      THEN' EVERY' (map (instantiate_forall_tac thy params) alls)
-(*      THEN' ### *)
-      THEN' rotate_tac (~ ax_no)
+      THEN' (EVERY' (maps do_cluster_subst cluster_substs))
+      THEN' rotate_tac (~ ax_no - length cluster_substs)
       THEN' release_clusters_tac thy ax_counts substs params' clusters
-   end
+    end
 
 val cluster_ord =
   prod_ord (prod_ord int_ord (prod_ord int_ord int_ord)) bool_ord
@@ -294,17 +295,20 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
     in
       Goal.prove ctxt [] [] @{prop False}
           (K (cut_rules_tac (map (fst o nth axioms o fst o fst) ax_counts) 1
+              THEN print_tac "cut:"
               THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
+              THEN print_tac "eliminated outermost existentials:"
               THEN copy_prems_tac (map snd ax_counts) [] 1
               THEN release_clusters_tac thy ax_counts substs params0
                                         ordered_clusters 1
-              THEN print_tac "released axioms:"
+              THEN print_tac "released clusters:"
               THEN match_tac [prems_imp_false] 1
               THEN print_tac "applied rule:"
+              THEN print_tac "unified skolems:"
               THEN ALLGOALS (fn i =>
                        rtac @{thm skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
-                       THEN PRIMITIVE (unify_prem_with_concl thy i)
+                       THEN PRIMITIVE (unify_first_prem_with_concl thy i)
                        THEN assume_tac i)))
     end
 
