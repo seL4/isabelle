@@ -168,7 +168,7 @@ lemma eq_set_perm_remdups: "set xs = set ys ==> remdups xs <~~> remdups ys"
     apply simp
     apply (subgoal_tac "a#list <~~> a#ysa@zs")
      apply (metis Cons_eq_appendI perm_append_Cons trans)
-    apply (metis Cons Cons_eq_appendI distinct.simps(2)
+    apply (metis Cons Cons_eq_appendI distinct_simps(2)
       distinct_remdups distinct_remdups_id perm_append_swap perm_distinct_iff)
    apply (subgoal_tac "set (a#list) = set (ysa@a#zs) & distinct (a#list) & distinct (ysa@a#zs)")
     apply (fastsimp simp add: insert_ident)

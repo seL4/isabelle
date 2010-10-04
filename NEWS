@@ -74,6 +74,10 @@ and type constructors.
 
 *** HOL ***
 
+* Predicates `distinct` and `sorted` now defined inductively, with nice
+induction rules.  INCOMPATIBILITY: former distinct.simps and sorted.simps
+now named distinct_simps and sorted_simps.
+
 * Constant `contents` renamed to `the_elem`, to free the generic name
 contents for other uses.  INCOMPATIBILITY.
 
