@@ -121,10 +121,12 @@ fun hol_term_from_metis_PT ctxt fol_tm =
                     val nterms = length ts - ntypes
                     val tts = map tm_to_tt ts
                     val tys = types_of (List.take(tts,ntypes))
-                    val t = if String.isPrefix new_skolem_const_prefix c then
-                              Var (new_skolem_var_from_const c, tl tys ---> hd tys)
-                            else
-                              Const (c, dummyT)
+                    val t =
+                      if String.isPrefix new_skolem_const_prefix c then
+                        Var (new_skolem_var_from_const c,
+                             Type_Infer.paramify_vars (tl tys ---> hd tys))
+                      else
+                        Const (c, dummyT)
                   in if length tys = ntypes then
                          apply_list t nterms (List.drop(tts,ntypes))
                      else
