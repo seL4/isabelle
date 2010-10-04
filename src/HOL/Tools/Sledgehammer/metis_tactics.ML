@@ -57,6 +57,23 @@ val waiting_params =
    models = []}
 val resolution_params = {active = active_params, waiting = waiting_params}
 
+fun instantiate_theorem thy inst th =
+  let
+    val tyenv = Vartab.empty |> fold (Type.raw_unify o pairself fastype_of) inst
+    val instT =
+      [] |> Vartab.fold (fn (z, (S, T)) =>
+                            cons (TVar (z, S), Type.devar tyenv T)) tyenv
+    val inst = inst |> map (pairself (subst_atomic_types instT))
+    val _ = tracing (cat_lines (map (fn (T, U) =>
+        Syntax.string_of_typ @{context} T ^ " |-> " ^
+        Syntax.string_of_typ @{context} U) instT))
+    val _ = tracing (cat_lines (map (fn (t, u) =>
+        Syntax.string_of_term @{context} t ^ " |-> " ^
+        Syntax.string_of_term @{context} u) inst))
+    val cinstT = instT |> map (pairself (ctyp_of thy))
+    val cinst = inst |> map (pairself (cterm_of thy))
+  in th |> Thm.instantiate (cinstT, cinst) end
+
 (* In principle, it should be sufficient to apply "assume_tac" to unify the
    conclusion with one of the premises. However, in practice, this is unreliable
    because of the mildly higher-order nature of the unification problems.
@@ -68,19 +85,6 @@ fun unify_first_prem_with_concl thy i th =
     val goal = Logic.get_goal (prop_of th) i |> Envir.beta_eta_contract
     val prem = goal |> Logic.strip_assums_hyp |> hd
     val concl = goal |> Logic.strip_assums_concl
-    fun add_types Tp instT =
-      if exists (curry (op =) Tp) instT then instT
-      else Tp :: map (apsnd (typ_subst_atomic [Tp])) instT
-    fun unify_types (T, U) =
-      if T = U then
-        I
-      else case (T, U) of
-        (TVar _, _) => add_types (T, U)
-      | (_, TVar _) => add_types (U, T)
-      | (Type (s, Ts), Type (t, Us)) =>
-        if s = t andalso length Ts = length Us then fold unify_types (Ts ~~ Us)
-        else raise TYPE ("unify_types", [T, U], [])
-      | _ => raise TYPE ("unify_types", [T, U], [])
     fun pair_untyped_aconv (t1, t2) (u1, u2) =
       untyped_aconv t1 u1 andalso untyped_aconv t2 u2
     fun add_terms tp inst =
@@ -111,17 +115,7 @@ fun unify_first_prem_with_concl thy i th =
       | (Var _, _) => add_terms (t, u)
       | (_, Var _) => add_terms (u, t)
       | _ => if untyped_aconv t u then I else raise TERM ("unify_terms", [t, u])
-
-    val inst = [] |> unify_terms (prem, concl)
-    val _ = trace_msg (fn () => cat_lines (map (fn (t, u) =>
-        Syntax.string_of_term @{context} t ^ " |-> " ^
-        Syntax.string_of_term @{context} u) inst))
-    val instT = fold (fn Tp => unify_types (pairself fastype_of Tp)
-                               handle TERM _ => I) inst []
-    val inst = inst |> map (pairself (subst_atomic_types instT))
-    val cinstT = instT |> map (pairself (ctyp_of thy))
-    val cinst = inst |> map (pairself (cterm_of thy))
-  in th |> Thm.instantiate (cinstT, []) |> Thm.instantiate ([], cinst) end
+  in th |> instantiate_theorem thy (unify_terms (prem, concl) []) end
 
 fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (index_no, axiom_no)
 fun shuffle_ord p =
@@ -147,7 +141,7 @@ fun instantiate_forall_tac thy params t i =
     val t' = t |> repair |> fold (curry absdummy) (map snd params)
     fun do_instantiate th =
       let val var = Term.add_vars (prop_of th) [] |> the_single in
-        th |> Thm.instantiate ([], [(cterm_of thy (Var var), cterm_of thy t')])
+        th |> instantiate_theorem thy [(Var var, t')]
       end
   in
     etac @{thm allE} i
@@ -174,11 +168,12 @@ fun release_clusters_tac _ _ _ _ [] = K all_tac
       val n = length cluster_substs
       fun do_cluster_subst cluster_subst =
         map (instantiate_forall_tac thy params) cluster_subst @ [rotate_tac 1]
-      val params' = params (*### existentials! *)
+      val params' = params (* FIXME ### existentials! *)
+      val first_prem = find_index (fn (ax_no', _) => ax_no' = ax_no) substs
     in
-      rotate_tac ax_no
+      rotate_tac first_prem
       THEN' (EVERY' (maps do_cluster_subst cluster_substs))
-      THEN' rotate_tac (~ ax_no - length cluster_substs)
+      THEN' rotate_tac (~ first_prem - length cluster_substs)
       THEN' release_clusters_tac thy ax_counts substs params' clusters
     end
 
@@ -229,7 +224,8 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         case prem of
           _ $ (Const (@{const_name skolem}, _) $ (_ $ t $ num)) =>
           let val ax_no = HOLogic.dest_nat num in
-            (ax_no, (subgoal_no, match_term (nth axioms ax_no |> snd, t)))
+            (ax_no, (subgoal_no,
+                     match_term (nth axioms ax_no |> the |> snd, t)))
           end
         | _ => raise TERM ("discharge_skolem_premises: Malformed premise",
                            [prem])
@@ -267,7 +263,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                error "Cannot replay Metis proof in Isabelle without axiom of \
                      \choice."
       val params0 =
-        [] |> fold Term.add_vars (map snd axioms)
+        [] |> fold (Term.add_vars o snd) (map_filter I axioms)
            |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst o fst))
            |> filter (fn (((_, (cluster_no, _)), skolem), _) =>
                          cluster_no = 0 andalso skolem)
@@ -278,8 +274,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                     Int_Tysubst_Table.map_default ((ax_no, tysubst), 0)
                                                   (Integer.add 1)) substs
         |> Int_Tysubst_Table.dest
-(* for debugging:###
-*)
+(* for debugging:
       fun string_for_subst_info (ax_no, (subgoal_no, (tysubst, tsubst))) =
         "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int subgoal_no ^
         "; tysubst: " ^ PolyML.makestring tysubst ^ "; tsubst: {" ^
@@ -290,21 +285,22 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       val _ = tracing ("OUTERMOST SKOLEMS: " ^ PolyML.makestring params0)
       val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
       val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
+*)
       fun rotation_for_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
     in
       Goal.prove ctxt [] [] @{prop False}
-          (K (cut_rules_tac (map (fst o nth axioms o fst o fst) ax_counts) 1
+          (K (cut_rules_tac
+                  (map (fst o the o nth axioms o fst o fst) ax_counts) 1
               THEN print_tac "cut:"
               THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
-              THEN print_tac "eliminated outermost existentials:"
               THEN copy_prems_tac (map snd ax_counts) [] 1
+              THEN print_tac "eliminated exist and copied prems:"
               THEN release_clusters_tac thy ax_counts substs params0
                                         ordered_clusters 1
               THEN print_tac "released clusters:"
               THEN match_tac [prems_imp_false] 1
               THEN print_tac "applied rule:"
-              THEN print_tac "unified skolems:"
               THEN ALLGOALS (fn i =>
                        rtac @{thm skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
@@ -324,7 +320,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                  Meson_Clausify.cnf_axiom ctxt new_skolemizer j th))
              (0 upto length ths0 - 1) ths0
       val thss = map (snd o snd) th_cls_pairs
-      val dischargers = map_filter (fst o snd) th_cls_pairs
+      val dischargers = map (fst o snd) th_cls_pairs
       val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg (fn () => "THEOREM CLAUSES")
@@ -371,7 +367,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                   ();
                 case result of
                     (_,ith)::_ =>
-                        (tracing(*###*) ("Success: " ^ Display.string_of_thm ctxt ith);
+                        (trace_msg (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
                          [discharge_skolem_premises ctxt dischargers ith])
                   | _ => (trace_msg (fn () => "Metis: No result"); [])
             end
