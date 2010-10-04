@@ -8,15 +8,11 @@
 header {* Sledgehammer: Isabelle--ATP Linkup *}
 
 theory Sledgehammer
-imports Plain Hilbert_Choice
+imports Plain
 uses
   ("Tools/ATP/atp_problem.ML")
   ("Tools/ATP/atp_proof.ML")
   ("Tools/ATP/atp_systems.ML")
-  ("~~/src/Tools/Metis/metis.ML")
-  ("Tools/Sledgehammer/metis_translate.ML")
-  ("Tools/Sledgehammer/metis_reconstruct.ML")
-  ("Tools/Sledgehammer/metis_tactics.ML")
   ("Tools/Sledgehammer/sledgehammer_util.ML")
   ("Tools/Sledgehammer/sledgehammer_filter.ML")
   ("Tools/Sledgehammer/sledgehammer_translate.ML")
@@ -26,87 +22,10 @@ uses
   ("Tools/Sledgehammer/sledgehammer_isar.ML")
 begin
 
-lemma TruepropI: "P \<equiv> Q \<Longrightarrow> Trueprop P \<equiv> Trueprop Q"
-by simp
-
-definition skolem :: "'a \<Rightarrow> 'a" where
-[no_atp]: "skolem = (\<lambda>x. x)"
-
-definition COMBI :: "'a \<Rightarrow> 'a" where
-[no_atp]: "COMBI P = P"
-
-definition COMBK :: "'a \<Rightarrow> 'b \<Rightarrow> 'a" where
-[no_atp]: "COMBK P Q = P"
-
-definition COMBB :: "('b => 'c) \<Rightarrow> ('a => 'b) \<Rightarrow> 'a \<Rightarrow> 'c" where [no_atp]:
-"COMBB P Q R = P (Q R)"
-
-definition COMBC :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
-[no_atp]: "COMBC P Q R = P R Q"
-
-definition COMBS :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" where
-[no_atp]: "COMBS P Q R = P R (Q R)"
-
-definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where [no_atp]:
-"fequal X Y \<longleftrightarrow> (X = Y)"
-
-lemma fequal_imp_equal [no_atp]: "\<not> fequal X Y \<or> X = Y"
-by (simp add: fequal_def)
-
-lemma equal_imp_fequal [no_atp]: "\<not> X = Y \<or> fequal X Y"
-by (simp add: fequal_def)
-
-lemma equal_imp_equal [no_atp]: "X = Y ==> X = Y"
-by auto
-
-lemma skolem_COMBK_iff: "P \<longleftrightarrow> skolem (COMBK P (i\<Colon>nat))"
-unfolding skolem_def COMBK_def by (rule refl)
-
-lemmas skolem_COMBK_I = iffD1 [OF skolem_COMBK_iff]
-lemmas skolem_COMBK_D = iffD2 [OF skolem_COMBK_iff]
-
-text{*Theorems for translation to combinators*}
-
-lemma abs_S [no_atp]: "\<lambda>x. (f x) (g x) \<equiv> COMBS f g"
-apply (rule eq_reflection)
-apply (rule ext) 
-apply (simp add: COMBS_def) 
-done
-
-lemma abs_I [no_atp]: "\<lambda>x. x \<equiv> COMBI"
-apply (rule eq_reflection)
-apply (rule ext) 
-apply (simp add: COMBI_def) 
-done
-
-lemma abs_K [no_atp]: "\<lambda>x. y \<equiv> COMBK y"
-apply (rule eq_reflection)
-apply (rule ext) 
-apply (simp add: COMBK_def) 
-done
-
-lemma abs_B [no_atp]: "\<lambda>x. a (g x) \<equiv> COMBB a g"
-apply (rule eq_reflection)
-apply (rule ext) 
-apply (simp add: COMBB_def) 
-done
-
-lemma abs_C [no_atp]: "\<lambda>x. (f x) b \<equiv> COMBC f b"
-apply (rule eq_reflection)
-apply (rule ext) 
-apply (simp add: COMBC_def) 
-done
-
 use "Tools/ATP/atp_problem.ML"
 use "Tools/ATP/atp_proof.ML"
 use "Tools/ATP/atp_systems.ML"
 setup ATP_Systems.setup
-
-use "~~/src/Tools/Metis/metis.ML"
-use "Tools/Sledgehammer/metis_translate.ML"
-use "Tools/Sledgehammer/metis_reconstruct.ML"
-use "Tools/Sledgehammer/metis_tactics.ML"
-setup Metis_Tactics.setup
 
 use "Tools/Sledgehammer/sledgehammer_util.ML"
 use "Tools/Sledgehammer/sledgehammer_filter.ML"

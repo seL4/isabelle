@@ -155,6 +155,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Inductive.thy \
   Lattices.thy \
   Meson.thy \
+  Metis.thy \
   Nat.thy \
   Option.thy \
   Orderings.thy \
@@ -204,6 +205,9 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/lin_arith.ML \
   Tools/Meson/meson.ML \
   Tools/Meson/meson_clausify.ML \
+  Tools/Metis/metis_reconstruct.ML \
+  Tools/Metis/metis_translate.ML \
+  Tools/Metis/metis_tactics.ML \
   Tools/nat_arith.ML \
   Tools/primrec.ML \
   Tools/prop_logic.ML \
@@ -222,6 +226,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   $(SRC)/Provers/Arith/fast_lin_arith.ML \
   $(SRC)/Provers/order.ML \
   $(SRC)/Provers/trancl.ML \
+  $(SRC)/Tools/Metis/metis.ML \
   $(SRC)/Tools/rat.ML
 
 $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
@@ -267,7 +272,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
-  $(SRC)/Tools/Metis/metis.ML \
   Tools/async_manager.ML \
   Tools/ATP/atp_problem.ML \
   Tools/ATP/atp_proof.ML \
@@ -317,9 +321,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/recdef.ML \
   Tools/record.ML \
   Tools/semiring_normalizer.ML \
-  Tools/Sledgehammer/metis_reconstruct.ML \
-  Tools/Sledgehammer/metis_translate.ML \
-  Tools/Sledgehammer/metis_tactics.ML \
   Tools/Sledgehammer/sledgehammer.ML \
   Tools/Sledgehammer/sledgehammer_filter.ML \
   Tools/Sledgehammer/sledgehammer_minimize.ML \

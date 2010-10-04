@@ -5,7 +5,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Plain Quotient Presburger Code_Numeral Sledgehammer Recdef
+imports Plain Quotient Presburger Code_Numeral Recdef
 uses ("Tools/list_code.ML")
 begin
 

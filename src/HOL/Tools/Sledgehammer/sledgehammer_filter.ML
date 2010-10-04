@@ -585,6 +585,7 @@ fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
 fun is_formula_too_complex t =
   apply_depth t > max_apply_depth orelse formula_has_too_many_lambdas [] t
 
+(* FIXME: Extend to "Meson" and "Metis" *)
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s)
 

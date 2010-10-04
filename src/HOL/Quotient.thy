@@ -5,7 +5,7 @@
 header {* Definition of Quotient Types *}
 
 theory Quotient
-imports Plain Sledgehammer
+imports Plain Hilbert_Choice
 uses
   ("Tools/Quotient/quotient_info.ML")
   ("Tools/Quotient/quotient_typ.ML")

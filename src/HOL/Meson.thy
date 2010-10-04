@@ -8,7 +8,7 @@
 header {* MESON Proof Procedure (Model Elimination) *}
 
 theory Meson
-imports Nat
+imports Datatype
 uses ("Tools/Meson/meson.ML")
      ("Tools/Meson/meson_clausify.ML")
 begin
