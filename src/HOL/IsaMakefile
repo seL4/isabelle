@@ -201,6 +201,8 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/inductive_realizer.ML \
   Tools/inductive_set.ML \
   Tools/lin_arith.ML \
+  Tools/Meson/meson.ML \
+  Tools/Meson/meson_clausify.ML \
   Tools/nat_arith.ML \
   Tools/primrec.ML \
   Tools/prop_logic.ML \
@@ -275,7 +277,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/int_arith.ML \
   Tools/groebner.ML \
   Tools/list_code.ML \
-  Tools/meson.ML \
   Tools/nat_numeral_simprocs.ML \
   Tools/Nitpick/kodkod.ML \
   Tools/Nitpick/kodkod_sat.ML \
@@ -315,7 +316,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/recdef.ML \
   Tools/record.ML \
   Tools/semiring_normalizer.ML \
-  Tools/Sledgehammer/meson_clausify.ML \
   Tools/Sledgehammer/metis_reconstruct.ML \
   Tools/Sledgehammer/metis_translate.ML \
   Tools/Sledgehammer/metis_tactics.ML \
