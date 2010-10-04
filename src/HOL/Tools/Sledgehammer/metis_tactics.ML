@@ -89,7 +89,7 @@ fun instantiate_forall_tac thy params t i =
     THEN PRIMITIVE do_instantiate
   end
 
-(*### TODO: fix confusion between ax_no and prem_no *)
+(*### TODO: fix confusion between ax_no and goal_no *)
 fun release_clusters_tac _ _ _ _ [] = K all_tac
   | release_clusters_tac thy ax_counts substs params
                          ((ax_no, cluster_no) :: clusters) =
@@ -141,11 +141,11 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                  |> map (Meson.term_pair_of
                          #> pairself (Envir.subst_term_types tyenv))
         in (tyenv, tsubst) end
-      fun subst_info_for_prem prem_no prem =
+      fun subst_info_for_prem subgoal_no prem =
         case prem of
           _ $ (Const (@{const_name skolem}, _) $ (_ $ t $ num)) =>
           let val ax_no = HOLogic.dest_nat num in
-            (ax_no, (prem_no, match_term (nth axioms ax_no |> snd, t)))
+            (ax_no, (subgoal_no, match_term (nth axioms ax_no |> snd, t)))
           end
         | _ => raise TERM ("discharge_skolem_premises: Malformed premise",
                            [prem])
@@ -170,7 +170,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                 |> cluster_no > 1 ? cons (ax_no, cluster_no - 1))
         | _ => raise TERM ("discharge_skolem_premises: Expected Var", [var])
       val prems = Logic.strip_imp_prems prems_imp_false_prop
-      val substs = prems |> map2 subst_info_for_prem (0 upto length prems - 1)
+      val substs = prems |> map2 subst_info_for_prem (1 upto length prems)
                          |> sort (int_ord o pairself fst)
       val depss = maps (map_filter deps_for_term_subst o snd o snd o snd) substs
       val clusters = maps (op ::) depss
@@ -194,8 +194,8 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                 substs
         |> Inttab.dest
 (* for debugging:
-      fun string_for_subst_info (ax_no, (prem_no, (tyenv, tsubst))) =
-        "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int prem_no ^
+      fun string_for_subst_info (ax_no, (subgoal_no, (tyenv, tsubst))) =
+        "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int subgoal_no ^
         "; tyenv: " ^ PolyML.makestring tyenv ^ "; tsubst: {" ^
         commas (map ((fn (s, t) => s ^ " |-> " ^ t)
                      o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
@@ -204,6 +204,8 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
       val _ = tracing ("AXIOM COUNT: " ^ PolyML.makestring ax_counts)
 *)
+      fun rotation_for_subgoal i =
+        find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
     in
       Goal.prove ctxt [] [] @{prop False}
           (K (cut_rules_tac (map (fst o nth axioms o fst) ax_counts) 1
@@ -215,9 +217,9 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
               THEN print_tac "released axioms:"
               THEN match_tac [prems_imp_false] 1
               THEN print_tac "applied rule:"
-              THEN DETERM_UNTIL_SOLVED
-                       (rtac @{thm skolem_COMBK_I} 1
-                        THEN assume_tac 1)))
+              THEN ALLGOALS (fn i => rtac @{thm skolem_COMBK_I} i
+                                     THEN rotate_tac (rotation_for_subgoal i) i
+                                     THEN assume_tac i)))
     end
 
 (* Main function to start Metis proof and reconstruction *)
