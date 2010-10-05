@@ -343,7 +343,7 @@ fun print_error ctxt D = CALLS (fn (cs, _) =>
   end)
 end
 
-fun single_scnp_tac use_tags orders ctxt cont err_cont D = Termination.CALLS (fn (cs, i) =>
+fun single_scnp_tac use_tags orders ctxt D = Termination.CALLS (fn (cs, i) =>
   let
     val ms_configured = is_some (Multiset_Setup.get (ProofContext.theory_of ctxt))
     val orders' = if ms_configured then orders
@@ -352,56 +352,40 @@ fun single_scnp_tac use_tags orders ctxt cont err_cont D = Termination.CALLS (fn
     val certificate = generate_certificate use_tags orders' gp
   in
     case certificate
-     of NONE => err_cont D i
+     of NONE => no_tac
       | SOME cert =>
           SELECT_GOAL (reconstruct_tac ctxt D cs gp cert) i
-          THEN (rtac @{thm wf_empty} i ORELSE cont D i)
+          THEN TRY (rtac @{thm wf_empty} i)
   end)
 
-fun gen_decomp_scnp_tac orders autom_tac ctxt err_cont =
+local open Termination in
+
+fun gen_decomp_scnp_tac orders autom_tac ctxt =
+TERMINATION ctxt autom_tac (fn D => 
   let
-    open Termination
-    val derive_diag = Termination.derive_diag ctxt autom_tac
-    val derive_all = Termination.derive_all ctxt autom_tac
-    val decompose = Termination.decompose_tac ctxt autom_tac
-    val scnp_no_tags = single_scnp_tac false orders ctxt
-    val scnp_full = single_scnp_tac true orders ctxt
-
-    fun first_round c e =
-        derive_diag (REPEAT scnp_no_tags c e)
-
-    val second_round =
-        REPEAT (fn c => fn e => decompose (scnp_no_tags c c) e)
-
-    val third_round =
-        derive_all oo
-        REPEAT (fn c => fn e =>
-          scnp_full (decompose c c) e)
-
-    fun Then s1 s2 c e = s1 (s2 c c) (s2 c e)
-
-    val strategy = Then (Then first_round second_round) third_round
-
+    val decompose = decompose_tac D
+    val scnp_full = single_scnp_tac true orders ctxt D
   in
-    TERMINATION ctxt autom_tac (strategy err_cont err_cont)
-  end
+    REPEAT_ALL_NEW (scnp_full ORELSE' decompose)
+  end)
+end
 
-fun gen_sizechange_tac orders autom_tac ctxt err_cont =
+fun gen_sizechange_tac orders autom_tac ctxt =
   TRY (Function_Common.apply_termination_rule ctxt 1)
   THEN TRY (Termination.wf_union_tac ctxt)
   THEN
    (rtac @{thm wf_empty} 1
-    ORELSE gen_decomp_scnp_tac orders autom_tac ctxt err_cont 1)
+    ORELSE gen_decomp_scnp_tac orders autom_tac ctxt 1)
 
 fun sizechange_tac ctxt autom_tac =
-  gen_sizechange_tac [MAX, MS, MIN] autom_tac ctxt (K (K all_tac))
+  gen_sizechange_tac [MAX, MS, MIN] autom_tac ctxt
 
 fun decomp_scnp_tac orders ctxt =
   let
     val extra_simps = Function_Common.Termination_Simps.get ctxt
     val autom_tac = auto_tac (clasimpset_of ctxt addsimps2 extra_simps)
   in
-     gen_sizechange_tac orders autom_tac ctxt (print_error ctxt)
+     gen_sizechange_tac orders autom_tac ctxt
   end
 
 

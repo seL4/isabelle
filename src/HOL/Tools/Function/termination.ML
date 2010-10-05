@@ -9,7 +9,7 @@ signature TERMINATION =
 sig
 
   type data
-  datatype cell = Less of thm | LessEq of (thm * thm) | None of (thm * thm) | False of thm
+  datatype cell = Less of thm | LessEq of thm * thm | None of thm * thm | False of thm
 
   val mk_sumcases : data -> typ -> term list -> term
 
@@ -17,7 +17,6 @@ sig
   val get_types      : data -> int -> typ
   val get_measures   : data -> int -> term list
 
-  (* read from cache *)
   val get_chain      : data -> term -> term -> thm option option
   val get_descent    : data -> term -> term -> term -> cell option
 
@@ -25,23 +24,14 @@ sig
 
   val CALLS : (term list * int -> tactic) -> int -> tactic
 
-  (* Termination tactics. Sequential composition via continuations. (2nd argument is the error continuation) *)
-  type ttac = (data -> int -> tactic) -> (data -> int -> tactic) -> data -> int -> tactic
+  (* Termination tactics *)
+  type ttac = data -> int -> tactic
 
-  val TERMINATION : Proof.context -> tactic -> (data -> int -> tactic) -> int -> tactic
-
-  val REPEAT : ttac -> ttac
+  val TERMINATION : Proof.context -> tactic -> ttac -> int -> tactic
 
   val wf_union_tac : Proof.context -> tactic
 
-  val decompose_tac : Proof.context -> tactic -> ttac
-
-  val derive_diag : Proof.context -> tactic -> 
-    (data -> int -> tactic) -> data -> int -> tactic
-
-  val derive_all  : Proof.context -> tactic ->
-    (data -> int -> tactic) -> data -> int -> tactic
-
+  val decompose_tac : ttac
 end
 
 
@@ -119,7 +109,7 @@ fun dest_inj (SLeaf i) trm = (i, trm)
 
 (** Matrix cell datatype **)
 
-datatype cell = Less of thm | LessEq of (thm * thm) | None of (thm * thm) | False of thm;
+datatype cell = Less of thm | LessEq of thm * thm | None of thm * thm | False of thm;
 
 
 type data =
@@ -129,12 +119,6 @@ type data =
   * (term * term -> thm option)   (* which calls form chains? (cached) *)
   * (term * (term * term) -> cell)(* local descents (cached) *)
 
-
-fun map_chains f (p, T, M, C, D) = (p, T, M, f C, D)
-fun map_descent f (p, T, M, C, D) = (p, T, M, C, f D)
-
-fun note_chain c1 c2 res D = D     (*disabled*)
-fun note_descent c m1 m2 res D = D
 
 (* Build case expression *)
 fun mk_sumcases (sk, _, _, _, _) T fs =
@@ -241,15 +225,13 @@ fun get_chain (_, _, _, C, _) c1 c2 =
 fun get_descent (_, _, _, _, D) c m1 m2 =
   SOME (D (c, (m1, m2)))
 
-fun derive_descent thy tac c m1 m2 D = D (* disabled *)
-
 fun CALLS tac i st =
   if Thm.no_prems st then all_tac st
   else case Thm.term_of (Thm.cprem_of st i) of
     (_ $ (_ $ rel)) => tac (Function_Lib.dest_binop_list @{const_name Lattices.sup} rel, i) st
   |_ => no_tac st
 
-type ttac = (data -> int -> tactic) -> (data -> int -> tactic) -> data -> int -> tactic
+type ttac = data -> int -> tactic
 
 fun TERMINATION ctxt atac tac =
   SUBGOAL (fn (_ $ (Const (@{const_name wf}, wfT) $ rel), i) =>
@@ -326,24 +308,8 @@ fun wf_union_tac ctxt st =
 end
 
 
-(* continuation passing repeat combinator *)
-fun REPEAT ttac cont err_cont =
-    ttac (fn D => fn i => (REPEAT ttac cont cont D i)) err_cont
 
 (*** DEPENDENCY GRAPHS ***)
-
-fun derive_chains ctxt chain_tac cont = cont
-(* fn D => CALLS (fn (cs, i) =>
-  let
-    val thy = ProofContext.theory_of ctxt
-
-    fun derive_chain c1 c2 D =
-      if is_some (get_chain D c1 c2) then D else
-      note_chain c1 c2 (prove_chain thy chain_tac c1 c2) D
-  in
-    cont (fold_product derive_chain cs cs D) i
-  end)
-*)
 
 fun mk_dgraph D cs =
   Term_Graph.empty
@@ -374,53 +340,23 @@ fun solve_trivial_tac D = CALLS (fn ([c], i) =>
    | _ => no_tac)
   | _ => no_tac)
 
-fun decompose_tac' cont err_cont D = CALLS (fn (cs, i) =>
+fun decompose_tac D = CALLS (fn (cs, i) =>
   let
     val G = mk_dgraph D cs
     val sccs = Term_Graph.strong_conn G
 
-    fun split [SCC] i = (solve_trivial_tac D i ORELSE cont D i)
+    fun split [SCC] i = TRY (solve_trivial_tac D i)
       | split (SCC::rest) i =
         regroup_calls_tac SCC i
         THEN rtac @{thm wf_union_compatible} i
         THEN rtac @{thm less_by_empty} (i + 2)
         THEN ucomp_empty_tac (the o the oo get_chain D) (i + 2)
         THEN split rest (i + 1)
-        THEN (solve_trivial_tac D i ORELSE cont D i)
+        THEN TRY (solve_trivial_tac D i)
   in
     if length sccs > 1 then split sccs i
-    else solve_trivial_tac D i ORELSE err_cont D i
+    else solve_trivial_tac D i
   end)
-
-fun decompose_tac ctxt chain_tac cont err_cont =
-  derive_chains ctxt chain_tac (decompose_tac' cont err_cont)
-
-
-(*** Local Descent Proofs ***)
-
-fun gen_descent diag ctxt tac cont = cont
-(*
-  fn D => CALLS (fn (cs, i) =>
-  let
-    val thy = ProofContext.theory_of ctxt
-    val measures_of = get_measures D
-
-    fun derive c D =
-      let
-        val (_, p, _, q, _, _) = dest_call D c
-      in
-        if diag andalso p = q
-        then fold (fn m => derive_descent thy tac c m m) (measures_of p) D
-        else fold_product (derive_descent thy tac c)
-               (measures_of p) (measures_of q) D
-      end
-  in
-    cont (Function_Common.PROFILE "deriving descents" (fold derive cs) D) i
-  end)
-*)
-
-fun derive_diag ctxt = gen_descent true ctxt
-fun derive_all ctxt = gen_descent false ctxt
 
 
 end
