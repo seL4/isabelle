@@ -383,7 +383,7 @@ fun gen_decomp_scnp_tac orders autom_tac ctxt err_cont =
     val strategy = Then (Then first_round second_round) third_round
 
   in
-    TERMINATION ctxt (strategy err_cont err_cont)
+    TERMINATION ctxt autom_tac (strategy err_cont err_cont)
   end
 
 fun gen_sizechange_tac orders autom_tac ctxt err_cont =
