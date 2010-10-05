@@ -64,10 +64,10 @@ fun instantiate_theorem thy inst th =
       [] |> Vartab.fold (fn (z, (S, T)) =>
                             cons (TVar (z, S), Type.devar tyenv T)) tyenv
     val inst = inst |> map (pairself (subst_atomic_types instT))
-    val _ = tracing (cat_lines (map (fn (T, U) =>
+    val _ = trace_msg (fn () => cat_lines (map (fn (T, U) =>
         Syntax.string_of_typ @{context} T ^ " |-> " ^
         Syntax.string_of_typ @{context} U) instT))
-    val _ = tracing (cat_lines (map (fn (t, u) =>
+    val _ = trace_msg (fn () => cat_lines (map (fn (t, u) =>
         Syntax.string_of_term @{context} t ^ " |-> " ^
         Syntax.string_of_term @{context} u) inst))
     val cinstT = instT |> map (pairself (ctyp_of thy))
@@ -292,15 +292,11 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       Goal.prove ctxt [] [] @{prop False}
           (K (cut_rules_tac
                   (map (fst o the o nth axioms o fst o fst) ax_counts) 1
-              THEN print_tac "cut:"
               THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
               THEN copy_prems_tac (map snd ax_counts) [] 1
-              THEN print_tac "eliminated exist and copied prems:"
               THEN release_clusters_tac thy ax_counts substs params0
                                         ordered_clusters 1
-              THEN print_tac "released clusters:"
               THEN match_tac [prems_imp_false] 1
-              THEN print_tac "applied rule:"
               THEN ALLGOALS (fn i =>
                        rtac @{thm skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
