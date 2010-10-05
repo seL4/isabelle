@@ -119,14 +119,17 @@ fun search_table table =
 (** Proof Reconstruction **)
 
 (* prove row :: cell list -> tactic *)
-fun prove_row (Less less_thm :: _) =
-    (rtac @{thm "mlex_less"} 1)
-    THEN PRIMITIVE (Thm.elim_implies less_thm)
-  | prove_row (LessEq (lesseq_thm, _) :: tail) =
-    (rtac @{thm "mlex_leq"} 1)
-    THEN PRIMITIVE (Thm.elim_implies lesseq_thm)
-    THEN prove_row tail
-  | prove_row _ = sys_error "lexicographic_order"
+fun prove_row (c :: cs) =
+  (case Lazy.force c of
+     Less thm =>
+       rtac @{thm "mlex_less"} 1
+       THEN PRIMITIVE (Thm.elim_implies thm)
+   | LessEq (thm, _) =>
+       rtac @{thm "mlex_leq"} 1
+       THEN PRIMITIVE (Thm.elim_implies thm)
+       THEN prove_row cs
+   | _ => sys_error "lexicographic_order")
+ | prove_row [] = no_tac;
 
 
 (** Error reporting **)
@@ -200,7 +203,6 @@ fun lex_order_tac quiet ctxt solve_tac (st: thm) =
     | SOME order =>
       let
         val clean_table = map (fn x => map (nth x) order) table
-          |> map (map Lazy.force)
         val relation = mk_measures domT (map (nth measure_funs) order)
         val _ = if not quiet
           then writeln ("Found termination order: " ^ quote (Syntax.string_of_term ctxt relation))
