@@ -205,6 +205,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/lin_arith.ML \
   Tools/Meson/meson.ML \
   Tools/Meson/meson_clausify.ML \
+  Tools/Meson/meson_tactic.ML \
   Tools/Metis/metis_reconstruct.ML \
   Tools/Metis/metis_translate.ML \
   Tools/Metis/metis_tactics.ML \

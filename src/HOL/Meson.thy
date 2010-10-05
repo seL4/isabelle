@@ -11,6 +11,7 @@ theory Meson
 imports Datatype
 uses ("Tools/Meson/meson.ML")
      ("Tools/Meson/meson_clausify.ML")
+     ("Tools/Meson/meson_tactic.ML")
 begin
 
 section {* Negation Normal Form *}
@@ -197,11 +198,12 @@ structure Meson_Choices = Named_Thms
 
 use "Tools/Meson/meson.ML"
 use "Tools/Meson/meson_clausify.ML"
+use "Tools/Meson/meson_tactic.ML"
 
 setup {*
   Meson_Choices.setup
   #> Meson.setup
-  #> Meson_Clausify.setup
+  #> Meson_Tactic.setup
 *}
 
 end

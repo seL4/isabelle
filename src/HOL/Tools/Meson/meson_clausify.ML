@@ -3,7 +3,6 @@
     Author:     Jasmin Blanchette, TU Muenchen
 
 Transformation of HOL theorems into CNF forms.
-The "meson" proof method for HOL.
 *)
 
 signature MESON_CLAUSIFY =
@@ -16,8 +15,6 @@ sig
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
   val cnf_axiom :
     Proof.context -> bool -> int -> thm -> (thm * term) option * thm list
-  val meson_general_tac : Proof.context -> thm list -> int -> tactic
-  val setup: theory -> theory
 end;
 
 structure Meson_Clausify : MESON_CLAUSIFY =
@@ -364,15 +361,5 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
              |> map Thm.close_derivation)
   end
   handle THM _ => (NONE, [])
-
-fun meson_general_tac ctxt ths =
-  let val ctxt = Classical.put_claset HOL_cs ctxt in
-    Meson.meson_tac ctxt (maps (snd o cnf_axiom ctxt false 0) ths)
-  end
-
-val setup =
-  Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
-     SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ctxt ths)))
-     "MESON resolution proof procedure"
 
 end;
