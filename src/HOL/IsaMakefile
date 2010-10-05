@@ -234,6 +234,7 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
+  ATP.thy \
   Big_Operators.thy \
   Code_Evaluation.thy \
   Code_Numeral.thy \
