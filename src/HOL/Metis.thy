@@ -31,4 +31,7 @@ use "Tools/Metis/metis_reconstruct.ML"
 use "Tools/Metis/metis_tactics.ML"
 setup Metis_Tactics.setup
 
+hide_const (open) fequal
+hide_fact (open) fequal_imp_equal equal_imp_fequal equal_imp_equal
+
 end

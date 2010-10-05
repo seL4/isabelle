@@ -112,11 +112,11 @@ val const_trans_table =
                (@{const_name HOL.implies}, "implies"),
                (@{const_name Set.member}, "member"),
                (@{const_name fequal}, "fequal"),
-               (@{const_name COMBI}, "COMBI"),
-               (@{const_name COMBK}, "COMBK"),
-               (@{const_name COMBB}, "COMBB"),
-               (@{const_name COMBC}, "COMBC"),
-               (@{const_name COMBS}, "COMBS"),
+               (@{const_name Meson.COMBI}, "COMBI"),
+               (@{const_name Meson.COMBK}, "COMBK"),
+               (@{const_name Meson.COMBB}, "COMBB"),
+               (@{const_name Meson.COMBC}, "COMBC"),
+               (@{const_name Meson.COMBS}, "COMBS"),
                (@{const_name True}, "True"),
                (@{const_name False}, "False"),
                (@{const_name If}, "If")]
@@ -463,10 +463,10 @@ fun old_skolem_const_name i j num_T_args =
   (space_implode Long_Name.separator (map Int.toString [i, j, num_T_args]))
 
 fun conceal_old_skolem_terms i old_skolems t =
-  if exists_Const (curry (op =) @{const_name skolem} o fst) t then
+  if exists_Const (curry (op =) @{const_name Meson.skolem} o fst) t then
     let
       fun aux old_skolems
-              (t as (Const (@{const_name skolem}, Type (_, [_, T])) $ _)) =
+             (t as (Const (@{const_name Meson.skolem}, Type (_, [_, T])) $ _)) =
           let
             val (old_skolems, s) =
               if i = ~1 then
@@ -532,7 +532,7 @@ fun add_type_consts_in_term thy =
     fun aux (Const x) =
         fold (fold_type_consts set_insert) (Sign.const_typargs thy x)
       | aux (Abs (_, _, u)) = aux u
-      | aux (Const (@{const_name skolem}, _) $ _) = I
+      | aux (Const (@{const_name Meson.skolem}, _) $ _) = I
       | aux (t $ u) = aux t #> aux u
       | aux _ = I
   in aux end
@@ -647,11 +647,11 @@ fun hol_thm_to_fol is_conjecture th_no ctxt type_lits mode j old_skolems th =
   end;
 
 val helpers =
-  [("c_COMBI", (false, map (`I) @{thms COMBI_def})),
-   ("c_COMBK", (false, map (`I) @{thms COMBK_def})),
-   ("c_COMBB", (false, map (`I) @{thms COMBB_def})),
-   ("c_COMBC", (false, map (`I) @{thms COMBC_def})),
-   ("c_COMBS", (false, map (`I) @{thms COMBS_def})),
+  [("c_COMBI", (false, map (`I) @{thms Meson.COMBI_def})),
+   ("c_COMBK", (false, map (`I) @{thms Meson.COMBK_def})),
+   ("c_COMBB", (false, map (`I) @{thms Meson.COMBB_def})),
+   ("c_COMBC", (false, map (`I) @{thms Meson.COMBC_def})),
+   ("c_COMBS", (false, map (`I) @{thms Meson.COMBS_def})),
    ("c_fequal", (false, map (rpair @{thm equal_imp_equal})
                             @{thms fequal_imp_equal equal_imp_fequal})),
    ("c_True", (true, map (`I) @{thms True_or_False})),

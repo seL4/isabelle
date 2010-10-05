@@ -532,7 +532,7 @@ fun flexflex_first_order th =
 
 fun is_metis_literal_genuine (_, (s, _)) = not (String.isPrefix class_prefix s)
 fun is_isabelle_literal_genuine t =
-  case t of _ $ (Const (@{const_name skolem}, _) $ _) => false | _ => true
+  case t of _ $ (Const (@{const_name Meson.skolem}, _) $ _) => false | _ => true
 
 fun count p xs = fold (fn x => if p x then Integer.add 1 else I) xs 0
 

@@ -18,22 +18,22 @@ section {* Negation Normal Form *}
 
 text {* de Morgan laws *}
 
-lemma meson_not_conjD: "~(P&Q) ==> ~P | ~Q"
-  and meson_not_disjD: "~(P|Q) ==> ~P & ~Q"
-  and meson_not_notD: "~~P ==> P"
-  and meson_not_allD: "!!P. ~(\<forall>x. P(x)) ==> \<exists>x. ~P(x)"
-  and meson_not_exD: "!!P. ~(\<exists>x. P(x)) ==> \<forall>x. ~P(x)"
+lemma not_conjD: "~(P&Q) ==> ~P | ~Q"
+  and not_disjD: "~(P|Q) ==> ~P & ~Q"
+  and not_notD: "~~P ==> P"
+  and not_allD: "!!P. ~(\<forall>x. P(x)) ==> \<exists>x. ~P(x)"
+  and not_exD: "!!P. ~(\<exists>x. P(x)) ==> \<forall>x. ~P(x)"
   by fast+
 
 text {* Removal of @{text "-->"} and @{text "<->"} (positive and
 negative occurrences) *}
 
-lemma meson_imp_to_disjD: "P-->Q ==> ~P | Q"
-  and meson_not_impD: "~(P-->Q) ==> P & ~Q"
-  and meson_iff_to_disjD: "P=Q ==> (~P | Q) & (~Q | P)"
-  and meson_not_iffD: "~(P=Q) ==> (P | Q) & (~P | ~Q)"
+lemma imp_to_disjD: "P-->Q ==> ~P | Q"
+  and not_impD: "~(P-->Q) ==> P & ~Q"
+  and iff_to_disjD: "P=Q ==> (~P | Q) & (~Q | P)"
+  and not_iffD: "~(P=Q) ==> (P | Q) & (~P | ~Q)"
     -- {* Much more efficient than @{prop "(P & ~Q) | (Q & ~P)"} for computing CNF *}
-  and meson_not_refl_disj_D: "x ~= x | P ==> P"
+  and not_refl_disj_D: "x ~= x | P ==> P"
   by fast+
 
 
@@ -41,24 +41,24 @@ section {* Pulling out the existential quantifiers *}
 
 text {* Conjunction *}
 
-lemma meson_conj_exD1: "!!P Q. (\<exists>x. P(x)) & Q ==> \<exists>x. P(x) & Q"
-  and meson_conj_exD2: "!!P Q. P & (\<exists>x. Q(x)) ==> \<exists>x. P & Q(x)"
+lemma conj_exD1: "!!P Q. (\<exists>x. P(x)) & Q ==> \<exists>x. P(x) & Q"
+  and conj_exD2: "!!P Q. P & (\<exists>x. Q(x)) ==> \<exists>x. P & Q(x)"
   by fast+
 
 
 text {* Disjunction *}
 
-lemma meson_disj_exD: "!!P Q. (\<exists>x. P(x)) | (\<exists>x. Q(x)) ==> \<exists>x. P(x) | Q(x)"
+lemma disj_exD: "!!P Q. (\<exists>x. P(x)) | (\<exists>x. Q(x)) ==> \<exists>x. P(x) | Q(x)"
   -- {* DO NOT USE with forall-Skolemization: makes fewer schematic variables!! *}
   -- {* With ex-Skolemization, makes fewer Skolem constants *}
-  and meson_disj_exD1: "!!P Q. (\<exists>x. P(x)) | Q ==> \<exists>x. P(x) | Q"
-  and meson_disj_exD2: "!!P Q. P | (\<exists>x. Q(x)) ==> \<exists>x. P | Q(x)"
+  and disj_exD1: "!!P Q. (\<exists>x. P(x)) | Q ==> \<exists>x. P(x) | Q"
+  and disj_exD2: "!!P Q. P | (\<exists>x. Q(x)) ==> \<exists>x. P | Q(x)"
   by fast+
 
-lemma meson_disj_assoc: "(P|Q)|R ==> P|(Q|R)"
-  and meson_disj_comm: "P|Q ==> Q|P"
-  and meson_disj_FalseD1: "False|P ==> P"
-  and meson_disj_FalseD2: "P|False ==> P"
+lemma disj_assoc: "(P|Q)|R ==> P|(Q|R)"
+  and disj_comm: "P|Q ==> Q|P"
+  and disj_FalseD1: "False|P ==> P"
+  and disj_FalseD2: "P|False ==> P"
   by fast+
 
 
@@ -196,5 +196,12 @@ setup {*
   Meson.setup
   #> Meson_Tactic.setup
 *}
+
+hide_const (open) COMBI COMBK COMBB COMBC COMBS skolem
+hide_fact (open) not_conjD not_disjD not_notD not_allD not_exD imp_to_disjD
+    not_impD iff_to_disjD not_iffD not_refl_disj_D conj_exD1 conj_exD2 disj_exD
+    disj_exD1 disj_exD2 disj_assoc disj_comm disj_FalseD1 disj_FalseD2 TruepropI
+    COMBI_def COMBK_def COMBB_def COMBC_def COMBS_def abs_I abs_K abs_B abs_C
+    abs_S skolem_def skolem_COMBK_iff skolem_COMBK_I skolem_COMBK_D
 
 end

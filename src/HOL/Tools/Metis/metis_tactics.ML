@@ -222,7 +222,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         in (tysubst, tsubst) end
       fun subst_info_for_prem subgoal_no prem =
         case prem of
-          _ $ (Const (@{const_name skolem}, _) $ (_ $ t $ num)) =>
+          _ $ (Const (@{const_name Meson.skolem}, _) $ (_ $ t $ num)) =>
           let val ax_no = HOLogic.dest_nat num in
             (ax_no, (subgoal_no,
                      match_term (nth axioms ax_no |> the |> snd, t)))
@@ -298,7 +298,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                                         ordered_clusters 1
               THEN match_tac [prems_imp_false] 1
               THEN ALLGOALS (fn i =>
-                       rtac @{thm skolem_COMBK_I} i
+                       rtac @{thm Meson.skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
                        THEN PRIMITIVE (unify_first_prem_with_concl thy i)
                        THEN assume_tac i)))

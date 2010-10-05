@@ -370,11 +370,11 @@ fun term_from_pred thy full_types tfrees pos (u as ATerm (s, _)) =
     pair (raw_term_from_pred thy full_types tfrees u)
 
 val combinator_table =
-  [(@{const_name COMBI}, @{thm COMBI_def_raw}),
-   (@{const_name COMBK}, @{thm COMBK_def_raw}),
-   (@{const_name COMBB}, @{thm COMBB_def_raw}),
-   (@{const_name COMBC}, @{thm COMBC_def_raw}),
-   (@{const_name COMBS}, @{thm COMBS_def_raw})]
+  [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def_raw}),
+   (@{const_name Meson.COMBK}, @{thm Meson.COMBK_def_raw}),
+   (@{const_name Meson.COMBB}, @{thm Meson.COMBB_def_raw}),
+   (@{const_name Meson.COMBC}, @{thm Meson.COMBC_def_raw}),
+   (@{const_name Meson.COMBS}, @{thm Meson.COMBS_def_raw})]
 
 fun uncombine_term (t1 $ t2) = betapply (pairself uncombine_term (t1, t2))
   | uncombine_term (Abs (s, T, t')) = Abs (s, T, uncombine_term t')
