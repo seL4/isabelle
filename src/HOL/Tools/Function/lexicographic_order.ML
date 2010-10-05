@@ -1,7 +1,8 @@
 (*  Title:       HOL/Tools/Function/lexicographic_order.ML
     Author:      Lukas Bulwahn, TU Muenchen
+    Author:      Alexander Krauss, TU Muenchen
 
-Method for termination proofs with lexicographic orderings.
+Termination proofs with lexicographic orders.
 *)
 
 signature LEXICOGRAPHIC_ORDER =
@@ -46,15 +47,10 @@ datatype cell =
 fun is_Less lcell = case Lazy.force lcell of Less _ => true | _ => false;
 fun is_LessEq lcell = case Lazy.force lcell of LessEq _ => true | _ => false;
 
-fun pr_cell (Less _ ) = " < "
-  | pr_cell (LessEq _) = " <="
-  | pr_cell (None _) = " ? "
-  | pr_cell (False _) = " F "
-
 
 (** Proof attempts to build the matrix **)
 
-fun dest_term (t : term) =
+fun dest_term t =
   let
     val (vars, prop) = Function_Lib.dest_all_all t
     val (prems, concl) = Logic.strip_horn prop
@@ -73,7 +69,7 @@ fun mk_goal (vars, prems, lhs, rhs) rel =
     fold_rev Logic.all vars (Logic.list_implies (prems, concl))
   end
 
-fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
+fun mk_cell thy solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
   let
     val goals = cterm_of thy o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
   in
@@ -92,29 +88,22 @@ fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (f
 
 (** Search algorithms **)
 
-fun check_col ls = forall (fn c => is_Less c orelse is_LessEq c) ls andalso not (forall (is_LessEq) ls)
+fun check_col ls = forall (fn c => is_Less c orelse is_LessEq c) ls andalso not (forall is_LessEq ls)
 
 fun transform_table table col = table |> filter_out (fn x => is_Less (nth x col)) |> map (del_index col)
 
 fun transform_order col order = map (fn x => if x >= col then x + 1 else x) order
 
 (* simple depth-first search algorithm for the table *)
-fun search_table table =
-  case table of
-    [] => SOME []
-  | _ =>
-    let
-      val col = find_index (check_col) (transpose table)
-    in case col of
-         ~1 => NONE
-       | _ =>
-         let
-           val order_opt = (table, col) |-> transform_table |> search_table
-         in case order_opt of
-              NONE => NONE
-            | SOME order =>SOME (col :: transform_order col order)
-         end
-    end
+fun search_table [] = SOME []
+  | search_table table =
+    case find_index check_col (transpose table) of
+       ~1 => NONE
+     | col =>
+         (case (table, col) |-> transform_table |> search_table of
+            NONE => NONE
+          | SOME order => SOME (col :: transform_order col order))
+
 
 (** Proof Reconstruction **)
 
@@ -157,6 +146,11 @@ fun pr_unprovable_subgoals ctxt table =
   |> map_index (fn (i,cs) => map_index (fn (j,x) => ((i,j), x)) cs)
   |> flat
   |> map (pr_unprovable_cell ctxt)
+
+fun pr_cell (Less _ ) = " < "
+  | pr_cell (LessEq _) = " <="
+  | pr_cell (None _) = " ? "
+  | pr_cell (False _) = " F "
 
 fun no_order_msg ctxt ltable tl measure_funs =
   let
