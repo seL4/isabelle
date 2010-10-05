@@ -3,7 +3,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-header {* Sledgehammer: Isabelle--ATP Linkup *}
+header {* Automatic Theorem Provers (ATPs) *}
 
 theory ATP
 imports Plain

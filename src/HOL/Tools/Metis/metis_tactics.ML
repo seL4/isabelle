@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/metis_tactics.ML
+(*  Title:      HOL/Tools/Metis/metis_tactics.ML
     Author:     Kong W. Susanto, Cambridge University Computer Laboratory
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen

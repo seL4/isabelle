@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/metis_translate.ML
+(*  Title:      HOL/Tools/Metis/metis_translate.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Kong W. Susanto, Cambridge University Computer Laboratory
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory

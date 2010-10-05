@@ -1,6 +1,8 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_filter.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
+
+Sledgehammer's relevance filter.
 *)
 
 signature SLEDGEHAMMER_FILTER =
