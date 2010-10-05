@@ -45,10 +45,18 @@ lemma fold_id:
   shows "fold f xs = id"
   using assms by (induct xs) simp_all
 
-lemma fold_apply:
+lemma fold_commute:
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> h \<circ> g x = f x \<circ> h"
   shows "h \<circ> fold g xs = fold f xs \<circ> h"
   using assms by (induct xs) (simp_all add: fun_eq_iff)
+
+lemma fold_commute_apply:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> h \<circ> g x = f x \<circ> h"
+  shows "h (fold g xs s) = fold f xs (h s)"
+proof -
+  from assms have "h \<circ> fold g xs = fold f xs \<circ> h" by (rule fold_commute)
+  then show ?thesis by (simp add: fun_eq_iff)
+qed
 
 lemma fold_invariant: 
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> Q x" and "P s"
@@ -73,7 +81,7 @@ lemma fold_map [code_unfold]:
 lemma fold_rev:
   assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y"
   shows "fold f (rev xs) = fold f xs"
-  using assms by (induct xs) (simp_all del: o_apply add: fold_apply)
+  using assms by (induct xs) (simp_all del: o_apply add: fold_commute)
 
 lemma foldr_fold:
   assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y"

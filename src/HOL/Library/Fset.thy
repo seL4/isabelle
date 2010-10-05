@@ -257,7 +257,7 @@ proof -
     by (simp add: fun_eq_iff)
   have "member \<circ> fold (\<lambda>x. Fset \<circ> More_Set.remove x \<circ> member) xs =
     fold More_Set.remove xs \<circ> member"
-    by (rule fold_apply) (simp add: fun_eq_iff)
+    by (rule fold_commute) (simp add: fun_eq_iff)
   then have "fold More_Set.remove xs (member A) = 
     member (fold (\<lambda>x. Fset \<circ> More_Set.remove x \<circ> member) xs A)"
     by (simp add: fun_eq_iff)
@@ -282,7 +282,7 @@ proof -
     by (simp add: fun_eq_iff)
   have "member \<circ> fold (\<lambda>x. Fset \<circ> Set.insert x \<circ> member) xs =
     fold Set.insert xs \<circ> member"
-    by (rule fold_apply) (simp add: fun_eq_iff)
+    by (rule fold_commute) (simp add: fun_eq_iff)
   then have "fold Set.insert xs (member A) =
     member (fold (\<lambda>x. Fset \<circ> Set.insert x \<circ> member) xs A)"
     by (simp add: fun_eq_iff)
