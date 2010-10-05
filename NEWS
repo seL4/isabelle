@@ -244,6 +244,46 @@ The theorems bij_def and surj_def are unchanged.
 * Function package: .psimps rules are no longer implicitly declared [simp].
 INCOMPATIBILITY.
 
+* Weaker versions of the "meson" and "metis" proof methods are now available in
+  "HOL-Plain", without dependency on "Hilbert_Choice". The proof methods become
+  more powerful after "Hilbert_Choice" is loaded in "HOL-Main".
+
+* MESON: Renamed lemmas:
+  meson_not_conjD ~> Meson.not_conjD
+  meson_not_disjD ~> Meson.not_disjD
+  meson_not_notD ~> Meson.not_notD
+  meson_not_allD ~> Meson.not_allD
+  meson_not_exD ~> Meson.not_exD
+  meson_imp_to_disjD ~> Meson.imp_to_disjD
+  meson_not_impD ~> Meson.not_impD
+  meson_iff_to_disjD ~> Meson.iff_to_disjD
+  meson_not_iffD ~> Meson.not_iffD
+  meson_not_refl_disj_D ~> Meson.not_refl_disj_D
+  meson_conj_exD1 ~> Meson.conj_exD1
+  meson_conj_exD2 ~> Meson.conj_exD2
+  meson_disj_exD ~> Meson.disj_exD
+  meson_disj_exD1 ~> Meson.disj_exD1
+  meson_disj_exD2 ~> Meson.disj_exD2
+  meson_disj_assoc ~> Meson.disj_assoc
+  meson_disj_comm ~> Meson.disj_comm
+  meson_disj_FalseD1 ~> Meson.disj_FalseD1
+  meson_disj_FalseD2 ~> Meson.disj_FalseD2
+INCOMPATIBILITY.
+
+* Sledgehammer: Renamed lemmas:
+  COMBI_def ~> Meson.COMBI_def
+  COMBK_def ~> Meson.COMBK_def
+  COMBB_def ~> Meson.COMBB_def
+  COMBC_def ~> Meson.COMBC_def
+  COMBS_def ~> Meson.COMBS_def
+  abs_I ~> Meson.abs_I
+  abs_K ~> Meson.abs_K
+  abs_B ~> Meson.abs_B
+  abs_C ~> Meson.abs_C
+  abs_S ~> Meson.abs_S
+INCOMPATIBILITY.
+
+
 *** FOL ***
 
 * All constant names are now qualified.  INCOMPATIBILITY.
