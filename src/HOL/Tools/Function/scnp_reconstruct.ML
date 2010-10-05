@@ -298,51 +298,6 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
     end
 
 
-
-local open Termination in
-fun print_cell (SOME (Less _)) = "<"
-  | print_cell (SOME (LessEq _)) = "\<le>"
-  | print_cell (SOME (None _)) = "-"
-  | print_cell (SOME (False _)) = "-"
-  | print_cell (NONE) = "?"
-
-fun print_error ctxt D = CALLS (fn (cs, _) =>
-  let
-    val np = get_num_points D
-    val ms = map_range (get_measures D) np
-    fun index xs = (1 upto length xs) ~~ xs
-    fun outp s t f xs = map (fn (x, y) => s ^ Int.toString x ^ t ^ f y ^ "\n") xs
-    val ims = index (map index ms)
-    val _ = tracing (implode (outp "fn #" ":\n" (implode o outp "\tmeasure #" ": " (Syntax.string_of_term ctxt)) ims))
-    fun print_call (k, c) =
-      let
-        val (_, p, _, q, _, _) = dest_call D c
-        val _ = tracing ("call table for call #" ^ Int.toString k ^ ": fn " ^ 
-                                Int.toString (p + 1) ^ " ~> fn " ^ Int.toString (q + 1))
-        val caller_ms = nth ms p
-        val callee_ms = nth ms q
-        val entries = map (fn x => map (pair x) (callee_ms)) (caller_ms)
-        fun print_ln (i : int, l) = implode (Int.toString i :: "   " :: map (enclose " " " " o print_cell o (uncurry (get_descent D c))) l)
-        val _ = tracing (implode (Int.toString (p + 1) ^ "|" ^ Int.toString (q + 1) ^ 
-                                        " " :: map (enclose " " " " o Int.toString) (1 upto length callee_ms)) ^ "\n" 
-                                ^ cat_lines (map print_ln ((1 upto (length entries)) ~~ entries)))
-      in
-        true
-      end
-    fun list_call (k, c) =
-      let
-        val (_, p, _, q, _, _) = dest_call D c
-        val _ = tracing ("call #" ^ (Int.toString k) ^ ": fn " ^
-                                Int.toString (p + 1) ^ " ~> fn " ^ Int.toString (q + 1) ^ "\n" ^ 
-                                (Syntax.string_of_term ctxt c))
-      in true end
-    val _ = forall list_call ((1 upto length cs) ~~ cs)
-    val _ = forall print_call ((1 upto length cs) ~~ cs)
-  in
-    all_tac
-  end)
-end
-
 fun single_scnp_tac use_tags orders ctxt D = Termination.CALLS (fn (cs, i) =>
   let
     val ms_configured = is_some (Multiset_Setup.get (ProofContext.theory_of ctxt))
