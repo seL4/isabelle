@@ -230,7 +230,7 @@ val optional_helpers =
 val optional_typed_helpers =
   [(["c_True", "c_False", "c_If"], @{thms True_or_False}),
    (["c_If"], @{thms if_True if_False})]
-val mandatory_helpers = @{thms fequal_def}
+val mandatory_helpers = @{thms Metis.fequal_def}
 
 val init_counters =
   [optional_helpers, optional_typed_helpers] |> maps (maps fst)
@@ -300,7 +300,7 @@ fun fo_term_for_combterm full_types =
             let val ty_args = if full_types then [] else ty_args in
               if s = "equal" then
                 if top_level andalso length args = 2 then (name, [])
-                else (("c_fequal", @{const_name fequal}), ty_args)
+                else (("c_fequal", @{const_name Metis.fequal}), ty_args)
               else if top_level then
                 case s of
                   "c_False" => (("$false", s'), [])
