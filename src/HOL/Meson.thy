@@ -188,21 +188,12 @@ lemmas skolem_COMBK_D = iffD2 [OF skolem_COMBK_iff]
 
 section {* Meson package *}
 
-ML {*
-structure Meson_Choices = Named_Thms
-(
-  val name = "meson_choice"
-  val description = "choice axioms for MESON's (and Metis's) skolemizer"
-)
-*}
-
 use "Tools/Meson/meson.ML"
 use "Tools/Meson/meson_clausify.ML"
 use "Tools/Meson/meson_tactic.ML"
 
 setup {*
-  Meson_Choices.setup
-  #> Meson.setup
+  Meson.setup
   #> Meson_Tactic.setup
 *}
 

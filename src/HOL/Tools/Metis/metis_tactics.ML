@@ -313,7 +313,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
       val type_lits = Config.get ctxt type_lits
       val new_skolemizer =
-        Config.get ctxt new_skolemizer orelse null (Meson_Choices.get ctxt)
+        Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
       val th_cls_pairs =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,

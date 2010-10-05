@@ -80,7 +80,7 @@ done
 
 subsection{*Axiom of Choice, Proved Using the Description Operator*}
 
-lemma choice [meson_choice]: "\<forall>x. \<exists>y. Q x y ==> \<exists>f. \<forall>x. Q x (f x)"
+lemma choice: "\<forall>x. \<exists>y. Q x y ==> \<exists>f. \<forall>x. Q x (f x)"
 by (fast elim: someI)
 
 lemma bchoice: "\<forall>x\<in>S. \<exists>y. Q x y ==> \<exists>f. \<forall>x\<in>S. Q x (f x)"

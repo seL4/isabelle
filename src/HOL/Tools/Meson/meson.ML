@@ -16,7 +16,8 @@ sig
   val finish_cnf: thm list -> thm list
   val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
-  val skolemize_with_choice_thms : Proof.context -> thm list -> thm -> thm
+  val choice_theorems : theory -> thm list
+  val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
   val skolemize : Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
   val make_clauses_unsorted: thm list -> thm list
@@ -554,9 +555,12 @@ fun make_nnf ctxt th = case prems_of th of
     [] => th |> presimplify |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
+fun choice_theorems thy =
+  try (Global_Theory.get_thm thy) "Hilbert_Choice.choice" |> the_list
+
 (* Pull existential quantifiers to front. This accomplishes Skolemization for
    clauses that arise from a subgoal. *)
-fun skolemize_with_choice_thms ctxt choice_ths =
+fun skolemize_with_choice_theorems ctxt choice_ths =
   let
     fun aux th =
       if not (has_conns [@{const_name Ex}] (prop_of th)) then
@@ -574,7 +578,10 @@ fun skolemize_with_choice_thms ctxt choice_ths =
                       |> forward_res ctxt aux
   in aux o make_nnf ctxt end
 
-fun skolemize ctxt = skolemize_with_choice_thms ctxt (Meson_Choices.get ctxt)
+fun skolemize ctxt =
+  let val thy = ProofContext.theory_of ctxt in
+    skolemize_with_choice_theorems ctxt (choice_theorems thy)
+  end
 
 (* "RS" can fail if "unify_search_bound" is too small. *)
 fun try_skolemize ctxt th =

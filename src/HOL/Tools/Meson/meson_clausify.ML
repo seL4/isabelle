@@ -20,6 +20,8 @@ end;
 structure Meson_Clausify : MESON_CLAUSIFY =
 struct
 
+open Meson
+
 (* the extra "?" helps prevent clashes *)
 val new_skolem_var_prefix = "?SK"
 val new_nonskolem_var_prefix = "?V"
@@ -293,12 +295,12 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
     val (th, ctxt) = Variable.import true [th] ctxt |>> snd |>> the_single
     val th = th |> Conv.fconv_rule Object_Logic.atomize
                 |> extensionalize_theorem
-                |> Meson.make_nnf ctxt
+                |> make_nnf ctxt
   in
     if new_skolemizer then
       let
         fun skolemize choice_ths =
-          Meson.skolemize_with_choice_thms ctxt choice_ths
+          skolemize_with_choice_theorems ctxt choice_ths
           #> simplify (ss_only @{thms all_simps[symmetric]})
         val pull_out =
           simplify (ss_only @{thms all_simps[symmetric] ex_simps[symmetric]})
@@ -331,21 +333,21 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
 fun cnf_axiom ctxt0 new_skolemizer ax_no th =
   let
     val thy = ProofContext.theory_of ctxt0
-    val choice_ths = Meson_Choices.get ctxt0
+    val choice_ths = choice_theorems thy
     val (opt, nnf_th, ctxt) = nnf_axiom choice_ths new_skolemizer ax_no th ctxt0
     fun clausify th =
-      Meson.make_cnf (if new_skolemizer then
-                        []
-                      else
-                        map (old_skolem_theorem_from_def thy)
-                            (old_skolem_defs th)) th ctxt
+      make_cnf (if new_skolemizer orelse null choice_ths then
+                  []
+                else
+                  map (old_skolem_theorem_from_def thy)
+                      (old_skolem_defs th)) th ctxt
     val (cnf_ths, ctxt) =
       clausify nnf_th
       |> (fn ([], _) =>
              clausify (to_definitional_cnf_with_quantifiers thy nnf_th)
            | p => p)
     fun intr_imp ct th =
-      Thm.instantiate ([], map (pairself (cterm_of @{theory}))
+      Thm.instantiate ([], map (pairself (cterm_of thy))
                                [(Var (("i", 1), @{typ nat}),
                                  HOLogic.mk_nat ax_no)])
                       @{thm skolem_COMBK_D}
@@ -357,7 +359,7 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
      cnf_ths |> map (introduce_combinators_in_theorem
                      #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
              |> Variable.export ctxt ctxt0
-             |> Meson.finish_cnf
+             |> finish_cnf
              |> map Thm.close_derivation)
   end
   handle THM _ => (NONE, [])
