@@ -213,7 +213,7 @@ fun old_skolem_theorem_from_def thy rhs0 =
     fun tacf [prem] =
       rewrite_goals_tac skolem_def_raw
       THEN rtac ((prem |> rewrite_rule skolem_def_raw)
-                 RS Global_Theory.get_thm thy "someI_ex") 1
+                 RS Global_Theory.get_thm thy "Hilbert_Choice.someI_ex") 1
   in
     Goal.prove_internal [ex_tm] conc tacf
     |> forall_intr_list frees
