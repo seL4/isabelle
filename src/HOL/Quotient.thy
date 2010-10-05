@@ -319,12 +319,12 @@ lemma bex_reg_eqv:
 lemma ball_reg_right:
   assumes a: "\<And>x. R x \<Longrightarrow> P x \<longrightarrow> Q x"
   shows "All P \<longrightarrow> Ball R Q"
-  using a by (metis COMBC_def Collect_def Collect_mem_eq)
+  using a by (metis Collect_def Collect_mem_eq)
 
 lemma bex_reg_left:
   assumes a: "\<And>x. R x \<Longrightarrow> Q x \<longrightarrow> P x"
   shows "Bex R Q \<longrightarrow> Ex P"
-  using a by (metis COMBC_def Collect_def Collect_mem_eq)
+  using a by (metis Collect_def Collect_mem_eq)
 
 lemma ball_reg_left:
   assumes a: "equivp R"
@@ -381,13 +381,13 @@ lemma ball_reg:
   assumes a: "!x :: 'a. (R x --> P x --> Q x)"
   and     b: "Ball R P"
   shows "Ball R Q"
-  using a b by (metis COMBC_def Collect_def Collect_mem_eq)
+  using a b by (metis Collect_def Collect_mem_eq)
 
 lemma bex_reg:
   assumes a: "!x :: 'a. (R x --> P x --> Q x)"
   and     b: "Bex R P"
   shows "Bex R Q"
-  using a b by (metis COMBC_def Collect_def Collect_mem_eq)
+  using a b by (metis Collect_def Collect_mem_eq)
 
 
 lemma ball_all_comm:
