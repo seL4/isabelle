@@ -41,13 +41,10 @@ fun transpose ([]::_) = []
 (** Matrix cell datatype **)
 
 datatype cell =
-  Less of thm| LessEq of (thm * thm) | None of (thm * thm) | False of thm;
+  Less of thm | LessEq of (thm * thm) | None of (thm * thm) | False of thm;
 
-fun is_Less (Less _) = true
-  | is_Less _ = false
-
-fun is_LessEq (LessEq _) = true
-  | is_LessEq _ = false
+fun is_Less lcell = case Lazy.force lcell of Less _ => true | _ => false;
+fun is_LessEq lcell = case Lazy.force lcell of LessEq _ => true | _ => false;
 
 fun pr_cell (Less _ ) = " < "
   | pr_cell (LessEq _) = " <="
@@ -76,7 +73,7 @@ fun mk_goal (vars, prems, lhs, rhs) rel =
     fold_rev Logic.all vars (Logic.list_implies (prems, concl))
   end
 
-fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun =
+fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
   let
     val goals = cterm_of thy o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
   in
@@ -90,7 +87,7 @@ fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun =
          else None (thm2, thm)
        | _ => raise Match) (* FIXME *)
     | _ => raise Match
-  end
+  end);
 
 
 (** Search algorithms **)
@@ -158,8 +155,9 @@ fun pr_unprovable_subgoals ctxt table =
   |> flat
   |> map (pr_unprovable_cell ctxt)
 
-fun no_order_msg ctxt table tl measure_funs =
+fun no_order_msg ctxt ltable tl measure_funs =
   let
+    val table = map (map Lazy.force) ltable
     val prterm = Syntax.string_of_term ctxt
     fun pr_fun t i = string_of_int i ^ ") " ^ prterm t
 
@@ -195,13 +193,14 @@ fun lex_order_tac quiet ctxt solve_tac (st: thm) =
       MeasureFunctions.get_measure_functions ctxt domT
 
     val table = (* 2: create table *)
-      Par_List.map (fn t => Par_List.map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
+      map (fn t => map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
   in
     case search_table table of
       NONE => if quiet then no_tac st else error (no_order_msg ctxt table tl measure_funs)
     | SOME order =>
       let
         val clean_table = map (fn x => map (nth x) order) table
+          |> map (map Lazy.force)
         val relation = mk_measures domT (map (nth measure_funs) order)
         val _ = if not quiet
           then writeln ("Found termination order: " ^ quote (Syntax.string_of_term ctxt relation))
