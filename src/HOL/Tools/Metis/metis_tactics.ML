@@ -57,6 +57,9 @@ val waiting_params =
    models = []}
 val resolution_params = {active = active_params, waiting = waiting_params}
 
+(* FIXME ### GET RID OF skolem WRAPPER by looking at substitution *)
+
+(* FIXME ### try cterm_instantiate *)
 fun instantiate_theorem thy inst th =
   let
     val tyenv = Vartab.empty |> fold (Type.raw_unify o pairself fastype_of) inst
@@ -80,6 +83,7 @@ fun instantiate_theorem thy inst th =
    Typical constraints are of the form
    "?SK_a_b_c_x SK_d_e_f_y ... SK_a_b_c_x ... SK_g_h_i_z =?= SK_a_b_c_x",
    where the nonvariables are goal parameters. *)
+(* FIXME: ### try Pattern.match instead *)
 fun unify_first_prem_with_concl thy i th =
   let
     val goal = Logic.get_goal (prop_of th) i |> Envir.beta_eta_contract
@@ -161,8 +165,8 @@ fun release_clusters_tac _ _ _ _ [] = K all_tac
         |> map_filter (fn (ax_no', (_, (_, tsubst))) =>
                           if ax_no' = ax_no then
                             tsubst |> filter (in_right_cluster
-                                               o fst o fst o dest_Var o fst)
-                                    |> map snd |> SOME
+                                              o fst o fst o dest_Var o fst)
+                                   |> map snd |> SOME
                            else
                              NONE)
       val n = length cluster_substs
