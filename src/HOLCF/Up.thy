@@ -322,7 +322,7 @@ done
 
 lemma finite_deflation_u_map:
   assumes "finite_deflation d" shows "finite_deflation (u_map\<cdot>d)"
-proof (intro finite_deflation.intro finite_deflation_axioms.intro)
+proof (rule finite_deflation_intro)
   interpret d: finite_deflation d by fact
   have "deflation d" by fact
   thus "deflation (u_map\<cdot>d)" by (rule deflation_u_map)

@@ -85,7 +85,7 @@ qed
 
 lemma finite_deflation_upper_map:
   assumes "finite_deflation d" shows "finite_deflation (upper_map\<cdot>d)"
-proof (intro finite_deflation.intro finite_deflation_axioms.intro)
+proof (rule finite_deflation_intro)
   interpret d: finite_deflation d by fact
   have "deflation d" by fact
   thus "deflation (upper_map\<cdot>d)" by (rule deflation_upper_map)
@@ -130,7 +130,7 @@ qed
 
 lemma finite_deflation_lower_map:
   assumes "finite_deflation d" shows "finite_deflation (lower_map\<cdot>d)"
-proof (intro finite_deflation.intro finite_deflation_axioms.intro)
+proof (rule finite_deflation_intro)
   interpret d: finite_deflation d by fact
   have "deflation d" by fact
   thus "deflation (lower_map\<cdot>d)" by (rule deflation_lower_map)
@@ -175,7 +175,7 @@ qed
 
 lemma finite_deflation_convex_map:
   assumes "finite_deflation d" shows "finite_deflation (convex_map\<cdot>d)"
-proof (intro finite_deflation.intro finite_deflation_axioms.intro)
+proof (rule finite_deflation_intro)
   interpret d: finite_deflation d by fact
   have "deflation d" by fact
   thus "deflation (convex_map\<cdot>d)" by (rule deflation_convex_map)

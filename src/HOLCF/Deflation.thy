@@ -152,6 +152,10 @@ qed
 
 end
 
+lemma finite_deflation_intro:
+  "deflation d \<Longrightarrow> finite {x. d\<cdot>x = x} \<Longrightarrow> finite_deflation d"
+by (intro finite_deflation.intro finite_deflation_axioms.intro)
+
 lemma finite_deflation_imp_deflation:
   "finite_deflation d \<Longrightarrow> deflation d"
 unfolding finite_deflation_def by simp
@@ -299,22 +303,19 @@ lemma finite_deflation_p_d_e:
 proof -
   interpret d: finite_deflation d by fact
   show ?thesis
-  proof (intro_locales)
+  proof (rule finite_deflation_intro)
     have "deflation d" ..
     thus "deflation (p oo d oo e)"
       using d by (rule deflation_p_d_e)
   next
-    show "finite_deflation_axioms (p oo d oo e)"
-    proof
-      have "finite ((\<lambda>x. d\<cdot>x) ` range (\<lambda>x. e\<cdot>x))"
-        by (rule d.finite_image)
-      hence "finite ((\<lambda>x. p\<cdot>x) ` (\<lambda>x. d\<cdot>x) ` range (\<lambda>x. e\<cdot>x))"
-        by (rule finite_imageI)
-      hence "finite (range (\<lambda>x. (p oo d oo e)\<cdot>x))"
-        by (simp add: image_image)
-      thus "finite {x. (p oo d oo e)\<cdot>x = x}"
-        by (rule finite_range_imp_finite_fixes)
-    qed
+    have "finite ((\<lambda>x. d\<cdot>x) ` range (\<lambda>x. e\<cdot>x))"
+      by (rule d.finite_image)
+    hence "finite ((\<lambda>x. p\<cdot>x) ` (\<lambda>x. d\<cdot>x) ` range (\<lambda>x. e\<cdot>x))"
+      by (rule finite_imageI)
+    hence "finite (range (\<lambda>x. (p oo d oo e)\<cdot>x))"
+      by (simp add: image_image)
+    thus "finite {x. (p oo d oo e)\<cdot>x = x}"
+      by (rule finite_range_imp_finite_fixes)
   qed
 qed
 

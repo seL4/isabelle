@@ -150,7 +150,7 @@ qed
 lemma finite_deflation_cprod_map:
   assumes "finite_deflation d1" and "finite_deflation d2"
   shows "finite_deflation (cprod_map\<cdot>d1\<cdot>d2)"
-proof (intro finite_deflation.intro finite_deflation_axioms.intro)
+proof (rule finite_deflation_intro)
   interpret d1: finite_deflation d1 by fact
   interpret d2: finite_deflation d2 by fact
   have "deflation d1" and "deflation d2" by fact+
@@ -283,7 +283,7 @@ qed
 lemma finite_deflation_cfun_map:
   assumes "finite_deflation d1" and "finite_deflation d2"
   shows "finite_deflation (cfun_map\<cdot>d1\<cdot>d2)"
-proof (intro finite_deflation.intro finite_deflation_axioms.intro)
+proof (rule finite_deflation_intro)
   interpret d1: finite_deflation d1 by fact
   interpret d2: finite_deflation d2 by fact
   have "deflation d1" and "deflation d2" by fact+
