@@ -1,5 +1,6 @@
-(*  Title:      HOL/Tools/meson.ML
+(*  Title:      HOL/Tools/Meson/meson.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
 
 The MESON resolution proof procedure for HOL.
 When making clauses, avoids using the rewriter -- instead uses RS recursively.
@@ -15,7 +16,8 @@ sig
   val finish_cnf: thm list -> thm list
   val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
-  val skolemize_with_choice_thms : Proof.context -> thm list -> thm -> thm
+  val choice_theorems : theory -> thm list
+  val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
   val skolemize : Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
   val make_clauses_unsorted: thm list -> thm list
@@ -64,24 +66,24 @@ val conj_forward = @{thm conj_forward};
 val all_forward = @{thm all_forward};
 val ex_forward = @{thm ex_forward};
 
-val not_conjD = @{thm meson_not_conjD};
-val not_disjD = @{thm meson_not_disjD};
-val not_notD = @{thm meson_not_notD};
-val not_allD = @{thm meson_not_allD};
-val not_exD = @{thm meson_not_exD};
-val imp_to_disjD = @{thm meson_imp_to_disjD};
-val not_impD = @{thm meson_not_impD};
-val iff_to_disjD = @{thm meson_iff_to_disjD};
-val not_iffD = @{thm meson_not_iffD};
-val conj_exD1 = @{thm meson_conj_exD1};
-val conj_exD2 = @{thm meson_conj_exD2};
-val disj_exD = @{thm meson_disj_exD};
-val disj_exD1 = @{thm meson_disj_exD1};
-val disj_exD2 = @{thm meson_disj_exD2};
-val disj_assoc = @{thm meson_disj_assoc};
-val disj_comm = @{thm meson_disj_comm};
-val disj_FalseD1 = @{thm meson_disj_FalseD1};
-val disj_FalseD2 = @{thm meson_disj_FalseD2};
+val not_conjD = @{thm not_conjD};
+val not_disjD = @{thm not_disjD};
+val not_notD = @{thm not_notD};
+val not_allD = @{thm not_allD};
+val not_exD = @{thm not_exD};
+val imp_to_disjD = @{thm imp_to_disjD};
+val not_impD = @{thm not_impD};
+val iff_to_disjD = @{thm iff_to_disjD};
+val not_iffD = @{thm not_iffD};
+val conj_exD1 = @{thm conj_exD1};
+val conj_exD2 = @{thm conj_exD2};
+val disj_exD = @{thm disj_exD};
+val disj_exD1 = @{thm disj_exD1};
+val disj_exD2 = @{thm disj_exD2};
+val disj_assoc = @{thm disj_assoc};
+val disj_comm = @{thm disj_comm};
+val disj_FalseD1 = @{thm disj_FalseD1};
+val disj_FalseD2 = @{thm disj_FalseD2};
 
 
 (**** Operators for forward proof ****)
@@ -108,22 +110,32 @@ fun first_order_resolve thA thB =
 
 (* Applying "choice" swaps the bound variable names. We tweak
    "Thm.rename_boundvars"'s input to get the desired names. *)
-fun tweak_bounds (_ $ (Const (@{const_name Ex}, _)
-                       $ Abs (_, _, Const (@{const_name All}, _) $ _)))
-                 (t0 $ (Const (@{const_name All}, T1)
-                        $ Abs (a1, T1', Const (@{const_name Ex}, T2)
-                                        $ Abs (a2, T2', t')))) =
+fun fix_bounds (_ $ (Const (@{const_name Ex}, _)
+                     $ Abs (_, _, Const (@{const_name All}, _) $ _)))
+               (t0 $ (Const (@{const_name All}, T1)
+                      $ Abs (a1, T1', Const (@{const_name Ex}, T2)
+                                      $ Abs (a2, T2', t')))) =
     t0 $ (Const (@{const_name All}, T1)
           $ Abs (a2, T1', Const (@{const_name Ex}, T2) $ Abs (a1, T2', t')))
-  | tweak_bounds _ t = t
+  | fix_bounds _ t = t
+
+(* Hack to make it less likely that we lose our precious bound variable names in
+   "rename_bvs_RS" below, because of a clash. *)
+val protect_prefix = "_"
+
+fun protect_bounds (t $ u) = protect_bounds t $ protect_bounds u
+  | protect_bounds (Abs (s, T, t')) =
+    Abs (protect_prefix ^ s, T, protect_bounds t')
+  | protect_bounds t = t
 
 (* Forward proof while preserving bound variables names*)
 fun rename_bvs_RS th rl =
   let
-    val th' = th RS rl
     val t = concl_of th
+    val r = concl_of rl
+    val th' = th RS Thm.rename_boundvars r (protect_bounds r) rl
     val t' = concl_of th'
-  in Thm.rename_boundvars t' (tweak_bounds t' t) th' end
+  in Thm.rename_boundvars t' (fix_bounds t' t) th' end
 
 (*raises exception if no rules apply*)
 fun tryres (th, rls) =
@@ -200,7 +212,7 @@ fun is_taut th =
 (*They are typically functional reflexivity axioms and are the converses of
   injectivity equivalences*)
 
-val not_refl_disj_D = @{thm meson_not_refl_disj_D};
+val not_refl_disj_D = @{thm not_refl_disj_D};
 
 (*Is either term a Var that does not properly occur in the other term?*)
 fun eliminable (t as Var _, u) = t aconv u orelse not (Logic.occs(t,u))
@@ -543,9 +555,12 @@ fun make_nnf ctxt th = case prems_of th of
     [] => th |> presimplify |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
+fun choice_theorems thy =
+  try (Global_Theory.get_thm thy) "Hilbert_Choice.choice" |> the_list
+
 (* Pull existential quantifiers to front. This accomplishes Skolemization for
    clauses that arise from a subgoal. *)
-fun skolemize_with_choice_thms ctxt choice_ths =
+fun skolemize_with_choice_theorems ctxt choice_ths =
   let
     fun aux th =
       if not (has_conns [@{const_name Ex}] (prop_of th)) then
@@ -563,7 +578,10 @@ fun skolemize_with_choice_thms ctxt choice_ths =
                       |> forward_res ctxt aux
   in aux o make_nnf ctxt end
 
-fun skolemize ctxt = skolemize_with_choice_thms ctxt (Meson_Choices.get ctxt)
+fun skolemize ctxt =
+  let val thy = ProofContext.theory_of ctxt in
+    skolemize_with_choice_theorems ctxt (choice_theorems thy)
+  end
 
 (* "RS" can fail if "unify_search_bound" is too small. *)
 fun try_skolemize ctxt th =

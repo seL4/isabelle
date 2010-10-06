@@ -242,7 +242,7 @@ lemma sigma_sets_into_sp: "A \<subseteq> Pow sp \<Longrightarrow> x \<in> sigma_
 lemma sigma_sets_Un:
   "a \<in> sigma_sets sp A \<Longrightarrow> b \<in> sigma_sets sp A \<Longrightarrow> a \<union> b \<in> sigma_sets sp A"
 apply (simp add: Un_range_binary range_binary_eq)
-apply (rule Union, simp add: binary_def COMBK_def fun_upd_apply)
+apply (rule Union, simp add: binary_def fun_upd_apply)
 done
 
 lemma sigma_sets_Inter:

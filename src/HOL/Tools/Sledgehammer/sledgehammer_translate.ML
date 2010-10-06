@@ -222,15 +222,15 @@ fun count_fol_formula ({combformula, ...} : fol_formula) =
   count_combformula combformula
 
 val optional_helpers =
-  [(["c_COMBI"], @{thms COMBI_def}),
-   (["c_COMBK"], @{thms COMBK_def}),
-   (["c_COMBB"], @{thms COMBB_def}),
-   (["c_COMBC"], @{thms COMBC_def}),
-   (["c_COMBS"], @{thms COMBS_def})]
+  [(["c_COMBI"], @{thms Meson.COMBI_def}),
+   (["c_COMBK"], @{thms Meson.COMBK_def}),
+   (["c_COMBB"], @{thms Meson.COMBB_def}),
+   (["c_COMBC"], @{thms Meson.COMBC_def}),
+   (["c_COMBS"], @{thms Meson.COMBS_def})]
 val optional_typed_helpers =
   [(["c_True", "c_False", "c_If"], @{thms True_or_False}),
    (["c_If"], @{thms if_True if_False})]
-val mandatory_helpers = @{thms fequal_def}
+val mandatory_helpers = @{thms Metis.fequal_def}
 
 val init_counters =
   [optional_helpers, optional_typed_helpers] |> maps (maps fst)
@@ -300,7 +300,7 @@ fun fo_term_for_combterm full_types =
             let val ty_args = if full_types then [] else ty_args in
               if s = "equal" then
                 if top_level andalso length args = 2 then (name, [])
-                else (("c_fequal", @{const_name fequal}), ty_args)
+                else (("c_fequal", @{const_name Metis.fequal}), ty_args)
               else if top_level then
                 case s of
                   "c_False" => (("$false", s'), [])

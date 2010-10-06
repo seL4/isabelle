@@ -154,6 +154,8 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Groups.thy \
   Inductive.thy \
   Lattices.thy \
+  Meson.thy \
+  Metis.thy \
   Nat.thy \
   Option.thy \
   Orderings.thy \
@@ -201,6 +203,12 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/inductive_realizer.ML \
   Tools/inductive_set.ML \
   Tools/lin_arith.ML \
+  Tools/Meson/meson.ML \
+  Tools/Meson/meson_clausify.ML \
+  Tools/Meson/meson_tactic.ML \
+  Tools/Metis/metis_reconstruct.ML \
+  Tools/Metis/metis_translate.ML \
+  Tools/Metis/metis_tactics.ML \
   Tools/nat_arith.ML \
   Tools/primrec.ML \
   Tools/prop_logic.ML \
@@ -219,12 +227,14 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   $(SRC)/Provers/Arith/fast_lin_arith.ML \
   $(SRC)/Provers/order.ML \
   $(SRC)/Provers/trancl.ML \
+  $(SRC)/Tools/Metis/metis.ML \
   $(SRC)/Tools/rat.ML
 
 $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
+  ATP.thy \
   Big_Operators.thy \
   Code_Evaluation.thy \
   Code_Numeral.thy \
@@ -264,7 +274,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
-  $(SRC)/Tools/Metis/metis.ML \
   Tools/async_manager.ML \
   Tools/ATP/atp_problem.ML \
   Tools/ATP/atp_proof.ML \
@@ -275,7 +284,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/int_arith.ML \
   Tools/groebner.ML \
   Tools/list_code.ML \
-  Tools/meson.ML \
   Tools/nat_numeral_simprocs.ML \
   Tools/Nitpick/kodkod.ML \
   Tools/Nitpick/kodkod_sat.ML \
@@ -315,10 +323,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/recdef.ML \
   Tools/record.ML \
   Tools/semiring_normalizer.ML \
-  Tools/Sledgehammer/meson_clausify.ML \
-  Tools/Sledgehammer/metis_reconstruct.ML \
-  Tools/Sledgehammer/metis_translate.ML \
-  Tools/Sledgehammer/metis_tactics.ML \
   Tools/Sledgehammer/sledgehammer.ML \
   Tools/Sledgehammer/sledgehammer_filter.ML \
   Tools/Sledgehammer/sledgehammer_minimize.ML \

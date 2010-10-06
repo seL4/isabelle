@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/metis_reconstruct.ML
+(*  Title:      HOL/Tools/Metis/metis_reconstruct.ML
     Author:     Kong W. Susanto, Cambridge University Computer Laboratory
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
@@ -121,10 +121,12 @@ fun hol_term_from_metis_PT ctxt fol_tm =
                     val nterms = length ts - ntypes
                     val tts = map tm_to_tt ts
                     val tys = types_of (List.take(tts,ntypes))
-                    val t = if String.isPrefix new_skolem_const_prefix c then
-                              Var (new_skolem_var_from_const c, tl tys ---> hd tys)
-                            else
-                              Const (c, dummyT)
+                    val t =
+                      if String.isPrefix new_skolem_const_prefix c then
+                        Var (new_skolem_var_from_const c,
+                             Type_Infer.paramify_vars (tl tys ---> hd tys))
+                      else
+                        Const (c, dummyT)
                   in if length tys = ntypes then
                          apply_list t nterms (List.drop(tts,ntypes))
                      else
@@ -530,7 +532,7 @@ fun flexflex_first_order th =
 
 fun is_metis_literal_genuine (_, (s, _)) = not (String.isPrefix class_prefix s)
 fun is_isabelle_literal_genuine t =
-  case t of _ $ (Const (@{const_name skolem}, _) $ _) => false | _ => true
+  case t of _ $ (Const (@{const_name Meson.skolem}, _) $ _) => false | _ => true
 
 fun count p xs = fold (fn x => if p x then Integer.add 1 else I) xs 0
 
