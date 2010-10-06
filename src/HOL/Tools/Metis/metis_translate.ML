@@ -111,7 +111,7 @@ val const_trans_table =
                (@{const_name HOL.disj}, "or"),
                (@{const_name HOL.implies}, "implies"),
                (@{const_name Set.member}, "member"),
-               (@{const_name fequal}, "fequal"),
+               (@{const_name Metis.fequal}, "fequal"),
                (@{const_name Meson.COMBI}, "COMBI"),
                (@{const_name Meson.COMBK}, "COMBK"),
                (@{const_name Meson.COMBB}, "COMBB"),

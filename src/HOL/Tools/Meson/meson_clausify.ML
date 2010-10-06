@@ -48,7 +48,7 @@ fun transform_elim_theorem th =
 
 fun mk_old_skolem_term_wrapper t =
   let val T = fastype_of t in
-    Const (@{const_name skolem}, T --> T) $ t
+    Const (@{const_name Meson.skolem}, T --> T) $ t
   end
 
 fun beta_eta_in_abs_body (Abs (s, T, t')) = Abs (s, T, beta_eta_in_abs_body t')
@@ -91,7 +91,7 @@ fun extensionalize_theorem th =
          $ _ $ Abs _) => extensionalize_theorem (th RS fun_cong_all)
   | _ => th
 
-fun is_quasi_lambda_free (Const (@{const_name skolem}, _) $ _) = true
+fun is_quasi_lambda_free (Const (@{const_name Meson.skolem}, _) $ _) = true
   | is_quasi_lambda_free (t1 $ t2) =
     is_quasi_lambda_free t1 andalso is_quasi_lambda_free t2
   | is_quasi_lambda_free (Abs _) = false
@@ -348,9 +348,9 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
            | p => p)
     fun intr_imp ct th =
       Thm.instantiate ([], map (pairself (cterm_of thy))
-                               [(Var (("i", 1), @{typ nat}),
+                               [(Var (("i", 0), @{typ nat}),
                                  HOLogic.mk_nat ax_no)])
-                      @{thm skolem_COMBK_D}
+                      (zero_var_indexes @{thm skolem_COMBK_D})
       RS Thm.implies_intr ct th
   in
     (opt |> Option.map (I #>> singleton (Variable.export ctxt ctxt0)
