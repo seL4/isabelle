@@ -171,49 +171,87 @@ lemma flift2_defined_iff [simp]: "(flift2 f\<cdot>x = \<bottom>) = (x = \<bottom
 by (cases x, simp_all)
 
 
-subsection {* Lifted countable types are bifinite *}
-
-instantiation lift :: (countable) bifinite
-begin
+subsection {* Lifted countable types are SFP domains *}
 
 definition
-  approx_lift_def:
-    "approx = (\<lambda>n. FLIFT x. if to_nat x < n then Def x else \<bottom>)"
+  lift_approx :: "nat \<Rightarrow> 'a::countable lift \<rightarrow> 'a lift"
+where
+  "lift_approx = (\<lambda>i. FLIFT x. if to_nat x < i then Def x else \<bottom>)"
 
-instance proof
-  fix x :: "'a lift"
-  show "chain (approx :: nat \<Rightarrow> 'a lift \<rightarrow> 'a lift)"
-    unfolding approx_lift_def
-    by (rule chainI, simp add: FLIFT_mono)
-next
-  fix x :: "'a lift"
-  show "(\<Squnion>i. approx i\<cdot>x) = x"
-    unfolding approx_lift_def
-    apply (cases x, simp)
-    apply (rule thelubI)
-    apply (rule is_lubI)
-     apply (rule ub_rangeI, simp)
-    apply (drule ub_rangeD)
-    apply (erule rev_below_trans)
-    apply simp
-    apply (rule lessI)
-    done
-next
-  fix i :: nat and x :: "'a lift"
-  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-    unfolding approx_lift_def
+lemma chain_lift_approx [simp]: "chain lift_approx"
+  unfolding lift_approx_def
+  by (rule chainI, simp add: FLIFT_mono)
+
+lemma lub_lift_approx [simp]: "(\<Squnion>i. lift_approx i) = ID"
+apply (rule ext_cfun)
+apply (simp add: contlub_cfun_fun)
+apply (simp add: lift_approx_def)
+apply (case_tac x, simp)
+apply (rule thelubI)
+apply (rule is_lubI)
+apply (rule ub_rangeI, simp)
+apply (drule ub_rangeD)
+apply (erule rev_below_trans)
+apply simp
+apply (rule lessI)
+done
+
+lemma finite_deflation_lift_approx: "finite_deflation (lift_approx i)"
+proof
+  fix x
+  show "lift_approx i\<cdot>x \<sqsubseteq> x"
+    unfolding lift_approx_def
     by (cases x, simp, simp)
-next
-  fix i :: nat
-  show "finite {x::'a lift. approx i\<cdot>x = x}"
+  show "lift_approx i\<cdot>(lift_approx i\<cdot>x) = lift_approx i\<cdot>x"
+    unfolding lift_approx_def
+    by (cases x, simp, simp)
+  show "finite {x::'a lift. lift_approx i\<cdot>x = x}"
   proof (rule finite_subset)
     let ?S = "insert (\<bottom>::'a lift) (Def ` to_nat -` {..<i})"
-    show "{x::'a lift. approx i\<cdot>x = x} \<subseteq> ?S"
-      unfolding approx_lift_def
+    show "{x::'a lift. lift_approx i\<cdot>x = x} \<subseteq> ?S"
+      unfolding lift_approx_def
       by (rule subsetI, case_tac x, simp, simp split: split_if_asm)
     show "finite ?S"
       by (simp add: finite_vimageI)
   qed
+qed
+
+lemma lift_approx: "approx_chain lift_approx"
+using chain_lift_approx lub_lift_approx finite_deflation_lift_approx
+by (rule approx_chain.intro)
+
+instantiation lift :: (countable) sfp
+begin
+
+definition
+  "emb = udom_emb lift_approx"
+
+definition
+  "prj = udom_prj lift_approx"
+
+definition
+  "sfp (t::'a lift itself) =
+    (\<Squnion>i. sfp_principal (Abs_fin_defl (emb oo lift_approx i oo prj)))"
+
+instance proof
+  show ep: "ep_pair emb (prj :: udom \<rightarrow> 'a lift)"
+    unfolding emb_lift_def prj_lift_def
+    by (rule ep_pair_udom [OF lift_approx])
+  show "cast\<cdot>SFP('a lift) = emb oo (prj :: udom \<rightarrow> 'a lift)"
+    unfolding sfp_lift_def
+    apply (subst contlub_cfun_arg)
+    apply (rule chainI)
+    apply (rule sfp.principal_mono)
+    apply (simp add: below_fin_defl_def)
+    apply (simp add: Abs_fin_defl_inverse finite_deflation_lift_approx
+                     ep_pair.finite_deflation_e_d_p [OF ep])
+    apply (intro monofun_cfun below_refl)
+    apply (rule chainE)
+    apply (rule chain_lift_approx)
+    apply (subst cast_sfp_principal)
+    apply (simp add: Abs_fin_defl_inverse finite_deflation_lift_approx
+                     ep_pair.finite_deflation_e_d_p [OF ep] lub_distribs)
+    done
 qed
 
 end

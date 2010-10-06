@@ -5,7 +5,7 @@
 header {* The type of lifted values *}
 
 theory Up
-imports Bifinite
+imports Algebraic
 begin
 
 default_sort cpo
@@ -332,35 +332,62 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d.finite_fixes)
 qed
 
-subsection {* Lifted cpo is a bifinite domain *}
+subsection {* Lifted cpo is an SFP domain *}
 
-instantiation u :: (profinite) bifinite
+definition u_approx :: "nat \<Rightarrow> udom\<^sub>\<bottom> \<rightarrow> udom\<^sub>\<bottom>"
+where "u_approx = (\<lambda>i. u_map\<cdot>(udom_approx i))"
+
+lemma u_approx: "approx_chain u_approx"
+proof (rule approx_chain.intro)
+  show "chain (\<lambda>i. u_approx i)"
+    unfolding u_approx_def by simp
+  show "(\<Squnion>i. u_approx i) = ID"
+    unfolding u_approx_def
+    by (simp add: lub_distribs u_map_ID)
+  show "\<And>i. finite_deflation (u_approx i)"
+    unfolding u_approx_def
+    by (intro finite_deflation_u_map finite_deflation_udom_approx)
+qed
+
+definition u_sfp :: "sfp \<rightarrow> sfp"
+where "u_sfp = sfp_fun1 u_approx u_map"
+
+lemma cast_u_sfp:
+  "cast\<cdot>(u_sfp\<cdot>A) =
+    udom_emb u_approx oo u_map\<cdot>(cast\<cdot>A) oo udom_prj u_approx"
+unfolding u_sfp_def
+apply (rule cast_sfp_fun1 [OF u_approx])
+apply (erule finite_deflation_u_map)
+done
+
+instantiation u :: (sfp) sfp
 begin
 
 definition
-  approx_up_def:
-    "approx = (\<lambda>n. u_map\<cdot>(approx n))"
+  "emb = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "prj = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "sfp (t::'a u itself) = u_sfp\<cdot>SFP('a)"
 
 instance proof
-  fix i :: nat and x :: "'a u"
-  show "chain (approx :: nat \<Rightarrow> 'a u \<rightarrow> 'a u)"
-    unfolding approx_up_def by simp
-  show "(\<Squnion>i. approx i\<cdot>x) = x"
-    unfolding approx_up_def
-    by (induct x, simp, simp add: lub_distribs)
-  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-    unfolding approx_up_def
-    by (induct x) simp_all
-  show "finite {x::'a u. approx i\<cdot>x = x}"
-    unfolding approx_up_def
-    by (intro finite_deflation.finite_fixes
-              finite_deflation_u_map
-              finite_deflation_approx)
+  show "ep_pair emb (prj :: udom \<rightarrow> 'a u)"
+    unfolding emb_u_def prj_u_def
+    using ep_pair_udom [OF u_approx]
+    by (intro ep_pair_comp ep_pair_u_map ep_pair_emb_prj)
+next
+  show "cast\<cdot>SFP('a u) = emb oo (prj :: udom \<rightarrow> 'a u)"
+    unfolding emb_u_def prj_u_def sfp_u_def cast_u_sfp
+    by (simp add: cast_SFP oo_def expand_cfun_eq u_map_map)
 qed
 
 end
 
-lemma approx_up [simp]: "approx i\<cdot>(up\<cdot>x) = up\<cdot>(approx i\<cdot>x)"
-unfolding approx_up_def by simp
+text {* SFP of type constructor = type combinator *}
+
+lemma SFP_u: "SFP('a::sfp u) = u_sfp\<cdot>SFP('a)"
+by (rule sfp_u_def)
 
 end

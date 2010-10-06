@@ -295,37 +295,64 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
-subsection {* Strict sum is a bifinite domain *}
+subsection {* Strict sum is an SFP domain *}
 
-instantiation ssum :: (bifinite, bifinite) bifinite
+definition
+  ssum_approx :: "nat \<Rightarrow> udom \<oplus> udom \<rightarrow> udom \<oplus> udom"
+where
+  "ssum_approx = (\<lambda>i. ssum_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+
+lemma ssum_approx: "approx_chain ssum_approx"
+proof (rule approx_chain.intro)
+  show "chain (\<lambda>i. ssum_approx i)"
+    unfolding ssum_approx_def by simp
+  show "(\<Squnion>i. ssum_approx i) = ID"
+    unfolding ssum_approx_def
+    by (simp add: lub_distribs ssum_map_ID)
+  show "\<And>i. finite_deflation (ssum_approx i)"
+    unfolding ssum_approx_def
+    by (intro finite_deflation_ssum_map finite_deflation_udom_approx)
+qed
+
+definition ssum_sfp :: "sfp \<rightarrow> sfp \<rightarrow> sfp"
+where "ssum_sfp = sfp_fun2 ssum_approx ssum_map"
+
+lemma cast_ssum_sfp:
+  "cast\<cdot>(ssum_sfp\<cdot>A\<cdot>B) =
+    udom_emb ssum_approx oo ssum_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj ssum_approx"
+unfolding ssum_sfp_def
+apply (rule cast_sfp_fun2 [OF ssum_approx])
+apply (erule (1) finite_deflation_ssum_map)
+done
+
+instantiation ssum :: (sfp, sfp) sfp
 begin
 
 definition
-  approx_ssum_def:
-    "approx = (\<lambda>n. ssum_map\<cdot>(approx n)\<cdot>(approx n))"
+  "emb = udom_emb ssum_approx oo ssum_map\<cdot>emb\<cdot>emb"
 
-lemma approx_sinl [simp]: "approx i\<cdot>(sinl\<cdot>x) = sinl\<cdot>(approx i\<cdot>x)"
-unfolding approx_ssum_def by (cases "x = \<bottom>") simp_all
+definition
+  "prj = ssum_map\<cdot>prj\<cdot>prj oo udom_prj ssum_approx"
 
-lemma approx_sinr [simp]: "approx i\<cdot>(sinr\<cdot>x) = sinr\<cdot>(approx i\<cdot>x)"
-unfolding approx_ssum_def by (cases "x = \<bottom>") simp_all
+definition
+  "sfp (t::('a \<oplus> 'b) itself) = ssum_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
 
 instance proof
-  fix i :: nat and x :: "'a \<oplus> 'b"
-  show "chain (approx :: nat \<Rightarrow> 'a \<oplus> 'b \<rightarrow> 'a \<oplus> 'b)"
-    unfolding approx_ssum_def by simp
-  show "(\<Squnion>i. approx i\<cdot>x) = x"
-    unfolding approx_ssum_def
-    by (cases x, simp_all add: lub_distribs)
-  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-    by (cases x, simp add: approx_ssum_def, simp, simp)
-  show "finite {x::'a \<oplus> 'b. approx i\<cdot>x = x}"
-    unfolding approx_ssum_def
-    by (intro finite_deflation.finite_fixes
-              finite_deflation_ssum_map
-              finite_deflation_approx)
+  show "ep_pair emb (prj :: udom \<rightarrow> 'a \<oplus> 'b)"
+    unfolding emb_ssum_def prj_ssum_def
+    using ep_pair_udom [OF ssum_approx]
+    by (intro ep_pair_comp ep_pair_ssum_map ep_pair_emb_prj)
+next
+  show "cast\<cdot>SFP('a \<oplus> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<oplus> 'b)"
+    unfolding emb_ssum_def prj_ssum_def sfp_ssum_def cast_ssum_sfp
+    by (simp add: cast_SFP oo_def expand_cfun_eq ssum_map_map)
 qed
 
 end
+
+text {* SFP of type constructor = type combinator *}
+
+lemma SFP_ssum: "SFP('a::sfp \<oplus> 'b::sfp) = ssum_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+by (rule sfp_ssum_def)
 
 end

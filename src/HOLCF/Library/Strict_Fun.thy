@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Strict_Fun.thy
+(*  Title:      HOLCF/Library/Strict_Fun.thy
     Author:     Brian Huffman
 *)
 
@@ -143,96 +143,78 @@ proof (intro finite_deflation.intro finite_deflation_axioms.intro)
          deflation_strict `deflation d1` `deflation d2`)
 qed
 
-subsection {* Strict function space is bifinite *}
+subsection {* Strict function space is an SFP domain *}
 
-instantiation sfun :: (bifinite, bifinite) bifinite
+definition
+  sfun_approx :: "nat \<Rightarrow> (udom \<rightarrow>! udom) \<rightarrow> (udom \<rightarrow>! udom)"
+where
+  "sfun_approx = (\<lambda>i. sfun_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+
+lemma sfun_approx: "approx_chain sfun_approx"
+proof (rule approx_chain.intro)
+  show "chain (\<lambda>i. sfun_approx i)"
+    unfolding sfun_approx_def by simp
+  show "(\<Squnion>i. sfun_approx i) = ID"
+    unfolding sfun_approx_def
+    by (simp add: lub_distribs sfun_map_ID)
+  show "\<And>i. finite_deflation (sfun_approx i)"
+    unfolding sfun_approx_def
+    by (intro finite_deflation_sfun_map finite_deflation_udom_approx)
+qed
+
+definition sfun_sfp :: "sfp \<rightarrow> sfp \<rightarrow> sfp"
+where "sfun_sfp = sfp_fun2 sfun_approx sfun_map"
+
+lemma cast_sfun_sfp:
+  "cast\<cdot>(sfun_sfp\<cdot>A\<cdot>B) =
+    udom_emb sfun_approx oo sfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj sfun_approx"
+unfolding sfun_sfp_def
+apply (rule cast_sfp_fun2 [OF sfun_approx])
+apply (erule (1) finite_deflation_sfun_map)
+done
+
+instantiation sfun :: (sfp, sfp) sfp
 begin
 
 definition
-  "approx = (\<lambda>i. sfun_map\<cdot>(approx i)\<cdot>(approx i))"
+  "emb = udom_emb sfun_approx oo sfun_map\<cdot>prj\<cdot>emb"
+
+definition
+  "prj = sfun_map\<cdot>emb\<cdot>prj oo udom_prj sfun_approx"
+
+definition
+  "sfp (t::('a \<rightarrow>! 'b) itself) = sfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
 
 instance proof
-  show "chain (approx :: nat \<Rightarrow> ('a \<rightarrow>! 'b) \<rightarrow> ('a \<rightarrow>! 'b))"
-    unfolding approx_sfun_def by simp
+  show "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
+    unfolding emb_sfun_def prj_sfun_def
+    using ep_pair_udom [OF sfun_approx]
+    by (intro ep_pair_comp ep_pair_sfun_map ep_pair_emb_prj)
 next
-  fix x :: "'a \<rightarrow>! 'b"
-  show "(\<Squnion>i. approx i\<cdot>x) = x"
-    unfolding approx_sfun_def
-    by (simp add: lub_distribs sfun_map_ID [unfolded ID_def])
-next
-  fix i :: nat and x :: "'a \<rightarrow>! 'b"
-  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-    unfolding approx_sfun_def
-    by (intro deflation.idem deflation_sfun_map deflation_approx)
-next
-  fix i :: nat
-  show "finite {x::'a \<rightarrow>! 'b. approx i\<cdot>x = x}"
-    unfolding approx_sfun_def
-    by (intro finite_deflation.finite_fixes
-              finite_deflation_sfun_map
-              finite_deflation_approx)
+  show "cast\<cdot>SFP('a \<rightarrow>! 'b) = emb oo (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
+    unfolding emb_sfun_def prj_sfun_def sfp_sfun_def cast_sfun_sfp
+    by (simp add: cast_SFP oo_def expand_cfun_eq sfun_map_map)
 qed
 
 end
 
-subsection {* Strict function space is representable *}
+text {* SFP of type constructor = type combinator *}
 
-instantiation sfun :: (rep, rep) rep
-begin
-
-definition
-  "emb = udom_emb oo sfun_map\<cdot>prj\<cdot>emb"
-
-definition
-  "prj = sfun_map\<cdot>emb\<cdot>prj oo udom_prj"
-
-instance
-apply (default, unfold emb_sfun_def prj_sfun_def)
-apply (rule ep_pair_comp)
-apply (rule ep_pair_sfun_map)
-apply (rule ep_pair_emb_prj)
-apply (rule ep_pair_emb_prj)
-apply (rule ep_pair_udom)
-done
-
-end
-
-text {*
-  A deflation constructor lets us configure the domain package to work
-  with the strict function space type constructor.
-*}
-
-definition
-  sfun_defl :: "TypeRep \<rightarrow> TypeRep \<rightarrow> TypeRep"
-where
-  "sfun_defl = TypeRep_fun2 sfun_map"
-
-lemma cast_sfun_defl:
-  "cast\<cdot>(sfun_defl\<cdot>A\<cdot>B) = udom_emb oo sfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj"
-unfolding sfun_defl_def
-apply (rule cast_TypeRep_fun2)
-apply (erule (1) finite_deflation_sfun_map)
-done
-
-lemma REP_sfun: "REP('a::rep \<rightarrow>! 'b::rep) = sfun_defl\<cdot>REP('a)\<cdot>REP('b)"
-apply (rule cast_eq_imp_eq, rule ext_cfun)
-apply (simp add: cast_REP cast_sfun_defl)
-apply (simp only: prj_sfun_def emb_sfun_def)
-apply (simp add: sfun_map_def cfun_map_def strictify_cancel)
-done
+lemma SFP_sfun: "SFP('a::sfp \<rightarrow>! 'b::sfp) = sfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+by (rule sfp_sfun_def)
 
 lemma isodefl_sfun:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
-    isodefl (sfun_map\<cdot>d1\<cdot>d2) (sfun_defl\<cdot>t1\<cdot>t2)"
+    isodefl (sfun_map\<cdot>d1\<cdot>d2) (sfun_sfp\<cdot>t1\<cdot>t2)"
 apply (rule isodeflI)
-apply (simp add: cast_sfun_defl cast_isodefl)
+apply (simp add: cast_sfun_sfp cast_isodefl)
 apply (simp add: emb_sfun_def prj_sfun_def)
 apply (simp add: sfun_map_map deflation_strict [OF isodefl_imp_deflation])
 done
 
 setup {*
   Domain_Isomorphism.add_type_constructor
-    (@{type_name "sfun"}, @{term sfun_defl}, @{const_name sfun_map}, @{thm REP_sfun},
+    (@{type_name "sfun"}, @{term sfun_sfp}, @{const_name sfun_map}, @{thm SFP_sfun},
        @{thm isodefl_sfun}, @{thm sfun_map_ID}, @{thm deflation_sfun_map})
 *}
 

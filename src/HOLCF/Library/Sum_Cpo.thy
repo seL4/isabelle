@@ -5,7 +5,7 @@
 header {* The cpo of disjoint sums *}
 
 theory Sum_Cpo
-imports Bifinite
+imports HOLCF
 begin
 
 subsection {* Ordering on sum type *}
@@ -217,39 +217,5 @@ instance sum :: (finite_po, finite_po) finite_po ..
 
 instance sum :: (discrete_cpo, discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_sum_def split: sum.split)
-
-subsection {* Sum type is a bifinite domain *}
-
-instantiation sum :: (profinite, profinite) profinite
-begin
-
-definition
-  approx_sum_def: "approx =
-    (\<lambda>n. \<Lambda> x. case x of Inl a \<Rightarrow> Inl (approx n\<cdot>a) | Inr b \<Rightarrow> Inr (approx n\<cdot>b))"
-
-lemma approx_Inl [simp]: "approx n\<cdot>(Inl x) = Inl (approx n\<cdot>x)"
-  unfolding approx_sum_def by simp
-
-lemma approx_Inr [simp]: "approx n\<cdot>(Inr x) = Inr (approx n\<cdot>x)"
-  unfolding approx_sum_def by simp
-
-instance proof
-  fix i :: nat and x :: "'a + 'b"
-  show "chain (approx :: nat \<Rightarrow> 'a + 'b \<rightarrow> 'a + 'b)"
-    unfolding approx_sum_def
-    by (rule ch2ch_LAM, case_tac x, simp_all)
-  show "(\<Squnion>i. approx i\<cdot>x) = x"
-    by (induct x, simp_all add: lub_Inl lub_Inr)
-  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-    by (induct x, simp_all)
-  have "{x::'a + 'b. approx i\<cdot>x = x} \<subseteq>
-        {x::'a. approx i\<cdot>x = x} <+> {x::'b. approx i\<cdot>x = x}"
-    by (rule subsetI, case_tac x, simp_all add: InlI InrI)
-  thus "finite {x::'a + 'b. approx i\<cdot>x = x}"
-    by (rule finite_subset,
-        intro finite_Plus finite_fixes_approx)
-qed
-
-end
 
 end

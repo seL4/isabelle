@@ -5,10 +5,12 @@
 header {* A universal bifinite domain *}
 
 theory Universal
-imports CompactBasis Nat_Bijection
+imports Completion Deflation Nat_Bijection
 begin
 
-subsection {* Basis datatype *}
+subsection {* Basis for universal domain *}
+
+subsubsection {* Basis datatype *}
 
 types ubasis = nat
 
@@ -75,7 +77,7 @@ lemma node_induct:
  apply (simp add: 2 node_gt1 node_gt2)
 done
 
-subsection {* Basis ordering *}
+subsubsection {* Basis ordering *}
 
 inductive
   ubasis_le :: "nat \<Rightarrow> nat \<Rightarrow> bool"
@@ -93,6 +95,12 @@ apply (induct x rule: node_induct)
 apply (rule ubasis_le_refl)
 apply (erule ubasis_le_trans)
 apply (erule ubasis_le_lower)
+done
+
+interpretation udom: preorder ubasis_le
+apply default
+apply (rule ubasis_le_refl)
+apply (erule (1) ubasis_le_trans)
 done
 
 subsubsection {* Generic take function *}
@@ -187,66 +195,6 @@ apply (clarsimp simp add: ubasis_until')
 apply simp
 done
 
-subsubsection {* Take function for \emph{ubasis} *}
-
-definition
-  ubasis_take :: "nat \<Rightarrow> ubasis \<Rightarrow> ubasis"
-where
-  "ubasis_take n = ubasis_until (\<lambda>x. x \<le> n)"
-
-lemma ubasis_take_le: "ubasis_take n x \<le> n"
-unfolding ubasis_take_def by (rule ubasis_until, rule le0)
-
-lemma ubasis_take_same: "x \<le> n \<Longrightarrow> ubasis_take n x = x"
-unfolding ubasis_take_def by (rule ubasis_until_same)
-
-lemma ubasis_take_idem: "ubasis_take n (ubasis_take n x) = ubasis_take n x"
-by (rule ubasis_take_same [OF ubasis_take_le])
-
-lemma ubasis_take_0 [simp]: "ubasis_take 0 x = 0"
-unfolding ubasis_take_def by (simp add: ubasis_until_0)
-
-lemma ubasis_take_less: "ubasis_le (ubasis_take n x) x"
-unfolding ubasis_take_def by (rule ubasis_until_less)
-
-lemma ubasis_take_chain: "ubasis_le (ubasis_take n x) (ubasis_take (Suc n) x)"
-unfolding ubasis_take_def by (rule ubasis_until_chain) simp
-
-lemma ubasis_take_mono:
-  assumes "ubasis_le x y"
-  shows "ubasis_le (ubasis_take n x) (ubasis_take n y)"
-unfolding ubasis_take_def
- apply (rule ubasis_until_mono [OF _ prems])
- apply (frule (2) order_less_le_trans [OF node_gt2])
- apply (erule order_less_imp_le)
-done
-
-lemma finite_range_ubasis_take: "finite (range (ubasis_take n))"
-apply (rule finite_subset [where B="{..n}"])
-apply (simp add: subset_eq ubasis_take_le)
-apply simp
-done
-
-lemma ubasis_take_covers: "\<exists>n. ubasis_take n x = x"
-apply (rule exI [where x=x])
-apply (simp add: ubasis_take_same)
-done
-
-interpretation udom: preorder ubasis_le
-apply default
-apply (rule ubasis_le_refl)
-apply (erule (1) ubasis_le_trans)
-done
-
-interpretation udom: basis_take ubasis_le ubasis_take
-apply default
-apply (rule ubasis_take_less)
-apply (rule ubasis_take_idem)
-apply (erule ubasis_take_mono)
-apply (rule ubasis_take_chain)
-apply (rule finite_range_ubasis_take)
-apply (rule ubasis_take_covers)
-done
 
 subsection {* Defining the universal domain by ideal completion *}
 
@@ -263,17 +211,17 @@ instance ..
 end
 
 instance udom :: po
-by (rule udom.typedef_ideal_po
-    [OF type_definition_udom below_udom_def])
+using type_definition_udom below_udom_def
+by (rule udom.typedef_ideal_po)
 
 instance udom :: cpo
-by (rule udom.typedef_ideal_cpo
-    [OF type_definition_udom below_udom_def])
+using type_definition_udom below_udom_def
+by (rule udom.typedef_ideal_cpo)
 
 lemma Rep_udom_lub:
   "chain Y \<Longrightarrow> Rep_udom (\<Squnion>i. Y i) = (\<Union>i. Rep_udom (Y i))"
-by (rule udom.typedef_ideal_rep_contlub
-    [OF type_definition_udom below_udom_def])
+using type_definition_udom below_udom_def
+by (rule udom.typedef_ideal_rep_contlub)
 
 lemma ideal_Rep_udom: "udom.ideal (Rep_udom xs)"
 by (rule Rep_udom [unfolded mem_Collect_eq])
@@ -288,12 +236,13 @@ unfolding udom_principal_def
 by (simp add: Abs_udom_inverse udom.ideal_principal)
 
 interpretation udom:
-  ideal_completion ubasis_le ubasis_take udom_principal Rep_udom
+  ideal_completion ubasis_le udom_principal Rep_udom
 apply unfold_locales
 apply (rule ideal_Rep_udom)
 apply (erule Rep_udom_lub)
 apply (rule Rep_udom_principal)
 apply (simp only: below_udom_def)
+apply (rule exI, rule inj_on_id)
 done
 
 text {* Universal domain is pointed *}
@@ -309,43 +258,60 @@ by intro_classes (fast intro: udom_minimal)
 lemma inst_udom_pcpo: "\<bottom> = udom_principal 0"
 by (rule udom_minimal [THEN UU_I, symmetric])
 
-text {* Universal domain is bifinite *}
 
-instantiation udom :: bifinite
+subsection {* Compact bases of domains *}
+
+typedef (open) 'a compact_basis = "{x::'a::pcpo. compact x}"
+by auto
+
+lemma compact_Rep_compact_basis: "compact (Rep_compact_basis a)"
+by (rule Rep_compact_basis [unfolded mem_Collect_eq])
+
+instantiation compact_basis :: (pcpo) below
 begin
 
 definition
-  approx_udom_def: "approx = udom.completion_approx"
+  compact_le_def:
+    "(op \<sqsubseteq>) \<equiv> (\<lambda>x y. Rep_compact_basis x \<sqsubseteq> Rep_compact_basis y)"
 
-instance
-apply (intro_classes, unfold approx_udom_def)
-apply (rule udom.chain_completion_approx)
-apply (rule udom.lub_completion_approx)
-apply (rule udom.completion_approx_idem)
-apply (rule udom.finite_fixes_completion_approx)
-done
-
+instance ..
 end
 
-lemma approx_udom_principal [simp]:
-  "approx n\<cdot>(udom_principal x) = udom_principal (ubasis_take n x)"
-unfolding approx_udom_def
-by (rule udom.completion_approx_principal)
+instance compact_basis :: (pcpo) po
+using type_definition_compact_basis compact_le_def
+by (rule typedef_po)
 
-lemma approx_eq_udom_principal:
-  "\<exists>a\<in>Rep_udom x. approx n\<cdot>x = udom_principal (ubasis_take n a)"
-unfolding approx_udom_def
-by (rule udom.completion_approx_eq_principal)
+definition
+  approximants :: "'a \<Rightarrow> 'a compact_basis set" where
+  "approximants = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
+
+definition
+  compact_bot :: "'a::pcpo compact_basis" where
+  "compact_bot = Abs_compact_basis \<bottom>"
+
+lemma Rep_compact_bot [simp]: "Rep_compact_basis compact_bot = \<bottom>"
+unfolding compact_bot_def by (simp add: Abs_compact_basis_inverse)
+
+lemma compact_bot_minimal [simp]: "compact_bot \<sqsubseteq> a"
+unfolding compact_le_def Rep_compact_bot by simp
 
 
 subsection {* Universality of \emph{udom} *}
 
-default_sort bifinite
+text {* We use a locale to parameterize the construction over a chain
+of approx functions on the type to be embedded. *}
+
+locale approx_chain =
+  fixes approx :: "nat \<Rightarrow> 'a::pcpo \<rightarrow> 'a"
+  assumes chain_approx [simp]: "chain (\<lambda>i. approx i)"
+  assumes lub_approx [simp]: "(\<Squnion>i. approx i) = ID"
+  assumes finite_deflation_approx: "\<And>i. finite_deflation (approx i)"
+begin
 
 subsubsection {* Choosing a maximal element from a finite set *}
 
 lemma finite_has_maximal:
-  fixes A :: "'a::po set"
+  fixes A :: "'a compact_basis set"
   shows "\<lbrakk>finite A; A \<noteq> {}\<rbrakk> \<Longrightarrow> \<exists>x\<in>A. \<forall>y\<in>A. x \<sqsubseteq> y \<longrightarrow> x = y"
 proof (induct rule: finite_ne_induct)
   case (singleton x)
@@ -456,42 +422,85 @@ lemma choose_pos_lessD:
  apply (simp add: choose_pos.simps)
 done
 
-subsubsection {* Rank of basis elements *}
+subsubsection {* Properties of approx function *}
+
+lemma deflation_approx: "deflation (approx i)"
+using finite_deflation_approx by (rule finite_deflation_imp_deflation)
+
+lemma approx_idem: "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+using deflation_approx by (rule deflation.idem)
+
+lemma approx_below: "approx i\<cdot>x \<sqsubseteq> x"
+using deflation_approx by (rule deflation.below)
+
+lemma finite_range_approx: "finite (range (\<lambda>x. approx i\<cdot>x))"
+apply (rule finite_deflation.finite_range)
+apply (rule finite_deflation_approx)
+done
+
+lemma compact_approx: "compact (approx n\<cdot>x)"
+apply (rule finite_deflation.compact)
+apply (rule finite_deflation_approx)
+done
+
+lemma compact_eq_approx: "compact x \<Longrightarrow> \<exists>i. approx i\<cdot>x = x"
+by (rule admD2, simp_all)
+
+subsubsection {* Compact basis take function *}
 
 primrec
-  cb_take :: "nat \<Rightarrow> 'a compact_basis \<Rightarrow> 'a compact_basis"
-where
+  cb_take :: "nat \<Rightarrow> 'a compact_basis \<Rightarrow> 'a compact_basis" where
   "cb_take 0 = (\<lambda>x. compact_bot)"
-| "cb_take (Suc n) = compact_take n"
+| "cb_take (Suc n) = (\<lambda>a. Abs_compact_basis (approx n\<cdot>(Rep_compact_basis a)))"
+
+declare cb_take.simps [simp del]
+
+lemma cb_take_zero [simp]: "cb_take 0 a = compact_bot"
+by (simp only: cb_take.simps)
+
+lemma Rep_cb_take:
+  "Rep_compact_basis (cb_take (Suc n) a) = approx n\<cdot>(Rep_compact_basis a)"
+by (simp add: Abs_compact_basis_inverse cb_take.simps(2) compact_approx)
+
+lemmas approx_Rep_compact_basis = Rep_cb_take [symmetric]
 
 lemma cb_take_covers: "\<exists>n. cb_take n x = x"
-apply (rule exE [OF compact_basis.take_covers [where a=x]])
-apply (rename_tac n, rule_tac x="Suc n" in exI, simp)
+apply (subgoal_tac "\<exists>n. cb_take (Suc n) x = x", fast)
+apply (simp add: Rep_compact_basis_inject [symmetric])
+apply (simp add: Rep_cb_take)
+apply (rule compact_eq_approx)
+apply (rule compact_Rep_compact_basis)
 done
 
 lemma cb_take_less: "cb_take n x \<sqsubseteq> x"
-by (cases n, simp, simp add: compact_basis.take_less)
+unfolding compact_le_def
+by (cases n, simp, simp add: Rep_cb_take approx_below)
 
 lemma cb_take_idem: "cb_take n (cb_take n x) = cb_take n x"
-by (cases n, simp, simp add: compact_basis.take_take)
+unfolding Rep_compact_basis_inject [symmetric]
+by (cases n, simp, simp add: Rep_cb_take approx_idem)
 
 lemma cb_take_mono: "x \<sqsubseteq> y \<Longrightarrow> cb_take n x \<sqsubseteq> cb_take n y"
-by (cases n, simp, simp add: compact_basis.take_mono)
+unfolding compact_le_def
+by (cases n, simp, simp add: Rep_cb_take monofun_cfun_arg)
 
 lemma cb_take_chain_le: "m \<le> n \<Longrightarrow> cb_take m x \<sqsubseteq> cb_take n x"
-apply (cases m, simp)
-apply (cases n, simp)
-apply (simp add: compact_basis.take_chain_le)
+unfolding compact_le_def
+apply (cases m, simp, cases n, simp)
+apply (simp add: Rep_cb_take, rule chain_mono, simp, simp)
 done
-
-lemma range_const: "range (\<lambda>x. c) = {c}"
-by auto
 
 lemma finite_range_cb_take: "finite (range (cb_take n))"
 apply (cases n)
-apply (simp add: range_const)
-apply (simp add: compact_basis.finite_range_take)
+apply (subgoal_tac "range (cb_take 0) = {compact_bot}", simp, force)
+apply (rule finite_imageD [where f="Rep_compact_basis"])
+apply (rule finite_subset [where B="range (\<lambda>x. approx (n - 1)\<cdot>x)"])
+apply (clarsimp simp add: Rep_cb_take)
+apply (rule finite_range_approx)
+apply (rule inj_onI, simp add: Rep_compact_basis_inject)
 done
+
+subsubsection {* Rank of basis elements *}
 
 definition
   rank :: "'a compact_basis \<Rightarrow> nat"
@@ -809,22 +818,86 @@ unfolding basis_prj_def
  apply (rule ubasis_until_less)
 done
 
-hide_const (open)
-  node
-  choose
-  choose_pos
-  place
-  sub
+end
+
+sublocale approx_chain \<subseteq> compact_basis!:
+  ideal_completion below Rep_compact_basis
+    "approximants :: 'a \<Rightarrow> 'a compact_basis set"
+proof
+  fix w :: "'a"
+  show "below.ideal (approximants w)"
+  proof (rule below.idealI)
+    show "\<exists>x. x \<in> approximants w"
+      unfolding approximants_def
+      apply (rule_tac x="Abs_compact_basis (approx 0\<cdot>w)" in exI)
+      apply (simp add: Abs_compact_basis_inverse approx_below compact_approx)
+      done
+  next
+    fix x y :: "'a compact_basis"
+    assume "x \<in> approximants w" "y \<in> approximants w"
+    thus "\<exists>z \<in> approximants w. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
+      unfolding approximants_def
+      apply simp
+      apply (cut_tac a=x in compact_Rep_compact_basis)
+      apply (cut_tac a=y in compact_Rep_compact_basis)
+      apply (drule compact_eq_approx)
+      apply (drule compact_eq_approx)
+      apply (clarify, rename_tac i j)
+      apply (rule_tac x="Abs_compact_basis (approx (max i j)\<cdot>w)" in exI)
+      apply (simp add: compact_le_def)
+      apply (simp add: Abs_compact_basis_inverse approx_below compact_approx)
+      apply (erule subst, erule subst)
+      apply (simp add: monofun_cfun chain_mono [OF chain_approx])
+      done
+  next
+    fix x y :: "'a compact_basis"
+    assume "x \<sqsubseteq> y" "y \<in> approximants w" thus "x \<in> approximants w"
+      unfolding approximants_def
+      apply simp
+      apply (simp add: compact_le_def)
+      apply (erule (1) below_trans)
+      done
+  qed
+next
+  fix Y :: "nat \<Rightarrow> 'a"
+  assume Y: "chain Y"
+  show "approximants (\<Squnion>i. Y i) = (\<Union>i. approximants (Y i))"
+    unfolding approximants_def
+    apply safe
+    apply (simp add: compactD2 [OF compact_Rep_compact_basis Y])
+    apply (erule below_trans, rule is_ub_thelub [OF Y])
+    done
+next
+  fix a :: "'a compact_basis"
+  show "approximants (Rep_compact_basis a) = {b. b \<sqsubseteq> a}"
+    unfolding approximants_def compact_le_def ..
+next
+  fix x y :: "'a"
+  assume "approximants x \<subseteq> approximants y" thus "x \<sqsubseteq> y"
+    apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> y")
+    apply (simp add: lub_distribs)
+    apply (rule admD, simp, simp)
+    apply (drule_tac c="Abs_compact_basis (approx i\<cdot>x)" in subsetD)
+    apply (simp add: approximants_def Abs_compact_basis_inverse
+                     approx_below compact_approx)
+    apply (simp add: approximants_def Abs_compact_basis_inverse compact_approx)
+    done
+next
+  show "\<exists>f::'a compact_basis \<Rightarrow> nat. inj f"
+    by (rule exI, rule inj_place)
+qed
 
 subsubsection {* EP-pair from any bifinite domain into \emph{udom} *}
 
+context approx_chain begin
+
 definition
-  udom_emb :: "'a::bifinite \<rightarrow> udom"
+  udom_emb :: "'a \<rightarrow> udom"
 where
   "udom_emb = compact_basis.basis_fun (\<lambda>x. udom_principal (basis_emb x))"
 
 definition
-  udom_prj :: "udom \<rightarrow> 'a::bifinite"
+  udom_prj :: "udom \<rightarrow> 'a"
 where
   "udom_prj = udom.basis_fun (\<lambda>x. Rep_compact_basis (basis_prj x))"
 
@@ -853,5 +926,105 @@ lemma ep_pair_udom: "ep_pair udom_emb udom_prj"
  apply (simp add: udom_emb_principal udom_prj_principal)
  apply (rule basis_emb_prj_less)
 done
+
+end
+
+abbreviation "udom_emb \<equiv> approx_chain.udom_emb"
+abbreviation "udom_prj \<equiv> approx_chain.udom_prj"
+
+lemmas ep_pair_udom = approx_chain.ep_pair_udom
+
+subsection {* Chain of approx functions for type \emph{udom} *}
+
+definition
+  udom_approx :: "nat \<Rightarrow> udom \<rightarrow> udom"
+where
+  "udom_approx i =
+    udom.basis_fun (\<lambda>x. udom_principal (ubasis_until (\<lambda>y. y \<le> i) x))"
+
+lemma udom_approx_mono:
+  "ubasis_le a b \<Longrightarrow>
+    udom_principal (ubasis_until (\<lambda>y. y \<le> i) a) \<sqsubseteq>
+    udom_principal (ubasis_until (\<lambda>y. y \<le> i) b)"
+apply (rule udom.principal_mono)
+apply (rule ubasis_until_mono)
+apply (frule (2) order_less_le_trans [OF node_gt2])
+apply (erule order_less_imp_le)
+apply assumption
+done
+
+lemma adm_mem_finite: "\<lbrakk>cont f; finite S\<rbrakk> \<Longrightarrow> adm (\<lambda>x. f x \<in> S)"
+by (erule adm_subst, induct set: finite, simp_all)
+
+lemma udom_approx_principal:
+  "udom_approx i\<cdot>(udom_principal x) =
+    udom_principal (ubasis_until (\<lambda>y. y \<le> i) x)"
+unfolding udom_approx_def
+apply (rule udom.basis_fun_principal)
+apply (erule udom_approx_mono)
+done
+
+lemma finite_deflation_udom_approx: "finite_deflation (udom_approx i)"
+proof
+  fix x show "udom_approx i\<cdot>(udom_approx i\<cdot>x) = udom_approx i\<cdot>x"
+    by (induct x rule: udom.principal_induct, simp)
+       (simp add: udom_approx_principal ubasis_until_idem)
+next
+  fix x show "udom_approx i\<cdot>x \<sqsubseteq> x"
+    by (induct x rule: udom.principal_induct, simp)
+       (simp add: udom_approx_principal ubasis_until_less)
+next
+  have *: "finite (range (\<lambda>x. udom_principal (ubasis_until (\<lambda>y. y \<le> i) x)))"
+    apply (subst range_composition [where f=udom_principal])
+    apply (simp add: finite_range_ubasis_until)
+    done
+  show "finite {x. udom_approx i\<cdot>x = x}"
+    apply (rule finite_range_imp_finite_fixes)
+    apply (rule rev_finite_subset [OF *])
+    apply (clarsimp, rename_tac x)
+    apply (induct_tac x rule: udom.principal_induct)
+    apply (simp add: adm_mem_finite *)
+    apply (simp add: udom_approx_principal)
+    done
+qed
+
+interpretation udom_approx: finite_deflation "udom_approx i"
+by (rule finite_deflation_udom_approx)
+
+lemma chain_udom_approx [simp]: "chain (\<lambda>i. udom_approx i)"
+unfolding udom_approx_def
+apply (rule chainI)
+apply (rule udom.basis_fun_mono)
+apply (erule udom_approx_mono)
+apply (erule udom_approx_mono)
+apply (rule udom.principal_mono)
+apply (rule ubasis_until_chain, simp)
+done
+
+lemma lub_udom_approx [simp]: "(\<Squnion>i. udom_approx i) = ID"
+apply (rule ext_cfun, simp add: contlub_cfun_fun)
+apply (rule below_antisym)
+apply (rule is_lub_thelub)
+apply (simp)
+apply (rule ub_rangeI)
+apply (rule udom_approx.below)
+apply (rule_tac x=x in udom.principal_induct)
+apply (simp add: lub_distribs)
+apply (rule rev_below_trans)
+apply (rule_tac x=a in is_ub_thelub)
+apply simp
+apply (simp add: udom_approx_principal)
+apply (simp add: ubasis_until_same ubasis_le_refl)
+done
+ 
+lemma udom_approx: "approx_chain udom_approx"
+proof
+  show "chain (\<lambda>i. udom_approx i)"
+    by (rule chain_udom_approx)
+  show "(\<Squnion>i. udom_approx i) = ID"
+    by (rule lub_udom_approx)
+qed
+
+hide_const (open) node
 
 end

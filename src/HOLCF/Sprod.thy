@@ -5,7 +5,7 @@
 header {* The type of strict products *}
 
 theory Sprod
-imports Bifinite
+imports Algebraic
 begin
 
 default_sort pcpo
@@ -310,37 +310,66 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
-subsection {* Strict product is a bifinite domain *}
+subsection {* Strict product is an SFP domain *}
 
-instantiation sprod :: (bifinite, bifinite) bifinite
+definition
+  sprod_approx :: "nat \<Rightarrow> udom \<otimes> udom \<rightarrow> udom \<otimes> udom"
+where
+  "sprod_approx = (\<lambda>i. sprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+
+lemma sprod_approx: "approx_chain sprod_approx"
+proof (rule approx_chain.intro)
+  show "chain (\<lambda>i. sprod_approx i)"
+    unfolding sprod_approx_def by simp
+  show "(\<Squnion>i. sprod_approx i) = ID"
+    unfolding sprod_approx_def
+    by (simp add: lub_distribs sprod_map_ID)
+  show "\<And>i. finite_deflation (sprod_approx i)"
+    unfolding sprod_approx_def
+    by (intro finite_deflation_sprod_map finite_deflation_udom_approx)
+qed
+
+definition sprod_sfp :: "sfp \<rightarrow> sfp \<rightarrow> sfp"
+where "sprod_sfp = sfp_fun2 sprod_approx sprod_map"
+
+lemma cast_sprod_sfp:
+  "cast\<cdot>(sprod_sfp\<cdot>A\<cdot>B) =
+    udom_emb sprod_approx oo
+      sprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo
+        udom_prj sprod_approx"
+unfolding sprod_sfp_def
+apply (rule cast_sfp_fun2 [OF sprod_approx])
+apply (erule (1) finite_deflation_sprod_map)
+done
+
+instantiation sprod :: (sfp, sfp) sfp
 begin
 
 definition
-  approx_sprod_def:
-    "approx = (\<lambda>n. sprod_map\<cdot>(approx n)\<cdot>(approx n))"
+  "emb = udom_emb sprod_approx oo sprod_map\<cdot>emb\<cdot>emb"
+
+definition
+  "prj = sprod_map\<cdot>prj\<cdot>prj oo udom_prj sprod_approx"
+
+definition
+  "sfp (t::('a \<otimes> 'b) itself) = sprod_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
 
 instance proof
-  fix i :: nat and x :: "'a \<otimes> 'b"
-  show "chain (approx :: nat \<Rightarrow> 'a \<otimes> 'b \<rightarrow> 'a \<otimes> 'b)"
-    unfolding approx_sprod_def by simp
-  show "(\<Squnion>i. approx i\<cdot>x) = x"
-    unfolding approx_sprod_def sprod_map_def
-    by (simp add: lub_distribs eta_cfun)
-  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-    unfolding approx_sprod_def sprod_map_def
-    by (simp add: ssplit_def strictify_conv_if)
-  show "finite {x::'a \<otimes> 'b. approx i\<cdot>x = x}"
-    unfolding approx_sprod_def
-    by (intro finite_deflation.finite_fixes
-              finite_deflation_sprod_map
-              finite_deflation_approx)
+  show "ep_pair emb (prj :: udom \<rightarrow> 'a \<otimes> 'b)"
+    unfolding emb_sprod_def prj_sprod_def
+    using ep_pair_udom [OF sprod_approx]
+    by (intro ep_pair_comp ep_pair_sprod_map ep_pair_emb_prj)
+next
+  show "cast\<cdot>SFP('a \<otimes> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<otimes> 'b)"
+    unfolding emb_sprod_def prj_sprod_def sfp_sprod_def cast_sprod_sfp
+    by (simp add: cast_SFP oo_def expand_cfun_eq sprod_map_map)
 qed
 
 end
 
-lemma approx_spair [simp]:
-  "approx i\<cdot>(:x, y:) = (:approx i\<cdot>x, approx i\<cdot>y:)"
-unfolding approx_sprod_def sprod_map_def
-by (simp add: ssplit_def strictify_conv_if)
+text {* SFP of type constructor = type combinator *}
+
+lemma SFP_sprod: "SFP('a::sfp \<otimes> 'b::sfp) = sprod_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+by (rule sfp_sprod_def)
 
 end

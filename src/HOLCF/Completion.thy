@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-header {* Defining bifinite domains by ideal completion *}
+header {* Defining algebraic domains by ideal completion *}
 
 theory Completion
 imports Cfun
@@ -164,63 +164,26 @@ done
 
 subsection {* Lemmas about least upper bounds *}
 
-lemma finite_directed_contains_lub:
-  "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> \<exists>u\<in>S. S <<| u"
-apply (drule (1) directed_finiteD, rule subset_refl)
-apply (erule bexE)
-apply (rule rev_bexI, assumption)
-apply (erule (1) is_lub_maximal)
-done
-
-lemma lub_finite_directed_in_self:
-  "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> lub S \<in> S"
-apply (drule (1) finite_directed_contains_lub, clarify)
-apply (drule thelubI, simp)
-done
-
-lemma finite_directed_has_lub: "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> \<exists>u. S <<| u"
-by (drule (1) finite_directed_contains_lub, fast)
-
-lemma is_ub_thelub0: "\<lbrakk>\<exists>u. S <<| u; x \<in> S\<rbrakk> \<Longrightarrow> x \<sqsubseteq> lub S"
+lemma is_ub_thelub_ex: "\<lbrakk>\<exists>u. S <<| u; x \<in> S\<rbrakk> \<Longrightarrow> x \<sqsubseteq> lub S"
 apply (erule exE, drule lubI)
 apply (drule is_lubD1)
 apply (erule (1) is_ubD)
 done
 
-lemma is_lub_thelub0: "\<lbrakk>\<exists>u. S <<| u; S <| x\<rbrakk> \<Longrightarrow> lub S \<sqsubseteq> x"
+lemma is_lub_thelub_ex: "\<lbrakk>\<exists>u. S <<| u; S <| x\<rbrakk> \<Longrightarrow> lub S \<sqsubseteq> x"
 by (erule exE, drule lubI, erule is_lub_lub)
 
 subsection {* Locale for ideal completion *}
 
-locale basis_take = preorder +
-  fixes take :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'a"
-  assumes take_less: "take n a \<preceq> a"
-  assumes take_take: "take n (take n a) = take n a"
-  assumes take_mono: "a \<preceq> b \<Longrightarrow> take n a \<preceq> take n b"
-  assumes take_chain: "take n a \<preceq> take (Suc n) a"
-  assumes finite_range_take: "finite (range (take n))"
-  assumes take_covers: "\<exists>n. take n a = a"
-begin
-
-lemma take_chain_less: "m < n \<Longrightarrow> take m a \<preceq> take n a"
-by (erule less_Suc_induct, rule take_chain, erule (1) r_trans)
-
-lemma take_chain_le: "m \<le> n \<Longrightarrow> take m a \<preceq> take n a"
-by (cases "m = n", simp add: r_refl, simp add: take_chain_less)
-
-end
-
-locale ideal_completion = basis_take +
+locale ideal_completion = preorder +
   fixes principal :: "'a::type \<Rightarrow> 'b::cpo"
   fixes rep :: "'b::cpo \<Rightarrow> 'a::type set"
-  assumes ideal_rep: "\<And>x. preorder.ideal r (rep x)"
+  assumes ideal_rep: "\<And>x. ideal (rep x)"
   assumes rep_contlub: "\<And>Y. chain Y \<Longrightarrow> rep (\<Squnion>i. Y i) = (\<Union>i. rep (Y i))"
   assumes rep_principal: "\<And>a. rep (principal a) = {b. b \<preceq> a}"
   assumes subset_repD: "\<And>x y. rep x \<subseteq> rep y \<Longrightarrow> x \<sqsubseteq> y"
+  assumes countable: "\<exists>f::'a \<Rightarrow> nat. inj f"
 begin
-
-lemma finite_take_rep: "finite (take n ` rep x)"
-by (rule finite_subset [OF image_mono [OF subset_UNIV] finite_range_take])
 
 lemma rep_mono: "x \<sqsubseteq> y \<Longrightarrow> rep x \<subseteq> rep y"
 apply (frule bin_chain)
@@ -251,11 +214,18 @@ by (simp add: principal_below_iff_mem_rep rep_principal)
 lemma principal_eq_iff: "principal a = principal b \<longleftrightarrow> a \<preceq> b \<and> b \<preceq> a"
 unfolding po_eq_conv [where 'a='b] principal_below_iff ..
 
+lemma eq_iff: "x = y \<longleftrightarrow> rep x = rep y"
+unfolding po_eq_conv below_def by auto
+
 lemma repD: "a \<in> rep x \<Longrightarrow> principal a \<sqsubseteq> x"
 by (simp add: rep_eq)
 
 lemma principal_mono: "a \<preceq> b \<Longrightarrow> principal a \<sqsubseteq> principal b"
 by (simp only: principal_below_iff)
+
+lemma ch2ch_principal [simp]:
+  "\<forall>i. Y i \<preceq> Y (Suc i) \<Longrightarrow> chain (\<lambda>i. principal (Y i))"
+by (simp add: chainI principal_mono)
 
 lemma belowI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
 unfolding principal_below_iff_mem_rep
@@ -271,68 +241,155 @@ apply (drule (1) ub_imageD)
 apply (simp add: rep_eq)
 done
 
+subsubsection {* Principal ideals approximate all elements *}
+
+lemma compact_principal [simp]: "compact (principal a)"
+by (rule compactI2, simp add: principal_below_iff_mem_rep rep_contlub)
+
+text {* Construct a chain whose lub is the same as a given ideal *}
+
+lemma obtain_principal_chain:
+  obtains Y where "\<forall>i. Y i \<preceq> Y (Suc i)" and "x = (\<Squnion>i. principal (Y i))"
+proof -
+  obtain count :: "'a \<Rightarrow> nat" where inj: "inj count"
+    using countable ..
+  def enum \<equiv> "\<lambda>i. THE a. count a = i"
+  have enum_count [simp]: "\<And>x. enum (count x) = x"
+    unfolding enum_def by (simp add: inj_eq [OF inj])
+  def a \<equiv> "LEAST i. enum i \<in> rep x"
+  def b \<equiv> "\<lambda>i. LEAST j. enum j \<in> rep x \<and> \<not> enum j \<preceq> enum i"
+  def c \<equiv> "\<lambda>i j. LEAST k. enum k \<in> rep x \<and> enum i \<preceq> enum k \<and> enum j \<preceq> enum k"
+  def P \<equiv> "\<lambda>i. \<exists>j. enum j \<in> rep x \<and> \<not> enum j \<preceq> enum i"
+  def X \<equiv> "nat_rec a (\<lambda>n i. if P i then c i (b i) else i)"
+  have X_0: "X 0 = a" unfolding X_def by simp
+  have X_Suc: "\<And>n. X (Suc n) = (if P (X n) then c (X n) (b (X n)) else X n)"
+    unfolding X_def by simp
+  have a_mem: "enum a \<in> rep x"
+    unfolding a_def
+    apply (rule LeastI_ex)
+    apply (cut_tac ideal_rep [of x])
+    apply (drule idealD1)
+    apply (clarify, rename_tac a)
+    apply (rule_tac x="count a" in exI, simp)
+    done
+  have b: "\<And>i. P i \<Longrightarrow> enum i \<in> rep x
+    \<Longrightarrow> enum (b i) \<in> rep x \<and> \<not> enum (b i) \<preceq> enum i"
+    unfolding P_def b_def by (erule LeastI2_ex, simp)
+  have c: "\<And>i j. enum i \<in> rep x \<Longrightarrow> enum j \<in> rep x
+    \<Longrightarrow> enum (c i j) \<in> rep x \<and> enum i \<preceq> enum (c i j) \<and> enum j \<preceq> enum (c i j)"
+    unfolding c_def
+    apply (drule (1) idealD2 [OF ideal_rep], clarify)
+    apply (rule_tac a="count z" in LeastI2, simp, simp)
+    done
+  have X_mem: "\<And>n. enum (X n) \<in> rep x"
+    apply (induct_tac n)
+    apply (simp add: X_0 a_mem)
+    apply (clarsimp simp add: X_Suc, rename_tac n)
+    apply (simp add: b c)
+    done
+  have X_chain: "\<And>n. enum (X n) \<preceq> enum (X (Suc n))"
+    apply (clarsimp simp add: X_Suc r_refl)
+    apply (simp add: b c X_mem)
+    done
+  have less_b: "\<And>n i. n < b i \<Longrightarrow> enum n \<in> rep x \<Longrightarrow> enum n \<preceq> enum i"
+    unfolding b_def by (drule not_less_Least, simp)
+  have X_covers: "\<And>n. \<forall>k\<le>n. enum k \<in> rep x \<longrightarrow> enum k \<preceq> enum (X n)"
+    apply (induct_tac n)
+    apply (clarsimp simp add: X_0 a_def)
+    apply (drule_tac k=0 in Least_le, simp add: r_refl)
+    apply (clarsimp, rename_tac n k)
+    apply (erule le_SucE)
+    apply (rule r_trans [OF _ X_chain], simp)
+    apply (case_tac "P (X n)", simp add: X_Suc)
+    apply (rule_tac x="b (X n)" and y="Suc n" in linorder_cases)
+    apply (simp only: less_Suc_eq_le)
+    apply (drule spec, drule (1) mp, simp add: b X_mem)
+    apply (simp add: c X_mem)
+    apply (drule (1) less_b)
+    apply (erule r_trans)
+    apply (simp add: b c X_mem)
+    apply (simp add: X_Suc)
+    apply (simp add: P_def)
+    done
+  have 1: "\<forall>i. enum (X i) \<preceq> enum (X (Suc i))"
+    by (simp add: X_chain)
+  have 2: "x = (\<Squnion>n. principal (enum (X n)))"
+    apply (simp add: eq_iff rep_contlub 1 rep_principal)
+    apply (auto, rename_tac a)
+    apply (subgoal_tac "\<exists>i. a = enum i", erule exE)
+    apply (rule_tac x=i in exI, simp add: X_covers)
+    apply (rule_tac x="count a" in exI, simp)
+    apply (erule idealD3 [OF ideal_rep])
+    apply (rule X_mem)
+    done
+  from 1 2 show ?thesis ..
+qed
+
+lemma principal_induct:
+  assumes adm: "adm P"
+  assumes P: "\<And>a. P (principal a)"
+  shows "P x"
+apply (rule obtain_principal_chain [of x])
+apply (simp add: admD [OF adm] P)
+done
+
+lemma principal_induct2:
+  "\<lbrakk>\<And>y. adm (\<lambda>x. P x y); \<And>x. adm (\<lambda>y. P x y);
+    \<And>a b. P (principal a) (principal b)\<rbrakk> \<Longrightarrow> P x y"
+apply (rule_tac x=y in spec)
+apply (rule_tac x=x in principal_induct, simp)
+apply (rule allI, rename_tac y)
+apply (rule_tac x=y in principal_induct, simp)
+apply simp
+done
+
+lemma compact_imp_principal: "compact x \<Longrightarrow> \<exists>a. x = principal a"
+apply (rule obtain_principal_chain [of x])
+apply (drule adm_compact_neq [OF _ cont_id])
+apply (subgoal_tac "chain (\<lambda>i. principal (Y i))")
+apply (drule (2) admD2, fast, simp)
+done
+
+lemma obtain_compact_chain:
+  obtains Y :: "nat \<Rightarrow> 'b"
+  where "chain Y" and "\<forall>i. compact (Y i)" and "x = (\<Squnion>i. Y i)"
+apply (rule obtain_principal_chain [of x])
+apply (rule_tac Y="\<lambda>i. principal (Y i)" in that, simp_all)
+done
+
 subsection {* Defining functions in terms of basis elements *}
 
 definition
   basis_fun :: "('a::type \<Rightarrow> 'c::cpo) \<Rightarrow> 'b \<rightarrow> 'c" where
   "basis_fun = (\<lambda>f. (\<Lambda> x. lub (f ` rep x)))"
 
-lemma basis_fun_lemma0:
-  fixes f :: "'a::type \<Rightarrow> 'c::cpo"
-  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "\<exists>u. f ` take i ` rep x <<| u"
-apply (rule finite_directed_has_lub)
-apply (rule finite_imageI)
-apply (rule finite_take_rep)
-apply (subst image_image)
-apply (rule directed_image_ideal)
-apply (rule ideal_rep)
-apply (rule f_mono)
-apply (erule take_mono)
-done
-
-lemma basis_fun_lemma1:
-  fixes f :: "'a::type \<Rightarrow> 'c::cpo"
-  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "chain (\<lambda>i. lub (f ` take i ` rep x))"
- apply (rule chainI)
- apply (rule is_lub_thelub0)
-  apply (rule basis_fun_lemma0, erule f_mono)
- apply (rule is_ubI, clarsimp, rename_tac a)
- apply (rule below_trans [OF f_mono [OF take_chain]])
- apply (rule is_ub_thelub0)
-  apply (rule basis_fun_lemma0, erule f_mono)
- apply simp
-done
-
-lemma basis_fun_lemma2:
-  fixes f :: "'a::type \<Rightarrow> 'c::cpo"
-  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "f ` rep x <<| (\<Squnion>i. lub (f ` take i ` rep x))"
- apply (rule is_lubI)
- apply (rule ub_imageI, rename_tac a)
-  apply (cut_tac a=a in take_covers, erule exE, rename_tac i)
-  apply (erule subst)
-  apply (rule rev_below_trans)
-   apply (rule_tac x=i in is_ub_thelub)
-   apply (rule basis_fun_lemma1, erule f_mono)
-  apply (rule is_ub_thelub0)
-   apply (rule basis_fun_lemma0, erule f_mono)
-  apply simp
- apply (rule is_lub_thelub [OF _ ub_rangeI])
-  apply (rule basis_fun_lemma1, erule f_mono)
- apply (rule is_lub_thelub0)
-  apply (rule basis_fun_lemma0, erule f_mono)
- apply (rule is_ubI, clarsimp, rename_tac a)
- apply (rule below_trans [OF f_mono [OF take_less]])
- apply (erule (1) ub_imageD)
-done
-
 lemma basis_fun_lemma:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   shows "\<exists>u. f ` rep x <<| u"
-by (rule exI, rule basis_fun_lemma2, erule f_mono)
+proof -
+  obtain Y where Y: "\<forall>i. Y i \<preceq> Y (Suc i)"
+  and x: "x = (\<Squnion>i. principal (Y i))"
+    by (rule obtain_principal_chain [of x])
+  have chain: "chain (\<lambda>i. f (Y i))"
+    by (rule chainI, simp add: f_mono Y)
+  have rep_x: "rep x = (\<Union>n. {a. a \<preceq> Y n})"
+    by (simp add: x rep_contlub Y rep_principal)
+  have "f ` rep x <<| (\<Squnion>n. f (Y n))"
+    apply (rule is_lubI)
+    apply (rule ub_imageI, rename_tac a)
+    apply (clarsimp simp add: rep_x)
+    apply (drule f_mono)
+    apply (erule below_trans)
+    apply (rule is_ub_thelub [OF chain])
+    apply (rule is_lub_thelub [OF chain])
+    apply (rule ub_rangeI)
+    apply (drule_tac x="Y i" in ub_imageD)
+    apply (simp add: rep_x, fast intro: r_refl)
+    apply assumption
+    done
+  thus ?thesis ..
+qed
 
 lemma basis_fun_beta:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
@@ -345,13 +402,13 @@ proof (rule beta_cfun)
   show cont: "cont (\<lambda>x. lub (f ` rep x))"
     apply (rule contI2)
      apply (rule monofunI)
-     apply (rule is_lub_thelub0 [OF lub ub_imageI])
-     apply (rule is_ub_thelub0 [OF lub imageI])
+     apply (rule is_lub_thelub_ex [OF lub ub_imageI])
+     apply (rule is_ub_thelub_ex [OF lub imageI])
      apply (erule (1) subsetD [OF rep_mono])
-    apply (rule is_lub_thelub0 [OF lub ub_imageI])
+    apply (rule is_lub_thelub_ex [OF lub ub_imageI])
     apply (simp add: rep_contlub, clarify)
     apply (erule rev_below_trans [OF is_ub_thelub])
-    apply (erule is_ub_thelub0 [OF lub imageI])
+    apply (erule is_ub_thelub_ex [OF lub imageI])
     done
 qed
 
@@ -371,111 +428,13 @@ lemma basis_fun_mono:
   shows "basis_fun f \<sqsubseteq> basis_fun g"
  apply (rule below_cfun_ext)
  apply (simp only: basis_fun_beta f_mono g_mono)
- apply (rule is_lub_thelub0)
+ apply (rule is_lub_thelub_ex)
   apply (rule basis_fun_lemma, erule f_mono)
  apply (rule ub_imageI, rename_tac a)
  apply (rule below_trans [OF below])
- apply (rule is_ub_thelub0)
+ apply (rule is_ub_thelub_ex)
   apply (rule basis_fun_lemma, erule g_mono)
  apply (erule imageI)
-done
-
-lemma compact_principal [simp]: "compact (principal a)"
-by (rule compactI2, simp add: principal_below_iff_mem_rep rep_contlub)
-
-subsection {* Bifiniteness of ideal completions *}
-
-definition
-  completion_approx :: "nat \<Rightarrow> 'b \<rightarrow> 'b" where
-  "completion_approx = (\<lambda>i. basis_fun (\<lambda>a. principal (take i a)))"
-
-lemma completion_approx_beta:
-  "completion_approx i\<cdot>x = (\<Squnion>a\<in>rep x. principal (take i a))"
-unfolding completion_approx_def
-by (simp add: basis_fun_beta principal_mono take_mono)
-
-lemma completion_approx_principal:
-  "completion_approx i\<cdot>(principal a) = principal (take i a)"
-unfolding completion_approx_def
-by (simp add: basis_fun_principal principal_mono take_mono)
-
-lemma chain_completion_approx: "chain completion_approx"
-unfolding completion_approx_def
-apply (rule chainI)
-apply (rule basis_fun_mono)
-apply (erule principal_mono [OF take_mono])
-apply (erule principal_mono [OF take_mono])
-apply (rule principal_mono [OF take_chain])
-done
-
-lemma lub_completion_approx: "(\<Squnion>i. completion_approx i\<cdot>x) = x"
-unfolding completion_approx_beta
- apply (subst image_image [where f=principal, symmetric])
- apply (rule unique_lub [OF _ lub_principal_rep])
- apply (rule basis_fun_lemma2, erule principal_mono)
-done
-
-lemma completion_approx_eq_principal:
-  "\<exists>a\<in>rep x. completion_approx i\<cdot>x = principal (take i a)"
-unfolding completion_approx_beta
- apply (subst image_image [where f=principal, symmetric])
- apply (subgoal_tac "finite (principal ` take i ` rep x)")
-  apply (subgoal_tac "directed (principal ` take i ` rep x)")
-   apply (drule (1) lub_finite_directed_in_self, fast)
-  apply (subst image_image)
-  apply (rule directed_image_ideal)
-   apply (rule ideal_rep)
-  apply (erule principal_mono [OF take_mono])
- apply (rule finite_imageI)
- apply (rule finite_take_rep)
-done
-
-lemma completion_approx_idem:
-  "completion_approx i\<cdot>(completion_approx i\<cdot>x) = completion_approx i\<cdot>x"
-using completion_approx_eq_principal [where i=i and x=x]
-by (auto simp add: completion_approx_principal take_take)
-
-lemma finite_fixes_completion_approx:
-  "finite {x. completion_approx i\<cdot>x = x}" (is "finite ?S")
-apply (subgoal_tac "?S \<subseteq> principal ` range (take i)")
-apply (erule finite_subset)
-apply (rule finite_imageI)
-apply (rule finite_range_take)
-apply (clarify, erule subst)
-apply (cut_tac x=x and i=i in completion_approx_eq_principal)
-apply fast
-done
-
-lemma principal_induct:
-  assumes adm: "adm P"
-  assumes P: "\<And>a. P (principal a)"
-  shows "P x"
- apply (subgoal_tac "P (\<Squnion>i. completion_approx i\<cdot>x)")
- apply (simp add: lub_completion_approx)
- apply (rule admD [OF adm])
-  apply (simp add: chain_completion_approx)
- apply (cut_tac x=x and i=i in completion_approx_eq_principal)
- apply (clarify, simp add: P)
-done
-
-lemma principal_induct2:
-  "\<lbrakk>\<And>y. adm (\<lambda>x. P x y); \<And>x. adm (\<lambda>y. P x y);
-    \<And>a b. P (principal a) (principal b)\<rbrakk> \<Longrightarrow> P x y"
-apply (rule_tac x=y in spec)
-apply (rule_tac x=x in principal_induct, simp)
-apply (rule allI, rename_tac y)
-apply (rule_tac x=y in principal_induct, simp)
-apply simp
-done
-
-lemma compact_imp_principal: "compact x \<Longrightarrow> \<exists>a. x = principal a"
-apply (drule adm_compact_neq [OF _ cont_id])
-apply (drule admD2 [where Y="\<lambda>n. completion_approx n\<cdot>x"])
-apply (simp add: chain_completion_approx)
-apply (simp add: lub_completion_approx)
-apply (erule exE, erule ssubst)
-apply (cut_tac i=i and x=x in completion_approx_eq_principal)
-apply (clarify, erule exI)
 done
 
 end

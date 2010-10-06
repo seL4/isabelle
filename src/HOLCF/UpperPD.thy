@@ -69,27 +69,6 @@ apply (simp add: 2)
 apply (simp add: upper_le_PDPlus_iff 3)
 done
 
-lemma pd_take_upper_chain:
-  "pd_take n t \<le>\<sharp> pd_take (Suc n) t"
-apply (induct t rule: pd_basis_induct)
-apply (simp add: compact_basis.take_chain)
-apply (simp add: PDPlus_upper_mono)
-done
-
-lemma pd_take_upper_le: "pd_take i t \<le>\<sharp> t"
-apply (induct t rule: pd_basis_induct)
-apply (simp add: compact_basis.take_less)
-apply (simp add: PDPlus_upper_mono)
-done
-
-lemma pd_take_upper_mono:
-  "t \<le>\<sharp> u \<Longrightarrow> pd_take n t \<le>\<sharp> pd_take n u"
-apply (erule upper_le_induct)
-apply (simp add: compact_basis.take_mono)
-apply (simp add: upper_le_PDPlus_PDUnit_iff)
-apply (simp add: upper_le_PDPlus_iff)
-done
-
 
 subsection {* Type definition *}
 
@@ -97,7 +76,7 @@ typedef (open) 'a upper_pd =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (fast intro: upper_le.ideal_principal)
 
-instantiation upper_pd :: (profinite) below
+instantiation upper_pd :: (sfp) below
 begin
 
 definition
@@ -106,18 +85,18 @@ definition
 instance ..
 end
 
-instance upper_pd :: (profinite) po
-by (rule upper_le.typedef_ideal_po
-    [OF type_definition_upper_pd below_upper_pd_def])
+instance upper_pd :: (sfp) po
+using type_definition_upper_pd below_upper_pd_def
+by (rule upper_le.typedef_ideal_po)
 
-instance upper_pd :: (profinite) cpo
-by (rule upper_le.typedef_ideal_cpo
-    [OF type_definition_upper_pd below_upper_pd_def])
+instance upper_pd :: (sfp) cpo
+using type_definition_upper_pd below_upper_pd_def
+by (rule upper_le.typedef_ideal_cpo)
 
 lemma Rep_upper_pd_lub:
   "chain Y \<Longrightarrow> Rep_upper_pd (\<Squnion>i. Y i) = (\<Union>i. Rep_upper_pd (Y i))"
-by (rule upper_le.typedef_ideal_rep_contlub
-    [OF type_definition_upper_pd below_upper_pd_def])
+using type_definition_upper_pd below_upper_pd_def
+by (rule upper_le.typedef_ideal_rep_contlub)
 
 lemma ideal_Rep_upper_pd: "upper_le.ideal (Rep_upper_pd xs)"
 by (rule Rep_upper_pd [unfolded mem_Collect_eq])
@@ -132,18 +111,13 @@ unfolding upper_principal_def
 by (simp add: Abs_upper_pd_inverse upper_le.ideal_principal)
 
 interpretation upper_pd:
-  ideal_completion upper_le pd_take upper_principal Rep_upper_pd
+  ideal_completion upper_le upper_principal Rep_upper_pd
 apply unfold_locales
-apply (rule pd_take_upper_le)
-apply (rule pd_take_idem)
-apply (erule pd_take_upper_mono)
-apply (rule pd_take_upper_chain)
-apply (rule finite_range_pd_take)
-apply (rule pd_take_covers)
 apply (rule ideal_Rep_upper_pd)
 apply (erule Rep_upper_pd_lub)
 apply (rule Rep_upper_principal)
 apply (simp only: below_upper_pd_def)
+apply (rule pd_basis_countable)
 done
 
 text {* Upper powerdomain is pointed *}
@@ -151,41 +125,11 @@ text {* Upper powerdomain is pointed *}
 lemma upper_pd_minimal: "upper_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: upper_pd.principal_induct, simp, simp)
 
-instance upper_pd :: (bifinite) pcpo
+instance upper_pd :: (sfp) pcpo
 by intro_classes (fast intro: upper_pd_minimal)
 
 lemma inst_upper_pd_pcpo: "\<bottom> = upper_principal (PDUnit compact_bot)"
 by (rule upper_pd_minimal [THEN UU_I, symmetric])
-
-text {* Upper powerdomain is profinite *}
-
-instantiation upper_pd :: (profinite) profinite
-begin
-
-definition
-  approx_upper_pd_def: "approx = upper_pd.completion_approx"
-
-instance
-apply (intro_classes, unfold approx_upper_pd_def)
-apply (rule upper_pd.chain_completion_approx)
-apply (rule upper_pd.lub_completion_approx)
-apply (rule upper_pd.completion_approx_idem)
-apply (rule upper_pd.finite_fixes_completion_approx)
-done
-
-end
-
-instance upper_pd :: (bifinite) bifinite ..
-
-lemma approx_upper_principal [simp]:
-  "approx n\<cdot>(upper_principal t) = upper_principal (pd_take n t)"
-unfolding approx_upper_pd_def
-by (rule upper_pd.completion_approx_principal)
-
-lemma approx_eq_upper_principal:
-  "\<exists>t\<in>Rep_upper_pd xs. approx n\<cdot>xs = upper_principal (pd_take n t)"
-unfolding approx_upper_pd_def
-by (rule upper_pd.completion_approx_eq_principal)
 
 
 subsection {* Monadic unit and plus *}
@@ -221,16 +165,6 @@ lemma upper_plus_principal [simp]:
 unfolding upper_plus_def
 by (simp add: upper_pd.basis_fun_principal
     upper_pd.basis_fun_mono PDPlus_upper_mono)
-
-lemma approx_upper_unit [simp]:
-  "approx n\<cdot>{x}\<sharp> = {approx n\<cdot>x}\<sharp>"
-apply (induct x rule: compact_basis.principal_induct, simp)
-apply (simp add: approx_Rep_compact_basis)
-done
-
-lemma approx_upper_plus [simp]:
-  "approx n\<cdot>(xs +\<sharp> ys) = (approx n\<cdot>xs) +\<sharp> (approx n\<cdot>ys)"
-by (induct xs ys rule: upper_pd.principal_induct2, simp, simp, simp)
 
 interpretation upper_add: semilattice upper_add proof
   fix xs ys zs :: "'a upper_pd"
@@ -307,7 +241,8 @@ lemma upper_unit_eq_iff [simp]: "{x}\<sharp> = {y}\<sharp> \<longleftrightarrow>
 unfolding po_eq_conv by simp
 
 lemma upper_unit_strict [simp]: "{\<bottom>}\<sharp> = \<bottom>"
-unfolding inst_upper_pd_pcpo Rep_compact_bot [symmetric] by simp
+using upper_unit_Rep_compact_basis [of compact_bot]
+by (simp add: inst_upper_pd_pcpo)
 
 lemma upper_plus_strict1 [simp]: "\<bottom> +\<sharp> ys = \<bottom>"
 by (rule UU_I, rule upper_plus_below1)
@@ -328,8 +263,14 @@ apply (simp add: inst_upper_pd_pcpo upper_pd.principal_eq_iff
 apply auto
 done
 
+lemma compact_upper_unit: "compact x \<Longrightarrow> compact {x}\<sharp>"
+by (auto dest!: compact_basis.compact_imp_principal)
+
 lemma compact_upper_unit_iff [simp]: "compact {x}\<sharp> \<longleftrightarrow> compact x"
-unfolding profinite_compact_iff by simp
+apply (safe elim!: compact_upper_unit)
+apply (simp only: compact_def upper_unit_below_iff [symmetric])
+apply (erule adm_subst [OF cont_Rep_CFun2])
+done
 
 lemma compact_upper_plus [simp]:
   "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs +\<sharp> ys)"
@@ -424,15 +365,11 @@ lemma upper_bind_strict [simp]: "upper_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<
 unfolding upper_unit_strict [symmetric] by (rule upper_bind_unit)
 
 
-subsection {* Map and join *}
+subsection {* Map *}
 
 definition
   upper_map :: "('a \<rightarrow> 'b) \<rightarrow> 'a upper_pd \<rightarrow> 'b upper_pd" where
   "upper_map = (\<Lambda> f xs. upper_bind\<cdot>xs\<cdot>(\<Lambda> x. {f\<cdot>x}\<sharp>))"
-
-definition
-  upper_join :: "'a upper_pd upper_pd \<rightarrow> 'a upper_pd" where
-  "upper_join = (\<Lambda> xss. upper_bind\<cdot>xss\<cdot>(\<Lambda> xs. xs))"
 
 lemma upper_map_unit [simp]:
   "upper_map\<cdot>f\<cdot>{x}\<sharp> = {f\<cdot>x}\<sharp>"
@@ -442,14 +379,6 @@ lemma upper_map_plus [simp]:
   "upper_map\<cdot>f\<cdot>(xs +\<sharp> ys) = upper_map\<cdot>f\<cdot>xs +\<sharp> upper_map\<cdot>f\<cdot>ys"
 unfolding upper_map_def by simp
 
-lemma upper_join_unit [simp]:
-  "upper_join\<cdot>{xs}\<sharp> = xs"
-unfolding upper_join_def by simp
-
-lemma upper_join_plus [simp]:
-  "upper_join\<cdot>(xss +\<sharp> yss) = upper_join\<cdot>xss +\<sharp> upper_join\<cdot>yss"
-unfolding upper_join_def by simp
-
 lemma upper_map_ident: "upper_map\<cdot>(\<Lambda> x. x)\<cdot>xs = xs"
 by (induct xs rule: upper_pd_induct, simp_all)
 
@@ -458,22 +387,6 @@ by (simp add: expand_cfun_eq ID_def upper_map_ident)
 
 lemma upper_map_map:
   "upper_map\<cdot>f\<cdot>(upper_map\<cdot>g\<cdot>xs) = upper_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
-by (induct xs rule: upper_pd_induct, simp_all)
-
-lemma upper_join_map_unit:
-  "upper_join\<cdot>(upper_map\<cdot>upper_unit\<cdot>xs) = xs"
-by (induct xs rule: upper_pd_induct, simp_all)
-
-lemma upper_join_map_join:
-  "upper_join\<cdot>(upper_map\<cdot>upper_join\<cdot>xsss) = upper_join\<cdot>(upper_join\<cdot>xsss)"
-by (induct xsss rule: upper_pd_induct, simp_all)
-
-lemma upper_join_map_map:
-  "upper_join\<cdot>(upper_map\<cdot>(upper_map\<cdot>f)\<cdot>xss) =
-   upper_map\<cdot>f\<cdot>(upper_join\<cdot>xss)"
-by (induct xss rule: upper_pd_induct, simp_all)
-
-lemma upper_map_approx: "upper_map\<cdot>(approx n)\<cdot>xs = approx n\<cdot>xs"
 by (induct xs rule: upper_pd_induct, simp_all)
 
 lemma ep_pair_upper_map: "ep_pair e p \<Longrightarrow> ep_pair (upper_map\<cdot>e) (upper_map\<cdot>p)"
@@ -489,5 +402,135 @@ apply (induct_tac x rule: upper_pd_induct, simp_all add: deflation.idem)
 apply (induct_tac x rule: upper_pd_induct)
 apply (simp_all add: deflation.below monofun_cfun)
 done
+
+(* FIXME: long proof! *)
+lemma finite_deflation_upper_map:
+  assumes "finite_deflation d" shows "finite_deflation (upper_map\<cdot>d)"
+proof (rule finite_deflation_intro)
+  interpret d: finite_deflation d by fact
+  have "deflation d" by fact
+  thus "deflation (upper_map\<cdot>d)" by (rule deflation_upper_map)
+  have "finite (range (\<lambda>x. d\<cdot>x))" by (rule d.finite_range)
+  hence "finite (Rep_compact_basis -` range (\<lambda>x. d\<cdot>x))"
+    by (rule finite_vimageI, simp add: inj_on_def Rep_compact_basis_inject)
+  hence "finite (Pow (Rep_compact_basis -` range (\<lambda>x. d\<cdot>x)))" by simp
+  hence "finite (Rep_pd_basis -` (Pow (Rep_compact_basis -` range (\<lambda>x. d\<cdot>x))))"
+    by (rule finite_vimageI, simp add: inj_on_def Rep_pd_basis_inject)
+  hence *: "finite (upper_principal ` Rep_pd_basis -` (Pow (Rep_compact_basis -` range (\<lambda>x. d\<cdot>x))))" by simp
+  hence "finite (range (\<lambda>xs. upper_map\<cdot>d\<cdot>xs))"
+    apply (rule rev_finite_subset)
+    apply clarsimp
+    apply (induct_tac xs rule: upper_pd.principal_induct)
+    apply (simp add: adm_mem_finite *)
+    apply (rename_tac t, induct_tac t rule: pd_basis_induct)
+    apply (simp only: upper_unit_Rep_compact_basis [symmetric] upper_map_unit)
+    apply simp
+    apply (subgoal_tac "\<exists>b. d\<cdot>(Rep_compact_basis a) = Rep_compact_basis b")
+    apply clarsimp
+    apply (rule imageI)
+    apply (rule vimageI2)
+    apply (simp add: Rep_PDUnit)
+    apply (rule range_eqI)
+    apply (erule sym)
+    apply (rule exI)
+    apply (rule Abs_compact_basis_inverse [symmetric])
+    apply (simp add: d.compact)
+    apply (simp only: upper_plus_principal [symmetric] upper_map_plus)
+    apply clarsimp
+    apply (rule imageI)
+    apply (rule vimageI2)
+    apply (simp add: Rep_PDPlus)
+    done
+  thus "finite {xs. upper_map\<cdot>d\<cdot>xs = xs}"
+    by (rule finite_range_imp_finite_fixes)
+qed
+
+subsection {* Upper powerdomain is an SFP domain *}
+
+definition
+  upper_approx :: "nat \<Rightarrow> udom upper_pd \<rightarrow> udom upper_pd"
+where
+  "upper_approx = (\<lambda>i. upper_map\<cdot>(udom_approx i))"
+
+lemma upper_approx: "approx_chain upper_approx"
+proof (rule approx_chain.intro)
+  show "chain (\<lambda>i. upper_approx i)"
+    unfolding upper_approx_def by simp
+  show "(\<Squnion>i. upper_approx i) = ID"
+    unfolding upper_approx_def
+    by (simp add: lub_distribs upper_map_ID)
+  show "\<And>i. finite_deflation (upper_approx i)"
+    unfolding upper_approx_def
+    by (intro finite_deflation_upper_map finite_deflation_udom_approx)
+qed
+
+definition upper_sfp :: "sfp \<rightarrow> sfp"
+where "upper_sfp = sfp_fun1 upper_approx upper_map"
+
+lemma cast_upper_sfp:
+  "cast\<cdot>(upper_sfp\<cdot>A) =
+    udom_emb upper_approx oo upper_map\<cdot>(cast\<cdot>A) oo udom_prj upper_approx"
+unfolding upper_sfp_def
+apply (rule cast_sfp_fun1 [OF upper_approx])
+apply (erule finite_deflation_upper_map)
+done
+
+instantiation upper_pd :: (sfp) sfp
+begin
+
+definition
+  "emb = udom_emb upper_approx oo upper_map\<cdot>emb"
+
+definition
+  "prj = upper_map\<cdot>prj oo udom_prj upper_approx"
+
+definition
+  "sfp (t::'a upper_pd itself) = upper_sfp\<cdot>SFP('a)"
+
+instance proof
+  show "ep_pair emb (prj :: udom \<rightarrow> 'a upper_pd)"
+    unfolding emb_upper_pd_def prj_upper_pd_def
+    using ep_pair_udom [OF upper_approx]
+    by (intro ep_pair_comp ep_pair_upper_map ep_pair_emb_prj)
+next
+  show "cast\<cdot>SFP('a upper_pd) = emb oo (prj :: udom \<rightarrow> 'a upper_pd)"
+    unfolding emb_upper_pd_def prj_upper_pd_def sfp_upper_pd_def cast_upper_sfp
+    by (simp add: cast_SFP oo_def expand_cfun_eq upper_map_map)
+qed
+
+end
+
+text {* SFP of type constructor = type combinator *}
+
+lemma SFP_upper: "SFP('a upper_pd) = upper_sfp\<cdot>SFP('a)"
+by (rule sfp_upper_pd_def)
+
+
+subsection {* Join *}
+
+definition
+  upper_join :: "'a upper_pd upper_pd \<rightarrow> 'a upper_pd" where
+  "upper_join = (\<Lambda> xss. upper_bind\<cdot>xss\<cdot>(\<Lambda> xs. xs))"
+
+lemma upper_join_unit [simp]:
+  "upper_join\<cdot>{xs}\<sharp> = xs"
+unfolding upper_join_def by simp
+
+lemma upper_join_plus [simp]:
+  "upper_join\<cdot>(xss +\<sharp> yss) = upper_join\<cdot>xss +\<sharp> upper_join\<cdot>yss"
+unfolding upper_join_def by simp
+
+lemma upper_join_map_unit:
+  "upper_join\<cdot>(upper_map\<cdot>upper_unit\<cdot>xs) = xs"
+by (induct xs rule: upper_pd_induct, simp_all)
+
+lemma upper_join_map_join:
+  "upper_join\<cdot>(upper_map\<cdot>upper_join\<cdot>xsss) = upper_join\<cdot>(upper_join\<cdot>xsss)"
+by (induct xsss rule: upper_pd_induct, simp_all)
+
+lemma upper_join_map_map:
+  "upper_join\<cdot>(upper_map\<cdot>(upper_map\<cdot>f)\<cdot>xss) =
+   upper_map\<cdot>f\<cdot>(upper_join\<cdot>xss)"
+by (induct xss rule: upper_pd_induct, simp_all)
 
 end

@@ -9,14 +9,14 @@ imports HOLCF
 begin
 
 text {*
-  The definitional domain package only works with representable domains,
-  i.e. types in class @{text rep}.
+  The definitional domain package only works with SFP domains,
+  i.e. types in class @{text sfp}.
 *}
 
-default_sort rep
+default_sort sfp
 
 text {*
-  Provided that @{text rep} is the default sort, the @{text new_domain}
+  Provided that @{text sfp} is the default sort, the @{text new_domain}
   package should work with any type definition supported by the old
   domain package.
 *}

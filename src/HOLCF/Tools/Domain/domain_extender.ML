@@ -144,7 +144,7 @@ fun gen_add_domain
 
     fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
     fun thy_arity (dname,tvars,mx) =
-      (Sign.full_name thy dname, map (snd o dest_TFree) tvars, @{sort rep});
+      (Sign.full_name thy dname, map (snd o dest_TFree) tvars, arg_sort false);
 
     (* this theory is used just for parsing and error checking *)
     val tmp_thy = thy
@@ -213,7 +213,7 @@ fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
   end;
 
 fun pcpo_arg lazy = if lazy then @{sort cpo} else @{sort pcpo};
-fun rep_arg lazy = @{sort rep};
+fun rep_arg lazy = @{sort sfp};
 
 val add_domain =
     gen_add_domain Sign.certify_typ Domain_Axioms.add_axioms pcpo_arg;
