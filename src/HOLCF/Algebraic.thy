@@ -10,10 +10,6 @@ begin
 
 subsection {* Constructing finite deflations by iteration *}
 
-lemma finite_deflation_imp_deflation:
-  "finite_deflation d \<Longrightarrow> deflation d"
-unfolding finite_deflation_def by simp
-
 lemma le_Suc_induct:
   assumes le: "i \<le> j"
   assumes step: "\<And>i. P i (Suc i)"
@@ -529,9 +525,6 @@ apply (simp only: below_alg_defl_def)
 done
 
 text {* Algebraic deflations are pointed *}
-
-lemma finite_deflation_UU: "finite_deflation \<bottom>"
-by default simp_all
 
 lemma alg_defl_minimal:
   "alg_defl_principal (Abs_fin_defl \<bottom>) \<sqsubseteq> x"

@@ -152,6 +152,13 @@ qed
 
 end
 
+lemma finite_deflation_imp_deflation:
+  "finite_deflation d \<Longrightarrow> deflation d"
+unfolding finite_deflation_def by simp
+
+lemma finite_deflation_UU: "finite_deflation \<bottom>"
+by default simp_all
+
 
 subsection {* Continuous embedding-projection pairs *}
 
