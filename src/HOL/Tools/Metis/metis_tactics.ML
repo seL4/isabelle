@@ -59,23 +59,7 @@ val resolution_params = {active = active_params, waiting = waiting_params}
 
 (* FIXME ### GET RID OF skolem WRAPPER by looking at substitution *)
 
-(* FIXME ### try cterm_instantiate *)
-fun instantiate_theorem thy inst th =
-  let
-    val tyenv = Vartab.empty |> fold (Type.raw_unify o pairself fastype_of) inst
-    val instT =
-      [] |> Vartab.fold (fn (z, (S, T)) =>
-                            cons (TVar (z, S), Type.devar tyenv T)) tyenv
-    val inst = inst |> map (pairself (subst_atomic_types instT))
-    val _ = trace_msg (fn () => cat_lines (map (fn (T, U) =>
-        Syntax.string_of_typ @{context} T ^ " |-> " ^
-        Syntax.string_of_typ @{context} U) instT))
-    val _ = trace_msg (fn () => cat_lines (map (fn (t, u) =>
-        Syntax.string_of_term @{context} t ^ " |-> " ^
-        Syntax.string_of_term @{context} u) inst))
-    val cinstT = instT |> map (pairself (ctyp_of thy))
-    val cinst = inst |> map (pairself (cterm_of thy))
-  in th |> Thm.instantiate (cinstT, cinst) end
+fun term_instantiate thy = cterm_instantiate o map (pairself (cterm_of thy))
 
 (* In principle, it should be sufficient to apply "assume_tac" to unify the
    conclusion with one of the premises. However, in practice, this is unreliable
@@ -119,7 +103,7 @@ fun unify_first_prem_with_concl thy i th =
       | (Var _, _) => add_terms (t, u)
       | (_, Var _) => add_terms (u, t)
       | _ => if untyped_aconv t u then I else raise TERM ("unify_terms", [t, u])
-  in th |> instantiate_theorem thy (unify_terms (prem, concl) []) end
+  in th |> term_instantiate thy (unify_terms (prem, concl) []) end
 
 fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (index_no, axiom_no)
 fun shuffle_ord p =
@@ -145,7 +129,7 @@ fun instantiate_forall_tac thy params t i =
     val t' = t |> repair |> fold (curry absdummy) (map snd params)
     fun do_instantiate th =
       let val var = Term.add_vars (prop_of th) [] |> the_single in
-        th |> instantiate_theorem thy [(Var var, t')]
+        th |> term_instantiate thy [(Var var, t')]
       end
   in
     etac @{thm allE} i
