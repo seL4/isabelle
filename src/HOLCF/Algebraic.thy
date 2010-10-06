@@ -628,20 +628,16 @@ done
 lemma defl_approx_cast: "defl_approx i (cast\<cdot>A) = cast\<cdot>(approx i\<cdot>A)"
 by (rule cast_approx [symmetric])
 
-lemma cast_below_imp_below: "cast\<cdot>A \<sqsubseteq> cast\<cdot>B \<Longrightarrow> A \<sqsubseteq> B"
-apply (rule profinite_below_ext)
-apply (drule_tac i=i in defl_approx_below)
-apply (rule deflation_cast)
-apply (rule deflation_cast)
-apply (simp only: defl_approx_cast)
-apply (cut_tac x="approx i\<cdot>A" in alg_defl.compact_imp_principal)
-apply (rule compact_approx)
-apply (cut_tac x="approx i\<cdot>B" in alg_defl.compact_imp_principal)
-apply (rule compact_approx)
-apply clarsimp
+lemma cast_below_cast_iff: "cast\<cdot>A \<sqsubseteq> cast\<cdot>B \<longleftrightarrow> A \<sqsubseteq> B"
+apply (induct A rule: alg_defl.principal_induct, simp)
+apply (induct B rule: alg_defl.principal_induct)
 apply (simp add: cast_alg_defl_principal)
-apply (simp add: below_fin_defl_def)
+apply (simp add: finite_deflation_imp_compact finite_deflation_Rep_fin_defl)
+apply (simp add: cast_alg_defl_principal below_fin_defl_def)
 done
+
+lemma cast_below_imp_below: "cast\<cdot>A \<sqsubseteq> cast\<cdot>B \<Longrightarrow> A \<sqsubseteq> B"
+by (simp only: cast_below_cast_iff)
 
 lemma cast_eq_imp_eq: "cast\<cdot>A = cast\<cdot>B \<Longrightarrow> A = B"
 by (simp add: below_antisym cast_below_imp_below)

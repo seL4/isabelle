@@ -295,6 +295,16 @@ proof (intro finite_deflation.intro finite_deflation_axioms.intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
+text {* Finite deflations are compact elements of the function space *}
+
+lemma finite_deflation_imp_compact: "finite_deflation d \<Longrightarrow> compact d"
+apply (frule finite_deflation_imp_deflation)
+apply (subgoal_tac "compact (cfun_map\<cdot>d\<cdot>d\<cdot>d)")
+apply (simp add: cfun_map_def deflation.idem eta_cfun)
+apply (rule finite_deflation.compact)
+apply (simp only: finite_deflation_cfun_map)
+done
+
 instantiation cfun :: (profinite, profinite) profinite
 begin
 
