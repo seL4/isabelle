@@ -18,6 +18,8 @@ sig
     Proof.context -> mode -> (string * term) list
     -> Metis_Thm.thm * Metis_Proof.inference -> (Metis_Thm.thm * thm) list
     -> (Metis_Thm.thm * thm) list
+  val discharge_skolem_premises :
+    Proof.context -> (thm * term) option list -> thm -> thm
 end;
 
 structure Metis_Reconstruct : METIS_RECONSTRUCT =
@@ -553,5 +555,243 @@ fun replay_one_inference ctxt mode old_skolems (fol_th, inf) thpairs =
     val _ = if num_metis_lits = num_isabelle_lits then ()
             else error "Cannot replay Metis proof in Isabelle: Out of sync."
   in (fol_th, th) :: thpairs end
+
+(* FIXME ### GET RID OF skolem WRAPPER by looking at substitution *)
+
+fun term_instantiate thy = cterm_instantiate o map (pairself (cterm_of thy))
+
+(* In principle, it should be sufficient to apply "assume_tac" to unify the
+   conclusion with one of the premises. However, in practice, this is unreliable
+   because of the mildly higher-order nature of the unification problems.
+   Typical constraints are of the form
+   "?SK_a_b_c_x SK_d_e_f_y ... SK_a_b_c_x ... SK_g_h_i_z =?= SK_a_b_c_x",
+   where the nonvariables are goal parameters. *)
+(* FIXME: ### try Pattern.match instead *)
+fun unify_first_prem_with_concl thy i th =
+  let
+    val goal = Logic.get_goal (prop_of th) i |> Envir.beta_eta_contract
+    val prem = goal |> Logic.strip_assums_hyp |> hd
+    val concl = goal |> Logic.strip_assums_concl
+    fun pair_untyped_aconv (t1, t2) (u1, u2) =
+      untyped_aconv t1 u1 andalso untyped_aconv t2 u2
+    fun add_terms tp inst =
+      if exists (pair_untyped_aconv tp) inst then inst
+      else tp :: map (apsnd (subst_atomic [tp])) inst
+    fun is_flex t =
+      case strip_comb t of
+        (Var _, args) => forall is_Bound args
+      | _ => false
+    fun unify_flex flex rigid =
+      case strip_comb flex of
+        (Var (z as (_, T)), args) =>
+        add_terms (Var z,
+          fold_rev (curry absdummy) (take (length args) (binder_types T)) rigid)
+      | _ => raise TERM ("unify_flex: expected flex", [flex])
+    fun unify_potential_flex comb atom =
+      if is_flex comb then unify_flex comb atom
+      else if is_Var atom then add_terms (atom, comb)
+      else raise TERM ("unify_terms", [comb, atom])
+    fun unify_terms (t, u) =
+      case (t, u) of
+        (t1 $ t2, u1 $ u2) =>
+        if is_flex t then unify_flex t u
+        else if is_flex u then unify_flex u t
+        else fold unify_terms [(t1, u1), (t2, u2)]
+      | (_ $ _, _) => unify_potential_flex t u
+      | (_, _ $ _) => unify_potential_flex u t
+      | (Var _, _) => add_terms (t, u)
+      | (_, Var _) => add_terms (u, t)
+      | _ => if untyped_aconv t u then I else raise TERM ("unify_terms", [t, u])
+  in th |> term_instantiate thy (unify_terms (prem, concl) []) end
+
+fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (index_no, axiom_no)
+fun shuffle_ord p =
+  rev_order (prod_ord int_ord int_ord (pairself shuffle_key p))
+
+val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast}
+
+fun copy_prems_tac [] ns i =
+    if forall (curry (op =) 1) ns then all_tac else copy_prems_tac (rev ns) [] i
+  | copy_prems_tac (1 :: ms) ns i =
+    rotate_tac 1 i THEN copy_prems_tac ms (1 :: ns) i
+  | copy_prems_tac (m :: ms) ns i =
+    etac copy_prem i THEN copy_prems_tac ms (m div 2 :: (m + 1) div 2 :: ns) i
+
+fun instantiate_forall_tac thy params t i =
+  let
+    fun repair (t as (Var ((s, _), _))) =
+        (case find_index (fn ((s', _), _) => s' = s) params of
+           ~1 => t
+         | j => Bound j)
+      | repair (t $ u) = repair t $ repair u
+      | repair t = t
+    val t' = t |> repair |> fold (curry absdummy) (map snd params)
+    fun do_instantiate th =
+      let val var = Term.add_vars (prop_of th) [] |> the_single in
+        th |> term_instantiate thy [(Var var, t')]
+      end
+  in
+    etac @{thm allE} i
+    THEN rotate_tac ~1 i
+    THEN PRIMITIVE do_instantiate
+  end
+
+fun release_clusters_tac _ _ _ _ [] = K all_tac
+  | release_clusters_tac thy ax_counts substs params
+                         ((ax_no, cluster_no) :: clusters) =
+    let
+      fun in_right_cluster s =
+        (s |> Meson_Clausify.cluster_of_zapped_var_name |> fst |> snd |> fst)
+        = cluster_no
+      val cluster_substs =
+        substs
+        |> map_filter (fn (ax_no', (_, (_, tsubst))) =>
+                          if ax_no' = ax_no then
+                            tsubst |> filter (in_right_cluster
+                                              o fst o fst o dest_Var o fst)
+                                   |> map snd |> SOME
+                           else
+                             NONE)
+      val n = length cluster_substs
+      fun do_cluster_subst cluster_subst =
+        map (instantiate_forall_tac thy params) cluster_subst @ [rotate_tac 1]
+      val params' = params (* FIXME ### existentials! *)
+      val first_prem = find_index (fn (ax_no', _) => ax_no' = ax_no) substs
+    in
+      rotate_tac first_prem
+      THEN' (EVERY' (maps do_cluster_subst cluster_substs))
+      THEN' rotate_tac (~ first_prem - length cluster_substs)
+      THEN' release_clusters_tac thy ax_counts substs params' clusters
+    end
+
+val cluster_ord =
+  prod_ord (prod_ord int_ord (prod_ord int_ord int_ord)) bool_ord
+
+val tysubst_ord =
+  list_ord (prod_ord Term_Ord.fast_indexname_ord
+                     (prod_ord Term_Ord.sort_ord Term_Ord.typ_ord))
+
+structure Int_Tysubst_Table =
+  Table(type key = int * (indexname * (sort * typ)) list
+        val ord = prod_ord int_ord tysubst_ord)
+
+structure Int_Pair_Graph =
+  Graph(type key = int * int val ord = prod_ord int_ord int_ord)
+
+(* Attempts to derive the theorem "False" from a theorem of the form
+   "P1 ==> ... ==> Pn ==> False", where the "Pi"s are to be discharged using the
+   specified axioms. The axioms have leading "All" and "Ex" quantifiers, which
+   must be eliminated first. *)
+fun discharge_skolem_premises ctxt axioms prems_imp_false =
+  if prop_of prems_imp_false aconv @{prop False} then
+    prems_imp_false
+  else
+    let
+      val thy = ProofContext.theory_of ctxt
+      (* distinguish variables with same name but different types *)
+      val prems_imp_false' =
+        prems_imp_false |> try (forall_intr_vars #> gen_all)
+                        |> the_default prems_imp_false
+      val prems_imp_false =
+        if prop_of prems_imp_false aconv prop_of prems_imp_false' then
+          prems_imp_false
+        else
+          prems_imp_false'
+      fun match_term p =
+        let
+          val (tyenv, tenv) =
+            Pattern.first_order_match thy p (Vartab.empty, Vartab.empty)
+          val tsubst =
+            tenv |> Vartab.dest
+                 |> sort (cluster_ord
+                          o pairself (Meson_Clausify.cluster_of_zapped_var_name
+                                      o fst o fst))
+                 |> map (Meson.term_pair_of
+                         #> pairself (Envir.subst_term_types tyenv))
+          val tysubst = tyenv |> Vartab.dest
+        in (tysubst, tsubst) end
+      fun subst_info_for_prem subgoal_no prem =
+        case prem of
+          _ $ (Const (@{const_name Meson.skolem}, _) $ (_ $ t $ num)) =>
+          let val ax_no = HOLogic.dest_nat num in
+            (ax_no, (subgoal_no,
+                     match_term (nth axioms ax_no |> the |> snd, t)))
+          end
+        | _ => raise TERM ("discharge_skolem_premises: Malformed premise",
+                           [prem])
+      fun cluster_of_var_name skolem s =
+        let
+          val ((ax_no, (cluster_no, _)), skolem') =
+            Meson_Clausify.cluster_of_zapped_var_name s
+        in
+          if skolem' = skolem andalso cluster_no > 0 then
+            SOME (ax_no, cluster_no)
+          else
+            NONE
+        end
+      fun clusters_in_term skolem t =
+        Term.add_var_names t [] |> map_filter (cluster_of_var_name skolem o fst)
+      fun deps_for_term_subst (var, t) =
+        case clusters_in_term false var of
+          [] => NONE
+        | [(ax_no, cluster_no)] =>
+          SOME ((ax_no, cluster_no),
+                clusters_in_term true t
+                |> cluster_no > 1 ? cons (ax_no, cluster_no - 1))
+        | _ => raise TERM ("discharge_skolem_premises: Expected Var", [var])
+      val prems = Logic.strip_imp_prems (prop_of prems_imp_false)
+      val substs = prems |> map2 subst_info_for_prem (1 upto length prems)
+                         |> sort (int_ord o pairself fst)
+      val depss = maps (map_filter deps_for_term_subst o snd o snd o snd) substs
+      val clusters = maps (op ::) depss
+      val ordered_clusters =
+        Int_Pair_Graph.empty
+        |> fold Int_Pair_Graph.default_node (map (rpair ()) clusters)
+        |> fold Int_Pair_Graph.add_deps_acyclic depss
+        |> Int_Pair_Graph.topological_order
+        handle Int_Pair_Graph.CYCLES _ =>
+               error "Cannot replay Metis proof in Isabelle without axiom of \
+                     \choice."
+      val params0 =
+        [] |> fold (Term.add_vars o snd) (map_filter I axioms)
+           |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst o fst))
+           |> filter (fn (((_, (cluster_no, _)), skolem), _) =>
+                         cluster_no = 0 andalso skolem)
+           |> sort shuffle_ord |> map snd
+      val ax_counts =
+        Int_Tysubst_Table.empty
+        |> fold (fn (ax_no, (_, (tysubst, _))) =>
+                    Int_Tysubst_Table.map_default ((ax_no, tysubst), 0)
+                                                  (Integer.add 1)) substs
+        |> Int_Tysubst_Table.dest
+(* for debugging:
+      fun string_for_subst_info (ax_no, (subgoal_no, (tysubst, tsubst))) =
+        "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int subgoal_no ^
+        "; tysubst: " ^ PolyML.makestring tysubst ^ "; tsubst: {" ^
+        commas (map ((fn (s, t) => s ^ " |-> " ^ t)
+                     o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
+      val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
+                       cat_lines (map string_for_subst_info substs))
+      val _ = tracing ("OUTERMOST SKOLEMS: " ^ PolyML.makestring params0)
+      val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
+      val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
+*)
+      fun rotation_for_subgoal i =
+        find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
+    in
+      Goal.prove ctxt [] [] @{prop False}
+          (K (cut_rules_tac
+                  (map (fst o the o nth axioms o fst o fst) ax_counts) 1
+              THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
+              THEN copy_prems_tac (map snd ax_counts) [] 1
+              THEN release_clusters_tac thy ax_counts substs params0
+                                        ordered_clusters 1
+              THEN match_tac [prems_imp_false] 1
+              THEN ALLGOALS (fn i =>
+                       rtac @{thm Meson.skolem_COMBK_I} i
+                       THEN rotate_tac (rotation_for_subgoal i) i
+                       THEN PRIMITIVE (unify_first_prem_with_concl thy i)
+                       THEN assume_tac i)))
+    end
 
 end;
