@@ -312,48 +312,24 @@ lemmas convex_plus_aci =
 
 lemma convex_unit_below_plus_iff [simp]:
   "{x}\<natural> \<sqsubseteq> ys +\<natural> zs \<longleftrightarrow> {x}\<natural> \<sqsubseteq> ys \<and> {x}\<natural> \<sqsubseteq> zs"
- apply (rule iffI)
-  apply (subgoal_tac
-    "adm (\<lambda>f. f\<cdot>{x}\<natural> \<sqsubseteq> f\<cdot>ys \<and> f\<cdot>{x}\<natural> \<sqsubseteq> f\<cdot>zs)")
-   apply (drule admD, rule chain_approx)
-    apply (drule_tac f="approx i" in monofun_cfun_arg)
-    apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
-    apply (cut_tac x="approx i\<cdot>ys" in convex_pd.compact_imp_principal, simp)
-    apply (cut_tac x="approx i\<cdot>zs" in convex_pd.compact_imp_principal, simp)
-    apply (clarify, simp)
-   apply simp
-  apply simp
- apply (erule conjE)
- apply (subst convex_plus_absorb [of "{x}\<natural>", symmetric])
- apply (erule (1) monofun_cfun [OF monofun_cfun_arg])
+apply (induct x rule: compact_basis.principal_induct, simp)
+apply (induct ys rule: convex_pd.principal_induct, simp)
+apply (induct zs rule: convex_pd.principal_induct, simp)
+apply simp
 done
 
 lemma convex_plus_below_unit_iff [simp]:
   "xs +\<natural> ys \<sqsubseteq> {z}\<natural> \<longleftrightarrow> xs \<sqsubseteq> {z}\<natural> \<and> ys \<sqsubseteq> {z}\<natural>"
- apply (rule iffI)
-  apply (subgoal_tac
-    "adm (\<lambda>f. f\<cdot>xs \<sqsubseteq> f\<cdot>{z}\<natural> \<and> f\<cdot>ys \<sqsubseteq> f\<cdot>{z}\<natural>)")
-   apply (drule admD, rule chain_approx)
-    apply (drule_tac f="approx i" in monofun_cfun_arg)
-    apply (cut_tac x="approx i\<cdot>xs" in convex_pd.compact_imp_principal, simp)
-    apply (cut_tac x="approx i\<cdot>ys" in convex_pd.compact_imp_principal, simp)
-    apply (cut_tac x="approx i\<cdot>z" in compact_basis.compact_imp_principal, simp)
-    apply (clarify, simp)
-   apply simp
-  apply simp
- apply (erule conjE)
- apply (subst convex_plus_absorb [of "{z}\<natural>", symmetric])
- apply (erule (1) monofun_cfun [OF monofun_cfun_arg])
+apply (induct xs rule: convex_pd.principal_induct, simp)
+apply (induct ys rule: convex_pd.principal_induct, simp)
+apply (induct z rule: compact_basis.principal_induct, simp)
+apply simp
 done
 
 lemma convex_unit_below_iff [simp]: "{x}\<natural> \<sqsubseteq> {y}\<natural> \<longleftrightarrow> x \<sqsubseteq> y"
- apply (rule iffI)
-  apply (rule profinite_below_ext)
-  apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
-  apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
-  apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
-  apply clarsimp
- apply (erule monofun_cfun_arg)
+apply (induct x rule: compact_basis.principal_induct, simp)
+apply (induct y rule: compact_basis.principal_induct, simp)
+apply simp
 done
 
 lemma convex_unit_eq_iff [simp]: "{x}\<natural> = {y}\<natural> \<longleftrightarrow> x = y"
@@ -627,14 +603,9 @@ lemma convex_pd_below_iff:
   "(xs \<sqsubseteq> ys) =
     (convex_to_upper\<cdot>xs \<sqsubseteq> convex_to_upper\<cdot>ys \<and>
      convex_to_lower\<cdot>xs \<sqsubseteq> convex_to_lower\<cdot>ys)"
- apply (safe elim!: monofun_cfun_arg)
- apply (rule profinite_below_ext)
- apply (drule_tac f="approx i" in monofun_cfun_arg)
- apply (drule_tac f="approx i" in monofun_cfun_arg)
- apply (cut_tac x="approx i\<cdot>xs" in convex_pd.compact_imp_principal, simp)
- apply (cut_tac x="approx i\<cdot>ys" in convex_pd.compact_imp_principal, simp)
- apply clarify
- apply (simp add: approx_convex_to_upper approx_convex_to_lower convex_le_def)
+apply (induct xs rule: convex_pd.principal_induct, simp)
+apply (induct ys rule: convex_pd.principal_induct, simp)
+apply (simp add: convex_le_def)
 done
 
 lemmas convex_plus_below_plus_iff =

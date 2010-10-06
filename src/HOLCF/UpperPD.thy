@@ -286,30 +286,16 @@ done
 
 lemma upper_plus_below_unit_iff:
   "xs +\<sharp> ys \<sqsubseteq> {z}\<sharp> \<longleftrightarrow> xs \<sqsubseteq> {z}\<sharp> \<or> ys \<sqsubseteq> {z}\<sharp>"
- apply (rule iffI)
-  apply (subgoal_tac
-    "adm (\<lambda>f. f\<cdot>xs \<sqsubseteq> f\<cdot>{z}\<sharp> \<or> f\<cdot>ys \<sqsubseteq> f\<cdot>{z}\<sharp>)")
-   apply (drule admD, rule chain_approx)
-    apply (drule_tac f="approx i" in monofun_cfun_arg)
-    apply (cut_tac x="approx i\<cdot>xs" in upper_pd.compact_imp_principal, simp)
-    apply (cut_tac x="approx i\<cdot>ys" in upper_pd.compact_imp_principal, simp)
-    apply (cut_tac x="approx i\<cdot>z" in compact_basis.compact_imp_principal, simp)
-    apply (clarify, simp add: upper_le_PDPlus_PDUnit_iff)
-   apply simp
-  apply simp
- apply (erule disjE)
-  apply (erule below_trans [OF upper_plus_below1])
- apply (erule below_trans [OF upper_plus_below2])
+apply (induct xs rule: upper_pd.principal_induct, simp)
+apply (induct ys rule: upper_pd.principal_induct, simp)
+apply (induct z rule: compact_basis.principal_induct, simp)
+apply (simp add: upper_le_PDPlus_PDUnit_iff)
 done
 
 lemma upper_unit_below_iff [simp]: "{x}\<sharp> \<sqsubseteq> {y}\<sharp> \<longleftrightarrow> x \<sqsubseteq> y"
- apply (rule iffI)
-  apply (rule profinite_below_ext)
-  apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
-  apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
-  apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
-  apply clarsimp
- apply (erule monofun_cfun_arg)
+apply (induct x rule: compact_basis.principal_induct, simp)
+apply (induct y rule: compact_basis.principal_induct, simp)
+apply simp
 done
 
 lemmas upper_pd_below_simps =
