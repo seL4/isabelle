@@ -1,7 +1,7 @@
 
 (* Author: Florian Haftmann, TU Muenchen *)
 
-header {* Executable finite sets *}
+header {* A set type which is executable on its finite part *}
 
 theory Fset
 imports More_Set More_List
