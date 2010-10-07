@@ -108,26 +108,4 @@ proof -
     by (simp add: image_Un fold1_Un2)
 qed
 
-subsection {* Lemmas for proving if-and-only-if inequalities *}
-
-lemma chain_max_below_iff:
-  assumes Y: "chain Y" shows "Y (max i j) \<sqsubseteq> x \<longleftrightarrow> Y i \<sqsubseteq> x \<and> Y j \<sqsubseteq> x"
-apply auto
-apply (erule below_trans [OF chain_mono [OF Y le_maxI1]])
-apply (erule below_trans [OF chain_mono [OF Y le_maxI2]])
-apply (simp add: max_def)
-done
-
-lemma all_ex_below_disj_iff:
-  assumes "chain X" and "chain Y"
-  shows "(\<forall>i. \<exists>j. X i \<sqsubseteq> Z j \<or> Y i \<sqsubseteq> Z j) \<longleftrightarrow>
-         (\<forall>i. \<exists>j. X i \<sqsubseteq> Z j) \<or> (\<forall>i. \<exists>j. Y i \<sqsubseteq> Z j)"
-by (metis chain_max_below_iff assms)
-
-lemma all_ex_below_conj_iff:
-  assumes "chain X" and "chain Y" and "chain Z"
-  shows "(\<forall>i. \<exists>j. X i \<sqsubseteq> Z j \<and> Y i \<sqsubseteq> Z j) \<longleftrightarrow>
-         (\<forall>i. \<exists>j. X i \<sqsubseteq> Z j) \<and> (\<forall>i. \<exists>j. Y i \<sqsubseteq> Z j)"
-oops
-
 end
