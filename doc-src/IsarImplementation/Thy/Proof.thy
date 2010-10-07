@@ -146,7 +146,7 @@ text %mlref {*
 *}
 
 text %mlex {* The following example (in theory @{theory Pure}) shows
-  how to work with fixed term and type parameters work with
+  how to work with fixed term and type parameters and with
   type-inference.
 *}
 
@@ -185,15 +185,14 @@ ML {*
     ctxt0 |> Variable.variant_fixes ["x", "x", "x"];
 *}
 
-text {* \noindent Subsequent ML code can now work with the invented
+text {* \noindent The following ML code can now work with the invented
   names of @{verbatim x1}, @{verbatim x2}, @{verbatim x3}, without
   depending on the details on the system policy for introducing these
   variants.  Recall that within a proof body the system always invents
   fresh ``skolem constants'', e.g.\ as follows:
 *}
 
-lemma "PROP XXX"
-proof -
+example_proof
   ML_prf %"ML" {*
     val ctxt0 = @{context};
 
@@ -381,10 +380,14 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML SUBPROOF: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.FOCUS: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.FOCUS_PREMS: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.FOCUS_PARAMS: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
+  @{index_ML SUBPROOF: "(Subgoal.focus -> tactic) ->
+  Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.FOCUS: "(Subgoal.focus -> tactic) ->
+  Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.FOCUS_PREMS: "(Subgoal.focus -> tactic) ->
+  Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.FOCUS_PARAMS: "(Subgoal.focus -> tactic) ->
+  Proof.context -> int -> tactic"} \\
   \end{mldecls}
 
   \begin{mldecls}
@@ -394,8 +397,8 @@ text %mlref {*
   ({prems: thm list, context: Proof.context} -> tactic) -> thm list"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Obtain.result: "(Proof.context -> tactic) ->
-  thm list -> Proof.context -> ((string * cterm) list * thm list) * Proof.context"} \\
+  @{index_ML Obtain.result: "(Proof.context -> tactic) -> thm list ->
+  Proof.context -> ((string * cterm) list * thm list) * Proof.context"} \\
   \end{mldecls}
 
   \begin{description}

@@ -140,13 +140,13 @@ text {* A \emph{theory} is a data container with explicit name and
 
   \medskip There is a separate notion of \emph{theory reference} for
   maintaining a live link to an evolving theory context: updates on
-  drafts are propagated automatically.  Dynamic updating stops after
-  an explicit @{text "end"} only.
+  drafts are propagated automatically.  Dynamic updating stops when
+  the next @{text "checkpoint"} is reached.
 
   Derived entities may store a theory reference in order to indicate
-  the context they belong to.  This implicitly assumes monotonic
-  reasoning, because the referenced context may become larger without
-  further notice.
+  the formal context from which they are derived.  This implicitly
+  assumes monotonic reasoning, because the referenced context may
+  become larger without further notice.
 *}
 
 text %mlref {*
@@ -167,9 +167,11 @@ text %mlref {*
   \begin{description}
 
   \item @{ML_type theory} represents theory contexts.  This is
-  essentially a linear type, with explicit runtime checking!  Most
-  internal theory operations destroy the original version, which then
-  becomes ``stale''.
+  essentially a linear type, with explicit runtime checking.
+  Primitive theory operations destroy the original version, which then
+  becomes ``stale''.  This can be prevented by explicit checkpointing,
+  which the system does at least at the boundary of toplevel command
+  transactions \secref{sec:isar-toplevel}.
 
   \item @{ML "Theory.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} compares theories
   according to the intrinsic graph structure of the construction.
@@ -213,8 +215,8 @@ text %mlref {*
 subsection {* Proof context \label{sec:context-proof} *}
 
 text {* A proof context is a container for pure data with a
-  back-reference to the theory it belongs to.  The @{text "init"}
-  operation creates a proof context from a given theory.
+  back-reference to the theory from which it is derived.  The @{text
+  "init"} operation creates a proof context from a given theory.
   Modifications to draft theories are propagated to the proof context
   as usual, but there is also an explicit @{text "transfer"} operation
   to force resynchronization with more substantial updates to the
@@ -359,15 +361,20 @@ text {* The main purpose of theory and proof contexts is to manage
   value from the given background theory and should be somehow
   ``immediate''.  Whenever a proof context is initialized, which
   happens frequently, the the system invokes the @{text "init"}
-  operation of \emph{all} theory data slots ever declared.
+  operation of \emph{all} theory data slots ever declared.  This also
+  means that one needs to be economic about the total number of proof
+  data declarations in the system, i.e.\ each ML module should declare
+  at most one, sometimes two data slots for its internal use.
+  Repeated data declarations to simulate a record type should be
+  avoided!
 
   \paragraph{Generic data} provides a hybrid interface for both theory
   and proof data.  The @{text "init"} operation for proof contexts is
   predefined to select the current data value from the background
   theory.
 
-  \bigskip Any of these data declaration over type @{text "T"} result
-  in an ML structure with the following signature:
+  \bigskip Any of the above data declarations over type @{text "T"}
+  result in an ML structure with the following signature:
 
   \medskip
   \begin{tabular}{ll}
@@ -379,10 +386,10 @@ text {* The main purpose of theory and proof contexts is to manage
 
   \noindent These other operations provide exclusive access for the
   particular kind of context (theory, proof, or generic context).
-  This interface fully observes the ML discipline for types and
-  scopes: there is no other way to access the corresponding data slot
-  of a context.  By keeping these operations private, an Isabelle/ML
-  module may maintain abstract values authentically.
+  This interface observes the ML discipline for types and scopes:
+  there is no other way to access the corresponding data slot of a
+  context.  By keeping these operations private, an Isabelle/ML module
+  may maintain abstract values authentically.
 *}
 
 text %mlref {*
@@ -442,23 +449,26 @@ ML {*
   val get = Terms.get;
 
   fun add raw_t thy =
-    let val t = Sign.cert_term thy raw_t
-    in Terms.map (Ord_List.insert Term_Ord.fast_term_ord t) thy end;
+    let
+      val t = Sign.cert_term thy raw_t;
+    in
+      Terms.map (Ord_List.insert Term_Ord.fast_term_ord t) thy
+    end;
 
   end;
 *}
 
-text {* We use @{ML_type "term Ord_List.T"} for reasonably efficient
-  representation of a set of terms: all operations are linear in the
-  number of stored elements.  Here we assume that our users do not
-  care about the declaration order, since that data structure forces
-  its own arrangement of elements.
+text {* \noindent We use @{ML_type "term Ord_List.T"} for reasonably
+  efficient representation of a set of terms: all operations are
+  linear in the number of stored elements.  Here we assume that users
+  of this module do not care about the declaration order, since that
+  data structure forces its own arrangement of elements.
 
   Observe how the @{verbatim merge} operation joins the data slots of
   the two constituents: @{ML Ord_List.union} prevents duplication of
   common data from different branches, thus avoiding the danger of
-  exponential blowup.  (Plain list append etc.\ must never be used for
-  theory data merges.)
+  exponential blowup.  Plain list append etc.\ must never be used for
+  theory data merges!
 
   \medskip Our intended invariant is achieved as follows:
   \begin{enumerate}
@@ -479,7 +489,7 @@ text {* We use @{ML_type "term Ord_List.T"} for reasonably efficient
   type-inference via @{ML Syntax.check_term} (cf.\
   \secref{sec:term-check}) is not necessarily monotonic wrt.\ the
   background theory, since constraints of term constants can be
-  strengthened by later declarations, for example.
+  modified by later declarations, for example.
 
   In most cases, user-space context data does not have to take such
   invariants too seriously.  The situation is different in the
@@ -598,12 +608,11 @@ text %mlref {*
   symbols.
 
   \item @{ML "Symbol.explode"}~@{text "str"} produces a symbol list
-  from the packed form.  This function supercedes @{ML
+  from the packed form.  This function supersedes @{ML
   "String.explode"} for virtually all purposes of manipulating text in
   Isabelle!\footnote{The runtime overhead for exploded strings is
   mainly that of the list structure: individual symbols that happen to
-  be a singleton string --- which is the most common case --- do not
-  require extra memory in Poly/ML.}
+  be a singleton string do not require extra memory in Poly/ML.}
 
   \item @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
   "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify standard
