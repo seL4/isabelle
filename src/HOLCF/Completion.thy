@@ -40,17 +40,6 @@ lemma idealD3:
   "\<lbrakk>ideal A; x \<preceq> y; y \<in> A\<rbrakk> \<Longrightarrow> x \<in> A"
 unfolding ideal_def by fast
 
-lemma ideal_directed_finite:
-  assumes A: "ideal A"
-  shows "\<lbrakk>finite U; U \<subseteq> A\<rbrakk> \<Longrightarrow> \<exists>z\<in>A. \<forall>x\<in>U. x \<preceq> z"
-apply (induct U set: finite)
-apply (simp add: idealD1 [OF A])
-apply (simp, clarify, rename_tac y)
-apply (drule (1) idealD2 [OF A])
-apply (clarify, erule_tac x=z in rev_bexI)
-apply (fast intro: r_trans)
-done
-
 lemma ideal_principal: "ideal {x. x \<preceq> z}"
 apply (rule idealI)
 apply (rule_tac x=z in exI)
@@ -62,20 +51,6 @@ done
 
 lemma ex_ideal: "\<exists>A. ideal A"
 by (rule exI, rule ideal_principal)
-
-lemma directed_image_ideal:
-  assumes A: "ideal A"
-  assumes f: "\<And>x y. x \<preceq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-  shows "directed (f ` A)"
-apply (rule directedI)
-apply (cut_tac idealD1 [OF A], fast)
-apply (clarify, rename_tac a b)
-apply (drule (1) idealD2 [OF A])
-apply (clarify, rename_tac c)
-apply (rule_tac x="f c" in rev_bexI)
-apply (erule imageI)
-apply (simp add: f)
-done
 
 lemma lub_image_principal:
   assumes f: "\<And>x y. x \<preceq> y \<Longrightarrow> f x \<sqsubseteq> f y"
@@ -226,10 +201,6 @@ by (simp only: principal_below_iff)
 lemma ch2ch_principal [simp]:
   "\<forall>i. Y i \<preceq> Y (Suc i) \<Longrightarrow> chain (\<lambda>i. principal (Y i))"
 by (simp add: chainI principal_mono)
-
-lemma belowI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
-unfolding principal_below_iff_mem_rep
-by (simp add: below_def subset_eq)
 
 lemma lub_principal_rep: "principal ` rep x <<| x"
 apply (rule is_lubI)
