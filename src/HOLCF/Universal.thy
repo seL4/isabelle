@@ -218,32 +218,18 @@ instance udom :: cpo
 using type_definition_udom below_udom_def
 by (rule udom.typedef_ideal_cpo)
 
-lemma Rep_udom_lub:
-  "chain Y \<Longrightarrow> Rep_udom (\<Squnion>i. Y i) = (\<Union>i. Rep_udom (Y i))"
-using type_definition_udom below_udom_def
-by (rule udom.typedef_ideal_rep_contlub)
-
-lemma ideal_Rep_udom: "udom.ideal (Rep_udom xs)"
-by (rule Rep_udom [unfolded mem_Collect_eq])
-
 definition
   udom_principal :: "nat \<Rightarrow> udom" where
   "udom_principal t = Abs_udom {u. ubasis_le u t}"
 
-lemma Rep_udom_principal:
-  "Rep_udom (udom_principal t) = {u. ubasis_le u t}"
-unfolding udom_principal_def
-by (simp add: Abs_udom_inverse udom.ideal_principal)
+lemma ubasis_countable: "\<exists>f::ubasis \<Rightarrow> nat. inj f"
+by (rule exI, rule inj_on_id)
 
 interpretation udom:
   ideal_completion ubasis_le udom_principal Rep_udom
-apply unfold_locales
-apply (rule ideal_Rep_udom)
-apply (erule Rep_udom_lub)
-apply (rule Rep_udom_principal)
-apply (simp only: below_udom_def)
-apply (rule exI, rule inj_on_id)
-done
+using type_definition_udom below_udom_def
+using udom_principal_def ubasis_countable
+by (rule udom.typedef_ideal_completion)
 
 text {* Universal domain is pointed *}
 

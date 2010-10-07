@@ -93,32 +93,15 @@ instance upper_pd :: (sfp) cpo
 using type_definition_upper_pd below_upper_pd_def
 by (rule upper_le.typedef_ideal_cpo)
 
-lemma Rep_upper_pd_lub:
-  "chain Y \<Longrightarrow> Rep_upper_pd (\<Squnion>i. Y i) = (\<Union>i. Rep_upper_pd (Y i))"
-using type_definition_upper_pd below_upper_pd_def
-by (rule upper_le.typedef_ideal_rep_contlub)
-
-lemma ideal_Rep_upper_pd: "upper_le.ideal (Rep_upper_pd xs)"
-by (rule Rep_upper_pd [unfolded mem_Collect_eq])
-
 definition
   upper_principal :: "'a pd_basis \<Rightarrow> 'a upper_pd" where
   "upper_principal t = Abs_upper_pd {u. u \<le>\<sharp> t}"
 
-lemma Rep_upper_principal:
-  "Rep_upper_pd (upper_principal t) = {u. u \<le>\<sharp> t}"
-unfolding upper_principal_def
-by (simp add: Abs_upper_pd_inverse upper_le.ideal_principal)
-
 interpretation upper_pd:
   ideal_completion upper_le upper_principal Rep_upper_pd
-apply unfold_locales
-apply (rule ideal_Rep_upper_pd)
-apply (erule Rep_upper_pd_lub)
-apply (rule Rep_upper_principal)
-apply (simp only: below_upper_pd_def)
-apply (rule pd_basis_countable)
-done
+using type_definition_upper_pd below_upper_pd_def
+using upper_principal_def pd_basis_countable
+by (rule upper_le.typedef_ideal_completion)
 
 text {* Upper powerdomain is pointed *}
 

@@ -140,32 +140,15 @@ instance convex_pd :: (sfp) cpo
 using type_definition_convex_pd below_convex_pd_def
 by (rule convex_le.typedef_ideal_cpo)
 
-lemma Rep_convex_pd_lub:
-  "chain Y \<Longrightarrow> Rep_convex_pd (\<Squnion>i. Y i) = (\<Union>i. Rep_convex_pd (Y i))"
-using type_definition_convex_pd below_convex_pd_def
-by (rule convex_le.typedef_ideal_rep_contlub)
-
-lemma ideal_Rep_convex_pd: "convex_le.ideal (Rep_convex_pd xs)"
-by (rule Rep_convex_pd [unfolded mem_Collect_eq])
-
 definition
   convex_principal :: "'a pd_basis \<Rightarrow> 'a convex_pd" where
   "convex_principal t = Abs_convex_pd {u. u \<le>\<natural> t}"
 
-lemma Rep_convex_principal:
-  "Rep_convex_pd (convex_principal t) = {u. u \<le>\<natural> t}"
-unfolding convex_principal_def
-by (simp add: Abs_convex_pd_inverse convex_le.ideal_principal)
-
 interpretation convex_pd:
   ideal_completion convex_le convex_principal Rep_convex_pd
-apply unfold_locales
-apply (rule ideal_Rep_convex_pd)
-apply (erule Rep_convex_pd_lub)
-apply (rule Rep_convex_principal)
-apply (simp only: below_convex_pd_def)
-apply (rule pd_basis_countable)
-done
+using type_definition_convex_pd below_convex_pd_def
+using convex_principal_def pd_basis_countable
+by (rule convex_le.typedef_ideal_completion)
 
 text {* Convex powerdomain is pointed *}
 

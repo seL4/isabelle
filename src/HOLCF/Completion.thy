@@ -410,4 +410,26 @@ done
 
 end
 
+lemma (in preorder) typedef_ideal_completion:
+  fixes Abs :: "'a set \<Rightarrow> 'b::cpo"
+  assumes type: "type_definition Rep Abs {S. ideal S}"
+  assumes below: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
+  assumes principal: "\<And>a. principal a = Abs {b. b \<preceq> a}"
+  assumes countable: "\<exists>f::'a \<Rightarrow> nat. inj f"
+  shows "ideal_completion r principal Rep"
+proof
+  interpret type_definition Rep Abs "{S. ideal S}" by fact
+  fix a b :: 'a and x y :: 'b and Y :: "nat \<Rightarrow> 'b"
+  show "ideal (Rep x)"
+    using Rep [of x] by simp
+  show "chain Y \<Longrightarrow> Rep (\<Squnion>i. Y i) = (\<Union>i. Rep (Y i))"
+    using type below by (rule typedef_ideal_rep_contlub)
+  show "Rep (principal a) = {b. b \<preceq> a}"
+    by (simp add: principal Abs_inverse ideal_principal)
+  show "Rep x \<subseteq> Rep y \<Longrightarrow> x \<sqsubseteq> y"
+    by (simp only: below)
+  show "\<exists>f::'a \<Rightarrow> nat. inj f"
+    by (rule countable)
+qed
+
 end

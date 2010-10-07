@@ -99,22 +99,9 @@ instance sfp :: cpo
 using type_definition_sfp below_sfp_def
 by (rule below.typedef_ideal_cpo)
 
-lemma Rep_sfp_lub:
-  "chain Y \<Longrightarrow> Rep_sfp (\<Squnion>i. Y i) = (\<Union>i. Rep_sfp (Y i))"
-using type_definition_sfp below_sfp_def
-by (rule below.typedef_ideal_rep_contlub)
-
-lemma ideal_Rep_sfp: "below.ideal (Rep_sfp xs)"
-by (rule Rep_sfp [unfolded mem_Collect_eq])
-
 definition
   sfp_principal :: "fin_defl \<Rightarrow> sfp" where
   "sfp_principal t = Abs_sfp {u. u \<sqsubseteq> t}"
-
-lemma Rep_sfp_principal:
-  "Rep_sfp (sfp_principal t) = {u. u \<sqsubseteq> t}"
-unfolding sfp_principal_def
-by (simp add: Abs_sfp_inverse below.ideal_principal)
 
 lemma fin_defl_countable: "\<exists>f::fin_defl \<Rightarrow> nat. inj f"
 proof
@@ -144,13 +131,9 @@ proof
 qed
 
 interpretation sfp: ideal_completion below sfp_principal Rep_sfp
-apply default
-apply (rule ideal_Rep_sfp)
-apply (erule Rep_sfp_lub)
-apply (rule Rep_sfp_principal)
-apply (simp only: below_sfp_def)
-apply (rule fin_defl_countable)
-done
+using type_definition_sfp below_sfp_def
+using sfp_principal_def fin_defl_countable
+by (rule below.typedef_ideal_completion)
 
 text {* Algebraic deflations are pointed *}
 
