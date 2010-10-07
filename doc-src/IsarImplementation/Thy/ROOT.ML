@@ -4,6 +4,7 @@ use_thys [
   "Local_Theory",
   "Logic",
   "ML",
+  "ML_old",
   "Prelim",
   "Proof",
   "Syntax",
