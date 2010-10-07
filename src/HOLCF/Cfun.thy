@@ -96,7 +96,6 @@ text {* Dummy patterns for continuous abstraction *}
 translations
   "\<Lambda> _. t" => "CONST Abs_CFun (\<lambda> _. t)"
 
-
 subsection {* Continuous function space is pointed *}
 
 lemma UU_CFun: "\<bottom> \<in> CFun"
@@ -483,7 +482,6 @@ apply (erule minimal [THEN monofun_cfun_arg, THEN flat_eqI])
 apply (erule minimal [THEN monofun_cfun_arg, THEN flat_eqI])
 done
 
-
 subsection {* Identity and composition *}
 
 definition
@@ -530,6 +528,23 @@ by (rule ext_cfun, simp)
 lemma assoc_oo: "f oo (g oo h) = (f oo g) oo h"
 by (rule ext_cfun, simp)
 
+subsection {* Map operator for continuous function space *}
+
+definition
+  cfun_map :: "('b \<rightarrow> 'a) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> ('a \<rightarrow> 'c) \<rightarrow> ('b \<rightarrow> 'd)"
+where
+  "cfun_map = (\<Lambda> a b f x. b\<cdot>(f\<cdot>(a\<cdot>x)))"
+
+lemma cfun_map_beta [simp]: "cfun_map\<cdot>a\<cdot>b\<cdot>f\<cdot>x = b\<cdot>(f\<cdot>(a\<cdot>x))"
+unfolding cfun_map_def by simp
+
+lemma cfun_map_ID: "cfun_map\<cdot>ID\<cdot>ID = ID"
+unfolding expand_cfun_eq by simp
+
+lemma cfun_map_map:
+  "cfun_map\<cdot>f1\<cdot>g1\<cdot>(cfun_map\<cdot>f2\<cdot>g2\<cdot>p) =
+    cfun_map\<cdot>(\<Lambda> x. f2\<cdot>(f1\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
+by (rule ext_cfun) simp
 
 subsection {* Strictified functions *}
 

@@ -5,7 +5,7 @@
 header {* The type of strict products *}
 
 theory Sprod
-imports Algebraic
+imports Bifinite
 begin
 
 default_sort pcpo

@@ -2,172 +2,238 @@
     Author:     Brian Huffman
 *)
 
-header {* Bifinite domains and approximation *}
+header {* Bifinite domains *}
 
 theory Bifinite
-imports Deflation
+imports Algebraic
 begin
 
-subsection {* Map operator for product type *}
+subsection {* Class of SFP domains *}
+
+text {*
+  We define a SFP domain as a pcpo that is isomorphic to some
+  algebraic deflation over the universal domain.
+*}
+
+class sfp = pcpo +
+  fixes emb :: "'a::pcpo \<rightarrow> udom"
+  fixes prj :: "udom \<rightarrow> 'a::pcpo"
+  fixes sfp :: "'a itself \<Rightarrow> sfp"
+  assumes ep_pair_emb_prj: "ep_pair emb prj"
+  assumes cast_SFP: "cast\<cdot>(sfp TYPE('a)) = emb oo prj"
+
+syntax "_SFP" :: "type \<Rightarrow> sfp"  ("(1SFP/(1'(_')))")
+translations "SFP('t)" \<rightleftharpoons> "CONST sfp TYPE('t)"
+
+interpretation sfp:
+  pcpo_ep_pair "emb :: 'a::sfp \<rightarrow> udom" "prj :: udom \<rightarrow> 'a::sfp"
+  unfolding pcpo_ep_pair_def
+  by (rule ep_pair_emb_prj)
+
+lemmas emb_inverse = sfp.e_inverse
+lemmas emb_prj_below = sfp.e_p_below
+lemmas emb_eq_iff = sfp.e_eq_iff
+lemmas emb_strict = sfp.e_strict
+lemmas prj_strict = sfp.p_strict
+
+subsection {* SFP domains have a countable compact basis *}
+
+text {*
+  Eventually it should be possible to generalize this to an unpointed
+  variant of the sfp class.
+*}
+
+interpretation compact_basis:
+  ideal_completion below Rep_compact_basis "approximants::'a::sfp \<Rightarrow> _"
+proof -
+  obtain Y where Y: "\<forall>i. Y i \<sqsubseteq> Y (Suc i)"
+  and SFP: "SFP('a) = (\<Squnion>i. sfp_principal (Y i))"
+    by (rule sfp.obtain_principal_chain)
+  def approx \<equiv> "\<lambda>i. (prj oo cast\<cdot>(sfp_principal (Y i)) oo emb) :: 'a \<rightarrow> 'a"
+  interpret sfp_approx: approx_chain approx
+  proof (rule approx_chain.intro)
+    show "chain (\<lambda>i. approx i)"
+      unfolding approx_def by (simp add: Y)
+    show "(\<Squnion>i. approx i) = ID"
+      unfolding approx_def
+      by (simp add: lub_distribs Y SFP [symmetric] cast_SFP expand_cfun_eq)
+    show "\<And>i. finite_deflation (approx i)"
+      unfolding approx_def
+      apply (rule sfp.finite_deflation_p_d_e)
+      apply (rule finite_deflation_cast)
+      apply (rule sfp.compact_principal)
+      apply (rule below_trans [OF monofun_cfun_fun])
+      apply (rule is_ub_thelub, simp add: Y)
+      apply (simp add: lub_distribs Y SFP [symmetric] cast_SFP)
+      done
+  qed
+  (* FIXME: why does show ?thesis fail here? *)
+  show "ideal_completion below Rep_compact_basis (approximants::'a \<Rightarrow> _)" ..
+qed
+
+subsection {* Type combinators *}
 
 definition
-  cprod_map :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<times> 'c \<rightarrow> 'b \<times> 'd"
+  sfp_fun1 ::
+    "(nat \<Rightarrow> 'a \<rightarrow> 'a) \<Rightarrow> ((udom \<rightarrow> udom) \<rightarrow> ('a \<rightarrow> 'a)) \<Rightarrow> (sfp \<rightarrow> sfp)"
 where
-  "cprod_map = (\<Lambda> f g p. (f\<cdot>(fst p), g\<cdot>(snd p)))"
-
-lemma cprod_map_Pair [simp]: "cprod_map\<cdot>f\<cdot>g\<cdot>(x, y) = (f\<cdot>x, g\<cdot>y)"
-unfolding cprod_map_def by simp
-
-lemma cprod_map_ID: "cprod_map\<cdot>ID\<cdot>ID = ID"
-unfolding expand_cfun_eq by auto
-
-lemma cprod_map_map:
-  "cprod_map\<cdot>f1\<cdot>g1\<cdot>(cprod_map\<cdot>f2\<cdot>g2\<cdot>p) =
-    cprod_map\<cdot>(\<Lambda> x. f1\<cdot>(f2\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
-by (induct p) simp
-
-lemma ep_pair_cprod_map:
-  assumes "ep_pair e1 p1" and "ep_pair e2 p2"
-  shows "ep_pair (cprod_map\<cdot>e1\<cdot>e2) (cprod_map\<cdot>p1\<cdot>p2)"
-proof
-  interpret e1p1: ep_pair e1 p1 by fact
-  interpret e2p2: ep_pair e2 p2 by fact
-  fix x show "cprod_map\<cdot>p1\<cdot>p2\<cdot>(cprod_map\<cdot>e1\<cdot>e2\<cdot>x) = x"
-    by (induct x) simp
-  fix y show "cprod_map\<cdot>e1\<cdot>e2\<cdot>(cprod_map\<cdot>p1\<cdot>p2\<cdot>y) \<sqsubseteq> y"
-    by (induct y) (simp add: e1p1.e_p_below e2p2.e_p_below)
-qed
-
-lemma deflation_cprod_map:
-  assumes "deflation d1" and "deflation d2"
-  shows "deflation (cprod_map\<cdot>d1\<cdot>d2)"
-proof
-  interpret d1: deflation d1 by fact
-  interpret d2: deflation d2 by fact
-  fix x
-  show "cprod_map\<cdot>d1\<cdot>d2\<cdot>(cprod_map\<cdot>d1\<cdot>d2\<cdot>x) = cprod_map\<cdot>d1\<cdot>d2\<cdot>x"
-    by (induct x) (simp add: d1.idem d2.idem)
-  show "cprod_map\<cdot>d1\<cdot>d2\<cdot>x \<sqsubseteq> x"
-    by (induct x) (simp add: d1.below d2.below)
-qed
-
-lemma finite_deflation_cprod_map:
-  assumes "finite_deflation d1" and "finite_deflation d2"
-  shows "finite_deflation (cprod_map\<cdot>d1\<cdot>d2)"
-proof (rule finite_deflation_intro)
-  interpret d1: finite_deflation d1 by fact
-  interpret d2: finite_deflation d2 by fact
-  have "deflation d1" and "deflation d2" by fact+
-  thus "deflation (cprod_map\<cdot>d1\<cdot>d2)" by (rule deflation_cprod_map)
-  have "{p. cprod_map\<cdot>d1\<cdot>d2\<cdot>p = p} \<subseteq> {x. d1\<cdot>x = x} \<times> {y. d2\<cdot>y = y}"
-    by clarsimp
-  thus "finite {p. cprod_map\<cdot>d1\<cdot>d2\<cdot>p = p}"
-    by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
-qed
-
-subsection {* Map operator for continuous function space *}
+  "sfp_fun1 approx f =
+    sfp.basis_fun (\<lambda>a.
+      sfp_principal (Abs_fin_defl
+        (udom_emb approx oo f\<cdot>(Rep_fin_defl a) oo udom_prj approx)))"
 
 definition
-  cfun_map :: "('b \<rightarrow> 'a) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> ('a \<rightarrow> 'c) \<rightarrow> ('b \<rightarrow> 'd)"
+  sfp_fun2 ::
+    "(nat \<Rightarrow> 'a \<rightarrow> 'a) \<Rightarrow> ((udom \<rightarrow> udom) \<rightarrow> (udom \<rightarrow> udom) \<rightarrow> ('a \<rightarrow> 'a))
+      \<Rightarrow> (sfp \<rightarrow> sfp \<rightarrow> sfp)"
 where
-  "cfun_map = (\<Lambda> a b f x. b\<cdot>(f\<cdot>(a\<cdot>x)))"
+  "sfp_fun2 approx f =
+    sfp.basis_fun (\<lambda>a.
+      sfp.basis_fun (\<lambda>b.
+        sfp_principal (Abs_fin_defl
+          (udom_emb approx oo
+            f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo udom_prj approx))))"
 
-lemma cfun_map_beta [simp]: "cfun_map\<cdot>a\<cdot>b\<cdot>f\<cdot>x = b\<cdot>(f\<cdot>(a\<cdot>x))"
-unfolding cfun_map_def by simp
+lemma cast_sfp_fun1:
+  assumes approx: "approx_chain approx"
+  assumes f: "\<And>a. finite_deflation a \<Longrightarrow> finite_deflation (f\<cdot>a)"
+  shows "cast\<cdot>(sfp_fun1 approx f\<cdot>A) = udom_emb approx oo f\<cdot>(cast\<cdot>A) oo udom_prj approx"
+proof -
+  have 1: "\<And>a. finite_deflation
+        (udom_emb approx oo f\<cdot>(Rep_fin_defl a) oo udom_prj approx)"
+    apply (rule ep_pair.finite_deflation_e_d_p)
+    apply (rule approx_chain.ep_pair_udom [OF approx])
+    apply (rule f, rule finite_deflation_Rep_fin_defl)
+    done
+  show ?thesis
+    by (induct A rule: sfp.principal_induct, simp)
+       (simp only: sfp_fun1_def
+                   sfp.basis_fun_principal
+                   sfp.basis_fun_mono
+                   sfp.principal_mono
+                   Abs_fin_defl_mono [OF 1 1]
+                   monofun_cfun below_refl
+                   Rep_fin_defl_mono
+                   cast_sfp_principal
+                   Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
+qed
 
-lemma cfun_map_ID: "cfun_map\<cdot>ID\<cdot>ID = ID"
-unfolding expand_cfun_eq by simp
+lemma cast_sfp_fun2:
+  assumes approx: "approx_chain approx"
+  assumes f: "\<And>a b. finite_deflation a \<Longrightarrow> finite_deflation b \<Longrightarrow>
+                finite_deflation (f\<cdot>a\<cdot>b)"
+  shows "cast\<cdot>(sfp_fun2 approx f\<cdot>A\<cdot>B) =
+    udom_emb approx oo f\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj approx"
+proof -
+  have 1: "\<And>a b. finite_deflation (udom_emb approx oo
+      f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo udom_prj approx)"
+    apply (rule ep_pair.finite_deflation_e_d_p)
+    apply (rule ep_pair_udom [OF approx])
+    apply (rule f, (rule finite_deflation_Rep_fin_defl)+)
+    done
+  show ?thesis
+    by (induct A B rule: sfp.principal_induct2, simp, simp)
+       (simp only: sfp_fun2_def
+                   sfp.basis_fun_principal
+                   sfp.basis_fun_mono
+                   sfp.principal_mono
+                   Abs_fin_defl_mono [OF 1 1]
+                   monofun_cfun below_refl
+                   Rep_fin_defl_mono
+                   cast_sfp_principal
+                   Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
+qed
 
-lemma cfun_map_map:
-  "cfun_map\<cdot>f1\<cdot>g1\<cdot>(cfun_map\<cdot>f2\<cdot>g2\<cdot>p) =
-    cfun_map\<cdot>(\<Lambda> x. f2\<cdot>(f1\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
-by (rule ext_cfun) simp
+subsection {* Instance for universal domain type *}
 
-lemma ep_pair_cfun_map:
-  assumes "ep_pair e1 p1" and "ep_pair e2 p2"
-  shows "ep_pair (cfun_map\<cdot>p1\<cdot>e2) (cfun_map\<cdot>e1\<cdot>p2)"
-proof
-  interpret e1p1: ep_pair e1 p1 by fact
-  interpret e2p2: ep_pair e2 p2 by fact
-  fix f show "cfun_map\<cdot>e1\<cdot>p2\<cdot>(cfun_map\<cdot>p1\<cdot>e2\<cdot>f) = f"
-    by (simp add: expand_cfun_eq)
-  fix g show "cfun_map\<cdot>p1\<cdot>e2\<cdot>(cfun_map\<cdot>e1\<cdot>p2\<cdot>g) \<sqsubseteq> g"
-    apply (rule below_cfun_ext, simp)
-    apply (rule below_trans [OF e2p2.e_p_below])
-    apply (rule monofun_cfun_arg)
-    apply (rule e1p1.e_p_below)
+instantiation udom :: sfp
+begin
+
+definition [simp]:
+  "emb = (ID :: udom \<rightarrow> udom)"
+
+definition [simp]:
+  "prj = (ID :: udom \<rightarrow> udom)"
+
+definition
+  "sfp (t::udom itself) = (\<Squnion>i. sfp_principal (Abs_fin_defl (udom_approx i)))"
+
+instance proof
+  show "ep_pair emb (prj :: udom \<rightarrow> udom)"
+    by (simp add: ep_pair.intro)
+next
+  show "cast\<cdot>SFP(udom) = emb oo (prj :: udom \<rightarrow> udom)"
+    unfolding sfp_udom_def
+    apply (subst contlub_cfun_arg)
+    apply (rule chainI)
+    apply (rule sfp.principal_mono)
+    apply (simp add: below_fin_defl_def)
+    apply (simp add: Abs_fin_defl_inverse finite_deflation_udom_approx)
+    apply (rule chainE)
+    apply (rule chain_udom_approx)
+    apply (subst cast_sfp_principal)
+    apply (simp add: Abs_fin_defl_inverse finite_deflation_udom_approx)
     done
 qed
 
-lemma deflation_cfun_map:
-  assumes "deflation d1" and "deflation d2"
-  shows "deflation (cfun_map\<cdot>d1\<cdot>d2)"
-proof
-  interpret d1: deflation d1 by fact
-  interpret d2: deflation d2 by fact
-  fix f
-  show "cfun_map\<cdot>d1\<cdot>d2\<cdot>(cfun_map\<cdot>d1\<cdot>d2\<cdot>f) = cfun_map\<cdot>d1\<cdot>d2\<cdot>f"
-    by (simp add: expand_cfun_eq d1.idem d2.idem)
-  show "cfun_map\<cdot>d1\<cdot>d2\<cdot>f \<sqsubseteq> f"
-    apply (rule below_cfun_ext, simp)
-    apply (rule below_trans [OF d2.below])
-    apply (rule monofun_cfun_arg)
-    apply (rule d1.below)
-    done
+end
+
+subsection {* Instance for continuous function space *}
+
+definition
+  cfun_approx :: "nat \<Rightarrow> (udom \<rightarrow> udom) \<rightarrow> (udom \<rightarrow> udom)"
+where
+  "cfun_approx = (\<lambda>i. cfun_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+
+lemma cfun_approx: "approx_chain cfun_approx"
+proof (rule approx_chain.intro)
+  show "chain (\<lambda>i. cfun_approx i)"
+    unfolding cfun_approx_def by simp
+  show "(\<Squnion>i. cfun_approx i) = ID"
+    unfolding cfun_approx_def
+    by (simp add: lub_distribs cfun_map_ID)
+  show "\<And>i. finite_deflation (cfun_approx i)"
+    unfolding cfun_approx_def
+    by (intro finite_deflation_cfun_map finite_deflation_udom_approx)
 qed
 
-lemma finite_range_cfun_map:
-  assumes a: "finite (range (\<lambda>x. a\<cdot>x))"
-  assumes b: "finite (range (\<lambda>y. b\<cdot>y))"
-  shows "finite (range (\<lambda>f. cfun_map\<cdot>a\<cdot>b\<cdot>f))"  (is "finite (range ?h)")
-proof (rule finite_imageD)
-  let ?f = "\<lambda>g. range (\<lambda>x. (a\<cdot>x, g\<cdot>x))"
-  show "finite (?f ` range ?h)"
-  proof (rule finite_subset)
-    let ?B = "Pow (range (\<lambda>x. a\<cdot>x) \<times> range (\<lambda>y. b\<cdot>y))"
-    show "?f ` range ?h \<subseteq> ?B"
-      by clarsimp
-    show "finite ?B"
-      by (simp add: a b)
-  qed
-  show "inj_on ?f (range ?h)"
-  proof (rule inj_onI, rule ext_cfun, clarsimp)
-    fix x f g
-    assume "range (\<lambda>x. (a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x)))) = range (\<lambda>x. (a\<cdot>x, b\<cdot>(g\<cdot>(a\<cdot>x))))"
-    hence "range (\<lambda>x. (a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x)))) \<subseteq> range (\<lambda>x. (a\<cdot>x, b\<cdot>(g\<cdot>(a\<cdot>x))))"
-      by (rule equalityD1)
-    hence "(a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x))) \<in> range (\<lambda>x. (a\<cdot>x, b\<cdot>(g\<cdot>(a\<cdot>x))))"
-      by (simp add: subset_eq)
-    then obtain y where "(a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x))) = (a\<cdot>y, b\<cdot>(g\<cdot>(a\<cdot>y)))"
-      by (rule rangeE)
-    thus "b\<cdot>(f\<cdot>(a\<cdot>x)) = b\<cdot>(g\<cdot>(a\<cdot>x))"
-      by clarsimp
-  qed
-qed
+definition cfun_sfp :: "sfp \<rightarrow> sfp \<rightarrow> sfp"
+where "cfun_sfp = sfp_fun2 cfun_approx cfun_map"
 
-lemma finite_deflation_cfun_map:
-  assumes "finite_deflation d1" and "finite_deflation d2"
-  shows "finite_deflation (cfun_map\<cdot>d1\<cdot>d2)"
-proof (rule finite_deflation_intro)
-  interpret d1: finite_deflation d1 by fact
-  interpret d2: finite_deflation d2 by fact
-  have "deflation d1" and "deflation d2" by fact+
-  thus "deflation (cfun_map\<cdot>d1\<cdot>d2)" by (rule deflation_cfun_map)
-  have "finite (range (\<lambda>f. cfun_map\<cdot>d1\<cdot>d2\<cdot>f))"
-    using d1.finite_range d2.finite_range
-    by (rule finite_range_cfun_map)
-  thus "finite {f. cfun_map\<cdot>d1\<cdot>d2\<cdot>f = f}"
-    by (rule finite_range_imp_finite_fixes)
-qed
-
-text {* Finite deflations are compact elements of the function space *}
-
-lemma finite_deflation_imp_compact: "finite_deflation d \<Longrightarrow> compact d"
-apply (frule finite_deflation_imp_deflation)
-apply (subgoal_tac "compact (cfun_map\<cdot>d\<cdot>d\<cdot>d)")
-apply (simp add: cfun_map_def deflation.idem eta_cfun)
-apply (rule finite_deflation.compact)
-apply (simp only: finite_deflation_cfun_map)
+lemma cast_cfun_sfp:
+  "cast\<cdot>(cfun_sfp\<cdot>A\<cdot>B) =
+    udom_emb cfun_approx oo cfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj cfun_approx"
+unfolding cfun_sfp_def
+apply (rule cast_sfp_fun2 [OF cfun_approx])
+apply (erule (1) finite_deflation_cfun_map)
 done
+
+instantiation cfun :: (sfp, sfp) sfp
+begin
+
+definition
+  "emb = udom_emb cfun_approx oo cfun_map\<cdot>prj\<cdot>emb"
+
+definition
+  "prj = cfun_map\<cdot>emb\<cdot>prj oo udom_prj cfun_approx"
+
+definition
+  "sfp (t::('a \<rightarrow> 'b) itself) = cfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+
+instance proof
+  show "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow> 'b)"
+    unfolding emb_cfun_def prj_cfun_def
+    using ep_pair_udom [OF cfun_approx]
+    by (intro ep_pair_comp ep_pair_cfun_map ep_pair_emb_prj)
+next
+  show "cast\<cdot>SFP('a \<rightarrow> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<rightarrow> 'b)"
+    unfolding emb_cfun_def prj_cfun_def sfp_cfun_def cast_cfun_sfp
+    by (simp add: cast_SFP oo_def expand_cfun_eq cfun_map_map)
+qed
+
+end
+
+lemma SFP_cfun: "SFP('a::sfp \<rightarrow> 'b::sfp) = cfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+by (rule sfp_cfun_def)
 
 end

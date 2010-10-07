@@ -5,7 +5,7 @@
 header {* The type of lifted values *}
 
 theory Up
-imports Algebraic
+imports Bifinite
 begin
 
 default_sort cpo

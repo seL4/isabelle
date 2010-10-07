@@ -5,7 +5,7 @@
 header {* A compact basis for powerdomains *}
 
 theory CompactBasis
-imports Algebraic
+imports Bifinite
 begin
 
 default_sort sfp
