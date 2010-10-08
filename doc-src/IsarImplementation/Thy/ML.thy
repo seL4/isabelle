@@ -53,7 +53,7 @@ text {* ML and Isar are intertwined via an open-ended bootstrap
 *}
 
 
-section {* Isar ML commands *}
+subsection {* Isar ML commands *}
 
 text {* The primary Isar source language provides various facilities
   to open a ``window'' to the underlying ML compiler.  Especially see
@@ -131,7 +131,7 @@ example_proof
 qed
 
 
-section {* Compile-time context *}
+subsection {* Compile-time context *}
 
 text {* Whenever the ML compiler is invoked within Isabelle/Isar, the
   formal context is passed as a thread-local reference variable.  Thus
@@ -153,7 +153,7 @@ text %mlref {*
   context of the ML toplevel --- at compile time.  ML code needs to
   take care to refer to @{ML "ML_Context.the_generic_context ()"}
   correctly.  Recall that evaluation of a function body is delayed
-  until actual runtime.
+  until actual run-time.
 
   \item @{ML "Context.>>"}~@{text f} applies context transformation
   @{text f} to the implicit context of the ML toplevel.
@@ -162,15 +162,41 @@ text %mlref {*
 
   It is very important to note that the above functions are really
   restricted to the compile time, even though the ML compiler is
-  invoked at runtime.  The majority of ML code either uses static
+  invoked at run-time.  The majority of ML code either uses static
   antiquotations (\secref{sec:ML-antiq}) or refers to the theory or
   proof context at run-time, by explicit functional abstraction.
 *}
 
 
-section {* Antiquotations \label{sec:ML-antiq} *}
+subsection {* Antiquotations \label{sec:ML-antiq} *}
 
-text FIXME
+text {* A very important consequence of embedding SML into Isar is the
+  concept of \emph{ML antiquotation}: the standard token language of
+  ML is augmented by special syntactic entities of the following form:
 
+  \begin{rail}
+  antiquote: atsign lbrace nameref args rbrace | lbracesym | rbracesym
+  ;
+  \end{rail}
+
+  \noindent Here the syntax categories @{syntax nameref} and @{syntax
+  args} are defined in \cite{isabelle-isar-ref}; attributes and proof
+  methods use similar syntax.
+
+  \medskip A regular antiquotation @{text "@{name args}"} processes
+  its arguments by the usual means of the Isar source language, and
+  produces corresponding ML source text, either as literal
+  \emph{inline} text (e.g. @{text "@{term t}"}) or abstract
+  \emph{value} (e.g. @{text "@{thm th}"}).  This pre-compilation
+  scheme allows to refer to formal entities in a robust manner, with
+  proper static scoping and with some degree of logical checking of
+  small portions of the code.
+
+  Special antiquotations like @{text "@{let \<dots>}"} or @{text "@{note
+  \<dots>}"} augment the compilation context without generating code.  The
+  non-ASCII braces @{text "\<lbrace>"} and @{text "\<rbrace>"} allow to delimit the
+  effect by introducing local blocks within the pre-compilation
+  environment.
+*}
 
 end

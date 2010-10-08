@@ -4,6 +4,7 @@
 \usepackage{../iman,../extra,../isar,../proof}
 \usepackage[nohyphen,strings]{../underscore}
 \usepackage{../isabelle,../isabellesym}
+\usepackage{../ttbox,../rail,../railsetup}
 \usepackage{style}
 \usepackage{../pdfsetup}
 
@@ -21,6 +22,11 @@
 }
 
 \makeindex
+
+\railterm{lbrace,rbrace,atsign}
+\railalias{lbracesym}{\isasymlbrace}\railterm{lbracesym}
+\railalias{rbracesym}{\isasymrbrace}\railterm{rbracesym}
+\railalias{dots}{\isasymdots}\railterm{dots}
 
 
 \begin{document}
