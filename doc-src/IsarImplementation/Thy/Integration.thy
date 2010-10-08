@@ -8,13 +8,12 @@ section {* Isar toplevel \label{sec:isar-toplevel} *}
 
 text {* The Isar toplevel may be considered the centeral hub of the
   Isabelle/Isar system, where all key components and sub-systems are
-  integrated into a single read-eval-print loop of Isar commands.  We
-  shall even incorporate the existing {\ML} toplevel of the compiler
-  and run-time system (cf.\ \secref{sec:ML-toplevel}).
+  integrated into a single read-eval-print loop of Isar commands,
+  which also incorporates the underlying ML compiler.
 
   Isabelle/Isar departs from the original ``LCF system architecture''
-  where {\ML} was really The Meta Language for defining theories and
-  conducting proofs.  Instead, {\ML} now only serves as the
+  where ML was really The Meta Language for defining theories and
+  conducting proofs.  Instead, ML now only serves as the
   implementation language for the system (and user extensions), while
   the specific Isar toplevel supports the concepts of theory and proof
   development natively.  This includes the graph structure of theories
@@ -94,7 +93,7 @@ text %mlref {*
   information for each Isar command being executed.
 
   \item @{ML Toplevel.profiling}~@{verbatim ":="}~@{text "n"} controls
-  low-level profiling of the underlying {\ML} runtime system.  For
+  low-level profiling of the underlying ML runtime system.  For
   Poly/ML, @{text "n = 1"} means time and @{text "n = 2"} space
   profiling.
 
@@ -207,93 +206,11 @@ text {*
   development, removing it from the database.
 
   \item \isacommand{exit} drops out of the Isar toplevel into the
-  underlying {\ML} toplevel (\secref{sec:ML-toplevel}).  The Isar
-  toplevel state is preserved and may be continued later.
+  underlying ML toplevel.  The Isar toplevel state is preserved and
+  may be continued later.
 
   \item \isacommand{quit} terminates the Isabelle/Isar process without
   saving.
-
-  \end{description}
-*}
-
-
-section {* ML toplevel \label{sec:ML-toplevel} *}
-
-text {*
-  The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
-  values, types, structures, and functors.  {\ML} declarations operate
-  on the global system state, which consists of the compiler
-  environment plus the values of {\ML} reference variables.  There is
-  no clean way to undo {\ML} declarations, except for reverting to a
-  previously saved state of the whole Isabelle process.  {\ML} input
-  is either read interactively from a TTY, or from a string (usually
-  within a theory text), or from a source file (usually loaded from a
-  theory).
-
-  Whenever the {\ML} toplevel is active, the current Isabelle theory
-  context is passed as an internal reference variable.  Thus {\ML}
-  code may access the theory context during compilation, it may even
-  change the value of a theory being under construction --- while
-  observing the usual linearity restrictions
-  (cf.~\secref{sec:context-theory}).
-*}
-
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML ML_Context.the_generic_context: "unit -> Context.generic"} \\
-  @{index_ML "Context.>> ": "(Context.generic -> Context.generic) -> unit"} \\
-  \end{mldecls}
-
-  \begin{description}
-
-  \item @{ML "ML_Context.the_generic_context ()"} refers to the theory
-  context of the {\ML} toplevel --- at compile time!  {\ML} code needs
-  to take care to refer to @{ML "ML_Context.the_generic_context ()"}
-  correctly.  Recall that evaluation of a function body is delayed
-  until actual runtime.  Moreover, persistent {\ML} toplevel bindings
-  to an unfinished theory should be avoided: code should either
-  project out the desired information immediately, or produce an
-  explicit @{ML_type theory_ref} (cf.\ \secref{sec:context-theory}).
-
-  \item @{ML "Context.>>"}~@{text f} applies context transformation
-  @{text f} to the implicit context of the {\ML} toplevel.
-
-  \end{description}
-
-  It is very important to note that the above functions are really
-  restricted to the compile time, even though the {\ML} compiler is
-  invoked at runtime!  The majority of {\ML} code uses explicit
-  functional arguments of a theory or proof context instead.  Thus it
-  may be invoked for an arbitrary context later on, without having to
-  worry about any operational details.
-
-  \bigskip
-
-  \begin{mldecls}
-  @{index_ML Isar.main: "unit -> unit"} \\
-  @{index_ML Isar.loop: "unit -> unit"} \\
-  @{index_ML Isar.state: "unit -> Toplevel.state"} \\
-  @{index_ML Isar.exn: "unit -> (exn * string) option"} \\
-  @{index_ML Isar.goal: "unit ->
-  {context: Proof.context, facts: thm list, goal: thm}"} \\
-  \end{mldecls}
-
-  \begin{description}
-
-  \item @{ML "Isar.main ()"} invokes the Isar toplevel from {\ML},
-  initializing an empty toplevel state.
-
-  \item @{ML "Isar.loop ()"} continues the Isar toplevel with the
-  current state, after having dropped out of the Isar toplevel loop.
-
-  \item @{ML "Isar.state ()"} and @{ML "Isar.exn ()"} get current
-  toplevel state and error condition, respectively.  This only works
-  after having dropped out of the Isar toplevel loop.
-
-  \item @{ML "Isar.goal ()"} produces the full Isar goal state,
-  consisting of proof context, facts that have been indicated for
-  immediate use, and the tactical goal according to
-  \secref{sec:tactical-goals}.
 
   \end{description}
 *}
@@ -315,10 +232,10 @@ text {*
 
   Theory @{text A} is associated with the main theory file @{text
   A}\verb,.thy,, which needs to be accessible through the theory
-  loader path.  Any number of additional {\ML} source files may be
+  loader path.  Any number of additional ML source files may be
   associated with each theory, by declaring these dependencies in the
   theory header as @{text \<USES>}, and loading them consecutively
-  within the theory context.  The system keeps track of incoming {\ML}
+  within the theory context.  The system keeps track of incoming ML
   sources and associates them with the current theory.
 
   The basic internal actions of the theory database are @{text

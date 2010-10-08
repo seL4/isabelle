@@ -133,10 +133,42 @@ qed
 
 section {* Compile-time context *}
 
-text FIXME
+text {* Whenever the ML compiler is invoked within Isabelle/Isar, the
+  formal context is passed as a thread-local reference variable.  Thus
+  ML code may access the theory context during compilation, by reading
+  or writing the (local) theory under construction.  Note that such
+  direct access to the compile-time context is rare; in practice it is
+  typically via some derived ML functions.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML ML_Context.the_generic_context: "unit -> Context.generic"} \\
+  @{index_ML "Context.>> ": "(Context.generic -> Context.generic) -> unit"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML "ML_Context.the_generic_context ()"} refers to the theory
+  context of the ML toplevel --- at compile time.  ML code needs to
+  take care to refer to @{ML "ML_Context.the_generic_context ()"}
+  correctly.  Recall that evaluation of a function body is delayed
+  until actual runtime.
+
+  \item @{ML "Context.>>"}~@{text f} applies context transformation
+  @{text f} to the implicit context of the ML toplevel.
+
+  \end{description}
+
+  It is very important to note that the above functions are really
+  restricted to the compile time, even though the ML compiler is
+  invoked at runtime.  The majority of ML code either uses static
+  antiquotations (\secref{sec:ML-antiq}) or refers to the theory or
+  proof context at run-time, by explicit functional abstraction.
+*}
 
 
-section {* Antiquotations *}
+section {* Antiquotations \label{sec:ML-antiq} *}
 
 text FIXME
 

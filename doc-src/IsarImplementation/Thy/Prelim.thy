@@ -193,7 +193,7 @@ text %mlref {*
   This version of ad-hoc theory merge fails for unrelated theories!
 
   \item @{ML "Theory.begin_theory"}~@{text "name parents"} constructs
-  a new theory based on the given parents.  This {\ML} function is
+  a new theory based on the given parents.  This ML function is
   normally not invoked directly.
 
   \item @{ML_type theory_ref} represents a sliding reference to an
