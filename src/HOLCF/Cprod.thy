@@ -97,7 +97,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
-subsection {* Cartesian product is an SFP domain *}
+subsection {* Cartesian product is a bifinite domain *}
 
 definition
   prod_approx :: "nat \<Rightarrow> udom \<times> udom \<rightarrow> udom \<times> udom"
@@ -127,7 +127,7 @@ apply (rule cast_sfp_fun2 [OF prod_approx])
 apply (erule (1) finite_deflation_cprod_map)
 done
 
-instantiation prod :: (sfp, sfp) sfp
+instantiation prod :: (bifinite, bifinite) bifinite
 begin
 
 definition
@@ -152,7 +152,8 @@ qed
 
 end
 
-lemma SFP_prod: "SFP('a::sfp \<times> 'b::sfp) = prod_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+lemma SFP_prod:
+  "SFP('a::bifinite \<times> 'b::bifinite) = prod_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
 by (rule sfp_prod_def)
 
 end

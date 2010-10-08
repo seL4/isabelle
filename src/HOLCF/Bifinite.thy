@@ -8,14 +8,14 @@ theory Bifinite
 imports Algebraic
 begin
 
-subsection {* Class of SFP domains *}
+subsection {* Class of bifinite domains *}
 
 text {*
-  We define a SFP domain as a pcpo that is isomorphic to some
+  We define a bifinite domain as a pcpo that is isomorphic to some
   algebraic deflation over the universal domain.
 *}
 
-class sfp = pcpo +
+class bifinite = pcpo +
   fixes emb :: "'a::pcpo \<rightarrow> udom"
   fixes prj :: "udom \<rightarrow> 'a::pcpo"
   fixes sfp :: "'a itself \<Rightarrow> sfp"
@@ -25,26 +25,26 @@ class sfp = pcpo +
 syntax "_SFP" :: "type \<Rightarrow> sfp"  ("(1SFP/(1'(_')))")
 translations "SFP('t)" \<rightleftharpoons> "CONST sfp TYPE('t)"
 
-interpretation sfp:
-  pcpo_ep_pair "emb :: 'a::sfp \<rightarrow> udom" "prj :: udom \<rightarrow> 'a::sfp"
+interpretation bifinite:
+  pcpo_ep_pair "emb :: 'a::bifinite \<rightarrow> udom" "prj :: udom \<rightarrow> 'a::bifinite"
   unfolding pcpo_ep_pair_def
   by (rule ep_pair_emb_prj)
 
-lemmas emb_inverse = sfp.e_inverse
-lemmas emb_prj_below = sfp.e_p_below
-lemmas emb_eq_iff = sfp.e_eq_iff
-lemmas emb_strict = sfp.e_strict
-lemmas prj_strict = sfp.p_strict
+lemmas emb_inverse = bifinite.e_inverse
+lemmas emb_prj_below = bifinite.e_p_below
+lemmas emb_eq_iff = bifinite.e_eq_iff
+lemmas emb_strict = bifinite.e_strict
+lemmas prj_strict = bifinite.p_strict
 
-subsection {* SFP domains have a countable compact basis *}
+subsection {* Bifinite domains have a countable compact basis *}
 
 text {*
   Eventually it should be possible to generalize this to an unpointed
-  variant of the sfp class.
+  variant of the bifinite class.
 *}
 
 interpretation compact_basis:
-  ideal_completion below Rep_compact_basis "approximants::'a::sfp \<Rightarrow> _"
+  ideal_completion below Rep_compact_basis "approximants::'a::bifinite \<Rightarrow> _"
 proof -
   obtain Y where Y: "\<forall>i. Y i \<sqsubseteq> Y (Suc i)"
   and SFP: "SFP('a) = (\<Squnion>i. sfp_principal (Y i))"
@@ -59,7 +59,7 @@ proof -
       by (simp add: lub_distribs Y SFP [symmetric] cast_SFP expand_cfun_eq)
     show "\<And>i. finite_deflation (approx i)"
       unfolding approx_def
-      apply (rule sfp.finite_deflation_p_d_e)
+      apply (rule bifinite.finite_deflation_p_d_e)
       apply (rule finite_deflation_cast)
       apply (rule sfp.compact_principal)
       apply (rule below_trans [OF monofun_cfun_fun])
@@ -146,7 +146,7 @@ qed
 
 subsection {* Instance for universal domain type *}
 
-instantiation udom :: sfp
+instantiation udom :: bifinite
 begin
 
 definition [simp]:
@@ -208,7 +208,7 @@ apply (rule cast_sfp_fun2 [OF cfun_approx])
 apply (erule (1) finite_deflation_cfun_map)
 done
 
-instantiation cfun :: (sfp, sfp) sfp
+instantiation cfun :: (bifinite, bifinite) bifinite
 begin
 
 definition
@@ -233,7 +233,8 @@ qed
 
 end
 
-lemma SFP_cfun: "SFP('a::sfp \<rightarrow> 'b::sfp) = cfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+lemma SFP_cfun:
+  "SFP('a::bifinite \<rightarrow> 'b::bifinite) = cfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
 by (rule sfp_cfun_def)
 
 end

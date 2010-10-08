@@ -213,7 +213,7 @@ fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
   end;
 
 fun pcpo_arg lazy = if lazy then @{sort cpo} else @{sort pcpo};
-fun rep_arg lazy = @{sort sfp};
+fun rep_arg lazy = @{sort bifinite};
 
 val add_domain =
     gen_add_domain Sign.certify_typ Domain_Axioms.add_axioms pcpo_arg;

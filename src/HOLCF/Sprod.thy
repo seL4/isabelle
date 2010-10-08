@@ -310,7 +310,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
-subsection {* Strict product is an SFP domain *}
+subsection {* Strict product is a bifinite domain *}
 
 definition
   sprod_approx :: "nat \<Rightarrow> udom \<otimes> udom \<rightarrow> udom \<otimes> udom"
@@ -342,7 +342,7 @@ apply (rule cast_sfp_fun2 [OF sprod_approx])
 apply (erule (1) finite_deflation_sprod_map)
 done
 
-instantiation sprod :: (sfp, sfp) sfp
+instantiation sprod :: (bifinite, bifinite) bifinite
 begin
 
 definition
@@ -367,9 +367,8 @@ qed
 
 end
 
-text {* SFP of type constructor = type combinator *}
-
-lemma SFP_sprod: "SFP('a::sfp \<otimes> 'b::sfp) = sprod_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+lemma SFP_sprod:
+  "SFP('a::bifinite \<otimes> 'b::bifinite) = sprod_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
 by (rule sfp_sprod_def)
 
 end

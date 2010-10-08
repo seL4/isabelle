@@ -171,7 +171,7 @@ lemma flift2_defined_iff [simp]: "(flift2 f\<cdot>x = \<bottom>) = (x = \<bottom
 by (cases x, simp_all)
 
 
-subsection {* Lifted countable types are SFP domains *}
+subsection {* Lifted countable types are bifinite domains *}
 
 definition
   lift_approx :: "nat \<Rightarrow> 'a::countable lift \<rightarrow> 'a lift"
@@ -220,7 +220,7 @@ lemma lift_approx: "approx_chain lift_approx"
 using chain_lift_approx lub_lift_approx finite_deflation_lift_approx
 by (rule approx_chain.intro)
 
-instantiation lift :: (countable) sfp
+instantiation lift :: (countable) bifinite
 begin
 
 definition

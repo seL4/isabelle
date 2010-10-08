@@ -295,7 +295,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
-subsection {* Strict sum is an SFP domain *}
+subsection {* Strict sum is a bifinite domain *}
 
 definition
   ssum_approx :: "nat \<Rightarrow> udom \<oplus> udom \<rightarrow> udom \<oplus> udom"
@@ -325,7 +325,7 @@ apply (rule cast_sfp_fun2 [OF ssum_approx])
 apply (erule (1) finite_deflation_ssum_map)
 done
 
-instantiation ssum :: (sfp, sfp) sfp
+instantiation ssum :: (bifinite, bifinite) bifinite
 begin
 
 definition
@@ -350,9 +350,8 @@ qed
 
 end
 
-text {* SFP of type constructor = type combinator *}
-
-lemma SFP_ssum: "SFP('a::sfp \<oplus> 'b::sfp) = ssum_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+lemma SFP_ssum:
+  "SFP('a::bifinite \<oplus> 'b::bifinite) = ssum_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
 by (rule sfp_ssum_def)
 
 end

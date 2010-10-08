@@ -143,7 +143,7 @@ proof (intro finite_deflation.intro finite_deflation_axioms.intro)
          deflation_strict `deflation d1` `deflation d2`)
 qed
 
-subsection {* Strict function space is an SFP domain *}
+subsection {* Strict function space is a bifinite domain *}
 
 definition
   sfun_approx :: "nat \<Rightarrow> (udom \<rightarrow>! udom) \<rightarrow> (udom \<rightarrow>! udom)"
@@ -173,7 +173,7 @@ apply (rule cast_sfp_fun2 [OF sfun_approx])
 apply (erule (1) finite_deflation_sfun_map)
 done
 
-instantiation sfun :: (sfp, sfp) sfp
+instantiation sfun :: (bifinite, bifinite) bifinite
 begin
 
 definition
@@ -198,9 +198,8 @@ qed
 
 end
 
-text {* SFP of type constructor = type combinator *}
-
-lemma SFP_sfun: "SFP('a::sfp \<rightarrow>! 'b::sfp) = sfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+lemma SFP_sfun:
+  "SFP('a::bifinite \<rightarrow>! 'b::bifinite) = sfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
 by (rule sfp_sfun_def)
 
 lemma isodefl_sfun:

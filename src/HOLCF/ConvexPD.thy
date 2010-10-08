@@ -123,7 +123,7 @@ typedef (open) 'a convex_pd =
   "{S::'a pd_basis set. convex_le.ideal S}"
 by (fast intro: convex_le.ideal_principal)
 
-instantiation convex_pd :: (sfp) below
+instantiation convex_pd :: (bifinite) below
 begin
 
 definition
@@ -132,11 +132,11 @@ definition
 instance ..
 end
 
-instance convex_pd :: (sfp) po
+instance convex_pd :: (bifinite) po
 using type_definition_convex_pd below_convex_pd_def
 by (rule convex_le.typedef_ideal_po)
 
-instance convex_pd :: (sfp) cpo
+instance convex_pd :: (bifinite) cpo
 using type_definition_convex_pd below_convex_pd_def
 by (rule convex_le.typedef_ideal_cpo)
 
@@ -155,7 +155,7 @@ text {* Convex powerdomain is pointed *}
 lemma convex_pd_minimal: "convex_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: convex_pd.principal_induct, simp, simp)
 
-instance convex_pd :: (sfp) pcpo
+instance convex_pd :: (bifinite) pcpo
 by intro_classes (fast intro: convex_pd_minimal)
 
 lemma inst_convex_pd_pcpo: "\<bottom> = convex_principal (PDUnit compact_bot)"
@@ -444,7 +444,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Convex powerdomain is an SFP domain *}
+subsection {* Convex powerdomain is a bifinite domain *}
 
 definition
   convex_approx :: "nat \<Rightarrow> udom convex_pd \<rightarrow> udom convex_pd"
@@ -474,7 +474,7 @@ apply (rule cast_sfp_fun1 [OF convex_approx])
 apply (erule finite_deflation_convex_map)
 done
 
-instantiation convex_pd :: (sfp) sfp
+instantiation convex_pd :: (bifinite) bifinite
 begin
 
 definition

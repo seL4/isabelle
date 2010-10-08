@@ -8,7 +8,7 @@ theory CompactBasis
 imports Bifinite
 begin
 
-default_sort sfp
+default_sort bifinite
 
 subsection {* A compact basis for powerdomains *}
 
@@ -24,7 +24,7 @@ by (insert Rep_pd_basis [of u, unfolded pd_basis_def]) simp
 
 text {* The powerdomain basis type is countable. *}
 
-lemma pd_basis_countable: "\<exists>f::'a::sfp pd_basis \<Rightarrow> nat. inj f"
+lemma pd_basis_countable: "\<exists>f::'a pd_basis \<Rightarrow> nat. inj f"
 proof -
   obtain g :: "'a compact_basis \<Rightarrow> nat" where "inj g"
     using compact_basis.countable ..

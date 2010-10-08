@@ -76,7 +76,7 @@ typedef (open) 'a upper_pd =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (fast intro: upper_le.ideal_principal)
 
-instantiation upper_pd :: (sfp) below
+instantiation upper_pd :: (bifinite) below
 begin
 
 definition
@@ -85,11 +85,11 @@ definition
 instance ..
 end
 
-instance upper_pd :: (sfp) po
+instance upper_pd :: (bifinite) po
 using type_definition_upper_pd below_upper_pd_def
 by (rule upper_le.typedef_ideal_po)
 
-instance upper_pd :: (sfp) cpo
+instance upper_pd :: (bifinite) cpo
 using type_definition_upper_pd below_upper_pd_def
 by (rule upper_le.typedef_ideal_cpo)
 
@@ -108,7 +108,7 @@ text {* Upper powerdomain is pointed *}
 lemma upper_pd_minimal: "upper_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: upper_pd.principal_induct, simp, simp)
 
-instance upper_pd :: (sfp) pcpo
+instance upper_pd :: (bifinite) pcpo
 by intro_classes (fast intro: upper_pd_minimal)
 
 lemma inst_upper_pd_pcpo: "\<bottom> = upper_principal (PDUnit compact_bot)"
@@ -428,7 +428,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Upper powerdomain is an SFP domain *}
+subsection {* Upper powerdomain is a bifinite domain *}
 
 definition
   upper_approx :: "nat \<Rightarrow> udom upper_pd \<rightarrow> udom upper_pd"
@@ -458,7 +458,7 @@ apply (rule cast_sfp_fun1 [OF upper_approx])
 apply (erule finite_deflation_upper_map)
 done
 
-instantiation upper_pd :: (sfp) sfp
+instantiation upper_pd :: (bifinite) bifinite
 begin
 
 definition
@@ -482,8 +482,6 @@ next
 qed
 
 end
-
-text {* SFP of type constructor = type combinator *}
 
 lemma SFP_upper: "SFP('a upper_pd) = upper_sfp\<cdot>SFP('a)"
 by (rule sfp_upper_pd_def)

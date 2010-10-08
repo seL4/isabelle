@@ -78,7 +78,7 @@ typedef (open) 'a lower_pd =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (fast intro: lower_le.ideal_principal)
 
-instantiation lower_pd :: (sfp) below
+instantiation lower_pd :: (bifinite) below
 begin
 
 definition
@@ -87,11 +87,11 @@ definition
 instance ..
 end
 
-instance lower_pd :: (sfp) po
+instance lower_pd :: (bifinite) po
 using type_definition_lower_pd below_lower_pd_def
 by (rule lower_le.typedef_ideal_po)
 
-instance lower_pd :: (sfp) cpo
+instance lower_pd :: (bifinite) cpo
 using type_definition_lower_pd below_lower_pd_def
 by (rule lower_le.typedef_ideal_cpo)
 
@@ -110,7 +110,7 @@ text {* Lower powerdomain is pointed *}
 lemma lower_pd_minimal: "lower_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: lower_pd.principal_induct, simp, simp)
 
-instance lower_pd :: (sfp) pcpo
+instance lower_pd :: (bifinite) pcpo
 by intro_classes (fast intro: lower_pd_minimal)
 
 lemma inst_lower_pd_pcpo: "\<bottom> = lower_principal (PDUnit compact_bot)"
@@ -433,7 +433,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Lower powerdomain is an SFP domain *}
+subsection {* Lower powerdomain is a bifinite domain *}
 
 definition
   lower_approx :: "nat \<Rightarrow> udom lower_pd \<rightarrow> udom lower_pd"
@@ -463,7 +463,7 @@ apply (rule cast_sfp_fun1 [OF lower_approx])
 apply (erule finite_deflation_lower_map)
 done
 
-instantiation lower_pd :: (sfp) sfp
+instantiation lower_pd :: (bifinite) bifinite
 begin
 
 definition
@@ -487,8 +487,6 @@ next
 qed
 
 end
-
-text {* SFP of type constructor = type combinator *}
 
 lemma SFP_lower: "SFP('a lower_pd) = lower_sfp\<cdot>SFP('a)"
 by (rule sfp_lower_pd_def)

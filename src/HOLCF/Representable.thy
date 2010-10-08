@@ -11,23 +11,23 @@ uses
   ("Tools/Domain/domain_isomorphism.ML")
 begin
 
-default_sort sfp
+default_sort bifinite
 
 subsection {* Representations of types *}
 
-lemma emb_prj: "emb\<cdot>((prj\<cdot>x)::'a::sfp) = cast\<cdot>SFP('a)\<cdot>x"
+lemma emb_prj: "emb\<cdot>((prj\<cdot>x)::'a) = cast\<cdot>SFP('a)\<cdot>x"
 by (simp add: cast_SFP)
 
 lemma in_SFP_iff:
-  "x ::: SFP('a::sfp) \<longleftrightarrow> emb\<cdot>((prj\<cdot>x)::'a) = x"
+  "x ::: SFP('a) \<longleftrightarrow> emb\<cdot>((prj\<cdot>x)::'a) = x"
 by (simp add: in_sfp_def cast_SFP)
 
 lemma prj_inverse:
-  "x ::: SFP('a::sfp) \<Longrightarrow> emb\<cdot>((prj\<cdot>x)::'a) = x"
+  "x ::: SFP('a) \<Longrightarrow> emb\<cdot>((prj\<cdot>x)::'a) = x"
 by (simp only: in_SFP_iff)
 
 lemma emb_in_SFP [simp]:
-  "emb\<cdot>(x::'a::sfp) ::: SFP('a)"
+  "emb\<cdot>(x::'a) ::: SFP('a)"
 by (simp add: in_SFP_iff)
 
 subsection {* Coerce operator *}
@@ -137,7 +137,7 @@ lemma typedef_rep_class:
   assumes emb: "emb \<equiv> (\<Lambda> x. Rep x)"
   assumes prj: "prj \<equiv> (\<Lambda> x. Abs (cast\<cdot>t\<cdot>x))"
   assumes sfp: "sfp \<equiv> (\<lambda> a::'a itself. t)"
-  shows "OFCLASS('a, sfp_class)"
+  shows "OFCLASS('a, bifinite_class)"
 proof
   have adm: "adm (\<lambda>x. x \<in> {x. x ::: t})"
     by (simp add: adm_in_sfp)
@@ -180,13 +180,13 @@ unfolding assms ..
 text {* Restore original typing constraints *}
 
 setup {* Sign.add_const_constraint
-  (@{const_name sfp}, SOME @{typ "'a::sfp itself \<Rightarrow> sfp"}) *}
+  (@{const_name sfp}, SOME @{typ "'a::bifinite itself \<Rightarrow> sfp"}) *}
 
 setup {* Sign.add_const_constraint
-  (@{const_name emb}, SOME @{typ "'a::sfp \<rightarrow> udom"}) *}
+  (@{const_name emb}, SOME @{typ "'a::bifinite \<rightarrow> udom"}) *}
 
 setup {* Sign.add_const_constraint
-  (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::sfp"}) *}
+  (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::bifinite"}) *}
 
 lemma adm_mem_Collect_in_sfp: "adm (\<lambda>x. x \<in> {x. x ::: A})"
 unfolding mem_Collect_eq by (rule adm_in_sfp)
@@ -196,7 +196,7 @@ use "Tools/repdef.ML"
 subsection {* Isomorphic deflations *}
 
 definition
-  isodefl :: "('a::sfp \<rightarrow> 'a) \<Rightarrow> sfp \<Rightarrow> bool"
+  isodefl :: "('a \<rightarrow> 'a) \<Rightarrow> sfp \<Rightarrow> bool"
 where
   "isodefl d t \<longleftrightarrow> cast\<cdot>t = emb oo d oo prj"
 
@@ -211,7 +211,7 @@ unfolding isodefl_def
 by (drule cfun_fun_cong [where x="\<bottom>"], simp)
 
 lemma isodefl_imp_deflation:
-  fixes d :: "'a::sfp \<rightarrow> 'a"
+  fixes d :: "'a \<rightarrow> 'a"
   assumes "isodefl d t" shows "deflation d"
 proof
   note assms [unfolded isodefl_def, simp]

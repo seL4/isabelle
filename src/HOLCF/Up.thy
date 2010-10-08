@@ -332,7 +332,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d.finite_fixes)
 qed
 
-subsection {* Lifted cpo is an SFP domain *}
+subsection {* Lifted cpo is a bifinite domain *}
 
 definition u_approx :: "nat \<Rightarrow> udom\<^sub>\<bottom> \<rightarrow> udom\<^sub>\<bottom>"
 where "u_approx = (\<lambda>i. u_map\<cdot>(udom_approx i))"
@@ -360,7 +360,7 @@ apply (rule cast_sfp_fun1 [OF u_approx])
 apply (erule finite_deflation_u_map)
 done
 
-instantiation u :: (sfp) sfp
+instantiation u :: (bifinite) bifinite
 begin
 
 definition
@@ -385,9 +385,7 @@ qed
 
 end
 
-text {* SFP of type constructor = type combinator *}
-
-lemma SFP_u: "SFP('a::sfp u) = u_sfp\<cdot>SFP('a)"
+lemma SFP_u: "SFP('a::bifinite u) = u_sfp\<cdot>SFP('a)"
 by (rule sfp_u_def)
 
 end

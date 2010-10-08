@@ -8,7 +8,7 @@ theory Domain_Proofs
 imports HOLCF
 begin
 
-default_sort sfp
+default_sort bifinite
 
 (*
 
@@ -93,7 +93,7 @@ by (simp_all add: adm_in_sfp)
 
 text {* Prove rep instance using lemma @{text typedef_rep_class}. *}
 
-instantiation foo :: (sfp) sfp
+instantiation foo :: (bifinite) bifinite
 begin
 
 definition emb_foo :: "'a foo \<rightarrow> udom"
@@ -116,7 +116,7 @@ done
 
 end
 
-instantiation bar :: (sfp) sfp
+instantiation bar :: (bifinite) bifinite
 begin
 
 definition emb_bar :: "'a bar \<rightarrow> udom"
@@ -139,7 +139,7 @@ done
 
 end
 
-instantiation baz :: (sfp) sfp
+instantiation baz :: (bifinite) bifinite
 begin
 
 definition emb_baz :: "'a baz \<rightarrow> udom"

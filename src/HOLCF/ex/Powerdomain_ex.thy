@@ -8,7 +8,7 @@ theory Powerdomain_ex
 imports HOLCF
 begin
 
-default_sort sfp
+default_sort bifinite
 
 subsection {* Monadic sorting example *}
 
