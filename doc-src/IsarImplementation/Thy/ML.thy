@@ -30,39 +30,47 @@ text {* Isabelle/ML is best understood as a certain culture based on
 
 section {* SML embedded into Isabelle/Isar *}
 
-text {* ML and Isabelle/Isar are intertwined via an open-ended
-  bootstrap process that provides more and more programming facilities
-  and logical content in an alternating manner.  Bootstrapping starts
-  from the raw environment of existing implementations of Standard ML
-  (most notably Poly/ML but also SML/NJ).  Isabelle/Pure marks the
-  point where the original ML toplevel is superseded by the Isar
-  toplevel that maintains a uniform environment for arbitrary ML
-  values (see also \secref{sec:context}).  This formal context holds
-  logical entities as well as ML compiler bindings, among many other
-  things.
+text {* ML and Isar are intertwined via an open-ended bootstrap
+  process that provides more and more programming facilities and
+  logical content in an alternating manner.  Bootstrapping starts from
+  the raw environment of existing implementations of Standard ML
+  (mainly Poly/ML, but also SML/NJ).
 
-  Object-logics, such as Isabelle/HOL, are built within the
+  Isabelle/Pure marks the point where the original ML toplevel is
+  superseded by the Isar toplevel that maintains a uniform environment
+  for arbitrary ML values (see also \secref{sec:context}).  This
+  formal context holds logical entities as well as ML compiler
+  bindings, among many other things.  Raw Standard ML is never
+  encountered again after the initial bootstrap of Isabelle/Pure.
+
+  Object-logics such as Isabelle/HOL are built within the
   Isabelle/ML/Isar environment of Pure by introducing suitable
-  theories with associated ML text (either inlined or as separate
-  files).
-
-  Implementing tools within the Isabelle framework means to work with
-  ML within the Isar context in the same manner: raw Standard ML is
-  normally never encountered again.
+  theories with associated ML text, either inlined or as separate
+  files.  Thus Isabelle/HOL is defined as a regular user-space
+  application within the Isabelle framework.  Further add-on tools can
+  be implemented in ML within the Isar context in the same manner: ML
+  is part of the regular user-space repertoire of Isabelle.
 *}
+
 
 section {* Isar ML commands *}
 
 text {* The primary Isar source language provides various facilities
   to open a ``window'' to the underlying ML compiler.  Especially see
-  @{command_ref "use"} and @{command_ref "ML"} in
-  \cite{isabelle-isar-ref} --- both commands are exactly the same,
-  only the source text is provided via a file vs.\ inlined,
-  respectively.  *}
+  @{command_ref "use"} and @{command_ref "ML"}, which work exactly the
+  same way, only the source text is provided via a file vs.\ inlined,
+  respectively.  Apart from embedding ML into the main theory
+  definition like that, there are many more commands that refer to ML
+  source, such as @{command_ref setup} or @{command_ref declaration}.
+  An example of even more fine-grained embedding of ML into Isar is
+  the proof method @{method_ref tactic}, which refines the pending goal state
+  via a given expression of type @{ML_type tactic}.
+*}
 
-text %mlex {* The following artificial example demonstrates basic ML
-  programming within the implicit Isar theory context, without
-  referring to logical entities yet.
+text %mlex {* The following artificial example demonstrates some ML
+  toplevel declarations within the implicit Isar theory context.  This
+  is regular functional programming without referring to logical
+  entities yet.
 *}
 
 ML {*
@@ -70,50 +78,57 @@ ML {*
     | factorial n = n * factorial (n - 1)
 *}
 
-text {* \noindent The ML binding of @{ML factorial} is really managed
-  by the Isabelle environment, i.e.\ that function is not yet
-  accessible in the preceding paragraph, nor in a different theory
-  that is independent from the current one in the import hierarchy.
+text {* \noindent Here the ML environment is really managed by
+  Isabelle, i.e.\ the @{ML factorial} function is not yet accessible
+  in the preceding paragraph, nor in a different theory that is
+  independent from the current one in the import hierarchy.
 
   Removing the above ML declaration from the source text will remove
   any trace of this definition as expected.  The Isabelle/ML toplevel
   environment is managed in a \emph{stateless} way: unlike the raw ML
-  toplevel, there are no global side-effects involved.
+  toplevel or similar command loops of Computer Algebra systems, there
+  are no global side-effects involved here.\footnote{Such a stateless
+  compilation environment is also a prerequisite for robust parallel
+  compilation within independent nodes of the implicit theory
+  development graph.}
 
   \bigskip The next example shows how to embed ML into Isar proofs.
-  Instead of @{command_ref "ML"} for theory text, we use @{command_ref
-  "ML_prf"}: its effect on the ML environment is local to the whole
-  proof body, while ignoring its internal block structure.  *}
+  Instead of @{command_ref "ML"} for theory mode, we use @{command_ref
+  "ML_prf"} for proof mode.  As illustrated below, its effect on the
+  ML environment is local to the whole proof body, while ignoring its
+  internal block structure.
+*}
 
 example_proof
   ML_prf {* val a = 1 *}
-  { -- {* proof block ignored by ML environment *}
+  { -- {* Isar block structure ignored by ML environment *}
     ML_prf {* val b = a + 1 *}
-  } -- {* proof block ignored by ML environment *}
+  } -- {* Isar block structure ignored by ML environment *}
   ML_prf {* val c = b + 1 *}
 qed
 
-text {* \noindent By side-stepping the normal Isar scoping rules,
-  embedded ML code can refer to the different contexts explicitly, and
-  manipulate corresponding entities, e.g.\ export a fact from a
-  block context.
+text {* \noindent By side-stepping the normal scoping rules for Isar
+  proof blocks, embedded ML code can refer to the different contexts
+  explicitly, and manipulate corresponding entities, e.g.\ export a
+  fact from a block context.
 
-  \bigskip The diagnostic ML commands @{command_ref ML_val} and
-  @{command_ref ML_command} do not affect the underlying context, and
-  can be used anywhere, e.g.\ to produce long strings of digits as
-  follows: *}
+  \bigskip Two further ML commands are useful in certain situations:
+  @{command_ref ML_val} and @{command_ref ML_command} are both
+  \emph{diagnostic} in the sense that there is no effect on the
+  underlying environment, and can thus used anywhere (even outside a
+  theory).  The examples below produce long strings of digits by
+  invoking @{ML factorial}: @{command ML_val} already takes care of
+  printing the ML toplevel result, but @{command ML_command} is silent
+  so we produce an explicit output message.
+*}
 
 ML_val {* factorial 100 *}
 ML_command {* writeln (string_of_int (factorial 100)) *}
 
 example_proof
-  ML_val {* factorial 100 *}
+  ML_val {* factorial 100 *}  (* FIXME check/fix indentation *)
   ML_command {* writeln (string_of_int (factorial 100)) *}
 qed
-
-text {* \noindent Note that @{command ML_val} and @{command
-  ML_command} only differ in the output (or lack thereof) of ML
-  toplevel results. *}
 
 
 section {* Compile-time context *}
