@@ -181,41 +181,6 @@ text %mlref {*
 *}
 
 
-subsection {* Toplevel control *}
-
-text {*
-  There are a few special control commands that modify the behavior
-  the toplevel itself, and only make sense in interactive mode.  Under
-  normal circumstances, the user encounters these only implicitly as
-  part of the protocol between the Isabelle/Isar system and a
-  user-interface such as Proof~General.
-
-  \begin{description}
-
-  \item \isacommand{undo} follows the three-level hierarchy of empty
-  toplevel vs.\ theory vs.\ proof: undo within a proof reverts to the
-  previous proof context, undo after a proof reverts to the theory
-  before the initial goal statement, undo of a theory command reverts
-  to the previous theory value, undo of a theory header discontinues
-  the current theory development and removes it from the theory
-  database (\secref{sec:theory-database}).
-
-  \item \isacommand{kill} aborts the current level of development:
-  kill in a proof context reverts to the theory before the initial
-  goal statement, kill in a theory context aborts the current theory
-  development, removing it from the database.
-
-  \item \isacommand{exit} drops out of the Isar toplevel into the
-  underlying ML toplevel.  The Isar toplevel state is preserved and
-  may be continued later.
-
-  \item \isacommand{quit} terminates the Isabelle/Isar process without
-  saving.
-
-  \end{description}
-*}
-
-
 section {* Theory database \label{sec:theory-database} *}
 
 text {*
