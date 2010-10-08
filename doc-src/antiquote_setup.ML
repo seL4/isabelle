@@ -184,6 +184,7 @@ val _ = entity_antiqs no_check "isatt" "executable";
 val _ = entity_antiqs (K check_tool) "isatt" "tool";
 val _ = entity_antiqs (K (File.exists o Path.explode)) "isatt" "file";
 val _ = entity_antiqs (K (can Thy_Info.get_theory)) "" "theory";
+val _ = entity_antiqs no_check "" "ML antiquotation";  (* FIXME proper check *)
 
 end;
 
