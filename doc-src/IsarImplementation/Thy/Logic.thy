@@ -185,6 +185,51 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "class"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "sort"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "type_name"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "type_abbrev"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "nonterminal"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "typ"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  'class' nameref
+  ;
+  'sort' sort
+  ;
+  ('type\_name' | 'type\_abbrev' | 'nonterminal') nameref
+  ;
+  'typ' type
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item @{text "@{class c}"} inlines the internalized class @{text
+  "c"} --- as @{ML_type string} literal.
+
+  \item @{text "@{sort s}"} inlines the internalized sort @{text "s"}
+  --- as @{ML_type "string list"} literal.
+
+  \item @{text "@{type_name c}"} inlines the internalized type
+  constructor @{text "c"} --- as @{ML_type string} literal.
+
+  \item @{text "@{type_abbrev c}"} inlines the internalized type
+  abbreviation @{text "c"} --- as @{ML_type string} literal.
+
+  \item @{text "@{nonterminal c}"} inlines the internalized syntactic
+  type~/ grammar nonterminal @{text "c"} --- as @{ML_type string}
+  literal.
+
+  \item @{text "@{typ \<tau>}"} inlines the internalized type @{text "\<tau>"}
+  --- as constructor term for datatype @{ML_type typ}.
+
+  \end{description}
+*}
+
 
 section {* Terms \label{sec:terms} *}
 
@@ -377,6 +422,49 @@ text %mlref {*
   Sign.const_instance}~@{text "thy (c, [\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n])"}
   convert between two representations of polymorphic constants: full
   type instance vs.\ compact type arguments form.
+
+  \end{description}
+*}
+
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "const_name"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "const_abbrev"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "const"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "term"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "prop"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  ('const\_name' | 'const\_abbrev') nameref
+  ;
+  'const' ('(' (type + ',') ')')?
+  ;
+  'term' term
+  ;
+  'prop' prop
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item @{text "@{const_name c}"} inlines the internalized logical
+  constant name @{text "c"} --- as @{ML_type string} literal.
+
+  \item @{text "@{const_abbrev c}"} inlines the internalized
+  abbreviated constant name @{text "c"} --- as @{ML_type string}
+  literal.
+
+  \item @{text "@{const c(\<^vec>\<tau>)}"} inlines the internalized
+  constant @{text "c"} with precise type instantiation in the sense of
+  @{ML Sign.const_instance} --- as @{ML Const} constructor term for
+  datatype @{ML_type term}.
+
+  \item @{text "@{term t}"} inlines the internalized term @{text "t"}
+  --- as constructor term for datatype @{ML_type term}.
+
+  \item @{text "@{prop \<phi>}"} inlines the internalized proposition
+  @{text "\<phi>"} --- as constructor term for datatype @{ML_type term}.
 
   \end{description}
 *}
@@ -630,6 +718,68 @@ text %mlref {*
   specifications for constants @{text "\<^vec>d\<^isub>\<sigma>"}.
 
   \end{description}
+*}
+
+
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "ctyp"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "cterm"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "cprop"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "thm"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "thms"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "lemma"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  'ctyp' typ
+  ;
+  'cterm' term
+  ;
+  'cprop' prop
+  ;
+  'thm' thmref
+  ;
+  'thms' thmrefs
+  ;
+  'lemma' ('(open)')? ((prop +) + 'and') \\ 'by' method method?
+  \end{rail}
+
+  \begin{description}
+
+  \item @{text "@{ctyp \<tau>}"} produces a certified type wrt.\ the
+  current background theory --- as abstract value of type @{ML_type
+  ctyp}.
+
+  \item @{text "@{cterm t}"} and @{text "@{cprop \<phi>}"} produce a
+  certified term wrt.\ the current background theory --- as abstract
+  value of type @{ML_type cterm}.
+
+  \item @{text "@{thm a}"} produces a singleton fact --- as abstract
+  value of type @{ML_type thm}.
+
+  \item @{text "@{thms a}"} produces a general fact --- as abstract
+  value of type @{ML_type "thm list"}.
+
+  \item @{text "@{lemma \<phi> by meth}"} produces a fact that is proven on
+  the spot according to the minimal proof, which imitates a terminal
+  Isar proof.  The result is an abstract value of type @{ML_type thm}
+  or @{ML_type "thm list"}, depending on the number of propositions
+  given here.
+
+  The internal derivation object lacks a proper theorem name, but it
+  is formally closed, unless the @{text "(open)"} option is specified
+  (this may impact performance of applications with proof terms).
+
+  Since ML antiquotations are always evaluated at compile-time, there
+  is no run-time overhead even for non-trivial proofs.  Nonetheless,
+  the justification is syntactically limited to a single @{command
+  "by"} step.  More complex Isar proofs should be done in regular
+  theory source, before compiling the corresponding ML text that uses
+  the result.
+
+  \end{description}
+
 *}
 
 

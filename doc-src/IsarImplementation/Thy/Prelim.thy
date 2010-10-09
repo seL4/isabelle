@@ -211,6 +211,33 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "theory"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "theory_ref"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  ('theory' | 'theory\_ref') nameref?
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item @{text "@{theory}"} refers to the background theory of the
+  current context --- as abstract value.
+
+  \item @{text "@{theory A}"} refers to an explicitly named ancestor
+  theory @{text "A"} of the background theory of the current context
+  --- as abstract value.
+
+  \item @{text "@{theory_ref}"} is similar to @{text "@{theory}"}, but
+  produces a @{ML_type theory_ref} via @{ML "Theory.check_thy"} as
+  explained above.
+
+  \end{description}
+*}
+
 
 subsection {* Proof context \label{sec:context-proof} *}
 
@@ -266,6 +293,23 @@ text %mlref {*
   \item @{ML ProofContext.transfer}~@{text "thy ctxt"} promotes the
   background theory of @{text "ctxt"} to the super theory @{text
   "thy"}.
+
+  \end{description}
+*}
+
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "context"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item @{text "@{context}"} refers to \emph{the} context at
+  compile-time --- as abstract value.  Independently of (local) theory
+  or proof mode, this always produces a meaningful result.
+
+  This is probably the most common antiquotation in interactive
+  experimentation with ML inside Isar.
 
   \end{description}
 *}
@@ -916,7 +960,9 @@ text %mlref {*
   \item @{ML Binding.empty} is the empty binding.
 
   \item @{ML Binding.name}~@{text "name"} produces a binding with base
-  name @{text "name"}.
+  name @{text "name"}.  Note that this lacks proper source position
+  information; see also the ML antiquotation @{ML_antiquotation
+  binding}.
 
   \item @{ML Binding.qualify}~@{text "mandatory name binding"}
   prefixes qualifier @{text "name"} to @{text "binding"}.  The @{text
@@ -986,6 +1032,26 @@ text %mlref {*
   \item @{ML Name_Space.is_concealed}~@{text "space name"} indicates
   whether @{text "name"} refers to a strictly private entity that
   other tools are supposed to ignore!
+
+  \end{description}
+*}
+
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "binding"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  'binding' name
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item @{text "@{binding name}"} produces a binding with base name
+  @{text "name"} and the source position taken from the concrete
+  syntax of this antiquotation.  In many situations this is more
+  appropriate than the more basic @{ML Binding.name} function.
 
   \end{description}
 *}
