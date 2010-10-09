@@ -5,7 +5,7 @@
 header {* The type of lifted values *}
 
 theory Up
-imports Bifinite
+imports Deflation
 begin
 
 default_sort cpo
@@ -331,61 +331,5 @@ proof (rule finite_deflation_intro)
   thus "finite {x. u_map\<cdot>d\<cdot>x = x}"
     by (rule finite_subset, simp add: d.finite_fixes)
 qed
-
-subsection {* Lifted cpo is a bifinite domain *}
-
-definition u_approx :: "nat \<Rightarrow> udom\<^sub>\<bottom> \<rightarrow> udom\<^sub>\<bottom>"
-where "u_approx = (\<lambda>i. u_map\<cdot>(udom_approx i))"
-
-lemma u_approx: "approx_chain u_approx"
-proof (rule approx_chain.intro)
-  show "chain (\<lambda>i. u_approx i)"
-    unfolding u_approx_def by simp
-  show "(\<Squnion>i. u_approx i) = ID"
-    unfolding u_approx_def
-    by (simp add: lub_distribs u_map_ID)
-  show "\<And>i. finite_deflation (u_approx i)"
-    unfolding u_approx_def
-    by (intro finite_deflation_u_map finite_deflation_udom_approx)
-qed
-
-definition u_sfp :: "sfp \<rightarrow> sfp"
-where "u_sfp = sfp_fun1 u_approx u_map"
-
-lemma cast_u_sfp:
-  "cast\<cdot>(u_sfp\<cdot>A) =
-    udom_emb u_approx oo u_map\<cdot>(cast\<cdot>A) oo udom_prj u_approx"
-unfolding u_sfp_def
-apply (rule cast_sfp_fun1 [OF u_approx])
-apply (erule finite_deflation_u_map)
-done
-
-instantiation u :: (bifinite) bifinite
-begin
-
-definition
-  "emb = udom_emb u_approx oo u_map\<cdot>emb"
-
-definition
-  "prj = u_map\<cdot>prj oo udom_prj u_approx"
-
-definition
-  "sfp (t::'a u itself) = u_sfp\<cdot>SFP('a)"
-
-instance proof
-  show "ep_pair emb (prj :: udom \<rightarrow> 'a u)"
-    unfolding emb_u_def prj_u_def
-    using ep_pair_udom [OF u_approx]
-    by (intro ep_pair_comp ep_pair_u_map ep_pair_emb_prj)
-next
-  show "cast\<cdot>SFP('a u) = emb oo (prj :: udom \<rightarrow> 'a u)"
-    unfolding emb_u_def prj_u_def sfp_u_def cast_u_sfp
-    by (simp add: cast_SFP oo_def expand_cfun_eq u_map_map)
-qed
-
-end
-
-lemma SFP_u: "SFP('a::bifinite u) = u_sfp\<cdot>SFP('a)"
-by (rule sfp_u_def)
 
 end

@@ -5,7 +5,7 @@
 header {* Representable Types *}
 
 theory Representable
-imports Algebraic Universal Ssum One Fixrec Domain_Aux
+imports Algebraic Bifinite Universal Ssum One Fixrec Domain_Aux
 uses
   ("Tools/repdef.ML")
   ("Tools/Domain/domain_isomorphism.ML")
