@@ -973,7 +973,7 @@ text {*
 
   Usually the default sort is only changed when defining a new
   object-logic.  For example, the default sort in Isabelle/HOL is
-  @{text type}, the class of all HOL types.  %FIXME sort antiq?
+  @{class type}, the class of all HOL types.
 
   When merging theories, the default sorts of the parents are
   logically intersected, i.e.\ the representations as lists of classes
