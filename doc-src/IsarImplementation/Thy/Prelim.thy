@@ -1056,4 +1056,22 @@ text %mlantiq {*
   \end{description}
 *}
 
+text %mlex {* The following example yields the source position of some
+  concrete binding inlined into the text.
+*}
+
+ML {* Binding.pos_of @{binding here} *}
+
+text {* \medskip That position can be also printed in a message as
+  follows. *}
+
+ML_command {*
+  writeln
+    ("Look here" ^ Position.str_of (Binding.pos_of @{binding here}))
+*}
+
+text {* \noindent This illustrates a key virtue of formalized bindings
+  as opposed to raw specifications of base names: the system can use
+  this additional information for advanced feedback given to the user. *}
+
 end
