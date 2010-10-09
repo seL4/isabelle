@@ -204,7 +204,7 @@ text {* A very important consequence of embedding SML into Isar is the
   perspective on Isabelle/ML antiquotations.
 *}
 
-text %mlref {*
+text %mlantiq {*
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "let"} & : & @{text ML_antiquotation} \\
   @{ML_antiquotation_def "note"} & : & @{text ML_antiquotation} \\

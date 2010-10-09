@@ -25,9 +25,14 @@
 \newenvironment{mldecls}{\par\noindent\begingroup\footnotesize\def\isanewline{\\}\begin{tabular}{l}}{\end{tabular}\smallskip\endgroup}
 
 \isafoldtag{FIXME}
+
 \isakeeptag{mlref}
-\renewcommand{\isatagmlref}{\subsection*{\makebox[0pt][r]{\fbox{ML}~~}Reference}\begingroup\def\isastyletext{\rm}}
-\renewcommand{\endisatagmlref}{\endgroup}
+\renewcommand{\isatagmlref}{\subsection*{\makebox[0pt][r]{\fbox{ML}~~}Reference}}
+\renewcommand{\endisatagmlref}{}
+
+\isakeeptag{mlantiq}
+\renewcommand{\isatagmlantiq}{\subsection*{\makebox[0pt][r]{\fbox{ML}~~}Antiquotations}}
+\renewcommand{\endisatagmlantiq}{}
 
 \isakeeptag{mlex}
 \renewcommand{\isatagmlex}{\subsection*{\makebox[0pt][r]{\fbox{ML}~~}Examples}}
