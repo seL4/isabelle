@@ -13,10 +13,6 @@ sig
 
   val axiom_prefix : string
   val conjecture_prefix : string
-  val helper_prefix : string
-  val class_rel_clause_prefix : string
-  val arity_clause_prefix : string
-  val tfrees_name : string
   val prepare_axiom :
     Proof.context -> (string * 'a) * thm
     -> term * ((string * 'a) * fol_formula) option
@@ -38,7 +34,7 @@ val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
 val class_rel_clause_prefix = "clrel_";
 val arity_clause_prefix = "arity_"
-val tfrees_name = "tfrees"
+val tfree_prefix = "tfree_"
 
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
@@ -363,13 +359,13 @@ fun problem_line_for_conjecture full_types
 fun free_type_literals_for_conjecture ({ctypes_sorts, ...} : fol_formula) =
   map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
-fun problem_line_for_free_type lit =
-  Fof (tfrees_name, Hypothesis, formula_for_fo_literal lit)
+fun problem_line_for_free_type j lit =
+  Fof (tfree_prefix ^ string_of_int j, Hypothesis, formula_for_fo_literal lit)
 fun problem_lines_for_free_types conjectures =
   let
     val litss = map free_type_literals_for_conjecture conjectures
     val lits = fold (union (op =)) litss []
-  in map problem_line_for_free_type lits end
+  in map2 problem_line_for_free_type (0 upto length lits - 1) lits end
 
 (** "hBOOL" and "hAPP" **)
 
