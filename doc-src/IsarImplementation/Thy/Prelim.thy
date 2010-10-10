@@ -152,11 +152,14 @@ text {* A \emph{theory} is a data container with explicit name and
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type theory} \\
+  @{index_ML Theory.eq_thy: "theory * theory -> bool"} \\
   @{index_ML Theory.subthy: "theory * theory -> bool"} \\
   @{index_ML Theory.checkpoint: "theory -> theory"} \\
   @{index_ML Theory.copy: "theory -> theory"} \\
   @{index_ML Theory.merge: "theory * theory -> theory"} \\
   @{index_ML Theory.begin_theory: "string -> theory list -> theory"} \\
+  @{index_ML Theory.parents_of: "theory -> theory list"} \\
+  @{index_ML Theory.ancestors_of: "theory -> theory list"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type theory_ref} \\
@@ -172,6 +175,9 @@ text %mlref {*
   becomes ``stale''.  This can be prevented by explicit checkpointing,
   which the system does at least at the boundary of toplevel command
   transactions \secref{sec:isar-toplevel}.
+
+  \item @{ML "Theory.eq_thy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} check strict
+  identity of two theories.
 
   \item @{ML "Theory.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} compares theories
   according to the intrinsic graph structure of the construction.
@@ -195,6 +201,12 @@ text %mlref {*
   \item @{ML "Theory.begin_theory"}~@{text "name parents"} constructs
   a new theory based on the given parents.  This ML function is
   normally not invoked directly.
+
+  \item @{ML "Theory.parents_of"}~@{text "thy"} returns the direct
+  ancestors of @{text thy}.
+
+  \item @{ML "Theory.ancestors_of"}~@{text "thy"} returns all
+  ancestors of @{text thy} (not including @{text thy} itself).
 
   \item @{ML_type theory_ref} represents a sliding reference to an
   always valid theory; updates on the original are propagated
