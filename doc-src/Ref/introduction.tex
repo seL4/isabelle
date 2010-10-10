@@ -1,83 +1,6 @@
 
 \chapter{Basic Use of Isabelle}\index{sessions|(} 
 
-\section{Basic interaction with Isabelle}
-\index{starting up|bold}\nobreak
-%
-We assume that your local Isabelle administrator (this might be you!) has
-already installed the Isabelle system together with appropriate object-logics.
-
-\medskip Let $\langle isabellehome \rangle$ denote the location where
-the distribution has been installed.  To run Isabelle from a the shell
-prompt within an ordinary text terminal session, simply type
-\begin{ttbox}
-\({\langle}isabellehome{\rangle}\)/bin/isabelle
-\end{ttbox}
-This should start an interactive \ML{} session with the default object-logic
-(usually HOL) already pre-loaded.
-
-Subsequently, we assume that the \texttt{isabelle} executable is determined
-automatically by the shell, e.g.\ by adding {\tt \(\langle isabellehome
-  \rangle\)/bin} to your search path.\footnote{Depending on your installation,
-  there may be stand-alone binaries located in some global directory such as
-  \texttt{/usr/bin}.  Do not attempt to copy {\tt \(\langle isabellehome
-    \rangle\)/bin/isabelle}, though!  See \texttt{isabelle install} in
-  \emph{The Isabelle System Manual} of how to do this properly.}
-
-\medskip
-
-The object-logic image to load may be also specified explicitly as an argument
-to the {\tt isabelle} command, e.g.
-\begin{ttbox}
-isabelle FOL
-\end{ttbox}
-This should put you into the world of polymorphic first-order logic (assuming
-that an image of FOL has been pre-built).
-
-\index{saving your session|bold} Isabelle provides no means of storing
-theorems or internal proof objects on files.  Theorems are simply part of the
-\ML{} state.  To save your work between sessions, you may dump the \ML{}
-system state to a file.  This is done automatically when ending the session
-normally (e.g.\ by typing control-D), provided that the image has been opened
-\emph{writable} in the first place.  The standard object-logic images are
-usually read-only, so you have to create a private working copy first.  For
-example, the following shell command puts you into a writable Isabelle session
-of name \texttt{Foo} that initially contains just plain HOL:
-\begin{ttbox}
-isabelle HOL Foo
-\end{ttbox}
-Ending the \texttt{Foo} session with control-D will cause the complete
-\ML-world to be saved somewhere in your home directory\footnote{The default
-  location is in \texttt{\~\relax/isabelle/heaps}, but this depends on your
-  local configuration.}.  Make sure there is enough space available! Then one
-may later continue at exactly the same point by running
-\begin{ttbox}
-isabelle Foo  
-\end{ttbox}
-
-\medskip Saving the {\ML} state is not enough.  Record, on a file, the
-top-level commands that generate your theories and proofs.  Such a record
-allows you to replay the proofs whenever required, for instance after making
-minor changes to the axioms.  Ideally, these sources will be somewhat
-intelligible to others as a formal description of your work.
-
-It is good practice to put all source files that constitute a separate
-Isabelle session into an individual directory, together with an {\ML} file
-called \texttt{ROOT.ML} that contains appropriate commands to load all other
-files required.  Running \texttt{isabelle} with option \texttt{-u}
-automatically loads \texttt{ROOT.ML} on entering the session.  The
-\texttt{isabelle usedir} utility provides some more options to manage Isabelle
-sessions, such as automatic generation of theory browsing information.
-
-\medskip More details about the \texttt{isabelle} and \texttt{isabelle}
-commands may be found in \emph{The Isabelle System Manual}.
-
-\medskip There are more comfortable user interfaces than the bare-bones \ML{}
-top-level run from a text terminal.  The \texttt{Isabelle} executable (note
-the capital I) runs one such interface, depending on your local configuration.
-Again, see \emph{The Isabelle System Manual} for more information.
-
-
 \section{Ending a session}
 \begin{ttbox} 
 quit    : unit -> unit
@@ -185,16 +108,6 @@ update_thy   : string -> unit
 Note that theories of pre-built logic images (e.g.\ HOL) are marked as
 \emph{finished} and cannot be updated any more.  See \S\ref{sec:more-theories}
 for further information on Isabelle's theory loader.
-
-
-\section{Setting flags}
-\begin{ttbox}
-set     : bool ref -> bool
-reset   : bool ref -> bool
-toggle  : bool ref -> bool
-\end{ttbox}\index{*set}\index{*reset}\index{*toggle}
-These are some shorthands for manipulating boolean references.  The new
-value is returned.
 
 
 \section{Diagnostic messages}
