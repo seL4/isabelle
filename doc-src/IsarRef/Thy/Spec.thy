@@ -1209,8 +1209,7 @@ text {*
 
   \item @{command "hide_class"}~@{text names} fully removes class
   declarations from a given name space; with the @{text "(open)"}
-  option, only the base name is hidden.  Global (unqualified) names
-  may never be hidden.
+  option, only the base name is hidden.
 
   Note that hiding name space accesses has no impact on logical
   declarations --- they remain valid internally.  Entities that are no
