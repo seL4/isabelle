@@ -7,37 +7,6 @@
 
 Isabelle's theory loader manages dependencies of the internal graph of theory
 nodes (the \emph{theory database}) and the external view of the file system.
-See \S\ref{sec:intro-theories} for its most basic commands, such as
-\texttt{use_thy}.  There are a few more operations available.
-
-\begin{ttbox}
-use_thy_only    : string -> unit
-update_thy_only : string -> unit
-touch_thy       : string -> unit
-remove_thy      : string -> unit
-delete_tmpfiles : bool ref \hfill\textbf{initially true}
-\end{ttbox}
-
-\begin{ttdescription}
-\item[\ttindexbold{use_thy_only} "$name$";] is similar to \texttt{use_thy},
-  but processes the actual theory file $name$\texttt{.thy} only, ignoring
-  $name$\texttt{.ML}.  This might be useful in replaying proof scripts by hand
-  from the very beginning, starting with the fresh theory.
-  
-\item[\ttindexbold{update_thy_only} "$name$";] is similar to
-  \texttt{update_thy}, but processes the actual theory file
-  $name$\texttt{.thy} only, ignoring $name$\texttt{.ML}.
-
-\item[\ttindexbold{touch_thy} "$name$";] marks theory node $name$ of the
-  internal graph as outdated.  While the theory remains usable, subsequent
-  operations such as \texttt{use_thy} may cause a reload.
-  
-\item[\ttindexbold{remove_thy} "$name$";] deletes theory node $name$,
-  including \emph{all} of its descendants.  Beware!  This is a quick way to
-  dispose a large number of theories at once.  Note that {\ML} bindings to
-  theorems etc.\ of removed theories may still persist.
-  
-\end{ttdescription}
 
 \medskip Theory and {\ML} files are located by skimming through the
 directories listed in Isabelle's internal load path, which merely contains the
@@ -83,133 +52,18 @@ temporarily appended to the load path, too.
 
 \subsection{*Theory inclusion}
 \begin{ttbox}
-subthy      : theory * theory -> bool
-eq_thy      : theory * theory -> bool
 transfer    : theory -> thm -> thm
-transfer_sg : Sign.sg -> thm -> thm
 \end{ttbox}
 
-Inclusion and equality of theories is determined by unique
-identification stamps that are created when declaring new components.
-Theorems contain a reference to the theory (actually to its signature)
-they have been derived in.  Transferring theorems to super theories
-has no logical significance, but may affect some operations in subtle
-ways (e.g.\ implicit merges of signatures when applying rules, or
-pretty printing of theorems).
+Transferring theorems to super theories has no logical significance,
+but may affect some operations in subtle ways (e.g.\ implicit merges
+of signatures when applying rules, or pretty printing of theorems).
 
 \begin{ttdescription}
-
-\item[\ttindexbold{subthy} ($thy@1$, $thy@2$)] determines if $thy@1$
-  is included in $thy@2$ wrt.\ identification stamps.
-
-\item[\ttindexbold{eq_thy} ($thy@1$, $thy@2$)] determines if $thy@1$
-  is exactly the same as $thy@2$.
 
 \item[\ttindexbold{transfer} $thy$ $thm$] transfers theorem $thm$ to
   theory $thy$, provided the latter includes the theory of $thm$.
   
-\item[\ttindexbold{transfer_sg} $sign$ $thm$] is similar to
-  \texttt{transfer}, but identifies the super theory via its
-  signature.
-
-\end{ttdescription}
-
-
-\subsection{*Primitive theories}
-\begin{ttbox}
-ProtoPure.thy  : theory
-Pure.thy       : theory
-CPure.thy      : theory
-\end{ttbox}
-\begin{description}
-\item[\ttindexbold{ProtoPure.thy}, \ttindexbold{Pure.thy},
-  \ttindexbold{CPure.thy}] contain the syntax and signature of the
-  meta-logic.  There are basically no axioms: meta-level inferences
-  are carried out by \ML\ functions.  \texttt{Pure} and \texttt{CPure}
-  just differ in their concrete syntax of prefix function application:
-  $t(u@1, \ldots, u@n)$ in \texttt{Pure} vs.\ $t\,u@1,\ldots\,u@n$ in
-  \texttt{CPure}.  \texttt{ProtoPure} is their common parent,
-  containing no syntax for printing prefix applications at all!
-
-%% FIXME
-%\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"} $\cdots$] extends
-%  the theory $thy$ with new types, constants, etc.  $T$ identifies the theory
-%  internally.  When a theory is redeclared, say to change an incorrect axiom,
-%  bindings to the old axiom may persist.  Isabelle ensures that the old and
-%  new theories are not involved in the same proof.  Attempting to combine
-%  different theories having the same name $T$ yields the fatal error
-%extend_theory  : theory -> string -> \(\cdots\) -> theory
-%\begin{ttbox}
-%Attempt to merge different versions of theory: \(T\)
-%\end{ttbox}
-\end{description}
-
-%% FIXME
-%\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"}
-%      ($classes$, $default$, $types$, $arities$, $consts$, $sextopt$) $rules$]
-%\hfill\break   %%% include if line is just too short
-%is the \ML{} equivalent of the following theory definition:
-%\begin{ttbox}
-%\(T\) = \(thy\) +
-%classes \(c\) < \(c@1\),\(\dots\),\(c@m\)
-%        \dots
-%default {\(d@1,\dots,d@r\)}
-%types   \(tycon@1\),\dots,\(tycon@i\) \(n\)
-%        \dots
-%arities \(tycon@1'\),\dots,\(tycon@j'\) :: (\(s@1\),\dots,\(s@n\))\(c\)
-%        \dots
-%consts  \(b@1\),\dots,\(b@k\) :: \(\tau\)
-%        \dots
-%rules   \(name\) \(rule\)
-%        \dots
-%end
-%\end{ttbox}
-%where
-%\begin{tabular}[t]{l@{~=~}l}
-%$classes$ & \tt[("$c$",["$c@1$",\dots,"$c@m$"]),\dots] \\
-%$default$ & \tt["$d@1$",\dots,"$d@r$"]\\
-%$types$   & \tt[([$tycon@1$,\dots,$tycon@i$], $n$),\dots] \\
-%$arities$ & \tt[([$tycon'@1$,\dots,$tycon'@j$], ([$s@1$,\dots,$s@n$],$c$)),\dots]
-%\\
-%$consts$  & \tt[([$b@1$,\dots,$b@k$],$\tau$),\dots] \\
-%$rules$   & \tt[("$name$",$rule$),\dots]
-%\end{tabular}
-
-
-\subsection{Inspecting a theory}\label{sec:inspct-thy}
-\index{theories!inspecting|bold}
-\begin{ttbox}
-print_syntax        : theory -> unit
-print_theory        : theory -> unit
-parents_of          : theory -> theory list
-ancestors_of        : theory -> theory list
-sign_of             : theory -> Sign.sg
-Sign.stamp_names_of : Sign.sg -> string list
-\end{ttbox}
-These provide means of viewing a theory's components.
-\begin{ttdescription}
-\item[\ttindexbold{print_syntax} $thy$] prints the syntax of $thy$
-  (grammar, macros, translation functions etc., see
-  page~\pageref{pg:print_syn} for more details).
-  
-\item[\ttindexbold{print_theory} $thy$] prints the logical parts of
-  $thy$, excluding the syntax.
-  
-\item[\ttindexbold{parents_of} $thy$] returns the direct ancestors
-  of~$thy$.
-  
-\item[\ttindexbold{ancestors_of} $thy$] returns all ancestors of~$thy$
-  (not including $thy$ itself).
-  
-\item[\ttindexbold{sign_of} $thy$] returns the signature associated
-  with~$thy$.  It is useful with functions like {\tt
-    read_instantiate_sg}, which take a signature as an argument.
-  
-\item[\ttindexbold{Sign.stamp_names_of} $sg$]\index{signatures}
-  returns the names of the identification \rmindex{stamps} of ax
-  signature.  These coincide with the names of its full ancestry
-  including that of $sg$ itself.
-
 \end{ttdescription}
 
 

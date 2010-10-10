@@ -1,5 +1,5 @@
 
-\chapter{Basic Use of Isabelle}\index{sessions|(} 
+\chapter{Basic Use of Isabelle}
 
 \section{Ending a session}
 \begin{ttbox} 
@@ -21,108 +21,6 @@ commit  : unit -> bool
 
 Typing control-D also finishes the session in essentially the same way
 as the sequence {\tt commit(); quit();} would.
-
-
-\section{Reading ML files}
-\index{files!reading}
-\begin{ttbox} 
-cd              : string -> unit
-pwd             : unit -> string
-use             : string -> unit
-time_use        : string -> unit
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{cd} "{\it dir}";] changes the current directory to
-  {\it dir}.  This is the default directory for reading files.
-  
-\item[\ttindexbold{pwd}();] returns the full path of the current
-  directory.
-
-\item[\ttindexbold{use} "$file$";]  
-reads the given {\it file} as input to the \ML{} session.  Reading a file
-of Isabelle commands is the usual way of replaying a proof.
-
-\item[\ttindexbold{time_use} "$file$";]  
-performs {\tt use~"$file$"} and prints the total execution time.
-\end{ttdescription}
-
-The $dir$ and $file$ specifications of the \texttt{cd} and \texttt{use}
-commands may contain path variables (e.g.\ \texttt{\$ISABELLE_HOME}) that are
-expanded appropriately.  Note that \texttt{\~\relax} abbreviates
-\texttt{\$HOME}, and \texttt{\~\relax\~\relax} abbreviates
-\texttt{\$ISABELLE_HOME}\index{*\$ISABELLE_HOME}.  The syntax for path
-specifications follows Unix conventions.
-
-
-\section{Reading theories}\label{sec:intro-theories}
-\index{theories!reading}
-
-In Isabelle, any kind of declarations, definitions, etc.\ are organized around
-named \emph{theory} objects.  Logical reasoning always takes place within a
-certain theory context, which may be switched at any time.  Theory $name$ is
-defined by a theory file $name$\texttt{.thy}, containing declarations of
-\texttt{consts}, \texttt{types}, \texttt{defs}, etc.\ (see
-\S\ref{sec:ref-defining-theories} for more details on concrete syntax).
-Furthermore, there may be an associated {\ML} file $name$\texttt{.ML} with
-proof scripts that are to be run in the context of the theory.
-
-\begin{ttbox}
-context      : theory -> unit
-the_context  : unit -> theory
-theory       : string -> theory
-use_thy      : string -> unit
-time_use_thy : string -> unit
-update_thy   : string -> unit
-\end{ttbox}
-
-\begin{ttdescription}
-  
-\item[\ttindexbold{context} $thy$;] switches the current theory context.  Any
-  subsequent command with ``implicit theory argument'' (e.g.\ \texttt{Goal})
-  will refer to $thy$ as its theory.
-  
-\item[\ttindexbold{the_context}();] obtains the current theory context, or
-  raises an error if absent.
-  
-\item[\ttindexbold{theory} "$name$";] retrieves the theory called $name$ from
-  the internal data\-base of loaded theories, raising an error if absent.
-  
-\item[\ttindexbold{use_thy} "$name$";] reads theory $name$ from the file
-  system, looking for $name$\texttt{.thy} and $name$\texttt{.ML} (the latter
-  being optional).  It also ensures that all parent theories are loaded as
-  well.  In case some older versions have already been present,
-  \texttt{use_thy} only tries to reload $name$ itself, but is content with any
-  version of its ancestors.
-  
-\item[\ttindexbold{time_use_thy} "$name$";] same as \texttt{use_thy}, but
-  reports the time taken to process the actual theory parts and {\ML} files
-  separately.
-  
-\item[\ttindexbold{update_thy} "$name$";] is similar to \texttt{use_thy}, but
-  ensures that theory $name$ is fully up-to-date with respect to the file
-  system --- apart from theory $name$ itself, any of its ancestors may be
-  reloaded as well.
-  
-\end{ttdescription}
-
-Note that theories of pre-built logic images (e.g.\ HOL) are marked as
-\emph{finished} and cannot be updated any more.  See \S\ref{sec:more-theories}
-for further information on Isabelle's theory loader.
-
-
-\section{Timing}
-\index{timing statistics}\index{proofs!timing}
-\begin{ttbox} 
-timing: bool ref \hfill{\bf initially false}
-\end{ttbox}
-
-\begin{ttdescription}
-\item[set \ttindexbold{timing};] enables global timing in Isabelle.
-  This information is compiler-dependent.
-\end{ttdescription}
-
-\index{sessions|)}
-
 
 %%% Local Variables: 
 %%% mode: latex
