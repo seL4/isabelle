@@ -164,7 +164,7 @@
   \end{matharray}
 
   \begin{rail}
-    ('cd' | 'use\_thy' | 'update\_thy') name
+    ('cd' | 'use\_thy') name
     ;
   \end{rail}
 
@@ -179,7 +179,13 @@
   These system commands are scarcely used when working interactively,
   since loading of theories is done automatically as required.
 
-  \end{description}%
+  \end{description}
+
+  %FIXME proper place (!?)
+  Isabelle file specification may contain path variables (e.g.\
+  \verb|$ISABELLE_HOME|) that are expanded accordingly.  Note
+  that \verb|~| abbreviates \verb|$HOME|, and \verb|~~| abbreviates \verb|$ISABELLE_HOME|.  The general syntax
+  for path specifications follows POSIX conventions.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
