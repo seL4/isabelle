@@ -254,4 +254,83 @@ text {*
   function @{ML foo} is available in the present context.
 *}
 
+
+section {* Message output channels *}
+
+text {* Isabelle provides output channels for different kinds of
+  messages: regular output, high-volume tracing information, warnings,
+  and errors.
+
+  Depending on the user interface involved, these messages may appear
+  in different text styles or colours.  The standard output for
+  terminal sessions prefixes each line of warnings by @{verbatim
+  "###"} and errors by @{verbatim "***"}, but leaves anything else
+  unchanged.
+
+  Messages are associated with the transaction context of the running
+  Isar command.  This enables the front-end to manage commands and
+  resulting messages together.  For example, after deleting a command
+  from a given theory document version, the corresponding message
+  output can be retracted from the display.  *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML writeln: "string -> unit"} \\
+  @{index_ML tracing: "string -> unit"} \\
+  @{index_ML warning: "string -> unit"} \\
+  @{index_ML error: "string -> 'a"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML writeln}~@{text "text"} outputs @{text "text"} as regular
+  message.  This is the primary message output operation of Isabelle
+  and should be used by default.
+
+  \item @{ML tracing}~@{text "text"} outputs @{text "text"} as special
+  tracing message, indicating potential high-volume output to the
+  front-end (hundreds or thousands of messages issued by a single
+  command).  The idea is to allow the user-interface to downgrade the
+  quality of message display to achieve higher throughput.
+
+  Note that the user might have to take special actions to see tracing
+  output, e.g.\ switch to a different output window.  So this channel
+  should not be used for regular output.
+
+  \item @{ML warning}~@{text "text"} outputs @{text "text"} as
+  warning, which typically means some extra emphasis on the front-end
+  side (color highlighting, icon).
+
+  \item @{ML error}~@{text "text"} raises exception @{ML ERROR}~@{text
+  "text"} and thus lets the Isar toplevel print @{text "text"} on the
+  error channel, which typically means some extra emphasis on the
+  front-end side (color highlighting, icon).
+
+  This assumes that the exception is not handled before the command
+  terminates.  Handling exception @{ML ERROR}~@{text "text"} is a
+  perfectly legal alternative: it means that the error is absorbed
+  without any message output.
+
+  \end{description}
+
+\begin{warn}
+  The actual error channel is accessed via @{ML Output.error_msg}, but
+  the interaction protocol of Proof~General \emph{crashes} if that
+  function is used in regular ML code: error output and toplevel
+  command failure always need to coincide here.
+\end{warn}
+
+\begin{warn}
+  Regular Isabelle/ML code should output messages exclusively by the
+  official channels.  Using raw I/O on \emph{stdout} or \emph{stderr}
+  instead (e.g.\ via @{ML TextIO.output}) is apt to cause problems in
+  the presence of parallel and asynchronous processing of Isabelle
+  theories.  Such raw output might be displayed by the front-end in
+  some system console log, with a low chance that the user will ever
+  see it.  Moreover, as a genuine side-effect on global process
+  channels, there is no proper way to retract output when Isar command
+  transactions are reset.
+\end{warn}
+*}
+
 end

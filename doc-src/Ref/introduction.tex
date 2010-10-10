@@ -110,37 +110,6 @@ Note that theories of pre-built logic images (e.g.\ HOL) are marked as
 for further information on Isabelle's theory loader.
 
 
-\section{Diagnostic messages}
-\index{error messages}
-\index{warnings}
-
-Isabelle conceptually provides three output channels for different kinds of
-messages: ordinary text, warnings, errors.  Depending on the user interface
-involved, these messages may appear in different text styles or colours.
-
-The default setup of an \texttt{isabelle} terminal session is as
-follows: plain output of ordinary text, warnings prefixed by
-\texttt{\#\#\#}'s, errors prefixed by \texttt{***}'s.  For example, a
-typical warning would look like this:
-\begin{ttbox}
-\#\#\# Beware the Jabberwock, my son!
-\#\#\# The jaws that bite, the claws that catch!
-\#\#\# Beware the Jubjub Bird, and shun
-\#\#\# The frumious Bandersnatch!
-\end{ttbox}
-
-\texttt{ML} programs may output diagnostic messages using the
-following functions:
-\begin{ttbox}
-writeln : string -> unit
-warning : string -> unit
-error   : string -> 'a
-\end{ttbox}
-Note that \ttindex{error} fails by raising exception \ttindex{ERROR}
-after having output the text, while \ttindex{writeln} and
-\ttindex{warning} resume normal program execution.
-
-
 \section{Timing}
 \index{timing statistics}\index{proofs!timing}
 \begin{ttbox} 
