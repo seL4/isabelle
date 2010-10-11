@@ -9,7 +9,6 @@ HOL setup for the Metis prover.
 
 signature METIS_TACTICS =
 sig
-  val trace : bool Unsynchronized.ref
   val type_lits : bool Config.T
   val new_skolemizer : bool Config.T
   val metis_tac : Proof.context -> thm list -> int -> tactic
@@ -23,8 +22,6 @@ struct
 
 open Metis_Translate
 open Metis_Reconstruct
-
-fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" (K true)
 val (new_skolemizer, new_skolemizer_setup) =
@@ -67,21 +64,21 @@ fun FOL_SOLVE mode ctxt cls ths0 =
              (0 upto length ths0 - 1) ths0
       val thss = map (snd o snd) th_cls_pairs
       val dischargers = map (fst o snd) th_cls_pairs
-      val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
-      val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) cls
-      val _ = trace_msg (fn () => "THEOREM CLAUSES")
-      val _ = app (app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th))) thss
+      val _ = trace_msg ctxt (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
+      val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
+      val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
+      val _ = app (app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th))) thss
       val (mode, {axioms, tfrees, old_skolems}) =
         build_logic_map mode ctxt type_lits cls thss
       val _ = if null tfrees then ()
-              else (trace_msg (fn () => "TFREE CLAUSES");
+              else (trace_msg ctxt (fn () => "TFREE CLAUSES");
                     app (fn TyLitFree ((s, _), (s', _)) =>
-                            trace_msg (fn () => s ^ "(" ^ s' ^ ")")) tfrees)
-      val _ = trace_msg (fn () => "CLAUSES GIVEN TO METIS")
+                            trace_msg ctxt (fn () => s ^ "(" ^ s' ^ ")")) tfrees)
+      val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
       val thms = map #1 axioms
-      val _ = app (fn th => trace_msg (fn () => Metis_Thm.toString th)) thms
-      val _ = trace_msg (fn () => "mode = " ^ string_of_mode mode)
-      val _ = trace_msg (fn () => "START METIS PROVE PROCESS")
+      val _ = app (fn th => trace_msg ctxt (fn () => Metis_Thm.toString th)) thms
+      val _ = trace_msg ctxt (fn () => "mode = " ^ string_of_mode mode)
+      val _ = trace_msg ctxt (fn () => "START METIS PROVE PROCESS")
   in
       case filter (is_false o prop_of) cls of
           false_th::_ => [false_th RS @{thm FalseE}]
@@ -89,7 +86,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       case Metis_Resolution.new resolution_params {axioms = thms, conjecture = []}
            |> Metis_Resolution.loop of
           Metis_Resolution.Contradiction mth =>
-            let val _ = trace_msg (fn () => "METIS RECONSTRUCTION START: " ^
+            let val _ = trace_msg ctxt (fn () => "METIS RECONSTRUCTION START: " ^
                           Metis_Thm.toString mth)
                 val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                              (*add constraints arising from converting goal to clause form*)
@@ -97,8 +94,8 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                 val result =
                   fold (replay_one_inference ctxt' mode old_skolems) proof axioms
                 and used = map_filter (used_axioms axioms) proof
-                val _ = trace_msg (fn () => "METIS COMPLETED...clauses actually used:")
-                val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) used
+                val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
+                val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
                 val unused = th_cls_pairs |> map_filter (fn (name, (_, cls)) =>
                   if have_common_thm used cls then NONE else SOME name)
             in
@@ -113,12 +110,12 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                   ();
                 case result of
                     (_,ith)::_ =>
-                        (trace_msg (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
+                        (trace_msg ctxt (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
                          [discharge_skolem_premises ctxt dischargers ith])
-                  | _ => (trace_msg (fn () => "Metis: No result"); [])
+                  | _ => (trace_msg ctxt (fn () => "Metis: No result"); [])
             end
         | Metis_Resolution.Satisfiable _ =>
-            (trace_msg (fn () => "Metis: No first-order proof with the lemmas supplied");
+            (trace_msg ctxt (fn () => "Metis: No first-order proof with the lemmas supplied");
              [])
   end;
 
@@ -150,7 +147,7 @@ val type_has_top_sort =
 
 fun generic_metis_tac mode ctxt ths i st0 =
   let
-    val _ = trace_msg (fn () =>
+    val _ = trace_msg ctxt (fn () =>
         "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
   in
     if exists_type type_has_top_sort (prop_of st0) then
