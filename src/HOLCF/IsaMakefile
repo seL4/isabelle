@@ -48,9 +48,9 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Deflation.thy \
   Domain.thy \
   Domain_Aux.thy \
-  Ffun.thy \
   Fixrec.thy \
   Fix.thy \
+  Fun_Cpo.thy \
   HOLCF.thy \
   Lift.thy \
   LowerPD.thy \

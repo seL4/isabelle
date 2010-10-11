@@ -6,7 +6,7 @@
 header {* The type of continuous functions *}
 
 theory Cfun
-imports Pcpodef Ffun Product_Cpo
+imports Pcpodef Fun_Cpo Product_Cpo
 begin
 
 default_sort cpo

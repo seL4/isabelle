@@ -1,10 +1,11 @@
-(*  Title:      HOLCF/FunCpo.thy
+(*  Title:      HOLCF/Fun_Cpo.thy
     Author:     Franz Regensburger
+    Author:     Brian Huffman
 *)
 
 header {* Class instances for the full function space *}
 
-theory Ffun
+theory Fun_Cpo
 imports Cont
 begin
 
