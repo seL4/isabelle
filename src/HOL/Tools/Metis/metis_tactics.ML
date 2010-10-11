@@ -9,6 +9,7 @@ HOL setup for the Metis prover.
 
 signature METIS_TACTICS =
 sig
+  val trace : bool Config.T
   val type_lits : bool Config.T
   val new_skolemizer : bool Config.T
   val metis_tac : Proof.context -> thm list -> int -> tactic
