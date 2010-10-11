@@ -86,7 +86,7 @@ done
 
 lemma map_upds_distinct [simp]: 
   "distinct ys \<Longrightarrow> length ys = length vs \<Longrightarrow> map (the \<circ> f(ys[\<mapsto>]vs)) ys = vs"
-apply (induct ys arbitrary: f vs rule: distinct.induct)
+apply (induct ys arbitrary: f vs)
 apply simp
 apply (case_tac vs)
 apply simp_all

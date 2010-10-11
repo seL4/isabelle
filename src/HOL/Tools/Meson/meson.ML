@@ -8,7 +8,8 @@ When making clauses, avoids using the rewriter -- instead uses RS recursively.
 
 signature MESON =
 sig
-  val trace: bool Unsynchronized.ref
+  val trace : bool Config.T
+  val max_clauses : int Config.T
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
@@ -39,17 +40,19 @@ sig
   val make_meta_clause: thm -> thm
   val make_meta_clauses: thm list -> thm list
   val meson_tac: Proof.context -> thm list -> int -> tactic
-  val setup: theory -> theory
+  val setup : theory -> theory
 end
 
 structure Meson : MESON =
 struct
 
-val trace = Unsynchronized.ref false;
-fun trace_msg msg = if ! trace then tracing (msg ()) else ();
+val (trace, trace_setup) = Attrib.config_bool "trace_meson" (K false)
 
-val max_clauses_default = 60;
-val (max_clauses, setup) = Attrib.config_int "meson_max_clauses" (K max_clauses_default);
+fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
+
+val max_clauses_default = 60
+val (max_clauses, max_clauses_setup) =
+  Attrib.config_int "meson_max_clauses" (K max_clauses_default)
 
 (*No known example (on 1-5-2007) needs even thirty*)
 val iter_deepen_limit = 50;
@@ -366,7 +369,7 @@ fun cnf old_skolem_ths ctxt (th, ths) =
       and cnf_nil th = cnf_aux (th,[])
       val cls =
             if has_too_many_clauses ctxt (concl_of th)
-            then (trace_msg (fn () => "cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
+            then (trace_msg ctxt (fn () => "cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
             else cnf_aux (th,ths)
   in  (cls, !ctxtr)  end;
 
@@ -586,8 +589,8 @@ fun skolemize ctxt =
 (* "RS" can fail if "unify_search_bound" is too small. *)
 fun try_skolemize ctxt th =
   try (skolemize ctxt) th
-  |> tap (fn NONE => trace_msg (fn () => "Failed to skolemize " ^
-                                         Display.string_of_thm ctxt th)
+  |> tap (fn NONE => trace_msg ctxt (fn () => "Failed to skolemize " ^
+                                              Display.string_of_thm ctxt th)
            | _ => ())
 
 fun add_clauses th cls =
@@ -678,7 +681,7 @@ fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac make_clauses
     | goes =>
         let
           val horns = make_horns (cls @ ths)
-          val _ = trace_msg (fn () =>
+          val _ = trace_msg ctxt (fn () =>
             cat_lines ("meson method called:" ::
               map (Display.string_of_thm ctxt) (cls @ ths) @
               ["clauses:"] @ map (Display.string_of_thm ctxt) horns))
@@ -716,5 +719,9 @@ fun make_meta_clause th =
 fun make_meta_clauses ths =
     name_thms "MClause#"
       (distinct Thm.eq_thm_prop (map make_meta_clause ths));
+
+val setup =
+  trace_setup
+  #> max_clauses_setup
 
 end;
