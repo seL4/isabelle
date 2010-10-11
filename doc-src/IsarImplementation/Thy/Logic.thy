@@ -619,7 +619,7 @@ text {*
   "d(\<alpha>\<^isub>i)"} for some @{text "\<alpha>\<^isub>i"} projected from @{text
   "\<^vec>\<alpha>"}.  Thus overloaded definitions essentially work by
   primitive recursion over the syntactic structure of a single type
-  argument.
+  argument.  See also \cite[\S4.3]{Haftmann-Wenzel:2006:classes}.
 *}
 
 text %mlref {*
