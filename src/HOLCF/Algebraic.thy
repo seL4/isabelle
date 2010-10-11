@@ -72,36 +72,29 @@ by (rule finite_deflation_imp_compact)
 
 subsection {* Defining algebraic deflations by ideal completion *}
 
-text {*
-  An SFP domain is one that can be represented as the limit of a
-  sequence of finite posets.  Here we use omega-algebraic deflations
-  (i.e. countable ideals of finite deflations) to model sequences of
-  finite posets.
-*}
-
-typedef (open) sfp = "{S::fin_defl set. below.ideal S}"
+typedef (open) defl = "{S::fin_defl set. below.ideal S}"
 by (fast intro: below.ideal_principal)
 
-instantiation sfp :: below
+instantiation defl :: below
 begin
 
 definition
-  "x \<sqsubseteq> y \<longleftrightarrow> Rep_sfp x \<subseteq> Rep_sfp y"
+  "x \<sqsubseteq> y \<longleftrightarrow> Rep_defl x \<subseteq> Rep_defl y"
 
 instance ..
 end
 
-instance sfp :: po
-using type_definition_sfp below_sfp_def
+instance defl :: po
+using type_definition_defl below_defl_def
 by (rule below.typedef_ideal_po)
 
-instance sfp :: cpo
-using type_definition_sfp below_sfp_def
+instance defl :: cpo
+using type_definition_defl below_defl_def
 by (rule below.typedef_ideal_cpo)
 
 definition
-  sfp_principal :: "fin_defl \<Rightarrow> sfp" where
-  "sfp_principal t = Abs_sfp {u. u \<sqsubseteq> t}"
+  defl_principal :: "fin_defl \<Rightarrow> defl" where
+  "defl_principal t = Abs_defl {u. u \<sqsubseteq> t}"
 
 lemma fin_defl_countable: "\<exists>f::fin_defl \<Rightarrow> nat. inj f"
 proof
@@ -130,52 +123,52 @@ proof
     done
 qed
 
-interpretation sfp: ideal_completion below sfp_principal Rep_sfp
-using type_definition_sfp below_sfp_def
-using sfp_principal_def fin_defl_countable
+interpretation defl: ideal_completion below defl_principal Rep_defl
+using type_definition_defl below_defl_def
+using defl_principal_def fin_defl_countable
 by (rule below.typedef_ideal_completion)
 
 text {* Algebraic deflations are pointed *}
 
-lemma sfp_minimal: "sfp_principal (Abs_fin_defl \<bottom>) \<sqsubseteq> x"
-apply (induct x rule: sfp.principal_induct, simp)
-apply (rule sfp.principal_mono)
+lemma defl_minimal: "defl_principal (Abs_fin_defl \<bottom>) \<sqsubseteq> x"
+apply (induct x rule: defl.principal_induct, simp)
+apply (rule defl.principal_mono)
 apply (simp add: below_fin_defl_def)
 apply (simp add: Abs_fin_defl_inverse finite_deflation_UU)
 done
 
-instance sfp :: pcpo
-by intro_classes (fast intro: sfp_minimal)
+instance defl :: pcpo
+by intro_classes (fast intro: defl_minimal)
 
-lemma inst_sfp_pcpo: "\<bottom> = sfp_principal (Abs_fin_defl \<bottom>)"
-by (rule sfp_minimal [THEN UU_I, symmetric])
+lemma inst_defl_pcpo: "\<bottom> = defl_principal (Abs_fin_defl \<bottom>)"
+by (rule defl_minimal [THEN UU_I, symmetric])
 
 subsection {* Applying algebraic deflations *}
 
 definition
-  cast :: "sfp \<rightarrow> udom \<rightarrow> udom"
+  cast :: "defl \<rightarrow> udom \<rightarrow> udom"
 where
-  "cast = sfp.basis_fun Rep_fin_defl"
+  "cast = defl.basis_fun Rep_fin_defl"
 
-lemma cast_sfp_principal:
-  "cast\<cdot>(sfp_principal a) = Rep_fin_defl a"
+lemma cast_defl_principal:
+  "cast\<cdot>(defl_principal a) = Rep_fin_defl a"
 unfolding cast_def
-apply (rule sfp.basis_fun_principal)
+apply (rule defl.basis_fun_principal)
 apply (simp only: below_fin_defl_def)
 done
 
 lemma deflation_cast: "deflation (cast\<cdot>d)"
-apply (induct d rule: sfp.principal_induct)
+apply (induct d rule: defl.principal_induct)
 apply (rule adm_subst [OF _ adm_deflation], simp)
-apply (simp add: cast_sfp_principal)
+apply (simp add: cast_defl_principal)
 apply (rule finite_deflation_imp_deflation)
 apply (rule finite_deflation_Rep_fin_defl)
 done
 
 lemma finite_deflation_cast:
   "compact d \<Longrightarrow> finite_deflation (cast\<cdot>d)"
-apply (drule sfp.compact_imp_principal, clarify)
-apply (simp add: cast_sfp_principal)
+apply (drule defl.compact_imp_principal, clarify)
+apply (simp add: cast_defl_principal)
 apply (rule finite_deflation_Rep_fin_defl)
 done
 
@@ -190,9 +183,9 @@ apply (erule finite_deflation_cast)
 done
 
 lemma cast_below_cast: "cast\<cdot>A \<sqsubseteq> cast\<cdot>B \<longleftrightarrow> A \<sqsubseteq> B"
-apply (induct A rule: sfp.principal_induct, simp)
-apply (induct B rule: sfp.principal_induct, simp)
-apply (simp add: cast_sfp_principal below_fin_defl_def)
+apply (induct A rule: defl.principal_induct, simp)
+apply (induct B rule: defl.principal_induct, simp)
+apply (simp add: cast_defl_principal below_fin_defl_def)
 done
 
 lemma compact_cast_iff: "compact (cast\<cdot>d) \<longleftrightarrow> compact d"
@@ -209,8 +202,8 @@ lemma cast_eq_imp_eq: "cast\<cdot>A = cast\<cdot>B \<Longrightarrow> A = B"
 by (simp add: below_antisym cast_below_imp_below)
 
 lemma cast_strict1 [simp]: "cast\<cdot>\<bottom> = \<bottom>"
-apply (subst inst_sfp_pcpo)
-apply (subst cast_sfp_principal)
+apply (subst inst_defl_pcpo)
+apply (subst cast_defl_principal)
 apply (rule Abs_fin_defl_inverse)
 apply (simp add: finite_deflation_UU)
 done
@@ -221,40 +214,40 @@ by (rule cast.below [THEN UU_I])
 subsection {* Deflation membership relation *}
 
 definition
-  in_sfp :: "udom \<Rightarrow> sfp \<Rightarrow> bool" (infixl ":::" 50)
+  in_defl :: "udom \<Rightarrow> defl \<Rightarrow> bool" (infixl ":::" 50)
 where
   "x ::: A \<longleftrightarrow> cast\<cdot>A\<cdot>x = x"
 
-lemma adm_in_sfp: "adm (\<lambda>x. x ::: A)"
-unfolding in_sfp_def by simp
+lemma adm_in_defl: "adm (\<lambda>x. x ::: A)"
+unfolding in_defl_def by simp
 
-lemma in_sfpI: "cast\<cdot>A\<cdot>x = x \<Longrightarrow> x ::: A"
-unfolding in_sfp_def .
+lemma in_deflI: "cast\<cdot>A\<cdot>x = x \<Longrightarrow> x ::: A"
+unfolding in_defl_def .
 
 lemma cast_fixed: "x ::: A \<Longrightarrow> cast\<cdot>A\<cdot>x = x"
-unfolding in_sfp_def .
+unfolding in_defl_def .
 
-lemma cast_in_sfp [simp]: "cast\<cdot>A\<cdot>x ::: A"
-unfolding in_sfp_def by (rule cast.idem)
+lemma cast_in_defl [simp]: "cast\<cdot>A\<cdot>x ::: A"
+unfolding in_defl_def by (rule cast.idem)
 
-lemma bottom_in_sfp [simp]: "\<bottom> ::: A"
-unfolding in_sfp_def by (rule cast_strict2)
+lemma bottom_in_defl [simp]: "\<bottom> ::: A"
+unfolding in_defl_def by (rule cast_strict2)
 
-lemma sfp_belowD: "A \<sqsubseteq> B \<Longrightarrow> x ::: A \<Longrightarrow> x ::: B"
-unfolding in_sfp_def
+lemma defl_belowD: "A \<sqsubseteq> B \<Longrightarrow> x ::: A \<Longrightarrow> x ::: B"
+unfolding in_defl_def
  apply (rule deflation.belowD)
    apply (rule deflation_cast)
   apply (erule monofun_cfun_arg)
  apply assumption
 done
 
-lemma rev_sfp_belowD: "x ::: A \<Longrightarrow> A \<sqsubseteq> B \<Longrightarrow> x ::: B"
-by (rule sfp_belowD)
+lemma rev_defl_belowD: "x ::: A \<Longrightarrow> A \<sqsubseteq> B \<Longrightarrow> x ::: B"
+by (rule defl_belowD)
 
-lemma sfp_belowI: "(\<And>x. x ::: A \<Longrightarrow> x ::: B) \<Longrightarrow> A \<sqsubseteq> B"
+lemma defl_belowI: "(\<And>x. x ::: A \<Longrightarrow> x ::: B) \<Longrightarrow> A \<sqsubseteq> B"
 apply (rule cast_below_imp_below)
 apply (rule cast.belowI)
-apply (simp add: in_sfp_def)
+apply (simp add: in_defl_def)
 done
 
 end

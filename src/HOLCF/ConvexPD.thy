@@ -463,14 +463,14 @@ proof (rule approx_chain.intro)
     by (intro finite_deflation_convex_map finite_deflation_udom_approx)
 qed
 
-definition convex_sfp :: "sfp \<rightarrow> sfp"
-where "convex_sfp = sfp_fun1 convex_approx convex_map"
+definition convex_defl :: "defl \<rightarrow> defl"
+where "convex_defl = defl_fun1 convex_approx convex_map"
 
-lemma cast_convex_sfp:
-  "cast\<cdot>(convex_sfp\<cdot>A) =
+lemma cast_convex_defl:
+  "cast\<cdot>(convex_defl\<cdot>A) =
     udom_emb convex_approx oo convex_map\<cdot>(cast\<cdot>A) oo udom_prj convex_approx"
-unfolding convex_sfp_def
-apply (rule cast_sfp_fun1 [OF convex_approx])
+unfolding convex_defl_def
+apply (rule cast_defl_fun1 [OF convex_approx])
 apply (erule finite_deflation_convex_map)
 done
 
@@ -484,7 +484,7 @@ definition
   "prj = convex_map\<cdot>prj oo udom_prj convex_approx"
 
 definition
-  "sfp (t::'a convex_pd itself) = convex_sfp\<cdot>SFP('a)"
+  "defl (t::'a convex_pd itself) = convex_defl\<cdot>DEFL('a)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a convex_pd)"
@@ -492,17 +492,17 @@ instance proof
     using ep_pair_udom [OF convex_approx]
     by (intro ep_pair_comp ep_pair_convex_map ep_pair_emb_prj)
 next
-  show "cast\<cdot>SFP('a convex_pd) = emb oo (prj :: udom \<rightarrow> 'a convex_pd)"
-    unfolding emb_convex_pd_def prj_convex_pd_def sfp_convex_pd_def cast_convex_sfp
-    by (simp add: cast_SFP oo_def expand_cfun_eq convex_map_map)
+  show "cast\<cdot>DEFL('a convex_pd) = emb oo (prj :: udom \<rightarrow> 'a convex_pd)"
+    unfolding emb_convex_pd_def prj_convex_pd_def defl_convex_pd_def cast_convex_defl
+    by (simp add: cast_DEFL oo_def expand_cfun_eq convex_map_map)
 qed
 
 end
 
-text {* SFP of type constructor = type combinator *}
+text {* DEFL of type constructor = type combinator *}
 
-lemma SFP_convex: "SFP('a convex_pd) = convex_sfp\<cdot>SFP('a)"
-by (rule sfp_convex_pd_def)
+lemma DEFL_convex: "DEFL('a convex_pd) = convex_defl\<cdot>DEFL('a)"
+by (rule defl_convex_pd_def)
 
 
 subsection {* Join *}

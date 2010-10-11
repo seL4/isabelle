@@ -162,14 +162,14 @@ proof (rule approx_chain.intro)
     by (intro finite_deflation_sfun_map finite_deflation_udom_approx)
 qed
 
-definition sfun_sfp :: "sfp \<rightarrow> sfp \<rightarrow> sfp"
-where "sfun_sfp = sfp_fun2 sfun_approx sfun_map"
+definition sfun_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
+where "sfun_defl = defl_fun2 sfun_approx sfun_map"
 
-lemma cast_sfun_sfp:
-  "cast\<cdot>(sfun_sfp\<cdot>A\<cdot>B) =
+lemma cast_sfun_defl:
+  "cast\<cdot>(sfun_defl\<cdot>A\<cdot>B) =
     udom_emb sfun_approx oo sfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj sfun_approx"
-unfolding sfun_sfp_def
-apply (rule cast_sfp_fun2 [OF sfun_approx])
+unfolding sfun_defl_def
+apply (rule cast_defl_fun2 [OF sfun_approx])
 apply (erule (1) finite_deflation_sfun_map)
 done
 
@@ -183,7 +183,7 @@ definition
   "prj = sfun_map\<cdot>emb\<cdot>prj oo udom_prj sfun_approx"
 
 definition
-  "sfp (t::('a \<rightarrow>! 'b) itself) = sfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
+  "defl (t::('a \<rightarrow>! 'b) itself) = sfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
@@ -191,29 +191,29 @@ instance proof
     using ep_pair_udom [OF sfun_approx]
     by (intro ep_pair_comp ep_pair_sfun_map ep_pair_emb_prj)
 next
-  show "cast\<cdot>SFP('a \<rightarrow>! 'b) = emb oo (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
-    unfolding emb_sfun_def prj_sfun_def sfp_sfun_def cast_sfun_sfp
-    by (simp add: cast_SFP oo_def expand_cfun_eq sfun_map_map)
+  show "cast\<cdot>DEFL('a \<rightarrow>! 'b) = emb oo (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
+    unfolding emb_sfun_def prj_sfun_def defl_sfun_def cast_sfun_defl
+    by (simp add: cast_DEFL oo_def expand_cfun_eq sfun_map_map)
 qed
 
 end
 
-lemma SFP_sfun:
-  "SFP('a::bifinite \<rightarrow>! 'b::bifinite) = sfun_sfp\<cdot>SFP('a)\<cdot>SFP('b)"
-by (rule sfp_sfun_def)
+lemma DEFL_sfun:
+  "DEFL('a::bifinite \<rightarrow>! 'b::bifinite) = sfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
+by (rule defl_sfun_def)
 
 lemma isodefl_sfun:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
-    isodefl (sfun_map\<cdot>d1\<cdot>d2) (sfun_sfp\<cdot>t1\<cdot>t2)"
+    isodefl (sfun_map\<cdot>d1\<cdot>d2) (sfun_defl\<cdot>t1\<cdot>t2)"
 apply (rule isodeflI)
-apply (simp add: cast_sfun_sfp cast_isodefl)
+apply (simp add: cast_sfun_defl cast_isodefl)
 apply (simp add: emb_sfun_def prj_sfun_def)
 apply (simp add: sfun_map_map deflation_strict [OF isodefl_imp_deflation])
 done
 
 setup {*
   Domain_Isomorphism.add_type_constructor
-    (@{type_name "sfun"}, @{term sfun_sfp}, @{const_name sfun_map}, @{thm SFP_sfun},
+    (@{type_name "sfun"}, @{term sfun_defl}, @{const_name sfun_map}, @{thm DEFL_sfun},
        @{thm isodefl_sfun}, @{thm sfun_map_ID}, @{thm deflation_sfun_map})
 *}
 

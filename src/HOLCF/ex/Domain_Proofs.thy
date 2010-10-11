@@ -28,50 +28,50 @@ subsection {* Step 1: Define the new type combinators *}
 text {* Start with the one-step non-recursive version *}
 
 definition
-  foo_bar_baz_sfpF ::
-    "sfp \<rightarrow> sfp \<times> sfp \<times> sfp \<rightarrow> sfp \<times> sfp \<times> sfp"
+  foo_bar_baz_deflF ::
+    "defl \<rightarrow> defl \<times> defl \<times> defl \<rightarrow> defl \<times> defl \<times> defl"
 where
-  "foo_bar_baz_sfpF = (\<Lambda> a. Abs_CFun (\<lambda>(t1, t2, t3). 
-    ( ssum_sfp\<cdot>SFP(one)\<cdot>(sprod_sfp\<cdot>(u_sfp\<cdot>a)\<cdot>(u_sfp\<cdot>t2))
-    , u_sfp\<cdot>(cfun_sfp\<cdot>t3\<cdot>SFP(tr))
-    , u_sfp\<cdot>(cfun_sfp\<cdot>(convex_sfp\<cdot>t1)\<cdot>SFP(tr)))))"
+  "foo_bar_baz_deflF = (\<Lambda> a. Abs_CFun (\<lambda>(t1, t2, t3). 
+    ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>t2))
+    , u_defl\<cdot>(cfun_defl\<cdot>t3\<cdot>DEFL(tr))
+    , u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>t1)\<cdot>DEFL(tr)))))"
 
-lemma foo_bar_baz_sfpF_beta:
-  "foo_bar_baz_sfpF\<cdot>a\<cdot>t =
-    ( ssum_sfp\<cdot>SFP(one)\<cdot>(sprod_sfp\<cdot>(u_sfp\<cdot>a)\<cdot>(u_sfp\<cdot>(fst (snd t))))
-    , u_sfp\<cdot>(cfun_sfp\<cdot>(snd (snd t))\<cdot>SFP(tr))
-    , u_sfp\<cdot>(cfun_sfp\<cdot>(convex_sfp\<cdot>(fst t))\<cdot>SFP(tr)))"
-unfolding foo_bar_baz_sfpF_def
+lemma foo_bar_baz_deflF_beta:
+  "foo_bar_baz_deflF\<cdot>a\<cdot>t =
+    ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(fst (snd t))))
+    , u_defl\<cdot>(cfun_defl\<cdot>(snd (snd t))\<cdot>DEFL(tr))
+    , u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>(fst t))\<cdot>DEFL(tr)))"
+unfolding foo_bar_baz_deflF_def
 by (simp add: split_def)
 
 text {* Individual type combinators are projected from the fixed point. *}
 
-definition foo_sfp :: "sfp \<rightarrow> sfp"
-where "foo_sfp = (\<Lambda> a. fst (fix\<cdot>(foo_bar_baz_sfpF\<cdot>a)))"
+definition foo_defl :: "defl \<rightarrow> defl"
+where "foo_defl = (\<Lambda> a. fst (fix\<cdot>(foo_bar_baz_deflF\<cdot>a)))"
 
-definition bar_sfp :: "sfp \<rightarrow> sfp"
-where "bar_sfp = (\<Lambda> a. fst (snd (fix\<cdot>(foo_bar_baz_sfpF\<cdot>a))))"
+definition bar_defl :: "defl \<rightarrow> defl"
+where "bar_defl = (\<Lambda> a. fst (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))))"
 
-definition baz_sfp :: "sfp \<rightarrow> sfp"
-where "baz_sfp = (\<Lambda> a. snd (snd (fix\<cdot>(foo_bar_baz_sfpF\<cdot>a))))"
+definition baz_defl :: "defl \<rightarrow> defl"
+where "baz_defl = (\<Lambda> a. snd (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))))"
 
 lemma defl_apply_thms:
-  "foo_sfp\<cdot>a = fst (fix\<cdot>(foo_bar_baz_sfpF\<cdot>a))"
-  "bar_sfp\<cdot>a = fst (snd (fix\<cdot>(foo_bar_baz_sfpF\<cdot>a)))"
-  "baz_sfp\<cdot>a = snd (snd (fix\<cdot>(foo_bar_baz_sfpF\<cdot>a)))"
-unfolding foo_sfp_def bar_sfp_def baz_sfp_def by simp_all
+  "foo_defl\<cdot>a = fst (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))"
+  "bar_defl\<cdot>a = fst (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a)))"
+  "baz_defl\<cdot>a = snd (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a)))"
+unfolding foo_defl_def bar_defl_def baz_defl_def by simp_all
 
 text {* Unfold rules for each combinator. *}
 
-lemma foo_sfp_unfold:
-  "foo_sfp\<cdot>a = ssum_sfp\<cdot>SFP(one)\<cdot>(sprod_sfp\<cdot>(u_sfp\<cdot>a)\<cdot>(u_sfp\<cdot>(bar_sfp\<cdot>a)))"
-unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_sfpF_beta)
+lemma foo_defl_unfold:
+  "foo_defl\<cdot>a = ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(bar_defl\<cdot>a)))"
+unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
-lemma bar_sfp_unfold: "bar_sfp\<cdot>a = u_sfp\<cdot>(cfun_sfp\<cdot>(baz_sfp\<cdot>a)\<cdot>SFP(tr))"
-unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_sfpF_beta)
+lemma bar_defl_unfold: "bar_defl\<cdot>a = u_defl\<cdot>(cfun_defl\<cdot>(baz_defl\<cdot>a)\<cdot>DEFL(tr))"
+unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
-lemma baz_sfp_unfold: "baz_sfp\<cdot>a = u_sfp\<cdot>(cfun_sfp\<cdot>(convex_sfp\<cdot>(foo_sfp\<cdot>a))\<cdot>SFP(tr))"
-unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_sfpF_beta)
+lemma baz_defl_unfold: "baz_defl\<cdot>a = u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>(foo_defl\<cdot>a))\<cdot>DEFL(tr))"
+unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
 text "The automation for the previous steps will be quite similar to
 how the fixrec package works."
@@ -82,14 +82,14 @@ subsection {* Step 2: Define types, prove class instances *}
 
 text {* Use @{text pcpodef} with the appropriate type combinator. *}
 
-pcpodef (open) 'a foo = "{x. x ::: foo_sfp\<cdot>SFP('a)}"
-by (simp_all add: adm_in_sfp)
+pcpodef (open) 'a foo = "{x. x ::: foo_defl\<cdot>DEFL('a)}"
+by (simp_all add: adm_in_defl)
 
-pcpodef (open) 'a bar = "{x. x ::: bar_sfp\<cdot>SFP('a)}"
-by (simp_all add: adm_in_sfp)
+pcpodef (open) 'a bar = "{x. x ::: bar_defl\<cdot>DEFL('a)}"
+by (simp_all add: adm_in_defl)
 
-pcpodef (open) 'a baz = "{x. x ::: baz_sfp\<cdot>SFP('a)}"
-by (simp_all add: adm_in_sfp)
+pcpodef (open) 'a baz = "{x. x ::: baz_defl\<cdot>DEFL('a)}"
+by (simp_all add: adm_in_defl)
 
 text {* Prove rep instance using lemma @{text typedef_rep_class}. *}
 
@@ -100,10 +100,10 @@ definition emb_foo :: "'a foo \<rightarrow> udom"
 where "emb_foo \<equiv> (\<Lambda> x. Rep_foo x)"
 
 definition prj_foo :: "udom \<rightarrow> 'a foo"
-where "prj_foo \<equiv> (\<Lambda> y. Abs_foo (cast\<cdot>(foo_sfp\<cdot>SFP('a))\<cdot>y))"
+where "prj_foo \<equiv> (\<Lambda> y. Abs_foo (cast\<cdot>(foo_defl\<cdot>DEFL('a))\<cdot>y))"
 
-definition sfp_foo :: "'a foo itself \<Rightarrow> sfp"
-where "sfp_foo \<equiv> \<lambda>a. foo_sfp\<cdot>SFP('a)"
+definition defl_foo :: "'a foo itself \<Rightarrow> defl"
+where "defl_foo \<equiv> \<lambda>a. foo_defl\<cdot>DEFL('a)"
 
 instance
 apply (rule typedef_rep_class)
@@ -111,7 +111,7 @@ apply (rule type_definition_foo)
 apply (rule below_foo_def)
 apply (rule emb_foo_def)
 apply (rule prj_foo_def)
-apply (rule sfp_foo_def)
+apply (rule defl_foo_def)
 done
 
 end
@@ -123,10 +123,10 @@ definition emb_bar :: "'a bar \<rightarrow> udom"
 where "emb_bar \<equiv> (\<Lambda> x. Rep_bar x)"
 
 definition prj_bar :: "udom \<rightarrow> 'a bar"
-where "prj_bar \<equiv> (\<Lambda> y. Abs_bar (cast\<cdot>(bar_sfp\<cdot>SFP('a))\<cdot>y))"
+where "prj_bar \<equiv> (\<Lambda> y. Abs_bar (cast\<cdot>(bar_defl\<cdot>DEFL('a))\<cdot>y))"
 
-definition sfp_bar :: "'a bar itself \<Rightarrow> sfp"
-where "sfp_bar \<equiv> \<lambda>a. bar_sfp\<cdot>SFP('a)"
+definition defl_bar :: "'a bar itself \<Rightarrow> defl"
+where "defl_bar \<equiv> \<lambda>a. bar_defl\<cdot>DEFL('a)"
 
 instance
 apply (rule typedef_rep_class)
@@ -134,7 +134,7 @@ apply (rule type_definition_bar)
 apply (rule below_bar_def)
 apply (rule emb_bar_def)
 apply (rule prj_bar_def)
-apply (rule sfp_bar_def)
+apply (rule defl_bar_def)
 done
 
 end
@@ -146,10 +146,10 @@ definition emb_baz :: "'a baz \<rightarrow> udom"
 where "emb_baz \<equiv> (\<Lambda> x. Rep_baz x)"
 
 definition prj_baz :: "udom \<rightarrow> 'a baz"
-where "prj_baz \<equiv> (\<Lambda> y. Abs_baz (cast\<cdot>(baz_sfp\<cdot>SFP('a))\<cdot>y))"
+where "prj_baz \<equiv> (\<Lambda> y. Abs_baz (cast\<cdot>(baz_defl\<cdot>DEFL('a))\<cdot>y))"
 
-definition sfp_baz :: "'a baz itself \<Rightarrow> sfp"
-where "sfp_baz \<equiv> \<lambda>a. baz_sfp\<cdot>SFP('a)"
+definition defl_baz :: "'a baz itself \<Rightarrow> defl"
+where "defl_baz \<equiv> \<lambda>a. baz_defl\<cdot>DEFL('a)"
 
 instance
 apply (rule typedef_rep_class)
@@ -157,44 +157,44 @@ apply (rule type_definition_baz)
 apply (rule below_baz_def)
 apply (rule emb_baz_def)
 apply (rule prj_baz_def)
-apply (rule sfp_baz_def)
+apply (rule defl_baz_def)
 done
 
 end
 
-text {* Prove SFP rules using lemma @{text typedef_SFP}. *}
+text {* Prove DEFL rules using lemma @{text typedef_DEFL}. *}
 
-lemma SFP_foo: "SFP('a foo) = foo_sfp\<cdot>SFP('a)"
-apply (rule typedef_SFP)
-apply (rule sfp_foo_def)
+lemma DEFL_foo: "DEFL('a foo) = foo_defl\<cdot>DEFL('a)"
+apply (rule typedef_DEFL)
+apply (rule defl_foo_def)
 done
 
-lemma SFP_bar: "SFP('a bar) = bar_sfp\<cdot>SFP('a)"
-apply (rule typedef_SFP)
-apply (rule sfp_bar_def)
+lemma DEFL_bar: "DEFL('a bar) = bar_defl\<cdot>DEFL('a)"
+apply (rule typedef_DEFL)
+apply (rule defl_bar_def)
 done
 
-lemma SFP_baz: "SFP('a baz) = baz_sfp\<cdot>SFP('a)"
-apply (rule typedef_SFP)
-apply (rule sfp_baz_def)
+lemma DEFL_baz: "DEFL('a baz) = baz_defl\<cdot>DEFL('a)"
+apply (rule typedef_DEFL)
+apply (rule defl_baz_def)
 done
 
-text {* Prove SFP equations using type combinator unfold lemmas. *}
+text {* Prove DEFL equations using type combinator unfold lemmas. *}
 
-lemmas SFP_simps =
-  SFP_ssum SFP_sprod SFP_u SFP_cfun
+lemmas DEFL_simps =
+  DEFL_ssum DEFL_sprod DEFL_u DEFL_cfun
 
-lemma SFP_foo': "SFP('a foo) = SFP(one \<oplus> 'a\<^sub>\<bottom> \<otimes> ('a bar)\<^sub>\<bottom>)"
-unfolding SFP_foo SFP_bar SFP_baz SFP_simps
-by (rule foo_sfp_unfold)
+lemma DEFL_foo': "DEFL('a foo) = DEFL(one \<oplus> 'a\<^sub>\<bottom> \<otimes> ('a bar)\<^sub>\<bottom>)"
+unfolding DEFL_foo DEFL_bar DEFL_baz DEFL_simps
+by (rule foo_defl_unfold)
 
-lemma SFP_bar': "SFP('a bar) = SFP(('a baz \<rightarrow> tr)\<^sub>\<bottom>)"
-unfolding SFP_foo SFP_bar SFP_baz SFP_simps
-by (rule bar_sfp_unfold)
+lemma DEFL_bar': "DEFL('a bar) = DEFL(('a baz \<rightarrow> tr)\<^sub>\<bottom>)"
+unfolding DEFL_foo DEFL_bar DEFL_baz DEFL_simps
+by (rule bar_defl_unfold)
 
-lemma SFP_baz': "SFP('a baz) = SFP(('a foo convex_pd \<rightarrow> tr)\<^sub>\<bottom>)"
-unfolding SFP_foo SFP_bar SFP_baz SFP_simps SFP_convex
-by (rule baz_sfp_unfold)
+lemma DEFL_baz': "DEFL('a baz) = DEFL(('a foo convex_pd \<rightarrow> tr)\<^sub>\<bottom>)"
+unfolding DEFL_foo DEFL_bar DEFL_baz DEFL_simps DEFL_convex
+by (rule baz_defl_unfold)
 
 (********************************************************************)
 
@@ -223,36 +223,36 @@ where "baz_abs \<equiv> coerce"
 text {* Prove isomorphism rules. *}
 
 lemma foo_abs_iso: "foo_rep\<cdot>(foo_abs\<cdot>x) = x"
-by (rule domain_abs_iso [OF SFP_foo' foo_abs_def foo_rep_def])
+by (rule domain_abs_iso [OF DEFL_foo' foo_abs_def foo_rep_def])
 
 lemma foo_rep_iso: "foo_abs\<cdot>(foo_rep\<cdot>x) = x"
-by (rule domain_rep_iso [OF SFP_foo' foo_abs_def foo_rep_def])
+by (rule domain_rep_iso [OF DEFL_foo' foo_abs_def foo_rep_def])
 
 lemma bar_abs_iso: "bar_rep\<cdot>(bar_abs\<cdot>x) = x"
-by (rule domain_abs_iso [OF SFP_bar' bar_abs_def bar_rep_def])
+by (rule domain_abs_iso [OF DEFL_bar' bar_abs_def bar_rep_def])
 
 lemma bar_rep_iso: "bar_abs\<cdot>(bar_rep\<cdot>x) = x"
-by (rule domain_rep_iso [OF SFP_bar' bar_abs_def bar_rep_def])
+by (rule domain_rep_iso [OF DEFL_bar' bar_abs_def bar_rep_def])
 
 lemma baz_abs_iso: "baz_rep\<cdot>(baz_abs\<cdot>x) = x"
-by (rule domain_abs_iso [OF SFP_baz' baz_abs_def baz_rep_def])
+by (rule domain_abs_iso [OF DEFL_baz' baz_abs_def baz_rep_def])
 
 lemma baz_rep_iso: "baz_abs\<cdot>(baz_rep\<cdot>x) = x"
-by (rule domain_rep_iso [OF SFP_baz' baz_abs_def baz_rep_def])
+by (rule domain_rep_iso [OF DEFL_baz' baz_abs_def baz_rep_def])
 
 text {* Prove isodefl rules using @{text isodefl_coerce}. *}
 
 lemma isodefl_foo_abs:
   "isodefl d t \<Longrightarrow> isodefl (foo_abs oo d oo foo_rep) t"
-by (rule isodefl_abs_rep [OF SFP_foo' foo_abs_def foo_rep_def])
+by (rule isodefl_abs_rep [OF DEFL_foo' foo_abs_def foo_rep_def])
 
 lemma isodefl_bar_abs:
   "isodefl d t \<Longrightarrow> isodefl (bar_abs oo d oo bar_rep) t"
-by (rule isodefl_abs_rep [OF SFP_bar' bar_abs_def bar_rep_def])
+by (rule isodefl_abs_rep [OF DEFL_bar' bar_abs_def bar_rep_def])
 
 lemma isodefl_baz_abs:
   "isodefl d t \<Longrightarrow> isodefl (baz_abs oo d oo baz_rep) t"
-by (rule isodefl_abs_rep [OF SFP_baz' baz_abs_def baz_rep_def])
+by (rule isodefl_abs_rep [OF DEFL_baz' baz_abs_def baz_rep_def])
 
 (********************************************************************)
 
@@ -316,15 +316,15 @@ text {* Prove isodefl rules for all map functions simultaneously. *}
 lemma isodefl_foo_bar_baz:
   assumes isodefl_d: "isodefl d t"
   shows
-  "isodefl (foo_map\<cdot>d) (foo_sfp\<cdot>t) \<and>
-  isodefl (bar_map\<cdot>d) (bar_sfp\<cdot>t) \<and>
-  isodefl (baz_map\<cdot>d) (baz_sfp\<cdot>t)"
+  "isodefl (foo_map\<cdot>d) (foo_defl\<cdot>t) \<and>
+  isodefl (bar_map\<cdot>d) (bar_defl\<cdot>t) \<and>
+  isodefl (baz_map\<cdot>d) (baz_defl\<cdot>t)"
 unfolding map_apply_thms defl_apply_thms
  apply (rule parallel_fix_ind)
    apply (intro adm_conj adm_isodefl cont2cont_fst cont2cont_snd cont_id)
   apply (simp only: fst_strict snd_strict isodefl_bottom simp_thms)
  apply (simp only: foo_bar_baz_mapF_beta
-                   foo_bar_baz_sfpF_beta
+                   foo_bar_baz_deflF_beta
                    fst_conv snd_conv)
  apply (elim conjE)
  apply (intro
@@ -332,7 +332,7 @@ unfolding map_apply_thms defl_apply_thms
   isodefl_foo_abs
   isodefl_bar_abs
   isodefl_baz_abs
-  isodefl_ssum isodefl_sprod isodefl_ID_SFP
+  isodefl_ssum isodefl_sprod isodefl_ID_DEFL
   isodefl_u isodefl_convex isodefl_cfun
   isodefl_d
  )
@@ -343,27 +343,27 @@ lemmas isodefl_foo = isodefl_foo_bar_baz [THEN conjunct1]
 lemmas isodefl_bar = isodefl_foo_bar_baz [THEN conjunct2, THEN conjunct1]
 lemmas isodefl_baz = isodefl_foo_bar_baz [THEN conjunct2, THEN conjunct2]
 
-text {* Prove map ID lemmas, using isodefl_SFP_imp_ID *}
+text {* Prove map ID lemmas, using isodefl_DEFL_imp_ID *}
 
 lemma foo_map_ID: "foo_map\<cdot>ID = ID"
-apply (rule isodefl_SFP_imp_ID)
-apply (subst SFP_foo)
+apply (rule isodefl_DEFL_imp_ID)
+apply (subst DEFL_foo)
 apply (rule isodefl_foo)
-apply (rule isodefl_ID_SFP)
+apply (rule isodefl_ID_DEFL)
 done
 
 lemma bar_map_ID: "bar_map\<cdot>ID = ID"
-apply (rule isodefl_SFP_imp_ID)
-apply (subst SFP_bar)
+apply (rule isodefl_DEFL_imp_ID)
+apply (subst DEFL_bar)
 apply (rule isodefl_bar)
-apply (rule isodefl_ID_SFP)
+apply (rule isodefl_ID_DEFL)
 done
 
 lemma baz_map_ID: "baz_map\<cdot>ID = ID"
-apply (rule isodefl_SFP_imp_ID)
-apply (subst SFP_baz)
+apply (rule isodefl_DEFL_imp_ID)
+apply (subst DEFL_baz)
 apply (rule isodefl_baz)
-apply (rule isodefl_ID_SFP)
+apply (rule isodefl_ID_DEFL)
 done
 
 (********************************************************************)

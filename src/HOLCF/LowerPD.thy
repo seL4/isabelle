@@ -452,14 +452,14 @@ proof (rule approx_chain.intro)
     by (intro finite_deflation_lower_map finite_deflation_udom_approx)
 qed
 
-definition lower_sfp :: "sfp \<rightarrow> sfp"
-where "lower_sfp = sfp_fun1 lower_approx lower_map"
+definition lower_defl :: "defl \<rightarrow> defl"
+where "lower_defl = defl_fun1 lower_approx lower_map"
 
-lemma cast_lower_sfp:
-  "cast\<cdot>(lower_sfp\<cdot>A) =
+lemma cast_lower_defl:
+  "cast\<cdot>(lower_defl\<cdot>A) =
     udom_emb lower_approx oo lower_map\<cdot>(cast\<cdot>A) oo udom_prj lower_approx"
-unfolding lower_sfp_def
-apply (rule cast_sfp_fun1 [OF lower_approx])
+unfolding lower_defl_def
+apply (rule cast_defl_fun1 [OF lower_approx])
 apply (erule finite_deflation_lower_map)
 done
 
@@ -473,7 +473,7 @@ definition
   "prj = lower_map\<cdot>prj oo udom_prj lower_approx"
 
 definition
-  "sfp (t::'a lower_pd itself) = lower_sfp\<cdot>SFP('a)"
+  "defl (t::'a lower_pd itself) = lower_defl\<cdot>DEFL('a)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a lower_pd)"
@@ -481,15 +481,15 @@ instance proof
     using ep_pair_udom [OF lower_approx]
     by (intro ep_pair_comp ep_pair_lower_map ep_pair_emb_prj)
 next
-  show "cast\<cdot>SFP('a lower_pd) = emb oo (prj :: udom \<rightarrow> 'a lower_pd)"
-    unfolding emb_lower_pd_def prj_lower_pd_def sfp_lower_pd_def cast_lower_sfp
-    by (simp add: cast_SFP oo_def expand_cfun_eq lower_map_map)
+  show "cast\<cdot>DEFL('a lower_pd) = emb oo (prj :: udom \<rightarrow> 'a lower_pd)"
+    unfolding emb_lower_pd_def prj_lower_pd_def defl_lower_pd_def cast_lower_defl
+    by (simp add: cast_DEFL oo_def expand_cfun_eq lower_map_map)
 qed
 
 end
 
-lemma SFP_lower: "SFP('a lower_pd) = lower_sfp\<cdot>SFP('a)"
-by (rule sfp_lower_pd_def)
+lemma DEFL_lower: "DEFL('a lower_pd) = lower_defl\<cdot>DEFL('a)"
+by (rule defl_lower_pd_def)
 
 
 subsection {* Join *}
