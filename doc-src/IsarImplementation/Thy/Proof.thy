@@ -52,11 +52,25 @@ text {*
   operation of exporting results from a context: a type variable
   @{text "\<alpha>"} is considered fixed as long as it occurs in some fixed
   term variable of the context.  For example, exporting @{text "x:
-  term, \<alpha>: type \<turnstile> x\<^isub>\<alpha> = x\<^isub>\<alpha>"} produces in the first step
-  @{text "x: term \<turnstile> x\<^isub>\<alpha> = x\<^isub>\<alpha>"} for fixed @{text "\<alpha>"},
-  and only in the second step @{text "\<turnstile> ?x\<^isub>?\<^isub>\<alpha> =
-  ?x\<^isub>?\<^isub>\<alpha>"} for schematic @{text "?x"} and @{text "?\<alpha>"}.
+  term, \<alpha>: type \<turnstile> x\<^isub>\<alpha> \<equiv> x\<^isub>\<alpha>"} produces in the first step @{text "x: term
+  \<turnstile> x\<^isub>\<alpha> \<equiv> x\<^isub>\<alpha>"} for fixed @{text "\<alpha>"}, and only in the second step
+  @{text "\<turnstile> ?x\<^isub>?\<^isub>\<alpha> \<equiv> ?x\<^isub>?\<^isub>\<alpha>"} for schematic @{text "?x"} and @{text "?\<alpha>"}.
+  The following Isar source text illustrates this scenario.
+*}
 
+example_proof
+  {
+    fix x  -- {* all potential occurrences of some @{text "x::\<tau>"} are fixed *}
+    {
+      have "x::'a \<equiv> x"  -- {* implicit type assigment by concrete occurrence *}
+        by (rule reflexive)
+    }
+    thm this  -- {* result still with fixed type @{text "'a"} *}
+  }
+  thm this  -- {* fully general result for arbitrary @{text "?x::?'a"} *}
+qed
+
+text {*
   \medskip The Isabelle/Isar proof context manages the gory details of
   term vs.\ type variables, with high-level principles for moving the
   frontier between fixed and schematic variables.
