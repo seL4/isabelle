@@ -931,10 +931,17 @@ text {* A @{text "name space"} manages a collection of long names,
   constant @{text "c"}.  This technique of mapping names from one
   space into another requires some care in order to avoid conflicts.
   In particular, theorem names derived from a type constructor or type
-  class are better suffixed in addition to the usual qualification,
-  e.g.\ @{text "c_type.intro"} and @{text "c_class.intro"} for
-  theorems related to type @{text "c"} and class @{text "c"},
-  respectively.
+  class should get an additional suffix in addition to the usual
+  qualification.  This leads to the following conventions for derived
+  names:
+
+  \medskip
+  \begin{tabular}{ll}
+  logical entity & fact name \\\hline
+  constant @{text "c"} & @{text "c.intro"} \\
+  type @{text "c"} & @{text "c_type.intro"} \\
+  class @{text "c"} & @{text "c_class.intro"} \\
+  \end{tabular}
 *}
 
 text %mlref {*

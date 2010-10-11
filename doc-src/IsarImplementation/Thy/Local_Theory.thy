@@ -31,8 +31,8 @@ text {*
 
   Many definitional packages for local theories are available in
   Isabelle.  Although a few old packages only work for global
-  theories, the local theory interface is already the standard way of
-  implementing definitional packages in Isabelle.
+  theories, the standard way of implementing definitional packages in
+  Isabelle is via the local theory interface.
 *}
 
 
