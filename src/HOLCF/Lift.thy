@@ -86,17 +86,6 @@ proof
     by (induct x) auto
 qed
 
-text {*
-  \medskip Two specific lemmas for the combination of LCF and HOL
-  terms.
-*}
-
-lemma cont_Rep_CFun_app [simp]: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s)"
-by (rule cont2cont_Rep_CFun [THEN cont2cont_fun])
-
-lemma cont_Rep_CFun_app_app [simp]: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s t)"
-by (rule cont_Rep_CFun_app [THEN cont2cont_fun])
-
 subsection {* Further operations *}
 
 definition

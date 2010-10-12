@@ -316,6 +316,18 @@ proof -
     using t cont_Rep_CFun2 1 by (rule cont_apply)
 qed
 
+text {*
+  Two specific lemmas for the combination of LCF and HOL terms.
+  These lemmas are needed in theories that use types like @{typ "'a \<rightarrow> 'b \<Rightarrow> 'c"}.
+*}
+
+lemma cont_Rep_CFun_app [simp]: "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. ((f x)\<cdot>(g x)) s)"
+by (rule cont2cont_Rep_CFun [THEN cont2cont_fun])
+
+lemma cont_Rep_CFun_app_app [simp]: "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. ((f x)\<cdot>(g x)) s t)"
+by (rule cont_Rep_CFun_app [THEN cont2cont_fun])
+
+
 text {* cont2mono Lemma for @{term "%x. LAM y. c1(x)(y)"} *}
 
 lemma cont2mono_LAM:
