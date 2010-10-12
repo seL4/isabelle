@@ -43,12 +43,6 @@ lemmas Def_inject = lift.inject
 
 text {* @{term UU} and @{term Def} *}
 
-lemma Lift_exhaust: "x = \<bottom> \<or> (\<exists>y. x = Def y)"
-  by (induct x) simp_all
-
-lemma Lift_cases: "\<lbrakk>x = \<bottom> \<Longrightarrow> P; \<exists>a. x = Def a \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-  by (insert Lift_exhaust) blast
-
 lemma not_Undef_is_Def: "(x \<noteq> \<bottom>) = (\<exists>y. x = Def y)"
   by (cases x) simp_all
 
