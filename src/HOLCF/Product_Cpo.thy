@@ -267,14 +267,6 @@ apply (erule cont_compose [OF _ cont_pair2])
 apply (simp only: prod_contI)
 done
 
-lemma cont_fst_snd_D1:
-  "cont (\<lambda>p. f (fst p) (snd p)) \<Longrightarrow> cont (\<lambda>x. f x y)"
-by (drule cont_compose [OF _ cont_pair1], simp)
-
-lemma cont_fst_snd_D2:
-  "cont (\<lambda>p. f (fst p) (snd p)) \<Longrightarrow> cont (\<lambda>y. f x y)"
-by (drule cont_compose [OF _ cont_pair2], simp)
-
 lemma cont2cont_prod_case' [simp, cont2cont]:
   assumes f: "cont (\<lambda>p. f (fst p) (fst (snd p)) (snd (snd p)))"
   assumes g: "cont (\<lambda>x. g x)"

@@ -600,10 +600,10 @@ lemma cont2cont_Let' [simp, cont2cont]:
 using f
 proof (rule cont2cont_Let)
   fix x show "cont (\<lambda>y. g x y)"
-    using g by (rule cont_fst_snd_D2)
+    using g by (simp add: prod_cont_iff)
 next
   fix y show "cont (\<lambda>x. g x y)"
-    using g by (rule cont_fst_snd_D1)
+    using g by (simp add: prod_cont_iff)
 qed
 
 text {* The simple version (suggested by Joachim Breitner) is needed if
