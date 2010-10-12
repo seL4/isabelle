@@ -113,10 +113,116 @@ text %mlref {*
 *}
 
 
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "Isar.goal"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item @{text "@{Isar.goal}"} refers to the regular goal state (if
+  available) of the current proof state managed by the Isar toplevel
+  --- as abstract value.
+
+  This only works for diagnostic ML commands, such as @{command
+  ML_val} or @{command ML_command}.
+
+  \end{description}
+*}
+
+text %mlex {* The following example peeks at a certain goal configuration. *}
+
+example_proof
+  have "PROP A" and "PROP B" and "PROP C"
+    ML_val {* Thm.nprems_of (#goal @{Isar.goal}) *}
+    oops
+
+text {* \noindent Here we see 3 individual subgoals in the same way as
+  regular proof methods would do.
+*}
+
 
 section {* Proof methods *}
 
-text FIXME
+text {* Proof methods are syntactically embedded into the Isar proof
+  language as arguments to certain commands, e.g.\ @{command "by"} or
+  @{command apply}.  User-space additions are relatively easy by
+  plugging a suitable method-valued parser function into the
+  framework.
+
+  Operationally, a proof method is like a structurally enhanced
+  tactic: it operates on the full Isar goal configuration with
+  context, goal facts, and primitive goal state.  Like a tactic, it
+  enumerates possible follow-up goal states, with the potential
+  addition of named extensions of the proof context (called
+  \emph{cases}).
+
+  To get a better idea about the range of possibilities, consider
+  first the following structured proof scheme:
+
+  \medskip
+  \begin{tabular}{l}
+  @{command from}~@{text "facts\<^sub>1"}~@{command have}~@{text "props"}~@{command using}~@{text "facts\<^sub>2"} \\
+  @{command proof}~@{text "(initial_method)"} \\
+  \quad@{text "body"} \\
+  @{command qed}~@{text "(terminal_method)"} \\
+  \end{tabular}
+  \medskip
+
+  \noindent The goal configuration consists of @{text "facts\<^sub>1"} and
+  @{text "facts\<^sub>2"} appended in that order, and various @{text "props"}
+  that are claimed here.  The @{text "initial_method"} is invoked with
+  that information and refines the problem to something that is
+  accommodated recursively in the proof @{text "body"}.  The @{text
+  "terminal_method"} has another chance to finish-off any remaining
+  subgoals, but it does not see the facts of the initial step.
+
+  \medskip Here is another pattern for unstructured proof scripts:
+
+  \begin{tabular}{l}
+  @{command have}~@{text "props"} \\
+  \quad@{command using}~@{text "facts\<^sub>1"} \\
+  \quad@{command apply}~@{text "method\<^sub>1"} \\
+  \quad@{command apply}~@{text "method\<^sub>2"} \\
+  \quad@{command using}~@{text "facts\<^sub>3"} \\
+  \quad@{command apply}~@{text "method\<^sub>3"} \\
+  \quad@{command done} \\
+  \end{tabular}
+  \medskip
+
+  \noindent The @{text "method\<^sub>1"} operates on the original claim
+  together while using @{text "facts\<^bsub>1\<^esub>"}.  Since the @{command apply}
+  command structurally resets the facts, the @{text "method\<^sub>2"} will
+  operate on the remaining goal state without facts.  The @{text
+  "method\<^sub>3"} will see a collection of @{text "facts\<^sub>3"} that has been
+  inserted into the script explicitly.
+
+  \medskip Empirically, Isar proof methods can be categorized as follows:
+
+  \begin{enumerate}
+
+  \item structured method with cases, e.g.\ @{text "induct"}
+
+  \item regular method: strong emphasis on facts, e.g.\ @{text "rule"}
+
+  \item simple method: weak emphasis on facts, merely inserted into subgoals, e.g.\ @{text "simp"}
+
+  \item old-style tactic emulation, e.g. @{text "rule_tac"}
+
+  \begin{itemize}
+
+  \item naming convention @{text "foo_tac"}
+
+  \item numeric goal addressing
+
+  \item explicit references to internal goal state (invisible from text!)
+
+  \end{itemize}
+
+  \end{enumerate}
+
+  FIXME
+*}
 
 
 section {* Attributes *}
