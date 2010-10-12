@@ -293,29 +293,6 @@ apply (erule subst)
 apply (rule minimal [THEN monofun_cfun_arg])
 done
 
-text {* the lub of a chain of continous functions is monotone *}
-
-lemma lub_cfun_mono: "chain F \<Longrightarrow> monofun (\<lambda>x. \<Squnion>i. F i\<cdot>x)"
-apply (drule ch2ch_monofun [OF monofun_Rep_CFun])
-apply (simp add: thelub_fun [symmetric])
-apply (erule monofun_lub_fun)
-apply (simp add: monofun_Rep_CFun2)
-done
-
-text {* a lemma about the exchange of lubs for type @{typ "'a -> 'b"} *}
-
-lemma ex_lub_cfun:
-  "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> (\<Squnion>j. \<Squnion>i. F j\<cdot>(Y i)) = (\<Squnion>i. \<Squnion>j. F j\<cdot>(Y i))"
-by (simp add: diag_lub)
-
-text {* the lub of a chain of cont. functions is continuous *}
-
-lemma cont_lub_cfun: "chain F \<Longrightarrow> cont (\<lambda>x. \<Squnion>i. F i\<cdot>x)"
-apply (rule cont2cont_lub)
-apply (erule monofun_Rep_CFun [THEN ch2ch_monofun])
-apply (rule cont_Rep_CFun2)
-done
-
 text {* type @{typ "'a -> 'b"} is chain complete *}
 
 lemma lub_cfun: "chain F \<Longrightarrow> range F <<| (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
