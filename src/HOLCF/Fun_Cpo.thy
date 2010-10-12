@@ -204,10 +204,6 @@ apply (simp add: thelub_fun cont2contlubE)
 apply (simp add: diag_lub ch2ch_fun ch2ch_cont)
 done
 
-lemma cont2cont_lub:
-  "\<lbrakk>chain F; \<And>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. \<Squnion>i. F i x)"
-by (simp add: thelub_fun [symmetric] cont_lub_fun)
-
 lemma mono2mono_fun: "monofun f \<Longrightarrow> monofun (\<lambda>x. f x y)"
 apply (rule monofunI)
 apply (erule (1) monofun_fun_arg [THEN monofun_fun_fun])

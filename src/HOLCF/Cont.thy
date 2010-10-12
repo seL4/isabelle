@@ -22,12 +22,6 @@ definition
   monofun :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"  -- "monotonicity"  where
   "monofun f = (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
 
-(*
-definition
-  contlub :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"  -- "first cont. def" where
-  "contlub f = (\<forall>Y. chain Y \<longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i)))"
-*)
-
 definition
   cont :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"
 where
@@ -175,6 +169,17 @@ qed
 lemma cont_compose:
   "\<lbrakk>cont c; cont (\<lambda>x. f x)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. c (f x))"
 by (rule cont_apply [OF _ _ cont_const])
+
+text {* Least upper bounds preserve continuity *}
+
+lemma cont2cont_lub [simp]:
+  assumes chain: "\<And>x. chain (\<lambda>i. F i x)" and cont: "\<And>i. cont (\<lambda>x. F i x)"
+  shows "cont (\<lambda>x. \<Squnion>i. F i x)"
+apply (rule contI2)
+apply (simp add: monofunI cont2monofunE [OF cont] lub_mono chain)
+apply (simp add: cont2contlubE [OF cont])
+apply (simp add: diag_lub ch2ch_cont [OF cont] chain)
+done
 
 text {* if-then-else is continuous *}
 

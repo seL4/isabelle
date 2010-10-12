@@ -60,13 +60,7 @@ text {* Properties of @{term fix} *}
 text {* direct connection between @{term fix} and iteration *}
 
 lemma fix_def2: "fix\<cdot>F = (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
-apply (unfold fix_def)
-apply (rule beta_cfun)
-apply (rule cont2cont_lub)
-apply (rule ch2ch_lambda)
-apply (rule chain_iterate)
-apply simp
-done
+unfolding fix_def by simp
 
 lemma iterate_below_fix: "iterate n\<cdot>f\<cdot>\<bottom> \<sqsubseteq> fix\<cdot>f"
   unfolding fix_def2
