@@ -48,52 +48,52 @@ by (rule admI, frule chfin, auto simp add: maxinch_is_thelub)
 
 subsection {* Admissibility of special formulae and propagation *}
 
-lemma adm_not_free: "adm (\<lambda>x. t)"
+lemma adm_const [simp]: "adm (\<lambda>x. t)"
 by (rule admI, simp)
 
-lemma adm_conj: "\<lbrakk>adm P; adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<and> Q x)"
+lemma adm_conj [simp]:
+  "\<lbrakk>adm (\<lambda>x. P x); adm (\<lambda>x. Q x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<and> Q x)"
 by (fast intro: admI elim: admD)
 
-lemma adm_all: "(\<And>y. adm (\<lambda>x. P x y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y. P x y)"
+lemma adm_all [simp]:
+  "(\<And>y. adm (\<lambda>x. P x y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y. P x y)"
 by (fast intro: admI elim: admD)
 
-lemma adm_ball: "(\<And>y. y \<in> A \<Longrightarrow> adm (\<lambda>x. P x y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y\<in>A. P x y)"
+lemma adm_ball [simp]:
+  "(\<And>y. y \<in> A \<Longrightarrow> adm (\<lambda>x. P x y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y\<in>A. P x y)"
 by (fast intro: admI elim: admD)
 
-text {* Admissibility for disjunction is hard to prove. It takes 5 Lemmas *}
+text {* Admissibility for disjunction is hard to prove. It requires 2 lemmas. *}
 
-lemma adm_disj_lemma1: 
-  "\<lbrakk>chain (Y::nat \<Rightarrow> 'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk>
-    \<Longrightarrow> chain (\<lambda>i. Y (LEAST j. i \<le> j \<and> P (Y j)))"
-apply (rule chainI)
-apply (erule chain_mono)
-apply (rule Least_le)
-apply (rule LeastI2_ex)
-apply simp_all
-done
+lemma adm_disj_lemma1:
+  assumes adm: "adm P"
+  assumes chain: "chain Y"
+  assumes P: "\<forall>i. \<exists>j\<ge>i. P (Y j)"
+  shows "P (\<Squnion>i. Y i)"
+proof -
+  def f \<equiv> "\<lambda>i. LEAST j. i \<le> j \<and> P (Y j)"
+  have chain': "chain (\<lambda>i. Y (f i))"
+    unfolding f_def
+    apply (rule chainI)
+    apply (rule chain_mono [OF chain])
+    apply (rule Least_le)
+    apply (rule LeastI2_ex)
+    apply (simp_all add: P)
+    done
+  have f1: "\<And>i. i \<le> f i" and f2: "\<And>i. P (Y (f i))"
+    using LeastI_ex [OF P [rule_format]] by (simp_all add: f_def)
+  have lub_eq: "(\<Squnion>i. Y i) = (\<Squnion>i. Y (f i))"
+    apply (rule below_antisym)
+    apply (rule lub_mono [OF chain chain'])
+    apply (rule chain_mono [OF chain f1])
+    apply (rule lub_range_mono [OF _ chain chain'])
+    apply clarsimp
+    done
+  show "P (\<Squnion>i. Y i)"
+    unfolding lub_eq using adm chain' f2 by (rule admD)
+qed
 
-lemmas adm_disj_lemma2 = LeastI_ex [of "\<lambda>j. i \<le> j \<and> P (Y j)", standard]
-
-lemma adm_disj_lemma3: 
-  "\<lbrakk>chain (Y::nat \<Rightarrow> 'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow> 
-    (\<Squnion>i. Y i) = (\<Squnion>i. Y (LEAST j. i \<le> j \<and> P (Y j)))"
- apply (frule (1) adm_disj_lemma1)
- apply (rule below_antisym)
-  apply (rule lub_mono, assumption+)
-  apply (erule chain_mono)
-  apply (simp add: adm_disj_lemma2)
- apply (rule lub_range_mono, fast, assumption+)
-done
-
-lemma adm_disj_lemma4:
-  "\<lbrakk>adm P; chain Y; \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)"
-apply (subst adm_disj_lemma3, assumption+)
-apply (erule admD)
-apply (simp add: adm_disj_lemma1)
-apply (simp add: adm_disj_lemma2)
-done
-
-lemma adm_disj_lemma5:
+lemma adm_disj_lemma2:
   "\<forall>n::nat. P n \<or> Q n \<Longrightarrow> (\<forall>i. \<exists>j\<ge>i. P j) \<or> (\<forall>i. \<exists>j\<ge>i. Q j)"
 apply (erule contrapos_pp)
 apply (clarsimp, rename_tac a b)
@@ -101,28 +101,27 @@ apply (rule_tac x="max a b" in exI)
 apply simp
 done
 
-lemma adm_disj: "\<lbrakk>adm P; adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<or> Q x)"
+lemma adm_disj [simp]:
+  "\<lbrakk>adm (\<lambda>x. P x); adm (\<lambda>x. Q x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<or> Q x)"
 apply (rule admI)
-apply (erule adm_disj_lemma5 [THEN disjE])
-apply (erule (2) adm_disj_lemma4 [THEN disjI1])
-apply (erule (2) adm_disj_lemma4 [THEN disjI2])
+apply (erule adm_disj_lemma2 [THEN disjE])
+apply (erule (2) adm_disj_lemma1 [THEN disjI1])
+apply (erule (2) adm_disj_lemma1 [THEN disjI2])
 done
 
-lemma adm_imp: "\<lbrakk>adm (\<lambda>x. \<not> P x); adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<longrightarrow> Q x)"
+lemma adm_imp [simp]:
+  "\<lbrakk>adm (\<lambda>x. \<not> P x); adm (\<lambda>x. Q x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<longrightarrow> Q x)"
 by (subst imp_conv_disj, rule adm_disj)
 
-lemma adm_iff:
+lemma adm_iff [simp]:
   "\<lbrakk>adm (\<lambda>x. P x \<longrightarrow> Q x); adm (\<lambda>x. Q x \<longrightarrow> P x)\<rbrakk>  
     \<Longrightarrow> adm (\<lambda>x. P x = Q x)"
 by (subst iff_conv_conj_imp, rule adm_conj)
 
-lemma adm_not_conj:
-  "\<lbrakk>adm (\<lambda>x. \<not> P x); adm (\<lambda>x. \<not> Q x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. \<not> (P x \<and> Q x))"
-by (simp add: adm_imp)
-
 text {* admissibility and continuity *}
 
-lemma adm_below: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
+lemma adm_below [simp]:
+  "\<lbrakk>cont (\<lambda>x. u x); cont (\<lambda>x. v x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
 apply (rule admI)
 apply (simp add: cont2contlubE)
 apply (rule lub_mono)
@@ -131,10 +130,11 @@ apply (erule (1) ch2ch_cont)
 apply (erule spec)
 done
 
-lemma adm_eq: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x = v x)"
-by (simp add: po_eq_conv adm_conj adm_below)
+lemma adm_eq [simp]:
+  "\<lbrakk>cont (\<lambda>x. u x); cont (\<lambda>x. v x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x = v x)"
+by (simp add: po_eq_conv)
 
-lemma adm_subst: "\<lbrakk>cont t; adm P\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P (t x))"
+lemma adm_subst: "\<lbrakk>cont (\<lambda>x. t x); adm P\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P (t x))"
 apply (rule admI)
 apply (simp add: cont2contlubE)
 apply (erule admD)
@@ -142,14 +142,8 @@ apply (erule (1) ch2ch_cont)
 apply (erule spec)
 done
 
-lemma adm_not_below: "cont t \<Longrightarrow> adm (\<lambda>x. \<not> t x \<sqsubseteq> u)"
-apply (rule admI)
-apply (drule_tac x=0 in spec)
-apply (erule contrapos_nn)
-apply (erule rev_below_trans)
-apply (erule cont2mono [THEN monofunE])
-apply (erule is_ub_thelub)
-done
+lemma adm_not_below [simp]: "cont (\<lambda>x. t x) \<Longrightarrow> adm (\<lambda>x. \<not> t x \<sqsubseteq> u)"
+by (rule admI, simp add: cont2contlubE ch2ch_cont lub_below_iff)
 
 subsection {* Compactness *}
 
@@ -190,20 +184,20 @@ done
 
 text {* admissibility and compactness *}
 
-lemma adm_compact_not_below: "\<lbrakk>compact k; cont t\<rbrakk> \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubseteq> t x)"
+lemma adm_compact_not_below [simp]:
+  "\<lbrakk>compact k; cont (\<lambda>x. t x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubseteq> t x)"
 unfolding compact_def by (rule adm_subst)
 
-lemma adm_neq_compact: "\<lbrakk>compact k; cont t\<rbrakk> \<Longrightarrow> adm (\<lambda>x. t x \<noteq> k)"
-by (simp add: po_eq_conv adm_imp adm_not_below adm_compact_not_below)
+lemma adm_neq_compact [simp]:
+  "\<lbrakk>compact k; cont (\<lambda>x. t x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. t x \<noteq> k)"
+by (simp add: po_eq_conv)
 
-lemma adm_compact_neq: "\<lbrakk>compact k; cont t\<rbrakk> \<Longrightarrow> adm (\<lambda>x. k \<noteq> t x)"
-by (simp add: po_eq_conv adm_imp adm_not_below adm_compact_not_below)
+lemma adm_compact_neq [simp]:
+  "\<lbrakk>compact k; cont (\<lambda>x. t x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. k \<noteq> t x)"
+by (simp add: po_eq_conv)
 
 lemma compact_UU [simp, intro]: "compact \<bottom>"
-by (rule compactI, simp add: adm_not_free)
-
-lemma adm_not_UU: "cont t \<Longrightarrow> adm (\<lambda>x. t x \<noteq> \<bottom>)"
-by (simp add: adm_neq_compact)
+by (rule compactI, simp)
 
 text {* Any upward-closed predicate is admissible. *}
 
@@ -212,9 +206,9 @@ lemma adm_upward:
   shows "adm P"
 by (rule admI, drule spec, erule P, erule is_ub_thelub)
 
-lemmas adm_lemmas [simp] =
-  adm_not_free adm_conj adm_all adm_ball adm_disj adm_imp adm_iff
+lemmas adm_lemmas =
+  adm_const adm_conj adm_all adm_ball adm_disj adm_imp adm_iff
   adm_below adm_eq adm_not_below
-  adm_compact_not_below adm_compact_neq adm_neq_compact adm_not_UU
+  adm_compact_not_below adm_compact_neq adm_neq_compact
 
 end
