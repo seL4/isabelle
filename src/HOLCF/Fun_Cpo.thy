@@ -89,12 +89,8 @@ lemma thelub_fun:
     \<Longrightarrow> (\<Squnion>i. S i) = (\<lambda>x. \<Squnion>i. S i x)"
 by (rule lub_fun [THEN thelubI])
 
-lemma cpo_fun:
-  "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo) \<Longrightarrow> \<exists>x. range S <<| x"
-by (rule exI, erule lub_fun)
-
 instance "fun"  :: (type, cpo) cpo
-by intro_classes (rule cpo_fun)
+by intro_classes (rule exI, erule lub_fun)
 
 instance "fun" :: (finite, finite_po) finite_po ..
 
@@ -239,30 +235,5 @@ lemma contlub_lambda:
   "(\<And>x::'a::type. chain (\<lambda>i. S i x::'b::cpo))
     \<Longrightarrow> (\<lambda>x. \<Squnion>i. S i x) = (\<Squnion>i. (\<lambda>x. S i x))"
 by (simp add: thelub_fun ch2ch_lambda)
-
-lemma contlub_abstraction:
-  "\<lbrakk>chain Y; \<forall>y. cont (\<lambda>x.(c::'a::cpo\<Rightarrow>'b::type\<Rightarrow>'c::cpo) x y)\<rbrakk> \<Longrightarrow>
-    (\<lambda>y. \<Squnion>i. c (Y i) y) = (\<Squnion>i. (\<lambda>y. c (Y i) y))"
-apply (rule thelub_fun [symmetric])
-apply (simp add: ch2ch_cont)
-done
-
-lemma mono2mono_app:
-  "\<lbrakk>monofun f; \<forall>x. monofun (f x); monofun t\<rbrakk> \<Longrightarrow> monofun (\<lambda>x. (f x) (t x))"
-apply (rule monofunI)
-apply (simp add: monofun_fun monofunE)
-done
-
-lemma cont2cont_app:
-  "\<lbrakk>cont f; \<forall>x. cont (f x); cont t\<rbrakk> \<Longrightarrow> cont (\<lambda>x. (f x) (t x))"
-apply (erule cont_apply [where t=t])
-apply (erule spec)
-apply (erule cont2cont_fun)
-done
-
-lemmas cont2cont_app2 = cont2cont_app [rule_format]
-
-lemma cont2cont_app3: "\<lbrakk>cont f; cont t\<rbrakk> \<Longrightarrow> cont (\<lambda>x. f (t x))"
-by (rule cont2cont_app2 [OF cont_const])
 
 end

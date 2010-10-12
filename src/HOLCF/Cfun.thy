@@ -310,10 +310,10 @@ lemma cont2cont_Rep_CFun [simp, cont2cont]:
   assumes t: "cont (\<lambda>x. t x)"
   shows "cont (\<lambda>x. (f x)\<cdot>(t x))"
 proof -
-  have "cont (\<lambda>x. Rep_CFun (f x))"
-    using cont_Rep_CFun f by (rule cont2cont_app3)
-  thus "cont (\<lambda>x. (f x)\<cdot>(t x))"
-    using cont_Rep_CFun2 t by (rule cont2cont_app2)
+  have 1: "\<And>y. cont (\<lambda>x. (f x)\<cdot>y)"
+    using cont_Rep_CFun1 f by (rule cont_compose)
+  show "cont (\<lambda>x. (f x)\<cdot>(t x))"
+    using t cont_Rep_CFun2 1 by (rule cont_apply)
 qed
 
 text {* cont2mono Lemma for @{term "%x. LAM y. c1(x)(y)"} *}

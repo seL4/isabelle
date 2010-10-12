@@ -139,7 +139,7 @@ done
 
 lemma cont2cont_flift1 [simp, cont2cont]:
   "\<lbrakk>\<And>y. cont (\<lambda>x. f x y)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. FLIFT y. f x y)"
-apply (rule cont_flift1 [THEN cont2cont_app3])
+apply (rule cont_flift1 [THEN cont_compose])
 apply simp
 done
 
