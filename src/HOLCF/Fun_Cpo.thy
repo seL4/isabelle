@@ -35,12 +35,10 @@ next
     unfolding below_fun_def by (fast elim: below_trans)
 qed
 
-text {* make the symbol @{text "<<"} accessible for type fun *}
-
-lemma expand_fun_below: "(f \<sqsubseteq> g) = (\<forall>x. f x \<sqsubseteq> g x)"
+lemma fun_below_iff: "f \<sqsubseteq> g \<longleftrightarrow> (\<forall>x. f x \<sqsubseteq> g x)"
 by (simp add: below_fun_def)
 
-lemma below_fun_ext: "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> f \<sqsubseteq> g"
+lemma fun_belowI: "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> f \<sqsubseteq> g"
 by (simp add: below_fun_def)
 
 subsection {* Full function space is chain complete *}
@@ -71,9 +69,9 @@ lemma is_lub_lambda:
   shows "range Y <<| f"
 apply (rule is_lubI)
 apply (rule ub_rangeI)
-apply (rule below_fun_ext)
+apply (rule fun_belowI)
 apply (rule is_ub_lub [OF f])
-apply (rule below_fun_ext)
+apply (rule fun_belowI)
 apply (rule is_lub_lub [OF f])
 apply (erule ub2ub_fun)
 done
@@ -104,7 +102,7 @@ instance "fun" :: (type, discrete_cpo) discrete_cpo
 proof
   fix f g :: "'a \<Rightarrow> 'b"
   show "f \<sqsubseteq> g \<longleftrightarrow> f = g" 
-    unfolding expand_fun_below fun_eq_iff
+    unfolding fun_below_iff fun_eq_iff
     by simp
 qed
 
@@ -227,7 +225,7 @@ text {* Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"} *}
 lemma mono2mono_lambda:
   assumes f: "\<And>y. monofun (\<lambda>x. f x y)" shows "monofun f"
 apply (rule monofunI)
-apply (rule below_fun_ext)
+apply (rule fun_belowI)
 apply (erule monofunE [OF f])
 done
 
@@ -235,7 +233,7 @@ lemma cont2cont_lambda [simp]:
   assumes f: "\<And>y. cont (\<lambda>x. f x y)" shows "cont f"
 apply (rule contI2)
 apply (simp add: mono2mono_lambda cont2mono f)
-apply (rule below_fun_ext)
+apply (rule fun_belowI)
 apply (simp add: thelub_fun cont2contlubE [OF f])
 done
 

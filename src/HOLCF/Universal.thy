@@ -988,7 +988,7 @@ apply (rule ubasis_until_chain, simp)
 done
 
 lemma lub_udom_approx [simp]: "(\<Squnion>i. udom_approx i) = ID"
-apply (rule ext_cfun, simp add: contlub_cfun_fun)
+apply (rule cfun_eqI, simp add: contlub_cfun_fun)
 apply (rule below_antisym)
 apply (rule is_lub_thelub)
 apply (simp)

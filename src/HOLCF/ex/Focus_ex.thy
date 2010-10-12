@@ -211,7 +211,7 @@ apply (erule exE)
 apply (rule_tac x = "f" in exI)
 apply (erule conjE)+
 apply (erule conjI)
-apply (rule ext_cfun)
+apply (rule cfun_eqI)
 apply (erule_tac x = "x" in allE)
 apply (erule exE)
 apply (erule conjE)+

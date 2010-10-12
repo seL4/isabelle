@@ -331,7 +331,7 @@ done
 
 lemma monofun_LAM:
   "\<lbrakk>cont f; cont g; \<And>x. f x \<sqsubseteq> g x\<rbrakk> \<Longrightarrow> (\<Lambda> x. f x) \<sqsubseteq> (\<Lambda> x. g x)"
-by (simp add: expand_cfun_below)
+by (simp add: cfun_below_iff)
 
 lemma convex_bind_basis_mono:
   "t \<le>\<natural> u \<Longrightarrow> convex_bind_basis t \<sqsubseteq> convex_bind_basis u"
@@ -382,7 +382,7 @@ lemma convex_map_ident: "convex_map\<cdot>(\<Lambda> x. x)\<cdot>xs = xs"
 by (induct xs rule: convex_pd_induct, simp_all)
 
 lemma convex_map_ID: "convex_map\<cdot>ID = ID"
-by (simp add: expand_cfun_eq ID_def convex_map_ident)
+by (simp add: cfun_eq_iff ID_def convex_map_ident)
 
 lemma convex_map_map:
   "convex_map\<cdot>f\<cdot>(convex_map\<cdot>g\<cdot>xs) = convex_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
@@ -494,7 +494,7 @@ instance proof
 next
   show "cast\<cdot>DEFL('a convex_pd) = emb oo (prj :: udom \<rightarrow> 'a convex_pd)"
     unfolding emb_convex_pd_def prj_convex_pd_def defl_convex_pd_def cast_convex_defl
-    by (simp add: cast_DEFL oo_def expand_cfun_eq convex_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff convex_map_map)
 qed
 
 end

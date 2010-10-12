@@ -56,7 +56,7 @@ proof -
       unfolding approx_def by (simp add: Y)
     show "(\<Squnion>i. approx i) = ID"
       unfolding approx_def
-      by (simp add: lub_distribs Y DEFL [symmetric] cast_DEFL expand_cfun_eq)
+      by (simp add: lub_distribs Y DEFL [symmetric] cast_DEFL cfun_eq_iff)
     show "\<And>i. finite_deflation (approx i)"
       unfolding approx_def
       apply (rule bifinite.finite_deflation_p_d_e)
@@ -228,7 +228,7 @@ instance proof
 next
   show "cast\<cdot>DEFL('a \<rightarrow> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<rightarrow> 'b)"
     unfolding emb_cfun_def prj_cfun_def defl_cfun_def cast_cfun_defl
-    by (simp add: cast_DEFL oo_def expand_cfun_eq cfun_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff cfun_map_map)
 qed
 
 end
@@ -287,7 +287,7 @@ instance proof
 next
   show "cast\<cdot>DEFL('a \<times> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<times> 'b)"
     unfolding emb_prod_def prj_prod_def defl_prod_def cast_prod_defl
-    by (simp add: cast_DEFL oo_def expand_cfun_eq cprod_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff cprod_map_map)
 qed
 
 end
@@ -348,7 +348,7 @@ instance proof
 next
   show "cast\<cdot>DEFL('a \<otimes> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<otimes> 'b)"
     unfolding emb_sprod_def prj_sprod_def defl_sprod_def cast_sprod_defl
-    by (simp add: cast_DEFL oo_def expand_cfun_eq sprod_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff sprod_map_map)
 qed
 
 end
@@ -405,7 +405,7 @@ instance proof
 next
   show "cast\<cdot>DEFL('a u) = emb oo (prj :: udom \<rightarrow> 'a u)"
     unfolding emb_u_def prj_u_def defl_u_def cast_u_defl
-    by (simp add: cast_DEFL oo_def expand_cfun_eq u_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff u_map_map)
 qed
 
 end
@@ -425,7 +425,7 @@ lemma chain_lift_approx [simp]: "chain lift_approx"
   by (rule chainI, simp add: FLIFT_mono)
 
 lemma lub_lift_approx [simp]: "(\<Squnion>i. lift_approx i) = ID"
-apply (rule ext_cfun)
+apply (rule cfun_eqI)
 apply (simp add: contlub_cfun_fun)
 apply (simp add: lift_approx_def)
 apply (case_tac x, simp)
@@ -548,7 +548,7 @@ instance proof
 next
   show "cast\<cdot>DEFL('a \<oplus> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<oplus> 'b)"
     unfolding emb_ssum_def prj_ssum_def defl_ssum_def cast_ssum_defl
-    by (simp add: cast_DEFL oo_def expand_cfun_eq ssum_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff ssum_map_map)
 qed
 
 end

@@ -417,7 +417,7 @@ done
 (* ------ the main proof q o p = q ------ *)
 
 theorem hoare_main: "q oo p = q"
-apply (rule ext_cfun)
+apply (rule cfun_eqI)
 apply (subst cfcomp2)
 apply (rule hoare_lemma3 [THEN disjE])
 apply (erule hoare_lemma23)

@@ -234,7 +234,7 @@ lemma ssum_map_sinr': "g\<cdot>\<bottom> = \<bottom> \<Longrightarrow> ssum_map\
 by (cases "x = \<bottom>") simp_all
 
 lemma ssum_map_ID: "ssum_map\<cdot>ID\<cdot>ID = ID"
-unfolding ssum_map_def by (simp add: expand_cfun_eq eta_cfun)
+unfolding ssum_map_def by (simp add: cfun_eq_iff eta_cfun)
 
 lemma ssum_map_map:
   "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>

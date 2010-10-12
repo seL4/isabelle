@@ -250,7 +250,7 @@ lemma sprod_map_spair':
 by (cases "x = \<bottom> \<or> y = \<bottom>") auto
 
 lemma sprod_map_ID: "sprod_map\<cdot>ID\<cdot>ID = ID"
-unfolding sprod_map_def by (simp add: expand_cfun_eq eta_cfun)
+unfolding sprod_map_def by (simp add: cfun_eq_iff eta_cfun)
 
 lemma sprod_map_map:
   "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>

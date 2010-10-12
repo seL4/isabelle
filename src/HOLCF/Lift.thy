@@ -134,7 +134,7 @@ lemma FLIFT_mono:
   "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> (FLIFT x. f x) \<sqsubseteq> (FLIFT x. g x)"
 apply (rule monofunE [where f=flift1])
 apply (rule cont2mono [OF cont_flift1])
-apply (simp add: below_fun_ext)
+apply (simp add: fun_below_iff)
 done
 
 lemma cont2cont_flift1 [simp, cont2cont]:

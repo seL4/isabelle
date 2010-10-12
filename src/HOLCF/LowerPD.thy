@@ -323,7 +323,7 @@ done
 
 lemma lower_bind_basis_mono:
   "t \<le>\<flat> u \<Longrightarrow> lower_bind_basis t \<sqsubseteq> lower_bind_basis u"
-unfolding expand_cfun_below
+unfolding cfun_below_iff
 apply (erule lower_le_induct, safe)
 apply (simp add: monofun_cfun)
 apply (simp add: rev_below_trans [OF lower_plus_below1])
@@ -371,7 +371,7 @@ lemma lower_map_ident: "lower_map\<cdot>(\<Lambda> x. x)\<cdot>xs = xs"
 by (induct xs rule: lower_pd_induct, simp_all)
 
 lemma lower_map_ID: "lower_map\<cdot>ID = ID"
-by (simp add: expand_cfun_eq ID_def lower_map_ident)
+by (simp add: cfun_eq_iff ID_def lower_map_ident)
 
 lemma lower_map_map:
   "lower_map\<cdot>f\<cdot>(lower_map\<cdot>g\<cdot>xs) = lower_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
@@ -483,7 +483,7 @@ instance proof
 next
   show "cast\<cdot>DEFL('a lower_pd) = emb oo (prj :: udom \<rightarrow> 'a lower_pd)"
     unfolding emb_lower_pd_def prj_lower_pd_def defl_lower_pd_def cast_lower_defl
-    by (simp add: cast_DEFL oo_def expand_cfun_eq lower_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff lower_map_map)
 qed
 
 end

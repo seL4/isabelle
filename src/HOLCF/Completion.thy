@@ -397,7 +397,7 @@ lemma basis_fun_mono:
   assumes g_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> g a \<sqsubseteq> g b"
   assumes below: "\<And>a. f a \<sqsubseteq> g a"
   shows "basis_fun f \<sqsubseteq> basis_fun g"
- apply (rule below_cfun_ext)
+ apply (rule cfun_belowI)
  apply (simp only: basis_fun_beta f_mono g_mono)
  apply (rule is_lub_thelub_ex)
   apply (rule basis_fun_lemma, erule f_mono)

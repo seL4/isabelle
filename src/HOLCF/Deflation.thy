@@ -19,7 +19,7 @@ locale deflation =
 begin
 
 lemma below_ID: "d \<sqsubseteq> ID"
-by (rule below_cfun_ext, simp add: below)
+by (rule cfun_belowI, simp add: below)
 
 text {* The set of fixed points is the same as the range. *}
 
@@ -36,7 +36,7 @@ text {*
 
 lemma belowI:
   assumes f: "\<And>x. d\<cdot>x = x \<Longrightarrow> f\<cdot>x = x" shows "d \<sqsubseteq> f"
-proof (rule below_cfun_ext)
+proof (rule cfun_belowI)
   fix x
   from below have "f\<cdot>(d\<cdot>x) \<sqsubseteq> f\<cdot>x" by (rule monofun_cfun_arg)
   also from idem have "f\<cdot>(d\<cdot>x) = d\<cdot>x" by (rule f)
@@ -326,7 +326,7 @@ subsection {* Uniqueness of ep-pairs *}
 lemma ep_pair_unique_e_lemma:
   assumes 1: "ep_pair e1 p" and 2: "ep_pair e2 p"
   shows "e1 \<sqsubseteq> e2"
-proof (rule below_cfun_ext)
+proof (rule cfun_belowI)
   fix x
   have "e1\<cdot>(p\<cdot>(e2\<cdot>x)) \<sqsubseteq> e2\<cdot>x"
     by (rule ep_pair.e_p_below [OF 1])
@@ -341,7 +341,7 @@ by (fast intro: below_antisym elim: ep_pair_unique_e_lemma)
 lemma ep_pair_unique_p_lemma:
   assumes 1: "ep_pair e p1" and 2: "ep_pair e p2"
   shows "p1 \<sqsubseteq> p2"
-proof (rule below_cfun_ext)
+proof (rule cfun_belowI)
   fix x
   have "e\<cdot>(p1\<cdot>x) \<sqsubseteq> x"
     by (rule ep_pair.e_p_below [OF 1])
@@ -414,9 +414,9 @@ proof
   interpret e1p1: ep_pair e1 p1 by fact
   interpret e2p2: ep_pair e2 p2 by fact
   fix f show "cfun_map\<cdot>e1\<cdot>p2\<cdot>(cfun_map\<cdot>p1\<cdot>e2\<cdot>f) = f"
-    by (simp add: expand_cfun_eq)
+    by (simp add: cfun_eq_iff)
   fix g show "cfun_map\<cdot>p1\<cdot>e2\<cdot>(cfun_map\<cdot>e1\<cdot>p2\<cdot>g) \<sqsubseteq> g"
-    apply (rule below_cfun_ext, simp)
+    apply (rule cfun_belowI, simp)
     apply (rule below_trans [OF e2p2.e_p_below])
     apply (rule monofun_cfun_arg)
     apply (rule e1p1.e_p_below)
@@ -431,9 +431,9 @@ proof
   interpret d2: deflation d2 by fact
   fix f
   show "cfun_map\<cdot>d1\<cdot>d2\<cdot>(cfun_map\<cdot>d1\<cdot>d2\<cdot>f) = cfun_map\<cdot>d1\<cdot>d2\<cdot>f"
-    by (simp add: expand_cfun_eq d1.idem d2.idem)
+    by (simp add: cfun_eq_iff d1.idem d2.idem)
   show "cfun_map\<cdot>d1\<cdot>d2\<cdot>f \<sqsubseteq> f"
-    apply (rule below_cfun_ext, simp)
+    apply (rule cfun_belowI, simp)
     apply (rule below_trans [OF d2.below])
     apply (rule monofun_cfun_arg)
     apply (rule d1.below)
@@ -455,7 +455,7 @@ proof (rule finite_imageD)
       by (simp add: a b)
   qed
   show "inj_on ?f (range ?h)"
-  proof (rule inj_onI, rule ext_cfun, clarsimp)
+  proof (rule inj_onI, rule cfun_eqI, clarsimp)
     fix x f g
     assume "range (\<lambda>x. (a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x)))) = range (\<lambda>x. (a\<cdot>x, b\<cdot>(g\<cdot>(a\<cdot>x))))"
     hence "range (\<lambda>x. (a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x)))) \<subseteq> range (\<lambda>x. (a\<cdot>x, b\<cdot>(g\<cdot>(a\<cdot>x))))"

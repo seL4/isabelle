@@ -318,7 +318,7 @@ done
 
 lemma upper_bind_basis_mono:
   "t \<le>\<sharp> u \<Longrightarrow> upper_bind_basis t \<sqsubseteq> upper_bind_basis u"
-unfolding expand_cfun_below
+unfolding cfun_below_iff
 apply (erule upper_le_induct, safe)
 apply (simp add: monofun_cfun)
 apply (simp add: below_trans [OF upper_plus_below1])
@@ -366,7 +366,7 @@ lemma upper_map_ident: "upper_map\<cdot>(\<Lambda> x. x)\<cdot>xs = xs"
 by (induct xs rule: upper_pd_induct, simp_all)
 
 lemma upper_map_ID: "upper_map\<cdot>ID = ID"
-by (simp add: expand_cfun_eq ID_def upper_map_ident)
+by (simp add: cfun_eq_iff ID_def upper_map_ident)
 
 lemma upper_map_map:
   "upper_map\<cdot>f\<cdot>(upper_map\<cdot>g\<cdot>xs) = upper_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
@@ -478,7 +478,7 @@ instance proof
 next
   show "cast\<cdot>DEFL('a upper_pd) = emb oo (prj :: udom \<rightarrow> 'a upper_pd)"
     unfolding emb_upper_pd_def prj_upper_pd_def defl_upper_pd_def cast_upper_defl
-    by (simp add: cast_DEFL oo_def expand_cfun_eq upper_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff upper_map_map)
 qed
 
 end

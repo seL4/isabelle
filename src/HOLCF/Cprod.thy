@@ -51,7 +51,7 @@ lemma cprod_map_Pair [simp]: "cprod_map\<cdot>f\<cdot>g\<cdot>(x, y) = (f\<cdot>
 unfolding cprod_map_def by simp
 
 lemma cprod_map_ID: "cprod_map\<cdot>ID\<cdot>ID = ID"
-unfolding expand_cfun_eq by auto
+unfolding cfun_eq_iff by auto
 
 lemma cprod_map_map:
   "cprod_map\<cdot>f1\<cdot>g1\<cdot>(cprod_map\<cdot>f2\<cdot>g2\<cdot>p) =

@@ -45,7 +45,7 @@ lemma coerce_strict [simp]: "coerce\<cdot>\<bottom> = \<bottom>"
 by (simp add: coerce_def)
 
 lemma coerce_eq_ID [simp]: "(coerce :: 'a \<rightarrow> 'a) = ID"
-by (rule ext_cfun, simp add: beta_coerce)
+by (rule cfun_eqI, simp add: beta_coerce)
 
 lemma emb_coerce:
   "DEFL('a) \<sqsubseteq> DEFL('b)
@@ -169,7 +169,7 @@ proof
     apply (simp add: emb_prj cast.below)
     done
   show "cast\<cdot>DEFL('a) = emb oo (prj :: udom \<rightarrow> 'a)"
-    by (rule ext_cfun, simp add: defl emb_prj)
+    by (rule cfun_eqI, simp add: defl emb_prj)
 qed
 
 lemma typedef_DEFL:
@@ -201,10 +201,10 @@ where
   "isodefl d t \<longleftrightarrow> cast\<cdot>t = emb oo d oo prj"
 
 lemma isodeflI: "(\<And>x. cast\<cdot>t\<cdot>x = emb\<cdot>(d\<cdot>(prj\<cdot>x))) \<Longrightarrow> isodefl d t"
-unfolding isodefl_def by (simp add: ext_cfun)
+unfolding isodefl_def by (simp add: cfun_eqI)
 
 lemma cast_isodefl: "isodefl d t \<Longrightarrow> cast\<cdot>t = (\<Lambda> x. emb\<cdot>(d\<cdot>(prj\<cdot>x)))"
-unfolding isodefl_def by (simp add: ext_cfun)
+unfolding isodefl_def by (simp add: cfun_eqI)
 
 lemma isodefl_strict: "isodefl d t \<Longrightarrow> d\<cdot>\<bottom> = \<bottom>"
 unfolding isodefl_def
@@ -228,14 +228,14 @@ unfolding isodefl_def by (simp add: cast_DEFL)
 lemma isodefl_DEFL_imp_ID: "isodefl (d :: 'a \<rightarrow> 'a) DEFL('a) \<Longrightarrow> d = ID"
 unfolding isodefl_def
 apply (simp add: cast_DEFL)
-apply (simp add: expand_cfun_eq)
+apply (simp add: cfun_eq_iff)
 apply (rule allI)
 apply (drule_tac x="emb\<cdot>x" in spec)
 apply simp
 done
 
 lemma isodefl_bottom: "isodefl \<bottom> \<bottom>"
-unfolding isodefl_def by (simp add: expand_cfun_eq)
+unfolding isodefl_def by (simp add: cfun_eq_iff)
 
 lemma adm_isodefl:
   "cont f \<Longrightarrow> cont g \<Longrightarrow> adm (\<lambda>x. isodefl (f x) (g x))"
@@ -263,7 +263,7 @@ lemma isodefl_coerce:
   assumes DEFL: "DEFL('b) = DEFL('a)"
   shows "isodefl d t \<Longrightarrow> isodefl (coerce oo d oo coerce :: 'b \<rightarrow> 'b) t"
 unfolding isodefl_def
-apply (simp add: expand_cfun_eq)
+apply (simp add: cfun_eq_iff)
 apply (simp add: emb_coerce coerce_prj DEFL)
 done
 

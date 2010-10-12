@@ -200,7 +200,7 @@ apply safe
 apply (  rule_tac [2] P="(%x. x:B)" in ssubst)
 prefer 3
 apply (   assumption)
-apply (  rule_tac [2] ext_cfun)
+apply (  rule_tac [2] cfun_eqI)
 apply (  drule_tac [2] spec)
 apply (  drule_tac [2] f="rt" in cfun_arg_cong)
 prefer 2

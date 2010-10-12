@@ -240,7 +240,7 @@ proof -
   hence "MOST i. MOST j. \<forall>x. iterate (Suc j)\<cdot>f\<cdot>x = iterate (Suc i)\<cdot>f\<cdot>x"
     by (simp only: iterate_Suc2)
   hence "MOST i. MOST j. iterate (Suc j)\<cdot>f = iterate (Suc i)\<cdot>f"
-    by (simp only: expand_cfun_eq)
+    by (simp only: cfun_eq_iff)
   hence "eventually_constant (\<lambda>i. iterate (Suc i)\<cdot>f)"
     unfolding eventually_constant_MOST_MOST .
   thus "eventually_constant (\<lambda>i. iterate i\<cdot>f)"
@@ -587,7 +587,7 @@ proof
     apply (simp add: defl_approx_principal fd_take_below)
     done
   show lub: "(\<Squnion>i. defl_approx i) = ID"
-    apply (rule ext_cfun, rule below_antisym)
+    apply (rule cfun_eqI, rule below_antisym)
     apply (simp add: contlub_cfun_fun chain lub_below_iff chain below)
     apply (induct_tac x rule: defl.principal_induct, simp)
     apply (simp add: contlub_cfun_fun chain)

@@ -508,7 +508,7 @@ lemma sfilter_unfold:
 by (insert sfilter_def [where 'a='a, THEN eq_reflection, THEN fix_eq2], auto)
 
 lemma strict_sfilter: "sfilter\<cdot>\<bottom> = \<bottom>"
-apply (rule ext_cfun)
+apply (rule cfun_eqI)
 apply (subst sfilter_unfold, auto)
 apply (case_tac "x=UU", auto)
 by (drule stream_exhaust_eq [THEN iffD1], auto)

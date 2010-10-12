@@ -176,19 +176,19 @@ by (rule Rep_CFun_inverse)
 
 text {* Extensionality for continuous functions *}
 
-lemma expand_cfun_eq: "(f = g) = (\<forall>x. f\<cdot>x = g\<cdot>x)"
+lemma cfun_eq_iff: "f = g \<longleftrightarrow> (\<forall>x. f\<cdot>x = g\<cdot>x)"
 by (simp add: Rep_CFun_inject [symmetric] fun_eq_iff)
 
-lemma ext_cfun: "(\<And>x. f\<cdot>x = g\<cdot>x) \<Longrightarrow> f = g"
-by (simp add: expand_cfun_eq)
+lemma cfun_eqI: "(\<And>x. f\<cdot>x = g\<cdot>x) \<Longrightarrow> f = g"
+by (simp add: cfun_eq_iff)
 
 text {* Extensionality wrt. ordering for continuous functions *}
 
-lemma expand_cfun_below: "f \<sqsubseteq> g = (\<forall>x. f\<cdot>x \<sqsubseteq> g\<cdot>x)" 
-by (simp add: below_CFun_def expand_fun_below)
+lemma cfun_below_iff: "f \<sqsubseteq> g \<longleftrightarrow> (\<forall>x. f\<cdot>x \<sqsubseteq> g\<cdot>x)" 
+by (simp add: below_CFun_def fun_below_iff)
 
-lemma below_cfun_ext: "(\<And>x. f\<cdot>x \<sqsubseteq> g\<cdot>x) \<Longrightarrow> f \<sqsubseteq> g"
-by (simp add: expand_cfun_below)
+lemma cfun_belowI: "(\<And>x. f\<cdot>x \<sqsubseteq> g\<cdot>x) \<Longrightarrow> f \<sqsubseteq> g"
+by (simp add: cfun_below_iff)
 
 text {* Congruence for continuous function application *}
 
@@ -233,7 +233,7 @@ by (rule cont_Rep_CFun1 [THEN contE])
 text {* monotonicity of application *}
 
 lemma monofun_cfun_fun: "f \<sqsubseteq> g \<Longrightarrow> f\<cdot>x \<sqsubseteq> g\<cdot>x"
-by (simp add: expand_cfun_below)
+by (simp add: cfun_below_iff)
 
 lemma monofun_cfun_arg: "x \<sqsubseteq> y \<Longrightarrow> f\<cdot>x \<sqsubseteq> f\<cdot>y"
 by (rule monofun_Rep_CFun2 [THEN monofunE])
@@ -258,7 +258,7 @@ by (simp add: chain_def monofun_cfun)
 
 lemma ch2ch_LAM [simp]:
   "\<lbrakk>\<And>x. chain (\<lambda>i. S i x); \<And>i. cont (\<lambda>x. S i x)\<rbrakk> \<Longrightarrow> chain (\<lambda>i. \<Lambda> x. S i x)"
-by (simp add: chain_def expand_cfun_below)
+by (simp add: chain_def cfun_below_iff)
 
 text {* contlub, cont properties of @{term Rep_CFun} in both arguments *}
 
@@ -344,7 +344,7 @@ text {* cont2mono Lemma for @{term "%x. LAM y. c1(x)(y)"} *}
 lemma cont2mono_LAM:
   "\<lbrakk>\<And>x. cont (\<lambda>y. f x y); \<And>y. monofun (\<lambda>x. f x y)\<rbrakk>
     \<Longrightarrow> monofun (\<lambda>x. \<Lambda> y. f x y)"
-  unfolding monofun_def expand_cfun_below by simp
+  unfolding monofun_def cfun_below_iff by simp
 
 text {* cont2cont Lemma for @{term "%x. LAM y. f x y"} *}
 
@@ -509,7 +509,7 @@ lemma cfcomp_LAM: "cont g \<Longrightarrow> f oo (\<Lambda> x. g x) = (\<Lambda>
 by (simp add: cfcomp1)
 
 lemma cfcomp_strict [simp]: "\<bottom> oo f = \<bottom>"
-by (simp add: expand_cfun_eq)
+by (simp add: cfun_eq_iff)
 
 text {*
   Show that interpretation of (pcpo,@{text "_->_"}) is a category.
@@ -520,13 +520,13 @@ text {*
 *}
 
 lemma ID2 [simp]: "f oo ID = f"
-by (rule ext_cfun, simp)
+by (rule cfun_eqI, simp)
 
 lemma ID3 [simp]: "ID oo f = f"
-by (rule ext_cfun, simp)
+by (rule cfun_eqI, simp)
 
 lemma assoc_oo: "f oo (g oo h) = (f oo g) oo h"
-by (rule ext_cfun, simp)
+by (rule cfun_eqI, simp)
 
 subsection {* Map operator for continuous function space *}
 
@@ -539,12 +539,12 @@ lemma cfun_map_beta [simp]: "cfun_map\<cdot>a\<cdot>b\<cdot>f\<cdot>x = b\<cdot>
 unfolding cfun_map_def by simp
 
 lemma cfun_map_ID: "cfun_map\<cdot>ID\<cdot>ID = ID"
-unfolding expand_cfun_eq by simp
+unfolding cfun_eq_iff by simp
 
 lemma cfun_map_map:
   "cfun_map\<cdot>f1\<cdot>g1\<cdot>(cfun_map\<cdot>f2\<cdot>g2\<cdot>p) =
     cfun_map\<cdot>(\<Lambda> x. f2\<cdot>(f1\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
-by (rule ext_cfun) simp
+by (rule cfun_eqI) simp
 
 subsection {* Strictified functions *}
 

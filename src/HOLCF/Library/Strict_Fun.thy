@@ -37,13 +37,13 @@ lemma sfun_rep_strict2 [simp]: "sfun_rep\<cdot>f\<cdot>\<bottom> = \<bottom>"
   unfolding sfun_rep_beta by (rule Rep_sfun [simplified])
 
 lemma strictify_cancel: "f\<cdot>\<bottom> = \<bottom> \<Longrightarrow> strictify\<cdot>f = f"
-  by (simp add: expand_cfun_eq strictify_conv_if)
+  by (simp add: cfun_eq_iff strictify_conv_if)
 
 lemma sfun_abs_sfun_rep: "sfun_abs\<cdot>(sfun_rep\<cdot>f) = f"
   unfolding sfun_abs_def sfun_rep_def
   apply (simp add: cont_Abs_sfun cont_Rep_sfun)
   apply (simp add: Rep_sfun_inject [symmetric] Abs_sfun_inverse)
-  apply (simp add: expand_cfun_eq strictify_conv_if)
+  apply (simp add: cfun_eq_iff strictify_conv_if)
   apply (simp add: Rep_sfun [simplified])
   done
 
@@ -56,7 +56,7 @@ lemma sfun_rep_sfun_abs [simp]: "sfun_rep\<cdot>(sfun_abs\<cdot>f) = strictify\<
 lemma ep_pair_sfun: "ep_pair sfun_rep sfun_abs"
 apply default
 apply (rule sfun_abs_sfun_rep)
-apply (simp add: expand_cfun_below strictify_conv_if)
+apply (simp add: cfun_below_iff strictify_conv_if)
 done
 
 interpretation sfun: ep_pair sfun_rep sfun_abs
@@ -71,14 +71,14 @@ where
 
 lemma sfun_map_ID: "sfun_map\<cdot>ID\<cdot>ID = ID"
   unfolding sfun_map_def
-  by (simp add: cfun_map_ID expand_cfun_eq)
+  by (simp add: cfun_map_ID cfun_eq_iff)
 
 lemma sfun_map_map:
   assumes "f2\<cdot>\<bottom> = \<bottom>" and "g2\<cdot>\<bottom> = \<bottom>" shows
   "sfun_map\<cdot>f1\<cdot>g1\<cdot>(sfun_map\<cdot>f2\<cdot>g2\<cdot>p) =
     sfun_map\<cdot>(\<Lambda> x. f2\<cdot>(f1\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
 unfolding sfun_map_def
-by (simp add: expand_cfun_eq strictify_cancel assms cfun_map_map)
+by (simp add: cfun_eq_iff strictify_cancel assms cfun_map_map)
 
 lemma ep_pair_sfun_map:
   assumes 1: "ep_pair e1 p1"
@@ -193,7 +193,7 @@ instance proof
 next
   show "cast\<cdot>DEFL('a \<rightarrow>! 'b) = emb oo (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
     unfolding emb_sfun_def prj_sfun_def defl_sfun_def cast_sfun_defl
-    by (simp add: cast_DEFL oo_def expand_cfun_eq sfun_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff sfun_map_map)
 qed
 
 end
