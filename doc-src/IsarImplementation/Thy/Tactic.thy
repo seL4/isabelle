@@ -86,7 +86,7 @@ text %mlref {*
 *}
 
 
-section {* Tactics *}
+section {* Tactics\label{sec:tactics} *}
 
 text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*\<^sup>*"} that
   maps a given goal state (represented as a theorem, cf.\
