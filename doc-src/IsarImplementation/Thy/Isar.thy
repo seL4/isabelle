@@ -55,6 +55,12 @@ text {* In principle, Isar proof commands could be defined in
   feedback to the user.  Typically this involves checking of the
   linguistic \emph{mode} of a proof state, or peeking at the pending
   goals (if available).
+
+  Another common application is to define a toplevel command that
+  poses a problem to the user as Isar proof state and stores the final
+  result in a suitable context data slot.  Thus a proof can be
+  incorporated into the context of some user-space tool, without
+  modifying the Isar proof language itself.
 *}
 
 text %mlref {*
@@ -68,6 +74,9 @@ text %mlref {*
   {context: Proof.context, facts: thm list, goal: thm}"} \\
   @{index_ML Proof.raw_goal: "Proof.state ->
   {context: Proof.context, facts: thm list, goal: thm}"} \\
+  @{index_ML Proof.theorem: "Method.text option ->
+  (thm list list -> Proof.context -> Proof.context) ->
+  (term * term list) list list -> Proof.context -> Proof.state"} \\
   \end{mldecls}
 
   \begin{description}
@@ -108,6 +117,26 @@ text %mlref {*
   methods (like @{text induct}).  This form is rarely appropriate for
   dignostic tools; @{ML Proof.simple_goal} or @{ML Proof.goal} should
   be used in most situations.
+
+  \item @{ML Proof.theorem}~@{text "before_qed after_qed statement ctxt"}
+  initializes a toplevel Isar proof state within a given context.
+
+  The optional @{text "before_qed"} method is applied at the end of
+  the proof, just before extracting the result (this feature is rarely
+  used).
+
+  The @{text "after_qed"} continuation receives the extracted result
+  in order to apply it to the final context in a suitable way (e.g.\
+  storing named facts).  Note that at this generic level the target
+  context is specified as @{ML_type Proof.context}, but the usual
+  wrapping of toplevel proofs into command transactions will provide a
+  @{ML_type local_theory} here (see also \chref{ch:local-theory}).
+  This usually affects the way how results are stored.
+
+  The @{text "statement"} is given as a nested list of terms, each
+  associated with optional @{keyword "is"} patterns as usual in the
+  Isar source language.  The original list structure over terms is
+  turned into one over theorems when @{text "after_qed"} is invoked.
 
   \end{description}
 *}
