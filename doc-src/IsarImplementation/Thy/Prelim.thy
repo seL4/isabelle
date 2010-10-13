@@ -1081,8 +1081,8 @@ text %mlex {* The following example yields the source position of some
 
 ML {* Binding.pos_of @{binding here} *}
 
-text {* \medskip That position can be also printed in a message as
-  follows. *}
+text {* \medskip\noindent That position can be also printed in a
+  message as follows. *}
 
 ML_command {*
   writeln

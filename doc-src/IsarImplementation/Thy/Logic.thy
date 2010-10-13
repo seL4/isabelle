@@ -121,8 +121,8 @@ text %mlref {*
   @{index_ML_type sort: "class list"} \\
   @{index_ML_type arity: "string * sort list * sort"} \\
   @{index_ML_type typ} \\
-  @{index_ML map_atyps: "(typ -> typ) -> typ -> typ"} \\
-  @{index_ML fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
+  @{index_ML Term.map_atyps: "(typ -> typ) -> typ -> typ"} \\
+  @{index_ML Term.fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
@@ -149,13 +149,14 @@ text %mlref {*
   \item @{ML_type typ} represents types; this is a datatype with
   constructors @{ML TFree}, @{ML TVar}, @{ML Type}.
 
-  \item @{ML map_atyps}~@{text "f \<tau>"} applies the mapping @{text "f"}
-  to all atomic types (@{ML TFree}, @{ML TVar}) occurring in @{text
-  "\<tau>"}.
+  \item @{ML Term.map_atyps}~@{text "f \<tau>"} applies the mapping @{text
+  "f"} to all atomic types (@{ML TFree}, @{ML TVar}) occurring in
+  @{text "\<tau>"}.
 
-  \item @{ML fold_atyps}~@{text "f \<tau>"} iterates the operation @{text
-  "f"} over all occurrences of atomic types (@{ML TFree}, @{ML TVar})
-  in @{text "\<tau>"}; the type structure is traversed from left to right.
+  \item @{ML Term.fold_atyps}~@{text "f \<tau>"} iterates the operation
+  @{text "f"} over all occurrences of atomic types (@{ML TFree}, @{ML
+  TVar}) in @{text "\<tau>"}; the type structure is traversed from left to
+  right.
 
   \item @{ML Sign.subsort}~@{text "thy (s\<^isub>1, s\<^isub>2)"}
   tests the subsort relation @{text "s\<^isub>1 \<subseteq> s\<^isub>2"}.
@@ -354,10 +355,10 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type term} \\
   @{index_ML "op aconv": "term * term -> bool"} \\
-  @{index_ML map_types: "(typ -> typ) -> term -> term"} \\
-  @{index_ML fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
-  @{index_ML map_aterms: "(term -> term) -> term -> term"} \\
-  @{index_ML fold_aterms: "(term -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  @{index_ML Term.map_types: "(typ -> typ) -> term -> term"} \\
+  @{index_ML Term.fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  @{index_ML Term.map_aterms: "(term -> term) -> term -> term"} \\
+  @{index_ML Term.fold_aterms: "(term -> 'a -> 'a) -> term -> 'a -> 'a"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML fastype_of: "term -> typ"} \\
@@ -383,20 +384,20 @@ text %mlref {*
   on type @{ML_type term}; raw datatype equality should only be used
   for operations related to parsing or printing!
 
-  \item @{ML map_types}~@{text "f t"} applies the mapping @{text
+  \item @{ML Term.map_types}~@{text "f t"} applies the mapping @{text
   "f"} to all types occurring in @{text "t"}.
 
-  \item @{ML fold_types}~@{text "f t"} iterates the operation @{text
-  "f"} over all occurrences of types in @{text "t"}; the term
+  \item @{ML Term.fold_types}~@{text "f t"} iterates the operation
+  @{text "f"} over all occurrences of types in @{text "t"}; the term
   structure is traversed from left to right.
 
-  \item @{ML map_aterms}~@{text "f t"} applies the mapping @{text "f"}
-  to all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML
+  \item @{ML Term.map_aterms}~@{text "f t"} applies the mapping @{text
+  "f"} to all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML
   Const}) occurring in @{text "t"}.
 
-  \item @{ML fold_aterms}~@{text "f t"} iterates the operation @{text
-  "f"} over all occurrences of atomic terms (@{ML Bound}, @{ML Free},
-  @{ML Var}, @{ML Const}) in @{text "t"}; the term structure is
+  \item @{ML Term.fold_aterms}~@{text "f t"} iterates the operation
+  @{text "f"} over all occurrences of atomic terms (@{ML Bound}, @{ML
+  Free}, @{ML Var}, @{ML Const}) in @{text "t"}; the term structure is
   traversed from left to right.
 
   \item @{ML fastype_of}~@{text "t"} determines the type of a

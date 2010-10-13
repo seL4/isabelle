@@ -159,12 +159,8 @@ text %mlref {*
   \end{description}
 *}
 
-text %mlex {* The following example (in theory @{theory Pure}) shows
-  how to work with fixed term and type parameters and with
-  type-inference.
-*}
-
-typedecl foo  -- {* some basic type for testing purposes *}
+text %mlex {* The following example shows how to work with fixed term
+  and type parameters and with type-inference.  *}
 
 ML {*
   (*static compile-time context -- for testing only*)
@@ -178,11 +174,11 @@ ML {*
   val t1' = singleton (Variable.polymorphic ctxt1) t1;
 
   (*term u enforces specific type assignment*)
-  val u = Syntax.read_term ctxt1 "(x::foo) \<equiv> y";
+  val u = Syntax.read_term ctxt1 "(x::nat) \<equiv> y";
 
   (*official declaration of u -- propagates constraints etc.*)
   val ctxt2 = ctxt1 |> Variable.declare_term u;
-  val t2 = Syntax.read_term ctxt2 "x";  (*x::foo is enforced*)
+  val t2 = Syntax.read_term ctxt2 "x";  (*x::nat is enforced*)
 *}
 
 text {* In the above example, the starting context had been derived

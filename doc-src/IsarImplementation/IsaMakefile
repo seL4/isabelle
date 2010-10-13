@@ -19,13 +19,13 @@ USEDIR = $(ISABELLE_TOOL) usedir -v true -i false -d false -C false -D document
 
 ## sessions
 
-Thy: $(LOG)/Pure-Thy.gz
+Thy: $(LOG)/HOL-Thy.gz
 
-$(LOG)/Pure-Thy.gz: Thy/ROOT.ML Thy/Base.thy Thy/Integration.thy	\
+$(LOG)/HOL-Thy.gz: Thy/ROOT.ML Thy/Base.thy Thy/Integration.thy	\
   Thy/Isar.thy Thy/Local_Theory.thy Thy/Logic.thy Thy/Prelim.thy	\
   Thy/Proof.thy Thy/Syntax.thy Thy/Tactic.thy Thy/ML.thy		\
   Thy/ML_old.thy ../antiquote_setup.ML
-	@$(USEDIR) Pure Thy
+	@$(USEDIR) HOL Thy
 	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
 	 Thy/document/pdfsetup.sty Thy/document/session.tex
 
@@ -33,4 +33,4 @@ $(LOG)/Pure-Thy.gz: Thy/ROOT.ML Thy/Base.thy Thy/Integration.thy	\
 ## clean
 
 clean:
-	@rm -f $(LOG)/Pure-Thy.gz
+	@rm -f $(LOG)/HOL-Thy.gz

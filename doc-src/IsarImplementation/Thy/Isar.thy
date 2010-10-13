@@ -5,8 +5,6 @@ begin
 chapter {* Isar language elements *}
 
 text {*
-  %FIXME proper formal markup of methods!?
-
   The Isar proof language (see also \cite[\S2]{isabelle-isar-ref})
   consists of three main categories of language elements:
 
@@ -23,7 +21,7 @@ text {*
 
   \item Proof \emph{methods} define a secondary language of mixed
   forward-backward refinement steps involving facts and goals.
-  Typical examples are @{method rule}, @{method unfold}, and @{text
+  Typical examples are @{method rule}, @{method unfold}, and @{method
   simp}.
 
   Methods can occur in certain well-defined parts of the Isar proof
@@ -103,7 +101,7 @@ text %mlref {*
 
   \item @{ML Proof.simple_goal}~@{text "state"} returns the structured
   Isar goal (if available) in the form seen by ``simple'' methods
-  (like @{text simp} or @{text blast}).  The Isar goal facts are
+  (like @{method simp} or @{method blast}).  The Isar goal facts are
   already inserted as premises into the subgoals, which are presented
   individually as in @{ML Proof.goal}.
 
@@ -114,9 +112,9 @@ text %mlref {*
 
   \item @{ML Proof.raw_goal}~@{text "state"} returns the structured
   Isar goal (if available) in the raw internal form seen by ``raw''
-  methods (like @{text induct}).  This form is rarely appropriate for
-  dignostic tools; @{ML Proof.simple_goal} or @{ML Proof.goal} should
-  be used in most situations.
+  methods (like @{method induct}).  This form is rarely appropriate
+  for dignostic tools; @{ML Proof.simple_goal} or @{ML Proof.goal}
+  should be used in most situations.
 
   \item @{ML Proof.theorem}~@{text "before_qed after_qed statement ctxt"}
   initializes a toplevel Isar proof state within a given context.
@@ -162,7 +160,7 @@ text %mlantiq {*
 text %mlex {* The following example peeks at a certain goal configuration. *}
 
 example_proof
-  have "PROP A" and "PROP B" and "PROP C"
+  have A and B and C
     ML_val {* Thm.nprems_of (#goal @{Isar.goal}) *}
     oops
 
@@ -228,13 +226,14 @@ text {* Proof methods are syntactically embedded into the Isar proof
 
   \begin{enumerate}
 
-  \item structured method with cases, e.g.\ @{text "induct"}
+  \item structured method with cases, e.g.\ @{method "induct"}
 
-  \item regular method: strong emphasis on facts, e.g.\ @{text "rule"}
+  \item regular method: strong emphasis on facts, e.g.\ @{method "rule"}
 
-  \item simple method: weak emphasis on facts, merely inserted into subgoals, e.g.\ @{text "simp"}
+  \item simple method: weak emphasis on facts, merely inserted into
+  subgoals, e.g.\ @{method "simp"}
 
-  \item old-style tactic emulation, e.g. @{text "rule_tac"}
+  \item old-style tactic emulation, e.g. @{method "rule_tac"}
 
   \begin{itemize}
 
