@@ -23,6 +23,10 @@ lemmas expand_cfun_eq = cfun_eq_iff
 lemmas ext_cfun = cfun_eqI
 lemmas expand_cfun_below = cfun_below_iff
 lemmas below_cfun_ext = cfun_belowI
+lemmas monofun_fun_fun = fun_belowD
+lemmas monofun_fun_arg = monofunE
+lemmas monofun_lub_fun = adm_monofun [THEN admD]
+lemmas cont_lub_fun = adm_cont [THEN admD]
 
 text {* Older legacy theorem names: *}
 

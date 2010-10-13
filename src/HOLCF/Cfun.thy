@@ -13,14 +13,8 @@ default_sort cpo
 
 subsection {* Definition of continuous function type *}
 
-lemma Ex_cont: "\<exists>f. cont f"
-by (rule exI, rule cont_const)
-
-lemma adm_cont: "adm cont"
-by (rule admI, rule cont_lub_fun)
-
 cpodef (CFun)  ('a, 'b) cfun (infixr "->" 0) = "{f::'a => 'b. cont f}"
-by (simp_all add: Ex_cont adm_cont)
+by (auto intro: cont_const adm_cont)
 
 type_notation (xsymbols)
   cfun  ("(_ \<rightarrow>/ _)" [1, 0] 0)

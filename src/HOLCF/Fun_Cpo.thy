@@ -6,7 +6,7 @@
 header {* Class instances for the full function space *}
 
 theory Fun_Cpo
-imports Cont
+imports Adm
 begin
 
 subsection {* Full function space is a partial order *}
@@ -41,14 +41,20 @@ by (simp add: below_fun_def)
 lemma fun_belowI: "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> f \<sqsubseteq> g"
 by (simp add: below_fun_def)
 
+lemma fun_belowD: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g x"
+by (simp add: below_fun_def)
+
 subsection {* Full function space is chain complete *}
 
-text {* function application is monotone *}
+text {* Function application is monotone. *}
 
 lemma monofun_app: "monofun (\<lambda>f. f x)"
 by (rule monofunI, simp add: below_fun_def)
 
-text {* chains of functions yield chains in the po range *}
+text {* Properties of chains of functions. *}
+
+lemma fun_chain_iff: "chain S \<longleftrightarrow> (\<forall>x. chain (\<lambda>i. S i x))"
+unfolding chain_def fun_below_iff by auto
 
 lemma ch2ch_fun: "chain S \<Longrightarrow> chain (\<lambda>i. S i x)"
 by (simp add: chain_def below_fun_def)
@@ -65,16 +71,8 @@ by (auto simp add: is_ub_def below_fun_def)
 text {* Type @{typ "'a::type => 'b::cpo"} is chain complete *}
 
 lemma is_lub_lambda:
-  assumes f: "\<And>x. range (\<lambda>i. Y i x) <<| f x"
-  shows "range Y <<| f"
-apply (rule is_lubI)
-apply (rule ub_rangeI)
-apply (rule fun_belowI)
-apply (rule is_ub_lub [OF f])
-apply (rule fun_belowI)
-apply (rule is_lub_lub [OF f])
-apply (erule ub2ub_fun)
-done
+  "(\<And>x. range (\<lambda>i. Y i x) <<| f x) \<Longrightarrow> range Y <<| f"
+unfolding is_lub_def is_ub_def below_fun_def by simp
 
 lemma lub_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo)
@@ -92,17 +90,7 @@ by (rule lub_fun [THEN thelubI])
 instance "fun"  :: (type, cpo) cpo
 by intro_classes (rule exI, erule lub_fun)
 
-instance "fun" :: (finite, finite_po) finite_po ..
-
-instance "fun" :: (type, discrete_cpo) discrete_cpo
-proof
-  fix f g :: "'a \<Rightarrow> 'b"
-  show "f \<sqsubseteq> g \<longleftrightarrow> f = g" 
-    unfolding fun_below_iff fun_eq_iff
-    by simp
-qed
-
-text {* chain-finite function spaces *}
+subsection {* Chain-finiteness of function space *}
 
 lemma maxinch2maxinch_lambda:
   "(\<And>x. max_in_chain n (\<lambda>i. S i x)) \<Longrightarrow> max_in_chain n S"
@@ -140,94 +128,68 @@ proof
   thus "\<exists>n. max_in_chain n Y" ..
 qed
 
+instance "fun" :: (finite, finite_po) finite_po ..
+
+instance "fun" :: (type, discrete_cpo) discrete_cpo
+proof
+  fix f g :: "'a \<Rightarrow> 'b"
+  show "f \<sqsubseteq> g \<longleftrightarrow> f = g" 
+    unfolding fun_below_iff fun_eq_iff
+    by simp
+qed
+
 subsection {* Full function space is pointed *}
 
 lemma minimal_fun: "(\<lambda>x. \<bottom>) \<sqsubseteq> f"
 by (simp add: below_fun_def)
 
-lemma least_fun: "\<exists>x::'a::type \<Rightarrow> 'b::pcpo. \<forall>y. x \<sqsubseteq> y"
-apply (rule_tac x = "\<lambda>x. \<bottom>" in exI)
-apply (rule minimal_fun [THEN allI])
-done
-
 instance "fun"  :: (type, pcpo) pcpo
-by intro_classes (rule least_fun)
+by default (fast intro: minimal_fun)
 
-text {* for compatibility with old HOLCF-Version *}
 lemma inst_fun_pcpo: "\<bottom> = (\<lambda>x. \<bottom>)"
 by (rule minimal_fun [THEN UU_I, symmetric])
 
-text {* function application is strict in the left argument *}
 lemma app_strict [simp]: "\<bottom> x = \<bottom>"
 by (simp add: inst_fun_pcpo)
 
-text {*
-  The following results are about application for functions in @{typ "'a=>'b"}
-*}
-
-lemma monofun_fun_fun: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g x"
-by (simp add: below_fun_def)
-
-lemma monofun_fun_arg: "\<lbrakk>monofun f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
-by (rule monofunE)
-
-lemma monofun_fun: "\<lbrakk>monofun f; monofun g; f \<sqsubseteq> g; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> g y"
-by (rule below_trans [OF monofun_fun_arg monofun_fun_fun])
+lemma lambda_strict: "(\<lambda>x. \<bottom>) = \<bottom>"
+by (rule UU_I, rule minimal_fun)
 
 subsection {* Propagation of monotonicity and continuity *}
 
-text {* the lub of a chain of monotone functions is monotone *}
+text {* The lub of a chain of monotone functions is monotone. *}
 
-lemma monofun_lub_fun:
-  "\<lbrakk>chain (F::nat \<Rightarrow> 'a \<Rightarrow> 'b::cpo); \<forall>i. monofun (F i)\<rbrakk>
-    \<Longrightarrow> monofun (\<Squnion>i. F i)"
-apply (rule monofunI)
-apply (simp add: thelub_fun)
-apply (rule lub_mono)
-apply (erule ch2ch_fun)
-apply (erule ch2ch_fun)
-apply (simp add: monofunE)
-done
+lemma adm_monofun: "adm monofun"
+by (rule admI, simp add: thelub_fun fun_chain_iff monofun_def lub_mono)
 
-text {* the lub of a chain of continuous functions is continuous *}
+text {* The lub of a chain of continuous functions is continuous. *}
 
-lemma cont_lub_fun:
-  "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> cont (\<Squnion>i. F i)"
-apply (rule contI2)
-apply (erule monofun_lub_fun)
-apply (simp add: cont2mono)
-apply (simp add: thelub_fun cont2contlubE)
-apply (simp add: diag_lub ch2ch_fun ch2ch_cont)
-done
+lemma adm_cont: "adm cont"
+by (rule admI, simp add: thelub_fun fun_chain_iff)
+
+text {* Function application preserves monotonicity and continuity. *}
 
 lemma mono2mono_fun: "monofun f \<Longrightarrow> monofun (\<lambda>x. f x y)"
-apply (rule monofunI)
-apply (erule (1) monofun_fun_arg [THEN monofun_fun_fun])
-done
+by (simp add: monofun_def fun_below_iff)
 
 lemma cont2cont_fun: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
 apply (rule contI2)
 apply (erule cont2mono [THEN mono2mono_fun])
-apply (simp add: cont2contlubE)
-apply (simp add: thelub_fun ch2ch_cont)
+apply (simp add: cont2contlubE thelub_fun ch2ch_cont)
 done
 
-text {* Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"} *}
+text {*
+  Lambda abstraction preserves monotonicity and continuity.
+  (Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"}.)
+*}
 
 lemma mono2mono_lambda:
   assumes f: "\<And>y. monofun (\<lambda>x. f x y)" shows "monofun f"
-apply (rule monofunI)
-apply (rule fun_belowI)
-apply (erule monofunE [OF f])
-done
+using f by (simp add: monofun_def fun_below_iff)
 
 lemma cont2cont_lambda [simp]:
   assumes f: "\<And>y. cont (\<lambda>x. f x y)" shows "cont f"
-apply (rule contI2)
-apply (simp add: mono2mono_lambda cont2mono f)
-apply (rule fun_belowI)
-apply (simp add: thelub_fun cont2contlubE [OF f])
-done
+by (rule contI, rule is_lub_lambda, rule contE [OF f])
 
 text {* What D.A.Schmidt calls continuity of abstraction; never used here *}
 
