@@ -162,8 +162,9 @@ val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
 
 fun prove_induction
     (comp_dbind : binding, eqs : eq list)
-    (take_rews : thm list)
+    (constr_infos : Domain_Constructors.constr_info list)
     (take_info : Domain_Take_Proofs.take_induct_info)
+    (take_rews : thm list)
     (thy : theory) =
 let
   val comp_dname = Sign.full_name thy comp_dbind;
@@ -174,15 +175,11 @@ let
   val P_name = idx_name dnames "P";
   val pg = pg' thy;
 
-  local
-    fun ga s dn = Global_Theory.get_thm thy (dn ^ "." ^ s);
-    fun gts s dn = Global_Theory.get_thms thy (dn ^ "." ^ s);
-  in
-    val axs_rep_iso = map (ga "rep_iso") dnames;
-    val axs_abs_iso = map (ga "abs_iso") dnames;
-    val exhausts = map (ga  "exhaust" ) dnames;
-    val con_rews  = maps (gts "con_rews" ) dnames;
-  end;
+  val iso_infos = map #iso_info constr_infos;
+  val axs_rep_iso = map #rep_inverse iso_infos;
+  val axs_abs_iso = map #abs_inverse iso_infos;
+  val exhausts = map #exhaust constr_infos;
+  val con_rews = maps #con_rews constr_infos;
 
   val {take_consts, ...} = take_info;
   val {take_0_thms, take_Suc_thms, chain_take_thms, ...} = take_info;
@@ -505,6 +502,10 @@ in thy |> snd o Global_Theory.add_thmss
     [((Binding.qualified true "coinduct" comp_dbind, [coind]), [])]
 end; (* let *)
 
+(******************************************************************************)
+(******************************* main function ********************************)
+(******************************************************************************)
+
 fun comp_theorems
     (comp_dbind : binding, eqs : eq list)
     (specs : (binding * (binding * (bool * binding option * typ) list * mixfix) list) list)
@@ -545,7 +546,7 @@ val take_rews = take_0_thms @ take_strict_thms @ flat take_rewss;
 (* prove induction rules, unless definition is indirect recursive *)
 val thy =
     if is_indirect then thy else
-    prove_induction (comp_dbind, eqs) take_rews take_info thy;
+    prove_induction (comp_dbind, eqs) constr_infos take_info take_rews thy;
 
 val thy =
     if is_indirect then thy else
