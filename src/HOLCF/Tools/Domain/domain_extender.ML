@@ -189,18 +189,18 @@ fun gen_add_domain
     val eqs : eq list =
         map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
 
-    val ((rewss, take_rews), theorems_thy) =
+    val (constr_infos, thy) =
         thy
-          |> fold_map (fn (((dbind, eq), (_,cs)), info) =>
-                Domain_Theorems.theorems (eq, eqs) dbind cs info take_info)
-             (dbinds ~~ eqs ~~ eqs' ~~ iso_infos)
-          ||>> Domain_Theorems.comp_theorems (comp_dbind, eqs) take_info;
+          |> fold_map (fn ((dbind, (_,cs)), info) =>
+                Domain_Constructors.add_domain_constructors dbind cs info)
+             (dbinds ~~ eqs' ~~ iso_infos);
+
+    val (take_rews, theorems_thy) =
+        thy
+          |> Domain_Theorems.comp_theorems (comp_dbind, eqs)
+              (dbinds ~~ map snd eqs') iso_infos take_info constr_infos;
   in
     theorems_thy
-      |> Global_Theory.add_thmss
-           [((Binding.qualified true "rews" comp_dbind,
-              flat rewss @ take_rews), [])]
-      |> snd
   end;
 
 fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =

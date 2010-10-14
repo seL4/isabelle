@@ -303,7 +303,7 @@ fun define_take_functions
         val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
         val take_0_thm = Goal.prove_global thy [] [] goal (K tac);
       in
-        add_qualified_thm "take_0" (dbind, take_0_thm) thy
+        add_qualified_simp_thm "take_0" (dbind, take_0_thm) thy
       end;
     val (take_0_thms, thy) =
       fold_map prove_take_0 (take_consts ~~ dbinds ~~ dom_eqns) thy;
@@ -373,7 +373,7 @@ fun define_take_functions
             Drule.zero_var_indexes
               (@{thm deflation_strict} OF [deflation_take]);
       in
-        add_qualified_thm "take_strict" (dbind, take_strict_thm) thy
+        add_qualified_simp_thm "take_strict" (dbind, take_strict_thm) thy
       end;
     val (take_strict_thms, thy) =
       fold_map prove_take_strict

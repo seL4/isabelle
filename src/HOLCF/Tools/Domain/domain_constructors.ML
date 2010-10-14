@@ -854,6 +854,7 @@ fun add_domain_constructors
     (thy : theory) =
   let
     val dname = Binding.name_of dbind;
+    val _ = writeln ("Proving isomorphism properties of domain "^dname^" ...");
 
     (* retrieve facts about rep/abs *)
     val lhsT = #absT iso_info;
@@ -865,6 +866,7 @@ fun add_domain_constructors
     val abs_strict = iso_locale RS @{thm iso.abs_strict};
     val rep_defined_iff = iso_locale RS @{thm iso.rep_defined_iff};
     val abs_defined_iff = iso_locale RS @{thm iso.abs_defined_iff};
+    val iso_rews = [abs_iso_thm, rep_iso_thm, abs_strict, rep_strict];
 
     (* qualify constants and theorems with domain name *)
     val thy = Sign.add_path dname thy;
@@ -878,7 +880,8 @@ fun add_domain_constructors
       in
         add_constructors con_spec abs_const iso_locale thy
       end;
-    val {con_consts, con_betas, exhaust, ...} = con_result;
+    val {con_consts, con_betas, nchotomy, exhaust, compacts, con_rews,
+          inverts, injects, dist_les, dist_eqs} = con_result;
 
     (* define case combinator *)
     val ((case_const : typ -> term, cases : thm list), thy) =
@@ -928,17 +931,43 @@ fun add_domain_constructors
     (* restore original signature path *)
     val thy = Sign.parent_path thy;
 
+    (* bind theorem names in global theory *)
+    val (_, thy) =
+      let
+        fun qualified name = Binding.qualified true name dbind;
+        val names = "bottom" :: map (fn (b,_,_) => Binding.name_of b) spec;
+        val dname = fst (dest_Type lhsT);
+        val simp = Simplifier.simp_add;
+        val case_names = Rule_Cases.case_names names;
+        val cases_type = Induct.cases_type dname;
+      in
+        Global_Theory.add_thmss [
+          ((qualified "iso_rews"  , iso_rews    ), [simp]),
+          ((qualified "nchotomy"  , [nchotomy]  ), []),
+          ((qualified "exhaust"   , [exhaust]   ), [case_names, cases_type]),
+          ((qualified "when_rews" , cases       ), [simp]),
+          ((qualified "compacts"  , compacts    ), [simp]),
+          ((qualified "con_rews"  , con_rews    ), [simp]),
+          ((qualified "sel_rews"  , sel_thms    ), [simp]),
+          ((qualified "dis_rews"  , dis_thms    ), [simp]),
+          ((qualified "dist_les"  , dist_les    ), [simp]),
+          ((qualified "dist_eqs"  , dist_eqs    ), [simp]),
+          ((qualified "inverts"   , inverts     ), [simp]),
+          ((qualified "injects"   , injects     ), [simp]),
+          ((qualified "match_rews", match_thms  ), [simp])] thy
+      end;
+
     val result =
       { con_consts = con_consts,
         con_betas = con_betas,
-        nchotomy = #nchotomy con_result,
+        nchotomy = nchotomy,
         exhaust = exhaust,
-        compacts = #compacts con_result,
-        con_rews = #con_rews con_result,
-        inverts = #inverts con_result,
-        injects = #injects con_result,
-        dist_les = #dist_les con_result,
-        dist_eqs = #dist_eqs con_result,
+        compacts = compacts,
+        con_rews = con_rews,
+        inverts = inverts,
+        injects = injects,
+        dist_les = dist_les,
+        dist_eqs = dist_eqs,
         cases = cases,
         sel_rews = sel_thms,
         dis_rews = dis_thms,

@@ -9,17 +9,12 @@ val HOLCF_ss = @{simpset};
 
 signature DOMAIN_THEOREMS =
 sig
-  val theorems:
-      Domain_Library.eq * Domain_Library.eq list ->
-      binding ->
-      (binding * (bool * binding option * typ) list * mixfix) list ->
-      Domain_Take_Proofs.iso_info ->
-      Domain_Take_Proofs.take_induct_info ->
-      theory -> thm list * theory;
-
   val comp_theorems :
       binding * Domain_Library.eq list ->
+      (binding * (binding * (bool * binding option * typ) list * mixfix) list) list ->
+      Domain_Take_Proofs.iso_info list ->
       Domain_Take_Proofs.take_induct_info ->
+      Domain_Constructors.constr_info list ->
       theory -> thm list * theory
 
   val quiet_mode: bool Unsynchronized.ref;
@@ -103,130 +98,65 @@ fun case_UU_tac ctxt rews i v =
 (******************************************************************************)
 
 fun take_theorems
-    (((dname, _), cons) : eq, eqs : eq list)
-    (iso_info : Domain_Take_Proofs.iso_info)
+    (specs : (binding * (binding * (bool * binding option * typ) list * mixfix) list) list)
+    (iso_infos : Domain_Take_Proofs.iso_info list)
     (take_info : Domain_Take_Proofs.take_induct_info)
-    (result : Domain_Constructors.constr_info)
-    (thy : theory) =
+    (constr_infos : Domain_Constructors.constr_info list)
+    (thy : theory) : thm list list * theory =
 let
-  val map_tab = Domain_Take_Proofs.get_map_tab thy;
+  open HOLCF_Library;
 
-  val ax_abs_iso = #abs_inverse iso_info;
-  val {take_Suc_thms, deflation_take_thms, ...} = take_info;
-  val con_appls = #con_betas result;
-
-  local
-    fun ga s dn = Global_Theory.get_thm thy (dn ^ "." ^ s);
-  in
-    val ax_take_0      = ga "take_0" dname;
-    val ax_take_strict = ga "take_strict" dname;
-  end;
-
-  fun dc_take dn = %%:(dn^"_take");
-  val dnames = map (fst o fst) eqs;
+  val {take_consts, take_Suc_thms, deflation_take_thms, ...} = take_info;
   val deflation_thms = Domain_Take_Proofs.get_deflation_thms thy;
 
-  fun copy_of_dtyp tab r dt =
-      if Datatype_Aux.is_rec_type dt then copy tab r dt else ID
-  and copy tab r (Datatype_Aux.DtRec i) = r i
-    | copy tab r (Datatype_Aux.DtTFree a) = ID
-    | copy tab r (Datatype_Aux.DtType (c, ds)) =
-      case Symtab.lookup tab c of
-        SOME f => list_ccomb (%%:f, map (copy_of_dtyp tab r) ds)
-      | NONE => (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID);
+  val n = Free ("n", @{typ nat});
+  val n' = @{const Suc} $ n;
 
-  fun one_take_app (con, args) =
+  local
+    val newTs = map #absT iso_infos;
+    val subs = newTs ~~ map (fn t => t $ n) take_consts;
+    fun is_ID (Const (c, _)) = (c = @{const_name ID})
+      | is_ID _              = false;
+  in
+    fun map_of_arg v T =
+      let val m = Domain_Take_Proofs.map_of_typ thy subs T;
+      in if is_ID m then v else mk_capply (m, v) end;
+  end
+
+  fun prove_take_apps
+      ((((dbind, spec), iso_info), take_const), constr_info) thy =
     let
-      fun mk_take n = dc_take (List.nth (dnames, n)) $ %:"n";
-      fun one_rhs arg =
-          if Datatype_Aux.is_rec_type (dtyp_of arg)
-          then copy_of_dtyp map_tab
-                 mk_take (dtyp_of arg) ` (%# arg)
-          else (%# arg);
-      val lhs = (dc_take dname $ (%%: @{const_name Suc} $ %:"n")) ` (con_app con args);
-      val rhs = con_app2 con one_rhs args;
-      val goal = mk_trp (lhs === rhs);
-      val rules =
-          [ax_abs_iso] @ @{thms take_con_rules}
-          @ take_Suc_thms @ deflation_thms @ deflation_take_thms;
-      val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
-    in pg' thy con_appls goal (K tacs) end;
-  val take_apps = map one_take_app cons;
-  val take_rews = ax_take_0 :: ax_take_strict :: take_apps;
+      val {con_consts, con_betas, ...} = constr_info;
+      val {abs_inverse, ...} = iso_info;
+      fun prove_take_app (con_const : term) (bind, args, mx) =
+        let
+          val Ts = map (fn (_, _, T) => T) args;
+          val ns = Name.variant_list ["n"] (Datatype_Prop.make_tnames Ts);
+          val vs = map Free (ns ~~ Ts);
+          val lhs = mk_capply (take_const $ n', list_ccomb (con_const, vs));
+          val rhs = list_ccomb (con_const, map2 map_of_arg vs Ts);
+          val goal = mk_trp (mk_eq (lhs, rhs));
+          val rules =
+              [abs_inverse] @ con_betas @ @{thms take_con_rules}
+              @ take_Suc_thms @ deflation_thms @ deflation_take_thms;
+          val tac = simp_tac (HOL_basic_ss addsimps rules) 1;
+        in
+          Goal.prove_global thy [] [] goal (K tac)
+        end;
+      val take_apps = map2 prove_take_app con_consts spec;
+    in
+      yield_singleton Global_Theory.add_thmss
+        ((Binding.qualified true "take_rews" dbind, take_apps),
+        [Simplifier.simp_add]) thy
+    end;
 in
-  take_rews
+  fold_map prove_take_apps
+    (specs ~~ iso_infos ~~ take_consts ~~ constr_infos) thy
 end;
 
 (* ----- general proofs ----------------------------------------------------- *)
 
 val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
-
-fun theorems
-    (eq as ((dname, _), cons) : eq, eqs : eq list)
-    (dbind : binding)
-    (spec : (binding * (bool * binding option * typ) list * mixfix) list)
-    (iso_info : Domain_Take_Proofs.iso_info)
-    (take_info : Domain_Take_Proofs.take_induct_info)
-    (thy : theory) =
-let
-
-val _ = message ("Proving isomorphism properties of domain "^dname^" ...");
-
-(* ----- define constructors ------------------------------------------------ *)
-
-val (result, thy) =
-    Domain_Constructors.add_domain_constructors dbind spec iso_info thy;
-
-val {nchotomy, exhaust, ...} = result;
-val {compacts, con_rews, inverts, injects, dist_les, dist_eqs, ...} = result;
-val {sel_rews, ...} = result;
-val when_rews = #cases result;
-val when_strict = hd when_rews;
-val dis_rews = #dis_rews result;
-val mat_rews = #match_rews result;
-
-(* ----- theorems concerning the isomorphism -------------------------------- *)
-
-val ax_abs_iso = #abs_inverse iso_info;
-val ax_rep_iso = #rep_inverse iso_info;
-
-val retraction_strict = @{thm retraction_strict};
-val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
-val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
-val iso_rews = [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
-
-(* ----- theorems concerning one induction step ----------------------------- *)
-
-val take_rews = take_theorems (eq, eqs) iso_info take_info result thy;
-
-val case_ns =
-    "bottom" :: map (fn (b,_,_) => Binding.name_of b) spec;
-
-fun qualified name = Binding.qualified true name dbind;
-val simp = Simplifier.simp_add;
-
-in
-  thy
-  |> Global_Theory.add_thmss [
-     ((qualified "iso_rews"  , iso_rews    ), [simp]),
-     ((qualified "nchotomy"  , [nchotomy]  ), []),
-     ((qualified "exhaust"   , [exhaust]   ),
-      [Rule_Cases.case_names case_ns, Induct.cases_type dname]),
-     ((qualified "when_rews" , when_rews   ), [simp]),
-     ((qualified "compacts"  , compacts    ), [simp]),
-     ((qualified "con_rews"  , con_rews    ), [simp]),
-     ((qualified "sel_rews"  , sel_rews    ), [simp]),
-     ((qualified "dis_rews"  , dis_rews    ), [simp]),
-     ((qualified "dist_les"  , dist_les    ), [simp]),
-     ((qualified "dist_eqs"  , dist_eqs    ), [simp]),
-     ((qualified "inverts"   , inverts     ), [simp]),
-     ((qualified "injects"   , injects     ), [simp]),
-     ((qualified "take_rews" , take_rews   ), [simp]),
-     ((qualified "match_rews", mat_rews    ), [simp])]
-  |> snd
-  |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
-      dist_les @ dist_eqs)
-end; (* let *)
 
 (******************************************************************************)
 (****************************** induction rules *******************************)
@@ -440,6 +370,7 @@ end; (* prove_induction *)
 
 fun prove_coinduction
     (comp_dbind : binding, eqs : eq list)
+    (take_rews : thm list)
     (take_lemmas : thm list)
     (thy : theory) : theory =
 let
@@ -449,9 +380,6 @@ val comp_dname = Sign.full_name thy comp_dbind;
 fun dc_take dn = %%:(dn^"_take");
 val x_name = idx_name dnames "x"; 
 val n_eqs = length eqs;
-
-val take_rews =
-    maps (fn dn => Global_Theory.get_thms thy (dn ^ ".take_rews")) dnames;
 
 (* ----- define bisimulation predicate -------------------------------------- *)
 
@@ -581,7 +509,10 @@ end; (* let *)
 
 fun comp_theorems
     (comp_dbind : binding, eqs : eq list)
+    (specs : (binding * (binding * (bool * binding option * typ) list * mixfix) list) list)
+    (iso_infos : Domain_Take_Proofs.iso_info list)
     (take_info : Domain_Take_Proofs.take_induct_info)
+    (constr_infos : Domain_Constructors.constr_info list)
     (thy : theory) =
 let
 val map_tab = Domain_Take_Proofs.get_map_tab thy;
@@ -607,10 +538,12 @@ end;
 
 (* theorems about take *)
 
-val take_lemmas = #take_lemma_thms take_info;
+val (take_rewss, thy) =
+    take_theorems specs iso_infos take_info constr_infos thy;
 
-val take_rews =
-    maps (fn dn => Global_Theory.get_thms thy (dn ^ ".take_rews")) dnames;
+val {take_lemma_thms, take_0_thms, take_strict_thms, ...} = take_info;
+
+val take_rews = take_0_thms @ take_strict_thms @ flat take_rewss;
 
 (* prove induction rules, unless definition is indirect recursive *)
 val thy =
@@ -619,7 +552,7 @@ val thy =
 
 val thy =
     if is_indirect then thy else
-    prove_coinduction (comp_dbind, eqs) take_lemmas thy;
+    prove_coinduction (comp_dbind, eqs) take_rews take_lemma_thms thy;
 
 in
   (take_rews, thy)
