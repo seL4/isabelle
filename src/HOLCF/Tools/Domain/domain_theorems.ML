@@ -106,7 +106,7 @@ fun take_theorems
     (((dname, _), cons) : eq, eqs : eq list)
     (iso_info : Domain_Take_Proofs.iso_info)
     (take_info : Domain_Take_Proofs.take_induct_info)
-    (result)
+    (result : Domain_Constructors.constr_info)
     (thy : theory) =
 let
   val map_tab = Domain_Take_Proofs.get_map_tab thy;

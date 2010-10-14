@@ -7,26 +7,29 @@ and proves related theorems.
 
 signature DOMAIN_CONSTRUCTORS =
 sig
+  type constr_info =
+    {
+      con_consts : term list,
+      con_betas : thm list,
+      nchotomy : thm,
+      exhaust : thm,
+      compacts : thm list,
+      con_rews : thm list,
+      inverts : thm list,
+      injects : thm list,
+      dist_les : thm list,
+      dist_eqs : thm list,
+      cases : thm list,
+      sel_rews : thm list,
+      dis_rews : thm list,
+      match_rews : thm list
+    }
   val add_domain_constructors :
       binding
       -> (binding * (bool * binding option * typ) list * mixfix) list
       -> Domain_Take_Proofs.iso_info
       -> theory
-      -> { con_consts : term list,
-           con_betas : thm list,
-           nchotomy : thm,
-           exhaust : thm,
-           compacts : thm list,
-           con_rews : thm list,
-           inverts : thm list,
-           injects : thm list,
-           dist_les : thm list,
-           dist_eqs : thm list,
-           cases : thm list,
-           sel_rews : thm list,
-           dis_rews : thm list,
-           match_rews : thm list
-         } * theory;
+      -> constr_info * theory;
 end;
 
 
@@ -38,6 +41,24 @@ open HOLCF_Library;
 infixr 6 ->>;
 infix -->>;
 infix 9 `;
+
+type constr_info =
+  {
+    con_consts : term list,
+    con_betas : thm list,
+    nchotomy : thm,
+    exhaust : thm,
+    compacts : thm list,
+    con_rews : thm list,
+    inverts : thm list,
+    injects : thm list,
+    dist_les : thm list,
+    dist_eqs : thm list,
+    cases : thm list,
+    sel_rews : thm list,
+    dis_rews : thm list,
+    match_rews : thm list
+  }
 
 (************************** miscellaneous functions ***************************)
 
