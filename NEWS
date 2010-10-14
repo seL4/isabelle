@@ -103,6 +103,8 @@ the code generator.
 
 * Dropped type classes mult_mono and mult_mono1.  INCOMPATIBILITY.
 
+* Removed output syntax "'a ~=> 'b" for "'a => 'b option". INCOMPATIBILITY.
+
 * Theory SetsAndFunctions has been split into Function_Algebras and Set_Algebras;
 canonical names for instance definitions for functions; various improvements.
 INCOMPATIBILITY.
