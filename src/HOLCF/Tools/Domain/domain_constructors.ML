@@ -9,6 +9,7 @@ signature DOMAIN_CONSTRUCTORS =
 sig
   type constr_info =
     {
+      iso_info : Domain_Take_Proofs.iso_info,
       con_consts : term list,
       con_betas : thm list,
       nchotomy : thm,
@@ -44,6 +45,7 @@ infix 9 `;
 
 type constr_info =
   {
+    iso_info : Domain_Take_Proofs.iso_info,
     con_consts : term list,
     con_betas : thm list,
     nchotomy : thm,
@@ -958,7 +960,9 @@ fun add_domain_constructors
       end;
 
     val result =
-      { con_consts = con_consts,
+      {
+        iso_info = iso_info,
+        con_consts = con_consts,
         con_betas = con_betas,
         nchotomy = nchotomy,
         exhaust = exhaust,
@@ -971,7 +975,8 @@ fun add_domain_constructors
         cases = cases,
         sel_rews = sel_thms,
         dis_rews = dis_thms,
-        match_rews = match_thms };
+        match_rews = match_thms
+      };
   in
     (result, thy)
   end;

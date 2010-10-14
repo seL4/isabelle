@@ -198,7 +198,7 @@ fun gen_add_domain
     val (take_rews, theorems_thy) =
         thy
           |> Domain_Theorems.comp_theorems (comp_dbind, eqs)
-              (dbinds ~~ map snd eqs') iso_infos take_info constr_infos;
+              (dbinds ~~ map snd eqs') take_info constr_infos;
   in
     theorems_thy
   end;

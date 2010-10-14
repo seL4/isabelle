@@ -12,7 +12,6 @@ sig
   val comp_theorems :
       binding * Domain_Library.eq list ->
       (binding * (binding * (bool * binding option * typ) list * mixfix) list) list ->
-      Domain_Take_Proofs.iso_info list ->
       Domain_Take_Proofs.take_induct_info ->
       Domain_Constructors.constr_info list ->
       theory -> thm list * theory
@@ -99,7 +98,6 @@ fun case_UU_tac ctxt rews i v =
 
 fun take_theorems
     (specs : (binding * (binding * (bool * binding option * typ) list * mixfix) list) list)
-    (iso_infos : Domain_Take_Proofs.iso_info list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (constr_infos : Domain_Constructors.constr_info list)
     (thy : theory) : thm list list * theory =
@@ -113,7 +111,7 @@ let
   val n' = @{const Suc} $ n;
 
   local
-    val newTs = map #absT iso_infos;
+    val newTs = map (#absT o #iso_info) constr_infos;
     val subs = newTs ~~ map (fn t => t $ n) take_consts;
     fun is_ID (Const (c, _)) = (c = @{const_name ID})
       | is_ID _              = false;
@@ -124,9 +122,9 @@ let
   end
 
   fun prove_take_apps
-      ((((dbind, spec), iso_info), take_const), constr_info) thy =
+      (((dbind, spec), take_const), constr_info) thy =
     let
-      val {con_consts, con_betas, ...} = constr_info;
+      val {iso_info, con_consts, con_betas, ...} = constr_info;
       val {abs_inverse, ...} = iso_info;
       fun prove_take_app (con_const : term) (bind, args, mx) =
         let
@@ -151,7 +149,7 @@ let
     end;
 in
   fold_map prove_take_apps
-    (specs ~~ iso_infos ~~ take_consts ~~ constr_infos) thy
+    (specs ~~ take_consts ~~ constr_infos) thy
 end;
 
 (* ----- general proofs ----------------------------------------------------- *)
@@ -510,7 +508,6 @@ end; (* let *)
 fun comp_theorems
     (comp_dbind : binding, eqs : eq list)
     (specs : (binding * (binding * (bool * binding option * typ) list * mixfix) list) list)
-    (iso_infos : Domain_Take_Proofs.iso_info list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (constr_infos : Domain_Constructors.constr_info list)
     (thy : theory) =
@@ -539,7 +536,7 @@ end;
 (* theorems about take *)
 
 val (take_rewss, thy) =
-    take_theorems specs iso_infos take_info constr_infos thy;
+    take_theorems specs take_info constr_infos thy;
 
 val {take_lemma_thms, take_0_thms, take_strict_thms, ...} = take_info;
 
