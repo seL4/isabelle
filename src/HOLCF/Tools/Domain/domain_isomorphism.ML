@@ -639,9 +639,8 @@ fun gen_domain_isomorphism
     val (take_info, thy) =
         Domain_Take_Proofs.define_take_functions
           (dbinds ~~ iso_infos) thy;
-    val { take_consts, take_defs, chain_take_thms, take_0_thms,
-          take_Suc_thms, deflation_take_thms,
-          finite_consts, finite_defs } = take_info;
+    val { take_consts, chain_take_thms, take_0_thms, take_Suc_thms, ...} =
+        take_info;
 
     (* least-upper-bound lemma for take functions *)
     val lub_take_lemma =

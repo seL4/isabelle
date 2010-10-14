@@ -24,6 +24,7 @@ sig
       take_0_thms : thm list,
       take_Suc_thms : thm list,
       deflation_take_thms : thm list,
+      take_strict_thms : thm list,
       finite_consts : term list,
       finite_defs : thm list
     }
@@ -35,6 +36,7 @@ sig
       take_0_thms         : thm list,
       take_Suc_thms       : thm list,
       deflation_take_thms : thm list,
+      take_strict_thms    : thm list,
       finite_consts       : term list,
       finite_defs         : thm list,
       lub_take_thms       : thm list,
@@ -80,6 +82,7 @@ type take_info =
     take_0_thms : thm list,
     take_Suc_thms : thm list,
     deflation_take_thms : thm list,
+    take_strict_thms : thm list,
     finite_consts : term list,
     finite_defs : thm list
   };
@@ -92,6 +95,7 @@ type take_induct_info =
     take_0_thms         : thm list,
     take_Suc_thms       : thm list,
     deflation_take_thms : thm list,
+    take_strict_thms    : thm list,
     finite_consts       : term list,
     finite_defs         : thm list,
     lub_take_thms       : thm list,
@@ -429,6 +433,7 @@ fun define_take_functions
         take_0_thms = take_0_thms,
         take_Suc_thms = take_Suc_thms,
         deflation_take_thms = deflation_take_thms,
+        take_strict_thms = take_strict_thms,
         finite_consts = finite_consts,
         finite_defs = finite_defs
       };
@@ -593,6 +598,7 @@ fun add_lub_take_theorems
         take_0_thms         = #take_0_thms take_info,
         take_Suc_thms       = #take_Suc_thms take_info,
         deflation_take_thms = #deflation_take_thms take_info,
+        take_strict_thms    = #take_strict_thms take_info,
         finite_consts       = #finite_consts take_info,
         finite_defs         = #finite_defs take_info,
         lub_take_thms       = lub_take_thms,
