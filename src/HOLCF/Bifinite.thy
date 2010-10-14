@@ -440,7 +440,7 @@ done
 
 lemma finite_deflation_lift_approx: "finite_deflation (lift_approx i)"
 proof
-  fix x
+  fix x :: "'a lift"
   show "lift_approx i\<cdot>x \<sqsubseteq> x"
     unfolding lift_approx_def
     by (cases x, simp, simp)
