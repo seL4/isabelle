@@ -290,12 +290,12 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
   When implementing proof methods, it is advisable to study existing
   implementations carefully and imitate the typical ``boiler plate''
   for context-sensitive parsing and further combinators to wrap-up
-  tactic expressions as methods.\footnote{Home-grown aliases or
-  abbreviations of the standard method combinators should be avoided.
-  Old user code often retains similar remains of complicated two-phase
-  method setup of Isabelle99 that was discontinued in Isabelle2009.}
+  tactic expressions as methods.\footnote{Aliases or abbreviations of
+  the standard method combinators should be avoided.  Note that from
+  Isabelle99 until Isabelle2009 the system did provide various odd
+  combinations of method wrappers that made user applications more
+  complicated than necessary.}
 *}
-
 
 text %mlref {*
   \begin{mldecls}
@@ -342,18 +342,17 @@ text %mlref {*
   within regular @{ML METHOD}, for example.
 
   \item @{ML Method.setup}~@{text "name parser description"} provides
-  the functionality of the Isar command @{command method_setup}~@{text
-  "name text description"} as ML function.
+  the functionality of the Isar command @{command method_setup} as ML
+  function.
 
   \end{description}
 *}
 
-text %mlex {* The following toy examples illustrate how goal facts and
-  goal state are passed to proof methods.  The pre-defined proof
-  method called ``@{method tactic}'' wraps ML source of type @{ML_type
+text %mlex {* The following toy examples illustrate how the goal facts
+  and state are passed to proof methods.  The pre-defined proof method
+  called ``@{method tactic}'' wraps ML source of type @{ML_type
   tactic} (abstracted over @{verbatim facts}).  This allows immediate
-  experimentation without concrete syntax parsing.
-*}
+  experimentation without parsing of concrete syntax. *}
 
 example_proof
   assume a: A and b: B
@@ -372,12 +371,48 @@ example_proof
     done
 qed
 
-text {* \medskip The subsequent example implements a method @{text
-  "my_simp"} that rewrites the first subgoal by rules declared in the
-  context.  As a shortcut to rule management we use a cheap solution
-  via functor @{ML_functor Named_Thms} (see also @{"file"
-  "~~/src/Pure/Tools/named_thms.ML"}).
+text {* \medskip The next example implements a method that simplifies
+  the first subgoal by rewrite rules given as arguments.  *}
+
+method_setup my_simp = {*
+  Attrib.thms >> (fn thms => fn ctxt =>
+    SIMPLE_METHOD' (fn i =>
+      CHANGED (asm_full_simp_tac
+        (HOL_basic_ss addsimps thms) i)))
+*} "rewrite subgoal by given rules"
+
+text {* The concrete syntax wrapping of @{command method_setup} always
+  passes-through the proof context at the end of parsing, but it is
+  not used in this example.
+
+  The @{ML Attrib.thms} parser produces a list of theorems from the
+  usual Isar syntax involving attribute expressions etc.\ (syntax
+  category @{syntax thmrefs}).  The resulting @{verbatim thms} are
+  added to @{ML HOL_basic_ss} which already contains the basic
+  Simplifier setup for HOL.
+
+  The tactic @{ML asm_full_simp_tac} is the one that is also used in
+  method @{method simp} by default.  The extra wrapping by the @{ML
+  CHANGED} tactical ensures progress of simplification: identical goal
+  states are filtered out explicitly to make the raw tactic conform to
+  standard Isar method behaviour.
+
+  \medskip Method @{method my_simp} can be used in Isar proofs like
+  this:
 *}
+
+example_proof
+  fix a b c
+  assume a: "a \<equiv> b"
+  assume b: "b \<equiv> c"
+  have "a \<equiv> c" by (my_simp a b)
+qed
+
+text {* \medskip Apart from explicit arguments, common proof methods
+  typically work with a default configuration provided by the context.
+  As a shortcut to rule management we use a cheap solution via functor
+  @{ML_functor Named_Thms} (see also @{"file"
+  "~~/src/Pure/Tools/named_thms.ML"}).  *}
 
 ML {*
   structure My_Simps =
@@ -389,77 +424,57 @@ setup My_Simps.setup
 text {* \medskip\noindent This provides ML access to a list of
   theorems in canonical declaration order via @{ML My_Simps.get}.  The
   user can add or delete rules via the attribute @{attribute my_simp}.
-  The actual proof method is now defined as follows:
+  The actual proof method is now defined as before, but we append the
+  explicit arguments and the rules from the context.
 *}
 
-method_setup my_simp = {*
-  Scan.succeed (fn ctxt =>
+method_setup my_simp' = {*
+  Attrib.thms >> (fn thms => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
-        (HOL_basic_ss addsimps (My_Simps.get ctxt)) i)))
-*} "rewrite subgoal by my_rewrite rules"
+        (HOL_basic_ss addsimps (thms @ My_Simps.get ctxt)) i)))
+*} "rewrite subgoal by given rules and my_simp rules from the context"
 
-text {* \medskip\noindent Now method @{method my_simp} can be used in
-  Isar proofs like this: *}
+text {*
+  \medskip Method @{method my_simp'} can be used in Isar proofs
+  like this:
+*}
 
 example_proof
   fix a b c
   assume [my_simp]: "a \<equiv> b"
   assume [my_simp]: "b \<equiv> c"
-  have "a \<equiv> c" by my_simp
-qed
-
-text {* \medskip\noindent Note how the @{ML CHANGED} tactical is used
-  to ensure progress of simplification: identical goal states need to
-  be filtered out explicitly, because the internal Simplifier tactics
-  never fail.
-
-  \medskip Further refinement of method syntax is illustrated below:
-  rules presented as explicit method arguments are included in the
-  collection of rewrite rules.
-*}
-
-method_setup my_simp' = {*
-  Attrib.thms >> (fn my_simps => fn ctxt =>
-    SIMPLE_METHOD' (fn i =>
-      CHANGED (asm_full_simp_tac
-        (HOL_basic_ss addsimps (my_simps @ My_Simps.get ctxt)) i)))
-*} "rewrite subgoal by my_rewrite rules"
-
-example_proof
-  fix a b c
-  assume a: "a \<equiv> b"
-  assume b: "b \<equiv> c"
-  have "a \<equiv> c" by (my_simp' a b)
+  have "a \<equiv> c" by my_simp'
 qed
 
 text {* \medskip Both @{method my_simp} and @{method my_simp'} are
   simple methods, i.e.\ the goal facts are merely inserted as goal
-  premises by the method wrapper.  For proof methods that are similar
-  to the standard collection of @{method simp}, @{method blast},
-  @{method auto} little more can be done here.
+  premises by the @{ML SIMPLE_METHOD'} wrapper.  For proof methods
+  that are similar to the standard collection of @{method simp},
+  @{method blast}, @{method auto} little more can be done here.
 
   Note that using the primary goal facts in the same manner as the
-  method parameters obtained by the context or concrete syntax does
-  not quite meet the requirement of ``strong emphasis on facts'' of
-  regular proof methods, because rewrite rules as used above can be
-  easily ignored.  A proof text ``@{command using}~@{text
-  "foo"}~@{command "by"}~@{text "my_simp"}'' where @{text "foo"} is
-  not used would deceive the reader.
+  method arguments obtained via concrete syntax or the context does
+  not meet the requirement of ``strong emphasis on facts'' of regular
+  proof methods, because rewrite rules as used above can be easily
+  ignored.  A proof text ``@{command using}~@{text "foo"}~@{command
+  "by"}~@{text "my_simp"}'' where @{text "foo"} is not used would
+  deceive the reader.
 
   \medskip The technical treatment of rules from the context requires
   further attention.  Above we rebuild a fresh @{ML_type simpset} from
-  the list of rules retrieved from the context on every invocation of
-  the method.  This does not scale to really large collections of
-  rules.
+  the arguments and \emph{all} rules retrieved from the context on
+  every invocation of the method.  This does not scale to really large
+  collections of rules, which easily emerges in the context of a big
+  theory library, for example.
 
-  This is an inherent limitation of the above rule management via
-  functor @{ML_functor Named_Thms}, because that lacks tool-specific
+  This is an inherent limitation of the simplistic rule management via
+  functor @{ML_functor Named_Thms}, because it lacks tool-specific
   storage and retrieval.  More realistic applications require
   efficient index-structures that organize theorems in a customized
   manner, such as a discrimination net that is indexed by the
-  left-hand sides of rewrite rules.  For variations on the Simplifier
-  it is possible to re-use the existing type @{ML_type simpset}, but
+  left-hand sides of rewrite rules.  For variations on the Simplifier,
+  re-use of the existing type @{ML_type simpset} is adequate, but
   scalability requires it be maintained statically within the context
   data, not dynamically on each tool invocation.  *}
 
