@@ -29,11 +29,11 @@ text {*
   or @{command "by"}.
 
   \item \emph{Attributes} define a tertiary language of small
-  annotations to facts being defined or referenced.  Attributes can
-  modify both the fact and the context.
+  annotations to theorems being defined or referenced.  Attributes can
+  modify both the context and the theorem.
 
-  Typical examples are @{attribute symmetric} (which affects the
-  fact), and @{attribute intro} (which affects the context).
+  Typical examples are @{attribute intro} (which affects the context),
+  and @{attribute symmetric} (which affects the theorem).
 
   \end{enumerate}
 *}
@@ -41,7 +41,10 @@ text {*
 
 section {* Proof commands *}
 
-text {* In principle, Isar proof commands could be defined in
+text {* A \emph{proof command} is state transition of the Isar/VM
+  proof interpreter.
+
+  In principle, Isar proof commands could be defined in
   user-space as well.  The system is built like that in the first
   place: part of the commands are primitive, the other part is defined
   as derived elements.  Adding to the genuine structured proof
@@ -481,6 +484,54 @@ text {* \medskip Both @{method my_simp} and @{method my_simp'} are
 
 section {* Attributes *}
 
-text FIXME
+text {* An \emph{attribute} is a function @{text "context \<times> thm \<rightarrow>
+  context \<times> thm"}, which means both a (generic) context and a theorem
+  can be modified simultaneously.  In practice this fully general form
+  is very rare, instead attributes are presented either as
+  \emph{declaration attribute:} @{text "thm \<rightarrow> context \<rightarrow> context"} or
+  \emph{rule attribute:} @{text "context \<rightarrow> thm \<rightarrow> thm"}.
+
+  Attributes can have additional arguments via concrete syntax.  There
+  is a collection of context-sensitive parsers for various logical
+  entities (types, terms, theorems).  These already take care of
+  applying morphisms to the arguments when attribute expressions are
+  moved into a different context (see also \secref{sec:morphisms}).
+
+  When implementing declaration attributes, it is important to operate
+  exactly on the variant of the generic context that is provided by
+  the system, which is either global theory context or local proof
+  context.  In particular, the background theory of a local context
+  must not be modified in this situation! *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type attribute: "Context.generic * thm -> Context.generic * thm"} \\
+  @{index_ML Thm.rule_attribute: "(Context.generic -> thm -> thm) -> attribute"} \\
+  @{index_ML Thm.declaration_attribute: "
+  (thm -> Context.generic -> Context.generic) -> attribute"} \\
+  @{index_ML Attrib.setup: "binding -> attribute context_parser ->
+  string -> theory -> theory"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type attribute} represents attributes as concrete type alias.
+
+  \item @{ML Thm.rule_attribute}~@{text "(fn context => rule)"} wraps
+  a context-dependent rule (mapping on @{ML_type thm}) as attribute.
+
+  \item @{ML Thm.declaration_attribute}~@{text "(fn thm => decl)"}
+  wraps a theorem-dependent declaration (mapping on @{ML_type
+  Context.generic}) as attribute.
+
+  \item @{ML Attrib.setup}~@{text "name parser description"} provides
+  the functionality of the Isar command @{command attribute_setup} as
+  ML function.
+
+  \end{description}
+*}
+
+text %mlex {* See also @{command attribute_setup} in
+  \cite{isabelle-isar-ref} which includes some abstract examples. *}
 
 end

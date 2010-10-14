@@ -155,7 +155,7 @@ text %mlref {*
 *}
 
 
-section {* Morphisms and declarations *}
+section {* Morphisms and declarations \label{sec:morphisms} *}
 
 text FIXME
 
