@@ -98,66 +98,30 @@ fun case_UU_tac ctxt rews i v =
   InductTacs.case_tac ctxt (v^"=UU") i THEN
   asm_simp_tac (HOLCF_ss addsimps rews) i;
 
-(* ----- general proofs ----------------------------------------------------- *)
+(******************************************************************************)
+(***************************** proofs about take ******************************)
+(******************************************************************************)
 
-val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
-
-fun theorems
+fun take_theorems
     (((dname, _), cons) : eq, eqs : eq list)
-    (dbind : binding)
-    (spec : (binding * (bool * binding option * typ) list * mixfix) list)
     (iso_info : Domain_Take_Proofs.iso_info)
     (take_info : Domain_Take_Proofs.take_induct_info)
+    (result)
     (thy : theory) =
 let
+  val map_tab = Domain_Take_Proofs.get_map_tab thy;
 
-val _ = message ("Proving isomorphism properties of domain "^dname^" ...");
-val map_tab = Domain_Take_Proofs.get_map_tab thy;
+  val ax_abs_iso = #abs_inverse iso_info;
+  val {take_Suc_thms, deflation_take_thms, ...} = take_info;
+  val con_appls = #con_betas result;
 
+  local
+    fun ga s dn = Global_Theory.get_thm thy (dn ^ "." ^ s);
+  in
+    val ax_take_0      = ga "take_0" dname;
+    val ax_take_strict = ga "take_strict" dname;
+  end;
 
-(* ----- getting the axioms and definitions --------------------------------- *)
-
-val ax_abs_iso = #abs_inverse iso_info;
-val ax_rep_iso = #rep_inverse iso_info;
-
-val abs_const = #abs_const iso_info;
-val rep_const = #rep_const iso_info;
-
-local
-  fun ga s dn = Global_Theory.get_thm thy (dn ^ "." ^ s);
-in
-  val ax_take_0      = ga "take_0" dname;
-  val ax_take_strict = ga "take_strict" dname;
-end; (* local *)
-
-val {take_Suc_thms, deflation_take_thms, ...} = take_info;
-
-(* ----- define constructors ------------------------------------------------ *)
-
-val (result, thy) =
-    Domain_Constructors.add_domain_constructors dbind spec iso_info thy;
-
-val con_appls = #con_betas result;
-val {nchotomy, exhaust, ...} = result;
-val {compacts, con_rews, inverts, injects, dist_les, dist_eqs, ...} = result;
-val {sel_rews, ...} = result;
-val when_rews = #cases result;
-val when_strict = hd when_rews;
-val dis_rews = #dis_rews result;
-val mat_rews = #match_rews result;
-
-(* ----- theorems concerning the isomorphism -------------------------------- *)
-
-val pg = pg' thy;
-
-val retraction_strict = @{thm retraction_strict};
-val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
-val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
-val iso_rews = [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
-
-(* ----- theorems concerning one induction step ----------------------------- *)
-
-local
   fun dc_take dn = %%:(dn^"_take");
   val dnames = map (fst o fst) eqs;
   val deflation_thms = Domain_Take_Proofs.get_deflation_thms thy;
@@ -186,11 +150,54 @@ local
           [ax_abs_iso] @ @{thms take_con_rules}
           @ take_Suc_thms @ deflation_thms @ deflation_take_thms;
       val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
-    in pg con_appls goal (K tacs) end;
+    in pg' thy con_appls goal (K tacs) end;
   val take_apps = map one_take_app cons;
-in
   val take_rews = ax_take_0 :: ax_take_strict :: take_apps;
+in
+  take_rews
 end;
+
+(* ----- general proofs ----------------------------------------------------- *)
+
+val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
+
+fun theorems
+    (eq as ((dname, _), cons) : eq, eqs : eq list)
+    (dbind : binding)
+    (spec : (binding * (bool * binding option * typ) list * mixfix) list)
+    (iso_info : Domain_Take_Proofs.iso_info)
+    (take_info : Domain_Take_Proofs.take_induct_info)
+    (thy : theory) =
+let
+
+val _ = message ("Proving isomorphism properties of domain "^dname^" ...");
+
+(* ----- define constructors ------------------------------------------------ *)
+
+val (result, thy) =
+    Domain_Constructors.add_domain_constructors dbind spec iso_info thy;
+
+val {nchotomy, exhaust, ...} = result;
+val {compacts, con_rews, inverts, injects, dist_les, dist_eqs, ...} = result;
+val {sel_rews, ...} = result;
+val when_rews = #cases result;
+val when_strict = hd when_rews;
+val dis_rews = #dis_rews result;
+val mat_rews = #match_rews result;
+
+(* ----- theorems concerning the isomorphism -------------------------------- *)
+
+val ax_abs_iso = #abs_inverse iso_info;
+val ax_rep_iso = #rep_inverse iso_info;
+
+val retraction_strict = @{thm retraction_strict};
+val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
+val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
+val iso_rews = [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
+
+(* ----- theorems concerning one induction step ----------------------------- *)
+
+val take_rews = take_theorems (eq, eqs) iso_info take_info result thy;
 
 val case_ns =
     "bottom" :: map (fn (b,_,_) => Binding.name_of b) spec;
