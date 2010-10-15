@@ -14,7 +14,7 @@ text {* Definiton of List relation and the quotient type *}
 fun
   list_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "\<approx>" 50)
 where
-  "list_eq xs ys = (\<forall>x. x \<in> set xs \<longleftrightarrow> x \<in> set ys)"
+  "list_eq xs ys = (set xs = set ys)"
 
 lemma list_eq_equivp:
   shows "equivp list_eq"
@@ -38,32 +38,25 @@ where
 definition
   sub_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
 where
-  "sub_list xs ys \<equiv> (\<forall>x. x \<in> set xs \<longrightarrow> x \<in> set ys)"
+  "sub_list xs ys \<equiv> set xs \<subseteq> set ys"
 
-fun
+definition
   fcard_raw :: "'a list \<Rightarrow> nat"
 where
-  fcard_raw_nil:  "fcard_raw [] = 0"
-| fcard_raw_cons: "fcard_raw (x # xs) = (if memb x xs then fcard_raw xs else Suc (fcard_raw xs))"
+  "fcard_raw xs = card (set xs)"
 
 primrec
   finter_raw :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
-  "finter_raw [] l = []"
-| "finter_raw (h # t) l =
-     (if memb h l then h # (finter_raw t l) else finter_raw t l)"
-
-primrec
-  delete_raw :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a list"
-where
-  "delete_raw [] x = []"
-| "delete_raw (a # xs) x = (if (a = x) then delete_raw xs x else a # (delete_raw xs x))"
+  "finter_raw [] ys = []"
+| "finter_raw (x # xs) ys =
+    (if x \<in> set ys then x # (finter_raw xs ys) else finter_raw xs ys)"
 
 primrec
   fminus_raw :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
-  "fminus_raw l [] = l"
-| "fminus_raw l (h # t) = fminus_raw (delete_raw l h) t"
+  "fminus_raw ys [] = ys"
+| "fminus_raw ys (x # xs) = fminus_raw (removeAll x ys) xs"
 
 definition
   rsp_fold
@@ -76,7 +69,7 @@ where
   "ffold_raw f z [] = z"
 | "ffold_raw f z (a # xs) =
      (if (rsp_fold f) then
-       if memb a xs then ffold_raw f z xs
+       if a \<in> set xs then ffold_raw f z xs
        else f a (ffold_raw f z xs)
      else z)"
 
@@ -98,12 +91,9 @@ lemma Quotient_fset_list:
   shows "Quotient (list_all2 op \<approx>) (map abs_fset) (map rep_fset)"
   by (fact list_quotient[OF Quotient_fset])
 
-lemma set_in_eq: "(\<forall>e. ((e \<in> xs) \<longleftrightarrow> (e \<in> ys))) \<equiv> xs = ys"
-  by (rule eq_reflection) auto
-
 lemma map_rel_cong: "b \<approx> ba \<Longrightarrow> map f b \<approx> map f ba"
   unfolding list_eq.simps
-  by (simp only: set_map set_in_eq)
+  by (simp only: set_map)
 
 lemma quotient_compose_list[quot_thm]:
   shows  "Quotient ((list_all2 op \<approx>) OOO (op \<approx>))
@@ -160,6 +150,16 @@ proof (intro conjI allI)
   qed
 qed
 
+
+lemma set_finter_raw[simp]:
+  "set (finter_raw xs ys) = set xs \<inter> set ys"
+  by (induct xs) (auto simp add: memb_def)
+
+lemma set_fminus_raw[simp]: 
+  "set (fminus_raw xs ys) = (set xs - set ys)"
+  by (induct ys arbitrary: xs) (auto)
+
+
 text {* Respectfullness *}
 
 lemma append_rsp[quot_respect]:
@@ -194,6 +194,24 @@ lemma list_equiv_rsp[quot_respect]:
   shows "(op \<approx> ===> op \<approx> ===> op =) op \<approx> op \<approx>"
   by auto
 
+lemma finter_raw_rsp[quot_respect]:
+  shows "(op \<approx> ===> op \<approx> ===> op \<approx>) finter_raw finter_raw"
+  by simp
+
+lemma removeAll_rsp[quot_respect]:
+  shows "(op = ===> op \<approx> ===> op \<approx>) removeAll removeAll"
+  by simp
+
+lemma fminus_raw_rsp[quot_respect]:
+  shows "(op \<approx> ===> op \<approx> ===> op \<approx>) fminus_raw fminus_raw"
+  by simp
+
+lemma fcard_raw_rsp[quot_respect]:
+  shows "(op \<approx> ===> op =) fcard_raw fcard_raw"
+  by (simp add: fcard_raw_def)
+
+
+
 lemma not_memb_nil:
   shows "\<not> memb x []"
   by (simp add: memb_def)
@@ -201,85 +219,6 @@ lemma not_memb_nil:
 lemma memb_cons_iff:
   shows "memb x (y # xs) = (x = y \<or> memb x xs)"
   by (induct xs) (auto simp add: memb_def)
-
-lemma memb_finter_raw:
-  "memb x (finter_raw xs ys) \<longleftrightarrow> memb x xs \<and> memb x ys"
-  by (induct xs) (auto simp add: not_memb_nil memb_cons_iff)
-
-lemma [quot_respect]:
-  "(op \<approx> ===> op \<approx> ===> op \<approx>) finter_raw finter_raw"
-  by (simp add: memb_def[symmetric] memb_finter_raw)
-
-lemma memb_delete_raw:
-  "memb x (delete_raw xs y) = (memb x xs \<and> x \<noteq> y)"
-  by (induct xs arbitrary: x y) (auto simp add: memb_def)
-
-lemma [quot_respect]:
-  "(op \<approx> ===> op = ===> op \<approx>) delete_raw delete_raw"
-  by (simp add: memb_def[symmetric] memb_delete_raw)
-
-lemma fminus_raw_memb: "memb x (fminus_raw xs ys) = (memb x xs \<and> \<not> memb x ys)"
-  by (induct ys arbitrary: xs)
-     (simp_all add: not_memb_nil memb_delete_raw memb_cons_iff)
-
-lemma [quot_respect]:
-  "(op \<approx> ===> op \<approx> ===> op \<approx>) fminus_raw fminus_raw"
-  by (simp add: memb_def[symmetric] fminus_raw_memb)
-
-lemma fcard_raw_gt_0:
-  assumes a: "x \<in> set xs"
-  shows "0 < fcard_raw xs"
-  using a by (induct xs) (auto simp add: memb_def)
-
-lemma fcard_raw_delete_one:
-  shows "fcard_raw ([x \<leftarrow> xs. x \<noteq> y]) = (if memb y xs then fcard_raw xs - 1 else fcard_raw xs)"
-  by (induct xs) (auto dest: fcard_raw_gt_0 simp add: memb_def)
-
-lemma fcard_raw_rsp_aux:
-  assumes a: "xs \<approx> ys"
-  shows "fcard_raw xs = fcard_raw ys"
-  using a
-  proof (induct xs arbitrary: ys)
-    case Nil
-    show ?case using Nil.prems by simp
-  next
-    case (Cons a xs)
-    have a: "a # xs \<approx> ys" by fact
-    have b: "\<And>ys. xs \<approx> ys \<Longrightarrow> fcard_raw xs = fcard_raw ys" by fact
-    show ?case proof (cases "a \<in> set xs")
-      assume c: "a \<in> set xs"
-      have "\<forall>x. (x \<in> set xs) = (x \<in> set ys)"
-      proof (intro allI iffI)
-        fix x
-        assume "x \<in> set xs"
-        then show "x \<in> set ys" using a by auto
-      next
-        fix x
-        assume d: "x \<in> set ys"
-        have e: "(x \<in> set (a # xs)) = (x \<in> set ys)" using a by simp
-        show "x \<in> set xs" using c d e unfolding list_eq.simps by simp blast
-      qed
-      then show ?thesis using b c by (simp add: memb_def)
-    next
-      assume c: "a \<notin> set xs"
-      have d: "xs \<approx> [x\<leftarrow>ys . x \<noteq> a] \<Longrightarrow> fcard_raw xs = fcard_raw [x\<leftarrow>ys . x \<noteq> a]" using b by simp
-      have "Suc (fcard_raw xs) = fcard_raw ys"
-      proof (cases "a \<in> set ys")
-        assume e: "a \<in> set ys"
-        have f: "\<forall>x. (x \<in> set xs) = (x \<in> set ys \<and> x \<noteq> a)" using a c
-          by (auto simp add: fcard_raw_delete_one)
-        have "fcard_raw ys = Suc (fcard_raw ys - 1)" by (rule Suc_pred'[OF fcard_raw_gt_0]) (rule e)
-        then show ?thesis using d e f by (simp_all add: fcard_raw_delete_one memb_def)
-      next
-        case False then show ?thesis using a c d by auto
-      qed
-      then show ?thesis using a c d by (simp add: memb_def)
-  qed
-qed
-
-lemma fcard_raw_rsp[quot_respect]:
-  shows "(op \<approx> ===> op =) fcard_raw fcard_raw"
-  by (simp add: fcard_raw_rsp_aux)
 
 lemma memb_absorb:
   shows "memb x xs \<Longrightarrow> x # xs \<approx> xs"
@@ -289,53 +228,35 @@ lemma none_memb_nil:
   "(\<forall>x. \<not> memb x xs) = (xs \<approx> [])"
   by (simp add: memb_def)
 
-lemma not_memb_delete_raw_ident:
-  shows "\<not> memb x xs \<Longrightarrow> delete_raw xs x = xs"
-  by (induct xs) (auto simp add: memb_def)
 
 lemma memb_commute_ffold_raw:
-  "rsp_fold f \<Longrightarrow> memb h b \<Longrightarrow> ffold_raw f z b = f h (ffold_raw f z (delete_raw b h))"
+  "rsp_fold f \<Longrightarrow> h \<in> set b \<Longrightarrow> ffold_raw f z b = f h (ffold_raw f z (removeAll h b))"
   apply (induct b)
-  apply (simp_all add: not_memb_nil)
-  apply (auto)
-  apply (simp_all add: memb_delete_raw not_memb_delete_raw_ident rsp_fold_def  memb_cons_iff)
+  apply (auto simp add: rsp_fold_def)
   done
 
 lemma ffold_raw_rsp_pre:
-  "\<forall>e. memb e a = memb e b \<Longrightarrow> ffold_raw f z a = ffold_raw f z b"
+  "set a = set b \<Longrightarrow> ffold_raw f z a = ffold_raw f z b"
   apply (induct a arbitrary: b)
-  apply (simp add: memb_absorb memb_def none_memb_nil)
   apply (simp)
+  apply (simp (no_asm_use))
   apply (rule conjI)
   apply (rule_tac [!] impI)
   apply (rule_tac [!] conjI)
   apply (rule_tac [!] impI)
-  apply (subgoal_tac "\<forall>e. memb e a2 = memb e b")
-  apply (simp)
-  apply (simp add: memb_cons_iff memb_def)
-  apply (auto)[1]
-  apply (drule_tac x="e" in spec)
-  apply (blast)
-  apply (case_tac b)
-  apply (simp_all)
-  apply (subgoal_tac "ffold_raw f z b = f a1 (ffold_raw f z (delete_raw b a1))")
-  apply (simp only:)
-  apply (rule_tac f="f a1" in arg_cong)
-  apply (subgoal_tac "\<forall>e. memb e a2 = memb e (delete_raw b a1)")
-  apply (simp)
-  apply (simp add: memb_delete_raw)
-  apply (auto simp add: memb_cons_iff)[1]
-  apply (erule memb_commute_ffold_raw)
-  apply (drule_tac x="a1" in spec)
-  apply (simp add: memb_cons_iff)
-  apply (simp add: memb_cons_iff)
-  apply (case_tac b)
-  apply (simp_all)
-  done
+  apply (metis insert_absorb)
+  apply (metis List.insert_def List.set.simps(2) List.set_insert ffold_raw.simps(2))
+  apply (metis Diff_insert_absorb insertI1 memb_commute_ffold_raw set_removeAll)
+  apply(drule_tac x="removeAll a1 b" in meta_spec)
+  apply(auto)
+  apply(drule meta_mp)
+  apply(blast)
+  by (metis List.set.simps(2) emptyE ffold_raw.simps(2) in_listsp_conv_set listsp.simps mem_def)
 
 lemma ffold_raw_rsp[quot_respect]:
   shows "(op = ===> op = ===> op \<approx> ===> op =) ffold_raw ffold_raw"
-  by (simp add: memb_def[symmetric] ffold_raw_rsp_pre)
+  unfolding fun_rel_def
+  by(auto intro: ffold_raw_rsp_pre)
 
 lemma concat_rsp_pre:
   assumes a: "list_all2 op \<approx> x x'"
@@ -359,9 +280,11 @@ proof (rule fun_relI, elim pred_compE)
   assume a: "list_all2 op \<approx> a ba"
   assume b: "ba \<approx> bb"
   assume c: "list_all2 op \<approx> bb b"
-  have "\<forall>x. (\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" proof
+  have "\<forall>x. (\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" 
+  proof
     fix x
-    show "(\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" proof
+    show "(\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" 
+    proof
       assume d: "\<exists>xa\<in>set a. x \<in> set xa"
       show "\<exists>xa\<in>set b. x \<in> set xa" by (rule concat_rsp_pre[OF a b c d])
     next
@@ -372,7 +295,7 @@ proof (rule fun_relI, elim pred_compE)
       show "\<exists>xa\<in>set a. x \<in> set xa" by (rule concat_rsp_pre[OF c' b' a' e])
     qed
   qed
-  then show "concat a \<approx> concat b" by simp
+  then show "concat a \<approx> concat b" by auto
 qed
 
 lemma [quot_respect]:
@@ -384,9 +307,7 @@ text {* Distributive lattice with bot *}
 lemma append_inter_distrib:
   "x @ (finter_raw y z) \<approx> finter_raw (x @ y) (x @ z)"
   apply (induct x)
-  apply (simp_all add: memb_def)
-  apply (simp add: memb_def[symmetric] memb_finter_raw)
-  apply (auto simp add: memb_def)
+  apply (auto)
   done
 
 instantiation fset :: (type) "{bounded_lattice_bot, distrib_lattice, minus}"
@@ -416,7 +337,7 @@ where
   "xs < ys \<equiv> xs \<le> ys \<and> xs \<noteq> (ys::'a fset)"
 
 abbreviation
-  f_subset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<subset>|" 50)
+  fsubset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<subset>|" 50)
 where
   "xs |\<subset>| ys \<equiv> xs < ys"
 
@@ -455,10 +376,10 @@ proof
   show "{||} |\<subseteq>| x" by (descending) (simp add: sub_list_def)
   show "x |\<subseteq>| x |\<union>| y" by (descending) (simp add: sub_list_def)
   show "y |\<subseteq>| x |\<union>| y" by (descending) (simp add: sub_list_def)
-  show "x |\<inter>| y |\<subseteq>| x" 
-    by (descending) (simp add: sub_list_def memb_def[symmetric] memb_finter_raw)
+  show "x |\<inter>| y |\<subseteq>| x"
+    by (descending) (simp add: sub_list_def memb_def[symmetric])
   show "x |\<inter>| y |\<subseteq>| y" 
-    by (descending) (simp add: sub_list_def memb_def[symmetric] memb_finter_raw)
+    by (descending) (simp add: sub_list_def memb_def[symmetric])
   show "x |\<union>| (y |\<inter>| z) = x |\<union>| y |\<inter>| (x |\<union>| z)" 
     by (descending) (rule append_inter_distrib)
 next
@@ -484,7 +405,7 @@ next
   assume a: "x |\<subseteq>| y"
   assume b: "x |\<subseteq>| z"
   show "x |\<subseteq>| y |\<inter>| z" using a b 
-    by (descending) (simp add: sub_list_def memb_def[symmetric] memb_finter_raw)
+    by (descending) (simp add: sub_list_def memb_def[symmetric])
 qed
 
 end
@@ -525,11 +446,11 @@ is
   map
 
 quotient_definition
-  "fdelete :: 'a fset \<Rightarrow> 'a \<Rightarrow> 'a fset"
-  is "delete_raw"
+  "fdelete :: 'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
+  is removeAll
 
 quotient_definition
-  "fset_to_set :: 'a fset \<Rightarrow> 'a set"
+  "fset :: 'a fset \<Rightarrow> 'a set"
   is "set"
 
 quotient_definition
@@ -557,7 +478,6 @@ lemma [quot_preserve]: "(abs_fset \<circ> map f) [] = abs_fset []"
 lemma [quot_respect]:
   shows "(op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) Cons Cons"
   apply auto
-  apply (simp add: set_in_eq)
   apply (rule_tac b="x # b" in pred_compI)
   apply auto
   apply (rule_tac b="x # ba" in pred_compI)
@@ -651,52 +571,22 @@ lemma memb_consI2:
 
 lemma singleton_list_eq:
   shows "[x] \<approx> [y] \<longleftrightarrow> x = y"
-  by (simp add: id_simps) auto
+  by (simp)
 
 lemma sub_list_cons:
   "sub_list (x # xs) ys = (memb x ys \<and> sub_list xs ys)"
   by (auto simp add: memb_def sub_list_def)
 
-lemma fminus_raw_red: "fminus_raw (x # xs) ys = (if memb x ys then fminus_raw xs ys else x # (fminus_raw xs ys))"
-  by (induct ys arbitrary: xs x)
-     (simp_all add: not_memb_nil memb_delete_raw memb_cons_iff)
+lemma fminus_raw_red: 
+  "fminus_raw (x # xs) ys = (if x \<in> set ys then fminus_raw xs ys else x # (fminus_raw xs ys))"
+  by (induct ys arbitrary: xs x) (simp_all)
 
 text {* Cardinality of finite sets *}
 
 lemma fcard_raw_0:
   shows "fcard_raw xs = 0 \<longleftrightarrow> xs \<approx> []"
-  by (induct xs) (auto simp add: memb_def)
-
-lemma fcard_raw_not_memb:
-  shows "\<not> memb x xs \<longleftrightarrow> fcard_raw (x # xs) = Suc (fcard_raw xs)"
-  by auto
-
-lemma fcard_raw_suc:
-  assumes a: "fcard_raw xs = Suc n"
-  shows "\<exists>x ys. \<not> (memb x ys) \<and> xs \<approx> (x # ys) \<and> fcard_raw ys = n"
-  using a
-  by (induct xs) (auto simp add: memb_def split: if_splits)
-
-lemma singleton_fcard_1:
-  shows "set xs = {x} \<Longrightarrow> fcard_raw xs = 1"
-  by (induct xs) (auto simp add: memb_def subset_insert)
-
-lemma fcard_raw_1:
-  shows "fcard_raw xs = 1 \<longleftrightarrow> (\<exists>x. xs \<approx> [x])"
-  apply (auto dest!: fcard_raw_suc)
-  apply (simp add: fcard_raw_0)
-  apply (rule_tac x="x" in exI)
-  apply simp
-  apply (subgoal_tac "set xs = {x}")
-  apply (drule singleton_fcard_1)
-  apply auto
-  done
-
-lemma fcard_raw_suc_memb:
-  assumes a: "fcard_raw A = Suc n"
-  shows "\<exists>a. memb a A"
-  using a
-  by (induct A) (auto simp add: memb_def)
+  unfolding fcard_raw_def
+  by (induct xs) (auto)
 
 lemma memb_card_not_0:
   assumes a: "memb a A"
@@ -752,21 +642,18 @@ qed
 
 section {* deletion *}
 
-lemma memb_delete_raw_ident:
-  shows "\<not> memb x (delete_raw xs x)"
+
+lemma fset_raw_removeAll_cases:
+  "xs = [] \<or> (\<exists>x. memb x xs \<and> xs \<approx> x # removeAll x xs)"
   by (induct xs) (auto simp add: memb_def)
 
-lemma fset_raw_delete_raw_cases:
-  "xs = [] \<or> (\<exists>x. memb x xs \<and> xs \<approx> x # delete_raw xs x)"
-  by (induct xs) (auto simp add: memb_def)
-
-lemma fdelete_raw_filter:
-  "delete_raw xs y = [x \<leftarrow> xs. x \<noteq> y]"
+lemma fremoveAll_filter:
+  "removeAll y xs = [x \<leftarrow> xs. x \<noteq> y]"
   by (induct xs) simp_all
 
 lemma fcard_raw_delete:
-  "fcard_raw (delete_raw xs y) = (if memb y xs then fcard_raw xs - 1 else fcard_raw xs)"
-  by (simp add: fdelete_raw_filter fcard_raw_delete_one)
+  "fcard_raw (removeAll y xs) = (if memb y xs then fcard_raw xs - 1 else fcard_raw xs)"
+  by (auto simp add: fcard_raw_def memb_def)
 
 lemma set_cong:
   shows "(x \<approx> y) = (set x = set y)"
@@ -794,7 +681,7 @@ lemma list_eq2_refl:
   by (induct xs) (auto intro: list_eq2.intros)
 
 lemma cons_delete_list_eq2:
-  shows "list_eq2 (a # (delete_raw A a)) (if memb a A then A else a # A)"
+  shows "list_eq2 (a # (removeAll a A)) (if memb a A then A else a # A)"
   apply (induct A)
   apply (simp add: memb_def list_eq2_refl)
   apply (case_tac "memb a (aa # A)")
@@ -805,18 +692,14 @@ lemma cons_delete_list_eq2:
   apply (auto simp add: memb_def)[2]
   apply (metis list_eq2.intros(3) list_eq2.intros(4) list_eq2.intros(5) list_eq2.intros(6))
   apply (metis list_eq2.intros(1) list_eq2.intros(5) list_eq2.intros(6))
-  apply (auto simp add: list_eq2_refl not_memb_delete_raw_ident)
+  apply (auto simp add: list_eq2_refl memb_def)
   done
 
 lemma memb_delete_list_eq2:
   assumes a: "memb e r"
-  shows "list_eq2 (e # delete_raw r e) r"
+  shows "list_eq2 (e # removeAll e r) r"
   using a cons_delete_list_eq2[of e r]
   by simp
-
-lemma delete_raw_rsp:
-  "xs \<approx> ys \<Longrightarrow> delete_raw xs x \<approx> delete_raw ys x"
-  by (simp add: memb_def[symmetric] memb_delete_raw)
 
 lemma list_eq2_equiv:
   "(l \<approx> r) \<longleftrightarrow> (list_eq2 l r)"
@@ -839,57 +722,26 @@ next
       case (Suc m)
       have b: "l \<approx> r" by fact
       have d: "fcard_raw l = Suc m" by fact
-      then have "\<exists>a. memb a l" by (rule fcard_raw_suc_memb)
+      then have "\<exists>a. memb a l" 
+	apply(simp add: fcard_raw_def memb_def)
+	apply(drule card_eq_SucD)
+	apply(blast)
+	done
       then obtain a where e: "memb a l" by auto
-      then have e': "memb a r" using list_eq.simps[simplified memb_def[symmetric], of l r] b by auto
-      have f: "fcard_raw (delete_raw l a) = m" using fcard_raw_delete[of l a] e d by simp
-      have g: "delete_raw l a \<approx> delete_raw r a" using delete_raw_rsp[OF b] by simp
-      have "list_eq2 (delete_raw l a) (delete_raw r a)" by (rule Suc.hyps[OF f g])
-      then have h: "list_eq2 (a # delete_raw l a) (a # delete_raw r a)" by (rule list_eq2.intros(5))
-      have i: "list_eq2 l (a # delete_raw l a)"
+      then have e': "memb a r" using list_eq.simps[simplified memb_def[symmetric], of l r] b 
+	unfolding memb_def by auto
+      have f: "fcard_raw (removeAll a l) = m" using fcard_raw_delete[of a l] e d by simp
+      have g: "removeAll a l \<approx> removeAll a r" using removeAll_rsp b by simp
+      have "list_eq2 (removeAll a l) (removeAll a r)" by (rule Suc.hyps[OF f g])
+      then have h: "list_eq2 (a # removeAll a l) (a # removeAll a r)" by (rule list_eq2.intros(5))
+      have i: "list_eq2 l (a # removeAll a l)"
         by (rule list_eq2.intros(3)[OF memb_delete_list_eq2[OF e]])
-      have "list_eq2 l (a # delete_raw r a)" by (rule list_eq2.intros(6)[OF i h])
+      have "list_eq2 l (a # removeAll a r)" by (rule list_eq2.intros(6)[OF i h])
       then show ?case using list_eq2.intros(6)[OF _ memb_delete_list_eq2[OF e']] by simp
     qed
     }
   then show "l \<approx> r \<Longrightarrow> list_eq2 l r" by blast
 qed
-
-text {* Set *}
-
-lemma sub_list_set: "sub_list xs ys = (set xs \<subseteq> set ys)"
-  unfolding sub_list_def by auto
-
-lemma sub_list_neq_set: "(sub_list xs ys \<and> \<not> list_eq xs ys) = (set xs \<subset> set ys)"
-  by (auto simp add: sub_list_set)
-
-lemma fcard_raw_set: "fcard_raw xs = card (set xs)"
-  by (induct xs) (auto simp add: insert_absorb memb_def card_insert_disjoint finite_set)
-
-lemma memb_set: "memb x xs = (x \<in> set xs)"
-  by (simp only: memb_def)
-
-lemma filter_set: "set (filter P xs) = P \<inter> (set xs)"
-  by (induct xs, simp)
-     (metis Int_insert_right_if0 Int_insert_right_if1 List.set.simps(2) filter.simps(2) mem_def)
-
-lemma delete_raw_set: "set (delete_raw xs x) = set xs - {x}"
-  by (induct xs) auto
-
-lemma inter_raw_set: "set (finter_raw xs ys) = set xs \<inter> set ys"
-  by (induct xs) (simp_all add: memb_def)
-
-lemma fminus_raw_set: "set (fminus_raw xs ys) = set xs - set ys"
-  by (induct ys arbitrary: xs)
-     (simp_all add: fminus_raw.simps delete_raw_set, blast)
-
-text {* Raw theorems of ffilter *}
-
-lemma sub_list_filter: "sub_list (filter P xs) (filter Q xs) = (\<forall> x. memb x xs \<longrightarrow> P x \<longrightarrow> Q x)"
-unfolding sub_list_def memb_def by auto
-
-lemma list_eq_filter: "list_eq (filter P xs) (filter Q xs) = (\<forall>x. memb x xs \<longrightarrow> P x = Q x)"
-unfolding memb_def by auto
 
 text {* Lifted theorems *}
 
@@ -927,16 +779,15 @@ lemma fsingleton_eq[simp]:
   by (descending) (auto)
 
 
-text {* fset_to_set *}
+text {* fset *}
 
-lemma fset_to_set_simps [simp]:
-  fixes h::"'a"
-  shows "fset_to_set {||} = ({} :: 'a set)"
-  and "fset_to_set (finsert h t) = insert h (fset_to_set t)"
+lemma fset_simps[simp]:
+  "fset {||} = ({} :: 'a set)"
+  "fset (finsert (h :: 'a) t) = insert h (fset t)"
   by (lifting set.simps)
 
-lemma in_fset_to_set:
-  "x \<in> fset_to_set S \<equiv> x |\<in>| S"
+lemma in_fset:
+  "x \<in> fset S \<equiv> x |\<in>| S"
   by (lifting memb_def[symmetric])
 
 lemma none_fin_fempty:
@@ -944,47 +795,62 @@ lemma none_fin_fempty:
   by (lifting none_memb_nil)
 
 lemma fset_cong:
-  "S = T \<longleftrightarrow> fset_to_set S = fset_to_set T"
+  "S = T \<longleftrightarrow> fset S = fset T"
   by (lifting set_cong)
+
 
 text {* fcard *}
 
-lemma fcard_fempty [simp]:
-  shows "fcard {||} = 0"
-  by (descending) (simp)
-
 lemma fcard_finsert_if [simp]:
   shows "fcard (finsert x S) = (if x |\<in>| S then fcard S else Suc (fcard S))"
-  by (descending) (simp)
+  by (descending) (auto simp add: fcard_raw_def memb_def insert_absorb)
 
-lemma fcard_0: 
-  "fcard S = 0 \<longleftrightarrow> S = {||}"
-  by (lifting fcard_raw_0)
+lemma fcard_0[simp]:
+  shows "fcard S = 0 \<longleftrightarrow> S = {||}"
+  by (descending) (simp add: fcard_raw_def)
+
+lemma fcard_fempty[simp]:
+  shows "fcard {||} = 0"
+  by (simp add: fcard_0)
 
 lemma fcard_1:
   shows "fcard S = 1 \<longleftrightarrow> (\<exists>x. S = {|x|})"
-  by (lifting fcard_raw_1)
+  by (descending) (auto simp add: fcard_raw_def card_Suc_eq)
 
 lemma fcard_gt_0:
-  shows "x \<in> fset_to_set S \<Longrightarrow> 0 < fcard S"
-  by (lifting fcard_raw_gt_0)
-
+  shows "x \<in> fset S \<Longrightarrow> 0 < fcard S"
+  by (descending) (auto simp add: fcard_raw_def card_gt_0_iff)
+  
 lemma fcard_not_fin:
   shows "(x |\<notin>| S) = (fcard (finsert x S) = Suc (fcard S))"
-  by (lifting fcard_raw_not_memb)
+  by (descending) (auto simp add: memb_def fcard_raw_def insert_absorb)
 
 lemma fcard_suc: "fcard S = Suc n \<Longrightarrow> \<exists>x T. x |\<notin>| T \<and> S = finsert x T \<and> fcard T = n"
-  by (lifting fcard_raw_suc)
+  apply descending
+  apply(simp add: fcard_raw_def memb_def)
+  apply(drule card_eq_SucD)
+  apply(auto)
+  apply(rule_tac x="b" in exI)
+  apply(rule_tac x="removeAll b S" in exI)
+  apply(auto)
+  done
 
 lemma fcard_delete:
-  "fcard (fdelete S y) = (if y |\<in>| S then fcard S - 1 else fcard S)"
+  "fcard (fdelete y S) = (if y |\<in>| S then fcard S - 1 else fcard S)"
   by (lifting fcard_raw_delete)
 
-lemma fcard_suc_memb: "fcard A = Suc n \<Longrightarrow> \<exists>a. a |\<in>| A"
-  by (lifting fcard_raw_suc_memb)
+lemma fcard_suc_memb: 
+  shows "fcard A = Suc n \<Longrightarrow> \<exists>a. a |\<in>| A"
+  apply(descending)
+  apply(simp add: fcard_raw_def memb_def)
+  apply(drule card_eq_SucD)
+  apply(auto)
+  done
 
-lemma fin_fcard_not_0: "a |\<in>| A \<Longrightarrow> fcard A \<noteq> 0"
-  by (lifting memb_card_not_0)
+lemma fin_fcard_not_0: 
+  shows "a |\<in>| A \<Longrightarrow> fcard A \<noteq> 0"
+  by (descending) (auto simp add: fcard_raw_def memb_def)
+
 
 text {* funion *}
 
@@ -1070,7 +936,7 @@ lemma fmap_simps[simp]:
   by (lifting map.simps)
 
 lemma fmap_set_image:
-  "fset_to_set (fmap f S) = f ` (fset_to_set S)"
+  "fset (fmap f S) = f ` (fset S)"
   by (induct S) simp_all
 
 lemma inj_fmap_eq_iff:
@@ -1085,103 +951,107 @@ lemma fin_funion:
   shows "x |\<in>| S |\<union>| T \<longleftrightarrow> x |\<in>| S \<or> x |\<in>| T"
   by (lifting memb_append)
 
-text {* to_set *}
+
+section {* fset *}
 
 lemma fin_set: 
-  shows "x |\<in>| xs \<longleftrightarrow> x \<in> fset_to_set xs"
-  by (lifting memb_set)
+  shows "x |\<in>| xs \<longleftrightarrow> x \<in> fset xs"
+  by (lifting memb_def)
 
 lemma fnotin_set: 
-  shows "x |\<notin>| xs \<longleftrightarrow> x \<notin> fset_to_set xs"
+  shows "x |\<notin>| xs \<longleftrightarrow> x \<notin> fset xs"
   by (simp add: fin_set)
 
 lemma fcard_set: 
-  shows "fcard xs = card (fset_to_set xs)"
-  by (lifting fcard_raw_set)
+  shows "fcard xs = card (fset xs)"
+  by (lifting fcard_raw_def)
 
 lemma fsubseteq_set: 
-  shows "xs |\<subseteq>| ys \<longleftrightarrow> fset_to_set xs \<subseteq> fset_to_set ys"
-  by (lifting sub_list_set)
+  shows "xs |\<subseteq>| ys \<longleftrightarrow> fset xs \<subseteq> fset ys"
+  by (lifting sub_list_def)
 
 lemma fsubset_set: 
-  shows "xs |\<subset>| ys \<longleftrightarrow> fset_to_set xs \<subset> fset_to_set ys"
-  unfolding less_fset_def by (lifting sub_list_neq_set)
+  shows "xs |\<subset>| ys \<longleftrightarrow> fset xs \<subset> fset ys"
+  unfolding less_fset_def 
+  by (descending) (auto simp add: sub_list_def)
 
-lemma ffilter_set: 
-  shows "fset_to_set (ffilter P xs) = P \<inter> fset_to_set xs"
-  by (lifting filter_set)
+lemma ffilter_set [simp]: 
+  shows "fset (ffilter P xs) = P \<inter> fset xs"
+  by (descending) (auto simp add: mem_def)
 
-lemma fdelete_set: 
-  shows "fset_to_set (fdelete xs x) = fset_to_set xs - {x}"
-  by (lifting delete_raw_set)
+lemma fdelete_set [simp]: 
+  shows "fset (fdelete x xs) = fset xs - {x}"
+  by (lifting set_removeAll)
 
-lemma finter_set: 
-  shows "fset_to_set (xs |\<inter>| ys) = fset_to_set xs \<inter> fset_to_set ys"
-  by (lifting inter_raw_set)
+lemma finter_set [simp]: 
+  shows "fset (xs |\<inter>| ys) = fset xs \<inter> fset ys"
+  by (lifting set_finter_raw)
 
-lemma funion_set: 
-  shows "fset_to_set (xs |\<union>| ys) = fset_to_set xs \<union> fset_to_set ys"
+lemma funion_set [simp]: 
+  shows "fset (xs |\<union>| ys) = fset xs \<union> fset ys"
   by (lifting set_append)
 
-lemma fminus_set: 
-  shows "fset_to_set (xs - ys) = fset_to_set xs - fset_to_set ys"
-  by (lifting fminus_raw_set)
+lemma fminus_set [simp]: 
+  shows "fset (xs - ys) = fset xs - fset ys"
+  by (lifting set_fminus_raw)
 
 lemmas fset_to_set_trans =
   fin_set fnotin_set fcard_set fsubseteq_set fsubset_set
-  finter_set funion_set ffilter_set fset_to_set_simps
+  finter_set funion_set ffilter_set fset_simps
   fset_cong fdelete_set fmap_set_image fminus_set
 
 
 text {* ffold *}
 
-lemma ffold_nil: "ffold f z {||} = z"
+lemma ffold_nil: 
+  shows "ffold f z {||} = z"
   by (lifting ffold_raw.simps(1)[where 'a="'b" and 'b="'a"])
 
 lemma ffold_finsert: "ffold f z (finsert a A) =
   (if rsp_fold f then if a |\<in>| A then ffold f z A else f a (ffold f z A) else z)"
-  by (lifting ffold_raw.simps(2)[where 'a="'b" and 'b="'a"])
+  by (descending) (simp add: memb_def)
 
 lemma fin_commute_ffold:
-  "\<lbrakk>rsp_fold f; h |\<in>| b\<rbrakk> \<Longrightarrow> ffold f z b = f h (ffold f z (fdelete b h))"
-  by (lifting memb_commute_ffold_raw)
+  "\<lbrakk>rsp_fold f; h |\<in>| b\<rbrakk> \<Longrightarrow> ffold f z b = f h (ffold f z (fdelete h b))"
+  by (descending) (simp add: memb_def memb_commute_ffold_raw)
+
 
 text {* fdelete *}
 
 lemma fin_fdelete:
-  shows "x |\<in>| fdelete S y \<longleftrightarrow> x |\<in>| S \<and> x \<noteq> y"
-  by (lifting memb_delete_raw)
+  shows "x |\<in>| fdelete y S \<longleftrightarrow> x |\<in>| S \<and> x \<noteq> y"
+  by (descending) (simp add: memb_def)
 
-lemma fin_fdelete_ident:
-  shows "x |\<notin>| fdelete S x"
-  by (lifting memb_delete_raw_ident)
+lemma fnotin_fdelete:
+  shows "x |\<notin>| fdelete x S"
+  by (descending) (simp add: memb_def)
 
-lemma not_memb_fdelete_ident:
-  shows "x |\<notin>| S \<Longrightarrow> fdelete S x = S"
-  by (lifting not_memb_delete_raw_ident)
+lemma fnotin_fdelete_ident:
+  shows "x |\<notin>| S \<Longrightarrow> fdelete x S = S"
+  by (descending) (simp add: memb_def)
 
 lemma fset_fdelete_cases:
-  shows "S = {||} \<or> (\<exists>x. x |\<in>| S \<and> S = finsert x (fdelete S x))"
-  by (lifting fset_raw_delete_raw_cases)
+  shows "S = {||} \<or> (\<exists>x. x |\<in>| S \<and> S = finsert x (fdelete x S))"
+  by (lifting fset_raw_removeAll_cases)
 
 text {* finite intersection *}
 
-lemma finter_empty_l: 
+lemma finter_empty_l:
   shows "{||} |\<inter>| S = {||}"
   by simp
 
 
-lemma finter_empty_r: 
+lemma finter_empty_r:
   shows "S |\<inter>| {||} = {||}"
   by simp
 
 lemma finter_finsert:
-  "finsert x S |\<inter>| T = (if x |\<in>| T then finsert x (S |\<inter>| T) else S |\<inter>| T)"
-  by (lifting finter_raw.simps(2))
+  shows "finsert x S |\<inter>| T = (if x |\<in>| T then finsert x (S |\<inter>| T) else S |\<inter>| T)"
+  by (descending) (simp add: memb_def)
 
 lemma fin_finter:
-  "x |\<in>| (S |\<inter>| T) \<longleftrightarrow> x |\<in>| S \<and> x |\<in>| T"
-  by (lifting memb_finter_raw)
+  shows "x |\<in>| (S |\<inter>| T) \<longleftrightarrow> x |\<in>| S \<and> x |\<in>| T"
+  by (descending) (simp add: memb_def)
 
 lemma fsubset_finsert:
   shows "finsert x xs |\<subseteq>| ys \<longleftrightarrow> x |\<in>| ys \<and> xs |\<subseteq>| ys"
@@ -1189,20 +1059,19 @@ lemma fsubset_finsert:
 
 lemma 
   shows "xs |\<subseteq>| ys \<equiv> \<forall>x. x |\<in>| xs \<longrightarrow> x |\<in>| ys"
-  by (lifting sub_list_def[simplified memb_def[symmetric]])
+  by (descending) (auto simp add: sub_list_def memb_def)
 
 lemma fsubset_fin: 
   shows "xs |\<subseteq>| ys = (\<forall>x. x |\<in>| xs \<longrightarrow> x |\<in>| ys)"
-by (rule meta_eq_to_obj_eq)
-   (lifting sub_list_def[simplified memb_def[symmetric]])
+  by (descending) (auto simp add: sub_list_def memb_def)
 
 lemma fminus_fin: 
   shows "x |\<in>| xs - ys \<longleftrightarrow> x |\<in>| xs \<and> x |\<notin>| ys"
-  by (lifting fminus_raw_memb)
+  by (descending) (simp add: memb_def)
 
 lemma fminus_red: 
   shows "finsert x xs - ys = (if x |\<in>| ys then xs - ys else finsert x (xs - ys))"
-  by (lifting fminus_raw_red)
+  by (descending) (auto simp add: memb_def)
 
 lemma fminus_red_fin [simp]: 
   shows "x |\<in>| ys \<Longrightarrow> finsert x xs - ys = xs - ys"
@@ -1212,7 +1081,7 @@ lemma fminus_red_fnotin[simp]:
   shows "x |\<notin>| ys \<Longrightarrow> finsert x xs - ys = finsert x (xs - ys)"
   by (simp add: fminus_red)
 
-lemma expand_fset_eq:
+lemma fset_eq_iff:
   shows "S = T \<longleftrightarrow> (\<forall>x. (x |\<in>| S) = (x |\<in>| T))"
   by (descending) (auto simp add: memb_def)
 
@@ -1275,7 +1144,7 @@ section {* lemmas transferred from Finite_Set theory *}
 
 text {* finiteness for finite sets holds *}
 lemma finite_fset [simp]: 
-  shows "finite (fset_to_set S)"
+  shows "finite (fset S)"
   by (induct S) auto
 
 lemma fset_choice: 
@@ -1283,16 +1152,14 @@ lemma fset_choice:
   unfolding fset_to_set_trans
   by (rule finite_set_choice[simplified Ball_def, OF finite_fset])
 
-lemma fsubseteq_fnil: 
+lemma fsubseteq_fempty:
   shows "xs |\<subseteq>| {||} \<longleftrightarrow> xs = {||}"
-  unfolding fset_to_set_trans
-  by (rule subset_empty)
+  by (metis finter_empty_r le_iff_inf)
 
 lemma not_fsubset_fnil: 
   shows "\<not> xs |\<subset>| {||}"
-  unfolding fset_to_set_trans
-  by (rule not_psubset_empty)
-
+  by (metis fset_simps(1) fsubset_set not_psubset_empty)
+  
 lemma fcard_mono: 
   shows "xs |\<subseteq>| ys \<Longrightarrow> fcard xs \<le> fcard ys"
   unfolding fset_to_set_trans
@@ -1300,8 +1167,8 @@ lemma fcard_mono:
 
 lemma fcard_fseteq: 
   shows "xs |\<subseteq>| ys \<Longrightarrow> fcard ys \<le> fcard xs \<Longrightarrow> xs = ys"
-  unfolding fset_to_set_trans
-  by (rule card_seteq[OF finite_fset])
+  unfolding fcard_set fsubseteq_set
+  by (simp add: card_seteq[OF finite_fset] fset_cong)
 
 lemma psubset_fcard_mono: 
   shows "xs |\<subset>| ys \<Longrightarrow> fcard xs < fcard ys"
@@ -1319,17 +1186,17 @@ lemma fcard_funion_disjoint:
   by (rule card_Un_disjoint[OF finite_fset finite_fset])
 
 lemma fcard_delete1_less: 
-  shows "x |\<in>| xs \<Longrightarrow> fcard (fdelete xs x) < fcard xs"
+  shows "x |\<in>| xs \<Longrightarrow> fcard (fdelete x xs) < fcard xs"
   unfolding fset_to_set_trans
   by (rule card_Diff1_less[OF finite_fset])
 
 lemma fcard_delete2_less: 
-  shows "x |\<in>| xs \<Longrightarrow> y |\<in>| xs \<Longrightarrow> fcard (fdelete (fdelete xs x) y) < fcard xs"
+  shows "x |\<in>| xs \<Longrightarrow> y |\<in>| xs \<Longrightarrow> fcard (fdelete y (fdelete x xs)) < fcard xs"
   unfolding fset_to_set_trans
   by (rule card_Diff2_less[OF finite_fset])
 
 lemma fcard_delete1_le: 
-  shows "fcard (fdelete xs x) \<le> fcard xs"
+  shows "fcard (fdelete x xs) \<le> fcard xs"
   unfolding fset_to_set_trans
   by (rule card_Diff1_le[OF finite_fset])
 
@@ -1353,14 +1220,16 @@ lemma fin_fnotin_fminus:
   unfolding fset_to_set_trans
   by blast
 
-lemma fin_mdef: "x |\<in>| F \<longleftrightarrow> x |\<notin>| (F - {|x|}) \<and> F = finsert x (F - {|x|})"
+lemma fin_mdef: 
+  "x |\<in>| F \<longleftrightarrow> x |\<notin>| (F - {|x|}) \<and> F = finsert x (F - {|x|})"
   unfolding fset_to_set_trans
   by blast
 
 lemma fcard_fminus_finsert[simp]:
   assumes "a |\<in>| A" and "a |\<notin>| B"
   shows "fcard(A - finsert a B) = fcard(A - B) - 1"
-  using assms unfolding fset_to_set_trans
+  using assms 
+  unfolding fset_to_set_trans
   by (rule card_Diff_insert[OF finite_fset])
 
 lemma fcard_fminus_fsubset:
@@ -1370,7 +1239,7 @@ lemma fcard_fminus_fsubset:
   by (rule card_Diff_subset[OF finite_fset])
 
 lemma fcard_fminus_subset_finter:
-  "fcard (A - B) = fcard A - fcard (A |\<inter>| B)"
+  shows "fcard (A - B) = fcard A - fcard (A |\<inter>| B)"
   unfolding fset_to_set_trans
   by (rule card_Diff_subset_Int) (fold finter_set, rule finite_fset)
 
