@@ -418,10 +418,12 @@ exception TYPE_MATCH;
 
 fun typ_match tsig =
   let
-    fun match (TVar (v, S), T) subs =
+    fun match (T0 as TVar (v, S), T) subs = 
           (case lookup subs (v, S) of
             NONE =>
-              if of_sort tsig (T, S) then Vartab.update_new (v, (S, T)) subs
+              if of_sort tsig (T, S) 
+              then if T0 = T then subs (*types already identical; don't create cycle!*)
+                   else Vartab.update_new (v, (S, T)) subs
               else raise TYPE_MATCH
           | SOME U => if U = T then subs else raise TYPE_MATCH)
       | match (Type (a, Ts), Type (b, Us)) subs =
