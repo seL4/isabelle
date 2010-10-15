@@ -333,8 +333,8 @@ lemma ffold_raw_rsp_pre:
   apply (simp_all)
   done
 
-lemma [quot_respect]:
-  "(op = ===> op = ===> op \<approx> ===> op =) ffold_raw ffold_raw"
+lemma ffold_raw_rsp[quot_respect]:
+  shows "(op = ===> op = ===> op \<approx> ===> op =) ffold_raw ffold_raw"
   by (simp add: memb_def[symmetric] ffold_raw_rsp_pre)
 
 lemma concat_rsp_pre:
@@ -411,8 +411,9 @@ where
   "xs |\<subseteq>| ys \<equiv> xs \<le> ys"
 
 definition
-  less_fset:
-  "(xs :: 'a fset) < ys \<equiv> xs \<le> ys \<and> xs \<noteq> ys"
+  less_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool"
+where  
+  "xs < ys \<equiv> xs \<le> ys \<and> xs \<noteq> (ys::'a fset)"
 
 abbreviation
   f_subset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<subset>|" 50)
@@ -420,7 +421,7 @@ where
   "xs |\<subset>| ys \<equiv> xs < ys"
 
 quotient_definition
-  "sup  \<Colon> ('a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset)"
+  "sup :: 'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
 is
   "append :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 
@@ -430,9 +431,9 @@ where
   "xs |\<union>| ys \<equiv> sup (xs :: 'a fset) ys"
 
 quotient_definition
-  "inf \<Colon> ('a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset)"
+  "inf :: 'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
 is
-  "finter_raw \<Colon> ('a list \<Rightarrow> 'a list \<Rightarrow> 'a list)"
+  "finter_raw :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 
 abbreviation
   finter (infixl "|\<inter>|" 65)
@@ -448,7 +449,7 @@ instance
 proof
   fix x y z :: "'a fset"
   show "x |\<subset>| y \<longleftrightarrow> x |\<subseteq>| y \<and> \<not> y |\<subseteq>| x"
-    unfolding less_fset 
+    unfolding less_fset_def 
     by (descending) (auto simp add: sub_list_def)
   show "x |\<subseteq>| x"  by (descending) (simp add: sub_list_def)
   show "{||} |\<subseteq>| x" by (descending) (simp add: sub_list_def)
@@ -516,12 +517,12 @@ section {* Other constants on the Quotient Type *}
 quotient_definition
   "fcard :: 'a fset \<Rightarrow> nat"
 is
-  "fcard_raw"
+  fcard_raw
 
 quotient_definition
   "fmap :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset"
 is
- "map"
+  map
 
 quotient_definition
   "fdelete :: 'a fset \<Rightarrow> 'a \<Rightarrow> 'a fset"
@@ -1104,7 +1105,7 @@ lemma fsubseteq_set:
 
 lemma fsubset_set: 
   shows "xs |\<subset>| ys \<longleftrightarrow> fset_to_set xs \<subset> fset_to_set ys"
-  unfolding less_fset by (lifting sub_list_neq_set)
+  unfolding less_fset_def by (lifting sub_list_neq_set)
 
 lemma ffilter_set: 
   shows "fset_to_set (ffilter P xs) = P \<inter> fset_to_set xs"
@@ -1213,7 +1214,7 @@ lemma fminus_red_fnotin[simp]:
 
 lemma expand_fset_eq:
   shows "S = T \<longleftrightarrow> (\<forall>x. (x |\<in>| S) = (x |\<in>| T))"
-  by (lifting list_eq.simps[simplified memb_def[symmetric]])
+  by (descending) (auto simp add: memb_def)
 
 (* We cannot write it as "assumes .. shows" since Isabelle changes
    the quantifiers to schematic variables and reintroduces them in
@@ -1265,9 +1266,10 @@ lemma eq_ffilter:
   shows "(ffilter P xs = ffilter Q xs) = (\<forall>x. x |\<in>| xs \<longrightarrow> P x = Q x)"
   by (descending) (auto simp add: memb_def)
 
-lemma subset_ffilter: 
+lemma subset_ffilter:
   shows "(\<And>x. x |\<in>| xs \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| xs & \<not> P x & Q x) \<Longrightarrow> ffilter P xs < ffilter Q xs"
-  unfolding less_fset by (auto simp add: subseteq_filter eq_ffilter)
+  unfolding less_fset_def by (auto simp add: subseteq_filter eq_ffilter)
+
 
 section {* lemmas transferred from Finite_Set theory *}
 
