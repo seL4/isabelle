@@ -265,7 +265,7 @@ text {*
 *}
 
 
-section {* Message output channels *}
+section {* Message output channels \label{sec:message-channels} *}
 
 text {* Isabelle provides output channels for different kinds of
   messages: regular output, high-volume tracing information, warnings,
@@ -341,6 +341,87 @@ text %mlref {*
   channels, there is no proper way to retract output when Isar command
   transactions are reset.
 \end{warn}
+*}
+
+
+section {* Exceptions *}
+
+text {* The Standard ML semantics of strict functional evaluation
+  together with exceptions is rather well defined, but some delicate
+  points need to be observed to avoid that ML programs go wrong
+  despite static type-checking.  Exceptions in Isabelle/ML are
+  subsequently categorized as follows.
+
+  \paragraph{Regular user errors.}  These are meant to provide
+  informative feedback about malformed input etc.
+
+  The \emph{error} function raises the corresponding \emph{ERROR}
+  exception, with a plain text message as argument.  \emph{ERROR}
+  exceptions can be handled internally, in order to be ignored, turned
+  into other exceptions, or cascaded by appending messages.  If the
+  corresponding Isabelle/Isar command terminates with an \emph{ERROR}
+  exception state, the toplevel will take care to print the result on
+  the error channel (see \secref{sec:message-channels}).
+
+  It is considered bad style to refer to internal function names or
+  values in ML source notation in user error messages.
+
+  Grammatical correctness of error messages can be improved by
+  \emph{omitting} final punctuation: messages are often concatenated
+  or put into a larger context (e.g.\ augmented with source position).
+  By not insisting in the final word at the origin of the error, the
+  system can perform its administrative tasks more easily and
+  robustly.
+
+  \paragraph{Program failures.}  There is a handful of standard
+  exceptions that indicate general failure situations, or failures of
+  core operations on logical entities (types, terms, theorems,
+  theories).
+
+  These exceptions indicate a genuine breakdown of the program, so the
+  main purpose is to determine quickly what has happened where.
+  Traditionally, the (short) exception message would normally include
+  the name of an ML function, although this no longer necessary,
+  because the ML runtime system prints a detailed source position of
+  the corresponding @{verbatim raise} keyword.
+
+  \medskip User modules can always introduce their own custom
+  exceptions locally, e.g.\ to organize internal failures robustly
+  without overlapping with existing exceptions.  Exceptions that are
+  exposed in module signatures require extra care, though, and should
+  \emph{not} be introduced by default.  Surprise by end-users or ML
+  users of a module can be often minimized by using plain errors or
+  one of the predefined exceptions.
+
+  \paragraph{Interrupts.}  These indicate arbitrary system events:
+  both the ML runtime system and the Isabelle/ML infrastructure signal
+  various exceptional situations by raising the special
+  \emph{Interrupt} exception in user code.
+
+  This is the one and only way that physical events can intrude an
+  Isabelle/ML program.  Such an interrupt can mean out-of-memory,
+  stack overflow, timeout, internal signaling of threads, or the user
+  producing a console interrupt manually.  An Isabelle/ML program that
+  intercepts interrupts becomes dependent on physical effects produced
+  by the environment.  Even worse, accidental use of exception
+  handling patterns that are too general will cover interrupts
+  unintentionally, and thus render the program semantics ill-defined.
+
+  Note that the Interrupt exception dates back to the original SML90
+  language definition.  It was excluded from the SML97 version to
+  avoid its malign impact on ML program semantics, but without
+  providing a viable alternative.  Isabelle/ML recovers physical
+  interruptibility (which an indispensable tool to implement managed
+  evaluation of Isar command transactions), but requires user code to
+  be strictly transparent wrt.\ interrupts.
+
+  \begin{warn}
+  Isabelle/ML user code needs to terminate promptly on interruption,
+  without guessing at its meaning to the system infrastructure.
+  Temporary handling of interrupts for cleanup of global resources
+  etc.\ needs to be followed immediately by re-raising of the original
+  exception.
+  \end{warn}
 *}
 
 end
