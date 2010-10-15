@@ -351,7 +351,10 @@ text %mlref {*
   \end{description}
 *}
 
-text %mlex {* The following toy examples illustrate how the goal facts
+text %mlex {* See also @{command method_setup} in
+  \cite{isabelle-isar-ref} which includes some abstract examples.
+
+  \medskip The following toy examples illustrate how the goal facts
   and state are passed to proof methods.  The pre-defined proof method
   called ``@{method tactic}'' wraps ML source of type @{ML_type
   tactic} (abstracted over @{verbatim facts}).  This allows immediate
@@ -406,9 +409,28 @@ text {* The concrete syntax wrapping of @{command method_setup} always
 
 example_proof
   fix a b c
-  assume a: "a \<equiv> b"
-  assume b: "b \<equiv> c"
-  have "a \<equiv> c" by (my_simp a b)
+  assume a: "a = b"
+  assume b: "b = c"
+  have "a = c" by (my_simp a b)
+qed
+
+text {* Here is a similar method that operates on all subgoals,
+  instead of just the first one. *}
+
+method_setup my_simp_all = {*
+  Attrib.thms >> (fn thms => fn ctxt =>
+    SIMPLE_METHOD
+      (CHANGED
+        (ALLGOALS (asm_full_simp_tac
+          (HOL_basic_ss addsimps thms)))))
+*} "rewrite all subgoals by given rules"
+
+example_proof
+  fix a b c
+  assume a: "a = b"
+  assume b: "b = c"
+  have "a = c" and "c = b" by (my_simp_all a b)
+
 qed
 
 text {* \medskip Apart from explicit arguments, common proof methods
@@ -450,11 +472,12 @@ example_proof
   have "a \<equiv> c" by my_simp'
 qed
 
-text {* \medskip Both @{method my_simp} and @{method my_simp'} are
-  simple methods, i.e.\ the goal facts are merely inserted as goal
-  premises by the @{ML SIMPLE_METHOD'} wrapper.  For proof methods
-  that are similar to the standard collection of @{method simp},
-  @{method blast}, @{method auto} little more can be done here.
+text {* \medskip The @{method my_simp} variants defined above are
+  ``simple'' methods, i.e.\ the goal facts are merely inserted as goal
+  premises by the @{ML SIMPLE_METHOD'} or @{ML SIMPLE_METHOD} wrapper.
+  For proof methods that are similar to the standard collection of
+  @{method simp}, @{method blast}, @{method auto} little more can be
+  done here.
 
   Note that using the primary goal facts in the same manner as the
   method arguments obtained via concrete syntax or the context does

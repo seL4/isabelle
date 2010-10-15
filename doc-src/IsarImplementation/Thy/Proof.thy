@@ -382,11 +382,10 @@ text {*
   conclusion: the proof demonstrates that the context may be augmented
   by parameters and assumptions, without affecting any conclusions
   that do not mention these parameters.  See also
-  \cite{isabelle-isar-ref} for the user-level @{text "\<OBTAIN>"} and
-  @{text "\<GUESS>"} elements.  Final results, which may not refer to
+  \cite{isabelle-isar-ref} for the user-level @{command obtain} and
+  @{command guess} elements.  Final results, which may not refer to
   the parameters in the conclusion, need to exported explicitly into
-  the original context.
-*}
+  the original context.  *}
 
 text %mlref {*
   \begin{mldecls}
@@ -443,5 +442,26 @@ text %mlref {*
 
   \end{description}
 *}
+
+text %mlex {* The following example demonstrates forward-elimination
+  in a local context, using @{ML Obtain.result}.
+*}
+
+example_proof
+  assume ex: "\<exists>x. B x"
+
+  ML_prf %"ML" {*
+    val ctxt0 = @{context};
+    val (([(_, x)], [B]), ctxt1) = ctxt0
+      |> Obtain.result (fn _ => etac @{thm exE} 1) [@{thm ex}];
+  *}
+  ML_prf %"ML" {*
+    singleton (ProofContext.export ctxt1 ctxt0) @{thm refl};
+  *}
+  ML_prf %"ML" {*
+    ProofContext.export ctxt1 ctxt0 [Thm.reflexive x]
+      handle ERROR msg => (warning msg; []);
+  *}
+qed
 
 end

@@ -100,11 +100,11 @@ text {* \noindent Here the ML environment is really managed by
 *}
 
 example_proof
-  ML_prf {* val a = 1 *}
+  ML_prf %"ML" {* val a = 1 *}
   { -- {* Isar block structure ignored by ML environment *}
-    ML_prf {* val b = a + 1 *}
+    ML_prf %"ML" {* val b = a + 1 *}
   } -- {* Isar block structure ignored by ML environment *}
-  ML_prf {* val c = b + 1 *}
+  ML_prf %"ML" {* val c = b + 1 *}
 qed
 
 text {* \noindent By side-stepping the normal scoping rules for Isar
