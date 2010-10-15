@@ -837,11 +837,6 @@ text {*
     @{command_def "attribute_setup"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{mldecls}
-    @{index_ML bind_thms: "string * thm list -> unit"} \\
-    @{index_ML bind_thm: "string * thm -> unit"} \\
-  \end{mldecls}
-
   \begin{rail}
     'use' name
     ;
@@ -917,20 +912,6 @@ text {*
         Thm.declaration_attribute (fn th: thm => fn context: Context.generic =>
           let val context' = context
           in context' end)) *}  "my declaration"
-
-text {*
-  \begin{description}
-
-  \item @{ML bind_thms}~@{text "(name, thms)"} stores a list of
-  theorems produced in ML both in the theory context and the ML
-  toplevel, associating it with the provided name.  Theorems are put
-  into a global ``standard'' format before being stored.
-
-  \item @{ML bind_thm} is similar to @{ML bind_thms} but refers to a
-  singleton theorem.
-  
-  \end{description}
-*}
 
 
 section {* Primitive specification elements *}
