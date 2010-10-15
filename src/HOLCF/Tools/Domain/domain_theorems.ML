@@ -148,35 +148,26 @@ val case_UU_allI =
 (******************************************************************************)
 
 fun prove_induction
-    (comp_dbind : binding, eqs : Domain_Library.eq list)
+    (comp_dbind : binding)
     (constr_infos : Domain_Constructors.constr_info list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (take_rews : thm list)
     (thy : theory) =
 let
   val comp_dname = Sign.full_name thy comp_dbind;
-  val dnames = map (fst o fst) eqs;
-  val conss  = map  snd        eqs;
 
   val iso_infos = map #iso_info constr_infos;
-  val axs_rep_iso = map #rep_inverse iso_infos;
-  val axs_abs_iso = map #abs_inverse iso_infos;
   val exhausts = map #exhaust constr_infos;
   val con_rews = maps #con_rews constr_infos;
-
-  val {take_consts, ...} = take_info;
-  val {take_0_thms, take_Suc_thms, chain_take_thms, ...} = take_info;
-  val {lub_take_thms, finite_defs, reach_thms, ...} = take_info;
-  val {take_induct_thms, ...} = take_info;
+  val {take_consts, take_induct_thms, ...} = take_info;
 
   val newTs = map #absT iso_infos;
-  val P_names = Datatype_Prop.indexify_names (map (K "P") dnames);
-  val x_names = Datatype_Prop.indexify_names (map (K "x") dnames);
+  val P_names = Datatype_Prop.indexify_names (map (K "P") newTs);
+  val x_names = Datatype_Prop.indexify_names (map (K "x") newTs);
   val P_types = map (fn T => T --> HOLogic.boolT) newTs;
   val Ps = map Free (P_names ~~ P_types);
   val xs = map Free (x_names ~~ newTs);
   val n = Free ("n", HOLogic.natT);
-  val taken = "n" :: P_names @ x_names;
 
   fun con_assm defined p (con, args) =
     let
@@ -195,40 +186,22 @@ let
       mk_trp (p $ HOLCF_Library.mk_bottom T) :: map (con_assm true p) cons;
   val assms = maps eq_assms (Ps ~~ newTs ~~ map #con_specs constr_infos);
 
-  fun ind_term concls =
-    Logic.list_implies (assms, mk_trp (foldr1 mk_conj concls));
-
   val take_ss = HOL_ss addsimps (@{thm Rep_CFun_strict1} :: take_rews);
   fun quant_tac ctxt i = EVERY
     (map (fn name => res_inst_tac ctxt [(("x", 0), name)] spec i) x_names);
 
-  local
-    open Domain_Library;
-    fun rec_to ns lazy_rec (n,cons) = forall (exists (fn arg => 
-          is_rec arg andalso not (member (op =) ns (rec_of arg)) andalso
-          ((rec_of arg =  n andalso not (lazy_rec orelse is_lazy arg)) orelse 
-            rec_of arg <> n andalso rec_to (rec_of arg::ns) 
-              (lazy_rec orelse is_lazy arg) (n, (List.nth(conss,rec_of arg))))
-          ) o snd) cons;
-    fun warn (n,cons) =
-      if rec_to [] false (n,cons)
-      then (warning ("domain "^List.nth(dnames,n)^" is empty!"); true)
-      else false;
+  (* FIXME: move this message to domain_take_proofs.ML *)
+  val is_finite = #is_finite take_info;
+  val _ = if is_finite
+          then message ("Proving finiteness rule for domain "^comp_dname^" ...")
+          else ();
 
-  in
-    val n__eqs = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
-    val is_emptys = map warn n__eqs;
-    val is_finite = #is_finite take_info;
-    val _ = if is_finite
-            then message ("Proving finiteness rule for domain "^comp_dname^" ...")
-            else ();
-  end;
   val _ = trace " Proving finite_ind...";
   val finite_ind =
     let
       val concls =
-          map (fn ((P, t), x) => P $ HOLCF_Library.mk_capply (t $ n, x))
-              (Ps ~~ #take_consts take_info ~~ xs);
+          map (fn ((P, t), x) => P $ mk_capply (t $ n, x))
+              (Ps ~~ take_consts ~~ xs);
       val goal = mk_trp (foldr1 mk_conj concls);
 
       fun tacf {prems, context} =
@@ -271,10 +244,6 @@ let
         end;
     in Goal.prove_global thy [] assms goal tacf end;
 
-(* ----- theorems concerning finiteness and induction ----------------------- *)
-
-  val global_ctxt = ProofContext.init_global thy;
-
   val _ = trace " Proving ind...";
   val ind =
     let
@@ -294,23 +263,26 @@ let
         end;
     in Goal.prove_global thy [] (adms @ assms) goal tacf end
 
-val case_ns =
-  let
-    val adms =
-        if is_finite then [] else
-        if length dnames = 1 then ["adm"] else
-        map (fn s => "adm_" ^ Long_Name.base_name s) dnames;
-    val bottoms =
-        if length dnames = 1 then ["bottom"] else
-        map (fn s => "bottom_" ^ Long_Name.base_name s) dnames;
-    fun one_eq bot (_,cons) =
-          bot :: map (fn (c,_) => Long_Name.base_name c) cons;
-  in adms @ flat (map2 one_eq bottoms eqs) end;
+  (* case names for induction rules *)
+  val dnames = map (fst o dest_Type) newTs;
+  val case_ns =
+    let
+      val adms =
+          if is_finite then [] else
+          if length dnames = 1 then ["adm"] else
+          map (fn s => "adm_" ^ Long_Name.base_name s) dnames;
+      val bottoms =
+          if length dnames = 1 then ["bottom"] else
+          map (fn s => "bottom_" ^ Long_Name.base_name s) dnames;
+      fun one_eq bot constr_info =
+        let fun name_of (c, args) = Long_Name.base_name (fst (dest_Const c));
+        in bot :: map name_of (#con_specs constr_info) end;
+    in adms @ flat (map2 one_eq bottoms constr_infos) end;
 
-val inducts = Project_Rule.projections (ProofContext.init_global thy) ind;
-fun ind_rule (dname, rule) =
-    ((Binding.empty, [rule]),
-     [Rule_Cases.case_names case_ns, Induct.induct_type dname]);
+  val inducts = Project_Rule.projections (ProofContext.init_global thy) ind;
+  fun ind_rule (dname, rule) =
+      ((Binding.empty, [rule]),
+       [Rule_Cases.case_names case_ns, Induct.induct_type dname]);
 
 in
   thy
@@ -475,12 +447,27 @@ fun comp_theorems
     (constr_infos : Domain_Constructors.constr_info list)
     (thy : theory) =
 let
-val map_tab = Domain_Take_Proofs.get_map_tab thy;
-
 val dnames = map (fst o fst) eqs;
 val comp_dname = Sign.full_name thy comp_dbind;
 
-(* ----- getting the composite axiom and definitions ------------------------ *)
+(* Test for emptiness *)
+local
+  open Domain_Library;
+  val conss = map snd eqs;
+  fun rec_to ns lazy_rec (n,cons) = forall (exists (fn arg => 
+        is_rec arg andalso not (member (op =) ns (rec_of arg)) andalso
+        ((rec_of arg =  n andalso not (lazy_rec orelse is_lazy arg)) orelse 
+          rec_of arg <> n andalso rec_to (rec_of arg::ns) 
+            (lazy_rec orelse is_lazy arg) (n, (List.nth(conss,rec_of arg))))
+        ) o snd) cons;
+  fun warn (n,cons) =
+    if rec_to [] false (n,cons)
+    then (warning ("domain "^List.nth(dnames,n)^" is empty!"); true)
+    else false;
+in
+  val n__eqs = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
+  val is_emptys = map warn n__eqs;
+end;
 
 (* Test for indirect recursion *)
 local
@@ -509,7 +496,7 @@ val take_rews = take_0_thms @ take_strict_thms @ flat take_rewss;
 (* prove induction rules, unless definition is indirect recursive *)
 val thy =
     if is_indirect then thy else
-    prove_induction (comp_dbind, eqs) constr_infos take_info take_rews thy;
+    prove_induction comp_dbind constr_infos take_info take_rews thy;
 
 val thy =
     if is_indirect then thy else
