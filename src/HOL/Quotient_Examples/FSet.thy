@@ -26,7 +26,9 @@ quotient_type
   'a fset = "'a list" / "list_eq"
   by (rule list_eq_equivp)
 
-text {* Raw definitions *}
+text {* Raw definitions of membership, sublist, cardinality,
+  intersection
+*}
 
 definition
   memb :: "'a \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -80,7 +82,7 @@ where
 
 text {* Composition Quotient *}
 
-lemma list_all2_refl:
+lemma list_all2_refl1:
   shows "(list_all2 op \<approx>) r r"
   by (rule list_all2_refl) (metis equivp_def fset_equivp)
 
@@ -88,7 +90,7 @@ lemma compose_list_refl:
   shows "(list_all2 op \<approx> OOO op \<approx>) r r"
 proof
   have *: "r \<approx> r" by (rule equivp_reflp[OF fset_equivp])
-  show "list_all2 op \<approx> r r" by (rule list_all2_refl)
+  show "list_all2 op \<approx> r r" by (rule list_all2_refl1)
   with * show "(op \<approx> OO list_all2 op \<approx>) r r" ..
 qed
 
@@ -112,11 +114,11 @@ proof (intro conjI allI)
   show "abs_fset (map abs_fset (map rep_fset (rep_fset a))) = a"
     by (simp add: abs_o_rep[OF Quotient_fset] Quotient_abs_rep[OF Quotient_fset] map_id)
   have b: "list_all2 op \<approx> (map rep_fset (rep_fset a)) (map rep_fset (rep_fset a))"
-    by (rule list_all2_refl)
+    by (rule list_all2_refl1)
   have c: "(op \<approx> OO list_all2 op \<approx>) (map rep_fset (rep_fset a)) (map rep_fset (rep_fset a))"
     by (rule, rule equivp_reflp[OF fset_equivp]) (rule b)
   show "(list_all2 op \<approx> OOO op \<approx>) (map rep_fset (rep_fset a)) (map rep_fset (rep_fset a))"
-    by (rule, rule list_all2_refl) (rule c)
+    by (rule, rule list_all2_refl1) (rule c)
   show "(list_all2 op \<approx> OOO op \<approx>) r s = ((list_all2 op \<approx> OOO op \<approx>) r r \<and>
         (list_all2 op \<approx> OOO op \<approx>) s s \<and> abs_fset (map abs_fset r) = abs_fset (map abs_fset s))"
   proof (intro iffI conjI)
@@ -148,11 +150,11 @@ proof (intro conjI allI)
     have b: "map rep_fset (map abs_fset r) \<approx> map rep_fset (map abs_fset s)"
       by (rule map_rel_cong[OF d])
     have y: "list_all2 op \<approx> (map rep_fset (map abs_fset s)) s"
-      by (fact rep_abs_rsp_left[OF Quotient_fset_list, OF list_all2_refl[of s]])
+      by (fact rep_abs_rsp_left[OF Quotient_fset_list, OF list_all2_refl1[of s]])
     have c: "(op \<approx> OO list_all2 op \<approx>) (map rep_fset (map abs_fset r)) s"
       by (rule pred_compI) (rule b, rule y)
     have z: "list_all2 op \<approx> r (map rep_fset (map abs_fset r))"
-      by (fact rep_abs_rsp[OF Quotient_fset_list, OF list_all2_refl[of r]])
+      by (fact rep_abs_rsp[OF Quotient_fset_list, OF list_all2_refl1[of r]])
     then show "(list_all2 op \<approx> OOO op \<approx>) r s"
       using a c pred_compI by simp
   qed
@@ -160,11 +162,11 @@ qed
 
 text {* Respectfullness *}
 
-lemma [quot_respect]:
-  shows "(op \<approx> ===> op \<approx> ===> op \<approx>) op @ op @"
-  by auto
+lemma append_rsp[quot_respect]:
+  shows "(op \<approx> ===> op \<approx> ===> op \<approx>) append append"
+  by (simp)
 
-lemma [quot_respect]:
+lemma sub_list_rsp[quot_respect]:
   shows "(op \<approx> ===> op \<approx> ===> op =) sub_list sub_list"
   by (auto simp add: sub_list_def)
 
@@ -173,11 +175,11 @@ lemma memb_rsp[quot_respect]:
   by (auto simp add: memb_def)
 
 lemma nil_rsp[quot_respect]:
-  shows "[] \<approx> []"
+  shows "(op \<approx>) Nil Nil"
   by simp
 
 lemma cons_rsp[quot_respect]:
-  shows "(op = ===> op \<approx> ===> op \<approx>) op # op #"
+  shows "(op = ===> op \<approx> ===> op \<approx>) Cons Cons"
   by simp
 
 lemma map_rsp[quot_respect]:
@@ -350,7 +352,7 @@ proof -
   then show ?thesis using f i by auto
 qed
 
-lemma [quot_respect]:
+lemma concat_rsp[quot_respect]:
   shows "(list_all2 op \<approx> OOO op \<approx> ===> op \<approx>) concat concat"
 proof (rule fun_relI, elim pred_compE)
   fix a b ba bb
@@ -374,7 +376,7 @@ proof (rule fun_relI, elim pred_compE)
 qed
 
 lemma [quot_respect]:
-  "((op =) ===> op \<approx> ===> op \<approx>) filter filter"
+  shows "((op =) ===> op \<approx> ===> op \<approx>) filter filter"
   by auto
 
 text {* Distributive lattice with bot *}
@@ -420,7 +422,7 @@ where
 quotient_definition
   "sup  \<Colon> ('a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset)"
 is
-  "(op @) \<Colon> ('a list \<Rightarrow> 'a list \<Rightarrow> 'a list)"
+  "append :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 
 abbreviation
   funion (infixl "|\<union>|" 65)
@@ -490,7 +492,7 @@ section {* Finsert and Membership *}
 
 quotient_definition
   "finsert :: 'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
-is "op #"
+is "Cons"
 
 syntax
   "@Finset"     :: "args => 'a fset"  ("{|(_)|}")
@@ -552,7 +554,7 @@ lemma [quot_preserve]: "(abs_fset \<circ> map f) [] = abs_fset []"
   by simp
 
 lemma [quot_respect]:
-  "(op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) op # op #"
+  shows "(op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) Cons Cons"
   apply auto
   apply (simp add: set_in_eq)
   apply (rule_tac b="x # b" in pred_compI)
@@ -581,13 +583,13 @@ lemma append_rsp2_pre0:
   assumes a:"list_all2 op \<approx> x x'"
   shows "list_all2 op \<approx> (x @ z) (x' @ z)"
   using a apply (induct x x' rule: list_induct2')
-  by simp_all (rule list_all2_refl)
+  by simp_all (rule list_all2_refl1)
 
 lemma append_rsp2_pre1:
   assumes a:"list_all2 op \<approx> x x'"
   shows "list_all2 op \<approx> (z @ x) (z @ x')"
   using a apply (induct x x' arbitrary: z rule: list_induct2')
-  apply (rule list_all2_refl)
+  apply (rule list_all2_refl1)
   apply (simp_all del: list_eq.simps)
   apply (rule list_all2_app_l)
   apply (simp_all add: reflp_def)
@@ -602,7 +604,7 @@ lemma append_rsp2_pre:
   apply (rule a)
   using b apply (induct z z' rule: list_induct2')
   apply (simp_all only: append_Nil2)
-  apply (rule list_all2_refl)
+  apply (rule list_all2_refl1)
   apply simp_all
   apply (rule append_rsp2_pre1)
   apply simp
@@ -1001,7 +1003,8 @@ lemma singleton_union_right:
   shows "S |\<union>| {|a|} = finsert a S"
   by (subst sup.commute) simp
 
-section {* Induction and Cases rules for finite sets *}
+
+section {* Induction and Cases rules for fsets *}
 
 lemma fset_strong_cases:
   obtains "xs = {||}"
@@ -1256,11 +1259,11 @@ section {* ffilter *}
 
 lemma subseteq_filter: 
   shows "ffilter P xs <= ffilter Q xs = (\<forall> x. x |\<in>| xs \<longrightarrow> P x \<longrightarrow> Q x)"
-  by (lifting sub_list_filter)
+  by  (descending) (auto simp add: memb_def sub_list_def)
 
 lemma eq_ffilter: 
   shows "(ffilter P xs = ffilter Q xs) = (\<forall>x. x |\<in>| xs \<longrightarrow> P x = Q x)"
-  by (lifting list_eq_filter)
+  by (descending) (auto simp add: memb_def)
 
 lemma subset_ffilter: 
   shows "(\<And>x. x |\<in>| xs \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| xs & \<not> P x & Q x) \<Longrightarrow> ffilter P xs < ffilter Q xs"
@@ -1269,7 +1272,8 @@ lemma subset_ffilter:
 section {* lemmas transferred from Finite_Set theory *}
 
 text {* finiteness for finite sets holds *}
-lemma finite_fset: "finite (fset_to_set S)"
+lemma finite_fset [simp]: 
+  shows "finite (fset_to_set S)"
   by (induct S) auto
 
 lemma fset_choice: 
