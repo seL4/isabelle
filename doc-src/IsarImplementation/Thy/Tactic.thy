@@ -406,6 +406,8 @@ text {*
   Various search strategies may be expressed via tacticals.
 
   \medskip FIXME
-*}
+
+  \medskip The chapter on tacticals in \cite{isabelle-ref} is still
+  applicable, despite a few outdated details.  *}
 
 end
