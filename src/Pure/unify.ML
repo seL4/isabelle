@@ -205,6 +205,14 @@ exception CANTUNIFY;  (*Signals non-unifiability.  Does not signal errors!*)
 exception ASSIGN;  (*Raised if not an assignment*)
 
 
+fun self_asgt (ix,(_,TVar (ix',_))) = (ix = ix')
+  | self_asgt (ix, _) = false;
+
+fun check_tyenv msg tys tyenv = 
+  if Vartab.exists self_asgt tyenv
+  then raise TYPE (msg ^ ": looping type envir!!", tys, []) 
+  else tyenv;
+
 fun unify_types thy (T, U, env) =
   if T = U then env
   else
@@ -715,7 +723,7 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
         fun result env =
           if Envir.above env maxidx then   (* FIXME proper handling of generated vars!? *)
             SOME (Envir.Envir {maxidx = maxidx,
-              tyenv = Vartab.make (map (norm_tvar env) pat_tvars),
+              tyenv = Vartab.make (filter_out self_asgt (map (norm_tvar env) pat_tvars)),
               tenv = Vartab.make (map (norm_var env) pat_vars)})
           else NONE;
 
