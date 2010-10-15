@@ -39,6 +39,9 @@ fun mk_undef t = mk_eq (t, mk_bottom (fastype_of t));
 
 fun mk_defined t = mk_not (mk_undef t);
 
+fun mk_adm t =
+  Const (@{const_name adm}, fastype_of t --> boolT) $ t;
+
 fun mk_compact t =
   Const (@{const_name compact}, fastype_of t --> boolT) $ t;
 
