@@ -11,7 +11,7 @@ signature DOMAIN_THEOREMS =
 sig
   val comp_theorems :
       binding * Domain_Library.eq list ->
-      (binding * (binding * (bool * binding option * typ) list * mixfix) list) list ->
+      binding list ->
       Domain_Take_Proofs.take_induct_info ->
       Domain_Constructors.constr_info list ->
       theory -> thm list * theory
@@ -97,7 +97,7 @@ fun case_UU_tac ctxt rews i v =
 (******************************************************************************)
 
 fun take_theorems
-    (specs : (binding * (binding * (bool * binding option * typ) list * mixfix) list) list)
+    (dbinds : binding list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (constr_infos : Domain_Constructors.constr_info list)
     (thy : theory) : thm list list * theory =
@@ -122,13 +122,13 @@ let
   end
 
   fun prove_take_apps
-      (((dbind, spec), take_const), constr_info) thy =
+      ((dbind, take_const), constr_info) thy =
     let
-      val {iso_info, con_consts, con_betas, ...} = constr_info;
+      val {iso_info, con_specs, con_betas, ...} = constr_info;
       val {abs_inverse, ...} = iso_info;
-      fun prove_take_app (con_const : term) (bind, args, mx) =
+      fun prove_take_app (con_const, args) =
         let
-          val Ts = map (fn (_, _, T) => T) args;
+          val Ts = map snd args;
           val ns = Name.variant_list ["n"] (Datatype_Prop.make_tnames Ts);
           val vs = map Free (ns ~~ Ts);
           val lhs = mk_capply (take_const $ n', list_ccomb (con_const, vs));
@@ -141,7 +141,7 @@ let
         in
           Goal.prove_global thy [] [] goal (K tac)
         end;
-      val take_apps = map2 prove_take_app con_consts spec;
+      val take_apps = map prove_take_app con_specs;
     in
       yield_singleton Global_Theory.add_thmss
         ((Binding.qualified true "take_rews" dbind, take_apps),
@@ -149,7 +149,7 @@ let
     end;
 in
   fold_map prove_take_apps
-    (specs ~~ take_consts ~~ constr_infos) thy
+    (dbinds ~~ take_consts ~~ constr_infos) thy
 end;
 
 (* ----- general proofs ----------------------------------------------------- *)
@@ -508,7 +508,7 @@ end; (* let *)
 
 fun comp_theorems
     (comp_dbind : binding, eqs : eq list)
-    (specs : (binding * (binding * (bool * binding option * typ) list * mixfix) list) list)
+    (dbinds : binding list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (constr_infos : Domain_Constructors.constr_info list)
     (thy : theory) =
@@ -537,7 +537,7 @@ end;
 (* theorems about take *)
 
 val (take_rewss, thy) =
-    take_theorems specs take_info constr_infos thy;
+    take_theorems dbinds take_info constr_infos thy;
 
 val {take_lemma_thms, take_0_thms, take_strict_thms, ...} = take_info;
 

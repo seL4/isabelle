@@ -10,7 +10,7 @@ sig
   type constr_info =
     {
       iso_info : Domain_Take_Proofs.iso_info,
-      con_consts : term list,
+      con_specs : (term * (bool * typ) list) list,
       con_betas : thm list,
       nchotomy : thm,
       exhaust : thm,
@@ -46,7 +46,7 @@ infix 9 `;
 type constr_info =
   {
     iso_info : Domain_Take_Proofs.iso_info,
-    con_consts : term list,
+    con_specs : (term * (bool * typ) list) list,
     con_betas : thm list,
     nchotomy : thm,
     exhaust : thm,
@@ -858,6 +858,8 @@ fun add_domain_constructors
     val dname = Binding.name_of dbind;
     val _ = writeln ("Proving isomorphism properties of domain "^dname^" ...");
 
+    val bindings = map #1 spec;
+
     (* retrieve facts about rep/abs *)
     val lhsT = #absT iso_info;
     val {rep_const, abs_const, ...} = iso_info;
@@ -885,16 +887,19 @@ fun add_domain_constructors
     val {con_consts, con_betas, nchotomy, exhaust, compacts, con_rews,
           inverts, injects, dist_les, dist_eqs} = con_result;
 
-    (* define case combinator *)
-    val ((case_const : typ -> term, cases : thm list), thy) =
+    (* prepare constructor spec *)
+    val con_specs : (term * (bool * typ) list) list =
       let
         fun prep_arg (lazy, sel, T) = (lazy, T);
         fun prep_con c (b, args, mx) = (c, map prep_arg args);
-        val case_spec = map2 prep_con con_consts spec;
       in
-        add_case_combinator case_spec lhsT dbind
-          con_betas exhaust iso_locale rep_const thy
+        map2 prep_con con_consts spec
       end;
+
+    (* define case combinator *)
+    val ((case_const : typ -> term, cases : thm list), thy) =
+        add_case_combinator con_specs lhsT dbind
+          con_betas exhaust iso_locale rep_const thy
 
     (* define and prove theorems for selector functions *)
     val (sel_thms : thm list, thy : theory) =
@@ -908,27 +913,13 @@ fun add_domain_constructors
 
     (* define and prove theorems for discriminator functions *)
     val (dis_thms : thm list, thy : theory) =
-      let
-        val bindings = map #1 spec;
-        fun prep_arg (lazy, sel, T) = (lazy, T);
-        fun prep_con c (b, args, mx) = (c, map prep_arg args);
-        val dis_spec = map2 prep_con con_consts spec;
-      in
-        add_discriminators bindings dis_spec lhsT
-          exhaust case_const cases thy
-      end
+        add_discriminators bindings con_specs lhsT
+          exhaust case_const cases thy;
 
     (* define and prove theorems for match combinators *)
     val (match_thms : thm list, thy : theory) =
-      let
-        val bindings = map #1 spec;
-        fun prep_arg (lazy, sel, T) = (lazy, T);
-        fun prep_con c (b, args, mx) = (c, map prep_arg args);
-        val mat_spec = map2 prep_con con_consts spec;
-      in
-        add_match_combinators bindings mat_spec lhsT
-          exhaust case_const cases thy
-      end
+        add_match_combinators bindings con_specs lhsT
+          exhaust case_const cases thy;
 
     (* restore original signature path *)
     val thy = Sign.parent_path thy;
@@ -962,7 +953,7 @@ fun add_domain_constructors
     val result =
       {
         iso_info = iso_info,
-        con_consts = con_consts,
+        con_specs = con_specs,
         con_betas = con_betas,
         nchotomy = nchotomy,
         exhaust = exhaust,
