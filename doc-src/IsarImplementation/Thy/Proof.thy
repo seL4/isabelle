@@ -397,6 +397,9 @@ text %mlref {*
   Proof.context -> int -> tactic"} \\
   @{index_ML Subgoal.FOCUS_PARAMS: "(Subgoal.focus -> tactic) ->
   Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.focus: "Proof.context -> int -> thm -> Subgoal.focus * thm"} \\
+  @{index_ML Subgoal.focus_prems: "Proof.context -> int -> thm -> Subgoal.focus * thm"} \\
+  @{index_ML Subgoal.focus_params: "Proof.context -> int -> thm -> Subgoal.focus * thm"} \\
   \end{mldecls}
 
   \begin{mldecls}
@@ -424,6 +427,12 @@ text %mlref {*
   imported into the context, and the body tactic may introduce new
   subgoals and schematic variables.
 
+  \item @{ML Subgoal.focus}, @{ML Subgoal.focus_prems}, @{ML
+  Subgoal.focus_params} extract the focus information from a goal
+  state in the same way as the corresponding tacticals above.  This is
+  occasionally useful to experiment without writing actual tactics
+  yet.
+
   \item @{ML Goal.prove}~@{text "ctxt xs As C tac"} states goal @{text
   "C"} in the context augmented by fixed variables @{text "xs"} and
   assumptions @{text "As"}, and applies tactic @{text "tac"} to solve
@@ -443,9 +452,25 @@ text %mlref {*
   \end{description}
 *}
 
-text %mlex {* The following example demonstrates forward-elimination
-  in a local context, using @{ML Obtain.result}.
-*}
+text %mlex {* The following minimal example illustrates how to access
+  the focus information of a structured goal state. *}
+
+example_proof
+  fix A B C :: "'a \<Rightarrow> bool"
+
+  have "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
+    ML_val
+    {*
+      val {goal, context = goal_ctxt, ...} = @{Isar.goal};
+      val (focus as {params, asms, concl, ...}, goal') =
+        Subgoal.focus goal_ctxt 1 goal;
+      val [A, B] = #prems focus;
+      val [(_, x)] = #params focus;
+    *}
+    oops
+
+text {* \medskip The next example demonstrates forward-elimination in
+  a local context, using @{ML Obtain.result}.  *}
 
 example_proof
   assume ex: "\<exists>x. B x"
