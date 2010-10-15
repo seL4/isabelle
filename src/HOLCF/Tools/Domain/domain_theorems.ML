@@ -85,13 +85,6 @@ fun pg' thy defs t tacsf =
       else cut_facts_tac prems 1 :: tacsf context;
   in pg'' thy defs t tacs end;
 
-(* FIXME!!!!!!!!! *)
-(* We should NEVER re-parse variable names as strings! *)
-(* The names can conflict with existing constants or other syntax! *)
-fun case_UU_tac ctxt rews i v =
-  InductTacs.case_tac ctxt (v^"=UU") i THEN
-  asm_simp_tac (HOLCF_ss addsimps rews) i;
-
 (******************************************************************************)
 (***************************** proofs about take ******************************)
 (******************************************************************************)
@@ -156,6 +149,9 @@ end;
 
 val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
 
+val case_UU_allI =
+    @{lemma "(!!x. x ~= UU ==> P x) ==> P UU ==> ALL x. P x" by metis};
+
 (******************************************************************************)
 (****************************** induction rules *******************************)
 (******************************************************************************)
@@ -170,9 +166,6 @@ let
   val comp_dname = Sign.full_name thy comp_dbind;
   val dnames = map (fst o fst) eqs;
   val conss  = map  snd        eqs;
-  fun dc_take dn = %%:(dn^"_take");
-  val x_name = idx_name dnames "x";
-  val P_name = idx_name dnames "P";
   val pg = pg' thy;
 
   val iso_infos = map #iso_info constr_infos;
@@ -186,26 +179,39 @@ let
   val {lub_take_thms, finite_defs, reach_thms, ...} = take_info;
   val {take_induct_thms, ...} = take_info;
 
-  fun one_con p (con, args) =
+  val newTs = map #absT iso_infos;
+  val P_names = Datatype_Prop.indexify_names (map (K "P") dnames);
+  val x_names = Datatype_Prop.indexify_names (map (K "x") dnames);
+  val P_types = map (fn T => T --> HOLogic.boolT) newTs;
+  val Ps = map Free (P_names ~~ P_types);
+  val xs = map Free (x_names ~~ newTs);
+  val n = Free ("n", HOLogic.natT);
+  val taken = "n" :: P_names @ x_names;
+
+  fun con_assm defined p (con, args) =
     let
-      val P_names = map P_name (1 upto (length dnames));
-      val vns = Name.variant_list P_names (map vname args);
-      val nonlazy_vns = map snd (filter_out (is_lazy o fst) (args ~~ vns));
-      fun ind_hyp arg = %:(P_name (1 + rec_of arg)) $ bound_arg args arg;
-      val t1 = mk_trp (%:p $ con_app2 con (bound_arg args) args);
-      val t2 = lift ind_hyp (filter is_rec args, t1);
-      val t3 = lift_defined (bound_arg vns) (nonlazy_vns, t2);
-    in Library.foldr mk_All (vns, t3) end;
+      open HOLCF_Library;
+      val Ts = map snd args;
+      val ns = Name.variant_list P_names (Datatype_Prop.make_tnames Ts);
+      val vs = map Free (ns ~~ Ts);
+      val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs));
+      fun ind_hyp (v, T) t =
+          case AList.lookup (op =) (newTs ~~ Ps) T of NONE => t
+          | SOME p' => Logic.mk_implies (mk_trp (p' $ v), t);
+      val t1 = mk_trp (p $ list_ccomb (con, vs));
+      val t2 = fold_rev ind_hyp (vs ~~ Ts) t1;
+      val t3 = Logic.list_implies (map (mk_trp o mk_defined) nonlazy, t2);
+    in fold_rev Logic.all vs (if defined then t3 else t2) end;
+  fun eq_assms ((p, T), cons) =
+      mk_trp (p $ HOLCF_Library.mk_bottom T) :: map (con_assm true p) cons;
+  val assms = maps eq_assms (Ps ~~ newTs ~~ map #con_specs constr_infos);
 
-  fun one_eq ((p, cons), concl) =
-    mk_trp (%:p $ UU) ===> Logic.list_implies (map (one_con p) cons, concl);
+  fun ind_term concls =
+    Logic.list_implies (assms, mk_trp (foldr1 mk_conj concls));
 
-  fun ind_term concf = Library.foldr one_eq
-    (mapn (fn n => fn x => (P_name n, x)) 1 conss,
-     mk_trp (foldr1 mk_conj (mapn concf 1 dnames)));
   val take_ss = HOL_ss addsimps (@{thm Rep_CFun_strict1} :: take_rews);
   fun quant_tac ctxt i = EVERY
-    (mapn (fn n => fn _ => res_inst_tac ctxt [(("x", 0), x_name n)] spec i) 1 dnames);
+    (map (fn name => res_inst_tac ctxt [(("x", 0), name)] spec i) x_names);
 
   fun ind_prems_tac prems = EVERY
     (maps (fn cons =>
@@ -239,35 +245,51 @@ let
   val _ = trace " Proving finite_ind...";
   val finite_ind =
     let
-      fun concf n dn = %:(P_name n) $ (dc_take dn $ %:"n" `%(x_name n));
-      val goal = ind_term concf;
+      val concls =
+          map (fn ((P, t), x) => P $ HOLCF_Library.mk_capply (t $ n, x))
+              (Ps ~~ #take_consts take_info ~~ xs);
+      val goal = mk_trp (foldr1 mk_conj concls);
 
       fun tacf {prems, context} =
         let
+          (* Prove stronger prems, without definedness side conditions *)
+          fun con_thm p (con, args) =
+            let
+              val subgoal = con_assm false p (con, args);
+              val rules = prems @ con_rews @ simp_thms;
+              val simplify = asm_simp_tac (HOL_basic_ss addsimps rules);
+              fun arg_tac (lazy, _) =
+                  rtac (if lazy then allI else case_UU_allI) 1;
+              val tacs =
+                  rewrite_goals_tac @{thms atomize_all atomize_imp} ::
+                  map arg_tac args @
+                  [REPEAT (rtac impI 1)] @
+                  [ALLGOALS simplify];
+            in
+              Goal.prove context [] [] subgoal (K (EVERY tacs))
+            end;
+          fun eq_thms (p, cons) = map (con_thm p) cons;
+          val conss = map #con_specs constr_infos;
+          val prems' = maps eq_thms (Ps ~~ conss);
+
           val tacs1 = [
             quant_tac context 1,
             simp_tac HOL_ss 1,
             InductTacs.induct_tac context [[SOME "n"]] 1,
             simp_tac (take_ss addsimps prems) 1,
             TRY (safe_tac HOL_cs)];
-          fun arg_tac arg =
-                        (* FIXME! case_UU_tac *)
-            case_UU_tac context (prems @ con_rews) 1
-              (List.nth (dnames, rec_of arg) ^ "_take n$" ^ vname arg);
-          fun con_tacs (con, args) = 
-            asm_simp_tac take_ss 1 ::
-            map arg_tac (filter is_nonlazy_rec args) @
-            [resolve_tac prems 1] @
-            map (K (atac 1)) (nonlazy args) @
-            map (K (etac spec 1)) (filter is_rec args);
+          fun con_tac _ = 
+            asm_simp_tac take_ss 1 THEN
+            (resolve_tac prems' THEN_ALL_NEW etac spec) 1;
           fun cases_tacs (cons, exhaust) =
             res_inst_tac context [(("y", 0), "x")] exhaust 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::
-            maps con_tacs cons;
+            map con_tac cons;
+          val tacs = tacs1 @ maps cases_tacs (conss ~~ exhausts)
         in
-          tacs1 @ maps cases_tacs (conss ~~ exhausts)
+          EVERY (map DETERM tacs)
         end;
-    in pg'' thy [] goal tacf end;
+    in Goal.prove_global thy [] assms goal tacf end;
 
 (* ----- theorems concerning finiteness and induction ----------------------- *)
 
@@ -278,7 +300,7 @@ let
     if is_finite
     then (* finite case *)
       let
-        fun concf n dn = %:(P_name n) $ %:(x_name n);
+        val concls = map (op $) (Ps ~~ xs);
         fun tacf {prems, context} =
           let
             fun finite_tacs (take_induct, fin_ind) = [
@@ -289,27 +311,20 @@ let
             TRY (safe_tac HOL_cs) ::
             maps finite_tacs (take_induct_thms ~~ atomize global_ctxt finite_ind)
           end;
-      in pg'' thy [] (ind_term concf) tacf end
+      in pg'' thy [] (ind_term concls) tacf end
 
     else (* infinite case *)
       let
         val goal =
           let
-            fun one_adm n _ = mk_trp (mk_adm (%:(P_name n)));
-            fun concf n dn = %:(P_name n) $ %:(x_name n);
-          in Logic.list_implies (mapn one_adm 1 dnames, ind_term concf) end;
+            fun one_adm P = mk_trp (mk_adm P);
+            val concls = map (op $) (Ps ~~ xs);
+          in Logic.list_implies (map one_adm Ps, ind_term concls) end;
         val cont_rules =
             @{thms cont_id cont_const cont2cont_Rep_CFun
                    cont2cont_fst cont2cont_snd};
         val subgoal =
           let
-            val Ts = map (Type o fst) eqs;
-            val P_names = Datatype_Prop.indexify_names (map (K "P") dnames);
-            val x_names = Datatype_Prop.indexify_names (map (K "x") dnames);
-            val P_types = map (fn T => T --> HOLogic.boolT) Ts;
-            val Ps = map Free (P_names ~~ P_types);
-            val xs = map Free (x_names ~~ Ts);
-            val n = Free ("n", HOLogic.natT);
             val goals =
                 map (fn ((P,t),x) => P $ HOLCF_Library.mk_capply (t $ n, x))
                   (Ps ~~ take_consts ~~ xs);
