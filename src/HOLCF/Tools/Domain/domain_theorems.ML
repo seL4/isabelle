@@ -29,18 +29,11 @@ val trace_domain = Unsynchronized.ref false;
 fun message s = if !quiet_mode then () else writeln s;
 fun trace s = if !trace_domain then tracing s else ();
 
-open Domain_Library;
+open HOLCF_Library;
 infixr 0 ===>;
-infixr 0 ==>;
 infix 0 == ; 
 infix 1 ===;
-infix 1 ~= ;
-infix 1 <<;
-infix 1 ~<<;
 infix 9 `   ;
-infix 9 `% ;
-infix 9 `%%;
-infixr 9 oo;
 
 (* ----- general proof facilities ------------------------------------------- *)
 
@@ -95,8 +88,6 @@ fun take_theorems
     (constr_infos : Domain_Constructors.constr_info list)
     (thy : theory) : thm list list * theory =
 let
-  open HOLCF_Library;
-
   val {take_consts, take_Suc_thms, deflation_take_thms, ...} = take_info;
   val deflation_thms = Domain_Take_Proofs.get_deflation_thms thy;
 
@@ -157,7 +148,7 @@ val case_UU_allI =
 (******************************************************************************)
 
 fun prove_induction
-    (comp_dbind : binding, eqs : eq list)
+    (comp_dbind : binding, eqs : Domain_Library.eq list)
     (constr_infos : Domain_Constructors.constr_info list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (take_rews : thm list)
@@ -166,7 +157,6 @@ let
   val comp_dname = Sign.full_name thy comp_dbind;
   val dnames = map (fst o fst) eqs;
   val conss  = map  snd        eqs;
-  val pg = pg' thy;
 
   val iso_infos = map #iso_info constr_infos;
   val axs_rep_iso = map #rep_inverse iso_infos;
@@ -190,7 +180,6 @@ let
 
   fun con_assm defined p (con, args) =
     let
-      open HOLCF_Library;
       val Ts = map snd args;
       val ns = Name.variant_list P_names (Datatype_Prop.make_tnames Ts);
       val vs = map Free (ns ~~ Ts);
@@ -213,16 +202,8 @@ let
   fun quant_tac ctxt i = EVERY
     (map (fn name => res_inst_tac ctxt [(("x", 0), name)] spec i) x_names);
 
-  fun ind_prems_tac prems = EVERY
-    (maps (fn cons =>
-      (resolve_tac prems 1 ::
-        maps (fn (_,args) => 
-          resolve_tac prems 1 ::
-          map (K(atac 1)) (nonlazy args) @
-          map (K(atac 1)) (filter is_rec args))
-        cons))
-      conss);
   local
+    open Domain_Library;
     fun rec_to ns lazy_rec (n,cons) = forall (exists (fn arg => 
           is_rec arg andalso not (member (op =) ns (rec_of arg)) andalso
           ((rec_of arg =  n andalso not (lazy_rec orelse is_lazy arg)) orelse 
@@ -263,8 +244,7 @@ let
               val tacs =
                   rewrite_goals_tac @{thms atomize_all atomize_imp} ::
                   map arg_tac args @
-                  [REPEAT (rtac impI 1)] @
-                  [ALLGOALS simplify];
+                  [REPEAT (rtac impI 1), ALLGOALS simplify];
             in
               Goal.prove context [] [] subgoal (K (EVERY tacs))
             end;
@@ -297,56 +277,22 @@ let
 
   val _ = trace " Proving ind...";
   val ind =
-    if is_finite
-    then (* finite case *)
-      let
-        val concls = map (op $) (Ps ~~ xs);
-        fun tacf {prems, context} =
-          let
-            fun finite_tacs (take_induct, fin_ind) = [
-                rtac take_induct 1,
-                rtac fin_ind 1,
-                ind_prems_tac prems];
-          in
-            TRY (safe_tac HOL_cs) ::
-            maps finite_tacs (take_induct_thms ~~ atomize global_ctxt finite_ind)
-          end;
-      in pg'' thy [] (ind_term concls) tacf end
-
-    else (* infinite case *)
-      let
-        val goal =
-          let
-            fun one_adm P = mk_trp (mk_adm P);
-            val concls = map (op $) (Ps ~~ xs);
-          in Logic.list_implies (map one_adm Ps, ind_term concls) end;
-        val cont_rules =
-            @{thms cont_id cont_const cont2cont_Rep_CFun
-                   cont2cont_fst cont2cont_snd};
-        val subgoal =
-          let
-            val goals =
-                map (fn ((P,t),x) => P $ HOLCF_Library.mk_capply (t $ n, x))
-                  (Ps ~~ take_consts ~~ xs);
-          in
-            HOLogic.mk_Trueprop
-            (HOLogic.mk_all ("n", HOLogic.natT, foldr1 HOLogic.mk_conj goals))
-          end;
-        fun tacf {prems, context} =
-          let
-            val subtac =
-                EVERY [rtac allI 1, rtac finite_ind 1, ind_prems_tac prems];
-            val subthm = Goal.prove context [] [] subgoal (K subtac);
-          in
-            map (fn ax_reach => rtac (ax_reach RS subst) 1) reach_thms @ [
-            cut_facts_tac (subthm :: take (length dnames) prems) 1,
-            REPEAT (rtac @{thm conjI} 1 ORELSE
-                    EVERY [etac @{thm admD [OF _ ch2ch_Rep_CFunL]} 1,
-                           resolve_tac chain_take_thms 1,
-                           asm_simp_tac HOL_basic_ss 1])
-            ]
-          end;
-      in pg'' thy [] goal tacf end;
+    let
+      val concls = map (op $) (Ps ~~ xs);
+      val goal = mk_trp (foldr1 mk_conj concls);
+      val adms = if is_finite then [] else map (mk_trp o mk_adm) Ps;
+      fun tacf {prems, context} =
+        let
+          fun finite_tac (take_induct, fin_ind) =
+              rtac take_induct 1 THEN
+              (if is_finite then all_tac else resolve_tac prems 1) THEN
+              (rtac fin_ind THEN_ALL_NEW solve_tac prems) 1;
+          val fin_inds = Project_Rule.projections context finite_ind;
+        in
+          TRY (safe_tac HOL_cs) THEN
+          EVERY (map finite_tac (take_induct_thms ~~ fin_inds))
+        end;
+    in Goal.prove_global thy [] (adms @ assms) goal tacf end
 
 val case_ns =
   let
@@ -379,11 +325,12 @@ end; (* prove_induction *)
 (******************************************************************************)
 
 fun prove_coinduction
-    (comp_dbind : binding, eqs : eq list)
+    (comp_dbind : binding, eqs : Domain_Library.eq list)
     (take_rews : thm list)
     (take_lemmas : thm list)
     (thy : theory) : theory =
 let
+open Domain_Library;
 
 val dnames = map (fst o fst) eqs;
 val comp_dname = Sign.full_name thy comp_dbind;
@@ -522,7 +469,7 @@ end; (* let *)
 (******************************************************************************)
 
 fun comp_theorems
-    (comp_dbind : binding, eqs : eq list)
+    (comp_dbind : binding, eqs : Domain_Library.eq list)
     (dbinds : binding list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (constr_infos : Domain_Constructors.constr_info list)
@@ -537,6 +484,7 @@ val comp_dname = Sign.full_name thy comp_dbind;
 
 (* Test for indirect recursion *)
 local
+  open Domain_Library;
   fun indirect_arg arg =
       rec_of arg = ~1 andalso Datatype_Aux.is_rec_type (dtyp_of arg);
   fun indirect_con (_, args) = exists indirect_arg args;
