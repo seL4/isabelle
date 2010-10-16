@@ -35,7 +35,15 @@ end;
 structure Domain_Extender :> DOMAIN_EXTENDER =
 struct
 
-open Domain_Library;
+open HOLCF_Library;
+
+fun first  (x,_,_) = x;
+fun second (_,x,_) = x;
+fun third  (_,_,x) = x;
+
+fun upd_first  f (x,y,z) = (f x,   y,   z);
+fun upd_second f (x,y,z) = (  x, f y,   z);
+fun upd_third  f (x,y,z) = (  x,   y, f z);
 
 (* ----- general testing and preprocessing of constructor list -------------- *)
 fun check_and_sort_domain
@@ -94,22 +102,22 @@ fun check_and_sort_domain
              | SOME typevars =>
                  if indirect 
                  then error ("Indirect recursion of type " ^ 
-                             quote (string_of_typ thy t))
+                             quote (Syntax.string_of_typ_global thy t))
                  else if dname <> s orelse
                          (** BUG OR FEATURE?:
                              mutual recursion may use different arguments **)
                          remove_sorts typevars = remove_sorts typl 
                  then Type(s,map (analyse true) typl)
                  else error ("Direct recursion of type " ^ 
-                             quote (string_of_typ thy t) ^ 
+                             quote (Syntax.string_of_typ_global thy t) ^ 
                              " with different arguments"))
-          | analyse indirect (TVar _) = Imposs "extender:analyse";
+          | analyse indirect (TVar _) = error "extender:analyse";
         fun check_pcpo lazy T =
             let val sort = arg_sort lazy in
               if Sign.of_sort thy (T, sort) then T
               else error ("Constructor argument type is not of sort " ^
                           Syntax.string_of_sort_global thy sort ^ ": " ^
-                          string_of_typ thy T)
+                          Syntax.string_of_typ_global thy T)
             end;
         fun analyse_arg (lazy, sel, T) =
             (lazy, sel, check_pcpo lazy (analyse false T));
@@ -167,7 +175,7 @@ fun gen_add_domain
         check_and_sort_domain arg_sort dtnvs' cons'' tmp_thy;
     val dts : typ list = map (Type o fst) eqs';
 
-    fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_uT T else T;
+    fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_upT T else T;
     fun mk_con_typ (bind, args, mx) =
         if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
     fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
@@ -179,28 +187,17 @@ fun gen_add_domain
 
     val ((iso_infos, take_info), thy) = add_isos iso_spec thy;
 
-    val new_dts : (string * string list) list =
-        map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
-    fun one_con (con,args,mx) : cons =
-        (Binding.name_of con,  (* FIXME preverse binding (!?) *)
-         ListPair.map (fn ((lazy,sel,tp),vn) =>
-           mk_arg ((lazy, Datatype_Aux.dtyp_of_typ new_dts tp), vn))
-                      (args, Datatype_Prop.make_tnames (map third args)));
-    val eqs : eq list =
-        map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs';
-
     val (constr_infos, thy) =
         thy
           |> fold_map (fn ((dbind, (_,cs)), info) =>
                 Domain_Constructors.add_domain_constructors dbind cs info)
              (dbinds ~~ eqs' ~~ iso_infos);
 
-    val (take_rews, theorems_thy) =
-        thy
-          |> Domain_Theorems.comp_theorems (comp_dbind, eqs)
-              dbinds take_info constr_infos;
+    val (take_rews, thy) =
+        Domain_Theorems.comp_theorems comp_dbind
+          dbinds take_info constr_infos thy;
   in
-    theorems_thy
+    thy
   end;
 
 fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =

@@ -10,8 +10,7 @@ val HOLCF_ss = @{simpset};
 signature DOMAIN_THEOREMS =
 sig
   val comp_theorems :
-      binding * Domain_Library.eq list ->
-      binding list ->
+      binding -> binding list ->
       Domain_Take_Proofs.take_induct_info ->
       Domain_Constructors.constr_info list ->
       theory -> thm list * theory
@@ -154,7 +153,7 @@ fun prove_induction
     (take_rews : thm list)
     (thy : theory) =
 let
-  val comp_dname = Sign.full_name thy comp_dbind;
+  val comp_dname = Binding.name_of comp_dbind;
 
   val iso_infos = map #iso_info constr_infos;
   val exhausts = map #exhaust constr_infos;
@@ -281,15 +280,15 @@ let
 
   val inducts = Project_Rule.projections (ProofContext.init_global thy) ind;
   fun ind_rule (dname, rule) =
-      ((Binding.empty, [rule]),
+      ((Binding.empty, rule),
        [Rule_Cases.case_names case_ns, Induct.induct_type dname]);
 
 in
   thy
-  |> snd o Global_Theory.add_thmss [
-     ((Binding.qualified true "finite_induct" comp_dbind, [finite_ind]), []),
-     ((Binding.qualified true "induct"        comp_dbind, [ind]       ), [])]
-  |> (snd o Global_Theory.add_thmss (map ind_rule (dnames ~~ inducts)))
+  |> snd o Global_Theory.add_thms [
+     ((Binding.qualified true "finite_induct" comp_dbind, finite_ind), []),
+     ((Binding.qualified true "induct"        comp_dbind, ind       ), [])]
+  |> (snd o Global_Theory.add_thms (map ind_rule (dnames ~~ inducts)))
 end; (* prove_induction *)
 
 (******************************************************************************)
@@ -303,8 +302,6 @@ fun prove_coinduction
     (take_rews : thm list list)
     (thy : theory) : theory =
 let
-  val comp_dname = Sign.full_name thy comp_dbind;
-
   val iso_infos = map #iso_info constr_infos;
   val newTs = map #absT iso_infos;
 
@@ -423,18 +420,19 @@ end; (* let *)
 (******************************************************************************)
 
 fun comp_theorems
-    (comp_dbind : binding, eqs : Domain_Library.eq list)
+    (comp_dbind : binding)
     (dbinds : binding list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (constr_infos : Domain_Constructors.constr_info list)
     (thy : theory) =
 let
-val dnames = map (fst o fst) eqs;
-val comp_dname = Sign.full_name thy comp_dbind;
+val comp_dname = Binding.name_of comp_dbind;
 
 (* Test for emptiness *)
+(* FIXME: reimplement emptiness test
 local
   open Domain_Library;
+  val dnames = map (fst o fst) eqs;
   val conss = map snd eqs;
   fun rec_to ns lazy_rec (n,cons) = forall (exists (fn arg => 
         is_rec arg andalso not (member (op =) ns (rec_of arg)) andalso
@@ -450,16 +448,19 @@ in
   val n__eqs = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
   val is_emptys = map warn n__eqs;
 end;
+*)
 
 (* Test for indirect recursion *)
 local
-  open Domain_Library;
-  fun indirect_arg arg =
-      rec_of arg = ~1 andalso Datatype_Aux.is_rec_type (dtyp_of arg);
+  val newTs = map (#absT o #iso_info) constr_infos;
+  fun indirect_typ (Type (_, Ts)) =
+      exists (fn T => member (op =) newTs T orelse indirect_typ T) Ts
+    | indirect_typ _ = false;
+  fun indirect_arg (_, T) = indirect_typ T;
   fun indirect_con (_, args) = exists indirect_arg args;
-  fun indirect_eq (_, cons) = exists indirect_con cons;
+  fun indirect_eq cons = exists indirect_con cons;
 in
-  val is_indirect = exists indirect_eq eqs;
+  val is_indirect = exists indirect_eq (map #con_specs constr_infos);
   val _ =
       if is_indirect
       then message "Indirect recursion detected, skipping proofs of (co)induction rules"

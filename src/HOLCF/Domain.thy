@@ -10,7 +10,6 @@ uses
   ("Tools/cont_consts.ML")
   ("Tools/cont_proc.ML")
   ("Tools/Domain/domain_constructors.ML")
-  ("Tools/Domain/domain_library.ML")
   ("Tools/Domain/domain_axioms.ML")
   ("Tools/Domain/domain_theorems.ML")
   ("Tools/Domain/domain_extender.ML")
@@ -154,7 +153,6 @@ lemmas take_con_rules =
 
 use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"
-use "Tools/Domain/domain_library.ML"
 use "Tools/Domain/domain_axioms.ML"
 use "Tools/Domain/domain_constructors.ML"
 use "Tools/Domain/domain_theorems.ML"
