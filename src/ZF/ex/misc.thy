@@ -39,19 +39,19 @@ text{*These two are cited in Benzmueller and Kohlhase's system description of
 lemma "(X = Y Un Z) <-> (Y \<subseteq> X & Z \<subseteq> X & (\<forall>V. Y \<subseteq> V & Z \<subseteq> V --> X \<subseteq> V))"
 by (blast intro!: equalityI)
 
-text{*the dual of the previous one}
+text{*the dual of the previous one*}
 lemma "(X = Y Int Z) <-> (X \<subseteq> Y & X \<subseteq> Z & (\<forall>V. V \<subseteq> Y & V \<subseteq> Z --> V \<subseteq> X))"
 by (blast intro!: equalityI)
 
-text{*trivial example of term synthesis: apparently hard for some provers!}
-lemma "a \<noteq> b ==> a:?X & b \<notin> ?X"
+text{*trivial example of term synthesis: apparently hard for some provers!*}
+schematic_lemma "a \<noteq> b ==> a:?X & b \<notin> ?X"
 by blast
 
-text{*Nice Blast_tac benchmark.  Proved in 0.3s; old tactics can't manage it!}
+text{*Nice blast benchmark.  Proved in 0.3s; old tactics can't manage it!*}
 lemma "\<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y ==> \<exists>z. S \<subseteq> {z}"
 by blast
 
-text{*variant of the benchmark above}
+text{*variant of the benchmark above*}
 lemma "\<forall>x \<in> S. Union(S) \<subseteq> x ==> \<exists>z. S \<subseteq> {z}"
 by blast
 
@@ -74,7 +74,7 @@ text{*Given as a challenge problem in
   Set Theory in First-Order Logic: Clauses for G\"odel's Axioms,
   JAR 2 (1986), 287-327 *}
 
-text{*collecting the relevant lemmas}
+text{*collecting the relevant lemmas*}
 declare comp_fun [simp] SigmaI [simp] apply_funtype [simp]
 
 (*Force helps prove conditions of rewrites such as comp_fun_apply, since
@@ -86,7 +86,7 @@ lemma "(\<forall>A f B g. hom(A,f,B,g) =
        (K O J) \<in> hom(A,f,C,h)"
 by force
 
-text{*Another version, with meta-level rewriting}
+text{*Another version, with meta-level rewriting*}
 lemma "(!! A f B g. hom(A,f,B,g) ==  
            {H \<in> A->B. f \<in> A*A->A & g \<in> B*B->B &  
                      (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) 
@@ -108,7 +108,7 @@ lemma pastre1:
     "[| (h O g O f) \<in> inj(A,A);           
         (f O h O g) \<in> surj(B,B);          
         (g O f O h) \<in> surj(C,C);          
-        f \<in> A->B;  g \<in> B->C;  h \<in> C->A |] ==> h \<in> bij(C,A)";
+        f \<in> A->B;  g \<in> B->C;  h \<in> C->A |] ==> h \<in> bij(C,A)"
 by (unfold bij_def, blast)
 
 lemma pastre3: 

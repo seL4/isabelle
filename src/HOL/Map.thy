@@ -12,7 +12,6 @@ imports List
 begin
 
 types ('a,'b) "map" = "'a => 'b option" (infixr "~=>" 0)
-translations (type) "'a ~=> 'b" <= (type) "'a => 'b option"
 
 type_notation (xsymbols)
   "map" (infixr "\<rightharpoonup>" 0)

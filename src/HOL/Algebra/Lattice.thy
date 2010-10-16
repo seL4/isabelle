@@ -233,9 +233,8 @@ lemma (in weak_partial_order) Lower_cong:
   assumes Acarr: "A \<subseteq> carrier L" and A'carr: "A' \<subseteq> carrier L"
     and AA': "A {.=} A'"
   shows "Lower L A = Lower L A'"
-using Lower_memD[of y]
 unfolding Lower_def
-apply safe
+apply rule
  apply clarsimp defer 1
  apply clarsimp defer 1
 proof -
