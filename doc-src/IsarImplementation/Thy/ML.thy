@@ -360,8 +360,8 @@ text {* The Standard ML semantics of strict functional evaluation
   exceptions can be handled internally, in order to be ignored, turned
   into other exceptions, or cascaded by appending messages.  If the
   corresponding Isabelle/Isar command terminates with an \emph{ERROR}
-  exception state, the toplevel will take care to print the result on
-  the error channel (see \secref{sec:message-channels}).
+  exception state, the toplevel will print the result on the error
+  channel (see \secref{sec:message-channels}).
 
   It is considered bad style to refer to internal function names or
   values in ML source notation in user error messages.
@@ -380,18 +380,17 @@ text {* The Standard ML semantics of strict functional evaluation
 
   These exceptions indicate a genuine breakdown of the program, so the
   main purpose is to determine quickly what has happened where.
-  Traditionally, the (short) exception message would normally include
-  the name of an ML function, although this no longer necessary,
-  because the ML runtime system prints a detailed source position of
-  the corresponding @{verbatim raise} keyword.
+  Traditionally, the (short) exception message would include the name
+  of an ML function, although this no longer necessary, because the ML
+  runtime system prints a detailed source position of the
+  corresponding @{verbatim raise} keyword.
 
   \medskip User modules can always introduce their own custom
   exceptions locally, e.g.\ to organize internal failures robustly
   without overlapping with existing exceptions.  Exceptions that are
   exposed in module signatures require extra care, though, and should
   \emph{not} be introduced by default.  Surprise by end-users or ML
-  users of a module can be often minimized by using plain errors or
-  one of the predefined exceptions.
+  users of a module can be often minimized by using plain user errors.
 
   \paragraph{Interrupts.}  These indicate arbitrary system events:
   both the ML runtime system and the Isabelle/ML infrastructure signal
@@ -401,11 +400,12 @@ text {* The Standard ML semantics of strict functional evaluation
   This is the one and only way that physical events can intrude an
   Isabelle/ML program.  Such an interrupt can mean out-of-memory,
   stack overflow, timeout, internal signaling of threads, or the user
-  producing a console interrupt manually.  An Isabelle/ML program that
-  intercepts interrupts becomes dependent on physical effects produced
-  by the environment.  Even worse, accidental use of exception
-  handling patterns that are too general will cover interrupts
-  unintentionally, and thus render the program semantics ill-defined.
+  producing a console interrupt manually etc.  An Isabelle/ML program
+  that intercepts interrupts becomes dependent on physical effects of
+  the environment.  Even worse, exception handling patterns that are
+  too general by accident, e.g.\ by mispelled exception constructors,
+  will cover interrupts unintentionally, and thus render the program
+  semantics ill-defined.
 
   Note that the Interrupt exception dates back to the original SML90
   language definition.  It was excluded from the SML97 version to
@@ -422,6 +422,47 @@ text {* The Standard ML semantics of strict functional evaluation
   etc.\ needs to be followed immediately by re-raising of the original
   exception.
   \end{warn}
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
+  @{index_ML can: "('a -> 'b) -> 'a -> bool"} \\
+  @{index_ML reraise: "exn -> 'a"} \\
+  @{index_ML Exn.is_interrupt: "exn -> bool"} \\
+  @{index_ML exception_trace: "(unit -> 'a) -> 'a"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML try}~@{text "f x"} makes the partiality of evaluating
+  @{text "f x"} explicit via the option datatype.  Interrupts are
+  \emph{not} handled here, i.e.\ this form serves as safe replacement
+  for the \emph{unsafe} version @{verbatim "(SOME"}~@{text "f
+  x"}~@{verbatim "handle _ => NONE)"} that is occasionally seen in
+  books about SML.
+
+  \item @{ML can} is similar to @{ML try} with more abstract result.
+
+  \item @{ML reraise}~@{text "exn"} raises exception @{text "exn"}
+  while preserving its implicit position information (if possible,
+  depending on the ML platform).
+
+  \item @{ML Exn.is_interrupt} identifies interrupts robustly, without
+  having to mention concrete exception constructors in user code.
+  Handled interrupts need to be re-raised promptly!
+
+  \item @{ML exception_trace}~@{verbatim "(fn _ =>"}~@{text
+  "e"}@{verbatim ")"} evaluates expression @{text "e"} while printing
+  a full trace of its stack of nested exceptions (if possible,
+  depending on the ML platform).\footnote{In various versions of
+  Poly/ML the trace will appear on raw stdout of the Isabelle
+  process.}
+
+  Inserting @{ML exception_trace} into ML code temporarily is useful
+  for debugging, but not suitable for production code.
+
+  \end{description}
 *}
 
 end
