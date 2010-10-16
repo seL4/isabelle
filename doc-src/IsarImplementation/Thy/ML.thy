@@ -473,4 +473,62 @@ text %mlref {*
   \end{description}
 *}
 
+
+section {* Basic ML data types *}
+
+text {* The basis library proposal of SML97 need to be treated with
+  caution.  Many of its operations simply do not fit with important
+  Isabelle/ML conventions (like ``canonical argument order'', see
+  \secref{sec:canonical-argument-order}), others can cause serious
+  problems with the parallel evaluation model of Isabelle/ML (such as
+  @{ML TextIO.print} or @{ML OS.Process.system}).
+
+  Subsequently we give a brief overview of important operations on
+  basic ML data types.
+*}
+
+
+subsection {* Options *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML Option.map: "('a -> 'b) -> 'a option -> 'b option"} \\
+  @{index_ML is_some: "'a option -> bool"} \\
+  @{index_ML is_none: "'a option -> bool"} \\
+  @{index_ML the: "'a option -> 'a"} \\
+  @{index_ML these: "'a list option -> 'a list"} \\
+  @{index_ML the_list: "'a option -> 'a list"} \\
+  @{index_ML the_default: "'a -> 'a option -> 'a"} \\
+  \end{mldecls}
+*}
+
+text {* Apart from @{ML Option.map} most operations defined in
+  structure @{ML_struct Option} are alien to Isabelle/ML.  The
+  operations shown above are defined in @{"file"
+  "~~/src/Pure/General/basics.ML"}, among others.  *}
+
+
+subsection {* Unsynchronized references *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML Unsynchronized.ref: "'a -> 'a Unsynchronized.ref"} \\
+  @{index_ML "!": "'a Unsynchronized.ref -> 'a"} \\
+  @{index_ML "op :=": "'a Unsynchronized.ref * 'a -> unit"} \\
+  \end{mldecls}
+*}
+
+text {* Due to ubiquitous parallelism in Isabelle/ML (see also
+  \secref{sec:multi-threading}), the mutable reference cells of
+  Standard ML are notorious for causing problems.  In a highly
+  parallel system, both correctness \emph{and} performance are easily
+  degraded when using mutable data.
+
+  The unwieldy name of @{ML Unsynchronized.ref} for the constructor
+  for references in Isabelle/ML emphasizes the inconveniences caused by
+  mutability.  Existing operations @{ML "!"}  and @{ML "op :="} are
+  unchanged, but should be used with special precautions, say in a
+  strictly local situation that is guaranteed to be restricted to
+  sequential evaluation -- now and in the future.  *}
+
 end

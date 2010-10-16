@@ -496,31 +496,6 @@ text {*
   \end{mldecls}
 *}
 
-section {* Options and partiality *}
-
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML is_some: "'a option -> bool"} \\
-  @{index_ML is_none: "'a option -> bool"} \\
-  @{index_ML the: "'a option -> 'a"} \\
-  @{index_ML these: "'a list option -> 'a list"} \\
-  @{index_ML the_list: "'a option -> 'a list"} \\
-  @{index_ML the_default: "'a -> 'a option -> 'a"} \\
-  @{index_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
-  @{index_ML can: "('a -> 'b) -> 'a -> bool"} \\
-  \end{mldecls}
-*}
-
-text {*
-  Standard selector functions on @{text option}s are provided.  The
-  @{ML try} and @{ML can} functions provide a convenient interface for
-  handling exceptions -- both take as arguments a function @{ML_text f}
-  together with a parameter @{ML_text x} and handle any exception during
-  the evaluation of the application of @{ML_text f} to @{ML_text x}, either
-  return a lifted result (@{ML NONE} on failure) or a boolean value
-  (@{ML false} on failure).
-*}
-
 
 section {* Common data structures *}
 
