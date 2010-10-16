@@ -376,7 +376,7 @@ text {* The Standard ML semantics of strict functional evaluation
   \paragraph{Program failures.}  There is a handful of standard
   exceptions that indicate general failure situations, or failures of
   core operations on logical entities (types, terms, theorems,
-  theories).
+  theories, see \chref{ch:logic}).
 
   These exceptions indicate a genuine breakdown of the program, so the
   main purpose is to determine quickly what has happened where.
@@ -428,8 +428,10 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
   @{index_ML can: "('a -> 'b) -> 'a -> bool"} \\
-  @{index_ML reraise: "exn -> 'a"} \\
+  @{index_ML ERROR: "string -> exn"} \\
+  @{index_ML Fail: "string -> exn"} \\
   @{index_ML Exn.is_interrupt: "exn -> bool"} \\
+  @{index_ML reraise: "exn -> 'a"} \\
   @{index_ML exception_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
@@ -444,13 +446,19 @@ text %mlref {*
 
   \item @{ML can} is similar to @{ML try} with more abstract result.
 
+  \item @{ML ERROR}~@{text "msg"} represents user errors; this
+  exception is always raised via the @{ML error} function (see
+  \secref{sec:message-channels}).
+
+  \item @{ML Fail}~@{text "msg"} represents general program failures.
+
+  \item @{ML Exn.is_interrupt} identifies interrupts robustly, without
+  mentioning concrete exception constructors in user code.  Handled
+  interrupts need to be re-raised promptly!
+
   \item @{ML reraise}~@{text "exn"} raises exception @{text "exn"}
   while preserving its implicit position information (if possible,
   depending on the ML platform).
-
-  \item @{ML Exn.is_interrupt} identifies interrupts robustly, without
-  having to mention concrete exception constructors in user code.
-  Handled interrupts need to be re-raised promptly!
 
   \item @{ML exception_trace}~@{verbatim "(fn _ =>"}~@{text
   "e"}@{verbatim ")"} evaluates expression @{text "e"} while printing
