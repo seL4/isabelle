@@ -781,6 +781,28 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlex {* The following simple examples demonstrate how to produce
+  fresh names from the initial @{ML Name.context}. *}
+
+ML {*
+  Name.invents Name.context "a" 5;
+  #1 (Name.variants ["x", "x", "a", "a", "'a", "'a"] Name.context);
+*}
+
+text {* \medskip The same works reletively to the formal context as
+follows. *}
+
+locale ex = fixes a b c :: 'a
+begin
+
+ML {*
+  val names = Variable.names_of @{context};
+  Name.invents names "a" 5;
+  #1 (Name.variants ["x", "x", "a", "a", "'a", "'a"] names);
+*}
+
+end
+
 
 subsection {* Indexed names \label{sec:indexname} *}
 
