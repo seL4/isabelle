@@ -24,8 +24,10 @@ val mk_snd = HOLogic.mk_snd;
 val mk_not = HOLogic.mk_not;
 val mk_conj = HOLogic.mk_conj;
 val mk_disj = HOLogic.mk_disj;
+val mk_imp = HOLogic.mk_imp;
 
 fun mk_ex (x, t) = HOLogic.exists_const (fastype_of x) $ Term.lambda x t;
+fun mk_all (x, t) = HOLogic.all_const (fastype_of x) $ Term.lambda x t;
 
 
 (*** Basic HOLCF concepts ***)
