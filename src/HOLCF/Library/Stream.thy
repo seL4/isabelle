@@ -265,7 +265,7 @@ lemma stream_coind_lemma2: "!s1 s2. R s1 s2 --> ft$s1 = ft$s2 &  R (rt$s1) (rt$s
  apply (simp add: stream.bisim_def,clarsimp)
  apply (drule spec, drule spec, drule (1) mp)
  apply (case_tac "x", simp)
- apply (case_tac "x'", simp)
+ apply (case_tac "y", simp)
 by auto
 
 
