@@ -44,13 +44,13 @@ val _ = Thy_Output.antiquotation "verbatim" (Scan.lift Args.name)
 local
 
 fun ml_val (txt1, "") = "fn _ => (" ^ txt1 ^ ");"
-  | ml_val (txt1, txt2) = "fn _ => (" ^ txt1 ^ ": " ^ txt2 ^ ");";
+  | ml_val (txt1, txt2) = "fn _ => (" ^ txt1 ^ " : " ^ txt2 ^ ");";
 
 fun ml_type (txt1, "") = "val _ = NONE : (" ^ txt1 ^ ") option;"
   | ml_type (txt1, txt2) = "val _ = [NONE : (" ^ txt1 ^ ") option, NONE : (" ^ txt2 ^ ") option];";
 
-fun ml_exn (txt1, "") = "fn _ => (" ^ txt1 ^ ": exn);"
-  | ml_exn (txt1, txt2) = "fn _ => (" ^ txt1 ^ ": " ^ txt2 ^ " -> exn);";
+fun ml_exn (txt1, "") = "fn _ => (" ^ txt1 ^ " : exn);"
+  | ml_exn (txt1, txt2) = "fn _ => (" ^ txt1 ^ " : " ^ txt2 ^ " -> exn);";
 
 fun ml_structure (txt, _) = "functor XXX() = struct structure XX = " ^ txt ^ " end;";
 
@@ -64,7 +64,8 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
         if txt2 = "" then txt1
         else if kind = "type" then txt1 ^ " = " ^ txt2
         else if kind = "exception" then txt1 ^ " of " ^ txt2
-        else txt1 ^ ": " ^ txt2;
+        else if Syntax.is_identifier (Long_Name.base_name txt1) then txt1 ^ ": " ^ txt2
+        else txt1 ^ " : " ^ txt2;
       val txt' = if kind = "" then txt else kind ^ " " ^ txt;
       val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none (ml (txt1, txt2));  (* ML_Lex.read (!?) *)
       val kind' = if kind = "" then "ML" else "ML " ^ kind;
