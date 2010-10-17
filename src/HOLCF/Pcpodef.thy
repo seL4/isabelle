@@ -57,13 +57,10 @@ done
 
 subsection {* Proving a subtype is chain-finite *}
 
-lemma monofun_Rep:
+lemma ch2ch_Rep:
   assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-  shows "monofun Rep"
-by (rule monofunI, unfold below)
-
-lemmas ch2ch_Rep = ch2ch_monofun [OF monofun_Rep]
-lemmas ub2ub_Rep = ub2ub_monofun [OF monofun_Rep]
+  shows "chain S \<Longrightarrow> chain (\<lambda>i. Rep (S i))"
+unfolding chain_def below .
 
 theorem typedef_chfin:
   fixes Abs :: "'a::chfin \<Rightarrow> 'b::po"
@@ -87,6 +84,11 @@ text {*
   admissible predicate.
 *}
 
+lemma typedef_is_lubI:
+  assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
+  shows "range (\<lambda>i. Rep (S i)) <<| Rep x \<Longrightarrow> range S <<| x"
+unfolding is_lub_def is_ub_def below by simp
+
 lemma Abs_inverse_lub_Rep:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::po"
   assumes type: "type_definition Rep Abs A"
@@ -104,15 +106,15 @@ theorem typedef_lub:
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and adm: "adm (\<lambda>x. x \<in> A)"
   shows "chain S \<Longrightarrow> range S <<| Abs (\<Squnion>i. Rep (S i))"
- apply (frule ch2ch_Rep [OF below])
- apply (rule is_lubI)
-  apply (rule ub_rangeI)
-  apply (simp only: below Abs_inverse_lub_Rep [OF type below adm])
-  apply (erule is_ub_thelub)
- apply (simp only: below Abs_inverse_lub_Rep [OF type below adm])
- apply (erule is_lub_thelub)
- apply (erule ub2ub_Rep [OF below])
-done
+proof -
+  assume S: "chain S"
+  hence "chain (\<lambda>i. Rep (S i))" by (rule ch2ch_Rep [OF below])
+  hence "range (\<lambda>i. Rep (S i)) <<| (\<Squnion>i. Rep (S i))" by (rule cpo_lubI)
+  hence "range (\<lambda>i. Rep (S i)) <<| Rep (Abs (\<Squnion>i. Rep (S i)))"
+    by (simp only: Abs_inverse_lub_Rep [OF type below adm S])
+  thus "range S <<| Abs (\<Squnion>i. Rep (S i))"
+    by (rule typedef_is_lubI [OF below])
+qed
 
 lemmas typedef_thelub = typedef_lub [THEN thelubI, standard]
 
@@ -151,18 +153,6 @@ text {*
   only if we restrict its domain to the defining subset by
   composing it with another continuous function.
 *}
-
-theorem typedef_is_lubI:
-  assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-  shows "range (\<lambda>i. Rep (S i)) <<| Rep x \<Longrightarrow> range S <<| x"
- apply (rule is_lubI)
-  apply (rule ub_rangeI)
-  apply (subst below)
-  apply (erule is_ub_lub)
- apply (subst below)
- apply (erule is_lub_lub)
- apply (erule ub2ub_Rep [OF below])
-done
 
 theorem typedef_cont_Abs:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::cpo"
