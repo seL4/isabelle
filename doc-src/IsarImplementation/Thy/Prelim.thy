@@ -389,9 +389,9 @@ text {* The main purpose of theory and proof contexts is to manage
   \end{tabular}
   \medskip
 
-  \noindent The @{text "empty"} value acts as initial default for
-  \emph{any} theory that does not declare actual data content; @{text
-  "extend"} is acts like a unitary version of @{text "merge"}.
+  The @{text "empty"} value acts as initial default for \emph{any}
+  theory that does not declare actual data content; @{text "extend"}
+  is acts like a unitary version of @{text "merge"}.
 
   Implementing @{text "merge"} can be tricky.  The general idea is
   that @{text "merge (data\<^sub>1, data\<^sub>2)"} inserts those parts of @{text
@@ -413,8 +413,8 @@ text {* The main purpose of theory and proof contexts is to manage
   \end{tabular}
   \medskip
 
-  \noindent The @{text "init"} operation is supposed to produce a pure
-  value from the given background theory and should be somehow
+  The @{text "init"} operation is supposed to produce a pure value
+  from the given background theory and should be somehow
   ``immediate''.  Whenever a proof context is initialized, which
   happens frequently, the the system invokes the @{text "init"}
   operation of \emph{all} theory data slots ever declared.  This also
@@ -440,13 +440,12 @@ text {* The main purpose of theory and proof contexts is to manage
   \end{tabular}
   \medskip
 
-  \noindent These other operations provide exclusive access for the
-  particular kind of context (theory, proof, or generic context).
-  This interface observes the ML discipline for types and scopes:
-  there is no other way to access the corresponding data slot of a
-  context.  By keeping these operations private, an Isabelle/ML module
-  may maintain abstract values authentically.
-*}
+  These other operations provide exclusive access for the particular
+  kind of context (theory, proof, or generic context).  This interface
+  observes the ML discipline for types and scopes: there is no other
+  way to access the corresponding data slot of a context.  By keeping
+  these operations private, an Isabelle/ML module may maintain
+  abstract values authentically.  *}
 
 text %mlref {*
   \begin{mldecls}
@@ -485,9 +484,9 @@ ML {*
   end;
 *}
 
-text {* \noindent The implementation uses private theory data
-  internally, and only exposes an operation that involves explicit
-  argument checking wrt.\ the given theory. *}
+text {* The implementation uses private theory data internally, and
+  only exposes an operation that involves explicit argument checking
+  wrt.\ the given theory. *}
 
 ML {*
   structure Wellformed_Terms: WELLFORMED_TERMS =
@@ -500,7 +499,7 @@ ML {*
     val extend = I;
     fun merge (ts1, ts2) =
       Ord_List.union Term_Ord.fast_term_ord ts1 ts2;
-  )
+  );
 
   val get = Terms.get;
 
@@ -514,11 +513,11 @@ ML {*
   end;
 *}
 
-text {* \noindent We use @{ML_type "term Ord_List.T"} for reasonably
-  efficient representation of a set of terms: all operations are
-  linear in the number of stored elements.  Here we assume that users
-  of this module do not care about the declaration order, since that
-  data structure forces its own arrangement of elements.
+text {* We use @{ML_type "term Ord_List.T"} for reasonably efficient
+  representation of a set of terms: all operations are linear in the
+  number of stored elements.  Here we assume that users of this module
+  do not care about the declaration order, since that data structure
+  forces its own arrangement of elements.
 
   Observe how the @{verbatim merge} operation joins the data slots of
   the two constituents: @{ML Ord_List.union} prevents duplication of
@@ -615,13 +614,13 @@ text {* A \emph{symbol} constitutes the smallest textual unit in
 
   \end{enumerate}
 
-  \noindent The @{text "ident"} syntax for symbol names is @{text
-  "letter (letter | digit)\<^sup>*"}, where @{text "letter =
-  A..Za..z"} and @{text "digit = 0..9"}.  There are infinitely many
-  regular symbols and control symbols, but a fixed collection of
-  standard symbols is treated specifically.  For example,
-  ``\verb,\,\verb,<alpha>,'' is classified as a letter, which means it
-  may occur within regular Isabelle identifiers.
+  The @{text "ident"} syntax for symbol names is @{text "letter
+  (letter | digit)\<^sup>*"}, where @{text "letter = A..Za..z"} and @{text
+  "digit = 0..9"}.  There are infinitely many regular symbols and
+  control symbols, but a fixed collection of standard symbols is
+  treated specifically.  For example, ``\verb,\,\verb,<alpha>,'' is
+  classified as a letter, which means it may occur within regular
+  Isabelle identifiers.
 
   The character set underlying Isabelle symbols is 7-bit ASCII, but
   8-bit character sequences are passed-through unchanged.  Unicode/UCS
@@ -790,7 +789,7 @@ ML {*
 *}
 
 text {* \medskip The same works reletively to the formal context as
-follows. *}
+  follows. *}
 
 locale ex = fixes a b c :: 'a
 begin
@@ -843,7 +842,7 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML_type indexname} \\
+  @{index_ML_type indexname: "string * int"} \\
   \end{mldecls}
 
   \begin{description}
@@ -934,13 +933,12 @@ text {* A @{text "name space"} manages a collection of long names,
   main equation of this ``chemical reaction'' when binding new
   entities in a context is as follows:
 
-  \smallskip
+  \medskip
   \begin{tabular}{l}
   @{text "binding + naming \<longrightarrow> long name + name space accesses"}
   \end{tabular}
-  \smallskip
 
-  \medskip As a general principle, there is a separate name space for
+  \bigskip As a general principle, there is a separate name space for
   each kind of formal entity, e.g.\ fact, logical constant, type
   constructor, type class.  It is usually clear from the occurrence in
   concrete syntax (or from the scope) which kind of entity a name
@@ -1103,16 +1101,16 @@ text %mlex {* The following example yields the source position of some
 
 ML {* Binding.pos_of @{binding here} *}
 
-text {* \medskip\noindent That position can be also printed in a
-  message as follows. *}
+text {* \medskip That position can be also printed in a message as
+  follows. *}
 
 ML_command {*
   writeln
     ("Look here" ^ Position.str_of (Binding.pos_of @{binding here}))
 *}
 
-text {* \noindent This illustrates a key virtue of formalized bindings
-  as opposed to raw specifications of base names: the system can use
-  this additional information for advanced feedback given to the user. *}
+text {* This illustrates a key virtue of formalized bindings as
+  opposed to raw specifications of base names: the system can use this
+  additional information for advanced feedback given to the user. *}
 
 end

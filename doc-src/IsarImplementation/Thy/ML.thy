@@ -78,10 +78,10 @@ ML {*
     | factorial n = n * factorial (n - 1)
 *}
 
-text {* \noindent Here the ML environment is really managed by
-  Isabelle, i.e.\ the @{ML factorial} function is not yet accessible
-  in the preceding paragraph, nor in a different theory that is
-  independent from the current one in the import hierarchy.
+text {* Here the ML environment is really managed by Isabelle, i.e.\
+  the @{ML factorial} function is not yet accessible in the preceding
+  paragraph, nor in a different theory that is independent from the
+  current one in the import hierarchy.
 
   Removing the above ML declaration from the source text will remove
   any trace of this definition as expected.  The Isabelle/ML toplevel
@@ -92,12 +92,11 @@ text {* \noindent Here the ML environment is really managed by
   compilation within independent nodes of the implicit theory
   development graph.}
 
-  \bigskip The next example shows how to embed ML into Isar proofs.
+  \medskip The next example shows how to embed ML into Isar proofs.
   Instead of @{command_ref "ML"} for theory mode, we use @{command_ref
   "ML_prf"} for proof mode.  As illustrated below, its effect on the
   ML environment is local to the whole proof body, while ignoring its
-  internal block structure.
-*}
+  internal block structure.  *}
 
 example_proof
   ML_prf %"ML" {* val a = 1 *}
@@ -107,20 +106,19 @@ example_proof
   ML_prf %"ML" {* val c = b + 1 *}
 qed
 
-text {* \noindent By side-stepping the normal scoping rules for Isar
-  proof blocks, embedded ML code can refer to the different contexts
+text {* By side-stepping the normal scoping rules for Isar proof
+  blocks, embedded ML code can refer to the different contexts
   explicitly, and manipulate corresponding entities, e.g.\ export a
   fact from a block context.
 
-  \bigskip Two further ML commands are useful in certain situations:
+  \medskip Two further ML commands are useful in certain situations:
   @{command_ref ML_val} and @{command_ref ML_command} are both
   \emph{diagnostic} in the sense that there is no effect on the
   underlying environment, and can thus used anywhere (even outside a
   theory).  The examples below produce long strings of digits by
   invoking @{ML factorial}: @{command ML_val} already takes care of
   printing the ML toplevel result, but @{command ML_command} is silent
-  so we produce an explicit output message.
-*}
+  so we produce an explicit output message.  *}
 
 ML_val {* factorial 100 *}
 ML_command {* writeln (string_of_int (factorial 100)) *}
@@ -191,9 +189,9 @@ text {* A very important consequence of embedding SML into Isar is the
   ;
   \end{rail}
 
-  \noindent Here @{syntax nameref} and @{syntax args} are regular
-  outer syntax categories.  Note that attributes and proof methods use
-  similar syntax.
+  Here @{syntax nameref} and @{syntax args} are regular outer syntax
+  categories.  Note that attributes and proof methods use similar
+  syntax.
 
   \medskip A regular antiquotation @{text "@{name args}"} processes
   its arguments by the usual means of the Isar source language, and
@@ -210,9 +208,8 @@ text {* A very important consequence of embedding SML into Isar is the
   effect by introducing local blocks within the pre-compilation
   environment.
 
-  \bigskip See also \cite{Wenzel-Chaieb:2007b} for a slightly broader
-  perspective on Isabelle/ML antiquotations.
-*}
+  \medskip See also \cite{Wenzel-Chaieb:2007b} for a slightly broader
+  perspective on Isabelle/ML antiquotations.  *}
 
 text %mlantiq {*
   \begin{matharray}{rcl}
@@ -321,16 +318,16 @@ text %mlref {*
   perfectly legal alternative: it means that the error is absorbed
   without any message output.
 
-  \end{description}
-
-\begin{warn}
+  \begin{warn}
   The actual error channel is accessed via @{ML Output.error_msg}, but
   the interaction protocol of Proof~General \emph{crashes} if that
   function is used in regular ML code: error output and toplevel
   command failure always need to coincide here.
-\end{warn}
+  \end{warn}
 
-\begin{warn}
+  \end{description}
+
+  \begin{warn}
   Regular Isabelle/ML code should output messages exclusively by the
   official channels.  Using raw I/O on \emph{stdout} or \emph{stderr}
   instead (e.g.\ via @{ML TextIO.output}) is apt to cause problems in
@@ -340,7 +337,7 @@ text %mlref {*
   see it.  Moreover, as a genuine side-effect on global process
   channels, there is no proper way to retract output when Isar command
   transactions are reset.
-\end{warn}
+  \end{warn}
 *}
 
 

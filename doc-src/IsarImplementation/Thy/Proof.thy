@@ -70,9 +70,8 @@ example_proof
   thm this  -- {* fully general result for arbitrary @{text "?x::?'a"} *}
 qed
 
-text {*
-  \medskip The Isabelle/Isar proof context manages the gory details of
-  term vs.\ type variables, with high-level principles for moving the
+text {* The Isabelle/Isar proof context manages the details of term
+  vs.\ type variables, with high-level principles for moving the
   frontier between fixed and schematic variables.
 
   The @{text "add_fixes"} operation explictly declares fixed
@@ -195,12 +194,11 @@ ML {*
     ctxt0 |> Variable.variant_fixes ["x", "x", "x"];
 *}
 
-text {* \noindent The following ML code can now work with the invented
-  names of @{verbatim x1}, @{verbatim x2}, @{verbatim x3}, without
-  depending on the details on the system policy for introducing these
-  variants.  Recall that within a proof body the system always invents
-  fresh ``skolem constants'', e.g.\ as follows:
-*}
+text {* The following ML code can now work with the invented names of
+  @{verbatim x1}, @{verbatim x2}, @{verbatim x3}, without depending on
+  the details on the system policy for introducing these variants.
+  Recall that within a proof body the system always invents fresh
+  ``skolem constants'', e.g.\ as follows: *}
 
 example_proof
   ML_prf %"ML" {*
@@ -215,10 +213,10 @@ example_proof
   *}
   oops
 
-text {* \noindent In this situation @{ML Variable.add_fixes} and @{ML
+text {* In this situation @{ML Variable.add_fixes} and @{ML
   Variable.variant_fixes} are very similar, but identical name
   proposals given in a row are only accepted by the second version.
-*}
+  *}
 
 
 section {* Assumptions \label{sec:assumptions} *}
@@ -339,11 +337,10 @@ ML {*
   val r = Assumption.export false ctxt1 ctxt0 eq';
 *}
 
-text {* \noindent Note that the variables of the resulting rule are
-  not generalized.  This would have required to fix them properly in
-  the context beforehand, and export wrt.\ variables afterwards (cf.\
-  @{ML Variable.export} or the combined @{ML "ProofContext.export"}).
-*}
+text {* Note that the variables of the resulting rule are not
+  generalized.  This would have required to fix them properly in the
+  context beforehand, and export wrt.\ variables afterwards (cf.\ @{ML
+  Variable.export} or the combined @{ML "ProofContext.export"}).  *}
 
 
 section {* Structured goals and results \label{sec:struct-goals} *}

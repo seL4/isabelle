@@ -286,7 +286,7 @@ text {*
   polymorphic constants that the user-level type-checker would reject
   due to violation of type class restrictions.
 
-  \medskip An \emph{atomic} term is either a variable or constant.
+  \medskip An \emph{atomic term} is either a variable or constant.
   The logical category \emph{term} is defined inductively over atomic
   terms, with abstraction and application as follows: @{text "t = b |
   x\<^isub>\<tau> | ?x\<^isub>\<tau> | c\<^isub>\<tau> | \<lambda>\<^isub>\<tau>. t | t\<^isub>1 t\<^isub>2"}.  Parsing and printing takes care of
@@ -929,9 +929,9 @@ text {*
   \end{tabular}
   \medskip
 
-  \noindent Thus we essentially impose nesting levels on propositions
-  formed from @{text "\<And>"} and @{text "\<Longrightarrow>"}.  At each level there is a
-  prefix of parameters and compound premises, concluding an atomic
+  Thus we essentially impose nesting levels on propositions formed
+  from @{text "\<And>"} and @{text "\<Longrightarrow>"}.  At each level there is a prefix
+  of parameters and compound premises, concluding an atomic
   proposition.  Typical examples are @{text "\<longrightarrow>"}-introduction @{text
   "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B"} or mathematical induction @{text "P 0 \<Longrightarrow> (\<And>n. P n
   \<Longrightarrow> P (Suc n)) \<Longrightarrow> P n"}.  Even deeper nesting occurs in well-founded

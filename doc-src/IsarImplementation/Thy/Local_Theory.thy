@@ -86,13 +86,12 @@ text {*
   \framebox{\quad auxiliary context \quad\framebox{\quad target context \quad\framebox{\quad background theory\quad}}}
   \end{center}
 
-  \noindent When a definitional package is finished, the auxiliary
-  context is reset to the target context.  The target now holds
-  definitions for terms and theorems that stem from the hypothetical
-  @{text "\<DEFINE>"} and @{text "\<NOTE>"} elements, transformed by
-  the particular target policy (see
-  \cite[\S4--5]{Haftmann-Wenzel:2009} for details).
-*}
+  When a definitional package is finished, the auxiliary context is
+  reset to the target context.  The target now holds definitions for
+  terms and theorems that stem from the hypothetical @{text
+  "\<DEFINE>"} and @{text "\<NOTE>"} elements, transformed by the
+  particular target policy (see \cite[\S4--5]{Haftmann-Wenzel:2009}
+  for details).  *}
 
 text %mlref {*
   \begin{mldecls}

@@ -167,9 +167,8 @@ example_proof
     ML_val {* Thm.nprems_of (#goal @{Isar.goal}) *}
     oops
 
-text {* \noindent Here we see 3 individual subgoals in the same way as
-  regular proof methods would do.
-*}
+text {* Here we see 3 individual subgoals in the same way as regular
+  proof methods would do.  *}
 
 
 section {* Proof methods *}
@@ -229,11 +228,11 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
   \end{tabular}
   \medskip
 
-  \noindent The goal configuration consists of @{text "facts\<^sub>1"} and
-  @{text "facts\<^sub>2"} appended in that order, and various @{text "props"}
-  being claimed here.  The @{text "initial_method"} is invoked with
-  facts and goals together and refines the problem to something that
-  is handled recursively in the proof @{text "body"}.  The @{text
+  The goal configuration consists of @{text "facts\<^sub>1"} and @{text
+  "facts\<^sub>2"} appended in that order, and various @{text "props"} being
+  claimed here.  The @{text "initial_method"} is invoked with facts
+  and goals together and refines the problem to something that is
+  handled recursively in the proof @{text "body"}.  The @{text
   "terminal_method"} has another chance to finish-off any remaining
   subgoals, but it does not see the facts of the initial step.
 
@@ -249,12 +248,12 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
   \end{tabular}
   \medskip
 
-  \noindent The @{text "method\<^sub>1"} operates on the original claim
-  together while using @{text "facts\<^sub>1"}.  Since the @{command apply}
-  command structurally resets the facts, the @{text "method\<^sub>2"} will
-  operate on the remaining goal state without facts.  The @{text
-  "method\<^sub>3"} will see again a collection of @{text "facts\<^sub>3"} that has
-  been inserted into the script explicitly.
+  The @{text "method\<^sub>1"} operates on the original claim together while
+  using @{text "facts\<^sub>1"}.  Since the @{command apply} command
+  structurally resets the facts, the @{text "method\<^sub>2"} will operate on
+  the remaining goal state without facts.  The @{text "method\<^sub>3"} will
+  see again a collection of @{text "facts\<^sub>3"} that has been inserted
+  into the script explicitly.
 
   \medskip Empirically, Isar proof methods can be categorized as
   follows.
@@ -446,12 +445,11 @@ ML {*
 *}
 setup My_Simps.setup
 
-text {* \medskip\noindent This provides ML access to a list of
-  theorems in canonical declaration order via @{ML My_Simps.get}.  The
-  user can add or delete rules via the attribute @{attribute my_simp}.
-  The actual proof method is now defined as before, but we append the
-  explicit arguments and the rules from the context.
-*}
+text {* This provides ML access to a list of theorems in canonical
+  declaration order via @{ML My_Simps.get}.  The user can add or
+  delete rules via the attribute @{attribute my_simp}.  The actual
+  proof method is now defined as before, but we append the explicit
+  arguments and the rules from the context.  *}
 
 method_setup my_simp' = {*
   Attrib.thms >> (fn thms => fn ctxt =>
