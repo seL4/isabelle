@@ -485,6 +485,35 @@ text {* The basis library proposal of SML97 need to be treated with
 *}
 
 
+subsection {* Integers *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type int} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type int} always represents regular mathematical
+  integers, which are \emph{unbounded}.  Overflow never happens in
+  practice.\footnote{The size limit for integer bit patterns in memory
+  is 64\,MB for 32-bit Poly/ML, and much higher for 64-bit systems.}
+  This works uniformly for all supported ML platforms (Poly/ML and
+  SML/NJ).
+
+  Literal integers in ML text (e.g.\ @{ML
+  123456789012345678901234567890}) are forced to be of this one true
+  integer type --- overloading of SML97 is disabled.
+
+  Structure @{ML_struct IntInf} of SML97 is obsolete, always use
+  @{ML_struct Int}.  Structure @{ML_struct Integer} in @{"file"
+  "~~/src/Pure/General/integer.ML"} provides some additional
+  operations.
+
+  \end{description}
+*}
+
+
 subsection {* Options *}
 
 text %mlref {*
