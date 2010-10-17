@@ -5,8 +5,6 @@
 Proof generator for domain command.
 *)
 
-val HOLCF_ss = @{simpset};
-
 signature DOMAIN_THEOREMS =
 sig
   val comp_theorems :
@@ -29,53 +27,6 @@ fun message s = if !quiet_mode then () else writeln s;
 fun trace s = if !trace_domain then tracing s else ();
 
 open HOLCF_Library;
-infixr 0 ===>;
-infix 0 == ; 
-infix 1 ===;
-infix 9 `   ;
-
-(* ----- general proof facilities ------------------------------------------- *)
-
-local
-
-fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
-  | map_typ f _ (TFree (x, S)) = TFree (x, map f S)
-  | map_typ f _ (TVar (xi, S)) = TVar (xi, map f S);
-
-fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
-  | map_term f g _ (Free (x, T)) = Free (x, map_typ f g T)
-  | map_term f g _ (Var (xi, T)) = Var (xi, map_typ f g T)
-  | map_term _ _ _ (t as Bound _) = t
-  | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
-  | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
-
-in
-
-fun intern_term thy =
-  map_term (Sign.intern_class thy) (Sign.intern_type thy) (Sign.intern_const thy);
-
-end;
-
-fun legacy_infer_term thy t =
-  let val ctxt = ProofContext.set_mode ProofContext.mode_schematic (ProofContext.init_global thy)
-  in singleton (Syntax.check_terms ctxt) (intern_term thy t) end;
-
-fun pg'' thy defs t tacs =
-  let
-    val t' = legacy_infer_term thy t;
-    val asms = Logic.strip_imp_prems t';
-    val prop = Logic.strip_imp_concl t';
-    fun tac {prems, context} =
-      rewrite_goals_tac defs THEN
-      EVERY (tacs {prems = map (rewrite_rule defs) prems, context = context})
-  in Goal.prove_global thy [] asms prop tac end;
-
-fun pg' thy defs t tacsf =
-  let
-    fun tacs {prems, context} =
-      if null prems then tacsf context
-      else cut_facts_tac prems 1 :: tacsf context;
-  in pg'' thy defs t tacs end;
 
 (******************************************************************************)
 (***************************** proofs about take ******************************)
@@ -135,16 +86,12 @@ in
     (dbinds ~~ take_consts ~~ constr_infos) thy
 end;
 
-(* ----- general proofs ----------------------------------------------------- *)
-
-val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
-
-val case_UU_allI =
-    @{lemma "(!!x. x ~= UU ==> P x) ==> P UU ==> ALL x. P x" by metis};
-
 (******************************************************************************)
 (****************************** induction rules *******************************)
 (******************************************************************************)
+
+val case_UU_allI =
+    @{lemma "(!!x. x ~= UU ==> P x) ==> P UU ==> ALL x. P x" by metis};
 
 fun prove_induction
     (comp_dbind : binding)
