@@ -188,7 +188,7 @@ apply (rule hoare_lemma8 [THEN spec, THEN mp])
 apply assumption
 apply assumption
 apply (simp (no_asm))
-apply (tactic "simp_tac HOLCF_ss 1")
+apply (simp (no_asm))
 apply (rule trans)
 apply (rule p_def3)
 apply (simp (no_asm) del: iterate_Suc add: iterate_Suc [symmetric])
@@ -222,7 +222,7 @@ apply (rule hoare_lemma8 [THEN spec, THEN mp])
 apply assumption
 apply assumption
 apply (simp (no_asm))
-apply (tactic "asm_simp_tac HOLCF_ss 1")
+apply (simp)
 apply (rule trans)
 apply (rule p_def3)
 apply simp
@@ -238,7 +238,7 @@ apply (simp (no_asm))
 apply (rule allI)
 apply (rule_tac s = "TT" and t = "b1$ (iterate k$g$x) " in ssubst)
 apply (erule spec)
-apply (tactic "asm_simp_tac HOLCF_ss 1")
+apply (simp)
 apply (rule iterate_Suc [THEN subst])
 apply (erule spec)
 done
@@ -258,7 +258,7 @@ apply (rule allI)
 apply (simp (no_asm))
 apply (rule_tac s = "TT" and t = "b1$ (iterate k$g$x) " in ssubst)
 apply (erule spec)
-apply (tactic "asm_simp_tac HOLCF_ss 1")
+apply (simp)
 apply (rule iterate_Suc [THEN subst])
 apply (erule spec)
 done
@@ -283,7 +283,7 @@ apply (rule allI)
 apply (simp (no_asm))
 apply (rule_tac s = "TT" and t = "b1$ (iterate k$g$ (x::'a))" in ssubst)
 apply (erule spec)
-apply (tactic "asm_simp_tac HOLCF_ss 1")
+apply (simp)
 apply (rule iterate_Suc [THEN subst])
 apply (erule spec)
 done
@@ -338,7 +338,7 @@ apply (simp (no_asm))
 apply (intro strip)
 apply (erule conjE)
 apply (subst q_def3)
-apply (tactic "asm_simp_tac HOLCF_ss 1")
+apply (simp)
 apply hypsubst
 apply (simp (no_asm))
 apply (intro strip)
@@ -354,10 +354,10 @@ apply (rule hoare_lemma8 [THEN spec, THEN mp])
 apply assumption
 apply assumption
 apply (simp (no_asm))
-apply (tactic "asm_simp_tac HOLCF_ss 1")
+apply (simp)
 apply (rule trans)
 apply (rule q_def3)
-apply (tactic "asm_simp_tac HOLCF_ss 1")
+apply (simp)
 done
 
 (* ------- (ALL k. b1$(iterate k$g$x)=TT) ==> q o p = q   ----- *)
