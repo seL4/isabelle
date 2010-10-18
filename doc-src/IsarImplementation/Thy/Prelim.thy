@@ -643,18 +643,19 @@ text {* Now the user can refer to @{attribute my_flag} in
   declarations, while we can retrieve the current value from the
   context via @{ML Config.get}.  *}
 
-ML_val {* Config.get @{context} my_flag *}
+ML_val {* @{assert} (Config.get @{context} my_flag = false) *}
 
 declare [[my_flag = true]]
 
-ML_val {* Config.get @{context} my_flag *}
+ML_val {* @{assert} (Config.get @{context} my_flag = true) *}
 
 example_proof
-  note [[my_flag = false]]
-  ML_val {* Config.get @{context} my_flag *}
+  {
+    note [[my_flag = false]]
+    ML_val {* @{assert} (Config.get @{context} my_flag = false) *}
+  }
+  ML_val {* @{assert} (Config.get @{context} my_flag = true) *}
 qed
-
-ML_val {* Config.get @{context} my_flag *}
 
 
 section {* Names \label{sec:names} *}
@@ -888,8 +889,12 @@ text %mlex {* The following simple examples demonstrate how to produce
   fresh names from the initial @{ML Name.context}. *}
 
 ML {*
-  Name.invents Name.context "a" 5;
-  #1 (Name.variants ["x", "x", "a", "a", "'a", "'a"] Name.context);
+  val list1 = Name.invents Name.context "a" 5;
+  @{assert} (list1 = ["a", "b", "c", "d", "e"]);
+
+  val list2 =
+    #1 (Name.variants ["x", "x", "a", "a", "'a", "'a"] Name.context);
+  @{assert} (list2 = ["x", "xa", "a", "aa", "'a", "'aa"]);
 *}
 
 text {* \medskip The same works reletively to the formal context as
@@ -900,8 +905,13 @@ begin
 
 ML {*
   val names = Variable.names_of @{context};
-  Name.invents names "a" 5;
-  #1 (Name.variants ["x", "x", "a", "a", "'a", "'a"] names);
+
+  val list1 = Name.invents names "a" 5;
+  @{assert} (list1 = ["d", "e", "f", "g", "h"]);
+
+  val list2 =
+    #1 (Name.variants ["x", "x", "a", "a", "'a", "'a"] names);
+  @{assert} (list2 = ["x", "xa", "aa", "ab", "'aa", "'ab"]);
 *}
 
 end

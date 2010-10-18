@@ -164,7 +164,10 @@ text %mlex {* The following example peeks at a certain goal configuration. *}
 
 example_proof
   have A and B and C
-    ML_val {* Thm.nprems_of (#goal @{Isar.goal}) *}
+    ML_val {*
+      val n = Thm.nprems_of (#goal @{Isar.goal});
+      @{assert} (n = 3);
+    *}
     oops
 
 text {* Here we see 3 individual subgoals in the same way as regular

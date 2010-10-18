@@ -470,6 +470,21 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "assert"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item @{text "@{assert}"} inlines a function @{text "bool \<Rightarrow> unit"}
+  that raises @{ML Fail} if the argument is @{ML false}.  Due to
+  inlining the source position of failed assertions is included in the
+  error output.
+
+  \end{description}
+*}
+
 
 section {* Basic data types *}
 
@@ -648,7 +663,10 @@ ML {*
   val items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   val list1 = fold cons items [];
+  @{assert} (list1 = rev items);
+
   val list2 = fold_rev cons items [];
+  @{assert} (list2 = items);
 *}
 
 
