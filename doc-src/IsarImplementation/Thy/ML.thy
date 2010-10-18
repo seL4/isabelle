@@ -341,7 +341,7 @@ text %mlref {*
 *}
 
 
-section {* Exceptions *}
+section {* Exceptions \label{sec:exceptions} *}
 
 text {* The Standard ML semantics of strict functional evaluation
   together with exceptions is rather well defined, but some delicate
@@ -692,5 +692,187 @@ text {* Due to ubiquitous parallelism in Isabelle/ML (see also
   unchanged, but should be used with special precautions, say in a
   strictly local situation that is guaranteed to be restricted to
   sequential evaluation -- now and in the future.  *}
+
+
+section {* Thread-safe programming *}
+
+text {* Multi-threaded execution has become an everyday reality in
+  Isabelle since Poly/ML 5.2.1 and Isabelle2008.  Isabelle/ML provides
+  implicit and explicit parallelism by default, without any option to
+  ``drop out''.  User-code that is purely functional and does not
+  intercept interrupts (\secref{sec:exceptions}) can participate
+  within the multi-threaded environment without further ado.  More
+  ambitious tools need to observe the principles explained below.  *}
+
+
+subsection {* Multi-threading with shared memory *}
+
+text {*
+  Multiple threads help to organize advanced operations of the system,
+  such as real-time conditions on command transactions, sub-components
+  with explicit communication, general asynchronous interaction etc.
+  Moreover, truely parallel evaluation is inevitable to make adequate
+  use of the CPU resources that are available on multi-core
+  systems.\footnote{Multi-core computing does not mean that there are
+  ``spare cycles'' to be wasted.  It means that the continued
+  exponential speedup of CPU performance due to ``Moore's Law''
+  follows different rules: clock frequency has reached its peak around
+  2005, and applications need to be parallelized in order to avoid a
+  perceived loss of performance, see also \cite{Sutter:2005}.}
+
+  Isabelle/Isar exploits the inherent structure of theories and proofs
+  to support \emph{implicit parallelism} to a large extent.  LCF-style
+  theorem provides unusually good conditions for parallelism; see also
+  \cite{Wenzel:2009}.  This means, significant parts of theory and
+  proof checking is parallelized by default.  A maximum speedup-factor
+  of 3.0 on 4 cores and 5.0 on 8 cores can be
+  expected.\footnote{Further scalability is limited due to garbage
+  collection, which is still sequential in Poly/ML 5.2/5.3/5.4.  It
+  helps to provide initial heap space generously, using the
+  \texttt{-H} option.  Initial heap size needs to be scaled-up
+  together with the number of CPU cores.}
+
+  \medskip ML threads lack the memory protection of separate
+  processes, and operate concurrently on shared heap memory.  This has
+  the advantage that results of independent computations are
+  immediately available to other threads.  Abstract values can be
+  passed between threads without copying or awkward serialization that
+  is typically required for explicit message passing between separate
+  processes.
+
+  To make shared-memory multi-threading work robustly and efficiently,
+  some programming guidelines need to be observed.  While the ML
+  system is responsible to maintain basic integrity of the
+  representation of ML values in memory, the application programmer
+  needs to ensure that multi-threaded execution does not break the
+  intended semantics.
+
+  \begin{warn}
+  To participate in implicit parallelism, tools need to be
+  thread-safe.  A single ill-behaved tool can affect the stability and
+  performance of the whole system.
+  \end{warn}
+
+  Apart from observing the principles of thread-safeness passively,
+  advanced tools may also exploit parallelism actively, e.g.\ by using
+  ``future values'' (\secref{sec:futures}) or or the more basic
+  library functions for parallel list operations
+  (\secref{sec:parlist}).
+
+  \begin{warn}
+  Parallel computing resources are managed centrally by the
+  Isabelle/ML infrastructure.  User-space programs must not fork their
+  own threads to perform computations.
+  \end{warn}
+*}
+
+subsection {* Critical shared resources *}
+
+text {* Thread-safeness is mainly concerned about concurrent
+  read/write access to shared resources, which are outside the purely
+  functional world of ML.  This covers the following in particular.
+
+  \begin{itemize}
+
+  \item Global references (or arrays), i.e.\ mutable memory cells that
+  persist over several invocations of associated
+  operations.\footnote{This is independent of the visibility of such
+  mutable values in the toplevel scope.}
+
+  \item Global state of the running process, i.e.\ raw I/O channels,
+  environment variables, current working directory.
+
+  \item Writable resources in the file-system that are shared among
+  different threads or other processes.
+
+  \end{itemize}
+
+  Isabelle/ML provides various mechanisms to \emph{avoid} critical
+  shared resources in most practical situations.  As last resort there
+  are some mechanisms for explicit synchronization.  The following
+  guidelines help to make Isabelle/ML programs work smoothly in a
+  highly parallel environment.
+
+  \begin{itemize}
+
+  \item Avoid global references altogether.  Isabelle/Isar maintains a
+  uniform context that incorporates arbitrary data declared by
+  Isabelle/ML programs in user-space (see \secref{sec:context-data}).
+  This context is passed as plain value and user tools can get/map
+  their own data in a purely functional manner.  Configuration options
+  within the context (\secref{sec:config-options}) provide simple
+  drop-in replacements for formerly writable flags.
+
+  \item Keep components with local state information re-entrant.
+  Instead of poking initial values into (private) global references,
+  create a new state record on each invocation, and pass that through
+  any auxiliary functions of the component.  The state record may well
+  contain mutable references, without requiring any special
+  synchronizations, as long as each invocation sees its own copy.
+
+  \item Raw output on @{text "stdout"} or @{text "stderr"} should be
+  avoided altogether, or at least performed as a single atomic
+  action.\footnote{The Poly/ML library is thread-safe for each
+  individual output operation, but the ordering of parallel
+  invocations is arbitrary.  This means raw output will appear on some
+  system console with unpredictable interleaving of atomic chunks.}
+
+  Note that regular message output channels
+  (\secref{sec:message-channels}) are not directly affected: each
+  message is associated with the command transaction from where it
+  originates, independently of other transactions.  This means each
+  running command has effectively its own set of message channels, and
+  interleaving can only happen (at message boundary) when commands use
+  parallelism internally.
+
+  \item Environment variables and the current working directory of the
+  running Isabelle process are considered strictly read-only.
+
+  \item Writable files are in most situations just temporary input to
+  external processes invoked by some ML thread.  By ensuring a unique
+  file name for each instance, such write operations will be disjoint
+  over the life-time of a given Isabelle process, and thus
+  thread-safe.
+
+  \end{itemize}
+
+  In rare situations where actual mutable content needs to be
+  manipulated, Isabelle provides a single \emph{critical section} that
+  may be entered while preventing any other thread from doing the
+  same.  Entering the critical section without contention is very
+  fast, and several basic system operations do so frequently.  This
+  also means that each thread should leave the critical section
+  quickly, otherwise parallel execution performance may degrade
+  significantly.
+
+  Despite this potential bottle-neck, centralized locking is
+  convenient, because it prevents deadlocks without demanding special
+  precautions.  Explicit communication demands other means, though.
+  The high-level abstraction of synchronized variables @{"file"
+  "~~/src/Pure/Concurrent/synchronized.ML"} enables parallel
+  components to communicate via shared state; see also @{"file"
+  "~~/src/Pure/Concurrent/mailbox.ML"} as canonical example.
+
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML NAMED_CRITICAL: "string -> (unit -> 'a) -> 'a"} \\
+  @{index_ML CRITICAL: "(unit -> 'a) -> 'a"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML NAMED_CRITICAL}~@{text "name f"} evaluates @{text "f ()"}
+  while staying within the critical section of Isabelle/Isar.  No
+  other thread may do so at the same time, but non-critical parallel
+  execution will continue.  The @{text "name"} argument serves for
+  diagnostic purposes and might help to spot sources of congestion.
+
+  \item @{ML CRITICAL} is the same as @{ML NAMED_CRITICAL} with empty
+  name argument.
+
+  \end{description}
+*}
 
 end
