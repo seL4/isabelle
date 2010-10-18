@@ -553,6 +553,110 @@ text {* Type @{ML_type "term Ord_List.T"} is used for reasonably
 *}
 
 
+subsection {* Configuration options \label{sec:config-options} *}
+
+text {* A \emph{configuration option} is a named optional value of
+  some basic type (Boolean, integer, string) that is stored in the
+  context.  It is a simple application of general context data
+  (\secref{sec:context-data}) that is sufficiently common to justify
+  customized setup, which includes some concrete declarations for
+  end-users using existing notation for attributes (cf.\
+  \secref{sec:attributes}).
+
+  For example, the predefined configuration option @{attribute
+  show_types} controls output of explicit type constraints for
+  variables in printed terms (cf.\ \secref{sec:parse-print}).  Its
+  value can be modified within Isar text like this:
+*}
+
+declare [[show_types = false]]
+  -- {* declaration within (local) theory context *}
+
+example_proof
+  note [[show_types = true]]
+    -- {* declaration within proof (forward mode) *}
+  term x
+
+  have "x = x"
+    using [[show_types = false]]
+      -- {* declaration within proof (backward mode) *}
+    ..
+qed
+
+text {* Configuration options that are not set explicitly hold a
+  default value that can depend on the application context.  This
+  allows to retrieve the value from another slot within the context,
+  or fall back on a global preference mechanism, for example.
+
+  The operations to declare configuration options and get/map their
+  values are modeled as direct replacements for historic global
+  references, only that the context is made explicit.  This allows
+  easy configuration of tools, without relying on the execution order
+  as required for old-style mutable references.  *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML Config.get: "Proof.context -> 'a Config.T -> 'a"} \\
+  @{index_ML Config.map: "'a Config.T -> ('a -> 'a) -> Proof.context -> Proof.context"} \\
+  @{index_ML Attrib.config_bool: "string -> (Context.generic -> bool) ->
+  bool Config.T * (theory -> theory)"} \\
+  @{index_ML Attrib.config_int: "string -> (Context.generic -> int) ->
+  int Config.T * (theory -> theory)"} \\
+  @{index_ML Attrib.config_string: "string -> (Context.generic -> string) ->
+  string Config.T * (theory -> theory)"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML Config.get}~@{text "ctxt config"} gets the value of
+  @{text "config"} in the given context.
+
+  \item @{ML Config.map}~@{text "config f ctxt"} updates the context
+  by updating the value of @{text "config"}.
+
+  \item @{text "(config, setup) ="}~@{ML Attrib.config_bool}~@{text
+  "name default"} creates a named configuration option of type
+  @{ML_type bool}, with the given @{text "default"} depending on the
+  application context.  The resulting @{text "config"} can be used to
+  get/map its value in a given context.  The @{text "setup"} function
+  needs to be applied to the theory initially, in order to make
+  concrete declaration syntax available to the user.
+
+  \item @{ML Attrib.config_int} and @{ML Attrib.config_string} work
+  like @{ML Attrib.config_bool}, but for types @{ML_type int} and
+  @{ML_type string}, respectively.
+
+  \end{description}
+*}
+
+text %mlex {* The following example shows how to declare and use a
+  Boolean configuration option called @{text "my_flag"} with constant
+  default value @{ML false}.  *}
+
+ML {*
+  val (my_flag, my_flag_setup) =
+    Attrib.config_bool "my_flag" (K false)
+*}
+setup my_flag_setup
+
+text {* Now the user can refer to @{attribute my_flag} in
+  declarations, while we can retrieve the current value from the
+  context via @{ML Config.get}.  *}
+
+ML_val {* Config.get @{context} my_flag *}
+
+declare [[my_flag = true]]
+
+ML_val {* Config.get @{context} my_flag *}
+
+example_proof
+  note [[my_flag = false]]
+  ML_val {* Config.get @{context} my_flag *}
+qed
+
+ML_val {* Config.get @{context} my_flag *}
+
+
 section {* Names \label{sec:names} *}
 
 text {* In principle, a name is just a string, but there are various

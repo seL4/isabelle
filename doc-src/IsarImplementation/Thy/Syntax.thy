@@ -7,7 +7,7 @@ chapter {* Concrete syntax and type-checking *}
 text FIXME
 
 
-section {* Parsing and printing *}
+section {* Parsing and printing \label{sec:parse-print} *}
 
 text FIXME
 

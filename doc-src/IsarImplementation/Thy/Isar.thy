@@ -504,7 +504,7 @@ text {* \medskip The @{method my_simp} variants defined above are
   data, not dynamically on each tool invocation.  *}
 
 
-section {* Attributes *}
+section {* Attributes \label{sec:attributes} *}
 
 text {* An \emph{attribute} is a function @{text "context \<times> thm \<rightarrow>
   context \<times> thm"}, which means both a (generic) context and a theorem
