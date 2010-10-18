@@ -65,11 +65,11 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type Toplevel.state} represents Isar toplevel states,
-  which are normally manipulated through the concept of toplevel
-  transitions only (\secref{sec:toplevel-transition}).  Also note that
-  a raw toplevel state is subject to the same linearity restrictions
-  as a theory context (cf.~\secref{sec:context-theory}).
+  \item Type @{ML_type Toplevel.state} represents Isar toplevel
+  states, which are normally manipulated through the concept of
+  toplevel transitions only (\secref{sec:toplevel-transition}).  Also
+  note that a raw toplevel state is subject to the same linearity
+  restrictions as a theory context (cf.~\secref{sec:context-theory}).
 
   \item @{ML Toplevel.UNDEF} is raised for undefined toplevel
   operations.  Many operations work only partially for certain cases,

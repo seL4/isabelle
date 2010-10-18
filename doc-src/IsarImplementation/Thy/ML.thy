@@ -494,8 +494,9 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type char} is not used.  The smallest textual unit in
-  Isabelle is a ``symbol'' (see \secref{sec:symbols}).
+  \item Type @{ML_type char} is \emph{not} used.  The smallest textual
+  unit in Isabelle is represented a ``symbol'' (see
+  \secref{sec:symbols}).
 
   \end{description}
 *}
@@ -510,8 +511,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type int} represents regular mathematical integers, which
-  are \emph{unbounded}.  Overflow never happens in
+  \item Type @{ML_type int} represents regular mathematical integers,
+  which are \emph{unbounded}.  Overflow never happens in
   practice.\footnote{The size limit for integer bit patterns in memory
   is 64\,MB for 32-bit Poly/ML, and much higher for 64-bit systems.}
   This works uniformly for all supported ML platforms (Poly/ML and

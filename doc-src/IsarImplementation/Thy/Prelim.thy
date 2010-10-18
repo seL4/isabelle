@@ -169,7 +169,7 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type theory} represents theory contexts.  This is
+  \item Type @{ML_type theory} represents theory contexts.  This is
   essentially a linear type, with explicit runtime checking.
   Primitive theory operations destroy the original version, which then
   becomes ``stale''.  This can be prevented by explicit checkpointing,
@@ -208,8 +208,8 @@ text %mlref {*
   \item @{ML "Theory.ancestors_of"}~@{text "thy"} returns all
   ancestors of @{text thy} (not including @{text thy} itself).
 
-  \item @{ML_type theory_ref} represents a sliding reference to an
-  always valid theory; updates on the original are propagated
+  \item Type @{ML_type theory_ref} represents a sliding reference to
+  an always valid theory; updates on the original are propagated
   automatically.
 
   \item @{ML "Theory.deref"}~@{text "thy_ref"} turns a @{ML_type
@@ -291,9 +291,9 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type Proof.context} represents proof contexts.  Elements
-  of this type are essentially pure values, with a sliding reference
-  to the background theory.
+  \item Type @{ML_type Proof.context} represents proof contexts.
+  Elements of this type are essentially pure values, with a sliding
+  reference to the background theory.
 
   \item @{ML ProofContext.init_global}~@{text "thy"} produces a proof context
   derived from @{text "thy"}, initializing all data.
@@ -353,7 +353,7 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type Context.generic} is the direct sum of @{ML_type
+  \item Type @{ML_type Context.generic} is the direct sum of @{ML_type
   "theory"} and @{ML_type "Proof.context"}, with the datatype
   constructors @{ML "Context.Theory"} and @{ML "Context.Proof"}.
 
@@ -513,11 +513,11 @@ ML {*
   end;
 *}
 
-text {* We use @{ML_type "term Ord_List.T"} for reasonably efficient
-  representation of a set of terms: all operations are linear in the
-  number of stored elements.  Here we assume that users of this module
-  do not care about the declaration order, since that data structure
-  forces its own arrangement of elements.
+text {* Type @{ML_type "term Ord_List.T"} is used for reasonably
+  efficient representation of a set of terms: all operations are
+  linear in the number of stored elements.  Here we assume that users
+  of this module do not care about the declaration order, since that
+  data structure forces its own arrangement of elements.
 
   Observe how the @{verbatim merge} operation joins the data slots of
   the two constituents: @{ML Ord_List.union} prevents duplication of
@@ -659,7 +659,7 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type "Symbol.symbol"} represents individual Isabelle
+  \item Type @{ML_type "Symbol.symbol"} represents individual Isabelle
   symbols.
 
   \item @{ML "Symbol.explode"}~@{text "str"} produces a symbol list
@@ -674,10 +674,10 @@ text %mlref {*
   symbols according to fixed syntactic conventions of Isabelle, cf.\
   \cite{isabelle-isar-ref}.
 
-  \item @{ML_type "Symbol.sym"} is a concrete datatype that represents
-  the different kinds of symbols explicitly, with constructors @{ML
-  "Symbol.Char"}, @{ML "Symbol.Sym"}, @{ML "Symbol.UTF8"}, @{ML
-  "Symbol.Ctrl"}, @{ML "Symbol.Raw"}.
+  \item Type @{ML_type "Symbol.sym"} is a concrete datatype that
+  represents the different kinds of symbols explicitly, with
+  constructors @{ML "Symbol.Char"}, @{ML "Symbol.Sym"}, @{ML
+  "Symbol.UTF8"}, @{ML "Symbol.Ctrl"}, @{ML "Symbol.Raw"}.
 
   \item @{ML "Symbol.decode"} converts the string representation of a
   symbol into the datatype version.
@@ -756,8 +756,8 @@ text %mlref {*
   \item @{ML Name.skolem}~@{text "name"} produces a Skolem name by
   adding two underscores.
 
-  \item @{ML_type Name.context} represents the context of already used
-  names; the initial value is @{ML "Name.context"}.
+  \item Type @{ML_type Name.context} represents the context of already
+  used names; the initial value is @{ML "Name.context"}.
 
   \item @{ML Name.declare}~@{text "name"} enters a used name into the
   context.
@@ -847,10 +847,10 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type indexname} represents indexed names.  This is an
-  abbreviation for @{ML_type "string * int"}.  The second component is
-  usually non-negative, except for situations where @{text "(x, -1)"}
-  is used to inject basic names into this type.  Other negative
+  \item Type @{ML_type indexname} represents indexed names.  This is
+  an abbreviation for @{ML_type "string * int"}.  The second component
+  is usually non-negative, except for situations where @{text "(x,
+  -1)"} is used to inject basic names into this type.  Other negative
   indexes should not be used.
 
   \end{description}
@@ -993,8 +993,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type binding} represents the abstract concept of name
-  bindings.
+  \item Type @{ML_type binding} represents the abstract concept of
+  name bindings.
 
   \item @{ML Binding.empty} is the empty binding.
 
@@ -1026,8 +1026,8 @@ text %mlref {*
   representation for human-readable output, together with some formal
   markup that might get used in GUI front-ends, for example.
 
-  \item @{ML_type Name_Space.naming} represents the abstract concept of
-  a naming policy.
+  \item Type @{ML_type Name_Space.naming} represents the abstract
+  concept of a naming policy.
 
   \item @{ML Name_Space.default_naming} is the default naming policy.
   In a theory context, this is usually augmented by a path prefix
@@ -1040,7 +1040,7 @@ text %mlref {*
   name binding (usually a basic name) into the fully qualified
   internal name, according to the given naming policy.
 
-  \item @{ML_type Name_Space.T} represents name spaces.
+  \item Type @{ML_type Name_Space.T} represents name spaces.
 
   \item @{ML Name_Space.empty}~@{text "kind"} and @{ML Name_Space.merge}~@{text
   "(space\<^isub>1, space\<^isub>2)"} are the canonical operations for

@@ -82,11 +82,11 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type Proof.state} represents Isar proof states.  This is
-  a block-structured configuration with proof context, linguistic
-  mode, and optional goal.  The latter consists of goal context, goal
-  facts (``@{text "using"}''), and tactical goal state (see
-  \secref{sec:tactical-goals}).
+  \item Type @{ML_type Proof.state} represents Isar proof states.
+  This is a block-structured configuration with proof context,
+  linguistic mode, and optional goal.  The latter consists of goal
+  context, goal facts (``@{text "using"}''), and tactical goal state
+  (see \secref{sec:tactical-goals}).
 
   The general idea is that the facts shall contribute to the
   refinement of some parts of the tactical goal --- how exactly is
@@ -314,7 +314,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type Proof.method} represents proof methods as abstract type.
+  \item Type @{ML_type Proof.method} represents proof methods as
+  abstract type.
 
   \item @{ML METHOD_CASES}~@{text "(fn facts => cases_tactic)"} wraps
   @{text cases_tactic} depending on goal facts as proof method with
@@ -536,7 +537,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type attribute} represents attributes as concrete type alias.
+  \item Type @{ML_type attribute} represents attributes as concrete
+  type alias.
 
   \item @{ML Thm.rule_attribute}~@{text "(fn context => rule)"} wraps
   a context-dependent rule (mapping on @{ML_type thm}) as attribute.

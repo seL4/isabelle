@@ -105,8 +105,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type local_theory} represents local theories.  Although
-  this is merely an alias for @{ML_type Proof.context}, it is
+  \item Type @{ML_type local_theory} represents local theories.
+  Although this is merely an alias for @{ML_type Proof.context}, it is
   semantically a subtype of the same: a @{ML_type local_theory} holds
   target information as special context data.  Subtyping means that
   any value @{text "lthy:"}~@{ML_type local_theory} can be also used

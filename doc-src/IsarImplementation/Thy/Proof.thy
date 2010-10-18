@@ -289,11 +289,11 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type Assumption.export} represents arbitrary export
-  rules, which is any function of type @{ML_type "bool -> cterm list -> thm -> thm"},
-  where the @{ML_type "bool"} indicates goal mode, and the @{ML_type
-  "cterm list"} the collection of assumptions to be discharged
-  simultaneously.
+  \item Type @{ML_type Assumption.export} represents arbitrary export
+  rules, which is any function of type @{ML_type "bool -> cterm list
+  -> thm -> thm"}, where the @{ML_type "bool"} indicates goal mode,
+  and the @{ML_type "cterm list"} the collection of assumptions to be
+  discharged simultaneously.
 
   \item @{ML Assumption.assume}~@{text "A"} turns proposition @{text
   "A"} into a primitive assumption @{text "A \<turnstile> A'"}, where the

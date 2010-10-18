@@ -136,17 +136,17 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type class} represents type classes.
+  \item Type @{ML_type class} represents type classes.
 
-  \item @{ML_type sort} represents sorts, i.e.\ finite intersections
-  of classes.  The empty list @{ML "[]: sort"} refers to the empty
-  class intersection, i.e.\ the ``full sort''.
+  \item Type @{ML_type sort} represents sorts, i.e.\ finite
+  intersections of classes.  The empty list @{ML "[]: sort"} refers to
+  the empty class intersection, i.e.\ the ``full sort''.
 
-  \item @{ML_type arity} represents type arities.  A triple @{text
-  "(\<kappa>, \<^vec>s, s) : arity"} represents @{text "\<kappa> :: (\<^vec>s)s"} as
-  described above.
+  \item Type @{ML_type arity} represents type arities.  A triple
+  @{text "(\<kappa>, \<^vec>s, s) : arity"} represents @{text "\<kappa> ::
+  (\<^vec>s)s"} as described above.
 
-  \item @{ML_type typ} represents types; this is a datatype with
+  \item Type @{ML_type typ} represents types; this is a datatype with
   constructors @{ML TFree}, @{ML TVar}, @{ML Type}.
 
   \item @{ML Term.map_atyps}~@{text "f \<tau>"} applies the mapping @{text
@@ -374,8 +374,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type term} represents de-Bruijn terms, with comments in
-  abstractions, and explicitly named free variables and constants;
+  \item Type @{ML_type term} represents de-Bruijn terms, with comments
+  in abstractions, and explicitly named free variables and constants;
   this is a datatype with constructors @{ML Bound}, @{ML Free}, @{ML
   Var}, @{ML Const}, @{ML Abs}, @{ML "op $"}.
 
@@ -653,8 +653,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type ctyp} and @{ML_type cterm} represent certified types
-  and terms, respectively.  These are abstract datatypes that
+  \item Types @{ML_type ctyp} and @{ML_type cterm} represent certified
+  types and terms, respectively.  These are abstract datatypes that
   guarantee that its values have passed the full well-formedness (and
   well-typedness) checks, relative to the declarations of type
   constructors, constants etc. in the theory.
@@ -668,8 +668,8 @@ text %mlref {*
   reasoning loops.  There are separate operations to decompose
   certified entities (including actual theorems).
 
-  \item @{ML_type thm} represents proven propositions.  This is an
-  abstract datatype that guarantees that its values have been
+  \item Type @{ML_type thm} represents proven propositions.  This is
+  an abstract datatype that guarantees that its values have been
   constructed by basic principles of the @{ML_struct Thm} module.
   Every @{ML_type thm} value contains a sliding back-reference to the
   enclosing theory, cf.\ \secref{sec:context-theory}.
