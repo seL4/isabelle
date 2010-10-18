@@ -471,7 +471,7 @@ text %mlref {*
 *}
 
 
-section {* Basic ML data types *}
+section {* Basic data types *}
 
 text {* The basis library proposal of SML97 need to be treated with
   caution.  Many of its operations simply do not fit with important
@@ -485,6 +485,22 @@ text {* The basis library proposal of SML97 need to be treated with
 *}
 
 
+subsection {* Characters *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type char} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type char} is not used.  The smallest textual unit in
+  Isabelle is a ``symbol'' (see \secref{sec:symbols}).
+
+  \end{description}
+*}
+
+
 subsection {* Integers *}
 
 text %mlref {*
@@ -494,8 +510,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type int} always represents regular mathematical
-  integers, which are \emph{unbounded}.  Overflow never happens in
+  \item @{ML_type int} represents regular mathematical integers, which
+  are \emph{unbounded}.  Overflow never happens in
   practice.\footnote{The size limit for integer bit patterns in memory
   is 64\,MB for 32-bit Poly/ML, and much higher for 64-bit systems.}
   This works uniformly for all supported ML platforms (Poly/ML and
@@ -532,6 +548,107 @@ text {* Apart from @{ML Option.map} most operations defined in
   structure @{ML_struct Option} are alien to Isabelle/ML.  The
   operations shown above are defined in @{"file"
   "~~/src/Pure/General/basics.ML"}, among others.  *}
+
+
+subsection {* Lists *}
+
+text {* Lists are ubiquitous in ML as simple and light-weight
+  ``collections'' for many everyday programming tasks.  Isabelle/ML
+  provides some important refinements over the predefined operations
+  in SML97. *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML cons: "'a -> 'a list -> 'a list"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML cons}~@{text "x xs"} evaluates to @{text "x :: xs"}.
+
+  Tupled infix operators are a historical accident in Standard ML.
+  The curried @{ML cons} amends this, but it should be only used when
+  partial application is required.
+
+  \end{description}
+*}
+
+
+subsubsection {* Canonical iteration *}
+
+text {* A function @{text "f: \<alpha> \<rightarrow> \<beta> \<rightarrow> \<beta>"} can be understood as update
+  on a configuration of type @{text "\<beta>"} that is parametrized by
+  arguments of type @{text "\<alpha>"}.  Given @{text "a: \<alpha>"} the partial
+  application @{text "(f a): \<beta> \<rightarrow> \<beta>"} operates homogeneously on @{text
+  "\<beta>"}.  This can be iterated naturally over a list of parameters
+  @{text "[a\<^sub>1, \<dots>, a\<^sub>n]"} as @{text "f a\<^sub>1; \<dots>; f a\<^bsub>n\<^esub>\<^bsub>\<^esub>"} (where the
+  semicolon represents left-to-right composition).  The latter
+  expression is again a function @{text "\<beta> \<rightarrow> \<beta>"}.  It can be applied
+  to an initial configuration @{text "b: \<beta>"} to start the iteration
+  over the given list of arguments: each @{text "a"} in @{text "a\<^sub>1, \<dots>,
+  a\<^sub>n"} is applied consecutively by updating a cumulative
+  configuration.
+
+  The @{text fold} combinator in Isabelle/ML lifts a function @{text
+  "f"} as above to its iterated version over a list of arguments.
+  Lifting can be repeated, e.g.\ @{text "(fold \<circ> fold) f"} iterates
+  over a list of lists as expected.
+
+  The variant @{text "fold_rev"} works inside-out over the list of
+  arguments, such that @{text "fold_rev f \<equiv> fold f \<circ> rev"} holds.
+
+  The @{text "fold_map"} combinator essentially performs @{text
+  "fold"} and @{text "map"} simultaneously: each application of @{text
+  "f"} produces an updated configuration together with a side-result;
+  the iteration collects all such side-results as a separate list.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
+  @{index_ML fold_rev: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
+  @{index_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML fold}~@{text f} lifts the parametrized update function
+  @{text "f"} to a list of parameters.
+
+  \item @{ML fold_rev}~@{text "f"} is similar to @{ML fold}~@{text
+  "f"}, but works inside-out.
+
+  \item @{ML fold_map}~@{text "f"} lifts the parametrized update
+  function @{text "f"} (with side-result) to a list of parameters and
+  cumulative side-results.
+
+  \end{description}
+
+  \begin{warn}
+  The literature on functional programming provides a multitude of
+  combinators called @{text "foldl"}, @{text "foldr"} etc.  SML97
+  provides its own variations as @{ML List.foldl} and @{ML
+  List.foldr}, while the classic Isabelle library still has the
+  slightly more convenient historic @{ML Library.foldl} and @{ML
+  Library.foldr}.  To avoid further confusion, all of this should be
+  ignored, and @{ML fold} (or @{ML fold_rev}) used exclusively.
+  \end{warn}
+*}
+
+text %mlex {* Using canonical @{ML fold} together with canonical @{ML
+  cons}, or similar standard operations, alternates the orientation of
+  data.  The is quite natural and should not altered forcible by
+  inserting extra applications @{ML rev}.  The alternative @{ML
+  fold_rev} can be used in the relatively few situations, where
+  alternation should be prevented.
+*}
+
+ML {*
+  val items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  val list1 = fold cons items [];
+  val list2 = fold_rev cons items [];
+*}
 
 
 subsection {* Unsynchronized references *}

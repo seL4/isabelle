@@ -582,7 +582,7 @@ text {* In principle, a name is just a string, but there are various
 *}
 
 
-subsection {* Strings of symbols *}
+subsection {* Strings of symbols \label{sec:symbols} *}
 
 text {* A \emph{symbol} constitutes the smallest textual unit in
   Isabelle --- raw ML characters are normally not encountered at all!
