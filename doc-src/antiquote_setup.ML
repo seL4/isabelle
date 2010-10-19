@@ -56,6 +56,13 @@ fun ml_structure (txt, _) = "functor XXX() = struct structure XX = " ^ txt ^ " e
 
 fun ml_functor (txt, _) = "ML_Env.check_functor " ^ ML_Syntax.print_string txt;
 
+val is_name = ML_Lex.kind_of #> (fn kind => kind = ML_Lex.Ident orelse kind = ML_Lex.LongIdent);
+
+fun ml_name txt =
+  (case filter is_name (ML_Lex.tokenize txt) of
+    toks as [_] => ML_Lex.flatten toks
+  | _ => error ("Single ML name expected in input: " ^ quote txt));
+
 fun index_ml name kind ml = Thy_Output.antiquotation name
   (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) ""))
   (fn {context = ctxt, ...} => fn (txt1, txt2) =>
@@ -70,7 +77,7 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
       val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none (ml (txt1, txt2));  (* ML_Lex.read (!?) *)
       val kind' = if kind = "" then "ML" else "ML " ^ kind;
     in
-      "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string txt1 ^ "}" ^
+      "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string (ml_name txt1) ^ "}" ^
       (txt'
       |> (if Config.get ctxt Thy_Output.quotes then quote else I)
       |> (if Config.get ctxt Thy_Output.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
