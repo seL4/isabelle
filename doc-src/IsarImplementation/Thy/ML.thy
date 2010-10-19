@@ -907,13 +907,19 @@ text %mlref {*
   @{index_ML NAMED_CRITICAL: "string -> (unit -> 'a) -> 'a"} \\
   @{index_ML CRITICAL: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
+  \begin{mldecls}
+  @{index_ML_type "'a Synchronized.var"} \\
+  @{index_ML Synchronized.var: "string -> 'a -> 'a Synchronized.var"} \\
+  @{index_ML Synchronized.guarded_access: "'a Synchronized.var ->
+  ('a -> ('b * 'a) option) -> 'b"} \\
+  \end{mldecls}
 
   \begin{description}
 
   \item @{ML NAMED_CRITICAL}~@{text "name e"} evaluates @{text "e ()"}
   within the central critical section of Isabelle/ML.  No other thread
   may do so at the same time, but non-critical parallel execution will
-  continue.  The @{text "name"} argument is used for tracing might
+  continue.  The @{text "name"} argument is used for tracing and might
   help to spot sources of congestion.
 
   Entering the critical section without contention is very fast, and
@@ -924,7 +930,55 @@ text %mlref {*
   \item @{ML CRITICAL} is the same as @{ML NAMED_CRITICAL} with empty
   name argument.
 
+  \item Type @{ML_type "'a Synchronized.var"} represents synchronized
+  variables with state of type @{ML_type 'a}.
+
+  \item @{ML Synchronized.var}~@{text "name x"} creates a synchronized
+  variable that is initialized with value @{text "x"}.  The @{text
+  "name"} is used for tracing.
+
+  \item @{ML Synchronized.guarded_access}~@{text "var f"} lets the
+  function @{text "f"} operate within a critical section on the state
+  @{text "x"} as follows: if @{text "f x"} produces @{ML NONE}, we
+  continue to wait on the internal condition variable, expecting that
+  some other thread will eventually change the content in a suitable
+  manner; if @{text "f x"} produces @{ML SOME}~@{text "(y, x')"} we
+  are satisfied and assign the new state value @{text "x'"}, broadcast
+  a signal to all waiting threads on the associated condition
+  variable, and return the result @{text "y"}.
+
   \end{description}
+
+  There are some further variants of the general @{ML
+  Synchronized.guarded_access} combinator, see @{"file"
+  "~~/src/Pure/Concurrent/synchronized.ML"} for details.
+*}
+
+text %mlex {* See @{"file" "~~/src/Pure/Concurrent/mailbox.ML"} how to
+  implement a mailbox as synchronized variable over a purely
+  functional queue.
+
+  \medskip The following example implements a counter that produces
+  positive integers that are unique over the runtime of the Isabelle
+  process:
+*}
+
+ML {*
+  local
+    val counter = Synchronized.var "counter" 0;
+  in
+    fun next () =
+      Synchronized.guarded_access counter
+        (fn i =>
+          let val j = i + 1
+          in SOME (j, j) end);
+  end;
+*}
+
+ML {*
+  val a = next ();
+  val b = next ();
+  @{assert} (a <> b);
 *}
 
 end
