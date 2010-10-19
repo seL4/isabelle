@@ -674,6 +674,7 @@ subsection {* Unsynchronized references *}
 
 text %mlref {*
   \begin{mldecls}
+  @{index_ML_type "'a Unsynchronized.ref"} \\
   @{index_ML Unsynchronized.ref: "'a -> 'a Unsynchronized.ref"} \\
   @{index_ML "!": "'a Unsynchronized.ref -> 'a"} \\
   @{index_ML "op :=": "'a Unsynchronized.ref * 'a -> unit"} \\
@@ -691,10 +692,10 @@ text {* Due to ubiquitous parallelism in Isabelle/ML (see also
   mutability.  Existing operations @{ML "!"}  and @{ML "op :="} are
   unchanged, but should be used with special precautions, say in a
   strictly local situation that is guaranteed to be restricted to
-  sequential evaluation -- now and in the future.  *}
+  sequential evaluation --- now and in the future.  *}
 
 
-section {* Thread-safe programming *}
+section {* Thread-safe programming \label{sec:multi-threading} *}
 
 text {* Multi-threaded execution has become an everyday reality in
   Isabelle since Poly/ML 5.2.1 and Isabelle2008.  Isabelle/ML provides
