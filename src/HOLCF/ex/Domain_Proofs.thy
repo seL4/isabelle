@@ -82,14 +82,14 @@ subsection {* Step 2: Define types, prove class instances *}
 
 text {* Use @{text pcpodef} with the appropriate type combinator. *}
 
-pcpodef (open) 'a foo = "{x. x ::: foo_defl\<cdot>DEFL('a)}"
-by (simp_all add: adm_in_defl)
+pcpodef (open) 'a foo = "defl_set (foo_defl\<cdot>DEFL('a))"
+by (rule defl_set_bottom, rule adm_defl_set)
 
-pcpodef (open) 'a bar = "{x. x ::: bar_defl\<cdot>DEFL('a)}"
-by (simp_all add: adm_in_defl)
+pcpodef (open) 'a bar = "defl_set (bar_defl\<cdot>DEFL('a))"
+by (rule defl_set_bottom, rule adm_defl_set)
 
-pcpodef (open) 'a baz = "{x. x ::: baz_defl\<cdot>DEFL('a)}"
-by (simp_all add: adm_in_defl)
+pcpodef (open) 'a baz = "defl_set (baz_defl\<cdot>DEFL('a))"
+by (rule defl_set_bottom, rule adm_defl_set)
 
 text {* Prove rep instance using lemma @{text typedef_rep_class}. *}
 

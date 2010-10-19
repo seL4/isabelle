@@ -59,6 +59,25 @@ lemma domain_rep_iso:
 unfolding abs_def rep_def
 by (simp add: emb_prj_emb DEFL)
 
+subsection {* Deflations as sets *}
+
+definition defl_set :: "defl \<Rightarrow> udom set"
+where "defl_set A = {x. cast\<cdot>A\<cdot>x = x}"
+
+lemma adm_defl_set: "adm (\<lambda>x. x \<in> defl_set A)"
+unfolding defl_set_def by simp
+
+lemma defl_set_bottom: "\<bottom> \<in> defl_set A"
+unfolding defl_set_def by simp
+
+lemma defl_set_cast [simp]: "cast\<cdot>A\<cdot>x \<in> defl_set A"
+unfolding defl_set_def by simp
+
+lemma defl_set_subset_iff: "defl_set A \<subseteq> defl_set B \<longleftrightarrow> A \<sqsubseteq> B"
+apply (simp add: defl_set_def subset_eq cast_below_cast [symmetric])
+apply (auto simp add: cast.belowI cast.belowD)
+done
+
 subsection {* Proving a subtype is representable *}
 
 text {*
@@ -76,34 +95,28 @@ lemma typedef_rep_class:
   fixes Rep :: "'a::pcpo \<Rightarrow> udom"
   fixes Abs :: "udom \<Rightarrow> 'a::pcpo"
   fixes t :: defl
-  assumes type: "type_definition Rep Abs {x. x ::: t}"
+  assumes type: "type_definition Rep Abs (defl_set t)"
   assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
   assumes emb: "emb \<equiv> (\<Lambda> x. Rep x)"
   assumes prj: "prj \<equiv> (\<Lambda> x. Abs (cast\<cdot>t\<cdot>x))"
   assumes defl: "defl \<equiv> (\<lambda> a::'a itself. t)"
   shows "OFCLASS('a, bifinite_class)"
 proof
-  have adm: "adm (\<lambda>x. x \<in> {x. x ::: t})"
-    by (simp add: adm_in_defl)
   have emb_beta: "\<And>x. emb\<cdot>x = Rep x"
     unfolding emb
     apply (rule beta_cfun)
-    apply (rule typedef_cont_Rep [OF type below adm])
+    apply (rule typedef_cont_Rep [OF type below adm_defl_set])
     done
   have prj_beta: "\<And>y. prj\<cdot>y = Abs (cast\<cdot>t\<cdot>y)"
     unfolding prj
     apply (rule beta_cfun)
-    apply (rule typedef_cont_Abs [OF type below adm])
+    apply (rule typedef_cont_Abs [OF type below adm_defl_set])
     apply simp_all
     done
-  have emb_in_defl: "\<And>x::'a. emb\<cdot>x ::: t"
-    using type_definition.Rep [OF type]
-    by (simp add: emb_beta)
   have prj_emb: "\<And>x::'a. prj\<cdot>(emb\<cdot>x) = x"
-    unfolding prj_beta
-    apply (simp add: cast_fixed [OF emb_in_defl])
-    apply (simp add: emb_beta type_definition.Rep_inverse [OF type])
-    done
+    using type_definition.Rep [OF type]
+    unfolding prj_beta emb_beta defl_set_def
+    by (simp add: type_definition.Rep_inverse [OF type])
   have emb_prj: "\<And>y. emb\<cdot>(prj\<cdot>y :: 'a) = cast\<cdot>t\<cdot>y"
     unfolding prj_beta emb_beta
     by (simp add: type_definition.Abs_inverse [OF type])
@@ -129,9 +142,6 @@ setup {*
   , (@{const_name emb}, SOME @{typ "'a::bifinite \<rightarrow> udom"})
   , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::bifinite"}) ]
 *}
-
-lemma adm_mem_Collect_in_defl: "adm (\<lambda>x. x \<in> {x. x ::: A})"
-unfolding mem_Collect_eq by (rule adm_in_defl)
 
 use "Tools/repdef.ML"
 

@@ -211,43 +211,4 @@ done
 lemma cast_strict2 [simp]: "cast\<cdot>A\<cdot>\<bottom> = \<bottom>"
 by (rule cast.below [THEN UU_I])
 
-subsection {* Deflation membership relation *}
-
-definition
-  in_defl :: "udom \<Rightarrow> defl \<Rightarrow> bool" (infixl ":::" 50)
-where
-  "x ::: A \<longleftrightarrow> cast\<cdot>A\<cdot>x = x"
-
-lemma adm_in_defl: "adm (\<lambda>x. x ::: A)"
-unfolding in_defl_def by simp
-
-lemma in_deflI: "cast\<cdot>A\<cdot>x = x \<Longrightarrow> x ::: A"
-unfolding in_defl_def .
-
-lemma cast_fixed: "x ::: A \<Longrightarrow> cast\<cdot>A\<cdot>x = x"
-unfolding in_defl_def .
-
-lemma cast_in_defl [simp]: "cast\<cdot>A\<cdot>x ::: A"
-unfolding in_defl_def by (rule cast.idem)
-
-lemma bottom_in_defl [simp]: "\<bottom> ::: A"
-unfolding in_defl_def by (rule cast_strict2)
-
-lemma defl_belowD: "A \<sqsubseteq> B \<Longrightarrow> x ::: A \<Longrightarrow> x ::: B"
-unfolding in_defl_def
- apply (rule deflation.belowD)
-   apply (rule deflation_cast)
-  apply (erule monofun_cfun_arg)
- apply assumption
-done
-
-lemma rev_defl_belowD: "x ::: A \<Longrightarrow> A \<sqsubseteq> B \<Longrightarrow> x ::: B"
-by (rule defl_belowD)
-
-lemma defl_belowI: "(\<And>x. x ::: A \<Longrightarrow> x ::: B) \<Longrightarrow> A \<sqsubseteq> B"
-apply (rule cast_below_imp_below)
-apply (rule cast.belowI)
-apply (simp add: in_defl_def)
-done
-
 end

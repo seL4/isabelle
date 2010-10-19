@@ -84,12 +84,11 @@ fun gen_add_repdef
       |> the_default (Binding.prefix_name "Rep_" name, Binding.prefix_name "Abs_" name);
 
     (*set*)
-    val in_defl = @{term "in_defl :: udom => defl => bool"};
-    val set = HOLogic.Collect_const udomT $ Abs ("x", udomT, in_defl $ Bound 0 $ defl);
+    val set = @{const defl_set} $ defl;
 
     (*pcpodef*)
-    val tac1 = rtac @{thm CollectI} 1 THEN rtac @{thm bottom_in_defl} 1;
-    val tac2 = rtac @{thm adm_mem_Collect_in_defl} 1;
+    val tac1 = rtac @{thm defl_set_bottom} 1;
+    val tac2 = rtac @{thm adm_defl_set} 1;
     val ((info, cpo_info, pcpo_info), thy) = thy
       |> Pcpodef.add_pcpodef def (SOME name) typ set (SOME morphs) (tac1, tac2);
 
