@@ -104,6 +104,7 @@ open HOLCF_Library;
 infixr 6 ->>;
 infix -->>;
 
+val udomT = @{typ udom};
 val deflT = @{typ "defl"};
 
 fun mapT (T as Type (_, Ts)) =
@@ -113,7 +114,9 @@ fun mapT (T as Type (_, Ts)) =
 fun mk_DEFL T =
   Const (@{const_name defl}, Term.itselfT T --> deflT) $ Logic.mk_type T;
 
-fun coerce_const T = Const (@{const_name coerce}, T);
+fun emb_const T = Const (@{const_name emb}, T ->> udomT);
+fun prj_const T = Const (@{const_name prj}, udomT ->> T);
+fun coerce_const (T, U) = mk_cfcomp (prj_const U, emb_const T);
 
 fun isodefl_const T =
   Const (@{const_name isodefl}, (T ->> T) --> deflT --> HOLogic.boolT);
@@ -505,9 +508,9 @@ fun gen_domain_isomorphism
         val rep_bind = Binding.suffix_name "_rep" tbind;
         val abs_bind = Binding.suffix_name "_abs" tbind;
         val ((rep_const, rep_def), thy) =
-            define_const (rep_bind, coerce_const (lhsT ->> rhsT)) thy;
+            define_const (rep_bind, coerce_const (lhsT, rhsT)) thy;
         val ((abs_const, abs_def), thy) =
-            define_const (abs_bind, coerce_const (rhsT ->> lhsT)) thy;
+            define_const (abs_bind, coerce_const (rhsT, lhsT)) thy;
       in
         (((rep_const, abs_const), (rep_def, abs_def)), thy)
       end;

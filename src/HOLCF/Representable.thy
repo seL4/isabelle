@@ -18,80 +18,25 @@ subsection {* Representations of types *}
 lemma emb_prj: "emb\<cdot>((prj\<cdot>x)::'a) = cast\<cdot>DEFL('a)\<cdot>x"
 by (simp add: cast_DEFL)
 
-lemma in_DEFL_iff:
-  "x ::: DEFL('a) \<longleftrightarrow> emb\<cdot>((prj\<cdot>x)::'a) = x"
-by (simp add: in_defl_def cast_DEFL)
-
-lemma prj_inverse:
-  "x ::: DEFL('a) \<Longrightarrow> emb\<cdot>((prj\<cdot>x)::'a) = x"
-by (simp only: in_DEFL_iff)
-
-lemma emb_in_DEFL [simp]:
-  "emb\<cdot>(x::'a) ::: DEFL('a)"
-by (simp add: in_DEFL_iff)
-
-subsection {* Coerce operator *}
-
-definition coerce :: "'a \<rightarrow> 'b"
-where "coerce = prj oo emb"
-
-lemma beta_coerce: "coerce\<cdot>x = prj\<cdot>(emb\<cdot>x)"
-by (simp add: coerce_def)
-
-lemma prj_emb: "prj\<cdot>(emb\<cdot>x) = coerce\<cdot>x"
-by (simp add: coerce_def)
-
-lemma coerce_strict [simp]: "coerce\<cdot>\<bottom> = \<bottom>"
-by (simp add: coerce_def)
-
-lemma coerce_eq_ID [simp]: "(coerce :: 'a \<rightarrow> 'a) = ID"
-by (rule cfun_eqI, simp add: beta_coerce)
-
-lemma emb_coerce:
-  "DEFL('a) \<sqsubseteq> DEFL('b)
-   \<Longrightarrow> emb\<cdot>((coerce::'a \<rightarrow> 'b)\<cdot>x) = emb\<cdot>x"
- apply (simp add: beta_coerce)
- apply (rule prj_inverse)
- apply (erule defl_belowD)
- apply (rule emb_in_DEFL)
+lemma emb_prj_emb:
+  fixes x :: "'a"
+  assumes "DEFL('a) \<sqsubseteq> DEFL('b)"
+  shows "emb\<cdot>(prj\<cdot>(emb\<cdot>x) :: 'b) = emb\<cdot>x"
+unfolding emb_prj
+apply (rule cast.belowD)
+apply (rule monofun_cfun_arg [OF assms])
+apply (simp add: cast_DEFL)
 done
 
-lemma coerce_prj:
-  "DEFL('a) \<sqsubseteq> DEFL('b)
-   \<Longrightarrow> (coerce::'b \<rightarrow> 'a)\<cdot>(prj\<cdot>x) = prj\<cdot>x"
- apply (simp add: coerce_def)
+lemma prj_emb_prj:
+  assumes "DEFL('a) \<sqsubseteq> DEFL('b)"
+  shows "prj\<cdot>(emb\<cdot>(prj\<cdot>x :: 'b)) = (prj\<cdot>x :: 'a)"
  apply (rule emb_eq_iff [THEN iffD1])
  apply (simp only: emb_prj)
  apply (rule deflation_below_comp1)
    apply (rule deflation_cast)
   apply (rule deflation_cast)
- apply (erule monofun_cfun_arg)
-done
-
-lemma coerce_coerce [simp]:
-  "DEFL('a) \<sqsubseteq> DEFL('b)
-   \<Longrightarrow> coerce\<cdot>((coerce::'a \<rightarrow> 'b)\<cdot>x) = coerce\<cdot>x"
-by (simp add: beta_coerce prj_inverse defl_belowD)
-
-lemma coerce_inverse:
-  "emb\<cdot>(x::'a) ::: DEFL('b) \<Longrightarrow> coerce\<cdot>(coerce\<cdot>x :: 'b) = x"
-by (simp only: beta_coerce prj_inverse emb_inverse)
-
-lemma coerce_type:
-  "DEFL('a) \<sqsubseteq> DEFL('b)
-   \<Longrightarrow> emb\<cdot>((coerce::'a \<rightarrow> 'b)\<cdot>x) ::: DEFL('a)"
-by (simp add: beta_coerce prj_inverse defl_belowD)
-
-lemma ep_pair_coerce:
-  "DEFL('a) \<sqsubseteq> DEFL('b)
-   \<Longrightarrow> ep_pair (coerce::'a \<rightarrow> 'b) (coerce::'b \<rightarrow> 'a)"
- apply (rule ep_pair.intro)
-  apply simp
- apply (simp only: beta_coerce)
- apply (rule below_trans)
-  apply (rule monofun_cfun_arg)
-  apply (rule emb_prj_below)
- apply simp
+ apply (rule monofun_cfun_arg [OF assms])
 done
 
 text {* Isomorphism lemmas used internally by the domain package: *}
@@ -99,34 +44,33 @@ text {* Isomorphism lemmas used internally by the domain package: *}
 lemma domain_abs_iso:
   fixes abs and rep
   assumes DEFL: "DEFL('b) = DEFL('a)"
-  assumes abs_def: "abs \<equiv> (coerce :: 'a \<rightarrow> 'b)"
-  assumes rep_def: "rep \<equiv> (coerce :: 'b \<rightarrow> 'a)"
+  assumes abs_def: "(abs :: 'a \<rightarrow> 'b) \<equiv> prj oo emb"
+  assumes rep_def: "(rep :: 'b \<rightarrow> 'a) \<equiv> prj oo emb"
   shows "rep\<cdot>(abs\<cdot>x) = x"
-unfolding abs_def rep_def by (simp add: DEFL)
+unfolding abs_def rep_def
+by (simp add: emb_prj_emb DEFL)
 
 lemma domain_rep_iso:
   fixes abs and rep
   assumes DEFL: "DEFL('b) = DEFL('a)"
-  assumes abs_def: "abs \<equiv> (coerce :: 'a \<rightarrow> 'b)"
-  assumes rep_def: "rep \<equiv> (coerce :: 'b \<rightarrow> 'a)"
+  assumes abs_def: "(abs :: 'a \<rightarrow> 'b) \<equiv> prj oo emb"
+  assumes rep_def: "(rep :: 'b \<rightarrow> 'a) \<equiv> prj oo emb"
   shows "abs\<cdot>(rep\<cdot>x) = x"
-unfolding abs_def rep_def by (simp add: DEFL [symmetric])
-
+unfolding abs_def rep_def
+by (simp add: emb_prj_emb DEFL)
 
 subsection {* Proving a subtype is representable *}
 
 text {*
-  Temporarily relax type constraints for @{term emb}, and @{term prj}.
+  Temporarily relax type constraints for @{term emb} and @{term prj}.
 *}
 
-setup {* Sign.add_const_constraint
-  (@{const_name defl}, SOME @{typ "'a::pcpo itself \<Rightarrow> defl"}) *}
-
-setup {* Sign.add_const_constraint
-  (@{const_name emb}, SOME @{typ "'a::pcpo \<rightarrow> udom"}) *}
-
-setup {* Sign.add_const_constraint
-  (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::pcpo"}) *}
+setup {*
+  fold Sign.add_const_constraint
+  [ (@{const_name defl}, SOME @{typ "'a::pcpo itself \<Rightarrow> defl"})
+  , (@{const_name emb}, SOME @{typ "'a::pcpo \<rightarrow> udom"})
+  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::pcpo"}) ]
+*}
 
 lemma typedef_rep_class:
   fixes Rep :: "'a::pcpo \<Rightarrow> udom"
@@ -177,16 +121,14 @@ lemma typedef_DEFL:
   shows "DEFL('a::pcpo) = t"
 unfolding assms ..
 
-text {* Restore original typing constraints *}
+text {* Restore original typing constraints. *}
 
-setup {* Sign.add_const_constraint
-  (@{const_name defl}, SOME @{typ "'a::bifinite itself \<Rightarrow> defl"}) *}
-
-setup {* Sign.add_const_constraint
-  (@{const_name emb}, SOME @{typ "'a::bifinite \<rightarrow> udom"}) *}
-
-setup {* Sign.add_const_constraint
-  (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::bifinite"}) *}
+setup {*
+  fold Sign.add_const_constraint
+  [ (@{const_name defl}, SOME @{typ "'a::bifinite itself \<Rightarrow> defl"})
+  , (@{const_name emb}, SOME @{typ "'a::bifinite \<rightarrow> udom"})
+  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::bifinite"}) ]
+*}
 
 lemma adm_mem_Collect_in_defl: "adm (\<lambda>x. x \<in> {x. x ::: A})"
 unfolding mem_Collect_eq by (rule adm_in_defl)
@@ -258,22 +200,14 @@ apply (simp add: isodefl_bottom)
 apply (simp add: assms)
 done
 
-lemma isodefl_coerce:
-  fixes d :: "'a \<rightarrow> 'a"
-  assumes DEFL: "DEFL('b) = DEFL('a)"
-  shows "isodefl d t \<Longrightarrow> isodefl (coerce oo d oo coerce :: 'b \<rightarrow> 'b) t"
-unfolding isodefl_def
-apply (simp add: cfun_eq_iff)
-apply (simp add: emb_coerce coerce_prj DEFL)
-done
-
 lemma isodefl_abs_rep:
   fixes abs and rep and d
   assumes DEFL: "DEFL('b) = DEFL('a)"
-  assumes abs_def: "abs \<equiv> (coerce :: 'a \<rightarrow> 'b)"
-  assumes rep_def: "rep \<equiv> (coerce :: 'b \<rightarrow> 'a)"
+  assumes abs_def: "(abs :: 'a \<rightarrow> 'b) \<equiv> prj oo emb"
+  assumes rep_def: "(rep :: 'b \<rightarrow> 'a) \<equiv> prj oo emb"
   shows "isodefl d t \<Longrightarrow> isodefl (abs oo d oo rep) t"
-unfolding abs_def rep_def using DEFL by (rule isodefl_coerce)
+unfolding isodefl_def
+by (simp add: cfun_eq_iff assms prj_emb_prj emb_prj_emb)
 
 lemma isodefl_cfun:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>

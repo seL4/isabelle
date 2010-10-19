@@ -200,25 +200,25 @@ by (rule baz_defl_unfold)
 
 subsection {* Step 3: Define rep and abs functions *}
 
-text {* Define them all using @{text coerce}! *}
+text {* Define them all using @{text prj} and @{text emb}! *}
 
 definition foo_rep :: "'a foo \<rightarrow> one \<oplus> ('a\<^sub>\<bottom> \<otimes> ('a bar)\<^sub>\<bottom>)"
-where "foo_rep \<equiv> coerce"
+where "foo_rep \<equiv> prj oo emb"
 
 definition foo_abs :: "one \<oplus> ('a\<^sub>\<bottom> \<otimes> ('a bar)\<^sub>\<bottom>) \<rightarrow> 'a foo"
-where "foo_abs \<equiv> coerce"
+where "foo_abs \<equiv> prj oo emb"
 
 definition bar_rep :: "'a bar \<rightarrow> ('a baz \<rightarrow> tr)\<^sub>\<bottom>"
-where "bar_rep \<equiv> coerce"
+where "bar_rep \<equiv> prj oo emb"
 
 definition bar_abs :: "('a baz \<rightarrow> tr)\<^sub>\<bottom> \<rightarrow> 'a bar"
-where "bar_abs \<equiv> coerce"
+where "bar_abs \<equiv> prj oo emb"
 
 definition baz_rep :: "'a baz \<rightarrow> ('a foo convex_pd \<rightarrow> tr)\<^sub>\<bottom>"
-where "baz_rep \<equiv> coerce"
+where "baz_rep \<equiv> prj oo emb"
 
 definition baz_abs :: "('a foo convex_pd \<rightarrow> tr)\<^sub>\<bottom> \<rightarrow> 'a baz"
-where "baz_abs \<equiv> coerce"
+where "baz_abs \<equiv> prj oo emb"
 
 text {* Prove isomorphism rules. *}
 
