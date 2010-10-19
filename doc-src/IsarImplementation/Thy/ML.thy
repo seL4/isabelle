@@ -278,7 +278,8 @@ text {* Isabelle provides output channels for different kinds of
   Isar command.  This enables the front-end to manage commands and
   resulting messages together.  For example, after deleting a command
   from a given theory document version, the corresponding message
-  output can be retracted from the display.  *}
+  output can be retracted from the display.
+*}
 
 text %mlref {*
   \begin{mldecls}
@@ -338,6 +339,26 @@ text %mlref {*
   channels, there is no proper way to retract output when Isar command
   transactions are reset.
   \end{warn}
+
+  \begin{warn}
+  The message channels should be used in a message-oriented manner.
+  This means that multi-line output that logically belongs together
+  needs to be issued by a \emph{single} invocation of @{ML writeln}
+  etc.  with the functional concatenation of all message constituents.
+  \end{warn}
+*}
+
+text %mlex {* The following example demonstrates a multi-line
+  warning.  Note that in some situations the user sees only the first
+  line, so the most important point should be made first.
+*}
+
+ML_command {*
+  warning (cat_lines
+   ["Beware the Jabberwock, my son!",
+    "The jaws that bite, the claws that catch!",
+    "Beware the Jubjub Bird, and shun",
+    "The frumious Bandersnatch!"]);
 *}
 
 
