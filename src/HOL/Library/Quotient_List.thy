@@ -40,8 +40,6 @@ lemma list_all2_symp:
   apply(simp)
   done
 
-thm list_induct3
-
 lemma list_all2_transp:
   assumes a: "equivp R"
   and b: "list_all2 R xs1 xs2"
