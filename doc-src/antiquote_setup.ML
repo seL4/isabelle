@@ -71,7 +71,7 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
         if txt2 = "" then txt1
         else if kind = "type" then txt1 ^ " = " ^ txt2
         else if kind = "exception" then txt1 ^ " of " ^ txt2
-        else if Syntax.is_identifier (Long_Name.base_name txt1) then txt1 ^ ": " ^ txt2
+        else if Syntax.is_identifier (Long_Name.base_name (ml_name txt1)) then txt1 ^ ": " ^ txt2
         else txt1 ^ " : " ^ txt2;
       val txt' = if kind = "" then txt else kind ^ " " ^ txt;
       val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none (ml (txt1, txt2));  (* ML_Lex.read (!?) *)
