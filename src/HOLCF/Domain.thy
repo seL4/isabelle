@@ -11,8 +11,8 @@ uses
   ("Tools/cont_proc.ML")
   ("Tools/Domain/domain_constructors.ML")
   ("Tools/Domain/domain_axioms.ML")
-  ("Tools/Domain/domain_theorems.ML")
-  ("Tools/Domain/domain_extender.ML")
+  ("Tools/Domain/domain_induction.ML")
+  ("Tools/Domain/domain.ML")
 begin
 
 default_sort pcpo
@@ -113,7 +113,7 @@ use "Tools/cont_consts.ML"
 use "Tools/cont_proc.ML"
 use "Tools/Domain/domain_axioms.ML"
 use "Tools/Domain/domain_constructors.ML"
-use "Tools/Domain/domain_theorems.ML"
-use "Tools/Domain/domain_extender.ML"
+use "Tools/Domain/domain_induction.ML"
+use "Tools/Domain/domain.ML"
 
 end

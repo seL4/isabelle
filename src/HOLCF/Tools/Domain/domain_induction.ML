@@ -1,11 +1,11 @@
-(*  Title:      HOLCF/Tools/Domain/domain_theorems.ML
+(*  Title:      HOLCF/Tools/Domain/domain_induction.ML
     Author:     David von Oheimb
     Author:     Brian Huffman
 
-Proof generator for domain command.
+Proofs of high-level (co)induction rules for domain command.
 *)
 
-signature DOMAIN_THEOREMS =
+signature DOMAIN_INDUCTION =
 sig
   val comp_theorems :
       binding -> binding list ->
@@ -17,7 +17,7 @@ sig
   val trace_domain: bool Unsynchronized.ref;
 end;
 
-structure Domain_Theorems :> DOMAIN_THEOREMS =
+structure Domain_Induction :> DOMAIN_INDUCTION =
 struct
 
 val quiet_mode = Unsynchronized.ref false;

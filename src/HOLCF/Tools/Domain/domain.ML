@@ -1,11 +1,12 @@
-(*  Title:      HOLCF/Tools/Domain/domain_extender.ML
+
+(*  Title:      HOLCF/Tools/Domain/domain.ML
     Author:     David von Oheimb
     Author:     Brian Huffman
 
 Theory extender for domain command, including theory syntax.
 *)
 
-signature DOMAIN_EXTENDER =
+signature DOMAIN =
 sig
   val add_domain_cmd:
       binding ->
@@ -32,7 +33,7 @@ sig
       -> theory -> theory
 end;
 
-structure Domain_Extender :> DOMAIN_EXTENDER =
+structure Domain :> DOMAIN =
 struct
 
 open HOLCF_Library;
@@ -194,7 +195,7 @@ fun gen_add_domain
              (dbinds ~~ eqs' ~~ iso_infos);
 
     val (take_rews, thy) =
-        Domain_Theorems.comp_theorems comp_dbind
+        Domain_Induction.comp_theorems comp_dbind
           dbinds take_info constr_infos thy;
   in
     thy
