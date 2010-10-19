@@ -6,10 +6,10 @@ Recursive function definition package for HOLCF.
 
 signature FIXREC =
 sig
-  val add_fixrec: bool -> (binding * typ option * mixfix) list
-    -> (Attrib.binding * term) list -> local_theory -> local_theory
-  val add_fixrec_cmd: bool -> (binding * string option * mixfix) list
-    -> (Attrib.binding * string) list -> local_theory -> local_theory
+  val add_fixrec: (binding * typ option * mixfix) list
+    -> (bool * (Attrib.binding * term)) list -> local_theory -> local_theory
+  val add_fixrec_cmd: (binding * string option * mixfix) list
+    -> (bool * (Attrib.binding * string)) list -> local_theory -> local_theory
   val add_matchers: (string * string) list -> theory -> theory
   val fixrec_simp_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
@@ -335,11 +335,11 @@ local
 
 fun gen_fixrec
   prep_spec
-  (strict : bool)
-  raw_fixes
-  raw_spec
+  (raw_fixes : (binding * 'a option * mixfix) list)
+  (raw_spec' : (bool * (Attrib.binding * 'b)) list)
   (lthy : local_theory) =
   let
+    val (skips, raw_spec) = ListPair.unzip raw_spec';
     val (fixes : ((binding * typ) * mixfix) list,
          spec : (Attrib.binding * term) list) =
           fst (prep_spec raw_fixes raw_spec lthy);
@@ -352,7 +352,7 @@ fun gen_fixrec
     fun block_of_name n =
       map_filter
         (fn (m,eq) => if m = n then SOME eq else NONE)
-        (all_names ~~ spec);
+        (all_names ~~ (spec ~~ skips));
     val blocks = map block_of_name names;
 
     val matcher_tab = FixrecMatchData.get (ProofContext.theory_of lthy);
@@ -360,27 +360,25 @@ fun gen_fixrec
       case Symtab.lookup matcher_tab c of SOME m => m
         | NONE => fixrec_err ("unknown pattern constructor: " ^ c);
 
-    val matches = map (compile_eqs match_name) (map (map snd) blocks);
+    val matches = map (compile_eqs match_name) (map (map (snd o fst)) blocks);
     val spec' = map (pair Attrib.empty_binding) matches;
     val (lthy, cnames, fixdef_thms, unfold_thms) =
       add_fixdefs fixes spec' lthy;
+
+    val blocks' = map (map fst o filter_out snd) blocks;
+    val simps : (Attrib.binding * thm) list list =
+      map (make_simps lthy) (unfold_thms ~~ blocks');
+    fun mk_bind n : Attrib.binding =
+     (Binding.qualify true n (Binding.name "simps"),
+       [Attrib.internal (K Simplifier.simp_add)]);
+    val simps1 : (Attrib.binding * thm list) list =
+      map (fn (n,xs) => (mk_bind n, map snd xs)) (names ~~ simps);
+    val simps2 : (Attrib.binding * thm list) list =
+      map (apsnd (fn thm => [thm])) (flat simps);
+    val (_, lthy) = lthy
+      |> fold_map Local_Theory.note (simps1 @ simps2);
   in
-    if strict then let (* only prove simp rules if strict = true *)
-      val simps : (Attrib.binding * thm) list list =
-        map (make_simps lthy) (unfold_thms ~~ blocks);
-      fun mk_bind n : Attrib.binding =
-       (Binding.qualify true n (Binding.name "simps"),
-         [Attrib.internal (K Simplifier.simp_add)]);
-      val simps1 : (Attrib.binding * thm list) list =
-        map (fn (n,xs) => (mk_bind n, map snd xs)) (names ~~ simps);
-      val simps2 : (Attrib.binding * thm list) list =
-        map (apsnd (fn thm => [thm])) (flat simps);
-      val (_, lthy) = lthy
-        |> fold_map Local_Theory.note (simps1 @ simps2);
-    in
-      lthy
-    end
-    else lthy
+    lthy
   end;
 
 in
@@ -395,10 +393,15 @@ end; (* local *)
 (******************************** Parsers ********************************)
 (*************************************************************************)
 
+val alt_specs' : (bool * (Attrib.binding * string)) list parser =
+  Parse.enum1 "|"
+    (Parse.opt_keyword "unchecked" -- Parse_Spec.spec --|
+      Scan.option (Scan.ahead (Parse.name || Parse.$$$ "[") -- Parse.!!! (Parse.$$$ "|")));
+
 val _ =
   Outer_Syntax.local_theory "fixrec" "define recursive functions (HOLCF)" Keyword.thy_decl
-    ((Parse.opt_keyword "permissive" >> not) -- Parse.fixes -- Parse_Spec.where_alt_specs
-      >> (fn ((strict, fixes), specs) => add_fixrec_cmd strict fixes specs));
+    (Parse.fixes -- (Parse.where_ |-- Parse.!!! alt_specs')
+      >> (fn (fixes, specs) => add_fixrec_cmd fixes specs));
 
 val setup =
   Method.setup @{binding fixrec_simp}
