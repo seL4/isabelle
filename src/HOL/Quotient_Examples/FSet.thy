@@ -37,30 +37,30 @@ text {*
   lists.
 *}
 
-fun
+definition
   memb :: "'a \<Rightarrow> 'a list \<Rightarrow> bool"
 where
-  "memb x xs \<longleftrightarrow> x \<in> set xs"
+  [simp]: "memb x xs \<longleftrightarrow> x \<in> set xs"
 
-fun
+definition
   sub_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
 where 
-  "sub_list xs ys \<longleftrightarrow> set xs \<subseteq> set ys"
+  [simp]: "sub_list xs ys \<longleftrightarrow> set xs \<subseteq> set ys"
 
-fun
+definition
   card_list :: "'a list \<Rightarrow> nat"
 where
-  "card_list xs = card (set xs)"
+  [simp]: "card_list xs = card (set xs)"
 
-fun
+definition
   inter_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
-  "inter_list xs ys = [x \<leftarrow> xs. x \<in> set xs \<and> x \<in> set ys]"
+  [simp]: "inter_list xs ys = [x \<leftarrow> xs. x \<in> set xs \<and> x \<in> set ys]"
 
-fun
+definition
   diff_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
-  "diff_list xs ys = [x \<leftarrow> xs. x \<notin> set ys]"
+  [simp]: "diff_list xs ys = [x \<leftarrow> xs. x \<notin> set ys]"
 
 definition
   rsp_fold
@@ -1018,7 +1018,7 @@ next
       assume h: "x \<noteq> a"
       then have f: "\<not> memb x (a # ys)" using d by auto
       have g: "a # xs \<approx> x # (a # ys)" using e h by auto
-      show thesis using b f g by (simp del: memb.simps) 
+      show thesis using b f g by (simp del: memb_def) 
     qed
   qed
   then show thesis using a c by blast
@@ -1158,7 +1158,7 @@ fun dest_fsetT (Type (@{type_name fset}, [T])) = T
 *}
 
 no_notation
-  list_eq (infix "\<approx>" 50)
-and list_eq2 (infix "\<approx>2" 50)
+  list_eq (infix "\<approx>" 50) and 
+  list_eq2 (infix "\<approx>2" 50)
 
 end
