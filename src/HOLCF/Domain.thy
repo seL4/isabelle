@@ -20,61 +20,31 @@ default_sort pcpo
 
 subsection {* Casedist *}
 
+text {* Lemmas for proving nchotomy rule: *}
+
 lemma ex_one_defined_iff:
   "(\<exists>x. P x \<and> x \<noteq> \<bottom>) = P ONE"
- apply safe
-  apply (rule_tac p=x in oneE)
-   apply simp
-  apply simp
- apply force
- done
+by simp
 
 lemma ex_up_defined_iff:
   "(\<exists>x. P x \<and> x \<noteq> \<bottom>) = (\<exists>x. P (up\<cdot>x))"
- apply safe
-  apply (rule_tac p=x in upE)
-   apply simp
-  apply fast
- apply (force intro!: up_defined)
- done
+by (safe, case_tac x, auto)
 
 lemma ex_sprod_defined_iff:
  "(\<exists>y. P y \<and> y \<noteq> \<bottom>) =
   (\<exists>x y. (P (:x, y:) \<and> x \<noteq> \<bottom>) \<and> y \<noteq> \<bottom>)"
- apply safe
-  apply (rule_tac p=y in sprodE)
-   apply simp
-  apply fast
- apply (force intro!: spair_defined)
- done
+by (safe, case_tac y, auto)
 
 lemma ex_sprod_up_defined_iff:
  "(\<exists>y. P y \<and> y \<noteq> \<bottom>) =
   (\<exists>x y. P (:up\<cdot>x, y:) \<and> y \<noteq> \<bottom>)"
- apply safe
-  apply (rule_tac p=y in sprodE)
-   apply simp
-  apply (rule_tac p=x in upE)
-   apply simp
-  apply fast
- apply (force intro!: spair_defined)
- done
+by (safe, case_tac y, simp, case_tac x, auto)
 
 lemma ex_ssum_defined_iff:
  "(\<exists>x. P x \<and> x \<noteq> \<bottom>) =
  ((\<exists>x. P (sinl\<cdot>x) \<and> x \<noteq> \<bottom>) \<or>
   (\<exists>x. P (sinr\<cdot>x) \<and> x \<noteq> \<bottom>))"
- apply (rule iffI)
-  apply (erule exE)
-  apply (erule conjE)
-  apply (rule_tac p=x in ssumE)
-    apply simp
-   apply (rule disjI1, fast)
-  apply (rule disjI2, fast)
- apply (erule disjE)
-  apply force
- apply force
- done
+by (safe, case_tac x, auto)
 
 lemma exh_start: "p = \<bottom> \<or> (\<exists>x. p = x \<and> x \<noteq> \<bottom>)"
   by auto
@@ -86,7 +56,7 @@ lemmas ex_defined_iffs =
    ex_up_defined_iff
    ex_one_defined_iff
 
-text {* Rules for turning exh into casedist *}
+text {* Rules for turning nchotomy into exhaust: *}
 
 lemma exh_casedist0: "\<lbrakk>R; R \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P" (* like make_elim *)
   by auto
@@ -103,22 +73,10 @@ lemma exh_casedist3: "(P \<and> Q \<Longrightarrow> R) \<equiv> (P \<Longrightar
 lemmas exh_casedists = exh_casedist1 exh_casedist2 exh_casedist3
 
 
-subsection {* Combinators for building copy functions *}
-
-lemmas domain_map_stricts =
-  ssum_map_strict sprod_map_strict u_map_strict
-
-lemmas domain_map_simps =
-  ssum_map_sinl ssum_map_sinr sprod_map_spair u_map_up
-
-
 subsection {* Installing the domain package *}
 
 lemmas con_strict_rules =
   sinl_strict sinr_strict spair_strict1 spair_strict2
-
-lemmas con_defin_rules =
-  sinl_defined sinr_defined spair_defined up_defined ONE_defined
 
 lemmas con_defined_iff_rules =
   sinl_defined_iff sinr_defined_iff spair_strict_iff up_defined ONE_defined
