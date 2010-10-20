@@ -319,35 +319,6 @@ text {*
 *}
 
 
-section {* Common data structures *}
-
-subsection {* Lists (as set-like data structures) *}
-
-text {*
-  \begin{mldecls}
-  @{index_ML member: "('b * 'a -> bool) -> 'a list -> 'b -> bool"} \\
-  @{index_ML insert: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
-  @{index_ML remove: "('b * 'a -> bool) -> 'b -> 'a list -> 'a list"} \\
-  @{index_ML merge: "('a * 'a -> bool) -> 'a list * 'a list -> 'a list"} \\
-  \end{mldecls}
-*}
-
-text {*
-  Lists are often used as set-like data structures -- set-like in
-  the sense that they support a notion of @{ML member}-ship,
-  @{ML insert}-ing and @{ML remove}-ing, but are order-sensitive.
-  This is convenient when implementing a history-like mechanism:
-  @{ML insert} adds an element \emph{to the front} of a list,
-  if not yet present; @{ML remove} removes \emph{all} occurences
-  of a particular element.  Correspondingly @{ML merge} implements a 
-  a merge on two lists suitable for merges of context data
-  (\secref{sec:context-theory}).
-
-  Functions are parametrized by an explicit equality function
-  to accomplish overloaded equality;  in most cases of monomorphic
-  equality, writing @{ML "op ="} should suffice.
-*}
-
 subsection {* Association lists *}
 
 text {*

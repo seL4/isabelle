@@ -591,12 +591,16 @@ subsection {* Lists *}
 
 text {* Lists are ubiquitous in ML as simple and light-weight
   ``collections'' for many everyday programming tasks.  Isabelle/ML
-  provides some important refinements over the predefined operations
-  in SML97. *}
+  provides important additions and improvements over operations that
+  are predefined in the SML97 library. *}
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML cons: "'a -> 'a list -> 'a list"} \\
+  @{index_ML member: "('b * 'a -> bool) -> 'a list -> 'b -> bool"} \\
+  @{index_ML insert: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
+  @{index_ML remove: "('b * 'a -> bool) -> 'b -> 'a list -> 'a list"} \\
+  @{index_ML update: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
   \end{mldecls}
 
   \begin{description}
@@ -607,11 +611,42 @@ text %mlref {*
   The curried @{ML cons} amends this, but it should be only used when
   partial application is required.
 
+  \item @{ML member}, @{ML insert}, @{ML remove}, @{ML update} treat
+  lists as a set-like container that maintains the order of elements.
+  See @{"file" "~~/src/Pure/library.ML"} for the full specifications
+  (written in ML).  There are some further derived operations like
+  @{ML union} or @{ML inter}.
+
+  Note that @{ML insert} is conservative about elements that are
+  already a @{ML member} of the list, while @{ML update} ensures that
+  the last entry is always put in front.  The latter discipline is
+  often more appropriate in declarations of context data
+  (\secref{sec:context-data}) that are issued by the user in Isar
+  source: more recent declarations normally take precedence over
+  earlier ones.
+
   \end{description}
 *}
 
+text %mlex {* The following example demonstrates how to \emph{merge}
+  two lists in a natural way. *}
 
-subsubsection {* Canonical iteration *}
+ML {*
+  fun merge_lists eq (xs, ys) = fold_rev (insert eq) ys xs;
+*}
+
+text {* Here the first list is treated conservatively: only the new
+  elements from the second list are inserted.  The inside-out order of
+  insertion via @{ML fold_rev} attempts to preserve the order of
+  elements in the result.
+
+  This way of merging lists is typical for context data
+  (\secref{sec:context-data}).  See also @{ML merge} as defined in
+  @{"file" "~~/src/Pure/library.ML"}.
+*}
+
+
+subsubsection {* Canonical iteration *}  (* FIXME move!? *)
 
 text {* A function @{text "f: \<alpha> \<rightarrow> \<beta> \<rightarrow> \<beta>"} can be understood as update
   on a configuration of type @{text "\<beta>"} that is parametrized by
