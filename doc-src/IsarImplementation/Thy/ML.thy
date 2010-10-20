@@ -726,6 +726,48 @@ ML {*
 *}
 
 
+subsection {* Association lists *}
+
+text {* The operations for association lists interpret a concrete list
+  of pairs as a finite function from keys to values.  Redundant
+  representations with multiple occurrences of the same key are
+  implicitly normalized: lookup and update only take the first
+  occurrence into account.
+*}
+
+text {*
+  \begin{mldecls}
+  @{index_ML AList.lookup: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> 'c option"} \\
+  @{index_ML AList.defined: "('a * 'b -> bool) -> ('b * 'c) list -> 'a -> bool"} \\
+  @{index_ML AList.update: "('a * 'a -> bool) -> 'a * 'b -> ('a * 'b) list -> ('a * 'b) list"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML AList.lookup}, @{ML AList.defined}, @{ML AList.update}
+  implement the main ``framework operations'' for mappings in
+  Isabelle/ML, with standard conventions for names and types.
+
+  Note that a function called @{text lookup} is obliged to express its
+  partiality via an explicit option element.  There is no choice to
+  raise an exception, without changing the name to something like
+  @{text "the_element"} or @{text "get"}.
+
+  The @{text "defined"} operation is essentially a contraction of @{ML
+  is_some} and @{text "lookup"}, but this is sufficiently frequent to
+  justify its independent existence.  This also gives the
+  implementation some opportunity for peep-hole optimization.
+
+  \end{description}
+
+  Association lists are adequate as simple and light-weight
+  implementation of finite mappings in many practical situations.  A
+  more heavy-duty table structure is defined in @{"file"
+  "~~/src/Pure/General/table.ML"}; that version scales easily to
+  thousands or millions of elements.
+*}
+
+
 subsection {* Unsynchronized references *}
 
 text %mlref {*
