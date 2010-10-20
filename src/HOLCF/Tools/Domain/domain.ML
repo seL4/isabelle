@@ -106,15 +106,17 @@ fun check_and_sort_domain
                              quote (Syntax.string_of_typ_global thy t) ^ 
                              " with different arguments"))
           | analyse indirect (TVar _) = error "extender:analyse";
-        fun check_pcpo lazy T =
-            let val sort = arg_sort lazy in
+        (* a lazy argument may have an unpointed type *)
+        (* unless the argument has a selector function *)
+        fun check_pcpo sel lazy T =
+            let val sort = arg_sort (lazy andalso is_none sel) in
               if Sign.of_sort thy (T, sort) then T
               else error ("Constructor argument type is not of sort " ^
                           Syntax.string_of_sort_global thy sort ^ ": " ^
                           Syntax.string_of_typ_global thy T)
             end;
         fun analyse_arg (lazy, sel, T) =
-            (lazy, sel, check_pcpo lazy (analyse false T));
+            (lazy, sel, check_pcpo sel lazy (analyse false T));
         fun analyse_con (b, args, mx) = (b, map analyse_arg args, mx);
       in map analyse_con cons' end; 
   in ListPair.map analyse_equation (dtnvs,cons'')
