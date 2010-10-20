@@ -1,4 +1,3 @@
-
 (*  Title:      HOLCF/Tools/Domain/domain.ML
     Author:     David von Oheimb
     Author:     Brian Huffman
@@ -52,14 +51,9 @@ fun check_and_sort_domain
     (dtnvs : (string * typ list) list)
     (cons'' : (binding * (bool * binding option * typ) list * mixfix) list list)
     (thy : theory)
-    : ((string * typ list) *
-       (binding * (bool * binding option * typ) list * mixfix) list) list =
+    : (binding * (bool * binding option * typ) list * mixfix) list list =
   let
     val defaultS = Sign.defaultS thy;
-
-    val test_dupl_typs =
-      case duplicates (op =) (map fst dtnvs) of 
-        [] => false | dups => error ("Duplicate types: " ^ commas_quote dups);
 
     val all_cons = map (Binding.name_of o first) (flat cons'');
     val test_dupl_cons =
@@ -84,7 +78,6 @@ fun check_and_sort_domain
     fun analyse_equation ((dname,typevars),cons') = 
       let
         val tvars = map dest_TFree typevars;
-        val distinct_typevars = map TFree tvars;
         fun rm_sorts (TFree(s,_)) = TFree(s,[])
           | rm_sorts (Type(s,ts)) = Type(s,remove_sorts ts)
           | rm_sorts (TVar(s,_))  = TVar(s,[])
@@ -123,7 +116,7 @@ fun check_and_sort_domain
         fun analyse_arg (lazy, sel, T) =
             (lazy, sel, check_pcpo lazy (analyse false T));
         fun analyse_con (b, args, mx) = (b, map analyse_arg args, mx);
-      in ((dname,distinct_typevars), map analyse_con cons') end; 
+      in map analyse_con cons' end; 
   in ListPair.map analyse_equation (dtnvs,cons'')
   end; (* let *)
 
@@ -137,7 +130,7 @@ fun gen_add_domain
     (add_isos : (binding * mixfix * (typ * typ)) list -> theory -> info * theory)
     (arg_sort : bool -> sort)
     (comp_dbind : binding)
-    (eqs''' : ((string * string option) list * binding * mixfix *
+    (raw_specs : ((string * string option) list * binding * mixfix *
                (binding * (bool * binding option * 'a) list * mixfix) list) list)
     (thy : theory) =
   let
@@ -148,12 +141,12 @@ fun gen_add_domain
         fun readTFree (a, s) = TFree (a, readS s);
       in
         map (fn (vs,dname:binding,mx,_) =>
-                (dname, map readTFree vs, mx)) eqs'''
+                (dname, map readTFree vs, mx)) raw_specs
       end;
 
-    fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
-    fun thy_arity (dname,tvars,mx) =
-      (Sign.full_name thy dname, map (snd o dest_TFree) tvars, arg_sort false);
+    fun thy_type (dbind, tvars, mx) = (dbind, length tvars, mx);
+    fun thy_arity (dbind, tvars, mx) =
+      (Sign.full_name thy dbind, map (snd o dest_TFree) tvars, arg_sort false);
 
     (* this theory is used just for parsing and error checking *)
     val tmp_thy = thy
@@ -162,37 +155,38 @@ fun gen_add_domain
       |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
 
     val dbinds : binding list =
-        map (fn (_,dbind,_,_) => dbind) eqs''';
-    val cons''' :
+        map (fn (_,dbind,_,_) => dbind) raw_specs;
+    val raw_conss :
         (binding * (bool * binding option * 'a) list * mixfix) list list =
-        map (fn (_,_,_,cons) => cons) eqs''';
-    val cons'' :
+        map (fn (_,_,_,cons) => cons) raw_specs;
+    val conss :
         (binding * (bool * binding option * typ) list * mixfix) list list =
-        map (map (upd_second (map (upd_third (prep_typ tmp_thy))))) cons''';
+        map (map (upd_second (map (upd_third (prep_typ tmp_thy))))) raw_conss;
     val dtnvs' : (string * typ list) list =
-        map (fn (dname,vs,mx) => (Sign.full_name thy dname,vs)) dtnvs;
-    val eqs' : ((string * typ list) *
-        (binding * (bool * binding option * typ) list * mixfix) list) list =
-        check_and_sort_domain arg_sort dtnvs' cons'' tmp_thy;
-    val dts : typ list = map (Type o fst) eqs';
+        map (fn (dbind, vs, mx) => (Sign.full_name thy dbind, vs)) dtnvs;
+    val conss :
+        (binding * (bool * binding option * typ) list * mixfix) list list =
+        check_and_sort_domain arg_sort dtnvs' conss tmp_thy;
 
     fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_upT T else T;
     fun mk_con_typ (bind, args, mx) =
         if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
-    fun mk_eq_typ (_, cons) = foldr1 mk_ssumT (map mk_con_typ cons);
-    val repTs : typ list = map mk_eq_typ eqs';
+    fun mk_eq_typ cons = foldr1 mk_ssumT (map mk_con_typ cons);
+
+    val absTs : typ list = map Type dtnvs';
+    val repTs : typ list = map mk_eq_typ conss;
 
     val iso_spec : (binding * mixfix * (typ * typ)) list =
         map (fn ((dbind, _, mx), eq) => (dbind, mx, eq))
-          (dtnvs ~~ (dts ~~ repTs));
+          (dtnvs ~~ (absTs ~~ repTs));
 
     val ((iso_infos, take_info), thy) = add_isos iso_spec thy;
 
     val (constr_infos, thy) =
         thy
-          |> fold_map (fn ((dbind, (_,cs)), info) =>
-                Domain_Constructors.add_domain_constructors dbind cs info)
-             (dbinds ~~ eqs' ~~ iso_infos);
+          |> fold_map (fn ((dbind, cons), info) =>
+                Domain_Constructors.add_domain_constructors dbind cons info)
+             (dbinds ~~ conss ~~ iso_infos);
 
     val (take_rews, thy) =
         Domain_Induction.comp_theorems comp_dbind
