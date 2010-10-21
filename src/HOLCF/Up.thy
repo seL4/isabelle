@@ -120,7 +120,8 @@ proof
       by (simp add: lub_const)
     thus ?thesis ..
   next
-    fix A assume "range S <<| Iup (\<Squnion>i. A i)"
+    fix A :: "nat \<Rightarrow> 'a"
+    assume "range S <<| Iup (\<Squnion>i. A i)"
     thus ?thesis ..
   qed
 qed
