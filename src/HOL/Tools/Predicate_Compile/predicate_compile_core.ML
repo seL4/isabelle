@@ -839,7 +839,25 @@ val additional_arguments = #additional_arguments o dest_comp_modifiers
 val wrap_compilation = #wrap_compilation o dest_comp_modifiers
 val transform_additional_arguments = #transform_additional_arguments o dest_comp_modifiers
 
+fun set_compfuns compfuns' (Comp_Modifiers {compilation, function_name_prefix, compfuns, mk_random,
+    modify_funT, additional_arguments, wrap_compilation, transform_additional_arguments}) =
+    (Comp_Modifiers {compilation = compilation, function_name_prefix = function_name_prefix,
+    compfuns = compfuns', mk_random = mk_random, modify_funT = modify_funT,
+    additional_arguments = additional_arguments, wrap_compilation = wrap_compilation,
+    transform_additional_arguments = transform_additional_arguments})
+
 end;
+
+fun unlimited_compfuns_of true Predicate_Compile_Aux.New_Pos_Random_DSeq =
+    New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
+  | unlimited_compfuns_of false Predicate_Compile_Aux.New_Pos_Random_DSeq =
+    New_Neg_Random_Sequence_CompFuns.depth_unlimited_compfuns
+  
+fun limited_compfuns_of true Predicate_Compile_Aux.New_Pos_Random_DSeq =
+    New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns
+  | limited_compfuns_of false Predicate_Compile_Aux.New_Pos_Random_DSeq =
+    New_Neg_Random_Sequence_CompFuns.depth_limited_compfuns
+
 
 val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
   {
@@ -1028,7 +1046,7 @@ val new_pos_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   {
   compilation = New_Pos_Random_DSeq,
   function_name_prefix = "new_random_dseq_",
-  compfuns = New_Pos_Random_Sequence_CompFuns.compfuns,
+  compfuns = New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns,
   mk_random = (fn T => fn additional_arguments =>
   let
     val random = Const ("Quickcheck.random_class.random",
@@ -1050,7 +1068,7 @@ val new_neg_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   {
   compilation = New_Neg_Random_DSeq,
   function_name_prefix = "new_random_dseq_neg_",
-  compfuns = New_Neg_Random_Sequence_CompFuns.compfuns,
+  compfuns = New_Neg_Random_Sequence_CompFuns.depth_limited_compfuns,
   mk_random = (fn _ => error "no random generation"),
   modify_funT = I,
   additional_arguments = K [],
@@ -1964,8 +1982,16 @@ fun compile_switch compilation_modifiers ctxt all_vs param_modes additional_argu
 
 fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mode) moded_cls =
   let
-    val compilation_modifiers = if pol then compilation_modifiers else
-      negative_comp_modifiers_of compilation_modifiers
+    val is_terminating = true (* FIXME: requires an termination analysis *)  
+    val compilation_modifiers =
+      (if pol then compilation_modifiers else
+        negative_comp_modifiers_of compilation_modifiers)
+      |> (if is_depth_limited_compilation (Comp_Mod.compilation compilation_modifiers) then
+           (if is_terminating then
+             (Comp_Mod.set_compfuns (unlimited_compfuns_of pol (Comp_Mod.compilation compilation_modifiers)))
+           else
+             (Comp_Mod.set_compfuns (limited_compfuns_of pol (Comp_Mod.compilation compilation_modifiers))))
+         else I)
     val additional_arguments = Comp_Mod.additional_arguments compilation_modifiers
       (all_vs @ param_vs)
     val compfuns = Comp_Mod.compfuns compilation_modifiers
@@ -3062,9 +3088,9 @@ val add_new_random_dseq_equations = gen_add_equations
     let
       val pos_modes = map_filter (fn (true, m) => SOME m | _ => NONE) modes
       val neg_modes = map_filter (fn (false, m) => SOME m | _ => NONE) modes
-    in define_functions new_pos_random_dseq_comp_modifiers New_Pos_Random_Sequence_CompFuns.compfuns
+    in define_functions new_pos_random_dseq_comp_modifiers New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns
       options preds (s, pos_modes)
-      #> define_functions new_neg_random_dseq_comp_modifiers New_Neg_Random_Sequence_CompFuns.compfuns
+      #> define_functions new_neg_random_dseq_comp_modifiers New_Neg_Random_Sequence_CompFuns.depth_limited_compfuns
       options preds (s, neg_modes)
     end,
   prove = prove_by_skip,
@@ -3292,7 +3318,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
         Random => PredicateCompFuns.compfuns
       | DSeq => DSequence_CompFuns.compfuns
       | Pos_Random_DSeq => Random_Sequence_CompFuns.compfuns
-      | New_Pos_Random_DSeq => New_Pos_Random_Sequence_CompFuns.compfuns
+      | New_Pos_Random_DSeq => New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
       | _ => PredicateCompFuns.compfuns
     val t = analyze_compr ctxt compfuns param_user_modes options t_compr;
     val T = dest_predT compfuns (fastype_of t);

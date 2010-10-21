@@ -182,6 +182,13 @@ fun mk_bind (x, f) =
   in
     Const (@{const_name New_Random_Sequence.pos_bind}, fastype_of x --> T --> U) $ x $ f
   end;
+  
+fun mk_decr_bind (x, f) =
+  let
+    val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name New_Random_Sequence.pos_decr_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
 
 val mk_sup = HOLogic.mk_binop @{const_name New_Random_Sequence.pos_union};
 
@@ -206,7 +213,12 @@ fun mk_not t =
 fun mk_map T1 T2 tf tp = Const (@{const_name New_Random_Sequence.pos_map},
   (T1 --> T2) --> mk_pos_random_dseqT T1 --> mk_pos_random_dseqT T2) $ tf $ tp
 
-val compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_limited_compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_pos_random_dseqT, dest_predT = dest_pos_random_dseqT,
+    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_decr_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
+
+val depth_unlimited_compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_pos_random_dseqT, dest_predT = dest_pos_random_dseqT,
     mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
@@ -241,6 +253,13 @@ fun mk_bind (x, f) =
     Const (@{const_name New_Random_Sequence.neg_bind}, fastype_of x --> T --> U) $ x $ f
   end;
 
+fun mk_decr_bind (x, f) =
+  let
+    val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name New_Random_Sequence.neg_decr_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+
 val mk_sup = HOLogic.mk_binop @{const_name New_Random_Sequence.neg_union};
 
 fun mk_if cond = Const (@{const_name New_Random_Sequence.neg_if_random_dseq},
@@ -262,7 +281,12 @@ fun mk_not t =
 fun mk_map T1 T2 tf tp = Const (@{const_name New_Random_Sequence.neg_map},
   (T1 --> T2) --> mk_neg_random_dseqT T1 --> mk_neg_random_dseqT T2) $ tf $ tp
 
-val compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_limited_compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_neg_random_dseqT, dest_predT = dest_neg_random_dseqT,
+    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_decr_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
+
+val depth_unlimited_compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_neg_random_dseqT, dest_predT = dest_neg_random_dseqT,
     mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}

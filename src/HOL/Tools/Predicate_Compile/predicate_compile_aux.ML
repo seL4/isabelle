@@ -92,6 +92,7 @@ sig
     | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq
   val negative_compilation_of : compilation -> compilation
   val compilation_for_polarity : bool -> compilation -> compilation
+  val is_depth_limited_compilation : compilation -> bool 
   val string_of_compilation : compilation -> string
   val compilation_names : (string * compilation) list
   val non_random_compilations : compilation list
@@ -645,6 +646,9 @@ fun negative_compilation_of Pos_Random_DSeq = Neg_Random_DSeq
 fun compilation_for_polarity false Pos_Random_DSeq = Neg_Random_DSeq
   | compilation_for_polarity false New_Pos_Random_DSeq = New_Neg_Random_DSeq
   | compilation_for_polarity _ c = c
+
+fun is_depth_limited_compilation c =
+  (c = New_Pos_Random_DSeq) orelse (c = New_Neg_Random_DSeq)
 
 fun string_of_compilation c =
   case c of

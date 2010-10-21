@@ -21,7 +21,11 @@ where
 
 definition pos_bind :: "'a pos_dseq => ('a => 'b pos_dseq) => 'b pos_dseq"
 where
-  "pos_bind x f = (%i. 
+  "pos_bind x f = (%i. Lazy_Sequence.bind (x i) (%a. f a i))"
+
+definition pos_decr_bind :: "'a pos_dseq => ('a => 'b pos_dseq) => 'b pos_dseq"
+where
+  "pos_decr_bind x f = (%i. 
      if i = 0 then
        Lazy_Sequence.empty
      else
@@ -57,7 +61,11 @@ where
 
 definition neg_bind :: "'a neg_dseq => ('a => 'b neg_dseq) => 'b neg_dseq"
 where
-  "neg_bind x f = (%i. 
+  "neg_bind x f = (%i. hb_bind (x i) (%a. f a i))"
+
+definition neg_decr_bind :: "'a neg_dseq => ('a => 'b neg_dseq) => 'b neg_dseq"
+where
+  "neg_decr_bind x f = (%i. 
      if i = 0 then
        Lazy_Sequence.hit_bound
      else
@@ -94,8 +102,8 @@ where
 hide_type (open) pos_dseq neg_dseq
 
 hide_const (open)
-  pos_empty pos_single pos_bind pos_union pos_if_seq pos_iterate_upto pos_not_seq pos_map
-  neg_empty neg_single neg_bind neg_union neg_if_seq neg_iterate_upto neg_not_seq neg_map
+  pos_empty pos_single pos_bind pos_decr_bind pos_union pos_if_seq pos_iterate_upto pos_not_seq pos_map
+  neg_empty neg_single neg_bind neg_decr_bind neg_union neg_if_seq neg_iterate_upto neg_not_seq neg_map
 hide_fact (open)
   pos_empty_def pos_single_def pos_bind_def pos_union_def pos_if_seq_def pos_iterate_upto_def pos_not_seq_def pos_map_def
   neg_empty_def neg_single_def neg_bind_def neg_union_def neg_if_seq_def neg_iterate_upto_def neg_not_seq_def neg_map_def
