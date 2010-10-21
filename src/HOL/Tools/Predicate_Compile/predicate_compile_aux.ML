@@ -150,6 +150,7 @@ sig
   val imp_prems_conv : conv -> conv
   (* simple transformations *)
   val split_conjuncts_in_assms : Proof.context -> thm -> thm
+  val dest_conjunct_prem : thm -> thm list
   val expand_tuples : theory -> thm -> thm
   val case_betapply : theory -> term -> term
   val eta_contract_ho_arguments : theory -> thm -> thm
@@ -157,7 +158,7 @@ sig
   val remove_pointless_clauses : thm -> thm list
   val peephole_optimisation : theory -> thm -> thm option
   val define_quickcheck_predicate :
-    term -> theory -> (((string * typ) * (string * typ) list) * thm) * theory 
+    term -> theory -> (((string * typ) * (string * typ) list) * thm) * theory
 end;
 
 structure Predicate_Compile_Aux : PREDICATE_COMPILE_AUX =
@@ -854,7 +855,14 @@ fun split_conjuncts_in_assms ctxt th =
   in
     singleton (Variable.export ctxt' ctxt) (split_conjs 1 (Thm.nprems_of fixed_th) fixed_th)
   end
-  
+
+fun dest_conjunct_prem th =
+  case HOLogic.dest_Trueprop (prop_of th) of
+    (Const (@{const_name HOL.conj}, _) $ t $ t') =>
+      dest_conjunct_prem (th RS @{thm conjunct1})
+        @ dest_conjunct_prem (th RS @{thm conjunct2})
+    | _ => [th]
+
 fun expand_tuples thy intro =
   let
     val ctxt = ProofContext.init_global thy
