@@ -157,6 +157,170 @@ val compfuns = Predicate_Compile_Aux.CompilationFuns
 
 end;
 
+structure DSequence_CompFuns =
+struct
+
+fun mk_dseqT T = Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ bool},
+  Type (@{type_name Option.option}, [Type  (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])
+
+fun dest_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ bool},
+  Type (@{type_name Option.option}, [Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])) = T
+  | dest_dseqT T = raise TYPE ("dest_dseqT", [T], []);
+
+fun mk_bot T = Const (@{const_name DSequence.empty}, mk_dseqT T);
+
+fun mk_single t =
+  let val T = fastype_of t
+  in Const(@{const_name DSequence.single}, T --> mk_dseqT T) $ t end;
+
+fun mk_bind (x, f) =
+  let val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name DSequence.bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+
+val mk_sup = HOLogic.mk_binop @{const_name DSequence.union};
+
+fun mk_if cond = Const (@{const_name DSequence.if_seq},
+  HOLogic.boolT --> mk_dseqT HOLogic.unitT) $ cond;
+
+fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
+
+fun mk_not t = let val T = mk_dseqT HOLogic.unitT
+  in Const (@{const_name DSequence.not_seq}, T --> T) $ t end
+
+fun mk_map T1 T2 tf tp = Const (@{const_name DSequence.map},
+  (T1 --> T2) --> mk_dseqT T1 --> mk_dseqT T2) $ tf $ tp
+
+val compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_dseqT, dest_predT = dest_dseqT,
+    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
+
+end;
+
+structure New_Pos_DSequence_CompFuns =
+struct
+
+fun mk_pos_dseqT T =
+    @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])
+
+fun dest_pos_dseqT (Type ("fun", [@{typ code_numeral},
+    Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])) = T
+  | dest_pos_dseqT T = raise TYPE ("dest_pos_dseqT", [T], []);
+
+fun mk_bot T = Const (@{const_name New_DSequence.pos_empty}, mk_pos_dseqT T);
+
+fun mk_single t =
+  let
+    val T = fastype_of t
+  in Const(@{const_name New_DSequence.pos_single}, T --> mk_pos_dseqT T) $ t end;
+
+fun mk_bind (x, f) =
+  let
+    val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name New_DSequence.pos_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+  
+fun mk_decr_bind (x, f) =
+  let
+    val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name New_DSequence.pos_decr_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+
+val mk_sup = HOLogic.mk_binop @{const_name New_DSequence.pos_union};
+
+fun mk_if cond = Const (@{const_name New_DSequence.pos_if_seq},
+  HOLogic.boolT --> mk_pos_dseqT HOLogic.unitT) $ cond;
+
+fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
+
+fun mk_not t =
+  let
+    val pT = mk_pos_dseqT HOLogic.unitT
+    val nT =
+      @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence},
+        [Type (@{type_name Option.option}, [@{typ unit}])])
+  in Const (@{const_name New_DSequence.pos_not_seq}, nT --> pT) $ t end
+
+fun mk_map T1 T2 tf tp = Const (@{const_name New_DSequence.pos_map},
+  (T1 --> T2) --> mk_pos_dseqT T1 --> mk_pos_dseqT T2) $ tf $ tp
+
+val depth_limited_compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_pos_dseqT, dest_predT = dest_pos_dseqT,
+    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_decr_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
+
+val depth_unlimited_compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_pos_dseqT, dest_predT = dest_pos_dseqT,
+    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
+
+end;
+
+structure New_Neg_DSequence_CompFuns =
+struct
+
+fun mk_neg_dseqT T = @{typ code_numeral} -->
+  Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])
+
+fun dest_neg_dseqT (Type ("fun", [@{typ code_numeral},
+    Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])])) = T
+  | dest_neg_dseqT T = raise TYPE ("dest_neg_dseqT", [T], []);
+
+fun mk_bot T = Const (@{const_name New_DSequence.neg_empty}, mk_neg_dseqT T);
+
+fun mk_single t =
+  let
+    val T = fastype_of t
+  in Const(@{const_name New_DSequence.neg_single}, T --> mk_neg_dseqT T) $ t end;
+
+fun mk_bind (x, f) =
+  let
+    val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name New_DSequence.neg_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+  
+fun mk_decr_bind (x, f) =
+  let
+    val T as Type ("fun", [_, U]) = fastype_of f
+  in
+    Const (@{const_name New_DSequence.neg_decr_bind}, fastype_of x --> T --> U) $ x $ f
+  end;
+
+val mk_sup = HOLogic.mk_binop @{const_name New_DSequence.neg_union};
+
+fun mk_if cond = Const (@{const_name New_DSequence.neg_if_seq},
+  HOLogic.boolT --> mk_neg_dseqT HOLogic.unitT) $ cond;
+
+fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
+
+fun mk_not t =
+  let
+    val nT = mk_neg_dseqT HOLogic.unitT
+    val pT =
+      @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence},
+        [@{typ unit}])
+  in Const (@{const_name New_DSequence.neg_not_seq}, pT --> nT) $ t end
+
+fun mk_map T1 T2 tf tp = Const (@{const_name New_DSequence.neg_map},
+  (T1 --> T2) --> mk_neg_dseqT T1 --> mk_neg_dseqT T2) $ tf $ tp
+
+val depth_limited_compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_neg_dseqT, dest_predT = dest_neg_dseqT,
+    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_decr_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
+
+val depth_unlimited_compfuns = Predicate_Compile_Aux.CompilationFuns
+    {mk_predT = mk_neg_dseqT, dest_predT = dest_neg_dseqT,
+    mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
+
+end;
+
 structure New_Pos_Random_Sequence_CompFuns =
 struct
 
@@ -182,7 +346,7 @@ fun mk_bind (x, f) =
   in
     Const (@{const_name New_Random_Sequence.pos_bind}, fastype_of x --> T --> U) $ x $ f
   end;
-  
+
 fun mk_decr_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
@@ -222,7 +386,6 @@ val depth_unlimited_compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_predT = mk_pos_random_dseqT, dest_predT = dest_pos_random_dseqT,
     mk_bot = mk_bot, mk_single = mk_single, mk_bind = mk_bind, mk_sup = mk_sup, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
-
 end;
 
 structure New_Neg_Random_Sequence_CompFuns =

@@ -140,6 +140,71 @@ code_reflect Lazy_Sequence
   datatypes lazy_sequence = Lazy_Sequence
   functions map yield yieldn
 
+subsection {* Generator Sequences *}
+
+
+subsubsection {* General lazy sequence operation *}
+
+definition product :: "'a Lazy_Sequence.lazy_sequence \<Rightarrow> 'b Lazy_Sequence.lazy_sequence \<Rightarrow> ('a * 'b) Lazy_Sequence.lazy_sequence"
+where
+  "product s1 s2 = Lazy_Sequence.bind s1 (%a. Lazy_Sequence.bind s2 (%b. Lazy_Sequence.single (a, b)))"
+
+
+subsubsection {* small_lazy typeclasses *}
+
+class small_lazy =
+  fixes small_lazy :: "int \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
+
+instantiation unit :: small_lazy
+begin
+
+definition "small_lazy d = Lazy_Sequence.single ()"
+
+instance ..
+
+end
+
+instantiation int :: small_lazy
+begin
+
+text {* maybe optimise this expression -> append (single x) xs == cons x xs 
+Performance difference? *}
+
+function small_lazy' :: "int => int => int Lazy_Sequence.lazy_sequence"
+where "small_lazy' d i = (if d < i then Lazy_Sequence.empty else
+  Lazy_Sequence.append (Lazy_Sequence.single i) (small_lazy' d (i + 1)))"
+by pat_completeness auto
+
+termination 
+  by (relation "measure (%(d, i). nat (d + 1 - i))") auto
+
+definition "small_lazy d = small_lazy' d (- d)"
+
+instance ..
+
+end
+
+instantiation prod :: (small_lazy, small_lazy) small_lazy
+begin
+
+definition
+  "small_lazy d = product (small_lazy d) (small_lazy d)"
+
+instance ..
+
+end
+
+instantiation list :: (small_lazy) small_lazy
+begin
+
+fun small_lazy_list :: "int => 'a list Lazy_Sequence.lazy_sequence"
+where
+  "small_lazy_list d = Lazy_Sequence.append (Lazy_Sequence.single []) (if d > 0 then Lazy_Sequence.bind (product (small_lazy (d - 1)) (small_lazy (d - 1))) (%(x, xs). Lazy_Sequence.single (x # xs)) else Lazy_Sequence.empty)"
+
+instance ..
+
+end
+
 subsection {* With Hit Bound Value *}
 text {* assuming in negative context *}
 
@@ -148,7 +213,6 @@ types 'a hit_bound_lazy_sequence = "'a option lazy_sequence"
 definition hit_bound :: "'a hit_bound_lazy_sequence"
 where
   [code]: "hit_bound = Lazy_Sequence (%u. Some (None, empty))"
-
 
 definition hb_single :: "'a => 'a hit_bound_lazy_sequence"
 where
@@ -194,7 +258,10 @@ where
   "hb_not_seq xq = (case yield xq of None => single () | Some (x, xq) => empty)"
 
 hide_type (open) lazy_sequence
-hide_const (open) Empty Insert Lazy_Sequence yield empty single append flat map bind if_seq iterate_upto not_seq
-hide_fact yield.simps empty_def single_def append.simps flat.simps map.simps bind_def iterate_upto.simps if_seq_def not_seq_def
+hide_const (open) Empty Insert Lazy_Sequence yield empty single append flat map bind if_seq
+  iterate_upto not_seq product
+  
+hide_fact yield.simps empty_def single_def append.simps flat.simps map.simps bind_def
+  iterate_upto.simps product_def if_seq_def not_seq_def
 
 end

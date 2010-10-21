@@ -278,7 +278,7 @@ val has_elim = is_some o #elim oo the_pred_data
 fun function_names_of compilation ctxt name =
   case AList.lookup (op =) (#function_names (the_pred_data ctxt name)) compilation of
     NONE => error ("No " ^ string_of_compilation compilation
-      ^ "functions defined for predicate " ^ quote name)
+      ^ " functions defined for predicate " ^ quote name)
   | SOME fun_names => fun_names
 
 fun function_name_of compilation ctxt name mode =
@@ -848,16 +848,27 @@ fun set_compfuns compfuns' (Comp_Modifiers {compilation, function_name_prefix, c
 
 end;
 
-fun unlimited_compfuns_of true Predicate_Compile_Aux.New_Pos_Random_DSeq =
+fun unlimited_compfuns_of true New_Pos_Random_DSeq =
     New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
-  | unlimited_compfuns_of false Predicate_Compile_Aux.New_Pos_Random_DSeq =
+  | unlimited_compfuns_of false New_Pos_Random_DSeq =
     New_Neg_Random_Sequence_CompFuns.depth_unlimited_compfuns
-  
+  | unlimited_compfuns_of true Pos_Generator_DSeq =
+    New_Pos_DSequence_CompFuns.depth_unlimited_compfuns
+  | unlimited_compfuns_of false Pos_Generator_DSeq =
+    New_Neg_DSequence_CompFuns.depth_unlimited_compfuns
+  | unlimited_compfuns_of _ c =
+    raise Fail ("No unlimited compfuns for compilation " ^ string_of_compilation c)
+
 fun limited_compfuns_of true Predicate_Compile_Aux.New_Pos_Random_DSeq =
     New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns
   | limited_compfuns_of false Predicate_Compile_Aux.New_Pos_Random_DSeq =
     New_Neg_Random_Sequence_CompFuns.depth_limited_compfuns
-
+  | limited_compfuns_of true Pos_Generator_DSeq =
+    New_Pos_DSequence_CompFuns.depth_limited_compfuns
+  | limited_compfuns_of false Pos_Generator_DSeq =
+    New_Neg_DSequence_CompFuns.depth_limited_compfuns
+  | limited_compfuns_of _ c =
+    raise Fail ("No limited compfuns for compilation " ^ string_of_compilation c)
 
 val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
   {
@@ -997,7 +1008,7 @@ val dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compilation = DSeq,
   function_name_prefix = "dseq_",
   compfuns = DSequence_CompFuns.compfuns,
-  mk_random = (fn _ => error "no random generation"),
+  mk_random = (fn _ => error "no random generation in dseq"),
   modify_funT = I,
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))
@@ -1077,12 +1088,49 @@ val new_neg_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   transform_additional_arguments = K I : (indprem -> term list -> term list)
   }
 
+val pos_generator_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
+  {
+  compilation = Pos_Generator_DSeq,
+  function_name_prefix = "generator_dseq_",
+  compfuns = New_Pos_DSequence_CompFuns.depth_limited_compfuns,
+  mk_random =
+    (fn T => fn additional_arguments =>
+      let
+        val small_lazy =
+         Const (@{const_name "Lazy_Sequence.small_lazy_class.small_lazy"},
+         @{typ "Int.int"} --> Type (@{type_name "Lazy_Sequence.lazy_sequence"}, [T])) 
+      in
+        absdummy (@{typ code_numeral}, small_lazy $ HOLogic.mk_number @{typ int} 3)
+      end
+    ),
+  modify_funT = I,
+  additional_arguments = K [],
+  wrap_compilation = K (K (K (K (K I))))
+   : (compilation_funs -> string -> typ -> mode -> term list -> term -> term),
+  transform_additional_arguments = K I : (indprem -> term list -> term list)
+  }
+
+val neg_generator_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
+  {
+  compilation = Neg_Generator_DSeq,
+  function_name_prefix = "generator_dseq_neg_",
+  compfuns = New_Neg_DSequence_CompFuns.depth_limited_compfuns,
+  mk_random = (fn _ => error "no random generation"),
+  modify_funT = I,
+  additional_arguments = K [],
+  wrap_compilation = K (K (K (K (K I))))
+   : (compilation_funs -> string -> typ -> mode -> term list -> term -> term),
+  transform_additional_arguments = K I : (indprem -> term list -> term list)
+  }
+
 fun negative_comp_modifiers_of comp_modifiers =
     (case Comp_Mod.compilation comp_modifiers of
       Pos_Random_DSeq => neg_random_dseq_comp_modifiers
     | Neg_Random_DSeq => pos_random_dseq_comp_modifiers
     | New_Pos_Random_DSeq => new_neg_random_dseq_comp_modifiers
-    | New_Neg_Random_DSeq => new_pos_random_dseq_comp_modifiers
+    | New_Neg_Random_DSeq => new_pos_random_dseq_comp_modifiers 
+    | Pos_Generator_DSeq => neg_generator_dseq_comp_modifiers
+    | Neg_Generator_DSeq => pos_generator_dseq_comp_modifiers
     | c => comp_modifiers)
 
 (** mode analysis **)
@@ -3099,6 +3147,25 @@ val add_new_random_dseq_equations = gen_add_equations
   use_generators = true,
   qname = "new_random_dseq_equation"})
 
+val add_generator_dseq_equations = gen_add_equations
+  (Steps {
+  define_functions =
+  fn options => fn preds => fn (s, modes) =>
+    let
+      val pos_modes = map_filter (fn (true, m) => SOME m | _ => NONE) modes
+      val neg_modes = map_filter (fn (false, m) => SOME m | _ => NONE) modes
+    in 
+      define_functions pos_generator_dseq_comp_modifiers New_Pos_DSequence_CompFuns.depth_limited_compfuns
+        options preds (s, pos_modes)
+      #> define_functions neg_generator_dseq_comp_modifiers New_Neg_DSequence_CompFuns.depth_limited_compfuns
+        options preds (s, neg_modes)
+    end,
+  prove = prove_by_skip,
+  add_code_equations = K (K I),
+  comp_modifiers = pos_generator_dseq_comp_modifiers,
+  use_generators = true,
+  qname = "generator_dseq_equation"})
+
 (** user interface **)
 
 (* code_pred_intro attribute *)
@@ -3160,6 +3227,7 @@ fun generic_code_pred prep_const options raw_const lthy =
            | Random => add_random_equations
            | Depth_Limited_Random => add_depth_limited_random_equations
            | New_Pos_Random_DSeq => add_new_random_dseq_equations
+           | Pos_Generator_DSeq => add_generator_dseq_equations
            | compilation => error ("Compilation not supported")
            ) options [const]))
       end
