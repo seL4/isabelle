@@ -565,7 +565,7 @@ text {* A \emph{configuration option} is a named optional value of
 
   For example, the predefined configuration option @{attribute
   show_types} controls output of explicit type constraints for
-  variables in printed terms (cf.\ \secref{sec:parse-print}).  Its
+  variables in printed terms (cf.\ \secref{sec:read-print}).  Its
   value can be modified within Isar text like this:
 *}
 
