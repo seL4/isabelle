@@ -5,7 +5,7 @@
 header {* Lifting types of class type to flat pcpo's *}
 
 theory Lift
-imports Discrete Up Countable
+imports Discrete Up
 begin
 
 default_sort type
