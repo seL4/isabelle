@@ -73,97 +73,62 @@ subsection {* Lifted cpo is a cpo *}
 
 lemma is_lub_Iup:
   "range S <<| x \<Longrightarrow> range (\<lambda>i. Iup (S i)) <<| Iup x"
-apply (rule is_lubI)
-apply (rule ub_rangeI)
-apply (subst Iup_below)
-apply (erule is_ub_lub)
-apply (case_tac u)
-apply (drule ub_rangeD)
-apply simp
-apply simp
-apply (erule is_lub_lub)
-apply (rule ub_rangeI)
-apply (drule_tac i=i in ub_rangeD)
-apply simp
-done
-
-text {* Now some lemmas about chains of @{typ "'a u"} elements *}
-
-lemma up_lemma1: "z \<noteq> Ibottom \<Longrightarrow> Iup (THE a. Iup a = z) = z"
-by (case_tac z, simp_all)
-
-lemma up_lemma2:
-  "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk> \<Longrightarrow> Y (i + j) \<noteq> Ibottom"
-apply (erule contrapos_nn)
-apply (drule_tac i="j" and j="i + j" in chain_mono)
-apply (rule le_add2)
-apply (case_tac "Y j")
-apply assumption
-apply simp
-done
-
-lemma up_lemma3:
-  "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk> \<Longrightarrow> Iup (THE a. Iup a = Y (i + j)) = Y (i + j)"
-by (rule up_lemma1 [OF up_lemma2])
-
-lemma up_lemma4:
-  "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk> \<Longrightarrow> chain (\<lambda>i. THE a. Iup a = Y (i + j))"
-apply (rule chainI)
-apply (rule Iup_below [THEN iffD1])
-apply (subst up_lemma3, assumption+)+
-apply (simp add: chainE)
-done
-
-lemma up_lemma5:
-  "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk> \<Longrightarrow>
-    (\<lambda>i. Y (i + j)) = (\<lambda>i. Iup (THE a. Iup a = Y (i + j)))"
-by (rule ext, rule up_lemma3 [symmetric])
-
-lemma up_lemma6:
-  "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk>
-      \<Longrightarrow> range Y <<| Iup (\<Squnion>i. THE a. Iup a = Y(i + j))"
-apply (rule_tac j1 = j in is_lub_range_shift [THEN iffD1])
-apply assumption
-apply (subst up_lemma5, assumption+)
-apply (rule is_lub_Iup)
-apply (rule cpo_lubI)
-apply (erule (1) up_lemma4)
-done
+unfolding is_lub_def is_ub_def ball_simps
+by (auto simp add: below_up_def split: u.split)
 
 lemma up_chain_lemma:
-  "chain Y \<Longrightarrow>
-   (\<exists>A. chain A \<and> (\<Squnion>i. Y i) = Iup (\<Squnion>i. A i) \<and>
-   (\<exists>j. \<forall>i. Y (i + j) = Iup (A i))) \<or> (Y = (\<lambda>i. Ibottom))"
-apply (rule disjCI)
-apply (simp add: fun_eq_iff)
-apply (erule exE, rename_tac j)
-apply (rule_tac x="\<lambda>i. THE a. Iup a = Y (i + j)" in exI)
-apply (simp add: up_lemma4)
-apply (simp add: up_lemma6 [THEN thelubI])
-apply (rule_tac x=j in exI)
-apply (simp add: up_lemma3)
-done
-
-lemma cpo_up: "chain (Y::nat \<Rightarrow> 'a u) \<Longrightarrow> \<exists>x. range Y <<| x"
-apply (frule up_chain_lemma, safe)
-apply (rule_tac x="Iup (\<Squnion>i. A i)" in exI)
-apply (erule_tac j="j" in is_lub_range_shift [THEN iffD1, standard])
-apply (simp add: is_lub_Iup cpo_lubI)
-apply (rule exI, rule lub_const)
-done
+  assumes Y: "chain Y" obtains "\<forall>i. Y i = Ibottom"
+  | A k where "\<forall>i. Iup (A i) = Y (i + k)" and "chain A" and "range Y <<| Iup (\<Squnion>i. A i)"
+proof (cases "\<exists>k. Y k \<noteq> Ibottom")
+  case True
+  then obtain k where k: "Y k \<noteq> Ibottom" ..
+  def A \<equiv> "\<lambda>i. THE a. Iup a = Y (i + k)"
+  have Iup_A: "\<forall>i. Iup (A i) = Y (i + k)"
+  proof
+    fix i :: nat
+    from Y le_add2 have "Y k \<sqsubseteq> Y (i + k)" by (rule chain_mono)
+    with k have "Y (i + k) \<noteq> Ibottom" by (cases "Y k", auto)
+    thus "Iup (A i) = Y (i + k)"
+      by (cases "Y (i + k)", simp_all add: A_def)
+  qed
+  from Y have chain_A: "chain A"
+    unfolding chain_def Iup_below [symmetric]
+    by (simp add: Iup_A)
+  hence "range A <<| (\<Squnion>i. A i)"
+    by (rule cpo_lubI)
+  hence "range (\<lambda>i. Iup (A i)) <<| Iup (\<Squnion>i. A i)"
+    by (rule is_lub_Iup)
+  hence "range (\<lambda>i. Y (i + k)) <<| Iup (\<Squnion>i. A i)"
+    by (simp only: Iup_A)
+  hence "range (\<lambda>i. Y i) <<| Iup (\<Squnion>i. A i)"
+    by (simp only: is_lub_range_shift [OF Y])
+  with Iup_A chain_A show ?thesis ..
+next
+  case False
+  then have "\<forall>i. Y i = Ibottom" by simp
+  then show ?thesis ..
+qed
 
 instance u :: (cpo) cpo
-by intro_classes (rule cpo_up)
+proof
+  fix S :: "nat \<Rightarrow> 'a u"
+  assume S: "chain S"
+  thus "\<exists>x. range (\<lambda>i. S i) <<| x"
+  proof (rule up_chain_lemma)
+    assume "\<forall>i. S i = Ibottom"
+    hence "range (\<lambda>i. S i) <<| Ibottom"
+      by (simp add: lub_const)
+    thus ?thesis ..
+  next
+    fix A assume "range S <<| Iup (\<Squnion>i. A i)"
+    thus ?thesis ..
+  qed
+qed
 
 subsection {* Lifted cpo is pointed *}
 
-lemma least_up: "\<exists>x::'a u. \<forall>y. x \<sqsubseteq> y"
-apply (rule_tac x = "Ibottom" in exI)
-apply (rule minimal_up [THEN allI])
-done
-
 instance u :: (cpo) pcpo
-by intro_classes (rule least_up)
+by intro_classes fast
 
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_up_pcpo: "\<bottom> = Ibottom"
@@ -192,13 +157,22 @@ apply (simp add: monofun_cfun_arg)
 done
 
 lemma cont_Ifup2: "cont (\<lambda>x. Ifup f x)"
-apply (rule contI)
-apply (frule up_chain_lemma, safe)
-apply (rule_tac j="j" in is_lub_range_shift [THEN iffD1, standard])
-apply (erule monofun_Ifup2 [THEN ch2ch_monofun])
-apply (simp add: cont_cfun_arg)
-apply (simp add: lub_const)
-done
+proof (rule contI2)
+  fix Y assume Y: "chain Y" and Y': "chain (\<lambda>i. Ifup f (Y i))"
+  from Y show "Ifup f (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. Ifup f (Y i))"
+  proof (rule up_chain_lemma)
+    fix A and k
+    assume A: "\<forall>i. Iup (A i) = Y (i + k)"
+    assume "chain A" and "range Y <<| Iup (\<Squnion>i. A i)"
+    hence "Ifup f (\<Squnion>i. Y i) = (\<Squnion>i. Ifup f (Iup (A i)))"
+      by (simp add: thelubI contlub_cfun_arg)
+    also have "\<dots> = (\<Squnion>i. Ifup f (Y (i + k)))"
+      by (simp add: A)
+    also have "\<dots> = (\<Squnion>i. Ifup f (Y i))"
+      using Y' by (rule lub_range_shift)
+    finally show ?thesis by simp
+  qed simp
+qed (rule monofun_Ifup2)
 
 subsection {* Continuous versions of constants *}
 
@@ -251,18 +225,20 @@ by (cases x, simp_all)
 text {* lifting preserves chain-finiteness *}
 
 lemma up_chain_cases:
-  "chain Y \<Longrightarrow>
-  (\<exists>A. chain A \<and> (\<Squnion>i. Y i) = up\<cdot>(\<Squnion>i. A i) \<and>
-  (\<exists>j. \<forall>i. Y (i + j) = up\<cdot>(A i))) \<or> Y = (\<lambda>i. \<bottom>)"
-by (simp add: inst_up_pcpo up_def cont_Iup up_chain_lemma)
+  assumes Y: "chain Y" obtains "\<forall>i. Y i = \<bottom>"
+  | A k where "\<forall>i. up\<cdot>(A i) = Y (i + k)" and "chain A" and "(\<Squnion>i. Y i) = up\<cdot>(\<Squnion>i. A i)"
+apply (rule up_chain_lemma [OF Y])
+apply (simp_all add: inst_up_pcpo up_def cont_Iup thelubI)
+done
 
 lemma compact_up: "compact x \<Longrightarrow> compact (up\<cdot>x)"
 apply (rule compactI2)
-apply (drule up_chain_cases, safe)
+apply (erule up_chain_cases)
+apply simp
 apply (drule (1) compactD2, simp)
-apply (erule exE, rule_tac x="i + j" in exI)
-apply simp
-apply simp
+apply (erule exE)
+apply (drule_tac f="up" and x="x" in monofun_cfun_arg)
+apply (simp, erule exI)
 done
 
 lemma compact_upD: "compact (up\<cdot>x) \<Longrightarrow> compact x"
