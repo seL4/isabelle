@@ -10,7 +10,7 @@ begin
 
 default_sort type
 
-pcpodef 'a lift = "UNIV :: 'a discr u set"
+pcpodef (open) 'a lift = "UNIV :: 'a discr u set"
 by simp_all
 
 instance lift :: (finite) finite_po
@@ -33,7 +33,7 @@ apply (simp add: Def_def)
 done
 
 rep_datatype "\<bottom>\<Colon>'a lift" Def
-  by (erule lift_induct) (simp_all add: Def_def Abs_lift_inject lift_def inst_lift_pcpo)
+  by (erule lift_induct) (simp_all add: Def_def Abs_lift_inject inst_lift_pcpo)
 
 lemmas lift_distinct1 = lift.distinct(1)
 lemmas lift_distinct2 = lift.distinct(2)
@@ -65,7 +65,7 @@ lemma DefE2: "\<lbrakk>x = Def s; x = \<bottom>\<rbrakk> \<Longrightarrow> R"
   by simp
 
 lemma Def_below_Def: "Def x \<sqsubseteq> Def y \<longleftrightarrow> x = y"
-by (simp add: below_lift_def Def_def Abs_lift_inverse lift_def)
+by (simp add: below_lift_def Def_def Abs_lift_inverse)
 
 lemma Def_below_iff [simp]: "Def x \<sqsubseteq> y \<longleftrightarrow> Def x = y"
 by (induct y, simp, simp add: Def_below_Def)
