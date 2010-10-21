@@ -108,10 +108,10 @@ using sinl_eq [of "x" "\<bottom>"] by simp
 lemma sinr_defined_iff [simp]: "(sinr\<cdot>x = \<bottom>) = (x = \<bottom>)"
 using sinr_eq [of "x" "\<bottom>"] by simp
 
-lemma sinl_defined [intro!]: "x \<noteq> \<bottom> \<Longrightarrow> sinl\<cdot>x \<noteq> \<bottom>"
+lemma sinl_defined: "x \<noteq> \<bottom> \<Longrightarrow> sinl\<cdot>x \<noteq> \<bottom>"
 by simp
 
-lemma sinr_defined [intro!]: "x \<noteq> \<bottom> \<Longrightarrow> sinr\<cdot>x \<noteq> \<bottom>"
+lemma sinr_defined: "x \<noteq> \<bottom> \<Longrightarrow> sinr\<cdot>x \<noteq> \<bottom>"
 by simp
 
 text {* Compactness *}
