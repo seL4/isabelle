@@ -85,6 +85,7 @@ val options = Options {
   function_flattening = true,
   fail_safe_function_flattening = false,
   no_higher_order_predicate = [],
+  smart_depth_limiting = true,
   no_topmost_reordering = false
 }
 
@@ -108,6 +109,7 @@ val debug_options = Options {
   function_flattening = true,
   fail_safe_function_flattening = false,
   no_higher_order_predicate = [],
+  smart_depth_limiting = true,
   no_topmost_reordering = true
 }
 
@@ -119,14 +121,14 @@ fun set_function_flattening b
     show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
-    no_topmost_reordering = re}) =
+    smart_depth_limiting = sm_dl, no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
     show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = b,
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
-    no_topmost_reordering = re})
+    smart_depth_limiting = sm_dl, no_topmost_reordering = re})
 
 fun set_fail_safe_function_flattening b
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
@@ -135,14 +137,14 @@ fun set_fail_safe_function_flattening b
     show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
-    no_topmost_reordering = re}) =
+    smart_depth_limiting = sm_dl, no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
     show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f,
     fail_safe_function_flattening = b, no_higher_order_predicate = no_ho,
-    no_topmost_reordering = re})
+    smart_depth_limiting = sm_dl, no_topmost_reordering = re})
 
 fun set_no_higher_order_predicate ss
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
@@ -151,13 +153,14 @@ fun set_no_higher_order_predicate ss
     show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
-    no_topmost_reordering = re}) =
+    smart_depth_limiting = sm_dl, no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
     show_invalid_clauses = s_ic, skip_proof = s_p,
     compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f,
-    fail_safe_function_flattening = fs_ff, no_higher_order_predicate = ss, no_topmost_reordering = re})
+    fail_safe_function_flattening = fs_ff, no_higher_order_predicate = ss,
+    smart_depth_limiting = sm_dl, no_topmost_reordering = re})
 
 
 fun get_options () = 
@@ -173,9 +176,12 @@ val mk_randompredT = Predicate_Compile_Aux.mk_predT RandomPredCompFuns.compfuns
 val mk_return = Predicate_Compile_Aux.mk_single RandomPredCompFuns.compfuns
 val mk_bind = Predicate_Compile_Aux.mk_bind RandomPredCompFuns.compfuns
 
-val mk_new_randompredT = Predicate_Compile_Aux.mk_predT New_Pos_Random_Sequence_CompFuns.compfuns
-val mk_new_return = Predicate_Compile_Aux.mk_single New_Pos_Random_Sequence_CompFuns.compfuns
-val mk_new_bind = Predicate_Compile_Aux.mk_bind New_Pos_Random_Sequence_CompFuns.compfuns
+val mk_new_randompredT =
+  Predicate_Compile_Aux.mk_predT New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns
+val mk_new_return =
+  Predicate_Compile_Aux.mk_single New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns
+val mk_new_bind =
+  Predicate_Compile_Aux.mk_bind New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns
 
 val mk_split_lambda = HOLogic.tupled_lambda o HOLogic.mk_tuple
 
@@ -207,13 +213,12 @@ fun compile_term compilation options ctxt t =
     val _ = Output.tracing ("Preprocessing time: " ^ string_of_int (snd preproc_time))
     val _ = Output.tracing ("Core compilation time: " ^ string_of_int (snd core_comp_time))
     val ctxt4 = ProofContext.init_global thy4
-    val modes = Predicate_Compile_Core.modes_of compilation ctxt4 full_constname
+    val modes = Core_Data.modes_of compilation ctxt4 full_constname
     val output_mode = fold_rev (curry Fun) (map (K Output) (binder_types constT)) Bool
     val prog =
       if member eq_mode modes output_mode then
         let
-          val name = Predicate_Compile_Core.function_name_of compilation ctxt4
-            full_constname output_mode
+          val name = Core_Data.function_name_of compilation ctxt4 full_constname output_mode
           val T = 
             case compilation of
               Pos_Random_DSeq => mk_randompredT (HOLogic.mk_tupleT (map snd vs'))

@@ -676,7 +676,8 @@ val compilation_names = [("pred", Pred),
   ("depth_limited", Depth_Limited),
   ("depth_limited_random", Depth_Limited_Random),
   (*("annotated", Annotated),*)
-  ("dseq", DSeq), ("random_dseq", Pos_Random_DSeq),
+  ("dseq", DSeq),
+  ("random_dseq", Pos_Random_DSeq),
   ("new_random_dseq", New_Pos_Random_DSeq),
   ("generator_dseq", Pos_Generator_DSeq)]
 

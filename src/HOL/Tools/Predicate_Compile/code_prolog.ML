@@ -386,9 +386,9 @@ fun mk_moded_clauses_graph ctxt scc gr =
            (fn s => member (op =) (the (AList.lookup (op =) random s))))
         val (preds, all_vs, param_vs, all_modes, clauses) =
           Predicate_Compile_Core.prepare_intrs options ctxt prednames
-            (maps (Predicate_Compile_Core.intros_of ctxt) prednames)
+            (maps (Core_Data.intros_of ctxt) prednames)
         val ((moded_clauses, random'), _) =
-          Predicate_Compile_Core.infer_modes mode_analysis_options options 
+          Mode_Inference.infer_modes mode_analysis_options options 
             (lookup_modes, lookup_neg_modes, needs_random) ctxt preds all_modes param_vs clauses
         val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
         val pos_modes' = map (apsnd (map_filter (fn (true, m) => SOME m | _ => NONE))) modes
@@ -474,7 +474,7 @@ fun generate (use_modes, ensure_groundness) ctxt const =
   let 
     fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
-    val gr = Predicate_Compile_Core.intros_graph_of ctxt
+    val gr = Core_Data.intros_graph_of ctxt
     val gr' = add_edges depending_preds_of const gr
     val scc = strong_conn_of gr' [const]
     val initial_constant_table = 
@@ -917,6 +917,7 @@ val preprocess_options = Predicate_Compile_Aux.Options {
   no_higher_order_predicate = [],
   inductify = false,
   detect_switches = true,
+  smart_depth_limiting = true,
   compilation = Predicate_Compile_Aux.Pred
 }
 
