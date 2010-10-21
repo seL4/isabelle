@@ -1982,7 +1982,7 @@ fun compile_switch compilation_modifiers ctxt all_vs param_modes additional_argu
 
 fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mode) moded_cls =
   let
-    val is_terminating = true (* FIXME: requires an termination analysis *)  
+    val is_terminating = false (* FIXME: requires an termination analysis *)  
     val compilation_modifiers =
       (if pol then compilation_modifiers else
         negative_comp_modifiers_of compilation_modifiers)
