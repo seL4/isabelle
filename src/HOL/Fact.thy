@@ -183,6 +183,35 @@ lemma fact_altdef_int: "n >= 0 \<Longrightarrow> fact (n::int) = (PROD i:{1..n}.
   apply auto
 done
 
+lemma fact_dvd: "n \<le> m \<Longrightarrow> fact n dvd fact (m::nat)"
+  by (auto simp add: fact_altdef_nat intro!: setprod_dvd_setprod_subset)
+
+lemma fact_mod: "m \<le> (n::nat) \<Longrightarrow> fact n mod fact m = 0"
+  by (auto simp add: dvd_imp_mod_0 fact_dvd)
+
+lemma fact_div_fact:
+  assumes "m \<ge> (n :: nat)"
+  shows "(fact m) div (fact n) = \<Prod>{n + 1..m}"
+proof -
+  obtain d where "d = m - n" by auto
+  from assms this have "m = n + d" by auto
+  have "fact (n + d) div (fact n) = \<Prod>{n + 1..n + d}"
+  proof (induct d)
+    case 0
+    show ?case by simp
+  next
+    case (Suc d')
+    have "fact (n + Suc d') div fact n = Suc (n + d') * fact (n + d') div fact n"
+      by simp
+    also from Suc.hyps have "... = Suc (n + d') * \<Prod>{n + 1..n + d'}" 
+      unfolding div_mult1_eq[of _ "fact (n + d')"] by (simp add: fact_mod)
+    also have "... = \<Prod>{n + 1..n + Suc d'}"
+      by (simp add: atLeastAtMostSuc_conv setprod_insert)
+    finally show ?case .
+  qed
+  from this `m = n + d` show ?thesis by simp
+qed
+
 lemma fact_mono_nat: "(m::nat) \<le> n \<Longrightarrow> fact m \<le> fact n"
 apply (drule le_imp_less_or_eq)
 apply (auto dest!: less_imp_Suc_add)

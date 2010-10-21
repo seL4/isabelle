@@ -88,6 +88,32 @@ lemma part_equivp_typedef:
   apply (rule refl)
   done
 
+lemma part_equivp_refl_symp_transp:
+  shows "part_equivp E \<longleftrightarrow> ((\<exists>x. E x x) \<and> symp E \<and> transp E)"
+proof
+  assume "part_equivp E"
+  then show "(\<exists>x. E x x) \<and> symp E \<and> transp E"
+  unfolding part_equivp_def symp_def transp_def
+  by metis
+next
+  assume a: "(\<exists>x. E x x) \<and> symp E \<and> transp E"
+  then have b: "(\<forall>x y. E x y \<longrightarrow> E y x)" and c: "(\<forall>x y z. E x y \<and> E y z \<longrightarrow> E x z)"
+    unfolding symp_def transp_def by (metis, metis)
+  have "(\<forall>x y. E x y = (E x x \<and> E y y \<and> E x = E y))"
+  proof (intro allI iffI conjI)
+    fix x y
+    assume d: "E x y"
+    then show "E x x" using b c by metis
+    show "E y y" using b c d by metis
+    show "E x = E y" unfolding fun_eq_iff using b c d by metis
+  next
+    fix x y
+    assume "E x x \<and> E y y \<and> E x = E y"
+    then show "E x y" using b c by metis
+  qed
+  then show "part_equivp E" unfolding part_equivp_def using a by metis
+qed
+
 text {* Composition of Relations *}
 
 abbreviation
