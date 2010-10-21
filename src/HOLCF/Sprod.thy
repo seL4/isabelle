@@ -59,28 +59,20 @@ translations
 
 subsection {* Case analysis *}
 
-lemma Rep_Sprod_spair:
-  "Rep_Sprod (:a, b:) = (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b)"
-unfolding spair_def
-by (simp add: cont_Abs_Sprod Abs_Sprod_inverse spair_lemma)
+lemma spair_Abs_Sprod: "(:a, b:) = Abs_Sprod (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b)"
+by (simp add: spair_def cont_Abs_Sprod spair_lemma)
+
+lemma Rep_Sprod_spair: "Rep_Sprod (:a, b:) = (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b)"
+by (simp add: spair_Abs_Sprod Abs_Sprod_inverse spair_lemma)
 
 lemmas Rep_Sprod_simps =
   Rep_Sprod_inject [symmetric] below_Sprod_def
   Rep_Sprod_strict Rep_Sprod_spair
 
-lemma Exh_Sprod:
-  "z = \<bottom> \<or> (\<exists>a b. z = (:a, b:) \<and> a \<noteq> \<bottom> \<and> b \<noteq> \<bottom>)"
-apply (insert Rep_Sprod [of z])
-apply (simp add: Rep_Sprod_simps Pair_fst_snd_eq)
-apply (simp add: Sprod_def)
-apply (erule disjE, simp)
-apply (simp add: strict_conv_if)
-apply fast
-done
-
 lemma sprodE [case_names bottom spair, cases type: sprod]:
-  "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x y. \<lbrakk>p = (:x, y:); x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-using Exh_Sprod [of p] by auto
+  obtains "p = \<bottom>" | x y where "p = (:x, y:)" and "x \<noteq> \<bottom>" and "y \<noteq> \<bottom>"
+by (induct p rule: Abs_Sprod_induct)
+   (auto simp add: Sprod_def spair_Abs_Sprod Abs_Sprod_strict)
 
 lemma sprod_induct [case_names bottom spair, induct type: sprod]:
   "\<lbrakk>P \<bottom>; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> P (:x, y:)\<rbrakk> \<Longrightarrow> P x"
