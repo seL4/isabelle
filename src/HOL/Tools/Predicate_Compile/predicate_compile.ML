@@ -173,6 +173,7 @@ fun extract_options lthy (((expected_modes, proposed_modes), (compilation, raw_o
       no_higher_order_predicate = [],
       inductify = chk "inductify",
       detect_switches = chk "detect_switches",
+      smart_depth_limiting = chk "smart_depth_limiting",
       compilation = compilation
     }
   end

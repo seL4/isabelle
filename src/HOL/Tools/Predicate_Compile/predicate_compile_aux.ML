@@ -117,6 +117,7 @@ sig
     no_higher_order_predicate : string list,
     inductify : bool,
     detect_switches : bool,
+    smart_depth_limiting : bool,
     compilation : compilation
   };
   val expected_modes : options -> (string * mode list) option
@@ -138,6 +139,7 @@ sig
   val no_higher_order_predicate : options -> string list
   val is_inductify : options -> bool
   val detect_switches : options -> bool
+  val smart_depth_limiting : options -> bool
   val compilation : options -> compilation
   val default_options : options
   val bool_options : string list
@@ -729,6 +731,7 @@ datatype options = Options of {
   no_higher_order_predicate : string list,
   inductify : bool,
   detect_switches : bool,
+  smart_depth_limiting : bool,
   compilation : compilation
 };
 
@@ -759,6 +762,8 @@ fun compilation (Options opt) = #compilation opt
 
 fun detect_switches (Options opt) = #detect_switches opt
 
+fun smart_depth_limiting (Options opt) = #smart_depth_limiting opt
+
 val default_options = Options {
   expected_modes = NONE,
   proposed_modes = [],
@@ -779,12 +784,14 @@ val default_options = Options {
   no_higher_order_predicate = [],
   inductify = false,
   detect_switches = true,
+  smart_depth_limiting = false,
   compilation = Pred
 }
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
   "show_mode_inference", "show_compilation", "show_invalid_clauses", "skip_proof", "inductify",
-  "no_function_flattening", "detect_switches", "specialise", "no_topmost_reordering"]
+  "no_function_flattening", "detect_switches", "specialise", "no_topmost_reordering",
+  "smart_depth_limiting"]
 
 fun print_step options s =
   if show_steps options then tracing s else ()
