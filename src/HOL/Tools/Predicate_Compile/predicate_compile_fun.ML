@@ -312,7 +312,7 @@ fun define_predicates specs thy =
       fun functional_mode_of T =
         list_fun_mode (replicate (length (binder_types T)) Input @ [Output])
       val thy''' = fold
-        (fn (predname, Const (name, T)) => Predicate_Compile_Core.register_alternative_function
+        (fn (predname, Const (name, T)) => Core_Data.register_alternative_function
           predname (functional_mode_of T) name)
       (dst_prednames ~~ dst_funs) thy''
     in

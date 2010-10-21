@@ -109,7 +109,7 @@ fun specialise_intros black_list (pred, intros) pats thy =
     val optimised_intros =
       map_filter (Predicate_Compile_Aux.peephole_optimisation thy'') exported_intros
     val ([spec], thy''') = find_specialisations black_list [(constname, optimised_intros)] thy''
-    val thy'''' = Predicate_Compile_Core.register_intros spec thy'''
+    val thy'''' = Core_Data.register_intros spec thy'''
   in
     thy''''
   end
@@ -180,7 +180,7 @@ and find_specialisations black_list specs thy =
                     if member (op =) ((map fst specs) @ black_list) pred_name then
                       thy
                     else
-                      (case try (Predicate_Compile_Core.intros_of (ProofContext.init_global thy)) pred_name of
+                      (case try (Core_Data.intros_of (ProofContext.init_global thy)) pred_name of
                         NONE => thy
                       | SOME [] => thy
                       | SOME intros =>
