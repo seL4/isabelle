@@ -223,18 +223,14 @@ by simp
 lemma UU_I: "x \<sqsubseteq> \<bottom> \<Longrightarrow> x = \<bottom>"
 by (subst eq_UU_iff)
 
+lemma lub_eq_bottom_iff: "chain Y \<Longrightarrow> (\<Squnion>i. Y i) = \<bottom> \<longleftrightarrow> (\<forall>i. Y i = \<bottom>)"
+by (simp only: eq_UU_iff lub_below_iff)
+
 lemma chain_UU_I: "\<lbrakk>chain Y; (\<Squnion>i. Y i) = \<bottom>\<rbrakk> \<Longrightarrow> \<forall>i. Y i = \<bottom>"
-apply (rule allI)
-apply (rule UU_I)
-apply (erule subst)
-apply (erule is_ub_thelub)
-done
+by (simp add: lub_eq_bottom_iff)
 
 lemma chain_UU_I_inverse: "\<forall>i::nat. Y i = \<bottom> \<Longrightarrow> (\<Squnion>i. Y i) = \<bottom>"
-apply (rule lub_chain_maxelem)
-apply (erule spec)
-apply simp
-done
+by simp
 
 lemma chain_UU_I_inverse2: "(\<Squnion>i. Y i) \<noteq> \<bottom> \<Longrightarrow> \<exists>i::nat. Y i \<noteq> \<bottom>"
   by (blast intro: chain_UU_I_inverse)
