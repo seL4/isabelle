@@ -54,7 +54,7 @@ text {* Case analysis function for type @{typ one} *}
 
 definition
   one_when :: "'a::pcpo \<rightarrow> one \<rightarrow> 'a" where
-  "one_when = (\<Lambda> a. strictify\<cdot>(\<Lambda> _. a))"
+  "one_when = (\<Lambda> a x. strict\<cdot>x\<cdot>a)"
 
 translations
   "case x of XCONST ONE \<Rightarrow> t" == "CONST one_when\<cdot>t\<cdot>x"

@@ -534,32 +534,28 @@ subsection {* Strictified functions *}
 default_sort pcpo
 
 definition
+  strict :: "'a \<rightarrow> 'b \<rightarrow> 'b" where
+  "strict = (\<Lambda> x. if x = \<bottom> then \<bottom> else ID)"
+
+lemma cont_strict: "cont (\<lambda>x. if x = \<bottom> then \<bottom> else y)"
+unfolding cont_def is_lub_def is_ub_def ball_simps
+by (simp add: lub_eq_bottom_iff)
+
+lemma strict_conv_if: "strict\<cdot>x = (if x = \<bottom> then \<bottom> else ID)"
+unfolding strict_def by (simp add: cont_strict)
+
+lemma strict1 [simp]: "strict\<cdot>\<bottom> = \<bottom>"
+by (simp add: strict_conv_if)
+
+lemma strict2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strict\<cdot>x = ID"
+by (simp add: strict_conv_if)
+
+ definition
   strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b" where
-  "strictify = (\<Lambda> f x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
-
-text {* results about strictify *}
-
-lemma cont_strictify1: "cont (\<lambda>f. if x = \<bottom> then \<bottom> else f\<cdot>x)"
-by simp
-
-lemma monofun_strictify2: "monofun (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
-apply (rule monofunI)
-apply (auto simp add: monofun_cfun_arg)
-done
-
-lemma cont_strictify2: "cont (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
-apply (rule contI2)
-apply (rule monofun_strictify2)
-apply (case_tac "(\<Squnion>i. Y i) = \<bottom>", simp)
-apply (simp add: contlub_cfun_arg del: if_image_distrib)
-apply (drule chain_UU_I_inverse2, clarify, rename_tac j)
-apply (rule lub_mono2, rule_tac x=j in exI, simp_all)
-apply (auto dest!: chain_mono_less)
-done
+  "strictify = (\<Lambda> f x. strict\<cdot>x\<cdot>(f\<cdot>x))"
 
 lemma strictify_conv_if: "strictify\<cdot>f\<cdot>x = (if x = \<bottom> then \<bottom> else f\<cdot>x)"
-  unfolding strictify_def
-  by (simp add: cont_strictify1 cont_strictify2 cont2cont_LAM)
+unfolding strictify_def by simp
 
 lemma strictify1 [simp]: "strictify\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by (simp add: strictify_conv_if)

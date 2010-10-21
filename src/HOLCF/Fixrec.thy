@@ -115,7 +115,7 @@ default_sort pcpo
 definition
   match_UU :: "'a \<rightarrow> 'c match \<rightarrow> 'c match"
 where
-  "match_UU = strictify\<cdot>(\<Lambda> x k. fail)"
+  "match_UU = (\<Lambda> x k. strict\<cdot>x\<cdot>fail)"
 
 definition
   match_Pair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"

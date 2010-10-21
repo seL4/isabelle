@@ -27,9 +27,8 @@ type_notation (xsymbols)
 type_notation (HTML output)
   sprod  ("(_ \<otimes>/ _)" [21,20] 20)
 
-lemma spair_lemma:
-  "(strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a) \<in> Sprod"
-by (simp add: Sprod_def strictify_conv_if)
+lemma spair_lemma: "(strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b) \<in> Sprod"
+by (simp add: Sprod_def strict_conv_if)
 
 subsection {* Definitions of constants *}
 
@@ -43,12 +42,11 @@ definition
 
 definition
   spair :: "'a \<rightarrow> 'b \<rightarrow> ('a ** 'b)" where
-  "spair = (\<Lambda> a b. Abs_Sprod
-             (strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a))"
+  "spair = (\<Lambda> a b. Abs_Sprod (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b))"
 
 definition
   ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a ** 'b) \<rightarrow> 'c" where
-  "ssplit = (\<Lambda> f. strictify\<cdot>(\<Lambda> p. f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p)))"
+  "ssplit = (\<Lambda> f p. strict\<cdot>p\<cdot>(f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p)))"
 
 syntax
   "_stuple" :: "['a, args] => 'a ** 'b"  ("(1'(:_,/ _:'))")
@@ -62,7 +60,7 @@ translations
 subsection {* Case analysis *}
 
 lemma Rep_Sprod_spair:
-  "Rep_Sprod (:a, b:) = (strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a)"
+  "Rep_Sprod (:a, b:) = (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b)"
 unfolding spair_def
 by (simp add: cont_Abs_Sprod Abs_Sprod_inverse spair_lemma)
 
@@ -76,7 +74,7 @@ apply (insert Rep_Sprod [of z])
 apply (simp add: Rep_Sprod_simps Pair_fst_snd_eq)
 apply (simp add: Sprod_def)
 apply (erule disjE, simp)
-apply (simp add: strictify_conv_if)
+apply (simp add: strict_conv_if)
 apply fast
 done
 
@@ -91,22 +89,22 @@ by (cases x, simp_all)
 subsection {* Properties of \emph{spair} *}
 
 lemma spair_strict1 [simp]: "(:\<bottom>, y:) = \<bottom>"
-by (simp add: Rep_Sprod_simps strictify_conv_if)
+by (simp add: Rep_Sprod_simps strict_conv_if)
 
 lemma spair_strict2 [simp]: "(:x, \<bottom>:) = \<bottom>"
-by (simp add: Rep_Sprod_simps strictify_conv_if)
+by (simp add: Rep_Sprod_simps strict_conv_if)
 
 lemma spair_strict_iff [simp]: "((:x, y:) = \<bottom>) = (x = \<bottom> \<or> y = \<bottom>)"
-by (simp add: Rep_Sprod_simps strictify_conv_if)
+by (simp add: Rep_Sprod_simps strict_conv_if)
 
 lemma spair_below_iff:
   "((:a, b:) \<sqsubseteq> (:c, d:)) = (a = \<bottom> \<or> b = \<bottom> \<or> (a \<sqsubseteq> c \<and> b \<sqsubseteq> d))"
-by (simp add: Rep_Sprod_simps strictify_conv_if)
+by (simp add: Rep_Sprod_simps strict_conv_if)
 
 lemma spair_eq_iff:
   "((:a, b:) = (:c, d:)) =
     (a = c \<and> b = d \<or> (a = \<bottom> \<or> b = \<bottom>) \<and> (c = \<bottom> \<or> d = \<bottom>))"
-by (simp add: Rep_Sprod_simps strictify_conv_if)
+by (simp add: Rep_Sprod_simps strict_conv_if)
 
 lemma spair_strict: "x = \<bottom> \<or> y = \<bottom> \<Longrightarrow> (:x, y:) = \<bottom>"
 by simp
@@ -197,7 +195,7 @@ lemma compact_ssnd: "compact x \<Longrightarrow> compact (ssnd\<cdot>x)"
 by (rule compactI, simp add: ssnd_below_iff)
 
 lemma compact_spair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact (:x, y:)"
-by (rule compact_Sprod, simp add: Rep_Sprod_spair strictify_conv_if)
+by (rule compact_Sprod, simp add: Rep_Sprod_spair strict_conv_if)
 
 lemma compact_spair_iff:
   "compact (:x, y:) = (x = \<bottom> \<or> y = \<bottom> \<or> (compact x \<and> compact y))"
