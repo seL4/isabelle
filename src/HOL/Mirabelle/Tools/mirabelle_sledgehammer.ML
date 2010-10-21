@@ -318,7 +318,7 @@ fun get_atp thy args =
     fun default_atp_name () =
       hd (#provers (Sledgehammer_Isar.default_params thy []))
       handle Empty => error "No ATP available."
-    fun get_atp name = (name, Sledgehammer.get_atp_fun thy name)
+    fun get_atp name = (name, Sledgehammer.run_atp thy name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_atp name

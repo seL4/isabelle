@@ -25,7 +25,7 @@ sig
   val vampireN : string
   val sine_eN : string
   val snarkN : string
-  val remote_atp_prefix : string
+  val remote_prefix : string
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val available_atps : theory -> string list
@@ -64,7 +64,7 @@ val spassN = "spass"
 val vampireN = "vampire"
 val sine_eN = "sine_e"
 val snarkN = "snark"
-val remote_atp_prefix = "remote_"
+val remote_prefix = "remote_"
 
 structure Data = Theory_Data
 (
@@ -229,11 +229,11 @@ fun remotify_config system_name system_versions
 
 fun remote_atp name system_name system_versions proof_delims known_failures
                default_max_relevant use_conjecture_for_hypotheses =
-  (remote_atp_prefix ^ name,
+  (remote_prefix ^ name,
    remote_config system_name system_versions proof_delims known_failures
                  default_max_relevant use_conjecture_for_hypotheses)
 fun remotify_atp (name, config) system_name system_versions =
-  (remote_atp_prefix ^ name, remotify_config system_name system_versions config)
+  (remote_prefix ^ name, remotify_config system_name system_versions config)
 
 val remote_e = remotify_atp e "EP" ["1.0", "1.1", "1.2"]
 val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]

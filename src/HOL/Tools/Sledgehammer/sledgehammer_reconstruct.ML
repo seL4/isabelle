@@ -20,6 +20,9 @@ sig
   val repair_conjecture_shape_and_axiom_names :
     string -> int list list -> (string * locality) list vector
     -> int list list * (string * locality) list vector
+  val apply_on_subgoal : int -> int -> string
+  val command_call : string -> string list -> string
+  val sendback_line : string -> string -> string
   val metis_proof_text : metis_params -> text_result
   val isar_proof_text : isar_params -> metis_params -> text_result
   val proof_text : bool -> isar_params -> metis_params -> text_result
@@ -111,21 +114,22 @@ fun repair_conjecture_shape_and_axiom_names output conjecture_shape
 
 fun string_for_label (s, num) = s ^ string_of_int num
 
-fun metis_using [] = ""
-  | metis_using ls =
+fun apply_on_subgoal _ 1 = "by "
+  | apply_on_subgoal 1 _ = "apply "
+  | apply_on_subgoal i _ = "prefer " ^ string_of_int i ^ " apply "
+fun command_call name [] = name
+  | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
+fun sendback_line banner command =
+  banner ^ ": " ^ Markup.markup Markup.sendback command ^ "."
+fun using_labels [] = ""
+  | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun metis_apply _ 1 = "by "
-  | metis_apply 1 _ = "apply "
-  | metis_apply i _ = "prefer " ^ string_of_int i ^ " apply "
 fun metis_name full_types = if full_types then "metisFT" else "metis"
-fun metis_call full_types [] = metis_name full_types
-  | metis_call full_types ss =
-    "(" ^ metis_name full_types ^ " " ^ space_implode " " ss ^ ")"
+fun metis_call full_types ss = command_call (metis_name full_types) ss
 fun metis_command full_types i n (ls, ss) =
-  metis_using ls ^ metis_apply i n ^ metis_call full_types ss
+  using_labels ls ^ apply_on_subgoal i n ^ metis_call full_types ss
 fun metis_line banner full_types i n ss =
-  banner ^ ": " ^
-  Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
+  sendback_line banner (metis_command full_types i n ([], ss))
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of

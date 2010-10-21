@@ -131,18 +131,19 @@ structure Data = Theory_Data(
   fun merge p : T = AList.merge (op =) (K true) p)
 
 fun maybe_remote_atp thy name =
-  name |> not (is_atp_installed thy name) ? prefix remote_atp_prefix
+  name |> not (is_atp_installed thy name) ? prefix remote_prefix
+fun maybe_remote_smt_solver thy =
+  smtN |> not (is_smt_solver_installed ()) ? prefix remote_prefix
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
 fun default_provers_param_value thy =
   (filter (is_atp_installed thy) [spassN] @
    [maybe_remote_atp thy eN,
-    if forall (is_atp_installed thy) [spassN, eN] then
-      remote_atp_prefix ^ vampireN
-    else
-      maybe_remote_atp thy vampireN,
-    remote_atp_prefix ^ sine_eN])
+    if forall (is_atp_installed thy) [spassN, eN] then remote_prefix ^ vampireN
+    else maybe_remote_atp thy vampireN,
+    remote_prefix ^ sine_eN,
+    maybe_remote_smt_solver thy])
   |> space_implode " "
 
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param

@@ -49,6 +49,7 @@ sig
 
   type atp = params -> minimize_command -> atp_problem -> atp_result
 
+  val smtN : string
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
@@ -56,7 +57,10 @@ sig
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
-  val get_atp_fun : theory -> string -> atp
+  val run_atp : theory -> string -> atp
+  val run_smt_solver :
+    Proof.context -> bool -> Time.time -> ('a * thm) list -> string * 'a list
+  val is_smt_solver_installed : unit -> bool
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
     -> Proof.state -> bool * Proof.state
@@ -82,9 +86,18 @@ open Sledgehammer_Reconstruct
    "Async_Manager". *)
 val das_Tool = "Sledgehammer"
 
+val smtN = "smt"
+val smt_names = [smtN, remote_prefix ^ smtN]
+
 fun available_provers thy =
-  priority ("Available provers: " ^
-             commas (sort_strings (available_atps thy)) ^ ".")
+  let
+    val (remote_provers, local_provers) =
+      sort_strings (available_atps thy) @ smt_names
+      |> List.partition (String.isPrefix remote_prefix)
+  in
+    priority ("Available provers: " ^ commas (local_provers @ remote_provers) ^
+              ".")
+  end
 
 fun kill_provers () = Async_Manager.kill_threads das_Tool "provers"
 fun running_provers () = Async_Manager.running_threads das_Tool "provers"
@@ -144,6 +157,22 @@ fun with_path cleanup after f path =
   |> tap (fn _ => cleanup path)
   |> Exn.release
   |> tap (after path)
+
+fun prover_description ctxt ({blocking, verbose, ...} : params) name num_axioms
+                       i n goal =
+  quote name ^
+  (if verbose then
+     " with " ^ string_of_int num_axioms ^ " fact" ^ plural_s num_axioms
+   else
+     "") ^
+  " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^ ":" ^
+  (if blocking then
+     ""
+   else
+     "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
+
+fun proof_banner auto =
+  if auto then "Sledgehammer found a proof" else "Try this command"
 
 (* generic TPTP-based ATPs *)
 
@@ -268,15 +297,13 @@ fun atp_fun auto atp_name
         extract_important_message output
       else
         ""
-    val banner = if auto then "Sledgehammer found a proof"
-                 else "Try this command"
     val (message, used_thm_names) =
       case outcome of
         NONE =>
         proof_text isar_proof
             (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-            (banner, full_types, minimize_command, tstplike_proof, axiom_names,
-             goal, subgoal)
+            (proof_banner auto, full_types, minimize_command, tstplike_proof,
+             axiom_names, goal, subgoal)
         |>> (fn message =>
                 message ^ (if verbose then
                              "\nATP real CPU time: " ^ string_of_int msecs ^
@@ -296,30 +323,20 @@ fun atp_fun auto atp_name
      axiom_names = axiom_names, conjecture_shape = conjecture_shape}
   end
 
-fun get_atp_fun thy name = atp_fun false name (get_atp thy name)
+fun run_atp thy name = atp_fun false name (get_atp thy name)
 
-fun run_atp (params as {blocking, debug, verbose, max_relevant, timeout, expect,
-                        ...})
-            auto i n minimize_command
-            (atp_problem as {state, goal, axioms, ...})
-            (atp as {default_max_relevant, ...}, atp_name) =
+fun run_atp_somehow (params as {blocking, debug, max_relevant, timeout,
+                                expect, ...})
+                    auto i n minimize_command
+                    (atp_problem as {state, goal, axioms, ...})
+                    (atp as {default_max_relevant, ...}, atp_name) =
   let
     val ctxt = Proof.context_of state
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
     val max_relevant = the_default default_max_relevant max_relevant
     val num_axioms = Int.min (length axioms, max_relevant)
-    val desc =
-      "ATP " ^ quote atp_name ^
-      (if verbose then
-         " with " ^ string_of_int num_axioms ^ " fact" ^ plural_s num_axioms
-       else
-         "") ^
-      " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^ ":" ^
-      (if blocking then
-         ""
-       else
-         "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
+    val desc = prover_description ctxt params atp_name num_axioms i n goal
     fun go () =
       let
         fun really_go () =
@@ -361,10 +378,36 @@ fun run_atp (params as {blocking, debug, verbose, max_relevant, timeout, expect,
        (false, state))
   end
 
-val auto_max_relevant_divisor = 2
+(* FIXME: dummy *)
+fun run_smt_solver ctxt remote timeout axioms =
+  ("", axioms |> take 5 |> map fst)
+
+(* FIXME: dummy *)
+fun is_smt_solver_installed () = true
+
+fun run_smt_solver_somehow ctxt (params as {timeout, ...}) i n goal axioms
+                           (remote, name) =
+  let
+    val desc =
+      prover_description ctxt params name (length axioms) i n goal
+    val (failure, used_thm_names) = run_smt_solver ctxt remote timeout axioms
+    val success = (failure = "")
+    val message =
+      das_Tool ^ ": " ^ desc ^ "\n" ^
+      (if success then
+         sendback_line (proof_banner false)
+                       (apply_on_subgoal i n ^
+                        command_call "smt" (map fst used_thm_names))
+       else
+         "Error: " ^ failure)
+  in priority message; success end
+
+val smt_default_max_relevant = 300 (* FUDGE *)
+val auto_max_relevant_divisor = 2 (* FUDGE *)
 
 fun run_sledgehammer (params as {blocking, provers, full_types,
-                                 relevance_thresholds, max_relevant, ...})
+                                 relevance_thresholds, max_relevant, timeout,
+                                 ...})
                      auto i (relevance_override as {only, ...}) minimize_command
                      state =
   if null provers then
@@ -375,37 +418,67 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
     let
       val _ = Proof.assert_backward state
       val thy = Proof.theory_of state
+      val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
+      val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val _ = () |> not blocking ? kill_provers
       val _ = if auto then () else priority "Sledgehammering..."
-      val atps = map (`(get_atp thy)) provers
-      fun go () =
-        let
-          val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
-          val (_, hyp_ts, concl_t) = strip_subgoal goal i
-          val max_max_relevant =
-            case max_relevant of
-              SOME n => n
-            | NONE =>
-              0 |> fold (Integer.max o #default_max_relevant o fst) atps
-                |> auto ? (fn n => n div auto_max_relevant_divisor)
-          val axioms =
-            relevant_facts ctxt full_types relevance_thresholds
-                           max_max_relevant relevance_override chained_ths
-                           hyp_ts concl_t
-          val atp_problem =
-            {state = state, goal = goal, subgoal = i,
-             axioms = map (prepare_axiom ctxt) axioms, only = only}
-          val run_atp = run_atp params auto i n minimize_command atp_problem
-        in
-          if auto then
-            fold (fn atp => fn (true, state) => (true, state)
-                             | (false, _) => run_atp atp)
-                 atps (false, state)
-          else
-            (if blocking then Par_List.map else map) run_atp atps
-            |> exists fst |> rpair state
-        end
-    in if blocking then go () else Future.fork (tap go) |> K (false, state) end
+      val (smts, atps) =
+        provers |> List.partition (member (op =) smt_names)
+                |>> (take 1 #> map (`(String.isPrefix remote_prefix)))
+                ||> map (`(get_atp thy))
+      fun run_atps (res as (success, state)) =
+        if success orelse null atps then
+          res
+        else
+          let
+            val max_max_relevant =
+              case max_relevant of
+                SOME n => n
+              | NONE =>
+                0 |> fold (Integer.max o #default_max_relevant o fst) atps
+                  |> auto ? (fn n => n div auto_max_relevant_divisor)
+            val axioms =
+              relevant_facts ctxt full_types relevance_thresholds
+                             max_max_relevant relevance_override chained_ths
+                             hyp_ts concl_t
+            val atp_problem =
+              {state = state, goal = goal, subgoal = i,
+               axioms = map (prepare_axiom ctxt) axioms, only = only}
+            val run_atp_somehow =
+              run_atp_somehow params auto i n minimize_command atp_problem
+          in
+            if auto then
+              fold (fn atp => fn (true, state) => (true, state)
+                               | (false, _) => run_atp_somehow atp)
+                   atps (false, state)
+            else
+              atps |> (if blocking then Par_List.map else map) run_atp_somehow
+                   |> exists fst |> rpair state
+          end
+      fun run_smt_solvers (res as (success, state)) =
+        if success orelse null smts then
+          res
+        else
+          let
+            val max_relevant =
+              max_relevant |> the_default smt_default_max_relevant
+            val axioms =
+              relevant_facts ctxt full_types relevance_thresholds
+                             max_relevant relevance_override chained_ths
+                             hyp_ts concl_t
+          in
+            smts |> map (run_smt_solver_somehow ctxt params i n goal axioms)
+                 |> exists I |> rpair state
+          end
+      fun run_atps_and_smt_solvers () =
+        [run_atps, run_smt_solvers]
+        |> Par_List.map (fn f => f (false, state) |> K ())
+    in
+      if blocking then
+        (false, state) |> run_atps |> not auto ? run_smt_solvers
+      else
+        Future.fork (tap run_atps_and_smt_solvers) |> K (false, state)
+    end
 
 val setup =
   dest_dir_setup

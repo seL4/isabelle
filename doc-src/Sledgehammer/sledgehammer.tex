@@ -199,19 +199,19 @@ Either way, Sledgehammer produces the following output after a few seconds:
 
 \prew
 \slshape
-Sledgehammer: Prover ``\textit{e}'' for subgoal 1: \\
+Sledgehammer: ``\textit{e}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}). \\
 To minimize the number of lemmas, try this: \\
 \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{e}] (\textit{hd.simps}). \\[3\smallskipamount]
 %
-Sledgehammer: Prover ``\textit{spass}'' for subgoal 1: \\
+Sledgehammer: ``\textit{spass}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis insert\_Nil last\_ConsL}). \\
 To minimize the number of lemmas, try this: \\
 \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{spass}] (\textit{insert\_Nil last\_ConsL}). \\[3\smallskipamount]
 %
-Sledgehammer: Prover ``\textit{remote\_vampire}'' for subgoal 1: \\
+Sledgehammer: ``\textit{remote\_vampire}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis One\_nat\_def\_raw empty\_replicate} \\
 \phantom{Try this command: \textbf{by} (\textit{metis~}}\textit{insert\_Nil last\_ConsL replicate\_Suc}). \\
@@ -220,6 +220,7 @@ To minimize the number of lemmas, try this: \\
 \phantom{\textbf{sledgehammer}~}(\textit{One\_nat\_def\_raw empty\_replicate insert\_Nil} \\
 \phantom{\textbf{sledgehammer}~(}\textit{last\_ConsL replicate\_Suc}).
 \postw
+%%% TODO: Mention SInE-E
 
 Sledgehammer ran E, SPASS, and the remote version of Vampire in parallel. If E
 is not installed (\S\ref{installation}), you will see references to
