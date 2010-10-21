@@ -44,25 +44,24 @@ fun n_theorems names =
        "")
   end
 
-fun test_theorems ({debug, verbose, overlord, atps, full_types, isar_proof,
+fun test_theorems ({debug, verbose, overlord, provers, full_types, isar_proof,
                     isar_shrink_factor, ...} : params)
-                  (prover : prover) explicit_apply timeout subgoal state
-                  axioms =
+                  (atp : atp) explicit_apply timeout subgoal state axioms =
   let
     val _ =
       priority ("Testing " ^ n_theorems (map fst axioms) ^ "...")
     val params =
       {blocking = true, debug = debug, verbose = verbose, overlord = overlord,
-       atps = atps, full_types = full_types, explicit_apply = explicit_apply,
-       relevance_thresholds = (1.01, 1.01),
+       provers = provers, full_types = full_types,
+       explicit_apply = explicit_apply, relevance_thresholds = (1.01, 1.01),
        max_relevant = SOME 65536 (* a large number *), isar_proof = isar_proof,
        isar_shrink_factor = isar_shrink_factor, timeout = timeout, expect = ""}
     val axioms = maps (fn (n, ths) => map (pair n) ths) axioms
     val {context = ctxt, goal, ...} = Proof.goal state
-    val problem =
+    val atp_problem =
       {state = state, goal = goal, subgoal = subgoal,
        axioms = map (prepare_axiom ctxt) axioms, only = true}
-    val result as {outcome, used_thm_names, ...} = prover params (K "") problem
+    val result as {outcome, used_thm_names, ...} = atp params (K "") atp_problem
   in
     priority (case outcome of
                 NONE =>
@@ -81,7 +80,7 @@ fun filter_used_facts used = filter (member (op =) used o fst)
 fun sublinear_minimize _ [] p = p
   | sublinear_minimize test (x :: xs) (seen, result) =
     case test (xs @ seen) of
-      result as {outcome = NONE, used_thm_names, ...} : prover_result =>
+      result as {outcome = NONE, used_thm_names, ...} : atp_result =>
       sublinear_minimize test (filter_used_facts used_thm_names xs)
                          (filter_used_facts used_thm_names seen, result)
     | _ => sublinear_minimize test xs (x :: seen, result)
@@ -91,22 +90,22 @@ fun sublinear_minimize _ [] p = p
    timeout. *)
 val fudge_msecs = 1000
 
-fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
-  | minimize_theorems (params as {debug, atps = atp :: _, full_types,
+fun minimize_theorems {provers = [], ...} _ _ _ _ = error "No prover is set."
+  | minimize_theorems (params as {debug, provers = prover :: _, full_types,
                                   isar_proof, isar_shrink_factor, timeout, ...})
                       i (_ : int) state axioms =
   let
     val thy = Proof.theory_of state
-    val prover = get_prover_fun thy atp
+    val atp = get_atp_fun thy prover
     val msecs = Time.toMilliseconds timeout
-    val _ = priority ("Sledgehammer minimize: ATP " ^ quote atp ^ ".")
+    val _ = priority ("Sledgehammer minimize: prover " ^ quote prover ^ ".")
     val {context = ctxt, goal, ...} = Proof.goal state
     val (_, hyp_ts, concl_t) = strip_subgoal goal i
     val explicit_apply =
       not (forall (Meson.is_fol_term thy)
                   (concl_t :: hyp_ts @ maps (map prop_of o snd) axioms))
     fun do_test timeout =
-      test_theorems params prover explicit_apply timeout i state
+      test_theorems params atp explicit_apply timeout i state
     val timer = Timer.startRealTimer ()
   in
     (case do_test timeout axioms of
@@ -159,7 +158,8 @@ fun run_minimize params i refs state =
     case subgoal_count state of
       0 => priority "No subgoal!"
     | n =>
-      (kill_atps (); priority (#2 (minimize_theorems params i n state axioms)))
+      (kill_provers ();
+       priority (#2 (minimize_theorems params i n state axioms)))
   end
 
 end;

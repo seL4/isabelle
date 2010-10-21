@@ -316,13 +316,13 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 fun get_atp thy args =
   let
     fun default_atp_name () =
-      hd (#atps (Sledgehammer_Isar.default_params thy []))
+      hd (#provers (Sledgehammer_Isar.default_params thy []))
       handle Empty => error "No ATP available."
-    fun get_prover name = (name, Sledgehammer.get_prover_fun thy name)
+    fun get_atp name = (name, Sledgehammer.get_atp_fun thy name)
   in
     (case AList.lookup (op =) args proverK of
-      SOME name => get_prover name
-    | NONE => get_prover (default_atp_name ()))
+      SOME name => get_atp name
+    | NONE => get_atp (default_atp_name ()))
   end
 
 type locality = Sledgehammer_Filter.locality
@@ -349,7 +349,7 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
       Sledgehammer_Isar.default_params thy
           [("timeout", Int.toString timeout ^ " s")]
     val relevance_override = {add = [], del = [], only = false}
-    val {default_max_relevant, ...} = ATP_Systems.get_prover thy prover_name
+    val {default_max_relevant, ...} = ATP_Systems.get_atp thy prover_name
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val axioms =
       Sledgehammer_Filter.relevant_facts ctxt full_types relevance_thresholds
@@ -364,7 +364,7 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     val ({outcome, message, used_thm_names,
-          atp_run_time_in_msecs = time_atp, ...} : Sledgehammer.prover_result,
+          atp_run_time_in_msecs = time_atp, ...} : Sledgehammer.atp_result,
         time_isa) = time_limit (Mirabelle.cpu_time
                       (prover params (K ""))) problem
   in
@@ -443,7 +443,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
       |> Option.map (fst o read_int o explode)
       |> the_default 5
     val params = Sledgehammer_Isar.default_params thy
-      [("atps", prover_name), ("timeout", Int.toString timeout ^ " s")]
+      [("provers", prover_name), ("timeout", Int.toString timeout ^ " s")]
     val minimize =
       Sledgehammer_Minimize.minimize_theorems params 1 (subgoal_count st)
     val _ = log separator

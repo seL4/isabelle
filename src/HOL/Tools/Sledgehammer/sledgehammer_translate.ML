@@ -16,7 +16,7 @@ sig
   val prepare_axiom :
     Proof.context -> (string * 'a) * thm
     -> term * ((string * 'a) * fol_formula) option
-  val prepare_problem :
+  val prepare_atp_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
     -> (term * ((string * 'a) * fol_formula) option) list
     -> string problem * string Symtab.table * int * (string * 'a) list vector
@@ -494,8 +494,8 @@ fun repair_problem thy explicit_forall full_types explicit_apply problem =
   repair_problem_with_const_table thy explicit_forall full_types
       (const_table_for_problem explicit_apply problem) problem
 
-fun prepare_problem ctxt readable_names explicit_forall full_types
-                    explicit_apply hyp_ts concl_t axioms =
+fun prepare_atp_problem ctxt readable_names explicit_forall full_types
+                        explicit_apply hyp_ts concl_t axioms =
   let
     val thy = ProofContext.theory_of ctxt
     val (axiom_names, (conjectures, axioms, helper_facts, class_rel_clauses,

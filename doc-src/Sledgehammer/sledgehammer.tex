@@ -79,9 +79,9 @@ Jasmin Christian Blanchette \\
 
 Sledgehammer is a tool that applies first-order automatic theorem provers (ATPs)
 on the current goal. The supported ATPs are E \cite{schulz-2002}, SPASS
-\cite{weidenbach-et-al-2009}, and Vampire \cite{riazanov-voronkov-2002}, which
-can be run locally or remotely via the SystemOnTPTP web service
-\cite{sutcliffe-2000}.
+\cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002},
+SInE-E \cite{sine}, and SNARK \cite{snark}. The ATPs are run either locally or
+remotely via the SystemOnTPTP web service \cite{sutcliffe-2000}.
 
 The problem passed to ATPs consists of your current goal together with a
 heuristic selection of hundreds of facts (theorems) from the current theory
@@ -124,9 +124,9 @@ in.\allowbreak tum.\allowbreak de}.
 
 Sledgehammer is part of Isabelle, so you don't need to install it. However, it
 relies on third-party automatic theorem provers (ATPs). Currently, E, SPASS, and
-Vampire are supported. All of these are available remotely via SystemOnTPTP
-\cite{sutcliffe-2000}, but if you want better performance you will need to
-install at least E and SPASS locally.
+Vampire can be run locally; in addition, E, Vampire, SInE-E, and SNARK
+are available remotely via SystemOnTPTP \cite{sutcliffe-2000}. If you want
+better performance, you should install at least E and SPASS locally.
 
 There are three main ways to install ATPs on your machine:
 
@@ -199,24 +199,24 @@ Either way, Sledgehammer produces the following output after a few seconds:
 
 \prew
 \slshape
-Sledgehammer: ATP ``\textit{e}'' for subgoal 1: \\
+Sledgehammer: Prover ``\textit{e}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}). \\
 To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{atp} = \textit{e}] (\textit{hd.simps}). \\[3\smallskipamount]
+\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{e}] (\textit{hd.simps}). \\[3\smallskipamount]
 %
-Sledgehammer: ATP ``\textit{spass}'' for subgoal 1: \\
+Sledgehammer: Prover ``\textit{spass}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis insert\_Nil last\_ConsL}). \\
 To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{atp} = \textit{spass}] (\textit{insert\_Nil last\_ConsL}). \\[3\smallskipamount]
+\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{spass}] (\textit{insert\_Nil last\_ConsL}). \\[3\smallskipamount]
 %
-Sledgehammer: ATP ``\textit{remote\_vampire}'' for subgoal 1: \\
+Sledgehammer: Prover ``\textit{remote\_vampire}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis One\_nat\_def\_raw empty\_replicate} \\
 \phantom{Try this command: \textbf{by} (\textit{metis~}}\textit{insert\_Nil last\_ConsL replicate\_Suc}). \\
 To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{atp} = \textit{remote\_vampire}] \\
+\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_vampire}] \\
 \phantom{\textbf{sledgehammer}~}(\textit{One\_nat\_def\_raw empty\_replicate insert\_Nil} \\
 \phantom{\textbf{sledgehammer}~(}\textit{last\_ConsL replicate\_Suc}).
 \postw
@@ -291,14 +291,16 @@ Sledgehammer. This allows you to examine results that might have been lost due
 to Sledgehammer's asynchronous nature. The \textit{num} argument specifies a
 limit on the number of messages to display (5 by default).
 
-\item[$\bullet$] \textbf{\textit{available\_atps}:} Prints the list of installed ATPs.
+\item[$\bullet$] \textbf{\textit{available\_provers}:} Prints the list of installed provers.
 See \S\ref{installation} and \S\ref{mode-of-operation} for more information on
-how to install ATPs.
+how to install automatic provers.
 
-\item[$\bullet$] \textbf{\textit{running\_atps}:} Prints information about currently
-running ATPs, including elapsed runtime and remaining time until timeout.
+\item[$\bullet$] \textbf{\textit{running\_provers}:} Prints information about
+currently running automatic provers, including elapsed runtime and remaining
+time until timeout.
 
-\item[$\bullet$] \textbf{\textit{kill\_atps}:} Terminates all running ATPs.
+\item[$\bullet$] \textbf{\textit{kill\_provers}:} Terminates all running
+automatic provers.
 
 \item[$\bullet$] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
 ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
@@ -334,10 +336,10 @@ highly-relevant and \textit{facts}$_2$ fully irrelevant.
 
 You can instruct Sledgehammer to run automatically on newly entered theorems by
 enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
-General. For automatic runs, only the first ATP set using \textit{atps}
+General. For automatic runs, only the first prover set using \textit{provers}
 (\S\ref{mode-of-operation}) is considered, \textit{verbose}
 (\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled,
-fewer facts are passed to the ATP, and \textit{timeout} (\S\ref{timeouts}) is
+fewer facts are passed to the prover, and \textit{timeout} (\S\ref{timeouts}) is
 superseded by the ``Auto Tools Time Limit'' in Proof General's ``Isabelle''
 menu. Sledgehammer's output is also more concise.
 
@@ -382,9 +384,9 @@ Boolean options, ``= \textit{true}'' may be omitted.
 \label{mode-of-operation}
 
 \begin{enum}
-\opnodefault{atps}{string}
-Specifies the ATPs (automated theorem provers) to use as a space-separated list
-(e.g., ``\textit{e}~\textit{spass}''). The following ATPs are supported:
+\opnodefault{provers}{string}
+Specifies the automatic provers to use as a space-separated list (e.g.,
+``\textit{e}~\textit{spass}''). The following provers are supported:
 
 \begin{enum}
 \item[$\bullet$] \textbf{\textit{e}:} E is an ATP developed by Stephan Schulz
@@ -423,22 +425,28 @@ SNARK runs on Geoff Sutcliffe's Miami servers.
 By default, Sledgehammer will run E, SPASS, Vampire, and SInE-E in parallel.
 For at most two of E, SPASS, and Vampire, it will use any locally installed
 version if available. For historical reasons, the default value of this option
-can be overridden using the option ``Sledgehammer: ATPs'' from the ``Isabelle''
-menu in Proof General.
+can be overridden using the option ``Sledgehammer: Provers'' from the
+``Isabelle'' menu in Proof General.
 
-It is a good idea to run several ATPs in parallel, although it could slow down
-your machine. Running E, SPASS, and Vampire together for 5 seconds yields about
-the same success rate as running the most effective of these (Vampire) for 120
-seconds \cite{boehme-nipkow-2010}.
+It is a good idea to run several provers in parallel, although it could slow
+down your machine. Running E, SPASS, and Vampire together for 5 seconds yields
+about the same success rate as running the most effective of these (Vampire) for
+120 seconds \cite{boehme-nipkow-2010}.
+
+\opnodefault{prover}{string}
+Alias for \textit{provers}.
+
+\opnodefault{atps}{string}
+Legacy alias for \textit{provers}.
 
 \opnodefault{atp}{string}
-Alias for \textit{atps}.
+Legacy alias for \textit{provers}.
 
 \opdefault{timeout}{time}{$\mathbf{30}$ s}
-Specifies the maximum amount of time that the ATPs should spend searching for a
-proof. For historical reasons, the default value of this option can be
-overridden using the option ``Sledgehammer: Time Limit'' from the ``Isabelle''
-menu in Proof General.
+Specifies the maximum amount of time that the automatic provers should spend
+searching for a proof. For historical reasons, the default value of this option
+can be overridden using the option ``Sledgehammer: Time Limit'' from the
+``Isabelle'' menu in Proof General.
 
 \opfalse{blocking}{non\_blocking}
 Specifies whether the \textbf{sledgehammer} command should operate
@@ -471,8 +479,8 @@ sometimes help discover higher-order proofs that otherwise would not be found.
 Specifies whether full-type information is exported. Enabling this option can
 prevent the discovery of type-incorrect proofs, but it also tends to slow down
 the ATPs significantly. For historical reasons, the default value of this option
-can be overridden using the option ``Sledgehammer: ATPs'' from the ``Isabelle''
-menu in Proof General.
+can be overridden using the option ``Sledgehammer: Full Types'' from the
+``Isabelle'' menu in Proof General.
 \end{enum}
 
 \subsection{Relevance Filter}
@@ -490,18 +498,8 @@ are relevant and 100 only theorems that refer to previously seen constants.
 \opdefault{max\_relevant}{int\_or\_smart}{\textit{smart}}
 Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart}, it is set to a value that was
-empirically found to be appropriate for the ATP. A typical value would be 300.
-
-%\opsmartx{theory\_relevant}{theory\_irrelevant}
-%Specifies whether the theory from which a fact comes should be taken into
-%consideration by the relevance filter. If the option is set to \textit{smart},
-%it is taken to be \textit{true} for SPASS and \textit{false} for the other ATPs;
-%empirical results suggest that these are the best settings.
-
-%\opfalse{defs\_relevant}{defs\_irrelevant}
-%Specifies whether the definition of constants occurring in the formula to prove
-%should be considered particularly relevant. Enabling this option tends to lead
-%to larger problems and typically slows down the ATPs.
+empirically found to be appropriate for the prover. A typical value would be
+300.
 \end{enum}
 
 \subsection{Output Format}

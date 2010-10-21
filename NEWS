@@ -276,18 +276,28 @@ INCOMPATIBILITY.
   meson_disj_FalseD2 ~> Meson.disj_FalseD2
 INCOMPATIBILITY.
 
-* Sledgehammer: Renamed lemmas:
-  COMBI_def ~> Meson.COMBI_def
-  COMBK_def ~> Meson.COMBK_def
-  COMBB_def ~> Meson.COMBB_def
-  COMBC_def ~> Meson.COMBC_def
-  COMBS_def ~> Meson.COMBS_def
-  abs_I ~> Meson.abs_I
-  abs_K ~> Meson.abs_K
-  abs_B ~> Meson.abs_B
-  abs_C ~> Meson.abs_C
-  abs_S ~> Meson.abs_S
-INCOMPATIBILITY.
+* Sledgehammer:
+  - Renamed lemmas:
+    COMBI_def ~> Meson.COMBI_def
+    COMBK_def ~> Meson.COMBK_def
+    COMBB_def ~> Meson.COMBB_def
+    COMBC_def ~> Meson.COMBC_def
+    COMBS_def ~> Meson.COMBS_def
+    abs_I ~> Meson.abs_I
+    abs_K ~> Meson.abs_K
+    abs_B ~> Meson.abs_B
+    abs_C ~> Meson.abs_C
+    abs_S ~> Meson.abs_S
+    INCOMPATIBILITY.
+  - Renamed commands:
+    sledgehammer atp_info ~> sledgehammer running_provers
+    sledgehammer atp_kill ~> sledgehammer kill_provers
+    sledgehammer available_atps ~> sledgehammer available_provers
+    INCOMPATIBILITY.
+  - Renamed options:
+    sledgehammer [atps = ...] ~> sledgehammer [provers = ...]
+    sledgehammer [atp = ...] ~> sledgehammer [provers = ...]
+    INCOMPATIBILITY.
 
 
 *** FOL ***
