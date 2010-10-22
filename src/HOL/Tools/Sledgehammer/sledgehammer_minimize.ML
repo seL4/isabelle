@@ -56,7 +56,7 @@ fun test_facts ({debug, verbose, overlord, provers, full_types, isar_proof,
        isar_shrink_factor = isar_shrink_factor, timeout = timeout, expect = ""}
     val axioms =
       axioms |> maps (fn (n, ths) => ths |> map (Unprepared o pair n))
-    val {context = ctxt, goal, ...} = Proof.goal state
+    val {goal, ...} = Proof.goal state
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
        axioms = axioms, only = true}

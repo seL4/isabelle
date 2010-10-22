@@ -11,7 +11,7 @@ sig
   type failure = ATP_Systems.failure
   type locality = Sledgehammer_Filter.locality
   type relevance_override = Sledgehammer_Filter.relevance_override
-  type fol_formula = Sledgehammer_ATP_Translate.fol_formula
+  type prepared_formula = Sledgehammer_ATP_Translate.prepared_formula
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
 
   type params =
@@ -31,7 +31,7 @@ sig
 
   datatype axiom =
     Unprepared of (string * locality) * thm |
-    Prepared of term * ((string * locality) * fol_formula) option
+    Prepared of term * ((string * locality) * prepared_formula) option
 
   type prover_problem =
     {state: Proof.state,
@@ -127,7 +127,7 @@ type params =
 
 datatype axiom =
   Unprepared of (string * locality) * thm |
-  Prepared of term * ((string * locality) * fol_formula) option
+  Prepared of term * ((string * locality) * prepared_formula) option
 
 type prover_problem =
   {state: Proof.state,
@@ -424,8 +424,7 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
   end
 
 fun run_sledgehammer (params as {blocking, provers, full_types,
-                                 relevance_thresholds, max_relevant, timeout,
-                                 ...})
+                                 relevance_thresholds, max_relevant, ...})
                      auto i (relevance_override as {only, ...}) minimize_command
                      state =
   if null provers then

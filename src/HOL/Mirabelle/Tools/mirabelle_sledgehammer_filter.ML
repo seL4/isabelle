@@ -95,7 +95,6 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
        SOME proofs =>
        let
          val {context = ctxt, facts, goal} = Proof.goal pre
-         val thy = ProofContext.theory_of ctxt
          val args =
            args
            |> filter (fn (key, value) =>
@@ -104,7 +103,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
                          | NONE => true)
 
          val {relevance_thresholds, full_types, max_relevant, ...} =
-           Sledgehammer_Isar.default_params thy args
+           Sledgehammer_Isar.default_params ctxt args
          val subgoal = 1
          val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal subgoal
          val facts =

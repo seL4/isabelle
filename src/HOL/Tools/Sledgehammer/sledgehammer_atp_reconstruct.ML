@@ -434,7 +434,8 @@ fun prop_from_formula thy full_types tfrees phi =
              | AImplies => s_imp
              | AIf => s_imp o swap
              | AIff => s_iff
-             | ANotIff => s_not o s_iff)
+             | ANotIff => s_not o s_iff
+             | _ => raise Fail "unexpected connective")
       | AAtom tm => term_from_pred thy full_types tfrees pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
@@ -505,6 +506,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
         (_, []) => lines (* no repetition of proof line *)
       | (pre, Inference (name', _, _) :: post) =>
         pre @ map (replace_dependencies_in_line (name', [name])) post
+      | _ => raise Fail "unexpected inference"
     else if is_conjecture conjecture_shape name then
       Inference (name, negate_term t, []) :: lines
     else
@@ -521,6 +523,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
      | (pre, Inference (name', t', _) :: post) =>
        Inference (name, t', deps) ::
        pre @ map (replace_dependencies_in_line (name', [name])) post
+     | _ => raise Fail "unexpected inference"
 
 (* Recursively delete empty lines (type information) from the proof. *)
 fun add_nontrivial_line (Inference (name, t, [])) lines =

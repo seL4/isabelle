@@ -314,10 +314,11 @@ fun done id ({log, ...}: Mirabelle.done_args) =
 fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f); ())
 
 
-fun get_prover thy args =
+fun get_prover ctxt args =
   let
+    val thy = ProofContext.theory_of ctxt
     fun default_prover_name () =
-      hd (#provers (Sledgehammer_Isar.default_params thy []))
+      hd (#provers (Sledgehammer_Isar.default_params ctxt []))
       handle Empty => error "No ATP available."
     fun get_prover name = (name, Sledgehammer.get_prover thy false name)
   in
@@ -347,7 +348,7 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
                 (change_dir dir
                  #> Config.put Sledgehammer.measure_run_time true)
     val params as {full_types, relevance_thresholds, max_relevant, ...} =
-      Sledgehammer_Isar.default_params thy
+      Sledgehammer_Isar.default_params ctxt
           [("timeout", Int.toString timeout ^ " s")]
     val relevance_override = {add = [], del = [], only = false}
     val default_max_relevant =
@@ -397,7 +398,7 @@ fun run_sledgehammer trivial args named_thms id ({pre=st, log, ...}: Mirabelle.r
     val triv_str = if trivial then "[T] " else ""
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
-    val (prover_name, prover) = get_prover (Proof.theory_of st) args
+    val (prover_name, prover) = get_prover (Proof.context_of st) args
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     val hard_timeout = AList.lookup (op =) args prover_hard_timeoutK
@@ -434,14 +435,14 @@ end
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     open Metis_Translate
-    val thy = Proof.theory_of st
+    val ctxt = Proof.context_of st
     val n0 = length (these (!named_thms))
-    val (prover_name, _) = get_prover thy args
+    val (prover_name, _) = get_prover ctxt args
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o explode)
       |> the_default 5
-    val params = Sledgehammer_Isar.default_params thy
+    val params = Sledgehammer_Isar.default_params ctxt
       [("provers", prover_name), ("timeout", Int.toString timeout ^ " s")]
     val minimize =
       Sledgehammer_Minimize.minimize_facts params 1

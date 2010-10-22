@@ -12,7 +12,7 @@ sig
   val provers : string Unsynchronized.ref
   val timeout : int Unsynchronized.ref
   val full_types : bool Unsynchronized.ref
-  val default_params : theory -> (string * string) list -> params
+  val default_params : Proof.context -> (string * string) list -> params
   val setup : theory -> theory
 end;
 
@@ -131,36 +131,40 @@ structure Data = Theory_Data(
   fun merge p : T = AList.merge (op =) (K true) p)
 
 (* FIXME: dummy *)
-fun is_smt_solver_installed () = true
+fun is_smt_solver_installed ctxt = true
 
 fun maybe_remote_atp thy name =
   name |> not (is_atp_installed thy name) ? prefix remote_prefix
-fun maybe_remote_smt_solver thy =
-  smtN |> not (is_smt_solver_installed ()) ? prefix remote_prefix
+fun maybe_remote_smt_solver ctxt =
+  smtN |> not (is_smt_solver_installed ctxt) ? prefix remote_prefix
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
-fun default_provers_param_value thy =
-  (filter (is_atp_installed thy) [spassN] @
-   [maybe_remote_atp thy eN,
-    if forall (is_atp_installed thy) [spassN, eN] then remote_prefix ^ vampireN
-    else maybe_remote_atp thy vampireN,
-    remote_prefix ^ sine_eN (* FIXME: Introduce and document: ,
-    maybe_remote_smt_solver thy *)])
-  |> space_implode " "
+fun default_provers_param_value ctxt =
+  let val thy = ProofContext.theory_of ctxt in
+    (filter (is_atp_installed thy) [spassN] @
+     [maybe_remote_atp thy eN,
+      if forall (is_atp_installed thy) [spassN, eN] then remote_prefix ^ vampireN
+      else maybe_remote_atp thy vampireN,
+      remote_prefix ^ sine_eN (* FIXME: Introduce and document: ,
+      maybe_remote_smt_solver ctxt *)])
+    |> space_implode " "
+  end
 
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
-fun default_raw_params thy =
-  Data.get thy
-  |> fold (AList.default (op =))
-          [("provers", [case !provers of
-                          "" => default_provers_param_value thy
-                        | s => s]),
-           ("full_types", [if !full_types then "true" else "false"]),
-           ("timeout", let val timeout = !timeout in
-                         [if timeout <= 0 then "none"
-                          else string_of_int timeout ^ " s"]
-                       end)]
+fun default_raw_params ctxt =
+  let val thy = ProofContext.theory_of ctxt in
+    Data.get thy
+    |> fold (AList.default (op =))
+            [("provers", [case !provers of
+                            "" => default_provers_param_value ctxt
+                          | s => s]),
+             ("full_types", [if !full_types then "true" else "false"]),
+             ("timeout", let val timeout = !timeout in
+                           [if timeout <= 0 then "none"
+                            else string_of_int timeout ^ " s"]
+                         end)]
+  end
 
 val infinity_time_in_secs = 60 * 60 * 24 * 365
 val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
@@ -224,7 +228,7 @@ fun extract_params auto default_params override_params =
      timeout = timeout, expect = expect}
   end
 
-fun get_params auto thy = extract_params auto (default_raw_params thy)
+fun get_params auto ctxt = extract_params auto (default_raw_params ctxt)
 fun default_params thy = get_params false thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
@@ -254,18 +258,19 @@ fun minimize_command override_params i prover_name fact_names =
 
 fun hammer_away override_params subcommand opt_i relevance_override state =
   let
+    val ctxt = Proof.context_of state
     val thy = Proof.theory_of state
     val _ = app check_raw_param override_params
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        run_sledgehammer (get_params false thy override_params) false i
+        run_sledgehammer (get_params false ctxt override_params) false i
                          relevance_override (minimize_command override_params i)
                          state
         |> K ()
       end
     else if subcommand = minimizeN then
-      run_minimize (get_params false thy override_params) (the_default 1 opt_i)
+      run_minimize (get_params false ctxt override_params) (the_default 1 opt_i)
                    (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
@@ -291,13 +296,15 @@ fun sledgehammer_params_trans params =
   Toplevel.theory
       (fold set_default_raw_param params
        #> tap (fn thy =>
-                  writeln ("Default parameters for Sledgehammer:\n" ^
-                           (case rev (default_raw_params thy) of
-                              [] => "none"
-                            | params =>
-                              (map check_raw_param params;
-                               params |> map string_for_raw_param
-                                      |> sort_strings |> cat_lines)))))
+                  let val ctxt = ProofContext.init_global thy in
+                    writeln ("Default parameters for Sledgehammer:\n" ^
+                             (case default_raw_params ctxt |> rev of
+                                [] => "none"
+                              | params =>
+                                (map check_raw_param params;
+                                 params |> map string_for_raw_param
+                                        |> sort_strings |> cat_lines)))
+                  end))
 
 val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
 val parse_value = Scan.repeat1 Parse.xname
@@ -332,8 +339,8 @@ fun auto_sledgehammer state =
   if not (!auto) then
     (false, state)
   else
-    let val thy = Proof.theory_of state in
-      run_sledgehammer (get_params true thy []) true 1 no_relevance_override
+    let val ctxt = Proof.context_of state in
+      run_sledgehammer (get_params true ctxt []) true 1 no_relevance_override
                        (minimize_command [] 1) state
     end
 

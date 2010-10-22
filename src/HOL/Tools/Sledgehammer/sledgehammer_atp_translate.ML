@@ -9,16 +9,16 @@ Translation of HOL to FOL for Sledgehammer.
 signature SLEDGEHAMMER_ATP_TRANSLATE =
 sig
   type 'a problem = 'a ATP_Problem.problem
-  type fol_formula
+  type prepared_formula
 
   val axiom_prefix : string
   val conjecture_prefix : string
   val prepare_axiom :
     Proof.context -> (string * 'a) * thm
-    -> term * ((string * 'a) * fol_formula) option
+    -> term * ((string * 'a) * prepared_formula) option
   val prepare_atp_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
-    -> (term * ((string * 'a) * fol_formula) option) list
+    -> (term * ((string * 'a) * prepared_formula) option) list
     -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
 
@@ -39,7 +39,7 @@ val tfree_prefix = "tfree_"
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
 
-type fol_formula =
+type prepared_formula =
   {name: string,
    kind: kind,
    combformula: (name, combterm) formula,
@@ -214,7 +214,7 @@ fun count_combterm (CombConst ((s, _), _, _)) =
 fun count_combformula (AQuant (_, _, phi)) = count_combformula phi
   | count_combformula (AConn (_, phis)) = fold count_combformula phis
   | count_combformula (AAtom tm) = count_combterm tm
-fun count_fol_formula ({combformula, ...} : fol_formula) =
+fun count_prepared_formula ({combformula, ...} : prepared_formula) =
   count_combformula combformula
 
 val optional_helpers =
@@ -234,7 +234,8 @@ val init_counters =
 
 fun get_helper_facts ctxt is_FO full_types conjectures axioms =
   let
-    val ct = fold (fold count_fol_formula) [conjectures, axioms] init_counters
+    val ct =
+      fold (fold count_prepared_formula) [conjectures, axioms] init_counters
     fun is_needed c = the (Symtab.lookup ct c) > 0
     fun baptize th = ((Thm.get_name_hint th, false), th)
   in
@@ -322,7 +323,7 @@ fun formula_for_combformula full_types =
   in aux end
 
 fun formula_for_axiom full_types
-                      ({combformula, ctypes_sorts, ...} : fol_formula) =
+                      ({combformula, ctypes_sorts, ...} : prepared_formula) =
   mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
                 (type_literals_for_types ctypes_sorts))
            (formula_for_combformula full_types combformula)
@@ -352,11 +353,11 @@ fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                      (fo_literal_for_arity_literal conclLit)))
 
 fun problem_line_for_conjecture full_types
-                                ({name, kind, combformula, ...} : fol_formula) =
+                           ({name, kind, combformula, ...} : prepared_formula) =
   Fof (conjecture_prefix ^ name, kind,
        formula_for_combformula full_types combformula)
 
-fun free_type_literals_for_conjecture ({ctypes_sorts, ...} : fol_formula) =
+fun free_type_literals_for_conjecture ({ctypes_sorts, ...} : prepared_formula) =
   map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type j lit =
