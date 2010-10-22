@@ -38,8 +38,8 @@ sig
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val relevant_facts :
-    Proof.context -> bool -> real * real -> int -> relevance_fudge
-    -> relevance_override -> thm list -> term list -> term
+    Proof.context -> bool -> real * real -> int -> string list
+    -> relevance_fudge -> relevance_override -> thm list -> term list -> term
     -> ((string * locality) * thm) list
 end;
 
@@ -175,16 +175,10 @@ and rich_pconst thy const (s, T) ts = (s, rich_ptype thy const (s, T) ts)
 fun string_for_hyper_pconst (s, ps) =
   s ^ "{" ^ commas (map string_for_ptype ps) ^ "}"
 
-(* These are typically simplified away by "Meson.presimplify". Equality is
-   handled specially via "fequal". *)
-val boring_consts =
-  [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let},
-   @{const_name HOL.eq}]
-
 (* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
-fun add_pconst_to_table also_skolem (c, p) =
-  if member (op =) boring_consts c orelse
+fun add_pconst_to_table irrelevant_consts also_skolem (c, p) =
+  if member (op =) irrelevant_consts c orelse
      (not also_skolem andalso String.isPrefix skolem_prefix c) then
     I
   else
@@ -192,14 +186,15 @@ fun add_pconst_to_table also_skolem (c, p) =
 
 fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
 
-fun pconsts_in_terms thy also_skolems pos ts =
+fun pconsts_in_terms thy irrelevant_consts also_skolems pos ts =
   let
     val flip = Option.map not
     (* We include free variables, as well as constants, to handle locales. For
        each quantifiers that must necessarily be skolemized by the ATP, we
        introduce a fresh constant to simulate the effect of Skolemization. *)
     fun do_const const (s, T) ts =
-      add_pconst_to_table also_skolems (rich_pconst thy const (s, T) ts)
+      add_pconst_to_table irrelevant_consts also_skolems
+                          (rich_pconst thy const (s, T) ts)
       #> fold do_term ts
     and do_term t =
       case strip_comb t of
@@ -207,13 +202,14 @@ fun pconsts_in_terms thy also_skolems pos ts =
       | (Free x, ts) => do_const false x ts
       | (Abs (_, T, t'), ts) =>
         (null ts
-         ? add_pconst_to_table true (abs_name, PType (order_of_type T + 1, [])))
+         ? add_pconst_to_table irrelevant_consts true
+                               (abs_name, PType (order_of_type T + 1, [])))
         #> fold do_term (t' :: ts)
       | (_, ts) => fold do_term ts
     fun do_quantifier will_surely_be_skolemized abs_T body_t =
       do_formula pos body_t
       #> (if also_skolems andalso will_surely_be_skolemized then
-            add_pconst_to_table true
+            add_pconst_to_table irrelevant_consts true
                          (gensym skolem_prefix, PType (order_of_type abs_T, []))
           else
             I)
@@ -395,11 +391,12 @@ val _ = tracing (PolyML.makestring ("IRREL: ", map (`(irrel_pconst_weight fudge 
     in if Real.isFinite res then res else 0.0 end
 *)
 
-fun pconsts_in_axiom thy t =
+fun pconsts_in_axiom thy irrelevant_consts t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (pconsts_in_terms thy true (SOME true) [t]) []
-fun pair_consts_axiom thy fudge axiom =
-  case axiom |> snd |> theory_const_prop_of fudge |> pconsts_in_axiom thy of
+              (pconsts_in_terms thy irrelevant_consts true (SOME true) [t]) []
+fun pair_consts_axiom thy irrelevant_consts fudge axiom =
+  case axiom |> snd |> theory_const_prop_of fudge
+             |> pconsts_in_axiom thy irrelevant_consts of
     [] => NONE
   | consts => SOME ((axiom, consts), NONE)
 
@@ -429,23 +426,23 @@ fun take_most_relevant max_relevant remaining_max
     (accepts, more_rejects @ rejects)
   end
 
-fun if_empty_replace_with_locality thy axioms loc tab =
+fun if_empty_replace_with_locality thy irrelevant_consts axioms loc tab =
   if Symtab.is_empty tab then
-    pconsts_in_terms thy false (SOME false)
+    pconsts_in_terms thy irrelevant_consts false (SOME false)
         (map_filter (fn ((_, loc'), th) =>
                         if loc' = loc then SOME (prop_of th) else NONE) axioms)
   else
     tab
 
-fun relevance_filter ctxt threshold0 decay max_relevant
+fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
         (fudge as {threshold_divisor, ridiculous_threshold, ...})
         ({add, del, ...} : relevance_override) axioms goal_ts =
   let
     val thy = ProofContext.theory_of ctxt
     val const_tab = fold (count_axiom_consts thy fudge) axioms Symtab.empty
     val goal_const_tab =
-      pconsts_in_terms thy false (SOME false) goal_ts
-      |> fold (if_empty_replace_with_locality thy axioms)
+      pconsts_in_terms thy irrelevant_consts false (SOME false) goal_ts
+      |> fold (if_empty_replace_with_locality thy irrelevant_consts axioms)
               [Chained, Assum, Local]
     val add_ths = Attrib.eval_thms ctxt add
     val del_ths = Attrib.eval_thms ctxt del
@@ -473,7 +470,8 @@ fun relevance_filter ctxt threshold0 decay max_relevant
                 take_most_relevant max_relevant remaining_max fudge candidates
               val rel_const_tab' =
                 rel_const_tab
-                |> fold (add_pconst_to_table false) (maps (snd o fst) accepts)
+                |> fold (add_pconst_to_table irrelevant_consts false)
+                        (maps (snd o fst) accepts)
               fun is_dirty (c, _) =
                 Symtab.lookup rel_const_tab' c <> Symtab.lookup rel_const_tab c
               val (hopeful_rejects, hopeless_rejects) =
@@ -536,7 +534,7 @@ else
         end
   in
     axioms |> filter_out (member Thm.eq_thm del_ths o snd)
-           |> map_filter (pair_consts_axiom thy fudge)
+           |> map_filter (pair_consts_axiom thy irrelevant_consts fudge)
            |> iter 0 max_relevant threshold0 goal_const_tab []
            |> tap (fn res => trace_msg (fn () =>
                                 "Total relevant: " ^ Int.toString (length res)))
@@ -787,7 +785,8 @@ fun all_name_thms_pairs ctxt reserved full_types
                               | NONE => ""
                             end),
                       let val t = prop_of th in
-                        if is_chained th then Chained
+                        if is_chained th then
+                          Chained
                         else if global then
                           if Termtab.defined intros t then Intro
                           else if Termtab.defined elims t then Elim
@@ -814,8 +813,9 @@ fun name_thm_pairs ctxt respect_no_atp =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
-fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant fudge
-                   (override as {add, only, ...}) chained_ths hyp_ts concl_t =
+fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
+                   irrelevant_consts fudge (override as {add, only, ...})
+                   chained_ths hyp_ts concl_t =
   let
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
                           1.0 / Real.fromInt (max_relevant + 1))
@@ -838,8 +838,8 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant fudge
              max_relevant = 0 then
        []
      else
-       relevance_filter ctxt threshold0 decay max_relevant fudge override axioms
-                        (concl_t :: hyp_ts))
+       relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
+                        fudge override axioms (concl_t :: hyp_ts))
     |> map (apfst (apfst (fn f => f ())))
   end
 

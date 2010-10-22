@@ -107,9 +107,12 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
        SOME proofs =>
        let
          val {context = ctxt, facts, goal} = Proof.goal pre
+         val irrelevant_consts =
+           Sledgehammer.irrelevant_consts_for_prover prover_name
          val relevance_fudge =
            extract_relevance_fudge args
                (Sledgehammer.relevance_fudge_for_prover prover_name)
+         val relevance_override = {add = [], del = [], only = false}
          val {relevance_thresholds, full_types, max_relevant, ...} =
            Sledgehammer_Isar.default_params ctxt args
          val subgoal = 1
@@ -117,8 +120,9 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val facts =
            Sledgehammer_Filter.relevant_facts ctxt full_types
                relevance_thresholds
-               (the_default default_max_relevant max_relevant) relevance_fudge
-               {add = [], del = [], only = false} facts hyp_ts concl_t
+               (the_default default_max_relevant max_relevant)
+               irrelevant_consts relevance_fudge relevance_override facts hyp_ts
+               concl_t
            |> map (fst o fst)
          val (found_facts, lost_facts) =
            List.concat proofs |> sort_distinct string_ord
