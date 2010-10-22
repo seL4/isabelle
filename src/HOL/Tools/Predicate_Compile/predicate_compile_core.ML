@@ -42,6 +42,7 @@ sig
   val add_depth_limited_random_equations : options -> string list -> theory -> theory
   val add_random_dseq_equations : options -> string list -> theory -> theory
   val add_new_random_dseq_equations : options -> string list -> theory -> theory
+  val add_generator_dseq_equations : options -> string list -> theory -> theory
   val mk_tracing : string -> term -> term
   val prepare_intrs : options -> Proof.context -> string list -> thm list ->
     ((string * typ) list * string list * string list * (string * mode list) list *
