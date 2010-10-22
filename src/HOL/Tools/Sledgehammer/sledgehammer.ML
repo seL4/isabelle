@@ -51,6 +51,8 @@ sig
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
   val smtN : string
+  val is_prover_available : theory -> string -> bool
+  val is_prover_installed : Proof.context -> string -> bool
   val default_max_relevant_for_prover : theory -> string -> int
   val irrelevant_consts_for_prover : string -> string list
   val relevance_fudge_for_prover : string -> relevance_fudge
@@ -92,7 +94,16 @@ val smt_prover_names = [smtN, remote_prefix ^ smtN]
 
 val is_smt_prover = member (op =) smt_prover_names
 
-val smt_default_max_relevant = 300 (* FUDGE *)
+fun is_prover_available thy name =
+  is_smt_prover name orelse member (op =) (available_atps thy) name
+
+fun is_prover_installed ctxt name =
+  let val thy = ProofContext.theory_of ctxt in
+    if is_smt_prover name then true (* FIXME *)
+    else is_atp_installed thy name
+  end
+
+val smt_default_max_relevant = 300 (* FUDGE (FIXME) *)
 val auto_max_relevant_divisor = 2 (* FUDGE *)
 
 fun default_max_relevant_for_prover thy name =

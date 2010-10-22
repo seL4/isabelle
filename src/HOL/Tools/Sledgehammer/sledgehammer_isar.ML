@@ -133,21 +133,37 @@ structure Data = Theory_Data(
 (* FIXME: dummy *)
 fun is_smt_solver_installed ctxt = true
 
-fun maybe_remote_atp thy name =
-  name |> not (is_atp_installed thy name) ? prefix remote_prefix
-fun maybe_remote_smt_solver ctxt =
-  smtN |> not (is_smt_solver_installed ctxt) ? prefix remote_prefix
+fun remotify_prover_if_available_and_not_already_remote thy name =
+  if String.isPrefix remote_prefix name then
+    SOME name
+  else
+    let val remote_name = remote_prefix ^ name in
+      if is_prover_available thy remote_name then SOME remote_name else NONE
+    end
+
+fun remotify_prover_if_not_installed ctxt name =
+  let val thy = ProofContext.theory_of ctxt in
+    if is_prover_available thy name andalso is_prover_installed ctxt name then
+      SOME name
+    else
+      remotify_prover_if_available_and_not_already_remote thy name
+  end
+
+fun avoid_too_many_local_threads _ _ [] = []
+  | avoid_too_many_local_threads thy 0 provers =
+    map_filter (remotify_prover_if_available_and_not_already_remote thy) provers
+  | avoid_too_many_local_threads thy n (prover :: provers) =
+    let val n = if String.isPrefix remote_prefix prover then n else n - 1 in
+      prover :: avoid_too_many_local_threads thy n provers
+    end
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
 fun default_provers_param_value ctxt =
   let val thy = ProofContext.theory_of ctxt in
-    (filter (is_atp_installed thy) [spassN] @
-     [maybe_remote_atp thy eN,
-      if forall (is_atp_installed thy) [spassN, eN] then remote_prefix ^ vampireN
-      else maybe_remote_atp thy vampireN,
-      remote_prefix ^ sine_eN (* FIXME: Introduce and document: ,
-      maybe_remote_smt_solver ctxt *)])
+    [spassN, eN, vampireN, sine_eN (* FIXME: , smtN *)]
+    |> map_filter (remotify_prover_if_not_installed ctxt)
+    |> avoid_too_many_local_threads thy (Thread.numProcessors ())
     |> space_implode " "
   end
 
