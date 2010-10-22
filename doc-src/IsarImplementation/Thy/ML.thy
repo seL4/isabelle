@@ -718,6 +718,259 @@ text {*
 *}
 
 
+section {* Canonical argument order \label{sec:canonical-argument-order} *}
+
+text {* Standard ML is a language in the tradition of @{text
+  "\<lambda>"}-calculus and \emph{higher-order functional programming},
+  similar to OCaml, Haskell, or Isabelle/Pure and HOL as logical
+  languages.  Getting acquainted with the native style of representing
+  functions in that setting can save a lot of extra boiler-plate of
+  redundant shuffling of arguments, auxiliary abstractions etc.
+
+  First of all, functions are usually \emph{curried}: the idea of
+  @{text "f"} taking @{text "n"} arguments of type @{text "\<tau>\<^sub>i"} (for
+  @{text "i \<in> {1, \<dots> n}"}) with result @{text "\<tau>"} is represented by
+  the iterated function space @{text "\<tau>\<^sub>1 \<rightarrow> \<dots> \<rightarrow> \<tau>\<^sub>n \<rightarrow> \<tau>"}.  This is
+  isomorphic to the encoding via tuples @{text "\<tau>\<^sub>1 \<times> \<dots> \<times> \<tau>\<^sub>n \<rightarrow> \<tau>"}, but
+  the curried version fits more smoothly into the basic
+  calculus.\footnote{The difference is even more significant in
+  higher-order logic, because additional the redundant tuple structure
+  needs to be accommodated by formal reasoning.}
+
+  Currying gives some flexiblity due to \emph{partial application}.  A
+  function @{text "f: \<tau>\<^sub>1 \<rightarrow> \<tau>\<^bsub>2\<^esub> \<rightarrow> \<tau>"} can be applied to @{text "x: \<tau>\<^sub>1"}
+  and the remaining @{text "(f x): \<tau>\<^sub>2 \<rightarrow> \<tau>"} passed to other functions
+  etc.  How well this works in practice depends on the order of
+  arguments.  In the worst case, arguments are arranged erratically,
+  and using a function in a certain situation always requires some
+  glue code.  Thus we would get exponentially many oppurtunities to
+  decorate the code with meaningless permutations of arguments.
+
+  This can be avoided by \emph{canonical argument order}, which
+  observes certain standard patterns of function definitions and
+  minimizes adhoc permutations in their application.  In Isabelle/ML,
+  large portions of non-trivial source code are written without ever
+  using the infamous function @{text "swap: \<alpha> \<times> \<beta> \<rightarrow> \<beta> \<times> \<alpha>"} or the
+  combinator @{text "C: (\<alpha> \<rightarrow> \<beta> \<rightarrow> \<gamma>) \<rightarrow> (\<beta> \<rightarrow> \<alpha> \<rightarrow> \<gamma>)"}, which is not even
+  defined in our library.
+
+  \medskip The basic idea is that arguments that vary less are moved
+  further to the left than those that vary more.  Two particularly
+  important categories of functions are \emph{selectors} and
+  \emph{updates}.
+
+  The subsequent scheme is based on a hypothetical set-like container
+  of type @{text "\<beta>"} that manages elements of type @{text "\<alpha>"}.  Both
+  the names and types of the associated operations are canonical for
+  Isabelle/ML.
+
+  \medskip
+  \begin{tabular}{ll}
+  kind & canonical name and type \\\hline
+  selector & @{text "member: \<beta> \<rightarrow> \<alpha> \<rightarrow> bool"} \\
+  update & @{text "insert: \<alpha> \<rightarrow> \<beta> \<rightarrow> \<beta>"} \\
+  \end{tabular}
+  \medskip
+
+  Given a container @{text "B: \<beta>"}, the partially applied @{text
+  "member B"} is a predicate over elements @{text "\<alpha> \<rightarrow> bool"}, and
+  thus represents the intended denotation directly.  It is customary
+  to pass the abstract predicate to further operations, not the
+  concrete container.  The argument order makes it easy to use other
+  combinators: @{text "forall (member B) list"} will check a list of
+  elements for membership in @{text "B"} etc. Often the explicit
+  @{text "list"} is pointless and can be contracted in the application
+  @{text "forall (member B)"} to get directly a predicate again.
+
+  The update operation naturally ``varies'' the container, so it moves
+  to the right: @{text "insert a"} is a function @{text "\<beta> \<rightarrow> \<beta>"} to
+  insert a value @{text "a"}.  These can be composed naturally as
+  follows: @{text "insert c \<circ> insert b \<circ> insert a"}.  This works well,
+  apart from some awkwardness due to conventional mathematical
+  function composition, which can be easily amended as follows.
+*}
+
+
+subsection {* Forward application and composition *}
+
+text {* Regular function application and infix notation works best for
+  relatively deeply structured expressions, e.g.\ @{text "h (f x y + g
+  z)"}.  The important special case if \emph{linear transformation}
+  applies a cascade of functions as follows: @{text "f\<^sub>n (\<dots> (f\<^sub>1 x))"}.
+  This becomes hard to read and maintain if the functions are
+  themselves complex expressions.  The notation can be significantly
+  improved by introducing \emph{forward} versions of application and
+  composition as follows:
+
+  \medskip
+  \begin{tabular}{lll}
+  @{text "x |> f"} & @{text "\<equiv>"} & @{text "f x"} \\
+  @{text "f #> g"} & @{text "\<equiv>"} & @{text "x |> f |> g"} \\
+  \end{tabular}
+  \medskip
+
+  This enables to write conveniently @{text "x |> f\<^sub>1 |> \<dots> |> f\<^sub>n"} or
+  @{text "f\<^sub>1 #> \<dots> #> f\<^sub>n"} for its functional abstraction over @{text
+  "x"}.
+
+  \medskip There is an additional set of combinators to accommodate
+  multiple results (via pairs) that are passed on as multiple
+  arguments (via currying).
+
+  \medskip
+  \begin{tabular}{lll}
+  @{text "(x, y) |-> f"} & @{text "\<equiv>"} & @{text "f x y"} \\
+  @{text "f #-> g"} & @{text "\<equiv>"} & @{text "x |> f |-> g"} \\
+  \end{tabular}
+  \medskip
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML "op |> ": "'a * ('a -> 'b) -> 'b"} \\
+  @{index_ML "op |-> ": "('c * 'a) * ('c -> 'a -> 'b) -> 'b"} \\
+  @{index_ML "op #> ": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
+  @{index_ML "op #-> ": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
+  \end{mldecls}
+
+  %FIXME description!?
+*}
+
+
+subsection {* Canonical iteration *}
+
+text {* As explained above, a function @{text "f: \<alpha> \<rightarrow> \<beta> \<rightarrow> \<beta>"} can be
+  understood as update on a configuration of type @{text "\<beta>"} that is
+  parametrized by arguments of type @{text "\<alpha>"}.  Given @{text "a: \<alpha>"}
+  the partial application @{text "(f a): \<beta> \<rightarrow> \<beta>"} operates
+  homogeneously on @{text "\<beta>"}.  This can be iterated naturally over a
+  list of parameters @{text "[a\<^sub>1, \<dots>, a\<^sub>n]"} as @{text "f a\<^sub>1 #> \<dots> #> f
+  a\<^bsub>n\<^esub>\<^bsub>\<^esub>"}.  The latter expression is again a function @{text "\<beta> \<rightarrow> \<beta>"}.
+  It can be applied to an initial configuration @{text "b: \<beta>"} to
+  start the iteration over the given list of arguments: each @{text
+  "a"} in @{text "a\<^sub>1, \<dots>, a\<^sub>n"} is applied consecutively by updating a
+  cumulative configuration.
+
+  The @{text fold} combinator in Isabelle/ML lifts a function @{text
+  "f"} as above to its iterated version over a list of arguments.
+  Lifting can be repeated, e.g.\ @{text "(fold \<circ> fold) f"} iterates
+  over a list of lists as expected.
+
+  The variant @{text "fold_rev"} works inside-out over the list of
+  arguments, such that @{text "fold_rev f \<equiv> fold f \<circ> rev"} holds.
+
+  The @{text "fold_map"} combinator essentially performs @{text
+  "fold"} and @{text "map"} simultaneously: each application of @{text
+  "f"} produces an updated configuration together with a side-result;
+  the iteration collects all such side-results as a separate list.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
+  @{index_ML fold_rev: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
+  @{index_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML fold}~@{text f} lifts the parametrized update function
+  @{text "f"} to a list of parameters.
+
+  \item @{ML fold_rev}~@{text "f"} is similar to @{ML fold}~@{text
+  "f"}, but works inside-out.
+
+  \item @{ML fold_map}~@{text "f"} lifts the parametrized update
+  function @{text "f"} (with side-result) to a list of parameters and
+  cumulative side-results.
+
+  \end{description}
+
+  \begin{warn}
+  The literature on functional programming provides a multitude of
+  combinators called @{text "foldl"}, @{text "foldr"} etc.  SML97
+  provides its own variations as @{ML List.foldl} and @{ML
+  List.foldr}, while the classic Isabelle library still has the
+  slightly more convenient historic @{ML Library.foldl} and @{ML
+  Library.foldr}.  To avoid further confusion, all of this should be
+  ignored, and @{ML fold} (or @{ML fold_rev}) used exclusively.
+  \end{warn}
+*}
+
+text %mlex {* The following example shows how to fill a text buffer
+  incrementally by adding strings, either individually or from a given
+  list.
+*}
+
+ML {*
+  val s =
+    Buffer.empty
+    |> Buffer.add "digits: "
+    |> fold (Buffer.add o string_of_int) (0 upto 9)
+    |> Buffer.content;
+
+  @{assert} (s = "digits: 0123456789");
+*}
+
+text {* Note how @{ML "fold (Buffer.add o string_of_int)"} above saves
+  an extra @{ML "map"} over the given list.  This kind of peephole
+  optimization reduces both the code size and the tree structures in
+  memory (``deforestation''), but requires some practice to read and
+  write it fluently.
+
+  \medskip The next example elaborates this idea and demonstrates fast
+  accumulation of tree content using a text buffer.
+*}
+
+ML {*
+  datatype tree = Text of string | Elem of string * tree list;
+
+  fun slow_content (Text txt) = txt
+    | slow_content (Elem (name, ts)) =
+        "<" ^ name ^ ">" ^
+        implode (map slow_content ts) ^
+        "</" ^ name ^ ">"
+
+  fun add_content (Text txt) = Buffer.add txt
+    | add_content (Elem (name, ts)) =
+        Buffer.add ("<" ^ name ^ ">") #>
+        fold add_content ts #>
+        Buffer.add ("</" ^ name ^ ">");
+
+  fun fast_content tree =
+    Buffer.empty |> add_content tree |> Buffer.content;
+*}
+
+text {* The slow part of @{ML slow_content} is the @{ML implode} of
+  the recursive results, because it copies previously produced strings
+  afresh.
+
+  The incremental @{ML add_content} avoids this by operating on a
+  buffer that is passed-through in a linear fashion.  Using @{verbatim
+  "#>"} and contraction over the actual @{ML_type "Buffer.T"} argument
+  saves some additional boiler-plate, but requires again some
+  practice.  Of course, the two @{ML "Buffer.add"} invocations with
+  concatenated strings could have been split into smaller parts, but
+  this would have obfuscated the source without making a big
+  difference in allocations.  Here we have done some
+  peephole-optimization for the sake of readability.
+
+  Another benefit of @{ML add_content} is its ``open'' form as a
+  function on @{ML_type Buffer.T} that can be continued in further
+  linear transformations, folding etc.  Thus it is more compositional
+  than the naive @{ML slow_content}.  As a realistic example, compare
+  the slightly old-style @{ML "Term.maxidx_of_term: term -> int"} with
+  the newer @{ML "Term.maxidx_term: term -> int -> int"} in
+  Isabelle/Pure.
+
+  Note that @{ML fast_content} above is only defined for completeness
+  of the example.  In many practical situations, it is customary to
+  defined the incremental @{ML add_content} only and leave the
+  initialization and termination to the concrete application by the
+  user.
+*}
+
+
 section {* Message output channels \label{sec:message-channels} *}
 
 text {* Isabelle provides output channels for different kinds of
@@ -1084,85 +1337,6 @@ text %mlref {*
   \end{description}
 *}
 
-text %mlex {* The following example demonstrates how to \emph{merge}
-  two lists in a natural way. *}
-
-ML {*
-  fun merge_lists eq (xs, ys) = fold_rev (insert eq) ys xs;
-*}
-
-text {* Here the first list is treated conservatively: only the new
-  elements from the second list are inserted.  The inside-out order of
-  insertion via @{ML fold_rev} attempts to preserve the order of
-  elements in the result.
-
-  This way of merging lists is typical for context data
-  (\secref{sec:context-data}).  See also @{ML merge} as defined in
-  @{"file" "~~/src/Pure/library.ML"}.
-*}
-
-
-subsubsection {* Canonical iteration *}  (* FIXME move!? *)
-
-text {* A function @{text "f: \<alpha> \<rightarrow> \<beta> \<rightarrow> \<beta>"} can be understood as update
-  on a configuration of type @{text "\<beta>"} that is parametrized by
-  arguments of type @{text "\<alpha>"}.  Given @{text "a: \<alpha>"} the partial
-  application @{text "(f a): \<beta> \<rightarrow> \<beta>"} operates homogeneously on @{text
-  "\<beta>"}.  This can be iterated naturally over a list of parameters
-  @{text "[a\<^sub>1, \<dots>, a\<^sub>n]"} as @{text "f a\<^sub>1; \<dots>; f a\<^bsub>n\<^esub>\<^bsub>\<^esub>"} (where the
-  semicolon represents left-to-right composition).  The latter
-  expression is again a function @{text "\<beta> \<rightarrow> \<beta>"}.  It can be applied
-  to an initial configuration @{text "b: \<beta>"} to start the iteration
-  over the given list of arguments: each @{text "a"} in @{text "a\<^sub>1, \<dots>,
-  a\<^sub>n"} is applied consecutively by updating a cumulative
-  configuration.
-
-  The @{text fold} combinator in Isabelle/ML lifts a function @{text
-  "f"} as above to its iterated version over a list of arguments.
-  Lifting can be repeated, e.g.\ @{text "(fold \<circ> fold) f"} iterates
-  over a list of lists as expected.
-
-  The variant @{text "fold_rev"} works inside-out over the list of
-  arguments, such that @{text "fold_rev f \<equiv> fold f \<circ> rev"} holds.
-
-  The @{text "fold_map"} combinator essentially performs @{text
-  "fold"} and @{text "map"} simultaneously: each application of @{text
-  "f"} produces an updated configuration together with a side-result;
-  the iteration collects all such side-results as a separate list.
-*}
-
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML fold: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
-  @{index_ML fold_rev: "('a -> 'b -> 'b) -> 'a list -> 'b -> 'b"} \\
-  @{index_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
-  \end{mldecls}
-
-  \begin{description}
-
-  \item @{ML fold}~@{text f} lifts the parametrized update function
-  @{text "f"} to a list of parameters.
-
-  \item @{ML fold_rev}~@{text "f"} is similar to @{ML fold}~@{text
-  "f"}, but works inside-out.
-
-  \item @{ML fold_map}~@{text "f"} lifts the parametrized update
-  function @{text "f"} (with side-result) to a list of parameters and
-  cumulative side-results.
-
-  \end{description}
-
-  \begin{warn}
-  The literature on functional programming provides a multitude of
-  combinators called @{text "foldl"}, @{text "foldr"} etc.  SML97
-  provides its own variations as @{ML List.foldl} and @{ML
-  List.foldr}, while the classic Isabelle library still has the
-  slightly more convenient historic @{ML Library.foldl} and @{ML
-  Library.foldr}.  To avoid further confusion, all of this should be
-  ignored, and @{ML fold} (or @{ML fold_rev}) used exclusively.
-  \end{warn}
-*}
-
 text %mlex {* Using canonical @{ML fold} together with canonical @{ML
   cons}, or similar standard operations, alternates the orientation of
   data.  The is quite natural and should not altered forcible by
@@ -1179,6 +1353,23 @@ ML {*
 
   val list2 = fold_rev cons items [];
   @{assert} (list2 = items);
+*}
+
+text {* The subsequent example demonstrates how to \emph{merge} two
+  lists in a natural way. *}
+
+ML {*
+  fun merge_lists eq (xs, ys) = fold_rev (insert eq) ys xs;
+*}
+
+text {* Here the first list is treated conservatively: only the new
+  elements from the second list are inserted.  The inside-out order of
+  insertion via @{ML fold_rev} attempts to preserve the order of
+  elements in the result.
+
+  This way of merging lists is typical for context data
+  (\secref{sec:context-data}).  See also @{ML merge} as defined in
+  @{"file" "~~/src/Pure/library.ML"}.
 *}
 
 
