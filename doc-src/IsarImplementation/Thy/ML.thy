@@ -99,12 +99,79 @@ text {* Isabelle source files have a certain standardized header
 *}
 
 
-subsection {* Basic naming conventions *}
+subsection {* Naming conventions *}
 
 text {* Since ML is the primary medium to express the meaning of the
   source text, naming of ML entities requires special care.
 
-  FIXME
+  \paragraph{Notation.}  A name consists of 1--3 \emph{words} (not
+  more) that are separated by underscore.  There are three variants
+  concerning upper or lower case letters, which are just for certain
+  ML categories as follows:
+
+  \medskip
+  \begin{tabular}{lll}
+  variant & example & ML categories \\\hline
+  lower-case & @{verbatim foo_bar} & values, types, record fields \\
+  capitalized & @{verbatim Foo_Bar} & datatype constructors, \\
+    & & structures, functors \\
+  upper-case & @{verbatim FOO_BAR} & special values (combinators), \\
+    & & exception constructors, signatures \\
+  \end{tabular}
+  \medskip
+
+  For historical reasons, many capitalized names omit underscores,
+  e.g.\ old-style @{verbatim FooBar} instead of @{verbatim Foo_Bar}.
+  Genuine mixed-case names are \emph{not} used --- clear division of
+  words is essential for readability.\footnote{Camel-case was invented
+  to workaround the lack of underscore in some early non-ASCII
+  character sets and keywords.  Later it became a habitual in some
+  language communities that are now strong in numbers.}
+
+  A single character does not count as ``word'' in this respect: some
+  Isabelle/ML are suffixed by extra markers like this: @{verbatim
+  foo_barT}.
+
+  \paragraph{Scopes.}  Apart from very basic library modules, ML
+  structures are not ``opened'', but names are referenced with
+  explicit qualification: as in @{ML Syntax.string_of_term} for
+  example.  When devising names for structures and their components it
+  is important aim at eye-catching compositions of both parts, because
+  this is how they are always seen in the sources and documentation.
+  For the same reasons, aliases of well-known library functions should
+  be avoided.
+
+  Local names of function abstraction or case/lets bindings are
+  typically shorter, sometimes using only rudiments of ``words'',
+  while still avoiding cryptic shorthands.  An auxiliary function
+  called @{verbatim helper}, @{verbatim aux}, or @{verbatim f} is
+  considered bad style.
+
+  Example:
+
+  \begin{verbatim}
+  (* RIGHT *)
+
+  fun print_foo ctxt foo =
+    let
+      val string_of_term = Syntax.string_of_term ctxt;
+      fun print t = ... string_of_term t ...
+    in ... end;
+
+
+  (* WRONG *)
+
+  val string_of_term = Syntax.string_of_term;
+
+  fun print_foo ctxt foo =
+    let
+      fun aux t = ... string_of_term ctxt t ...
+    in ... end;
+
+  \end{verbatim}
+
+
+  \paragraph{Specific conventions.} FIXME
 *}
 
 
@@ -116,9 +183,13 @@ text {* The general Isabelle/ML source layout imitates regular
   programming.
 
   \paragraph{Line length} is 80 characters according to ancient
-  standards, but we allow as much as 100 characters, not more.  This
-  acknowledges extra the space requirements due to qualified library
-  references in Isabelle/ML.
+  standards, but we allow as much as 100 characters, not
+  more.\footnote{Readability requires to keep the beginning of a line
+  in view while watching its end.  Modern wide-screen displays did not
+  change the way how the human brain works.  As a rule of thumb,
+  sources need to be printable on plain paper.} The extra 20
+  characters acknowledge the space requirements due to qualified
+  library references in Isabelle/ML.
 
   \paragraph{White-space} is used to emphasize the structure of
   expressions, following mostly standard conventions for mathematical
@@ -173,7 +244,8 @@ text {* The general Isabelle/ML source layout imitates regular
   a level of nesting.  Example:
 
   \begin{verbatim}
-  (*RIGHT*)
+  (* RIGHT *)
+
   if b then
     expr1_part1
     expr1_part2
@@ -181,7 +253,9 @@ text {* The general Isabelle/ML source layout imitates regular
     expr2_part1
     expr2_part2
 
-  (*WRONG*)
+
+  (* WRONG *)
+
   if b then expr1_part1
             expr1_part2
   else expr2_part1
