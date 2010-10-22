@@ -319,7 +319,7 @@ fun get_prover thy args =
     fun default_prover_name () =
       hd (#provers (Sledgehammer_Isar.default_params thy []))
       handle Empty => error "No ATP available."
-    fun get_prover name = (name, Sledgehammer.get_prover thy name)
+    fun get_prover name = (name, Sledgehammer.get_prover thy false name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
@@ -351,10 +351,7 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
           [("timeout", Int.toString timeout ^ " s")]
     val relevance_override = {add = [], del = [], only = false}
     val default_max_relevant =
-      if member (op =) Sledgehammer.smt_prover_names prover_name then
-        Sledgehammer.smt_default_max_relevant
-      else
-        #default_max_relevant (ATP_Systems.get_atp thy prover_name)
+      Sledgehammer.default_max_relevant_for_prover thy prover_name
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val axioms =
       Sledgehammer_Filter.relevant_facts ctxt full_types relevance_thresholds

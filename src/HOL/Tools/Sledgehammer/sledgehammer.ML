@@ -49,8 +49,7 @@ sig
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
   val smtN : string
-  val smt_prover_names : string list
-  val smt_default_max_relevant : int
+  val default_max_relevant_for_prover : theory -> string -> int
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
@@ -58,7 +57,7 @@ sig
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
-  val get_prover : theory -> string -> prover
+  val get_prover : theory -> bool -> string -> prover
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
     -> Proof.state -> bool * Proof.state
@@ -89,6 +88,10 @@ val smt_prover_names = [smtN, remote_prefix ^ smtN]
 
 val smt_default_max_relevant = 300 (* FUDGE *)
 val auto_max_relevant_divisor = 2 (* FUDGE *)
+
+fun default_max_relevant_for_prover thy name =
+  if member (op =) smt_prover_names name then smt_default_max_relevant
+  else #default_max_relevant (get_atp thy name)
 
 fun available_provers thy =
   let
@@ -188,7 +191,7 @@ fun int_option_add (SOME m) (SOME n) = SOME (m + n)
    them each time. *)
 val important_message_keep_factor = 0.1
 
-fun atp_fun auto atp_name
+fun run_atp auto atp_name
         {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
          known_failures, default_max_relevant, explicit_forall,
          use_conjecture_for_hypotheses}
@@ -332,25 +335,53 @@ fun atp_fun auto atp_name
      run_time_in_msecs = msecs}
   end
 
-fun get_atp_as_prover thy name = atp_fun false name (get_atp thy name)
+fun get_atp_prover thy auto name = run_atp auto name (get_atp thy name)
 
-fun run_atp_somehow (params as {blocking, debug, max_relevant, timeout,
-                                expect, ...})
-                    auto i n minimize_command
-                    (problem as {state, goal, axioms, ...})
-                    (prover as {default_max_relevant, ...}, atp_name) =
+(* FIXME: dummy *)
+fun run_smt_solver remote timeout state axioms i =
+  {outcome = NONE, used_axioms = axioms |> take 5 |> map fst,
+   run_time_in_msecs = NONE}
+
+fun get_smt_prover remote ({timeout, ...} : params) minimize_command
+                   ({state, subgoal, axioms, ...} : prover_problem) =
   let
+    val {outcome, used_axioms, run_time_in_msecs} =
+      run_smt_solver remote timeout state
+                     (map_filter (try dest_Unprepared) axioms) subgoal
+    val message =
+      if outcome = NONE then
+        sendback_line (proof_banner false)
+                      (apply_on_subgoal subgoal (subgoal_count state) ^
+                       command_call smtN (map fst used_axioms))
+      else
+        ""
+  in
+    {outcome = outcome, used_axioms = used_axioms,
+     run_time_in_msecs = run_time_in_msecs, message = message}
+  end
+
+fun get_prover thy auto name =
+  if member (op =) smt_prover_names name then
+    get_smt_prover (String.isPrefix remote_prefix)
+  else
+    get_atp_prover thy auto name
+
+fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
+               auto i n minimize_command (problem as {state, goal, axioms, ...})
+               name =
+  let
+    val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
-    val max_relevant = the_default default_max_relevant max_relevant
+    val max_relevant =
+      the_default (default_max_relevant_for_prover thy name) max_relevant
     val num_axioms = Int.min (length axioms, max_relevant)
-    val desc = prover_description ctxt params atp_name num_axioms i n goal
+    val desc = prover_description ctxt params name num_axioms i n goal
     fun go () =
       let
         fun really_go () =
-          atp_fun auto atp_name prover params (minimize_command atp_name)
-                  problem
+          get_prover thy auto name params (minimize_command name) problem
           |> (fn {outcome, message, ...} =>
                  (if is_some outcome then "none" else "some", message))
         val (outcome_code, message) =
@@ -387,45 +418,16 @@ fun run_atp_somehow (params as {blocking, debug, max_relevant, timeout,
        (false, state))
   end
 
-(* FIXME: dummy *)
-fun run_smt_solver remote timeout state axioms i =
-  {outcome = NONE, used_axioms = axioms |> take 5 |> map fst,
-   run_time_in_msecs = NONE}
-
-fun get_smt_solver_as_prover remote ({timeout, ...} : params) minimize_command
-                             ({state, subgoal, axioms, ...} : prover_problem) =
-  let
-    val {outcome, used_axioms, run_time_in_msecs} =
-      run_smt_solver remote timeout state
-                     (map_filter (try dest_Unprepared) axioms) subgoal
-    val message =
-      if outcome = NONE then
-        sendback_line (proof_banner false)
-                      (apply_on_subgoal subgoal (subgoal_count state) ^
-                       command_call smtN (map fst used_axioms))
-      else
-        ""
-  in
-    {outcome = outcome, used_axioms = used_axioms,
-     run_time_in_msecs = run_time_in_msecs, message = message}
-  end
-
-fun get_prover thy name =
-  if member (op =) smt_prover_names name then
-    get_smt_solver_as_prover (String.isPrefix remote_prefix)
-  else
-    get_atp_as_prover thy name
-
-fun run_smt_solver_somehow state params minimize_command i n goal axioms
-                           (remote, name) =
+fun run_smt_solver_somehow state params minimize_command i n goal axioms name =
   let
     val ctxt = Proof.context_of state
+    val remote = String.isPrefix remote_prefix name
     val desc = prover_description ctxt params name (length axioms) i n goal
     val problem =
       {state = state, goal = goal, subgoal = i,
        axioms = axioms |> map Unprepared, only = true}
     val {outcome, used_axioms, message, ...} =
-      get_smt_solver_as_prover remote params minimize_command problem
+      get_smt_prover remote params minimize_command problem
     val _ =
       priority (das_Tool ^ ": " ^ desc ^ "\n" ^
                 (if outcome = NONE then message
@@ -449,10 +451,12 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val _ = () |> not blocking ? kill_provers
       val _ = if auto then () else priority "Sledgehammering..."
+      fun relevant full_types max_relevant =
+        relevant_facts ctxt full_types relevance_thresholds max_relevant
+                       relevance_override chained_ths hyp_ts concl_t
       val (smts, atps) =
         provers |> List.partition (member (op =) smt_prover_names)
-                |>> (take 1 #> map (`(String.isPrefix remote_prefix)))
-                ||> map (`(get_atp thy))
+                |>> take 1 (* no point in running both "smt" and "remote_smt" *)
       fun run_atps (res as (success, state)) =
         if success orelse null atps then
           res
@@ -462,25 +466,22 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
               case max_relevant of
                 SOME n => n
               | NONE =>
-                0 |> fold (Integer.max o #default_max_relevant o fst) atps
+                0 |> fold (Integer.max o default_max_relevant_for_prover thy)
+                          atps
                   |> auto ? (fn n => n div auto_max_relevant_divisor)
-            val axioms =
-              relevant_facts ctxt full_types relevance_thresholds
-                             max_max_relevant relevance_override chained_ths
-                             hyp_ts concl_t
+            val axioms = relevant full_types max_max_relevant
+                         |> map (Prepared o prepare_axiom ctxt)
             val problem =
-              {state = state, goal = goal, subgoal = i,
-               axioms = axioms |> map (Prepared o prepare_axiom ctxt),
+              {state = state, goal = goal, subgoal = i, axioms = axioms,
                only = only}
-            val run_atp_somehow =
-              run_atp_somehow params auto i n minimize_command problem
+            val run_prover = run_prover params auto i n minimize_command problem
           in
             if auto then
               fold (fn prover => fn (true, state) => (true, state)
-                                  | (false, _) => run_atp_somehow prover)
+                                  | (false, _) => run_prover prover)
                    atps (false, state)
             else
-              atps |> (if blocking then Par_List.map else map) run_atp_somehow
+              atps |> (if blocking then Par_List.map else map) run_prover
                    |> exists fst |> rpair state
           end
       fun run_smt_solvers (res as (success, state)) =
@@ -490,10 +491,7 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
           let
             val max_relevant =
               max_relevant |> the_default smt_default_max_relevant
-            val axioms =
-              relevant_facts ctxt full_types relevance_thresholds
-                             max_relevant relevance_override chained_ths
-                             hyp_ts concl_t
+            val axioms = relevant true max_relevant
           in
             smts |> map (run_smt_solver_somehow state params minimize_command i
                                                 n goal axioms)
