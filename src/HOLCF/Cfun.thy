@@ -544,7 +544,10 @@ by (simp add: strict_conv_if)
 lemma strict2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strict\<cdot>x = ID"
 by (simp add: strict_conv_if)
 
- definition
+lemma strict3 [simp]: "strict\<cdot>x\<cdot>\<bottom> = \<bottom>"
+by (simp add: strict_conv_if)
+
+definition
   strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b" where
   "strictify = (\<Lambda> f x. strict\<cdot>x\<cdot>(f\<cdot>x))"
 

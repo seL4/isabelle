@@ -75,10 +75,10 @@ by (cases x, simp_all)
 subsection {* Properties of \emph{spair} *}
 
 lemma spair_strict1 [simp]: "(:\<bottom>, y:) = \<bottom>"
-by (simp add: Rep_Sprod_simps strict_conv_if)
+by (simp add: Rep_Sprod_simps)
 
 lemma spair_strict2 [simp]: "(:x, \<bottom>:) = \<bottom>"
-by (simp add: Rep_Sprod_simps strict_conv_if)
+by (simp add: Rep_Sprod_simps)
 
 lemma spair_strict_iff [simp]: "((:x, y:) = \<bottom>) = (x = \<bottom> \<or> y = \<bottom>)"
 by (simp add: Rep_Sprod_simps strict_conv_if)
