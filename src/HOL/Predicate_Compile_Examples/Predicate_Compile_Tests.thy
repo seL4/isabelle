@@ -70,14 +70,13 @@ inductive False'' :: "bool"
 where
   "False \<Longrightarrow> False''"
 
-code_pred (expected_modes: []) False'' .
+code_pred (expected_modes: bool) False'' .
 
 inductive EmptySet'' :: "'a \<Rightarrow> bool"
 where
   "False \<Longrightarrow> EmptySet'' x"
 
-code_pred (expected_modes: [1]) EmptySet'' .
-code_pred (expected_modes: [], [1]) [inductify] EmptySet'' .
+code_pred (expected_modes: i => bool, o => bool) [inductify] EmptySet'' .
 *)
 
 consts a' :: 'a
