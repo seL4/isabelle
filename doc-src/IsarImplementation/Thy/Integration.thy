@@ -100,6 +100,22 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "Isar.state"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item @{text "@{Isar.state}"} refers to Isar toplevel state at that
+  point --- as abstract value.
+
+  This only works for diagnostic ML commands, such as @{command
+  ML_val} or @{command ML_command}.
+
+  \end{description}
+*}
+
 
 subsection {* Toplevel transitions \label{sec:toplevel-transition} *}
 
