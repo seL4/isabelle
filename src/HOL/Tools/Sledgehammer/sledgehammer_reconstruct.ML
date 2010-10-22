@@ -22,7 +22,8 @@ sig
     -> int list list * (string * locality) list vector
   val apply_on_subgoal : int -> int -> string
   val command_call : string -> string list -> string
-  val sendback_line : string -> string -> string
+  val try_command_line : string -> string -> string
+  val minimize_line : ('a list -> string) -> 'a list -> string
   val metis_proof_text : metis_params -> text_result
   val isar_proof_text : isar_params -> metis_params -> text_result
   val proof_text : bool -> isar_params -> metis_params -> text_result
@@ -119,7 +120,7 @@ fun apply_on_subgoal _ 1 = "by "
   | apply_on_subgoal i _ = "prefer " ^ string_of_int i ^ " apply "
 fun command_call name [] = name
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
-fun sendback_line banner command =
+fun try_command_line banner command =
   banner ^ ": " ^ Markup.markup Markup.sendback command ^ "."
 fun using_labels [] = ""
   | using_labels ls =
@@ -129,7 +130,7 @@ fun metis_call full_types ss = command_call (metis_name full_types) ss
 fun metis_command full_types i n (ls, ss) =
   using_labels ls ^ apply_on_subgoal i n ^ metis_call full_types ss
 fun metis_line banner full_types i n ss =
-  sendback_line banner (metis_command full_types i n ([], ss))
+  try_command_line banner (metis_command full_types i n ([], ss))
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
