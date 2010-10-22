@@ -104,10 +104,10 @@ subsection {* Naming conventions *}
 text {* Since ML is the primary medium to express the meaning of the
   source text, naming of ML entities requires special care.
 
-  \paragraph{Notation.}  A name consists of 1--3 \emph{words} (not
-  more) that are separated by underscore.  There are three variants
-  concerning upper or lower case letters, which are just for certain
-  ML categories as follows:
+  \paragraph{Notation.}  A name consists of 1--3 \emph{words} (rarely
+  4, but not more) that are separated by underscore.  There are three
+  variants concerning upper or lower case letters, which are just for
+  certain ML categories as follows:
 
   \medskip
   \begin{tabular}{lll}
@@ -128,13 +128,18 @@ text {* Since ML is the primary medium to express the meaning of the
   character sets and keywords.  Later it became a habitual in some
   language communities that are now strong in numbers.}
 
-  A single character does not count as ``word'' in this respect: some
-  Isabelle/ML are suffixed by extra markers like this: @{verbatim
-  foo_barT}.
+  A single (capital) character does not count as ``word'' in this
+  respect: some Isabelle/ML are suffixed by extra markers like this:
+  @{verbatim foo_barT}.
+
+  Name variants are produced by adding 1--3 primes, e.g.\ @{verbatim
+  foo'}, @{verbatim foo''}, or @{verbatim foo'''}, but not @{verbatim
+  foo''''} or more.  Decimal digits scale better to larger numbers,
+  e.g.\ @{verbatim foo0}, @{verbatim foo1}, @{verbatim foo42}.
 
   \paragraph{Scopes.}  Apart from very basic library modules, ML
   structures are not ``opened'', but names are referenced with
-  explicit qualification: as in @{ML Syntax.string_of_term} for
+  explicit qualification, as in @{ML Syntax.string_of_term} for
   example.  When devising names for structures and their components it
   is important aim at eye-catching compositions of both parts, because
   this is how they are always seen in the sources and documentation.
@@ -150,6 +155,14 @@ text {* Since ML is the primary medium to express the meaning of the
   Example:
 
   \begin{verbatim}
+  (* RIGHT *)
+
+  fun print_foo ctxt foo =
+    let
+      fun print t = ... Syntax.string_of_term ctxt t ...
+    in ... end;
+
+
   (* RIGHT *)
 
   fun print_foo ctxt foo =
@@ -171,7 +184,86 @@ text {* Since ML is the primary medium to express the meaning of the
   \end{verbatim}
 
 
-  \paragraph{Specific conventions.} FIXME
+  \paragraph{Specific conventions.} Here are some important specific
+  name forms that occur frequently in the sources.
+
+  \begin{itemize}
+
+  \item A function that maps @{verbatim foo} to @{verbatim bar} is
+  called @{verbatim foo_to_bar} or @{verbatim bar_of_foo} (never
+  @{verbatim foo2bar}, @{verbatim bar_from_foo}, @{verbatim
+  bar_for_foo}, or @{verbatim bar4foo}).
+
+  \item The name component @{verbatim legacy} means that the operation
+  is about to be discontinued soon.
+
+  \item The name component @{verbatim old} means that this is historic
+  material that might disappear at some later stage.
+
+  \item The name component @{verbatim global} means that this works
+  with the background theory instead of the regular local context
+  (\secref{sec:context}), sometimes for historical reasons, sometimes
+  due a genuine lack of locality of the concept involved, sometimes as
+  a fall-back for the lack of a proper context in the application
+  code.  Whenever there is a non-global variant available, the
+  application should be migrated to use it with a proper local
+  context.
+
+  \item Variables of the main context types of the Isabelle/Isar
+  framework (\secref{sec:context} and \chref{ch:local-theory}) have
+  firm naming conventions to allow to visualize the their data flow
+  via plain regular expressions in the editor.  In particular:
+
+  \begin{itemize}
+
+  \item theories are called @{verbatim thy}, rarely @{verbatim theory}
+  (never @{verbatim thry})
+
+  \item proof contexts are called @{verbatim ctxt}, rarely @{verbatim
+  context} (never @{verbatim ctx})
+
+  \item generic contexts are called @{verbatim context}, rarely
+  @{verbatim ctxt}
+
+  \item local theories are called @{verbatim lthy}, unless there is an
+  implicit conversion to a general proof context (semantic super-type)
+
+  \end{itemize}
+
+  Variations with primed or decimal numbers are always possible, as
+  well as ``sematic prefixes'' like @{verbatim foo_thy} or @{verbatim
+  bar_ctxt}, but the base conventions above need to be preserved.
+
+  \item The main logical entities (\secref{ch:logic}) also have
+  established naming convention:
+
+  \begin{itemize}
+
+  \item sorts are called @{verbatim S}
+
+  \item types are called @{verbatim T}, @{verbatim U}, or @{verbatim
+  ty} (never @{verbatim t})
+
+  \item terms are called @{verbatim t}, @{verbatim u}, or @{verbatim
+  tm} (never @{verbatim trm})
+
+  \item certified types are called @{verbatim cT}, rarely @{verbatim
+  T}, with variants as for types
+
+  \item certified terms are called @{verbatim ct}, rarely @{verbatim
+  t}, with variants as for terms
+
+  \item theorems are called @{verbatim th}, or @{verbatim thm}
+
+  \end{itemize}
+
+  Proper semantic names override these conventions completely.  For
+  example, the left-hand side of an equation (as a term) can be called
+  @{verbatim lhs} (not @{verbatim lhs_tm}).  Or a term that is treated
+  specifically as a variable can be called @{verbatim v} or @{verbatim
+  x}.
+
+  \end{itemize}
 *}
 
 
@@ -185,7 +277,7 @@ text {* The general Isabelle/ML source layout imitates regular
   \paragraph{Line length} is 80 characters according to ancient
   standards, but we allow as much as 100 characters, not
   more.\footnote{Readability requires to keep the beginning of a line
-  in view while watching its end.  Modern wide-screen displays did not
+  in view while watching its end.  Modern wide-screen displays do not
   change the way how the human brain works.  As a rule of thumb,
   sources need to be printable on plain paper.} The extra 20
   characters acknowledge the space requirements due to qualified
@@ -272,6 +364,123 @@ text {* The general Isabelle/ML source layout imitates regular
   \medskip For similar reasons, any kind of two-dimensional or tabular
   layouts, ASCII-art with lines or boxes of stars etc. should be
   avoided.
+
+  \paragraph{Complex expressions} consisting of multi-clausal function
+  definitions, @{verbatim case}, @{verbatim handle}, @{verbatim let},
+  or combinations require special attention.  The syntax of Standard
+  ML is a bit too ambitious in admitting too much variance that can
+  distort the meaning of the text.
+
+  Clauses of @{verbatim fun}, @{verbatim fn}, @{verbatim case},
+  @{verbatim handle} get extra indentation to indicate the nesting
+  clearly.  For example:
+
+  \begin{verbatim}
+  (* RIGHT *)
+
+  fun foo p1 =
+        expr1
+    | foo p2 =
+        expr2
+
+
+  (* WRONG *)
+
+  fun foo p1 =
+    expr1
+    | foo p2 =
+    expr2
+  \end{verbatim}
+
+  Body expressions consisting of @{verbatim case} or @{verbatim let}
+  require care to maintain compositionality, to prevent loss of
+  logical indentation where it is particularly imporant to see the
+  structure of the text later on.  Example:
+
+  \begin{verbatim}
+  (* RIGHT *)
+
+  fun foo p1 =
+        (case e of
+          q1 => ...
+        | q2 => ...)
+    | foo p2 =
+        let
+          ...
+        in
+          ...
+        end
+
+
+  (* WRONG *)
+
+  fun foo p1 = case e of
+      q1 => ...
+    | q2 => ...
+    | foo p2 =
+    let
+      ...
+    in
+      ...
+    end
+  \end{verbatim}
+
+  Extra parentheses around @{verbatim case} expressions are optional,
+  but help to analyse the nesting easily based on simple string
+  matching in the editor.
+
+  \medskip There are two main exceptions to the overall principle of
+  compositionality in the layout of complex expressions.
+
+  \begin{enumerate}
+
+  \item @{verbatim "if"} expressions are iterated as if there would be
+  a multi-branch conditional in SML, e.g.
+
+  \begin{verbatim}
+  (* RIGHT *)
+
+  if b1 then e1
+  else if b2 then e2
+  else e3
+  \end{verbatim}
+
+  \item @{verbatim fn} abstractions are often layed-out as if they
+  would lack any structure by themselves.  This traditional form is
+  motivated by the possibility to shift function arguments back and
+  forth wrt.\ additional combinators.  For example:
+
+  \begin{verbatim}
+  (* RIGHT *)
+
+  fun foo x y = fold (fn z =>
+    expr)
+  \end{verbatim}
+
+  Here the visual appearance is that of three arguments @{verbatim x},
+  @{verbatim y}, @{verbatim z}.
+
+  \end{enumerate}
+
+  Such weakly structured layout should be use with great care.  Here
+  is a counter-example involving @{verbatim let} expressions:
+
+  \begin{verbatim}
+  (* WRONG *)
+
+  fun foo x = let
+      val y = ...
+    in ... end
+
+  fun foo x =
+  let
+    val y = ...
+  in ... end
+  \end{verbatim}
+
+  \medskip In general the source layout is meant to emphasize the
+  structure of complex language expressions, not to pretend that SML
+  had a completely different syntax (say that of Haskell or Java).
 *}
 
 
