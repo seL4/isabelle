@@ -44,13 +44,6 @@ lemma discr_chain_range0 [simp]:
  "!!S::nat=>('a::type)discr. chain(S) ==> range(S) = {S 0}"
 by (fast elim: discr_chain0)
 
-instance discr :: (type) chfin
-apply intro_classes
-apply (rule_tac x=0 in exI)
-apply (unfold max_in_chain_def)
-apply (clarify, erule discr_chain0 [symmetric])
-done
-
 subsection {* \emph{undiscr} *}
 
 definition
