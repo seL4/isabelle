@@ -45,7 +45,7 @@ fun n_facts names =
 
 fun test_facts ({debug, verbose, overlord, provers, full_types, isar_proof,
                  isar_shrink_factor, ...} : params) (prover : prover)
-               explicit_apply timeout subgoal state axioms =
+               explicit_apply timeout i n state axioms =
   let
     val _ =
       priority ("Testing " ^ n_facts (map fst axioms) ^ "...")
@@ -58,11 +58,10 @@ fun test_facts ({debug, verbose, overlord, provers, full_types, isar_proof,
     val axioms =
       axioms |> maps (fn (n, ths) => ths |> map (Unprepared o pair n))
     val {context = ctxt, goal, ...} = Proof.goal state
-    val prover_problem =
-      {state = state, goal = goal, subgoal = subgoal, axioms = axioms,
-       only = true}
-    val result as {outcome, used_axioms, ...} =
-      prover params (K "") prover_problem
+    val problem =
+      {state = state, goal = goal, subgoal = i, subgoal_count = n,
+       axioms = axioms, only = true}
+    val result as {outcome, used_axioms, ...} = prover params (K "") problem
   in
     priority (case outcome of
                 SOME failure => string_for_failure failure
@@ -90,8 +89,8 @@ fun sublinear_minimize _ [] p = p
 val fudge_msecs = 1000
 
 fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
-  | minimize_facts (params as {provers = prover_name :: _, timeout, ...})
-                   i (_ : int) state axioms =
+  | minimize_facts (params as {provers = prover_name :: _, timeout, ...}) i n
+                   state axioms =
   let
     val thy = Proof.theory_of state
     val prover = get_prover thy false prover_name
@@ -103,7 +102,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
       not (forall (Meson.is_fol_term thy)
                   (concl_t :: hyp_ts @ maps (map prop_of o snd) axioms))
     fun do_test timeout =
-      test_facts params prover explicit_apply timeout i state
+      test_facts params prover explicit_apply timeout i n state
     val timer = Timer.startRealTimer ()
   in
     (case do_test timeout axioms of

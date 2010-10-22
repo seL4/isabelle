@@ -359,6 +359,7 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
           relevance_override chained_ths hyp_ts concl_t
     val problem =
       {state = st', goal = goal, subgoal = i,
+       subgoal_count = Sledgehammer_Util.subgoal_count st,
        axioms = axioms |> map Sledgehammer.Unprepared, only = true}
     val time_limit =
       (case hard_timeout of
@@ -430,9 +431,6 @@ fun run_sledgehammer trivial args named_thms id ({pre=st, log, ...}: Mirabelle.r
 
 end
 
-
-val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
-
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     open Metis_Translate
@@ -446,7 +444,8 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
     val params = Sledgehammer_Isar.default_params thy
       [("provers", prover_name), ("timeout", Int.toString timeout ^ " s")]
     val minimize =
-      Sledgehammer_Minimize.minimize_facts params 1 (subgoal_count st)
+      Sledgehammer_Minimize.minimize_facts params 1
+                                           (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
   in
     case minimize st (these (!named_thms)) of
