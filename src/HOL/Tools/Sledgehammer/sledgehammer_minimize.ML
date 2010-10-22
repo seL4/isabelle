@@ -23,7 +23,6 @@ struct
 open ATP_Proof
 open Sledgehammer_Util
 open Sledgehammer_Filter
-open Sledgehammer_Translate
 open Sledgehammer
 
 (* wrapper for calling external prover *)

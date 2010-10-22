@@ -6,7 +6,7 @@
 Translation of HOL to FOL for Sledgehammer.
 *)
 
-signature SLEDGEHAMMER_TRANSLATE =
+signature SLEDGEHAMMER_ATP_TRANSLATE =
 sig
   type 'a problem = 'a ATP_Problem.problem
   type fol_formula
@@ -22,7 +22,7 @@ sig
     -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
 
-structure Sledgehammer_Translate : SLEDGEHAMMER_TRANSLATE =
+structure Sledgehammer_ATP_Translate : SLEDGEHAMMER_ATP_TRANSLATE =
 struct
 
 open ATP_Problem

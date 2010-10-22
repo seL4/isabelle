@@ -6,7 +6,7 @@
 Proof reconstruction for Sledgehammer.
 *)
 
-signature SLEDGEHAMMER_RECONSTRUCT =
+signature SLEDGEHAMMER_ATP_RECONSTRUCT =
 sig
   type locality = Sledgehammer_Filter.locality
   type minimize_command = string list -> string
@@ -29,7 +29,7 @@ sig
   val proof_text : bool -> isar_params -> metis_params -> text_result
 end;
 
-structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
+structure Sledgehammer_ATP_Reconstruct : SLEDGEHAMMER_ATP_RECONSTRUCT =
 struct
 
 open ATP_Problem

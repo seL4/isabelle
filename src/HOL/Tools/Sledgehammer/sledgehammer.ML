@@ -11,8 +11,8 @@ sig
   type failure = ATP_Systems.failure
   type locality = Sledgehammer_Filter.locality
   type relevance_override = Sledgehammer_Filter.relevance_override
-  type fol_formula = Sledgehammer_Translate.fol_formula
-  type minimize_command = Sledgehammer_Reconstruct.minimize_command
+  type fol_formula = Sledgehammer_ATP_Translate.fol_formula
+  type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
 
   type params =
     {blocking: bool,
@@ -74,8 +74,8 @@ open ATP_Systems
 open Metis_Translate
 open Sledgehammer_Util
 open Sledgehammer_Filter
-open Sledgehammer_Translate
-open Sledgehammer_Reconstruct
+open Sledgehammer_ATP_Translate
+open Sledgehammer_ATP_Reconstruct
 
 
 (** The Sledgehammer **)
