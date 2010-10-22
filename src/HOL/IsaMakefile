@@ -1354,6 +1354,8 @@ $(LOG)/HOL-Predicate_Compile_Examples.gz: $(OUT)/HOL			\
   Predicate_Compile_Examples/Examples.thy				\
   Predicate_Compile_Examples/Context_Free_Grammar_Example.thy 		\
   Predicate_Compile_Examples/Hotel_Example.thy 				\
+  Predicate_Compile_Examples/Hotel_Example_Prolog.thy 			\
+  Predicate_Compile_Examples/Hotel_Example_Small_Generator.thy 		\
   Predicate_Compile_Examples/IMP_1.thy 					\
   Predicate_Compile_Examples/IMP_2.thy 					\
   Predicate_Compile_Examples/IMP_3.thy 					\
