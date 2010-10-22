@@ -12,17 +12,16 @@ default_sort cpo
 
 subsection {* Unit type is a pcpo *}
 
-instantiation unit :: below
+instantiation unit :: discrete_cpo
 begin
 
 definition
   below_unit_def [simp]: "x \<sqsubseteq> (y::unit) \<longleftrightarrow> True"
 
-instance ..
-end
+instance proof
+qed simp
 
-instance unit :: discrete_cpo
-by intro_classes simp
+end
 
 instance unit :: pcpo
 by intro_classes simp
