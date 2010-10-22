@@ -37,7 +37,7 @@ open ATP_Proof
 open Metis_Translate
 open Sledgehammer_Util
 open Sledgehammer_Filter
-open Sledgehammer_Translate
+open Sledgehammer_ATP_Translate
 
 type minimize_command = string list -> string
 type metis_params =
