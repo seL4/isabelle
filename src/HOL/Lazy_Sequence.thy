@@ -150,7 +150,7 @@ where
   "product s1 s2 = Lazy_Sequence.bind s1 (%a. Lazy_Sequence.bind s2 (%b. Lazy_Sequence.single (a, b)))"
 
 
-subsubsection {* small_lazy typeclasses *}
+subsubsection {* Small lazy typeclasses *}
 
 class small_lazy =
   fixes small_lazy :: "int \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
