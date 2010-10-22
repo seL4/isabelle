@@ -262,18 +262,6 @@ lemma chfin2finch: "chain Y \<Longrightarrow> finite_chain Y"
 
 end
 
-class finite_po = finite + po
-begin
-
-subclass chfin
-apply default
-apply (drule finite_range_imp_finch)
-apply (rule finite)
-apply (simp add: finite_chain_def)
-done
-
-end
-
 class flat = pcpo +
   assumes ax_flat: "x \<sqsubseteq> y \<Longrightarrow> x = \<bottom> \<or> x = y"
 begin

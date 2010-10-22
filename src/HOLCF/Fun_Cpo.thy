@@ -128,8 +128,6 @@ proof
   thus "\<exists>n. max_in_chain n Y" ..
 qed
 
-instance "fun" :: (finite, finite_po) finite_po ..
-
 instance "fun" :: (type, discrete_cpo) discrete_cpo
 proof
   fix f g :: "'a \<Rightarrow> 'b"

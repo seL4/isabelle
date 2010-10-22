@@ -44,15 +44,6 @@ lemma discr_chain_range0 [simp]:
  "!!S::nat=>('a::type)discr. chain(S) ==> range(S) = {S 0}"
 by (fast elim: discr_chain0)
 
-instance discr :: (finite) finite_po
-proof
-  have "finite (Discr ` (UNIV :: 'a set))"
-    by (rule finite_imageI [OF finite])
-  also have "(Discr ` (UNIV :: 'a set)) = UNIV"
-    by (auto, case_tac x, auto)
-  finally show "finite (UNIV :: 'a discr set)" .
-qed
-
 instance discr :: (type) chfin
 apply intro_classes
 apply (rule_tac x=0 in exI)

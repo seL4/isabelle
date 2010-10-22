@@ -18,9 +18,6 @@ pcpodef (Ssum)  ('a, 'b) ssum (infixr "++" 10) =
     (fst p = FF \<and> fst (snd p) = \<bottom> \<and> snd (snd p) \<noteq> \<bottom>) }"
 by simp_all
 
-instance ssum :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
-by (rule typedef_finite_po [OF type_definition_Ssum])
-
 instance ssum :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_Ssum below_Ssum_def])
 

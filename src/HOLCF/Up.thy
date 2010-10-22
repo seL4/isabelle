@@ -62,13 +62,6 @@ next
     by (auto split: u.split_asm intro: below_trans)
 qed
 
-lemma u_UNIV: "UNIV = insert Ibottom (range Iup)"
-by (auto, case_tac x, auto)
-
-instance u :: (finite_po) finite_po
-by (intro_classes, simp add: u_UNIV)
-
-
 subsection {* Lifted cpo is a cpo *}
 
 lemma is_lub_Iup:

@@ -16,9 +16,6 @@ pcpodef (Sprod)  ('a, 'b) sprod (infixr "**" 20) =
         "{p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
 by simp_all
 
-instance sprod :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
-by (rule typedef_finite_po [OF type_definition_Sprod])
-
 instance sprod :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_Sprod below_Sprod_def])
 
