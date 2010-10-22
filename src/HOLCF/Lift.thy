@@ -80,6 +80,18 @@ proof
     by (induct x) auto
 qed
 
+subsection {* Continuity of @{const lift_case} *}
+
+lemma lift_case_eq: "lift_case \<bottom> f x = fup\<cdot>(\<Lambda> y. f (undiscr y))\<cdot>(Rep_lift x)"
+apply (induct x, unfold lift.cases)
+apply (simp add: Rep_lift_strict)
+apply (simp add: Def_def Abs_lift_inverse)
+done
+
+lemma cont2cont_lift_case [simp]:
+  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. lift_case \<bottom> (f x) (g x))"
+unfolding lift_case_eq by (simp add: cont_Rep_lift [THEN cont_compose])
+
 subsection {* Further operations *}
 
 definition
@@ -90,59 +102,14 @@ definition
   flift2 :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lift \<rightarrow> 'b lift)" where
   "flift2 f = (FLIFT x. Def (f x))"
 
-subsection {* Continuity Proofs for flift1, flift2 *}
-
-text {* Need the instance of @{text flat}. *}
-
-lemma cont_lift_case1: "cont (\<lambda>f. lift_case a f x)"
-apply (induct x)
-apply simp
-apply simp
-apply (rule cont_id [THEN cont2cont_fun])
-done
-
-lemma cont_lift_case2: "cont (\<lambda>x. lift_case \<bottom> f x)"
-apply (rule flatdom_strict2cont)
-apply simp
-done
-
-lemma cont_flift1: "cont flift1"
-unfolding flift1_def
-apply (rule cont2cont_LAM)
-apply (rule cont_lift_case2)
-apply (rule cont_lift_case1)
-done
-
-lemma FLIFT_mono:
-  "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> (FLIFT x. f x) \<sqsubseteq> (FLIFT x. g x)"
-apply (rule monofunE [where f=flift1])
-apply (rule cont2mono [OF cont_flift1])
-apply (simp add: fun_below_iff)
-done
-
-lemma cont2cont_flift1 [simp, cont2cont]:
-  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. FLIFT y. f x y)"
-apply (rule cont_flift1 [THEN cont_compose])
-apply simp
-done
-
-lemma cont2cont_lift_case [simp]:
-  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. lift_case UU (f x) (g x))"
-apply (subgoal_tac "cont (\<lambda>x. (FLIFT y. f x y)\<cdot>(g x))")
-apply (simp add: flift1_def cont_lift_case2)
-apply simp
-done
-
-text {* rewrites for @{term flift1}, @{term flift2} *}
-
 lemma flift1_Def [simp]: "flift1 f\<cdot>(Def x) = (f x)"
-by (simp add: flift1_def cont_lift_case2)
+by (simp add: flift1_def)
 
 lemma flift2_Def [simp]: "flift2 f\<cdot>(Def x) = Def (f x)"
 by (simp add: flift2_def)
 
 lemma flift1_strict [simp]: "flift1 f\<cdot>\<bottom> = \<bottom>"
-by (simp add: flift1_def cont_lift_case2)
+by (simp add: flift1_def)
 
 lemma flift2_strict [simp]: "flift2 f\<cdot>\<bottom> = \<bottom>"
 by (simp add: flift2_def)
@@ -152,5 +119,13 @@ by (erule lift_definedE, simp)
 
 lemma flift2_defined_iff [simp]: "(flift2 f\<cdot>x = \<bottom>) = (x = \<bottom>)"
 by (cases x, simp_all)
+
+lemma FLIFT_mono:
+  "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> (FLIFT x. f x) \<sqsubseteq> (FLIFT x. g x)"
+by (rule cfun_belowI, case_tac x, simp_all)
+
+lemma cont2cont_flift1 [simp, cont2cont]:
+  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. FLIFT y. f x y)"
+by (simp add: flift1_def cont2cont_LAM)
 
 end
