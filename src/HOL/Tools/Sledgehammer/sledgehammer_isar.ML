@@ -145,8 +145,8 @@ fun default_provers_param_value thy =
    [maybe_remote_atp thy eN,
     if forall (is_atp_installed thy) [spassN, eN] then remote_prefix ^ vampireN
     else maybe_remote_atp thy vampireN,
-    remote_prefix ^ sine_eN,
-    maybe_remote_smt_solver thy])
+    remote_prefix ^ sine_eN (* FIXME: Introduce and document: ,
+    maybe_remote_smt_solver thy *)])
   |> space_implode " "
 
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
