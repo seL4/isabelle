@@ -78,24 +78,26 @@ Jasmin Christian Blanchette \\
 \label{introduction}
 
 Sledgehammer is a tool that applies first-order automatic theorem provers (ATPs)
-on the current goal. The supported ATPs are E \cite{schulz-2002}, SPASS
-\cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002},
-SInE-E \cite{sine}, and SNARK \cite{snark}. The ATPs are run either locally or
-remotely via the SystemOnTPTP web service \cite{sutcliffe-2000}.
+and satisfiability-modulo-theory (SMT) solvers on the current goal. The
+supported ATPs are E \cite{schulz-2002}, SPASS \cite{weidenbach-et-al-2009},
+Vampire \cite{riazanov-voronkov-2002}, SInE-E \cite{sine}, and SNARK
+\cite{snark}. The ATPs are run either locally or remotely via the
+System\-On\-TPTP web service \cite{sutcliffe-2000}. In addition to the ATPs, the
+\textit{smt} proof method (which typically relies on the Z3 SMT solver
+\cite{z3}) is tried as well.
 
-The problem passed to ATPs consists of your current goal together with a
-heuristic selection of hundreds of facts (theorems) from the current theory
-context, filtered by relevance. Because jobs are run in the background, you can
-continue to work on your proof by other means. Provers can be run in parallel.
-Any reply (which may arrive minutes later) will appear in the Proof General
-response buffer.
+The problem passed to the automatic provers consists of your current goal
+together with a heuristic selection of hundreds of facts (theorems) from the
+current theory context, filtered by relevance. Because jobs are run in the
+background, you can continue to work on your proof by other means. Provers can
+be run in parallel. Any reply (which may arrive half a minute later) will appear
+in the Proof General response buffer.
 
-The result of a successful ATP proof search is some source text that usually
-(but not always) reconstructs the proof within Isabelle, without requiring the
-ATPs again. The reconstructed proof relies on the general-purpose Metis prover
-\cite{metis}, which is fully integrated into Isabelle/HOL, with explicit
-inferences going through the kernel. Thus its results are correct by
-construction.
+The result of a successful proof search is some source text that usually (but
+not always) reconstructs the proof within Isabelle. For ATPs, the reconstructed
+proof relies on the general-purpose Metis prover \cite{metis}, which is fully
+integrated into Isabelle/HOL, with explicit inferences going through the kernel.
+Thus its results are correct by construction.
 
 In this manual, we will explicitly invoke the \textbf{sledgehammer} command.
 Sledgehammer also provides an automatic mode that can be enabled via the
@@ -123,10 +125,10 @@ in.\allowbreak tum.\allowbreak de}.
 \label{installation}
 
 Sledgehammer is part of Isabelle, so you don't need to install it. However, it
-relies on third-party automatic theorem provers (ATPs). Currently, E, SPASS, and
-Vampire can be run locally; in addition, E, Vampire, SInE-E, and SNARK
-are available remotely via SystemOnTPTP \cite{sutcliffe-2000}. If you want
-better performance, you should install at least E and SPASS locally.
+relies on third-party automatic theorem provers (ATPs) and SAT solvers.
+Currently, E, SPASS, and Vampire can be run locally; in addition, E, Vampire,
+SInE-E, and SNARK are available remotely via SystemOnTPTP \cite{sutcliffe-2000}.
+If you want better performance, you should install E and SPASS locally.
 
 There are three main ways to install ATPs on your machine:
 
@@ -211,27 +213,35 @@ Try this command: \textbf{by} (\textit{metis insert\_Nil last\_ConsL}). \\
 To minimize the number of lemmas, try this: \\
 \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{spass}] (\textit{insert\_Nil last\_ConsL}). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{remote\_vampire}'' for subgoal 1: \\
+Sledgehammer: ``\textit{vampire}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
-Try this command: \textbf{by} (\textit{metis One\_nat\_def\_raw empty\_replicate} \\
-\phantom{Try this command: \textbf{by} (\textit{metis~}}\textit{insert\_Nil last\_ConsL replicate\_Suc}). \\
+Try this command: \textbf{by} (\textit{metis eq\_commute last\_snoc}) \\
 To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_vampire}] \\
-\phantom{\textbf{sledgehammer}~}(\textit{One\_nat\_def\_raw empty\_replicate insert\_Nil} \\
-\phantom{\textbf{sledgehammer}~(}\textit{last\_ConsL replicate\_Suc}).
+\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{vampire}]~(\textit{eq\_commute last\_snoc}). \\[3\smallskipamount]
+%
+Sledgehammer: ``\textit{remote\_sine\_e}'' for subgoal 1: \\
+$([a] = [b]) = (a = b)$ \\
+Try this command: \textbf{by} (\textit{metis hd.simps}) \\
+To minimize the number of lemmas, try this: \\
+\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_sine\_e}]~(\textit{hd.simps}). \\[3\smallskipamount]
+%
+Sledgehammer: ``\textit{smt}'' for subgoal 1: \\
+$([a] = [b]) = (a = b)$ \\
+Try this command: \textbf{by} (\textit{smt hd.simps}) \\
+To minimize the number of lemmas, try this: \\
+\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{smt}]~(\textit{hd.simps}).
 \postw
-%%% TODO: Mention SInE-E
 
-Sledgehammer ran E, SPASS, and the remote version of Vampire in parallel. If E
-is not installed (\S\ref{installation}), you will see references to
-its remote American cousin \textit{remote\_e} instead of
-\textit{e}; and if SPASS is not installed, it will not appear in the output.
+Sledgehammer ran E, SPASS, Vampire, SInE-E, and the \textit{smt} proof method in
+parallel. Depending on which provers are installed and how many processor cores
+are available, some of the provers might be missing or present with a
+\textit{remote\_} prefix.
 
-Based on each ATP proof, Sledgehammer gives a one-liner proof that uses the
-\textit{metis} method. You can click them and insert them into the theory text.
-You can click the ``\textbf{sledgehammer} \textit{minimize}'' command if you
-want to look for a shorter (and faster) proof. But here the proof found by E
-looks perfect, so click it to finish the proof.
+For each successful prover, Sledgehammer gives a one-liner proof that uses the
+\textit{metis} or \textit{smt} method. You can click the proof to insert it into
+the theory text. You can click the ``\textbf{sledgehammer} \textit{minimize}''
+command if you want to look for a shorter (and probably faster) proof. But here
+the proof found by E looks perfect, so click it to finish the proof.
 
 You can ask Sledgehammer for an Isar text proof by passing the
 \textit{isar\_proof} option:
@@ -242,7 +252,7 @@ You can ask Sledgehammer for an Isar text proof by passing the
 
 When Isar proof construction is successful, it can yield proofs that are more
 readable and also faster than the \textit{metis} one-liners. This feature is
-experimental.
+experimental and is only available for ATPs.
 
 \section{Hints}
 \label{hints}
@@ -340,9 +350,9 @@ enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
 General. For automatic runs, only the first prover set using \textit{provers}
 (\S\ref{mode-of-operation}) is considered, \textit{verbose}
 (\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled,
-fewer facts are passed to the prover, and \textit{timeout} (\S\ref{timeouts}) is
-superseded by the ``Auto Tools Time Limit'' in Proof General's ``Isabelle''
-menu. Sledgehammer's output is also more concise.
+fewer facts are passed to the prover, and \textit{timeout}
+(\S\ref{mode-of-operation}) is superseded by the ``Auto Tools Time Limit'' in
+Proof General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
 
 \section{Option Reference}
 \label{option-reference}
@@ -408,6 +418,9 @@ Andrei Voronkov and his colleagues \cite{riazanov-voronkov-2002}. To use
 Vampire, set the environment variable \texttt{VAMPIRE\_HOME} to the directory
 that contains the \texttt{vampire} executable.
 
+\item[$\bullet$] \textbf{\textit{smt}:} The \textit{smt} proof method invokes an
+external SMT prover (usually Z3 \cite{z3}).
+
 \item[$\bullet$] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
@@ -421,18 +434,23 @@ SInE runs on Geoff Sutcliffe's Miami servers.
 \item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a prover
 developed by Stickel et al.\ \cite{snark}. The remote version of
 SNARK runs on Geoff Sutcliffe's Miami servers.
+
+\item[$\bullet$] \textbf{\textit{remote\_smt}:} The remote version of the
+\textit{smt} proof method runs the SMT solver on servers at the TU M\"unchen (or
+wherever \texttt{REMOTE\_SMT\_URL} is set to point).
+
 \end{enum}
 
-By default, Sledgehammer will run E, SPASS, Vampire, and SInE-E in parallel.
-For at most two of E, SPASS, and Vampire, it will use any locally installed
-version if available. For historical reasons, the default value of this option
-can be overridden using the option ``Sledgehammer: Provers'' from the
-``Isabelle'' menu in Proof General.
+By default, Sledgehammer will run E, SPASS, Vampire, SInE-E, and \textit{smt} in
+parallel---either locally or remotely, depending on the number of processor
+cores available. For historical reasons, the default value of this option can be
+overridden using the option ``Sledgehammer: Provers'' from the ``Isabelle'' menu
+in Proof General.
 
 It is a good idea to run several provers in parallel, although it could slow
-down your machine. Running E, SPASS, and Vampire together for 5 seconds yields
-about the same success rate as running the most effective of these (Vampire) for
-120 seconds \cite{boehme-nipkow-2010}.
+down your machine. Running E, SPASS, Vampire, and SInE-E together for 5 seconds
+yields a better success rate than running the most effective of these (Vampire)
+for 120 seconds \cite{boehme-nipkow-2010}.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
@@ -472,16 +490,17 @@ safely remove them after Sledgehammer has run.
 \begin{enum}
 \opfalse{explicit\_apply}{implicit\_apply}
 Specifies whether function application should be encoded as an explicit
-``apply'' operator. If the option is set to \textit{false}, each function will
-be directly applied to as many arguments as possible. Enabling this option can
-sometimes help discover higher-order proofs that otherwise would not be found.
+``apply'' operator in ATP problems. If the option is set to \textit{false}, each
+function will be directly applied to as many arguments as possible. Enabling
+this option can sometimes help discover higher-order proofs that otherwise would
+not be found.
 
 \opfalse{full\_types}{partial\_types}
-Specifies whether full-type information is exported. Enabling this option can
-prevent the discovery of type-incorrect proofs, but it also tends to slow down
-the ATPs significantly. For historical reasons, the default value of this option
-can be overridden using the option ``Sledgehammer: Full Types'' from the
-``Isabelle'' menu in Proof General.
+Specifies whether full-type information is encoded in ATP problems. Enabling
+this option can prevent the discovery of type-incorrect proofs, but it also
+tends to slow down the ATPs significantly. For historical reasons, the default
+value of this option can be overridden using the option ``Sledgehammer: Full
+Types'' from the ``Isabelle'' menu in Proof General.
 \end{enum}
 
 \subsection{Relevance Filter}
