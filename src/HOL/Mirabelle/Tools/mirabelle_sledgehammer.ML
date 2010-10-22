@@ -29,8 +29,8 @@ datatype sh_data = ShData of {
   lemmas: int,
   max_lems: int,
   time_isa: int,
-  time_atp: int,
-  time_atp_fail: int}
+  time_prover: int,
+  time_prover_fail: int}
 
 datatype me_data = MeData of {
   calls: int,
@@ -51,10 +51,11 @@ datatype min_data = MinData of {
 
 fun make_sh_data
       (calls,success,nontriv_calls,nontriv_success,lemmas,max_lems,time_isa,
-       time_atp,time_atp_fail) =
+       time_prover,time_prover_fail) =
   ShData{calls=calls, success=success, nontriv_calls=nontriv_calls,
          nontriv_success=nontriv_success, lemmas=lemmas, max_lems=max_lems,
-         time_isa=time_isa, time_atp=time_atp, time_atp_fail=time_atp_fail}
+         time_isa=time_isa, time_prover=time_prover,
+         time_prover_fail=time_prover_fail}
 
 fun make_min_data (succs, ab_ratios) =
   MinData{succs=succs, ab_ratios=ab_ratios}
@@ -71,8 +72,8 @@ val empty_me_data = make_me_data (0, 0, 0, 0, 0, 0, 0, (0,0,0), [])
 
 fun tuple_of_sh_data (ShData {calls, success, nontriv_calls, nontriv_success,
                               lemmas, max_lems, time_isa,
-  time_atp, time_atp_fail}) = (calls, success, nontriv_calls, nontriv_success,
-  lemmas, max_lems, time_isa, time_atp, time_atp_fail)
+  time_prover, time_prover_fail}) = (calls, success, nontriv_calls,
+  nontriv_success, lemmas, max_lems, time_isa, time_prover, time_prover_fail)
 
 fun tuple_of_min_data (MinData {succs, ab_ratios}) = (succs, ab_ratios)
 
@@ -127,40 +128,40 @@ fun set_mini mini (Data {sh, min, me_u, me_m, me_uft, me_mft, ...}) =
 fun inc_max (n:int) (s,sos,m) = (s+n, sos + n*n, Int.max(m,n));
 
 val inc_sh_calls =  map_sh_data
-  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_atp, time_atp_fail)
-    => (calls + 1, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_atp, time_atp_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail)
+    => (calls + 1, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover, time_prover_fail))
 
 val inc_sh_success = map_sh_data
-  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_atp, time_atp_fail)
-    => (calls, success + 1, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_atp, time_atp_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail)
+    => (calls, success + 1, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail))
 
 val inc_sh_nontriv_calls =  map_sh_data
-  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_atp, time_atp_fail)
-    => (calls, success, nontriv_calls + 1, nontriv_success, lemmas, max_lems, time_isa, time_atp, time_atp_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail)
+    => (calls, success, nontriv_calls + 1, nontriv_success, lemmas, max_lems, time_isa, time_prover, time_prover_fail))
 
 val inc_sh_nontriv_success = map_sh_data
-  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_atp, time_atp_fail)
-    => (calls, success, nontriv_calls, nontriv_success + 1, lemmas,max_lems, time_isa, time_atp, time_atp_fail))
+  (fn (calls, success, nontriv_calls, nontriv_success, lemmas,max_lems, time_isa, time_prover, time_prover_fail)
+    => (calls, success, nontriv_calls, nontriv_success + 1, lemmas,max_lems, time_isa, time_prover, time_prover_fail))
 
 fun inc_sh_lemmas n = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_atp,time_atp_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas+n,max_lems,time_isa,time_atp,time_atp_fail))
+  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
+    => (calls,success,nontriv_calls, nontriv_success, lemmas+n,max_lems,time_isa,time_prover,time_prover_fail))
 
 fun inc_sh_max_lems n = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_atp,time_atp_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas,Int.max(max_lems,n),time_isa,time_atp,time_atp_fail))
+  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
+    => (calls,success,nontriv_calls, nontriv_success, lemmas,Int.max(max_lems,n),time_isa,time_prover,time_prover_fail))
 
 fun inc_sh_time_isa t = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_atp,time_atp_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa + t,time_atp,time_atp_fail))
+  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
+    => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa + t,time_prover,time_prover_fail))
 
-fun inc_sh_time_atp t = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_atp,time_atp_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_atp + t,time_atp_fail))
+fun inc_sh_time_prover t = map_sh_data
+  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
+    => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover + t,time_prover_fail))
 
-fun inc_sh_time_atp_fail t = map_sh_data
-  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_atp,time_atp_fail)
-    => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_atp,time_atp_fail + t))
+fun inc_sh_time_prover_fail t = map_sh_data
+  (fn (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail)
+    => (calls,success,nontriv_calls, nontriv_success, lemmas,max_lems,time_isa,time_prover,time_prover_fail + t))
 
 val inc_min_succs = map_min_data
   (fn (succs,ab_ratios) => (succs+1, ab_ratios))
@@ -214,7 +215,7 @@ fun avg_time t n =
   if n > 0 then (Real.fromInt t / 1000.0) / Real.fromInt n else 0.0
 
 fun log_sh_data log
-    (calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_atp, time_atp_fail) =
+    (calls, success, nontriv_calls, nontriv_success, lemmas, max_lems, time_isa, time_prover, time_prover_fail) =
  (log ("Total number of sledgehammer calls: " ^ str calls);
   log ("Number of successful sledgehammer calls: " ^ str success);
   log ("Number of sledgehammer lemmas: " ^ str lemmas);
@@ -223,14 +224,14 @@ fun log_sh_data log
   log ("Total number of nontrivial sledgehammer calls: " ^ str nontriv_calls);
   log ("Number of successful nontrivial sledgehammer calls: " ^ str nontriv_success);
   log ("Total time for sledgehammer calls (Isabelle): " ^ str3 (time time_isa));
-  log ("Total time for successful sledgehammer calls (ATP): " ^ str3 (time time_atp));
-  log ("Total time for failed sledgehammer calls (ATP): " ^ str3 (time time_atp_fail));
+  log ("Total time for successful sledgehammer calls (ATP): " ^ str3 (time time_prover));
+  log ("Total time for failed sledgehammer calls (ATP): " ^ str3 (time time_prover_fail));
   log ("Average time for sledgehammer calls (Isabelle): " ^
     str3 (avg_time time_isa calls));
   log ("Average time for successful sledgehammer calls (ATP): " ^
-    str3 (avg_time time_atp success));
+    str3 (avg_time time_prover success));
   log ("Average time for failed sledgehammer calls (ATP): " ^
-    str3 (avg_time time_atp_fail (calls - success)))
+    str3 (avg_time time_prover_fail (calls - success)))
   )
 
 
@@ -313,16 +314,17 @@ fun done id ({log, ...}: Mirabelle.done_args) =
 fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f); ())
 
 
-fun get_atp thy args =
+fun get_prover ctxt args =
   let
-    fun default_atp_name () =
-      hd (#atps (Sledgehammer_Isar.default_params thy []))
+    val thy = ProofContext.theory_of ctxt
+    fun default_prover_name () =
+      hd (#provers (Sledgehammer_Isar.default_params ctxt []))
       handle Empty => error "No ATP available."
-    fun get_prover name = (name, Sledgehammer.get_prover_fun thy name)
+    fun get_prover name = (name, Sledgehammer.get_prover thy false name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
-    | NONE => get_prover (default_atp_name ()))
+    | NONE => get_prover (default_prover_name ()))
   end
 
 type locality = Sledgehammer_Filter.locality
@@ -346,31 +348,35 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
                 (change_dir dir
                  #> Config.put Sledgehammer.measure_run_time true)
     val params as {full_types, relevance_thresholds, max_relevant, ...} =
-      Sledgehammer_Isar.default_params thy
+      Sledgehammer_Isar.default_params ctxt
           [("timeout", Int.toString timeout ^ " s")]
+    val default_max_relevant =
+      Sledgehammer.default_max_relevant_for_prover thy prover_name
+    val irrelevant_consts =
+      Sledgehammer.irrelevant_consts_for_prover prover_name
+    val relevance_fudge = Sledgehammer.relevance_fudge_for_prover prover_name
     val relevance_override = {add = [], del = [], only = false}
-    val {default_max_relevant, ...} = ATP_Systems.get_prover thy prover_name
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val axioms =
       Sledgehammer_Filter.relevant_facts ctxt full_types relevance_thresholds
-          (the_default default_max_relevant max_relevant)
-          relevance_override chained_ths hyp_ts concl_t
+          (the_default default_max_relevant max_relevant) irrelevant_consts
+          relevance_fudge relevance_override chained_ths hyp_ts concl_t
     val problem =
       {state = st', goal = goal, subgoal = i,
-       axioms = map (Sledgehammer_Translate.prepare_axiom ctxt) axioms,
-       only = true}
+       subgoal_count = Sledgehammer_Util.subgoal_count st,
+       axioms = axioms |> map Sledgehammer.Unprepared, only = true}
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({outcome, message, used_thm_names,
-          atp_run_time_in_msecs = time_atp, ...} : Sledgehammer.prover_result,
+    val ({outcome, message, used_axioms, run_time_in_msecs = SOME time_prover, ...}
+         : Sledgehammer.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time
                       (prover params (K ""))) problem
   in
     case outcome of
-      NONE => (message, SH_OK (time_isa, time_atp, used_thm_names))
-    | SOME _ => (message, SH_FAIL (time_isa, time_atp))
+      NONE => (message, SH_OK (time_isa, time_prover, used_axioms))
+    | SOME _ => (message, SH_FAIL (time_isa, time_prover))
   end
   handle ERROR msg => ("error: " ^ msg, SH_ERROR)
        | TimeLimit.TimeOut => ("timeout", SH_ERROR)
@@ -395,7 +401,7 @@ fun run_sledgehammer trivial args named_thms id ({pre=st, log, ...}: Mirabelle.r
     val triv_str = if trivial then "[T] " else ""
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
-    val (prover_name, prover) = get_atp (Proof.theory_of st) args
+    val (prover_name, prover) = get_prover (Proof.context_of st) args
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     val hard_timeout = AList.lookup (op =) args prover_hard_timeoutK
@@ -403,7 +409,7 @@ fun run_sledgehammer trivial args named_thms id ({pre=st, log, ...}: Mirabelle.r
     val (msg, result) = run_sh prover_name prover hard_timeout timeout dir st
   in
     case result of
-      SH_OK (time_isa, time_atp, names) =>
+      SH_OK (time_isa, time_prover, names) =>
         let
           fun get_thms (_, Sledgehammer_Filter.Chained) = NONE
             | get_thms (name, loc) =
@@ -414,38 +420,36 @@ fun run_sledgehammer trivial args named_thms id ({pre=st, log, ...}: Mirabelle.r
           change_data id (inc_sh_lemmas (length names));
           change_data id (inc_sh_max_lems (length names));
           change_data id (inc_sh_time_isa time_isa);
-          change_data id (inc_sh_time_atp time_atp);
+          change_data id (inc_sh_time_prover time_prover);
           named_thms := SOME (map_filter get_thms names);
           log (sh_tag id ^ triv_str ^ "succeeded (" ^ string_of_int time_isa ^ "+" ^
-            string_of_int time_atp ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
+            string_of_int time_prover ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
         end
-    | SH_FAIL (time_isa, time_atp) =>
+    | SH_FAIL (time_isa, time_prover) =>
         let
           val _ = change_data id (inc_sh_time_isa time_isa)
-          val _ = change_data id (inc_sh_time_atp_fail time_atp)
+          val _ = change_data id (inc_sh_time_prover_fail time_prover)
         in log (sh_tag id ^ triv_str ^ "failed: " ^ msg) end
     | SH_ERROR => log (sh_tag id ^ "failed: " ^ msg)
   end
 
 end
 
-
-val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
-
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     open Metis_Translate
-    val thy = Proof.theory_of st
+    val ctxt = Proof.context_of st
     val n0 = length (these (!named_thms))
-    val (prover_name, _) = get_atp thy args
+    val (prover_name, _) = get_prover ctxt args
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o explode)
       |> the_default 5
-    val params = Sledgehammer_Isar.default_params thy
-      [("atps", prover_name), ("timeout", Int.toString timeout ^ " s")]
+    val params = Sledgehammer_Isar.default_params ctxt
+      [("provers", prover_name), ("timeout", Int.toString timeout ^ " s")]
     val minimize =
-      Sledgehammer_Minimize.minimize_theorems params 1 (subgoal_count st)
+      Sledgehammer_Minimize.minimize_facts params 1
+                                           (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
   in
     case minimize st (these (!named_thms)) of
