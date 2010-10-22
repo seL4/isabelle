@@ -94,7 +94,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
                    i (_ : int) state axioms =
   let
     val thy = Proof.theory_of state
-    val prover = run_atp thy prover_name
+    val prover = get_prover thy prover_name
     val msecs = Time.toMilliseconds timeout
     val _ = priority ("Sledgehammer minimize: " ^ quote prover_name ^ ".")
     val {goal, ...} = Proof.goal state

@@ -296,7 +296,7 @@ INCOMPATIBILITY.
     INCOMPATIBILITY.
   - Renamed options:
     sledgehammer [atps = ...] ~> sledgehammer [provers = ...]
-    sledgehammer [atp = ...] ~> sledgehammer [provers = ...]
+    sledgehammer [atp = ...] ~> sledgehammer [prover = ...]
     INCOMPATIBILITY.
 
 

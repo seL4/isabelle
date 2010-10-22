@@ -42,13 +42,15 @@ sig
 
   type prover_result =
     {outcome: failure option,
-     message: string,
      used_axioms: (string * locality) list,
-     run_time_in_msecs: int}
+     run_time_in_msecs: int option,
+     message: string}
 
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
   val smtN : string
+  val smt_prover_names : string list
+  val smt_default_max_relevant : int
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
@@ -56,11 +58,7 @@ sig
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
-  val run_atp : theory -> string -> prover
-  val is_smt_solver_installed : unit -> bool
-  val run_smt_solver :
-    bool -> params -> minimize_command -> prover_problem
-    -> string * (string * locality) list
+  val get_prover : theory -> string -> prover
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
     -> Proof.state -> bool * Proof.state
@@ -87,12 +85,15 @@ open Sledgehammer_Reconstruct
 val das_Tool = "Sledgehammer"
 
 val smtN = "smt"
-val smt_names = [smtN, remote_prefix ^ smtN]
+val smt_prover_names = [smtN, remote_prefix ^ smtN]
+
+val smt_default_max_relevant = 300 (* FUDGE *)
+val auto_max_relevant_divisor = 2 (* FUDGE *)
 
 fun available_provers thy =
   let
     val (remote_provers, local_provers) =
-      sort_strings (available_atps thy) @ smt_names
+      sort_strings (available_atps thy) @ smt_prover_names
       |> List.partition (String.isPrefix remote_prefix)
   in
     priority ("Available provers: " ^ commas (local_provers @ remote_provers) ^
@@ -135,7 +136,7 @@ type prover_result =
   {outcome: failure option,
    message: string,
    used_axioms: (string * locality) list,
-   run_time_in_msecs: int}
+   run_time_in_msecs: int option}
 
 type prover = params -> minimize_command -> prover_problem -> prover_result
 
@@ -179,6 +180,9 @@ fun dest_Unprepared (Unprepared p) = p
   | dest_Unprepared (Prepared _) = raise Fail "dest_Unprepared"
 fun prepared_axiom ctxt (Unprepared p) = prepare_axiom ctxt p
   | prepared_axiom _ (Prepared p) = p
+
+fun int_option_add (SOME m) (SOME n) = SOME (m + n)
+  | int_option_add _ _ = NONE
 
 (* Important messages are important but not so important that users want to see
    them each time. *)
@@ -232,7 +236,7 @@ fun atp_fun auto atp_name
         val digit = Scan.one Symbol.is_ascii_digit;
         val num3 = as_num (digit ::: digit ::: (digit >> single));
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
-        val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
+        val as_time = Scan.read Symbol.stopper time o explode
       in (output, as_time t) end;
     fun run_on probfile =
       case filter (curry (op =) "" o getenv o fst) (exec :: required_execs) of
@@ -250,7 +254,7 @@ fun atp_fun auto atp_name
                          prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
                        else
                          I)
-                  |>> (if measure_run_time then split_time else rpair 0)
+                  |>> (if measure_run_time then split_time else rpair NONE)
                 val (tstplike_proof, outcome) =
                   extract_tstplike_proof_and_outcome complete res_code
                       proof_delims known_failures output
@@ -277,7 +281,8 @@ fun atp_fun auto atp_name
                  ? (fn (_, msecs0, _, SOME _) =>
                        run true (Time.- (timeout, Timer.checkRealTimer timer))
                        |> (fn (output, msecs, tstplike_proof, outcome) =>
-                              (output, msecs0 + msecs, tstplike_proof, outcome))
+                              (output, int_option_add msecs0 msecs,
+                               tstplike_proof, outcome))
                      | result => result)
           in ((pool, conjecture_shape, axiom_names), result) end
         else
@@ -312,8 +317,8 @@ fun atp_fun auto atp_name
              axiom_names, goal, subgoal)
         |>> (fn message =>
                 message ^ (if verbose then
-                             "\nATP real CPU time: " ^ string_of_int msecs ^
-                             " ms."
+                             "\nATP real CPU time: " ^
+                             string_of_int (the msecs) ^ " ms."
                            else
                              "") ^
                 (if important_message <> "" then
@@ -327,12 +332,12 @@ fun atp_fun auto atp_name
      run_time_in_msecs = msecs}
   end
 
-fun run_atp thy name = atp_fun false name (get_atp thy name)
+fun get_atp_as_prover thy name = atp_fun false name (get_atp thy name)
 
 fun run_atp_somehow (params as {blocking, debug, max_relevant, timeout,
                                 expect, ...})
                     auto i n minimize_command
-                    (prover_problem as {state, goal, axioms, ...})
+                    (problem as {state, goal, axioms, ...})
                     (prover as {default_max_relevant, ...}, atp_name) =
   let
     val ctxt = Proof.context_of state
@@ -345,7 +350,7 @@ fun run_atp_somehow (params as {blocking, debug, max_relevant, timeout,
       let
         fun really_go () =
           atp_fun auto atp_name prover params (minimize_command atp_name)
-                  prover_problem
+                  problem
           |> (fn {outcome, message, ...} =>
                  (if is_some outcome then "none" else "some", message))
         val (outcome_code, message) =
@@ -383,37 +388,49 @@ fun run_atp_somehow (params as {blocking, debug, max_relevant, timeout,
   end
 
 (* FIXME: dummy *)
-fun is_smt_solver_installed () = true
+fun run_smt_solver remote timeout state axioms i =
+  {outcome = NONE, used_axioms = axioms |> take 5 |> map fst,
+   run_time_in_msecs = NONE}
 
-(* FIXME: dummy *)
-fun raw_run_smt_solver remote timeout state axioms i =
-  ("", axioms |> take 5 |> map fst)
-
-fun run_smt_solver remote ({timeout, ...} : params) minimize_command
-                   ({state, subgoal, axioms, ...} : prover_problem) =
-  raw_run_smt_solver remote timeout state
+fun get_smt_solver_as_prover remote ({timeout, ...} : params) minimize_command
+                             ({state, subgoal, axioms, ...} : prover_problem) =
+  let
+    val {outcome, used_axioms, run_time_in_msecs} =
+      run_smt_solver remote timeout state
                      (map_filter (try dest_Unprepared) axioms) subgoal
+    val message =
+      if outcome = NONE then
+        sendback_line (proof_banner false)
+                      (apply_on_subgoal subgoal (subgoal_count state) ^
+                       command_call smtN (map fst used_axioms))
+      else
+        ""
+  in
+    {outcome = outcome, used_axioms = used_axioms,
+     run_time_in_msecs = run_time_in_msecs, message = message}
+  end
 
-fun run_smt_solver_somehow state (params as {timeout, ...}) i n goal axioms
+fun get_prover thy name =
+  if member (op =) smt_prover_names name then
+    get_smt_solver_as_prover (String.isPrefix remote_prefix)
+  else
+    get_atp_as_prover thy name
+
+fun run_smt_solver_somehow state params minimize_command i n goal axioms
                            (remote, name) =
   let
     val ctxt = Proof.context_of state
     val desc = prover_description ctxt params name (length axioms) i n goal
-    val (failure, used_axioms) =
-      raw_run_smt_solver remote timeout state axioms i
-    val success = (failure = "")
-    val message =
-      das_Tool ^ ": " ^ desc ^ "\n" ^
-      (if success then
-         sendback_line (proof_banner false)
-                       (apply_on_subgoal i n ^
-                        command_call "smt" (map fst used_axioms))
-       else
-         "Error: " ^ failure)
-  in priority message; success end
-
-val smt_default_max_relevant = 300 (* FUDGE *)
-val auto_max_relevant_divisor = 2 (* FUDGE *)
+    val problem =
+      {state = state, goal = goal, subgoal = i,
+       axioms = axioms |> map Unprepared, only = true}
+    val {outcome, used_axioms, message, ...} =
+      get_smt_solver_as_prover remote params minimize_command problem
+    val _ =
+      priority (das_Tool ^ ": " ^ desc ^ "\n" ^
+                (if outcome = NONE then message
+                 else "An unknown error occurred."))
+  in outcome = NONE end
 
 fun run_sledgehammer (params as {blocking, provers, full_types,
                                  relevance_thresholds, max_relevant, timeout,
@@ -433,7 +450,7 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
       val _ = () |> not blocking ? kill_provers
       val _ = if auto then () else priority "Sledgehammering..."
       val (smts, atps) =
-        provers |> List.partition (member (op =) smt_names)
+        provers |> List.partition (member (op =) smt_prover_names)
                 |>> (take 1 #> map (`(String.isPrefix remote_prefix)))
                 ||> map (`(get_atp thy))
       fun run_atps (res as (success, state)) =
@@ -451,12 +468,12 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
               relevant_facts ctxt full_types relevance_thresholds
                              max_max_relevant relevance_override chained_ths
                              hyp_ts concl_t
-            val prover_problem =
+            val problem =
               {state = state, goal = goal, subgoal = i,
                axioms = axioms |> map (Prepared o prepare_axiom ctxt),
                only = only}
             val run_atp_somehow =
-              run_atp_somehow params auto i n minimize_command prover_problem
+              run_atp_somehow params auto i n minimize_command problem
           in
             if auto then
               fold (fn prover => fn (true, state) => (true, state)
@@ -478,7 +495,8 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
                              max_relevant relevance_override chained_ths
                              hyp_ts concl_t
           in
-            smts |> map (run_smt_solver_somehow state params i n goal axioms)
+            smts |> map (run_smt_solver_somehow state params minimize_command i
+                                                n goal axioms)
                  |> exists I |> rpair state
           end
       fun run_atps_and_smt_solvers () =
