@@ -8,29 +8,15 @@ Some fairly general functions that should probably go somewhere else...
 structure Function_Lib =   (* FIXME proper signature *)
 struct
 
-fun map_option f NONE = NONE
-  | map_option f (SOME x) = SOME (f x);
-
-fun fold_option f NONE y = y
-  | fold_option f (SOME x) y = f x y;
-
-(* Ex: "The variable" ^ plural " is" "s are" vs *)
+(* "The variable" ^ plural " is" "s are" vs *)
 fun plural sg pl [x] = sg
   | plural sg pl _ = pl
-
-fun dest_all (Const ("all", _) $ Abs (a as (_,T,_))) =
-  let
-    val (n, body) = Term.dest_abs a
-  in
-    (Free (n, T), body)
-  end
-  | dest_all _ = raise Match
 
 
 (* Removes all quantifiers from a term, replacing bound variables by frees. *)
 fun dest_all_all (t as (Const ("all",_) $ _)) =
   let
-    val (v,b) = dest_all t
+    val (v,b) = Logic.dest_all t |> apfst Free
     val (vs, b') = dest_all_all b
   in
     (v :: vs, b')
@@ -56,17 +42,9 @@ fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (n,T,b)) =
   (ctx, [], t)
 
 
-fun map3 _ [] [] [] = []
-  | map3 f (x :: xs) (y :: ys) (z :: zs) = f x y z :: map3 f xs ys zs
-  | map3 _ _ _ _ = raise Library.UnequalLengths;
-
 fun map4 _ [] [] [] [] = []
   | map4 f (x :: xs) (y :: ys) (z :: zs) (u :: us) = f x y z u :: map4 f xs ys zs us
   | map4 _ _ _ _ _ = raise Library.UnequalLengths;
-
-fun map6 _ [] [] [] [] [] [] = []
-  | map6 f (x :: xs) (y :: ys) (z :: zs) (u :: us) (v :: vs) (w :: ws) = f x y z u v w :: map6 f xs ys zs us vs ws
-  | map6 _ _ _ _ _ _ _ = raise Library.UnequalLengths;
 
 fun map7 _ [] [] [] [] [] [] [] = []
   | map7 f (x :: xs) (y :: ys) (z :: zs) (u :: us) (v :: vs) (w :: ws) (b :: bs) = f x y z u v w b :: map7 f xs ys zs us vs ws bs
