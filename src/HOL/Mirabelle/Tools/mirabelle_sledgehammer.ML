@@ -357,19 +357,18 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
           relevance_override chained_ths hyp_ts concl_t
     val problem =
       {state = st', goal = goal, subgoal = i,
-       axioms = map (Sledgehammer_Translate.prepare_axiom ctxt) axioms,
-       only = true}
+       axioms = axioms |> map Sledgehammer.Unprepared, only = true}
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({outcome, message, used_thm_names,
-          atp_run_time_in_msecs = time_atp, ...} : Sledgehammer.atp_result,
+    val ({outcome, message, used_axioms, run_time_in_msecs = time_atp, ...}
+         : Sledgehammer.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time
                       (prover params (K ""))) problem
   in
     case outcome of
-      NONE => (message, SH_OK (time_isa, time_atp, used_thm_names))
+      NONE => (message, SH_OK (time_isa, time_atp, used_axioms))
     | SOME _ => (message, SH_FAIL (time_isa, time_atp))
   end
   handle ERROR msg => ("error: " ^ msg, SH_ERROR)
@@ -445,7 +444,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
     val params = Sledgehammer_Isar.default_params thy
       [("provers", prover_name), ("timeout", Int.toString timeout ^ " s")]
     val minimize =
-      Sledgehammer_Minimize.minimize_theorems params 1 (subgoal_count st)
+      Sledgehammer_Minimize.minimize_facts params 1 (subgoal_count st)
     val _ = log separator
   in
     case minimize st (these (!named_thms)) of
