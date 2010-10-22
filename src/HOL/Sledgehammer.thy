@@ -10,8 +10,8 @@ theory Sledgehammer
 imports ATP
 uses "Tools/Sledgehammer/sledgehammer_util.ML"
      "Tools/Sledgehammer/sledgehammer_filter.ML"
-     "Tools/Sledgehammer/sledgehammer_translate.ML"
-     "Tools/Sledgehammer/sledgehammer_reconstruct.ML"
+     "Tools/Sledgehammer/sledgehammer_atp_translate.ML"
+     "Tools/Sledgehammer/sledgehammer_atp_reconstruct.ML"
      "Tools/Sledgehammer/sledgehammer.ML"
      "Tools/Sledgehammer/sledgehammer_minimize.ML"
      "Tools/Sledgehammer/sledgehammer_isar.ML"
