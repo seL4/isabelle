@@ -56,26 +56,23 @@ subsection {* Case analysis *}
 lemma spair_Sprod: "(strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b) \<in> Sprod"
 by (simp add: Sprod_def strict_conv_if)
 
-lemma spair_Abs_Sprod: "(:a, b:) = Abs_Sprod (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b)"
-by (simp add: spair_def cont_Abs_Sprod spair_Sprod)
-
 lemma Rep_Sprod_spair: "Rep_Sprod (:a, b:) = (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b)"
-by (simp add: spair_Abs_Sprod Abs_Sprod_inverse spair_Sprod)
+by (simp add: spair_def cont_Abs_Sprod Abs_Sprod_inverse spair_Sprod)
+
+lemmas Rep_Sprod_simps =
+  Rep_Sprod_inject [symmetric] below_Sprod_def
+  Pair_fst_snd_eq below_prod_def
+  Rep_Sprod_strict Rep_Sprod_spair
 
 lemma sprodE [case_names bottom spair, cases type: sprod]:
   obtains "p = \<bottom>" | x y where "p = (:x, y:)" and "x \<noteq> \<bottom>" and "y \<noteq> \<bottom>"
-by (induct p rule: Abs_Sprod_induct)
-   (auto simp add: Sprod_def spair_Abs_Sprod Abs_Sprod_strict)
+using Rep_Sprod [of p] by (auto simp add: Sprod_def Rep_Sprod_simps)
 
 lemma sprod_induct [case_names bottom spair, induct type: sprod]:
   "\<lbrakk>P \<bottom>; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> P (:x, y:)\<rbrakk> \<Longrightarrow> P x"
 by (cases x, simp_all)
 
 subsection {* Properties of \emph{spair} *}
-
-lemmas Rep_Sprod_simps =
-  Rep_Sprod_inject [symmetric] below_Sprod_def
-  Rep_Sprod_strict Rep_Sprod_spair
 
 lemma spair_strict1 [simp]: "(:\<bottom>, y:) = \<bottom>"
 by (simp add: Rep_Sprod_simps strict_conv_if)

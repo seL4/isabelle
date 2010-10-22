@@ -43,33 +43,32 @@ by (simp add: Ssum_def strict_conv_if)
 lemma sinr_Ssum: "(strict\<cdot>b\<cdot>FF, \<bottom>, b) \<in> Ssum"
 by (simp add: Ssum_def strict_conv_if)
 
-lemma sinl_Abs_Ssum: "sinl\<cdot>a = Abs_Ssum (strict\<cdot>a\<cdot>TT, a, \<bottom>)"
-by (simp add: sinl_def cont_Abs_Ssum sinl_Ssum)
-
-lemma sinr_Abs_Ssum: "sinr\<cdot>b = Abs_Ssum (strict\<cdot>b\<cdot>FF, \<bottom>, b)"
-by (simp add: sinr_def cont_Abs_Ssum sinr_Ssum)
-
 lemma Rep_Ssum_sinl: "Rep_Ssum (sinl\<cdot>a) = (strict\<cdot>a\<cdot>TT, a, \<bottom>)"
-by (simp add: sinl_Abs_Ssum Abs_Ssum_inverse sinl_Ssum)
+by (simp add: sinl_def cont_Abs_Ssum Abs_Ssum_inverse sinl_Ssum)
 
 lemma Rep_Ssum_sinr: "Rep_Ssum (sinr\<cdot>b) = (strict\<cdot>b\<cdot>FF, \<bottom>, b)"
-by (simp add: sinr_Abs_Ssum Abs_Ssum_inverse sinr_Ssum)
+by (simp add: sinr_def cont_Abs_Ssum Abs_Ssum_inverse sinr_Ssum)
+
+lemmas Rep_Ssum_simps =
+  Rep_Ssum_inject [symmetric] below_Ssum_def
+  Pair_fst_snd_eq below_prod_def
+  Rep_Ssum_strict Rep_Ssum_sinl Rep_Ssum_sinr
 
 subsection {* Properties of \emph{sinl} and \emph{sinr} *}
 
 text {* Ordering *}
 
 lemma sinl_below [simp]: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: below_Ssum_def Rep_Ssum_sinl strict_conv_if)
+by (simp add: Rep_Ssum_simps strict_conv_if)
 
 lemma sinr_below [simp]: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: below_Ssum_def Rep_Ssum_sinr strict_conv_if)
+by (simp add: Rep_Ssum_simps strict_conv_if)
 
 lemma sinl_below_sinr [simp]: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
-by (simp add: below_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr strict_conv_if)
+by (simp add: Rep_Ssum_simps strict_conv_if)
 
 lemma sinr_below_sinl [simp]: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
-by (simp add: below_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr strict_conv_if)
+by (simp add: Rep_Ssum_simps strict_conv_if)
 
 text {* Equality *}
 
@@ -94,10 +93,10 @@ by (rule sinr_eq [THEN iffD1])
 text {* Strictness *}
 
 lemma sinl_strict [simp]: "sinl\<cdot>\<bottom> = \<bottom>"
-by (simp add: sinl_Abs_Ssum Abs_Ssum_strict)
+by (simp add: Rep_Ssum_simps)
 
 lemma sinr_strict [simp]: "sinr\<cdot>\<bottom> = \<bottom>"
-by (simp add: sinr_Abs_Ssum Abs_Ssum_strict)
+by (simp add: Rep_Ssum_simps)
 
 lemma sinl_defined_iff [simp]: "(sinl\<cdot>x = \<bottom>) = (x = \<bottom>)"
 using sinl_eq [of "x" "\<bottom>"] by simp
@@ -139,8 +138,7 @@ lemma ssumE [case_names bottom sinl sinr, cases type: ssum]:
   obtains "p = \<bottom>"
   | x where "p = sinl\<cdot>x" and "x \<noteq> \<bottom>"
   | y where "p = sinr\<cdot>y" and "y \<noteq> \<bottom>"
-by (induct p rule: Abs_Ssum_induct)
-   (auto simp add: Ssum_def sinl_Abs_Ssum sinr_Abs_Ssum Abs_Ssum_strict)
+using Rep_Ssum [of p] by (auto simp add: Ssum_def Rep_Ssum_simps)
 
 lemma ssum_induct [case_names bottom sinl sinr, induct type: ssum]:
   "\<lbrakk>P \<bottom>;
