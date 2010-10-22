@@ -42,11 +42,7 @@ notation (xsymbols)
 
 
 lemma Def_maximal: "a = Def d \<Longrightarrow> a\<sqsubseteq>b \<Longrightarrow> b = Def d"
-apply (rule flat_eq [THEN iffD1, symmetric])
-apply (rule Def_not_UU)
-apply (drule antisym_less_inverse)
-apply (erule (1) conjunct2 [THEN trans_less])
-done
+by simp
 
 
 section "fscons"
