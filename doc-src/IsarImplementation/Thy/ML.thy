@@ -30,49 +30,40 @@ text {* Isabelle/ML is best understood as a certain culture based on
 
 section {* Style and orthography *}
 
-text {* The sources Isabelle/Isar implementation are optimized for
-  \emph{readability} and \emph{maintainability}.  The main purpose of
-  the sources is to tell an informed reader what is really going on
-  and how things really work.  This is a non-trivial aim, but it
-  greatly helps to follow a certain style for Isabelle/ML that has
-  emerged from long years of Isabelle system development.\footnote{See
-  also the very interesting style guide for OCaml
+text {* The sources of Isabelle/Isar are optimized for
+  \emph{readability} and \emph{maintainability}.  The main purpose is
+  to tell an informed reader what is really going on and how things
+  really work.  This is a non-trivial aim, but it is supported by a
+  certain style of writing Isabelle/ML that has emerged from long
+  years of system development.\footnote{See also the interesting style
+  guide for OCaml
   \url{http://caml.inria.fr/resources/doc/guides/guidelines.en.html}
   which shares many of our means and ends.}
 
   The main principle behind any coding style is \emph{consistency}.
-  For a single author and a small project this merely means ``choose
+  For a single author of a small program this merely means ``choose
   your style and stick to it''.  A complex project like Isabelle, with
-  long years of development and different contributors this requires
-  more and more standardization.  A coding style that is changed every
-  few years or with every new contributor is no style at all, because
-  consistency is quickly lost.  Global consistency is hard to achieve,
-  but one should always strife at least for local consistency of
-  modules and sub-systems, without deviating from some general
-  principles how to write Isabelle/ML.
+  long years of development and different contributors, requires more
+  standardization.  A coding style that is changed every few years or
+  with every new contributor is no style at all, because consistency
+  is quickly lost.  Global consistency is hard to achieve, though.
+  One should always strife at least for local consistency of modules
+  and sub-systems, without deviating from some general principles how
+  to write Isabelle/ML.
 
   In a sense, a common coding style is like an \emph{orthography} for
-  the sources: it helps to read quickly over it and see through the
-  main points, without getting distracted by accidental presentation
-  of free-style text.
-*}
-
-
-subsection {* Basic naming conventions *}
-
-text {* Since ML is the primary medium to express the meaning of the
-  source text, naming of ML entities requires special care.
-
-  FIXME
+  the sources: it helps to read quickly over the text and see through
+  the main points, without getting distracted by accidental
+  presentation of free-style source.
 *}
 
 
 subsection {* Header and sectioning *}
 
-text {* Isabelle source files have a certain standardized header that
-  follows ancient traditions back to the earliest versions of the
-  system by Larry Paulson (including precise spacing).  E.g.\ see
-  @{"file" "~~/src/Pure/thm.ML"}.
+text {* Isabelle source files have a certain standardized header
+  format (with precise spacing) that follows ancient traditions
+  reaching back to the earliest versions of the system by Larry
+  Paulson.  E.g.\ see @{"file" "~~/src/Pure/thm.ML"}.
 
   The header includes at least @{verbatim Title} and @{verbatim
   Author} entries, followed by a prose description of the purpose of
@@ -80,8 +71,8 @@ text {* Isabelle source files have a certain standardized header that
   paragraphs of explanations.
 
   The rest of the file is divided into sections, subsections,
-  subsubsections, paragraphs etc.\ using some simple layout via ML
-  comments as follows.
+  subsubsections, paragraphs etc.\ using some a layout via ML comments
+  as follows.
 
 \begin{verbatim}
 (*** section ***)
@@ -103,8 +94,17 @@ text {* Isabelle source files have a certain standardized header that
   as in the example above).
 
   \medskip The precise wording of the prose text given in these
-  headings is chosen carefully to indicate the main theme of what is
-  coming next in the formal ML text.
+  headings is chosen carefully to indicate the main theme of the
+  subsequent formal ML text.
+*}
+
+
+subsection {* Basic naming conventions *}
+
+text {* Since ML is the primary medium to express the meaning of the
+  source text, naming of ML entities requires special care.
+
+  FIXME
 *}
 
 
@@ -116,15 +116,15 @@ text {* The general Isabelle/ML source layout imitates regular
   programming.
 
   \paragraph{Line length} is 80 characters according to ancient
-  standards, but we allow as much as 100 characters to acknowledge the
-  extra space requirements due to the relatively long fully-qualified
-  library references in Isabelle/ML.
+  standards, but we allow as much as 100 characters, not more.  This
+  acknowledges extra the space requirements due to qualified library
+  references in Isabelle/ML.
 
   \paragraph{White-space} is used to emphasize the structure of
   expressions, following mostly standard conventions for mathematical
   typesetting, as can be seen in plain {\TeX} or {\LaTeX}.  This
-  defines positioning of spaces for parentheses, punctuation, infixes
-  as illustrated here:
+  defines positioning of spaces for parentheses, punctuation, and
+  infixes as illustrated here:
 
   \begin{verbatim}
   val x = y + z * (a + b);
@@ -132,8 +132,8 @@ text {* The general Isabelle/ML source layout imitates regular
   val record = {foo = 1, bar = 2};
   \end{verbatim}
 
-  Lines are normally broken after an infix operator or punctuation
-  character.  E.g.\
+  Lines are normally broken \emph{after} an infix operator or
+  punctuation character.  For example:
 
   \begin{verbatim}
   val x =
@@ -148,15 +148,15 @@ text {* The general Isabelle/ML source layout imitates regular
   \end{verbatim}
 
   Some special infixes (e.g.\ @{verbatim "|>"}) work better at the
-  start of the line.  For punctuation there are no such exceptions.
+  start of the line, but punctuation is always at the end.
 
   Function application follows the tradition of @{text "\<lambda>"}-calculus,
   not informal mathematics.  For example: @{verbatim "f a b"} for a
   curried function, or @{verbatim "g (a, b)"} for a tupled function.
   Note that the space between @{verbatim g} and the pair @{verbatim
-  "(a, b)"} follows the important principle of compositionality: the
-  layout of @{verbatim "g p"} does not change when @{verbatim "p"} is
-  refined to a concrete pair.
+  "(a, b)"} follows the important principle of
+  \emph{compositionality}: the layout of @{verbatim "g p"} does not
+  change when @{verbatim "p"} is refined to a concrete pair.
 
   \paragraph{Indentation} uses plain spaces, never hard
   tabulators.\footnote{Tabulators were invented to move the carriage
@@ -165,37 +165,39 @@ text {* The general Isabelle/ML source layout imitates regular
   spaces, but the precise result would depend on non-standardized
   editor configuration.}
 
-  Each level of logical nesting is indented by 2 spaces, sometimes 1;
-  very rarely 4, never 8.
+  Each level of nesting is indented by 2 spaces, sometimes 1, very
+  rarely 4, never 8.
 
-  Indentation follows the simple ``logical form'' that only depends on
-  the nesting depth, not the accidental length of the text that
-  initiates a level of nesting.  Example:
+  Indentation follows a simple logical format that only depends on the
+  nesting depth, not the accidental length of the text that initiates
+  a level of nesting.  Example:
 
   \begin{verbatim}
-  (*right*)
+  (*RIGHT*)
   if b then
-    expr1
+    expr1_part1
+    expr1_part2
   else
-    expr2
+    expr2_part1
+    expr2_part2
 
-  (*wrong*)
-  if b then
-            expr1
-  else
-            expr2
+  (*WRONG*)
+  if b then expr1_part1
+            expr1_part2
+  else expr2_part1
+       expr2_part2
   \end{verbatim}
 
   The second form has many problems: it assumes a fixed-width font
-  when viewing the sources, it uses more space on the line and makes
-  it hard to observe its strict length limit (working against
+  when viewing the sources, it uses more space on the line and thus
+  makes it hard to observe its strict length limit (working against
   \emph{readability}), it requires extra editing to adapt the layout
-  to changes of the initial expression @{verbatim b} (working against
+  to changes of the initial text (working against
   \emph{maintainability}) etc.
 
-  \medskip Any kind of two-dimensional or tabular layouts, ASCII-art
-  with lines or boxes of stars etc. should be avoided for the same
-  reasons.
+  \medskip For similar reasons, any kind of two-dimensional or tabular
+  layouts, ASCII-art with lines or boxes of stars etc. should be
+  avoided.
 *}
 
 
