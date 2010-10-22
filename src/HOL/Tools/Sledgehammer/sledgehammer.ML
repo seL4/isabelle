@@ -10,6 +10,7 @@ signature SLEDGEHAMMER =
 sig
   type failure = ATP_Systems.failure
   type locality = Sledgehammer_Filter.locality
+  type relevance_fudge = Sledgehammer_Filter.relevance_fudge
   type relevance_override = Sledgehammer_Filter.relevance_override
   type prepared_formula = Sledgehammer_ATP_Translate.prepared_formula
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
@@ -51,6 +52,7 @@ sig
 
   val smtN : string
   val default_max_relevant_for_prover : theory -> string -> int
+  val relevance_fudge_for_prover : string -> relevance_fudge
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
@@ -87,12 +89,57 @@ val das_Tool = "Sledgehammer"
 val smtN = "smt"
 val smt_prover_names = [smtN, remote_prefix ^ smtN]
 
+val is_smt_prover = member (op =) smt_prover_names
+
 val smt_default_max_relevant = 300 (* FUDGE *)
 val auto_max_relevant_divisor = 2 (* FUDGE *)
 
 fun default_max_relevant_for_prover thy name =
-  if member (op =) smt_prover_names name then smt_default_max_relevant
+  if is_smt_prover name then smt_default_max_relevant
   else #default_max_relevant (get_atp thy name)
+
+(* FUDGE *)
+val atp_relevance_fudge =
+  {worse_irrel_freq = 100.0,
+   higher_order_irrel_weight = 1.05,
+   abs_rel_weight = 0.5,
+   abs_irrel_weight = 2.0,
+   skolem_irrel_weight = 0.75,
+   theory_const_rel_weight = 0.5,
+   theory_const_irrel_weight = 0.25,
+   intro_bonus = 0.15,
+   elim_bonus = 0.15,
+   simp_bonus = 0.15,
+   local_bonus = 0.55,
+   assum_bonus = 1.05,
+   chained_bonus = 1.5,
+   max_imperfect = 11.5,
+   max_imperfect_exp = 1.0,
+   threshold_divisor = 2.0,
+   ridiculous_threshold = 0.1}
+
+(* FUDGE *)
+val smt_relevance_fudge =
+  {worse_irrel_freq = 100.0,
+   higher_order_irrel_weight = 1.05,
+   abs_rel_weight = 0.5,
+   abs_irrel_weight = 2.0,
+   skolem_irrel_weight = 0.75,
+   theory_const_rel_weight = 0.5,
+   theory_const_irrel_weight = 0.25,
+   intro_bonus = 0.15,
+   elim_bonus = 0.15,
+   simp_bonus = 0.15,
+   local_bonus = 0.55,
+   assum_bonus = 1.05,
+   chained_bonus = 1.5,
+   max_imperfect = 11.5,
+   max_imperfect_exp = 1.0,
+   threshold_divisor = 2.0,
+   ridiculous_threshold = 0.1}
+
+fun relevance_fudge_for_prover name =
+  if is_smt_prover name then smt_relevance_fudge else atp_relevance_fudge
 
 fun available_provers thy =
   let
@@ -364,10 +411,8 @@ fun run_smt_solver remote ({timeout, ...} : params) minimize_command
   end
 
 fun get_prover thy auto name =
-  if member (op =) smt_prover_names name then
-    run_smt_solver (String.isPrefix remote_prefix)
-  else
-    run_atp auto name (get_atp thy name)
+  if is_smt_prover name then run_smt_solver (String.isPrefix remote_prefix)
+  else run_atp auto name (get_atp thy name)
 
 fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
                auto minimize_command
@@ -439,9 +484,9 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val _ = () |> not blocking ? kill_provers
       val _ = if auto then () else priority "Sledgehammering..."
-      val (smts, atps) =
-        provers |> List.partition (member (op =) smt_prover_names)
-      fun run_provers full_types maybe_prepare provers (res as (success, state)) =
+      val (smts, atps) = provers |> List.partition is_smt_prover
+      fun run_provers full_types relevance_fudge maybe_prepare provers
+                      (res as (success, state)) =
         if success orelse null provers then
           res
         else
@@ -455,8 +500,8 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
                   |> auto ? (fn n => n div auto_max_relevant_divisor)
             val axioms =
               relevant_facts ctxt full_types relevance_thresholds
-                             max_max_relevant relevance_override chained_ths
-                             hyp_ts concl_t
+                             max_max_relevant relevance_fudge relevance_override
+                             chained_ths hyp_ts concl_t
               |> map maybe_prepare
             val problem =
               {state = state, goal = goal, subgoal = i, subgoal_count = n,
@@ -472,8 +517,9 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
                              (run_prover problem)
                       |> exists fst |> rpair state
           end
-      val run_atps = run_provers full_types (Prepared o prepare_axiom ctxt) atps
-      val run_smts = run_provers true Unprepared smts
+      val run_atps = run_provers full_types atp_relevance_fudge
+                                 (Prepared o prepare_axiom ctxt) atps
+      val run_smts = run_provers true smt_relevance_fudge Unprepared smts
       fun run_atps_and_smt_solvers () =
         [run_atps, run_smts] |> Par_List.map (fn f => f (false, state) |> K ())
     in
