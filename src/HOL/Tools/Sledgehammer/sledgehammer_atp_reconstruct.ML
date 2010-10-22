@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_reconstruct.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_atp_reconstruct.ML
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen

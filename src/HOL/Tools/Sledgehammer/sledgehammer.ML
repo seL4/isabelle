@@ -12,7 +12,7 @@ sig
   type locality = Sledgehammer_Filter.locality
   type relevance_fudge = Sledgehammer_Filter.relevance_fudge
   type relevance_override = Sledgehammer_Filter.relevance_override
-  type prepared_formula = Sledgehammer_ATP_Translate.prepared_formula
+  type translated_formula = Sledgehammer_ATP_Translate.translated_formula
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
 
   type params =
@@ -31,8 +31,8 @@ sig
      expect: string}
 
   datatype axiom =
-    Unprepared of (string * locality) * thm |
-    Prepared of term * ((string * locality) * prepared_formula) option
+    Untranslated of (string * locality) * thm |
+    Translated of term * ((string * locality) * translated_formula) option
 
   type prover_problem =
     {state: Proof.state,
@@ -195,8 +195,8 @@ type params =
    expect: string}
 
 datatype axiom =
-  Unprepared of (string * locality) * thm |
-  Prepared of term * ((string * locality) * prepared_formula) option
+  Untranslated of (string * locality) * thm |
+  Translated of term * ((string * locality) * translated_formula) option
 
 type prover_problem =
   {state: Proof.state,
@@ -250,10 +250,10 @@ fun proof_banner auto =
 
 (* generic TPTP-based ATPs *)
 
-fun dest_Unprepared (Unprepared p) = p
-  | dest_Unprepared (Prepared _) = raise Fail "dest_Unprepared"
-fun prepared_axiom ctxt (Unprepared p) = prepare_axiom ctxt p
-  | prepared_axiom _ (Prepared p) = p
+fun dest_Untranslated (Untranslated p) = p
+  | dest_Untranslated (Translated _) = raise Fail "dest_Untranslated"
+fun translated_axiom ctxt (Untranslated p) = translate_axiom ctxt p
+  | translated_axiom _ (Translated p) = p
 
 fun int_option_add (SOME m) (SOME n) = SOME (m + n)
   | int_option_add _ _ = NONE
@@ -275,7 +275,7 @@ fun run_atp auto atp_name
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val axioms =
       axioms |> not only ? take (the_default default_max_relevant max_relevant)
-             |> map (prepared_axiom ctxt)
+             |> map (translated_axiom ctxt)
     val dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                    else Config.get ctxt dest_dir
     val problem_prefix = Config.get ctxt problem_prefix
@@ -418,7 +418,7 @@ fun run_smt_solver remote ({timeout, ...} : params) minimize_command
   let
     val {outcome, used_axioms, run_time_in_msecs} =
       saschas_run_smt_solver remote timeout state
-                             (map_filter (try dest_Unprepared) axioms) subgoal
+                             (map_filter (try dest_Untranslated) axioms) subgoal
     val message =
       if outcome = NONE then
         try_command_line (proof_banner false)
@@ -507,8 +507,8 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
       val _ = () |> not blocking ? kill_provers
       val _ = if auto then () else priority "Sledgehammering..."
       val (smts, atps) = provers |> List.partition is_smt_prover
-      fun run_provers full_types irrelevant_consts relevance_fudge maybe_prepare
-                      provers (res as (success, state)) =
+      fun run_provers full_types irrelevant_consts relevance_fudge
+                      maybe_translate provers (res as (success, state)) =
         if success orelse null provers then
           res
         else
@@ -524,7 +524,7 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
               relevant_facts ctxt full_types relevance_thresholds
                              max_max_relevant irrelevant_consts relevance_fudge
                              relevance_override chained_ths hyp_ts concl_t
-              |> map maybe_prepare
+              |> map maybe_translate
             val problem =
               {state = state, goal = goal, subgoal = i, subgoal_count = n,
                axioms = axioms, only = only}
@@ -541,9 +541,9 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
           end
       val run_atps =
         run_provers full_types atp_irrelevant_consts atp_relevance_fudge
-                    (Prepared o prepare_axiom ctxt) atps
+                    (Translated o translate_axiom ctxt) atps
       val run_smts =
-        run_provers true smt_irrelevant_consts smt_relevance_fudge Unprepared
+        run_provers true smt_irrelevant_consts smt_relevance_fudge Untranslated
                     smts
       fun run_atps_and_smt_solvers () =
         [run_atps, run_smts] |> Par_List.map (fn f => f (false, state) |> K ())
