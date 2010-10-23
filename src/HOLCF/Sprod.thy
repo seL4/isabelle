@@ -104,6 +104,10 @@ by simp
 lemma spair_defined_rev: "(:x, y:) = \<bottom> \<Longrightarrow> x = \<bottom> \<or> y = \<bottom>"
 by simp
 
+lemma spair_below:
+  "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<sqsubseteq> (:a, b:) = (x \<sqsubseteq> a \<and> y \<sqsubseteq> b)"
+by (simp add: spair_below_iff)
+
 lemma spair_eq:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> ((:x, y:) = (:a, b:)) = (x = a \<and> y = b)"
 by (simp add: spair_eq_iff)
@@ -148,19 +152,10 @@ lemma spair_sfst_ssnd: "(:sfst\<cdot>p, ssnd\<cdot>p:) = p"
 by (cases p, simp_all)
 
 lemma below_sprod: "x \<sqsubseteq> y = (sfst\<cdot>x \<sqsubseteq> sfst\<cdot>y \<and> ssnd\<cdot>x \<sqsubseteq> ssnd\<cdot>y)"
-apply (simp add: below_Sprod_def sfst_def ssnd_def cont_Rep_Sprod)
-apply (simp only: below_prod_def)
-done
+by (simp add: Rep_Sprod_simps sfst_def ssnd_def cont_Rep_Sprod)
 
 lemma eq_sprod: "(x = y) = (sfst\<cdot>x = sfst\<cdot>y \<and> ssnd\<cdot>x = ssnd\<cdot>y)"
 by (auto simp add: po_eq_conv below_sprod)
-
-lemma spair_below:
-  "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<sqsubseteq> (:a, b:) = (x \<sqsubseteq> a \<and> y \<sqsubseteq> b)"
-apply (cases "a = \<bottom>", simp)
-apply (cases "b = \<bottom>", simp)
-apply (simp add: below_sprod)
-done
 
 lemma sfst_below_iff: "sfst\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> (:y, ssnd\<cdot>x:)"
 apply (cases "x = \<bottom>", simp, cases "y = \<bottom>", simp)
