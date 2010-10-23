@@ -5,11 +5,10 @@
 header {* Function Definitions and Termination Proofs *}
 
 theory FunDef
-imports Wellfounded
+imports Partial_Function Wellfounded
 uses
   "Tools/prop_logic.ML"
   "Tools/sat_solver.ML"
-  ("Tools/Function/function_lib.ML")
   ("Tools/Function/function_common.ML")
   ("Tools/Function/context_tree.ML")
   ("Tools/Function/function_core.ML")
@@ -101,7 +100,6 @@ lemma wf_in_rel:
   "wf R \<Longrightarrow> wfP (in_rel R)"
   by (simp add: wfP_def)
 
-use "Tools/Function/function_lib.ML"
 use "Tools/Function/function_common.ML"
 use "Tools/Function/context_tree.ML"
 use "Tools/Function/function_core.ML"

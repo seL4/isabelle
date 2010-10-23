@@ -145,6 +145,7 @@ $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 
 PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Complete_Lattice.thy \
+  Complete_Partial_Order.thy \
   Datatype.thy \
   Extraction.thy \
   Fields.thy \
@@ -159,6 +160,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Nat.thy \
   Option.thy \
   Orderings.thy \
+  Partial_Function.thy \
   Plain.thy \
   Power.thy \
   Predicate.thy \
@@ -190,6 +192,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Function/lexicographic_order.ML \
   Tools/Function/measure_functions.ML \
   Tools/Function/mutual.ML \
+  Tools/Function/partial_function.ML \
   Tools/Function/pat_completeness.ML \
   Tools/Function/pattern_split.ML \
   Tools/Function/relation.ML \
