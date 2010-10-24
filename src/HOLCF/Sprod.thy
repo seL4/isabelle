@@ -12,12 +12,12 @@ default_sort pcpo
 
 subsection {* Definition of strict product type *}
 
-pcpodef (Sprod)  ('a, 'b) sprod (infixr "**" 20) =
+pcpodef ('a, 'b) sprod (infixr "**" 20) =
         "{p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
 by simp_all
 
 instance sprod :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
-by (rule typedef_chfin [OF type_definition_Sprod below_Sprod_def])
+by (rule typedef_chfin [OF type_definition_sprod below_sprod_def])
 
 type_notation (xsymbols)
   sprod  ("(_ \<otimes>/ _)" [21,20] 20)
@@ -28,15 +28,15 @@ subsection {* Definitions of constants *}
 
 definition
   sfst :: "('a ** 'b) \<rightarrow> 'a" where
-  "sfst = (\<Lambda> p. fst (Rep_Sprod p))"
+  "sfst = (\<Lambda> p. fst (Rep_sprod p))"
 
 definition
   ssnd :: "('a ** 'b) \<rightarrow> 'b" where
-  "ssnd = (\<Lambda> p. snd (Rep_Sprod p))"
+  "ssnd = (\<Lambda> p. snd (Rep_sprod p))"
 
 definition
   spair :: "'a \<rightarrow> 'b \<rightarrow> ('a ** 'b)" where
-  "spair = (\<Lambda> a b. Abs_Sprod (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b))"
+  "spair = (\<Lambda> a b. Abs_sprod (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b))"
 
 definition
   ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a ** 'b) \<rightarrow> 'c" where
@@ -53,20 +53,20 @@ translations
 
 subsection {* Case analysis *}
 
-lemma spair_Sprod: "(strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b) \<in> Sprod"
-by (simp add: Sprod_def strict_conv_if)
+lemma spair_sprod: "(strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b) \<in> sprod"
+by (simp add: sprod_def strict_conv_if)
 
-lemma Rep_Sprod_spair: "Rep_Sprod (:a, b:) = (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b)"
-by (simp add: spair_def cont_Abs_Sprod Abs_Sprod_inverse spair_Sprod)
+lemma Rep_sprod_spair: "Rep_sprod (:a, b:) = (strict\<cdot>b\<cdot>a, strict\<cdot>a\<cdot>b)"
+by (simp add: spair_def cont_Abs_sprod Abs_sprod_inverse spair_sprod)
 
-lemmas Rep_Sprod_simps =
-  Rep_Sprod_inject [symmetric] below_Sprod_def
+lemmas Rep_sprod_simps =
+  Rep_sprod_inject [symmetric] below_sprod_def
   Pair_fst_snd_eq below_prod_def
-  Rep_Sprod_strict Rep_Sprod_spair
+  Rep_sprod_strict Rep_sprod_spair
 
 lemma sprodE [case_names bottom spair, cases type: sprod]:
   obtains "p = \<bottom>" | x y where "p = (:x, y:)" and "x \<noteq> \<bottom>" and "y \<noteq> \<bottom>"
-using Rep_Sprod [of p] by (auto simp add: Sprod_def Rep_Sprod_simps)
+using Rep_sprod [of p] by (auto simp add: sprod_def Rep_sprod_simps)
 
 lemma sprod_induct [case_names bottom spair, induct type: sprod]:
   "\<lbrakk>P \<bottom>; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> P (:x, y:)\<rbrakk> \<Longrightarrow> P x"
@@ -75,22 +75,22 @@ by (cases x, simp_all)
 subsection {* Properties of \emph{spair} *}
 
 lemma spair_strict1 [simp]: "(:\<bottom>, y:) = \<bottom>"
-by (simp add: Rep_Sprod_simps)
+by (simp add: Rep_sprod_simps)
 
 lemma spair_strict2 [simp]: "(:x, \<bottom>:) = \<bottom>"
-by (simp add: Rep_Sprod_simps)
+by (simp add: Rep_sprod_simps)
 
 lemma spair_strict_iff [simp]: "((:x, y:) = \<bottom>) = (x = \<bottom> \<or> y = \<bottom>)"
-by (simp add: Rep_Sprod_simps strict_conv_if)
+by (simp add: Rep_sprod_simps strict_conv_if)
 
 lemma spair_below_iff:
   "((:a, b:) \<sqsubseteq> (:c, d:)) = (a = \<bottom> \<or> b = \<bottom> \<or> (a \<sqsubseteq> c \<and> b \<sqsubseteq> d))"
-by (simp add: Rep_Sprod_simps strict_conv_if)
+by (simp add: Rep_sprod_simps strict_conv_if)
 
 lemma spair_eq_iff:
   "((:a, b:) = (:c, d:)) =
     (a = c \<and> b = d \<or> (a = \<bottom> \<or> b = \<bottom>) \<and> (c = \<bottom> \<or> d = \<bottom>))"
-by (simp add: Rep_Sprod_simps strict_conv_if)
+by (simp add: Rep_sprod_simps strict_conv_if)
 
 lemma spair_strict: "x = \<bottom> \<or> y = \<bottom> \<Longrightarrow> (:x, y:) = \<bottom>"
 by simp
@@ -125,16 +125,16 @@ by (cases p, simp only: inst_sprod_pcpo2, simp)
 subsection {* Properties of \emph{sfst} and \emph{ssnd} *}
 
 lemma sfst_strict [simp]: "sfst\<cdot>\<bottom> = \<bottom>"
-by (simp add: sfst_def cont_Rep_Sprod Rep_Sprod_strict)
+by (simp add: sfst_def cont_Rep_sprod Rep_sprod_strict)
 
 lemma ssnd_strict [simp]: "ssnd\<cdot>\<bottom> = \<bottom>"
-by (simp add: ssnd_def cont_Rep_Sprod Rep_Sprod_strict)
+by (simp add: ssnd_def cont_Rep_sprod Rep_sprod_strict)
 
 lemma sfst_spair [simp]: "y \<noteq> \<bottom> \<Longrightarrow> sfst\<cdot>(:x, y:) = x"
-by (simp add: sfst_def cont_Rep_Sprod Rep_Sprod_spair)
+by (simp add: sfst_def cont_Rep_sprod Rep_sprod_spair)
 
 lemma ssnd_spair [simp]: "x \<noteq> \<bottom> \<Longrightarrow> ssnd\<cdot>(:x, y:) = y"
-by (simp add: ssnd_def cont_Rep_Sprod Rep_Sprod_spair)
+by (simp add: ssnd_def cont_Rep_sprod Rep_sprod_spair)
 
 lemma sfst_defined_iff [simp]: "(sfst\<cdot>p = \<bottom>) = (p = \<bottom>)"
 by (cases p, simp_all)
@@ -152,7 +152,7 @@ lemma spair_sfst_ssnd: "(:sfst\<cdot>p, ssnd\<cdot>p:) = p"
 by (cases p, simp_all)
 
 lemma below_sprod: "x \<sqsubseteq> y = (sfst\<cdot>x \<sqsubseteq> sfst\<cdot>y \<and> ssnd\<cdot>x \<sqsubseteq> ssnd\<cdot>y)"
-by (simp add: Rep_Sprod_simps sfst_def ssnd_def cont_Rep_Sprod)
+by (simp add: Rep_sprod_simps sfst_def ssnd_def cont_Rep_sprod)
 
 lemma eq_sprod: "(x = y) = (sfst\<cdot>x = sfst\<cdot>y \<and> ssnd\<cdot>x = ssnd\<cdot>y)"
 by (auto simp add: po_eq_conv below_sprod)
@@ -176,7 +176,7 @@ lemma compact_ssnd: "compact x \<Longrightarrow> compact (ssnd\<cdot>x)"
 by (rule compactI, simp add: ssnd_below_iff)
 
 lemma compact_spair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact (:x, y:)"
-by (rule compact_Sprod, simp add: Rep_Sprod_spair strict_conv_if)
+by (rule compact_sprod, simp add: Rep_sprod_spair strict_conv_if)
 
 lemma compact_spair_iff:
   "compact (:x, y:) = (x = \<bottom> \<or> y = \<bottom> \<or> (compact x \<and> compact y))"
