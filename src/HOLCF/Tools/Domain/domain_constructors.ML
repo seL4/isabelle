@@ -414,7 +414,7 @@ fun add_case_combinator
       val case_bind = Binding.suffix_name "_when" dbind;
       fun lambda_arg (lazy, v) t =
           (if lazy then mk_fup else I) (big_lambda v t);
-      fun lambda_args []      t = mk_one_when t
+      fun lambda_args []      t = mk_one_case t
         | lambda_args (x::[]) t = lambda_arg x t
         | lambda_args (x::xs) t = mk_ssplit (lambda_arg x (lambda_args xs t));
       fun one_con f (_, args) =
@@ -490,7 +490,7 @@ fun add_case_combinator
       let
         val defs = case_beta :: map mk_meta_eq [rep_strict, @{thm cfcomp2}];
         val goal = mk_trp (mk_strict case_app);
-        val rules = @{thms sscase1 ssplit1 strictify1 one_when1};
+        val rules = @{thms sscase1 ssplit1 strictify1 one_case1};
         val tacs = [resolve_tac rules 1];
       in prove thy defs goal (K tacs) end;
         
@@ -507,7 +507,7 @@ fun add_case_combinator
           val defs = case_beta :: con_betas;
           val rules1 = @{thms strictify2 sscase2 sscase3 ssplit2 fup2 ID1};
           val rules2 = @{thms con_defined_iff_rules};
-          val rules3 = @{thms cfcomp2 one_when2};
+          val rules3 = @{thms cfcomp2 one_case2};
           val rules = abs_inverse :: rules1 @ rules2 @ rules3;
           val tacs = [asm_simp_tac (beta_ss addsimps rules) 1];
         in prove thy defs goal (K tacs) end;

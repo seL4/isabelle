@@ -174,8 +174,8 @@ fun from_up T = fup_const (T, T) ` mk_ID T;
 
 val oneT = @{typ "one"};
 
-fun one_when_const T = Const (@{const_name one_when}, T ->> oneT ->> T);
-fun mk_one_when t = one_when_const (fastype_of t) ` t;
+fun one_case_const T = Const (@{const_name one_case}, T ->> oneT ->> T);
+fun mk_one_case t = one_case_const (fastype_of t) ` t;
 
 
 (*** Strict product type ***)

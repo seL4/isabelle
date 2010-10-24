@@ -53,20 +53,20 @@ by (rule compact_chfin)
 text {* Case analysis function for type @{typ one} *}
 
 definition
-  one_when :: "'a::pcpo \<rightarrow> one \<rightarrow> 'a" where
-  "one_when = (\<Lambda> a x. strict\<cdot>x\<cdot>a)"
+  one_case :: "'a::pcpo \<rightarrow> one \<rightarrow> 'a" where
+  "one_case = (\<Lambda> a x. strict\<cdot>x\<cdot>a)"
 
 translations
-  "case x of XCONST ONE \<Rightarrow> t" == "CONST one_when\<cdot>t\<cdot>x"
-  "\<Lambda> (XCONST ONE). t" == "CONST one_when\<cdot>t"
+  "case x of XCONST ONE \<Rightarrow> t" == "CONST one_case\<cdot>t\<cdot>x"
+  "\<Lambda> (XCONST ONE). t" == "CONST one_case\<cdot>t"
 
-lemma one_when1 [simp]: "(case \<bottom> of ONE \<Rightarrow> t) = \<bottom>"
-by (simp add: one_when_def)
+lemma one_case1 [simp]: "(case \<bottom> of ONE \<Rightarrow> t) = \<bottom>"
+by (simp add: one_case_def)
 
-lemma one_when2 [simp]: "(case ONE of ONE \<Rightarrow> t) = t"
-by (simp add: one_when_def)
+lemma one_case2 [simp]: "(case ONE of ONE \<Rightarrow> t) = t"
+by (simp add: one_case_def)
 
-lemma one_when3 [simp]: "(case x of ONE \<Rightarrow> ONE) = x"
+lemma one_case3 [simp]: "(case x of ONE \<Rightarrow> ONE) = x"
 by (induct x rule: one_induct) simp_all
 
 end
