@@ -140,9 +140,9 @@ thm tree.inverts
 thm tree.injects
 
 text {* Rules about case combinator *}
-term tree_when
-thm tree.tree_when_def
-thm tree.when_rews
+term tree_case
+thm tree.tree_case_def
+thm tree.case_rews
 
 text {* Rules about selectors *}
 term left

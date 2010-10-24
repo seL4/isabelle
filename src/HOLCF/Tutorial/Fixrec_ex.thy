@@ -208,8 +208,8 @@ lemma repeat_simps [simp]:
   "repeat\<cdot>x = lCons\<cdot>y\<cdot>ys \<longleftrightarrow> x = y \<and> repeat\<cdot>x = ys"
 by (subst repeat.simps, simp)+
 
-lemma llist_when_repeat [simp]:
-  "llist_when\<cdot>z\<cdot>f\<cdot>(repeat\<cdot>x) = f\<cdot>x\<cdot>(repeat\<cdot>x)"
+lemma llist_case_repeat [simp]:
+  "llist_case\<cdot>z\<cdot>f\<cdot>(repeat\<cdot>x) = f\<cdot>x\<cdot>(repeat\<cdot>x)"
 by (subst repeat.simps, simp)
 
 text {*

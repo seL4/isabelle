@@ -411,7 +411,7 @@ fun add_case_combinator
 
     (* definition of case combinator *)
     local
-      val case_bind = Binding.suffix_name "_when" dbind;
+      val case_bind = Binding.suffix_name "_case" dbind;
       fun lambda_arg (lazy, v) t =
           (if lazy then mk_fup else I) (big_lambda v t);
       fun lambda_args []      t = mk_one_case t
@@ -938,7 +938,7 @@ fun add_domain_constructors
           ((qualified "iso_rews"  , iso_rews    ), [simp]),
           ((qualified "nchotomy"  , [nchotomy]  ), []),
           ((qualified "exhaust"   , [exhaust]   ), [case_names, cases_type]),
-          ((qualified "when_rews" , cases       ), [simp]),
+          ((qualified "case_rews" , cases       ), [simp]),
           ((qualified "compacts"  , compacts    ), [simp]),
           ((qualified "con_rews"  , con_rews    ), [simp]),
           ((qualified "sel_rews"  , sel_thms    ), [simp]),

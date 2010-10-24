@@ -96,13 +96,13 @@ by (drule ax_flat,simp)
 
 
 (* ----------------------------------------------------------------------- *)
-(* theorems about stream_when                                              *)
+(* theorems about stream_case                                              *)
 (* ----------------------------------------------------------------------- *)
 
-section "stream_when"
+section "stream_case"
 
 
-lemma stream_when_strictf: "stream_when$UU$s=UU"
+lemma stream_case_strictf: "stream_case$UU$s=UU"
 by (cases s, auto)
 
 
