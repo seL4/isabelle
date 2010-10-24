@@ -266,7 +266,7 @@ proof (induct n arbitrary: P rule: nat_less_induct)
     proof cases
       assume "even l"
       then have "Suc l div 2 = l div 2"
-        by (simp add: nat_number even_nat_plus_one_div_two)
+        by (simp add: eval_nat_numeral even_nat_plus_one_div_two)
       moreover
       from Suc have "l < k" by simp
       with 1 have "\<And>P. Ipol ls (pow l P) = Ipol ls P ^ l" by simp

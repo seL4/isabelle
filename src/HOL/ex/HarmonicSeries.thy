@@ -153,7 +153,7 @@ next
              (auto simp: atLeastSucAtMost_greaterThanAtMost)
         also have
           "\<dots> = ((\<Sum>n\<in>{2..2::nat}. 1/real n) + 1/(real (1::nat)))"
-          by (simp add: nat_number)
+          by (simp add: eval_nat_numeral)
         also have
           "\<dots> =  1/(real (2::nat)) + 1/(real (1::nat))" by simp
         finally have

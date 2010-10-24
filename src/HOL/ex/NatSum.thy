@@ -70,9 +70,9 @@ next
   have "(\<Sum>i = 0..Suc n. i)^2 =
         (\<Sum>i = 0..n. i^3) + (2*(\<Sum>i = 0..n. i)*(n+1) + (n+1)^2)"
     (is "_ = ?A + ?B")
-    using Suc by(simp add:nat_number)
+    using Suc by(simp add:eval_nat_numeral)
   also have "?B = (n+1)^3"
-    using sum_of_naturals by(simp add:nat_number)
+    using sum_of_naturals by(simp add:eval_nat_numeral)
   also have "?A + (n+1)^3 = (\<Sum>i=0..Suc n. i^3)" by simp
   finally show ?case .
 qed

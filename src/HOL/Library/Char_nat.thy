@@ -171,7 +171,7 @@ proof -
   proof -
     fix n m
     have nat_of_nibble_less_eq_15: "\<And>n. nat_of_nibble n \<le> 15"
-      using Suc_leI [OF nat_of_nibble_less_16] by (auto simp add: nat_number)
+      using Suc_leI [OF nat_of_nibble_less_16] by (auto simp add: eval_nat_numeral)
     have less_eq_240: "nat_of_nibble n * 16 \<le> 240"
       using nat_of_nibble_less_eq_15 by auto
     have "nat_of_nibble n * 16 + nat_of_nibble m \<le> 240 + 15"
