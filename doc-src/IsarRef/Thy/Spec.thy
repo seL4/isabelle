@@ -837,11 +837,6 @@ text {*
     @{command_def "attribute_setup"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{mldecls}
-    @{index_ML bind_thms: "string * thm list -> unit"} \\
-    @{index_ML bind_thm: "string * thm -> unit"} \\
-  \end{mldecls}
-
   \begin{rail}
     'use' name
     ;
@@ -918,20 +913,6 @@ text {*
           let val context' = context
           in context' end)) *}  "my declaration"
 
-text {*
-  \begin{description}
-
-  \item @{ML bind_thms}~@{text "(name, thms)"} stores a list of
-  theorems produced in ML both in the theory context and the ML
-  toplevel, associating it with the provided name.  Theorems are put
-  into a global ``standard'' format before being stored.
-
-  \item @{ML bind_thm} is similar to @{ML bind_thms} but refers to a
-  singleton theorem.
-  
-  \end{description}
-*}
-
 
 section {* Primitive specification elements *}
 
@@ -973,7 +954,7 @@ text {*
 
   Usually the default sort is only changed when defining a new
   object-logic.  For example, the default sort in Isabelle/HOL is
-  @{text type}, the class of all HOL types.  %FIXME sort antiq?
+  @{class type}, the class of all HOL types.
 
   When merging theories, the default sorts of the parents are
   logically intersected, i.e.\ the representations as lists of classes

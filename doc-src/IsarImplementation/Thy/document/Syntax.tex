@@ -27,7 +27,7 @@ FIXME%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Parsing and printing%
+\isamarkupsection{Reading and pretty printing \label{sec:read-print}%
 }
 \isamarkuptrue%
 %
@@ -36,9 +36,156 @@ FIXME%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{Syntax.read\_typ}\verb|Syntax.read_typ: Proof.context -> string -> typ| \\
+  \indexdef{}{ML}{Syntax.read\_term}\verb|Syntax.read_term: Proof.context -> string -> term| \\
+  \indexdef{}{ML}{Syntax.read\_prop}\verb|Syntax.read_prop: Proof.context -> string -> term| \\
+  \indexdef{}{ML}{Syntax.pretty\_typ}\verb|Syntax.pretty_typ: Proof.context -> typ -> Pretty.T| \\
+  \indexdef{}{ML}{Syntax.pretty\_term}\verb|Syntax.pretty_term: Proof.context -> term -> Pretty.T| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item FIXME
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsection{Parsing and unparsing \label{sec:parse-unparse}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{Syntax.parse\_typ}\verb|Syntax.parse_typ: Proof.context -> string -> typ| \\
+  \indexdef{}{ML}{Syntax.parse\_term}\verb|Syntax.parse_term: Proof.context -> string -> term| \\
+  \indexdef{}{ML}{Syntax.parse\_prop}\verb|Syntax.parse_prop: Proof.context -> string -> term| \\
+  \indexdef{}{ML}{Syntax.unparse\_typ}\verb|Syntax.unparse_typ: Proof.context -> typ -> Pretty.T| \\
+  \indexdef{}{ML}{Syntax.unparse\_term}\verb|Syntax.unparse_term: Proof.context -> term -> Pretty.T| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item FIXME
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
 \isamarkupsection{Checking and unchecking \label{sec:term-check}%
 }
 \isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{Syntax.check\_typs}\verb|Syntax.check_typs: Proof.context -> typ list -> typ list| \\
+  \indexdef{}{ML}{Syntax.check\_terms}\verb|Syntax.check_terms: Proof.context -> term list -> term list| \\
+  \indexdef{}{ML}{Syntax.check\_props}\verb|Syntax.check_props: Proof.context -> term list -> term list| \\
+  \indexdef{}{ML}{Syntax.uncheck\_typs}\verb|Syntax.uncheck_typs: Proof.context -> typ list -> typ list| \\
+  \indexdef{}{ML}{Syntax.uncheck\_terms}\verb|Syntax.uncheck_terms: Proof.context -> term list -> term list| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item FIXME
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsection{Syntax translations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{class\_syntax}\hypertarget{ML antiquotation.class-syntax}{\hyperlink{ML antiquotation.class-syntax}{\mbox{\isa{class{\isacharunderscore}syntax}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{type\_syntax}\hypertarget{ML antiquotation.type-syntax}{\hyperlink{ML antiquotation.type-syntax}{\mbox{\isa{type{\isacharunderscore}syntax}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{const\_syntax}\hypertarget{ML antiquotation.const-syntax}{\hyperlink{ML antiquotation.const-syntax}{\mbox{\isa{const{\isacharunderscore}syntax}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{syntax\_const}\hypertarget{ML antiquotation.syntax-const}{\hyperlink{ML antiquotation.syntax-const}{\mbox{\isa{syntax{\isacharunderscore}const}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  ('class_syntax' | 'type_syntax' | 'const_syntax' | 'syntax_const') name
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item FIXME
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
 %
 \isadelimtheory
 %

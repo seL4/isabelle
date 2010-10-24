@@ -9,10 +9,43 @@
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
 \ Base\isanewline
-\isakeyword{imports}\ Pure\isanewline
+\isakeyword{imports}\ Main\isanewline
 \isakeyword{uses}\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isacharslash}{\isachardot}{\isachardot}{\isacharslash}antiquote{\isacharunderscore}setup{\isachardot}ML{\isachardoublequoteclose}\isanewline
-\isakeyword{begin}\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
 \isanewline
+%
+\endisadelimtheory
+\isanewline
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ ML{\isacharunderscore}Antiquote{\isachardot}inline\ {\isachardoublequote}assert{\isachardoublequote}\isanewline
+\ \ \ \ {\isacharparenleft}Scan{\isachardot}succeed\ {\isachardoublequote}{\isacharparenleft}fn\ b\ {\isacharequal}{\isachargreater}\ if\ b\ then\ {\isacharparenleft}{\isacharparenright}\ else\ raise\ General{\isachardot}Fail\ {\isacharbackslash}{\isachardoublequote}Assertion\ failed{\isacharbackslash}{\isachardoublequote}{\isacharparenright}{\isachardoublequote}{\isacharparenright}\isanewline
+{\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isadelimtheory
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
 \isacommand{end}\isamarkupfalse%
 %
 \endisatagtheory

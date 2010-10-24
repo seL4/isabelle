@@ -86,7 +86,7 @@ text %mlref {*
 *}
 
 
-section {* Tactics *}
+section {* Tactics\label{sec:tactics} *}
 
 text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*\<^sup>*"} that
   maps a given goal state (represented as a theorem, cf.\
@@ -180,14 +180,14 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type tactic} represents tactics.  The well-formedness
-  conditions described above need to be observed.  See also @{"file"
-  "~~/src/Pure/General/seq.ML"} for the underlying implementation of
-  lazy sequences.
+  \item Type @{ML_type tactic} represents tactics.  The
+  well-formedness conditions described above need to be observed.  See
+  also @{"file" "~~/src/Pure/General/seq.ML"} for the underlying
+  implementation of lazy sequences.
 
-  \item @{ML_type "int -> tactic"} represents tactics with explicit
-  subgoal addressing, with well-formedness conditions as described
-  above.
+  \item Type @{ML_type "int -> tactic"} represents tactics with
+  explicit subgoal addressing, with well-formedness conditions as
+  described above.
 
   \item @{ML no_tac} is a tactic that always fails, returning the
   empty sequence.
@@ -406,6 +406,8 @@ text {*
   Various search strategies may be expressed via tacticals.
 
   \medskip FIXME
-*}
+
+  \medskip The chapter on tacticals in \cite{isabelle-ref} is still
+  applicable, despite a few outdated details.  *}
 
 end
