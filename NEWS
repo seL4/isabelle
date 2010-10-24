@@ -94,6 +94,8 @@ techniques, in particular static evaluation conversions.
   set_ext -> set_eqI
  INCOMPATIBILITY.
 
+* Renamed lemma list: nat_number -> eval_nat_numeral
+
 * Renamed class eq and constant eq (for code generation) to class equal
 and constant equal, plus renaming of related facts and various tuning.
 INCOMPATIBILITY.
