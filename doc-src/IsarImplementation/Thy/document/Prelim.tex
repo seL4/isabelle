@@ -159,13 +159,13 @@ A \emph{theory} is a data container with explicit name and
 
   \medskip There is a separate notion of \emph{theory reference} for
   maintaining a live link to an evolving theory context: updates on
-  drafts are propagated automatically.  Dynamic updating stops after
-  an explicit \isa{end} only.
+  drafts are propagated automatically.  Dynamic updating stops when
+  the next \isa{checkpoint} is reached.
 
   Derived entities may store a theory reference in order to indicate
-  the context they belong to.  This implicitly assumes monotonic
-  reasoning, because the referenced context may become larger without
-  further notice.%
+  the formal context from which they are derived.  This implicitly
+  assumes monotonic reasoning, because the referenced context may
+  become larger without further notice.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -178,11 +178,14 @@ A \emph{theory} is a data container with explicit name and
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML type}{theory}\verb|type theory| \\
+  \indexdef{}{ML}{Theory.eq\_thy}\verb|Theory.eq_thy: theory * theory -> bool| \\
   \indexdef{}{ML}{Theory.subthy}\verb|Theory.subthy: theory * theory -> bool| \\
   \indexdef{}{ML}{Theory.checkpoint}\verb|Theory.checkpoint: theory -> theory| \\
   \indexdef{}{ML}{Theory.copy}\verb|Theory.copy: theory -> theory| \\
   \indexdef{}{ML}{Theory.merge}\verb|Theory.merge: theory * theory -> theory| \\
   \indexdef{}{ML}{Theory.begin\_theory}\verb|Theory.begin_theory: string -> theory list -> theory| \\
+  \indexdef{}{ML}{Theory.parents\_of}\verb|Theory.parents_of: theory -> theory list| \\
+  \indexdef{}{ML}{Theory.ancestors\_of}\verb|Theory.ancestors_of: theory -> theory list| \\
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML type}{theory\_ref}\verb|type theory_ref| \\
@@ -192,10 +195,15 @@ A \emph{theory} is a data container with explicit name and
 
   \begin{description}
 
-  \item \verb|theory| represents theory contexts.  This is
-  essentially a linear type, with explicit runtime checking!  Most
-  internal theory operations destroy the original version, which then
-  becomes ``stale''.
+  \item Type \verb|theory| represents theory contexts.  This is
+  essentially a linear type, with explicit runtime checking.
+  Primitive theory operations destroy the original version, which then
+  becomes ``stale''.  This can be prevented by explicit checkpointing,
+  which the system does at least at the boundary of toplevel command
+  transactions \secref{sec:isar-toplevel}.
+
+  \item \verb|Theory.eq_thy|~\isa{{\isacharparenleft}thy\isactrlsub {\isadigit{1}}{\isacharcomma}\ thy\isactrlsub {\isadigit{2}}{\isacharparenright}} check strict
+  identity of two theories.
 
   \item \verb|Theory.subthy|~\isa{{\isacharparenleft}thy\isactrlsub {\isadigit{1}}{\isacharcomma}\ thy\isactrlsub {\isadigit{2}}{\isacharparenright}} compares theories
   according to the intrinsic graph structure of the construction.
@@ -216,11 +224,17 @@ A \emph{theory} is a data container with explicit name and
   This version of ad-hoc theory merge fails for unrelated theories!
 
   \item \verb|Theory.begin_theory|~\isa{name\ parents} constructs
-  a new theory based on the given parents.  This {\ML} function is
+  a new theory based on the given parents.  This ML function is
   normally not invoked directly.
 
-  \item \verb|theory_ref| represents a sliding reference to an
-  always valid theory; updates on the original are propagated
+  \item \verb|Theory.parents_of|~\isa{thy} returns the direct
+  ancestors of \isa{thy}.
+
+  \item \verb|Theory.ancestors_of|~\isa{thy} returns all
+  ancestors of \isa{thy} (not including \isa{thy} itself).
+
+  \item Type \verb|theory_ref| represents a sliding reference to
+  an always valid theory; updates on the original are propagated
   automatically.
 
   \item \verb|Theory.deref|~\isa{thy{\isacharunderscore}ref} turns a \verb|theory_ref| into an \verb|theory| value.  As the referenced
@@ -239,14 +253,54 @@ A \emph{theory} is a data container with explicit name and
 %
 \endisadelimmlref
 %
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{theory}\hypertarget{ML antiquotation.theory}{\hyperlink{ML antiquotation.theory}{\mbox{\isa{theory}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{theory\_ref}\hypertarget{ML antiquotation.theory-ref}{\hyperlink{ML antiquotation.theory-ref}{\mbox{\isa{theory{\isacharunderscore}ref}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  ('theory' | 'theory\_ref') nameref?
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item \isa{{\isacharat}{\isacharbraceleft}theory{\isacharbraceright}} refers to the background theory of the
+  current context --- as abstract value.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}theory\ A{\isacharbraceright}} refers to an explicitly named ancestor
+  theory \isa{A} of the background theory of the current context
+  --- as abstract value.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}theory{\isacharunderscore}ref{\isacharbraceright}} is similar to \isa{{\isacharat}{\isacharbraceleft}theory{\isacharbraceright}}, but
+  produces a \verb|theory_ref| via \verb|Theory.check_thy| as
+  explained above.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
 \isamarkupsubsection{Proof context \label{sec:context-proof}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 A proof context is a container for pure data with a
-  back-reference to the theory it belongs to.  The \isa{init}
-  operation creates a proof context from a given theory.
+  back-reference to the theory from which it is derived.  The \isa{init} operation creates a proof context from a given theory.
   Modifications to draft theories are propagated to the proof context
   as usual, but there is also an explicit \isa{transfer} operation
   to force resynchronization with more substantial updates to the
@@ -289,9 +343,9 @@ A proof context is a container for pure data with a
 
   \begin{description}
 
-  \item \verb|Proof.context| represents proof contexts.  Elements
-  of this type are essentially pure values, with a sliding reference
-  to the background theory.
+  \item Type \verb|Proof.context| represents proof contexts.
+  Elements of this type are essentially pure values, with a sliding
+  reference to the background theory.
 
   \item \verb|ProofContext.init_global|~\isa{thy} produces a proof context
   derived from \isa{thy}, initializing all data.
@@ -313,6 +367,37 @@ A proof context is a container for pure data with a
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{context}\hypertarget{ML antiquotation.context}{\hyperlink{ML antiquotation.context}{\mbox{\isa{context}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item \isa{{\isacharat}{\isacharbraceleft}context{\isacharbraceright}} refers to \emph{the} context at
+  compile-time --- as abstract value.  Independently of (local) theory
+  or proof mode, this always produces a meaningful result.
+
+  This is probably the most common antiquotation in interactive
+  experimentation with ML inside Isar.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
 %
 \isamarkupsubsection{Generic contexts \label{sec:generic-context}%
 }
@@ -348,7 +433,7 @@ A generic context is the disjoint sum of either a theory or proof
 
   \begin{description}
 
-  \item \verb|Context.generic| is the direct sum of \verb|theory| and \verb|Proof.context|, with the datatype
+  \item Type \verb|Context.generic| is the direct sum of \verb|theory| and \verb|Proof.context|, with the datatype
   constructors \verb|Context.Theory| and \verb|Context.Proof|.
 
   \item \verb|Context.theory_of|~\isa{context} always produces a
@@ -391,8 +476,9 @@ The main purpose of theory and proof contexts is to manage
   \end{tabular}
   \medskip
 
-  \noindent The \isa{empty} value acts as initial default for
-  \emph{any} theory that does not declare actual data content; \isa{extend} is acts like a unitary version of \isa{merge}.
+  The \isa{empty} value acts as initial default for \emph{any}
+  theory that does not declare actual data content; \isa{extend}
+  is acts like a unitary version of \isa{merge}.
 
   Implementing \isa{merge} can be tricky.  The general idea is
   that \isa{merge\ {\isacharparenleft}data\isactrlsub {\isadigit{1}}{\isacharcomma}\ data\isactrlsub {\isadigit{2}}{\isacharparenright}} inserts those parts of \isa{data\isactrlsub {\isadigit{2}}} into \isa{data\isactrlsub {\isadigit{1}}} that are not yet present, while
@@ -413,19 +499,24 @@ The main purpose of theory and proof contexts is to manage
   \end{tabular}
   \medskip
 
-  \noindent The \isa{init} operation is supposed to produce a pure
-  value from the given background theory and should be somehow
+  The \isa{init} operation is supposed to produce a pure value
+  from the given background theory and should be somehow
   ``immediate''.  Whenever a proof context is initialized, which
   happens frequently, the the system invokes the \isa{init}
-  operation of \emph{all} theory data slots ever declared.
+  operation of \emph{all} theory data slots ever declared.  This also
+  means that one needs to be economic about the total number of proof
+  data declarations in the system, i.e.\ each ML module should declare
+  at most one, sometimes two data slots for its internal use.
+  Repeated data declarations to simulate a record type should be
+  avoided!
 
   \paragraph{Generic data} provides a hybrid interface for both theory
   and proof data.  The \isa{init} operation for proof contexts is
   predefined to select the current data value from the background
   theory.
 
-  \bigskip Any of these data declaration over type \isa{T} result
-  in an ML structure with the following signature:
+  \bigskip Any of the above data declarations over type \isa{T}
+  result in an ML structure with the following signature:
 
   \medskip
   \begin{tabular}{ll}
@@ -435,12 +526,12 @@ The main purpose of theory and proof contexts is to manage
   \end{tabular}
   \medskip
 
-  \noindent These other operations provide exclusive access for the
-  particular kind of context (theory, proof, or generic context).
-  This interface fully observes the ML discipline for types and
-  scopes: there is no other way to access the corresponding data slot
-  of a context.  By keeping these operations private, an Isabelle/ML
-  module may maintain abstract values authentically.%
+  These other operations provide exclusive access for the particular
+  kind of context (theory, proof, or generic context).  This interface
+  observes the ML discipline for types and scopes: there is no other
+  way to access the corresponding data slot of a context.  By keeping
+  these operations private, an Isabelle/ML module may maintain
+  abstract values authentically.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -522,9 +613,9 @@ The following artificial example demonstrates theory
 \endisadelimML
 %
 \begin{isamarkuptext}%
-\noindent The implementation uses private theory data
-  internally, and only exposes an operation that involves explicit
-  argument checking wrt.\ the given theory.%
+The implementation uses private theory data internally, and
+  only exposes an operation that involves explicit argument checking
+  wrt.\ the given theory.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -545,13 +636,16 @@ The following artificial example demonstrates theory
 \ \ \ \ val\ extend\ {\isacharequal}\ I{\isacharsemicolon}\isanewline
 \ \ \ \ fun\ merge\ {\isacharparenleft}ts{\isadigit{1}}{\isacharcomma}\ ts{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ \ \ \ \ Ord{\isacharunderscore}List{\isachardot}union\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ ts{\isadigit{1}}\ ts{\isadigit{2}}{\isacharsemicolon}\isanewline
-\ \ {\isacharparenright}\isanewline
+\ \ {\isacharparenright}{\isacharsemicolon}\isanewline
 \isanewline
 \ \ val\ get\ {\isacharequal}\ Terms{\isachardot}get{\isacharsemicolon}\isanewline
 \isanewline
 \ \ fun\ add\ raw{\isacharunderscore}t\ thy\ {\isacharequal}\isanewline
-\ \ \ \ let\ val\ t\ {\isacharequal}\ Sign{\isachardot}cert{\isacharunderscore}term\ thy\ raw{\isacharunderscore}t\isanewline
-\ \ \ \ in\ Terms{\isachardot}map\ {\isacharparenleft}Ord{\isacharunderscore}List{\isachardot}insert\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ t{\isacharparenright}\ thy\ end{\isacharsemicolon}\isanewline
+\ \ \ \ let\isanewline
+\ \ \ \ \ \ val\ t\ {\isacharequal}\ Sign{\isachardot}cert{\isacharunderscore}term\ thy\ raw{\isacharunderscore}t{\isacharsemicolon}\isanewline
+\ \ \ \ in\isanewline
+\ \ \ \ \ \ Terms{\isachardot}map\ {\isacharparenleft}Ord{\isacharunderscore}List{\isachardot}insert\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ t{\isacharparenright}\ thy\isanewline
+\ \ \ \ end{\isacharsemicolon}\isanewline
 \isanewline
 \ \ end{\isacharsemicolon}\isanewline
 {\isacharverbatimclose}%
@@ -563,17 +657,17 @@ The following artificial example demonstrates theory
 \endisadelimML
 %
 \begin{isamarkuptext}%
-We use \verb|term Ord_List.T| for reasonably efficient
-  representation of a set of terms: all operations are linear in the
-  number of stored elements.  Here we assume that our users do not
-  care about the declaration order, since that data structure forces
-  its own arrangement of elements.
+Type \verb|term Ord_List.T| is used for reasonably
+  efficient representation of a set of terms: all operations are
+  linear in the number of stored elements.  Here we assume that users
+  of this module do not care about the declaration order, since that
+  data structure forces its own arrangement of elements.
 
   Observe how the \verb|merge| operation joins the data slots of
   the two constituents: \verb|Ord_List.union| prevents duplication of
   common data from different branches, thus avoiding the danger of
-  exponential blowup.  (Plain list append etc.\ must never be used for
-  theory data merges.)
+  exponential blowup.  Plain list append etc.\ must never be used for
+  theory data merges!
 
   \medskip Our intended invariant is achieved as follows:
   \begin{enumerate}
@@ -594,7 +688,7 @@ We use \verb|term Ord_List.T| for reasonably efficient
   type-inference via \verb|Syntax.check_term| (cf.\
   \secref{sec:term-check}) is not necessarily monotonic wrt.\ the
   background theory, since constraints of term constants can be
-  strengthened by later declarations, for example.
+  modified by later declarations, for example.
 
   In most cases, user-space context data does not have to take such
   invariants too seriously.  The situation is different in the
@@ -602,6 +696,333 @@ We use \verb|term Ord_List.T| for reasonably efficient
   same data mechanisms for types, constants, axioms etc.%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isamarkupsubsection{Configuration options \label{sec:config-options}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A \emph{configuration option} is a named optional value of
+  some basic type (Boolean, integer, string) that is stored in the
+  context.  It is a simple application of general context data
+  (\secref{sec:context-data}) that is sufficiently common to justify
+  customized setup, which includes some concrete declarations for
+  end-users using existing notation for attributes (cf.\
+  \secref{sec:attributes}).
+
+  For example, the predefined configuration option \hyperlink{attribute.show-types}{\mbox{\isa{show{\isacharunderscore}types}}} controls output of explicit type constraints for
+  variables in printed terms (cf.\ \secref{sec:read-print}).  Its
+  value can be modified within Isar text like this:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{declare}\isamarkupfalse%
+\ {\isacharbrackleft}{\isacharbrackleft}show{\isacharunderscore}types\ {\isacharequal}\ false{\isacharbrackright}{\isacharbrackright}\isanewline
+\ \ %
+\isamarkupcmt{declaration within (local) theory context%
+}
+\isanewline
+\isanewline
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{note}\isamarkupfalse%
+\ {\isacharbrackleft}{\isacharbrackleft}show{\isacharunderscore}types\ {\isacharequal}\ true{\isacharbrackright}{\isacharbrackright}\isanewline
+\ \ \ \ %
+\isamarkupcmt{declaration within proof (forward mode)%
+}
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isacommand{term}\isamarkupfalse%
+\ x\isanewline
+%
+\isadelimproof
+\isanewline
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isacharbrackleft}{\isacharbrackleft}show{\isacharunderscore}types\ {\isacharequal}\ false{\isacharbrackright}{\isacharbrackright}\isanewline
+\ \ \ \ \ \ %
+\isamarkupcmt{declaration within proof (backward mode)%
+}
+\isanewline
+\ \ \ \ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Configuration options that are not set explicitly hold a
+  default value that can depend on the application context.  This
+  allows to retrieve the value from another slot within the context,
+  or fall back on a global preference mechanism, for example.
+
+  The operations to declare configuration options and get/map their
+  values are modeled as direct replacements for historic global
+  references, only that the context is made explicit.  This allows
+  easy configuration of tools, without relying on the execution order
+  as required for old-style mutable references.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{Config.get}\verb|Config.get: Proof.context -> 'a Config.T -> 'a| \\
+  \indexdef{}{ML}{Config.map}\verb|Config.map: 'a Config.T -> ('a -> 'a) -> Proof.context -> Proof.context| \\
+  \indexdef{}{ML}{Attrib.config\_bool}\verb|Attrib.config_bool: string -> (Context.generic -> bool) ->|\isasep\isanewline%
+\verb|  bool Config.T * (theory -> theory)| \\
+  \indexdef{}{ML}{Attrib.config\_int}\verb|Attrib.config_int: string -> (Context.generic -> int) ->|\isasep\isanewline%
+\verb|  int Config.T * (theory -> theory)| \\
+  \indexdef{}{ML}{Attrib.config\_string}\verb|Attrib.config_string: string -> (Context.generic -> string) ->|\isasep\isanewline%
+\verb|  string Config.T * (theory -> theory)| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Config.get|~\isa{ctxt\ config} gets the value of
+  \isa{config} in the given context.
+
+  \item \verb|Config.map|~\isa{config\ f\ ctxt} updates the context
+  by updating the value of \isa{config}.
+
+  \item \isa{{\isacharparenleft}config{\isacharcomma}\ setup{\isacharparenright}\ {\isacharequal}}~\verb|Attrib.config_bool|~\isa{name\ default} creates a named configuration option of type
+  \verb|bool|, with the given \isa{default} depending on the
+  application context.  The resulting \isa{config} can be used to
+  get/map its value in a given context.  The \isa{setup} function
+  needs to be applied to the theory initially, in order to make
+  concrete declaration syntax available to the user.
+
+  \item \verb|Attrib.config_int| and \verb|Attrib.config_string| work
+  like \verb|Attrib.config_bool|, but for types \verb|int| and
+  \verb|string|, respectively.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isatagmlex
+%
+\begin{isamarkuptext}%
+The following example shows how to declare and use a
+  Boolean configuration option called \isa{my{\isacharunderscore}flag} with constant
+  default value \verb|false|.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlex
+{\isafoldmlex}%
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ val\ {\isacharparenleft}my{\isacharunderscore}flag{\isacharcomma}\ my{\isacharunderscore}flag{\isacharunderscore}setup{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ Attrib{\isachardot}config{\isacharunderscore}bool\ {\isachardoublequote}my{\isacharunderscore}flag{\isachardoublequote}\ {\isacharparenleft}K\ false{\isacharparenright}\isanewline
+{\isacharverbatimclose}\isanewline
+\isacommand{setup}\isamarkupfalse%
+\ my{\isacharunderscore}flag{\isacharunderscore}setup%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+Now the user can refer to \hyperlink{attribute.my-flag}{\mbox{\isa{my{\isacharunderscore}flag}}} in
+  declarations, while we can retrieve the current value from the
+  context via \verb|Config.get|.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
+\ {\isacharverbatimopen}\ %
+\isaantiq
+assert%
+\endisaantiq
+\ {\isacharparenleft}Config{\isachardot}get\ %
+\isaantiq
+context%
+\endisaantiq
+\ my{\isacharunderscore}flag\ {\isacharequal}\ false{\isacharparenright}\ {\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+\isanewline
+\isanewline
+\isacommand{declare}\isamarkupfalse%
+\ {\isacharbrackleft}{\isacharbrackleft}my{\isacharunderscore}flag\ {\isacharequal}\ true{\isacharbrackright}{\isacharbrackright}\isanewline
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
+\ {\isacharverbatimopen}\ %
+\isaantiq
+assert%
+\endisaantiq
+\ {\isacharparenleft}Config{\isachardot}get\ %
+\isaantiq
+context%
+\endisaantiq
+\ my{\isacharunderscore}flag\ {\isacharequal}\ true{\isacharparenright}\ {\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+\isanewline
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{note}\isamarkupfalse%
+\ {\isacharbrackleft}{\isacharbrackleft}my{\isacharunderscore}flag\ {\isacharequal}\ false{\isacharbrackright}{\isacharbrackright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimML
+\ \ \ \ %
+\endisadelimML
+%
+\isatagML
+\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
+\ {\isacharverbatimopen}\ %
+\isaantiq
+assert%
+\endisaantiq
+\ {\isacharparenleft}Config{\isachardot}get\ %
+\isaantiq
+context%
+\endisaantiq
+\ my{\isacharunderscore}flag\ {\isacharequal}\ false{\isacharparenright}\ {\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isacharbraceright}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimML
+\ \ %
+\endisadelimML
+%
+\isatagML
+\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
+\ {\isacharverbatimopen}\ %
+\isaantiq
+assert%
+\endisaantiq
+\ {\isacharparenleft}Config{\isachardot}get\ %
+\isaantiq
+context%
+\endisaantiq
+\ my{\isacharunderscore}flag\ {\isacharequal}\ true{\isacharparenright}\ {\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 %
 \isamarkupsection{Names \label{sec:names}%
 }
@@ -635,7 +1056,7 @@ In principle, a name is just a string, but there are various
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Strings of symbols%
+\isamarkupsubsection{Strings of symbols \label{sec:symbols}%
 }
 \isamarkuptrue%
 %
@@ -669,11 +1090,11 @@ A \emph{symbol} constitutes the smallest textual unit in
 
   \end{enumerate}
 
-  \noindent The \isa{ident} syntax for symbol names is \isa{letter\ {\isacharparenleft}letter\ {\isacharbar}\ digit{\isacharparenright}\isactrlsup {\isacharasterisk}}, where \isa{letter\ {\isacharequal}\ A{\isachardot}{\isachardot}Za{\isachardot}{\isachardot}z} and \isa{digit\ {\isacharequal}\ {\isadigit{0}}{\isachardot}{\isachardot}{\isadigit{9}}}.  There are infinitely many
-  regular symbols and control symbols, but a fixed collection of
-  standard symbols is treated specifically.  For example,
-  ``\verb,\,\verb,<alpha>,'' is classified as a letter, which means it
-  may occur within regular Isabelle identifiers.
+  The \isa{ident} syntax for symbol names is \isa{letter\ {\isacharparenleft}letter\ {\isacharbar}\ digit{\isacharparenright}\isactrlsup {\isacharasterisk}}, where \isa{letter\ {\isacharequal}\ A{\isachardot}{\isachardot}Za{\isachardot}{\isachardot}z} and \isa{digit\ {\isacharequal}\ {\isadigit{0}}{\isachardot}{\isachardot}{\isadigit{9}}}.  There are infinitely many regular symbols and
+  control symbols, but a fixed collection of standard symbols is
+  treated specifically.  For example, ``\verb,\,\verb,<alpha>,'' is
+  classified as a letter, which means it may occur within regular
+  Isabelle identifiers.
 
   The character set underlying Isabelle symbols is 7-bit ASCII, but
   8-bit character sequences are passed-through unchanged.  Unicode/UCS
@@ -718,22 +1139,22 @@ A \emph{symbol} constitutes the smallest textual unit in
 
   \begin{description}
 
-  \item \verb|Symbol.symbol| represents individual Isabelle
+  \item Type \verb|Symbol.symbol| represents individual Isabelle
   symbols.
 
   \item \verb|Symbol.explode|~\isa{str} produces a symbol list
-  from the packed form.  This function supercedes \verb|String.explode| for virtually all purposes of manipulating text in
+  from the packed form.  This function supersedes \verb|String.explode| for virtually all purposes of manipulating text in
   Isabelle!\footnote{The runtime overhead for exploded strings is
   mainly that of the list structure: individual symbols that happen to
-  be a singleton string --- which is the most common case --- do not
-  require extra memory in Poly/ML.}
+  be a singleton string do not require extra memory in Poly/ML.}
 
   \item \verb|Symbol.is_letter|, \verb|Symbol.is_digit|, \verb|Symbol.is_quasi|, \verb|Symbol.is_blank| classify standard
   symbols according to fixed syntactic conventions of Isabelle, cf.\
   \cite{isabelle-isar-ref}.
 
-  \item \verb|Symbol.sym| is a concrete datatype that represents
-  the different kinds of symbols explicitly, with constructors \verb|Symbol.Char|, \verb|Symbol.Sym|, \verb|Symbol.UTF8|, \verb|Symbol.Ctrl|, \verb|Symbol.Raw|.
+  \item Type \verb|Symbol.sym| is a concrete datatype that
+  represents the different kinds of symbols explicitly, with
+  constructors \verb|Symbol.Char|, \verb|Symbol.Sym|, \verb|Symbol.UTF8|, \verb|Symbol.Ctrl|, \verb|Symbol.Raw|.
 
   \item \verb|Symbol.decode| converts the string representation of a
   symbol into the datatype version.
@@ -823,8 +1244,8 @@ A \emph{basic name} essentially consists of a single Isabelle
   \item \verb|Name.skolem|~\isa{name} produces a Skolem name by
   adding two underscores.
 
-  \item \verb|Name.context| represents the context of already used
-  names; the initial value is \verb|Name.context|.
+  \item Type \verb|Name.context| represents the context of already
+  used names; the initial value is \verb|Name.context|.
 
   \item \verb|Name.declare|~\isa{name} enters a used name into the
   context.
@@ -852,6 +1273,102 @@ A \emph{basic name} essentially consists of a single Isabelle
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isatagmlex
+%
+\begin{isamarkuptext}%
+The following simple examples demonstrate how to produce
+  fresh names from the initial \verb|Name.context|.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlex
+{\isafoldmlex}%
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ val\ list{\isadigit{1}}\ {\isacharequal}\ Name{\isachardot}invents\ Name{\isachardot}context\ {\isachardoublequote}a{\isachardoublequote}\ {\isadigit{5}}{\isacharsemicolon}\isanewline
+\ \ %
+\isaantiq
+assert%
+\endisaantiq
+\ {\isacharparenleft}list{\isadigit{1}}\ {\isacharequal}\ {\isacharbrackleft}{\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}b{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}c{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}d{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}e{\isachardoublequote}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+\ \ val\ list{\isadigit{2}}\ {\isacharequal}\isanewline
+\ \ \ \ {\isacharhash}{\isadigit{1}}\ {\isacharparenleft}Name{\isachardot}variants\ {\isacharbrackleft}{\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharbrackright}\ Name{\isachardot}context{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ %
+\isaantiq
+assert%
+\endisaantiq
+\ {\isacharparenleft}list{\isadigit{2}}\ {\isacharequal}\ {\isacharbrackleft}{\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}xa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}aa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}aa{\isachardoublequote}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
+{\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+\medskip The same works reletively to the formal context as
+  follows.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ ex\ {\isacharequal}\ \isakeyword{fixes}\ a\ b\ c\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ val\ names\ {\isacharequal}\ Variable{\isachardot}names{\isacharunderscore}of\ %
+\isaantiq
+context%
+\endisaantiq
+{\isacharsemicolon}\isanewline
+\isanewline
+\ \ val\ list{\isadigit{1}}\ {\isacharequal}\ Name{\isachardot}invents\ names\ {\isachardoublequote}a{\isachardoublequote}\ {\isadigit{5}}{\isacharsemicolon}\isanewline
+\ \ %
+\isaantiq
+assert%
+\endisaantiq
+\ {\isacharparenleft}list{\isadigit{1}}\ {\isacharequal}\ {\isacharbrackleft}{\isachardoublequote}d{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}e{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}f{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}g{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}h{\isachardoublequote}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\isanewline
+\ \ val\ list{\isadigit{2}}\ {\isacharequal}\isanewline
+\ \ \ \ {\isacharhash}{\isadigit{1}}\ {\isacharparenleft}Name{\isachardot}variants\ {\isacharbrackleft}{\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharbrackright}\ names{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ %
+\isaantiq
+assert%
+\endisaantiq
+\ {\isacharparenleft}list{\isadigit{2}}\ {\isacharequal}\ {\isacharbrackleft}{\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}xa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}aa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}ab{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}aa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}ab{\isachardoublequote}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
+{\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+\isanewline
+\isacommand{end}\isamarkupfalse%
 %
 \isamarkupsubsection{Indexed names \label{sec:indexname}%
 }
@@ -901,15 +1418,14 @@ An \emph{indexed name} (or \isa{indexname}) is a pair of a basic
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML type}{indexname}\verb|type indexname| \\
+  \indexdef{}{ML type}{indexname}\verb|type indexname = string * int| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|indexname| represents indexed names.  This is an
-  abbreviation for \verb|string * int|.  The second component is
-  usually non-negative, except for situations where \isa{{\isacharparenleft}x{\isacharcomma}\ {\isacharminus}{\isadigit{1}}{\isacharparenright}}
-  is used to inject basic names into this type.  Other negative
+  \item Type \verb|indexname| represents indexed names.  This is
+  an abbreviation for \verb|string * int|.  The second component
+  is usually non-negative, except for situations where \isa{{\isacharparenleft}x{\isacharcomma}\ {\isacharminus}{\isadigit{1}}{\isacharparenright}} is used to inject basic names into this type.  Other negative
   indexes should not be used.
 
   \end{description}%
@@ -1017,13 +1533,12 @@ A \isa{name\ space} manages a collection of long names,
   main equation of this ``chemical reaction'' when binding new
   entities in a context is as follows:
 
-  \smallskip
+  \medskip
   \begin{tabular}{l}
   \isa{binding\ {\isacharplus}\ naming\ {\isasymlongrightarrow}\ long\ name\ {\isacharplus}\ name\ space\ accesses}
   \end{tabular}
-  \smallskip
 
-  \medskip As a general principle, there is a separate name space for
+  \bigskip As a general principle, there is a separate name space for
   each kind of formal entity, e.g.\ fact, logical constant, type
   constructor, type class.  It is usually clear from the occurrence in
   concrete syntax (or from the scope) which kind of entity a name
@@ -1036,10 +1551,17 @@ A \isa{name\ space} manages a collection of long names,
   constant \isa{c}.  This technique of mapping names from one
   space into another requires some care in order to avoid conflicts.
   In particular, theorem names derived from a type constructor or type
-  class are better suffixed in addition to the usual qualification,
-  e.g.\ \isa{c{\isacharunderscore}type{\isachardot}intro} and \isa{c{\isacharunderscore}class{\isachardot}intro} for
-  theorems related to type \isa{c} and class \isa{c},
-  respectively.%
+  class should get an additional suffix in addition to the usual
+  qualification.  This leads to the following conventions for derived
+  names:
+
+  \medskip
+  \begin{tabular}{ll}
+  logical entity & fact name \\\hline
+  constant \isa{c} & \isa{c{\isachardot}intro} \\
+  type \isa{c} & \isa{c{\isacharunderscore}type{\isachardot}intro} \\
+  class \isa{c} & \isa{c{\isacharunderscore}class{\isachardot}intro} \\
+  \end{tabular}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1078,13 +1600,14 @@ A \isa{name\ space} manages a collection of long names,
 
   \begin{description}
 
-  \item \verb|binding| represents the abstract concept of name
-  bindings.
+  \item Type \verb|binding| represents the abstract concept of
+  name bindings.
 
   \item \verb|Binding.empty| is the empty binding.
 
   \item \verb|Binding.name|~\isa{name} produces a binding with base
-  name \isa{name}.
+  name \isa{name}.  Note that this lacks proper source position
+  information; see also the ML antiquotation \hyperlink{ML antiquotation.binding}{\mbox{\isa{binding}}}.
 
   \item \verb|Binding.qualify|~\isa{mandatory\ name\ binding}
   prefixes qualifier \isa{name} to \isa{binding}.  The \isa{mandatory} flag tells if this name component always needs to be
@@ -1107,8 +1630,8 @@ A \isa{name\ space} manages a collection of long names,
   representation for human-readable output, together with some formal
   markup that might get used in GUI front-ends, for example.
 
-  \item \verb|Name_Space.naming| represents the abstract concept of
-  a naming policy.
+  \item Type \verb|Name_Space.naming| represents the abstract
+  concept of a naming policy.
 
   \item \verb|Name_Space.default_naming| is the default naming policy.
   In a theory context, this is usually augmented by a path prefix
@@ -1121,7 +1644,7 @@ A \isa{name\ space} manages a collection of long names,
   name binding (usually a basic name) into the fully qualified
   internal name, according to the given naming policy.
 
-  \item \verb|Name_Space.T| represents name spaces.
+  \item Type \verb|Name_Space.T| represents name spaces.
 
   \item \verb|Name_Space.empty|~\isa{kind} and \verb|Name_Space.merge|~\isa{{\isacharparenleft}space\isactrlisub {\isadigit{1}}{\isacharcomma}\ space\isactrlisub {\isadigit{2}}{\isacharparenright}} are the canonical operations for
   maintaining name spaces according to theory data management
@@ -1160,6 +1683,111 @@ A \isa{name\ space} manages a collection of long names,
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{binding}\hypertarget{ML antiquotation.binding}{\hyperlink{ML antiquotation.binding}{\mbox{\isa{binding}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  'binding' name
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item \isa{{\isacharat}{\isacharbraceleft}binding\ name{\isacharbraceright}} produces a binding with base name
+  \isa{name} and the source position taken from the concrete
+  syntax of this antiquotation.  In many situations this is more
+  appropriate than the more basic \verb|Binding.name| function.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isatagmlex
+%
+\begin{isamarkuptext}%
+The following example yields the source position of some
+  concrete binding inlined into the text.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlex
+{\isafoldmlex}%
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\ Binding{\isachardot}pos{\isacharunderscore}of\ %
+\isaantiq
+binding\ here%
+\endisaantiq
+\ {\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+\medskip That position can be also printed in a message as
+  follows.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML{\isacharunderscore}command}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ writeln\isanewline
+\ \ \ \ {\isacharparenleft}{\isachardoublequote}Look\ here{\isachardoublequote}\ {\isacharcircum}\ Position{\isachardot}str{\isacharunderscore}of\ {\isacharparenleft}Binding{\isachardot}pos{\isacharunderscore}of\ %
+\isaantiq
+binding\ here%
+\endisaantiq
+{\isacharparenright}{\isacharparenright}\isanewline
+{\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+This illustrates a key virtue of formalized bindings as
+  opposed to raw specifications of base names: the system can use this
+  additional information for advanced feedback given to the user.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %

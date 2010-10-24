@@ -11,8 +11,8 @@ include ../Makefile.in
 NAME = implementation
 
 FILES = ../extra.sty ../iman.sty ../isabelle.sty ../isabellesym.sty	\
-  ../isar.sty ../manual.bib ../pdfsetup.sty ../proof.sty		\
-  Thy/document/Integration.tex Thy/document/Isar.tex			\
+  ../isar.sty ../manual.bib ../pdfsetup.sty ../proof.sty ../rail.sty	\
+  ../railsetup.sty Thy/document/Integration.tex Thy/document/Isar.tex	\
   Thy/document/Local_Theory.tex Thy/document/Logic.tex			\
   Thy/document/Prelim.tex Thy/document/Proof.tex			\
   Thy/document/Syntax.tex Thy/document/Tactic.tex implementation.tex	\
@@ -22,6 +22,7 @@ dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES) isabelle_isar.eps
 	$(LATEX) $(NAME)
+	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -33,6 +34,7 @@ pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle_isar.pdf
 	$(PDFLATEX) $(NAME)
+	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)
 	$(PDFLATEX) $(NAME)

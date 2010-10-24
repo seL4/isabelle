@@ -218,7 +218,7 @@ corollary Ramsey2:
    "\<exists>Y t. Y \<subseteq> Z & infinite Y & t < s & (\<forall>x\<in>Y. \<forall>y\<in>Y. x\<noteq>y --> f{x,y} = t)"
 proof -
   have part2: "\<forall>X. X \<subseteq> Z & finite X & card X = 2 --> f X < s"
-    using part by (fastsimp simp add: nat_number card_Suc_eq)
+    using part by (fastsimp simp add: eval_nat_numeral card_Suc_eq)
   obtain Y t 
     where "Y \<subseteq> Z" "infinite Y" "t < s"
           "(\<forall>X. X \<subseteq> Y & finite X & card X = 2 --> f X = t)"

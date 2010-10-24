@@ -143,7 +143,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ('cd' | 'use\_thy' | 'update\_thy') name
+    ('cd' | 'use\_thy') name
     ;
   \end{rail}
 
@@ -159,6 +159,13 @@ text {*
   since loading of theories is done automatically as required.
 
   \end{description}
+
+  %FIXME proper place (!?)
+  Isabelle file specification may contain path variables (e.g.\
+  @{verbatim "$ISABELLE_HOME"}) that are expanded accordingly.  Note
+  that @{verbatim "~"} abbreviates @{verbatim "$HOME"}, and @{verbatim
+  "~~"} abbreviates @{verbatim "$ISABELLE_HOME"}.  The general syntax
+  for path specifications follows POSIX conventions.
 *}
 
 end

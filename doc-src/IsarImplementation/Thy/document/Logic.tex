@@ -132,8 +132,8 @@ The language of types is an uninterpreted order-sorted first-order
   \indexdef{}{ML type}{sort}\verb|type sort = class list| \\
   \indexdef{}{ML type}{arity}\verb|type arity = string * sort list * sort| \\
   \indexdef{}{ML type}{typ}\verb|type typ| \\
-  \indexdef{}{ML}{map\_atyps}\verb|map_atyps: (typ -> typ) -> typ -> typ| \\
-  \indexdef{}{ML}{fold\_atyps}\verb|fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a| \\
+  \indexdef{}{ML}{Term.map\_atyps}\verb|Term.map_atyps: (typ -> typ) -> typ -> typ| \\
+  \indexdef{}{ML}{Term.fold\_atyps}\verb|Term.fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a| \\
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML}{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
@@ -147,23 +147,24 @@ The language of types is an uninterpreted order-sorted first-order
 
   \begin{description}
 
-  \item \verb|class| represents type classes.
+  \item Type \verb|class| represents type classes.
 
-  \item \verb|sort| represents sorts, i.e.\ finite intersections
-  of classes.  The empty list \verb|[]: sort| refers to the empty
-  class intersection, i.e.\ the ``full sort''.
+  \item Type \verb|sort| represents sorts, i.e.\ finite
+  intersections of classes.  The empty list \verb|[]: sort| refers to
+  the empty class intersection, i.e.\ the ``full sort''.
 
-  \item \verb|arity| represents type arities.  A triple \isa{{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}\ {\isacharcolon}\ arity} represents \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s} as
-  described above.
+  \item Type \verb|arity| represents type arities.  A triple
+  \isa{{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}\ {\isacharcolon}\ arity} represents \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s} as described above.
 
-  \item \verb|typ| represents types; this is a datatype with
+  \item Type \verb|typ| represents types; this is a datatype with
   constructors \verb|TFree|, \verb|TVar|, \verb|Type|.
 
-  \item \verb|map_atyps|~\isa{f\ {\isasymtau}} applies the mapping \isa{f}
-  to all atomic types (\verb|TFree|, \verb|TVar|) occurring in \isa{{\isasymtau}}.
+  \item \verb|Term.map_atyps|~\isa{f\ {\isasymtau}} applies the mapping \isa{f} to all atomic types (\verb|TFree|, \verb|TVar|) occurring in
+  \isa{{\isasymtau}}.
 
-  \item \verb|fold_atyps|~\isa{f\ {\isasymtau}} iterates the operation \isa{f} over all occurrences of atomic types (\verb|TFree|, \verb|TVar|)
-  in \isa{{\isasymtau}}; the type structure is traversed from left to right.
+  \item \verb|Term.fold_atyps|~\isa{f\ {\isasymtau}} iterates the operation
+  \isa{f} over all occurrences of atomic types (\verb|TFree|, \verb|TVar|) in \isa{{\isasymtau}}; the type structure is traversed from left to
+  right.
 
   \item \verb|Sign.subsort|~\isa{thy\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ s\isactrlisub {\isadigit{2}}{\isacharparenright}}
   tests the subsort relation \isa{s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ s\isactrlisub {\isadigit{2}}}.
@@ -195,6 +196,64 @@ The language of types is an uninterpreted order-sorted first-order
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{class}\hypertarget{ML antiquotation.class}{\hyperlink{ML antiquotation.class}{\mbox{\isa{class}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{sort}\hypertarget{ML antiquotation.sort}{\hyperlink{ML antiquotation.sort}{\mbox{\isa{sort}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{type\_name}\hypertarget{ML antiquotation.type-name}{\hyperlink{ML antiquotation.type-name}{\mbox{\isa{type{\isacharunderscore}name}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{type\_abbrev}\hypertarget{ML antiquotation.type-abbrev}{\hyperlink{ML antiquotation.type-abbrev}{\mbox{\isa{type{\isacharunderscore}abbrev}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{nonterminal}\hypertarget{ML antiquotation.nonterminal}{\hyperlink{ML antiquotation.nonterminal}{\mbox{\isa{nonterminal}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{typ}\hypertarget{ML antiquotation.typ}{\hyperlink{ML antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  'class' nameref
+  ;
+  'sort' sort
+  ;
+  ('type\_name' | 'type\_abbrev' | 'nonterminal') nameref
+  ;
+  'typ' type
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item \isa{{\isacharat}{\isacharbraceleft}class\ c{\isacharbraceright}} inlines the internalized class \isa{c} --- as \verb|string| literal.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}sort\ s{\isacharbraceright}} inlines the internalized sort \isa{s}
+  --- as \verb|string list| literal.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}type{\isacharunderscore}name\ c{\isacharbraceright}} inlines the internalized type
+  constructor \isa{c} --- as \verb|string| literal.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}type{\isacharunderscore}abbrev\ c{\isacharbraceright}} inlines the internalized type
+  abbreviation \isa{c} --- as \verb|string| literal.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}nonterminal\ c{\isacharbraceright}} inlines the internalized syntactic
+  type~/ grammar nonterminal \isa{c} --- as \verb|string|
+  literal.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}} inlines the internalized type \isa{{\isasymtau}}
+  --- as constructor term for datatype \verb|typ|.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
 %
 \isamarkupsection{Terms \label{sec:terms}%
 }
@@ -248,7 +307,7 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   polymorphic constants that the user-level type-checker would reject
   due to violation of type class restrictions.
 
-  \medskip An \emph{atomic} term is either a variable or constant.
+  \medskip An \emph{atomic term} is either a variable or constant.
   The logical category \emph{term} is defined inductively over atomic
   terms, with abstraction and application as follows: \isa{t\ {\isacharequal}\ b\ {\isacharbar}\ x\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isacharquery}x\isactrlisub {\isasymtau}\ {\isacharbar}\ c\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ t\ {\isacharbar}\ t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}}.  Parsing and printing takes care of
   converting between an external representation with named bound
@@ -317,11 +376,11 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML type}{term}\verb|type term| \\
-  \indexdef{}{ML}{op aconv}\verb|op aconv: term * term -> bool| \\
-  \indexdef{}{ML}{map\_types}\verb|map_types: (typ -> typ) -> term -> term| \\
-  \indexdef{}{ML}{fold\_types}\verb|fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a| \\
-  \indexdef{}{ML}{map\_aterms}\verb|map_aterms: (term -> term) -> term -> term| \\
-  \indexdef{}{ML}{fold\_aterms}\verb|fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a| \\
+  \indexdef{}{ML}{aconv}\verb|op aconv: term * term -> bool| \\
+  \indexdef{}{ML}{Term.map\_types}\verb|Term.map_types: (typ -> typ) -> term -> term| \\
+  \indexdef{}{ML}{Term.fold\_types}\verb|Term.fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a| \\
+  \indexdef{}{ML}{Term.map\_aterms}\verb|Term.map_aterms: (term -> term) -> term -> term| \\
+  \indexdef{}{ML}{Term.fold\_aterms}\verb|Term.fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a| \\
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML}{fastype\_of}\verb|fastype_of: term -> typ| \\
@@ -337,24 +396,24 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
 
   \begin{description}
 
-  \item \verb|term| represents de-Bruijn terms, with comments in
-  abstractions, and explicitly named free variables and constants;
+  \item Type \verb|term| represents de-Bruijn terms, with comments
+  in abstractions, and explicitly named free variables and constants;
   this is a datatype with constructors \verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|, \verb|Abs|, \verb|op $|.
 
   \item \isa{t}~\verb|aconv|~\isa{u} checks \isa{{\isasymalpha}}-equivalence of two terms.  This is the basic equality relation
   on type \verb|term|; raw datatype equality should only be used
   for operations related to parsing or printing!
 
-  \item \verb|map_types|~\isa{f\ t} applies the mapping \isa{f} to all types occurring in \isa{t}.
+  \item \verb|Term.map_types|~\isa{f\ t} applies the mapping \isa{f} to all types occurring in \isa{t}.
 
-  \item \verb|fold_types|~\isa{f\ t} iterates the operation \isa{f} over all occurrences of types in \isa{t}; the term
+  \item \verb|Term.fold_types|~\isa{f\ t} iterates the operation
+  \isa{f} over all occurrences of types in \isa{t}; the term
   structure is traversed from left to right.
 
-  \item \verb|map_aterms|~\isa{f\ t} applies the mapping \isa{f}
-  to all atomic terms (\verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|) occurring in \isa{t}.
+  \item \verb|Term.map_aterms|~\isa{f\ t} applies the mapping \isa{f} to all atomic terms (\verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|) occurring in \isa{t}.
 
-  \item \verb|fold_aterms|~\isa{f\ t} iterates the operation \isa{f} over all occurrences of atomic terms (\verb|Bound|, \verb|Free|,
-  \verb|Var|, \verb|Const|) in \isa{t}; the term structure is
+  \item \verb|Term.fold_aterms|~\isa{f\ t} iterates the operation
+  \isa{f} over all occurrences of atomic terms (\verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|) in \isa{t}; the term structure is
   traversed from left to right.
 
   \item \verb|fastype_of|~\isa{t} determines the type of a
@@ -388,6 +447,63 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{const\_name}\hypertarget{ML antiquotation.const-name}{\hyperlink{ML antiquotation.const-name}{\mbox{\isa{const{\isacharunderscore}name}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{const\_abbrev}\hypertarget{ML antiquotation.const-abbrev}{\hyperlink{ML antiquotation.const-abbrev}{\mbox{\isa{const{\isacharunderscore}abbrev}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{const}\hypertarget{ML antiquotation.const}{\hyperlink{ML antiquotation.const}{\mbox{\isa{const}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{term}\hypertarget{ML antiquotation.term}{\hyperlink{ML antiquotation.term}{\mbox{\isa{term}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{prop}\hypertarget{ML antiquotation.prop}{\hyperlink{ML antiquotation.prop}{\mbox{\isa{prop}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  ('const\_name' | 'const\_abbrev') nameref
+  ;
+  'const' ('(' (type + ',') ')')?
+  ;
+  'term' term
+  ;
+  'prop' prop
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item \isa{{\isacharat}{\isacharbraceleft}const{\isacharunderscore}name\ c{\isacharbraceright}} inlines the internalized logical
+  constant name \isa{c} --- as \verb|string| literal.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}const{\isacharunderscore}abbrev\ c{\isacharbraceright}} inlines the internalized
+  abbreviated constant name \isa{c} --- as \verb|string|
+  literal.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}const\ c{\isacharparenleft}\isactrlvec {\isasymtau}{\isacharparenright}{\isacharbraceright}} inlines the internalized
+  constant \isa{c} with precise type instantiation in the sense of
+  \verb|Sign.const_instance| --- as \verb|Const| constructor term for
+  datatype \verb|term|.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}} inlines the internalized term \isa{t}
+  --- as constructor term for datatype \verb|term|.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}prop\ {\isasymphi}{\isacharbraceright}} inlines the internalized proposition
+  \isa{{\isasymphi}} --- as constructor term for datatype \verb|term|.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
 %
 \isamarkupsection{Theorems \label{sec:thms}%
 }
@@ -530,7 +646,7 @@ The theory \isa{Pure} contains constant declarations for the
   distinct variables \isa{\isactrlvec {\isasymalpha}}).  The RHS may mention
   previously defined constants as above, or arbitrary constants \isa{d{\isacharparenleft}{\isasymalpha}\isactrlisub i{\isacharparenright}} for some \isa{{\isasymalpha}\isactrlisub i} projected from \isa{\isactrlvec {\isasymalpha}}.  Thus overloaded definitions essentially work by
   primitive recursion over the syntactic structure of a single type
-  argument.%
+  argument.  See also \cite[\S4.3]{Haftmann-Wenzel:2006:classes}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -558,18 +674,20 @@ The theory \isa{Pure} contains constant declarations for the
   \indexdef{}{ML}{Thm.generalize}\verb|Thm.generalize: string list * string list -> int -> thm -> thm| \\
   \indexdef{}{ML}{Thm.instantiate}\verb|Thm.instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm| \\
   \indexdef{}{ML}{Thm.add\_axiom}\verb|Thm.add_axiom: binding * term -> theory -> (string * thm) * theory| \\
-  \indexdef{}{ML}{Thm.add\_oracle}\verb|Thm.add_oracle: binding * ('a -> cterm) -> theory|\isasep\isanewline%
-\verb|  -> (string * ('a -> thm)) * theory| \\
-  \indexdef{}{ML}{Thm.add\_def}\verb|Thm.add_def: bool -> bool -> binding * term -> theory -> (string * thm) * theory| \\
+  \indexdef{}{ML}{Thm.add\_oracle}\verb|Thm.add_oracle: binding * ('a -> cterm) -> theory ->|\isasep\isanewline%
+\verb|  (string * ('a -> thm)) * theory| \\
+  \indexdef{}{ML}{Thm.add\_def}\verb|Thm.add_def: bool -> bool -> binding * term -> theory ->|\isasep\isanewline%
+\verb|  (string * thm) * theory| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexdef{}{ML}{Theory.add\_deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list -> theory -> theory| \\
+  \indexdef{}{ML}{Theory.add\_deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list ->|\isasep\isanewline%
+\verb|  theory -> theory| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|ctyp| and \verb|cterm| represent certified types
-  and terms, respectively.  These are abstract datatypes that
+  \item Types \verb|ctyp| and \verb|cterm| represent certified
+  types and terms, respectively.  These are abstract datatypes that
   guarantee that its values have passed the full well-formedness (and
   well-typedness) checks, relative to the declarations of type
   constructors, constants etc. in the theory.
@@ -582,8 +700,8 @@ The theory \isa{Pure} contains constant declarations for the
   reasoning loops.  There are separate operations to decompose
   certified entities (including actual theorems).
 
-  \item \verb|thm| represents proven propositions.  This is an
-  abstract datatype that guarantees that its values have been
+  \item Type \verb|thm| represents proven propositions.  This is
+  an abstract datatype that guarantees that its values have been
   constructed by basic principles of the \verb|Thm| module.
   Every \verb|thm| value contains a sliding back-reference to the
   enclosing theory, cf.\ \secref{sec:context-theory}.
@@ -638,6 +756,78 @@ The theory \isa{Pure} contains constant declarations for the
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{ctyp}\hypertarget{ML antiquotation.ctyp}{\hyperlink{ML antiquotation.ctyp}{\mbox{\isa{ctyp}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{cterm}\hypertarget{ML antiquotation.cterm}{\hyperlink{ML antiquotation.cterm}{\mbox{\isa{cterm}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{cprop}\hypertarget{ML antiquotation.cprop}{\hyperlink{ML antiquotation.cprop}{\mbox{\isa{cprop}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{thm}\hypertarget{ML antiquotation.thm}{\hyperlink{ML antiquotation.thm}{\mbox{\isa{thm}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{thms}\hypertarget{ML antiquotation.thms}{\hyperlink{ML antiquotation.thms}{\mbox{\isa{thms}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{lemma}\hypertarget{ML antiquotation.lemma}{\hyperlink{ML antiquotation.lemma}{\mbox{\isa{lemma}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  'ctyp' typ
+  ;
+  'cterm' term
+  ;
+  'cprop' prop
+  ;
+  'thm' thmref
+  ;
+  'thms' thmrefs
+  ;
+  'lemma' ('(open)')? ((prop +) + 'and') \\ 'by' method method?
+  \end{rail}
+
+  \begin{description}
+
+  \item \isa{{\isacharat}{\isacharbraceleft}ctyp\ {\isasymtau}{\isacharbraceright}} produces a certified type wrt.\ the
+  current background theory --- as abstract value of type \verb|ctyp|.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}cterm\ t{\isacharbraceright}} and \isa{{\isacharat}{\isacharbraceleft}cprop\ {\isasymphi}{\isacharbraceright}} produce a
+  certified term wrt.\ the current background theory --- as abstract
+  value of type \verb|cterm|.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}thm\ a{\isacharbraceright}} produces a singleton fact --- as abstract
+  value of type \verb|thm|.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}thms\ a{\isacharbraceright}} produces a general fact --- as abstract
+  value of type \verb|thm list|.
+
+  \item \isa{{\isacharat}{\isacharbraceleft}lemma\ {\isasymphi}\ by\ meth{\isacharbraceright}} produces a fact that is proven on
+  the spot according to the minimal proof, which imitates a terminal
+  Isar proof.  The result is an abstract value of type \verb|thm|
+  or \verb|thm list|, depending on the number of propositions
+  given here.
+
+  The internal derivation object lacks a proper theorem name, but it
+  is formally closed, unless the \isa{{\isacharparenleft}open{\isacharparenright}} option is specified
+  (this may impact performance of applications with proof terms).
+
+  Since ML antiquotations are always evaluated at compile-time, there
+  is no run-time overhead even for non-trivial proofs.  Nonetheless,
+  the justification is syntactically limited to a single \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}} step.  More complex Isar proofs should be done in regular
+  theory source, before compiling the corresponding ML text that uses
+  the result.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
 %
 \isamarkupsubsection{Auxiliary definitions%
 }
@@ -795,9 +985,9 @@ The idea of object-level rules is to model Natural Deduction
   \end{tabular}
   \medskip
 
-  \noindent Thus we essentially impose nesting levels on propositions
-  formed from \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}.  At each level there is a
-  prefix of parameters and compound premises, concluding an atomic
+  Thus we essentially impose nesting levels on propositions formed
+  from \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}.  At each level there is a prefix
+  of parameters and compound premises, concluding an atomic
   proposition.  Typical examples are \isa{{\isasymlongrightarrow}}-introduction \isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymlongrightarrow}\ B} or mathematical induction \isa{P\ {\isadigit{0}}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}n{\isachardot}\ P\ n\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n}.  Even deeper nesting occurs in well-founded
   induction \isa{{\isacharparenleft}{\isasymAnd}x{\isachardot}\ {\isacharparenleft}{\isasymAnd}y{\isachardot}\ y\ {\isasymprec}\ x\ {\isasymLongrightarrow}\ P\ y{\isacharparenright}\ {\isasymLongrightarrow}\ P\ x{\isacharparenright}\ {\isasymLongrightarrow}\ P\ x}, but this
   already marks the limit of rule complexity that is usually seen in
@@ -920,8 +1110,8 @@ The rule calculus of Isabelle/Pure provides two main inferences:
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{op RS}\verb|op RS: thm * thm -> thm| \\
-  \indexdef{}{ML}{op OF}\verb|op OF: thm * thm list -> thm| \\
+  \indexdef{}{ML}{RS}\verb|op RS: thm * thm -> thm| \\
+  \indexdef{}{ML}{OF}\verb|op OF: thm * thm list -> thm| \\
   \end{mldecls}
 
   \begin{description}

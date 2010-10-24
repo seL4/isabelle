@@ -6,7 +6,7 @@
 Proof reconstruction for Sledgehammer.
 *)
 
-signature SLEDGEHAMMER_RECONSTRUCT =
+signature SLEDGEHAMMER_ATP_RECONSTRUCT =
 sig
   type locality = Sledgehammer_Filter.locality
   type minimize_command = string list -> string
@@ -20,12 +20,16 @@ sig
   val repair_conjecture_shape_and_axiom_names :
     string -> int list list -> (string * locality) list vector
     -> int list list * (string * locality) list vector
+  val apply_on_subgoal : int -> int -> string
+  val command_call : string -> string list -> string
+  val try_command_line : string -> string -> string
+  val minimize_line : ('a list -> string) -> 'a list -> string
   val metis_proof_text : metis_params -> text_result
   val isar_proof_text : isar_params -> metis_params -> text_result
   val proof_text : bool -> isar_params -> metis_params -> text_result
 end;
 
-structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
+structure Sledgehammer_ATP_Reconstruct : SLEDGEHAMMER_ATP_RECONSTRUCT =
 struct
 
 open ATP_Problem
@@ -33,7 +37,7 @@ open ATP_Proof
 open Metis_Translate
 open Sledgehammer_Util
 open Sledgehammer_Filter
-open Sledgehammer_Translate
+open Sledgehammer_ATP_Translate
 
 type minimize_command = string list -> string
 type metis_params =
@@ -111,21 +115,22 @@ fun repair_conjecture_shape_and_axiom_names output conjecture_shape
 
 fun string_for_label (s, num) = s ^ string_of_int num
 
-fun metis_using [] = ""
-  | metis_using ls =
+fun apply_on_subgoal _ 1 = "by "
+  | apply_on_subgoal 1 _ = "apply "
+  | apply_on_subgoal i _ = "prefer " ^ string_of_int i ^ " apply "
+fun command_call name [] = name
+  | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
+fun try_command_line banner command =
+  banner ^ ": " ^ Markup.markup Markup.sendback command ^ "."
+fun using_labels [] = ""
+  | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun metis_apply _ 1 = "by "
-  | metis_apply 1 _ = "apply "
-  | metis_apply i _ = "prefer " ^ string_of_int i ^ " apply "
 fun metis_name full_types = if full_types then "metisFT" else "metis"
-fun metis_call full_types [] = metis_name full_types
-  | metis_call full_types ss =
-    "(" ^ metis_name full_types ^ " " ^ space_implode " " ss ^ ")"
+fun metis_call full_types ss = command_call (metis_name full_types) ss
 fun metis_command full_types i n (ls, ss) =
-  metis_using ls ^ metis_apply i n ^ metis_call full_types ss
+  using_labels ls ^ apply_on_subgoal i n ^ metis_call full_types ss
 fun metis_line banner full_types i n ss =
-  banner ^ ": " ^
-  Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
+  try_command_line banner (metis_command full_types i n ([], ss))
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
@@ -429,7 +434,8 @@ fun prop_from_formula thy full_types tfrees phi =
              | AImplies => s_imp
              | AIf => s_imp o swap
              | AIff => s_iff
-             | ANotIff => s_not o s_iff)
+             | ANotIff => s_not o s_iff
+             | _ => raise Fail "unexpected connective")
       | AAtom tm => term_from_pred thy full_types tfrees pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
@@ -500,6 +506,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
         (_, []) => lines (* no repetition of proof line *)
       | (pre, Inference (name', _, _) :: post) =>
         pre @ map (replace_dependencies_in_line (name', [name])) post
+      | _ => raise Fail "unexpected inference"
     else if is_conjecture conjecture_shape name then
       Inference (name, negate_term t, []) :: lines
     else
@@ -516,6 +523,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
      | (pre, Inference (name', t', _) :: post) =>
        Inference (name, t', deps) ::
        pre @ map (replace_dependencies_in_line (name', [name])) post
+     | _ => raise Fail "unexpected inference"
 
 (* Recursively delete empty lines (type information) from the proof. *)
 fun add_nontrivial_line (Inference (name, t, [])) lines =

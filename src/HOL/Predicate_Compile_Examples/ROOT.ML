@@ -1,7 +1,7 @@
 use_thys [
   "Examples",
   "Predicate_Compile_Tests",
-  "Predicate_Compile_Quickcheck_Examples",
+(*  "Predicate_Compile_Quickcheck_Examples", -- should be added again soon *)
   "Specialisation_Examples",
   "IMP_1",
   "IMP_2",

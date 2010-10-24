@@ -1042,9 +1042,9 @@ lemma orthogonal_rotation_or_rotoinversion:
 lemma setprod_1: "setprod f {(1::nat)..1} = f 1" by simp
 
 lemma setprod_2: "setprod f {(1::nat)..2} = f 1 * f 2"
-  by (simp add: nat_number setprod_numseg mult_commute)
+  by (simp add: eval_nat_numeral setprod_numseg mult_commute)
 lemma setprod_3: "setprod f {(1::nat)..3} = f 1 * f 2 * f 3"
-  by (simp add: nat_number setprod_numseg mult_commute)
+  by (simp add: eval_nat_numeral setprod_numseg mult_commute)
 
 lemma det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
   by (simp add: det_def sign_id UNIV_1)

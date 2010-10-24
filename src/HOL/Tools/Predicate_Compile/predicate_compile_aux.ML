@@ -90,8 +90,10 @@ sig
   (* Different compilations *)
   datatype compilation = Pred | Depth_Limited | Random | Depth_Limited_Random | DSeq | Annotated
     | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq
+    | Pos_Generator_DSeq | Neg_Generator_DSeq
   val negative_compilation_of : compilation -> compilation
   val compilation_for_polarity : bool -> compilation -> compilation
+  val is_depth_limited_compilation : compilation -> bool 
   val string_of_compilation : compilation -> string
   val compilation_names : (string * compilation) list
   val non_random_compilations : compilation list
@@ -117,6 +119,7 @@ sig
     no_higher_order_predicate : string list,
     inductify : bool,
     detect_switches : bool,
+    smart_depth_limiting : bool,
     compilation : compilation
   };
   val expected_modes : options -> (string * mode list) option
@@ -138,6 +141,7 @@ sig
   val no_higher_order_predicate : options -> string list
   val is_inductify : options -> bool
   val detect_switches : options -> bool
+  val smart_depth_limiting : options -> bool
   val compilation : options -> compilation
   val default_options : options
   val bool_options : string list
@@ -146,6 +150,7 @@ sig
   val imp_prems_conv : conv -> conv
   (* simple transformations *)
   val split_conjuncts_in_assms : Proof.context -> thm -> thm
+  val dest_conjunct_prem : thm -> thm list
   val expand_tuples : theory -> thm -> thm
   val case_betapply : theory -> term -> term
   val eta_contract_ho_arguments : theory -> thm -> thm
@@ -153,7 +158,7 @@ sig
   val remove_pointless_clauses : thm -> thm list
   val peephole_optimisation : theory -> thm -> thm option
   val define_quickcheck_predicate :
-    term -> theory -> (((string * typ) * (string * typ) list) * thm) * theory 
+    term -> theory -> (((string * typ) * (string * typ) list) * thm) * theory
 end;
 
 structure Predicate_Compile_Aux : PREDICATE_COMPILE_AUX =
@@ -632,17 +637,24 @@ fun equals_conv lhs_cv rhs_cv ct =
 (* Different compilations *)
 
 datatype compilation = Pred | Depth_Limited | Random | Depth_Limited_Random | DSeq | Annotated
-  | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq
+  | Pos_Random_DSeq | Neg_Random_DSeq | New_Pos_Random_DSeq | New_Neg_Random_DSeq |
+    Pos_Generator_DSeq | Neg_Generator_DSeq
 
 fun negative_compilation_of Pos_Random_DSeq = Neg_Random_DSeq
   | negative_compilation_of Neg_Random_DSeq = Pos_Random_DSeq
   | negative_compilation_of New_Pos_Random_DSeq = New_Neg_Random_DSeq
   | negative_compilation_of New_Neg_Random_DSeq = New_Pos_Random_DSeq
+  | negative_compilation_of Pos_Generator_DSeq = Neg_Generator_DSeq
+  | negative_compilation_of Pos_Generator_DSeq = Pos_Generator_DSeq
   | negative_compilation_of c = c
   
 fun compilation_for_polarity false Pos_Random_DSeq = Neg_Random_DSeq
   | compilation_for_polarity false New_Pos_Random_DSeq = New_Neg_Random_DSeq
   | compilation_for_polarity _ c = c
+
+fun is_depth_limited_compilation c =
+  (c = New_Pos_Random_DSeq) orelse (c = New_Neg_Random_DSeq) orelse
+  (c = Pos_Generator_DSeq) orelse (c = Pos_Generator_DSeq)
 
 fun string_of_compilation c =
   case c of
@@ -656,14 +668,18 @@ fun string_of_compilation c =
   | Neg_Random_DSeq => "neg_random_dseq"
   | New_Pos_Random_DSeq => "new_pos_random dseq"
   | New_Neg_Random_DSeq => "new_neg_random_dseq"
+  | Pos_Generator_DSeq => "pos_generator_dseq"
+  | Neg_Generator_DSeq => "neg_generator_dseq"
 
 val compilation_names = [("pred", Pred),
   ("random", Random),
   ("depth_limited", Depth_Limited),
   ("depth_limited_random", Depth_Limited_Random),
   (*("annotated", Annotated),*)
-  ("dseq", DSeq), ("random_dseq", Pos_Random_DSeq),
-  ("new_random_dseq", New_Pos_Random_DSeq)]
+  ("dseq", DSeq),
+  ("random_dseq", Pos_Random_DSeq),
+  ("new_random_dseq", New_Pos_Random_DSeq),
+  ("generator_dseq", Pos_Generator_DSeq)]
 
 val non_random_compilations = [Pred, Depth_Limited, DSeq, Annotated]
 
@@ -729,6 +745,7 @@ datatype options = Options of {
   no_higher_order_predicate : string list,
   inductify : bool,
   detect_switches : bool,
+  smart_depth_limiting : bool,
   compilation : compilation
 };
 
@@ -759,6 +776,8 @@ fun compilation (Options opt) = #compilation opt
 
 fun detect_switches (Options opt) = #detect_switches opt
 
+fun smart_depth_limiting (Options opt) = #smart_depth_limiting opt
+
 val default_options = Options {
   expected_modes = NONE,
   proposed_modes = [],
@@ -779,12 +798,14 @@ val default_options = Options {
   no_higher_order_predicate = [],
   inductify = false,
   detect_switches = true,
+  smart_depth_limiting = false,
   compilation = Pred
 }
 
 val bool_options = ["show_steps", "show_intermediate_results", "show_proof_trace", "show_modes",
   "show_mode_inference", "show_compilation", "show_invalid_clauses", "skip_proof", "inductify",
-  "no_function_flattening", "detect_switches", "specialise", "no_topmost_reordering"]
+  "no_function_flattening", "detect_switches", "specialise", "no_topmost_reordering",
+  "smart_depth_limiting"]
 
 fun print_step options s =
   if show_steps options then tracing s else ()
@@ -835,7 +856,14 @@ fun split_conjuncts_in_assms ctxt th =
   in
     singleton (Variable.export ctxt' ctxt) (split_conjs 1 (Thm.nprems_of fixed_th) fixed_th)
   end
-  
+
+fun dest_conjunct_prem th =
+  case HOLogic.dest_Trueprop (prop_of th) of
+    (Const (@{const_name HOL.conj}, _) $ t $ t') =>
+      dest_conjunct_prem (th RS @{thm conjunct1})
+        @ dest_conjunct_prem (th RS @{thm conjunct2})
+    | _ => [th]
+
 fun expand_tuples thy intro =
   let
     val ctxt = ProofContext.init_global thy

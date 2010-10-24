@@ -448,8 +448,7 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
 
 fun add_notin_mtype_fv sn M ((lits, comps, sexps) : constraint_set) =
     (trace_msg (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
-                         (case sn of Minus => "concrete" | Plus => "complete") ^
-                         ".");
+                         (case sn of Minus => "concrete" | Plus => "complete"));
      case do_notin_mtype_fv sn [] M (SOME (lits, sexps)) of
        NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
      | SOME (lits, sexps) => (lits, comps, sexps))

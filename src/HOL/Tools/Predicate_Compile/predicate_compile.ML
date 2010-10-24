@@ -75,7 +75,7 @@ fun process_specification options specs thy' =
 
 fun preprocess_strong_conn_constnames options gr ts thy =
   if forall (fn (Const (c, _)) =>
-      Predicate_Compile_Core.is_registered (ProofContext.init_global thy) c) ts then
+      Core_Data.is_registered (ProofContext.init_global thy) c) ts then
     thy
   else
     let
@@ -121,7 +121,7 @@ fun preprocess_strong_conn_constnames options gr ts thy =
       val intross10 = map_specs (map_filter (peephole_optimisation thy3)) intross9
       val _ = print_intross options thy3 "introduction rules before registering: " intross10
       val _ = print_step options "Registering introduction rules..."
-      val thy4 = fold Predicate_Compile_Core.register_intros intross10 thy3
+      val thy4 = fold Core_Data.register_intros intross10 thy3
     in
       thy4
     end;
@@ -173,6 +173,7 @@ fun extract_options lthy (((expected_modes, proposed_modes), (compilation, raw_o
       no_higher_order_predicate = [],
       inductify = chk "inductify",
       detect_switches = chk "detect_switches",
+      smart_depth_limiting = chk "smart_depth_limiting",
       compilation = compilation
     }
   end

@@ -20,6 +20,10 @@ definition pos_bind :: "'a pos_random_dseq => ('a \<Rightarrow> 'b pos_random_ds
 where
   "pos_bind R f = (\<lambda>nrandom size seed. New_DSequence.pos_bind (R nrandom size seed) (%a. f a nrandom size seed))"
 
+definition pos_decr_bind :: "'a pos_random_dseq => ('a \<Rightarrow> 'b pos_random_dseq) \<Rightarrow> 'b pos_random_dseq"
+where
+  "pos_decr_bind R f = (\<lambda>nrandom size seed. New_DSequence.pos_decr_bind (R nrandom size seed) (%a. f a nrandom size seed))"
+
 definition pos_union :: "'a pos_random_dseq => 'a pos_random_dseq => 'a pos_random_dseq"
 where
   "pos_union R1 R2 = (\<lambda>nrandom size seed. New_DSequence.pos_union (R1 nrandom size seed) (R2 nrandom size seed))"
@@ -62,6 +66,10 @@ definition neg_bind :: "'a neg_random_dseq => ('a \<Rightarrow> 'b neg_random_ds
 where
   "neg_bind R f = (\<lambda>nrandom size seed. New_DSequence.neg_bind (R nrandom size seed) (%a. f a nrandom size seed))"
 
+definition neg_decr_bind :: "'a neg_random_dseq => ('a \<Rightarrow> 'b neg_random_dseq) \<Rightarrow> 'b neg_random_dseq"
+where
+  "neg_decr_bind R f = (\<lambda>nrandom size seed. New_DSequence.neg_decr_bind (R nrandom size seed) (%a. f a nrandom size seed))"
+
 definition neg_union :: "'a neg_random_dseq => 'a neg_random_dseq => 'a neg_random_dseq"
 where
   "neg_union R1 R2 = (\<lambda>nrandom size seed. New_DSequence.neg_union (R1 nrandom size seed) (R2 nrandom size seed))"
@@ -97,8 +105,8 @@ hide_const DSequence.empty DSequence.single DSequence.eval
 *)
 
 hide_const (open)
-  pos_empty pos_single pos_bind pos_union pos_if_random_dseq pos_iterate_upto pos_not_random_dseq iter Random pos_map
-  neg_empty neg_single neg_bind neg_union neg_if_random_dseq neg_iterate_upto neg_not_random_dseq neg_map
+  pos_empty pos_single pos_bind pos_decr_bind pos_union pos_if_random_dseq pos_iterate_upto pos_not_random_dseq iter Random pos_map
+  neg_empty neg_single neg_bind neg_decr_bind neg_union neg_if_random_dseq neg_iterate_upto neg_not_random_dseq neg_map
 hide_type New_DSequence.pos_dseq New_DSequence.neg_dseq pos_random_dseq neg_random_dseq
 (* FIXME: hide facts *)
 (*hide_fact (open) empty_def single_def bind_def union_def if_random_dseq_def not_random_dseq_def Random.simps map_def*)

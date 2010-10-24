@@ -5,26 +5,37 @@
 structure Mirabelle_Sledgehammer_Filter : MIRABELLE_ACTION =
 struct
 
-structure SF = Sledgehammer_Filter
+fun get args name default_value =
+  case AList.lookup (op =) args name of
+    SOME value => the (Real.fromString value)
+  | NONE => default_value
 
-val relevance_filter_args =
-  [("worse_irrel_freq", SF.worse_irrel_freq),
-   ("higher_order_irrel_weight", SF.higher_order_irrel_weight),
-   ("abs_rel_weight", SF.abs_rel_weight),
-   ("abs_irrel_weight", SF.abs_irrel_weight),
-   ("skolem_irrel_weight", SF.skolem_irrel_weight),
-   ("theory_const_rel_weight", SF.theory_const_rel_weight),
-   ("theory_const_irrel_weight", SF.theory_const_irrel_weight),
-   ("intro_bonus", SF.intro_bonus),
-   ("elim_bonus", SF.elim_bonus),
-   ("simp_bonus", SF.simp_bonus),
-   ("local_bonus", SF.local_bonus),
-   ("assum_bonus", SF.assum_bonus),
-   ("chained_bonus", SF.chained_bonus),
-   ("max_imperfect", SF.max_imperfect),
-   ("max_imperfect_exp", SF.max_imperfect_exp),
-   ("threshold_divisor", SF.threshold_divisor),
-   ("ridiculous_threshold", SF.ridiculous_threshold)]
+fun extract_relevance_fudge args
+      {worse_irrel_freq, higher_order_irrel_weight, abs_rel_weight,
+       abs_irrel_weight, skolem_irrel_weight, theory_const_rel_weight,
+       theory_const_irrel_weight, intro_bonus, elim_bonus, simp_bonus,
+       local_bonus, assum_bonus, chained_bonus, max_imperfect,
+       max_imperfect_exp, threshold_divisor, ridiculous_threshold} =
+  {worse_irrel_freq = get args "worse_irrel_freq" worse_irrel_freq,
+   higher_order_irrel_weight =
+       get args "higher_order_irrel_weight" higher_order_irrel_weight,
+   abs_rel_weight = get args "abs_rel_weight" abs_rel_weight,
+   abs_irrel_weight = get args "abs_irrel_weight" abs_irrel_weight,
+   skolem_irrel_weight = get args "skolem_irrel_weight" skolem_irrel_weight,
+   theory_const_rel_weight =
+       get args "theory_const_rel_weight" theory_const_rel_weight,
+   theory_const_irrel_weight =
+       get args "theory_const_irrel_weight" theory_const_irrel_weight,
+   intro_bonus = get args "intro_bonus" intro_bonus,
+   elim_bonus = get args "elim_bonus" elim_bonus,
+   simp_bonus = get args "simp_bonus" simp_bonus,
+   local_bonus = get args "local_bonus" local_bonus,
+   assum_bonus = get args "assum_bonus" assum_bonus,
+   chained_bonus = get args "chained_bonus" chained_bonus,
+   max_imperfect = get args "max_imperfect" max_imperfect,
+   max_imperfect_exp = get args "max_imperfect_exp" max_imperfect_exp,
+   threshold_divisor = get args "threshold_divisor" threshold_divisor,
+   ridiculous_threshold = get args "ridiculous_threshold" ridiculous_threshold}
 
 structure Prooftab =
   Table(type key = int * int val ord = prod_ord int_ord int_ord);
@@ -85,6 +96,7 @@ fun done id ({log, ...} : Mirabelle.done_args) =
     ()
 
 val default_max_relevant = 300
+val prover_name = ATP_Systems.eN (* arbitrary ATP *)
 
 fun with_index (i, s) = s ^ "@" ^ string_of_int i
 
@@ -95,23 +107,22 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
        SOME proofs =>
        let
          val {context = ctxt, facts, goal} = Proof.goal pre
-         val thy = ProofContext.theory_of ctxt
-         val args =
-           args
-           |> filter (fn (key, value) =>
-                         case AList.lookup (op =) relevance_filter_args key of
-                           SOME rf => (rf := the (Real.fromString value); false)
-                         | NONE => true)
-
+         val irrelevant_consts =
+           Sledgehammer.irrelevant_consts_for_prover prover_name
+         val relevance_fudge =
+           extract_relevance_fudge args
+               (Sledgehammer.relevance_fudge_for_prover prover_name)
+         val relevance_override = {add = [], del = [], only = false}
          val {relevance_thresholds, full_types, max_relevant, ...} =
-           Sledgehammer_Isar.default_params thy args
+           Sledgehammer_Isar.default_params ctxt args
          val subgoal = 1
          val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal subgoal
          val facts =
-           SF.relevant_facts ctxt full_types
+           Sledgehammer_Filter.relevant_facts ctxt full_types
                relevance_thresholds
                (the_default default_max_relevant max_relevant)
-               {add = [], del = [], only = false} facts hyp_ts concl_t
+               irrelevant_consts relevance_fudge relevance_override facts hyp_ts
+               concl_t
            |> map (fst o fst)
          val (found_facts, lost_facts) =
            List.concat proofs |> sort_distinct string_ord

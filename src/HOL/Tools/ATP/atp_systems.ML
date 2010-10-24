@@ -9,7 +9,7 @@ signature ATP_SYSTEMS =
 sig
   type failure = ATP_Proof.failure
 
-  type prover_config =
+  type atp_config =
     {exec: string * string,
      required_execs: (string * string) list,
      arguments: bool -> Time.time -> string,
@@ -20,11 +20,17 @@ sig
      explicit_forall: bool,
      use_conjecture_for_hypotheses: bool}
 
-  val add_prover: string * prover_config -> theory -> theory
-  val get_prover: theory -> string -> prover_config
-  val available_atps: theory -> unit
+  val eN : string
+  val spassN : string
+  val vampireN : string
+  val sine_eN : string
+  val snarkN : string
+  val remote_prefix : string
+  val add_atp : string * atp_config -> theory -> theory
+  val get_atp : theory -> string -> atp_config
+  val available_atps : theory -> string list
+  val is_atp_installed : theory -> string -> bool
   val refresh_systems_on_tptp : unit -> unit
-  val default_atps_param_value : unit -> string
   val setup : theory -> theory
 end;
 
@@ -33,9 +39,9 @@ struct
 
 open ATP_Proof
 
-(* prover configuration *)
+(* ATP configuration *)
 
-type prover_config =
+type atp_config =
   {exec: string * string,
    required_execs: (string * string) list,
    arguments: bool -> Time.time -> string,
@@ -51,33 +57,28 @@ val known_perl_failures =
    (NoPerl, "env: perl"),
    (NoLibwwwPerl, "Can't locate HTTP")]
 
-(* named provers *)
+(* named ATPs *)
+
+val eN = "e"
+val spassN = "spass"
+val vampireN = "vampire"
+val sine_eN = "sine_e"
+val snarkN = "snark"
+val remote_prefix = "remote_"
 
 structure Data = Theory_Data
 (
-  type T = (prover_config * stamp) Symtab.table
+  type T = (atp_config * stamp) Symtab.table
   val empty = Symtab.empty
   val extend = I
   fun merge data : T = Symtab.merge (eq_snd op =) data
     handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name ^ ".")
 )
 
-fun add_prover (name, config) thy =
-  Data.map (Symtab.update_new (name, (config, stamp ()))) thy
-  handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name ^ ".")
-
-fun get_prover thy name =
-  the (Symtab.lookup (Data.get thy) name) |> fst
-  handle Option.Option => error ("Unknown ATP: " ^ name ^ ".")
-
-fun available_atps thy =
-  priority ("Available ATPs: " ^
-            commas (sort_strings (Symtab.keys (Data.get thy))) ^ ".")
-
 fun to_secs bonus time = (Time.toMilliseconds time + bonus + 999) div 1000
 
 
-(* E prover *)
+(* E *)
 
 (* Give older versions of E an extra second, because the "eproof" script wrongly
    subtracted an entire second to account for the overhead of the script
@@ -92,7 +93,7 @@ fun e_bonus () =
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
-val e_config : prover_config =
+val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
@@ -113,14 +114,14 @@ val e_config : prover_config =
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
 
-val e = ("e", e_config)
+val e = (eN, e_config)
 
 
 (* SPASS *)
 
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
-val spass_config : prover_config =
+val spass_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
    arguments = fn complete => fn timeout =>
@@ -142,12 +143,12 @@ val spass_config : prover_config =
    explicit_forall = true,
    use_conjecture_for_hypotheses = true}
 
-val spass = ("spass", spass_config)
+val spass = (spassN, spass_config)
 
 
 (* Vampire *)
 
-val vampire_config : prover_config =
+val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
    arguments = fn complete => fn timeout =>
@@ -172,10 +173,10 @@ val vampire_config : prover_config =
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
 
-val vampire = ("vampire", vampire_config)
+val vampire = (vampireN, vampire_config)
 
 
-(* Remote prover invocation via SystemOnTPTP *)
+(* Remote ATP invocation via SystemOnTPTP *)
 
 val systems = Synchronized.var "atp_systems" ([] : string list)
 
@@ -186,9 +187,6 @@ fun get_systems () =
     error (case extract_known_failure known_perl_failures output of
              SOME failure => string_for_failure failure
            | NONE => perhaps (try (unsuffix "\n")) output ^ ".")
-
-fun refresh_systems_on_tptp () =
-  Synchronized.change systems (fn _ => get_systems ())
 
 fun find_system name [] systems = find_first (String.isPrefix name) systems
   | find_system name (version :: versions) systems =
@@ -208,7 +206,7 @@ fun the_system name versions =
 
 fun remote_config system_name system_versions proof_delims known_failures
                   default_max_relevant use_conjecture_for_hypotheses
-                  : prover_config =
+                  : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
@@ -225,48 +223,49 @@ fun remote_config system_name system_versions proof_delims known_failures
 
 fun remotify_config system_name system_versions
         ({proof_delims, known_failures, default_max_relevant,
-          use_conjecture_for_hypotheses, ...} : prover_config) : prover_config =
+          use_conjecture_for_hypotheses, ...} : atp_config) : atp_config =
   remote_config system_name system_versions proof_delims known_failures
                 default_max_relevant use_conjecture_for_hypotheses
 
-val remotify_name = prefix "remote_"
-fun remote_prover name system_name system_versions proof_delims known_failures
-                  default_max_relevant use_conjecture_for_hypotheses =
-  (remotify_name name,
+fun remote_atp name system_name system_versions proof_delims known_failures
+               default_max_relevant use_conjecture_for_hypotheses =
+  (remote_prefix ^ name,
    remote_config system_name system_versions proof_delims known_failures
                  default_max_relevant use_conjecture_for_hypotheses)
-fun remotify_prover (name, config) system_name system_versions =
-  (remotify_name name, remotify_config system_name system_versions config)
+fun remotify_atp (name, config) system_name system_versions =
+  (remote_prefix ^ name, remotify_config system_name system_versions config)
 
-val remote_e = remotify_prover e "EP" ["1.0", "1.1", "1.2"]
-val remote_vampire = remotify_prover vampire "Vampire" ["0.6", "9.0", "1.0"]
+val remote_e = remotify_atp e "EP" ["1.0", "1.1", "1.2"]
+val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_sine_e =
-  remote_prover "sine_e" "SInE" [] [] [(IncompleteUnprovable, "says Unknown")]
+  remote_atp sine_eN "SInE" [] [] [(IncompleteUnprovable, "says Unknown")]
                 800 (* FUDGE *) true
 val remote_snark =
-  remote_prover "snark" "SNARK---" [] [("refutation.", "end_refutation.")] []
-                250 (* FUDGE *) true
+  remote_atp snarkN "SNARK---" [] [("refutation.", "end_refutation.")] []
+             250 (* FUDGE *) true
 
 (* Setup *)
 
-fun is_installed ({exec, required_execs, ...} : prover_config) =
-  forall (curry (op <>) "" o getenv o fst) (exec :: required_execs)
-fun maybe_remote (name, config) =
-  name |> not (is_installed config) ? remotify_name
+fun add_atp (name, config) thy =
+  Data.map (Symtab.update_new (name, (config, stamp ()))) thy
+  handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name ^ ".")
 
-(* The first prover of the list is used by Auto Sledgehammer. Because of the low
-   timeout, it makes sense to put SPASS first. *)
-fun default_atps_param_value () =
-  space_implode " " ((if is_installed (snd spass) then [fst spass] else []) @
-                     [maybe_remote e] @
-                     [if forall (is_installed o snd) [e, spass] then
-                        remotify_name (fst vampire)
-                      else
-                        maybe_remote vampire,
-                      fst remote_sine_e])
+fun get_atp thy name =
+  the (Symtab.lookup (Data.get thy) name) |> fst
+  handle Option.Option => error ("Unknown ATP: " ^ name ^ ".")
 
-val provers = [e, spass, vampire, remote_e, remote_vampire, remote_sine_e,
-               remote_snark]
-val setup = fold add_prover provers
+val available_atps = Symtab.keys o Data.get
+
+fun is_atp_installed thy name =
+  let val {exec, required_execs, ...} = get_atp thy name in
+    forall (curry (op <>) "" o getenv o fst) (exec :: required_execs)
+  end
+
+fun refresh_systems_on_tptp () =
+  Synchronized.change systems (fn _ => get_systems ())
+
+val atps = [e, spass, vampire, remote_e, remote_vampire, remote_sine_e,
+            remote_snark]
+val setup = fold add_atp atps
 
 end;
