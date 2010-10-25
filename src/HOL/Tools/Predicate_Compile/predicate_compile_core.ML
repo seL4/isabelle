@@ -167,7 +167,7 @@ fun print_all_modes compilation ctxt =
 
 (* validity checks *)
 
-fun check_expected_modes preds options modes =
+fun check_expected_modes options preds modes =
   case expected_modes options of
     SOME (s, ms) => (case AList.lookup (op =) modes s of
       SOME modes =>
@@ -183,7 +183,7 @@ fun check_expected_modes preds options modes =
       | NONE => ())
   | NONE => ()
 
-fun check_proposed_modes preds options modes errors =
+fun check_proposed_modes options preds modes errors =
   map (fn (s, _) => case proposed_modes options s of
     SOME ms => (case AList.lookup (op =) modes s of
       SOME inferred_ms =>
@@ -1379,8 +1379,8 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
         options (lookup_mode, lookup_neg_mode, needs_random) ctxt preds all_modes param_vs clauses)
     val thy' = fold (fn (s, ms) => set_needs_random s ms) needs_random thy
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
-    val _ = check_expected_modes preds options modes
-    val _ = check_proposed_modes preds options modes errors
+    val _ = check_expected_modes options preds modes
+    val _ = check_proposed_modes options preds modes errors
     val _ = print_modes options modes
     val _ = print_step options "Defining executable functions..."
     val thy'' =
