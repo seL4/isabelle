@@ -10,12 +10,12 @@ text {* Isabelle/ML is best understood as a certain culture based on
   environment.  This covers a variety of aspects that are geared
   towards an efficient and robust platform for applications of formal
   logic with fully foundational proof construction --- according to
-  the well-known \emph{LCF principle}.  There are specific library
-  modules and infrastructure to address the needs for such difficult
-  tasks.  For example, the raw parallel programming model of Poly/ML
-  is presented as considerably more abstract concept of \emph{future
-  values}, which is then used to augment the inference kernel, proof
-  interpreter, and theory loader accordingly.
+  the well-known \emph{LCF principle}.  There is specific
+  infrastructure with library modules to address the needs of this
+  difficult task.  For example, the raw parallel programming model of
+  Poly/ML is presented as considerably more abstract concept of
+  \emph{future values}, which is then used to augment the inference
+  kernel, proof interpreter, and theory loader accordingly.
 
   The main aspects of Isabelle/ML are introduced below.  These
   first-hand explanations should help to understand how proper
@@ -47,14 +47,14 @@ text {* The sources of Isabelle/Isar are optimized for
   standardization.  A coding style that is changed every few years or
   with every new contributor is no style at all, because consistency
   is quickly lost.  Global consistency is hard to achieve, though.
-  One should always strife at least for local consistency of modules
-  and sub-systems, without deviating from some general principles how
-  to write Isabelle/ML.
+  Nonetheless, one should always strive at least for local consistency
+  of modules and sub-systems, without deviating from some general
+  principles how to write Isabelle/ML.
 
-  In a sense, a common coding style is like an \emph{orthography} for
-  the sources: it helps to read quickly over the text and see through
-  the main points, without getting distracted by accidental
-  presentation of free-style source.
+  In a sense, good coding style is like an \emph{orthography} for the
+  sources: it helps to read quickly over the text and see through the
+  main points, without getting distracted by accidental presentation
+  of free-style code.
 *}
 
 
@@ -63,7 +63,7 @@ subsection {* Header and sectioning *}
 text {* Isabelle source files have a certain standardized header
   format (with precise spacing) that follows ancient traditions
   reaching back to the earliest versions of the system by Larry
-  Paulson.  E.g.\ see @{"file" "~~/src/Pure/thm.ML"}.
+  Paulson.  See @{"file" "~~/src/Pure/thm.ML"}, for example.
 
   The header includes at least @{verbatim Title} and @{verbatim
   Author} entries, followed by a prose description of the purpose of
@@ -71,8 +71,8 @@ text {* Isabelle source files have a certain standardized header
   paragraphs of explanations.
 
   The rest of the file is divided into sections, subsections,
-  subsubsections, paragraphs etc.\ using some a layout via ML comments
-  as follows.
+  subsubsections, paragraphs etc.\ using a simple layout via ML
+  comments as follows.
 
 \begin{verbatim}
 (*** section ***)
@@ -84,8 +84,8 @@ text {* Isabelle source files have a certain standardized header
 (*short paragraph*)
 
 (*
-  long paragraph
-  more text
+  long paragraph,
+  with more text
 *)
 \end{verbatim}
 
@@ -94,7 +94,7 @@ text {* Isabelle source files have a certain standardized header
   as in the example above).
 
   \medskip The precise wording of the prose text given in these
-  headings is chosen carefully to indicate the main theme of the
+  headings is chosen carefully to introduce the main theme of the
   subsequent formal ML text.
 *}
 
@@ -106,31 +106,29 @@ text {* Since ML is the primary medium to express the meaning of the
 
   \paragraph{Notation.}  A name consists of 1--3 \emph{words} (rarely
   4, but not more) that are separated by underscore.  There are three
-  variants concerning upper or lower case letters, which are just for
+  variants concerning upper or lower case letters, which are used for
   certain ML categories as follows:
 
   \medskip
   \begin{tabular}{lll}
   variant & example & ML categories \\\hline
   lower-case & @{verbatim foo_bar} & values, types, record fields \\
-  capitalized & @{verbatim Foo_Bar} & datatype constructors, \\
-    & & structures, functors \\
-  upper-case & @{verbatim FOO_BAR} & special values (combinators), \\
-    & & exception constructors, signatures \\
+  capitalized & @{verbatim Foo_Bar} & datatype constructors, structures, functors \\
+  upper-case & @{verbatim FOO_BAR} & special values, exception constructors, signatures \\
   \end{tabular}
   \medskip
 
   For historical reasons, many capitalized names omit underscores,
   e.g.\ old-style @{verbatim FooBar} instead of @{verbatim Foo_Bar}.
-  Genuine mixed-case names are \emph{not} used --- clear division of
-  words is essential for readability.\footnote{Camel-case was invented
-  to workaround the lack of underscore in some early non-ASCII
-  character sets and keywords.  Later it became a habitual in some
-  language communities that are now strong in numbers.}
+  Genuine mixed-case names are \emph{not} used, bacause clear division
+  of words is essential for readability.\footnote{Camel-case was
+  invented to workaround the lack of underscore in some early
+  non-ASCII character sets.  Later it became habitual in some language
+  communities that are now strong in numbers.}
 
   A single (capital) character does not count as ``word'' in this
-  respect: some Isabelle/ML are suffixed by extra markers like this:
-  @{verbatim foo_barT}.
+  respect: some Isabelle/ML names are suffixed by extra markers like
+  this: @{verbatim foo_barT}.
 
   Name variants are produced by adding 1--3 primes, e.g.\ @{verbatim
   foo'}, @{verbatim foo''}, or @{verbatim foo'''}, but not @{verbatim
@@ -142,11 +140,11 @@ text {* Since ML is the primary medium to express the meaning of the
   explicit qualification, as in @{ML Syntax.string_of_term} for
   example.  When devising names for structures and their components it
   is important aim at eye-catching compositions of both parts, because
-  this is how they are always seen in the sources and documentation.
-  For the same reasons, aliases of well-known library functions should
-  be avoided.
+  this is how they are seen in the sources and documentation.  For the
+  same reasons, aliases of well-known library functions should be
+  avoided.
 
-  Local names of function abstraction or case/lets bindings are
+  Local names of function abstraction or case/let bindings are
   typically shorter, sometimes using only rudiments of ``words'',
   while still avoiding cryptic shorthands.  An auxiliary function
   called @{verbatim helper}, @{verbatim aux}, or @{verbatim f} is
@@ -184,8 +182,8 @@ text {* Since ML is the primary medium to express the meaning of the
   \end{verbatim}
 
 
-  \paragraph{Specific conventions.} Here are some important specific
-  name forms that occur frequently in the sources.
+  \paragraph{Specific conventions.} Here are some specific name forms
+  that occur frequently in the sources.
 
   \begin{itemize}
 
@@ -211,8 +209,7 @@ text {* Since ML is the primary medium to express the meaning of the
 
   \item Variables of the main context types of the Isabelle/Isar
   framework (\secref{sec:context} and \chref{ch:local-theory}) have
-  firm naming conventions to allow to visualize the their data flow
-  via plain regular expressions in the editor.  In particular:
+  firm naming conventions as follows:
 
   \begin{itemize}
 
@@ -225,17 +222,20 @@ text {* Since ML is the primary medium to express the meaning of the
   \item generic contexts are called @{verbatim context}, rarely
   @{verbatim ctxt}
 
-  \item local theories are called @{verbatim lthy}, unless there is an
-  implicit conversion to a general proof context (semantic super-type)
+  \item local theories are called @{verbatim lthy}, except for local
+  theories that are treated as proof context (which is a semantic
+  super-type)
 
   \end{itemize}
 
   Variations with primed or decimal numbers are always possible, as
-  well as ``sematic prefixes'' like @{verbatim foo_thy} or @{verbatim
+  well as sematic prefixes like @{verbatim foo_thy} or @{verbatim
   bar_ctxt}, but the base conventions above need to be preserved.
+  This allows to visualize the their data flow via plain regular
+  expressions in the editor.
 
-  \item The main logical entities (\secref{ch:logic}) also have
-  established naming convention:
+  \item The main logical entities (\secref{ch:logic}) have established
+  naming convention as follows:
 
   \begin{itemize}
 
@@ -259,9 +259,8 @@ text {* Since ML is the primary medium to express the meaning of the
 
   Proper semantic names override these conventions completely.  For
   example, the left-hand side of an equation (as a term) can be called
-  @{verbatim lhs} (not @{verbatim lhs_tm}).  Or a term that is treated
-  specifically as a variable can be called @{verbatim v} or @{verbatim
-  x}.
+  @{verbatim lhs} (not @{verbatim lhs_tm}).  Or a term that is known
+  to be a variable can be called @{verbatim v} or @{verbatim x}.
 
   \end{itemize}
 *}
@@ -275,11 +274,11 @@ text {* The general Isabelle/ML source layout imitates regular
   programming.
 
   \paragraph{Line length} is 80 characters according to ancient
-  standards, but we allow as much as 100 characters, not
-  more.\footnote{Readability requires to keep the beginning of a line
+  standards, but we allow as much as 100 characters (not
+  more).\footnote{Readability requires to keep the beginning of a line
   in view while watching its end.  Modern wide-screen displays do not
-  change the way how the human brain works.  As a rule of thumb,
-  sources need to be printable on plain paper.} The extra 20
+  change the way how the human brain works.  Sources also need to be
+  printable on plain paper with reasonable font-size.} The extra 20
   characters acknowledge the space requirements due to qualified
   library references in Isabelle/ML.
 
@@ -319,7 +318,8 @@ text {* The general Isabelle/ML source layout imitates regular
   Note that the space between @{verbatim g} and the pair @{verbatim
   "(a, b)"} follows the important principle of
   \emph{compositionality}: the layout of @{verbatim "g p"} does not
-  change when @{verbatim "p"} is refined to a concrete pair.
+  change when @{verbatim "p"} is refined to the concrete pair
+  @{verbatim "(a, b)"}.
 
   \paragraph{Indentation} uses plain spaces, never hard
   tabulators.\footnote{Tabulators were invented to move the carriage
@@ -329,7 +329,7 @@ text {* The general Isabelle/ML source layout imitates regular
   editor configuration.}
 
   Each level of nesting is indented by 2 spaces, sometimes 1, very
-  rarely 4, never 8.
+  rarely 4, never 8 or any other odd number.
 
   Indentation follows a simple logical format that only depends on the
   nesting depth, not the accidental length of the text that initiates
@@ -362,18 +362,18 @@ text {* The general Isabelle/ML source layout imitates regular
   \emph{maintainability}) etc.
 
   \medskip For similar reasons, any kind of two-dimensional or tabular
-  layouts, ASCII-art with lines or boxes of stars etc. should be
+  layouts, ASCII-art with lines or boxes of asterisks etc.\ should be
   avoided.
 
-  \paragraph{Complex expressions} consisting of multi-clausal function
-  definitions, @{verbatim case}, @{verbatim handle}, @{verbatim let},
-  or combinations require special attention.  The syntax of Standard
-  ML is a bit too ambitious in admitting too much variance that can
-  distort the meaning of the text.
+  \paragraph{Complex expressions} that consist of multi-clausal
+  function definitions, @{verbatim handle}, @{verbatim case},
+  @{verbatim let} (and combinations) require special attention.  The
+  syntax of Standard ML is quite ambitious and admits a lot of
+  variance that can distort the meaning of the text.
 
-  Clauses of @{verbatim fun}, @{verbatim fn}, @{verbatim case},
-  @{verbatim handle} get extra indentation to indicate the nesting
-  clearly.  For example:
+  Clauses of @{verbatim fun}, @{verbatim fn}, @{verbatim handle},
+  @{verbatim case} get extra indentation to indicate the nesting
+  clearly.  Example:
 
   \begin{verbatim}
   (* RIGHT *)
@@ -394,8 +394,8 @@ text {* The general Isabelle/ML source layout imitates regular
 
   Body expressions consisting of @{verbatim case} or @{verbatim let}
   require care to maintain compositionality, to prevent loss of
-  logical indentation where it is particularly imporant to see the
-  structure of the text later on.  Example:
+  logical indentation where it is especially important to see the
+  structure of the text.  Example:
 
   \begin{verbatim}
   (* RIGHT *)
@@ -426,8 +426,8 @@ text {* The general Isabelle/ML source layout imitates regular
   \end{verbatim}
 
   Extra parentheses around @{verbatim case} expressions are optional,
-  but help to analyse the nesting easily based on simple string
-  matching in the editor.
+  but help to analyse the nesting based on character matching in the
+  editor.
 
   \medskip There are two main exceptions to the overall principle of
   compositionality in the layout of complex expressions.
@@ -448,7 +448,7 @@ text {* The general Isabelle/ML source layout imitates regular
   \item @{verbatim fn} abstractions are often layed-out as if they
   would lack any structure by themselves.  This traditional form is
   motivated by the possibility to shift function arguments back and
-  forth wrt.\ additional combinators.  For example:
+  forth wrt.\ additional combinators.  Example:
 
   \begin{verbatim}
   (* RIGHT *)
@@ -493,34 +493,35 @@ text {* ML and Isar are intertwined via an open-ended bootstrap
   (mainly Poly/ML, but also SML/NJ).
 
   Isabelle/Pure marks the point where the original ML toplevel is
-  superseded by the Isar toplevel that maintains a uniform environment
-  for arbitrary ML values (see also \secref{sec:context}).  This
-  formal context holds logical entities as well as ML compiler
-  bindings, among many other things.  Raw Standard ML is never
-  encountered again after the initial bootstrap of Isabelle/Pure.
+  superseded by the Isar toplevel that maintains a uniform context for
+  arbitrary ML values (see also \secref{sec:context}).  This formal
+  environment holds ML compiler bindings, logical entities, and many
+  other things.  Raw SML is never encountered again after the initial
+  bootstrap of Isabelle/Pure.
 
-  Object-logics such as Isabelle/HOL are built within the
-  Isabelle/ML/Isar environment of Pure by introducing suitable
-  theories with associated ML text, either inlined or as separate
-  files.  Thus Isabelle/HOL is defined as a regular user-space
-  application within the Isabelle framework.  Further add-on tools can
-  be implemented in ML within the Isar context in the same manner: ML
-  is part of the regular user-space repertoire of Isabelle.
+  Object-logics like Isabelle/HOL are built within the
+  Isabelle/ML/Isar environment by introducing suitable theories with
+  associated ML modules, either inlined or as separate files.  Thus
+  Isabelle/HOL is defined as a regular user-space application within
+  the Isabelle framework.  Further add-on tools can be implemented in
+  ML within the Isar context in the same manner: ML is part of the
+  standard repertoire of Isabelle, and there is no distinction between
+  ``user'' and ``developer'' in this respect.
 *}
 
 
 subsection {* Isar ML commands *}
 
-text {* The primary Isar source language provides various facilities
-  to open a ``window'' to the underlying ML compiler.  Especially see
-  @{command_ref "use"} and @{command_ref "ML"}, which work exactly the
+text {* The primary Isar source language provides facilities to ``open
+  a window'' to the underlying ML compiler.  Especially see the Isar
+  commands @{command_ref "use"} and @{command_ref "ML"}: both work the
   same way, only the source text is provided via a file vs.\ inlined,
   respectively.  Apart from embedding ML into the main theory
   definition like that, there are many more commands that refer to ML
   source, such as @{command_ref setup} or @{command_ref declaration}.
-  An example of even more fine-grained embedding of ML into Isar is
-  the proof method @{method_ref tactic}, which refines the pending goal state
-  via a given expression of type @{ML_type tactic}.
+  Even more fine-grained embedding of ML into Isar is encountered in
+  the proof method @{method_ref tactic}, which refines the pending
+  goal state via a given expression of type @{ML_type tactic}.
 *}
 
 text %mlex {* The following artificial example demonstrates some ML
@@ -534,7 +535,7 @@ ML {*
     | factorial n = n * factorial (n - 1)
 *}
 
-text {* Here the ML environment is really managed by Isabelle, i.e.\
+text {* Here the ML environment is already managed by Isabelle, i.e.\
   the @{ML factorial} function is not yet accessible in the preceding
   paragraph, nor in a different theory that is independent from the
   current one in the import hierarchy.
@@ -542,33 +543,32 @@ text {* Here the ML environment is really managed by Isabelle, i.e.\
   Removing the above ML declaration from the source text will remove
   any trace of this definition as expected.  The Isabelle/ML toplevel
   environment is managed in a \emph{stateless} way: unlike the raw ML
-  toplevel or similar command loops of Computer Algebra systems, there
-  are no global side-effects involved here.\footnote{Such a stateless
-  compilation environment is also a prerequisite for robust parallel
-  compilation within independent nodes of the implicit theory
-  development graph.}
+  toplevel there are no global side-effects involved
+  here.\footnote{Such a stateless compilation environment is also a
+  prerequisite for robust parallel compilation within independent
+  nodes of the implicit theory development graph.}
 
-  \medskip The next example shows how to embed ML into Isar proofs.
-  Instead of @{command_ref "ML"} for theory mode, we use @{command_ref
-  "ML_prf"} for proof mode.  As illustrated below, its effect on the
-  ML environment is local to the whole proof body, while ignoring its
-  internal block structure.  *}
+  \medskip The next example shows how to embed ML into Isar proofs, using
+ @{command_ref "ML_prf"} instead of Instead of @{command_ref "ML"}.
+  As illustrated below, the effect on the ML environment is local to
+  the whole proof body, ignoring the block structure.
+*}
 
 example_proof
   ML_prf %"ML" {* val a = 1 *}
-  { -- {* Isar block structure ignored by ML environment *}
+  {
     ML_prf %"ML" {* val b = a + 1 *}
   } -- {* Isar block structure ignored by ML environment *}
   ML_prf %"ML" {* val c = b + 1 *}
 qed
 
 text {* By side-stepping the normal scoping rules for Isar proof
-  blocks, embedded ML code can refer to the different contexts
-  explicitly, and manipulate corresponding entities, e.g.\ export a
-  fact from a block context.
+  blocks, embedded ML code can refer to the different contexts and
+  manipulate corresponding entities, e.g.\ export a fact from a block
+  context.
 
   \medskip Two further ML commands are useful in certain situations:
-  @{command_ref ML_val} and @{command_ref ML_command} are both
+  @{command_ref ML_val} and @{command_ref ML_command} are
   \emph{diagnostic} in the sense that there is no effect on the
   underlying environment, and can thus used anywhere (even outside a
   theory).  The examples below produce long strings of digits by
@@ -591,14 +591,14 @@ text {* Whenever the ML compiler is invoked within Isabelle/Isar, the
   formal context is passed as a thread-local reference variable.  Thus
   ML code may access the theory context during compilation, by reading
   or writing the (local) theory under construction.  Note that such
-  direct access to the compile-time context is rare; in practice it is
-  typically via some derived ML functions.
+  direct access to the compile-time context is rare.  In practice it
+  is typically done via some derived ML functions instead.
 *}
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML ML_Context.the_generic_context: "unit -> Context.generic"} \\
-  @{index_ML "Context.>> ": "(Context.generic -> Context.generic) -> unit"} \\
+  @{index_ML "Context.>>": "(Context.generic -> Context.generic) -> unit"} \\
   @{index_ML bind_thms: "string * thm list -> unit"} \\
   @{index_ML bind_thm: "string * thm -> unit"} \\
   \end{mldecls}
@@ -620,11 +620,11 @@ text %mlref {*
   put into a global ``standard'' format before being stored.
 
   \item @{ML bind_thm} is similar to @{ML bind_thms} but refers to a
-  singleton theorem.
+  singleton fact.
 
   \end{description}
 
-  It is very important to note that the above functions are really
+  It is important to note that the above functions are really
   restricted to the compile time, even though the ML compiler is
   invoked at run-time.  The majority of ML code either uses static
   antiquotations (\secref{sec:ML-antiq}) or refers to the theory or
@@ -635,9 +635,8 @@ text %mlref {*
 subsection {* Antiquotations \label{sec:ML-antiq} *}
 
 text {* A very important consequence of embedding SML into Isar is the
-  concept of \emph{ML antiquotation}.  First, the standard token
-  language of ML is augmented by special syntactic entities of the
-  following form:
+  concept of \emph{ML antiquotation}.  The standard token language of
+  ML is augmented by special syntactic entities of the following form:
 
   \indexouternonterm{antiquote}
   \begin{rail}
@@ -646,8 +645,8 @@ text {* A very important consequence of embedding SML into Isar is the
   \end{rail}
 
   Here @{syntax nameref} and @{syntax args} are regular outer syntax
-  categories.  Note that attributes and proof methods use similar
-  syntax.
+  categories \cite{isabelle-isar-ref}.  Attributes and proof methods
+  use similar syntax.
 
   \medskip A regular antiquotation @{text "@{name args}"} processes
   its arguments by the usual means of the Isar source language, and
@@ -664,7 +663,7 @@ text {* A very important consequence of embedding SML into Isar is the
   effect by introducing local blocks within the pre-compilation
   environment.
 
-  \medskip See also \cite{Wenzel-Chaieb:2007b} for a slightly broader
+  \medskip See also \cite{Wenzel-Chaieb:2007b} for a broader
   perspective on Isabelle/ML antiquotations.  *}
 
 text %mlantiq {*
@@ -698,10 +697,9 @@ text %mlantiq {*
   \end{description}
 *}
 
-text %mlex {* The following artificial example gives a first
-  impression about using the antiquotation elements introduced so far,
-  together with the basic @{text "@{thm}"} antiquotation defined
-  later.
+text %mlex {* The following artificial example gives some impression
+  about the antiquotation elements introduced so far, together with
+  the important @{text "@{thm}"} antiquotation defined later.
 *}
 
 ML {*
@@ -712,9 +710,9 @@ ML {*
   \<rbrace>
 *}
 
-text {*
-  The extra block delimiters do not affect the compiled code itself, i.e.\
-  function @{ML foo} is available in the present context.
+text {* The extra block delimiters do not affect the compiled code
+  itself, i.e.\ function @{ML foo} is available in the present context
+  of this paragraph.
 *}
 
 
@@ -727,19 +725,19 @@ text {* Standard ML is a language in the tradition of @{text
   functions in that setting can save a lot of extra boiler-plate of
   redundant shuffling of arguments, auxiliary abstractions etc.
 
-  First of all, functions are usually \emph{curried}: the idea of
-  @{text "f"} taking @{text "n"} arguments of type @{text "\<tau>\<^sub>i"} (for
-  @{text "i \<in> {1, \<dots> n}"}) with result @{text "\<tau>"} is represented by
-  the iterated function space @{text "\<tau>\<^sub>1 \<rightarrow> \<dots> \<rightarrow> \<tau>\<^sub>n \<rightarrow> \<tau>"}.  This is
-  isomorphic to the encoding via tuples @{text "\<tau>\<^sub>1 \<times> \<dots> \<times> \<tau>\<^sub>n \<rightarrow> \<tau>"}, but
-  the curried version fits more smoothly into the basic
-  calculus.\footnote{The difference is even more significant in
-  higher-order logic, because additional the redundant tuple structure
-  needs to be accommodated by formal reasoning.}
+  Functions are usually \emph{curried}: the idea of turning arguments
+  of type @{text "\<tau>\<^sub>i"} (for @{text "i \<in> {1, \<dots> n}"}) into a result of
+  type @{text "\<tau>"} is represented by the iterated function space
+  @{text "\<tau>\<^sub>1 \<rightarrow> \<dots> \<rightarrow> \<tau>\<^sub>n \<rightarrow> \<tau>"}.  This is isomorphic to the well-known
+  encoding via tuples @{text "\<tau>\<^sub>1 \<times> \<dots> \<times> \<tau>\<^sub>n \<rightarrow> \<tau>"}, but the curried
+  version fits more smoothly into the basic calculus.\footnote{The
+  difference is even more significant in higher-order logic, because
+  the redundant tuple structure needs to be accommodated by formal
+  reasoning.}
 
   Currying gives some flexiblity due to \emph{partial application}.  A
   function @{text "f: \<tau>\<^sub>1 \<rightarrow> \<tau>\<^bsub>2\<^esub> \<rightarrow> \<tau>"} can be applied to @{text "x: \<tau>\<^sub>1"}
-  and the remaining @{text "(f x): \<tau>\<^sub>2 \<rightarrow> \<tau>"} passed to other functions
+  and the remaining @{text "(f x): \<tau>\<^sub>2 \<rightarrow> \<tau>"} passed to another function
   etc.  How well this works in practice depends on the order of
   arguments.  In the worst case, arguments are arranged erratically,
   and using a function in a certain situation always requires some
@@ -747,11 +745,10 @@ text {* Standard ML is a language in the tradition of @{text
   decorate the code with meaningless permutations of arguments.
 
   This can be avoided by \emph{canonical argument order}, which
-  observes certain standard patterns of function definitions and
-  minimizes adhoc permutations in their application.  In Isabelle/ML,
-  large portions of non-trivial source code are written without ever
-  using the infamous function @{text "swap: \<alpha> \<times> \<beta> \<rightarrow> \<beta> \<times> \<alpha>"} or the
-  combinator @{text "C: (\<alpha> \<rightarrow> \<beta> \<rightarrow> \<gamma>) \<rightarrow> (\<beta> \<rightarrow> \<alpha> \<rightarrow> \<gamma>)"}, which is not even
+  observes certain standard patterns and minimizes adhoc permutations
+  in their application.  In Isabelle/ML, large portions text can be
+  written without ever using @{text "swap: \<alpha> \<times> \<beta> \<rightarrow> \<beta> \<times> \<alpha>"}, or the
+  combinator @{text "C: (\<alpha> \<rightarrow> \<beta> \<rightarrow> \<gamma>) \<rightarrow> (\<beta> \<rightarrow> \<alpha> \<rightarrow> \<gamma>)"} that is not even
   defined in our library.
 
   \medskip The basic idea is that arguments that vary less are moved
@@ -779,15 +776,16 @@ text {* Standard ML is a language in the tradition of @{text
   concrete container.  The argument order makes it easy to use other
   combinators: @{text "forall (member B) list"} will check a list of
   elements for membership in @{text "B"} etc. Often the explicit
-  @{text "list"} is pointless and can be contracted in the application
-  @{text "forall (member B)"} to get directly a predicate again.
+  @{text "list"} is pointless and can be contracted to @{text "forall
+  (member B)"} to get directly a predicate again.
 
-  The update operation naturally ``varies'' the container, so it moves
+  In contrast, an update operation varies the container, so it moves
   to the right: @{text "insert a"} is a function @{text "\<beta> \<rightarrow> \<beta>"} to
   insert a value @{text "a"}.  These can be composed naturally as
-  follows: @{text "insert c \<circ> insert b \<circ> insert a"}.  This works well,
-  apart from some awkwardness due to conventional mathematical
-  function composition, which can be easily amended as follows.
+  @{text "insert c \<circ> insert b \<circ> insert a"}.  The slightly awkward
+  inversion if the composition order is due to conventional
+  mathematical notation, which can be easily amended as explained
+  below.
 *}
 
 
@@ -795,10 +793,10 @@ subsection {* Forward application and composition *}
 
 text {* Regular function application and infix notation works best for
   relatively deeply structured expressions, e.g.\ @{text "h (f x y + g
-  z)"}.  The important special case if \emph{linear transformation}
-  applies a cascade of functions as follows: @{text "f\<^sub>n (\<dots> (f\<^sub>1 x))"}.
-  This becomes hard to read and maintain if the functions are
-  themselves complex expressions.  The notation can be significantly
+  z)"}.  The important special case of \emph{linear transformation}
+  applies a cascade of functions @{text "f\<^sub>n (\<dots> (f\<^sub>1 x))"}.  This
+  becomes hard to read and maintain if the functions are themselves
+  given as complex expressions.  The notation can be significantly
   improved by introducing \emph{forward} versions of application and
   composition as follows:
 
@@ -840,7 +838,7 @@ text %mlref {*
 subsection {* Canonical iteration *}
 
 text {* As explained above, a function @{text "f: \<alpha> \<rightarrow> \<beta> \<rightarrow> \<beta>"} can be
-  understood as update on a configuration of type @{text "\<beta>"} that is
+  understood as update on a configuration of type @{text "\<beta>"},
   parametrized by arguments of type @{text "\<alpha>"}.  Given @{text "a: \<alpha>"}
   the partial application @{text "(f a): \<beta> \<rightarrow> \<beta>"} operates
   homogeneously on @{text "\<beta>"}.  This can be iterated naturally over a
@@ -890,10 +888,10 @@ text %mlref {*
   The literature on functional programming provides a multitude of
   combinators called @{text "foldl"}, @{text "foldr"} etc.  SML97
   provides its own variations as @{ML List.foldl} and @{ML
-  List.foldr}, while the classic Isabelle library still has the
-  slightly more convenient historic @{ML Library.foldl} and @{ML
-  Library.foldr}.  To avoid further confusion, all of this should be
-  ignored, and @{ML fold} (or @{ML fold_rev}) used exclusively.
+  List.foldr}, while the classic Isabelle library also has the
+  historic @{ML Library.foldl} and @{ML Library.foldr}.  To avoid
+  further confusion, all of this should be ignored, and @{ML fold} (or
+  @{ML fold_rev}) used exclusively.
   \end{warn}
 *}
 
@@ -918,8 +916,9 @@ text {* Note how @{ML "fold (Buffer.add o string_of_int)"} above saves
   memory (``deforestation''), but requires some practice to read and
   write it fluently.
 
-  \medskip The next example elaborates this idea and demonstrates fast
-  accumulation of tree content using a text buffer.
+  \medskip The next example elaborates the idea of canonical
+  iteration, demonstrating fast accumulation of tree content using a
+  text buffer.
 *}
 
 ML {*
@@ -943,31 +942,28 @@ ML {*
 
 text {* The slow part of @{ML slow_content} is the @{ML implode} of
   the recursive results, because it copies previously produced strings
-  afresh.
+  again.
 
   The incremental @{ML add_content} avoids this by operating on a
-  buffer that is passed-through in a linear fashion.  Using @{verbatim
-  "#>"} and contraction over the actual @{ML_type "Buffer.T"} argument
-  saves some additional boiler-plate, but requires again some
-  practice.  Of course, the two @{ML "Buffer.add"} invocations with
-  concatenated strings could have been split into smaller parts, but
-  this would have obfuscated the source without making a big
-  difference in allocations.  Here we have done some
+  buffer that is passed through in a linear fashion.  Using @{verbatim
+  "#>"} and contraction over the actual buffer argument saves some
+  additional boiler-plate.  Of course, the two @{ML "Buffer.add"}
+  invocations with concatenated strings could have been split into
+  smaller parts, but this would have obfuscated the source without
+  making a big difference in allocations.  Here we have done some
   peephole-optimization for the sake of readability.
 
   Another benefit of @{ML add_content} is its ``open'' form as a
-  function on @{ML_type Buffer.T} that can be continued in further
-  linear transformations, folding etc.  Thus it is more compositional
-  than the naive @{ML slow_content}.  As a realistic example, compare
-  the slightly old-style @{ML "Term.maxidx_of_term: term -> int"} with
-  the newer @{ML "Term.maxidx_term: term -> int -> int"} in
-  Isabelle/Pure.
+  function on buffers that can be continued in further linear
+  transformations, folding etc.  Thus it is more compositional than
+  the naive @{ML slow_content}.  As realistic example, compare the
+  old-style @{ML "Term.maxidx_of_term: term -> int"} with the newer
+  @{ML "Term.maxidx_term: term -> int -> int"} in Isabelle/Pure.
 
-  Note that @{ML fast_content} above is only defined for completeness
-  of the example.  In many practical situations, it is customary to
-  defined the incremental @{ML add_content} only and leave the
-  initialization and termination to the concrete application by the
-  user.
+  Note that @{ML fast_content} above is only defined as example.  In
+  many practical situations, it is customary to provide the
+  incremental @{ML add_content} only and leave the initialization and
+  termination to the concrete application by the user.
 *}
 
 
@@ -1016,12 +1012,12 @@ text %mlref {*
 
   \item @{ML warning}~@{text "text"} outputs @{text "text"} as
   warning, which typically means some extra emphasis on the front-end
-  side (color highlighting, icon).
+  side (color highlighting, icons, etc.).
 
   \item @{ML error}~@{text "text"} raises exception @{ML ERROR}~@{text
   "text"} and thus lets the Isar toplevel print @{text "text"} on the
   error channel, which typically means some extra emphasis on the
-  front-end side (color highlighting, icon).
+  front-end side (color highlighting, icons, etc.).
 
   This assumes that the exception is not handled before the command
   terminates.  Handling exception @{ML ERROR}~@{text "text"} is a
@@ -1032,7 +1028,7 @@ text %mlref {*
   The actual error channel is accessed via @{ML Output.error_msg}, but
   the interaction protocol of Proof~General \emph{crashes} if that
   function is used in regular ML code: error output and toplevel
-  command failure always need to coincide here.
+  command failure always need to coincide.
   \end{warn}
 
   \end{description}
@@ -1046,14 +1042,14 @@ text %mlref {*
   some system console log, with a low chance that the user will ever
   see it.  Moreover, as a genuine side-effect on global process
   channels, there is no proper way to retract output when Isar command
-  transactions are reset.
+  transactions are reset by the system.
   \end{warn}
 
   \begin{warn}
   The message channels should be used in a message-oriented manner.
-  This means that multi-line output that logically belongs together
-  needs to be issued by a \emph{single} invocation of @{ML writeln}
-  etc.  with the functional concatenation of all message constituents.
+  This means that multi-line output that logically belongs together is
+  issued by a \emph{single} invocation of @{ML writeln} etc.\ with the
+  functional concatenation of all message constituents.
   \end{warn}
 *}
 
@@ -1108,16 +1104,16 @@ text {* The Standard ML semantics of strict functional evaluation
   These exceptions indicate a genuine breakdown of the program, so the
   main purpose is to determine quickly what has happened where.
   Traditionally, the (short) exception message would include the name
-  of an ML function, although this no longer necessary, because the ML
-  runtime system prints a detailed source position of the
+  of an ML function, although this is no longer necessary, because the
+  ML runtime system prints a detailed source position of the
   corresponding @{verbatim raise} keyword.
 
   \medskip User modules can always introduce their own custom
   exceptions locally, e.g.\ to organize internal failures robustly
   without overlapping with existing exceptions.  Exceptions that are
   exposed in module signatures require extra care, though, and should
-  \emph{not} be introduced by default.  Surprise by end-users or ML
-  users of a module can be often minimized by using plain user errors.
+  \emph{not} be introduced by default.  Surprise by users of a module
+  can be often minimized by using plain user errors instead.
 
   \paragraph{Interrupts.}  These indicate arbitrary system events:
   both the ML runtime system and the Isabelle/ML infrastructure signal
@@ -1131,7 +1127,7 @@ text {* The Standard ML semantics of strict functional evaluation
   that intercepts interrupts becomes dependent on physical effects of
   the environment.  Even worse, exception handling patterns that are
   too general by accident, e.g.\ by mispelled exception constructors,
-  will cover interrupts unintentionally, and thus render the program
+  will cover interrupts unintentionally and thus render the program
   semantics ill-defined.
 
   Note that the Interrupt exception dates back to the original SML90
@@ -1139,8 +1135,8 @@ text {* The Standard ML semantics of strict functional evaluation
   avoid its malign impact on ML program semantics, but without
   providing a viable alternative.  Isabelle/ML recovers physical
   interruptibility (which an indispensable tool to implement managed
-  evaluation of Isar command transactions), but requires user code to
-  be strictly transparent wrt.\ interrupts.
+  evaluation of command transactions), but requires user code to be
+  strictly transparent wrt.\ interrupts.
 
   \begin{warn}
   Isabelle/ML user code needs to terminate promptly on interruption,
@@ -1174,8 +1170,8 @@ text %mlref {*
   \item @{ML can} is similar to @{ML try} with more abstract result.
 
   \item @{ML ERROR}~@{text "msg"} represents user errors; this
-  exception is always raised via the @{ML error} function (see
-  \secref{sec:message-channels}).
+  exception is normally raised indirectly via the @{ML error} function
+  (see \secref{sec:message-channels}).
 
   \item @{ML Fail}~@{text "msg"} represents general program failures.
 
@@ -1187,12 +1183,11 @@ text %mlref {*
   while preserving its implicit position information (if possible,
   depending on the ML platform).
 
-  \item @{ML exception_trace}~@{verbatim "(fn _ =>"}~@{text
+  \item @{ML exception_trace}~@{verbatim "(fn () =>"}~@{text
   "e"}@{verbatim ")"} evaluates expression @{text "e"} while printing
   a full trace of its stack of nested exceptions (if possible,
-  depending on the ML platform).\footnote{In various versions of
-  Poly/ML the trace will appear on raw stdout of the Isabelle
-  process.}
+  depending on the ML platform).\footnote{In versions of Poly/ML the
+  trace will appear on raw stdout of the Isabelle process.}
 
   Inserting @{ML exception_trace} into ML code temporarily is useful
   for debugging, but not suitable for production code.
@@ -1207,10 +1202,10 @@ text %mlantiq {*
 
   \begin{description}
 
-  \item @{text "@{assert}"} inlines a function @{text "bool \<Rightarrow> unit"}
-  that raises @{ML Fail} if the argument is @{ML false}.  Due to
-  inlining the source position of failed assertions is included in the
-  error output.
+  \item @{text "@{assert}"} inlines a function
+  @{ML_type "bool -> unit"} that raises @{ML Fail} if the argument is
+  @{ML false}.  Due to inlining the source position of failed
+  assertions is included in the error output.
 
   \end{description}
 *}
@@ -1218,12 +1213,12 @@ text %mlantiq {*
 
 section {* Basic data types *}
 
-text {* The basis library proposal of SML97 need to be treated with
+text {* The basis library proposal of SML97 needs to be treated with
   caution.  Many of its operations simply do not fit with important
   Isabelle/ML conventions (like ``canonical argument order'', see
-  \secref{sec:canonical-argument-order}), others can cause serious
-  problems with the parallel evaluation model of Isabelle/ML (such as
-  @{ML TextIO.print} or @{ML OS.Process.system}).
+  \secref{sec:canonical-argument-order}), others cause problems with
+  the parallel evaluation model of Isabelle/ML (such as @{ML
+  TextIO.print} or @{ML OS.Process.system}).
 
   Subsequently we give a brief overview of important operations on
   basic ML data types.
@@ -1240,7 +1235,7 @@ text %mlref {*
   \begin{description}
 
   \item Type @{ML_type char} is \emph{not} used.  The smallest textual
-  unit in Isabelle is represented a ``symbol'' (see
+  unit in Isabelle is represented as a ``symbol'' (see
   \secref{sec:symbols}).
 
   \end{description}
@@ -1263,11 +1258,10 @@ text %mlref {*
   This works uniformly for all supported ML platforms (Poly/ML and
   SML/NJ).
 
-  Literal integers in ML text (e.g.\ @{ML
-  123456789012345678901234567890}) are forced to be of this one true
+  Literal integers in ML text are forced to be of this one true
   integer type --- overloading of SML97 is disabled.
 
-  Structure @{ML_struct IntInf} of SML97 is obsolete, always use
+  Structure @{ML_struct IntInf} of SML97 is obsolete and superseded by
   @{ML_struct Int}.  Structure @{ML_struct Integer} in @{"file"
   "~~/src/Pure/General/integer.ML"} provides some additional
   operations.
@@ -1328,7 +1322,7 @@ text %mlref {*
 
   Note that @{ML insert} is conservative about elements that are
   already a @{ML member} of the list, while @{ML update} ensures that
-  the last entry is always put in front.  The latter discipline is
+  the latest entry is always put in front.  The latter discipline is
   often more appropriate in declarations of context data
   (\secref{sec:context-data}) that are issued by the user in Isar
   source: more recent declarations normally take precedence over
@@ -1337,12 +1331,12 @@ text %mlref {*
   \end{description}
 *}
 
-text %mlex {* Using canonical @{ML fold} together with canonical @{ML
-  cons}, or similar standard operations, alternates the orientation of
-  data.  The is quite natural and should not altered forcible by
-  inserting extra applications @{ML rev}.  The alternative @{ML
-  fold_rev} can be used in the relatively few situations, where
-  alternation should be prevented.
+text %mlex {* Using canonical @{ML fold} together with @{ML cons}, or
+  similar standard operations, alternates the orientation of data.
+  The is quite natural and should not be altered forcible by inserting
+  extra applications of @{ML rev}.  The alternative @{ML fold_rev} can
+  be used in the few situations, where alternation should be
+  prevented.
 *}
 
 ML {*
@@ -1393,7 +1387,8 @@ text {*
 
   \item @{ML AList.lookup}, @{ML AList.defined}, @{ML AList.update}
   implement the main ``framework operations'' for mappings in
-  Isabelle/ML, with standard conventions for names and types.
+  Isabelle/ML, following standard conventions for their names and
+  types.
 
   Note that a function called @{text lookup} is obliged to express its
   partiality via an explicit option element.  There is no choice to
@@ -1473,7 +1468,7 @@ text {* Multiple threads help to organize advanced operations of the
 
   Isabelle/Isar exploits the inherent structure of theories and proofs
   to support \emph{implicit parallelism} to a large extent.  LCF-style
-  theorem provides almost ideal conditions for that; see also
+  theorem provides almost ideal conditions for that, see also
   \cite{Wenzel:2009}.  This means, significant parts of theory and
   proof checking is parallelized by default.  A maximum speedup-factor
   of 3.0 on 4 cores and 5.0 on 8 cores can be
@@ -1486,11 +1481,10 @@ text {* Multiple threads help to organize advanced operations of the
 
   \medskip ML threads lack the memory protection of separate
   processes, and operate concurrently on shared heap memory.  This has
-  the advantage that results of independent computations are
-  immediately available to other threads: abstract values can be
-  passed between threads without copying or awkward serialization that
-  is typically required for explicit message passing between separate
-  processes.
+  the advantage that results of independent computations are directly
+  available to other threads: abstract values can be passed without
+  copying or awkward serialization that is typically required for
+  separate processes.
 
   To make shared-memory multi-threading work robustly and efficiently,
   some programming guidelines need to be observed.  While the ML
@@ -1535,15 +1529,15 @@ text {* Thread-safeness is mainly concerned about concurrent
   channels, environment variables, current working directory.
 
   \item Writable resources in the file-system that are shared among
-  different threads or other processes.
+  different threads or external processes.
 
   \end{itemize}
 
   Isabelle/ML provides various mechanisms to avoid critical shared
-  resources in most practical situations.  As last resort there are
-  some mechanisms for explicit synchronization.  The following
-  guidelines help to make Isabelle/ML programs work smoothly in a
-  concurrent environment.
+  resources in most situations.  As last resort there are some
+  mechanisms for explicit synchronization.  The following guidelines
+  help to make Isabelle/ML programs work smoothly in a concurrent
+  environment.
 
   \begin{itemize}
 
@@ -1553,7 +1547,7 @@ text {* Thread-safeness is mainly concerned about concurrent
   plain value and user tools can get/map their own data in a purely
   functional manner.  Configuration options within the context
   (\secref{sec:config-options}) provide simple drop-in replacements
-  for formerly writable flags.
+  for historic reference variables.
 
   \item Keep components with local state information re-entrant.
   Instead of poking initial values into (private) global references, a
@@ -1669,8 +1663,8 @@ text %mlref {*
 
   Entering the critical section without contention is very fast, and
   several basic system operations do so frequently.  Each thread
-  should leave the critical section quickly, otherwise parallel
-  performance may degrade.
+  should stay within the critical section quickly only very briefly,
+  otherwise parallel performance may degrade.
 
   \item @{ML CRITICAL} is the same as @{ML NAMED_CRITICAL} with empty
   name argument.
@@ -1684,26 +1678,22 @@ text %mlref {*
 
   \item @{ML Synchronized.guarded_access}~@{text "var f"} lets the
   function @{text "f"} operate within a critical section on the state
-  @{text "x"} as follows: if @{text "f x"} produces @{ML NONE}, we
-  continue to wait on the internal condition variable, expecting that
+  @{text "x"} as follows: if @{text "f x"} produces @{ML NONE}, it
+  continues to wait on the internal condition variable, expecting that
   some other thread will eventually change the content in a suitable
-  manner; if @{text "f x"} produces @{ML SOME}~@{text "(y, x')"} we
-  are satisfied and assign the new state value @{text "x'"}, broadcast
-  a signal to all waiting threads on the associated condition
-  variable, and return the result @{text "y"}.
+  manner; if @{text "f x"} produces @{ML SOME}~@{text "(y, x')"} it is
+  satisfied and assigns the new state value @{text "x'"}, broadcasts a
+  signal to all waiting threads on the associated condition variable,
+  and returns the result @{text "y"}.
 
   \end{description}
 
-  There are some further variants of the general @{ML
+  There are some further variants of the @{ML
   Synchronized.guarded_access} combinator, see @{"file"
   "~~/src/Pure/Concurrent/synchronized.ML"} for details.
 *}
 
-text %mlex {* See @{"file" "~~/src/Pure/Concurrent/mailbox.ML"} how to
-  implement a mailbox as synchronized variable over a purely
-  functional queue.
-
-  \medskip The following example implements a counter that produces
+text %mlex {* The following example implements a counter that produces
   positive integers that are unique over the runtime of the Isabelle
   process:
 *}
@@ -1725,5 +1715,9 @@ ML {*
   val b = next ();
   @{assert} (a <> b);
 *}
+
+text {* \medskip See @{"file" "~~/src/Pure/Concurrent/mailbox.ML"} how
+  to implement a mailbox as synchronized variable over a purely
+  functional queue. *}
 
 end

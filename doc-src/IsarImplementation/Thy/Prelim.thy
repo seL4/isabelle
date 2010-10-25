@@ -640,7 +640,7 @@ ML {*
 setup my_flag_setup
 
 text {* Now the user can refer to @{attribute my_flag} in
-  declarations, while we can retrieve the current value from the
+  declarations, while ML tools can retrieve the current value from the
   context via @{ML Config.get}.  *}
 
 ML_val {* @{assert} (Config.get @{context} my_flag = false) *}
@@ -897,7 +897,7 @@ ML {*
   @{assert} (list2 = ["x", "xa", "a", "aa", "'a", "'aa"]);
 *}
 
-text {* \medskip The same works reletively to the formal context as
+text {* \medskip The same works relatively to the formal context as
   follows. *}
 
 locale ex = fixes a b c :: 'a
@@ -1210,13 +1210,13 @@ text %mlantiq {*
 *}
 
 text %mlex {* The following example yields the source position of some
-  concrete binding inlined into the text.
+  concrete binding inlined into the text:
 *}
 
 ML {* Binding.pos_of @{binding here} *}
 
 text {* \medskip That position can be also printed in a message as
-  follows. *}
+  follows: *}
 
 ML_command {*
   writeln
@@ -1225,6 +1225,7 @@ ML_command {*
 
 text {* This illustrates a key virtue of formalized bindings as
   opposed to raw specifications of base names: the system can use this
-  additional information for advanced feedback given to the user. *}
+  additional information for feedback given to the user (error
+  messages etc.). *}
 
 end

@@ -6,6 +6,8 @@ New in this Isabelle version
 
 *** General ***
 
+* Significantly improved Isabelle/Isar implementation manual.
+
 * Explicit treatment of UTF8 sequences as Isabelle symbols, such that
 a Unicode character is treated as a single symbol, not a sequence of
 non-ASCII bytes as before.  Since Isabelle/ML string literals may
@@ -316,6 +318,10 @@ INCOMPATIBILITY.
 
 
 *** ML ***
+
+* Antiquotation @{assert} inlines a function bool -> unit that raises
+Fail if the argument is false.  Due to inlining the source position of
+failed assertions is included in the error output.
 
 * Renamed setmp_noncritical to Unsynchronized.setmp to emphasize its
 meaning.
