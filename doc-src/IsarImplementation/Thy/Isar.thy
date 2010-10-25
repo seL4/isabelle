@@ -4,9 +4,9 @@ begin
 
 chapter {* Isar language elements *}
 
-text {*
-  The Isar proof language (see also \cite[\S2]{isabelle-isar-ref})
-  consists of three main categories of language elements:
+text {* The Isar proof language (see also
+  \cite[\S2]{isabelle-isar-ref}) consists of three main categories of
+  language elements as follows.
 
   \begin{enumerate}
 
@@ -44,12 +44,12 @@ section {* Proof commands *}
 text {* A \emph{proof command} is state transition of the Isar/VM
   proof interpreter.
 
-  In principle, Isar proof commands could be defined in
-  user-space as well.  The system is built like that in the first
-  place: part of the commands are primitive, the other part is defined
-  as derived elements.  Adding to the genuine structured proof
-  language requires profound understanding of the Isar/VM machinery,
-  though, so this is beyond the scope of this manual.
+  In principle, Isar proof commands could be defined in user-space as
+  well.  The system is built like that in the first place: one part of
+  the commands are primitive, the other part is defined as derived
+  elements.  Adding to the genuine structured proof language requires
+  profound understanding of the Isar/VM machinery, though, so this is
+  beyond the scope of this manual.
 
   What can be done realistically is to define some diagnostic commands
   that inspect the general state of the Isar/VM, and report some
@@ -58,11 +58,10 @@ text {* A \emph{proof command} is state transition of the Isar/VM
   goals (if available).
 
   Another common application is to define a toplevel command that
-  poses a problem to the user as Isar proof state and stores the final
-  result in a suitable context data slot.  Thus a proof can be
+  poses a problem to the user as Isar proof state and processes the
+  final result relatively to the context.  Thus a proof can be
   incorporated into the context of some user-space tool, without
-  modifying the Isar proof language itself.
-*}
+  modifying the Isar proof language itself.  *}
 
 text %mlref {*
   \begin{mldecls}
@@ -131,13 +130,14 @@ text %mlref {*
   storing named facts).  Note that at this generic level the target
   context is specified as @{ML_type Proof.context}, but the usual
   wrapping of toplevel proofs into command transactions will provide a
-  @{ML_type local_theory} here (see also \chref{ch:local-theory}).
-  This usually affects the way how results are stored.
+  @{ML_type local_theory} here (\chref{ch:local-theory}).  This
+  affects the way how results are stored.
 
   The @{text "statement"} is given as a nested list of terms, each
   associated with optional @{keyword "is"} patterns as usual in the
-  Isar source language.  The original list structure over terms is
-  turned into one over theorems when @{text "after_qed"} is invoked.
+  Isar source language.  The original nested list structure over terms
+  is turned into one over theorems when @{text "after_qed"} is
+  invoked.
 
   \end{description}
 *}
@@ -212,15 +212,15 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
 
   \end{itemize}
 
-  \medskip Syntactically, the language of proof methods is embedded
-  into Isar as arguments to certain commands, e.g.\ @{command "by"} or
-  @{command apply}.  User-space additions are reasonably easy by
-  plugging suitable method-valued parser functions into the framework,
-  using the @{command method_setup} command, for example.
+  \medskip Syntactically, the language of proof methods appears as
+  arguments to Isar commands like @{command "by"} or @{command apply}.
+  User-space additions are reasonably easy by plugging suitable
+  method-valued parser functions into the framework, using the
+  @{command method_setup} command, for example.
 
   To get a better idea about the range of possibilities, consider the
-  following Isar proof schemes.  First some general form of structured
-  proof text:
+  following Isar proof schemes.  This is the general form of
+  structured proof text:
 
   \medskip
   \begin{tabular}{l}
@@ -231,15 +231,15 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
   \end{tabular}
   \medskip
 
-  The goal configuration consists of @{text "facts\<^sub>1"} and @{text
-  "facts\<^sub>2"} appended in that order, and various @{text "props"} being
-  claimed here.  The @{text "initial_method"} is invoked with facts
-  and goals together and refines the problem to something that is
-  handled recursively in the proof @{text "body"}.  The @{text
-  "terminal_method"} has another chance to finish-off any remaining
+  The goal configuration consists of @{text "facts\<^sub>1"} and
+  @{text "facts\<^sub>2"} appended in that order, and various @{text
+  "props"} being claimed.  The @{text "initial_method"} is invoked
+  with facts and goals together and refines the problem to something
+  that is handled recursively in the proof @{text "body"}.  The @{text
+  "terminal_method"} has another chance to finish any remaining
   subgoals, but it does not see the facts of the initial step.
 
-  \medskip The second pattern illustrates unstructured proof scripts:
+  \medskip This pattern illustrates unstructured proof scripts:
 
   \medskip
   \begin{tabular}{l}
@@ -251,14 +251,14 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
   \end{tabular}
   \medskip
 
-  The @{text "method\<^sub>1"} operates on the original claim together while
+  The @{text "method\<^sub>1"} operates on the original claim while
   using @{text "facts\<^sub>1"}.  Since the @{command apply} command
-  structurally resets the facts, the @{text "method\<^sub>2"} will operate on
-  the remaining goal state without facts.  The @{text "method\<^sub>3"} will
-  see again a collection of @{text "facts\<^sub>3"} that has been inserted
-  into the script explicitly.
+  structurally resets the facts, the @{text "method\<^sub>2"} will
+  operate on the remaining goal state without facts.  The @{text
+  "method\<^sub>3"} will see again a collection of @{text
+  "facts\<^sub>3"} that has been inserted into the script explicitly.
 
-  \medskip Empirically, Isar proof methods can be categorized as
+  \medskip Empirically, any Isar proof method can be categorized as
   follows.
 
   \begin{enumerate}
@@ -268,7 +268,8 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
 
   Example: @{method "induct"}, which is also a ``raw'' method since it
   operates on the internal representation of simultaneous claims as
-  Pure conjunction, instead of separate subgoals.
+  Pure conjunction (\secref{{sec:logic-aux}}), instead of separate
+  subgoals (\secref{sec::tactical-goals}).
 
   \item \emph{Structured method} with strong emphasis on facts outside
   the goal state.
@@ -285,8 +286,8 @@ text {* A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup
   \item \emph{Old-style tactic emulation} with detailed numeric goal
   addressing and explicit references to entities of the internal goal
   state (which are otherwise invisible from proper Isar proof text).
-  To make the special non-standard status clear, the naming convention
-  @{text "foo_tac"} needs to be observed.
+  The naming convention @{text "foo_tac"} makes this special
+  non-standard status clear.
 
   Example: @{method "rule_tac"}.
 
@@ -396,9 +397,9 @@ text {* The concrete syntax wrapping of @{command method_setup} always
 
   The @{ML Attrib.thms} parser produces a list of theorems from the
   usual Isar syntax involving attribute expressions etc.\ (syntax
-  category @{syntax thmrefs}).  The resulting @{verbatim thms} are
-  added to @{ML HOL_basic_ss} which already contains the basic
-  Simplifier setup for HOL.
+  category @{syntax thmrefs}) \cite{isabelle-isar-ref}.  The resulting
+  @{verbatim thms} are added to @{ML HOL_basic_ss} which already
+  contains the basic Simplifier setup for HOL.
 
   The tactic @{ML asm_full_simp_tac} is the one that is also used in
   method @{method simp} by default.  The extra wrapping by the @{ML
@@ -478,8 +479,8 @@ text {* \medskip The @{method my_simp} variants defined above are
   ``simple'' methods, i.e.\ the goal facts are merely inserted as goal
   premises by the @{ML SIMPLE_METHOD'} or @{ML SIMPLE_METHOD} wrapper.
   For proof methods that are similar to the standard collection of
-  @{method simp}, @{method blast}, @{method auto} little more can be
-  done here.
+  @{method simp}, @{method blast}, @{method fast}, @{method auto}
+  there is little more that can be done.
 
   Note that using the primary goal facts in the same manner as the
   method arguments obtained via concrete syntax or the context does
@@ -503,8 +504,8 @@ text {* \medskip The @{method my_simp} variants defined above are
   manner, such as a discrimination net that is indexed by the
   left-hand sides of rewrite rules.  For variations on the Simplifier,
   re-use of the existing type @{ML_type simpset} is adequate, but
-  scalability requires it be maintained statically within the context
-  data, not dynamically on each tool invocation.  *}
+  scalability would require it be maintained statically within the
+  context data, not dynamically on each tool invocation.  *}
 
 
 section {* Attributes \label{sec:attributes} *}

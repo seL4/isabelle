@@ -874,7 +874,7 @@ The following example shows how to declare and use a
 %
 \begin{isamarkuptext}%
 Now the user can refer to \hyperlink{attribute.my-flag}{\mbox{\isa{my{\isacharunderscore}flag}}} in
-  declarations, while we can retrieve the current value from the
+  declarations, while ML tools can retrieve the current value from the
   context via \verb|Config.get|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1323,7 +1323,7 @@ assert%
 \endisadelimML
 %
 \begin{isamarkuptext}%
-\medskip The same works reletively to the formal context as
+\medskip The same works relatively to the formal context as
   follows.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1726,7 +1726,7 @@ A \isa{name\ space} manages a collection of long names,
 %
 \begin{isamarkuptext}%
 The following example yields the source position of some
-  concrete binding inlined into the text.%
+  concrete binding inlined into the text:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1757,7 +1757,7 @@ binding\ here%
 %
 \begin{isamarkuptext}%
 \medskip That position can be also printed in a message as
-  follows.%
+  follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1785,7 +1785,8 @@ binding\ here%
 \begin{isamarkuptext}%
 This illustrates a key virtue of formalized bindings as
   opposed to raw specifications of base names: the system can use this
-  additional information for advanced feedback given to the user.%
+  additional information for feedback given to the user (error
+  messages etc.).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

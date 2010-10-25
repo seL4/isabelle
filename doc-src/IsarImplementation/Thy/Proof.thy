@@ -180,13 +180,12 @@ ML {*
   val t2 = Syntax.read_term ctxt2 "x";  (*x::nat is enforced*)
 *}
 
-text {* In the above example, the starting context had been derived
-  from the toplevel theory, which means that fixed variables are
-  internalized literally: @{verbatim "x"} is mapped again to
-  @{verbatim "x"}, and attempting to fix it again in the subsequent
-  context is an error.  Alternatively, fixed parameters can be renamed
-  explicitly as follows:
-*}
+text {* In the above example, the starting context is derived from the
+  toplevel theory, which means that fixed variables are internalized
+  literally: @{verbatim "x"} is mapped again to @{verbatim "x"}, and
+  attempting to fix it again in the subsequent context is an error.
+  Alternatively, fixed parameters can be renamed explicitly as
+  follows: *}
 
 ML {*
   val ctxt0 = @{context};
