@@ -6,10 +6,11 @@
 header {* Automatic Theorem Provers (ATPs) *}
 
 theory ATP
-imports Plain
-uses "Tools/ATP/atp_problem.ML"
-     "Tools/ATP/atp_proof.ML"
-     "Tools/ATP/atp_systems.ML"
+imports HOL
+uses
+  "Tools/ATP/atp_problem.ML"
+  "Tools/ATP/atp_proof.ML"
+  "Tools/ATP/atp_systems.ML"
 begin
 
 setup ATP_Systems.setup
