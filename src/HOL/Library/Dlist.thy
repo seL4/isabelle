@@ -143,11 +143,11 @@ proof (cases dxs)
   proof (induct xs)
     case Nil from empty show ?case by (simp add: empty_def)
   next
-    case (insert x xs)
+    case (Cons x xs)
     then have "\<not> member (Dlist xs) x" and "P (Dlist xs)"
       by (simp_all add: member_def List.member_def)
     with insrt have "P (insert x (Dlist xs))" .
-    with insert show ?case by (simp add: insert_def distinct_remdups_id)
+    with Cons show ?case by (simp add: insert_def distinct_remdups_id)
   qed
   with dxs show "P dxs" by simp
 qed
