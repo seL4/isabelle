@@ -157,13 +157,15 @@ fun avoid_too_many_local_threads _ _ [] = []
       prover :: avoid_too_many_local_threads thy n provers
     end
 
+val num_processors = try Thread.numProcessors #> the_default 1
+
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
 fun default_provers_param_value ctxt =
   let val thy = ProofContext.theory_of ctxt in
     [spassN, eN, vampireN, sine_eN (* FIXME: , smtN *)]
     |> map_filter (remotify_prover_if_not_installed ctxt)
-    |> avoid_too_many_local_threads thy (Thread.numProcessors ())
+    |> avoid_too_many_local_threads thy (num_processors ())
     |> space_implode " "
   end
 
