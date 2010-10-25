@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_translate.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_atp_translate.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
@@ -9,16 +9,16 @@ Translation of HOL to FOL for Sledgehammer.
 signature SLEDGEHAMMER_ATP_TRANSLATE =
 sig
   type 'a problem = 'a ATP_Problem.problem
-  type prepared_formula
+  type translated_formula
 
   val axiom_prefix : string
   val conjecture_prefix : string
-  val prepare_axiom :
+  val translate_axiom :
     Proof.context -> (string * 'a) * thm
-    -> term * ((string * 'a) * prepared_formula) option
+    -> term * ((string * 'a) * translated_formula) option
   val prepare_atp_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
-    -> (term * ((string * 'a) * prepared_formula) option) list
+    -> (term * ((string * 'a) * translated_formula) option) list
     -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
 
@@ -39,7 +39,7 @@ val tfree_prefix = "tfree_"
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
 
-type prepared_formula =
+type translated_formula =
   {name: string,
    kind: kind,
    combformula: (name, combterm) formula,
@@ -214,7 +214,7 @@ fun count_combterm (CombConst ((s, _), _, _)) =
 fun count_combformula (AQuant (_, _, phi)) = count_combformula phi
   | count_combformula (AConn (_, phis)) = fold count_combformula phis
   | count_combformula (AAtom tm) = count_combterm tm
-fun count_prepared_formula ({combformula, ...} : prepared_formula) =
+fun count_translated_formula ({combformula, ...} : translated_formula) =
   count_combformula combformula
 
 val optional_helpers =
@@ -235,7 +235,7 @@ val init_counters =
 fun get_helper_facts ctxt is_FO full_types conjectures axioms =
   let
     val ct =
-      fold (fold count_prepared_formula) [conjectures, axioms] init_counters
+      fold (fold count_translated_formula) [conjectures, axioms] init_counters
     fun is_needed c = the (Symtab.lookup ct c) > 0
     fun baptize th = ((Thm.get_name_hint th, false), th)
   in
@@ -247,12 +247,12 @@ fun get_helper_facts ctxt is_FO full_types conjectures axioms =
     |> map_filter (Option.map snd o make_axiom ctxt false)
   end
 
-fun prepare_axiom ctxt (ax as (_, th)) = (prop_of th, make_axiom ctxt true ax)
+fun translate_axiom ctxt (ax as (_, th)) = (prop_of th, make_axiom ctxt true ax)
 
-fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
+fun translate_formulas ctxt full_types hyp_ts concl_t axioms =
   let
     val thy = ProofContext.theory_of ctxt
-    val (axiom_ts, prepared_axioms) = ListPair.unzip axioms
+    val (axiom_ts, translated_axioms) = ListPair.unzip axioms
     (* Remove existing axioms from the conjecture, as this can dramatically
        boost an ATP's performance (for some reason). *)
     val hyp_ts = hyp_ts |> filter_out (member (op aconv) axiom_ts)
@@ -263,7 +263,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
     val tycons = type_consts_of_terms thy (goal_t :: axiom_ts)
     (* TFrees in the conjecture; TVars in the axioms *)
     val conjectures = make_conjecture ctxt (hyp_ts @ [concl_t])
-    val (axiom_names, axioms) = ListPair.unzip (map_filter I prepared_axioms)
+    val (axiom_names, axioms) = ListPair.unzip (map_filter I translated_axioms)
     val helper_facts = get_helper_facts ctxt is_FO full_types conjectures axioms
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
@@ -323,7 +323,7 @@ fun formula_for_combformula full_types =
   in aux end
 
 fun formula_for_axiom full_types
-                      ({combformula, ctypes_sorts, ...} : prepared_formula) =
+                      ({combformula, ctypes_sorts, ...} : translated_formula) =
   mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
                 (type_literals_for_types ctypes_sorts))
            (formula_for_combformula full_types combformula)
@@ -353,11 +353,12 @@ fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                      (fo_literal_for_arity_literal conclLit)))
 
 fun problem_line_for_conjecture full_types
-                           ({name, kind, combformula, ...} : prepared_formula) =
+        ({name, kind, combformula, ...} : translated_formula) =
   Fof (conjecture_prefix ^ name, kind,
        formula_for_combformula full_types combformula)
 
-fun free_type_literals_for_conjecture ({ctypes_sorts, ...} : prepared_formula) =
+fun free_type_literals_for_conjecture
+        ({ctypes_sorts, ...} : translated_formula) =
   map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type j lit =
@@ -501,7 +502,7 @@ fun prepare_atp_problem ctxt readable_names explicit_forall full_types
     val thy = ProofContext.theory_of ctxt
     val (axiom_names, (conjectures, axioms, helper_facts, class_rel_clauses,
                        arity_clauses)) =
-      prepare_formulas ctxt full_types hyp_ts concl_t axioms
+      translate_formulas ctxt full_types hyp_ts concl_t axioms
     val axiom_lines = map (problem_line_for_fact axiom_prefix full_types) axioms
     val helper_lines =
       map (problem_line_for_fact helper_prefix full_types) helper_facts

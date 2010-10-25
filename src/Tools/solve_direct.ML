@@ -1,4 +1,4 @@
-(*  Title:      Tools/auto_solve.ML
+(*  Title:      Tools/solve_direct.ML
     Author:     Timothy Bourke and Gerwin Klein, NICTA
 
 Check whether a newly stated theorem can be solved directly by an
@@ -8,15 +8,17 @@ The implementation relies critically on the Find_Theorems solves
 feature.
 *)
 
-signature AUTO_SOLVE =
+signature SOLVE_DIRECT =
 sig
   val auto : bool Unsynchronized.ref
   val max_solutions : int Unsynchronized.ref
   val setup : theory -> theory
 end;
 
-structure Auto_Solve : AUTO_SOLVE =
+structure Solve_Direct : SOLVE_DIRECT =
 struct
+
+val solve_directN = "solve_direct"
 
 (* preferences *)
 
@@ -27,12 +29,10 @@ val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
   (Unsynchronized.setmp auto true (fn () =>
     Preferences.bool_pref auto
-      "auto-solve" "Try to solve conjectures with existing theorems.") ());
+      ("Auto " ^ solve_directN)
+      ("Run " ^ quote solve_directN ^ " automatically.")) ());
 
-
-(* hook *)
-
-fun auto_solve state =
+fun solve_direct auto state =
   let
     val ctxt = Proof.context_of state;
 
@@ -42,12 +42,13 @@ fun auto_solve state =
     fun prt_result (goal, results) =
       let
         val msg =
+          (if auto then "Auto " else "") ^ solve_directN ^ ": " ^
           (case goal of
             NONE => "The current goal"
           | SOME sg => Syntax.string_of_term ctxt (Thm.term_of sg));
       in
         Pretty.big_list
-          (msg ^ " could be solved directly with:")
+          (msg ^ " can be solved directly with")
           (map (Find_Theorems.pretty_thm ctxt) results)
       end;
 
@@ -63,18 +64,34 @@ fun auto_solve state =
               else map (fn sg => (SOME sg, find (Goal.init sg))) subgoals;
             val results = filter_out (null o snd) rs;
           in if null results then NONE else SOME results end);
+    fun message results = separate (Pretty.brk 0) (map prt_result results)
+  in
+    (case try seek_against_goal () of
+      SOME (SOME results) =>
+      (true, state |> (if auto then
+                         Proof.goal_message
+                           (fn () => Pretty.chunks
+                              [Pretty.str "",
+                               Pretty.markup Markup.hilite (message results)])
+                       else
+                         tap (fn _ => priority (Pretty.string_of
+                                (Pretty.chunks (message results))))))
+    | _ => (false, state))
+  end;
 
-    fun go () =
-      (case try seek_against_goal () of
-        SOME (SOME results) =>
-          (true, state |> Proof.goal_message
-                  (fn () => Pretty.chunks
-                    [Pretty.str "",
-                      Pretty.markup Markup.hilite
-                        (separate (Pretty.brk 0) (map prt_result results))]))
-      | _ => (false, state));
-  in if not (!auto) then (false, state) else go () end;
+val invoke_solve_direct = fst o solve_direct false
 
-val setup = Auto_Tools.register_tool ("solve", auto_solve)
+val _ =
+  Outer_Syntax.improper_command solve_directN
+      "try to solve conjectures directly with existing theorems" Keyword.diag
+      (Scan.succeed (Toplevel.keep (K () o invoke_solve_direct
+                                    o Toplevel.proof_of)))
+
+(* hook *)
+
+fun auto_solve_direct state =
+  if not (!auto) then (false, state) else solve_direct true state
+
+val setup = Auto_Tools.register_tool (solve_directN, auto_solve_direct)
 
 end;
