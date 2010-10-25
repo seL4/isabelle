@@ -160,13 +160,13 @@ fun log_msg s = errormsg Message Log s;
    add new lines explicitly in PGIP: they are left implicit.  It means that PGIP messages
    can't be written without newlines. *)
 fun setup_messages () =
- (Output.writeln_fn := (fn s => normalmsg Message s);
-  Output.status_fn := (fn _ => ());
-  Output.report_fn := (fn _ => ());
-  Output.urgent_message_fn := (fn s => normalmsg Status s);
-  Output.tracing_fn := (fn s => normalmsg Tracing s);
-  Output.warning_fn := (fn s => errormsg Message Warning s);
-  Output.error_fn := (fn s => errormsg Message Fatal s));
+ (Output.Private_Hooks.writeln_fn := (fn s => normalmsg Message s);
+  Output.Private_Hooks.status_fn := (fn _ => ());
+  Output.Private_Hooks.report_fn := (fn _ => ());
+  Output.Private_Hooks.urgent_message_fn := (fn s => normalmsg Status s);
+  Output.Private_Hooks.tracing_fn := (fn s => normalmsg Tracing s);
+  Output.Private_Hooks.warning_fn := (fn s => errormsg Message Warning s);
+  Output.Private_Hooks.error_fn := (fn s => errormsg Message Fatal s));
 
 
 (* immediate messages *)

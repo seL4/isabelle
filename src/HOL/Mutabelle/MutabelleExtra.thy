@@ -19,10 +19,11 @@ uses "mutabelle.ML"
      "mutabelle_extra.ML"
 begin
 
-ML {* val old_tr = !Output.tracing_fn *}
-ML {* val old_wr = !Output.writeln_fn *}
-ML {* val old_ur = !Output.urgent_message_fn *}
-ML {* val old_wa = !Output.warning_fn *}
+(* FIXME !?!?! *)
+ML {* val old_tr = !Output.Private_Hooks.tracing_fn *}
+ML {* val old_wr = !Output.Private_Hooks.writeln_fn *}
+ML {* val old_ur = !Output.Private_Hooks.urgent_message_fn *}
+ML {* val old_wa = !Output.Private_Hooks.warning_fn *}
 
 quickcheck_params [size = 5, iterations = 1000]
 (*
@@ -48,9 +49,10 @@ ML {*
 *)
  *}
 
-ML {* Output.tracing_fn := old_tr *}
-ML {* Output.writeln_fn := old_wr *}
-ML {* Output.urgent_message_fn := old_ur *}
-ML {* Output.warning_fn := old_wa *}
+(* FIXME !?!?! *)
+ML {* Output.Private_Hooks.tracing_fn := old_tr *}
+ML {* Output.Private_Hooks.writeln_fn := old_wr *}
+ML {* Output.Private_Hooks.urgent_message_fn := old_ur *}
+ML {* Output.Private_Hooks.warning_fn := old_wa *}
 
 end
