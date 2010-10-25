@@ -499,14 +499,14 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
 fun is_executable thy insts th =
  (Quickcheck.test_term
     (ProofContext.init_global thy) false (SOME (!testgen_name)) 1 1 (preprocess thy insts (prop_of th));
-  priority "executable"; true) handle ERROR s =>
-    (priority ("not executable: " ^ s); false);
+  Output.urgent_message "executable"; true) handle ERROR s =>
+    (Output.urgent_message ("not executable: " ^ s); false);
 
 fun qc_recursive usedthy [] insts sz qciter acc = rev acc
  | qc_recursive usedthy (x::xs) insts sz qciter acc = qc_recursive usedthy xs insts sz qciter 
-     (priority ("qc_recursive: " ^ string_of_int (length xs)); ((x, pretty (the_default [] (Quickcheck.test_term
+     (Output.urgent_message ("qc_recursive: " ^ string_of_int (length xs)); ((x, pretty (the_default [] (Quickcheck.test_term
        (ProofContext.init_global usedthy) false (SOME (!testgen_name)) sz qciter (preprocess usedthy insts x)))) :: acc))
-          handle ERROR msg => (priority msg; qc_recursive usedthy xs insts sz qciter acc);
+          handle ERROR msg => (Output.urgent_message msg; qc_recursive usedthy xs insts sz qciter acc);
 
 
 (*quickcheck-test the mutants created by function mutate with type-instantiation insts, 
@@ -721,11 +721,11 @@ fun mutqc_thy_mix mutthy usedthy commutatives forbidden_funs iter insts sz qcite
 fun mutqc_thystat option p mutthy usedthy commutatives forbidden_funs iter insts sz qciter filename =
  let
    val thmlist = filter
-     (fn (s, th) => not (p s th) andalso (priority s; is_executable mutthy insts th)) (thms_of mutthy)
+     (fn (s, th) => not (p s th) andalso (Output.urgent_message s; is_executable mutthy insts th)) (thms_of mutthy)
    fun mutthmrec [] = ()
    |   mutthmrec ((name,thm)::xs) =
      let          
-       val _ = priority ("mutthmrec: " ^ name);
+       val _ = Output.urgent_message ("mutthmrec: " ^ name);
        val mutated = mutate option (prop_of thm) usedthy
            commutatives forbidden_funs iter
        val (passednum,_,cenum,_) = qc_test mutated insts usedthy sz qciter

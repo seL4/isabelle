@@ -7,7 +7,6 @@ Output channels and timing messages.
 signature BASIC_OUTPUT =
 sig
   val writeln: string -> unit
-  val priority: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
   val legacy_feature: string -> unit
@@ -32,13 +31,14 @@ sig
   val raw_stderr: output -> unit
   val raw_writeln: output -> unit
   val writeln_fn: (output -> unit) Unsynchronized.ref
-  val priority_fn: (output -> unit) Unsynchronized.ref
+  val urgent_message_fn: (output -> unit) Unsynchronized.ref
   val tracing_fn: (output -> unit) Unsynchronized.ref
   val warning_fn: (output -> unit) Unsynchronized.ref
   val error_fn: (output -> unit) Unsynchronized.ref
   val prompt_fn: (output -> unit) Unsynchronized.ref
   val status_fn: (output -> unit) Unsynchronized.ref
   val report_fn: (output -> unit) Unsynchronized.ref
+  val urgent_message: string -> unit
   val error_msg: string -> unit
   val prompt: string -> unit
   val status: string -> unit
@@ -86,7 +86,7 @@ fun raw_writeln "" = ()
 (* Isabelle output channels *)
 
 val writeln_fn = Unsynchronized.ref raw_writeln;
-val priority_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
+val urgent_message_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
 val tracing_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
 val warning_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "### ");
 val error_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "*** ");
@@ -95,7 +95,7 @@ val status_fn = Unsynchronized.ref (fn _: string => ());
 val report_fn = Unsynchronized.ref (fn _: string => ());
 
 fun writeln s = ! writeln_fn (output s);
-fun priority s = ! priority_fn (output s);
+fun urgent_message s = ! urgent_message_fn (output s);
 fun tracing s = ! tracing_fn (output s);
 fun warning s = ! warning_fn (output s);
 fun error_msg s = ! error_fn (output s);

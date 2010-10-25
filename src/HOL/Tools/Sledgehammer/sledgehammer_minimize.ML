@@ -47,7 +47,7 @@ fun test_facts ({debug, verbose, overlord, provers, full_types, isar_proof,
                explicit_apply timeout i n state axioms =
   let
     val _ =
-      priority ("Testing " ^ n_facts (map fst axioms) ^ "...")
+      Output.urgent_message ("Testing " ^ n_facts (map fst axioms) ^ "...")
     val params =
       {blocking = true, debug = debug, verbose = verbose, overlord = overlord,
        provers = provers, full_types = full_types,
@@ -62,7 +62,7 @@ fun test_facts ({debug, verbose, overlord, provers, full_types, isar_proof,
        axioms = axioms, only = true}
     val result as {outcome, used_axioms, ...} = prover params (K "") problem
   in
-    priority (case outcome of
+    Output.urgent_message (case outcome of
                 SOME failure => string_for_failure failure
               | NONE =>
                 if length used_axioms = length axioms then "Found proof."
@@ -94,7 +94,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
     val thy = Proof.theory_of state
     val prover = get_prover thy false prover_name
     val msecs = Time.toMilliseconds timeout
-    val _ = priority ("Sledgehammer minimize: " ^ quote prover_name ^ ".")
+    val _ = Output.urgent_message ("Sledgehammer minimize: " ^ quote prover_name ^ ".")
     val {goal, ...} = Proof.goal state
     val (_, hyp_ts, concl_t) = strip_subgoal goal i
     val explicit_apply =
@@ -115,7 +115,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
            sublinear_minimize (do_test new_timeout)
                (filter_used_axioms used_axioms axioms) ([], result)
          val n = length min_thms
-         val _ = priority (cat_lines
+         val _ = Output.urgent_message (cat_lines
            ["Minimized: " ^ string_of_int n ^ " fact" ^ plural_s n] ^
             (case length (filter (curry (op =) Chained o snd o fst) min_thms) of
                0 => ""
@@ -145,10 +145,10 @@ fun run_minimize params i refs state =
             o name_thm_pairs_from_ref ctxt reserved chained_ths) refs
   in
     case subgoal_count state of
-      0 => priority "No subgoal!"
+      0 => Output.urgent_message "No subgoal!"
     | n =>
       (kill_provers ();
-       priority (#2 (minimize_facts params i n state axioms)))
+       Output.urgent_message (#2 (minimize_facts params i n state axioms)))
   end
 
 end;

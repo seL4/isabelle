@@ -77,7 +77,7 @@ fun setup_messages () =
  (Output.writeln_fn := message "" "" "";
   Output.status_fn := (fn _ => ());
   Output.report_fn := (fn _ => ());
-  Output.priority_fn := message (special "I") (special "J") "";
+  Output.urgent_message_fn := message (special "I") (special "J") "";
   Output.tracing_fn := message (special "I" ^ special "V") (special "J") "";
   Output.warning_fn := message (special "K") (special "L") "### ";
   Output.error_fn := message (special "M") (special "N") "*** ";
@@ -146,7 +146,7 @@ fun inform_file_processed file =
 
 (* restart top-level loop (keeps most state information) *)
 
-val welcome = priority o Session.welcome;
+val welcome = Output.urgent_message o Session.welcome;
 
 fun restart () =
  (sync_thy_loader ();
@@ -227,7 +227,7 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
           Output.default_output Output.default_escape;
          Markup.add_mode ProofGeneralPgip.proof_general_emacsN YXML.output_markup;
          setup_messages ();
-         ProofGeneralPgip.pgip_channel_emacs (! Output.priority_fn);
+         ProofGeneralPgip.pgip_channel_emacs (! Output.urgent_message_fn);
          setup_thy_loader ();
          setup_present_hook ();
          initialized := true);

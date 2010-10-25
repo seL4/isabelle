@@ -163,7 +163,7 @@ fun setup_messages () =
  (Output.writeln_fn := (fn s => normalmsg Message s);
   Output.status_fn := (fn _ => ());
   Output.report_fn := (fn _ => ());
-  Output.priority_fn := (fn s => normalmsg Status s);
+  Output.urgent_message_fn := (fn s => normalmsg Status s);
   Output.tracing_fn := (fn s => normalmsg Tracing s);
   Output.warning_fn := (fn s => errormsg Message Warning s);
   Output.error_fn := (fn s => errormsg Message Fatal s));
@@ -231,7 +231,7 @@ fun inform_file_processed path state =
 
 (* restart top-level loop (keeps most state information) *)
 
-val welcome = priority o Session.welcome;
+val welcome = Output.urgent_message o Session.welcome;
 
 fun restart () =
     (sync_thy_loader ();
@@ -807,14 +807,15 @@ fun openfile (Openfile vs) =
                                 PgipTypes.string_of_pgipurl url)
         | NONE => (openfile_retract filepath;
                    changecwd_dir filedir;
-                   priority ("Working in file: " ^ PgipTypes.string_of_pgipurl url);
+                   Output.urgent_message ("Working in file: " ^ PgipTypes.string_of_pgipurl url);
                    currently_open_file := SOME url)
   end
 
 fun closefile _ =
     case !currently_open_file of
         SOME f => (inform_file_processed f (Isar.state ());
-                   priority ("Finished working in file: " ^ PgipTypes.string_of_pgipurl f);
+                   Output.urgent_message
+                    ("Finished working in file: " ^ PgipTypes.string_of_pgipurl f);
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<closefile> when no file is open!")
 
@@ -835,7 +836,7 @@ fun loadfile (Loadfile vs) =
 fun abortfile _ =
     case !currently_open_file of
         SOME f => (isarcmd "init_toplevel";
-                   priority ("Aborted working in file: " ^
+                   Output.urgent_message ("Aborted working in file: " ^
                              PgipTypes.string_of_pgipurl f);
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<abortfile> when no file is open!")
@@ -846,7 +847,7 @@ fun retractfile (Retractfile vs) =
     in
         case !currently_open_file of
             SOME f => raise PGIP ("<retractfile> when a file is open!")
-          | NONE => (priority ("Retracting file: " ^ PgipTypes.string_of_pgipurl url);
+          | NONE => (Output.urgent_message ("Retracting file: " ^ PgipTypes.string_of_pgipurl url);
                      (* TODO: next should be in thy loader, here just for testing *)
                      let
                          val name = thy_name url

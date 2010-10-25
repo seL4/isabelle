@@ -169,7 +169,7 @@ fun available_provers thy =
       sort_strings (available_atps thy) @ smt_prover_names
       |> List.partition (String.isPrefix remote_prefix)
   in
-    priority ("Available provers: " ^ commas (local_provers @ remote_provers) ^
+    Output.urgent_message ("Available provers: " ^ commas (local_provers @ remote_provers) ^
               ".")
   end
 
@@ -481,7 +481,7 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
       end
     else if blocking then
       let val (success, message) = TimeLimit.timeLimit timeout go () in
-        List.app priority
+        List.app Output.urgent_message
                  (Async_Manager.break_into_chunks [desc ^ "\n" ^ message]);
         (success, state)
       end
@@ -497,7 +497,7 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
   if null provers then
     error "No prover is set."
   else case subgoal_count state of
-    0 => (priority "No subgoal!"; (false, state))
+    0 => (Output.urgent_message "No subgoal!"; (false, state))
   | n =>
     let
       val _ = Proof.assert_backward state
@@ -505,7 +505,7 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
       val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val _ = () |> not blocking ? kill_provers
-      val _ = if auto then () else priority "Sledgehammering..."
+      val _ = if auto then () else Output.urgent_message "Sledgehammering..."
       val (smts, atps) = provers |> List.partition is_smt_prover
       fun run_provers full_types irrelevant_consts relevance_fudge
                       maybe_translate provers (res as (success, state)) =
