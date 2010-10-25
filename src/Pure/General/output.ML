@@ -36,7 +36,6 @@ sig
   val tracing_fn: (output -> unit) Unsynchronized.ref
   val warning_fn: (output -> unit) Unsynchronized.ref
   val error_fn: (output -> unit) Unsynchronized.ref
-  val debug_fn: (output -> unit) Unsynchronized.ref
   val prompt_fn: (output -> unit) Unsynchronized.ref
   val status_fn: (output -> unit) Unsynchronized.ref
   val report_fn: (output -> unit) Unsynchronized.ref
@@ -44,8 +43,6 @@ sig
   val prompt: string -> unit
   val status: string -> unit
   val report: string -> unit
-  val debugging: bool Unsynchronized.ref
-  val debug: (unit -> string) -> unit
 end;
 
 structure Output: OUTPUT =
@@ -93,7 +90,6 @@ val priority_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
 val tracing_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
 val warning_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "### ");
 val error_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "*** ");
-val debug_fn = Unsynchronized.ref (raw_stdout o suffix "\n" o prefix_lines "::: ");
 val prompt_fn = Unsynchronized.ref raw_stdout;
 val status_fn = Unsynchronized.ref (fn _: string => ());
 val report_fn = Unsynchronized.ref (fn _: string => ());
@@ -108,9 +104,6 @@ fun status s = ! status_fn (output s);
 fun report s = ! report_fn (output s);
 
 fun legacy_feature s = warning ("Legacy feature! " ^ s);
-
-val debugging = Unsynchronized.ref false;
-fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
 
 
 
