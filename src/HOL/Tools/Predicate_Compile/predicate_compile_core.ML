@@ -319,7 +319,7 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
     fn compfuns => fn s => fn T => fn mode => fn additional_arguments => fn compilation =>
     let
       val [depth] = additional_arguments
-      val (_, Ts) = split_modeT' mode (binder_types T)
+      val (_, Ts) = split_modeT mode (binder_types T)
       val T' = mk_predT compfuns (HOLogic.mk_tupleT Ts)
       val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
     in

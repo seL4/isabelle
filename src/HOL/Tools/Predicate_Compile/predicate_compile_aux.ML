@@ -35,7 +35,7 @@ sig
   val split_map_modeT : (mode -> typ -> typ option * typ option)
     -> mode -> typ list -> typ list * typ list
   val split_mode : mode -> term list -> term list * term list
-  val split_modeT' : mode -> typ list -> typ list * typ list
+  val split_modeT : mode -> typ list -> typ list * typ list
   val string_of_mode : mode -> string
   val ascii_string_of_mode : mode -> string
   (* premises *)
@@ -393,24 +393,22 @@ fun fold_map_aterms_prodT comb f (Type (@{type_name Product_Type.prod}, [T1, T2]
 fun map_filter_prod f (Const (@{const_name Pair}, _) $ t1 $ t2) =
   comb_option HOLogic.mk_prod (map_filter_prod f t1, map_filter_prod f t2)
   | map_filter_prod f t = f t
-
-(* obviously, split_mode' and split_modeT' do not match? where does that cause problems? *)
   
-fun split_modeT' mode Ts =
+fun split_modeT mode Ts =
   let
-    fun split_arg_mode' (Fun _) T = ([], [])
-      | split_arg_mode' (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
+    fun split_arg_mode (Fun _) T = ([], [])
+      | split_arg_mode (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
         let
-          val (i1, o1) = split_arg_mode' m1 T1
-          val (i2, o2) = split_arg_mode' m2 T2
+          val (i1, o1) = split_arg_mode m1 T1
+          val (i2, o2) = split_arg_mode m2 T2
         in
           (i1 @ i2, o1 @ o2)
         end
-      | split_arg_mode' Input T = ([T], [])
-      | split_arg_mode' Output T = ([], [T])
-      | split_arg_mode' _ _ = raise Fail "split_modeT': mode and type do not match"
+      | split_arg_mode Input T = ([T], [])
+      | split_arg_mode Output T = ([], [T])
+      | split_arg_mode _ _ = raise Fail "split_modeT: mode and type do not match"
   in
-    (pairself flat o split_list) (map2 split_arg_mode' (strip_fun_mode mode) Ts)
+    (pairself flat o split_list) (map2 split_arg_mode (strip_fun_mode mode) Ts)
   end
 
 fun string_of_mode mode =
