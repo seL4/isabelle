@@ -18,7 +18,8 @@ end;
 structure Solve_Direct : SOLVE_DIRECT =
 struct
 
-val solve_directN = "solve_direct"
+val solve_directN = "solve_direct";
+
 
 (* preferences *)
 
@@ -32,12 +33,16 @@ val _ =
       ("Auto " ^ solve_directN)
       ("Run " ^ quote solve_directN ^ " automatically.")) ());
 
+
+(* solve_direct command *)
+
 fun solve_direct auto state =
   let
     val ctxt = Proof.context_of state;
 
     val crits = [(true, Find_Theorems.Solves)];
-    fun find g = snd (Find_Theorems.find_theorems ctxt (SOME g) (SOME (! max_solutions)) false crits);
+    fun find g =
+      snd (Find_Theorems.find_theorems ctxt (SOME g) (SOME (! max_solutions)) false crits);
 
     fun prt_result (goal, results) =
       let
@@ -64,34 +69,37 @@ fun solve_direct auto state =
               else map (fn sg => (SOME sg, find (Goal.init sg))) subgoals;
             val results = filter_out (null o snd) rs;
           in if null results then NONE else SOME results end);
-    fun message results = separate (Pretty.brk 0) (map prt_result results)
+    fun message results = separate (Pretty.brk 0) (map prt_result results);
   in
     (case try seek_against_goal () of
       SOME (SOME results) =>
-      (true, state |> (if auto then
-                         Proof.goal_message
-                           (fn () => Pretty.chunks
-                              [Pretty.str "",
-                               Pretty.markup Markup.hilite (message results)])
-                       else
-                         tap (fn _ => priority (Pretty.string_of
-                                (Pretty.chunks (message results))))))
+        (true,
+          state |>
+           (if auto then
+             Proof.goal_message
+               (fn () =>
+                 Pretty.chunks
+                  [Pretty.str "",
+                   Pretty.markup Markup.hilite (message results)])
+            else
+              tap (fn _ =>
+                priority (Pretty.string_of (Pretty.chunks (message results))))))
     | _ => (false, state))
   end;
 
-val invoke_solve_direct = fst o solve_direct false
+val invoke_solve_direct = fst o solve_direct false;
 
 val _ =
   Outer_Syntax.improper_command solve_directN
-      "try to solve conjectures directly with existing theorems" Keyword.diag
-      (Scan.succeed (Toplevel.keep (K () o invoke_solve_direct
-                                    o Toplevel.proof_of)))
+    "try to solve conjectures directly with existing theorems" Keyword.diag
+    (Scan.succeed (Toplevel.keep (K () o invoke_solve_direct o Toplevel.proof_of)));
+
 
 (* hook *)
 
 fun auto_solve_direct state =
-  if not (!auto) then (false, state) else solve_direct true state
+  if not (! auto) then (false, state) else solve_direct true state;
 
-val setup = Auto_Tools.register_tool (solve_directN, auto_solve_direct)
+val setup = Auto_Tools.register_tool (solve_directN, auto_solve_direct);
 
 end;
