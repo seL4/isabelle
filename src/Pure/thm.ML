@@ -335,14 +335,14 @@ end;
 (*** Derivations and Theorems ***)
 
 abstype thm = Thm of
- deriv *                                        (*derivation*)
- {thy_ref: theory_ref,                          (*dynamic reference to theory*)
-  tags: Properties.T,                           (*additional annotations/comments*)
-  maxidx: int,                                  (*maximum index of any Var or TVar*)
-  shyps: sort Ord_List.T,                        (*sort hypotheses*)
-  hyps: term Ord_List.T,                         (*hypotheses*)
-  tpairs: (term * term) list,                   (*flex-flex pairs*)
-  prop: term}                                   (*conclusion*)
+ deriv *                        (*derivation*)
+ {thy_ref: theory_ref,          (*dynamic reference to theory*)
+  tags: Properties.T,           (*additional annotations/comments*)
+  maxidx: int,                  (*maximum index of any Var or TVar*)
+  shyps: sort Ord_List.T,       (*sort hypotheses*)
+  hyps: term Ord_List.T,        (*hypotheses*)
+  tpairs: (term * term) list,   (*flex-flex pairs*)
+  prop: term}                   (*conclusion*)
 and deriv = Deriv of
  {promises: (serial * thm future) Ord_List.T,
   body: Proofterm.proof_body}
