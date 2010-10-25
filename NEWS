@@ -6,6 +6,8 @@ New in this Isabelle version
 
 *** General ***
 
+* Significantly improved Isabelle/Isar implementation manual.
+
 * Explicit treatment of UTF8 sequences as Isabelle symbols, such that
 a Unicode character is treated as a single symbol, not a sequence of
 non-ASCII bytes as before.  Since Isabelle/ML string literals may
