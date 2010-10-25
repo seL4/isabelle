@@ -974,9 +974,10 @@ thm avl.equation*)
 
 code_pred [new_random_dseq inductify] avl .
 thm avl.new_random_dseq_equation
+(* TODO: has highly non-deterministic execution time!
 
 values [new_random_dseq 2, 1, 7] 5 "{t:: int tree. avl t}"
-
+*)
 fun set_of
 where
 "set_of ET = {}"

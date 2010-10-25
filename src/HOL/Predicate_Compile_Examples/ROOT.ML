@@ -5,9 +5,9 @@ use_thys [
   "Specialisation_Examples",
   "Hotel_Example_Small_Generator",
   "IMP_1",
-  "IMP_2",
-  "IMP_3",
-  "IMP_4"];
+  "IMP_2"
+(*  "IMP_3",
+  "IMP_4"*)];
 
 if getenv "EXEC_SWIPL" = "" andalso getenv "EXEC_YAP" = "" then
   (warning "No prolog system found - skipping some example theories"; ())

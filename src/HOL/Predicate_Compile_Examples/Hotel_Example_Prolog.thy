@@ -23,7 +23,7 @@ values 40 "{s. hotel s}"
 setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}
 
 lemma "\<lbrakk> hotel s; g \<in> isin s r \<rbrakk> \<Longrightarrow> owns s r = Some g"
-quickcheck[generator = code, iterations = 100000, report]
+quickcheck[generator = code, iterations = 10000, report]
 quickcheck[generator = prolog, iterations = 1, expect = counterexample]
 oops
 

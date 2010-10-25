@@ -5,6 +5,12 @@ begin
 
 declare Let_def[code_pred_inline]
 
+lemma [code_pred_inline]: "insert == (%y A x. y = x | A x)"
+by (auto simp add: insert_iff[unfolded mem_def] fun_eq_iff intro!: eq_reflection)
+
+lemma [code_pred_inline]: "(op -) == (%A B x. A x \<and> \<not> B x)"
+by (auto simp add: Diff_iff[unfolded mem_def] fun_eq_iff intro!: eq_reflection)
+
 instantiation room :: small_lazy
 begin
 
@@ -44,8 +50,8 @@ setup {* Context.theory_map (Quickcheck.add_generator ("small_generators_depth_1
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
-quickcheck[generator = small_generators_depth_14, iterations = 1, expect = no_counterexample]
-quickcheck[generator = small_generators_depth_15, iterations = 1, expect = counterexample]
+quickcheck[generator = small_generators_depth_14, iterations = 1, size = 1, expect = no_counterexample]
+quickcheck[generator = small_generators_depth_15, iterations = 1, size = 1, expect = counterexample]
 oops
 
 
