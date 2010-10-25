@@ -186,7 +186,7 @@ fun needs_random ctxt s m =
 
 fun lookup_predfun_data ctxt name mode =
   Option.map rep_predfun_data
-    (AList.lookup (op =) (#predfun_data (the_pred_data ctxt name)) mode)
+    (AList.lookup eq_mode (#predfun_data (the_pred_data ctxt name)) mode)
 
 fun the_predfun_data ctxt name mode =
   case lookup_predfun_data ctxt name mode of
