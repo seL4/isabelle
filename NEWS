@@ -276,6 +276,9 @@ INCOMPATIBILITY.
   meson_disj_FalseD2 ~> Meson.disj_FalseD2
 INCOMPATIBILITY.
 
+* Auto Solve: Renamed "Auto Solve Direct". The tool is now available manually as
+  "solve_direct".
+
 * Sledgehammer:
   - Renamed lemmas:
     COMBI_def ~> Meson.COMBI_def
