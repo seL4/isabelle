@@ -108,8 +108,9 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
           lthy
           |> addsmps (conceal_partial o Binding.qualify false "partial")
                "psimps" conceal_partial psimp_attribs psimps
-          ||> fold_option (snd oo addsmps I "simps" I simp_attribs) trsimps
-          ||> fold_option (Spec_Rules.add Spec_Rules.Equational o pair fs) trsimps
+          ||> (case trsimps of NONE => I | SOME thms =>
+                   addsmps I "simps" I simp_attribs thms #> snd
+                   #> Spec_Rules.add Spec_Rules.Equational (fs, thms))
           ||>> Local_Theory.note ((conceal_partial (qualify "pinduct"),
                  [Attrib.internal (K (Rule_Cases.case_names cnames)),
                   Attrib.internal (K (Rule_Cases.consumes 1)),
@@ -117,7 +118,8 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
           ||>> Local_Theory.note ((Binding.conceal (qualify "termination"), []), [termination])
           ||> (snd o Local_Theory.note ((qualify "cases",
                  [Attrib.internal (K (Rule_Cases.case_names cnames))]), [cases]))
-          ||> fold_option (snd oo curry Local_Theory.note (qualify "domintros", [])) domintros
+          ||> (case domintros of NONE => I | SOME thms => 
+                   Local_Theory.note ((qualify "domintros", []), thms) #> snd)
 
         val info = { add_simps=addsmps, case_names=cnames, psimps=psimps',
           pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination',

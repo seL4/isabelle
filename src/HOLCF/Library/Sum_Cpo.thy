@@ -213,8 +213,6 @@ apply (erule compact_imp_max_in_chain)
 apply (case_tac "\<Squnion>i. Y i", simp_all)
 done
 
-instance sum :: (finite_po, finite_po) finite_po ..
-
 instance sum :: (discrete_cpo, discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_sum_def split: sum.split)
 

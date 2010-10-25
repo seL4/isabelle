@@ -52,13 +52,26 @@ text {*
   operation of exporting results from a context: a type variable
   @{text "\<alpha>"} is considered fixed as long as it occurs in some fixed
   term variable of the context.  For example, exporting @{text "x:
-  term, \<alpha>: type \<turnstile> x\<^isub>\<alpha> = x\<^isub>\<alpha>"} produces in the first step
-  @{text "x: term \<turnstile> x\<^isub>\<alpha> = x\<^isub>\<alpha>"} for fixed @{text "\<alpha>"},
-  and only in the second step @{text "\<turnstile> ?x\<^isub>?\<^isub>\<alpha> =
-  ?x\<^isub>?\<^isub>\<alpha>"} for schematic @{text "?x"} and @{text "?\<alpha>"}.
+  term, \<alpha>: type \<turnstile> x\<^isub>\<alpha> \<equiv> x\<^isub>\<alpha>"} produces in the first step @{text "x: term
+  \<turnstile> x\<^isub>\<alpha> \<equiv> x\<^isub>\<alpha>"} for fixed @{text "\<alpha>"}, and only in the second step
+  @{text "\<turnstile> ?x\<^isub>?\<^isub>\<alpha> \<equiv> ?x\<^isub>?\<^isub>\<alpha>"} for schematic @{text "?x"} and @{text "?\<alpha>"}.
+  The following Isar source text illustrates this scenario.
+*}
 
-  \medskip The Isabelle/Isar proof context manages the gory details of
-  term vs.\ type variables, with high-level principles for moving the
+example_proof
+  {
+    fix x  -- {* all potential occurrences of some @{text "x::\<tau>"} are fixed *}
+    {
+      have "x::'a \<equiv> x"  -- {* implicit type assigment by concrete occurrence *}
+        by (rule reflexive)
+    }
+    thm this  -- {* result still with fixed type @{text "'a"} *}
+  }
+  thm this  -- {* fully general result for arbitrary @{text "?x::?'a"} *}
+qed
+
+text {* The Isabelle/Isar proof context manages the details of term
+  vs.\ type variables, with high-level principles for moving the
   frontier between fixed and schematic variables.
 
   The @{text "add_fixes"} operation explictly declares fixed
@@ -145,12 +158,8 @@ text %mlref {*
   \end{description}
 *}
 
-text %mlex {* The following example (in theory @{theory Pure}) shows
-  how to work with fixed term and type parameters work with
-  type-inference.
-*}
-
-typedecl foo  -- {* some basic type for testing purposes *}
+text %mlex {* The following example shows how to work with fixed term
+  and type parameters and with type-inference.  *}
 
 ML {*
   (*static compile-time context -- for testing only*)
@@ -164,11 +173,11 @@ ML {*
   val t1' = singleton (Variable.polymorphic ctxt1) t1;
 
   (*term u enforces specific type assignment*)
-  val u = Syntax.read_term ctxt1 "(x::foo) \<equiv> y";
+  val u = Syntax.read_term ctxt1 "(x::nat) \<equiv> y";
 
   (*official declaration of u -- propagates constraints etc.*)
   val ctxt2 = ctxt1 |> Variable.declare_term u;
-  val t2 = Syntax.read_term ctxt2 "x";  (*x::foo is enforced*)
+  val t2 = Syntax.read_term ctxt2 "x";  (*x::nat is enforced*)
 *}
 
 text {* In the above example, the starting context had been derived
@@ -185,15 +194,13 @@ ML {*
     ctxt0 |> Variable.variant_fixes ["x", "x", "x"];
 *}
 
-text {* \noindent Subsequent ML code can now work with the invented
-  names of @{verbatim x1}, @{verbatim x2}, @{verbatim x3}, without
-  depending on the details on the system policy for introducing these
-  variants.  Recall that within a proof body the system always invents
-  fresh ``skolem constants'', e.g.\ as follows:
-*}
+text {* The following ML code can now work with the invented names of
+  @{verbatim x1}, @{verbatim x2}, @{verbatim x3}, without depending on
+  the details on the system policy for introducing these variants.
+  Recall that within a proof body the system always invents fresh
+  ``skolem constants'', e.g.\ as follows: *}
 
-lemma "PROP XXX"
-proof -
+example_proof
   ML_prf %"ML" {*
     val ctxt0 = @{context};
 
@@ -206,10 +213,10 @@ proof -
   *}
   oops
 
-text {* \noindent In this situation @{ML Variable.add_fixes} and @{ML
+text {* In this situation @{ML Variable.add_fixes} and @{ML
   Variable.variant_fixes} are very similar, but identical name
   proposals given in a row are only accepted by the second version.
-*}
+  *}
 
 
 section {* Assumptions \label{sec:assumptions} *}
@@ -282,11 +289,11 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type Assumption.export} represents arbitrary export
-  rules, which is any function of type @{ML_type "bool -> cterm list -> thm -> thm"},
-  where the @{ML_type "bool"} indicates goal mode, and the @{ML_type
-  "cterm list"} the collection of assumptions to be discharged
-  simultaneously.
+  \item Type @{ML_type Assumption.export} represents arbitrary export
+  rules, which is any function of type @{ML_type "bool -> cterm list
+  -> thm -> thm"}, where the @{ML_type "bool"} indicates goal mode,
+  and the @{ML_type "cterm list"} the collection of assumptions to be
+  discharged simultaneously.
 
   \item @{ML Assumption.assume}~@{text "A"} turns proposition @{text
   "A"} into a primitive assumption @{text "A \<turnstile> A'"}, where the
@@ -330,11 +337,10 @@ ML {*
   val r = Assumption.export false ctxt1 ctxt0 eq';
 *}
 
-text {* \noindent Note that the variables of the resulting rule are
-  not generalized.  This would have required to fix them properly in
-  the context beforehand, and export wrt.\ variables afterwards (cf.\
-  @{ML Variable.export} or the combined @{ML "ProofContext.export"}).
-*}
+text {* Note that the variables of the resulting rule are not
+  generalized.  This would have required to fix them properly in the
+  context beforehand, and export wrt.\ variables afterwards (cf.\ @{ML
+  Variable.export} or the combined @{ML "ProofContext.export"}).  *}
 
 
 section {* Structured goals and results \label{sec:struct-goals} *}
@@ -373,18 +379,24 @@ text {*
   conclusion: the proof demonstrates that the context may be augmented
   by parameters and assumptions, without affecting any conclusions
   that do not mention these parameters.  See also
-  \cite{isabelle-isar-ref} for the user-level @{text "\<OBTAIN>"} and
-  @{text "\<GUESS>"} elements.  Final results, which may not refer to
+  \cite{isabelle-isar-ref} for the user-level @{command obtain} and
+  @{command guess} elements.  Final results, which may not refer to
   the parameters in the conclusion, need to exported explicitly into
-  the original context.
-*}
+  the original context.  *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML SUBPROOF: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.FOCUS: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.FOCUS_PREMS: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
-  @{index_ML Subgoal.FOCUS_PARAMS: "(Subgoal.focus -> tactic) -> Proof.context -> int -> tactic"} \\
+  @{index_ML SUBPROOF: "(Subgoal.focus -> tactic) ->
+  Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.FOCUS: "(Subgoal.focus -> tactic) ->
+  Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.FOCUS_PREMS: "(Subgoal.focus -> tactic) ->
+  Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.FOCUS_PARAMS: "(Subgoal.focus -> tactic) ->
+  Proof.context -> int -> tactic"} \\
+  @{index_ML Subgoal.focus: "Proof.context -> int -> thm -> Subgoal.focus * thm"} \\
+  @{index_ML Subgoal.focus_prems: "Proof.context -> int -> thm -> Subgoal.focus * thm"} \\
+  @{index_ML Subgoal.focus_params: "Proof.context -> int -> thm -> Subgoal.focus * thm"} \\
   \end{mldecls}
 
   \begin{mldecls}
@@ -394,8 +406,8 @@ text %mlref {*
   ({prems: thm list, context: Proof.context} -> tactic) -> thm list"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Obtain.result: "(Proof.context -> tactic) ->
-  thm list -> Proof.context -> ((string * cterm) list * thm list) * Proof.context"} \\
+  @{index_ML Obtain.result: "(Proof.context -> tactic) -> thm list ->
+  Proof.context -> ((string * cterm) list * thm list) * Proof.context"} \\
   \end{mldecls}
 
   \begin{description}
@@ -411,6 +423,12 @@ text %mlref {*
   slightly more flexible: only the specified parts of the subgoal are
   imported into the context, and the body tactic may introduce new
   subgoals and schematic variables.
+
+  \item @{ML Subgoal.focus}, @{ML Subgoal.focus_prems}, @{ML
+  Subgoal.focus_params} extract the focus information from a goal
+  state in the same way as the corresponding tacticals above.  This is
+  occasionally useful to experiment without writing actual tactics
+  yet.
 
   \item @{ML Goal.prove}~@{text "ctxt xs As C tac"} states goal @{text
   "C"} in the context augmented by fixed variables @{text "xs"} and
@@ -430,5 +448,42 @@ text %mlref {*
 
   \end{description}
 *}
+
+text %mlex {* The following minimal example illustrates how to access
+  the focus information of a structured goal state. *}
+
+example_proof
+  fix A B C :: "'a \<Rightarrow> bool"
+
+  have "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
+    ML_val
+    {*
+      val {goal, context = goal_ctxt, ...} = @{Isar.goal};
+      val (focus as {params, asms, concl, ...}, goal') =
+        Subgoal.focus goal_ctxt 1 goal;
+      val [A, B] = #prems focus;
+      val [(_, x)] = #params focus;
+    *}
+    oops
+
+text {* \medskip The next example demonstrates forward-elimination in
+  a local context, using @{ML Obtain.result}.  *}
+
+example_proof
+  assume ex: "\<exists>x. B x"
+
+  ML_prf %"ML" {*
+    val ctxt0 = @{context};
+    val (([(_, x)], [B]), ctxt1) = ctxt0
+      |> Obtain.result (fn _ => etac @{thm exE} 1) [@{thm ex}];
+  *}
+  ML_prf %"ML" {*
+    singleton (ProofContext.export ctxt1 ctxt0) @{thm refl};
+  *}
+  ML_prf %"ML" {*
+    ProofContext.export ctxt1 ctxt0 [Thm.reflexive x]
+      handle ERROR msg => (warning msg; []);
+  *}
+qed
 
 end

@@ -5,7 +5,7 @@
 header {* Bifinite domains *}
 
 theory Bifinite
-imports Algebraic Cprod Sprod Ssum Up Lift One Tr
+imports Algebraic Cprod Sprod Ssum Up Lift One Tr Countable
 begin
 
 subsection {* Class of bifinite domains *}

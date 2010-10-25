@@ -8,25 +8,21 @@ Theory extender for domain command, including theory syntax.
 signature DOMAIN =
 sig
   val add_domain_cmd:
-      binding ->
       ((string * string option) list * binding * mixfix *
        (binding * (bool * binding option * string) list * mixfix) list) list
       -> theory -> theory
 
   val add_domain:
-      binding ->
       ((string * string option) list * binding * mixfix *
        (binding * (bool * binding option * typ) list * mixfix) list) list
       -> theory -> theory
 
   val add_new_domain_cmd:
-      binding ->
       ((string * string option) list * binding * mixfix *
        (binding * (bool * binding option * string) list * mixfix) list) list
       -> theory -> theory
 
   val add_new_domain:
-      binding ->
       ((string * string option) list * binding * mixfix *
        (binding * (bool * binding option * typ) list * mixfix) list) list
       -> theory -> theory
@@ -50,7 +46,6 @@ fun gen_add_domain
     (prep_typ : theory -> (string * sort) list -> 'a -> typ)
     (add_isos : (binding * mixfix * (typ * typ)) list -> theory -> info * theory)
     (arg_sort : bool -> sort)
-    (comp_dbind : binding)
     (raw_specs : ((string * string option) list * binding * mixfix *
                (binding * (bool * binding option * 'a) list * mixfix) list) list)
     (thy : theory) =
@@ -172,7 +167,7 @@ fun gen_add_domain
              (dbinds ~~ rhss ~~ iso_infos);
 
     val (take_rews, thy) =
-        Domain_Induction.comp_theorems comp_dbind
+        Domain_Induction.comp_theorems
           dbinds take_info constr_infos thy;
   in
     thy
@@ -240,27 +235,21 @@ val domain_decl =
     (Parse.$$$ "=" |-- Parse.enum1 "|" cons_decl);
 
 val domains_decl =
-  Scan.option (Parse.$$$ "(" |-- Parse.binding --| Parse.$$$ ")") --
-    Parse.and_list1 domain_decl;
+  Parse.and_list1 domain_decl;
 
 fun mk_domain
     (definitional : bool)
-    (opt_name : binding option,
-     doms : ((((string * string option) list * binding) * mixfix) *
+    (doms : ((((string * string option) list * binding) * mixfix) *
              ((binding * (bool * binding option * string) list) * mixfix) list) list ) =
   let
-    val names = map (fn (((_, t), _), _) => Binding.name_of t) doms;
     val specs : ((string * string option) list * binding * mixfix *
                  (binding * (bool * binding option * string) list * mixfix) list) list =
         map (fn (((vs, t), mx), cons) =>
                 (vs, t, mx, map (fn ((c, ds), mx) => (c, ds, mx)) cons)) doms;
-    val comp_dbind =
-        case opt_name of NONE => Binding.name (space_implode "_" names)
-                       | SOME s => s;
   in
-    if definitional 
-    then add_new_domain_cmd comp_dbind specs
-    else add_domain_cmd comp_dbind specs
+    if definitional
+    then add_new_domain_cmd specs
+    else add_domain_cmd specs
   end;
 
 val _ =

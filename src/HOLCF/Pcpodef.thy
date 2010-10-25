@@ -46,15 +46,6 @@ proof -
     by (simp only: type_definition.Abs_image [OF type])
 qed
 
-theorem typedef_finite_po:
-  fixes Abs :: "'a::finite_po \<Rightarrow> 'b::po"
-  assumes type: "type_definition Rep Abs A"
-  shows "OFCLASS('b, finite_po_class)"
- apply (intro_classes)
- apply (rule typedef_finite_UNIV [OF type])
- apply (rule finite)
-done
-
 subsection {* Proving a subtype is chain-finite *}
 
 lemma ch2ch_Rep:

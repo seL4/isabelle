@@ -49,8 +49,8 @@ A \emph{local theory} combines aspects of both theory and proof
 
   Many definitional packages for local theories are available in
   Isabelle.  Although a few old packages only work for global
-  theories, the local theory interface is already the standard way of
-  implementing definitional packages in Isabelle.%
+  theories, the standard way of implementing definitional packages in
+  Isabelle is via the local theory interface.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -105,12 +105,11 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   \framebox{\quad auxiliary context \quad\framebox{\quad target context \quad\framebox{\quad background theory\quad}}}
   \end{center}
 
-  \noindent When a definitional package is finished, the auxiliary
-  context is reset to the target context.  The target now holds
-  definitions for terms and theorems that stem from the hypothetical
-  \isa{{\isasymDEFINE}} and \isa{{\isasymNOTE}} elements, transformed by
-  the particular target policy (see
-  \cite[\S4--5]{Haftmann-Wenzel:2009} for details).%
+  When a definitional package is finished, the auxiliary context is
+  reset to the target context.  The target now holds definitions for
+  terms and theorems that stem from the hypothetical \isa{{\isasymDEFINE}} and \isa{{\isasymNOTE}} elements, transformed by the
+  particular target policy (see \cite[\S4--5]{Haftmann-Wenzel:2009}
+  for details).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -132,8 +131,8 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
 
   \begin{description}
 
-  \item \verb|local_theory| represents local theories.  Although
-  this is merely an alias for \verb|Proof.context|, it is
+  \item Type \verb|local_theory| represents local theories.
+  Although this is merely an alias for \verb|Proof.context|, it is
   semantically a subtype of the same: a \verb|local_theory| holds
   target information as special context data.  Subtyping means that
   any value \isa{lthy{\isacharcolon}}~\verb|local_theory| can be also used
@@ -185,12 +184,14 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
 %
 \endisadelimmlref
 %
-\isamarkupsection{Morphisms and declarations%
+\isamarkupsection{Morphisms and declarations \label{sec:morphisms}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+FIXME
+
+  \medskip See also \cite{Chaieb-Wenzel:2007}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

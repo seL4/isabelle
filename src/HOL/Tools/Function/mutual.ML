@@ -267,10 +267,10 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
 
     val rew_ss = HOL_basic_ss addsimps all_f_defs
     val mpsimps = map2 mk_mpsimp fqgars psimps
-    val mtrsimps = map_option (map2 mk_mpsimp fqgars) trsimps
+    val mtrsimps = Option.map (map2 mk_mpsimp fqgars) trsimps
     val minducts = mutual_induct_rules lthy simple_pinduct all_f_defs m
     val mtermination = full_simplify rew_ss termination
-    val mdomintros = map_option (map (full_simplify rew_ss)) domintros
+    val mdomintros = Option.map (map (full_simplify rew_ss)) domintros
   in
     FunctionResult { fs=fs, G=G, R=R,
       psimps=mpsimps, simple_pinducts=minducts,

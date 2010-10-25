@@ -23,16 +23,33 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The primary Isar language consists of three main categories of
-  language elements:
+The Isar proof language (see also \cite[\S2]{isabelle-isar-ref})
+  consists of three main categories of language elements:
 
   \begin{enumerate}
 
-  \item Proof commands
+  \item Proof \emph{commands} define the primary language of
+  transactions of the underlying Isar/VM interpreter.  Typical
+  examples are \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}, \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}, \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}, \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}, and \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}.
 
-  \item Proof methods
+  Composing proof commands according to the rules of the Isar/VM leads
+  to expressions of structured proof text, such that both the machine
+  and the human reader can give it a meaning as formal reasoning.
 
-  \item Attributes
+  \item Proof \emph{methods} define a secondary language of mixed
+  forward-backward refinement steps involving facts and goals.
+  Typical examples are \hyperlink{method.rule}{\mbox{\isa{rule}}}, \hyperlink{method.unfold}{\mbox{\isa{unfold}}}, and \hyperlink{method.simp}{\mbox{\isa{simp}}}.
+
+  Methods can occur in certain well-defined parts of the Isar proof
+  language, say as arguments to \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}, \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}},
+  or \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}.
+
+  \item \emph{Attributes} define a tertiary language of small
+  annotations to theorems being defined or referenced.  Attributes can
+  modify both the context and the theorem.
+
+  Typical examples are \hyperlink{attribute.intro}{\mbox{\isa{intro}}} (which affects the context),
+  and \hyperlink{attribute.symmetric}{\mbox{\isa{symmetric}}} (which affects the theorem).
 
   \end{enumerate}%
 \end{isamarkuptext}%
@@ -43,7 +60,227 @@ The primary Isar language consists of three main categories of
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+A \emph{proof command} is state transition of the Isar/VM
+  proof interpreter.
+
+  In principle, Isar proof commands could be defined in
+  user-space as well.  The system is built like that in the first
+  place: part of the commands are primitive, the other part is defined
+  as derived elements.  Adding to the genuine structured proof
+  language requires profound understanding of the Isar/VM machinery,
+  though, so this is beyond the scope of this manual.
+
+  What can be done realistically is to define some diagnostic commands
+  that inspect the general state of the Isar/VM, and report some
+  feedback to the user.  Typically this involves checking of the
+  linguistic \emph{mode} of a proof state, or peeking at the pending
+  goals (if available).
+
+  Another common application is to define a toplevel command that
+  poses a problem to the user as Isar proof state and stores the final
+  result in a suitable context data slot.  Thus a proof can be
+  incorporated into the context of some user-space tool, without
+  modifying the Isar proof language itself.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML type}{Proof.state}\verb|type Proof.state| \\
+  \indexdef{}{ML}{Proof.assert\_forward}\verb|Proof.assert_forward: Proof.state -> Proof.state| \\
+  \indexdef{}{ML}{Proof.assert\_chain}\verb|Proof.assert_chain: Proof.state -> Proof.state| \\
+  \indexdef{}{ML}{Proof.assert\_backward}\verb|Proof.assert_backward: Proof.state -> Proof.state| \\
+  \indexdef{}{ML}{Proof.simple\_goal}\verb|Proof.simple_goal: Proof.state -> {context: Proof.context, goal: thm}| \\
+  \indexdef{}{ML}{Proof.goal}\verb|Proof.goal: Proof.state ->|\isasep\isanewline%
+\verb|  {context: Proof.context, facts: thm list, goal: thm}| \\
+  \indexdef{}{ML}{Proof.raw\_goal}\verb|Proof.raw_goal: Proof.state ->|\isasep\isanewline%
+\verb|  {context: Proof.context, facts: thm list, goal: thm}| \\
+  \indexdef{}{ML}{Proof.theorem}\verb|Proof.theorem: Method.text option ->|\isasep\isanewline%
+\verb|  (thm list list -> Proof.context -> Proof.context) ->|\isasep\isanewline%
+\verb|  (term * term list) list list -> Proof.context -> Proof.state| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item Type \verb|Proof.state| represents Isar proof states.
+  This is a block-structured configuration with proof context,
+  linguistic mode, and optional goal.  The latter consists of goal
+  context, goal facts (``\isa{using}''), and tactical goal state
+  (see \secref{sec:tactical-goals}).
+
+  The general idea is that the facts shall contribute to the
+  refinement of some parts of the tactical goal --- how exactly is
+  defined by the proof method that is applied in that situation.
+
+  \item \verb|Proof.assert_forward|, \verb|Proof.assert_chain|, \verb|Proof.assert_backward| are partial identity functions that fail
+  unless a certain linguistic mode is active, namely ``\isa{proof{\isacharparenleft}state{\isacharparenright}}'', ``\isa{proof{\isacharparenleft}chain{\isacharparenright}}'', ``\isa{proof{\isacharparenleft}prove{\isacharparenright}}'', respectively (using the terminology of
+  \cite{isabelle-isar-ref}).
+
+  It is advisable study the implementations of existing proof commands
+  for suitable modes to be asserted.
+
+  \item \verb|Proof.simple_goal|~\isa{state} returns the structured
+  Isar goal (if available) in the form seen by ``simple'' methods
+  (like \hyperlink{method.simp}{\mbox{\isa{simp}}} or \hyperlink{method.blast}{\mbox{\isa{blast}}}).  The Isar goal facts are
+  already inserted as premises into the subgoals, which are presented
+  individually as in \verb|Proof.goal|.
+
+  \item \verb|Proof.goal|~\isa{state} returns the structured Isar
+  goal (if available) in the form seen by regular methods (like
+  \hyperlink{method.rule}{\mbox{\isa{rule}}}).  The auxiliary internal encoding of Pure
+  conjunctions is split into individual subgoals as usual.
+
+  \item \verb|Proof.raw_goal|~\isa{state} returns the structured
+  Isar goal (if available) in the raw internal form seen by ``raw''
+  methods (like \hyperlink{method.induct}{\mbox{\isa{induct}}}).  This form is rarely appropriate
+  for dignostic tools; \verb|Proof.simple_goal| or \verb|Proof.goal|
+  should be used in most situations.
+
+  \item \verb|Proof.theorem|~\isa{before{\isacharunderscore}qed\ after{\isacharunderscore}qed\ statement\ ctxt}
+  initializes a toplevel Isar proof state within a given context.
+
+  The optional \isa{before{\isacharunderscore}qed} method is applied at the end of
+  the proof, just before extracting the result (this feature is rarely
+  used).
+
+  The \isa{after{\isacharunderscore}qed} continuation receives the extracted result
+  in order to apply it to the final context in a suitable way (e.g.\
+  storing named facts).  Note that at this generic level the target
+  context is specified as \verb|Proof.context|, but the usual
+  wrapping of toplevel proofs into command transactions will provide a
+  \verb|local_theory| here (see also \chref{ch:local-theory}).
+  This usually affects the way how results are stored.
+
+  The \isa{statement} is given as a nested list of terms, each
+  associated with optional \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns as usual in the
+  Isar source language.  The original list structure over terms is
+  turned into one over theorems when \isa{after{\isacharunderscore}qed} is invoked.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{Isar.goal}\hypertarget{ML antiquotation.Isar.goal}{\hyperlink{ML antiquotation.Isar.goal}{\mbox{\isa{Isar{\isachardot}goal}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item \isa{{\isacharat}{\isacharbraceleft}Isar{\isachardot}goal{\isacharbraceright}} refers to the regular goal state (if
+  available) of the current proof state managed by the Isar toplevel
+  --- as abstract value.
+
+  This only works for diagnostic ML commands, such as \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} or \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isatagmlex
+%
+\begin{isamarkuptext}%
+The following example peeks at a certain goal configuration.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlex
+{\isafoldmlex}%
+%
+\isadelimmlex
+%
+\endisadelimmlex
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{have}\isamarkupfalse%
+\ A\ \isakeyword{and}\ B\ \isakeyword{and}\ C%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimML
+\ \ \ \ %
+\endisadelimML
+%
+\isatagML
+\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ \ \ \ \ val\ n\ {\isacharequal}\ Thm{\isachardot}nprems{\isacharunderscore}of\ {\isacharparenleft}{\isacharhash}goal\ %
+\isaantiq
+Isar{\isachardot}goal%
+\endisaantiq
+{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ %
+\isaantiq
+assert%
+\endisaantiq
+\ {\isacharparenleft}n\ {\isacharequal}\ {\isadigit{3}}{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ \ \ {\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{oops}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Here we see 3 individual subgoals in the same way as regular
+  proof methods would do.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -52,18 +289,626 @@ FIXME%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {\isacharasterisk}\ {\isasymrightarrow}\ goal\ {\isasymrightarrow}\ {\isacharparenleft}cases\ {\isasymtimes}\ goal{\isacharparenright}\isactrlsup {\isacharasterisk}\isactrlsup {\isacharasterisk}} that operates on the full Isar goal
+  configuration with context, goal facts, and tactical goal state and
+  enumerates possible follow-up goal states, with the potential
+  addition of named extensions of the proof context (\emph{cases}).
+  The latter feature is rarely used.
+
+  This means a proof method is like a structurally enhanced tactic
+  (cf.\ \secref{sec:tactics}).  The well-formedness conditions for
+  tactics need to hold for methods accordingly, with the following
+  additions.
+
+  \begin{itemize}
+
+  \item Goal addressing is further limited either to operate either
+  uniformly on \emph{all} subgoals, or specifically on the
+  \emph{first} subgoal.
+
+  Exception: old-style tactic emulations that are embedded into the
+  method space, e.g.\ \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}}.
+
+  \item A non-trivial method always needs to make progress: an
+  identical follow-up goal state has to be avoided.\footnote{This
+  enables the user to write method expressions like \isa{meth\isactrlsup {\isacharplus}}
+  without looping, while the trivial do-nothing case can be recovered
+  via \isa{meth\isactrlsup {\isacharquery}}.}
+
+  Exception: trivial stuttering steps, such as ``\hyperlink{method.-}{\mbox{\isa{{\isacharminus}}}}'' or
+  \hyperlink{method.succeed}{\mbox{\isa{succeed}}}.
+
+  \item Goal facts passed to the method must not be ignored.  If there
+  is no sensible use of facts outside the goal state, facts should be
+  inserted into the subgoals that are addressed by the method.
+
+  \end{itemize}
+
+  \medskip Syntactically, the language of proof methods is embedded
+  into Isar as arguments to certain commands, e.g.\ \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}} or
+  \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}.  User-space additions are reasonably easy by
+  plugging suitable method-valued parser functions into the framework,
+  using the \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} command, for example.
+
+  To get a better idea about the range of possibilities, consider the
+  following Isar proof schemes.  First some general form of structured
+  proof text:
+
+  \medskip
+  \begin{tabular}{l}
+  \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{facts\isactrlsub {\isadigit{1}}}~\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{props}~\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{facts\isactrlsub {\isadigit{2}}} \\
+  \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isacharparenleft}initial{\isacharunderscore}method{\isacharparenright}} \\
+  \quad\isa{body} \\
+  \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}~\isa{{\isacharparenleft}terminal{\isacharunderscore}method{\isacharparenright}} \\
+  \end{tabular}
+  \medskip
+
+  The goal configuration consists of \isa{facts\isactrlsub {\isadigit{1}}} and \isa{facts\isactrlsub {\isadigit{2}}} appended in that order, and various \isa{props} being
+  claimed here.  The \isa{initial{\isacharunderscore}method} is invoked with facts
+  and goals together and refines the problem to something that is
+  handled recursively in the proof \isa{body}.  The \isa{terminal{\isacharunderscore}method} has another chance to finish-off any remaining
+  subgoals, but it does not see the facts of the initial step.
+
+  \medskip The second pattern illustrates unstructured proof scripts:
+
+  \medskip
+  \begin{tabular}{l}
+  \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{props} \\
+  \quad\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{facts\isactrlsub {\isadigit{1}}}~\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{method\isactrlsub {\isadigit{1}}} \\
+  \quad\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{method\isactrlsub {\isadigit{2}}} \\
+  \quad\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{facts\isactrlsub {\isadigit{3}}}~\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{method\isactrlsub {\isadigit{3}}} \\
+  \quad\hyperlink{command.done}{\mbox{\isa{\isacommand{done}}}} \\
+  \end{tabular}
+  \medskip
+
+  The \isa{method\isactrlsub {\isadigit{1}}} operates on the original claim together while
+  using \isa{facts\isactrlsub {\isadigit{1}}}.  Since the \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}} command
+  structurally resets the facts, the \isa{method\isactrlsub {\isadigit{2}}} will operate on
+  the remaining goal state without facts.  The \isa{method\isactrlsub {\isadigit{3}}} will
+  see again a collection of \isa{facts\isactrlsub {\isadigit{3}}} that has been inserted
+  into the script explicitly.
+
+  \medskip Empirically, Isar proof methods can be categorized as
+  follows.
+
+  \begin{enumerate}
+
+  \item \emph{Special method with cases} with named context additions
+  associated with the follow-up goal state.
+
+  Example: \hyperlink{method.induct}{\mbox{\isa{induct}}}, which is also a ``raw'' method since it
+  operates on the internal representation of simultaneous claims as
+  Pure conjunction, instead of separate subgoals.
+
+  \item \emph{Structured method} with strong emphasis on facts outside
+  the goal state.
+
+  Example: \hyperlink{method.rule}{\mbox{\isa{rule}}}, which captures the key ideas behind
+  structured reasoning in Isar in purest form.
+
+  \item \emph{Simple method} with weaker emphasis on facts, which are
+  inserted into subgoals to emulate old-style tactical as
+  ``premises''.
+
+  Examples: \hyperlink{method.simp}{\mbox{\isa{simp}}}, \hyperlink{method.blast}{\mbox{\isa{blast}}}, \hyperlink{method.auto}{\mbox{\isa{auto}}}.
+
+  \item \emph{Old-style tactic emulation} with detailed numeric goal
+  addressing and explicit references to entities of the internal goal
+  state (which are otherwise invisible from proper Isar proof text).
+  To make the special non-standard status clear, the naming convention
+  \isa{foo{\isacharunderscore}tac} needs to be observed.
+
+  Example: \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}}.
+
+  \end{enumerate}
+
+  When implementing proof methods, it is advisable to study existing
+  implementations carefully and imitate the typical ``boiler plate''
+  for context-sensitive parsing and further combinators to wrap-up
+  tactic expressions as methods.\footnote{Aliases or abbreviations of
+  the standard method combinators should be avoided.  Note that from
+  Isabelle99 until Isabelle2009 the system did provide various odd
+  combinations of method wrappers that made user applications more
+  complicated than necessary.}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Attributes%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML type}{Proof.method}\verb|type Proof.method| \\
+  \indexdef{}{ML}{METHOD\_CASES}\verb|METHOD_CASES: (thm list -> cases_tactic) -> Proof.method| \\
+  \indexdef{}{ML}{METHOD}\verb|METHOD: (thm list -> tactic) -> Proof.method| \\
+  \indexdef{}{ML}{SIMPLE\_METHOD}\verb|SIMPLE_METHOD: tactic -> Proof.method| \\
+  \indexdef{}{ML}{SIMPLE\_METHOD'}\verb|SIMPLE_METHOD': (int -> tactic) -> Proof.method| \\
+  \indexdef{}{ML}{HEADGOAL}\verb|HEADGOAL: (int -> tactic) -> tactic| \\
+  \indexdef{}{ML}{Method.insert\_tac}\verb|Method.insert_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{Method.setup}\verb|Method.setup: binding -> (Proof.context -> Proof.method) context_parser ->|\isasep\isanewline%
+\verb|  string -> theory -> theory| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item Type \verb|Proof.method| represents proof methods as
+  abstract type.
+
+  \item \verb|METHOD_CASES|~\isa{{\isacharparenleft}fn\ facts\ {\isacharequal}{\isachargreater}\ cases{\isacharunderscore}tactic{\isacharparenright}} wraps
+  \isa{cases{\isacharunderscore}tactic} depending on goal facts as proof method with
+  cases; the goal context is passed via method syntax.
+
+  \item \verb|METHOD|~\isa{{\isacharparenleft}fn\ facts\ {\isacharequal}{\isachargreater}\ tactic{\isacharparenright}} wraps \isa{tactic} depending on goal facts as regular proof method; the goal
+  context is passed via method syntax.
+
+  \item \verb|SIMPLE_METHOD|~\isa{tactic} wraps a tactic that
+  addresses all subgoals uniformly as simple proof method.  Goal facts
+  are already inserted into all subgoals before \isa{tactic} is
+  applied.
+
+  \item \verb|SIMPLE_METHOD'|~\isa{tactic} wraps a tactic that
+  addresses a specific subgoal as simple proof method.  Goal facts are
+  already inserted into the first subgoal before \isa{tactic} is
+  applied to the same.
+
+  \item \verb|HEADGOAL|~\isa{tactic} applies \isa{tactic} to
+  the first subgoal.  This is convenient to reproduce part the \verb|SIMPLE_METHOD'| wrapping within regular \verb|METHOD|, for example.
+
+  \item \verb|Method.insert_tac|~\isa{facts\ i} inserts \isa{facts} into subgoal \isa{i}.  This is convenient to reproduce
+  part of the \verb|SIMPLE_METHOD| or \verb|SIMPLE_METHOD'| wrapping
+  within regular \verb|METHOD|, for example.
+
+  \item \verb|Method.setup|~\isa{name\ parser\ description} provides
+  the functionality of the Isar command \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} as ML
+  function.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isatagmlex
+%
+\begin{isamarkuptext}%
+See also \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} in
+  \cite{isabelle-isar-ref} which includes some abstract examples.
+
+  \medskip The following toy examples illustrate how the goal facts
+  and state are passed to proof methods.  The pre-defined proof method
+  called ``\hyperlink{method.tactic}{\mbox{\isa{tactic}}}'' wraps ML source of type \verb|tactic| (abstracted over \verb|facts|).  This allows immediate
+  experimentation without parsing of concrete syntax.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlex
+{\isafoldmlex}%
+%
+\isadelimmlex
+%
+\endisadelimmlex
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{assume}\isamarkupfalse%
+\ a{\isacharcolon}\ A\ \isakeyword{and}\ b{\isacharcolon}\ B\isanewline
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ rtac\ %
+\isaantiq
+thm\ conjI%
+\endisaantiq
+\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ a\ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ resolve{\isacharunderscore}tac\ facts\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ b\ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ resolve{\isacharunderscore}tac\ facts\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{done}\isamarkupfalse%
+\isanewline
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ a\ \isakeyword{and}\ b%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimML
+\ \ \ \ %
+\endisadelimML
+%
+\isatagML
+\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharat}{\isacharbraceleft}Isar{\isachardot}goal{\isacharbraceright}{\isachardoublequoteclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ Method{\isachardot}insert{\isacharunderscore}tac\ facts\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ {\isacharparenleft}rtac\ %
+\isaantiq
+thm\ conjI%
+\endisaantiq
+\ THEN{\isacharunderscore}ALL{\isacharunderscore}NEW\ atac{\isacharparenright}\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{done}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\medskip The next example implements a method that simplifies
+  the first subgoal by rewrite rules given as arguments.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
+\ my{\isacharunderscore}simp\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
+\ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ thms\ {\isacharequal}{\isachargreater}\ fn\ ctxt\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ \ \ CHANGED\ {\isacharparenleft}asm{\isacharunderscore}full{\isacharunderscore}simp{\isacharunderscore}tac\isanewline
+\ \ \ \ \ \ \ \ {\isacharparenleft}HOL{\isacharunderscore}basic{\isacharunderscore}ss\ addsimps\ thms{\isacharparenright}\ i{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
+{\isacharverbatimclose}\ {\isachardoublequoteopen}rewrite\ subgoal\ by\ given\ rules{\isachardoublequoteclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+The concrete syntax wrapping of \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} always
+  passes-through the proof context at the end of parsing, but it is
+  not used in this example.
+
+  The \verb|Attrib.thms| parser produces a list of theorems from the
+  usual Isar syntax involving attribute expressions etc.\ (syntax
+  category \hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}).  The resulting \verb|thms| are
+  added to \verb|HOL_basic_ss| which already contains the basic
+  Simplifier setup for HOL.
+
+  The tactic \verb|asm_full_simp_tac| is the one that is also used in
+  method \hyperlink{method.simp}{\mbox{\isa{simp}}} by default.  The extra wrapping by the \verb|CHANGED| tactical ensures progress of simplification: identical goal
+  states are filtered out explicitly to make the raw tactic conform to
+  standard Isar method behaviour.
+
+  \medskip Method \hyperlink{method.my-simp}{\mbox{\isa{my{\isacharunderscore}simp}}} can be used in Isar proofs like
+  this:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{fix}\isamarkupfalse%
+\ a\ b\ c\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ a{\isacharcolon}\ {\isachardoublequoteopen}a\ {\isacharequal}\ b{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ b{\isacharcolon}\ {\isachardoublequoteopen}b\ {\isacharequal}\ c{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}a\ {\isacharequal}\ c{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}my{\isacharunderscore}simp\ a\ b{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Here is a similar method that operates on all subgoals,
+  instead of just the first one.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
+\ my{\isacharunderscore}simp{\isacharunderscore}all\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
+\ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ thms\ {\isacharequal}{\isachargreater}\ fn\ ctxt\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ SIMPLE{\isacharunderscore}METHOD\isanewline
+\ \ \ \ \ \ {\isacharparenleft}CHANGED\isanewline
+\ \ \ \ \ \ \ \ {\isacharparenleft}ALLGOALS\ {\isacharparenleft}asm{\isacharunderscore}full{\isacharunderscore}simp{\isacharunderscore}tac\isanewline
+\ \ \ \ \ \ \ \ \ \ {\isacharparenleft}HOL{\isacharunderscore}basic{\isacharunderscore}ss\ addsimps\ thms{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
+{\isacharverbatimclose}\ {\isachardoublequoteopen}rewrite\ all\ subgoals\ by\ given\ rules{\isachardoublequoteclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+\isanewline
+\isanewline
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{fix}\isamarkupfalse%
+\ a\ b\ c\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ a{\isacharcolon}\ {\isachardoublequoteopen}a\ {\isacharequal}\ b{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ b{\isacharcolon}\ {\isachardoublequoteopen}b\ {\isacharequal}\ c{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}a\ {\isacharequal}\ c{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}c\ {\isacharequal}\ b{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}my{\isacharunderscore}simp{\isacharunderscore}all\ a\ b{\isacharparenright}\isanewline
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\medskip Apart from explicit arguments, common proof methods
+  typically work with a default configuration provided by the context.
+  As a shortcut to rule management we use a cheap solution via functor
+  \verb|Named_Thms| (see also \hyperlink{file.~~/src/Pure/Tools/named-thms.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}Tools{\isacharslash}named{\isacharunderscore}thms{\isachardot}ML}}}}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ structure\ My{\isacharunderscore}Simps\ {\isacharequal}\isanewline
+\ \ \ \ Named{\isacharunderscore}Thms\isanewline
+\ \ \ \ \ \ {\isacharparenleft}val\ name\ {\isacharequal}\ {\isachardoublequote}my{\isacharunderscore}simp{\isachardoublequote}\ val\ description\ {\isacharequal}\ {\isachardoublequote}my{\isacharunderscore}simp\ rule{\isachardoublequote}{\isacharparenright}\isanewline
+{\isacharverbatimclose}\isanewline
+\isacommand{setup}\isamarkupfalse%
+\ My{\isacharunderscore}Simps{\isachardot}setup%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+This provides ML access to a list of theorems in canonical
+  declaration order via \verb|My_Simps.get|.  The user can add or
+  delete rules via the attribute \hyperlink{attribute.my-simp}{\mbox{\isa{my{\isacharunderscore}simp}}}.  The actual
+  proof method is now defined as before, but we append the explicit
+  arguments and the rules from the context.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
+\ my{\isacharunderscore}simp{\isacharprime}\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
+\ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ thms\ {\isacharequal}{\isachargreater}\ fn\ ctxt\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ \ \ CHANGED\ {\isacharparenleft}asm{\isacharunderscore}full{\isacharunderscore}simp{\isacharunderscore}tac\isanewline
+\ \ \ \ \ \ \ \ {\isacharparenleft}HOL{\isacharunderscore}basic{\isacharunderscore}ss\ addsimps\ {\isacharparenleft}thms\ {\isacharat}\ My{\isacharunderscore}Simps{\isachardot}get\ ctxt{\isacharparenright}{\isacharparenright}\ i{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
+{\isacharverbatimclose}\ {\isachardoublequoteopen}rewrite\ subgoal\ by\ given\ rules\ and\ my{\isacharunderscore}simp\ rules\ from\ the\ context{\isachardoublequoteclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+\medskip Method \hyperlink{method.my-simp'}{\mbox{\isa{my{\isacharunderscore}simp{\isacharprime}}}} can be used in Isar proofs
+  like this:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{fix}\isamarkupfalse%
+\ a\ b\ c\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isacharbrackleft}my{\isacharunderscore}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}a\ {\isasymequiv}\ b{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isacharbrackleft}my{\isacharunderscore}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}b\ {\isasymequiv}\ c{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}a\ {\isasymequiv}\ c{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ my{\isacharunderscore}simp{\isacharprime}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\medskip The \hyperlink{method.my-simp}{\mbox{\isa{my{\isacharunderscore}simp}}} variants defined above are
+  ``simple'' methods, i.e.\ the goal facts are merely inserted as goal
+  premises by the \verb|SIMPLE_METHOD'| or \verb|SIMPLE_METHOD| wrapper.
+  For proof methods that are similar to the standard collection of
+  \hyperlink{method.simp}{\mbox{\isa{simp}}}, \hyperlink{method.blast}{\mbox{\isa{blast}}}, \hyperlink{method.auto}{\mbox{\isa{auto}}} little more can be
+  done here.
+
+  Note that using the primary goal facts in the same manner as the
+  method arguments obtained via concrete syntax or the context does
+  not meet the requirement of ``strong emphasis on facts'' of regular
+  proof methods, because rewrite rules as used above can be easily
+  ignored.  A proof text ``\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{foo}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{my{\isacharunderscore}simp}'' where \isa{foo} is not used would
+  deceive the reader.
+
+  \medskip The technical treatment of rules from the context requires
+  further attention.  Above we rebuild a fresh \verb|simpset| from
+  the arguments and \emph{all} rules retrieved from the context on
+  every invocation of the method.  This does not scale to really large
+  collections of rules, which easily emerges in the context of a big
+  theory library, for example.
+
+  This is an inherent limitation of the simplistic rule management via
+  functor \verb|Named_Thms|, because it lacks tool-specific
+  storage and retrieval.  More realistic applications require
+  efficient index-structures that organize theorems in a customized
+  manner, such as a discrimination net that is indexed by the
+  left-hand sides of rewrite rules.  For variations on the Simplifier,
+  re-use of the existing type \verb|simpset| is adequate, but
+  scalability requires it be maintained statically within the context
+  data, not dynamically on each tool invocation.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Attributes \label{sec:attributes}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+An \emph{attribute} is a function \isa{context\ {\isasymtimes}\ thm\ {\isasymrightarrow}\ context\ {\isasymtimes}\ thm}, which means both a (generic) context and a theorem
+  can be modified simultaneously.  In practice this fully general form
+  is very rare, instead attributes are presented either as
+  \emph{declaration attribute:} \isa{thm\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} or
+  \emph{rule attribute:} \isa{context\ {\isasymrightarrow}\ thm\ {\isasymrightarrow}\ thm}.
+
+  Attributes can have additional arguments via concrete syntax.  There
+  is a collection of context-sensitive parsers for various logical
+  entities (types, terms, theorems).  These already take care of
+  applying morphisms to the arguments when attribute expressions are
+  moved into a different context (see also \secref{sec:morphisms}).
+
+  When implementing declaration attributes, it is important to operate
+  exactly on the variant of the generic context that is provided by
+  the system, which is either global theory context or local proof
+  context.  In particular, the background theory of a local context
+  must not be modified in this situation!%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML type}{attribute}\verb|type attribute = Context.generic * thm -> Context.generic * thm| \\
+  \indexdef{}{ML}{Thm.rule\_attribute}\verb|Thm.rule_attribute: (Context.generic -> thm -> thm) -> attribute| \\
+  \indexdef{}{ML}{Thm.declaration\_attribute}\verb|Thm.declaration_attribute: |\isasep\isanewline%
+\verb|  (thm -> Context.generic -> Context.generic) -> attribute| \\
+  \indexdef{}{ML}{Attrib.setup}\verb|Attrib.setup: binding -> attribute context_parser ->|\isasep\isanewline%
+\verb|  string -> theory -> theory| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item Type \verb|attribute| represents attributes as concrete
+  type alias.
+
+  \item \verb|Thm.rule_attribute|~\isa{{\isacharparenleft}fn\ context\ {\isacharequal}{\isachargreater}\ rule{\isacharparenright}} wraps
+  a context-dependent rule (mapping on \verb|thm|) as attribute.
+
+  \item \verb|Thm.declaration_attribute|~\isa{{\isacharparenleft}fn\ thm\ {\isacharequal}{\isachargreater}\ decl{\isacharparenright}}
+  wraps a theorem-dependent declaration (mapping on \verb|Context.generic|) as attribute.
+
+  \item \verb|Attrib.setup|~\isa{name\ parser\ description} provides
+  the functionality of the Isar command \hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isacharunderscore}setup}}}} as
+  ML function.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isatagmlex
+%
+\begin{isamarkuptext}%
+See also \hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isacharunderscore}setup}}}} in
+  \cite{isabelle-isar-ref} which includes some abstract examples.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlex
+{\isafoldmlex}%
+%
+\isadelimmlex
+%
+\endisadelimmlex
 %
 \isadelimtheory
 %

@@ -262,18 +262,6 @@ lemma chfin2finch: "chain Y \<Longrightarrow> finite_chain Y"
 
 end
 
-class finite_po = finite + po
-begin
-
-subclass chfin
-apply default
-apply (drule finite_range_imp_finch)
-apply (rule finite)
-apply (simp add: finite_chain_def)
-done
-
-end
-
 class flat = pcpo +
   assumes ax_flat: "x \<sqsubseteq> y \<Longrightarrow> x = \<bottom> \<or> x = y"
 begin
@@ -299,7 +287,7 @@ lemma flat_eq: "a \<noteq> \<bottom> \<Longrightarrow> a \<sqsubseteq> b = (a = 
 
 end
 
-text {* Discrete cpos *}
+subsection {* Discrete cpos *}
 
 class discrete_cpo = below +
   assumes discrete_cpo [simp]: "x \<sqsubseteq> y \<longleftrightarrow> x = y"
@@ -320,14 +308,14 @@ proof (intro exI ext)
   thus "S i = S 0" by (rule sym)
 qed
 
-subclass cpo
+subclass chfin
 proof
   fix S :: "nat \<Rightarrow> 'a"
   assume S: "chain S"
-  hence "\<exists>x. S = (\<lambda>i. x)"
-    by (rule discrete_chain_const)
-  thus "\<exists>x. range S <<| x"
-    by (fast intro: lub_const)
+  hence "\<exists>x. S = (\<lambda>i. x)" by (rule discrete_chain_const)
+  hence "max_in_chain 0 S"
+    unfolding max_in_chain_def by auto
+  thus "\<exists>i. max_in_chain i S" ..
 qed
 
 end

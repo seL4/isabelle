@@ -693,11 +693,7 @@ apply (simp add: mult_2 [symmetric] add_assoc)
 apply (simp only: nat_add_distrib, simp)
 done
 
-lemmas nat_number =
-  nat_number_of_Pls nat_number_of_Min
-  nat_number_of_Bit0 nat_number_of_Bit1
-
-lemmas nat_number' =
+lemmas eval_nat_numeral =
   nat_number_of_Bit0 nat_number_of_Bit1
 
 lemmas nat_arith =

@@ -258,7 +258,7 @@ definition phi_append :: method_type ("\<phi>\<^sub>a") where
 lemma bounded_append [simp]:
   "check_bounded append_ins [(Suc 0, 2, 8, Xcpt NullPointer)]"
   apply (simp add: check_bounded_def)
-  apply (simp add: nat_number append_ins_def)
+  apply (simp add: eval_nat_numeral append_ins_def)
   apply (rule allI, rule impI)
   apply (elim pc_end pc_next pc_0)
   apply auto
@@ -327,7 +327,7 @@ definition phi_makelist :: method_type ("\<phi>\<^sub>m") where
 
 lemma bounded_makelist [simp]: "check_bounded make_list_ins []"
   apply (simp add: check_bounded_def)
-  apply (simp add: nat_number make_list_ins_def)
+  apply (simp add: eval_nat_numeral make_list_ins_def)
   apply (rule allI, rule impI)
   apply (elim pc_end pc_next pc_0)
   apply auto
@@ -343,7 +343,7 @@ lemma wt_makelist [simp]:
   "wt_method E test_name [] (PrimT Void) 3 2 make_list_ins [] \<phi>\<^sub>m"
   apply (simp add: wt_method_def)
   apply (simp add: make_list_ins_def phi_makelist_def)
-  apply (simp add: wt_start_def nat_number)
+  apply (simp add: wt_start_def eval_nat_numeral)
   apply (simp add: wt_instr_def)
   apply clarify
   apply (elim pc_end pc_next pc_0)

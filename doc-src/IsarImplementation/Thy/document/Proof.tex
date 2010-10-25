@@ -67,12 +67,87 @@ Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
   This twist of dependencies is also accommodated by the reverse
   operation of exporting results from a context: a type variable
   \isa{{\isasymalpha}} is considered fixed as long as it occurs in some fixed
-  term variable of the context.  For example, exporting \isa{x{\isacharcolon}\ term{\isacharcomma}\ {\isasymalpha}{\isacharcolon}\ type\ {\isasymturnstile}\ x\isactrlisub {\isasymalpha}\ {\isacharequal}\ x\isactrlisub {\isasymalpha}} produces in the first step
-  \isa{x{\isacharcolon}\ term\ {\isasymturnstile}\ x\isactrlisub {\isasymalpha}\ {\isacharequal}\ x\isactrlisub {\isasymalpha}} for fixed \isa{{\isasymalpha}},
-  and only in the second step \isa{{\isasymturnstile}\ {\isacharquery}x\isactrlisub {\isacharquery}\isactrlisub {\isasymalpha}\ {\isacharequal}\ {\isacharquery}x\isactrlisub {\isacharquery}\isactrlisub {\isasymalpha}} for schematic \isa{{\isacharquery}x} and \isa{{\isacharquery}{\isasymalpha}}.
-
-  \medskip The Isabelle/Isar proof context manages the gory details of
-  term vs.\ type variables, with high-level principles for moving the
+  term variable of the context.  For example, exporting \isa{x{\isacharcolon}\ term{\isacharcomma}\ {\isasymalpha}{\isacharcolon}\ type\ {\isasymturnstile}\ x\isactrlisub {\isasymalpha}\ {\isasymequiv}\ x\isactrlisub {\isasymalpha}} produces in the first step \isa{x{\isacharcolon}\ term\ {\isasymturnstile}\ x\isactrlisub {\isasymalpha}\ {\isasymequiv}\ x\isactrlisub {\isasymalpha}} for fixed \isa{{\isasymalpha}}, and only in the second step
+  \isa{{\isasymturnstile}\ {\isacharquery}x\isactrlisub {\isacharquery}\isactrlisub {\isasymalpha}\ {\isasymequiv}\ {\isacharquery}x\isactrlisub {\isacharquery}\isactrlisub {\isasymalpha}} for schematic \isa{{\isacharquery}x} and \isa{{\isacharquery}{\isasymalpha}}.
+  The following Isar source text illustrates this scenario.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\ \ %
+\isamarkupcmt{all potential occurrences of some \isa{x{\isacharcolon}{\isacharcolon}{\isasymtau}} are fixed%
+}
+\isanewline
+\ \ \ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x{\isacharcolon}{\isacharcolon}{\isacharprime}a\ {\isasymequiv}\ x{\isachardoublequoteclose}\ \ %
+\isamarkupcmt{implicit type assigment by concrete occurrence%
+}
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ reflexive{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{{\isacharbraceright}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isacommand{thm}\isamarkupfalse%
+\ this\ \ %
+\isamarkupcmt{result still with fixed type \isa{{\isacharprime}a}%
+}
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isacharbraceright}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isacommand{thm}\isamarkupfalse%
+\ this\ \ %
+\isamarkupcmt{fully general result for arbitrary \isa{{\isacharquery}x{\isacharcolon}{\isacharcolon}{\isacharquery}{\isacharprime}a}%
+}
+\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The Isabelle/Isar proof context manages the details of term
+  vs.\ type variables, with high-level principles for moving the
   frontier between fixed and schematic variables.
 
   The \isa{add{\isacharunderscore}fixes} operation explictly declares fixed
@@ -176,9 +251,8 @@ Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
 \isatagmlex
 %
 \begin{isamarkuptext}%
-The following example (in theory \hyperlink{theory.Pure}{\mbox{\isa{Pure}}}) shows
-  how to work with fixed term and type parameters work with
-  type-inference.%
+The following example shows how to work with fixed term
+  and type parameters and with type-inference.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -188,14 +262,8 @@ The following example (in theory \hyperlink{theory.Pure}{\mbox{\isa{Pure}}}) sho
 \isadelimmlex
 %
 \endisadelimmlex
-\isacommand{typedecl}\isamarkupfalse%
-\ foo\ \ %
-\isamarkupcmt{some basic type for testing purposes%
-}
-\isanewline
 %
 \isadelimML
-\isanewline
 %
 \endisadelimML
 %
@@ -217,11 +285,11 @@ context%
 \ \ val\ t{\isadigit{1}}{\isacharprime}\ {\isacharequal}\ singleton\ {\isacharparenleft}Variable{\isachardot}polymorphic\ ctxt{\isadigit{1}}{\isacharparenright}\ t{\isadigit{1}}{\isacharsemicolon}\isanewline
 \isanewline
 \ \ {\isacharparenleft}{\isacharasterisk}term\ u\ enforces\ specific\ type\ assignment{\isacharasterisk}{\isacharparenright}\isanewline
-\ \ val\ u\ {\isacharequal}\ Syntax{\isachardot}read{\isacharunderscore}term\ ctxt{\isadigit{1}}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcolon}{\isacharcolon}foo{\isacharparenright}\ {\isasymequiv}\ y{\isachardoublequote}{\isacharsemicolon}\isanewline
+\ \ val\ u\ {\isacharequal}\ Syntax{\isachardot}read{\isacharunderscore}term\ ctxt{\isadigit{1}}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymequiv}\ y{\isachardoublequote}{\isacharsemicolon}\isanewline
 \isanewline
 \ \ {\isacharparenleft}{\isacharasterisk}official\ declaration\ of\ u\ {\isacharminus}{\isacharminus}\ propagates\ constraints\ etc{\isachardot}{\isacharasterisk}{\isacharparenright}\isanewline
 \ \ val\ ctxt{\isadigit{2}}\ {\isacharequal}\ ctxt{\isadigit{1}}\ {\isacharbar}{\isachargreater}\ Variable{\isachardot}declare{\isacharunderscore}term\ u{\isacharsemicolon}\isanewline
-\ \ val\ t{\isadigit{2}}\ {\isacharequal}\ Syntax{\isachardot}read{\isacharunderscore}term\ ctxt{\isadigit{2}}\ {\isachardoublequote}x{\isachardoublequote}{\isacharsemicolon}\ \ {\isacharparenleft}{\isacharasterisk}x{\isacharcolon}{\isacharcolon}foo\ is\ enforced{\isacharasterisk}{\isacharparenright}\isanewline
+\ \ val\ t{\isadigit{2}}\ {\isacharequal}\ Syntax{\isachardot}read{\isacharunderscore}term\ ctxt{\isadigit{2}}\ {\isachardoublequote}x{\isachardoublequote}{\isacharsemicolon}\ \ {\isacharparenleft}{\isacharasterisk}x{\isacharcolon}{\isacharcolon}nat\ is\ enforced{\isacharasterisk}{\isacharparenright}\isanewline
 {\isacharverbatimclose}%
 \endisatagML
 {\isafoldML}%
@@ -263,30 +331,15 @@ context%
 \endisadelimML
 %
 \begin{isamarkuptext}%
-\noindent Subsequent ML code can now work with the invented
-  names of \verb|x1|, \verb|x2|, \verb|x3|, without
-  depending on the details on the system policy for introducing these
-  variants.  Recall that within a proof body the system always invents
-  fresh ``skolem constants'', e.g.\ as follows:%
+The following ML code can now work with the invented names of
+  \verb|x1|, \verb|x2|, \verb|x3|, without depending on
+  the details on the system policy for introducing these variants.
+  Recall that within a proof body the system always invents fresh
+  ``skolem constants'', e.g.\ as follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}PROP\ XXX{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
 \isanewline
-%
-\endisadelimproof
 %
 \isadelimML
 \ \ %
@@ -318,7 +371,7 @@ context%
 \endisadelimML
 %
 \begin{isamarkuptext}%
-\noindent In this situation \verb|Variable.add_fixes| and \verb|Variable.variant_fixes| are very similar, but identical name
+In this situation \verb|Variable.add_fixes| and \verb|Variable.variant_fixes| are very similar, but identical name
   proposals given in a row are only accepted by the second version.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -398,10 +451,11 @@ An \emph{assumption} is a proposition that it is postulated in the
 
   \begin{description}
 
-  \item \verb|Assumption.export| represents arbitrary export
-  rules, which is any function of type \verb|bool -> cterm list -> thm -> thm|,
-  where the \verb|bool| indicates goal mode, and the \verb|cterm list| the collection of assumptions to be discharged
-  simultaneously.
+  \item Type \verb|Assumption.export| represents arbitrary export
+  rules, which is any function of type \verb|bool -> cterm list|\isasep\isanewline%
+\verb|  -> thm -> thm|, where the \verb|bool| indicates goal mode,
+  and the \verb|cterm list| the collection of assumptions to be
+  discharged simultaneously.
 
   \item \verb|Assumption.assume|~\isa{A} turns proposition \isa{A} into a primitive assumption \isa{A\ {\isasymturnstile}\ A{\isacharprime}}, where the
   conclusion \isa{A{\isacharprime}} is in HHF normal form.
@@ -487,10 +541,9 @@ cprop\ {\isachardoublequote}x\ {\isasymequiv}\ y{\isachardoublequote}%
 \endisadelimML
 %
 \begin{isamarkuptext}%
-\noindent Note that the variables of the resulting rule are
-  not generalized.  This would have required to fix them properly in
-  the context beforehand, and export wrt.\ variables afterwards (cf.\
-  \verb|Variable.export| or the combined \verb|ProofContext.export|).%
+Note that the variables of the resulting rule are not
+  generalized.  This would have required to fix them properly in the
+  context beforehand, and export wrt.\ variables afterwards (cf.\ \verb|Variable.export| or the combined \verb|ProofContext.export|).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -531,8 +584,8 @@ Local results are established by monotonic reasoning from facts
   conclusion: the proof demonstrates that the context may be augmented
   by parameters and assumptions, without affecting any conclusions
   that do not mention these parameters.  See also
-  \cite{isabelle-isar-ref} for the user-level \isa{{\isasymOBTAIN}} and
-  \isa{{\isasymGUESS}} elements.  Final results, which may not refer to
+  \cite{isabelle-isar-ref} for the user-level \hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}} and
+  \hyperlink{command.guess}{\mbox{\isa{\isacommand{guess}}}} elements.  Final results, which may not refer to
   the parameters in the conclusion, need to exported explicitly into
   the original context.%
 \end{isamarkuptext}%
@@ -546,10 +599,17 @@ Local results are established by monotonic reasoning from facts
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{SUBPROOF}\verb|SUBPROOF: (Subgoal.focus -> tactic) -> Proof.context -> int -> tactic| \\
-  \indexdef{}{ML}{Subgoal.FOCUS}\verb|Subgoal.FOCUS: (Subgoal.focus -> tactic) -> Proof.context -> int -> tactic| \\
-  \indexdef{}{ML}{Subgoal.FOCUS\_PREMS}\verb|Subgoal.FOCUS_PREMS: (Subgoal.focus -> tactic) -> Proof.context -> int -> tactic| \\
-  \indexdef{}{ML}{Subgoal.FOCUS\_PARAMS}\verb|Subgoal.FOCUS_PARAMS: (Subgoal.focus -> tactic) -> Proof.context -> int -> tactic| \\
+  \indexdef{}{ML}{SUBPROOF}\verb|SUBPROOF: (Subgoal.focus -> tactic) ->|\isasep\isanewline%
+\verb|  Proof.context -> int -> tactic| \\
+  \indexdef{}{ML}{Subgoal.FOCUS}\verb|Subgoal.FOCUS: (Subgoal.focus -> tactic) ->|\isasep\isanewline%
+\verb|  Proof.context -> int -> tactic| \\
+  \indexdef{}{ML}{Subgoal.FOCUS\_PREMS}\verb|Subgoal.FOCUS_PREMS: (Subgoal.focus -> tactic) ->|\isasep\isanewline%
+\verb|  Proof.context -> int -> tactic| \\
+  \indexdef{}{ML}{Subgoal.FOCUS\_PARAMS}\verb|Subgoal.FOCUS_PARAMS: (Subgoal.focus -> tactic) ->|\isasep\isanewline%
+\verb|  Proof.context -> int -> tactic| \\
+  \indexdef{}{ML}{Subgoal.focus}\verb|Subgoal.focus: Proof.context -> int -> thm -> Subgoal.focus * thm| \\
+  \indexdef{}{ML}{Subgoal.focus\_prems}\verb|Subgoal.focus_prems: Proof.context -> int -> thm -> Subgoal.focus * thm| \\
+  \indexdef{}{ML}{Subgoal.focus\_params}\verb|Subgoal.focus_params: Proof.context -> int -> thm -> Subgoal.focus * thm| \\
   \end{mldecls}
 
   \begin{mldecls}
@@ -559,8 +619,8 @@ Local results are established by monotonic reasoning from facts
 \verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm list| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexdef{}{ML}{Obtain.result}\verb|Obtain.result: (Proof.context -> tactic) ->|\isasep\isanewline%
-\verb|  thm list -> Proof.context -> ((string * cterm) list * thm list) * Proof.context| \\
+  \indexdef{}{ML}{Obtain.result}\verb|Obtain.result: (Proof.context -> tactic) -> thm list ->|\isasep\isanewline%
+\verb|  Proof.context -> ((string * cterm) list * thm list) * Proof.context| \\
   \end{mldecls}
 
   \begin{description}
@@ -575,6 +635,11 @@ Local results are established by monotonic reasoning from facts
   slightly more flexible: only the specified parts of the subgoal are
   imported into the context, and the body tactic may introduce new
   subgoals and schematic variables.
+
+  \item \verb|Subgoal.focus|, \verb|Subgoal.focus_prems|, \verb|Subgoal.focus_params| extract the focus information from a goal
+  state in the same way as the corresponding tacticals above.  This is
+  occasionally useful to experiment without writing actual tactics
+  yet.
 
   \item \verb|Goal.prove|~\isa{ctxt\ xs\ As\ C\ tac} states goal \isa{C} in the context augmented by fixed variables \isa{xs} and
   assumptions \isa{As}, and applies tactic \isa{tac} to solve
@@ -602,7 +667,157 @@ Local results are established by monotonic reasoning from facts
 %
 \endisadelimmlref
 %
+\isadelimmlex
+%
+\endisadelimmlex
+%
+\isatagmlex
+%
+\begin{isamarkuptext}%
+The following minimal example illustrates how to access
+  the focus information of a structured goal state.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlex
+{\isafoldmlex}%
+%
+\isadelimmlex
+%
+\endisadelimmlex
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{fix}\isamarkupfalse%
+\ A\ B\ C\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymAnd}x{\isachardot}\ A\ x\ {\isasymLongrightarrow}\ B\ x\ {\isasymLongrightarrow}\ C\ x{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimML
+\ \ \ \ %
+\endisadelimML
+%
+\isatagML
+\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
+\isanewline
+\ \ \ \ {\isacharverbatimopen}\isanewline
+\ \ \ \ \ \ val\ {\isacharbraceleft}goal{\isacharcomma}\ context\ {\isacharequal}\ goal{\isacharunderscore}ctxt{\isacharcomma}\ {\isachardot}{\isachardot}{\isachardot}{\isacharbraceright}\ {\isacharequal}\ %
+\isaantiq
+Isar{\isachardot}goal%
+\endisaantiq
+{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ val\ {\isacharparenleft}focus\ as\ {\isacharbraceleft}params{\isacharcomma}\ asms{\isacharcomma}\ concl{\isacharcomma}\ {\isachardot}{\isachardot}{\isachardot}{\isacharbraceright}{\isacharcomma}\ goal{\isacharprime}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ \ \ \ \ Subgoal{\isachardot}focus\ goal{\isacharunderscore}ctxt\ {\isadigit{1}}\ goal{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ val\ {\isacharbrackleft}A{\isacharcomma}\ B{\isacharbrackright}\ {\isacharequal}\ {\isacharhash}prems\ focus{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ val\ {\isacharbrackleft}{\isacharparenleft}{\isacharunderscore}{\isacharcomma}\ x{\isacharparenright}{\isacharbrackright}\ {\isacharequal}\ {\isacharhash}params\ focus{\isacharsemicolon}\isanewline
+\ \ \ \ {\isacharverbatimclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{oops}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\medskip The next example demonstrates forward-elimination in
+  a local context, using \verb|Obtain.result|.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{assume}\isamarkupfalse%
+\ ex{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ B\ x{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimML
+\isanewline
+\ \ %
+\endisadelimML
+%
+\isatagML
+\isacommand{ML{\isacharunderscore}prf}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ \ \ val\ ctxt{\isadigit{0}}\ {\isacharequal}\ %
+\isaantiq
+context%
+\endisaantiq
+{\isacharsemicolon}\isanewline
+\ \ \ \ val\ {\isacharparenleft}{\isacharparenleft}{\isacharbrackleft}{\isacharparenleft}{\isacharunderscore}{\isacharcomma}\ x{\isacharparenright}{\isacharbrackright}{\isacharcomma}\ {\isacharbrackleft}B{\isacharbrackright}{\isacharparenright}{\isacharcomma}\ ctxt{\isadigit{1}}{\isacharparenright}\ {\isacharequal}\ ctxt{\isadigit{0}}\isanewline
+\ \ \ \ \ \ {\isacharbar}{\isachargreater}\ Obtain{\isachardot}result\ {\isacharparenleft}fn\ {\isacharunderscore}\ {\isacharequal}{\isachargreater}\ etac\ %
+\isaantiq
+thm\ exE%
+\endisaantiq
+\ {\isadigit{1}}{\isacharparenright}\ {\isacharbrackleft}%
+\isaantiq
+thm\ ex%
+\endisaantiq
+{\isacharbrackright}{\isacharsemicolon}\isanewline
+\ \ {\isacharverbatimclose}\isanewline
+\ \ \isacommand{ML{\isacharunderscore}prf}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ \ \ singleton\ {\isacharparenleft}ProofContext{\isachardot}export\ ctxt{\isadigit{1}}\ ctxt{\isadigit{0}}{\isacharparenright}\ %
+\isaantiq
+thm\ refl%
+\endisaantiq
+{\isacharsemicolon}\isanewline
+\ \ {\isacharverbatimclose}\isanewline
+\ \ \isacommand{ML{\isacharunderscore}prf}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ \ \ ProofContext{\isachardot}export\ ctxt{\isadigit{1}}\ ctxt{\isadigit{0}}\ {\isacharbrackleft}Thm{\isachardot}reflexive\ x{\isacharbrackright}\isanewline
+\ \ \ \ \ \ handle\ ERROR\ msg\ {\isacharequal}{\isachargreater}\ {\isacharparenleft}warning\ msg{\isacharsemicolon}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ {\isacharverbatimclose}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+\isanewline
+%
+\endisadelimML
+%
 \isadelimtheory
+\isanewline
 %
 \endisadelimtheory
 %
@@ -613,9 +828,9 @@ Local results are established by monotonic reasoning from facts
 {\isafoldtheory}%
 %
 \isadelimtheory
+\isanewline
 %
 \endisadelimtheory
-\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

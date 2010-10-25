@@ -4,6 +4,7 @@
 \usepackage{../iman,../extra,../isar,../proof}
 \usepackage[nohyphen,strings]{../underscore}
 \usepackage{../isabelle,../isabellesym}
+\usepackage{../ttbox,../rail,../railsetup}
 \usepackage{style}
 \usepackage{../pdfsetup}
 
@@ -21,6 +22,11 @@
 }
 
 \makeindex
+
+\railterm{lbrace,rbrace,atsign}
+\railalias{lbracesym}{\isasymlbrace}\railterm{lbracesym}
+\railalias{rbracesym}{\isasymrbrace}\railterm{rbracesym}
+\railalias{dots}{\isasymdots}\railterm{dots}
 
 
 \begin{document}
@@ -76,17 +82,17 @@
 \listoffigures
 \clearfirst
 
+\setcounter{chapter}{-1}
+
+\input{Thy/document/ML.tex}
 \input{Thy/document/Prelim.tex}
 \input{Thy/document/Logic.tex}
+\input{Thy/document/Syntax.tex}
 \input{Thy/document/Tactic.tex}
 \input{Thy/document/Proof.tex}
-\input{Thy/document/Syntax.tex}
 \input{Thy/document/Isar.tex}
 \input{Thy/document/Local_Theory.tex}
 \input{Thy/document/Integration.tex}
-
-\appendix
-\input{Thy/document/ML.tex}
 
 \begingroup
 \tocentry{\bibname}

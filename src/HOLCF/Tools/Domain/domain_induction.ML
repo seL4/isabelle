@@ -8,7 +8,7 @@ Proofs of high-level (co)induction rules for domain command.
 signature DOMAIN_INDUCTION =
 sig
   val comp_theorems :
-      binding -> binding list ->
+      binding list ->
       Domain_Take_Proofs.take_induct_info ->
       Domain_Constructors.constr_info list ->
       theory -> thm list * theory
@@ -367,13 +367,14 @@ end; (* let *)
 (******************************************************************************)
 
 fun comp_theorems
-    (comp_dbind : binding)
     (dbinds : binding list)
     (take_info : Domain_Take_Proofs.take_induct_info)
     (constr_infos : Domain_Constructors.constr_info list)
     (thy : theory) =
 let
-val comp_dname = Binding.name_of comp_dbind;
+
+val comp_dname = space_implode "_" (map Binding.name_of dbinds);
+val comp_dbind = Binding.name comp_dname;
 
 (* Test for emptiness *)
 (* FIXME: reimplement emptiness test

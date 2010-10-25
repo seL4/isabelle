@@ -121,8 +121,8 @@ text %mlref {*
   @{index_ML_type sort: "class list"} \\
   @{index_ML_type arity: "string * sort list * sort"} \\
   @{index_ML_type typ} \\
-  @{index_ML map_atyps: "(typ -> typ) -> typ -> typ"} \\
-  @{index_ML fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
+  @{index_ML Term.map_atyps: "(typ -> typ) -> typ -> typ"} \\
+  @{index_ML Term.fold_atyps: "(typ -> 'a -> 'a) -> typ -> 'a -> 'a"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
@@ -136,26 +136,27 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type class} represents type classes.
+  \item Type @{ML_type class} represents type classes.
 
-  \item @{ML_type sort} represents sorts, i.e.\ finite intersections
-  of classes.  The empty list @{ML "[]: sort"} refers to the empty
-  class intersection, i.e.\ the ``full sort''.
+  \item Type @{ML_type sort} represents sorts, i.e.\ finite
+  intersections of classes.  The empty list @{ML "[]: sort"} refers to
+  the empty class intersection, i.e.\ the ``full sort''.
 
-  \item @{ML_type arity} represents type arities.  A triple @{text
-  "(\<kappa>, \<^vec>s, s) : arity"} represents @{text "\<kappa> :: (\<^vec>s)s"} as
-  described above.
+  \item Type @{ML_type arity} represents type arities.  A triple
+  @{text "(\<kappa>, \<^vec>s, s) : arity"} represents @{text "\<kappa> ::
+  (\<^vec>s)s"} as described above.
 
-  \item @{ML_type typ} represents types; this is a datatype with
+  \item Type @{ML_type typ} represents types; this is a datatype with
   constructors @{ML TFree}, @{ML TVar}, @{ML Type}.
 
-  \item @{ML map_atyps}~@{text "f \<tau>"} applies the mapping @{text "f"}
-  to all atomic types (@{ML TFree}, @{ML TVar}) occurring in @{text
-  "\<tau>"}.
+  \item @{ML Term.map_atyps}~@{text "f \<tau>"} applies the mapping @{text
+  "f"} to all atomic types (@{ML TFree}, @{ML TVar}) occurring in
+  @{text "\<tau>"}.
 
-  \item @{ML fold_atyps}~@{text "f \<tau>"} iterates the operation @{text
-  "f"} over all occurrences of atomic types (@{ML TFree}, @{ML TVar})
-  in @{text "\<tau>"}; the type structure is traversed from left to right.
+  \item @{ML Term.fold_atyps}~@{text "f \<tau>"} iterates the operation
+  @{text "f"} over all occurrences of atomic types (@{ML TFree}, @{ML
+  TVar}) in @{text "\<tau>"}; the type structure is traversed from left to
+  right.
 
   \item @{ML Sign.subsort}~@{text "thy (s\<^isub>1, s\<^isub>2)"}
   tests the subsort relation @{text "s\<^isub>1 \<subseteq> s\<^isub>2"}.
@@ -181,6 +182,51 @@ text %mlref {*
 
   \item @{ML Sign.primitive_arity}~@{text "(\<kappa>, \<^vec>s, s)"} declares
   the arity @{text "\<kappa> :: (\<^vec>s)s"}.
+
+  \end{description}
+*}
+
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "class"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "sort"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "type_name"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "type_abbrev"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "nonterminal"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "typ"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  'class' nameref
+  ;
+  'sort' sort
+  ;
+  ('type\_name' | 'type\_abbrev' | 'nonterminal') nameref
+  ;
+  'typ' type
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item @{text "@{class c}"} inlines the internalized class @{text
+  "c"} --- as @{ML_type string} literal.
+
+  \item @{text "@{sort s}"} inlines the internalized sort @{text "s"}
+  --- as @{ML_type "string list"} literal.
+
+  \item @{text "@{type_name c}"} inlines the internalized type
+  constructor @{text "c"} --- as @{ML_type string} literal.
+
+  \item @{text "@{type_abbrev c}"} inlines the internalized type
+  abbreviation @{text "c"} --- as @{ML_type string} literal.
+
+  \item @{text "@{nonterminal c}"} inlines the internalized syntactic
+  type~/ grammar nonterminal @{text "c"} --- as @{ML_type string}
+  literal.
+
+  \item @{text "@{typ \<tau>}"} inlines the internalized type @{text "\<tau>"}
+  --- as constructor term for datatype @{ML_type typ}.
 
   \end{description}
 *}
@@ -240,7 +286,7 @@ text {*
   polymorphic constants that the user-level type-checker would reject
   due to violation of type class restrictions.
 
-  \medskip An \emph{atomic} term is either a variable or constant.
+  \medskip An \emph{atomic term} is either a variable or constant.
   The logical category \emph{term} is defined inductively over atomic
   terms, with abstraction and application as follows: @{text "t = b |
   x\<^isub>\<tau> | ?x\<^isub>\<tau> | c\<^isub>\<tau> | \<lambda>\<^isub>\<tau>. t | t\<^isub>1 t\<^isub>2"}.  Parsing and printing takes care of
@@ -309,10 +355,10 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type term} \\
   @{index_ML "op aconv": "term * term -> bool"} \\
-  @{index_ML map_types: "(typ -> typ) -> term -> term"} \\
-  @{index_ML fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
-  @{index_ML map_aterms: "(term -> term) -> term -> term"} \\
-  @{index_ML fold_aterms: "(term -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  @{index_ML Term.map_types: "(typ -> typ) -> term -> term"} \\
+  @{index_ML Term.fold_types: "(typ -> 'a -> 'a) -> term -> 'a -> 'a"} \\
+  @{index_ML Term.map_aterms: "(term -> term) -> term -> term"} \\
+  @{index_ML Term.fold_aterms: "(term -> 'a -> 'a) -> term -> 'a -> 'a"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML fastype_of: "term -> typ"} \\
@@ -328,8 +374,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type term} represents de-Bruijn terms, with comments in
-  abstractions, and explicitly named free variables and constants;
+  \item Type @{ML_type term} represents de-Bruijn terms, with comments
+  in abstractions, and explicitly named free variables and constants;
   this is a datatype with constructors @{ML Bound}, @{ML Free}, @{ML
   Var}, @{ML Const}, @{ML Abs}, @{ML "op $"}.
 
@@ -338,20 +384,20 @@ text %mlref {*
   on type @{ML_type term}; raw datatype equality should only be used
   for operations related to parsing or printing!
 
-  \item @{ML map_types}~@{text "f t"} applies the mapping @{text
+  \item @{ML Term.map_types}~@{text "f t"} applies the mapping @{text
   "f"} to all types occurring in @{text "t"}.
 
-  \item @{ML fold_types}~@{text "f t"} iterates the operation @{text
-  "f"} over all occurrences of types in @{text "t"}; the term
+  \item @{ML Term.fold_types}~@{text "f t"} iterates the operation
+  @{text "f"} over all occurrences of types in @{text "t"}; the term
   structure is traversed from left to right.
 
-  \item @{ML map_aterms}~@{text "f t"} applies the mapping @{text "f"}
-  to all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML
+  \item @{ML Term.map_aterms}~@{text "f t"} applies the mapping @{text
+  "f"} to all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML
   Const}) occurring in @{text "t"}.
 
-  \item @{ML fold_aterms}~@{text "f t"} iterates the operation @{text
-  "f"} over all occurrences of atomic terms (@{ML Bound}, @{ML Free},
-  @{ML Var}, @{ML Const}) in @{text "t"}; the term structure is
+  \item @{ML Term.fold_aterms}~@{text "f t"} iterates the operation
+  @{text "f"} over all occurrences of atomic terms (@{ML Bound}, @{ML
+  Free}, @{ML Var}, @{ML Const}) in @{text "t"}; the term structure is
   traversed from left to right.
 
   \item @{ML fastype_of}~@{text "t"} determines the type of a
@@ -377,6 +423,49 @@ text %mlref {*
   Sign.const_instance}~@{text "thy (c, [\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n])"}
   convert between two representations of polymorphic constants: full
   type instance vs.\ compact type arguments form.
+
+  \end{description}
+*}
+
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "const_name"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "const_abbrev"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "const"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "term"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "prop"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  ('const\_name' | 'const\_abbrev') nameref
+  ;
+  'const' ('(' (type + ',') ')')?
+  ;
+  'term' term
+  ;
+  'prop' prop
+  ;
+  \end{rail}
+
+  \begin{description}
+
+  \item @{text "@{const_name c}"} inlines the internalized logical
+  constant name @{text "c"} --- as @{ML_type string} literal.
+
+  \item @{text "@{const_abbrev c}"} inlines the internalized
+  abbreviated constant name @{text "c"} --- as @{ML_type string}
+  literal.
+
+  \item @{text "@{const c(\<^vec>\<tau>)}"} inlines the internalized
+  constant @{text "c"} with precise type instantiation in the sense of
+  @{ML Sign.const_instance} --- as @{ML Const} constructor term for
+  datatype @{ML_type term}.
+
+  \item @{text "@{term t}"} inlines the internalized term @{text "t"}
+  --- as constructor term for datatype @{ML_type term}.
+
+  \item @{text "@{prop \<phi>}"} inlines the internalized proposition
+  @{text "\<phi>"} --- as constructor term for datatype @{ML_type term}.
 
   \end{description}
 *}
@@ -531,7 +620,7 @@ text {*
   "d(\<alpha>\<^isub>i)"} for some @{text "\<alpha>\<^isub>i"} projected from @{text
   "\<^vec>\<alpha>"}.  Thus overloaded definitions essentially work by
   primitive recursion over the syntactic structure of a single type
-  argument.
+  argument.  See also \cite[\S4.3]{Haftmann-Wenzel:2006:classes}.
 *}
 
 text %mlref {*
@@ -552,18 +641,20 @@ text %mlref {*
   @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
   @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
   @{index_ML Thm.add_axiom: "binding * term -> theory -> (string * thm) * theory"} \\
-  @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory
-  -> (string * ('a -> thm)) * theory"} \\
-  @{index_ML Thm.add_def: "bool -> bool -> binding * term -> theory -> (string * thm) * theory"} \\
+  @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory ->
+  (string * ('a -> thm)) * theory"} \\
+  @{index_ML Thm.add_def: "bool -> bool -> binding * term -> theory ->
+  (string * thm) * theory"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Theory.add_deps: "string -> string * typ -> (string * typ) list -> theory -> theory"} \\
+  @{index_ML Theory.add_deps: "string -> string * typ -> (string * typ) list ->
+  theory -> theory"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML_type ctyp} and @{ML_type cterm} represent certified types
-  and terms, respectively.  These are abstract datatypes that
+  \item Types @{ML_type ctyp} and @{ML_type cterm} represent certified
+  types and terms, respectively.  These are abstract datatypes that
   guarantee that its values have passed the full well-formedness (and
   well-typedness) checks, relative to the declarations of type
   constructors, constants etc. in the theory.
@@ -577,8 +668,8 @@ text %mlref {*
   reasoning loops.  There are separate operations to decompose
   certified entities (including actual theorems).
 
-  \item @{ML_type thm} represents proven propositions.  This is an
-  abstract datatype that guarantees that its values have been
+  \item Type @{ML_type thm} represents proven propositions.  This is
+  an abstract datatype that guarantees that its values have been
   constructed by basic principles of the @{ML_struct Thm} module.
   Every @{ML_type thm} value contains a sliding back-reference to the
   enclosing theory, cf.\ \secref{sec:context-theory}.
@@ -628,6 +719,68 @@ text %mlref {*
   specifications for constants @{text "\<^vec>d\<^isub>\<sigma>"}.
 
   \end{description}
+*}
+
+
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "ctyp"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "cterm"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "cprop"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "thm"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "thms"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "lemma"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  \begin{rail}
+  'ctyp' typ
+  ;
+  'cterm' term
+  ;
+  'cprop' prop
+  ;
+  'thm' thmref
+  ;
+  'thms' thmrefs
+  ;
+  'lemma' ('(open)')? ((prop +) + 'and') \\ 'by' method method?
+  \end{rail}
+
+  \begin{description}
+
+  \item @{text "@{ctyp \<tau>}"} produces a certified type wrt.\ the
+  current background theory --- as abstract value of type @{ML_type
+  ctyp}.
+
+  \item @{text "@{cterm t}"} and @{text "@{cprop \<phi>}"} produce a
+  certified term wrt.\ the current background theory --- as abstract
+  value of type @{ML_type cterm}.
+
+  \item @{text "@{thm a}"} produces a singleton fact --- as abstract
+  value of type @{ML_type thm}.
+
+  \item @{text "@{thms a}"} produces a general fact --- as abstract
+  value of type @{ML_type "thm list"}.
+
+  \item @{text "@{lemma \<phi> by meth}"} produces a fact that is proven on
+  the spot according to the minimal proof, which imitates a terminal
+  Isar proof.  The result is an abstract value of type @{ML_type thm}
+  or @{ML_type "thm list"}, depending on the number of propositions
+  given here.
+
+  The internal derivation object lacks a proper theorem name, but it
+  is formally closed, unless the @{text "(open)"} option is specified
+  (this may impact performance of applications with proof terms).
+
+  Since ML antiquotations are always evaluated at compile-time, there
+  is no run-time overhead even for non-trivial proofs.  Nonetheless,
+  the justification is syntactically limited to a single @{command
+  "by"} step.  More complex Isar proofs should be done in regular
+  theory source, before compiling the corresponding ML text that uses
+  the result.
+
+  \end{description}
+
 *}
 
 
@@ -776,9 +929,9 @@ text {*
   \end{tabular}
   \medskip
 
-  \noindent Thus we essentially impose nesting levels on propositions
-  formed from @{text "\<And>"} and @{text "\<Longrightarrow>"}.  At each level there is a
-  prefix of parameters and compound premises, concluding an atomic
+  Thus we essentially impose nesting levels on propositions formed
+  from @{text "\<And>"} and @{text "\<Longrightarrow>"}.  At each level there is a prefix
+  of parameters and compound premises, concluding an atomic
   proposition.  Typical examples are @{text "\<longrightarrow>"}-introduction @{text
   "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B"} or mathematical induction @{text "P 0 \<Longrightarrow> (\<And>n. P n
   \<Longrightarrow> P (Suc n)) \<Longrightarrow> P n"}.  Even deeper nesting occurs in well-founded

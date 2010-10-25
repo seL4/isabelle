@@ -12,19 +12,16 @@ default_sort cpo
 
 subsection {* Unit type is a pcpo *}
 
-instantiation unit :: below
+instantiation unit :: discrete_cpo
 begin
 
 definition
   below_unit_def [simp]: "x \<sqsubseteq> (y::unit) \<longleftrightarrow> True"
 
-instance ..
+instance proof
+qed simp
+
 end
-
-instance unit :: discrete_cpo
-by intro_classes simp
-
-instance unit :: finite_po ..
 
 instance unit :: pcpo
 by intro_classes simp
@@ -156,8 +153,6 @@ proof
     by (rule lub_cprod)
   thus "\<exists>x. range S <<| x" ..
 qed
-
-instance prod :: (finite_po, finite_po) finite_po ..
 
 instance prod :: (discrete_cpo, discrete_cpo) discrete_cpo
 proof

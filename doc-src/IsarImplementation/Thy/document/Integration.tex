@@ -29,13 +29,12 @@
 \begin{isamarkuptext}%
 The Isar toplevel may be considered the centeral hub of the
   Isabelle/Isar system, where all key components and sub-systems are
-  integrated into a single read-eval-print loop of Isar commands.  We
-  shall even incorporate the existing {\ML} toplevel of the compiler
-  and run-time system (cf.\ \secref{sec:ML-toplevel}).
+  integrated into a single read-eval-print loop of Isar commands,
+  which also incorporates the underlying ML compiler.
 
   Isabelle/Isar departs from the original ``LCF system architecture''
-  where {\ML} was really The Meta Language for defining theories and
-  conducting proofs.  Instead, {\ML} now only serves as the
+  where ML was really The Meta Language for defining theories and
+  conducting proofs.  Instead, ML now only serves as the
   implementation language for the system (and user extensions), while
   the specific Isar toplevel supports the concepts of theory and proof
   development natively.  This includes the graph structure of theories
@@ -93,11 +92,11 @@ The Isar toplevel may be considered the centeral hub of the
 
   \begin{description}
 
-  \item \verb|Toplevel.state| represents Isar toplevel states,
-  which are normally manipulated through the concept of toplevel
-  transitions only (\secref{sec:toplevel-transition}).  Also note that
-  a raw toplevel state is subject to the same linearity restrictions
-  as a theory context (cf.~\secref{sec:context-theory}).
+  \item Type \verb|Toplevel.state| represents Isar toplevel
+  states, which are normally manipulated through the concept of
+  toplevel transitions only (\secref{sec:toplevel-transition}).  Also
+  note that a raw toplevel state is subject to the same linearity
+  restrictions as a theory context (cf.~\secref{sec:context-theory}).
 
   \item \verb|Toplevel.UNDEF| is raised for undefined toplevel
   operations.  Many operations work only partially for certain cases,
@@ -121,7 +120,7 @@ The Isar toplevel may be considered the centeral hub of the
   information for each Isar command being executed.
 
   \item \verb|Toplevel.profiling|~\verb|:=|~\isa{n} controls
-  low-level profiling of the underlying {\ML} runtime system.  For
+  low-level profiling of the underlying ML runtime system.  For
   Poly/ML, \isa{n\ {\isacharequal}\ {\isadigit{1}}} means time and \isa{n\ {\isacharequal}\ {\isadigit{2}}} space
   profiling.
 
@@ -135,6 +134,35 @@ The Isar toplevel may be considered the centeral hub of the
 \isadelimmlref
 %
 \endisadelimmlref
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
+%
+\isatagmlantiq
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+  \indexdef{}{ML antiquotation}{Isar.state}\hypertarget{ML antiquotation.Isar.state}{\hyperlink{ML antiquotation.Isar.state}{\mbox{\isa{Isar{\isachardot}state}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item \isa{{\isacharat}{\isacharbraceleft}Isar{\isachardot}state{\isacharbraceright}} refers to Isar toplevel state at that
+  point --- as abstract value.
+
+  This only works for diagnostic ML commands, such as \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} or \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlantiq
+{\isafoldmlantiq}%
+%
+\isadelimmlantiq
+%
+\endisadelimmlantiq
 %
 \isamarkupsubsection{Toplevel transitions \label{sec:toplevel-transition}%
 }
@@ -232,141 +260,6 @@ An Isar toplevel transition consists of a partial function on the
 %
 \endisadelimmlref
 %
-\isamarkupsubsection{Toplevel control%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-There are a few special control commands that modify the behavior
-  the toplevel itself, and only make sense in interactive mode.  Under
-  normal circumstances, the user encounters these only implicitly as
-  part of the protocol between the Isabelle/Isar system and a
-  user-interface such as Proof~General.
-
-  \begin{description}
-
-  \item \isacommand{undo} follows the three-level hierarchy of empty
-  toplevel vs.\ theory vs.\ proof: undo within a proof reverts to the
-  previous proof context, undo after a proof reverts to the theory
-  before the initial goal statement, undo of a theory command reverts
-  to the previous theory value, undo of a theory header discontinues
-  the current theory development and removes it from the theory
-  database (\secref{sec:theory-database}).
-
-  \item \isacommand{kill} aborts the current level of development:
-  kill in a proof context reverts to the theory before the initial
-  goal statement, kill in a theory context aborts the current theory
-  development, removing it from the database.
-
-  \item \isacommand{exit} drops out of the Isar toplevel into the
-  underlying {\ML} toplevel (\secref{sec:ML-toplevel}).  The Isar
-  toplevel state is preserved and may be continued later.
-
-  \item \isacommand{quit} terminates the Isabelle/Isar process without
-  saving.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsection{ML toplevel \label{sec:ML-toplevel}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
-  values, types, structures, and functors.  {\ML} declarations operate
-  on the global system state, which consists of the compiler
-  environment plus the values of {\ML} reference variables.  There is
-  no clean way to undo {\ML} declarations, except for reverting to a
-  previously saved state of the whole Isabelle process.  {\ML} input
-  is either read interactively from a TTY, or from a string (usually
-  within a theory text), or from a source file (usually loaded from a
-  theory).
-
-  Whenever the {\ML} toplevel is active, the current Isabelle theory
-  context is passed as an internal reference variable.  Thus {\ML}
-  code may access the theory context during compilation, it may even
-  change the value of a theory being under construction --- while
-  observing the usual linearity restrictions
-  (cf.~\secref{sec:context-theory}).%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isatagmlref
-%
-\begin{isamarkuptext}%
-\begin{mldecls}
-  \indexdef{}{ML}{ML\_Context.the\_generic\_context}\verb|ML_Context.the_generic_context: unit -> Context.generic| \\
-  \indexdef{}{ML}{Context.$>$$>$ }\verb|Context.>> : (Context.generic -> Context.generic) -> unit| \\
-  \end{mldecls}
-
-  \begin{description}
-
-  \item \verb|ML_Context.the_generic_context ()| refers to the theory
-  context of the {\ML} toplevel --- at compile time!  {\ML} code needs
-  to take care to refer to \verb|ML_Context.the_generic_context ()|
-  correctly.  Recall that evaluation of a function body is delayed
-  until actual runtime.  Moreover, persistent {\ML} toplevel bindings
-  to an unfinished theory should be avoided: code should either
-  project out the desired information immediately, or produce an
-  explicit \verb|theory_ref| (cf.\ \secref{sec:context-theory}).
-
-  \item \verb|Context.>>|~\isa{f} applies context transformation
-  \isa{f} to the implicit context of the {\ML} toplevel.
-
-  \end{description}
-
-  It is very important to note that the above functions are really
-  restricted to the compile time, even though the {\ML} compiler is
-  invoked at runtime!  The majority of {\ML} code uses explicit
-  functional arguments of a theory or proof context instead.  Thus it
-  may be invoked for an arbitrary context later on, without having to
-  worry about any operational details.
-
-  \bigskip
-
-  \begin{mldecls}
-  \indexdef{}{ML}{Isar.main}\verb|Isar.main: unit -> unit| \\
-  \indexdef{}{ML}{Isar.loop}\verb|Isar.loop: unit -> unit| \\
-  \indexdef{}{ML}{Isar.state}\verb|Isar.state: unit -> Toplevel.state| \\
-  \indexdef{}{ML}{Isar.exn}\verb|Isar.exn: unit -> (exn * string) option| \\
-  \indexdef{}{ML}{Isar.goal}\verb|Isar.goal: unit ->|\isasep\isanewline%
-\verb|  {context: Proof.context, facts: thm list, goal: thm}| \\
-  \end{mldecls}
-
-  \begin{description}
-
-  \item \verb|Isar.main ()| invokes the Isar toplevel from {\ML},
-  initializing an empty toplevel state.
-
-  \item \verb|Isar.loop ()| continues the Isar toplevel with the
-  current state, after having dropped out of the Isar toplevel loop.
-
-  \item \verb|Isar.state ()| and \verb|Isar.exn ()| get current
-  toplevel state and error condition, respectively.  This only works
-  after having dropped out of the Isar toplevel loop.
-
-  \item \verb|Isar.goal ()| produces the full Isar goal state,
-  consisting of proof context, facts that have been indicated for
-  immediate use, and the tactical goal according to
-  \secref{sec:tactical-goals}.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagmlref
-{\isafoldmlref}%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
 \isamarkupsection{Theory database \label{sec:theory-database}%
 }
 \isamarkuptrue%
@@ -384,10 +277,10 @@ The theory database maintains a collection of theories, together
   name space is flat!
 
   Theory \isa{A} is associated with the main theory file \isa{A}\verb,.thy,, which needs to be accessible through the theory
-  loader path.  Any number of additional {\ML} source files may be
+  loader path.  Any number of additional ML source files may be
   associated with each theory, by declaring these dependencies in the
   theory header as \isa{{\isasymUSES}}, and loading them consecutively
-  within the theory context.  The system keeps track of incoming {\ML}
+  within the theory context.  The system keeps track of incoming ML
   sources and associates them with the current theory.
 
   The basic internal actions of the theory database are \isa{update} and \isa{remove}:

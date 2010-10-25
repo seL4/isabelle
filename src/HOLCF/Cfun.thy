@@ -95,12 +95,6 @@ subsection {* Continuous function space is pointed *}
 lemma UU_CFun: "\<bottom> \<in> CFun"
 by (simp add: CFun_def inst_fun_pcpo)
 
-instance cfun :: (finite_po, finite_po) finite_po
-by (rule typedef_finite_po [OF type_definition_CFun])
-
-instance cfun :: (finite_po, chfin) chfin
-by (rule typedef_chfin [OF type_definition_CFun below_CFun_def])
-
 instance cfun :: (cpo, discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_CFun_def Rep_CFun_inject)
 
@@ -550,7 +544,10 @@ by (simp add: strict_conv_if)
 lemma strict2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strict\<cdot>x = ID"
 by (simp add: strict_conv_if)
 
- definition
+lemma strict3 [simp]: "strict\<cdot>x\<cdot>\<bottom> = \<bottom>"
+by (simp add: strict_conv_if)
+
+definition
   strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b" where
   "strictify = (\<Lambda> f x. strict\<cdot>x\<cdot>(f\<cdot>x))"
 

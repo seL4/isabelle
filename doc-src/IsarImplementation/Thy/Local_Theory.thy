@@ -31,8 +31,8 @@ text {*
 
   Many definitional packages for local theories are available in
   Isabelle.  Although a few old packages only work for global
-  theories, the local theory interface is already the standard way of
-  implementing definitional packages in Isabelle.
+  theories, the standard way of implementing definitional packages in
+  Isabelle is via the local theory interface.
 *}
 
 
@@ -86,13 +86,12 @@ text {*
   \framebox{\quad auxiliary context \quad\framebox{\quad target context \quad\framebox{\quad background theory\quad}}}
   \end{center}
 
-  \noindent When a definitional package is finished, the auxiliary
-  context is reset to the target context.  The target now holds
-  definitions for terms and theorems that stem from the hypothetical
-  @{text "\<DEFINE>"} and @{text "\<NOTE>"} elements, transformed by
-  the particular target policy (see
-  \cite[\S4--5]{Haftmann-Wenzel:2009} for details).
-*}
+  When a definitional package is finished, the auxiliary context is
+  reset to the target context.  The target now holds definitions for
+  terms and theorems that stem from the hypothetical @{text
+  "\<DEFINE>"} and @{text "\<NOTE>"} elements, transformed by the
+  particular target policy (see \cite[\S4--5]{Haftmann-Wenzel:2009}
+  for details).  *}
 
 text %mlref {*
   \begin{mldecls}
@@ -106,8 +105,8 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML_type local_theory} represents local theories.  Although
-  this is merely an alias for @{ML_type Proof.context}, it is
+  \item Type @{ML_type local_theory} represents local theories.
+  Although this is merely an alias for @{ML_type Proof.context}, it is
   semantically a subtype of the same: a @{ML_type local_theory} holds
   target information as special context data.  Subtyping means that
   any value @{text "lthy:"}~@{ML_type local_theory} can be also used
@@ -155,8 +154,11 @@ text %mlref {*
 *}
 
 
-section {* Morphisms and declarations *}
+section {* Morphisms and declarations \label{sec:morphisms} *}
 
-text FIXME
+text {* FIXME
+
+  \medskip See also \cite{Chaieb-Wenzel:2007}.
+*}
 
 end

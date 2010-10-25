@@ -262,9 +262,9 @@ text{*
 @{lemma "[a,b,c,d][2 := x] = [a,b,x,d]" by simp}\\
 @{lemma "sublist [a,b,c,d,e] {0,2,3} = [a,c,d]" by (simp add:sublist_def)}\\
 @{lemma "rotate1 [a,b,c,d] = [b,c,d,a]" by (simp add:rotate1_def)}\\
-@{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate1_def rotate_def nat_number')}\\
-@{lemma "replicate 4 a = [a,a,a,a]" by (simp add:nat_number')}\\
-@{lemma "[2..<5] = [2,3,4]" by (simp add:nat_number')}\\
+@{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" by (simp add:rotate1_def rotate_def eval_nat_numeral)}\\
+@{lemma "replicate 4 a = [a,a,a,a]" by (simp add:eval_nat_numeral)}\\
+@{lemma "[2..<5] = [2,3,4]" by (simp add:eval_nat_numeral)}\\
 @{lemma "listsum [1,2,3::nat] = 6" by (simp add: listsum_def)}
 \end{tabular}}
 \caption{Characteristic examples}

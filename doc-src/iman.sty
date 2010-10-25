@@ -82,7 +82,8 @@
 \def\dbend{\vtop to 0pt{\vss\hbox{\Huge\bf!}\vss}}
 \newenvironment{warn}{\medskip\medbreak\begingroup \clubpenalty=10000 
          \small %%WAS\baselineskip=0.9\baselineskip
-         \noindent \hangindent\parindent \hangafter=-2 
+         \noindent \ifdim\parindent > 0pt\hangindent\parindent\else\hangindent1.5em\fi
+         \hangafter=-2
          \hbox to0pt{\hskip-\hangindent\dbend\hfill}\ignorespaces}%
         {\par\endgroup\medbreak}
 
