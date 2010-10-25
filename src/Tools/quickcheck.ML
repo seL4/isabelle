@@ -194,10 +194,12 @@ fun gen_test_term ctxt quiet generator_name size i t =
           val (result, new_report) = with_testers k testers
           val reports = ((k, new_report) :: reports)
         in case result of NONE => with_size (k + 1) reports | SOME q => (SOME q, reports) end);
-    val ((result, reports), exec_time) = cpu_time "quickcheck execution"
+    val ((result, reports), exec_time) =
+      TimeLimit.timeLimit (Time.fromSeconds 20) (fn () => cpu_time "quickcheck execution"
       (fn () => apfst
          (fn result => case result of NONE => NONE
-        | SOME ts => SOME (names ~~ ts)) (with_size 1 []))
+        | SOME ts => SOME (names ~~ ts)) (with_size 1 []))) ()
+      handle TimeLimit.TimeOut => error "Reached timeout during Quickcheck"
   in
     (result, ([exec_time, comp_time], if report ctxt then SOME reports else NONE))
   end;
