@@ -5,7 +5,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Plain Quotient Presburger Code_Numeral Recdef
+imports Plain Presburger Recdef Code_Numeral Quotient
 uses ("Tools/list_code.ML")
 begin
 
@@ -174,15 +174,10 @@ primrec
     "removeAll x [] = []"
   | "removeAll x (y # xs) = (if x = y then removeAll x xs else y # removeAll x xs)"
 
-inductive
+primrec
   distinct :: "'a list \<Rightarrow> bool" where
-    Nil: "distinct []"
-  | insert: "x \<notin> set xs \<Longrightarrow> distinct xs \<Longrightarrow> distinct (x # xs)"
-
-lemma distinct_simps [simp, code]:
-  "distinct [] \<longleftrightarrow> True"
-  "distinct (x # xs) \<longleftrightarrow> x \<notin> set xs \<and> distinct xs"
-  by (auto intro: distinct.intros elim: distinct.cases)
+    "distinct [] \<longleftrightarrow> True"
+  | "distinct (x # xs) \<longleftrightarrow> x \<notin> set xs \<and> distinct xs"
 
 primrec
   remdups :: "'a list \<Rightarrow> 'a list" where
@@ -786,9 +781,8 @@ lemma map_eq_conv[simp]: "(map f xs = map g xs) = (!x : set xs. f x = g x)"
 by (induct xs) auto
 
 lemma map_cong [fundef_cong, recdef_cong]:
-"xs = ys ==> (!!x. x : set ys ==> f x = g x) ==> map f xs = map g ys"
--- {* a congruence rule for @{text map} *}
-by simp
+  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> map f xs = map g ys"
+  by simp
 
 lemma map_is_Nil_conv [iff]: "(map f xs = []) = (xs = [])"
 by (cases xs) auto
@@ -990,14 +984,14 @@ lemma in_set_conv_decomp_first:
   "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys)"
   by (auto dest!: split_list_first)
 
-lemma split_list_last: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set zs"
-proof (induct xs rule:rev_induct)
+lemma split_list_last: "x \<in> set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set zs"
+proof (induct xs rule: rev_induct)
   case Nil thus ?case by simp
 next
   case (snoc a xs)
   show ?case
   proof cases
-    assume "x = a" thus ?case using snoc by simp (metis ex_in_conv set_empty2)
+    assume "x = a" thus ?case using snoc by (metis List.set.simps(1) emptyE)
   next
     assume "x \<noteq> a" thus ?case using snoc by fastsimp
   qed
@@ -1030,8 +1024,7 @@ next
   show ?case
   proof cases
     assume "P x"
-    thus ?thesis by simp
-      (metis Un_upper1 contra_subsetD in_set_conv_decomp_first self_append_conv2 set_append)
+    thus ?thesis by simp (metis Un_upper1 contra_subsetD in_set_conv_decomp_first self_append_conv2 set_append)
   next
     assume "\<not> P x"
     hence "\<exists>x\<in>set xs. P x" using Cons(2) by simp
