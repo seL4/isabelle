@@ -10,12 +10,13 @@ feature.
 
 signature SOLVE_DIRECT =
 sig
-  val auto : bool Unsynchronized.ref
-  val max_solutions : int Unsynchronized.ref
-  val setup : theory -> theory
+  val auto: bool Unsynchronized.ref
+  val max_solutions: int Unsynchronized.ref
+  val solve_direct: bool -> Proof.state -> bool * Proof.state
+  val setup: theory -> theory
 end;
 
-structure Solve_Direct : SOLVE_DIRECT =
+structure Solve_Direct: SOLVE_DIRECT =
 struct
 
 val solve_directN = "solve_direct";
@@ -30,7 +31,7 @@ val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
   (Unsynchronized.setmp auto true (fn () =>
     Preferences.bool_pref auto
-      ("Auto " ^ solve_directN)
+      "auto-solve-direct"
       ("Run " ^ quote solve_directN ^ " automatically.")) ());
 
 
@@ -87,12 +88,11 @@ fun solve_direct auto state =
     | _ => (false, state))
   end;
 
-val invoke_solve_direct = fst o solve_direct false;
-
 val _ =
   Outer_Syntax.improper_command solve_directN
     "try to solve conjectures directly with existing theorems" Keyword.diag
-    (Scan.succeed (Toplevel.keep (K () o invoke_solve_direct o Toplevel.proof_of)));
+    (Scan.succeed
+      (Toplevel.keep (fn state => ignore (solve_direct false (Toplevel.proof_of state)))));
 
 
 (* hook *)
