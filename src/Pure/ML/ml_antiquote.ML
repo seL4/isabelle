@@ -57,6 +57,9 @@ val value = declaration "val";
 
 (** misc antiquotations **)
 
+val _ = inline "assert"
+  (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")");
+
 val _ = inline "make_string" (Scan.succeed ml_make_string);
 
 val _ = value "binding"

@@ -1207,10 +1207,10 @@ text %mlantiq {*
 
   \begin{description}
 
-  \item @{text "@{assert}"} inlines a function @{text "bool \<Rightarrow> unit"}
-  that raises @{ML Fail} if the argument is @{ML false}.  Due to
-  inlining the source position of failed assertions is included in the
-  error output.
+  \item @{text "@{assert}"} inlines a function
+  @{ML_type "bool -> unit"} that raises @{ML Fail} if the argument is
+  @{ML false}.  Due to inlining the source position of failed
+  assertions is included in the error output.
 
   \end{description}
 *}

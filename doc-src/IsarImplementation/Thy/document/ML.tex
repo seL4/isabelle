@@ -1539,10 +1539,10 @@ The Standard ML semantics of strict functional evaluation
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}assert{\isacharbraceright}} inlines a function \isa{bool\ {\isasymRightarrow}\ unit}
-  that raises \verb|Fail| if the argument is \verb|false|.  Due to
-  inlining the source position of failed assertions is included in the
-  error output.
+  \item \isa{{\isacharat}{\isacharbraceleft}assert{\isacharbraceright}} inlines a function
+  \verb|bool -> unit| that raises \verb|Fail| if the argument is
+  \verb|false|.  Due to inlining the source position of failed
+  assertions is included in the error output.
 
   \end{description}%
 \end{isamarkuptext}%
