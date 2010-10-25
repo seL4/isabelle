@@ -5,7 +5,7 @@
 header {* Examples of function definitions *}
 
 theory Fundefs 
-imports Main
+imports Parity Monad_Syntax
 begin
 
 subsection {* Very basic *}
@@ -207,6 +207,31 @@ end
 
 thm my_monoid.foldL.simps
 thm my_monoid.foldR_foldL
+
+
+subsection {* Partial Function Definitions *}
+
+text {* Partial functions in the option monad: *}
+
+partial_function (option)
+  collatz :: "nat \<Rightarrow> nat list option"
+where
+  "collatz n =
+  (if n \<le> 1 then Some [n]
+   else if even n 
+     then do { ns \<leftarrow> collatz (n div 2); Some (n # ns) }
+     else do { ns \<leftarrow> collatz (3 * n + 1);  Some (n # ns)})"
+
+declare collatz.rec[code]
+value "collatz 23"
+
+
+text {* Tail-recursive functions: *}
+
+partial_function (tailrec) fixpoint :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+where
+  "fixpoint f x = (if f x = x then x else fixpoint f (f x))"
+
 
 subsection {* Regression tests *}
 
