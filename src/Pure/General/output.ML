@@ -6,7 +6,6 @@ Output channels and timing messages.
 
 signature BASIC_OUTPUT =
 sig
-  type output = string
   val writeln: string -> unit
   val priority: string -> unit
   val tracing: string -> unit
@@ -22,6 +21,7 @@ end;
 signature OUTPUT =
 sig
   include BASIC_OUTPUT
+  type output = string
   val default_output: string -> output * int
   val default_escape: output -> string
   val add_mode: string -> (string -> output * int) -> (output -> string) -> unit

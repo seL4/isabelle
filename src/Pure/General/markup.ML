@@ -120,11 +120,11 @@ sig
   val reportN: string val report: T
   val no_reportN: string val no_report: T
   val badN: string val bad: T
-  val no_output: output * output
-  val default_output: T -> output * output
-  val add_mode: string -> (T -> output * output) -> unit
-  val output: T -> output * output
-  val enclose: T -> output -> output
+  val no_output: Output.output * Output.output
+  val default_output: T -> Output.output * Output.output
+  val add_mode: string -> (T -> Output.output * Output.output) -> unit
+  val output: T -> Output.output * Output.output
+  val enclose: T -> Output.output -> Output.output
   val markup: T -> string -> string
 end;
 
