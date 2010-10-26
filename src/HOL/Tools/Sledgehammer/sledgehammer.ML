@@ -425,7 +425,8 @@ fun run_smt_solver ctxt remote ({timeout, ...} : params) minimize_command
                          (apply_on_subgoal subgoal subgoal_count ^
                           command_call smtN (map fst used_facts)) ^
         minimize_line minimize_command (map fst used_facts)
-      | SOME (SMT_Solver.Other_Failure message) => message
+      | SOME (failure as SMT_Solver.Other_Failure _) =>
+        SMT_Solver.string_of_failure ctxt failure
       | SOME _ => string_for_failure (the outcome')
   in
     {outcome = outcome', used_axioms = used_facts,
