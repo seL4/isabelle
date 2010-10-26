@@ -402,7 +402,7 @@ fun add_case_combinator
     val abs_inverse = iso_locale RS @{thm iso.abs_iso};
 
     (* calculate function arguments of case combinator *)
-    val tns = map (fst o dest_TFree) (snd (dest_Type lhsT));
+    val tns = map fst (Term.add_tfreesT lhsT []);
     val resultT = TFree (Name.variant tns "'t", @{sort pcpo});
     fun fTs T = map (fn (_, args) => map snd args -->> T) spec;
     val fns = Datatype_Prop.indexify_names (map (K "f") spec);
@@ -770,7 +770,7 @@ fun add_match_combinators
     (* get a fresh type variable for the result type *)
     val resultT : typ =
       let
-        val ts : string list = map (fst o dest_TFree) (snd (dest_Type lhsT));
+        val ts : string list = map fst (Term.add_tfreesT lhsT []);
         val t : string = Name.variant ts "'t";
       in TFree (t, @{sort pcpo}) end;
 
