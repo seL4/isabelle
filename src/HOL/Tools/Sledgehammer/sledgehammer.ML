@@ -30,7 +30,7 @@ sig
      timeout: Time.time,
      expect: string}
 
-  datatype axiom =
+  datatype fact =
     Untranslated of (string * locality) * thm |
     Translated of term * ((string * locality) * translated_formula) option
 
@@ -39,12 +39,12 @@ sig
      goal: thm,
      subgoal: int,
      subgoal_count: int,
-     axioms: axiom list,
+     facts: fact list,
      only: bool}
 
   type prover_result =
     {outcome: failure option,
-     used_axioms: (string * locality) list,
+     used_facts: (string * locality) list,
      run_time_in_msecs: int option,
      message: string}
 
@@ -194,7 +194,7 @@ type params =
    timeout: Time.time,
    expect: string}
 
-datatype axiom =
+datatype fact =
   Untranslated of (string * locality) * thm |
   Translated of term * ((string * locality) * translated_formula) option
 
@@ -203,13 +203,13 @@ type prover_problem =
    goal: thm,
    subgoal: int,
    subgoal_count: int,
-   axioms: axiom list,
+   facts: fact list,
    only: bool}
 
 type prover_result =
   {outcome: failure option,
    message: string,
-   used_axioms: (string * locality) list,
+   used_facts: (string * locality) list,
    run_time_in_msecs: int option}
 
 type prover = params -> minimize_command -> prover_problem -> prover_result
@@ -232,11 +232,11 @@ fun with_path cleanup after f path =
   |> Exn.release
   |> tap (after path)
 
-fun prover_description ctxt ({blocking, verbose, ...} : params) name num_axioms
-                       i n goal =
+fun prover_description ctxt ({blocking, verbose, ...} : params) name num_facts i
+                       n goal =
   quote name ^
   (if verbose then
-     " with " ^ string_of_int num_axioms ^ " fact" ^ plural_s num_axioms
+     " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts
    else
      "") ^
   " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^ ":" ^
@@ -252,8 +252,8 @@ fun proof_banner auto =
 
 fun dest_Untranslated (Untranslated p) = p
   | dest_Untranslated (Translated _) = raise Fail "dest_Untranslated"
-fun translated_axiom ctxt (Untranslated p) = translate_axiom ctxt p
-  | translated_axiom _ (Translated p) = p
+fun translated_fact ctxt (Untranslated p) = translate_fact ctxt p
+  | translated_fact _ (Translated p) = p
 
 fun int_option_add (SOME m) (SOME n) = SOME (m + n)
   | int_option_add _ _ = NONE
@@ -269,13 +269,13 @@ fun run_atp auto atp_name
         ({debug, verbose, overlord, full_types, explicit_apply,
           max_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
         minimize_command
-        ({state, goal, subgoal, axioms, only, ...} : prover_problem) =
+        ({state, goal, subgoal, facts, only, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
-    val axioms =
-      axioms |> not only ? take (the_default default_max_relevant max_relevant)
-             |> map (translated_axiom ctxt)
+    val facts =
+      facts |> not only ? take (the_default default_max_relevant max_relevant)
+            |> map (translated_fact ctxt)
     val dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                    else Config.get ctxt dest_dir
     val problem_prefix = Config.get ctxt problem_prefix
@@ -334,9 +334,9 @@ fun run_atp auto atp_name
                       proof_delims known_failures output
               in (output, msecs, tstplike_proof, outcome) end
             val readable_names = debug andalso overlord
-            val (atp_problem, pool, conjecture_offset, axiom_names) =
+            val (atp_problem, pool, conjecture_offset, fact_names) =
               prepare_atp_problem ctxt readable_names explicit_forall full_types
-                                  explicit_apply hyp_ts concl_t axioms
+                                  explicit_apply hyp_ts concl_t facts
             val ss = tptp_strings_for_atp_problem use_conjecture_for_hypotheses
                                                   atp_problem
             val _ = File.write_list probfile ss
@@ -358,7 +358,7 @@ fun run_atp auto atp_name
                               (output, int_option_add msecs0 msecs,
                                tstplike_proof, outcome))
                      | result => result)
-          in ((pool, conjecture_shape, axiom_names), result) end
+          in ((pool, conjecture_shape, fact_names), result) end
         else
           error ("Bad executable: " ^ Path.implode command ^ ".")
 
@@ -371,24 +371,23 @@ fun run_atp auto atp_name
         ()
       else
         File.write (Path.explode (Path.implode probfile ^ "_proof")) output
-    val ((pool, conjecture_shape, axiom_names),
+    val ((pool, conjecture_shape, fact_names),
          (output, msecs, tstplike_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
-    val (conjecture_shape, axiom_names) =
-      repair_conjecture_shape_and_axiom_names output conjecture_shape
-                                              axiom_names
+    val (conjecture_shape, fact_names) =
+      repair_conjecture_shape_and_fact_names output conjecture_shape fact_names
     val important_message =
       if random () <= important_message_keep_factor then
         extract_important_message output
       else
         ""
-    val (message, used_axioms) =
+    val (message, used_facts) =
       case outcome of
         NONE =>
         proof_text isar_proof
             (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
             (proof_banner auto, full_types, minimize_command, tstplike_proof,
-             axiom_names, goal, subgoal)
+             fact_names, goal, subgoal)
         |>> (fn message =>
                 message ^ (if verbose then
                              "\nATP real CPU time: " ^
@@ -402,7 +401,7 @@ fun run_atp auto atp_name
                    ""))
       | SOME failure => (string_for_failure failure, [])
   in
-    {outcome = outcome, message = message, used_axioms = used_axioms,
+    {outcome = outcome, message = message, used_facts = used_facts,
      run_time_in_msecs = msecs}
   end
 
@@ -411,12 +410,12 @@ fun failure_from_smt_failure SMT_Solver.Time_Out = TimedOut
   | failure_from_smt_failure (SMT_Solver.Other_Failure _) = UnknownError
 
 fun run_smt_solver remote ({timeout, ...} : params) minimize_command
-                   ({state, subgoal, subgoal_count, axioms, ...}
+                   ({state, subgoal, subgoal_count, facts, ...}
                     : prover_problem) =
   let
     val {outcome, used_facts, run_time_in_msecs} =
       SMT_Solver.smt_filter remote timeout state
-                            (map_filter (try dest_Untranslated) axioms) subgoal
+                            (map_filter (try dest_Untranslated) facts) subgoal
     val message =
       case outcome of
         NONE =>
@@ -426,11 +425,11 @@ fun run_smt_solver remote ({timeout, ...} : params) minimize_command
         minimize_line minimize_command (map fst used_facts)
       | SOME SMT_Solver.Time_Out => "Timed out."
       | SOME (SMT_Solver.Counterexample _) => "The SMT problem is unprovable."
-      | SOME (failure as SMT_Solver.Other_Failure message) => message
+      | SOME (SMT_Solver.Other_Failure message) => message
     val outcome = outcome |> Option.map failure_from_smt_failure (* FIXME *)
   in
-    {outcome = outcome, used_axioms = used_facts,
-     run_time_in_msecs = SOME run_time_in_msecs, message = message}
+    {outcome = outcome, used_facts = used_facts,
+     run_time_in_msecs = run_time_in_msecs, message = message}
   end
 
 fun get_prover thy auto name =
@@ -439,7 +438,7 @@ fun get_prover thy auto name =
 
 fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
                auto minimize_command
-               (problem as {state, goal, subgoal, subgoal_count, axioms, ...})
+               (problem as {state, goal, subgoal, subgoal_count, facts, ...})
                name =
   let
     val thy = Proof.theory_of state
@@ -448,9 +447,9 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
     val death_time = Time.+ (birth_time, timeout)
     val max_relevant =
       the_default (default_max_relevant_for_prover thy name) max_relevant
-    val num_axioms = Int.min (length axioms, max_relevant)
+    val num_facts = Int.min (length facts, max_relevant)
     val desc =
-      prover_description ctxt params name num_axioms subgoal subgoal_count goal
+      prover_description ctxt params name num_facts subgoal subgoal_count goal
     fun go () =
       let
         fun really_go () =
@@ -522,14 +521,14 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
                 0 |> fold (Integer.max o default_max_relevant_for_prover thy)
                           provers
                   |> auto ? (fn n => n div auto_max_relevant_divisor)
-            val axioms =
+            val facts =
               relevant_facts ctxt full_types relevance_thresholds
                              max_max_relevant irrelevant_consts relevance_fudge
                              relevance_override chained_ths hyp_ts concl_t
               |> map maybe_translate
             val problem =
               {state = state, goal = goal, subgoal = i, subgoal_count = n,
-               axioms = axioms, only = only}
+               facts = facts, only = only}
             val run_prover = run_prover params auto minimize_command
           in
             if auto then
@@ -543,7 +542,7 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
           end
       val run_atps =
         run_provers full_types atp_irrelevant_consts atp_relevance_fudge
-                    (Translated o translate_axiom ctxt) atps
+                    (Translated o translate_fact ctxt) atps
       val run_smts =
         run_provers true smt_irrelevant_consts smt_relevance_fudge Untranslated
                     smts
