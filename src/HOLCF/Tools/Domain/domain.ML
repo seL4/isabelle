@@ -13,7 +13,7 @@ sig
       -> theory -> theory
 
   val add_domain:
-      ((string * string option) list * binding * mixfix *
+      ((string * sort) list * binding * mixfix *
        (binding * (bool * binding option * typ) list * mixfix) list) list
       -> theory -> theory
 
@@ -23,7 +23,7 @@ sig
       -> theory -> theory
 
   val add_new_domain:
-      ((string * string option) list * binding * mixfix *
+      ((string * sort) list * binding * mixfix *
        (binding * (bool * binding option * typ) list * mixfix) list) list
       -> theory -> theory
 end;
@@ -43,21 +43,20 @@ type info =
      Domain_Take_Proofs.iso_info list * Domain_Take_Proofs.take_induct_info;
 
 fun gen_add_domain
-    (prep_typ : theory -> (string * sort) list -> 'a -> typ)
+    (prep_sort : theory -> 'a -> sort)
+    (prep_typ : theory -> (string * sort) list -> 'b -> typ)
     (add_isos : (binding * mixfix * (typ * typ)) list -> theory -> info * theory)
     (arg_sort : bool -> sort)
-    (raw_specs : ((string * string option) list * binding * mixfix *
-               (binding * (bool * binding option * 'a) list * mixfix) list) list)
+    (raw_specs : ((string * 'a) list * binding * mixfix *
+               (binding * (bool * binding option * 'b) list * mixfix) list) list)
     (thy : theory) =
   let
     val dtnvs : (binding * typ list * mixfix) list =
       let
-        fun readS (SOME s) = Syntax.read_sort_global thy s
-          | readS NONE = Sign.defaultS thy;
-        fun readTFree (a, s) = TFree (a, readS s);
+        fun prep_tvar (a, s) = TFree (a, prep_sort thy s);
       in
         map (fn (vs, dbind, mx, _) =>
-                (dbind, map readTFree vs, mx)) raw_specs
+                (dbind, map prep_tvar vs, mx)) raw_specs
       end;
 
     fun thy_type (dbind, tvars, mx) = (dbind, length tvars, mx);
@@ -73,7 +72,7 @@ fun gen_add_domain
     val dbinds : binding list =
         map (fn (_,dbind,_,_) => dbind) raw_specs;
     val raw_rhss :
-        (binding * (bool * binding option * 'a) list * mixfix) list list =
+        (binding * (bool * binding option * 'b) list * mixfix) list list =
         map (fn (_,_,_,cons) => cons) raw_specs;
     val dtnvs' : (string * typ list) list =
         map (fn (dbind, vs, mx) => (Sign.full_name thy dbind, vs)) dtnvs;
@@ -185,6 +184,9 @@ fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
 fun pcpo_arg lazy = if lazy then @{sort cpo} else @{sort pcpo};
 fun rep_arg lazy = @{sort bifinite};
 
+fun read_sort thy (SOME s) = Syntax.read_sort_global thy s
+  | read_sort thy NONE = Sign.defaultS thy;
+
 (* Adapted from src/HOL/Tools/Datatype/datatype_data.ML *)
 fun read_typ thy sorts str =
   let
@@ -204,16 +206,16 @@ fun cert_typ sign sorts raw_T =
   in T end;
 
 val add_domain =
-    gen_add_domain cert_typ Domain_Axioms.add_axioms pcpo_arg;
+    gen_add_domain (K I) cert_typ Domain_Axioms.add_axioms pcpo_arg;
 
 val add_new_domain =
-    gen_add_domain cert_typ define_isos rep_arg;
+    gen_add_domain (K I) cert_typ define_isos rep_arg;
 
 val add_domain_cmd =
-    gen_add_domain read_typ Domain_Axioms.add_axioms pcpo_arg;
+    gen_add_domain read_sort read_typ Domain_Axioms.add_axioms pcpo_arg;
 
 val add_new_domain_cmd =
-    gen_add_domain read_typ define_isos rep_arg;
+    gen_add_domain read_sort read_typ define_isos rep_arg;
 
 
 (** outer syntax **)
