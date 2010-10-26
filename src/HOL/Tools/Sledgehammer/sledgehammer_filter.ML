@@ -372,25 +372,6 @@ fun axiom_weight fudge loc const_tab relevant_consts axiom_consts =
       val res = rel_weight / (rel_weight + irrel_weight)
     in if Real.isFinite res then res else 0.0 end
 
-(* FIXME: experiment
-fun debug_axiom_weight fudge loc const_tab relevant_consts axiom_consts =
-  case axiom_consts |> List.partition (pconst_hyper_mem I relevant_consts)
-                    ||> filter_out (pconst_hyper_mem swap relevant_consts) of
-    ([], _) => 0.0
-  | (rel, irrel) =>
-    let
-      val irrel = irrel |> filter_out (pconst_mem swap rel)
-      val rels_weight =
-        0.0 |> fold (curry (op +) o rel_pconst_weight const_tab) rel
-      val irrels_weight =
-        ~ (locality_bonus fudge loc)
-        |> fold (curry (op +) o irrel_pconst_weight fudge const_tab) irrel
-val _ = tracing (PolyML.makestring ("REL: ", map (`(rel_pconst_weight const_tab)) rel))
-val _ = tracing (PolyML.makestring ("IRREL: ", map (`(irrel_pconst_weight fudge const_tab)) irrel))
-      val res = rels_weight / (rels_weight + irrels_weight)
-    in if Real.isFinite res then res else 0.0 end
-*)
-
 fun pconsts_in_axiom thy irrelevant_consts t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
               (pconsts_in_terms thy irrelevant_consts true (SOME true) [t]) []
@@ -446,24 +427,17 @@ fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
               [Chained, Assum, Local]
     val add_ths = Attrib.eval_thms ctxt add
     val del_ths = Attrib.eval_thms ctxt del
+    val axioms = axioms |> filter_out (member Thm.eq_thm del_ths o snd)
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
       let
-        fun game_over rejects =
-          (* Add "add:" facts. *)
-          if null add_ths then
-            []
-          else
-            map_filter (fn ((p as (_, th), _), _) =>
-                           if member Thm.eq_thm add_ths th then SOME p
-                           else NONE) rejects
-        fun relevant [] rejects [] =
+        fun relevant [] _ [] =
             (* Nothing has been added this iteration. *)
             if j = 0 andalso threshold >= ridiculous_threshold then
               (* First iteration? Try again. *)
               iter 0 max_relevant (threshold / threshold_divisor) rel_const_tab
                    hopeless hopeful
             else
-              game_over (rejects @ hopeless)
+              []
           | relevant candidates rejects [] =
             let
               val (accepts, more_rejects) =
@@ -496,7 +470,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
                           |> map string_for_hyper_pconst));
               map (fst o fst) accepts @
               (if remaining_max = 0 then
-                 game_over (hopeful_rejects @ map (apsnd SOME) hopeless_rejects)
+                 []
                else
                  iter (j + 1) remaining_max threshold rel_const_tab'
                       hopeless_rejects hopeful_rejects)
@@ -510,13 +484,6 @@ fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
                   SOME w => w
                 | NONE => axiom_weight fudge loc const_tab rel_const_tab
                                        axiom_consts
-(* FIXME: experiment
-val name = fst (fst (fst ax)) ()
-val _ = if String.isSubstring "positive_minus" name orelse String.isSubstring "not_exp_le_zero" name then
-tracing ("*** " ^ name ^ PolyML.makestring (debug_axiom_weight fudge loc const_tab rel_const_tab axiom_consts))
-else
-()
-*)
             in
               if weight >= threshold then
                 relevant ((ax, weight) :: candidates) rejects hopeful
@@ -532,10 +499,15 @@ else
                       |> map string_for_hyper_pconst));
           relevant [] [] hopeful
         end
+    fun add_add_ths accepts =
+      (axioms |> filter ((member Thm.eq_thm add_ths
+                          andf (not o member (Thm.eq_thm o apsnd snd) accepts))
+                         o snd))
+      @ accepts
   in
-    axioms |> filter_out (member Thm.eq_thm del_ths o snd)
-           |> map_filter (pair_consts_axiom thy irrelevant_consts fudge)
+    axioms |> map_filter (pair_consts_axiom thy irrelevant_consts fudge)
            |> iter 0 max_relevant threshold0 goal_const_tab []
+           |> not (null add_ths) ? add_add_ths
            |> tap (fn res => trace_msg (fn () =>
                                 "Total relevant: " ^ Int.toString (length res)))
   end
