@@ -316,10 +316,11 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 
 fun get_prover ctxt args =
   let
+    val thy = ProofContext.theory_of ctxt
     fun default_prover_name () =
       hd (#provers (Sledgehammer_Isar.default_params ctxt []))
       handle Empty => error "No ATP available."
-    fun get_prover name = (name, Sledgehammer.get_prover ctxt false name)
+    fun get_prover name = (name, Sledgehammer.get_prover thy false name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
