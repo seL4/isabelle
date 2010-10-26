@@ -112,14 +112,14 @@ text {* Since ML is the primary medium to express the meaning of the
   \medskip
   \begin{tabular}{lll}
   variant & example & ML categories \\\hline
-  lower-case & @{verbatim foo_bar} & values, types, record fields \\
-  capitalized & @{verbatim Foo_Bar} & datatype constructors, structures, functors \\
-  upper-case & @{verbatim FOO_BAR} & special values, exception constructors, signatures \\
+  lower-case & @{ML_text foo_bar} & values, types, record fields \\
+  capitalized & @{ML_text Foo_Bar} & datatype constructors, structures, functors \\
+  upper-case & @{ML_text FOO_BAR} & special values, exception constructors, signatures \\
   \end{tabular}
   \medskip
 
   For historical reasons, many capitalized names omit underscores,
-  e.g.\ old-style @{verbatim FooBar} instead of @{verbatim Foo_Bar}.
+  e.g.\ old-style @{ML_text FooBar} instead of @{ML_text Foo_Bar}.
   Genuine mixed-case names are \emph{not} used, bacause clear division
   of words is essential for readability.\footnote{Camel-case was
   invented to workaround the lack of underscore in some early
@@ -128,12 +128,12 @@ text {* Since ML is the primary medium to express the meaning of the
 
   A single (capital) character does not count as ``word'' in this
   respect: some Isabelle/ML names are suffixed by extra markers like
-  this: @{verbatim foo_barT}.
+  this: @{ML_text foo_barT}.
 
-  Name variants are produced by adding 1--3 primes, e.g.\ @{verbatim
-  foo'}, @{verbatim foo''}, or @{verbatim foo'''}, but not @{verbatim
+  Name variants are produced by adding 1--3 primes, e.g.\ @{ML_text
+  foo'}, @{ML_text foo''}, or @{ML_text foo'''}, but not @{ML_text
   foo''''} or more.  Decimal digits scale better to larger numbers,
-  e.g.\ @{verbatim foo0}, @{verbatim foo1}, @{verbatim foo42}.
+  e.g.\ @{ML_text foo0}, @{ML_text foo1}, @{ML_text foo42}.
 
   \paragraph{Scopes.}  Apart from very basic library modules, ML
   structures are not ``opened'', but names are referenced with
@@ -147,7 +147,7 @@ text {* Since ML is the primary medium to express the meaning of the
   Local names of function abstraction or case/let bindings are
   typically shorter, sometimes using only rudiments of ``words'',
   while still avoiding cryptic shorthands.  An auxiliary function
-  called @{verbatim helper}, @{verbatim aux}, or @{verbatim f} is
+  called @{ML_text helper}, @{ML_text aux}, or @{ML_text f} is
   considered bad style.
 
   Example:
@@ -187,18 +187,18 @@ text {* Since ML is the primary medium to express the meaning of the
 
   \begin{itemize}
 
-  \item A function that maps @{verbatim foo} to @{verbatim bar} is
-  called @{verbatim foo_to_bar} or @{verbatim bar_of_foo} (never
-  @{verbatim foo2bar}, @{verbatim bar_from_foo}, @{verbatim
-  bar_for_foo}, or @{verbatim bar4foo}).
+  \item A function that maps @{ML_text foo} to @{ML_text bar} is
+  called @{ML_text foo_to_bar} or @{ML_text bar_of_foo} (never
+  @{ML_text foo2bar}, @{ML_text bar_from_foo}, @{ML_text
+  bar_for_foo}, or @{ML_text bar4foo}).
 
-  \item The name component @{verbatim legacy} means that the operation
+  \item The name component @{ML_text legacy} means that the operation
   is about to be discontinued soon.
 
-  \item The name component @{verbatim old} means that this is historic
+  \item The name component @{ML_text old} means that this is historic
   material that might disappear at some later stage.
 
-  \item The name component @{verbatim global} means that this works
+  \item The name component @{ML_text global} means that this works
   with the background theory instead of the regular local context
   (\secref{sec:context}), sometimes for historical reasons, sometimes
   due a genuine lack of locality of the concept involved, sometimes as
@@ -213,23 +213,23 @@ text {* Since ML is the primary medium to express the meaning of the
 
   \begin{itemize}
 
-  \item theories are called @{verbatim thy}, rarely @{verbatim theory}
-  (never @{verbatim thry})
+  \item theories are called @{ML_text thy}, rarely @{ML_text theory}
+  (never @{ML_text thry})
 
-  \item proof contexts are called @{verbatim ctxt}, rarely @{verbatim
-  context} (never @{verbatim ctx})
+  \item proof contexts are called @{ML_text ctxt}, rarely @{ML_text
+  context} (never @{ML_text ctx})
 
-  \item generic contexts are called @{verbatim context}, rarely
-  @{verbatim ctxt}
+  \item generic contexts are called @{ML_text context}, rarely
+  @{ML_text ctxt}
 
-  \item local theories are called @{verbatim lthy}, except for local
+  \item local theories are called @{ML_text lthy}, except for local
   theories that are treated as proof context (which is a semantic
   super-type)
 
   \end{itemize}
 
   Variations with primed or decimal numbers are always possible, as
-  well as sematic prefixes like @{verbatim foo_thy} or @{verbatim
+  well as sematic prefixes like @{ML_text foo_thy} or @{ML_text
   bar_ctxt}, but the base conventions above need to be preserved.
   This allows to visualize the their data flow via plain regular
   expressions in the editor.
@@ -239,28 +239,28 @@ text {* Since ML is the primary medium to express the meaning of the
 
   \begin{itemize}
 
-  \item sorts are called @{verbatim S}
+  \item sorts are called @{ML_text S}
 
-  \item types are called @{verbatim T}, @{verbatim U}, or @{verbatim
-  ty} (never @{verbatim t})
+  \item types are called @{ML_text T}, @{ML_text U}, or @{ML_text
+  ty} (never @{ML_text t})
 
-  \item terms are called @{verbatim t}, @{verbatim u}, or @{verbatim
-  tm} (never @{verbatim trm})
+  \item terms are called @{ML_text t}, @{ML_text u}, or @{ML_text
+  tm} (never @{ML_text trm})
 
-  \item certified types are called @{verbatim cT}, rarely @{verbatim
+  \item certified types are called @{ML_text cT}, rarely @{ML_text
   T}, with variants as for types
 
-  \item certified terms are called @{verbatim ct}, rarely @{verbatim
+  \item certified terms are called @{ML_text ct}, rarely @{ML_text
   t}, with variants as for terms
 
-  \item theorems are called @{verbatim th}, or @{verbatim thm}
+  \item theorems are called @{ML_text th}, or @{ML_text thm}
 
   \end{itemize}
 
   Proper semantic names override these conventions completely.  For
   example, the left-hand side of an equation (as a term) can be called
-  @{verbatim lhs} (not @{verbatim lhs_tm}).  Or a term that is known
-  to be a variable can be called @{verbatim v} or @{verbatim x}.
+  @{ML_text lhs} (not @{ML_text lhs_tm}).  Or a term that is known
+  to be a variable can be called @{ML_text v} or @{ML_text x}.
 
   \end{itemize}
 *}
@@ -309,17 +309,17 @@ text {* The general Isabelle/ML source layout imitates regular
     c);
   \end{verbatim}
 
-  Some special infixes (e.g.\ @{verbatim "|>"}) work better at the
+  Some special infixes (e.g.\ @{ML_text "|>"}) work better at the
   start of the line, but punctuation is always at the end.
 
   Function application follows the tradition of @{text "\<lambda>"}-calculus,
-  not informal mathematics.  For example: @{verbatim "f a b"} for a
-  curried function, or @{verbatim "g (a, b)"} for a tupled function.
-  Note that the space between @{verbatim g} and the pair @{verbatim
+  not informal mathematics.  For example: @{ML_text "f a b"} for a
+  curried function, or @{ML_text "g (a, b)"} for a tupled function.
+  Note that the space between @{ML_text g} and the pair @{ML_text
   "(a, b)"} follows the important principle of
-  \emph{compositionality}: the layout of @{verbatim "g p"} does not
-  change when @{verbatim "p"} is refined to the concrete pair
-  @{verbatim "(a, b)"}.
+  \emph{compositionality}: the layout of @{ML_text "g p"} does not
+  change when @{ML_text "p"} is refined to the concrete pair
+  @{ML_text "(a, b)"}.
 
   \paragraph{Indentation} uses plain spaces, never hard
   tabulators.\footnote{Tabulators were invented to move the carriage
@@ -366,13 +366,13 @@ text {* The general Isabelle/ML source layout imitates regular
   avoided.
 
   \paragraph{Complex expressions} that consist of multi-clausal
-  function definitions, @{verbatim handle}, @{verbatim case},
-  @{verbatim let} (and combinations) require special attention.  The
+  function definitions, @{ML_text handle}, @{ML_text case},
+  @{ML_text let} (and combinations) require special attention.  The
   syntax of Standard ML is quite ambitious and admits a lot of
   variance that can distort the meaning of the text.
 
-  Clauses of @{verbatim fun}, @{verbatim fn}, @{verbatim handle},
-  @{verbatim case} get extra indentation to indicate the nesting
+  Clauses of @{ML_text fun}, @{ML_text fn}, @{ML_text handle},
+  @{ML_text case} get extra indentation to indicate the nesting
   clearly.  Example:
 
   \begin{verbatim}
@@ -392,7 +392,7 @@ text {* The general Isabelle/ML source layout imitates regular
     expr2
   \end{verbatim}
 
-  Body expressions consisting of @{verbatim case} or @{verbatim let}
+  Body expressions consisting of @{ML_text case} or @{ML_text let}
   require care to maintain compositionality, to prevent loss of
   logical indentation where it is especially important to see the
   structure of the text.  Example:
@@ -425,7 +425,7 @@ text {* The general Isabelle/ML source layout imitates regular
     end
   \end{verbatim}
 
-  Extra parentheses around @{verbatim case} expressions are optional,
+  Extra parentheses around @{ML_text case} expressions are optional,
   but help to analyse the nesting based on character matching in the
   editor.
 
@@ -434,7 +434,7 @@ text {* The general Isabelle/ML source layout imitates regular
 
   \begin{enumerate}
 
-  \item @{verbatim "if"} expressions are iterated as if there would be
+  \item @{ML_text "if"} expressions are iterated as if there would be
   a multi-branch conditional in SML, e.g.
 
   \begin{verbatim}
@@ -445,7 +445,7 @@ text {* The general Isabelle/ML source layout imitates regular
   else e3
   \end{verbatim}
 
-  \item @{verbatim fn} abstractions are often layed-out as if they
+  \item @{ML_text fn} abstractions are often layed-out as if they
   would lack any structure by themselves.  This traditional form is
   motivated by the possibility to shift function arguments back and
   forth wrt.\ additional combinators.  Example:
@@ -457,13 +457,13 @@ text {* The general Isabelle/ML source layout imitates regular
     expr)
   \end{verbatim}
 
-  Here the visual appearance is that of three arguments @{verbatim x},
-  @{verbatim y}, @{verbatim z}.
+  Here the visual appearance is that of three arguments @{ML_text x},
+  @{ML_text y}, @{ML_text z}.
 
   \end{enumerate}
 
   Such weakly structured layout should be use with great care.  Here
-  is a counter-example involving @{verbatim let} expressions:
+  is a counter-example involving @{ML_text let} expressions:
 
   \begin{verbatim}
   (* WRONG *)
@@ -945,7 +945,7 @@ text {* The slow part of @{ML slow_content} is the @{ML implode} of
   again.
 
   The incremental @{ML add_content} avoids this by operating on a
-  buffer that is passed through in a linear fashion.  Using @{verbatim
+  buffer that is passed through in a linear fashion.  Using @{ML_text
   "#>"} and contraction over the actual buffer argument saves some
   additional boiler-plate.  Of course, the two @{ML "Buffer.add"}
   invocations with concatenated strings could have been split into
@@ -1106,7 +1106,7 @@ text {* The Standard ML semantics of strict functional evaluation
   Traditionally, the (short) exception message would include the name
   of an ML function, although this is no longer necessary, because the
   ML runtime system prints a detailed source position of the
-  corresponding @{verbatim raise} keyword.
+  corresponding @{ML_text raise} keyword.
 
   \medskip User modules can always introduce their own custom
   exceptions locally, e.g.\ to organize internal failures robustly
@@ -1163,8 +1163,8 @@ text %mlref {*
   \item @{ML try}~@{text "f x"} makes the partiality of evaluating
   @{text "f x"} explicit via the option datatype.  Interrupts are
   \emph{not} handled here, i.e.\ this form serves as safe replacement
-  for the \emph{unsafe} version @{verbatim "(SOME"}~@{text "f
-  x"}~@{verbatim "handle _ => NONE)"} that is occasionally seen in
+  for the \emph{unsafe} version @{ML_text "(SOME"}~@{text "f
+  x"}~@{ML_text "handle _ => NONE)"} that is occasionally seen in
   books about SML.
 
   \item @{ML can} is similar to @{ML try} with more abstract result.
@@ -1183,8 +1183,8 @@ text %mlref {*
   while preserving its implicit position information (if possible,
   depending on the ML platform).
 
-  \item @{ML exception_trace}~@{verbatim "(fn () =>"}~@{text
-  "e"}@{verbatim ")"} evaluates expression @{text "e"} while printing
+  \item @{ML exception_trace}~@{ML_text "(fn () =>"}~@{text
+  "e"}@{ML_text ")"} evaluates expression @{text "e"} while printing
   a full trace of its stack of nested exceptions (if possible,
   depending on the ML platform).\footnote{In versions of Poly/ML the
   trace will appear on raw stdout of the Isabelle process.}

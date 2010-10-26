@@ -92,7 +92,7 @@ text %mlref {*
   \item @{ML "Toplevel.timing := true"} makes the toplevel print timing
   information for each Isar command being executed.
 
-  \item @{ML Toplevel.profiling}~@{verbatim ":="}~@{text "n"} controls
+  \item @{ML Toplevel.profiling}~@{ML_text ":="}~@{text "n"} controls
   low-level profiling of the underlying ML runtime system.  For
   Poly/ML, @{text "n = 1"} means time and @{text "n = 2"} space
   profiling.
@@ -260,7 +260,7 @@ text %mlref {*
   @{index_ML Thy_Info.get_theory: "string -> theory"} \\
   @{index_ML Thy_Info.remove_thy: "string -> unit"} \\[1ex]
   @{index_ML Thy_Info.register_thy: "theory -> unit"} \\[1ex]
-  @{verbatim "datatype action = Update | Remove"} \\
+  @{ML_text "datatype action = Update | Remove"} \\
   @{index_ML Thy_Info.add_hook: "(Thy_Info.action -> string -> unit) -> unit"} \\
   \end{mldecls}
 
