@@ -76,6 +76,13 @@ and type constructors.
 
 *** HOL ***
 
+* New command 'partial_function' provides basic support for recursive
+function definitons over complete partial orders. Concrete instances
+are provided for i) the option type, ii) tail recursion on arbitrary
+types, and iii) the heap monad of Imperative_HOL. See
+HOL/ex/Fundefs.thy and HOL/Imperative_HOL/ex/Linked_Lists.thy for
+examples.
+
 * Predicates `distinct` and `sorted` now defined inductively, with nice
 induction rules.  INCOMPATIBILITY: former distinct.simps and sorted.simps
 now named distinct_simps and sorted_simps.
