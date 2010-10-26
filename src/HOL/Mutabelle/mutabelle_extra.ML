@@ -109,7 +109,7 @@ fun quickcheck_mtd quickcheck_generator =
 fun invoke_refute thy t =
   let
     val res = MyRefute.refute_term thy [] t
-    val _ = priority ("Refute: " ^ res)
+    val _ = Output.urgent_message ("Refute: " ^ res)
   in
     case res of
       "genuine" => GenuineCex
@@ -137,7 +137,7 @@ fun invoke_nitpick thy t =
   in
     let
       val (res, _) = Nitpick.pick_nits_in_term state (Nitpick_Isar.default_params thy []) false [] t
-      val _ = priority ("Nitpick: " ^ res)
+      val _ = Output.urgent_message ("Nitpick: " ^ res)
     in
       case res of
         "genuine" => GenuineCex
@@ -182,7 +182,7 @@ fun invoke_nitpick thy t =
            (error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^
                    "."))
          | Exn.Interrupt => raise Exn.Interrupt
-         | _ => (priority ("Unknown error in Nitpick"); Error)
+         | _ => (Output.urgent_message ("Unknown error in Nitpick"); Error)
   end
 val nitpick_mtd = ("nitpick", invoke_nitpick)
 *)
@@ -281,13 +281,13 @@ fun cpu_time description f =
 
 fun safe_invoke_mtd thy (mtd_name, invoke_mtd) t =
   let
-    val _ = priority ("Invoking " ^ mtd_name)
+    val _ = Output.urgent_message ("Invoking " ^ mtd_name)
     val ((res, (timing, reports)), time) = cpu_time "total time"
       (fn () => case try (invoke_mtd thy) t of
           SOME (res, (timing, reports)) => (res, (timing, reports))
-        | NONE => (priority ("**** PROBLEMS WITH " ^ Syntax.string_of_term_global thy t);
+        | NONE => (Output.urgent_message ("**** PROBLEMS WITH " ^ Syntax.string_of_term_global thy t);
            (Error , ([], NONE))))
-    val _ = priority (" Done")
+    val _ = Output.urgent_message (" Done")
   in (res, (time :: timing, reports)) end
 
 (* theory -> term list -> mtd -> subentry *)
@@ -316,7 +316,7 @@ fun create_detailed_entry thy thm exec mutants mtds =
 fun mutate_theorem create_entry thy mtds thm =
   let
     val exec = is_executable_thm thy thm
-    val _ = priority (if exec then "EXEC" else "NOEXEC")
+    val _ = Output.urgent_message (if exec then "EXEC" else "NOEXEC")
     val mutants =
           (if num_mutations = 0 then
              [Thm.prop_of thm]
@@ -327,7 +327,7 @@ fun mutate_theorem create_entry thy mtds thm =
     val mutants =
       if exec then
         let
-          val _ = priority ("BEFORE PARTITION OF " ^
+          val _ = Output.urgent_message ("BEFORE PARTITION OF " ^
                             Int.toString (length mutants) ^ " MUTANTS")
           val (execs, noexecs) = List.partition (is_executable_term thy) (take_random (20 * max_mutants) mutants)
           val _ = tracing ("AFTER PARTITION (" ^ Int.toString (length execs) ^
@@ -342,7 +342,7 @@ fun mutate_theorem create_entry thy mtds thm =
           |> map Mutabelle.freeze |> map freezeT
 (*          |> filter (not o is_forbidden_mutant) *)
           |> List.mapPartial (try (Sign.cert_term thy))
-    val _ = map (fn t => priority ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants
+    val _ = map (fn t => Output.urgent_message ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants
   in
     create_entry thy thm exec mutants mtds
   end
@@ -421,7 +421,7 @@ fun write_report file_name =
 (* theory -> mtd list -> thm list -> string -> unit *)
 fun mutate_theorems_and_write_report thy mtds thms file_name =
   let
-    val _ = priority "Starting Mutabelle..."
+    val _ = Output.urgent_message "Starting Mutabelle..."
     val path = Path.explode file_name
     (* for normal report: *)
     (*val (gen_create_entry, gen_string_for_entry) = (create_entry, string_for_entry)*)

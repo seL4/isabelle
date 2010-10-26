@@ -2054,7 +2054,7 @@ fun uncached_is_well_founded_inductive_pred
                     map (wf_constraint_for_triple rel) triples
                     |> foldr1 s_conj |> HOLogic.mk_Trueprop
          val _ = if debug then
-                   priority ("Wellfoundedness goal: " ^
+                   Output.urgent_message ("Wellfoundedness goal: " ^
                              Syntax.string_of_term ctxt prop ^ ".")
                  else
                    ()
