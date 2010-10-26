@@ -594,6 +594,75 @@ end
 *}
 
 
+section {* Partial function definition setup *}
+
+definition "Heap_ord = img_ord execute (fun_ord option_ord)"
+definition "Heap_lub = img_lub execute Heap (fun_lub (flat_lub None))"
+
+interpretation heap!:
+  partial_function_definitions Heap_ord Heap_lub
+unfolding Heap_ord_def Heap_lub_def
+apply (rule partial_function_image)
+apply (rule partial_function_lift)
+apply (rule flat_interpretation)
+by (auto intro: Heap_eqI)
+
+abbreviation "mono_Heap \<equiv> monotone (fun_ord Heap_ord) Heap_ord"
+
+lemma Heap_ordI:
+  assumes "\<And>h. execute x h = None \<or> execute x h = execute y h"
+  shows "Heap_ord x y"
+using assms unfolding Heap_ord_def img_ord_def fun_ord_def flat_ord_def
+by blast
+
+lemma Heap_ordE:
+  assumes "Heap_ord x y"
+  obtains "execute x h = None" | "execute x h = execute y h"
+using assms unfolding Heap_ord_def img_ord_def fun_ord_def flat_ord_def
+by atomize_elim blast
+
+
+lemma bind_mono[partial_function_mono]:
+assumes mf: "mono_Heap B" and mg: "\<And>y. mono_Heap (\<lambda>f. C y f)"
+shows "mono_Heap (\<lambda>f. B f \<guillemotright>= (\<lambda>y. C y f))"
+proof (rule monotoneI)
+  fix f g :: "'a \<Rightarrow> 'b Heap" assume fg: "fun_ord Heap_ord f g"
+  from mf
+  have 1: "Heap_ord (B f) (B g)" by (rule monotoneD) (rule fg)
+  from mg
+  have 2: "\<And>y'. Heap_ord (C y' f) (C y' g)" by (rule monotoneD) (rule fg)
+
+  have "Heap_ord (B f \<guillemotright>= (\<lambda>y. C y f)) (B g \<guillemotright>= (\<lambda>y. C y f))"
+    (is "Heap_ord ?L ?R")
+  proof (rule Heap_ordI)
+    fix h
+    from 1 show "execute ?L h = None \<or> execute ?L h = execute ?R h"
+      by (rule Heap_ordE[where h = h]) (auto simp: execute_bind_case)
+  qed
+  also
+  have "Heap_ord (B g \<guillemotright>= (\<lambda>y'. C y' f)) (B g \<guillemotright>= (\<lambda>y'. C y' g))"
+    (is "Heap_ord ?L ?R")
+  proof (rule Heap_ordI)
+    fix h
+    show "execute ?L h = None \<or> execute ?L h = execute ?R h"
+    proof (cases "execute (B g) h")
+      case None
+      then have "execute ?L h = None" by (auto simp: execute_bind_case)
+      thus ?thesis ..
+    next
+      case Some
+      then obtain r h' where "execute (B g) h = Some (r, h')"
+        by (metis surjective_pairing)
+      then have "execute ?L h = execute (C r f) h'"
+        "execute ?R h = execute (C r g) h'"
+        by (auto simp: execute_bind_case)
+      with 2[of r] show ?thesis by (auto elim: Heap_ordE)
+    qed
+  qed
+  finally (heap.leq_trans)
+  show "Heap_ord (B f \<guillemotright>= (\<lambda>y. C y f)) (B g \<guillemotright>= (\<lambda>y'. C y' g))" .
+qed
+
 hide_const (open) Heap heap guard raise' fold_map
 
 end
