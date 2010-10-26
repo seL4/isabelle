@@ -129,9 +129,15 @@ fun prep_class_elems prep_decl thy sups raw_elems =
                   ^ Syntax.string_of_sort_global thy a_sort)
             | _ => error "Multiple type variables in class specification";
       in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
-    val after_infer_fixate = (map o map_atyps)
-      (fn T as TFree _ => T | T as TVar (vi, sort) =>
-        if Type_Infer.is_param vi then Type_Infer.param 0 (Name.aT, sort) else T);
+    fun after_infer_fixate Ts =
+      let
+        val sort' = (fold o fold_atyps) (fn T as TFree _ => I | T as TVar (vi, sort) =>
+          if Type_Infer.is_param vi then inter_sort sort else I) Ts [];
+      in
+        (map o map_atyps)
+          (fn T as TFree _ => T | T as TVar (vi, _) =>
+            if Type_Infer.is_param vi then Type_Infer.param 0 (Name.aT, sort') else T) Ts
+      end;
     fun add_typ_check level name f = Context.proof_map
       (Syntax.add_typ_check level name (fn Ts => fn ctxt =>
         let val Ts' = f Ts in if eq_list (op =) (Ts, Ts') then NONE else SOME (Ts', ctxt) end));
