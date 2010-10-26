@@ -68,7 +68,7 @@ sig
   val combtyp_of : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
   val combterm_from_term :
-    theory -> int -> (string * typ) list -> term -> combterm * typ list
+    theory -> (string * typ) list -> term -> combterm * typ list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
@@ -215,10 +215,9 @@ fun num_type_args thy s =
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 fun new_skolem_var_from_const s =
-  let
-    val ss = s |> space_explode Long_Name.separator
-    val n = length ss
-  in (nth ss (n - 2), nth ss (n - 3) |> Int.fromString |> the) end
+  let val ss = s |> space_explode Long_Name.separator in
+    (nth ss (length ss - 2), 0)
+  end
 
 
 (**** Definitions and functions for FOL clauses for TPTP format output ****)
@@ -396,17 +395,18 @@ fun simple_combtype_of (Type (a, Ts)) =
   | simple_combtype_of (TVar (x, _)) =
     CombTVar (make_schematic_type_var x, string_of_indexname x)
 
-fun new_skolem_const_name th_no s num_T_args =
-  [new_skolem_const_prefix, string_of_int th_no, s, string_of_int num_T_args]
+fun new_skolem_const_name s num_T_args =
+  [new_skolem_const_prefix, s, string_of_int num_T_args]
   |> space_implode Long_Name.separator
 
-(* Converts a term (with combinators) into a combterm. Also accummulates sort
+(* Converts a term (with combinators) into a combterm. Also accumulates sort
    infomation. *)
-fun combterm_from_term thy th_no bs (P $ Q) =
-      let val (P', tsP) = combterm_from_term thy th_no bs P
-          val (Q', tsQ) = combterm_from_term thy th_no bs Q
-      in  (CombApp (P', Q'), union (op =) tsP tsQ)  end
-  | combterm_from_term thy _ _ (Const (c, T)) =
+fun combterm_from_term thy bs (P $ Q) =
+      let
+        val (P', tsP) = combterm_from_term thy bs P
+        val (Q', tsQ) = combterm_from_term thy bs Q
+      in (CombApp (P', Q'), union (op =) tsP tsQ) end
+  | combterm_from_term thy _ (Const (c, T)) =
       let
         val (tp, ts) = combtype_of T
         val tvar_list =
@@ -417,43 +417,42 @@ fun combterm_from_term thy th_no bs (P $ Q) =
           |> map simple_combtype_of
         val c' = CombConst (`make_fixed_const c, tp, tvar_list)
       in  (c',ts)  end
-  | combterm_from_term _ _ _ (Free (v, T)) =
+  | combterm_from_term _ _ (Free (v, T)) =
       let val (tp, ts) = combtype_of T
           val v' = CombConst (`make_fixed_var v, tp, [])
       in  (v',ts)  end
-  | combterm_from_term _ th_no _ (Var (v as (s, _), T)) =
+  | combterm_from_term _ _ (Var (v as (s, _), T)) =
     let
       val (tp, ts) = combtype_of T
       val v' =
         if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
           let
             val tys = T |> strip_type |> swap |> op ::
-            val s' = new_skolem_const_name th_no s (length tys)
+            val s' = new_skolem_const_name s (length tys)
           in
             CombConst (`make_fixed_const s', tp, map simple_combtype_of tys)
           end
         else
           CombVar ((make_schematic_var v, string_of_indexname v), tp)
     in (v', ts) end
-  | combterm_from_term _ _ bs (Bound j) =
+  | combterm_from_term _ bs (Bound j) =
       let
         val (s, T) = nth bs j
         val (tp, ts) = combtype_of T
         val v' = CombConst (`make_bound_var s, tp, [])
       in (v', ts) end
-  | combterm_from_term _ _ _ (Abs _) = raise Fail "HOL clause: Abs"
+  | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"
 
-fun predicate_of thy th_no ((@{const Not} $ P), pos) =
-    predicate_of thy th_no (P, not pos)
-  | predicate_of thy th_no (t, pos) =
-    (combterm_from_term thy th_no [] (Envir.eta_contract t), pos)
+fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
+  | predicate_of thy (t, pos) =
+    (combterm_from_term thy [] (Envir.eta_contract t), pos)
 
-fun literals_of_term1 args thy th_no (@{const Trueprop} $ P) =
-    literals_of_term1 args thy th_no P
-  | literals_of_term1 args thy th_no (@{const HOL.disj} $ P $ Q) =
-    literals_of_term1 (literals_of_term1 args thy th_no P) thy th_no Q
-  | literals_of_term1 (lits, ts) thy th_no P =
-    let val ((pred, ts'), pol) = predicate_of thy th_no (P, true) in
+fun literals_of_term1 args thy (@{const Trueprop} $ P) =
+    literals_of_term1 args thy P
+  | literals_of_term1 args thy (@{const HOL.disj} $ P $ Q) =
+    literals_of_term1 (literals_of_term1 args thy P) thy Q
+  | literals_of_term1 (lits, ts) thy P =
+    let val ((pred, ts'), pol) = predicate_of thy (P, true) in
       (FOLLiteral (pol, pred) :: lits, union (op =) ts ts')
     end
 val literals_of_term = literals_of_term1 ([], [])
@@ -607,9 +606,10 @@ fun hol_literal_to_fol FO (FOLLiteral (pos, tm)) =
             metis_lit pos "=" (map hol_term_to_fol_FT tms)
         | _ => metis_lit pos "{}" [hol_term_to_fol_FT tm])   (*hBOOL*);
 
-fun literals_of_hol_term thy th_no mode t =
-      let val (lits, types_sorts) = literals_of_term thy th_no t
-      in  (map (hol_literal_to_fol mode) lits, types_sorts) end;
+fun literals_of_hol_term thy mode t =
+  let val (lits, types_sorts) = literals_of_term thy t in
+    (map (hol_literal_to_fol mode) lits, types_sorts)
+  end
 
 (*Sign should be "true" for conjecture type constraints, "false" for type lits in clauses.*)
 fun metis_of_type_literals pos (TyLitVar ((s, _), (s', _))) =
@@ -623,13 +623,13 @@ fun default_sort _ (TVar _) = false
 fun metis_of_tfree tf =
   Metis_Thm.axiom (Metis_LiteralSet.singleton (metis_of_type_literals true tf));
 
-fun hol_thm_to_fol is_conjecture th_no ctxt type_lits mode j old_skolems th =
+fun hol_thm_to_fol is_conjecture ctxt type_lits mode j old_skolems th =
   let
     val thy = ProofContext.theory_of ctxt
     val (old_skolems, (mlits, types_sorts)) =
      th |> prop_of |> Logic.strip_imp_concl
         |> conceal_old_skolem_terms j old_skolems
-        ||> (HOLogic.dest_Trueprop #> literals_of_hol_term thy th_no mode)
+        ||> (HOLogic.dest_Trueprop #> literals_of_hol_term thy mode)
   in
     if is_conjecture then
       (Metis_Thm.axiom (Metis_LiteralSet.fromList mlits),
@@ -732,21 +732,20 @@ fun build_logic_map mode0 ctxt type_lits cls thss =
         | set_mode FT = FT
       val mode = set_mode mode0
       (*transform isabelle clause to metis clause *)
-      fun add_thm th_no is_conjecture (metis_ith, isa_ith)
+      fun add_thm is_conjecture (metis_ith, isa_ith)
                   {axioms, tfrees, old_skolems} : logic_map =
         let
           val (mth, tfree_lits, old_skolems) =
-            hol_thm_to_fol is_conjecture th_no ctxt type_lits mode (length axioms)
+            hol_thm_to_fol is_conjecture ctxt type_lits mode (length axioms)
                            old_skolems metis_ith
         in
            {axioms = (mth, Meson.make_meta_clause isa_ith) :: axioms,
             tfrees = union (op =) tfree_lits tfrees, old_skolems = old_skolems}
         end;
       val lmap = {axioms = [], tfrees = init_tfrees ctxt, old_skolems = []}
-                 |> fold (add_thm 0 true o `I) cls
+                 |> fold (add_thm true o `I) cls
                  |> add_tfrees
-                 |> fold (fn (th_no, ths) => fold (add_thm th_no false o `I) ths)
-                         (1 upto length thss ~~ thss)
+                 |> fold (fold (add_thm false o `I)) thss
       val clause_lists = map (Metis_Thm.clause o #1) (#axioms lmap)
       fun is_used c =
         exists (Metis_LiteralSet.exists (const_in_metis c o #2)) clause_lists
@@ -763,7 +762,7 @@ fun build_logic_map mode0 ctxt type_lits cls thss =
                                     []
                                   else
                                     thms)
-          in lmap |> fold (add_thm ~1 false) helper_ths end
+          in lmap |> fold (add_thm false) helper_ths end
   in
     (mode, add_type_thm (type_ext thy (maps (map prop_of) (cls :: thss))) lmap)
   end
