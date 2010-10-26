@@ -144,7 +144,6 @@ $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f base.ML -d false -g false $(OUT)/Pure HOL-Base
 
 PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
-  ATP.thy \
   Complete_Lattice.thy \
   Complete_Partial_Order.thy \
   Datatype.thy \
@@ -170,7 +169,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Rings.thy \
   SAT.thy \
   Set.thy \
-  Sledgehammer.thy \
   Sum_Type.thy \
   Tools/abel_cancel.ML \
   Tools/arith_data.ML \
@@ -239,6 +237,7 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
+  ATP.thy \
   Big_Operators.thy \
   Code_Evaluation.thy \
   Code_Numeral.thy \
@@ -269,6 +268,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Refute.thy \
   Semiring_Normalization.thy \
   SetInterval.thy \
+  Sledgehammer.thy \
   SMT.thy \
   String.thy \
   Typerep.thy \
