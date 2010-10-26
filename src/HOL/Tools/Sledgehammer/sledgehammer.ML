@@ -427,14 +427,16 @@ fun run_atp auto atp_name
      run_time_in_msecs = msecs}
   end
 
-fun failure_from_smt_failure SMT_Solver.Time_Out = TimedOut
-  | failure_from_smt_failure (SMT_Solver.Counterexample _) = Unprovable
-  | failure_from_smt_failure (SMT_Solver.Other_Failure _) = UnknownError
+fun failure_from_smt_failure (SMT_Solver.Counterexample _) = Unprovable
+  | failure_from_smt_failure SMT_Solver.Time_Out = TimedOut
+  | failure_from_smt_failure SMT_Solver.Out_Of_Memory = OutOfResources
+  | failure_from_smt_failure _ = UnknownError
 
 fun run_smt_solver remote ({timeout, ...} : params) minimize_command
                    ({state, subgoal, subgoal_count, facts, ...}
                     : prover_problem) =
   let
+    val ctxt = Proof.context_of state
     val {outcome, used_facts, run_time_in_msecs} =
       SMT_Solver.smt_filter remote timeout state
                             (map_filter (try dest_Untranslated) facts) subgoal
@@ -447,7 +449,8 @@ fun run_smt_solver remote ({timeout, ...} : params) minimize_command
         minimize_line minimize_command (map fst used_facts)
       | SOME SMT_Solver.Time_Out => "Timed out."
       | SOME (SMT_Solver.Counterexample _) => "The SMT problem is unprovable."
-      | SOME (SMT_Solver.Other_Failure message) => message
+      | SOME failure =>
+        SMT_Solver.string_of_failure ctxt "The SMT solver" failure
     val outcome = outcome |> Option.map failure_from_smt_failure (* FIXME *)
   in
     {outcome = outcome, used_facts = used_facts,
