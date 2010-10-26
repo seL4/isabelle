@@ -63,7 +63,7 @@ sig
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
-  val get_prover : Proof.context -> bool -> string -> prover
+  val get_prover : theory -> bool -> string -> prover
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
     -> Proof.state -> bool * Proof.state
@@ -410,14 +410,13 @@ fun failure_from_smt_failure SMT_Solver.Time_Out = TimedOut
   | failure_from_smt_failure (SMT_Solver.Counterexample _) = Unprovable
   | failure_from_smt_failure (SMT_Solver.Other_Failure _) = UnknownError
 
-fun run_smt_solver ctxt remote ({timeout, ...} : params) minimize_command
+fun run_smt_solver remote ({timeout, ...} : params) minimize_command
                    ({state, subgoal, subgoal_count, axioms, ...}
                     : prover_problem) =
   let
     val {outcome, used_facts, run_time_in_msecs} =
       SMT_Solver.smt_filter remote timeout state
                             (map_filter (try dest_Untranslated) axioms) subgoal
-    val outcome' = outcome |> Option.map failure_from_smt_failure (* FIXME *)
     val message =
       case outcome of
         NONE =>
@@ -425,22 +424,18 @@ fun run_smt_solver ctxt remote ({timeout, ...} : params) minimize_command
                          (apply_on_subgoal subgoal subgoal_count ^
                           command_call smtN (map fst used_facts)) ^
         minimize_line minimize_command (map fst used_facts)
-      | SOME (failure as SMT_Solver.Other_Failure _) =>
-        SMT_Solver.string_of_failure ctxt
-          (SMT_Solver.solver_name_of (Context.Proof ctxt)) failure
-      | SOME _ => string_for_failure (the outcome')
+      | SOME SMT_Solver.Time_Out => "Timed out."
+      | SOME (SMT_Solver.Counterexample _) => "The SMT problem is unprovable."
+      | SOME (failure as SMT_Solver.Other_Failure message) => message
+    val outcome = outcome |> Option.map failure_from_smt_failure (* FIXME *)
   in
-    {outcome = outcome', used_axioms = used_facts,
-     run_time_in_msecs = run_time_in_msecs, message = message}
+    {outcome = outcome, used_axioms = used_facts,
+     run_time_in_msecs = SOME run_time_in_msecs, message = message}
   end
 
-fun get_prover ctxt auto name =
-  let val thy = ProofContext.theory_of ctxt in
-    if is_smt_prover name then
-      run_smt_solver ctxt (String.isPrefix remote_prefix name)
-    else
-      run_atp auto name (get_atp thy name)
-  end
+fun get_prover thy auto name =
+  if is_smt_prover name then run_smt_solver (String.isPrefix remote_prefix name)
+  else run_atp auto name (get_atp thy name)
 
 fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
                auto minimize_command
@@ -459,7 +454,7 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
     fun go () =
       let
         fun really_go () =
-          get_prover ctxt auto name params (minimize_command name) problem
+          get_prover thy auto name params (minimize_command name) problem
           |> (fn {outcome, message, ...} =>
                  (if is_some outcome then "none" else "some", message))
         val (outcome_code, message) =
@@ -508,7 +503,8 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
     let
       val _ = Proof.assert_backward state
       val thy = Proof.theory_of state
-      val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
+      val ctxt = Proof.context_of state
+      val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val _ = () |> not blocking ? kill_provers
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."
