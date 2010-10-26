@@ -218,9 +218,8 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     lthy'
     |> Local_Theory.note (eq_abinding, [rec_rule])
     |-> (fn (_, rec') =>
-      Spec_Rules.add Spec_Rules.Equational ([f], [rec'])
-      |> Local_Theory.note ((Binding.qualify true fname (Binding.name "simps"), []), rec'))
-    |> snd
+      Spec_Rules.add Spec_Rules.Equational ([f], rec')
+      #> Local_Theory.note ((Binding.qualify true fname (Binding.name "simps"), []), rec') #> snd)
   end;
 
 val add_partial_function = gen_add_partial_function Specification.check_spec;
