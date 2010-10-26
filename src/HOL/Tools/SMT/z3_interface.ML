@@ -74,13 +74,13 @@ local
     | is_int_div_mod @{term "op mod :: int => _"} = true
     | is_int_div_mod _ = false
 
-  fun add_div_mod thms =
-    if exists (Term.exists_subterm is_int_div_mod o Thm.prop_of) thms
-    then [@{thm div_by_z3div}, @{thm mod_by_z3mod}] @ thms
-    else thms
+  fun add_div_mod irules =
+    if exists (Term.exists_subterm is_int_div_mod o Thm.prop_of o snd) irules
+    then [(~1, @{thm div_by_z3div}), (~1, @{thm mod_by_z3mod})] @ irules
+    else irules
 
-  fun extra_norm' has_datatypes thms =
-    SMTLIB_Interface.extra_norm has_datatypes (add_div_mod thms)
+  fun extra_norm' has_datatypes =
+    SMTLIB_Interface.extra_norm has_datatypes o add_div_mod
 
   fun z3_builtin_fun' _ (@{const_name z3div}, _) ts = SOME ("div", ts)
     | z3_builtin_fun' _ (@{const_name z3mod}, _) ts = SOME ("mod", ts)

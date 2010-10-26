@@ -9,7 +9,7 @@ sig
   val add_z3_rule: thm -> Context.generic -> Context.generic
   val trace_assms: bool Config.T
   val reconstruct: string list * SMT_Translate.recon -> Proof.context ->
-    thm * Proof.context
+    (int list * thm) * Proof.context
   val setup: theory -> theory
 end
 
@@ -750,7 +750,7 @@ fun not_supported r =
 
 fun prove ctxt unfolds assms vars =
   let
-    val assms' = prepare_assms ctxt unfolds assms
+    val assms' = prepare_assms ctxt unfolds (map snd assms) (* FIXME *)
     val simpset = T.make_simpset ctxt (Z3_Simps.get ctxt)
 
     fun step r ps ct (cxp as (cx, ptab)) =
@@ -821,7 +821,7 @@ fun prove ctxt unfolds assms vars =
       | SOME (Proved p) => (p, cxp)
       | NONE => z3_exn ("unknown proof id: " ^ quote (string_of_int idx)))
 
-    fun result (p, (cx, _)) = (thm_of p, cx)
+    fun result (p, (cx, _)) = (([], thm_of p), cx) (*FIXME*)
   in
     (fn (idx, ptab) => result (lookup idx (ctxt, Inttab.map (K Unproved) ptab)))
   end

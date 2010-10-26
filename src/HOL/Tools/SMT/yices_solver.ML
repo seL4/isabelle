@@ -35,7 +35,7 @@ fun solver oracle _ = {
   command = {env_var=env_var, remote_name=NONE},
   arguments = options,
   interface = SMTLIB_Interface.interface,
-  reconstruct = pair o oracle }
+  reconstruct = pair o pair [] o oracle }
 
 val setup =
   Thm.add_oracle (Binding.name solver_name, core_oracle) #-> (fn (_, oracle) =>

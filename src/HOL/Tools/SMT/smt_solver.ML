@@ -17,7 +17,7 @@ sig
     arguments: string list,
     interface: interface,
     reconstruct: (string list * SMT_Translate.recon) -> Proof.context ->
-      thm * Proof.context }
+      (int list * thm) * Proof.context }
 
   (*options*)
   val timeout: int Config.T
@@ -30,7 +30,7 @@ sig
   val select_certificates: string -> Context.generic -> Context.generic
 
   (*solvers*)
-  type solver = Proof.context -> thm list -> thm
+  type solver = Proof.context -> (int * thm) list -> int list * thm
   type solver_info = Context.generic -> Pretty.T list
   val add_solver: string * (Proof.context -> solver_config) ->
     Context.generic -> Context.generic
@@ -40,6 +40,10 @@ sig
   val solver_name_of: Context.generic -> string
   val select_solver: string -> Context.generic -> Context.generic
   val solver_of: Context.generic -> solver
+
+  (*solver*)
+  val smt_solver: Proof.context -> ('a * thm) list -> 'a list * thm
+  val smt_filter: Proof.context -> ('a * thm) list -> 'a list * string
 
   (*tactic*)
   val smt_tac': bool -> Proof.context -> thm list -> int -> Tactical.tactic
@@ -66,7 +70,7 @@ type solver_config = {
   arguments: string list,
   interface: interface,
   reconstruct: (string list * SMT_Translate.recon) -> Proof.context ->
-    thm * Proof.context }
+    (int list * thm) * Proof.context }
 
 
 
@@ -177,8 +181,8 @@ fun trace_recon_data ctxt ({typs, terms, ...} : SMT_Translate.recon) =
       Pretty.big_list "functions:" (map pretty_term (Symtab.dest terms))])) ()
   end
 
-fun invoke translate_config comments command arguments thms ctxt =
-  thms
+fun invoke translate_config comments command arguments irules ctxt =
+  irules
   |> SMT_Translate.translate translate_config ctxt comments
   ||> tap (trace_recon_data ctxt)
   |>> run_solver ctxt command arguments
@@ -202,16 +206,17 @@ fun gen_solver name solver ctxt prems =
     |-> SMT_Normalize.normalize extra_norm has_datatypes
     |-> invoke translate comments command arguments
     |-> reconstruct
-    |-> (fn thm => fn ctxt' => thm
+    |-> (fn (idxs, thm) => fn ctxt' => thm
     |> singleton (ProofContext.export ctxt' ctxt)
-    |> discharge_definitions)
+    |> discharge_definitions
+    |> pair idxs)
   end
 
 
 
 (* solver store *)
 
-type solver = Proof.context -> thm list -> thm
+type solver = Proof.context -> (int * thm) list -> int list * thm
 type solver_info = Context.generic -> Pretty.T list
 
 structure Solvers = Generic_Data
@@ -259,6 +264,29 @@ fun solver_of context =
 
 
 
+(* SMT solver *)
+
+val has_topsort = Term.exists_type (Term.exists_subtype (fn
+    TFree (_, []) => true
+  | TVar (_, []) => true
+  | _ => false))
+
+fun smt_solver ctxt xrules =
+  (* without this test, we would run into problems when atomizing the rules: *)
+  if exists (has_topsort o Thm.prop_of o snd) xrules
+  then raise SMT "proof state contains the universal sort {}"
+  else
+    split_list xrules
+    ||>> solver_of (Context.Proof ctxt) ctxt o map_index I
+    |>> uncurry (map_filter o try o nth) o apsnd (distinct (op =))
+
+fun smt_filter ctxt xrules =
+  (fst (smt_solver ctxt xrules), "")
+  handle SMT msg => ([], "SMT: " ^ msg)
+       | SMT_COUNTEREXAMPLE _ => ([], "SMT: potential counterexample")
+
+
+
 (* SMT tactic *)
 
 local
@@ -279,25 +307,13 @@ local
     else (tac ctxt i st
       handle SMT msg => fail_tac (trace_msg ctxt (prefix "SMT: ")) msg st
            | SMT_COUNTEREXAMPLE ce => fail_tac tracing (pretty_cex ctxt ce) st)
-
-  fun smt_solver rules ctxt = solver_of (Context.Proof ctxt) ctxt rules
-
-  val has_topsort = Term.exists_type (Term.exists_subtype (fn
-      TFree (_, []) => true
-    | TVar (_, []) => true
-    | _ => false))
 in
 fun smt_tac' pass_exns ctxt rules =
   CONVERSION (SMT_Normalize.atomize_conv ctxt)
   THEN' Tactic.rtac @{thm ccontr}
   THEN' SUBPROOF (fn {context, prems, ...} =>
-    let val thms = rules @ prems
-    in
-      if exists (has_topsort o Thm.prop_of) thms
-      then fail_tac (trace_msg context I)
-        "SMT: proof state contains the universal sort {}"
-      else SAFE pass_exns (Tactic.rtac o smt_solver thms) context 1
-    end) ctxt
+    let fun solve cx = snd (smt_solver cx (map (pair ()) (rules @ prems)))
+    in SAFE pass_exns (Tactic.rtac o solve) context 1 end) ctxt
 
 val smt_tac = smt_tac' false
 end
@@ -357,7 +373,8 @@ fun print_setup context =
 
 val _ =
   Outer_Syntax.improper_command "smt_status"
-    "show the available SMT solvers and the currently selected solver" Keyword.diag
+    "show the available SMT solvers and the currently selected solver"
+    Keyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.keep (fn state =>
       print_setup (Context.Proof (Toplevel.context_of state)))))
 

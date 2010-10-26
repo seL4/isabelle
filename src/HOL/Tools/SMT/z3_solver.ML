@@ -72,7 +72,8 @@ fun solver oracle ctxt =
    {command = {env_var=env_var, remote_name=SOME solver_name},
     arguments = cmdline_options ctxt,
     interface = Z3_Interface.interface with_datatypes,
-    reconstruct = if with_proof then prover else (fn r => `(oracle o pair r))}
+    reconstruct =
+      if with_proof then prover else (fn r => `(pair [] o oracle o pair r))}
   end
 
 val setup =
