@@ -7,7 +7,6 @@ Proof reconstruction for proofs found by Z3.
 signature Z3_PROOF_RECONSTRUCTION =
 sig
   val add_z3_rule: thm -> Context.generic -> Context.generic
-  val trace_assms: bool Config.T
   val reconstruct: Proof.context -> SMT_Translate.recon -> string list ->
     (int list * thm) * Proof.context
   val setup: theory -> theory
@@ -138,9 +137,6 @@ datatype proof = Unproved of P.proof_step | Proved of theorem
 
 (* assumption *)
 
-val (trace_assms, trace_assms_setup) =
-  Attrib.config_bool "z3_trace_assms" (K false)
-
 local
   val remove_trigger = @{lemma "trigger t p == p"
     by (rule eq_reflection, rule trigger_def)}
@@ -150,28 +146,28 @@ local
   fun rewrite_conv ctxt eqs = Simplifier.full_rewrite
     (Simplifier.context ctxt Simplifier.empty_ss addsimps eqs)
 
-  fun rewrites ctxt eqs = map (Conv.fconv_rule (rewrite_conv ctxt eqs))
+  fun rewrites f ctxt eqs = map (f (Conv.fconv_rule (rewrite_conv ctxt eqs)))
 
-  fun trace ctxt thm =
-    if Config.get ctxt trace_assms
-    then tracing (Display.string_of_thm ctxt thm)
-    else ()
-
+  fun burrow_snd_option f (i, thm) = Option.map (pair i) (f thm)
   fun lookup_assm ctxt assms ct =
-    (case T.net_instance assms ct of
-      SOME thm => (trace ctxt thm; thm)
+    (case T.net_instance' burrow_snd_option assms ct of
+      SOME ithm => ithm
     | _ => z3_exn ("not asserted: " ^
         quote (Syntax.string_of_term ctxt (Thm.term_of ct))))
 in
 fun prepare_assms ctxt unfolds assms =
   let
-    val unfolds' = rewrites ctxt [L.rewrite_true] unfolds
-    val assms' = rewrites ctxt (union Thm.eq_thm unfolds' prep_rules) assms
-  in (unfolds', T.thm_net_of assms') end
+    val unfolds' = rewrites I ctxt [L.rewrite_true] unfolds
+    val assms' =
+      rewrites apsnd ctxt (union Thm.eq_thm unfolds' prep_rules) assms
+  in (unfolds', T.thm_net_of snd assms') end
 
 fun asserted ctxt (unfolds, assms) ct =
   let val revert_conv = rewrite_conv ctxt unfolds
-  in Thm (T.with_conv revert_conv (lookup_assm ctxt assms) ct) end
+  in Thm (T.with_conv revert_conv (snd o lookup_assm ctxt assms) ct) end
+
+fun find_assm ctxt (unfolds, assms) ct =
+  fst (lookup_assm ctxt assms (Thm.rhs_of (rewrite_conv ctxt unfolds ct)))
 end
 
 
@@ -746,91 +742,115 @@ end
 
 (* overall reconstruction procedure *)
 
-fun not_supported r =
-  raise Fail ("Z3: proof rule not implemented: " ^ quote (P.string_of_rule r))
+local
+  fun not_supported r = raise Fail ("Z3: proof rule not implemented: " ^
+    quote (P.string_of_rule r))
 
-fun prove ctxt unfolds assms vars =
-  let
-    val assms' = prepare_assms ctxt unfolds (map snd assms) (* FIXME *)
-    val simpset = T.make_simpset ctxt (Z3_Simps.get ctxt)
+  fun step assms simpset vars r ps ct (cxp as (cx, ptab)) =
+    (case (r, ps) of
+      (* core rules *)
+      (P.TrueAxiom, _) => (Thm L.true_thm, cxp)
+    | (P.Asserted, _) => (asserted cx assms ct, cxp)
+    | (P.Goal, _) => (asserted cx assms ct, cxp)
+    | (P.ModusPonens, [(p, _), (q, _)]) => (mp q (thm_of p), cxp)
+    | (P.ModusPonensOeq, [(p, _), (q, _)]) => (mp q (thm_of p), cxp)
+    | (P.AndElim, [(p, i)]) => and_elim (p, i) ct ptab ||> pair cx
+    | (P.NotOrElim, [(p, i)]) => not_or_elim (p, i) ct ptab ||> pair cx
+    | (P.Hypothesis, _) => (Thm (Thm.assume ct), cxp)
+    | (P.Lemma, [(p, _)]) => (lemma (thm_of p) ct, cxp)
+    | (P.UnitResolution, (p, _) :: ps) =>
+        (unit_resolution (thm_of p) (map (thm_of o fst) ps) ct, cxp)
+    | (P.IffTrue, [(p, _)]) => (iff_true (thm_of p), cxp)
+    | (P.IffFalse, [(p, _)]) => (iff_false (thm_of p), cxp)
+    | (P.Distributivity, _) => (distributivity cx ct, cxp)
+    | (P.DefAxiom, _) => (def_axiom cx ct, cxp)
+    | (P.IntroDef, _) => intro_def ct cx ||> rpair ptab
+    | (P.ApplyDef, [(p, _)]) => (apply_def (thm_of p), cxp)
+    | (P.IffOeq, [(p, _)]) => (p, cxp)
+    | (P.NnfPos, _) => (nnf cx vars (map fst ps) ct, cxp)
+    | (P.NnfNeg, _) => (nnf cx vars (map fst ps) ct, cxp)
 
-    fun step r ps ct (cxp as (cx, ptab)) =
-      (case (r, ps) of
-        (* core rules *)
-        (P.TrueAxiom, _) => (Thm L.true_thm, cxp)
-      | (P.Asserted, _) => (asserted cx assms' ct, cxp)
-      | (P.Goal, _) => (asserted cx assms' ct, cxp)
-      | (P.ModusPonens, [(p, _), (q, _)]) => (mp q (thm_of p), cxp)
-      | (P.ModusPonensOeq, [(p, _), (q, _)]) => (mp q (thm_of p), cxp)
-      | (P.AndElim, [(p, i)]) => and_elim (p, i) ct ptab ||> pair cx
-      | (P.NotOrElim, [(p, i)]) => not_or_elim (p, i) ct ptab ||> pair cx
-      | (P.Hypothesis, _) => (Thm (Thm.assume ct), cxp)
-      | (P.Lemma, [(p, _)]) => (lemma (thm_of p) ct, cxp)
-      | (P.UnitResolution, (p, _) :: ps) =>
-          (unit_resolution (thm_of p) (map (thm_of o fst) ps) ct, cxp)
-      | (P.IffTrue, [(p, _)]) => (iff_true (thm_of p), cxp)
-      | (P.IffFalse, [(p, _)]) => (iff_false (thm_of p), cxp)
-      | (P.Distributivity, _) => (distributivity cx ct, cxp)
-      | (P.DefAxiom, _) => (def_axiom cx ct, cxp)
-      | (P.IntroDef, _) => intro_def ct cx ||> rpair ptab
-      | (P.ApplyDef, [(p, _)]) => (apply_def (thm_of p), cxp)
-      | (P.IffOeq, [(p, _)]) => (p, cxp)
-      | (P.NnfPos, _) => (nnf cx vars (map fst ps) ct, cxp)
-      | (P.NnfNeg, _) => (nnf cx vars (map fst ps) ct, cxp)
+      (* equality rules *)
+    | (P.Reflexivity, _) => (refl ct, cxp)
+    | (P.Symmetry, [(p, _)]) => (symm p, cxp)
+    | (P.Transitivity, [(p, _), (q, _)]) => (trans p q, cxp)
+    | (P.Monotonicity, _) => (monotonicity (map fst ps) ct, cxp)
+    | (P.Commutativity, _) => (commutativity ct, cxp)
 
-        (* equality rules *)
-      | (P.Reflexivity, _) => (refl ct, cxp)
-      | (P.Symmetry, [(p, _)]) => (symm p, cxp)
-      | (P.Transitivity, [(p, _), (q, _)]) => (trans p q, cxp)
-      | (P.Monotonicity, _) => (monotonicity (map fst ps) ct, cxp)
-      | (P.Commutativity, _) => (commutativity ct, cxp)
+      (* quantifier rules *)
+    | (P.QuantIntro, [(p, _)]) => (quant_intro vars p ct, cxp)
+    | (P.PullQuant, _) => (pull_quant cx ct, cxp)
+    | (P.PushQuant, _) => (push_quant cx ct, cxp)
+    | (P.ElimUnusedVars, _) => (elim_unused_vars cx ct, cxp)
+    | (P.DestEqRes, _) => (dest_eq_res cx ct, cxp)
+    | (P.QuantInst, _) => (quant_inst ct, cxp)
+    | (P.Skolemize, _) => skolemize ct cx ||> rpair ptab
 
-        (* quantifier rules *)
-      | (P.QuantIntro, [(p, _)]) => (quant_intro vars p ct, cxp)
-      | (P.PullQuant, _) => (pull_quant cx ct, cxp)
-      | (P.PushQuant, _) => (push_quant cx ct, cxp)
-      | (P.ElimUnusedVars, _) => (elim_unused_vars cx ct, cxp)
-      | (P.DestEqRes, _) => (dest_eq_res cx ct, cxp)
-      | (P.QuantInst, _) => (quant_inst ct, cxp)
-      | (P.Skolemize, _) => skolemize ct cx ||> rpair ptab
+      (* theory rules *)
+    | (P.ThLemma, _) =>
+        (th_lemma cx simpset (map (thm_of o fst) ps) ct, cxp)
+    | (P.Rewrite, _) => (rewrite cx simpset [] ct, cxp)
+    | (P.RewriteStar, ps) =>
+        (rewrite cx simpset (map fst ps) ct, cxp)
 
-        (* theory rules *)
-      | (P.ThLemma, _) =>
-          (th_lemma cx simpset (map (thm_of o fst) ps) ct, cxp)
-      | (P.Rewrite, _) => (rewrite cx simpset [] ct, cxp)
-      | (P.RewriteStar, ps) =>
-          (rewrite cx simpset (map fst ps) ct, cxp)
+    | (P.NnfStar, _) => not_supported r
+    | (P.CnfStar, _) => not_supported r
+    | (P.TransitivityStar, _) => not_supported r
+    | (P.PullQuantStar, _) => not_supported r
 
-      | (P.NnfStar, _) => not_supported r
-      | (P.CnfStar, _) => not_supported r
-      | (P.TransitivityStar, _) => not_supported r
-      | (P.PullQuantStar, _) => not_supported r
+    | _ => raise Fail ("Z3: proof rule " ^ quote (P.string_of_rule r) ^
+       " has an unexpected number of arguments."))
 
-      | _ => raise Fail ("Z3: proof rule " ^ quote (P.string_of_rule r) ^
-         " has an unexpected number of arguments."))
+  fun prove ctxt assms vars =
+    let
+      val simpset = T.make_simpset ctxt (Z3_Simps.get ctxt)
+ 
+      fun conclude idx rule prop (ps, cxp) =
+        trace_rule idx (step assms simpset vars) rule ps prop cxp
+        |-> (fn p => apsnd (Inttab.update (idx, Proved p)) #> pair p)
+ 
+      fun lookup idx (cxp as (_, ptab)) =
+        (case Inttab.lookup ptab idx of
+          SOME (Unproved (P.Proof_Step {rule, prems, prop})) =>
+            fold_map lookup prems cxp
+            |>> map2 rpair prems
+            |> conclude idx rule prop
+        | SOME (Proved p) => (p, cxp)
+        | NONE => z3_exn ("unknown proof id: " ^ quote (string_of_int idx)))
+ 
+      fun result (p, (cx, _)) = (thm_of p, cx)
+    in
+      (fn idx => result o lookup idx o pair ctxt o Inttab.map (K Unproved))
+    end
 
-    fun conclude idx rule prop (ps, cxp) =
-      trace_rule idx step rule ps prop cxp
-      |-> (fn p => apsnd (Inttab.update (idx, Proved p)) #> pair p)
+  fun filter_assms ctxt assms ptab =
+    let
+      fun step r ct =
+        (case r of
+          P.Asserted => insert (op =) (find_assm ctxt assms ct)
+        | P.Goal => insert (op =) (find_assm ctxt assms ct)
+        | _ => I)
 
-    fun lookup idx (cxp as (_, ptab)) =
-      (case Inttab.lookup ptab idx of
-        SOME (Unproved (P.Proof_Step {rule, prems, prop})) =>
-          fold_map lookup prems cxp
-          |>> map2 rpair prems
-          |> conclude idx rule prop
-      | SOME (Proved p) => (p, cxp)
-      | NONE => z3_exn ("unknown proof id: " ^ quote (string_of_int idx)))
-
-    fun result (p, (cx, _)) = (([], thm_of p), cx) (*FIXME*)
-  in
-    (fn (idx, ptab) => result (lookup idx (ctxt, Inttab.map (K Unproved) ptab)))
-  end
+      fun lookup idx =
+        (case Inttab.lookup ptab idx of
+          SOME (P.Proof_Step {rule, prems, prop}) =>
+            fold lookup prems #> step rule prop
+        | NONE => z3_exn ("unknown proof id: " ^ quote (string_of_int idx)))
+    in lookup end
+in
 
 fun reconstruct ctxt {typs, terms, unfolds, assms} output =
-  P.parse ctxt typs terms output
-  |> (fn (idx, (ptab, vars, cx)) => prove cx unfolds assms vars (idx, ptab))
+  let
+    val (idx, (ptab, vars, cx)) = P.parse ctxt typs terms output
+    val assms' = prepare_assms cx unfolds assms
+  in
+    if Config.get cx SMT_Solver.filter_only
+    then ((filter_assms cx assms' ptab idx [], @{thm TrueI}), cx)
+    else apfst (pair []) (prove cx assms' vars idx ptab)
+  end
 
-val setup = trace_assms_setup #> z3_rules_setup #> Z3_Simps.setup
+end
+
+val setup = z3_rules_setup #> Z3_Simps.setup
 
 end

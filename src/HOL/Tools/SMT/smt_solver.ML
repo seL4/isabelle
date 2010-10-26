@@ -31,6 +31,7 @@ sig
 
   (*options*)
   val oracle: bool Config.T
+  val filter_only: bool Config.T
   val datatypes: bool Config.T
   val timeout: int Config.T
   val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
@@ -53,8 +54,8 @@ sig
   val solver_of: Context.generic -> solver
 
   (*filter*)
-  val smt_filter: Proof.state -> int -> ('a * thm) list ->
-    'a list * failure option
+  val smt_filter: bool -> Time.time -> Proof.state -> ('a * thm) list -> int ->
+    {outcome: failure option, used_facts: 'a list, run_time_in_msecs: int}
 
   (*tactic*)
   val smt_tac': bool -> Proof.context -> thm list -> int -> Tactical.tactic
@@ -110,6 +111,9 @@ type solver_config = {
 (* SMT options *)
 
 val (oracle, setup_oracle) = Attrib.config_bool "smt_oracle" (K true)
+
+val (filter_only, setup_filter_only) =
+  Attrib.config_bool "smt_filter_only" (K false)
 
 val (datatypes, setup_datatypes) = Attrib.config_bool "smt_datatypes" (K false)
 
@@ -248,6 +252,18 @@ fun set_has_datatypes with_datatypes translate =
       builtins=builtins', serialize=serialize}
   in (with_datatypes', translate') end
 
+fun trace_assumptions ctxt irules idxs =
+  let
+    val thms = filter (fn i => i >= 0) idxs
+      |> map_filter (AList.lookup (op =) irules)
+  in
+    if Config.get ctxt trace_used_facts andalso length thms > 0
+    then
+      tracing (Pretty.string_of (Pretty.big_list "SMT used facts:"
+        (map (Display.pretty_thm ctxt) thms)))
+    else ()
+  end
+
 fun gen_solver name info ctxt irules =
   let
     val {env_var, is_remote, options, more_options, interface, reconstruct} =
@@ -263,6 +279,7 @@ fun gen_solver name info ctxt irules =
     |-> (fn (idxs, thm) => fn ctxt' => thm
     |> singleton (ProofContext.export ctxt' ctxt)
     |> discharge_definitions
+    |> tap (fn _ => trace_assumptions ctxt irules idxs)
     |> pair idxs)
   end
 
@@ -377,21 +394,26 @@ fun smt_solver ctxt irules =
   then raise SMT (Other_Failure "proof state contains the universal sort {}")
   else solver_of (Context.Proof ctxt) ctxt irules
 
-fun smt_filter st i xrules =
+fun smt_filter remote time_limit st xrules i =
   let
     val {context, facts, goal} = Proof.goal st
+    val ctxt =
+      context
+      |> Config.put timeout (Time.toSeconds time_limit)
+      |> Config.put oracle false
+      |> Config.put filter_only true
     val cprop =
       Thm.cprem_of goal i
-      |> Thm.rhs_of o SMT_Normalize.atomize_conv context
+      |> Thm.rhs_of o SMT_Normalize.atomize_conv ctxt
       |> Thm.capply @{cterm Trueprop} o Thm.capply @{cterm Not} o Thm.dest_arg
     val irs = map (pair ~1) (Thm.assume cprop :: facts)
   in
     split_list xrules
-    ||>> solver_of (Context.Proof context) context o append irs o map_index I
-    |>> uncurry (map_filter o try o nth) o apsnd (distinct (op =))
-    |> rpair NONE o fst
+    ||> distinct (op =) o fst o smt_solver ctxt o append irs o map_index I
+    |-> map_filter o try o nth
+    |> (fn xs => {outcome=NONE, used_facts=xs, run_time_in_msecs= ~1})
   end
-  handle SMT fail => ([], SOME fail)
+  handle SMT fail => {outcome=SOME fail, used_facts=[], run_time_in_msecs= ~1}
 
 
 
@@ -432,6 +454,7 @@ val setup =
       (Thm.declaration_attribute o K o select_solver))
     "SMT solver configuration" #>
   setup_oracle #>
+  setup_filter_only #>
   setup_datatypes #>
   setup_timeout #>
   setup_trace #>
