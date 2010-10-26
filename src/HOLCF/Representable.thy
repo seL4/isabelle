@@ -267,22 +267,28 @@ subsection {* Constructing Domain Isomorphisms *}
 
 use "Tools/Domain/domain_isomorphism.ML"
 
+setup Domain_Isomorphism.setup
+
+lemmas [domain_defl_simps] =
+  DEFL_cfun DEFL_ssum DEFL_sprod DEFL_prod DEFL_u
+
+lemmas [domain_map_ID] =
+  cfun_map_ID ssum_map_ID sprod_map_ID cprod_map_ID u_map_ID
+
+lemmas [domain_isodefl] =
+  isodefl_cfun isodefl_ssum isodefl_sprod isodefl_cprod isodefl_u
+
+lemmas [domain_deflation] =
+  deflation_cfun_map deflation_ssum_map deflation_sprod_map
+  deflation_cprod_map deflation_u_map
+
 setup {*
   fold Domain_Isomorphism.add_type_constructor
-    [(@{type_name cfun}, @{term cfun_defl}, @{const_name cfun_map}, @{thm DEFL_cfun},
-        @{thm isodefl_cfun}, @{thm cfun_map_ID}, @{thm deflation_cfun_map}),
-
-     (@{type_name ssum}, @{term ssum_defl}, @{const_name ssum_map}, @{thm DEFL_ssum},
-        @{thm isodefl_ssum}, @{thm ssum_map_ID}, @{thm deflation_ssum_map}),
-
-     (@{type_name sprod}, @{term sprod_defl}, @{const_name sprod_map}, @{thm DEFL_sprod},
-        @{thm isodefl_sprod}, @{thm sprod_map_ID}, @{thm deflation_sprod_map}),
-
-     (@{type_name prod}, @{term cprod_defl}, @{const_name cprod_map}, @{thm DEFL_prod},
-        @{thm isodefl_cprod}, @{thm cprod_map_ID}, @{thm deflation_cprod_map}),
-
-     (@{type_name "u"}, @{term u_defl}, @{const_name u_map}, @{thm DEFL_u},
-        @{thm isodefl_u}, @{thm u_map_ID}, @{thm deflation_u_map})]
+    [(@{type_name cfun}, @{term cfun_defl}, @{const_name cfun_map}),
+     (@{type_name ssum}, @{term ssum_defl}, @{const_name ssum_map}),
+     (@{type_name sprod}, @{term sprod_defl}, @{const_name sprod_map}),
+     (@{type_name prod}, @{term cprod_defl}, @{const_name cprod_map}),
+     (@{type_name "u"}, @{term u_defl}, @{const_name u_map})]
 *}
 
 end

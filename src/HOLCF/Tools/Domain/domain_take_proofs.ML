@@ -55,11 +55,11 @@ sig
   val map_of_typ :
     theory -> (typ * term) list -> typ -> term
 
-  val add_map_function :
-    (string * string * thm) -> theory -> theory
-
+  val add_map_function : (string * string) -> theory -> theory
   val get_map_tab : theory -> string Symtab.table
+  val add_deflation_thm : thm -> theory -> theory
   val get_deflation_thms : theory -> thm list
+  val setup : theory -> theory
 end;
 
 structure Domain_Take_Proofs : DOMAIN_TAKE_PROOFS =
@@ -126,21 +126,22 @@ structure MapData = Theory_Data
   fun merge data = Symtab.merge (K true) data;
 );
 
-structure DeflMapData = Theory_Data
+structure DeflMapData = Named_Thms
 (
-  (* theorems like "deflation a ==> deflation (foo_map$a)" *)
-  type T = thm list;
-  val empty = [];
-  val extend = I;
-  val merge = Thm.merge_thms;
+  val name = "domain_deflation"
+  val description = "theorems like deflation a ==> deflation (foo_map$a)"
 );
 
-fun add_map_function (tname, map_name, deflation_map_thm) =
-    MapData.map (Symtab.insert (K true) (tname, map_name))
-    #> DeflMapData.map (Thm.add_thm deflation_map_thm);
+fun add_map_function (tname, map_name) =
+    MapData.map (Symtab.insert (K true) (tname, map_name));
+
+fun add_deflation_thm thm =
+    Context.theory_map (DeflMapData.add_thm thm);
 
 val get_map_tab = MapData.get;
-val get_deflation_thms = DeflMapData.get;
+fun get_deflation_thms thy = DeflMapData.get (ProofContext.init_global thy);
+
+val setup = DeflMapData.setup;
 
 (******************************************************************************)
 (************************** building types and terms **************************)
@@ -344,7 +345,7 @@ fun define_take_functions
         val deflation_rules =
           @{thms conjI deflation_ID}
           @ deflation_abs_rep_thms
-          @ DeflMapData.get thy;
+          @ get_deflation_thms thy;
       in
         Goal.prove_global thy [] [] goal (fn _ =>
          EVERY

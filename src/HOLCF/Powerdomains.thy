@@ -34,19 +34,18 @@ done
 
 subsection {* Domain package setup for powerdomains *}
 
+lemmas [domain_defl_simps] = DEFL_upper DEFL_lower DEFL_convex
+lemmas [domain_map_ID] = upper_map_ID lower_map_ID convex_map_ID
+lemmas [domain_isodefl] = isodefl_upper isodefl_lower isodefl_convex
+
+lemmas [domain_deflation] =
+  deflation_upper_map deflation_lower_map deflation_convex_map
+
 setup {*
   fold Domain_Isomorphism.add_type_constructor
-    [(@{type_name "upper_pd"}, @{term upper_defl}, @{const_name upper_map},
-        @{thm DEFL_upper}, @{thm isodefl_upper}, @{thm upper_map_ID},
-          @{thm deflation_upper_map}),
-
-     (@{type_name "lower_pd"}, @{term lower_defl}, @{const_name lower_map},
-        @{thm DEFL_lower}, @{thm isodefl_lower}, @{thm lower_map_ID},
-          @{thm deflation_lower_map}),
-
-     (@{type_name "convex_pd"}, @{term convex_defl}, @{const_name convex_map},
-        @{thm DEFL_convex}, @{thm isodefl_convex}, @{thm convex_map_ID},
-          @{thm deflation_convex_map})]
+    [(@{type_name "upper_pd"}, @{term upper_defl}, @{const_name upper_map}),
+     (@{type_name "lower_pd"}, @{term lower_defl}, @{const_name lower_map}),
+     (@{type_name "convex_pd"}, @{term convex_defl}, @{const_name convex_map})]
 *}
 
 end

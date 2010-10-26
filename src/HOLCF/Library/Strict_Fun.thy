@@ -69,7 +69,7 @@ definition
 where
   "sfun_map = (\<Lambda> a b. sfun_abs oo cfun_map\<cdot>a\<cdot>b oo sfun_rep)"
 
-lemma sfun_map_ID: "sfun_map\<cdot>ID\<cdot>ID = ID"
+lemma sfun_map_ID [domain_map_ID]: "sfun_map\<cdot>ID\<cdot>ID = ID"
   unfolding sfun_map_def
   by (simp add: cfun_map_ID cfun_eq_iff)
 
@@ -103,7 +103,7 @@ proof
     done
 qed
 
-lemma deflation_sfun_map:
+lemma deflation_sfun_map [domain_deflation]:
   assumes 1: "deflation d1"
   assumes 2: "deflation d2"
   shows "deflation (sfun_map\<cdot>d1\<cdot>d2)"
@@ -198,11 +198,11 @@ qed
 
 end
 
-lemma DEFL_sfun:
+lemma DEFL_sfun [domain_defl_simps]:
   "DEFL('a::bifinite \<rightarrow>! 'b::bifinite) = sfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sfun_def)
 
-lemma isodefl_sfun:
+lemma isodefl_sfun [domain_isodefl]:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
     isodefl (sfun_map\<cdot>d1\<cdot>d2) (sfun_defl\<cdot>t1\<cdot>t2)"
 apply (rule isodeflI)
@@ -213,8 +213,7 @@ done
 
 setup {*
   Domain_Isomorphism.add_type_constructor
-    (@{type_name "sfun"}, @{term sfun_defl}, @{const_name sfun_map}, @{thm DEFL_sfun},
-       @{thm isodefl_sfun}, @{thm sfun_map_ID}, @{thm deflation_sfun_map})
+    (@{type_name "sfun"}, @{term sfun_defl}, @{const_name sfun_map})
 *}
 
 end

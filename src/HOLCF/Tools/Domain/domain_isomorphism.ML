@@ -28,7 +28,9 @@ sig
     (string list * binding * mixfix * string * (binding * binding) option) list
       -> theory -> theory
   val add_type_constructor :
-    (string * term * string * thm  * thm * thm * thm) -> theory -> theory
+    (string * term * string) -> theory -> theory
+
+  val setup : theory -> theory
 end;
 
 structure Domain_Isomorphism : DOMAIN_ISOMORPHISM =
@@ -55,44 +57,31 @@ structure DeflData = Theory_Data
   fun merge data = Symtab.merge (K true) data;
 );
 
-structure RepData = Theory_Data
+structure RepData = Named_Thms
 (
-  (* theorems like "DEFL('a foo) = foo_defl$DEFL('a)" *)
-  type T = thm list;
-  val empty = [];
-  val extend = I;
-  val merge = Thm.merge_thms;
+  val name = "domain_defl_simps"
+  val description = "theorems like DEFL('a t) = t_defl$DEFL('a)"
+)
+
+structure MapIdData = Named_Thms
+(
+  val name = "domain_map_ID"
+  val description = "theorems like foo_map$ID = ID"
 );
 
-structure MapIdData = Theory_Data
+structure IsodeflData = Named_Thms
 (
-  (* theorems like "foo_map$ID = ID" *)
-  type T = thm list;
-  val empty = [];
-  val extend = I;
-  val merge = Thm.merge_thms;
-);
-
-structure IsodeflData = Theory_Data
-(
-  (* theorems like "isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)" *)
-  type T = thm list;
-  val empty = [];
-  val extend = I;
-  val merge = Thm.merge_thms;
+  val name = "domain_isodefl"
+  val description = "theorems like isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)"
 );
 
 fun add_type_constructor
-  (tname, defl_const, map_name, DEFL_thm,
-   isodefl_thm, map_ID_thm, defl_map_thm) =
+  (tname, defl_const, map_name) =
     DeflData.map (Symtab.insert (K true) (tname, defl_const))
-    #> Domain_Take_Proofs.add_map_function (tname, map_name, defl_map_thm)
-    #> RepData.map (Thm.add_thm DEFL_thm)
-    #> IsodeflData.map (Thm.add_thm isodefl_thm)
-    #> MapIdData.map (Thm.add_thm map_ID_thm);
+    #> Domain_Take_Proofs.add_map_function (tname, map_name)
 
-
-(* val get_map_tab = MapData.get; *)
+val setup =
+    RepData.setup #> MapIdData.setup #> IsodeflData.setup
 
 
 (******************************************************************************)
@@ -357,14 +346,15 @@ fun define_map_functions
 
     (* register map functions in theory data *)
     local
-      fun register_map ((dname, map_name), defl_thm) =
-          Domain_Take_Proofs.add_map_function (dname, map_name, defl_thm);
       val dnames = map (fst o dest_Type o fst) dom_eqns;
       val map_names = map (fst o dest_Const) map_consts;
     in
       val thy =
-          fold register_map (dnames ~~ map_names ~~ deflation_map_thms) thy;
+          fold Domain_Take_Proofs.add_map_function (dnames ~~ map_names) thy;
     end;
+
+    (* register deflation theorems *)
+    val thy = fold Domain_Take_Proofs.add_deflation_thm deflation_map_thms thy;
 
     val result =
       {
@@ -481,13 +471,13 @@ fun gen_domain_isomorphism
         (DEFL, thy)
       end;
     val (DEFL_thms, thy) = fold_map make_repdef (doms ~~ defl_consts) thy;
-    val thy = RepData.map (fold Thm.add_thm DEFL_thms) thy;
+    val thy = fold (Context.theory_map o RepData.add_thm) DEFL_thms thy;
 
     (* prove DEFL equations *)
     fun mk_DEFL_eq_thm (lhsT, rhsT) =
       let
         val goal = mk_eqs (mk_DEFL lhsT, mk_DEFL rhsT);
-        val DEFL_simps = RepData.get thy;
+        val DEFL_simps = RepData.get (ProofContext.init_global thy);
         val tac =
           rewrite_goals_tac (map mk_meta_eq DEFL_simps)
           THEN resolve_tac defl_unfold_thms 1;
@@ -582,11 +572,12 @@ fun gen_domain_isomorphism
           @{thms adm_conj adm_isodefl cont2cont_fst cont2cont_snd cont_id};
         val bottom_rules =
           @{thms fst_strict snd_strict isodefl_bottom simp_thms};
-        val DEFL_simps = map (fn th => th RS sym) (RepData.get thy);
+        val lthy = ProofContext.init_global thy;
+        val DEFL_simps = map (fn th => th RS sym) (RepData.get lthy);
         val isodefl_rules =
           @{thms conjI isodefl_ID_DEFL}
           @ isodefl_abs_rep_thms
-          @ IsodeflData.get thy;
+          @ IsodeflData.get (ProofContext.init_global thy);
       in
         Goal.prove_global thy [] assms goal (fn {prems, ...} =>
          EVERY
@@ -612,7 +603,7 @@ fun gen_domain_isomorphism
     val (isodefl_thms, thy) = thy |>
       (Global_Theory.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (conjuncts isodefl_binds isodefl_thm);
-    val thy = IsodeflData.map (fold Thm.add_thm isodefl_thms) thy;
+    val thy = fold (Context.theory_map o IsodeflData.add_thm) isodefl_thms thy;
 
     (* prove map_ID theorems *)
     fun prove_map_ID_thm
@@ -636,7 +627,7 @@ fun gen_domain_isomorphism
     val (_, thy) = thy |>
       (Global_Theory.add_thms o map Thm.no_attributes)
         (map_ID_binds ~~ map_ID_thms);
-    val thy = MapIdData.map (fold Thm.add_thm map_ID_thms) thy;
+    val thy = fold (Context.theory_map o MapIdData.add_thm) map_ID_thms thy;
 
     (* definitions and proofs related to take functions *)
     val (take_info, thy) =
@@ -653,10 +644,11 @@ fun gen_domain_isomorphism
           list_ccomb (map_const, map mk_ID (snd (dest_Type lhsT)));
         val rhs = mk_tuple (map mk_map_ID (map_consts ~~ dom_eqns));
         val goal = mk_trp (mk_eq (lhs, rhs));
+        val map_ID_thms = MapIdData.get (ProofContext.init_global thy);
         val start_rules =
             @{thms thelub_Pair [symmetric] ch2ch_Pair} @ chain_take_thms
             @ @{thms pair_collapse split_def}
-            @ map_apply_thms @ MapIdData.get thy;
+            @ map_apply_thms @ map_ID_thms;
         val rules0 =
             @{thms iterate_0 Pair_strict} @ take_0_thms;
         val rules1 =

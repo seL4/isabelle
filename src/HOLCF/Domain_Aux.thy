@@ -260,4 +260,6 @@ subsection {* ML setup *}
 
 use "Tools/Domain/domain_take_proofs.ML"
 
+setup Domain_Take_Proofs.setup
+
 end
