@@ -401,11 +401,9 @@ text {*
   \begin{rail}
     'primrec' target? fixes 'where' equations
     ;
+    ('fun' | 'function') target? functionopts? fixes \\ 'where' equations
+    ;
     equations: (thmdecl? prop + '|')
-    ;
-    ('fun' | 'function') target? functionopts? fixes 'where' clauses
-    ;
-    clauses: (thmdecl? prop ('(' 'otherwise' ')')? + '|')
     ;
     functionopts: '(' (('sequential' | 'domintros' | 'tailrec' | 'default' term) + ',') ')'
     ;
