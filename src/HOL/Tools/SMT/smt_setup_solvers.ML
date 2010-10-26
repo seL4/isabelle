@@ -64,9 +64,12 @@ fun z3_options ctxt =
 fun z3_on_last_line solver_name lines =
   let
     fun junk l =
-      String.isPrefix "WARNING" l orelse
-      String.isPrefix "ERROR" l orelse
-      forall Symbol.is_ascii_blank (Symbol.explode l)
+      if String.isPrefix "WARNING: Out of allocated virtual memory" l
+      then raise SMT_Solver.SMT SMT_Solver.Out_Of_Memory
+      else
+        String.isPrefix "WARNING" l orelse
+        String.isPrefix "ERROR" l orelse
+        forall Symbol.is_ascii_blank (Symbol.explode l)
   in
     the_default ("", []) (try (swap o split_last) (filter_out junk lines))
     |>> outcome_of "unsat" "sat" "unknown" solver_name

@@ -426,11 +426,12 @@ fun run_smt_solver ctxt remote ({timeout, ...} : params) minimize_command
                           command_call smtN (map fst used_facts)) ^
         minimize_line minimize_command (map fst used_facts)
       | SOME (failure as SMT_Solver.Other_Failure _) =>
-        SMT_Solver.string_of_failure ctxt failure
+        SMT_Solver.string_of_failure ctxt
+          (SMT_Solver.solver_name_of (Context.Proof ctxt)) failure
       | SOME _ => string_for_failure (the outcome')
   in
     {outcome = outcome', used_axioms = used_facts,
-     run_time_in_msecs = SOME run_time_in_msecs, message = message}
+     run_time_in_msecs = run_time_in_msecs, message = message}
   end
 
 fun get_prover ctxt auto name =

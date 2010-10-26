@@ -9,8 +9,9 @@ sig
   datatype failure =
     Counterexample of bool * term list |
     Time_Out |
+    Out_Of_Memory |
     Other_Failure of string
-  val string_of_failure: Proof.context -> failure -> string
+  val string_of_failure: Proof.context -> string -> failure -> string
   exception SMT of failure
 
   type interface = {
@@ -57,7 +58,8 @@ sig
 
   (*filter*)
   val smt_filter: bool -> Time.time -> Proof.state -> ('a * thm) list -> int ->
-    {outcome: failure option, used_facts: 'a list, run_time_in_msecs: int}
+    {outcome: failure option, used_facts: 'a list,
+    run_time_in_msecs: int option}
 
   (*tactic*)
   val smt_tac': bool -> Proof.context -> thm list -> int -> Tactical.tactic
@@ -74,9 +76,10 @@ struct
 datatype failure =
   Counterexample of bool * term list |
   Time_Out |
+  Out_Of_Memory |
   Other_Failure of string
 
-fun string_of_failure ctxt (Counterexample (real, ex)) =
+fun string_of_failure ctxt _ (Counterexample (real, ex)) =
       let
         val msg = (if real then "C" else "Potential c") ^ "ounterexample found"
       in
@@ -84,8 +87,9 @@ fun string_of_failure ctxt (Counterexample (real, ex)) =
         else Pretty.string_of (Pretty.big_list (msg ^ ":")
           (map (Syntax.pretty_term ctxt) ex))
       end
-  | string_of_failure _ Time_Out = "Time out."
-  | string_of_failure _ (Other_Failure msg) = msg
+  | string_of_failure _ name Time_Out = name ^ " timed out."
+  | string_of_failure _ name Out_Of_Memory = name ^ " ran out of memory."
+  | string_of_failure _ _ (Other_Failure msg) = msg
 
 exception SMT of failure
 
@@ -431,9 +435,9 @@ fun smt_filter run_remote time_limit st xrules i =
     split_list xrules
     ||> distinct (op =) o fst o smt_solver rm ctxt o append irs o map_index I
     |-> map_filter o try o nth
-    |> (fn xs => {outcome=NONE, used_facts=xs, run_time_in_msecs= ~1})
+    |> (fn xs => {outcome=NONE, used_facts=xs, run_time_in_msecs=NONE})
   end
-  handle SMT fail => {outcome=SOME fail, used_facts=[], run_time_in_msecs= ~1}
+  handle SMT fail => {outcome=SOME fail, used_facts=[], run_time_in_msecs=NONE}
   (* FIXME: measure runtime *)
 
 
@@ -446,7 +450,8 @@ fun smt_tac' pass_exns ctxt rules =
   THEN' SUBPROOF (fn {context=cx, prems, ...} =>
     let
       fun solve () = snd (smt_solver NONE cx (map (pair ~1) (rules @ prems)))
-      val trace = trace_msg cx (prefix "SMT: " o string_of_failure cx)
+      val name = solver_name_of (Context.Proof cx)
+      val trace = trace_msg cx (prefix "SMT: " o string_of_failure cx name)
     in
       (if pass_exns then SOME (solve ())
        else (SOME (solve ()) handle SMT fail => (trace fail; NONE)))
