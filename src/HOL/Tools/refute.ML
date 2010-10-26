@@ -1133,31 +1133,31 @@ fun find_model ctxt
                             ". Available solvers: " ^
                             commas (map (quote o fst) (!SatSolver.solvers)) ^ ".")
           in
-            priority "Invoking SAT solver...";
+            Output.urgent_message "Invoking SAT solver...";
             (case solver fm of
               SatSolver.SATISFIABLE assignment =>
-                (priority ("*** Model found: ***\n" ^ print_model ctxt model
+                (Output.urgent_message ("*** Model found: ***\n" ^ print_model ctxt model
                   (fn i => case assignment i of SOME b => b | NONE => true));
                  if maybe_spurious then "potential" else "genuine")
             | SatSolver.UNSATISFIABLE _ =>
-                (priority "No model exists.";
+                (Output.urgent_message "No model exists.";
                 case next_universe universe sizes minsize maxsize of
                   SOME universe' => find_model_loop universe'
-                | NONE => (priority
-                  "Search terminated, no larger universe within the given limits.";
-                  "none"))
+                | NONE => (Output.urgent_message
+                    "Search terminated, no larger universe within the given limits.";
+                    "none"))
             | SatSolver.UNKNOWN =>
-                (priority "No model found.";
+                (Output.urgent_message "No model found.";
                 case next_universe universe sizes minsize maxsize of
                   SOME universe' => find_model_loop universe'
-                | NONE           => (priority
+                | NONE => (Output.urgent_message
                   "Search terminated, no larger universe within the given limits.";
                   "unknown"))) handle SatSolver.NOT_CONFIGURED =>
               (error ("SAT solver " ^ quote satsolver ^ " is not configured.");
                "unknown")
           end
           handle MAXVARS_EXCEEDED =>
-            (priority ("Search terminated, number of Boolean variables ("
+            (Output.urgent_message ("Search terminated, number of Boolean variables ("
               ^ string_of_int maxvars ^ " allowed) exceeded.");
               "unknown")
 
@@ -1179,14 +1179,14 @@ fun find_model ctxt
     maxtime>=0 orelse
       error ("\"maxtime\" is " ^ string_of_int maxtime ^ ", must be at least 0");
     (* enter loop with or without time limit *)
-    priority ("Trying to find a model that "
+    Output.urgent_message ("Trying to find a model that "
       ^ (if negate then "refutes" else "satisfies") ^ ": "
       ^ Syntax.string_of_term ctxt t);
     if maxtime > 0 then (
       TimeLimit.timeLimit (Time.fromSeconds maxtime)
         wrapper ()
       handle TimeLimit.TimeOut =>
-        (priority ("Search terminated, time limit (" ^
+        (Output.urgent_message ("Search terminated, time limit (" ^
             string_of_int maxtime
             ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.");
          check_expect "unknown")
@@ -1273,7 +1273,7 @@ fun refute_goal ctxt params th i =
     val t = th |> prop_of
   in
     if Logic.count_prems t = 0 then
-      priority "No subgoal!"
+      Output.urgent_message "No subgoal!"
     else
       let
         val assms = map term_of (Assumption.all_assms_of ctxt)

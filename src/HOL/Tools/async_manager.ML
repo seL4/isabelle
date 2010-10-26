@@ -105,7 +105,7 @@ fun print_new_messages () =
     [] => ()
   | msgs as (tool, _) :: _ =>
     let val ss = break_into_chunks (map snd msgs) in
-      List.app priority (tool ^ ": " ^ hd ss :: tl ss)
+      List.app Output.urgent_message (tool ^ ": " ^ hd ss :: tl ss)
     end
 
 fun check_thread_manager () = Synchronized.change global_state
@@ -185,7 +185,7 @@ fun kill_threads tool workers = Synchronized.change global_state
                        if tool' = tool then SOME (th, (tool', Time.now (), desc))
                        else NONE) active
       val state' = make_state manager timeout_heap [] (killing @ canceling) messages store;
-      val _ = if null killing then () else priority ("Killed active " ^ workers ^ ".")
+      val _ = if null killing then () else Output.urgent_message ("Killed active " ^ workers ^ ".")
     in state' end);
 
 
@@ -218,7 +218,7 @@ fun running_threads tool workers =
       case map_filter canceling_info canceling of
         [] => []
       | ss => "Trying to interrupt the following " ^ workers ^ ":" :: ss
-  in priority (space_implode "\n\n" (running @ interrupting)) end
+  in Output.urgent_message (space_implode "\n\n" (running @ interrupting)) end
 
 fun thread_messages tool worker opt_limit =
   let
@@ -230,7 +230,7 @@ fun thread_messages tool worker opt_limit =
         (if length tool_store <= limit then ":"
          else " (" ^ string_of_int limit ^ " displayed):");
   in
-    List.app priority (header :: break_into_chunks
+    List.app Output.urgent_message (header :: break_into_chunks
                                      (map snd (#1 (chop limit tool_store))))
   end
 

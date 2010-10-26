@@ -361,7 +361,7 @@ text %mlex {* See also @{command method_setup} in
   \medskip The following toy examples illustrate how the goal facts
   and state are passed to proof methods.  The pre-defined proof method
   called ``@{method tactic}'' wraps ML source of type @{ML_type
-  tactic} (abstracted over @{verbatim facts}).  This allows immediate
+  tactic} (abstracted over @{ML_text facts}).  This allows immediate
   experimentation without parsing of concrete syntax. *}
 
 example_proof
@@ -398,7 +398,7 @@ text {* The concrete syntax wrapping of @{command method_setup} always
   The @{ML Attrib.thms} parser produces a list of theorems from the
   usual Isar syntax involving attribute expressions etc.\ (syntax
   category @{syntax thmrefs}) \cite{isabelle-isar-ref}.  The resulting
-  @{verbatim thms} are added to @{ML HOL_basic_ss} which already
+  @{ML_text thms} are added to @{ML HOL_basic_ss} which already
   contains the basic Simplifier setup for HOL.
 
   The tactic @{ML asm_full_simp_tac} is the one that is also used in

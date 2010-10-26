@@ -66,7 +66,7 @@ sig
   val bump_string: string -> string
   val length: symbol list -> int
   val xsymbolsN: string
-  val output: string -> output * int
+  val output: string -> Output.output * int
 end;
 
 structure Symbol: SYMBOL =

@@ -84,7 +84,7 @@ fun solve_direct auto state =
                    Pretty.markup Markup.hilite (message results)])
             else
               tap (fn _ =>
-                priority (Pretty.string_of (Pretty.chunks (message results))))))
+                Output.urgent_message (Pretty.string_of (Pretty.chunks (message results))))))
     | _ => (false, state))
   end;
 

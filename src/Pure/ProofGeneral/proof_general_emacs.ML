@@ -74,14 +74,14 @@ fun message bg en prfx text =
   | s => Output.raw_writeln (enclose bg en (prefix_lines prfx s)));
 
 fun setup_messages () =
- (Output.writeln_fn := message "" "" "";
-  Output.status_fn := (fn _ => ());
-  Output.report_fn := (fn _ => ());
-  Output.priority_fn := message (special "I") (special "J") "";
-  Output.tracing_fn := message (special "I" ^ special "V") (special "J") "";
-  Output.warning_fn := message (special "K") (special "L") "### ";
-  Output.error_fn := message (special "M") (special "N") "*** ";
-  Output.prompt_fn := (fn s => Output.raw_stdout (render s ^ special "S")));
+ (Output.Private_Hooks.writeln_fn := message "" "" "";
+  Output.Private_Hooks.status_fn := (fn _ => ());
+  Output.Private_Hooks.report_fn := (fn _ => ());
+  Output.Private_Hooks.urgent_message_fn := message (special "I") (special "J") "";
+  Output.Private_Hooks.tracing_fn := message (special "I" ^ special "V") (special "J") "";
+  Output.Private_Hooks.warning_fn := message (special "K") (special "L") "### ";
+  Output.Private_Hooks.error_fn := message (special "M") (special "N") "*** ";
+  Output.Private_Hooks.prompt_fn := (fn s => Output.raw_stdout (render s ^ special "S")));
 
 fun panic s =
   (message (special "M") (special "N") "!!! " ("## SYSTEM EXIT ##\n" ^ s); exit 1);
@@ -146,7 +146,7 @@ fun inform_file_processed file =
 
 (* restart top-level loop (keeps most state information) *)
 
-val welcome = priority o Session.welcome;
+val welcome = Output.urgent_message o Session.welcome;
 
 fun restart () =
  (sync_thy_loader ();
@@ -227,7 +227,7 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
           Output.default_output Output.default_escape;
          Markup.add_mode ProofGeneralPgip.proof_general_emacsN YXML.output_markup;
          setup_messages ();
-         ProofGeneralPgip.pgip_channel_emacs (! Output.priority_fn);
+         ProofGeneralPgip.pgip_channel_emacs (! Output.Private_Hooks.urgent_message_fn);
          setup_thy_loader ();
          setup_present_hook ();
          initialized := true);

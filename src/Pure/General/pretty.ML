@@ -21,8 +21,8 @@ a unit for breaking).
 
 signature PRETTY =
 sig
-  val default_indent: string -> int -> output
-  val add_mode: string -> (string -> int -> output) -> unit
+  val default_indent: string -> int -> Output.output
+  val add_mode: string -> (string -> int -> Output.output) -> unit
   type T
   val str: string -> T
   val brk: int -> T
@@ -55,7 +55,7 @@ sig
   val margin_default: int Unsynchronized.ref
   val symbolicN: string
   val output_buffer: int option -> T -> Buffer.T
-  val output: int option -> T -> output
+  val output: int option -> T -> Output.output
   val string_of_margin: int -> T -> string
   val string_of: T -> string
   val str_of: T -> string
@@ -103,9 +103,10 @@ val add_indent = Buffer.add o output_spaces;
 (** printing items: compound phrases, strings, and breaks **)
 
 abstype T =
-  Block of (output * output) * T list * int * int |  (*markup output, body, indentation, length*)
-  String of output * int |                           (*text, length*)
-  Break of bool * int                                (*mandatory flag, width if not taken*)
+    Block of (Output.output * Output.output) * T list * int * int
+      (*markup output, body, indentation, length*)
+  | String of Output.output * int  (*text, length*)
+  | Break of bool * int  (*mandatory flag, width if not taken*)
 with
 
 fun length (Block (_, _, _, len)) = len

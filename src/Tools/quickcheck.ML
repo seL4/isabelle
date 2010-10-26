@@ -188,8 +188,10 @@ fun gen_test_term ctxt quiet generator_name size i t =
           case iterate (fn () => tester (k - 1)) i empty_report
            of (NONE, report) => apsnd (cons report) (with_testers k testers)
             | (SOME q, report) => (SOME q, [report]);
-    fun with_size k reports = if k > size then (NONE, reports)
-      else (if quiet then () else priority ("Test data size: " ^ string_of_int k);
+    fun with_size k reports =
+      if k > size then (NONE, reports)
+      else
+       (if quiet then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
         let
           val (result, new_report) = with_testers k testers
           val reports = ((k, new_report) :: reports)

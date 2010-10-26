@@ -96,7 +96,7 @@ fun do_try auto timeout_opt st =
                                     Pretty.markup Markup.hilite
                                                   [Pretty.str message]])
                     else
-                      tap (fn _ => priority message)))
+                      tap (fn _ => Output.urgent_message message)))
     end
 
 val invoke_try = fst oo do_try false
