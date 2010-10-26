@@ -34,7 +34,7 @@ sig
      only : bool}
 
   val trace : bool Unsynchronized.ref
-  val name_thm_pairs_from_ref :
+  val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val relevant_facts :
@@ -90,7 +90,7 @@ fun repair_name reserved multi j name =
   (name |> Symtab.defined reserved name ? quote) ^
   (if multi then "(" ^ Int.toString j ^ ")" else "")
 
-fun name_thm_pairs_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
+fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
     val bracket =
@@ -522,12 +522,10 @@ fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
 (*Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages.*)
 fun is_package_def a =
-  let val names = Long_Name.explode a
-  in
-     length names > 2 andalso
-     not (hd names = "local") andalso
-     String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a
-  end;
+  let val names = Long_Name.explode a in
+    (length names > 2 andalso not (hd names = "local") andalso
+     String.isSuffix "_def" a) orelse String.isSuffix "_defs" a
+  end
 
 fun mk_fact_table f xs =
   fold (Termtab.update o `(prop_of o f)) xs Termtab.empty
@@ -690,9 +688,9 @@ fun close_form t =
           (Term.add_vars t [] |> sort_wrt (fst o fst))
   |> fst
 
-fun all_name_thms_pairs ctxt reserved full_types
-        ({intro_bonus, elim_bonus, simp_bonus, ...} : relevance_fudge) add_ths
-        chained_ths =
+fun all_facts ctxt reserved full_types
+              ({intro_bonus, elim_bonus, simp_bonus, ...} : relevance_fudge)
+              add_ths chained_ths =
   let
     val thy = ProofContext.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
@@ -777,7 +775,7 @@ fun all_name_thms_pairs ctxt reserved full_types
 
 (* The single-name theorems go after the multiple-name ones, so that single
    names are preferred when both are available. *)
-fun name_thm_pairs ctxt respect_no_atp =
+fun rearrange_facts ctxt respect_no_atp =
   List.partition (fst o snd) #> op @ #> map (apsnd snd)
   #> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd)
 
@@ -796,10 +794,10 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
     val facts =
       (if only then
          maps (map (fn ((name, loc), th) => ((K name, loc), (true, th)))
-               o name_thm_pairs_from_ref ctxt reserved chained_ths) add
+               o fact_from_ref ctxt reserved chained_ths) add
        else
-         all_name_thms_pairs ctxt reserved full_types fudge add_ths chained_ths)
-      |> name_thm_pairs ctxt (respect_no_atp andalso not only)
+         all_facts ctxt reserved full_types fudge add_ths chained_ths)
+      |> rearrange_facts ctxt (respect_no_atp andalso not only)
       |> uniquify
   in
     trace_msg (fn () => "Considering " ^ Int.toString (length facts) ^

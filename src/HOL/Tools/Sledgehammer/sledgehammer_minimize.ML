@@ -141,8 +141,7 @@ fun run_minimize params i refs state =
     val reserved = reserved_isar_keyword_table ()
     val chained_ths = #facts (Proof.goal state)
     val facts =
-      maps (map (apsnd single)
-            o name_thm_pairs_from_ref ctxt reserved chained_ths) refs
+      maps (map (apsnd single) o fact_from_ref ctxt reserved chained_ths) refs
   in
     case subgoal_count state of
       0 => Output.urgent_message "No subgoal!"

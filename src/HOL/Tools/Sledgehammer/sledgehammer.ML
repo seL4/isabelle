@@ -169,8 +169,8 @@ fun available_provers thy =
       sort_strings (available_atps thy) @ smt_prover_names
       |> List.partition (String.isPrefix remote_prefix)
   in
-    Output.urgent_message ("Available provers: " ^ commas (local_provers @ remote_provers) ^
-              ".")
+    Output.urgent_message ("Available provers: " ^
+                           commas (local_provers @ remote_provers) ^ ".")
   end
 
 fun kill_provers () = Async_Manager.kill_threads das_Tool "provers"
@@ -254,6 +254,8 @@ fun dest_Untranslated (Untranslated p) = p
   | dest_Untranslated (Translated _) = raise Fail "dest_Untranslated"
 fun translated_fact ctxt (Untranslated p) = translate_fact ctxt p
   | translated_fact _ (Translated p) = p
+fun fact_name (Untranslated ((name, _), _)) = SOME name
+  | fact_name (Translated (_, p)) = Option.map (fst o fst) p
 
 fun int_option_add (SOME m) (SOME n) = SOME (m + n)
   | int_option_add _ _ = NONE
@@ -490,7 +492,7 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
        (false, state))
   end
 
-fun run_sledgehammer (params as {blocking, provers, full_types,
+fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                                  relevance_thresholds, max_relevant, ...})
                      auto i (relevance_override as {only, ...}) minimize_command
                      state =
@@ -508,7 +510,7 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
       val _ = () |> not blocking ? kill_provers
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."
       val (smts, atps) = provers |> List.partition is_smt_prover
-      fun run_provers full_types irrelevant_consts relevance_fudge
+      fun run_provers label full_types irrelevant_consts relevance_fudge
                       maybe_translate provers (res as (success, state)) =
         if success orelse null provers then
           res
@@ -531,6 +533,17 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
                facts = facts, only = only}
             val run_prover = run_prover params auto minimize_command
           in
+            if debug then
+              Output.urgent_message (label ^ ": " ^
+                  (if null facts then
+                     "Found no relevant facts."
+                   else
+                     "Including (up to) " ^ string_of_int (length facts) ^
+                     " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
+                     (facts |> map_filter fact_name
+                            |> space_implode " ") ^ "."))
+            else
+              ();
             if auto then
               fold (fn prover => fn (true, state) => (true, state)
                                   | (false, _) => run_prover problem prover)
@@ -541,11 +554,11 @@ fun run_sledgehammer (params as {blocking, provers, full_types,
                       |> exists fst |> rpair state
           end
       val run_atps =
-        run_provers full_types atp_irrelevant_consts atp_relevance_fudge
+        run_provers "ATPs" full_types atp_irrelevant_consts atp_relevance_fudge
                     (Translated o translate_fact ctxt) atps
       val run_smts =
-        run_provers true smt_irrelevant_consts smt_relevance_fudge Untranslated
-                    smts
+        run_provers "SMT" true smt_irrelevant_consts smt_relevance_fudge
+                    Untranslated smts
       fun run_atps_and_smt_solvers () =
         [run_atps, run_smts] |> Par_List.map (fn f => f (false, state) |> K ())
     in
