@@ -558,6 +558,71 @@ The record package proves several results internally, declaring
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Functions with explicit partiality%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{partial\_function}\hypertarget{command.HOL.partial-function}{\hyperlink{command.HOL.partial-function}{\mbox{\isa{\isacommand{partial{\isacharunderscore}function}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{HOL}{attribute}{partial\_function\_mono}\hypertarget{attribute.HOL.partial-function-mono}{\hyperlink{attribute.HOL.partial-function-mono}{\mbox{\isa{partial{\isacharunderscore}function{\isacharunderscore}mono}}}} & : & \isa{attribute} \\
+  \end{matharray}
+
+  \begin{rail}
+    'partial_function' target? '(' mode ')' fixes \\ 'where' thmdecl? prop
+  \end{rail}
+
+  \begin{description}
+
+  \item \hyperlink{command.HOL.partial-function}{\mbox{\isa{\isacommand{partial{\isacharunderscore}function}}}} defines recursive
+  functions based on fixpoints in complete partial orders. No
+  termination proof is required from the user or constructed
+  internally. Instead, the possibility of non-termination is modelled
+  explicitly in the result type, which contains an explicit bottom
+  element.
+
+  Pattern matching and mutual recursion are currently not supported.
+  Thus, the specification consists of a single function described by a
+  single recursive equation.
+
+  There are no fixed syntactic restrictions on the body of the
+  function, but the induced functional must be provably monotonic
+  wrt.\ the underlying order.  The monotonicitity proof is performed
+  internally, and the definition is rejected when it fails. The proof
+  can be influenced by declaring hints using the
+  \hyperlink{attribute.HOL.partial-function-mono}{\mbox{\isa{partial{\isacharunderscore}function{\isacharunderscore}mono}}} attribute.
+
+  The mandatory \isa{mode} argument specifies the mode of operation
+  of the command, which directly corresponds to a complete partial
+  order on the result type. By default, the following modes are
+  defined: 
+
+  \begin{description}
+  \item \isa{option} defines functions that map into the \isa{option} type. Here, the value \isa{None} is used to model a
+  non-terminating computation. Monotonicity requires that if \isa{None} is returned by a recursive call, then the overall result
+  must also be \isa{None}. This is best achieved through the use of
+  the monadic operator \isa{{\isachardoublequote}Option{\isachardot}bind{\isachardoublequote}}.
+  
+  \item \isa{tailrec} defines functions with an arbitrary result
+  type and uses the slightly degenerated partial order where \isa{{\isachardoublequote}undefined{\isachardoublequote}} is the bottom element.  Now, monotonicity requires that
+  if \isa{undefined} is returned by a recursive call, then the
+  overall result must also be \isa{undefined}. In practice, this is
+  only satisfied when each recursive call is a tail call, whose result
+  is directly returned. Thus, this mode of operation allows the
+  definition of arbitrary tail-recursive functions.
+  \end{description}
+
+  Experienced users may define new modes by instantiating the locale
+  \isa{{\isachardoublequote}partial{\isacharunderscore}function{\isacharunderscore}definitions{\isachardoublequote}} appropriately.
+
+  \item \hyperlink{attribute.HOL.partial-function-mono}{\mbox{\isa{partial{\isacharunderscore}function{\isacharunderscore}mono}}} declares rules for
+  use in the internal monononicity proofs of partial function
+  definitions.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Old-style recursive function definitions (TFL)%
 }
 \isamarkuptrue%
