@@ -115,7 +115,27 @@ fun default_max_relevant_for_prover thy name =
 val atp_irrelevant_consts =
   [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let},
    @{const_name HOL.eq}]
-val smt_irrelevant_consts = atp_irrelevant_consts (* FIXME *)
+
+(* FIXME: check types *)
+val smt_irrelevant_consts =
+  atp_irrelevant_consts @
+  [@{const_name distinct},
+   (* numeral-related: *)
+   @{const_name number_of}, @{const_name Int.Pls}, @{const_name Int.Min},
+   @{const_name Int.Bit0}, @{const_name Int.Bit1}, @{const_name Suc},
+   (* FIXME: @{const_name Numeral0}, @{const_name Numeral1}, *)
+   (* int => nat *)
+   @{const_name nat},
+   (* nat => int *)
+   (* FIXME: @{const_name int}, *)
+   (* for "nat", "int", and "real": *)
+   @{const_name plus}, @{const_name uminus}, @{const_name minus},
+   @{const_name times}, @{const_name less}, @{const_name less_eq},
+   @{const_name abs}, @{const_name min}, @{const_name max},
+   (* for "nat" and "div": *)
+   @{const_name div}, @{const_name mod} (* , *)
+   (* for real: *)
+   (* FIXME: @{const_name "op /"} *)]
 
 fun irrelevant_consts_for_prover name =
   if is_smt_prover name then smt_irrelevant_consts else atp_irrelevant_consts
