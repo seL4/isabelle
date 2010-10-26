@@ -423,9 +423,9 @@ fun smt_solver rm ctxt irules =
 
 fun smt_filter run_remote time_limit st xrules i =
   let
-    val {context, facts, goal} = Proof.goal st
+    val {facts, goal, ...} = Proof.goal st
     val ctxt =
-      context
+      Proof.context_of st
       |> Config.put timeout (Time.toSeconds time_limit)
       |> Config.put oracle false
       |> Config.put filter_only true
