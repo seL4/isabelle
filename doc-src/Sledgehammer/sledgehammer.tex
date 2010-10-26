@@ -141,10 +141,10 @@ wonderful tool.}
 
 \item[$\bullet$] Alternatively, you can download the Isabelle-aware E and SPASS
 binary packages from Isabelle's download page. Extract the archives, then add a
-line to your \texttt{\char`\~/.isabelle/etc/components} file with the absolute path to
-E or SPASS. For example, if the \texttt{components} does not exist
-yet and you extracted SPASS to \texttt{/usr/local/spass-3.7}, create
-the \texttt{components} file with the single line
+line to your \texttt{\char`\~/.isabelle/etc/components} file with the absolute
+path to E or SPASS. For example, if the \texttt{components} does not exist yet
+and you extracted SPASS to \texttt{/usr/local/spass-3.7}, create the
+\texttt{components} file with the single line
 
 \prew
 \texttt{/usr/local/spass-3.7}
@@ -223,13 +223,7 @@ Sledgehammer: ``\textit{remote\_sine\_e}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}) \\
 To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_sine\_e}]~(\textit{hd.simps}). \\[3\smallskipamount]
-%
-Sledgehammer: ``\textit{smt}'' for subgoal 1: \\
-$([a] = [b]) = (a = b)$ \\
-Try this command: \textbf{by} (\textit{smt hd.simps}) \\
-To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{smt}]~(\textit{hd.simps}).
+\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_sine\_e}]~(\textit{hd.simps}).
 \postw
 
 Sledgehammer ran E, SPASS, Vampire, SInE-E, and the \textit{smt} proof method in
@@ -290,21 +284,21 @@ no arguments in the theory text.
 In the general syntax, the \textit{subcommand} may be any of the following:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{run} (the default):} Runs Sledgehammer on subgoal number
-\textit{num} (1 by default), with the given options and facts.
+\item[$\bullet$] \textbf{\textit{run} (the default):} Runs Sledgehammer on
+subgoal number \textit{num} (1 by default), with the given options and facts.
 
 \item[$\bullet$] \textbf{\textit{minimize}:} Attempts to minimize the provided facts
 (specified in the \textit{facts\_override} argument) to obtain a simpler proof
 involving fewer facts. The options and goal number are as for \textit{run}.
 
-\item[$\bullet$] \textbf{\textit{messages}:} Redisplays recent messages issued by
-Sledgehammer. This allows you to examine results that might have been lost due
-to Sledgehammer's asynchronous nature. The \textit{num} argument specifies a
+\item[$\bullet$] \textbf{\textit{messages}:} Redisplays recent messages issued
+by Sledgehammer. This allows you to examine results that might have been lost
+due to Sledgehammer's asynchronous nature. The \textit{num} argument specifies a
 limit on the number of messages to display (5 by default).
 
-\item[$\bullet$] \textbf{\textit{available\_provers}:} Prints the list of installed provers.
-See \S\ref{installation} and \S\ref{mode-of-operation} for more information on
-how to install automatic provers.
+\item[$\bullet$] \textbf{\textit{available\_provers}:} Prints the list of
+installed provers. See \S\ref{installation} and \S\ref{mode-of-operation} for
+more information on how to install automatic provers.
 
 \item[$\bullet$] \textbf{\textit{running\_provers}:} Prints information about
 currently running automatic provers, including elapsed runtime and remaining
@@ -380,10 +374,12 @@ The descriptions below refer to the following syntactic quantities:
 \begin{enum}
 \item[$\bullet$] \qtybf{string}: A string.
 \item[$\bullet$] \qtybf{bool\/}: \textit{true} or \textit{false}.
-\item[$\bullet$] \qtybf{bool\_or\_smart\/}: \textit{true}, \textit{false}, or \textit{smart}.
+\item[$\bullet$] \qtybf{bool\_or\_smart\/}: \textit{true}, \textit{false}, or
+\textit{smart}.
 \item[$\bullet$] \qtybf{int\/}: An integer.
 \item[$\bullet$] \qtybf{int\_or\_smart\/}: An integer or \textit{smart}.
-\item[$\bullet$] \qtybf{time}: An integer followed by $\textit{min}$ (minutes), $s$ (seconds), or \textit{ms}
+\item[$\bullet$] \qtybf{time}: An integer followed by $\textit{min}$ (minutes),
+$s$ (seconds), or \textit{ms}
 (milliseconds), or the keyword \textit{none} ($\infty$ years).
 \end{enum}
 
@@ -531,9 +527,9 @@ empirically found to be appropriate for the prover. A typical value would be
 Specifies whether the \textbf{sledgehammer} command should explain what it does.
 
 \opfalse{debug}{no\_debug}
-Specifies whether Nitpick should display additional debugging information beyond
-what \textit{verbose} already displays. Enabling \textit{debug} also enables
-\textit{verbose} behind the scenes.
+Specifies whether Sledgehammer should display additional debugging information
+beyond what \textit{verbose} already displays. Enabling \textit{debug} also
+enables \textit{verbose} behind the scenes.
 
 \nopagebreak
 {\small See also \textit{overlord} (\S\ref{mode-of-operation}).}
@@ -559,9 +555,11 @@ steps in the ATP proof.
 Specifies the expected outcome, which must be one of the following:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{some}:} Sledgehammer found a (potentially unsound) proof.
+\item[$\bullet$] \textbf{\textit{some}:} Sledgehammer found a (potentially
+unsound) proof.
 \item[$\bullet$] \textbf{\textit{none}:} Sledgehammer found no proof.
-\item[$\bullet$] \textbf{\textit{unknown}:} Sledgehammer encountered some problem.
+\item[$\bullet$] \textbf{\textit{unknown}:} Sledgehammer encountered some
+problem.
 \end{enum}
 
 Sledgehammer emits an error (if \textit{blocking} is enabled) or a warning
