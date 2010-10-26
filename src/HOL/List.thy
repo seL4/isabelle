@@ -5,7 +5,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Plain Presburger Recdef Code_Numeral Quotient
+imports Plain Presburger Recdef Code_Numeral Quotient ATP
 uses ("Tools/list_code.ML")
 begin
 
