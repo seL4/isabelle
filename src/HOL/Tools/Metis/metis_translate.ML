@@ -31,7 +31,7 @@ sig
   datatype fol_literal = FOLLiteral of bool * combterm
 
   datatype mode = FO | HO | FT
-  type logic_map =
+  type metis_problem =
     {axioms: (Metis_Thm.thm * thm) list,
      tfrees: type_literal list,
      old_skolems: (string * term) list}
@@ -74,9 +74,9 @@ sig
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
   val string_of_mode : mode -> string
-  val build_logic_map :
+  val prepare_metis_problem :
     mode -> Proof.context -> bool -> thm list -> thm list list
-    -> mode * logic_map
+    -> mode * metis_problem
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
@@ -662,7 +662,7 @@ val helpers =
 (* Logic maps manage the interface between HOL and first-order logic.        *)
 (* ------------------------------------------------------------------------- *)
 
-type logic_map =
+type metis_problem =
   {axioms: (Metis_Thm.thm * thm) list,
    tfrees: type_literal list,
    old_skolems: (string * term) list}
@@ -678,7 +678,7 @@ fun init_tfrees ctxt =
   end;
 
 (*Insert non-logical axioms corresponding to all accumulated TFrees*)
-fun add_tfrees {axioms, tfrees, old_skolems} : logic_map =
+fun add_tfrees {axioms, tfrees, old_skolems} : metis_problem =
      {axioms = map (rpair TrueI o metis_of_tfree) (distinct (op =) tfrees) @
                axioms,
       tfrees = tfrees, old_skolems = old_skolems}
@@ -722,7 +722,7 @@ fun type_ext thy tms =
   end;
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun build_logic_map mode0 ctxt type_lits cls thss =
+fun prepare_metis_problem mode0 ctxt type_lits cls thss =
   let val thy = ProofContext.theory_of ctxt
       (*The modes FO and FT are sticky. HO can be downgraded to FO.*)
       fun set_mode FO = FO
@@ -733,7 +733,7 @@ fun build_logic_map mode0 ctxt type_lits cls thss =
       val mode = set_mode mode0
       (*transform isabelle clause to metis clause *)
       fun add_thm is_conjecture (metis_ith, isa_ith)
-                  {axioms, tfrees, old_skolems} : logic_map =
+                  {axioms, tfrees, old_skolems} : metis_problem =
         let
           val (mth, tfree_lits, old_skolems) =
             hol_thm_to_fol is_conjecture ctxt type_lits mode (length axioms)
