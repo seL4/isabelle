@@ -157,7 +157,7 @@ fun avoid_too_many_local_threads _ _ [] = []
       prover :: avoid_too_many_local_threads thy n provers
     end
 
-val num_processors = try Thread.numProcessors #> the_default 1
+fun num_processors () = try Thread.numProcessors () |> the_default 1
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
