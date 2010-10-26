@@ -106,8 +106,9 @@ fun parse fin =
        | SOME wv => Byte.unpackStringVec wv);
 
     val content_length =
-      (the o Int.fromString o field) "CONTENT_LENGTH"
-      handle _ => raise InvalidReq "Bad CONTENT_LENGTH";
+      (case Int.fromString (field "CONTENT_LENGTH") of
+        SOME n => n
+      | NONE => raise InvalidReq "Bad CONTENT_LENGTH");
 
     val req = Req {
         path_info = field "PATH_INFO",
