@@ -76,8 +76,7 @@ datatype failure =
 
 fun string_of_failure ctxt (Counterexample (real, ex)) =
       let
-        val msg = if real then "Counterexample found"
-          else "Potential counterexample found"
+        val msg = (if real then "C" else "Potential c") ^ "ounterexample found"
       in
         if null ex then msg ^ "."
         else Pretty.string_of (Pretty.big_list (msg ^ ":")
@@ -419,25 +418,20 @@ fun smt_filter remote time_limit st xrules i =
 
 (* SMT tactic *)
 
-local
-  fun fail_tac f msg st = (f msg; Tactical.no_tac st)
-
-  fun SAFE pass_exns tac ctxt i st =
-    if pass_exns then tac ctxt i st
-    else (tac ctxt i st handle SMT fail => fail_tac
-      (trace_msg ctxt (prefix "SMT: ") o string_of_failure ctxt) fail st)
-in
-
 fun smt_tac' pass_exns ctxt rules =
   CONVERSION (SMT_Normalize.atomize_conv ctxt)
   THEN' Tactic.rtac @{thm ccontr}
   THEN' SUBPROOF (fn {context, prems, ...} =>
-    let fun solve cx = snd (smt_solver cx (map (pair ~1) (rules @ prems)))
-    in SAFE pass_exns (Tactic.rtac o solve) context 1 end) ctxt
+    let
+      fun solve cx = snd (smt_solver cx (map (pair ~1) (rules @ prems)))
+      fun trace cx f = trace_msg cx (prefix "SMT: " o string_of_failure cx) f
+    in
+      (if pass_exns then SOME (solve cx)
+       else (SOME (solve cx) handle SMT fail => (trace cx fail; NONE)))
+      |> (fn SOME thm => Tactic.rtac thm 1 | _ => Tactical.no_tac)
+    end
 
 val smt_tac = smt_tac' false
-
-end
 
 val smt_method =
   Scan.optional Attrib.thms [] >>
