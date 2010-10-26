@@ -228,6 +228,9 @@ fun run_solver ctxt cmd args input =
 
 end
 
+fun trace_assms ctxt = trace_msg ctxt (Pretty.string_of o
+  Pretty.big_list "SMT assertions:" o map (Display.pretty_thm ctxt o snd))
+
 fun trace_recon_data ctxt ({typs, terms, ...} : SMT_Translate.recon) =
   let
     fun pretty_eq n p = Pretty.block [Pretty.str n, Pretty.str " = ", p]
@@ -247,6 +250,7 @@ fun invoke translate_config name cmd more_opts options irules ctxt =
       "arguments:" :: args
   in
     irules
+    |> tap (trace_assms ctxt)
     |> SMT_Translate.translate translate_config ctxt comments
     ||> tap (trace_recon_data ctxt)
     |>> run_solver ctxt cmd args
