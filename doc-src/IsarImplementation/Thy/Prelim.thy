@@ -519,7 +519,7 @@ text {* Type @{ML_type "term Ord_List.T"} is used for reasonably
   of this module do not care about the declaration order, since that
   data structure forces its own arrangement of elements.
 
-  Observe how the @{verbatim merge} operation joins the data slots of
+  Observe how the @{ML_text merge} operation joins the data slots of
   the two constituents: @{ML Ord_List.union} prevents duplication of
   common data from different branches, thus avoiding the danger of
   exponential blowup.  Plain list append etc.\ must never be used for

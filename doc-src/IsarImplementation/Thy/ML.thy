@@ -463,7 +463,7 @@ text {* The general Isabelle/ML source layout imitates regular
   \end{enumerate}
 
   Such weakly structured layout should be use with great care.  Here
-  is a counter-example involving @{ML_text let} expressions:
+  are some counter-examples involving @{ML_text let} expressions:
 
   \begin{verbatim}
   (* WRONG *)
@@ -471,6 +471,10 @@ text {* The general Isabelle/ML source layout imitates regular
   fun foo x = let
       val y = ...
     in ... end
+
+  fun foo x = let
+    val y = ...
+  in ... end
 
   fun foo x =
   let

@@ -182,7 +182,7 @@ ML {*
 
 text {* In the above example, the starting context is derived from the
   toplevel theory, which means that fixed variables are internalized
-  literally: @{verbatim "x"} is mapped again to @{verbatim "x"}, and
+  literally: @{text "x"} is mapped again to @{text "x"}, and
   attempting to fix it again in the subsequent context is an error.
   Alternatively, fixed parameters can be renamed explicitly as
   follows: *}
@@ -194,7 +194,7 @@ ML {*
 *}
 
 text {* The following ML code can now work with the invented names of
-  @{verbatim x1}, @{verbatim x2}, @{verbatim x3}, without depending on
+  @{text x1}, @{text x2}, @{text x3}, without depending on
   the details on the system policy for introducing these variants.
   Recall that within a proof body the system always invents fresh
   ``skolem constants'', e.g.\ as follows: *}
