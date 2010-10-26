@@ -44,7 +44,8 @@ sig
   val select_certificates: string -> Context.generic -> Context.generic
 
   (*solvers*)
-  type solver = bool -> Proof.context -> (int * thm) list -> int list * thm
+  type solver = bool option -> Proof.context -> (int * thm) list ->
+    int list * thm
   val add_solver: solver_config -> theory -> theory
   val set_solver_options: string -> string -> Context.generic ->
     Context.generic
@@ -162,23 +163,28 @@ fun get_local_solver env_var =
 
 local
 
-fun choose (force_remote, env_var, is_remote, name) =
+fun choose (rm, env_var, is_remote, name) =
   let
+    val force_local = (case rm of SOME false => true | _ => false)
+    val force_remote = (case rm of SOME true => true | _ => false)
     val lsolver = get_local_solver env_var
     val remote_url = getenv "REMOTE_SMT_URL"
+    val trace = if is_some rm then K () else tracing
   in
     if not force_remote andalso is_some lsolver
     then 
-     (tracing ("Invoking local SMT solver " ^ quote (the lsolver) ^ " ...");
+     (trace ("Invoking local SMT solver " ^ quote (the lsolver) ^ " ...");
       [the lsolver])
-    else if is_remote
+    else if not force_local andalso is_remote
     then
-     (tracing ("Invoking remote SMT solver " ^ quote name ^ " at " ^
+     (trace ("Invoking remote SMT solver " ^ quote name ^ " at " ^
         quote remote_url ^ " ...");
       [getenv "REMOTE_SMT", name])
     else if force_remote
-    then error ("SMT solver " ^ quote name ^ " is not remotely available.")
-    else error ("Undefined Isabelle environment variable: " ^ quote env_var)
+    then error ("The SMT solver " ^ quote name ^ " is not remotely available.")
+    else error ("The SMT solver " ^ quote name ^ " has not been found " ^
+      "on this computer. Please set the Isabelle environment variable " ^
+      quote env_var ^ ".")
   end
 
 fun make_cmd solver args problem_path proof_path = space_implode " " (
@@ -270,14 +276,14 @@ fun trace_assumptions ctxt irules idxs =
     else ()
   end
 
-fun gen_solver name info force_remote ctxt irules =
+fun gen_solver name info rm ctxt irules =
   let
     val {env_var, is_remote, options, more_options, interface, reconstruct} =
       info
     val {extra_norm, translate} = interface
     val (with_datatypes, translate') =
       set_has_datatypes (Config.get ctxt datatypes) translate
-    val cmd = (force_remote, env_var, is_remote, name)
+    val cmd = (rm, env_var, is_remote, name)
   in
     (irules, ctxt)
     |-> SMT_Normalize.normalize extra_norm with_datatypes
@@ -294,7 +300,7 @@ fun gen_solver name info force_remote ctxt irules =
 
 (* solver store *)
 
-type solver = bool -> Proof.context -> (int * thm) list -> int list * thm
+type solver = bool option -> Proof.context -> (int * thm) list -> int list * thm
 
 type solver_info = {
   env_var: string,
@@ -401,13 +407,13 @@ val has_topsort = Term.exists_type (Term.exists_subtype (fn
   | TVar (_, []) => true
   | _ => false))
 
-fun smt_solver force_remote ctxt irules =
+fun smt_solver rm ctxt irules =
   (* without this test, we would run into problems when atomizing the rules: *)
   if exists (has_topsort o Thm.prop_of o snd) irules
   then raise SMT (Other_Failure "proof state contains the universal sort {}")
-  else solver_of (Context.Proof ctxt) force_remote ctxt irules
+  else solver_of (Context.Proof ctxt) rm ctxt irules
 
-fun smt_filter rm time_limit st xrules i =
+fun smt_filter run_remote time_limit st xrules i =
   let
     val {context, facts, goal} = Proof.goal st
     val ctxt =
@@ -420,6 +426,7 @@ fun smt_filter rm time_limit st xrules i =
       |> Thm.rhs_of o SMT_Normalize.atomize_conv ctxt
       |> Thm.capply @{cterm Trueprop} o Thm.capply @{cterm Not} o Thm.dest_arg
     val irs = map (pair ~1) (Thm.assume cprop :: facts)
+    val rm = SOME run_remote
   in
     split_list xrules
     ||> distinct (op =) o fst o smt_solver rm ctxt o append irs o map_index I
@@ -438,7 +445,7 @@ fun smt_tac' pass_exns ctxt rules =
   THEN' Tactic.rtac @{thm ccontr}
   THEN' SUBPROOF (fn {context=cx, prems, ...} =>
     let
-      fun solve () = snd (smt_solver false cx (map (pair ~1) (rules @ prems)))
+      fun solve () = snd (smt_solver NONE cx (map (pair ~1) (rules @ prems)))
       val trace = trace_msg cx (prefix "SMT: " o string_of_failure cx)
     in
       (if pass_exns then SOME (solve ())
