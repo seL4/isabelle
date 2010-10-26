@@ -222,7 +222,7 @@ where
      then do { ns \<leftarrow> collatz (n div 2); Some (n # ns) }
      else do { ns \<leftarrow> collatz (3 * n + 1);  Some (n # ns)})"
 
-declare collatz.rec[code]
+declare collatz.simps[code]
 value "collatz 23"
 
 
