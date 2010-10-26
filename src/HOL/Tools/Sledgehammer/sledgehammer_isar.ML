@@ -130,9 +130,6 @@ structure Data = Theory_Data(
   val extend = I
   fun merge p : T = AList.merge (op =) (K true) p)
 
-(* FIXME: dummy *)
-fun is_smt_solver_installed ctxt = true
-
 fun remotify_prover_if_available_and_not_already_remote thy name =
   if String.isPrefix remote_prefix name then
     SOME name

@@ -8,7 +8,7 @@ Sledgehammer's heart.
 
 signature SLEDGEHAMMER =
 sig
-  type failure = ATP_Systems.failure
+  type failure = ATP_Proof.failure
   type locality = Sledgehammer_Filter.locality
   type relevance_fudge = Sledgehammer_Filter.relevance_fudge
   type relevance_override = Sledgehammer_Filter.relevance_override
@@ -99,7 +99,7 @@ fun is_prover_available thy name =
 
 fun is_prover_installed ctxt name =
   let val thy = ProofContext.theory_of ctxt in
-    if is_smt_prover name then true (* FIXME *)
+    if is_smt_prover name then SMT_Solver.is_locally_installed ctxt
     else is_atp_installed thy name
   end
 
@@ -406,34 +406,33 @@ fun run_atp auto atp_name
      run_time_in_msecs = msecs}
   end
 
-(* FIXME: dummy *)
-fun saschas_run_smt_solver remote timeout state axioms i =
-  (OS.Process.sleep (Time.fromMilliseconds 1500);
-   {outcome = NONE, used_axioms = axioms |> take 5 |> map fst,
-    run_time_in_msecs = NONE})
+fun failure_from_smt_failure SMT_Solver.Time_Out = TimedOut
+  | failure_from_smt_failure (SMT_Solver.Counterexample _) = Unprovable
+  | failure_from_smt_failure (SMT_Solver.Other_Failure _) = UnknownError
 
 fun run_smt_solver remote ({timeout, ...} : params) minimize_command
                    ({state, subgoal, subgoal_count, axioms, ...}
                     : prover_problem) =
   let
-    val {outcome, used_axioms, run_time_in_msecs} =
-      saschas_run_smt_solver remote timeout state
-                             (map_filter (try dest_Untranslated) axioms) subgoal
+    val {outcome, used_facts, run_time_in_msecs} =
+      SMT_Solver.smt_filter remote timeout state
+                            (map_filter (try dest_Untranslated) axioms) subgoal
     val message =
       if outcome = NONE then
         try_command_line (proof_banner false)
                          (apply_on_subgoal subgoal subgoal_count ^
-                          command_call smtN (map fst used_axioms)) ^
-        minimize_line minimize_command (map fst used_axioms)
+                          command_call smtN (map fst used_facts)) ^
+        minimize_line minimize_command (map fst used_facts)
       else
         ""
   in
-    {outcome = outcome, used_axioms = used_axioms,
-     run_time_in_msecs = run_time_in_msecs, message = message}
+    {outcome = outcome |> Option.map failure_from_smt_failure,
+     used_axioms = used_facts, run_time_in_msecs = SOME run_time_in_msecs,
+     message = message}
   end
 
 fun get_prover thy auto name =
-  if is_smt_prover name then run_smt_solver (String.isPrefix remote_prefix)
+  if is_smt_prover name then run_smt_solver (String.isPrefix remote_prefix name)
   else run_atp auto name (get_atp thy name)
 
 fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
