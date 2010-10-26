@@ -83,9 +83,9 @@ boogie_open "~~/src/HOL/Boogie/Examples/Boogie_Dijkstra"
 
 declare [[smt_certificates="~~/src/HOL/Boogie/Examples/Boogie_Dijkstra.certs"]]
 declare [[smt_fixed=true]]
+declare [[smt_oracle=false]]
 
 boogie_vc Dijkstra
-  using [[z3_proofs=true]]
   by boogie
 
 boogie_end 

@@ -8,7 +8,7 @@ theory SMT_Examples
 imports Complex_Main
 begin
 
-declare [[smt_solver=z3, z3_proofs=true]]
+declare [[smt_solver=z3, smt_oracle=false]]
 declare [[smt_certificates="~~/src/HOL/SMT_Examples/SMT_Examples.certs"]]
 declare [[smt_fixed=true]]
 
@@ -25,7 +25,7 @@ lemma "(p \<and> True) = p" by smt
 lemma "(p \<or> q) \<and> \<not>p \<Longrightarrow> q" by smt
 
 lemma "(a \<and> b) \<or> (c \<and> d) \<Longrightarrow> (a \<and> b) \<or> (c \<and> d)"
-  using [[z3_proofs=false]] (* no Z3 proof *)
+  using [[smt_oracle=true]] (* no Z3 proof *)
   by smt
 
 lemma "(p1 \<and> p2) \<or> p3 \<longrightarrow> (p1 \<longrightarrow> (p3 \<and> p2) \<or> (p1 \<and> p3)) \<or> p1" by smt
@@ -358,15 +358,15 @@ lemma "~ (\<exists>x::int. False)" by smt
 lemma "~ (\<exists>x::real. False)" by smt
 
 lemma "\<exists>x::int. 0 < x"
-  using [[z3_proofs=false]] (* no Z3 proof *)
+  using [[smt_oracle=true]] (* no Z3 proof *)
   by smt
 
 lemma "\<exists>x::real. 0 < x"
-  using [[z3_proofs=false]] (* no Z3 proof *)
+  using [[smt_oracle=true]] (* no Z3 proof *)
   by smt
 
 lemma "\<forall>x::int. \<exists>y. y > x"
-  using [[z3_proofs=false]] (* no Z3 proof *)
+  using [[smt_oracle=true]] (* no Z3 proof *)
   by smt
 
 lemma "\<forall>x y::int. (x = 0 \<and> y = 1) \<longrightarrow> x \<noteq> y" by smt
@@ -400,7 +400,7 @@ lemma "\<forall>x::int. SMT.trigger [[SMT.pat x]] (x < a \<longrightarrow> 2 * x
 subsection {* Non-linear arithmetic over integers and reals *}
 
 lemma "a > (0::int) \<Longrightarrow> a*b > 0 \<Longrightarrow> b > 0"
-  using [[z3_proofs=false]]  -- {* Isabelle's arithmetic decision procedures
+  using [[smt_oracle=true]]  -- {* Isabelle's arithmetic decision procedures
     are too weak to automatically prove @{thm zero_less_mult_pos}. *}
   by smt (* FIXME: use z3_rule *)
 

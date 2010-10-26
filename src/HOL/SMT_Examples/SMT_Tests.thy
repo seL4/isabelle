@@ -8,7 +8,7 @@ theory SMT_Tests
 imports Complex_Main
 begin
 
-declare [[smt_solver=z3, z3_proofs=true]]
+declare [[smt_solver=z3, smt_oracle=false]]
 declare [[smt_certificates="~~/src/HOL/SMT_Examples/SMT_Tests.certs"]]
 declare [[smt_fixed=true]]
 
@@ -145,7 +145,7 @@ lemma  (* only without proofs: *)
   "\<exists>x. P x \<longrightarrow> P a \<and> P b"
   "\<exists>x. (\<exists>y. P y) \<longrightarrow> P x" 
   "(\<exists>x. Q \<longrightarrow> P x) \<longleftrightarrow> (Q \<longrightarrow> (\<exists>x. P x))"
-  using [[z3_proofs=false, z3_options="AUTO_CONFIG=false SATURATE=true"]]
+  using [[smt_oracle=true, z3_options="AUTO_CONFIG=false SATURATE=true"]]
   by smt+
 
 lemma
@@ -165,7 +165,7 @@ lemma  (* only without proofs: *)
   "(\<exists>x. \<forall>y. P x \<longleftrightarrow> P y) \<longrightarrow> ((\<exists>x. P x) \<longleftrightarrow> (\<forall>y. P y))"
   "\<exists>z. P z \<longrightarrow> (\<forall>x. P x)"
   "(\<exists>y. \<forall>x. R x y) \<longrightarrow> (\<forall>x. \<exists>y. R x y)"
-  using [[z3_proofs=false]]
+  using [[smt_oracle=true]]
   by smt+
 
 lemma
@@ -622,6 +622,7 @@ lemma
   "p1 = (x, y) \<and> p2 = (y, x) \<longrightarrow> fst p1 = snd p2"
   "(fst (x, y) = snd (x, y)) = (x = y)"
   "(fst p = snd p) = (p = (snd p, fst p))"
+  using [[smt_trace=true]]
   by smt+
 
 

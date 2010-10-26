@@ -40,9 +40,9 @@ boogie_open "~~/src/HOL/Boogie/Examples/Boogie_Max"
 
 declare [[smt_certificates="~~/src/HOL/Boogie/Examples/Boogie_Max.certs"]]
 declare [[smt_fixed=true]]
+declare [[smt_oracle=false]]
 
 boogie_vc max
-  using [[z3_proofs=true]]
   by boogie
 
 boogie_end
