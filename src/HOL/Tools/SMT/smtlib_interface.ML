@@ -15,7 +15,7 @@ sig
   val add_builtins: builtins -> Context.generic -> Context.generic
   val add_logic: (term list -> string option) -> Context.generic ->
     Context.generic
-  val extra_norm: bool -> SMT_Normalize.extra_norm
+  val extra_norm: SMT_Normalize.extra_norm
   val interface: SMT_Solver.interface
 end
 
@@ -283,7 +283,7 @@ fun serialize comments {header, sorts, dtyps, funcs} ts =
 (** interfaces **)
 
 val interface = {
-  extra_norm = extra_norm false,
+  extra_norm = extra_norm,
   translate = {
     prefixes = {
       sort_prefix = "S",

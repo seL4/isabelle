@@ -17,7 +17,7 @@ Normalization steps on theorems required by SMT solvers:
 
 signature SMT_NORMALIZE =
 sig
-  type extra_norm = (int * thm) list -> Proof.context ->
+  type extra_norm = bool -> (int * thm) list -> Proof.context ->
     (int * thm) list * Proof.context
   val normalize: extra_norm -> bool -> (int * thm) list -> Proof.context ->
     (int * thm) list * Proof.context
@@ -480,7 +480,7 @@ end
 
 (* combined normalization *)
 
-type extra_norm = (int * thm) list -> Proof.context ->
+type extra_norm = bool -> (int * thm) list -> Proof.context ->
   (int * thm) list * Proof.context
 
 fun with_context f irules ctxt = (f ctxt irules, ctxt)
@@ -492,7 +492,7 @@ fun normalize extra_norm with_datatypes irules ctxt =
   |> normalize_numerals ctxt
   |> nat_as_int ctxt
   |> rpair ctxt
-  |-> extra_norm
+  |-> extra_norm with_datatypes
   |-> with_context (fn cx => map (apsnd (normalize_rule cx)))
   |-> SMT_Monomorph.monomorph
   |-> lift_lambdas

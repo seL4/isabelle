@@ -306,6 +306,15 @@ INCOMPATIBILITY.
     sledgehammer [atp = ...] ~> sledgehammer [prover = ...]
     INCOMPATIBILITY.
 
+* Changed SMT configuration options:
+  - Renamed:
+    z3_proofs ~> smt_oracle (with swapped semantics)
+    z3_trace_assms ~> smt_trace_used_facts
+    INCOMPATIBILITY.
+  - Added:
+    cvc3_options
+    yices_options
+    smt_datatypes
 
 *** FOL ***
 

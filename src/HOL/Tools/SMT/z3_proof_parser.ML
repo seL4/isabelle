@@ -240,8 +240,8 @@ fun finish (_, _, _, steps, vars, ctxt) = (steps, vars, ctxt)
 
 (* core parser *)
 
-fun parse_exn line_no msg = raise SMT_Solver.SMT ("Z3 proof parser (line " ^
-  string_of_int line_no ^ "): " ^ msg)
+fun parse_exn line_no msg = raise SMT_Solver.SMT (SMT_Solver.Other_Failure
+  ("Z3 proof parser (line " ^ string_of_int line_no ^ "): " ^ msg))
 
 fun scan_exn msg ((line_no, _), _) = parse_exn line_no msg
 

@@ -8,7 +8,7 @@ signature Z3_PROOF_RECONSTRUCTION =
 sig
   val add_z3_rule: thm -> Context.generic -> Context.generic
   val trace_assms: bool Config.T
-  val reconstruct: string list * SMT_Translate.recon -> Proof.context ->
+  val reconstruct: Proof.context -> SMT_Translate.recon -> string list ->
     (int list * thm) * Proof.context
   val setup: theory -> theory
 end
@@ -20,7 +20,8 @@ structure P = Z3_Proof_Parser
 structure T = Z3_Proof_Tools
 structure L = Z3_Proof_Literals
 
-fun z3_exn msg = raise SMT_Solver.SMT ("Z3 proof reconstruction: " ^ msg)
+fun z3_exn msg = raise SMT_Solver.SMT (SMT_Solver.Other_Failure
+  ("Z3 proof reconstruction: " ^ msg))
 
 
 
@@ -826,7 +827,7 @@ fun prove ctxt unfolds assms vars =
     (fn (idx, ptab) => result (lookup idx (ctxt, Inttab.map (K Unproved) ptab)))
   end
 
-fun reconstruct (output, {typs, terms, unfolds, assms}) ctxt =
+fun reconstruct ctxt {typs, terms, unfolds, assms} output =
   P.parse ctxt typs terms output
   |> (fn (idx, (ptab, vars, cx)) => prove cx unfolds assms vars (idx, ptab))
 
