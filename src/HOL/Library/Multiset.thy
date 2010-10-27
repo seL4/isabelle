@@ -837,11 +837,11 @@ qed
 context linorder
 begin
 
-lemma multiset_of_insort_key [simp]:
+lemma multiset_of_insort [simp]:
   "multiset_of (insort_key k x xs) = {#x#} + multiset_of xs"
   by (induct xs) (simp_all add: ac_simps)
  
-lemma multiset_of_sort_key [simp]:
+lemma multiset_of_sort [simp]:
   "multiset_of (sort_key k xs) = multiset_of xs"
   by (induct xs) (simp_all add: ac_simps)
 

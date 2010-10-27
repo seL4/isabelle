@@ -303,11 +303,12 @@ primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b l
 definition sort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Rightarrow> 'b list" where
 "sort_key f xs = foldr (insort_key f) xs []"
 
+definition insort_insert_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
+  "insort_insert_key f x xs = (if f x \<in> f ` set xs then xs else insort_key f x xs)"
+
 abbreviation "sort \<equiv> sort_key (\<lambda>x. x)"
 abbreviation "insort \<equiv> insort_key (\<lambda>x. x)"
-
-definition insort_insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "insort_insert x xs = (if x \<in> set xs then xs else insort x xs)"
+abbreviation "insort_insert \<equiv> insort_insert_key (\<lambda>x. x)"
 
 end
 
@@ -756,6 +757,14 @@ Addsimprocs [list_eq_simproc];
 
 
 subsubsection {* @{text map} *}
+
+lemma hd_map:
+  "xs \<noteq> [] \<Longrightarrow> hd (map f xs) = f (hd xs)"
+  by (cases xs) simp_all
+
+lemma map_tl:
+  "map f (tl xs) = tl (map f xs)"
+  by (cases xs) simp_all
 
 lemma map_ext: "(!!x. x : set xs --> f x = g x) ==> map f xs = map g xs"
 by (induct xs) simp_all
@@ -2669,6 +2678,10 @@ done
 
 subsubsection {* @{text "distinct"} and @{text remdups} *}
 
+lemma distinct_tl:
+  "distinct xs \<Longrightarrow> distinct (tl xs)"
+  by (cases xs) simp_all
+
 lemma distinct_append [simp]:
 "distinct (xs @ ys) = (distinct xs \<and> distinct ys \<and> set xs \<inter> set ys = {})"
 by (induct xs) auto
@@ -3629,12 +3642,18 @@ that instead of multisets to state the correctness property. *}
 context linorder
 begin
 
-lemma length_insert[simp] : "length (insort_key f x xs) = Suc (length xs)"
-by (induct xs, auto)
+lemma length_insort [simp]:
+  "length (insort_key f x xs) = Suc (length xs)"
+  by (induct xs) simp_all
+
+lemma insort_key_left_comm:
+  assumes "f x \<noteq> f y"
+  shows "insort_key f y (insort_key f x xs) = insort_key f x (insort_key f y xs)"
+  by (induct xs) (auto simp add: assms dest: antisym)
 
 lemma insort_left_comm:
   "insort x (insort y xs) = insort y (insort x xs)"
-  by (induct xs) auto
+  by (cases "x = y") (auto intro: insort_key_left_comm)
 
 lemma fun_left_comm_insort:
   "fun_left_comm insort"
@@ -3656,6 +3675,10 @@ by (induct xs, auto)
 lemma sorted_Cons: "sorted (x#xs) = (sorted xs & (ALL y:set xs. x <= y))"
 apply(induct xs arbitrary: x) apply simp
 by simp (blast intro: order_trans)
+
+lemma sorted_tl:
+  "sorted xs \<Longrightarrow> sorted (tl xs)"
+  by (cases xs) (simp_all add: sorted_Cons)
 
 lemma sorted_append:
   "sorted (xs@ys) = (sorted xs & sorted ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
@@ -3712,16 +3735,16 @@ lemma distinct_sort[simp]: "distinct (sort_key f xs) = distinct xs"
 by(induct xs)(simp_all add:distinct_insort set_sort)
 
 lemma sorted_insort_key: "sorted (map f (insort_key f x xs)) = sorted (map f xs)"
-by(induct xs)(auto simp:sorted_Cons set_insort)
+  by (induct xs) (auto simp:sorted_Cons set_insort)
 
 lemma sorted_insort: "sorted (insort x xs) = sorted xs"
-using sorted_insort_key[where f="\<lambda>x. x"] by simp
+  using sorted_insort_key [where f="\<lambda>x. x"] by simp
 
-theorem sorted_sort_key[simp]: "sorted (map f (sort_key f xs))"
-by(induct xs)(auto simp:sorted_insort_key)
+theorem sorted_sort_key [simp]: "sorted (map f (sort_key f xs))"
+  by (induct xs) (auto simp:sorted_insort_key)
 
-theorem sorted_sort[simp]: "sorted (sort xs)"
-by(induct xs)(auto simp:sorted_insort)
+theorem sorted_sort [simp]: "sorted (sort xs)"
+  using sorted_sort_key [where f="\<lambda>x. x"] by simp
 
 lemma sorted_butlast:
   assumes "xs \<noteq> []" and "sorted xs"
@@ -3870,32 +3893,53 @@ proof (rule takeWhile_eq_filter[symmetric])
   finally show "\<not> t < f x" by simp
 qed
 
+lemma insort_insert_key_triv:
+  "f x \<in> f ` set xs \<Longrightarrow> insort_insert_key f x xs = xs"
+  by (simp add: insort_insert_key_def)
+
+lemma insort_insert_triv:
+  "x \<in> set xs \<Longrightarrow> insort_insert x xs = xs"
+  using insort_insert_key_triv [of "\<lambda>x. x"] by simp
+
+lemma insort_insert_insort_key:
+  "f x \<notin> f ` set xs \<Longrightarrow> insort_insert_key f x xs = insort_key f x xs"
+  by (simp add: insort_insert_key_def)
+
+lemma insort_insert_insort:
+  "x \<notin> set xs \<Longrightarrow> insort_insert x xs = insort x xs"
+  using insort_insert_insort_key [of "\<lambda>x. x"] by simp
+
 lemma set_insort_insert:
   "set (insort_insert x xs) = insert x (set xs)"
-  by (auto simp add: insort_insert_def set_insort)
+  by (auto simp add: insort_insert_key_def set_insort)
 
 lemma distinct_insort_insert:
   assumes "distinct xs"
-  shows "distinct (insort_insert x xs)"
-  using assms by (induct xs) (auto simp add: insort_insert_def set_insort)
+  shows "distinct (insort_insert_key f x xs)"
+  using assms by (induct xs) (auto simp add: insort_insert_key_def set_insort)
+
+lemma sorted_insort_insert_key:
+  assumes "sorted (map f xs)"
+  shows "sorted (map f (insort_insert_key f x xs))"
+  using assms by (simp add: insort_insert_key_def sorted_insort_key)
 
 lemma sorted_insort_insert:
   assumes "sorted xs"
   shows "sorted (insort_insert x xs)"
-  using assms by (simp add: insort_insert_def sorted_insort)
+  using assms sorted_insort_insert_key [of "\<lambda>x. x"] by simp
 
-lemma filter_insort_key_triv:
+lemma filter_insort_triv:
   "\<not> P x \<Longrightarrow> filter P (insort_key f x xs) = filter P xs"
   by (induct xs) simp_all
 
-lemma filter_insort_key:
+lemma filter_insort:
   "sorted (map f xs) \<Longrightarrow> P x \<Longrightarrow> filter P (insort_key f x xs) = insort_key f x (filter P xs)"
   using assms by (induct xs)
     (auto simp add: sorted_Cons, subst insort_is_Cons, auto)
 
-lemma filter_sort_key:
+lemma filter_sort:
   "filter P (sort_key f xs) = sort_key f (filter P xs)"
-  by (induct xs) (simp_all add: filter_insort_key_triv filter_insort_key)
+  by (induct xs) (simp_all add: filter_insort_triv filter_insort)
 
 lemma sorted_same [simp]:
   "sorted [x\<leftarrow>xs. x = f xs]"
