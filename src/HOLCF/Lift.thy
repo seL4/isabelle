@@ -95,6 +95,11 @@ definition
   flift1 :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)"  (binder "FLIFT " 10)  where
   "flift1 = (\<lambda>f. (\<Lambda> x. lift_case \<bottom> f x))"
 
+translations
+  "\<Lambda>(XCONST Def x). t" => "CONST flift1 (\<lambda>x. t)"
+  "\<Lambda>(CONST Def x). FLIFT y. t" <= "FLIFT x y. t"
+  "\<Lambda>(CONST Def x). t" <= "FLIFT x. t"
+
 definition
   flift2 :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lift \<rightarrow> 'b lift)" where
   "flift2 f = (FLIFT x. Def (f x))"
