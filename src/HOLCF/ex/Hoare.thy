@@ -30,11 +30,11 @@ axiomatization
 
 definition
   p :: "'a -> 'a" where
-  "p = fix$(LAM f. LAM x. If b1$x then f$(g$x) else x fi)"
+  "p = fix$(LAM f. LAM x. If b1$x then f$(g$x) else x)"
 
 definition
   q :: "'a -> 'a" where
-  "q = fix$(LAM f. LAM x. If b1$x orelse b2$x then f$(g$x) else x fi)"
+  "q = fix$(LAM f. LAM x. If b1$x orelse b2$x then f$(g$x) else x)"
 
 
 (* --------- pure HOLCF logic, some little lemmas ------ *)
@@ -102,13 +102,13 @@ done
 
 (* ----- access to definitions ----- *)
 
-lemma p_def3: "p$x = If b1$x then p$(g$x) else x fi"
+lemma p_def3: "p$x = If b1$x then p$(g$x) else x"
 apply (rule trans)
 apply (rule p_def [THEN eq_reflection, THEN fix_eq3])
 apply simp
 done
 
-lemma q_def3: "q$x = If b1$x orelse b2$x then q$(g$x) else x fi"
+lemma q_def3: "q$x = If b1$x orelse b2$x then q$(g$x) else x"
 apply (rule trans)
 apply (rule q_def [THEN eq_reflection, THEN fix_eq3])
 apply simp

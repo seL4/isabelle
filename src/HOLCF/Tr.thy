@@ -67,18 +67,20 @@ default_sort pcpo
 definition
   trifte :: "'c \<rightarrow> 'c \<rightarrow> tr \<rightarrow> 'c" where
   ifte_def: "trifte = (\<Lambda> t e. FLIFT b. if b then t else e)"
+
 abbreviation
-  cifte_syn :: "[tr, 'c, 'c] \<Rightarrow> 'c"  ("(3If _/ (then _/ else _) fi)" 60)  where
-  "If b then e1 else e2 fi == trifte\<cdot>e1\<cdot>e2\<cdot>b"
+  cifte_syn :: "[tr, 'c, 'c] \<Rightarrow> 'c"  ("(If (_)/ then (_)/ else (_))" [0, 0, 60] 60)
+where
+  "If b then e1 else e2 == trifte\<cdot>e1\<cdot>e2\<cdot>b"
 
 translations
   "\<Lambda> (XCONST TT). t" == "CONST trifte\<cdot>t\<cdot>\<bottom>"
   "\<Lambda> (XCONST FF). t" == "CONST trifte\<cdot>\<bottom>\<cdot>t"
 
 lemma ifte_thms [simp]:
-  "If \<bottom> then e1 else e2 fi = \<bottom>"
-  "If FF then e1 else e2 fi = e2"
-  "If TT then e1 else e2 fi = e1"
+  "If \<bottom> then e1 else e2 = \<bottom>"
+  "If FF then e1 else e2 = e2"
+  "If TT then e1 else e2 = e1"
 by (simp_all add: ifte_def TT_def FF_def)
 
 
@@ -86,14 +88,14 @@ subsection {* Boolean connectives *}
 
 definition
   trand :: "tr \<rightarrow> tr \<rightarrow> tr" where
-  andalso_def: "trand = (\<Lambda> x y. If x then y else FF fi)"
+  andalso_def: "trand = (\<Lambda> x y. If x then y else FF)"
 abbreviation
   andalso_syn :: "tr \<Rightarrow> tr \<Rightarrow> tr"  ("_ andalso _" [36,35] 35)  where
   "x andalso y == trand\<cdot>x\<cdot>y"
 
 definition
   tror :: "tr \<rightarrow> tr \<rightarrow> tr" where
-  orelse_def: "tror = (\<Lambda> x y. If x then TT else y fi)"
+  orelse_def: "tror = (\<Lambda> x y. If x then TT else y)"
 abbreviation
   orelse_syn :: "tr \<Rightarrow> tr \<Rightarrow> tr"  ("_ orelse _"  [31,30] 30)  where
   "x orelse y == tror\<cdot>x\<cdot>y"
@@ -104,7 +106,7 @@ definition
 
 definition
   If2 :: "[tr, 'c, 'c] \<Rightarrow> 'c" where
-  "If2 Q x y = (If Q then x else y fi)"
+  "If2 Q x y = (If Q then x else y)"
 
 text {* tactic for tr-thms with case split *}
 
@@ -182,7 +184,7 @@ lemma Def_bool4 [simp]: "(Def x \<noteq> TT) = (\<not> x)"
 by (simp add: TT_def)
 
 lemma If_and_if:
-  "(If Def P then A else B fi) = (if P then A else B)"
+  "(If Def P then A else B) = (if P then A else B)"
 apply (rule_tac p = "Def P" in trE)
 apply (auto simp add: TT_def[symmetric] FF_def[symmetric])
 done

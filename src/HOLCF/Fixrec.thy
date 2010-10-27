@@ -150,12 +150,12 @@ where
 definition
   match_TT :: "tr \<rightarrow> 'c match \<rightarrow> 'c match"
 where
-  "match_TT = (\<Lambda> x k. If x then k else fail fi)"
+  "match_TT = (\<Lambda> x k. If x then k else fail)"
  
 definition
   match_FF :: "tr \<rightarrow> 'c match \<rightarrow> 'c match"
 where
-  "match_FF = (\<Lambda> x k. If x then fail else k fi)"
+  "match_FF = (\<Lambda> x k. If x then fail else k)"
 
 lemma match_UU_simps [simp]:
   "match_UU\<cdot>\<bottom>\<cdot>k = \<bottom>"

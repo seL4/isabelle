@@ -39,7 +39,7 @@ definition
     | x##xs => (flift1
             (%p.(If Def ((fst p)~:actions sig)
                  then Def (s=(snd p))
-                 else TT fi)
+                 else TT)
                 andalso (h$xs) (snd p))
              $x)
    )))"
@@ -137,7 +137,7 @@ lemma stutter2_unfold: "stutter2 sig = (LAM ex. (%s. case ex of
      | x##xs => (flift1
              (%p.(If Def ((fst p)~:actions sig)
                   then Def (s=(snd p))
-                  else TT fi)
+                  else TT)
                  andalso (stutter2 sig$xs) (snd p))
               $x)
             ))"

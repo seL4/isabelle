@@ -10,23 +10,23 @@ begin
 
 definition
   step  :: "('a -> tr)->('a -> 'a)->'a->'a" where
-  "step = (LAM b g x. If b$x then g$x else x fi)"
+  "step = (LAM b g x. If b$x then g$x else x)"
 
 definition
   while :: "('a -> tr)->('a -> 'a)->'a->'a" where
-  "while = (LAM b g. fix$(LAM f x. If b$x then f$(g$x) else x fi))"
+  "while = (LAM b g. fix$(LAM f x. If b$x then f$(g$x) else x))"
 
 (* ------------------------------------------------------------------------- *)
 (* access to definitions                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 
-lemma step_def2: "step$b$g$x = If b$x then g$x else x fi"
+lemma step_def2: "step$b$g$x = If b$x then g$x else x"
 apply (unfold step_def)
 apply simp
 done
 
-lemma while_def2: "while$b$g = fix$(LAM f x. If b$x then f$(g$x) else x fi)"
+lemma while_def2: "while$b$g = fix$(LAM f x. If b$x then f$(g$x) else x)"
 apply (unfold while_def)
 apply simp
 done
@@ -36,7 +36,7 @@ done
 (* rekursive properties of while                                             *)
 (* ------------------------------------------------------------------------- *)
 
-lemma while_unfold: "while$b$g$x = If b$x then while$b$g$(g$x) else x fi"
+lemma while_unfold: "while$b$g$x = If b$x then while$b$g$(g$x) else x"
 apply (rule trans)
 apply (rule while_def2 [THEN fix_eq5])
 apply simp

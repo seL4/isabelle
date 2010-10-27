@@ -184,11 +184,11 @@ definition
 
 definition
   TT_pat :: "(tr, unit) pat" where
-  "TT_pat = (\<Lambda> b. If b then succeed\<cdot>() else fail fi)"
+  "TT_pat = (\<Lambda> b. If b then succeed\<cdot>() else fail)"
 
 definition
   FF_pat :: "(tr, unit) pat" where
-  "FF_pat = (\<Lambda> b. If b then fail else succeed\<cdot>() fi)"
+  "FF_pat = (\<Lambda> b. If b then fail else succeed\<cdot>())"
 
 definition
   ONE_pat :: "(one, unit) pat" where

@@ -70,7 +70,7 @@ where
   sfilter_nil: "sfilter$P$nil=nil"
 | sfilter_cons:
     "x~=UU ==> sfilter$P$(x##xs)=
-              (If P$x then x##(sfilter$P$xs) else sfilter$P$xs fi)"
+              (If P$x then x##(sfilter$P$xs) else sfilter$P$xs)"
 
 lemma sfilter_UU [simp]: "sfilter$P$UU=UU"
 by fixrec_simp
@@ -98,7 +98,7 @@ where
   stakewhile_nil: "stakewhile$P$nil=nil"
 | stakewhile_cons:
     "x~=UU ==> stakewhile$P$(x##xs) =
-              (If P$x then x##(stakewhile$P$xs) else nil fi)"
+              (If P$x then x##(stakewhile$P$xs) else nil)"
 
 lemma stakewhile_UU [simp]: "stakewhile$P$UU=UU"
 by fixrec_simp
@@ -111,7 +111,7 @@ where
   sdropwhile_nil: "sdropwhile$P$nil=nil"
 | sdropwhile_cons:
     "x~=UU ==> sdropwhile$P$(x##xs) =
-              (If P$x then sdropwhile$P$xs else x##xs fi)"
+              (If P$x then sdropwhile$P$xs else x##xs)"
 
 lemma sdropwhile_UU [simp]: "sdropwhile$P$UU=UU"
 by fixrec_simp
@@ -123,7 +123,7 @@ fixrec
 where
   slast_nil: "slast$nil=UU"
 | slast_cons:
-    "x~=UU ==> slast$(x##xs)= (If is_nil$xs then x else slast$xs fi)"
+    "x~=UU ==> slast$(x##xs)= (If is_nil$xs then x else slast$xs)"
 
 lemma slast_UU [simp]: "slast$UU=UU"
 by fixrec_simp
