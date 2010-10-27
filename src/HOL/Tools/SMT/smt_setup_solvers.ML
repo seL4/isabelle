@@ -29,7 +29,7 @@ fun on_first_line test_outcome solver_name lines =
 
 (* CVC3 *)
 
-val cvc3 = {
+fun cvc3 () = {
   name = "cvc3",
   env_var = "CVC3_SOLVER",
   is_remote = true,
@@ -43,7 +43,7 @@ val cvc3 = {
 
 (* Yices *)
 
-val yices = {
+fun yices () = {
   name = "yices",
   env_var = "YICES_SOLVER",
   is_remote = false,
@@ -75,7 +75,7 @@ fun z3_on_last_line solver_name lines =
     |>> outcome_of "unsat" "sat" "unknown" solver_name
   end
 
-val z3 = {
+fun z3 () = {
   name = "z3",
   env_var = "Z3_SOLVER",
   is_remote = true,
@@ -89,8 +89,8 @@ val z3 = {
 (* overall setup *)
 
 val setup =
-  SMT_Solver.add_solver cvc3 #>
-  SMT_Solver.add_solver yices #>
-  SMT_Solver.add_solver z3
+  SMT_Solver.add_solver (cvc3 ()) #>
+  SMT_Solver.add_solver (yices ()) #>
+  SMT_Solver.add_solver (z3 ())
 
 end
