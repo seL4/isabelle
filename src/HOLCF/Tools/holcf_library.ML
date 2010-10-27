@@ -8,7 +8,7 @@ structure HOLCF_Library =
 struct
 
 infixr 6 ->>;
-infix -->>;
+infixr -->>;
 infix 9 `;
 
 (*** Operations from Isabelle/HOL ***)
