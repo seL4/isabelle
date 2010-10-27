@@ -55,8 +55,8 @@ sig
   val map_of_typ :
     theory -> (typ * term) list -> typ -> term
 
-  val add_map_function : (string * string) -> theory -> theory
-  val get_map_tab : theory -> string Symtab.table
+  val add_map_function : (string * string * bool list) -> theory -> theory
+  val get_map_tab : theory -> (string * bool list) Symtab.table
   val add_deflation_thm : thm -> theory -> theory
   val get_deflation_thms : theory -> thm list
   val setup : theory -> theory
@@ -120,7 +120,9 @@ val beta_tac = simp_tac beta_ss;
 structure MapData = Theory_Data
 (
   (* constant names like "foo_map" *)
-  type T = string Symtab.table;
+  (* list indicates which type arguments correspond to map arguments *)
+  (* alternatively, which type arguments allow indirect recursion *)
+  type T = (string * bool list) Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data = Symtab.merge (K true) data;
@@ -132,8 +134,8 @@ structure DeflMapData = Named_Thms
   val description = "theorems like deflation a ==> deflation (foo_map$a)"
 );
 
-fun add_map_function (tname, map_name) =
-    MapData.map (Symtab.insert (K true) (tname, map_name));
+fun add_map_function (tname, map_name, bs) =
+    MapData.map (Symtab.insert (K true) (tname, (map_name, bs)));
 
 fun add_deflation_thm thm =
     Context.theory_map (DeflMapData.add_thm thm);
@@ -188,10 +190,11 @@ fun map_of_typ (thy : theory) (sub : (typ * term) list) (T : typ) : term =
           SOME m => (m, true) | NONE => map_of' T
     and map_of' (T as (Type (c, Ts))) =
         (case Symtab.lookup map_tab c of
-          SOME map_name =>
+          SOME (map_name, ds) =>
           let
-            val map_type = map auto Ts -->> auto T;
-            val (ms, bs) = map_split map_of Ts;
+            val Ts' = map snd (filter fst (ds ~~ Ts));
+            val map_type = map auto Ts' -->> auto T;
+            val (ms, bs) = map_split map_of Ts';
           in
             if exists I bs
             then (list_ccomb (Const (map_name, map_type), ms), true)
@@ -234,9 +237,6 @@ fun define_take_functions
     val iso_infos = map snd spec;
     val dom_eqns = map (fn x => (#absT x, #repT x)) iso_infos;
     val rep_abs_consts = map (fn x => (#rep_const x, #abs_const x)) iso_infos;
-
-    (* get table of map functions *)
-    val map_tab = MapData.get thy;
 
     fun mk_projs []      t = []
       | mk_projs (x::[]) t = [(x, t)]

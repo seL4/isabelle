@@ -284,11 +284,11 @@ lemmas [domain_deflation] =
 
 setup {*
   fold Domain_Isomorphism.add_type_constructor
-    [(@{type_name cfun}, @{term cfun_defl}, @{const_name cfun_map}),
-     (@{type_name ssum}, @{term ssum_defl}, @{const_name ssum_map}),
-     (@{type_name sprod}, @{term sprod_defl}, @{const_name sprod_map}),
-     (@{type_name prod}, @{term cprod_defl}, @{const_name cprod_map}),
-     (@{type_name "u"}, @{term u_defl}, @{const_name u_map})]
+    [(@{type_name cfun}, @{const_name cfun_defl}, @{const_name cfun_map}, [true, true]),
+     (@{type_name ssum}, @{const_name ssum_defl}, @{const_name ssum_map}, [true, true]),
+     (@{type_name sprod}, @{const_name sprod_defl}, @{const_name sprod_map}, [true, true]),
+     (@{type_name prod}, @{const_name prod_defl}, @{const_name cprod_map}, [true, true]),
+     (@{type_name "u"}, @{const_name u_defl}, @{const_name u_map}, [true])]
 *}
 
 end

@@ -43,9 +43,9 @@ lemmas [domain_deflation] =
 
 setup {*
   fold Domain_Isomorphism.add_type_constructor
-    [(@{type_name "upper_pd"}, @{term upper_defl}, @{const_name upper_map}),
-     (@{type_name "lower_pd"}, @{term lower_defl}, @{const_name lower_map}),
-     (@{type_name "convex_pd"}, @{term convex_defl}, @{const_name convex_map})]
+    [(@{type_name "upper_pd"}, @{const_name upper_defl}, @{const_name upper_map}, [true]),
+     (@{type_name "lower_pd"}, @{const_name lower_defl}, @{const_name lower_map}, [true]),
+     (@{type_name "convex_pd"}, @{const_name convex_defl}, @{const_name convex_map}, [true])]
 *}
 
 end
