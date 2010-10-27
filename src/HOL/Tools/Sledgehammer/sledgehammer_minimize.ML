@@ -44,42 +44,42 @@ fun n_facts names =
 
 fun test_facts ({debug, verbose, overlord, provers, full_types, isar_proof,
                  isar_shrink_factor, ...} : params) (prover : prover)
-               explicit_apply timeout i n state axioms =
+               explicit_apply timeout i n state facts =
   let
     val _ =
-      priority ("Testing " ^ n_facts (map fst axioms) ^ "...")
+      Output.urgent_message ("Testing " ^ n_facts (map fst facts) ^ "...")
     val params =
       {blocking = true, debug = debug, verbose = verbose, overlord = overlord,
        provers = provers, full_types = full_types,
        explicit_apply = explicit_apply, relevance_thresholds = (1.01, 1.01),
        max_relevant = NONE, isar_proof = isar_proof,
        isar_shrink_factor = isar_shrink_factor, timeout = timeout, expect = ""}
-    val axioms =
-      axioms |> maps (fn (n, ths) => ths |> map (Unprepared o pair n))
+    val facts =
+      facts |> maps (fn (n, ths) => ths |> map (Untranslated o pair n))
     val {goal, ...} = Proof.goal state
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       axioms = axioms, only = true}
-    val result as {outcome, used_axioms, ...} = prover params (K "") problem
+       facts = facts, only = true}
+    val result as {outcome, used_facts, ...} = prover params (K "") problem
   in
-    priority (case outcome of
+    Output.urgent_message (case outcome of
                 SOME failure => string_for_failure failure
               | NONE =>
-                if length used_axioms = length axioms then "Found proof."
-                else "Found proof with " ^ n_facts used_axioms ^ ".");
+                if length used_facts = length facts then "Found proof."
+                else "Found proof with " ^ n_facts used_facts ^ ".");
     result
   end
 
-(* minimalization of thms *)
+(* minimalization of facts *)
 
-fun filter_used_axioms used = filter (member (op =) used o fst)
+fun filter_used_facts used = filter (member (op =) used o fst)
 
 fun sublinear_minimize _ [] p = p
   | sublinear_minimize test (x :: xs) (seen, result) =
     case test (xs @ seen) of
-      result as {outcome = NONE, used_axioms, ...} : prover_result =>
-      sublinear_minimize test (filter_used_axioms used_axioms xs)
-                         (filter_used_axioms used_axioms seen, result)
+      result as {outcome = NONE, used_facts, ...} : prover_result =>
+      sublinear_minimize test (filter_used_facts used_facts xs)
+                         (filter_used_facts used_facts seen, result)
     | _ => sublinear_minimize test xs (x :: seen, result)
 
 (* Give the ATP some slack. The ATP gets further slack because the Sledgehammer
@@ -89,23 +89,23 @@ val fudge_msecs = 1000
 
 fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
   | minimize_facts (params as {provers = prover_name :: _, timeout, ...}) i n
-                   state axioms =
+                   state facts =
   let
     val thy = Proof.theory_of state
     val prover = get_prover thy false prover_name
     val msecs = Time.toMilliseconds timeout
-    val _ = priority ("Sledgehammer minimize: " ^ quote prover_name ^ ".")
+    val _ = Output.urgent_message ("Sledgehammer minimize: " ^ quote prover_name ^ ".")
     val {goal, ...} = Proof.goal state
     val (_, hyp_ts, concl_t) = strip_subgoal goal i
     val explicit_apply =
       not (forall (Meson.is_fol_term thy)
-                  (concl_t :: hyp_ts @ maps (map prop_of o snd) axioms))
+                  (concl_t :: hyp_ts @ maps (map prop_of o snd) facts))
     fun do_test timeout =
       test_facts params prover explicit_apply timeout i n state
     val timer = Timer.startRealTimer ()
   in
-    (case do_test timeout axioms of
-       result as {outcome = NONE, used_axioms, ...} =>
+    (case do_test timeout facts of
+       result as {outcome = NONE, used_facts, ...} =>
        let
          val time = Timer.checkRealTimer timer
          val new_timeout =
@@ -113,9 +113,9 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
            |> Time.fromMilliseconds
          val (min_thms, {message, ...}) =
            sublinear_minimize (do_test new_timeout)
-               (filter_used_axioms used_axioms axioms) ([], result)
+               (filter_used_facts used_facts facts) ([], result)
          val n = length min_thms
-         val _ = priority (cat_lines
+         val _ = Output.urgent_message (cat_lines
            ["Minimized: " ^ string_of_int n ^ " fact" ^ plural_s n] ^
             (case length (filter (curry (op =) Chained o snd o fst) min_thms) of
                0 => ""
@@ -140,15 +140,14 @@ fun run_minimize params i refs state =
     val ctxt = Proof.context_of state
     val reserved = reserved_isar_keyword_table ()
     val chained_ths = #facts (Proof.goal state)
-    val axioms =
-      maps (map (apsnd single)
-            o name_thm_pairs_from_ref ctxt reserved chained_ths) refs
+    val facts =
+      maps (map (apsnd single) o fact_from_ref ctxt reserved chained_ths) refs
   in
     case subgoal_count state of
-      0 => priority "No subgoal!"
+      0 => Output.urgent_message "No subgoal!"
     | n =>
       (kill_provers ();
-       priority (#2 (minimize_facts params i n state axioms)))
+       Output.urgent_message (#2 (minimize_facts params i n state facts)))
   end
 
 end;

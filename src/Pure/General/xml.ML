@@ -16,7 +16,7 @@ sig
   val header: string
   val text: string -> string
   val element: string -> attributes -> string list -> string
-  val output_markup: Markup.T -> output * output
+  val output_markup: Markup.T -> Output.output * Output.output
   val string_of: tree -> string
   val output: tree -> TextIO.outstream -> unit
   val parse_comments: string list -> unit * string list

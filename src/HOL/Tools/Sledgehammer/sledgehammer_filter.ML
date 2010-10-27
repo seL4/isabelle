@@ -34,7 +34,7 @@ sig
      only : bool}
 
   val trace : bool Unsynchronized.ref
-  val name_thm_pairs_from_ref :
+  val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val relevant_facts :
@@ -90,7 +90,7 @@ fun repair_name reserved multi j name =
   (name |> Symtab.defined reserved name ? quote) ^
   (if multi then "(" ^ Int.toString j ^ ")" else "")
 
-fun name_thm_pairs_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
+fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
     val bracket =
@@ -283,7 +283,7 @@ fun ptype_ord (PType p, PType q) =
 
 structure PType_Tab = Table(type key = ptype val ord = ptype_ord)
 
-fun count_axiom_consts thy fudge =
+fun count_fact_consts thy fudge =
   let
     fun do_const const (s, T) ts =
       (* Two-dimensional table update. Constant maps to types maps to count. *)
@@ -357,9 +357,9 @@ fun locality_bonus (_ : relevance_fudge) General = 0.0
   | locality_bonus {assum_bonus, ...} Assum = assum_bonus
   | locality_bonus {chained_bonus, ...} Chained = chained_bonus
 
-fun axiom_weight fudge loc const_tab relevant_consts axiom_consts =
-  case axiom_consts |> List.partition (pconst_hyper_mem I relevant_consts)
-                    ||> filter_out (pconst_hyper_mem swap relevant_consts) of
+fun fact_weight fudge loc const_tab relevant_consts fact_consts =
+  case fact_consts |> List.partition (pconst_hyper_mem I relevant_consts)
+                   ||> filter_out (pconst_hyper_mem swap relevant_consts) of
     ([], _) => 0.0
   | (rel, irrel) =>
     let
@@ -372,33 +372,14 @@ fun axiom_weight fudge loc const_tab relevant_consts axiom_consts =
       val res = rel_weight / (rel_weight + irrel_weight)
     in if Real.isFinite res then res else 0.0 end
 
-(* FIXME: experiment
-fun debug_axiom_weight fudge loc const_tab relevant_consts axiom_consts =
-  case axiom_consts |> List.partition (pconst_hyper_mem I relevant_consts)
-                    ||> filter_out (pconst_hyper_mem swap relevant_consts) of
-    ([], _) => 0.0
-  | (rel, irrel) =>
-    let
-      val irrel = irrel |> filter_out (pconst_mem swap rel)
-      val rels_weight =
-        0.0 |> fold (curry (op +) o rel_pconst_weight const_tab) rel
-      val irrels_weight =
-        ~ (locality_bonus fudge loc)
-        |> fold (curry (op +) o irrel_pconst_weight fudge const_tab) irrel
-val _ = tracing (PolyML.makestring ("REL: ", map (`(rel_pconst_weight const_tab)) rel))
-val _ = tracing (PolyML.makestring ("IRREL: ", map (`(irrel_pconst_weight fudge const_tab)) irrel))
-      val res = rels_weight / (rels_weight + irrels_weight)
-    in if Real.isFinite res then res else 0.0 end
-*)
-
-fun pconsts_in_axiom thy irrelevant_consts t =
+fun pconsts_in_fact thy irrelevant_consts t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
               (pconsts_in_terms thy irrelevant_consts true (SOME true) [t]) []
-fun pair_consts_axiom thy irrelevant_consts fudge axiom =
-  case axiom |> snd |> theory_const_prop_of fudge
-             |> pconsts_in_axiom thy irrelevant_consts of
+fun pair_consts_fact thy irrelevant_consts fudge fact =
+  case fact |> snd |> theory_const_prop_of fudge
+            |> pconsts_in_fact thy irrelevant_consts of
     [] => NONE
-  | consts => SOME ((axiom, consts), NONE)
+  | consts => SOME ((fact, consts), NONE)
 
 type annotated_thm =
   (((unit -> string) * locality) * thm) * (string * ptype) list
@@ -426,44 +407,37 @@ fun take_most_relevant max_relevant remaining_max
     (accepts, more_rejects @ rejects)
   end
 
-fun if_empty_replace_with_locality thy irrelevant_consts axioms loc tab =
+fun if_empty_replace_with_locality thy irrelevant_consts facts loc tab =
   if Symtab.is_empty tab then
     pconsts_in_terms thy irrelevant_consts false (SOME false)
         (map_filter (fn ((_, loc'), th) =>
-                        if loc' = loc then SOME (prop_of th) else NONE) axioms)
+                        if loc' = loc then SOME (prop_of th) else NONE) facts)
   else
     tab
 
 fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
         (fudge as {threshold_divisor, ridiculous_threshold, ...})
-        ({add, del, ...} : relevance_override) axioms goal_ts =
+        ({add, del, ...} : relevance_override) facts goal_ts =
   let
     val thy = ProofContext.theory_of ctxt
-    val const_tab = fold (count_axiom_consts thy fudge) axioms Symtab.empty
+    val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
     val goal_const_tab =
       pconsts_in_terms thy irrelevant_consts false (SOME false) goal_ts
-      |> fold (if_empty_replace_with_locality thy irrelevant_consts axioms)
+      |> fold (if_empty_replace_with_locality thy irrelevant_consts facts)
               [Chained, Assum, Local]
     val add_ths = Attrib.eval_thms ctxt add
     val del_ths = Attrib.eval_thms ctxt del
+    val facts = facts |> filter_out (member Thm.eq_thm del_ths o snd)
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
       let
-        fun game_over rejects =
-          (* Add "add:" facts. *)
-          if null add_ths then
-            []
-          else
-            map_filter (fn ((p as (_, th), _), _) =>
-                           if member Thm.eq_thm add_ths th then SOME p
-                           else NONE) rejects
-        fun relevant [] rejects [] =
+        fun relevant [] _ [] =
             (* Nothing has been added this iteration. *)
             if j = 0 andalso threshold >= ridiculous_threshold then
               (* First iteration? Try again. *)
               iter 0 max_relevant (threshold / threshold_divisor) rel_const_tab
                    hopeless hopeful
             else
-              game_over (rejects @ hopeless)
+              []
           | relevant candidates rejects [] =
             let
               val (accepts, more_rejects) =
@@ -496,27 +470,20 @@ fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
                           |> map string_for_hyper_pconst));
               map (fst o fst) accepts @
               (if remaining_max = 0 then
-                 game_over (hopeful_rejects @ map (apsnd SOME) hopeless_rejects)
+                 []
                else
                  iter (j + 1) remaining_max threshold rel_const_tab'
                       hopeless_rejects hopeful_rejects)
             end
           | relevant candidates rejects
-                     (((ax as (((_, loc), _), axiom_consts)), cached_weight)
+                     (((ax as (((_, loc), _), fact_consts)), cached_weight)
                       :: hopeful) =
             let
               val weight =
                 case cached_weight of
                   SOME w => w
-                | NONE => axiom_weight fudge loc const_tab rel_const_tab
-                                       axiom_consts
-(* FIXME: experiment
-val name = fst (fst (fst ax)) ()
-val _ = if String.isSubstring "positive_minus" name orelse String.isSubstring "not_exp_le_zero" name then
-tracing ("*** " ^ name ^ PolyML.makestring (debug_axiom_weight fudge loc const_tab rel_const_tab axiom_consts))
-else
-()
-*)
+                | NONE => fact_weight fudge loc const_tab rel_const_tab
+                                      fact_consts
             in
               if weight >= threshold then
                 relevant ((ax, weight) :: candidates) rejects hopeful
@@ -532,12 +499,17 @@ else
                       |> map string_for_hyper_pconst));
           relevant [] [] hopeful
         end
+    fun add_add_ths accepts =
+      (facts |> filter ((member Thm.eq_thm add_ths
+                         andf (not o member (Thm.eq_thm o apsnd snd) accepts))
+                        o snd))
+      @ accepts
   in
-    axioms |> filter_out (member Thm.eq_thm del_ths o snd)
-           |> map_filter (pair_consts_axiom thy irrelevant_consts fudge)
-           |> iter 0 max_relevant threshold0 goal_const_tab []
-           |> tap (fn res => trace_msg (fn () =>
-                                "Total relevant: " ^ Int.toString (length res)))
+    facts |> map_filter (pair_consts_fact thy irrelevant_consts fudge)
+          |> iter 0 max_relevant threshold0 goal_const_tab []
+          |> not (null add_ths) ? add_add_ths
+          |> tap (fn res => trace_msg (fn () =>
+                               "Total relevant: " ^ Int.toString (length res)))
   end
 
 
@@ -550,12 +522,10 @@ else
 (*Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages.*)
 fun is_package_def a =
-  let val names = Long_Name.explode a
-  in
-     length names > 2 andalso
-     not (hd names = "local") andalso
-     String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a
-  end;
+  let val names = Long_Name.explode a in
+    (length names > 2 andalso not (hd names = "local") andalso
+     String.isSuffix "_def" a) orelse String.isSuffix "_defs" a
+  end
 
 fun mk_fact_table f xs =
   fold (Termtab.update o `(prop_of o f)) xs Termtab.empty
@@ -718,9 +688,9 @@ fun close_form t =
           (Term.add_vars t [] |> sort_wrt (fst o fst))
   |> fst
 
-fun all_name_thms_pairs ctxt reserved full_types
-        ({intro_bonus, elim_bonus, simp_bonus, ...} : relevance_fudge) add_ths
-        chained_ths =
+fun all_facts ctxt reserved full_types
+              ({intro_bonus, elim_bonus, simp_bonus, ...} : relevance_fudge)
+              add_ths chained_ths =
   let
     val thy = ProofContext.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
@@ -805,7 +775,7 @@ fun all_name_thms_pairs ctxt reserved full_types
 
 (* The single-name theorems go after the multiple-name ones, so that single
    names are preferred when both are available. *)
-fun name_thm_pairs ctxt respect_no_atp =
+fun rearrange_facts ctxt respect_no_atp =
   List.partition (fst o snd) #> op @ #> map (apsnd snd)
   #> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd)
 
@@ -821,25 +791,25 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
                           1.0 / Real.fromInt (max_relevant + 1))
     val add_ths = Attrib.eval_thms ctxt add
     val reserved = reserved_isar_keyword_table ()
-    val axioms =
+    val facts =
       (if only then
          maps (map (fn ((name, loc), th) => ((K name, loc), (true, th)))
-               o name_thm_pairs_from_ref ctxt reserved chained_ths) add
+               o fact_from_ref ctxt reserved chained_ths) add
        else
-         all_name_thms_pairs ctxt reserved full_types fudge add_ths chained_ths)
-      |> name_thm_pairs ctxt (respect_no_atp andalso not only)
+         all_facts ctxt reserved full_types fudge add_ths chained_ths)
+      |> rearrange_facts ctxt (respect_no_atp andalso not only)
       |> uniquify
   in
-    trace_msg (fn () => "Considering " ^ Int.toString (length axioms) ^
-                        " theorems");
+    trace_msg (fn () => "Considering " ^ Int.toString (length facts) ^
+                        " facts");
     (if only orelse threshold1 < 0.0 then
-       axioms
+       facts
      else if threshold0 > 1.0 orelse threshold0 > threshold1 orelse
              max_relevant = 0 then
        []
      else
        relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
-                        fudge override axioms (concl_t :: hyp_ts))
+                        fudge override facts (concl_t :: hyp_ts))
     |> map (apfst (apfst (fn f => f ())))
   end
 

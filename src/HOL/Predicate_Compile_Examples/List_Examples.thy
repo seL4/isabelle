@@ -16,7 +16,7 @@ setup {* Code_Prolog.map_code_options (K
    manual_reorder = []}) *}
 
 lemma "(xs :: nat list) = ys @ ys --> rev xs = xs"
-quickcheck[generator = code, iterations = 200000, expect = counterexample]
+quickcheck[generator = code, iterations = 10000]
 quickcheck[generator = predicate_compile_wo_ff, iterations = 1, expect = counterexample]
 quickcheck[generator = prolog, expect = counterexample]
 oops

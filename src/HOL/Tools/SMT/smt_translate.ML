@@ -43,9 +43,9 @@ sig
     typs: typ Symtab.table,
     terms: term Symtab.table,
     unfolds: thm list,
-    assms: thm list }
+    assms: (int * thm) list }
 
-  val translate: config -> Proof.context -> string list -> thm list ->
+  val translate: config -> Proof.context -> string list -> (int * thm) list ->
     string * recon
 end
 
@@ -101,7 +101,7 @@ type recon = {
   typs: typ Symtab.table,
   terms: term Symtab.table,
   unfolds: thm list,
-  assms: thm list }
+  assms: (int * thm) list }
 
 
 
@@ -244,8 +244,9 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
           else as_term (in_term t)
       | _ => as_term (in_term t))
   in
-    map (normalize ctxt) #> (fn thms => ((unfold_rules, term_bool' :: thms),
-    map (in_form o prop_of) (term_bool :: thms)))
+    map (apsnd (normalize ctxt)) #> (fn irules =>
+    ((unfold_rules, (~1, term_bool') :: irules),
+     map (in_form o prop_of o snd) ((~1, term_bool) :: irules)))
   end
 
 
@@ -318,7 +319,7 @@ fun lookup_datatype ctxt n Ts =
              (nth Tds i, map (mk_constructor ctxt (Tds, Tfs) (nth Tds i)) cs))
          end)
 
-fun relaxed thms = (([], thms), map prop_of thms)
+fun relaxed irules = (([], irules), map (prop_of o snd) irules)
 
 fun with_context header f (ths, ts) =
   let val (us, context) = fold_map f ts empty_context

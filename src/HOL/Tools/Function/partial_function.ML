@@ -1,0 +1,238 @@
+(*  Title:      HOL/Tools/Function/partial_function.ML
+    Author:     Alexander Krauss, TU Muenchen
+
+Partial function definitions based on least fixed points in ccpos.
+*)
+
+signature PARTIAL_FUNCTION =
+sig
+  val setup: theory -> theory
+  val init: term -> term -> thm -> declaration
+
+  val add_partial_function: string -> (binding * typ option * mixfix) list ->
+    Attrib.binding * term -> local_theory -> local_theory
+
+  val add_partial_function_cmd: string -> (binding * string option * mixfix) list ->
+    Attrib.binding * string -> local_theory -> local_theory
+end;
+
+
+structure Partial_Function: PARTIAL_FUNCTION =
+struct
+
+(*** Context Data ***)
+
+structure Modes = Generic_Data
+(
+  type T = ((term * term) * thm) Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  fun merge (a, b) = Symtab.merge (K true) (a, b);
+)
+
+fun init fixp mono fixp_eq phi =
+  let
+    val term = Morphism.term phi;
+    val data' = ((term fixp, term mono), Morphism.thm phi fixp_eq);
+    val mode = (* extract mode identifier from morphism prefix! *)
+      Binding.prefix_of (Morphism.binding phi (Binding.empty))
+      |> map fst |> space_implode ".";
+  in
+    if mode = "" then I
+    else Modes.map (Symtab.update (mode, data'))
+  end
+
+val known_modes = Symtab.keys o Modes.get o Context.Proof;
+val lookup_mode = Symtab.lookup o Modes.get o Context.Proof;
+
+
+structure Mono_Rules = Named_Thms
+(
+  val name = "partial_function_mono";
+  val description = "monotonicity rules for partial function definitions";
+);
+
+
+(*** Automated monotonicity proofs ***)
+
+fun strip_cases ctac = ctac #> Seq.map snd;
+
+(*rewrite conclusion with k-th assumtion*)
+fun rewrite_with_asm_tac ctxt k =
+  Subgoal.FOCUS (fn {context=ctxt', prems, ...} =>
+    Local_Defs.unfold_tac ctxt' [nth prems k]) ctxt;
+
+fun dest_case thy t =
+  case strip_comb t of
+    (Const (case_comb, _), args) =>
+      (case Datatype.info_of_case thy case_comb of
+         NONE => NONE
+       | SOME {case_rewrites, ...} =>
+           let
+             val lhs = prop_of (hd case_rewrites)
+               |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> fst;
+             val arity = length (snd (strip_comb lhs));
+             val conv = funpow (length args - arity) Conv.fun_conv
+               (Conv.rewrs_conv (map mk_meta_eq case_rewrites));
+           in
+             SOME (nth args (arity - 1), conv)
+           end)
+  | _ => NONE;
+
+(*split on case expressions*)
+val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context=ctxt, ...} =>
+  SUBGOAL (fn (t, i) => case t of
+    _ $ (_ $ Abs (_, _, body)) =>
+      (case dest_case (ProofContext.theory_of ctxt) body of
+         NONE => no_tac
+       | SOME (arg, conv) =>
+           let open Conv in
+              if not (null (loose_bnos arg)) then no_tac
+              else ((DETERM o strip_cases o Induct.cases_tac ctxt false [[SOME arg]] NONE [])
+                THEN_ALL_NEW (rewrite_with_asm_tac ctxt 0)
+                THEN_ALL_NEW etac @{thm thin_rl}
+                THEN_ALL_NEW (CONVERSION
+                  (params_conv ~1 (fn ctxt' =>
+                    arg_conv (arg_conv (abs_conv (K conv) ctxt'))) ctxt))) i
+           end)
+  | _ => no_tac) 1);
+
+(*monotonicity proof: apply rules + split case expressions*)
+fun mono_tac ctxt =
+  K (Local_Defs.unfold_tac ctxt [@{thm curry_def}])
+  THEN' (TRY o REPEAT_ALL_NEW
+   (resolve_tac (Mono_Rules.get ctxt)
+     ORELSE' split_cases_tac ctxt));
+
+
+(*** Auxiliary functions ***)
+
+(*positional instantiation with computed type substitution.
+  internal version of  attribute "[of s t u]".*)
+fun cterm_instantiate' cts thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+    val vs = rev (Term.add_vars (prop_of thm) [])
+      |> map (Thm.cterm_of thy o Var);
+  in
+    cterm_instantiate (zip_options vs cts) thm
+  end;
+
+(*Returns t $ u, but instantiates the type of t to make the
+application type correct*)
+fun apply_inst ctxt t u =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val T = domain_type (fastype_of t);
+    val T' = fastype_of u;
+    val subst = Type.typ_match (Sign.tsig_of thy) (T, T') Vartab.empty
+      handle Type.TYPE_MATCH => raise TYPE ("apply_inst", [T, T'], [t, u])
+  in
+    map_types (Envir.norm_type subst) t $ u
+  end;
+
+fun head_conv cv ct =
+  if can Thm.dest_comb ct then Conv.fun_conv (head_conv cv) ct else cv ct;
+
+
+(*** currying transformation ***)
+
+fun curry_const (A, B, C) =
+  Const (@{const_name Product_Type.curry},
+    [HOLogic.mk_prodT (A, B) --> C, A, B] ---> C);
+
+fun mk_curry f =
+  case fastype_of f of
+    Type ("fun", [Type (_, [S, T]), U]) =>
+      curry_const (S, T, U) $ f
+  | T => raise TYPE ("mk_curry", [T], [f]);
+
+(* iterated versions. Nonstandard left-nested tuples arise naturally
+from "split o split o split"*)
+fun curry_n arity = funpow (arity - 1) mk_curry;
+fun uncurry_n arity = funpow (arity - 1) HOLogic.mk_split;
+
+val curry_uncurry_ss = HOL_basic_ss addsimps
+  [@{thm Product_Type.curry_split}, @{thm Product_Type.split_curry}]
+
+
+(*** partial_function definition ***)
+
+fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
+  let
+    val ((fixp, mono), fixp_eq) = the (lookup_mode lthy mode)
+      handle Option.Option => error (cat_lines ["Unknown mode " ^ quote mode ^ ".",
+        "Known modes are " ^ commas_quote (known_modes lthy) ^ "."]);
+
+    val ((fixes, [(eq_abinding, eqn)]), _) = prep fixes_raw [eqn_raw] lthy;
+    val (_, _, plain_eqn) = Function_Lib.dest_all_all_ctx lthy eqn;
+
+    val ((f_binding, fT), mixfix) = the_single fixes;
+    val fname = Binding.name_of f_binding;
+
+    val cert = cterm_of (ProofContext.theory_of lthy);
+    val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop plain_eqn);
+    val (head, args) = strip_comb lhs;
+    val F = fold_rev lambda (head :: args) rhs;
+
+    val arity = length args;
+    val (aTs, bTs) = chop arity (binder_types fT);
+
+    val tupleT = foldl1 HOLogic.mk_prodT aTs;
+    val fT_uc = tupleT :: bTs ---> body_type fT;
+    val f_uc = Var ((fname, 0), fT_uc);
+    val x_uc = Var (("x", 0), tupleT);
+    val uncurry = lambda head (uncurry_n arity head);
+    val curry = lambda f_uc (curry_n arity f_uc);
+
+    val F_uc =
+      lambda f_uc (uncurry_n arity (F $ curry_n arity f_uc));
+
+    val mono_goal = apply_inst lthy mono (lambda f_uc (F_uc $ f_uc $ x_uc))
+      |> HOLogic.mk_Trueprop
+      |> Logic.all x_uc;
+
+    val mono_thm = Goal.prove_internal [] (cert mono_goal)
+        (K (mono_tac lthy 1))
+      |> Thm.forall_elim (cert x_uc);
+
+    val f_def_rhs = curry_n arity (apply_inst lthy fixp F_uc);
+    val f_def_binding = Binding.conceal (Binding.name (Thm.def_name fname));
+    val ((f, (_, f_def)), lthy') = Local_Theory.define
+      ((f_binding, mixfix), ((f_def_binding, []), f_def_rhs)) lthy;
+
+    val eqn = HOLogic.mk_eq (list_comb (f, args),
+        Term.betapplys (F, f :: args))
+      |> HOLogic.mk_Trueprop;
+
+    val unfold =
+      (cterm_instantiate' (map (SOME o cert) [uncurry, F, curry]) fixp_eq
+        OF [mono_thm, f_def])
+      |> Tactic.rule_by_tactic lthy (Simplifier.simp_tac curry_uncurry_ss 1);
+
+    val rec_rule = let open Conv in
+      Goal.prove lthy' (map (fst o dest_Free) args) [] eqn (fn _ =>
+        CONVERSION ((arg_conv o arg1_conv o head_conv o rewr_conv) (mk_meta_eq unfold)) 1
+        THEN rtac @{thm refl} 1) end;
+  in
+    lthy'
+    |> Local_Theory.note (eq_abinding, [rec_rule])
+    |-> (fn (_, rec') =>
+      Spec_Rules.add Spec_Rules.Equational ([f], rec')
+      #> Local_Theory.note ((Binding.qualify true fname (Binding.name "simps"), []), rec') #> snd)
+  end;
+
+val add_partial_function = gen_add_partial_function Specification.check_spec;
+val add_partial_function_cmd = gen_add_partial_function Specification.read_spec;
+
+val mode = Parse.$$$ "(" |-- Parse.xname --| Parse.$$$ ")";
+
+val _ = Outer_Syntax.local_theory
+  "partial_function" "define partial function" Keyword.thy_decl
+  ((mode -- (Parse.fixes -- (Parse.where_ |-- Parse_Spec.spec)))
+     >> (fn (mode, (fixes, spec)) => add_partial_function_cmd mode fixes spec));
+
+
+val setup = Mono_Rules.setup;
+
+end

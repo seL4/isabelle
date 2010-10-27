@@ -357,25 +357,25 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
     val relevance_fudge = Sledgehammer.relevance_fudge_for_prover prover_name
     val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
-    val axioms =
+    val facts =
       Sledgehammer_Filter.relevant_facts ctxt full_types relevance_thresholds
           (the_default default_max_relevant max_relevant) irrelevant_consts
           relevance_fudge relevance_override chained_ths hyp_ts concl_t
     val problem =
       {state = st', goal = goal, subgoal = i,
        subgoal_count = Sledgehammer_Util.subgoal_count st,
-       axioms = axioms |> map Sledgehammer.Unprepared, only = true}
+       facts = facts |> map Sledgehammer.Untranslated, only = true}
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({outcome, message, used_axioms, run_time_in_msecs = SOME time_prover, ...}
+    val ({outcome, message, used_facts, run_time_in_msecs = SOME time_prover, ...}
          : Sledgehammer.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time
                       (prover params (K ""))) problem
   in
     case outcome of
-      NONE => (message, SH_OK (time_isa, time_prover, used_axioms))
+      NONE => (message, SH_OK (time_isa, time_prover, used_facts))
     | SOME _ => (message, SH_FAIL (time_isa, time_prover))
   end
   handle ERROR msg => ("error: " ^ msg, SH_ERROR)

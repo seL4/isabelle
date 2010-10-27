@@ -141,7 +141,7 @@ fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
   else
     let
       val succs = thy_graph Graph.all_succs [name];
-      val _ = priority (loader_msg "removing" succs);
+      val _ = Output.urgent_message (loader_msg "removing" succs);
       val _ = List.app (perform Remove) succs;
       val _ = change_thys (Graph.del_nodes succs);
     in () end);
@@ -222,7 +222,7 @@ fun required_by _ [] = ""
 fun load_thy initiators update_time (deps: deps) text name parent_thys =
   let
     val _ = kill_thy name;
-    val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
+    val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
 
     val {master = (thy_path, _), ...} = deps;
     val dir = Path.dir thy_path;
@@ -337,7 +337,7 @@ fun register_thy theory =
   in
     NAMED_CRITICAL "Thy_Info" (fn () =>
      (kill_thy name;
-      priority ("Registering theory " ^ quote name);
+      Output.urgent_message ("Registering theory " ^ quote name);
       map get_theory parents;
       change_thys (new_entry name parents (SOME deps, SOME theory));
       perform Update name))

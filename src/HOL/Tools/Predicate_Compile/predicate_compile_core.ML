@@ -26,6 +26,8 @@ sig
   val put_dseq_result : (unit -> term DSequence.dseq) -> Proof.context -> Proof.context
   val put_dseq_random_result : (unit -> int -> int -> int * int -> term DSequence.dseq * (int * int)) ->
     Proof.context -> Proof.context
+  val put_new_dseq_result : (unit -> int -> term Lazy_Sequence.lazy_sequence) ->
+    Proof.context -> Proof.context
   val put_lseq_random_result :
     (unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence) ->
     Proof.context -> Proof.context
@@ -40,6 +42,7 @@ sig
   val add_depth_limited_random_equations : options -> string list -> theory -> theory
   val add_random_dseq_equations : options -> string list -> theory -> theory
   val add_new_random_dseq_equations : options -> string list -> theory -> theory
+  val add_generator_dseq_equations : options -> string list -> theory -> theory
   val mk_tracing : string -> term -> term
   val prepare_intrs : options -> Proof.context -> string list -> thm list ->
     ((string * typ) list * string list * string list * (string * mode list) list *
@@ -53,7 +56,6 @@ sig
   val head_mode_of : mode_derivation -> mode
   type moded_clause = term list * (Predicate_Compile_Aux.indprem * mode_derivation) list
   type 'a pred_mode_table = (string * ((bool * mode) * 'a) list) list
-
 
 end;
 
@@ -165,7 +167,7 @@ fun print_all_modes compilation ctxt =
 
 (* validity checks *)
 
-fun check_expected_modes preds options modes =
+fun check_expected_modes options preds modes =
   case expected_modes options of
     SOME (s, ms) => (case AList.lookup (op =) modes s of
       SOME modes =>
@@ -181,7 +183,7 @@ fun check_expected_modes preds options modes =
       | NONE => ())
   | NONE => ()
 
-fun check_proposed_modes preds options modes errors =
+fun check_proposed_modes options preds modes errors =
   map (fn (s, _) => case proposed_modes options s of
     SOME ms => (case AList.lookup (op =) modes s of
       SOME inferred_ms =>
@@ -317,7 +319,7 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
     fn compfuns => fn s => fn T => fn mode => fn additional_arguments => fn compilation =>
     let
       val [depth] = additional_arguments
-      val (_, Ts) = split_modeT' mode (binder_types T)
+      val (_, Ts) = split_modeT mode (binder_types T)
       val T' = mk_predT compfuns (HOLogic.mk_tupleT Ts)
       val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
     in
@@ -1377,8 +1379,8 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
         options (lookup_mode, lookup_neg_mode, needs_random) ctxt preds all_modes param_vs clauses)
     val thy' = fold (fn (s, ms) => set_needs_random s ms) needs_random thy
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
-    val _ = check_expected_modes preds options modes
-    val _ = check_proposed_modes preds options modes errors
+    val _ = check_expected_modes options preds modes
+    val _ = check_proposed_modes options preds modes errors
     val _ = print_modes options modes
     val _ = print_step options "Defining executable functions..."
     val thy'' =
@@ -1658,6 +1660,12 @@ structure Dseq_Random_Result = Proof_Data (
 );
 val put_dseq_random_result = Dseq_Random_Result.put;
 
+structure New_Dseq_Result = Proof_Data (
+  type T = unit -> int -> term Lazy_Sequence.lazy_sequence
+  fun init _ () = error "New_Dseq_Random_Result"
+);
+val put_new_dseq_result = New_Dseq_Result.put;
+
 structure Lseq_Random_Result = Proof_Data (
   type T = unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence
   fun init _ () = error "Lseq_Random_Result"
@@ -1671,8 +1679,10 @@ structure Lseq_Random_Stats_Result = Proof_Data (
 val put_lseq_random_stats_result = Lseq_Random_Stats_Result.put;
 
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
-fun analyze_compr ctxt compfuns param_user_modes (compilation, arguments) t_compr =
+fun analyze_compr ctxt (comp_modifiers, additional_arguments) param_user_modes
+  (compilation, arguments) t_compr =
   let
+    val compfuns = Comp_Mod.compfuns comp_modifiers
     val all_modes_of = all_modes_of compilation
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr);
@@ -1734,28 +1744,6 @@ fun analyze_compr ctxt compfuns param_user_modes (compilation, arguments) t_comp
           | d :: _ :: _ => (warning ("Multiple modes possible for comprehension "
                     ^ Syntax.string_of_term ctxt t_compr); d);
         val (_, outargs) = split_mode (head_mode_of deriv) all_args
-        val additional_arguments =
-          case compilation of
-            Pred => []
-          | Random => map (HOLogic.mk_number @{typ "code_numeral"}) arguments @
-            [@{term "(1, 1) :: code_numeral * code_numeral"}]
-          | Annotated => []
-          | Depth_Limited => [HOLogic.mk_number @{typ "code_numeral"} (hd arguments)]
-          | Depth_Limited_Random => map (HOLogic.mk_number @{typ "code_numeral"}) arguments @
-            [@{term "(1, 1) :: code_numeral * code_numeral"}]
-          | DSeq => []
-          | Pos_Random_DSeq => []
-          | New_Pos_Random_DSeq => []
-        val comp_modifiers =
-          case compilation of
-            Pred => predicate_comp_modifiers
-          | Random => random_comp_modifiers
-          | Depth_Limited => depth_limited_comp_modifiers
-          | Depth_Limited_Random => depth_limited_random_comp_modifiers
-          (*| Annotated => annotated_comp_modifiers*)
-          | DSeq => dseq_comp_modifiers
-          | Pos_Random_DSeq => pos_random_dseq_comp_modifiers
-          | New_Pos_Random_DSeq => new_pos_random_dseq_comp_modifiers
         val t_pred = compile_expr comp_modifiers ctxt
           (body, deriv) [] additional_arguments;
         val T_pred = dest_predT compfuns (fastype_of t_pred)
@@ -1775,14 +1763,32 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
           | count' i (x' :: xs) = if x = x' then count' (i + 1) xs else count' i xs
       in count' 0 xs end
     fun accumulate xs = map (fn x => (x, count xs x)) (sort int_ord (distinct (op =) xs))
-    val compfuns =
+    val comp_modifiers =
       case compilation of
-        Random => PredicateCompFuns.compfuns
-      | DSeq => DSequence_CompFuns.compfuns
-      | Pos_Random_DSeq => Random_Sequence_CompFuns.compfuns
-      | New_Pos_Random_DSeq => New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
-      | _ => PredicateCompFuns.compfuns
-    val t = analyze_compr ctxt compfuns param_user_modes options t_compr;
+          Pred => predicate_comp_modifiers
+        | Random => random_comp_modifiers
+        | Depth_Limited => depth_limited_comp_modifiers
+        | Depth_Limited_Random => depth_limited_random_comp_modifiers
+        (*| Annotated => annotated_comp_modifiers*)
+        | DSeq => dseq_comp_modifiers
+        | Pos_Random_DSeq => pos_random_dseq_comp_modifiers
+        | New_Pos_Random_DSeq => new_pos_random_dseq_comp_modifiers
+        | Pos_Generator_DSeq => pos_generator_dseq_comp_modifiers
+    val compfuns = Comp_Mod.compfuns comp_modifiers
+    val additional_arguments =
+      case compilation of
+        Pred => []
+      | Random => map (HOLogic.mk_number @{typ "code_numeral"}) arguments @
+        [@{term "(1, 1) :: code_numeral * code_numeral"}]
+      | Annotated => []
+      | Depth_Limited => [HOLogic.mk_number @{typ "code_numeral"} (hd arguments)]
+      | Depth_Limited_Random => map (HOLogic.mk_number @{typ "code_numeral"}) arguments @
+        [@{term "(1, 1) :: code_numeral * code_numeral"}]
+      | DSeq => []
+      | Pos_Random_DSeq => []
+      | New_Pos_Random_DSeq => []
+      | Pos_Generator_DSeq => []
+    val t = analyze_compr ctxt (comp_modifiers, additional_arguments) param_user_modes options t_compr;
     val T = dest_predT compfuns (fastype_of t);
     val t' =
       if stats andalso compilation = New_Pos_Random_DSeq then
@@ -1793,7 +1799,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
         mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t
     val thy = ProofContext.theory_of ctxt
     val (ts, statistics) =
-      case compilation of
+      (case compilation of
        (* Random =>
           fst (Predicate.yieldn k
           (Code_Eval.eval NONE ("Predicate_Compile_Core.random_eval_ref", random_eval_ref)
@@ -1803,44 +1809,54 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
           let
             val [nrandom, size, depth] = arguments
           in
-            rpair NONE (fst (DSequence.yieldn k
+            rpair NONE (TimeLimit.timeLimit (Time.fromSeconds 20) (fn () => fst (DSequence.yieldn k
               (Code_Runtime.dynamic_value_strict (Dseq_Random_Result.get, put_dseq_random_result, "Predicate_Compile_Core.put_dseq_random_result")
                 thy NONE (fn proc => fn g => fn nrandom => fn size => fn s => g nrandom size s |>> DSequence.map proc)
                   t' [] nrandom size
                 |> Random_Engine.run)
-              depth true))
+              depth true)) ())
           end
       | DSeq =>
-          rpair NONE (fst (DSequence.yieldn k
+          rpair NONE (TimeLimit.timeLimit (Time.fromSeconds 20) (fn () => fst (DSequence.yieldn k
             (Code_Runtime.dynamic_value_strict (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Core.put_dseq_result")
-              thy NONE DSequence.map t' []) (the_single arguments) true))
+              thy NONE DSequence.map t' []) (the_single arguments) true)) ())
+      | Pos_Generator_DSeq =>
+          let
+            val depth = (the_single arguments)
+          in
+            rpair NONE (TimeLimit.timeLimit (Time.fromSeconds 20) (fn () => fst (Lazy_Sequence.yieldn k
+              (Code_Runtime.dynamic_value_strict (New_Dseq_Result.get, put_new_dseq_result, "Predicate_Compile_Core.put_new_dseq_result")
+              thy NONE (fn proc => fn g => fn depth => g depth |> Lazy_Sequence.mapa proc)
+              t' [] depth))) ())
+          end
       | New_Pos_Random_DSeq =>
           let
             val [nrandom, size, depth] = arguments
             val seed = Random_Engine.next_seed ()
           in
             if stats then
-              apsnd (SOME o accumulate) (split_list
-              (fst (Lazy_Sequence.yieldn k
+              apsnd (SOME o accumulate) (split_list (TimeLimit.timeLimit (Time.fromSeconds 20)
+              (fn () => fst (Lazy_Sequence.yieldn k
                 (Code_Runtime.dynamic_value_strict
                   (Lseq_Random_Stats_Result.get, put_lseq_random_stats_result, "Predicate_Compile_Core.put_lseq_random_stats_result")
                   thy NONE
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
                     |> Lazy_Sequence.mapa (apfst proc))
-                    t' [] nrandom size seed depth))))
+                    t' [] nrandom size seed depth))) ()))
             else rpair NONE
-              (fst (Lazy_Sequence.yieldn k
+              (TimeLimit.timeLimit (Time.fromSeconds 20) (fn () => fst (Lazy_Sequence.yieldn k
                 (Code_Runtime.dynamic_value_strict
                   (Lseq_Random_Result.get, put_lseq_random_result, "Predicate_Compile_Core.put_lseq_random_result")
                   thy NONE 
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
                     |> Lazy_Sequence.mapa proc)
-                    t' [] nrandom size seed depth)))
+                    t' [] nrandom size seed depth))) ())
           end
       | _ =>
-          rpair NONE (fst (Predicate.yieldn k
+          rpair NONE (TimeLimit.timeLimit (Time.fromSeconds 20) (fn () => fst (Predicate.yieldn k
             (Code_Runtime.dynamic_value_strict (Pred_Result.get, put_pred_result, "Predicate_Compile_Core.put_pred_result")
-              thy NONE Predicate.map t' [])))
+              thy NONE Predicate.map t' []))) ()))
+     handle TimeLimit.TimeOut => error "Reached timeout during execution of values"
   in ((T, ts), statistics) end;
 
 fun values ctxt param_user_modes ((raw_expected, stats), comp_options) k t_compr =

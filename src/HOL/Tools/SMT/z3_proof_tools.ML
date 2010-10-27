@@ -13,7 +13,9 @@ sig
   val as_meta_eq: cterm -> cterm
 
   (* theorem nets *)
-  val thm_net_of: thm list -> thm Net.net
+  val thm_net_of: ('a -> thm) -> 'a list -> 'a Net.net
+  val net_instance': ((thm -> thm option) -> 'a -> 'a option) -> 'a Net.net ->
+    cterm -> 'a option
   val net_instance: thm Net.net -> cterm -> thm option
 
   (* proof combinators *)
@@ -67,16 +69,18 @@ fun as_meta_eq ct = uncurry mk_meta_eq_cterm (Thm.dest_binop (Thm.dest_arg ct))
 
 (* theorem nets *)
 
-fun thm_net_of thms =
-  let fun insert thm = Net.insert_term (K false) (Thm.prop_of thm, thm)
-  in fold insert thms Net.empty end
+fun thm_net_of f xthms =
+  let fun insert xthm = Net.insert_term (K false) (Thm.prop_of (f xthm), xthm)
+  in fold insert xthms Net.empty end
 
 fun maybe_instantiate ct thm =
   try Thm.first_order_match (Thm.cprop_of thm, ct)
   |> Option.map (fn inst => Thm.instantiate inst thm)
 
-fun first_of thms ct = get_first (maybe_instantiate ct) thms
-fun net_instance net ct = first_of (Net.match_term net (Thm.term_of ct)) ct
+fun net_instance' f net ct =
+  let fun first_of f xthms ct = get_first (f (maybe_instantiate ct)) xthms 
+  in first_of f (Net.match_term net (Thm.term_of ct)) ct end
+val net_instance = net_instance' I
 
 
 

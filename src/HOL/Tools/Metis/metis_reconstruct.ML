@@ -754,8 +754,8 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         |> fold Int_Pair_Graph.add_deps_acyclic depss
         |> Int_Pair_Graph.topological_order
         handle Int_Pair_Graph.CYCLES _ =>
-               error "Cannot replay Metis proof in Isabelle without axiom of \
-                     \choice."
+               error "Cannot replay Metis proof in Isabelle without \
+                     \\"Hilbert_Choice\"."
       val params0 =
         [] |> fold (Term.add_vars o snd) (map_filter I axioms)
            |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst o fst))
@@ -796,6 +796,9 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                        THEN rotate_tac (rotation_for_subgoal i) i
 (*                       THEN PRIMITIVE (unify_first_prem_with_concl thy i) ###*)
                        THEN assume_tac i)))
+      handle ERROR _ =>
+             error ("Cannot replay Metis proof in Isabelle:\n\
+                    \Error when discharging Skolem assumptions.")
     end
 
 val setup = trace_setup

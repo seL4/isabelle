@@ -505,29 +505,29 @@ fun print_solution lits =
   end
 
 fun solve max_var (lits, comps, sexps) =
-    let
-      fun do_assigns assigns =
-        SOME (literals_from_assignments max_var assigns lits
-              |> tap print_solution)
-      val _ = print_problem lits comps sexps
-      val prop = PropLogic.all (map prop_for_literal lits @
-                                map prop_for_comp comps @
-                                map prop_for_sign_expr sexps)
-      val default_val = bool_from_sign Minus
-    in
-      if PropLogic.eval (K default_val) prop then
-        do_assigns (K (SOME default_val))
-      else
-        let
-          (* use the first ML solver (to avoid startup overhead) *)
-          val solvers = !SatSolver.solvers
-                        |> filter (member (op =) ["dptsat", "dpll"] o fst)
-        in
-          case snd (hd solvers) prop of
-            SatSolver.SATISFIABLE assigns => do_assigns assigns
-          | _ => NONE
-        end
-    end
+  let
+    fun do_assigns assigns =
+      SOME (literals_from_assignments max_var assigns lits
+            |> tap print_solution)
+    val _ = print_problem lits comps sexps
+    val prop = PropLogic.all (map prop_for_literal lits @
+                              map prop_for_comp comps @
+                              map prop_for_sign_expr sexps)
+    val default_val = bool_from_sign Minus
+  in
+    if PropLogic.eval (K default_val) prop then
+      do_assigns (K (SOME default_val))
+    else
+      let
+        (* use the first ML solver (to avoid startup overhead) *)
+        val solvers = !SatSolver.solvers
+                      |> filter (member (op =) ["dptsat", "dpll"] o fst)
+      in
+        case snd (hd solvers) prop of
+          SatSolver.SATISFIABLE assigns => do_assigns assigns
+        | _ => NONE
+      end
+  end
 
 type mtype_schema = mtyp * constraint_set
 type mtype_context =

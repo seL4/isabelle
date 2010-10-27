@@ -48,11 +48,11 @@ boogie_open (quiet) "~~/src/HOL/Boogie/Examples/VCC_Max"
 
 declare [[smt_certificates="~~/src/HOL/Boogie/Examples/VCC_Max.certs"]]
 declare [[smt_fixed=true]]
+declare [[smt_oracle=false]]
 
 boogie_status
 
 boogie_vc maximum
-  using [[z3_proofs=true]]
   by boogie
 
 boogie_end

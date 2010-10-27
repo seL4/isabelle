@@ -542,7 +542,7 @@ fun assert_abs_eqn thy some_tyco thm =
     val (rep, lhs) = dest_comb full_lhs
       handle TERM _ => bad "Not an abstract equation";
     val (rep_const, ty) = dest_Const rep;
-    val (tyco, sorts) = ((apsnd o map) (snd o dest_TVar) o dest_Type o domain_type) ty
+    val (tyco, Ts) = (dest_Type o domain_type) ty
       handle TERM _ => bad "Not an abstract equation"
            | TYPE _ => bad "Not an abstract equation";
     val _ = case some_tyco of SOME tyco' => if tyco = tyco' then ()
@@ -553,8 +553,8 @@ fun assert_abs_eqn thy some_tyco thm =
       else bad ("Projection mismatch: " ^ quote rep_const ^ " vs. " ^ quote rep');
     val _ = check_eqn thy { allow_nonlinear = false,
       allow_consts = false, allow_pats = false } thm (lhs, rhs);
-    val _ = if forall (Sign.subsort thy) (sorts ~~ map snd  vs') then ()
-      else error ("Sort constraints on type arguments are weaker than in abstype certificate.")
+    val _ = if forall (Sign.of_sort thy) (Ts ~~ map snd vs') then ()
+      else error ("Type arguments do not satisfy sort constraints of abstype certificate.");
   in (thm, tyco) end;
 
 fun assert_eqn thy = error_thm (gen_assert_eqn thy true);

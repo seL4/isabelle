@@ -70,14 +70,13 @@ inductive False'' :: "bool"
 where
   "False \<Longrightarrow> False''"
 
-code_pred (expected_modes: []) False'' .
+code_pred (expected_modes: bool) False'' .
 
 inductive EmptySet'' :: "'a \<Rightarrow> bool"
 where
   "False \<Longrightarrow> EmptySet'' x"
 
-code_pred (expected_modes: [1]) EmptySet'' .
-code_pred (expected_modes: [], [1]) [inductify] EmptySet'' .
+code_pred (expected_modes: i => bool, o => bool) [inductify] EmptySet'' .
 *)
 
 consts a' :: 'a
@@ -975,9 +974,10 @@ thm avl.equation*)
 
 code_pred [new_random_dseq inductify] avl .
 thm avl.new_random_dseq_equation
+(* TODO: has highly non-deterministic execution time!
 
 values [new_random_dseq 2, 1, 7] 5 "{t:: int tree. avl t}"
-
+*)
 fun set_of
 where
 "set_of ET = {}"

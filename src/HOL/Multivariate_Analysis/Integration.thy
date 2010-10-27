@@ -8,8 +8,8 @@ theory Integration
 begin
 
 declare [[smt_certificates="~~/src/HOL/Multivariate_Analysis/Integration.certs"]]
-declare [[smt_fixed=false]]
-declare [[z3_proofs=true]]
+declare [[smt_fixed=true]]
+declare [[smt_oracle=false]]
 
 setup {* Arith_Data.add_tactic "Ferrante-Rackoff" (K FerranteRackoff.dlo_tac) *}
 

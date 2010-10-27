@@ -401,11 +401,9 @@ text {*
   \begin{rail}
     'primrec' target? fixes 'where' equations
     ;
+    ('fun' | 'function') target? functionopts? fixes \\ 'where' equations
+    ;
     equations: (thmdecl? prop + '|')
-    ;
-    ('fun' | 'function') target? functionopts? fixes 'where' clauses
-    ;
-    clauses: (thmdecl? prop ('(' 'otherwise' ')')? + '|')
     ;
     functionopts: '(' (('sequential' | 'domintros' | 'tailrec' | 'default' term) + ',') ')'
     ;
@@ -550,6 +548,71 @@ text {*
   \end{description}
 *}
 
+subsection {* Functions with explicit partiality *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "partial_function"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{attribute_def (HOL) "partial_function_mono"} & : & @{text attribute} \\
+  \end{matharray}
+
+  \begin{rail}
+    'partial_function' target? '(' mode ')' fixes \\ 'where' thmdecl? prop
+  \end{rail}
+
+  \begin{description}
+
+  \item @{command (HOL) "partial_function"} defines recursive
+  functions based on fixpoints in complete partial orders. No
+  termination proof is required from the user or constructed
+  internally. Instead, the possibility of non-termination is modelled
+  explicitly in the result type, which contains an explicit bottom
+  element.
+
+  Pattern matching and mutual recursion are currently not supported.
+  Thus, the specification consists of a single function described by a
+  single recursive equation.
+
+  There are no fixed syntactic restrictions on the body of the
+  function, but the induced functional must be provably monotonic
+  wrt.\ the underlying order.  The monotonicitity proof is performed
+  internally, and the definition is rejected when it fails. The proof
+  can be influenced by declaring hints using the
+  @{attribute (HOL) partial_function_mono} attribute.
+
+  The mandatory @{text mode} argument specifies the mode of operation
+  of the command, which directly corresponds to a complete partial
+  order on the result type. By default, the following modes are
+  defined: 
+
+  \begin{description}
+  \item @{text option} defines functions that map into the @{type
+  option} type. Here, the value @{term None} is used to model a
+  non-terminating computation. Monotonicity requires that if @{term
+  None} is returned by a recursive call, then the overall result
+  must also be @{term None}. This is best achieved through the use of
+  the monadic operator @{const "Option.bind"}.
+  
+  \item @{text tailrec} defines functions with an arbitrary result
+  type and uses the slightly degenerated partial order where @{term
+  "undefined"} is the bottom element.  Now, monotonicity requires that
+  if @{term undefined} is returned by a recursive call, then the
+  overall result must also be @{term undefined}. In practice, this is
+  only satisfied when each recursive call is a tail call, whose result
+  is directly returned. Thus, this mode of operation allows the
+  definition of arbitrary tail-recursive functions.
+  \end{description}
+
+  Experienced users may define new modes by instantiating the locale
+  @{const "partial_function_definitions"} appropriately.
+
+  \item @{attribute (HOL) partial_function_mono} declares rules for
+  use in the internal monononicity proofs of partial function
+  definitions.
+
+  \end{description}
+
+*}
 
 subsection {* Old-style recursive function definitions (TFL) *}
 

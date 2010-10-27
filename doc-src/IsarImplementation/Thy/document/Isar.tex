@@ -23,8 +23,9 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The Isar proof language (see also \cite[\S2]{isabelle-isar-ref})
-  consists of three main categories of language elements:
+The Isar proof language (see also
+  \cite[\S2]{isabelle-isar-ref}) consists of three main categories of
+  language elements as follows.
 
   \begin{enumerate}
 
@@ -63,12 +64,12 @@ The Isar proof language (see also \cite[\S2]{isabelle-isar-ref})
 A \emph{proof command} is state transition of the Isar/VM
   proof interpreter.
 
-  In principle, Isar proof commands could be defined in
-  user-space as well.  The system is built like that in the first
-  place: part of the commands are primitive, the other part is defined
-  as derived elements.  Adding to the genuine structured proof
-  language requires profound understanding of the Isar/VM machinery,
-  though, so this is beyond the scope of this manual.
+  In principle, Isar proof commands could be defined in user-space as
+  well.  The system is built like that in the first place: one part of
+  the commands are primitive, the other part is defined as derived
+  elements.  Adding to the genuine structured proof language requires
+  profound understanding of the Isar/VM machinery, though, so this is
+  beyond the scope of this manual.
 
   What can be done realistically is to define some diagnostic commands
   that inspect the general state of the Isar/VM, and report some
@@ -77,8 +78,8 @@ A \emph{proof command} is state transition of the Isar/VM
   goals (if available).
 
   Another common application is to define a toplevel command that
-  poses a problem to the user as Isar proof state and stores the final
-  result in a suitable context data slot.  Thus a proof can be
+  poses a problem to the user as Isar proof state and processes the
+  final result relatively to the context.  Thus a proof can be
   incorporated into the context of some user-space tool, without
   modifying the Isar proof language itself.%
 \end{isamarkuptext}%
@@ -154,13 +155,14 @@ A \emph{proof command} is state transition of the Isar/VM
   storing named facts).  Note that at this generic level the target
   context is specified as \verb|Proof.context|, but the usual
   wrapping of toplevel proofs into command transactions will provide a
-  \verb|local_theory| here (see also \chref{ch:local-theory}).
-  This usually affects the way how results are stored.
+  \verb|local_theory| here (\chref{ch:local-theory}).  This
+  affects the way how results are stored.
 
   The \isa{statement} is given as a nested list of terms, each
   associated with optional \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns as usual in the
-  Isar source language.  The original list structure over terms is
-  turned into one over theorems when \isa{after{\isacharunderscore}qed} is invoked.
+  Isar source language.  The original nested list structure over terms
+  is turned into one over theorems when \isa{after{\isacharunderscore}qed} is
+  invoked.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -324,15 +326,15 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
 
   \end{itemize}
 
-  \medskip Syntactically, the language of proof methods is embedded
-  into Isar as arguments to certain commands, e.g.\ \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}} or
-  \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}.  User-space additions are reasonably easy by
-  plugging suitable method-valued parser functions into the framework,
-  using the \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} command, for example.
+  \medskip Syntactically, the language of proof methods appears as
+  arguments to Isar commands like \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}} or \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}.
+  User-space additions are reasonably easy by plugging suitable
+  method-valued parser functions into the framework, using the
+  \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} command, for example.
 
   To get a better idea about the range of possibilities, consider the
-  following Isar proof schemes.  First some general form of structured
-  proof text:
+  following Isar proof schemes.  This is the general form of
+  structured proof text:
 
   \medskip
   \begin{tabular}{l}
@@ -343,13 +345,13 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
   \end{tabular}
   \medskip
 
-  The goal configuration consists of \isa{facts\isactrlsub {\isadigit{1}}} and \isa{facts\isactrlsub {\isadigit{2}}} appended in that order, and various \isa{props} being
-  claimed here.  The \isa{initial{\isacharunderscore}method} is invoked with facts
-  and goals together and refines the problem to something that is
-  handled recursively in the proof \isa{body}.  The \isa{terminal{\isacharunderscore}method} has another chance to finish-off any remaining
+  The goal configuration consists of \isa{facts\isactrlsub {\isadigit{1}}} and
+  \isa{facts\isactrlsub {\isadigit{2}}} appended in that order, and various \isa{props} being claimed.  The \isa{initial{\isacharunderscore}method} is invoked
+  with facts and goals together and refines the problem to something
+  that is handled recursively in the proof \isa{body}.  The \isa{terminal{\isacharunderscore}method} has another chance to finish any remaining
   subgoals, but it does not see the facts of the initial step.
 
-  \medskip The second pattern illustrates unstructured proof scripts:
+  \medskip This pattern illustrates unstructured proof scripts:
 
   \medskip
   \begin{tabular}{l}
@@ -361,14 +363,12 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
   \end{tabular}
   \medskip
 
-  The \isa{method\isactrlsub {\isadigit{1}}} operates on the original claim together while
+  The \isa{method\isactrlsub {\isadigit{1}}} operates on the original claim while
   using \isa{facts\isactrlsub {\isadigit{1}}}.  Since the \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}} command
-  structurally resets the facts, the \isa{method\isactrlsub {\isadigit{2}}} will operate on
-  the remaining goal state without facts.  The \isa{method\isactrlsub {\isadigit{3}}} will
-  see again a collection of \isa{facts\isactrlsub {\isadigit{3}}} that has been inserted
-  into the script explicitly.
+  structurally resets the facts, the \isa{method\isactrlsub {\isadigit{2}}} will
+  operate on the remaining goal state without facts.  The \isa{method\isactrlsub {\isadigit{3}}} will see again a collection of \isa{facts\isactrlsub {\isadigit{3}}} that has been inserted into the script explicitly.
 
-  \medskip Empirically, Isar proof methods can be categorized as
+  \medskip Empirically, any Isar proof method can be categorized as
   follows.
 
   \begin{enumerate}
@@ -378,7 +378,8 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
 
   Example: \hyperlink{method.induct}{\mbox{\isa{induct}}}, which is also a ``raw'' method since it
   operates on the internal representation of simultaneous claims as
-  Pure conjunction, instead of separate subgoals.
+  Pure conjunction (\secref{{sec:logic-aux}}), instead of separate
+  subgoals (\secref{sec::tactical-goals}).
 
   \item \emph{Structured method} with strong emphasis on facts outside
   the goal state.
@@ -395,8 +396,8 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
   \item \emph{Old-style tactic emulation} with detailed numeric goal
   addressing and explicit references to entities of the internal goal
   state (which are otherwise invisible from proper Isar proof text).
-  To make the special non-standard status clear, the naming convention
-  \isa{foo{\isacharunderscore}tac} needs to be observed.
+  The naming convention \isa{foo{\isacharunderscore}tac} makes this special
+  non-standard status clear.
 
   Example: \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}}.
 
@@ -610,9 +611,9 @@ The concrete syntax wrapping of \hyperlink{command.method-setup}{\mbox{\isa{\isa
 
   The \verb|Attrib.thms| parser produces a list of theorems from the
   usual Isar syntax involving attribute expressions etc.\ (syntax
-  category \hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}).  The resulting \verb|thms| are
-  added to \verb|HOL_basic_ss| which already contains the basic
-  Simplifier setup for HOL.
+  category \hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}) \cite{isabelle-isar-ref}.  The resulting
+  \verb|thms| are added to \verb|HOL_basic_ss| which already
+  contains the basic Simplifier setup for HOL.
 
   The tactic \verb|asm_full_simp_tac| is the one that is also used in
   method \hyperlink{method.simp}{\mbox{\isa{simp}}} by default.  The extra wrapping by the \verb|CHANGED| tactical ensures progress of simplification: identical goal
@@ -795,8 +796,8 @@ This provides ML access to a list of theorems in canonical
   ``simple'' methods, i.e.\ the goal facts are merely inserted as goal
   premises by the \verb|SIMPLE_METHOD'| or \verb|SIMPLE_METHOD| wrapper.
   For proof methods that are similar to the standard collection of
-  \hyperlink{method.simp}{\mbox{\isa{simp}}}, \hyperlink{method.blast}{\mbox{\isa{blast}}}, \hyperlink{method.auto}{\mbox{\isa{auto}}} little more can be
-  done here.
+  \hyperlink{method.simp}{\mbox{\isa{simp}}}, \hyperlink{method.blast}{\mbox{\isa{blast}}}, \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.auto}{\mbox{\isa{auto}}}
+  there is little more that can be done.
 
   Note that using the primary goal facts in the same manner as the
   method arguments obtained via concrete syntax or the context does
@@ -819,8 +820,8 @@ This provides ML access to a list of theorems in canonical
   manner, such as a discrimination net that is indexed by the
   left-hand sides of rewrite rules.  For variations on the Simplifier,
   re-use of the existing type \verb|simpset| is adequate, but
-  scalability requires it be maintained statically within the context
-  data, not dynamically on each tool invocation.%
+  scalability would require it be maintained statically within the
+  context data, not dynamically on each tool invocation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

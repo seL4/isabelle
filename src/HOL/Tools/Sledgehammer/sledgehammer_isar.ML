@@ -130,9 +130,6 @@ structure Data = Theory_Data(
   val extend = I
   fun merge p : T = AList.merge (op =) (K true) p)
 
-(* FIXME: dummy *)
-fun is_smt_solver_installed ctxt = true
-
 fun remotify_prover_if_available_and_not_already_remote thy name =
   if String.isPrefix remote_prefix name then
     SOME name
@@ -157,13 +154,15 @@ fun avoid_too_many_local_threads _ _ [] = []
       prover :: avoid_too_many_local_threads thy n provers
     end
 
+fun num_processors () = try Thread.numProcessors () |> the_default 1
+
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
 fun default_provers_param_value ctxt =
   let val thy = ProofContext.theory_of ctxt in
     [spassN, eN, vampireN, sine_eN (* FIXME: , smtN *)]
     |> map_filter (remotify_prover_if_not_installed ctxt)
-    |> avoid_too_many_local_threads thy (Thread.numProcessors ())
+    |> avoid_too_many_local_threads thy (num_processors ())
     |> space_implode " "
   end
 
@@ -360,6 +359,6 @@ fun auto_sledgehammer state =
                        (minimize_command [] 1) state
     end
 
-val setup = Auto_Tools.register_tool ("sledgehammer", auto_sledgehammer)
+val setup = Auto_Tools.register_tool (sledgehammerN, auto_sledgehammer)
 
 end;

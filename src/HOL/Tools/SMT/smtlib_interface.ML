@@ -15,7 +15,7 @@ sig
   val add_builtins: builtins -> Context.generic -> Context.generic
   val add_logic: (term list -> string option) -> Context.generic ->
     Context.generic
-  val extra_norm: bool -> SMT_Normalize.extra_norm
+  val extra_norm: SMT_Normalize.extra_norm
   val interface: SMT_Solver.interface
 end
 
@@ -30,7 +30,7 @@ structure T = SMT_Translate
 (** facts about uninterpreted constants **)
 
 infix 2 ??
-fun (ex ?? f) thms = if exists (ex o Thm.prop_of) thms then f thms else thms
+fun (ex ?? f) irules = irules |> exists (ex o Thm.prop_of o snd) irules ? f
 
 
 (* pairs *)
@@ -40,7 +40,7 @@ val pair_rules = [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
 val pair_type = (fn Type (@{type_name Product_Type.prod}, _) => true | _ => false)
 val exists_pair_type = Term.exists_type (Term.exists_subtype pair_type)
 
-val add_pair_rules = exists_pair_type ?? append pair_rules
+val add_pair_rules = exists_pair_type ?? append (map (pair ~1) pair_rules)
 
 
 (* function update *)
@@ -50,7 +50,7 @@ val fun_upd_rules = [@{thm fun_upd_same}, @{thm fun_upd_apply}]
 val is_fun_upd = (fn Const (@{const_name fun_upd}, _) => true | _ => false)
 val exists_fun_upd = Term.exists_subterm is_fun_upd
 
-val add_fun_upd_rules = exists_fun_upd ?? append fun_upd_rules
+val add_fun_upd_rules = exists_fun_upd ?? append (map (pair ~1) fun_upd_rules)
 
 
 (* abs/min/max *)
@@ -88,11 +88,11 @@ fun unfold_abs_min_max_defs ctxt thm =
 
 (* include additional facts *)
 
-fun extra_norm has_datatypes thms ctxt =
-  thms
+fun extra_norm has_datatypes irules ctxt =
+  irules
   |> not has_datatypes ? add_pair_rules
   |> add_fun_upd_rules
-  |> map (unfold_abs_min_max_defs ctxt)
+  |> map (apsnd (unfold_abs_min_max_defs ctxt))
   |> rpair ctxt
 
 
@@ -283,7 +283,7 @@ fun serialize comments {header, sorts, dtyps, funcs} ts =
 (** interfaces **)
 
 val interface = {
-  extra_norm = extra_norm false,
+  extra_norm = extra_norm,
   translate = {
     prefixes = {
       sort_prefix = "S",

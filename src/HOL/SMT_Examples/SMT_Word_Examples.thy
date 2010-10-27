@@ -8,7 +8,7 @@ theory SMT_Word_Examples
 imports Word
 begin
 
-declare [[smt_solver=z3, z3_proofs=false]]
+declare [[smt_solver=z3, smt_oracle=true]]
 declare [[smt_certificates="~~/src/HOL/SMT_Examples/SMT_Word_Examples.certs"]]
 declare [[smt_fixed=true]]
 

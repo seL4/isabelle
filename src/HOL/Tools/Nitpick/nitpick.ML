@@ -216,7 +216,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         o Pretty.chunks o cons (Pretty.str "") o single
         o Pretty.mark Markup.hilite
       else
-        (fn s => (priority s; if debug then tracing s else ()))
+        (fn s => (Output.urgent_message s; if debug then tracing s else ()))
         o Pretty.string_of
     fun pprint_m f = () |> not auto ? pprint o f
     fun pprint_v f = () |> verbose ? pprint o f
@@ -989,7 +989,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
            raise Interrupt
          else
            if passed_deadline deadline then
-             (priority "Nitpick ran out of time."; ("unknown", state))
+             (Output.urgent_message "Nitpick ran out of time."; ("unknown", state))
            else
              error "Nitpick was interrupted."
 
@@ -1040,7 +1040,7 @@ fun pick_nits_in_subgoal state params auto i step =
     val t = state |> Proof.raw_goal |> #goal |> prop_of
   in
     case Logic.count_prems t of
-      0 => (priority "No subgoal!"; ("none", state))
+      0 => (Output.urgent_message "No subgoal!"; ("none", state))
     | n =>
       let
         val t = Logic.goal_params t i |> fst

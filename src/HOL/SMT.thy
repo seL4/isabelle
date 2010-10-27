@@ -19,9 +19,7 @@ uses
   ("Tools/SMT/z3_proof_reconstruction.ML")
   ("Tools/SMT/z3_model.ML")
   ("Tools/SMT/z3_interface.ML")
-  ("Tools/SMT/z3_solver.ML")
-  ("Tools/SMT/cvc3_solver.ML")
-  ("Tools/SMT/yices_solver.ML")
+  ("Tools/SMT/smt_setup_solvers.ML")
 begin
 
 
@@ -124,16 +122,12 @@ use "Tools/SMT/z3_proof_tools.ML"
 use "Tools/SMT/z3_proof_literals.ML"
 use "Tools/SMT/z3_proof_reconstruction.ML"
 use "Tools/SMT/z3_model.ML"
-use "Tools/SMT/z3_solver.ML"
-use "Tools/SMT/cvc3_solver.ML"
-use "Tools/SMT/yices_solver.ML"
+use "Tools/SMT/smt_setup_solvers.ML"
 
 setup {*
   SMT_Solver.setup #>
   Z3_Proof_Reconstruction.setup #>
-  Z3_Solver.setup #>
-  CVC3_Solver.setup #>
-  Yices_Solver.setup
+  SMT_Setup_Solvers.setup
 *}
 
 
@@ -170,6 +164,31 @@ Since SMT solvers are potentially non-terminating, there is a timeout
 *}
 
 declare [[ smt_timeout = 20 ]]
+
+text {*
+In general, the binding to SMT solvers runs as an oracle, i.e, the SMT
+solvers are fully trusted without additional checks.  The following
+option can cause the SMT solver to run in proof-producing mode, giving
+a checkable certificate.  This is currently only implemented for Z3.
+*}
+
+declare [[ smt_oracle = false ]]
+
+text {*
+Each SMT solver provides several commandline options to tweak its
+behaviour.  They can be passed to the solver by setting the following
+options.
+*}
+
+declare [[ cvc3_options = "", yices_options = "", z3_options = "" ]]
+
+text {*
+Enable the following option to use built-in support for datatypes and
+records.  Currently, this is only implemented for Z3 running in oracle
+mode.
+*}
+
+declare [[ smt_datatypes = false ]]
 
 
 
@@ -213,41 +232,14 @@ well as the returned result of the solver, the option
 
 declare [[ smt_trace = false ]]
 
-
-
-subsection {* Z3-specific options *}
-
 text {*
-Z3 is the only SMT solver whose proofs are checked (or reconstructed)
-in Isabelle (all other solvers are implemented as oracles).  Enabling
-or disabling proof reconstruction for Z3 is controlled by the option
-@{text z3_proofs}. 
+From the set of assumptions given to the SMT solver, those assumptions
+used in the proof are traced when the following option is set to
+@{term true}.  This only works for Z3 when it runs in non-oracle mode
+(see options @{text smt_solver} and @{text smt_oracle} above).
 *}
 
-declare [[ z3_proofs = true ]]
-
-text {*
-From the set of assumptions given to Z3, those assumptions used in
-the proof are traced when the option @{text z3_trace_assms} is set to
-@{term true}.
-*}
-
-declare [[ z3_trace_assms = false ]]
-
-text {*
-Z3 provides several commandline options to tweak its behaviour.  They
-can be configured by writing them literally as value for the option
-@{text z3_options}.
-*}
-
-declare [[ z3_options = "" ]]
-
-text {*
-The following configuration option may be used to enable mapping of
-HOL datatypes and records to native datatypes provided by Z3.
-*}
-
-declare [[ z3_datatypes = false ]]
+declare [[ smt_trace_used_facts = false ]]
 
 
 

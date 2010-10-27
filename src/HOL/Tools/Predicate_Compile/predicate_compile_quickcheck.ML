@@ -16,6 +16,8 @@ sig
   val put_lseq_result :
     (unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence) ->
       Proof.context -> Proof.context;
+  val put_new_dseq_result : (unit -> int -> term list Lazy_Sequence.lazy_sequence) ->
+    Proof.context -> Proof.context
 
   val tracing : bool Unsynchronized.ref;
   val quiet : bool Unsynchronized.ref;
@@ -50,6 +52,12 @@ structure Lseq_Result = Proof_Data (
   fun init _ () = error "Lseq_Result"
 );
 val put_lseq_result = Lseq_Result.put;
+
+structure New_Dseq_Result = Proof_Data (
+  type T = unit -> int -> term list Lazy_Sequence.lazy_sequence
+  fun init _ () = error "New_Dseq_Random_Result"
+);
+val put_new_dseq_result = New_Dseq_Result.put;
 
 val tracing = Unsynchronized.ref false;
 
@@ -177,11 +185,19 @@ val mk_return = Predicate_Compile_Aux.mk_single RandomPredCompFuns.compfuns
 val mk_bind = Predicate_Compile_Aux.mk_bind RandomPredCompFuns.compfuns
 
 val mk_new_randompredT =
-  Predicate_Compile_Aux.mk_predT New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns
+  Predicate_Compile_Aux.mk_predT New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
 val mk_new_return =
-  Predicate_Compile_Aux.mk_single New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns
+  Predicate_Compile_Aux.mk_single New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
 val mk_new_bind =
-  Predicate_Compile_Aux.mk_bind New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns
+  Predicate_Compile_Aux.mk_bind New_Pos_Random_Sequence_CompFuns.depth_unlimited_compfuns
+
+val mk_new_dseqT =
+  Predicate_Compile_Aux.mk_predT New_Pos_DSequence_CompFuns.depth_unlimited_compfuns
+val mk_gen_return =
+  Predicate_Compile_Aux.mk_single New_Pos_DSequence_CompFuns.depth_unlimited_compfuns
+val mk_gen_bind =
+  Predicate_Compile_Aux.mk_bind New_Pos_DSequence_CompFuns.depth_unlimited_compfuns
+  
 
 val mk_split_lambda = HOLogic.tupled_lambda o HOLogic.mk_tuple
 
@@ -207,6 +223,8 @@ fun compile_term compilation options ctxt t =
               Predicate_Compile_Core.add_random_dseq_equations options [full_constname] thy3
           | New_Pos_Random_DSeq =>
               Predicate_Compile_Core.add_new_random_dseq_equations options [full_constname] thy3
+          | Pos_Generator_DSeq =>
+              Predicate_Compile_Core.add_generator_dseq_equations options [full_constname] thy3
           (*| Depth_Limited_Random =>
               Predicate_Compile_Core.add_depth_limited_random_equations options [full_constname] thy3*))
     (*val _ = Predicate_Compile_Core.print_all_modes compilation thy4*)
@@ -223,6 +241,7 @@ fun compile_term compilation options ctxt t =
             case compilation of
               Pos_Random_DSeq => mk_randompredT (HOLogic.mk_tupleT (map snd vs'))
             | New_Pos_Random_DSeq => mk_new_randompredT (HOLogic.mk_tupleT (map snd vs'))
+            | Pos_Generator_DSeq => mk_new_dseqT (HOLogic.mk_tupleT (map snd vs'))
             | Depth_Limited_Random =>
               [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
               @{typ "code_numeral * code_numeral"}] ---> mk_predT (HOLogic.mk_tupleT (map snd vs'))
@@ -237,6 +256,9 @@ fun compile_term compilation options ctxt t =
             (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
         | New_Pos_Random_DSeq => mk_new_bind (prog,
             mk_split_lambda (map Free vs') (mk_new_return (HOLogic.mk_list @{typ term}
+            (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
+        | Pos_Generator_DSeq => mk_gen_bind (prog,
+            mk_split_lambda (map Free vs') (mk_gen_return (HOLogic.mk_list @{typ term}
             (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
         | Depth_Limited_Random => fold_rev (curry absdummy)
             [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
@@ -274,7 +296,18 @@ fun compile_term compilation options ctxt t =
                  val seed = Random_Engine.next_seed ()
                in compiled_term nrandom size seed depth end))
           end
-      | Depth_Limited_Random =>
+      | Pos_Generator_DSeq =>
+          let
+            val compiled_term =
+              Code_Runtime.dynamic_value_strict
+                (New_Dseq_Result.get, put_new_dseq_result, "Predicate_Compile_Quickcheck.put_new_dseq_result")
+                thy4 (SOME target)
+                (fn proc => fn g => fn depth => g depth |> (Lazy_Sequence.mapa o map) proc)
+                qc_term []
+          in
+            fn size => fn nrandom => fn depth => Option.map fst (Lazy_Sequence.yield (compiled_term depth))
+          end
+       | Depth_Limited_Random =>
           let
             val compiled_term = Code_Runtime.dynamic_value_strict
               (Pred_Result.get, put_pred_result, "Predicate_Compile_Quickcheck.put_pred_result")
@@ -294,7 +327,7 @@ fun try_upto quiet f i =
     fun try' j =
       if j <= i then
         let
-          val _ = if quiet then () else priority ("Executing depth " ^ string_of_int j)
+          val _ = if quiet then () else Output.urgent_message ("Executing depth " ^ string_of_int j)
         in
           case f j handle Match => (if quiet then ()
              else warning "Exception Match raised during quickcheck"; NONE)

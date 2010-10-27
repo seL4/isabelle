@@ -784,7 +784,7 @@ text %mlantiq {*
 *}
 
 
-subsection {* Auxiliary definitions *}
+subsection {* Auxiliary definitions \label{sec:logic-aux} *}
 
 text {*
   Theory @{text "Pure"} provides a few auxiliary definitions, see

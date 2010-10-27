@@ -480,9 +480,9 @@ fun dynamic_eval_value thy postproc evaluator t =
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
     val (algebra', eqngr') = obtain false thy consts [t'];
-    val result = evaluator algebra' eqngr' vs' t';
   in
-    evaluator algebra' eqngr' vs' t'
+    t'
+    |> evaluator algebra' eqngr' vs'
     |> postproc (postprocess_term thy o resubst)
   end;
 

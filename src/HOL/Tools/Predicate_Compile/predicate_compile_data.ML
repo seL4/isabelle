@@ -74,6 +74,11 @@ fun defining_term_of_introrule_term t =
 *)
 val defining_term_of_introrule = defining_term_of_introrule_term o prop_of
 
+fun defining_const_of_introrule th =
+  case defining_term_of_introrule th
+   of Const (c, _) => c
+    | _ => raise TERM ("defining_const_of_introrule failed: Not a constant", [prop_of th])
+
 (*TODO*)
 fun is_introlike_term t = true
 
@@ -194,7 +199,7 @@ fun get_specification options thy t =
         defining_const_of_equation (normalize_equation thy th) = fst (dest_Const t) then
         SOME (normalize_equation thy th)
       else
-        if is_introlike th andalso defining_term_of_introrule th = t then
+        if is_introlike th andalso defining_const_of_introrule th = fst (dest_Const t) then
           SOME th
         else
           NONE
@@ -206,7 +211,8 @@ fun get_specification options thy t =
     | ths => rev ths
     val _ =
       if show_intermediate_results options then
-        Output.tracing (commas (map (Display.string_of_thm_global thy) spec))
+        Output.tracing ("Specification for " ^ (Syntax.string_of_term_global thy t) ^ ":\n" ^
+          commas (map (Display.string_of_thm_global thy) spec))
       else ()
   in
     spec

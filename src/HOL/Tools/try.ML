@@ -40,6 +40,7 @@ fun can_apply timeout_opt pre post tac st =
       SOME (x, _) => nprems_of (post x) < nprems_of goal
     | NONE => false
   end
+  handle TimeLimit.TimeOut => false
 
 fun do_generic timeout_opt command pre post apply st =
   let val timer = Timer.startRealTimer () in
@@ -51,15 +52,6 @@ fun do_generic timeout_opt command pre post apply st =
 
 fun named_method thy name =
   Method.method thy (Args.src ((name, []), Position.none))
-
-fun apply_named_method name ctxt =
-  let val thy = ProofContext.theory_of ctxt in
-    Method.apply (named_method thy name) ctxt []
-  end
-
-fun do_named_method name timeout_opt st =
-  do_generic timeout_opt name (#goal o Proof.goal) snd
-             (apply_named_method name (Proof.context_of st)) st
 
 fun apply_named_method_on_first_goal name ctxt =
   let val thy = ProofContext.theory_of ctxt in
@@ -77,7 +69,8 @@ fun do_named_method (name, all_goals) timeout_opt st =
 
 val named_methods =
   [("simp", false), ("auto", true), ("fast", false), ("fastsimp", false),
-   ("force", false), ("blast", false), ("arith", false)]
+   ("force", false), ("blast", false), ("metis", false), ("linarith", false),
+   ("presburger", false)]
 val do_methods = map do_named_method named_methods
 
 fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
@@ -103,7 +96,7 @@ fun do_try auto timeout_opt st =
                                     Pretty.markup Markup.hilite
                                                   [Pretty.str message]])
                     else
-                      tap (fn _ => priority message)))
+                      tap (fn _ => Output.urgent_message message)))
     end
 
 val invoke_try = fst oo do_try false

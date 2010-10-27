@@ -29,6 +29,7 @@ sig
     -> theory -> theory
   datatype truth = Holds
   val put_truth: (unit -> truth) -> Proof.context -> Proof.context
+  val trace: bool Unsynchronized.ref
   val polyml_as_definition: (binding * typ) list -> Path.T list -> theory -> theory
 end;
 
@@ -59,8 +60,11 @@ val _ = Context.>> (Context.map_theory
   #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"]));
        (*avoid further pervasive infix names*)
 
+val trace = Unsynchronized.ref false;
+
 fun exec verbose code =
-  ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") false code);
+  (if ! trace then tracing code else ();
+  ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") false code));
 
 fun value ctxt (get, put, put_ml) (prelude, value) =
   let

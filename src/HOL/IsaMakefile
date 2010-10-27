@@ -122,7 +122,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/IsaPlanner/rw_tools.ML \
   $(SRC)/Tools/IsaPlanner/zipper.ML \
   $(SRC)/Tools/atomize_elim.ML \
-  $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/auto_tools.ML \
   $(SRC)/Tools/coherent.ML \
   $(SRC)/Tools/cong_tac.ML \
@@ -134,6 +133,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/nbe.ML \
   $(SRC)/Tools/project_rule.ML \
   $(SRC)/Tools/quickcheck.ML \
+  $(SRC)/Tools/solve_direct.ML \
   $(SRC)/Tools/value.ML \
   HOL.thy \
   Tools/hologic.ML \
@@ -145,6 +145,7 @@ $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 
 PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Complete_Lattice.thy \
+  Complete_Partial_Order.thy \
   Datatype.thy \
   Extraction.thy \
   Fields.thy \
@@ -159,6 +160,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Nat.thy \
   Option.thy \
   Orderings.thy \
+  Partial_Function.thy \
   Plain.thy \
   Power.thy \
   Predicate.thy \
@@ -190,6 +192,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Function/lexicographic_order.ML \
   Tools/Function/measure_functions.ML \
   Tools/Function/mutual.ML \
+  Tools/Function/partial_function.ML \
   Tools/Function/pat_completeness.ML \
   Tools/Function/pattern_split.ML \
   Tools/Function/relation.ML \
@@ -303,12 +306,15 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/numeral.ML \
   Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
+  Tools/Predicate_Compile/core_data.ML \
+  Tools/Predicate_Compile/mode_inference.ML \
   Tools/Predicate_Compile/predicate_compile_aux.ML \
   Tools/Predicate_Compile/predicate_compile_compilations.ML \
   Tools/Predicate_Compile/predicate_compile_core.ML \
   Tools/Predicate_Compile/predicate_compile_data.ML \
   Tools/Predicate_Compile/predicate_compile_fun.ML \
   Tools/Predicate_Compile/predicate_compile.ML \
+  Tools/Predicate_Compile/predicate_compile_proof.ML \
   Tools/Predicate_Compile/predicate_compile_specialisation.ML \
   Tools/Predicate_Compile/predicate_compile_pred.ML \
   Tools/quickcheck_generators.ML \
@@ -330,20 +336,18 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_atp_reconstruct.ML \
   Tools/Sledgehammer/sledgehammer_atp_translate.ML \
   Tools/Sledgehammer/sledgehammer_util.ML \
-  Tools/SMT/cvc3_solver.ML \
   Tools/SMT/smtlib_interface.ML \
   Tools/SMT/smt_monomorph.ML \
   Tools/SMT/smt_normalize.ML \
+  Tools/SMT/smt_setup_solvers.ML \
   Tools/SMT/smt_solver.ML \
   Tools/SMT/smt_translate.ML \
-  Tools/SMT/yices_solver.ML \
   Tools/SMT/z3_interface.ML \
   Tools/SMT/z3_model.ML \
   Tools/SMT/z3_proof_literals.ML \
   Tools/SMT/z3_proof_parser.ML \
   Tools/SMT/z3_proof_reconstruction.ML \
   Tools/SMT/z3_proof_tools.ML \
-  Tools/SMT/z3_solver.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/transfer.ML \
@@ -1354,6 +1358,8 @@ $(LOG)/HOL-Predicate_Compile_Examples.gz: $(OUT)/HOL			\
   Predicate_Compile_Examples/Examples.thy				\
   Predicate_Compile_Examples/Context_Free_Grammar_Example.thy 		\
   Predicate_Compile_Examples/Hotel_Example.thy 				\
+  Predicate_Compile_Examples/Hotel_Example_Prolog.thy 			\
+  Predicate_Compile_Examples/Hotel_Example_Small_Generator.thy 		\
   Predicate_Compile_Examples/IMP_1.thy 					\
   Predicate_Compile_Examples/IMP_2.thy 					\
   Predicate_Compile_Examples/IMP_3.thy 					\

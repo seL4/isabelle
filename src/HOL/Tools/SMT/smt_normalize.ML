@@ -17,9 +17,10 @@ Normalization steps on theorems required by SMT solvers:
 
 signature SMT_NORMALIZE =
 sig
-  type extra_norm = thm list -> Proof.context -> thm list * Proof.context
-  val normalize: extra_norm -> bool -> thm list -> Proof.context ->
-    thm list * Proof.context
+  type extra_norm = bool -> (int * thm) list -> Proof.context ->
+    (int * thm) list * Proof.context
+  val normalize: extra_norm -> bool -> (int * thm) list -> Proof.context ->
+    (int * thm) list * Proof.context
   val atomize_conv: Proof.context -> conv
   val eta_expand_conv: (Proof.context -> conv) -> Proof.context -> conv
 end
@@ -52,8 +53,8 @@ local
     if_true_conv is_trivial_distinct (Conv.rewrs_conv thms)
 in
 fun trivial_distinct ctxt =
-  map ((Term.exists_subterm is_trivial_distinct o Thm.prop_of) ??
-    Conv.fconv_rule (Conv.top_conv distinct_conv ctxt))
+  map (apsnd ((Term.exists_subterm is_trivial_distinct o Thm.prop_of) ??
+    Conv.fconv_rule (Conv.top_conv distinct_conv ctxt)))
 end
 
 
@@ -72,8 +73,8 @@ local
   val unfold_conv = if_true_conv is_bool_case (Conv.rewrs_conv thms)
 in
 fun rewrite_bool_cases ctxt =
-  map ((Term.exists_subterm is_bool_case o Thm.prop_of) ??
-    Conv.fconv_rule (Conv.top_conv (K unfold_conv) ctxt))
+  map (apsnd ((Term.exists_subterm is_bool_case o Thm.prop_of) ??
+    Conv.fconv_rule (Conv.top_conv (K unfold_conv) ctxt)))
 end
 
 
@@ -108,8 +109,8 @@ local
     Conv.no_conv
 in
 fun normalize_numerals ctxt =
-  map ((Term.exists_subterm (is_strange_number ctxt) o Thm.prop_of) ??
-    Conv.fconv_rule (Conv.top_sweep_conv pos_conv ctxt))
+  map (apsnd ((Term.exists_subterm (is_strange_number ctxt) o Thm.prop_of) ??
+    Conv.fconv_rule (Conv.top_sweep_conv pos_conv ctxt)))
 end
 
 
@@ -117,7 +118,7 @@ end
 (* embedding of standard natural number operations into integer operations *)
 
 local
-  val nat_embedding = @{lemma
+  val nat_embedding = map (pair ~1) @{lemma
     "nat (int n) = n"
     "i >= 0 --> int (nat i) = i"
     "i < 0 --> int (nat i) = 0"
@@ -179,8 +180,8 @@ local
     Term.exists_subterm (member (op aconv) [@{term int}, @{term nat}])
 in
 fun nat_as_int ctxt =
-  map ((uses_nat_type o Thm.prop_of) ?? Conv.fconv_rule (conv ctxt)) #>
-  exists (uses_nat_int o Thm.prop_of) ?? append nat_embedding
+  map (apsnd ((uses_nat_type o Thm.prop_of) ?? Conv.fconv_rule (conv ctxt))) #>
+  exists (uses_nat_int o Thm.prop_of o snd) ?? append nat_embedding
 end
 
 
@@ -362,12 +363,13 @@ local
     if not (has_free_lambdas (Thm.prop_of thm)) then (thm, cx)
     else cx |> f (Thm.cprop_of thm) |>> (fn thm' => Thm.equal_elim thm' thm)
 in
-fun lift_lambdas thms ctxt =
+fun lift_lambdas irules ctxt =
   let
     val cx = (ctxt, Termtab.empty)
+    val (idxs, thms) = split_list irules
     val (thms', (ctxt', defs)) = fold_map (lift_lm (traverse [])) thms cx
     val eqs = Termtab.fold (cons o normalize_rule ctxt' o snd) defs []
-  in (eqs @ thms', ctxt') end
+  in (map (pair ~1) eqs @ (idxs ~~ thms'), ctxt') end
 end
 
 
@@ -384,8 +386,8 @@ local
     | (Free (n, _), ts) => add (free n) (length ts) #> fold traverse ts
     | (Abs (_, _, u), ts) => fold traverse (u :: ts)
     | (_, ts) => fold traverse ts)
-  val prune = (fn (n, (true, i)) => Symtab.update (n, i) | _ => I)
-  fun prune_tab tab = Symtab.fold prune tab Symtab.empty
+  fun prune tab = Symtab.fold (fn (n, (true, i)) =>
+    Symtab.update (n, i) | _ => I) tab Symtab.empty
 
   fun binop_conv cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
   fun nary_conv conv1 conv2 ct =
@@ -395,7 +397,7 @@ local
     in conv (Symtab.update (free n, 0) tb) cx end)
   val fun_app_rule = @{lemma "f x == fun_app f x" by (simp add: fun_app_def)}
 in
-fun explicit_application ctxt thms =
+fun explicit_application ctxt irules =
   let
     fun sub_conv tb ctxt ct =
       (case Term.strip_comb (Thm.term_of ct) of
@@ -423,8 +425,8 @@ fun explicit_application ctxt thms =
       if not (needs_exp_app tab (Thm.prop_of thm)) then thm
       else Conv.fconv_rule (sub_conv tab ctxt) thm
 
-    val tab = prune_tab (fold (traverse o Thm.prop_of) thms Symtab.empty)
-  in map (rewrite tab ctxt) thms end
+    val tab = prune (fold (traverse o Thm.prop_of o snd) irules Symtab.empty)
+  in map (apsnd (rewrite tab ctxt)) irules end
 end
 
 
@@ -465,11 +467,11 @@ local
         end)
 in
 
-fun datatype_selectors thms ctxt =
+fun datatype_selectors irules ctxt =
   let
-    val ns = Symtab.keys (fold (collect o Thm.prop_of) thms Symtab.empty)
+    val ns = Symtab.keys (fold (collect o Thm.prop_of o snd) irules Symtab.empty)
     val cs = fold (add_constructors (ProofContext.theory_of ctxt)) ns []
-  in (thms, fold add_selector cs ctxt) end
+  in (irules, fold add_selector cs ctxt) end
     (* FIXME: also generate hypothetical definitions for the selectors *)
 
 end
@@ -478,19 +480,20 @@ end
 
 (* combined normalization *)
 
-type extra_norm = thm list -> Proof.context -> thm list * Proof.context
+type extra_norm = bool -> (int * thm) list -> Proof.context ->
+  (int * thm) list * Proof.context
 
-fun with_context f thms ctxt = (f ctxt thms, ctxt)
+fun with_context f irules ctxt = (f ctxt irules, ctxt)
 
-fun normalize extra_norm with_datatypes thms ctxt =
-  thms
+fun normalize extra_norm with_datatypes irules ctxt =
+  irules
   |> trivial_distinct ctxt
   |> rewrite_bool_cases ctxt
   |> normalize_numerals ctxt
   |> nat_as_int ctxt
   |> rpair ctxt
-  |-> extra_norm
-  |-> with_context (fn cx => map (normalize_rule cx))
+  |-> extra_norm with_datatypes
+  |-> with_context (fn cx => map (apsnd (normalize_rule cx)))
   |-> SMT_Monomorph.monomorph
   |-> lift_lambdas
   |-> with_context explicit_application

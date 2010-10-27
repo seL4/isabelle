@@ -10,7 +10,7 @@ sig
     (Token.T, (Symbol_Pos.T, Position.T * (Symbol.symbol, (string, 'a)
       Source.source) Source.source) Source.source) Source.source
   val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
-  val present_token: Token.T -> output
+  val present_token: Token.T -> Output.output
   val report_token: Token.T -> unit
   datatype span_kind = Command of string | Ignored | Malformed
   type span
@@ -19,7 +19,7 @@ sig
   val span_range: span -> Position.range
   val span_source: (Token.T, 'a) Source.source -> (span, (Token.T, 'a) Source.source) Source.source
   val parse_spans: Scan.lexicon * Scan.lexicon -> Position.T -> string -> span list
-  val present_span: span -> output
+  val present_span: span -> Output.output
   val report_span: span -> unit
   val atom_source: (span, 'a) Source.source ->
     (span * span list * bool, (span, 'a) Source.source) Source.source

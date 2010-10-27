@@ -37,17 +37,14 @@ where
                                    }"
 
 
-text {* define traverse using the MREC combinator *}
-
-definition
-  traverse :: "'a\<Colon>heap node \<Rightarrow> 'a list Heap"
+partial_function (heap) traverse :: "'a\<Colon>heap node \<Rightarrow> 'a list Heap"
 where
-[code del]: "traverse = MREC (\<lambda>n. case n of Empty \<Rightarrow> return (Inl [])
-                                | Node x r \<Rightarrow> do { tl \<leftarrow> Ref.lookup r;
-                                                  return (Inr tl) })
-                   (\<lambda>n tl xs. case n of Empty \<Rightarrow> undefined
-                                      | Node x r \<Rightarrow> return (x # xs))"
-
+  [code del]: "traverse l =
+    (case l of Empty \<Rightarrow> return []
+     | Node x r \<Rightarrow> do { tl \<leftarrow> Ref.lookup r;
+                              xs \<leftarrow> traverse tl;
+                              return (x#xs)
+                         })"
 
 lemma traverse_simps[code, simp]:
   "traverse Empty      = return []"
@@ -55,8 +52,7 @@ lemma traverse_simps[code, simp]:
                               xs \<leftarrow> traverse tl;
                               return (x#xs)
                          }"
-unfolding traverse_def
-by (auto simp: traverse_def MREC_rule)
+by (simp_all add: traverse.simps[of "Empty"] traverse.simps[of "Node x r"])
 
 
 section {* Proving correctness with relational abstraction *}
@@ -528,16 +524,9 @@ section {* Proving correctness of in-place reversal *}
 
 subsection {* Definition of in-place reversal *}
 
-definition rev' :: "(('a::heap) node ref \<times> 'a node ref) \<Rightarrow> 'a node ref Heap"
-where "rev' = MREC (\<lambda>(q, p). do { v \<leftarrow> !p; (case v of Empty \<Rightarrow> (return (Inl q))
-                            | Node x next \<Rightarrow> do {
-                                    p := Node x q;
-                                    return (Inr (p, next))
-                                  })})
-             (\<lambda>x s z. return z)"
-
-lemma rev'_simps [code]:
-  "rev' (q, p) =
+partial_function (heap) rev' :: "('a::heap) node ref \<Rightarrow> 'a node ref \<Rightarrow> 'a node ref Heap"
+where
+  [code]: "rev' q p =
    do {
      v \<leftarrow> !p;
      (case v of
@@ -545,22 +534,19 @@ lemma rev'_simps [code]:
       | Node x next \<Rightarrow>
         do {
           p := Node x q;
-          rev' (p, next)
+          rev' p next
         })
-  }"
-  unfolding rev'_def MREC_rule[of _ _ "(q, p)"] unfolding rev'_def[symmetric]
-thm arg_cong2
-  by (auto simp add: fun_eq_iff intro: arg_cong2[where f = bind] split: node.split)
-
+    }"
+  
 primrec rev :: "('a:: heap) node \<Rightarrow> 'a node Heap" 
 where
   "rev Empty = return Empty"
-| "rev (Node x n) = do { q \<leftarrow> ref Empty; p \<leftarrow> ref (Node x n); v \<leftarrow> rev' (q, p); !v }"
+| "rev (Node x n) = do { q \<leftarrow> ref Empty; p \<leftarrow> ref (Node x n); v \<leftarrow> rev' q p; !v }"
 
 subsection {* Correctness Proof *}
 
 lemma rev'_invariant:
-  assumes "crel (rev' (q, p)) h h' v"
+  assumes "crel (rev' q p) h h' v"
   assumes "list_of' h q qs"
   assumes "list_of' h p ps"
   assumes "\<forall>qrs prs. refs_of' h q qrs \<and> refs_of' h p prs \<longrightarrow> set prs \<inter> set qrs = {}"
@@ -569,7 +555,7 @@ using assms
 proof (induct ps arbitrary: qs p q h)
   case Nil
   thus ?case
-    unfolding rev'_simps[of q p] list_of'_def
+    unfolding rev'.simps[of q p] list_of'_def
     by (auto elim!: crel_bindE crel_lookupE crel_returnE)
 next
   case (Cons x xs)
@@ -579,8 +565,8 @@ next
     (*and "ref_present ref h"*)
     and list_of'_ref: "list_of' h ref xs"
     unfolding list_of'_def by (cases "Ref.get h p", auto)
-  from p_is_Node Cons(2) have crel_rev': "crel (rev' (p, ref)) (Ref.set p (Node x q) h) h' v"
-    by (auto simp add: rev'_simps [of q p] elim!: crel_bindE crel_lookupE crel_updateE)
+  from p_is_Node Cons(2) have crel_rev': "crel (rev' p ref) (Ref.set p (Node x q) h) h' v"
+    by (auto simp add: rev'.simps [of q p] elim!: crel_bindE crel_lookupE crel_updateE)
   from Cons(3) obtain qrs where qrs_def: "refs_of' h q qrs" by (elim list_of'_refs_of')
   from Cons(4) obtain prs where prs_def: "refs_of' h p prs" by (elim list_of'_refs_of')
   from qrs_def prs_def Cons(5) have distinct_pointers: "set qrs \<inter> set prs = {}" by fastsimp
@@ -627,7 +613,7 @@ next
   with crel_rev obtain p q h1 h2 h3 v where
     init: "crel (ref Empty) h h1 q"
     "crel (ref (Node x ps)) h1 h2 p"
-    and crel_rev':"crel (rev' (q, p)) h2 h3 v"
+    and crel_rev':"crel (rev' q p) h2 h3 v"
     and lookup: "crel (!v) h3 h' r'"
     using rev.simps
     by (auto elim!: crel_bindE)

@@ -1751,7 +1751,7 @@ of elements stored in the tree:
 {\slshape Nitpick ran out of time after checking 9 of 10 scopes.}
 \postw
 
-Furthermore, applying \textit{skew} or \textit{split} to a well-formed tree
+Furthermore, applying \textit{skew} or \textit{split} on a well-formed tree
 should not alter the tree:
 
 \prew
@@ -1802,10 +1802,10 @@ $\textit{insort}~t~x$ using the \textit{eval} option. This gives
 \postw
 
 Nitpick's output reveals that the element $0$ was added as a left child of $1$,
-where both have a level of 1. This violates the second AA tree invariant, which
-states that a left child's level must be less than its parent's. This shouldn't
-come as a surprise, considering that we commented out the tree rebalancing code.
-Reintroducing the code seems to solve the problem:
+where both nodes have a level of 1. This violates the second AA tree invariant,
+which states that a left child's level must be less than its parent's. This
+shouldn't come as a surprise, considering that we commented out the tree
+rebalancing code. Reintroducing the code seems to solve the problem:
 
 \prew
 \textbf{theorem}~\textit{wf\_insort\/}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~x)$'' \\

@@ -1043,7 +1043,7 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
                                      (fn (s, []) => TFree (s, HOLogic.typeS)
                                        | x => TFree x))
        val _ = if debug then
-                 priority ((if negate then "Genuineness" else "Spuriousness") ^
+                 Output.urgent_message ((if negate then "Genuineness" else "Spuriousness") ^
                            " goal: " ^ Syntax.string_of_term ctxt prop ^ ".")
                else
                  ()

@@ -122,7 +122,6 @@ proof- let ?i = "lebesgue.positive_integral f"
   let ?u = "\<lambda>i x. real (u i x)" and ?f = "\<lambda>x. real (f x)"
   have u_simple:"\<And>k. lebesgue.simple_integral (u k) = lebesgue.positive_integral (u k)"
     apply(subst lebesgue.positive_integral_eq_simple_integral[THEN sym,OF u(1)]) ..
-    (*unfolding image_iff defer apply(rule) using u(2) by smt*)
   have int_u_le:"\<And>k. lebesgue.simple_integral (u k) \<le> lebesgue.positive_integral f"
     unfolding u_simple apply(rule lebesgue.positive_integral_mono)
     using isoton_Sup[OF u(3)] unfolding le_fun_def by auto

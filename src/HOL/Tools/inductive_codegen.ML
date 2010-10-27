@@ -844,7 +844,7 @@ fun test_term ctxt t =
     val test_fn' = !test_fn;
     val dummy_report = ([], false)
     fun test k = (deepen bound (fn i =>
-      (priority ("Search depth: " ^ string_of_int i);
+      (Output.urgent_message ("Search depth: " ^ string_of_int i);
        test_fn' (i, values, k+offset))) start, dummy_report);
   in test end;
 

@@ -70,7 +70,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
       val _ = app (app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th))) thss
       val (mode, {axioms, tfrees, old_skolems}) =
-        build_logic_map mode ctxt type_lits cls thss
+        prepare_metis_problem mode ctxt type_lits cls thss
       val _ = if null tfrees then ()
               else (trace_msg ctxt (fn () => "TFREE CLAUSES");
                     app (fn TyLitFree ((s, _), (s', _)) =>
