@@ -64,24 +64,23 @@ subsection {* Case analysis *}
 
 default_sort pcpo
 
-definition
-  trifte :: "'c \<rightarrow> 'c \<rightarrow> tr \<rightarrow> 'c" where
-  ifte_def: "trifte = (\<Lambda> t e. FLIFT b. if b then t else e)"
+definition tr_case :: "'a \<rightarrow> 'a \<rightarrow> tr \<rightarrow> 'a" where
+  "tr_case = (\<Lambda> t e (Def b). if b then t else e)"
 
 abbreviation
   cifte_syn :: "[tr, 'c, 'c] \<Rightarrow> 'c"  ("(If (_)/ then (_)/ else (_))" [0, 0, 60] 60)
 where
-  "If b then e1 else e2 == trifte\<cdot>e1\<cdot>e2\<cdot>b"
+  "If b then e1 else e2 == tr_case\<cdot>e1\<cdot>e2\<cdot>b"
 
 translations
-  "\<Lambda> (XCONST TT). t" == "CONST trifte\<cdot>t\<cdot>\<bottom>"
-  "\<Lambda> (XCONST FF). t" == "CONST trifte\<cdot>\<bottom>\<cdot>t"
+  "\<Lambda> (XCONST TT). t" == "CONST tr_case\<cdot>t\<cdot>\<bottom>"
+  "\<Lambda> (XCONST FF). t" == "CONST tr_case\<cdot>\<bottom>\<cdot>t"
 
 lemma ifte_thms [simp]:
   "If \<bottom> then e1 else e2 = \<bottom>"
   "If FF then e1 else e2 = e2"
   "If TT then e1 else e2 = e1"
-by (simp_all add: ifte_def TT_def FF_def)
+by (simp_all add: tr_case_def TT_def FF_def)
 
 
 subsection {* Boolean connectives *}
@@ -110,7 +109,7 @@ definition
 
 text {* tactic for tr-thms with case split *}
 
-lemmas tr_defs = andalso_def orelse_def neg_def ifte_def TT_def FF_def
+lemmas tr_defs = andalso_def orelse_def neg_def tr_case_def TT_def FF_def
 
 text {* lemmas about andalso, orelse, neg and if *}
 
