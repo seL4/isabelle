@@ -173,7 +173,7 @@ by intro_classes (fast intro: minimal_cprod)
 lemma inst_cprod_pcpo: "\<bottom> = (\<bottom>, \<bottom>)"
 by (rule minimal_cprod [THEN UU_I, symmetric])
 
-lemma Pair_defined_iff [simp]: "(x, y) = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
+lemma Pair_bottom_iff [simp]: "(x, y) = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
 unfolding inst_cprod_pcpo by simp
 
 lemma fst_strict [simp]: "fst \<bottom> = \<bottom>"

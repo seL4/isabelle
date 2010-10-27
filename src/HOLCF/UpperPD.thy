@@ -233,10 +233,10 @@ by (rule UU_I, rule upper_plus_below1)
 lemma upper_plus_strict2 [simp]: "xs +\<sharp> \<bottom> = \<bottom>"
 by (rule UU_I, rule upper_plus_below2)
 
-lemma upper_unit_strict_iff [simp]: "{x}\<sharp> = \<bottom> \<longleftrightarrow> x = \<bottom>"
+lemma upper_unit_bottom_iff [simp]: "{x}\<sharp> = \<bottom> \<longleftrightarrow> x = \<bottom>"
 unfolding upper_unit_strict [symmetric] by (rule upper_unit_eq_iff)
 
-lemma upper_plus_strict_iff [simp]:
+lemma upper_plus_bottom_iff [simp]:
   "xs +\<sharp> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<or> ys = \<bottom>"
 apply (rule iffI)
 apply (erule rev_mp)

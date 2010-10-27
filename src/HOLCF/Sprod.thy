@@ -80,7 +80,7 @@ by (simp add: Rep_sprod_simps)
 lemma spair_strict2 [simp]: "(:x, \<bottom>:) = \<bottom>"
 by (simp add: Rep_sprod_simps)
 
-lemma spair_strict_iff [simp]: "((:x, y:) = \<bottom>) = (x = \<bottom> \<or> y = \<bottom>)"
+lemma spair_bottom_iff [simp]: "((:x, y:) = \<bottom>) = (x = \<bottom> \<or> y = \<bottom>)"
 by (simp add: Rep_sprod_simps strict_conv_if)
 
 lemma spair_below_iff:
@@ -136,10 +136,10 @@ by (simp add: sfst_def cont_Rep_sprod Rep_sprod_spair)
 lemma ssnd_spair [simp]: "x \<noteq> \<bottom> \<Longrightarrow> ssnd\<cdot>(:x, y:) = y"
 by (simp add: ssnd_def cont_Rep_sprod Rep_sprod_spair)
 
-lemma sfst_defined_iff [simp]: "(sfst\<cdot>p = \<bottom>) = (p = \<bottom>)"
+lemma sfst_bottom_iff [simp]: "(sfst\<cdot>p = \<bottom>) = (p = \<bottom>)"
 by (cases p, simp_all)
 
-lemma ssnd_defined_iff [simp]: "(ssnd\<cdot>p = \<bottom>) = (p = \<bottom>)"
+lemma ssnd_bottom_iff [simp]: "(ssnd\<cdot>p = \<bottom>) = (p = \<bottom>)"
 by (cases p, simp_all)
 
 lemma sfst_defined: "p \<noteq> \<bottom> \<Longrightarrow> sfst\<cdot>p \<noteq> \<bottom>"

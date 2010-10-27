@@ -229,10 +229,10 @@ lemma lower_unit_strict [simp]: "{\<bottom>}\<flat> = \<bottom>"
 using lower_unit_Rep_compact_basis [of compact_bot]
 by (simp add: inst_lower_pd_pcpo)
 
-lemma lower_unit_strict_iff [simp]: "{x}\<flat> = \<bottom> \<longleftrightarrow> x = \<bottom>"
+lemma lower_unit_bottom_iff [simp]: "{x}\<flat> = \<bottom> \<longleftrightarrow> x = \<bottom>"
 unfolding lower_unit_strict [symmetric] by (rule lower_unit_eq_iff)
 
-lemma lower_plus_strict_iff [simp]:
+lemma lower_plus_bottom_iff [simp]:
   "xs +\<flat> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<and> ys = \<bottom>"
 apply safe
 apply (rule UU_I, erule subst, rule lower_plus_below1)

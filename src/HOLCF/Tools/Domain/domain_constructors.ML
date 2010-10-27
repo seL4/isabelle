@@ -210,7 +210,7 @@ fun add_constructors
           in (n2, mk_ssumT (t1, t2)) end;
       val ct = ctyp_of thy (snd (cons2typ 1 spec'));
       val thm1 = instantiate' [SOME ct] [] @{thm exh_start};
-      val thm2 = rewrite_rule (map mk_meta_eq @{thms ex_defined_iffs}) thm1;
+      val thm2 = rewrite_rule (map mk_meta_eq @{thms ex_bottom_iffs}) thm1;
       val thm3 = rewrite_rule [mk_meta_eq @{thm conj_assoc}] thm2;
 
       val y = Free ("y", lhsT);
@@ -279,8 +279,8 @@ fun add_constructors
           val lhs = mk_undef (list_ccomb (con, vs));
           val rhss = map mk_undef nonlazy;
           val goal = mk_trp (iff_disj (lhs, rhss));
-          val rule1 = iso_locale RS @{thm iso.abs_defined_iff};
-          val rules = rule1 :: @{thms con_defined_iff_rules};
+          val rule1 = iso_locale RS @{thm iso.abs_bottom_iff};
+          val rules = rule1 :: @{thms con_bottom_iff_rules};
           val tacs = [simp_tac (HOL_ss addsimps rules) 1];
         in prove thy con_betas goal (K tacs) end;
     in
@@ -506,7 +506,7 @@ fun add_case_combinator
           val goal = Logic.list_implies (assms, concl);
           val defs = case_beta :: con_betas;
           val rules1 = @{thms strictify2 sscase2 sscase3 ssplit2 fup2 ID1};
-          val rules2 = @{thms con_defined_iff_rules};
+          val rules2 = @{thms con_bottom_iff_rules};
           val rules3 = @{thms cfcomp2 one_case2};
           val rules = abs_inverse :: rules1 @ rules2 @ rules3;
           val tacs = [asm_simp_tac (beta_ss addsimps rules) 1];
@@ -528,7 +528,7 @@ fun add_selectors
     (rep_const : term)
     (abs_inv : thm)
     (rep_strict : thm)
-    (rep_strict_iff : thm)
+    (rep_bottom_iff : thm)
     (con_betas : thm list)
     (thy : theory)
     : thm list * theory =
@@ -637,7 +637,7 @@ fun add_selectors
   (* prove selector definedness rules *)
     val sel_defins : thm list =
       let
-        val rules = rep_strict_iff :: @{thms sel_defined_iff_rules};
+        val rules = rep_bottom_iff :: @{thms sel_bottom_iff_rules};
         val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
         fun sel_defin sel =
           let
@@ -868,8 +868,8 @@ fun add_domain_constructors
     val iso_locale = @{thm iso.intro} OF [abs_iso_thm, rep_iso_thm];
     val rep_strict = iso_locale RS @{thm iso.rep_strict};
     val abs_strict = iso_locale RS @{thm iso.abs_strict};
-    val rep_defined_iff = iso_locale RS @{thm iso.rep_defined_iff};
-    val abs_defined_iff = iso_locale RS @{thm iso.abs_defined_iff};
+    val rep_bottom_iff = iso_locale RS @{thm iso.rep_bottom_iff};
+    val abs_bottom_iff = iso_locale RS @{thm iso.abs_bottom_iff};
     val iso_rews = [abs_iso_thm, rep_iso_thm, abs_strict, rep_strict];
 
     (* qualify constants and theorems with domain name *)
@@ -908,7 +908,7 @@ fun add_domain_constructors
           map2 (fn con => fn (b, args, mx) => (con, args)) con_consts spec;
       in
         add_selectors sel_spec rep_const
-          abs_iso_thm rep_strict rep_defined_iff con_betas thy
+          abs_iso_thm rep_strict rep_bottom_iff con_betas thy
       end;
 
     (* define and prove theorems for discriminator functions *)

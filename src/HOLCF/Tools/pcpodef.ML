@@ -11,7 +11,7 @@ sig
     { below_def: thm, adm: thm, cont_Rep: thm, cont_Abs: thm,
       lub: thm, thelub: thm, compact: thm }
   type pcpo_info =
-    { Rep_strict: thm, Abs_strict: thm, Rep_strict_iff: thm, Abs_strict_iff: thm,
+    { Rep_strict: thm, Abs_strict: thm, Rep_bottom_iff: thm, Abs_bottom_iff: thm,
       Rep_defined: thm, Abs_defined: thm }
 
   val add_podef: bool -> binding option -> binding * (string * sort) list * mixfix ->
@@ -48,7 +48,7 @@ type cpo_info =
     lub: thm, thelub: thm, compact: thm }
 
 type pcpo_info =
-  { Rep_strict: thm, Abs_strict: thm, Rep_strict_iff: thm, Abs_strict_iff: thm,
+  { Rep_strict: thm, Abs_strict: thm, Rep_bottom_iff: thm, Abs_bottom_iff: thm,
     Rep_defined: thm, Abs_defined: thm }
 
 (* building terms *)
@@ -136,8 +136,8 @@ fun prove_pcpo
     fun make thm = Drule.zero_var_indexes (thm OF pcpo_thms');
     val Rep_strict = make @{thm typedef_Rep_strict};
     val Abs_strict = make @{thm typedef_Abs_strict};
-    val Rep_strict_iff = make @{thm typedef_Rep_strict_iff};
-    val Abs_strict_iff = make @{thm typedef_Abs_strict_iff};
+    val Rep_bottom_iff = make @{thm typedef_Rep_bottom_iff};
+    val Abs_bottom_iff = make @{thm typedef_Abs_bottom_iff};
     val Rep_defined = make @{thm typedef_Rep_defined};
     val Abs_defined = make @{thm typedef_Abs_defined};
     val (_, thy) =
@@ -146,14 +146,14 @@ fun prove_pcpo
       |> Global_Theory.add_thms
         ([((Binding.suffix_name "_strict"     Rep_name, Rep_strict), []),
           ((Binding.suffix_name "_strict"     Abs_name, Abs_strict), []),
-          ((Binding.suffix_name "_strict_iff" Rep_name, Rep_strict_iff), []),
-          ((Binding.suffix_name "_strict_iff" Abs_name, Abs_strict_iff), []),
+          ((Binding.suffix_name "_bottom_iff" Rep_name, Rep_bottom_iff), []),
+          ((Binding.suffix_name "_bottom_iff" Abs_name, Abs_bottom_iff), []),
           ((Binding.suffix_name "_defined"    Rep_name, Rep_defined), []),
           ((Binding.suffix_name "_defined"    Abs_name, Abs_defined), [])])
       ||> Sign.parent_path;
     val pcpo_info =
       { Rep_strict = Rep_strict, Abs_strict = Abs_strict,
-        Rep_strict_iff = Rep_strict_iff, Abs_strict_iff = Abs_strict_iff,
+        Rep_bottom_iff = Rep_bottom_iff, Abs_bottom_iff = Abs_bottom_iff,
         Rep_defined = Rep_defined, Abs_defined = Abs_defined };
   in
     (pcpo_info, thy)

@@ -71,14 +71,14 @@ lemma abs_defined: "z \<noteq> \<bottom> \<Longrightarrow> abs\<cdot>z \<noteq> 
 lemma rep_defined: "z \<noteq> \<bottom> \<Longrightarrow> rep\<cdot>z \<noteq> \<bottom>"
   by (rule iso.abs_defined [OF iso.swap]) (rule iso_axioms)
 
-lemma abs_defined_iff: "(abs\<cdot>x = \<bottom>) = (x = \<bottom>)"
+lemma abs_bottom_iff: "(abs\<cdot>x = \<bottom>) = (x = \<bottom>)"
   by (auto elim: abs_defin' intro: abs_strict)
 
-lemma rep_defined_iff: "(rep\<cdot>x = \<bottom>) = (x = \<bottom>)"
-  by (rule iso.abs_defined_iff [OF iso.swap]) (rule iso_axioms)
+lemma rep_bottom_iff: "(rep\<cdot>x = \<bottom>) = (x = \<bottom>)"
+  by (rule iso.abs_bottom_iff [OF iso.swap]) (rule iso_axioms)
 
 lemma casedist_rule: "rep\<cdot>x = \<bottom> \<or> P \<Longrightarrow> x = \<bottom> \<or> P"
-  by (simp add: rep_defined_iff)
+  by (simp add: rep_bottom_iff)
 
 lemma compact_abs_rev: "compact (abs\<cdot>x) \<Longrightarrow> compact x"
 proof (unfold compact_def)

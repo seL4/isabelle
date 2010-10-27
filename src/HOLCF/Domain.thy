@@ -22,25 +22,25 @@ subsection {* Casedist *}
 
 text {* Lemmas for proving nchotomy rule: *}
 
-lemma ex_one_defined_iff:
+lemma ex_one_bottom_iff:
   "(\<exists>x. P x \<and> x \<noteq> \<bottom>) = P ONE"
 by simp
 
-lemma ex_up_defined_iff:
+lemma ex_up_bottom_iff:
   "(\<exists>x. P x \<and> x \<noteq> \<bottom>) = (\<exists>x. P (up\<cdot>x))"
 by (safe, case_tac x, auto)
 
-lemma ex_sprod_defined_iff:
+lemma ex_sprod_bottom_iff:
  "(\<exists>y. P y \<and> y \<noteq> \<bottom>) =
   (\<exists>x y. (P (:x, y:) \<and> x \<noteq> \<bottom>) \<and> y \<noteq> \<bottom>)"
 by (safe, case_tac y, auto)
 
-lemma ex_sprod_up_defined_iff:
+lemma ex_sprod_up_bottom_iff:
  "(\<exists>y. P y \<and> y \<noteq> \<bottom>) =
   (\<exists>x y. P (:up\<cdot>x, y:) \<and> y \<noteq> \<bottom>)"
 by (safe, case_tac y, simp, case_tac x, auto)
 
-lemma ex_ssum_defined_iff:
+lemma ex_ssum_bottom_iff:
  "(\<exists>x. P x \<and> x \<noteq> \<bottom>) =
  ((\<exists>x. P (sinl\<cdot>x) \<and> x \<noteq> \<bottom>) \<or>
   (\<exists>x. P (sinr\<cdot>x) \<and> x \<noteq> \<bottom>))"
@@ -49,12 +49,12 @@ by (safe, case_tac x, auto)
 lemma exh_start: "p = \<bottom> \<or> (\<exists>x. p = x \<and> x \<noteq> \<bottom>)"
   by auto
 
-lemmas ex_defined_iffs =
-   ex_ssum_defined_iff
-   ex_sprod_up_defined_iff
-   ex_sprod_defined_iff
-   ex_up_defined_iff
-   ex_one_defined_iff
+lemmas ex_bottom_iffs =
+   ex_ssum_bottom_iff
+   ex_sprod_up_bottom_iff
+   ex_sprod_bottom_iff
+   ex_up_bottom_iff
+   ex_one_bottom_iff
 
 text {* Rules for turning nchotomy into exhaust: *}
 
@@ -78,14 +78,14 @@ subsection {* Installing the domain package *}
 lemmas con_strict_rules =
   sinl_strict sinr_strict spair_strict1 spair_strict2
 
-lemmas con_defined_iff_rules =
-  sinl_defined_iff sinr_defined_iff spair_strict_iff up_defined ONE_defined
+lemmas con_bottom_iff_rules =
+  sinl_bottom_iff sinr_bottom_iff spair_bottom_iff up_defined ONE_defined
 
 lemmas con_below_iff_rules =
-  sinl_below sinr_below sinl_below_sinr sinr_below_sinl con_defined_iff_rules
+  sinl_below sinr_below sinl_below_sinr sinr_below_sinl con_bottom_iff_rules
 
 lemmas con_eq_iff_rules =
-  sinl_eq sinr_eq sinl_eq_sinr sinr_eq_sinl con_defined_iff_rules
+  sinl_eq sinr_eq sinl_eq_sinr sinr_eq_sinl con_bottom_iff_rules
 
 lemmas sel_strict_rules =
   cfcomp2 sscase1 sfst_strict ssnd_strict fup1
@@ -102,8 +102,8 @@ lemmas sel_app_rules =
   sel_strict_rules sel_app_extra_rules
   ssnd_spair sfst_spair up_defined spair_defined
 
-lemmas sel_defined_iff_rules =
-  cfcomp2 sfst_defined_iff ssnd_defined_iff
+lemmas sel_bottom_iff_rules =
+  cfcomp2 sfst_bottom_iff ssnd_bottom_iff
 
 lemmas take_con_rules =
   ssum_map_sinl' ssum_map_sinr' sprod_map_spair' u_map_up

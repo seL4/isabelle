@@ -98,10 +98,10 @@ by (simp add: Rep_ssum_simps)
 lemma sinr_strict [simp]: "sinr\<cdot>\<bottom> = \<bottom>"
 by (simp add: Rep_ssum_simps)
 
-lemma sinl_defined_iff [simp]: "(sinl\<cdot>x = \<bottom>) = (x = \<bottom>)"
+lemma sinl_bottom_iff [simp]: "(sinl\<cdot>x = \<bottom>) = (x = \<bottom>)"
 using sinl_eq [of "x" "\<bottom>"] by simp
 
-lemma sinr_defined_iff [simp]: "(sinr\<cdot>x = \<bottom>) = (x = \<bottom>)"
+lemma sinr_bottom_iff [simp]: "(sinr\<cdot>x = \<bottom>) = (x = \<bottom>)"
 using sinr_eq [of "x" "\<bottom>"] by simp
 
 lemma sinl_defined: "x \<noteq> \<bottom> \<Longrightarrow> sinl\<cdot>x \<noteq> \<bottom>"

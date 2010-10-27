@@ -392,7 +392,7 @@ proof -
   finally show "e\<cdot>\<bottom> = \<bottom>" by simp
 qed
 
-lemma e_defined_iff [simp]: "e\<cdot>x = \<bottom> \<longleftrightarrow> x = \<bottom>"
+lemma e_bottom_iff [simp]: "e\<cdot>x = \<bottom> \<longleftrightarrow> x = \<bottom>"
 by (rule e_eq_iff [where y="\<bottom>", unfolded e_strict])
 
 lemma e_defined: "x \<noteq> \<bottom> \<Longrightarrow> e\<cdot>x \<noteq> \<bottom>"

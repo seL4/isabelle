@@ -119,7 +119,7 @@ by (erule fix_eq4 [THEN cfun_fun_cong])
 
 text {* strictness of @{term fix} *}
 
-lemma fix_defined_iff: "(fix\<cdot>F = \<bottom>) = (F\<cdot>\<bottom> = \<bottom>)"
+lemma fix_bottom_iff: "(fix\<cdot>F = \<bottom>) = (F\<cdot>\<bottom> = \<bottom>)"
 apply (rule iffI)
 apply (erule subst)
 apply (rule fix_eq [symmetric])
@@ -127,10 +127,10 @@ apply (erule fix_least [THEN UU_I])
 done
 
 lemma fix_strict: "F\<cdot>\<bottom> = \<bottom> \<Longrightarrow> fix\<cdot>F = \<bottom>"
-by (simp add: fix_defined_iff)
+by (simp add: fix_bottom_iff)
 
 lemma fix_defined: "F\<cdot>\<bottom> \<noteq> \<bottom> \<Longrightarrow> fix\<cdot>F \<noteq> \<bottom>"
-by (simp add: fix_defined_iff)
+by (simp add: fix_bottom_iff)
 
 text {* @{term fix} applied to identity and constant functions *}
 

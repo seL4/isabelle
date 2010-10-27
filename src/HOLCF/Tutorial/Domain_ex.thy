@@ -116,8 +116,8 @@ subsection {* Generated constants and theorems *}
 
 domain 'a tree = Leaf (lazy 'a) | Node (left :: "'a tree") (right :: "'a tree")
 
-lemmas tree_abs_defined_iff =
-  iso.abs_defined_iff [OF iso.intro [OF tree.abs_iso tree.rep_iso]]
+lemmas tree_abs_bottom_iff =
+  iso.abs_bottom_iff [OF iso.intro [OF tree.abs_iso tree.rep_iso]]
 
 text {* Rules about ismorphism *}
 term tree_rep
