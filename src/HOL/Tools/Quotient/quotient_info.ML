@@ -6,10 +6,11 @@ Data slots for the quotient package.
 
 signature QUOTIENT_INFO =
 sig
-  exception NotFound
+  exception NotFound  (* FIXME complicates signatures unnecessarily *)
 
   type maps_info = {mapfun: string, relmap: string}
   val maps_defined: theory -> string -> bool
+  (* FIXME functions called "lookup" must return option, not raise exception *)
   val maps_lookup: theory -> string -> maps_info     (* raises NotFound *)
   val maps_update_thy: string -> maps_info -> theory -> theory
   val maps_update: string -> maps_info -> Proof.context -> Proof.context
