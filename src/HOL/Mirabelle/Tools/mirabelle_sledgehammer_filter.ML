@@ -95,8 +95,7 @@ fun done id ({log, ...} : Mirabelle.done_args) =
   else
     ()
 
-val default_max_relevant = 300
-val prover_name = ATP_Systems.eN (* arbitrary ATP *)
+val default_prover = ATP_Systems.eN (* arbitrary ATP *)
 
 fun with_index (i, s) = s ^ "@" ^ string_of_int i
 
@@ -107,11 +106,16 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
        SOME proofs =>
        let
          val {context = ctxt, facts, goal} = Proof.goal pre
+         val thy = ProofContext.theory_of ctxt
+         val prover = AList.lookup (op =) args "prover"
+                      |> the_default default_prover
+         val default_max_relevant =
+           Sledgehammer.default_max_relevant_for_prover thy prover
          val irrelevant_consts =
-           Sledgehammer.irrelevant_consts_for_prover prover_name
+           Sledgehammer.irrelevant_consts_for_prover prover
          val relevance_fudge =
            extract_relevance_fudge args
-               (Sledgehammer.relevance_fudge_for_prover prover_name)
+               (Sledgehammer.relevance_fudge_for_prover prover)
          val relevance_override = {add = [], del = [], only = false}
          val {relevance_thresholds, full_types, max_relevant, ...} =
            Sledgehammer_Isar.default_params ctxt args

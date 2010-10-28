@@ -268,9 +268,11 @@ fun test_goal quiet generator_name size iterations default_Ts no_assms insts i s
 
 (* pretty printing *)
 
-fun pretty_counterex ctxt NONE = Pretty.str "Quickcheck found no counterexample."
-  | pretty_counterex ctxt (SOME cex) =
-      Pretty.chunks (Pretty.str "Quickcheck found a counterexample:\n" ::
+fun tool_name auto = (if auto then "Auto " else "") ^ "Quickcheck"
+
+fun pretty_counterex ctxt auto NONE = Pretty.str (tool_name auto ^ " found no counterexample.")
+  | pretty_counterex ctxt auto (SOME cex) =
+      Pretty.chunks (Pretty.str (tool_name auto ^ " found a counterexample:\n") ::
         map (fn (s, t) =>
           Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) cex);
 
@@ -299,8 +301,9 @@ fun pretty_reports ctxt (SOME reports) =
       (rev reports))
   | pretty_reports ctxt NONE = Pretty.str ""
 
-fun pretty_counterex_and_reports ctxt (cex, timing_and_reports) =
-  Pretty.chunks (pretty_counterex ctxt cex :: map (pretty_reports ctxt) (map snd timing_and_reports))
+fun pretty_counterex_and_reports ctxt auto (cex, timing_and_reports) =
+  Pretty.chunks (pretty_counterex ctxt auto cex ::
+    map (pretty_reports ctxt) (map snd timing_and_reports))
 
 (* automatic testing *)
 
@@ -321,7 +324,7 @@ fun auto_quickcheck state =
         NONE => (false, state)
       | SOME (NONE, report) => (false, state)
       | SOME (cex, report) => (true, Proof.goal_message (K (Pretty.chunks [Pretty.str "",
-          Pretty.mark Markup.hilite (pretty_counterex ctxt cex)])) state)
+          Pretty.mark Markup.hilite (pretty_counterex ctxt true cex)])) state)
     end
 
 val setup = Auto_Tools.register_tool ("quickcheck", auto_quickcheck)
@@ -398,7 +401,7 @@ fun quickcheck args i state = fst (gen_quickcheck args i state);
 
 fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
-  |> Pretty.writeln o pretty_counterex_and_reports (Toplevel.context_of state);
+  |> Pretty.writeln o pretty_counterex_and_reports (Toplevel.context_of state) false;
 
 val parse_arg = Parse.name -- (Scan.optional (Parse.$$$ "=" |-- 
   ((Parse.name >> single) || (Parse.$$$ "[" |-- Parse.list1 Parse.name --| Parse.$$$ "]"))) ["true"]);

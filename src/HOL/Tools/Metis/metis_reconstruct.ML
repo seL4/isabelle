@@ -336,8 +336,10 @@ fun resolve_inc_tyvars thy tha i thb =
            | ps => aux (instantiate (ps, []) tha) (instantiate (ps, []) thb)
   end
 
-fun mk_not (Const (@{const_name Not}, _) $ b) = b
-  | mk_not b = HOLogic.mk_not b
+fun s_not (@{const Not} $ t) = t
+  | s_not t = HOLogic.mk_not t
+fun simp_not_not (@{const Not} $ t) = s_not (simp_not_not t)
+  | simp_not_not t = t
 
 (* Match untyped terms. *)
 fun untyped_aconv (Const (a, _)) (Const(b, _)) = (a = b)
@@ -351,16 +353,12 @@ fun untyped_aconv (Const (a, _)) (Const(b, _)) = (a = b)
   | untyped_aconv _ _ = false
 
 (* Finding the relative location of an untyped term within a list of terms *)
-fun literal_index lit =
+fun index_of_literal lit haystack =
   let
-    val lit = Envir.eta_contract lit
-    fun get _ [] = raise Empty
-      | get n (x :: xs) =
-        if untyped_aconv lit (Envir.eta_contract (HOLogic.dest_Trueprop x)) then
-          n
-        else
-          get (n+1) xs
-  in get 1 end
+    val normalize = simp_not_not o Envir.eta_contract
+    val match_lit =
+      HOLogic.dest_Trueprop #> normalize #> untyped_aconv (lit |> normalize)
+  in case find_index match_lit haystack of ~1 => raise Empty | n => n + 1 end
 
 (* Permute a rule's premises to move the i-th premise to the last position. *)
 fun make_last i th =
@@ -391,16 +389,19 @@ fun resolve_inf ctxt mode old_skolems thpairs atm th1 th2 =
       i_th1
     else
       let
-        val i_atm = singleton (hol_terms_from_fol ctxt mode old_skolems)
-                              (Metis_Term.Fn atm)
+        val i_atm =
+          singleton (hol_terms_from_fol ctxt mode old_skolems)
+                    (Metis_Term.Fn atm)
         val _ = trace_msg ctxt (fn () => "  atom: " ^ Syntax.string_of_term ctxt i_atm)
         val prems_th1 = prems_of i_th1
         val prems_th2 = prems_of i_th2
-        val index_th1 = literal_index (mk_not i_atm) prems_th1
-              handle Empty => raise Fail "Failed to find literal in th1"
+        val index_th1 =
+          index_of_literal (s_not i_atm) prems_th1
+          handle Empty => raise Fail "Failed to find literal in th1"
         val _ = trace_msg ctxt (fn () => "  index_th1: " ^ Int.toString index_th1)
-        val index_th2 = literal_index i_atm prems_th2
-              handle Empty => raise Fail "Failed to find literal in th2"
+        val index_th2 =
+          index_of_literal i_atm prems_th2
+          handle Empty => raise Fail "Failed to find literal in th2"
         val _ = trace_msg ctxt (fn () => "  index_th2: " ^ Int.toString index_th2)
     in
       resolve_inc_tyvars thy (select_literal index_th1 i_th1) index_th2 i_th2
