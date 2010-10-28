@@ -12,6 +12,7 @@ sig
   structure Ctermtab: TABLE
   structure Thmtab: TABLE
   val aconvc: cterm * cterm -> bool
+  type attribute = Context.generic * thm -> Context.generic * thm
 end;
 
 signature THM =
@@ -64,6 +65,7 @@ sig
   val close_derivation: thm -> thm
   val add_axiom: binding * term -> theory -> (string * thm) * theory
   val add_def: bool -> bool -> binding * term -> theory -> (string * thm) * theory
+  type attribute = Context.generic * thm -> Context.generic * thm
   type binding = binding * attribute list
   val empty_binding: binding
   val rule_attribute: (Context.generic -> thm -> thm) -> attribute
@@ -381,6 +383,9 @@ fun add_def unchecked overloaded (b, prop) thy =
 
 
 (** attributes **)
+
+(*attributes subsume any kind of rules or context modifiers*)
+type attribute = Context.generic * thm -> Context.generic * thm;
 
 type binding = binding * attribute list;
 val empty_binding: binding = (Binding.empty, []);

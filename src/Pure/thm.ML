@@ -39,7 +39,6 @@ signature BASIC_THM =
   (*theorems*)
   type thm
   type conv = cterm -> thm
-  type attribute = Context.generic * thm -> Context.generic * thm
   val rep_thm: thm ->
    {thy_ref: theory_ref,
     tags: Properties.T,
@@ -349,9 +348,6 @@ and deriv = Deriv of
 with
 
 type conv = cterm -> thm;
-
-(*attributes subsume any kind of rules or context modifiers*)
-type attribute = Context.generic * thm -> Context.generic * thm;
 
 (*errors involving theorems*)
 exception THM of string * int * thm list;
