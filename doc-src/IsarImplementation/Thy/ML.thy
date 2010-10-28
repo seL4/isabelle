@@ -750,7 +750,7 @@ text {* Standard ML is a language in the tradition of @{text
 
   This can be avoided by \emph{canonical argument order}, which
   observes certain standard patterns and minimizes adhoc permutations
-  in their application.  In Isabelle/ML, large portions text can be
+  in their application.  In Isabelle/ML, large portions of text can be
   written without ever using @{text "swap: \<alpha> \<times> \<beta> \<rightarrow> \<beta> \<times> \<alpha>"}, or the
   combinator @{text "C: (\<alpha> \<rightarrow> \<beta> \<rightarrow> \<gamma>) \<rightarrow> (\<beta> \<rightarrow> \<alpha> \<rightarrow> \<gamma>)"} that is not even
   defined in our library.
@@ -787,7 +787,7 @@ text {* Standard ML is a language in the tradition of @{text
   to the right: @{text "insert a"} is a function @{text "\<beta> \<rightarrow> \<beta>"} to
   insert a value @{text "a"}.  These can be composed naturally as
   @{text "insert c \<circ> insert b \<circ> insert a"}.  The slightly awkward
-  inversion if the composition order is due to conventional
+  inversion of the composition order is due to conventional
   mathematical notation, which can be easily amended as explained
   below.
 *}
@@ -1138,9 +1138,9 @@ text {* The Standard ML semantics of strict functional evaluation
   language definition.  It was excluded from the SML97 version to
   avoid its malign impact on ML program semantics, but without
   providing a viable alternative.  Isabelle/ML recovers physical
-  interruptibility (which an indispensable tool to implement managed
-  evaluation of command transactions), but requires user code to be
-  strictly transparent wrt.\ interrupts.
+  interruptibility (which is an indispensable tool to implement
+  managed evaluation of command transactions), but requires user code
+  to be strictly transparent wrt.\ interrupts.
 
   \begin{warn}
   Isabelle/ML user code needs to terminate promptly on interruption,
