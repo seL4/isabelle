@@ -130,6 +130,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   private def init_popup(snapshot: Document.Snapshot, x: Int, y: Int)
   {
     exit_popup()
+/* FIXME broken
     val offset = text_area.xyToOffset(x, y)
     val p = new Point(x, y); SwingUtilities.convertPointToScreen(p, text_area.getPainter)
 
@@ -143,6 +144,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
         html_popup = Some(popup)
       case _ =>
     }
+*/
   }
 
 
