@@ -226,11 +226,10 @@ text %mlref {*
 text %mlantiq {*
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "theory"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "theory_ref"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
   \begin{rail}
-  ('theory' | 'theory\_ref') nameref?
+  'theory' nameref?
   ;
   \end{rail}
 
@@ -242,10 +241,6 @@ text %mlantiq {*
   \item @{text "@{theory A}"} refers to an explicitly named ancestor
   theory @{text "A"} of the background theory of the current context
   --- as abstract value.
-
-  \item @{text "@{theory_ref}"} is similar to @{text "@{theory}"}, but
-  produces a @{ML_type theory_ref} via @{ML "Theory.check_thy"} as
-  explained above.
 
   \end{description}
 *}

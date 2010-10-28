@@ -71,12 +71,6 @@ val _ = value "theory"
     "Context.get_theory (ML_Context.the_global_context ()) " ^ ML_Syntax.print_string name)
   || Scan.succeed "ML_Context.the_global_context ()");
 
-val _ = value "theory_ref"
-  (Scan.lift Args.name >> (fn name =>
-    "Theory.check_thy (Context.get_theory (ML_Context.the_global_context ()) " ^
-      ML_Syntax.print_string name ^ ")")
-  || Scan.succeed "Theory.check_thy (ML_Context.the_global_context ())");
-
 val _ = value "context" (Scan.succeed "ML_Context.the_local_context ()");
 
 val _ = inline "typ" (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ));
