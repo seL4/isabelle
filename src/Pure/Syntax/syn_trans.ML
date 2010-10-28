@@ -547,7 +547,7 @@ fun pts_to_asts ctxt trf pts =
     fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
       | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
 
-    val exn_results = map (Exn.capture ast_of) pts;
+    val exn_results = map (Exn.interruptible_capture ast_of) pts;
     val exns = map_filter Exn.get_exn exn_results;
     val results = map_filter Exn.get_result exn_results
   in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
@@ -571,7 +571,7 @@ fun asts_to_terms ctxt trf asts =
           Term.list_comb (term_of ast, map term_of asts)
       | term_of (ast as Ast.Appl _) = raise Ast.AST ("ast_to_term: malformed ast", [ast]);
 
-    val exn_results = map (Exn.capture term_of) asts;
+    val exn_results = map (Exn.interruptible_capture term_of) asts;
     val exns = map_filter Exn.get_exn exn_results;
     val results = map_filter Exn.get_result exn_results
   in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;

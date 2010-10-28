@@ -139,9 +139,10 @@ fun mk_testers ctxt t =
 
 fun mk_testers_strict ctxt t =
   let
-    val generators = ((map snd o fst o Data.get  o Context.Proof) ctxt)
-    val testers = map (fn generator => Exn.capture (generator ctxt) t) generators;
-  in if forall (is_none o Exn.get_result) testers
+    val generators = ((map snd o fst o Data.get o Context.Proof) ctxt)
+    val testers = map (fn generator => Exn.interruptible_capture (generator ctxt) t) generators;
+  in
+    if forall (is_none o Exn.get_result) testers
     then [(Exn.release o snd o split_last) testers]
     else map_filter Exn.get_result testers
   end;
