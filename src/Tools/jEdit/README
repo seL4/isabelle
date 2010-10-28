@@ -55,6 +55,10 @@ Known problems with Mac OS
   Linux, but probably also the deeper reason for the other oddities of
   Apple font management.
 
+- The native font renderer of -Dapple.awt.graphics.UseQuartz=true
+  fails to handle the infinitesimal font size of "hidden" text (e.g.
+  used in Isabelle sub/superscripts).
+
 
 Windows/Linux
 =============
