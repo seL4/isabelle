@@ -703,7 +703,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
     val (descr, _) = unfold_datatypes tmp_thy dts' sorts dt_info dts' i;
     val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>
       if #strict config then error ("Nonemptiness check failed for datatype " ^ s)
-      else raise exn;
+      else reraise exn;
 
     val _ = message config ("Constructing datatype(s) " ^ commas_quote new_type_names);
 
