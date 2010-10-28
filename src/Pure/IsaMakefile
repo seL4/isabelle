@@ -20,6 +20,7 @@ LOG = $(OUT)/log
 ## Pure
 
 BOOTSTRAP_FILES = 					\
+  General/exn.ML					\
   ML-Systems/bash.ML 					\
   ML-Systems/compiler_polyml-5.2.ML			\
   ML-Systems/compiler_polyml-5.3.ML			\
@@ -73,7 +74,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   General/basics.ML					\
   General/binding.ML					\
   General/buffer.ML					\
-  General/exn.ML					\
   General/file.ML					\
   General/graph.ML					\
   General/heap.ML					\
