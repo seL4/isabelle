@@ -159,7 +159,7 @@ section {* Basic specification elements *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "axiomatization"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!)\\
+    @{command_def "axiomatization"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
     @{command_def "definition"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{attribute_def "defn"} & : & @{text attribute} \\
     @{command_def "abbreviation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -1139,8 +1139,8 @@ text {* Oracles allow Isabelle to take advantage of external reasoners
   asserted, and records within the internal derivation object how
   presumed theorems depend on unproven suppositions.
 
-  \begin{matharray}{rcl}
-    @{command_def "oracle"} & : & @{text "theory \<rightarrow> theory"} \\
+  \begin{matharray}{rcll}
+    @{command_def "oracle"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
 
   \begin{rail}
