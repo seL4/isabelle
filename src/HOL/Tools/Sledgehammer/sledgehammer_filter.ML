@@ -86,8 +86,12 @@ val abs_name = sledgehammer_prefix ^ "abs"
 val skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
+fun needs_quoting reserved s =
+  Symtab.defined reserved s orelse
+  exists (not o Syntax.is_identifier) (Long_Name.explode s)
+
 fun repair_name reserved multi j name =
-  (name |> Symtab.defined reserved name ? quote) ^
+  (name |> needs_quoting reserved name ? quote) ^
   (if multi then "(" ^ Int.toString j ^ ")" else "")
 
 fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
