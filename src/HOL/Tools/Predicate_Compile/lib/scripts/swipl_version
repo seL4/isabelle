@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# Author: Lukas Bulwahn, TU Muenchen, 2010
+#
+# Determine SWI-Prolog version
+
+if [ "$EXEC_SWIPL" = "" ]; then
+  echo ""
+else
+  VERSION=`$EXEC_SWIPL --version`
+  echo `expr match "$VERSION" 'SWI-Prolog version \([0-9\.]*\)'`
+fi
