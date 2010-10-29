@@ -609,10 +609,6 @@ fun unify_first_prem_with_concl thy i th =
       | _ => if untyped_aconv t u then I else raise TERM ("unify_terms", [t, u])
   in th |> term_instantiate thy (unify_terms (prem, concl) []) end
 
-fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (index_no, axiom_no)
-fun shuffle_ord p =
-  rev_order (prod_ord int_ord int_ord (pairself shuffle_key p))
-
 val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast}
 
 fun copy_prems_tac [] ns i =
@@ -622,10 +618,11 @@ fun copy_prems_tac [] ns i =
   | copy_prems_tac (m :: ms) ns i =
     etac copy_prem i THEN copy_prems_tac ms (m div 2 :: (m + 1) div 2 :: ns) i
 
-fun instantiate_forall_tac thy params t i =
+fun instantiate_forall_tac thy t i st =
   let
+    val params = Logic.strip_params (Logic.get_goal (prop_of st) i) |> rev
     fun repair (t as (Var ((s, _), _))) =
-        (case find_index (fn ((s', _), _) => s' = s) params of
+        (case find_index (fn (s', _) => s' = s) params of
            ~1 => t
          | j => Bound j)
       | repair (t $ u) = repair t $ repair u
@@ -636,13 +633,13 @@ fun instantiate_forall_tac thy params t i =
         th |> term_instantiate thy [(Var var, t')]
       end
   in
-    etac @{thm allE} i
-    THEN rotate_tac ~1 i
-    THEN PRIMITIVE do_instantiate
+    (etac @{thm allE} i
+     THEN rotate_tac ~1 i
+     THEN PRIMITIVE do_instantiate) st
   end
 
-fun release_clusters_tac _ _ _ _ [] = K all_tac
-  | release_clusters_tac thy ax_counts substs params
+fun release_clusters_tac _ _ _ [] = K all_tac
+  | release_clusters_tac thy ax_counts substs
                          ((ax_no, cluster_no) :: clusters) =
     let
       fun in_right_cluster s =
@@ -657,16 +654,14 @@ fun release_clusters_tac _ _ _ _ [] = K all_tac
                                    |> map snd |> SOME
                            else
                              NONE)
-      val n = length cluster_substs
       fun do_cluster_subst cluster_subst =
-        map (instantiate_forall_tac thy params) cluster_subst @ [rotate_tac 1]
-      val params' = params (* FIXME ### existentials! *)
+        map (instantiate_forall_tac thy) cluster_subst @ [rotate_tac 1]
       val first_prem = find_index (fn (ax_no', _) => ax_no' = ax_no) substs
     in
       rotate_tac first_prem
       THEN' (EVERY' (maps do_cluster_subst cluster_substs))
       THEN' rotate_tac (~ first_prem - length cluster_substs)
-      THEN' release_clusters_tac thy ax_counts substs params' clusters
+      THEN' release_clusters_tac thy ax_counts substs clusters
     end
 
 val cluster_ord =
@@ -682,6 +677,9 @@ structure Int_Tysubst_Table =
 
 structure Int_Pair_Graph =
   Graph(type key = int * int val ord = prod_ord int_ord int_ord)
+
+fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (index_no, axiom_no)
+fun shuffle_ord p = prod_ord int_ord int_ord (pairself shuffle_key p)
 
 (* Attempts to derive the theorem "False" from a theorem of the form
    "P1 ==> ... ==> Pn ==> False", where the "Pi"s are to be discharged using the
@@ -757,12 +755,12 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         handle Int_Pair_Graph.CYCLES _ =>
                error "Cannot replay Metis proof in Isabelle without \
                      \\"Hilbert_Choice\"."
-      val params0 =
-        [] |> fold (Term.add_vars o snd) (map_filter I axioms)
-           |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst o fst))
+      val outer_param_names =
+        [] |> fold (Term.add_var_names o snd) (map_filter I axioms)
+           |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst))
            |> filter (fn (((_, (cluster_no, _)), skolem), _) =>
                          cluster_no = 0 andalso skolem)
-           |> sort shuffle_ord |> map snd
+           |> sort shuffle_ord |> map (fst o snd)
       val ax_counts =
         Int_Tysubst_Table.empty
         |> fold (fn (ax_no, (_, (tysubst, _))) =>
@@ -777,8 +775,8 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                      o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
       val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
                        cat_lines (map string_for_subst_info substs))
-      val _ = tracing ("OUTERMOST SKOLEMS: " ^ PolyML.makestring params0)
       val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
+      val _ = tracing ("OUTER PARAMS: " ^ PolyML.makestring outer_param_names)
       val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
 *)
       fun rotation_for_subgoal i =
@@ -788,14 +786,14 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
           (K (cut_rules_tac
                   (map (fst o the o nth axioms o fst o fst) ax_counts) 1
               THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
+              THEN rename_tac outer_param_names 1
               THEN copy_prems_tac (map snd ax_counts) [] 1
-              THEN release_clusters_tac thy ax_counts substs params0
-                                        ordered_clusters 1
+              THEN release_clusters_tac thy ax_counts substs ordered_clusters 1
               THEN match_tac [prems_imp_false] 1
               THEN ALLGOALS (fn i =>
                        rtac @{thm Meson.skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
-(*                       THEN PRIMITIVE (unify_first_prem_with_concl thy i) ###*)
+(*                       THEN PRIMITIVE (unify_first_prem_with_concl thy i) ### FIXME: needed? *)
                        THEN assume_tac i)))
       handle ERROR _ =>
              error ("Cannot replay Metis proof in Isabelle:\n\
