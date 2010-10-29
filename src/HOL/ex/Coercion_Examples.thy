@@ -9,6 +9,8 @@ imports Main
 uses "~~/src/Tools/subtyping.ML"
 begin
 
+setup Subtyping.setup
+
 (* Coercion/type maps definitions*)
 
 consts func :: "(nat \<Rightarrow> int) \<Rightarrow> nat"

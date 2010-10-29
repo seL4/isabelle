@@ -9,9 +9,10 @@ sig
   datatype variance = COVARIANT | CONTRAVARIANT | INVARIANT
   val infer_types: Proof.context -> (string -> typ option) -> (indexname -> typ option) ->
     term list -> term list
+  val setup: theory -> theory
 end;
 
-structure Subtyping =
+structure Subtyping: SUBTYPING =
 struct
 
 (** coercions data **)
@@ -642,24 +643,21 @@ fun infer_types ctxt const_type var_type raw_ts =
 
 (** installation **)
 
+(* term check *)
+
 fun coercion_infer_types ctxt =
   infer_types ctxt
     (try (Consts.the_constraint (ProofContext.consts_of ctxt)))
     (ProofContext.def_type ctxt);
 
-local
-
-fun add eq what f = Context.>> (what (fn xs => fn ctxt =>
-  let val xs' = f ctxt xs in if eq_list eq (xs, xs') then NONE else SOME (xs', ctxt) end));
-
-in
-
-val _ = add (op aconv) (Syntax.add_term_check ~100 "coercions") coercion_infer_types;
-
-end;
+val add_term_check =
+  Syntax.add_term_check ~100 "coercions"
+    (fn xs => fn ctxt =>
+      let val xs' = coercion_infer_types ctxt xs
+      in if eq_list (op aconv) (xs, xs') then NONE else SOME (xs', ctxt) end);
 
 
-(* interface *)
+(* declarations *)
 
 fun add_type_map map_fun context =
   let
@@ -753,12 +751,16 @@ fun add_coercion coercion context =
     map_coes_and_graph coercion_data_update context
   end;
 
-val _ = Context.>> (Context.map_theory
-  (Attrib.setup (Binding.name "coercion") (Scan.lift Parse.term >>
+
+(* theory setup *)
+
+val setup =
+  Context.theory_map add_term_check #>
+  Attrib.setup @{binding coercion} (Scan.lift Parse.term >>
     (fn t => fn (context, thm) => (add_coercion t context, thm)))
     "declaration of new coercions" #>
-  Attrib.setup (Binding.name "map_function") (Scan.lift Parse.term >>
+  Attrib.setup @{binding map_function} (Scan.lift Parse.term >>
     (fn t => fn (context, thm) => (add_type_map t context, thm)))
-    "declaration of new map functions"));
+    "declaration of new map functions";
 
 end;
