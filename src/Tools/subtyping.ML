@@ -63,7 +63,7 @@ fun map_tmaps f =
   map_data (fn (coes, coes_graph, tmaps) =>
     (coes, coes_graph, f tmaps));
 
-fun rep_data context = Data.get context |> (fn Data args => args);
+val rep_data = (fn Data args => args) o Data.get o Context.Proof;
 
 val coes_of = #coes o rep_data;
 val coes_graph_of = #coes_graph o rep_data;
@@ -275,8 +275,8 @@ exception BOUND_ERROR of string;
 
 fun process_constraints ctxt cs tye_idx =
   let
-    val coes_graph = coes_graph_of (Context.Proof ctxt);
-    val tmaps = tmaps_of (Context.Proof ctxt);
+    val coes_graph = coes_graph_of ctxt;
+    val tmaps = tmaps_of ctxt;
     val tsig = Sign.tsig_of (ProofContext.theory_of ctxt);
     val pp = Syntax.pp ctxt;
     val arity_sorts = Type.arity_sorts pp tsig;
@@ -556,7 +556,7 @@ fun insert_coercions ctxt tye ts =
           if a = b
           then Abs (Name.uu, Type (a, []), Bound 0)
           else
-            (case Symreltab.lookup (coes_of (Context.Proof ctxt)) (a, b) of
+            (case Symreltab.lookup (coes_of ctxt) (a, b) of
               NONE => raise Fail (a ^ " is not a subtype of " ^ b)
             | SOME co => co)
       | gen_coercion ((Type (a, Ts)), (Type (b, Us))) =
@@ -572,7 +572,7 @@ fun insert_coercions ctxt tye ts =
               fun ts_of [] = []
                 | ts_of (Type ("fun", [x1, x2]) :: xs) = x1 :: x2 :: (ts_of xs);
             in
-              (case Symtab.lookup (tmaps_of (Context.Proof ctxt)) a of
+              (case Symtab.lookup (tmaps_of ctxt) a of
                 NONE => raise Fail ("No map function for " ^ a ^ " known")
               | SOME tmap =>
                   let
