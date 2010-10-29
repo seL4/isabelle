@@ -18,8 +18,7 @@ use_thys [
   "Propositional_Cla",
   "Quantifiers_Cla",
   "Miniscope",
-  "If",
-  "Iff_Oracle"
+  "If"
 ];
 
 (*regression test for locales -- sets several global flags!*)

@@ -44,8 +44,9 @@ struct
 
 fun cert_def ctxt eq =
   let
-    fun err msg = cat_error msg ("The error(s) above occurred in definition: " ^
-      quote (Syntax.string_of_term ctxt eq));
+    fun err msg =
+      cat_error msg ("The error(s) above occurred in definition:\n" ^
+        quote (Syntax.string_of_term ctxt eq));
     val ((lhs, _), eq') = eq
       |> Sign.no_vars ctxt
       |> Primitive_Defs.dest_def ctxt Term.is_Free (Variable.is_fixed ctxt) (K true)
@@ -245,7 +246,7 @@ fun derived_def ctxt conditional prop =
           (CONVERSION (meta_rewrite_conv ctxt') THEN'
             MetaSimplifier.rewrite_goal_tac [def] THEN'
             resolve_tac [Drule.reflexive_thm])))
-        handle ERROR msg => cat_error msg "Failed to prove definitional specification."
+        handle ERROR msg => cat_error msg "Failed to prove definitional specification"
       end;
   in (((c, T), rhs), prove) end;
 

@@ -344,6 +344,10 @@ INCOMPATIBILITY.
 Fail if the argument is false.  Due to inlining the source position of
 failed assertions is included in the error output.
 
+* Discontinued antiquotation @{theory_ref}, which is obsolete since ML
+text is in practice always evaluated with a stable theory checkpoint.
+Minor INCOMPATIBILITY, use (Theory.check_thy @{theory}) instead.
+
 * Renamed setmp_noncritical to Unsynchronized.setmp to emphasize its
 meaning.
 

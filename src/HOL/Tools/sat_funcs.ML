@@ -274,22 +274,6 @@ fun string_of_prop_formula PropLogic.True             = "True"
   | string_of_prop_formula (PropLogic.And (fm1, fm2)) = "(" ^ string_of_prop_formula fm1 ^ " & " ^ string_of_prop_formula fm2 ^ ")";
 
 (* ------------------------------------------------------------------------- *)
-(* take_prefix:                                                              *)
-(*      take_prefix n [x_1, ..., x_k] = ([x_1, ..., x_n], [x_n+1, ..., x_k]) *)
-(* ------------------------------------------------------------------------- *)
-
-(* int -> 'a list -> 'a list * 'a list *)
-
-fun take_prefix n xs =
-let
-	fun take 0 (rxs, xs)      = (rev rxs, xs)
-	  | take _ (rxs, [])      = (rev rxs, [])
-	  | take n (rxs, x :: xs) = take (n-1) (x :: rxs, xs)
-in
-	take n ([], xs)
-end;
-
-(* ------------------------------------------------------------------------- *)
 (* rawsat_thm: run external SAT solver with the given clauses.  Reconstructs *)
 (*      a proof from the resulting proof trace of the SAT solver.  The       *)
 (*      theorem returned is just "False" (with some of the given clauses as  *)

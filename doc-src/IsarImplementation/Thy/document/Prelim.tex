@@ -262,11 +262,10 @@ A \emph{theory} is a data container with explicit name and
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
   \indexdef{}{ML antiquotation}{theory}\hypertarget{ML antiquotation.theory}{\hyperlink{ML antiquotation.theory}{\mbox{\isa{theory}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{theory\_ref}\hypertarget{ML antiquotation.theory-ref}{\hyperlink{ML antiquotation.theory-ref}{\mbox{\isa{theory{\isacharunderscore}ref}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
   \end{matharray}
 
   \begin{rail}
-  ('theory' | 'theory\_ref') nameref?
+  'theory' nameref?
   ;
   \end{rail}
 
@@ -278,10 +277,6 @@ A \emph{theory} is a data container with explicit name and
   \item \isa{{\isacharat}{\isacharbraceleft}theory\ A{\isacharbraceright}} refers to an explicitly named ancestor
   theory \isa{A} of the background theory of the current context
   --- as abstract value.
-
-  \item \isa{{\isacharat}{\isacharbraceleft}theory{\isacharunderscore}ref{\isacharbraceright}} is similar to \isa{{\isacharat}{\isacharbraceleft}theory{\isacharbraceright}}, but
-  produces a \verb|theory_ref| via \verb|Theory.check_thy| as
-  explained above.
 
   \end{description}%
 \end{isamarkuptext}%

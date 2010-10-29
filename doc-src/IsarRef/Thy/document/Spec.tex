@@ -179,7 +179,7 @@ A local theory target is a context managed separately within the
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcll}
-    \indexdef{}{command}{axiomatization}\hypertarget{command.axiomatization}{\hyperlink{command.axiomatization}{\mbox{\isa{\isacommand{axiomatization}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} & (axiomatic!)\\
+    \indexdef{}{command}{axiomatization}\hypertarget{command.axiomatization}{\hyperlink{command.axiomatization}{\mbox{\isa{\isacommand{axiomatization}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} & (axiomatic!) \\
     \indexdef{}{command}{definition}\hypertarget{command.definition}{\hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{attribute}{defn}\hypertarget{attribute.defn}{\hyperlink{attribute.defn}{\mbox{\isa{defn}}}} & : & \isa{attribute} \\
     \indexdef{}{command}{abbreviation}\hypertarget{command.abbreviation}{\hyperlink{command.abbreviation}{\mbox{\isa{\isacommand{abbreviation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
@@ -1179,8 +1179,8 @@ Oracles allow Isabelle to take advantage of external reasoners
   asserted, and records within the internal derivation object how
   presumed theorems depend on unproven suppositions.
 
-  \begin{matharray}{rcl}
-    \indexdef{}{command}{oracle}\hypertarget{command.oracle}{\hyperlink{command.oracle}{\mbox{\isa{\isacommand{oracle}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+  \begin{matharray}{rcll}
+    \indexdef{}{command}{oracle}\hypertarget{command.oracle}{\hyperlink{command.oracle}{\mbox{\isa{\isacommand{oracle}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} & (axiomatic!) \\
   \end{matharray}
 
   \begin{rail}
@@ -1199,7 +1199,7 @@ Oracles allow Isabelle to take advantage of external reasoners
 
   \end{description}
 
-  See \hyperlink{file.~~/src/FOL/ex/Iff-Oracle.thy}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL{\isacharslash}ex{\isacharslash}Iff{\isacharunderscore}Oracle{\isachardot}thy}}}} for a worked example of
+  See \hyperlink{file.~~/src/HOL/ex/Iff-Oracle.thy}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}HOL{\isacharslash}ex{\isacharslash}Iff{\isacharunderscore}Oracle{\isachardot}thy}}}} for a worked example of
   defining a new primitive rule as oracle, and turning it into a proof
   method.%
 \end{isamarkuptext}%

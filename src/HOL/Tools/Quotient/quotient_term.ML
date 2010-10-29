@@ -67,8 +67,8 @@ fun mk_fun_compose flag (trm1, trm2) =
 fun get_mapfun ctxt s =
 let
   val thy = ProofContext.theory_of ctxt
-  val exn = LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
-  val mapfun = #mapfun (maps_lookup thy s) handle NotFound => raise exn
+  val mapfun = #mapfun (maps_lookup thy s) handle Quotient_Info.NotFound =>
+    raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
 in
   Const (mapfun, dummyT)
 end
@@ -104,8 +104,8 @@ end
 fun get_rty_qty ctxt s =
 let
   val thy = ProofContext.theory_of ctxt
-  val exn = LIFT_MATCH ("No quotient type " ^ quote s ^ " found.")
-  val qdata = quotdata_lookup thy s handle NotFound => raise exn
+  val qdata = quotdata_lookup thy s handle Quotient_Info.NotFound =>
+    raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found.")
 in
   (#rtyp qdata, #qtyp qdata)
 end
@@ -127,7 +127,7 @@ let
   val thy = ProofContext.theory_of ctxt
 in
   Sign.typ_match thy (ty_pat, ty) Vartab.empty
-  handle MATCH_TYPE => err ctxt ty_pat ty
+  handle Type.TYPE_MATCH => err ctxt ty_pat ty
 end
 
 (* produces the rep or abs constant for a qty *)
@@ -276,8 +276,8 @@ fun mk_rel_compose (trm1, trm2) =
 fun get_relmap ctxt s =
 let
   val thy = ProofContext.theory_of ctxt
-  val exn = LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")")
-  val relmap = #relmap (maps_lookup thy s) handle NotFound => raise exn
+  val relmap = #relmap (maps_lookup thy s) handle Quotient_Info.NotFound =>
+    raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")")
 in
   Const (relmap, dummyT)
 end
@@ -299,9 +299,9 @@ end
 fun get_equiv_rel ctxt s =
 let
   val thy = ProofContext.theory_of ctxt
-  val exn = LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")")
 in
-  #equiv_rel (quotdata_lookup thy s) handle NotFound => raise exn
+  #equiv_rel (quotdata_lookup thy s) handle Quotient_Info.NotFound =>
+    raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")")
 end
 
 fun equiv_match_err ctxt ty_pat ty =
@@ -563,7 +563,8 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          else
            let
              val rtrm' = #rconst (qconsts_lookup thy qtrm)
-               handle NotFound => term_mismatch "regularize (constant not found)" ctxt rtrm qtrm
+               handle Quotient_Info.NotFound =>
+                term_mismatch "regularize (constant not found)" ctxt rtrm qtrm
            in
              if Pattern.matches thy (rtrm', rtrm)
              then rtrm else term_mismatch "regularize (constant mismatch)" ctxt rtrm qtrm

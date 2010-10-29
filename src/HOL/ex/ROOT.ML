@@ -12,6 +12,7 @@ no_document use_thys [
 ];
 
 use_thys [
+  "Iff_Oracle",
   "Numeral",
   "Higher_Order_Logic",
   "Abstract_NAT",

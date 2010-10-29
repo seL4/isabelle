@@ -105,7 +105,7 @@ fun base_evaluator cookie serializer (naming : Code_Thingol.naming) thy program 
     val (program_code, [SOME value_name']) = serializer naming program' [value_name];
     val value_code = space_implode " "
       (value_name' :: "()" :: map (enclose "(" ")") args);
-  in Exn.capture (value ctxt cookie) (program_code, value_code) end;
+  in Exn.interruptible_capture (value ctxt cookie) (program_code, value_code) end;
 
 fun partiality_as_none e = SOME (Exn.release e)
   handle General.Match => NONE
