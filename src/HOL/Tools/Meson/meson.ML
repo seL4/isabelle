@@ -111,39 +111,57 @@ fun first_order_resolve thA thB =
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
 
-(* Applying "choice" swaps the bound variable names. We tweak
-   "Thm.rename_boundvars"'s input to get the desired names. *)
-fun fix_bounds (_ $ (Const (@{const_name Ex}, _)
-                     $ Abs (_, _, Const (@{const_name All}, _) $ _)))
-               (t0 $ (Const (@{const_name All}, T1)
-                      $ Abs (a1, T1', Const (@{const_name Ex}, T2)
-                                      $ Abs (a2, T2', t')))) =
-    t0 $ (Const (@{const_name All}, T1)
-          $ Abs (a2, T1', Const (@{const_name Ex}, T2) $ Abs (a1, T2', t')))
-  | fix_bounds _ t = t
-
 (* Hack to make it less likely that we lose our precious bound variable names in
-   "rename_bvs_RS" below, because of a clash. *)
-val protect_prefix = "_"
+   "rename_bound_vars_RS" below, because of a clash. *)
+val protect_prefix = "Meson_xyzzy"
 
-fun protect_bounds (t $ u) = protect_bounds t $ protect_bounds u
-  | protect_bounds (Abs (s, T, t')) =
-    Abs (protect_prefix ^ s, T, protect_bounds t')
-  | protect_bounds t = t
+fun protect_bound_var_names (t $ u) =
+    protect_bound_var_names t $ protect_bound_var_names u
+  | protect_bound_var_names (Abs (s, T, t')) =
+    Abs (protect_prefix ^ s, T, protect_bound_var_names t')
+  | protect_bound_var_names t = t
 
-(* Forward proof while preserving bound variables names*)
-fun rename_bvs_RS th rl =
+fun fix_bound_var_names old_t new_t =
+  let
+    fun quant_of @{const_name All} = SOME true
+      | quant_of @{const_name Ball} = SOME true
+      | quant_of @{const_name Ex} = SOME false
+      | quant_of @{const_name Bex} = SOME false
+      | quant_of _ = NONE
+    val flip_quant = Option.map not
+    fun some_eq (SOME x) (SOME y) = x = y
+      | some_eq _ _ = false
+    fun add_names quant (Const (quant_s, _) $ Abs (s, _, t')) =
+        add_names quant t' #> some_eq quant (quant_of quant_s) ? cons s
+      | add_names quant (@{const Not} $ t) = add_names (flip_quant quant) t
+      | add_names quant (@{const implies} $ t1 $ t2) =
+        add_names (flip_quant quant) t1 #> add_names quant t2
+      | add_names quant (t1 $ t2) = fold (add_names quant) [t1, t2]
+      | add_names _ _ = I
+    fun lost_names quant =
+      subtract (op =) (add_names quant new_t []) (add_names quant old_t [])
+    fun aux ((t1 as Const (quant_s, _)) $ (Abs (s, T, t'))) =
+      t1 $ Abs (s |> String.isPrefix protect_prefix s
+                   ? perhaps (try (fn _ => hd (lost_names (quant_of quant_s)))),
+                T, aux t')
+      | aux (t1 $ t2) = aux t1 $ aux t2
+      | aux t = t
+  in aux new_t end
+
+(* Forward proof while preserving bound variables names *)
+fun rename_bound_vars_RS th rl =
   let
     val t = concl_of th
     val r = concl_of rl
-    val th' = th RS Thm.rename_boundvars r (protect_bounds r) rl
+    val th' = th RS Thm.rename_boundvars r (protect_bound_var_names r) rl
     val t' = concl_of th'
-  in Thm.rename_boundvars t' (fix_bounds t' t) th' end
+  in Thm.rename_boundvars t' (fix_bound_var_names t t') th' end
 
 (*raises exception if no rules apply*)
 fun tryres (th, rls) =
   let fun tryall [] = raise THM("tryres", 0, th::rls)
-        | tryall (rl::rls) = (rename_bvs_RS th rl handle THM _ => tryall rls)
+        | tryall (rl::rls) =
+          (rename_bound_vars_RS th rl handle THM _ => tryall rls)
   in  tryall rls  end;
 
 (*Permits forward proof from rules that discharge assumptions. The supplied proof state st,
@@ -577,7 +595,7 @@ fun skolemize_with_choice_theorems ctxt choice_ths =
                |> forward_res ctxt aux
                |> aux
                handle THM ("tryres", _, _) =>
-                      rename_bvs_RS th ex_forward
+                      rename_bound_vars_RS th ex_forward
                       |> forward_res ctxt aux
   in aux o make_nnf ctxt end
 

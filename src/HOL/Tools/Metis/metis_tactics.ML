@@ -157,7 +157,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
-                  (fn cls => resolve_tac (FOL_SOLVE mode ctxt [] (cls @ ths)) 1)
+                  (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
   end
 

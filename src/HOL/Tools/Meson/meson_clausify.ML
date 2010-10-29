@@ -346,13 +346,13 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
               |>> the_single |>> cterm_of thy
           in
             (SOME (discharger_th, fully_skolemized_ct),
-                   Thm.assume fully_skolemized_ct, ctxt)
+             (Thm.assume fully_skolemized_ct, ctxt))
           end
        else
-         (NONE, th, ctxt)
+         (NONE, (th, ctxt))
       end
     else
-      (NONE, th, ctxt)
+      (NONE, (th, ctxt))
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
@@ -360,7 +360,8 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
   let
     val thy = ProofContext.theory_of ctxt0
     val choice_ths = choice_theorems thy
-    val (opt, nnf_th, ctxt) = nnf_axiom choice_ths new_skolemizer ax_no th ctxt0
+    val (opt, (nnf_th, ctxt)) =
+      nnf_axiom choice_ths new_skolemizer ax_no th ctxt0
     fun clausify th =
       make_cnf (if new_skolemizer orelse null choice_ths then
                   []
@@ -370,6 +371,7 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
     val (cnf_ths, ctxt) =
       clausify nnf_th
       |> (fn ([], _) =>
+             (* FIXME: This probably doesn't work with the new Skolemizer *)
              clausify (to_definitional_cnf_with_quantifiers thy nnf_th)
            | p => p)
     fun intr_imp ct th =
