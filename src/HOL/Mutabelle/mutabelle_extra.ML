@@ -53,8 +53,6 @@ val num_mutations = 0*)
 
 (* quickcheck options *)
 (*val quickcheck_generator = "SML"*)
-val iterations = 10
-val size = 5
 
 exception RANDOM;
 
@@ -96,8 +94,8 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
 fun invoke_quickcheck quickcheck_generator thy t =
   TimeLimit.timeLimit (Time.fromSeconds (!Auto_Tools.time_limit))
       (fn _ =>
-          case Quickcheck.gen_test_term (ProofContext.init_global thy) true (SOME quickcheck_generator)
-                                    size iterations (preprocess thy [] t) of
+          case Quickcheck.test_term (ProofContext.init_global thy)
+              (SOME quickcheck_generator) (preprocess thy [] t) of
             (NONE, (time_report, report)) => (NoCex, (time_report, report))
           | (SOME _, (time_report, report)) => (GenuineCex, (time_report, report))) ()
   handle TimeLimit.TimeOut => (Timeout, ([("timelimit", !Auto_Tools.time_limit)], NONE))
@@ -249,8 +247,12 @@ fun is_forbidden_mutant t =
     exists (member (op =) forbidden_mutant_constnames) consts
   end
 
-fun is_executable_term thy t = can (TimeLimit.timeLimit (Time.fromMilliseconds 2000) (Quickcheck.test_term
- (ProofContext.init_global thy) false (SOME "SML") 1 0)) (preprocess thy [] t)
+fun is_executable_term thy t =
+  can (TimeLimit.timeLimit (Time.fromMilliseconds 2000)
+    (Quickcheck.test_term
+      (Context.proof_map (Quickcheck.map_test_params (apfst (K (1, 0)))) (ProofContext.init_global thy))
+      (SOME "SML"))) (preprocess thy [] t)
+
 fun is_executable_thm thy th = is_executable_term thy (prop_of th)
 
 val freezeT =
@@ -422,6 +424,7 @@ fun write_report file_name =
 fun mutate_theorems_and_write_report thy mtds thms file_name =
   let
     val _ = Output.urgent_message "Starting Mutabelle..."
+    val Quickcheck.Test_Params test_params = Quickcheck.test_params_of (ProofContext.init_global thy)
     val path = Path.explode file_name
     (* for normal report: *)
     (*val (gen_create_entry, gen_string_for_entry) = (create_entry, string_for_entry)*)
@@ -437,8 +440,8 @@ fun mutate_theorems_and_write_report thy mtds thms file_name =
       "; num_mutations: " ^ string_of_int num_mutations ^ "\n" ^
     "QC options = " ^
       (*"quickcheck_generator: " ^ quickcheck_generator ^ ";*)
-      "size: " ^ string_of_int size ^
-      "; iterations: " ^ string_of_int iterations ^ "\n");
+      "size: " ^ string_of_int (#size test_params) ^
+      "; iterations: " ^ string_of_int (#iterations test_params) ^ "\n");
     map (File.append path o gen_string_for_entry o mutate_theorem gen_create_entry thy mtds) thms;
     ()
   end
