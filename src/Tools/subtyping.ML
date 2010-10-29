@@ -73,13 +73,9 @@ val tmaps_of = #tmaps o rep_data;
 
 (** utils **)
 
-val is_param = Type_Infer.is_param
-val is_paramT = Type_Infer.is_paramT
-val deref = Type_Infer.deref
-fun mk_param i S = TVar (("?'a", i), S); (* TODO dup? see src/Pure/type_infer.ML *)
-
 fun nameT (Type (s, [])) = s;
 fun t_of s = Type (s, []);
+
 fun sort_of (TFree (_, S)) = SOME S
   | sort_of (TVar (_, S)) = SOME S
   | sort_of _ = NONE;
@@ -87,7 +83,7 @@ fun sort_of (TFree (_, S)) = SOME S
 val is_typeT = fn (Type _) => true | _ => false;
 val is_compT = fn (Type (_, _ :: _)) => true | _ => false;
 val is_freeT = fn (TFree _) => true | _ => false;
-val is_fixedvarT = fn (TVar (xi, _)) => not (is_param xi) | _ => false;
+val is_fixedvarT = fn (TVar (xi, _)) => not (Type_Infer.is_param xi) | _ => false;
 
 
 (* unification *)  (* TODO dup? needed for weak unification *)
@@ -116,10 +112,11 @@ fun unify weak ctxt =
       | meet (TVar (xi, S'), S) (tye_idx as (tye, idx)) =
           if Sign.subsort thy (S', S) then tye_idx
           else if Type_Infer.is_param xi then
-            (Vartab.update_new (xi, mk_param idx (Sign.inter_sort thy (S', S))) tye, idx + 1)
+            (Vartab.update_new
+              (xi, Type_Infer.mk_param idx (Sign.inter_sort thy (S', S))) tye, idx + 1)
           else raise NO_UNIFIER (not_of_sort (Term.string_of_vname xi) S' S, tye)
     and meets (T :: Ts, S :: Ss) (tye_idx as (tye, _)) =
-          meets (Ts, Ss) (meet (deref tye T, S) tye_idx)
+          meets (Ts, Ss) (meet (Type_Infer.deref tye T, S) tye_idx)
       | meets _ tye_idx = tye_idx;
 
     val weak_meet = if weak then fn _ => I else meet
@@ -149,7 +146,7 @@ fun unify weak ctxt =
       quote (Syntax.string_of_typ ctxt (Type (a, replicate (length Ts) dummyT)));
 
     fun unif (T1, T2) (env as (tye, _)) =
-      (case pairself (`is_paramT o deref tye) (T1, T2) of
+      (case pairself (`Type_Infer.is_paramT o Type_Infer.deref tye) (T1, T2) of
         ((true, TVar (xi, S)), (_, T)) => assign xi T S env
       | ((_, T), (true, TVar (xi, S))) => assign xi T S env
       | ((_, Type (a, Ts)), (_, Type (b, Us))) =>
@@ -257,8 +254,8 @@ fun generate_constraints ctxt =
           let
             val (T, tye_idx', cs') = gen cs bs t tye_idx;
             val (U', (tye, idx), cs'') = gen cs' bs u tye_idx';
-            val U = mk_param idx [];
-            val V = mk_param (idx + 1) [];
+            val U = Type_Infer.mk_param idx [];
+            val V = Type_Infer.mk_param (idx + 1) [];
             val tye_idx''= strong_unify ctxt (U --> V, T) (tye, idx + 2)
               handle NO_UNIFIER (msg, tye') => err_appl ctxt msg tye' bs t T u U;
             val error_pack = (bs, t $ u, U, V, U');
@@ -318,8 +315,8 @@ fun process_constraints ctxt cs tye_idx =
               (fold new_constraints (arg_var ~~ (Ts ~~ Us)) ([], (tye, idx)));
             val test_update = is_compT orf is_freeT orf is_fixedvarT;
             val (ch, done') =
-              if not (null new) then ([],   done)
-              else split_cs (test_update o deref tye') done;
+              if not (null new) then ([], done)
+              else split_cs (test_update o Type_Infer.deref tye') done;
             val todo' = ch @ todo;
           in
             simplify done' (new @ todo') (tye', idx')
@@ -328,25 +325,25 @@ fun process_constraints ctxt cs tye_idx =
         and expand varleq xi S a Ts error_pack done todo tye idx =
           let
             val n = length Ts;
-            val args = map2 mk_param (idx upto idx + n - 1) (arity_sorts a S);
+            val args = map2 Type_Infer.mk_param (idx upto idx + n - 1) (arity_sorts a S);
             val tye' = Vartab.update_new (xi, Type(a, args)) tye;
-            val (ch, done') = split_cs (is_compT o deref tye') done;
+            val (ch, done') = split_cs (is_compT o Type_Infer.deref tye') done;
             val todo' = ch @ todo;
             val new =
               if varleq then (Type(a, args), Type (a, Ts))
-              else (Type (a, Ts), Type(a, args));
+              else (Type (a, Ts), Type (a, args));
           in
             simplify done' ((new, error_pack) :: todo') (tye', idx + n)
           end
         (*TU is a pair of a parameter and a free/fixed variable*)
         and eliminate TU error_pack done todo tye idx =
           let
-            val [TVar (xi, S)] = filter is_paramT TU;
-            val [T] = filter_out is_paramT TU;
+            val [TVar (xi, S)] = filter Type_Infer.is_paramT TU;
+            val [T] = filter_out Type_Infer.is_paramT TU;
             val SOME S' = sort_of T;
             val test_update = if is_freeT T then is_freeT else is_fixedvarT;
             val tye' = Vartab.update_new (xi, T) tye;
-            val (ch, done') = split_cs (test_update o deref tye') done;
+            val (ch, done') = split_cs (test_update o Type_Infer.deref tye') done;
             val todo' = ch @ todo;
           in
             if subsort (S', S) (*TODO check this*)
@@ -355,13 +352,13 @@ fun process_constraints ctxt cs tye_idx =
           end
         and simplify done [] tye_idx = (done, tye_idx)
           | simplify done (((T, U), error_pack) :: todo) (tye_idx as (tye, idx)) =
-              (case (deref tye T, deref tye U) of
+              (case (Type_Infer.deref tye T, Type_Infer.deref tye U) of
                 (Type (a, []), Type (b, [])) =>
                   if a = b then simplify done todo tye_idx
                   else if Graph.is_edge coes_graph (a, b) then simplify done todo tye_idx
-                  else err_subtype ctxt (a ^" is not a subtype of " ^ b) (fst tye_idx) error_pack
+                  else err_subtype ctxt (a ^ " is not a subtype of " ^ b) (fst tye_idx) error_pack
               | (Type (a, Ts), Type (b, Us)) =>
-                  if a<>b then err_subtype ctxt "Different constructors" (fst tye_idx) error_pack
+                  if a <> b then err_subtype ctxt "Different constructors" (fst tye_idx) error_pack
                   else contract a Ts Us error_pack done todo tye idx
               | (TVar (xi, S), Type (a, Ts as (_ :: _))) =>
                   expand true xi S a Ts error_pack done todo tye idx
@@ -370,7 +367,7 @@ fun process_constraints ctxt cs tye_idx =
               | (T, U) =>
                   if T = U then simplify done todo tye_idx
                   else if exists (is_freeT orf is_fixedvarT) [T, U] andalso
-                    exists is_paramT [T, U]
+                    exists Type_Infer.is_paramT [T, U]
                   then eliminate [T, U] error_pack done todo tye idx
                   else if exists (is_freeT orf is_fixedvarT) [T, U]
                   then err_subtype ctxt "Not eliminated free/fixed variables"
@@ -472,18 +469,21 @@ fun process_constraints ctxt cs tye_idx =
       end;
 
     fun assign_bound lower G key (tye_idx as (tye, _)) =
-      if is_paramT (deref tye key) then
+      if Type_Infer.is_paramT (Type_Infer.deref tye key) then
         let
-          val TVar (xi, S) = deref tye key;
+          val TVar (xi, S) = Type_Infer.deref tye key;
           val get_bound = if lower then get_preds else get_succs;
           val raw_bound = get_bound G key;
-          val bound = map (deref tye) raw_bound;
-          val not_params = filter_out is_paramT bound;
+          val bound = map (Type_Infer.deref tye) raw_bound;
+          val not_params = filter_out Type_Infer.is_paramT bound;
           fun to_fulfil T =
             (case sort_of T of
               NONE => NONE
             | SOME S =>
-                SOME (map nameT (filter_out is_paramT (map (deref tye) (get_bound G T))), S));
+                SOME
+                  (map nameT
+                    (filter_out Type_Infer.is_paramT (map (Type_Infer.deref tye) (get_bound G T))),
+                      S));
           val styps_and_sorts = distinct (op =) (map_filter to_fulfil raw_bound);
           val assignment =
             if null bound orelse null not_params then NONE
@@ -493,10 +493,10 @@ fun process_constraints ctxt cs tye_idx =
           (case assignment of
             NONE => tye_idx
           | SOME T =>
-              if is_paramT T then tye_idx
+              if Type_Infer.is_paramT T then tye_idx
               else if lower then (*upper bound check*)
                 let
-                  val other_bound = map (deref tye) (get_succs G key);
+                  val other_bound = map (Type_Infer.deref tye) (get_succs G key);
                   val s = nameT T;
                 in
                   if subset (op = o apfst nameT) (filter is_typeT other_bound, s :: styps true s)
@@ -519,7 +519,7 @@ fun process_constraints ctxt cs tye_idx =
           val (tye_idx' as (tye, _)) = fold (assign_lb G) ts tye_idx
             |> fold (assign_ub G) ts;
         in
-          assign_alternating ts (filter (is_paramT o deref tye) ts) G tye_idx'
+          assign_alternating ts (filter (Type_Infer.is_paramT o Type_Infer.deref tye) ts) G tye_idx'
         end;
 
     (*Unify all weakly connected components of the constraint forest,
@@ -527,7 +527,8 @@ fun process_constraints ctxt cs tye_idx =
       params anyway.*)
     fun unify_params G (tye_idx as (tye, _)) =
       let
-        val max_params = filter (is_paramT o deref tye) (Typ_Graph.maximals G);
+        val max_params =
+          filter (Type_Infer.is_paramT o Type_Infer.deref tye) (Typ_Graph.maximals G);
         val to_unify = map (fn T => T :: get_preds G T) max_params;
       in
         fold unify_list to_unify tye_idx
@@ -548,7 +549,7 @@ fun process_constraints ctxt cs tye_idx =
 fun insert_coercions ctxt tye ts =
   let
     fun deep_deref T =
-      (case deref tye T of
+      (case Type_Infer.deref tye T of
         Type (a, Ts) => Type (a, map deep_deref Ts)
       | U => U);
 
