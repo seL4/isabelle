@@ -152,13 +152,9 @@ theorem typedef_cont_Abs:
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and adm: "adm (\<lambda>x. x \<in> A)" (* not used *)
     and f_in_A: "\<And>x. f x \<in> A"
-    and cont_f: "cont f"
-  shows "cont (\<lambda>x. Abs (f x))"
- apply (rule contI)
- apply (rule typedef_is_lubI [OF below])
- apply (simp only: type_definition.Abs_inverse [OF type f_in_A])
- apply (erule cont_f [THEN contE])
-done
+  shows "cont f \<Longrightarrow> cont (\<lambda>x. Abs (f x))"
+unfolding cont_def is_lub_def is_ub_def ball_simps below
+by (simp add: type_definition.Abs_inverse [OF type f_in_A])
 
 subsection {* Proving subtype elements are compact *}
 
