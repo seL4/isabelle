@@ -13,6 +13,7 @@ no_document use_thys [
 
 use_thys [
   "Iff_Oracle",
+  "Coercion_Examples",
   "Numeral",
   "Higher_Order_Logic",
   "Abstract_NAT",

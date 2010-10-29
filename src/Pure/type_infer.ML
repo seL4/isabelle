@@ -9,6 +9,7 @@ sig
   val is_param: indexname -> bool
   val is_paramT: typ -> bool
   val param: int -> string * sort -> typ
+  val mk_param: int -> sort -> typ
   val anyT: sort -> typ
   val paramify_vars: typ -> typ
   val paramify_dummies: typ -> int -> typ * int

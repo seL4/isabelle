@@ -1012,8 +1012,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   Number_Theory/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
   ex/Arith_Examples.thy ex/Arithmetic_Series_Complex.thy ex/BT.thy	\
   ex/BinEx.thy ex/Binary.thy ex/CTL.thy ex/Chinese.thy			\
-  ex/Classical.thy ex/CodegenSML_Test.thy ex/Coherent.thy		\
-  ex/Dedekind_Real.thy ex/Efficient_Nat_examples.thy			\
+  ex/Classical.thy ex/CodegenSML_Test.thy ex/Coercion_Examples.thy	\
+  ex/Coherent.thy ex/Dedekind_Real.thy ex/Efficient_Nat_examples.thy	\
   ex/Eval_Examples.thy ex/Fundefs.thy ex/Gauge_Integration.thy		\
   ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
   ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
