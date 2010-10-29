@@ -242,6 +242,7 @@ proof (rule monotoneI)
   show "option_ord (Option.bind (B f) (\<lambda>y. C y f)) (Option.bind (B g) (\<lambda>y'. C y' g))" .
 qed
 
+hide_const (open) chain
 
 end
 
