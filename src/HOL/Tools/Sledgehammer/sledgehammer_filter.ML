@@ -87,8 +87,8 @@ val skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
 fun needs_quoting reserved s =
-  Symtab.defined reserved s orelse
-  exists (not o Syntax.is_identifier) (Long_Name.explode s)
+  Symtab.defined reserved s (* FIXME: orelse
+  exists (not o Syntax.is_identifier) (Long_Name.explode s) *)
 
 fun repair_name reserved multi j name =
   (name |> needs_quoting reserved name ? quote) ^
