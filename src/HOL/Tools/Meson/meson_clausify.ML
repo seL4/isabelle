@@ -328,14 +328,13 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
         val discharger_th =
           th |> (if no_choice then pull_out else skolemize choice_ths)
         val fully_skolemized_t =
-          th |> prop_of
-             |> no_choice ? rename_bound_vars_to_be_zapped ax_no
-             |> Skip_Proof.make_thm thy |> skolemize [cheat_choice] |> cprop_of
-             |> not no_choice
-                ? (term_of #> rename_bound_vars_to_be_zapped ax_no
-                   #> cterm_of thy)
-             |> zap true |> Drule.export_without_context
-             |> cprop_of |> Thm.dest_equals |> snd |> term_of
+          discharger_th |> prop_of |> rename_bound_vars_to_be_zapped ax_no
+          |> (if no_choice then
+                Skip_Proof.make_thm thy #> skolemize [cheat_choice] #> cprop_of
+              else
+                cterm_of thy)
+          |> zap true |> Drule.export_without_context
+          |> cprop_of |> Thm.dest_equals |> snd |> term_of
       in
         if exists_subterm (fn Var ((s, _), _) =>
                               String.isPrefix new_skolem_var_prefix s
