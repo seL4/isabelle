@@ -36,6 +36,7 @@ sig
   val datatypes: bool Config.T
   val timeout: int Config.T
   val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
+  val traceN: string
   val trace: bool Config.T
   val trace_msg: Proof.context -> ('a -> string) -> 'a -> unit
   val trace_used_facts: bool Config.T
@@ -128,7 +129,8 @@ fun with_timeout ctxt f x =
   TimeLimit.timeLimit (Time.fromSeconds (Config.get ctxt timeout)) f x
   handle TimeLimit.TimeOut => raise SMT Time_Out
 
-val (trace, setup_trace) = Attrib.config_bool "smt_trace" (K false)
+val traceN = "smt_trace"
+val (trace, setup_trace) = Attrib.config_bool traceN (K false)
 
 fun trace_msg ctxt f x =
   if Config.get ctxt trace then tracing (f x) else ()

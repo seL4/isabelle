@@ -17,7 +17,9 @@ fun outcome_of unsat sat unknown solver_name line =
   else if String.isPrefix sat line then SMT_Solver.Sat
   else if String.isPrefix unknown line then SMT_Solver.Unknown
   else raise SMT_Solver.SMT (SMT_Solver.Other_Failure ("Solver " ^
-    quote solver_name ^ " failed, " ^ "see trace for details."))
+    quote solver_name ^ " failed. Enable SMT tracing by setting the " ^
+    "configuration option " ^ quote SMT_Solver.traceN ^ " and " ^
+    " see the trace for details."))
 
 fun on_first_line test_outcome solver_name lines =
   let
