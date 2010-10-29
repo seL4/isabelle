@@ -13,7 +13,7 @@ subsubsection {* Definitions *}
 text {* Hiding @{text "<+>"} from @{theory Sum_Type} until I come
   up with better syntax here *}
 
-no_notation Plus (infixr "<+>" 65)
+no_notation Sum_Type.Plus (infixr "<+>" 65)
 
 definition
   a_r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "+>\<index>" 60)
