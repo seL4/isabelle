@@ -941,28 +941,29 @@ text {*
 
     \begin{description}
 
-      \item[size] specifies the maximum size of the search space for
-        assignment values.
+    \item[@{text size}] specifies the maximum size of the search space
+    for assignment values.
 
-      \item[iterations] sets how many sets of assignments are
-        generated for each particular size.
+    \item[@{text iterations}] sets how many sets of assignments are
+    generated for each particular size.
 
-      \item[no\_assms] specifies whether assumptions in
-        structured proofs should be ignored.
+    \item[@{text no_assms}] specifies whether assumptions in
+    structured proofs should be ignored.
 
-      \item[timeout] sets the time limit in seconds.
+    \item[@{text timeout}] sets the time limit in seconds.
 
-      \item[default\_type] sets the type(s) generally used to instantiate
-        type variables.
+    \item[@{text default_type}] sets the type(s) generally used to
+    instantiate type variables.
 
-      \item[report] if set quickcheck reports how many tests fulfilled
-        the preconditions.
+    \item[@{text report}] if set quickcheck reports how many tests
+    fulfilled the preconditions.
 
-      \item[quiet] if not set quickcheck informs about the current size
-        for assignment values.
+    \item[@{text quiet}] if not set quickcheck informs about the
+    current size for assignment values.
 
-      \item[expect] can be used to check if the user's expectation was met
-        (no\_expectation, no\_counterexample, or counterexample)
+    \item[@{text expect}] can be used to check if the user's
+    expectation was met (@{text no_expectation}, @{text
+    no_counterexample}, or @{text counterexample}).
 
     \end{description}
 

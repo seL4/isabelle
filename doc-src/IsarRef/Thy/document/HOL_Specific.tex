@@ -959,14 +959,28 @@ Identifying incorrect propositions usually involves evaluation of
 
     \begin{description}
 
-      \item[size] specifies the maximum size of the search space for
-        assignment values.
+    \item[\isa{size}] specifies the maximum size of the search space
+    for assignment values.
 
-      \item[iterations] sets how many sets of assignments are
-        generated for each particular size.
+    \item[\isa{iterations}] sets how many sets of assignments are
+    generated for each particular size.
 
-      \item[no\_assms] specifies whether assumptions in
-        structured proofs should be ignored.
+    \item[\isa{no{\isacharunderscore}assms}] specifies whether assumptions in
+    structured proofs should be ignored.
+
+    \item[\isa{timeout}] sets the time limit in seconds.
+
+    \item[\isa{default{\isacharunderscore}type}] sets the type(s) generally used to
+    instantiate type variables.
+
+    \item[\isa{report}] if set quickcheck reports how many tests
+    fulfilled the preconditions.
+
+    \item[\isa{quiet}] if not set quickcheck informs about the
+    current size for assignment values.
+
+    \item[\isa{expect}] can be used to check if the user's
+    expectation was met (\isa{no{\isacharunderscore}expectation}, \isa{no{\isacharunderscore}counterexample}, or \isa{counterexample}).
 
     \end{description}
 
