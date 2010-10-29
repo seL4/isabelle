@@ -501,6 +501,7 @@ Type @{typ int}
 @{const List.lexn} & @{term_type_only List.lexn "('a*'a)set\<Rightarrow>nat\<Rightarrow>('a list * 'a list)set"}\\
 @{const List.lexord} & @{term_type_only List.lexord "('a*'a)set\<Rightarrow>('a list * 'a list)set"}\\
 @{const List.listrel} & @{term_type_only List.listrel "('a*'a)set\<Rightarrow>('a list * 'a list)set"}\\
+@{const List.listrel1} & @{term_type_only List.listrel1 "('a*'a)set\<Rightarrow>('a list * 'a list)set"}\\
 @{const List.lists} & @{term_type_only List.lists "'a set\<Rightarrow>'a list set"}\\
 @{const List.listset} & @{term_type_only List.listset "'a set list \<Rightarrow> 'a list set"}\\
 @{const List.listsum} & @{typeof List.listsum}\\
