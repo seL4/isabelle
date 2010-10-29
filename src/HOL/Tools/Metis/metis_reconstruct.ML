@@ -682,8 +682,11 @@ fun release_clusters_tac _ _ _ [] = K all_tac
       THEN' release_clusters_tac thy ax_counts substs clusters
     end
 
-val cluster_ord =
-  prod_ord (prod_ord int_ord (prod_ord int_ord int_ord)) bool_ord
+fun cluster_key ((ax_no, (cluster_no, index_no)), skolem) =
+  (ax_no, (cluster_no, (skolem, index_no)))
+fun cluster_ord p =
+  prod_ord int_ord (prod_ord int_ord (prod_ord bool_ord int_ord))
+           (pairself cluster_key p)
 
 val tysubst_ord =
   list_ord (prod_ord Term_Ord.fast_indexname_ord
@@ -792,10 +795,10 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         "; tysubst: " ^ PolyML.makestring tysubst ^ "; tsubst: {" ^
         commas (map ((fn (s, t) => s ^ " |-> " ^ t)
                      o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
-      val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
-                       cat_lines (map string_for_subst_info substs))
       val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
       val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
+      val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
+                       cat_lines (map string_for_subst_info substs))
 *)
       fun rotation_for_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
