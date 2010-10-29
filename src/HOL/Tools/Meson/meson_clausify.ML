@@ -233,7 +233,7 @@ fun to_definitional_cnf_with_quantifiers thy th =
 fun zapped_var_name ((ax_no, cluster_no), skolem) index_no s =
   (if skolem then new_skolem_var_prefix else new_nonskolem_var_prefix) ^
   "_" ^ string_of_int ax_no ^ "_" ^ string_of_int cluster_no ^ "_" ^
-  string_of_int index_no ^ "_" ^ s
+  string_of_int index_no ^ "_" ^ Name.desymbolize false s
 
 fun cluster_of_zapped_var_name s =
   let val get_int = the o Int.fromString o nth (space_explode "_" s) in
@@ -299,7 +299,7 @@ fun zap pos ct =
 
 fun ss_only ths = MetaSimplifier.clear_ss HOL_basic_ss addsimps ths
 
-val no_choice =
+val cheat_choice =
   @{prop "ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)"}
   |> Logic.varify_global
   |> Skip_Proof.make_thm @{theory}
@@ -324,11 +324,16 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
           #> simplify (ss_only @{thms all_simps[symmetric]})
         val pull_out =
           simplify (ss_only @{thms all_simps[symmetric] ex_simps[symmetric]})
+        val no_choice = null choice_ths
         val discharger_th =
-          th |> (if null choice_ths then pull_out else skolemize choice_ths)
+          th |> (if no_choice then pull_out else skolemize choice_ths)
         val fully_skolemized_t =
-          th |> prop_of |> rename_bound_vars_to_be_zapped ax_no
-             |> Skip_Proof.make_thm thy |> skolemize [no_choice] |> cprop_of
+          th |> prop_of
+             |> no_choice ? rename_bound_vars_to_be_zapped ax_no
+             |> Skip_Proof.make_thm thy |> skolemize [cheat_choice] |> cprop_of
+             |> not no_choice
+                ? (term_of #> rename_bound_vars_to_be_zapped ax_no
+                   #> cterm_of thy)
              |> zap true |> Drule.export_without_context
              |> cprop_of |> Thm.dest_equals |> snd |> term_of
       in

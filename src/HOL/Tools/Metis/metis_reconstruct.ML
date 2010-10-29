@@ -628,7 +628,14 @@ fun instantiate_forall_tac thy t i st =
         (case find_index (fn (s', _) => s' = s) params of
            ~1 => t
          | j => Bound j)
-      | repair (t $ u) = repair t $ repair u
+      | repair (t $ u) =
+        (case (repair t, repair u) of
+           (t as Bound j, u as Bound k) =>
+           (* This is a rather subtle trick to repair the discrepancy between
+              the fully skolemized term that MESON gives us (where existentials
+              were pulled out) and the reality. *)
+           if k > j then t else t $ u
+         | (t, u) => t $ u)
       | repair t = t
     val t' = t |> repair |> fold (curry absdummy) (map snd params)
     fun do_instantiate th =
@@ -641,24 +648,32 @@ fun instantiate_forall_tac thy t i st =
      THEN PRIMITIVE do_instantiate) st
   end
 
+fun fix_exists_tac thy t =
+  etac @{thm exE}
+  THEN' rename_tac [t |> dest_Var |> fst |> fst]
+
+fun release_quantifier_tac thy (skolem, t) =
+  (if skolem then fix_exists_tac else instantiate_forall_tac) thy t
+
 fun release_clusters_tac _ _ _ [] = K all_tac
   | release_clusters_tac thy ax_counts substs
                          ((ax_no, cluster_no) :: clusters) =
     let
-      fun in_right_cluster s =
-        (s |> Meson_Clausify.cluster_of_zapped_var_name |> fst |> snd |> fst)
-        = cluster_no
+      val cluster_of_var =
+        Meson_Clausify.cluster_of_zapped_var_name o fst o fst o dest_Var
+      fun in_right_cluster ((_, (cluster_no', _)), _) = cluster_no' = cluster_no
       val cluster_substs =
         substs
         |> map_filter (fn (ax_no', (_, (_, tsubst))) =>
                           if ax_no' = ax_no then
-                            tsubst |> filter (in_right_cluster
-                                              o fst o fst o dest_Var o fst)
-                                   |> map snd |> SOME
-                           else
-                             NONE)
+                            tsubst |> map (apfst cluster_of_var)
+                                   |> filter (in_right_cluster o fst)
+                                   |> map (apfst snd)
+                                   |> SOME
+                          else
+                            NONE)
       fun do_cluster_subst cluster_subst =
-        map (instantiate_forall_tac thy) cluster_subst @ [rotate_tac 1]
+        map (release_quantifier_tac thy) cluster_subst @ [rotate_tac 1]
       val first_prem = find_index (fn (ax_no', _) => ax_no' = ax_no) substs
     in
       rotate_tac first_prem
@@ -695,6 +710,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
     let
       val thy = ProofContext.theory_of ctxt
       (* distinguish variables with same name but different types *)
+      (* ### FIXME: needed? *)
       val prems_imp_false' =
         prems_imp_false |> try (forall_intr_vars #> gen_all)
                         |> the_default prems_imp_false
@@ -779,7 +795,6 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
                        cat_lines (map string_for_subst_info substs))
       val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
-      val _ = tracing ("OUTER PARAMS: " ^ PolyML.makestring outer_param_names)
       val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
 *)
       fun rotation_for_subgoal i =
