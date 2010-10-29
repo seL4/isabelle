@@ -2,4 +2,4 @@
 
 ADMIN="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; pwd)"
 cd "$ADMIN"
-hg churn --aliases user-aliases --progress
+hg churn --aliases user-aliases
