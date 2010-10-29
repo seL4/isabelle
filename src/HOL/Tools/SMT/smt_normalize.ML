@@ -69,11 +69,9 @@ local
       Const (@{const_name "bool.bool_case"}, _) $ _ $ _ $ _ => true
     | _ => false)
 
-  val thms = map mk_meta_eq @{lemma
-    "(case P of True => x | False => y) = (if P then x else y)"
-    "(case P of False => y | True => x) = (if P then x else y)"
-    by simp_all}
-  val unfold_conv = if_true_conv is_bool_case (Conv.rewrs_conv thms)
+  val thm = mk_meta_eq @{lemma
+    "(case P of True => x | False => y) = (if P then x else y)" by simp}
+  val unfold_conv = if_true_conv is_bool_case (Conv.rewr_conv thm)
 in
 fun rewrite_bool_cases ctxt =
   map (apsnd ((Term.exists_subterm is_bool_case o Thm.prop_of) ??
