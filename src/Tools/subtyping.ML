@@ -9,6 +9,8 @@ sig
   datatype variance = COVARIANT | CONTRAVARIANT | INVARIANT
   val infer_types: Proof.context -> (string -> typ option) -> (indexname -> typ option) ->
     term list -> term list
+  val add_type_map: term -> Context.generic -> Context.generic
+  val add_coercion: term -> Context.generic -> Context.generic
   val setup: theory -> theory
 end;
 
@@ -659,10 +661,10 @@ val add_term_check =
 
 (* declarations *)
 
-fun add_type_map map_fun context =
+fun add_type_map raw_t context =
   let
     val ctxt = Context.proof_of context;
-    val t = singleton (Variable.polymorphic ctxt) (Syntax.read_term ctxt map_fun);
+    val t = singleton (Variable.polymorphic ctxt) raw_t;
 
     fun err_str () = "\n\nthe general type signature for a map function is" ^
       "\nf1 => f2 => ... => fn => C [x1, ..., xn] => C [x1, ..., xn]" ^
@@ -699,10 +701,10 @@ fun add_type_map map_fun context =
     map_tmaps (Symtab.update (snd res, (t, res_av))) context
   end;
 
-fun add_coercion coercion context =
+fun add_coercion raw_t context =
   let
     val ctxt = Context.proof_of context;
-    val t = singleton (Variable.polymorphic ctxt) (Syntax.read_term ctxt coercion);
+    val t = singleton (Variable.polymorphic ctxt) raw_t;
 
     fun err_coercion () = error ("Bad type for coercion " ^
         Syntax.string_of_term ctxt t ^ ":\n" ^
@@ -756,11 +758,11 @@ fun add_coercion coercion context =
 
 val setup =
   Context.theory_map add_term_check #>
-  Attrib.setup @{binding coercion} (Scan.lift Parse.term >>
-    (fn t => fn (context, thm) => (add_coercion t context, thm)))
+  Attrib.setup @{binding coercion}
+    (Args.term >> (fn t => Thm.declaration_attribute (K (add_coercion t))))
     "declaration of new coercions" #>
-  Attrib.setup @{binding map_function} (Scan.lift Parse.term >>
-    (fn t => fn (context, thm) => (add_type_map t context, thm)))
+  Attrib.setup @{binding map_function}
+    (Args.term >> (fn t => Thm.declaration_attribute (K (add_type_map t))))
     "declaration of new map functions";
 
 end;
