@@ -1,9 +1,15 @@
+(*  Title:      HOL/ex/Coercion_Examples.thy
+    Author:     Dmitriy Traytel, TU Muenchen
+
+Examples for coercive subtyping via subtype constraints.
+*)
+
 theory Coercion_Examples
 imports Main
 uses "~~/src/Tools/subtyping.ML"
 begin
 
-(* Coercion/type maps definitions*) 
+(* Coercion/type maps definitions*)
 
 consts func :: "(nat \<Rightarrow> int) \<Rightarrow> nat"
 consts arg :: "int \<Rightarrow> nat"
@@ -40,7 +46,7 @@ declare [[coercion int]]
 declare [[map_function map]]
 
 definition map_fun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'd)" where
- "map_fun f g h = g o h o f" 
+ "map_fun f g h = g o h o f"
 
 declare [[map_function "\<lambda> f g h . g o h o f"]]
 
@@ -121,7 +127,7 @@ term "map (flip funfun True)"
 term "map (flip funfun True) [id,cnat,cint,cbool]"
 
 consts ii :: "int \<Rightarrow> int"
-consts aaa :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" 
+consts aaa :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 consts nlist :: "nat list"
 consts ilil :: "int list \<Rightarrow> int list"
 
@@ -135,7 +141,7 @@ term "ilil nlist"
 
 (* Other examples *)
 
-definition xs :: "bool list" where "xs = [True]" 
+definition xs :: "bool list" where "xs = [True]"
 
 term "(xs::nat list)"
 

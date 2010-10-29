@@ -14,16 +14,14 @@ end;
 structure Subtyping =
 struct
 
-
-
 (** coercions data **)
 
 datatype variance = COVARIANT | CONTRAVARIANT | INVARIANT
 
 datatype data = Data of
-  {coes: term Symreltab.table, (* coercions table *)
-   coes_graph: unit Graph.T, (* coercions graph *)
-   tmaps: (term * variance list) Symtab.table}; (* map functions *)
+  {coes: term Symreltab.table,  (*coercions table*)
+   coes_graph: unit Graph.T,  (*coercions graph*)
+   tmaps: (term * variance list) Symtab.table};  (*map functions*)
 
 fun make_data (coes, coes_graph, tmaps) =
   Data {coes = coes, coes_graph = coes_graph, tmaps = tmaps};
@@ -84,12 +82,12 @@ fun sort_of (TFree (_, S)) = SOME S
   | sort_of _ = NONE;
 
 val is_typeT = fn (Type _) => true | _ => false;
-val is_compT = fn (Type (_, _::_)) => true | _ => false;
+val is_compT = fn (Type (_, _ :: _)) => true | _ => false;
 val is_freeT = fn (TFree _) => true | _ => false;
 val is_fixedvarT = fn (TVar (xi, _)) => not (is_param xi) | _ => false;
 
 
-(* unification TODO dup? needed for weak unification *)
+(* unification *)  (* TODO dup? needed for weak unification *)
 
 exception NO_UNIFIER of string * typ Vartab.table;
 
@@ -99,7 +97,7 @@ fun unify weak ctxt =
     val pp = Syntax.pp ctxt;
     val arity_sorts = Type.arity_sorts pp (Sign.tsig_of thy);
 
-    
+
     (* adjust sorts of parameters *)
 
     fun not_of_sort x S' S =
@@ -172,9 +170,9 @@ fun get_preds G T = Typ_Graph.all_preds G [T];
 fun get_succs G T = Typ_Graph.all_succs G [T];
 fun maybe_new_typnode T G = perhaps (try (Typ_Graph.new_node (T, ()))) G;
 fun maybe_new_typnodes Ts G = fold maybe_new_typnode Ts G;
-fun new_imm_preds G Ts = 
+fun new_imm_preds G Ts =
   subtract (op =) Ts (distinct (op =) (maps (Typ_Graph.imm_preds G) Ts));
-fun new_imm_succs G Ts = 
+fun new_imm_succs G Ts =
   subtract op= Ts (distinct (op =) (maps (Typ_Graph.imm_succs G) Ts));
 
 
@@ -225,7 +223,7 @@ fun err_bound ctxt msg tye packs =
     val (ts, Ts) = fold
       (fn (bs, t $ u, U, _, U') => fn (ts, Ts) =>
         let val (t', T') = prep_output ctxt tye bs [t, u] [U, U']
-        in (t'::ts, T'::Ts) end)
+        in (t' :: ts, T' :: Ts) end)
       packs ([], []);
     val text = cat_lines ([inf_failed msg, "Cannot fullfill subtype constraints:"] @
         (map2 (fn [t, u] => fn [T, U] => Pretty.string_of (
@@ -282,14 +280,14 @@ fun process_constraints ctxt cs tye_idx =
     val subsort = Type.subsort tsig;
 
     fun split_cs _ [] = ([], [])
-      | split_cs f (c::cs) =
+      | split_cs f (c :: cs) =
           (case pairself f (fst c) of
             (false, false) => apsnd (cons c) (split_cs f cs)
           | _ => apfst (cons c) (split_cs f cs));
 
-          
+
     (* check whether constraint simplification will terminate using weak unification *)
-    
+
     val _ = fold (fn (TU, error_pack) => fn tye_idx =>
       (weak_unify ctxt TU tye_idx handle NO_UNIFIER (msg, tye) =>
         err_subtype ctxt ("Weak unification of subtype constraints fails:\n" ^ msg)
@@ -297,7 +295,7 @@ fun process_constraints ctxt cs tye_idx =
 
 
     (* simplify constraints *)
-    
+
     fun simplify_constraints cs tye_idx =
       let
         fun contract a Ts Us error_pack done todo tye idx =
@@ -362,47 +360,47 @@ fun process_constraints ctxt cs tye_idx =
               | (Type (a, Ts), Type (b, Us)) =>
                   if a<>b then err_subtype ctxt "Different constructors" (fst tye_idx) error_pack
                   else contract a Ts Us error_pack done todo tye idx
-              | (TVar (xi, S), Type (a, Ts as (_::_))) =>
+              | (TVar (xi, S), Type (a, Ts as (_ :: _))) =>
                   expand true xi S a Ts error_pack done todo tye idx
-              | (Type (a, Ts as (_::_)), TVar (xi, S)) =>
+              | (Type (a, Ts as (_ :: _)), TVar (xi, S)) =>
                   expand false xi S a Ts error_pack done todo tye idx
               | (T, U) =>
                   if T = U then simplify done todo tye_idx
-                  else if exists (is_freeT orf is_fixedvarT) [T, U] andalso 
+                  else if exists (is_freeT orf is_fixedvarT) [T, U] andalso
                     exists is_paramT [T, U]
                   then eliminate [T, U] error_pack done todo tye idx
                   else if exists (is_freeT orf is_fixedvarT) [T, U]
                   then err_subtype ctxt "Not eliminated free/fixed variables"
                         (fst tye_idx) error_pack
-                  else simplify (((T, U), error_pack)::done) todo tye_idx);
+                  else simplify (((T, U), error_pack) :: done) todo tye_idx);
       in
         simplify [] cs tye_idx
       end;
 
 
     (* do simplification *)
-    
+
     val (cs', tye_idx') = simplify_constraints cs tye_idx;
 
     fun find_error_pack lower T' =
       map snd (filter (fn ((T, U), _) => if lower then T' = U else T' = T) cs');
 
-    fun unify_list (T::Ts) tye_idx =
+    fun unify_list (T :: Ts) tye_idx =
       fold (fn U => fn tye_idx => strong_unify ctxt (T, U) tye_idx
-        handle NO_UNIFIER (msg, tye) => err_list ctxt msg tye (T::Ts))
+        handle NO_UNIFIER (msg, tye) => err_list ctxt msg tye (T :: Ts))
       Ts tye_idx;
 
     (*styps stands either for supertypes or for subtypes of a type T
       in terms of the subtype-relation (excluding T itself)*)
-    fun styps super T = 
+    fun styps super T =
       (if super then Graph.imm_succs else Graph.imm_preds) coes_graph T
         handle Graph.UNDEF _ => [];
 
-    fun minmax sup (T::Ts) =
+    fun minmax sup (T :: Ts) =
       let
         fun adjust T U = if sup then (T, U) else (U, T);
         fun extract T [] = T
-          | extract T (U::Us) = 
+          | extract T (U :: Us) =
               if Graph.is_edge coes_graph (adjust T U) then extract T Us
               else if Graph.is_edge coes_graph (adjust U T) then extract U Us
               else raise BOUND_ERROR "Uncomparable types in type list";
@@ -410,10 +408,10 @@ fun process_constraints ctxt cs tye_idx =
         t_of (extract T Ts)
       end;
 
-    fun ex_styp_of_sort super T styps_and_sorts = 
+    fun ex_styp_of_sort super T styps_and_sorts =
       let
         fun adjust T U = if super then (T, U) else (U, T);
-        fun styp_test U Ts = forall 
+        fun styp_test U Ts = forall
           (fn T => T = U orelse Graph.is_edge coes_graph (adjust U T)) Ts;
         fun fitting Ts S U = Type.of_sort tsig (t_of U, S) andalso styp_test U Ts
       in
@@ -430,7 +428,7 @@ fun process_constraints ctxt cs tye_idx =
        sorts - list of sorts [C1, C2, ...]
        T::Ts - non-empty list of base types [T1, T2, ...]
     *)
-    fun tightest sup S styps_and_sorts (T::Ts) =
+    fun tightest sup S styps_and_sorts (T :: Ts) =
       let
         fun restriction T = Type.of_sort tsig (t_of T, S)
           andalso ex_styp_of_sort (not sup) T styps_and_sorts;
@@ -443,7 +441,7 @@ fun process_constraints ctxt cs tye_idx =
       end;
 
     fun build_graph G [] tye_idx = (G, tye_idx)
-      | build_graph G ((T, U)::cs) tye_idx =
+      | build_graph G ((T, U) :: cs) tye_idx =
         if T = U then build_graph G cs tye_idx
         else
           let
@@ -478,10 +476,10 @@ fun process_constraints ctxt cs tye_idx =
           val raw_bound = get_bound G key;
           val bound = map (deref tye) raw_bound;
           val not_params = filter_out is_paramT bound;
-          fun to_fulfil T = 
+          fun to_fulfil T =
             (case sort_of T of
               NONE => NONE
-            | SOME S => 
+            | SOME S =>
                 SOME (map nameT (filter_out is_paramT (map (deref tye) (get_bound G T))), S));
           val styps_and_sorts = distinct (op =) (map_filter to_fulfil raw_bound);
           val assignment =
@@ -522,7 +520,7 @@ fun process_constraints ctxt cs tye_idx =
         end;
 
     (*Unify all weakly connected components of the constraint forest,
-      that contain only params. These are the only WCCs that contain 
+      that contain only params. These are the only WCCs that contain
       params anyway.*)
     fun unify_params G (tye_idx as (tye, _)) =
       let
@@ -563,13 +561,13 @@ fun insert_coercions ctxt tye ts =
           then raise raise Fail ("Different constructors: " ^ a ^ " and " ^ b)
           else
             let
-              fun inst t Ts = 
-                Term.subst_vars 
+              fun inst t Ts =
+                Term.subst_vars
                   (((Term.add_tvar_namesT (fastype_of t) []) ~~ rev Ts), []) t;
               fun sub_co (COVARIANT, TU) = gen_coercion TU
                 | sub_co (CONTRAVARIANT, TU) = gen_coercion (swap TU);
               fun ts_of [] = []
-                | ts_of (Type ("fun", [x1, x2])::xs) = x1::x2::(ts_of xs);
+                | ts_of (Type ("fun", [x1, x2]) :: xs) = x1 :: x2 :: (ts_of xs);
             in
               (case Symtab.lookup (tmaps_of (Context.Proof ctxt)) a of
                 NONE => raise Fail ("No map function for " ^ a ^ " known")
@@ -603,7 +601,7 @@ fun insert_coercions ctxt tye ts =
       | insert bs (Abs (x, T, t)) =
           let
             val T' = deep_deref T;
-            val (t', T'') = insert (T'::bs) t;
+            val (t', T'') = insert (T' :: bs) t;
           in
             (Abs (x, T', t'), T' --> T'')
           end
@@ -673,7 +671,7 @@ fun add_type_map map_fun context =
       "\nwhere C is a constructor and fi is of type (xi => yi) or (yi => xi)";
 
     fun gen_arg_var ([], []) = []
-      | gen_arg_var ((T, T')::Ts, (U, U')::Us) =
+      | gen_arg_var ((T, T') :: Ts, (U, U') :: Us) =
           if T = U andalso T' = U' then COVARIANT :: gen_arg_var (Ts, Us)
           else if T = U' andalso T' = U then CONTRAVARIANT :: gen_arg_var (Ts, Us)
           else error ("Functions do not apply to arguments correctly:" ^ err_str ())
@@ -691,7 +689,7 @@ fun add_type_map map_fun context =
 
     fun check_map_fun (pairs, []) (Type ("fun", [T as Type (C, Ts), U as Type (_, Us)])) =
           if balanced T U
-          then ((pairs, Ts~~Us), C)
+          then ((pairs, Ts ~~ Us), C)
           else if C = "fun"
             then check_map_fun (pairs @ [(hd Ts, hd (tl Ts))], []) U
             else error ("Not a proper map function:" ^ err_str ())
