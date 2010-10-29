@@ -26,6 +26,11 @@ definition "img_lub f g Lub = (\<lambda>A. g (Lub (f ` A)))"
 lemma call_mono[partial_function_mono]: "monotone (fun_ord ord) ord (\<lambda>f. f t)"
 by (rule monotoneI) (auto simp: fun_ord_def)
 
+lemma let_mono[partial_function_mono]:
+  "(\<And>x. monotone orda ordb (\<lambda>f. b f x))
+  \<Longrightarrow> monotone orda ordb (\<lambda>f. Let t (b f))"
+by (simp add: Let_def)
+
 lemma if_mono[partial_function_mono]: "monotone orda ordb F 
 \<Longrightarrow> monotone orda ordb G
 \<Longrightarrow> monotone orda ordb (\<lambda>f. if c then F f else G f)"
