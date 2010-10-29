@@ -16,6 +16,10 @@ text {* Monadic heap actions either produce values
   and transform the heap, or fail *}
 datatype 'a Heap = Heap "heap \<Rightarrow> ('a \<times> heap) option"
 
+lemma [code, code del]:
+  "(Code_Evaluation.term_of :: 'a::typerep Heap \<Rightarrow> Code_Evaluation.term) = Code_Evaluation.term_of"
+  ..
+
 primrec execute :: "'a Heap \<Rightarrow> heap \<Rightarrow> ('a \<times> heap) option" where
   [code del]: "execute (Heap f) = f"
 
