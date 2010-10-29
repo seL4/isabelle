@@ -950,6 +950,20 @@ text {*
       \item[no\_assms] specifies whether assumptions in
         structured proofs should be ignored.
 
+      \item[timeout] sets the time limit in seconds.
+
+      \item[default\_type] sets the type(s) generally used to instantiate
+        type variables.
+
+      \item[report] if set quickcheck reports how many tests fulfilled
+        the preconditions.
+
+      \item[quiet] if not set quickcheck informs about the current size
+        for assignment values.
+
+      \item[expect] can be used to check if the user's expectation was met
+        (no\_expectation, no\_counterexample, or counterexample)
+
     \end{description}
 
     These option can be given within square brackets.
