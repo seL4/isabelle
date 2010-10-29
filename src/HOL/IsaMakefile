@@ -337,6 +337,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_atp_translate.ML \
   Tools/Sledgehammer/sledgehammer_util.ML \
   Tools/SMT/smtlib_interface.ML \
+  Tools/SMT/smt_builtin.ML \
   Tools/SMT/smt_monomorph.ML \
   Tools/SMT/smt_normalize.ML \
   Tools/SMT/smt_setup_solvers.ML \

@@ -9,6 +9,7 @@ imports List
 uses
   "Tools/Datatype/datatype_selectors.ML"
   ("Tools/SMT/smt_monomorph.ML")
+  ("Tools/SMT/smt_builtin.ML")
   ("Tools/SMT/smt_normalize.ML")
   ("Tools/SMT/smt_translate.ML")
   ("Tools/SMT/smt_solver.ML")
@@ -126,6 +127,7 @@ lemma mod_by_z3mod: "k mod l = (
 subsection {* Setup *}
 
 use "Tools/SMT/smt_monomorph.ML"
+use "Tools/SMT/smt_builtin.ML"
 use "Tools/SMT/smt_normalize.ML"
 use "Tools/SMT/smt_translate.ML"
 use "Tools/SMT/smt_solver.ML"
