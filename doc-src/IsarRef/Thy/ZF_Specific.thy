@@ -67,11 +67,11 @@ text {*
     ;
     monos: ('monos' thmrefs)?
     ;
-    condefs: ('con\_defs' thmrefs)?
+    condefs: ('con_defs' thmrefs)?
     ;
-    typeintros: ('type\_intros' thmrefs)?
+    typeintros: ('type_intros' thmrefs)?
     ;
-    typeelims: ('type\_elims' thmrefs)?
+    typeelims: ('type_elims' thmrefs)?
     ;
   \end{rail}
 
@@ -126,7 +126,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ('case\_tac' | 'induct\_tac') goalspec? name
+    ('case_tac' | 'induct_tac') goalspec? name
     ;
     indcases (prop +)
     ;

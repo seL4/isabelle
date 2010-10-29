@@ -284,14 +284,14 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ( 'rule\_tac' | 'erule\_tac' | 'drule\_tac' | 'frule\_tac' | 'cut\_tac' | 'thin\_tac' ) goalspec?
+    ( 'rule_tac' | 'erule_tac' | 'drule_tac' | 'frule_tac' | 'cut_tac' | 'thin_tac' ) goalspec?
     ( insts thmref | thmrefs )
     ;
-    'subgoal\_tac' goalspec? (prop +)
+    'subgoal_tac' goalspec? (prop +)
     ;
-    'rename\_tac' goalspec? (name +)
+    'rename_tac' goalspec? (name +)
     ;
-    'rotate\_tac' goalspec? int?
+    'rotate_tac' goalspec? int?
     ;
     ('tactic' | 'raw_tactic') text
     ;
@@ -364,10 +364,10 @@ text {*
 
   \indexouternonterm{simpmod}
   \begin{rail}
-    ('simp' | 'simp\_all') opt? (simpmod *)
+    ('simp' | 'simp_all') opt? (simpmod *)
     ;
 
-    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use' | 'asm\_lr' ) ')'
+    opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use' | 'asm_lr' ) ')'
     ;
     simpmod: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
       'split' (() | 'add' | 'del')) ':' thmrefs
@@ -471,7 +471,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'simproc\_setup' name '(' (term + '|') ')' '=' text \\ ('identifier' (nameref+))?
+    'simproc_setup' name '(' (term + '|') ')' '=' text \\ ('identifier' (nameref+))?
     ;
 
     'simproc' (('add' ':')? | 'del' ':') (name+)
@@ -519,7 +519,7 @@ text {*
     'simplified' opt? thmrefs?
     ;
 
-    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use') ')'
+    opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use') ')'
     ;
   \end{rail}
 
@@ -785,7 +785,7 @@ text {*
     ;
     'atomize' ('(' 'full' ')')?
     ;
-    'rule\_format' ('(' 'noasm' ')')?
+    'rule_format' ('(' 'noasm' ')')?
     ;
   \end{rail}
 

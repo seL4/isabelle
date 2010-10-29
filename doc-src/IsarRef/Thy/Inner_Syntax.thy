@@ -31,7 +31,7 @@ text {*
     ;
     'thm' modes? thmrefs
     ;
-    ( 'prf' | 'full\_prf' ) modes? thmrefs?
+    ( 'prf' | 'full_prf' ) modes? thmrefs?
     ;
     'pr' modes? nat?
     ;
@@ -364,9 +364,9 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ('type\_notation' | 'no\_type\_notation') target? mode? \\ (nameref mixfix + 'and')
+    ('type_notation' | 'no_type_notation') target? mode? \\ (nameref mixfix + 'and')
     ;
-    ('notation' | 'no\_notation') target? mode? \\ (nameref structmixfix + 'and')
+    ('notation' | 'no_notation') target? mode? \\ (nameref structmixfix + 'and')
     ;
     'write' mode? (nameref structmixfix + 'and')
     ;
@@ -730,9 +730,9 @@ text {*
   \begin{rail}
     'nonterminals' (name +)
     ;
-    ('syntax' | 'no\_syntax') mode? (constdecl +)
+    ('syntax' | 'no_syntax') mode? (constdecl +)
     ;
-    ('translations' | 'no\_translations') (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
+    ('translations' | 'no_translations') (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
     ;
 
     mode: ('(' ( name | 'output' | name 'output' ) ')')
@@ -786,8 +786,8 @@ text {*
   \end{matharray}
 
   \begin{rail}
-  ( 'parse\_ast\_translation' | 'parse\_translation' | 'print\_translation' |
-    'typed\_print\_translation' | 'print\_ast\_translation' ) ('(advanced)')? text
+  ( 'parse_ast_translation' | 'parse_translation' | 'print_translation' |
+    'typed_print_translation' | 'print_ast_translation' ) ('(advanced)')? text
   ;
   \end{rail}
 
