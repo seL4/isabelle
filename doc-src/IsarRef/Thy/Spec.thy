@@ -322,8 +322,8 @@ text {*
   A locale instance consists of a reference to a locale and either
   positional or named parameter instantiations.  Identical
   instantiations (that is, those that instante a parameter by itself)
-  may be omitted.  The notation `\_' enables to omit the instantiation
-  for a parameter inside a positional instantiation.
+  may be omitted.  The notation `@{text "_"}' enables to omit the
+  instantiation for a parameter inside a positional instantiation.
 
   Terms in instantiations are from the context the locale expressions
   is declared in.  Local names may be added to this context with the
