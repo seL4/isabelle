@@ -104,15 +104,15 @@ lemma
   by smt+
 
 lemma
-  "distinct []"
-  "distinct [a]"
-  "distinct [a, b, c] \<longrightarrow> a \<noteq> c"
-  "distinct [a, b, c] \<longrightarrow> d = b \<longrightarrow> a \<noteq> d"
-  "\<not> distinct [a, b, a, b]"
-  "a = b \<longrightarrow> \<not>distinct [a, b]"
-  "a = b \<and> a = c \<longrightarrow> \<not>distinct [a, b, c]"
-  "distinct [a, b, c, d] \<longrightarrow> distinct [d, b, c, a]"
-  "distinct [a, b, c, d] \<longrightarrow> distinct [a, b, c] \<and> distinct [b, c, d]"
+  "SMT.distinct []"
+  "SMT.distinct [a]"
+  "SMT.distinct [a, b, c] \<longrightarrow> a \<noteq> c"
+  "SMT.distinct [a, b, c] \<longrightarrow> d = b \<longrightarrow> a \<noteq> d"
+  "\<not> SMT.distinct [a, b, a, b]"
+  "a = b \<longrightarrow> \<not> SMT.distinct [a, b]"
+  "a = b \<and> a = c \<longrightarrow> \<not> SMT.distinct [a, b, c]"
+  "SMT.distinct [a, b, c, d] \<longrightarrow> SMT.distinct [d, b, c, a]"
+  "SMT.distinct [a, b, c, d] \<longrightarrow> SMT.distinct [a, b, c] \<and> SMT.distinct [b, c, d]"
   by smt+
 
 lemma
@@ -193,7 +193,7 @@ lemma
   by smt+
 
 lemma
-  "distinct [a, b, c] \<and> (\<forall>x y. f x = f y \<longrightarrow> y = x) \<longrightarrow> f a \<noteq> f b"
+  "SMT.distinct [a, b, c] \<and> (\<forall>x y. f x = f y \<longrightarrow> y = x) \<longrightarrow> f a \<noteq> f b"
   sorry  (* FIXME: injective function *)
 
 lemma
@@ -636,7 +636,7 @@ lemma
   "i1 \<noteq> i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i2 = v2"
   "i1 = i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v2"
   "i1 = i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v2"
-  "distinct [i1, i2, i3] \<longrightarrow> (f (i1 := v1, i2 := v2)) i3 = f i3"
+  "SMT.distinct [i1, i2, i3] \<longrightarrow> (f (i1 := v1, i2 := v2)) i3 = f i3"
   by smt+
 
 

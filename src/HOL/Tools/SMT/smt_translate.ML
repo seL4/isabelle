@@ -233,7 +233,7 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
         (q as Const (qn, _), [Abs (n, T, t')]) =>
           if is_some (quantifier qn) then q $ Abs (n, T, in_trig t')
           else as_term (in_term t)
-      | (Const (c as (@{const_name distinct}, T)), [t']) =>
+      | (Const (c as (@{const_name SMT.distinct}, T)), [t']) =>
           if is_builtin_distinct then Const (pred c) $ in_list T in_term t'
           else as_term (in_term t)
       | (Const c, ts) =>
@@ -377,7 +377,7 @@ fun translate {prefixes, strict, header, builtins, serialize} ctxt comments =
       | (Const (@{const_name Let}, _), [t1, Abs (_, T, t2)]) =>
           transT T ##>> trans t1 ##>> trans t2 #>>
           (fn ((U, u1), u2) => SLet (U, u1, u2))
-      | (h as Const (c as (@{const_name distinct}, T)), [t1]) =>
+      | (h as Const (c as (@{const_name SMT.distinct}, T)), [t1]) =>
           (case builtin_fun ctxt c (HOLogic.dest_list t1) of
             SOME (n, ts) => fold_map trans ts #>> app n
           | NONE => transs h T [t1])

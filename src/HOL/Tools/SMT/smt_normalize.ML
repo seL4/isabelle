@@ -40,15 +40,18 @@ fun if_true_conv c cv = if_conv c cv Conv.all_conv
    three elements in the argument list) *)
 
 local
-  fun is_trivial_distinct (Const (@{const_name distinct}, _) $ t) =
-        length (HOLogic.dest_list t) <= 2
+  fun is_trivial_distinct (Const (@{const_name SMT.distinct}, _) $ t) =
+       (length (HOLogic.dest_list t) <= 2
+        handle TERM _ => error ("SMT: constant " ^
+          quote @{const_name SMT.distinct} ^ " must be applied to " ^
+          "an explicit list."))
     | is_trivial_distinct _ = false
 
   val thms = map mk_meta_eq @{lemma
-    "distinct [] = True"
-    "distinct [x] = True"
-    "distinct [x, y] = (x ~= y)"
-    by simp_all}
+    "SMT.distinct [] = True"
+    "SMT.distinct [x] = True"
+    "SMT.distinct [x, y] = (x ~= y)"
+    by (simp_all add: distinct_def)}
   fun distinct_conv _ =
     if_true_conv is_trivial_distinct (Conv.rewrs_conv thms)
 in

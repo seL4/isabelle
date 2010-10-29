@@ -167,7 +167,7 @@ fun conn @{const_name True} = SOME "true"
   | conn @{const_name If} = SOME "if_then_else"
   | conn _ = NONE
 
-fun pred @{const_name distinct} _ = SOME "distinct"
+fun pred @{const_name SMT.distinct} _ = SOME "distinct"
   | pred @{const_name HOL.eq} _ = SOME "="
   | pred @{const_name term_eq} _ = SOME "="
   | pred @{const_name less} T = if_int_type T "<"
