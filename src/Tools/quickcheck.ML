@@ -1,5 +1,5 @@
 (*  Title:      Tools/quickcheck.ML
-    Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
+    Author:     Stefan Berghofer, Florian Haftmann, Lukas Bulwahn, TU Muenchen
 
 Generic counterexample search engine.
 *)
@@ -16,18 +16,19 @@ sig
   datatype expectation = No_Expectation | No_Counterexample | Counterexample;
   datatype test_params = Test_Params of
   { size: int, iterations: int, default_type: typ list, no_assms: bool,
-    expect : expectation, report: bool, quiet : bool};
-  val test_params_of: Proof.context -> test_params 
+    expect : expectation, report: bool, quiet : bool, timeout : int};
+  val test_params_of : Proof.context -> test_params
   val report : Proof.context -> bool
-  val set_reporting : bool -> Context.generic -> Context.generic
+  val map_test_params :
+    ((int * int) * ((typ list * bool) * ((expectation * bool) * (bool * int)))
+      -> (int * int) * ((typ list * bool) * ((expectation * bool) * (bool * int))))
+    -> Context.generic -> Context.generic
   val add_generator:
     string * (Proof.context -> term -> int -> term list option * (bool list * bool))
       -> Context.generic -> Context.generic
   (* testing terms and proof states *)
-  val gen_test_term: Proof.context -> bool -> string option -> int -> int -> term ->
+  val test_term: Proof.context -> string option -> term ->
     (string * term) list option * ((string * int) list * ((int * report list) list) option)
-  val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
-    (string * term) list option
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
 end;
 
@@ -80,26 +81,31 @@ fun merge_expectation (expect1, expect2) =
 
 datatype test_params = Test_Params of
   { size: int, iterations: int, default_type: typ list, no_assms: bool,
-    expect : expectation, report: bool, quiet : bool};
+    expect : expectation, report: bool, quiet : bool, timeout : int};
 
-fun dest_test_params (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet }) =
-  ((size, iterations), ((default_type, no_assms), ((expect, report), quiet)));
+fun dest_test_params
+    (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet, timeout }) =
+  ((size, iterations), ((default_type, no_assms), ((expect, report), (quiet, timeout))));
 
-fun make_test_params ((size, iterations), ((default_type, no_assms), ((expect, report), quiet))) =
+fun make_test_params
+    ((size, iterations), ((default_type, no_assms), ((expect, report), (quiet, timeout)))) =
   Test_Params { size = size, iterations = iterations, default_type = default_type,
-    no_assms = no_assms, expect = expect, report = report, quiet = quiet };
+    no_assms = no_assms, expect = expect, report = report, quiet = quiet, timeout = timeout };
 
-fun map_test_params f (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet }) =
-  make_test_params (f ((size, iterations), ((default_type, no_assms), ((expect, report), quiet))));
+fun map_test_params' f
+    (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet, timeout }) =
+  make_test_params
+    (f ((size, iterations), ((default_type, no_assms), ((expect, report), (quiet, timeout)))));
 
 fun merge_test_params
  (Test_Params { size = size1, iterations = iterations1, default_type = default_type1,
-    no_assms = no_assms1, expect = expect1, report = report1, quiet = quiet1 },
+    no_assms = no_assms1, expect = expect1, report = report1, quiet = quiet1, timeout = timeout1 },
   Test_Params { size = size2, iterations = iterations2, default_type = default_type2,
-    no_assms = no_assms2, expect = expect2, report = report2, quiet = quiet2 }) =
+    no_assms = no_assms2, expect = expect2, report = report2, quiet = quiet2, timeout = timeout2}) =
   make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
     ((merge (op =) (default_type1, default_type2), no_assms1 orelse no_assms2),
-    ((merge_expectation (expect1, expect2), report1 orelse report2), quiet1 orelse quiet2)));
+    ((merge_expectation (expect1, expect2), report1 orelse report2),
+    (quiet1 orelse quiet2, Int.min (timeout1, timeout2)))));
 
 structure Data = Generic_Data
 (
@@ -108,7 +114,7 @@ structure Data = Generic_Data
       * test_params;
   val empty = ([], Test_Params
     { size = 10, iterations = 100, default_type = [], no_assms = false,
-      expect = No_Expectation, report = false, quiet = false});
+      expect = No_Expectation, report = false, quiet = false, timeout = 30});
   val extend = I;
   fun merge ((generators1, params1), (generators2, params2)) : T =
     (AList.merge (op =) (K true) (generators1, generators2),
@@ -117,12 +123,37 @@ structure Data = Generic_Data
 
 val test_params_of = snd o Data.get o Context.Proof;
 
+val size = fst o fst o dest_test_params o test_params_of
+
+val iterations = snd o fst o dest_test_params o test_params_of
+
+val default_type = fst o fst o snd o dest_test_params o test_params_of
+
+val no_assms = snd o fst o snd o dest_test_params o test_params_of
+
+val expect = fst o fst o snd o snd o dest_test_params o test_params_of
+
 val report = snd o fst o snd o snd o dest_test_params o test_params_of
 
-fun map_report f (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet }) =
-  make_test_params ((size, iterations), ((default_type, no_assms), ((expect, f report), quiet)));
+val quiet = fst o snd o snd o snd o dest_test_params o test_params_of
 
-fun set_reporting report = Data.map (apsnd (map_report (K report)))
+val timeout = snd o snd o snd o snd o dest_test_params o test_params_of
+
+fun map_report f
+  (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet, timeout }) =
+    make_test_params
+      ((size, iterations), ((default_type, no_assms), ((expect, f report), (quiet, timeout))));
+
+fun map_quiet f
+  (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet, timeout }) =
+    make_test_params
+      ((size, iterations), ((default_type, no_assms), ((expect, report), (f quiet, timeout))));
+    
+fun set_report report = Data.map (apsnd (map_report (K report)))
+
+fun set_quiet quiet = Data.map (apsnd (map_quiet (K quiet)))
+
+val map_test_params = Data.map o apsnd o map_test_params'
 
 val add_generator = Data.map o apfst o AList.update (op =);
 
@@ -165,17 +196,17 @@ fun cpu_time description f =
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
 
-fun gen_test_term ctxt quiet generator_name size i t =
+fun test_term ctxt generator_name t =
   let
     val (names, t') = prep_test_term t;
     val (testers, comp_time) = cpu_time "quickcheck compilation"
       (fn () => (case generator_name
-       of NONE => if quiet then mk_testers ctxt t' else mk_testers_strict ctxt t'
+       of NONE => if quiet ctxt then mk_testers ctxt t' else mk_testers_strict ctxt t'
         | SOME name => [mk_tester_select name ctxt t']));
     fun iterate f 0 report = (NONE, report)
       | iterate f j report =
         let
-          val (test_result, single_report) = apsnd Run (f ()) handle Match => (if quiet then ()
+          val (test_result, single_report) = apsnd Run (f ()) handle Match => (if quiet ctxt then ()
              else warning "Exception Match raised during quickcheck"; (NONE, MatchExc))
           val report = collect_single_report single_report report
         in
@@ -185,19 +216,19 @@ fun gen_test_term ctxt quiet generator_name size i t =
       satisfied_assms = [], positive_concl_tests = 0 }
     fun with_testers k [] = (NONE, [])
       | with_testers k (tester :: testers) =
-          case iterate (fn () => tester (k - 1)) i empty_report
+          case iterate (fn () => tester (k - 1)) (iterations ctxt) empty_report
            of (NONE, report) => apsnd (cons report) (with_testers k testers)
             | (SOME q, report) => (SOME q, [report]);
     fun with_size k reports =
-      if k > size then (NONE, reports)
+      if k > size ctxt then (NONE, reports)
       else
-       (if quiet then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
+       (if quiet ctxt then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
         let
           val (result, new_report) = with_testers k testers
           val reports = ((k, new_report) :: reports)
         in case result of NONE => with_size (k + 1) reports | SOME q => (SOME q, reports) end);
     val ((result, reports), exec_time) =
-      TimeLimit.timeLimit (Time.fromSeconds 20) (fn () => cpu_time "quickcheck execution"
+      TimeLimit.timeLimit (Time.fromSeconds (timeout ctxt)) (fn () => cpu_time "quickcheck execution"
       (fn () => apfst
          (fn result => case result of NONE => NONE
         | SOME ts => SOME (names ~~ ts)) (with_size 1 []))) ()
@@ -205,11 +236,6 @@ fun gen_test_term ctxt quiet generator_name size i t =
   in
     (result, ([exec_time, comp_time], if report ctxt then SOME reports else NONE))
   end;
-
-fun test_term ctxt quiet generator_name size i t =
-  ctxt
-  |> Context.proof_map (set_reporting false)
-  |> (fn ctxt' => fst (gen_test_term ctxt' quiet generator_name size i t))
 
 exception WELLSORTED of string
 
@@ -231,7 +257,7 @@ fun monomorphic_term thy insts default_T =
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term
 
-fun test_goal quiet generator_name size iterations default_Ts no_assms insts i state =
+fun test_goal generator_name insts i state =
   let
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
@@ -243,28 +269,29 @@ fun test_goal quiet generator_name size iterations default_Ts no_assms insts i s
      of NONE => NONE
       | SOME "" => NONE
       | SOME locale => SOME locale;
-    val assms = if no_assms then [] else case some_locale
+    val assms = if no_assms lthy then [] else case some_locale
      of NONE => Assumption.all_assms_of lthy
       | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy);
     val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
     val check_goals = case some_locale
      of NONE => [proto_goal]
-      | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal) (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
+      | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal)
+        (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
     val inst_goals = maps (fn check_goal => map (fn T =>
       Term ((Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
-        handle WELLSORTED s => Wellsorted_Error s) default_Ts) check_goals
+        handle WELLSORTED s => Wellsorted_Error s) (default_type lthy)) check_goals
     val error_msg = cat_lines (map_filter (fn Term t => NONE | Wellsorted_Error s => SOME s) inst_goals)
     val correct_inst_goals =
       case map_filter (fn Term t => SOME t | Wellsorted_Error s => NONE) inst_goals of
         [] => error error_msg
       | xs => xs
-    val _ = if quiet then () else warning error_msg
+    val _ = if quiet lthy then () else warning error_msg
     fun collect_results f reports [] = (NONE, rev reports)
       | collect_results f reports (t :: ts) =
         case f t of
           (SOME res, report) => (SOME res, rev (report :: reports))
         | (NONE, report) => collect_results f (report :: reports) ts
-  in collect_results (gen_test_term lthy quiet generator_name size iterations) [] correct_inst_goals end;
+  in collect_results (test_term lthy generator_name) [] correct_inst_goals end;
 
 (* pretty printing *)
 
@@ -313,12 +340,10 @@ fun auto_quickcheck state =
   else
     let
       val ctxt = Proof.context_of state;
-      val Test_Params {size, iterations, default_type, no_assms, ...} =
-        (snd o Data.get o Context.Proof) ctxt;
       val res =
         state
-        |> Proof.map_context (Context.proof_map (set_reporting false))
-        |> try (test_goal true NONE size iterations default_type no_assms [] 1);
+        |> Proof.map_context (Context.proof_map (set_report false #> set_quiet true))
+        |> try (test_goal NONE [] 1);
     in
       case res of
         NONE => (false, state)
@@ -359,7 +384,9 @@ fun parse_test_param ctxt ("size", [arg]) =
   | parse_test_param ctxt ("report", [arg]) =
       (apsnd o apsnd o apfst o apsnd o K) (read_bool arg)
   | parse_test_param ctxt ("quiet", [arg]) =
-      (apsnd o apsnd o apsnd o K) (read_bool arg)       
+      (apsnd o apsnd o apsnd o apfst o K) (read_bool arg)
+  | parse_test_param ctxt ("timeout", [arg]) =
+      (apsnd o apsnd o apsnd o apsnd o K) (read_nat arg)
   | parse_test_param ctxt (name, _) =
       error ("Unknown test parameter: " ^ name);
 
@@ -377,7 +404,7 @@ fun quickcheck_params_cmd args thy =
     val f = fold (parse_test_param ctxt) args;
   in
     thy
-    |> (Context.theory_map o Data.map o apsnd o map_test_params) f
+    |> (Context.theory_map o map_test_params) f
   end;
 
 fun gen_quickcheck args i state =
@@ -385,16 +412,15 @@ fun gen_quickcheck args i state =
     val ctxt = Proof.context_of state;
     val default_params = (dest_test_params o snd o Data.get o Context.Proof) ctxt;
     val f = fold (parse_test_param_inst ctxt) args;
-    val (((size, iterations), ((default_type, no_assms), ((expect, report), quiet))), (generator_name, insts)) =
-      f (default_params, (NONE, []));
+    val (test_params, (generator_name, insts)) = f (default_params, (NONE, []));
   in
     state
-    |> Proof.map_context (Context.proof_map (set_reporting report))
-    |> test_goal quiet generator_name size iterations default_type no_assms insts i
-    |> tap (fn (SOME x, _) => if expect = No_Counterexample then
+    |> Proof.map_context (Context.proof_map (map_test_params (K test_params)))
+    |> (fn state' => test_goal generator_name insts i state'
+      |> tap (fn (SOME x, _) => if expect (Proof.context_of state') = No_Counterexample then
                  error ("quickcheck expected to find no counterexample but found one") else ()
-             | (NONE, _) => if expect = Counterexample then
-                 error ("quickcheck expected to find a counterexample but did not find one") else ())
+             | (NONE, _) => if expect (Proof.context_of state') = Counterexample then
+                 error ("quickcheck expected to find a counterexample but did not find one") else ()))
   end;
 
 fun quickcheck args i state = fst (gen_quickcheck args i state);
