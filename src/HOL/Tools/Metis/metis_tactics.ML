@@ -91,9 +91,11 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                           Metis_Thm.toString mth)
                 val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                              (*add constraints arising from converting goal to clause form*)
+                val new_skolem_var_count = Unsynchronized.ref 1
                 val proof = Metis_Proof.proof mth
                 val result =
-                  fold (replay_one_inference ctxt' mode old_skolems) proof axioms
+                  fold (replay_one_inference ctxt' mode
+                              (old_skolems, new_skolem_var_count)) proof axioms
                 and used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
@@ -155,7 +157,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
-                  (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
+                  (fn cls => resolve_tac (FOL_SOLVE mode ctxt [] (cls @ ths)) 1)
                   ctxt i st0
   end
 

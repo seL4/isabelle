@@ -59,7 +59,7 @@ sig
   val make_fixed_type_const : string -> string
   val make_type_class : string -> string
   val num_type_args: theory -> string -> int
-  val new_skolem_var_from_const: string -> indexname
+  val new_skolem_var_name_from_const : string -> string
   val type_literals_for_types : typ list -> type_literal list
   val make_class_rel_clauses :
     theory -> class list -> class list -> class_rel_clause list
@@ -214,9 +214,9 @@ fun num_type_args thy s =
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
-fun new_skolem_var_from_const s =
+fun new_skolem_var_name_from_const s =
   let val ss = s |> space_explode Long_Name.separator in
-    (nth ss (length ss - 2), 0)
+    nth ss (length ss - 2)
   end
 
 
