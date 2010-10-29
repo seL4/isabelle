@@ -64,7 +64,7 @@ val trace = Unsynchronized.ref false;
 
 fun exec verbose code =
   (if ! trace then tracing code else ();
-  ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") false code));
+  ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") verbose code));
 
 fun value ctxt (get, put, put_ml) (prelude, value) =
   let
