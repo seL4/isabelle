@@ -360,7 +360,7 @@ text {*
   \begin{rail}
     'locale' name ('=' locale)? 'begin'?
     ;
-    'print\_locale' '!'? nameref
+    'print_locale' '!'? nameref
     ;
     locale: contextelem+ | localeexpr ('+' (contextelem+))?
     ;
@@ -503,7 +503,7 @@ text {*
     ;
     'interpret' localeexpr equations?
     ;
-    'print\_interps' nameref
+    'print_interps' nameref
     ;
     equations: 'where' (thmdecl? prop + 'and')
     ;
@@ -630,9 +630,9 @@ text {*
     ;
     'instance' nameref ('<' | subseteq) nameref
     ;
-    'print\_classes'
+    'print_classes'
     ;
-    'class\_deps'
+    'class_deps'
     ;
 
     superclassexpr: nameref | (nameref '+' superclassexpr)
@@ -840,9 +840,9 @@ text {*
   \begin{rail}
     'use' name
     ;
-    ('ML' | 'ML\_prf' | 'ML\_val' | 'ML\_command' | 'setup' | 'local\_setup') text
+    ('ML' | 'ML_prf' | 'ML_val' | 'ML_command' | 'setup' | 'local_setup') text
     ;
-    'attribute\_setup' name '=' text text
+    'attribute_setup' name '=' text text
     ;
   \end{rail}
 
@@ -930,7 +930,7 @@ text {*
     ;
     'classrel' (nameref ('<' | subseteq) nameref + 'and')
     ;
-    'default\_sort' sort
+    'default_sort' sort
     ;
   \end{rail}
 
@@ -1176,7 +1176,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ( 'hide\_class' | 'hide\_type' | 'hide\_const' | 'hide\_fact' ) ('(open)')? (nameref + )
+    ( 'hide_class' | 'hide_type' | 'hide_const' | 'hide_fact' ) ('(open)')? (nameref + )
     ;
   \end{rail}
 

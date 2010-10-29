@@ -84,7 +84,7 @@ text {*
   \begin{rail}
     ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') target? text
     ;
-    ('header' | 'text\_raw' | 'sect' | 'subsect' | 'subsubsect' | 'txt' | 'txt\_raw') text
+    ('header' | 'text_raw' | 'sect' | 'subsect' | 'subsubsect' | 'txt' | 'txt_raw') text
     ;
   \end{rail}
 
@@ -198,10 +198,10 @@ text {*
       'goals' options |
       'subgoals' options |
       'prf' options thmrefs |
-      'full\_prf' options thmrefs |
+      'full_prf' options thmrefs |
       'ML' options name |
-      'ML\_type' options name |
-      'ML\_struct' options name
+      'ML_type' options name |
+      'ML_struct' options name
     ;
     options: '[' (option * ',') ']'
     ;
@@ -468,7 +468,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ('display\_drafts' | 'print\_drafts') (name +)
+    ('display_drafts' | 'print_drafts') (name +)
     ;
   \end{rail}
 

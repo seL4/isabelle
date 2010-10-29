@@ -41,19 +41,19 @@
   \end{matharray}
 
   \begin{rail}
-    ('print\_theory' | 'print\_theorems') ('!'?)
+    ('print_theory' | 'print_theorems') ('!'?)
     ;
 
-    'find\_theorems' (('(' (nat)? ('with\_dups')? ')')?) (thmcriterion *)
+    'find_theorems' (('(' (nat)? ('with_dups')? ')')?) (thmcriterion *)
     ;
     thmcriterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
       'solves' | 'simp' ':' term | term)
     ;
-    'find\_consts' (constcriterion *)
+    'find_consts' (constcriterion *)
     ;
     constcriterion: ('-'?) ('name' ':' nameref | 'strict' ':' type | type)
     ;
-    'thm\_deps' thmrefs
+    'thm_deps' thmrefs
     ;
   \end{rail}
 
@@ -164,7 +164,7 @@
   \end{matharray}
 
   \begin{rail}
-    ('cd' | 'use\_thy') name
+    ('cd' | 'use_thy') name
     ;
   \end{rail}
 
