@@ -293,7 +293,7 @@ subsection {* Continuity simplification procedure *}
 
 text {* cont2cont lemma for @{term Rep_CFun} *}
 
-lemma cont2cont_Rep_CFun [simp, cont2cont]:
+lemma cont2cont_APP [simp, cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
   assumes t: "cont (\<lambda>x. t x)"
   shows "cont (\<lambda>x. (f x)\<cdot>(t x))"
@@ -309,11 +309,11 @@ text {*
   These lemmas are needed in theories that use types like @{typ "'a \<rightarrow> 'b \<Rightarrow> 'c"}.
 *}
 
-lemma cont_Rep_CFun_app [simp]: "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. ((f x)\<cdot>(g x)) s)"
-by (rule cont2cont_Rep_CFun [THEN cont2cont_fun])
+lemma cont_APP_app [simp]: "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. ((f x)\<cdot>(g x)) s)"
+by (rule cont2cont_APP [THEN cont2cont_fun])
 
-lemma cont_Rep_CFun_app_app [simp]: "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. ((f x)\<cdot>(g x)) s t)"
-by (rule cont_Rep_CFun_app [THEN cont2cont_fun])
+lemma cont_APP_app_app [simp]: "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. ((f x)\<cdot>(g x)) s t)"
+by (rule cont_APP_app [THEN cont2cont_fun])
 
 
 text {* cont2mono Lemma for @{term "%x. LAM y. c1(x)(y)"} *}
@@ -356,7 +356,7 @@ lemma cont2cont_LAM_discrete [simp, cont2cont]:
 by (simp add: cont2cont_LAM)
 
 lemmas cont_lemmas1 =
-  cont_const cont_id cont_Rep_CFun2 cont2cont_Rep_CFun cont2cont_LAM
+  cont_const cont_id cont_Rep_CFun2 cont2cont_APP cont2cont_LAM
 
 subsection {* Miscellaneous *}
 

@@ -27,6 +27,9 @@ lemmas monofun_fun_fun = fun_belowD
 lemmas monofun_fun_arg = monofunE
 lemmas monofun_lub_fun = adm_monofun [THEN admD]
 lemmas cont_lub_fun = adm_cont [THEN admD]
+lemmas cont2cont_Rep_CFun = cont2cont_APP
+lemmas cont_Rep_CFun_app = cont_APP_app
+lemmas cont_Rep_CFun_app_app = cont_APP_app_app
 
 text {* Older legacy theorem names: *}
 

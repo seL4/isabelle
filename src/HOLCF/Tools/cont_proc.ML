@@ -19,7 +19,7 @@ struct
 
 val cont_K = @{thm cont_const};
 val cont_I = @{thm cont_id};
-val cont_A = @{thm cont2cont_Rep_CFun};
+val cont_A = @{thm cont2cont_APP};
 val cont_L = @{thm cont2cont_LAM};
 val cont_R = @{thm cont_Rep_CFun2};
 
