@@ -191,7 +191,7 @@ local
             | NONE => NONE)
         | is_unique _ = NONE
       fun mk_unique_axiom T ts =
-        Const (@{const_name distinct}, HOLogic.listT T --> @{typ bool}) $
+        Const (@{const_name SMT.distinct}, HOLogic.listT T --> @{typ bool}) $
           HOLogic.mk_list T ts
     in
       map_filter is_unique fns
@@ -383,7 +383,7 @@ local
   fun mk_list T = HOLogic.mk_list T
 
   fun mk_distinct T ts =
-    Const (@{const_name distinct}, HOLogic.listT T --> @{typ bool}) $
+    Const (@{const_name SMT.distinct}, HOLogic.listT T --> @{typ bool}) $
       mk_list T ts
 
   fun quant name f = scan_line name (num -- num -- num) >> pair f

@@ -303,14 +303,14 @@ local
           prove disjI3 (Thm.capply @{cterm Not} ct2, false) (ct1, false)
       | @{term HOL.disj} $ _ $ _ =>
           prove disjI2 (Thm.capply @{cterm Not} ct1, false) (ct2, true)
-      | Const (@{const_name distinct}, _) $ _ =>
+      | Const (@{const_name SMT.distinct}, _) $ _ =>
           let
             fun dis_conv cv = Conv.arg_conv (Conv.arg1_conv cv)
             fun prv cu =
               let val (cu1, cu2) = Thm.dest_binop (Thm.dest_arg cu)
               in prove disjI4 (Thm.dest_arg cu2, true) (cu1, true) end
           in T.with_conv (dis_conv T.unfold_distinct_conv) prv ct end
-      | @{term Not} $ (Const (@{const_name distinct}, _) $ _) =>
+      | @{term Not} $ (Const (@{const_name SMT.distinct}, _) $ _) =>
           let
             fun dis_conv cv = Conv.arg_conv (Conv.arg1_conv (Conv.arg_conv cv))
             fun prv cu =
@@ -476,7 +476,7 @@ local
     (case Term.head_of (Thm.term_of cl) of
       @{term HOL.conj} => prove_nary L.is_conj (prove_eq_exn f)
     | @{term HOL.disj} => prove_nary L.is_disj (prove_eq_exn f)
-    | Const (@{const_name distinct}, _) => prove_distinct (prove_eq_safe f)
+    | Const (@{const_name SMT.distinct}, _) => prove_distinct (prove_eq_safe f)
     | _ => prove (prove_eq_safe f)) cp
 in
 fun monotonicity eqs ct =

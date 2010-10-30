@@ -127,6 +127,7 @@ The outer lexical syntax consists of three main categories of
     \indexdef{}{syntax}{longident}\hypertarget{syntax.longident}{\hyperlink{syntax.longident}{\mbox{\isa{longident}}}} & = & \isa{{\isachardoublequote}ident{\isacharparenleft}{\isachardoublequote}}\verb|.|\isa{{\isachardoublequote}ident{\isacharparenright}\isactrlsup {\isacharplus}{\isachardoublequote}} \\
     \indexdef{}{syntax}{symident}\hypertarget{syntax.symident}{\hyperlink{syntax.symident}{\mbox{\isa{symident}}}} & = & \isa{{\isachardoublequote}sym\isactrlsup {\isacharplus}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\|\verb|<|\isa{ident}\verb|>| \\
     \indexdef{}{syntax}{nat}\hypertarget{syntax.nat}{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}} & = & \isa{{\isachardoublequote}digit\isactrlsup {\isacharplus}{\isachardoublequote}} \\
+    \indexdef{}{syntax}{float}\hypertarget{syntax.float}{\hyperlink{syntax.float}{\mbox{\isa{float}}}} & = & \indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\verb|.|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\verb|.|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
     \indexdef{}{syntax}{var}\hypertarget{syntax.var}{\hyperlink{syntax.var}{\mbox{\isa{var}}}} & = & \verb|?|\isa{{\isachardoublequote}ident\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|?|\isa{ident}\verb|.|\isa{nat} \\
     \indexdef{}{syntax}{typefree}\hypertarget{syntax.typefree}{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}} & = & \verb|'|\isa{ident} \\
     \indexdef{}{syntax}{typevar}\hypertarget{syntax.typevar}{\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}}} & = & \verb|?|\isa{{\isachardoublequote}typefree\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|?|\isa{typefree}\verb|.|\isa{nat} \\
@@ -391,7 +392,7 @@ Attributes have their own ``semi-inner'' syntax, in the sense
 
   \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
   \begin{rail}
-    atom: nameref | typefree | typevar | var | nat | keyword
+    atom: nameref | typefree | typevar | var | nat | float | keyword
     ;
     arg: atom | '(' args ')' | '[' args ']'
     ;

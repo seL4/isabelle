@@ -201,7 +201,7 @@ text %mlantiq {*
   ;
   'sort' sort
   ;
-  ('type\_name' | 'type\_abbrev' | 'nonterminal') nameref
+  ('type_name' | 'type_abbrev' | 'nonterminal') nameref
   ;
   'typ' type
   ;
@@ -437,7 +437,7 @@ text %mlantiq {*
   \end{matharray}
 
   \begin{rail}
-  ('const\_name' | 'const\_abbrev') nameref
+  ('const_name' | 'const_abbrev') nameref
   ;
   'const' ('(' (type + ',') ')')?
   ;

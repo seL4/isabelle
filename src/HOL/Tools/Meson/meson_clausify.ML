@@ -233,7 +233,7 @@ fun to_definitional_cnf_with_quantifiers thy th =
 fun zapped_var_name ((ax_no, cluster_no), skolem) index_no s =
   (if skolem then new_skolem_var_prefix else new_nonskolem_var_prefix) ^
   "_" ^ string_of_int ax_no ^ "_" ^ string_of_int cluster_no ^ "_" ^
-  string_of_int index_no ^ "_" ^ s
+  string_of_int index_no ^ "_" ^ Name.desymbolize false s
 
 fun cluster_of_zapped_var_name s =
   let val get_int = the o Int.fromString o nth (space_explode "_" s) in
@@ -241,10 +241,11 @@ fun cluster_of_zapped_var_name s =
      String.isPrefix new_skolem_var_prefix s)
   end
 
-fun zap (cluster as (cluster_no, cluster_skolem)) index_no pos ct =
-  ct
-  |> (case term_of ct of
-        Const (s, _) $ Abs (s', _, _) =>
+fun rename_bound_vars_to_be_zapped ax_no =
+  let
+    fun aux (cluster as (cluster_no, cluster_skolem)) index_no pos t =
+      case t of
+        (t1 as Const (s, _)) $ Abs (s', T, t') =>
         if s = @{const_name all} orelse s = @{const_name All} orelse
            s = @{const_name Ex} then
           let
@@ -252,34 +253,53 @@ fun zap (cluster as (cluster_no, cluster_skolem)) index_no pos ct =
             val (cluster, index_no) =
               if skolem = cluster_skolem then (cluster, index_no)
               else ((cluster_no ||> cluster_skolem ? Integer.add 1, skolem), 0)
-          in
-            Thm.dest_comb #> snd
-            #> Thm.dest_abs (SOME (zapped_var_name cluster index_no s'))
-            #> snd #> zap cluster (index_no + 1) pos
-          end
+            val s' = zapped_var_name cluster index_no s'
+          in t1 $ Abs (s', T, aux cluster (index_no + 1) pos t') end
+        else
+          t
+      | (t1 as Const (s, _)) $ t2 $ t3 =>
+        if s = @{const_name "==>"} orelse s = @{const_name HOL.implies} then
+          t1 $ aux cluster index_no (not pos) t2 $ aux cluster index_no pos t3
+        else if s = @{const_name HOL.conj} orelse
+                s = @{const_name HOL.disj} then
+          t1 $ aux cluster index_no pos t2 $ aux cluster index_no pos t3
+        else
+          t
+      | (t1 as Const (s, _)) $ t2 =>
+        if s = @{const_name Trueprop} then
+          t1 $ aux cluster index_no pos t2
+        else if s = @{const_name Not} then
+          t1 $ aux cluster index_no (not pos) t2
+        else
+          t
+      | _ => t
+  in aux ((ax_no, 0), true) 0 true end
+
+fun zap pos ct =
+  ct
+  |> (case term_of ct of
+        Const (s, _) $ Abs (s', _, _) =>
+        if s = @{const_name all} orelse s = @{const_name All} orelse
+           s = @{const_name Ex} then
+          Thm.dest_comb #> snd #> Thm.dest_abs (SOME s') #> snd #> zap pos
         else
           Conv.all_conv
       | Const (s, _) $ _ $ _ =>
         if s = @{const_name "==>"} orelse s = @{const_name implies} then
-          Conv.combination_conv (Conv.arg_conv (zap cluster index_no (not pos)))
-                                (zap cluster index_no pos)
+          Conv.combination_conv (Conv.arg_conv (zap (not pos))) (zap pos)
         else if s = @{const_name conj} orelse s = @{const_name disj} then
-          Conv.combination_conv (Conv.arg_conv (zap cluster index_no pos))
-                                (zap cluster index_no pos)
+          Conv.combination_conv (Conv.arg_conv (zap pos)) (zap pos)
         else
           Conv.all_conv
       | Const (s, _) $ _ =>
-        if s = @{const_name Trueprop} then
-          Conv.arg_conv (zap cluster index_no pos)
-        else if s = @{const_name Not} then
-          Conv.arg_conv (zap cluster index_no (not pos))
-        else
-          Conv.all_conv
+        if s = @{const_name Trueprop} then Conv.arg_conv (zap pos)
+        else if s = @{const_name Not} then Conv.arg_conv (zap (not pos))
+        else Conv.all_conv
       | _ => Conv.all_conv)
 
 fun ss_only ths = MetaSimplifier.clear_ss HOL_basic_ss addsimps ths
 
-val no_choice =
+val cheat_choice =
   @{prop "ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)"}
   |> Logic.varify_global
   |> Skip_Proof.make_thm @{theory}
@@ -304,29 +324,34 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
           #> simplify (ss_only @{thms all_simps[symmetric]})
         val pull_out =
           simplify (ss_only @{thms all_simps[symmetric] ex_simps[symmetric]})
-        val (discharger_th, fully_skolemized_th) =
-          if null choice_ths then
-            th |> `I |>> pull_out ||> skolemize [no_choice]
-          else
-            th |> skolemize choice_ths |> `I
-        val t =
-          fully_skolemized_th |> cprop_of
-          |> zap ((ax_no, 0), true) 0 true |> Drule.export_without_context
+        val no_choice = null choice_ths
+        val discharger_th =
+          th |> (if no_choice then pull_out else skolemize choice_ths)
+        val fully_skolemized_t =
+          discharger_th |> prop_of |> rename_bound_vars_to_be_zapped ax_no
+          |> (if no_choice then
+                Skip_Proof.make_thm thy #> skolemize [cheat_choice] #> cprop_of
+              else
+                cterm_of thy)
+          |> zap true |> Drule.export_without_context
           |> cprop_of |> Thm.dest_equals |> snd |> term_of
       in
         if exists_subterm (fn Var ((s, _), _) =>
                               String.isPrefix new_skolem_var_prefix s
-                            | _ => false) t then
+                            | _ => false) fully_skolemized_t then
           let
-            val (ct, ctxt) =
-              Variable.import_terms true [t] ctxt
+            val (fully_skolemized_ct, ctxt) =
+              Variable.import_terms true [fully_skolemized_t] ctxt
               |>> the_single |>> cterm_of thy
-          in (SOME (discharger_th, ct), Thm.assume ct, ctxt) end
+          in
+            (SOME (discharger_th, fully_skolemized_ct),
+             (Thm.assume fully_skolemized_ct, ctxt))
+          end
        else
-         (NONE, th, ctxt)
+         (NONE, (th, ctxt))
       end
     else
-      (NONE, th, ctxt)
+      (NONE, (th, ctxt))
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
@@ -334,7 +359,8 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
   let
     val thy = ProofContext.theory_of ctxt0
     val choice_ths = choice_theorems thy
-    val (opt, nnf_th, ctxt) = nnf_axiom choice_ths new_skolemizer ax_no th ctxt0
+    val (opt, (nnf_th, ctxt)) =
+      nnf_axiom choice_ths new_skolemizer ax_no th ctxt0
     fun clausify th =
       make_cnf (if new_skolemizer orelse null choice_ths then
                   []
@@ -344,6 +370,7 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
     val (cnf_ths, ctxt) =
       clausify nnf_th
       |> (fn ([], _) =>
+             (* FIXME: This probably doesn't work with the new Skolemizer *)
              clausify (to_definitional_cnf_with_quantifiers thy nnf_th)
            | p => p)
     fun intr_imp ct th =

@@ -38,10 +38,13 @@ sig
   val internal: (morphism -> attribute) -> src
   val config_bool: bstring -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
   val config_int: bstring -> (Context.generic -> int) -> int Config.T * (theory -> theory)
+  val config_real: bstring -> (Context.generic -> real) -> real Config.T * (theory -> theory)
   val config_string: bstring -> (Context.generic -> string) -> string Config.T * (theory -> theory)
   val config_bool_global: bstring -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
   val config_int_global: bstring -> (Context.generic -> int) -> int Config.T * (theory -> theory)
-  val config_string_global: bstring -> (Context.generic -> string) -> string Config.T * (theory -> theory)
+  val config_real_global: bstring -> (Context.generic -> real) -> real Config.T * (theory -> theory)
+  val config_string_global:
+    bstring -> (Context.generic -> string) -> string Config.T * (theory -> theory)
 end;
 
 structure Attrib: ATTRIB =
@@ -353,6 +356,7 @@ fun scan_value (Config.Bool _) =
       equals -- Args.$$$ "true" >> K (Config.Bool true) ||
       Scan.succeed (Config.Bool true)
   | scan_value (Config.Int _) = equals |-- Parse.int >> Config.Int
+  | scan_value (Config.Real _) = equals |-- Parse.real >> Config.Real
   | scan_value (Config.String _) = equals |-- Args.name >> Config.String;
 
 fun scan_config thy config =
@@ -380,10 +384,12 @@ fun declare_config make coerce global name default =
 
 val config_bool   = declare_config Config.Bool Config.bool false;
 val config_int    = declare_config Config.Int Config.int false;
+val config_real   = declare_config Config.Real Config.real false;
 val config_string = declare_config Config.String Config.string false;
 
 val config_bool_global   = declare_config Config.Bool Config.bool true;
 val config_int_global    = declare_config Config.Int Config.int true;
+val config_real_global   = declare_config Config.Real Config.real true;
 val config_string_global = declare_config Config.String Config.string true;
 
 end;

@@ -72,7 +72,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'split\_format' ((( name * ) + 'and') | ('(' 'complete' ')'))
+    'split_format' ((( name * ) + 'and') | ('(' 'complete' ')'))
     ;
   \end{rail}
 
@@ -355,7 +355,7 @@ text {*
   \begin{rail}
     'datatype' (dtspec + 'and')
     ;
-    'rep\_datatype' ('(' (name +) ')')? (term +)
+    'rep_datatype' ('(' (name +) ')')? (term +)
     ;
 
     dtspec: parname? typespec mixfix? '=' (cons + '|')
@@ -501,9 +501,9 @@ text {*
   \begin{rail}
     'relation' term
     ;
-    'lexicographic\_order' ( clasimpmod * )
+    'lexicographic_order' ( clasimpmod * )
     ;
-    'size\_change' ( orders ( clasimpmod * ) )
+    'size_change' ( orders ( clasimpmod * ) )
     ;
     orders: ( 'max' | 'min' | 'ms' ) *
   \end{rail}
@@ -633,7 +633,7 @@ text {*
     ;
     hints: '(' 'hints' ( recdefmod * ) ')'
     ;
-    recdefmod: (('recdef\_simp' | 'recdef\_cong' | 'recdef\_wf') (() | 'add' | 'del') ':' thmrefs) | clasimpmod
+    recdefmod: (('recdef_simp' | 'recdef_cong' | 'recdef_wf') (() | 'add' | 'del') ':' thmrefs) | clasimpmod
     ;
     tc: nameref ('(' nat ')')?
     ;
@@ -672,7 +672,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ('recdef\_simp' | 'recdef\_cong' | 'recdef\_wf') (() | 'add' | 'del')
+    ('recdef_simp' | 'recdef_cong' | 'recdef_wf') (() | 'add' | 'del')
     ;
   \end{rail}
 *}
@@ -712,7 +712,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ('inductive' | 'inductive\_set' | 'coinductive' | 'coinductive\_set') target? fixes ('for' fixes)? \\
+    ('inductive' | 'inductive_set' | 'coinductive' | 'coinductive_set') target? fixes ('for' fixes)? \\
     ('where' clauses)? ('monos' thmrefs)?
     ;
     clauses: (thmdecl? prop + '|')
@@ -941,14 +941,29 @@ text {*
 
     \begin{description}
 
-      \item[size] specifies the maximum size of the search space for
-        assignment values.
+    \item[@{text size}] specifies the maximum size of the search space
+    for assignment values.
 
-      \item[iterations] sets how many sets of assignments are
-        generated for each particular size.
+    \item[@{text iterations}] sets how many sets of assignments are
+    generated for each particular size.
 
-      \item[no\_assms] specifies whether assumptions in
-        structured proofs should be ignored.
+    \item[@{text no_assms}] specifies whether assumptions in
+    structured proofs should be ignored.
+
+    \item[@{text timeout}] sets the time limit in seconds.
+
+    \item[@{text default_type}] sets the type(s) generally used to
+    instantiate type variables.
+
+    \item[@{text report}] if set quickcheck reports how many tests
+    fulfilled the preconditions.
+
+    \item[@{text quiet}] if not set quickcheck informs about the
+    current size for assignment values.
+
+    \item[@{text expect}] can be used to check if the user's
+    expectation was met (@{text no_expectation}, @{text
+    no_counterexample}, or @{text counterexample}).
 
     \end{description}
 
@@ -976,13 +991,13 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'case\_tac' goalspec? term rule?
+    'case_tac' goalspec? term rule?
     ;
-    'induct\_tac' goalspec? (insts * 'and') rule?
+    'induct_tac' goalspec? (insts * 'and') rule?
     ;
-    'ind\_cases' (prop +) ('for' (name +)) ?
+    'ind_cases' (prop +) ('for' (name +)) ?
     ;
-    'inductive\_cases' (thmdecl? (prop +) + 'and')
+    'inductive_cases' (thmdecl? (prop +) + 'and')
     ;
 
     rule: ('rule' ':' thmref)
@@ -1063,8 +1078,8 @@ text {*
   \end{matharray}
 
   \begin{rail}
-     'export\_code' ( constexpr + ) \\
-       ( ( 'in' target ( 'module\_name' string ) ? \\
+     'export_code' ( constexpr + ) \\
+       ( ( 'in' target ( 'module_name' string ) ? \\
         ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
     ;
 
@@ -1086,10 +1101,10 @@ text {*
     'code' ( 'del' | 'abstype' | 'abstract' ) ?
     ;
 
-    'code\_abort' ( const + )
+    'code_abort' ( const + )
     ;
 
-    'code\_datatype' ( const + )
+    'code_datatype' ( const + )
     ;
 
     'code_inline' ( 'del' ) ?
@@ -1098,41 +1113,41 @@ text {*
     'code_post' ( 'del' ) ?
     ;
 
-    'code\_thms' ( constexpr + ) ?
+    'code_thms' ( constexpr + ) ?
     ;
 
-    'code\_deps' ( constexpr + ) ?
+    'code_deps' ( constexpr + ) ?
     ;
 
-    'code\_const' (const + 'and') \\
+    'code_const' (const + 'and') \\
       ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
     ;
 
-    'code\_type' (typeconstructor + 'and') \\
+    'code_type' (typeconstructor + 'and') \\
       ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
     ;
 
-    'code\_class' (class + 'and') \\
+    'code_class' (class + 'and') \\
       ( ( '(' target \\ ( string ? + 'and' ) ')' ) + )
     ;
 
-    'code\_instance' (( typeconstructor '::' class ) + 'and') \\
+    'code_instance' (( typeconstructor '::' class ) + 'and') \\
       ( ( '(' target ( '-' ? + 'and' ) ')' ) + )
     ;
 
-    'code\_reserved' target ( string + )
+    'code_reserved' target ( string + )
     ;
 
-    'code\_monad' const const target
+    'code_monad' const const target
     ;
 
-    'code\_include' target ( string ( string | '-') )
+    'code_include' target ( string ( string | '-') )
     ;
 
-    'code\_modulename' target ( ( string string ) + )
+    'code_modulename' target ( ( string string ) + )
     ;
 
-    'code\_reflect' string ( 'datatypes' ( string '=' ( string + '|' ) + 'and' ) ) ? \\
+    'code_reflect' string ( 'datatypes' ( string '=' ( string + '|' ) + 'and' ) ) ? \\
       ( 'functions' ( string + ) ) ? ( 'file' string ) ?
     ;
 
@@ -1266,7 +1281,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-  ( 'code\_module' | 'code\_library' ) modespec ? name ? \\
+  ( 'code_module' | 'code_library' ) modespec ? name ? \\
     ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\
     'contains' ( ( name '=' term ) + | term + )
   ;
@@ -1274,13 +1289,13 @@ text {*
   modespec: '(' ( name * ) ')'
   ;
 
-  'consts\_code' (codespec +)
+  'consts_code' (codespec +)
   ;
 
   codespec: const template attachment ?
   ;
 
-  'types\_code' (tycodespec +)
+  'types_code' (tycodespec +)
   ;
 
   tycodespec: name template attachment ?
@@ -1311,7 +1326,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-  ('specification' | 'ax\_specification') '(' (decl +) ')' \\ (thmdecl? prop +)
+  ('specification' | 'ax_specification') '(' (decl +) ')' \\ (thmdecl? prop +)
   ;
   decl: ((name ':')? term '(' 'overloaded' ')'?)
   \end{rail}

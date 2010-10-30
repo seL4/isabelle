@@ -226,11 +226,10 @@ text %mlref {*
 text %mlantiq {*
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "theory"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "theory_ref"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
   \begin{rail}
-  ('theory' | 'theory\_ref') nameref?
+  'theory' nameref?
   ;
   \end{rail}
 
@@ -242,10 +241,6 @@ text %mlantiq {*
   \item @{text "@{theory A}"} refers to an explicitly named ancestor
   theory @{text "A"} of the background theory of the current context
   --- as abstract value.
-
-  \item @{text "@{theory_ref}"} is similar to @{text "@{theory}"}, but
-  produces a @{ML_type theory_ref} via @{ML "Theory.check_thy"} as
-  explained above.
 
   \end{description}
 *}
@@ -519,7 +514,7 @@ text {* Type @{ML_type "term Ord_List.T"} is used for reasonably
   of this module do not care about the declaration order, since that
   data structure forces its own arrangement of elements.
 
-  Observe how the @{verbatim merge} operation joins the data slots of
+  Observe how the @{ML_text merge} operation joins the data slots of
   the two constituents: @{ML Ord_List.union} prevents duplication of
   common data from different branches, thus avoiding the danger of
   exponential blowup.  Plain list append etc.\ must never be used for
@@ -602,6 +597,8 @@ text %mlref {*
   bool Config.T * (theory -> theory)"} \\
   @{index_ML Attrib.config_int: "string -> (Context.generic -> int) ->
   int Config.T * (theory -> theory)"} \\
+  @{index_ML Attrib.config_real: "string -> (Context.generic -> real) ->
+  real Config.T * (theory -> theory)"} \\
   @{index_ML Attrib.config_string: "string -> (Context.generic -> string) ->
   string Config.T * (theory -> theory)"} \\
   \end{mldecls}
@@ -622,9 +619,9 @@ text %mlref {*
   needs to be applied to the theory initially, in order to make
   concrete declaration syntax available to the user.
 
-  \item @{ML Attrib.config_int} and @{ML Attrib.config_string} work
-  like @{ML Attrib.config_bool}, but for types @{ML_type int} and
-  @{ML_type string}, respectively.
+  \item @{ML Attrib.config_int}, @{ML Attrib.config_real}, and @{ML
+  Attrib.config_string} work like @{ML Attrib.config_bool}, but for
+  types @{ML_type int} and @{ML_type string}, respectively.
 
   \end{description}
 *}
@@ -656,6 +653,17 @@ example_proof
   }
   ML_val {* @{assert} (Config.get @{context} my_flag = true) *}
 qed
+
+text {* Here is another example involving ML type @{ML_type real}
+  (floating-point numbers). *}
+
+ML {*
+  val (airspeed_velocity, airspeed_velocity_setup) =
+    Attrib.config_real "airspeed_velocity" (K 0.0)
+*}
+setup airspeed_velocity_setup
+
+declare [[airspeed_velocity = 9.9]]
 
 
 section {* Names \label{sec:names} *}

@@ -16,7 +16,7 @@ sig
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
   val untyped_aconv : term -> term -> bool
   val replay_one_inference :
-    Proof.context -> mode -> (string * term) list
+    Proof.context -> mode -> (string * term) list * int Unsynchronized.ref
     -> Metis_Thm.thm * Metis_Proof.inference -> (Metis_Thm.thm * thm) list
     -> (Metis_Thm.thm * thm) list
   val discharge_skolem_premises :
@@ -93,7 +93,7 @@ fun hol_type_from_metis_term _ (Metis_Term.Var v) =
         | NONE    => raise Fail ("hol_type_from_metis_term: " ^ x));
 
 (*Maps metis terms to isabelle terms*)
-fun hol_term_from_metis_PT ctxt fol_tm =
+fun hol_term_from_metis_PT ctxt new_skolem_var_count fol_tm =
   let val thy = ProofContext.theory_of ctxt
       val _ = trace_msg ctxt (fn () => "hol_term_from_metis_PT: " ^
                                        Metis_Term.toString fol_tm)
@@ -126,9 +126,11 @@ fun hol_term_from_metis_PT ctxt fol_tm =
                     val nterms = length ts - ntypes
                     val tts = map tm_to_tt ts
                     val tys = types_of (List.take(tts,ntypes))
+                    val j = !new_skolem_var_count + 1
+                    val _ = new_skolem_var_count := j
                     val t =
                       if String.isPrefix new_skolem_const_prefix c then
-                        Var (new_skolem_var_from_const c,
+                        Var ((new_skolem_var_name_from_const c, j),
                              Type_Infer.paramify_vars (tl tys ---> hd tys))
                       else
                         Const (c, dummyT)
@@ -162,7 +164,7 @@ fun hol_term_from_metis_PT ctxt fol_tm =
   end
 
 (*Maps fully-typed metis terms to isabelle terms*)
-fun hol_term_from_metis_FT ctxt fol_tm =
+fun hol_term_from_metis_FT ctxt new_skolem_var_count fol_tm =
   let val _ = trace_msg ctxt (fn () => "hol_term_from_metis_FT: " ^
                                        Metis_Term.toString fol_tm)
       fun cvt (Metis_Term.Fn ("ti", [Metis_Term.Var v, _])) =
@@ -193,17 +195,17 @@ fun hol_term_from_metis_FT ctxt fol_tm =
                 SOME v => Free (v, dummyT)
               | NONE => (trace_msg ctxt (fn () =>
                                       "hol_term_from_metis_FT bad const: " ^ x);
-                         hol_term_from_metis_PT ctxt t))
+                         hol_term_from_metis_PT ctxt new_skolem_var_count t))
         | cvt t = (trace_msg ctxt (fn () =>
                    "hol_term_from_metis_FT bad term: " ^ Metis_Term.toString t);
-                   hol_term_from_metis_PT ctxt t)
+                   hol_term_from_metis_PT ctxt new_skolem_var_count t)
   in fol_tm |> cvt end
 
 fun hol_term_from_metis FT = hol_term_from_metis_FT
   | hol_term_from_metis _ = hol_term_from_metis_PT
 
-fun hol_terms_from_fol ctxt mode old_skolems fol_tms =
-  let val ts = map (hol_term_from_metis mode ctxt) fol_tms
+fun hol_terms_from_metis ctxt mode (old_skolems, new_skolem_var_count) fol_tms =
+  let val ts = map (hol_term_from_metis mode ctxt new_skolem_var_count) fol_tms
       val _ = trace_msg ctxt (fn () => "  calling type inference:")
       val _ = app (fn t => trace_msg ctxt
                                      (fn () => Syntax.string_of_term ctxt t)) ts
@@ -249,17 +251,18 @@ fun inst_excluded_middle thy i_atm =
       val substs = [(cterm_of thy (Var vx), cterm_of thy i_atm)]
   in  cterm_instantiate substs th  end;
 
-fun assume_inf ctxt mode old_skolems atm =
+fun assume_inf ctxt mode skolem_params atm =
   inst_excluded_middle
       (ProofContext.theory_of ctxt)
-      (singleton (hol_terms_from_fol ctxt mode old_skolems) (Metis_Term.Fn atm))
+      (singleton (hol_terms_from_metis ctxt mode skolem_params)
+                 (Metis_Term.Fn atm))
 
 (* INFERENCE RULE: INSTANTIATE (SUBST). Type instantiations are ignored. Trying
    to reconstruct them admits new possibilities of errors, e.g. concerning
    sorts. Instead we try to arrange that new TVars are distinct and that types
    can be inferred from terms. *)
 
-fun inst_inf ctxt mode old_skolems thpairs fsubst th =
+fun inst_inf ctxt mode (old_skolems, new_skolem_var_count) thpairs fsubst th =
   let val thy = ProofContext.theory_of ctxt
       val i_th = lookth thpairs th
       val i_th_vars = Term.add_vars (prop_of i_th) []
@@ -267,7 +270,7 @@ fun inst_inf ctxt mode old_skolems thpairs fsubst th =
       fun subst_translation (x,y) =
         let val v = find_var x
             (* We call "reveal_old_skolem_terms" and "infer_types" below. *)
-            val t = hol_term_from_metis mode ctxt y
+            val t = hol_term_from_metis mode ctxt new_skolem_var_count y
         in  SOME (cterm_of thy (Var v), t)  end
         handle Option.Option =>
                (trace_msg ctxt (fn () => "\"find_var\" failed for " ^ x ^
@@ -336,8 +339,10 @@ fun resolve_inc_tyvars thy tha i thb =
            | ps => aux (instantiate (ps, []) tha) (instantiate (ps, []) thb)
   end
 
-fun mk_not (Const (@{const_name Not}, _) $ b) = b
-  | mk_not b = HOLogic.mk_not b
+fun s_not (@{const Not} $ t) = t
+  | s_not t = HOLogic.mk_not t
+fun simp_not_not (@{const Not} $ t) = s_not (simp_not_not t)
+  | simp_not_not t = t
 
 (* Match untyped terms. *)
 fun untyped_aconv (Const (a, _)) (Const(b, _)) = (a = b)
@@ -351,16 +356,12 @@ fun untyped_aconv (Const (a, _)) (Const(b, _)) = (a = b)
   | untyped_aconv _ _ = false
 
 (* Finding the relative location of an untyped term within a list of terms *)
-fun literal_index lit =
+fun index_of_literal lit haystack =
   let
-    val lit = Envir.eta_contract lit
-    fun get _ [] = raise Empty
-      | get n (x :: xs) =
-        if untyped_aconv lit (Envir.eta_contract (HOLogic.dest_Trueprop x)) then
-          n
-        else
-          get (n+1) xs
-  in get 1 end
+    val normalize = simp_not_not o Envir.eta_contract
+    val match_lit =
+      HOLogic.dest_Trueprop #> normalize #> untyped_aconv (lit |> normalize)
+  in case find_index match_lit haystack of ~1 => raise Empty | n => n + 1 end
 
 (* Permute a rule's premises to move the i-th premise to the last position. *)
 fun make_last i th =
@@ -377,7 +378,7 @@ val negate_head = rewrite_rule [@{thm atomize_not}, not_not RS eq_reflection]
 (* Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P *)
 val select_literal = negate_head oo make_last
 
-fun resolve_inf ctxt mode old_skolems thpairs atm th1 th2 =
+fun resolve_inf ctxt mode skolem_params thpairs atm th1 th2 =
   let
     val thy = ProofContext.theory_of ctxt
     val i_th1 = lookth thpairs th1 and i_th2 = lookth thpairs th2
@@ -391,16 +392,19 @@ fun resolve_inf ctxt mode old_skolems thpairs atm th1 th2 =
       i_th1
     else
       let
-        val i_atm = singleton (hol_terms_from_fol ctxt mode old_skolems)
-                              (Metis_Term.Fn atm)
+        val i_atm =
+          singleton (hol_terms_from_metis ctxt mode skolem_params)
+                    (Metis_Term.Fn atm)
         val _ = trace_msg ctxt (fn () => "  atom: " ^ Syntax.string_of_term ctxt i_atm)
         val prems_th1 = prems_of i_th1
         val prems_th2 = prems_of i_th2
-        val index_th1 = literal_index (mk_not i_atm) prems_th1
-              handle Empty => raise Fail "Failed to find literal in th1"
+        val index_th1 =
+          index_of_literal (s_not i_atm) prems_th1
+          handle Empty => raise Fail "Failed to find literal in th1"
         val _ = trace_msg ctxt (fn () => "  index_th1: " ^ Int.toString index_th1)
-        val index_th2 = literal_index i_atm prems_th2
-              handle Empty => raise Fail "Failed to find literal in th2"
+        val index_th2 =
+          index_of_literal i_atm prems_th2
+          handle Empty => raise Fail "Failed to find literal in th2"
         val _ = trace_msg ctxt (fn () => "  index_th2: " ^ Int.toString index_th2)
     in
       resolve_inc_tyvars thy (select_literal index_th1 i_th1) index_th2 i_th2
@@ -414,9 +418,9 @@ val REFL_THM = Thm.incr_indexes 2 @{lemma "t ~= t ==> False" by simp}
 val refl_x = cterm_of @{theory} (Var (hd (Term.add_vars (prop_of REFL_THM) [])));
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
-fun refl_inf ctxt mode old_skolems t =
+fun refl_inf ctxt mode skolem_params t =
   let val thy = ProofContext.theory_of ctxt
-      val i_t = singleton (hol_terms_from_fol ctxt mode old_skolems) t
+      val i_t = singleton (hol_terms_from_metis ctxt mode skolem_params) t
       val _ = trace_msg ctxt (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
       val c_t = cterm_incr_types thy refl_idx i_t
   in  cterm_instantiate [(refl_x, c_t)] REFL_THM  end;
@@ -432,10 +436,10 @@ fun get_ty_arg_size _ (Const (@{const_name HOL.eq}, _)) = 0  (*equality has no t
   | get_ty_arg_size thy (Const (c, _)) = (num_type_args thy c handle TYPE _ => 0)
   | get_ty_arg_size _ _ = 0;
 
-fun equality_inf ctxt mode old_skolems (pos, atm) fp fr =
+fun equality_inf ctxt mode skolem_params (pos, atm) fp fr =
   let val thy = ProofContext.theory_of ctxt
       val m_tm = Metis_Term.Fn atm
-      val [i_atm,i_tm] = hol_terms_from_fol ctxt mode old_skolems [m_tm, fr]
+      val [i_atm,i_tm] = hol_terms_from_metis ctxt mode skolem_params [m_tm, fr]
       val _ = trace_msg ctxt (fn () => "sign of the literal: " ^ Bool.toString pos)
       fun replace_item_list lx 0 (_::ls) = lx::ls
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
@@ -514,17 +518,17 @@ fun equality_inf ctxt mode old_skolems (pos, atm) fp fr =
 
 val factor = Seq.hd o distinct_subgoals_tac;
 
-fun step ctxt mode old_skolems thpairs p =
+fun step ctxt mode skolem_params thpairs p =
   case p of
     (fol_th, Metis_Proof.Axiom _) => factor (axiom_inf thpairs fol_th)
-  | (_, Metis_Proof.Assume f_atm) => assume_inf ctxt mode old_skolems f_atm
+  | (_, Metis_Proof.Assume f_atm) => assume_inf ctxt mode skolem_params f_atm
   | (_, Metis_Proof.Metis_Subst (f_subst, f_th1)) =>
-    factor (inst_inf ctxt mode old_skolems thpairs f_subst f_th1)
+    factor (inst_inf ctxt mode skolem_params thpairs f_subst f_th1)
   | (_, Metis_Proof.Resolve(f_atm, f_th1, f_th2)) =>
-    factor (resolve_inf ctxt mode old_skolems thpairs f_atm f_th1 f_th2)
-  | (_, Metis_Proof.Refl f_tm) => refl_inf ctxt mode old_skolems f_tm
+    factor (resolve_inf ctxt mode skolem_params thpairs f_atm f_th1 f_th2)
+  | (_, Metis_Proof.Refl f_tm) => refl_inf ctxt mode skolem_params f_tm
   | (_, Metis_Proof.Equality (f_lit, f_p, f_r)) =>
-    equality_inf ctxt mode old_skolems f_lit f_p f_r
+    equality_inf ctxt mode skolem_params f_lit f_p f_r
 
 fun flexflex_first_order th =
   case Thm.tpairs_of th of
@@ -544,12 +548,12 @@ fun is_isabelle_literal_genuine t =
 
 fun count p xs = fold (fn x => if p x then Integer.add 1 else I) xs 0
 
-fun replay_one_inference ctxt mode old_skolems (fol_th, inf) thpairs =
+fun replay_one_inference ctxt mode skolem_params (fol_th, inf) thpairs =
   let
     val _ = trace_msg ctxt (fn () => "=============================================")
     val _ = trace_msg ctxt (fn () => "METIS THM: " ^ Metis_Thm.toString fol_th)
     val _ = trace_msg ctxt (fn () => "INFERENCE: " ^ Metis_Proof.inferenceToString inf)
-    val th = step ctxt mode old_skolems thpairs (fol_th, inf)
+    val th = step ctxt mode skolem_params thpairs (fol_th, inf)
              |> flexflex_first_order
     val _ = trace_msg ctxt (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
     val _ = trace_msg ctxt (fn () => "=============================================")
@@ -608,10 +612,6 @@ fun unify_first_prem_with_concl thy i th =
       | _ => if untyped_aconv t u then I else raise TERM ("unify_terms", [t, u])
   in th |> term_instantiate thy (unify_terms (prem, concl) []) end
 
-fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (index_no, axiom_no)
-fun shuffle_ord p =
-  rev_order (prod_ord int_ord int_ord (pairself shuffle_key p))
-
 val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast}
 
 fun copy_prems_tac [] ns i =
@@ -621,13 +621,21 @@ fun copy_prems_tac [] ns i =
   | copy_prems_tac (m :: ms) ns i =
     etac copy_prem i THEN copy_prems_tac ms (m div 2 :: (m + 1) div 2 :: ns) i
 
-fun instantiate_forall_tac thy params t i =
+fun instantiate_forall_tac thy t i st =
   let
+    val params = Logic.strip_params (Logic.get_goal (prop_of st) i) |> rev
     fun repair (t as (Var ((s, _), _))) =
-        (case find_index (fn ((s', _), _) => s' = s) params of
+        (case find_index (fn (s', _) => s' = s) params of
            ~1 => t
          | j => Bound j)
-      | repair (t $ u) = repair t $ repair u
+      | repair (t $ u) =
+        (case (repair t, repair u) of
+           (t as Bound j, u as Bound k) =>
+           (* This is a rather subtle trick to repair the discrepancy between
+              the fully skolemized term that MESON gives us (where existentials
+              were pulled out) and the reality. *)
+           if k > j then t else t $ u
+         | (t, u) => t $ u)
       | repair t = t
     val t' = t |> repair |> fold (curry absdummy) (map snd params)
     fun do_instantiate th =
@@ -635,41 +643,50 @@ fun instantiate_forall_tac thy params t i =
         th |> term_instantiate thy [(Var var, t')]
       end
   in
-    etac @{thm allE} i
-    THEN rotate_tac ~1 i
-    THEN PRIMITIVE do_instantiate
+    (etac @{thm allE} i
+     THEN rotate_tac ~1 i
+     THEN PRIMITIVE do_instantiate) st
   end
 
-fun release_clusters_tac _ _ _ _ [] = K all_tac
-  | release_clusters_tac thy ax_counts substs params
+fun fix_exists_tac thy t =
+  etac @{thm exE}
+  THEN' rename_tac [t |> dest_Var |> fst |> fst]
+
+fun release_quantifier_tac thy (skolem, t) =
+  (if skolem then fix_exists_tac else instantiate_forall_tac) thy t
+
+fun release_clusters_tac _ _ _ [] = K all_tac
+  | release_clusters_tac thy ax_counts substs
                          ((ax_no, cluster_no) :: clusters) =
     let
-      fun in_right_cluster s =
-        (s |> Meson_Clausify.cluster_of_zapped_var_name |> fst |> snd |> fst)
-        = cluster_no
+      val cluster_of_var =
+        Meson_Clausify.cluster_of_zapped_var_name o fst o fst o dest_Var
+      fun in_right_cluster ((_, (cluster_no', _)), _) = cluster_no' = cluster_no
       val cluster_substs =
         substs
         |> map_filter (fn (ax_no', (_, (_, tsubst))) =>
                           if ax_no' = ax_no then
-                            tsubst |> filter (in_right_cluster
-                                              o fst o fst o dest_Var o fst)
-                                   |> map snd |> SOME
-                           else
-                             NONE)
-      val n = length cluster_substs
+                            tsubst |> map (apfst cluster_of_var)
+                                   |> filter (in_right_cluster o fst)
+                                   |> map (apfst snd)
+                                   |> SOME
+                          else
+                            NONE)
       fun do_cluster_subst cluster_subst =
-        map (instantiate_forall_tac thy params) cluster_subst @ [rotate_tac 1]
-      val params' = params (* FIXME ### existentials! *)
+        map (release_quantifier_tac thy) cluster_subst @ [rotate_tac 1]
       val first_prem = find_index (fn (ax_no', _) => ax_no' = ax_no) substs
     in
       rotate_tac first_prem
       THEN' (EVERY' (maps do_cluster_subst cluster_substs))
       THEN' rotate_tac (~ first_prem - length cluster_substs)
-      THEN' release_clusters_tac thy ax_counts substs params' clusters
+      THEN' release_clusters_tac thy ax_counts substs clusters
     end
 
-val cluster_ord =
-  prod_ord (prod_ord int_ord (prod_ord int_ord int_ord)) bool_ord
+fun cluster_key ((ax_no, (cluster_no, index_no)), skolem) =
+  (ax_no, (cluster_no, (skolem, index_no)))
+fun cluster_ord p =
+  prod_ord int_ord (prod_ord int_ord (prod_ord bool_ord int_ord))
+           (pairself cluster_key p)
 
 val tysubst_ord =
   list_ord (prod_ord Term_Ord.fast_indexname_ord
@@ -682,6 +699,9 @@ structure Int_Tysubst_Table =
 structure Int_Pair_Graph =
   Graph(type key = int * int val ord = prod_ord int_ord int_ord)
 
+fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (index_no, axiom_no)
+fun shuffle_ord p = prod_ord int_ord int_ord (pairself shuffle_key p)
+
 (* Attempts to derive the theorem "False" from a theorem of the form
    "P1 ==> ... ==> Pn ==> False", where the "Pi"s are to be discharged using the
    specified axioms. The axioms have leading "All" and "Ex" quantifiers, which
@@ -693,6 +713,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
     let
       val thy = ProofContext.theory_of ctxt
       (* distinguish variables with same name but different types *)
+      (* ### FIXME: needed? *)
       val prems_imp_false' =
         prems_imp_false |> try (forall_intr_vars #> gen_all)
                         |> the_default prems_imp_false
@@ -756,12 +777,12 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         handle Int_Pair_Graph.CYCLES _ =>
                error "Cannot replay Metis proof in Isabelle without \
                      \\"Hilbert_Choice\"."
-      val params0 =
-        [] |> fold (Term.add_vars o snd) (map_filter I axioms)
-           |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst o fst))
+      val outer_param_names =
+        [] |> fold (Term.add_var_names o snd) (map_filter I axioms)
+           |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst))
            |> filter (fn (((_, (cluster_no, _)), skolem), _) =>
                          cluster_no = 0 andalso skolem)
-           |> sort shuffle_ord |> map snd
+           |> sort shuffle_ord |> map (fst o snd)
       val ax_counts =
         Int_Tysubst_Table.empty
         |> fold (fn (ax_no, (_, (tysubst, _))) =>
@@ -774,11 +795,10 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         "; tysubst: " ^ PolyML.makestring tysubst ^ "; tsubst: {" ^
         commas (map ((fn (s, t) => s ^ " |-> " ^ t)
                      o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
-      val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
-                       cat_lines (map string_for_subst_info substs))
-      val _ = tracing ("OUTERMOST SKOLEMS: " ^ PolyML.makestring params0)
       val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
       val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
+      val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
+                       cat_lines (map string_for_subst_info substs))
 *)
       fun rotation_for_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
@@ -787,14 +807,14 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
           (K (cut_rules_tac
                   (map (fst o the o nth axioms o fst o fst) ax_counts) 1
               THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
+              THEN rename_tac outer_param_names 1
               THEN copy_prems_tac (map snd ax_counts) [] 1
-              THEN release_clusters_tac thy ax_counts substs params0
-                                        ordered_clusters 1
+              THEN release_clusters_tac thy ax_counts substs ordered_clusters 1
               THEN match_tac [prems_imp_false] 1
               THEN ALLGOALS (fn i =>
                        rtac @{thm Meson.skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
-(*                       THEN PRIMITIVE (unify_first_prem_with_concl thy i) ###*)
+(*                       THEN PRIMITIVE (unify_first_prem_with_concl thy i) ### FIXME: needed? *)
                        THEN assume_tac i)))
       handle ERROR _ =>
              error ("Cannot replay Metis proof in Isabelle:\n\

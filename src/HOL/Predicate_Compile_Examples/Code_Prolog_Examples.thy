@@ -105,7 +105,7 @@ values 10 "{ys. queen_9 ys}"
 
 section {* Example symbolic derivation *}
 
-hide_const Plus Pow
+hide_const Pow
 
 datatype expr = Log expr | Mult expr expr | Div expr expr | x | Num int | Plus expr expr
   | Minus expr expr | Uminus expr | Pow expr int | Exp expr

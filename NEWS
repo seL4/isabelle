@@ -56,6 +56,10 @@ changed globally at the ROOT session setup, but *not* within a theory.
 
 *** Pure ***
 
+* Support for real valued configuration options, using simplistic
+floating-point notation that coincides with the inner syntax for
+float_token.
+
 * Interpretation command 'interpret' accepts a list of equations like
 'interpretation' does.
 
@@ -75,6 +79,11 @@ and type constructors.
 
 
 *** HOL ***
+
+* Quickcheck now has a configurable time limit which is set to 30 seconds
+by default. This can be changed by adding [timeout = n] to the quickcheck
+command. The time limit for auto quickcheck is still set independently,
+by default to 5 seconds.
 
 * New command 'partial_function' provides basic support for recursive
 function definitions over complete partial orders. Concrete instances
@@ -338,6 +347,10 @@ INCOMPATIBILITY.
 * Antiquotation @{assert} inlines a function bool -> unit that raises
 Fail if the argument is false.  Due to inlining the source position of
 failed assertions is included in the error output.
+
+* Discontinued antiquotation @{theory_ref}, which is obsolete since ML
+text is in practice always evaluated with a stable theory checkpoint.
+Minor INCOMPATIBILITY, use (Theory.check_thy @{theory}) instead.
 
 * Renamed setmp_noncritical to Unsynchronized.setmp to emphasize its
 meaning.

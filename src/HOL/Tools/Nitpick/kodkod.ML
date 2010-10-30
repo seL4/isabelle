@@ -1036,12 +1036,7 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
           val outcome =
             let
               val code =
-                bash ("cd " ^ File.shell_quote temp_dir ^ ";\n" ^
-                      "env CLASSPATH=\"$KODKODI_CLASSPATH:$CLASSPATH\" \
-                      \JAVA_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
-                      \$JAVA_LIBRARY_PATH\" \
-                      \LD_LIBRARY_PATH=\"$KODKODI_JAVA_LIBRARY_PATH:\
-                      \$LD_LIBRARY_PATH\" \
+                bash ("cd " ^ File.shell_quote temp_dir ^ ";\n\
                       \\"$KODKODI\"/bin/kodkodi" ^
                       (if ms >= 0 then " -max-msecs " ^ string_of_int ms
                        else "") ^

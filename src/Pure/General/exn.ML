@@ -11,12 +11,13 @@ sig
   val get_exn: 'a result -> exn option
   val capture: ('a -> 'b) -> 'a -> 'b result
   val release: 'a result -> 'a
-  val map_result: ('a -> 'a) -> 'a result -> 'a result
+  val map_result: ('a -> 'b) -> 'a result -> 'b result
   exception Interrupt
   val interrupt: unit -> 'a
   val is_interrupt: exn -> bool
   val interrupt_exn: 'a result
   val is_interrupt_exn: 'a result -> bool
+  val interruptible_capture: ('a -> 'b) -> 'a -> 'b result
   exception EXCEPTIONS of exn list
   val flatten: exn -> exn list
   val flatten_list: exn list -> exn list
@@ -45,7 +46,7 @@ fun release (Result y) = y
   | release (Exn e) = reraise e;
 
 fun map_result f (Result x) = Result (f x)
-  | map_result f e = e;
+  | map_result f (Exn e) = (Exn e);
 
 
 (* interrupts *)
@@ -55,13 +56,16 @@ exception Interrupt = Interrupt;
 fun interrupt () = raise Interrupt;
 
 fun is_interrupt Interrupt = true
-  | is_interrupt (IO.Io {cause = Interrupt, ...}) = true
+  | is_interrupt (IO.Io {cause, ...}) = is_interrupt cause
   | is_interrupt _ = false;
 
 val interrupt_exn = Exn Interrupt;
 
 fun is_interrupt_exn (Exn exn) = is_interrupt exn
   | is_interrupt_exn _ = false;
+
+fun interruptible_capture f x =
+  Result (f x) handle e => if is_interrupt e then reraise e else Exn e;
 
 
 (* nested exceptions *)

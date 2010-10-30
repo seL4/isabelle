@@ -432,11 +432,11 @@ text {*
 
   \begin{rail}
     ('lemma' | 'theorem' | 'corollary' |
-     'schematic\_lemma' | 'schematic\_theorem' | 'schematic\_corollary') target? (goal | longgoal)
+     'schematic_lemma' | 'schematic_theorem' | 'schematic_corollary') target? (goal | longgoal)
     ;
     ('have' | 'show' | 'hence' | 'thus') goal
     ;
-    'print\_statement' modes? thmrefs
+    'print_statement' modes? thmrefs
     ;
   
     goal: (props + 'and')
@@ -834,7 +834,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ( 'apply' | 'apply\_end' ) method
+    ( 'apply' | 'apply_end' ) method
     ;
     'defer' nat?
     ;
@@ -896,7 +896,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'method\_setup' name '=' text text
+    'method_setup' name '=' text text
     ;
   \end{rail}
 
@@ -1190,9 +1190,9 @@ text {*
     caseref: nameref attributes?
     ;
 
-    'case\_names' (name +)
+    'case_names' (name +)
     ;
-    'case\_conclusion' name (name *)
+    'case_conclusion' name (name *)
     ;
     'params' ((name *) + 'and')
     ;

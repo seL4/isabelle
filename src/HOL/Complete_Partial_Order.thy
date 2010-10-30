@@ -258,6 +258,6 @@ qed
 
 end
 
-
+hide_const (open) lub iterates fixp admissible
 
 end

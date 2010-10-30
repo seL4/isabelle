@@ -266,7 +266,7 @@ fun prover_description ctxt ({blocking, verbose, ...} : params) name num_facts i
      "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
 
 fun proof_banner auto =
-  if auto then "Sledgehammer found a proof" else "Try this command"
+  if auto then "Auto Sledgehammer found a proof" else "Try this command"
 
 (* generic TPTP-based ATPs *)
 
@@ -399,7 +399,7 @@ fun run_atp auto atp_name
     val (conjecture_shape, fact_names) =
       repair_conjecture_shape_and_fact_names output conjecture_shape fact_names
     val important_message =
-      if random () <= important_message_keep_factor then
+      if not auto andalso random () <= important_message_keep_factor then
         extract_important_message output
       else
         ""
@@ -432,7 +432,7 @@ fun failure_from_smt_failure (SMT_Solver.Counterexample _) = Unprovable
   | failure_from_smt_failure SMT_Solver.Out_Of_Memory = OutOfResources
   | failure_from_smt_failure _ = UnknownError
 
-fun run_smt_solver remote ({timeout, ...} : params) minimize_command
+fun run_smt_solver auto remote ({timeout, ...} : params) minimize_command
                    ({state, subgoal, subgoal_count, facts, ...}
                     : prover_problem) =
   let
@@ -443,7 +443,7 @@ fun run_smt_solver remote ({timeout, ...} : params) minimize_command
     val message =
       case outcome of
         NONE =>
-        try_command_line (proof_banner false)
+        try_command_line (proof_banner auto)
                          (apply_on_subgoal subgoal subgoal_count ^
                           command_call smtN (map fst used_facts)) ^
         minimize_line minimize_command (map fst used_facts)
@@ -458,8 +458,10 @@ fun run_smt_solver remote ({timeout, ...} : params) minimize_command
   end
 
 fun get_prover thy auto name =
-  if is_smt_prover name then run_smt_solver (String.isPrefix remote_prefix name)
-  else run_atp auto name (get_atp thy name)
+  if is_smt_prover name then
+    run_smt_solver auto (String.isPrefix remote_prefix name)
+  else
+    run_atp auto name (get_atp thy name)
 
 fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
                auto minimize_command

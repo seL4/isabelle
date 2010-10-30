@@ -511,6 +511,7 @@ Type \isa{int}
 \isa{lexn} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymtimes}\ {\isacharprime}a\ list{\isacharparenright}\ set}\\
 \isa{lexord} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymtimes}\ {\isacharprime}a\ list{\isacharparenright}\ set}\\
 \isa{listrel} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymtimes}\ {\isacharprime}a\ list{\isacharparenright}\ set}\\
+\isa{listrel{\isadigit{1}}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymtimes}\ {\isacharprime}a\ list{\isacharparenright}\ set}\\
 \isa{lists} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ list\ set}\\
 \isa{listset} & \isa{{\isacharprime}a\ set\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ set}\\
 \isa{listsum} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a}\\
@@ -565,15 +566,15 @@ the domain of a map may be infinite.
 \bigskip
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
-\isa{Map{\isachardot}empty} & \isa{{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
-\isa{op\ {\isacharplus}{\isacharplus}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
-\isa{op\ {\isasymcirc}\isactrlsub m} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}c\ {\isasymrightharpoonup}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}c\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
-\isa{op\ {\isacharbar}{\isacharbackquote}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
-\isa{dom} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
-\isa{ran} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}b\ set}\\
-\isa{op\ {\isasymsubseteq}\isactrlsub m} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
-\isa{map{\isacharunderscore}of} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ list\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
-\isa{map{\isacharunderscore}upds} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ list\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
+\isa{Map{\isachardot}empty} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option}\\
+\isa{op\ {\isacharplus}{\isacharplus}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option}\\
+\isa{op\ {\isasymcirc}\isactrlsub m} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}c\ {\isasymRightarrow}\ {\isacharprime}a\ option{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}c\ {\isasymRightarrow}\ {\isacharprime}b\ option}\\
+\isa{op\ {\isacharbar}{\isacharbackquote}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option}\\
+\isa{dom} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{ran} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}b\ set}\\
+\isa{op\ {\isasymsubseteq}\isactrlsub m} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\isa{map{\isacharunderscore}of} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ list\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option}\\
+\isa{map{\isacharunderscore}upds} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ list\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option}\\
 \end{supertabular}
 
 \subsubsection*{Syntax}

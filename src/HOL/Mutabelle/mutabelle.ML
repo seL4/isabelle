@@ -497,15 +497,19 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
  (map_types (inst_type insts) (freeze t));
 
 fun is_executable thy insts th =
- (Quickcheck.test_term
-    (ProofContext.init_global thy) false (SOME (!testgen_name)) 1 1 (preprocess thy insts (prop_of th));
-  Output.urgent_message "executable"; true) handle ERROR s =>
-    (Output.urgent_message ("not executable: " ^ s); false);
+  ((Quickcheck.test_term
+      (Context.proof_map (Quickcheck.map_test_params (apfst (K (1, 1)))) (ProofContext.init_global thy))
+      (SOME (!testgen_name)) (preprocess thy insts (prop_of th));
+    Output.urgent_message "executable"; true) handle ERROR s =>
+    (Output.urgent_message ("not executable: " ^ s); false));
 
 fun qc_recursive usedthy [] insts sz qciter acc = rev acc
  | qc_recursive usedthy (x::xs) insts sz qciter acc = qc_recursive usedthy xs insts sz qciter 
-     (Output.urgent_message ("qc_recursive: " ^ string_of_int (length xs)); ((x, pretty (the_default [] (Quickcheck.test_term
-       (ProofContext.init_global usedthy) false (SOME (!testgen_name)) sz qciter (preprocess usedthy insts x)))) :: acc))
+     (Output.urgent_message ("qc_recursive: " ^ string_of_int (length xs));
+     ((x, pretty (the_default [] (fst (Quickcheck.test_term
+       (Context.proof_map (Quickcheck.map_test_params (apfst (K (sz, qciter))))
+         (ProofContext.init_global usedthy))
+       (SOME (!testgen_name)) (preprocess usedthy insts x))))) :: acc))
           handle ERROR msg => (Output.urgent_message msg; qc_recursive usedthy xs insts sz qciter acc);
 
 

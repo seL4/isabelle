@@ -9,6 +9,7 @@ imports List
 uses
   "Tools/Datatype/datatype_selectors.ML"
   ("Tools/SMT/smt_monomorph.ML")
+  ("Tools/SMT/smt_builtin.ML")
   ("Tools/SMT/smt_normalize.ML")
   ("Tools/SMT/smt_translate.ML")
   ("Tools/SMT/smt_solver.ML")
@@ -46,6 +47,20 @@ definition nopat :: "'a \<Rightarrow> pattern" where "nopat _ = Pattern"
 
 definition trigger :: "pattern list list \<Rightarrow> bool \<Rightarrow> bool"
 where "trigger _ P = P"
+
+
+
+subsection {* Distinctness *}
+
+text {*
+As an abbreviation for a quadratic number of inequalities, SMT solvers
+provide a built-in @{text distinct}.  To avoid confusion with the
+already defined (and more general) @{term List.distinct}, a separate
+constant is defined.
+*}
+
+definition distinct :: "'a list \<Rightarrow> bool"
+where "distinct xs = List.distinct xs"
 
 
 
@@ -112,6 +127,7 @@ lemma mod_by_z3mod: "k mod l = (
 subsection {* Setup *}
 
 use "Tools/SMT/smt_monomorph.ML"
+use "Tools/SMT/smt_builtin.ML"
 use "Tools/SMT/smt_normalize.ML"
 use "Tools/SMT/smt_translate.ML"
 use "Tools/SMT/smt_solver.ML"
@@ -314,7 +330,7 @@ lemma [z3_rule]:
 
 hide_type (open) pattern
 hide_const Pattern term_eq
-hide_const (open) trigger pat nopat fun_app z3div z3mod
+hide_const (open) trigger pat nopat distinct fun_app z3div z3mod
 
 
 

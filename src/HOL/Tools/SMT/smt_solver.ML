@@ -34,8 +34,10 @@ sig
   val oracle: bool Config.T
   val filter_only: bool Config.T
   val datatypes: bool Config.T
+  val keep_assms: bool Config.T
   val timeout: int Config.T
   val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
+  val traceN: string
   val trace: bool Config.T
   val trace_msg: Proof.context -> ('a -> string) -> 'a -> unit
   val trace_used_facts: bool Config.T
@@ -122,13 +124,17 @@ val (filter_only, setup_filter_only) =
 
 val (datatypes, setup_datatypes) = Attrib.config_bool "smt_datatypes" (K false)
 
+val (keep_assms, setup_keep_assms) =
+  Attrib.config_bool "smt_keep_assms" (K true)
+
 val (timeout, setup_timeout) = Attrib.config_int "smt_timeout" (K 30)
 
 fun with_timeout ctxt f x =
   TimeLimit.timeLimit (Time.fromSeconds (Config.get ctxt timeout)) f x
   handle TimeLimit.TimeOut => raise SMT Time_Out
 
-val (trace, setup_trace) = Attrib.config_bool "smt_trace" (K false)
+val traceN = "smt_trace"
+val (trace, setup_trace) = Attrib.config_bool traceN (K false)
 
 fun trace_msg ctxt f x =
   if Config.get ctxt trace then tracing (f x) else ()
@@ -292,9 +298,10 @@ fun gen_solver name info rm ctxt irules =
     val (with_datatypes, translate') =
       set_has_datatypes (Config.get ctxt datatypes) translate
     val cmd = (rm, env_var, is_remote, name)
+    val keep = Config.get ctxt keep_assms
   in
     (irules, ctxt)
-    |-> SMT_Normalize.normalize extra_norm with_datatypes
+    |-> SMT_Normalize.normalize trace_msg keep extra_norm with_datatypes
     |-> invoke translate' name cmd more_options options
     |-> reconstruct
     |-> (fn (idxs, thm) => fn ctxt' => thm
@@ -429,6 +436,7 @@ fun smt_filter run_remote time_limit st xrules i =
       |> Config.put timeout (Time.toSeconds time_limit)
       |> Config.put oracle false
       |> Config.put filter_only true
+      |> Config.put keep_assms false
     val cprop =
       Thm.cprem_of goal i
       |> Thm.rhs_of o SMT_Normalize.atomize_conv ctxt
@@ -481,6 +489,7 @@ val setup =
   setup_oracle #>
   setup_filter_only #>
   setup_datatypes #>
+  setup_keep_assms #>
   setup_timeout #>
   setup_trace #>
   setup_trace_used_facts #>

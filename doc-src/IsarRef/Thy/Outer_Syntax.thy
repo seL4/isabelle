@@ -108,6 +108,7 @@ text {* The outer lexical syntax consists of three main categories of
     @{syntax_def longident} & = & @{text "ident("}@{verbatim "."}@{text "ident)\<^sup>+"} \\
     @{syntax_def symident} & = & @{text "sym\<^sup>+  |  "}@{verbatim "\\"}@{verbatim "<"}@{text ident}@{verbatim ">"} \\
     @{syntax_def nat} & = & @{text "digit\<^sup>+"} \\
+    @{syntax_def float} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
     @{syntax_def var} & = & @{verbatim "?"}@{text "ident  |  "}@{verbatim "?"}@{text ident}@{verbatim "."}@{text nat} \\
     @{syntax_def typefree} & = & @{verbatim "'"}@{text ident} \\
     @{syntax_def typevar} & = & @{verbatim "?"}@{text "typefree  |  "}@{verbatim "?"}@{text typefree}@{verbatim "."}@{text nat} \\
@@ -365,7 +366,7 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
 
   \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
   \begin{rail}
-    atom: nameref | typefree | typevar | var | nat | keyword
+    atom: nameref | typefree | typevar | var | nat | float | keyword
     ;
     arg: atom | '(' args ')' | '[' args ']'
     ;

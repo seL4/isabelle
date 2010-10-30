@@ -301,7 +301,7 @@ context%
 \begin{isamarkuptext}%
 In the above example, the starting context is derived from the
   toplevel theory, which means that fixed variables are internalized
-  literally: \verb|x| is mapped again to \verb|x|, and
+  literally: \isa{x} is mapped again to \isa{x}, and
   attempting to fix it again in the subsequent context is an error.
   Alternatively, fixed parameters can be renamed explicitly as
   follows:%
@@ -332,7 +332,7 @@ context%
 %
 \begin{isamarkuptext}%
 The following ML code can now work with the invented names of
-  \verb|x1|, \verb|x2|, \verb|x3|, without depending on
+  \isa{x{\isadigit{1}}}, \isa{x{\isadigit{2}}}, \isa{x{\isadigit{3}}}, without depending on
   the details on the system policy for introducing these variants.
   Recall that within a proof body the system always invents fresh
   ``skolem constants'', e.g.\ as follows:%

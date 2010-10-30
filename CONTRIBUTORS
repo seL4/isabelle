@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* October 2010: Dmitriy Traytel, TUM
+  Coercive subtyping via subtype constraints.
+
 * September 2010: Florian Haftmann, TUM
   Refined concepts for evaluation, i.e. normalisation of terms using different techniques.
 

@@ -484,7 +484,7 @@ The general Isabelle/ML source layout imitates regular
   \end{enumerate}
 
   Such weakly structured layout should be use with great care.  Here
-  is a counter-example involving \verb|let| expressions:
+  are some counter-examples involving \verb|let| expressions:
 
   \begin{verbatim}
   (* WRONG *)
@@ -492,6 +492,10 @@ The general Isabelle/ML source layout imitates regular
   fun foo x = let
       val y = ...
     in ... end
+
+  fun foo x = let
+    val y = ...
+  in ... end
 
   fun foo x =
   let
@@ -944,7 +948,7 @@ Standard ML is a language in the tradition of \isa{{\isasymlambda}}-calculus and
 
   This can be avoided by \emph{canonical argument order}, which
   observes certain standard patterns and minimizes adhoc permutations
-  in their application.  In Isabelle/ML, large portions text can be
+  in their application.  In Isabelle/ML, large portions of text can be
   written without ever using \isa{swap{\isacharcolon}\ {\isasymalpha}\ {\isasymtimes}\ {\isasymbeta}\ {\isasymrightarrow}\ {\isasymbeta}\ {\isasymtimes}\ {\isasymalpha}}, or the
   combinator \isa{C{\isacharcolon}\ {\isacharparenleft}{\isasymalpha}\ {\isasymrightarrow}\ {\isasymbeta}\ {\isasymrightarrow}\ {\isasymgamma}{\isacharparenright}\ {\isasymrightarrow}\ {\isacharparenleft}{\isasymbeta}\ {\isasymrightarrow}\ {\isasymalpha}\ {\isasymrightarrow}\ {\isasymgamma}{\isacharparenright}} that is not even
   defined in our library.
@@ -979,7 +983,7 @@ Standard ML is a language in the tradition of \isa{{\isasymlambda}}-calculus and
   to the right: \isa{insert\ a} is a function \isa{{\isasymbeta}\ {\isasymrightarrow}\ {\isasymbeta}} to
   insert a value \isa{a}.  These can be composed naturally as
   \isa{insert\ c\ {\isasymcirc}\ insert\ b\ {\isasymcirc}\ insert\ a}.  The slightly awkward
-  inversion if the composition order is due to conventional
+  inversion of the composition order is due to conventional
   mathematical notation, which can be easily amended as explained
   below.%
 \end{isamarkuptext}%
@@ -1446,9 +1450,9 @@ The Standard ML semantics of strict functional evaluation
   language definition.  It was excluded from the SML97 version to
   avoid its malign impact on ML program semantics, but without
   providing a viable alternative.  Isabelle/ML recovers physical
-  interruptibility (which an indispensable tool to implement managed
-  evaluation of command transactions), but requires user code to be
-  strictly transparent wrt.\ interrupts.
+  interruptibility (which is an indispensable tool to implement
+  managed evaluation of command transactions), but requires user code
+  to be strictly transparent wrt.\ interrupts.
 
   \begin{warn}
   Isabelle/ML user code needs to terminate promptly on interruption,

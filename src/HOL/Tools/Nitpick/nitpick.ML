@@ -629,7 +629,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       in
         (pprint (Pretty.chunks
              [Pretty.blk (0,
-                  (pstrs ("Nitpick found a" ^
+                  (pstrs ((if auto then "Auto " else "") ^ "Nitpick found a" ^
                           (if not genuine then " potential "
                            else if genuine_means_genuine then " "
                            else " quasi genuine ") ^ das_wort_model) @

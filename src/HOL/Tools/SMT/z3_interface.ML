@@ -65,7 +65,7 @@ fun z3_builtin_fun builtin_fun ctxt c ts =
 (** interface **)
 
 local
-  val {extra_norm, translate} = SMTLIB_Interface.interface
+  val {translate, ...} = SMTLIB_Interface.interface
   val {prefixes, strict, header, builtins, serialize} = translate
   val {is_builtin_pred, ...}= the strict
   val {builtin_typ, builtin_num, builtin_fun, ...} = builtins
@@ -189,7 +189,7 @@ val cons_term = mk_inst_pair destT1 @{cpat Cons}
 fun mk_list cT cts =
   fold_rev (Thm.mk_binop (instT cT cons_term)) cts (instT cT nil_term)
 
-val distinct = mk_inst_pair (destT1 o destT1) @{cpat distinct}
+val distinct = mk_inst_pair (destT1 o destT1) @{cpat SMT.distinct}
 fun mk_distinct [] = mk_true
   | mk_distinct (cts as (ct :: _)) =
       Thm.capply (instT' ct distinct) (mk_list (Thm.ctyp_of_term ct) cts)

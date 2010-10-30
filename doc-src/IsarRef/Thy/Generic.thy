@@ -6,16 +6,15 @@ chapter {* Generic tools and packages \label{ch:gen-tools} *}
 
 section {* Configuration options *}
 
-text {*
-  Isabelle/Pure maintains a record of named configuration options
-  within the theory or proof context, with values of type @{ML_type
-  bool}, @{ML_type int}, or @{ML_type string}.  Tools may declare
-  options in ML, and then refer to these values (relative to the
-  context).  Thus global reference variables are easily avoided.  The
-  user may change the value of a configuration option by means of an
-  associated attribute of the same name.  This form of context
-  declaration works particularly well with commands such as @{command
-  "declare"} or @{command "using"}.
+text {* Isabelle/Pure maintains a record of named configuration
+  options within the theory or proof context, with values of type
+  @{ML_type bool}, @{ML_type int}, @{ML_type real}, or @{ML_type
+  string}.  Tools may declare options in ML, and then refer to these
+  values (relative to the context).  Thus global reference variables
+  are easily avoided.  The user may change the value of a
+  configuration option by means of an associated attribute of the same
+  name.  This form of context declaration works particularly well with
+  commands such as @{command "declare"} or @{command "using"}.
 
   For historical reasons, some tools cannot take the full proof
   context into account and merely refer to the background theory.
@@ -27,7 +26,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    name ('=' ('true' | 'false' | int | name))?
+    name ('=' ('true' | 'false' | int | float | name))?
   \end{rail}
 
   \begin{description}
@@ -284,14 +283,14 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ( 'rule\_tac' | 'erule\_tac' | 'drule\_tac' | 'frule\_tac' | 'cut\_tac' | 'thin\_tac' ) goalspec?
+    ( 'rule_tac' | 'erule_tac' | 'drule_tac' | 'frule_tac' | 'cut_tac' | 'thin_tac' ) goalspec?
     ( insts thmref | thmrefs )
     ;
-    'subgoal\_tac' goalspec? (prop +)
+    'subgoal_tac' goalspec? (prop +)
     ;
-    'rename\_tac' goalspec? (name +)
+    'rename_tac' goalspec? (name +)
     ;
-    'rotate\_tac' goalspec? int?
+    'rotate_tac' goalspec? int?
     ;
     ('tactic' | 'raw_tactic') text
     ;
@@ -364,10 +363,10 @@ text {*
 
   \indexouternonterm{simpmod}
   \begin{rail}
-    ('simp' | 'simp\_all') opt? (simpmod *)
+    ('simp' | 'simp_all') opt? (simpmod *)
     ;
 
-    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use' | 'asm\_lr' ) ')'
+    opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use' | 'asm_lr' ) ')'
     ;
     simpmod: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
       'split' (() | 'add' | 'del')) ':' thmrefs
@@ -471,7 +470,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'simproc\_setup' name '(' (term + '|') ')' '=' text \\ ('identifier' (nameref+))?
+    'simproc_setup' name '(' (term + '|') ')' '=' text \\ ('identifier' (nameref+))?
     ;
 
     'simproc' (('add' ':')? | 'del' ':') (name+)
@@ -519,7 +518,7 @@ text {*
     'simplified' opt? thmrefs?
     ;
 
-    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use') ')'
+    opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use') ')'
     ;
   \end{rail}
 
@@ -785,7 +784,7 @@ text {*
     ;
     'atomize' ('(' 'full' ')')?
     ;
-    'rule\_format' ('(' 'noasm' ')')?
+    'rule_format' ('(' 'noasm' ')')?
     ;
   \end{rail}
 
