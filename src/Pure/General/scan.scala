@@ -262,6 +262,7 @@ object Scan
     {
       val id = one(symbols.is_letter) ~ many(symbols.is_letdig) ^^ { case x ~ y => x + y }
       val nat = many1(symbols.is_digit)
+      val natdot = nat ~ "." ~ nat ^^ { case x ~ y ~ z => x + y + z }
       val id_nat = id ~ opt("." ~ nat) ^^ { case x ~ Some(y ~ z) => x + y + z case x ~ None => x }
 
       val ident = id ~ rep("." ~> id) ^^
@@ -272,6 +273,8 @@ object Scan
       val type_ident = "'" ~ id ^^ { case x ~ y => Token(Token.Kind.TYPE_IDENT, x + y) }
       val type_var = "?'" ~ id_nat ^^ { case x ~ y => Token(Token.Kind.TYPE_VAR, x + y) }
       val nat_ = nat ^^ (x => Token(Token.Kind.NAT, x))
+      val float =
+        ("-" ~ natdot ^^ { case x ~ y => x + y } | natdot) ^^ (x => Token(Token.Kind.FLOAT, x))
 
       val sym_ident =
         (many1(symbols.is_symbolic_char) |
@@ -294,7 +297,7 @@ object Scan
       (space | (string | (alt_string | (verbatim ^^ (x => Token(Token.Kind.VERBATIM, x)) |
         comment ^^ (x => Token(Token.Kind.COMMENT, x)))))) |
       bad_delimiter |
-      ((ident | (var_ | (type_ident | (type_var | (nat_ | sym_ident))))) |||
+      ((ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident)))))) |||
         keyword ^^ (x => Token(if (is_command(x)) Token.Kind.COMMAND else Token.Kind.KEYWORD, x))) |
       bad
     }

@@ -26,6 +26,7 @@ sig
   val type_ident: string parser
   val type_var: string parser
   val number: string parser
+  val float_number: string parser
   val string: string parser
   val alt_string: string parser
   val verbatim: string parser
@@ -46,6 +47,7 @@ sig
   val opt_begin: bool parser
   val nat: int parser
   val int: int parser
+  val real: real parser
   val enum: string -> 'a parser -> 'a list parser
   val enum1: string -> 'a parser -> 'a list parser
   val and_list: 'a parser -> 'a list parser
@@ -168,6 +170,7 @@ val term_var = kind Token.Var;
 val type_ident = kind Token.TypeIdent;
 val type_var = kind Token.TypeVar;
 val number = kind Token.Nat;
+val float_number = kind Token.Float;
 val string = kind Token.String;
 val alt_string = kind Token.AltString;
 val verbatim = kind Token.Verbatim;
@@ -192,6 +195,7 @@ fun maybe scan = underscore >> K NONE || scan >> SOME;
 
 val nat = number >> (#1 o Library.read_int o Symbol.explode);
 val int = Scan.optional (minus >> K ~1) 1 -- nat >> op *;
+val real = float_number >> (the o Real.fromString);
 
 val tag_name = group "tag name" (short_ident || string);
 val tags = Scan.repeat ($$$ "%" |-- !!! tag_name);

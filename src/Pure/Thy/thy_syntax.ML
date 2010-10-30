@@ -56,6 +56,7 @@ val token_kind_markup =
   | Token.TypeIdent     => Markup.tfree
   | Token.TypeVar       => Markup.tvar
   | Token.Nat           => Markup.ident
+  | Token.Float         => Markup.ident
   | Token.String        => Markup.string
   | Token.AltString     => Markup.altstring
   | Token.Verbatim      => Markup.verbatim

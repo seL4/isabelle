@@ -8,7 +8,7 @@ signature TOKEN =
 sig
   datatype kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-    Nat | String | AltString | Verbatim | Space | Comment | InternalValue |
+    Nat | Float | String | AltString | Verbatim | Space | Comment | InternalValue |
     Malformed | Error of string | Sync | EOF
   datatype value =
     Text of string | Typ of typ | Term of term | Fact of thm list |
@@ -89,7 +89,7 @@ datatype slot =
 
 datatype kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-  Nat | String | AltString | Verbatim | Space | Comment | InternalValue |
+  Nat | Float | String | AltString | Verbatim | Space | Comment | InternalValue |
   Malformed | Error of string | Sync | EOF;
 
 datatype T = Token of (Symbol_Pos.text * Position.range) * (kind * string) * slot;
@@ -103,7 +103,8 @@ val str_of_kind =
   | Var => "schematic variable"
   | TypeIdent => "type variable"
   | TypeVar => "schematic type variable"
-  | Nat => "number"
+  | Nat => "natural number"
+  | Float => "floating-point number"
   | String => "string"
   | AltString => "back-quoted string"
   | Verbatim => "verbatim text"
@@ -351,6 +352,7 @@ fun scan (lex1, lex2) = !!! "bad input"
         Syntax.scan_var >> pair Var ||
         Syntax.scan_tid >> pair TypeIdent ||
         Syntax.scan_tvar >> pair TypeVar ||
+        Syntax.scan_float >> pair Float ||
         Syntax.scan_nat >> pair Nat ||
         scan_symid >> pair SymIdent) >> uncurry token));
 

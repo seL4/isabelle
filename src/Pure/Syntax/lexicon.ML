@@ -14,6 +14,7 @@ sig
   val scan_tid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_nat: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_int: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_float: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_hex: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_bin: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_var: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
