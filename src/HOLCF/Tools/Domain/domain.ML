@@ -221,6 +221,7 @@ val add_new_domain_cmd =
 (** outer syntax **)
 
 val _ = Keyword.keyword "lazy";
+val _ = Keyword.keyword "unsafe";
 
 val dest_decl : (bool * binding option * string) parser =
   Parse.$$$ "(" |-- Scan.optional (Parse.$$$ "lazy" >> K true) false --
@@ -237,11 +238,12 @@ val domain_decl =
     (Parse.$$$ "=" |-- Parse.enum1 "|" cons_decl);
 
 val domains_decl =
-  Parse.and_list1 domain_decl;
+  Scan.optional (Parse.$$$ "(" |-- (Parse.$$$ "unsafe" >> K true) --| Parse.$$$ ")") false --
+    Parse.and_list1 domain_decl;
 
 fun mk_domain
-    (definitional : bool)
-    (doms : ((((string * string option) list * binding) * mixfix) *
+    (unsafe : bool,
+     doms : ((((string * string option) list * binding) * mixfix) *
              ((binding * (bool * binding option * string) list) * mixfix) list) list ) =
   let
     val specs : ((string * string option) list * binding * mixfix *
@@ -249,17 +251,13 @@ fun mk_domain
         map (fn (((vs, t), mx), cons) =>
                 (vs, t, mx, map (fn ((c, ds), mx) => (c, ds, mx)) cons)) doms;
   in
-    if definitional
-    then add_new_domain_cmd specs
-    else add_domain_cmd specs
+    if unsafe
+    then add_domain_cmd specs
+    else add_new_domain_cmd specs
   end;
 
 val _ =
   Outer_Syntax.command "domain" "define recursive domains (HOLCF)"
-    Keyword.thy_decl (domains_decl >> (Toplevel.theory o mk_domain false));
-
-val _ =
-  Outer_Syntax.command "new_domain" "define recursive domains (HOLCF)"
-    Keyword.thy_decl (domains_decl >> (Toplevel.theory o mk_domain true));
+    Keyword.thy_decl (domains_decl >> (Toplevel.theory o mk_domain));
 
 end;

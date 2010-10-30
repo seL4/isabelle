@@ -8,7 +8,9 @@ theory Seq
 imports HOLCF
 begin
 
-domain 'a seq = nil  ("nil") | cons (HD :: 'a) (lazy TL :: "'a seq")  (infixr "##" 65)
+default_sort pcpo
+
+domain (unsafe) 'a seq = nil  ("nil") | cons (HD :: 'a) (lazy TL :: "'a seq")  (infixr "##" 65)
 
 (*
    sfilter       :: "('a -> tr) -> 'a seq -> 'a seq"

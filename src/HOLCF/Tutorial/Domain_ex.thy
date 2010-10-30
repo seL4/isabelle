@@ -105,11 +105,13 @@ lemma "(x::triv) = \<bottom>" by (induct x, simp_all)
 
 text {* Lazy constructor arguments may have unpointed types. *}
 
-domain natlist = nnil | ncons (lazy "nat discr") natlist
+domain (unsafe) natlist = nnil | ncons (lazy "nat discr") natlist
 
 text {* Class constraints may be given for type parameters on the LHS. *}
 
-domain ('a::cpo) box = Box (lazy 'a)
+domain (unsafe) ('a::cpo) box = Box (lazy 'a)
+
+domain (unsafe) ('a::type) stream = snil | scons (lazy "'a discr") "'a stream"
 
 
 subsection {* Generated constants and theorems *}
@@ -194,13 +196,6 @@ text {* Declaring a mixfix with spaces causes some strange parse errors. *}
 (*
 domain xx = xx ("x y")
   -- "Inner syntax error: unexpected end of input"
-*)
-
-text {*
-  Non-cpo type parameters currently do not work.
-*}
-(*
-domain ('a::type) stream = snil | scons (lazy "'a discr") "'a stream"
 *)
 
 end

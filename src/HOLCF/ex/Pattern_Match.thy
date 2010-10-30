@@ -8,6 +8,8 @@ theory Pattern_Match
 imports HOLCF
 begin
 
+default_sort pcpo
+
 text {* FIXME: Find a proper way to un-hide constants. *}
 
 abbreviation fail :: "'a match"

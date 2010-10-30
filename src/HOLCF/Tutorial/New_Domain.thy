@@ -9,8 +9,8 @@ imports HOLCF
 begin
 
 text {*
-  The definitional domain package only works with bifinite domains,
-  i.e. types in class @{text bifinite}.
+  UPDATE: The definitional back-end is now the default mode of the domain
+  package. This file should be merged with @{text Domain_ex.thy}.
 *}
 
 default_sort bifinite
@@ -21,7 +21,7 @@ text {*
   domain package.
 *}
 
-new_domain 'a llist = LNil | LCons (lazy 'a) (lazy "'a llist")
+domain 'a llist = LNil | LCons (lazy 'a) (lazy "'a llist")
 
 text {*
   The difference is that the new domain package is completely
@@ -38,7 +38,7 @@ text {*
   indirect recursion through the lazy list type constructor.
 *}
 
-new_domain 'a ltree = Leaf (lazy 'a) | Branch (lazy "'a ltree llist")
+domain 'a ltree = Leaf (lazy 'a) | Branch (lazy "'a ltree llist")
 
 text {*
   For indirect-recursive definitions, the domain package is not able to
