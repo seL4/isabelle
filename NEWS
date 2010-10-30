@@ -60,6 +60,8 @@ changed globally at the ROOT session setup, but *not* within a theory.
 floating-point notation that coincides with the inner syntax for
 float_token.
 
+* Support for real valued preferences (with approximative PGIP type).
+
 * Interpretation command 'interpret' accepts a list of equations like
 'interpretation' does.
 
