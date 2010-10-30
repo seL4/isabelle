@@ -6,13 +6,14 @@ Configuration options as values within the local context.
 
 signature CONFIG =
 sig
-  datatype value = Bool of bool | Int of int | String of string
+  datatype value = Bool of bool | Int of int | Real of real | String of string
   val print_value: value -> string
   val print_type: value -> string
   type 'a T
   type raw = value T
   val bool: raw -> bool T
   val int: raw -> int T
+  val real: raw -> real T
   val string: raw -> string T
   val get: Proof.context -> 'a T -> 'a
   val map: 'a T -> ('a -> 'a) -> Proof.context -> Proof.context
@@ -37,19 +38,23 @@ struct
 datatype value =
   Bool of bool |
   Int of int |
+  Real of real |
   String of string;
 
 fun print_value (Bool true) = "true"
   | print_value (Bool false) = "false"
   | print_value (Int i) = signed_string_of_int i
+  | print_value (Real x) = signed_string_of_real x
   | print_value (String s) = quote s;
 
 fun print_type (Bool _) = "bool"
   | print_type (Int _) = "int"
+  | print_type (Real _) = "real"
   | print_type (String _) = "string";
 
 fun same_type (Bool _) (Bool _) = true
   | same_type (Int _) (Int _) = true
+  | same_type (Real _) (Real _) = true
   | same_type (String _) (String _) = true
   | same_type _ _ = false;
 
@@ -78,6 +83,7 @@ fun coerce make dest (Config {name, get_value, map_value}) = Config
 
 val bool = coerce Bool (fn Bool b => b);
 val int = coerce Int (fn Int i => i);
+val real = coerce Real (fn Real x => x);
 val string = coerce String (fn String s => s);
 
 fun get_generic context (Config {get_value, ...}) = get_value context;
@@ -118,7 +124,8 @@ fun declare_generic {global} name default =
     fun map_value f (context as Context.Proof _) =
           let val context' = update_value f context in
             if global andalso
-              get_value (Context.Theory (Context.theory_of context')) <> get_value context'
+              print_value (get_value (Context.Theory (Context.theory_of context'))) <>
+                print_value (get_value context')
             then (warning ("Ignoring local change of global option " ^ quote name); context)
             else context'
           end

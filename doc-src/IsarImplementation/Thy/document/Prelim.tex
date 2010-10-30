@@ -794,6 +794,8 @@ Configuration options that are not set explicitly hold a
 \verb|  bool Config.T * (theory -> theory)| \\
   \indexdef{}{ML}{Attrib.config\_int}\verb|Attrib.config_int: string -> (Context.generic -> int) ->|\isasep\isanewline%
 \verb|  int Config.T * (theory -> theory)| \\
+  \indexdef{}{ML}{Attrib.config\_real}\verb|Attrib.config_real: string -> (Context.generic -> real) ->|\isasep\isanewline%
+\verb|  real Config.T * (theory -> theory)| \\
   \indexdef{}{ML}{Attrib.config\_string}\verb|Attrib.config_string: string -> (Context.generic -> string) ->|\isasep\isanewline%
 \verb|  string Config.T * (theory -> theory)| \\
   \end{mldecls}
@@ -813,9 +815,8 @@ Configuration options that are not set explicitly hold a
   needs to be applied to the theory initially, in order to make
   concrete declaration syntax available to the user.
 
-  \item \verb|Attrib.config_int| and \verb|Attrib.config_string| work
-  like \verb|Attrib.config_bool|, but for types \verb|int| and
-  \verb|string|, respectively.
+  \item \verb|Attrib.config_int|, \verb|Attrib.config_real|, and \verb|Attrib.config_string| work like \verb|Attrib.config_bool|, but for
+  types \verb|int| and \verb|string|, respectively.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -1019,6 +1020,34 @@ context%
 %
 \endisadelimproof
 %
+\begin{isamarkuptext}%
+Here is another example involving ML type \verb|real|
+  (floating-point numbers).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ val\ {\isacharparenleft}airspeed{\isacharunderscore}velocity{\isacharcomma}\ airspeed{\isacharunderscore}velocity{\isacharunderscore}setup{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ Attrib{\isachardot}config{\isacharunderscore}real\ {\isachardoublequote}airspeed{\isacharunderscore}velocity{\isachardoublequote}\ {\isacharparenleft}K\ {\isadigit{0}}{\isachardot}{\isadigit{0}}{\isacharparenright}\isanewline
+{\isacharverbatimclose}\isanewline
+\isacommand{setup}\isamarkupfalse%
+\ airspeed{\isacharunderscore}velocity{\isacharunderscore}setup%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+\isanewline
+\isanewline
+\isacommand{declare}\isamarkupfalse%
+\ {\isacharbrackleft}{\isacharbrackleft}airspeed{\isacharunderscore}velocity\ {\isacharequal}\ {\isadigit{9}}{\isachardot}{\isadigit{9}}{\isacharbrackright}{\isacharbrackright}%
 \isamarkupsection{Names \label{sec:names}%
 }
 \isamarkuptrue%

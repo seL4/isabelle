@@ -130,6 +130,10 @@ sig
   val read_int: string list -> int * string list
   val oct_char: string -> string
 
+  (*reals*)
+  val string_of_real: real -> string
+  val signed_string_of_real: real -> string
+
   (*strings*)
   val nth_string: string -> int -> string
   val fold_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
@@ -665,6 +669,15 @@ fun read_radix_int radix cs =
 val read_int = read_radix_int 10;
 
 fun oct_char s = chr (#1 (read_radix_int 8 (explode s)));
+
+
+
+(** reals **)
+
+val string_of_real = Real.fmt (StringCvt.GEN NONE);
+
+fun signed_string_of_real x =
+  if x < 0.0 then "-" ^ string_of_real (~ x) else string_of_real x;
 
 
 

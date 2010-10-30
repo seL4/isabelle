@@ -597,6 +597,8 @@ text %mlref {*
   bool Config.T * (theory -> theory)"} \\
   @{index_ML Attrib.config_int: "string -> (Context.generic -> int) ->
   int Config.T * (theory -> theory)"} \\
+  @{index_ML Attrib.config_real: "string -> (Context.generic -> real) ->
+  real Config.T * (theory -> theory)"} \\
   @{index_ML Attrib.config_string: "string -> (Context.generic -> string) ->
   string Config.T * (theory -> theory)"} \\
   \end{mldecls}
@@ -617,9 +619,9 @@ text %mlref {*
   needs to be applied to the theory initially, in order to make
   concrete declaration syntax available to the user.
 
-  \item @{ML Attrib.config_int} and @{ML Attrib.config_string} work
-  like @{ML Attrib.config_bool}, but for types @{ML_type int} and
-  @{ML_type string}, respectively.
+  \item @{ML Attrib.config_int}, @{ML Attrib.config_real}, and @{ML
+  Attrib.config_string} work like @{ML Attrib.config_bool}, but for
+  types @{ML_type int} and @{ML_type string}, respectively.
 
   \end{description}
 *}
@@ -651,6 +653,17 @@ example_proof
   }
   ML_val {* @{assert} (Config.get @{context} my_flag = true) *}
 qed
+
+text {* Here is another example involving ML type @{ML_type real}
+  (floating-point numbers). *}
+
+ML {*
+  val (airspeed_velocity, airspeed_velocity_setup) =
+    Attrib.config_real "airspeed_velocity" (K 0.0)
+*}
+setup airspeed_velocity_setup
+
+declare [[airspeed_velocity = 9.9]]
 
 
 section {* Names \label{sec:names} *}

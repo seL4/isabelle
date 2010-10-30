@@ -6,16 +6,15 @@ chapter {* Generic tools and packages \label{ch:gen-tools} *}
 
 section {* Configuration options *}
 
-text {*
-  Isabelle/Pure maintains a record of named configuration options
-  within the theory or proof context, with values of type @{ML_type
-  bool}, @{ML_type int}, or @{ML_type string}.  Tools may declare
-  options in ML, and then refer to these values (relative to the
-  context).  Thus global reference variables are easily avoided.  The
-  user may change the value of a configuration option by means of an
-  associated attribute of the same name.  This form of context
-  declaration works particularly well with commands such as @{command
-  "declare"} or @{command "using"}.
+text {* Isabelle/Pure maintains a record of named configuration
+  options within the theory or proof context, with values of type
+  @{ML_type bool}, @{ML_type int}, @{ML_type real}, or @{ML_type
+  string}.  Tools may declare options in ML, and then refer to these
+  values (relative to the context).  Thus global reference variables
+  are easily avoided.  The user may change the value of a
+  configuration option by means of an associated attribute of the same
+  name.  This form of context declaration works particularly well with
+  commands such as @{command "declare"} or @{command "using"}.
 
   For historical reasons, some tools cannot take the full proof
   context into account and merely refer to the background theory.
@@ -27,7 +26,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    name ('=' ('true' | 'false' | int | name))?
+    name ('=' ('true' | 'false' | int | float | name))?
   \end{rail}
 
   \begin{description}

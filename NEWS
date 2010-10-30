@@ -56,6 +56,10 @@ changed globally at the ROOT session setup, but *not* within a theory.
 
 *** Pure ***
 
+* Support for real valued configuration options, using simplistic
+floating-point notation that coincides with the inner syntax for
+float_token.
+
 * Interpretation command 'interpret' accepts a list of equations like
 'interpretation' does.
 
