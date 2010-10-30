@@ -115,9 +115,9 @@ translations
 
 parse_translation {*
 (* rewrite (_pat x) => (succeed) *)
-(* rewrite (_variable x t) => (Abs_CFun (%x. t)) *)
+(* rewrite (_variable x t) => (Abs_cfun (%x. t)) *)
  [(@{syntax_const "_pat"}, fn _ => Syntax.const @{const_syntax Fixrec.succeed}),
-  mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_CFun})];
+  mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_cfun})];
 *}
 
 text {* Printing Case expressions *}
@@ -127,14 +127,14 @@ syntax
 
 print_translation {*
   let
-    fun dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax unit_when},_) $ t) =
+    fun dest_LAM (Const (@{const_syntax Rep_cfun},_) $ Const (@{const_syntax unit_when},_) $ t) =
           (Syntax.const @{syntax_const "_noargs"}, t)
-    |   dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax csplit},_) $ t) =
+    |   dest_LAM (Const (@{const_syntax Rep_cfun},_) $ Const (@{const_syntax csplit},_) $ t) =
           let
             val (v1, t1) = dest_LAM t;
             val (v2, t2) = dest_LAM t1;
           in (Syntax.const @{syntax_const "_args"} $ v1 $ v2, t2) end
-    |   dest_LAM (Const (@{const_syntax Abs_CFun},_) $ t) =
+    |   dest_LAM (Const (@{const_syntax Abs_cfun},_) $ t) =
           let
             val abs =
               case t of Abs abs => abs
@@ -149,7 +149,7 @@ print_translation {*
               (Syntax.const @{syntax_const "_match"} $ p $ v) $ t
           end;
 
-  in [(@{const_syntax Rep_CFun}, Case1_tr')] end;
+  in [(@{const_syntax Rep_cfun}, Case1_tr')] end;
 *}
 
 translations
@@ -485,7 +485,7 @@ fun add_pattern_combinators
       open Syntax
       fun syntax c = Syntax.mark_const (fst (dest_Const c));
       fun app s (l, r) = Syntax.mk_appl (Constant s) [l, r];
-      val capp = app @{const_syntax Rep_CFun};
+      val capp = app @{const_syntax Rep_cfun};
       val capps = Library.foldl capp
 
       fun app_var x = Syntax.mk_appl (Constant "_variable") [x, Variable "rhs"];

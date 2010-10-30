@@ -252,7 +252,7 @@ by (auto dest!: compact_basis.compact_imp_principal)
 lemma compact_upper_unit_iff [simp]: "compact {x}\<sharp> \<longleftrightarrow> compact x"
 apply (safe elim!: compact_upper_unit)
 apply (simp only: compact_def upper_unit_below_iff [symmetric])
-apply (erule adm_subst [OF cont_Rep_CFun2])
+apply (erule adm_subst [OF cont_Rep_cfun2])
 done
 
 lemma compact_upper_plus [simp]:

@@ -222,11 +222,11 @@ lemma Pair_eqD2: "(x, y) = (x', y') \<Longrightarrow> y = y'"
 by simp
 
 lemma def_cont_fix_eq:
-  "\<lbrakk>f \<equiv> fix\<cdot>(Abs_CFun F); cont F\<rbrakk> \<Longrightarrow> f = F f"
+  "\<lbrakk>f \<equiv> fix\<cdot>(Abs_cfun F); cont F\<rbrakk> \<Longrightarrow> f = F f"
 by (simp, subst fix_eq, simp)
 
 lemma def_cont_fix_ind:
-  "\<lbrakk>f \<equiv> fix\<cdot>(Abs_CFun F); cont F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F x)\<rbrakk> \<Longrightarrow> P f"
+  "\<lbrakk>f \<equiv> fix\<cdot>(Abs_cfun F); cont F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F x)\<rbrakk> \<Longrightarrow> P f"
 by (simp add: fix_ind)
 
 text {* lemma for proving rewrite rules *}

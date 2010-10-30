@@ -65,7 +65,7 @@ val mk_trp = HOLogic.mk_Trueprop;
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
 
 (* similar to Thm.head_of, but for continuous application *)
-fun chead_of (Const(@{const_name Rep_CFun},_)$f$t) = chead_of f
+fun chead_of (Const(@{const_name Rep_cfun},_)$f$t) = chead_of f
   | chead_of u = u;
 
 infix 0 ==;  val (op ==) = Logic.mk_equals;
@@ -82,7 +82,7 @@ fun mk_run t =
     val run = Const(@{const_name Fixrec.run}, mT ->> T)
   in
     case t of
-      Const(@{const_name Rep_CFun}, _) $
+      Const(@{const_name Rep_cfun}, _) $
         Const(@{const_name Fixrec.succeed}, _) $ u => u
     | _ => run ` t
   end;
@@ -226,7 +226,7 @@ fun compile_pat match_name pat rhs taken =
     (* compiles a monadic term for a constructor pattern *)
     and comp_con T p rhs vs taken =
       case p of
-        Const(@{const_name Rep_CFun},_) $ f $ x =>
+        Const(@{const_name Rep_cfun},_) $ f $ x =>
           let val (rhs', v, taken') = comp_pat x rhs taken
           in comp_con T f rhs' (v::vs) taken' end
       | f $ x =>
@@ -250,7 +250,7 @@ fun compile_pat match_name pat rhs taken =
 (* returns (constant, (vars, matcher)) *)
 fun compile_lhs match_name pat rhs vs taken =
   case pat of
-    Const(@{const_name Rep_CFun}, _) $ f $ x =>
+    Const(@{const_name Rep_cfun}, _) $ f $ x =>
       let val (rhs', v, taken') = compile_pat match_name x rhs taken;
       in compile_lhs match_name f rhs' (v::vs) taken' end
   | Free(_,_) => (pat, (vs, rhs))

@@ -453,7 +453,7 @@ fun add_case_combinator
       fun argvars n args = map_index (argvar n) args;
       fun app s (l, r) = mk_appl (Constant s) [l, r];
       val cabs = app "_cabs";
-      val capp = app @{const_syntax Rep_CFun};
+      val capp = app @{const_syntax Rep_cfun};
       val capps = Library.foldl capp
       fun con1 authentic n (con,args) =
           Library.foldl capp (c_ast authentic con, argvars n args);

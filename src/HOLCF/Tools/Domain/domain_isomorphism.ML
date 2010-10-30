@@ -155,7 +155,7 @@ fun add_fixdefs
     (* convert parameters to lambda abstractions *)
     fun mk_eqn (lhs, rhs) =
         case lhs of
-          Const (@{const_name Rep_CFun}, _) $ f $ (x as Free _) =>
+          Const (@{const_name Rep_cfun}, _) $ f $ (x as Free _) =>
             mk_eqn (f, big_lambda x rhs)
         | f $ Const (@{const_name TYPE}, T) =>
             mk_eqn (f, Abs ("t", T, rhs))

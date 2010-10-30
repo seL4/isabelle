@@ -31,7 +31,7 @@ definition
   foo_bar_baz_deflF ::
     "defl \<rightarrow> defl \<times> defl \<times> defl \<rightarrow> defl \<times> defl \<times> defl"
 where
-  "foo_bar_baz_deflF = (\<Lambda> a. Abs_CFun (\<lambda>(t1, t2, t3). 
+  "foo_bar_baz_deflF = (\<Lambda> a. Abs_cfun (\<lambda>(t1, t2, t3). 
     ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>t2))
     , u_defl\<cdot>(cfun_defl\<cdot>t3\<cdot>DEFL(tr))
     , u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>t1)\<cdot>DEFL(tr)))))"
@@ -269,7 +269,7 @@ definition
      ('a foo \<rightarrow> 'b foo) \<times> ('a bar \<rightarrow> 'b bar) \<times> ('b baz \<rightarrow> 'a baz) \<rightarrow>
      ('a foo \<rightarrow> 'b foo) \<times> ('a bar \<rightarrow> 'b bar) \<times> ('b baz \<rightarrow> 'a baz)"
 where
-  "foo_bar_baz_mapF = (\<Lambda> f. Abs_CFun (\<lambda>(d1, d2, d3).
+  "foo_bar_baz_mapF = (\<Lambda> f. Abs_cfun (\<lambda>(d1, d2, d3).
     (
       foo_abs oo
         ssum_map\<cdot>ID\<cdot>(sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>d2))

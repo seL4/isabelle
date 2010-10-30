@@ -256,7 +256,7 @@ by (auto dest!: compact_basis.compact_imp_principal)
 lemma compact_lower_unit_iff [simp]: "compact {x}\<flat> \<longleftrightarrow> compact x"
 apply (safe elim!: compact_lower_unit)
 apply (simp only: compact_def lower_unit_below_iff [symmetric])
-apply (erule adm_subst [OF cont_Rep_CFun2])
+apply (erule adm_subst [OF cont_Rep_cfun2])
 done
 
 lemma compact_lower_plus [simp]:

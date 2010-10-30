@@ -132,7 +132,7 @@ let
       mk_trp (p $ HOLCF_Library.mk_bottom T) :: map (con_assm true p) cons;
   val assms = maps eq_assms (Ps ~~ newTs ~~ map #con_specs constr_infos);
 
-  val take_ss = HOL_ss addsimps (@{thm Rep_CFun_strict1} :: take_rews);
+  val take_ss = HOL_ss addsimps (@{thm Rep_cfun_strict1} :: take_rews);
   fun quant_tac ctxt i = EVERY
     (map (fn name => res_inst_tac ctxt [(("x", 0), name)] spec i) x_names);
 
@@ -317,7 +317,7 @@ let
         end;
       val goal =
           mk_trp (foldr1 mk_conj (map one (newTs ~~ Rs ~~ take_consts)));
-      val rules = @{thm Rep_CFun_strict1} :: take_0_thms;
+      val rules = @{thm Rep_cfun_strict1} :: take_0_thms;
       fun tacf {prems, context} =
         let
           val prem' = rewrite_rule [bisim_def_thm] (hd prems);

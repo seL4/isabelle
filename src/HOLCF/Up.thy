@@ -237,7 +237,7 @@ done
 
 lemma compact_upD: "compact (up\<cdot>x) \<Longrightarrow> compact x"
 unfolding compact_def
-by (drule adm_subst [OF cont_Rep_CFun2 [where f=up]], simp)
+by (drule adm_subst [OF cont_Rep_cfun2 [where f=up]], simp)
 
 lemma compact_up_iff [simp]: "compact (up\<cdot>x) = compact x"
 by (safe elim!: compact_up compact_upD)

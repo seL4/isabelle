@@ -191,7 +191,7 @@ done
 lemma compact_cast_iff: "compact (cast\<cdot>d) \<longleftrightarrow> compact d"
 apply (rule iffI)
 apply (simp only: compact_def cast_below_cast [symmetric])
-apply (erule adm_subst [OF cont_Rep_CFun2])
+apply (erule adm_subst [OF cont_Rep_cfun2])
 apply (erule compact_cast)
 done
 

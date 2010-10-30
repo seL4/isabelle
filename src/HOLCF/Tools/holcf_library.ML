@@ -76,10 +76,10 @@ fun dest_cfunT (Type(@{type_name cfun}, [T, U])) = (T, U)
   | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);
 
 fun capply_const (S, T) =
-  Const(@{const_name Rep_CFun}, (S ->> T) --> (S --> T));
+  Const(@{const_name Rep_cfun}, (S ->> T) --> (S --> T));
 
 fun cabs_const (S, T) =
-  Const(@{const_name Abs_CFun}, (S --> T) --> (S ->> T));
+  Const(@{const_name Abs_cfun}, (S --> T) --> (S ->> T));
 
 fun mk_cabs t =
   let val T = fastype_of t

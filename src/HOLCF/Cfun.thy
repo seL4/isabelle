@@ -13,28 +13,28 @@ default_sort cpo
 
 subsection {* Definition of continuous function type *}
 
-cpodef (CFun)  ('a, 'b) cfun (infixr "->" 0) = "{f::'a => 'b. cont f}"
+cpodef ('a, 'b) cfun (infixr "->" 0) = "{f::'a => 'b. cont f}"
 by (auto intro: cont_const adm_cont)
 
 type_notation (xsymbols)
   cfun  ("(_ \<rightarrow>/ _)" [1, 0] 0)
 
 notation
-  Rep_CFun  ("(_$/_)" [999,1000] 999)
+  Rep_cfun  ("(_$/_)" [999,1000] 999)
 
 notation (xsymbols)
-  Rep_CFun  ("(_\<cdot>/_)" [999,1000] 999)
+  Rep_cfun  ("(_\<cdot>/_)" [999,1000] 999)
 
 notation (HTML output)
-  Rep_CFun  ("(_\<cdot>/_)" [999,1000] 999)
+  Rep_cfun  ("(_\<cdot>/_)" [999,1000] 999)
 
 subsection {* Syntax for continuous lambda abstraction *}
 
 syntax "_cabs" :: "'a"
 
 parse_translation {*
-(* rewrite (_cabs x t) => (Abs_CFun (%x. t)) *)
-  [mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_CFun})];
+(* rewrite (_cabs x t) => (Abs_cfun (%x. t)) *)
+  [mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_cfun})];
 *}
 
 text {* To avoid eta-contraction of body: *}
@@ -50,7 +50,7 @@ typed_print_translation {*
           val (x,t') = atomic_abs_tr' abs';
         in Syntax.const @{syntax_const "_cabs"} $ x $ t' end;
 
-  in [(@{const_syntax Abs_CFun}, cabs_tr')] end;
+  in [(@{const_syntax Abs_cfun}, cabs_tr')] end;
 *}
 
 text {* Syntax for nested abstractions *}
@@ -88,32 +88,32 @@ print_ast_translation {*
 
 text {* Dummy patterns for continuous abstraction *}
 translations
-  "\<Lambda> _. t" => "CONST Abs_CFun (\<lambda> _. t)"
+  "\<Lambda> _. t" => "CONST Abs_cfun (\<lambda> _. t)"
 
 subsection {* Continuous function space is pointed *}
 
-lemma UU_CFun: "\<bottom> \<in> CFun"
-by (simp add: CFun_def inst_fun_pcpo)
+lemma UU_cfun: "\<bottom> \<in> cfun"
+by (simp add: cfun_def inst_fun_pcpo)
 
 instance cfun :: (cpo, discrete_cpo) discrete_cpo
-by intro_classes (simp add: below_CFun_def Rep_CFun_inject)
+by intro_classes (simp add: below_cfun_def Rep_cfun_inject)
 
 instance cfun :: (cpo, pcpo) pcpo
-by (rule typedef_pcpo [OF type_definition_CFun below_CFun_def UU_CFun])
+by (rule typedef_pcpo [OF type_definition_cfun below_cfun_def UU_cfun])
 
-lemmas Rep_CFun_strict =
-  typedef_Rep_strict [OF type_definition_CFun below_CFun_def UU_CFun]
+lemmas Rep_cfun_strict =
+  typedef_Rep_strict [OF type_definition_cfun below_cfun_def UU_cfun]
 
-lemmas Abs_CFun_strict =
-  typedef_Abs_strict [OF type_definition_CFun below_CFun_def UU_CFun]
+lemmas Abs_cfun_strict =
+  typedef_Abs_strict [OF type_definition_cfun below_cfun_def UU_cfun]
 
 text {* function application is strict in its first argument *}
 
-lemma Rep_CFun_strict1 [simp]: "\<bottom>\<cdot>x = \<bottom>"
-by (simp add: Rep_CFun_strict)
+lemma Rep_cfun_strict1 [simp]: "\<bottom>\<cdot>x = \<bottom>"
+by (simp add: Rep_cfun_strict)
 
 lemma LAM_strict [simp]: "(\<Lambda> x. \<bottom>) = \<bottom>"
-by (simp add: inst_fun_pcpo [symmetric] Abs_CFun_strict)
+by (simp add: inst_fun_pcpo [symmetric] Abs_cfun_strict)
 
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_cfun_pcpo: "\<bottom> = (\<Lambda> x. \<bottom>)"
@@ -123,11 +123,11 @@ subsection {* Basic properties of continuous functions *}
 
 text {* Beta-equality for continuous functions *}
 
-lemma Abs_CFun_inverse2: "cont f \<Longrightarrow> Rep_CFun (Abs_CFun f) = f"
-by (simp add: Abs_CFun_inverse CFun_def)
+lemma Abs_cfun_inverse2: "cont f \<Longrightarrow> Rep_cfun (Abs_cfun f) = f"
+by (simp add: Abs_cfun_inverse cfun_def)
 
 lemma beta_cfun: "cont f \<Longrightarrow> (\<Lambda> x. f x)\<cdot>u = f u"
-by (simp add: Abs_CFun_inverse2)
+by (simp add: Abs_cfun_inverse2)
 
 text {* Beta-reduction simproc *}
 
@@ -144,7 +144,7 @@ text {*
   that would otherwise be caused by large continuity side conditions.
 *}
 
-simproc_setup beta_cfun_proc ("Abs_CFun f\<cdot>x") = {*
+simproc_setup beta_cfun_proc ("Abs_cfun f\<cdot>x") = {*
   fn phi => fn ss => fn ct =>
     let
       val dest = Thm.dest_comb;
@@ -160,12 +160,12 @@ simproc_setup beta_cfun_proc ("Abs_CFun f\<cdot>x") = {*
 text {* Eta-equality for continuous functions *}
 
 lemma eta_cfun: "(\<Lambda> x. f\<cdot>x) = f"
-by (rule Rep_CFun_inverse)
+by (rule Rep_cfun_inverse)
 
 text {* Extensionality for continuous functions *}
 
 lemma cfun_eq_iff: "f = g \<longleftrightarrow> (\<forall>x. f\<cdot>x = g\<cdot>x)"
-by (simp add: Rep_CFun_inject [symmetric] fun_eq_iff)
+by (simp add: Rep_cfun_inject [symmetric] fun_eq_iff)
 
 lemma cfun_eqI: "(\<And>x. f\<cdot>x = g\<cdot>x) \<Longrightarrow> f = g"
 by (simp add: cfun_eq_iff)
@@ -173,7 +173,7 @@ by (simp add: cfun_eq_iff)
 text {* Extensionality wrt. ordering for continuous functions *}
 
 lemma cfun_below_iff: "f \<sqsubseteq> g \<longleftrightarrow> (\<forall>x. f\<cdot>x \<sqsubseteq> g\<cdot>x)" 
-by (simp add: below_CFun_def fun_below_iff)
+by (simp add: below_cfun_def fun_below_iff)
 
 lemma cfun_belowI: "(\<And>x. f\<cdot>x \<sqsubseteq> g\<cdot>x) \<Longrightarrow> f \<sqsubseteq> g"
 by (simp add: cfun_below_iff)
@@ -191,32 +191,32 @@ by simp
 
 subsection {* Continuity of application *}
 
-lemma cont_Rep_CFun1: "cont (\<lambda>f. f\<cdot>x)"
-by (rule cont_Rep_CFun [THEN cont2cont_fun])
+lemma cont_Rep_cfun1: "cont (\<lambda>f. f\<cdot>x)"
+by (rule cont_Rep_cfun [THEN cont2cont_fun])
 
-lemma cont_Rep_CFun2: "cont (\<lambda>x. f\<cdot>x)"
-apply (cut_tac x=f in Rep_CFun)
-apply (simp add: CFun_def)
+lemma cont_Rep_cfun2: "cont (\<lambda>x. f\<cdot>x)"
+apply (cut_tac x=f in Rep_cfun)
+apply (simp add: cfun_def)
 done
 
-lemmas monofun_Rep_CFun = cont_Rep_CFun [THEN cont2mono]
+lemmas monofun_Rep_cfun = cont_Rep_cfun [THEN cont2mono]
 
-lemmas monofun_Rep_CFun1 = cont_Rep_CFun1 [THEN cont2mono, standard]
-lemmas monofun_Rep_CFun2 = cont_Rep_CFun2 [THEN cont2mono, standard]
+lemmas monofun_Rep_cfun1 = cont_Rep_cfun1 [THEN cont2mono, standard]
+lemmas monofun_Rep_cfun2 = cont_Rep_cfun2 [THEN cont2mono, standard]
 
-text {* contlub, cont properties of @{term Rep_CFun} in each argument *}
+text {* contlub, cont properties of @{term Rep_cfun} in each argument *}
 
 lemma contlub_cfun_arg: "chain Y \<Longrightarrow> f\<cdot>(\<Squnion>i. Y i) = (\<Squnion>i. f\<cdot>(Y i))"
-by (rule cont_Rep_CFun2 [THEN cont2contlubE])
+by (rule cont_Rep_cfun2 [THEN cont2contlubE])
 
 lemma cont_cfun_arg: "chain Y \<Longrightarrow> range (\<lambda>i. f\<cdot>(Y i)) <<| f\<cdot>(\<Squnion>i. Y i)"
-by (rule cont_Rep_CFun2 [THEN contE])
+by (rule cont_Rep_cfun2 [THEN contE])
 
 lemma contlub_cfun_fun: "chain F \<Longrightarrow> (\<Squnion>i. F i)\<cdot>x = (\<Squnion>i. F i\<cdot>x)"
-by (rule cont_Rep_CFun1 [THEN cont2contlubE])
+by (rule cont_Rep_cfun1 [THEN cont2contlubE])
 
 lemma cont_cfun_fun: "chain F \<Longrightarrow> range (\<lambda>i. F i\<cdot>x) <<| (\<Squnion>i. F i)\<cdot>x"
-by (rule cont_Rep_CFun1 [THEN contE])
+by (rule cont_Rep_cfun1 [THEN contE])
 
 text {* monotonicity of application *}
 
@@ -224,7 +224,7 @@ lemma monofun_cfun_fun: "f \<sqsubseteq> g \<Longrightarrow> f\<cdot>x \<sqsubse
 by (simp add: cfun_below_iff)
 
 lemma monofun_cfun_arg: "x \<sqsubseteq> y \<Longrightarrow> f\<cdot>x \<sqsubseteq> f\<cdot>y"
-by (rule monofun_Rep_CFun2 [THEN monofunE])
+by (rule monofun_Rep_cfun2 [THEN monofunE])
 
 lemma monofun_cfun: "\<lbrakk>f \<sqsubseteq> g; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f\<cdot>x \<sqsubseteq> g\<cdot>y"
 by (rule below_trans [OF monofun_cfun_fun monofun_cfun_arg])
@@ -232,15 +232,15 @@ by (rule below_trans [OF monofun_cfun_fun monofun_cfun_arg])
 text {* ch2ch - rules for the type @{typ "'a -> 'b"} *}
 
 lemma chain_monofun: "chain Y \<Longrightarrow> chain (\<lambda>i. f\<cdot>(Y i))"
-by (erule monofun_Rep_CFun2 [THEN ch2ch_monofun])
+by (erule monofun_Rep_cfun2 [THEN ch2ch_monofun])
 
-lemma ch2ch_Rep_CFunR: "chain Y \<Longrightarrow> chain (\<lambda>i. f\<cdot>(Y i))"
-by (rule monofun_Rep_CFun2 [THEN ch2ch_monofun])
+lemma ch2ch_Rep_cfunR: "chain Y \<Longrightarrow> chain (\<lambda>i. f\<cdot>(Y i))"
+by (rule monofun_Rep_cfun2 [THEN ch2ch_monofun])
 
-lemma ch2ch_Rep_CFunL: "chain F \<Longrightarrow> chain (\<lambda>i. (F i)\<cdot>x)"
-by (rule monofun_Rep_CFun1 [THEN ch2ch_monofun])
+lemma ch2ch_Rep_cfunL: "chain F \<Longrightarrow> chain (\<lambda>i. (F i)\<cdot>x)"
+by (rule monofun_Rep_cfun1 [THEN ch2ch_monofun])
 
-lemma ch2ch_Rep_CFun [simp]:
+lemma ch2ch_Rep_cfun [simp]:
   "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> chain (\<lambda>i. (F i)\<cdot>(Y i))"
 by (simp add: chain_def monofun_cfun)
 
@@ -248,7 +248,7 @@ lemma ch2ch_LAM [simp]:
   "\<lbrakk>\<And>x. chain (\<lambda>i. S i x); \<And>i. cont (\<lambda>x. S i x)\<rbrakk> \<Longrightarrow> chain (\<lambda>i. \<Lambda> x. S i x)"
 by (simp add: chain_def cfun_below_iff)
 
-text {* contlub, cont properties of @{term Rep_CFun} in both arguments *}
+text {* contlub, cont properties of @{term Rep_cfun} in both arguments *}
 
 lemma contlub_cfun: 
   "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i) = (\<Squnion>i. F i\<cdot>(Y i))"
@@ -257,15 +257,15 @@ by (simp add: contlub_cfun_fun contlub_cfun_arg diag_lub)
 lemma cont_cfun: 
   "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> range (\<lambda>i. F i\<cdot>(Y i)) <<| (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i)"
 apply (rule thelubE)
-apply (simp only: ch2ch_Rep_CFun)
+apply (simp only: ch2ch_Rep_cfun)
 apply (simp only: contlub_cfun)
 done
 
 lemma contlub_LAM:
   "\<lbrakk>\<And>x. chain (\<lambda>i. F i x); \<And>i. cont (\<lambda>x. F i x)\<rbrakk>
     \<Longrightarrow> (\<Lambda> x. \<Squnion>i. F i x) = (\<Squnion>i. \<Lambda> x. F i x)"
-apply (simp add: thelub_CFun)
-apply (simp add: Abs_CFun_inverse2)
+apply (simp add: thelub_cfun)
+apply (simp add: Abs_cfun_inverse2)
 apply (simp add: thelub_fun ch2ch_lambda)
 done
 
@@ -291,7 +291,7 @@ by (rule lub_cfun [THEN thelubI])
 
 subsection {* Continuity simplification procedure *}
 
-text {* cont2cont lemma for @{term Rep_CFun} *}
+text {* cont2cont lemma for @{term Rep_cfun} *}
 
 lemma cont2cont_APP [simp, cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
@@ -299,9 +299,9 @@ lemma cont2cont_APP [simp, cont2cont]:
   shows "cont (\<lambda>x. (f x)\<cdot>(t x))"
 proof -
   have 1: "\<And>y. cont (\<lambda>x. (f x)\<cdot>y)"
-    using cont_Rep_CFun1 f by (rule cont_compose)
+    using cont_Rep_cfun1 f by (rule cont_compose)
   show "cont (\<lambda>x. (f x)\<cdot>(t x))"
-    using t cont_Rep_CFun2 1 by (rule cont_apply)
+    using t cont_Rep_cfun2 1 by (rule cont_apply)
 qed
 
 text {*
@@ -334,9 +334,9 @@ lemma cont2cont_LAM:
   assumes f1: "\<And>x. cont (\<lambda>y. f x y)"
   assumes f2: "\<And>y. cont (\<lambda>x. f x y)"
   shows "cont (\<lambda>x. \<Lambda> y. f x y)"
-proof (rule cont_Abs_CFun)
+proof (rule cont_Abs_cfun)
   fix x
-  from f1 show "f x \<in> CFun" by (simp add: CFun_def)
+  from f1 show "f x \<in> cfun" by (simp add: cfun_def)
   from f2 show "cont f" by (rule cont2cont_lambda)
 qed
 
@@ -356,24 +356,24 @@ lemma cont2cont_LAM_discrete [simp, cont2cont]:
 by (simp add: cont2cont_LAM)
 
 lemmas cont_lemmas1 =
-  cont_const cont_id cont_Rep_CFun2 cont2cont_APP cont2cont_LAM
+  cont_const cont_id cont_Rep_cfun2 cont2cont_APP cont2cont_LAM
 
 subsection {* Miscellaneous *}
 
-text {* Monotonicity of @{term Abs_CFun} *}
+text {* Monotonicity of @{term Abs_cfun} *}
 
-lemma semi_monofun_Abs_CFun:
-  "\<lbrakk>cont f; cont g; f \<sqsubseteq> g\<rbrakk> \<Longrightarrow> Abs_CFun f \<sqsubseteq> Abs_CFun g"
-by (simp add: below_CFun_def Abs_CFun_inverse2)
+lemma semi_monofun_Abs_cfun:
+  "\<lbrakk>cont f; cont g; f \<sqsubseteq> g\<rbrakk> \<Longrightarrow> Abs_cfun f \<sqsubseteq> Abs_cfun g"
+by (simp add: below_cfun_def Abs_cfun_inverse2)
 
 text {* some lemmata for functions with flat/chfin domain/range types *}
 
-lemma chfin_Rep_CFunR: "chain (Y::nat => 'a::cpo->'b::chfin)  
+lemma chfin_Rep_cfunR: "chain (Y::nat => 'a::cpo->'b::chfin)  
       ==> !s. ? n. (LUB i. Y i)$s = Y n$s"
 apply (rule allI)
 apply (subst contlub_cfun_fun)
 apply assumption
-apply (fast intro!: thelubI chfin lub_finch2 chfin2finch ch2ch_Rep_CFunL)
+apply (fast intro!: thelubI chfin lub_finch2 chfin2finch ch2ch_Rep_cfunL)
 done
 
 lemma adm_chfindom: "adm (\<lambda>(u::'a::cpo \<rightarrow> 'b::chfin). P(u\<cdot>s))"

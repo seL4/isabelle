@@ -265,7 +265,7 @@ by (auto dest!: compact_basis.compact_imp_principal)
 lemma compact_convex_unit_iff [simp]: "compact {x}\<natural> \<longleftrightarrow> compact x"
 apply (safe elim!: compact_convex_unit)
 apply (simp only: compact_def convex_unit_below_iff [symmetric])
-apply (erule adm_subst [OF cont_Rep_CFun2])
+apply (erule adm_subst [OF cont_Rep_cfun2])
 done
 
 lemma compact_convex_plus [simp]:

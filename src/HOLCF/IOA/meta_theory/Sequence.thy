@@ -901,8 +901,8 @@ lemma take_lemma_less1:
 apply (rule_tac t="s1" in seq.reach [THEN subst])
 apply (rule_tac t="s2" in seq.reach [THEN subst])
 apply (rule lub_mono)
-apply (rule seq.chain_take [THEN ch2ch_Rep_CFunL])
-apply (rule seq.chain_take [THEN ch2ch_Rep_CFunL])
+apply (rule seq.chain_take [THEN ch2ch_Rep_cfunL])
+apply (rule seq.chain_take [THEN ch2ch_Rep_cfunL])
 apply (rule assms)
 done
 

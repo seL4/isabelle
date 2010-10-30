@@ -921,7 +921,7 @@ apply (simp add: chain_def,auto)
 by (rule monofun_cfun_arg,simp)
 
 lemma contlub_scons_lemma: "chain S ==> (LUB i. a && S i) = a && (LUB i. S i)"
-by (rule cont2contlubE [OF cont_Rep_CFun2, symmetric])
+by (rule cont2contlubE [OF cont_Rep_cfun2, symmetric])
 
 lemma finite_lub_sconc: "chain Y ==> (stream_finite x) ==>
                         (LUB i. x ooo Y i) = (x ooo (LUB i. Y i))"

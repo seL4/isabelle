@@ -120,11 +120,11 @@ by (rule compact_ssum, simp add: Rep_ssum_sinr)
 
 lemma compact_sinlD: "compact (sinl\<cdot>x) \<Longrightarrow> compact x"
 unfolding compact_def
-by (drule adm_subst [OF cont_Rep_CFun2 [where f=sinl]], simp)
+by (drule adm_subst [OF cont_Rep_cfun2 [where f=sinl]], simp)
 
 lemma compact_sinrD: "compact (sinr\<cdot>x) \<Longrightarrow> compact x"
 unfolding compact_def
-by (drule adm_subst [OF cont_Rep_CFun2 [where f=sinr]], simp)
+by (drule adm_subst [OF cont_Rep_cfun2 [where f=sinr]], simp)
 
 lemma compact_sinl_iff [simp]: "compact (sinl\<cdot>x) = compact x"
 by (safe elim!: compact_sinl compact_sinlD)

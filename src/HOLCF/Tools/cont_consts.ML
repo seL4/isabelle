@@ -28,7 +28,7 @@ fun trans_rules name2 name1 n mx =
   in
     [Syntax.ParsePrintRule
       (Syntax.mk_appl (Constant name2) (map Variable vnames),
-        fold (fn a => fn t => Syntax.mk_appl (Constant @{const_syntax Rep_CFun}) [t, Variable a])
+        fold (fn a => fn t => Syntax.mk_appl (Constant @{const_syntax Rep_cfun}) [t, Variable a])
           vnames (Constant name1))] @
     (case mx of
       Infix _ => [extra_parse_rule]

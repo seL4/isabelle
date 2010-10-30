@@ -207,7 +207,7 @@ lemma compact_e_rev: "compact (e\<cdot>x) \<Longrightarrow> compact x"
 proof -
   assume "compact (e\<cdot>x)"
   hence "adm (\<lambda>y. \<not> e\<cdot>x \<sqsubseteq> y)" by (rule compactD)
-  hence "adm (\<lambda>y. \<not> e\<cdot>x \<sqsubseteq> e\<cdot>y)" by (rule adm_subst [OF cont_Rep_CFun2])
+  hence "adm (\<lambda>y. \<not> e\<cdot>x \<sqsubseteq> e\<cdot>y)" by (rule adm_subst [OF cont_Rep_cfun2])
   hence "adm (\<lambda>y. \<not> x \<sqsubseteq> y)" by simp
   thus "compact x" by (rule compactI)
 qed
@@ -216,7 +216,7 @@ lemma compact_e: "compact x \<Longrightarrow> compact (e\<cdot>x)"
 proof -
   assume "compact x"
   hence "adm (\<lambda>y. \<not> x \<sqsubseteq> y)" by (rule compactD)
-  hence "adm (\<lambda>y. \<not> x \<sqsubseteq> p\<cdot>y)" by (rule adm_subst [OF cont_Rep_CFun2])
+  hence "adm (\<lambda>y. \<not> x \<sqsubseteq> p\<cdot>y)" by (rule adm_subst [OF cont_Rep_cfun2])
   hence "adm (\<lambda>y. \<not> e\<cdot>x \<sqsubseteq> y)" by (simp add: e_below_iff_below_p)
   thus "compact (e\<cdot>x)" by (rule compactI)
 qed
