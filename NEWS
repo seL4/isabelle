@@ -159,6 +159,9 @@ to standard output.  INCOMPATIBILITY.
 * Abolished symbol type names:  "prod" and "sum" replace "*" and "+"
 respectively.  INCOMPATIBILITY.
 
+* Name "Plus" of disjoint sum operator "<+>" is now hidden.
+  Write Sum_Type.Plus.
+
 * Constant "split" has been merged with constant "prod_case";  names
 of ML functions, facts etc. involving split have been retained so far,
 though.  INCOMPATIBILITY.
