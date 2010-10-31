@@ -56,7 +56,8 @@ locale equivalence =
   fixes S (structure)
   assumes refl [simp, intro]: "x \<in> carrier S \<Longrightarrow> x .= x"
     and sym [sym]: "\<lbrakk> x .= y; x \<in> carrier S; y \<in> carrier S \<rbrakk> \<Longrightarrow> y .= x"
-    and trans [trans]: "\<lbrakk> x .= y; y .= z; x \<in> carrier S; y \<in> carrier S; z \<in> carrier S \<rbrakk> \<Longrightarrow> x .= z"
+    and trans [trans]:
+      "\<lbrakk> x .= y; y .= z; x \<in> carrier S; y \<in> carrier S; z \<in> carrier S \<rbrakk> \<Longrightarrow> x .= z"
 
 (* Lemmas by Stephan Hohe *)
 
