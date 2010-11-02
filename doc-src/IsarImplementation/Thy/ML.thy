@@ -262,6 +262,22 @@ text {* Since ML is the primary medium to express the meaning of the
   @{ML_text lhs} (not @{ML_text lhs_tm}).  Or a term that is known
   to be a variable can be called @{ML_text v} or @{ML_text x}.
 
+  \item Tactics (\secref{sec:tactics}) are sufficiently important to
+  have specific naming conventions.  The name of a basic tactic
+  definition always has a @{ML_text "_tac"} suffix, the subgoal index
+  (if applicable) is always called @{ML_text i}, and the goal state
+  (if made explicit) is usually called @{ML_text st} instead of the
+  somewhat misleading @{ML_text thm}.  Any other arguments are given
+  before the latter two, and the general context is given first.
+  Example:
+
+  \begin{verbatim}
+  fun my_tac ctxt arg1 arg2 i st = ...
+  \end{verbatim}
+
+  Note that the goal state @{ML_text st} above is rarely made
+  explicit, if tactic combinators (tacticals) are used as usual.
+
   \end{itemize}
 *}
 

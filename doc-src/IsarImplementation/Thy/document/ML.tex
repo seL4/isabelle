@@ -281,6 +281,22 @@ Since ML is the primary medium to express the meaning of the
   \verb|lhs| (not \verb|lhs_tm|).  Or a term that is known
   to be a variable can be called \verb|v| or \verb|x|.
 
+  \item Tactics (\secref{sec:tactics}) are sufficiently important to
+  have specific naming conventions.  The name of a basic tactic
+  definition always has a \verb|_tac| suffix, the subgoal index
+  (if applicable) is always called \verb|i|, and the goal state
+  (if made explicit) is usually called \verb|st| instead of the
+  somewhat misleading \verb|thm|.  Any other arguments are given
+  before the latter two, and the general context is given first.
+  Example:
+
+  \begin{verbatim}
+  fun my_tac ctxt arg1 arg2 i st = ...
+  \end{verbatim}
+
+  Note that the goal state \verb|st| above is rarely made
+  explicit, if tactic combinators (tacticals) are used as usual.
+
   \end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
