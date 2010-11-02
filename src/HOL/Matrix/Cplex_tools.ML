@@ -977,7 +977,6 @@ fun load_glpkResult name =
     end
     handle (Tokenize s) => raise (Load_cplexResult ("Tokenize: "^s))
      | Option => raise (Load_cplexResult "Option")
-     | x => raise x
 
 fun load_cplexResult name =
     let
@@ -1127,7 +1126,6 @@ fun load_cplexResult name =
     end
     handle (Tokenize s) => raise (Load_cplexResult ("Tokenize: "^s))
      | Option => raise (Load_cplexResult "Option")
-     | x => raise x
 
 exception Execute of string;
 
@@ -1153,7 +1151,7 @@ fun solve_glpk prog =
         result
     end
     handle (Load_cplexResult s) => raise (Execute ("Load_cplexResult: "^s^"\nExecute: "^answer))
-         | _ => raise (Execute answer)
+         | _ => raise (Execute answer)  (* FIXME avoid handle _ *)
     end
 
 fun solve_cplex prog =
