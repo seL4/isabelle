@@ -902,11 +902,12 @@ next
   fix l
   assume "l \<in> set ?rhs"
   let ?pivot = "f (xs ! (length xs div 2))"
-  have *: "\<And>x P. P (f x) \<and> f x = f l \<longleftrightarrow> P (f l) \<and> f x = f l" by auto
+  have *: "\<And>x P. P (f x) \<and> f l = f x \<longleftrightarrow> P (f l) \<and> f l = f x" by auto
   have **: "\<And>x. f l = f x \<longleftrightarrow> f x = f l" by auto
-  have [simp]: "[x \<leftarrow> sort_key f xs . f x = f l] = [x \<leftarrow> xs. f x = f l]"
+  have "[x \<leftarrow> sort_key f xs . f x = f l] = [x \<leftarrow> xs. f x = f l]"
     unfolding filter_sort by (rule properties_for_sort_key) (auto intro: sorted_map_same)
-  have "[x \<leftarrow> ?rhs. f x = f l] = [x \<leftarrow> ?lhs. f x = f l]"
+  with ** have [simp]: "[x \<leftarrow> sort_key f xs . f l = f x] = [x \<leftarrow> xs. f l = f x]" by simp
+  show "[x \<leftarrow> ?rhs. f l = f x] = [x \<leftarrow> ?lhs. f l = f x]"
   proof (cases "f l" ?pivot rule: linorder_cases)
     case less then show ?thesis
       apply (auto simp add: filter_sort [symmetric])
@@ -915,11 +916,8 @@ next
       apply (subst *) apply (frule less_not_sym) apply simp
       done
   next
-    case equal from this [symmetric] show ?thesis 
-      apply (auto simp add: filter_sort [symmetric])
-      apply (subst *) apply simp
-      apply (subst *) apply simp
-      done
+    case equal then show ?thesis
+      by (auto simp add: ** less_le)
   next
     case greater then show ?thesis
       apply (auto simp add: filter_sort [symmetric])
@@ -927,8 +925,7 @@ next
       apply (frule less_imp_neq) apply simp
       apply (subst *) apply simp
       done
-  qed      
-  then show "[x \<leftarrow> ?rhs. f l = f x] = [x \<leftarrow> ?lhs. f l = f x]" by (simp add: **)
+  qed
 qed
 
 lemma sort_by_quicksort:
