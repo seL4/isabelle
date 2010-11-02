@@ -3949,16 +3949,20 @@ lemma filter_sort:
   "filter P (sort_key f xs) = sort_key f (filter P xs)"
   by (induct xs) (simp_all add: filter_insort_triv filter_insort)
 
-lemma sorted_same [simp]:
-  "sorted [x\<leftarrow>xs. x = f xs]"
-proof (induct xs arbitrary: f)
+lemma sorted_map_same:
+  "sorted (map f [x\<leftarrow>xs. f x = g xs])"
+proof (induct xs arbitrary: g)
   case Nil then show ?case by simp
 next
   case (Cons x xs)
-  then have "sorted [y\<leftarrow>xs . y = (\<lambda>xs. x) xs]" .
-  moreover from Cons have "sorted [y\<leftarrow>xs . y = (f \<circ> Cons x) xs]" .
+  then have "sorted (map f [y\<leftarrow>xs . f y = (\<lambda>xs. f x) xs])" .
+  moreover from Cons have "sorted (map f [y\<leftarrow>xs . f y = (g \<circ> Cons x) xs])" .
   ultimately show ?case by (simp_all add: sorted_Cons)
 qed
+
+lemma sorted_same:
+  "sorted [x\<leftarrow>xs. x = g xs]"
+  using sorted_map_same [of "\<lambda>x. x"] by simp
 
 lemma remove1_insort [simp]:
   "remove1 x (insort x xs) = xs"
