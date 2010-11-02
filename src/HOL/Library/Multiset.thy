@@ -856,7 +856,7 @@ text {*
 
 lemma properties_for_sort_key:
   assumes "multiset_of ys = multiset_of xs"
-  and "\<forall>k \<in> f ` set ys. filter (\<lambda>x. k = f x) ys = filter (\<lambda>x. k = f x) xs"
+  and "\<And>k. k \<in> set ys \<Longrightarrow> filter (\<lambda>x. f k = f x) ys = filter (\<lambda>x. f k = f x) xs"
   and "sorted (map f ys)"
   shows "sort_key f xs = ys"
 using assms proof (induct xs arbitrary: ys)
@@ -864,7 +864,7 @@ using assms proof (induct xs arbitrary: ys)
 next
   case (Cons x xs)
   from Cons.prems(2) have
-    "\<forall>k \<in> f ` set ys. filter (\<lambda>x. k = f x) (remove1 x ys) = filter (\<lambda>x. k = f x) xs"
+    "\<forall>k \<in> set ys. filter (\<lambda>x. f k = f x) (remove1 x ys) = filter (\<lambda>x. f k = f x) xs"
     by (simp add: filter_remove1)
   with Cons.prems have "sort_key f xs = remove1 x ys"
     by (auto intro!: Cons.hyps simp add: sorted_map_remove1)
@@ -884,7 +884,7 @@ proof (rule properties_for_sort_key)
     by (rule multiset_of_eq_length_filter)
   then have "\<And>k. replicate (length (filter (\<lambda>y. k = y) ys)) k = replicate (length (filter (\<lambda>x. k = x) xs)) k"
     by simp
-  then show "\<forall>k \<in> (\<lambda>x. x) ` set ys. filter (\<lambda>y. k = y) ys = filter (\<lambda>x. k = x) xs"
+  then show "\<And>k. k \<in> set ys \<Longrightarrow> filter (\<lambda>y. k = y) ys = filter (\<lambda>x. k = x) xs"
     by (simp add: replicate_length_filter)
 qed
 
@@ -899,40 +899,36 @@ next
   show "sorted (map f ?rhs)"
     by (auto simp add: sorted_append intro: sorted_map_same)
 next
-  show "\<forall>k\<in> f ` set ?rhs. [x \<leftarrow> ?rhs. k = f x] = [x \<leftarrow> ?lhs. k = f x]"
-  proof
-    let ?pivot = "f (xs ! (length xs div 2))"
-    fix k
-    assume k: "k \<in> f ` set ?rhs"
-    then obtain l where f_l: "k = f l" by blast
-    have *: "\<And>x P. P (f x) \<and> f x = f l \<longleftrightarrow> P (f l) \<and> f x = f l" by auto
-    have **: "\<And>x. k = f x \<longleftrightarrow> f x = k" by auto
-    have [simp]: "[x \<leftarrow> sort_key f xs . f x = f l] = [x \<leftarrow> xs. f x = f l]"
-      unfolding filter_sort by (rule properties_for_sort_key) (auto intro: sorted_map_same)
-    have "[x \<leftarrow> ?rhs. f x = k] = [x \<leftarrow> ?lhs. f x = k]"
-    proof (cases "f l" ?pivot rule: linorder_cases)
-      case less then show ?thesis
-        apply (auto simp add: filter_sort [symmetric] f_l)
-        apply (subst *) apply simp
-        apply (frule less_imp_neq) apply simp
-        apply (subst *) apply (frule less_not_sym) apply simp
-        done
-    next
-      case equal from this [symmetric] show ?thesis 
-        apply (auto simp add: filter_sort [symmetric] f_l)
-        apply (subst *) apply simp
-        apply (subst *) apply simp
-        done
-    next
-      case greater then show ?thesis
-        apply (auto simp add: filter_sort [symmetric] f_l)
-        apply (subst *) apply (frule less_not_sym) apply simp
-        apply (frule less_imp_neq) apply simp
-        apply (subst *) apply simp
-        done
-    qed      
-    then show "[x \<leftarrow> ?rhs. k = f x] = [x \<leftarrow> ?lhs. k = f x]" by (simp add: **)
-  qed
+  fix l
+  assume "l \<in> set ?rhs"
+  let ?pivot = "f (xs ! (length xs div 2))"
+  have *: "\<And>x P. P (f x) \<and> f x = f l \<longleftrightarrow> P (f l) \<and> f x = f l" by auto
+  have **: "\<And>x. f l = f x \<longleftrightarrow> f x = f l" by auto
+  have [simp]: "[x \<leftarrow> sort_key f xs . f x = f l] = [x \<leftarrow> xs. f x = f l]"
+    unfolding filter_sort by (rule properties_for_sort_key) (auto intro: sorted_map_same)
+  have "[x \<leftarrow> ?rhs. f x = f l] = [x \<leftarrow> ?lhs. f x = f l]"
+  proof (cases "f l" ?pivot rule: linorder_cases)
+    case less then show ?thesis
+      apply (auto simp add: filter_sort [symmetric])
+      apply (subst *) apply simp
+      apply (frule less_imp_neq) apply simp
+      apply (subst *) apply (frule less_not_sym) apply simp
+      done
+  next
+    case equal from this [symmetric] show ?thesis 
+      apply (auto simp add: filter_sort [symmetric])
+      apply (subst *) apply simp
+      apply (subst *) apply simp
+      done
+  next
+    case greater then show ?thesis
+      apply (auto simp add: filter_sort [symmetric])
+      apply (subst *) apply (frule less_not_sym) apply simp
+      apply (frule less_imp_neq) apply simp
+      apply (subst *) apply simp
+      done
+  qed      
+  then show "[x \<leftarrow> ?rhs. f l = f x] = [x \<leftarrow> ?lhs. f l = f x]" by (simp add: **)
 qed
 
 lemma sort_by_quicksort:
