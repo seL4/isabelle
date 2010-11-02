@@ -497,8 +497,8 @@ fun run_metis trivial full m name named_thms id
     |> snd
   end
 
-val try_inner_timeout = Time.fromSeconds 5
-val try_outer_timeout = Time.fromSeconds 30
+val try_inner_timeout = seconds 5.0
+val try_outer_timeout = seconds 30.0
 
 fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
   let val goal = Thm.major_prem_of (#goal (Proof.goal pre)) in

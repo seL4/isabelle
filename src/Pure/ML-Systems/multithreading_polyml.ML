@@ -120,10 +120,10 @@ fun tracing level msg =
 fun tracing_time detailed time =
   tracing
    (if not detailed then 5
-    else if Time.>= (time, Time.fromMilliseconds 1000) then 1
-    else if Time.>= (time, Time.fromMilliseconds 100) then 2
-    else if Time.>= (time, Time.fromMilliseconds 10) then 3
-    else if Time.>= (time, Time.fromMilliseconds 1) then 4 else 5);
+    else if Time.>= (time, seconds 1.0) then 1
+    else if Time.>= (time, seconds 0.1) then 2
+    else if Time.>= (time, seconds 0.01) then 3
+    else if Time.>= (time, seconds 0.001) then 4 else 5);
 
 fun real_time f x =
   let
@@ -202,13 +202,13 @@ fun bash_output script = with_attributes no_interrupts (fn orig_atts =>
               Posix.Signal.int)
       | NONE => ())
       handle OS.SysErr _ => () | IO.Io _ =>
-        (OS.Process.sleep (Time.fromMilliseconds 100); if n > 0 then kill (n - 1) else ());
+        (OS.Process.sleep (seconds 0.1); if n > 0 then kill (n - 1) else ());
 
     val _ =
       while ! result = Wait do
         let val res =
           sync_wait (SOME orig_atts)
-            (SOME (Time.+ (Time.now (), Time.fromMilliseconds 100))) cond lock
+            (SOME (Time.+ (Time.now (), seconds 0.1))) cond lock
         in if Exn.is_interrupt_exn res then kill 10 else () end;
 
     (*cleanup*)

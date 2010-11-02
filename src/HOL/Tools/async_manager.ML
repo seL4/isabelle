@@ -80,8 +80,8 @@ fun unregister message thread =
 
 (* main manager thread -- only one may exist *)
 
-val min_wait_time = Time.fromMilliseconds 300;
-val max_wait_time = Time.fromSeconds 10;
+val min_wait_time = seconds 0.3;
+val max_wait_time = seconds 10.0;
 
 fun replace_all bef aft =
   let
