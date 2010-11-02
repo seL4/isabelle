@@ -82,7 +82,7 @@ fun matrix_simplify th =
     let
         val simp_th = matrix_compute (cprop_of th)
         val th = Thm.strip_shyps (Thm.equal_elim simp_th th)
-        fun removeTrue th = removeTrue (Thm.implies_elim th TrueI) handle _ => th  (* FIXME avoid handle _ *)
+        fun removeTrue th = removeTrue (Thm.implies_elim th TrueI) handle THM _ => th
     in
         removeTrue th
     end
