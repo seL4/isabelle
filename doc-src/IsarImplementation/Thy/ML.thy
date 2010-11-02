@@ -1274,6 +1274,30 @@ text %mlref {*
 *}
 
 
+subsection {* Time *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type Time.time} \\
+  @{index_ML seconds: "real -> Time.time"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item Type @{ML_type Time.time} represents time abstractly according
+  to the SML97 basis library definition.  This is adequate for
+  internal ML operations, but awkward in concrete time specifications.
+
+  \item @{ML seconds}~@{text "s"} turns the concrete scalar @{text
+  "s"} (measured in seconds) into an abstract time value.  Floating
+  point numbers are easy to use as context parameters (e.g.\ via
+  configuration options, see \secref{sec:config-options}) or
+  preferences that are maintained by external tools as well.
+
+  \end{description}
+*}
+
+
 subsection {* Options *}
 
 text %mlref {*

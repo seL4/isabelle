@@ -20,7 +20,7 @@ val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
       (Preferences.bool_pref auto "auto-try" "Try standard proof methods.")
 
-val default_timeout = Time.fromSeconds 5
+val default_timeout = seconds 5.0
 
 fun can_apply timeout_opt pre post tac st =
   let val {goal, ...} = Proof.goal st in

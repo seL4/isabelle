@@ -81,7 +81,7 @@ fun message_output mbox out_stream =
       (case receive mbox of
         SOME msg =>
          (List.app (fn s => TextIO.output (out_stream, s)) msg;
-          loop (Mailbox.receive_timeout (Time.fromMilliseconds 20)))
+          loop (Mailbox.receive_timeout (seconds 0.02)))
       | NONE => (try TextIO.flushOut out_stream; loop (SOME o Mailbox.receive)));
   in fn () => loop (SOME o Mailbox.receive) end;
 
@@ -165,7 +165,7 @@ end;
 
 fun init in_fifo out_fifo = ignore (Simple_Thread.fork false (fn () =>
   let
-    val _ = OS.Process.sleep (Time.fromMilliseconds 500);  (*yield to raw ML toplevel*)
+    val _ = OS.Process.sleep (seconds 0.5);  (*yield to raw ML toplevel*)
     val _ = Output.raw_stdout Symbol.STX;
 
     val _ = quick_and_dirty := true;  (* FIXME !? *)
