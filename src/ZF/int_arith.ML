@@ -64,8 +64,6 @@ fun mk_sum []        = zero
 fun long_mk_sum []        = zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
-val dest_plus = FOLogic.dest_bin @{const_name "zadd"} @{typ i};
-
 (*decompose additions AND subtractions as a sum*)
 fun dest_summing (pos, Const (@{const_name "zadd"}, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (pos, u, ts))
@@ -75,9 +73,6 @@ fun dest_summing (pos, Const (@{const_name "zadd"}, _) $ t $ u, ts) =
         if pos then t::ts else @{const zminus} $ t :: ts;
 
 fun dest_sum t = dest_summing (true, t, []);
-
-val mk_diff = FOLogic.mk_binop @{const_name "zdiff"};
-val dest_diff = FOLogic.dest_bin @{const_name "zdiff"} @{typ i};
 
 val one = mk_numeral 1;
 val mk_times = FOLogic.mk_binop @{const_name "zmult"};
