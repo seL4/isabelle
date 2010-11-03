@@ -42,14 +42,14 @@ fun n_facts names =
        "")
   end
 
-fun test_facts ({debug, verbose, overlord, provers, full_types, isar_proof,
+fun test_facts ({debug, overlord, provers, full_types, isar_proof,
                  isar_shrink_factor, ...} : params) (prover : prover)
                explicit_apply timeout i n state facts =
   let
     val _ =
       Output.urgent_message ("Testing " ^ n_facts (map fst facts) ^ "...")
     val params =
-      {blocking = true, debug = debug, verbose = verbose, overlord = overlord,
+      {blocking = true, debug = debug, verbose = false, overlord = overlord,
        provers = provers, full_types = full_types,
        explicit_apply = explicit_apply, relevance_thresholds = (1.01, 1.01),
        max_relevant = NONE, isar_proof = isar_proof,
