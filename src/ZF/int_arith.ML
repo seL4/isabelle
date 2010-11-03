@@ -4,18 +4,25 @@
 Simprocs for linear arithmetic.
 *)
 
-structure Int_Numeral_Simprocs =
+signature INT_NUMERAL_SIMPROCS =
+sig
+  val cancel_numerals: simproc list
+  val combine_numerals: simproc
+  val combine_numerals_prod: simproc
+end
+
+structure Int_Numeral_Simprocs: INT_NUMERAL_SIMPROCS =
 struct
 
 (* abstract syntax operations *)
 
 fun mk_bit 0 = @{term "0"}
   | mk_bit 1 = @{term "succ(0)"}
-  | mk_bit _ = sys_error "mk_bit";
+  | mk_bit _ = raise TERM ("mk_bit", []);
 
 fun dest_bit @{term "0"} = 0
   | dest_bit @{term "succ(0)"} = 1
-  | dest_bit _ = raise Match;
+  | dest_bit t = raise TERM ("dest_bit", [t]);
 
 fun mk_bin i =
   let
@@ -29,7 +36,7 @@ fun dest_bin tm =
     fun bin_of @{term Pls} = []
       | bin_of @{term Min} = [~1]
       | bin_of (@{term Bit} $ bs $ b) = dest_bit b :: bin_of bs
-      | bin_of _ = sys_error "dest_bin";
+      | bin_of _ = raise TERM ("dest_bin", [tm]);
   in Numeral_Syntax.dest_binary (bin_of tm) end;
 
 
@@ -37,10 +44,8 @@ fun dest_bin tm =
 
 fun mk_numeral i = @{const integ_of} $ mk_bin i;
 
-(*Decodes a binary INTEGER*)
-fun dest_numeral (Const(@{const_name integ_of}, _) $ w) =
-     (dest_bin w handle SYS_ERROR _ => raise TERM("Int_Numeral_Simprocs.dest_numeral:1", [w]))
-  | dest_numeral t = raise TERM("Int_Numeral_Simprocs.dest_numeral:2", [t]);
+fun dest_numeral (Const(@{const_name integ_of}, _) $ w) = dest_bin w
+  | dest_numeral t = raise TERM ("dest_numeral", [t]);
 
 fun find_first_numeral past (t::terms) =
         ((dest_numeral t, rev past @ terms)
