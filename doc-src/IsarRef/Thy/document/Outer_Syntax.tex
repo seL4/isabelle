@@ -216,7 +216,6 @@ Entity \railqtok{name} usually refers to any name of types,
   \railqtok{nameref}.
 
   \indexoutertoken{name}\indexoutertoken{parname}\indexoutertoken{nameref}
-  \indexoutertoken{int}
   \begin{rail}
     name: ident | symident | string | nat
     ;
@@ -224,9 +223,29 @@ Entity \railqtok{name} usually refers to any name of types,
     ;
     nameref: name | longident
     ;
+  \end{rail}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Numbers%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The outer lexical syntax (\secref{sec:outer-lex}) admits
+  natural numbers and floating point numbers.  These are combined as
+  \hyperlink{syntax.int}{\mbox{\isa{int}}} and \hyperlink{syntax.real}{\mbox{\isa{real}}} as follows.
+
+  \indexoutertoken{int}\indexoutertoken{real}
+  \begin{rail}
     int: nat | '-' nat
     ;
-  \end{rail}%
+    real: float | int
+    ;
+  \end{rail}
+
+  Note that there is an overlap with the category \railqtok{name},
+  which also includes \hyperlink{syntax.nat}{\mbox{\isa{nat}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

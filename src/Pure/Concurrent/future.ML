@@ -253,7 +253,7 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 val status_ticks = Unsynchronized.ref 0;
 
 val last_round = Unsynchronized.ref Time.zeroTime;
-val next_round = Time.fromMilliseconds 50;
+val next_round = seconds 0.05;
 
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let

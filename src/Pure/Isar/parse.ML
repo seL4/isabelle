@@ -195,7 +195,7 @@ fun maybe scan = underscore >> K NONE || scan >> SOME;
 
 val nat = number >> (#1 o Library.read_int o Symbol.explode);
 val int = Scan.optional (minus >> K ~1) 1 -- nat >> op *;
-val real = float_number >> (the o Real.fromString);
+val real = float_number >> (the o Real.fromString) || int >> Real.fromInt;
 
 val tag_name = group "tag name" (short_ident || string);
 val tags = Scan.repeat ($$$ "%" |-- !!! tag_name);

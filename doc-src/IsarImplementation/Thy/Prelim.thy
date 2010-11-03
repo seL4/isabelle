@@ -663,6 +663,7 @@ ML {*
 *}
 setup airspeed_velocity_setup
 
+declare [[airspeed_velocity = 10]]
 declare [[airspeed_velocity = 9.9]]
 
 

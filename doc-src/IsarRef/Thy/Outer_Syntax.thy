@@ -197,7 +197,6 @@ text {*
   \railqtok{nameref}.
 
   \indexoutertoken{name}\indexoutertoken{parname}\indexoutertoken{nameref}
-  \indexoutertoken{int}
   \begin{rail}
     name: ident | symident | string | nat
     ;
@@ -205,9 +204,26 @@ text {*
     ;
     nameref: name | longident
     ;
+  \end{rail}
+*}
+
+
+subsection {* Numbers *}
+
+text {* The outer lexical syntax (\secref{sec:outer-lex}) admits
+  natural numbers and floating point numbers.  These are combined as
+  @{syntax int} and @{syntax real} as follows.
+
+  \indexoutertoken{int}\indexoutertoken{real}
+  \begin{rail}
     int: nat | '-' nat
     ;
+    real: float | int
+    ;
   \end{rail}
+
+  Note that there is an overlap with the category \railqtok{name},
+  which also includes @{syntax nat}.
 *}
 
 

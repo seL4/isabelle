@@ -24,7 +24,8 @@ locale weak_partial_order = equivalence L for L (structure) +
     and le_trans [trans]:
       "[| x \<sqsubseteq> y; y \<sqsubseteq> z; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L |] ==> x \<sqsubseteq> z"
     and le_cong:
-      "\<lbrakk> x .= y; z .= w; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L; w \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z \<longleftrightarrow> y \<sqsubseteq> w"
+      "\<lbrakk> x .= y; z .= w; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L; w \<in> carrier L \<rbrakk> \<Longrightarrow>
+      x \<sqsubseteq> z \<longleftrightarrow> y \<sqsubseteq> w"
 
 definition
   lless :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)

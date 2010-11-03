@@ -248,7 +248,7 @@ fun is_forbidden_mutant t =
   end
 
 fun is_executable_term thy t =
-  can (TimeLimit.timeLimit (Time.fromMilliseconds 2000)
+  can (TimeLimit.timeLimit (seconds 2.0)
     (Quickcheck.test_term
       (Context.proof_map (Quickcheck.map_test_params (apfst (K (1, 0)))) (ProofContext.init_global thy))
       (SOME "SML"))) (preprocess thy [] t)

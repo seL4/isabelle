@@ -735,6 +735,10 @@ lemma multiset_of_append [simp]:
   "multiset_of (xs @ ys) = multiset_of xs + multiset_of ys"
   by (induct xs arbitrary: ys) (auto simp: add_ac)
 
+lemma multiset_of_filter:
+  "multiset_of (filter P xs) = {#x :# multiset_of xs. P x #}"
+  by (induct xs) simp_all
+
 lemma surj_multiset_of: "surj multiset_of"
 apply (unfold surj_def)
 apply (rule allI)
@@ -852,7 +856,7 @@ text {*
 
 lemma properties_for_sort_key:
   assumes "multiset_of ys = multiset_of xs"
-  and "\<forall>k \<in> f ` set ys. filter (\<lambda>x. k = f x) ys = filter (\<lambda>x. k = f x) xs"
+  and "\<And>k. k \<in> set ys \<Longrightarrow> filter (\<lambda>x. f k = f x) ys = filter (\<lambda>x. f k = f x) xs"
   and "sorted (map f ys)"
   shows "sort_key f xs = ys"
 using assms proof (induct xs arbitrary: ys)
@@ -860,7 +864,7 @@ using assms proof (induct xs arbitrary: ys)
 next
   case (Cons x xs)
   from Cons.prems(2) have
-    "\<forall>k \<in> f ` set ys. filter (\<lambda>x. k = f x) (remove1 x ys) = filter (\<lambda>x. k = f x) xs"
+    "\<forall>k \<in> set ys. filter (\<lambda>x. f k = f x) (remove1 x ys) = filter (\<lambda>x. f k = f x) xs"
     by (simp add: filter_remove1)
   with Cons.prems have "sort_key f xs = remove1 x ys"
     by (auto intro!: Cons.hyps simp add: sorted_map_remove1)
@@ -880,9 +884,55 @@ proof (rule properties_for_sort_key)
     by (rule multiset_of_eq_length_filter)
   then have "\<And>k. replicate (length (filter (\<lambda>y. k = y) ys)) k = replicate (length (filter (\<lambda>x. k = x) xs)) k"
     by simp
-  then show "\<forall>k \<in> (\<lambda>x. x) ` set ys. filter (\<lambda>y. k = y) ys = filter (\<lambda>x. k = x) xs"
+  then show "\<And>k. k \<in> set ys \<Longrightarrow> filter (\<lambda>y. k = y) ys = filter (\<lambda>x. k = x) xs"
     by (simp add: replicate_length_filter)
 qed
+
+lemma sort_key_by_quicksort:
+  "sort_key f xs = sort_key f [x\<leftarrow>xs. f x < f (xs ! (length xs div 2))]
+    @ [x\<leftarrow>xs. f x = f (xs ! (length xs div 2))]
+    @ sort_key f [x\<leftarrow>xs. f x > f (xs ! (length xs div 2))]" (is "sort_key f ?lhs = ?rhs")
+proof (rule properties_for_sort_key)
+  show "multiset_of ?rhs = multiset_of ?lhs"
+    by (rule multiset_eqI) (auto simp add: multiset_of_filter)
+next
+  show "sorted (map f ?rhs)"
+    by (auto simp add: sorted_append intro: sorted_map_same)
+next
+  fix l
+  assume "l \<in> set ?rhs"
+  have *: "\<And>x P. P (f x) \<and> f l = f x \<longleftrightarrow> P (f l) \<and> f l = f x" by auto
+  have **: "\<And>x. f l = f x \<longleftrightarrow> f x = f l" by auto
+  have "[x \<leftarrow> sort_key f xs . f x = f l] = [x \<leftarrow> xs. f x = f l]"
+    unfolding filter_sort by (rule properties_for_sort_key) (auto intro: sorted_map_same)
+  with ** have [simp]: "[x \<leftarrow> sort_key f xs . f l = f x] = [x \<leftarrow> xs. f l = f x]" by simp
+  let ?pivot = "f (xs ! (length xs div 2))"
+  show "[x \<leftarrow> ?rhs. f l = f x] = [x \<leftarrow> ?lhs. f l = f x]"
+  proof (cases "f l" ?pivot rule: linorder_cases)
+    case less then moreover have "f l \<noteq> ?pivot" and "\<not> f l > ?pivot" by auto
+    ultimately show ?thesis
+      apply (auto simp add: filter_sort [symmetric])
+      apply (subst *) apply simp
+      apply (subst *) apply simp
+      done
+  next
+    case equal then show ?thesis
+      by (auto simp add: ** less_le)
+  next
+    case greater then moreover have "f l \<noteq> ?pivot" and "\<not> f l < ?pivot" by auto
+    ultimately show ?thesis
+      apply (auto simp add: filter_sort [symmetric])
+      apply (subst *) apply simp
+      apply (subst *) apply simp
+      done
+  qed
+qed
+
+lemma sort_by_quicksort:
+  "sort xs = sort [x\<leftarrow>xs. x < xs ! (length xs div 2)]
+    @ [x\<leftarrow>xs. x = xs ! (length xs div 2)]
+    @ sort [x\<leftarrow>xs. x > xs ! (length xs div 2)]" (is "sort ?lhs = ?rhs")
+  using sort_key_by_quicksort [of "\<lambda>x. x", symmetric] by simp
 
 end
 

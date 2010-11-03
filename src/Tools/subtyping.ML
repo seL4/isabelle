@@ -762,7 +762,7 @@ val setup =
   Attrib.setup @{binding coercion}
     (Args.term >> (fn t => Thm.declaration_attribute (K (add_coercion t))))
     "declaration of new coercions" #>
-  Attrib.setup @{binding map_function}
+  Attrib.setup @{binding coercion_map}
     (Args.term >> (fn t => Thm.declaration_attribute (K (add_type_map t))))
     "declaration of new map functions";
 

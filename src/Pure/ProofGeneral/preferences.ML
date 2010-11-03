@@ -20,6 +20,7 @@ sig
   val generic_pref: ('a -> string) -> (string -> 'a) -> PgipTypes.pgiptype ->
     'a Unsynchronized.ref -> string -> string -> preference
   val string_pref: string Unsynchronized.ref -> string -> string -> preference
+  val real_pref: real Unsynchronized.ref -> string -> string -> preference
   val int_pref: int Unsynchronized.ref -> string -> string -> preference
   val nat_pref: int Unsynchronized.ref -> string -> string -> preference
   val bool_pref: bool Unsynchronized.ref -> string -> string -> preference
@@ -64,6 +65,9 @@ fun generic_pref read write typ r =
   mkpref (fn () => read (! r)) (fn x => r := write x) typ;
 
 val string_pref = generic_pref I I PgipTypes.Pgipstring;
+
+val real_pref =
+  generic_pref PgipTypes.real_to_pgstring PgipTypes.read_pgipreal PgipTypes.Pgipreal;
 
 val int_pref =
   generic_pref PgipTypes.int_to_pgstring (PgipTypes.read_pgipint (NONE, NONE))

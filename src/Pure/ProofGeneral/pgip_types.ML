@@ -22,8 +22,9 @@ sig
 
     (* Types and values (used for preferences and dialogs) *)
 
-    datatype pgiptype = Pgipnull | Pgipbool | Pgipint of int option * int option | Pgipnat
-                      | Pgipstring | Pgipconst of string | Pgipchoice of pgipdtype list
+    datatype pgiptype =
+        Pgipnull | Pgipbool | Pgipint of int option * int option | Pgipnat | Pgipreal
+      | Pgipstring | Pgipconst of string | Pgipchoice of pgipdtype list
 
     and pgipdtype = Pgipdtype of string option * pgiptype  (* type with opt. description *)
 
@@ -70,7 +71,9 @@ sig
     val read_pgipint       : (int option * int option) -> string -> int (* raises PGIP *)
     val read_pgipnat       : string -> int                              (* raises PGIP *)
     val read_pgipbool      : string -> bool                             (* raises PGIP *)
+    val read_pgipreal      : string -> real                             (* raises PGIP *)
     val read_pgipstring    : string -> string                           (* raises PGIP *)
+    val real_to_pgstring   : real -> string
     val int_to_pgstring    : int -> string
     val bool_to_pgstring   : bool -> string
     val string_to_pgstring : string -> string
@@ -203,6 +206,11 @@ fun read_pgipnat s =
                    else raise PGIP ("Invalid natural number: " ^ quote s)
        | NONE => raise PGIP ("Invalid natural number: " ^ quote s))
 
+fun read_pgipreal s =
+    (case Real.fromString s of
+         SOME x => x
+       | NONE => raise PGIP ("Invalid floating-point number: " ^ quote s))
+
 (* NB: we can maybe do without xml decode/encode here. *)
 fun read_pgipstring s =  (* non-empty strings, XML escapes decoded *)
     (case XML.parse_string s of
@@ -211,6 +219,8 @@ fun read_pgipstring s =  (* non-empty strings, XML escapes decoded *)
     handle _ => raise PGIP ("Invalid XML string syntax: " ^ quote s)  (* FIXME avoid handle _ *)
 
 val int_to_pgstring = signed_string_of_int
+
+val real_to_pgstring = signed_string_of_real
 
 fun string_to_pgstring s = XML.text s
 
@@ -238,6 +248,7 @@ datatype pgiptype =
        | Pgipbool                            (* booleans: "true" or "false" *)
        | Pgipint of int option * int option  (* ranged integers, should be XSD canonical *)
        | Pgipnat                             (* naturals: non-negative integers (convenience) *)
+       | Pgipreal                            (* floating-point numbers *)
        | Pgipstring                          (* non-empty strings *)
        | Pgipconst of string                 (* singleton type *)
        | Pgipchoice of pgipdtype list        (* union type *)
@@ -246,8 +257,9 @@ datatype pgiptype =
 
 and pgipdtype = Pgipdtype of string option * pgiptype
 
-datatype pgipuval = Pgvalnull | Pgvalbool of bool | Pgvalint of int | Pgvalnat of int 
-                  | Pgvalstring of string | Pgvalconst of string
+datatype pgipuval =
+    Pgvalnull | Pgvalbool of bool | Pgvalint of int | Pgvalnat of int | Pgvalreal of real
+  | Pgvalstring of string | Pgvalconst of string
 
 type pgipval = pgiptype * pgipuval      (* type-safe values *)
 
@@ -260,6 +272,7 @@ fun pgipdtype_to_xml (desco,ty) =
                     | Pgipbool => "pgipbool"
                     | Pgipint _ => "pgipint"
                     | Pgipnat => "pgipint"
+                    | Pgipreal => "pgipint"  (* FIXME sic? *)
                     | Pgipstring => "pgipstring"
                     | Pgipconst _ => "pgipconst"
                     | Pgipchoice _ => "pgipchoice"
@@ -291,6 +304,7 @@ fun read_pguval Pgipnull s =
   | read_pguval Pgipbool s = Pgvalbool (read_pgipbool s)
   | read_pguval (Pgipint range) s = Pgvalint (read_pgipint range s)
   | read_pguval Pgipnat s = Pgvalnat (read_pgipnat s)
+  | read_pguval Pgipreal s = Pgvalreal (read_pgipreal s)
   | read_pguval (Pgipconst c) s = 
     if c=s then Pgvalconst c 
     else raise PGIP ("Given string: "^quote s^" doesn't match expected string: "^quote c)
@@ -315,6 +329,7 @@ fun pgval_to_string (_, Pgvalnull) = ""
   | pgval_to_string (_, Pgvalbool b) = bool_to_pgstring b
   | pgval_to_string (_, Pgvalnat n) = int_to_pgstring n
   | pgval_to_string (_, Pgvalint i) = int_to_pgstring i
+  | pgval_to_string (_, Pgvalreal x) = real_to_pgstring x
   | pgval_to_string (_, Pgvalconst c) = string_to_pgstring c
   | pgval_to_string (_, Pgvalstring s) = string_to_pgstring s
 

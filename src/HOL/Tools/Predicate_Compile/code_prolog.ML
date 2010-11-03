@@ -120,7 +120,7 @@ type system_configuration = {timeout : Time.time, prolog_system : prolog_system}
 structure System_Config = Generic_Data
 (
   type T = system_configuration
-  val empty = {timeout = Time.fromSeconds 10, prolog_system = SWI_PROLOG}
+  val empty = {timeout = seconds 10.0, prolog_system = SWI_PROLOG}
   val extend = I;
   fun merge ({timeout = timeout1, prolog_system = prolog_system1},
         {timeout = timeout2, prolog_system = prolog_system2}) =

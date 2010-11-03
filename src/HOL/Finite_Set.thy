@@ -2182,7 +2182,7 @@ by (auto intro: le_antisym card_inj_on_le)
 
 subsubsection {* Pigeonhole Principles *}
 
-lemma pigeonhole: "finite(A) \<Longrightarrow> card A > card(f ` A) \<Longrightarrow> ~ inj_on f A "
+lemma pigeonhole: "card A > card(f ` A) \<Longrightarrow> ~ inj_on f A "
 by (auto dest: card_image less_irrefl_nat)
 
 lemma pigeonhole_infinite:

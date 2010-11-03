@@ -1,8 +1,10 @@
 (*  Title:      Pure/ML-Systems/timing.ML
     Author:     Makarius
 
-Compiler-independent timing functions.
+Basic support for timing.
 *)
+
+fun seconds s = Time.fromNanoseconds (Real.ceil (s * 1E9));
 
 fun start_timing () =
   let

@@ -125,7 +125,7 @@ setup {* Code_Prolog.map_code_options (K
   limited_predicates = [],
   replacing = [],
   manual_reorder = [],
-  timeout = Time.fromSeconds 10,
+  timeout = seconds 10.0,
   prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 

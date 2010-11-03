@@ -281,6 +281,22 @@ Since ML is the primary medium to express the meaning of the
   \verb|lhs| (not \verb|lhs_tm|).  Or a term that is known
   to be a variable can be called \verb|v| or \verb|x|.
 
+  \item Tactics (\secref{sec:tactics}) are sufficiently important to
+  have specific naming conventions.  The name of a basic tactic
+  definition always has a \verb|_tac| suffix, the subgoal index
+  (if applicable) is always called \verb|i|, and the goal state
+  (if made explicit) is usually called \verb|st| instead of the
+  somewhat misleading \verb|thm|.  Any other arguments are given
+  before the latter two, and the general context is given first.
+  Example:
+
+  \begin{verbatim}
+  fun my_tac ctxt arg1 arg2 i st = ...
+  \end{verbatim}
+
+  Note that the goal state \verb|st| above is rarely made
+  explicit, if tactic combinators (tacticals) are used as usual.
+
   \end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1631,6 +1647,44 @@ The basis library proposal of SML97 needs to be treated with
   Structure \verb|IntInf| of SML97 is obsolete and superseded by
   \verb|Int|.  Structure \verb|Integer| in \hyperlink{file.~~/src/Pure/General/integer.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}integer{\isachardot}ML}}}} provides some additional
   operations.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsection{Time%
+}
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML type}{Time.time}\verb|type Time.time| \\
+  \indexdef{}{ML}{seconds}\verb|seconds: real -> Time.time| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item Type \verb|Time.time| represents time abstractly according
+  to the SML97 basis library definition.  This is adequate for
+  internal ML operations, but awkward in concrete time specifications.
+
+  \item \verb|seconds|~\isa{s} turns the concrete scalar \isa{s} (measured in seconds) into an abstract time value.  Floating
+  point numbers are easy to use as context parameters (e.g.\ via
+  configuration options, see \secref{sec:config-options}) or
+  preferences that are maintained by external tools as well.
 
   \end{description}%
 \end{isamarkuptext}%

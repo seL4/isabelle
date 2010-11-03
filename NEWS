@@ -60,6 +60,8 @@ changed globally at the ROOT session setup, but *not* within a theory.
 floating-point notation that coincides with the inner syntax for
 float_token.
 
+* Support for real valued preferences (with approximative PGIP type).
+
 * Interpretation command 'interpret' accepts a list of equations like
 'interpretation' does.
 
@@ -156,6 +158,9 @@ to standard output.  INCOMPATIBILITY.
 
 * Abolished symbol type names:  "prod" and "sum" replace "*" and "+"
 respectively.  INCOMPATIBILITY.
+
+* Name "Plus" of disjoint sum operator "<+>" is now hidden.
+  Write Sum_Type.Plus.
 
 * Constant "split" has been merged with constant "prod_case";  names
 of ML functions, facts etc. involving split have been retained so far,

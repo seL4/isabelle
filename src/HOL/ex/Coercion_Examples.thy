@@ -11,7 +11,7 @@ begin
 
 setup Subtyping.setup
 
-(* Coercion/type maps definitions*)
+(* Error messages test *)
 
 consts func :: "(nat \<Rightarrow> int) \<Rightarrow> nat"
 consts arg :: "int \<Rightarrow> nat"
@@ -36,6 +36,8 @@ term "1 = True"
 term "[1::int] = func"
 *)
 
+(* Coercion/type maps definitions *)
+
 primrec nat_of_bool :: "bool \<Rightarrow> nat"
 where
   "nat_of_bool False = 0"
@@ -45,17 +47,17 @@ declare [[coercion nat_of_bool]]
 
 declare [[coercion int]]
 
-declare [[map_function map]]
+declare [[coercion_map map]]
 
 definition map_fun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'd)" where
  "map_fun f g h = g o h o f"
 
-declare [[map_function "\<lambda> f g h . g o h o f"]]
+declare [[coercion_map "\<lambda> f g h . g o h o f"]]
 
 primrec map_pair :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a * 'b) \<Rightarrow> ('c * 'd)" where
  "map_pair f g (x,y) = (f x, g y)"
 
-declare [[map_function map_pair]]
+declare [[coercion_map map_pair]]
 
 (* Examples taken from the haskell draft implementation *)
 
