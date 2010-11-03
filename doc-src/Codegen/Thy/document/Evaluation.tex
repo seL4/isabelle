@@ -38,7 +38,7 @@ Recalling \secref{sec:principle}, code generation turns a system of
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The existing infrastructure provides a rich palett of evaluation
+The existing infrastructure provides a rich palette of evaluation
   techniques, each comprising different aspects:
 
   \begin{description}
@@ -188,7 +188,7 @@ Static evaluation freezes the code generator configuration at a
     \item Evaluation of \isa{t} terminates with a result \isa{t{\isacharprime}}.
 
     \item Evaluation of \isa{t} terminates which en exception
-      indicating a pattern match failure or a not-implemented
+      indicating a pattern match failure or a non-implemented
       function.  As sketched in \secref{sec:partiality}, this can be
       interpreted as partiality.
      
@@ -200,8 +200,8 @@ Static evaluation freezes the code generator configuration at a
   Exceptions of the third kind are propagated to the user.
 
   By default return values of plain evaluation are optional, yielding
-  \isa{SOME\ t{\isacharprime}} in the first case, \isa{NONE} and in the
-  second propagating the exception in the third case.  A strict
+  \isa{SOME\ t{\isacharprime}} in the first case, \isa{NONE} in the
+  second, and propagating the exception in the third case.  A strict
   variant of plain evaluation either yields \isa{t{\isacharprime}} or propagates
   any exception, a liberal variant caputures any exception in a result
   of type \isa{Exn{\isachardot}result}.
