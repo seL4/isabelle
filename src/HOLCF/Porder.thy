@@ -39,6 +39,9 @@ text {* minimal fixes least element *}
 lemma minimal2UU[OF allI] : "\<forall>x. uu \<sqsubseteq> x \<Longrightarrow> uu = (THE u. \<forall>y. u \<sqsubseteq> y)"
   by (blast intro: theI2 below_antisym)
 
+lemma eq_imp_below: "x = y \<Longrightarrow> x \<sqsubseteq> y"
+  by simp
+
 text {* the reverse law of anti-symmetry of @{term "op <<"} *}
 (* Is this rule ever useful? *)
 lemma below_antisym_inverse: "x = y \<Longrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
