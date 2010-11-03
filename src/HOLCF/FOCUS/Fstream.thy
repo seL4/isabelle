@@ -94,7 +94,7 @@ prefer 2 apply (fast elim: DefE)
 apply (rule lift.exhaust)
 apply (erule (1) notE)
 apply (safe)
-apply (drule Def_inject_less_eq [THEN iffD1])
+apply (drule Def_below_Def [THEN iffD1])
 apply fast
 done
 

@@ -46,7 +46,7 @@ lemma lemma4: "y && YYS << YYS"
   done
 
 lemma lemma5: "y && YYS = YYS"
-  apply (rule antisym_less)
+  apply (rule below_antisym)
   apply (rule lemma4)
   apply (rule lemma3)
   done
@@ -84,7 +84,7 @@ lemma lemma7: "YS << YYS"
   done
 
 lemma wir_moel': "YS = YYS"
-  apply (rule antisym_less)
+  apply (rule below_antisym)
   apply (rule lemma7)
   apply (rule lemma6)
   done

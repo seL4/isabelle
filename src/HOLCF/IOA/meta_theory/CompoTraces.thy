@@ -260,8 +260,8 @@ apply simp
 apply auto
 
 (* a: act A; a: act B *)
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 back
 apply (erule conjE)+
 (* Finite (tw iA x) and Finite (tw iB y) *)
@@ -275,7 +275,7 @@ apply assumption
 apply (simp add: not_ext_is_int_or_not_act ForallTL ForallDropwhile)
 
 (* a: act B; a~: act A *)
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 
 apply (erule conjE)+
 (* Finite (tw iB y) *)
@@ -287,7 +287,7 @@ apply assumption
 apply (simp add: not_ext_is_int_or_not_act ForallTL ForallDropwhile)
 
 (* a~: act B; a: act A *)
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 
 apply (erule conjE)+
 (* Finite (tw iA x) *)
@@ -327,7 +327,7 @@ apply simp
 apply (erule conjE)+
 apply simp
 (* divide_Seq on s *)
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 apply (erule conjE)+
 (* transform assumption f eB y = f B (s@z) *)
 apply (drule_tac x = "y" and g = "Filter (%a. a:act B) $ (s@@z) " in subst_lemma2)
@@ -373,7 +373,7 @@ apply simp
 apply (erule conjE)+
 apply simp
 (* divide_Seq on s *)
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 apply (erule conjE)+
 (* transform assumption f eA x = f A (s@z) *)
 apply (drule_tac x = "x" and g = "Filter (%a. a:act A) $ (s@@z) " in subst_lemma2)
@@ -557,7 +557,7 @@ prefer 2 apply assumption
 prefer 2 apply fast
 
 (* bring in divide Seq for s *)
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 apply (erule conjE)+
 
 (* subst divide_Seq in conclusion, but only at the righest occurence *)
@@ -610,7 +610,7 @@ prefer 2 apply (assumption)
 prefer 2 apply (fast)
 
 (* bring in divide Seq for s *)
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 apply (erule conjE)+
 
 (* subst divide_Seq in conclusion, but only at the righest occurence *)
@@ -628,7 +628,7 @@ apply (rotate_tac 13)
 apply (simp add: ext_and_act)
 
 (* divide_Seq for schB2 *)
-apply (frule_tac y = "y2" in sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule_tac y = "y2" in sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 apply (erule conjE)+
 (* assumption schA *)
 apply (drule_tac x = "schA" and g = "Filter (%a. a:act A) $rs" in subst_lemma2)
@@ -776,7 +776,7 @@ prefer 2 apply (assumption)
 prefer 2 apply (fast)
 
 (* bring in divide Seq for s *)
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 apply (erule conjE)+
 
 (* subst divide_Seq in conclusion, but only at the righest occurence *)
@@ -827,7 +827,7 @@ prefer 2 apply (assumption)
 prefer 2 apply (fast)
 
 (* bring in divide Seq for s *)
-apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 apply (erule conjE)+
 
 (* subst divide_Seq in conclusion, but only at the righest occurence *)
@@ -845,7 +845,7 @@ apply (rotate_tac 13)
 apply (simp add: ext_and_act)
 
 (* divide_Seq for schB2 *)
-apply (frule_tac y = "x2" in sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
+apply (frule_tac y = "x2" in sym [THEN below_antisym_inverse, THEN conjunct1, THEN divide_Seq])
 apply (erule conjE)+
 (* assumption schA *)
 apply (drule_tac x = "schB" and g = "Filter (%a. a:act B) $rs" in subst_lemma2)

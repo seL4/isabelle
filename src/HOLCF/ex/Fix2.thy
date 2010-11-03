@@ -17,7 +17,7 @@ axiomatization
 
 lemma lemma1: "fix = gix"
 apply (rule cfun_eqI)
-apply (rule antisym_less)
+apply (rule below_antisym)
 apply (rule fix_least)
 apply (rule gix1_def)
 apply (rule gix2_def)
