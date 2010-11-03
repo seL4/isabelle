@@ -35,7 +35,7 @@ sig
   val filter_only: bool Config.T
   val datatypes: bool Config.T
   val keep_assms: bool Config.T
-  val timeout: int Config.T
+  val timeout: real Config.T
   val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
   val traceN: string
   val trace: bool Config.T
@@ -127,10 +127,10 @@ val (datatypes, setup_datatypes) = Attrib.config_bool "smt_datatypes" (K false)
 val (keep_assms, setup_keep_assms) =
   Attrib.config_bool "smt_keep_assms" (K true)
 
-val (timeout, setup_timeout) = Attrib.config_int "smt_timeout" (K 30)
+val (timeout, setup_timeout) = Attrib.config_real "smt_timeout" (K 30.0)
 
 fun with_timeout ctxt f x =
-  TimeLimit.timeLimit (Time.fromSeconds (Config.get ctxt timeout)) f x
+  TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) f x
   handle TimeLimit.TimeOut => raise SMT Time_Out
 
 val traceN = "smt_trace"
@@ -252,7 +252,7 @@ fun invoke translate_config name cmd more_opts options irules ctxt =
   let
     val args = more_opts @ options ctxt
     val comments = ("solver: " ^ name) ::
-      ("timeout: " ^ string_of_int (Config.get ctxt timeout)) ::
+      ("timeout: " ^ Time.toString (seconds (Config.get ctxt timeout))) ::
       "arguments:" :: args
   in
     irules
@@ -433,7 +433,7 @@ fun smt_filter run_remote time_limit st xrules i =
     val {facts, goal, ...} = Proof.goal st
     val ctxt =
       Proof.context_of st
-      |> Config.put timeout (Time.toSeconds time_limit)
+      |> Config.put timeout (Real.fromInt (Time.toSeconds time_limit))
       |> Config.put oracle false
       |> Config.put filter_only true
       |> Config.put keep_assms false
@@ -504,7 +504,7 @@ val setup =
 
 fun print_setup context =
   let
-    val t = string_of_int (Config.get_generic context timeout)
+    val t = Time.toString (seconds (Config.get_generic context timeout))
     val names = sort_strings (all_solver_names_of context)
     val ns = if null names then [no_solver] else names
     val n = solver_name_of context
