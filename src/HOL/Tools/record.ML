@@ -1578,7 +1578,7 @@ fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
           (case rev params of
             [] =>
               (case AList.lookup (op =) (Term.add_frees g []) s of
-                NONE => sys_error "try_param_tac: no such variable"
+                NONE => error "try_param_tac: no such variable"
               | SOME T => [(P, if ca then concl else lambda (Free (s, T)) concl), (x, Free (s, T))])
           | (_, T) :: _ =>
               [(P, list_abs (params, if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),

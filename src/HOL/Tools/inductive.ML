@@ -229,7 +229,7 @@ fun make_bool_args' xs =
 
 fun arg_types_of k c = drop k (binder_types (fastype_of c));
 
-fun find_arg T x [] = sys_error "find_arg"
+fun find_arg T x [] = raise Fail "find_arg"
   | find_arg T x ((p as (_, (SOME _, _))) :: ps) =
       apsnd (cons p) (find_arg T x ps)
   | find_arg T x ((p as (U, (NONE, y))) :: ps) =

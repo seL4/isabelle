@@ -21,7 +21,7 @@ struct
 
 fun mk_bit 0 = Syntax.const @{const_syntax "0"}
   | mk_bit 1 = Syntax.const @{const_syntax succ} $ Syntax.const @{const_syntax 0}
-  | mk_bit _ = sys_error "mk_bit";
+  | mk_bit _ = raise Fail "mk_bit";
 
 fun dest_bit (Const (@{const_syntax "0"}, _)) = 0
   | dest_bit (Const (@{const_syntax succ}, _) $ Const (@{const_syntax "0"}, _)) = 1

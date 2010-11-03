@@ -171,8 +171,8 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
           else (thm COMP (Thm.lift_rule (cprop_of thm) @{thm less_imp_le}))
         | SOME (Termination.LessEq (thm, _))  =>
           if not bStrict then thm
-          else sys_error "get_desc_thm"
-        | _ => sys_error "get_desc_thm"
+          else raise Fail "get_desc_thm"
+        | _ => raise Fail "get_desc_thm"
 
     val (label, lev, sl, covering) = certificate
 

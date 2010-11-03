@@ -185,7 +185,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
       case cprems_of psimp of
         [] => (psimp, I)
       | [cond] => (Thm.implies_elim psimp (Thm.assume cond), Thm.implies_intr cond)
-      | _ => sys_error "Too many conditions"
+      | _ => raise General.Fail "Too many conditions"
 
   in
     Goal.prove ctxt [] []

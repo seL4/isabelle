@@ -73,7 +73,14 @@ fun token_leq (tok, tok') = content_of tok <= content_of tok';
 fun check_content_of tok =
   (case kind_of tok of
     Error msg => error msg
-  | _ => content_of tok);
+  | _ =>
+      (case tok of
+        Token (_, (Keyword, ":>")) =>
+          warning ("Opaque signature matching (:>) fails to work with ML pretty printing --\n\
+            \prefer non-opaque matching (:) possibly with abstype" ^
+            Position.str_of (pos_of tok))
+      | _ => ();
+      content_of tok));
 
 val flatten = implode o map (Symbol.escape o check_content_of);
 
