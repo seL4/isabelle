@@ -47,8 +47,7 @@ apply (induct_tac k)
 apply simp
 apply (rule allI)
 apply (rule trans)
-apply (subst while_unfold)
-apply (rule_tac [2] refl)
+apply (rule while_unfold)
 apply (subst iterate_Suc2)
 apply (rule trans)
 apply (erule_tac [2] spec)
@@ -57,9 +56,7 @@ apply (rule_tac p = "b$x" in trE)
 apply simp
 apply (subst while_unfold)
 apply (rule_tac s = "UU" and t = "b$UU" in ssubst)
-apply (erule flat_codom [THEN disjE])
-apply assumption
-apply (erule spec)
+apply (erule strictI)
 apply simp
 apply simp
 apply simp
