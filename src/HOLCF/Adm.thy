@@ -29,16 +29,6 @@ unfolding adm_def by fast
 lemma triv_admI: "\<forall>x. P x \<Longrightarrow> adm P"
 by (rule admI, erule spec)
 
-text {* improved admissibility introduction *}
-
-lemma admI2:
-  "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i); \<forall>i. \<exists>j>i. Y i \<noteq> Y j \<and> Y i \<sqsubseteq> Y j\<rbrakk> 
-    \<Longrightarrow> P (\<Squnion>i. Y i)) \<Longrightarrow> adm P"
-apply (rule admI)
-apply (erule (1) increasing_chain_adm_lemma)
-apply fast
-done
-
 subsection {* Admissibility on chain-finite types *}
 
 text {* for chain-finite (easy) types every formula is admissible *}
