@@ -117,7 +117,7 @@ fun prove_row (c :: cs) =
        rtac @{thm "mlex_leq"} 1
        THEN PRIMITIVE (Thm.elim_implies thm)
        THEN prove_row cs
-   | _ => sys_error "lexicographic_order")
+   | _ => raise General.Fail "lexicographic_order")
  | prove_row [] = no_tac;
 
 
