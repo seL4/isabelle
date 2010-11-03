@@ -329,10 +329,6 @@ apply (rule fold_pd_PDUnit [OF ACI_convex_bind])
 apply (rule fold_pd_PDPlus [OF ACI_convex_bind])
 done
 
-lemma monofun_LAM:
-  "\<lbrakk>cont f; cont g; \<And>x. f x \<sqsubseteq> g x\<rbrakk> \<Longrightarrow> (\<Lambda> x. f x) \<sqsubseteq> (\<Lambda> x. g x)"
-by (simp add: cfun_below_iff)
-
 lemma convex_bind_basis_mono:
   "t \<le>\<natural> u \<Longrightarrow> convex_bind_basis t \<sqsubseteq> convex_bind_basis u"
 apply (erule convex_le_induct)

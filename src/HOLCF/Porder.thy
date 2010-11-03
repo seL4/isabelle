@@ -34,17 +34,7 @@ class po = below +
   assumes below_antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
 begin
 
-text {* minimal fixes least element *}
-
-lemma minimal2UU[OF allI] : "\<forall>x. uu \<sqsubseteq> x \<Longrightarrow> uu = (THE u. \<forall>y. u \<sqsubseteq> y)"
-  by (blast intro: theI2 below_antisym)
-
 lemma eq_imp_below: "x = y \<Longrightarrow> x \<sqsubseteq> y"
-  by simp
-
-text {* the reverse law of anti-symmetry of @{term "op <<"} *}
-(* Is this rule ever useful? *)
-lemma below_antisym_inverse: "x = y \<Longrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
   by simp
 
 lemma box_below: "a \<sqsubseteq> b \<Longrightarrow> c \<sqsubseteq> a \<Longrightarrow> b \<sqsubseteq> d \<Longrightarrow> c \<sqsubseteq> d"
