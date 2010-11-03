@@ -2,7 +2,8 @@ theory Adaptation
 imports Setup
 begin
 
-setup %invisible {* Code_Target.extend_target ("\<SML>", ("SML", K I)) *}
+setup %invisible {* Code_Target.extend_target ("\<SML>", ("SML", K I))
+  #> Code_Target.extend_target ("\<SMLdummy>", ("Haskell", K I)) *}
 
 section {* Adaptation to target languages \label{sec:adaptation} *}
 
@@ -235,7 +236,7 @@ text {*
   @{command_def "code_reserved"} command:
 *}
 
-code_reserved %quote "\<SML>" bool true false andalso
+code_reserved %quote "\<SMLdummy>" bool true false andalso
 
 text {*
   \noindent Next, we try to map HOL pairs to SML pairs, using the
