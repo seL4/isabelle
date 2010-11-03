@@ -177,7 +177,7 @@ fun default_raw_params ctxt =
              ("full_types", [if !full_types then "true" else "false"]),
              ("timeout", let val timeout = !timeout in
                            [if timeout <= 0 then "none"
-                            else string_of_int timeout ^ " s"]
+                            else string_of_int timeout]
                          end)]
   end
 
@@ -322,7 +322,7 @@ fun sledgehammer_params_trans params =
                   end))
 
 val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
-val parse_value = Scan.repeat1 Parse.xname
+val parse_value = Scan.repeat1 (Parse.xname || Parse.float_number)
 val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =

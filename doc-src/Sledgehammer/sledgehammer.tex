@@ -378,9 +378,9 @@ The descriptions below refer to the following syntactic quantities:
 \textit{smart}.
 \item[$\bullet$] \qtybf{int\/}: An integer.
 \item[$\bullet$] \qtybf{int\_or\_smart\/}: An integer or \textit{smart}.
-\item[$\bullet$] \qtybf{time}: An integer followed by $\textit{min}$ (minutes),
-$s$ (seconds), or \textit{ms}
-(milliseconds), or the keyword \textit{none} ($\infty$ years).
+\item[$\bullet$] \qtybf{time}: An integer (e.g., 60) or floating-point number
+(e.g., 0.5) expressing a number of seconds, or the keyword \textit{none}
+($\infty$ seconds).
 \end{enum}
 
 Default values are indicated in square brackets. Boolean options have a negated
@@ -457,8 +457,8 @@ Legacy alias for \textit{provers}.
 \opnodefault{atp}{string}
 Legacy alias for \textit{provers}.
 
-\opdefault{timeout}{time}{$\mathbf{30}$ s}
-Specifies the maximum amount of time that the automatic provers should spend
+\opdefault{timeout}{time}{$\mathbf{30}$}
+Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. For historical reasons, the default value of this option
 can be overridden using the option ``Sledgehammer: Time Limit'' from the
 ``Isabelle'' menu in Proof General.

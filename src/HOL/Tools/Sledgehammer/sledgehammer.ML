@@ -411,11 +411,12 @@ fun run_atp auto atp_name
             (proof_banner auto, full_types, minimize_command, tstplike_proof,
              fact_names, goal, subgoal)
         |>> (fn message =>
-                message ^ (if verbose then
-                             "\nATP real CPU time: " ^
-                             string_of_int (the msecs) ^ " ms."
-                           else
-                             "") ^
+                message ^
+                (if verbose then
+                   "\nATP real CPU time: " ^
+                   string_from_time (Time.fromMilliseconds (the msecs)) ^ "."
+                 else
+                   "") ^
                 (if important_message <> "" then
                    "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^
                    important_message

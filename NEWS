@@ -325,6 +325,14 @@ INCOMPATIBILITY.
   - Renamed options:
     sledgehammer [atps = ...] ~> sledgehammer [provers = ...]
     sledgehammer [atp = ...] ~> sledgehammer [prover = ...]
+    sledgehammer [timeout = 77 s] ~> sledgehammer [timeout = 77]
+    (and "ms" and "min" are no longer supported)
+    INCOMPATIBILITY.
+
+* Nitpick:
+  - Renamed options:
+    nitpick [timeout = 77 s] ~> nitpick [timeout = 77]
+    nitpick [tac_timeout = 777 ms] ~> nitpick [tac_timeout = 0.777]
     INCOMPATIBILITY.
 
 * Changed SMT configuration options:

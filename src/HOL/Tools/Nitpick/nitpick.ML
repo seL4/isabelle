@@ -980,9 +980,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
            | Exn.Interrupt =>
              if auto orelse debug then raise Interrupt
              else error (excipit "was interrupted after checking")
-    val _ = print_v (fn () => "Total time: " ^
-                              signed_string_of_int (Time.toMilliseconds
-                                    (Timer.checkRealTimer timer)) ^ " ms.")
+    val _ = print_v (fn () =>
+                "Total time: " ^ string_from_time (Timer.checkRealTimer timer) ^
+                ".")
   in (outcome_code, !state_ref) end
   handle Exn.Interrupt =>
          if auto orelse #debug params then
