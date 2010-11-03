@@ -24,7 +24,11 @@ $| = 1;
 
 $emitpid && (print $$, "\n");
 
-$head && (print "$head", "\n");
+if ($head) {
+  utf8::encode($head);
+  $head =~ s/([\x80-\xff])/\\${\(ord($1))}/g;
+  print $head, "\n";
+}
 
 if (!$quit) {
   while (<STDIN>) {

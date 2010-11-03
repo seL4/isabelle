@@ -16,7 +16,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS]"
   echo
   echo "  Options are:"
-  echo "    -h TEXT      head text"
+  echo "    -h TEXT      head text (encoded as utf8)"
   echo "    -p           emit my pid"
   echo "    -q           do not pipe stdin"
   echo "    -t TEXT      tail text"
