@@ -68,7 +68,6 @@ fun exn_messages exn_position e =
         | TERMINATE => ["Exit"]
         | TimeLimit.TimeOut => ["Timeout"]
         | TOPLEVEL_ERROR => ["Error"]
-        | SYS_ERROR msg => ["## SYSTEM ERROR ##\n" ^ msg]
         | ERROR msg => [msg]
         | Fail msg => [raised exn "Fail" [msg]]
         | THEORY (msg, thys) =>

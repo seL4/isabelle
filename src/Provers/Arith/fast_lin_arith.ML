@@ -327,8 +327,8 @@ fun find_add_type(Eq,x) = x
 
 fun multiply_ineq n (i as Lineq(k,ty,l,just)) =
   if n = 1 then i
-  else if n = 0 andalso ty = Lt then sys_error "multiply_ineq"
-  else if n < 0 andalso (ty=Le orelse ty=Lt) then sys_error "multiply_ineq"
+  else if n = 0 andalso ty = Lt then raise Fail "multiply_ineq"
+  else if n < 0 andalso (ty=Le orelse ty=Lt) then raise Fail "multiply_ineq"
   else Lineq (n * k, ty, map (Integer.mult n) l, Multiplied (n, just));
 
 (* ------------------------------------------------------------------------- *)
@@ -352,7 +352,7 @@ fun elim_var v (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
         if (c1 >= 0) = (c2 >= 0)
         then if ty1 = Eq then (~m1,m2)
              else if ty2 = Eq then (m1,~m2)
-                  else sys_error "elim_var"
+                  else raise Fail "elim_var"
         else (m1,m2)
       val (p1,p2) = if ty1=Eq andalso ty2=Eq andalso (n1 = ~1 orelse n2 = ~1)
                     then (~n1,~n2) else (n1,n2)
@@ -497,7 +497,7 @@ fun mkthm ss asms (just: injust) =
               (the (try_add ([thm2] RL inj_thms) thm1)
                 handle Option =>
                   (trace_thm ctxt "" thm1; trace_thm ctxt "" thm2;
-                   sys_error "Linear arithmetic: failed to add thms"))
+                   raise Fail "Linear arithmetic: failed to add thms"))
           | SOME thm => thm)
       | SOME thm => thm);
 
@@ -598,7 +598,7 @@ fun mklineq atoms =
                 else lineq(c,Lt,diff,just)
      | "~<"  => lineq(~c,Le,map (op~) diff,NotLessD(just))
      | "="   => lineq(c,Eq,diff,just)
-     | _     => sys_error("mklineq" ^ rel)
+     | _     => raise Fail ("mklineq" ^ rel)
   end;
 
 (* ------------------------------------------------------------------------- *)

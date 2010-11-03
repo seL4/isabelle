@@ -349,6 +349,10 @@ INCOMPATIBILITY.
 
 *** ML ***
 
+* Discontinued obsolete function sys_error and exception SYS_ERROR.
+See implementation manual for further details on exceptions in
+Isabelle/ML.
+
 * Antiquotation @{assert} inlines a function bool -> unit that raises
 Fail if the argument is false.  Due to inlining the source position of
 failed assertions is included in the error output.
