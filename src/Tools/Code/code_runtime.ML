@@ -418,8 +418,7 @@ fun use_file filepath thy =
       (0, Path.implode filepath) false (File.read filepath);
     val thy'' = (Context.the_theory o the) (Context.thread_data ());
     val names = Loaded_Values.get thy'';
-    val thy''' = Thy_Load.provide_file filepath thy'';
-  in (names, thy''') end;
+  in (names, thy'') end;
 
 end;
 
