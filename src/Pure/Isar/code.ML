@@ -222,7 +222,7 @@ val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
 
 fun invoke f k = case Datatab.lookup (! kinds) k
  of SOME kind => f kind
-  | NONE => sys_error "Invalid code data identifier";
+  | NONE => raise Fail "Invalid code data identifier";
 
 in
 

@@ -354,10 +354,11 @@ fun get_assoc_type thy = AList.lookup (op =) ((#types o CodegenData.get) thy);
 fun is_ascii_letdig x = Symbol.is_ascii_letter x orelse
   Symbol.is_ascii_digit x orelse Symbol.is_ascii_quasi x;
 
-fun dest_sym s = (case split_last (snd (take_prefix (fn c => c = "\\") (explode s))) of
+fun dest_sym s =
+  (case split_last (snd (take_prefix (fn c => c = "\\") (explode s))) of
     ("<" :: "^" :: xs, ">") => (true, implode xs)
   | ("<" :: xs, ">") => (false, implode xs)
-  | _ => sys_error "dest_sym");
+  | _ => raise Fail "dest_sym");
 
 fun mk_id s = if s = "" then "" else
   let
@@ -378,7 +379,7 @@ fun mk_id s = if s = "" then "" else
 
 fun mk_long_id (p as (tab, used)) module s =
   let
-    fun find_name [] = sys_error "mk_long_id"
+    fun find_name [] = raise Fail "mk_long_id"
       | find_name (ys :: yss) =
           let
             val s' = Long_Name.implode ys

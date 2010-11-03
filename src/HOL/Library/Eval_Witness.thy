@@ -63,7 +63,7 @@ let
   fun dest_exs  0 t = t
     | dest_exs n (Const (@{const_name Ex}, _) $ Abs (v,T,b)) = 
       Abs (v, check_type T, dest_exs (n - 1) b)
-    | dest_exs _ _ = sys_error "dest_exs";
+    | dest_exs _ _ = raise Fail "dest_exs";
   val t = dest_exs (length ws) (HOLogic.dest_Trueprop goal);
 in
   if Code_Runtime.dynamic_value_strict (Eval_Method.get, Eval_Method.put, "Eval_Method.put") thy NONE (K I) t ws
