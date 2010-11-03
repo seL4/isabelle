@@ -124,7 +124,8 @@ text {*
   specific application, you should consider \emph{Imperative
   Functional Programming with Isabelle/HOL}
   \cite{bulwahn-et-al:2008:imperative}; the framework described there
-  is available in session @{text Imperative_HOL}.
+  is available in session @{text Imperative_HOL}, together with a short
+  primer document.
 *}
 
 
