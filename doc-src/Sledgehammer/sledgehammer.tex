@@ -377,10 +377,12 @@ The descriptions below refer to the following syntactic quantities:
 \item[$\bullet$] \qtybf{bool\_or\_smart\/}: \textit{true}, \textit{false}, or
 \textit{smart}.
 \item[$\bullet$] \qtybf{int\/}: An integer.
+\item[$\bullet$] \qtybf{float\_pair\/}: A pair of floating-point numbers
+(e.g., 0.6 0.95).
 \item[$\bullet$] \qtybf{int\_or\_smart\/}: An integer or \textit{smart}.
-\item[$\bullet$] \qtybf{time}: An integer (e.g., 60) or floating-point number
-(e.g., 0.5) expressing a number of seconds, or the keyword \textit{none}
-($\infty$ seconds).
+\item[$\bullet$] \qtybf{float\_or\_none\/}: An integer (e.g., 60) or
+floating-point number (e.g., 0.5) expressing a number of seconds, or the keyword
+\textit{none} ($\infty$ seconds).
 \end{enum}
 
 Default values are indicated in square brackets. Boolean options have a negated
@@ -457,7 +459,7 @@ Legacy alias for \textit{provers}.
 \opnodefault{atp}{string}
 Legacy alias for \textit{provers}.
 
-\opdefault{timeout}{time}{$\mathbf{30}$}
+\opdefault{timeout}{float\_or\_none}{\upshape 30}
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. For historical reasons, the default value of this option
 can be overridden using the option ``Sledgehammer: Time Limit'' from the
@@ -503,15 +505,15 @@ Types'' from the ``Isabelle'' menu in Proof General.
 \label{relevance-filter}
 
 \begin{enum}
-\opdefault{relevance\_thresholds}{int\_pair}{45~85}
+\opdefault{relevance\_thresholds}{float\_pair}{\upshape 0.45~0.85}
 Specifies the thresholds above which facts are considered relevant by the
 relevance filter. The first threshold is used for the first iteration of the
 relevance filter and the second threshold is used for the last iteration (if it
 is reached). The effective threshold is quadratically interpolated for the other
-iterations. Each threshold ranges from 0 to 100, where 0 means that all theorems
-are relevant and 100 only theorems that refer to previously seen constants.
+iterations. Each threshold ranges from 0 to 1, where 0 means that all theorems
+are relevant and 1 only theorems that refer to previously seen constants.
 
-\opdefault{max\_relevant}{int\_or\_smart}{\textit{smart}}
+\opsmart{max\_relevant}{int\_or\_smart}
 Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart}, it is set to a value that was
 empirically found to be appropriate for the prover. A typical value would be
@@ -540,7 +542,7 @@ Specifies whether Isar proofs should be output in addition to one-liner
 fails; however, they are usually faster and sometimes more robust than
 \textit{metis} proofs.
 
-\opdefault{isar\_shrink\_factor}{int}{1}
+\opdefault{isar\_shrink\_factor}{int}{\upshape 1}
 Specifies the granularity of the Isar proof. A value of $n$ indicates that each
 Isar proof step should correspond to a group of up to $n$ consecutive proof
 steps in the ATP proof.

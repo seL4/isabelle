@@ -78,7 +78,7 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("explicit_apply", "false"),
-   ("relevance_thresholds", "45 85"),
+   ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1")]
@@ -206,14 +206,14 @@ fun extract_params auto default_params override_params =
                     SOME n => n
                   | NONE => error ("Parameter " ^ quote name ^
                                    " must be assigned an integer value.")
-    fun lookup_int_pair name =
+    fun lookup_real_pair name =
       case lookup name of
-        NONE => (0, 0)
-      | SOME s => case s |> space_explode " " |> map Int.fromString of
-                    [SOME n1, SOME n2] => (n1, n2)
+        NONE => (0.0, 0.0)
+      | SOME s => case s |> space_explode " " |> map Real.fromString of
+                    [SOME r1, SOME r2] => (r1, r2)
                   | _ => error ("Parameter " ^ quote name ^
-                                "must be assigned a pair of integer values \
-                                \(e.g., \"60 95\")")
+                                "must be assigned a pair of floating-point \
+                                \values (e.g., \"0.6 0.95\")")
     fun lookup_int_option name =
       case lookup name of
         SOME "smart" => NONE
@@ -226,9 +226,7 @@ fun extract_params auto default_params override_params =
                   |> auto ? single o hd
     val full_types = lookup_bool "full_types"
     val explicit_apply = lookup_bool "explicit_apply"
-    val relevance_thresholds =
-      lookup_int_pair "relevance_thresholds"
-      |> pairself (fn n => 0.01 * Real.fromInt n)
+    val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
