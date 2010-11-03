@@ -1,4 +1,4 @@
-19e9a49723add29f06290682aca290aa2ab968ea 238 0
+2e15025784d0676586e79b418a67bcb9811380a1 238 0
 #2 := false
 #48 := 0::real
 decl f19 :: (-> S3 S10 real)
@@ -237,7 +237,7 @@ decl f9 :: S3
 #486 := [unit-resolution #460 #485]: #453
 [th-lemma #479 #259 #257 #474 #258 #486]: false
 unsat
-96c3a1d2dea133da23272bb1832adcfffc19c650 333 0
+4c0d1f43a6268b5d3a850361d3ff86d073eaf489 333 0
 #2 := false
 #11 := 0::real
 decl ?v2!1 :: real
@@ -571,7 +571,7 @@ decl ?v0!3 :: real
 #408 := [lemma #407]: #230
 [th-lemma #406 #301 #408 #396 #303]: false
 unsat
-d083434592d4f729dd1c100279aa204b663fa35c 57 0
+40822b724c71d6702c01ad1e865c13dca0ab3c21 57 0
 #2 := false
 decl f13 :: (-> S4 S4 S5)
 #44 := (:var 0 S4)
@@ -629,7 +629,7 @@ decl f10 :: S3
 #264 := [quant-inst]: #263
 [unit-resolution #264 #269 #258]: false
 unsat
-93a3d21a7f84dc839f14b9a0cfcafdfff6c6b0f1 318 0
+ae79dfdacb760a3554ce388b846d335064f674de 318 0
 #2 := false
 #25 := 0::real
 decl f8 :: (-> S4 S2 real)
@@ -948,7 +948,7 @@ decl f7 :: S3
 #622 := [th-lemma]: #621
 [unit-resolution #622 #619 #604]: false
 unsat
-26bfbe5c6decad8b4a2114b85a11ff3552d6b060 295 0
+4c36877468848170cffdf0ddcda5eb522e99ab42 295 0
 #2 := false
 #25 := 0::real
 decl f8 :: (-> S4 S2 real)
@@ -1244,7 +1244,7 @@ decl f7 :: S3
 #694 := [th-lemma]: #693
 [unit-resolution #694 #691 #677]: false
 unsat
-5d75e298a98eb55cd39dacd22665bd3062cf5345 204 0
+f2fb6a78bd5ef0d3bd81c73f0edb01f05b9ead4b 204 0
 #2 := false
 #46 := 0::real
 decl f5 :: (-> S3 S2 real)
@@ -1449,7 +1449,7 @@ decl f10 :: S4
 #533 := [unit-resolution #532 #153]: #473
 [th-lemma #533 #529 #514]: false
 unsat
-7b235442f6856a575f67cb04d6eaa03042f5336e 870 0
+c57edc9b53558e5e0a7337a056a91568e455bc48 870 0
 #2 := false
 #11 := 0::real
 decl f5 :: real
