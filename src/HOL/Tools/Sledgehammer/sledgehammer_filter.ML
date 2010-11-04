@@ -366,15 +366,19 @@ fun fact_weight fudge loc const_tab relevant_consts fact_consts =
                    ||> filter_out (pconst_hyper_mem swap relevant_consts) of
     ([], _) => 0.0
   | (rel, irrel) =>
-    let
-      val irrel = irrel |> filter_out (pconst_mem swap rel)
-      val rel_weight =
-        0.0 |> fold (curry (op +) o rel_pconst_weight fudge const_tab) rel
-      val irrel_weight =
-        ~ (locality_bonus fudge loc)
-        |> fold (curry (op +) o irrel_pconst_weight fudge const_tab) irrel
-      val res = rel_weight / (rel_weight + irrel_weight)
-    in if Real.isFinite res then res else 0.0 end
+    if forall (forall (String.isSuffix theory_const_suffix o fst))
+              [rel, irrel] then
+      0.0
+    else
+      let
+        val irrel = irrel |> filter_out (pconst_mem swap rel)
+        val rel_weight =
+          0.0 |> fold (curry (op +) o rel_pconst_weight fudge const_tab) rel
+        val irrel_weight =
+          ~ (locality_bonus fudge loc)
+          |> fold (curry (op +) o irrel_pconst_weight fudge const_tab) irrel
+        val res = rel_weight / (rel_weight + irrel_weight)
+      in if Real.isFinite res then res else 0.0 end
 
 fun pconsts_in_fact thy is_built_in_const t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
