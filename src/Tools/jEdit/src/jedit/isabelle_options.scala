@@ -20,6 +20,7 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
   private val auto_start = new CheckBox()
   private val relative_font_size = new JSpinner()
   private val tooltip_font_size = new JSpinner()
+  private val tooltip_margin = new JSpinner()
   private val tooltip_dismiss_delay = new JSpinner()
 
   override def _init()
@@ -34,6 +35,9 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 
     tooltip_font_size.setValue(Isabelle.Int_Property("tooltip-font-size", 10))
     addComponent(Isabelle.Property("tooltip-font-size.title"), tooltip_font_size)
+
+    tooltip_margin.setValue(Isabelle.Int_Property("tooltip-margin", 40))
+    addComponent(Isabelle.Property("tooltip-margin.title"), tooltip_margin)
 
     tooltip_dismiss_delay.setValue(Isabelle.Int_Property("tooltip-dismiss-delay", 8000))
     addComponent(Isabelle.Property("tooltip-dismiss-delay.title"), tooltip_dismiss_delay)
@@ -50,6 +54,9 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 
     Isabelle.Int_Property("tooltip-font-size") =
       tooltip_font_size.getValue().asInstanceOf[Int]
+
+    Isabelle.Int_Property("tooltip-margin") =
+      tooltip_margin.getValue().asInstanceOf[Int]
 
     Isabelle.Int_Property("tooltip-dismiss-delay") =
       tooltip_dismiss_delay.getValue().asInstanceOf[Int]
