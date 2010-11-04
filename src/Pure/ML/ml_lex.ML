@@ -70,17 +70,18 @@ fun kind_of (Token (_, (k, _))) = k;
 fun content_of (Token (_, (_, x))) = x;
 fun token_leq (tok, tok') = content_of tok <= content_of tok';
 
+fun warn tok =
+  (case tok of
+    Token (_, (Keyword, ":>")) =>
+      warning ("Opaque signature matching (:>) fails to work with ML pretty printing --\n\
+        \prefer non-opaque matching (:) possibly with abstype" ^
+        Position.str_of (pos_of tok))
+  | _ => ());
+
 fun check_content_of tok =
   (case kind_of tok of
     Error msg => error msg
-  | _ =>
-      (case tok of
-        Token (_, (Keyword, ":>")) =>
-          warning ("Opaque signature matching (:>) fails to work with ML pretty printing --\n\
-            \prefer non-opaque matching (:) possibly with abstype" ^
-            Position.str_of (pos_of tok))
-      | _ => ();
-      content_of tok));
+  | _ => content_of tok);
 
 val flatten = implode o map (Symbol.escape o check_content_of);
 
@@ -288,7 +289,7 @@ fun read pos txt =
         |> Source.exhaust
         |> tap (List.app (Antiquote.report report_token))
         |> tap Antiquote.check_nesting
-        |> tap (List.app (fn Antiquote.Text tok => ignore (check_content_of tok) | _ => ())))
+        |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())))
       handle ERROR msg =>
         cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos);
   in input @ termination end;
