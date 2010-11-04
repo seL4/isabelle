@@ -543,7 +543,7 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
             val run_prover = run_prover params auto minimize_command
           in
             if debug then
-              Output.urgent_message (label ^ ": " ^
+              Output.urgent_message (label ^ plural_s (length provers) ^ ": " ^
                   (if null facts then
                      "Found no relevant facts."
                    else
@@ -563,10 +563,10 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                       |> exists fst |> rpair state
           end
       val run_atps =
-        run_provers "ATPs" full_types atp_relevance_fudge
+        run_provers "ATP" full_types atp_relevance_fudge
                     (Translated o translate_fact ctxt) atps
       val run_smts =
-        run_provers "SMT" true smt_relevance_fudge Untranslated smts
+        run_provers "SMT solver" true smt_relevance_fudge Untranslated smts
       fun run_atps_and_smt_solvers () =
         [run_atps, run_smts] |> Par_List.map (fn f => f (false, state) |> K ())
     in
