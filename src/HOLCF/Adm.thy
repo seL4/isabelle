@@ -112,25 +112,14 @@ text {* admissibility and continuity *}
 
 lemma adm_below [simp]:
   "\<lbrakk>cont (\<lambda>x. u x); cont (\<lambda>x. v x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
-apply (rule admI)
-apply (simp add: cont2contlubE)
-apply (rule lub_mono)
-apply (erule (1) ch2ch_cont)
-apply (erule (1) ch2ch_cont)
-apply (erule spec)
-done
+by (simp add: adm_def cont2contlubE lub_mono ch2ch_cont)
 
 lemma adm_eq [simp]:
   "\<lbrakk>cont (\<lambda>x. u x); cont (\<lambda>x. v x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x = v x)"
 by (simp add: po_eq_conv)
 
 lemma adm_subst: "\<lbrakk>cont (\<lambda>x. t x); adm P\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P (t x))"
-apply (rule admI)
-apply (simp add: cont2contlubE)
-apply (erule admD)
-apply (erule (1) ch2ch_cont)
-apply (erule spec)
-done
+by (simp add: adm_def cont2contlubE ch2ch_cont)
 
 lemma adm_not_below [simp]: "cont (\<lambda>x. t x) \<Longrightarrow> adm (\<lambda>x. \<not> t x \<sqsubseteq> u)"
 by (rule admI, simp add: cont2contlubE ch2ch_cont lub_below_iff)
