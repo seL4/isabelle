@@ -2,7 +2,7 @@
     Copyright   1994 TU Muenchen
 *)
 
-header {* Quicksort *}
+header {* Quicksort with function package *}
 
 theory Quicksort
 imports Main Multiset
@@ -30,7 +30,7 @@ lemma set_quicksort [simp]: "set (quicksort xs) = set xs"
 lemma sorted_quicksort: "sorted (quicksort xs)"
   by (induct xs rule: quicksort.induct) (auto simp add: sorted_Cons sorted_append not_le less_imp_le)
 
-theorem quicksort_sort [code_unfold]:
+theorem sort_quicksort:
   "sort = quicksort"
   by (rule ext, rule properties_for_sort) (fact quicksort_permutes sorted_quicksort)+
 

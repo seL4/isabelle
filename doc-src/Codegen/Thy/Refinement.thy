@@ -17,7 +17,7 @@ subsection {* Program refinement *}
 
 text {*
   Program refinement works by choosing appropriate code equations
-  explicitly (cf.~\label{sec:equations}); as example, we use Fibonacci
+  explicitly (cf.~\secref{sec:equations}); as example, we use Fibonacci
   numbers:
 *}
 
