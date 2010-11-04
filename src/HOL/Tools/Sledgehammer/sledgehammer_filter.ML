@@ -174,19 +174,19 @@ and ptype thy const x ts =
 and pconst thy const (s, T) ts = (s, ptype thy const (s, T) ts)
 and rich_ptype thy const (s, T) ts =
   PType (order_of_type T, ptype thy const (s, T) ts)
-and rich_pconst thy const (s, T) ts = (s, rich_ptype thy const (s, T) ts)
+and rich_pconst thy const x ts = (x, rich_ptype thy const x ts)
 
 fun string_for_hyper_pconst (s, ps) =
   s ^ "{" ^ commas (map string_for_ptype ps) ^ "}"
 
 (* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
-fun add_pconst_to_table is_built_in_const also_skolem (c, p) =
-  if is_built_in_const (c, dummyT)(*###*) orelse
-     (not also_skolem andalso String.isPrefix skolem_prefix c) then
+fun add_pconst_to_table is_built_in_const also_skolem ((s, T), p) =
+  if is_built_in_const (s, T) orelse
+     (not also_skolem andalso String.isPrefix skolem_prefix s) then
     I
   else
-    Symtab.map_default (c, [p]) (insert (op =) p)
+    Symtab.map_default (s, [p]) (insert (op =) p)
 
 fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
 
@@ -196,9 +196,9 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
     (* We include free variables, as well as constants, to handle locales. For
        each quantifiers that must necessarily be skolemized by the ATP, we
        introduce a fresh constant to simulate the effect of Skolemization. *)
-    fun do_const const (s, T) ts =
+    fun do_const const x ts =
       add_pconst_to_table is_built_in_const also_skolems
-                          (rich_pconst thy const (s, T) ts)
+                          (rich_pconst thy const x ts)
       #> fold do_term ts
     and do_term t =
       case strip_comb t of
@@ -206,15 +206,15 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
       | (Free x, ts) => do_const false x ts
       | (Abs (_, T, t'), ts) =>
         (null ts
-         ? add_pconst_to_table is_built_in_const true
-                               (abs_name, PType (order_of_type T + 1, [])))
+         ? add_pconst_to_table (K false) true
+                          ((abs_name, dummyT), PType (order_of_type T + 1, [])))
         #> fold do_term (t' :: ts)
       | (_, ts) => fold do_term ts
     fun do_quantifier will_surely_be_skolemized abs_T body_t =
       do_formula pos body_t
       #> (if also_skolems andalso will_surely_be_skolemized then
-            add_pconst_to_table is_built_in_const true
-                         (gensym skolem_prefix, PType (order_of_type abs_T, []))
+            add_pconst_to_table (K false) true
+               ((gensym skolem_prefix, dummyT), PType (order_of_type abs_T, []))
           else
             I)
     and do_term_or_formula T =
@@ -452,8 +452,8 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                 take_most_relevant max_relevant remaining_max fudge candidates
               val rel_const_tab' =
                 rel_const_tab
-                |> fold (add_pconst_to_table is_built_in_const false)
-                        (maps (snd o fst) accepts)
+                |> fold (add_pconst_to_table (K false) false)
+                        (maps (map (apfst (rpair dummyT)) o snd o fst) accepts)
               fun is_dirty (c, _) =
                 Symtab.lookup rel_const_tab' c <> Symtab.lookup rel_const_tab c
               val (hopeful_rejects, hopeless_rejects) =
