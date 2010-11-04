@@ -437,15 +437,16 @@ fun smt_filter run_remote time_limit st xrules i =
       |> Config.put oracle false
       |> Config.put filter_only true
       |> Config.put keep_assms false
+    val ({context=ctxt', prems, concl, ...}, _) = Subgoal.focus ctxt i goal
     val cprop =
-      Thm.cprem_of goal i
-      |> Thm.rhs_of o SMT_Normalize.atomize_conv ctxt
+      concl
+      |> Thm.rhs_of o SMT_Normalize.atomize_conv ctxt'
       |> Thm.capply @{cterm Trueprop} o Thm.capply @{cterm Not} o Thm.dest_arg
-    val irs = map (pair ~1) (Thm.assume cprop :: facts)
+    val irs = map (pair ~1) (Thm.assume cprop :: prems @ facts)
     val rm = SOME run_remote
   in
     split_list xrules
-    ||> distinct (op =) o fst o smt_solver rm ctxt o append irs o map_index I
+    ||> distinct (op =) o fst o smt_solver rm ctxt' o append irs o map_index I
     |-> map_filter o try o nth
     |> (fn xs => {outcome=NONE, used_facts=xs, run_time_in_msecs=NONE})
   end
