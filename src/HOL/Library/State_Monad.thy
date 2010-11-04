@@ -146,7 +146,7 @@ translations
   "_sdo_block (_sdo_final e)" => "e"
 
 text {*
-  For an example, see @{text HOL/Proofs/Extraction/Higman.thy}.
+  For an example, see @{text "HOL/Proofs/Extraction/Higman.thy"}.
 *}
 
 end
