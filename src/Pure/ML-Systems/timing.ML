@@ -1,10 +1,10 @@
 (*  Title:      Pure/ML-Systems/timing.ML
     Author:     Makarius
 
-Basic support for timing.
+Basic support for time measurement.
 *)
 
-fun seconds s = Time.fromNanoseconds (Real.ceil (s * 1E9));
+val seconds = Time.fromReal;
 
 fun start_timing () =
   let
