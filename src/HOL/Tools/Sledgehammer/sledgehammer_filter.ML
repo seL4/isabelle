@@ -38,7 +38,7 @@ sig
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val relevant_facts :
-    Proof.context -> bool -> real * real -> int -> string list
+    Proof.context -> bool -> real * real -> int -> (string * typ -> bool)
     -> relevance_fudge -> relevance_override -> thm list -> term list -> term
     -> ((string * locality) * thm) list
 end;
@@ -181,8 +181,8 @@ fun string_for_hyper_pconst (s, ps) =
 
 (* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
-fun add_pconst_to_table irrelevant_consts also_skolem (c, p) =
-  if member (op =) irrelevant_consts c orelse
+fun add_pconst_to_table is_built_in_const also_skolem (c, p) =
+  if is_built_in_const (c, dummyT)(*###*) orelse
      (not also_skolem andalso String.isPrefix skolem_prefix c) then
     I
   else
@@ -190,14 +190,14 @@ fun add_pconst_to_table irrelevant_consts also_skolem (c, p) =
 
 fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
 
-fun pconsts_in_terms thy irrelevant_consts also_skolems pos ts =
+fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
   let
     val flip = Option.map not
     (* We include free variables, as well as constants, to handle locales. For
        each quantifiers that must necessarily be skolemized by the ATP, we
        introduce a fresh constant to simulate the effect of Skolemization. *)
     fun do_const const (s, T) ts =
-      add_pconst_to_table irrelevant_consts also_skolems
+      add_pconst_to_table is_built_in_const also_skolems
                           (rich_pconst thy const (s, T) ts)
       #> fold do_term ts
     and do_term t =
@@ -206,14 +206,14 @@ fun pconsts_in_terms thy irrelevant_consts also_skolems pos ts =
       | (Free x, ts) => do_const false x ts
       | (Abs (_, T, t'), ts) =>
         (null ts
-         ? add_pconst_to_table irrelevant_consts true
+         ? add_pconst_to_table is_built_in_const true
                                (abs_name, PType (order_of_type T + 1, [])))
         #> fold do_term (t' :: ts)
       | (_, ts) => fold do_term ts
     fun do_quantifier will_surely_be_skolemized abs_T body_t =
       do_formula pos body_t
       #> (if also_skolems andalso will_surely_be_skolemized then
-            add_pconst_to_table irrelevant_consts true
+            add_pconst_to_table is_built_in_const true
                          (gensym skolem_prefix, PType (order_of_type abs_T, []))
           else
             I)
@@ -376,12 +376,12 @@ fun fact_weight fudge loc const_tab relevant_consts fact_consts =
       val res = rel_weight / (rel_weight + irrel_weight)
     in if Real.isFinite res then res else 0.0 end
 
-fun pconsts_in_fact thy irrelevant_consts t =
+fun pconsts_in_fact thy is_built_in_const t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (pconsts_in_terms thy irrelevant_consts true (SOME true) [t]) []
-fun pair_consts_fact thy irrelevant_consts fudge fact =
+              (pconsts_in_terms thy is_built_in_const true (SOME true) [t]) []
+fun pair_consts_fact thy is_built_in_const fudge fact =
   case fact |> snd |> theory_const_prop_of fudge
-            |> pconsts_in_fact thy irrelevant_consts of
+            |> pconsts_in_fact thy is_built_in_const of
     [] => NONE
   | consts => SOME ((fact, consts), NONE)
 
@@ -411,23 +411,23 @@ fun take_most_relevant max_relevant remaining_max
     (accepts, more_rejects @ rejects)
   end
 
-fun if_empty_replace_with_locality thy irrelevant_consts facts loc tab =
+fun if_empty_replace_with_locality thy is_built_in_const facts loc tab =
   if Symtab.is_empty tab then
-    pconsts_in_terms thy irrelevant_consts false (SOME false)
+    pconsts_in_terms thy is_built_in_const false (SOME false)
         (map_filter (fn ((_, loc'), th) =>
                         if loc' = loc then SOME (prop_of th) else NONE) facts)
   else
     tab
 
-fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
+fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...})
         ({add, del, ...} : relevance_override) facts goal_ts =
   let
     val thy = ProofContext.theory_of ctxt
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
     val goal_const_tab =
-      pconsts_in_terms thy irrelevant_consts false (SOME false) goal_ts
-      |> fold (if_empty_replace_with_locality thy irrelevant_consts facts)
+      pconsts_in_terms thy is_built_in_const false (SOME false) goal_ts
+      |> fold (if_empty_replace_with_locality thy is_built_in_const facts)
               [Chained, Assum, Local]
     val add_ths = Attrib.eval_thms ctxt add
     val del_ths = Attrib.eval_thms ctxt del
@@ -448,7 +448,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
                 take_most_relevant max_relevant remaining_max fudge candidates
               val rel_const_tab' =
                 rel_const_tab
-                |> fold (add_pconst_to_table irrelevant_consts false)
+                |> fold (add_pconst_to_table is_built_in_const false)
                         (maps (snd o fst) accepts)
               fun is_dirty (c, _) =
                 Symtab.lookup rel_const_tab' c <> Symtab.lookup rel_const_tab c
@@ -509,7 +509,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
                         o snd))
       @ accepts
   in
-    facts |> map_filter (pair_consts_fact thy irrelevant_consts fudge)
+    facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
           |> iter 0 max_relevant threshold0 goal_const_tab []
           |> not (null add_ths) ? add_add_ths
           |> tap (fn res => trace_msg (fn () =>
@@ -788,7 +788,7 @@ fun rearrange_facts ctxt respect_no_atp =
 (***************************************************************)
 
 fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
-                   irrelevant_consts fudge (override as {add, only, ...})
+                   is_built_in_const fudge (override as {add, only, ...})
                    chained_ths hyp_ts concl_t =
   let
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
@@ -812,7 +812,7 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
              max_relevant = 0 then
        []
      else
-       relevance_filter ctxt threshold0 decay max_relevant irrelevant_consts
+       relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                         fudge override facts (concl_t :: hyp_ts))
     |> map (apfst (apfst (fn f => f ())))
   end
