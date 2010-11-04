@@ -82,6 +82,8 @@ and type constructors.
 
 *** HOL ***
 
+* Theory Multiset provides stable quicksort implementation of sort_key.
+
 * Quickcheck now has a configurable time limit which is set to 30 seconds
 by default. This can be changed by adding [timeout = n] to the quickcheck
 command. The time limit for auto quickcheck is still set independently,

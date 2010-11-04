@@ -31,8 +31,6 @@ exception PrimrecError of string * term option;
 fun primrec_error msg = raise PrimrecError (msg, NONE);
 fun primrec_error_eqn msg eqn = raise PrimrecError (msg, SOME eqn);
 
-fun message s = if ! Toplevel.debug then tracing s else ();
-
 
 (* preprocessing of equations *)
 
@@ -251,7 +249,6 @@ fun distill lthy fixes eqs =
           if Variable.is_fixed lthy x then I else insert (op =) x | _ => I) eqs [];
         val rewrites = rec_rewrites' @ map (snd o snd) defs;
         fun tac _ = EVERY [rewrite_goals_tac rewrites, rtac refl 1];
-        val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names);
       in map (fn eq => Goal.prove lthy frees [] eq tac) eqs end;
   in ((prefix, (fs, defs)), prove) end
   handle PrimrecError (msg, some_eqn) =>

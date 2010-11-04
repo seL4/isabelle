@@ -901,30 +901,27 @@ next
 next
   fix l
   assume "l \<in> set ?rhs"
-  have *: "\<And>x P. P (f x) \<and> f l = f x \<longleftrightarrow> P (f l) \<and> f l = f x" by auto
-  have **: "\<And>x. f l = f x \<longleftrightarrow> f x = f l" by auto
+  let ?pivot = "f (xs ! (length xs div 2))"
+  have *: "\<And>x. f l = f x \<longleftrightarrow> f x = f l" by auto
   have "[x \<leftarrow> sort_key f xs . f x = f l] = [x \<leftarrow> xs. f x = f l]"
     unfolding filter_sort by (rule properties_for_sort_key) (auto intro: sorted_map_same)
-  with ** have [simp]: "[x \<leftarrow> sort_key f xs . f l = f x] = [x \<leftarrow> xs. f l = f x]" by simp
-  let ?pivot = "f (xs ! (length xs div 2))"
+  with * have **: "[x \<leftarrow> sort_key f xs . f l = f x] = [x \<leftarrow> xs. f l = f x]" by simp
+  have "\<And>x P. P (f x) ?pivot \<and> f l = f x \<longleftrightarrow> P (f l) ?pivot \<and> f l = f x" by auto
+  then have "\<And>P. [x \<leftarrow> sort_key f xs . P (f x) ?pivot \<and> f l = f x] =
+    [x \<leftarrow> sort_key f xs. P (f l) ?pivot \<and> f l = f x]" by simp
+  note *** = this [of "op <"] this [of "op >"] this [of "op ="]
   show "[x \<leftarrow> ?rhs. f l = f x] = [x \<leftarrow> ?lhs. f l = f x]"
   proof (cases "f l" ?pivot rule: linorder_cases)
     case less then moreover have "f l \<noteq> ?pivot" and "\<not> f l > ?pivot" by auto
     ultimately show ?thesis
-      apply (auto simp add: filter_sort [symmetric])
-      apply (subst *) apply simp
-      apply (subst *) apply simp
-      done
+      by (simp add: filter_sort [symmetric] ** ***)
   next
     case equal then show ?thesis
-      by (auto simp add: ** less_le)
+      by (simp add: * less_le)
   next
     case greater then moreover have "f l \<noteq> ?pivot" and "\<not> f l < ?pivot" by auto
     ultimately show ?thesis
-      apply (auto simp add: filter_sort [symmetric])
-      apply (subst *) apply simp
-      apply (subst *) apply simp
-      done
+      by (simp add: filter_sort [symmetric] ** ***)
   qed
 qed
 
@@ -934,7 +931,47 @@ lemma sort_by_quicksort:
     @ sort [x\<leftarrow>xs. x > xs ! (length xs div 2)]" (is "sort ?lhs = ?rhs")
   using sort_key_by_quicksort [of "\<lambda>x. x", symmetric] by simp
 
+text {* A stable parametrized quicksort *}
+
+definition part :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b list \<Rightarrow> 'b list \<times> 'b list \<times> 'b list" where
+  "part f pivot xs = ([x \<leftarrow> xs. f x < pivot], [x \<leftarrow> xs. f x = pivot], [x \<leftarrow> xs. pivot < f x])"
+
+lemma part_code [code]:
+  "part f pivot [] = ([], [], [])"
+  "part f pivot (x # xs) = (let (lts, eqs, gts) = part f pivot xs; x' = f x in
+     if x' < pivot then (x # lts, eqs, gts)
+     else if x' > pivot then (lts, eqs, x # gts)
+     else (lts, x # eqs, gts))"
+  by (auto simp add: part_def Let_def split_def)
+
+lemma sort_key_by_quicksort_code [code]:
+  "sort_key f xs = (case xs of [] \<Rightarrow> []
+    | [x] \<Rightarrow> xs
+    | [x, y] \<Rightarrow> (if f x \<le> f y then xs else [y, x])
+    | _ \<Rightarrow> (let (lts, eqs, gts) = part f (f (xs ! (length xs div 2))) xs
+       in sort_key f lts @ eqs @ sort_key f gts))"
+proof (cases xs)
+  case Nil then show ?thesis by simp
+next
+  case (Cons _ ys) note hyps = Cons show ?thesis proof (cases ys)
+    case Nil with hyps show ?thesis by simp
+  next
+    case (Cons _ zs) note hyps = hyps Cons show ?thesis proof (cases zs)
+      case Nil with hyps show ?thesis by auto
+    next
+      case Cons 
+      from sort_key_by_quicksort [of f xs]
+      have "sort_key f xs = (let (lts, eqs, gts) = part f (f (xs ! (length xs div 2))) xs
+        in sort_key f lts @ eqs @ sort_key f gts)"
+      by (simp only: split_def Let_def part_def fst_conv snd_conv)
+      with hyps Cons show ?thesis by (simp only: list.cases)
+    qed
+  qed
+qed
+
 end
+
+hide_const (open) part
 
 lemma multiset_of_remdups_le: "multiset_of (remdups xs) \<le> multiset_of xs"
   by (induct xs) (auto intro: order_trans)

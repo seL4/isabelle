@@ -45,7 +45,6 @@ imports
   Polynomial
   Preorder
   Product_Vector
-  Quicksort
   Quotient_List
   Quotient_Option
   Quotient_Product
