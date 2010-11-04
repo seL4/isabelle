@@ -124,11 +124,23 @@ fun check_bare_const thy t = case try dest_Const t
  of SOME c_ty => c_ty
   | NONE => error ("Not a constant: " ^ Syntax.string_of_term_global thy t);
 
-fun check_const thy = AxClass.unoverload_const thy o check_bare_const thy;
+fun check_unoverload thy (c, ty) =
+  let
+    val c' = AxClass.unoverload_const thy (c, ty);
+    val ty_decl = Sign.the_const_type thy c';
+  in if Sign.typ_equiv thy
+      (Type.strip_sorts ty_decl, Type.strip_sorts (Logic.varifyT_global ty)) then c'
+    else error ("Type\n" ^ string_of_typ thy ty
+      ^ "\nof constant " ^ quote c
+      ^ "\nis too specific compared to declared type\n"
+      ^ string_of_typ thy ty_decl)
+  end; 
+
+fun check_const thy = check_unoverload thy o check_bare_const thy;
 
 fun read_bare_const thy = check_bare_const thy o Syntax.read_term_global thy;
 
-fun read_const thy = AxClass.unoverload_const thy o read_bare_const thy;
+fun read_const thy = check_unoverload thy o read_bare_const thy;
 
 
 (** data store **)
@@ -471,7 +483,7 @@ fun check_decl_ty thy (c, ty) =
   in if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty) then ()
     else bad_thm ("Type\n" ^ string_of_typ thy ty
       ^ "\nof constant " ^ quote c
-      ^ "\nis incompatible with declared type\n"
+      ^ "\nis too specific compared to declared type\n"
       ^ string_of_typ thy ty_decl)
   end; 
 
