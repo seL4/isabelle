@@ -172,6 +172,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Sum_Type.thy \
   Tools/abel_cancel.ML \
   Tools/arith_data.ML \
+  Tools/async_manager.ML \
   Tools/cnf_funcs.ML \
   Tools/Datatype/datatype_abs_proofs.ML \
   Tools/Datatype/datatype_aux.ML \
@@ -277,7 +278,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
-  Tools/async_manager.ML \
   Tools/ATP/atp_problem.ML \
   Tools/ATP/atp_proof.ML \
   Tools/ATP/atp_systems.ML \
