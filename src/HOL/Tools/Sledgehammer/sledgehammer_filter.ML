@@ -87,12 +87,16 @@ val skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
 fun needs_quoting reserved s =
-  Symtab.defined reserved s (* FIXME: orelse
-  exists (not o Syntax.is_identifier) (Long_Name.explode s) *)
+  Symtab.defined reserved s orelse
+  exists (not o Syntax.is_identifier) (Long_Name.explode s)
 
-fun repair_name reserved multi j name =
+fun make_name reserved multi j name =
   (name |> needs_quoting reserved name ? quote) ^
   (if multi then "(" ^ Int.toString j ^ ")" else "")
+
+fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
+  | explode_interval max (Facts.From i) = i upto i + max - 1
+  | explode_interval _ (Facts.Single i) = [i]
 
 fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
   let
@@ -100,16 +104,20 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
     val bracket =
       implode (map (fn arg => "[" ^ Pretty.str_of (Args.pretty_src ctxt arg)
                                ^ "]") args)
-    val name =
+    fun nth_name j =
       case xref of
         Facts.Fact s => "`" ^ s ^ "`" ^ bracket
       | Facts.Named (("", _), _) => "[" ^ bracket ^ "]"
-      | _ => Facts.string_of_ref xref ^ bracket
-    val multi = length ths > 1
+      | Facts.Named ((name, _), NONE) =>
+        make_name reserved (length ths > 1) (j + 1) name ^ bracket
+      | Facts.Named ((name, _), SOME intervals) =>
+        make_name reserved true
+                 (nth (maps (explode_interval (length ths)) intervals) j) name ^
+        bracket
   in
-    (ths, (1, []))
+    (ths, (0, []))
     |-> fold (fn th => fn (j, rest) =>
-                 (j + 1, ((repair_name reserved multi j name,
+                 (j + 1, ((nth_name j,
                           if member Thm.eq_thm chained_ths th then Chained
                           else General), th) :: rest))
     |> snd
@@ -759,7 +767,7 @@ fun all_facts ctxt reserved full_types
                               val name2 = Name_Space.extern full_space name0
                             in
                               case find_first check_thms [name1, name2, name0] of
-                                SOME name => repair_name reserved multi j name
+                                SOME name => make_name reserved multi j name
                               | NONE => ""
                             end),
                       let val t = prop_of th in
