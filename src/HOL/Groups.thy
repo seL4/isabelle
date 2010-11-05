@@ -284,6 +284,7 @@ proof -
   finally show ?thesis .
 qed
 
+
 lemmas equals_zero_I = minus_unique (* legacy name *)
 
 lemma minus_zero [simp]: "- 0 = 0"
@@ -303,6 +304,20 @@ proof -
   have "a + - a = - (- a) + - a" by simp
   also have "\<dots> = 0" by (rule left_minus)
   finally show ?thesis .
+qed
+
+subclass cancel_semigroup_add
+proof
+  fix a b c :: 'a
+  assume "a + b = a + c"
+  then have "- a + a + b = - a + a + c"
+    unfolding add_assoc by simp
+  then show "b = c" by simp
+next
+  fix a b c :: 'a
+  assume "b + a = c + a"
+  then have "b + a + - a = c + a  + - a" by simp
+  then show "b = c" unfolding add_assoc by simp
 qed
 
 lemma minus_add_cancel: "- a + (a + b) = b"
