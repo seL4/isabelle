@@ -1,4 +1,4 @@
-diff -r gitweb/changelogentry.tmpl isabelle-orig/changelogentry.tmpl
+diff -r gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
 2,8c2,3
 < <a class="title" href="{url}rev/{node|short}{sessionvars%urlparameter}"><span class="age">{date|age} ago</span>{desc|strip|firstline|escape|nonempty}<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
 < </div>
@@ -14,27 +14,27 @@ diff -r gitweb/changelogentry.tmpl isabelle-orig/changelogentry.tmpl
 > <div class="files">
 > {files}
 > </div>
-diff -r gitweb/changeset.tmpl isabelle-orig/changeset.tmpl
+diff -r gitweb/changeset.tmpl isabelle/changeset.tmpl
 32c32
 < <tr><td></td><td>{date|date} ({date|age} ago)</td></tr>
 ---
 > <tr><td></td><td>{date|date} ({date|age})</td></tr>
-diff -r gitweb/fileannotate.tmpl isabelle-orig/fileannotate.tmpl
+diff -r gitweb/fileannotate.tmpl isabelle/fileannotate.tmpl
 39c39
 <  <td>{date|date} ({date|age} ago)</td></tr>
 ---
 >  <td>{date|date} ({date|age})</td></tr>
-diff -r gitweb/filerevision.tmpl isabelle-orig/filerevision.tmpl
+diff -r gitweb/filerevision.tmpl isabelle/filerevision.tmpl
 39c39
 <  <td>{date|date} ({date|age} ago)</td></tr>
 ---
 >  <td>{date|date} ({date|age})</td></tr>
-diff -r gitweb/graph.tmpl isabelle-orig/graph.tmpl
+diff -r gitweb/graph.tmpl isabelle/graph.tmpl
 66c66
 < revlink += '<span class="info">_DATE ago, by _USER</span></li>';
 ---
 > revlink += '<span class="info">_DATE, by _USER</span></li>';
-diff -r gitweb/map isabelle-orig/map
+diff -r gitweb/map isabelle/map
 81c81
 <          title="{node|short}: {desc|escape|firstline}">{author|user}@{rev}</a>
 ---
@@ -57,13 +57,17 @@ diff -r gitweb/map isabelle-orig/map
 <         <b>{desc|strip|firstline|escape|nonempty}</b>
 ---
 >         <b>{desc|strip|escape|nonempty}</b>
-222c223
+222c223,225
 <     <td class="age"><i>{date|age} ago</i></td>
 ---
 >     <td class="age"><i>{date|age}</i></td>
-227a229
 >     <td><i>{author|person}</i></td>
-241c243
+>     <td><i>{date|shortdate}</i></td>
+225c228
+<         <b>{desc|strip|firstline|escape|nonempty}</b>
+---
+>         <b>{desc|strip|escape|nonempty}</b>
+241c244
 <     <td class="age">{lastchange|age} ago</td>
 ---
 >     <td class="age">{lastchange|age}</td>
