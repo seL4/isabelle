@@ -111,8 +111,8 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
                       |> the_default default_prover
          val default_max_relevant =
            Sledgehammer.default_max_relevant_for_prover thy prover
-         val irrelevant_consts =
-           Sledgehammer.irrelevant_consts_for_prover prover
+        val is_built_in_const =
+          Sledgehammer.is_built_in_const_for_prover ctxt default_prover
          val relevance_fudge =
            extract_relevance_fudge args
                (Sledgehammer.relevance_fudge_for_prover prover)
@@ -124,9 +124,8 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val facts =
            Sledgehammer_Filter.relevant_facts ctxt full_types
                relevance_thresholds
-               (the_default default_max_relevant max_relevant)
-               irrelevant_consts relevance_fudge relevance_override facts hyp_ts
-               concl_t
+               (the_default default_max_relevant max_relevant) is_built_in_const
+               relevance_fudge relevance_override facts hyp_ts concl_t
            |> map (fst o fst)
          val (found_facts, lost_facts) =
            List.concat proofs |> sort_distinct string_ord

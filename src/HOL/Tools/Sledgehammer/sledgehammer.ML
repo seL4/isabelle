@@ -54,7 +54,8 @@ sig
   val is_prover_available : theory -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
   val default_max_relevant_for_prover : theory -> string -> int
-  val irrelevant_consts_for_prover : string -> string list
+  val is_built_in_const_for_prover :
+    Proof.context -> string -> string * typ -> bool
   val relevance_fudge_for_prover : string -> relevance_fudge
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
@@ -116,29 +117,9 @@ val atp_irrelevant_consts =
   [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let},
    @{const_name HOL.eq}]
 
-(* FIXME: check types *)
-val smt_irrelevant_consts =
-  atp_irrelevant_consts @
-  [@{const_name distinct},
-   (* numeral-related: *)
-   @{const_name number_of}, @{const_name Int.Pls}, @{const_name Int.Min},
-   @{const_name Int.Bit0}, @{const_name Int.Bit1}, @{const_name Suc},
-   (* FIXME: @{const_name Numeral0}, @{const_name Numeral1}, *)
-   (* int => nat *)
-   @{const_name nat},
-   (* nat => int *)
-   (* FIXME: @{const_name int}, *)
-   (* for "nat", "int", and "real": *)
-   @{const_name plus}, @{const_name uminus}, @{const_name minus},
-   @{const_name times}, @{const_name less}, @{const_name less_eq},
-   @{const_name abs}, @{const_name min}, @{const_name max},
-   (* for "nat" and "div": *)
-   @{const_name div}, @{const_name mod} (* , *)
-   (* for real: *)
-   (* FIXME: @{const_name "op /"} *)]
-
-fun irrelevant_consts_for_prover name =
-  if is_smt_prover name then smt_irrelevant_consts else atp_irrelevant_consts
+fun is_built_in_const_for_prover ctxt name (s, T) =
+  if is_smt_prover name then SMT_Builtin.is_builtin ctxt (s, T)
+  else member (op =) atp_irrelevant_consts s
 
 (* FUDGE *)
 val atp_relevance_fudge =
@@ -536,8 +517,8 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
       val _ = () |> not blocking ? kill_provers
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."
       val (smts, atps) = provers |> List.partition is_smt_prover
-      fun run_provers label full_types irrelevant_consts relevance_fudge
-                      maybe_translate provers (res as (success, state)) =
+      fun run_provers label full_types relevance_fudge maybe_translate provers
+                      (res as (success, state)) =
         if success orelse null provers then
           res
         else
@@ -549,9 +530,11 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                 0 |> fold (Integer.max o default_max_relevant_for_prover thy)
                           provers
                   |> auto ? (fn n => n div auto_max_relevant_divisor)
+            val is_built_in_const =
+              is_built_in_const_for_prover ctxt (hd provers)
             val facts =
               relevant_facts ctxt full_types relevance_thresholds
-                             max_max_relevant irrelevant_consts relevance_fudge
+                             max_max_relevant is_built_in_const relevance_fudge
                              relevance_override chained_ths hyp_ts concl_t
               |> map maybe_translate
             val problem =
@@ -560,7 +543,7 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
             val run_prover = run_prover params auto minimize_command
           in
             if debug then
-              Output.urgent_message (label ^ ": " ^
+              Output.urgent_message (label ^ plural_s (length provers) ^ ": " ^
                   (if null facts then
                      "Found no relevant facts."
                    else
@@ -580,11 +563,10 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                       |> exists fst |> rpair state
           end
       val run_atps =
-        run_provers "ATPs" full_types atp_irrelevant_consts atp_relevance_fudge
+        run_provers "ATP" full_types atp_relevance_fudge
                     (Translated o translate_fact ctxt) atps
       val run_smts =
-        run_provers "SMT" true smt_irrelevant_consts smt_relevance_fudge
-                    Untranslated smts
+        run_provers "SMT solver" true smt_relevance_fudge Untranslated smts
       fun run_atps_and_smt_solvers () =
         [run_atps, run_smts] |> Par_List.map (fn f => f (false, state) |> K ())
     in
