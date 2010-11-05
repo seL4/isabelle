@@ -33,7 +33,7 @@ lemma PDPlus_convex_mono: "\<lbrakk>s \<le>\<natural> t; u \<le>\<natural> v\<rb
 unfolding convex_le_def by (fast intro: PDPlus_upper_mono PDPlus_lower_mono)
 
 lemma convex_le_PDUnit_PDUnit_iff [simp]:
-  "(PDUnit a \<le>\<natural> PDUnit b) = a \<sqsubseteq> b"
+  "(PDUnit a \<le>\<natural> PDUnit b) = (a \<sqsubseteq> b)"
 unfolding convex_le_def upper_le_def lower_le_def Rep_PDUnit by fast
 
 lemma convex_le_PDUnit_lemma1:

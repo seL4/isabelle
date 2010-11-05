@@ -151,18 +151,18 @@ by simp
 lemma spair_sfst_ssnd: "(:sfst\<cdot>p, ssnd\<cdot>p:) = p"
 by (cases p, simp_all)
 
-lemma below_sprod: "x \<sqsubseteq> y = (sfst\<cdot>x \<sqsubseteq> sfst\<cdot>y \<and> ssnd\<cdot>x \<sqsubseteq> ssnd\<cdot>y)"
+lemma below_sprod: "(x \<sqsubseteq> y) = (sfst\<cdot>x \<sqsubseteq> sfst\<cdot>y \<and> ssnd\<cdot>x \<sqsubseteq> ssnd\<cdot>y)"
 by (simp add: Rep_sprod_simps sfst_def ssnd_def cont_Rep_sprod)
 
 lemma eq_sprod: "(x = y) = (sfst\<cdot>x = sfst\<cdot>y \<and> ssnd\<cdot>x = ssnd\<cdot>y)"
 by (auto simp add: po_eq_conv below_sprod)
 
-lemma sfst_below_iff: "sfst\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> (:y, ssnd\<cdot>x:)"
+lemma sfst_below_iff: "sfst\<cdot>x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (:y, ssnd\<cdot>x:)"
 apply (cases "x = \<bottom>", simp, cases "y = \<bottom>", simp)
 apply (simp add: below_sprod)
 done
 
-lemma ssnd_below_iff: "ssnd\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> (:sfst\<cdot>x, y:)"
+lemma ssnd_below_iff: "ssnd\<cdot>x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (:sfst\<cdot>x, y:)"
 apply (cases "x = \<bottom>", simp, cases "y = \<bottom>", simp)
 apply (simp add: below_sprod)
 done

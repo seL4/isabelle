@@ -21,10 +21,10 @@ definition below_sum_def:
 instance ..
 end
 
-lemma Inl_below_Inl [simp]: "Inl x \<sqsubseteq> Inl y = x \<sqsubseteq> y"
+lemma Inl_below_Inl [simp]: "Inl x \<sqsubseteq> Inl y \<longleftrightarrow> x \<sqsubseteq> y"
 unfolding below_sum_def by simp
 
-lemma Inr_below_Inr [simp]: "Inr x \<sqsubseteq> Inr y = x \<sqsubseteq> y"
+lemma Inr_below_Inr [simp]: "Inr x \<sqsubseteq> Inr y \<longleftrightarrow> x \<sqsubseteq> y"
 unfolding below_sum_def by simp
 
 lemma Inl_below_Inr [simp]: "\<not> Inl x \<sqsubseteq> Inr y"

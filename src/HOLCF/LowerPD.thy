@@ -43,7 +43,7 @@ lemma PDPlus_lower_le: "t \<le>\<flat> PDPlus t u"
 unfolding lower_le_def Rep_PDPlus by fast
 
 lemma lower_le_PDUnit_PDUnit_iff [simp]:
-  "(PDUnit a \<le>\<flat> PDUnit b) = a \<sqsubseteq> b"
+  "(PDUnit a \<le>\<flat> PDUnit b) = (a \<sqsubseteq> b)"
 unfolding lower_le_def Rep_PDUnit by fast
 
 lemma lower_le_PDUnit_PDPlus_iff:

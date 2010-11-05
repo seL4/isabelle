@@ -15,10 +15,10 @@ class below =
 begin
 
 notation
-  below (infixl "<<" 55)
+  below (infix "<<" 50)
 
 notation (xsymbols)
-  below (infixl "\<sqsubseteq>" 55)
+  below (infix "\<sqsubseteq>" 50)
 
 lemma below_eq_trans: "\<lbrakk>a \<sqsubseteq> b; b = c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
   by (rule subst)
@@ -62,7 +62,7 @@ begin
 
 subsection {* Upper bounds *}
 
-definition is_ub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "<|" 55) where
+definition is_ub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix "<|" 55) where
   "S <| x \<longleftrightarrow> (\<forall>y\<in>S. y \<sqsubseteq> x)"
 
 lemma is_ubI: "(\<And>x. x \<in> S \<Longrightarrow> x \<sqsubseteq> u) \<Longrightarrow> S <| u"
@@ -94,7 +94,7 @@ lemma is_ub_upward: "\<lbrakk>S <| x; x \<sqsubseteq> y\<rbrakk> \<Longrightarro
 
 subsection {* Least upper bounds *}
 
-definition is_lub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "<<|" 55) where
+definition is_lub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix "<<|" 55) where
   "S <<| x \<longleftrightarrow> S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u)"
 
 definition lub :: "'a set \<Rightarrow> 'a" where
