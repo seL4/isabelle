@@ -369,10 +369,11 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({outcome, message, used_facts, run_time_in_msecs = SOME time_prover, ...}
+    val ({outcome, message, used_facts, run_time_in_msecs, ...}
          : Sledgehammer.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time
                       (prover params (K ""))) problem
+    val time_prover = run_time_in_msecs |> the_default ~1
   in
     case outcome of
       NONE => (message, SH_OK (time_isa, time_prover, used_facts))
