@@ -354,6 +354,9 @@ INCOMPATIBILITY.
     yices_options
     smt_datatypes
 
+* Removed [split_format ... and ... and ...] version of
+[split_format].  Potential INCOMPATIBILITY.
+
 *** FOL ***
 
 * All constant names are now qualified.  INCOMPATIBILITY.
