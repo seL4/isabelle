@@ -134,8 +134,12 @@ lemma update_swap_neqIndex:
   by (auto simp add: update_def set_set_swap list_update_swap)
 
 lemma get_alloc:
-  "get (snd (alloc ls' h)) (fst (alloc ls h)) = ls'"
+  "get (snd (alloc xs h)) (fst (alloc ys h)) = xs"
   by (simp add: Let_def split_def alloc_def)
+
+lemma length_alloc:
+  "length (snd (alloc (xs :: 'a::heap list) h)) (fst (alloc (ys :: 'a list) h)) = List.length xs"
+  by (simp add: Array.length_def get_alloc)
 
 lemma set:
   "set (fst (alloc ls h))
