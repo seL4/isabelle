@@ -21,6 +21,9 @@ Contributions to this Isabelle version
 * July 2010: Florian Haftmann, TUM
   Reworking and extension of the Imperative HOL framework.
 
+* October 2010: Bogdan Grechuck, University of Edinburgh
+  Extended convex analysis in Multivariate Analysis
+
 
 Contributions to Isabelle2009-2
 --------------------------------------

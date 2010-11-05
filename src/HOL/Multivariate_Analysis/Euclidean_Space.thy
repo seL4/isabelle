@@ -1065,9 +1065,15 @@ using span_induct_alt'[of h S] h0 hS x by blast
 
 text {* Individual closure properties. *}
 
+lemma span_span: "span (span A) = span A"
+  unfolding span_def hull_hull ..
+
 lemma (in real_vector) span_superset: "x \<in> S ==> x \<in> span S" by (metis span_clauses(1))
 
 lemma (in real_vector) span_0: "0 \<in> span S" by (metis subspace_span subspace_0)
+
+lemma span_inc: "S \<subseteq> span S"
+  by (metis subset_eq span_superset)
 
 lemma (in real_vector) dependent_0: assumes "0\<in>A" shows "dependent A"
   unfolding dependent_def apply(rule_tac x=0 in bexI)
@@ -1484,12 +1490,6 @@ text {* The degenerate case of the Exchange Lemma. *}
 
 lemma mem_delete: "x \<in> (A - {a}) \<longleftrightarrow> x \<noteq> a \<and> x \<in> A"
   by blast
-
-lemma span_span: "span (span A) = span A"
-  unfolding span_def hull_hull ..
-
-lemma span_inc: "S \<subseteq> span S"
-  by (metis subset_eq span_superset)
 
 lemma spanning_subset_independent:
   assumes BA: "B \<subseteq> A" and iA: "independent A"
