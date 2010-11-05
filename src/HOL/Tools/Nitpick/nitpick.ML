@@ -973,25 +973,25 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val outcome_code =
       (run_batches 0 (length batches) batches
                    (false, max_potential, max_genuine, 0)
-       handle Exn.Interrupt => do_interrupted ())
+       handle Exn.Interrupt => do_interrupted ())  (* FIXME violates Isabelle/ML exception model *)
       handle TimeLimit.TimeOut =>
              (print_m (fn () => excipit "ran out of time after checking");
               if !met_potential > 0 then "potential" else "unknown")
            | Exn.Interrupt =>
              if auto orelse debug then raise Interrupt
-             else error (excipit "was interrupted after checking")
+             else error (excipit "was interrupted after checking")  (* FIXME violates Isabelle/ML exception model *)
     val _ = print_v (fn () =>
                 "Total time: " ^ string_from_time (Timer.checkRealTimer timer) ^
                 ".")
   in (outcome_code, !state_ref) end
-  handle Exn.Interrupt =>
+  handle Exn.Interrupt =>  (* FIXME violates Isabelle/ML exception model *)
          if auto orelse #debug params then
            raise Interrupt
          else
            if passed_deadline deadline then
              (Output.urgent_message "Nitpick ran out of time."; ("unknown", state))
            else
-             error "Nitpick was interrupted."
+             error "Nitpick was interrupted."  (* FIXME violates Isabelle/ML exception model *)
 
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
                       step subst assm_ts orig_t =
