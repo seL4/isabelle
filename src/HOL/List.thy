@@ -1298,6 +1298,15 @@ by (induct xs) auto
 lemma rev_concat: "rev (concat xs) = concat (map rev (rev xs))"
 by (induct xs) auto
 
+lemma concat_eq_concat_iff: "\<forall>(x, y) \<in> set (zip xs ys). length x = length y ==> length xs = length ys ==> (concat xs = concat ys) = (xs = ys)"
+proof (induct xs arbitrary: ys)
+  case (Cons x xs ys)
+  thus ?case by (cases ys) auto
+qed (auto)
+
+lemma concat_injective: "concat xs = concat ys ==> length xs = length ys ==> \<forall>(x, y) \<in> set (zip xs ys). length x = length y ==> xs = ys"
+by (simp add: concat_eq_concat_iff)
+
 
 subsubsection {* @{text nth} *}
 
