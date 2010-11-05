@@ -6,6 +6,13 @@ New in this Isabelle version
 
 *** General ***
 
+* System settings: ISABELLE_HOME_USER now includes ISABELLE_IDENTIFIER
+(and thus refers to something like $HOME/.isabelle/IsabelleXXXX),
+while the default heap location within that directory lacks that extra
+suffix.  This isolates multiple Isabelle installations from each
+other, avoiding problems with old settings in new versions.
+INCOMPATIBILITY, need to copy/upgrade old user settings manually.
+
 * Significantly improved Isabelle/Isar implementation manual.
 
 * Explicit treatment of UTF8 sequences as Isabelle symbols, such that
