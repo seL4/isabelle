@@ -210,6 +210,15 @@ fun async_state tr st =
             (fn () => Toplevel.print_state false st) ()))
   else ();
 
+fun run int tr st =
+  (case Toplevel.transition int tr st of
+    SOME (st', NONE) => ([], SOME st')
+  | SOME (_, SOME exn_info) =>
+      (case ML_Compiler.exn_messages (Runtime.EXCURSION_FAIL exn_info) of
+        [] => Exn.interrupt ()
+      | errs => (errs, NONE))
+  | NONE => ([ML_Compiler.exn_message Runtime.TERMINATE], NONE));
+
 in
 
 fun run_command thy_name tr st =
@@ -220,14 +229,7 @@ fun run_command thy_name tr st =
     Exn.Result () =>
       let
         val int = is_some (Toplevel.init_of tr);
-        val (errs, result) =
-          (case Toplevel.transition int tr st of
-            SOME (st', NONE) => ([], SOME st')
-          | SOME (_, SOME exn_info) =>
-              (case ML_Compiler.exn_messages (Runtime.EXCURSION_FAIL exn_info) of
-                [] => Exn.interrupt ()
-              | errs => (errs, NONE))
-          | NONE => ([ML_Compiler.exn_message Runtime.TERMINATE], NONE));
+        val (errs, result) = run int tr st;
         val _ = List.app (Toplevel.error_msg tr) errs;
         val _ =
           (case result of
