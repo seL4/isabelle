@@ -2,8 +2,8 @@
     Author:     Makarius
 
 Lazy evaluation with memoing of results and regular exceptions.
-Parallel version based on futures -- avoids critical or multiple
-evaluation, unless interrupted.
+Parallel version based on (passive) futures, to avoid critical or
+multiple evaluation (unless interrupted).
 *)
 
 signature LAZY =
@@ -58,7 +58,7 @@ fun force_result (Lazy var) =
                 val res = restore_interrupts (fn () => Exn.capture e ()) ();
                 val _ = Future.fulfill_result x res;
                 (*semantic race: some other threads might see the same
-                  Interrupt, until there is a fresh start*)
+                  interrupt, until there is a fresh start*)
                 val _ =
                   if Exn.is_interrupt_exn res then
                     Synchronized.change var (fn _ => Expr e)
