@@ -216,6 +216,31 @@ object Markup
   val MALFORMED_SPAN = "malformed_span"
 
 
+  /* timing */
+
+  val TIMING = "timing"
+  val ELAPSED = "elapsed"
+  val CPU = "cpu"
+  val GC = "gc"
+
+  object Timing
+  {
+    def apply(timing: isabelle.Timing): Markup =
+      Markup(TIMING, List(
+        (ELAPSED, Double(timing.elapsed)),
+        (CPU, Double(timing.cpu)),
+        (GC, Double(timing.gc))))
+    def unapply(markup: Markup): Option[isabelle.Timing] =
+      markup match {
+        case Markup(TIMING, List(
+          (ELAPSED, Double(elapsed)),
+          (CPU, Double(cpu)),
+          (GC, Double(gc)))) => Some(isabelle.Timing(elapsed, cpu, gc))
+        case _ => None
+      }
+  }
+
+
   /* toplevel */
 
   val SUBGOALS = "subgoals"
