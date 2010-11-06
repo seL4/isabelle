@@ -51,6 +51,7 @@ sig
   val is_diag: string -> bool
   val is_control: string -> bool
   val is_regular: string -> bool
+  val is_heading: string -> bool
   val is_theory_begin: string -> bool
   val is_theory: string -> bool
   val is_proof: string -> bool
@@ -192,7 +193,9 @@ fun command_category ks name =
 
 val is_diag = command_category [diag];
 val is_control = command_category [control];
-fun is_regular name = not (is_diag name orelse is_control name);
+val is_regular = not o command_category [diag, control];
+
+val is_heading = command_category [thy_heading, prf_heading];
 
 val is_theory_begin = command_category [thy_begin];
 
@@ -210,5 +213,4 @@ val is_qed = command_category [qed, qed_block];
 val is_qed_global = command_category [qed_global];
 
 end;
-
 
