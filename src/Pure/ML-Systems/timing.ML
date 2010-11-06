@@ -14,7 +14,9 @@ fun start_timing () =
     val cpu_times = Timer.checkCPUTimes cpu_timer;
   in (real_timer, real_time, cpu_timer, cpu_times) end;
 
-fun end_timing (real_timer, real_time, cpu_timer, cpu_times) =
+type timing = {message: string, elapsed: Time.time, cpu: Time.time, gc: Time.time};
+
+fun end_timing (real_timer, real_time, cpu_timer, cpu_times) : timing =
   let
     val real_time2 = Timer.checkRealTimer real_timer;
     val {nongc = {sys, usr}, gc = {sys = gc_sys, usr = gc_usr}} = cpu_times;

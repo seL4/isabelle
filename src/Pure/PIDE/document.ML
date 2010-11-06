@@ -196,6 +196,8 @@ end;
 
 local
 
+fun timing tr t = Toplevel.status tr (Markup.timing t);
+
 fun proof_status tr st =
   (case try Toplevel.proof_of st of
     SOME prf => Toplevel.status tr (Proof.status_markup prf)
@@ -229,7 +231,9 @@ fun run_command thy_name tr st =
     Exn.Result () =>
       let
         val int = is_some (Toplevel.init_of tr);
+        val start = start_timing ();
         val (errs, result) = run int tr st;
+        val _ = timing tr (end_timing start);
         val _ = List.app (Toplevel.error_msg tr) errs;
         val _ =
           (case result of
