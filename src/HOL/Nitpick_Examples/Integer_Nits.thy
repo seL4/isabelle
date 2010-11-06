@@ -12,7 +12,7 @@ imports Nitpick
 begin
 
 nitpick_params [card = 1\<midarrow>5, bits = 1,2,3,4,6,
-                sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
+                sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60]
 
 lemma "Suc x = x + 1"
 nitpick [unary_ints, expect = none]

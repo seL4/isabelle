@@ -13,7 +13,7 @@ imports Main
 begin
 
 nitpick_params [max_potential = 0, sat_solver = MiniSat_JNI, max_threads = 1,
-                timeout = 120 s]
+                timeout = 120]
 
 typedecl guest
 typedecl key

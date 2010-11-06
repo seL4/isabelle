@@ -115,7 +115,7 @@ local
     fun type_of (Free (_, ty)) = ty
       | type_of (Const (_, ty)) = ty
       | type_of (Var (_, ty)) = ty
-      | type_of _ = sys_error "infer_types: type_of error"
+      | type_of _ = raise Fail "infer_types: type_of error"
 in
 fun infer_types naming encoding =
     let
@@ -132,7 +132,7 @@ fun infer_types naming encoding =
                 val (adom, arange) =
                     case aty of
                         Type ("fun", [dom, range]) => (dom, range)
-                      | _ => sys_error "infer_types: function type expected"
+                      | _ => raise Fail "infer_types: function type expected"
                 val (b, bty) = infer_types level bounds (SOME adom) b
             in
                 (a $ b, arange)
@@ -143,7 +143,8 @@ fun infer_types naming encoding =
             in
                 (Abs (naming level, dom, m), ty)
             end
-          | infer_types _ _ NONE (AbstractMachine.Abs m) = sys_error "infer_types: cannot infer type of abstraction"
+          | infer_types _ _ NONE (AbstractMachine.Abs m) =
+              raise Fail "infer_types: cannot infer type of abstraction"
 
         fun infer ty term =
             let

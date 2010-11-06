@@ -607,8 +607,7 @@ fun alpha_ex_unroll (xlist, tm) =
       val vlist = #2(S.strip_comb (S.rhs body))
       val plist = ListPair.zip (vlist, xlist)
       val args = map (the o AList.lookup (op aconv) plist) qvars
-                   handle Option => sys_error
-                       "TFL fault [alpha_ex_unroll]: no correspondence"
+                   handle Option => raise Fail "TFL.alpha_ex_unroll: no correspondence"
       fun build ex      []   = []
         | build (_$rex) (v::rst) =
            let val ex1 = Term.betapply(rex, v)

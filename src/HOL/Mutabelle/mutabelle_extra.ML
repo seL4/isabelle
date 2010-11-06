@@ -179,7 +179,7 @@ fun invoke_nitpick thy t =
          | Refute.REFUTE (loc, details) =>
            (error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^
                    "."))
-         | Exn.Interrupt => raise Exn.Interrupt
+         | Exn.Interrupt => raise Exn.Interrupt  (* FIXME violates Isabelle/ML exception model *)
          | _ => (Output.urgent_message ("Unknown error in Nitpick"); Error)
   end
 val nitpick_mtd = ("nitpick", invoke_nitpick)

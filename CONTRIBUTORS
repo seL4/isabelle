@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* October 2010: Bogdan Grechuk, University of Edinburgh
+  Extended convex analysis in Multivariate Analysis.
+
 * October 2010: Dmitriy Traytel, TUM
   Coercive subtyping via subtype constraints.
 

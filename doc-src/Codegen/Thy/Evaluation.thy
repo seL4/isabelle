@@ -18,7 +18,7 @@ text {*
 subsection {* Evaluation techniques *}
 
 text {*
-  The existing infrastructure provides a rich palett of evaluation
+  The existing infrastructure provides a rich palette of evaluation
   techniques, each comprising different aspects:
 
   \begin{description}
@@ -135,7 +135,7 @@ text {*
       "t'"}.
 
     \item Evaluation of @{term t} terminates which en exception
-      indicating a pattern match failure or a not-implemented
+      indicating a pattern match failure or a non-implemented
       function.  As sketched in \secref{sec:partiality}, this can be
       interpreted as partiality.
      
@@ -148,8 +148,8 @@ text {*
   Exceptions of the third kind are propagated to the user.
 
   By default return values of plain evaluation are optional, yielding
-  @{text "SOME t'"} in the first case, @{text "NONE"} and in the
-  second propagating the exception in the third case.  A strict
+  @{text "SOME t'"} in the first case, @{text "NONE"} in the
+  second, and propagating the exception in the third case.  A strict
   variant of plain evaluation either yields @{text "t'"} or propagates
   any exception, a liberal variant caputures any exception in a result
   of type @{text "Exn.result"}.

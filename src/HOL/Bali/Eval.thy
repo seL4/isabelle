@@ -745,18 +745,13 @@ where
 *)
 
 ML {*
-bind_thm ("eval_induct_", rearrange_prems 
+bind_thm ("eval_induct", rearrange_prems 
 [0,1,2,8,4,30,31,27,15,16,
  17,18,19,20,21,3,5,25,26,23,6,
  7,11,9,13,14,12,22,10,28,
  29,24] @{thm eval.induct})
 *}
 
-
-lemmas eval_induct = eval_induct_ [split_format and and and and and and and and
-   and and and and and and s1 (* Acc *) and and s2 (* Comp *) and and and and 
-   and and 
-   s2 (* Fin *) and and s2 (* NewC *)] 
 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]

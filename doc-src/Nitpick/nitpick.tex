@@ -261,7 +261,7 @@ Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
 \hbox{}\qquad\qquad $x = a_3$ \\[2\smallskipamount]
-Total time: 768 ms.
+Total time: 0.76 s.
 \postw
 
 Nitpick found a counterexample in which $'a$ has cardinality 3. (For
@@ -797,7 +797,7 @@ Trying 1 scope: \\
 Nitpick found a potential counterexample for \textit{card nat}~= 50: \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment \\[2\smallskipamount]
 Nitpick could not find a better counterexample. It checked 0 of 1 scope. \\[2\smallskipamount]
-Total time: 1439 ms.
+Total time: 1.43 s.
 \postw
 
 No genuine counterexample is possible because Nitpick cannot rule out the
@@ -850,7 +850,7 @@ Nitpick found a counterexample for \textit{card nat}~= 10 and \textit{iter} $\te
 & 2 := \{0, 2, 4, 6, 8, 1^\Q, 3^\Q, 5^\Q, 7^\Q, 9^\Q\}, \\[-2pt]
 & 1 := \{0, 2, 4, 1^\Q, 3^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\}, \\[-2pt]
 & 0 := \{0, 2, 1^\Q, 3^\Q, 4^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\})\end{aligned}$ \\[2\smallskipamount]
-Total time: 2420 ms.
+Total time: 2.42 s.
 \postw
 
 Nitpick's output is very instructive. First, it tells us that the predicate is
@@ -1012,7 +1012,7 @@ depth}~= 1:
 \hbox{}\qquad\qquad $\textit{b} = a_2$ \\
 \hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega$ \\
 \hbox{}\qquad\qquad $\textit{ys} = \textit{LCons}~a_2~(\textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega)$ \\[2\smallskipamount]
-Total time: 1027 ms.
+Total time: 1.02 s.
 \postw
 
 The lazy list $\textit{xs}$ is simply $[a_1, a_1, a_1, \ldots]$, whereas
@@ -1160,7 +1160,7 @@ and \textit{card}~``$\textit{nat} \Rightarrow \textit{tm}$''~= 6: \\[2\smallskip
   4 := \textit{Var}~0,\>
   5 := \textit{Var}~0)\end{aligned}$ \\
 \hbox{}\qquad\qquad $t = \textit{Lam}~(\textit{Lam}~(\textit{Var}~1))$ \\[2\smallskipamount]
-Total time: $3560$ ms.
+Total time: 3.56 s.
 \postw
 
 Using \textit{eval}, we find out that $\textit{subst}~\sigma~t =
@@ -1255,7 +1255,7 @@ Nitpick found a counterexample for
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $\textit{xs} = [a_1, a_2]$ \\
 \hbox{}\qquad\qquad $\textit{ys} = [b_1, b_1]$ \\[2\smallskipamount]
-Total time: 1636 ms.
+Total time: 1.63 s.
 \postw
 
 In theory, it should be sufficient to test a single scope:
@@ -1849,7 +1849,7 @@ in brackets after the \textbf{nitpick} command. Default values can be set
 using \textbf{nitpick\_\allowbreak params}. For example:
 
 \prew
-\textbf{nitpick\_params} [\textit{verbose}, \,\textit{timeout} = 60$\,s$]
+\textbf{nitpick\_params} [\textit{verbose}, \,\textit{timeout} = 60]
 \postw
 
 The options are categorized as follows:\ mode of operation
@@ -1887,10 +1887,10 @@ The descriptions below refer to the following syntactic quantities:
 \item[$\bullet$] \qtybf{int\_or\_smart\/}: An integer or \textit{smart}.
 \item[$\bullet$] \qtybf{int\_range}: An integer (e.g., 3) or a range
 of nonnegative integers (e.g., $1$--$4$). The range symbol `--' can be entered as \texttt{-} (hyphen) or \texttt{\char`\\\char`\<midarrow\char`\>}.
-
 \item[$\bullet$] \qtybf{int\_seq}: A comma-separated sequence of ranges of integers (e.g.,~1{,}3{,}\allowbreak6--8).
-\item[$\bullet$] \qtybf{time}: An integer followed by $\textit{min}$ (minutes), $s$ (seconds), or \textit{ms}
-(milliseconds), or the keyword \textit{none} ($\infty$ years).
+\item[$\bullet$] \qtybf{float\_or\_none}: An integer (e.g., 60) or floating-point number
+(e.g., 0.5) expressing a number of seconds, or the keyword \textit{none}
+($\infty$ seconds).
 \item[$\bullet$] \qtybf{const\/}: The name of a HOL constant.
 \item[$\bullet$] \qtybf{term}: A HOL term (e.g., ``$f~x$'').
 \item[$\bullet$] \qtybf{term\_list\/}: A space-separated list of HOL terms (e.g.,
@@ -1966,7 +1966,7 @@ sense to specify cardinalities as a range of the form \textit{$1$--$n$}.
 {\small See also \textit{box} (\S\ref{scope-of-search}) and \textit{mono}
 (\S\ref{scope-of-search}).}
 
-\opdefault{card}{int\_seq}{$\mathbf{1}$--$\mathbf{10}$}
+\opdefault{card}{int\_seq}{\upshape 1--10}
 Specifies the default sequence of cardinalities to use. This can be overridden
 on a per-type basis using the \textit{card}~\qty{type} option described above.
 
@@ -2014,7 +2014,7 @@ problems that refer to the types \textit{rat} or \textit{real} or the constants
 {\small See also \textit{bits} (\S\ref{scope-of-search}) and
 \textit{show\_datatypes} (\S\ref{output-format}).}
 
-\opdefault{bits}{int\_seq}{$\mathbf{1},\mathbf{2},\mathbf{3},\mathbf{4},\mathbf{6},\mathbf{8},\mathbf{10},\mathbf{12},\mathbf{14},\mathbf{16}$}
+\opdefault{bits}{int\_seq}{\upshape 1,2,3,4,6,8,10,12,14,16}
 Specifies the number of bits to use to represent natural numbers and integers in
 binary, excluding the sign bit. The minimum is 1 and the maximum is 31.
 
@@ -2064,12 +2064,12 @@ domain.
 {\small See also \textit{wf} (\S\ref{scope-of-search}) and
 \textit{star\_linear\_preds} (\S\ref{optimizations}).}
 
-\opdefault{iter}{int\_seq}{$\mathbf{0{,}1{,}2{,}4{,}8{,}12{,}16{,}20{,}24{,}28}$}
+\opdefault{iter}{int\_seq}{\upshape 0{,}1{,}2{,}4{,}8{,}12{,}16{,}20{,}24{,}28}
 Specifies the sequence of iteration counts to use when unrolling (co)in\-duc\-tive
 predicates. This can be overridden on a per-predicate basis using the
 \textit{iter} \qty{const} option above.
 
-\opdefault{bisim\_depth}{int\_seq}{$\mathbf{9}$}
+\opdefault{bisim\_depth}{int\_seq}{\upshape 9}
 Specifies the sequence of iteration counts to use when unrolling the
 bisimilarity predicate generated by Nitpick for coinductive datatypes. A value
 of $-1$ means that no predicate is generated, in which case Nitpick performs an
@@ -2214,7 +2214,7 @@ genuine, but they can clutter the output.
 \opnodefault{show\_all}{bool}
 Abbreviation for \textit{show\_datatypes} and \textit{show\_consts}.
 
-\opdefault{max\_potential}{int}{$\mathbf{1}$}
+\opdefault{max\_potential}{int}{\upshape 1}
 Specifies the maximum number of potential counterexamples to display. Setting
 this option to 0 speeds up the search for a genuine counterexample. This option
 is implicitly set to 0 for automatic runs. If you set this option to a value
@@ -2226,7 +2226,7 @@ the counterexamples may be identical.
 {\small See also \textit{check\_potential} (\S\ref{authentication}) and
 \textit{sat\_solver} (\S\ref{optimizations}).}
 
-\opdefault{max\_genuine}{int}{$\mathbf{1}$}
+\opdefault{max\_genuine}{int}{\upshape 1}
 Specifies the maximum number of genuine counterexamples to display. If you set
 this option to a value greater than 1, you will need an incremental SAT solver,
 such as \textit{MiniSat\_JNI} (recommended) and \textit{SAT4J}. Be aware that
@@ -2267,7 +2267,7 @@ $n_k$-tuple, the previous $n_{k-1}$ arguments as an $n_{k-1}$-tuple, and so on;
 arguments that are not accounted for are left alone, as if the specification had
 been $1,\ldots,1,n_1,\ldots,n_k$.
 
-\opdefault{format}{int\_seq}{$\mathbf{1}$}
+\opdefault{format}{int\_seq}{\upshape 1}
 Specifies the default format to use. Irrespective of the default format, the
 extra arguments to a Skolem constant corresponding to the outer bound variables
 are kept separated from the remaining arguments, the \textbf{for} arguments of
@@ -2484,19 +2484,19 @@ peephole optimizer. These optimizations can make a significant difference.
 Unless you are tracking down a bug in Nitpick or distrust the peephole
 optimizer, you should leave this option enabled.
 
-\opdefault{datatype\_sym\_break}{int}{5}
+\opdefault{datatype\_sym\_break}{int}{\upshape 5}
 Specifies an upper bound on the number of datatypes for which Nitpick generates
 symmetry breaking predicates. Symmetry breaking can speed up the SAT solver
 considerably, especially for unsatisfiable problems, but too much of it can slow
 it down.
 
-\opdefault{kodkod\_sym\_break}{int}{15}
+\opdefault{kodkod\_sym\_break}{int}{\upshape 15}
 Specifies an upper bound on the number of relations for which Kodkod generates
 symmetry breaking predicates. Symmetry breaking can speed up the SAT solver
 considerably, especially for unsatisfiable problems, but too much of it can slow
 it down.
 
-\opdefault{max\_threads}{int}{0}
+\opdefault{max\_threads}{int}{\upshape 0}
 Specifies the maximum number of threads to use in Kodkod. If this option is set
 to 0, Kodkod will compute an appropriate value based on the number of processor
 cores available. The option is implicitly set to 1 for automatic runs.
@@ -2510,8 +2510,8 @@ cores available. The option is implicitly set to 1 for automatic runs.
 \label{timeouts}
 
 \begin{enum}
-\opdefault{timeout}{time}{$\mathbf{30}$ s}
-Specifies the maximum amount of time that the \textbf{nitpick} command should
+\opdefault{timeout}{float\_or\_none}{\upshape 30}
+Specifies the maximum number of seconds that the \textbf{nitpick} command should
 spend looking for a counterexample. Nitpick tries to honor this constraint as
 well as it can but offers no guarantees. For automatic runs,
 \textit{timeout} is ignored; instead, Auto Quickcheck and Auto Nitpick share
@@ -2521,8 +2521,8 @@ Limit'' option in Proof General.
 \nopagebreak
 {\small See also \textit{max\_threads} (\S\ref{optimizations}).}
 
-\opdefault{tac\_timeout}{time}{$\mathbf{500}$\,ms}
-Specifies the maximum amount of time that the \textit{auto} tactic should use
+\opdefault{tac\_timeout}{float\_or\_none}{\upshape 0.5}
+Specifies the maximum number of seconds that the \textit{auto} tactic should use
 when checking a counterexample, and similarly that \textit{lexicographic\_order}
 and \textit{size\_change} should use when checking whether a (co)in\-duc\-tive
 predicate is well-founded. Nitpick tries to honor this constraint as well as it
@@ -2863,7 +2863,7 @@ style.
 which can become invalid if you change the definition of an inductive predicate
 that is registered in the cache. To clear the cache,
 run Nitpick with the \textit{tac\_timeout} option set to a new value (e.g.,
-501$\,\textit{ms}$).
+$0.51$).
 
 \item[$\bullet$] Nitpick produces spurious counterexamples when invoked after a
 \textbf{guess} command in a structured proof.

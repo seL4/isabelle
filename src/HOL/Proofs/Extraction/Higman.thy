@@ -352,11 +352,11 @@ end
 function mk_word_aux :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list \<times> Random.seed" where
   "mk_word_aux k = exec {
      i \<leftarrow> Random.range 10;
-     (if i > 7 \<and> k > 2 \<or> k > 1000 then return []
+     (if i > 7 \<and> k > 2 \<or> k > 1000 then Pair []
      else exec {
        let l = (if i mod 2 = 0 then A else B);
        ls \<leftarrow> mk_word_aux (Suc k);
-       return (l # ls)
+       Pair (l # ls)
      })}"
 by pat_completeness auto
 termination by (relation "measure ((op -) 1001)") auto

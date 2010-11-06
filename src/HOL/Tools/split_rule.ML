@@ -7,7 +7,6 @@ Some tools for managing tupled arguments and abstractions in rules.
 signature SPLIT_RULE =
 sig
   val split_rule_var: term -> thm -> thm
-  val split_rule_goal: Proof.context -> string list list -> thm -> thm
   val split_rule: thm -> thm
   val complete_split_rule: thm -> thm
   val setup: theory -> theory
@@ -48,7 +47,7 @@ fun split_rule_var' (t as Var (v, Type ("fun", [T1, T2]))) rl =
   | split_rule_var' t rl = rl;
 
 
-(* complete splitting of partially splitted rules *)
+(* complete splitting of partially split rules *)
 
 fun ap_split' (T::Ts) U u = Abs ("v", T, ap_split' Ts U
       (ap_split T (maps HOLogic.flatten_tupleT Ts ---> U)
@@ -107,37 +106,12 @@ fun complete_split_rule rl =
   end;
 
 
-fun pair_tac ctxt s =
-  res_inst_tac ctxt [(("y", 0), s)] @{thm prod.exhaust}
-  THEN' hyp_subst_tac
-  THEN' K prune_params_tac;
-
-val split_rule_ss = HOL_basic_ss addsimps [@{thm split_conv}, @{thm fst_conv}, @{thm snd_conv}];
-
-fun split_rule_goal ctxt xss rl =
-  let
-    fun one_split i s = Tactic.rule_by_tactic ctxt (pair_tac ctxt s i);
-    fun one_goal (i, xs) = fold (one_split (i + 1)) xs;
-  in
-    rl
-    |> fold_index one_goal xss
-    |> Simplifier.full_simplify split_rule_ss
-    |> Drule.export_without_context
-    |> Rule_Cases.save rl
-  end;
-
-
 (* attribute syntax *)
-
-(* FIXME dynamically scoped due to Args.name_source/pair_tac *)
 
 val setup =
   Attrib.setup @{binding split_format}
     (Scan.lift
-     (Args.parens (Args.$$$ "complete") >> K (Thm.rule_attribute (K complete_split_rule)) ||
-      Parse.and_list1 (Scan.repeat Args.name_source)
-        >> (fn xss => Thm.rule_attribute (fn context =>
-            split_rule_goal (Context.proof_of context) xss))))
+     (Args.parens (Args.$$$ "complete") >> K (Thm.rule_attribute (K complete_split_rule))))
     "split pair-typed subterms in premises, or function arguments" #>
   Attrib.setup @{binding split_rule} (Scan.succeed (Thm.rule_attribute (K split_rule)))
     "curries ALL function variables occurring in a rule's conclusion";

@@ -72,22 +72,18 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'split_format' ((( name * ) + 'and') | ('(' 'complete' ')'))
+    'split_format' '(' 'complete' ')'
     ;
   \end{rail}
 
   \begin{description}
   
-  \item @{attribute (HOL) split_format}~@{text "p\<^sub>1 \<dots> p\<^sub>m \<AND> \<dots>
-  \<AND> q\<^sub>1 \<dots> q\<^sub>n"} puts expressions of low-level tuple types into
-  canonical form as specified by the arguments given; the @{text i}-th
-  collection of arguments refers to occurrences in premise @{text i}
-  of the rule.  The ``@{text "(complete)"}'' option causes \emph{all}
+  \item @{attribute (HOL) split_format}\ @{text "(complete)"} causes
   arguments in function applications to be represented canonically
   according to their tuple type structure.
 
-  Note that these operations tend to invent funny names for new local
-  parameters to be introduced.
+  Note that this operation tends to invent funny names for new local
+  parameters introduced.
 
   \end{description}
 *}

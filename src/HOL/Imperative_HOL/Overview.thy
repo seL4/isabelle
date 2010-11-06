@@ -31,7 +31,7 @@ text {*
   realisation has changed since, due to both extensions and
   refinements.  Therefore this overview wants to present the framework
   \qt{as it is} by now.  It focusses on the user-view, less on matters
-  of constructions.  For details study of the theory sources is
+  of construction.  For details study of the theory sources is
   encouraged.
 *}
 
@@ -41,7 +41,8 @@ section {* A polymorphic heap inside a monad *}
 text {*
   Heaps (@{type heap}) can be populated by values of class @{class
   heap}; HOL's default types are already instantiated to class @{class
-  heap}.
+  heap}.  Class @{class heap} is a subclass of @{class countable};  see
+  theory @{text Countable} for ways to instantiate types as @{class countable}.
 
   The heap is wrapped up in a monad @{typ "'a Heap"} by means of the
   following specification:
@@ -100,7 +101,7 @@ text {*
 
   provides a simple relational calculus.  Primitive rules are @{text
   crelI} and @{text crelE}, rules appropriate for reasoning about
-  imperative operation are available in the @{text crel_intros} and
+  imperative operations are available in the @{text crel_intros} and
   @{text crel_elims} fact collections.
 
   Often non-failure of imperative computations does not depend

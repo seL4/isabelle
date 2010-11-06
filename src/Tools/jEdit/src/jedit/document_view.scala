@@ -165,6 +165,8 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
 
   /* CONTROL-mouse management */
 
+  private var control: Boolean = false
+
   private def exit_control()
   {
     exit_popup()
@@ -184,7 +186,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
 
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent) {
-      val control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
+      control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
       val x = e.getX()
       val y = e.getY()
 
@@ -288,10 +290,20 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
       Isabelle.swing_buffer_lock(model.buffer) {
         val snapshot = model.snapshot()
         val offset = text_area.xyToOffset(x, y)
-        snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.tooltip) match
-        {
-          case Text.Info(_, Some(text)) #:: _ => Isabelle.tooltip(text)
-          case _ => null
+        if (control) {
+          snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.tooltip) match
+          {
+            case Text.Info(_, Some(text)) #:: _ => Isabelle.tooltip(text)
+            case _ => null
+          }
+        }
+        else {
+          // FIXME snapshot.cumulate
+          snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.popup) match
+          {
+            case Text.Info(_, Some(text)) #:: _ => Isabelle.tooltip(text)
+            case _ => null
+          }
         }
       }
     }

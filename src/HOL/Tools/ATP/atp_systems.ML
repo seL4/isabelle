@@ -80,15 +80,16 @@ fun to_secs bonus time = (Time.toMilliseconds time + bonus + 999) div 1000
 
 (* E *)
 
-(* Give older versions of E an extra second, because the "eproof" script wrongly
-   subtracted an entire second to account for the overhead of the script
-   itself, which is in fact much lower. *)
+(* Give E an extra second to reconstruct the proof. Older versions even get two
+   seconds, because the "eproof" script wrongly subtracted an entire second to
+   account for the overhead of the script itself, which is in fact much
+   lower. *)
 fun e_bonus () =
   case getenv "E_VERSION" of
-    "" => 1000
+    "" => 2000
   | version =>
-    if exists (fn s => String.isPrefix s version) ["0.9", "1.0"] then 1000
-    else 0
+    if exists (fn s => String.isPrefix s version) ["0.9", "1.0"] then 2000
+    else 1000
 
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")

@@ -11,6 +11,7 @@ sig
   val simplify_spaces : string -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
+  val string_from_time : Time.time -> string
   val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
@@ -49,22 +50,21 @@ fun parse_bool_option option name s =
                   space_implode " " (serial_commas "or" ss) ^ ".")
          end
 
+val has_junk =
+  exists (fn s => not (Symbol.is_digit s) andalso s <> ".") o explode
+
 fun parse_time_option _ "none" = NONE
   | parse_time_option name s =
-    let
-      val msecs =
-        case space_explode " " s of
-          [s1, "min"] => 60000 * the (Int.fromString s1)
-        | [s1, "s"] => 1000 * the (Int.fromString s1)
-        | [s1, "ms"] => the (Int.fromString s1)
-        | _ => 0
-    in
-      if msecs <= 0 then
-        error ("Parameter " ^ quote name ^ " must be assigned a positive time \
-               \value (e.g., \"60 s\", \"200 ms\") or \"none\".")
+    let val secs = if has_junk s then NONE else Real.fromString s in
+      if is_none secs orelse Real.<= (the secs, 0.0) then
+        error ("Parameter " ^ quote name ^ " must be assigned a positive \
+               \number of seconds (e.g., \"60\", \"0.5\") or \"none\".")
       else
-        SOME (Time.fromMilliseconds msecs)
+        SOME (seconds (the secs))
     end
+
+fun string_from_time t =
+  string_of_real (0.01 * Real.fromInt (Time.toMilliseconds t div 10)) ^ " s"
 
 val subscript = implode o map (prefix "\<^isub>") o explode
 fun nat_subscript n =

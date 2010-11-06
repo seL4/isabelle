@@ -129,7 +129,6 @@
     "locale"
     "method_setup"
     "moreover"
-    "new_domain"
     "next"
     "nitpick"
     "nitpick_params"
@@ -311,6 +310,7 @@
     "shows"
     "structure"
     "unchecked"
+    "unsafe"
     "uses"
     "where"))
 
@@ -478,7 +478,6 @@
     "local_setup"
     "locale"
     "method_setup"
-    "new_domain"
     "nitpick_params"
     "no_notation"
     "no_syntax"

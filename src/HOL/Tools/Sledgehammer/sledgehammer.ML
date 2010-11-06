@@ -54,7 +54,8 @@ sig
   val is_prover_available : theory -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
   val default_max_relevant_for_prover : theory -> string -> int
-  val irrelevant_consts_for_prover : string -> string list
+  val is_built_in_const_for_prover :
+    Proof.context -> string -> string * typ -> bool
   val relevance_fudge_for_prover : string -> relevance_fudge
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
@@ -116,29 +117,9 @@ val atp_irrelevant_consts =
   [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let},
    @{const_name HOL.eq}]
 
-(* FIXME: check types *)
-val smt_irrelevant_consts =
-  atp_irrelevant_consts @
-  [@{const_name distinct},
-   (* numeral-related: *)
-   @{const_name number_of}, @{const_name Int.Pls}, @{const_name Int.Min},
-   @{const_name Int.Bit0}, @{const_name Int.Bit1}, @{const_name Suc},
-   (* FIXME: @{const_name Numeral0}, @{const_name Numeral1}, *)
-   (* int => nat *)
-   @{const_name nat},
-   (* nat => int *)
-   (* FIXME: @{const_name int}, *)
-   (* for "nat", "int", and "real": *)
-   @{const_name plus}, @{const_name uminus}, @{const_name minus},
-   @{const_name times}, @{const_name less}, @{const_name less_eq},
-   @{const_name abs}, @{const_name min}, @{const_name max},
-   (* for "nat" and "div": *)
-   @{const_name div}, @{const_name mod} (* , *)
-   (* for real: *)
-   (* FIXME: @{const_name "op /"} *)]
-
-fun irrelevant_consts_for_prover name =
-  if is_smt_prover name then smt_irrelevant_consts else atp_irrelevant_consts
+fun is_built_in_const_for_prover ctxt name (s, T) =
+  if is_smt_prover name then SMT_Builtin.is_builtin ctxt (s, T)
+  else member (op =) atp_irrelevant_consts s
 
 (* FUDGE *)
 val atp_relevance_fudge =
@@ -277,8 +258,8 @@ fun translated_fact ctxt (Untranslated p) = translate_fact ctxt p
 fun fact_name (Untranslated ((name, _), _)) = SOME name
   | fact_name (Translated (_, p)) = Option.map (fst o fst) p
 
-fun int_option_add (SOME m) (SOME n) = SOME (m + n)
-  | int_option_add _ _ = NONE
+fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
+  | int_opt_add _ _ = NONE
 
 (* Important messages are important but not so important that users want to see
    them each time. *)
@@ -377,8 +358,8 @@ fun run_atp auto atp_name
                  ? (fn (_, msecs0, _, SOME _) =>
                        run true (Time.- (timeout, Timer.checkRealTimer timer))
                        |> (fn (output, msecs, tstplike_proof, outcome) =>
-                              (output, int_option_add msecs0 msecs,
-                               tstplike_proof, outcome))
+                              (output, int_opt_add msecs0 msecs, tstplike_proof,
+                               outcome))
                      | result => result)
           in ((pool, conjecture_shape, fact_names), result) end
         else
@@ -411,11 +392,12 @@ fun run_atp auto atp_name
             (proof_banner auto, full_types, minimize_command, tstplike_proof,
              fact_names, goal, subgoal)
         |>> (fn message =>
-                message ^ (if verbose then
-                             "\nATP real CPU time: " ^
-                             string_of_int (the msecs) ^ " ms."
-                           else
-                             "") ^
+                message ^
+                (if verbose then
+                   "\nATP real CPU time: " ^
+                   string_from_time (Time.fromMilliseconds (the msecs)) ^ "."
+                 else
+                   "") ^
                 (if important_message <> "" then
                    "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^
                    important_message
@@ -432,14 +414,43 @@ fun failure_from_smt_failure (SMT_Solver.Counterexample _) = Unprovable
   | failure_from_smt_failure SMT_Solver.Out_Of_Memory = OutOfResources
   | failure_from_smt_failure _ = UnknownError
 
+val smt_filter_max_iter = 5
+val smt_filter_fact_divisor = 2
+
+fun smt_filter_loop iter msecs_so_far remote timeout state facts i =
+  let
+    val timer = Timer.startRealTimer ()
+    val {outcome, used_facts, run_time_in_msecs} =
+      SMT_Solver.smt_filter remote timeout state facts i
+    val msecs_so_far = int_opt_add run_time_in_msecs msecs_so_far
+    val too_many_facts_perhaps =
+      case outcome of
+        NONE => false
+      | SOME (SMT_Solver.Counterexample _) => false
+      | SOME SMT_Solver.Time_Out => false
+      | SOME SMT_Solver.Out_Of_Memory => true
+      | SOME _ => true
+  in
+    if too_many_facts_perhaps andalso iter < smt_filter_max_iter andalso
+       not (null facts) then
+      let val facts = take (length facts div smt_filter_fact_divisor) facts in
+        smt_filter_loop (iter + 1) msecs_so_far remote
+                        (Time.- (timeout, Timer.checkRealTimer timer)) state
+                        facts i
+      end
+    else
+      {outcome = outcome, used_facts = used_facts,
+       run_time_in_msecs = msecs_so_far}
+  end
+
 fun run_smt_solver auto remote ({timeout, ...} : params) minimize_command
                    ({state, subgoal, subgoal_count, facts, ...}
                     : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val {outcome, used_facts, run_time_in_msecs} =
-      SMT_Solver.smt_filter remote timeout state
-                            (map_filter (try dest_Untranslated) facts) subgoal
+      smt_filter_loop 1 (SOME 0) remote timeout state
+                      (map_filter (try dest_Untranslated) facts) subgoal
     val message =
       case outcome of
         NONE =>
@@ -535,8 +546,8 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
       val _ = () |> not blocking ? kill_provers
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."
       val (smts, atps) = provers |> List.partition is_smt_prover
-      fun run_provers label full_types irrelevant_consts relevance_fudge
-                      maybe_translate provers (res as (success, state)) =
+      fun run_provers label full_types relevance_fudge maybe_translate provers
+                      (res as (success, state)) =
         if success orelse null provers then
           res
         else
@@ -548,9 +559,11 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                 0 |> fold (Integer.max o default_max_relevant_for_prover thy)
                           provers
                   |> auto ? (fn n => n div auto_max_relevant_divisor)
+            val is_built_in_const =
+              is_built_in_const_for_prover ctxt (hd provers)
             val facts =
               relevant_facts ctxt full_types relevance_thresholds
-                             max_max_relevant irrelevant_consts relevance_fudge
+                             max_max_relevant is_built_in_const relevance_fudge
                              relevance_override chained_ths hyp_ts concl_t
               |> map maybe_translate
             val problem =
@@ -559,7 +572,7 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
             val run_prover = run_prover params auto minimize_command
           in
             if debug then
-              Output.urgent_message (label ^ ": " ^
+              Output.urgent_message (label ^ plural_s (length provers) ^ ": " ^
                   (if null facts then
                      "Found no relevant facts."
                    else
@@ -579,11 +592,10 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                       |> exists fst |> rpair state
           end
       val run_atps =
-        run_provers "ATPs" full_types atp_irrelevant_consts atp_relevance_fudge
+        run_provers "ATP" full_types atp_relevance_fudge
                     (Translated o translate_fact ctxt) atps
       val run_smts =
-        run_provers "SMT" true smt_irrelevant_consts smt_relevance_fudge
-                    Untranslated smts
+        run_provers "SMT solver" true smt_relevance_fudge Untranslated smts
       fun run_atps_and_smt_solvers () =
         [run_atps, run_smts] |> Par_List.map (fn f => f (false, state) |> K ())
     in

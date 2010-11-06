@@ -12,7 +12,7 @@ imports Main
 begin
 
 nitpick_params [card = 10, max_potential = 0, sat_solver = MiniSat_JNI,
-                max_threads = 1, timeout = 60 s]
+                max_threads = 1, timeout = 60]
 
 lemma "x = (case u of () \<Rightarrow> y)"
 nitpick [expect = genuine]

@@ -321,7 +321,7 @@ struct
           []      => [xs1]
         | (0::[]) => [xs1]
         | (0::tl) => xs1 :: clauses tl
-        | _       => sys_error "this cannot happen"
+        | _       => raise Fail "SatSolver.clauses"
       end
     (* int -> PropLogic.prop_formula *)
     fun literal_from_int i =

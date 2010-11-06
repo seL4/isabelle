@@ -88,10 +88,11 @@ ISABELLE_USEDIR_OPTIONS="-i true"
 \end{ttbox}
 
   and then change into the @{"file" "~~/src/FOL"} directory and run
-  @{verbatim isabelle} @{tool make}, or even @{verbatim isabelle} @{tool
-  make}~@{verbatim all}.  The presentation output will appear in
-  @{verbatim "ISABELLE_BROWSER_INFO/FOL"}, which usually refers to
-  @{verbatim "~/.isabelle/browser_info/FOL"}.  Note that option
+  @{verbatim isabelle} @{tool make}, or even @{verbatim isabelle}
+  @{tool make}~@{verbatim all}.  The presentation output will appear
+  in @{verbatim "ISABELLE_BROWSER_INFO/FOL"}, which usually refers to
+  something like @{verbatim
+  "~/.isabelle/IsabelleXXXX/browser_info/FOL"}.  Note that option
   @{verbatim "-v true"} will make the internal runs of @{tool usedir}
   more explicit about such details.
 
@@ -768,7 +769,7 @@ text {*
   This enables users to inspect {\LaTeX} runs in further detail, e.g.\
   like this:
 \begin{ttbox}
-  cd ~/.isabelle/browser_info/HOL/Test/document
+  cd ~/.isabelle/IsabelleXXXX/browser_info/HOL/Test/document
   isabelle latex -o pdf
 \end{ttbox}
 *}

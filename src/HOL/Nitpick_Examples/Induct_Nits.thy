@@ -12,7 +12,7 @@ imports Main
 begin
 
 nitpick_params [card = 1\<midarrow>8, unary_ints, sat_solver = MiniSat_JNI,
-                max_threads = 1, timeout = 60 s]
+                max_threads = 1, timeout = 60]
 
 inductive p1 :: "nat \<Rightarrow> bool" where
 "p1 0" |

@@ -6,6 +6,13 @@ New in this Isabelle version
 
 *** General ***
 
+* System settings: ISABELLE_HOME_USER now includes ISABELLE_IDENTIFIER
+(and thus refers to something like $HOME/.isabelle/IsabelleXXXX),
+while the default heap location within that directory lacks that extra
+suffix.  This isolates multiple Isabelle installations from each
+other, avoiding problems with old settings in new versions.
+INCOMPATIBILITY, need to copy/upgrade old user settings manually.
+
 * Significantly improved Isabelle/Isar implementation manual.
 
 * Explicit treatment of UTF8 sequences as Isabelle symbols, such that
@@ -81,6 +88,8 @@ and type constructors.
 
 
 *** HOL ***
+
+* Theory Multiset provides stable quicksort implementation of sort_key.
 
 * Quickcheck now has a configurable time limit which is set to 30 seconds
 by default. This can be changed by adding [timeout = n] to the quickcheck
@@ -325,6 +334,14 @@ INCOMPATIBILITY.
   - Renamed options:
     sledgehammer [atps = ...] ~> sledgehammer [provers = ...]
     sledgehammer [atp = ...] ~> sledgehammer [prover = ...]
+    sledgehammer [timeout = 77 s] ~> sledgehammer [timeout = 77]
+    (and "ms" and "min" are no longer supported)
+    INCOMPATIBILITY.
+
+* Nitpick:
+  - Renamed options:
+    nitpick [timeout = 77 s] ~> nitpick [timeout = 77]
+    nitpick [tac_timeout = 777 ms] ~> nitpick [tac_timeout = 0.777]
     INCOMPATIBILITY.
 
 * Changed SMT configuration options:
@@ -337,6 +354,9 @@ INCOMPATIBILITY.
     yices_options
     smt_datatypes
 
+* Removed [split_format ... and ... and ...] version of
+[split_format].  Potential INCOMPATIBILITY.
+
 *** FOL ***
 
 * All constant names are now qualified.  INCOMPATIBILITY.
@@ -348,6 +368,10 @@ INCOMPATIBILITY.
 
 
 *** ML ***
+
+* Discontinued obsolete function sys_error and exception SYS_ERROR.
+See implementation manual for further details on exceptions in
+Isabelle/ML.
 
 * Antiquotation @{assert} inlines a function bool -> unit that raises
 Fail if the argument is false.  Due to inlining the source position of

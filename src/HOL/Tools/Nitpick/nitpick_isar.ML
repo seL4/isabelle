@@ -61,8 +61,8 @@ val default_default_params =
    ("peephole_optim", "true"),
    ("datatype_sym_break", "5"),
    ("kodkod_sym_break", "15"),
-   ("timeout", "30 s"),
-   ("tac_timeout", "500 ms"),
+   ("timeout", "30"),
+   ("tac_timeout", "0.5"),
    ("max_threads", "0"),
    ("debug", "false"),
    ("verbose", "false"),
@@ -297,8 +297,10 @@ fun default_params thy =
 val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
 val parse_value =
   Scan.repeat1 (Parse.minus >> single
-                || Scan.repeat1 (Scan.unless Parse.minus Parse.name)
-                || Parse.$$$ "," |-- Parse.number >> prefix "," >> single) >> flat
+                || Scan.repeat1 (Scan.unless Parse.minus
+                                             (Parse.name || Parse.float_number))
+                || Parse.$$$ "," |-- Parse.number >> prefix "," >> single)
+  >> flat
 val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
 val parse_params =
   Scan.optional (Parse.$$$ "[" |-- Parse.list parse_param --| Parse.$$$ "]") []

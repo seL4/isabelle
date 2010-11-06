@@ -16,12 +16,12 @@ sig
   datatype expectation = No_Expectation | No_Counterexample | Counterexample;
   datatype test_params = Test_Params of
   { size: int, iterations: int, default_type: typ list, no_assms: bool,
-    expect : expectation, report: bool, quiet : bool, timeout : int};
+    expect : expectation, report: bool, quiet : bool, timeout : real};
   val test_params_of : Proof.context -> test_params
   val report : Proof.context -> bool
   val map_test_params :
-    ((int * int) * ((typ list * bool) * ((expectation * bool) * (bool * int)))
-      -> (int * int) * ((typ list * bool) * ((expectation * bool) * (bool * int))))
+    ((int * int) * ((typ list * bool) * ((expectation * bool) * (bool * real)))
+      -> (int * int) * ((typ list * bool) * ((expectation * bool) * (bool * real))))
     -> Context.generic -> Context.generic
   val add_generator:
     string * (Proof.context -> term -> int -> term list option * (bool list * bool))
@@ -81,7 +81,7 @@ fun merge_expectation (expect1, expect2) =
 
 datatype test_params = Test_Params of
   { size: int, iterations: int, default_type: typ list, no_assms: bool,
-    expect : expectation, report: bool, quiet : bool, timeout : int};
+    expect : expectation, report: bool, quiet : bool, timeout : real};
 
 fun dest_test_params
     (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet, timeout }) =
@@ -105,7 +105,7 @@ fun merge_test_params
   make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
     ((merge (op =) (default_type1, default_type2), no_assms1 orelse no_assms2),
     ((merge_expectation (expect1, expect2), report1 orelse report2),
-    (quiet1 orelse quiet2, Int.min (timeout1, timeout2)))));
+    (quiet1 orelse quiet2, Real.min (timeout1, timeout2)))));
 
 structure Data = Generic_Data
 (
@@ -114,7 +114,7 @@ structure Data = Generic_Data
       * test_params;
   val empty = ([], Test_Params
     { size = 10, iterations = 100, default_type = [], no_assms = false,
-      expect = No_Expectation, report = false, quiet = false, timeout = 30});
+      expect = No_Expectation, report = false, quiet = false, timeout = 30.0});
   val extend = I;
   fun merge ((generators1, params1), (generators2, params2)) : T =
     (AList.merge (op =) (K true) (generators1, generators2),
@@ -200,6 +200,9 @@ fun cpu_time description f =
 fun test_term ctxt generator_name t =
   let
     val (names, t') = prep_test_term t;
+    val current_size = Unsynchronized.ref 0
+    fun excipit s =
+      "Quickcheck " ^ s ^ " while testing at size " ^ string_of_int (!current_size)
     val (testers, comp_time) = cpu_time "quickcheck compilation"
       (fn () => (case generator_name
        of NONE => if quiet ctxt then mk_testers ctxt t' else mk_testers_strict ctxt t'
@@ -225,15 +228,18 @@ fun test_term ctxt generator_name t =
       else
        (if quiet ctxt then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
         let
+          val _ = current_size := k  
           val (result, new_report) = with_testers k testers
           val reports = ((k, new_report) :: reports)
         in case result of NONE => with_size (k + 1) reports | SOME q => (SOME q, reports) end);
     val ((result, reports), exec_time) =
-      TimeLimit.timeLimit (Time.fromSeconds (timeout ctxt)) (fn () => cpu_time "quickcheck execution"
+      TimeLimit.timeLimit (seconds (timeout ctxt)) (fn () => cpu_time "quickcheck execution"
       (fn () => apfst
          (fn result => case result of NONE => NONE
         | SOME ts => SOME (names ~~ ts)) (with_size 1 []))) ()
-      handle TimeLimit.TimeOut => error "Reached timeout during Quickcheck"
+      handle TimeLimit.TimeOut =>
+        error (excipit "ran out of time")
+     | Exn.Interrupt => error (excipit "was interrupted")  (* FIXME violates Isabelle/ML exception model *)
   in
     (result, ([exec_time, comp_time], if report ctxt then SOME reports else NONE))
   end;
@@ -367,6 +373,11 @@ fun read_bool "false" = false
   | read_bool "true" = true
   | read_bool s = error ("Not a Boolean value: " ^ s)
 
+fun read_real s =
+  case (Real.fromString s) of
+    SOME s => s
+  | NONE => error ("Not a real number: " ^ s)
+
 fun read_expectation "no_expectation" = No_Expectation
   | read_expectation "no_counterexample" = No_Counterexample 
   | read_expectation "counterexample" = Counterexample
@@ -387,7 +398,7 @@ fun parse_test_param ctxt ("size", [arg]) =
   | parse_test_param ctxt ("quiet", [arg]) =
       (apsnd o apsnd o apsnd o apfst o K) (read_bool arg)
   | parse_test_param ctxt ("timeout", [arg]) =
-      (apsnd o apsnd o apsnd o apsnd o K) (read_nat arg)
+      (apsnd o apsnd o apsnd o apsnd o K) (read_real arg)
   | parse_test_param ctxt (name, _) =
       error ("Unknown test parameter: " ^ name);
 
@@ -431,7 +442,7 @@ fun quickcheck_cmd args i state =
   |> Pretty.writeln o pretty_counterex_and_reports (Toplevel.context_of state) false;
 
 val parse_arg = Parse.name -- (Scan.optional (Parse.$$$ "=" |-- 
-  ((Parse.name >> single) || (Parse.$$$ "[" |-- Parse.list1 Parse.name --| Parse.$$$ "]"))) ["true"]);
+  (((Parse.name || Parse.float_number) >> single) || (Parse.$$$ "[" |-- Parse.list1 Parse.name --| Parse.$$$ "]"))) ["true"]);
 
 val parse_args = Parse.$$$ "[" |-- Parse.list1 parse_arg --| Parse.$$$ "]"
   || Scan.succeed [];

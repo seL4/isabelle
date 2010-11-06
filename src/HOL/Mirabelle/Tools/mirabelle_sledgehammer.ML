@@ -349,17 +349,17 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
                  #> Config.put Sledgehammer.measure_run_time true)
     val params as {full_types, relevance_thresholds, max_relevant, ...} =
       Sledgehammer_Isar.default_params ctxt
-          [("timeout", Int.toString timeout ^ " s")]
+          [("timeout", Int.toString timeout)]
     val default_max_relevant =
       Sledgehammer.default_max_relevant_for_prover thy prover_name
-    val irrelevant_consts =
-      Sledgehammer.irrelevant_consts_for_prover prover_name
+    val is_built_in_const =
+      Sledgehammer.is_built_in_const_for_prover ctxt prover_name
     val relevance_fudge = Sledgehammer.relevance_fudge_for_prover prover_name
     val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val facts =
       Sledgehammer_Filter.relevant_facts ctxt full_types relevance_thresholds
-          (the_default default_max_relevant max_relevant) irrelevant_consts
+          (the_default default_max_relevant max_relevant) is_built_in_const
           relevance_fudge relevance_override chained_ths hyp_ts concl_t
     val problem =
       {state = st', goal = goal, subgoal = i,
@@ -369,10 +369,11 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({outcome, message, used_facts, run_time_in_msecs = SOME time_prover, ...}
+    val ({outcome, message, used_facts, run_time_in_msecs, ...}
          : Sledgehammer.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time
                       (prover params (K ""))) problem
+    val time_prover = run_time_in_msecs |> the_default ~1
   in
     case outcome of
       NONE => (message, SH_OK (time_isa, time_prover, used_facts))
@@ -446,7 +447,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
       |> Option.map (fst o read_int o explode)
       |> the_default 5
     val params = Sledgehammer_Isar.default_params ctxt
-      [("provers", prover_name), ("timeout", Int.toString timeout ^ " s")]
+      [("provers", prover_name), ("timeout", Int.toString timeout)]
     val minimize =
       Sledgehammer_Minimize.minimize_facts params 1
                                            (Sledgehammer_Util.subgoal_count st)

@@ -138,7 +138,7 @@ let
                       else if member (op =) [Lt, Le, Eq] c then Thm.dest_arg
                       else if member (op =) [Gt, Ge] c then Thm.dest_arg1
                       else if c = NEq then (Thm.dest_arg o Thm.dest_arg)
-                      else sys_error "decomp_mpinf: Impossible case!!") fm
+                      else raise Fail "decomp_mpinf: Impossible case!!") fm
              val [mi_th, pi_th, nmi_th, npi_th, ld_th] =
                if c = Nox then map (instantiate' [] [SOME fm])
                                     [minf_P, pinf_P, nmi_P, npi_P, ld_P]

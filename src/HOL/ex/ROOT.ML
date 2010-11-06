@@ -66,7 +66,8 @@ use_thys [
   "Execute_Choice",
   "Summation",
   "Gauge_Integration",
-  "Dedekind_Real"
+  "Dedekind_Real",
+  "Quicksort"
 ];
 
 HTML.with_charset "utf-8" (no_document use_thys)

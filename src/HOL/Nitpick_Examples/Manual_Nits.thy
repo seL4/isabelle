@@ -17,7 +17,7 @@ begin
 
 chapter {* 3. First Steps *}
 
-nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60]
 
 subsection {* 3.1. Propositional Logic *}
 
