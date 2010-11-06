@@ -13,7 +13,7 @@ use "ML-Systems/single_assignment.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
-use "ML-Systems/timing.ML";
+use "General/timing.ML";
 use "ML-Systems/bash.ML";
 use "ML-Systems/ml_name_space.ML";
 use "ML-Systems/ml_pretty.ML";

@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML-Systems/timing.ML
+(*  Title:      Pure/General/timing.ML
     Author:     Makarius
 
 Basic support for time measurement.
@@ -29,7 +29,8 @@ fun end_timing (real_timer, real_time, cpu_timer, cpu_times) : timing =
     val cpu = usr2 - usr + sys2 - sys + gc;
 
     val message =
-      (toString elapsed ^ "s elapsed time, " ^ toString cpu ^ "s cpu time, " ^
-        toString gc ^ "s GC time") handle Time.Time => "";
+     (toString elapsed ^ "s elapsed time, " ^
+      toString cpu ^ "s cpu time, " ^
+      toString gc ^ "s GC time") handle Time.Time => "";
   in {message = message, elapsed = elapsed, cpu = cpu, gc = gc} end;
 

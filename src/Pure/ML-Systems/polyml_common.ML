@@ -13,7 +13,7 @@ else use "ML-Systems/single_assignment_polyml.ML";
 
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
-use "ML-Systems/timing.ML";
+use "General/timing.ML";
 use "ML-Systems/bash.ML";
 use "ML-Systems/ml_pretty.ML";
 use "ML-Systems/use_context.ML";

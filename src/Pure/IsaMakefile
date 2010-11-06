@@ -21,6 +21,7 @@ LOG = $(OUT)/log
 
 BOOTSTRAP_FILES = 					\
   General/exn.ML					\
+  General/timing.ML					\
   ML-Systems/bash.ML 					\
   ML-Systems/compiler_polyml-5.2.ML			\
   ML-Systems/compiler_polyml-5.3.ML			\
@@ -41,7 +42,6 @@ BOOTSTRAP_FILES = 					\
   ML-Systems/smlnj.ML					\
   ML-Systems/thread_dummy.ML				\
   ML-Systems/time_limit.ML				\
-  ML-Systems/timing.ML					\
   ML-Systems/universal.ML				\
   ML-Systems/unsynchronized.ML				\
   ML-Systems/use_context.ML
