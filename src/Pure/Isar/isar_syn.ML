@@ -915,12 +915,13 @@ val _ =
 (** system commands (for interactive mode only) **)
 
 val _ =
-  Outer_Syntax.improper_command "cd" "change current working directory" Keyword.diag
-    (Parse.path >> (Toplevel.no_timing oo Isar_Cmd.cd));
+  Outer_Syntax.improper_command "cd" "change current working directory" Keyword.control
+    (Parse.path >> (fn path => Toplevel.no_timing o Toplevel.imperative (fn () => File.cd path)));
 
 val _ =
   Outer_Syntax.improper_command "pwd" "print current working directory" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.pwd));
+    (Scan.succeed (Toplevel.no_timing o
+      Toplevel.imperative (fn () => writeln (Path.implode (File.pwd ())))));
 
 val _ =
   Outer_Syntax.improper_command "use_thy" "use theory file" Keyword.control
@@ -962,7 +963,7 @@ val _ =
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (fn () => Toplevel.quiet := false)));
 
 val _ =
-  Outer_Syntax.improper_command "commit" "commit current session to ML database" Keyword.diag
+  Outer_Syntax.improper_command "commit" "commit current session to ML database" Keyword.control
     (Parse.opt_unit >> K (Toplevel.no_timing o Toplevel.imperative Secure.commit));
 
 val _ =
