@@ -23,7 +23,7 @@ primrec rot where
 "rot NibbleF = Nibble0"
 
 lemma "rot n \<noteq> n"
-nitpick [card = 1\<midarrow>16, expect = none]
+nitpick [card = 1\<midarrow>8,16, verbose, expect = none]
 sorry
 
 lemma "rot Nibble2 \<noteq> Nibble3"
@@ -69,7 +69,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "fs (Pd ((a, b), (c, d))) = (a, b)"
-nitpick [card = 1\<midarrow>9, expect = none]
+nitpick [expect = none]
 sorry
 
 lemma "fs (Pd ((a, b), (c, d))) = (c, d)"
@@ -82,7 +82,7 @@ fun app where
 "app (Fn f) x = f x"
 
 lemma "app (Fn g) y = g y"
-nitpick [card = 1\<midarrow>10, expect = none]
+nitpick [expect = none]
 sorry
 
 lemma "app (Fn g) y = g' y"
