@@ -520,6 +520,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                          andf (not o member (Thm.eq_thm o apsnd snd) accepts))
                         o snd))
       @ accepts
+      |> take max_relevant
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
           |> iter 0 max_relevant threshold0 goal_const_tab []
