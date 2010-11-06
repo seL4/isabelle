@@ -119,10 +119,10 @@ end;
 (** global state -- document structure and execution process **)
 
 abstype state = State of
- {versions: version Inttab.table,                     (*version_id -> document content*)
+ {versions: version Inttab.table,  (*version_id -> document content*)
   commands: Toplevel.transition future Inttab.table,  (*command_id -> transition (future parsing)*)
-  execs: Toplevel.state option lazy Inttab.table,     (*exec_id -> execution process*)
-  execution: unit future list}                        (*global execution process*)
+  execs: (bool * Toplevel.state) lazy Inttab.table,  (*exec_id -> execution process*)
+  execution: unit future list}  (*global execution process*)
 with
 
 fun make_state (versions, commands, execs, execution) =
@@ -134,7 +134,7 @@ fun map_state f (State {versions, commands, execs, execution}) =
 val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
     Inttab.make [(no_id, Future.value Toplevel.empty)],
-    Inttab.make [(no_id, Lazy.value (SOME Toplevel.toplevel))],
+    Inttab.make [(no_id, Lazy.value (true, Toplevel.toplevel))],
     []);
 
 
@@ -235,19 +235,21 @@ fun run_command thy_name tr st =
         val (errs, result) = run int tr st;
         val _ = timing tr (end_timing start);
         val _ = List.app (Toplevel.error_msg tr) errs;
-        val _ =
+        val res =
           (case result of
-            NONE => Toplevel.status tr Markup.failed
+            NONE => (Toplevel.status tr Markup.failed; (false, st))
           | SOME st' =>
              (Toplevel.status tr Markup.finished;
               proof_status tr st';
-              if int then () else async_state tr st'));
-      in result end
+              if int then () else async_state tr st';
+              (true, st')));
+      in res end
   | Exn.Exn exn =>
       if Exn.is_interrupt exn then reraise exn
       else
        (Toplevel.error_msg tr (ML_Compiler.exn_message exn);
-        Toplevel.status tr Markup.failed; NONE));
+        Toplevel.status tr Markup.failed;
+        (false, Toplevel.toplevel)));
 
 end;
 
@@ -272,11 +274,10 @@ fun new_exec name (id: command_id) (exec_id, updates, state) =
     val future_tr = the_command state id;
     val exec' =
       Lazy.lazy (fn () =>
-        (case Lazy.force exec of
-          NONE => NONE
-        | SOME st =>
-            let val exec_tr = Toplevel.put_id (print_id exec_id') (Future.join future_tr)
-            in run_command name exec_tr st end));
+        let
+          val st = #2 (Lazy.force exec);
+          val exec_tr = Toplevel.put_id (print_id exec_id') (Future.join future_tr);
+        in run_command name exec_tr st end);
     val state' = define_exec exec_id' exec' state;
   in (exec_id', (id, exec_id') :: updates, state') end;
 
