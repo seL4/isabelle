@@ -825,21 +825,7 @@ Most of Isabelle's basic types take the form of inductive datatypes,
 \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
 {\isacharbar}\ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ fib{\isadigit{2}}\ n\ {\isacharplus}\ fib{\isadigit{2}}\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-%
+{\isacharbar}\ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ fib{\isadigit{2}}\ n\ {\isacharplus}\ fib{\isadigit{2}}\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -853,15 +839,7 @@ This kind of matching is again justified by the proof of pattern
   either \isa{{\isadigit{0}}}, \isa{{\isadigit{1}}} or \isa{n\ {\isacharplus}\ {\isadigit{2}}}:
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}P\ x{\isachardot}\ {\isasymlbrakk}x\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ x\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ x\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}\isanewline
-\ {\isadigit{4}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{0}}\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ n\ {\isacharplus}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ {\isacharparenleft}Suc\ n{\isacharparenright}\isanewline
-\ {\isadigit{5}}{\isachardot}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}\isanewline
-\ {\isadigit{6}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{1}}\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ n\ {\isacharplus}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ {\isacharparenleft}Suc\ n{\isacharparenright}\isanewline
-\ {\isadigit{7}}{\isachardot}\ {\isasymAnd}n\ na{\isachardot}\isanewline
-\isaindent{\ {\isadigit{7}}{\isachardot}\ \ \ \ }n\ {\isacharplus}\ {\isadigit{2}}\ {\isacharequal}\ na\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{7}}{\isachardot}\ \ \ \ }fib{\isadigit{2}}{\isacharunderscore}sumC\ n\ {\isacharplus}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ na\ {\isacharplus}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ {\isacharparenleft}Suc\ na{\isacharparenright}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}P\ x{\isachardot}\ {\isasymlbrakk}x\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ x\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ x\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
 \end{isabelle}
 
   This is an arithmetic triviality, but unfortunately the
@@ -871,32 +849,6 @@ This kind of matching is again justified by the proof of pattern
   Pattern compatibility and termination are automatic as usual.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
 \isacommand{apply}\isamarkupfalse%
 \ atomize{\isacharunderscore}elim\isanewline
 \isacommand{apply}\isamarkupfalse%
@@ -1202,13 +1154,12 @@ Remember that all we
 
   \noindent The hypothesis in our lemma was used to satisfy the first premise in
   the induction rule. However, we also get \isa{findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}} as a local assumption in the induction step. This
-  allows to unfold \isa{findzero\ f\ n} using the \isa{psimps}
-  rule, and the rest is trivial. Since the \isa{psimps} rules carry the
-  \isa{{\isacharbrackleft}simp{\isacharbrackright}} attribute by default, we just need a single step:%
+  allows unfolding \isa{findzero\ f\ n} using the \isa{psimps}
+  rule, and the rest is trivial.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ simp\isanewline
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ findzero{\isachardot}psimps{\isacharparenright}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -1257,7 +1208,7 @@ Proofs about partial functions are often not harder than for total
 \ \ \ \ \isacommand{with}\isamarkupfalse%
 \ dom\ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}findzero\ f\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ findzero{\isachardot}psimps{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
 \ x{\isacharunderscore}range\ \isacommand{show}\isamarkupfalse%
 \ False\ \isacommand{by}\isamarkupfalse%
@@ -1286,7 +1237,7 @@ Proofs about partial functions are often not harder than for total
 \ \ \ \ \isacommand{with}\isamarkupfalse%
 \ dom\ \isakeyword{and}\ {\isacharbackquoteopen}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}x\ {\isasymin}\ {\isacharbraceleft}Suc\ n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharbraceright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ findzero{\isachardot}psimps{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
 \ IH\ \isakeyword{and}\ {\isacharbackquoteopen}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isacharbackquoteclose}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
@@ -1662,7 +1613,7 @@ We get stuck with the subgoal
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ rule{\isacharcolon}nz{\isachardot}pinduct{\isacharparenright}\ auto%
+\ {\isacharparenleft}induct\ rule{\isacharcolon}nz{\isachardot}pinduct{\isacharparenright}\ {\isacharparenleft}auto\ simp{\isacharcolon}\ nz{\isachardot}psimps{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1739,7 +1690,7 @@ As a general strategy, one should prove the statements needed for
 \isatagproof
 \isacommand{using}\isamarkupfalse%
 \ trm\ \isacommand{by}\isamarkupfalse%
-\ induct\ auto%
+\ induct\ {\isacharparenleft}auto\ simp{\isacharcolon}\ f{\isadigit{9}}{\isadigit{1}}{\isachardot}psimps{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
