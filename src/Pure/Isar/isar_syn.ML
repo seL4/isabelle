@@ -502,7 +502,7 @@ val _ =
   Outer_Syntax.local_theory_to_proof "example_proof"
     "example proof body, without any result" Keyword.thy_schematic_goal
     (Scan.succeed
-      (Specification.schematic_theorem_cmd "" NONE (K I)
+      (Specification.theorem_cmd "" NONE (K I)
         Attrib.empty_binding [] (Element.Shows []) false #> Proof.enter_forward));
 
 val _ =
