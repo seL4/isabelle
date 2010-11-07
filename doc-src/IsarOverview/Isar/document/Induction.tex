@@ -23,7 +23,7 @@
 Computer science applications abound with inductively defined
 structures, which is why we treat them in more detail. HOL already
 comes with a datatype of lists with the two constructors \isa{Nil}
-and \isa{Cons}. \isa{Nil} is written \isa{{\isacharbrackleft}{\isacharbrackright}} and \isa{Cons\ x\ xs} is written \isa{x\ {\isacharhash}\ xs}.%
+and \isa{Cons}. \isa{Nil} is written \isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} and \isa{Cons\ x\ xs} is written \isa{x\ {\isaliteral{23}{\isacharhash}}\ xs}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -37,7 +37,7 @@ binary case splits. Here is another example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ A\ {\isasymor}\ A{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -47,14 +47,14 @@ binary case splits. Here is another example:%
 \isacommand{proof}\isamarkupfalse%
 \ cases\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}A{\isachardoublequoteclose}\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -66,11 +66,11 @@ binary case splits. Here is another example:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent The two cases must come in this order because \isa{cases} merely abbreviates \isa{{\isacharparenleft}rule\ case{\isacharunderscore}split{\isacharparenright}} where
-\isa{case{\isacharunderscore}split} is \isa{{\isasymlbrakk}{\isacharquery}P\ {\isasymLongrightarrow}\ {\isacharquery}Q{\isacharsemicolon}\ {\isasymnot}\ {\isacharquery}P\ {\isasymLongrightarrow}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}Q}. If we reverse
+\noindent The two cases must come in this order because \isa{cases} merely abbreviates \isa{{\isaliteral{28}{\isacharparenleft}}rule\ case{\isaliteral{5F}{\isacharunderscore}}split{\isaliteral{29}{\isacharparenright}}} where
+\isa{case{\isaliteral{5F}{\isacharunderscore}}split} is \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q}. If we reverse
 the order of the two cases in the proof, the first case would prove
-\isa{{\isasymnot}\ A\ {\isasymLongrightarrow}\ {\isasymnot}\ A\ {\isasymor}\ A} which would solve the first premise of
-\isa{case{\isacharunderscore}split}, instantiating \isa{{\isacharquery}P} with \isa{{\isasymnot}\ A}, thus making the second premise \isa{{\isasymnot}\ {\isasymnot}\ A\ {\isasymLongrightarrow}\ {\isasymnot}\ A\ {\isasymor}\ A}.
+\isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ A} which would solve the first premise of
+\isa{case{\isaliteral{5F}{\isacharunderscore}}split}, instantiating \isa{{\isaliteral{3F}{\isacharquery}}P} with \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A}, thus making the second premise \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ A}.
 Therefore the order of subgoals is not always completely arbitrary.
 
 The above proof is appropriate if \isa{A} is textually small.
@@ -79,7 +79,7 @@ be avoided by the following idiom%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ A\ {\isasymor}\ A{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -87,16 +87,16 @@ be avoided by the following idiom%
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}cases\ {\isachardoublequoteopen}A{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}cases\ {\isaliteral{22}{\isachardoublequoteopen}}A{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ True\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ False\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -109,10 +109,10 @@ be avoided by the following idiom%
 %
 \begin{isamarkuptext}%
 \noindent which is like the previous proof but instantiates
-\isa{{\isacharquery}P} right away with \isa{A}. Thus we could prove the two
+\isa{{\isaliteral{3F}{\isacharquery}}P} right away with \isa{A}. Thus we could prove the two
 cases in any order. The phrase \isakeyword{case}~\isa{True}
-abbreviates \isakeyword{assume}~\isa{True{\isacharcolon}\ A} and analogously for
-\isa{False} and \isa{{\isasymnot}\ A}.
+abbreviates \isakeyword{assume}~\isa{True{\isaliteral{3A}{\isacharcolon}}\ A} and analogously for
+\isa{False} and \isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A}.
 
 The same game can be played with other datatypes, for example lists,
 where \isa{tl} is the tail of a list, and \isa{length} returns a
@@ -120,7 +120,7 @@ natural number (remember: $0-1=0$):%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}length{\isacharparenleft}tl\ xs{\isacharparenright}\ {\isacharequal}\ length\ xs\ {\isacharminus}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}length{\isaliteral{28}{\isacharparenleft}}tl\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ length\ xs\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -128,16 +128,16 @@ natural number (remember: $0-1=0$):%
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}cases\ xs{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}cases\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ Nil\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ Cons\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -150,17 +150,17 @@ natural number (remember: $0-1=0$):%
 %
 \begin{isamarkuptext}%
 \noindent Here \isakeyword{case}~\isa{Nil} abbreviates
-\isakeyword{assume}~\isa{Nil{\isacharcolon}}~\isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}} and
-\isakeyword{case}~\isa{Cons} abbreviates \isakeyword{fix}~\isa{{\isacharquery}\ {\isacharquery}{\isacharquery}}
-\isakeyword{assume}~\isa{Cons{\isacharcolon}}~\isa{xs\ {\isacharequal}\ {\isacharquery}\ {\isacharhash}\ {\isacharquery}{\isacharquery}},
-where \isa{{\isacharquery}} and \isa{{\isacharquery}{\isacharquery}}
+\isakeyword{assume}~\isa{Nil{\isaliteral{3A}{\isacharcolon}}}~\isa{xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} and
+\isakeyword{case}~\isa{Cons} abbreviates \isakeyword{fix}~\isa{{\isaliteral{3F}{\isacharquery}}\ {\isaliteral{3F}{\isacharquery}}{\isaliteral{3F}{\isacharquery}}}
+\isakeyword{assume}~\isa{Cons{\isaliteral{3A}{\isacharcolon}}}~\isa{xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{3F}{\isacharquery}}{\isaliteral{3F}{\isacharquery}}},
+where \isa{{\isaliteral{3F}{\isacharquery}}} and \isa{{\isaliteral{3F}{\isacharquery}}{\isaliteral{3F}{\isacharquery}}}
 stand for variable names that have been chosen by the system.
 Therefore we cannot refer to them.
 Luckily, this proof is simple enough we do not need to refer to them.
 However, sometimes one may have to. Hence Isar offers a simple scheme for
 naming those variables: replace the anonymous \isa{Cons} by
-\isa{{\isacharparenleft}Cons\ y\ ys{\isacharparenright}}, which abbreviates \isakeyword{fix}~\isa{y\ ys}
-\isakeyword{assume}~\isa{Cons{\isacharcolon}}~\isa{xs\ {\isacharequal}\ y\ {\isacharhash}\ ys}.
+\isa{{\isaliteral{28}{\isacharparenleft}}Cons\ y\ ys{\isaliteral{29}{\isacharparenright}}}, which abbreviates \isakeyword{fix}~\isa{y\ ys}
+\isakeyword{assume}~\isa{Cons{\isaliteral{3A}{\isacharcolon}}}~\isa{xs\ {\isaliteral{3D}{\isacharequal}}\ y\ {\isaliteral{23}{\isacharhash}}\ ys}.
 In each \isakeyword{case} the assumption can be
 referred to inside the proof by the name of the constructor. In
 Section~\ref{sec:full-Ind} below we will come across an example
@@ -172,7 +172,7 @@ We start with an inductive proof where both cases are proved automatically:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat{\isasymle}n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C53756D3E}{\isasymSum}}i{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{5C3C6C653E}{\isasymle}}n{\isaliteral{2E}{\isachardot}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -180,7 +180,7 @@ We start with an inductive proof where both cases are proved automatically:%
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n{\isacharparenright}\ simp{\isacharunderscore}all%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -189,7 +189,7 @@ We start with an inductive proof where both cases are proved automatically:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent The constraint \isa{{\isacharcolon}{\isacharcolon}nat} is needed because all of
+\noindent The constraint \isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat} is needed because all of
 the operations involved are overloaded.
 This proof also demonstrates that \isakeyword{by} can take two arguments,
 one to start and one to finish the proof --- the latter is optional.
@@ -200,7 +200,7 @@ statement:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat{\isasymle}n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequoteopen}{\isacharquery}P\ n{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C53756D3E}{\isasymSum}}i{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{5C3C6C653E}{\isasymle}}n{\isaliteral{2E}{\isachardot}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{is}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 %
 \isadelimproof
 %
@@ -208,17 +208,17 @@ statement:%
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharquery}P\ {\isadigit{0}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
 \ n\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharquery}P\ n{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharquery}P{\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}P{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -236,7 +236,7 @@ introducing context via the \isakeyword{case} command:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isadigit{2}}\ {\isacharasterisk}\ {\isacharparenleft}{\isasymSum}i{\isacharcolon}{\isacharcolon}nat\ {\isasymle}\ n{\isachardot}\ i{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C53756D3E}{\isasymSum}}i{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat\ {\isaliteral{5C3C6C653E}{\isasymle}}\ n{\isaliteral{2E}{\isachardot}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -244,16 +244,16 @@ introducing context via the \isakeyword{case} command:%
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ {\isadigit{0}}\ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ Suc\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -265,18 +265,18 @@ introducing context via the \isakeyword{case} command:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent The implicitly defined \isa{{\isacharquery}case} refers to the
-corresponding case to be proved, i.e.\ \isa{{\isacharquery}P\ {\isadigit{0}}} in the first case and
-\isa{{\isacharquery}P{\isacharparenleft}Suc\ n{\isacharparenright}} in the second case. Context \isakeyword{case}~\isa{{\isadigit{0}}} is
-empty whereas \isakeyword{case}~\isa{Suc} assumes \isa{{\isacharquery}P\ n}. Again we
+\noindent The implicitly defined \isa{{\isaliteral{3F}{\isacharquery}}case} refers to the
+corresponding case to be proved, i.e.\ \isa{{\isaliteral{3F}{\isacharquery}}P\ {\isadigit{0}}} in the first case and
+\isa{{\isaliteral{3F}{\isacharquery}}P{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}} in the second case. Context \isakeyword{case}~\isa{{\isadigit{0}}} is
+empty whereas \isakeyword{case}~\isa{Suc} assumes \isa{{\isaliteral{3F}{\isacharquery}}P\ n}. Again we
 have the same problem as with case distinctions: we cannot refer to an anonymous \isa{n}
 in the induction step because it has not been introduced via \isakeyword{fix}
 (in contrast to the previous proof). The solution is the one outlined for
-\isa{Cons} above: replace \isa{Suc} by \isa{{\isacharparenleft}Suc\ i{\isacharparenright}}:%
+\isa{Cons} above: replace \isa{Suc} by \isa{{\isaliteral{28}{\isacharparenleft}}Suc\ i{\isaliteral{29}{\isacharparenright}}}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ \isakeyword{fixes}\ n{\isacharcolon}{\isacharcolon}nat\ \isakeyword{shows}\ {\isachardoublequoteopen}n\ {\isacharless}\ n{\isacharasterisk}n\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\ \isakeyword{fixes}\ n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat\ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}n\ {\isaliteral{3C}{\isacharless}}\ n{\isaliteral{2A}{\isacharasterisk}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -284,16 +284,16 @@ in the induction step because it has not been introduced via \isakeyword{fix}
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ {\isadigit{0}}\ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{case}\isamarkupfalse%
-\ {\isacharparenleft}Suc\ i{\isacharparenright}\ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}Suc\ i\ {\isacharless}\ Suc\ i\ {\isacharasterisk}\ Suc\ i\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ i{\isaliteral{29}{\isacharparenright}}\ \isacommand{thus}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Suc\ i\ {\isaliteral{3C}{\isacharless}}\ Suc\ i\ {\isaliteral{2A}{\isacharasterisk}}\ Suc\ i\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -306,22 +306,22 @@ in the induction step because it has not been introduced via \isakeyword{fix}
 %
 \begin{isamarkuptext}%
 \noindent Of course we could again have written
-\isakeyword{thus}~\isa{{\isacharquery}case} instead of giving the term explicitly
+\isakeyword{thus}~\isa{{\isaliteral{3F}{\isacharquery}}case} instead of giving the term explicitly
 but we wanted to use \isa{i} somewhere.
 
 \subsection{Generalization via \isa{arbitrary}}
 
 It is frequently necessary to generalize a claim before it becomes
 provable by induction. The tutorial~\cite{LNCS2283} demonstrates this
-with \isa{itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys}, where \isa{ys}
-needs to be universally quantified before induction succeeds.\footnote{\isa{rev\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}},\quad \isa{rev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs\ {\isacharat}\ {\isacharbrackleft}x{\isacharbrackright}},\\ \isa{itrev\ {\isacharbrackleft}{\isacharbrackright}\ ys\ {\isacharequal}\ ys},\quad \isa{itrev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ ys\ {\isacharequal}\ itrev\ xs\ {\isacharparenleft}x\ {\isacharhash}\ ys{\isacharparenright}}} But
+with \isa{itrev\ xs\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ ys}, where \isa{ys}
+needs to be universally quantified before induction succeeds.\footnote{\isa{rev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}},\quad \isa{rev\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}},\\ \isa{itrev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ ys},\quad \isa{itrev\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ itrev\ xs\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}}} But
 strictly speaking, this quantification step is already part of the
 proof and the quantifiers should not clutter the original claim. This
 is how the quantification step can be combined with induction:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}itrev\ xs\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -329,7 +329,7 @@ is how the quantification step can be combined with induction:%
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs\ arbitrary{\isacharcolon}\ ys{\isacharparenright}\ simp{\isacharunderscore}all%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ xs\ arbitrary{\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -338,27 +338,27 @@ is how the quantification step can be combined with induction:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent The annotation \isa{arbitrary{\isacharcolon}}~\emph{vars}
+\noindent The annotation \isa{arbitrary{\isaliteral{3A}{\isacharcolon}}}~\emph{vars}
 universally quantifies all \emph{vars} before the induction.  Hence
 they can be replaced by \emph{arbitrary} values in the proof.
 
 Generalization via \isa{arbitrary} is particularly convenient
 if the induction step is a structured proof as opposed to the automatic
 example above. Then the claim is available in unquantified form but
-with the generalized variables replaced by \isa{{\isacharquery}}-variables, ready
+with the generalized variables replaced by \isa{{\isaliteral{3F}{\isacharquery}}}-variables, ready
 for instantiation. In the above example, in the \isa{Cons} case the
-induction hypothesis is \isa{itrev\ xs\ {\isacharquery}ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ {\isacharquery}ys} (available
+induction hypothesis is \isa{itrev\ xs\ {\isaliteral{3F}{\isacharquery}}ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{3F}{\isacharquery}}ys} (available
 under the name \isa{Cons}).
 
 
 \subsection{Inductive proofs of conditional formulae}
 \label{sec:full-Ind}
 
-Induction also copes well with formulae involving \isa{{\isasymLongrightarrow}}, for example%
+Induction also copes well with formulae involving \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}}, for example%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ hd{\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ last\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -366,7 +366,7 @@ Induction also copes well with formulae involving \isa{{\isasymLongrightarrow}},
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ xs{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -376,12 +376,12 @@ Induction also copes well with formulae involving \isa{{\isasymLongrightarrow}},
 %
 \begin{isamarkuptext}%
 \noindent This is an improvement over that style the
-tutorial~\cite{LNCS2283} advises, which requires \isa{{\isasymlongrightarrow}}.
+tutorial~\cite{LNCS2283} advises, which requires \isa{{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}}.
 A further improvement is shown in the following proof:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ \ {\isachardoublequoteopen}map\ f\ xs\ {\isacharequal}\ map\ f\ ys\ {\isasymLongrightarrow}\ length\ xs\ {\isacharequal}\ length\ ys{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}map\ f\ xs\ {\isaliteral{3D}{\isacharequal}}\ map\ f\ ys\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ length\ xs\ {\isaliteral{3D}{\isacharequal}}\ length\ ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -389,40 +389,40 @@ A further improvement is shown in the following proof:%
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}induct\ ys\ arbitrary{\isacharcolon}\ xs{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ ys\ arbitrary{\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ Nil\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{case}\isamarkupfalse%
-\ {\isacharparenleft}Cons\ y\ ys{\isacharparenright}\ \ \isacommand{note}\isamarkupfalse%
-\ Asm\ {\isacharequal}\ Cons\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}Cons\ y\ ys{\isaliteral{29}{\isacharparenright}}\ \ \isacommand{note}\isamarkupfalse%
+\ Asm\ {\isaliteral{3D}{\isacharequal}}\ Cons\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}case\isanewline
+\ {\isaliteral{3F}{\isacharquery}}case\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}cases\ xs{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}cases\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{case}\isamarkupfalse%
 \ Nil\isanewline
 \ \ \ \ \isacommand{hence}\isamarkupfalse%
 \ False\ \isacommand{using}\isamarkupfalse%
-\ Asm{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{by}\isamarkupfalse%
+\ Asm{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{case}\isamarkupfalse%
-\ {\isacharparenleft}Cons\ x\ xs{\isacharprime}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}Cons\ x\ xs{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ Asm{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}map\ f\ xs{\isacharprime}\ {\isacharequal}\ map\ f\ ys{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ Asm{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}map\ f\ xs{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ map\ f\ ys{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ Asm{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharbrackleft}OF\ this{\isacharbrackright}\ {\isacharbackquoteopen}xs\ {\isacharequal}\ x{\isacharhash}xs{\isacharprime}{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ Asm{\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5B}{\isacharbrackleft}}OF\ this{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{60}{\isacharbackquoteopen}}xs\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{23}{\isacharhash}}xs{\isaliteral{27}{\isacharprime}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -441,32 +441,32 @@ The base case is trivial. In the step case Isar assumes
 (under the name \isa{Cons}) two propositions:
 \begin{center}
 \begin{tabular}{l}
-\isa{map\ f\ {\isacharquery}xs\ {\isacharequal}\ map\ f\ ys\ {\isasymLongrightarrow}\ length\ {\isacharquery}xs\ {\isacharequal}\ length\ ys}\\
-\isa{map\ f\ xs\ {\isacharequal}\ map\ f\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}}
+\isa{map\ f\ {\isaliteral{3F}{\isacharquery}}xs\ {\isaliteral{3D}{\isacharequal}}\ map\ f\ ys\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ length\ {\isaliteral{3F}{\isacharquery}}xs\ {\isaliteral{3D}{\isacharequal}}\ length\ ys}\\
+\isa{map\ f\ xs\ {\isaliteral{3D}{\isacharequal}}\ map\ f\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}}
 \end{tabular}
 \end{center}
 The first is the induction hypothesis, the second, and this is new,
 is the premise of the induction step. The actual goal at this point is merely
-\isa{length\ xs\ {\isacharequal}\ length\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}}. The assumptions are given the new name
-\isa{Asm} to avoid a name clash further down. The proof procedes with a case distinction on \isa{xs}. In the case \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}}, the second of our two
-assumptions (\isa{Asm{\isacharparenleft}{\isadigit{2}}{\isacharparenright}}) implies the contradiction \isa{{\isadigit{0}}\ {\isacharequal}\ Suc{\isacharparenleft}{\isasymdots}{\isacharparenright}}.
- In the case \isa{xs\ {\isacharequal}\ x\ {\isacharhash}\ xs{\isacharprime}}, we first obtain
-\isa{map\ f\ xs{\isacharprime}\ {\isacharequal}\ map\ f\ ys}, from which a forward step with the first assumption (\isa{Asm{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharbrackleft}OF\ this{\isacharbrackright}}) yields \isa{length\ xs{\isacharprime}\ {\isacharequal}\ length\ ys}. Together
-with \isa{xs\ {\isacharequal}\ x\ {\isacharhash}\ xs} this yields the goal
-\isa{length\ xs\ {\isacharequal}\ length\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}}.
+\isa{length\ xs\ {\isaliteral{3D}{\isacharequal}}\ length\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}}. The assumptions are given the new name
+\isa{Asm} to avoid a name clash further down. The proof procedes with a case distinction on \isa{xs}. In the case \isa{xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}, the second of our two
+assumptions (\isa{Asm{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}}) implies the contradiction \isa{{\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ Suc{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{29}{\isacharparenright}}}.
+ In the case \isa{xs\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{27}{\isacharprime}}}, we first obtain
+\isa{map\ f\ xs{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ map\ f\ ys}, from which a forward step with the first assumption (\isa{Asm{\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5B}{\isacharbrackleft}}OF\ this{\isaliteral{5D}{\isacharbrackright}}}) yields \isa{length\ xs{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ length\ ys}. Together
+with \isa{xs\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{23}{\isacharhash}}\ xs} this yields the goal
+\isa{length\ xs\ {\isaliteral{3D}{\isacharequal}}\ length\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}}.
 
 
-\subsection{Induction formulae involving \isa{{\isasymAnd}} or \isa{{\isasymLongrightarrow}}}
+\subsection{Induction formulae involving \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}} or \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}}}
 
 Let us now consider abstractly the situation where the goal to be proved
-contains both \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}, say \isa{{\isasymAnd}x{\isachardot}\ P\ x\ {\isasymLongrightarrow}\ Q\ x}.
+contains both \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}} and \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}}, say \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q\ x}.
 This means that in each case of the induction,
-\isa{{\isacharquery}case} would be of the form \isa{{\isasymAnd}x{\isachardot}\ P{\isacharprime}\ x\ {\isasymLongrightarrow}\ Q{\isacharprime}\ x}.  Thus the
+\isa{{\isaliteral{3F}{\isacharquery}}case} would be of the form \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{27}{\isacharprime}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{27}{\isacharprime}}\ x}.  Thus the
 first proof steps will be the canonical ones, fixing \isa{x} and assuming
-\isa{P{\isacharprime}\ x}. To avoid this tedium, induction performs the canonical steps
+\isa{P{\isaliteral{27}{\isacharprime}}\ x}. To avoid this tedium, induction performs the canonical steps
 automatically: in each step case, the assumptions contain both the
-usual induction hypothesis and \isa{P{\isacharprime}\ x}, whereas \isa{{\isacharquery}case} is only
-\isa{Q{\isacharprime}\ x}.
+usual induction hypothesis and \isa{P{\isaliteral{27}{\isacharprime}}\ x}, whereas \isa{{\isaliteral{3F}{\isacharquery}}case} is only
+\isa{Q{\isaliteral{27}{\isacharprime}}\ x}.
 
 \subsection{Rule induction}
 
@@ -475,22 +475,22 @@ for details. As an example we define our own version of the reflexive
 transitive closure of a relation --- HOL provides a predefined one as well.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
 \isanewline
-\ \ rtc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequoteclose}\ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}{\isacharasterisk}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
-\ \ \isakeyword{for}\ r\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequoteclose}\isanewline
+\ \ rtc\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}set{\isaliteral{22}{\isachardoublequoteclose}}\ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isaliteral{5D}{\isacharbrackright}}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isakeyword{for}\ r\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ refl{\isacharcolon}\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ step{\isacharcolon}\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}%
+\ \ refl{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ step{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 First the constant is declared as a function on binary
-relations (with concrete syntax \isa{r{\isacharasterisk}} instead of \isa{rtc\ r}), then the defining clauses are given. We will now prove that
-\isa{r{\isacharasterisk}} is indeed transitive:%
+relations (with concrete syntax \isa{r{\isaliteral{2A}{\isacharasterisk}}} instead of \isa{rtc\ r}), then the defining clauses are given. We will now prove that
+\isa{r{\isaliteral{2A}{\isacharasterisk}}} is indeed transitive:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
+\ \isakeyword{assumes}\ A{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -503,14 +503,14 @@ relations (with concrete syntax \isa{r{\isacharasterisk}} instead of \isa{rtc\ r
 \ induct\isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ refl\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}case\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ step\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
-{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isachardot}step{\isacharparenright}\isanewline
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}blast\ intro{\isaliteral{3A}{\isacharcolon}}\ rtc{\isaliteral{2E}{\isachardot}}step{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -531,7 +531,7 @@ However, this proof is rather terse. Here is a more readable version:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
+\ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -544,25 +544,25 @@ However, this proof is rather terse. Here is a more readable version:%
 \ induct\isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
 \ x\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \ %
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\ \ %
 \isamarkupcmt{\isa{B}[\isa{y} := \isa{x}]%
 }
 \isanewline
 \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
-\ x{\isacharprime}\ x\ y\isanewline
+\ x{\isaliteral{27}{\isacharprime}}\ x\ y\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharprime}{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ IH{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ B{\isacharcolon}\ \ {\isachardoublequoteopen}{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\isanewline
+\ {\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{27}{\isacharprime}}{\isaliteral{2C}{\isacharcomma}}x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ IH{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ B{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isadigit{1}}\ IH{\isacharbrackleft}OF\ B{\isacharbrackright}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharprime}{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-{\isacharparenleft}rule\ rtc{\isachardot}step{\isacharparenright}\isanewline
+\ {\isadigit{1}}\ IH{\isaliteral{5B}{\isacharbrackleft}}OF\ B{\isaliteral{5D}{\isacharbrackright}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{27}{\isacharprime}}{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}rule\ rtc{\isaliteral{2E}{\isachardot}}step{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -577,11 +577,11 @@ However, this proof is rather terse. Here is a more readable version:%
 This time, merely for a change, we start the proof with by feeding both
 assumptions into the inductive proof. Only the first assumption is
 ``consumed'' by the induction.
-Since the second one is left over we don't just prove \isa{{\isacharquery}thesis} but
-\isa{{\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharquery}thesis}, just as in the previous proof.
+Since the second one is left over we don't just prove \isa{{\isaliteral{3F}{\isacharquery}}thesis} but
+\isa{{\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ r{\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}thesis}, just as in the previous proof.
 The base case is trivial. In the assumptions for the induction step we can
 see very clearly how things fit together and permit ourselves the
-obvious forward step \isa{IH{\isacharbrackleft}OF\ B{\isacharbrackright}}.
+obvious forward step \isa{IH{\isaliteral{5B}{\isacharbrackleft}}OF\ B{\isaliteral{5D}{\isacharbrackright}}}.
 
 The notation \isakeyword{case}~\isa{(}\emph{constructor} \emph{vars}\isa{)}
 is also supported for inductive definitions. The \emph{constructor} is the
@@ -590,7 +590,7 @@ rule; the order of the \emph{vars} must correspond to the
 left-to-right order of the variables as they appear in the rule.
 For example, we could start the above detailed proof of the induction
 with \isakeyword{case}~\isa{(step x' x y)}. In that case we don't need
-to spell out the assumptions but can refer to them by \isa{step{\isacharparenleft}{\isachardot}{\isacharparenright}},
+to spell out the assumptions but can refer to them by \isa{step{\isaliteral{28}{\isacharparenleft}}{\isaliteral{2E}{\isachardot}}{\isaliteral{29}{\isacharparenright}}},
 although the resulting text will be quite cryptic.
 
 \subsection{More induction}
@@ -605,14 +605,14 @@ The example is an unusual definition of rotation:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
-\ rot\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}rot\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}rot\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}rot\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ y\ {\isacharhash}\ rot{\isacharparenleft}x{\isacharhash}zs{\isacharparenright}{\isachardoublequoteclose}%
+\ rot\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}rot\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}rot\ {\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}rot\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{23}{\isacharhash}}y{\isaliteral{23}{\isacharhash}}zs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ y\ {\isaliteral{23}{\isacharhash}}\ rot{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{23}{\isacharhash}}zs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent This yields, among other things, the induction rule
-\isa{rot{\isachardot}induct}: \begin{isabelle}%
-{\isasymlbrakk}P\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ P\ {\isacharbrackleft}x{\isacharbrackright}{\isacharsemicolon}\ {\isasymAnd}x\ y\ zs{\isachardot}\ P\ {\isacharparenleft}x\ {\isacharhash}\ zs{\isacharparenright}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ zs{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ a{\isadigit{0}}%
+\isa{rot{\isaliteral{2E}{\isachardot}}induct}: \begin{isabelle}%
+{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}P\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ P\ {\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ y\ zs{\isaliteral{2E}{\isachardot}}\ P\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ zs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ y\ {\isaliteral{23}{\isacharhash}}\ zs{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ a{\isadigit{0}}%
 \end{isabelle}
 The following proof relies on a default naming scheme for cases: they are
 called 1, 2, etc, unless they have been named explicitly. The latter happens
@@ -621,7 +621,7 @@ not with recursive functions.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ rot\ xs\ {\isacharequal}\ tl\ xs\ {\isacharat}\ {\isacharbrackleft}hd\ xs{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ rot\ xs\ {\isaliteral{3D}{\isacharequal}}\ tl\ xs\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}hd\ xs{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -629,35 +629,35 @@ not with recursive functions.%
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs\ rule{\isacharcolon}\ rot{\isachardot}induct{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ xs\ rule{\isaliteral{3A}{\isacharcolon}}\ rot{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ {\isadigit{1}}\ \isacommand{thus}\isamarkupfalse%
-\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{case}\isamarkupfalse%
 \ {\isadigit{2}}\ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{case}\isamarkupfalse%
-\ {\isacharparenleft}{\isadigit{3}}\ a\ b\ cs{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{3}}\ a\ b\ cs{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}rot\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ cs{\isacharparenright}\ {\isacharequal}\ b\ {\isacharhash}\ rot{\isacharparenleft}a\ {\isacharhash}\ cs{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}rot\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ b\ {\isaliteral{23}{\isacharhash}}\ cs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ b\ {\isaliteral{23}{\isacharhash}}\ rot{\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ cs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ b\ {\isacharhash}\ tl{\isacharparenleft}a\ {\isacharhash}\ cs{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}hd{\isacharparenleft}a\ {\isacharhash}\ cs{\isacharparenright}{\isacharbrackright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}{\isadigit{3}}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ b\ {\isaliteral{23}{\isacharhash}}\ tl{\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ cs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}hd{\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ cs{\isaliteral{29}{\isacharparenright}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}{\isadigit{3}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ tl\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ cs{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}hd\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ cs{\isacharparenright}{\isacharbrackright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ tl\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ b\ {\isaliteral{23}{\isacharhash}}\ cs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}hd\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ b\ {\isaliteral{23}{\isacharhash}}\ cs{\isaliteral{29}{\isacharparenright}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}case\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -675,7 +675,7 @@ for how to reason with chains of equations) to demonstrate that the
 \isakeyword{case}~\isa{(}\emph{constructor} \emph{vars}\isa{)} notation also
 works for arbitrary induction theorems with numbered cases. The order
 of the \emph{vars} corresponds to the order of the
-\isa{{\isasymAnd}}-quantified variables in each case of the induction
+\isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}}-quantified variables in each case of the induction
 theorem. For induction theorems produced by \isakeyword{fun} it is
 the order in which the variables appear on the left-hand side of the
 equation.
@@ -690,7 +690,7 @@ The proof is so simple that it can be condensed to%
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs\ rule{\isacharcolon}\ rot{\isachardot}induct{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ xs\ rule{\isaliteral{3A}{\isacharcolon}}\ rot{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all\isanewline
 %
 \endisatagproof
 {\isafoldproof}%

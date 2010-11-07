@@ -54,14 +54,14 @@ The Isar toplevel may be considered the centeral hub of the
   The toplevel state is a disjoint sum of empty \isa{toplevel}, or
   \isa{theory}, or \isa{proof}.  On entering the main Isar loop we
   start with an empty toplevel.  A theory is commenced by giving a
-  \isa{{\isasymTHEORY}} header; within a theory we may issue theory
-  commands such as \isa{{\isasymDEFINITION}}, or state a \isa{{\isasymTHEOREM}} to be proven.  Now we are within a proof state, with a
+  \isa{{\isaliteral{5C3C5448454F52593E}{\isasymTHEORY}}} header; within a theory we may issue theory
+  commands such as \isa{{\isaliteral{5C3C444546494E4954494F4E3E}{\isasymDEFINITION}}}, or state a \isa{{\isaliteral{5C3C5448454F52454D3E}{\isasymTHEOREM}}} to be proven.  Now we are within a proof state, with a
   rich collection of Isar proof commands for structured proof
   composition, or unstructured proof scripts.  When the proof is
   concluded we get back to the theory, which is then updated by
   storing the resulting fact.  Further theory declarations or theorem
   statements with proofs may follow, until we eventually conclude the
-  theory development by issuing \isa{{\isasymEND}}.  The resulting theory
+  theory development by issuing \isa{{\isaliteral{5C3C454E443E}{\isasymEND}}}.  The resulting theory
   is then stored within the theory database and we are back to the
   empty toplevel.
 
@@ -121,7 +121,7 @@ The Isar toplevel may be considered the centeral hub of the
 
   \item \verb|Toplevel.profiling|~\verb|:=|~\isa{n} controls
   low-level profiling of the underlying ML runtime system.  For
-  Poly/ML, \isa{n\ {\isacharequal}\ {\isadigit{1}}} means time and \isa{n\ {\isacharequal}\ {\isadigit{2}}} space
+  Poly/ML, \isa{n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}} means time and \isa{n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{2}}} space
   profiling.
 
   \end{description}%
@@ -143,15 +143,15 @@ The Isar toplevel may be considered the centeral hub of the
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{Isar.state}\hypertarget{ML antiquotation.Isar.state}{\hyperlink{ML antiquotation.Isar.state}{\mbox{\isa{Isar{\isachardot}state}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{Isar.state}\hypertarget{ML antiquotation.Isar.state}{\hyperlink{ML antiquotation.Isar.state}{\mbox{\isa{Isar{\isaliteral{2E}{\isachardot}}state}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}Isar{\isachardot}state{\isacharbraceright}} refers to Isar toplevel state at that
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}Isar{\isaliteral{2E}{\isachardot}}state{\isaliteral{7D}{\isacharbraceright}}} refers to Isar toplevel state at that
   point --- as abstract value.
 
-  This only works for diagnostic ML commands, such as \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} or \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}.
+  This only works for diagnostic ML commands, such as \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}}}} or \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}}}}.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -279,7 +279,7 @@ The theory database maintains a collection of theories, together
   Theory \isa{A} is associated with the main theory file \isa{A}\verb,.thy,, which needs to be accessible through the theory
   loader path.  Any number of additional ML source files may be
   associated with each theory, by declaring these dependencies in the
-  theory header as \isa{{\isasymUSES}}, and loading them consecutively
+  theory header as \isa{{\isaliteral{5C3C555345533E}{\isasymUSES}}}, and loading them consecutively
   within the theory context.  The system keeps track of incoming ML
   sources and associates them with the current theory.
 
@@ -306,8 +306,8 @@ The theory database maintains a collection of theories, together
   \medskip There are separate user-level interfaces to operate on the
   theory database directly or indirectly.  The primitive actions then
   just happen automatically while working with the system.  In
-  particular, processing a theory header \isa{{\isasymTHEORY}\ A\ {\isasymIMPORTS}\ B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n\ {\isasymBEGIN}} ensures that the
-  sub-graph of the collective imports \isa{B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n}
+  particular, processing a theory header \isa{{\isaliteral{5C3C5448454F52593E}{\isasymTHEORY}}\ A\ {\isaliteral{5C3C494D504F5254533E}{\isasymIMPORTS}}\ B\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ B\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C424547494E3E}{\isasymBEGIN}}} ensures that the
+  sub-graph of the collective imports \isa{B\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ B\isaliteral{5C3C5E7375623E}{}\isactrlsub n}
   is up-to-date, too.  Earlier theories are reloaded as required, with
   \isa{update} actions proceeding in topological order according to
   theory dependencies.  There may be also a wave of implied \isa{remove} actions for derived theory nodes until a stable situation

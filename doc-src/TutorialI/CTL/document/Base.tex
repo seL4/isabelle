@@ -30,7 +30,7 @@ and this section will explore them in HOL\@. This is done in two steps.  First
 we consider a simple modal logic called propositional dynamic
 logic (PDL)\@.  We then proceed to the temporal logic CTL, which is
 used in many real
-model checkers. In each case we give both a traditional semantics (\isa{{\isasymTurnstile}}) and a
+model checkers. In each case we give both a traditional semantics (\isa{{\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}}) and a
 recursive function \isa{mc} that maps a formula into the set of all states of
 the system where the formula is valid. If the system has a finite number of
 states, \isa{mc} is directly executable: it is a model checker, albeit an
@@ -89,7 +89,7 @@ transition system, i.e.\ a relation between states:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{consts}\isamarkupfalse%
-\ M\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}state\ {\isasymtimes}\ state{\isacharparenright}set{\isachardoublequoteclose}%
+\ M\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}state\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ state{\isaliteral{29}{\isacharparenright}}set{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 This is Isabelle's way of declaring a constant without defining it.
@@ -97,14 +97,14 @@ Finally we introduce a type of atomic propositions%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{typedecl}\isamarkupfalse%
-\ {\isachardoublequoteopen}atom{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}atom{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 and a \emph{labelling function}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{consts}\isamarkupfalse%
-\ L\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ {\isasymRightarrow}\ atom\ set{\isachardoublequoteclose}%
+\ L\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}state\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ atom\ set{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 telling us which atomic propositions are true in each state.%

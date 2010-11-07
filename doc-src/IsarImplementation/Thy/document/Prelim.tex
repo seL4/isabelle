@@ -33,13 +33,13 @@ A logical context represents the background that is required for
   results etc.).
 
   For example, derivations within the Isabelle/Pure logic can be
-  described as a judgment \isa{{\isasymGamma}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\ {\isasymphi}}, which means that a
-  proposition \isa{{\isasymphi}} is derivable from hypotheses \isa{{\isasymGamma}}
-  within the theory \isa{{\isasymTheta}}.  There are logical reasons for
-  keeping \isa{{\isasymTheta}} and \isa{{\isasymGamma}} separate: theories can be
+  described as a judgment \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C54686574613E}{\isasymTheta}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}}, which means that a
+  proposition \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} is derivable from hypotheses \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}}
+  within the theory \isa{{\isaliteral{5C3C54686574613E}{\isasymTheta}}}.  There are logical reasons for
+  keeping \isa{{\isaliteral{5C3C54686574613E}{\isasymTheta}}} and \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}} separate: theories can be
   liberal about supporting type constructors and schematic
   polymorphism of constants and axioms, while the inner calculus of
-  \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}} is strictly limited to Simple Type Theory (with
+  \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}} is strictly limited to Simple Type Theory (with
   fixed type variables in the assumptions).
 
   \medskip Contexts and derivations are linked by the following key
@@ -48,18 +48,18 @@ A logical context represents the background that is required for
   \begin{itemize}
 
   \item Transfer: monotonicity of derivations admits results to be
-  transferred into a \emph{larger} context, i.e.\ \isa{{\isasymGamma}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\ {\isasymphi}} implies \isa{{\isasymGamma}{\isacharprime}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\isactrlsub {\isacharprime}\ {\isasymphi}} for contexts \isa{{\isasymTheta}{\isacharprime}\ {\isasymsupseteq}\ {\isasymTheta}} and \isa{{\isasymGamma}{\isacharprime}\ {\isasymsupseteq}\ {\isasymGamma}}.
+  transferred into a \emph{larger} context, i.e.\ \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C54686574613E}{\isasymTheta}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}} implies \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C54686574613E}{\isasymTheta}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}} for contexts \isa{{\isaliteral{5C3C54686574613E}{\isasymTheta}}{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C73757073657465713E}{\isasymsupseteq}}\ {\isaliteral{5C3C54686574613E}{\isasymTheta}}} and \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C73757073657465713E}{\isasymsupseteq}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}}.
 
   \item Export: discharge of hypotheses admits results to be exported
-  into a \emph{smaller} context, i.e.\ \isa{{\isasymGamma}{\isacharprime}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\ {\isasymphi}}
-  implies \isa{{\isasymGamma}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\ {\isasymDelta}\ {\isasymLongrightarrow}\ {\isasymphi}} where \isa{{\isasymGamma}{\isacharprime}\ {\isasymsupseteq}\ {\isasymGamma}} and
-  \isa{{\isasymDelta}\ {\isacharequal}\ {\isasymGamma}{\isacharprime}\ {\isacharminus}\ {\isasymGamma}}.  Note that \isa{{\isasymTheta}} remains unchanged here,
-  only the \isa{{\isasymGamma}} part is affected.
+  into a \emph{smaller} context, i.e.\ \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C54686574613E}{\isasymTheta}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}}
+  implies \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C54686574613E}{\isasymTheta}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}} where \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C73757073657465713E}{\isasymsupseteq}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}} and
+  \isa{{\isaliteral{5C3C44656C74613E}{\isasymDelta}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{27}{\isacharprime}}\ {\isaliteral{2D}{\isacharminus}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}}.  Note that \isa{{\isaliteral{5C3C54686574613E}{\isasymTheta}}} remains unchanged here,
+  only the \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}} part is affected.
 
   \end{itemize}
 
   \medskip By modeling the main characteristics of the primitive
-  \isa{{\isasymTheta}} and \isa{{\isasymGamma}} above, and abstracting over any
+  \isa{{\isaliteral{5C3C54686574613E}{\isasymTheta}}} and \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}} above, and abstracting over any
   particular logical content, we arrive at the fundamental notions of
   \emph{theory context} and \emph{proof context} in Isabelle/Isar.
   These implement a certain policy to manage arbitrary \emph{context
@@ -67,7 +67,7 @@ A logical context represents the background that is required for
   data at compile time.
 
   The internal bootstrap process of Isabelle/Pure eventually reaches a
-  stage where certain data slots provide the logical content of \isa{{\isasymTheta}} and \isa{{\isasymGamma}} sketched above, but this does not stop there!
+  stage where certain data slots provide the logical content of \isa{{\isaliteral{5C3C54686574613E}{\isasymTheta}}} and \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}} sketched above, but this does not stop there!
   Various additional data slots support all kinds of mechanisms that
   are not necessarily part of the core logic.
 
@@ -138,7 +138,7 @@ A \emph{theory} is a data container with explicit name and
   \begin{center}
   \begin{tabular}{rcccl}
         &            & \isa{Pure} \\
-        &            & \isa{{\isasymdown}} \\
+        &            & \isa{{\isaliteral{5C3C646F776E3E}{\isasymdown}}} \\
         &            & \isa{FOL} \\
         & $\swarrow$ &              & $\searrow$ & \\
   \isa{Nat} &    &              &            & \isa{List} \\
@@ -147,9 +147,9 @@ A \emph{theory} is a data container with explicit name and
         &            & \multicolumn{3}{l}{~~\hyperlink{keyword.imports}{\mbox{\isa{\isakeyword{imports}}}}} \\
         &            & \multicolumn{3}{l}{~~\hyperlink{keyword.begin}{\mbox{\isa{\isakeyword{begin}}}}} \\
         &            & $\vdots$~~ \\
-        &            & \isa{{\isasymbullet}}~~ \\
+        &            & \isa{{\isaliteral{5C3C62756C6C65743E}{\isasymbullet}}}~~ \\
         &            & $\vdots$~~ \\
-        &            & \isa{{\isasymbullet}}~~ \\
+        &            & \isa{{\isaliteral{5C3C62756C6C65743E}{\isasymbullet}}}~~ \\
         &            & $\vdots$~~ \\
         &            & \multicolumn{3}{l}{~~\hyperlink{command.end}{\mbox{\isa{\isacommand{end}}}}} \\
   \end{tabular}
@@ -202,13 +202,13 @@ A \emph{theory} is a data container with explicit name and
   which the system does at least at the boundary of toplevel command
   transactions \secref{sec:isar-toplevel}.
 
-  \item \verb|Theory.eq_thy|~\isa{{\isacharparenleft}thy\isactrlsub {\isadigit{1}}{\isacharcomma}\ thy\isactrlsub {\isadigit{2}}{\isacharparenright}} check strict
+  \item \verb|Theory.eq_thy|~\isa{{\isaliteral{28}{\isacharparenleft}}thy\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ thy\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} check strict
   identity of two theories.
 
-  \item \verb|Theory.subthy|~\isa{{\isacharparenleft}thy\isactrlsub {\isadigit{1}}{\isacharcomma}\ thy\isactrlsub {\isadigit{2}}{\isacharparenright}} compares theories
+  \item \verb|Theory.subthy|~\isa{{\isaliteral{28}{\isacharparenleft}}thy\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ thy\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} compares theories
   according to the intrinsic graph structure of the construction.
   This sub-theory relation is a nominal approximation of inclusion
-  (\isa{{\isasymsubseteq}}) of the corresponding content (according to the
+  (\isa{{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}}) of the corresponding content (according to the
   semantics of the ML modules that implement the data).
 
   \item \verb|Theory.checkpoint|~\isa{thy} produces a safe
@@ -219,8 +219,8 @@ A \emph{theory} is a data container with explicit name and
   \item \verb|Theory.copy|~\isa{thy} produces a variant of \isa{thy} with the same data.  The copy is not related to the original,
   but the original is unchanged.
 
-  \item \verb|Theory.merge|~\isa{{\isacharparenleft}thy\isactrlsub {\isadigit{1}}{\isacharcomma}\ thy\isactrlsub {\isadigit{2}}{\isacharparenright}} absorbs one theory
-  into the other, without changing \isa{thy\isactrlsub {\isadigit{1}}} or \isa{thy\isactrlsub {\isadigit{2}}}.
+  \item \verb|Theory.merge|~\isa{{\isaliteral{28}{\isacharparenleft}}thy\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ thy\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} absorbs one theory
+  into the other, without changing \isa{thy\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} or \isa{thy\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}}.
   This version of ad-hoc theory merge fails for unrelated theories!
 
   \item \verb|Theory.begin_theory|~\isa{name\ parents} constructs
@@ -237,7 +237,7 @@ A \emph{theory} is a data container with explicit name and
   an always valid theory; updates on the original are propagated
   automatically.
 
-  \item \verb|Theory.deref|~\isa{thy{\isacharunderscore}ref} turns a \verb|theory_ref| into an \verb|theory| value.  As the referenced
+  \item \verb|Theory.deref|~\isa{thy{\isaliteral{5F}{\isacharunderscore}}ref} turns a \verb|theory_ref| into an \verb|theory| value.  As the referenced
   theory evolves monotonically over time, later invocations of \verb|Theory.deref| may refer to a larger context.
 
   \item \verb|Theory.check_thy|~\isa{thy} produces a \verb|theory_ref| from a valid \verb|theory| value.
@@ -261,7 +261,7 @@ A \emph{theory} is a data container with explicit name and
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{theory}\hypertarget{ML antiquotation.theory}{\hyperlink{ML antiquotation.theory}{\mbox{\isa{theory}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{theory}\hypertarget{ML antiquotation.theory}{\hyperlink{ML antiquotation.theory}{\mbox{\isa{theory}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{rail}
@@ -271,10 +271,10 @@ A \emph{theory} is a data container with explicit name and
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}theory{\isacharbraceright}} refers to the background theory of the
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}theory{\isaliteral{7D}{\isacharbraceright}}} refers to the background theory of the
   current context --- as abstract value.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}theory\ A{\isacharbraceright}} refers to an explicitly named ancestor
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}theory\ A{\isaliteral{7D}{\isacharbraceright}}} refers to an explicitly named ancestor
   theory \isa{A} of the background theory of the current context
   --- as abstract value.
 
@@ -305,7 +305,7 @@ A proof context is a container for pure data with a
   requirements explicitly, since there is no separate context
   identification or symbolic inclusion as for theories.  For example,
   hypotheses used in primitive derivations (cf.\ \secref{sec:thms})
-  are recorded separately within the sequent \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}}, just to
+  are recorded separately within the sequent \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}}, just to
   make double sure.  Results could still leak into an alien proof
   context due to programming errors, but Isabelle/Isar includes some
   extra validity checks in critical positions, notably at the end of a
@@ -371,12 +371,12 @@ A proof context is a container for pure data with a
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{context}\hypertarget{ML antiquotation.context}{\hyperlink{ML antiquotation.context}{\mbox{\isa{context}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{context}\hypertarget{ML antiquotation.context}{\hyperlink{ML antiquotation.context}{\mbox{\isa{context}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}context{\isacharbraceright}} refers to \emph{the} context at
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}context{\isaliteral{7D}{\isacharbraceright}}} refers to \emph{the} context at
   compile-time --- as abstract value.  Independently of (local) theory
   or proof mode, this always produces a meaningful result.
 
@@ -406,7 +406,7 @@ A generic context is the disjoint sum of either a theory or proof
   and combinators for lifting operations on either component of the
   disjoint sum.
 
-  Moreover, there are total operations \isa{theory{\isacharunderscore}of} and \isa{proof{\isacharunderscore}of} to convert a generic context into either kind: a theory
+  Moreover, there are total operations \isa{theory{\isaliteral{5F}{\isacharunderscore}}of} and \isa{proof{\isaliteral{5F}{\isacharunderscore}}of} to convert a generic context into either kind: a theory
   can always be selected from the sum, while a proof context might
   have to be constructed by an ad-hoc \isa{init} operation, which
   incurs a small runtime overhead.%
@@ -464,10 +464,10 @@ The main purpose of theory and proof contexts is to manage
 
   \medskip
   \begin{tabular}{ll}
-  \isa{{\isasymtype}\ T} & representing type \\
-  \isa{{\isasymval}\ empty{\isacharcolon}\ T} & empty default value \\
-  \isa{{\isasymval}\ extend{\isacharcolon}\ T\ {\isasymrightarrow}\ T} & re-initialize on import \\
-  \isa{{\isasymval}\ merge{\isacharcolon}\ T\ {\isasymtimes}\ T\ {\isasymrightarrow}\ T} & join on import \\
+  \isa{{\isaliteral{5C3C747970653E}{\isasymtype}}\ T} & representing type \\
+  \isa{{\isaliteral{5C3C76616C3E}{\isasymval}}\ empty{\isaliteral{3A}{\isacharcolon}}\ T} & empty default value \\
+  \isa{{\isaliteral{5C3C76616C3E}{\isasymval}}\ extend{\isaliteral{3A}{\isacharcolon}}\ T\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ T} & re-initialize on import \\
+  \isa{{\isaliteral{5C3C76616C3E}{\isasymval}}\ merge{\isaliteral{3A}{\isacharcolon}}\ T\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ T\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ T} & join on import \\
   \end{tabular}
   \medskip
 
@@ -476,7 +476,7 @@ The main purpose of theory and proof contexts is to manage
   is acts like a unitary version of \isa{merge}.
 
   Implementing \isa{merge} can be tricky.  The general idea is
-  that \isa{merge\ {\isacharparenleft}data\isactrlsub {\isadigit{1}}{\isacharcomma}\ data\isactrlsub {\isadigit{2}}{\isacharparenright}} inserts those parts of \isa{data\isactrlsub {\isadigit{2}}} into \isa{data\isactrlsub {\isadigit{1}}} that are not yet present, while
+  that \isa{merge\ {\isaliteral{28}{\isacharparenleft}}data\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ data\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} inserts those parts of \isa{data\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} into \isa{data\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} that are not yet present, while
   keeping the general order of things.  The \verb|Library.merge|
   function on plain lists may serve as canonical template.
 
@@ -489,8 +489,8 @@ The main purpose of theory and proof contexts is to manage
 
   \medskip
   \begin{tabular}{ll}
-  \isa{{\isasymtype}\ T} & representing type \\
-  \isa{{\isasymval}\ init{\isacharcolon}\ theory\ {\isasymrightarrow}\ T} & produce initial value \\
+  \isa{{\isaliteral{5C3C747970653E}{\isasymtype}}\ T} & representing type \\
+  \isa{{\isaliteral{5C3C76616C3E}{\isasymval}}\ init{\isaliteral{3A}{\isacharcolon}}\ theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ T} & produce initial value \\
   \end{tabular}
   \medskip
 
@@ -515,9 +515,9 @@ The main purpose of theory and proof contexts is to manage
 
   \medskip
   \begin{tabular}{ll}
-  \isa{get{\isacharcolon}\ context\ {\isasymrightarrow}\ T} \\
-  \isa{put{\isacharcolon}\ T\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} \\
-  \isa{map{\isacharcolon}\ {\isacharparenleft}T\ {\isasymrightarrow}\ T{\isacharparenright}\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} \\
+  \isa{get{\isaliteral{3A}{\isacharcolon}}\ context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ T} \\
+  \isa{put{\isaliteral{3A}{\isacharcolon}}\ T\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context} \\
+  \isa{map{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}T\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context} \\
   \end{tabular}
   \medskip
 
@@ -545,15 +545,15 @@ The main purpose of theory and proof contexts is to manage
 
   \begin{description}
 
-  \item \verb|Theory_Data|\isa{{\isacharparenleft}spec{\isacharparenright}} declares data for
+  \item \verb|Theory_Data|\isa{{\isaliteral{28}{\isacharparenleft}}spec{\isaliteral{29}{\isacharparenright}}} declares data for
   type \verb|theory| according to the specification provided as
   argument structure.  The resulting structure provides data init and
   access operations as described above.
 
-  \item \verb|Proof_Data|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous to
+  \item \verb|Proof_Data|\isa{{\isaliteral{28}{\isacharparenleft}}spec{\isaliteral{29}{\isacharparenright}}} is analogous to
   \verb|Theory_Data| for type \verb|Proof.context|.
 
-  \item \verb|Generic_Data|\isa{{\isacharparenleft}spec{\isacharparenright}} is analogous to
+  \item \verb|Generic_Data|\isa{{\isaliteral{28}{\isacharparenleft}}spec{\isaliteral{29}{\isacharparenright}}} is analogous to
   \verb|Theory_Data| for type \verb|Context.generic|.
 
   \end{description}%
@@ -593,13 +593,13 @@ The following artificial example demonstrates theory
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ signature\ WELLFORMED{\isacharunderscore}TERMS\ {\isacharequal}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ signature\ WELLFORMED{\isaliteral{5F}{\isacharunderscore}}TERMS\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \ \ sig\isanewline
-\ \ \ \ val\ get{\isacharcolon}\ theory\ {\isacharminus}{\isachargreater}\ term\ list\isanewline
-\ \ \ \ val\ add{\isacharcolon}\ term\ {\isacharminus}{\isachargreater}\ theory\ {\isacharminus}{\isachargreater}\ theory\isanewline
-\ \ end{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ \ \ \ val\ get{\isaliteral{3A}{\isacharcolon}}\ theory\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ term\ list\isanewline
+\ \ \ \ val\ add{\isaliteral{3A}{\isacharcolon}}\ term\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ theory\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ theory\isanewline
+\ \ end{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -620,30 +620,30 @@ The implementation uses private theory data internally, and
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ structure\ Wellformed{\isacharunderscore}Terms{\isacharcolon}\ WELLFORMED{\isacharunderscore}TERMS\ {\isacharequal}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ structure\ Wellformed{\isaliteral{5F}{\isacharunderscore}}Terms{\isaliteral{3A}{\isacharcolon}}\ WELLFORMED{\isaliteral{5F}{\isacharunderscore}}TERMS\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \ \ struct\isanewline
 \isanewline
-\ \ structure\ Terms\ {\isacharequal}\ Theory{\isacharunderscore}Data\isanewline
-\ \ {\isacharparenleft}\isanewline
-\ \ \ \ type\ T\ {\isacharequal}\ term\ Ord{\isacharunderscore}List{\isachardot}T{\isacharsemicolon}\isanewline
-\ \ \ \ val\ empty\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\isanewline
-\ \ \ \ val\ extend\ {\isacharequal}\ I{\isacharsemicolon}\isanewline
-\ \ \ \ fun\ merge\ {\isacharparenleft}ts{\isadigit{1}}{\isacharcomma}\ ts{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ Ord{\isacharunderscore}List{\isachardot}union\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ ts{\isadigit{1}}\ ts{\isadigit{2}}{\isacharsemicolon}\isanewline
-\ \ {\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ structure\ Terms\ {\isaliteral{3D}{\isacharequal}}\ Theory{\isaliteral{5F}{\isacharunderscore}}Data\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}\isanewline
+\ \ \ \ type\ T\ {\isaliteral{3D}{\isacharequal}}\ term\ Ord{\isaliteral{5F}{\isacharunderscore}}List{\isaliteral{2E}{\isachardot}}T{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ val\ empty\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ val\ extend\ {\isaliteral{3D}{\isacharequal}}\ I{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ fun\ merge\ {\isaliteral{28}{\isacharparenleft}}ts{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ ts{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ Ord{\isaliteral{5F}{\isacharunderscore}}List{\isaliteral{2E}{\isachardot}}union\ Term{\isaliteral{5F}{\isacharunderscore}}Ord{\isaliteral{2E}{\isachardot}}fast{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}ord\ ts{\isadigit{1}}\ ts{\isadigit{2}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ {\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ val\ get\ {\isacharequal}\ Terms{\isachardot}get{\isacharsemicolon}\isanewline
+\ \ val\ get\ {\isaliteral{3D}{\isacharequal}}\ Terms{\isaliteral{2E}{\isachardot}}get{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ fun\ add\ raw{\isacharunderscore}t\ thy\ {\isacharequal}\isanewline
+\ \ fun\ add\ raw{\isaliteral{5F}{\isacharunderscore}}t\ thy\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \ \ \ \ let\isanewline
-\ \ \ \ \ \ val\ t\ {\isacharequal}\ Sign{\isachardot}cert{\isacharunderscore}term\ thy\ raw{\isacharunderscore}t{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ val\ t\ {\isaliteral{3D}{\isacharequal}}\ Sign{\isaliteral{2E}{\isachardot}}cert{\isaliteral{5F}{\isacharunderscore}}term\ thy\ raw{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ \ \ in\isanewline
-\ \ \ \ \ \ Terms{\isachardot}map\ {\isacharparenleft}Ord{\isacharunderscore}List{\isachardot}insert\ Term{\isacharunderscore}Ord{\isachardot}fast{\isacharunderscore}term{\isacharunderscore}ord\ t{\isacharparenright}\ thy\isanewline
-\ \ \ \ end{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ Terms{\isaliteral{2E}{\isachardot}}map\ {\isaliteral{28}{\isacharparenleft}}Ord{\isaliteral{5F}{\isacharunderscore}}List{\isaliteral{2E}{\isachardot}}insert\ Term{\isaliteral{5F}{\isacharunderscore}}Ord{\isaliteral{2E}{\isachardot}}fast{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}ord\ t{\isaliteral{29}{\isacharparenright}}\ thy\isanewline
+\ \ \ \ end{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ end{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ \ end{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -705,19 +705,19 @@ A \emph{configuration option} is a named optional value of
   end-users using existing notation for attributes (cf.\
   \secref{sec:attributes}).
 
-  For example, the predefined configuration option \hyperlink{attribute.show-types}{\mbox{\isa{show{\isacharunderscore}types}}} controls output of explicit type constraints for
+  For example, the predefined configuration option \hyperlink{attribute.show-types}{\mbox{\isa{show{\isaliteral{5F}{\isacharunderscore}}types}}} controls output of explicit type constraints for
   variables in printed terms (cf.\ \secref{sec:read-print}).  Its
   value can be modified within Isar text like this:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{declare}\isamarkupfalse%
-\ {\isacharbrackleft}{\isacharbrackleft}show{\isacharunderscore}types\ {\isacharequal}\ false{\isacharbrackright}{\isacharbrackright}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}show{\isaliteral{5F}{\isacharunderscore}}types\ {\isaliteral{3D}{\isacharequal}}\ false{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
 \ \ %
 \isamarkupcmt{declaration within (local) theory context%
 }
 \isanewline
 \isanewline
-\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
 \isanewline
 %
 \isadelimproof
@@ -726,7 +726,7 @@ A \emph{configuration option} is a named optional value of
 %
 \isatagproof
 \isacommand{note}\isamarkupfalse%
-\ {\isacharbrackleft}{\isacharbrackleft}show{\isacharunderscore}types\ {\isacharequal}\ true{\isacharbrackright}{\isacharbrackright}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}show{\isaliteral{5F}{\isacharunderscore}}types\ {\isaliteral{3D}{\isacharequal}}\ true{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
 \ \ \ \ %
 \isamarkupcmt{declaration within proof (forward mode)%
 }
@@ -748,14 +748,14 @@ A \emph{configuration option} is a named optional value of
 %
 \isatagproof
 \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{using}\isamarkupfalse%
-\ {\isacharbrackleft}{\isacharbrackleft}show{\isacharunderscore}types\ {\isacharequal}\ false{\isacharbrackright}{\isacharbrackright}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}show{\isaliteral{5F}{\isacharunderscore}}types\ {\isaliteral{3D}{\isacharequal}}\ false{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
 \ \ \ \ \ \ %
 \isamarkupcmt{declaration within proof (backward mode)%
 }
 \isanewline
-\ \ \ \ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ \ \ \ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -808,7 +808,7 @@ Configuration options that are not set explicitly hold a
   \item \verb|Config.map|~\isa{config\ f\ ctxt} updates the context
   by updating the value of \isa{config}.
 
-  \item \isa{{\isacharparenleft}config{\isacharcomma}\ setup{\isacharparenright}\ {\isacharequal}}~\verb|Attrib.config_bool|~\isa{name\ default} creates a named configuration option of type
+  \item \isa{{\isaliteral{28}{\isacharparenleft}}config{\isaliteral{2C}{\isacharcomma}}\ setup{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}}~\verb|Attrib.config_bool|~\isa{name\ default} creates a named configuration option of type
   \verb|bool|, with the given \isa{default} depending on the
   application context.  The resulting \isa{config} can be used to
   get/map its value in a given context.  The \isa{setup} function
@@ -837,7 +837,7 @@ Configuration options that are not set explicitly hold a
 %
 \begin{isamarkuptext}%
 The following example shows how to declare and use a
-  Boolean configuration option called \isa{my{\isacharunderscore}flag} with constant
+  Boolean configuration option called \isa{my{\isaliteral{5F}{\isacharunderscore}}flag} with constant
   default value \verb|false|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -855,12 +855,12 @@ The following example shows how to declare and use a
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ val\ {\isacharparenleft}my{\isacharunderscore}flag{\isacharcomma}\ my{\isacharunderscore}flag{\isacharunderscore}setup{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ Attrib{\isachardot}config{\isacharunderscore}bool\ {\isachardoublequote}my{\isacharunderscore}flag{\isachardoublequote}\ {\isacharparenleft}K\ false{\isacharparenright}\isanewline
-{\isacharverbatimclose}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ val\ {\isaliteral{28}{\isacharparenleft}}my{\isaliteral{5F}{\isacharunderscore}}flag{\isaliteral{2C}{\isacharcomma}}\ my{\isaliteral{5F}{\isacharunderscore}}flag{\isaliteral{5F}{\isacharunderscore}}setup{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}config{\isaliteral{5F}{\isacharunderscore}}bool\ {\isaliteral{22}{\isachardoublequote}}my{\isaliteral{5F}{\isacharunderscore}}flag{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{28}{\isacharparenleft}}K\ false{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \isacommand{setup}\isamarkupfalse%
-\ my{\isacharunderscore}flag{\isacharunderscore}setup%
+\ my{\isaliteral{5F}{\isacharunderscore}}flag{\isaliteral{5F}{\isacharunderscore}}setup%
 \endisatagML
 {\isafoldML}%
 %
@@ -869,7 +869,7 @@ The following example shows how to declare and use a
 \endisadelimML
 %
 \begin{isamarkuptext}%
-Now the user can refer to \hyperlink{attribute.my-flag}{\mbox{\isa{my{\isacharunderscore}flag}}} in
+Now the user can refer to \hyperlink{attribute.my-flag}{\mbox{\isa{my{\isaliteral{5F}{\isacharunderscore}}flag}}} in
   declarations, while ML tools can retrieve the current value from the
   context via \verb|Config.get|.%
 \end{isamarkuptext}%
@@ -880,16 +880,16 @@ Now the user can refer to \hyperlink{attribute.my-flag}{\mbox{\isa{my{\isacharun
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
-\ {\isacharverbatimopen}\ %
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}Config{\isachardot}get\ %
+\ {\isaliteral{28}{\isacharparenleft}}Config{\isaliteral{2E}{\isachardot}}get\ %
 \isaantiq
-context%
+context{}%
 \endisaantiq
-\ my{\isacharunderscore}flag\ {\isacharequal}\ false{\isacharparenright}\ {\isacharverbatimclose}%
+\ my{\isaliteral{5F}{\isacharunderscore}}flag\ {\isaliteral{3D}{\isacharequal}}\ false{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -899,7 +899,7 @@ context%
 \isanewline
 \isanewline
 \isacommand{declare}\isamarkupfalse%
-\ {\isacharbrackleft}{\isacharbrackleft}my{\isacharunderscore}flag\ {\isacharequal}\ true{\isacharbrackright}{\isacharbrackright}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}my{\isaliteral{5F}{\isacharunderscore}}flag\ {\isaliteral{3D}{\isacharequal}}\ true{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
 %
 \isadelimML
 \isanewline
@@ -907,16 +907,16 @@ context%
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
-\ {\isacharverbatimopen}\ %
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}Config{\isachardot}get\ %
+\ {\isaliteral{28}{\isacharparenleft}}Config{\isaliteral{2E}{\isachardot}}get\ %
 \isaantiq
-context%
+context{}%
 \endisaantiq
-\ my{\isacharunderscore}flag\ {\isacharequal}\ true{\isacharparenright}\ {\isacharverbatimclose}%
+\ my{\isaliteral{5F}{\isacharunderscore}}flag\ {\isaliteral{3D}{\isacharequal}}\ true{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -925,7 +925,7 @@ context%
 %
 \endisadelimML
 \isanewline
-\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
 \isanewline
 %
 \isadelimproof
@@ -933,10 +933,10 @@ context%
 \endisadelimproof
 %
 \isatagproof
-\isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{note}\isamarkupfalse%
-\ {\isacharbrackleft}{\isacharbrackleft}my{\isacharunderscore}flag\ {\isacharequal}\ false{\isacharbrackright}{\isacharbrackright}%
+\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}my{\isaliteral{5F}{\isacharunderscore}}flag\ {\isaliteral{3D}{\isacharequal}}\ false{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -950,16 +950,16 @@ context%
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
-\ {\isacharverbatimopen}\ %
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}Config{\isachardot}get\ %
+\ {\isaliteral{28}{\isacharparenleft}}Config{\isaliteral{2E}{\isachardot}}get\ %
 \isaantiq
-context%
+context{}%
 \endisaantiq
-\ my{\isacharunderscore}flag\ {\isacharequal}\ false{\isacharparenright}\ {\isacharverbatimclose}%
+\ my{\isaliteral{5F}{\isacharunderscore}}flag\ {\isaliteral{3D}{\isacharequal}}\ false{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -973,7 +973,7 @@ context%
 \endisadelimproof
 %
 \isatagproof
-\isacommand{{\isacharbraceright}}\isamarkupfalse%
+\isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -988,16 +988,16 @@ context%
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
-\ {\isacharverbatimopen}\ %
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}Config{\isachardot}get\ %
+\ {\isaliteral{28}{\isacharparenleft}}Config{\isaliteral{2E}{\isachardot}}get\ %
 \isaantiq
-context%
+context{}%
 \endisaantiq
-\ my{\isacharunderscore}flag\ {\isacharequal}\ true{\isacharparenright}\ {\isacharverbatimclose}%
+\ my{\isaliteral{5F}{\isacharunderscore}}flag\ {\isaliteral{3D}{\isacharequal}}\ true{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1032,12 +1032,12 @@ Here is another example involving ML type \verb|real|
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ val\ {\isacharparenleft}airspeed{\isacharunderscore}velocity{\isacharcomma}\ airspeed{\isacharunderscore}velocity{\isacharunderscore}setup{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ Attrib{\isachardot}config{\isacharunderscore}real\ {\isachardoublequote}airspeed{\isacharunderscore}velocity{\isachardoublequote}\ {\isacharparenleft}K\ {\isadigit{0}}{\isachardot}{\isadigit{0}}{\isacharparenright}\isanewline
-{\isacharverbatimclose}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ val\ {\isaliteral{28}{\isacharparenleft}}airspeed{\isaliteral{5F}{\isacharunderscore}}velocity{\isaliteral{2C}{\isacharcomma}}\ airspeed{\isaliteral{5F}{\isacharunderscore}}velocity{\isaliteral{5F}{\isacharunderscore}}setup{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}config{\isaliteral{5F}{\isacharunderscore}}real\ {\isaliteral{22}{\isachardoublequote}}airspeed{\isaliteral{5F}{\isacharunderscore}}velocity{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{28}{\isacharparenleft}}K\ {\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \isacommand{setup}\isamarkupfalse%
-\ airspeed{\isacharunderscore}velocity{\isacharunderscore}setup%
+\ airspeed{\isaliteral{5F}{\isacharunderscore}}velocity{\isaliteral{5F}{\isacharunderscore}}setup%
 \endisatagML
 {\isafoldML}%
 %
@@ -1047,9 +1047,9 @@ Here is another example involving ML type \verb|real|
 \isanewline
 \isanewline
 \isacommand{declare}\isamarkupfalse%
-\ {\isacharbrackleft}{\isacharbrackleft}airspeed{\isacharunderscore}velocity\ {\isacharequal}\ {\isadigit{1}}{\isadigit{0}}{\isacharbrackright}{\isacharbrackright}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}airspeed{\isaliteral{5F}{\isacharunderscore}}velocity\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isadigit{0}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
 \isacommand{declare}\isamarkupfalse%
-\ {\isacharbrackleft}{\isacharbrackleft}airspeed{\isacharunderscore}velocity\ {\isacharequal}\ {\isadigit{9}}{\isachardot}{\isadigit{9}}{\isacharbrackright}{\isacharbrackright}%
+\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}airspeed{\isaliteral{5F}{\isacharunderscore}}velocity\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{9}}{\isaliteral{2E}{\isachardot}}{\isadigit{9}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}%
 \isamarkupsection{Names \label{sec:names}%
 }
 \isamarkuptrue%
@@ -1057,8 +1057,8 @@ Here is another example involving ML type \verb|real|
 \begin{isamarkuptext}%
 In principle, a name is just a string, but there are various
   conventions for representing additional structure.  For example,
-  ``\isa{Foo{\isachardot}bar{\isachardot}baz}'' is considered as a long name consisting of
-  qualifier \isa{Foo{\isachardot}bar} and base name \isa{baz}.  The
+  ``\isa{Foo{\isaliteral{2E}{\isachardot}}bar{\isaliteral{2E}{\isachardot}}baz}'' is considered as a long name consisting of
+  qualifier \isa{Foo{\isaliteral{2E}{\isachardot}}bar} and base name \isa{baz}.  The
   individual constituents of a name may have further substructure,
   e.g.\ the string ``\verb,\,\verb,<alpha>,'' encodes as a single
   symbol.
@@ -1116,7 +1116,7 @@ A \emph{symbol} constitutes the smallest textual unit in
 
   \end{enumerate}
 
-  The \isa{ident} syntax for symbol names is \isa{letter\ {\isacharparenleft}letter\ {\isacharbar}\ digit{\isacharparenright}\isactrlsup {\isacharasterisk}}, where \isa{letter\ {\isacharequal}\ A{\isachardot}{\isachardot}Za{\isachardot}{\isachardot}z} and \isa{digit\ {\isacharequal}\ {\isadigit{0}}{\isachardot}{\isachardot}{\isadigit{9}}}.  There are infinitely many regular symbols and
+  The \isa{ident} syntax for symbol names is \isa{letter\ {\isaliteral{28}{\isacharparenleft}}letter\ {\isaliteral{7C}{\isacharbar}}\ digit{\isaliteral{29}{\isacharparenright}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}}, where \isa{letter\ {\isaliteral{3D}{\isacharequal}}\ A{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}Za{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}z} and \isa{digit\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isadigit{9}}}.  There are infinitely many regular symbols and
   control symbols, but a fixed collection of standard symbols is
   treated specifically.  For example, ``\verb,\,\verb,<alpha>,'' is
   classified as a letter, which means it may occur within regular
@@ -1137,8 +1137,8 @@ A \emph{symbol} constitutes the smallest textual unit in
   \medskip Output of Isabelle symbols depends on the print mode
   (\secref{print-mode}).  For example, the standard {\LaTeX} setup of
   the Isabelle document preparation system would present
-  ``\verb,\,\verb,<alpha>,'' as \isa{{\isasymalpha}}, and
-  ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as \isa{\isactrlbold {\isasymalpha}}.  On-screen rendering usually works by mapping a finite
+  ``\verb,\,\verb,<alpha>,'' as \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}, and
+  ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as \isa{\isaliteral{5C3C5E626F6C643E}{}\isactrlbold {\isaliteral{5C3C616C7068613E}{\isasymalpha}}}.  On-screen rendering usually works by mapping a finite
   subset of Isabelle symbols to suitable Unicode characters.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1217,7 +1217,7 @@ A \emph{basic name} essentially consists of a single Isabelle
   three underscores means \emph{internal Skolem name}.
 
   For example, the basic name \isa{foo} has the internal version
-  \isa{foo{\isacharunderscore}}, with Skolem versions \isa{foo{\isacharunderscore}{\isacharunderscore}} and \isa{foo{\isacharunderscore}{\isacharunderscore}{\isacharunderscore}}, respectively.
+  \isa{foo{\isaliteral{5F}{\isacharunderscore}}}, with Skolem versions \isa{foo{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5F}{\isacharunderscore}}} and \isa{foo{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5F}{\isacharunderscore}}}, respectively.
 
   These special versions provide copies of the basic name space, apart
   from anything that normally appears in the user text.  For example,
@@ -1235,7 +1235,7 @@ A \emph{basic name} essentially consists of a single Isabelle
   from \isa{a} are \isa{a}, \isa{b}, \isa{c}.
 
   The \isa{variants} operation produces fresh names by
-  incrementing tentative names as base-26 numbers (with digits \isa{a{\isachardot}{\isachardot}z}) until all clashes are resolved.  For example, name \isa{foo} results in variants \isa{fooa}, \isa{foob}, \isa{fooc}, \dots, \isa{fooaa}, \isa{fooab} etc.; each renaming
+  incrementing tentative names as base-26 numbers (with digits \isa{a{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}z}) until all clashes are resolved.  For example, name \isa{foo} results in variants \isa{fooa}, \isa{foob}, \isa{fooc}, \dots, \isa{fooaa}, \isa{fooab} etc.; each renaming
   step picks the next unused variant from this sequence.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1325,22 +1325,22 @@ The following simple examples demonstrate how to produce
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ val\ list{\isadigit{1}}\ {\isacharequal}\ Name{\isachardot}invents\ Name{\isachardot}context\ {\isachardoublequote}a{\isachardoublequote}\ {\isadigit{5}}{\isacharsemicolon}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invents\ Name{\isaliteral{2E}{\isachardot}}context\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}list{\isadigit{1}}\ {\isacharequal}\ {\isacharbrackleft}{\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}b{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}c{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}d{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}e{\isachardoublequote}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}b{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}c{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}d{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}e{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ val\ list{\isadigit{2}}\ {\isacharequal}\isanewline
-\ \ \ \ {\isacharhash}{\isadigit{1}}\ {\isacharparenleft}Name{\isachardot}variants\ {\isacharbrackleft}{\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharbrackright}\ Name{\isachardot}context{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ val\ list{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ {\isaliteral{23}{\isacharhash}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}Name{\isaliteral{2E}{\isachardot}}variants\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ Name{\isaliteral{2E}{\isachardot}}context{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}list{\isadigit{2}}\ {\isacharequal}\ {\isacharbrackleft}{\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}xa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}aa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}aa{\isachardoublequote}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ {\isaliteral{28}{\isacharparenleft}}list{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}xa{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}aa{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}aa{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1354,7 +1354,7 @@ assert%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{locale}\isamarkupfalse%
-\ ex\ {\isacharequal}\ \isakeyword{fixes}\ a\ b\ c\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\isanewline
+\ ex\ {\isaliteral{3D}{\isacharequal}}\ \isakeyword{fixes}\ a\ b\ c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
 \isakeyword{begin}\isanewline
 %
 \isadelimML
@@ -1364,28 +1364,28 @@ assert%
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ val\ names\ {\isacharequal}\ Variable{\isachardot}names{\isacharunderscore}of\ %
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ val\ names\ {\isaliteral{3D}{\isacharequal}}\ Variable{\isaliteral{2E}{\isachardot}}names{\isaliteral{5F}{\isacharunderscore}}of\ %
 \isaantiq
-context%
+context{}%
 \endisaantiq
-{\isacharsemicolon}\isanewline
+{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ val\ list{\isadigit{1}}\ {\isacharequal}\ Name{\isachardot}invents\ names\ {\isachardoublequote}a{\isachardoublequote}\ {\isadigit{5}}{\isacharsemicolon}\isanewline
+\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invents\ names\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}list{\isadigit{1}}\ {\isacharequal}\ {\isacharbrackleft}{\isachardoublequote}d{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}e{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}f{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}g{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}h{\isachardoublequote}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}d{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}e{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}f{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}g{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}h{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ val\ list{\isadigit{2}}\ {\isacharequal}\isanewline
-\ \ \ \ {\isacharhash}{\isadigit{1}}\ {\isacharparenleft}Name{\isachardot}variants\ {\isacharbrackleft}{\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}a{\isachardoublequote}{\isacharbrackright}\ names{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ val\ list{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ {\isaliteral{23}{\isacharhash}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}Name{\isaliteral{2E}{\isachardot}}variants\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ names{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}list{\isadigit{2}}\ {\isacharequal}\ {\isacharbrackleft}{\isachardoublequote}x{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}xa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}aa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}ab{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}aa{\isachardoublequote}{\isacharcomma}\ {\isachardoublequote}{\isacharprime}ab{\isachardoublequote}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ {\isaliteral{28}{\isacharparenleft}}list{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}xa{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}aa{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}ab{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}aa{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}ab{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1407,23 +1407,23 @@ An \emph{indexed name} (or \isa{indexname}) is a pair of a basic
   way to rename two collections of indexnames apart from each other is
   this: determine the maximum index \isa{maxidx} of the first
   collection, then increment all indexes of the second collection by
-  \isa{maxidx\ {\isacharplus}\ {\isadigit{1}}}; the maximum index of an empty collection is
-  \isa{{\isacharminus}{\isadigit{1}}}.
+  \isa{maxidx\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}}; the maximum index of an empty collection is
+  \isa{{\isaliteral{2D}{\isacharminus}}{\isadigit{1}}}.
 
   Occasionally, basic names are injected into the same pair type of
-  indexed names: then \isa{{\isacharparenleft}x{\isacharcomma}\ {\isacharminus}{\isadigit{1}}{\isacharparenright}} is used to encode the basic
+  indexed names: then \isa{{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{2D}{\isacharminus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}} is used to encode the basic
   name \isa{x}.
 
   \medskip Isabelle syntax observes the following rules for
-  representing an indexname \isa{{\isacharparenleft}x{\isacharcomma}\ i{\isacharparenright}} as a packed string:
+  representing an indexname \isa{{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ i{\isaliteral{29}{\isacharparenright}}} as a packed string:
 
   \begin{itemize}
 
-  \item \isa{{\isacharquery}x} if \isa{x} does not end with a digit and \isa{i\ {\isacharequal}\ {\isadigit{0}}},
+  \item \isa{{\isaliteral{3F}{\isacharquery}}x} if \isa{x} does not end with a digit and \isa{i\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}},
 
-  \item \isa{{\isacharquery}xi} if \isa{x} does not end with a digit,
+  \item \isa{{\isaliteral{3F}{\isacharquery}}xi} if \isa{x} does not end with a digit,
 
-  \item \isa{{\isacharquery}x{\isachardot}i} otherwise.
+  \item \isa{{\isaliteral{3F}{\isacharquery}}x{\isaliteral{2E}{\isachardot}}i} otherwise.
 
   \end{itemize}
 
@@ -1431,8 +1431,8 @@ An \emph{indexed name} (or \isa{indexname}) is a pair of a basic
   shifts have been applied.  Results are usually normalized towards
   \isa{{\isadigit{0}}} at certain checkpoints, notably at the end of a proof.
   This works by producing variants of the corresponding basic name
-  components.  For example, the collection \isa{{\isacharquery}x{\isadigit{1}}{\isacharcomma}\ {\isacharquery}x{\isadigit{7}}{\isacharcomma}\ {\isacharquery}x{\isadigit{4}}{\isadigit{2}}}
-  becomes \isa{{\isacharquery}x{\isacharcomma}\ {\isacharquery}xa{\isacharcomma}\ {\isacharquery}xb}.%
+  components.  For example, the collection \isa{{\isaliteral{3F}{\isacharquery}}x{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{3F}{\isacharquery}}x{\isadigit{7}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{3F}{\isacharquery}}x{\isadigit{4}}{\isadigit{2}}}
+  becomes \isa{{\isaliteral{3F}{\isacharquery}}x{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{3F}{\isacharquery}}xa{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{3F}{\isacharquery}}xb}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1451,7 +1451,7 @@ An \emph{indexed name} (or \isa{indexname}) is a pair of a basic
 
   \item Type \verb|indexname| represents indexed names.  This is
   an abbreviation for \verb|string * int|.  The second component
-  is usually non-negative, except for situations where \isa{{\isacharparenleft}x{\isacharcomma}\ {\isacharminus}{\isadigit{1}}{\isacharparenright}} is used to inject basic names into this type.  Other negative
+  is usually non-negative, except for situations where \isa{{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{2D}{\isacharminus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}} is used to inject basic names into this type.  Other negative
   indexes should not be used.
 
   \end{description}%
@@ -1472,14 +1472,14 @@ An \emph{indexed name} (or \isa{indexname}) is a pair of a basic
 \begin{isamarkuptext}%
 A \emph{long name} consists of a sequence of non-empty name
   components.  The packed representation uses a dot as separator, as
-  in ``\isa{A{\isachardot}b{\isachardot}c}''.  The last component is called \emph{base
+  in ``\isa{A{\isaliteral{2E}{\isachardot}}b{\isaliteral{2E}{\isachardot}}c}''.  The last component is called \emph{base
   name}, the remaining prefix is called \emph{qualifier} (which may be
   empty).  The qualifier can be understood as the access path to the
   named entity while passing through some nested block-structure,
   although our free-form long names do not really enforce any strict
   discipline.
 
-  For example, an item named ``\isa{A{\isachardot}b{\isachardot}c}'' may be understood as
+  For example, an item named ``\isa{A{\isaliteral{2E}{\isachardot}}b{\isaliteral{2E}{\isachardot}}c}'' may be understood as
   a local entity \isa{c}, within a local structure \isa{b},
   within a global structure \isa{A}.  In practice, long names
   usually represent 1--3 levels of qualification.  User ML code should
@@ -1516,7 +1516,7 @@ A \emph{long name} consists of a sequence of non-empty name
   \item \verb|Long_Name.qualifier|~\isa{name} returns the qualifier
   of a long name.
 
-  \item \verb|Long_Name.append|~\isa{name\isactrlisub {\isadigit{1}}\ name\isactrlisub {\isadigit{2}}} appends two long
+  \item \verb|Long_Name.append|~\isa{name\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ name\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}} appends two long
   names.
 
   \item \verb|Long_Name.implode|~\isa{names} and \verb|Long_Name.explode|~\isa{name} convert between the packed string
@@ -1561,7 +1561,7 @@ A \isa{name\ space} manages a collection of long names,
 
   \medskip
   \begin{tabular}{l}
-  \isa{binding\ {\isacharplus}\ naming\ {\isasymlongrightarrow}\ long\ name\ {\isacharplus}\ name\ space\ accesses}
+  \isa{binding\ {\isaliteral{2B}{\isacharplus}}\ naming\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ long\ name\ {\isaliteral{2B}{\isacharplus}}\ name\ space\ accesses}
   \end{tabular}
 
   \bigskip As a general principle, there is a separate name space for
@@ -1573,7 +1573,7 @@ A \isa{name\ space} manages a collection of long names,
 
   There are common schemes to name derived entities systematically
   according to the name of the main logical entity involved, e.g.\
-  fact \isa{c{\isachardot}intro} for a canonical introduction rule related to
+  fact \isa{c{\isaliteral{2E}{\isachardot}}intro} for a canonical introduction rule related to
   constant \isa{c}.  This technique of mapping names from one
   space into another requires some care in order to avoid conflicts.
   In particular, theorem names derived from a type constructor or type
@@ -1584,9 +1584,9 @@ A \isa{name\ space} manages a collection of long names,
   \medskip
   \begin{tabular}{ll}
   logical entity & fact name \\\hline
-  constant \isa{c} & \isa{c{\isachardot}intro} \\
-  type \isa{c} & \isa{c{\isacharunderscore}type{\isachardot}intro} \\
-  class \isa{c} & \isa{c{\isacharunderscore}class{\isachardot}intro} \\
+  constant \isa{c} & \isa{c{\isaliteral{2E}{\isachardot}}intro} \\
+  type \isa{c} & \isa{c{\isaliteral{5F}{\isacharunderscore}}type{\isaliteral{2E}{\isachardot}}intro} \\
+  class \isa{c} & \isa{c{\isaliteral{5F}{\isacharunderscore}}class{\isaliteral{2E}{\isachardot}}intro} \\
   \end{tabular}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1672,7 +1672,7 @@ A \isa{name\ space} manages a collection of long names,
 
   \item Type \verb|Name_Space.T| represents name spaces.
 
-  \item \verb|Name_Space.empty|~\isa{kind} and \verb|Name_Space.merge|~\isa{{\isacharparenleft}space\isactrlisub {\isadigit{1}}{\isacharcomma}\ space\isactrlisub {\isadigit{2}}{\isacharparenright}} are the canonical operations for
+  \item \verb|Name_Space.empty|~\isa{kind} and \verb|Name_Space.merge|~\isa{{\isaliteral{28}{\isacharparenleft}}space\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ space\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} are the canonical operations for
   maintaining name spaces according to theory data management
   (\secref{sec:context-data}); \isa{kind} is a formal comment
   to characterize the purpose of a name space.
@@ -1718,7 +1718,7 @@ A \isa{name\ space} manages a collection of long names,
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{binding}\hypertarget{ML antiquotation.binding}{\hyperlink{ML antiquotation.binding}{\mbox{\isa{binding}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{binding}\hypertarget{ML antiquotation.binding}{\hyperlink{ML antiquotation.binding}{\mbox{\isa{binding}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{rail}
@@ -1728,7 +1728,7 @@ A \isa{name\ space} manages a collection of long names,
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}binding\ name{\isacharbraceright}} produces a binding with base name
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}binding\ name{\isaliteral{7D}{\isacharbraceright}}} produces a binding with base name
   \isa{name} and the source position taken from the concrete
   syntax of this antiquotation.  In many situations this is more
   appropriate than the more basic \verb|Binding.name| function.
@@ -1769,11 +1769,11 @@ The following example yields the source position of some
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\ Binding{\isachardot}pos{\isacharunderscore}of\ %
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ Binding{\isaliteral{2E}{\isachardot}}pos{\isaliteral{5F}{\isacharunderscore}}of\ %
 \isaantiq
-binding\ here%
+binding\ here{}%
 \endisaantiq
-\ {\isacharverbatimclose}%
+\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1792,15 +1792,15 @@ binding\ here%
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}command}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
 \ \ writeln\isanewline
-\ \ \ \ {\isacharparenleft}{\isachardoublequote}Look\ here{\isachardoublequote}\ {\isacharcircum}\ Position{\isachardot}str{\isacharunderscore}of\ {\isacharparenleft}Binding{\isachardot}pos{\isacharunderscore}of\ %
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}Look\ here{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{5E}{\isacharcircum}}\ Position{\isaliteral{2E}{\isachardot}}str{\isaliteral{5F}{\isacharunderscore}}of\ {\isaliteral{28}{\isacharparenleft}}Binding{\isaliteral{2E}{\isachardot}}pos{\isaliteral{5F}{\isacharunderscore}}of\ %
 \isaantiq
-binding\ here%
+binding\ here{}%
 \endisaantiq
-{\isacharparenright}{\isacharparenright}\isanewline
-{\isacharverbatimclose}%
+{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %

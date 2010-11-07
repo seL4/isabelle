@@ -46,7 +46,7 @@ Syntax annotations may be included wherever constants are declared,
   such as \isacommand{definition} and \isacommand{primrec} --- and also
   \isacommand{datatype}, which declares constructor operations.
   Type-constructors may be annotated as well, although this is less
-  frequently encountered in practice (the infix type \isa{{\isasymtimes}} comes
+  frequently encountered in practice (the infix type \isa{{\isaliteral{5C3C74696D65733E}{\isasymtimes}}} comes
   to mind).
 
   Infix declarations\index{infix annotations} provide a useful special
@@ -55,38 +55,38 @@ Syntax annotations may be included wherever constants are declared,
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isakeyword{where}\ {\isachardoublequoteopen}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
+\ xor\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \ \ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{6}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ B\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
-\noindent Now \isa{xor\ A\ B} and \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B} refer to the
+\noindent Now \isa{xor\ A\ B} and \isa{A\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ B} refer to the
   same expression internally.  Any curried function with at least two
   arguments may be given infix syntax.  For partial applications with
   fewer than two operands, there is a notation using the prefix~\isa{op}.  For instance, \isa{xor} without arguments is represented as
-  \isa{op\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}}; together with ordinary function application, this
-  turns \isa{xor\ A} into \isa{op\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ A}.
+  \isa{op\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}}; together with ordinary function application, this
+  turns \isa{xor\ A} into \isa{op\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ A}.
 
   The keyword \isakeyword{infixl} seen above specifies an
   infix operator that is nested to the \emph{left}: in iterated
   applications the more complex expression appears on the left-hand
-  side, and \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} stands for \isa{{\isacharparenleft}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B{\isacharparenright}\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C}.  Similarly, \isakeyword{infixr} means nesting to the
-  \emph{right}, reading \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} as \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ {\isacharparenleft}B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C{\isacharparenright}}.  A \emph{non-oriented} declaration via \isakeyword{infix}
-  would render \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} illegal, but demand explicit
+  side, and \isa{A\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ B\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ C} stands for \isa{{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ C}.  Similarly, \isakeyword{infixr} means nesting to the
+  \emph{right}, reading \isa{A\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ B\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ C} as \isa{A\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{28}{\isacharparenleft}}B\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ C{\isaliteral{29}{\isacharparenright}}}.  A \emph{non-oriented} declaration via \isakeyword{infix}
+  would render \isa{A\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ B\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ C} illegal, but demand explicit
   parentheses to indicate the intended grouping.
 
-  The string \isa{{\isachardoublequote}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequote}} in our annotation refers to the
+  The string \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} in our annotation refers to the
   concrete syntax to represent the operator (a literal token), while
   the number \isa{{\isadigit{6}}{\isadigit{0}}} determines the precedence of the construct:
   the syntactic priorities of the arguments and result.  Isabelle/HOL
   already uses up many popular combinations of ASCII symbols for its
-  own use, including both \isa{{\isacharplus}} and \isa{{\isacharplus}{\isacharplus}}.  Longer
+  own use, including both \isa{{\isaliteral{2B}{\isacharplus}}} and \isa{{\isaliteral{2B}{\isacharplus}}{\isaliteral{2B}{\isacharplus}}}.  Longer
   character combinations are more likely to be still available for
-  user extensions, such as our~\isa{{\isacharbrackleft}{\isacharplus}{\isacharbrackright}}.
+  user extensions, such as our~\isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}}.
 
   Operator precedences have a range of 0--1000.  Very low or high
   priorities are reserved for the meta-logic.  HOL syntax mainly uses
-  the range of 10--100: the equality infix \isa{{\isacharequal}} is centered at
-  50; logical connectives (like \isa{{\isasymor}} and \isa{{\isasymand}}) are
-  below 50; algebraic ones (like \isa{{\isacharplus}} and \isa{{\isacharasterisk}}) are
+  the range of 10--100: the equality infix \isa{{\isaliteral{3D}{\isacharequal}}} is centered at
+  50; logical connectives (like \isa{{\isaliteral{5C3C6F723E}{\isasymor}}} and \isa{{\isaliteral{5C3C616E643E}{\isasymand}}}) are
+  below 50; algebraic ones (like \isa{{\isaliteral{2B}{\isacharplus}}} and \isa{{\isaliteral{2A}{\isacharasterisk}}}) are
   above 50.  User syntax should strive to coexist with common HOL
   forms, or use the mostly unused range 100--900.%
 \end{isamarkuptext}%
@@ -120,7 +120,7 @@ Concrete syntax based on ASCII characters has inherent limitations.
   interpretation is left to further front-end tools.  For example, the
   user-interface of Proof~General + X-Symbol and the Isabelle document
   processor (see \S\ref{sec:document-preparation}) display the
-  \verb,\,\verb,<forall>, symbol as~\isa{{\isasymforall}}.
+  \verb,\,\verb,<forall>, symbol as~\isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}}.
 
   A list of standard Isabelle symbols is given in
   \cite{isabelle-isar-ref}.  You may introduce your own
@@ -130,13 +130,13 @@ Concrete syntax based on ASCII characters has inherent limitations.
   few predefined control symbols, such as \verb,\,\verb,<^sub>, and
   \verb,\,\verb,<^sup>, for sub- and superscript of the subsequent
   printable symbol, respectively.  For example, \verb,A\<^sup>\<star>, is
-  output as \isa{A\isactrlsup {\isasymstar}}.
+  output as \isa{A\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{5C3C737461723E}{\isasymstar}}}.
 
   A number of symbols are considered letters by the Isabelle lexer and
   can be used as part of identifiers. These are the greek letters
-  \isa{{\isasymalpha}} (\verb+\+\verb+<alpha>+), \isa{{\isasymbeta}}
-  (\verb+\+\verb+<beta>+), etc. (excluding \isa{{\isasymlambda}}),
-  special letters like \isa{{\isasymA}} (\verb+\+\verb+<A>+) and \isa{{\isasymAA}} (\verb+\+\verb+<AA>+), and the control symbols
+  \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}} (\verb+\+\verb+<alpha>+), \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}}
+  (\verb+\+\verb+<beta>+), etc. (excluding \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}),
+  special letters like \isa{{\isaliteral{5C3C413E}{\isasymA}}} (\verb+\+\verb+<A>+) and \isa{{\isaliteral{5C3C41413E}{\isasymAA}}} (\verb+\+\verb+<AA>+), and the control symbols
   \verb+\+\verb+<^isub>+ and \verb+\+\verb+<^isup>+ for single letter
   sub and super scripts. This means that the input
 
@@ -144,8 +144,8 @@ Concrete syntax based on ASCII characters has inherent limitations.
   {\small\noindent \verb,\,\verb,<forall>\,\verb,<alpha>\<^isub>1.,~\verb,\,\verb,<alpha>\<^isub>1 = \,\verb,<Pi>\<^isup>\<A>,}
 
   \medskip
-  \noindent is recognized as the term \isa{{\isasymforall}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isachardot}\ {\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isacharequal}\ {\isasymPi}\isactrlisup {\isasymA}} 
-  by Isabelle. Note that \isa{{\isasymPi}\isactrlisup {\isasymA}} is a single
+  \noindent is recognized as the term \isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C50693E}{\isasymPi}}\isaliteral{5C3C5E697375703E}{}\isactrlisup {\isaliteral{5C3C413E}{\isasymA}}} 
+  by Isabelle. Note that \isa{{\isaliteral{5C3C50693E}{\isasymPi}}\isaliteral{5C3C5E697375703E}{}\isactrlisup {\isaliteral{5C3C413E}{\isasymA}}} is a single
   syntactic entity, not an exponentiation.
 
   Replacing our previous definition of \isa{xor} by the
@@ -166,8 +166,8 @@ Concrete syntax based on ASCII characters has inherent limitations.
 %
 \endisadelimML
 \isacommand{definition}\isamarkupfalse%
-\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isakeyword{where}\ {\isachardoublequoteopen}A\ {\isasymoplus}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
+\ xor\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \ \ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6F706C75733E}{\isasymoplus}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{6}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ B\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimML
 %
 \endisadelimML
@@ -183,7 +183,7 @@ Concrete syntax based on ASCII characters has inherent limitations.
 %
 \begin{isamarkuptext}%
 \noindent The X-Symbol package within Proof~General provides several
-  input methods to enter \isa{{\isasymoplus}} in the text.  If all fails one may
+  input methods to enter \isa{{\isaliteral{5C3C6F706C75733E}{\isasymoplus}}} in the text.  If all fails one may
   just type a named entity \verb,\,\verb,<oplus>, by hand; the
   corresponding symbol will be displayed after further input.
 
@@ -208,11 +208,11 @@ Concrete syntax based on ASCII characters has inherent limitations.
 %
 \endisadelimML
 \isacommand{definition}\isamarkupfalse%
-\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isakeyword{where}\ {\isachardoublequoteopen}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ xor\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \ \ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5C3C69676E6F72653E}{\isasymignore}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{6}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5C3C69676E6F72653E}{\isasymignore}}\ B\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{notation}\isamarkupfalse%
-\ {\isacharparenleft}xsymbols{\isacharparenright}\ xor\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}xsymbols{\isaliteral{29}{\isacharparenright}}\ xor\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6F706C75733E}{\isasymoplus}}{\isaliteral{5C3C69676E6F72653E}{\isasymignore}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{6}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}%
 \isadelimML
 %
 \endisadelimML
@@ -230,9 +230,9 @@ Concrete syntax based on ASCII characters has inherent limitations.
 \noindent
 The \commdx{notation} command associates a mixfix
 annotation with a known constant.  The print mode specification,
-here \isa{{\isacharparenleft}xsymbols{\isacharparenright}}, is optional.
+here \isa{{\isaliteral{28}{\isacharparenleft}}xsymbols{\isaliteral{29}{\isacharparenright}}}, is optional.
 
-We may now write \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B} or \isa{A\ {\isasymoplus}\ B} in input, while
+We may now write \isa{A\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{5D}{\isacharbrackright}}\ B} or \isa{A\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ B} in input, while
 output uses the nicer syntax of $xsymbols$ whenever that print mode is
 active.  Such an arrangement is particularly useful for interactive
 development, where users may type ASCII text and see mathematical
@@ -252,17 +252,17 @@ Prefix syntax annotations\index{prefix annotation} are another form
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ currency\ {\isacharequal}\isanewline
-\ \ \ \ Euro\ nat\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymeuro}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ Pounds\ nat\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasympounds}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ Yen\ nat\ \ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymyen}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ Dollar\ nat\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isachardollar}{\isachardoublequoteclose}{\isacharparenright}%
+\ currency\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Euro\ nat\ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6575726F3E}{\isasymeuro}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Pounds\ nat\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C706F756E64733E}{\isasympounds}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Yen\ nat\ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C79656E3E}{\isasymyen}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Dollar\ nat\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{24}{\isachardollar}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptext}%
 \noindent Here the mixfix annotations on the rightmost column happen
   to consist of a single Isabelle symbol each: \verb,\,\verb,<euro>,,
   \verb,\,\verb,<pounds>,, \verb,\,\verb,<yen>,, and \verb,$,.  Recall
-  that a constructor like \isa{Euro} actually is a function \isa{nat\ {\isasymRightarrow}\ currency}.  The expression \isa{Euro\ {\isadigit{1}}{\isadigit{0}}} will be
-  printed as \isa{{\isasymeuro}\ {\isadigit{1}}{\isadigit{0}}}; only the head of the application is
+  that a constructor like \isa{Euro} actually is a function \isa{nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ currency}.  The expression \isa{Euro\ {\isadigit{1}}{\isadigit{0}}} will be
+  printed as \isa{{\isaliteral{5C3C6575726F3E}{\isasymeuro}}\ {\isadigit{1}}{\isadigit{0}}}; only the head of the application is
   subject to our concrete syntax.  This rather simple form already
   achieves conformance with notational standards of the European
   Commission.
@@ -278,7 +278,7 @@ Prefix syntax annotations\index{prefix annotation} are another form
 \begin{isamarkuptext}%
 Mixfix syntax annotations merely decorate particular constant
 application forms with concrete syntax, for instance replacing
-\isa{xor\ A\ B} by \isa{A\ {\isasymoplus}\ B}.  Occasionally, the relationship
+\isa{xor\ A\ B} by \isa{A\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ B}.  Occasionally, the relationship
 between some piece of notation and its internal form is more
 complicated.  Here we need \emph{abbreviations}.
 
@@ -288,34 +288,34 @@ unfolded upon parsing and re-introduced upon printing. This provides a
 simple mechanism for syntactic macros.
 
 A typical use of abbreviations is to introduce relational notation for
-membership in a set of pairs, replacing \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ sim} by
-\isa{x\ {\isasymapprox}\ y}. We assume that a constant \isa{sim} of type
-\isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set} has been introduced at this point.%
+membership in a set of pairs, replacing \isa{{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ sim} by
+\isa{x\ {\isaliteral{5C3C617070726F783E}{\isasymapprox}}\ y}. We assume that a constant \isa{sim} of type
+\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ set} has been introduced at this point.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{abbreviation}\isamarkupfalse%
-\ sim{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isasymapprox}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isakeyword{where}\ {\isachardoublequoteopen}x\ {\isasymapprox}\ y\ \ {\isasymequiv}\ \ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ sim{\isachardoublequoteclose}%
+\ sim{\isadigit{2}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infix}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C617070726F783E}{\isasymapprox}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C617070726F783E}{\isasymapprox}}\ y\ \ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ \ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ sim{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent The given meta-equality is used as a rewrite rule
-after parsing (replacing \mbox{\isa{x\ {\isasymapprox}\ y}} by \isa{{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ sim}) and before printing (turning \isa{{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ sim} back into
-\mbox{\isa{x\ {\isasymapprox}\ y}}). The name of the dummy constant \isa{sim{\isadigit{2}}}
+after parsing (replacing \mbox{\isa{x\ {\isaliteral{5C3C617070726F783E}{\isasymapprox}}\ y}} by \isa{{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ sim}) and before printing (turning \isa{{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ sim} back into
+\mbox{\isa{x\ {\isaliteral{5C3C617070726F783E}{\isasymapprox}}\ y}}). The name of the dummy constant \isa{sim{\isadigit{2}}}
 does not matter, as long as it is unique.
 
 Another common application of abbreviations is to
 provide variant versions of fundamental relational expressions, such
-as \isa{{\isasymnoteq}} for negated equalities.  The following declaration
+as \isa{{\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}} for negated equalities.  The following declaration
 stems from Isabelle/HOL itself:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{abbreviation}\isamarkupfalse%
-\ not{\isacharunderscore}equal\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isachartilde}{\isacharequal}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isakeyword{where}\ {\isachardoublequoteopen}x\ {\isachartilde}{\isacharequal}{\isasymignore}\ y\ \ {\isasymequiv}\ \ {\isasymnot}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ not{\isaliteral{5F}{\isacharunderscore}}equal\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \ \ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{5C3C69676E6F72653E}{\isasymignore}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{7E}{\isachartilde}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{5C3C69676E6F72653E}{\isasymignore}}\ y\ \ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ \ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{notation}\isamarkupfalse%
-\ {\isacharparenleft}xsymbols{\isacharparenright}\ not{\isacharunderscore}equal\ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isasymnoteq}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}xsymbols{\isaliteral{29}{\isacharparenright}}\ not{\isaliteral{5F}{\isacharunderscore}}equal\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infix}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}{\isaliteral{5C3C69676E6F72653E}{\isasymignore}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptext}%
-\noindent The notation \isa{{\isasymnoteq}} is introduced separately to restrict it
+\noindent The notation \isa{{\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}} is introduced separately to restrict it
 to the \emph{xsymbols} mode.
 
 Abbreviations are appropriate when the defined concept is a
@@ -357,20 +357,20 @@ Isabelle/Isar is centered around the concept of \bfindex{formal
 \begin{quotation}
 %
 \begin{isamarkuptext}%
-The following datatype definition of \isa{{\isacharprime}a\ bintree} models
-  binary trees with nodes being decorated by elements of type \isa{{\isacharprime}a}.%
+The following datatype definition of \isa{{\isaliteral{27}{\isacharprime}}a\ bintree} models
+  binary trees with nodes being decorated by elements of type \isa{{\isaliteral{27}{\isacharprime}}a}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharprime}a\ bintree\ {\isacharequal}\isanewline
-\ \ \ \ \ Leaf\ {\isacharbar}\ Branch\ {\isacharprime}a\ \ {\isachardoublequoteopen}{\isacharprime}a\ bintree{\isachardoublequoteclose}\ \ {\isachardoublequoteopen}{\isacharprime}a\ bintree{\isachardoublequoteclose}%
+\ {\isaliteral{27}{\isacharprime}}a\ bintree\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ Leaf\ {\isaliteral{7C}{\isacharbar}}\ Branch\ {\isaliteral{27}{\isacharprime}}a\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bintree{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bintree{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent The datatype induction rule generated here is of the form
   \begin{isabelle}%
-\ {\isasymlbrakk}P\ Leaf{\isacharsemicolon}\isanewline
-\isaindent{\ \ }{\isasymAnd}a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isachardot}\isanewline
-\isaindent{\ \ \ \ \ }{\isasymlbrakk}P\ bintree{\isadigit{1}}{\isacharsemicolon}\ P\ bintree{\isadigit{2}}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Branch\ a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isacharparenright}{\isasymrbrakk}\isanewline
-\isaindent{\ }{\isasymLongrightarrow}\ P\ bintree%
+\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}P\ Leaf{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ \ }{\isaliteral{5C3C416E643E}{\isasymAnd}}a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ \ \ \ \ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}P\ bintree{\isadigit{1}}{\isaliteral{3B}{\isacharsemicolon}}\ P\ bintree{\isadigit{2}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}Branch\ a\ bintree{\isadigit{1}}\ bintree{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ bintree%
 \end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -529,8 +529,8 @@ The large-scale structure of Isabelle documents follows existing
   \medskip
 
   From the Isabelle perspective, each markup command takes a single
-  $text$ argument (delimited by \verb,",~\isa{{\isasymdots}}~\verb,", or
-  \verb,{,\verb,*,~\isa{{\isasymdots}}~\verb,*,\verb,},).  After stripping any
+  $text$ argument (delimited by \verb,",~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb,", or
+  \verb,{,\verb,*,~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb,*,\verb,},).  After stripping any
   surrounding white space, the argument is passed to a {\LaTeX} macro
   \verb,\isamarkupXYZ, for command \isakeyword{XYZ}.  These macros are
   defined in \verb,isabelle.sty, according to the meaning given in the
@@ -599,7 +599,7 @@ The large-scale structure of Isabelle documents follows existing
 %
 \begin{isamarkuptext}%
 Isabelle \bfindex{source comments}, which are of the form
-  \verb,(,\verb,*,~\isa{{\isasymdots}}~\verb,*,\verb,),, essentially act like
+  \verb,(,\verb,*,~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb,*,\verb,),, essentially act like
   white space and do not really contribute to the content.  They
   mainly serve technical purposes to mark certain oddities in the raw
   input text.  In contrast, \bfindex{formal comments} are portions of
@@ -609,14 +609,14 @@ Isabelle \bfindex{source comments}, which are of the form
 
   \medskip Marginal comments are part of each command's concrete
   syntax \cite{isabelle-ref}; the common form is ``\verb,--,~$text$''
-  where $text$ is delimited by \verb,",\isa{{\isasymdots}}\verb,", or
-  \verb,{,\verb,*,~\isa{{\isasymdots}}~\verb,*,\verb,}, as before.  Multiple
+  where $text$ is delimited by \verb,",\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}\verb,", or
+  \verb,{,\verb,*,~\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}~\verb,*,\verb,}, as before.  Multiple
   marginal comments may be given at the same time.  Here is a simple
   example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isacharminus}{\isacharminus}{\isachargreater}\ A{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ %
 \isamarkupcmt{a triviality of propositional logic%
 }
@@ -632,7 +632,7 @@ Isabelle \bfindex{source comments}, which are of the form
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ impI{\isacharparenright}\ %
+\ {\isaliteral{28}{\isacharparenleft}}rule\ impI{\isaliteral{29}{\isacharparenright}}\ %
 \isamarkupcmt{implicit assumption step involved here%
 }
 %
@@ -692,7 +692,7 @@ Isabelle \bfindex{source comments}, which are of the form
   for types, terms, or theorems as in the formal part of a theory.
 
   \medskip This sentence demonstrates quotations and antiquotations:
-  \isa{{\isasymlambda}x\ y{\isachardot}\ x} is a well-typed term.
+  \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x\ y{\isaliteral{2E}{\isachardot}}\ x} is a well-typed term.
 
   \medskip\noindent The output above was produced as follows:
   \begin{ttbox}
@@ -703,14 +703,14 @@ text {\ttlbrace}*
   \end{ttbox}\vspace{-\medskipamount}
 
   The notational change from the ASCII character~\verb,%, to the
-  symbol~\isa{{\isasymlambda}} reveals that Isabelle printed this term, after
+  symbol~\isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}} reveals that Isabelle printed this term, after
   parsing and type-checking.  Document preparation enables symbolic
   output by default.
 
   \medskip The next example includes an option to show the type of all
   variables.  The antiquotation
   \texttt{{\at}}\verb,{term [show_types] "%x y. x"}, produces the
-  output \isa{{\isasymlambda}{\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ y{\isasymColon}{\isacharprime}b{\isachardot}\ x}.  Type inference has figured
+  output \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ y{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}{\isaliteral{27}{\isacharprime}}b{\isaliteral{2E}{\isachardot}}\ x}.  Type inference has figured
   out the most general typings in the present theory context.  Terms
   may acquire different typings due to constraints imposed by their
   environment; within a proof, for example, variables are given the
@@ -748,7 +748,7 @@ text {\ttlbrace}*
   virtue is that the string $s$ is processed as Isabelle output,
   interpreting Isabelle symbols appropriately.
 
-  For example, \texttt{\at}\verb,{text "\<forall>\<exists>"}, produces \isa{{\isasymforall}{\isasymexists}}, according to the standard interpretation of these symbol
+  For example, \texttt{\at}\verb,{text "\<forall>\<exists>"}, produces \isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}}, according to the standard interpretation of these symbol
   (cf.\ \S\ref{sec:doc-prep-symbols}).  Thus we achieve consistent
   mathematical notation in both the formal and informal parts of the
   document very easily, independently of the term language of
@@ -847,14 +847,14 @@ By default, Isabelle's document system generates a {\LaTeX} file for
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isacharequal}\ x{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadeliminvisible
 \ %
 \endisadeliminvisible
 %
 \isataginvisible
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{29}{\isacharparenright}}%
 \endisataginvisible
 {\isafoldinvisible}%
 %
@@ -883,7 +883,7 @@ The original source has been ``\verb,lemma "x = x" by %invisible (simp),''.
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymnoteq}\ {\isacharparenleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ {\isasymLongrightarrow}\ {\isadigit{0}}\ {\isacharless}\ x\ {\isacharasterisk}\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}int{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isadigit{0}}\ {\isaliteral{3C}{\isacharless}}\ x\ {\isaliteral{2A}{\isacharasterisk}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -891,7 +891,7 @@ The original source has been ``\verb,lemma "x = x" by %invisible (simp),''.
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}auto{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %

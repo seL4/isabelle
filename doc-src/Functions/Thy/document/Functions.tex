@@ -29,18 +29,18 @@ In most cases, defining a recursive function is just as simple as other definiti
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
-\ fib\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ fib\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}fib\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ n\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}fib\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}fib\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}fib\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ fib\ n\ {\isaliteral{2B}{\isacharplus}}\ fib\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 The syntax is rather self-explanatory: We introduce a function by
   giving its name, its type, 
   and a set of defining recursive equations.
   If we leave out the type, the most general type will be
-  inferred, which can sometimes lead to surprises: Since both \isa{{\isadigit{1}}} and \isa{{\isacharplus}} are overloaded, we would end up
-  with \isa{fib\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ {\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}one{\isacharcomma}plus{\isacharbraceright}}.%
+  inferred, which can sometimes lead to surprises: Since both \isa{{\isadigit{1}}} and \isa{{\isaliteral{2B}{\isacharplus}}} are overloaded, we would end up
+  with \isa{fib\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{7B}{\isacharbraceleft}}one{\isaliteral{2C}{\isacharcomma}}plus{\isaliteral{7D}{\isacharbraceright}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -49,8 +49,8 @@ The function always terminates, since its argument gets smaller in
   every recursive call. 
   Since HOL is a logic of total functions, termination is a
   fundamental requirement to prevent inconsistencies\footnote{From the
-  \qt{definition} \isa{f{\isacharparenleft}n{\isacharparenright}\ {\isacharequal}\ f{\isacharparenleft}n{\isacharparenright}\ {\isacharplus}\ {\isadigit{1}}} we could prove 
-  \isa{{\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}} by subtracting \isa{f{\isacharparenleft}n{\isacharparenright}} on both sides.}.
+  \qt{definition} \isa{f{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}} we could prove 
+  \isa{{\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}} by subtracting \isa{f{\isaliteral{28}{\isacharparenleft}}n{\isaliteral{29}{\isacharparenright}}} on both sides.}.
   Isabelle tries to prove termination automatically when a definition
   is made. In \S\ref{termination}, we will look at cases where this
   fails and see what to do then.%
@@ -76,10 +76,10 @@ The function always terminates, since its argument gets smaller in
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
-\ sep\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\isanewline
+\ sep\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}sep\ a\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\ a\ {\isacharparenleft}y\ {\isacharhash}\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}sep\ a\ xs\ \ \ \ \ \ \ {\isacharequal}\ xs{\isachardoublequoteclose}%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}sep\ a\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{23}{\isacharhash}}y{\isaliteral{23}{\isacharhash}}xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{23}{\isacharhash}}\ a\ {\isaliteral{23}{\isacharhash}}\ sep\ a\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}sep\ a\ xs\ \ \ \ \ \ \ {\isaliteral{3D}{\isacharequal}}\ xs{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 Overlapping patterns are interpreted as \qt{increments} to what is
   already there: The second equation is only meant for the cases where
@@ -88,12 +88,12 @@ Overlapping patterns are interpreted as \qt{increments} to what is
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{thm}\isamarkupfalse%
-\ sep{\isachardot}simps%
+\ sep{\isaliteral{2E}{\isachardot}}simps%
 \begin{isamarkuptext}%
 \begin{isabelle}%
-sep\ a\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\ a\ {\isacharparenleft}y\ {\isacharhash}\ xs{\isacharparenright}\isasep\isanewline%
-sep\ a\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\isasep\isanewline%
-sep\ a\ {\isacharbrackleft}v{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}v{\isacharbrackright}%
+sep\ a\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ y\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{23}{\isacharhash}}\ a\ {\isaliteral{23}{\isacharhash}}\ sep\ a\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\isasep\isanewline%
+sep\ a\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\isasep\isanewline%
+sep\ a\ {\isaliteral{5B}{\isacharbrackleft}}v{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}v{\isaliteral{5D}{\isacharbrackright}}%
 \end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -104,7 +104,7 @@ sep\ a\ {\isacharbrackleft}v{\isacharbrackright}\ {\isacharequal}\ {\isacharbrac
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}sep\ {\isadigit{0}}\ {\isacharbrackleft}{\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isadigit{1}}{\isacharcomma}\ {\isadigit{0}}{\isacharcomma}\ {\isadigit{2}}{\isacharcomma}\ {\isadigit{0}}{\isacharcomma}\ {\isadigit{3}}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}sep\ {\isadigit{0}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{3}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{0}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{0}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{3}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -127,12 +127,12 @@ sep\ a\ {\isacharbrackleft}v{\isacharbrackright}\ {\isacharequal}\ {\isacharbrac
 \begin{isamarkuptext}%
 Isabelle provides customized induction rules for recursive
   functions. These rules follow the recursive structure of the
-  definition. Here is the rule \isa{sep{\isachardot}induct} arising from the
+  definition. Here is the rule \isa{sep{\isaliteral{2E}{\isachardot}}induct} arising from the
   above definition of \isa{sep}:
 
   \begin{isabelle}%
-{\isasymlbrakk}{\isasymAnd}a\ x\ y\ xs{\isachardot}\ {\isacharquery}P\ a\ {\isacharparenleft}y\ {\isacharhash}\ xs{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharquery}P\ a\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ xs{\isacharparenright}{\isacharsemicolon}\ {\isasymAnd}a{\isachardot}\ {\isacharquery}P\ a\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ {\isasymAnd}a\ v{\isachardot}\ {\isacharquery}P\ a\ {\isacharbrackleft}v{\isacharbrackright}{\isasymrbrakk}\isanewline
-{\isasymLongrightarrow}\ {\isacharquery}P\ {\isacharquery}a{\isadigit{0}}{\isachardot}{\isadigit{0}}\ {\isacharquery}a{\isadigit{1}}{\isachardot}{\isadigit{0}}%
+{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C416E643E}{\isasymAnd}}a\ x\ y\ xs{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}P\ a\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ a\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ y\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}P\ a\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ v{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}P\ a\ {\isaliteral{5B}{\isacharbrackleft}}v{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{3F}{\isacharquery}}a{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}\ {\isaliteral{3F}{\isacharquery}}a{\isadigit{1}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}%
 \end{isabelle}
   
   We have a step case for list with at least two elements, and two
@@ -141,7 +141,7 @@ Isabelle provides customized induction rules for recursive
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}map\ f\ {\isacharparenleft}sep\ x\ ys{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}map\ f\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}map\ f\ {\isaliteral{28}{\isacharparenleft}}sep\ x\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ sep\ {\isaliteral{28}{\isacharparenleft}}f\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ f\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -149,16 +149,16 @@ Isabelle provides customized induction rules for recursive
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ x\ ys\ rule{\isacharcolon}\ sep{\isachardot}induct{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ x\ ys\ rule{\isaliteral{3A}{\isacharcolon}}\ sep{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 We get three cases, like in the definition.
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ x\ y\ xs{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }map\ f\ {\isacharparenleft}sep\ a\ {\isacharparenleft}y\ {\isacharhash}\ xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}map\ f\ {\isacharparenleft}y\ {\isacharhash}\ xs{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }map\ f\ {\isacharparenleft}sep\ a\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}map\ f\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ xs{\isacharparenright}{\isacharparenright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a{\isachardot}\ map\ f\ {\isacharparenleft}sep\ a\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}map\ f\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}a\ v{\isachardot}\ map\ f\ {\isacharparenleft}sep\ a\ {\isacharbrackleft}v{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}map\ f\ {\isacharbrackleft}v{\isacharbrackright}{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ x\ y\ xs{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }map\ f\ {\isaliteral{28}{\isacharparenleft}}sep\ a\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ sep\ {\isaliteral{28}{\isacharparenleft}}f\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ f\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }map\ f\ {\isaliteral{28}{\isacharparenleft}}sep\ a\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ y\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ sep\ {\isaliteral{28}{\isacharparenleft}}f\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ f\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ y\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a{\isaliteral{2E}{\isachardot}}\ map\ f\ {\isaliteral{28}{\isacharparenleft}}sep\ a\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ sep\ {\isaliteral{28}{\isacharparenleft}}f\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ f\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{3}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ v{\isaliteral{2E}{\isachardot}}\ map\ f\ {\isaliteral{28}{\isacharparenleft}}sep\ a\ {\isaliteral{5B}{\isacharbrackleft}}v{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ sep\ {\isaliteral{28}{\isacharparenleft}}f\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}map\ f\ {\isaliteral{5B}{\isacharbrackleft}}v{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -200,19 +200,19 @@ The \cmd{fun} command provides a
 
 
 \[\left[\;\begin{minipage}{0.25\textwidth}\vspace{6pt}
-\cmd{fun} \isa{f\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}\\%
+\cmd{fun} \isa{f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}}\\%
 \cmd{where}\\%
 \hspace*{2ex}{\it equations}\\%
 \hspace*{2ex}\vdots\vspace*{6pt}
 \end{minipage}\right]
 \quad\equiv\quad
 \left[\;\begin{minipage}{0.48\textwidth}\vspace{6pt}
-\cmd{function} \isa{{\isacharparenleft}}\cmd{sequential}\isa{{\isacharparenright}\ f\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}\\%
+\cmd{function} \isa{{\isaliteral{28}{\isacharparenleft}}}\cmd{sequential}\isa{{\isaliteral{29}{\isacharparenright}}\ f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}}\\%
 \cmd{where}\\%
 \hspace*{2ex}{\it equations}\\%
 \hspace*{2ex}\vdots\\%
-\cmd{by} \isa{pat{\isacharunderscore}completeness\ auto}\\%
-\cmd{termination by} \isa{lexicographic{\isacharunderscore}order}\vspace{6pt}
+\cmd{by} \isa{pat{\isaliteral{5F}{\isacharunderscore}}completeness\ auto}\\%
+\cmd{termination by} \isa{lexicographic{\isaliteral{5F}{\isacharunderscore}}order}\vspace{6pt}
 \end{minipage}
 \right]\]
 
@@ -228,7 +228,7 @@ The \cmd{fun} command provides a
 
   \item A function definition produces a proof obligation which
   expresses completeness and compatibility of patterns (we talk about
-  this later). The combination of the methods \isa{pat{\isacharunderscore}completeness} and
+  this later). The combination of the methods \isa{pat{\isaliteral{5F}{\isacharunderscore}}completeness} and
   \isa{auto} is used to solve this proof obligation.
 
   \item A termination proof follows the definition, started by the
@@ -246,7 +246,7 @@ The \cmd{fun} command provides a
 %
 \begin{isamarkuptext}%
 \label{termination}
-  The method \isa{lexicographic{\isacharunderscore}order} is the default method for
+  The method \isa{lexicographic{\isaliteral{5F}{\isacharunderscore}}order} is the default method for
   termination proofs. It can prove termination of a
   certain class of functions by searching for a suitable lexicographic
   combination of size measures. Of course, not all functions have such
@@ -265,9 +265,9 @@ Consider the following function, which sums up natural numbers up to
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ sum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ sum\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}sum\ i\ N\ {\isacharequal}\ {\isacharparenleft}if\ i\ {\isachargreater}\ N\ then\ {\isadigit{0}}\ else\ i\ {\isacharplus}\ sum\ {\isacharparenleft}Suc\ i{\isacharparenright}\ N{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}sum\ i\ N\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ i\ {\isaliteral{3E}{\isachargreater}}\ N\ then\ {\isadigit{0}}\ else\ i\ {\isaliteral{2B}{\isacharplus}}\ sum\ {\isaliteral{28}{\isacharparenleft}}Suc\ i{\isaliteral{29}{\isacharparenright}}\ N{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -275,7 +275,7 @@ Consider the following function, which sums up natural numbers up to
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
+\ pat{\isaliteral{5F}{\isacharunderscore}}completeness\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -284,7 +284,7 @@ Consider the following function, which sums up natural numbers up to
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent The \isa{lexicographic{\isacharunderscore}order} method fails on this example, because none of the
+\noindent The \isa{lexicographic{\isaliteral{5F}{\isacharunderscore}}order} method fails on this example, because none of the
   arguments decreases in the recursive call, with respect to the standard size ordering.
   To prove termination manually, we must provide a custom wellfounded relation.
 
@@ -292,7 +292,7 @@ Consider the following function, which sums up natural numbers up to
   the \emph{difference} between \isa{i} and \isa{N} gets
   smaller in every step, and that the recursion stops when \isa{i}
   is greater than \isa{N}. Phrased differently, the expression 
-  \isa{N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i} always decreases.
+  \isa{N\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}\ {\isaliteral{2D}{\isacharminus}}\ i} always decreases.
 
   We can use this expression as a measure function suitable to prove termination.%
 \end{isamarkuptext}%
@@ -306,19 +306,19 @@ Consider the following function, which sums up natural numbers up to
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}relation\ {\isaliteral{22}{\isachardoublequoteopen}}measure\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2C}{\isacharcomma}}N{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ N\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}\ {\isaliteral{2D}{\isacharminus}}\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 The \cmd{termination} command sets up the termination goal for the
   specified function \isa{sum}. If the function name is omitted, it
   implicitly refers to the last function definition.
 
   The \isa{relation} method takes a relation of
-  type \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}, where \isa{{\isacharprime}a} is the argument type of
+  type \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ set}, where \isa{{\isaliteral{27}{\isacharprime}}a} is the argument type of
   the function. If the function has multiple curried arguments, then
   these are packed together into a tuple, as it happened in the above
   example.
 
-  The predefined function \isa{{\isachardoublequote}measure\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set{\isachardoublequote}} constructs a
+  The predefined function \isa{{\isaliteral{22}{\isachardoublequote}}measure\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ set{\isaliteral{22}{\isachardoublequote}}} constructs a
   wellfounded relation from a mapping into the natural numbers (a
   \emph{measure function}). 
 
@@ -328,8 +328,8 @@ The \cmd{termination} command sets up the termination goal for the
   relation:
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ wf\ {\isacharparenleft}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}\ N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}{\isacharparenright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}i\ N{\isachardot}\ {\isasymnot}\ N\ {\isacharless}\ i\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isacharparenleft}Suc\ i{\isacharcomma}\ N{\isacharparenright}{\isacharcomma}\ i{\isacharcomma}\ N{\isacharparenright}\ {\isasymin}\ measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}\ N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ wf\ {\isaliteral{28}{\isacharparenleft}}measure\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2C}{\isacharcomma}}\ N{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ N\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}\ {\isaliteral{2D}{\isacharminus}}\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}i\ N{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ N\ {\isaliteral{3C}{\isacharless}}\ i\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}Suc\ i{\isaliteral{2C}{\isacharcomma}}\ N{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ i{\isaliteral{2C}{\isacharcomma}}\ N{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ measure\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2C}{\isacharcomma}}\ N{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ N\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}\ {\isaliteral{2D}{\isacharminus}}\ i{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 
   These goals are all solved by \isa{auto}:%
@@ -352,11 +352,11 @@ Let us complicate the function a little, by adding some more
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ foo\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ foo\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}foo\ i\ N\ {\isacharequal}\ {\isacharparenleft}if\ i\ {\isachargreater}\ N\ \isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ then\ {\isacharparenleft}if\ N\ {\isacharequal}\ {\isadigit{0}}\ then\ {\isadigit{0}}\ else\ foo\ {\isadigit{0}}\ {\isacharparenleft}N\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ i\ {\isacharplus}\ foo\ {\isacharparenleft}Suc\ i{\isacharparenright}\ N{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}foo\ i\ N\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ i\ {\isaliteral{3E}{\isachargreater}}\ N\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ then\ {\isaliteral{28}{\isacharparenleft}}if\ N\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ then\ {\isadigit{0}}\ else\ foo\ {\isadigit{0}}\ {\isaliteral{28}{\isacharparenleft}}N\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ i\ {\isaliteral{2B}{\isacharplus}}\ foo\ {\isaliteral{28}{\isacharparenleft}}Suc\ i{\isaliteral{29}{\isacharparenright}}\ N{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -364,7 +364,7 @@ Let us complicate the function a little, by adding some more
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
+\ pat{\isaliteral{5F}{\isacharunderscore}}completeness\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -391,7 +391,7 @@ When \isa{i} has reached \isa{N}, it starts at zero again
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measures\ {\isacharbrackleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}\ N{\isacharparenright}{\isachardot}\ N{\isacharcomma}\ {\isasymlambda}{\isacharparenleft}i{\isacharcomma}N{\isacharparenright}{\isachardot}\ N\ {\isacharplus}\ {\isadigit{1}}\ {\isacharminus}\ i{\isacharbrackright}{\isachardoublequoteclose}{\isacharparenright}\ auto%
+\ {\isaliteral{28}{\isacharparenleft}}relation\ {\isaliteral{22}{\isachardoublequoteopen}}measures\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2C}{\isacharcomma}}\ N{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ N{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2C}{\isacharcomma}}N{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ N\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}\ {\isaliteral{2D}{\isacharminus}}\ i{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -399,7 +399,7 @@ When \isa{i} has reached \isa{N}, it starts at zero again
 %
 \endisadelimproof
 %
-\isamarkupsubsection{How \isa{lexicographic{\isacharunderscore}order} works%
+\isamarkupsubsection{How \isa{lexicographic{\isaliteral{5F}{\isacharunderscore}}order} works%
 }
 \isamarkuptrue%
 %
@@ -409,10 +409,10 @@ To see how the automatic termination proofs work, let's look at an
   termination prover, see \cite{bulwahnKN07}}:
 
 \end{isamarkuptext}  
-\cmd{fun} \isa{fails\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequote}}\\%
+\cmd{fun} \isa{fails\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequote}}}\\%
 \cmd{where}\\%
-\hspace*{2ex}\isa{{\isachardoublequote}fails\ a\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ a{\isachardoublequote}}\\%
-|\hspace*{1.5ex}\isa{{\isachardoublequote}fails\ a\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ fails\ {\isacharparenleft}x\ {\isacharplus}\ a{\isacharparenright}\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}{\isachardoublequote}}\\
+\hspace*{2ex}\isa{{\isaliteral{22}{\isachardoublequote}}fails\ a\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{22}{\isachardoublequote}}}\\%
+|\hspace*{1.5ex}\isa{{\isaliteral{22}{\isachardoublequote}}fails\ a\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{23}{\isacharhash}}xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ fails\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{2B}{\isacharplus}}\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{23}{\isacharhash}}xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}\\
 \begin{isamarkuptext}
 
 \noindent Isabelle responds with the following error:
@@ -420,16 +420,16 @@ To see how the automatic termination proofs work, let's look at an
 \begin{isabelle}
 *** Unfinished subgoals:\newline
 *** (a, 1, <):\newline
-*** \ 1.~\isa{{\isasymAnd}x{\isachardot}\ x\ {\isacharequal}\ {\isadigit{0}}}\newline
+*** \ 1.~\isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}}\newline
 *** (a, 1, <=):\newline
 *** \ 1.~False\newline
 *** (a, 2, <):\newline
 *** \ 1.~False\newline
 *** Calls:\newline
-*** a) \isa{{\isacharparenleft}a{\isacharcomma}\ x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharminus}{\isacharminus}{\isachargreater}{\isachargreater}\ {\isacharparenleft}x\ {\isacharplus}\ a{\isacharcomma}\ x\ {\isacharhash}\ xs{\isacharparenright}}\newline
+*** a) \isa{{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{2B}{\isacharplus}}\ a{\isaliteral{2C}{\isacharcomma}}\ x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}}\newline
 *** Measures:\newline
-*** 1) \isa{{\isasymlambda}x{\isachardot}\ size\ {\isacharparenleft}fst\ x{\isacharparenright}}\newline
-*** 2) \isa{{\isasymlambda}x{\isachardot}\ size\ {\isacharparenleft}snd\ x{\isacharparenright}}\newline
+*** 1) \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ size\ {\isaliteral{28}{\isacharparenleft}}fst\ x{\isaliteral{29}{\isacharparenright}}}\newline
+*** 2) \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ size\ {\isaliteral{28}{\isacharparenleft}}snd\ x{\isaliteral{29}{\isacharparenright}}}\newline
 *** Result matrix:\newline
 *** \ \ \ \ 1\ \ 2  \newline
 *** a:  ?   <= \newline
@@ -447,29 +447,29 @@ The key to this error message is the matrix at the bottom. The rows
   argument tuple to a natural number). 
 
   The contents of the matrix summarize what is known about argument
-  descents: The second argument has a weak descent (\isa{{\isacharless}{\isacharequal}}) at the
+  descents: The second argument has a weak descent (\isa{{\isaliteral{3C}{\isacharless}}{\isaliteral{3D}{\isacharequal}}}) at the
   recursive call, and for the first argument nothing could be proved,
-  which is expressed by \isa{{\isacharquery}}. In general, there are the values
-  \isa{{\isacharless}}, \isa{{\isacharless}{\isacharequal}} and \isa{{\isacharquery}}.
+  which is expressed by \isa{{\isaliteral{3F}{\isacharquery}}}. In general, there are the values
+  \isa{{\isaliteral{3C}{\isacharless}}}, \isa{{\isaliteral{3C}{\isacharless}}{\isaliteral{3D}{\isacharequal}}} and \isa{{\isaliteral{3F}{\isacharquery}}}.
 
   For the failed proof attempts, the unfinished subgoals are also
   printed. Looking at these will often point to a missing lemma.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{The \isa{size{\isacharunderscore}change} method%
+\isamarkupsubsection{The \isa{size{\isaliteral{5F}{\isacharunderscore}}change} method%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Some termination goals that are beyond the powers of
-  \isa{lexicographic{\isacharunderscore}order} can be solved automatically by the
-  more powerful \isa{size{\isacharunderscore}change} method, which uses a variant of
+  \isa{lexicographic{\isaliteral{5F}{\isacharunderscore}}order} can be solved automatically by the
+  more powerful \isa{size{\isaliteral{5F}{\isacharunderscore}}change} method, which uses a variant of
   the size-change principle, together with some other
   techniques. While the details are discussed
   elsewhere\cite{krauss_phd},
   here are a few typical situations where
-  \isa{lexicographic{\isacharunderscore}order} has difficulties and \isa{size{\isacharunderscore}change}
+  \isa{lexicographic{\isaliteral{5F}{\isacharunderscore}}order} has difficulties and \isa{size{\isaliteral{5F}{\isacharunderscore}}change}
   may be worth a try:
   \begin{itemize}
   \item Arguments are permuted in a recursive call.
@@ -478,7 +478,7 @@ Some termination goals that are beyond the powers of
   occur in sequence).
   \end{itemize}
 
-  Loading the theory \isa{Multiset} makes the \isa{size{\isacharunderscore}change}
+  Loading the theory \isa{Multiset} makes the \isa{size{\isaliteral{5F}{\isacharunderscore}}change}
   method a bit stronger: it can then use multiset orders internally.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -493,13 +493,13 @@ If two or more functions call one another mutually, they have to be defined
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ even\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isakeyword{and}\ odd\ \ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}even\ {\isadigit{0}}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}odd\ {\isadigit{0}}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}even\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ odd\ n{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}odd\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ even\ n{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}even\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ True{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}odd\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ False{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}even\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ odd\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}odd\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ even\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -507,7 +507,7 @@ If two or more functions call one another mutually, they have to be defined
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
+\ pat{\isaliteral{5F}{\isacharunderscore}}completeness\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -518,7 +518,7 @@ If two or more functions call one another mutually, they have to be defined
 \begin{isamarkuptext}%
 To eliminate the mutual dependencies, Isabelle internally
   creates a single function operating on the sum
-  type \isa{nat\ {\isacharplus}\ nat}. Then, \isa{even} and \isa{odd} are
+  type \isa{nat\ {\isaliteral{2B}{\isacharplus}}\ nat}. Then, \isa{even} and \isa{odd} are
   defined as projections. Consequently, termination has to be proved
   simultaneously for both functions, by specifying a measure on the
   sum type:%
@@ -533,7 +533,7 @@ To eliminate the mutual dependencies, Isabelle internally
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ case\ x\ of\ Inl\ n\ {\isasymRightarrow}\ n\ {\isacharbar}\ Inr\ n\ {\isasymRightarrow}\ n{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\ auto%
+\ {\isaliteral{28}{\isacharparenleft}}relation\ {\isaliteral{22}{\isachardoublequoteopen}}measure\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ case\ x\ of\ Inl\ n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ n\ {\isaliteral{7C}{\isacharbar}}\ Inr\ n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -542,7 +542,7 @@ To eliminate the mutual dependencies, Isabelle internally
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-We could also have used \isa{lexicographic{\isacharunderscore}order}, which
+We could also have used \isa{lexicographic{\isaliteral{5F}{\isacharunderscore}}order}, which
   supports mutual recursive termination proofs to a certain extent.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -553,16 +553,16 @@ We could also have used \isa{lexicographic{\isacharunderscore}order}, which
 %
 \begin{isamarkuptext}%
 When functions are mutually recursive, proving properties about them
-  generally requires simultaneous induction. The induction rule \isa{even{\isacharunderscore}odd{\isachardot}induct}
+  generally requires simultaneous induction. The induction rule \isa{even{\isaliteral{5F}{\isacharunderscore}}odd{\isaliteral{2E}{\isachardot}}induct}
   generated from the above definition reflects this.
 
   Let us prove something about \isa{even} and \isa{odd}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ even{\isacharunderscore}odd{\isacharunderscore}mod{\isadigit{2}}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}even\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}odd\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}%
+\ even{\isaliteral{5F}{\isacharunderscore}}odd{\isaliteral{5F}{\isacharunderscore}}mod{\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}even\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}odd\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -575,26 +575,26 @@ We apply simultaneous induction, specifying the induction variable
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n\ \isakeyword{and}\ n\ rule{\isacharcolon}\ even{\isacharunderscore}odd{\isachardot}induct{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n\ \isakeyword{and}\ n\ rule{\isaliteral{3A}{\isacharcolon}}\ even{\isaliteral{5F}{\isacharunderscore}}odd{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 We get four subgoals, which correspond to the clauses in the
   definition of \isa{even} and \isa{odd}:
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ even\ {\isadigit{0}}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ odd\ {\isadigit{0}}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{1}}{\isacharparenright}\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ odd\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{1}}{\isacharparenright}\ {\isasymLongrightarrow}\ even\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Suc\ n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\isanewline
-\ {\isadigit{4}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ even\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\ {\isasymLongrightarrow}\ odd\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Suc\ n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{1}}{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ even\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ odd\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{3}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ odd\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ even\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{4}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ even\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ odd\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
   Simplification solves the first two goals, leaving us with two
   statements about the \isa{mod} operation to prove:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ simp{\isacharunderscore}all%
+\ simp{\isaliteral{5F}{\isacharunderscore}}all%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ odd\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Suc\ n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ even\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Suc\ n\ mod\ {\isadigit{2}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ odd\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ even\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle} 
 
   \noindent These can be handled by Isabelle's arithmetic decision procedures.%
@@ -622,9 +622,9 @@ In proofs like this, the simultaneous induction is really essential:
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ failed{\isacharunderscore}attempt{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}even\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}True{\isachardoublequoteclose}\isanewline
+\ failed{\isaliteral{5F}{\isacharunderscore}}attempt{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}even\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}True{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -632,16 +632,16 @@ In proofs like this, the simultaneous induction is really essential:
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n\ rule{\isacharcolon}\ even{\isacharunderscore}odd{\isachardot}induct{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n\ rule{\isaliteral{3A}{\isacharcolon}}\ even{\isaliteral{5F}{\isacharunderscore}}odd{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent Now the third subgoal is a dead end, since we have no
   useful induction hypothesis available:
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ even\ {\isadigit{0}}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ True\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ True\ {\isasymLongrightarrow}\ even\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Suc\ n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\isanewline
-\ {\isadigit{4}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ even\ n\ {\isacharequal}\ {\isacharparenleft}n\ mod\ {\isadigit{2}}\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\ {\isasymLongrightarrow}\ True%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ even\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ True\isanewline
+\ {\isadigit{3}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ True\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ even\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{4}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ even\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ mod\ {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ True%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -683,19 +683,19 @@ Up to now, we used pattern matching only on datatypes, and the
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ P{\isadigit{3}}\ {\isacharequal}\ T\ {\isacharbar}\ F\ {\isacharbar}\ X%
+\ P{\isadigit{3}}\ {\isaliteral{3D}{\isacharequal}}\ T\ {\isaliteral{7C}{\isacharbar}}\ F\ {\isaliteral{7C}{\isacharbar}}\ X%
 \begin{isamarkuptext}%
 \noindent Then the conjunction of such values can be defined as follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
-\ And\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}P{\isadigit{3}}\ {\isasymRightarrow}\ P{\isadigit{3}}\ {\isasymRightarrow}\ P{\isadigit{3}}{\isachardoublequoteclose}\isanewline
+\ And\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isadigit{3}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ P{\isadigit{3}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ P{\isadigit{3}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}And\ T\ p\ {\isacharequal}\ p{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}And\ p\ T\ {\isacharequal}\ p{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}And\ p\ F\ {\isacharequal}\ F{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}And\ F\ p\ {\isacharequal}\ F{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}And\ X\ X\ {\isacharequal}\ X{\isachardoublequoteclose}%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}And\ T\ p\ {\isaliteral{3D}{\isacharequal}}\ p{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}And\ p\ T\ {\isaliteral{3D}{\isacharequal}}\ p{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}And\ p\ F\ {\isaliteral{3D}{\isacharequal}}\ F{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}And\ F\ p\ {\isaliteral{3D}{\isacharequal}}\ F{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}And\ X\ X\ {\isaliteral{3D}{\isacharequal}}\ X{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 This definition is useful, because the equations can directly be used
   as simplification rules. But the patterns overlap: For example,
@@ -705,15 +705,15 @@ This definition is useful, because the equations can directly be used
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{thm}\isamarkupfalse%
-\ And{\isachardot}simps%
+\ And{\isaliteral{2E}{\isachardot}}simps%
 \begin{isamarkuptext}%
-\isa{And\ T\ {\isacharquery}p\ {\isacharequal}\ {\isacharquery}p\isasep\isanewline%
-And\ F\ T\ {\isacharequal}\ F\isasep\isanewline%
-And\ X\ T\ {\isacharequal}\ X\isasep\isanewline%
-And\ F\ F\ {\isacharequal}\ F\isasep\isanewline%
-And\ X\ F\ {\isacharequal}\ F\isasep\isanewline%
-And\ F\ X\ {\isacharequal}\ F\isasep\isanewline%
-And\ X\ X\ {\isacharequal}\ X}
+\isa{And\ T\ {\isaliteral{3F}{\isacharquery}}p\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}p\isasep\isanewline%
+And\ F\ T\ {\isaliteral{3D}{\isacharequal}}\ F\isasep\isanewline%
+And\ X\ T\ {\isaliteral{3D}{\isacharequal}}\ X\isasep\isanewline%
+And\ F\ F\ {\isaliteral{3D}{\isacharequal}}\ F\isasep\isanewline%
+And\ X\ F\ {\isaliteral{3D}{\isacharequal}}\ F\isasep\isanewline%
+And\ F\ X\ {\isaliteral{3D}{\isacharequal}}\ F\isasep\isanewline%
+And\ X\ X\ {\isaliteral{3D}{\isacharequal}}\ X}
   
   \vspace*{1em}
   \noindent There are several problems with this:
@@ -729,7 +729,7 @@ And\ X\ X\ {\isacharequal}\ X}
   can be simplified to \isa{F} with the original equations, a
   (manual) case split on \isa{x} is now necessary.
 
-  \item The splitting also concerns the induction rule \isa{And{\isachardot}induct}. Instead of five premises it now has seven, which
+  \item The splitting also concerns the induction rule \isa{And{\isaliteral{2E}{\isachardot}}induct}. Instead of five premises it now has seven, which
   means that our induction proofs will have more cases.
 
   \item In general, it increases clarity if we get the same definition
@@ -739,17 +739,17 @@ And\ X\ X\ {\isacharequal}\ X}
   If we do not want the automatic splitting, we can switch it off by
   leaving out the \cmd{sequential} option. However, we will have to
   prove that our pattern matching is consistent\footnote{This prevents
-  us from defining something like \isa{f\ x\ {\isacharequal}\ True} and \isa{f\ x\ {\isacharequal}\ False} simultaneously.}:%
+  us from defining something like \isa{f\ x\ {\isaliteral{3D}{\isacharequal}}\ True} and \isa{f\ x\ {\isaliteral{3D}{\isacharequal}}\ False} simultaneously.}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ And{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}P{\isadigit{3}}\ {\isasymRightarrow}\ P{\isadigit{3}}\ {\isasymRightarrow}\ P{\isadigit{3}}{\isachardoublequoteclose}\isanewline
+\ And{\isadigit{2}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}P{\isadigit{3}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ P{\isadigit{3}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ P{\isadigit{3}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}And{\isadigit{2}}\ T\ p\ {\isacharequal}\ p{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}And{\isadigit{2}}\ p\ T\ {\isacharequal}\ p{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}And{\isadigit{2}}\ p\ F\ {\isacharequal}\ F{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}And{\isadigit{2}}\ F\ p\ {\isacharequal}\ F{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}And{\isadigit{2}}\ X\ X\ {\isacharequal}\ X{\isachardoublequoteclose}%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}And{\isadigit{2}}\ T\ p\ {\isaliteral{3D}{\isacharequal}}\ p{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}And{\isadigit{2}}\ p\ T\ {\isaliteral{3D}{\isacharequal}}\ p{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}And{\isadigit{2}}\ p\ F\ {\isaliteral{3D}{\isacharequal}}\ F{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}And{\isadigit{2}}\ F\ p\ {\isaliteral{3D}{\isacharequal}}\ F{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}And{\isadigit{2}}\ X\ X\ {\isaliteral{3D}{\isacharequal}}\ X{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -761,31 +761,31 @@ And\ X\ X\ {\isacharequal}\ X}
   function definition. In this case, they are:
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}P\ x{\isachardot}\ {\isasymlbrakk}{\isasymAnd}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ F{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}P\ x{\isachardot}\ \ }{\isasymAnd}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}F{\isacharcomma}\ p{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ x\ {\isacharequal}\ {\isacharparenleft}X{\isacharcomma}\ X{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}P\ x{\isachardot}\ }{\isasymLongrightarrow}\ P\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}p\ pa{\isachardot}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}T{\isacharcomma}\ pa{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ pa\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}p\ pa{\isachardot}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}pa{\isacharcomma}\ T{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ pa\isanewline
-\ {\isadigit{4}}{\isachardot}\ {\isasymAnd}p\ pa{\isachardot}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}pa{\isacharcomma}\ F{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ F\isanewline
-\ {\isadigit{5}}{\isachardot}\ {\isasymAnd}p\ pa{\isachardot}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}F{\isacharcomma}\ pa{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ F\isanewline
-\ {\isadigit{6}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}X{\isacharcomma}\ X{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ X\isanewline
-\ {\isadigit{7}}{\isachardot}\ {\isasymAnd}p\ pa{\isachardot}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}pa{\isacharcomma}\ T{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ pa\isanewline
-\ {\isadigit{8}}{\isachardot}\ {\isasymAnd}p\ pa{\isachardot}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}pa{\isacharcomma}\ F{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ F\isanewline
-\ {\isadigit{9}}{\isachardot}\ {\isasymAnd}p\ pa{\isachardot}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}F{\isacharcomma}\ pa{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ F\isanewline
-\ {\isadigit{1}}{\isadigit{0}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}X{\isacharcomma}\ X{\isacharparenright}\ {\isasymLongrightarrow}\ p\ {\isacharequal}\ X%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}P\ x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}T{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ F{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}P\ x{\isaliteral{2E}{\isachardot}}\ \ }{\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}F{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{3B}{\isacharsemicolon}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}X{\isaliteral{2C}{\isacharcomma}}\ X{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}P\ x{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p\ pa{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}T{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}T{\isaliteral{2C}{\isacharcomma}}\ pa{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ pa\isanewline
+\ {\isadigit{3}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p\ pa{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}T{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}pa{\isaliteral{2C}{\isacharcomma}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ pa\isanewline
+\ {\isadigit{4}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p\ pa{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}T{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}pa{\isaliteral{2C}{\isacharcomma}}\ F{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ F\isanewline
+\ {\isadigit{5}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p\ pa{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}T{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}F{\isaliteral{2C}{\isacharcomma}}\ pa{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ F\isanewline
+\ {\isadigit{6}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}T{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}X{\isaliteral{2C}{\isacharcomma}}\ X{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ X\isanewline
+\ {\isadigit{7}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p\ pa{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}pa{\isaliteral{2C}{\isacharcomma}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ pa\isanewline
+\ {\isadigit{8}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p\ pa{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}pa{\isaliteral{2C}{\isacharcomma}}\ F{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ F\isanewline
+\ {\isadigit{9}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p\ pa{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}F{\isaliteral{2C}{\isacharcomma}}\ pa{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ F\isanewline
+\ {\isadigit{1}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}X{\isaliteral{2C}{\isacharcomma}}\ X{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ X%
 \end{isabelle}\vspace{-1.2em}\hspace{3cm}\vdots\vspace{1.2em}
 
   The first subgoal expresses the completeness of the patterns. It has
   the form of an elimination rule and states that every \isa{x} of
   the function's input type must match at least one of the patterns\footnote{Completeness could
   be equivalently stated as a disjunction of existential statements: 
-\isa{{\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ F{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}F{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ x\ {\isacharequal}\ {\isacharparenleft}X{\isacharcomma}\ X{\isacharparenright}}, and you can use the method \isa{atomize{\isacharunderscore}elim} to get that form instead.}. If the patterns just involve
-  datatypes, we can solve it with the \isa{pat{\isacharunderscore}completeness}
+\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}T{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ T{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ F{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}F{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}X{\isaliteral{2C}{\isacharcomma}}\ X{\isaliteral{29}{\isacharparenright}}}, and you can use the method \isa{atomize{\isaliteral{5F}{\isacharunderscore}}elim} to get that form instead.}. If the patterns just involve
+  datatypes, we can solve it with the \isa{pat{\isaliteral{5F}{\isacharunderscore}}completeness}
   method:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness%
+\ pat{\isaliteral{5F}{\isacharunderscore}}completeness%
 \begin{isamarkuptxt}%
 The remaining subgoals express \emph{pattern compatibility}. We do
   allow that an input value matches multiple patterns, but in this
@@ -821,11 +821,11 @@ Most of Isabelle's basic types take the form of inductive datatypes,
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ fib{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ fib{\isadigit{2}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}fib{\isadigit{2}}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ fib{\isadigit{2}}\ n\ {\isacharplus}\ fib{\isadigit{2}}\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}fib{\isadigit{2}}\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}fib{\isadigit{2}}\ {\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}fib{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ fib{\isadigit{2}}\ n\ {\isaliteral{2B}{\isacharplus}}\ fib{\isadigit{2}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -836,21 +836,21 @@ Most of Isabelle's basic types take the form of inductive datatypes,
 This kind of matching is again justified by the proof of pattern
   completeness and compatibility. 
   The proof obligation for pattern completeness states that every natural number is
-  either \isa{{\isadigit{0}}}, \isa{{\isadigit{1}}} or \isa{n\ {\isacharplus}\ {\isadigit{2}}}:
+  either \isa{{\isadigit{0}}}, \isa{{\isadigit{1}}} or \isa{n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{2}}}:
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}P\ x{\isachardot}\ {\isasymlbrakk}x\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ x\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ x\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}P\ x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{3B}{\isacharsemicolon}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{2}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P%
 \end{isabelle}
 
   This is an arithmetic triviality, but unfortunately the
   \isa{arith} method cannot handle this specific form of an
-  elimination rule. However, we can use the method \isa{atomize{\isacharunderscore}elim} to do an ad-hoc conversion to a disjunction of
+  elimination rule. However, we can use the method \isa{atomize{\isaliteral{5F}{\isacharunderscore}}elim} to do an ad-hoc conversion to a disjunction of
   existentials, which can then be solved by the arithmetic decision procedure.
   Pattern compatibility and termination are automatic as usual.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ atomize{\isacharunderscore}elim\isanewline
+\ atomize{\isaliteral{5F}{\isacharunderscore}}elim\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ arith\isanewline
 \isacommand{apply}\isamarkupfalse%
@@ -872,7 +872,7 @@ This kind of matching is again justified by the proof of pattern
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ lexicographic{\isacharunderscore}order%
+\ lexicographic{\isaliteral{5F}{\isacharunderscore}}order%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -887,10 +887,10 @@ We can stretch the notion of pattern matching even more. The
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ ev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ ev\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}ev\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ n{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}ev\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ n\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}ev\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ True{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}ev\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ False{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -898,9 +898,9 @@ We can stretch the notion of pattern matching even more. The
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ atomize{\isacharunderscore}elim\isanewline
+\ atomize{\isaliteral{5F}{\isacharunderscore}}elim\isanewline
 \isacommand{by}\isamarkupfalse%
-\ arith{\isacharplus}%
+\ arith{\isaliteral{2B}{\isacharplus}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -916,7 +916,7 @@ We can stretch the notion of pattern matching even more. The
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}relation\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}{\isacharparenright}\ simp%
+\ {\isaliteral{28}{\isacharparenleft}}relation\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\ simp%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -950,12 +950,12 @@ The function package also supports conditional equations, which are
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ gcd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ gcd\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}gcd\ x\ {\isadigit{0}}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}gcd\ {\isadigit{0}}\ y\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}x\ {\isacharless}\ y\ {\isasymLongrightarrow}\ gcd\ {\isacharparenleft}Suc\ x{\isacharparenright}\ {\isacharparenleft}Suc\ y{\isacharparenright}\ {\isacharequal}\ gcd\ {\isacharparenleft}Suc\ x{\isacharparenright}\ {\isacharparenleft}y\ {\isacharminus}\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}{\isasymnot}\ x\ {\isacharless}\ y\ {\isasymLongrightarrow}\ gcd\ {\isacharparenleft}Suc\ x{\isacharparenright}\ {\isacharparenleft}Suc\ y{\isacharparenright}\ {\isacharequal}\ gcd\ {\isacharparenleft}x\ {\isacharminus}\ y{\isacharparenright}\ {\isacharparenleft}Suc\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}gcd\ x\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}gcd\ {\isadigit{0}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3C}{\isacharless}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ gcd\ {\isaliteral{28}{\isacharparenleft}}Suc\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ gcd\ {\isaliteral{28}{\isacharparenleft}}Suc\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{2D}{\isacharminus}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ x\ {\isaliteral{3C}{\isacharless}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ gcd\ {\isaliteral{28}{\isacharparenleft}}Suc\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ gcd\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{2D}{\isacharminus}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -963,7 +963,7 @@ The function package also supports conditional equations, which are
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}atomize{\isacharunderscore}elim{\isacharcomma}\ auto{\isacharcomma}\ arith{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}atomize{\isaliteral{5F}{\isacharunderscore}}elim{\isaliteral{2C}{\isacharcomma}}\ auto{\isaliteral{2C}{\isacharcomma}}\ arith{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -979,7 +979,7 @@ The function package also supports conditional equations, which are
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ lexicographic{\isacharunderscore}order%
+\ lexicographic{\isaliteral{5F}{\isacharunderscore}}order%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1006,10 +1006,10 @@ As strings (as lists of characters) are normal datatypes, pattern
   following definition:
 
 \end{isamarkuptext}
-\noindent\cmd{fun} \isa{check\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}string\ {\isasymRightarrow}\ bool{\isachardoublequote}}\\%
+\noindent\cmd{fun} \isa{check\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}string\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequote}}}\\%
 \cmd{where}\\%
-\hspace*{2ex}\isa{{\isachardoublequote}check\ {\isacharparenleft}{\isacharprime}{\isacharprime}good{\isacharprime}{\isacharprime}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequote}}\\%
-\isa{{\isacharbar}\ {\isachardoublequote}check\ s\ {\isacharequal}\ False{\isachardoublequote}}
+\hspace*{2ex}\isa{{\isaliteral{22}{\isachardoublequote}}check\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}{\isaliteral{27}{\isacharprime}}good{\isaliteral{27}{\isacharprime}}{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ True{\isaliteral{22}{\isachardoublequote}}}\\%
+\isa{{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequote}}check\ s\ {\isaliteral{3D}{\isacharequal}}\ False{\isaliteral{22}{\isachardoublequote}}}
 \begin{isamarkuptext}
 
   \noindent An invocation of the above \cmd{fun} command does not
@@ -1023,10 +1023,10 @@ As strings (as lists of characters) are normal datatypes, pattern
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ check\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}string\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ check\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}string\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}check\ {\isacharparenleft}{\isacharprime}{\isacharprime}good{\isacharprime}{\isacharprime}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}s\ {\isasymnoteq}\ {\isacharprime}{\isacharprime}good{\isacharprime}{\isacharprime}\ {\isasymLongrightarrow}\ check\ s\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}check\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}{\isaliteral{27}{\isacharprime}}good{\isaliteral{27}{\isacharprime}}{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ True{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}s\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{27}{\isacharprime}}{\isaliteral{27}{\isacharprime}}good{\isaliteral{27}{\isacharprime}}{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ check\ s\ {\isaliteral{3D}{\isacharequal}}\ False{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1060,9 +1060,9 @@ In HOL, all functions are total. A function \isa{f} applied to
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ findzero\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}nat\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ findzero\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}findzero\ f\ n\ {\isacharequal}\ {\isacharparenleft}if\ f\ n\ {\isacharequal}\ {\isadigit{0}}\ then\ n\ else\ findzero\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}findzero\ f\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ f\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ then\ n\ else\ findzero\ f\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1070,7 +1070,7 @@ In HOL, all functions are total. A function \isa{f} applied to
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
+\ pat{\isaliteral{5F}{\isacharunderscore}}completeness\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1080,8 +1080,8 @@ In HOL, all functions are total. A function \isa{f} applied to
 %
 \begin{isamarkuptext}%
 \noindent Clearly, any attempt of a termination proof must fail. And without
-  that, we do not get the usual rules \isa{findzero{\isachardot}simps} and 
-  \isa{findzero{\isachardot}induct}. So what was the definition good for at all?%
+  that, we do not get the usual rules \isa{findzero{\isaliteral{2E}{\isachardot}}simps} and 
+  \isa{findzero{\isaliteral{2E}{\isachardot}}induct}. So what was the definition good for at all?%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1091,7 +1091,7 @@ In HOL, all functions are total. A function \isa{f} applied to
 %
 \begin{isamarkuptext}%
 The trick is that Isabelle has not only defined the function \isa{findzero}, but also
-  a predicate \isa{findzero{\isacharunderscore}dom} that characterizes the values where the function
+  a predicate \isa{findzero{\isaliteral{5F}{\isacharunderscore}}dom} that characterizes the values where the function
   terminates: the \emph{domain} of the function. If we treat a
   partial function just as a total function with an additional domain
   predicate, we can derive simplification and
@@ -1102,25 +1102,25 @@ The trick is that Isabelle has not only defined the function \isa{findzero}, but
 %
 \begin{isamarkuptext}%
 \noindent\begin{minipage}{0.79\textwidth}\begin{isabelle}%
-findzero{\isacharunderscore}dom\ {\isacharparenleft}{\isacharquery}f{\isacharcomma}\ {\isacharquery}n{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
-findzero\ {\isacharquery}f\ {\isacharquery}n\ {\isacharequal}\ {\isacharparenleft}if\ {\isacharquery}f\ {\isacharquery}n\ {\isacharequal}\ {\isadigit{0}}\ then\ {\isacharquery}n\ else\ findzero\ {\isacharquery}f\ {\isacharparenleft}Suc\ {\isacharquery}n{\isacharparenright}{\isacharparenright}%
+findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}f{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{3F}{\isacharquery}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+findzero\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ then\ {\isaliteral{3F}{\isacharquery}}n\ else\ findzero\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{3F}{\isacharquery}}n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}\end{minipage}
-  \hfill(\isa{findzero{\isachardot}psimps})
+  \hfill(\isa{findzero{\isaliteral{2E}{\isachardot}}psimps})
   \vspace{1em}
 
   \noindent\begin{minipage}{0.79\textwidth}\begin{isabelle}%
-{\isasymlbrakk}findzero{\isacharunderscore}dom\ {\isacharparenleft}{\isacharquery}a{\isadigit{0}}{\isachardot}{\isadigit{0}}{\isacharcomma}\ {\isacharquery}a{\isadigit{1}}{\isachardot}{\isadigit{0}}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ }{\isasymAnd}f\ n{\isachardot}\ {\isasymlbrakk}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}{\isacharsemicolon}\ f\ n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ {\isacharquery}P\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ f\ n{\isasymrbrakk}\isanewline
-{\isasymLongrightarrow}\ {\isacharquery}P\ {\isacharquery}a{\isadigit{0}}{\isachardot}{\isadigit{0}}\ {\isacharquery}a{\isadigit{1}}{\isachardot}{\isadigit{0}}%
+{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}a{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{3F}{\isacharquery}}a{\isadigit{1}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ }{\isaliteral{5C3C416E643E}{\isasymAnd}}f\ n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\ f\ n\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ f\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ f\ n{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{3F}{\isacharquery}}a{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}\ {\isaliteral{3F}{\isacharquery}}a{\isadigit{1}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}%
 \end{isabelle}\end{minipage}
-  \hfill(\isa{findzero{\isachardot}pinduct})%
+  \hfill(\isa{findzero{\isaliteral{2E}{\isachardot}}pinduct})%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Remember that all we
   are doing here is use some tricks to make a total function appear
-  as if it was partial. We can still write the term \isa{findzero\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ {\isadigit{1}}{\isacharparenright}\ {\isadigit{0}}} and like any other term of type \isa{nat} it is equal
+  as if it was partial. We can still write the term \isa{findzero\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isadigit{0}}} and like any other term of type \isa{nat} it is equal
   to some natural number, although we might not be able to find out
   which one. The function is \emph{underdefined}.
 
@@ -1130,7 +1130,7 @@ Remember that all we
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ findzero{\isacharunderscore}zero{\isacharcolon}\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}findzero\ f\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}%
+\ findzero{\isaliteral{5F}{\isacharunderscore}}zero{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ {\isaliteral{28}{\isacharparenleft}}findzero\ f\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -1143,23 +1143,23 @@ Remember that all we
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ f\ n\ rule{\isacharcolon}\ findzero{\isachardot}pinduct{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ f\ n\ rule{\isaliteral{3A}{\isacharcolon}}\ findzero{\isaliteral{2E}{\isachardot}}pinduct{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent This gives the following subgoals:
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}f\ n{\isachardot}\ {\isasymlbrakk}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}{\isacharsemicolon}\ f\ n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}findzero\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isadigit{0}}{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}f\ n{\isachardot}\ }{\isasymLongrightarrow}\ f\ {\isacharparenleft}findzero\ f\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{0}}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}f\ n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\ f\ n\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ {\isaliteral{28}{\isacharparenleft}}findzero\ f\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}f\ n{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ {\isaliteral{28}{\isacharparenleft}}findzero\ f\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}%
 \end{isabelle}
 
   \noindent The hypothesis in our lemma was used to satisfy the first premise in
-  the induction rule. However, we also get \isa{findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}} as a local assumption in the induction step. This
+  the induction rule. However, we also get \isa{findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}} as a local assumption in the induction step. This
   allows unfolding \isa{findzero\ f\ n} using the \isa{psimps}
   rule, and the rest is trivial.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ findzero{\isachardot}psimps{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ findzero{\isaliteral{2E}{\isachardot}}psimps{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -1185,7 +1185,7 @@ Proofs about partial functions are often not harder than for total
 \isabellestyle{it}
 \isastyle\isamarkuptrue
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymlbrakk}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}{\isacharsemicolon}\ x\ {\isasymin}\ {\isacharbraceleft}n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ n{\isacharbraceright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ f\ x\ {\isasymnoteq}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{7B}{\isacharbraceleft}}n\ {\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{3C}{\isacharless}}\ findzero\ f\ n{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ x\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1193,55 +1193,55 @@ Proofs about partial functions are often not harder than for total
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}induct\ rule{\isacharcolon}\ findzero{\isachardot}pinduct{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ rule{\isaliteral{3A}{\isacharcolon}}\ findzero{\isaliteral{2E}{\isachardot}}pinduct{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
 \ f\ n\ \isacommand{assume}\isamarkupfalse%
-\ dom{\isacharcolon}\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isakeyword{and}\ IH{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isacharsemicolon}\ x\ {\isasymin}\ {\isacharbraceleft}Suc\ n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharbraceright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ f\ x\ {\isasymnoteq}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isakeyword{and}\ x{\isacharunderscore}range{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isacharbraceleft}n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ n{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ dom{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isakeyword{and}\ IH{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}f\ n\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}{\isaliteral{3B}{\isacharsemicolon}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{7B}{\isacharbraceleft}}Suc\ n\ {\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{3C}{\isacharless}}\ findzero\ f\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ x\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isakeyword{and}\ x{\isaliteral{5F}{\isacharunderscore}}range{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{7B}{\isacharbraceleft}}n\ {\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{3C}{\isacharless}}\ findzero\ f\ n{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}f\ n\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \ \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}f\ n\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}f\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
 \ dom\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}findzero\ f\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ findzero{\isachardot}psimps{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}findzero\ f\ n\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ findzero{\isaliteral{2E}{\isachardot}}psimps{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ x{\isacharunderscore}range\ \isacommand{show}\isamarkupfalse%
+\ x{\isaliteral{5F}{\isacharunderscore}}range\ \isacommand{show}\isamarkupfalse%
 \ False\ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ x{\isacharunderscore}range\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isacharequal}\ n\ {\isasymor}\ x\ {\isasymin}\ {\isacharbraceleft}Suc\ n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ n{\isacharbraceright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ x{\isaliteral{5F}{\isacharunderscore}}range\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{5C3C6F723E}{\isasymor}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{7B}{\isacharbraceleft}}Suc\ n\ {\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{3C}{\isacharless}}\ findzero\ f\ n{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
 \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}f\ x\ {\isasymnoteq}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}f\ x\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ {\isacharbackquoteopen}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}f\ n\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isacharbraceleft}Suc\ n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ n{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{7B}{\isacharbraceleft}}Suc\ n\ {\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{3C}{\isacharless}}\ findzero\ f\ n{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ dom\ \isakeyword{and}\ {\isacharbackquoteopen}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isacharbraceleft}Suc\ n\ {\isachardot}{\isachardot}{\isacharless}\ findzero\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharbraceright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ findzero{\isachardot}psimps{\isacharparenright}\isanewline
+\ dom\ \isakeyword{and}\ {\isaliteral{60}{\isacharbackquoteopen}}f\ n\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{7B}{\isacharbraceleft}}Suc\ n\ {\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{3C}{\isacharless}}\ findzero\ f\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ findzero{\isaliteral{2E}{\isachardot}}psimps{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ IH\ \isakeyword{and}\ {\isacharbackquoteopen}f\ n\ {\isasymnoteq}\ {\isadigit{0}}{\isacharbackquoteclose}\isanewline
+\ IH\ \isakeyword{and}\ {\isaliteral{60}{\isacharbackquoteopen}}f\ n\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -1269,25 +1269,25 @@ Now that we have proved some interesting properties about our
   actually true for some values. Otherwise we would have just proved
   lemmas with \isa{False} as a premise.
 
-  Essentially, we need some introduction rules for \isa{findzero{\isacharunderscore}dom}. The function package can prove such domain
+  Essentially, we need some introduction rules for \isa{findzero{\isaliteral{5F}{\isacharunderscore}}dom}. The function package can prove such domain
   introduction rules automatically. But since they are not used very
   often (they are almost never needed if the function is total), this
   functionality is disabled by default for efficiency reasons. So we have to go
-  back and ask for them explicitly by passing the \isa{{\isacharparenleft}domintros{\isacharparenright}} option to the function package:
+  back and ask for them explicitly by passing the \isa{{\isaliteral{28}{\isacharparenleft}}domintros{\isaliteral{29}{\isacharparenright}}} option to the function package:
 
 \vspace{1ex}
-\noindent\cmd{function} \isa{{\isacharparenleft}domintros{\isacharparenright}\ findzero\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}nat\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}}\\%
+\noindent\cmd{function} \isa{{\isaliteral{28}{\isacharparenleft}}domintros{\isaliteral{29}{\isacharparenright}}\ findzero\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequote}}}\\%
 \cmd{where}\isanewline%
 \ \ \ldots\\
 
-  \noindent Now the package has proved an introduction rule for \isa{findzero{\isacharunderscore}dom}:%
+  \noindent Now the package has proved an introduction rule for \isa{findzero{\isaliteral{5F}{\isacharunderscore}}dom}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{thm}\isamarkupfalse%
-\ findzero{\isachardot}domintros%
+\ findzero{\isaliteral{2E}{\isachardot}}domintros%
 \begin{isamarkuptext}%
 \begin{isabelle}%
-{\isacharparenleft}{\isadigit{0}}\ {\isacharless}\ {\isacharquery}f\ {\isacharquery}n\ {\isasymLongrightarrow}\ findzero{\isacharunderscore}dom\ {\isacharparenleft}{\isacharquery}f{\isacharcomma}\ Suc\ {\isacharquery}n{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ findzero{\isacharunderscore}dom\ {\isacharparenleft}{\isacharquery}f{\isacharcomma}\ {\isacharquery}n{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ {\isaliteral{3C}{\isacharless}}\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}f{\isaliteral{2C}{\isacharcomma}}\ Suc\ {\isaliteral{3F}{\isacharquery}}n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}f{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{3F}{\isacharquery}}n{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 
   Domain introduction rules allow to show that a given value lies in the
@@ -1298,10 +1298,10 @@ Now that we have proved some interesting properties about our
 
   Since our function increases its argument at recursive calls, we
   need an induction principle which works \qt{backwards}. We will use
-  \isa{inc{\isacharunderscore}induct}, which allows to do induction from a fixed number
+  \isa{inc{\isaliteral{5F}{\isacharunderscore}}induct}, which allows to do induction from a fixed number
   \qt{downwards}:
 
-  \begin{center}\isa{{\isasymlbrakk}{\isacharquery}i\ {\isasymle}\ {\isacharquery}j{\isacharsemicolon}\ {\isacharquery}P\ {\isacharquery}j{\isacharsemicolon}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}i\ {\isacharless}\ {\isacharquery}j{\isacharsemicolon}\ {\isacharquery}P\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ i{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isacharquery}i}\hfill(\isa{inc{\isacharunderscore}induct})\end{center}
+  \begin{center}\isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{3F}{\isacharquery}}i\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3F}{\isacharquery}}j{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{3F}{\isacharquery}}j{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}i{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}i\ {\isaliteral{3C}{\isacharless}}\ {\isaliteral{3F}{\isacharquery}}j{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{28}{\isacharparenleft}}Suc\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ i{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{3F}{\isacharquery}}i}\hfill(\isa{inc{\isaliteral{5F}{\isacharunderscore}}induct})\end{center}
 
   Figure \ref{findzero_term} gives a detailed Isar proof of the fact
   that \isa{findzero} terminates if there is a zero which is greater
@@ -1318,9 +1318,9 @@ Now that we have proved some interesting properties about our
 \isabellestyle{it}
 \isastyle\isamarkuptrue
 \isacommand{lemma}\isamarkupfalse%
-\ findzero{\isacharunderscore}termination{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}x\ {\isasymge}\ n{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}f\ x\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ findzero{\isaliteral{5F}{\isacharunderscore}}termination{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C67653E}{\isasymge}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}f\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1328,34 +1328,34 @@ Now that we have proved some interesting properties about our
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\ \isanewline
+\ {\isaliteral{2D}{\isacharminus}}\ \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ base{\isacharcolon}\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ base{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ findzero{\isachardot}domintros{\isacharparenright}\ {\isacharparenleft}simp\ add{\isacharcolon}{\isacharbackquoteopen}f\ x\ {\isacharequal}\ {\isadigit{0}}{\isacharbackquoteclose}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ findzero{\isaliteral{2E}{\isachardot}}domintros{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}{\isaliteral{60}{\isacharbackquoteopen}}f\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{60}{\isacharbackquoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ step{\isacharcolon}\ {\isachardoublequoteopen}{\isasymAnd}i{\isachardot}\ findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ Suc\ i{\isacharparenright}\ \isanewline
-\ \ \ \ {\isasymLongrightarrow}\ findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ i{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ step{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C416E643E}{\isasymAnd}}i{\isaliteral{2E}{\isachardot}}\ findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ Suc\ i{\isaliteral{29}{\isacharparenright}}\ \isanewline
+\ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ findzero{\isachardot}domintros{\isacharparenright}\ simp\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ findzero{\isaliteral{2E}{\isachardot}}domintros{\isaliteral{29}{\isacharparenright}}\ simp\isanewline
 \isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}x\ {\isasymge}\ n{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\isanewline
+\ {\isaliteral{60}{\isacharbackquoteopen}}x\ {\isaliteral{5C3C67653E}{\isasymge}}\ n{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}induct\ rule{\isacharcolon}inc{\isacharunderscore}induct{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ rule{\isaliteral{3A}{\isacharcolon}}inc{\isaliteral{5F}{\isacharunderscore}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ x{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ base{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ base{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ i\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ Suc\ i{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ Suc\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ i{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ step{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ step{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
@@ -1379,10 +1379,10 @@ Again, the proof given in Fig.~\ref{findzero_term} has a lot of
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ findzero{\isacharunderscore}termination{\isacharunderscore}short{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ zero{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isachargreater}{\isacharequal}\ n{\isachardoublequoteclose}\ \isanewline
-\ \ \isakeyword{assumes}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}f\ x\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ findzero{\isaliteral{5F}{\isacharunderscore}}termination{\isaliteral{5F}{\isacharunderscore}}short{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ zero{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3E}{\isachargreater}}{\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\ \isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}f\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1392,7 +1392,7 @@ Again, the proof given in Fig.~\ref{findzero_term} has a lot of
 \isacommand{using}\isamarkupfalse%
 \ zero\isanewline
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ rule{\isacharcolon}inc{\isacharunderscore}induct{\isacharparenright}\ {\isacharparenleft}auto\ intro{\isacharcolon}\ findzero{\isachardot}domintros{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ rule{\isaliteral{3A}{\isacharcolon}}inc{\isaliteral{5F}{\isacharunderscore}}induct{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}auto\ intro{\isaliteral{3A}{\isacharcolon}}\ findzero{\isaliteral{2E}{\isachardot}}domintros{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1406,8 +1406,8 @@ Again, the proof given in Fig.~\ref{findzero_term} has a lot of
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ findzero{\isacharunderscore}total{\isacharunderscore}correctness{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}f\ x\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}findzero\ f\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ findzero{\isaliteral{5F}{\isacharunderscore}}total{\isaliteral{5F}{\isacharunderscore}}correctness{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}f\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ {\isaliteral{28}{\isacharparenleft}}findzero\ f\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1415,7 +1415,7 @@ Again, the proof given in Fig.~\ref{findzero_term} has a lot of
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}blast\ intro{\isacharcolon}\ findzero{\isacharunderscore}zero\ findzero{\isacharunderscore}termination{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}blast\ intro{\isaliteral{3A}{\isacharcolon}}\ findzero{\isaliteral{5F}{\isacharunderscore}}zero\ findzero{\isaliteral{5F}{\isacharunderscore}}termination{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1429,38 +1429,38 @@ Again, the proof given in Fig.~\ref{findzero_term} has a lot of
 %
 \begin{isamarkuptext}%
 Sometimes it is useful to know what the definition of the domain
-  predicate looks like. Actually, \isa{findzero{\isacharunderscore}dom} is just an
+  predicate looks like. Actually, \isa{findzero{\isaliteral{5F}{\isacharunderscore}}dom} is just an
   abbreviation:
 
   \begin{isabelle}%
-findzero{\isacharunderscore}dom\ {\isasymequiv}\ accp\ findzero{\isacharunderscore}rel%
+findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ accp\ findzero{\isaliteral{5F}{\isacharunderscore}}rel%
 \end{isabelle}
 
-  The domain predicate is the \emph{accessible part} of a relation \isa{findzero{\isacharunderscore}rel}, which was also created internally by the function
-  package. \isa{findzero{\isacharunderscore}rel} is just a normal
+  The domain predicate is the \emph{accessible part} of a relation \isa{findzero{\isaliteral{5F}{\isacharunderscore}}rel}, which was also created internally by the function
+  package. \isa{findzero{\isaliteral{5F}{\isacharunderscore}}rel} is just a normal
   inductive predicate, so we can inspect its definition by
-  looking at the introduction rules \isa{findzero{\isacharunderscore}rel{\isachardot}intros}.
+  looking at the introduction rules \isa{findzero{\isaliteral{5F}{\isacharunderscore}}rel{\isaliteral{2E}{\isachardot}}intros}.
   In our case there is just a single rule:
 
   \begin{isabelle}%
-{\isacharquery}f\ {\isacharquery}n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ findzero{\isacharunderscore}rel\ {\isacharparenleft}{\isacharquery}f{\isacharcomma}\ Suc\ {\isacharquery}n{\isacharparenright}\ {\isacharparenleft}{\isacharquery}f{\isacharcomma}\ {\isacharquery}n{\isacharparenright}%
+{\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}n\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isadigit{0}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ findzero{\isaliteral{5F}{\isacharunderscore}}rel\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}f{\isaliteral{2C}{\isacharcomma}}\ Suc\ {\isaliteral{3F}{\isacharquery}}n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}f{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{3F}{\isacharquery}}n{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 
-  The predicate \isa{findzero{\isacharunderscore}rel}
+  The predicate \isa{findzero{\isaliteral{5F}{\isacharunderscore}}rel}
   describes the \emph{recursion relation} of the function
   definition. The recursion relation is a binary relation on
   the arguments of the function that relates each argument to its
   recursive calls. In general, there is one introduction rule for each
   recursive call.
 
-  The predicate \isa{findzero{\isacharunderscore}dom} is the accessible part of
+  The predicate \isa{findzero{\isaliteral{5F}{\isacharunderscore}}dom} is the accessible part of
   that relation. An argument belongs to the accessible part, if it can
-  be reached in a finite number of steps (cf.~its definition in \isa{Wellfounded{\isachardot}thy}).
+  be reached in a finite number of steps (cf.~its definition in \isa{Wellfounded{\isaliteral{2E}{\isachardot}}thy}).
 
   Since the domain predicate is just an abbreviation, you can use
-  lemmas for \isa{accp} and \isa{findzero{\isacharunderscore}rel} directly. Some
-  lemmas which are occasionally useful are \isa{accpI}, \isa{accp{\isacharunderscore}downward}, and of course the introduction and elimination rules
-  for the recursion relation \isa{findzero{\isachardot}intros} and \isa{findzero{\isachardot}cases}.%
+  lemmas for \isa{accp} and \isa{findzero{\isaliteral{5F}{\isacharunderscore}}rel} directly. Some
+  lemmas which are occasionally useful are \isa{accpI}, \isa{accp{\isaliteral{5F}{\isacharunderscore}}downward}, and of course the introduction and elimination rules
+  for the recursion relation \isa{findzero{\isaliteral{2E}{\isachardot}}intros} and \isa{findzero{\isaliteral{2E}{\isachardot}}cases}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1472,8 +1472,8 @@ findzero{\isacharunderscore}dom\ {\isasymequiv}\ accp\ findzero{\isacharundersco
 The domain predicate is our trick that allows us to model partiality
   in a world of total functions. The downside of this is that we have
   to carry it around all the time. The termination proof above allowed
-  us to replace the abstract \isa{findzero{\isacharunderscore}dom\ {\isacharparenleft}f{\isacharcomma}\ n{\isacharparenright}} by the more
-  concrete \isa{n\ {\isasymle}\ x\ {\isasymand}\ f\ x\ {\isacharequal}\ {\isadigit{0}}}, but the condition is still
+  us to replace the abstract \isa{findzero{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}} by the more
+  concrete \isa{n\ {\isaliteral{5C3C6C653E}{\isasymle}}\ x\ {\isaliteral{5C3C616E643E}{\isasymand}}\ f\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}}, but the condition is still
   there and can only be discharged for special cases.
   In particular, the domain predicate guards the unfolding of our
   function, since it is there as a condition in the \isa{psimp}
@@ -1501,7 +1501,7 @@ The domain predicate is our trick that allows us to model partiality
   back and add another option to the \cmd{function} command:
 
 \vspace{1ex}
-\noindent\cmd{function} \isa{{\isacharparenleft}domintros{\isacharcomma}\ tailrec{\isacharparenright}\ findzero\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}nat\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}}\\%
+\noindent\cmd{function} \isa{{\isaliteral{28}{\isacharparenleft}}domintros{\isaliteral{2C}{\isacharcomma}}\ tailrec{\isaliteral{29}{\isacharparenright}}\ findzero\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequote}}}\\%
 \cmd{where}\isanewline%
 \ \ \ldots\\%
 
@@ -1511,10 +1511,10 @@ The domain predicate is our trick that allows us to model partiality
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{thm}\isamarkupfalse%
-\ findzero{\isachardot}simps%
+\ findzero{\isaliteral{2E}{\isachardot}}simps%
 \begin{isamarkuptext}%
 \begin{isabelle}%
-findzero\ {\isacharquery}f\ {\isacharquery}n\ {\isacharequal}\ {\isacharparenleft}if\ {\isacharquery}f\ {\isacharquery}n\ {\isacharequal}\ {\isadigit{0}}\ then\ {\isacharquery}n\ else\ findzero\ {\isacharquery}f\ {\isacharparenleft}Suc\ {\isacharquery}n{\isacharparenright}{\isacharparenright}%
+findzero\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ then\ {\isaliteral{3F}{\isacharquery}}n\ else\ findzero\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{3F}{\isacharquery}}n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 
   \noindent Of course these would make the simplifier loop, so we better remove
@@ -1522,7 +1522,7 @@ findzero\ {\isacharquery}f\ {\isacharquery}n\ {\isacharequal}\ {\isacharparenlef
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{declare}\isamarkupfalse%
-\ findzero{\isachardot}simps{\isacharbrackleft}simp\ del{\isacharbrackright}%
+\ findzero{\isaliteral{2E}{\isachardot}}simps{\isaliteral{5B}{\isacharbrackleft}}simp\ del{\isaliteral{5D}{\isacharbrackright}}%
 \begin{isamarkuptext}%
 Getting rid of the domain conditions in the simplification rules is
   not only useful because it simplifies proofs. It is also required in
@@ -1549,10 +1549,10 @@ Recursive calls which are nested in one another frequently cause
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ nz\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ nz\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}nz\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}nz\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ nz\ {\isacharparenleft}nz\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}nz\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}nz\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ nz\ {\isaliteral{28}{\isacharparenleft}}nz\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1560,7 +1560,7 @@ Recursive calls which are nested in one another frequently cause
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
+\ pat{\isaliteral{5F}{\isacharunderscore}}completeness\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1582,14 +1582,14 @@ If we attempt to prove termination using the identity measure on
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}n{\isachardot}\ n{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}relation\ {\isaliteral{22}{\isachardoublequoteopen}}measure\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n{\isaliteral{2E}{\isachardot}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{apply}\isamarkupfalse%
 \ auto%
 \begin{isamarkuptxt}%
 We get stuck with the subgoal
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ nz{\isacharunderscore}dom\ n\ {\isasymLongrightarrow}\ nz\ n\ {\isacharless}\ Suc\ n%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ nz{\isaliteral{5F}{\isacharunderscore}}dom\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ nz\ n\ {\isaliteral{3C}{\isacharless}}\ Suc\ n%
 \end{isabelle}
 
   Of course this statement is true, since we know that \isa{nz} is
@@ -1605,7 +1605,7 @@ We get stuck with the subgoal
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ nz{\isacharunderscore}is{\isacharunderscore}zero{\isacharcolon}\ {\isachardoublequoteopen}nz{\isacharunderscore}dom\ n\ {\isasymLongrightarrow}\ nz\ n\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ nz{\isaliteral{5F}{\isacharunderscore}}is{\isaliteral{5F}{\isacharunderscore}}zero{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nz{\isaliteral{5F}{\isacharunderscore}}dom\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ nz\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -1613,7 +1613,7 @@ We get stuck with the subgoal
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ rule{\isacharcolon}nz{\isachardot}pinduct{\isacharparenright}\ {\isacharparenleft}auto\ simp{\isacharcolon}\ nz{\isachardot}psimps{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ rule{\isaliteral{3A}{\isacharcolon}}nz{\isaliteral{2E}{\isachardot}}pinduct{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ nz{\isaliteral{2E}{\isachardot}}psimps{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1623,7 +1623,7 @@ We get stuck with the subgoal
 %
 \begin{isamarkuptext}%
 We formulate this as a partial correctness lemma with the condition
-  \isa{nz{\isacharunderscore}dom\ n}. This allows us to prove it with the \isa{pinduct} rule before we have proved termination. With this lemma,
+  \isa{nz{\isaliteral{5F}{\isacharunderscore}}dom\ n}. This allows us to prove it with the \isa{pinduct} rule before we have proved termination. With this lemma,
   the termination proof works as expected:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1636,7 +1636,7 @@ We formulate this as a partial correctness lemma with the condition
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}n{\isachardot}\ n{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\ {\isacharparenleft}auto\ simp{\isacharcolon}\ nz{\isacharunderscore}is{\isacharunderscore}zero{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}relation\ {\isaliteral{22}{\isachardoublequoteopen}}measure\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n{\isaliteral{2E}{\isachardot}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ nz{\isaliteral{5F}{\isacharunderscore}}is{\isaliteral{5F}{\isacharunderscore}}zero{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1659,9 +1659,9 @@ As a general strategy, one should prove the statements needed for
 \isabellestyle{it}
 \isastyle\isamarkuptrue
 \isacommand{function}\isamarkupfalse%
-\ f{\isadigit{9}}{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ f{\isadigit{9}}{\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}f{\isadigit{9}}{\isadigit{1}}\ n\ {\isacharequal}\ {\isacharparenleft}if\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isacharless}\ n\ then\ n\ {\isacharminus}\ {\isadigit{1}}{\isadigit{0}}\ else\ f{\isadigit{9}}{\isadigit{1}}\ {\isacharparenleft}f{\isadigit{9}}{\isadigit{1}}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{1}}{\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}f{\isadigit{9}}{\isadigit{1}}\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isaliteral{3C}{\isacharless}}\ n\ then\ n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isadigit{0}}\ else\ f{\isadigit{9}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}f{\isadigit{9}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1669,7 +1669,7 @@ As a general strategy, one should prove the statements needed for
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
+\ pat{\isaliteral{5F}{\isacharunderscore}}completeness\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1679,9 +1679,9 @@ As a general strategy, one should prove the statements needed for
 \endisadelimproof
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ f{\isadigit{9}}{\isadigit{1}}{\isacharunderscore}estimate{\isacharcolon}\ \isanewline
-\ \ \isakeyword{assumes}\ trm{\isacharcolon}\ {\isachardoublequoteopen}f{\isadigit{9}}{\isadigit{1}}{\isacharunderscore}dom\ n{\isachardoublequoteclose}\ \isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}n\ {\isacharless}\ f{\isadigit{9}}{\isadigit{1}}\ n\ {\isacharplus}\ {\isadigit{1}}{\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\ f{\isadigit{9}}{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}estimate{\isaliteral{3A}{\isacharcolon}}\ \isanewline
+\ \ \isakeyword{assumes}\ trm{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}f{\isadigit{9}}{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}dom\ n{\isaliteral{22}{\isachardoublequoteclose}}\ \isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}n\ {\isaliteral{3C}{\isacharless}}\ f{\isadigit{9}}{\isadigit{1}}\ n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -1690,7 +1690,7 @@ As a general strategy, one should prove the statements needed for
 \isatagproof
 \isacommand{using}\isamarkupfalse%
 \ trm\ \isacommand{by}\isamarkupfalse%
-\ induct\ {\isacharparenleft}auto\ simp{\isacharcolon}\ f{\isadigit{9}}{\isadigit{1}}{\isachardot}psimps{\isacharparenright}%
+\ induct\ {\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ f{\isadigit{9}}{\isadigit{1}}{\isaliteral{2E}{\isachardot}}psimps{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1710,37 +1710,37 @@ As a general strategy, one should prove the statements needed for
 \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{let}\isamarkupfalse%
-\ {\isacharquery}R\ {\isacharequal}\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{1}}\ {\isacharminus}\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{3F}{\isacharquery}}R\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}measure\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{1}}\ {\isaliteral{2D}{\isacharminus}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}wf\ {\isacharquery}R{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}wf\ {\isaliteral{3F}{\isacharquery}}R{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
-\ n\ {\isacharcolon}{\isacharcolon}\ nat\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isacharless}\ n{\isachardoublequoteclose}\ %
+\ n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isaliteral{3C}{\isacharless}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\ %
 \isamarkupcmt{Assumptions for both calls%
 }
 \isanewline
 \isanewline
 \ \ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}n\ {\isacharplus}\ {\isadigit{1}}{\isadigit{1}}{\isacharcomma}\ n{\isacharparenright}\ {\isasymin}\ {\isacharquery}R{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{3F}{\isacharquery}}R{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\ %
 \isamarkupcmt{Inner call%
 }
 \isanewline
 \isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ inner{\isacharunderscore}trm{\isacharcolon}\ {\isachardoublequoteopen}f{\isadigit{9}}{\isadigit{1}}{\isacharunderscore}dom\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{1}}{\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\ %
+\ inner{\isaliteral{5F}{\isacharunderscore}}trm{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}f{\isadigit{9}}{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}dom\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ %
 \isamarkupcmt{Outer call%
 }
 \isanewline
 \ \ \isacommand{with}\isamarkupfalse%
-\ f{\isadigit{9}}{\isadigit{1}}{\isacharunderscore}estimate\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}n\ {\isacharplus}\ {\isadigit{1}}{\isadigit{1}}\ {\isacharless}\ f{\isadigit{9}}{\isadigit{1}}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{1}}{\isadigit{1}}{\isacharparenright}\ {\isacharplus}\ {\isadigit{1}}{\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ f{\isadigit{9}}{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}estimate\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isadigit{1}}\ {\isaliteral{3C}{\isacharless}}\ f{\isadigit{9}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{with}\isamarkupfalse%
-\ {\isacharbackquoteopen}{\isasymnot}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isacharless}\ n{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}f{\isadigit{9}}{\isadigit{1}}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{1}}{\isadigit{1}}{\isacharparenright}{\isacharcomma}\ n{\isacharparenright}\ {\isasymin}\ {\isacharquery}R{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isaliteral{3C}{\isacharless}}\ n{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}f{\isadigit{9}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{3F}{\isacharquery}}R{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -1768,19 +1768,19 @@ Higher-order recursion occurs when recursive calls
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharprime}a\ tree\ {\isacharequal}\ \isanewline
-\ \ Leaf\ {\isacharprime}a\ \isanewline
-{\isacharbar}\ Branch\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ list{\isachardoublequoteclose}%
+\ {\isaliteral{27}{\isacharprime}}a\ tree\ {\isaliteral{3D}{\isacharequal}}\ \isanewline
+\ \ Leaf\ {\isaliteral{27}{\isacharprime}}a\ \isanewline
+{\isaliteral{7C}{\isacharbar}}\ Branch\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ tree\ list{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent We can define a function which swaps the left and right subtrees recursively, using the 
   list functions \isa{rev} and \isa{map}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
-\ mirror\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ tree{\isachardoublequoteclose}\isanewline
+\ mirror\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ tree\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ tree{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Leaf\ n{\isacharparenright}\ {\isacharequal}\ Leaf\ n{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Branch\ l{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}rev\ {\isacharparenleft}map\ mirror\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}mirror\ {\isaliteral{28}{\isacharparenleft}}Leaf\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Leaf\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}mirror\ {\isaliteral{28}{\isacharparenleft}}Branch\ l{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Branch\ {\isaliteral{28}{\isacharparenleft}}rev\ {\isaliteral{28}{\isacharparenleft}}map\ mirror\ l{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 Although the definition is accepted without problems, let us look at the termination proof:%
 \end{isamarkuptext}%
@@ -1802,8 +1802,8 @@ As usual, we have to give a wellfounded relation, such that the
   subgoals
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ wf\ {\isacharquery}R\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}l\ x{\isachardot}\ x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ Branch\ l{\isacharparenright}\ {\isasymin}\ {\isacharquery}R%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ wf\ {\isaliteral{3F}{\isacharquery}}R\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}l\ x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ l\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ Branch\ l{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{3F}{\isacharquery}}R%
 \end{isabelle} 
 
   So the system seems to know that \isa{map} only
@@ -1815,7 +1815,7 @@ As usual, we have to give a wellfounded relation, such that the
   rule for \isa{map} is
 
   \begin{isabelle}%
-{\isasymlbrakk}{\isacharquery}xs\ {\isacharequal}\ {\isacharquery}ys{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ set\ {\isacharquery}ys\ {\isasymLongrightarrow}\ {\isacharquery}f\ x\ {\isacharequal}\ {\isacharquery}g\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ map\ {\isacharquery}f\ {\isacharquery}xs\ {\isacharequal}\ map\ {\isacharquery}g\ {\isacharquery}ys%
+{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{3F}{\isacharquery}}xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}ys{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ {\isaliteral{3F}{\isacharquery}}ys\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}f\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}g\ x{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ map\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}xs\ {\isaliteral{3D}{\isacharequal}}\ map\ {\isaliteral{3F}{\isacharquery}}g\ {\isaliteral{3F}{\isacharquery}}ys%
 \end{isabelle}
 
   You can read this in the following way: Two applications of \isa{map} are equal, if the list arguments are equal and the functions
@@ -1831,12 +1831,12 @@ As usual, we have to give a wellfounded relation, such that the
   is false:
 
   \begin{isabelle}%
-{\isasymlbrakk}{\isacharquery}b\ {\isacharequal}\ {\isacharquery}c{\isacharsemicolon}\ {\isacharquery}c\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isacharequal}\ {\isacharquery}u{\isacharsemicolon}\ {\isasymnot}\ {\isacharquery}c\ {\isasymLongrightarrow}\ {\isacharquery}y\ {\isacharequal}\ {\isacharquery}v{\isasymrbrakk}\isanewline
-{\isasymLongrightarrow}\ {\isacharparenleft}if\ {\isacharquery}b\ then\ {\isacharquery}x\ else\ {\isacharquery}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ {\isacharquery}c\ then\ {\isacharquery}u\ else\ {\isacharquery}v{\isacharparenright}%
+{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{3F}{\isacharquery}}b\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}c{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{3F}{\isacharquery}}c\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}u{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{3F}{\isacharquery}}c\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}v{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}if\ {\isaliteral{3F}{\isacharquery}}b\ then\ {\isaliteral{3F}{\isacharquery}}x\ else\ {\isaliteral{3F}{\isacharquery}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ {\isaliteral{3F}{\isacharquery}}c\ then\ {\isaliteral{3F}{\isacharquery}}u\ else\ {\isaliteral{3F}{\isacharquery}}v{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
   
   Congruence rules can be added to the
-  function package by giving them the \isa{fundef{\isacharunderscore}cong} attribute.
+  function package by giving them the \isa{fundef{\isaliteral{5F}{\isacharunderscore}}cong} attribute.
 
   The constructs that are predefined in Isabelle, usually
   come with the respective congruence rules.
@@ -1872,9 +1872,9 @@ Higher order logic differs from functional programming languages in
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{function}\isamarkupfalse%
-\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}f\ n\ {\isacharequal}\ {\isacharparenleft}n\ {\isacharequal}\ {\isadigit{0}}\ {\isasymor}\ f\ {\isacharparenleft}n\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}f\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ f\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -1894,7 +1894,7 @@ For this definition, the termination proof fails. The default configuration
   congruence rule that specifies left-to-right evaluation order:
 
   \vspace{1ex}
-  \noindent \isa{{\isasymlbrakk}{\isacharquery}P\ {\isacharequal}\ {\isacharquery}P{\isacharprime}{\isacharsemicolon}\ {\isasymnot}\ {\isacharquery}P{\isacharprime}\ {\isasymLongrightarrow}\ {\isacharquery}Q\ {\isacharequal}\ {\isacharquery}Q{\isacharprime}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isacharquery}P\ {\isasymor}\ {\isacharquery}Q{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}P{\isacharprime}\ {\isasymor}\ {\isacharquery}Q{\isacharprime}{\isacharparenright}}\hfill(\isa{disj{\isacharunderscore}cong})
+  \noindent \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}P{\isaliteral{27}{\isacharprime}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{3F}{\isacharquery}}P{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}Q{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{3F}{\isacharquery}}Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}P{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{3F}{\isacharquery}}Q{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}}\hfill(\isa{disj{\isaliteral{5F}{\isacharunderscore}}cong})
   \vspace{1ex}
 
   Now the definition works without problems. Note how the termination
@@ -1907,8 +1907,8 @@ For this definition, the termination proof fails. The default configuration
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ disj{\isacharunderscore}cong{\isadigit{2}}{\isacharbrackleft}fundef{\isacharunderscore}cong{\isacharbrackright}{\isacharcolon}\ \isanewline
-\ \ {\isachardoublequoteopen}{\isacharparenleft}{\isasymnot}\ Q{\isacharprime}\ {\isasymLongrightarrow}\ P\ {\isacharequal}\ P{\isacharprime}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}Q\ {\isacharequal}\ Q{\isacharprime}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}P\ {\isasymor}\ Q{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}P{\isacharprime}\ {\isasymor}\ Q{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ disj{\isaliteral{5F}{\isacharunderscore}}cong{\isadigit{2}}{\isaliteral{5B}{\isacharbrackleft}}fundef{\isaliteral{5F}{\isacharunderscore}}cong{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ \isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{3D}{\isacharequal}}\ P{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{3D}{\isacharequal}}\ Q{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}P{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -1926,9 +1926,9 @@ For this definition, the termination proof fails. The default configuration
 \endisadelimproof
 \isanewline
 \isacommand{fun}\isamarkupfalse%
-\ f{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ f{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}f{\isacharprime}\ n\ {\isacharequal}\ {\isacharparenleft}f{\isacharprime}\ {\isacharparenleft}n\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}\ {\isasymor}\ n\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}{\isachardoublequoteclose}%
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}f{\isaliteral{27}{\isacharprime}}\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}f{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent These examples show that, in general, there is no \qt{best} set of
   congruence rules.

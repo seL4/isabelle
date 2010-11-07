@@ -19,22 +19,22 @@
 \noindent
 In particular, there are \isa{case}-expressions, for example
 \begin{isabelle}%
-\ \ \ \ \ case\ n\ of\ {\isadigit{0}}\ {\isasymRightarrow}\ {\isadigit{0}}\ {\isacharbar}\ Suc\ m\ {\isasymRightarrow}\ m%
+\ \ \ \ \ case\ n\ of\ {\isadigit{0}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isadigit{0}}\ {\isaliteral{7C}{\isacharbar}}\ Suc\ m\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ m%
 \end{isabelle}
 primitive recursion, for example%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{primrec}\isamarkupfalse%
-\ sum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}sum\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}sum\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ Suc\ n\ {\isacharplus}\ sum\ n{\isachardoublequoteclose}%
+\ sum\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}sum\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}sum\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ n\ {\isaliteral{2B}{\isacharplus}}\ sum\ n{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 and induction, for example%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}sum\ n\ {\isacharplus}\ sum\ n\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}sum\ n\ {\isaliteral{2B}{\isacharplus}}\ sum\ n\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -42,9 +42,9 @@ and induction, for example%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ n{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -63,9 +63,9 @@ The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
 \sdx{div}, \sdx{mod}, \cdx{min} and
 \cdx{max} are predefined, as are the relations
 \isadxboldpos{\isasymle}{$HOL2arithrel} and
-\isadxboldpos{<}{$HOL2arithrel}. As usual, \isa{m\ {\isacharminus}\ n\ {\isacharequal}\ {\isadigit{0}}} if
-\isa{m\ {\isacharless}\ n}. There is even a least number operation
-\sdx{LEAST}\@.  For example, \isa{{\isacharparenleft}LEAST\ n{\isachardot}\ {\isadigit{0}}\ {\isacharless}\ n{\isacharparenright}\ {\isacharequal}\ Suc\ {\isadigit{0}}}.
+\isadxboldpos{<}{$HOL2arithrel}. As usual, \isa{m\ {\isaliteral{2D}{\isacharminus}}\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}} if
+\isa{m\ {\isaliteral{3C}{\isacharless}}\ n}. There is even a least number operation
+\sdx{LEAST}\@.  For example, \isa{{\isaliteral{28}{\isacharparenleft}}LEAST\ n{\isaliteral{2E}{\isachardot}}\ {\isadigit{0}}\ {\isaliteral{3C}{\isacharless}}\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isadigit{0}}}.
 \begin{warn}\index{overloading}
   The constants \cdx{0} and \cdx{1} and the operations
   \isadxboldpos{+}{$HOL2arithfun}, \isadxboldpos{-}{$HOL2arithfun},
@@ -73,16 +73,16 @@ The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
   \cdx{max}, \isadxboldpos{\isasymle}{$HOL2arithrel} and
   \isadxboldpos{<}{$HOL2arithrel} are overloaded: they are available
   not just for natural numbers but for other types as well.
-  For example, given the goal \isa{x\ {\isacharplus}\ {\isadigit{0}}\ {\isacharequal}\ x}, there is nothing to indicate
+  For example, given the goal \isa{x\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ x}, there is nothing to indicate
   that you are talking about natural numbers. Hence Isabelle can only infer
-  that \isa{x} is of some arbitrary type where \isa{{\isadigit{0}}} and \isa{{\isacharplus}} are
+  that \isa{x} is of some arbitrary type where \isa{{\isadigit{0}}} and \isa{{\isaliteral{2B}{\isacharplus}}} are
   declared. As a consequence, you will be unable to prove the
   goal. To alert you to such pitfalls, Isabelle flags numerals without a
-  fixed type in its output: \isa{x\ {\isacharplus}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ x}. (In the absence of a numeral,
+  fixed type in its output: \isa{x\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ x}. (In the absence of a numeral,
   it may take you some time to realize what has happened if \pgmenu{Show
   Types} is not set).  In this particular example, you need to include
-  an explicit type constraint, for example \isa{x{\isacharplus}{\isadigit{0}}\ {\isacharequal}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}}. If there
-  is enough contextual information this may not be necessary: \isa{Suc\ x\ {\isacharequal}\ x} automatically implies \isa{x{\isacharcolon}{\isacharcolon}nat} because \isa{Suc} is not
+  an explicit type constraint, for example \isa{x{\isaliteral{2B}{\isacharplus}}{\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{29}{\isacharparenright}}}. If there
+  is enough contextual information this may not be necessary: \isa{Suc\ x\ {\isaliteral{3D}{\isacharequal}}\ x} automatically implies \isa{x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat} because \isa{Suc} is not
   overloaded.
 
   For details on overloading see \S\ref{sec:overloading}.
@@ -91,12 +91,12 @@ The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
 \end{warn}
 \begin{warn}
   The symbols \isadxboldpos{>}{$HOL2arithrel} and
-  \isadxboldpos{\isasymge}{$HOL2arithrel} are merely syntax: \isa{x\ {\isachargreater}\ y}
-  stands for \isa{y\ {\isacharless}\ x} and similary for \isa{{\isasymge}} and
-  \isa{{\isasymle}}.
+  \isadxboldpos{\isasymge}{$HOL2arithrel} are merely syntax: \isa{x\ {\isaliteral{3E}{\isachargreater}}\ y}
+  stands for \isa{y\ {\isaliteral{3C}{\isacharless}}\ x} and similary for \isa{{\isaliteral{5C3C67653E}{\isasymge}}} and
+  \isa{{\isaliteral{5C3C6C653E}{\isasymle}}}.
 \end{warn}
 \begin{warn}
-  Constant \isa{{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat} is defined to equal \isa{Suc\ {\isadigit{0}}}. This definition
+  Constant \isa{{\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat} is defined to equal \isa{Suc\ {\isadigit{0}}}. This definition
   (see \S\ref{sec:ConstDefinitions}) is unfolded automatically by some
   tactics (like \isa{auto}, \isa{simp} and \isa{arith}) but not by
   others (especially the single step tactics in Chapter~\ref{chap:rules}).
@@ -110,7 +110,7 @@ simple arithmetic goals automatically:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ m\ {\isaliteral{3C}{\isacharless}}\ n{\isaliteral{3B}{\isacharsemicolon}}\ m\ {\isaliteral{3C}{\isacharless}}\ n\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ m\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -132,7 +132,7 @@ In consequence, \isa{auto} and \isa{simp} cannot prove this slightly more comple
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}m\ {\isasymnoteq}\ {\isacharparenleft}n{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharless}\ n\ {\isasymor}\ n\ {\isacharless}\ m{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}m\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{28}{\isacharparenleft}}n{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ m\ {\isaliteral{3C}{\isacharless}}\ n\ {\isaliteral{5C3C6F723E}{\isasymor}}\ n\ {\isaliteral{3C}{\isacharless}}\ m{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -149,15 +149,15 @@ In consequence, \isa{auto} and \isa{simp} cannot prove this slightly more comple
 \begin{isamarkuptext}%
 \noindent The method \methdx{arith} is more general.  It attempts to
 prove the first subgoal provided it is a \textbf{linear arithmetic} formula.
-Such formulas may involve the usual logical connectives (\isa{{\isasymnot}},
-\isa{{\isasymand}}, \isa{{\isasymor}}, \isa{{\isasymlongrightarrow}}, \isa{{\isacharequal}},
-\isa{{\isasymforall}}, \isa{{\isasymexists}}), the relations \isa{{\isacharequal}},
-\isa{{\isasymle}} and \isa{{\isacharless}}, and the operations \isa{{\isacharplus}}, \isa{{\isacharminus}},
+Such formulas may involve the usual logical connectives (\isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}},
+\isa{{\isaliteral{5C3C616E643E}{\isasymand}}}, \isa{{\isaliteral{5C3C6F723E}{\isasymor}}}, \isa{{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}}, \isa{{\isaliteral{3D}{\isacharequal}}},
+\isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}}, \isa{{\isaliteral{5C3C6578697374733E}{\isasymexists}}}), the relations \isa{{\isaliteral{3D}{\isacharequal}}},
+\isa{{\isaliteral{5C3C6C653E}{\isasymle}}} and \isa{{\isaliteral{3C}{\isacharless}}}, and the operations \isa{{\isaliteral{2B}{\isacharplus}}}, \isa{{\isaliteral{2D}{\isacharminus}}},
 \isa{min} and \isa{max}.  For example,%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}min\ i\ {\isacharparenleft}max\ j\ {\isacharparenleft}k{\isacharasterisk}k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ max\ {\isacharparenleft}min\ {\isacharparenleft}k{\isacharasterisk}k{\isacharparenright}\ i{\isacharparenright}\ {\isacharparenleft}min\ i\ {\isacharparenleft}j{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}min\ i\ {\isaliteral{28}{\isacharparenleft}}max\ j\ {\isaliteral{28}{\isacharparenleft}}k{\isaliteral{2A}{\isacharasterisk}}k{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ max\ {\isaliteral{28}{\isacharparenleft}}min\ {\isaliteral{28}{\isacharparenleft}}k{\isaliteral{2A}{\isacharasterisk}}k{\isaliteral{29}{\isacharparenright}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}min\ i\ {\isaliteral{28}{\isacharparenleft}}j{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -165,7 +165,7 @@ Such formulas may involve the usual logical connectives (\isa{{\isasymnot}},
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}arith{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}arith{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -175,11 +175,11 @@ Such formulas may involve the usual logical connectives (\isa{{\isasymnot}},
 %
 \begin{isamarkuptext}%
 \noindent
-succeeds because \isa{k\ {\isacharasterisk}\ k} can be treated as atomic. In contrast,%
+succeeds because \isa{k\ {\isaliteral{2A}{\isacharasterisk}}\ k} can be treated as atomic. In contrast,%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}n{\isacharasterisk}n\ {\isacharequal}\ n{\isacharplus}{\isadigit{1}}\ {\isasymLongrightarrow}\ n{\isacharequal}{\isadigit{0}}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}n{\isaliteral{2A}{\isacharasterisk}}n\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ n{\isaliteral{3D}{\isacharequal}}{\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof

@@ -26,7 +26,7 @@ typeset a theorem by hand anymore because they have experienced the
 bliss of writing \verb!@!\verb!{thm[display]setsum_cartesian_product[no_vars]}!
 and seeing Isabelle typeset it for them:
 \begin{isabelle}%
-{\isacharparenleft}{\isasymSum}x{\isasymin}A{\isachardot}\ {\isasymSum}y{\isasymin}B{\isachardot}\ f\ x\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymSum}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isasymin}A\ {\isasymtimes}\ B{\isachardot}\ f\ x\ y{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C53756D3E}{\isasymSum}}x{\isaliteral{5C3C696E3E}{\isasymin}}A{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C53756D3E}{\isasymSum}}y{\isaliteral{5C3C696E3E}{\isasymin}}B{\isaliteral{2E}{\isachardot}}\ f\ x\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C53756D3E}{\isasymSum}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C696E3E}{\isasymin}}A\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ B{\isaliteral{2E}{\isachardot}}\ f\ x\ y{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 No typos, no omissions, no sweat.
 If you have not experienced that joy, read Chapter 4, \emph{Presenting
@@ -39,8 +39,8 @@ documents you can now produce at the drop of a hat will be struck with
 awe at the beauty unfolding in front of their eyes. Until one day you
 come across that very critical of readers known as the ``common referee''.
 He has the nasty habit of refusing to understand unfamiliar notation
-like Isabelle's infamous \isa{{\isasymlbrakk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}} no matter how many times you
-explain it in your paper. Even worse, he thinks that using \isa{{\isasymlbrakk}\ {\isasymrbrakk}} for anything other than denotational semantics is a cardinal sin
+like Isabelle's infamous \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}} no matter how many times you
+explain it in your paper. Even worse, he thinks that using \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}} for anything other than denotational semantics is a cardinal sin
 that must be punished by instant rejection.
 
 
@@ -57,8 +57,8 @@ theories live in \texttt{HOL/Library} and are found automatically.
 you so), you include them at the beginning of your \LaTeX\ document,
 typically in \texttt{root.tex}. For a start, you should
 \verb!\usepackage{amssymb}! --- otherwise typesetting
-\isa{{\isachardoublequote}{\isasymnot}{\isacharparenleft}{\isasymexists}x{\isachardot}\ P\ x{\isacharparenright}{\isachardoublequote}} will fail because the AMS symbol
-\isa{{\isasymnexists}} is missing.
+\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} will fail because the AMS symbol
+\isa{{\isaliteral{5C3C6E6578697374733E}{\isasymnexists}}} is missing.
 \end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -72,16 +72,16 @@ typically in \texttt{root.tex}. For a start, you should
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The formula \isa{{\isachardoublequote}{\isasymnot}{\isacharparenleft}{\isasymexists}x{\isachardot}\ P\ x{\isacharparenright}{\isachardoublequote}} is typeset as \isa{{\isasymnexists}x{\isachardot}\ P\ x}.
+The formula \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is typeset as \isa{{\isaliteral{5C3C6E6578697374733E}{\isasymnexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x}.
 
 The predefined constructs \isa{if}, \isa{let} and
 \isa{case} are set in sans serif font to distinguish them from
 other functions. This improves readability:
 \begin{itemize}
-\item \isa{\textsf{if}\ b\ \textsf{then}\ e\isactrlisub {\isadigit{1}}\ \textsf{else}\ e\isactrlisub {\isadigit{2}}} instead of \isa{if\ b\ then\ e\isactrlisub {\isadigit{1}}\ else\ e\isactrlisub {\isadigit{2}}}.
-\item \isa{\textsf{let}\ x\ {\isacharequal}\ e\isactrlisub {\isadigit{1}}\ \textsf{in}\ e\isactrlisub {\isadigit{2}}} instead of \isa{let\ x\ {\isacharequal}\ e\isactrlisub {\isadigit{1}}\ in\ e\isactrlisub {\isadigit{2}}}.
-\item \isa{\textsf{case}\ x\ \textsf{of}\ True\ {\isasymRightarrow}\ e\isactrlisub {\isadigit{1}}\ {\isacharbar}\ False\ {\isasymRightarrow}\ e\isactrlisub {\isadigit{2}}} instead of\\
-      \isa{case\ x\ of\ True\ {\isasymRightarrow}\ e\isactrlisub {\isadigit{1}}\ {\isacharbar}\ False\ {\isasymRightarrow}\ e\isactrlisub {\isadigit{2}}}.
+\item \isa{\textsf{if}\ b\ \textsf{then}\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ \textsf{else}\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}} instead of \isa{if\ b\ then\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ else\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}}.
+\item \isa{\textsf{let}\ x\ {\isaliteral{3D}{\isacharequal}}\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ \textsf{in}\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}} instead of \isa{let\ x\ {\isaliteral{3D}{\isacharequal}}\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ in\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}}.
+\item \isa{\textsf{case}\ x\ \textsf{of}\ True\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{7C}{\isacharbar}}\ False\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}} instead of\\
+      \isa{case\ x\ of\ True\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{7C}{\isacharbar}}\ False\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ e\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}}.
 \end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -94,10 +94,10 @@ other functions. This improves readability:
 Although set syntax in HOL is already close to
 standard, we provide a few further improvements:
 \begin{itemize}
-\item \isa{{\isacharbraceleft}x\ {\isacharbar}\ P{\isacharbraceright}} instead of \isa{{\isacharbraceleft}x{\isachardot}\ P{\isacharbraceright}}.
-\item \isa{{\isasymemptyset}} instead of \isa{{\isacharbraceleft}{\isacharbraceright}}, where
- \isa{{\isasymemptyset}} is also input syntax.
-\item \isa{{\isacharbraceleft}a{\isacharcomma}\ b{\isacharcomma}\ c{\isacharbraceright}\ {\isasymunion}\ M} instead of \isa{insert\ a\ {\isacharparenleft}insert\ b\ {\isacharparenleft}insert\ c\ M{\isacharparenright}{\isacharparenright}}.
+\item \isa{{\isaliteral{7B}{\isacharbraceleft}}x\ {\isaliteral{7C}{\isacharbar}}\ P{\isaliteral{7D}{\isacharbraceright}}} instead of \isa{{\isaliteral{7B}{\isacharbraceleft}}x{\isaliteral{2E}{\isachardot}}\ P{\isaliteral{7D}{\isacharbraceright}}}.
+\item \isa{{\isaliteral{5C3C656D7074797365743E}{\isasymemptyset}}} instead of \isa{{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{7D}{\isacharbraceright}}}, where
+ \isa{{\isaliteral{5C3C656D7074797365743E}{\isasymemptyset}}} is also input syntax.
+\item \isa{{\isaliteral{7B}{\isacharbraceleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{2C}{\isacharcomma}}\ c{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{5C3C756E696F6E3E}{\isasymunion}}\ M} instead of \isa{insert\ a\ {\isaliteral{28}{\isacharparenleft}}insert\ b\ {\isaliteral{28}{\isacharparenleft}}insert\ c\ M{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}.
 \end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -109,28 +109,28 @@ standard, we provide a few further improvements:
 \begin{isamarkuptext}%
 If lists are used heavily, the following notations increase readability:
 \begin{itemize}
-\item \isa{x{\isasymcdot}xs} instead of \isa{x\ {\isacharhash}\ xs},
-      where \isa{x{\isasymcdot}xs} is also input syntax.
+\item \isa{x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs} instead of \isa{x\ {\isaliteral{23}{\isacharhash}}\ xs},
+      where \isa{x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs} is also input syntax.
 If you prefer more space around the $\cdot$ you have to redefine
 \verb!\isasymcdot! in \LaTeX:
 \verb!\renewcommand{\isasymcdot}{\isamath{\,\cdot\,}}!
 
-\item \isa{{\isacharbar}xs{\isacharbar}} instead of \isa{length\ xs}.
+\item \isa{{\isaliteral{7C}{\isacharbar}}xs{\isaliteral{7C}{\isacharbar}}} instead of \isa{length\ xs}.
 \item \isa{xs\ensuremath{_{[\mathit{n}]}}} instead of \isa{nth\ xs\ n},
       the $n$th element of \isa{xs}.
 
 \item Human readers are good at converting automatically from lists to
 sets. Hence \texttt{OptionalSugar} contains syntax for suppressing the
-conversion function \isa{set}: for example, \isa{{\isachardoublequote}x\ {\isasymin}\ set\ xs{\isachardoublequote}}
-becomes \isa{x\ {\isasymin}\ xs}.
+conversion function \isa{set}: for example, \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ xs{\isaliteral{22}{\isachardoublequote}}}
+becomes \isa{x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ xs}.
 
-\item The \isa{{\isacharat}} operation associates implicitly to the right,
+\item The \isa{{\isaliteral{40}{\isacharat}}} operation associates implicitly to the right,
 which leads to unpleasant line breaks if the term is too long for one
 line. To avoid this, \texttt{OptionalSugar} contains syntax to group
-\isa{{\isacharat}}-terms to the left before printing, which leads to better
+\isa{{\isaliteral{40}{\isacharat}}}-terms to the left before printing, which leads to better
 line breaking behaviour:
 \begin{isabelle}%
-term\isactrlisub {\isadigit{0}}\ \isacharat\ term\isactrlisub {\isadigit{1}}\ \isacharat\ term\isactrlisub {\isadigit{2}}\ \isacharat\ term\isactrlisub {\isadigit{3}}\ \isacharat\ term\isactrlisub {\isadigit{4}}\ \isacharat\ term\isactrlisub {\isadigit{5}}\ \isacharat\ term\isactrlisub {\isadigit{6}}\ \isacharat\ term\isactrlisub {\isadigit{7}}\ \isacharat\ term\isactrlisub {\isadigit{8}}\ \isacharat\ term\isactrlisub {\isadigit{9}}\ \isacharat\ term\isactrlisub {\isadigit{1}}\isactrlisub {\isadigit{0}}%
+term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{0}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{3}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{4}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{5}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{6}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{7}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{8}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{9}}\ \isacharat\ term\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{0}}%
 \end{isabelle}
 
 \end{itemize}%
@@ -145,10 +145,10 @@ term\isactrlisub {\isadigit{0}}\ \isacharat\ term\isactrlisub {\isadigit{1}}\ \i
 Coercions between numeric types are alien to mathematicians who
 consider, for example, \isa{nat} as a subset of \isa{int}.
 \texttt{OptionalSugar} contains syntax for suppressing numeric coercions such
-as \isa{int} \isa{{\isacharcolon}{\isacharcolon}} \isa{nat\ {\isasymRightarrow}\ int}. For example,
-\isa{{\isachardoublequote}int\ {\isadigit{5}}{\isachardoublequote}} is printed as \isa{{\isadigit{5}}}. Embeddings of types
+as \isa{int} \isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}} \isa{nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ int}. For example,
+\isa{{\isaliteral{22}{\isachardoublequote}}int\ {\isadigit{5}}{\isaliteral{22}{\isachardoublequote}}} is printed as \isa{{\isadigit{5}}}. Embeddings of types
 \isa{nat}, \isa{int}, \isa{real} are covered; non-injective coercions such
-as \isa{nat} \isa{{\isacharcolon}{\isacharcolon}} \isa{int\ {\isasymRightarrow}\ nat} are not and should not be
+as \isa{nat} \isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}} \isa{int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat} are not and should not be
 hidden.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -164,11 +164,11 @@ hidden.%
 \begin{isamarkuptext}%
 If you print anything, especially theorems, containing
 schematic variables they are prefixed with a question mark:
-\verb!@!\verb!{thm conjI}! results in \isa{{\isasymlbrakk}{\isacharquery}P{\isacharsemicolon}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isasymand}\ {\isacharquery}Q}. Most of the time
+\verb!@!\verb!{thm conjI}! results in \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{3F}{\isacharquery}}P{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{3F}{\isacharquery}}Q{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{3F}{\isacharquery}}Q}. Most of the time
 you would rather not see the question marks. There is an attribute
 \verb!no_vars! that you can attach to the theorem that turns its
 schematic into ordinary free variables: \verb!@!\verb!{thm conjI[no_vars]}!
-results in \isa{{\isasymlbrakk}P{\isacharsemicolon}\ Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isasymand}\ Q}.
+results in \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}P{\isaliteral{3B}{\isacharsemicolon}}\ Q{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q}.
 
 This \verb!no_vars! business can become a bit tedious.
 If you would rather never see question marks, simply put
@@ -180,10 +180,10 @@ The rest of this document is produced with this flag set to \texttt{false}.
 
 Hint: Setting \verb!show_question_marks_default! to \texttt{false} only
 suppresses question marks; variables that end in digits,
-e.g. \isa{x{\isadigit{1}}}, are still printed with a trailing \isa{{\isachardot}{\isadigit{0}}},
-e.g. \isa{x{\isadigit{1}}{\isachardot}{\isadigit{0}}}, their internal index. This can be avoided by
+e.g. \isa{x{\isadigit{1}}}, are still printed with a trailing \isa{{\isaliteral{2E}{\isachardot}}{\isadigit{0}}},
+e.g. \isa{x{\isadigit{1}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}}, their internal index. This can be avoided by
 turning the last digit into a subscript: write \verb!x\<^isub>1! and
-obtain the much nicer \isa{x\isactrlisub {\isadigit{1}}}.%
+obtain the much nicer \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -193,8 +193,8 @@ obtain the much nicer \isa{x\isactrlisub {\isadigit{1}}}.%
 %
 \begin{isamarkuptext}%
 If there are multiple declarations of the same name, Isabelle prints
-the qualified name, for example \isa{T{\isachardot}length}, where \isa{T} is the
-theory it is defined in, to distinguish it from the predefined \isa{{\isachardoublequote}List{\isachardot}length{\isachardoublequote}}. In case there is no danger of confusion, you can insist on
+the qualified name, for example \isa{T{\isaliteral{2E}{\isachardot}}length}, where \isa{T} is the
+theory it is defined in, to distinguish it from the predefined \isa{{\isaliteral{22}{\isachardoublequote}}List{\isaliteral{2E}{\isachardot}}length{\isaliteral{22}{\isachardoublequote}}}. In case there is no danger of confusion, you can insist on
 short names (no qualifiers) by setting \verb!short_names!, typically
 in \texttt{ROOT.ML}:
 \begin{quote}
@@ -211,13 +211,13 @@ in \texttt{ROOT.ML}:
 It sometimes happens that you want to change the name of a
 variable in a theorem before printing it. This can easily be achieved
 with the help of Isabelle's instantiation attribute \texttt{where}:
-\isa{{\isasymlbrakk}{\isasymphi}{\isacharsemicolon}\ {\isasympsi}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymphi}\ {\isasymand}\ {\isasympsi}} is the result of
+\isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C7073693E}{\isasympsi}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C7073693E}{\isasympsi}}} is the result of
 \begin{quote}
 \verb!@!\verb!{thm conjI[where P = \<phi> and Q = \<psi>]}!
 \end{quote}
 To support the ``\_''-notation for irrelevant variables
 the constant \texttt{DUMMY} has been introduced:
-\isa{fst\ {\isacharparenleft}a{\isacharcomma}\ \_{\isacharparenright}\ {\isacharequal}\ a} is produced by
+\isa{fst\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ \_{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ a} is produced by
 \begin{quote}
 \verb!@!\verb!{thm fst_conv[where b = DUMMY]}!
 \end{quote}
@@ -228,7 +228,7 @@ job. It expects a list of names or underscores, similar to the
 \begin{quote}
 \verb!@!\verb!{thm split_paired_All[rename_abs _ l r]}!
 \end{quote}
-produces \isa{{\isacharparenleft}{\isasymforall}x{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}l\ r{\isachardot}\ P\ {\isacharparenleft}l{\isacharcomma}\ r{\isacharparenright}{\isacharparenright}}.%
+produces \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}l\ r{\isaliteral{2E}{\isachardot}}\ P\ {\isaliteral{28}{\isacharparenleft}}l{\isaliteral{2C}{\isacharcomma}}\ r{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -242,10 +242,10 @@ R\'emy's \texttt{mathpartir} package~\cite{mathpartir}
 for typesetting inference rules in your \LaTeX\ file.
 
 Writing \verb!@!\verb!{thm[mode=Rule] conjI}! produces
-\isa{\mbox{}\inferrule{\mbox{P}\\\ \mbox{Q}}{\mbox{P\ {\isasymand}\ Q}}}, even in the middle of a sentence.
+\isa{\mbox{}\inferrule{\mbox{P}\\\ \mbox{Q}}{\mbox{P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q}}}, even in the middle of a sentence.
 If you prefer your inference rule on a separate line, maybe with a name,
 \begin{center}
-\isa{\mbox{}\inferrule{\mbox{P}\\\ \mbox{Q}}{\mbox{P\ {\isasymand}\ Q}}} {\sc conjI}
+\isa{\mbox{}\inferrule{\mbox{P}\\\ \mbox{Q}}{\mbox{P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q}}} {\sc conjI}
 \end{center}
 is produced by
 \begin{quote}
@@ -268,19 +268,19 @@ Of course you can display multiple rules in this fashion:
 \end{quote}
 yields
 \begin{center}\small
-\isa{\mbox{}\inferrule{\mbox{P}\\\ \mbox{Q}}{\mbox{P\ {\isasymand}\ Q}}} {\sc conjI} \\[1ex]
-\isa{\mbox{}\inferrule{\mbox{P}}{\mbox{P\ {\isasymor}\ Q}}} {\sc disjI$_1$} \qquad
-\isa{\mbox{}\inferrule{\mbox{Q}}{\mbox{P\ {\isasymor}\ Q}}} {\sc disjI$_2$}
+\isa{\mbox{}\inferrule{\mbox{P}\\\ \mbox{Q}}{\mbox{P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q}}} {\sc conjI} \\[1ex]
+\isa{\mbox{}\inferrule{\mbox{P}}{\mbox{P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q}}} {\sc disjI$_1$} \qquad
+\isa{\mbox{}\inferrule{\mbox{Q}}{\mbox{P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q}}} {\sc disjI$_2$}
 \end{center}
 
 The \texttt{mathpartir} package copes well if there are too many
 premises for one line:
 \begin{center}
-\isa{\mbox{}\inferrule{\mbox{A\ {\isasymlongrightarrow}\ B}\\\ \mbox{B\ {\isasymlongrightarrow}\ C}\\\ \mbox{C\ {\isasymlongrightarrow}\ D}\\\ \mbox{D\ {\isasymlongrightarrow}\ E}\\\ \mbox{E\ {\isasymlongrightarrow}\ F}\\\ \mbox{F\ {\isasymlongrightarrow}\ G}\\\ \mbox{G\ {\isasymlongrightarrow}\ H}\\\ \mbox{H\ {\isasymlongrightarrow}\ I}\\\ \mbox{I\ {\isasymlongrightarrow}\ J}\\\ \mbox{J\ {\isasymlongrightarrow}\ K}}{\mbox{A\ {\isasymlongrightarrow}\ K}}}
+\isa{\mbox{}\inferrule{\mbox{A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ B}\\\ \mbox{B\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ C}\\\ \mbox{C\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ D}\\\ \mbox{D\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ E}\\\ \mbox{E\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ F}\\\ \mbox{F\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ G}\\\ \mbox{G\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ H}\\\ \mbox{H\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ I}\\\ \mbox{I\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ J}\\\ \mbox{J\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ K}}{\mbox{A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ K}}}
 \end{center}
 
 Limitations: 1. Premises and conclusion must each not be longer than
-the line.  2. Premises that are \isa{{\isasymLongrightarrow}}-implications are again
+the line.  2. Premises that are \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}}-implications are again
 displayed with a horizontal line, which looks at least unusual.
 
 
@@ -293,7 +293,7 @@ In case you print theorems without premises no rule will be printed by the
 \end{quote}
 yields
 \begin{center}
-\isa{\mbox{}\inferrule{\mbox{}}{\mbox{t\ {\isacharequal}\ t}}} {\sc refl} 
+\isa{\mbox{}\inferrule{\mbox{}}{\mbox{t\ {\isaliteral{3D}{\isacharequal}}\ t}}} {\sc refl} 
 \end{center}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -305,14 +305,14 @@ yields
 \begin{isamarkuptext}%
 When displaying theorems with the \texttt{display} option, e.g.
 \verb!@!\verb!{thm[display] refl}! \begin{isabelle}%
-t\ {\isacharequal}\ t%
+t\ {\isaliteral{3D}{\isacharequal}}\ t%
 \end{isabelle} the theorem is
 set in small font. It uses the \LaTeX-macro \verb!\isastyle!,
 which is also the style that regular theory text is set in, e.g.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}t\ {\isacharequal}\ t{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}t\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -342,8 +342,8 @@ The advantage of the display option is that you can display a whole
 list of theorems in one go. For example,
 \verb!@!\verb!{thm[display] foldl.simps}!
 generates \begin{isabelle}%
-foldl\ f\ a\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ a\isasep\isanewline%
-foldl\ f\ a\ {\isacharparenleft}x{\isasymcdot}xs{\isacharparenright}\ {\isacharequal}\ foldl\ f\ {\isacharparenleft}f\ a\ x{\isacharparenright}\ xs%
+foldl\ f\ a\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ a\isasep\isanewline%
+foldl\ f\ a\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ foldl\ f\ {\isaliteral{28}{\isacharparenleft}}f\ a\ x{\isaliteral{29}{\isacharparenright}}\ xs%
 \end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -357,7 +357,7 @@ If you prefer a fake ``natural language'' style you can produce
 the body of
 \newtheorem{theorem}{Theorem}
 \begin{theorem}
-\isa{{\normalsize{}If\,}\ \mbox{i\ {\isasymle}\ j}\ {\normalsize \,and\,}\ \mbox{j\ {\isasymle}\ k}\ {\normalsize \,then\,}\ i\ {\isasymle}\ k{\isachardot}}
+\isa{{\normalsize{}If\,}\ \mbox{i\ {\isaliteral{5C3C6C653E}{\isasymle}}\ j}\ {\normalsize \,and\,}\ \mbox{j\ {\isaliteral{5C3C6C653E}{\isasymle}}\ k}\ {\normalsize \,then\,}\ i\ {\isaliteral{5C3C6C653E}{\isasymle}}\ k{\isaliteral{2E}{\isachardot}}}
 \end{theorem}
 by typing
 \begin{quote}
@@ -367,12 +367,12 @@ by typing
 In order to prevent odd line breaks, the premises are put into boxes.
 At times this is too drastic:
 \begin{theorem}
-\isa{{\normalsize{}If\,}\ \mbox{longpremise}\ {\normalsize \,and\,}\ \mbox{longerpremise}\ {\normalsize \,and\,}\ \mbox{P\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ x{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}}\ {\normalsize \,and\,}\ \mbox{longestpremise}\ {\normalsize \,then\,}\ conclusion{\isachardot}}
+\isa{{\normalsize{}If\,}\ \mbox{longpremise}\ {\normalsize \,and\,}\ \mbox{longerpremise}\ {\normalsize \,and\,}\ \mbox{P\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}\ {\normalsize \,and\,}\ \mbox{longestpremise}\ {\normalsize \,then\,}\ conclusion{\isaliteral{2E}{\isachardot}}}
 \end{theorem}
 In which case you should use \texttt{IfThenNoBox} instead of
 \texttt{IfThen}:
 \begin{theorem}
-\isa{{\normalsize{}If\,}\ longpremise\ {\normalsize \,and\,}\ longerpremise\ {\normalsize \,and\,}\ P\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ {\isacharparenleft}f\ x{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\normalsize \,and\,}\ longestpremise\ {\normalsize \,then\,}\ conclusion{\isachardot}}
+\isa{{\normalsize{}If\,}\ longpremise\ {\normalsize \,and\,}\ longerpremise\ {\normalsize \,and\,}\ P\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}f\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\normalsize \,and\,}\ longestpremise\ {\normalsize \,then\,}\ conclusion{\isaliteral{2E}{\isachardot}}}
 \end{theorem}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -392,7 +392,7 @@ prints premise 1 of $thm$.
 prints the conclusion of $thm$.
 \end{itemize}
 For example, ``from \isa{Q} and
-\isa{P} we conclude \isa{P\ {\isasymand}\ Q}''
+\isa{P} we conclude \isa{P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q}''
 is produced by
 \begin{quote}
 \verb!from !\verb!@!\verb!{thm (prem 2) conjI}! \verb!and !\verb!@!\verb!{thm (prem 1) conjI}!\\
@@ -418,11 +418,11 @@ In \S\ref{sec:varnames} we shows how to create patterns containing
   
   \begin{center}
   \begin{tabular}{l@ {~~produced by~~}l}
-  \isa{\textsf{let}\ {\isacharparenleft}x{\isacharcomma}\ \_{\isacharparenright}\ {\isacharequal}\ p\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = fst p in t"}!\\
-  \isa{\textsf{let}\ {\isacharparenleft}\_{\isacharcomma}\ x{\isacharparenright}\ {\isacharequal}\ p\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = snd p in t"}!\\
-  \isa{\textsf{let}\ x{\isasymcdot}\_\ {\isacharequal}\ xs\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = hd xs in t"}!\\
-  \isa{\textsf{let}\ \_{\isasymcdot}x\ {\isacharequal}\ xs\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = tl xs in t"}!\\
-  \isa{\textsf{let}\ Some\ x\ {\isacharequal}\ y\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = the y in t"}!\\
+  \isa{\textsf{let}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ \_{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ p\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = fst p in t"}!\\
+  \isa{\textsf{let}\ {\isaliteral{28}{\isacharparenleft}}\_{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ p\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = snd p in t"}!\\
+  \isa{\textsf{let}\ x{\isaliteral{5C3C63646F743E}{\isasymcdot}}\_\ {\isaliteral{3D}{\isacharequal}}\ xs\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = hd xs in t"}!\\
+  \isa{\textsf{let}\ \_{\isaliteral{5C3C63646F743E}{\isasymcdot}}x\ {\isaliteral{3D}{\isacharequal}}\ xs\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = tl xs in t"}!\\
+  \isa{\textsf{let}\ Some\ x\ {\isaliteral{3D}{\isacharequal}}\ y\ \textsf{in}\ t} & \verb!@!\verb!{term "let x = the y in t"}!\\
   \end{tabular}
   \end{center}%
 \end{isamarkuptext}%
@@ -453,7 +453,7 @@ It is usually easiest to put them in figures like the one in Fig.\
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ %
 \isamarkupcmt{pretty trivial%
 }
@@ -505,7 +505,7 @@ Other theory text, e.g.\ definitions, can be put in figures, too.%
 \begin{isamarkuptext}%
 The \verb!thm! antiquotation works nicely for single theorems, but
   sets of equations as used in definitions are more difficult to
-  typeset nicely: people tend to prefer aligned \isa{{\isacharequal}} signs.
+  typeset nicely: people tend to prefer aligned \isa{{\isaliteral{3D}{\isacharequal}}} signs.
 
   To deal with such cases where it is desirable to dive into the structure
   of terms and theorems, Isabelle offers antiquotations featuring
@@ -524,9 +524,9 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   For example, 
   the output
   \begin{center}
-  \begin{tabular}{l@ {~~\isa{{\isacharequal}}~~}l}
-  \isa{foldl\ f\ a\ {\isacharbrackleft}{\isacharbrackright}} & \isa{a}\\
-  \isa{foldl\ f\ a\ {\isacharparenleft}x{\isasymcdot}xs{\isacharparenright}} & \isa{foldl\ f\ {\isacharparenleft}f\ a\ x{\isacharparenright}\ xs}
+  \begin{tabular}{l@ {~~\isa{{\isaliteral{3D}{\isacharequal}}}~~}l}
+  \isa{foldl\ f\ a\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} & \isa{a}\\
+  \isa{foldl\ f\ a\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C63646F743E}{\isasymcdot}}xs{\isaliteral{29}{\isacharparenright}}} & \isa{foldl\ f\ {\isaliteral{28}{\isacharparenleft}}f\ a\ x{\isaliteral{29}{\isacharparenright}}\ xs}
   \end{tabular}
   \end{center}
   is produced by the following code:
@@ -543,16 +543,16 @@ The \verb!thm! antiquotation works nicely for single theorems, but
   as an antiquotation. The styles \verb!lhs! and \verb!rhs!
   extract the left hand side (or right hand side respectively) from the
   conclusion of propositions consisting of a binary operator
-  (e.~g.~\isa{{\isacharequal}}, \isa{{\isasymequiv}}, \isa{{\isacharless}}).
+  (e.~g.~\isa{{\isaliteral{3D}{\isacharequal}}}, \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}}, \isa{{\isaliteral{3C}{\isacharless}}}).
 
   Likewise, \verb!concl! may be used as a style to show just the
   conclusion of a proposition. For example, take \verb!hd_Cons_tl!:
   \begin{center}
-    \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
+    \isa{xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ hd\ xs{\isaliteral{5C3C63646F743E}{\isasymcdot}}tl\ xs\ {\isaliteral{3D}{\isacharequal}}\ xs}
   \end{center}
   To print just the conclusion,
   \begin{center}
-    \isa{hd\ xs{\isasymcdot}tl\ xs\ {\isacharequal}\ xs}
+    \isa{hd\ xs{\isaliteral{5C3C63646F743E}{\isasymcdot}}tl\ xs\ {\isaliteral{3D}{\isacharequal}}\ xs}
   \end{center}
   type
   \begin{quote}

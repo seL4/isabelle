@@ -28,7 +28,7 @@ We extend the datatype
 \isa{formula} by a new constructor%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ formula%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ AF\ formula%
 \begin{isamarkuptext}%
 \noindent
 which stands for ``\emph{A}lways in the \emph{F}uture'':
@@ -38,8 +38,8 @@ in HOL: it is simply a function from \isa{nat} to \isa{state}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ Paths\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}set{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}Paths\ s\ {\isasymequiv}\ {\isacharbraceleft}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}{\isacharbraceright}{\isachardoublequoteclose}%
+\ Paths\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}state\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ state{\isaliteral{29}{\isacharparenright}}set{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}Paths\ s\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{7B}{\isacharbraceleft}}p{\isaliteral{2E}{\isachardot}}\ s\ {\isaliteral{3D}{\isacharequal}}\ p\ {\isadigit{0}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}i{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}p\ i{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M{\isaliteral{29}{\isacharparenright}}{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 This definition allows a succinct statement of the semantics of \isa{AF}:
@@ -49,7 +49,7 @@ presentation (see \S\ref{sec:doc-prep-suppress}). In reality one has to define
 a new datatype and a new function.}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-{\isachardoublequoteopen}s\ {\isasymTurnstile}\ AF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequoteclose}%
+{\isaliteral{22}{\isachardoublequoteopen}}s\ {\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}\ AF\ f\ \ \ \ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}p\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Paths\ s{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}i{\isaliteral{2E}{\isachardot}}\ p\ i\ {\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}\ f{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 Model checking \isa{AF} involves a function which
@@ -57,15 +57,15 @@ is just complicated enough to warrant a separate definition:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ af\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ set{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}af\ A\ T\ {\isasymequiv}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymin}\ T{\isacharbraceright}{\isachardoublequoteclose}%
+\ af\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}state\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ state\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ state\ set{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}af\ A\ T\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ A\ {\isaliteral{5C3C756E696F6E3E}{\isasymunion}}\ {\isaliteral{7B}{\isacharbraceleft}}s{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ T{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
-Now we define \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}} as the least set \isa{T} that includes
+Now we define \isa{mc\ {\isaliteral{28}{\isacharparenleft}}AF\ f{\isaliteral{29}{\isacharparenright}}} as the least set \isa{T} that includes
 \isa{mc\ f} and all states all of whose direct successors are in \isa{T}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-{\isachardoublequoteopen}mc{\isacharparenleft}AF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}af{\isacharparenleft}mc\ f{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+{\isaliteral{22}{\isachardoublequoteopen}}mc{\isaliteral{28}{\isacharparenleft}}AF\ f{\isaliteral{29}{\isacharparenright}}\ \ \ \ {\isaliteral{3D}{\isacharequal}}\ lfp{\isaliteral{28}{\isacharparenleft}}af{\isaliteral{28}{\isacharparenleft}}mc\ f{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 Because \isa{af} is monotone in its second argument (and also its first, but
@@ -73,7 +73,7 @@ that is irrelevant), \isa{af\ A} has a least fixed point:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ mono{\isacharunderscore}af{\isacharcolon}\ {\isachardoublequoteopen}mono{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ mono{\isaliteral{5F}{\isacharunderscore}}af{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}mono{\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -81,7 +81,7 @@ that is irrelevant), \isa{af\ A} has a least fixed point:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ mono{\isacharunderscore}def\ af{\isacharunderscore}def{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ mono{\isaliteral{5F}{\isacharunderscore}}def\ af{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ blast\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -120,14 +120,14 @@ that is irrelevant), \isa{af\ A} has a least fixed point:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-All we need to prove now is  \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ AF\ f{\isacharbraceright}}, which states
-that \isa{mc} and \isa{{\isasymTurnstile}} agree for \isa{AF}\@.
+All we need to prove now is  \isa{mc\ {\isaliteral{28}{\isacharparenleft}}AF\ f{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}s{\isaliteral{2E}{\isachardot}}\ s\ {\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}\ AF\ f{\isaliteral{7D}{\isacharbraceright}}}, which states
+that \isa{mc} and \isa{{\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}} agree for \isa{AF}\@.
 This time we prove the two inclusions separately, starting
 with the easy one:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ AF{\isacharunderscore}lemma{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymsubseteq}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequoteclose}%
+\ AF{\isaliteral{5F}{\isacharunderscore}}lemma{\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}lfp{\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ {\isaliteral{7B}{\isacharbraceleft}}s{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}p\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Paths\ s{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}i{\isaliteral{2E}{\isachardot}}\ p\ i\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -140,34 +140,34 @@ In contrast to the analogous proof for \isa{EF}, and just
 for a change, we do not use fixed point induction.  Park-induction,
 named after David Park, is weaker but sufficient for this proof:
 \begin{center}
-\isa{f\ S\ {\isasymle}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymle}\ S} \hfill (\isa{lfp{\isacharunderscore}lowerbound})
+\isa{f\ S\ {\isaliteral{5C3C6C653E}{\isasymle}}\ S\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ lfp\ f\ {\isaliteral{5C3C6C653E}{\isasymle}}\ S} \hfill (\isa{lfp{\isaliteral{5F}{\isacharunderscore}}lowerbound})
 \end{center}
-The instance of the premise \isa{f\ S\ {\isasymsubseteq}\ S} is proved pointwise,
+The instance of the premise \isa{f\ S\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ S} is proved pointwise,
 a decision that \isa{auto} takes for us:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}rule\ lfp{\isacharunderscore}lowerbound{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}rule\ lfp{\isaliteral{5F}{\isacharunderscore}}lowerbound{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}auto\ simp\ add{\isaliteral{3A}{\isacharcolon}}\ af{\isaliteral{5F}{\isacharunderscore}}def\ Paths{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}t{\isachardot}\ {\isacharparenleft}p\ {\isadigit{0}}{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}t{\isachardot}\ }{\isacharparenleft}{\isasymforall}p{\isachardot}\ t\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}t{\isachardot}\ {\isacharparenleft}{\isasymforall}p{\isachardot}\ }{\isacharparenleft}{\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ \ }{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ }{\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}p\ {\isadigit{0}}{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}p{\isaliteral{2E}{\isachardot}}\ t\ {\isaliteral{3D}{\isacharequal}}\ p\ {\isadigit{0}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}i{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}p\ i{\isaliteral{2C}{\isacharcomma}}\ p\ {\isaliteral{28}{\isacharparenleft}}Suc\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}p{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}i{\isaliteral{2E}{\isachardot}}\ p\ i\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ \ }{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}i{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}p\ i{\isaliteral{2C}{\isacharcomma}}\ p\ {\isaliteral{28}{\isacharparenleft}}Suc\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}p{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}i{\isaliteral{2E}{\isachardot}}\ p\ i\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A%
 \end{isabelle}
 In this remaining case, we set \isa{t} to \isa{p\ {\isadigit{1}}}.
 The rest is automatic, which is surprising because it involves
-finding the instantiation \isa{{\isasymlambda}i{\isachardot}\ p\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}}
-for \isa{{\isasymforall}p}.%
+finding the instantiation \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}i{\isaliteral{2E}{\isachardot}}\ p\ {\isaliteral{28}{\isacharparenleft}}i\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}}
+for \isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}p}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}p\ {\isadigit{1}}{\isachardoublequoteclose}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}erule{\isaliteral{5F}{\isacharunderscore}}tac\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}p\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{in}\ allE{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -179,11 +179,11 @@ for \isa{{\isasymforall}p}.%
 %
 \begin{isamarkuptext}%
 The opposite inclusion is proved by contradiction: if some state
-\isa{s} is not in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}, then we can construct an
+\isa{s} is not in \isa{lfp\ {\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}}, then we can construct an
 infinite \isa{A}-avoiding path starting from~\isa{s}. The reason is
 that by unfolding \isa{lfp} we find that if \isa{s} is not in
-\isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}, then \isa{s} is not in \isa{A} and there is a
-direct successor of \isa{s} that is again not in \mbox{\isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}}. Iterating this argument yields the promised infinite
+\isa{lfp\ {\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}}, then \isa{s} is not in \isa{A} and there is a
+direct successor of \isa{s} that is again not in \mbox{\isa{lfp\ {\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}}}. Iterating this argument yields the promised infinite
 \isa{A}-avoiding path. Let us formalize this sketch.
 
 The one-step argument in the sketch above
@@ -191,8 +191,8 @@ is proved by a variant of contraposition:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharcolon}\isanewline
-\ {\isachardoublequoteopen}s\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ s\ {\isasymnotin}\ A\ {\isasymand}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ not{\isaliteral{5F}{\isacharunderscore}}in{\isaliteral{5F}{\isacharunderscore}}lfp{\isaliteral{5F}{\isacharunderscore}}afD{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}s\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ lfp{\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ s\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}\ t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ t\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ lfp{\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -200,11 +200,11 @@ is proved by a variant of contraposition:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}erule\ contrapos{\isacharunderscore}np{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}erule\ contrapos{\isaliteral{5F}{\isacharunderscore}}np{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}subst\ lfp{\isaliteral{5F}{\isacharunderscore}}unfold{\isaliteral{5B}{\isacharbrackleft}}OF\ mono{\isaliteral{5F}{\isacharunderscore}}af{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ af{\isacharunderscore}def{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ af{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -216,7 +216,7 @@ is proved by a variant of contraposition:%
 %
 \begin{isamarkuptext}%
 \noindent
-We assume the negation of the conclusion and prove \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}.
+We assume the negation of the conclusion and prove \isa{s\ {\isaliteral{5C3C696E3E}{\isasymin}}\ lfp\ {\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}}.
 Unfolding \isa{lfp} once and
 simplifying with the definition of \isa{af} finishes the proof.
 
@@ -225,13 +225,13 @@ path is parameterized by a predicate \isa{Q} that should hold along the path:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{primrec}\isamarkupfalse%
-\ path\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ {\isasymRightarrow}\ {\isacharparenleft}state\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}path\ s\ Q\ {\isadigit{0}}\ {\isacharequal}\ s{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}path\ s\ Q\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ Q\ n{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isachardoublequoteclose}%
+\ path\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}state\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}state\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}path\ s\ Q\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ s{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}path\ s\ Q\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}SOME\ t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}path\ s\ Q\ n{\isaliteral{2C}{\isacharcomma}}t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ t{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
-Element \isa{n\ {\isacharplus}\ {\isadigit{1}}} on this path is some arbitrary successor
-\isa{t} of element \isa{n} such that \isa{Q\ t} holds.  Remember that \isa{SOME\ t{\isachardot}\ R\ t}
+Element \isa{n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}} on this path is some arbitrary successor
+\isa{t} of element \isa{n} such that \isa{Q\ t} holds.  Remember that \isa{SOME\ t{\isaliteral{2E}{\isachardot}}\ R\ t}
 is some arbitrary but fixed \isa{t} such that \isa{R\ t} holds (see \S\ref{sec:SOME}). Of
 course, such a \isa{t} need not exist, but that is of no
 concern to us since we will only use \isa{path} when a
@@ -242,9 +242,9 @@ has a successor that again satisfies \isa{Q}, then there exists an infinite \isa
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ infinity{\isacharunderscore}lemma{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\isanewline
-\ \ \ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isachardoublequoteclose}%
+\ infinity{\isaliteral{5F}{\isacharunderscore}}lemma{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ Q\ s{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}s{\isaliteral{2E}{\isachardot}}\ Q\ s\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}\ t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\ \ \ {\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{5C3C696E3E}{\isasymin}}Paths\ s{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}i{\isaliteral{2E}{\isachardot}}\ Q{\isaliteral{28}{\isacharparenleft}}p\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -258,66 +258,66 @@ both the path property and the fact that \isa{Q} holds:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}subgoal{\isacharunderscore}tac\isanewline
-\ \ {\isachardoublequoteopen}{\isasymexists}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}subgoal{\isaliteral{5F}{\isacharunderscore}}tac\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{2E}{\isachardot}}\ s\ {\isaliteral{3D}{\isacharequal}}\ p\ {\isadigit{0}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}i{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}p\ i{\isaliteral{2C}{\isacharcomma}}\ p{\isaliteral{28}{\isacharparenleft}}i{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q{\isaliteral{28}{\isacharparenleft}}p\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 From this proposition the original goal follows easily:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ Paths{\isacharunderscore}def{\isacharcomma}\ blast{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ Paths{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{2C}{\isacharcomma}}\ blast{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 The new subgoal is proved by providing the witness \isa{path\ s\ Q} for \isa{p}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}path\ s\ Q{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}rule{\isaliteral{5F}{\isacharunderscore}}tac\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}path\ s\ Q{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{in}\ exI{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}clarsimp{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}clarsimp{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 After simplification and clarification, the subgoal has the following form:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ }{\isasymLongrightarrow}\ {\isacharparenleft}path\ s\ Q\ i{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ Q\ i{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymLongrightarrow}\ }Q\ {\isacharparenleft}path\ s\ Q\ i{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}i{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}Q\ s{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}s{\isaliteral{2E}{\isachardot}}\ Q\ s\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ t{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}i{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}path\ s\ Q\ i{\isaliteral{2C}{\isacharcomma}}\ SOME\ t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}path\ s\ Q\ i{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}i{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ }Q\ {\isaliteral{28}{\isacharparenleft}}path\ s\ Q\ i{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 It invites a proof by induction on \isa{i}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ i{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 After simplification, the base case boils down to
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ }{\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymin}\ M%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}Q\ s{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}s{\isaliteral{2E}{\isachardot}}\ Q\ s\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ t{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ SOME\ t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M%
 \end{isabelle}
-The conclusion looks exceedingly trivial: after all, \isa{t} is chosen such that \isa{{\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M}
+The conclusion looks exceedingly trivial: after all, \isa{t} is chosen such that \isa{{\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M}
 holds. However, we first have to show that such a \isa{t} actually exists! This reasoning
-is embodied in the theorem \isa{someI{\isadigit{2}}{\isacharunderscore}ex}:
+is embodied in the theorem \isa{someI{\isadigit{2}}{\isaliteral{5F}{\isacharunderscore}}ex}:
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}{\isasymexists}a{\isachardot}\ {\isacharquery}P\ a{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x\ {\isasymLongrightarrow}\ {\isacharquery}Q\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}Q\ {\isacharparenleft}SOME\ x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}%
+\ \ \ \ \ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}P\ a{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q\ x{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q\ {\isaliteral{28}{\isacharparenleft}}SOME\ x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}P\ x{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
-When we apply this theorem as an introduction rule, \isa{{\isacharquery}P\ x} becomes
-\isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ x} and \isa{{\isacharquery}Q\ x} becomes \isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M} and we have to prove
-two subgoals: \isa{{\isasymexists}a{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ a{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ a}, which follows from the assumptions, and
-\isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ x\ {\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M}, which is trivial. Thus it is not surprising that
+When we apply this theorem as an introduction rule, \isa{{\isaliteral{3F}{\isacharquery}}P\ x} becomes
+\isa{{\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ x} and \isa{{\isaliteral{3F}{\isacharquery}}Q\ x} becomes \isa{{\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M} and we have to prove
+two subgoals: \isa{{\isaliteral{5C3C6578697374733E}{\isasymexists}}a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ a}, which follows from the assumptions, and
+\isa{{\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M}, which is trivial. Thus it is not surprising that
 \isa{fast} can prove the base case quickly:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}fast\ intro{\isacharcolon}\ someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}fast\ intro{\isaliteral{3A}{\isacharcolon}}\ someI{\isadigit{2}}{\isaliteral{5F}{\isacharunderscore}}ex{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 What is worth noting here is that we have used \methdx{fast} rather than
 \isa{blast}.  The reason is that \isa{blast} would fail because it cannot
-cope with \isa{someI{\isadigit{2}}{\isacharunderscore}ex}: unifying its conclusion with the current
+cope with \isa{someI{\isadigit{2}}{\isaliteral{5F}{\isacharunderscore}}ex}: unifying its conclusion with the current
 subgoal is non-trivial because of the nested schematic variables. For
 efficiency reasons \isa{blast} does not even attempt such unifications.
 Although \isa{fast} can in principle cope with complicated unification
@@ -327,22 +327,22 @@ automatically. This is what happens in the step case.
 
 The induction step is similar, but more involved, because now we face nested
 occurrences of \isa{SOME}. As a result, \isa{fast} is no longer able to
-solve the subgoal and we apply \isa{someI{\isadigit{2}}{\isacharunderscore}ex} by hand.  We merely
+solve the subgoal and we apply \isa{someI{\isadigit{2}}{\isaliteral{5F}{\isacharunderscore}}ex} by hand.  We merely
 show the proof commands but do not describe the details:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}rule\ someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}rule\ someI{\isadigit{2}}{\isaliteral{5F}{\isacharunderscore}}ex{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}blast{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}blast{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}rule\ someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}rule\ someI{\isadigit{2}}{\isaliteral{5F}{\isacharunderscore}}ex{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}blast{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}blast{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}blast{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}blast{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -355,14 +355,14 @@ show the proof commands but do not describe the details:%
 \begin{isamarkuptext}%
 Function \isa{path} has fulfilled its purpose now and can be forgotten.
 It was merely defined to provide the witness in the proof of the
-\isa{infinity{\isacharunderscore}lemma}. Aficionados of minimal proofs might like to know
+\isa{infinity{\isaliteral{5F}{\isacharunderscore}}lemma}. Aficionados of minimal proofs might like to know
 that we could have given the witness without having to define a new function:
 the term
 \begin{isabelle}%
-\ \ \ \ \ nat{\isacharunderscore}rec\ s\ {\isacharparenleft}{\isasymlambda}n\ t{\isachardot}\ SOME\ u{\isachardot}\ {\isacharparenleft}t{\isacharcomma}\ u{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ u{\isacharparenright}%
+\ \ \ \ \ nat{\isaliteral{5F}{\isacharunderscore}}rec\ s\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n\ t{\isaliteral{2E}{\isachardot}}\ SOME\ u{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}t{\isaliteral{2C}{\isacharcomma}}\ u{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ u{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 is extensionally equal to \isa{path\ s\ Q},
-where \isa{nat{\isacharunderscore}rec} is the predefined primitive recursor on \isa{nat}.%
+where \isa{nat{\isaliteral{5F}{\isacharunderscore}}rec} is the predefined primitive recursor on \isa{nat}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -380,11 +380,11 @@ where \isa{nat{\isacharunderscore}rec} is the predefined primitive recursor on \
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-At last we can prove the opposite direction of \isa{AF{\isacharunderscore}lemma{\isadigit{1}}}:%
+At last we can prove the opposite direction of \isa{AF{\isaliteral{5F}{\isacharunderscore}}lemma{\isadigit{1}}}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ AF{\isacharunderscore}lemma{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbraceleft}s{\isachardot}\ {\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}\ {\isasymsubseteq}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequoteclose}%
+\ AF{\isaliteral{5F}{\isacharunderscore}}lemma{\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{7B}{\isacharbraceleft}}s{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}p\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Paths\ s{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}i{\isaliteral{2E}{\isachardot}}\ p\ i\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ lfp{\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -397,32 +397,32 @@ The proof is again pointwise and then by contraposition:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}rule\ subsetI{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}erule\ contrapos{\isacharunderscore}pp{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}erule\ contrapos{\isaliteral{5F}{\isacharunderscore}}pp{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ simp%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymexists}p{\isasymin}Paths\ x{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ lfp\ {\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{5C3C696E3E}{\isasymin}}Paths\ x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}i{\isaliteral{2E}{\isachardot}}\ p\ i\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ A%
 \end{isabelle}
-Applying the \isa{infinity{\isacharunderscore}lemma} as a destruction rule leaves two subgoals, the second
-premise of \isa{infinity{\isacharunderscore}lemma} and the original subgoal:%
+Applying the \isa{infinity{\isaliteral{5F}{\isacharunderscore}}lemma} as a destruction rule leaves two subgoals, the second
+premise of \isa{infinity{\isaliteral{5F}{\isacharunderscore}}lemma} and the original subgoal:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}drule\ infinity{\isacharunderscore}lemma{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}drule\ infinity{\isaliteral{5F}{\isacharunderscore}}lemma{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}s{\isachardot}\ s\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isasymexists}p{\isasymin}Paths\ x{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ }{\isasymexists}p{\isasymin}Paths\ x{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}s{\isaliteral{2E}{\isachardot}}\ s\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ lfp\ {\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}t{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ t\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ lfp\ {\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{5C3C696E3E}{\isasymin}}Paths\ x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}i{\isaliteral{2E}{\isachardot}}\ p\ i\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ lfp\ {\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{5C3C696E3E}{\isasymin}}Paths\ x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}i{\isaliteral{2E}{\isachardot}}\ p\ i\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ A%
 \end{isabelle}
 Both are solved automatically:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto\ dest{\isacharcolon}\ not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}auto\ dest{\isaliteral{3A}{\isacharcolon}}\ not{\isaliteral{5F}{\isacharunderscore}}in{\isaliteral{5F}{\isacharunderscore}}lfp{\isaliteral{5F}{\isacharunderscore}}afD{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -438,12 +438,12 @@ If you find these proofs too complicated, we recommend that you read
 simpler arguments.
 
 The main theorem is proved as for PDL, except that we also derive the
-necessary equality \isa{lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isacharequal}\ {\isachardot}{\isachardot}{\isachardot}} by combining
-\isa{AF{\isacharunderscore}lemma{\isadigit{1}}} and \isa{AF{\isacharunderscore}lemma{\isadigit{2}}} on the spot:%
+necessary equality \isa{lfp{\isaliteral{28}{\isacharparenleft}}af\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}} by combining
+\isa{AF{\isaliteral{5F}{\isacharunderscore}}lemma{\isadigit{1}}} and \isa{AF{\isaliteral{5F}{\isacharunderscore}}lemma{\isadigit{2}}} on the spot:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ {\isachardoublequoteopen}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}mc\ f\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}s{\isaliteral{2E}{\isachardot}}\ s\ {\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}\ f{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -451,9 +451,9 @@ necessary equality \isa{lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isach
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ f{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ EF{\isacharunderscore}lemma\ equalityI{\isacharbrackleft}OF\ AF{\isacharunderscore}lemma{\isadigit{1}}\ AF{\isacharunderscore}lemma{\isadigit{2}}{\isacharbrackright}{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}auto\ simp\ add{\isaliteral{3A}{\isacharcolon}}\ EF{\isaliteral{5F}{\isacharunderscore}}lemma\ equalityI{\isaliteral{5B}{\isacharbrackleft}}OF\ AF{\isaliteral{5F}{\isacharunderscore}}lemma{\isadigit{1}}\ AF{\isaliteral{5F}{\isacharunderscore}}lemma{\isadigit{2}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -472,27 +472,27 @@ an auxiliary function:%
 \isamarkuptrue%
 \isacommand{primrec}\isamarkupfalse%
 \isanewline
-until{\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ {\isasymRightarrow}\ state\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}until\ A\ B\ s\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ B{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}until\ A\ B\ s\ {\isacharparenleft}t{\isacharhash}p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ A\ {\isasymand}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ until\ A\ B\ t\ p{\isacharparenright}{\isachardoublequoteclose}%
+until{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}state\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ state\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ state\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ state\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}until\ A\ B\ s\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ \ \ \ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}s\ {\isaliteral{5C3C696E3E}{\isasymin}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}until\ A\ B\ s\ {\isaliteral{28}{\isacharparenleft}}t{\isaliteral{23}{\isacharhash}}p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}s\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}s{\isaliteral{2C}{\isacharcomma}}t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ M\ {\isaliteral{5C3C616E643E}{\isasymand}}\ until\ A\ B\ t\ p{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 Expressing the semantics of \isa{EU} is now straightforward:
 \begin{isabelle}%
-\ \ \ \ \ s\ {\isasymTurnstile}\ EU\ f\ g\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ until\ {\isacharbraceleft}t{\isachardot}\ t\ {\isasymTurnstile}\ f{\isacharbraceright}\ {\isacharbraceleft}t{\isachardot}\ t\ {\isasymTurnstile}\ g{\isacharbraceright}\ s\ p{\isacharparenright}%
+\ \ \ \ \ s\ {\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}\ EU\ f\ g\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}p{\isaliteral{2E}{\isachardot}}\ until\ {\isaliteral{7B}{\isacharbraceleft}}t{\isaliteral{2E}{\isachardot}}\ t\ {\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}\ f{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{7B}{\isacharbraceleft}}t{\isaliteral{2E}{\isachardot}}\ t\ {\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}\ g{\isaliteral{7D}{\isacharbraceright}}\ s\ p{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 Note that \isa{EU} is not definable in terms of the other operators!
 
 Model checking \isa{EU} is again a least fixed point construction:
 \begin{isabelle}%
-\ \ \ \ \ mc{\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ g\ {\isasymunion}\ mc\ f\ {\isasyminter}\ {\isacharparenleft}M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isacharparenright}%
+\ \ \ \ \ mc{\isaliteral{28}{\isacharparenleft}}EU\ f\ g{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ lfp{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}T{\isaliteral{2E}{\isachardot}}\ mc\ g\ {\isaliteral{5C3C756E696F6E3E}{\isasymunion}}\ mc\ f\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ {\isaliteral{28}{\isacharparenleft}}M{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{60}{\isacharbackquote}}{\isaliteral{60}{\isacharbackquote}}\ T{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 
 \begin{exercise}
 Extend the datatype of formulae by the above until operator
 and prove the equivalence between semantics and model checking, i.e.\ that
 \begin{isabelle}%
-\ \ \ \ \ mc\ {\isacharparenleft}EU\ f\ g{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ EU\ f\ g{\isacharbraceright}%
+\ \ \ \ \ mc\ {\isaliteral{28}{\isacharparenleft}}EU\ f\ g{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}s{\isaliteral{2E}{\isachardot}}\ s\ {\isaliteral{5C3C5475726E7374696C653E}{\isasymTurnstile}}\ EU\ f\ g{\isaliteral{7D}{\isacharbraceright}}%
 \end{isabelle}
 %For readability you may want to annotate {term EU} with its customary syntax
 %{text[display]"| EU formula formula    E[_ U _]"}
@@ -546,10 +546,10 @@ Let us close this section with a few words about the executability of
 our model checkers.  It is clear that if all sets are finite, they can be
 represented as lists and the usual set operations are easily
 implemented. Only \isa{lfp} requires a little thought.  Fortunately, theory
-\isa{While{\isacharunderscore}Combinator} in the Library~\cite{HOL-Library} provides a
+\isa{While{\isaliteral{5F}{\isacharunderscore}}Combinator} in the Library~\cite{HOL-Library} provides a
 theorem stating that in the case of finite sets and a monotone
 function~\isa{F}, the value of \mbox{\isa{lfp\ F}} can be computed by
-iterated application of \isa{F} to~\isa{{\isacharbraceleft}{\isacharbraceright}} until a fixed point is
+iterated application of \isa{F} to~\isa{{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{7D}{\isacharbraceright}}} until a fixed point is
 reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.%
 \index{CTL|)}%

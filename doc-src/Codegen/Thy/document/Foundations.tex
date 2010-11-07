@@ -46,8 +46,8 @@ The code generator is actually a framework consisting of different
 
   \noindent Central to code generation is the notion of \emph{code
   equations}.  A code equation as a first approximation is a theorem
-  of the form \isa{f\ t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}\ {\isasymdots}\ t\isactrlisub n\ {\isasymequiv}\ t} (an equation headed by a
-  constant \isa{f} with arguments \isa{t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}\ {\isasymdots}\ t\isactrlisub n} and right
+  of the form \isa{f\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t} (an equation headed by a
+  constant \isa{f} with arguments \isa{t\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub n} and right
   hand side \isa{t}).
 
   \begin{itemize}
@@ -99,7 +99,7 @@ Before selected function theorems are turned into abstract code, a
   arguments of the left hand side of an equation, but never to the
   constant heading the left hand side.  An important special case are
   \emph{unfold theorems}, which may be declared and removed using the
-  \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} or \emph{\hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} del}
+  \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}unfold}}} or \emph{\hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}unfold}}} del}
   attribute, respectively.
 
   Some common applications:%
@@ -119,9 +119,9 @@ Before selected function theorems are turned into abstract code, a
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code{\isacharunderscore}unfold{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}x\ {\isasymin}\ set\ xs\ {\isasymlongleftrightarrow}\ List{\isachardot}member\ xs\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}fact\ in{\isacharunderscore}set{\isacharunderscore}member{\isacharparenright}%
+\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5F}{\isacharunderscore}}unfold{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ xs\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ List{\isaliteral{2E}{\isachardot}}member\ xs\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}fact\ in{\isaliteral{5F}{\isacharunderscore}}set{\isaliteral{5F}{\isacharunderscore}}member{\isaliteral{29}{\isacharparenright}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -140,9 +140,9 @@ Before selected function theorems are turned into abstract code, a
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code{\isacharunderscore}unfold{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongleftrightarrow}\ List{\isachardot}null\ xs{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}fact\ eq{\isacharunderscore}Nil{\isacharunderscore}null{\isacharparenright}%
+\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5F}{\isacharunderscore}}unfold{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ List{\isaliteral{2E}{\isachardot}}null\ xs{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}fact\ eq{\isaliteral{5F}{\isacharunderscore}}Nil{\isaliteral{5F}{\isacharunderscore}}null{\isaliteral{29}{\isacharparenright}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -161,9 +161,9 @@ Before selected function theorems are turned into abstract code, a
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code{\isacharunderscore}unfold{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}fact\ One{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}%
+\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5F}{\isacharunderscore}}unfold{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}fact\ One{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -178,18 +178,18 @@ Before selected function theorems are turned into abstract code, a
   interface, transforming a list of function theorems to another list
   of function theorems, provided that neither the heading constant nor
   its type change.  The \isa{{\isadigit{0}}} / \isa{Suc} pattern
-  elimination implemented in theory \hyperlink{theory.Efficient-Nat}{\mbox{\isa{Efficient{\isacharunderscore}Nat}}} (see
+  elimination implemented in theory \hyperlink{theory.Efficient-Nat}{\mbox{\isa{Efficient{\isaliteral{5F}{\isacharunderscore}}Nat}}} (see
   \secref{eff_nat}) uses this interface.
 
   \noindent The current setup of the preprocessor may be inspected
-  using the \indexdef{}{command}{print\_codeproc}\hypertarget{command.print-codeproc}{\hyperlink{command.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}}} command.  \indexdef{}{command}{code\_thms}\hypertarget{command.code-thms}{\hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}} (see \secref{sec:equations}) provides a convenient
+  using the \indexdef{}{command}{print\_codeproc}\hypertarget{command.print-codeproc}{\hyperlink{command.print-codeproc}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}codeproc}}}}} command.  \indexdef{}{command}{code\_thms}\hypertarget{command.code-thms}{\hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}thms}}}}} (see \secref{sec:equations}) provides a convenient
   mechanism to inspect the impact of a preprocessor setup on code
   equations.
 
   \begin{warn}
-    Attribute \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} also applies to the
+    Attribute \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}unfold}}} also applies to the
     preprocessor of the ancient \isa{SML\ code\ generator}; in case
-    this is not what you intend, use \hyperlink{attribute.code-inline}{\mbox{\isa{code{\isacharunderscore}inline}}} instead.
+    this is not what you intend, use \hyperlink{attribute.code-inline}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}inline}}} instead.
   \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -215,14 +215,14 @@ As told in \secref{sec:principle}, the notion of code equations is
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ {\isacharparenleft}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ {\isacharparenleft}None{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ else\ dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}if\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ then\ {\isaliteral{28}{\isacharparenleft}}None{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \ \ \ else\ dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}Some\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}cases\ xs{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\ {\isacharparenleft}cases\ {\isachardoublequoteopen}rev\ xs{\isachardoublequoteclose}{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}cases\ xs{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}cases\ {\isaliteral{22}{\isachardoublequoteopen}}rev\ xs{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{29}{\isacharparenright}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -231,7 +231,7 @@ As told in \secref{sec:principle}, the notion of code equations is
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent The annotation \isa{{\isacharbrackleft}code{\isacharbrackright}} is an \isa{attribute}
+\noindent The annotation \isa{{\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}} is an \isa{attribute}
   which states that the given theorems should be considered as code
   equations for a \isa{fun} statement -- the corresponding constant
   is determined syntactically.  The resulting code:%
@@ -245,11 +245,11 @@ As told in \secref{sec:principle}, the notion of code equations is
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}Maybe\ a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
-dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Just\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
-dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ {\isacharparenleft}if\ null\ xs\ then\ {\isacharparenleft}Nothing{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
-\ \ \ \ else\ dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}reverse\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline%
+dequeue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ Queue\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}Maybe\ a{\isaliteral{2C}{\isacharcomma}}\ Queue\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Just\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}if\ null\ xs\ then\ {\isaliteral{28}{\isacharparenleft}}Nothing{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ else\ dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{28}{\isacharparenleft}}reverse\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -261,8 +261,8 @@ dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{
 \endisadelimquotetypewriter
 %
 \begin{isamarkuptext}%
-\noindent You may note that the equality test \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}} has
-  been replaced by the predicate \isa{List{\isachardot}null\ xs}.  This is due
+\noindent You may note that the equality test \isa{xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}} has
+  been replaced by the predicate \isa{List{\isaliteral{2E}{\isachardot}}null\ xs}.  This is due
   to the default setup of the \qn{preprocessor}.
 
   This possibility to select arbitrary code equations is the key
@@ -273,10 +273,10 @@ dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{
   equations (before preprocessing) and code equations (after
   preprocessing).
 
-  The first can be listed (among other data) using the \indexdef{}{command}{print\_codesetup}\hypertarget{command.print-codesetup}{\hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}}} command.
+  The first can be listed (among other data) using the \indexdef{}{command}{print\_codesetup}\hypertarget{command.print-codesetup}{\hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}codesetup}}}}} command.
 
   The code equations after preprocessing are already are blueprint of
-  the generated program and can be inspected using the \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} command:%
+  the generated program and can be inspected using the \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}thms}}}} command:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -285,7 +285,7 @@ dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{
 \endisadelimquote
 %
 \isatagquote
-\isacommand{code{\isacharunderscore}thms}\isamarkupfalse%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}thms}\isamarkupfalse%
 \ dequeue%
 \endisatagquote
 {\isafoldquote}%
@@ -297,7 +297,7 @@ dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{
 \begin{isamarkuptext}%
 \noindent This prints a table with the code equations for \isa{dequeue}, including \emph{all} code equations those equations depend
   on recursively.  These dependencies themselves can be visualized using
-  the \indexdef{}{command}{code\_deps}\hypertarget{command.code-deps}{\hyperlink{command.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}}} command.%
+  the \indexdef{}{command}{code\_deps}\hypertarget{command.code-deps}{\hyperlink{command.code-deps}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}deps}}}}} command.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -317,13 +317,13 @@ Implementation of equality deserves some attention.  Here an example
 %
 \isatagquote
 \isacommand{primrec}\isamarkupfalse%
-\ collect{\isacharunderscore}duplicates\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharparenleft}z{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ z\ {\isasymin}\ set\ xs\isanewline
-\ \ \ \ then\ if\ z\ {\isasymin}\ set\ ys\isanewline
-\ \ \ \ \ \ then\ collect{\isacharunderscore}duplicates\ xs\ ys\ zs\isanewline
-\ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ xs\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs\isanewline
-\ \ \ \ else\ collect{\isacharunderscore}duplicates\ {\isacharparenleft}z{\isacharhash}xs{\isacharparenright}\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs{\isacharparenright}{\isachardoublequoteclose}%
+\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ xs\ ys\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ xs\ ys\ {\isaliteral{28}{\isacharparenleft}}z{\isaliteral{23}{\isacharhash}}zs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ z\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ xs\isanewline
+\ \ \ \ then\ if\ z\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ ys\isanewline
+\ \ \ \ \ \ then\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ xs\ ys\ zs\isanewline
+\ \ \ \ \ \ else\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ xs\ {\isaliteral{28}{\isacharparenleft}}z{\isaliteral{23}{\isacharhash}}ys{\isaliteral{29}{\isacharparenright}}\ zs\isanewline
+\ \ \ \ else\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ {\isaliteral{28}{\isacharparenleft}}z{\isaliteral{23}{\isacharhash}}xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}z{\isaliteral{23}{\isacharhash}}ys{\isaliteral{29}{\isacharparenright}}\ zs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -333,7 +333,7 @@ Implementation of equality deserves some attention.  Here an example
 %
 \begin{isamarkuptext}%
 \noindent During preprocessing, the membership test is rewritten,
-  resulting in \isa{List{\isachardot}member}, which itself performs an explicit
+  resulting in \isa{List{\isaliteral{2E}{\isachardot}}member}, which itself performs an explicit
   equality check, as can be seen in the corresponding \isa{SML} code:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -345,31 +345,31 @@ Implementation of equality deserves some attention.  Here an example
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-structure\ Example\ {\isacharcolon}\ sig\isanewline
-\ \ type\ {\isacharprime}a\ equal\isanewline
-\ \ val\ equal\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool\isanewline
-\ \ val\ eq\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool\isanewline
-\ \ val\ member\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool\isanewline
-\ \ val\ collect{\isacharunderscore}duplicates\ {\isacharcolon}\isanewline
-\ \ \ \ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\isanewline
-end\ {\isacharequal}\ struct\isanewline
+structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
+\ \ type\ {\isaliteral{27}{\isacharprime}}a\ equal\isanewline
+\ \ val\ equal\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ equal\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
+\ \ val\ eq\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ equal\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
+\ \ val\ member\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ equal\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
+\ \ val\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ {\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{27}{\isacharprime}}a\ equal\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ list\isanewline
+end\ {\isaliteral{3D}{\isacharequal}}\ struct\isanewline
 \isanewline
-type\ {\isacharprime}a\ equal\ {\isacharequal}\ {\isacharbraceleft}equal\ {\isacharcolon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool{\isacharbraceright}{\isacharsemicolon}\isanewline
-val\ equal\ {\isacharequal}\ {\isacharhash}equal\ {\isacharcolon}\ {\isacharprime}a\ equal\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ bool{\isacharsemicolon}\isanewline
+type\ {\isaliteral{27}{\isacharprime}}a\ equal\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}equal\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+val\ equal\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{23}{\isacharhash}}equal\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ equal\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ eq\ A{\isacharunderscore}\ a\ b\ {\isacharequal}\ equal\ A{\isacharunderscore}\ a\ b{\isacharsemicolon}\isanewline
+fun\ eq\ A{\isaliteral{5F}{\isacharunderscore}}\ a\ b\ {\isaliteral{3D}{\isacharequal}}\ equal\ A{\isaliteral{5F}{\isacharunderscore}}\ a\ b{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ member\ A{\isacharunderscore}\ {\isacharbrackleft}{\isacharbrackright}\ y\ {\isacharequal}\ false\isanewline
-\ \ {\isacharbar}\ member\ A{\isacharunderscore}\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ xs{\isacharparenright}\ y\ {\isacharequal}\ eq\ A{\isacharunderscore}\ x\ y\ orelse\ member\ A{\isacharunderscore}\ xs\ y{\isacharsemicolon}\isanewline
+fun\ member\ A{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ false\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ member\ A{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ eq\ A{\isaliteral{5F}{\isacharunderscore}}\ x\ y\ orelse\ member\ A{\isaliteral{5F}{\isacharunderscore}}\ xs\ y{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ ys\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs\isanewline
-\ \ {\isacharbar}\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ ys\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ zs{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ {\isacharparenleft}if\ member\ A{\isacharunderscore}\ xs\ z\isanewline
-\ \ \ \ \ \ then\ {\isacharparenleft}if\ member\ A{\isacharunderscore}\ ys\ z\ then\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ ys\ zs\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ xs\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ ys{\isacharparenright}\ zs{\isacharparenright}\isanewline
-\ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ A{\isacharunderscore}\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ xs{\isacharparenright}\ {\isacharparenleft}z\ {\isacharcolon}{\isacharcolon}\ ys{\isacharparenright}\ zs{\isacharparenright}{\isacharsemicolon}\isanewline
+fun\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ A{\isaliteral{5F}{\isacharunderscore}}\ xs\ ys\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ xs\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ A{\isaliteral{5F}{\isacharunderscore}}\ xs\ ys\ {\isaliteral{28}{\isacharparenleft}}z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ zs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}if\ member\ A{\isaliteral{5F}{\isacharunderscore}}\ xs\ z\isanewline
+\ \ \ \ \ \ then\ {\isaliteral{28}{\isacharparenleft}}if\ member\ A{\isaliteral{5F}{\isacharunderscore}}\ ys\ z\ then\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ A{\isaliteral{5F}{\isacharunderscore}}\ xs\ ys\ zs\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ else\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ A{\isaliteral{5F}{\isacharunderscore}}\ xs\ {\isaliteral{28}{\isacharparenleft}}z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}\ zs{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \ \ else\ collect{\isaliteral{5F}{\isacharunderscore}}duplicates\ A{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{28}{\isacharparenleft}}z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}\ zs{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
+end{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}struct\ Example{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -383,7 +383,7 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \begin{isamarkuptext}%
 \noindent Obviously, polymorphic equality is implemented the Haskell
   way using a type class.  How is this achieved?  HOL introduces an
-  explicit class \isa{equal} with a corresponding operation \isa{equal{\isacharunderscore}class{\isachardot}equal} such that \isa{equal{\isacharunderscore}class{\isachardot}equal\ {\isacharequal}\ op\ {\isacharequal}}.  The preprocessing
+  explicit class \isa{equal} with a corresponding operation \isa{equal{\isaliteral{5F}{\isacharunderscore}}class{\isaliteral{2E}{\isachardot}}equal} such that \isa{equal{\isaliteral{5F}{\isacharunderscore}}class{\isaliteral{2E}{\isachardot}}equal\ {\isaliteral{3D}{\isacharequal}}\ op\ {\isaliteral{3D}{\isacharequal}}}.  The preprocessing
   framework does the rest by propagating the \isa{equal} constraints
   through all dependent code equations.  For datatypes, instances of
   \isa{equal} are implicitly derived when possible.  For other types,
@@ -407,17 +407,17 @@ Partiality usually enters the game by partial patterns, as
 %
 \isatagquote
 \isacommand{definition}\isamarkupfalse%
-\ strict{\isacharunderscore}dequeue\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ queue\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}strict{\isacharunderscore}dequeue\ q\ {\isacharequal}\ {\isacharparenleft}case\ dequeue\ q\isanewline
-\ \ \ \ of\ {\isacharparenleft}Some\ x{\isacharcomma}\ q{\isacharprime}{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}x{\isacharcomma}\ q{\isacharprime}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a\ queue{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ q\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}case\ dequeue\ q\isanewline
+\ \ \ \ of\ {\isaliteral{28}{\isacharparenleft}}Some\ x{\isaliteral{2C}{\isacharcomma}}\ q{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ q{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ strict{\isacharunderscore}dequeue{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ {\isacharparenleft}case\ rev\ xs\ of\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{5F}{\isacharunderscore}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}case\ rev\ xs\ of\ y\ {\isaliteral{23}{\isacharhash}}\ ys\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ strict{\isacharunderscore}dequeue{\isacharunderscore}def{\isacharparenright}\ {\isacharparenleft}cases\ xs{\isacharcomma}\ simp{\isacharunderscore}all\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}cases\ xs{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{5F}{\isacharunderscore}}all\ split{\isaliteral{3A}{\isacharcolon}}\ list{\isaliteral{2E}{\isachardot}}split{\isaliteral{29}{\isacharparenright}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -427,7 +427,7 @@ Partiality usually enters the game by partial patterns, as
 %
 \begin{isamarkuptext}%
 \noindent In the corresponding code, there is no equation
-  for the pattern \isa{AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}}:%
+  for the pattern \isa{AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -438,12 +438,12 @@ Partiality usually enters the game by partial patterns, as
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-strict{\isacharunderscore}dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
-strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ let\ {\isacharbraceleft}\isanewline
-\ \ \ \ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}\ {\isacharequal}\ reverse\ xs{\isacharsemicolon}\isanewline
-\ \ {\isacharbraceright}\ in\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
-strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}\isanewline%
+strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ Queue\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ Queue\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ let\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ reverse\ xs{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ {\isaliteral{7D}{\isacharbraceright}}\ in\ {\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -466,20 +466,20 @@ strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparen
 %
 \isatagquote
 \isacommand{axiomatization}\isamarkupfalse%
-\ empty{\isacharunderscore}queue\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\isanewline
+\ empty{\isaliteral{5F}{\isacharunderscore}}queue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
-\ strict{\isacharunderscore}dequeue{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ queue\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}strict{\isacharunderscore}dequeue{\isacharprime}\ q\ {\isacharequal}\ {\isacharparenleft}case\ dequeue\ q\ of\ {\isacharparenleft}Some\ x{\isacharcomma}\ q{\isacharprime}{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}x{\isacharcomma}\ q{\isacharprime}{\isacharparenright}\ {\isacharbar}\ {\isacharunderscore}\ {\isasymRightarrow}\ empty{\isacharunderscore}queue{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a\ queue{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{27}{\isacharprime}}\ q\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}case\ dequeue\ q\ of\ {\isaliteral{28}{\isacharparenleft}}Some\ x{\isaliteral{2C}{\isacharcomma}}\ q{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ q{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ empty{\isaliteral{5F}{\isacharunderscore}}queue{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ strict{\isacharunderscore}dequeue{\isacharprime}{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}strict{\isacharunderscore}dequeue{\isacharprime}\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ empty{\isacharunderscore}queue\isanewline
-\ \ \ \ \ else\ strict{\isacharunderscore}dequeue{\isacharprime}\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}strict{\isacharunderscore}dequeue{\isacharprime}\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{27}{\isacharprime}}{\isaliteral{5F}{\isacharunderscore}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ then\ empty{\isaliteral{5F}{\isacharunderscore}}queue\isanewline
+\ \ \ \ \ else\ strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ strict{\isacharunderscore}dequeue{\isacharprime}{\isacharunderscore}def\ split{\isacharcolon}\ list{\isachardot}splits{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{27}{\isacharprime}}{\isaliteral{5F}{\isacharunderscore}}def\ split{\isaliteral{3A}{\isacharcolon}}\ list{\isaliteral{2E}{\isachardot}}splits{\isaliteral{29}{\isacharparenright}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -488,7 +488,7 @@ strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparen
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-Observe that on the right hand side of the definition of \isa{strict{\isacharunderscore}dequeue{\isacharprime}}, the unspecified constant \isa{empty{\isacharunderscore}queue} occurs.
+Observe that on the right hand side of the definition of \isa{strict{\isaliteral{5F}{\isacharunderscore}}dequeue{\isaliteral{27}{\isacharprime}}}, the unspecified constant \isa{empty{\isaliteral{5F}{\isacharunderscore}}queue} occurs.
 
   Normally, if constants without any code equations occur in a
   program, the code generator complains (since in most cases this is
@@ -496,7 +496,7 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
   of as function definitions which always fail,
   since there is never a successful pattern match on the left hand
   side.  In order to categorise a constant into that category
-  explicitly, use \indexdef{}{command}{code\_abort}\hypertarget{command.code-abort}{\hyperlink{command.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}}:%
+  explicitly, use \indexdef{}{command}{code\_abort}\hypertarget{command.code-abort}{\hyperlink{command.code-abort}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}abort}}}}}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -505,8 +505,8 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 \endisadelimquote
 %
 \isatagquote
-\isacommand{code{\isacharunderscore}abort}\isamarkupfalse%
-\ empty{\isacharunderscore}queue%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}abort}\isamarkupfalse%
+\ empty{\isaliteral{5F}{\isacharunderscore}}queue%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -527,14 +527,14 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-empty{\isacharunderscore}queue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ a{\isacharsemicolon}\isanewline
-empty{\isacharunderscore}queue\ {\isacharequal}\ error\ {\isachardoublequote}empty{\isacharunderscore}queue{\isachardoublequote}{\isacharsemicolon}\isanewline
+empty{\isaliteral{5F}{\isacharunderscore}}queue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+empty{\isaliteral{5F}{\isacharunderscore}}queue\ {\isaliteral{3D}{\isacharequal}}\ error\ {\isaliteral{22}{\isachardoublequote}}empty{\isaliteral{5F}{\isacharunderscore}}queue{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-strict{\isacharunderscore}dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
-strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
-strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ {\isacharparenleft}if\ null\ xs\ then\ empty{\isacharunderscore}queue\isanewline
-\ \ \ \ else\ strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}reverse\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline%
+strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ Queue\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ Queue\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}if\ null\ xs\ then\ empty{\isaliteral{5F}{\isacharunderscore}}queue\isanewline
+\ \ \ \ else\ strict{\isaliteral{5F}{\isacharunderscore}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{28}{\isacharparenleft}}reverse\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -548,7 +548,7 @@ strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrack
 \begin{isamarkuptext}%
 \noindent This feature however is rarely needed in practice.  Note
   also that the HOL default setup already declares \isa{undefined}
-  as \hyperlink{command.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}, which is most likely to be used in such
+  as \hyperlink{command.code-abort}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}abort}}}}, which is most likely to be used in such
   situations.%
 \end{isamarkuptext}%
 \isamarkuptrue%

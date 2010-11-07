@@ -27,7 +27,7 @@ Recalling \secref{sec:principle}, code generation turns a system of
   equations into a program with the \emph{same} equational semantics.
   As a consequence, this program can be used as a \emph{rewrite
   engine} for terms: rewriting a term \isa{t} using a program to a
-  term \isa{t{\isacharprime}} yields the theorems \isa{t\ {\isasymequiv}\ t{\isacharprime}}.  This
+  term \isa{t{\isaliteral{27}{\isacharprime}}} yields the theorems \isa{t\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{27}{\isacharprime}}}.  This
   application of code generation in the following is referred to as
   \emph{evaluation}.%
 \end{isamarkuptext}%
@@ -122,7 +122,7 @@ Each of the techniques can be combined with different aspects.  The
 %
 \isatagquote
 \isacommand{value}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isadigit{4}}{\isadigit{2}}\ {\isacharslash}\ {\isacharparenleft}{\isadigit{1}}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ rat{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{4}}{\isadigit{2}}\ {\isaliteral{2F}{\isacharslash}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isadigit{2}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ rat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -143,7 +143,7 @@ Each of the techniques can be combined with different aspects.  The
 %
 \isatagquote
 \isacommand{value}\isamarkupfalse%
-\ {\isacharbrackleft}nbe{\isacharbrackright}\ {\isachardoublequoteopen}{\isadigit{4}}{\isadigit{2}}\ {\isacharslash}\ {\isacharparenleft}{\isadigit{1}}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ rat{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isaliteral{5B}{\isacharbrackleft}}nbe{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{4}}{\isadigit{2}}\ {\isaliteral{2F}{\isacharslash}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isadigit{2}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ rat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -174,8 +174,8 @@ Static evaluation freezes the code generator configuration at a
       and therefore trustable.
 
     \item[Conversion.]  Evaluates an arbitrary term \isa{t} first
-      by plain evaluation and certifies the result \isa{t{\isacharprime}} by
-      checking the equation \isa{t\ {\isasymequiv}\ t{\isacharprime}} using property
+      by plain evaluation and certifies the result \isa{t{\isaliteral{27}{\isacharprime}}} by
+      checking the equation \isa{t\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{27}{\isacharprime}}} using property
       conversion.
 
   \end{description}
@@ -185,7 +185,7 @@ Static evaluation freezes the code generator configuration at a
 
   \begin{itemize}
 
-    \item Evaluation of \isa{t} terminates with a result \isa{t{\isacharprime}}.
+    \item Evaluation of \isa{t} terminates with a result \isa{t{\isaliteral{27}{\isacharprime}}}.
 
     \item Evaluation of \isa{t} terminates which en exception
       indicating a pattern match failure or a non-implemented
@@ -196,15 +196,15 @@ Static evaluation freezes the code generator configuration at a
      
   \end{itemize}
 
-  \noindent For conversions, the first case yields the equation \isa{t\ {\isacharequal}\ t{\isacharprime}}, the second defaults to reflexivity \isa{t\ {\isacharequal}\ t}.
+  \noindent For conversions, the first case yields the equation \isa{t\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{27}{\isacharprime}}}, the second defaults to reflexivity \isa{t\ {\isaliteral{3D}{\isacharequal}}\ t}.
   Exceptions of the third kind are propagated to the user.
 
   By default return values of plain evaluation are optional, yielding
-  \isa{SOME\ t{\isacharprime}} in the first case, \isa{NONE} in the
+  \isa{SOME\ t{\isaliteral{27}{\isacharprime}}} in the first case, \isa{NONE} in the
   second, and propagating the exception in the third case.  A strict
-  variant of plain evaluation either yields \isa{t{\isacharprime}} or propagates
+  variant of plain evaluation either yields \isa{t{\isaliteral{27}{\isacharprime}}} or propagates
   any exception, a liberal variant caputures any exception in a result
-  of type \isa{Exn{\isachardot}result}.
+  of type \isa{Exn{\isaliteral{2E}{\isachardot}}result}.
   
   For property conversion (which coincides with conversion except for
   evaluation in ML), methods are provided which solve a given goal by
@@ -223,10 +223,10 @@ Static evaluation freezes the code generator configuration at a
     & & \isa{simp} & \isa{nbe} & \isa{code} \tabularnewline \hline \hline
     \multirow{5}{1ex}{\rotatebox{90}{dynamic}}
       & interactive evaluation 
-      & \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} \isa{{\isacharbrackleft}simp{\isacharbrackright}} & \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} \isa{{\isacharbrackleft}nbe{\isacharbrackright}} & \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} \isa{{\isacharbrackleft}code{\isacharbrackright}}
+      & \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} \isa{{\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}} & \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} \isa{{\isaliteral{5B}{\isacharbrackleft}}nbe{\isaliteral{5D}{\isacharbrackright}}} & \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} \isa{{\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}}
       \tabularnewline
     & plain evaluation & & & \ttsize\verb|Code_Evaluation.dynamic_value| \tabularnewline \cline{2-5}
-    & evaluation method & \hyperlink{method.code-simp}{\mbox{\isa{code{\isacharunderscore}simp}}} & \hyperlink{method.normalization}{\mbox{\isa{normalization}}} & \hyperlink{method.eval}{\mbox{\isa{eval}}} \tabularnewline
+    & evaluation method & \hyperlink{method.code-simp}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}simp}}} & \hyperlink{method.normalization}{\mbox{\isa{normalization}}} & \hyperlink{method.eval}{\mbox{\isa{eval}}} \tabularnewline
     & property conversion & & & \ttsize\verb|Code_Runtime.dynamic_holds_conv| \tabularnewline \cline{2-5}
     & conversion & \ttsize\verb|Code_Simp.dynamic_eval_conv| & \ttsize\verb|Nbe.dynamic_eval_conv|
       & \ttsize\verb|Code_Evaluation.dynamic_eval_conv| \tabularnewline \hline \hline
@@ -269,7 +269,7 @@ The \isa{code} antiquotation allows to include constants from
 %
 \isatagquote
 \isacommand{datatype}\isamarkupfalse%
-\ form\ {\isacharequal}\ T\ {\isacharbar}\ F\ {\isacharbar}\ And\ form\ form\ {\isacharbar}\ Or\ form\ form\ %
+\ form\ {\isaliteral{3D}{\isacharequal}}\ T\ {\isaliteral{7C}{\isacharbar}}\ F\ {\isaliteral{7C}{\isacharbar}}\ And\ form\ form\ {\isaliteral{7C}{\isacharbar}}\ Or\ form\ form\ %
 \endisatagquote
 {\isafoldquote}%
 %
@@ -283,30 +283,30 @@ The \isa{code} antiquotation allows to include constants from
 %
 \isatagquotett
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ fun\ eval{\isacharunderscore}form\ %
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ fun\ eval{\isaliteral{5F}{\isacharunderscore}}form\ %
 \isaantiq
-code\ T%
+code\ T{}%
 \endisaantiq
-\ {\isacharequal}\ true\isanewline
-\ \ \ \ {\isacharbar}\ eval{\isacharunderscore}form\ %
+\ {\isaliteral{3D}{\isacharequal}}\ true\isanewline
+\ \ \ \ {\isaliteral{7C}{\isacharbar}}\ eval{\isaliteral{5F}{\isacharunderscore}}form\ %
 \isaantiq
-code\ F%
+code\ F{}%
 \endisaantiq
-\ {\isacharequal}\ false\isanewline
-\ \ \ \ {\isacharbar}\ eval{\isacharunderscore}form\ {\isacharparenleft}%
+\ {\isaliteral{3D}{\isacharequal}}\ false\isanewline
+\ \ \ \ {\isaliteral{7C}{\isacharbar}}\ eval{\isaliteral{5F}{\isacharunderscore}}form\ {\isaliteral{28}{\isacharparenleft}}%
 \isaantiq
-code\ And%
+code\ And{}%
 \endisaantiq
-\ {\isacharparenleft}p{\isacharcomma}\ q{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ \ \ eval{\isacharunderscore}form\ p\ andalso\ eval{\isacharunderscore}form\ q\isanewline
-\ \ \ \ {\isacharbar}\ eval{\isacharunderscore}form\ {\isacharparenleft}%
+\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ q{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ \ \ eval{\isaliteral{5F}{\isacharunderscore}}form\ p\ andalso\ eval{\isaliteral{5F}{\isacharunderscore}}form\ q\isanewline
+\ \ \ \ {\isaliteral{7C}{\isacharbar}}\ eval{\isaliteral{5F}{\isacharunderscore}}form\ {\isaliteral{28}{\isacharparenleft}}%
 \isaantiq
-code\ Or%
+code\ Or{}%
 \endisaantiq
-\ {\isacharparenleft}p{\isacharcomma}\ q{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ \ \ eval{\isacharunderscore}form\ p\ orelse\ eval{\isacharunderscore}form\ q{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ {\isaliteral{28}{\isacharparenleft}}p{\isaliteral{2C}{\isacharcomma}}\ q{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ \ \ eval{\isaliteral{5F}{\isacharunderscore}}form\ p\ orelse\ eval{\isaliteral{5F}{\isacharunderscore}}form\ q{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagquotett
 {\isafoldquotett}%
 %
@@ -324,11 +324,11 @@ code\ Or%
   here you have to refer to the corresponding adapted code directly.
 
   For a less simplistic example, theory \isa{Approximation} in
-  the \isa{Decision{\isacharunderscore}Procs} session is a good reference.%
+  the \isa{Decision{\isaliteral{5F}{\isacharunderscore}}Procs} session is a good reference.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsubsection{Static embedding of generated code into system runtime -- \isa{code{\isacharunderscore}reflect}%
+\isamarkupsubsubsection{Static embedding of generated code into system runtime -- \isa{code{\isaliteral{5F}{\isacharunderscore}}reflect}%
 }
 \isamarkuptrue%
 %
@@ -337,7 +337,7 @@ The \isa{code} antiquoation is lightweight, but the generated code
   is only accessible while the ML section is processed.  Sometimes this
   is not appropriate, especially if the generated code contains datatype
   declarations which are shared with other parts of the system.  In these
-  cases, \indexdef{}{command}{code\_reflect}\hypertarget{command.code-reflect}{\hyperlink{command.code-reflect}{\mbox{\isa{\isacommand{code{\isacharunderscore}reflect}}}}} can be used:%
+  cases, \indexdef{}{command}{code\_reflect}\hypertarget{command.code-reflect}{\hyperlink{command.code-reflect}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}}}}} can be used:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -346,10 +346,10 @@ The \isa{code} antiquoation is lightweight, but the generated code
 \endisadelimquote
 %
 \isatagquote
-\isacommand{code{\isacharunderscore}reflect}\isamarkupfalse%
-\ Sum{\isacharunderscore}Type\isanewline
-\ \ \isakeyword{datatypes}\ sum\ {\isacharequal}\ Inl\ {\isacharbar}\ Inr\isanewline
-\ \ \isakeyword{functions}\ {\isachardoublequoteopen}Sum{\isacharunderscore}Type{\isachardot}Projl{\isachardoublequoteclose}\ {\isachardoublequoteopen}Sum{\isacharunderscore}Type{\isachardot}Projr{\isachardoublequoteclose}%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}\isamarkupfalse%
+\ Sum{\isaliteral{5F}{\isacharunderscore}}Type\isanewline
+\ \ \isakeyword{datatypes}\ sum\ {\isaliteral{3D}{\isacharequal}}\ Inl\ {\isaliteral{7C}{\isacharbar}}\ Inr\isanewline
+\ \ \isakeyword{functions}\ {\isaliteral{22}{\isachardoublequoteopen}}Sum{\isaliteral{5F}{\isacharunderscore}}Type{\isaliteral{2E}{\isachardot}}Projl{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}Sum{\isaliteral{5F}{\isacharunderscore}}Type{\isaliteral{2E}{\isachardot}}Projr{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -358,7 +358,7 @@ The \isa{code} antiquoation is lightweight, but the generated code
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent \indexdef{}{command}{code\_reflect}\hypertarget{command.code-reflect}{\hyperlink{command.code-reflect}{\mbox{\isa{\isacommand{code{\isacharunderscore}reflect}}}}} takes a structure name and
+\noindent \indexdef{}{command}{code\_reflect}\hypertarget{command.code-reflect}{\hyperlink{command.code-reflect}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}}}}} takes a structure name and
   references to datatypes and functions; for these code is compiled
   into the named ML structure and the \emph{Eval} target is modified
   in a way that future code generation will reference these
@@ -366,19 +366,19 @@ The \isa{code} antiquoation is lightweight, but the generated code
   also allows to refer to the referenced datatypes and functions from
   arbitrary ML code as well.
 
-  A typical example for \hyperlink{command.code-reflect}{\mbox{\isa{\isacommand{code{\isacharunderscore}reflect}}}} can be found in the
+  A typical example for \hyperlink{command.code-reflect}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}}}} can be found in the
   \hyperlink{theory.Predicate}{\mbox{\isa{Predicate}}} theory.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsubsection{Separate compilation -- \isa{code{\isacharunderscore}reflect}%
+\isamarkupsubsubsection{Separate compilation -- \isa{code{\isaliteral{5F}{\isacharunderscore}}reflect}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 For technical reasons it is sometimes necessary to separate
   generation and compilation of code which is supposed to be used in
-  the system runtime.  For this \hyperlink{command.code-reflect}{\mbox{\isa{\isacommand{code{\isacharunderscore}reflect}}}} with an
+  the system runtime.  For this \hyperlink{command.code-reflect}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}}}} with an
   optional \isa{file} argument can be used:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -388,13 +388,13 @@ For technical reasons it is sometimes necessary to separate
 \endisadelimquote
 %
 \isatagquote
-\isacommand{code{\isacharunderscore}reflect}\isamarkupfalse%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}\isamarkupfalse%
 \ Rat\isanewline
-\ \ \isakeyword{datatypes}\ rat\ {\isacharequal}\ Frct\isanewline
+\ \ \isakeyword{datatypes}\ rat\ {\isaliteral{3D}{\isacharequal}}\ Frct\isanewline
 \ \ \isakeyword{functions}\ Fract\isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isacharparenleft}plus\ {\isacharcolon}{\isacharcolon}\ rat\ {\isasymRightarrow}\ rat\ {\isasymRightarrow}\ rat{\isacharparenright}{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharparenleft}minus\ {\isacharcolon}{\isacharcolon}\ rat\ {\isasymRightarrow}\ rat\ {\isasymRightarrow}\ rat{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isacharparenleft}times\ {\isacharcolon}{\isacharcolon}\ rat\ {\isasymRightarrow}\ rat\ {\isasymRightarrow}\ rat{\isacharparenright}{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharparenleft}divide\ {\isacharcolon}{\isacharcolon}\ rat\ {\isasymRightarrow}\ rat\ {\isasymRightarrow}\ rat{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}rat{\isachardot}ML{\isachardoublequoteclose}%
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}plus\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ rat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ rat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ rat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}minus\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ rat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ rat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ rat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}times\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ rat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ rat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ rat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}divide\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ rat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ rat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ rat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{file}\ {\isaliteral{22}{\isachardoublequoteopen}}examples{\isaliteral{2F}{\isacharslash}}rat{\isaliteral{2E}{\isachardot}}ML{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %

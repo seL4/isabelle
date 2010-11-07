@@ -1,6 +1,6 @@
 %
 \begin{isabellebody}%
-\def\isabellecontext{Outer{\isacharunderscore}Syntax}%
+\def\isabellecontext{Outer{\isaliteral{5F}{\isacharunderscore}}Syntax}%
 %
 \isadelimtheory
 %
@@ -8,7 +8,7 @@
 %
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
-\ Outer{\isacharunderscore}Syntax\isanewline
+\ Outer{\isaliteral{5F}{\isacharunderscore}}Syntax\isanewline
 \isakeyword{imports}\ Main\isanewline
 \isakeyword{begin}%
 \endisatagtheory
@@ -123,42 +123,42 @@ The outer lexical syntax consists of three main categories of
 
   \begin{center}
   \begin{supertabular}{rcl}
-    \indexdef{}{syntax}{ident}\hypertarget{syntax.ident}{\hyperlink{syntax.ident}{\mbox{\isa{ident}}}} & = & \isa{{\isachardoublequote}letter\ quasiletter\isactrlsup {\isacharasterisk}{\isachardoublequote}} \\
-    \indexdef{}{syntax}{longident}\hypertarget{syntax.longident}{\hyperlink{syntax.longident}{\mbox{\isa{longident}}}} & = & \isa{{\isachardoublequote}ident{\isacharparenleft}{\isachardoublequote}}\verb|.|\isa{{\isachardoublequote}ident{\isacharparenright}\isactrlsup {\isacharplus}{\isachardoublequote}} \\
-    \indexdef{}{syntax}{symident}\hypertarget{syntax.symident}{\hyperlink{syntax.symident}{\mbox{\isa{symident}}}} & = & \isa{{\isachardoublequote}sym\isactrlsup {\isacharplus}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\|\verb|<|\isa{ident}\verb|>| \\
-    \indexdef{}{syntax}{nat}\hypertarget{syntax.nat}{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}} & = & \isa{{\isachardoublequote}digit\isactrlsup {\isacharplus}{\isachardoublequote}} \\
-    \indexdef{}{syntax}{float}\hypertarget{syntax.float}{\hyperlink{syntax.float}{\mbox{\isa{float}}}} & = & \indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\verb|.|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\verb|.|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
-    \indexdef{}{syntax}{var}\hypertarget{syntax.var}{\hyperlink{syntax.var}{\mbox{\isa{var}}}} & = & \verb|?|\isa{{\isachardoublequote}ident\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|?|\isa{ident}\verb|.|\isa{nat} \\
+    \indexdef{}{syntax}{ident}\hypertarget{syntax.ident}{\hyperlink{syntax.ident}{\mbox{\isa{ident}}}} & = & \isa{{\isaliteral{22}{\isachardoublequote}}letter\ quasiletter\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{syntax}{longident}\hypertarget{syntax.longident}{\hyperlink{syntax.longident}{\mbox{\isa{longident}}}} & = & \isa{{\isaliteral{22}{\isachardoublequote}}ident{\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}}\verb|.|\isa{{\isaliteral{22}{\isachardoublequote}}ident{\isaliteral{29}{\isacharparenright}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2B}{\isacharplus}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{syntax}{symident}\hypertarget{syntax.symident}{\hyperlink{syntax.symident}{\mbox{\isa{symident}}}} & = & \isa{{\isaliteral{22}{\isachardoublequote}}sym\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2B}{\isacharplus}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\|\verb|<|\isa{ident}\verb|>| \\
+    \indexdef{}{syntax}{nat}\hypertarget{syntax.nat}{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}} & = & \isa{{\isaliteral{22}{\isachardoublequote}}digit\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2B}{\isacharplus}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{syntax}{float}\hypertarget{syntax.float}{\hyperlink{syntax.float}{\mbox{\isa{float}}}} & = & \indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\verb|.|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\verb|.|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
+    \indexdef{}{syntax}{var}\hypertarget{syntax.var}{\hyperlink{syntax.var}{\mbox{\isa{var}}}} & = & \verb|?|\isa{{\isaliteral{22}{\isachardoublequote}}ident\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|?|\isa{ident}\verb|.|\isa{nat} \\
     \indexdef{}{syntax}{typefree}\hypertarget{syntax.typefree}{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}} & = & \verb|'|\isa{ident} \\
-    \indexdef{}{syntax}{typevar}\hypertarget{syntax.typevar}{\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}}} & = & \verb|?|\isa{{\isachardoublequote}typefree\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|?|\isa{typefree}\verb|.|\isa{nat} \\
-    \indexdef{}{syntax}{string}\hypertarget{syntax.string}{\hyperlink{syntax.string}{\mbox{\isa{string}}}} & = & \verb|"| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|"| \\
-    \indexdef{}{syntax}{altstring}\hypertarget{syntax.altstring}{\hyperlink{syntax.altstring}{\mbox{\isa{altstring}}}} & = & \verb|`| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|`| \\
-    \indexdef{}{syntax}{verbatim}\hypertarget{syntax.verbatim}{\hyperlink{syntax.verbatim}{\mbox{\isa{verbatim}}}} & = & \verb|{*| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|*|\verb|}| \\[1ex]
+    \indexdef{}{syntax}{typevar}\hypertarget{syntax.typevar}{\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}}} & = & \verb|?|\isa{{\isaliteral{22}{\isachardoublequote}}typefree\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|?|\isa{typefree}\verb|.|\isa{nat} \\
+    \indexdef{}{syntax}{string}\hypertarget{syntax.string}{\hyperlink{syntax.string}{\mbox{\isa{string}}}} & = & \verb|"| \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} \verb|"| \\
+    \indexdef{}{syntax}{altstring}\hypertarget{syntax.altstring}{\hyperlink{syntax.altstring}{\mbox{\isa{altstring}}}} & = & \verb|`| \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} \verb|`| \\
+    \indexdef{}{syntax}{verbatim}\hypertarget{syntax.verbatim}{\hyperlink{syntax.verbatim}{\mbox{\isa{verbatim}}}} & = & \verb|{*| \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} \verb|*|\verb|}| \\[1ex]
 
-    \isa{letter} & = & \isa{{\isachardoublequote}latin\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\|\verb|<|\isa{latin}\verb|>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\|\verb|<|\isa{{\isachardoublequote}latin\ latin{\isachardoublequote}}\verb|>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ greek\ \ {\isacharbar}{\isachardoublequote}} \\
-          &   & \verb|\<^isub>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<^isup>| \\
-    \isa{quasiletter} & = & \isa{{\isachardoublequote}letter\ \ {\isacharbar}\ \ digit\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|_|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|'| \\
-    \isa{latin} & = & \verb|a|\isa{{\isachardoublequote}\ \ {\isacharbar}\ {\isasymdots}\ {\isacharbar}\ \ {\isachardoublequote}}\verb|z|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|A|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isasymdots}\ {\isacharbar}\ \ {\isachardoublequote}}\verb|Z| \\
-    \isa{digit} & = & \verb|0|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isasymdots}\ {\isacharbar}\ \ {\isachardoublequote}}\verb|9| \\
-    \isa{sym} & = & \verb|!|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|#|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|$|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|%|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|&|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|*|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|+|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|-|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|/|\isa{{\isachardoublequote}\ \ {\isacharbar}{\isachardoublequote}} \\
-    & & \verb|<|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|=|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|?|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|@|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|^|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|_|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb||\verb,|,\verb||\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|~| \\
-    \isa{greek} & = & \verb|\<alpha>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<beta>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<gamma>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<delta>|\isa{{\isachardoublequote}\ \ {\isacharbar}{\isachardoublequote}} \\
-          &   & \verb|\<epsilon>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<zeta>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<eta>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<theta>|\isa{{\isachardoublequote}\ \ {\isacharbar}{\isachardoublequote}} \\
-          &   & \verb|\<iota>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<kappa>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<mu>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<nu>|\isa{{\isachardoublequote}\ \ {\isacharbar}{\isachardoublequote}} \\
-          &   & \verb|\<xi>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<pi>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<rho>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<sigma>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<tau>|\isa{{\isachardoublequote}\ \ {\isacharbar}{\isachardoublequote}} \\
-          &   & \verb|\<upsilon>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<phi>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<chi>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<psi>|\isa{{\isachardoublequote}\ \ {\isacharbar}{\isachardoublequote}} \\
-          &   & \verb|\<omega>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<Gamma>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<Delta>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<Theta>|\isa{{\isachardoublequote}\ \ {\isacharbar}{\isachardoublequote}} \\
-          &   & \verb|\<Lambda>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<Xi>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<Pi>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<Sigma>|\isa{{\isachardoublequote}\ \ {\isacharbar}{\isachardoublequote}} \\
-          &   & \verb|\<Upsilon>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<Phi>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<Psi>|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|\<Omega>| \\
+    \isa{letter} & = & \isa{{\isaliteral{22}{\isachardoublequote}}latin\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\|\verb|<|\isa{latin}\verb|>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\|\verb|<|\isa{{\isaliteral{22}{\isachardoublequote}}latin\ latin{\isaliteral{22}{\isachardoublequote}}}\verb|>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ greek\ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}} \\
+          &   & \verb|\<^isub>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<^isup>| \\
+    \isa{quasiletter} & = & \isa{{\isaliteral{22}{\isachardoublequote}}letter\ \ {\isaliteral{7C}{\isacharbar}}\ \ digit\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|_|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|'| \\
+    \isa{latin} & = & \verb|a|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|z|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|A|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|Z| \\
+    \isa{digit} & = & \verb|0|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|9| \\
+    \isa{sym} & = & \verb|!|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|#|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|$|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|%|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|&|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|*|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|+|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|-|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|/|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}} \\
+    & & \verb|<|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|=|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|?|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|@|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|^|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|_|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb||\verb,|,\verb||\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|~| \\
+    \isa{greek} & = & \verb|\<alpha>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<beta>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<gamma>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<delta>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}} \\
+          &   & \verb|\<epsilon>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<zeta>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<eta>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<theta>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}} \\
+          &   & \verb|\<iota>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<kappa>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<mu>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<nu>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}} \\
+          &   & \verb|\<xi>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<pi>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<rho>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<sigma>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<tau>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}} \\
+          &   & \verb|\<upsilon>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<phi>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<chi>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<psi>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}} \\
+          &   & \verb|\<omega>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<Gamma>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<Delta>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<Theta>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}} \\
+          &   & \verb|\<Lambda>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<Xi>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<Pi>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<Sigma>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}} \\
+          &   & \verb|\<Upsilon>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<Phi>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<Psi>|\isa{{\isaliteral{22}{\isachardoublequote}}\ \ {\isaliteral{7C}{\isacharbar}}\ \ {\isaliteral{22}{\isachardoublequote}}}\verb|\<Omega>| \\
   \end{supertabular}
   \end{center}
 
   A \indexref{}{syntax}{var}\hyperlink{syntax.var}{\mbox{\isa{var}}} or \indexref{}{syntax}{typevar}\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}} describes an unknown,
   which is internally a pair of base name and index (ML type \verb|indexname|).  These components are either separated by a dot as in
-  \isa{{\isachardoublequote}{\isacharquery}x{\isachardot}{\isadigit{1}}{\isachardoublequote}} or \isa{{\isachardoublequote}{\isacharquery}x{\isadigit{7}}{\isachardot}{\isadigit{3}}{\isachardoublequote}} or run together as in \isa{{\isachardoublequote}{\isacharquery}x{\isadigit{1}}{\isachardoublequote}}.  The latter form is possible if the base name does not end
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{2E}{\isachardot}}{\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} or \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}x{\isadigit{7}}{\isaliteral{2E}{\isachardot}}{\isadigit{3}}{\isaliteral{22}{\isachardoublequote}}} or run together as in \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}x{\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}.  The latter form is possible if the base name does not end
   with digits.  If the index is 0, it may be dropped altogether:
-  \isa{{\isachardoublequote}{\isacharquery}x{\isachardoublequote}} and \isa{{\isachardoublequote}{\isacharquery}x{\isadigit{0}}{\isachardoublequote}} and \isa{{\isachardoublequote}{\isacharquery}x{\isachardot}{\isadigit{0}}{\isachardoublequote}} all refer to the
-  same unknown, with basename \isa{{\isachardoublequote}x{\isachardoublequote}} and index 0.
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}x{\isadigit{0}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{2E}{\isachardot}}{\isadigit{0}}{\isaliteral{22}{\isachardoublequote}}} all refer to the
+  same unknown, with basename \isa{{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}} and index 0.
 
   The syntax of \indexref{}{syntax}{string}\hyperlink{syntax.string}{\mbox{\isa{string}}} admits any characters, including
   newlines; ``\verb|"|'' (double-quote) and ``\verb|\|'' (backslash) need to be escaped by a backslash; arbitrary
@@ -174,13 +174,13 @@ The outer lexical syntax consists of three main categories of
   text is {\LaTeX} source, one may usually add some blank or comment
   to avoid the critical character sequence.
 
-  Source comments take the form \verb|(*|~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\verb|*)| and may be nested, although the user-interface
+  Source comments take the form \verb|(*|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}~\verb|*)| and may be nested, although the user-interface
   might prevent this.  Note that this form indicates source comments
   only, which are stripped after lexical analysis of the input.  The
   Isar syntax also provides proper \emph{document comments} that are
   considered as part of the text (see \secref{sec:comments}).
 
-  Common mathematical symbols such as \isa{{\isasymforall}} are represented in
+  Common mathematical symbols such as \isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}} are represented in
   Isabelle as \verb|\<forall>|.  There are infinitely many Isabelle
   symbols like this, although proper presentation is left to front-end
   tools such as {\LaTeX} or Proof~General with the X-Symbol package.
@@ -255,7 +255,7 @@ The outer lexical syntax (\secref{sec:outer-lex}) admits
 %
 \begin{isamarkuptext}%
 Large chunks of plain \railqtok{text} are usually given
-  \railtok{verbatim}, i.e.\ enclosed in \verb|{|\verb|*|~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\verb|*|\verb|}|.  For convenience,
+  \railtok{verbatim}, i.e.\ enclosed in \verb|{|\verb|*|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}~\verb|*|\verb|}|.  For convenience,
   any of the smaller text units conforming to \railqtok{nameref} are
   admitted as well.  A marginal \railnonterm{comment} is of the form
   \verb|--| \railqtok{text}.  Any number of these may occur
@@ -278,7 +278,7 @@ Large chunks of plain \railqtok{text} are usually given
 \begin{isamarkuptext}%
 Classes are specified by plain names.  Sorts have a very simple
   inner syntax, which is either a single class name \isa{c} or a
-  list \isa{{\isachardoublequote}{\isacharbraceleft}c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n{\isacharbraceright}{\isachardoublequote}} referring to the
+  list \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{7B}{\isacharbraceleft}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} referring to the
   intersection of these classes.  The syntax of type arities is given
   directly at the outer level.
 
@@ -308,7 +308,7 @@ The actual inner Isabelle syntax, that of types and terms of the
   liberal convention is adopted: quotes may be omitted for any type or
   term that is already atomic at the outer level.  For example, one
   may just write \verb|x| instead of quoted \verb|"x"|.
-  Note that symbolic identifiers (e.g.\ \verb|++| or \isa{{\isachardoublequote}{\isasymforall}{\isachardoublequote}} are available as well, provided these have not been superseded
+  Note that symbolic identifiers (e.g.\ \verb|++| or \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{22}{\isachardoublequote}}} are available as well, provided these have not been superseded
   by commands or other keywords already (such as \verb|=| or
   \verb|+|).
 
@@ -323,7 +323,7 @@ The actual inner Isabelle syntax, that of types and terms of the
   \end{rail}
 
   Positional instantiations are indicated by giving a sequence of
-  terms, or the placeholder ``\isa{{\isacharunderscore}}'' (underscore), which means to
+  terms, or the placeholder ``\isa{{\isaliteral{5F}{\isacharunderscore}}}'' (underscore), which means to
   skip a position.
 
   \indexoutertoken{inst}\indexoutertoken{insts}
@@ -358,7 +358,7 @@ The actual inner Isabelle syntax, that of types and terms of the
 \begin{isamarkuptext}%
 Wherever explicit propositions (or term fragments) occur in a proof
   text, casual binding of schematic term variables may be given
-  specified via patterns of the form ``\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}{\isachardoublequote}}''.  This works both for \railqtok{term} and \railqtok{prop}.
+  specified via patterns of the form ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C49533E}{\isasymIS}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}''.  This works both for \railqtok{term} and \railqtok{prop}.
 
   \indexouternonterm{termpat}\indexouternonterm{proppat}
   \begin{rail}
@@ -368,8 +368,8 @@ Wherever explicit propositions (or term fragments) occur in a proof
     ;
   \end{rail}
 
-  \medskip Declarations of local variables \isa{{\isachardoublequote}x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}{\isachardoublequote}} and
-  logical propositions \isa{{\isachardoublequote}a\ {\isacharcolon}\ {\isasymphi}{\isachardoublequote}} represent different views on
+  \medskip Declarations of local variables \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}} and
+  logical propositions \isa{{\isaliteral{22}{\isachardoublequote}}a\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} represent different views on
   the same principle of introducing a local scope.  In practice, one
   may usually omit the typing of \railnonterm{vars} (due to
   type-inference), and the naming of propositions (due to implicit
@@ -386,8 +386,8 @@ Wherever explicit propositions (or term fragments) occur in a proof
 
   The treatment of multiple declarations corresponds to the
   complementary focus of \railnonterm{vars} versus
-  \railnonterm{props}.  In ``\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}{\isachardoublequote}}''
-  the typing refers to all variables, while in \isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}} the naming refers to all propositions collectively.
+  \railnonterm{props}.  In ``\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}}''
+  the typing refers to all variables, while in \isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} the naming refers to all propositions collectively.
   Isar language elements that refer to \railnonterm{vars} or
   \railnonterm{props} typically admit separate typings or namings via
   another level of iteration, with explicit \indexref{}{keyword}{and}\hyperlink{keyword.and}{\mbox{\isa{\isakeyword{and}}}}
@@ -432,12 +432,12 @@ Attributes have their own ``semi-inner'' syntax, in the sense
   There are three forms of theorem references:
   \begin{enumerate}
   
-  \item named facts \isa{{\isachardoublequote}a{\isachardoublequote}},
+  \item named facts \isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}},
 
-  \item selections from named facts \isa{{\isachardoublequote}a{\isacharparenleft}i{\isacharparenright}{\isachardoublequote}} or \isa{{\isachardoublequote}a{\isacharparenleft}j\ {\isacharminus}\ k{\isacharparenright}{\isachardoublequote}},
+  \item selections from named facts \isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{28}{\isacharparenleft}}i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} or \isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{28}{\isacharparenleft}}j\ {\isaliteral{2D}{\isacharminus}}\ k{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}},
 
   \item literal fact propositions using \indexref{}{syntax}{altstring}\hyperlink{syntax.altstring}{\mbox{\isa{altstring}}} syntax
-  \verb|`|\isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}\verb|`| (see also method
+  \verb|`|\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}}\verb|`| (see also method
   \indexref{}{method}{fact}\hyperlink{method.fact}{\mbox{\isa{fact}}}).
 
   \end{enumerate}
@@ -448,7 +448,7 @@ Attributes have their own ``semi-inner'' syntax, in the sense
   not stored within the theorem database of the theory or proof
   context, but any given attributes are applied nonetheless.
 
-  An extra pair of brackets around attributes (like ``\isa{{\isachardoublequote}{\isacharbrackleft}{\isacharbrackleft}simproc\ a{\isacharbrackright}{\isacharbrackright}{\isachardoublequote}}'') abbreviates a theorem reference involving an
+  An extra pair of brackets around attributes (like ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}simproc\ a{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}'') abbreviates a theorem reference involving an
   internal dummy fact, which will be ignored later on.  So only the
   effect of the attribute on the background context will persist.
   This form of in-place declarations is particularly useful with

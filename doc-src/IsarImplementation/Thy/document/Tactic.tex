@@ -38,39 +38,39 @@ Tactical reasoning works by refining an initial claim in a
 %
 \begin{isamarkuptext}%
 Isabelle/Pure represents a goal as a theorem stating that the
-  subgoals imply the main goal: \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}.  The outermost goal structure is that of a Horn Clause: i.e.\
+  subgoals imply the main goal: \isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C}.  The outermost goal structure is that of a Horn Clause: i.e.\
   an iterated implication without any quantifiers\footnote{Recall that
-  outermost \isa{{\isasymAnd}x{\isachardot}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}} is always represented via schematic
-  variables in the body: \isa{{\isasymphi}{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}.  These variables may get
-  instantiated during the course of reasoning.}.  For \isa{n\ {\isacharequal}\ {\isadigit{0}}}
+  outermost \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}} is always represented via schematic
+  variables in the body: \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{5D}{\isacharbrackright}}}.  These variables may get
+  instantiated during the course of reasoning.}.  For \isa{n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}}
   a goal is called ``solved''.
 
-  The structure of each subgoal \isa{A\isactrlsub i} is that of a
-  general Hereditary Harrop Formula \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymAnd}x\isactrlsub k{\isachardot}\ H\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ H\isactrlsub m\ {\isasymLongrightarrow}\ B}.  Here \isa{x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub k} are goal parameters, i.e.\
-  arbitrary-but-fixed entities of certain types, and \isa{H\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ H\isactrlsub m} are goal hypotheses, i.e.\ facts that may
+  The structure of each subgoal \isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub i} is that of a
+  general Hereditary Harrop Formula \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{2E}{\isachardot}}\ H\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ H\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}.  Here \isa{x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub k} are goal parameters, i.e.\
+  arbitrary-but-fixed entities of certain types, and \isa{H\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ H\isaliteral{5C3C5E7375623E}{}\isactrlsub m} are goal hypotheses, i.e.\ facts that may
   be assumed locally.  Together, this forms the goal context of the
   conclusion \isa{B} to be established.  The goal hypotheses may be
   again arbitrary Hereditary Harrop Formulas, although the level of
   nesting rarely exceeds 1--2 in practice.
 
   The main conclusion \isa{C} is internally marked as a protected
-  proposition, which is represented explicitly by the notation \isa{{\isacharhash}C} here.  This ensures that the decomposition into subgoals and
+  proposition, which is represented explicitly by the notation \isa{{\isaliteral{23}{\isacharhash}}C} here.  This ensures that the decomposition into subgoals and
   main conclusion is well-defined for arbitrarily structured claims.
 
   \medskip Basic goal management is performed via the following
   Isabelle/Pure rules:
 
   \[
-  \infer[\isa{{\isacharparenleft}init{\isacharparenright}}]{\isa{C\ {\isasymLongrightarrow}\ {\isacharhash}C}}{} \qquad
-  \infer[\isa{{\isacharparenleft}finish{\isacharparenright}}]{\isa{C}}{\isa{{\isacharhash}C}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}init{\isaliteral{29}{\isacharparenright}}}]{\isa{C\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{23}{\isacharhash}}C}}{} \qquad
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}finish{\isaliteral{29}{\isacharparenright}}}]{\isa{C}}{\isa{{\isaliteral{23}{\isacharhash}}C}}
   \]
 
   \medskip The following low-level variants admit general reasoning
   with protected propositions:
 
   \[
-  \infer[\isa{{\isacharparenleft}protect{\isacharparenright}}]{\isa{{\isacharhash}C}}{\isa{C}} \qquad
-  \infer[\isa{{\isacharparenleft}conclude{\isacharparenright}}]{\isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}}{\isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ {\isacharhash}C}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}protect{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{23}{\isacharhash}}C}}{\isa{C}} \qquad
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}conclude{\isaliteral{29}{\isacharparenright}}}]{\isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C}}{\isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{23}{\isacharhash}}C}}
   \]%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -121,7 +121,7 @@ Isabelle/Pure represents a goal as a theorem stating that the
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A \isa{tactic} is a function \isa{goal\ {\isasymrightarrow}\ goal\isactrlsup {\isacharasterisk}\isactrlsup {\isacharasterisk}} that
+A \isa{tactic} is a function \isa{goal\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ goal\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}} that
   maps a given goal state (represented as a theorem, cf.\
   \secref{sec:tactical-goals}) to a lazy sequence of potential
   successor states.  The underlying sequence implementation is lazy
@@ -152,7 +152,7 @@ A \isa{tactic} is a function \isa{goal\ {\isasymrightarrow}\ goal\isactrlsup {\i
   schematic goal variables).
 
   Tactics with explicit \emph{subgoal addressing} are of the form
-  \isa{int\ {\isasymrightarrow}\ tactic} and may be applied to a particular subgoal
+  \isa{int\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ tactic} and may be applied to a particular subgoal
   (counting from 1).  If the subgoal number is out of range, the
   tactic should fail with an empty result sequence, but must not raise
   an exception!
@@ -222,7 +222,7 @@ A \isa{tactic} is a function \isa{goal\ {\isasymrightarrow}\ goal\isactrlsup {\i
 
   \item Type \verb|tactic| represents tactics.  The
   well-formedness conditions described above need to be observed.  See
-  also \hyperlink{file.~~/src/Pure/General/seq.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}seq{\isachardot}ML}}}} for the underlying
+  also \hyperlink{file.~~/src/Pure/General/seq.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}General{\isaliteral{2F}{\isacharslash}}seq{\isaliteral{2E}{\isachardot}}ML}}}} for the underlying
   implementation of lazy sequences.
 
   \item Type \verb|int -> tactic| represents tactics with
@@ -244,7 +244,7 @@ A \isa{tactic} is a function \isa{goal\ {\isasymrightarrow}\ goal\isactrlsup {\i
   a regular tactic failure and produces an empty result; other
   exceptions are passed through.
 
-  \item \verb|SUBGOAL|~\isa{{\isacharparenleft}fn\ {\isacharparenleft}subgoal{\isacharcomma}\ i{\isacharparenright}\ {\isacharequal}{\isachargreater}\ tactic{\isacharparenright}} is the
+  \item \verb|SUBGOAL|~\isa{{\isaliteral{28}{\isacharparenleft}}fn\ {\isaliteral{28}{\isacharparenleft}}subgoal{\isaliteral{2C}{\isacharcomma}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ tactic{\isaliteral{29}{\isacharparenright}}} is the
   most basic form to produce a tactic with subgoal addressing.  The
   given abstraction over the subgoal term and subgoal number allows to
   peek at the relevant information of the full goal state.  The
@@ -279,7 +279,7 @@ A \isa{tactic} is a function \isa{goal\ {\isasymrightarrow}\ goal\isactrlsup {\i
   \emph{Destruct-resolution} is like elim-resolution, but the given
   destruction rules are first turned into canonical elimination
   format.  \emph{Forward-resolution} is like destruct-resolution, but
-  without deleting the selected assumption.  The \isa{r{\isacharslash}e{\isacharslash}d{\isacharslash}f}
+  without deleting the selected assumption.  The \isa{r{\isaliteral{2F}{\isacharslash}}e{\isaliteral{2F}{\isacharslash}}d{\isaliteral{2F}{\isacharslash}}f}
   naming convention is maintained for several different kinds of
   resolution rules and tactics.
 
@@ -353,7 +353,7 @@ A \isa{tactic} is a function \isa{goal\ {\isasymrightarrow}\ goal\isactrlsup {\i
   by assumption (modulo higher-order unification).
 
   \item \verb|eq_assume_tac| is similar to \verb|assume_tac|, but checks
-  only for immediate \isa{{\isasymalpha}}-convertibility instead of using
+  only for immediate \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}-convertibility instead of using
   unification.  It succeeds (with a unique next state) if one of the
   assumptions is equal to the subgoal's conclusion.  Since it does not
   instantiate variables, it cannot make other subgoals unprovable.
@@ -390,18 +390,18 @@ The main resolution tactics (\secref{sec:resolve-assume-tac})
   higher-order unification is not so useful.  This typically involves
   rules like universal elimination, existential introduction, or
   equational substitution.  Here the unification problem involves
-  fully flexible \isa{{\isacharquery}P\ {\isacharquery}x} schemes, which are hard to manage
+  fully flexible \isa{{\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{3F}{\isacharquery}}x} schemes, which are hard to manage
   without further hints.
 
-  By providing a (small) rigid term for \isa{{\isacharquery}x} explicitly, the
-  remaining unification problem is to assign a (large) term to \isa{{\isacharquery}P}, according to the shape of the given subgoal.  This is
+  By providing a (small) rigid term for \isa{{\isaliteral{3F}{\isacharquery}}x} explicitly, the
+  remaining unification problem is to assign a (large) term to \isa{{\isaliteral{3F}{\isacharquery}}P}, according to the shape of the given subgoal.  This is
   sufficiently well-behaved in most practical situations.
 
-  \medskip Isabelle provides separate versions of the standard \isa{r{\isacharslash}e{\isacharslash}d{\isacharslash}f} resolution tactics that allow to provide explicit
+  \medskip Isabelle provides separate versions of the standard \isa{r{\isaliteral{2F}{\isacharslash}}e{\isaliteral{2F}{\isacharslash}}d{\isaliteral{2F}{\isacharslash}}f} resolution tactics that allow to provide explicit
   instantiations of unknowns of the given rule, wrt.\ terms that refer
   to the implicit context of the selected subgoal.
 
-  An instantiation consists of a list of pairs of the form \isa{{\isacharparenleft}{\isacharquery}x{\isacharcomma}\ t{\isacharparenright}}, where \isa{{\isacharquery}x} is a schematic variable occurring in
+  An instantiation consists of a list of pairs of the form \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}}, where \isa{{\isaliteral{3F}{\isacharquery}}x} is a schematic variable occurring in
   the given rule, and \isa{t} is a term from the current proof
   context, augmented by the local goal parameters of the selected
   subgoal; cf.\ the \isa{focus} operation described in
@@ -413,7 +413,7 @@ The main resolution tactics (\secref{sec:resolve-assume-tac})
   global names.  Explicit renaming of subgoal parameters prior to
   explicit instantiation might help to achieve a bit more robustness.
 
-  Type instantiations may be given as well, via pairs like \isa{{\isacharparenleft}{\isacharquery}{\isacharprime}a{\isacharcomma}\ {\isasymtau}{\isacharparenright}}.  Type instantiations are distinguished from term
+  Type instantiations may be given as well, via pairs like \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}}.  Type instantiations are distinguished from term
   instantiations by the syntactic form of the schematic variable.
   Types are instantiated before terms are.  Since term instantiation
   already performs simple type-inference, so explicit type

@@ -25,20 +25,20 @@
 \begin{isamarkuptext}%
 The logical foundations of Isabelle/Isar are that of the Pure logic,
   which has been introduced as a Natural Deduction framework in
-  \cite{paulson700}.  This is essentially the same logic as ``\isa{{\isasymlambda}HOL}'' in the more abstract setting of Pure Type Systems (PTS)
+  \cite{paulson700}.  This is essentially the same logic as ``\isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}HOL}'' in the more abstract setting of Pure Type Systems (PTS)
   \cite{Barendregt-Geuvers:2001}, although there are some key
   differences in the specific treatment of simple types in
   Isabelle/Pure.
 
   Following type-theoretic parlance, the Pure logic consists of three
-  levels of \isa{{\isasymlambda}}-calculus with corresponding arrows, \isa{{\isasymRightarrow}} for syntactic function space (terms depending on terms), \isa{{\isasymAnd}} for universal quantification (proofs depending on terms), and
-  \isa{{\isasymLongrightarrow}} for implication (proofs depending on proofs).
+  levels of \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-calculus with corresponding arrows, \isa{{\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}} for syntactic function space (terms depending on terms), \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}} for universal quantification (proofs depending on terms), and
+  \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}} for implication (proofs depending on proofs).
 
   Derivations are relative to a logical theory, which declares type
   constructors, constants, and axioms.  Theory declarations support
   schematic polymorphism, which is strictly speaking outside the
   logic.\footnote{This is the deeper logical reason, why the theory
-  context \isa{{\isasymTheta}} is separate from the proof context \isa{{\isasymGamma}}
+  context \isa{{\isaliteral{5C3C54686574613E}{\isasymTheta}}} is separate from the proof context \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}}
   of the core calculus: type constructors, term constants, and facts
   (proof constants) may involve arbitrary type schemes, but the type
   of a locally fixed term parameter is also fixed!}%
@@ -54,27 +54,27 @@ The language of types is an uninterpreted order-sorted first-order
   algebra; types are qualified by ordered type classes.
 
   \medskip A \emph{type class} is an abstract syntactic entity
-  declared in the theory context.  The \emph{subclass relation} \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}} is specified by stating an acyclic
+  declared in the theory context.  The \emph{subclass relation} \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}} is specified by stating an acyclic
   generating relation; the transitive closure is maintained
   internally.  The resulting relation is an ordering: reflexive,
   transitive, and antisymmetric.
 
-  A \emph{sort} is a list of type classes written as \isa{s\ {\isacharequal}\ {\isacharbraceleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub m{\isacharbraceright}}, it represents symbolic intersection.  Notationally, the
+  A \emph{sort} is a list of type classes written as \isa{s\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub m{\isaliteral{7D}{\isacharbraceright}}}, it represents symbolic intersection.  Notationally, the
   curly braces are omitted for singleton intersections, i.e.\ any
-  class \isa{c} may be read as a sort \isa{{\isacharbraceleft}c{\isacharbraceright}}.  The ordering
+  class \isa{c} may be read as a sort \isa{{\isaliteral{7B}{\isacharbraceleft}}c{\isaliteral{7D}{\isacharbraceright}}}.  The ordering
   on type classes is extended to sorts according to the meaning of
-  intersections: \isa{{\isacharbraceleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}\ c\isactrlisub m{\isacharbraceright}\ {\isasymsubseteq}\ {\isacharbraceleft}d\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ d\isactrlisub n{\isacharbraceright}} iff \isa{{\isasymforall}j{\isachardot}\ {\isasymexists}i{\isachardot}\ c\isactrlisub i\ {\isasymsubseteq}\ d\isactrlisub j}.  The empty intersection \isa{{\isacharbraceleft}{\isacharbraceright}} refers to
+  intersections: \isa{{\isaliteral{7B}{\isacharbraceleft}}c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub m{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ {\isaliteral{7B}{\isacharbraceleft}}d\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ d\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{7D}{\isacharbraceright}}} iff \isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}j{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}i{\isaliteral{2E}{\isachardot}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub i\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ d\isaliteral{5C3C5E697375623E}{}\isactrlisub j}.  The empty intersection \isa{{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{7D}{\isacharbraceright}}} refers to
   the universal sort, which is the largest element wrt.\ the sort
-  order.  Thus \isa{{\isacharbraceleft}{\isacharbraceright}} represents the ``full sort'', not the
+  order.  Thus \isa{{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{7D}{\isacharbraceright}}} represents the ``full sort'', not the
   empty one!  The intersection of all (finitely many) classes declared
   in the current theory is the least element wrt.\ the sort ordering.
 
   \medskip A \emph{fixed type variable} is a pair of a basic name
-  (starting with a \isa{{\isacharprime}} character) and a sort constraint, e.g.\
-  \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ s{\isacharparenright}} which is usually printed as \isa{{\isasymalpha}\isactrlisub s}.
+  (starting with a \isa{{\isaliteral{27}{\isacharprime}}} character) and a sort constraint, e.g.\
+  \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ s{\isaliteral{29}{\isacharparenright}}} which is usually printed as \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub s}.
   A \emph{schematic type variable} is a pair of an indexname and a
-  sort constraint, e.g.\ \isa{{\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ s{\isacharparenright}} which is usually
-  printed as \isa{{\isacharquery}{\isasymalpha}\isactrlisub s}.
+  sort constraint, e.g.\ \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ s{\isaliteral{29}{\isacharparenright}}} which is usually
+  printed as \isa{{\isaliteral{3F}{\isacharquery}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub s}.
 
   Note that \emph{all} syntactic components contribute to the identity
   of type variables: basic name, index, and sort constraint.  The core
@@ -82,38 +82,38 @@ The language of types is an uninterpreted order-sorted first-order
   as different, although the type-inference layer (which is outside
   the core) rejects anything like that.
 
-  A \emph{type constructor} \isa{{\isasymkappa}} is a \isa{k}-ary operator
+  A \emph{type constructor} \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}} is a \isa{k}-ary operator
   on types declared in the theory.  Type constructor application is
-  written postfix as \isa{{\isacharparenleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub k{\isacharparenright}{\isasymkappa}}.  For
-  \isa{k\ {\isacharequal}\ {\isadigit{0}}} the argument tuple is omitted, e.g.\ \isa{prop}
-  instead of \isa{{\isacharparenleft}{\isacharparenright}prop}.  For \isa{k\ {\isacharequal}\ {\isadigit{1}}} the parentheses
-  are omitted, e.g.\ \isa{{\isasymalpha}\ list} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharparenright}list}.
+  written postfix as \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}}.  For
+  \isa{k\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}} the argument tuple is omitted, e.g.\ \isa{prop}
+  instead of \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}prop}.  For \isa{k\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}} the parentheses
+  are omitted, e.g.\ \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ list} instead of \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{29}{\isacharparenright}}list}.
   Further notation is provided for specific constructors, notably the
-  right-associative infix \isa{{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}} instead of \isa{{\isacharparenleft}{\isasymalpha}{\isacharcomma}\ {\isasymbeta}{\isacharparenright}fun}.
+  right-associative infix \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}} instead of \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}{\isaliteral{29}{\isacharparenright}}fun}.
   
   The logical category \emph{type} is defined inductively over type
-  variables and type constructors as follows: \isa{{\isasymtau}\ {\isacharequal}\ {\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharquery}{\isasymalpha}\isactrlisub s\ {\isacharbar}\ {\isacharparenleft}{\isasymtau}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlsub k{\isacharparenright}{\isasymkappa}}.
+  variables and type constructors as follows: \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub s\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{3F}{\isacharquery}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub s\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}}.
 
-  A \emph{type abbreviation} is a syntactic definition \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}} of an arbitrary type expression \isa{{\isasymtau}} over
-  variables \isa{\isactrlvec {\isasymalpha}}.  Type abbreviations appear as type
+  A \emph{type abbreviation} is a syntactic definition \isa{{\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} of an arbitrary type expression \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} over
+  variables \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}}.  Type abbreviations appear as type
   constructors in the syntax, but are expanded before entering the
   logical core.
 
   A \emph{type arity} declares the image behavior of a type
-  constructor wrt.\ the algebra of sorts: \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}s} means that \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub k{\isacharparenright}{\isasymkappa}} is
-  of sort \isa{s} if every argument type \isa{{\isasymtau}\isactrlisub i} is
-  of sort \isa{s\isactrlisub i}.  Arity declarations are implicitly
-  completed, i.e.\ \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c} entails \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isacharprime}} for any \isa{c{\isacharprime}\ {\isasymsupseteq}\ c}.
+  constructor wrt.\ the algebra of sorts: \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ s\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{29}{\isacharparenright}}s} means that \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}} is
+  of sort \isa{s} if every argument type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub i} is
+  of sort \isa{s\isaliteral{5C3C5E697375623E}{}\isactrlisub i}.  Arity declarations are implicitly
+  completed, i.e.\ \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec s{\isaliteral{29}{\isacharparenright}}c} entails \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec s{\isaliteral{29}{\isacharparenright}}c{\isaliteral{27}{\isacharprime}}} for any \isa{c{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C73757073657465713E}{\isasymsupseteq}}\ c}.
 
   \medskip The sort algebra is always maintained as \emph{coregular},
   which means that type arities are consistent with the subclass
-  relation: for any type constructor \isa{{\isasymkappa}}, and classes \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}, and arities \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{1}}{\isacharparenright}c\isactrlisub {\isadigit{1}}} and \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlisub {\isadigit{2}}{\isacharparenright}c\isactrlisub {\isadigit{2}}} holds \isa{\isactrlvec s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlisub {\isadigit{2}}} component-wise.
+  relation: for any type constructor \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}}, and classes \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}}, and arities \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}} and \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}} holds \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}} component-wise.
 
   The key property of a coregular order-sorted algebra is that sort
   constraints can be solved in a most general fashion: for each type
-  constructor \isa{{\isasymkappa}} and sort \isa{s} there is a most general
-  vector of argument sorts \isa{{\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlisub k{\isacharparenright}} such
-  that a type scheme \isa{{\isacharparenleft}{\isasymalpha}\isactrlbsub s\isactrlisub {\isadigit{1}}\isactrlesub {\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlbsub s\isactrlisub k\isactrlesub {\isacharparenright}{\isasymkappa}} is of sort \isa{s}.
+  constructor \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}} and sort \isa{s} there is a most general
+  vector of argument sorts \isa{{\isaliteral{28}{\isacharparenleft}}s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ s\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{29}{\isacharparenright}}} such
+  that a type scheme \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E627375623E}{}\isactrlbsub s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\isaliteral{5C3C5E657375623E}{}\isactrlesub {\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E627375623E}{}\isactrlbsub s\isaliteral{5C3C5E697375623E}{}\isactrlisub k\isaliteral{5C3C5E657375623E}{}\isactrlesub {\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}} is of sort \isa{s}.
   Consequently, type unification has most general solutions (modulo
   equivalence of sorts), so type-inference produces primary types as
   expected \cite{nipkow-prehofer}.%
@@ -154,37 +154,37 @@ The language of types is an uninterpreted order-sorted first-order
   the empty class intersection, i.e.\ the ``full sort''.
 
   \item Type \verb|arity| represents type arities.  A triple
-  \isa{{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}\ {\isacharcolon}\ arity} represents \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s} as described above.
+  \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec s{\isaliteral{2C}{\isacharcomma}}\ s{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3A}{\isacharcolon}}\ arity} represents \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec s{\isaliteral{29}{\isacharparenright}}s} as described above.
 
   \item Type \verb|typ| represents types; this is a datatype with
   constructors \verb|TFree|, \verb|TVar|, \verb|Type|.
 
-  \item \verb|Term.map_atyps|~\isa{f\ {\isasymtau}} applies the mapping \isa{f} to all atomic types (\verb|TFree|, \verb|TVar|) occurring in
-  \isa{{\isasymtau}}.
+  \item \verb|Term.map_atyps|~\isa{f\ {\isaliteral{5C3C7461753E}{\isasymtau}}} applies the mapping \isa{f} to all atomic types (\verb|TFree|, \verb|TVar|) occurring in
+  \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}.
 
-  \item \verb|Term.fold_atyps|~\isa{f\ {\isasymtau}} iterates the operation
-  \isa{f} over all occurrences of atomic types (\verb|TFree|, \verb|TVar|) in \isa{{\isasymtau}}; the type structure is traversed from left to
+  \item \verb|Term.fold_atyps|~\isa{f\ {\isaliteral{5C3C7461753E}{\isasymtau}}} iterates the operation
+  \isa{f} over all occurrences of atomic types (\verb|TFree|, \verb|TVar|) in \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}; the type structure is traversed from left to
   right.
 
-  \item \verb|Sign.subsort|~\isa{thy\ {\isacharparenleft}s\isactrlisub {\isadigit{1}}{\isacharcomma}\ s\isactrlisub {\isadigit{2}}{\isacharparenright}}
-  tests the subsort relation \isa{s\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ s\isactrlisub {\isadigit{2}}}.
+  \item \verb|Sign.subsort|~\isa{thy\ {\isaliteral{28}{\isacharparenleft}}s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}}
+  tests the subsort relation \isa{s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ s\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}}.
 
-  \item \verb|Sign.of_sort|~\isa{thy\ {\isacharparenleft}{\isasymtau}{\isacharcomma}\ s{\isacharparenright}} tests whether type
-  \isa{{\isasymtau}} is of sort \isa{s}.
+  \item \verb|Sign.of_sort|~\isa{thy\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{2C}{\isacharcomma}}\ s{\isaliteral{29}{\isacharparenright}}} tests whether type
+  \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} is of sort \isa{s}.
 
-  \item \verb|Sign.add_types|~\isa{{\isacharbrackleft}{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ k{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}} declares a new
-  type constructors \isa{{\isasymkappa}} with \isa{k} arguments and
+  \item \verb|Sign.add_types|~\isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ k{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{5D}{\isacharbrackright}}} declares a new
+  type constructors \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}} with \isa{k} arguments and
   optional mixfix syntax.
 
-  \item \verb|Sign.add_type_abbrev|~\isa{{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec {\isasymalpha}{\isacharcomma}\ {\isasymtau}{\isacharparenright}} defines a new type abbreviation \isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}\ {\isacharequal}\ {\isasymtau}}.
+  \item \verb|Sign.add_type_abbrev|~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} defines a new type abbreviation \isa{{\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}}.
 
-  \item \verb|Sign.primitive_class|~\isa{{\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlisub n{\isacharbrackright}{\isacharparenright}} declares a new class \isa{c}, together with class
-  relations \isa{c\ {\isasymsubseteq}\ c\isactrlisub i}, for \isa{i\ {\isacharequal}\ {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n}.
+  \item \verb|Sign.primitive_class|~\isa{{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}} declares a new class \isa{c}, together with class
+  relations \isa{c\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub i}, for \isa{i\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ n}.
 
-  \item \verb|Sign.primitive_classrel|~\isa{{\isacharparenleft}c\isactrlisub {\isadigit{1}}{\isacharcomma}\ c\isactrlisub {\isadigit{2}}{\isacharparenright}} declares the class relation \isa{c\isactrlisub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlisub {\isadigit{2}}}.
+  \item \verb|Sign.primitive_classrel|~\isa{{\isaliteral{28}{\isacharparenleft}}c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}} declares the class relation \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}}.
 
-  \item \verb|Sign.primitive_arity|~\isa{{\isacharparenleft}{\isasymkappa}{\isacharcomma}\ \isactrlvec s{\isacharcomma}\ s{\isacharparenright}} declares
-  the arity \isa{{\isasymkappa}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}s}.
+  \item \verb|Sign.primitive_arity|~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec s{\isaliteral{2C}{\isacharcomma}}\ s{\isaliteral{29}{\isacharparenright}}} declares
+  the arity \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec s{\isaliteral{29}{\isacharparenright}}s}.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -205,12 +205,12 @@ The language of types is an uninterpreted order-sorted first-order
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{class}\hypertarget{ML antiquotation.class}{\hyperlink{ML antiquotation.class}{\mbox{\isa{class}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{sort}\hypertarget{ML antiquotation.sort}{\hyperlink{ML antiquotation.sort}{\mbox{\isa{sort}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{type\_name}\hypertarget{ML antiquotation.type-name}{\hyperlink{ML antiquotation.type-name}{\mbox{\isa{type{\isacharunderscore}name}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{type\_abbrev}\hypertarget{ML antiquotation.type-abbrev}{\hyperlink{ML antiquotation.type-abbrev}{\mbox{\isa{type{\isacharunderscore}abbrev}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{nonterminal}\hypertarget{ML antiquotation.nonterminal}{\hyperlink{ML antiquotation.nonterminal}{\mbox{\isa{nonterminal}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{typ}\hypertarget{ML antiquotation.typ}{\hyperlink{ML antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{class}\hypertarget{ML antiquotation.class}{\hyperlink{ML antiquotation.class}{\mbox{\isa{class}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{sort}\hypertarget{ML antiquotation.sort}{\hyperlink{ML antiquotation.sort}{\mbox{\isa{sort}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{type\_name}\hypertarget{ML antiquotation.type-name}{\hyperlink{ML antiquotation.type-name}{\mbox{\isa{type{\isaliteral{5F}{\isacharunderscore}}name}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{type\_abbrev}\hypertarget{ML antiquotation.type-abbrev}{\hyperlink{ML antiquotation.type-abbrev}{\mbox{\isa{type{\isaliteral{5F}{\isacharunderscore}}abbrev}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{nonterminal}\hypertarget{ML antiquotation.nonterminal}{\hyperlink{ML antiquotation.nonterminal}{\mbox{\isa{nonterminal}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{typ}\hypertarget{ML antiquotation.typ}{\hyperlink{ML antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{rail}
@@ -226,22 +226,22 @@ The language of types is an uninterpreted order-sorted first-order
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}class\ c{\isacharbraceright}} inlines the internalized class \isa{c} --- as \verb|string| literal.
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}class\ c{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized class \isa{c} --- as \verb|string| literal.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}sort\ s{\isacharbraceright}} inlines the internalized sort \isa{s}
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}sort\ s{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized sort \isa{s}
   --- as \verb|string list| literal.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}type{\isacharunderscore}name\ c{\isacharbraceright}} inlines the internalized type
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}type{\isaliteral{5F}{\isacharunderscore}}name\ c{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized type
   constructor \isa{c} --- as \verb|string| literal.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}type{\isacharunderscore}abbrev\ c{\isacharbraceright}} inlines the internalized type
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}type{\isaliteral{5F}{\isacharunderscore}}abbrev\ c{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized type
   abbreviation \isa{c} --- as \verb|string| literal.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}nonterminal\ c{\isacharbraceright}} inlines the internalized syntactic
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}nonterminal\ c{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized syntactic
   type~/ grammar nonterminal \isa{c} --- as \verb|string|
   literal.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}} inlines the internalized type \isa{{\isasymtau}}
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}typ\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}
   --- as constructor term for datatype \verb|typ|.
 
   \end{description}%
@@ -260,7 +260,7 @@ The language of types is an uninterpreted order-sorted first-order
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
+The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-calculus
   with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
   or \cite{paulson-ml2}), with the types being determined by the
   corresponding binders.  In contrast, free variables and constants
@@ -269,8 +269,8 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   \medskip A \emph{bound variable} is a natural number \isa{b},
   which accounts for the number of intermediate binders between the
   variable occurrence in the body and its binding position.  For
-  example, the de-Bruijn term \isa{{\isasymlambda}\isactrlbsub bool\isactrlesub {\isachardot}\ {\isasymlambda}\isactrlbsub bool\isactrlesub {\isachardot}\ {\isadigit{1}}\ {\isasymand}\ {\isadigit{0}}} would
-  correspond to \isa{{\isasymlambda}x\isactrlbsub bool\isactrlesub {\isachardot}\ {\isasymlambda}y\isactrlbsub bool\isactrlesub {\isachardot}\ x\ {\isasymand}\ y} in a named
+  example, the de-Bruijn term \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}\isaliteral{5C3C5E627375623E}{}\isactrlbsub bool\isaliteral{5C3C5E657375623E}{}\isactrlesub {\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}\isaliteral{5C3C5E627375623E}{}\isactrlbsub bool\isaliteral{5C3C5E657375623E}{}\isactrlesub {\isaliteral{2E}{\isachardot}}\ {\isadigit{1}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isadigit{0}}} would
+  correspond to \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x\isaliteral{5C3C5E627375623E}{}\isactrlbsub bool\isaliteral{5C3C5E657375623E}{}\isactrlesub {\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}y\isaliteral{5C3C5E627375623E}{}\isactrlbsub bool\isaliteral{5C3C5E657375623E}{}\isactrlesub {\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C616E643E}{\isasymand}}\ y} in a named
   representation.  Note that a bound variable may be represented by
   different de-Bruijn indices at different occurrences, depending on
   the nesting of abstractions.
@@ -282,26 +282,26 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   without any loose variables.
 
   A \emph{fixed variable} is a pair of a basic name and a type, e.g.\
-  \isa{{\isacharparenleft}x{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is usually printed \isa{x\isactrlisub {\isasymtau}} here.  A
+  \isa{{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} which is usually printed \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}} here.  A
   \emph{schematic variable} is a pair of an indexname and a type,
-  e.g.\ \isa{{\isacharparenleft}{\isacharparenleft}x{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is likewise printed as \isa{{\isacharquery}x\isactrlisub {\isasymtau}}.
+  e.g.\ \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} which is likewise printed as \isa{{\isaliteral{3F}{\isacharquery}}x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}}.
 
   \medskip A \emph{constant} is a pair of a basic name and a type,
-  e.g.\ \isa{{\isacharparenleft}c{\isacharcomma}\ {\isasymtau}{\isacharparenright}} which is usually printed as \isa{c\isactrlisub {\isasymtau}}
+  e.g.\ \isa{{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} which is usually printed as \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}}
   here.  Constants are declared in the context as polymorphic families
-  \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}, meaning that all substitution instances \isa{c\isactrlisub {\isasymtau}} for \isa{{\isasymtau}\ {\isacharequal}\ {\isasymsigma}{\isasymvartheta}} are valid.
+  \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}}, meaning that all substitution instances \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}} for \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}} are valid.
 
-  The vector of \emph{type arguments} of constant \isa{c\isactrlisub {\isasymtau}} wrt.\
-  the declaration \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} is defined as the codomain of the
-  matcher \isa{{\isasymvartheta}\ {\isacharequal}\ {\isacharbraceleft}{\isacharquery}{\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isasymmapsto}\ {\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isacharquery}{\isasymalpha}\isactrlisub n\ {\isasymmapsto}\ {\isasymtau}\isactrlisub n{\isacharbraceright}} presented in
-  canonical order \isa{{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharparenright}}, corresponding to the
-  left-to-right occurrences of the \isa{{\isasymalpha}\isactrlisub i} in \isa{{\isasymsigma}}.
+  The vector of \emph{type arguments} of constant \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}} wrt.\
+  the declaration \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} is defined as the codomain of the
+  matcher \isa{{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C6D617073746F3E}{\isasymmapsto}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{3F}{\isacharquery}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C6D617073746F3E}{\isasymmapsto}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{7D}{\isacharbraceright}}} presented in
+  canonical order \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}}, corresponding to the
+  left-to-right occurrences of the \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub i} in \isa{{\isaliteral{5C3C7369676D613E}{\isasymsigma}}}.
   Within a given theory context, there is a one-to-one correspondence
-  between any constant \isa{c\isactrlisub {\isasymtau}} and the application \isa{c{\isacharparenleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharparenright}} of its type arguments.  For example, with \isa{plus\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}}, the instance \isa{plus\isactrlbsub nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat\isactrlesub } corresponds to
-  \isa{plus{\isacharparenleft}nat{\isacharparenright}}.
+  between any constant \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}} and the application \isa{c{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}} of its type arguments.  For example, with \isa{plus\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}}, the instance \isa{plus\isaliteral{5C3C5E627375623E}{}\isactrlbsub nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\isaliteral{5C3C5E657375623E}{}\isactrlesub } corresponds to
+  \isa{plus{\isaliteral{28}{\isacharparenleft}}nat{\isaliteral{29}{\isacharparenright}}}.
 
-  Constant declarations \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} may contain sort constraints
-  for type variables in \isa{{\isasymsigma}}.  These are observed by
+  Constant declarations \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} may contain sort constraints
+  for type variables in \isa{{\isaliteral{5C3C7369676D613E}{\isasymsigma}}}.  These are observed by
   type-inference as expected, but \emph{ignored} by the core logic.
   This means the primitive logic is able to reason with instances of
   polymorphic constants that the user-level type-checker would reject
@@ -309,20 +309,20 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
 
   \medskip An \emph{atomic term} is either a variable or constant.
   The logical category \emph{term} is defined inductively over atomic
-  terms, with abstraction and application as follows: \isa{t\ {\isacharequal}\ b\ {\isacharbar}\ x\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isacharquery}x\isactrlisub {\isasymtau}\ {\isacharbar}\ c\isactrlisub {\isasymtau}\ {\isacharbar}\ {\isasymlambda}\isactrlisub {\isasymtau}{\isachardot}\ t\ {\isacharbar}\ t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}}.  Parsing and printing takes care of
+  terms, with abstraction and application as follows: \isa{t\ {\isaliteral{3D}{\isacharequal}}\ b\ {\isaliteral{7C}{\isacharbar}}\ x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{3F}{\isacharquery}}x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{7C}{\isacharbar}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{2E}{\isachardot}}\ t\ {\isaliteral{7C}{\isacharbar}}\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ t\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}}.  Parsing and printing takes care of
   converting between an external representation with named bound
   variables.  Subsequently, we shall use the latter notation instead
   of internal de-Bruijn representation.
 
-  The inductive relation \isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} assigns a (unique) type to a
+  The inductive relation \isa{t\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} assigns a (unique) type to a
   term according to the structure of atomic terms, abstractions, and
   applicatins:
   \[
-  \infer{\isa{a\isactrlisub {\isasymtau}\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}}{}
+  \infer{\isa{a\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}}}{}
   \qquad
-  \infer{\isa{{\isacharparenleft}{\isasymlambda}x\isactrlsub {\isasymtau}{\isachardot}\ t{\isacharparenright}\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}}}{\isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}}
+  \infer{\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{2E}{\isachardot}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}}}{\isa{t\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}}}
   \qquad
-  \infer{\isa{t\ u\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}}{\isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymsigma}} & \isa{u\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}}
+  \infer{\isa{t\ u\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}}}{\isa{t\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} & \isa{u\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}}}
   \]
   A \emph{well-typed term} is a term that can be typed according to these rules.
 
@@ -333,35 +333,35 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   variables, and declarations for polymorphic constants.
 
   The identity of atomic terms consists both of the name and the type
-  component.  This means that different variables \isa{x\isactrlbsub {\isasymtau}\isactrlisub {\isadigit{1}}\isactrlesub } and \isa{x\isactrlbsub {\isasymtau}\isactrlisub {\isadigit{2}}\isactrlesub } may become the same after
+  component.  This means that different variables \isa{x\isaliteral{5C3C5E627375623E}{}\isactrlbsub {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\isaliteral{5C3C5E657375623E}{}\isactrlesub } and \isa{x\isaliteral{5C3C5E627375623E}{}\isactrlbsub {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\isaliteral{5C3C5E657375623E}{}\isactrlesub } may become the same after
   type instantiation.  Type-inference rejects variables of the same
   name, but different types.  In contrast, mixed instances of
   polymorphic constants occur routinely.
 
-  \medskip The \emph{hidden polymorphism} of a term \isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}
+  \medskip The \emph{hidden polymorphism} of a term \isa{t\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}}
   is the set of type variables occurring in \isa{t}, but not in
-  its type \isa{{\isasymsigma}}.  This means that the term implicitly depends
+  its type \isa{{\isaliteral{5C3C7369676D613E}{\isasymsigma}}}.  This means that the term implicitly depends
   on type arguments that are not accounted in the result type, i.e.\
-  there are different type instances \isa{t{\isasymvartheta}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} and
-  \isa{t{\isasymvartheta}{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with the same type.  This slightly
+  there are different type instances \isa{t{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} and
+  \isa{t{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} with the same type.  This slightly
   pathological situation notoriously demands additional care.
 
-  \medskip A \emph{term abbreviation} is a syntactic definition \isa{c\isactrlisub {\isasymsigma}\ {\isasymequiv}\ t} of a closed term \isa{t} of type \isa{{\isasymsigma}},
+  \medskip A \emph{term abbreviation} is a syntactic definition \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t} of a closed term \isa{t} of type \isa{{\isaliteral{5C3C7369676D613E}{\isasymsigma}}},
   without any hidden polymorphism.  A term abbreviation looks like a
   constant in the syntax, but is expanded before entering the logical
   core.  Abbreviations are usually reverted when printing terms, using
-  \isa{t\ {\isasymrightarrow}\ c\isactrlisub {\isasymsigma}} as rules for higher-order rewriting.
+  \isa{t\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} as rules for higher-order rewriting.
 
-  \medskip Canonical operations on \isa{{\isasymlambda}}-terms include \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion: \isa{{\isasymalpha}}-conversion refers to capture-free
-  renaming of bound variables; \isa{{\isasymbeta}}-conversion contracts an
+  \medskip Canonical operations on \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-terms include \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{5C3C626574613E}{\isasymbeta}}{\isaliteral{5C3C6574613E}{\isasymeta}}}-conversion: \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}-conversion refers to capture-free
+  renaming of bound variables; \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}}-conversion contracts an
   abstraction applied to an argument term, substituting the argument
-  in the body: \isa{{\isacharparenleft}{\isasymlambda}x{\isachardot}\ b{\isacharparenright}a} becomes \isa{b{\isacharbrackleft}a{\isacharslash}x{\isacharbrackright}}; \isa{{\isasymeta}}-conversion contracts vacuous application-abstraction: \isa{{\isasymlambda}x{\isachardot}\ f\ x} becomes \isa{f}, provided that the bound variable
+  in the body: \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ b{\isaliteral{29}{\isacharparenright}}a} becomes \isa{b{\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{2F}{\isacharslash}}x{\isaliteral{5D}{\isacharbrackright}}}; \isa{{\isaliteral{5C3C6574613E}{\isasymeta}}}-conversion contracts vacuous application-abstraction: \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ f\ x} becomes \isa{f}, provided that the bound variable
   does not occur in \isa{f}.
 
-  Terms are normally treated modulo \isa{{\isasymalpha}}-conversion, which is
+  Terms are normally treated modulo \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}-conversion, which is
   implicit in the de-Bruijn representation.  Names for bound variables
   in abstractions are maintained separately as (meaningless) comments,
-  mostly for parsing and printing.  Full \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion is
+  mostly for parsing and printing.  Full \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{5C3C626574613E}{\isasymbeta}}{\isaliteral{5C3C6574613E}{\isasymeta}}}-conversion is
   commonplace in various standard operations (\secref{sec:obj-rules})
   that are based on higher-order unification and matching.%
 \end{isamarkuptext}%
@@ -400,7 +400,7 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   in abstractions, and explicitly named free variables and constants;
   this is a datatype with constructors \verb|Bound|, \verb|Free|, \verb|Var|, \verb|Const|, \verb|Abs|, \verb|op $|.
 
-  \item \isa{t}~\verb|aconv|~\isa{u} checks \isa{{\isasymalpha}}-equivalence of two terms.  This is the basic equality relation
+  \item \isa{t}~\verb|aconv|~\isa{u} checks \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}-equivalence of two terms.  This is the basic equality relation
   on type \verb|term|; raw datatype equality should only be used
   for operations related to parsing or printing!
 
@@ -420,20 +420,20 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   well-typed term.  This operation is relatively slow, despite the
   omission of any sanity checks.
 
-  \item \verb|lambda|~\isa{a\ b} produces an abstraction \isa{{\isasymlambda}a{\isachardot}\ b}, where occurrences of the atomic term \isa{a} in the
+  \item \verb|lambda|~\isa{a\ b} produces an abstraction \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}a{\isaliteral{2E}{\isachardot}}\ b}, where occurrences of the atomic term \isa{a} in the
   body \isa{b} are replaced by bound variables.
 
-  \item \verb|betapply|~\isa{{\isacharparenleft}t{\isacharcomma}\ u{\isacharparenright}} produces an application \isa{t\ u}, with topmost \isa{{\isasymbeta}}-conversion if \isa{t} is an
+  \item \verb|betapply|~\isa{{\isaliteral{28}{\isacharparenleft}}t{\isaliteral{2C}{\isacharcomma}}\ u{\isaliteral{29}{\isacharparenright}}} produces an application \isa{t\ u}, with topmost \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}}-conversion if \isa{t} is an
   abstraction.
 
-  \item \verb|Sign.declare_const|~\isa{{\isacharparenleft}{\isacharparenleft}c{\isacharcomma}\ {\isasymsigma}{\isacharparenright}{\isacharcomma}\ mx{\isacharparenright}}
-  declares a new constant \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} with optional mixfix
+  \item \verb|Sign.declare_const|~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}}
+  declares a new constant \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} with optional mixfix
   syntax.
 
-  \item \verb|Sign.add_abbrev|~\isa{print{\isacharunderscore}mode\ {\isacharparenleft}c{\isacharcomma}\ t{\isacharparenright}}
-  introduces a new term abbreviation \isa{c\ {\isasymequiv}\ t}.
+  \item \verb|Sign.add_abbrev|~\isa{print{\isaliteral{5F}{\isacharunderscore}}mode\ {\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}}
+  introduces a new term abbreviation \isa{c\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t}.
 
-  \item \verb|Sign.const_typargs|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isasymtau}{\isacharparenright}} and \verb|Sign.const_instance|~\isa{thy\ {\isacharparenleft}c{\isacharcomma}\ {\isacharbrackleft}{\isasymtau}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymtau}\isactrlisub n{\isacharbrackright}{\isacharparenright}}
+  \item \verb|Sign.const_typargs|~\isa{thy\ {\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} and \verb|Sign.const_instance|~\isa{thy\ {\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}}
   convert between two representations of polymorphic constants: full
   type instance vs.\ compact type arguments form.
 
@@ -456,11 +456,11 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{const\_name}\hypertarget{ML antiquotation.const-name}{\hyperlink{ML antiquotation.const-name}{\mbox{\isa{const{\isacharunderscore}name}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{const\_abbrev}\hypertarget{ML antiquotation.const-abbrev}{\hyperlink{ML antiquotation.const-abbrev}{\mbox{\isa{const{\isacharunderscore}abbrev}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{const}\hypertarget{ML antiquotation.const}{\hyperlink{ML antiquotation.const}{\mbox{\isa{const}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{term}\hypertarget{ML antiquotation.term}{\hyperlink{ML antiquotation.term}{\mbox{\isa{term}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{prop}\hypertarget{ML antiquotation.prop}{\hyperlink{ML antiquotation.prop}{\mbox{\isa{prop}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{const\_name}\hypertarget{ML antiquotation.const-name}{\hyperlink{ML antiquotation.const-name}{\mbox{\isa{const{\isaliteral{5F}{\isacharunderscore}}name}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{const\_abbrev}\hypertarget{ML antiquotation.const-abbrev}{\hyperlink{ML antiquotation.const-abbrev}{\mbox{\isa{const{\isaliteral{5F}{\isacharunderscore}}abbrev}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{const}\hypertarget{ML antiquotation.const}{\hyperlink{ML antiquotation.const}{\mbox{\isa{const}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{term}\hypertarget{ML antiquotation.term}{\hyperlink{ML antiquotation.term}{\mbox{\isa{term}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{prop}\hypertarget{ML antiquotation.prop}{\hyperlink{ML antiquotation.prop}{\mbox{\isa{prop}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{rail}
@@ -476,23 +476,23 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}const{\isacharunderscore}name\ c{\isacharbraceright}} inlines the internalized logical
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}const{\isaliteral{5F}{\isacharunderscore}}name\ c{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized logical
   constant name \isa{c} --- as \verb|string| literal.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}const{\isacharunderscore}abbrev\ c{\isacharbraceright}} inlines the internalized
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}const{\isaliteral{5F}{\isacharunderscore}}abbrev\ c{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized
   abbreviated constant name \isa{c} --- as \verb|string|
   literal.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}const\ c{\isacharparenleft}\isactrlvec {\isasymtau}{\isacharparenright}{\isacharbraceright}} inlines the internalized
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}const\ c{\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized
   constant \isa{c} with precise type instantiation in the sense of
   \verb|Sign.const_instance| --- as \verb|Const| constructor term for
   datatype \verb|term|.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}} inlines the internalized term \isa{t}
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}term\ t{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized term \isa{t}
   --- as constructor term for datatype \verb|term|.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}prop\ {\isasymphi}{\isacharbraceright}} inlines the internalized proposition
-  \isa{{\isasymphi}} --- as constructor term for datatype \verb|term|.
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}prop\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{7D}{\isacharbraceright}}} inlines the internalized proposition
+  \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} --- as constructor term for datatype \verb|term|.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -513,8 +513,8 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
 A \emph{proposition} is a well-typed term of type \isa{prop}, a
   \emph{theorem} is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
-  plain Natural Deduction rules for the primary connectives \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} of the framework.  There is also a builtin
-  notion of equality/equivalence \isa{{\isasymequiv}}.%
+  plain Natural Deduction rules for the primary connectives \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}} and \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}} of the framework.  There is also a builtin
+  notion of equality/equivalence \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -524,9 +524,9 @@ A \emph{proposition} is a well-typed term of type \isa{prop}, a
 %
 \begin{isamarkuptext}%
 The theory \isa{Pure} contains constant declarations for the
-  primitive connectives \isa{{\isasymAnd}}, \isa{{\isasymLongrightarrow}}, and \isa{{\isasymequiv}} of
+  primitive connectives \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}}, \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}}, and \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} of
   the logical framework, see \figref{fig:pure-connectives}.  The
-  derivability judgment \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n\ {\isasymturnstile}\ B} is
+  derivability judgment \isa{A\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ A\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B} is
   defined inductively by the primitive inferences given in
   \figref{fig:prim-rules}, with the global restriction that the
   hypotheses must \emph{not} contain any schematic variables.  The
@@ -537,9 +537,9 @@ The theory \isa{Pure} contains constant declarations for the
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  \isa{all\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isasymalpha}\ {\isasymRightarrow}\ prop{\isacharparenright}\ {\isasymRightarrow}\ prop} & universal quantification (binder \isa{{\isasymAnd}}) \\
-  \isa{{\isasymLongrightarrow}\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} & implication (right associative infix) \\
-  \isa{{\isasymequiv}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ prop} & equality relation (infix) \\
+  \isa{all\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop} & universal quantification (binder \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}}) \\
+  \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ prop\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop} & implication (right associative infix) \\
+  \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop} & equality relation (infix) \\
   \end{tabular}
   \caption{Primitive connectives of Pure}\label{fig:pure-connectives}
   \end{center}
@@ -548,19 +548,19 @@ The theory \isa{Pure} contains constant declarations for the
   \begin{figure}[htb]
   \begin{center}
   \[
-  \infer[\isa{{\isacharparenleft}axiom{\isacharparenright}}]{\isa{{\isasymturnstile}\ A}}{\isa{A\ {\isasymin}\ {\isasymTheta}}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}axiom{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A}}{\isa{A\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{5C3C54686574613E}{\isasymTheta}}}}
   \qquad
-  \infer[\isa{{\isacharparenleft}assume{\isacharparenright}}]{\isa{A\ {\isasymturnstile}\ A}}{}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}assume{\isaliteral{29}{\isacharparenright}}}]{\isa{A\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A}}{}
   \]
   \[
-  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isasymdash}intro{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ b{\isacharbrackleft}x{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ b{\isacharbrackleft}x{\isacharbrackright}} & \isa{x\ {\isasymnotin}\ {\isasymGamma}}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}} & \isa{x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}}}
   \qquad
-  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isasymdash}elim{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ b{\isacharbrackleft}a{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ b{\isacharbrackleft}x{\isacharbrackright}}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{5C3C646173683E}{\isasymdash}}elim{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ b{\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}}}
   \]
   \[
-  \infer[\isa{{\isacharparenleft}{\isasymLongrightarrow}{\isasymdash}intro{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isacharminus}\ A\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{2D}{\isacharminus}}\ A\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}
   \qquad
-  \infer[\isa{{\isacharparenleft}{\isasymLongrightarrow}{\isasymdash}elim{\isacharparenright}}]{\isa{{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymunion}\ {\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ B}}{\isa{{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B} & \isa{{\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ A}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C646173683E}{\isasymdash}}elim{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C756E696F6E3E}{\isasymunion}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B} & \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A}}
   \]
   \caption{Primitive inferences of Pure}\label{fig:prim-rules}
   \end{center}
@@ -569,61 +569,61 @@ The theory \isa{Pure} contains constant declarations for the
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ b{\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}\ a\ {\isasymequiv}\ b{\isacharbrackleft}a{\isacharbrackright}} & \isa{{\isasymbeta}}-conversion \\
-  \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ x} & reflexivity \\
-  \isa{{\isasymturnstile}\ x\ {\isasymequiv}\ y\ {\isasymLongrightarrow}\ P\ x\ {\isasymLongrightarrow}\ P\ y} & substitution \\
-  \isa{{\isasymturnstile}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ f\ x\ {\isasymequiv}\ g\ x{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isasymequiv}\ g} & extensionality \\
-  \isa{{\isasymturnstile}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymequiv}\ B} & logical equivalence \\
+  \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ a\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ b{\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{5D}{\isacharbrackright}}} & \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}}-conversion \\
+  \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ x} & reflexivity \\
+  \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ y} & substitution \\
+  \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ f\ x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ g\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ g} & extensionality \\
+  \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ B} & logical equivalence \\
   \end{tabular}
   \caption{Conceptual axiomatization of Pure equality}\label{fig:pure-equality}
   \end{center}
   \end{figure}
 
-  The introduction and elimination rules for \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} are analogous to formation of dependently typed \isa{{\isasymlambda}}-terms representing the underlying proof objects.  Proof terms
+  The introduction and elimination rules for \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}} and \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}} are analogous to formation of dependently typed \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-terms representing the underlying proof objects.  Proof terms
   are irrelevant in the Pure logic, though; they cannot occur within
   propositions.  The system provides a runtime option to record
   explicit proof terms for primitive inferences.  Thus all three
-  levels of \isa{{\isasymlambda}}-calculus become explicit: \isa{{\isasymRightarrow}} for
-  terms, and \isa{{\isasymAnd}{\isacharslash}{\isasymLongrightarrow}} for proofs (cf.\
+  levels of \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-calculus become explicit: \isa{{\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}} for
+  terms, and \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{2F}{\isacharslash}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}} for proofs (cf.\
   \cite{Berghofer-Nipkow:2000:TPHOL}).
 
-  Observe that locally fixed parameters (as in \isa{{\isasymAnd}{\isasymdash}intro}) need not be recorded in the hypotheses, because
+  Observe that locally fixed parameters (as in \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro}) need not be recorded in the hypotheses, because
   the simple syntactic types of Pure are always inhabitable.
-  ``Assumptions'' \isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} for type-membership are only
-  present as long as some \isa{x\isactrlisub {\isasymtau}} occurs in the statement
-  body.\footnote{This is the key difference to ``\isa{{\isasymlambda}HOL}'' in
+  ``Assumptions'' \isa{x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} for type-membership are only
+  present as long as some \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}} occurs in the statement
+  body.\footnote{This is the key difference to ``\isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}HOL}'' in
   the PTS framework \cite{Barendregt-Geuvers:2001}, where hypotheses
-  \isa{x\ {\isacharcolon}\ A} are treated uniformly for propositions and types.}
+  \isa{x\ {\isaliteral{3A}{\isacharcolon}}\ A} are treated uniformly for propositions and types.}
 
   \medskip The axiomatization of a theory is implicitly closed by
-  forming all instances of type and term variables: \isa{{\isasymturnstile}\ A{\isasymvartheta}} holds for any substitution instance of an axiom
-  \isa{{\isasymturnstile}\ A}.  By pushing substitutions through derivations
+  forming all instances of type and term variables: \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}} holds for any substitution instance of an axiom
+  \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A}.  By pushing substitutions through derivations
   inductively, we also get admissible \isa{generalize} and \isa{instantiate} rules as shown in \figref{fig:subst-rules}.
 
   \begin{figure}[htb]
   \begin{center}
   \[
-  \infer{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}{\isasymalpha}{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isasymalpha}{\isacharbrackright}} & \isa{{\isasymalpha}\ {\isasymnotin}\ {\isasymGamma}}}
+  \infer{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{5D}{\isacharbrackright}}} & \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}}}
   \quad
-  \infer[\quad\isa{{\isacharparenleft}generalize{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}x{\isacharbrackright}} & \isa{x\ {\isasymnotin}\ {\isasymGamma}}}
+  \infer[\quad\isa{{\isaliteral{28}{\isacharparenleft}}generalize{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}} & \isa{x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}}}
   \]
   \[
-  \infer{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isasymtau}{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}{\isasymalpha}{\isacharbrackright}}}
+  \infer{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{5D}{\isacharbrackright}}}}
   \quad
-  \infer[\quad\isa{{\isacharparenleft}instantiate{\isacharparenright}}]{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}t{\isacharbrackright}}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}}
+  \infer[\quad\isa{{\isaliteral{28}{\isacharparenleft}}instantiate{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B{\isaliteral{5B}{\isacharbrackleft}}t{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{3F}{\isacharquery}}x{\isaliteral{5D}{\isacharbrackright}}}}
   \]
   \caption{Admissible substitution rules}\label{fig:subst-rules}
   \end{center}
   \end{figure}
 
   Note that \isa{instantiate} does not require an explicit
-  side-condition, because \isa{{\isasymGamma}} may never contain schematic
+  side-condition, because \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}} may never contain schematic
   variables.
 
   In principle, variables could be substituted in hypotheses as well,
   but this would disrupt the monotonicity of reasoning: deriving
-  \isa{{\isasymGamma}{\isasymvartheta}\ {\isasymturnstile}\ B{\isasymvartheta}} from \isa{{\isasymGamma}\ {\isasymturnstile}\ B} is
-  correct, but \isa{{\isasymGamma}{\isasymvartheta}\ {\isasymsupseteq}\ {\isasymGamma}} does not necessarily hold:
+  \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}} from \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B} is
+  correct, but \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}\ {\isaliteral{5C3C73757073657465713E}{\isasymsupseteq}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}} does not necessarily hold:
   the result belongs to a different proof context.
 
   \medskip An \emph{oracle} is a function that produces axioms on the
@@ -637,14 +637,14 @@ The theory \isa{Pure} contains constant declarations for the
   Later on, theories are usually developed in a strictly definitional
   fashion, by stating only certain equalities over new constants.
 
-  A \emph{simple definition} consists of a constant declaration \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} together with an axiom \isa{{\isasymturnstile}\ c\ {\isasymequiv}\ t}, where \isa{t\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}} is a closed term without any hidden polymorphism.  The RHS
+  A \emph{simple definition} consists of a constant declaration \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} together with an axiom \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ c\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t}, where \isa{t\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} is a closed term without any hidden polymorphism.  The RHS
   may depend on further defined constants, but not \isa{c} itself.
-  Definitions of functions may be presented as \isa{c\ \isactrlvec x\ {\isasymequiv}\ t} instead of the puristic \isa{c\ {\isasymequiv}\ {\isasymlambda}\isactrlvec x{\isachardot}\ t}.
+  Definitions of functions may be presented as \isa{c\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t} instead of the puristic \isa{c\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{2E}{\isachardot}}\ t}.
 
   An \emph{overloaded definition} consists of a collection of axioms
-  for the same constant, with zero or one equations \isa{c{\isacharparenleft}{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharparenright}{\isasymkappa}{\isacharparenright}\ {\isasymequiv}\ t} for each type constructor \isa{{\isasymkappa}} (for
-  distinct variables \isa{\isactrlvec {\isasymalpha}}).  The RHS may mention
-  previously defined constants as above, or arbitrary constants \isa{d{\isacharparenleft}{\isasymalpha}\isactrlisub i{\isacharparenright}} for some \isa{{\isasymalpha}\isactrlisub i} projected from \isa{\isactrlvec {\isasymalpha}}.  Thus overloaded definitions essentially work by
+  for the same constant, with zero or one equations \isa{c{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t} for each type constructor \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}} (for
+  distinct variables \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}}).  The RHS may mention
+  previously defined constants as above, or arbitrary constants \isa{d{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub i{\isaliteral{29}{\isacharparenright}}} for some \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub i} projected from \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}}.  Thus overloaded definitions essentially work by
   primitive recursion over the syntactic structure of a single type
   argument.  See also \cite[\S4.3]{Haftmann-Wenzel:2006:classes}.%
 \end{isamarkuptext}%
@@ -692,7 +692,7 @@ The theory \isa{Pure} contains constant declarations for the
   well-typedness) checks, relative to the declarations of type
   constructors, constants etc. in the theory.
 
-  \item \verb|Thm.ctyp_of|~\isa{thy\ {\isasymtau}} and \verb|Thm.cterm_of|~\isa{thy\ t} explicitly checks types and terms,
+  \item \verb|Thm.ctyp_of|~\isa{thy\ {\isaliteral{5C3C7461753E}{\isasymtau}}} and \verb|Thm.cterm_of|~\isa{thy\ t} explicitly checks types and terms,
   respectively.  This also involves some basic normalizations, such
   expansion of type and term abbreviations from the theory context.
 
@@ -715,36 +715,36 @@ The theory \isa{Pure} contains constant declarations for the
   \item \verb|Thm.assume|, \verb|Thm.forall_intr|, \verb|Thm.forall_elim|, \verb|Thm.implies_intr|, and \verb|Thm.implies_elim|
   correspond to the primitive inferences of \figref{fig:prim-rules}.
 
-  \item \verb|Thm.generalize|~\isa{{\isacharparenleft}\isactrlvec {\isasymalpha}{\isacharcomma}\ \isactrlvec x{\isacharparenright}}
+  \item \verb|Thm.generalize|~\isa{{\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{29}{\isacharparenright}}}
   corresponds to the \isa{generalize} rules of
   \figref{fig:subst-rules}.  Here collections of type and term
   variables are generalized simultaneously, specified by the given
   basic names.
 
-  \item \verb|Thm.instantiate|~\isa{{\isacharparenleft}\isactrlvec {\isasymalpha}\isactrlisub s{\isacharcomma}\ \isactrlvec x\isactrlisub {\isasymtau}{\isacharparenright}} corresponds to the \isa{instantiate} rules
+  \item \verb|Thm.instantiate|~\isa{{\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub s{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} corresponds to the \isa{instantiate} rules
   of \figref{fig:subst-rules}.  Type variables are substituted before
-  term variables.  Note that the types in \isa{\isactrlvec x\isactrlisub {\isasymtau}}
+  term variables.  Note that the types in \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}}
   refer to the instantiated versions.
 
-  \item \verb|Thm.add_axiom|~\isa{{\isacharparenleft}name{\isacharcomma}\ A{\isacharparenright}\ thy} declares an
+  \item \verb|Thm.add_axiom|~\isa{{\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ A{\isaliteral{29}{\isacharparenright}}\ thy} declares an
   arbitrary proposition as axiom, and retrieves it as a theorem from
   the resulting theory, cf.\ \isa{axiom} in
   \figref{fig:prim-rules}.  Note that the low-level representation in
   the axiom table may differ slightly from the returned theorem.
 
-  \item \verb|Thm.add_oracle|~\isa{{\isacharparenleft}binding{\isacharcomma}\ oracle{\isacharparenright}} produces a named
+  \item \verb|Thm.add_oracle|~\isa{{\isaliteral{28}{\isacharparenleft}}binding{\isaliteral{2C}{\isacharcomma}}\ oracle{\isaliteral{29}{\isacharparenright}}} produces a named
   oracle rule, essentially generating arbitrary axioms on the fly,
   cf.\ \isa{axiom} in \figref{fig:prim-rules}.
 
-  \item \verb|Thm.add_def|~\isa{unchecked\ overloaded\ {\isacharparenleft}name{\isacharcomma}\ c\ \isactrlvec x\ {\isasymequiv}\ t{\isacharparenright}} states a definitional axiom for an existing constant
+  \item \verb|Thm.add_def|~\isa{unchecked\ overloaded\ {\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ c\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{29}{\isacharparenright}}} states a definitional axiom for an existing constant
   \isa{c}.  Dependencies are recorded via \verb|Theory.add_deps|,
   unless the \isa{unchecked} option is set.  Note that the
   low-level representation in the axiom table may differ slightly from
   the returned theorem.
 
-  \item \verb|Theory.add_deps|~\isa{name\ c\isactrlisub {\isasymtau}\ \isactrlvec d\isactrlisub {\isasymsigma}} declares dependencies of a named specification
-  for constant \isa{c\isactrlisub {\isasymtau}}, relative to existing
-  specifications for constants \isa{\isactrlvec d\isactrlisub {\isasymsigma}}.
+  \item \verb|Theory.add_deps|~\isa{name\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec d\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} declares dependencies of a named specification
+  for constant \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}}, relative to existing
+  specifications for constants \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec d\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7369676D613E}{\isasymsigma}}}.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -765,12 +765,12 @@ The theory \isa{Pure} contains constant declarations for the
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{ctyp}\hypertarget{ML antiquotation.ctyp}{\hyperlink{ML antiquotation.ctyp}{\mbox{\isa{ctyp}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{cterm}\hypertarget{ML antiquotation.cterm}{\hyperlink{ML antiquotation.cterm}{\mbox{\isa{cterm}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{cprop}\hypertarget{ML antiquotation.cprop}{\hyperlink{ML antiquotation.cprop}{\mbox{\isa{cprop}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{thm}\hypertarget{ML antiquotation.thm}{\hyperlink{ML antiquotation.thm}{\mbox{\isa{thm}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{thms}\hypertarget{ML antiquotation.thms}{\hyperlink{ML antiquotation.thms}{\mbox{\isa{thms}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{lemma}\hypertarget{ML antiquotation.lemma}{\hyperlink{ML antiquotation.lemma}{\mbox{\isa{lemma}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{ctyp}\hypertarget{ML antiquotation.ctyp}{\hyperlink{ML antiquotation.ctyp}{\mbox{\isa{ctyp}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{cterm}\hypertarget{ML antiquotation.cterm}{\hyperlink{ML antiquotation.cterm}{\mbox{\isa{cterm}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{cprop}\hypertarget{ML antiquotation.cprop}{\hyperlink{ML antiquotation.cprop}{\mbox{\isa{cprop}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{thm}\hypertarget{ML antiquotation.thm}{\hyperlink{ML antiquotation.thm}{\mbox{\isa{thm}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{thms}\hypertarget{ML antiquotation.thms}{\hyperlink{ML antiquotation.thms}{\mbox{\isa{thms}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{lemma}\hypertarget{ML antiquotation.lemma}{\hyperlink{ML antiquotation.lemma}{\mbox{\isa{lemma}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{rail}
@@ -789,27 +789,27 @@ The theory \isa{Pure} contains constant declarations for the
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}ctyp\ {\isasymtau}{\isacharbraceright}} produces a certified type wrt.\ the
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ctyp\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{7D}{\isacharbraceright}}} produces a certified type wrt.\ the
   current background theory --- as abstract value of type \verb|ctyp|.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}cterm\ t{\isacharbraceright}} and \isa{{\isacharat}{\isacharbraceleft}cprop\ {\isasymphi}{\isacharbraceright}} produce a
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}cterm\ t{\isaliteral{7D}{\isacharbraceright}}} and \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}cprop\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{7D}{\isacharbraceright}}} produce a
   certified term wrt.\ the current background theory --- as abstract
   value of type \verb|cterm|.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}thm\ a{\isacharbraceright}} produces a singleton fact --- as abstract
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}thm\ a{\isaliteral{7D}{\isacharbraceright}}} produces a singleton fact --- as abstract
   value of type \verb|thm|.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}thms\ a{\isacharbraceright}} produces a general fact --- as abstract
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}thms\ a{\isaliteral{7D}{\isacharbraceright}}} produces a general fact --- as abstract
   value of type \verb|thm list|.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}lemma\ {\isasymphi}\ by\ meth{\isacharbraceright}} produces a fact that is proven on
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}lemma\ {\isaliteral{5C3C7068693E}{\isasymphi}}\ by\ meth{\isaliteral{7D}{\isacharbraceright}}} produces a fact that is proven on
   the spot according to the minimal proof, which imitates a terminal
   Isar proof.  The result is an abstract value of type \verb|thm|
   or \verb|thm list|, depending on the number of propositions
   given here.
 
   The internal derivation object lacks a proper theorem name, but it
-  is formally closed, unless the \isa{{\isacharparenleft}open{\isacharparenright}} option is specified
+  is formally closed, unless the \isa{{\isaliteral{28}{\isacharparenleft}}open{\isaliteral{29}{\isacharparenright}}} option is specified
   (this may impact performance of applications with proof terms).
 
   Since ML antiquotations are always evaluated at compile-time, there
@@ -841,47 +841,47 @@ Theory \isa{Pure} provides a few auxiliary definitions, see
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  \isa{conjunction\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop\ {\isasymRightarrow}\ prop} & (infix \isa{{\isacharampersand}{\isacharampersand}{\isacharampersand}}) \\
-  \isa{{\isasymturnstile}\ A\ {\isacharampersand}{\isacharampersand}{\isacharampersand}\ B\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}C{\isachardot}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isacharparenright}} \\[1ex]
-  \isa{prop\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop} & (prefix \isa{{\isacharhash}}, suppressed) \\
-  \isa{{\isacharhash}A\ {\isasymequiv}\ A} \\[1ex]
-  \isa{term\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ prop} & (prefix \isa{TERM}) \\
-  \isa{term\ x\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}A{\isachardot}\ A\ {\isasymLongrightarrow}\ A{\isacharparenright}} \\[1ex]
-  \isa{TYPE\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ itself} & (prefix \isa{TYPE}) \\
-  \isa{{\isacharparenleft}unspecified{\isacharparenright}} \\
+  \isa{conjunction\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ prop\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop} & (infix \isa{{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}}) \\
+  \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ {\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}\ B\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}C{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}} \\[1ex]
+  \isa{prop\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ prop\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop} & (prefix \isa{{\isaliteral{23}{\isacharhash}}}, suppressed) \\
+  \isa{{\isaliteral{23}{\isacharhash}}A\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ A} \\[1ex]
+  \isa{term\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop} & (prefix \isa{TERM}) \\
+  \isa{term\ x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}A{\isaliteral{2E}{\isachardot}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A{\isaliteral{29}{\isacharparenright}}} \\[1ex]
+  \isa{TYPE\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ itself} & (prefix \isa{TYPE}) \\
+  \isa{{\isaliteral{28}{\isacharparenleft}}unspecified{\isaliteral{29}{\isacharparenright}}} \\
   \end{tabular}
   \caption{Definitions of auxiliary connectives}\label{fig:pure-aux}
   \end{center}
   \end{figure}
 
-  The introduction \isa{A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isacharampersand}{\isacharampersand}{\isacharampersand}\ B}, and eliminations
-  (projections) \isa{A\ {\isacharampersand}{\isacharampersand}{\isacharampersand}\ B\ {\isasymLongrightarrow}\ A} and \isa{A\ {\isacharampersand}{\isacharampersand}{\isacharampersand}\ B\ {\isasymLongrightarrow}\ B} are
+  The introduction \isa{A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}\ B}, and eliminations
+  (projections) \isa{A\ {\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A} and \isa{A\ {\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B} are
   available as derived rules.  Conjunction allows to treat
   simultaneous assumptions and conclusions uniformly, e.g.\ consider
-  \isa{A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ C\ {\isacharampersand}{\isacharampersand}{\isacharampersand}\ D}.  In particular, the goal mechanism
+  \isa{A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C\ {\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}\ D}.  In particular, the goal mechanism
   represents multiple claims as explicit conjunction internally, but
   this is refined (via backwards introduction) into separate sub-goals
   before the user commences the proof; the final result is projected
   into a list of theorems using eliminations (cf.\
   \secref{sec:tactical-goals}).
 
-  The \isa{prop} marker (\isa{{\isacharhash}}) makes arbitrarily complex
-  propositions appear as atomic, without changing the meaning: \isa{{\isasymGamma}\ {\isasymturnstile}\ A} and \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isacharhash}A} are interchangeable.  See
+  The \isa{prop} marker (\isa{{\isaliteral{23}{\isacharhash}}}) makes arbitrarily complex
+  propositions appear as atomic, without changing the meaning: \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A} and \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{23}{\isacharhash}}A} are interchangeable.  See
   \secref{sec:tactical-goals} for specific operations.
 
   The \isa{term} marker turns any well-typed term into a derivable
-  proposition: \isa{{\isasymturnstile}\ TERM\ t} holds unconditionally.  Although
+  proposition: \isa{{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ TERM\ t} holds unconditionally.  Although
   this is logically vacuous, it allows to treat terms and proofs
   uniformly, similar to a type-theoretic framework.
 
   The \isa{TYPE} constructor is the canonical representative of
-  the unspecified type \isa{{\isasymalpha}\ itself}; it essentially injects the
+  the unspecified type \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ itself}; it essentially injects the
   language of types into that of terms.  There is specific notation
-  \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} for \isa{TYPE\isactrlbsub {\isasymtau}\ itself\isactrlesub }.
-  Although being devoid of any particular meaning, the term \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} accounts for the type \isa{{\isasymtau}} within the term
-  language.  In particular, \isa{TYPE{\isacharparenleft}{\isasymalpha}{\isacharparenright}} may be used as formal
+  \isa{TYPE{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} for \isa{TYPE\isaliteral{5C3C5E627375623E}{}\isactrlbsub {\isaliteral{5C3C7461753E}{\isasymtau}}\ itself\isaliteral{5C3C5E657375623E}{}\isactrlesub }.
+  Although being devoid of any particular meaning, the term \isa{TYPE{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} accounts for the type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} within the term
+  language.  In particular, \isa{TYPE{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{29}{\isacharparenright}}} may be used as formal
   argument in primitive definitions, in order to circumvent hidden
-  polymorphism (cf.\ \secref{sec:terms}).  For example, \isa{c\ TYPE{\isacharparenleft}{\isasymalpha}{\isacharparenright}\ {\isasymequiv}\ A{\isacharbrackleft}{\isasymalpha}{\isacharbrackright}} defines \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ itself\ {\isasymRightarrow}\ prop} in terms of
+  polymorphism (cf.\ \secref{sec:terms}).  For example, \isa{c\ TYPE{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ A{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{5D}{\isacharbrackright}}} defines \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ itself\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop} in terms of
   a proposition \isa{A} that depends on an additional type
   argument, which is essentially a predicate on types.%
 \end{isamarkuptext}%
@@ -905,19 +905,19 @@ Theory \isa{Pure} provides a few auxiliary definitions, see
 
   \begin{description}
 
-  \item \verb|Conjunction.intr| derives \isa{A\ {\isacharampersand}{\isacharampersand}{\isacharampersand}\ B} from \isa{A} and \isa{B}.
+  \item \verb|Conjunction.intr| derives \isa{A\ {\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}\ B} from \isa{A} and \isa{B}.
 
   \item \verb|Conjunction.elim| derives \isa{A} and \isa{B}
-  from \isa{A\ {\isacharampersand}{\isacharampersand}{\isacharampersand}\ B}.
+  from \isa{A\ {\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}\ B}.
 
   \item \verb|Drule.mk_term| derives \isa{TERM\ t}.
 
   \item \verb|Drule.dest_term| recovers term \isa{t} from \isa{TERM\ t}.
 
-  \item \verb|Logic.mk_type|~\isa{{\isasymtau}} produces the term \isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}}.
+  \item \verb|Logic.mk_type|~\isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} produces the term \isa{TYPE{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}}.
 
-  \item \verb|Logic.dest_type|~\isa{TYPE{\isacharparenleft}{\isasymtau}{\isacharparenright}} recovers the type
-  \isa{{\isasymtau}}.
+  \item \verb|Logic.dest_type|~\isa{TYPE{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} recovers the type
+  \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -939,8 +939,8 @@ The primitive inferences covered so far mostly serve foundational
   purposes.  User-level reasoning usually works via object-level rules
   that are represented as theorems of Pure.  Composition of rules
   involves \emph{backchaining}, \emph{higher-order unification} modulo
-  \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion of \isa{{\isasymlambda}}-terms, and so-called
-  \emph{lifting} of rules into a context of \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} connectives.  Thus the full power of higher-order Natural
+  \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{5C3C626574613E}{\isasymbeta}}{\isaliteral{5C3C6574613E}{\isasymeta}}}-conversion of \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-terms, and so-called
+  \emph{lifting} of rules into a context of \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}} and \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}} connectives.  Thus the full power of higher-order Natural
   Deduction in Isabelle/Pure becomes readily available.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -955,23 +955,23 @@ The idea of object-level rules is to model Natural Deduction
   arbitrary nesting similar to \cite{extensions91}.  The most basic
   rule format is that of a \emph{Horn Clause}:
   \[
-  \infer{\isa{A}}{\isa{A\isactrlsub {\isadigit{1}}} & \isa{{\isasymdots}} & \isa{A\isactrlsub n}}
+  \infer{\isa{A}}{\isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} & \isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}} & \isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub n}}
   \]
-  where \isa{A{\isacharcomma}\ A\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlsub n} are atomic propositions
+  where \isa{A{\isaliteral{2C}{\isacharcomma}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub n} are atomic propositions
   of the framework, usually of the form \isa{Trueprop\ B}, where
   \isa{B} is a (compound) object-level statement.  This
   object-level inference corresponds to an iterated implication in
   Pure like this:
   \[
-  \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ A}
+  \isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A}
   \]
-  As an example consider conjunction introduction: \isa{A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isasymand}\ B}.  Any parameters occurring in such rule statements are
+  As an example consider conjunction introduction: \isa{A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B}.  Any parameters occurring in such rule statements are
   conceptionally treated as arbitrary:
   \[
-  \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ A\isactrlsub {\isadigit{1}}\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m\ {\isasymLongrightarrow}\ A\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m}
+  \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{2E}{\isachardot}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m}
   \]
 
-  Nesting of rules means that the positions of \isa{A\isactrlsub i} may
+  Nesting of rules means that the positions of \isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub i} may
   again hold compound rules, not just atomic propositions.
   Propositions of this format are called \emph{Hereditary Harrop
   Formulae} in the literature \cite{Miller:1991}.  Here we give an
@@ -979,17 +979,17 @@ The idea of object-level rules is to model Natural Deduction
 
   \medskip
   \begin{tabular}{ll}
-  \isa{\isactrlbold x} & set of variables \\
-  \isa{\isactrlbold A} & set of atomic propositions \\
-  \isa{\isactrlbold H\ \ {\isacharequal}\ \ {\isasymAnd}\isactrlbold x\isactrlsup {\isacharasterisk}{\isachardot}\ \isactrlbold H\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\ \isactrlbold A} & set of Hereditary Harrop Formulas \\
+  \isa{\isaliteral{5C3C5E626F6C643E}{}\isactrlbold x} & set of variables \\
+  \isa{\isaliteral{5C3C5E626F6C643E}{}\isactrlbold A} & set of atomic propositions \\
+  \isa{\isaliteral{5C3C5E626F6C643E}{}\isactrlbold H\ \ {\isaliteral{3D}{\isacharequal}}\ \ {\isaliteral{5C3C416E643E}{\isasymAnd}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold x\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2E}{\isachardot}}\ \isaliteral{5C3C5E626F6C643E}{}\isactrlbold H\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ \isaliteral{5C3C5E626F6C643E}{}\isactrlbold A} & set of Hereditary Harrop Formulas \\
   \end{tabular}
   \medskip
 
   Thus we essentially impose nesting levels on propositions formed
-  from \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}.  At each level there is a prefix
+  from \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}} and \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}}.  At each level there is a prefix
   of parameters and compound premises, concluding an atomic
-  proposition.  Typical examples are \isa{{\isasymlongrightarrow}}-introduction \isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymlongrightarrow}\ B} or mathematical induction \isa{P\ {\isadigit{0}}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}n{\isachardot}\ P\ n\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n}.  Even deeper nesting occurs in well-founded
-  induction \isa{{\isacharparenleft}{\isasymAnd}x{\isachardot}\ {\isacharparenleft}{\isasymAnd}y{\isachardot}\ y\ {\isasymprec}\ x\ {\isasymLongrightarrow}\ P\ y{\isacharparenright}\ {\isasymLongrightarrow}\ P\ x{\isacharparenright}\ {\isasymLongrightarrow}\ P\ x}, but this
+  proposition.  Typical examples are \isa{{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}}-introduction \isa{{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ B} or mathematical induction \isa{P\ {\isadigit{0}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ P\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ n}.  Even deeper nesting occurs in well-founded
+  induction \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}y{\isaliteral{2E}{\isachardot}}\ y\ {\isaliteral{5C3C707265633E}{\isasymprec}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ x}, but this
   already marks the limit of rule complexity that is usually seen in
   practice.
 
@@ -998,13 +998,13 @@ The idea of object-level rules is to model Natural Deduction
 
   \begin{itemize}
 
-  \item Normalization by \isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ A\ {\isasymLongrightarrow}\ B\ x{\isacharparenright}},
+  \item Normalization by \isa{{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ x{\isaliteral{29}{\isacharparenright}}},
   which is a theorem of Pure, means that quantifiers are pushed in
   front of implication at each level of nesting.  The normal form is a
   Hereditary Harrop Formula.
 
   \item The outermost prefix of parameters is represented via
-  schematic variables: instead of \isa{{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x} we have \isa{\isactrlvec H\ {\isacharquery}\isactrlvec x\ {\isasymLongrightarrow}\ A\ {\isacharquery}\isactrlvec x}.
+  schematic variables: instead of \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{2E}{\isachardot}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec H\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x} we have \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec H\ {\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x}.
   Note that this representation looses information about the order of
   parameters, and vacuous quantifiers vanish automatically.
 
@@ -1050,42 +1050,42 @@ The rule calculus of Isabelle/Pure provides two main inferences:
   \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} (i.e.\ back-chaining of rules) and
   \hyperlink{inference.assumption}{\mbox{\isa{assumption}}} (i.e.\ closing a branch), both modulo
   higher-order unification.  There are also combined variants, notably
-  \hyperlink{inference.elim-resolution}{\mbox{\isa{elim{\isacharunderscore}resolution}}} and \hyperlink{inference.dest-resolution}{\mbox{\isa{dest{\isacharunderscore}resolution}}}.
+  \hyperlink{inference.elim-resolution}{\mbox{\isa{elim{\isaliteral{5F}{\isacharunderscore}}resolution}}} and \hyperlink{inference.dest-resolution}{\mbox{\isa{dest{\isaliteral{5F}{\isacharunderscore}}resolution}}}.
 
   To understand the all-important \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} principle,
   we first consider raw \indexdef{}{inference}{composition}\hypertarget{inference.composition}{\hyperlink{inference.composition}{\mbox{\isa{composition}}}} (modulo
-  higher-order unification with substitution \isa{{\isasymvartheta}}):
+  higher-order unification with substitution \isa{{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}}):
   \[
-  \infer[(\indexdef{}{inference}{composition}\hypertarget{inference.composition}{\hyperlink{inference.composition}{\mbox{\isa{composition}}}})]{\isa{\isactrlvec A{\isasymvartheta}\ {\isasymLongrightarrow}\ C{\isasymvartheta}}}
-  {\isa{\isactrlvec A\ {\isasymLongrightarrow}\ B} & \isa{B{\isacharprime}\ {\isasymLongrightarrow}\ C} & \isa{B{\isasymvartheta}\ {\isacharequal}\ B{\isacharprime}{\isasymvartheta}}}
+  \infer[(\indexdef{}{inference}{composition}\hypertarget{inference.composition}{\hyperlink{inference.composition}{\mbox{\isa{composition}}}})]{\isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec A{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}}}
+  {\isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B} & \isa{B{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C} & \isa{B{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}\ {\isaliteral{3D}{\isacharequal}}\ B{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}}}
   \]
   Here the conclusion of the first rule is unified with the premise of
   the second; the resulting rule instance inherits the premises of the
   first and conclusion of the second.  Note that \isa{C} can again
   consist of iterated implications.  We can also permute the premises
-  of the second rule back-and-forth in order to compose with \isa{B{\isacharprime}} in any position (subsequently we shall always refer to
+  of the second rule back-and-forth in order to compose with \isa{B{\isaliteral{27}{\isacharprime}}} in any position (subsequently we shall always refer to
   position 1 w.l.o.g.).
 
   In \hyperlink{inference.composition}{\mbox{\isa{composition}}} the internal structure of the common
-  part \isa{B} and \isa{B{\isacharprime}} is not taken into account.  For
+  part \isa{B} and \isa{B{\isaliteral{27}{\isacharprime}}} is not taken into account.  For
   proper \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} we require \isa{B} to be atomic,
-  and explicitly observe the structure \isa{{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ B{\isacharprime}\ \isactrlvec x} of the premise of the second rule.  The
+  and explicitly observe the structure \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{2E}{\isachardot}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec H\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{27}{\isacharprime}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x} of the premise of the second rule.  The
   idea is to adapt the first rule by ``lifting'' it into this context,
   by means of iterated application of the following inferences:
   \[
-  \infer[(\indexdef{}{inference}{imp\_lift}\hypertarget{inference.imp-lift}{\hyperlink{inference.imp-lift}{\mbox{\isa{imp{\isacharunderscore}lift}}}})]{\isa{{\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ \isactrlvec A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ B{\isacharparenright}}}{\isa{\isactrlvec A\ {\isasymLongrightarrow}\ B}}
+  \infer[(\indexdef{}{inference}{imp\_lift}\hypertarget{inference.imp-lift}{\hyperlink{inference.imp-lift}{\mbox{\isa{imp{\isaliteral{5F}{\isacharunderscore}}lift}}}})]{\isa{{\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec H\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec H\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{29}{\isacharparenright}}}}{\isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}}
   \]
   \[
-  \infer[(\indexdef{}{inference}{all\_lift}\hypertarget{inference.all-lift}{\hyperlink{inference.all-lift}{\mbox{\isa{all{\isacharunderscore}lift}}}})]{\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec A\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ B\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}}}{\isa{\isactrlvec A\ {\isacharquery}\isactrlvec a\ {\isasymLongrightarrow}\ B\ {\isacharquery}\isactrlvec a}}
+  \infer[(\indexdef{}{inference}{all\_lift}\hypertarget{inference.all-lift}{\hyperlink{inference.all-lift}{\mbox{\isa{all{\isaliteral{5F}{\isacharunderscore}}lift}}}})]{\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{2E}{\isachardot}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec A\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec a\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{2E}{\isachardot}}\ B\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec a\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}}{\isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec A\ {\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec a\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec a}}
   \]
   By combining raw composition with lifting, we get full \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} as follows:
   \[
   \infer[(\indexdef{}{inference}{resolution}\hypertarget{inference.resolution}{\hyperlink{inference.resolution}{\mbox{\isa{resolution}}}})]
-  {\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ \isactrlvec A\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isasymLongrightarrow}\ C{\isasymvartheta}}}
+  {\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{2E}{\isachardot}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec H\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec A\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec a\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}}}
   {\begin{tabular}{l}
-    \isa{\isactrlvec A\ {\isacharquery}\isactrlvec a\ {\isasymLongrightarrow}\ B\ {\isacharquery}\isactrlvec a} \\
-    \isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ B{\isacharprime}\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C} \\
-    \isa{{\isacharparenleft}{\isasymlambda}\isactrlvec x{\isachardot}\ B\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isacharequal}\ B{\isacharprime}{\isasymvartheta}} \\
+    \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec A\ {\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec a\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec a} \\
+    \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{2E}{\isachardot}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec H\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{27}{\isacharprime}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C} \\
+    \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{2E}{\isachardot}}\ B\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}\isaliteral{5C3C5E7665633E}{}\isactrlvec a\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}\ {\isaliteral{3D}{\isacharequal}}\ B{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}} \\
    \end{tabular}}
   \]
 
@@ -1094,11 +1094,11 @@ The rule calculus of Isabelle/Pure provides two main inferences:
   a rule of 0 premises, or by producing a ``short-circuit'' within a
   solved situation (again modulo unification):
   \[
-  \infer[(\indexdef{}{inference}{assumption}\hypertarget{inference.assumption}{\hyperlink{inference.assumption}{\mbox{\isa{assumption}}}})]{\isa{C{\isasymvartheta}}}
-  {\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C} & \isa{A{\isasymvartheta}\ {\isacharequal}\ H\isactrlsub i{\isasymvartheta}}~~\text{(for some~\isa{i})}}
+  \infer[(\indexdef{}{inference}{assumption}\hypertarget{inference.assumption}{\hyperlink{inference.assumption}{\mbox{\isa{assumption}}}})]{\isa{C{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}}}
+  {\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}\isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{2E}{\isachardot}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec H\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C} & \isa{A{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}\ {\isaliteral{3D}{\isacharequal}}\ H\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{5C3C76617274686574613E}{\isasymvartheta}}}~~\text{(for some~\isa{i})}}
   \]
 
-  FIXME \indexdef{}{inference}{elim\_resolution}\hypertarget{inference.elim-resolution}{\hyperlink{inference.elim-resolution}{\mbox{\isa{elim{\isacharunderscore}resolution}}}}, \indexdef{}{inference}{dest\_resolution}\hypertarget{inference.dest-resolution}{\hyperlink{inference.dest-resolution}{\mbox{\isa{dest{\isacharunderscore}resolution}}}}%
+  FIXME \indexdef{}{inference}{elim\_resolution}\hypertarget{inference.elim-resolution}{\hyperlink{inference.elim-resolution}{\mbox{\isa{elim{\isaliteral{5F}{\isacharunderscore}}resolution}}}}, \indexdef{}{inference}{dest\_resolution}\hypertarget{inference.dest-resolution}{\hyperlink{inference.dest-resolution}{\mbox{\isa{dest{\isaliteral{5F}{\isacharunderscore}}resolution}}}}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1116,15 +1116,15 @@ The rule calculus of Isabelle/Pure provides two main inferences:
 
   \begin{description}
 
-  \item \isa{rule\isactrlsub {\isadigit{1}}\ RS\ rule\isactrlsub {\isadigit{2}}} resolves \isa{rule\isactrlsub {\isadigit{1}}} with \isa{rule\isactrlsub {\isadigit{2}}} according to the \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} principle
+  \item \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RS\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} resolves \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} with \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} according to the \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} principle
   explained above.  Note that the corresponding rule attribute in the
   Isar language is called \hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}.
 
   \item \isa{rule\ OF\ rules} resolves a list of rules with the
-  first rule, addressing its premises \isa{{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ length\ rules}
+  first rule, addressing its premises \isa{{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ length\ rules}
   (operating from last to first).  This means the newly emerging
   premises are all concatenated, without interfering.  Also note that
-  compared to \isa{RS}, the rule argument order is swapped: \isa{rule\isactrlsub {\isadigit{1}}\ RS\ rule\isactrlsub {\isadigit{2}}\ {\isacharequal}\ rule\isactrlsub {\isadigit{2}}\ OF\ {\isacharbrackleft}rule\isactrlsub {\isadigit{1}}{\isacharbrackright}}.
+  compared to \isa{RS}, the rule argument order is swapped: \isa{rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ RS\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ OF\ {\isaliteral{5B}{\isacharbrackleft}}rule\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{5D}{\isacharbrackright}}}.
 
   \end{description}%
 \end{isamarkuptext}%
