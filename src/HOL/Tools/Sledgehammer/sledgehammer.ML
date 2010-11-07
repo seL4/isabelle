@@ -104,7 +104,7 @@ fun is_prover_installed ctxt name =
     else is_atp_installed thy name
   end
 
-val smt_default_max_relevant = 300 (* FUDGE (FIXME) *)
+val smt_default_max_relevant = 250 (* FUDGE (FIXME) *)
 val auto_max_relevant_divisor = 2 (* FUDGE *)
 
 fun default_max_relevant_for_prover thy name =
