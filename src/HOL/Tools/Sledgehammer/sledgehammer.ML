@@ -420,8 +420,11 @@ val smt_filter_fact_divisor = 2
 fun smt_filter_loop iter outcome0 msecs_so_far remote timeout state facts i =
   let
     val timer = Timer.startRealTimer ()
+    (* The "timeout" argument passed to "smt_filter" is a soft timeout. We make
+       it hard using "timeLimit". *)
     val {outcome, used_facts, run_time_in_msecs} =
-      SMT_Solver.smt_filter remote timeout state facts i
+      TimeLimit.timeLimit timeout
+                          (SMT_Solver.smt_filter remote timeout state facts) i
     val outcome0 = if is_none outcome0 then SOME outcome else outcome0
     val msecs_so_far = int_opt_add run_time_in_msecs msecs_so_far
     val too_many_facts_perhaps =
