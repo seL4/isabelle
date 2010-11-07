@@ -7,7 +7,6 @@ struct
 
 val proverK = "prover"
 val prover_timeoutK = "prover_timeout"
-val prover_hard_timeoutK = "prover_hard_timeout"
 val keepK = "keep"
 val full_typesK = "full_types"
 val minimizeK = "minimize"
@@ -407,8 +406,7 @@ fun run_sledgehammer trivial args named_thms id ({pre=st, log, ...}: Mirabelle.r
     val (prover_name, prover) = get_prover (Proof.context_of st) args
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
-    val hard_timeout = AList.lookup (op =) args prover_hard_timeoutK
-      |> Option.map (fst o read_int o explode)
+    val hard_timeout = SOME timeout (* always use a hard timeout *)
     val (msg, result) = run_sh prover_name prover hard_timeout timeout dir st
   in
     case result of
