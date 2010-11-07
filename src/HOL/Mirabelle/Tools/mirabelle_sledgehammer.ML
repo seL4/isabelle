@@ -16,7 +16,9 @@ val metis_ftK = "metis_ft"
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
 fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
-fun metis_tag id = "#" ^ string_of_int id ^ " metis (sledgehammer): "
+fun metis_tag smt id =
+  "#" ^ string_of_int id ^ " " ^ (if smt then "smt" else "metis") ^
+  " (sledgehammer): "
 
 val separator = "-----"
 
@@ -438,7 +440,6 @@ end
 
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
-    open Metis_Translate
     val ctxt = Proof.context_of st
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_prover ctxt args
@@ -466,12 +467,13 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   end
 
 
-fun run_metis trivial full m name named_thms id
+fun run_metis smt trivial full m name named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
     fun metis thms ctxt =
-      if full then Metis_Tactics.metisFT_tac ctxt thms
-      else Metis_Tactics.metis_tac ctxt thms
+      (if smt then SMT_Solver.smt_tac
+       else if full then Metis_Tactics.metisFT_tac
+       else Metis_Tactics.metis_tac) ctxt thms
     fun apply_metis thms = Mirabelle.can_apply timeout (metis thms) st
 
     fun with_time (false, t) = "failed (" ^ string_of_int t ^ ")"
@@ -494,7 +496,7 @@ fun run_metis trivial full m name named_thms id
   in
     maps snd named_thms
     |> timed_metis
-    |>> log o prefix (metis_tag id)
+    |>> log o prefix (metis_tag smt id)
     |> snd
   end
 
@@ -508,6 +510,9 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
     let
       val named_thms =
         Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
+      val ctxt = Proof.context_of pre
+      val (prover_name, _) = get_prover ctxt args
+      val smt = String.isSuffix "smt" prover_name (* hack *)
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
       val trivial = TimeLimit.timeLimit try_outer_timeout
@@ -516,15 +521,15 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
       fun apply_metis m1 m2 =
         if metis_ft
         then
-          if not (Mirabelle.catch_result metis_tag false
-              (run_metis trivial false m1 name (these (!named_thms))) id st)
+          if not (Mirabelle.catch_result (metis_tag smt) false
+              (run_metis smt trivial false m1 name (these (!named_thms))) id st)
           then
-            (Mirabelle.catch_result metis_tag false
-              (run_metis trivial true m2 name (these (!named_thms))) id st; ())
+            (Mirabelle.catch_result (metis_tag smt) false
+              (run_metis smt trivial true m2 name (these (!named_thms))) id st; ())
           else ()
         else
-          (Mirabelle.catch_result metis_tag false
-            (run_metis trivial false m1 name (these (!named_thms))) id st; ())
+          (Mirabelle.catch_result (metis_tag smt) false
+            (run_metis smt trivial false m1 name (these (!named_thms))) id st; ())
     in 
       change_data id (set_mini minimize);
       Mirabelle.catch sh_tag (run_sledgehammer trivial args named_thms) id st;
