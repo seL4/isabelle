@@ -160,7 +160,6 @@ sig
     KodkodiNotInstalled |
     Normal of (int * raw_bound list) list * int list * string |
     TimedOut of int list |
-    Interrupted of int list option |
     Error of string * int list
 
   exception SYNTAX of string * string
@@ -308,7 +307,6 @@ datatype outcome =
   KodkodiNotInstalled |
   Normal of (int * raw_bound list) list * int list * string |
   TimedOut of int list |
-  Interrupted of int list option |
   Error of string * int list
 
 exception SYNTAX of string * string
@@ -1085,17 +1083,6 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                 Normal (ps, js, first_error)
             end
         in remove_temporary_files (); outcome end
-        handle Exn.Interrupt =>  (* FIXME Exn.is_interrupt *)
-               let
-                 val nontriv_js =
-                   read_output_file new_kodkodi out_path
-                   |> snd |> snd |> map reindex
-               in
-                 (remove_temporary_files ();
-                  Interrupted (SOME (triv_js @ nontriv_js)))  (* FIXME violates Isabelle/ML exception model *)
-                 handle Exn.Interrupt =>  (* FIXME violates Isabelle/ML exception model *)
-                        (remove_temporary_files (); Interrupted NONE)
-               end
       end
   end
 

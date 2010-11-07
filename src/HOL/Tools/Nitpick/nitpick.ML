@@ -231,9 +231,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     fun check_deadline () =
       if debug andalso passed_deadline deadline then raise TimeLimit.TimeOut
       else ()
-    fun do_interrupted () =
-      if passed_deadline deadline then raise TimeLimit.TimeOut
-      else raise Interrupt
 
     val assm_ts = if assms orelse auto then assm_ts else []
     val _ =
@@ -818,9 +815,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             end
           | KK.TimedOut unsat_js =>
             (update_checked_problems problems unsat_js; raise TimeLimit.TimeOut)
-          | KK.Interrupted NONE => (checked_problems := NONE; do_interrupted ())
-          | KK.Interrupted (SOME unsat_js) =>
-            (update_checked_problems problems unsat_js; do_interrupted ())
           | KK.Error (s, unsat_js) =>
             (update_checked_problems problems unsat_js;
              print_v (K ("Kodkod error: " ^ s ^ "."));
@@ -971,27 +965,15 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
     val batches = batch_list batch_size (!scopes)
     val outcome_code =
-      (run_batches 0 (length batches) batches
-                   (false, max_potential, max_genuine, 0)
-       handle Exn.Interrupt => do_interrupted ())  (* FIXME violates Isabelle/ML exception model *)
+      run_batches 0 (length batches) batches
+                  (false, max_potential, max_genuine, 0)
       handle TimeLimit.TimeOut =>
              (print_m (fn () => excipit "ran out of time after checking");
               if !met_potential > 0 then "potential" else "unknown")
-           | Exn.Interrupt =>
-             if auto orelse debug then raise Interrupt
-             else error (excipit "was interrupted after checking")  (* FIXME violates Isabelle/ML exception model *)
     val _ = print_v (fn () =>
                 "Total time: " ^ string_from_time (Timer.checkRealTimer timer) ^
                 ".")
   in (outcome_code, !state_ref) end
-  handle Exn.Interrupt =>  (* FIXME violates Isabelle/ML exception model *)
-         if auto orelse #debug params then
-           raise Interrupt
-         else
-           if passed_deadline deadline then
-             (Output.urgent_message "Nitpick ran out of time."; ("unknown", state))
-           else
-             error "Nitpick was interrupted."  (* FIXME violates Isabelle/ML exception model *)
 
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
                       step subst assm_ts orig_t =
