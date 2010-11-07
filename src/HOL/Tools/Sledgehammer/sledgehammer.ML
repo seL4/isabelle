@@ -417,11 +417,12 @@ fun failure_from_smt_failure (SMT_Solver.Counterexample _) = Unprovable
 val smt_filter_max_iter = 5
 val smt_filter_fact_divisor = 2
 
-fun smt_filter_loop iter msecs_so_far remote timeout state facts i =
+fun smt_filter_loop iter outcome0 msecs_so_far remote timeout state facts i =
   let
     val timer = Timer.startRealTimer ()
     val {outcome, used_facts, run_time_in_msecs} =
       SMT_Solver.smt_filter remote timeout state facts i
+    val outcome0 = if is_none outcome0 then SOME outcome else outcome0
     val msecs_so_far = int_opt_add run_time_in_msecs msecs_so_far
     val too_many_facts_perhaps =
       case outcome of
@@ -434,13 +435,13 @@ fun smt_filter_loop iter msecs_so_far remote timeout state facts i =
     if too_many_facts_perhaps andalso iter < smt_filter_max_iter andalso
        not (null facts) then
       let val facts = take (length facts div smt_filter_fact_divisor) facts in
-        smt_filter_loop (iter + 1) msecs_so_far remote
+        smt_filter_loop (iter + 1) outcome0 msecs_so_far remote
                         (Time.- (timeout, Timer.checkRealTimer timer)) state
                         facts i
       end
     else
-      {outcome = outcome, used_facts = used_facts,
-       run_time_in_msecs = msecs_so_far}
+      {outcome = if is_none outcome then NONE else the outcome0,
+       used_facts = used_facts, run_time_in_msecs = msecs_so_far}
   end
 
 fun run_smt_solver auto remote ({timeout, ...} : params) minimize_command
@@ -449,7 +450,7 @@ fun run_smt_solver auto remote ({timeout, ...} : params) minimize_command
   let
     val ctxt = Proof.context_of state
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop 1 (SOME 0) remote timeout state
+      smt_filter_loop 1 NONE (SOME 0) remote timeout state
                       (map_filter (try dest_Untranslated) facts) subgoal
     val message =
       case outcome of
