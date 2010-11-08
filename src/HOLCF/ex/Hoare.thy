@@ -95,9 +95,7 @@ done
 
 
 lemma hoare_lemma28: "f$(y::'a)=(UU::tr) ==> f$UU = UU"
-apply (erule flat_codom [THEN disjE])
-apply auto
-done
+by (rule strictI)
 
 
 (* ----- access to definitions ----- *)

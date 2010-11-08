@@ -15,10 +15,10 @@ class below =
 begin
 
 notation
-  below (infixl "<<" 55)
+  below (infix "<<" 50)
 
 notation (xsymbols)
-  below (infixl "\<sqsubseteq>" 55)
+  below (infix "\<sqsubseteq>" 50)
 
 lemma below_eq_trans: "\<lbrakk>a \<sqsubseteq> b; b = c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
   by (rule subst)
@@ -34,14 +34,7 @@ class po = below +
   assumes below_antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
 begin
 
-text {* minimal fixes least element *}
-
-lemma minimal2UU[OF allI] : "\<forall>x. uu \<sqsubseteq> x \<Longrightarrow> uu = (THE u. \<forall>y. u \<sqsubseteq> y)"
-  by (blast intro: theI2 below_antisym)
-
-text {* the reverse law of anti-symmetry of @{term "op <<"} *}
-(* Is this rule ever useful? *)
-lemma below_antisym_inverse: "x = y \<Longrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
+lemma eq_imp_below: "x = y \<Longrightarrow> x \<sqsubseteq> y"
   by simp
 
 lemma box_below: "a \<sqsubseteq> b \<Longrightarrow> c \<sqsubseteq> a \<Longrightarrow> b \<sqsubseteq> d \<Longrightarrow> c \<sqsubseteq> d"
@@ -69,7 +62,7 @@ begin
 
 subsection {* Upper bounds *}
 
-definition is_ub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "<|" 55) where
+definition is_ub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix "<|" 55) where
   "S <| x \<longleftrightarrow> (\<forall>y\<in>S. y \<sqsubseteq> x)"
 
 lemma is_ubI: "(\<And>x. x \<in> S \<Longrightarrow> x \<sqsubseteq> u) \<Longrightarrow> S <| u"
@@ -101,7 +94,7 @@ lemma is_ub_upward: "\<lbrakk>S <| x; x \<sqsubseteq> y\<rbrakk> \<Longrightarro
 
 subsection {* Least upper bounds *}
 
-definition is_lub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "<<|" 55) where
+definition is_lub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix "<<|" 55) where
   "S <<| x \<longleftrightarrow> S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u)"
 
 definition lub :: "'a set \<Rightarrow> 'a" where
@@ -343,33 +336,6 @@ text {* the maximal element in a chain is its lub *}
 
 lemma lub_chain_maxelem: "\<lbrakk>Y i = c; \<forall>i. Y i \<sqsubseteq> c\<rbrakk> \<Longrightarrow> lub (range Y) = c"
   by (blast dest: ub_rangeD intro: thelubI is_lubI ub_rangeI)
-
-text {* lemmata for improved admissibility introdution rule *}
-
-lemma infinite_chain_adm_lemma:
-  "\<lbrakk>chain Y; \<forall>i. P (Y i);  
-    \<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i); \<not> finite_chain Y\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)\<rbrakk>
-      \<Longrightarrow> P (\<Squnion>i. Y i)"
-apply (case_tac "finite_chain Y")
-prefer 2 apply fast
-apply (unfold finite_chain_def)
-apply safe
-apply (erule lub_finch1 [THEN thelubI, THEN ssubst])
-apply assumption
-apply (erule spec)
-done
-
-lemma increasing_chain_adm_lemma:
-  "\<lbrakk>chain Y;  \<forall>i. P (Y i); \<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i);
-    \<forall>i. \<exists>j>i. Y i \<noteq> Y j \<and> Y i \<sqsubseteq> Y j\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)\<rbrakk>
-      \<Longrightarrow> P (\<Squnion>i. Y i)"
-apply (erule infinite_chain_adm_lemma)
-apply assumption
-apply (erule thin_rl)
-apply (unfold finite_chain_def)
-apply (unfold max_in_chain_def)
-apply (fast dest: le_imp_less_or_eq elim: chain_mono_less)
-done
 
 end
 

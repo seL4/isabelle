@@ -293,7 +293,7 @@ done
 
 lemma Cons_not_less_UU: "~(a>>x) << UU"
 apply (rule notI)
-apply (drule antisym_less)
+apply (drule below_antisym)
 apply simp
 apply (simp add: Cons_not_UU)
 done

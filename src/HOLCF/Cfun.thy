@@ -355,16 +355,13 @@ lemma cont2cont_LAM_discrete [simp, cont2cont]:
   "(\<And>y::'a::discrete_cpo. cont (\<lambda>x. f x y)) \<Longrightarrow> cont (\<lambda>x. \<Lambda> y. f x y)"
 by (simp add: cont2cont_LAM)
 
-lemmas cont_lemmas1 =
-  cont_const cont_id cont_Rep_cfun2 cont2cont_APP cont2cont_LAM
-
 subsection {* Miscellaneous *}
 
 text {* Monotonicity of @{term Abs_cfun} *}
 
-lemma semi_monofun_Abs_cfun:
-  "\<lbrakk>cont f; cont g; f \<sqsubseteq> g\<rbrakk> \<Longrightarrow> Abs_cfun f \<sqsubseteq> Abs_cfun g"
-by (simp add: below_cfun_def Abs_cfun_inverse2)
+lemma monofun_LAM:
+  "\<lbrakk>cont f; cont g; \<And>x. f x \<sqsubseteq> g x\<rbrakk> \<Longrightarrow> (\<Lambda> x. f x) \<sqsubseteq> (\<Lambda> x. g x)"
+by (simp add: cfun_below_iff)
 
 text {* some lemmata for functions with flat/chfin domain/range types *}
 
@@ -417,29 +414,6 @@ done
 lemma injection_defined:
   "\<lbrakk>\<forall>x. f\<cdot>(g\<cdot>x) = x; z \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> g\<cdot>z \<noteq> \<bottom>"
 by (erule contrapos_nn, rule injection_defined_rev)
-
-text {* propagation of flatness and chain-finiteness by retractions *}
-
-lemma chfin2chfin:
-  "\<forall>y. (f::'a::chfin \<rightarrow> 'b)\<cdot>(g\<cdot>y) = y
-    \<Longrightarrow> \<forall>Y::nat \<Rightarrow> 'b. chain Y \<longrightarrow> (\<exists>n. max_in_chain n Y)"
-apply clarify
-apply (drule_tac f=g in chain_monofun)
-apply (drule chfin)
-apply (unfold max_in_chain_def)
-apply (simp add: injection_eq)
-done
-
-lemma flat2flat:
-  "\<forall>y. (f::'a::flat \<rightarrow> 'b::pcpo)\<cdot>(g\<cdot>y) = y
-    \<Longrightarrow> \<forall>x y::'b. x \<sqsubseteq> y \<longrightarrow> x = \<bottom> \<or> x = y"
-apply clarify
-apply (drule_tac f=g in monofun_cfun_arg)
-apply (drule ax_flat)
-apply (erule disjE)
-apply (simp add: injection_defined_rev)
-apply (simp add: injection_eq)
-done
 
 text {* a result about functions with flat codomain *}
 

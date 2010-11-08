@@ -29,6 +29,31 @@ definition
 
 section "admissibility"
 
+lemma infinite_chain_adm_lemma:
+  "\<lbrakk>Porder.chain Y; \<forall>i. P (Y i);  
+    \<And>Y. \<lbrakk>Porder.chain Y; \<forall>i. P (Y i); \<not> finite_chain Y\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)\<rbrakk>
+      \<Longrightarrow> P (\<Squnion>i. Y i)"
+apply (case_tac "finite_chain Y")
+prefer 2 apply fast
+apply (unfold finite_chain_def)
+apply safe
+apply (erule lub_finch1 [THEN thelubI, THEN ssubst])
+apply assumption
+apply (erule spec)
+done
+
+lemma increasing_chain_adm_lemma:
+  "\<lbrakk>Porder.chain Y;  \<forall>i. P (Y i); \<And>Y. \<lbrakk>Porder.chain Y; \<forall>i. P (Y i);
+    \<forall>i. \<exists>j>i. Y i \<noteq> Y j \<and> Y i \<sqsubseteq> Y j\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)\<rbrakk>
+      \<Longrightarrow> P (\<Squnion>i. Y i)"
+apply (erule infinite_chain_adm_lemma)
+apply assumption
+apply (erule thin_rl)
+apply (unfold finite_chain_def)
+apply (unfold max_in_chain_def)
+apply (fast dest: le_imp_less_or_eq elim: chain_mono_less)
+done
+
 lemma flatstream_adm_lemma:
   assumes 1: "Porder.chain Y"
   assumes 2: "!i. P (Y i)"
@@ -132,7 +157,7 @@ apply (case_tac "#x < Fin i")
 apply ( fast)
 apply (unfold linorder_not_less)
 apply (drule (1) mp)
-apply (erule all_dupE, drule mp, rule refl_less)
+apply (erule all_dupE, drule mp, rule below_refl)
 apply (erule ssubst)
 apply (erule allE, drule (1) mp)
 apply (drule_tac P="%x. x" in subst, assumption)
