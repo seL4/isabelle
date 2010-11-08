@@ -270,6 +270,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Semiring_Normalization.thy \
   SetInterval.thy \
   Sledgehammer.thy \
+  Smallcheck.thy \
   SMT.thy \
   String.thy \
   Typerep.thy \
@@ -336,8 +337,11 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_atp_reconstruct.ML \
   Tools/Sledgehammer/sledgehammer_atp_translate.ML \
   Tools/Sledgehammer/sledgehammer_util.ML \
+  Tools/smallvalue_generators.ML \
   Tools/SMT/smtlib_interface.ML \
   Tools/SMT/smt_builtin.ML \
+  Tools/SMT/smt_config.ML \
+  Tools/SMT/smt_failure.ML \
   Tools/SMT/smt_monomorph.ML \
   Tools/SMT/smt_normalize.ML \
   Tools/SMT/smt_setup_solvers.ML \

@@ -6,10 +6,13 @@ Cache for output of external processes.
 
 signature CACHE_IO =
 sig
+  (*IO wrapper*)
   val with_tmp_file: string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
-  val run: (Path.T -> Path.T -> string) -> string -> string list * string list
+  val run: (Path.T -> Path.T -> string) -> string ->
+    {output: string list, redirected_output: string list, return_code: int}
 
+  (*cache*)
   type cache
   val make: Path.T -> cache
   val cache_path_of: cache -> Path.T
@@ -22,6 +25,8 @@ end
 
 structure Cache_IO : CACHE_IO =
 struct
+
+(* IO wrapper *)
 
 val cache_io_prefix = "cache-io-"
 
@@ -45,20 +50,19 @@ fun run make_cmd str =
   with_tmp_file cache_io_prefix (fn out_path =>
     let
       val _ = File.write in_path str
-      val (out2, _) = bash_output (make_cmd in_path out_path)
+      val (out2, rc) = bash_output (make_cmd in_path out_path)
       val out1 = the_default [] (try (rev o File.fold_lines cons out_path) [])
-    in (out1, split_lines out2) end))
+    in {output=split_lines out2, redirected_output=out1, return_code=rc} end))
 
 
+(* cache *)
 
 abstype cache = Cache of {
   path: Path.T,
   table: (int * (int * int * int) Symtab.table) Synchronized.var }
 with
 
-
 fun cache_path_of (Cache {path, ...}) = path
-
 
 fun load cache_path =
   let
@@ -87,7 +91,6 @@ fun make path =
   let val table = if File.exists path then load path else (1, Symtab.empty)
   in Cache {path=path, table=Synchronized.var (Path.implode path) table} end
 
-
 fun load_cached_result cache_path (p, len1, len2) =
   let
     fun load line (i, xsp) =
@@ -97,7 +100,6 @@ fun load_cached_result cache_path (p, len1, len2) =
       else (i, xsp)
   in pairself rev (snd (File.fold_lines load cache_path (1, ([], [])))) end
 
-
 fun lookup (Cache {path=cache_path, table}) str =
   let val key = SHA1.digest str
   in
@@ -106,10 +108,10 @@ fun lookup (Cache {path=cache_path, table}) str =
     | SOME pos => (SOME (load_cached_result cache_path pos), key))
   end
 
-
 fun run_and_cache (Cache {path=cache_path, table}) key make_cmd str =
   let
-    val res as (out, err) = run make_cmd str
+    val {output=err, redirected_output=out, ...} = run make_cmd str
+    val res = (out, err)
     val (l1, l2) = pairself length res
     val header = key ^ " " ^ string_of_int l1 ^ " " ^ string_of_int l2
     val lines = map (suffix "\n") (header :: out @ err)
@@ -121,11 +123,11 @@ fun run_and_cache (Cache {path=cache_path, table}) key make_cmd str =
         in (p+l1+l2+1, Symtab.update (key, (p+1, l1, l2)) tab) end)
   in res end
 
-
 fun run_cached cache make_cmd str =
   (case lookup cache str of
     (NONE, key) => run_and_cache cache key make_cmd str
   | (SOME output, _) => output)
 
 end
+
 end

@@ -350,9 +350,10 @@ INCOMPATIBILITY.
     z3_trace_assms ~> smt_trace_used_facts
     INCOMPATIBILITY.
   - Added:
+    smt_verbose
+    smt_datatypes
     cvc3_options
     yices_options
-    smt_datatypes
 
 * Removed [split_format ... and ... and ...] version of
 [split_format].  Potential INCOMPATIBILITY.
