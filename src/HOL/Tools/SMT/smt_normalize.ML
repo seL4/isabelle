@@ -19,8 +19,7 @@ signature SMT_NORMALIZE =
 sig
   type extra_norm = bool -> (int * thm) list -> Proof.context ->
     (int * thm) list * Proof.context
-  val normalize: (Proof.context -> (thm -> string) -> thm -> unit) -> bool ->
-    extra_norm -> bool -> (int * thm) list -> Proof.context ->
+  val normalize: extra_norm -> bool -> (int * thm) list -> Proof.context ->
     (int * thm) list * Proof.context
   val atomize_conv: Proof.context -> conv
   val eta_expand_conv: (Proof.context -> conv) -> Proof.context -> conv
@@ -247,7 +246,7 @@ local
             then eta_args_conv norm_conv
               (length (Term.binder_types T) - length ts)
             else args_conv o norm_conv
-        | (_, ts) => args_conv o norm_conv)) ctxt ct
+        | _ => args_conv o norm_conv)) ctxt ct
 
   fun is_normed ctxt t =
     (case t of
@@ -516,15 +515,15 @@ type extra_norm = bool -> (int * thm) list -> Proof.context ->
 
 fun with_context f irules ctxt = (f ctxt irules, ctxt)
 
-fun normalize trace keep_assms extra_norm with_datatypes irules ctxt =
+fun normalize extra_norm with_datatypes irules ctxt =
   let
     fun norm f ctxt' (i, thm) =
-      if keep_assms then SOME (i, f ctxt' thm)
-      else
+      if Config.get ctxt' SMT_Config.drop_bad_facts then
         (case try (f ctxt') thm of
           SOME thm' => SOME (i, thm')
-        | NONE => (trace ctxt' (prefix ("SMT warning: " ^
+        | NONE => (SMT_Config.verbose_msg ctxt' (prefix ("Warning: " ^
             "dropping assumption: ") o Display.string_of_thm ctxt') thm; NONE))
+      else SOME (i, f ctxt' thm)
   in
     irules
     |> trivial_distinct ctxt

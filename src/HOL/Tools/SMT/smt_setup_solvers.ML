@@ -16,9 +16,9 @@ fun outcome_of unsat sat unknown solver_name line =
   if String.isPrefix unsat line then SMT_Solver.Unsat
   else if String.isPrefix sat line then SMT_Solver.Sat
   else if String.isPrefix unknown line then SMT_Solver.Unknown
-  else raise SMT_Solver.SMT (SMT_Solver.Other_Failure ("Solver " ^
+  else raise SMT_Failure.SMT (SMT_Failure.Other_Failure ("Solver " ^
     quote solver_name ^ " failed. Enable SMT tracing by setting the " ^
-    "configuration option " ^ quote SMT_Solver.traceN ^ " and " ^
+    "configuration option " ^ quote SMT_Config.traceN ^ " and " ^
     " see the trace for details."))
 
 fun on_first_line test_outcome solver_name lines =
@@ -60,14 +60,14 @@ fun yices () = {
 
 fun z3_options ctxt =
   ["MODEL=true", "PRE_SIMPLIFY_EXPR=false", "CONTEXT_SIMPLIFIER=false", "-smt"]
-  |> not (Config.get ctxt SMT_Solver.oracle) ?
+  |> not (Config.get ctxt SMT_Config.oracle) ?
        append ["DISPLAY_PROOF=true","PROOF_MODE=2"]
 
 fun z3_on_last_line solver_name lines =
   let
     fun junk l =
       if String.isPrefix "WARNING: Out of allocated virtual memory" l
-      then raise SMT_Solver.SMT SMT_Solver.Out_Of_Memory
+      then raise SMT_Failure.SMT SMT_Failure.Out_Of_Memory
       else
         String.isPrefix "WARNING" l orelse
         String.isPrefix "ERROR" l orelse

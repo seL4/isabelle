@@ -8,7 +8,9 @@ theory SMT
 imports List
 uses
   "Tools/Datatype/datatype_selectors.ML"
-  ("Tools/SMT/smt_monomorph.ML")
+  "Tools/SMT/smt_failure.ML"
+  "Tools/SMT/smt_config.ML"
+  "Tools/SMT/smt_monomorph.ML"
   ("Tools/SMT/smt_builtin.ML")
   ("Tools/SMT/smt_normalize.ML")
   ("Tools/SMT/smt_translate.ML")
@@ -126,7 +128,6 @@ lemma mod_by_z3mod: "k mod l = (
 
 subsection {* Setup *}
 
-use "Tools/SMT/smt_monomorph.ML"
 use "Tools/SMT/smt_builtin.ML"
 use "Tools/SMT/smt_normalize.ML"
 use "Tools/SMT/smt_translate.ML"
@@ -141,6 +142,7 @@ use "Tools/SMT/z3_model.ML"
 use "Tools/SMT/smt_setup_solvers.ML"
 
 setup {*
+  SMT_Config.setup #>
   SMT_Solver.setup #>
   Z3_Proof_Reconstruction.setup #>
   SMT_Setup_Solvers.setup
@@ -239,6 +241,13 @@ declare [[ smt_fixed = false ]]
 
 
 subsection {* Tracing *}
+
+text {*
+The SMT method, when applied, traces important information.  To
+make it entirely silent, set the following option to @{text false}.
+*}
+
+declare [[ smt_verbose = true ]]
 
 text {*
 For tracing the generated problem file given to the SMT solver as
