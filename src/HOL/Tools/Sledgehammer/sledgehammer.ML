@@ -434,16 +434,16 @@ fun smt_filter_loop iter outcome0 msecs_so_far remote timeout state facts i =
       TimeLimit.timeLimit iter_timeout
           (SMT_Solver.smt_filter remote iter_timeout state facts) i
       handle TimeLimit.TimeOut =>
-             {outcome = SOME SMT_Solver.Time_Out, used_facts = [],
+             {outcome = SOME SMT_Failure.Time_Out, used_facts = [],
               run_time_in_msecs = NONE}
     val outcome0 = if is_none outcome0 then SOME outcome else outcome0
     val msecs_so_far = int_opt_add run_time_in_msecs msecs_so_far
     val too_many_facts_perhaps =
       case outcome of
         NONE => false
-      | SOME (SMT_Solver.Counterexample _) => false
-      | SOME SMT_Solver.Time_Out => iter_timeout <> timeout
-      | SOME SMT_Solver.Out_Of_Memory => true
+      | SOME (SMT_Failure.Counterexample _) => false
+      | SOME SMT_Failure.Time_Out => iter_timeout <> timeout
+      | SOME SMT_Failure.Out_Of_Memory => true
       | SOME _ => true
     val timeout = Time.- (timeout, Timer.checkRealTimer timer)
   in
