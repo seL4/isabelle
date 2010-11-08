@@ -426,8 +426,8 @@ fun gen_domain_isomorphism
     (* this theory is used just for parsing *)
     val tmp_thy = thy |>
       Theory.copy |>
-      Sign.add_types (map (fn (tvs, tname, mx, _, morphs) =>
-        (tname, length tvs, mx)) doms_raw);
+      Sign.add_types (map (fn (tvs, tbind, mx, _, morphs) =>
+        (tbind, length tvs, mx)) doms_raw);
 
     fun prep_dom thy (vs, t, mx, typ_raw, morphs) sorts =
       let val (typ, sorts') = prep_typ thy typ_raw sorts
@@ -437,9 +437,12 @@ fun gen_domain_isomorphism
          sorts : (string * sort) list) =
       fold_map (prep_dom tmp_thy) doms_raw [];
 
+    (* lookup function for sorts of type variables *)
+    fun the_sort v = the (AList.lookup (op =) sorts v);
+
     (* domain equations *)
     fun mk_dom_eqn (vs, tbind, mx, rhs, morphs) =
-      let fun arg v = TFree (v, the (AList.lookup (op =) sorts v));
+      let fun arg v = TFree (v, the_sort v);
       in (Type (Sign.full_name tmp_thy tbind, map arg vs), rhs) end;
     val dom_eqns = map mk_dom_eqn doms;
 
@@ -460,14 +463,14 @@ fun gen_domain_isomorphism
 
     (* determine deflation combinator arguments *)
     fun defl_flags (vs, tbind, mx, rhs, morphs) =
-      let fun argT v = TFree (v, the (AList.lookup (op =) sorts v));
+      let fun argT v = TFree (v, the_sort v);
       in map (is_bifinite thy o argT) vs end;
     val defl_flagss = map defl_flags doms;
 
     (* declare deflation combinator constants *)
     fun declare_defl_const (vs, tbind, mx, rhs, morphs) thy =
       let
-        fun argT v = TFree (v, the (AList.lookup (op =) sorts v));
+        fun argT v = TFree (v, the_sort v);
         val Ts = map argT vs;
         val flags = map (is_bifinite thy) Ts;
         val defl_type = mk_defl_type flags Ts;
@@ -497,7 +500,7 @@ fun gen_domain_isomorphism
     (* define types using deflation combinators *)
     fun make_repdef ((vs, tbind, mx, _, _), defl_const) thy =
       let
-        fun tfree a = TFree (a, the (AList.lookup (op =) sorts a));
+        fun tfree a = TFree (a, the_sort a);
         val Ts = map tfree vs;
         val type_args = map Logic.mk_type (filter_out (is_bifinite thy) Ts);
         val defl_args = map mk_DEFL (filter (is_bifinite thy) Ts);
