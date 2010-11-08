@@ -36,8 +36,26 @@ Requirements to build from sources
   Netbeans Library "Scala-compiler" = $SCALA_HOME/lib/scala-compiler.jar
 
 
-Running the application within Netbeans
-=======================================
+Building and running from command line (recommended)
+====================================================
+
+* Manual build:
+
+  ( cd "$HOME/isabelle/repos/src/Pure" && isabelle env ./build-jars )
+  ant jar
+  makedist -j "$HOME/lib/jedit-4.3.2"  #location of original jedit distribution
+
+* Component setup, e.g. in $ISABELLE_HOME_USER/.isabelle/etc/settings:
+
+  [ -d "$HOME/isabelle/jedit" ] && init_component "$HOME/isabelle/jedit"  #build location
+
+* Run:
+
+  isabelle jedit -l HOL Test.thy &
+
+
+Running the application within Netbeans (not recommended)
+=========================================================
 
 * Project properties: add "Run" argument like
     -noserver -nobackground -settings=/home/makarius/isabelle/isabelle-jedit/dist
