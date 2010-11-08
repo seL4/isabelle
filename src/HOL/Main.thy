@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Plain Record Predicate_Compile Nitpick
+imports Plain Record Predicate_Compile Smallcheck Nitpick
 begin
 
 text {*
