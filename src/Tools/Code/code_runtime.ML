@@ -226,7 +226,7 @@ fun register_code new_tycos new_consts ctxt =
     val consts' = fold (insert (op =)) new_consts consts;
     val acc_code = Lazy.lazy (fn () =>
       evaluation_code (ProofContext.theory_of ctxt) "Code" tycos' consts'
-      |> apsnd fst);
+      |> apsnd snd);
   in Code_Antiq_Data.put ((tycos', consts'), (false, acc_code)) ctxt end;
 
 fun register_const const = register_code [] [const];
@@ -238,8 +238,7 @@ fun print_code is_first const ctxt =
   let
     val (_, (_, acc_code)) = Code_Antiq_Data.get ctxt;
     val (ml_code, consts_map) = Lazy.force acc_code;
-    val ml_code = if is_first then ml_code
-      else "";
+    val ml_code = if is_first then ml_code else "";
     val all_struct_name = "Isabelle";
   in (ml_code, print_const const all_struct_name consts_map) end;
 
