@@ -42,6 +42,11 @@ fun third  (_,_,x) = x;
 type info =
      Domain_Take_Proofs.iso_info list * Domain_Take_Proofs.take_induct_info;
 
+fun add_arity ((b, sorts, mx), sort) thy : theory =
+  thy
+  |> Sign.add_types [(b, length sorts, mx)]
+  |> AxClass.axiomatize_arity (Sign.full_name thy b, sorts, sort);
+
 fun gen_add_domain
     (prep_sort : theory -> 'a -> sort)
     (prep_typ : theory -> (string * sort) list -> 'b -> typ)
@@ -59,15 +64,13 @@ fun gen_add_domain
                 (dbind, map prep_tvar vs, mx)) raw_specs
       end;
 
-    fun thy_type (dbind, tvars, mx) = (dbind, length tvars, mx);
     fun thy_arity (dbind, tvars, mx) =
-      (Sign.full_name thy dbind, map (snd o dest_TFree) tvars, arg_sort false);
+      ((dbind, map (snd o dest_TFree) tvars, mx), arg_sort false);
 
     (* this theory is used just for parsing and error checking *)
     val tmp_thy = thy
       |> Theory.copy
-      |> Sign.add_types (map thy_type dtnvs)
-      |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
+      |> fold (add_arity o thy_arity) dtnvs;
 
     val dbinds : binding list =
         map (fn (_,dbind,_,_) => dbind) raw_specs;
