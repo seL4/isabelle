@@ -418,6 +418,7 @@ val smt_max_iter = 5
 val smt_iter_fact_divisor = 2
 val smt_iter_min_msecs = 5000
 val smt_iter_timeout_divisor = 2
+val smt_monomorph_limit = 4
 
 fun smt_filter_loop iter outcome0 msecs_so_far remote timeout state facts i =
   let
@@ -458,10 +459,14 @@ fun smt_filter_loop iter outcome0 msecs_so_far remote timeout state facts i =
        used_facts = used_facts, run_time_in_msecs = msecs_so_far}
   end
 
-fun run_smt_solver auto remote ({timeout, ...} : params) minimize_command
+fun run_smt_solver auto remote ({debug, timeout, ...} : params) minimize_command
                    ({state, subgoal, subgoal_count, facts, ...}
                     : prover_problem) =
   let
+    val repair_context =
+      Config.put SMT_Config.verbose debug
+      #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
+    val state = state |> Proof.map_context repair_context
     val ctxt = Proof.context_of state
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop 1 NONE (SOME 0) remote timeout state
