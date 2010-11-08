@@ -31,14 +31,14 @@ In Isabelle this becomes%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharprime}a\ aexp\ {\isacharequal}\ IF\ \ \ {\isachardoublequoteopen}{\isacharprime}a\ bexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Sum\ \ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Diff\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Var\ {\isacharprime}a\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Num\ nat\isanewline
-\isakeyword{and}\ \ \ \ \ \ {\isacharprime}a\ bexp\ {\isacharequal}\ Less\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ \ {\isachardoublequoteopen}{\isacharprime}a\ bexp{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ bexp{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Neg\ \ {\isachardoublequoteopen}{\isacharprime}a\ bexp{\isachardoublequoteclose}%
+\ {\isaliteral{27}{\isacharprime}}a\ aexp\ {\isaliteral{3D}{\isacharequal}}\ IF\ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Sum\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Diff\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Var\ {\isaliteral{27}{\isacharprime}}a\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Num\ nat\isanewline
+\isakeyword{and}\ \ \ \ \ \ {\isaliteral{27}{\isacharprime}}a\ bexp\ {\isaliteral{3D}{\isacharequal}}\ Less\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ And\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Neg\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 Type \isa{aexp} is similar to \isa{expr} in \S\ref{sec:ExprCompiler},
@@ -50,23 +50,23 @@ The semantics is given by two evaluation functions:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{primrec}\isamarkupfalse%
-\ evala\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ evalb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}evala\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\isanewline
-\ \ \ {\isacharparenleft}if\ evalb\ b\ env\ then\ evala\ a{\isadigit{1}}\ env\ else\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}evala\ {\isacharparenleft}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a{\isadigit{1}}\ env\ {\isacharplus}\ evala\ a{\isadigit{2}}\ env{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}evala\ {\isacharparenleft}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a{\isadigit{1}}\ env\ {\isacharminus}\ evala\ a{\isadigit{2}}\ env{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}evala\ {\isacharparenleft}Var\ v{\isacharparenright}\ env\ {\isacharequal}\ env\ v{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}evala\ {\isacharparenleft}Num\ n{\isacharparenright}\ env\ {\isacharequal}\ n{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+\ evala\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ evalb\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bexp\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}evala\ {\isaliteral{28}{\isacharparenleft}}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ {\isaliteral{28}{\isacharparenleft}}if\ evalb\ b\ env\ then\ evala\ a{\isadigit{1}}\ env\ else\ evala\ a{\isadigit{2}}\ env{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}evala\ {\isaliteral{28}{\isacharparenleft}}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ evala\ a{\isadigit{1}}\ env\ {\isaliteral{2B}{\isacharplus}}\ evala\ a{\isadigit{2}}\ env{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}evala\ {\isaliteral{28}{\isacharparenleft}}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ evala\ a{\isadigit{1}}\ env\ {\isaliteral{2D}{\isacharminus}}\ evala\ a{\isadigit{2}}\ env{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}evala\ {\isaliteral{28}{\isacharparenleft}}Var\ v{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ env\ v{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}evala\ {\isaliteral{28}{\isacharparenleft}}Num\ n{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
 \isanewline
-{\isachardoublequoteopen}evalb\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evala\ a{\isadigit{1}}\ env\ {\isacharless}\ evala\ a{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}evalb\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evalb\ b{\isadigit{1}}\ env\ {\isasymand}\ evalb\ b{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}evalb\ {\isacharparenleft}Neg\ b{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ evalb\ b\ env{\isacharparenright}{\isachardoublequoteclose}%
+{\isaliteral{22}{\isachardoublequoteopen}}evalb\ {\isaliteral{28}{\isacharparenleft}}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}evala\ a{\isadigit{1}}\ env\ {\isaliteral{3C}{\isacharless}}\ evala\ a{\isadigit{2}}\ env{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}evalb\ {\isaliteral{28}{\isacharparenleft}}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}evalb\ b{\isadigit{1}}\ env\ {\isaliteral{5C3C616E643E}{\isasymand}}\ evalb\ b{\isadigit{2}}\ env{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}evalb\ {\isaliteral{28}{\isacharparenleft}}Neg\ b{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ evalb\ b\ env{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 
 Both take an expression and an environment (a mapping from variables
-\isa{{\isacharprime}a} to values \isa{nat}) and return its arithmetic/boolean
+\isa{{\isaliteral{27}{\isacharprime}}a} to values \isa{nat}) and return its arithmetic/boolean
 value. Since the datatypes are mutually recursive, so are functions
 that operate on them. Hence they need to be defined in a single
 \isacommand{primrec} section. Notice the \isakeyword{and} separating
@@ -78,24 +78,24 @@ In the same fashion we also define two functions that perform substitution:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{primrec}\isamarkupfalse%
-\ substa\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ \ \ \ \ \ \ \ substb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharprime}b\ bexp{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}substa\ s\ {\isacharparenleft}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ IF\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}substa\ s\ {\isacharparenleft}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Sum\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}substa\ s\ {\isacharparenleft}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Diff\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}substa\ s\ {\isacharparenleft}Var\ v{\isacharparenright}\ {\isacharequal}\ s\ v{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}substa\ s\ {\isacharparenleft}Num\ n{\isacharparenright}\ {\isacharequal}\ Num\ n{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+\ substa\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ aexp{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ aexp\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ substb\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ aexp{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ bexp\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ bexp{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}substa\ s\ {\isaliteral{28}{\isacharparenleft}}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ IF\ {\isaliteral{28}{\isacharparenleft}}substb\ s\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}substa\ s\ {\isaliteral{28}{\isacharparenleft}}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Sum\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}substa\ s\ {\isaliteral{28}{\isacharparenleft}}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Diff\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}substa\ s\ {\isaliteral{28}{\isacharparenleft}}Var\ v{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ s\ v{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}substa\ s\ {\isaliteral{28}{\isacharparenleft}}Num\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Num\ n{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
 \isanewline
-{\isachardoublequoteopen}substb\ s\ {\isacharparenleft}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ Less\ {\isacharparenleft}substa\ s\ a{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}substb\ s\ {\isacharparenleft}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ And\ {\isacharparenleft}substb\ s\ b{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}substb\ s\ b{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}substb\ s\ {\isacharparenleft}Neg\ b{\isacharparenright}\ {\isacharequal}\ Neg\ {\isacharparenleft}substb\ s\ b{\isacharparenright}{\isachardoublequoteclose}%
+{\isaliteral{22}{\isachardoublequoteopen}}substb\ s\ {\isaliteral{28}{\isacharparenleft}}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Less\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}substb\ s\ {\isaliteral{28}{\isacharparenleft}}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ And\ {\isaliteral{28}{\isacharparenleft}}substb\ s\ b{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substb\ s\ b{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}substb\ s\ {\isaliteral{28}{\isacharparenleft}}Neg\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Neg\ {\isaliteral{28}{\isacharparenleft}}substb\ s\ b{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 Their first argument is a function mapping variables to expressions, the
 substitution. It is applied to all variables in the second argument. As a
-result, the type of variables in the expression may change from \isa{{\isacharprime}a}
-to \isa{{\isacharprime}b}. Note that there are only arithmetic and no boolean variables.
+result, the type of variables in the expression may change from \isa{{\isaliteral{27}{\isacharprime}}a}
+to \isa{{\isaliteral{27}{\isacharprime}}b}. Note that there are only arithmetic and no boolean variables.
 
 Now we can prove a fundamental theorem about the interaction between
 evaluation and substitution: applying a substitution $s$ to an expression $a$
@@ -108,8 +108,8 @@ theorems simultaneously:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}evala\ {\isacharparenleft}substa\ s\ a{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ evalb\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ env\ {\isacharequal}\ evalb\ b\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}evala\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ evala\ a\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ evala\ {\isaliteral{28}{\isacharparenleft}}s\ x{\isaliteral{29}{\isacharparenright}}\ env{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\isanewline
+\ \ \ \ \ \ \ \ evalb\ {\isaliteral{28}{\isacharparenleft}}substb\ s\ b{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ evalb\ b\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ evala\ {\isaliteral{28}{\isacharparenleft}}s\ x{\isaliteral{29}{\isacharparenright}}\ env{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -117,13 +117,13 @@ theorems simultaneously:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ a\ \isakeyword{and}\ b{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ a\ \isakeyword{and}\ b{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent The resulting 8 goals (one for each constructor) are proved in one fell swoop:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ simp{\isacharunderscore}all%
+\ simp{\isaliteral{5F}{\isacharunderscore}}all%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -137,11 +137,11 @@ an inductive proof expects a goal of the form
 \[ P@1(x@1)\ \land \dots \land P@n(x@n) \]
 where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \begin{isabelle}
-\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$\isa{{\isacharparenright}}
+\isacommand{apply}\isa{{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac} $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$\isa{{\isaliteral{29}{\isacharparenright}}}
 \end{isabelle}
 
 \begin{exercise}
-  Define a function \isa{norma} of type \isa{{\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharprime}a\ aexp} that
+  Define a function \isa{norma} of type \isa{{\isaliteral{27}{\isacharprime}}a\ aexp\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ aexp} that
   replaces \isa{IF}s with complex boolean conditions by nested
   \isa{IF}s; it should eliminate the constructors
   \isa{And} and \isa{Neg}, leaving only \isa{Less}.
@@ -149,7 +149,7 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
   preserves the value of an expression and that the result of \isa{norma}
   is really normal, i.e.\ no more \isa{And}s and \isa{Neg}s occur in
   it.  ({\em Hint:} proceed as in \S\ref{sec:boolex} and read the discussion
-  of type annotations following lemma \isa{subst{\isacharunderscore}id} below).
+  of type annotations following lemma \isa{subst{\isaliteral{5F}{\isacharunderscore}}id} below).
 \end{exercise}%
 \end{isamarkuptext}%
 \isamarkuptrue%

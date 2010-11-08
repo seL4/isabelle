@@ -25,7 +25,7 @@
 \endisadeliminvisible
 %
 \isataginvisible
-\isacommand{pretty{\isacharunderscore}setmargin}\isamarkupfalse%
+\isacommand{pretty{\isaliteral{5F}{\isacharunderscore}}setmargin}\isamarkupfalse%
 \ {\isadigit{6}}{\isadigit{5}}%
 \endisataginvisible
 {\isafoldinvisible}%
@@ -42,13 +42,13 @@
 Locales are based on contexts.  A \emph{context} can be seen as a
   formula schema
 \[
-  \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}{\isasymdots}x\isactrlsub n{\isachardot}\ {\isasymlbrakk}\ A\isactrlsub {\isadigit{1}}{\isacharsemicolon}\ {\isasymdots}\ {\isacharsemicolon}A\isactrlsub m\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymdots}}
+  \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{5C3C646F74733E}{\isasymdots}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3B}{\isacharsemicolon}}A\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}}
 \]
-  where the variables~\isa{x\isactrlsub {\isadigit{1}}}, \ldots,~\isa{x\isactrlsub n} are called
-  \emph{parameters} and the premises $\isa{A\isactrlsub {\isadigit{1}}}, \ldots,~\isa{A\isactrlsub m}$ \emph{assumptions}.  A formula~\isa{C}
+  where the variables~\isa{x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}, \ldots,~\isa{x\isaliteral{5C3C5E7375623E}{}\isactrlsub n} are called
+  \emph{parameters} and the premises $\isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}, \ldots,~\isa{A\isaliteral{5C3C5E7375623E}{}\isactrlsub m}$ \emph{assumptions}.  A formula~\isa{C}
   is a \emph{theorem} in the context if it is a conclusion
 \[
-  \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}{\isasymdots}x\isactrlsub n{\isachardot}\ {\isasymlbrakk}\ A\isactrlsub {\isadigit{1}}{\isacharsemicolon}\ {\isasymdots}\ {\isacharsemicolon}A\isactrlsub m\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ C}.
+  \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{5C3C646F74733E}{\isasymdots}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ A\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3B}{\isacharsemicolon}}A\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C}.
 \]
   Isabelle/Isar's notion of context goes beyond this logical view.
   Its contexts record, in a consecutive order, proved
@@ -70,25 +70,25 @@ In its simplest form, a
   \emph{locale declaration} consists of a sequence of context elements
   declaring parameters (keyword \isakeyword{fixes}) and assumptions
   (keyword \isakeyword{assumes}).  The following is the specification of
-  partial orders, as locale \isa{partial{\isacharunderscore}order}.%
+  partial orders, as locale \isa{partial{\isaliteral{5F}{\isacharunderscore}}order}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
-\ partial{\isacharunderscore}order\ {\isacharequal}\isanewline
-\ \ \ \ \isakeyword{fixes}\ le\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqsubseteq}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \ \ \isakeyword{assumes}\ refl\ {\isacharbrackleft}intro{\isacharcomma}\ simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isakeyword{and}\ anti{\isacharunderscore}sym\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isasymsqsubseteq}\ y{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isakeyword{and}\ trans\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isasymsqsubseteq}\ y{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}%
+\ partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \isakeyword{fixes}\ le\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isakeyword{assumes}\ refl\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ anti{\isaliteral{5F}{\isacharunderscore}}sym\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{3B}{\isacharsemicolon}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ trans\ {\isaliteral{5B}{\isacharbrackleft}}trans{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{3B}{\isacharsemicolon}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 The parameter of this locale is~\isa{le},
-  which is a binary predicate with infix syntax~\isa{{\isasymsqsubseteq}}.  The
+  which is a binary predicate with infix syntax~\isa{{\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}}.  The
   parameter syntax is available in the subsequent
   assumptions, which are the familiar partial order axioms.
 
   Isabelle recognises unbound names as free variables.  In locale
   assumptions, these are implicitly universally quantified.  That is,
-  \isa{{\isasymlbrakk}x\ {\isasymsqsubseteq}\ y{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymsqsubseteq}\ z} in fact means
-  \isa{{\isasymAnd}x\ y\ z{\isachardot}\ {\isasymlbrakk}x\ {\isasymsqsubseteq}\ y{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymsqsubseteq}\ z}.
+  \isa{{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{3B}{\isacharsemicolon}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z} in fact means
+  \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}x\ y\ z{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{3B}{\isacharsemicolon}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z}.
 
   Two commands are provided to inspect locales:
   \isakeyword{print\_locales} lists the names of all locales of the
@@ -96,7 +96,7 @@ The parameter of this locale is~\isa{le},
   and assumptions of locale $n$; the variation \isakeyword{print\_locale!}~$n$
   additionally outputs the conclusions that are stored in the locale.
   We may inspect the new locale
-  by issuing \isakeyword{print\_locale!} \isa{partial{\isacharunderscore}order}.  The output
+  by issuing \isakeyword{print\_locale!} \isa{partial{\isaliteral{5F}{\isacharunderscore}}order}.  The output
   is the following list of context elements.
 \begin{small}
 \begin{alltt}
@@ -112,15 +112,15 @@ The parameter of this locale is~\isa{le},
 \end{small}
   The keyword \isakeyword{notes} denotes a conclusion element.  There
   is one conclusion, which was added automatically.  Instead, there is
-  only one assumption, namely \isa{partial{\isacharunderscore}order\ op\ {\isasymsqsubseteq}}.  The locale
-  declaration has introduced the predicate \isa{partial{\isacharunderscore}order} to the theory.  This predicate is the
+  only one assumption, namely \isa{partial{\isaliteral{5F}{\isacharunderscore}}order\ op\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}}.  The locale
+  declaration has introduced the predicate \isa{partial{\isaliteral{5F}{\isacharunderscore}}order} to the theory.  This predicate is the
   \emph{locale predicate}.  Its definition may be inspected by
-  issuing \isakeyword{thm} \isa{partial{\isacharunderscore}order{\isacharunderscore}def}.
+  issuing \isakeyword{thm} \isa{partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{5F}{\isacharunderscore}}def}.
   \begin{isabelle}%
-\ \ partial{\isacharunderscore}order\ {\isacharquery}le\ {\isasymequiv}\isanewline
-\isaindent{\ \ }{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}le\ x\ x{\isacharparenright}\ {\isasymand}\isanewline
-\isaindent{\ \ }{\isacharparenleft}{\isasymforall}x\ y{\isachardot}\ {\isacharquery}le\ x\ y\ {\isasymlongrightarrow}\ {\isacharquery}le\ y\ x\ {\isasymlongrightarrow}\ x\ {\isacharequal}\ y{\isacharparenright}\ {\isasymand}\isanewline
-\isaindent{\ \ }{\isacharparenleft}{\isasymforall}x\ y\ z{\isachardot}\ {\isacharquery}le\ x\ y\ {\isasymlongrightarrow}\ {\isacharquery}le\ y\ z\ {\isasymlongrightarrow}\ {\isacharquery}le\ x\ z{\isacharparenright}%
+\ \ partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{3F}{\isacharquery}}le\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\isanewline
+\isaindent{\ \ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}le\ x\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\isanewline
+\isaindent{\ \ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x\ y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}le\ x\ y\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}le\ y\ x\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\isanewline
+\isaindent{\ \ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x\ y\ z{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3F}{\isacharquery}}le\ x\ y\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}le\ y\ z\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}le\ x\ z{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
   In our example, this is a unary predicate over the parameter of the
   locale.  It is equivalent to the original assumptions, which have
@@ -132,9 +132,9 @@ The parameter of this locale is~\isa{le},
   Each conclusion has a \emph{foundational theorem} as counterpart
   in the theory.  Technically, this is simply the theorem composed
   of context and conclusion.  For the transitivity theorem, this is
-  \isa{partial{\isacharunderscore}order{\isachardot}trans}:
+  \isa{partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}trans}:
   \begin{isabelle}%
-\ \ {\isasymlbrakk}partial{\isacharunderscore}order\ {\isacharquery}le{\isacharsemicolon}\ {\isacharquery}le\ {\isacharquery}x\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}le\ {\isacharquery}y\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}le\ {\isacharquery}x\ {\isacharquery}z%
+\ \ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{3F}{\isacharquery}}le{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{3F}{\isacharquery}}le\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{3F}{\isacharquery}}y{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{3F}{\isacharquery}}le\ {\isaliteral{3F}{\isacharquery}}y\ {\isaliteral{3F}{\isacharquery}}z{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}le\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{3F}{\isacharquery}}z%
 \end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -175,27 +175,27 @@ The specification of a locale is fixed, but its list of conclusions
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{definition}\isamarkupfalse%
-\ {\isacharparenleft}\isakeyword{in}\ partial{\isacharunderscore}order{\isacharparenright}\isanewline
-\ \ \ \ less\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqsubset}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \ \ \isakeyword{where}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymsqsubset}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymsqsubseteq}\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{in}\ partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ less\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C616E643E}{\isasymand}}\ x\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 The strict order \isa{less} with infix
-  syntax~\isa{{\isasymsqsubset}} is
+  syntax~\isa{{\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}} is
   defined in terms of the locale parameter~\isa{le} and the general
   equality of the object logic we work in.  The definition generates a
   \emph{foundational constant}
-  \isa{partial{\isacharunderscore}order{\isachardot}less} with definition \isa{partial{\isacharunderscore}order{\isachardot}less{\isacharunderscore}def}:
+  \isa{partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less} with definition \isa{partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less{\isaliteral{5F}{\isacharunderscore}}def}:
   \begin{isabelle}%
-\ \ partial{\isacharunderscore}order\ {\isacharquery}le\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ \ }partial{\isacharunderscore}order{\isachardot}less\ {\isacharquery}le\ {\isacharquery}x\ {\isacharquery}y\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}le\ {\isacharquery}x\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}%
+\ \ partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{3F}{\isacharquery}}le\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\isaindent{\ \ }partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ {\isaliteral{3F}{\isacharquery}}le\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{3F}{\isacharquery}}y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}le\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{3F}{\isacharquery}}y\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{3F}{\isacharquery}}y{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
   At the same time, the locale is extended by syntax transformations
   hiding this construction in the context of the locale.  Here, the
   abbreviation \isa{less} is available for
-  \isa{partial{\isacharunderscore}order{\isachardot}less\ le}, and it is printed
-  and parsed as infix~\isa{{\isasymsqsubset}}.  Finally, the conclusion \isa{less{\isacharunderscore}def} is added to the locale:
+  \isa{partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ le}, and it is printed
+  and parsed as infix~\isa{{\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}}.  Finally, the conclusion \isa{less{\isaliteral{5F}{\isacharunderscore}}def} is added to the locale:
   \begin{isabelle}%
-\ \ {\isacharparenleft}{\isacharquery}x\ {\isasymsqsubset}\ {\isacharquery}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}x\ {\isasymsqsubseteq}\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}%
+\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}\ {\isaliteral{3F}{\isacharquery}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ {\isaliteral{3F}{\isacharquery}}y\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{3F}{\isacharquery}}y{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -207,8 +207,8 @@ The treatment of theorem statements is more straightforward.
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ {\isacharparenleft}\isakeyword{in}\ partial{\isacharunderscore}order{\isacharparenright}\ less{\isacharunderscore}le{\isacharunderscore}trans\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isasymsqsubset}\ y{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymsqsubset}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{in}\ partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{29}{\isacharparenright}}\ less{\isaliteral{5F}{\isacharunderscore}}le{\isaliteral{5F}{\isacharunderscore}}trans\ {\isaliteral{5B}{\isacharbrackleft}}trans{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ x\ {\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}\ y{\isaliteral{3B}{\isacharsemicolon}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimvisible
 \ \ \ \ %
@@ -216,8 +216,8 @@ The treatment of theorem statements is more straightforward.
 %
 \isatagvisible
 \isacommand{unfolding}\isamarkupfalse%
-\ less{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}blast\ intro{\isacharcolon}\ trans{\isacharparenright}%
+\ less{\isaliteral{5F}{\isacharunderscore}}def\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}blast\ intro{\isaliteral{3A}{\isacharcolon}}\ trans{\isaliteral{29}{\isacharparenright}}%
 \endisatagvisible
 {\isafoldvisible}%
 %
@@ -227,7 +227,7 @@ The treatment of theorem statements is more straightforward.
 %
 \begin{isamarkuptext}%
 In the context of the proof, conclusions of the
-  locale may be used like theorems.  Attributes are effective: \isa{anti{\isacharunderscore}sym} was
+  locale may be used like theorems.  Attributes are effective: \isa{anti{\isaliteral{5F}{\isacharunderscore}}sym} was
   declared as introduction rule, hence it is in the context's set of
   rules used by the classical reasoner by default.%
 \end{isamarkuptext}%
@@ -253,17 +253,17 @@ When working with locales, sequences of commands with the same
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{context}\isamarkupfalse%
-\ partial{\isacharunderscore}order\ \isakeyword{begin}\isanewline
+\ partial{\isaliteral{5F}{\isacharunderscore}}order\ \isakeyword{begin}\isanewline
 \isanewline
 \ \ \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ is{\isacharunderscore}inf\ \isakeyword{where}\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ i\ {\isacharequal}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}i\ {\isasymsqsubseteq}\ x\ {\isasymand}\ i\ {\isasymsqsubseteq}\ y\ {\isasymand}\ {\isacharparenleft}{\isasymforall}z{\isachardot}\ z\ {\isasymsqsubseteq}\ x\ {\isasymand}\ z\ {\isasymsqsubseteq}\ y\ {\isasymlongrightarrow}\ z\ {\isasymsqsubseteq}\ i{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ is{\isaliteral{5F}{\isacharunderscore}}inf\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C616E643E}{\isasymand}}\ i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}z{\isaliteral{2E}{\isachardot}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C616E643E}{\isasymand}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \ \ \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ is{\isacharunderscore}sup\ \isakeyword{where}\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ s\ {\isacharequal}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}x\ {\isasymsqsubseteq}\ s\ {\isasymand}\ y\ {\isasymsqsubseteq}\ s\ {\isasymand}\ {\isacharparenleft}{\isasymforall}z{\isachardot}\ x\ {\isasymsqsubseteq}\ z\ {\isasymand}\ y\ {\isasymsqsubseteq}\ z\ {\isasymlongrightarrow}\ s\ {\isasymsqsubseteq}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ is{\isaliteral{5F}{\isacharunderscore}}sup\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s\ {\isaliteral{5C3C616E643E}{\isasymand}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}z{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C616E643E}{\isasymand}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ s\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadeliminvisible
 \isanewline
@@ -272,22 +272,22 @@ When working with locales, sequences of commands with the same
 %
 \isataginvisible
 \isacommand{lemma}\isamarkupfalse%
-\ is{\isacharunderscore}infI\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}i\ {\isasymsqsubseteq}\ x\ {\isasymLongrightarrow}\ i\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}{\isasymAnd}z{\isachardot}\ z\ {\isasymsqsubseteq}\ x\ {\isasymLongrightarrow}\ z\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ z\ {\isasymsqsubseteq}\ i{\isacharparenright}\ {\isasymLongrightarrow}\ is{\isacharunderscore}inf\ x\ y\ i{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}infI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}z{\isaliteral{2E}{\isachardot}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ is{\isacharunderscore}inf{\isacharunderscore}def{\isacharparenright}\ blast\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\ blast\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ is{\isacharunderscore}inf{\isacharunderscore}lower\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ i\ {\isasymLongrightarrow}\ {\isacharparenleft}i\ {\isasymsqsubseteq}\ x\ {\isasymLongrightarrow}\ i\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}lower\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ is{\isacharunderscore}inf{\isacharunderscore}def{\isacharparenright}\ blast\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\ blast\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ is{\isacharunderscore}inf{\isacharunderscore}greatest\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ i\ {\isasymLongrightarrow}\ z\ {\isasymsqsubseteq}\ x\ {\isasymLongrightarrow}\ z\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ z\ {\isasymsqsubseteq}\ i{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}greatest\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ i{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ is{\isacharunderscore}inf{\isacharunderscore}def{\isacharparenright}\ blast%
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\ blast%
 \endisataginvisible
 {\isafoldinvisible}%
 %
@@ -297,7 +297,7 @@ When working with locales, sequences of commands with the same
 \endisadeliminvisible
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ is{\isacharunderscore}inf{\isacharunderscore}uniq{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}is{\isacharunderscore}inf\ x\ y\ i{\isacharsemicolon}\ is{\isacharunderscore}inf\ x\ y\ i{\isacharprime}{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharequal}\ i{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}uniq{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{3B}{\isacharsemicolon}}\ is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ i\ {\isaliteral{3D}{\isacharequal}}\ i{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -305,42 +305,42 @@ When working with locales, sequences of commands with the same
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ inf{\isacharcolon}\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ i{\isachardoublequoteclose}\isanewline
+\ inf{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ inf{\isacharprime}{\isacharcolon}\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ i{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ inf{\isaliteral{27}{\isacharprime}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\isanewline
+\ {\isaliteral{3F}{\isacharquery}}thesis\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ anti{\isacharunderscore}sym{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ anti{\isaliteral{5F}{\isacharunderscore}}sym{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ inf{\isacharprime}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}i\ {\isasymsqsubseteq}\ i{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ inf{\isaliteral{27}{\isacharprime}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ i{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}greatest{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}greatest{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ inf\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}i\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ inf\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}i\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ inf\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}i{\isacharprime}\ {\isasymsqsubseteq}\ i{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}i{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ i{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}greatest{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}greatest{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ inf{\isacharprime}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}i{\isacharprime}\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ inf{\isaliteral{27}{\isacharprime}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}i{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ inf{\isacharprime}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}i{\isacharprime}\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ inf{\isaliteral{27}{\isacharprime}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}i{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -363,25 +363,25 @@ When working with locales, sequences of commands with the same
 %
 \isataginvisible
 \isacommand{theorem}\isamarkupfalse%
-\ is{\isacharunderscore}inf{\isacharunderscore}related\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ is{\isacharunderscore}inf\ x\ y\ x{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}related\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\isanewline
+\ {\isaliteral{3F}{\isacharquery}}thesis\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ z\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -389,22 +389,22 @@ When working with locales, sequences of commands with the same
 \isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ is{\isacharunderscore}supI\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ s\ {\isasymLongrightarrow}\ y\ {\isasymsqsubseteq}\ s\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}{\isasymAnd}z{\isachardot}\ x\ {\isasymsqsubseteq}\ z\ {\isasymLongrightarrow}\ y\ {\isasymsqsubseteq}\ z\ {\isasymLongrightarrow}\ s\ {\isasymsqsubseteq}\ z{\isacharparenright}\ {\isasymLongrightarrow}\ is{\isacharunderscore}sup\ x\ y\ s{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}supI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}z{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ s\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}\ blast\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\ blast\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ is{\isacharunderscore}sup{\isacharunderscore}least\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ s\ {\isasymLongrightarrow}\ x\ {\isasymsqsubseteq}\ z\ {\isasymLongrightarrow}\ y\ {\isasymsqsubseteq}\ z\ {\isasymLongrightarrow}\ s\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}least\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ s\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}\ blast\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\ blast\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ is{\isacharunderscore}sup{\isacharunderscore}upper\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ s\ {\isasymLongrightarrow}\ {\isacharparenleft}x\ {\isasymsqsubseteq}\ s\ {\isasymLongrightarrow}\ y\ {\isasymsqsubseteq}\ s\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}upper\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}\ blast%
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\ blast%
 \endisataginvisible
 {\isafoldinvisible}%
 %
@@ -414,7 +414,7 @@ When working with locales, sequences of commands with the same
 \endisadeliminvisible
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ is{\isacharunderscore}sup{\isacharunderscore}uniq{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}is{\isacharunderscore}sup\ x\ y\ s{\isacharsemicolon}\ is{\isacharunderscore}sup\ x\ y\ s{\isacharprime}{\isasymrbrakk}\ {\isasymLongrightarrow}\ s\ {\isacharequal}\ s{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}uniq{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{3B}{\isacharsemicolon}}\ is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ s\ {\isaliteral{3D}{\isacharequal}}\ s{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -422,42 +422,42 @@ When working with locales, sequences of commands with the same
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ sup{\isacharcolon}\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ s{\isachardoublequoteclose}\isanewline
+\ sup{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ sup{\isacharprime}{\isacharcolon}\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ s{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ sup{\isaliteral{27}{\isacharprime}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\isanewline
+\ {\isaliteral{3F}{\isacharquery}}thesis\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ anti{\isacharunderscore}sym{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ anti{\isaliteral{5F}{\isacharunderscore}}sym{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ sup\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}s\ {\isasymsqsubseteq}\ s{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}s\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}least{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}least{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ sup{\isacharprime}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ s{\isacharprime}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ sup{\isaliteral{27}{\isacharprime}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ sup{\isacharprime}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ s{\isacharprime}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ sup{\isaliteral{27}{\isacharprime}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ sup{\isacharprime}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}s{\isacharprime}\ {\isasymsqsubseteq}\ s{\isachardoublequoteclose}\isanewline
+\ sup{\isaliteral{27}{\isacharprime}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}s{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}least{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}least{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ sup\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ s{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ sup\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ s{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -480,26 +480,26 @@ When working with locales, sequences of commands with the same
 %
 \isataginvisible
 \isacommand{theorem}\isamarkupfalse%
-\ is{\isacharunderscore}sup{\isacharunderscore}related\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ is{\isacharunderscore}sup\ x\ y\ y{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}related\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\isanewline
+\ {\isaliteral{3F}{\isacharquery}}thesis\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ z\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -545,22 +545,22 @@ With locales, this kind of inheritance is achieved through
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
-\ lattice\ {\isacharequal}\ partial{\isacharunderscore}order\ {\isacharplus}\isanewline
-\ \ \ \ \isakeyword{assumes}\ ex{\isacharunderscore}inf{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}inf{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ inf{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isakeyword{and}\ ex{\isacharunderscore}sup{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}sup{\isachardot}\ is{\isacharunderscore}sup\ x\ y\ sup{\isachardoublequoteclose}\isanewline
+\ lattice\ {\isaliteral{3D}{\isacharequal}}\ partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{2B}{\isacharplus}}\isanewline
+\ \ \ \ \isakeyword{assumes}\ ex{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}inf{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ inf{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ ex{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}sup{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ sup{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isakeyword{begin}%
 \begin{isamarkuptext}%
 These assumptions refer to the predicates for infimum
-  and supremum defined for \isa{partial{\isacharunderscore}order} in the previous
+  and supremum defined for \isa{partial{\isaliteral{5F}{\isacharunderscore}}order} in the previous
   section.  We now introduce the notions of meet and join.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ meet\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqinter}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isacharequal}\ {\isacharparenleft}THE\ inf{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ inf{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ meet\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{7}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}THE\ inf{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ inf{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ join\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqunion}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ y\ {\isacharequal}\ {\isacharparenleft}THE\ sup{\isachardot}\ is{\isacharunderscore}sup\ x\ y\ sup{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ join\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{6}}{\isadigit{5}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}THE\ sup{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ sup{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadeliminvisible
 \isanewline
@@ -569,207 +569,207 @@ These assumptions refer to the predicates for infimum
 %
 \isataginvisible
 \isacommand{lemma}\isamarkupfalse%
-\ meet{\isacharunderscore}equality\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ i\ {\isasymLongrightarrow}\ x\ {\isasymsqinter}\ y\ {\isacharequal}\ i{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}equality\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{3D}{\isacharequal}}\ i{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ meet{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ meet{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ i{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}THE\ i{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ i{\isacharparenright}\ {\isacharequal}\ i{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}THE\ i{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ i{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ the{\isacharunderscore}equality{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}uniq\ {\isacharbrackleft}OF\ {\isacharunderscore}\ {\isacharbackquoteopen}is{\isacharunderscore}inf\ x\ y\ i{\isacharbackquoteclose}{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ the{\isaliteral{5F}{\isacharunderscore}}equality{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}uniq\ {\isaliteral{5B}{\isacharbrackleft}}OF\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{60}{\isacharbackquoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{60}{\isacharbackquoteclose}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ meetI\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}i\ {\isasymsqsubseteq}\ x\ {\isasymLongrightarrow}\ i\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}z{\isachardot}\ z\ {\isasymsqsubseteq}\ x\ {\isasymLongrightarrow}\ z\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ z\ {\isasymsqsubseteq}\ i{\isacharparenright}\ {\isasymLongrightarrow}\ x\ {\isasymsqinter}\ y\ {\isacharequal}\ i{\isachardoublequoteclose}\isanewline
+\ meetI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ i\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}z{\isaliteral{2E}{\isachardot}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{3D}{\isacharequal}}\ i{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ meet{\isacharunderscore}equality{\isacharcomma}\ rule\ is{\isacharunderscore}infI{\isacharparenright}\ blast{\isacharplus}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ meet{\isaliteral{5F}{\isacharunderscore}}equality{\isaliteral{2C}{\isacharcomma}}\ rule\ is{\isaliteral{5F}{\isacharunderscore}}infI{\isaliteral{29}{\isacharparenright}}\ blast{\isaliteral{2B}{\isacharplus}}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ is{\isacharunderscore}inf{\isacharunderscore}meet\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ {\isacharparenleft}x\ {\isasymsqinter}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}meet\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ meet{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ meet{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ ex{\isacharunderscore}inf\ \isacommand{obtain}\isamarkupfalse%
-\ i\ \isakeyword{where}\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ i{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ ex{\isaliteral{5F}{\isacharunderscore}}inf\ \isacommand{obtain}\isamarkupfalse%
+\ i\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ {\isacharparenleft}THE\ i{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ i{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ {\isaliteral{28}{\isacharparenleft}}THE\ i{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ theI{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}uniq\ {\isacharbrackleft}OF\ {\isacharunderscore}\ {\isacharbackquoteopen}is{\isacharunderscore}inf\ x\ y\ i{\isacharbackquoteclose}{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ theI{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}uniq\ {\isaliteral{5B}{\isacharbrackleft}}OF\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{60}{\isacharbackquoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ i{\isaliteral{60}{\isacharbackquoteclose}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ meet{\isacharunderscore}left\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}left\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}lower{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}meet{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}lower{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}meet{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ meet{\isacharunderscore}right\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}right\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}lower{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}meet{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}lower{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}meet{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ meet{\isacharunderscore}le\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}\ z\ {\isasymsqsubseteq}\ x{\isacharsemicolon}\ z\ {\isasymsqsubseteq}\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ z\ {\isasymsqsubseteq}\ x\ {\isasymsqinter}\ y{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}le\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{3B}{\isacharsemicolon}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}greatest{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}inf{\isacharunderscore}meet{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}greatest{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}meet{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ join{\isacharunderscore}equality\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ s\ {\isasymLongrightarrow}\ x\ {\isasymsqunion}\ y\ {\isacharequal}\ s{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}equality\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ s{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ join{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ join{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ s{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}THE\ s{\isachardot}\ is{\isacharunderscore}sup\ x\ y\ s{\isacharparenright}\ {\isacharequal}\ s{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}THE\ s{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ s{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ the{\isacharunderscore}equality{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}uniq\ {\isacharbrackleft}OF\ {\isacharunderscore}\ {\isacharbackquoteopen}is{\isacharunderscore}sup\ x\ y\ s{\isacharbackquoteclose}{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ the{\isaliteral{5F}{\isacharunderscore}}equality{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}uniq\ {\isaliteral{5B}{\isacharbrackleft}}OF\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{60}{\isacharbackquoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{60}{\isacharbackquoteclose}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ joinI\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ s\ {\isasymLongrightarrow}\ y\ {\isasymsqsubseteq}\ s\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}{\isasymAnd}z{\isachardot}\ x\ {\isasymsqsubseteq}\ z\ {\isasymLongrightarrow}\ y\ {\isasymsqsubseteq}\ z\ {\isasymLongrightarrow}\ s\ {\isasymsqsubseteq}\ z{\isacharparenright}\ {\isasymLongrightarrow}\ x\ {\isasymsqunion}\ y\ {\isacharequal}\ s{\isachardoublequoteclose}\isanewline
+\ joinI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ s\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}z{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ s\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ s{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ join{\isacharunderscore}equality{\isacharcomma}\ rule\ is{\isacharunderscore}supI{\isacharparenright}\ blast{\isacharplus}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ join{\isaliteral{5F}{\isacharunderscore}}equality{\isaliteral{2C}{\isacharcomma}}\ rule\ is{\isaliteral{5F}{\isacharunderscore}}supI{\isaliteral{29}{\isacharparenright}}\ blast{\isaliteral{2B}{\isacharplus}}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ is{\isacharunderscore}sup{\isacharunderscore}join\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ {\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}join\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ join{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ join{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{from}\isamarkupfalse%
-\ ex{\isacharunderscore}sup\ \isacommand{obtain}\isamarkupfalse%
-\ s\ \isakeyword{where}\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ s{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ ex{\isaliteral{5F}{\isacharunderscore}}sup\ \isacommand{obtain}\isamarkupfalse%
+\ s\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ {\isacharparenleft}THE\ s{\isachardot}\ is{\isacharunderscore}sup\ x\ y\ s{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ {\isaliteral{28}{\isacharparenleft}}THE\ s{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ theI{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}uniq\ {\isacharbrackleft}OF\ {\isacharunderscore}\ {\isacharbackquoteopen}is{\isacharunderscore}sup\ x\ y\ s{\isacharbackquoteclose}{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ theI{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}uniq\ {\isaliteral{5B}{\isacharbrackleft}}OF\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{60}{\isacharbackquoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ s{\isaliteral{60}{\isacharbackquoteclose}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ join{\isacharunderscore}left\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ y{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}left\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}upper{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}join{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}upper{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}join{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ join{\isacharunderscore}right\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ y{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}right\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}upper{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}join{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}upper{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}join{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ join{\isacharunderscore}le\ {\isacharbrackleft}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isasymsqsubseteq}\ z{\isacharsemicolon}\ y\ {\isasymsqsubseteq}\ z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymsqunion}\ y\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}le\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{3B}{\isacharsemicolon}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}least{\isacharparenright}\ {\isacharparenleft}rule\ is{\isacharunderscore}sup{\isacharunderscore}join{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}least{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}rule\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}join{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ meet{\isacharunderscore}assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymsqinter}\ y{\isacharparenright}\ {\isasymsqinter}\ z\ {\isacharequal}\ x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}assoc{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ meetI{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ meetI{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}\ {\isasymsqsubseteq}\ x\ {\isasymsqinter}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}\ {\isasymsqsubseteq}\ y\ {\isasymsqinter}\ z{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}\ {\isasymsqsubseteq}\ y\ {\isasymsqinter}\ z{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ w\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}w\ {\isasymsqsubseteq}\ x\ {\isasymsqinter}\ y{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}w\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}w\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}w\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}w\ {\isasymsqsubseteq}\ x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}w\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}w\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}w\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}w\ {\isasymsqsubseteq}\ x\ {\isasymsqinter}\ y{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}w\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}w\ {\isasymsqsubseteq}\ y\ {\isasymsqinter}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}w\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}w\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}w\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}w\ {\isasymsqsubseteq}\ x\ {\isasymsqinter}\ y{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}w\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}w\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}w\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -779,138 +779,138 @@ These assumptions refer to the predicates for infimum
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ meet{\isacharunderscore}commute{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isacharequal}\ y\ {\isasymsqinter}\ x{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}commute{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ meetI{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ meetI{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqinter}\ x\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqinter}\ x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ z\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ y\ {\isasymsqinter}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ meet{\isacharunderscore}join{\isacharunderscore}absorb{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}join{\isaliteral{5F}{\isacharunderscore}}absorb{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ meetI{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ meetI{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ z\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ join{\isacharunderscore}assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}\ {\isasymsqunion}\ z\ {\isacharequal}\ x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}assoc{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ joinI{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ joinI{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ y\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ y\ {\isasymsqunion}\ z{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ y\ {\isasymsqunion}\ z{\isachardoublequoteclose}\ \ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ w\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ y\ {\isasymsqsubseteq}\ w{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ w{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ w{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ w{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}\ {\isasymsqsubseteq}\ w{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ w{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ w{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ w{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isasymsqsubseteq}\ w{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ w{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqunion}\ z\ {\isasymsqsubseteq}\ w{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ w{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ w{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ w{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isasymsqsubseteq}\ w{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ w{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ w{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ w{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -920,194 +920,194 @@ These assumptions refer to the predicates for infimum
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ join{\isacharunderscore}commute{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ y\ {\isacharequal}\ y\ {\isasymsqunion}\ x{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}commute{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ joinI{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ joinI{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y\ {\isasymsqunion}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ y\ {\isasymsqunion}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ z\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqunion}\ x\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ join{\isacharunderscore}meet{\isacharunderscore}absorb{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ {\isacharparenleft}x\ {\isasymsqinter}\ y{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}meet{\isaliteral{5F}{\isacharunderscore}}absorb{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ joinI{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ joinI{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ z\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ meet{\isacharunderscore}idem{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}idem{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}x\ {\isasymsqunion}\ {\isacharparenleft}x\ {\isasymsqinter}\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ meet{\isacharunderscore}join{\isacharunderscore}absorb{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ meet{\isaliteral{5F}{\isacharunderscore}}join{\isaliteral{5F}{\isacharunderscore}}absorb{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ {\isacharparenleft}x\ {\isasymsqinter}\ x{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ join{\isacharunderscore}meet{\isacharunderscore}absorb{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ join{\isaliteral{5F}{\isacharunderscore}}meet{\isaliteral{5F}{\isacharunderscore}}absorb{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ meet{\isacharunderscore}related\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ x\ {\isasymsqinter}\ y\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}related\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ meetI{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ meetI{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ z\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ meet{\isacharunderscore}related{\isadigit{2}}\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ x\ {\isasymLongrightarrow}\ x\ {\isasymsqinter}\ y\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}related{\isadigit{2}}\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}drule\ meet{\isacharunderscore}related{\isacharparenright}\ {\isacharparenleft}simp\ add{\isacharcolon}\ meet{\isacharunderscore}commute{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}drule\ meet{\isaliteral{5F}{\isacharunderscore}}related{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ meet{\isaliteral{5F}{\isacharunderscore}}commute{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ join{\isacharunderscore}related\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ x\ {\isasymsqunion}\ y\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}related\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ joinI{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ joinI{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ z\ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ fact\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ join{\isacharunderscore}related{\isadigit{2}}\ {\isacharbrackleft}elim{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ x\ {\isasymLongrightarrow}\ x\ {\isasymsqunion}\ y\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}related{\isadigit{2}}\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}drule\ join{\isacharunderscore}related{\isacharparenright}\ {\isacharparenleft}simp\ add{\isacharcolon}\ join{\isacharunderscore}commute{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}drule\ join{\isaliteral{5F}{\isacharunderscore}}related{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ join{\isaliteral{5F}{\isacharunderscore}}commute{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ meet{\isacharunderscore}connection{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymsqsubseteq}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymsqinter}\ y\ {\isacharequal}\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}connection{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ y\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ join{\isacharunderscore}connection{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymsqsubseteq}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymsqunion}\ y\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}connection{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ y\ {\isacharequal}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ x\ {\isasymsqunion}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ y\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ meet{\isacharunderscore}connection{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymsqsubseteq}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y\ {\isasymsqinter}\ x\ {\isacharequal}\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ meet{\isaliteral{5F}{\isacharunderscore}}connection{\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{using}\isamarkupfalse%
-\ meet{\isacharunderscore}commute\ meet{\isacharunderscore}connection\ \isacommand{by}\isamarkupfalse%
+\ meet{\isaliteral{5F}{\isacharunderscore}}commute\ meet{\isaliteral{5F}{\isacharunderscore}}connection\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isanewline
 \ \ \isacommand{theorem}\isamarkupfalse%
-\ join{\isacharunderscore}connection{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymsqsubseteq}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymsqunion}\ y\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ join{\isaliteral{5F}{\isacharunderscore}}connection{\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{using}\isamarkupfalse%
-\ join{\isacharunderscore}commute\ join{\isacharunderscore}connection\ \isacommand{by}\isamarkupfalse%
+\ join{\isaliteral{5F}{\isacharunderscore}}commute\ join{\isaliteral{5F}{\isacharunderscore}}connection\ \isacommand{by}\isamarkupfalse%
 \ simp%
 \begin{isamarkuptext}%
 Naming according to Jacobson I, p.\ 459.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{lemmas}\isamarkupfalse%
-\ L{\isadigit{1}}\ {\isacharequal}\ join{\isacharunderscore}commute\ meet{\isacharunderscore}commute\isanewline
+\ L{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ join{\isaliteral{5F}{\isacharunderscore}}commute\ meet{\isaliteral{5F}{\isacharunderscore}}commute\isanewline
 \ \ \isacommand{lemmas}\isamarkupfalse%
-\ L{\isadigit{2}}\ {\isacharequal}\ join{\isacharunderscore}assoc\ meet{\isacharunderscore}assoc\isanewline
+\ L{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ join{\isaliteral{5F}{\isacharunderscore}}assoc\ meet{\isaliteral{5F}{\isacharunderscore}}assoc\isanewline
 \ \ \isanewline
 \ \ \isacommand{lemmas}\isamarkupfalse%
-\ L{\isadigit{4}}\ {\isacharequal}\ join{\isacharunderscore}meet{\isacharunderscore}absorb\ meet{\isacharunderscore}join{\isacharunderscore}absorb%
+\ L{\isadigit{4}}\ {\isaliteral{3D}{\isacharequal}}\ join{\isaliteral{5F}{\isacharunderscore}}meet{\isaliteral{5F}{\isacharunderscore}}absorb\ meet{\isaliteral{5F}{\isacharunderscore}}join{\isaliteral{5F}{\isacharunderscore}}absorb%
 \endisataginvisible
 {\isafoldinvisible}%
 %
@@ -1126,11 +1126,11 @@ Locales for total orders and distributive lattices follow to
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
-\ total{\isacharunderscore}order\ {\isacharequal}\ partial{\isacharunderscore}order\ {\isacharplus}\isanewline
-\ \ \ \ \isakeyword{assumes}\ total{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y\ {\isasymor}\ y\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\isanewline
+\ total{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{3D}{\isacharequal}}\ partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{2B}{\isacharplus}}\isanewline
+\ \ \ \ \isakeyword{assumes}\ total{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C6F723E}{\isasymor}}\ y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ {\isacharparenleft}\isakeyword{in}\ total{\isacharunderscore}order{\isacharparenright}\ less{\isacharunderscore}total{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubset}\ y\ {\isasymor}\ x\ {\isacharequal}\ y\ {\isasymor}\ y\ {\isasymsqsubset}\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{in}\ total{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{29}{\isacharparenright}}\ less{\isaliteral{5F}{\isacharunderscore}}total{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}\ y\ {\isaliteral{5C3C6F723E}{\isasymor}}\ x\ {\isaliteral{3D}{\isacharequal}}\ y\ {\isaliteral{5C3C6F723E}{\isasymor}}\ y\ {\isaliteral{5C3C73717375627365743E}{\isasymsqsubset}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -1140,7 +1140,7 @@ Locales for total orders and distributive lattices follow to
 \isacommand{using}\isamarkupfalse%
 \ total\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}unfold\ less{\isacharunderscore}def{\isacharparenright}\ blast%
+\ {\isaliteral{28}{\isacharparenleft}}unfold\ less{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\ blast%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1150,12 +1150,12 @@ Locales for total orders and distributive lattices follow to
 \endisadelimproof
 \isanewline
 \ \ \isacommand{locale}\isamarkupfalse%
-\ distrib{\isacharunderscore}lattice\ {\isacharequal}\ lattice\ {\isacharplus}\isanewline
-\ \ \ \ \isakeyword{assumes}\ meet{\isacharunderscore}distr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}\ {\isacharequal}\ x\ {\isasymsqinter}\ y\ {\isasymsqunion}\ x\ {\isasymsqinter}\ z{\isachardoublequoteclose}\isanewline
+\ distrib{\isaliteral{5F}{\isacharunderscore}}lattice\ {\isaliteral{3D}{\isacharequal}}\ lattice\ {\isaliteral{2B}{\isacharplus}}\isanewline
+\ \ \ \ \isakeyword{assumes}\ meet{\isaliteral{5F}{\isacharunderscore}}distr{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
-\ {\isacharparenleft}\isakeyword{in}\ distrib{\isacharunderscore}lattice{\isacharparenright}\ join{\isacharunderscore}distr{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}\ {\isasymsqinter}\ {\isacharparenleft}x\ {\isasymsqunion}\ z{\isacharparenright}{\isachardoublequoteclose}\ \ \isanewline
+\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{in}\ distrib{\isaliteral{5F}{\isacharunderscore}}lattice{\isaliteral{29}{\isacharparenright}}\ join{\isaliteral{5F}{\isacharunderscore}}distr{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \ \isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -1163,29 +1163,29 @@ Locales for total orders and distributive lattices follow to
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymsqunion}\ {\isacharparenleft}x\ {\isasymsqinter}\ z{\isacharparenright}{\isacharparenright}\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ L{\isadigit{4}}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ L{\isadigit{4}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ x\ {\isasymsqunion}\ {\isacharparenleft}{\isacharparenleft}x\ {\isasymsqinter}\ z{\isacharparenright}\ {\isasymsqunion}\ {\isacharparenleft}y\ {\isasymsqinter}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ L{\isadigit{2}}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ L{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ x\ {\isasymsqunion}\ {\isacharparenleft}{\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}\ {\isasymsqinter}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ L{\isadigit{1}}\ meet{\isacharunderscore}distr{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ L{\isadigit{1}}\ meet{\isaliteral{5F}{\isacharunderscore}}distr{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}\ {\isasymsqinter}\ x{\isacharparenright}\ {\isasymsqunion}\ {\isacharparenleft}{\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}\ {\isasymsqinter}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ L{\isadigit{1}}\ L{\isadigit{4}}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ L{\isadigit{1}}\ L{\isadigit{4}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}\ {\isasymsqinter}\ {\isacharparenleft}x\ {\isasymsqunion}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ meet{\isacharunderscore}distr{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ meet{\isaliteral{5F}{\isacharunderscore}}distr{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 %
@@ -1205,10 +1205,10 @@ The locale hierarchy obtained through these declarations is shown in
 \begin{center}
 \subfigure[Declared hierarchy]{
 \begin{tikzpicture}
-  \node (po) at (0,0) {\isa{partial{\isacharunderscore}order}};
+  \node (po) at (0,0) {\isa{partial{\isaliteral{5F}{\isacharunderscore}}order}};
   \node (lat) at (-1.5,-1) {\isa{lattice}};
-  \node (dlat) at (-1.5,-2) {\isa{distrib{\isacharunderscore}lattice}};
-  \node (to) at (1.5,-1) {\isa{total{\isacharunderscore}order}};
+  \node (dlat) at (-1.5,-2) {\isa{distrib{\isaliteral{5F}{\isacharunderscore}}lattice}};
+  \node (to) at (1.5,-1) {\isa{total{\isaliteral{5F}{\isacharunderscore}}order}};
   \draw (po) -- (lat);
   \draw (lat) -- (dlat);
   \draw (po) -- (to);
@@ -1217,10 +1217,10 @@ The locale hierarchy obtained through these declarations is shown in
 } \\
 \subfigure[Total orders are lattices]{
 \begin{tikzpicture}
-  \node (po) at (0,0) {\isa{partial{\isacharunderscore}order}};
+  \node (po) at (0,0) {\isa{partial{\isaliteral{5F}{\isacharunderscore}}order}};
   \node (lat) at (0,-1) {\isa{lattice}};
-  \node (dlat) at (-1.5,-2) {\isa{distrib{\isacharunderscore}lattice}};
-  \node (to) at (1.5,-2) {\isa{total{\isacharunderscore}order}};
+  \node (dlat) at (-1.5,-2) {\isa{distrib{\isaliteral{5F}{\isacharunderscore}}lattice}};
+  \node (to) at (1.5,-2) {\isa{total{\isaliteral{5F}{\isacharunderscore}}order}};
   \draw (po) -- (lat);
   \draw (lat) -- (dlat);
   \draw (lat) -- (to);
@@ -1229,10 +1229,10 @@ The locale hierarchy obtained through these declarations is shown in
 } \quad
 \subfigure[Total orders are distributive lattices]{
 \begin{tikzpicture}
-  \node (po) at (0,0) {\isa{partial{\isacharunderscore}order}};
+  \node (po) at (0,0) {\isa{partial{\isaliteral{5F}{\isacharunderscore}}order}};
   \node (lat) at (0,-1) {\isa{lattice}};
-  \node (dlat) at (0,-2) {\isa{distrib{\isacharunderscore}lattice}};
-  \node (to) at (0,-3) {\isa{total{\isacharunderscore}order}};
+  \node (dlat) at (0,-2) {\isa{distrib{\isaliteral{5F}{\isacharunderscore}}lattice}};
+  \node (to) at (0,-3) {\isa{total{\isaliteral{5F}{\isacharunderscore}}order}};
   \draw (po) -- (lat);
   \draw (lat) -- (dlat);
   \draw (dlat) -- (to);
@@ -1269,7 +1269,7 @@ Locales enable to prove theorems abstractly, relative to
   Consider the locale hierarchy from Figure~\ref{fig:lattices}(a).
   Total orders are lattices, although this is not reflected here, and
   definitions, theorems and other conclusions
-  from \isa{lattice} are not available in \isa{total{\isacharunderscore}order}.  To
+  from \isa{lattice} are not available in \isa{total{\isaliteral{5F}{\isacharunderscore}}order}.  To
   obtain the situation in Figure~\ref{fig:lattices}(b), it is
   sufficient to add the conclusions of the latter locale to the former.
   The \isakeyword{sublocale} command does exactly this.
@@ -1292,41 +1292,41 @@ Locales enable to prove theorems abstractly, relative to
 %
 \isatagvisible
 \isacommand{sublocale}\isamarkupfalse%
-\ total{\isacharunderscore}order\ {\isasymsubseteq}\ lattice%
+\ total{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ lattice%
 \begin{isamarkuptxt}%
 \normalsize
-  This enters the context of locale \isa{total{\isacharunderscore}order}, in
+  This enters the context of locale \isa{total{\isaliteral{5F}{\isacharunderscore}}order}, in
   which the goal \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ lattice\ op\ {\isasymsqsubseteq}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ lattice\ op\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}%
 \end{isabelle} must be shown.
   Now the
   locale predicate needs to be unfolded --- for example, using its
   definition or by introduction rules
   provided by the locale package.  For automation, the locale package
-  provides the methods \isa{intro{\isacharunderscore}locales} and \isa{unfold{\isacharunderscore}locales}.  They are aware of the
+  provides the methods \isa{intro{\isaliteral{5F}{\isacharunderscore}}locales} and \isa{unfold{\isaliteral{5F}{\isacharunderscore}}locales}.  They are aware of the
   current context and dependencies between locales and automatically
-  discharge goals implied by these.  While \isa{unfold{\isacharunderscore}locales}
-  always unfolds locale predicates to assumptions, \isa{intro{\isacharunderscore}locales} only unfolds definitions along the locale
+  discharge goals implied by these.  While \isa{unfold{\isaliteral{5F}{\isacharunderscore}}locales}
+  always unfolds locale predicates to assumptions, \isa{intro{\isaliteral{5F}{\isacharunderscore}}locales} only unfolds definitions along the locale
   hierarchy, leaving a goal consisting of predicates defined by the
   locale package.  Occasionally the latter is of advantage since the goal
   is smaller.
 
   For the current goal, we would like to get hold of
   the assumptions of \isa{lattice}, which need to be shown, hence
-  \isa{unfold{\isacharunderscore}locales} is appropriate.%
+  \isa{unfold{\isaliteral{5F}{\isacharunderscore}}locales} is appropriate.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \isacommand{proof}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales%
+\ unfold{\isaliteral{5F}{\isacharunderscore}}locales%
 \begin{isamarkuptxt}%
 \normalsize
   Since the fact that both lattices and total orders are partial
   orders is already reflected in the locale hierarchy, the assumptions
-  of \isa{partial{\isacharunderscore}order} are discharged automatically, and only the
+  of \isa{partial{\isaliteral{5F}{\isacharunderscore}}order} are discharged automatically, and only the
   assumptions introduced in \isa{lattice} remain as subgoals
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ y{\isachardot}\ {\isasymexists}inf{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ inf\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}x\ y{\isachardot}\ {\isasymexists}sup{\isachardot}\ is{\isacharunderscore}sup\ x\ y\ sup%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}inf{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ inf\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}sup{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ sup%
 \end{isabelle}
   The proof for the first subgoal is obtained by constructing an
   infimum, whose existence is implied by totality.%
@@ -1336,12 +1336,12 @@ Locales enable to prove theorems abstractly, relative to
 \ x\ y\isanewline
 \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ total\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}is{\isacharunderscore}inf\ x\ y\ {\isacharparenleft}if\ x\ {\isasymsqsubseteq}\ y\ then\ x\ else\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ {\isaliteral{28}{\isacharparenleft}}if\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ then\ x\ else\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}auto\ simp{\isacharcolon}\ is{\isacharunderscore}inf{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymexists}inf{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ inf{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}inf{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}inf\ x\ y\ inf{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \normalsize
@@ -1368,12 +1368,12 @@ Locales enable to prove theorems abstractly, relative to
 \ x\ y\isanewline
 \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ total\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}is{\isacharunderscore}sup\ x\ y\ {\isacharparenleft}if\ x\ {\isasymsqsubseteq}\ y\ then\ y\ else\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ {\isaliteral{28}{\isacharparenleft}}if\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ then\ y\ else\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}auto\ simp{\isacharcolon}\ is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymexists}sup{\isachardot}\ is{\isacharunderscore}sup\ x\ y\ sup{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}sup{\isaliteral{2E}{\isachardot}}\ is{\isaliteral{5F}{\isacharunderscore}}sup\ x\ y\ sup{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \endisataginvisible
 {\isafoldinvisible}%
@@ -1402,7 +1402,7 @@ Similarly, we may establish that total orders are distributive
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{sublocale}\isamarkupfalse%
-\ total{\isacharunderscore}order\ {\isasymsubseteq}\ distrib{\isacharunderscore}lattice\isanewline
+\ total{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ distrib{\isaliteral{5F}{\isacharunderscore}}lattice\isanewline
 %
 \isadelimproof
 \ \ \ \ %
@@ -1410,62 +1410,62 @@ Similarly, we may establish that total orders are distributive
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales\isanewline
+\ unfold{\isaliteral{5F}{\isacharunderscore}}locales\isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ x\ y\ z\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}\ {\isacharequal}\ x\ {\isasymsqinter}\ y\ {\isasymsqunion}\ x\ {\isasymsqinter}\ z{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequoteopen}{\isacharquery}l\ {\isacharequal}\ {\isacharquery}r{\isachardoublequoteclose}{\isacharparenright}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ x\ {\isaliteral{5C3C7371696E7465723E}{\isasymsqinter}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{is}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}l\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}r{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 Jacobson I, p.\ 462%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
-\ \ \ \ \ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
+\ \ \ \ \ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
 \ \isacommand{assume}\isamarkupfalse%
-\ c{\isacharcolon}\ {\isachardoublequoteopen}y\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\ {\isachardoublequoteopen}z\ {\isasymsqsubseteq}\ x{\isachardoublequoteclose}\isanewline
+\ c{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}z\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ c\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharquery}l\ {\isacharequal}\ y\ {\isasymsqunion}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}l\ {\isaliteral{3D}{\isacharequal}}\ y\ {\isaliteral{5C3C7371756E696F6E3E}{\isasymsqunion}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}metis\ c\ join{\isacharunderscore}connection{\isadigit{2}}\ join{\isacharunderscore}related{\isadigit{2}}\ meet{\isacharunderscore}related{\isadigit{2}}\ total{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}metis\ c\ join{\isaliteral{5F}{\isacharunderscore}}connection{\isadigit{2}}\ join{\isaliteral{5F}{\isacharunderscore}}related{\isadigit{2}}\ meet{\isaliteral{5F}{\isacharunderscore}}related{\isadigit{2}}\ total{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{from}\isamarkupfalse%
 \ c\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharquery}r{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}metis\ meet{\isacharunderscore}related{\isadigit{2}}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}r{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}metis\ meet{\isaliteral{5F}{\isacharunderscore}}related{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharquery}l\ {\isacharequal}\ {\isacharquery}r{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
-\ \isacommand{{\isacharbraceright}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}l\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}r{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
+\ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{moreover}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\ \ \ \ \ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
 \ \isacommand{assume}\isamarkupfalse%
-\ c{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y\ {\isasymor}\ x\ {\isasymsqsubseteq}\ z{\isachardoublequoteclose}\isanewline
+\ c{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ y\ {\isaliteral{5C3C6F723E}{\isasymor}}\ x\ {\isaliteral{5C3C737173756273657465713E}{\isasymsqsubseteq}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
 \ c\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharquery}l\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}l\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}metis\ join{\isacharunderscore}connection{\isadigit{2}}\ join{\isacharunderscore}related{\isadigit{2}}\ meet{\isacharunderscore}connection\ total\ trans{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}metis\ join{\isaliteral{5F}{\isacharunderscore}}connection{\isadigit{2}}\ join{\isaliteral{5F}{\isacharunderscore}}related{\isadigit{2}}\ meet{\isaliteral{5F}{\isacharunderscore}}connection\ total\ trans{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{from}\isamarkupfalse%
 \ c\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharquery}r{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}r{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}metis\ join{\isacharunderscore}commute\ join{\isacharunderscore}related{\isadigit{2}}\ meet{\isacharunderscore}connection\ meet{\isacharunderscore}related{\isadigit{2}}\ total{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}metis\ join{\isaliteral{5F}{\isacharunderscore}}commute\ join{\isaliteral{5F}{\isacharunderscore}}related{\isadigit{2}}\ meet{\isaliteral{5F}{\isacharunderscore}}connection\ meet{\isaliteral{5F}{\isacharunderscore}}related{\isadigit{2}}\ total{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharquery}l\ {\isacharequal}\ {\isacharquery}r{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
-\ \isacommand{{\isacharbraceright}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}l\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}r{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
+\ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{moreover}\isamarkupfalse%
 \ \isacommand{note}\isamarkupfalse%
 \ total\isanewline
 \ \ \ \ \ \ \isacommand{ultimately}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{by}\isamarkupfalse%
 \ blast\isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline

@@ -99,6 +99,10 @@ sig
   val command_spanN: string val command_span: string -> T
   val ignored_spanN: string val ignored_span: T
   val malformed_spanN: string val malformed_span: T
+  val elapsedN: string
+  val cpuN: string
+  val gcN: string
+  val timingN: string val timing: timing -> T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
   val stateN: string val state: T
@@ -303,6 +307,20 @@ fun token props = (tokenN, props);
 val (command_spanN, command_span) = markup_string "command_span" nameN;
 val (ignored_spanN, ignored_span) = markup_elem "ignored_span";
 val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
+
+
+(* timing *)
+
+val timingN = "timing";
+val elapsedN = "elapsed";
+val cpuN = "cpu";
+val gcN = "gc";
+
+fun timing ({elapsed, cpu, gc, ...}: timing) =
+  (timingN,
+   [(elapsedN, Time.toString elapsed),
+    (cpuN, Time.toString cpu),
+    (gcN, Time.toString gc)]);
 
 
 (* toplevel *)

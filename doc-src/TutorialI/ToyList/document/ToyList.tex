@@ -29,8 +29,8 @@ ambiguities caused by defining lists twice.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharprime}a\ list\ {\isacharequal}\ Nil\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Cons\ {\isacharprime}a\ {\isachardoublequoteopen}{\isacharprime}a\ list{\isachardoublequoteclose}\ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isacharhash}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}%
+\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{3D}{\isacharequal}}\ Nil\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Cons\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixr}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{23}{\isacharhash}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{6}}{\isadigit{5}}{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptext}%
 \noindent
 The datatype\index{datatype@\isacommand {datatype} (command)}
@@ -42,15 +42,15 @@ type \isa{bool\ list}, namely the list with the elements \isa{True} and
 \isa{False}. Because this notation quickly becomes unwieldy, the
 datatype declaration is annotated with an alternative syntax: instead of
 \isa{Nil} and \isa{Cons x xs} we can write
-\isa{{\isacharbrackleft}{\isacharbrackright}}\index{$HOL2list@\isa{[]}|bold} and
-\isa{x\ {\isacharhash}\ xs}\index{$HOL2list@\isa{\#}|bold}. In fact, this
+\isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}\index{$HOL2list@\isa{[]}|bold} and
+\isa{x\ {\isaliteral{23}{\isacharhash}}\ xs}\index{$HOL2list@\isa{\#}|bold}. In fact, this
 alternative syntax is the familiar one.  Thus the list \isa{Cons True
-(Cons False Nil)} becomes \isa{True\ {\isacharhash}\ False\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}}. The annotation
+(Cons False Nil)} becomes \isa{True\ {\isaliteral{23}{\isacharhash}}\ False\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}. The annotation
 \isacommand{infixr}\index{infixr@\isacommand{infixr} (annotation)} 
-means that \isa{{\isacharhash}} associates to
-the right: the term \isa{x\ {\isacharhash}\ y\ {\isacharhash}\ z} is read as \isa{x\ {\isacharhash}\ {\isacharparenleft}y\ {\isacharhash}\ z{\isacharparenright}}
-and not as \isa{{\isacharparenleft}x\ {\isacharhash}\ y{\isacharparenright}\ {\isacharhash}\ z}.
-The \isa{{\isadigit{6}}{\isadigit{5}}} is the priority of the infix \isa{{\isacharhash}}.
+means that \isa{{\isaliteral{23}{\isacharhash}}} associates to
+the right: the term \isa{x\ {\isaliteral{23}{\isacharhash}}\ y\ {\isaliteral{23}{\isacharhash}}\ z} is read as \isa{x\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ z{\isaliteral{29}{\isacharparenright}}}
+and not as \isa{{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{23}{\isacharhash}}\ z}.
+The \isa{{\isadigit{6}}{\isadigit{5}}} is the priority of the infix \isa{{\isaliteral{23}{\isacharhash}}}.
 
 \begin{warn}
   Syntax annotations can be powerful, but they are difficult to master and 
@@ -64,25 +64,25 @@ in this order, because Isabelle insists on definition before use:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{primrec}\isamarkupfalse%
-\ app\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isacharat}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ ys\ \ \ \ \ \ \ {\isacharequal}\ ys{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}{\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharat}\ ys\ {\isacharequal}\ x\ {\isacharhash}\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ app\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixr}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{40}{\isacharat}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{6}}{\isadigit{5}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{40}{\isacharat}}\ ys\ \ \ \ \ \ \ {\isaliteral{3D}{\isacharequal}}\ ys{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{primrec}\isamarkupfalse%
-\ rev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}rev\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}rev\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ \ {\isacharequal}\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}x\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}%
+\ rev\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}rev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ \ \ \ \ \ \ \ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}rev\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ \ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 Each function definition is of the form
 \begin{center}
-\isacommand{primrec} \textit{name} \isa{{\isacharcolon}{\isacharcolon}} \textit{type} \textit{(optional syntax)} \isakeyword{where} \textit{equations}
+\isacommand{primrec} \textit{name} \isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}} \textit{type} \textit{(optional syntax)} \isakeyword{where} \textit{equations}
 \end{center}
-The equations must be separated by \isa{{\isacharbar}}.
+The equations must be separated by \isa{{\isaliteral{7C}{\isacharbar}}}.
 %
 Function \isa{app} is annotated with concrete syntax. Instead of the
 prefix syntax \isa{app\ xs\ ys} the infix
-\isa{xs\ {\isacharat}\ ys}\index{$HOL2list@\isa{\at}|bold} becomes the preferred
+\isa{xs\ {\isaliteral{40}{\isacharat}}\ ys}\index{$HOL2list@\isa{\at}|bold} becomes the preferred
 form.
 
 \index{*rev (constant)|(}\index{append function|(}
@@ -133,21 +133,21 @@ Comments\index{comment} must be in enclosed in \texttt{(* }and\texttt{ *)}.
 Assuming you have processed the declarations and definitions of
 \texttt{ToyList} presented so far, you may want to test your
 functions by running them. For example, what is the value of
-\isa{rev\ {\isacharparenleft}True\ {\isacharhash}\ False\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}}? Command%
+\isa{rev\ {\isaliteral{28}{\isacharparenleft}}True\ {\isaliteral{23}{\isacharhash}}\ False\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}}? Command%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{value}\isamarkupfalse%
-\ {\isachardoublequoteopen}rev\ {\isacharparenleft}True\ {\isacharhash}\ False\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}rev\ {\isaliteral{28}{\isacharparenleft}}True\ {\isaliteral{23}{\isacharhash}}\ False\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
-\noindent yields the correct result \isa{False\ {\isacharhash}\ True\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}}.
+\noindent yields the correct result \isa{False\ {\isaliteral{23}{\isacharhash}}\ True\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}.
 But we can go beyond mere functional programming and evaluate terms with
 variables in them, executing functions symbolically:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{value}\isamarkupfalse%
-\ {\isachardoublequoteopen}rev\ {\isacharparenleft}a\ {\isacharhash}\ b\ {\isacharhash}\ c\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}rev\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ b\ {\isaliteral{23}{\isacharhash}}\ c\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
-\noindent yields \isa{c\ {\isacharhash}\ b\ {\isacharhash}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}}.
+\noindent yields \isa{c\ {\isaliteral{23}{\isacharhash}}\ b\ {\isaliteral{23}{\isacharhash}}\ a\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}.
 
 \section{An Introductory Proof}
 \label{sec:intro-proof}
@@ -164,7 +164,7 @@ list.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequoteclose}%
+\ rev{\isaliteral{5F}{\isacharunderscore}}rev\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}rev{\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ xs{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -177,19 +177,19 @@ list.%
 This \isacommand{theorem} command does several things:
 \begin{itemize}
 \item
-It establishes a new theorem to be proved, namely \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}.
+It establishes a new theorem to be proved, namely \isa{rev\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ xs}.
 \item
-It gives that theorem the name \isa{rev{\isacharunderscore}rev}, for later reference.
+It gives that theorem the name \isa{rev{\isaliteral{5F}{\isacharunderscore}}rev}, for later reference.
 \item
 It tells Isabelle (via the bracketed attribute \attrdx{simp}) to take the eventual theorem as a simplification rule: future proofs involving
-simplification will replace occurrences of \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}} by
+simplification will replace occurrences of \isa{rev\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}} by
 \isa{xs}.
 \end{itemize}
 The name and the simplification attribute are optional.
 Isabelle's response is to print the initial proof state consisting
 of some header information (like how many subgoals there are) followed by
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ rev\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ xs%
 \end{isabelle}
 For compactness reasons we omit the header in this tutorial.
 Until we have finished a proof, the \rmindex{proof state} proper
@@ -206,13 +206,13 @@ main goal. (If you always want to see the main goal as well,
 set the flag \isa{Proof.show_main_goal}\index{*show_main_goal (flag)}
 --- this flag used to be set by default.)
 
-Let us now get back to \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}. Properties of recursively
+Let us now get back to \isa{rev\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ xs}. Properties of recursively
 defined functions are best established by induction. In this case there is
 nothing obvious except induction on \isa{xs}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent\index{*induct_tac (method)}%
 This tells Isabelle to perform induction on variable \isa{xs}. The suffix
@@ -222,9 +222,9 @@ By default, induction acts on the first subgoal. The new proof state contains
 two subgoals, namely the base case (\isa{Nil}) and the induction step
 (\isa{Cons}):
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ rev\ {\isacharparenleft}rev\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
-\isaindent{\ {\isadigit{2}}{\isachardot}\ \ \ \ }rev\ {\isacharparenleft}rev\ list{\isacharparenright}\ {\isacharequal}\ list\ {\isasymLongrightarrow}\ rev\ {\isacharparenleft}rev\ {\isacharparenleft}a\ {\isacharhash}\ list{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ a\ {\isacharhash}\ list%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ rev\ {\isaliteral{28}{\isacharparenleft}}rev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ list{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }rev\ {\isaliteral{28}{\isacharparenleft}}rev\ list{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ list\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ rev\ {\isaliteral{28}{\isacharparenleft}}rev\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{23}{\isacharhash}}\ list{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ a\ {\isaliteral{23}{\isacharhash}}\ list%
 \end{isabelle}
 
 The induction step is an example of the general format of a subgoal:\index{subgoals}
@@ -239,7 +239,7 @@ are the local assumptions for this subgoal and {\it
   conclusion}\index{conclusion!of subgoal} is the actual proposition to be proved. 
 Typical proof steps
 that add new assumptions are induction and case distinction. In our example
-the only assumption is the induction hypothesis \isa{rev\ {\isacharparenleft}rev\ list{\isacharparenright}\ {\isacharequal}\ list}, where \isa{list} is a variable name chosen by Isabelle. If there
+the only assumption is the induction hypothesis \isa{rev\ {\isaliteral{28}{\isacharparenleft}}rev\ list{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ list}, where \isa{list} is a variable name chosen by Isabelle. If there
 are multiple assumptions, they are enclosed in the bracket pair
 \indexboldpos{\isasymlbrakk}{$Isabrl} and
 \indexboldpos{\isasymrbrakk}{$Isabrr} and separated by semicolons.
@@ -248,17 +248,17 @@ Let us try to solve both goals automatically:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 This command tells Isabelle to apply a proof strategy called
 \isa{auto} to all subgoals. Essentially, \isa{auto} tries to
 simplify the subgoals.  In our case, subgoal~1 is solved completely (thanks
-to the equation \isa{rev\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}}) and disappears; the simplified version
+to the equation \isa{rev\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }rev\ {\isacharparenleft}rev\ list{\isacharparenright}\ {\isacharequal}\ list\ {\isasymLongrightarrow}\ rev\ {\isacharparenleft}rev\ list\ {\isacharat}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ a\ {\isacharhash}\ list%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ list{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }rev\ {\isaliteral{28}{\isacharparenleft}}rev\ list{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ list\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ rev\ {\isaliteral{28}{\isacharparenleft}}rev\ list\ {\isaliteral{40}{\isacharat}}\ a\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ a\ {\isaliteral{23}{\isacharhash}}\ list%
 \end{isabelle}
 In order to simplify this subgoal further, a lemma suggests itself.%
 \end{isamarkuptxt}%
@@ -282,7 +282,7 @@ After abandoning the above proof attempt (at the shell level type
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequoteclose}%
+\ rev{\isaliteral{5F}{\isacharunderscore}}app\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}rev{\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}rev\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -296,22 +296,22 @@ the importance we attach to a proposition.  Therefore we use the words
 \emph{theorem} and \emph{lemma} pretty much interchangeably, too.
 
 There are two variables that we could induct on: \isa{xs} and
-\isa{ys}. Because \isa{{\isacharat}} is defined by recursion on
+\isa{ys}. Because \isa{{\isaliteral{40}{\isacharat}}} is defined by recursion on
 the first argument, \isa{xs} is the correct one:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 This time not even the base case is solved automatically:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ rev\ ys\ {\isacharequal}\ rev\ ys\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ rev\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ ys\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}%
 \end{isabelle}
 Again, we need to abandon this proof attempt and prove another simple lemma
 first. In the future the step of abandoning an incomplete proof before
@@ -335,7 +335,7 @@ We again try the canonical proof procedure:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ app{\isacharunderscore}Nil{\isadigit{2}}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
+\ app{\isaliteral{5F}{\isacharunderscore}}Nil{\isadigit{2}}\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}xs\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -343,15 +343,15 @@ We again try the canonical proof procedure:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
-It works, yielding the desired message \isa{No\ subgoals{\isacharbang}}:
+It works, yielding the desired message \isa{No\ subgoals{\isaliteral{21}{\isacharbang}}}:
 \begin{isabelle}%
-xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs\isanewline
-No\ subgoals{\isacharbang}%
+xs\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ xs\isanewline
+No\ subgoals{\isaliteral{21}{\isacharbang}}%
 \end{isabelle}
 We still need to confirm that the proof is now finished:%
 \end{isamarkuptxt}%
@@ -373,16 +373,16 @@ if it is obvious from the context that the proof is finished.
 
 % Instead of \isacommand{apply} followed by a dot, you can simply write
 % \isacommand{by}\indexbold{by}, which we do most of the time.
-Notice that in lemma \isa{app{\isacharunderscore}Nil{\isadigit{2}}},
+Notice that in lemma \isa{app{\isaliteral{5F}{\isacharunderscore}}Nil{\isadigit{2}}},
 as printed out after the final \isacommand{done}, the free variable \isa{xs} has been
-replaced by the unknown \isa{{\isacharquery}xs}, just as explained in
+replaced by the unknown \isa{{\isaliteral{3F}{\isacharquery}}xs}, just as explained in
 \S\ref{sec:variables}.
 
 Going back to the proof of the first lemma%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ rev{\isaliteral{5F}{\isacharunderscore}}app\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}rev{\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}rev\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -390,25 +390,25 @@ Going back to the proof of the first lemma%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 we find that this time \isa{auto} solves the base case, but the
 induction step merely simplifies to
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }rev\ {\isacharparenleft}list\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ rev\ ys\ {\isacharat}\ rev\ list\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isacharparenleft}rev\ ys\ {\isacharat}\ rev\ list{\isacharparenright}\ {\isacharat}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ ys\ {\isacharat}\ rev\ list\ {\isacharat}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ list{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }rev\ {\isaliteral{28}{\isacharparenleft}}list\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ ys\ {\isaliteral{40}{\isacharat}}\ rev\ list\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{28}{\isacharparenleft}}rev\ ys\ {\isaliteral{40}{\isacharat}}\ rev\ list{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ a\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ ys\ {\isaliteral{40}{\isacharat}}\ rev\ list\ {\isaliteral{40}{\isacharat}}\ a\ {\isaliteral{23}{\isacharhash}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}%
 \end{isabelle}
-Now we need to remember that \isa{{\isacharat}} associates to the right, and that
-\isa{{\isacharhash}} and \isa{{\isacharat}} have the same priority (namely the \isa{{\isadigit{6}}{\isadigit{5}}}
+Now we need to remember that \isa{{\isaliteral{40}{\isacharat}}} associates to the right, and that
+\isa{{\isaliteral{23}{\isacharhash}}} and \isa{{\isaliteral{40}{\isacharat}}} have the same priority (namely the \isa{{\isadigit{6}}{\isadigit{5}}}
 in their \isacommand{infixr} annotation). Thus the conclusion really is
 \begin{isabelle}
 ~~~~~(rev~ys~@~rev~list)~@~(a~\#~[])~=~rev~ys~@~(rev~list~@~(a~\#~[]))
 \end{isabelle}
-and the missing lemma is associativity of \isa{{\isacharat}}.%
+and the missing lemma is associativity of \isa{{\isaliteral{40}{\isacharat}}}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 %
@@ -429,7 +429,7 @@ succeeds without further ado.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ app{\isacharunderscore}assoc\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ {\isacharparenleft}ys\ {\isacharat}\ zs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ app{\isaliteral{5F}{\isacharunderscore}}assoc\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ zs\ {\isaliteral{3D}{\isacharequal}}\ xs\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{28}{\isacharparenleft}}ys\ {\isaliteral{40}{\isacharat}}\ zs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -437,9 +437,9 @@ succeeds without further ado.%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -455,7 +455,7 @@ Now we can prove the first lemma:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ rev{\isaliteral{5F}{\isacharunderscore}}app\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}rev{\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}rev\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -463,9 +463,9 @@ Now we can prove the first lemma:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -481,7 +481,7 @@ Finally, we prove our main theorem:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
+\ rev{\isaliteral{5F}{\isacharunderscore}}rev\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}rev{\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -489,9 +489,9 @@ Finally, we prove our main theorem:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}auto{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}auto{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof

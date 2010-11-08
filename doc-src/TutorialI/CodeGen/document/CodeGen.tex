@@ -32,11 +32,11 @@ appropriate function itself.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{types}\isamarkupfalse%
-\ {\isacharprime}v\ binop\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharprime}v\ {\isasymRightarrow}\ {\isacharprime}v\ {\isasymRightarrow}\ {\isacharprime}v{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{27}{\isacharprime}}v\ binop\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}v\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}v\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}v{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr\ {\isacharequal}\ Cex\ {\isacharprime}v\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Vex\ {\isacharprime}a\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Bex\ {\isachardoublequoteopen}{\isacharprime}v\ binop{\isachardoublequoteclose}\ \ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr{\isachardoublequoteclose}\ \ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr{\isachardoublequoteclose}%
+\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}expr\ {\isaliteral{3D}{\isacharequal}}\ Cex\ {\isaliteral{27}{\isacharprime}}v\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Vex\ {\isaliteral{27}{\isacharprime}}a\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Bex\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}v\ binop{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}expr{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}expr{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 The three constructors represent constants, variables and the application of
@@ -47,10 +47,10 @@ values is easily defined:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{primrec}\isamarkupfalse%
-\ {\isachardoublequoteopen}value{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}v{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}v{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}value\ {\isacharparenleft}Cex\ v{\isacharparenright}\ env\ {\isacharequal}\ v{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}value\ {\isacharparenleft}Vex\ a{\isacharparenright}\ env\ {\isacharequal}\ env\ a{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}value\ {\isacharparenleft}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ f\ {\isacharparenleft}value\ e{\isadigit{1}}\ env{\isacharparenright}\ {\isacharparenleft}value\ e{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}value{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}expr\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}v{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}value\ {\isaliteral{28}{\isacharparenleft}}Cex\ v{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ v{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}value\ {\isaliteral{28}{\isacharparenleft}}Vex\ a{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ env\ a{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}value\ {\isaliteral{28}{\isacharparenleft}}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ env\ {\isaliteral{3D}{\isacharequal}}\ f\ {\isaliteral{28}{\isacharparenleft}}value\ e{\isadigit{1}}\ env{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}value\ e{\isadigit{2}}\ env{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 The stack machine has three instructions: load a constant value onto the
 stack, load the contents of an address onto the stack, and apply a
@@ -59,9 +59,9 @@ the result. As for \isa{expr}, addresses and values are type parameters:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}\ instr\ {\isacharequal}\ Const\ {\isacharprime}v\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Load\ {\isacharprime}a\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Apply\ {\isachardoublequoteopen}{\isacharprime}v\ binop{\isachardoublequoteclose}%
+\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}\ instr\ {\isaliteral{3D}{\isacharequal}}\ Const\ {\isaliteral{27}{\isacharprime}}v\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Load\ {\isaliteral{27}{\isacharprime}}a\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Apply\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}v\ binop{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 The execution of the stack machine is modelled by a function
 \isa{exec} that takes a list of instructions, a store (modelled as a
@@ -72,13 +72,13 @@ unchanged:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{primrec}\isamarkupfalse%
-\ exec\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}instr\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isasymRightarrow}{\isacharprime}v{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}v\ list\ {\isasymRightarrow}\ {\isacharprime}v\ list{\isachardoublequoteclose}\isanewline
+\ exec\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}instr\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}{\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}v\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}v\ list{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-{\isachardoublequoteopen}exec\ {\isacharbrackleft}{\isacharbrackright}\ s\ vs\ {\isacharequal}\ vs{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}exec\ {\isacharparenleft}i{\isacharhash}is{\isacharparenright}\ s\ vs\ {\isacharequal}\ {\isacharparenleft}case\ i\ of\isanewline
-\ \ \ \ Const\ v\ \ {\isasymRightarrow}\ exec\ is\ s\ {\isacharparenleft}v{\isacharhash}vs{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ Load\ a\ \ \ {\isasymRightarrow}\ exec\ is\ s\ {\isacharparenleft}{\isacharparenleft}s\ a{\isacharparenright}{\isacharhash}vs{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ Apply\ f\ \ {\isasymRightarrow}\ exec\ is\ s\ {\isacharparenleft}{\isacharparenleft}f\ {\isacharparenleft}hd\ vs{\isacharparenright}\ {\isacharparenleft}hd{\isacharparenleft}tl\ vs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharhash}{\isacharparenleft}tl{\isacharparenleft}tl\ vs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+{\isaliteral{22}{\isachardoublequoteopen}}exec\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ s\ vs\ {\isaliteral{3D}{\isacharequal}}\ vs{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}exec\ {\isaliteral{28}{\isacharparenleft}}i{\isaliteral{23}{\isacharhash}}is{\isaliteral{29}{\isacharparenright}}\ s\ vs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}case\ i\ of\isanewline
+\ \ \ \ Const\ v\ \ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ exec\ is\ s\ {\isaliteral{28}{\isacharparenleft}}v{\isaliteral{23}{\isacharhash}}vs{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Load\ a\ \ \ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ exec\ is\ s\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}s\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{23}{\isacharhash}}vs{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Apply\ f\ \ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ exec\ is\ s\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}hd\ vs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}hd{\isaliteral{28}{\isacharparenleft}}tl\ vs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{23}{\isacharhash}}{\isaliteral{28}{\isacharparenleft}}tl{\isaliteral{28}{\isacharparenleft}}tl\ vs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 Recall that \isa{hd} and \isa{tl}
@@ -94,17 +94,17 @@ definition is obvious:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{primrec}\isamarkupfalse%
-\ compile\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}instr\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}compile\ {\isacharparenleft}Cex\ v{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Const\ v{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}compile\ {\isacharparenleft}Vex\ a{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Load\ a{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}compile\ {\isacharparenleft}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}compile\ e{\isadigit{2}}{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}compile\ e{\isadigit{1}}{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}Apply\ f{\isacharbrackright}{\isachardoublequoteclose}%
+\ compile\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}expr\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}v{\isaliteral{29}{\isacharparenright}}instr\ list{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}compile\ {\isaliteral{28}{\isacharparenleft}}Cex\ v{\isaliteral{29}{\isacharparenright}}\ \ \ \ \ \ \ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}Const\ v{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}compile\ {\isaliteral{28}{\isacharparenleft}}Vex\ a{\isaliteral{29}{\isacharparenright}}\ \ \ \ \ \ \ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}Load\ a{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}compile\ {\isaliteral{28}{\isacharparenleft}}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}compile\ e{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{28}{\isacharparenleft}}compile\ e{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}Apply\ f{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 Now we have to prove the correctness of the compiler, i.e.\ that the
 execution of a compiled expression results in the value of the expression:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ {\isachardoublequoteopen}exec\ {\isacharparenleft}compile\ e{\isacharparenright}\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}value\ e\ s{\isacharbrackright}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}exec\ {\isaliteral{28}{\isacharparenleft}}compile\ e{\isaliteral{29}{\isacharparenright}}\ s\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}value\ e\ s{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -124,7 +124,7 @@ This theorem needs to be generalized:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymforall}vs{\isachardot}\ exec\ {\isacharparenleft}compile\ e{\isacharparenright}\ s\ vs\ {\isacharequal}\ {\isacharparenleft}value\ e\ s{\isacharparenright}\ {\isacharhash}\ vs{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}vs{\isaliteral{2E}{\isachardot}}\ exec\ {\isaliteral{28}{\isacharparenleft}}compile\ e{\isaliteral{29}{\isacharparenright}}\ s\ vs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}value\ e\ s{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{23}{\isacharhash}}\ vs{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -146,8 +146,8 @@ instruction sequences:%
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ exec{\isacharunderscore}app{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isasymforall}vs{\isachardot}\ exec\ {\isacharparenleft}xs{\isacharat}ys{\isacharparenright}\ s\ vs\ {\isacharequal}\ exec\ ys\ s\ {\isacharparenleft}exec\ xs\ s\ vs{\isacharparenright}{\isachardoublequoteclose}%
+\ exec{\isaliteral{5F}{\isacharunderscore}}app{\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}vs{\isaliteral{2E}{\isachardot}}\ exec\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{40}{\isacharat}}ys{\isaliteral{29}{\isacharparenright}}\ s\ vs\ {\isaliteral{3D}{\isacharequal}}\ exec\ ys\ s\ {\isaliteral{28}{\isacharparenleft}}exec\ xs\ s\ vs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -163,7 +163,7 @@ automatic case splitting, which finishes the proof:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{2C}{\isacharcomma}}\ simp\ split{\isaliteral{3A}{\isacharcolon}}\ instr{\isaliteral{2E}{\isachardot}}split{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -185,7 +185,7 @@ rewritten as%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{5F}{\isacharunderscore}}all\ split{\isaliteral{3A}{\isacharcolon}}\ instr{\isaliteral{2E}{\isachardot}}split{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -197,7 +197,7 @@ rewritten as%
 \noindent
 Although this is more compact, it is less clear for the reader of the proof.
 
-We could now go back and prove \isa{exec\ {\isacharparenleft}compile\ e{\isacharparenright}\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}value\ e\ s{\isacharbrackright}}
+We could now go back and prove \isa{exec\ {\isaliteral{28}{\isacharparenleft}}compile\ e{\isaliteral{29}{\isacharparenright}}\ s\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}value\ e\ s{\isaliteral{5D}{\isacharbrackright}}}
 merely by simplification with the generalized version we just proved.
 However, this is unnecessary because the generalized version fully subsumes
 its instance.%

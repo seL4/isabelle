@@ -26,6 +26,7 @@ declare -a SOURCES=(
   Concurrent/simple_thread.scala
   Concurrent/volatile.scala
   General/exn.scala
+  General/timing.scala
   General/linear_set.scala
   General/markup.scala
   General/position.scala

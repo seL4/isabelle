@@ -8,7 +8,7 @@
 %
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
-\ {\isachardoublequoteopen}ML{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}ML{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{imports}\ Base\isanewline
 \isakeyword{begin}%
 \endisatagtheory
@@ -89,7 +89,7 @@ The sources of Isabelle/Isar are optimized for
 Isabelle source files have a certain standardized header
   format (with precise spacing) that follows ancient traditions
   reaching back to the earliest versions of the system by Larry
-  Paulson.  See \hyperlink{file.~~/src/Pure/thm.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}thm{\isachardot}ML}}}}, for example.
+  Paulson.  See \hyperlink{file.~~/src/Pure/thm.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}thm{\isaliteral{2E}{\isachardot}}ML}}}}, for example.
 
   The header includes at least \verb|Title| and \verb|Author| entries, followed by a prose description of the purpose of
   the module.  The latter can range from a single line to several
@@ -350,7 +350,7 @@ The general Isabelle/ML source layout imitates regular
   Some special infixes (e.g.\ \verb||\verb,|,\verb|>|) work better at the
   start of the line, but punctuation is always at the end.
 
-  Function application follows the tradition of \isa{{\isasymlambda}}-calculus,
+  Function application follows the tradition of \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-calculus,
   not informal mathematics.  For example: \verb|f a b| for a
   curried function, or \verb|g (a, b)| for a tupled function.
   Note that the space between \verb|g| and the pair \verb|(a, b)| follows the important principle of
@@ -599,10 +599,10 @@ The following artificial example demonstrates some ML
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ fun\ factorial\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}\isanewline
-\ \ \ \ {\isacharbar}\ factorial\ n\ {\isacharequal}\ n\ {\isacharasterisk}\ factorial\ {\isacharparenleft}n\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}\isanewline
-{\isacharverbatimclose}%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ fun\ factorial\ {\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}\isanewline
+\ \ \ \ {\isaliteral{7C}{\isacharbar}}\ factorial\ n\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{2A}{\isacharasterisk}}\ factorial\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -625,12 +625,12 @@ Here the ML environment is already managed by Isabelle, i.e.\
   nodes of the implicit theory development graph.}
 
   \medskip The next example shows how to embed ML into Isar proofs, using
- \indexref{}{command}{ML\_prf}\hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isacharunderscore}prf}}}} instead of Instead of \indexref{}{command}{ML}\hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}.
+ \indexref{}{command}{ML\_prf}\hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}}}} instead of Instead of \indexref{}{command}{ML}\hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}.
   As illustrated below, the effect on the ML environment is local to
   the whole proof body, ignoring the block structure.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
 \isanewline
 %
 \isadelimML
@@ -638,19 +638,19 @@ Here the ML environment is already managed by Isabelle, i.e.\
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}prf}\isamarkupfalse%
-\ {\isacharverbatimopen}\ val\ a\ {\isacharequal}\ {\isadigit{1}}\ {\isacharverbatimclose}\isanewline
-\ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ val\ a\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
+\ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
 \isanewline
-\ \ \ \ \isacommand{ML{\isacharunderscore}prf}\isamarkupfalse%
-\ {\isacharverbatimopen}\ val\ b\ {\isacharequal}\ a\ {\isacharplus}\ {\isadigit{1}}\ {\isacharverbatimclose}\isanewline
-\ \ \isacommand{{\isacharbraceright}}\isamarkupfalse%
+\ \ \ \ \isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ val\ b\ {\isaliteral{3D}{\isacharequal}}\ a\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
+\ \ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
 \ %
 \isamarkupcmt{Isar block structure ignored by ML environment%
 }
 \isanewline
-\ \ \isacommand{ML{\isacharunderscore}prf}\isamarkupfalse%
-\ {\isacharverbatimopen}\ val\ c\ {\isacharequal}\ b\ {\isacharplus}\ {\isadigit{1}}\ {\isacharverbatimclose}\isanewline
+\ \ \isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ val\ c\ {\isaliteral{3D}{\isacharequal}}\ b\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagML
@@ -667,12 +667,12 @@ By side-stepping the normal scoping rules for Isar proof
   context.
 
   \medskip Two further ML commands are useful in certain situations:
-  \indexref{}{command}{ML\_val}\hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} and \indexref{}{command}{ML\_command}\hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}} are
+  \indexref{}{command}{ML\_val}\hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}}}} and \indexref{}{command}{ML\_command}\hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}}}} are
   \emph{diagnostic} in the sense that there is no effect on the
   underlying environment, and can thus used anywhere (even outside a
   theory).  The examples below produce long strings of digits by
-  invoking \verb|factorial|: \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} already takes care of
-  printing the ML toplevel result, but \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}} is silent
+  invoking \verb|factorial|: \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}}}} already takes care of
+  printing the ML toplevel result, but \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}}}} is silent
   so we produce an explicit output message.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -682,10 +682,10 @@ By side-stepping the normal scoping rules for Isar proof
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
-\ {\isacharverbatimopen}\ factorial\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isacharverbatimclose}\isanewline
-\isacommand{ML{\isacharunderscore}command}\isamarkupfalse%
-\ {\isacharverbatimopen}\ writeln\ {\isacharparenleft}string{\isacharunderscore}of{\isacharunderscore}int\ {\isacharparenleft}factorial\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}{\isacharparenright}\ {\isacharverbatimclose}%
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ factorial\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ writeln\ {\isaliteral{28}{\isacharparenleft}}string{\isaliteral{5F}{\isacharunderscore}}of{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{28}{\isacharparenleft}}factorial\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -694,7 +694,7 @@ By side-stepping the normal scoping rules for Isar proof
 \endisadelimML
 \isanewline
 \isanewline
-\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
 \isanewline
 %
 \isadelimML
@@ -702,10 +702,10 @@ By side-stepping the normal scoping rules for Isar proof
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
-\ {\isacharverbatimopen}\ factorial\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isacharverbatimclose}\ \ \isanewline
-\ \ \isacommand{ML{\isacharunderscore}command}\isamarkupfalse%
-\ {\isacharverbatimopen}\ writeln\ {\isacharparenleft}string{\isacharunderscore}of{\isacharunderscore}int\ {\isacharparenleft}factorial\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}{\isacharparenright}\ {\isacharverbatimclose}%
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ factorial\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\ \ \isanewline
+\ \ \isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ writeln\ {\isaliteral{28}{\isacharparenleft}}string{\isaliteral{5F}{\isacharunderscore}}of{\isaliteral{5F}{\isacharunderscore}}int\ {\isaliteral{28}{\isacharparenleft}}factorial\ {\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -767,7 +767,7 @@ Whenever the ML compiler is invoked within Isabelle/Isar, the
   \item \verb|Context.>>|~\isa{f} applies context transformation
   \isa{f} to the implicit context of the ML toplevel.
 
-  \item \verb|bind_thms|~\isa{{\isacharparenleft}name{\isacharcomma}\ thms{\isacharparenright}} stores a list of
+  \item \verb|bind_thms|~\isa{{\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ thms{\isaliteral{29}{\isacharparenright}}} stores a list of
   theorems produced in ML both in the (global) theory context and the
   ML toplevel, associating it with the provided name.  Theorems are
   put into a global ``standard'' format before being stored.
@@ -811,17 +811,17 @@ A very important consequence of embedding SML into Isar is the
   categories \cite{isabelle-isar-ref}.  Attributes and proof methods
   use similar syntax.
 
-  \medskip A regular antiquotation \isa{{\isacharat}{\isacharbraceleft}name\ args{\isacharbraceright}} processes
+  \medskip A regular antiquotation \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}name\ args{\isaliteral{7D}{\isacharbraceright}}} processes
   its arguments by the usual means of the Isar source language, and
   produces corresponding ML source text, either as literal
-  \emph{inline} text (e.g. \isa{{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}}) or abstract
-  \emph{value} (e.g. \isa{{\isacharat}{\isacharbraceleft}thm\ th{\isacharbraceright}}).  This pre-compilation
+  \emph{inline} text (e.g. \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}term\ t{\isaliteral{7D}{\isacharbraceright}}}) or abstract
+  \emph{value} (e.g. \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}thm\ th{\isaliteral{7D}{\isacharbraceright}}}).  This pre-compilation
   scheme allows to refer to formal entities in a robust manner, with
   proper static scoping and with some degree of logical checking of
   small portions of the code.
 
-  Special antiquotations like \isa{{\isacharat}{\isacharbraceleft}let\ {\isasymdots}{\isacharbraceright}} or \isa{{\isacharat}{\isacharbraceleft}note\ {\isasymdots}{\isacharbraceright}} augment the compilation context without generating code.  The
-  non-ASCII braces \isa{{\isasymlbrace}} and \isa{{\isasymrbrace}} allow to delimit the
+  Special antiquotations like \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}let\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{7D}{\isacharbraceright}}} or \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}note\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{7D}{\isacharbraceright}}} augment the compilation context without generating code.  The
+  non-ASCII braces \isa{{\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}} and \isa{{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}} allow to delimit the
   effect by introducing local blocks within the pre-compilation
   environment.
 
@@ -838,8 +838,8 @@ A very important consequence of embedding SML into Isar is the
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{let}\hypertarget{ML antiquotation.let}{\hyperlink{ML antiquotation.let}{\mbox{\isa{let}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
-  \indexdef{}{ML antiquotation}{note}\hypertarget{ML antiquotation.note}{\hyperlink{ML antiquotation.note}{\mbox{\isa{note}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{let}\hypertarget{ML antiquotation.let}{\hyperlink{ML antiquotation.let}{\mbox{\isa{let}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
+  \indexdef{}{ML antiquotation}{note}\hypertarget{ML antiquotation.note}{\hyperlink{ML antiquotation.note}{\mbox{\isa{note}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{rail}
@@ -852,12 +852,12 @@ A very important consequence of embedding SML into Isar is the
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}let\ p\ {\isacharequal}\ t{\isacharbraceright}} binds schematic variables in the
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}let\ p\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{7D}{\isacharbraceright}}} binds schematic variables in the
   pattern \isa{p} by higher-order matching against the term \isa{t}.  This is analogous to the regular \indexref{}{command}{let}\hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}} command
   in the Isar proof language.  The pre-compilation environment is
   augmented by auxiliary term bindings, without emitting ML source.
 
-  \item \isa{{\isacharat}{\isacharbraceleft}note\ a\ {\isacharequal}\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isacharbraceright}} recalls existing facts \isa{b\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub n}, binding the result as \isa{a}.  This is analogous to
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}note\ a\ {\isaliteral{3D}{\isacharequal}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{7D}{\isacharbraceright}}} recalls existing facts \isa{b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n}, binding the result as \isa{a}.  This is analogous to
   the regular \indexref{}{command}{note}\hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}} command in the Isar proof language.
   The pre-compilation environment is augmented by auxiliary fact
   bindings, without emitting ML source.
@@ -882,7 +882,7 @@ A very important consequence of embedding SML into Isar is the
 \begin{isamarkuptext}%
 The following artificial example gives some impression
   about the antiquotation elements introduced so far, together with
-  the important \isa{{\isacharat}{\isacharbraceleft}thm{\isacharbraceright}} antiquotation defined later.%
+  the important \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}thm{\isaliteral{7D}{\isacharbraceright}}} antiquotation defined later.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -899,25 +899,25 @@ The following artificial example gives some impression
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ {\isaantiqopen}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ {\isaliteral{5C3C6C62726163653E}{\isaantiqopen}}\isanewline
 \ \ \ \ %
 \isaantiq
-let\ {\isacharquery}t\ {\isacharequal}\ my{\isacharunderscore}term%
+let\ {\isaliteral{3F}{\isacharquery}}t\ {\isaliteral{3D}{\isacharequal}}\ my{\isaliteral{5F}{\isacharunderscore}}term{}%
 \endisaantiq
 \isanewline
 \ \ \ \ %
 \isaantiq
-note\ my{\isacharunderscore}refl\ {\isacharequal}\ reflexive\ {\isacharbrackleft}of\ {\isacharquery}t{\isacharbrackright}%
+note\ my{\isaliteral{5F}{\isacharunderscore}}refl\ {\isaliteral{3D}{\isacharequal}}\ reflexive\ {\isaliteral{5B}{\isacharbrackleft}}of\ {\isaliteral{3F}{\isacharquery}}t{\isaliteral{5D}{\isacharbrackright}}{}%
 \endisaantiq
 \isanewline
-\ \ \ \ fun\ foo\ th\ {\isacharequal}\ Thm{\isachardot}transitive\ th\ %
+\ \ \ \ fun\ foo\ th\ {\isaliteral{3D}{\isacharequal}}\ Thm{\isaliteral{2E}{\isachardot}}transitive\ th\ %
 \isaantiq
-thm\ my{\isacharunderscore}refl%
+thm\ my{\isaliteral{5F}{\isacharunderscore}}refl{}%
 \endisaantiq
 \isanewline
-\ \ {\isaantiqclose}\isanewline
-{\isacharverbatimclose}%
+\ \ {\isaliteral{5C3C7262726163653E}{\isaantiqclose}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -937,25 +937,25 @@ The extra block delimiters do not affect the compiled code
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Standard ML is a language in the tradition of \isa{{\isasymlambda}}-calculus and \emph{higher-order functional programming},
+Standard ML is a language in the tradition of \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-calculus and \emph{higher-order functional programming},
   similar to OCaml, Haskell, or Isabelle/Pure and HOL as logical
   languages.  Getting acquainted with the native style of representing
   functions in that setting can save a lot of extra boiler-plate of
   redundant shuffling of arguments, auxiliary abstractions etc.
 
   Functions are usually \emph{curried}: the idea of turning arguments
-  of type \isa{{\isasymtau}\isactrlsub i} (for \isa{i\ {\isasymin}\ {\isacharbraceleft}{\isadigit{1}}{\isacharcomma}\ {\isasymdots}\ n{\isacharbraceright}}) into a result of
-  type \isa{{\isasymtau}} is represented by the iterated function space
-  \isa{{\isasymtau}\isactrlsub {\isadigit{1}}\ {\isasymrightarrow}\ {\isasymdots}\ {\isasymrightarrow}\ {\isasymtau}\isactrlsub n\ {\isasymrightarrow}\ {\isasymtau}}.  This is isomorphic to the well-known
-  encoding via tuples \isa{{\isasymtau}\isactrlsub {\isadigit{1}}\ {\isasymtimes}\ {\isasymdots}\ {\isasymtimes}\ {\isasymtau}\isactrlsub n\ {\isasymrightarrow}\ {\isasymtau}}, but the curried
+  of type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i} (for \isa{i\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{7B}{\isacharbraceleft}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ n{\isaliteral{7D}{\isacharbraceright}}}) into a result of
+  type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} is represented by the iterated function space
+  \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}}.  This is isomorphic to the well-known
+  encoding via tuples \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}}, but the curried
   version fits more smoothly into the basic calculus.\footnote{The
   difference is even more significant in higher-order logic, because
   the redundant tuple structure needs to be accommodated by formal
   reasoning.}
 
   Currying gives some flexiblity due to \emph{partial application}.  A
-  function \isa{f{\isacharcolon}\ {\isasymtau}\isactrlsub {\isadigit{1}}\ {\isasymrightarrow}\ {\isasymtau}\isactrlbsub {\isadigit{2}}\isactrlesub \ {\isasymrightarrow}\ {\isasymtau}} can be applied to \isa{x{\isacharcolon}\ {\isasymtau}\isactrlsub {\isadigit{1}}}
-  and the remaining \isa{{\isacharparenleft}f\ x{\isacharparenright}{\isacharcolon}\ {\isasymtau}\isactrlsub {\isadigit{2}}\ {\isasymrightarrow}\ {\isasymtau}} passed to another function
+  function \isa{f{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E627375623E}{}\isactrlbsub {\isadigit{2}}\isaliteral{5C3C5E657375623E}{}\isactrlesub \ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} can be applied to \isa{x{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}
+  and the remaining \isa{{\isaliteral{28}{\isacharparenleft}}f\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} passed to another function
   etc.  How well this works in practice depends on the order of
   arguments.  In the worst case, arguments are arranged erratically,
   and using a function in a certain situation always requires some
@@ -965,8 +965,8 @@ Standard ML is a language in the tradition of \isa{{\isasymlambda}}-calculus and
   This can be avoided by \emph{canonical argument order}, which
   observes certain standard patterns and minimizes adhoc permutations
   in their application.  In Isabelle/ML, large portions of text can be
-  written without ever using \isa{swap{\isacharcolon}\ {\isasymalpha}\ {\isasymtimes}\ {\isasymbeta}\ {\isasymrightarrow}\ {\isasymbeta}\ {\isasymtimes}\ {\isasymalpha}}, or the
-  combinator \isa{C{\isacharcolon}\ {\isacharparenleft}{\isasymalpha}\ {\isasymrightarrow}\ {\isasymbeta}\ {\isasymrightarrow}\ {\isasymgamma}{\isacharparenright}\ {\isasymrightarrow}\ {\isacharparenleft}{\isasymbeta}\ {\isasymrightarrow}\ {\isasymalpha}\ {\isasymrightarrow}\ {\isasymgamma}{\isacharparenright}} that is not even
+  written without ever using \isa{swap{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}}, or the
+  combinator \isa{C{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C67616D6D613E}{\isasymgamma}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C67616D6D613E}{\isasymgamma}}{\isaliteral{29}{\isacharparenright}}} that is not even
   defined in our library.
 
   \medskip The basic idea is that arguments that vary less are moved
@@ -975,30 +975,30 @@ Standard ML is a language in the tradition of \isa{{\isasymlambda}}-calculus and
   \emph{updates}.
 
   The subsequent scheme is based on a hypothetical set-like container
-  of type \isa{{\isasymbeta}} that manages elements of type \isa{{\isasymalpha}}.  Both
+  of type \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}} that manages elements of type \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}.  Both
   the names and types of the associated operations are canonical for
   Isabelle/ML.
 
   \medskip
   \begin{tabular}{ll}
   kind & canonical name and type \\\hline
-  selector & \isa{member{\isacharcolon}\ {\isasymbeta}\ {\isasymrightarrow}\ {\isasymalpha}\ {\isasymrightarrow}\ bool} \\
-  update & \isa{insert{\isacharcolon}\ {\isasymalpha}\ {\isasymrightarrow}\ {\isasymbeta}\ {\isasymrightarrow}\ {\isasymbeta}} \\
+  selector & \isa{member{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ bool} \\
+  update & \isa{insert{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}} \\
   \end{tabular}
   \medskip
 
-  Given a container \isa{B{\isacharcolon}\ {\isasymbeta}}, the partially applied \isa{member\ B} is a predicate over elements \isa{{\isasymalpha}\ {\isasymrightarrow}\ bool}, and
+  Given a container \isa{B{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}}, the partially applied \isa{member\ B} is a predicate over elements \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ bool}, and
   thus represents the intended denotation directly.  It is customary
   to pass the abstract predicate to further operations, not the
   concrete container.  The argument order makes it easy to use other
-  combinators: \isa{forall\ {\isacharparenleft}member\ B{\isacharparenright}\ list} will check a list of
+  combinators: \isa{forall\ {\isaliteral{28}{\isacharparenleft}}member\ B{\isaliteral{29}{\isacharparenright}}\ list} will check a list of
   elements for membership in \isa{B} etc. Often the explicit
-  \isa{list} is pointless and can be contracted to \isa{forall\ {\isacharparenleft}member\ B{\isacharparenright}} to get directly a predicate again.
+  \isa{list} is pointless and can be contracted to \isa{forall\ {\isaliteral{28}{\isacharparenleft}}member\ B{\isaliteral{29}{\isacharparenright}}} to get directly a predicate again.
 
   In contrast, an update operation varies the container, so it moves
-  to the right: \isa{insert\ a} is a function \isa{{\isasymbeta}\ {\isasymrightarrow}\ {\isasymbeta}} to
+  to the right: \isa{insert\ a} is a function \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}} to
   insert a value \isa{a}.  These can be composed naturally as
-  \isa{insert\ c\ {\isasymcirc}\ insert\ b\ {\isasymcirc}\ insert\ a}.  The slightly awkward
+  \isa{insert\ c\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ insert\ b\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ insert\ a}.  The slightly awkward
   inversion of the composition order is due to conventional
   mathematical notation, which can be easily amended as explained
   below.%
@@ -1011,8 +1011,8 @@ Standard ML is a language in the tradition of \isa{{\isasymlambda}}-calculus and
 %
 \begin{isamarkuptext}%
 Regular function application and infix notation works best for
-  relatively deeply structured expressions, e.g.\ \isa{h\ {\isacharparenleft}f\ x\ y\ {\isacharplus}\ g\ z{\isacharparenright}}.  The important special case of \emph{linear transformation}
-  applies a cascade of functions \isa{f\isactrlsub n\ {\isacharparenleft}{\isasymdots}\ {\isacharparenleft}f\isactrlsub {\isadigit{1}}\ x{\isacharparenright}{\isacharparenright}}.  This
+  relatively deeply structured expressions, e.g.\ \isa{h\ {\isaliteral{28}{\isacharparenleft}}f\ x\ y\ {\isaliteral{2B}{\isacharplus}}\ g\ z{\isaliteral{29}{\isacharparenright}}}.  The important special case of \emph{linear transformation}
+  applies a cascade of functions \isa{f\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{28}{\isacharparenleft}}f\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}.  This
   becomes hard to read and maintain if the functions are themselves
   given as complex expressions.  The notation can be significantly
   improved by introducing \emph{forward} versions of application and
@@ -1020,13 +1020,13 @@ Regular function application and infix notation works best for
 
   \medskip
   \begin{tabular}{lll}
-  \isa{x\ {\isacharbar}{\isachargreater}\ f} & \isa{{\isasymequiv}} & \isa{f\ x} \\
-  \isa{f\ {\isacharhash}{\isachargreater}\ g} & \isa{{\isasymequiv}} & \isa{x\ {\isacharbar}{\isachargreater}\ f\ {\isacharbar}{\isachargreater}\ g} \\
+  \isa{x\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{f\ x} \\
+  \isa{f\ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\ g} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{x\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ g} \\
   \end{tabular}
   \medskip
 
-  This enables to write conveniently \isa{x\ {\isacharbar}{\isachargreater}\ f\isactrlsub {\isadigit{1}}\ {\isacharbar}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isachargreater}\ f\isactrlsub n} or
-  \isa{f\isactrlsub {\isadigit{1}}\ {\isacharhash}{\isachargreater}\ {\isasymdots}\ {\isacharhash}{\isachargreater}\ f\isactrlsub n} for its functional abstraction over \isa{x}.
+  This enables to write conveniently \isa{x\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f\isaliteral{5C3C5E7375623E}{}\isactrlsub n} or
+  \isa{f\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\ f\isaliteral{5C3C5E7375623E}{}\isactrlsub n} for its functional abstraction over \isa{x}.
 
   \medskip There is an additional set of combinators to accommodate
   multiple results (via pairs) that are passed on as multiple
@@ -1034,8 +1034,8 @@ Regular function application and infix notation works best for
 
   \medskip
   \begin{tabular}{lll}
-  \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharbar}{\isacharminus}{\isachargreater}\ f} & \isa{{\isasymequiv}} & \isa{f\ x\ y} \\
-  \isa{f\ {\isacharhash}{\isacharminus}{\isachargreater}\ g} & \isa{{\isasymequiv}} & \isa{x\ {\isacharbar}{\isachargreater}\ f\ {\isacharbar}{\isacharminus}{\isachargreater}\ g} \\
+  \isa{{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ f} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{f\ x\ y} \\
+  \isa{f\ {\isaliteral{23}{\isacharhash}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ g} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{x\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ g} \\
   \end{tabular}
   \medskip%
 \end{isamarkuptext}%
@@ -1071,24 +1071,24 @@ Regular function application and infix notation works best for
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-As explained above, a function \isa{f{\isacharcolon}\ {\isasymalpha}\ {\isasymrightarrow}\ {\isasymbeta}\ {\isasymrightarrow}\ {\isasymbeta}} can be
-  understood as update on a configuration of type \isa{{\isasymbeta}},
-  parametrized by arguments of type \isa{{\isasymalpha}}.  Given \isa{a{\isacharcolon}\ {\isasymalpha}}
-  the partial application \isa{{\isacharparenleft}f\ a{\isacharparenright}{\isacharcolon}\ {\isasymbeta}\ {\isasymrightarrow}\ {\isasymbeta}} operates
-  homogeneously on \isa{{\isasymbeta}}.  This can be iterated naturally over a
-  list of parameters \isa{{\isacharbrackleft}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n{\isacharbrackright}} as \isa{f\ a\isactrlsub {\isadigit{1}}\ {\isacharhash}{\isachargreater}\ {\isasymdots}\ {\isacharhash}{\isachargreater}\ f\ a\isactrlbsub n\isactrlesub \isactrlbsub \isactrlesub }.  The latter expression is again a function \isa{{\isasymbeta}\ {\isasymrightarrow}\ {\isasymbeta}}.
-  It can be applied to an initial configuration \isa{b{\isacharcolon}\ {\isasymbeta}} to
-  start the iteration over the given list of arguments: each \isa{a} in \isa{a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n} is applied consecutively by updating a
+As explained above, a function \isa{f{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}} can be
+  understood as update on a configuration of type \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}},
+  parametrized by arguments of type \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}}.  Given \isa{a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}}
+  the partial application \isa{{\isaliteral{28}{\isacharparenleft}}f\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}} operates
+  homogeneously on \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}}.  This can be iterated naturally over a
+  list of parameters \isa{{\isaliteral{5B}{\isacharbrackleft}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5D}{\isacharbrackright}}} as \isa{f\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\ f\ a\isaliteral{5C3C5E627375623E}{}\isactrlbsub n\isaliteral{5C3C5E657375623E}{}\isactrlesub \isaliteral{5C3C5E627375623E}{}\isactrlbsub \isaliteral{5C3C5E657375623E}{}\isactrlesub }.  The latter expression is again a function \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}}.
+  It can be applied to an initial configuration \isa{b{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}} to
+  start the iteration over the given list of arguments: each \isa{a} in \isa{a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n} is applied consecutively by updating a
   cumulative configuration.
 
   The \isa{fold} combinator in Isabelle/ML lifts a function \isa{f} as above to its iterated version over a list of arguments.
-  Lifting can be repeated, e.g.\ \isa{{\isacharparenleft}fold\ {\isasymcirc}\ fold{\isacharparenright}\ f} iterates
+  Lifting can be repeated, e.g.\ \isa{{\isaliteral{28}{\isacharparenleft}}fold\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ fold{\isaliteral{29}{\isacharparenright}}\ f} iterates
   over a list of lists as expected.
 
-  The variant \isa{fold{\isacharunderscore}rev} works inside-out over the list of
-  arguments, such that \isa{fold{\isacharunderscore}rev\ f\ {\isasymequiv}\ fold\ f\ {\isasymcirc}\ rev} holds.
+  The variant \isa{fold{\isaliteral{5F}{\isacharunderscore}}rev} works inside-out over the list of
+  arguments, such that \isa{fold{\isaliteral{5F}{\isacharunderscore}}rev\ f\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ fold\ f\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ rev} holds.
 
-  The \isa{fold{\isacharunderscore}map} combinator essentially performs \isa{fold} and \isa{map} simultaneously: each application of \isa{f} produces an updated configuration together with a side-result;
+  The \isa{fold{\isaliteral{5F}{\isacharunderscore}}map} combinator essentially performs \isa{fold} and \isa{map} simultaneously: each application of \isa{f} produces an updated configuration together with a side-result;
   the iteration collects all such side-results as a separate list.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1163,19 +1163,19 @@ The following example shows how to fill a text buffer
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ val\ s\ {\isacharequal}\isanewline
-\ \ \ \ Buffer{\isachardot}empty\isanewline
-\ \ \ \ {\isacharbar}{\isachargreater}\ Buffer{\isachardot}add\ {\isachardoublequote}digits{\isacharcolon}\ {\isachardoublequote}\isanewline
-\ \ \ \ {\isacharbar}{\isachargreater}\ fold\ {\isacharparenleft}Buffer{\isachardot}add\ o\ string{\isacharunderscore}of{\isacharunderscore}int{\isacharparenright}\ {\isacharparenleft}{\isadigit{0}}\ upto\ {\isadigit{9}}{\isacharparenright}\isanewline
-\ \ \ \ {\isacharbar}{\isachargreater}\ Buffer{\isachardot}content{\isacharsemicolon}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ val\ s\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Buffer{\isaliteral{2E}{\isachardot}}empty\isanewline
+\ \ \ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ Buffer{\isaliteral{2E}{\isachardot}}add\ {\isaliteral{22}{\isachardoublequote}}digits{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}\isanewline
+\ \ \ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ fold\ {\isaliteral{28}{\isacharparenleft}}Buffer{\isaliteral{2E}{\isachardot}}add\ o\ string{\isaliteral{5F}{\isacharunderscore}}of{\isaliteral{5F}{\isacharunderscore}}int{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ upto\ {\isadigit{9}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ Buffer{\isaliteral{2E}{\isachardot}}content{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}s\ {\isacharequal}\ {\isachardoublequote}digits{\isacharcolon}\ {\isadigit{0}}{\isadigit{1}}{\isadigit{2}}{\isadigit{3}}{\isadigit{4}}{\isadigit{5}}{\isadigit{6}}{\isadigit{7}}{\isadigit{8}}{\isadigit{9}}{\isachardoublequote}{\isacharparenright}{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ {\isaliteral{28}{\isacharparenleft}}s\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}digits{\isaliteral{3A}{\isacharcolon}}\ {\isadigit{0}}{\isadigit{1}}{\isadigit{2}}{\isadigit{3}}{\isadigit{4}}{\isadigit{5}}{\isadigit{6}}{\isadigit{7}}{\isadigit{8}}{\isadigit{9}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1202,24 +1202,24 @@ Note how \verb|fold (Buffer.add o string_of_int)| above saves
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ datatype\ tree\ {\isacharequal}\ Text\ of\ string\ {\isacharbar}\ Elem\ of\ string\ {\isacharasterisk}\ tree\ list{\isacharsemicolon}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ datatype\ tree\ {\isaliteral{3D}{\isacharequal}}\ Text\ of\ string\ {\isaliteral{7C}{\isacharbar}}\ Elem\ of\ string\ {\isaliteral{2A}{\isacharasterisk}}\ tree\ list{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ fun\ slow{\isacharunderscore}content\ {\isacharparenleft}Text\ txt{\isacharparenright}\ {\isacharequal}\ txt\isanewline
-\ \ \ \ {\isacharbar}\ slow{\isacharunderscore}content\ {\isacharparenleft}Elem\ {\isacharparenleft}name{\isacharcomma}\ ts{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ \ \ {\isachardoublequote}{\isacharless}{\isachardoublequote}\ {\isacharcircum}\ name\ {\isacharcircum}\ {\isachardoublequote}{\isachargreater}{\isachardoublequote}\ {\isacharcircum}\isanewline
-\ \ \ \ \ \ \ \ implode\ {\isacharparenleft}map\ slow{\isacharunderscore}content\ ts{\isacharparenright}\ {\isacharcircum}\isanewline
-\ \ \ \ \ \ \ \ {\isachardoublequote}{\isacharless}{\isacharslash}{\isachardoublequote}\ {\isacharcircum}\ name\ {\isacharcircum}\ {\isachardoublequote}{\isachargreater}{\isachardoublequote}\isanewline
+\ \ fun\ slow{\isaliteral{5F}{\isacharunderscore}}content\ {\isaliteral{28}{\isacharparenleft}}Text\ txt{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ txt\isanewline
+\ \ \ \ {\isaliteral{7C}{\isacharbar}}\ slow{\isaliteral{5F}{\isacharunderscore}}content\ {\isaliteral{28}{\isacharparenleft}}Elem\ {\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ ts{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ \ \ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{3C}{\isacharless}}{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{5E}{\isacharcircum}}\ name\ {\isaliteral{5E}{\isacharcircum}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{3E}{\isachargreater}}{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{5E}{\isacharcircum}}\isanewline
+\ \ \ \ \ \ \ \ implode\ {\isaliteral{28}{\isacharparenleft}}map\ slow{\isaliteral{5F}{\isacharunderscore}}content\ ts{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5E}{\isacharcircum}}\isanewline
+\ \ \ \ \ \ \ \ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{3C}{\isacharless}}{\isaliteral{2F}{\isacharslash}}{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{5E}{\isacharcircum}}\ name\ {\isaliteral{5E}{\isacharcircum}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{3E}{\isachargreater}}{\isaliteral{22}{\isachardoublequote}}\isanewline
 \isanewline
-\ \ fun\ add{\isacharunderscore}content\ {\isacharparenleft}Text\ txt{\isacharparenright}\ {\isacharequal}\ Buffer{\isachardot}add\ txt\isanewline
-\ \ \ \ {\isacharbar}\ add{\isacharunderscore}content\ {\isacharparenleft}Elem\ {\isacharparenleft}name{\isacharcomma}\ ts{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ \ \ Buffer{\isachardot}add\ {\isacharparenleft}{\isachardoublequote}{\isacharless}{\isachardoublequote}\ {\isacharcircum}\ name\ {\isacharcircum}\ {\isachardoublequote}{\isachargreater}{\isachardoublequote}{\isacharparenright}\ {\isacharhash}{\isachargreater}\isanewline
-\ \ \ \ \ \ \ \ fold\ add{\isacharunderscore}content\ ts\ {\isacharhash}{\isachargreater}\isanewline
-\ \ \ \ \ \ \ \ Buffer{\isachardot}add\ {\isacharparenleft}{\isachardoublequote}{\isacharless}{\isacharslash}{\isachardoublequote}\ {\isacharcircum}\ name\ {\isacharcircum}\ {\isachardoublequote}{\isachargreater}{\isachardoublequote}{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ fun\ add{\isaliteral{5F}{\isacharunderscore}}content\ {\isaliteral{28}{\isacharparenleft}}Text\ txt{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Buffer{\isaliteral{2E}{\isachardot}}add\ txt\isanewline
+\ \ \ \ {\isaliteral{7C}{\isacharbar}}\ add{\isaliteral{5F}{\isacharunderscore}}content\ {\isaliteral{28}{\isacharparenleft}}Elem\ {\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ ts{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ \ \ Buffer{\isaliteral{2E}{\isachardot}}add\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3C}{\isacharless}}{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{5E}{\isacharcircum}}\ name\ {\isaliteral{5E}{\isacharcircum}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{3E}{\isachargreater}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ \ \ \ \ fold\ add{\isaliteral{5F}{\isacharunderscore}}content\ ts\ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ \ \ \ \ Buffer{\isaliteral{2E}{\isachardot}}add\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3C}{\isacharless}}{\isaliteral{2F}{\isacharslash}}{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{5E}{\isacharcircum}}\ name\ {\isaliteral{5E}{\isacharcircum}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{3E}{\isachargreater}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ fun\ fast{\isacharunderscore}content\ tree\ {\isacharequal}\isanewline
-\ \ \ \ Buffer{\isachardot}empty\ {\isacharbar}{\isachargreater}\ add{\isacharunderscore}content\ tree\ {\isacharbar}{\isachargreater}\ Buffer{\isachardot}content{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ \ fun\ fast{\isaliteral{5F}{\isacharunderscore}}content\ tree\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Buffer{\isaliteral{2E}{\isachardot}}empty\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ add{\isaliteral{5F}{\isacharunderscore}}content\ tree\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ Buffer{\isaliteral{2E}{\isachardot}}content{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1381,14 +1381,14 @@ The following example demonstrates a multi-line
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}command}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ warning\ {\isacharparenleft}cat{\isacharunderscore}lines\isanewline
-\ \ \ {\isacharbrackleft}{\isachardoublequote}Beware\ the\ Jabberwock{\isacharcomma}\ my\ son{\isacharbang}{\isachardoublequote}{\isacharcomma}\isanewline
-\ \ \ \ {\isachardoublequote}The\ jaws\ that\ bite{\isacharcomma}\ the\ claws\ that\ catch{\isacharbang}{\isachardoublequote}{\isacharcomma}\isanewline
-\ \ \ \ {\isachardoublequote}Beware\ the\ Jubjub\ Bird{\isacharcomma}\ and\ shun{\isachardoublequote}{\isacharcomma}\isanewline
-\ \ \ \ {\isachardoublequote}The\ frumious\ Bandersnatch{\isacharbang}{\isachardoublequote}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ warning\ {\isaliteral{28}{\isacharparenleft}}cat{\isaliteral{5F}{\isacharunderscore}}lines\isanewline
+\ \ \ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}Beware\ the\ Jabberwock{\isaliteral{2C}{\isacharcomma}}\ my\ son{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequote}}The\ jaws\ that\ bite{\isaliteral{2C}{\isacharcomma}}\ the\ claws\ that\ catch{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequote}}Beware\ the\ Jubjub\ Bird{\isaliteral{2C}{\isacharcomma}}\ and\ shun{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequote}}The\ frumious\ Bandersnatch{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1548,12 +1548,12 @@ The Standard ML semantics of strict functional evaluation
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{assert}\hypertarget{ML antiquotation.assert}{\hyperlink{ML antiquotation.assert}{\mbox{\isa{assert}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{assert}\hypertarget{ML antiquotation.assert}{\hyperlink{ML antiquotation.assert}{\mbox{\isa{assert}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}assert{\isacharbraceright}} inlines a function
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}assert{\isaliteral{7D}{\isacharbraceright}}} inlines a function
   \verb|bool -> unit| that raises \verb|Fail| if the argument is
   \verb|false|.  Due to inlining the source position of failed
   assertions is included in the error output.
@@ -1645,7 +1645,7 @@ The basis library proposal of SML97 needs to be treated with
   integer type --- overloading of SML97 is disabled.
 
   Structure \verb|IntInf| of SML97 is obsolete and superseded by
-  \verb|Int|.  Structure \verb|Integer| in \hyperlink{file.~~/src/Pure/General/integer.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}integer{\isachardot}ML}}}} provides some additional
+  \verb|Int|.  Structure \verb|Integer| in \hyperlink{file.~~/src/Pure/General/integer.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}General{\isaliteral{2F}{\isacharslash}}integer{\isaliteral{2E}{\isachardot}}ML}}}} provides some additional
   operations.
 
   \end{description}%
@@ -1730,7 +1730,7 @@ The basis library proposal of SML97 needs to be treated with
 \begin{isamarkuptext}%
 Apart from \verb|Option.map| most operations defined in
   structure \verb|Option| are alien to Isabelle/ML.  The
-  operations shown above are defined in \hyperlink{file.~~/src/Pure/General/basics.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}basics{\isachardot}ML}}}}, among others.%
+  operations shown above are defined in \hyperlink{file.~~/src/Pure/General/basics.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}General{\isaliteral{2F}{\isacharslash}}basics{\isaliteral{2E}{\isachardot}}ML}}}}, among others.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1763,7 +1763,7 @@ Lists are ubiquitous in ML as simple and light-weight
 
   \begin{description}
 
-  \item \verb|cons|~\isa{x\ xs} evaluates to \isa{x\ {\isacharcolon}{\isacharcolon}\ xs}.
+  \item \verb|cons|~\isa{x\ xs} evaluates to \isa{x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ xs}.
 
   Tupled infix operators are a historical accident in Standard ML.
   The curried \verb|cons| amends this, but it should be only used when
@@ -1771,7 +1771,7 @@ Lists are ubiquitous in ML as simple and light-weight
 
   \item \verb|member|, \verb|insert|, \verb|remove|, \verb|update| treat
   lists as a set-like container that maintains the order of elements.
-  See \hyperlink{file.~~/src/Pure/library.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}library{\isachardot}ML}}}} for the full specifications
+  See \hyperlink{file.~~/src/Pure/library.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}library{\isaliteral{2E}{\isachardot}}ML}}}} for the full specifications
   (written in ML).  There are some further derived operations like
   \verb|union| or \verb|inter|.
 
@@ -1823,23 +1823,23 @@ Using canonical \verb|fold| together with \verb|cons|, or
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ val\ items\ {\isacharequal}\ {\isacharbrackleft}{\isadigit{1}}{\isacharcomma}\ {\isadigit{2}}{\isacharcomma}\ {\isadigit{3}}{\isacharcomma}\ {\isadigit{4}}{\isacharcomma}\ {\isadigit{5}}{\isacharcomma}\ {\isadigit{6}}{\isacharcomma}\ {\isadigit{7}}{\isacharcomma}\ {\isadigit{8}}{\isacharcomma}\ {\isadigit{9}}{\isacharcomma}\ {\isadigit{1}}{\isadigit{0}}{\isacharbrackright}{\isacharsemicolon}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ val\ items\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{3}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{4}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{5}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{6}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{7}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{8}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{9}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{1}}{\isadigit{0}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ val\ list{\isadigit{1}}\ {\isacharequal}\ fold\ cons\ items\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\isanewline
+\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ fold\ cons\ items\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}list{\isadigit{1}}\ {\isacharequal}\ rev\ items{\isacharparenright}{\isacharsemicolon}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ items{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ val\ list{\isadigit{2}}\ {\isacharequal}\ fold{\isacharunderscore}rev\ cons\ items\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\isanewline
+\ \ val\ list{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ fold{\isaliteral{5F}{\isacharunderscore}}rev\ cons\ items\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}list{\isadigit{2}}\ {\isacharequal}\ items{\isacharparenright}{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ {\isaliteral{28}{\isacharparenleft}}list{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ items{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1859,9 +1859,9 @@ The subsequent example demonstrates how to \emph{merge} two
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ fun\ merge{\isacharunderscore}lists\ eq\ {\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}\ {\isacharequal}\ fold{\isacharunderscore}rev\ {\isacharparenleft}insert\ eq{\isacharparenright}\ ys\ xs{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ fun\ merge{\isaliteral{5F}{\isacharunderscore}}lists\ eq\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ fold{\isaliteral{5F}{\isacharunderscore}}rev\ {\isaliteral{28}{\isacharparenleft}}insert\ eq{\isaliteral{29}{\isacharparenright}}\ ys\ xs{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1877,7 +1877,7 @@ Here the first list is treated conservatively: only the new
 
   This way of merging lists is typical for context data
   (\secref{sec:context-data}).  See also \verb|merge| as defined in
-  \hyperlink{file.~~/src/Pure/library.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}library{\isachardot}ML}}}}.%
+  \hyperlink{file.~~/src/Pure/library.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}library{\isaliteral{2E}{\isachardot}}ML}}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1911,7 +1911,7 @@ The operations for association lists interpret a concrete list
   Note that a function called \isa{lookup} is obliged to express its
   partiality via an explicit option element.  There is no choice to
   raise an exception, without changing the name to something like
-  \isa{the{\isacharunderscore}element} or \isa{get}.
+  \isa{the{\isaliteral{5F}{\isacharunderscore}}element} or \isa{get}.
 
   The \isa{defined} operation is essentially a contraction of \verb|is_some| and \isa{lookup}, but this is sufficiently frequent to
   justify its independent existence.  This also gives the
@@ -1921,7 +1921,7 @@ The operations for association lists interpret a concrete list
 
   Association lists are adequate as simple and light-weight
   implementation of finite mappings in many practical situations.  A
-  more heavy-duty table structure is defined in \hyperlink{file.~~/src/Pure/General/table.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}table{\isachardot}ML}}}}; that version scales easily to
+  more heavy-duty table structure is defined in \hyperlink{file.~~/src/Pure/General/table.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}General{\isaliteral{2F}{\isacharslash}}table{\isaliteral{2E}{\isachardot}}ML}}}}; that version scales easily to
   thousands or millions of elements.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -2145,7 +2145,7 @@ Thread-safeness is mainly concerned about concurrent
   component of \isa{path} into the unique temporary directory of
   the running Isabelle/ML process.
 
-  \item \verb|serial_string|~\isa{{\isacharparenleft}{\isacharparenright}} creates a new serial number
+  \item \verb|serial_string|~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}} creates a new serial number
   that is unique over the runtime of the Isabelle/ML process.
 
   \end{description}%
@@ -2184,15 +2184,15 @@ The following example shows how to create unique
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ val\ tmp{\isadigit{1}}\ {\isacharequal}\ File{\isachardot}tmp{\isacharunderscore}path\ {\isacharparenleft}Path{\isachardot}basic\ {\isacharparenleft}{\isachardoublequote}foo{\isachardoublequote}\ {\isacharcircum}\ serial{\isacharunderscore}string\ {\isacharparenleft}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ val\ tmp{\isadigit{2}}\ {\isacharequal}\ File{\isachardot}tmp{\isacharunderscore}path\ {\isacharparenleft}Path{\isachardot}basic\ {\isacharparenleft}{\isachardoublequote}foo{\isachardoublequote}\ {\isacharcircum}\ serial{\isacharunderscore}string\ {\isacharparenleft}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ val\ tmp{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ File{\isaliteral{2E}{\isachardot}}tmp{\isaliteral{5F}{\isacharunderscore}}path\ {\isaliteral{28}{\isacharparenleft}}Path{\isaliteral{2E}{\isachardot}}basic\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}foo{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{5E}{\isacharcircum}}\ serial{\isaliteral{5F}{\isacharunderscore}}string\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ val\ tmp{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ File{\isaliteral{2E}{\isachardot}}tmp{\isaliteral{5F}{\isacharunderscore}}path\ {\isaliteral{28}{\isacharparenleft}}Path{\isaliteral{2E}{\isachardot}}basic\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}foo{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{5E}{\isacharcircum}}\ serial{\isaliteral{5F}{\isacharunderscore}}string\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}tmp{\isadigit{1}}\ {\isacharless}{\isachargreater}\ tmp{\isadigit{2}}{\isacharparenright}{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ {\isaliteral{28}{\isacharparenleft}}tmp{\isadigit{1}}\ {\isaliteral{3C}{\isacharless}}{\isaliteral{3E}{\isachargreater}}\ tmp{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -2253,7 +2253,7 @@ Isabelle/ML also provides some explicit synchronization
 
   \begin{description}
 
-  \item \verb|NAMED_CRITICAL|~\isa{name\ e} evaluates \isa{e\ {\isacharparenleft}{\isacharparenright}}
+  \item \verb|NAMED_CRITICAL|~\isa{name\ e} evaluates \isa{e\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}}
   within the central critical section of Isabelle/ML.  No other thread
   may do so at the same time, but non-critical parallel execution will
   continue.  The \isa{name} argument is used for tracing and might
@@ -2278,14 +2278,14 @@ Isabelle/ML also provides some explicit synchronization
   \isa{x} as follows: if \isa{f\ x} produces \verb|NONE|, it
   continues to wait on the internal condition variable, expecting that
   some other thread will eventually change the content in a suitable
-  manner; if \isa{f\ x} produces \verb|SOME|~\isa{{\isacharparenleft}y{\isacharcomma}\ x{\isacharprime}{\isacharparenright}} it is
-  satisfied and assigns the new state value \isa{x{\isacharprime}}, broadcasts a
+  manner; if \isa{f\ x} produces \verb|SOME|~\isa{{\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}} it is
+  satisfied and assigns the new state value \isa{x{\isaliteral{27}{\isacharprime}}}, broadcasts a
   signal to all waiting threads on the associated condition variable,
   and returns the result \isa{y}.
 
   \end{description}
 
-  There are some further variants of the \verb|Synchronized.guarded_access| combinator, see \hyperlink{file.~~/src/Pure/Concurrent/synchronized.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}Concurrent{\isacharslash}synchronized{\isachardot}ML}}}} for details.%
+  There are some further variants of the \verb|Synchronized.guarded_access| combinator, see \hyperlink{file.~~/src/Pure/Concurrent/synchronized.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}Concurrent{\isaliteral{2F}{\isacharslash}}synchronized{\isaliteral{2E}{\isachardot}}ML}}}} for details.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -2322,28 +2322,28 @@ The following example implements a counter that produces
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
 \ \ local\isanewline
-\ \ \ \ val\ counter\ {\isacharequal}\ Synchronized{\isachardot}var\ {\isachardoublequote}counter{\isachardoublequote}\ {\isadigit{0}}{\isacharsemicolon}\isanewline
+\ \ \ \ val\ counter\ {\isaliteral{3D}{\isacharequal}}\ Synchronized{\isaliteral{2E}{\isachardot}}var\ {\isaliteral{22}{\isachardoublequote}}counter{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{0}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ in\isanewline
-\ \ \ \ fun\ next\ {\isacharparenleft}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ Synchronized{\isachardot}guarded{\isacharunderscore}access\ counter\isanewline
-\ \ \ \ \ \ \ \ {\isacharparenleft}fn\ i\ {\isacharequal}{\isachargreater}\isanewline
-\ \ \ \ \ \ \ \ \ \ let\ val\ j\ {\isacharequal}\ i\ {\isacharplus}\ {\isadigit{1}}\isanewline
-\ \ \ \ \ \ \ \ \ \ in\ SOME\ {\isacharparenleft}j{\isacharcomma}\ j{\isacharparenright}\ end{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ end{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}\isanewline
+\ \ \ \ fun\ next\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ Synchronized{\isaliteral{2E}{\isachardot}}guarded{\isaliteral{5F}{\isacharunderscore}}access\ counter\isanewline
+\ \ \ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}fn\ i\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ \ \ \ \ \ \ let\ val\ j\ {\isaliteral{3D}{\isacharequal}}\ i\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}\isanewline
+\ \ \ \ \ \ \ \ \ \ in\ SOME\ {\isaliteral{28}{\isacharparenleft}}j{\isaliteral{2C}{\isacharcomma}}\ j{\isaliteral{29}{\isacharparenright}}\ end{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ end{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \isanewline
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ val\ a\ {\isacharequal}\ next\ {\isacharparenleft}{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ val\ b\ {\isacharequal}\ next\ {\isacharparenleft}{\isacharparenright}{\isacharsemicolon}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ val\ a\ {\isaliteral{3D}{\isacharequal}}\ next\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ val\ b\ {\isaliteral{3D}{\isacharequal}}\ next\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}a\ {\isacharless}{\isachargreater}\ b{\isacharparenright}{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
+\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{3C}{\isacharless}}{\isaliteral{3E}{\isachargreater}}\ b{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -2352,7 +2352,7 @@ assert%
 \endisadelimML
 %
 \begin{isamarkuptext}%
-\medskip See \hyperlink{file.~~/src/Pure/Concurrent/mailbox.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}Concurrent{\isacharslash}mailbox{\isachardot}ML}}}} how
+\medskip See \hyperlink{file.~~/src/Pure/Concurrent/mailbox.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}Concurrent{\isaliteral{2F}{\isacharslash}}mailbox{\isaliteral{2E}{\isachardot}}ML}}}} how
   to implement a mailbox as synchronized variable over a purely
   functional queue.%
 \end{isamarkuptext}%

@@ -46,7 +46,7 @@ Usage: display [OPTIONS] FILE
 
   \medskip The \verb|-c| option causes the input file to be
   removed after use.  The program for viewing \verb|dvi| files is
-  determined by the \hyperlink{setting.DVI-VIEWER}{\mbox{\isa{\isatt{DVI{\isacharunderscore}VIEWER}}}} setting.%
+  determined by the \hyperlink{setting.DVI-VIEWER}{\mbox{\isa{\isatt{DVI{\isaliteral{5F}{\isacharunderscore}}VIEWER}}}} setting.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -66,10 +66,10 @@ Usage: doc [DOC]
   of these identifiers may be specified as the first argument in order
   to have the corresponding document displayed.
 
-  \medskip The \hyperlink{setting.ISABELLE-DOCS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}DOCS}}}} setting specifies the list of
+  \medskip The \hyperlink{setting.ISABELLE-DOCS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}DOCS}}}} setting specifies the list of
   directories (separated by colons) to be scanned for documentations.
   The program for viewing \verb|dvi| files is determined by the
-  \hyperlink{setting.DVI-VIEWER}{\mbox{\isa{\isatt{DVI{\isacharunderscore}VIEWER}}}} setting.%
+  \hyperlink{setting.DVI-VIEWER}{\mbox{\isa{\isatt{DVI{\isaliteral{5F}{\isacharunderscore}}VIEWER}}}} setting.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -79,7 +79,7 @@ Usage: doc [DOC]
 %
 \begin{isamarkuptext}%
 The \indexdef{}{tool}{findlogics}\hypertarget{tool.findlogics}{\hyperlink{tool.findlogics}{\mbox{\isa{\isatt{findlogics}}}}} utility traverses all directories
-  specified in \hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PATH}}}}, looking for Isabelle logic
+  specified in \hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PATH}}}}, looking for Isabelle logic
   images. Its usage is:
 \begin{ttbox}
 Usage: findlogics
@@ -88,8 +88,8 @@ Usage: findlogics
 \end{ttbox}
 
   The base names of all files found on the path are printed --- sorted
-  and with duplicates removed. Also note that lookup in \hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PATH}}}} includes the current values of \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isacharunderscore}SYSTEM}}}}
-  and \hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isacharunderscore}PLATFORM}}}}. Thus switching to another ML compiler
+  and with duplicates removed. Also note that lookup in \hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PATH}}}} includes the current values of \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}SYSTEM}}}}
+  and \hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}}. Thus switching to another ML compiler
   may change the set of logic images available.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -152,9 +152,9 @@ isabelle getenv -b ISABELLE_OUTPUT
 ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
 \end{ttbox}
 
-  Note how the \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isacharunderscore}IDENTIFIER}}}} value got appended
+  Note how the \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}} value got appended
   automatically to each path component. This is a special feature of
-  \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}OUTPUT}}}}.%
+  \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}OUTPUT}}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -180,10 +180,10 @@ Usage: install [OPTIONS]
 \end{ttbox}
 
   The \verb|-d| option overrides the current Isabelle
-  distribution directory as determined by \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}.
+  distribution directory as determined by \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}.
 
   The \verb|-p| option installs executable wrapper scripts for
-  \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}, \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}},
+  \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}}, \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}},
   \hyperlink{executable.Isabelle}{\mbox{\isa{\isatt{Isabelle}}}}, containing proper absolute references to the
   Isabelle distribution directory.  A typical \verb|DIR|
   specification would be some directory expected to be in the shell's
@@ -250,7 +250,7 @@ Usage: make [ARGS ...]
 \begin{isamarkuptext}%
 Refer to the \verb|IsaMakefile|s of the Isabelle distribution's
   object-logics as a model for your own developments.  For example,
-  see \hyperlink{file.~~/src/FOL/IsaMakefile}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL{\isacharslash}IsaMakefile}}}}.%
+  see \hyperlink{file.~~/src/FOL/IsaMakefile}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}FOL{\isaliteral{2F}{\isacharslash}}IsaMakefile}}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -289,7 +289,7 @@ Usage: print [OPTIONS] FILE
 \end{ttbox}
 
   The \verb|-c| option causes the input file to be removed
-  after use.  The printer spool command is determined by the \hyperlink{setting.PRINT-COMMAND}{\mbox{\isa{\isatt{PRINT{\isacharunderscore}COMMAND}}}} setting.%
+  after use.  The printer spool command is determined by the \hyperlink{setting.PRINT-COMMAND}{\mbox{\isa{\isatt{PRINT{\isaliteral{5F}{\isacharunderscore}}COMMAND}}}} setting.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -343,31 +343,31 @@ The \indexdef{}{tool}{yxml}\hypertarget{tool.yxml}{\hyperlink{tool.yxml}{\mbox{\
   comments).
 
   \item Markup elements are represented via ASCII control characters
-  \isa{{\isachardoublequote}\isactrlbold X\ {\isacharequal}\ {\isadigit{5}}{\isachardoublequote}} and \isa{{\isachardoublequote}\isactrlbold Y\ {\isacharequal}\ {\isadigit{6}}{\isachardoublequote}} as follows:
+  \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold X\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{5}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold Y\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{6}}{\isaliteral{22}{\isachardoublequote}}} as follows:
 
   \begin{tabular}{ll}
     XML & YXML \\\hline
-    \verb|<|\isa{{\isachardoublequote}name\ attribute{\isachardoublequote}}\verb|=|\isa{{\isachardoublequote}value\ {\isasymdots}{\isachardoublequote}}\verb|>| &
-    \isa{{\isachardoublequote}\isactrlbold X\isactrlbold Yname\isactrlbold Yattribute{\isachardoublequote}}\verb|=|\isa{{\isachardoublequote}value{\isasymdots}\isactrlbold X{\isachardoublequote}} \\
-    \verb|</|\isa{name}\verb|>| & \isa{{\isachardoublequote}\isactrlbold X\isactrlbold Y\isactrlbold X{\isachardoublequote}} \\
+    \verb|<|\isa{{\isaliteral{22}{\isachardoublequote}}name\ attribute{\isaliteral{22}{\isachardoublequote}}}\verb|=|\isa{{\isaliteral{22}{\isachardoublequote}}value\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}\verb|>| &
+    \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold X\isaliteral{5C3C5E626F6C643E}{}\isactrlbold Yname\isaliteral{5C3C5E626F6C643E}{}\isactrlbold Yattribute{\isaliteral{22}{\isachardoublequote}}}\verb|=|\isa{{\isaliteral{22}{\isachardoublequote}}value{\isaliteral{5C3C646F74733E}{\isasymdots}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold X{\isaliteral{22}{\isachardoublequote}}} \\
+    \verb|</|\isa{name}\verb|>| & \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold X\isaliteral{5C3C5E626F6C643E}{}\isactrlbold Y\isaliteral{5C3C5E626F6C643E}{}\isactrlbold X{\isaliteral{22}{\isachardoublequote}}} \\
   \end{tabular}
 
   There is no special case for empty body text, i.e.\ \verb|<foo/>| is treated like \verb|<foo></foo>|.  Also note that
-  \isa{{\isachardoublequote}\isactrlbold X{\isachardoublequote}} and \isa{{\isachardoublequote}\isactrlbold Y{\isachardoublequote}} may never occur in
+  \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold X{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold Y{\isaliteral{22}{\isachardoublequote}}} may never occur in
   well-formed XML documents.
 
   \end{enumerate}
 
   Parsing YXML is pretty straight-forward: split the text into chunks
-  separated by \isa{{\isachardoublequote}\isactrlbold X{\isachardoublequote}}, then split each chunk into
-  sub-chunks separated by \isa{{\isachardoublequote}\isactrlbold Y{\isachardoublequote}}.  Markup chunks start
+  separated by \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold X{\isaliteral{22}{\isachardoublequote}}}, then split each chunk into
+  sub-chunks separated by \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold Y{\isaliteral{22}{\isachardoublequote}}}.  Markup chunks start
   with an empty sub-chunk, and a second empty sub-chunk indicates
   close of an element.  Any other non-empty chunk consists of plain
-  text.  For example, see \hyperlink{file.~~/src/Pure/General/yxml.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}yxml{\isachardot}ML}}}} or
-  \hyperlink{file.~~/src/Pure/General/yxml.scala}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}yxml{\isachardot}scala}}}}.
+  text.  For example, see \hyperlink{file.~~/src/Pure/General/yxml.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}General{\isaliteral{2F}{\isacharslash}}yxml{\isaliteral{2E}{\isachardot}}ML}}}} or
+  \hyperlink{file.~~/src/Pure/General/yxml.scala}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}General{\isaliteral{2F}{\isacharslash}}yxml{\isaliteral{2E}{\isachardot}}scala}}}}.
 
   YXML documents may be detected quickly by checking that the first
-  two characters are \isa{{\isachardoublequote}\isactrlbold X\isactrlbold Y{\isachardoublequote}}.%
+  two characters are \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E626F6C643E}{}\isactrlbold X\isaliteral{5C3C5E626F6C643E}{}\isactrlbold Y{\isaliteral{22}{\isachardoublequote}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

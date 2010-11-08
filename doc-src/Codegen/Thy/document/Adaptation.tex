@@ -26,8 +26,8 @@
 %
 \isataginvisible
 \isacommand{setup}\isamarkupfalse%
-\ {\isacharverbatimopen}\ Code{\isacharunderscore}Target{\isachardot}extend{\isacharunderscore}target\ {\isacharparenleft}{\isachardoublequote}{\isasymSML}{\isachardoublequote}{\isacharcomma}\ {\isacharparenleft}{\isachardoublequote}SML{\isachardoublequote}{\isacharcomma}\ K\ I{\isacharparenright}{\isacharparenright}\isanewline
-\ \ {\isacharhash}{\isachargreater}\ Code{\isacharunderscore}Target{\isachardot}extend{\isacharunderscore}target\ {\isacharparenleft}{\isachardoublequote}{\isasymSMLdummy}{\isachardoublequote}{\isacharcomma}\ {\isacharparenleft}{\isachardoublequote}Haskell{\isachardoublequote}{\isacharcomma}\ K\ I{\isacharparenright}{\isacharparenright}\ {\isacharverbatimclose}%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ Code{\isaliteral{5F}{\isacharunderscore}}Target{\isaliteral{2E}{\isachardot}}extend{\isaliteral{5F}{\isacharunderscore}}target\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C534D4C3E}{\isasymSML}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}SML{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ K\ I{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\ Code{\isaliteral{5F}{\isacharunderscore}}Target{\isaliteral{2E}{\isachardot}}extend{\isaliteral{5F}{\isacharunderscore}}target\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C534D4C64756D6D793E}{\isasymSMLdummy}}{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}Haskell{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ K\ I{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisataginvisible
 {\isafoldinvisible}%
 %
@@ -158,27 +158,27 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
 
   \begin{description}
 
-    \item[\hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isacharunderscore}Integer}}}] represents \isa{HOL} integers by
+    \item[\hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Integer}}}] represents \isa{HOL} integers by
        big integer literals in target languages.
 
-    \item[\hyperlink{theory.Code-Char}{\mbox{\isa{Code{\isacharunderscore}Char}}}] represents \isa{HOL} characters by
+    \item[\hyperlink{theory.Code-Char}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Char}}}] represents \isa{HOL} characters by
        character literals in target languages.
 
-    \item[\hyperlink{theory.Code-Char-chr}{\mbox{\isa{Code{\isacharunderscore}Char{\isacharunderscore}chr}}}] like \isa{Code{\isacharunderscore}Char}, but
-       also offers treatment of character codes; includes \hyperlink{theory.Code-Char}{\mbox{\isa{Code{\isacharunderscore}Char}}}.
+    \item[\hyperlink{theory.Code-Char-chr}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Char{\isaliteral{5F}{\isacharunderscore}}chr}}}] like \isa{Code{\isaliteral{5F}{\isacharunderscore}}Char}, but
+       also offers treatment of character codes; includes \hyperlink{theory.Code-Char}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Char}}}.
 
-    \item[\hyperlink{theory.Efficient-Nat}{\mbox{\isa{Efficient{\isacharunderscore}Nat}}}] \label{eff_nat} implements
+    \item[\hyperlink{theory.Efficient-Nat}{\mbox{\isa{Efficient{\isaliteral{5F}{\isacharunderscore}}Nat}}}] \label{eff_nat} implements
        natural numbers by integers, which in general will result in
        higher efficiency; pattern matching with \isa{{\isadigit{0}}} /
-       \isa{Suc} is eliminated; includes \hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isacharunderscore}Integer}}}
-       and \hyperlink{theory.Code-Numeral}{\mbox{\isa{Code{\isacharunderscore}Numeral}}}.
+       \isa{Suc} is eliminated; includes \hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Integer}}}
+       and \hyperlink{theory.Code-Numeral}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Numeral}}}.
 
-    \item[\hyperlink{theory.Code-Numeral}{\mbox{\isa{Code{\isacharunderscore}Numeral}}}] provides an additional datatype
+    \item[\hyperlink{theory.Code-Numeral}{\mbox{\isa{Code{\isaliteral{5F}{\isacharunderscore}}Numeral}}}] provides an additional datatype
        \isa{index} which is mapped to target-language built-in
        integers.  Useful for code setups which involve e.g.~indexing
        of target-language arrays.
 
-    \item[\hyperlink{theory.String}{\mbox{\isa{String}}}] provides an additional datatype \isa{String{\isachardot}literal} which is isomorphic to strings; \isa{String{\isachardot}literal}s are mapped to target-language strings.  Useful
+    \item[\hyperlink{theory.String}{\mbox{\isa{String}}}] provides an additional datatype \isa{String{\isaliteral{2E}{\isachardot}}literal} which is isomorphic to strings; \isa{String{\isaliteral{2E}{\isachardot}}literal}s are mapped to target-language strings.  Useful
        for code setups which involve e.g.~printing (error) messages.
 
   \end{description}
@@ -207,8 +207,8 @@ Consider the following function and its corresponding SML code:%
 %
 \isatagquote
 \isacommand{primrec}\isamarkupfalse%
-\ in{\isacharunderscore}interval\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isasymlongleftrightarrow}\ k\ {\isasymle}\ n\ {\isasymand}\ n\ {\isasymle}\ l{\isachardoublequoteclose}%
+\ in{\isaliteral{5F}{\isacharunderscore}}interval\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}in{\isaliteral{5F}{\isacharunderscore}}interval\ {\isaliteral{28}{\isacharparenleft}}k{\isaliteral{2C}{\isacharcomma}}\ l{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ k\ {\isaliteral{5C3C6C653E}{\isasymle}}\ n\ {\isaliteral{5C3C616E643E}{\isasymand}}\ n\ {\isaliteral{5C3C6C653E}{\isasymle}}\ l{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -236,32 +236,32 @@ Consider the following function and its corresponding SML code:%
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-structure\ Example\ {\isacharcolon}\ sig\isanewline
-\ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
-\ \ datatype\ boola\ {\isacharequal}\ True\ {\isacharbar}\ False\isanewline
-\ \ val\ conj\ {\isacharcolon}\ boola\ {\isacharminus}{\isachargreater}\ boola\ {\isacharminus}{\isachargreater}\ boola\isanewline
-\ \ val\ less{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ boola\isanewline
-\ \ val\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ boola\isanewline
-\ \ val\ in{\isacharunderscore}interval\ {\isacharcolon}\ nat\ {\isacharasterisk}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ boola\isanewline
-end\ {\isacharequal}\ struct\isanewline
+structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
+\ \ datatype\ nat\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{7C}{\isacharbar}}\ Suc\ of\ nat\isanewline
+\ \ datatype\ boola\ {\isaliteral{3D}{\isacharequal}}\ True\ {\isaliteral{7C}{\isacharbar}}\ False\isanewline
+\ \ val\ conj\ {\isaliteral{3A}{\isacharcolon}}\ boola\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ boola\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ boola\isanewline
+\ \ val\ less{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ boola\isanewline
+\ \ val\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ boola\isanewline
+\ \ val\ in{\isaliteral{5F}{\isacharunderscore}}interval\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2A}{\isacharasterisk}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ boola\isanewline
+end\ {\isaliteral{3D}{\isacharequal}}\ struct\isanewline
 \isanewline
-datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat{\isacharsemicolon}\isanewline
+datatype\ nat\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{7C}{\isacharbar}}\ Suc\ of\ nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-datatype\ boola\ {\isacharequal}\ True\ {\isacharbar}\ False{\isacharsemicolon}\isanewline
+datatype\ boola\ {\isaliteral{3D}{\isacharequal}}\ True\ {\isaliteral{7C}{\isacharbar}}\ False{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ conj\ p\ True\ {\isacharequal}\ p\isanewline
-\ \ {\isacharbar}\ conj\ p\ False\ {\isacharequal}\ False\isanewline
-\ \ {\isacharbar}\ conj\ True\ p\ {\isacharequal}\ p\isanewline
-\ \ {\isacharbar}\ conj\ False\ p\ {\isacharequal}\ False{\isacharsemicolon}\isanewline
+fun\ conj\ p\ True\ {\isaliteral{3D}{\isacharequal}}\ p\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ conj\ p\ False\ {\isaliteral{3D}{\isacharequal}}\ False\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ conj\ True\ p\ {\isaliteral{3D}{\isacharequal}}\ p\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ conj\ False\ p\ {\isaliteral{3D}{\isacharequal}}\ False{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ less{\isacharunderscore}nat\ m\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ less{\isacharunderscore}eq{\isacharunderscore}nat\ m\ n\isanewline
-\ \ {\isacharbar}\ less{\isacharunderscore}nat\ n\ Zero{\isacharunderscore}nat\ {\isacharequal}\ False\isanewline
-and\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n\ {\isacharequal}\ less{\isacharunderscore}nat\ m\ n\isanewline
-\ \ {\isacharbar}\ less{\isacharunderscore}eq{\isacharunderscore}nat\ Zero{\isacharunderscore}nat\ n\ {\isacharequal}\ True{\isacharsemicolon}\isanewline
+fun\ less{\isaliteral{5F}{\isacharunderscore}}nat\ m\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ less{\isaliteral{5F}{\isacharunderscore}}nat\ n\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ False\isanewline
+and\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ less{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{3D}{\isacharequal}}\ True{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isacharequal}\ conj\ {\isacharparenleft}less{\isacharunderscore}eq{\isacharunderscore}nat\ k\ n{\isacharparenright}\ {\isacharparenleft}less{\isacharunderscore}eq{\isacharunderscore}nat\ n\ l{\isacharparenright}{\isacharsemicolon}\isanewline
+fun\ in{\isaliteral{5F}{\isacharunderscore}}interval\ {\isaliteral{28}{\isacharparenleft}}k{\isaliteral{2C}{\isacharcomma}}\ l{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ conj\ {\isaliteral{28}{\isacharparenleft}}less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ k\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ n\ l{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
+end{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}struct\ Example{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -287,12 +287,12 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \endisadelimquotett
 %
 \isatagquotett
-\isacommand{code{\isacharunderscore}type}\isamarkupfalse%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}type}\isamarkupfalse%
 \ bool\isanewline
-\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}bool{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
-\ True\ \isakeyword{and}\ False\ \isakeyword{and}\ {\isachardoublequoteopen}op\ {\isasymand}{\isachardoublequoteclose}\isanewline
-\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}true{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}false{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}{\isacharunderscore}\ andalso\ {\isacharunderscore}{\isachardoublequoteclose}{\isacharparenright}%
+\ \ {\isaliteral{28}{\isacharparenleft}}SML\ {\isaliteral{22}{\isachardoublequoteopen}}bool{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}const}\isamarkupfalse%
+\ True\ \isakeyword{and}\ False\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}op\ {\isaliteral{5C3C616E643E}{\isasymand}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}SML\ {\isaliteral{22}{\isachardoublequoteopen}}true{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}false{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5F}{\isacharunderscore}}\ andalso\ {\isaliteral{5F}{\isacharunderscore}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \endisatagquotett
 {\isafoldquotett}%
 %
@@ -301,12 +301,12 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \endisadelimquotett
 %
 \begin{isamarkuptext}%
-\noindent The \indexdef{}{command}{code\_type}\hypertarget{command.code-type}{\hyperlink{command.code-type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}}} command takes a type constructor
+\noindent The \indexdef{}{command}{code\_type}\hypertarget{command.code-type}{\hyperlink{command.code-type}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}type}}}}} command takes a type constructor
   as arguments together with a list of custom serialisations.  Each
   custom serialisation starts with a target language identifier
   followed by an expression, which during code serialisation is
   inserted whenever the type constructor would occur.  For constants,
-  \indexdef{}{command}{code\_const}\hypertarget{command.code-const}{\hyperlink{command.code-const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}}} implements the corresponding mechanism.  Each
+  \indexdef{}{command}{code\_const}\hypertarget{command.code-const}{\hyperlink{command.code-const}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}const}}}}} implements the corresponding mechanism.  Each
   ``\verb|_|'' in a serialisation expression is treated as a
   placeholder for the type constructor's (the constant's) arguments.%
 \end{isamarkuptext}%
@@ -319,23 +319,23 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-structure\ Example\ {\isacharcolon}\ sig\isanewline
-\ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
-\ \ val\ less{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
-\ \ val\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
-\ \ val\ in{\isacharunderscore}interval\ {\isacharcolon}\ nat\ {\isacharasterisk}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
-end\ {\isacharequal}\ struct\isanewline
+structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
+\ \ datatype\ nat\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{7C}{\isacharbar}}\ Suc\ of\ nat\isanewline
+\ \ val\ less{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
+\ \ val\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
+\ \ val\ in{\isaliteral{5F}{\isacharunderscore}}interval\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2A}{\isacharasterisk}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
+end\ {\isaliteral{3D}{\isacharequal}}\ struct\isanewline
 \isanewline
-datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat{\isacharsemicolon}\isanewline
+datatype\ nat\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{7C}{\isacharbar}}\ Suc\ of\ nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ less{\isacharunderscore}nat\ m\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ less{\isacharunderscore}eq{\isacharunderscore}nat\ m\ n\isanewline
-\ \ {\isacharbar}\ less{\isacharunderscore}nat\ n\ Zero{\isacharunderscore}nat\ {\isacharequal}\ false\isanewline
-and\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n\ {\isacharequal}\ less{\isacharunderscore}nat\ m\ n\isanewline
-\ \ {\isacharbar}\ less{\isacharunderscore}eq{\isacharunderscore}nat\ Zero{\isacharunderscore}nat\ n\ {\isacharequal}\ true{\isacharsemicolon}\isanewline
+fun\ less{\isaliteral{5F}{\isacharunderscore}}nat\ m\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ less{\isaliteral{5F}{\isacharunderscore}}nat\ n\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ false\isanewline
+and\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ less{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{3D}{\isacharequal}}\ true{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isacharequal}\ {\isacharparenleft}less{\isacharunderscore}eq{\isacharunderscore}nat\ k\ n{\isacharparenright}\ andalso\ {\isacharparenleft}less{\isacharunderscore}eq{\isacharunderscore}nat\ n\ l{\isacharparenright}{\isacharsemicolon}\isanewline
+fun\ in{\isaliteral{5F}{\isacharunderscore}}interval\ {\isaliteral{28}{\isacharparenleft}}k{\isaliteral{2C}{\isacharcomma}}\ l{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ k\ n{\isaliteral{29}{\isacharparenright}}\ andalso\ {\isaliteral{28}{\isacharparenleft}}less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ n\ l{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
+end{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}struct\ Example{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -360,9 +360,9 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \endisadelimquotett
 %
 \isatagquotett
-\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
-\ {\isachardoublequoteopen}op\ {\isasymand}{\isachardoublequoteclose}\isanewline
-\ \ {\isacharparenleft}SML\ \isakeyword{infixl}\ {\isadigit{1}}\ {\isachardoublequoteopen}andalso{\isachardoublequoteclose}{\isacharparenright}%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}const}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}op\ {\isaliteral{5C3C616E643E}{\isasymand}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}SML\ \isakeyword{infixl}\ {\isadigit{1}}\ {\isaliteral{22}{\isachardoublequoteopen}}andalso{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \endisatagquotett
 {\isafoldquotett}%
 %
@@ -377,23 +377,23 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-structure\ Example\ {\isacharcolon}\ sig\isanewline
-\ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
-\ \ val\ less{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
-\ \ val\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
-\ \ val\ in{\isacharunderscore}interval\ {\isacharcolon}\ nat\ {\isacharasterisk}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ bool\isanewline
-end\ {\isacharequal}\ struct\isanewline
+structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
+\ \ datatype\ nat\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{7C}{\isacharbar}}\ Suc\ of\ nat\isanewline
+\ \ val\ less{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
+\ \ val\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
+\ \ val\ in{\isaliteral{5F}{\isacharunderscore}}interval\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2A}{\isacharasterisk}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
+end\ {\isaliteral{3D}{\isacharequal}}\ struct\isanewline
 \isanewline
-datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat{\isacharsemicolon}\isanewline
+datatype\ nat\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{7C}{\isacharbar}}\ Suc\ of\ nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ less{\isacharunderscore}nat\ m\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ less{\isacharunderscore}eq{\isacharunderscore}nat\ m\ n\isanewline
-\ \ {\isacharbar}\ less{\isacharunderscore}nat\ n\ Zero{\isacharunderscore}nat\ {\isacharequal}\ false\isanewline
-and\ less{\isacharunderscore}eq{\isacharunderscore}nat\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n\ {\isacharequal}\ less{\isacharunderscore}nat\ m\ n\isanewline
-\ \ {\isacharbar}\ less{\isacharunderscore}eq{\isacharunderscore}nat\ Zero{\isacharunderscore}nat\ n\ {\isacharequal}\ true{\isacharsemicolon}\isanewline
+fun\ less{\isaliteral{5F}{\isacharunderscore}}nat\ m\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ less{\isaliteral{5F}{\isacharunderscore}}nat\ n\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ false\isanewline
+and\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ less{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{3D}{\isacharequal}}\ true{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isacharequal}\ less{\isacharunderscore}eq{\isacharunderscore}nat\ k\ n\ andalso\ less{\isacharunderscore}eq{\isacharunderscore}nat\ n\ l{\isacharsemicolon}\isanewline
+fun\ in{\isaliteral{5F}{\isacharunderscore}}interval\ {\isaliteral{28}{\isacharparenleft}}k{\isaliteral{2C}{\isacharcomma}}\ l{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ k\ n\ andalso\ less{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}nat\ n\ l{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
+end{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}struct\ Example{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -411,7 +411,7 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
   avoided to be used for new declarations.  Initially, this table
   typically contains the keywords of the target language.  It can be
   extended manually, thus avoiding accidental overwrites, using the
-  \indexdef{}{command}{code\_reserved}\hypertarget{command.code-reserved}{\hyperlink{command.code-reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}}} command:%
+  \indexdef{}{command}{code\_reserved}\hypertarget{command.code-reserved}{\hyperlink{command.code-reserved}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reserved}}}}} command:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -420,8 +420,8 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \endisadelimquote
 %
 \isatagquote
-\isacommand{code{\isacharunderscore}reserved}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymSMLdummy}{\isachardoublequoteclose}\ bool\ true\ false\ andalso%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reserved}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C534D4C64756D6D793E}{\isasymSMLdummy}}{\isaliteral{22}{\isachardoublequoteclose}}\ bool\ true\ false\ andalso%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -453,12 +453,12 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \endisadelimquotett
 %
 \isatagquotett
-\isacommand{code{\isacharunderscore}type}\isamarkupfalse%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}type}\isamarkupfalse%
 \ prod\isanewline
-\ \ {\isacharparenleft}SML\ \isakeyword{infix}\ {\isadigit{2}}\ {\isachardoublequoteopen}{\isacharasterisk}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
+\ \ {\isaliteral{28}{\isacharparenleft}}SML\ \isakeyword{infix}\ {\isadigit{2}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}const}\isamarkupfalse%
 \ Pair\isanewline
-\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharparenleft}{\isacharparenleft}{\isacharunderscore}{\isacharparenright}{\isacharcomma}{\isacharslash}\ {\isacharparenleft}{\isacharunderscore}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+\ \ {\isaliteral{28}{\isacharparenleft}}SML\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{21}{\isacharbang}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{2F}{\isacharslash}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \endisatagquotett
 {\isafoldquotett}%
 %
@@ -496,7 +496,7 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 For convenience, the default \isa{HOL} setup for \isa{Haskell}
   maps the \isa{equal} class to its counterpart in \isa{Haskell},
   giving custom serialisations for the class \isa{equal} (by command
-  \indexdef{}{command}{code\_class}\hypertarget{command.code-class}{\hyperlink{command.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}}) and its operation \isa{HOL{\isachardot}equal}%
+  \indexdef{}{command}{code\_class}\hypertarget{command.code-class}{\hyperlink{command.code-class}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}class}}}}}) and its operation \isa{HOL{\isaliteral{2E}{\isachardot}}equal}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -505,13 +505,13 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 \endisadelimquotett
 %
 \isatagquotett
-\isacommand{code{\isacharunderscore}class}\isamarkupfalse%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}class}\isamarkupfalse%
 \ equal\isanewline
-\ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Eq{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}Haskell\ {\isaliteral{22}{\isachardoublequoteopen}}Eq{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
-\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
-\ {\isachardoublequoteopen}HOL{\isachardot}equal{\isachardoublequoteclose}\isanewline
-\ \ {\isacharparenleft}Haskell\ \isakeyword{infixl}\ {\isadigit{4}}\ {\isachardoublequoteopen}{\isacharequal}{\isacharequal}{\isachardoublequoteclose}{\isacharparenright}%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}const}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}HOL{\isaliteral{2E}{\isachardot}}equal{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}Haskell\ \isakeyword{infixl}\ {\isadigit{4}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \endisatagquotett
 {\isafoldquotett}%
 %
@@ -535,15 +535,15 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 \ bar\isanewline
 \isanewline
 \isacommand{instantiation}\isamarkupfalse%
-\ bar\ {\isacharcolon}{\isacharcolon}\ equal\isanewline
+\ bar\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ equal\isanewline
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
-\ {\isachardoublequoteopen}HOL{\isachardot}equal\ {\isacharparenleft}x{\isasymColon}bar{\isacharparenright}\ y\ {\isasymlongleftrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}HOL{\isaliteral{2E}{\isachardot}}equal\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}bar{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{instance}\isamarkupfalse%
 \ \isacommand{by}\isamarkupfalse%
-\ default\ {\isacharparenleft}simp\ add{\isacharcolon}\ equal{\isacharunderscore}bar{\isacharunderscore}def{\isacharparenright}\isanewline
+\ default\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ equal{\isaliteral{5F}{\isacharunderscore}}bar{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \isacommand{end}\isamarkupfalse%
 %
@@ -559,9 +559,9 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 \endisadelimquotett
 %
 \isatagquotett
-\isacommand{code{\isacharunderscore}type}\isamarkupfalse%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}type}\isamarkupfalse%
 \ bar\isanewline
-\ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Integer{\isachardoublequoteclose}{\isacharparenright}%
+\ \ {\isaliteral{28}{\isacharparenleft}}Haskell\ {\isaliteral{22}{\isachardoublequoteopen}}Integer{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \endisatagquotett
 {\isafoldquotett}%
 %
@@ -572,7 +572,7 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 \begin{isamarkuptext}%
 \noindent The code generator would produce an additional instance,
   which of course is rejected by the \isa{Haskell} compiler.  To
-  suppress this additional instance, use \indexdef{}{command}{code\_instance}\hypertarget{command.code-instance}{\hyperlink{command.code-instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}}}:%
+  suppress this additional instance, use \indexdef{}{command}{code\_instance}\hypertarget{command.code-instance}{\hyperlink{command.code-instance}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}instance}}}}}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -581,9 +581,9 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 \endisadelimquotett
 %
 \isatagquotett
-\isacommand{code{\isacharunderscore}instance}\isamarkupfalse%
-\ bar\ {\isacharcolon}{\isacharcolon}\ equal\isanewline
-\ \ {\isacharparenleft}Haskell\ {\isacharminus}{\isacharparenright}%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}instance}\isamarkupfalse%
+\ bar\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ equal\isanewline
+\ \ {\isaliteral{28}{\isacharparenleft}}Haskell\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{29}{\isacharparenright}}%
 \endisatagquotett
 {\isafoldquotett}%
 %
@@ -597,7 +597,7 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 %
 \begin{isamarkuptext}%
 In rare cases it is necessary to \emph{enrich} the context of a
-  target language; this is accomplished using the \indexdef{}{command}{code\_include}\hypertarget{command.code-include}{\hyperlink{command.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}} command:%
+  target language; this is accomplished using the \indexdef{}{command}{code\_include}\hypertarget{command.code-include}{\hyperlink{command.code-include}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}include}}}}} command:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -606,11 +606,11 @@ In rare cases it is necessary to \emph{enrich} the context of a
 \endisadelimquotett
 %
 \isatagquotett
-\isacommand{code{\isacharunderscore}include}\isamarkupfalse%
-\ Haskell\ {\isachardoublequoteopen}Errno{\isachardoublequoteclose}\isanewline
-{\isacharverbatimopen}errno\ i\ {\isacharequal}\ error\ {\isacharparenleft}{\isachardoublequote}Error\ number{\isacharcolon}\ {\isachardoublequote}\ {\isacharplus}{\isacharplus}\ show\ i{\isacharparenright}{\isacharverbatimclose}\isanewline
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}include}\isamarkupfalse%
+\ Haskell\ {\isaliteral{22}{\isachardoublequoteopen}}Errno{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7B2A}{\isacharverbatimopen}}errno\ i\ {\isaliteral{3D}{\isacharequal}}\ error\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequote}}Error\ number{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{2B}{\isacharplus}}{\isaliteral{2B}{\isacharplus}}\ show\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \isanewline
-\isacommand{code{\isacharunderscore}reserved}\isamarkupfalse%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reserved}\isamarkupfalse%
 \ Haskell\ Errno%
 \endisatagquotett
 {\isafoldquotett}%
@@ -622,7 +622,7 @@ In rare cases it is necessary to \emph{enrich} the context of a
 \begin{isamarkuptext}%
 \noindent Such named \isa{include}s are then prepended to every
   generated code.  Inspect such code in order to find out how
-  \hyperlink{command.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}} behaves with respect to a particular
+  \hyperlink{command.code-include}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}include}}}} behaves with respect to a particular
   target language.%
 \end{isamarkuptext}%
 \isamarkuptrue%

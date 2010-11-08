@@ -1,6 +1,6 @@
 %
 \begin{isabellebody}%
-\def\isabellecontext{NS{\isacharunderscore}Public}%
+\def\isabellecontext{NS{\isaliteral{5F}{\isacharunderscore}}Public}%
 %
 \isadelimtheory
 %
@@ -21,33 +21,33 @@
 %
 \begin{figure}
 \begin{isabelle}
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
-\ ns{\isacharunderscore}public\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}event\ list\ set{\isachardoublequoteclose}\isanewline
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
+\ ns{\isaliteral{5F}{\isacharunderscore}}public\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}event\ list\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isakeyword{where}\isanewline
 \isanewline
-\ \ \ Nil{\isacharcolon}\ \ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}\ {\isasymin}\ ns{\isacharunderscore}public{\isachardoublequoteclose}\isanewline
+\ \ \ Nil{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isanewline
-\ {\isacharbar}\ Fake{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}evsf\ {\isasymin}\ ns{\isacharunderscore}public{\isacharsemicolon}\ \ X\ {\isasymin}\ synth\ {\isacharparenleft}analz\ {\isacharparenleft}knows\ Spy\ evsf{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ Says\ Spy\ B\ X\ \ {\isacharhash}\ evsf\ {\isasymin}\ ns{\isacharunderscore}public{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{7C}{\isacharbar}}\ Fake{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}evsf\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{3B}{\isacharsemicolon}}\ \ X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ {\isaliteral{28}{\isacharparenleft}}analz\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evsf{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Says\ Spy\ B\ X\ \ {\isaliteral{23}{\isacharhash}}\ evsf\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isanewline
-\ {\isacharbar}\ NS{\isadigit{1}}{\isacharcolon}\ \ {\isachardoublequoteopen}{\isasymlbrakk}evs{\isadigit{1}}\ {\isasymin}\ ns{\isacharunderscore}public{\isacharsemicolon}\ \ Nonce\ NA\ {\isasymnotin}\ used\ evs{\isadigit{1}}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ Says\ A\ B\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ B{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Agent\ A{\isasymrbrace}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharhash}\ evs{\isadigit{1}}\ \ {\isasymin}\ \ ns{\isacharunderscore}public{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{7C}{\isacharbar}}\ NS{\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}evs{\isadigit{1}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{3B}{\isacharsemicolon}}\ \ Nonce\ NA\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ used\ evs{\isadigit{1}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Says\ A\ B\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Agent\ A{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{23}{\isacharhash}}\ evs{\isadigit{1}}\ \ {\isaliteral{5C3C696E3E}{\isasymin}}\ \ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isanewline
-\ {\isacharbar}\ NS{\isadigit{2}}{\isacharcolon}\ \ {\isachardoublequoteopen}{\isasymlbrakk}evs{\isadigit{2}}\ {\isasymin}\ ns{\isacharunderscore}public{\isacharsemicolon}\ \ Nonce\ NB\ {\isasymnotin}\ used\ evs{\isadigit{2}}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ Says\ A{\isacharprime}\ B\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ B{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Agent\ A{\isasymrbrace}{\isacharparenright}\ {\isasymin}\ set\ evs{\isadigit{2}}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ Says\ B\ A\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ A{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Nonce\ NB{\isacharcomma}\ Agent\ B{\isasymrbrace}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharhash}\ evs{\isadigit{2}}\ \ {\isasymin}\ \ ns{\isacharunderscore}public{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{7C}{\isacharbar}}\ NS{\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}evs{\isadigit{2}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{3B}{\isacharsemicolon}}\ \ Nonce\ NB\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ used\ evs{\isadigit{2}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ Says\ A{\isaliteral{27}{\isacharprime}}\ B\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Agent\ A{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs{\isadigit{2}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Says\ B\ A\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Nonce\ NB{\isaliteral{2C}{\isacharcomma}}\ Agent\ B{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{23}{\isacharhash}}\ evs{\isadigit{2}}\ \ {\isaliteral{5C3C696E3E}{\isasymin}}\ \ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isanewline
-\ {\isacharbar}\ NS{\isadigit{3}}{\isacharcolon}\ \ {\isachardoublequoteopen}{\isasymlbrakk}evs{\isadigit{3}}\ {\isasymin}\ ns{\isacharunderscore}public{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ Says\ A\ \ B\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ B{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Agent\ A{\isasymrbrace}{\isacharparenright}\ {\isasymin}\ set\ evs{\isadigit{3}}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ Says\ B{\isacharprime}\ A\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ A{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Nonce\ NB{\isacharcomma}\ Agent\ B{\isasymrbrace}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymin}\ set\ evs{\isadigit{3}}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ Says\ A\ B\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ B{\isacharparenright}\ {\isacharparenleft}Nonce\ NB{\isacharparenright}{\isacharparenright}\ {\isacharhash}\ evs{\isadigit{3}}\ {\isasymin}\ ns{\isacharunderscore}public{\isachardoublequoteclose}%
+\ {\isaliteral{7C}{\isacharbar}}\ NS{\isadigit{3}}{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}evs{\isadigit{3}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ Says\ A\ \ B\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Agent\ A{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs{\isadigit{3}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ Says\ B{\isaliteral{27}{\isacharprime}}\ A\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Nonce\ NB{\isaliteral{2C}{\isacharcomma}}\ Agent\ B{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs{\isadigit{3}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Says\ A\ B\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}Nonce\ NB{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{23}{\isacharhash}}\ evs{\isadigit{3}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{22}{\isachardoublequoteclose}}%
 \end{isabelle}
 \caption{An Inductive Protocol Definition}\label{fig:ns_public}
 \end{figure}
@@ -65,7 +65,7 @@ Lowe:
 
 Each protocol step is specified by a rule of an inductive definition.  An
 event trace has type \isa{event\ list}, so we declare the constant
-\isa{ns{\isacharunderscore}public} to be a set of such traces.
+\isa{ns{\isaliteral{5F}{\isacharunderscore}}public} to be a set of such traces.
 
 Figure~\ref{fig:ns_public} presents the inductive definition.  The
 \isa{Nil} rule introduces the empty trace.  The \isa{Fake} rule models the
@@ -78,14 +78,14 @@ protocol steps.
 Here is a detailed explanation of rule \isa{NS{\isadigit{2}}}.
 A trace containing an event of the form
 \begin{isabelle}%
-\ \ \ \ \ Says\ A{\isacharprime}\ B\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ B{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Agent\ A{\isasymrbrace}{\isacharparenright}%
+\ \ \ \ \ Says\ A{\isaliteral{27}{\isacharprime}}\ B\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Agent\ A{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 may be extended by an event of the form
 \begin{isabelle}%
-\ \ \ \ \ Says\ B\ A\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ A{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Nonce\ NB{\isacharcomma}\ Agent\ B{\isasymrbrace}{\isacharparenright}%
+\ \ \ \ \ Says\ B\ A\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Nonce\ NB{\isaliteral{2C}{\isacharcomma}}\ Agent\ B{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
-where \isa{NB} is a fresh nonce: \isa{Nonce\ NB\ {\isasymnotin}\ used\ evs{\isadigit{2}}}.
-Writing the sender as \isa{A{\isacharprime}} indicates that \isa{B} does not 
+where \isa{NB} is a fresh nonce: \isa{Nonce\ NB\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ used\ evs{\isadigit{2}}}.
+Writing the sender as \isa{A{\isaliteral{27}{\isacharprime}}} indicates that \isa{B} does not 
 know who sent the message.  Calling the trace variable \isa{evs{\isadigit{2}}} rather
 than simply \isa{evs} helps us know where we are in a proof after many
 case-splits: every subgoal mentioning \isa{evs{\isadigit{2}}} involves message~2 of the
@@ -117,7 +117,7 @@ notation to the inductive rules is straightforward.%
 \begin{isamarkuptext}%
 Secrecy properties can be hard to prove.  The conclusion of a typical
 secrecy theorem is 
-\isa{X\ {\isasymnotin}\ analz\ {\isacharparenleft}knows\ Spy\ evs{\isacharparenright}}.  The difficulty arises from
+\isa{X\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ analz\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isaliteral{29}{\isacharparenright}}}.  The difficulty arises from
 having to reason about \isa{analz}, or less formally, showing that the spy
 can never learn~\isa{X}.  Much easier is to prove that \isa{X} can never
 occur at all.  Such \emph{regularity} properties are typically expressed
@@ -132,9 +132,9 @@ nearly all protocol proofs, is by induction over traces.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ Spy{\isacharunderscore}see{\isacharunderscore}priK\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}evs\ {\isasymin}\ ns{\isacharunderscore}public\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Key\ {\isacharparenleft}priK\ A{\isacharparenright}\ {\isasymin}\ parts\ {\isacharparenleft}knows\ Spy\ evs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}A\ {\isasymin}\ bad{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ Spy{\isaliteral{5F}{\isacharunderscore}}see{\isaliteral{5F}{\isacharunderscore}}priK\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}evs\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public\isanewline
+\ \ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Key\ {\isaliteral{28}{\isacharparenleft}}priK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ parts\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C696E3E}{\isasymin}}\ bad{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -142,10 +142,10 @@ nearly all protocol proofs, is by induction over traces.%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ ns{\isacharunderscore}public{\isachardot}induct{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}erule\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{2E}{\isachardot}}induct{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 The induction yields five subgoals, one for each rule in the definition of
-\isa{ns{\isacharunderscore}public}.  The idea is to prove that the protocol property holds initially
+\isa{ns{\isaliteral{5F}{\isacharunderscore}}public}.  The idea is to prove that the protocol property holds initially
 (rule \isa{Nil}), is preserved by each of the legitimate protocol steps (rules
 \isa{NS{\isadigit{1}}}--\isa{{\isadigit{3}}}), and even is preserved in the face of anything the
 spy can do (rule \isa{Fake}).  
@@ -154,12 +154,12 @@ The proof is trivial.  No legitimate protocol rule sends any keys
 at all, so only \isa{Fake} is relevant. Indeed, simplification leaves
 only the \isa{Fake} case, as indicated by the variable name \isa{evsf}:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}evsf\ X{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}evsf\ {\isasymin}\ ns{\isacharunderscore}public{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }{\isacharparenleft}Key\ {\isacharparenleft}priK\ A{\isacharparenright}\ {\isasymin}\ parts\ {\isacharparenleft}knows\ Spy\ evsf{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}A\ {\isasymin}\ bad{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }X\ {\isasymin}\ synth\ {\isacharparenleft}analz\ {\isacharparenleft}knows\ Spy\ evsf{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ {\isacharparenleft}Key\ {\isacharparenleft}priK\ A{\isacharparenright}\ {\isasymin}\ parts\ {\isacharparenleft}insert\ X\ {\isacharparenleft}knows\ Spy\ evsf{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }{\isacharparenleft}A\ {\isasymin}\ bad{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}evsf\ X{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}evsf\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }{\isaliteral{28}{\isacharparenleft}}Key\ {\isaliteral{28}{\isacharparenleft}}priK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ parts\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evsf{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C696E3E}{\isasymin}}\ bad{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ {\isaliteral{28}{\isacharparenleft}}analz\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evsf{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Key\ {\isaliteral{28}{\isacharparenleft}}priK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ parts\ {\isaliteral{28}{\isacharparenleft}}insert\ X\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evsf{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ }{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C696E3E}{\isasymin}}\ bad{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -199,16 +199,16 @@ it is known to the spy.  Intuitively, it holds because honest agents
 always choose fresh values as nonces; only the spy might reuse a value,
 and he doesn't know this particular value.  The proof script is short:
 induction, simplification, \isa{blast}.  The first line uses the rule
-\isa{rev{\isacharunderscore}mp} to prepare the induction by moving two assumptions into the 
+\isa{rev{\isaliteral{5F}{\isacharunderscore}}mp} to prepare the induction by moving two assumptions into the 
 induction formula.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ no{\isacharunderscore}nonce{\isacharunderscore}NS{\isadigit{1}}{\isacharunderscore}NS{\isadigit{2}}{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}Crypt\ {\isacharparenleft}pubK\ C{\isacharparenright}\ {\isasymlbrace}NA{\isacharprime}{\isacharcomma}\ Nonce\ NA{\isacharcomma}\ Agent\ D{\isasymrbrace}\ {\isasymin}\ parts\ {\isacharparenleft}knows\ Spy\ evs{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ Crypt\ {\isacharparenleft}pubK\ B{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Agent\ A{\isasymrbrace}\ {\isasymin}\ parts\ {\isacharparenleft}knows\ Spy\ evs{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ evs\ {\isasymin}\ ns{\isacharunderscore}public{\isasymrbrakk}\isanewline
-\ \ \ \ \ {\isasymLongrightarrow}\ Nonce\ NA\ {\isasymin}\ analz\ {\isacharparenleft}knows\ Spy\ evs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ no{\isaliteral{5F}{\isacharunderscore}}nonce{\isaliteral{5F}{\isacharunderscore}}NS{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}NS{\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}NA{\isaliteral{27}{\isacharprime}}{\isaliteral{2C}{\isacharcomma}}\ Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Agent\ D{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ parts\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ \ \ Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Agent\ A{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ parts\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ \ \ evs\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Nonce\ NA\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -216,11 +216,11 @@ induction formula.%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ rev{\isacharunderscore}mp{\isacharcomma}\ erule\ rev{\isacharunderscore}mp{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}erule\ rev{\isaliteral{5F}{\isacharunderscore}}mp{\isaliteral{2C}{\isacharcomma}}\ erule\ rev{\isaliteral{5F}{\isacharunderscore}}mp{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ ns{\isacharunderscore}public{\isachardot}induct{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}erule\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{2E}{\isachardot}}induct{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}blast\ intro{\isacharcolon}\ analz{\isacharunderscore}insertI{\isacharparenright}{\isacharplus}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}blast\ intro{\isaliteral{3A}{\isacharcolon}}\ analz{\isaliteral{5F}{\isacharunderscore}}insertI{\isaliteral{29}{\isacharparenright}}{\isaliteral{2B}{\isacharplus}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -237,11 +237,11 @@ The proof is similar to the previous one.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ unique{\isacharunderscore}NA{\isacharcolon}\isanewline
-\ \ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}Crypt{\isacharparenleft}pubK\ B{\isacharparenright}\ \ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Agent\ A\ {\isasymrbrace}\ {\isasymin}\ parts{\isacharparenleft}knows\ Spy\ evs{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ Crypt{\isacharparenleft}pubK\ B{\isacharprime}{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Agent\ A{\isacharprime}{\isasymrbrace}\ {\isasymin}\ parts{\isacharparenleft}knows\ Spy\ evs{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ Nonce\ NA\ {\isasymnotin}\ analz\ {\isacharparenleft}knows\ Spy\ evs{\isacharparenright}{\isacharsemicolon}\ evs\ {\isasymin}\ ns{\isacharunderscore}public{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ {\isasymLongrightarrow}\ A{\isacharequal}A{\isacharprime}\ {\isasymand}\ B{\isacharequal}B{\isacharprime}{\isachardoublequoteclose}%
+\ unique{\isaliteral{5F}{\isacharunderscore}}NA{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}Crypt{\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ \ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Agent\ A\ {\isaliteral{5C3C7262726163653E}{\isasymrbrace}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ parts{\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ \ \ \ Crypt{\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Agent\ A{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ parts{\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ \ \ \ Nonce\ NA\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ analz\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\ evs\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A{\isaliteral{3D}{\isacharequal}}A{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{3D}{\isacharequal}}B{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -332,10 +332,10 @@ uncompromised, then Bob's nonce will never reach the spy.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ Spy{\isacharunderscore}not{\isacharunderscore}see{\isacharunderscore}NB\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\isanewline
-\ {\isachardoublequoteopen}{\isasymlbrakk}Says\ B\ A\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ A{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Nonce\ NB{\isacharcomma}\ Agent\ B{\isasymrbrace}{\isacharparenright}\ {\isasymin}\ set\ evs{\isacharsemicolon}\isanewline
-\ \ \ A\ {\isasymnotin}\ bad{\isacharsemicolon}\ \ B\ {\isasymnotin}\ bad{\isacharsemicolon}\ \ evs\ {\isasymin}\ ns{\isacharunderscore}public{\isasymrbrakk}\isanewline
-\ \ {\isasymLongrightarrow}\ Nonce\ NB\ {\isasymnotin}\ analz\ {\isacharparenleft}knows\ Spy\ evs{\isacharparenright}{\isachardoublequoteclose}%
+\ Spy{\isaliteral{5F}{\isacharunderscore}}not{\isaliteral{5F}{\isacharunderscore}}see{\isaliteral{5F}{\isacharunderscore}}NB\ {\isaliteral{5B}{\isacharbrackleft}}dest{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}Says\ B\ A\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Nonce\ NB{\isaliteral{2C}{\isacharcomma}}\ Agent\ B{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ A\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ bad{\isaliteral{3B}{\isacharsemicolon}}\ \ B\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ bad{\isaliteral{3B}{\isacharsemicolon}}\ \ evs\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Nonce\ NB\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ analz\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -348,7 +348,7 @@ assumptions mentions~\isa{evs}), apply induction, and simplify:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ rev{\isacharunderscore}mp{\isacharcomma}\ erule\ ns{\isacharunderscore}public{\isachardot}induct{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}erule\ rev{\isaliteral{5F}{\isacharunderscore}}mp{\isaliteral{2C}{\isacharcomma}}\ erule\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{2E}{\isachardot}}induct{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 The proof states are too complicated to present in full.  
 Let's examine the simplest subgoal, that for message~1.  The following
@@ -362,29 +362,29 @@ concerns message~1 being sent just now.
 In the Isabelle subgoal, instead of primed variables like $B'$ and $Na'$
 we have \isa{Ba} and~\isa{NAa}:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}evs{\isadigit{1}}\ NAa\ Ba{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}A\ {\isasymnotin}\ bad{\isacharsemicolon}\ B\ {\isasymnotin}\ bad{\isacharsemicolon}\ evs{\isadigit{1}}\ {\isasymin}\ ns{\isacharunderscore}public{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }Says\ B\ A\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ A{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Nonce\ NB{\isacharcomma}\ Agent\ B{\isasymrbrace}{\isacharparenright}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }{\isasymin}\ set\ evs{\isadigit{1}}\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }Nonce\ NB\ {\isasymnotin}\ analz\ {\isacharparenleft}knows\ Spy\ evs{\isadigit{1}}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }Nonce\ NAa\ {\isasymnotin}\ used\ evs{\isadigit{1}}{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Ba\ {\isasymin}\ bad\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }Says\ B\ A\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ A{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Nonce\ NB{\isacharcomma}\ Agent\ B{\isasymrbrace}{\isacharparenright}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }{\isasymin}\ set\ evs{\isadigit{1}}\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }NB\ {\isasymnoteq}\ NAa%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}evs{\isadigit{1}}\ NAa\ Ba{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}A\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ bad{\isaliteral{3B}{\isacharsemicolon}}\ B\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ bad{\isaliteral{3B}{\isacharsemicolon}}\ evs{\isadigit{1}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }Says\ B\ A\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Nonce\ NB{\isaliteral{2C}{\isacharcomma}}\ Agent\ B{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }{\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs{\isadigit{1}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }Nonce\ NB\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ analz\ {\isaliteral{28}{\isacharparenleft}}knows\ Spy\ evs{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }Nonce\ NAa\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ used\ evs{\isadigit{1}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Ba\ {\isaliteral{5C3C696E3E}{\isasymin}}\ bad\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ }Says\ B\ A\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Nonce\ NB{\isaliteral{2C}{\isacharcomma}}\ Agent\ B{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ }{\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs{\isadigit{1}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ }NB\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ NAa%
 \end{isabelle}
 The simplifier has used a 
 default simplification rule that does a case
 analysis for each encrypted message on whether or not the decryption key
 is compromised.
 \begin{isabelle}%
-analz\ {\isacharparenleft}insert\ {\isacharparenleft}Crypt\ K\ X{\isacharparenright}\ H{\isacharparenright}\ {\isacharequal}\isanewline
-{\isacharparenleft}if\ Key\ {\isacharparenleft}invKey\ K{\isacharparenright}\ {\isasymin}\ analz\ H\isanewline
-\isaindent{{\isacharparenleft}}then\ insert\ {\isacharparenleft}Crypt\ K\ X{\isacharparenright}\ {\isacharparenleft}analz\ {\isacharparenleft}insert\ X\ H{\isacharparenright}{\isacharparenright}\isanewline
-\isaindent{{\isacharparenleft}}else\ insert\ {\isacharparenleft}Crypt\ K\ X{\isacharparenright}\ {\isacharparenleft}analz\ H{\isacharparenright}{\isacharparenright}\rulename{analz{\isacharunderscore}Crypt{\isacharunderscore}if}%
+analz\ {\isaliteral{28}{\isacharparenleft}}insert\ {\isaliteral{28}{\isacharparenleft}}Crypt\ K\ X{\isaliteral{29}{\isacharparenright}}\ H{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+{\isaliteral{28}{\isacharparenleft}}if\ Key\ {\isaliteral{28}{\isacharparenleft}}invKey\ K{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ H\isanewline
+\isaindent{{\isaliteral{28}{\isacharparenleft}}}then\ insert\ {\isaliteral{28}{\isacharparenleft}}Crypt\ K\ X{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}analz\ {\isaliteral{28}{\isacharparenleft}}insert\ X\ H{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isaindent{{\isaliteral{28}{\isacharparenleft}}}else\ insert\ {\isaliteral{28}{\isacharparenleft}}Crypt\ K\ X{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}analz\ H{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\rulename{analz{\isaliteral{5F}{\isacharunderscore}}Crypt{\isaliteral{5F}{\isacharunderscore}}if}%
 \end{isabelle}
-The simplifier has also used \isa{Spy{\isacharunderscore}see{\isacharunderscore}priK}, proved in
-{\S}\ref{sec:regularity} above, to yield \isa{Ba\ {\isasymin}\ bad}.
+The simplifier has also used \isa{Spy{\isaliteral{5F}{\isacharunderscore}}see{\isaliteral{5F}{\isacharunderscore}}priK}, proved in
+{\S}\ref{sec:regularity} above, to yield \isa{Ba\ {\isaliteral{5C3C696E3E}{\isasymin}}\ bad}.
 
 Recall that this subgoal concerns the case
 where the last message to be sent was
@@ -392,9 +392,9 @@ where the last message to be sent was
 This message can compromise $Nb$ only if $Nb=Na'$ and $B'$ is compromised,
 allowing the spy to decrypt the message.  The Isabelle subgoal says
 precisely this, if we allow for its choice of variable names.
-Proving \isa{NB\ {\isasymnoteq}\ NAa} is easy: \isa{NB} was
+Proving \isa{NB\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ NAa} is easy: \isa{NB} was
 sent earlier, while \isa{NAa} is fresh; formally, we have
-the assumption \isa{Nonce\ NAa\ {\isasymnotin}\ used\ evs{\isadigit{1}}}. 
+the assumption \isa{Nonce\ NAa\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ used\ evs{\isadigit{1}}}. 
 
 Note that our reasoning concerned \isa{B}'s participation in another
 run.  Agents may engage in several runs concurrently, and some attacks work
@@ -405,7 +405,7 @@ splits into several cases, such as whether or not the message just sent is
 the very message mentioned in the theorem statement.
 Some of the cases are proved by unicity, others by
 the induction hypothesis.  For all those complications, the proofs are
-automatic by \isa{blast} with the theorem \isa{no{\isacharunderscore}nonce{\isacharunderscore}NS{\isadigit{1}}{\isacharunderscore}NS{\isadigit{2}}}.
+automatic by \isa{blast} with the theorem \isa{no{\isaliteral{5F}{\isacharunderscore}}nonce{\isaliteral{5F}{\isacharunderscore}}NS{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}NS{\isadigit{2}}}.
 
 The remaining theorems about the protocol are not hard to prove.  The
 following one asserts a form of \emph{authenticity}: if
@@ -435,11 +435,11 @@ proof is a simple induction.%
 %
 \endisadelimproof
 \isacommand{theorem}\isamarkupfalse%
-\ B{\isacharunderscore}trusts{\isacharunderscore}NS{\isadigit{3}}{\isacharcolon}\isanewline
-\ {\isachardoublequoteopen}{\isasymlbrakk}Says\ B\ A\ \ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ A{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Nonce\ NB{\isacharcomma}\ Agent\ B{\isasymrbrace}{\isacharparenright}\ {\isasymin}\ set\ evs{\isacharsemicolon}\isanewline
-\ \ \ Says\ A{\isacharprime}\ B\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ B{\isacharparenright}\ {\isacharparenleft}Nonce\ NB{\isacharparenright}{\isacharparenright}\ {\isasymin}\ set\ evs{\isacharsemicolon}\isanewline
-\ \ \ A\ {\isasymnotin}\ bad{\isacharsemicolon}\ \ B\ {\isasymnotin}\ bad{\isacharsemicolon}\ \ evs\ {\isasymin}\ ns{\isacharunderscore}public{\isasymrbrakk}\isanewline
-\ \ {\isasymLongrightarrow}\ Says\ A\ B\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ B{\isacharparenright}\ {\isacharparenleft}Nonce\ NB{\isacharparenright}{\isacharparenright}\ {\isasymin}\ set\ evs{\isachardoublequoteclose}%
+\ B{\isaliteral{5F}{\isacharunderscore}}trusts{\isaliteral{5F}{\isacharunderscore}}NS{\isadigit{3}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}Says\ B\ A\ \ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Nonce\ NB{\isaliteral{2C}{\isacharcomma}}\ Agent\ B{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ Says\ A{\isaliteral{27}{\isacharprime}}\ B\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}Nonce\ NB{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ A\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ bad{\isaliteral{3B}{\isacharsemicolon}}\ \ B\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ bad{\isaliteral{3B}{\isacharsemicolon}}\ \ evs\ {\isaliteral{5C3C696E3E}{\isasymin}}\ ns{\isaliteral{5F}{\isacharunderscore}}public{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Says\ A\ B\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}Nonce\ NB{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -471,7 +471,7 @@ From similar assumptions, we can prove that \isa{A} started the protocol
 run by sending an instance of message~1 involving the nonce~\isa{NA}\@. 
 For this theorem, the conclusion is 
 \begin{isabelle}%
-Says\ A\ B\ {\isacharparenleft}Crypt\ {\isacharparenleft}pubK\ B{\isacharparenright}\ {\isasymlbrace}Nonce\ NA{\isacharcomma}\ Agent\ A{\isasymrbrace}{\isacharparenright}\ {\isasymin}\ set\ evs%
+Says\ A\ B\ {\isaliteral{28}{\isacharparenleft}}Crypt\ {\isaliteral{28}{\isacharparenleft}}pubK\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}Nonce\ NA{\isaliteral{2C}{\isacharcomma}}\ Agent\ A{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ evs%
 \end{isabelle}
 Analogous theorems can be proved for~\isa{A}, stating that nonce~\isa{NA}
 remains secret and that message~2 really originates with~\isa{B}.  Even the

@@ -36,16 +36,16 @@ problem: pattern matching with tuples.%
 %
 \begin{isamarkuptext}%
 Tuples may be used as patterns in $\lambda$-abstractions,
-for example \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharcomma}z{\isacharparenright}{\isachardot}x{\isacharplus}y{\isacharplus}z} and \isa{{\isasymlambda}{\isacharparenleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isacharcomma}z{\isacharparenright}{\isachardot}x{\isacharplus}y{\isacharplus}z}. In fact,
+for example \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}x{\isaliteral{2B}{\isacharplus}}y{\isaliteral{2B}{\isacharplus}}z} and \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}x{\isaliteral{2B}{\isacharplus}}y{\isaliteral{2B}{\isacharplus}}z}. In fact,
 tuple patterns can be used in most variable binding constructs,
 and they can be nested. Here are
 some typical examples:
 \begin{quote}
-\isa{let\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharequal}\ f\ z\ in\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}}\\
-\isa{case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{0}}\ {\isacharbar}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharhash}\ zs\ {\isasymRightarrow}\ x\ {\isacharplus}\ y}\\
-\isa{{\isasymforall}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isasymin}A{\isachardot}\ x{\isacharequal}y}\\
-\isa{{\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharcomma}z{\isacharparenright}{\isachardot}\ x{\isacharequal}z{\isacharbraceright}}\\
-\isa{{\isasymUnion}\isactrlbsub {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isasymin}A\isactrlesub \ {\isacharbraceleft}x\ {\isacharplus}\ y{\isacharbraceright}}
+\isa{let\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ z\ in\ {\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{29}{\isacharparenright}}}\\
+\isa{case\ xs\ of\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isadigit{0}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{23}{\isacharhash}}\ zs\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ x\ {\isaliteral{2B}{\isacharplus}}\ y}\\
+\isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C696E3E}{\isasymin}}A{\isaliteral{2E}{\isachardot}}\ x{\isaliteral{3D}{\isacharequal}}y}\\
+\isa{{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{2C}{\isacharcomma}}z{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ x{\isaliteral{3D}{\isacharequal}}z{\isaliteral{7D}{\isacharbraceright}}}\\
+\isa{{\isaliteral{5C3C556E696F6E3E}{\isasymUnion}}\isaliteral{5C3C5E627375623E}{}\isactrlbsub {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C696E3E}{\isasymin}}A\isaliteral{5C3C5E657375623E}{}\isactrlesub \ {\isaliteral{7B}{\isacharbraceleft}}x\ {\isaliteral{2B}{\isacharplus}}\ y{\isaliteral{7D}{\isacharbraceright}}}
 \end{quote}
 The intuitive meanings of these expressions should be obvious.
 Unfortunately, we need to know in more detail what the notation really stands
@@ -53,15 +53,15 @@ for once we have to reason about it.  Abstraction
 over pairs and tuples is merely a convenient shorthand for a more complex
 internal representation.  Thus the internal and external form of a term may
 differ, which can affect proofs. If you want to avoid this complication,
-stick to \isa{fst} and \isa{snd} and write \isa{{\isasymlambda}p{\isachardot}\ fst\ p\ {\isacharplus}\ snd\ p}
-instead of \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharplus}y}.  These terms are distinct even though they
+stick to \isa{fst} and \isa{snd} and write \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}p{\isaliteral{2E}{\isachardot}}\ fst\ p\ {\isaliteral{2B}{\isacharplus}}\ snd\ p}
+instead of \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ x{\isaliteral{2B}{\isacharplus}}y}.  These terms are distinct even though they
 denote the same function.
 
-Internally, \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ t} becomes \isa{split\ {\isacharparenleft}{\isasymlambda}x\ y{\isachardot}\ t{\isacharparenright}}, where
-\cdx{split} is the uncurrying function of type \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c} defined as
+Internally, \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ t} becomes \isa{split\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x\ y{\isaliteral{2E}{\isachardot}}\ t{\isaliteral{29}{\isacharparenright}}}, where
+\cdx{split} is the uncurrying function of type \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}c{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}c} defined as
 \begin{center}
-\isa{prod{\isacharunderscore}case\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}c\ p{\isachardot}\ c\ {\isacharparenleft}fst\ p{\isacharparenright}\ {\isacharparenleft}snd\ p{\isacharparenright}{\isacharparenright}}
-\hfill(\isa{split{\isacharunderscore}def})
+\isa{prod{\isaliteral{5F}{\isacharunderscore}}case\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}c\ p{\isaliteral{2E}{\isachardot}}\ c\ {\isaliteral{28}{\isacharparenleft}}fst\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}snd\ p{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}
+\hfill(\isa{split{\isaliteral{5F}{\isacharunderscore}}def})
 \end{center}
 Pattern matching in
 other variable binding constructs is translated similarly. Thus we need to
@@ -74,11 +74,11 @@ understand how to reason about such constructs.%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The most obvious approach is the brute force expansion of \isa{prod{\isacharunderscore}case}:%
+The most obvious approach is the brute force expansion of \isa{prod{\isaliteral{5F}{\isacharunderscore}}case}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}x{\isacharparenright}\ p\ {\isacharequal}\ fst\ p{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}x{\isaliteral{29}{\isacharparenright}}\ p\ {\isaliteral{3D}{\isacharequal}}\ fst\ p{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -86,7 +86,7 @@ The most obvious approach is the brute force expansion of \isa{prod{\isacharunde
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}def{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ split{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -96,25 +96,25 @@ The most obvious approach is the brute force expansion of \isa{prod{\isacharunde
 %
 \begin{isamarkuptext}%
 \noindent
-This works well if rewriting with \isa{split{\isacharunderscore}def} finishes the
+This works well if rewriting with \isa{split{\isaliteral{5F}{\isacharunderscore}}def} finishes the
 proof, as it does above.  But if it does not, you end up with exactly what
 we are trying to avoid: nests of \isa{fst} and \isa{snd}. Thus this
 approach is neither elegant nor very practical in large examples, although it
 can be effective in small ones.
 
 If we consider why this lemma presents a problem, 
-we realize that we need to replace variable~\isa{p} by some pair \isa{{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}}.  Then both sides of the
+we realize that we need to replace variable~\isa{p} by some pair \isa{{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}}.  Then both sides of the
 equation would simplify to \isa{a} by the simplification rules
-\isa{prod{\isacharunderscore}case\ f\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ f\ a\ b} and \isa{fst\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ a}.  
+\isa{prod{\isaliteral{5F}{\isacharunderscore}}case\ f\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a\ b} and \isa{fst\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ a}.  
 To reason about tuple patterns requires some way of
 converting a variable of product type into a pair.
-In case of a subterm of the form \isa{prod{\isacharunderscore}case\ f\ p} this is easy: the split
-rule \isa{split{\isacharunderscore}split} replaces \isa{p} by a pair:%
+In case of a subterm of the form \isa{prod{\isaliteral{5F}{\isacharunderscore}}case\ f\ p} this is easy: the split
+rule \isa{split{\isaliteral{5F}{\isacharunderscore}}split} replaces \isa{p} by a pair:%
 \index{*split (method)}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}y{\isacharparenright}\ p\ {\isacharequal}\ snd\ p{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}y{\isaliteral{29}{\isacharparenright}}\ p\ {\isaliteral{3D}{\isacharequal}}\ snd\ p{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -122,10 +122,10 @@ rule \isa{split{\isacharunderscore}split} replaces \isa{p} by a pair:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}split\ split{\isacharunderscore}split{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}split\ split{\isaliteral{5F}{\isacharunderscore}}split{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymforall}x\ y{\isachardot}\ p\ {\isacharequal}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymlongrightarrow}\ y\ {\isacharequal}\ snd\ p%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x\ y{\isaliteral{2E}{\isachardot}}\ p\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ y\ {\isaliteral{3D}{\isacharequal}}\ snd\ p%
 \end{isabelle}
 This subgoal is easily proved by simplification. Thus we could have combined
 simplification and splitting in one command that proves the goal outright:%
@@ -145,7 +145,7 @@ simplification and splitting in one command that proves the goal outright:%
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-{\isacharparenleft}simp\ split{\isacharcolon}\ split{\isacharunderscore}split{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ split{\isaliteral{3A}{\isacharcolon}}\ split{\isaliteral{5F}{\isacharunderscore}}split{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -158,7 +158,7 @@ Let us look at a second example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}let\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ p\ in\ fst\ p\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}let\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ p\ in\ fst\ p\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -166,10 +166,10 @@ Let us look at a second example:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ only{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ only{\isaliteral{3A}{\isacharcolon}}\ Let{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ case\ p\ of\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymRightarrow}\ fst\ p\ {\isacharequal}\ x%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ case\ p\ of\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ fst\ p\ {\isaliteral{3D}{\isacharequal}}\ x%
 \end{isabelle}
 A paired \isa{let} reduces to a paired $\lambda$-abstraction, which
 can be split as above. The same is true for paired set comprehension:%
@@ -183,7 +183,7 @@ can be split as above. The same is true for paired set comprehension:%
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}p\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ x{\isaliteral{3D}{\isacharequal}}y{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ fst\ p\ {\isaliteral{3D}{\isacharequal}}\ snd\ p{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -194,11 +194,11 @@ can be split as above. The same is true for paired set comprehension:%
 \ simp%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ prod{\isacharunderscore}case\ op\ {\isacharequal}\ p\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ prod{\isaliteral{5F}{\isacharunderscore}}case\ op\ {\isaliteral{3D}{\isacharequal}}\ p\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ fst\ p\ {\isaliteral{3D}{\isacharequal}}\ snd\ p%
 \end{isabelle}
-Again, simplification produces a term suitable for \isa{split{\isacharunderscore}split}
+Again, simplification produces a term suitable for \isa{split{\isaliteral{5F}{\isacharunderscore}}split}
 as above. If you are worried about the strange form of the premise:
-\isa{split\ {\isacharparenleft}op\ {\isacharequal}{\isacharparenright}} is short for \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ x\ {\isacharequal}\ y}.
+\isa{split\ {\isaliteral{28}{\isacharparenleft}}op\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{29}{\isacharparenright}}} is short for \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{3D}{\isacharequal}}\ y}.
 The same proof procedure works for%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -210,7 +210,7 @@ The same proof procedure works for%
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymLongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}p\ {\isaliteral{5C3C696E3E}{\isasymin}}\ {\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ x{\isaliteral{3D}{\isacharequal}}y{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ fst\ p\ {\isaliteral{3D}{\isacharequal}}\ snd\ p{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -219,10 +219,10 @@ The same proof procedure works for%
 %
 \begin{isamarkuptxt}%
 \noindent
-except that we now have to use \isa{split{\isacharunderscore}split{\isacharunderscore}asm}, because
-\isa{prod{\isacharunderscore}case} occurs in the assumptions.
+except that we now have to use \isa{split{\isaliteral{5F}{\isacharunderscore}}split{\isaliteral{5F}{\isacharunderscore}}asm}, because
+\isa{prod{\isaliteral{5F}{\isacharunderscore}}case} occurs in the assumptions.
 
-However, splitting \isa{prod{\isacharunderscore}case} is not always a solution, as no \isa{prod{\isacharunderscore}case}
+However, splitting \isa{prod{\isaliteral{5F}{\isacharunderscore}}case} is not always a solution, as no \isa{prod{\isaliteral{5F}{\isacharunderscore}}case}
 may be present in the goal. Consider the following function:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -234,15 +234,15 @@ may be present in the goal. Consider the following function:%
 %
 \endisadelimproof
 \isacommand{primrec}\isamarkupfalse%
-\ swap\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymtimes}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\ {\isachardoublequoteopen}swap\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardoublequoteclose}%
+\ swap\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}swap\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}y{\isaliteral{2C}{\isacharcomma}}x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 Note that the above \isacommand{primrec} definition is admissible
-because \isa{{\isasymtimes}} is a datatype. When we now try to prove%
+because \isa{{\isaliteral{5C3C74696D65733E}{\isasymtimes}}} is a datatype. When we now try to prove%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ p{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}swap{\isaliteral{28}{\isacharparenleft}}swap\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ p{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -253,26 +253,26 @@ because \isa{{\isasymtimes}} is a datatype. When we now try to prove%
 \noindent
 simplification will do nothing, because the defining equation for
 \isa{swap} expects a pair. Again, we need to turn \isa{p}
-into a pair first, but this time there is no \isa{prod{\isacharunderscore}case} in sight.
+into a pair first, but this time there is no \isa{prod{\isaliteral{5F}{\isacharunderscore}}case} in sight.
 The only thing we can do is to split the term by hand:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}case{\isacharunderscore}tac\ p{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}case{\isaliteral{5F}{\isacharunderscore}}tac\ p{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ b{\isachardot}\ p\ {\isacharequal}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymLongrightarrow}\ swap\ {\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ p%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ b{\isaliteral{2E}{\isachardot}}\ p\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ swap\ {\isaliteral{28}{\isacharparenleft}}swap\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ p%
 \end{isabelle}
-Again, \methdx{case_tac} is applicable because \isa{{\isasymtimes}} is a datatype.
+Again, \methdx{case_tac} is applicable because \isa{{\isaliteral{5C3C74696D65733E}{\isasymtimes}}} is a datatype.
 The subgoal is easily proved by \isa{simp}.
 
-Splitting by \isa{case{\isacharunderscore}tac} also solves the previous examples and may thus
+Splitting by \isa{case{\isaliteral{5F}{\isacharunderscore}}tac} also solves the previous examples and may thus
 appear preferable to the more arcane methods introduced first. However, see
-the warning about \isa{case{\isacharunderscore}tac} in \S\ref{sec:struct-ind-case}.
+the warning about \isa{case{\isaliteral{5F}{\isacharunderscore}}tac} in \S\ref{sec:struct-ind-case}.
 
-Alternatively, you can split \emph{all} \isa{{\isasymAnd}}-quantified variables
-in a goal with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharunderscore}all}:%
+Alternatively, you can split \emph{all} \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}}-quantified variables
+in a goal with the rewrite rule \isa{split{\isaliteral{5F}{\isacharunderscore}}paired{\isaliteral{5F}{\isacharunderscore}}all}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 %
@@ -283,7 +283,7 @@ in a goal with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharund
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymAnd}p\ q{\isachardot}\ swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ q\ {\isasymlongrightarrow}\ p\ {\isacharequal}\ q{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C416E643E}{\isasymAnd}}p\ q{\isaliteral{2E}{\isachardot}}\ swap{\isaliteral{28}{\isacharparenleft}}swap\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ q\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ p\ {\isaliteral{3D}{\isacharequal}}\ q{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -291,11 +291,11 @@ in a goal with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharund
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ only{\isaliteral{3A}{\isacharcolon}}\ split{\isaliteral{5F}{\isacharunderscore}}paired{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ b\ aa\ ba{\isachardot}\ swap\ {\isacharparenleft}swap\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}aa{\isacharcomma}\ ba{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}aa{\isacharcomma}\ ba{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}a\ b\ aa\ ba{\isaliteral{2E}{\isachardot}}\ swap\ {\isaliteral{28}{\isacharparenleft}}swap\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}aa{\isaliteral{2C}{\isacharcomma}}\ ba{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}aa{\isaliteral{2C}{\isacharcomma}}\ ba{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -312,11 +312,11 @@ in a goal with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharund
 %
 \begin{isamarkuptext}%
 \noindent
-Note that we have intentionally included only \isa{split{\isacharunderscore}paired{\isacharunderscore}all}
+Note that we have intentionally included only \isa{split{\isaliteral{5F}{\isacharunderscore}}paired{\isaliteral{5F}{\isacharunderscore}}all}
 in the first simplification step, and then we simplify again. 
 This time the reason was not merely
 pedagogical:
-\isa{split{\isacharunderscore}paired{\isacharunderscore}all} may interfere with other functions
+\isa{split{\isaliteral{5F}{\isacharunderscore}}paired{\isaliteral{5F}{\isacharunderscore}}all} may interfere with other functions
 of the simplifier.
 The following command could fail (here it does not)
 where two separate \isa{simp} applications succeed.%
@@ -329,7 +329,7 @@ where two separate \isa{simp} applications succeed.%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ split{\isaliteral{5F}{\isacharunderscore}}paired{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -339,12 +339,12 @@ where two separate \isa{simp} applications succeed.%
 %
 \begin{isamarkuptext}%
 \noindent
-Finally, the simplifier automatically splits all \isa{{\isasymforall}} and
-\isa{{\isasymexists}}-quantified variables:%
+Finally, the simplifier automatically splits all \isa{{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}} and
+\isa{{\isaliteral{5C3C6578697374733E}{\isasymexists}}}-quantified variables:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymforall}p{\isachardot}\ {\isasymexists}q{\isachardot}\ swap\ p\ {\isacharequal}\ swap\ q{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}p{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}q{\isaliteral{2E}{\isachardot}}\ swap\ p\ {\isaliteral{3D}{\isacharequal}}\ swap\ q{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -365,12 +365,12 @@ Finally, the simplifier automatically splits all \isa{{\isasymforall}} and
 To turn off this automatic splitting, disable the
 responsible simplification rules:
 \begin{center}
-\isa{{\isacharparenleft}{\isasymforall}x{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}a\ b{\isachardot}\ P\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}}
+\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}a\ b{\isaliteral{2E}{\isachardot}}\ P\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}
 \hfill
-(\isa{split{\isacharunderscore}paired{\isacharunderscore}All})\\
-\isa{{\isacharparenleft}{\isasymexists}x{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}a\ b{\isachardot}\ P\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}}
+(\isa{split{\isaliteral{5F}{\isacharunderscore}}paired{\isaliteral{5F}{\isacharunderscore}}All})\\
+\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}a\ b{\isaliteral{2E}{\isachardot}}\ P\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ b{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}
 \hfill
-(\isa{split{\isacharunderscore}paired{\isacharunderscore}Ex})
+(\isa{split{\isaliteral{5F}{\isacharunderscore}}paired{\isaliteral{5F}{\isacharunderscore}}Ex})
 \end{center}%
 \end{isamarkuptext}%
 \isamarkuptrue%

@@ -40,20 +40,20 @@ We specify \emph{semigroups} as subclass of \isa{plus}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{class}\isamarkupfalse%
-\ semigroup\ {\isacharequal}\ plus\ {\isacharplus}\isanewline
-\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isasymoplus}\ z\ {\isacharequal}\ x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequoteclose}%
+\ semigroup\ {\isaliteral{3D}{\isacharequal}}\ plus\ {\isaliteral{2B}{\isacharplus}}\isanewline
+\ \ \isakeyword{assumes}\ assoc{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent This \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} specification requires that
-all instances of \isa{semigroup} obey \hyperlink{fact.assoc:}{\mbox{\isa{assoc{\isacharcolon}}}}~\isa{{\isachardoublequote}{\isasymAnd}x\ y\ z\ {\isasymColon}\ {\isacharprime}a{\isasymColon}semigroup{\isachardot}\ {\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isasymoplus}\ z\ {\isacharequal}\ x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequote}}.
+all instances of \isa{semigroup} obey \hyperlink{fact.assoc:}{\mbox{\isa{assoc{\isaliteral{3A}{\isacharcolon}}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x\ y\ z\ {\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}semigroup{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.
 
 We can use this class axiom to derive further abstract theorems
 relative to class \isa{semigroup}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ assoc{\isacharunderscore}left{\isacharcolon}\isanewline
-\ \ \isakeyword{fixes}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}semigroup{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}x\ {\isasymoplus}\ {\isacharparenleft}y\ {\isasymoplus}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isasymoplus}\ z{\isachardoublequoteclose}\isanewline
+\ assoc{\isaliteral{5F}{\isacharunderscore}}left{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{fixes}\ x\ y\ z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}semigroup{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -62,7 +62,7 @@ relative to class \isa{semigroup}:%
 \isatagproof
 \isacommand{using}\isamarkupfalse%
 \ assoc\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ sym{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ sym{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -71,7 +71,7 @@ relative to class \isa{semigroup}:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent The \isa{semigroup} constraint on type \isa{{\isacharprime}a} restricts instantiations of \isa{{\isacharprime}a} to types of class
+\noindent The \isa{semigroup} constraint on type \isa{{\isaliteral{27}{\isacharprime}}a} restricts instantiations of \isa{{\isaliteral{27}{\isacharprime}}a} to types of class
 \isa{semigroup} and during the proof enables us to use the fact
 \hyperlink{fact.assoc}{\mbox{\isa{assoc}}} whose type parameter is itself constrained to class
 \isa{semigroup}.  The main advantage of classes is that theorems
@@ -82,7 +82,7 @@ obey the class axioms:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instantiation}\isamarkupfalse%
-\ nat\ {\isacharcolon}{\isacharcolon}\ semigroup\isanewline
+\ nat\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ semigroup\isanewline
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{instance}\isamarkupfalse%
@@ -96,15 +96,15 @@ obey the class axioms:%
 %
 \begin{isamarkuptxt}%
 \noindent The proof opens with a default proof step, which for
-instance judgements invokes method \hyperlink{method.intro-classes}{\mbox{\isa{intro{\isacharunderscore}classes}}}.%
+instance judgements invokes method \hyperlink{method.intro-classes}{\mbox{\isa{intro{\isaliteral{5F}{\isacharunderscore}}classes}}}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \isacommand{fix}\isamarkupfalse%
-\ m\ n\ q\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
+\ m\ n\ q\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}m\ {\isasymoplus}\ n{\isacharparenright}\ {\isasymoplus}\ q\ {\isacharequal}\ m\ {\isasymoplus}\ {\isacharparenleft}n\ {\isasymoplus}\ q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}m\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ q\ {\isaliteral{3D}{\isacharequal}}\ m\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ q{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ m{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ m{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -123,7 +123,7 @@ parametric types:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instantiation}\isamarkupfalse%
-\ prod\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}semigroup{\isacharcomma}\ semigroup{\isacharparenright}\ semigroup\isanewline
+\ prod\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}semigroup{\isaliteral{2C}{\isacharcomma}}\ semigroup{\isaliteral{29}{\isacharparenright}}\ semigroup\isanewline
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{instance}\isamarkupfalse%
@@ -136,11 +136,11 @@ parametric types:%
 \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
-\ p\isactrlisub {\isadigit{1}}\ p\isactrlisub {\isadigit{2}}\ p\isactrlisub {\isadigit{3}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}semigroup\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}semigroup{\isachardoublequoteclose}\isanewline
+\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{3}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}semigroup\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}semigroup{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}p\isactrlisub {\isadigit{1}}\ {\isasymoplus}\ p\isactrlisub {\isadigit{2}}\ {\isasymoplus}\ p\isactrlisub {\isadigit{3}}\ {\isacharequal}\ p\isactrlisub {\isadigit{1}}\ {\isasymoplus}\ {\isacharparenleft}p\isactrlisub {\isadigit{2}}\ {\isasymoplus}\ p\isactrlisub {\isadigit{3}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{3}}\ {\isaliteral{3D}{\isacharequal}}\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{28}{\isacharparenleft}}p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{3}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}cases\ p\isactrlisub {\isadigit{1}}{\isacharcomma}\ cases\ p\isactrlisub {\isadigit{2}}{\isacharcomma}\ cases\ p\isactrlisub {\isadigit{3}}{\isacharparenright}\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}cases\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ cases\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ cases\ p\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{3}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ assoc{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent Associativity of product semigroups is established
 using the hypothetical associativity \hyperlink{fact.assoc}{\mbox{\isa{assoc}}} of the type
@@ -173,9 +173,9 @@ parameter \isa{neutral} together with its property:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{class}\isamarkupfalse%
-\ monoidl\ {\isacharequal}\ semigroup\ {\isacharplus}\isanewline
-\ \ \isakeyword{fixes}\ neutral\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymzero}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ neutl{\isacharcolon}\ {\isachardoublequoteopen}{\isasymzero}\ {\isasymoplus}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}%
+\ monoidl\ {\isaliteral{3D}{\isacharequal}}\ semigroup\ {\isaliteral{2B}{\isacharplus}}\isanewline
+\ \ \isakeyword{fixes}\ neutral\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C7A65726F3E}{\isasymzero}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isakeyword{assumes}\ neutl{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C7A65726F3E}{\isasymzero}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent Again, we prove some instances, by providing
 suitable parameter definitions and proofs for the additional
@@ -183,12 +183,12 @@ specifications.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instantiation}\isamarkupfalse%
-\ nat\ {\isacharcolon}{\isacharcolon}\ monoidl\isanewline
+\ nat\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ monoidl\isanewline
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymzero}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ neutral{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C7A65726F3E}{\isasymzero}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}nat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{instance}\isamarkupfalse%
 %
@@ -200,11 +200,11 @@ specifications.%
 \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
-\ n\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
+\ n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymzero}\ {\isasymoplus}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C7A65726F3E}{\isasymzero}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ n\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
-\ neutral{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ neutral{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{5F}{\isacharunderscore}}def\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -226,12 +226,12 @@ This covers products as well:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instantiation}\isamarkupfalse%
-\ prod\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}monoidl{\isacharcomma}\ monoidl{\isacharparenright}\ monoidl\isanewline
+\ prod\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}monoidl{\isaliteral{2C}{\isacharcomma}}\ monoidl{\isaliteral{29}{\isacharparenright}}\ monoidl\isanewline
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ neutral{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymzero}\ {\isacharequal}\ {\isacharparenleft}{\isasymzero}{\isacharcomma}\ {\isasymzero}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ neutral{\isaliteral{5F}{\isacharunderscore}}prod{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C7A65726F3E}{\isasymzero}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7A65726F3E}{\isasymzero}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7A65726F3E}{\isasymzero}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{instance}\isamarkupfalse%
 %
@@ -243,11 +243,11 @@ This covers products as well:%
 \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
-\ p\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}monoidl\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}monoidl{\isachardoublequoteclose}\isanewline
+\ p\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}monoidl\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}monoidl{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymzero}\ {\isasymoplus}\ p\ {\isacharequal}\ p{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C7A65726F3E}{\isasymzero}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ p\ {\isaliteral{3D}{\isacharequal}}\ p{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}cases\ p{\isacharparenright}\ {\isacharparenleft}simp\ add{\isacharcolon}\ neutral{\isacharunderscore}prod{\isacharunderscore}def\ neutl{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}cases\ p{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ neutral{\isaliteral{5F}{\isacharunderscore}}prod{\isaliteral{5F}{\isacharunderscore}}def\ neutl{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -267,8 +267,8 @@ specification:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{class}\isamarkupfalse%
-\ monoid\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
-\ \ \isakeyword{assumes}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymoplus}\ {\isasymzero}\ {\isacharequal}\ x{\isachardoublequoteclose}%
+\ monoid\ {\isaliteral{3D}{\isacharequal}}\ monoidl\ {\isaliteral{2B}{\isacharplus}}\isanewline
+\ \ \isakeyword{assumes}\ neutr{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{5C3C7A65726F3E}{\isasymzero}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent Corresponding instances for \isa{nat} and products
 are left as an exercise to the reader.%
@@ -284,18 +284,18 @@ are left as an exercise to the reader.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{class}\isamarkupfalse%
-\ group\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
-\ \ \isakeyword{fixes}\ inv\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymdiv}\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{1}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ invl{\isacharcolon}\ {\isachardoublequoteopen}{\isasymdiv}\ x\ {\isasymoplus}\ x\ {\isacharequal}\ {\isasymzero}{\isachardoublequoteclose}%
+\ group\ {\isaliteral{3D}{\isacharequal}}\ monoidl\ {\isaliteral{2B}{\isacharplus}}\isanewline
+\ \ \isakeyword{fixes}\ inv\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6469763E}{\isasymdiv}}\ {\isaliteral{5F}{\isacharunderscore}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{8}}{\isadigit{1}}{\isaliteral{5D}{\isacharbrackright}}\ {\isadigit{8}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isakeyword{assumes}\ invl{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6469763E}{\isasymdiv}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C7A65726F3E}{\isasymzero}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent We continue with a further example for abstract
 proofs relative to type classes:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ left{\isacharunderscore}cancel{\isacharcolon}\isanewline
-\ \ \isakeyword{fixes}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}group{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}x\ {\isasymoplus}\ y\ {\isacharequal}\ x\ {\isasymoplus}\ z\ {\isasymlongleftrightarrow}\ y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
+\ left{\isaliteral{5F}{\isacharunderscore}}cancel{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{fixes}\ x\ y\ z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}group{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ y\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ y\ {\isaliteral{3D}{\isacharequal}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -305,26 +305,26 @@ proofs relative to type classes:%
 \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymoplus}\ y\ {\isacharequal}\ x\ {\isasymoplus}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ y\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdiv}\ x\ {\isasymoplus}\ {\isacharparenleft}x\ {\isasymoplus}\ y{\isacharparenright}\ {\isacharequal}\ {\isasymdiv}\ x\ {\isasymoplus}\ {\isacharparenleft}x\ {\isasymoplus}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6469763E}{\isasymdiv}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C6469763E}{\isasymdiv}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymdiv}\ x\ {\isasymoplus}\ x{\isacharparenright}\ {\isasymoplus}\ y\ {\isacharequal}\ {\isacharparenleft}{\isasymdiv}\ x\ {\isasymoplus}\ x{\isacharparenright}\ {\isasymoplus}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6469763E}{\isasymdiv}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6469763E}{\isasymdiv}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ assoc{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isacharequal}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ invl\ neutl{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{3D}{\isacharequal}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ invl\ neutl{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{3D}{\isacharequal}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymoplus}\ y\ {\isacharequal}\ x\ {\isasymoplus}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ y\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -342,7 +342,7 @@ together with a proof of the logical difference:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instance}\isamarkupfalse%
-\ group\ {\isasymsubseteq}\ monoid\isanewline
+\ group\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ monoid\isanewline
 %
 \isadelimproof
 %
@@ -355,17 +355,17 @@ together with a proof of the logical difference:%
 \ x\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
 \ invl\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdiv}\ x\ {\isasymoplus}\ x\ {\isacharequal}\ {\isasymzero}{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6469763E}{\isasymdiv}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C7A65726F3E}{\isasymzero}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdiv}\ x\ {\isasymoplus}\ {\isacharparenleft}x\ {\isasymoplus}\ {\isasymzero}{\isacharparenright}\ {\isacharequal}\ {\isasymdiv}\ x\ {\isasymoplus}\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6469763E}{\isasymdiv}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{5C3C7A65726F3E}{\isasymzero}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C6469763E}{\isasymdiv}}\ x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ neutl\ invl\ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ neutl\ invl\ assoc\ {\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymoplus}\ {\isasymzero}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ left{\isacharunderscore}cancel{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C6F706C75733E}{\isasymoplus}}\ {\isaliteral{5C3C7A65726F3E}{\isasymzero}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ left{\isaliteral{5F}{\isacharunderscore}}cancel{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -406,7 +406,7 @@ Figure~\ref{fig:subclass}.
    \end{picture}
    \caption{Subclass relationship of monoids and groups:
       before and after establishing the relationship
-      \isa{group\ {\isasymsubseteq}\ monoid};  transitive edges are left out.}
+      \isa{group\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ monoid};  transitive edges are left out.}
    \label{fig:subclass}
  \end{center}
 \end{figure}%
@@ -447,7 +447,7 @@ know this need not worry us.%
 \begin{isamarkuptext}%
 In our algebra example, we have started with a \emph{syntactic
 class} \isa{plus} which only specifies operations but no axioms; it
-would have been also possible to start immediately with class \isa{semigroup}, specifying the \isa{{\isasymoplus}} operation and associativity at
+would have been also possible to start immediately with class \isa{semigroup}, specifying the \isa{{\isaliteral{5C3C6F706C75733E}{\isasymoplus}}} operation and associativity at
 the same time.
 
 Which approach is more appropriate depends.  Usually it is more
@@ -463,8 +463,8 @@ Table~\ref{tab:overloading} in the appendix.  Section
 \emph{with} axioms.
 
 Further note that classes may contain axioms but \emph{no} operations.
-An example is class \isa{finite} from theory \hyperlink{theory.Finite-Set}{\mbox{\isa{Finite{\isacharunderscore}Set}}}
-which specifies a type to be finite: \isa{{\isachardoublequote}finite\ {\isacharparenleft}UNIV\ {\isasymColon}\ {\isacharprime}a{\isasymColon}finite\ set{\isacharparenright}{\isachardoublequote}}.%
+An example is class \isa{finite} from theory \hyperlink{theory.Finite-Set}{\mbox{\isa{Finite{\isaliteral{5F}{\isacharunderscore}}Set}}}
+which specifies a type to be finite: \isa{{\isaliteral{22}{\isachardoublequote}}finite\ {\isaliteral{28}{\isacharparenleft}}UNIV\ {\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}finite\ set{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

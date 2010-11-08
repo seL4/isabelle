@@ -23,7 +23,7 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-This tutorial introduces the code generator facilities of \isa{Isabelle{\isacharslash}HOL}.  It allows to turn (a certain class of) HOL
+This tutorial introduces the code generator facilities of \isa{Isabelle{\isaliteral{2F}{\isacharslash}}HOL}.  It allows to turn (a certain class of) HOL
   specifications into corresponding executable code in the programming
   languages \isa{SML} \cite{SML}, \isa{OCaml} \cite{OCaml},
   \isa{Haskell} \cite{haskell-revised-report} and \isa{Scala}
@@ -72,22 +72,22 @@ In a HOL theory, the \indexdef{}{command}{datatype}\hypertarget{command.datatype
 %
 \isatagquote
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharprime}a\ queue\ {\isacharequal}\ AQueue\ {\isachardoublequoteopen}{\isacharprime}a\ list{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ list{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
-\ empty\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}empty\ {\isacharequal}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ empty\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ queue{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}empty\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{primrec}\isamarkupfalse%
-\ enqueue\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ queue\ {\isasymRightarrow}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}enqueue\ x\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequal}\ AQueue\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ ys{\isachardoublequoteclose}\isanewline
+\ enqueue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ queue{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}enqueue\ x\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{fun}\isamarkupfalse%
-\ dequeue\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ queue\ {\isasymRightarrow}\ {\isacharprime}a\ option\ {\isasymtimes}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}None{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}case\ rev\ xs\ of\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\ %
+\ dequeue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ option\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}a\ queue{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}None{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Some\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}case\ rev\ xs\ of\ y\ {\isaliteral{23}{\isacharhash}}\ ys\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Some\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ %
 \endisatagquote
 {\isafoldquote}%
 %
@@ -118,9 +118,9 @@ In a HOL theory, the \indexdef{}{command}{datatype}\hypertarget{command.datatype
 \endisadelimquote
 %
 \isatagquote
-\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
+\isacommand{export{\isaliteral{5F}{\isacharunderscore}}code}\isamarkupfalse%
 \ empty\ dequeue\ enqueue\ \isakeyword{in}\ SML\isanewline
-\ \ \isakeyword{module{\isacharunderscore}name}\ Example\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}example{\isachardot}ML{\isachardoublequoteclose}%
+\ \ \isakeyword{module{\isaliteral{5F}{\isacharunderscore}}name}\ Example\ \isakeyword{file}\ {\isaliteral{22}{\isachardoublequoteopen}}examples{\isaliteral{2F}{\isacharslash}}example{\isaliteral{2E}{\isachardot}}ML{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -140,39 +140,39 @@ In a HOL theory, the \indexdef{}{command}{datatype}\hypertarget{command.datatype
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-structure\ Example\ {\isacharcolon}\ sig\isanewline
-\ \ val\ id\ {\isacharcolon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
-\ \ val\ fold\ {\isacharcolon}\ {\isacharparenleft}{\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b{\isacharparenright}\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\isanewline
-\ \ val\ rev\ {\isacharcolon}\ {\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ list\isanewline
-\ \ datatype\ {\isacharprime}a\ queue\ {\isacharequal}\ AQueue\ of\ {\isacharprime}a\ list\ {\isacharasterisk}\ {\isacharprime}a\ list\isanewline
-\ \ val\ empty\ {\isacharcolon}\ {\isacharprime}a\ queue\isanewline
-\ \ val\ dequeue\ {\isacharcolon}\ {\isacharprime}a\ queue\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ option\ {\isacharasterisk}\ {\isacharprime}a\ queue\isanewline
-\ \ val\ enqueue\ {\isacharcolon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ queue\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ queue\isanewline
-end\ {\isacharequal}\ struct\isanewline
+structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
+\ \ val\ id\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
+\ \ val\ fold\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b\isanewline
+\ \ val\ rev\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ list\isanewline
+\ \ datatype\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ of\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}a\ list\isanewline
+\ \ val\ empty\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ queue\isanewline
+\ \ val\ dequeue\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ option\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}a\ queue\isanewline
+\ \ val\ enqueue\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ queue\isanewline
+end\ {\isaliteral{3D}{\isacharequal}}\ struct\isanewline
 \isanewline
-fun\ id\ x\ {\isacharequal}\ {\isacharparenleft}fn\ xa\ {\isacharequal}{\isachargreater}\ xa{\isacharparenright}\ x{\isacharsemicolon}\isanewline
+fun\ id\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}fn\ xa\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ xa{\isaliteral{29}{\isacharparenright}}\ x{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ fold\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ id\isanewline
-\ \ {\isacharbar}\ fold\ f\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ xs{\isacharparenright}\ {\isacharequal}\ fold\ f\ xs\ o\ f\ x{\isacharsemicolon}\isanewline
+fun\ fold\ f\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ id\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ fold\ f\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ fold\ f\ xs\ o\ f\ x{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ rev\ xs\ {\isacharequal}\ fold\ {\isacharparenleft}fn\ a\ {\isacharequal}{\isachargreater}\ fn\ b\ {\isacharequal}{\isachargreater}\ a\ {\isacharcolon}{\isacharcolon}\ b{\isacharparenright}\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\isanewline
+fun\ rev\ xs\ {\isaliteral{3D}{\isacharequal}}\ fold\ {\isaliteral{28}{\isacharparenleft}}fn\ a\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ b\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ a\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ b{\isaliteral{29}{\isacharparenright}}\ xs\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-datatype\ {\isacharprime}a\ queue\ {\isacharequal}\ AQueue\ of\ {\isacharprime}a\ list\ {\isacharasterisk}\ {\isacharprime}a\ list{\isacharsemicolon}\isanewline
+datatype\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ of\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-val\ empty\ {\isacharcolon}\ {\isacharprime}a\ queue\ {\isacharequal}\ AQueue\ {\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}{\isacharcomma}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
+val\ empty\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ dequeue\ {\isacharparenleft}AQueue\ {\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}{\isacharcomma}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}NONE{\isacharcomma}\ AQueue\ {\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}{\isacharcomma}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ dequeue\ {\isacharparenleft}AQueue\ {\isacharparenleft}xs{\isacharcomma}\ y\ {\isacharcolon}{\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}SOME\ y{\isacharcomma}\ AQueue\ {\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ dequeue\ {\isacharparenleft}AQueue\ {\isacharparenleft}v\ {\isacharcolon}{\isacharcolon}\ va{\isacharcomma}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
+fun\ dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}NONE{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}SOME\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}v\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ va{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \ \ \ \ let\isanewline
-\ \ \ \ \ \ val\ y\ {\isacharcolon}{\isacharcolon}\ ys\ {\isacharequal}\ rev\ {\isacharparenleft}v\ {\isacharcolon}{\isacharcolon}\ va{\isacharparenright}{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ val\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ rev\ {\isaliteral{28}{\isacharparenleft}}v\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ va{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ \ \ in\isanewline
-\ \ \ \ \ \ {\isacharparenleft}SOME\ y{\isacharcomma}\ AQueue\ {\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}{\isacharcomma}\ ys{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ \ end{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}SOME\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ end{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ enqueue\ x\ {\isacharparenleft}AQueue\ {\isacharparenleft}xs{\isacharcomma}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ AQueue\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ xs{\isacharcomma}\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
+fun\ enqueue\ x\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
+end{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}struct\ Example{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -184,7 +184,7 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \endisadelimquotetypewriter
 %
 \begin{isamarkuptext}%
-\noindent The \indexdef{}{command}{export\_code}\hypertarget{command.export-code}{\hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}}} command takes a
+\noindent The \indexdef{}{command}{export\_code}\hypertarget{command.export-code}{\hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isaliteral{5F}{\isacharunderscore}}code}}}}} command takes a
   space-separated list of constants for which code shall be generated;
   anything else needed for those is added implicitly.  Then follows a
   target language identifier and a freely chosen module name.  A file
@@ -192,7 +192,7 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
   the semantics of the destination depends on the target language: for
   \isa{SML}, \isa{OCaml} and \isa{Scala} it denotes a \emph{file},
   for \isa{Haskell} it denotes a \emph{directory} where a file named as the
-  module name (with extension \isa{{\isachardot}hs}) is written:%
+  module name (with extension \isa{{\isaliteral{2E}{\isachardot}}hs}) is written:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -201,9 +201,9 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \endisadelimquote
 %
 \isatagquote
-\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
+\isacommand{export{\isaliteral{5F}{\isacharunderscore}}code}\isamarkupfalse%
 \ empty\ dequeue\ enqueue\ \isakeyword{in}\ Haskell\isanewline
-\ \ \isakeyword{module{\isacharunderscore}name}\ Example\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}{\isachardoublequoteclose}%
+\ \ \isakeyword{module{\isaliteral{5F}{\isacharunderscore}}name}\ Example\ \isakeyword{file}\ {\isaliteral{22}{\isachardoublequoteopen}}examples{\isaliteral{2F}{\isacharslash}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -223,25 +223,25 @@ end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\is
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-module\ Example\ where\ {\isacharbraceleft}\isanewline
+module\ Example\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
 \isanewline
-data\ Queue\ a\ {\isacharequal}\ AQueue\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharbrackleft}a{\isacharbrackright}{\isacharsemicolon}\isanewline
+data\ Queue\ a\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-empty\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a{\isacharsemicolon}\isanewline
-empty\ {\isacharequal}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\isanewline
+empty\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ Queue\ a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+empty\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-dequeue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Queue\ a\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}Maybe\ a{\isacharcomma}\ Queue\ a{\isacharparenright}{\isacharsemicolon}\isanewline
-dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Nothing{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharsemicolon}\isanewline
-dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Just\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
-dequeue\ {\isacharparenleft}AQueue\ {\isacharparenleft}v\ {\isacharcolon}\ va{\isacharparenright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ let\ {\isacharbraceleft}\isanewline
-\ \ \ \ {\isacharparenleft}y\ {\isacharcolon}\ ys{\isacharparenright}\ {\isacharequal}\ reverse\ {\isacharparenleft}v\ {\isacharcolon}\ va{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ {\isacharbraceright}\ in\ {\isacharparenleft}Just\ y{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharsemicolon}\isanewline
+dequeue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ Queue\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}Maybe\ a{\isaliteral{2C}{\isacharcomma}}\ Queue\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Nothing{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Just\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}v\ {\isaliteral{3A}{\isacharcolon}}\ va{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ let\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ reverse\ {\isaliteral{28}{\isacharparenleft}}v\ {\isaliteral{3A}{\isacharcolon}}\ va{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ {\isaliteral{7D}{\isacharbraceright}}\ in\ {\isaliteral{28}{\isacharparenleft}}Just\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-enqueue\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ a\ {\isacharminus}{\isachargreater}\ Queue\ a\ {\isacharminus}{\isachargreater}\ Queue\ a{\isacharsemicolon}\isanewline
-enqueue\ x\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequal}\ AQueue\ {\isacharparenleft}x\ {\isacharcolon}\ xs{\isacharparenright}\ ys{\isacharsemicolon}\isanewline
+enqueue\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ Queue\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ Queue\ a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+enqueue\ x\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{29}{\isacharparenright}}\ ys{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-{\isacharbraceright}\isanewline%
+{\isaliteral{7D}{\isacharbraceright}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -253,7 +253,7 @@ enqueue\ x\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequa
 \endisadelimquotetypewriter
 %
 \begin{isamarkuptext}%
-\noindent For more details about \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} see
+\noindent For more details about \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isaliteral{5F}{\isacharunderscore}}code}}}} see
   \secref{sec:further}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -274,53 +274,53 @@ Code can also be generated from type classes in a Haskell-like
 %
 \isatagquote
 \isacommand{class}\isamarkupfalse%
-\ semigroup\ {\isacharequal}\isanewline
-\ \ \isakeyword{fixes}\ mult\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymotimes}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymotimes}\ y{\isacharparenright}\ {\isasymotimes}\ z\ {\isacharequal}\ x\ {\isasymotimes}\ {\isacharparenleft}y\ {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ semigroup\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \isakeyword{fixes}\ mult\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{7}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isakeyword{assumes}\ assoc{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ z\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{class}\isamarkupfalse%
-\ monoid\ {\isacharequal}\ semigroup\ {\isacharplus}\isanewline
-\ \ \isakeyword{fixes}\ neutral\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymone}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ neutl{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ monoid\ {\isaliteral{3D}{\isacharequal}}\ semigroup\ {\isaliteral{2B}{\isacharplus}}\isanewline
+\ \ \isakeyword{fixes}\ neutral\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6F6E653E}{\isasymone}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isakeyword{assumes}\ neutl{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6F6E653E}{\isasymone}}\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isakeyword{and}\ neutr{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ {\isaliteral{5C3C6F6E653E}{\isasymone}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{instantiation}\isamarkupfalse%
-\ nat\ {\isacharcolon}{\isacharcolon}\ monoid\isanewline
+\ nat\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ monoid\isanewline
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{primrec}\isamarkupfalse%
-\ mult{\isacharunderscore}nat\ \isakeyword{where}\isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymotimes}\ n\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ {\isachardoublequoteopen}Suc\ m\ {\isasymotimes}\ n\ {\isacharequal}\ n\ {\isacharplus}\ m\ {\isasymotimes}\ n{\isachardoublequoteclose}\isanewline
+\ mult{\isaliteral{5F}{\isacharunderscore}}nat\ \isakeyword{where}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{0}}\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}nat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}Suc\ m\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ n\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{2B}{\isacharplus}}\ m\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
-\ neutral{\isacharunderscore}nat\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}{\isasymone}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ neutral{\isaliteral{5F}{\isacharunderscore}}nat\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6F6E653E}{\isasymone}}\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ add{\isacharunderscore}mult{\isacharunderscore}distrib{\isacharcolon}\isanewline
-\ \ \isakeyword{fixes}\ n\ m\ q\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}n\ {\isacharplus}\ m{\isacharparenright}\ {\isasymotimes}\ q\ {\isacharequal}\ n\ {\isasymotimes}\ q\ {\isacharplus}\ m\ {\isasymotimes}\ q{\isachardoublequoteclose}\isanewline
+\ add{\isaliteral{5F}{\isacharunderscore}}mult{\isaliteral{5F}{\isacharunderscore}}distrib{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{fixes}\ n\ m\ q\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ m{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ q\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ q\ {\isaliteral{2B}{\isacharplus}}\ m\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ q{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all\isanewline
 \isanewline
 \isacommand{instance}\isamarkupfalse%
 \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
-\ m\ n\ q\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
+\ m\ n\ q\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}m\ {\isasymotimes}\ n\ {\isasymotimes}\ q\ {\isacharequal}\ m\ {\isasymotimes}\ {\isacharparenleft}n\ {\isasymotimes}\ q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}m\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ n\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ q\ {\isaliteral{3D}{\isacharequal}}\ m\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ q{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ m{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ add{\isacharunderscore}mult{\isacharunderscore}distrib{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ m{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ add{\isaliteral{5F}{\isacharunderscore}}mult{\isaliteral{5F}{\isacharunderscore}}distrib{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6F6E653E}{\isasymone}}\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ n\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ neutral{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}m\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ m{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}m\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ {\isaliteral{5C3C6F6E653E}{\isasymone}}\ {\isaliteral{3D}{\isacharequal}}\ m{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ m{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ m{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ neutral{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
@@ -345,9 +345,9 @@ Code can also be generated from type classes in a Haskell-like
 %
 \isatagquote
 \isacommand{primrec}\isamarkupfalse%
-\ {\isacharparenleft}\isakeyword{in}\ monoid{\isacharparenright}\ pow\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ {\isachardoublequoteopen}pow\ {\isadigit{0}}\ a\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ {\isachardoublequoteopen}pow\ {\isacharparenleft}Suc\ n{\isacharparenright}\ a\ {\isacharequal}\ a\ {\isasymotimes}\ pow\ n\ a{\isachardoublequoteclose}%
+\ {\isaliteral{28}{\isacharparenleft}}\isakeyword{in}\ monoid{\isaliteral{29}{\isacharparenright}}\ pow\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}pow\ {\isadigit{0}}\ a\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C6F6E653E}{\isasymone}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}pow\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ a\ {\isaliteral{3D}{\isacharequal}}\ a\ {\isaliteral{5C3C6F74696D65733E}{\isasymotimes}}\ pow\ n\ a{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -367,8 +367,8 @@ Code can also be generated from type classes in a Haskell-like
 %
 \isatagquote
 \isacommand{definition}\isamarkupfalse%
-\ bexp\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}bexp\ n\ {\isacharequal}\ pow\ n\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\ bexp\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}bexp\ n\ {\isaliteral{3D}{\isacharequal}}\ pow\ n\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -389,45 +389,45 @@ Code can also be generated from type classes in a Haskell-like
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-module\ Example\ where\ {\isacharbraceleft}\isanewline
+module\ Example\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
 \isanewline
-data\ Nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ Nat{\isacharsemicolon}\isanewline
+data\ Nat\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{7C}{\isacharbar}}\ Suc\ Nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-plus{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ Nat\ {\isacharminus}{\isachargreater}\ Nat\ {\isacharminus}{\isachargreater}\ Nat{\isacharsemicolon}\isanewline
-plus{\isacharunderscore}nat\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n\ {\isacharequal}\ plus{\isacharunderscore}nat\ m\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharsemicolon}\isanewline
-plus{\isacharunderscore}nat\ Zero{\isacharunderscore}nat\ n\ {\isacharequal}\ n{\isacharsemicolon}\isanewline
+plus{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ Nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ Nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ Nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+plus{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ plus{\isaliteral{5F}{\isacharunderscore}}nat\ m\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+plus{\isaliteral{5F}{\isacharunderscore}}nat\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-class\ Semigroup\ a\ where\ {\isacharbraceleft}\isanewline
-\ \ mult\ {\isacharcolon}{\isacharcolon}\ a\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
-{\isacharbraceright}{\isacharsemicolon}\isanewline
+class\ Semigroup\ a\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\ \ mult\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-class\ {\isacharparenleft}Semigroup\ a{\isacharparenright}\ {\isacharequal}{\isachargreater}\ Monoid\ a\ where\ {\isacharbraceleft}\isanewline
-\ \ neutral\ {\isacharcolon}{\isacharcolon}\ a{\isacharsemicolon}\isanewline
-{\isacharbraceright}{\isacharsemicolon}\isanewline
+class\ {\isaliteral{28}{\isacharparenleft}}Semigroup\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ Monoid\ a\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\ \ neutral\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-pow\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ {\isacharparenleft}Monoid\ a{\isacharparenright}\ {\isacharequal}{\isachargreater}\ Nat\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
-pow\ Zero{\isacharunderscore}nat\ a\ {\isacharequal}\ neutral{\isacharsemicolon}\isanewline
-pow\ {\isacharparenleft}Suc\ n{\isacharparenright}\ a\ {\isacharequal}\ mult\ a\ {\isacharparenleft}pow\ n\ a{\isacharparenright}{\isacharsemicolon}\isanewline
+pow\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}Monoid\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ Nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+pow\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ a\ {\isaliteral{3D}{\isacharequal}}\ neutral{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+pow\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ a\ {\isaliteral{3D}{\isacharequal}}\ mult\ a\ {\isaliteral{28}{\isacharparenleft}}pow\ n\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-mult{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ Nat\ {\isacharminus}{\isachargreater}\ Nat\ {\isacharminus}{\isachargreater}\ Nat{\isacharsemicolon}\isanewline
-mult{\isacharunderscore}nat\ Zero{\isacharunderscore}nat\ n\ {\isacharequal}\ Zero{\isacharunderscore}nat{\isacharsemicolon}\isanewline
-mult{\isacharunderscore}nat\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n\ {\isacharequal}\ plus{\isacharunderscore}nat\ n\ {\isacharparenleft}mult{\isacharunderscore}nat\ m\ n{\isacharparenright}{\isacharsemicolon}\isanewline
+mult{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ Nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ Nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ Nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+mult{\isaliteral{5F}{\isacharunderscore}}nat\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+mult{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ plus{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{28}{\isacharparenleft}}mult{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-instance\ Semigroup\ Nat\ where\ {\isacharbraceleft}\isanewline
-\ \ mult\ {\isacharequal}\ mult{\isacharunderscore}nat{\isacharsemicolon}\isanewline
-{\isacharbraceright}{\isacharsemicolon}\isanewline
+instance\ Semigroup\ Nat\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\ \ mult\ {\isaliteral{3D}{\isacharequal}}\ mult{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-neutral{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ Nat{\isacharsemicolon}\isanewline
-neutral{\isacharunderscore}nat\ {\isacharequal}\ Suc\ Zero{\isacharunderscore}nat{\isacharsemicolon}\isanewline
+neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ Nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ Suc\ Zero{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-instance\ Monoid\ Nat\ where\ {\isacharbraceleft}\isanewline
-\ \ neutral\ {\isacharequal}\ neutral{\isacharunderscore}nat{\isacharsemicolon}\isanewline
-{\isacharbraceright}{\isacharsemicolon}\isanewline
+instance\ Monoid\ Nat\ where\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\ \ neutral\ {\isaliteral{3D}{\isacharequal}}\ neutral{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-bexp\ {\isacharcolon}{\isacharcolon}\ Nat\ {\isacharminus}{\isachargreater}\ Nat{\isacharsemicolon}\isanewline
-bexp\ n\ {\isacharequal}\ pow\ n\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ Zero{\isacharunderscore}nat{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
+bexp\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ Nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ Nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+bexp\ n\ {\isaliteral{3D}{\isacharequal}}\ pow\ n\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ Zero{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-{\isacharbraceright}\isanewline%
+{\isaliteral{7D}{\isacharbraceright}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -452,50 +452,50 @@ bexp\ n\ {\isacharequal}\ pow\ n\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-structure\ Example\ {\isacharcolon}\ sig\isanewline
-\ \ datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat\isanewline
-\ \ val\ plus{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ nat\isanewline
-\ \ type\ {\isacharprime}a\ semigroup\isanewline
-\ \ val\ mult\ {\isacharcolon}\ {\isacharprime}a\ semigroup\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
-\ \ type\ {\isacharprime}a\ monoid\isanewline
-\ \ val\ semigroup{\isacharunderscore}monoid\ {\isacharcolon}\ {\isacharprime}a\ monoid\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ semigroup\isanewline
-\ \ val\ neutral\ {\isacharcolon}\ {\isacharprime}a\ monoid\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
-\ \ val\ pow\ {\isacharcolon}\ {\isacharprime}a\ monoid\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\isanewline
-\ \ val\ mult{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\ {\isacharminus}{\isachargreater}\ nat\isanewline
-\ \ val\ semigroup{\isacharunderscore}nat\ {\isacharcolon}\ nat\ semigroup\isanewline
-\ \ val\ neutral{\isacharunderscore}nat\ {\isacharcolon}\ nat\isanewline
-\ \ val\ monoid{\isacharunderscore}nat\ {\isacharcolon}\ nat\ monoid\isanewline
-\ \ val\ bexp\ {\isacharcolon}\ nat\ {\isacharminus}{\isachargreater}\ nat\isanewline
-end\ {\isacharequal}\ struct\isanewline
+structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
+\ \ datatype\ nat\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{7C}{\isacharbar}}\ Suc\ of\ nat\isanewline
+\ \ val\ plus{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\isanewline
+\ \ type\ {\isaliteral{27}{\isacharprime}}a\ semigroup\isanewline
+\ \ val\ mult\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ semigroup\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
+\ \ type\ {\isaliteral{27}{\isacharprime}}a\ monoid\isanewline
+\ \ val\ semigroup{\isaliteral{5F}{\isacharunderscore}}monoid\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ monoid\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ semigroup\isanewline
+\ \ val\ neutral\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ monoid\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
+\ \ val\ pow\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ monoid\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
+\ \ val\ mult{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\isanewline
+\ \ val\ semigroup{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ semigroup\isanewline
+\ \ val\ neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\ \ val\ monoid{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ monoid\isanewline
+\ \ val\ bexp\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ nat\isanewline
+end\ {\isaliteral{3D}{\isacharequal}}\ struct\isanewline
 \isanewline
-datatype\ nat\ {\isacharequal}\ Zero{\isacharunderscore}nat\ {\isacharbar}\ Suc\ of\ nat{\isacharsemicolon}\isanewline
+datatype\ nat\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{7C}{\isacharbar}}\ Suc\ of\ nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ plus{\isacharunderscore}nat\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n\ {\isacharequal}\ plus{\isacharunderscore}nat\ m\ {\isacharparenleft}Suc\ n{\isacharparenright}\isanewline
-\ \ {\isacharbar}\ plus{\isacharunderscore}nat\ Zero{\isacharunderscore}nat\ n\ {\isacharequal}\ n{\isacharsemicolon}\isanewline
+fun\ plus{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ plus{\isaliteral{5F}{\isacharunderscore}}nat\ m\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ plus{\isaliteral{5F}{\isacharunderscore}}nat\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-type\ {\isacharprime}a\ semigroup\ {\isacharequal}\ {\isacharbraceleft}mult\ {\isacharcolon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a{\isacharbraceright}{\isacharsemicolon}\isanewline
-val\ mult\ {\isacharequal}\ {\isacharhash}mult\ {\isacharcolon}\ {\isacharprime}a\ semigroup\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}a{\isacharsemicolon}\isanewline
+type\ {\isaliteral{27}{\isacharprime}}a\ semigroup\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}mult\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+val\ mult\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{23}{\isacharhash}}mult\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ semigroup\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-type\ {\isacharprime}a\ monoid\ {\isacharequal}\ {\isacharbraceleft}semigroup{\isacharunderscore}monoid\ {\isacharcolon}\ {\isacharprime}a\ semigroup{\isacharcomma}\ neutral\ {\isacharcolon}\ {\isacharprime}a{\isacharbraceright}{\isacharsemicolon}\isanewline
-val\ semigroup{\isacharunderscore}monoid\ {\isacharequal}\ {\isacharhash}semigroup{\isacharunderscore}monoid\ {\isacharcolon}\ {\isacharprime}a\ monoid\ {\isacharminus}{\isachargreater}\ {\isacharprime}a\ semigroup{\isacharsemicolon}\isanewline
-val\ neutral\ {\isacharequal}\ {\isacharhash}neutral\ {\isacharcolon}\ {\isacharprime}a\ monoid\ {\isacharminus}{\isachargreater}\ {\isacharprime}a{\isacharsemicolon}\isanewline
+type\ {\isaliteral{27}{\isacharprime}}a\ monoid\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}semigroup{\isaliteral{5F}{\isacharunderscore}}monoid\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ semigroup{\isaliteral{2C}{\isacharcomma}}\ neutral\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+val\ semigroup{\isaliteral{5F}{\isacharunderscore}}monoid\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{23}{\isacharhash}}semigroup{\isaliteral{5F}{\isacharunderscore}}monoid\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ monoid\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ semigroup{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+val\ neutral\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{23}{\isacharhash}}neutral\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ monoid\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ pow\ A{\isacharunderscore}\ Zero{\isacharunderscore}nat\ a\ {\isacharequal}\ neutral\ A{\isacharunderscore}\isanewline
-\ \ {\isacharbar}\ pow\ A{\isacharunderscore}\ {\isacharparenleft}Suc\ n{\isacharparenright}\ a\ {\isacharequal}\ mult\ {\isacharparenleft}semigroup{\isacharunderscore}monoid\ A{\isacharunderscore}{\isacharparenright}\ a\ {\isacharparenleft}pow\ A{\isacharunderscore}\ n\ a{\isacharparenright}{\isacharsemicolon}\isanewline
+fun\ pow\ A{\isaliteral{5F}{\isacharunderscore}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ a\ {\isaliteral{3D}{\isacharequal}}\ neutral\ A{\isaliteral{5F}{\isacharunderscore}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ pow\ A{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ a\ {\isaliteral{3D}{\isacharequal}}\ mult\ {\isaliteral{28}{\isacharparenleft}}semigroup{\isaliteral{5F}{\isacharunderscore}}monoid\ A{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{29}{\isacharparenright}}\ a\ {\isaliteral{28}{\isacharparenleft}}pow\ A{\isaliteral{5F}{\isacharunderscore}}\ n\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ mult{\isacharunderscore}nat\ Zero{\isacharunderscore}nat\ n\ {\isacharequal}\ Zero{\isacharunderscore}nat\isanewline
-\ \ {\isacharbar}\ mult{\isacharunderscore}nat\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n\ {\isacharequal}\ plus{\isacharunderscore}nat\ n\ {\isacharparenleft}mult{\isacharunderscore}nat\ m\ n{\isacharparenright}{\isacharsemicolon}\isanewline
+fun\ mult{\isaliteral{5F}{\isacharunderscore}}nat\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{3D}{\isacharequal}}\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ mult{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{28}{\isacharparenleft}}Suc\ m{\isaliteral{29}{\isacharparenright}}\ n\ {\isaliteral{3D}{\isacharequal}}\ plus{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{28}{\isacharparenleft}}mult{\isaliteral{5F}{\isacharunderscore}}nat\ m\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-val\ semigroup{\isacharunderscore}nat\ {\isacharequal}\ {\isacharbraceleft}mult\ {\isacharequal}\ mult{\isacharunderscore}nat{\isacharbraceright}\ {\isacharcolon}\ nat\ semigroup{\isacharsemicolon}\isanewline
+val\ semigroup{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}mult\ {\isaliteral{3D}{\isacharequal}}\ mult{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{3A}{\isacharcolon}}\ nat\ semigroup{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-val\ neutral{\isacharunderscore}nat\ {\isacharcolon}\ nat\ {\isacharequal}\ Suc\ Zero{\isacharunderscore}nat{\isacharsemicolon}\isanewline
+val\ neutral{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3A}{\isacharcolon}}\ nat\ {\isaliteral{3D}{\isacharequal}}\ Suc\ Zero{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-val\ monoid{\isacharunderscore}nat\ {\isacharequal}\ {\isacharbraceleft}semigroup{\isacharunderscore}monoid\ {\isacharequal}\ semigroup{\isacharunderscore}nat{\isacharcomma}\ neutral\ {\isacharequal}\ neutral{\isacharunderscore}nat{\isacharbraceright}\isanewline
-\ \ {\isacharcolon}\ nat\ monoid{\isacharsemicolon}\isanewline
+val\ monoid{\isaliteral{5F}{\isacharunderscore}}nat\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B}{\isacharbraceleft}}semigroup{\isaliteral{5F}{\isacharunderscore}}monoid\ {\isaliteral{3D}{\isacharequal}}\ semigroup{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{2C}{\isacharcomma}}\ neutral\ {\isaliteral{3D}{\isacharequal}}\ neutral{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{7D}{\isacharbraceright}}\isanewline
+\ \ {\isaliteral{3A}{\isacharcolon}}\ nat\ monoid{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-fun\ bexp\ n\ {\isacharequal}\ pow\ monoid{\isacharunderscore}nat\ n\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ Zero{\isacharunderscore}nat{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
+fun\ bexp\ n\ {\isaliteral{3D}{\isacharequal}}\ pow\ monoid{\isaliteral{5F}{\isacharunderscore}}nat\ n\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ Zero{\isaliteral{5F}{\isacharunderscore}}nat{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-end{\isacharsemicolon}\ {\isacharparenleft}{\isacharasterisk}struct\ Example{\isacharasterisk}{\isacharparenright}\isanewline%
+end{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}struct\ Example{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

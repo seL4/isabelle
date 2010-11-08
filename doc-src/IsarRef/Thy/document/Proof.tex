@@ -31,16 +31,16 @@ Proof commands perform transitions of Isar/VM machine
 
   \begin{description}
 
-  \item \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} means that a new goal has just been
+  \item \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} means that a new goal has just been
   stated that is now to be \emph{proven}; the next command may refine
   it by some proof method, and enter a sub-proof to establish the
   actual result.
 
-  \item \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} is like a nested theory mode: the
+  \item \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is like a nested theory mode: the
   context may be augmented by \emph{stating} additional assumptions,
   intermediate results etc.
 
-  \item \isa{{\isachardoublequote}proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} is intermediate between \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} and \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}}: existing facts (i.e.\
+  \item \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is intermediate between \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}: existing facts (i.e.\
   the contents of the special ``\indexref{}{fact}{this}\hyperlink{fact.this}{\mbox{\isa{this}}}'' register) have been
   just picked up in order to be used when refining the goal claimed
   next.
@@ -71,17 +71,17 @@ Proof commands perform transitions of Isar/VM machine
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{example\_proof}\hypertarget{command.example-proof}{\hyperlink{command.example-proof}{\mbox{\isa{\isacommand{example{\isacharunderscore}proof}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{}{command}{example\_proof}\hypertarget{command.example-proof}{\hyperlink{command.example-proof}{\mbox{\isa{\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   \begin{description}
 
-  \item \hyperlink{command.example-proof}{\mbox{\isa{\isacommand{example{\isacharunderscore}proof}}}} opens an empty proof body.  This
+  \item \hyperlink{command.example-proof}{\mbox{\isa{\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}}}} opens an empty proof body.  This
   allows to experiment with Isar, without producing any persistent
   result.
 
   Structurally, this is like a vacous \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}} statement
-  followed by ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'', which means the
+  followed by ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{22}{\isachardoublequote}}}'', which means the
   example proof may be closed by a regular \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}, or
   discontinued by \hyperlink{command.oops}{\mbox{\isa{\isacommand{oops}}}}.
 
@@ -95,9 +95,9 @@ Proof commands perform transitions of Isar/VM machine
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{next}\hypertarget{command.next}{\hyperlink{command.next}{\mbox{\isa{\isacommand{next}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{\{}\hypertarget{command.braceleft}{\hyperlink{command.braceleft}{\mbox{\isa{\isacommand{{\isacharbraceleft}}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{\}}\hypertarget{command.braceright}{\hyperlink{command.braceright}{\mbox{\isa{\isacommand{{\isacharbraceright}}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{}{command}{next}\hypertarget{command.next}{\hyperlink{command.next}{\mbox{\isa{\isacommand{next}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{\{}\hypertarget{command.braceleft}{\hyperlink{command.braceleft}{\mbox{\isa{\isacommand{{\isaliteral{7B}{\isacharbraceleft}}}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{\}}\hypertarget{command.braceright}{\hyperlink{command.braceright}{\mbox{\isa{\isacommand{{\isaliteral{7D}{\isacharbraceright}}}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   While Isar is inherently block-structured, opening and closing
@@ -119,9 +119,9 @@ Proof commands perform transitions of Isar/VM machine
   \item \hyperlink{command.next}{\mbox{\isa{\isacommand{next}}}} switches to a fresh block within a
   sub-proof, resetting the local context to the initial one.
 
-  \item \hyperlink{command.braceleft}{\mbox{\isa{\isacommand{{\isacharbraceleft}}}}} and \hyperlink{command.braceright}{\mbox{\isa{\isacommand{{\isacharbraceright}}}}} explicitly open and close
-  blocks.  Any current facts pass through ``\hyperlink{command.braceleft}{\mbox{\isa{\isacommand{{\isacharbraceleft}}}}}''
-  unchanged, while ``\hyperlink{command.braceright}{\mbox{\isa{\isacommand{{\isacharbraceright}}}}}'' causes any result to be
+  \item \hyperlink{command.braceleft}{\mbox{\isa{\isacommand{{\isaliteral{7B}{\isacharbraceleft}}}}}} and \hyperlink{command.braceright}{\mbox{\isa{\isacommand{{\isaliteral{7D}{\isacharbraceright}}}}}} explicitly open and close
+  blocks.  Any current facts pass through ``\hyperlink{command.braceleft}{\mbox{\isa{\isacommand{{\isaliteral{7B}{\isacharbraceleft}}}}}}''
+  unchanged, while ``\hyperlink{command.braceright}{\mbox{\isa{\isacommand{{\isaliteral{7D}{\isacharbraceright}}}}}}'' causes any result to be
   \emph{exported} into the enclosing context.  Thus fixed variables
   are generalized, assumptions discharged, and local definitions
   unfolded (cf.\ \secref{sec:proof-context}).  There is no difference
@@ -139,7 +139,7 @@ Proof commands perform transitions of Isar/VM machine
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{oops}\hypertarget{command.oops}{\hyperlink{command.oops}{\mbox{\isa{\isacommand{oops}}}}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}\ local{\isacharunderscore}theory\ {\isacharbar}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{oops}\hypertarget{command.oops}{\hyperlink{command.oops}{\mbox{\isa{\isacommand{oops}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{7C}{\isacharbar}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   The \hyperlink{command.oops}{\mbox{\isa{\isacommand{oops}}}} command discontinues the current proof
@@ -157,7 +157,7 @@ Proof commands perform transitions of Isar/VM machine
   preparation tools of Isabelle described in \chref{ch:document-prep}.
   Thus partial or even wrong proof attempts can be discussed in a
   logically sound manner.  Note that the Isabelle {\LaTeX} macros can
-  be easily adapted to print something like ``\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}'' instead of
+  be easily adapted to print something like ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}'' instead of
   the keyword ``\hyperlink{command.oops}{\mbox{\isa{\isacommand{oops}}}}''.
 
   \medskip The \hyperlink{command.oops}{\mbox{\isa{\isacommand{oops}}}} command is undo-able, unlike
@@ -176,10 +176,10 @@ Proof commands perform transitions of Isar/VM machine
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{fix}\hypertarget{command.fix}{\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{assume}\hypertarget{command.assume}{\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{presume}\hypertarget{command.presume}{\hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{def}\hypertarget{command.def}{\hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{}{command}{fix}\hypertarget{command.fix}{\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{assume}\hypertarget{command.assume}{\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{presume}\hypertarget{command.presume}{\hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{def}\hypertarget{command.def}{\hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   The logical proof context consists of fixed variables and
@@ -188,16 +188,16 @@ Proof commands perform transitions of Isar/VM machine
   logical framework.  Introducing some \emph{arbitrary, but fixed}
   variable via ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{x}'' results in a local value
   that may be used in the subsequent proof as any other variable or
-  constant.  Furthermore, any result \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}{\isachardoublequote}} exported from
+  constant.  Furthermore, any result \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} exported from
   the context will be universally closed wrt.\ \isa{x} at the
-  outermost level: \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}{\isachardoublequote}} (this is expressed in normal
+  outermost level: \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} (this is expressed in normal
   form using Isabelle's meta-variables).
 
-  Similarly, introducing some assumption \isa{{\isasymchi}} has two effects.
+  Similarly, introducing some assumption \isa{{\isaliteral{5C3C6368693E}{\isasymchi}}} has two effects.
   On the one hand, a local theorem is created that may be used as a
   fact in subsequent proof steps.  On the other hand, any result
-  \isa{{\isachardoublequote}{\isasymchi}\ {\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} exported from the context becomes conditional wrt.\
-  the assumption: \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymchi}\ {\isasymLongrightarrow}\ {\isasymphi}{\isachardoublequote}}.  Thus, solving an enclosing goal
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6368693E}{\isasymchi}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} exported from the context becomes conditional wrt.\
+  the assumption: \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C6368693E}{\isasymchi}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}}.  Thus, solving an enclosing goal
   using such a result would basically introduce a new subgoal stemming
   from the assumption.  How this situation is handled depends on the
   version of assumption command used: while \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}
@@ -205,10 +205,10 @@ Proof commands perform transitions of Isar/VM machine
   the goal, \hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}} leaves the subgoal unchanged in order
   to be proved later by the user.
 
-  Local definitions, introduced by ``\hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}~\isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}'', are achieved by combining ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{x}'' with
+  Local definitions, introduced by ``\hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}}'', are achieved by combining ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{x}'' with
   another version of assumption that causes any hypothetical equation
-  \isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}} to be eliminated by the reflexivity rule.  Thus,
-  exporting some result \isa{{\isachardoublequote}x\ {\isasymequiv}\ t\ {\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}{\isachardoublequote}} yields \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}t{\isacharbrackright}{\isachardoublequote}}.
+  \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}} to be eliminated by the reflexivity rule.  Thus,
+  exporting some result \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} yields \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{5B}{\isacharbrackleft}}t{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}.
 
   \begin{rail}
     'fix' (vars + 'and')
@@ -225,21 +225,21 @@ Proof commands perform transitions of Isar/VM machine
   
   \item \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{x} introduces a local variable \isa{x} that is \emph{arbitrary, but fixed.}
   
-  \item \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} and \hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} introduce a local fact \isa{{\isachardoublequote}{\isasymphi}\ {\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} by
+  \item \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} and \hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} introduce a local fact \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7068693E}{\isasymphi}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} by
   assumption.  Subsequent results applied to an enclosing goal (e.g.\
   by \indexref{}{command}{show}\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}) are handled as follows: \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}} expects to be able to unify with existing premises in the
-  goal, while \hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}} leaves \isa{{\isasymphi}} as new subgoals.
+  goal, while \hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}} leaves \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} as new subgoals.
   
   Several lists of assumptions may be given (separated by
   \indexref{}{keyword}{and}\hyperlink{keyword.and}{\mbox{\isa{\isakeyword{and}}}}; the resulting list of current facts consists
   of all of these concatenated.
   
-  \item \hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}~\isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}} introduces a local
+  \item \hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}} introduces a local
   (non-polymorphic) definition.  In results exported from the context,
-  \isa{x} is replaced by \isa{t}.  Basically, ``\hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}~\isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}'' abbreviates ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{x}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}'', with the resulting
+  \isa{x} is replaced by \isa{t}.  Basically, ``\hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}}'' abbreviates ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{x}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}}'', with the resulting
   hypothetical equation solved by reflexivity.
   
-  The default name for the definitional equation is \isa{x{\isacharunderscore}def}.
+  The default name for the definitional equation is \isa{x{\isaliteral{5F}{\isacharunderscore}}def}.
   Several simultaneous definitions may be given at the same time.
 
   \end{description}
@@ -256,15 +256,15 @@ Proof commands perform transitions of Isar/VM machine
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{let}\hypertarget{command.let}{\hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{}{command}{let}\hypertarget{command.let}{\hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{keyword}{is}\hypertarget{keyword.is}{\hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}}} & : & syntax \\
   \end{matharray}
 
-  Abbreviations may be either bound by explicit \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}~\isa{{\isachardoublequote}p\ {\isasymequiv}\ t{\isachardoublequote}} statements, or by annotating assumptions or
-  goal statements with a list of patterns ``\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}{\isachardoublequote}}''.  In both cases, higher-order matching is invoked to
+  Abbreviations may be either bound by explicit \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}p\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}} statements, or by annotating assumptions or
+  goal statements with a list of patterns ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C49533E}{\isasymIS}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}''.  In both cases, higher-order matching is invoked to
   bind extra-logical term variables, which may be either named
-  schematic variables of the form \isa{{\isacharquery}x}, or nameless dummies
-  ``\hyperlink{variable.underscore}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore). Note that in the \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}
+  schematic variables of the form \isa{{\isaliteral{3F}{\isacharquery}}x}, or nameless dummies
+  ``\hyperlink{variable.underscore}{\mbox{\isa{{\isaliteral{5F}{\isacharunderscore}}}}}'' (underscore). Note that in the \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}
   form the patterns occur on the left-hand side, while the \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns are in postfix position.
 
   Polymorphism of term bindings is handled in Hindley-Milner style,
@@ -292,12 +292,12 @@ Proof commands perform transitions of Isar/VM machine
 
   \begin{description}
 
-  \item \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}~\isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ p\isactrlsub n\ {\isacharequal}\ t\isactrlsub n{\isachardoublequote}} binds any
-  text variables in patterns \isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ p\isactrlsub n{\isachardoublequote}} by simultaneous
-  higher-order matching against terms \isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ t\isactrlsub n{\isachardoublequote}}.
+  \item \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}p\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3D}{\isacharequal}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} binds any
+  text variables in patterns \isa{{\isaliteral{22}{\isachardoublequote}}p\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} by simultaneous
+  higher-order matching against terms \isa{{\isaliteral{22}{\isachardoublequote}}t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.
 
-  \item \isa{{\isachardoublequote}{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}{\isachardoublequote}} resembles \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}, but
-  matches \isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ p\isactrlsub n{\isachardoublequote}} against the preceding statement.  Also
+  \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C49533E}{\isasymIS}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} resembles \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}, but
+  matches \isa{{\isaliteral{22}{\isachardoublequote}}p\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} against the preceding statement.  Also
   note that \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} is not a separate command, but part of
   others (such as \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}, \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}} etc.).
 
@@ -309,8 +309,8 @@ Proof commands perform transitions of Isar/VM machine
   abstracted over any meta-level parameters (if present).  Likewise,
   \indexref{}{variable}{this}\hyperlink{variable.this}{\mbox{\isa{this}}} is bound for fact statements resulting from
   assumptions or finished goals.  In case \hyperlink{variable.this}{\mbox{\isa{this}}} refers to
-  an object-logic statement that is an application \isa{{\isachardoublequote}f\ t{\isachardoublequote}}, then
-  \isa{t} is bound to the special text variable ``\hyperlink{variable.dots}{\mbox{\isa{{\isasymdots}}}}''
+  an object-logic statement that is an application \isa{{\isaliteral{22}{\isachardoublequote}}f\ t{\isaliteral{22}{\isachardoublequote}}}, then
+  \isa{t} is bound to the special text variable ``\hyperlink{variable.dots}{\mbox{\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}}}''
   (three dots).  The canonical application of this convenience are
   calculational proofs (see \secref{sec:calculation}).%
 \end{isamarkuptext}%
@@ -322,12 +322,12 @@ Proof commands perform transitions of Isar/VM machine
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{note}\hypertarget{command.note}{\hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{then}\hypertarget{command.then}{\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{from}\hypertarget{command.from}{\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{with}\hypertarget{command.with}{\hyperlink{command.with}{\mbox{\isa{\isacommand{with}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{using}\hypertarget{command.using}{\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{unfolding}\hypertarget{command.unfolding}{\hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{}{command}{note}\hypertarget{command.note}{\hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{then}\hypertarget{command.then}{\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{from}\hypertarget{command.from}{\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{with}\hypertarget{command.with}{\hyperlink{command.with}{\mbox{\isa{\isacommand{with}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{using}\hypertarget{command.using}{\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{unfolding}\hypertarget{command.unfolding}{\hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   New facts are established either by assumption or proof of local
@@ -350,8 +350,8 @@ Proof commands perform transitions of Isar/VM machine
 
   \begin{description}
 
-  \item \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}a\ {\isacharequal}\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}} recalls existing facts
-  \isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub n{\isachardoublequote}}, binding the result as \isa{a}.  Note that
+  \item \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\ {\isaliteral{3D}{\isacharequal}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} recalls existing facts
+  \isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}, binding the result as \isa{a}.  Note that
   attributes may be involved as well, both on the left and right hand
   sides.
 
@@ -368,30 +368,30 @@ Proof commands perform transitions of Isar/VM machine
   \item \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{b} abbreviates ``\hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{b}~\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}''; thus \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}} is
   equivalent to ``\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{this}''.
   
-  \item \hyperlink{command.with}{\mbox{\isa{\isacommand{with}}}}~\isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}} abbreviates ``\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n\ {\isasymAND}\ this{\isachardoublequote}}''; thus the forward chaining
+  \item \hyperlink{command.with}{\mbox{\isa{\isacommand{with}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} abbreviates ``\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ this{\isaliteral{22}{\isachardoublequote}}}''; thus the forward chaining
   is from earlier facts together with the current ones.
   
-  \item \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}} augments the facts being
+  \item \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} augments the facts being
   currently indicated for use by a subsequent refinement step (such as
   \indexref{}{command}{apply}\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}} or \indexref{}{command}{proof}\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}).
   
-  \item \hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}~\isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}} is structurally
+  \item \hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} is structurally
   similar to \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}, but unfolds definitional equations
-  \isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}} throughout the goal state and facts.
+  \isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} throughout the goal state and facts.
 
   \end{description}
 
   Forward chaining with an empty list of theorems is the same as not
   chaining at all.  Thus ``\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{nothing}'' has no
-  effect apart from entering \isa{{\isachardoublequote}prove{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} mode, since
+  effect apart from entering \isa{{\isaliteral{22}{\isachardoublequote}}prove{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} mode, since
   \indexref{}{fact}{nothing}\hyperlink{fact.nothing}{\mbox{\isa{nothing}}} is bound to the empty list of theorems.
 
   Basic proof methods (such as \indexref{}{method}{rule}\hyperlink{method.rule}{\mbox{\isa{rule}}}) expect multiple
   facts to be given in their proper order, corresponding to a prefix
   of the premises of the rule involved.  Note that positions may be
-  easily skipped using something like \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{{\isachardoublequote}{\isacharunderscore}\ {\isasymAND}\ a\ {\isasymAND}\ b{\isachardoublequote}}, for example.  This involves the trivial rule
-  \isa{{\isachardoublequote}PROP\ {\isasympsi}\ {\isasymLongrightarrow}\ PROP\ {\isasympsi}{\isachardoublequote}}, which is bound in Isabelle/Pure as
-  ``\indexref{}{fact}{\_}\hyperlink{fact.underscore}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore).
+  easily skipped using something like \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ a\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ b{\isaliteral{22}{\isachardoublequote}}}, for example.  This involves the trivial rule
+  \isa{{\isaliteral{22}{\isachardoublequote}}PROP\ {\isaliteral{5C3C7073693E}{\isasympsi}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ PROP\ {\isaliteral{5C3C7073693E}{\isasympsi}}{\isaliteral{22}{\isachardoublequote}}}, which is bound in Isabelle/Pure as
+  ``\indexref{}{fact}{\_}\hyperlink{fact.underscore}{\mbox{\isa{{\isaliteral{5F}{\isacharunderscore}}}}}'' (underscore).
 
   Automated methods (such as \hyperlink{method.simp}{\mbox{\isa{simp}}} or \hyperlink{method.auto}{\mbox{\isa{auto}}}) just
   insert any given facts before their usual operation.  Depending on
@@ -406,17 +406,17 @@ Proof commands perform transitions of Isar/VM machine
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{lemma}\hypertarget{command.lemma}{\hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{theorem}\hypertarget{command.theorem}{\hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{corollary}\hypertarget{command.corollary}{\hyperlink{command.corollary}{\mbox{\isa{\isacommand{corollary}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{schematic\_lemma}\hypertarget{command.schematic-lemma}{\hyperlink{command.schematic-lemma}{\mbox{\isa{\isacommand{schematic{\isacharunderscore}lemma}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{schematic\_theorem}\hypertarget{command.schematic-theorem}{\hyperlink{command.schematic-theorem}{\mbox{\isa{\isacommand{schematic{\isacharunderscore}theorem}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{schematic\_corollary}\hypertarget{command.schematic-corollary}{\hyperlink{command.schematic-corollary}{\mbox{\isa{\isacommand{schematic{\isacharunderscore}corollary}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{have}\hypertarget{command.have}{\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ proof{\isacharparenleft}chain{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{show}\hypertarget{command.show}{\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ proof{\isacharparenleft}chain{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{hence}\hypertarget{command.hence}{\hyperlink{command.hence}{\mbox{\isa{\isacommand{hence}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{thus}\hypertarget{command.thus}{\hyperlink{command.thus}{\mbox{\isa{\isacommand{thus}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{print\_statement}\hypertarget{command.print-statement}{\hyperlink{command.print-statement}{\mbox{\isa{\isacommand{print{\isacharunderscore}statement}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{lemma}\hypertarget{command.lemma}{\hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{theorem}\hypertarget{command.theorem}{\hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{corollary}\hypertarget{command.corollary}{\hyperlink{command.corollary}{\mbox{\isa{\isacommand{corollary}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{schematic\_lemma}\hypertarget{command.schematic-lemma}{\hyperlink{command.schematic-lemma}{\mbox{\isa{\isacommand{schematic{\isaliteral{5F}{\isacharunderscore}}lemma}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{schematic\_theorem}\hypertarget{command.schematic-theorem}{\hyperlink{command.schematic-theorem}{\mbox{\isa{\isacommand{schematic{\isaliteral{5F}{\isacharunderscore}}theorem}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{schematic\_corollary}\hypertarget{command.schematic-corollary}{\hyperlink{command.schematic-corollary}{\mbox{\isa{\isacommand{schematic{\isaliteral{5F}{\isacharunderscore}}corollary}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{have}\hypertarget{command.have}{\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{show}\hypertarget{command.show}{\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{hence}\hypertarget{command.hence}{\hyperlink{command.hence}{\mbox{\isa{\isacommand{hence}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{thus}\hypertarget{command.thus}{\hyperlink{command.thus}{\mbox{\isa{\isacommand{thus}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{print\_statement}\hypertarget{command.print-statement}{\hyperlink{command.print-statement}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}statement}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   From a theory context, proof mode is entered by an initial goal
@@ -429,7 +429,7 @@ Proof commands perform transitions of Isar/VM machine
 
   Goals may consist of multiple statements, resulting in a list of
   facts eventually.  A pending multi-goal is internally represented as
-  a meta-level conjunction (\isa{{\isachardoublequote}{\isacharampersand}{\isacharampersand}{\isacharampersand}{\isachardoublequote}}), which is usually
+  a meta-level conjunction (\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{26}{\isacharampersand}}{\isaliteral{22}{\isachardoublequote}}}), which is usually
   split into the corresponding number of sub-goals prior to an initial
   method application, via \indexref{}{command}{proof}\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}
   (\secref{sec:proof-steps}) or \indexref{}{command}{apply}\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}
@@ -472,19 +472,19 @@ Proof commands perform transitions of Isar/VM machine
 
   \begin{description}
   
-  \item \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} enters proof mode with
-  \isa{{\isasymphi}} as main goal, eventually resulting in some fact \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} to be put back into the target context.  An additional
+  \item \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} enters proof mode with
+  \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} as main goal, eventually resulting in some fact \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} to be put back into the target context.  An additional
   \railnonterm{context} specification may build up an initial proof
   context for the subsequent claim; this includes local definitions
   and syntax as well, see the definition of \hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}} in
   \secref{sec:locale}.
   
-  \item \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} and \hyperlink{command.corollary}{\mbox{\isa{\isacommand{corollary}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} are essentially the same as \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}}, but the facts are internally marked as
+  \item \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} and \hyperlink{command.corollary}{\mbox{\isa{\isacommand{corollary}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} are essentially the same as \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}}, but the facts are internally marked as
   being of a different kind.  This discrimination acts like a formal
   comment.
 
-  \item \hyperlink{command.schematic-lemma}{\mbox{\isa{\isacommand{schematic{\isacharunderscore}lemma}}}}, \hyperlink{command.schematic-theorem}{\mbox{\isa{\isacommand{schematic{\isacharunderscore}theorem}}}},
-  \hyperlink{command.schematic-corollary}{\mbox{\isa{\isacommand{schematic{\isacharunderscore}corollary}}}} are similar to \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}},
+  \item \hyperlink{command.schematic-lemma}{\mbox{\isa{\isacommand{schematic{\isaliteral{5F}{\isacharunderscore}}lemma}}}}, \hyperlink{command.schematic-theorem}{\mbox{\isa{\isacommand{schematic{\isaliteral{5F}{\isacharunderscore}}theorem}}}},
+  \hyperlink{command.schematic-corollary}{\mbox{\isa{\isacommand{schematic{\isaliteral{5F}{\isacharunderscore}}corollary}}}} are similar to \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}},
   \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}, \hyperlink{command.corollary}{\mbox{\isa{\isacommand{corollary}}}}, respectively but allow
   the statement to contain unbound schematic variables.
 
@@ -495,14 +495,14 @@ Proof commands perform transitions of Isar/VM machine
   proofs is lost, which also impacts performance, because proof
   checking is forced into sequential mode.
   
-  \item \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} claims a local goal,
+  \item \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} claims a local goal,
   eventually resulting in a fact within the current logical context.
   This operation is completely independent of any pending sub-goals of
   an enclosing goal statements, so \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}} may be freely
   used for experimental exploration of potential results within a
   proof body.
   
-  \item \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} is like \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} plus a second stage to refine some pending
+  \item \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} is like \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} plus a second stage to refine some pending
   sub-goal for each one of the finished result, after having been
   exported into the corresponding context (at the head of the
   sub-proof of this \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}} command).
@@ -525,14 +525,14 @@ Proof commands perform transitions of Isar/VM machine
   \item \hyperlink{command.thus}{\mbox{\isa{\isacommand{thus}}}} abbreviates ``\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}~\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}''.  Note that \hyperlink{command.thus}{\mbox{\isa{\isacommand{thus}}}} is also equivalent to
   ``\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{this}~\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}''.
   
-  \item \hyperlink{command.print-statement}{\mbox{\isa{\isacommand{print{\isacharunderscore}statement}}}}~\isa{a} prints facts from the
+  \item \hyperlink{command.print-statement}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}statement}}}}~\isa{a} prints facts from the
   current theory or proof context in long statement form, according to
   the syntax for \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}} given above.
 
   \end{description}
 
   Any goal statement causes some term abbreviations (such as
-  \indexref{}{variable}{?thesis}\hyperlink{variable.?thesis}{\mbox{\isa{{\isacharquery}thesis}}}) to be bound automatically, see also
+  \indexref{}{variable}{?thesis}\hyperlink{variable.?thesis}{\mbox{\isa{{\isaliteral{3F}{\isacharquery}}thesis}}}) to be bound automatically, see also
   \secref{sec:term-abbrev}.
 
   The optional case names of \indexref{}{element}{obtains}\hyperlink{element.obtains}{\mbox{\isa{\isakeyword{obtains}}}} have a twofold
@@ -556,7 +556,7 @@ Proof methods are either basic ones, or expressions composed of
   methods via ``\verb|,|'' (sequential composition),
   ``\verb||\verb,|,\verb||'' (alternative choices), ``\verb|?|'' 
   (try), ``\verb|+|'' (repeat at least once), ``\verb|[|\isa{n}\verb|]|'' (restriction to first \isa{n}
-  sub-goals, with default \isa{{\isachardoublequote}n\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequote}}).  In practice, proof
+  sub-goals, with default \isa{{\isaliteral{22}{\isachardoublequote}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}).  In practice, proof
   methods are usually just a comma separated list of
   \railqtok{nameref}~\railnonterm{args} specifications.  Note that
   parentheses may be dropped for single method specifications (with no
@@ -572,18 +572,18 @@ Proof methods are either basic ones, or expressions composed of
 
   Proper Isar proof methods do \emph{not} admit arbitrary goal
   addressing, but refer either to the first sub-goal or all sub-goals
-  uniformly.  The goal restriction operator ``\isa{{\isachardoublequote}{\isacharbrackleft}n{\isacharbrackright}{\isachardoublequote}}''
+  uniformly.  The goal restriction operator ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}n{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}''
   evaluates a method expression within a sandbox consisting of the
   first \isa{n} sub-goals (which need to exist).  For example, the
-  method ``\isa{{\isachardoublequote}simp{\isacharunderscore}all{\isacharbrackleft}{\isadigit{3}}{\isacharbrackright}{\isachardoublequote}}'' simplifies the first three
-  sub-goals, while ``\isa{{\isachardoublequote}{\isacharparenleft}rule\ foo{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}}'' simplifies all
-  new goals that emerge from applying rule \isa{{\isachardoublequote}foo{\isachardoublequote}} to the
+  method ``\isa{{\isaliteral{22}{\isachardoublequote}}simp{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{5B}{\isacharbrackleft}}{\isadigit{3}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}'' simplifies the first three
+  sub-goals, while ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}rule\ foo{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{29}{\isacharparenright}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}'' simplifies all
+  new goals that emerge from applying rule \isa{{\isaliteral{22}{\isachardoublequote}}foo{\isaliteral{22}{\isachardoublequote}}} to the
   originally first one.
 
   Improper methods, notably tactic emulations, offer a separate
   low-level goal addressing scheme as explicit argument to the
-  individual tactic being involved.  Here ``\isa{{\isachardoublequote}{\isacharbrackleft}{\isacharbang}{\isacharbrackright}{\isachardoublequote}}'' refers to
-  all goals, and ``\isa{{\isachardoublequote}{\isacharbrackleft}n{\isacharminus}{\isacharbrackright}{\isachardoublequote}}'' to all goals starting from \isa{{\isachardoublequote}n{\isachardoublequote}}.
+  individual tactic being involved.  Here ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}'' refers to
+  all goals, and ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}n{\isaliteral{2D}{\isacharminus}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}'' to all goals starting from \isa{{\isaliteral{22}{\isachardoublequote}}n{\isaliteral{22}{\isachardoublequote}}}.
 
   \indexouternonterm{goalspec}
   \begin{rail}
@@ -599,12 +599,12 @@ Proof methods are either basic ones, or expressions composed of
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{proof}\hypertarget{command.proof}{\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{qed}\hypertarget{command.qed}{\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ local{\isacharunderscore}theory\ {\isacharbar}\ theory{\isachardoublequote}} \\
-    \indexdef{}{command}{by}\hypertarget{command.by}{\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ local{\isacharunderscore}theory\ {\isacharbar}\ theory{\isachardoublequote}} \\
-    \indexdef{}{command}{..}\hypertarget{command.ddot}{\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ local{\isacharunderscore}theory\ {\isacharbar}\ theory{\isachardoublequote}} \\
-    \indexdef{}{command}{.}\hypertarget{command.dot}{\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isachardot}}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ local{\isacharunderscore}theory\ {\isacharbar}\ theory{\isachardoublequote}} \\
-    \indexdef{}{command}{sorry}\hypertarget{command.sorry}{\hyperlink{command.sorry}{\mbox{\isa{\isacommand{sorry}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ local{\isacharunderscore}theory\ {\isacharbar}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{proof}\hypertarget{command.proof}{\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{qed}\hypertarget{command.qed}{\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{7C}{\isacharbar}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{by}\hypertarget{command.by}{\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{7C}{\isacharbar}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{..}\hypertarget{command.ddot}{\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{7C}{\isacharbar}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{.}\hypertarget{command.dot}{\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{7C}{\isacharbar}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{sorry}\hypertarget{command.sorry}{\hyperlink{command.sorry}{\mbox{\isa{\isacommand{sorry}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{7C}{\isacharbar}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   Arbitrary goal refinement via tactics is considered harmful.
@@ -613,12 +613,12 @@ Proof methods are either basic ones, or expressions composed of
 
   \begin{enumerate}
 
-  \item An \emph{initial} refinement step \indexref{}{command}{proof}\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}} reduces a newly stated goal to a number
+  \item An \emph{initial} refinement step \indexref{}{command}{proof}\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} reduces a newly stated goal to a number
   of sub-goals that are to be solved later.  Facts are passed to
-  \isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}} for forward chaining, if so indicated by \isa{{\isachardoublequote}proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} mode.
+  \isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} for forward chaining, if so indicated by \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} mode.
   
-  \item A \emph{terminal} conclusion step \indexref{}{command}{qed}\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} is intended to solve remaining goals.  No facts are
-  passed to \isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}}.
+  \item A \emph{terminal} conclusion step \indexref{}{command}{qed}\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}} is intended to solve remaining goals.  No facts are
+  passed to \isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}}.
 
   \end{enumerate}
 
@@ -654,15 +654,15 @@ Proof methods are either basic ones, or expressions composed of
 
   \begin{description}
   
-  \item \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}} refines the goal by proof
-  method \isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}; facts for forward chaining are passed if so
-  indicated by \isa{{\isachardoublequote}proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} mode.
+  \item \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} refines the goal by proof
+  method \isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}; facts for forward chaining are passed if so
+  indicated by \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} mode.
   
-  \item \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} refines any remaining goals by
-  proof method \isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} and concludes the sub-proof by assumption.
-  If the goal had been \isa{{\isachardoublequote}show{\isachardoublequote}} (or \isa{{\isachardoublequote}thus{\isachardoublequote}}), some
+  \item \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}} refines any remaining goals by
+  proof method \isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}} and concludes the sub-proof by assumption.
+  If the goal had been \isa{{\isaliteral{22}{\isachardoublequote}}show{\isaliteral{22}{\isachardoublequote}}} (or \isa{{\isaliteral{22}{\isachardoublequote}}thus{\isaliteral{22}{\isachardoublequote}}}), some
   pending sub-goal is solved as well by the rule resulting from the
-  result \emph{exported} into the enclosing goal context.  Thus \isa{{\isachardoublequote}qed{\isachardoublequote}} may fail for two reasons: either \isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} fails, or the
+  result \emph{exported} into the enclosing goal context.  Thus \isa{{\isaliteral{22}{\isachardoublequote}}qed{\isaliteral{22}{\isachardoublequote}}} may fail for two reasons: either \isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}} fails, or the
   resulting rule does not fit to any pending goal\footnote{This
   includes any additional ``strong'' assumptions as introduced by
   \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}.} of the enclosing context.  Debugging such a
@@ -670,25 +670,25 @@ Proof methods are either basic ones, or expressions composed of
   \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}, or weakening the local context by replacing
   occurrences of \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}} by \hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}}.
   
-  \item \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}\ m\isactrlsub {\isadigit{2}}{\isachardoublequote}} is a \emph{terminal
-  proof}\index{proof!terminal}; it abbreviates \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}~\isa{{\isachardoublequote}qed{\isachardoublequote}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}}, but with
+  \item \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}} is a \emph{terminal
+  proof}\index{proof!terminal}; it abbreviates \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}~\isa{{\isaliteral{22}{\isachardoublequote}}qed{\isaliteral{22}{\isachardoublequote}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}}, but with
   backtracking across both methods.  Debugging an unsuccessful
-  \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}\ m\isactrlsub {\isadigit{2}}{\isachardoublequote}} command can be done by expanding its
-  definition; in many cases \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}} (or even
-  \isa{{\isachardoublequote}apply{\isachardoublequote}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}) is already sufficient to see the
+  \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}} command can be done by expanding its
+  definition; in many cases \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} (or even
+  \isa{{\isaliteral{22}{\isachardoublequote}}apply{\isaliteral{22}{\isachardoublequote}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}) is already sufficient to see the
   problem.
 
-  \item ``\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}'' is a \emph{default
-  proof}\index{proof!default}; it abbreviates \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}rule{\isachardoublequote}}.
+  \item ``\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}}}}'' is a \emph{default
+  proof}\index{proof!default}; it abbreviates \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}rule{\isaliteral{22}{\isachardoublequote}}}.
 
-  \item ``\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isachardot}}}}}'' is a \emph{trivial
-  proof}\index{proof!trivial}; it abbreviates \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}this{\isachardoublequote}}.
+  \item ``\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}}}}}'' is a \emph{trivial
+  proof}\index{proof!trivial}; it abbreviates \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}this{\isaliteral{22}{\isachardoublequote}}}.
   
   \item \hyperlink{command.sorry}{\mbox{\isa{\isacommand{sorry}}}} is a \emph{fake proof}\index{proof!fake}
   pretending to solve the pending claim without further ado.  This
   only works in interactive development, or if the \verb|quick_and_dirty| flag is enabled (in ML).  Facts emerging from fake
   proofs are not the real thing.  Internally, each theorem container
-  is tainted by an oracle invocation, which is indicated as ``\isa{{\isachardoublequote}{\isacharbrackleft}{\isacharbang}{\isacharbrackright}{\isachardoublequote}}'' in the printed result.
+  is tainted by an oracle invocation, which is indicated as ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}'' in the printed result.
   
   The most important application of \hyperlink{command.sorry}{\mbox{\isa{\isacommand{sorry}}}} is to support
   experimentation and top-down proof development.
@@ -708,7 +708,7 @@ The following proof methods and attributes refer to basic logical
   \chref{ch:gen-tools} and \chref{ch:hol}).
 
   \begin{matharray}{rcl}
-    \indexdef{}{method}{-}\hypertarget{method.-}{\hyperlink{method.-}{\mbox{\isa{{\isacharminus}}}}} & : & \isa{method} \\
+    \indexdef{}{method}{-}\hypertarget{method.-}{\hyperlink{method.-}{\mbox{\isa{{\isaliteral{2D}{\isacharminus}}}}}} & : & \isa{method} \\
     \indexdef{}{method}{fact}\hypertarget{method.fact}{\hyperlink{method.fact}{\mbox{\isa{fact}}}} & : & \isa{method} \\
     \indexdef{}{method}{assumption}\hypertarget{method.assumption}{\hyperlink{method.assumption}{\mbox{\isa{assumption}}}} & : & \isa{method} \\
     \indexdef{}{method}{this}\hypertarget{method.this}{\hyperlink{method.this}{\mbox{\isa{this}}}} & : & \isa{method} \\
@@ -743,19 +743,19 @@ The following proof methods and attributes refer to basic logical
 
   \begin{description}
   
-  \item ``\hyperlink{method.-}{\mbox{\isa{{\isacharminus}}}}'' (minus) does nothing but insert the forward
+  \item ``\hyperlink{method.-}{\mbox{\isa{{\isaliteral{2D}{\isacharminus}}}}}'' (minus) does nothing but insert the forward
   chaining facts as premises into the goal.  Note that command
   \indexref{}{command}{proof}\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} without any method actually performs a single
   reduction step using the \indexref{}{method}{rule}\hyperlink{method.rule}{\mbox{\isa{rule}}} method; thus a plain
-  \emph{do-nothing} proof step would be ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' rather than \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} alone.
+  \emph{do-nothing} proof step would be ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{22}{\isachardoublequote}}}'' rather than \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} alone.
   
-  \item \hyperlink{method.fact}{\mbox{\isa{fact}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} composes some fact from
-  \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n{\isachardoublequote}} (or implicitly from the current proof context)
+  \item \hyperlink{method.fact}{\mbox{\isa{fact}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} composes some fact from
+  \isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} (or implicitly from the current proof context)
   modulo unification of schematic type and term variables.  The rule
   structure is not taken into account, i.e.\ meta-level implication is
   considered atomic.  This is the same principle underlying literal
-  facts (cf.\ \secref{sec:syn-att}): ``\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{fact}'' is equivalent to ``\hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\verb|`|\isa{{\isasymphi}}\verb|`|'' provided that
-  \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} is an instance of some known \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} in the
+  facts (cf.\ \secref{sec:syn-att}): ``\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{fact}'' is equivalent to ``\hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\verb|`|\isa{{\isaliteral{5C3C7068693E}{\isasymphi}}}\verb|`|'' provided that
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} is an instance of some known \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} in the
   proof context.
   
   \item \hyperlink{method.assumption}{\mbox{\isa{assumption}}} solves some goal by a single assumption
@@ -767,9 +767,9 @@ The following proof methods and attributes refer to basic logical
   all.
   
   \item \hyperlink{method.this}{\mbox{\isa{this}}} applies all of the current facts directly as
-  rules.  Recall that ``\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isachardot}}}}}'' (dot) abbreviates ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{this}''.
+  rules.  Recall that ``\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}}}}}'' (dot) abbreviates ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{this}''.
   
-  \item \hyperlink{method.rule}{\mbox{\isa{rule}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} applies some rule given as
+  \item \hyperlink{method.rule}{\mbox{\isa{rule}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} applies some rule given as
   argument in backward manner; facts are used to reduce the rule
   before applying it to the goal.  Thus \hyperlink{method.rule}{\mbox{\isa{rule}}} without facts
   is plain introduction, while with facts it becomes elimination.
@@ -778,39 +778,39 @@ The following proof methods and attributes refer to basic logical
   appropriate rules automatically, as declared in the current context
   using the \hyperlink{attribute.Pure.intro}{\mbox{\isa{intro}}}, \hyperlink{attribute.Pure.elim}{\mbox{\isa{elim}}},
   \hyperlink{attribute.Pure.dest}{\mbox{\isa{dest}}} attributes (see below).  This is the
-  default behavior of \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} and ``\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}'' 
+  default behavior of \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} and ``\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}}}}'' 
   (double-dot) steps (see \secref{sec:proof-steps}).
   
   \item \hyperlink{attribute.Pure.intro}{\mbox{\isa{intro}}}, \hyperlink{attribute.Pure.elim}{\mbox{\isa{elim}}}, and
   \hyperlink{attribute.Pure.dest}{\mbox{\isa{dest}}} declare introduction, elimination, and
   destruct rules, to be used with method \hyperlink{method.rule}{\mbox{\isa{rule}}}, and similar
   tools.  Note that the latter will ignore rules declared with
-  ``\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}}'', while ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}''  are used most aggressively.
+  ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'', while ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}}''  are used most aggressively.
   
   The classical reasoner (see \secref{sec:classical}) introduces its
   own variants of these attributes; use qualified names to access the
-  present versions of Isabelle/Pure, i.e.\ \hyperlink{attribute.Pure.Pure.intro}{\mbox{\isa{Pure{\isachardot}intro}}}.
+  present versions of Isabelle/Pure, i.e.\ \hyperlink{attribute.Pure.Pure.intro}{\mbox{\isa{Pure{\isaliteral{2E}{\isachardot}}intro}}}.
   
   \item \hyperlink{attribute.rule}{\mbox{\isa{rule}}}~\isa{del} undeclares introduction,
   elimination, or destruct rules.
   
-  \item \hyperlink{attribute.OF}{\mbox{\isa{OF}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} applies some
-  theorem to all of the given rules \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n{\isachardoublequote}}
+  \item \hyperlink{attribute.OF}{\mbox{\isa{OF}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} applies some
+  theorem to all of the given rules \isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}
   (in parallel).  This corresponds to the \verb|op MRS| operation in
   ML, but note the reversed order.  Positions may be effectively
-  skipped by including ``\isa{{\isacharunderscore}}'' (underscore) as argument.
+  skipped by including ``\isa{{\isaliteral{5F}{\isacharunderscore}}}'' (underscore) as argument.
   
-  \item \hyperlink{attribute.of}{\mbox{\isa{of}}}~\isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n{\isachardoublequote}} performs positional
-  instantiation of term variables.  The terms \isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ t\isactrlsub n{\isachardoublequote}} are
+  \item \hyperlink{attribute.of}{\mbox{\isa{of}}}~\isa{{\isaliteral{22}{\isachardoublequote}}t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} performs positional
+  instantiation of term variables.  The terms \isa{{\isaliteral{22}{\isachardoublequote}}t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} are
   substituted for any schematic variables occurring in a theorem from
-  left to right; ``\isa{{\isacharunderscore}}'' (underscore) indicates to skip a
-  position.  Arguments following a ``\isa{{\isachardoublequote}concl{\isacharcolon}{\isachardoublequote}}'' specification
+  left to right; ``\isa{{\isaliteral{5F}{\isacharunderscore}}}'' (underscore) indicates to skip a
+  position.  Arguments following a ``\isa{{\isaliteral{22}{\isachardoublequote}}concl{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}}'' specification
   refer to positions of the conclusion of a rule.
   
-  \item \hyperlink{attribute.where}{\mbox{\isa{where}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ x\isactrlsub n\ {\isacharequal}\ t\isactrlsub n{\isachardoublequote}}
+  \item \hyperlink{attribute.where}{\mbox{\isa{where}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3D}{\isacharequal}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}
   performs named instantiation of schematic type and term variables
   occurring in a theorem.  Schematic variables have to be specified on
-  the left-hand side (e.g.\ \isa{{\isachardoublequote}{\isacharquery}x{\isadigit{1}}{\isachardot}{\isadigit{3}}{\isachardoublequote}}).  The question mark may
+  the left-hand side (e.g.\ \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}x{\isadigit{1}}{\isaliteral{2E}{\isachardot}}{\isadigit{3}}{\isaliteral{22}{\isachardoublequote}}}).  The question mark may
   be omitted if the variable name is a plain identifier without index.
   As type instantiations are inferred from term instantiations,
   explicit type instantiations are seldom necessary.
@@ -834,12 +834,12 @@ The Isar provides separate commands to accommodate tactic-style
   be used in scripts, too.
 
   \begin{matharray}{rcl}
-    \indexdef{}{command}{apply}\hypertarget{command.apply}{\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{apply\_end}\hypertarget{command.apply-end}{\hyperlink{command.apply-end}{\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{done}\hypertarget{command.done}{\hyperlink{command.done}{\mbox{\isa{\isacommand{done}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ local{\isacharunderscore}theory\ {\isacharbar}\ theory{\isachardoublequote}} \\
-    \indexdef{}{command}{defer}\hypertarget{command.defer}{\hyperlink{command.defer}{\mbox{\isa{\isacommand{defer}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}\ proof{\isachardoublequote}} \\
-    \indexdef{}{command}{prefer}\hypertarget{command.prefer}{\hyperlink{command.prefer}{\mbox{\isa{\isacommand{prefer}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}\ proof{\isachardoublequote}} \\
-    \indexdef{}{command}{back}\hypertarget{command.back}{\hyperlink{command.back}{\mbox{\isa{\isacommand{back}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}\ proof{\isachardoublequote}} \\
+    \indexdef{}{command}{apply}\hypertarget{command.apply}{\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{apply\_end}\hypertarget{command.apply-end}{\hyperlink{command.apply-end}{\mbox{\isa{\isacommand{apply{\isaliteral{5F}{\isacharunderscore}}end}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{done}\hypertarget{command.done}{\hyperlink{command.done}{\mbox{\isa{\isacommand{done}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{7C}{\isacharbar}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{defer}\hypertarget{command.defer}{\hyperlink{command.defer}{\mbox{\isa{\isacommand{defer}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{prefer}\hypertarget{command.prefer}{\hyperlink{command.prefer}{\mbox{\isa{\isacommand{prefer}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{back}\hypertarget{command.back}{\hyperlink{command.back}{\mbox{\isa{\isacommand{back}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   \begin{rail}
@@ -854,7 +854,7 @@ The Isar provides separate commands to accommodate tactic-style
   \begin{description}
 
   \item \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{m} applies proof method \isa{m} in
-  initial position, but unlike \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} it retains ``\isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}}'' mode.  Thus consecutive method applications may be
+  initial position, but unlike \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} it retains ``\isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' mode.  Thus consecutive method applications may be
   given just as in tactic scripts.
   
   Facts are passed to \isa{m} as indicated by the goal's
@@ -862,7 +862,7 @@ The Isar provides separate commands to accommodate tactic-style
   further \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}} command would always work in a purely
   backward manner.
   
-  \item \hyperlink{command.apply-end}{\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}}~\isa{{\isachardoublequote}m{\isachardoublequote}} applies proof method \isa{m} as if in terminal position.  Basically, this simulates a
+  \item \hyperlink{command.apply-end}{\mbox{\isa{\isacommand{apply{\isaliteral{5F}{\isacharunderscore}}end}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}m{\isaliteral{22}{\isachardoublequote}}} applies proof method \isa{m} as if in terminal position.  Basically, this simulates a
   multi-step tactic script for \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}, but may be given
   anywhere within the proof body.
   
@@ -872,11 +872,11 @@ The Isar provides separate commands to accommodate tactic-style
   
   \item \hyperlink{command.done}{\mbox{\isa{\isacommand{done}}}} completes a proof script, provided that the
   current goal state is solved completely.  Note that actual
-  structured proof commands (e.g.\ ``\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isachardot}}}}}'' or \hyperlink{command.sorry}{\mbox{\isa{\isacommand{sorry}}}}) may be used to conclude proof scripts as well.
+  structured proof commands (e.g.\ ``\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}}}}}'' or \hyperlink{command.sorry}{\mbox{\isa{\isacommand{sorry}}}}) may be used to conclude proof scripts as well.
 
   \item \hyperlink{command.defer}{\mbox{\isa{\isacommand{defer}}}}~\isa{n} and \hyperlink{command.prefer}{\mbox{\isa{\isacommand{prefer}}}}~\isa{n}
   shuffle the list of pending goals: \hyperlink{command.defer}{\mbox{\isa{\isacommand{defer}}}} puts off
-  sub-goal \isa{n} to the end of the list (\isa{{\isachardoublequote}n\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequote}} by
+  sub-goal \isa{n} to the end of the list (\isa{{\isaliteral{22}{\isachardoublequote}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} by
   default), while \hyperlink{command.prefer}{\mbox{\isa{\isacommand{prefer}}}} brings sub-goal \isa{n} to the
   front.
   
@@ -899,7 +899,7 @@ The Isar provides separate commands to accommodate tactic-style
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{method\_setup}\hypertarget{command.method-setup}{\hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{method\_setup}\hypertarget{command.method-setup}{\hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   \begin{rail}
@@ -909,8 +909,8 @@ The Isar provides separate commands to accommodate tactic-style
 
   \begin{description}
 
-  \item \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ text\ description{\isachardoublequote}}
-  defines a proof method in the current theory.  The given \isa{{\isachardoublequote}text{\isachardoublequote}} has to be an ML expression of type
+  \item \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}name\ {\isaliteral{3D}{\isacharequal}}\ text\ description{\isaliteral{22}{\isachardoublequote}}}
+  defines a proof method in the current theory.  The given \isa{{\isaliteral{22}{\isachardoublequote}}text{\isaliteral{22}{\isachardoublequote}}} has to be an ML expression of type
   \verb|(Proof.context -> Proof.method) context_parser|, cf.\
   basic parsers defined in structure \verb|Args| and \verb|Attrib|.  There are also combinators like \verb|METHOD| and \verb|SIMPLE_METHOD| to turn certain tactic forms into official proof
   methods; the primed versions refer to tactics with explicit goal
@@ -927,22 +927,22 @@ The Isar provides separate commands to accommodate tactic-style
 \endisadelimML
 %
 \isatagML
-\isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
-\ my{\isacharunderscore}method{\isadigit{1}}\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
-\ \ \ \ \ \ Scan{\isachardot}succeed\ {\isacharparenleft}K\ {\isacharparenleft}SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i{\isacharcolon}\ int\ {\isacharequal}{\isachargreater}\ no{\isacharunderscore}tac{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ \ {\isacharverbatimclose}\ \ {\isachardoublequoteopen}my\ first\ method\ {\isacharparenleft}without\ any\ arguments{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
+\ my{\isaliteral{5F}{\isacharunderscore}}method{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ \ \ \ \ Scan{\isaliteral{2E}{\isachardot}}succeed\ {\isaliteral{28}{\isacharparenleft}}K\ {\isaliteral{28}{\isacharparenleft}}SIMPLE{\isaliteral{5F}{\isacharunderscore}}METHOD{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}fn\ i{\isaliteral{3A}{\isacharcolon}}\ int\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ no{\isaliteral{5F}{\isacharunderscore}}tac{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ {\isaliteral{2A7D}{\isacharverbatimclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}my\ first\ method\ {\isaliteral{28}{\isacharparenleft}}without\ any\ arguments{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
-\ \ \ \ \isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
-\ my{\isacharunderscore}method{\isadigit{2}}\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
-\ \ \ \ \ \ Scan{\isachardot}succeed\ {\isacharparenleft}fn\ ctxt{\isacharcolon}\ Proof{\isachardot}context\ {\isacharequal}{\isachargreater}\isanewline
-\ \ \ \ \ \ \ \ SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i{\isacharcolon}\ int\ {\isacharequal}{\isachargreater}\ no{\isacharunderscore}tac{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ \ {\isacharverbatimclose}\ \ {\isachardoublequoteopen}my\ second\ method\ {\isacharparenleft}with\ context{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
+\ my{\isaliteral{5F}{\isacharunderscore}}method{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ \ \ \ \ Scan{\isaliteral{2E}{\isachardot}}succeed\ {\isaliteral{28}{\isacharparenleft}}fn\ ctxt{\isaliteral{3A}{\isacharcolon}}\ Proof{\isaliteral{2E}{\isachardot}}context\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ \ \ \ \ SIMPLE{\isaliteral{5F}{\isacharunderscore}}METHOD{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}fn\ i{\isaliteral{3A}{\isacharcolon}}\ int\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ no{\isaliteral{5F}{\isacharunderscore}}tac{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ {\isaliteral{2A7D}{\isacharverbatimclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}my\ second\ method\ {\isaliteral{28}{\isacharparenleft}}with\ context{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
-\ \ \ \ \isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
-\ my{\isacharunderscore}method{\isadigit{3}}\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
-\ \ \ \ \ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ thms{\isacharcolon}\ thm\ list\ {\isacharequal}{\isachargreater}\ fn\ ctxt{\isacharcolon}\ Proof{\isachardot}context\ {\isacharequal}{\isachargreater}\isanewline
-\ \ \ \ \ \ \ \ SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i{\isacharcolon}\ int\ {\isacharequal}{\isachargreater}\ no{\isacharunderscore}tac{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ \ {\isacharverbatimclose}\ \ {\isachardoublequoteopen}my\ third\ method\ {\isacharparenleft}with\ theorem\ arguments\ and\ context{\isacharparenright}{\isachardoublequoteclose}%
+\ \ \ \ \isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
+\ my{\isaliteral{5F}{\isacharunderscore}}method{\isadigit{3}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ \ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}thms\ {\isaliteral{3E}{\isachargreater}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}fn\ thms{\isaliteral{3A}{\isacharcolon}}\ thm\ list\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ ctxt{\isaliteral{3A}{\isacharcolon}}\ Proof{\isaliteral{2E}{\isachardot}}context\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ \ \ \ \ SIMPLE{\isaliteral{5F}{\isacharunderscore}}METHOD{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}fn\ i{\isaliteral{3A}{\isacharcolon}}\ int\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ no{\isaliteral{5F}{\isacharunderscore}}tac{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ {\isaliteral{2A7D}{\isacharverbatimclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}my\ third\ method\ {\isaliteral{28}{\isacharparenleft}}with\ theorem\ arguments\ and\ context{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -956,8 +956,8 @@ The Isar provides separate commands to accommodate tactic-style
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{obtain}\hypertarget{command.obtain}{\hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ proof{\isacharparenleft}chain{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{guess}\hypertarget{command.guess}{\hyperlink{command.guess}{\mbox{\isa{\isacommand{guess}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ proof{\isacharparenleft}chain{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
+    \indexdef{}{command}{obtain}\hypertarget{command.obtain}{\hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{guess}\hypertarget{command.guess}{\hyperlink{command.guess}{\mbox{\isa{\isacommand{guess}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   Generalized elimination means that additional elements with certain
@@ -979,19 +979,19 @@ The Isar provides separate commands to accommodate tactic-style
   \end{rail}
 
   The derived Isar command \hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}} is defined as follows
-  (where \isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k{\isachardoublequote}} shall refer to (optional)
+  (where \isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}} shall refer to (optional)
   facts indicated for forward chaining).
   \begin{matharray}{l}
-    \isa{{\isachardoublequote}{\isasymlangle}using\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub k{\isasymrangle}{\isachardoublequote}}~~\hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m\ {\isasymWHERE}\ a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ \ {\isasymlangle}proof{\isasymrangle}\ {\isasymequiv}{\isachardoublequote}} \\[1ex]
-    \quad \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}{\isasymAnd}thesis{\isachardot}\ {\isacharparenleft}{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ {\isasymLongrightarrow}\ thesis{\isacharparenright}\ {\isasymLongrightarrow}\ thesis{\isachardoublequote}} \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C616E676C653E}{\isasymlangle}}using\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{5C3C72616E676C653E}{\isasymrangle}}{\isaliteral{22}{\isachardoublequote}}}~~\hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C57484552453E}{\isasymWHERE}}\ a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ \ {\isaliteral{5C3C6C616E676C653E}{\isasymlangle}}proof{\isaliteral{5C3C72616E676C653E}{\isasymrangle}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}{\isaliteral{22}{\isachardoublequote}}} \\[1ex]
+    \quad \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C416E643E}{\isasymAnd}}thesis{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ thesis{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ thesis{\isaliteral{22}{\isachardoublequote}}} \\
     \quad \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\hyperlink{method.succeed}{\mbox{\isa{succeed}}} \\
     \qquad \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{thesis} \\
-    \qquad \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}that\ {\isacharbrackleft}Pure{\isachardot}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ {\isasymLongrightarrow}\ thesis{\isachardoublequote}} \\
+    \qquad \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}that\ {\isaliteral{5B}{\isacharbrackleft}}Pure{\isaliteral{2E}{\isachardot}}intro{\isaliteral{3F}{\isacharquery}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ thesis{\isaliteral{22}{\isachardoublequote}}} \\
     \qquad \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}~\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}~\isa{thesis} \\
-    \quad\qquad \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{{\isacharminus}} \\
-    \quad\qquad \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub k\ \ {\isasymlangle}proof{\isasymrangle}{\isachardoublequote}} \\
+    \quad\qquad \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{{\isaliteral{2D}{\isacharminus}}} \\
+    \quad\qquad \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub k\ \ {\isaliteral{5C3C6C616E676C653E}{\isasymlangle}}proof{\isaliteral{5C3C72616E676C653E}{\isasymrangle}}{\isaliteral{22}{\isachardoublequote}}} \\
     \quad \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}} \\
-    \quad \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardoublequote}}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}\ a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}} \\
+    \quad \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}\ a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   Typically, the soundness proof is relatively straight-forward, often
@@ -1015,9 +1015,9 @@ The Isar provides separate commands to accommodate tactic-style
   \medskip The improper variant \hyperlink{command.guess}{\mbox{\isa{\isacommand{guess}}}} is similar to
   \hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}, but derives the obtained statement from the
   course of reasoning!  The proof starts with a fixed goal \isa{thesis}.  The subsequent proof may refine this to anything of the
-  form like \isa{{\isachardoublequote}{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ {\isasymLongrightarrow}\ thesis{\isachardoublequote}}, but must not introduce new subgoals.  The
+  form like \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ thesis{\isaliteral{22}{\isachardoublequote}}}, but must not introduce new subgoals.  The
   final goal state is then used as reduction rule for the obtain
-  scheme described above.  Obtained parameters \isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isachardoublequote}} are marked as internal by default, which prevents the
+  scheme described above.  Obtained parameters \isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} are marked as internal by default, which prevents the
   proof context from being polluted by ad-hoc variables.  The variable
   names and type constraints given as arguments for \hyperlink{command.guess}{\mbox{\isa{\isacommand{guess}}}}
   specify a prefix of obtained parameters explicitly in the text.
@@ -1033,19 +1033,19 @@ The Isar provides separate commands to accommodate tactic-style
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{also}\hypertarget{command.also}{\hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{finally}\hypertarget{command.finally}{\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{moreover}\hypertarget{command.moreover}{\hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{ultimately}\hypertarget{command.ultimately}{\hyperlink{command.ultimately}{\mbox{\isa{\isacommand{ultimately}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{print\_trans\_rules}\hypertarget{command.print-trans-rules}{\hyperlink{command.print-trans-rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}trans{\isacharunderscore}rules}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{also}\hypertarget{command.also}{\hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{finally}\hypertarget{command.finally}{\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{moreover}\hypertarget{command.moreover}{\hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{ultimately}\hypertarget{command.ultimately}{\hyperlink{command.ultimately}{\mbox{\isa{\isacommand{ultimately}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{print\_trans\_rules}\hypertarget{command.print-trans-rules}{\hyperlink{command.print-trans-rules}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}trans{\isaliteral{5F}{\isacharunderscore}}rules}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \hyperlink{attribute.trans}{\mbox{\isa{trans}}} & : & \isa{attribute} \\
     \hyperlink{attribute.sym}{\mbox{\isa{sym}}} & : & \isa{attribute} \\
     \hyperlink{attribute.symmetric}{\mbox{\isa{symmetric}}} & : & \isa{attribute} \\
   \end{matharray}
 
   Calculational proof is forward reasoning with implicit application
-  of transitivity rules (such those of \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isasymle}{\isachardoublequote}},
-  \isa{{\isachardoublequote}{\isacharless}{\isachardoublequote}}).  Isabelle/Isar maintains an auxiliary fact register
+  of transitivity rules (such those of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C653E}{\isasymle}}{\isaliteral{22}{\isachardoublequote}}},
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3C}{\isacharless}}{\isaliteral{22}{\isachardoublequote}}}).  Isabelle/Isar maintains an auxiliary fact register
   \indexref{}{fact}{calculation}\hyperlink{fact.calculation}{\mbox{\isa{calculation}}} for accumulating results obtained by
   transitivity composed with the current result.  Command \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}} updates \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} involving \hyperlink{fact.this}{\mbox{\isa{this}}}, while
   \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}} exhibits the final \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} by
@@ -1056,7 +1056,7 @@ The Isar provides separate commands to accommodate tactic-style
   but only collect further results in \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} without
   applying any rules yet.
 
-  Also note that the implicit term abbreviation ``\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}'' has
+  Also note that the implicit term abbreviation ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}'' has
   its canonical application with calculational proofs.  It refers to
   the argument of the preceding statement. (The argument of a curried
   infix expression happens to be its right-hand side.)
@@ -1073,10 +1073,10 @@ The Isar provides separate commands to accommodate tactic-style
   handling of block-structure.}
 
   \begin{matharray}{rcl}
-    \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}\isa{{\isachardoublequote}\isactrlsub {\isadigit{0}}{\isachardoublequote}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ this{\isachardoublequote}} \\
-    \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}\isa{{\isachardoublequote}\isactrlsub n{\isacharplus}{\isadigit{1}}{\isachardoublequote}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ trans\ {\isacharbrackleft}OF\ calculation\ this{\isacharbrackright}{\isachardoublequote}} \\[0.5ex]
+    \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{0}}{\isaliteral{22}{\isachardoublequote}}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}calculation\ {\isaliteral{3D}{\isacharequal}}\ this{\isaliteral{22}{\isachardoublequote}}} \\
+    \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}calculation\ {\isaliteral{3D}{\isacharequal}}\ trans\ {\isaliteral{5B}{\isacharbrackleft}}OF\ calculation\ this{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} \\[0.5ex]
     \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}} & \equiv & \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}~\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{calculation} \\[0.5ex]
-    \hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ calculation\ this{\isachardoublequote}} \\
+    \hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}calculation\ {\isaliteral{3D}{\isacharequal}}\ calculation\ this{\isaliteral{22}{\isachardoublequote}}} \\
     \hyperlink{command.ultimately}{\mbox{\isa{\isacommand{ultimately}}}} & \equiv & \hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}}~\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{calculation} \\
   \end{matharray}
 
@@ -1089,7 +1089,7 @@ The Isar provides separate commands to accommodate tactic-style
 
   \begin{description}
 
-  \item \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}~\isa{{\isachardoublequote}{\isacharparenleft}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharparenright}{\isachardoublequote}} maintains the auxiliary
+  \item \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} maintains the auxiliary
   \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} register as follows.  The first occurrence of
   \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}} in some calculational thread initializes \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} by \hyperlink{fact.this}{\mbox{\isa{this}}}. Any subsequent \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}} on
   the same level of block-structure updates \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} by
@@ -1097,16 +1097,16 @@ The Isar provides separate commands to accommodate tactic-style
   current context, unless alternative rules are given as explicit
   arguments.
 
-  \item \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}~\isa{{\isachardoublequote}{\isacharparenleft}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharparenright}{\isachardoublequote}} maintaining \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} in the same way as \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}, and concludes the
+  \item \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} maintaining \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} in the same way as \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}, and concludes the
   current calculational thread.  The final result is exhibited as fact
   for forward chaining towards the next goal. Basically, \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}} just abbreviates \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}~\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\hyperlink{fact.calculation}{\mbox{\isa{calculation}}}.  Typical idioms for concluding
-  calculational proofs are ``\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}~\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}~\isa{{\isacharquery}thesis}~\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isachardot}}}}}'' and ``\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}~\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isasymphi}}~\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isachardot}}}}}''.
+  calculational proofs are ``\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}~\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}~\isa{{\isaliteral{3F}{\isacharquery}}thesis}~\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}}}}}'' and ``\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}~\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isaliteral{5C3C7068693E}{\isasymphi}}}~\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}}}}}''.
 
   \item \hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}} and \hyperlink{command.ultimately}{\mbox{\isa{\isacommand{ultimately}}}} are
   analogous to \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}} and \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}, but collect
   results only, without applying rules.
 
-  \item \hyperlink{command.print-trans-rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}trans{\isacharunderscore}rules}}}} prints the list of transitivity
+  \item \hyperlink{command.print-trans-rules}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}trans{\isaliteral{5F}{\isacharunderscore}}rules}}}} prints the list of transitivity
   rules (for calculational commands \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}} and \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}) and symmetry rules (for the \hyperlink{attribute.symmetric}{\mbox{\isa{symmetric}}}
   operation and single step elimination patters) of the current
   context.
@@ -1114,15 +1114,15 @@ The Isar provides separate commands to accommodate tactic-style
   \item \hyperlink{attribute.trans}{\mbox{\isa{trans}}} declares theorems as transitivity rules.
 
   \item \hyperlink{attribute.sym}{\mbox{\isa{sym}}} declares symmetry rules, as well as
-  \hyperlink{attribute.Pure.elim}{\mbox{\isa{Pure{\isachardot}elim}}}\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}} rules.
+  \hyperlink{attribute.Pure.elim}{\mbox{\isa{Pure{\isaliteral{2E}{\isachardot}}elim}}}\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}} rules.
 
   \item \hyperlink{attribute.symmetric}{\mbox{\isa{symmetric}}} resolves a theorem with some rule
   declared as \hyperlink{attribute.sym}{\mbox{\isa{sym}}} in the current context.  For example,
-  ``\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}{\isacharbrackleft}symmetric{\isacharbrackright}{\isacharcolon}\ x\ {\isacharequal}\ y{\isachardoublequote}}'' produces a
+  ``\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequote}}}'' produces a
   swapped fact derived from that assumption.
 
   In structured proof texts it is often more appropriate to use an
-  explicit single-step elimination proof, such as ``\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}x\ {\isacharequal}\ y{\isachardoublequote}}~\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}~\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}y\ {\isacharequal}\ x{\isachardoublequote}}~\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}''.
+  explicit single-step elimination proof, such as ``\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequote}}}~\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}~\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequote}}}~\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}}}}''.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -1138,10 +1138,10 @@ The Isar provides separate commands to accommodate tactic-style
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{case}\hypertarget{command.case}{\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isasymrightarrow}\ proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{print\_cases}\hypertarget{command.print-cases}{\hyperlink{command.print-cases}{\mbox{\isa{\isacommand{print{\isacharunderscore}cases}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
-    \indexdef{}{attribute}{case\_names}\hypertarget{attribute.case-names}{\hyperlink{attribute.case-names}{\mbox{\isa{case{\isacharunderscore}names}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{case\_conclusion}\hypertarget{attribute.case-conclusion}{\hyperlink{attribute.case-conclusion}{\mbox{\isa{case{\isacharunderscore}conclusion}}}} & : & \isa{attribute} \\
+    \indexdef{}{command}{case}\hypertarget{command.case}{\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{print\_cases}\hypertarget{command.print-cases}{\hyperlink{command.print-cases}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}cases}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{attribute}{case\_names}\hypertarget{attribute.case-names}{\hyperlink{attribute.case-names}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}names}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{case\_conclusion}\hypertarget{attribute.case-conclusion}{\hyperlink{attribute.case-conclusion}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}conclusion}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{params}\hypertarget{attribute.params}{\hyperlink{attribute.params}{\mbox{\isa{params}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{consumes}\hypertarget{attribute.consumes}{\hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}} & : & \isa{attribute} \\
   \end{matharray}
@@ -1155,20 +1155,20 @@ The Isar provides separate commands to accommodate tactic-style
 
   The \hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}} command provides a shorthand to refer to a
   local context symbolically: certain proof methods provide an
-  environment of named ``cases'' of the form \isa{{\isachardoublequote}c{\isacharcolon}\ x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isacharcomma}\ {\isasymphi}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymphi}\isactrlsub n{\isachardoublequote}}; the effect of ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{c}'' is then equivalent to ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardoublequote}}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}c{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}}''.  Term bindings may be covered as well, notably
-  \hyperlink{variable.?case}{\mbox{\isa{{\isacharquery}case}}} for the main conclusion.
+  environment of named ``cases'' of the form \isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{3A}{\isacharcolon}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}; the effect of ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{c}'' is then equivalent to ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}''.  Term bindings may be covered as well, notably
+  \hyperlink{variable.?case}{\mbox{\isa{{\isaliteral{3F}{\isacharquery}}case}}} for the main conclusion.
 
-  By default, the ``terminology'' \isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isachardoublequote}} of
+  By default, the ``terminology'' \isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} of
   a case value is marked as hidden, i.e.\ there is no way to refer to
   such parameters in the subsequent proof text.  After all, original
   rule parameters stem from somewhere outside of the current proof
-  text.  By using the explicit form ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{{\isachardoublequote}{\isacharparenleft}c\ y\isactrlsub {\isadigit{1}}\ {\isasymdots}\ y\isactrlsub m{\isacharparenright}{\isachardoublequote}}'' instead, the proof author is able to
+  text.  By using the explicit form ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}c\ y\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ y\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' instead, the proof author is able to
   chose local names that fit nicely into the current context.
 
   \medskip It is important to note that proper use of \hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}} does not provide means to peek at the current goal state,
   which is not directly observable in Isar!  Nonetheless, goal
-  refinement commands do provide named cases \isa{{\isachardoublequote}goal\isactrlsub i{\isachardoublequote}}
-  for each subgoal \isa{{\isachardoublequote}i\ {\isacharequal}\ {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n{\isachardoublequote}} of the resulting goal state.
+  refinement commands do provide named cases \isa{{\isaliteral{22}{\isachardoublequote}}goal\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}}
+  for each subgoal \isa{{\isaliteral{22}{\isachardoublequote}}i\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{22}{\isachardoublequote}}} of the resulting goal state.
   Using this extra feature requires great care, because some bits of
   the internal tactical machinery intrude the proof text.  In
   particular, parameter names stemming from the left-over of automated
@@ -1204,28 +1204,28 @@ The Isar provides separate commands to accommodate tactic-style
 
   \begin{description}
   
-  \item \hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{{\isachardoublequote}{\isacharparenleft}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isacharparenright}{\isachardoublequote}} invokes a named local
-  context \isa{{\isachardoublequote}c{\isacharcolon}\ x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isacharcomma}\ {\isasymphi}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymphi}\isactrlsub m{\isachardoublequote}}, as provided by an
+  \item \hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}c\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} invokes a named local
+  context \isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{3A}{\isacharcolon}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}}, as provided by an
   appropriate proof method (such as \indexref{}{method}{cases}\hyperlink{method.cases}{\mbox{\isa{cases}}} and
-  \indexref{}{method}{induct}\hyperlink{method.induct}{\mbox{\isa{induct}}}).  The command ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{{\isachardoublequote}{\isacharparenleft}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isacharparenright}{\isachardoublequote}}'' abbreviates ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardoublequote}}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}c{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}}''.
+  \indexref{}{method}{induct}\hyperlink{method.induct}{\mbox{\isa{induct}}}).  The command ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}c\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' abbreviates ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}''.
 
-  \item \hyperlink{command.print-cases}{\mbox{\isa{\isacommand{print{\isacharunderscore}cases}}}} prints all local contexts of the
+  \item \hyperlink{command.print-cases}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}cases}}}} prints all local contexts of the
   current state, using Isar proof language notation.
   
-  \item \hyperlink{attribute.case-names}{\mbox{\isa{case{\isacharunderscore}names}}}~\isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isasymdots}\ c\isactrlsub k{\isachardoublequote}} declares names for
-  the local contexts of premises of a theorem; \isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub k{\isachardoublequote}}
+  \item \hyperlink{attribute.case-names}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}names}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}} declares names for
+  the local contexts of premises of a theorem; \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}}
   refers to the \emph{suffix} of the list of premises.
   
-  \item \hyperlink{attribute.case-conclusion}{\mbox{\isa{case{\isacharunderscore}conclusion}}}~\isa{{\isachardoublequote}c\ d\isactrlsub {\isadigit{1}}\ {\isasymdots}\ d\isactrlsub k{\isachardoublequote}} declares
-  names for the conclusions of a named premise \isa{c}; here \isa{{\isachardoublequote}d\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ d\isactrlsub k{\isachardoublequote}} refers to the prefix of arguments of a logical formula
-  built by nesting a binary connective (e.g.\ \isa{{\isachardoublequote}{\isasymor}{\isachardoublequote}}).
+  \item \hyperlink{attribute.case-conclusion}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}conclusion}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c\ d\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ d\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}} declares
+  names for the conclusions of a named premise \isa{c}; here \isa{{\isaliteral{22}{\isachardoublequote}}d\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ d\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}} refers to the prefix of arguments of a logical formula
+  built by nesting a binary connective (e.g.\ \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6F723E}{\isasymor}}{\isaliteral{22}{\isachardoublequote}}}).
   
   Note that proof methods such as \hyperlink{method.induct}{\mbox{\isa{induct}}} and \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} already provide a default name for the conclusion as a
   whole.  The need to name subformulas only arises with cases that
   split into several sub-cases, as in common co-induction rules.
 
-  \item \hyperlink{attribute.params}{\mbox{\isa{params}}}~\isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub m\ {\isasymAND}\ {\isasymdots}\ q\isactrlsub {\isadigit{1}}\ {\isasymdots}\ q\isactrlsub n{\isachardoublequote}} renames
-  the innermost parameters of premises \isa{{\isachardoublequote}{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n{\isachardoublequote}} of some
+  \item \hyperlink{attribute.params}{\mbox{\isa{params}}}~\isa{{\isaliteral{22}{\isachardoublequote}}p\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} renames
+  the innermost parameters of premises \isa{{\isaliteral{22}{\isachardoublequote}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ n{\isaliteral{22}{\isachardoublequote}}} of some
   theorem.  An empty list of names may be given to skip positions,
   leaving the present parameters unchanged.
   
@@ -1235,7 +1235,7 @@ The Isar provides separate commands to accommodate tactic-style
   \item \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}~\isa{n} declares the number of ``major
   premises'' of a rule, i.e.\ the number of facts to be consumed when
   it is applied by an appropriate proof method.  The default value of
-  \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}} is \isa{{\isachardoublequote}n\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequote}}, which is appropriate for
+  \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}} is \isa{{\isaliteral{22}{\isachardoublequote}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}, which is appropriate for
   the usual kind of cases and induction rules for inductive sets (cf.\
   \secref{sec:hol-inductive}).  Rules without any \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}} declaration given are treated as if \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}~\isa{{\isadigit{0}}} had been specified.
   
@@ -1296,7 +1296,7 @@ The Isar provides separate commands to accommodate tactic-style
 
   \begin{description}
 
-  \item \hyperlink{method.cases}{\mbox{\isa{cases}}}~\isa{{\isachardoublequote}insts\ R{\isachardoublequote}} applies method \hyperlink{method.rule}{\mbox{\isa{rule}}} with an appropriate case distinction theorem, instantiated to
+  \item \hyperlink{method.cases}{\mbox{\isa{cases}}}~\isa{{\isaliteral{22}{\isachardoublequote}}insts\ R{\isaliteral{22}{\isachardoublequote}}} applies method \hyperlink{method.rule}{\mbox{\isa{rule}}} with an appropriate case distinction theorem, instantiated to
   the subjects \isa{insts}.  Symbolic case names are bound according
   to the rule's local contexts.
 
@@ -1308,8 +1308,8 @@ The Isar provides separate commands to accommodate tactic-style
     facts           &                 & arguments   & rule \\\hline
                     & \hyperlink{method.cases}{\mbox{\isa{cases}}} &             & classical case split \\
                     & \hyperlink{method.cases}{\mbox{\isa{cases}}} & \isa{t}   & datatype exhaustion (type of \isa{t}) \\
-    \isa{{\isachardoublequote}{\isasymturnstile}\ A\ t{\isachardoublequote}} & \hyperlink{method.cases}{\mbox{\isa{cases}}} & \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} & inductive predicate/set elimination (of \isa{A}) \\
-    \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}     & \hyperlink{method.cases}{\mbox{\isa{cases}}} & \isa{{\isachardoublequote}{\isasymdots}\ rule{\isacharcolon}\ R{\isachardoublequote}} & explicit rule \isa{R} \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ t{\isaliteral{22}{\isachardoublequote}}} & \hyperlink{method.cases}{\mbox{\isa{cases}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} & inductive predicate/set elimination (of \isa{A}) \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}     & \hyperlink{method.cases}{\mbox{\isa{cases}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ rule{\isaliteral{3A}{\isacharcolon}}\ R{\isaliteral{22}{\isachardoublequote}}} & explicit rule \isa{R} \\
   \end{tabular}
   \medskip
 
@@ -1317,31 +1317,31 @@ The Isar provides separate commands to accommodate tactic-style
   of premises of the case rule; within each premise, the \emph{prefix}
   of variables is instantiated.  In most situations, only a single
   term needs to be specified; this refers to the first variable of the
-  last premise (it is usually the same for all cases).  The \isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}simp{\isacharparenright}{\isachardoublequote}} option can be used to disable pre-simplification of
+  last premise (it is usually the same for all cases).  The \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}no{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} option can be used to disable pre-simplification of
   cases (see the description of \hyperlink{method.induct}{\mbox{\isa{induct}}} below for details).
 
-  \item \hyperlink{method.induct}{\mbox{\isa{induct}}}~\isa{{\isachardoublequote}insts\ R{\isachardoublequote}} is analogous to the
+  \item \hyperlink{method.induct}{\mbox{\isa{induct}}}~\isa{{\isaliteral{22}{\isachardoublequote}}insts\ R{\isaliteral{22}{\isachardoublequote}}} is analogous to the
   \hyperlink{method.cases}{\mbox{\isa{cases}}} method, but refers to induction rules, which are
   determined as follows:
 
   \medskip
   \begin{tabular}{llll}
     facts           &                  & arguments            & rule \\\hline
-                    & \hyperlink{method.induct}{\mbox{\isa{induct}}} & \isa{{\isachardoublequote}P\ x{\isachardoublequote}}        & datatype induction (type of \isa{x}) \\
-    \isa{{\isachardoublequote}{\isasymturnstile}\ A\ x{\isachardoublequote}} & \hyperlink{method.induct}{\mbox{\isa{induct}}} & \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}          & predicate/set induction (of \isa{A}) \\
-    \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}     & \hyperlink{method.induct}{\mbox{\isa{induct}}} & \isa{{\isachardoublequote}{\isasymdots}\ rule{\isacharcolon}\ R{\isachardoublequote}} & explicit rule \isa{R} \\
+                    & \hyperlink{method.induct}{\mbox{\isa{induct}}} & \isa{{\isaliteral{22}{\isachardoublequote}}P\ x{\isaliteral{22}{\isachardoublequote}}}        & datatype induction (type of \isa{x}) \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ x{\isaliteral{22}{\isachardoublequote}}} & \hyperlink{method.induct}{\mbox{\isa{induct}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}          & predicate/set induction (of \isa{A}) \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}     & \hyperlink{method.induct}{\mbox{\isa{induct}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ rule{\isaliteral{3A}{\isacharcolon}}\ R{\isaliteral{22}{\isachardoublequote}}} & explicit rule \isa{R} \\
   \end{tabular}
   \medskip
   
   Several instantiations may be given, each referring to some part of
   a mutual inductive definition or datatype --- only related partial
   induction rules may be used together, though.  Any of the lists of
-  terms \isa{{\isachardoublequote}P{\isacharcomma}\ x{\isacharcomma}\ {\isasymdots}{\isachardoublequote}} refers to the \emph{suffix} of variables
+  terms \isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} refers to the \emph{suffix} of variables
   present in the induction rule.  This enables the writer to specify
   only induction variables, or both predicates and variables, for
   example.
 
-  Instantiations may be definitional: equations \isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}
+  Instantiations may be definitional: equations \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}}
   introduce local definitions, which are inserted into the claim and
   discharged after applying the induction rule.  Equalities reappear
   in the inductive cases, but have been transformed according to the
@@ -1349,7 +1349,7 @@ The Isar provides separate commands to accommodate tactic-style
   practically useful induction hypotheses, some variables occurring in
   \isa{t} need to be fixed (see below).  Instantiations of the form
   \isa{t}, where \isa{t} is not a variable, are taken as a
-  shorthand for \mbox{\isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}}, where \isa{x} is a fresh
+  shorthand for \mbox{\isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}}}, where \isa{x} is a fresh
   variable. If this is not intended, \isa{t} has to be enclosed in
   parentheses.  By default, the equalities generated by definitional
   instantiations are pre-simplified using a specific set of rules,
@@ -1357,23 +1357,23 @@ The Isar provides separate commands to accommodate tactic-style
   datatypes. This pre-simplification may cause some of the parameters
   of an inductive case to disappear, or may even completely delete
   some of the inductive cases, if one of the equalities occurring in
-  their premises can be simplified to \isa{False}.  The \isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}simp{\isacharparenright}{\isachardoublequote}} option can be used to disable pre-simplification.
+  their premises can be simplified to \isa{False}.  The \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}no{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} option can be used to disable pre-simplification.
   Additional rules to be used in pre-simplification can be declared
-  using the \indexdef{}{attribute}{induct\_simp}\hypertarget{attribute.induct-simp}{\hyperlink{attribute.induct-simp}{\mbox{\isa{induct{\isacharunderscore}simp}}}} attribute.
+  using the \indexdef{}{attribute}{induct\_simp}\hypertarget{attribute.induct-simp}{\hyperlink{attribute.induct-simp}{\mbox{\isa{induct{\isaliteral{5F}{\isacharunderscore}}simp}}}} attribute.
 
-  The optional ``\isa{{\isachardoublequote}arbitrary{\isacharcolon}\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardoublequote}}''
-  specification generalizes variables \isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isachardoublequote}} of the original goal before applying induction.  Thus
+  The optional ``\isa{{\isaliteral{22}{\isachardoublequote}}arbitrary{\isaliteral{3A}{\isacharcolon}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}}''
+  specification generalizes variables \isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} of the original goal before applying induction.  Thus
   induction hypotheses may become sufficiently general to get the
   proof through.  Together with definitional instantiations, one may
   effectively perform induction over expressions of a certain
   structure.
   
-  The optional ``\isa{{\isachardoublequote}taking{\isacharcolon}\ t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n{\isachardoublequote}}''
+  The optional ``\isa{{\isaliteral{22}{\isachardoublequote}}taking{\isaliteral{3A}{\isacharcolon}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}''
   specification provides additional instantiations of a prefix of
   pending variables in the rule.  Such schematic induction rules
   rarely occur in practice, though.
 
-  \item \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}}~\isa{{\isachardoublequote}inst\ R{\isachardoublequote}} is analogous to the
+  \item \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}}~\isa{{\isaliteral{22}{\isachardoublequote}}inst\ R{\isaliteral{22}{\isachardoublequote}}} is analogous to the
   \hyperlink{method.induct}{\mbox{\isa{induct}}} method, but refers to coinduction rules, which are
   determined as follows:
 
@@ -1381,20 +1381,20 @@ The Isar provides separate commands to accommodate tactic-style
   \begin{tabular}{llll}
     goal          &                    & arguments & rule \\\hline
                   & \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} & \isa{x} & type coinduction (type of \isa{x}) \\
-    \isa{{\isachardoublequote}A\ x{\isachardoublequote}} & \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} & \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} & predicate/set coinduction (of \isa{A}) \\
-    \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}   & \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} & \isa{{\isachardoublequote}{\isasymdots}\ rule{\isacharcolon}\ R{\isachardoublequote}} & explicit rule \isa{R} \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}A\ x{\isaliteral{22}{\isachardoublequote}}} & \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} & predicate/set coinduction (of \isa{A}) \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}   & \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ rule{\isaliteral{3A}{\isacharcolon}}\ R{\isaliteral{22}{\isachardoublequote}}} & explicit rule \isa{R} \\
   \end{tabular}
   
   Coinduction is the dual of induction.  Induction essentially
-  eliminates \isa{{\isachardoublequote}A\ x{\isachardoublequote}} towards a generic result \isa{{\isachardoublequote}P\ x{\isachardoublequote}},
-  while coinduction introduces \isa{{\isachardoublequote}A\ x{\isachardoublequote}} starting with \isa{{\isachardoublequote}B\ x{\isachardoublequote}}, for a suitable ``bisimulation'' \isa{B}.  The cases of a
+  eliminates \isa{{\isaliteral{22}{\isachardoublequote}}A\ x{\isaliteral{22}{\isachardoublequote}}} towards a generic result \isa{{\isaliteral{22}{\isachardoublequote}}P\ x{\isaliteral{22}{\isachardoublequote}}},
+  while coinduction introduces \isa{{\isaliteral{22}{\isachardoublequote}}A\ x{\isaliteral{22}{\isachardoublequote}}} starting with \isa{{\isaliteral{22}{\isachardoublequote}}B\ x{\isaliteral{22}{\isachardoublequote}}}, for a suitable ``bisimulation'' \isa{B}.  The cases of a
   coinduct rule are typically named after the predicates or sets being
   covered, while the conclusions consist of several alternatives being
   named after the individual destructor patterns.
   
   The given instantiation refers to the \emph{suffix} of variables
   occurring in the rule's major premise, or conclusion if unavailable.
-  An additional ``\isa{{\isachardoublequote}taking{\isacharcolon}\ t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n{\isachardoublequote}}''
+  An additional ``\isa{{\isaliteral{22}{\isachardoublequote}}taking{\isaliteral{3A}{\isacharcolon}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}''
   specification may be required in order to specify the bisimulation
   to be used in the coinduction step.
 
@@ -1404,17 +1404,17 @@ The Isar provides separate commands to accommodate tactic-style
   instantiated rule as given in the text.  Beyond that, the \hyperlink{method.induct}{\mbox{\isa{induct}}} and \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} methods guess further instantiations
   from the goal specification itself.  Any persisting unresolved
   schematic variables of the resulting rule will render the the
-  corresponding case invalid.  The term binding \hyperlink{variable.?case}{\mbox{\isa{{\isacharquery}case}}} for
+  corresponding case invalid.  The term binding \hyperlink{variable.?case}{\mbox{\isa{{\isaliteral{3F}{\isacharquery}}case}}} for
   the conclusion will be provided with each case, provided that term
   is fully specified.
 
-  The \hyperlink{command.print-cases}{\mbox{\isa{\isacommand{print{\isacharunderscore}cases}}}} command prints all named cases present
+  The \hyperlink{command.print-cases}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}cases}}}} command prints all named cases present
   in the current proof state.
 
   \medskip Despite the additional infrastructure, both \hyperlink{method.cases}{\mbox{\isa{cases}}}
   and \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} merely apply a certain rule, after
   instantiation, while conforming due to the usual way of monotonic
-  natural deduction: the context of a structured statement \isa{{\isachardoublequote}{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ {\isasymLongrightarrow}\ {\isasymdots}{\isachardoublequote}}
+  natural deduction: the context of a structured statement \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}
   reappears unchanged after the case split.
 
   The \hyperlink{method.induct}{\mbox{\isa{induct}}} method is fundamentally different in this
@@ -1429,7 +1429,7 @@ The Isar provides separate commands to accommodate tactic-style
   In induction proofs, local assumptions introduced by cases are split
   into two different kinds: \isa{hyps} stemming from the rule and
   \isa{prems} from the goal statement.  This is reflected in the
-  extracted cases accordingly, so invoking ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{c}'' will provide separate facts \isa{c{\isachardot}hyps} and \isa{c{\isachardot}prems},
+  extracted cases accordingly, so invoking ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{c}'' will provide separate facts \isa{c{\isaliteral{2E}{\isachardot}}hyps} and \isa{c{\isaliteral{2E}{\isachardot}}prems},
   as well as fact \isa{c} to hold the all-inclusive list.
 
   \medskip Facts presented to either method are consumed according to
@@ -1448,7 +1448,7 @@ The Isar provides separate commands to accommodate tactic-style
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{print\_induct\_rules}\hypertarget{command.print-induct-rules}{\hyperlink{command.print-induct-rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}induct{\isacharunderscore}rules}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{print\_induct\_rules}\hypertarget{command.print-induct-rules}{\hyperlink{command.print-induct-rules}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}induct{\isaliteral{5F}{\isacharunderscore}}rules}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{attribute}{cases}\hypertarget{attribute.cases}{\hyperlink{attribute.cases}{\mbox{\isa{cases}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{induct}\hypertarget{attribute.induct}{\hyperlink{attribute.induct}{\mbox{\isa{induct}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{coinduct}\hypertarget{attribute.coinduct}{\hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}}} & : & \isa{attribute} \\
@@ -1468,7 +1468,7 @@ The Isar provides separate commands to accommodate tactic-style
 
   \begin{description}
 
-  \item \hyperlink{command.print-induct-rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}induct{\isacharunderscore}rules}}}} prints cases and induct rules
+  \item \hyperlink{command.print-induct-rules}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}induct{\isaliteral{5F}{\isacharunderscore}}rules}}}} prints cases and induct rules
   for predicates (or sets) and types of the current context.
   
   \item \hyperlink{attribute.cases}{\mbox{\isa{cases}}}, \hyperlink{attribute.induct}{\mbox{\isa{induct}}}, and \hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}} (as attributes) declare rules for reasoning about
@@ -1477,12 +1477,12 @@ The Isar provides separate commands to accommodate tactic-style
   packages of object-logics usually declare emerging cases and
   induction rules as expected, so users rarely need to intervene.
 
-  Rules may be deleted via the \isa{{\isachardoublequote}del{\isachardoublequote}} specification, which
-  covers all of the \isa{{\isachardoublequote}type{\isachardoublequote}}/\isa{{\isachardoublequote}pred{\isachardoublequote}}/\isa{{\isachardoublequote}set{\isachardoublequote}}
+  Rules may be deleted via the \isa{{\isaliteral{22}{\isachardoublequote}}del{\isaliteral{22}{\isachardoublequote}}} specification, which
+  covers all of the \isa{{\isaliteral{22}{\isachardoublequote}}type{\isaliteral{22}{\isachardoublequote}}}/\isa{{\isaliteral{22}{\isachardoublequote}}pred{\isaliteral{22}{\isachardoublequote}}}/\isa{{\isaliteral{22}{\isachardoublequote}}set{\isaliteral{22}{\isachardoublequote}}}
   sub-categories simultaneously.  For example, \hyperlink{attribute.cases}{\mbox{\isa{cases}}}~\isa{del} removes any \hyperlink{attribute.cases}{\mbox{\isa{cases}}} rules declared for
   some type, predicate, or set.
   
-  Manual rule declarations usually refer to the \hyperlink{attribute.case-names}{\mbox{\isa{case{\isacharunderscore}names}}} and \hyperlink{attribute.params}{\mbox{\isa{params}}} attributes to adjust names of
+  Manual rule declarations usually refer to the \hyperlink{attribute.case-names}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}names}}} and \hyperlink{attribute.params}{\mbox{\isa{params}}} attributes to adjust names of
   cases and parameters of a rule; the \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}
   declaration is taken care of automatically: \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}~\isa{{\isadigit{0}}} is specified for ``type'' rules and \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}~\isa{{\isadigit{1}}} for ``predicate'' / ``set'' rules.
 
