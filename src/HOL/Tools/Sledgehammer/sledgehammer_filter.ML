@@ -369,13 +369,16 @@ fun locality_bonus (_ : relevance_fudge) General = 0.0
   | locality_bonus {assum_bonus, ...} Assum = assum_bonus
   | locality_bonus {chained_bonus, ...} Chained = chained_bonus
 
+fun is_odd_const_name s =
+  s = abs_name orelse String.isPrefix skolem_prefix s orelse
+  String.isSuffix theory_const_suffix s
+
 fun fact_weight fudge loc const_tab relevant_consts fact_consts =
   case fact_consts |> List.partition (pconst_hyper_mem I relevant_consts)
                    ||> filter_out (pconst_hyper_mem swap relevant_consts) of
     ([], _) => 0.0
   | (rel, irrel) =>
-    if forall (forall (String.isSuffix theory_const_suffix o fst))
-              [rel, irrel] then
+    if forall (forall (is_odd_const_name o fst)) [rel, irrel] then
       0.0
     else
       let
