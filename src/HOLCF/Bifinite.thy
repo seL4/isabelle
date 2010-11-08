@@ -71,6 +71,58 @@ proof -
   show "ideal_completion below Rep_compact_basis (approximants::'a \<Rightarrow> _)" ..
 qed
 
+subsection {* Chains of approx functions *}
+
+definition u_approx :: "nat \<Rightarrow> udom\<^sub>\<bottom> \<rightarrow> udom\<^sub>\<bottom>"
+  where "u_approx = (\<lambda>i. u_map\<cdot>(udom_approx i))"
+
+definition cfun_approx :: "nat \<Rightarrow> (udom \<rightarrow> udom) \<rightarrow> (udom \<rightarrow> udom)"
+  where "cfun_approx = (\<lambda>i. cfun_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+
+definition prod_approx :: "nat \<Rightarrow> udom \<times> udom \<rightarrow> udom \<times> udom"
+  where "prod_approx = (\<lambda>i. cprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+
+definition sprod_approx :: "nat \<Rightarrow> udom \<otimes> udom \<rightarrow> udom \<otimes> udom"
+  where "sprod_approx = (\<lambda>i. sprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+
+definition ssum_approx :: "nat \<Rightarrow> udom \<oplus> udom \<rightarrow> udom \<oplus> udom"
+  where "ssum_approx = (\<lambda>i. ssum_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+
+lemma approx_chain_lemma1:
+  assumes "m\<cdot>ID = ID"
+  assumes "\<And>d. finite_deflation d \<Longrightarrow> finite_deflation (m\<cdot>d)"
+  shows "approx_chain (\<lambda>i. m\<cdot>(udom_approx i))"
+by (rule approx_chain.intro)
+   (simp_all add: lub_distribs finite_deflation_udom_approx assms)
+
+lemma approx_chain_lemma2:
+  assumes "m\<cdot>ID\<cdot>ID = ID"
+  assumes "\<And>a b. \<lbrakk>finite_deflation a; finite_deflation b\<rbrakk>
+    \<Longrightarrow> finite_deflation (m\<cdot>a\<cdot>b)"
+  shows "approx_chain (\<lambda>i. m\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+by (rule approx_chain.intro)
+   (simp_all add: lub_distribs finite_deflation_udom_approx assms)
+
+lemma u_approx: "approx_chain u_approx"
+using u_map_ID finite_deflation_u_map
+unfolding u_approx_def by (rule approx_chain_lemma1)
+
+lemma cfun_approx: "approx_chain cfun_approx"
+using cfun_map_ID finite_deflation_cfun_map
+unfolding cfun_approx_def by (rule approx_chain_lemma2)
+
+lemma prod_approx: "approx_chain prod_approx"
+using cprod_map_ID finite_deflation_cprod_map
+unfolding prod_approx_def by (rule approx_chain_lemma2)
+
+lemma sprod_approx: "approx_chain sprod_approx"
+using sprod_map_ID finite_deflation_sprod_map
+unfolding sprod_approx_def by (rule approx_chain_lemma2)
+
+lemma ssum_approx: "approx_chain ssum_approx"
+using ssum_map_ID finite_deflation_ssum_map
+unfolding ssum_approx_def by (rule approx_chain_lemma2)
+
 subsection {* Type combinators *}
 
 definition
@@ -144,6 +196,53 @@ proof -
                    Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
 qed
 
+definition u_defl :: "defl \<rightarrow> defl"
+  where "u_defl = defl_fun1 u_approx u_map"
+
+definition cfun_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
+  where "cfun_defl = defl_fun2 cfun_approx cfun_map"
+
+definition prod_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
+  where "prod_defl = defl_fun2 prod_approx cprod_map"
+
+definition sprod_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
+  where "sprod_defl = defl_fun2 sprod_approx sprod_map"
+
+definition ssum_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
+where "ssum_defl = defl_fun2 ssum_approx ssum_map"
+
+lemma cast_u_defl:
+  "cast\<cdot>(u_defl\<cdot>A) =
+    udom_emb u_approx oo u_map\<cdot>(cast\<cdot>A) oo udom_prj u_approx"
+using u_approx finite_deflation_u_map
+unfolding u_defl_def by (rule cast_defl_fun1)
+
+lemma cast_cfun_defl:
+  "cast\<cdot>(cfun_defl\<cdot>A\<cdot>B) =
+    udom_emb cfun_approx oo cfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj cfun_approx"
+using cfun_approx finite_deflation_cfun_map
+unfolding cfun_defl_def by (rule cast_defl_fun2)
+
+lemma cast_prod_defl:
+  "cast\<cdot>(prod_defl\<cdot>A\<cdot>B) = udom_emb prod_approx oo
+    cprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj prod_approx"
+using prod_approx finite_deflation_cprod_map
+unfolding prod_defl_def by (rule cast_defl_fun2)
+
+lemma cast_sprod_defl:
+  "cast\<cdot>(sprod_defl\<cdot>A\<cdot>B) =
+    udom_emb sprod_approx oo
+      sprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo
+        udom_prj sprod_approx"
+using sprod_approx finite_deflation_sprod_map
+unfolding sprod_defl_def by (rule cast_defl_fun2)
+
+lemma cast_ssum_defl:
+  "cast\<cdot>(ssum_defl\<cdot>A\<cdot>B) =
+    udom_emb ssum_approx oo ssum_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj ssum_approx"
+using ssum_approx finite_deflation_ssum_map
+unfolding ssum_defl_def by (rule cast_defl_fun2)
+
 subsection {* The universal domain is bifinite *}
 
 instantiation udom :: bifinite
@@ -161,7 +260,6 @@ definition
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> udom)"
     by (simp add: ep_pair.intro)
-next
   show "cast\<cdot>DEFL(udom) = emb oo (prj :: udom \<rightarrow> udom)"
     unfolding defl_udom_def
     apply (subst contlub_cfun_arg)
@@ -179,34 +277,6 @@ qed
 end
 
 subsection {* Continuous function space is a bifinite domain *}
-
-definition
-  cfun_approx :: "nat \<Rightarrow> (udom \<rightarrow> udom) \<rightarrow> (udom \<rightarrow> udom)"
-where
-  "cfun_approx = (\<lambda>i. cfun_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
-
-lemma cfun_approx: "approx_chain cfun_approx"
-proof (rule approx_chain.intro)
-  show "chain (\<lambda>i. cfun_approx i)"
-    unfolding cfun_approx_def by simp
-  show "(\<Squnion>i. cfun_approx i) = ID"
-    unfolding cfun_approx_def
-    by (simp add: lub_distribs cfun_map_ID)
-  show "\<And>i. finite_deflation (cfun_approx i)"
-    unfolding cfun_approx_def
-    by (intro finite_deflation_cfun_map finite_deflation_udom_approx)
-qed
-
-definition cfun_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
-where "cfun_defl = defl_fun2 cfun_approx cfun_map"
-
-lemma cast_cfun_defl:
-  "cast\<cdot>(cfun_defl\<cdot>A\<cdot>B) =
-    udom_emb cfun_approx oo cfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj cfun_approx"
-unfolding cfun_defl_def
-apply (rule cast_defl_fun2 [OF cfun_approx])
-apply (erule (1) finite_deflation_cfun_map)
-done
 
 instantiation cfun :: (bifinite, bifinite) bifinite
 begin
@@ -239,34 +309,6 @@ by (rule defl_cfun_def)
 
 subsection {* Cartesian product is a bifinite domain *}
 
-definition
-  prod_approx :: "nat \<Rightarrow> udom \<times> udom \<rightarrow> udom \<times> udom"
-where
-  "prod_approx = (\<lambda>i. cprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
-
-lemma prod_approx: "approx_chain prod_approx"
-proof (rule approx_chain.intro)
-  show "chain (\<lambda>i. prod_approx i)"
-    unfolding prod_approx_def by simp
-  show "(\<Squnion>i. prod_approx i) = ID"
-    unfolding prod_approx_def
-    by (simp add: lub_distribs cprod_map_ID)
-  show "\<And>i. finite_deflation (prod_approx i)"
-    unfolding prod_approx_def
-    by (intro finite_deflation_cprod_map finite_deflation_udom_approx)
-qed
-
-definition prod_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
-where "prod_defl = defl_fun2 prod_approx cprod_map"
-
-lemma cast_prod_defl:
-  "cast\<cdot>(prod_defl\<cdot>A\<cdot>B) = udom_emb prod_approx oo
-    cprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj prod_approx"
-unfolding prod_defl_def
-apply (rule cast_defl_fun2 [OF prod_approx])
-apply (erule (1) finite_deflation_cprod_map)
-done
-
 instantiation prod :: (bifinite, bifinite) bifinite
 begin
 
@@ -298,36 +340,6 @@ by (rule defl_prod_def)
 
 subsection {* Strict product is a bifinite domain *}
 
-definition
-  sprod_approx :: "nat \<Rightarrow> udom \<otimes> udom \<rightarrow> udom \<otimes> udom"
-where
-  "sprod_approx = (\<lambda>i. sprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
-
-lemma sprod_approx: "approx_chain sprod_approx"
-proof (rule approx_chain.intro)
-  show "chain (\<lambda>i. sprod_approx i)"
-    unfolding sprod_approx_def by simp
-  show "(\<Squnion>i. sprod_approx i) = ID"
-    unfolding sprod_approx_def
-    by (simp add: lub_distribs sprod_map_ID)
-  show "\<And>i. finite_deflation (sprod_approx i)"
-    unfolding sprod_approx_def
-    by (intro finite_deflation_sprod_map finite_deflation_udom_approx)
-qed
-
-definition sprod_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
-where "sprod_defl = defl_fun2 sprod_approx sprod_map"
-
-lemma cast_sprod_defl:
-  "cast\<cdot>(sprod_defl\<cdot>A\<cdot>B) =
-    udom_emb sprod_approx oo
-      sprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo
-        udom_prj sprod_approx"
-unfolding sprod_defl_def
-apply (rule cast_defl_fun2 [OF sprod_approx])
-apply (erule (1) finite_deflation_sprod_map)
-done
-
 instantiation sprod :: (bifinite, bifinite) bifinite
 begin
 
@@ -358,32 +370,6 @@ lemma DEFL_sprod:
 by (rule defl_sprod_def)
 
 subsection {* Lifted cpo is a bifinite domain *}
-
-definition u_approx :: "nat \<Rightarrow> udom\<^sub>\<bottom> \<rightarrow> udom\<^sub>\<bottom>"
-where "u_approx = (\<lambda>i. u_map\<cdot>(udom_approx i))"
-
-lemma u_approx: "approx_chain u_approx"
-proof (rule approx_chain.intro)
-  show "chain (\<lambda>i. u_approx i)"
-    unfolding u_approx_def by simp
-  show "(\<Squnion>i. u_approx i) = ID"
-    unfolding u_approx_def
-    by (simp add: lub_distribs u_map_ID)
-  show "\<And>i. finite_deflation (u_approx i)"
-    unfolding u_approx_def
-    by (intro finite_deflation_u_map finite_deflation_udom_approx)
-qed
-
-definition u_defl :: "defl \<rightarrow> defl"
-where "u_defl = defl_fun1 u_approx u_map"
-
-lemma cast_u_defl:
-  "cast\<cdot>(u_defl\<cdot>A) =
-    udom_emb u_approx oo u_map\<cdot>(cast\<cdot>A) oo udom_prj u_approx"
-unfolding u_defl_def
-apply (rule cast_defl_fun1 [OF u_approx])
-apply (erule finite_deflation_u_map)
-done
 
 instantiation u :: (bifinite) bifinite
 begin
@@ -499,34 +485,6 @@ qed
 end
 
 subsection {* Strict sum is a bifinite domain *}
-
-definition
-  ssum_approx :: "nat \<Rightarrow> udom \<oplus> udom \<rightarrow> udom \<oplus> udom"
-where
-  "ssum_approx = (\<lambda>i. ssum_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
-
-lemma ssum_approx: "approx_chain ssum_approx"
-proof (rule approx_chain.intro)
-  show "chain (\<lambda>i. ssum_approx i)"
-    unfolding ssum_approx_def by simp
-  show "(\<Squnion>i. ssum_approx i) = ID"
-    unfolding ssum_approx_def
-    by (simp add: lub_distribs ssum_map_ID)
-  show "\<And>i. finite_deflation (ssum_approx i)"
-    unfolding ssum_approx_def
-    by (intro finite_deflation_ssum_map finite_deflation_udom_approx)
-qed
-
-definition ssum_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
-where "ssum_defl = defl_fun2 ssum_approx ssum_map"
-
-lemma cast_ssum_defl:
-  "cast\<cdot>(ssum_defl\<cdot>A\<cdot>B) =
-    udom_emb ssum_approx oo ssum_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj ssum_approx"
-unfolding ssum_defl_def
-apply (rule cast_defl_fun2 [OF ssum_approx])
-apply (erule (1) finite_deflation_ssum_map)
-done
 
 instantiation ssum :: (bifinite, bifinite) bifinite
 begin

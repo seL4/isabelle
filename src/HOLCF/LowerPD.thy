@@ -441,16 +441,8 @@ where
   "lower_approx = (\<lambda>i. lower_map\<cdot>(udom_approx i))"
 
 lemma lower_approx: "approx_chain lower_approx"
-proof (rule approx_chain.intro)
-  show "chain (\<lambda>i. lower_approx i)"
-    unfolding lower_approx_def by simp
-  show "(\<Squnion>i. lower_approx i) = ID"
-    unfolding lower_approx_def
-    by (simp add: lub_distribs lower_map_ID)
-  show "\<And>i. finite_deflation (lower_approx i)"
-    unfolding lower_approx_def
-    by (intro finite_deflation_lower_map finite_deflation_udom_approx)
-qed
+using lower_map_ID finite_deflation_lower_map
+unfolding lower_approx_def by (rule approx_chain_lemma1)
 
 definition lower_defl :: "defl \<rightarrow> defl"
 where "lower_defl = defl_fun1 lower_approx lower_map"
@@ -458,10 +450,8 @@ where "lower_defl = defl_fun1 lower_approx lower_map"
 lemma cast_lower_defl:
   "cast\<cdot>(lower_defl\<cdot>A) =
     udom_emb lower_approx oo lower_map\<cdot>(cast\<cdot>A) oo udom_prj lower_approx"
-unfolding lower_defl_def
-apply (rule cast_defl_fun1 [OF lower_approx])
-apply (erule finite_deflation_lower_map)
-done
+using lower_approx finite_deflation_lower_map
+unfolding lower_defl_def by (rule cast_defl_fun1)
 
 instantiation lower_pd :: (bifinite) bifinite
 begin

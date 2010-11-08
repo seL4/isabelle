@@ -436,16 +436,8 @@ where
   "upper_approx = (\<lambda>i. upper_map\<cdot>(udom_approx i))"
 
 lemma upper_approx: "approx_chain upper_approx"
-proof (rule approx_chain.intro)
-  show "chain (\<lambda>i. upper_approx i)"
-    unfolding upper_approx_def by simp
-  show "(\<Squnion>i. upper_approx i) = ID"
-    unfolding upper_approx_def
-    by (simp add: lub_distribs upper_map_ID)
-  show "\<And>i. finite_deflation (upper_approx i)"
-    unfolding upper_approx_def
-    by (intro finite_deflation_upper_map finite_deflation_udom_approx)
-qed
+using upper_map_ID finite_deflation_upper_map
+unfolding upper_approx_def by (rule approx_chain_lemma1)
 
 definition upper_defl :: "defl \<rightarrow> defl"
 where "upper_defl = defl_fun1 upper_approx upper_map"
@@ -453,10 +445,8 @@ where "upper_defl = defl_fun1 upper_approx upper_map"
 lemma cast_upper_defl:
   "cast\<cdot>(upper_defl\<cdot>A) =
     udom_emb upper_approx oo upper_map\<cdot>(cast\<cdot>A) oo udom_prj upper_approx"
-unfolding upper_defl_def
-apply (rule cast_defl_fun1 [OF upper_approx])
-apply (erule finite_deflation_upper_map)
-done
+using upper_approx finite_deflation_upper_map
+unfolding upper_defl_def by (rule cast_defl_fun1)
 
 instantiation upper_pd :: (bifinite) bifinite
 begin

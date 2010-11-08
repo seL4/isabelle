@@ -448,16 +448,8 @@ where
   "convex_approx = (\<lambda>i. convex_map\<cdot>(udom_approx i))"
 
 lemma convex_approx: "approx_chain convex_approx"
-proof (rule approx_chain.intro)
-  show "chain (\<lambda>i. convex_approx i)"
-    unfolding convex_approx_def by simp
-  show "(\<Squnion>i. convex_approx i) = ID"
-    unfolding convex_approx_def
-    by (simp add: lub_distribs convex_map_ID)
-  show "\<And>i. finite_deflation (convex_approx i)"
-    unfolding convex_approx_def
-    by (intro finite_deflation_convex_map finite_deflation_udom_approx)
-qed
+using convex_map_ID finite_deflation_convex_map
+unfolding convex_approx_def by (rule approx_chain_lemma1)
 
 definition convex_defl :: "defl \<rightarrow> defl"
 where "convex_defl = defl_fun1 convex_approx convex_map"
@@ -465,10 +457,8 @@ where "convex_defl = defl_fun1 convex_approx convex_map"
 lemma cast_convex_defl:
   "cast\<cdot>(convex_defl\<cdot>A) =
     udom_emb convex_approx oo convex_map\<cdot>(cast\<cdot>A) oo udom_prj convex_approx"
-unfolding convex_defl_def
-apply (rule cast_defl_fun1 [OF convex_approx])
-apply (erule finite_deflation_convex_map)
-done
+using convex_approx finite_deflation_convex_map
+unfolding convex_defl_def by (rule cast_defl_fun1)
 
 instantiation convex_pd :: (bifinite) bifinite
 begin
