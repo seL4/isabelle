@@ -28,9 +28,6 @@ sig
     (string list * binding * mixfix * string * (binding * binding) option) list
       -> theory -> theory
 
-  val add_type_constructor :
-    (string * string * string * bool list) -> theory -> theory
-
   val setup : theory -> theory
 end;
 
@@ -52,17 +49,6 @@ fun is_bifinite thy T = Sign.of_sort thy (T, @{sort bifinite});
 (******************************** theory data *********************************)
 (******************************************************************************)
 
-structure DeflData = Theory_Data
-(
-  (* constant names like "foo_defl" *)
-  (* list indicates which type arguments correspond to deflation parameters *)
-  (* alternatively, which type arguments allow indirect recursion *)
-  type T = (string * bool list) Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I;
-  fun merge data = Symtab.merge (K true) data;
-);
-
 structure RepData = Named_Thms
 (
   val name = "domain_defl_simps"
@@ -81,13 +67,8 @@ structure IsodeflData = Named_Thms
   val description = "theorems like isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)"
 );
 
-fun add_type_constructor
-  (tname, defl_name, map_name, flags) =
-    DeflData.map (Symtab.insert (K true) (tname, (defl_name, flags)))
-    #> Domain_Take_Proofs.add_map_function (tname, map_name, flags)
-
 val setup =
-    RepData.setup #> MapIdData.setup #> IsodeflData.setup
+  RepData.setup #> MapIdData.setup #> IsodeflData.setup
 
 
 (******************************************************************************)
@@ -104,6 +85,9 @@ val deflT = @{typ "defl"};
 
 fun mk_DEFL T =
   Const (@{const_name defl}, Term.itselfT T --> deflT) $ Logic.mk_type T;
+
+fun dest_DEFL (Const (@{const_name defl}, _) $ t) = Logic.dest_type t
+  | dest_DEFL t = raise TERM ("dest_DEFL", [t]);
 
 fun emb_const T = Const (@{const_name emb}, T ->> udomT);
 fun prj_const T = Const (@{const_name prj}, udomT ->> T);
@@ -214,29 +198,19 @@ fun mk_defl_type (flags : bool list) (Ts : typ list) =
 
 fun defl_of_typ
     (thy : theory)
-    (tab : (string * bool list) Symtab.table)
+    (tab : (typ * term) list)
     (T : typ) : term =
   let
-    fun is_closed_typ (Type (_, Ts)) = forall is_closed_typ Ts
-      | is_closed_typ (TFree (n, s)) = not (Sign.subsort thy (s, @{sort bifinite}))
-      | is_closed_typ _ = false;
-    fun defl_of (TFree (a, _)) = Free (Library.unprefix "'" a, deflT)
-      | defl_of (TVar _) = error ("defl_of_typ: TVar")
-      | defl_of (T as Type (c, Ts)) =
-        case Symtab.lookup tab c of
-          SOME (s, flags) =>
-            let
-              val defl_const = Const (s, mk_defl_type flags Ts);
-              val type_args = map (Logic.mk_type o snd) (filter_out fst (flags ~~ Ts));
-              val defl_args = map (defl_of o snd) (filter fst (flags ~~ Ts));
-            in
-              list_ccomb (list_comb (defl_const, type_args), defl_args)
-            end
-        | NONE => if is_closed_typ T
-                  then mk_DEFL T
-                  else error ("defl_of_typ: type variable under unsupported type constructor " ^ c);
-  in defl_of T end;
-
+    val defl_simps = RepData.get (ProofContext.init_global thy);
+    val rules = map (Thm.concl_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq) defl_simps;
+    val rules' = map (apfst mk_DEFL) tab;
+    fun defl_proc t =
+      (case dest_DEFL t of
+        TFree (a, _) => SOME (Free (Library.unprefix "'" a, deflT))
+      | _ => NONE) handle TERM _ => NONE;
+  in
+    Pattern.rewrite_term thy (rules @ rules') [defl_proc] (mk_DEFL T)
+  end;
 
 (******************************************************************************)
 (********************* declaring definitions and theorems *********************)
@@ -440,6 +414,15 @@ fun gen_domain_isomorphism
     (* lookup function for sorts of type variables *)
     fun the_sort v = the (AList.lookup (op =) sorts v);
 
+    (* temporary arities for rewriting *)
+    val tmp_thy =
+      let
+        fun arity (vs, tbind, mx, _, _) =
+          (Sign.full_name thy tbind, map the_sort vs, @{sort bifinite});
+      in
+        fold AxClass.axiomatize_arity (map arity doms) tmp_thy
+      end;
+
     (* domain equations *)
     fun mk_dom_eqn (vs, tbind, mx, rhs, morphs) =
       let fun arg v = TFree (v, the_sort v);
@@ -482,14 +465,19 @@ fun gen_domain_isomorphism
     val defl_names = map (fst o dest_Const) defl_consts;
 
     (* defining equations for type combinators *)
-    val dnames = map (fst o dest_Type o fst) dom_eqns;
-    val defl_tab1 = DeflData.get thy;
-    val defl_tab2 = Symtab.make (dnames ~~ (defl_names ~~ defl_flagss));
-    val defl_tab' = Symtab.merge (K true) (defl_tab1, defl_tab2);
-    val thy = DeflData.put defl_tab' thy;
+    fun mk_defl_tab (defl_const, (flags, lhsT)) =
+      let
+        val Ts = snd (dest_Type lhsT);
+        val type_args = map (Logic.mk_type o snd) (filter_out fst (flags ~~ Ts));
+        val defl_args = map (mk_DEFL o snd) (filter fst (flags ~~ Ts));
+      in
+        (lhsT, list_ccomb (list_comb (defl_const, type_args), defl_args))
+      end;
+    val defl_tab =
+      map mk_defl_tab (defl_consts ~~ (defl_flagss ~~ map fst dom_eqns));
     fun mk_defl_spec (lhsT, rhsT) =
-      mk_eqs (defl_of_typ thy defl_tab' lhsT,
-              defl_of_typ thy defl_tab' rhsT);
+      mk_eqs (defl_of_typ tmp_thy defl_tab lhsT,
+              defl_of_typ tmp_thy defl_tab rhsT);
     val defl_specs = map mk_defl_spec dom_eqns;
 
     (* register recursive definition of deflation combinators *)

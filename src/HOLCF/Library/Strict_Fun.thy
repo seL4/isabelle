@@ -212,8 +212,8 @@ apply (simp add: sfun_map_map deflation_strict [OF isodefl_imp_deflation])
 done
 
 setup {*
-  Domain_Isomorphism.add_type_constructor
-    (@{type_name "sfun"}, @{const_name sfun_defl}, @{const_name sfun_map}, [true, true])
+  Domain_Take_Proofs.add_map_function
+    (@{type_name "sfun"}, @{const_name sfun_map}, [true, true])
 *}
 
 end
