@@ -92,16 +92,19 @@ fun specialize thy all_grounds new_grounds (irule, scs) =
    computation uses only the constants occurring with schematic type
    variables in the propositions. To ease comparisons, such sets of
    costants are always kept in their initial order. *)
-fun incremental_monomorph thy limit all_grounds new_grounds irules =
+fun incremental_monomorph ctxt limit all_grounds new_grounds irules =
   let
+    val thy = ProofContext.theory_of ctxt
     val all_grounds' = Symtab.merge_list (op =) (all_grounds, new_grounds)
     val spec = specialize thy all_grounds' new_grounds
     val (irs, new_grounds') = fold_map spec irules Symtab.empty
   in
     if Symtab.is_empty new_grounds' then irs
     else if limit > 0
-    then incremental_monomorph thy (limit-1) all_grounds' new_grounds' irs
-    else (warning "SMT: monomorphization limit reached"; irs)
+    then incremental_monomorph ctxt (limit-1) all_grounds' new_grounds' irs
+    else
+     (SMT_Config.verbose_msg ctxt (K "Warning: Monomorphization limit reached")
+      (); irs)
   end
 
 
@@ -175,15 +178,12 @@ fun mono_all ctxt _ [] monos = (monos, ctxt)
       in
         polys
         |> map (fn (i, thm) => ((i, thm), [(Vartab.empty, tvar_consts_of thm)]))
-        |> incremental_monomorph thy limit Symtab.empty grounds
+        |> incremental_monomorph ctxt' limit Symtab.empty grounds
         |> map (apsnd (filter_most_specific thy))
         |> flat o map2 (instantiate thy) Tenvs
         |> append monos
         |> rpair ctxt'
       end
-
-
-val monomorph_limit = 10
 
 
 (* Instantiate all polymorphic constants (i.e., constants occurring
@@ -199,6 +199,6 @@ fun monomorph irules ctxt =
   irules
   |> List.partition (Term.exists_type typ_has_tvars o Thm.prop_of o snd)
   |>> incr_indexes
-  |-> mono_all ctxt monomorph_limit
+  |-> mono_all ctxt (Config.get ctxt SMT_Config.monomorph_limit)
 
 end

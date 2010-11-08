@@ -19,7 +19,7 @@ structure P = Z3_Proof_Parser
 structure T = Z3_Proof_Tools
 structure L = Z3_Proof_Literals
 
-fun z3_exn msg = raise SMT_Solver.SMT (SMT_Solver.Other_Failure
+fun z3_exn msg = raise SMT_Failure.SMT (SMT_Failure.Other_Failure
   ("Z3 proof reconstruction: " ^ msg))
 
 
@@ -66,11 +66,11 @@ end
 (** proof tools **)
 
 fun named ctxt name prover ct =
-  let val _ = SMT_Solver.trace_msg ctxt I ("Z3: trying " ^ name ^ " ...")
+  let val _ = SMT_Config.trace_msg ctxt I ("Z3: trying " ^ name ^ " ...")
   in prover ct end
 
 fun NAMED ctxt name tac i st =
-  let val _ = SMT_Solver.trace_msg ctxt I ("Z3: trying " ^ name ^ " ...")
+  let val _ = SMT_Config.trace_msg ctxt I ("Z3: trying " ^ name ^ " ...")
   in tac i st end
 
 fun pretty_goal ctxt thms t =
@@ -90,7 +90,7 @@ fun try_apply ctxt thms =
     fun apply [] ct = error (try_apply_err ct)
       | apply (prover :: provers) ct =
           (case try prover ct of
-            SOME thm => (SMT_Solver.trace_msg ctxt I "Z3: succeeded"; thm)
+            SOME thm => (SMT_Config.trace_msg ctxt I "Z3: succeeded"; thm)
           | NONE => apply provers ct)
 
   in apply o cons (named ctxt "schematic rules" (by_schematic_rule ctxt)) end
@@ -732,9 +732,9 @@ local
 in
 fun trace_rule idx prove r ps ct (cxp as (ctxt, ptab)) =
   let
-    val _ = SMT_Solver.trace_msg ctxt (header idx r o count_rules) ptab
+    val _ = SMT_Config.trace_msg ctxt (header idx r o count_rules) ptab
     val result as (p, (ctxt', _)) = prove r ps ct cxp
-    val _ = if not (Config.get ctxt' SMT_Solver.trace) then ()
+    val _ = if not (Config.get ctxt' SMT_Config.trace) then ()
       else check ctxt' idx r ps ct p
   in result end
 end
@@ -844,7 +844,7 @@ fun reconstruct ctxt {typs, terms, unfolds, assms} output =
     val (idx, (ptab, vars, cx)) = P.parse ctxt typs terms output
     val assms' = prepare_assms cx unfolds assms
   in
-    if Config.get cx SMT_Solver.filter_only
+    if Config.get cx SMT_Config.filter_only_facts
     then ((filter_assms cx assms' ptab idx [], @{thm TrueI}), cx)
     else apfst (pair []) (prove cx assms' vars idx ptab)
   end

@@ -25,8 +25,8 @@ sig
     -> ((term -> term) -> 'a -> 'a) -> string list -> term -> 'a Exn.result
   val dynamic_holds_conv: conv
   val static_holds_conv: theory -> string list -> conv
-  val code_reflect: (string * string list) list -> string list -> string -> string option
-    -> theory -> theory
+  val code_reflect: (string * string list option) list -> string list -> string
+    -> string option -> theory -> theory
   datatype truth = Holds
   val put_truth: (unit -> truth) -> Proof.context -> Proof.context
   val trace: bool Unsynchronized.ref
@@ -213,8 +213,8 @@ local
 structure Code_Antiq_Data = Proof_Data
 (
   type T = (string list * string list) * (bool
-    * (string * ((string * string) list * (string * string) list)) lazy);
-  fun init _ = (([], []), (true, (Lazy.value ("", ([], [])))));
+    * (string * (string * string) list) lazy);
+  fun init _ = (([], []), (true, (Lazy.value ("", []))));
 );
 
 val is_first_occ = fst o snd o Code_Antiq_Data.get;
@@ -225,24 +225,22 @@ fun register_code new_tycos new_consts ctxt =
     val tycos' = fold (insert (op =)) new_tycos tycos;
     val consts' = fold (insert (op =)) new_consts consts;
     val acc_code = Lazy.lazy (fn () =>
-      evaluation_code (ProofContext.theory_of ctxt) "Code" tycos' consts');
+      evaluation_code (ProofContext.theory_of ctxt) "Code" tycos' consts'
+      |> apsnd snd);
   in Code_Antiq_Data.put ((tycos', consts'), (false, acc_code)) ctxt end;
 
 fun register_const const = register_code [] [const];
 
-fun register_datatype tyco constrs = register_code [tyco] constrs;
-
-fun print_const const all_struct_name tycos_map consts_map =
+fun print_const const all_struct_name consts_map =
   (Long_Name.append all_struct_name o the o AList.lookup (op =) consts_map) const;
 
-fun print_code is_first print_it ctxt =
+fun print_code is_first const ctxt =
   let
     val (_, (_, acc_code)) = Code_Antiq_Data.get ctxt;
-    val (ml_code, (tycos_map, consts_map)) = Lazy.force acc_code;
-    val ml_code = if is_first then ml_code
-      else "";
+    val (ml_code, consts_map) = Lazy.force acc_code;
+    val ml_code = if is_first then ml_code else "";
     val all_struct_name = "Isabelle";
-  in (ml_code, print_it all_struct_name tycos_map consts_map) end;
+  in (ml_code, print_const const all_struct_name consts_map) end;
 
 in
 
@@ -251,33 +249,38 @@ fun ml_code_antiq raw_const background =
     val const = Code.check_const (ProofContext.theory_of background) raw_const;
     val is_first = is_first_occ background;
     val background' = register_const const background;
-  in (print_code is_first (print_const const), background') end;
+  in (print_code is_first const, background') end;
 
 end; (*local*)
 
 
 (* reflection support *)
 
-fun check_datatype thy tyco consts =
+fun check_datatype thy tyco some_consts =
   let
     val constrs = (map (fst o fst) o snd o Code.get_type thy) tyco;
-    val missing_constrs = subtract (op =) consts constrs;
-    val _ = if null missing_constrs then []
-      else error ("Missing constructor(s) " ^ commas (map quote missing_constrs)
-        ^ " for datatype " ^ quote tyco);
-    val false_constrs = subtract (op =) constrs consts;
-    val _ = if null false_constrs then []
-      else error ("Non-constructor(s) " ^ commas (map quote false_constrs)
-        ^ " for datatype " ^ quote tyco);
-  in () end;
+    val _ = case some_consts
+     of SOME consts =>
+          let
+            val missing_constrs = subtract (op =) consts constrs;
+            val _ = if null missing_constrs then []
+              else error ("Missing constructor(s) " ^ commas (map quote missing_constrs)
+                ^ " for datatype " ^ quote tyco);
+            val false_constrs = subtract (op =) constrs consts;
+            val _ = if null false_constrs then []
+              else error ("Non-constructor(s) " ^ commas (map quote false_constrs)
+                ^ " for datatype " ^ quote tyco)
+          in () end
+      | NONE => ();
+  in (tyco, constrs) end;
 
 fun add_eval_tyco (tyco, tyco') thy =
   let
     val k = Sign.arity_number thy tyco;
-    fun pr pr' fxy [] = tyco'
-      | pr pr' fxy [ty] =
+    fun pr pr' _ [] = tyco'
+      | pr pr' _ [ty] =
           Code_Printer.concat [pr' Code_Printer.BR ty, tyco']
-      | pr pr' fxy tys =
+      | pr pr' _ tys =
           Code_Printer.concat [Code_Printer.enum "," "(" ")" (map (pr' Code_Printer.BR) tys), tyco']
   in
     thy
@@ -317,10 +320,9 @@ fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name N
 fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_name some_file thy  =
   let
     val datatypes = map (fn (raw_tyco, raw_cos) =>
-      (prep_type thy raw_tyco, map (prep_const thy) raw_cos)) raw_datatypes;
-    val _ = map (uncurry (check_datatype thy)) datatypes;
-    val tycos = map fst datatypes;
-    val constrs = maps snd datatypes;
+      (prep_type thy raw_tyco, (Option.map o map) (prep_const thy) raw_cos)) raw_datatypes;
+    val (tycos, constrs) = map_split (uncurry (check_datatype thy)) datatypes
+      |> apsnd flat;
     val functions = map (prep_const thy) raw_functions;
     val result = evaluation_code thy module_name tycos (constrs @ functions)
       |> (apsnd o apsnd) (chop (length constrs));
@@ -347,7 +349,8 @@ val andK = "and"
 val _ = List.app Keyword.keyword [datatypesK, functionsK];
 
 val parse_datatype =
-  Parse.name --| Parse.$$$ "=" -- (Parse.term ::: (Scan.repeat (Parse.$$$ "|" |-- Parse.term)));
+  Parse.name --| Parse.$$$ "=" -- ((Parse.string >> (fn "*" => NONE | _ => Scan.fail ()))
+    || ((Parse.term ::: (Scan.repeat (Parse.$$$ "|" |-- Parse.term))) >> SOME));
 
 in
 
