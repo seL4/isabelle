@@ -13,11 +13,11 @@
 \gdef\bold#1{\textbf{\hyperpage{#1}}}
 
 \urlstyle{rm}
-
 \ifpdf\relax\else\renewcommand{\url}[1]{\nolinkurl{#1}}\fi
 
 \ifpdf
 \ifnum\pdfminorversion<5\pdfminorversion=5\fi
 \renewcommand{\isaliteral}[2]{%
 \pdfliteral direct{/Span <</ActualText<#1>>> BDC}#2\pdfliteral direct{EMC}}
+\renewcommand{\isanil}{{\color{white}.}}
 \fi
