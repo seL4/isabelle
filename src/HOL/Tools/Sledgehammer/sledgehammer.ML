@@ -104,7 +104,7 @@ fun is_prover_installed ctxt name =
     else is_atp_installed thy name
   end
 
-val smt_default_max_relevant = 250 (* FUDGE (FIXME) *)
+val smt_default_max_relevant = 200 (* FUDGE *)
 val auto_max_relevant_divisor = 2 (* FUDGE *)
 
 fun default_max_relevant_for_prover thy name =
@@ -414,29 +414,43 @@ fun failure_from_smt_failure (SMT_Solver.Counterexample _) = Unprovable
   | failure_from_smt_failure SMT_Solver.Out_Of_Memory = OutOfResources
   | failure_from_smt_failure _ = UnknownError
 
-val smt_filter_max_iter = 5
-val smt_filter_fact_divisor = 2
+val smt_max_iter = 5
+val smt_iter_fact_divisor = 2
+val smt_iter_min_msecs = 5000
+val smt_iter_timeout_divisor = 2
 
 fun smt_filter_loop iter outcome0 msecs_so_far remote timeout state facts i =
   let
     val timer = Timer.startRealTimer ()
+    val ms = timeout |> Time.toMilliseconds
+    val iter_timeout =
+      if iter < smt_max_iter then
+        Int.min (ms, Int.max (smt_iter_min_msecs,
+                              ms div smt_iter_timeout_divisor))
+        |> Time.fromMilliseconds
+      else
+        timeout
     val {outcome, used_facts, run_time_in_msecs} =
-      SMT_Solver.smt_filter remote timeout state facts i
+      TimeLimit.timeLimit iter_timeout
+          (SMT_Solver.smt_filter remote iter_timeout state facts) i
+      handle TimeLimit.TimeOut =>
+             {outcome = SOME SMT_Solver.Time_Out, used_facts = [],
+              run_time_in_msecs = NONE}
     val outcome0 = if is_none outcome0 then SOME outcome else outcome0
     val msecs_so_far = int_opt_add run_time_in_msecs msecs_so_far
     val too_many_facts_perhaps =
       case outcome of
         NONE => false
       | SOME (SMT_Solver.Counterexample _) => false
-      | SOME SMT_Solver.Time_Out => false
+      | SOME SMT_Solver.Time_Out => iter_timeout <> timeout
       | SOME SMT_Solver.Out_Of_Memory => true
       | SOME _ => true
+    val timeout = Time.- (timeout, Timer.checkRealTimer timer)
   in
-    if too_many_facts_perhaps andalso iter < smt_filter_max_iter andalso
-       not (null facts) then
-      let val facts = take (length facts div smt_filter_fact_divisor) facts in
-        smt_filter_loop (iter + 1) outcome0 msecs_so_far remote
-                        (Time.- (timeout, Timer.checkRealTimer timer)) state
+    if too_many_facts_perhaps andalso iter < smt_max_iter andalso
+       not (null facts) andalso timeout > Time.zeroTime then
+      let val facts = take (length facts div smt_iter_fact_divisor) facts in
+        smt_filter_loop (iter + 1) outcome0 msecs_so_far remote timeout state
                         facts i
       end
     else
