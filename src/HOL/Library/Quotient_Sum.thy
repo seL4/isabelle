@@ -9,15 +9,15 @@ imports Main Quotient_Syntax
 begin
 
 fun
-  sum_rel
+  sum_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'a + 'b \<Rightarrow> bool"
 where
   "sum_rel R1 R2 (Inl a1) (Inl b1) = R1 a1 b1"
 | "sum_rel R1 R2 (Inl a1) (Inr b2) = False"
 | "sum_rel R1 R2 (Inr a2) (Inl b1) = False"
 | "sum_rel R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
 
-fun
-  sum_map
+primrec
+  sum_map :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd"
 where
   "sum_map f1 f2 (Inl a) = Inl (f1 a)"
 | "sum_map f1 f2 (Inr a) = Inr (f2 a)"
@@ -62,13 +62,13 @@ lemma sum_Inl_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(R1 ===> sum_rel R1 R2) Inl Inl"
-  by simp
+  by auto
 
 lemma sum_Inr_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(R2 ===> sum_rel R1 R2) Inr Inr"
-  by simp
+  by auto
 
 lemma sum_Inl_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
