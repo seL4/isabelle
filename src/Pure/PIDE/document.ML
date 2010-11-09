@@ -34,16 +34,7 @@ type command_id = id;
 type exec_id = id;
 
 val no_id = 0;
-
-local
-  val id_count = Synchronized.var "id" 0;
-in
-  fun new_id () =
-    Synchronized.change_result id_count
-      (fn i =>
-        let val i' = i + 1
-        in (i', i') end);
-end;
+val new_id = Synchronized.counter ();
 
 val parse_id = Markup.parse_int;
 val print_id = Markup.print_int;
