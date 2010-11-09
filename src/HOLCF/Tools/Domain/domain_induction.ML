@@ -50,7 +50,7 @@ let
     fun is_ID (Const (c, _)) = (c = @{const_name ID})
       | is_ID _              = false;
   in
-    fun map_of_arg v T =
+    fun map_of_arg thy v T =
       let val m = Domain_Take_Proofs.map_of_typ thy subs T;
       in if is_ID m then v else mk_capply (m, v) end;
   end
@@ -66,7 +66,7 @@ let
           val ns = Name.variant_list ["n"] (Datatype_Prop.make_tnames Ts);
           val vs = map Free (ns ~~ Ts);
           val lhs = mk_capply (take_const $ n', list_ccomb (con_const, vs));
-          val rhs = list_ccomb (con_const, map2 map_of_arg vs Ts);
+          val rhs = list_ccomb (con_const, map2 (map_of_arg thy) vs Ts);
           val goal = mk_trp (mk_eq (lhs, rhs));
           val rules =
               [abs_inverse] @ con_betas @ @{thms take_con_rules}
