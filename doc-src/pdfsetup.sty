@@ -15,6 +15,9 @@
 \urlstyle{rm}
 \ifpdf\relax\else\renewcommand{\url}[1]{\nolinkurl{#1}}\fi
 
+\def\isaliteral#1#2{#2}
+\def\isanil{}
+
 \ifpdf
 \ifnum\pdfminorversion<5\pdfminorversion=5\fi
 \renewcommand{\isaliteral}[2]{%
