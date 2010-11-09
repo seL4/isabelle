@@ -146,7 +146,18 @@ object Symbol
       }
       (min, max)
     }
-    private val table = Map[String, String]() ++ list
+    private val table =
+    {
+      var tab = Map[String, String]()
+      for ((x, y) <- list) {
+        tab.get(x) match {
+          case None => tab += (x -> y)
+          case Some(z) =>
+            error("Duplicate mapping of \"" + x + "\" to \"" + y + "\" vs. \"" + z + "\"")
+        }
+      }
+      tab
+    }
     def recode(text: String): String =
     {
       val len = text.length
@@ -198,8 +209,9 @@ object Symbol
     }
 
     private val symbols: List[(String, Map[String, String])] =
-      for (decl <- symbol_decls if !empty.pattern.matcher(decl).matches)
-        yield read_decl(decl)
+      Map((
+        for (decl <- symbol_decls if !empty.pattern.matcher(decl).matches)
+          yield read_decl(decl)): _*) toList
 
 
     /* misc properties */
@@ -210,9 +222,10 @@ object Symbol
       Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
     }
 
-    val abbrevs: Map[String, String] = Map((
-      for ((sym, props) <- symbols if props.isDefinedAt("abbrev"))
-        yield (sym -> props("abbrev"))): _*)
+    val abbrevs: Map[String, String] =
+      Map((
+        for ((sym, props) <- symbols if props.isDefinedAt("abbrev"))
+          yield (sym -> props("abbrev"))): _*)
 
 
     /* main recoder methods */

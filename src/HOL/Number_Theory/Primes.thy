@@ -88,11 +88,7 @@ subsection {* Primes *}
 
 lemma prime_odd_nat: "prime (p::nat) \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
   unfolding prime_nat_def
-  apply (subst even_mult_two_ex)
-  apply clarify
-  apply (drule_tac x = 2 in spec)
-  apply auto
-done
+  by (metis gcd_lcm_complete_lattice_nat.bot_least nat_even_iff_2_dvd nat_neq_iff odd_1_nat)
 
 lemma prime_odd_int: "prime (p::int) \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
   unfolding prime_int_def
@@ -275,10 +271,8 @@ done
 
 lemma primes_coprime_int: "prime (p::int) \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
   apply (rule prime_imp_coprime_int, assumption)
-  apply (unfold prime_int_altdef, clarify)
-  apply (drule_tac x = q in spec)
-  apply (drule_tac x = p in spec)
-  apply auto
+  apply (unfold prime_int_altdef)
+  apply (metis int_one_le_iff_zero_less zless_le)
 done
 
 lemma primes_imp_powers_coprime_nat: "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow> coprime (p^m) (q^n)"
@@ -291,11 +285,8 @@ lemma prime_factor_nat: "n \<noteq> (1::nat) \<Longrightarrow> \<exists> p. prim
   apply (induct n rule: nat_less_induct)
   apply (case_tac "n = 0")
   using two_is_prime_nat apply blast
-  apply (case_tac "prime n")
-  apply blast
-  apply (subgoal_tac "n > 1")
-  apply (frule (1) not_prime_eq_prod_nat)
-  apply (auto intro: dvd_mult dvd_mult2)
+  apply (metis One_nat_def dvd.order_trans dvd_refl less_Suc0 linorder_neqE_nat nat_dvd_not_less 
+               neq0_conv prime_nat_def)
 done
 
 (* An Isar version:
