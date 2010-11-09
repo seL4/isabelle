@@ -179,11 +179,11 @@ text{*Now prove the four equations for @{term nonces}*}
 
 lemma [quot_respect]:
   shows "(op \<sim> ===> op =) freenonces freenonces"
-  by (simp add: msgrel_imp_eq_freenonces)
+  by (auto simp add: msgrel_imp_eq_freenonces)
 
 lemma [quot_respect]:
   shows "(op = ===> op \<sim>) NONCE NONCE"
-  by (simp add: NONCE)
+  by (auto simp add: NONCE)
 
 lemma nonces_Nonce [simp]:
   shows "nonces (Nonce N) = {N}"
@@ -191,7 +191,7 @@ lemma nonces_Nonce [simp]:
 
 lemma [quot_respect]:
   shows " (op \<sim> ===> op \<sim> ===> op \<sim>) MPAIR MPAIR"
-  by (simp add: MPAIR)
+  by (auto simp add: MPAIR)
 
 lemma nonces_MPair [simp]:
   shows "nonces (MPair X Y) = nonces X \<union> nonces Y"
@@ -214,7 +214,7 @@ is
 
 lemma [quot_respect]:
   shows "(op \<sim> ===> op \<sim>) freeleft freeleft"
-  by (simp add: msgrel_imp_eqv_freeleft)
+  by (auto simp add: msgrel_imp_eqv_freeleft)
 
 lemma left_Nonce [simp]:
   shows "left (Nonce N) = Nonce N"
@@ -243,7 +243,7 @@ text{*Now prove the four equations for @{term right}*}
 
 lemma [quot_respect]:
   shows "(op \<sim> ===> op \<sim>) freeright freeright"
-  by (simp add: msgrel_imp_eqv_freeright)
+  by (auto simp add: msgrel_imp_eqv_freeright)
 
 lemma right_Nonce [simp]:
   shows "right (Nonce N) = Nonce N"
