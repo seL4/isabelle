@@ -24,8 +24,25 @@ import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion, IAsset}
 
 object Isabelle_Sidekick
 {
-  implicit def int_to_pos(offset: Int): Position =
+  def int_to_pos(offset: Int): Position =
     new Position { def getOffset = offset; override def toString = offset.toString }
+
+  class Asset(name: String, start: Int, end: Int) extends IAsset
+  {
+    protected var _name = name
+    protected var _start = int_to_pos(start)
+    protected var _end = int_to_pos(end)
+    override def getIcon: Icon = null
+    override def getShortString: String = _name
+    override def getLongString: String = _name
+    override def getName: String = _name
+    override def setName(name: String) = _name = name
+    override def getStart: Position = _start
+    override def setStart(start: Position) = _start = start
+    override def getEnd: Position = _end
+    override def setEnd(end: Position) = _end = end
+    override def toString = _name
+  }
 }
 
 
@@ -40,14 +57,12 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 
   def parse(buffer: Buffer, error_source: DefaultErrorSource): SideKickParsedData =
   {
-    import Isabelle_Sidekick.int_to_pos
-
     stopped = false
 
     // FIXME lock buffer (!??)
     val data = new SideKickParsedData(buffer.getName)
     val root = data.root
-    data.getAsset(root).setEnd(buffer.getLength)
+    data.getAsset(root).setEnd(Isabelle_Sidekick.int_to_pos(buffer.getLength))
 
     Swing_Thread.now { Document_Model(buffer) } match {
       case Some(model) =>
@@ -97,8 +112,6 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
 {
   def parser(data: SideKickParsedData, model: Document_Model)
   {
-    import Isabelle_Sidekick.int_to_pos
-
     val root = data.root
     val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
     for {
@@ -106,19 +119,9 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
       if command.is_command && !stopped
     }
     {
-      val name = command.name
       val node =
-        new DefaultMutableTreeNode(new IAsset {
-          override def getIcon: Icon = null
-          override def getShortString: String = name
-          override def getLongString: String = name
-          override def getName: String = name
-          override def setName(name: String) = ()
-          override def setStart(start: Position) = ()
-          override def getStart: Position = command_start
-          override def setEnd(end: Position) = ()
-          override def getEnd: Position = command_start + command.length
-          override def toString = name})
+        new DefaultMutableTreeNode(
+          new Isabelle_Sidekick.Asset(command.name, command_start, command_start + command.length))
       root.add(node)
     }
   }
@@ -129,8 +132,6 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
 {
   def parser(data: SideKickParsedData, model: Document_Model)
   {
-    import Isabelle_Sidekick.int_to_pos
-
     val root = data.root
     val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
     for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
@@ -145,18 +146,12 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
                 case x => x.toString
               }
 
-            new DefaultMutableTreeNode(new IAsset {
-              override def getIcon: Icon = null
-              override def getShortString: String = content
-              override def getLongString: String = info_text
-              override def getName: String = command.toString
-              override def setName(name: String) = ()
-              override def setStart(start: Position) = ()
-              override def getStart: Position = range.start
-              override def setEnd(end: Position) = ()
-              override def getEnd: Position = range.stop
-              override def toString = "\"" + content + "\" " + range.toString
-            })
+            new DefaultMutableTreeNode(
+              new Isabelle_Sidekick.Asset(command.toString, range.start, range.stop) {
+                override def getShortString: String = content
+                override def getLongString: String = info_text
+                override def toString = "\"" + content + "\" " + range.toString
+              })
           })
     }
   }
