@@ -82,21 +82,15 @@ lemma list_quotient[quot_thm]:
   apply(rule list_all2_rel[OF q])
   done
 
-lemma cons_prs_aux:
-  assumes q: "Quotient R Abs Rep"
-  shows "(map Abs) ((Rep h) # (map Rep t)) = h # t"
-  by (induct t) (simp_all add: Quotient_abs_rep[OF q])
-
 lemma cons_prs[quot_preserve]:
   assumes q: "Quotient R Abs Rep"
   shows "(Rep ---> (map Rep) ---> (map Abs)) (op #) = (op #)"
-  by (simp only: fun_eq_iff fun_map_def cons_prs_aux[OF q])
-     (simp)
+  by (auto simp add: fun_eq_iff comp_def Quotient_abs_rep [OF q])
 
 lemma cons_rsp[quot_respect]:
   assumes q: "Quotient R Abs Rep"
   shows "(R ===> list_all2 R ===> list_all2 R) (op #) (op #)"
-  by (auto)
+  by auto
 
 lemma nil_prs[quot_preserve]:
   assumes q: "Quotient R Abs Rep"
@@ -120,15 +114,16 @@ lemma map_prs[quot_preserve]:
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> rep2) ---> (map rep1) ---> (map abs2)) map = map"
   and   "((abs1 ---> id) ---> map rep1 ---> id) map = map"
-  by (simp_all only: fun_eq_iff fun_map_def map_prs_aux[OF a b])
-     (simp_all add: Quotient_abs_rep[OF a])
+  by (simp_all only: fun_eq_iff map_prs_aux[OF a b] comp_def)
+    (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
+
 
 lemma map_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "((R1 ===> R2) ===> (list_all2 R1) ===> list_all2 R2) map map"
   and   "((R1 ===> op =) ===> (list_all2 R1) ===> op =) map map"
-  apply simp_all
+  apply (simp_all add: fun_rel_def)
   apply(rule_tac [!] allI)+
   apply(rule_tac [!] impI)
   apply(rule_tac [!] allI)+
@@ -146,7 +141,8 @@ lemma foldr_prs[quot_preserve]:
   assumes a: "Quotient R1 abs1 rep1"
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> abs2 ---> rep2) ---> (map rep1) ---> rep2 ---> abs2) foldr = foldr"
-  by (simp only: fun_eq_iff fun_map_def foldr_prs_aux[OF a b])
+  apply (simp add: fun_eq_iff)
+  by (simp only: fun_eq_iff foldr_prs_aux[OF a b])
      (simp)
 
 lemma foldl_prs_aux:
@@ -160,8 +156,7 @@ lemma foldl_prs[quot_preserve]:
   assumes a: "Quotient R1 abs1 rep1"
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> abs2 ---> rep1) ---> rep1 ---> (map rep2) ---> abs1) foldl = foldl"
-  by (simp only: fun_eq_iff fun_map_def foldl_prs_aux[OF a b])
-     (simp)
+  by (simp add: fun_eq_iff foldl_prs_aux [OF a b])
 
 lemma list_all2_empty:
   shows "list_all2 R [] b \<Longrightarrow> length b = 0"
@@ -172,7 +167,7 @@ lemma foldl_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "((R1 ===> R2 ===> R1) ===> R1 ===> list_all2 R2 ===> R1) foldl foldl"
-  apply(auto)
+  apply(auto simp add: fun_rel_def)
   apply (subgoal_tac "R1 xa ya \<longrightarrow> list_all2 R2 xb yb \<longrightarrow> R1 (foldl x xa xb) (foldl y ya yb)")
   apply simp
   apply (rule_tac x="xa" in spec)
@@ -186,7 +181,7 @@ lemma foldr_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "((R1 ===> R2 ===> R2) ===> list_all2 R1 ===> R2 ===> R2) foldr foldr"
-  apply auto
+  apply (auto simp add: fun_rel_def)
   apply(subgoal_tac "R2 xb yb \<longrightarrow> list_all2 R1 xa ya \<longrightarrow> R2 (foldr x xa xb) (foldr y ya yb)")
   apply simp
   apply (rule_tac xs="xa" and ys="ya" in list_induct2)
@@ -224,7 +219,7 @@ lemma list_all2_rsp:
 
 lemma[quot_respect]:
   "((R ===> R ===> op =) ===> list_all2 R ===> list_all2 R ===> op =) list_all2 list_all2"
-  by (simp add: list_all2_rsp)
+  by (simp add: list_all2_rsp fun_rel_def)
 
 lemma[quot_preserve]:
   assumes a: "Quotient R abs1 rep1"
