@@ -181,7 +181,7 @@
 \<downharpoonleft>      code: 0x0021c3  font: Isabelle
 \<downharpoonright>     code: 0x0021c2  font: Isabelle
 \<upharpoonleft>        code: 0x0021bf  font: Isabelle
-\<upharpoonright>       code: 0x0021be  font: Isabelle
+#\<upharpoonright>       code: 0x0021be  font: Isabelle
 \<restriction>          code: 0x0021be  font: Isabelle
 \<Colon>                code: 0x002237  font: Isabelle
 \<up>                   code: 0x002191  font: Isabelle
