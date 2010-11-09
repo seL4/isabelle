@@ -59,6 +59,8 @@ sig
   val get_map_tab : theory -> (string * bool list) Symtab.table
   val add_deflation_thm : thm -> theory -> theory
   val get_deflation_thms : theory -> thm list
+  val map_ID_add : attribute
+  val get_map_ID_thms : theory -> thm list
   val setup : theory -> theory
 end;
 
@@ -134,6 +136,12 @@ structure DeflMapData = Named_Thms
   val description = "theorems like deflation a ==> deflation (foo_map$a)"
 );
 
+structure Map_Id_Data = Named_Thms
+(
+  val name = "domain_map_ID"
+  val description = "theorems like foo_map$ID = ID"
+);
+
 fun add_map_function (tname, map_name, bs) =
     MapData.map (Symtab.insert (K true) (tname, (map_name, bs)));
 
@@ -143,7 +151,10 @@ fun add_deflation_thm thm =
 val get_map_tab = MapData.get;
 fun get_deflation_thms thy = DeflMapData.get (ProofContext.init_global thy);
 
-val setup = DeflMapData.setup;
+val map_ID_add = Map_Id_Data.add;
+val get_map_ID_thms = Map_Id_Data.get o ProofContext.init_global;
+
+val setup = DeflMapData.setup #> Map_Id_Data.setup;
 
 (******************************************************************************)
 (************************** building types and terms **************************)
@@ -183,29 +194,14 @@ fun deflation_abs_rep (info : iso_info) : thm =
 
 fun map_of_typ (thy : theory) (sub : (typ * term) list) (T : typ) : term =
   let
-    val map_tab = get_map_tab thy;
-    fun auto T = T ->> T;
-    fun map_of T =
-        case AList.lookup (op =) sub T of
-          SOME m => (m, true) | NONE => map_of' T
-    and map_of' (T as (Type (c, Ts))) =
-        (case Symtab.lookup map_tab c of
-          SOME (map_name, ds) =>
-          let
-            val Ts' = map snd (filter fst (ds ~~ Ts));
-            val map_type = map auto Ts' -->> auto T;
-            val (ms, bs) = map_split map_of Ts';
-          in
-            if exists I bs
-            then (list_ccomb (Const (map_name, map_type), ms), true)
-            else (mk_ID T, false)
-          end
-        | NONE => (mk_ID T, false))
-      | map_of' T = (mk_ID T, false);
+    val thms = get_map_ID_thms thy;
+    val rules = map (Thm.concl_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq) thms;
+    val rules' = map (apfst mk_ID) sub @ map swap rules;
   in
-    fst (map_of T)
+    mk_ID T
+    |> Pattern.rewrite_term thy rules' []
+    |> Pattern.rewrite_term thy rules []
   end;
-
 
 (******************************************************************************)
 (********************* declaring definitions and theorems *********************)

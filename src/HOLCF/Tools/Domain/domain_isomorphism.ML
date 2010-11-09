@@ -55,20 +55,13 @@ structure RepData = Named_Thms
   val description = "theorems like DEFL('a t) = t_defl$DEFL('a)"
 )
 
-structure MapIdData = Named_Thms
-(
-  val name = "domain_map_ID"
-  val description = "theorems like foo_map$ID = ID"
-);
-
 structure IsodeflData = Named_Thms
 (
   val name = "domain_isodefl"
   val description = "theorems like isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)"
 );
 
-val setup =
-  RepData.setup #> MapIdData.setup #> IsodeflData.setup
+val setup = RepData.setup #> IsodeflData.setup
 
 
 (******************************************************************************)
@@ -656,9 +649,8 @@ fun gen_domain_isomorphism
       map prove_map_ID_thm
         (map_consts ~~ dom_eqns ~~ DEFL_thms ~~ isodefl_thms);
     val (_, thy) = thy |>
-      (Global_Theory.add_thms o map Thm.no_attributes)
+      (Global_Theory.add_thms o map (rpair [Domain_Take_Proofs.map_ID_add]))
         (map_ID_binds ~~ map_ID_thms);
-    val thy = fold (Context.theory_map o MapIdData.add_thm) map_ID_thms thy;
 
     (* definitions and proofs related to take functions *)
     val (take_info, thy) =
@@ -676,7 +668,7 @@ fun gen_domain_isomorphism
           list_ccomb (map_const, map mk_ID (filter is_cpo (snd (dest_Type lhsT))));
         val rhs = mk_tuple (map mk_map_ID (map_consts ~~ dom_eqns));
         val goal = mk_trp (mk_eq (lhs, rhs));
-        val map_ID_thms = MapIdData.get (ProofContext.init_global thy);
+        val map_ID_thms = Domain_Take_Proofs.get_map_ID_thms thy;
         val start_rules =
             @{thms thelub_Pair [symmetric] ch2ch_Pair} @ chain_take_thms
             @ @{thms pair_collapse split_def}
