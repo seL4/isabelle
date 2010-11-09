@@ -552,9 +552,13 @@ fun shutdown () =
 
 fun status e =
   let
-    val _ = Output.status (Markup.markup Markup.forked "");
+    val task_props =
+      (case worker_task () of
+        NONE => I
+      | SOME task => Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]);
+    val _ = Output.status (Markup.markup (task_props Markup.forked) "");
     val x = e ();  (*sic -- report "joined" only for success*)
-    val _ = Output.status (Markup.markup Markup.joined "");
+    val _ = Output.status (Markup.markup (task_props Markup.joined) "");
   in x end;
 
 
