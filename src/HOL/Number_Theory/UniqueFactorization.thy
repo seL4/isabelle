@@ -691,14 +691,9 @@ lemma multiplicity_prod_prime_powers_int:
   apply (frule multiplicity_prod_prime_powers_nat [where f = "%x. f(int x)" 
     and S = "nat ` S", transferred])
   apply auto
-  apply (subst prime_int_def [symmetric])
-  apply auto
-  apply (subgoal_tac "xb >= 0")
-  apply force
-  apply (rule prime_ge_0_int)
-  apply force
-  apply (subst transfer_nat_int_set_return_embed)
-  apply (unfold nat_set_def, auto)
+  apply (metis prime_int_def)
+  apply (metis prime_ge_0_int)
+  apply (metis nat_set_def prime_ge_0_int transfer_nat_int_set_return_embed)
 done
 
 lemma multiplicity_distinct_prime_power_nat: "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow>
@@ -739,19 +734,13 @@ lemma dvd_prime_factors_nat [intro]:
     "0 < (y::nat) \<Longrightarrow> x dvd y \<Longrightarrow> prime_factors x <= prime_factors y"
   apply (simp only: prime_factors_altdef_nat)
   apply auto
-  apply (frule dvd_multiplicity_nat)
-  apply auto
-(* It is a shame that auto and arith don't get this. *)
-  apply (erule order_less_le_trans)back
-  apply assumption
+  apply (metis dvd_multiplicity_nat le_0_eq neq_zero_eq_gt_zero_nat)
 done
 
 lemma dvd_prime_factors_int [intro]:
     "0 < (y::int) \<Longrightarrow> 0 <= x \<Longrightarrow> x dvd y \<Longrightarrow> prime_factors x <= prime_factors y"
   apply (auto simp add: prime_factors_altdef_int)
-  apply (erule order_less_le_trans)
-  apply (rule dvd_multiplicity_int)
-  apply auto
+  apply (metis dvd_multiplicity_int le_0_eq neq_zero_eq_gt_zero_nat)
 done
 
 lemma multiplicity_dvd_nat: "0 < (x::nat) \<Longrightarrow> 0 < y \<Longrightarrow> 
@@ -763,10 +752,8 @@ lemma multiplicity_dvd_nat: "0 < (x::nat) \<Longrightarrow> 0 < y \<Longrightarr
   apply force
   apply (subst prime_factors_altdef_nat)+
   apply auto
-(* Again, a shame that auto and arith don't get this. *)
-  apply (drule_tac x = xa in spec, auto)
-  apply (rule le_imp_power_dvd)
-  apply blast
+  apply (metis gr0I le_0_eq less_not_refl)
+  apply (metis le_imp_power_dvd)
 done
 
 lemma multiplicity_dvd_int: "0 < (x::int) \<Longrightarrow> 0 < y \<Longrightarrow> 
@@ -778,30 +765,18 @@ lemma multiplicity_dvd_int: "0 < (x::int) \<Longrightarrow> 0 < y \<Longrightarr
   apply force
   apply (subst prime_factors_altdef_int)+
   apply auto
-  apply (rule dvd_power_le)
-  apply auto
-  apply (drule_tac x = xa in spec)
-  apply (erule impE)
-  apply auto
+  apply (metis le_imp_power_dvd prime_factors_ge_0_int)
 done
 
 lemma multiplicity_dvd'_nat: "(0::nat) < x \<Longrightarrow> 
     \<forall>p. prime p \<longrightarrow> multiplicity p x \<le> multiplicity p y \<Longrightarrow> x dvd y"
-  apply (cases "y = 0")
-  apply auto
-  apply (rule multiplicity_dvd_nat, auto)
-  apply (case_tac "prime p")
-  apply auto
-done
+by (metis gcd_lcm_complete_lattice_nat.top_greatest le_refl multiplicity_dvd_nat
+          multiplicity_nonprime_nat neq0_conv)
 
 lemma multiplicity_dvd'_int: "(0::int) < x \<Longrightarrow> 0 <= y \<Longrightarrow>
     \<forall>p. prime p \<longrightarrow> multiplicity p x \<le> multiplicity p y \<Longrightarrow> x dvd y"
-  apply (cases "y = 0")
-  apply auto
-  apply (rule multiplicity_dvd_int, auto)
-  apply (case_tac "prime p")
-  apply auto
-done
+by (metis eq_imp_le gcd_lcm_complete_lattice_nat.top_greatest int_eq_0_conv multiplicity_dvd_int
+          multiplicity_nonprime_int nat_int transfer_nat_int_relations(4) zless_le)
 
 lemma dvd_multiplicity_eq_nat: "0 < (x::nat) \<Longrightarrow> 0 < y \<Longrightarrow>
     (x dvd y) = (ALL p. multiplicity p x <= multiplicity p y)"
@@ -820,12 +795,8 @@ lemma prime_factors_altdef2_nat: "(n::nat) > 0 \<Longrightarrow>
   apply (rule dvd_power [where x = p and n = "multiplicity p n"])
   apply (subst (asm) prime_factors_altdef_nat, force)
   apply (rule dvd_setprod)
-  apply auto  
-  apply (subst prime_factors_altdef_nat)
-  apply (subst (asm) dvd_multiplicity_eq_nat)
   apply auto
-  apply (drule spec [where x = p])
-  apply auto
+  apply (metis One_nat_def Zero_not_Suc dvd_multiplicity_nat le0 le_antisym multiplicity_not_factor_nat multiplicity_prime_nat)  
 done
 
 lemma prime_factors_altdef2_int: 
