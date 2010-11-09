@@ -407,7 +407,7 @@ fun gen_domain_isomorphism
     (* lookup function for sorts of type variables *)
     fun the_sort v = the (AList.lookup (op =) sorts v);
 
-    (* temporary arities for rewriting *)
+    (* declare arities in temporary theory *)
     val tmp_thy =
       let
         fun arity (vs, tbind, mx, _, _) =
@@ -415,6 +415,13 @@ fun gen_domain_isomorphism
       in
         fold AxClass.axiomatize_arity (map arity doms) tmp_thy
       end;
+
+    (* check bifiniteness of right-hand sides *)
+    fun check_rhs (vs, tbind, mx, rhs, morphs) =
+      if Sign.of_sort tmp_thy (rhs, @{sort bifinite}) then ()
+      else error ("Type not of sort bifinite: " ^
+        quote (Syntax.string_of_typ_global tmp_thy rhs));
+    val _ = map check_rhs doms;
 
     (* domain equations *)
     fun mk_dom_eqn (vs, tbind, mx, rhs, morphs) =
