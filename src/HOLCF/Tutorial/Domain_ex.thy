@@ -105,13 +105,13 @@ lemma "(x::triv) = \<bottom>" by (induct x, simp_all)
 
 text {* Lazy constructor arguments may have unpointed types. *}
 
-domain (unsafe) natlist = nnil | ncons (lazy "nat discr") natlist
+domain natlist = nnil | ncons (lazy "nat discr") natlist
 
 text {* Class constraints may be given for type parameters on the LHS. *}
 
-domain (unsafe) ('a::cpo) box = Box (lazy 'a)
+domain ('a::predomain) box = Box (lazy 'a)
 
-domain (unsafe) ('a::type) stream = snil | scons (lazy "'a discr") "'a stream"
+domain ('a::countable) stream = snil | scons (lazy "'a discr") "'a stream"
 
 
 subsection {* Generated constants and theorems *}

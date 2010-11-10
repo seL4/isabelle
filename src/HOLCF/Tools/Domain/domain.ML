@@ -185,7 +185,7 @@ fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
   end;
 
 fun pcpo_arg lazy = if lazy then @{sort cpo} else @{sort pcpo};
-fun rep_arg lazy = @{sort "domain"};
+fun rep_arg lazy = if lazy then @{sort predomain} else @{sort "domain"};
 
 fun read_sort thy (SOME s) = Syntax.read_sort_global thy s
   | read_sort thy NONE = Sign.defaultS thy;
