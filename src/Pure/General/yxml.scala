@@ -7,7 +7,7 @@ Efficient text representation of XML trees.
 package isabelle
 
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 
 object YXML
@@ -84,8 +84,8 @@ object YXML
   {
     /* stack operations */
 
-    def buffer(): ListBuffer[XML.Tree] = new ListBuffer[XML.Tree]
-    var stack: List[(Markup, ListBuffer[XML.Tree])] = List((Markup.Empty, buffer()))
+    def buffer(): mutable.ListBuffer[XML.Tree] = new mutable.ListBuffer[XML.Tree]
+    var stack: List[(Markup, mutable.ListBuffer[XML.Tree])] = List((Markup.Empty, buffer()))
 
     def add(x: XML.Tree)
     {
