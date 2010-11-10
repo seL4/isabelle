@@ -449,7 +449,7 @@ fun smt_filter_loop iter outcome0 msecs_so_far remote timeout state facts i =
     val timeout = Time.- (timeout, Timer.checkRealTimer timer)
   in
     if too_many_facts_perhaps andalso iter < smt_max_iter andalso
-       not (null facts) andalso timeout > Time.zeroTime then
+       not (null facts) andalso Time.> (timeout, Time.zeroTime) then
       let val facts = take (length facts div smt_iter_fact_divisor) facts in
         smt_filter_loop (iter + 1) outcome0 msecs_so_far remote timeout state
                         facts i
