@@ -472,7 +472,18 @@ definition
 definition
   "defl (t::'a convex_pd itself) = convex_defl\<cdot>DEFL('a)"
 
-instance proof
+definition
+  "(liftemb :: 'a convex_pd u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> 'a convex_pd u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::'a convex_pd itself) = u_defl\<cdot>DEFL('a convex_pd)"
+
+instance
+using liftemb_convex_pd_def liftprj_convex_pd_def liftdefl_convex_pd_def
+proof (rule bifinite_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a convex_pd)"
     unfolding emb_convex_pd_def prj_convex_pd_def
     using ep_pair_udom [OF convex_approx]

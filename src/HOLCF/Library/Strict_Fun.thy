@@ -185,7 +185,18 @@ definition
 definition
   "defl (t::('a \<rightarrow>! 'b) itself) = sfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
-instance proof
+definition
+  "(liftemb :: ('a \<rightarrow>! 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> ('a \<rightarrow>! 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::('a \<rightarrow>! 'b) itself) = u_defl\<cdot>DEFL('a \<rightarrow>! 'b)"
+
+instance
+using liftemb_sfun_def liftprj_sfun_def liftdefl_sfun_def
+proof (rule bifinite_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
     unfolding emb_sfun_def prj_sfun_def
     using ep_pair_udom [OF sfun_approx]

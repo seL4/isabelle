@@ -622,7 +622,18 @@ definition
   "defl (t::defl itself) =
     (\<Squnion>i. defl_principal (Abs_fin_defl (emb oo defl_approx i oo prj)))"
 
-instance proof
+definition
+  "(liftemb :: defl u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> defl u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::defl itself) = u_defl\<cdot>DEFL(defl)"
+
+instance
+using liftemb_defl_def liftprj_defl_def liftdefl_defl_def
+proof (rule bifinite_class_intro)
   show ep: "ep_pair emb (prj :: udom \<rightarrow> defl)"
     unfolding emb_defl_def prj_defl_def
     by (rule ep_pair_udom [OF defl_approx])

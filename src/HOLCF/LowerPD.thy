@@ -465,7 +465,18 @@ definition
 definition
   "defl (t::'a lower_pd itself) = lower_defl\<cdot>DEFL('a)"
 
-instance proof
+definition
+  "(liftemb :: 'a lower_pd u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> 'a lower_pd u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::'a lower_pd itself) = u_defl\<cdot>DEFL('a lower_pd)"
+
+instance
+using liftemb_lower_pd_def liftprj_lower_pd_def liftdefl_lower_pd_def
+proof (rule bifinite_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a lower_pd)"
     unfolding emb_lower_pd_def prj_lower_pd_def
     using ep_pair_udom [OF lower_approx]

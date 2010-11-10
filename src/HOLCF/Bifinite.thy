@@ -13,9 +13,21 @@ subsection {* Class of bifinite domains *}
 text {*
   We define a bifinite domain as a pcpo that is isomorphic to some
   algebraic deflation over the universal domain.
+
+  A predomain is a cpo that, when lifted, becomes bifinite.
 *}
 
-class bifinite = pcpo +
+class predomain = cpo +
+  fixes liftdefl :: "('a::cpo) itself \<Rightarrow> defl"
+  fixes liftemb :: "'a\<^sub>\<bottom> \<rightarrow> udom"
+  fixes liftprj :: "udom \<rightarrow> 'a\<^sub>\<bottom>"
+  assumes predomain_ep: "ep_pair liftemb liftprj"
+  assumes cast_liftdefl: "cast\<cdot>(liftdefl TYPE('a::cpo)) = liftemb oo liftprj"
+
+syntax "_LIFTDEFL" :: "type \<Rightarrow> logic"  ("(1LIFTDEFL/(1'(_')))")
+translations "LIFTDEFL('t)" \<rightleftharpoons> "CONST liftdefl TYPE('t)"
+
+class bifinite = predomain + pcpo +
   fixes emb :: "'a::pcpo \<rightarrow> udom"
   fixes prj :: "udom \<rightarrow> 'a::pcpo"
   fixes defl :: "'a itself \<Rightarrow> defl"
@@ -243,6 +255,48 @@ lemma cast_ssum_defl:
 using ssum_approx finite_deflation_ssum_map
 unfolding ssum_defl_def by (rule cast_defl_fun2)
 
+subsection {* Lemma for proving bifinite instances *}
+
+text {* Temporarily relax type constraints. *}
+
+setup {*
+  fold Sign.add_const_constraint
+  [ (@{const_name defl}, SOME @{typ "'a::pcpo itself \<Rightarrow> defl"})
+  , (@{const_name emb}, SOME @{typ "'a::pcpo \<rightarrow> udom"})
+  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::pcpo"})
+  , (@{const_name liftdefl}, SOME @{typ "'a::pcpo itself \<Rightarrow> defl"})
+  , (@{const_name liftemb}, SOME @{typ "'a::pcpo u \<rightarrow> udom"})
+  , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::pcpo u"}) ]
+*}
+
+lemma bifinite_class_intro:
+  assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  assumes liftprj: "(liftprj :: udom \<rightarrow> 'a u) = u_map\<cdot>prj oo udom_prj u_approx"
+  assumes liftdefl: "liftdefl TYPE('a) = u_defl\<cdot>DEFL('a)"
+  assumes ep_pair: "ep_pair emb (prj :: udom \<rightarrow> 'a)"
+  assumes cast_defl: "cast\<cdot>DEFL('a) = emb oo (prj :: udom \<rightarrow> 'a)"
+  shows "OFCLASS('a, bifinite_class)"
+proof
+  show "ep_pair liftemb (liftprj :: udom \<rightarrow> 'a u)"
+    unfolding liftemb liftprj
+    by (intro ep_pair_comp ep_pair_u_map ep_pair ep_pair_udom u_approx)
+  show "cast\<cdot>LIFTDEFL('a) = liftemb oo (liftprj :: udom \<rightarrow> 'a u)"
+    unfolding liftemb liftprj liftdefl
+    by (simp add: cfcomp1 cast_u_defl cast_defl u_map_map)
+qed fact+
+
+text {* Restore original type constraints. *}
+
+setup {*
+  fold Sign.add_const_constraint
+  [ (@{const_name defl}, SOME @{typ "'a::bifinite itself \<Rightarrow> defl"})
+  , (@{const_name emb}, SOME @{typ "'a::bifinite \<rightarrow> udom"})
+  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::bifinite"})
+  , (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> defl"})
+  , (@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom"})
+  , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::predomain u"}) ]
+*}
+
 subsection {* The universal domain is bifinite *}
 
 instantiation udom :: bifinite
@@ -257,7 +311,18 @@ definition [simp]:
 definition
   "defl (t::udom itself) = (\<Squnion>i. defl_principal (Abs_fin_defl (udom_approx i)))"
 
-instance proof
+definition
+  "(liftemb :: udom u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> udom u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::udom itself) = u_defl\<cdot>DEFL(udom)"
+
+instance
+using liftemb_udom_def liftprj_udom_def liftdefl_udom_def
+proof (rule bifinite_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> udom)"
     by (simp add: ep_pair.intro)
   show "cast\<cdot>DEFL(udom) = emb oo (prj :: udom \<rightarrow> udom)"
@@ -276,6 +341,48 @@ qed
 
 end
 
+subsection {* Lifted predomains are bifinite *}
+
+instantiation u :: (predomain) bifinite
+begin
+
+definition
+  "emb = liftemb"
+
+definition
+  "prj = liftprj"
+
+definition
+  "defl (t::'a u itself) = LIFTDEFL('a)"
+
+definition
+  "(liftemb :: 'a u u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> 'a u u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::'a u itself) = u_defl\<cdot>DEFL('a u)"
+
+instance
+using liftemb_u_def liftprj_u_def liftdefl_u_def
+proof (rule bifinite_class_intro)
+  show "ep_pair emb (prj :: udom \<rightarrow> 'a u)"
+    unfolding emb_u_def prj_u_def
+    by (rule predomain_ep)
+  show "cast\<cdot>DEFL('a u) = emb oo (prj :: udom \<rightarrow> 'a u)"
+    unfolding emb_u_def prj_u_def defl_u_def
+    by (rule cast_liftdefl)
+qed
+
+end
+
+lemma DEFL_u: "DEFL('a::predomain u) = LIFTDEFL('a)"
+by (rule defl_u_def)
+
+lemma LIFTDEFL_u: "LIFTDEFL('a::predomain u) = u_defl\<cdot>DEFL('a u)"
+by (rule liftdefl_u_def)
+
 subsection {* Continuous function space is a bifinite domain *}
 
 instantiation cfun :: (bifinite, bifinite) bifinite
@@ -290,12 +397,22 @@ definition
 definition
   "defl (t::('a \<rightarrow> 'b) itself) = cfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
-instance proof
+definition
+  "(liftemb :: ('a \<rightarrow> 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> ('a \<rightarrow> 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::('a \<rightarrow> 'b) itself) = u_defl\<cdot>DEFL('a \<rightarrow> 'b)"
+
+instance
+using liftemb_cfun_def liftprj_cfun_def liftdefl_cfun_def
+proof (rule bifinite_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow> 'b)"
     unfolding emb_cfun_def prj_cfun_def
     using ep_pair_udom [OF cfun_approx]
     by (intro ep_pair_comp ep_pair_cfun_map ep_pair_emb_prj)
-next
   show "cast\<cdot>DEFL('a \<rightarrow> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<rightarrow> 'b)"
     unfolding emb_cfun_def prj_cfun_def defl_cfun_def cast_cfun_defl
     by (simp add: cast_DEFL oo_def cfun_eq_iff cfun_map_map)
@@ -306,6 +423,10 @@ end
 lemma DEFL_cfun:
   "DEFL('a::bifinite \<rightarrow> 'b::bifinite) = cfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_cfun_def)
+
+lemma LIFTDEFL_cfun:
+  "LIFTDEFL('a::bifinite \<rightarrow> 'b::bifinite) = u_defl\<cdot>DEFL('a \<rightarrow> 'b)"
+by (rule liftdefl_cfun_def)
 
 subsection {* Cartesian product is a bifinite domain *}
 
@@ -321,7 +442,18 @@ definition
 definition
   "defl (t::('a \<times> 'b) itself) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
-instance proof
+definition
+  "(liftemb :: ('a \<times> 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> ('a \<times> 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::('a \<times> 'b) itself) = u_defl\<cdot>DEFL('a \<times> 'b)"
+
+instance
+using liftemb_prod_def liftprj_prod_def liftdefl_prod_def
+proof (rule bifinite_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<times> 'b)"
     unfolding emb_prod_def prj_prod_def
     using ep_pair_udom [OF prod_approx]
@@ -338,6 +470,10 @@ lemma DEFL_prod:
   "DEFL('a::bifinite \<times> 'b::bifinite) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_prod_def)
 
+lemma LIFTDEFL_prod:
+  "LIFTDEFL('a::bifinite \<times> 'b::bifinite) = u_defl\<cdot>DEFL('a \<times> 'b)"
+by (rule liftdefl_prod_def)
+
 subsection {* Strict product is a bifinite domain *}
 
 instantiation sprod :: (bifinite, bifinite) bifinite
@@ -352,7 +488,18 @@ definition
 definition
   "defl (t::('a \<otimes> 'b) itself) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
-instance proof
+definition
+  "(liftemb :: ('a \<otimes> 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> ('a \<otimes> 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::('a \<otimes> 'b) itself) = u_defl\<cdot>DEFL('a \<otimes> 'b)"
+
+instance
+using liftemb_sprod_def liftprj_sprod_def liftdefl_sprod_def
+proof (rule bifinite_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<otimes> 'b)"
     unfolding emb_sprod_def prj_sprod_def
     using ep_pair_udom [OF sprod_approx]
@@ -369,51 +516,23 @@ lemma DEFL_sprod:
   "DEFL('a::bifinite \<otimes> 'b::bifinite) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sprod_def)
 
-subsection {* Lifted cpo is a bifinite domain *}
+lemma LIFTDEFL_sprod:
+  "LIFTDEFL('a::bifinite \<otimes> 'b::bifinite) = u_defl\<cdot>DEFL('a \<otimes> 'b)"
+by (rule liftdefl_sprod_def)
 
-instantiation u :: (bifinite) bifinite
-begin
+subsection {* Countable discrete cpos are predomains *}
 
-definition
-  "emb = udom_emb u_approx oo u_map\<cdot>emb"
+definition discr_approx :: "nat \<Rightarrow> 'a::countable discr u \<rightarrow> 'a discr u"
+  where "discr_approx = (\<lambda>i. \<Lambda>(up\<cdot>x). if to_nat (undiscr x) < i then up\<cdot>x else \<bottom>)"
 
-definition
-  "prj = u_map\<cdot>prj oo udom_prj u_approx"
+lemma chain_discr_approx [simp]: "chain discr_approx"
+unfolding discr_approx_def
+by (rule chainI, simp add: monofun_cfun monofun_LAM)
 
-definition
-  "defl (t::'a u itself) = u_defl\<cdot>DEFL('a)"
-
-instance proof
-  show "ep_pair emb (prj :: udom \<rightarrow> 'a u)"
-    unfolding emb_u_def prj_u_def
-    using ep_pair_udom [OF u_approx]
-    by (intro ep_pair_comp ep_pair_u_map ep_pair_emb_prj)
-next
-  show "cast\<cdot>DEFL('a u) = emb oo (prj :: udom \<rightarrow> 'a u)"
-    unfolding emb_u_def prj_u_def defl_u_def cast_u_defl
-    by (simp add: cast_DEFL oo_def cfun_eq_iff u_map_map)
-qed
-
-end
-
-lemma DEFL_u: "DEFL('a::bifinite u) = u_defl\<cdot>DEFL('a)"
-by (rule defl_u_def)
-
-subsection {* Lifted countable types are bifinite domains *}
-
-definition
-  lift_approx :: "nat \<Rightarrow> 'a::countable lift \<rightarrow> 'a lift"
-where
-  "lift_approx = (\<lambda>i. FLIFT x. if to_nat x < i then Def x else \<bottom>)"
-
-lemma chain_lift_approx [simp]: "chain lift_approx"
-  unfolding lift_approx_def
-  by (rule chainI, simp add: FLIFT_mono)
-
-lemma lub_lift_approx [simp]: "(\<Squnion>i. lift_approx i) = ID"
+lemma lub_discr_approx [simp]: "(\<Squnion>i. discr_approx i) = ID"
 apply (rule cfun_eqI)
 apply (simp add: contlub_cfun_fun)
-apply (simp add: lift_approx_def)
+apply (simp add: discr_approx_def)
 apply (case_tac x, simp)
 apply (rule thelubI)
 apply (rule is_lubI)
@@ -424,61 +543,67 @@ apply simp
 apply (rule lessI)
 done
 
-lemma finite_deflation_lift_approx: "finite_deflation (lift_approx i)"
+lemma inj_on_undiscr [simp]: "inj_on undiscr A"
+using Discr_undiscr by (rule inj_on_inverseI)
+
+lemma finite_deflation_discr_approx: "finite_deflation (discr_approx i)"
 proof
-  fix x :: "'a lift"
-  show "lift_approx i\<cdot>x \<sqsubseteq> x"
-    unfolding lift_approx_def
+  fix x :: "'a discr u"
+  show "discr_approx i\<cdot>x \<sqsubseteq> x"
+    unfolding discr_approx_def
     by (cases x, simp, simp)
-  show "lift_approx i\<cdot>(lift_approx i\<cdot>x) = lift_approx i\<cdot>x"
-    unfolding lift_approx_def
+  show "discr_approx i\<cdot>(discr_approx i\<cdot>x) = discr_approx i\<cdot>x"
+    unfolding discr_approx_def
     by (cases x, simp, simp)
-  show "finite {x::'a lift. lift_approx i\<cdot>x = x}"
+  show "finite {x::'a discr u. discr_approx i\<cdot>x = x}"
   proof (rule finite_subset)
-    let ?S = "insert (\<bottom>::'a lift) (Def ` to_nat -` {..<i})"
-    show "{x::'a lift. lift_approx i\<cdot>x = x} \<subseteq> ?S"
-      unfolding lift_approx_def
+    let ?S = "insert (\<bottom>::'a discr u) ((\<lambda>x. up\<cdot>x) ` undiscr -` to_nat -` {..<i})"
+    show "{x::'a discr u. discr_approx i\<cdot>x = x} \<subseteq> ?S"
+      unfolding discr_approx_def
       by (rule subsetI, case_tac x, simp, simp split: split_if_asm)
     show "finite ?S"
       by (simp add: finite_vimageI)
   qed
 qed
 
-lemma lift_approx: "approx_chain lift_approx"
-using chain_lift_approx lub_lift_approx finite_deflation_lift_approx
+lemma discr_approx: "approx_chain discr_approx"
+using chain_discr_approx lub_discr_approx finite_deflation_discr_approx
 by (rule approx_chain.intro)
 
-instantiation lift :: (countable) bifinite
+instantiation discr :: (countable) predomain
 begin
 
 definition
-  "emb = udom_emb lift_approx"
+  "liftemb = udom_emb discr_approx"
 
 definition
-  "prj = udom_prj lift_approx"
+  "liftprj = udom_prj discr_approx"
 
 definition
-  "defl (t::'a lift itself) =
-    (\<Squnion>i. defl_principal (Abs_fin_defl (emb oo lift_approx i oo prj)))"
+  "liftdefl (t::'a discr itself) =
+    (\<Squnion>i. defl_principal (Abs_fin_defl (liftemb oo discr_approx i oo liftprj)))"
 
 instance proof
-  show ep: "ep_pair emb (prj :: udom \<rightarrow> 'a lift)"
-    unfolding emb_lift_def prj_lift_def
-    by (rule ep_pair_udom [OF lift_approx])
-  show "cast\<cdot>DEFL('a lift) = emb oo (prj :: udom \<rightarrow> 'a lift)"
-    unfolding defl_lift_def
+  show "ep_pair liftemb (liftprj :: udom \<rightarrow> 'a discr u)"
+    unfolding liftemb_discr_def liftprj_discr_def
+    by (rule ep_pair_udom [OF discr_approx])
+  show "cast\<cdot>LIFTDEFL('a discr) = liftemb oo (liftprj :: udom \<rightarrow> 'a discr u)"
+    unfolding liftemb_discr_def liftprj_discr_def liftdefl_discr_def
     apply (subst contlub_cfun_arg)
     apply (rule chainI)
     apply (rule defl.principal_mono)
     apply (simp add: below_fin_defl_def)
-    apply (simp add: Abs_fin_defl_inverse finite_deflation_lift_approx
-                     ep_pair.finite_deflation_e_d_p [OF ep])
+    apply (simp add: Abs_fin_defl_inverse
+        ep_pair.finite_deflation_e_d_p [OF ep_pair_udom [OF discr_approx]]
+        approx_chain.finite_deflation_approx [OF discr_approx])
     apply (intro monofun_cfun below_refl)
     apply (rule chainE)
-    apply (rule chain_lift_approx)
+    apply (rule chain_discr_approx)
     apply (subst cast_defl_principal)
-    apply (simp add: Abs_fin_defl_inverse finite_deflation_lift_approx
-                     ep_pair.finite_deflation_e_d_p [OF ep] lub_distribs)
+    apply (simp add: Abs_fin_defl_inverse
+        ep_pair.finite_deflation_e_d_p [OF ep_pair_udom [OF discr_approx]]
+        approx_chain.finite_deflation_approx [OF discr_approx])
+    apply (simp add: lub_distribs)
     done
 qed
 
@@ -498,12 +623,22 @@ definition
 definition
   "defl (t::('a \<oplus> 'b) itself) = ssum_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
-instance proof
+definition
+  "(liftemb :: ('a \<oplus> 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> ('a \<oplus> 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::('a \<oplus> 'b) itself) = u_defl\<cdot>DEFL('a \<oplus> 'b)"
+
+instance
+using liftemb_ssum_def liftprj_ssum_def liftdefl_ssum_def
+proof (rule bifinite_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<oplus> 'b)"
     unfolding emb_ssum_def prj_ssum_def
     using ep_pair_udom [OF ssum_approx]
     by (intro ep_pair_comp ep_pair_ssum_map ep_pair_emb_prj)
-next
   show "cast\<cdot>DEFL('a \<oplus> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<oplus> 'b)"
     unfolding emb_ssum_def prj_ssum_def defl_ssum_def cast_ssum_defl
     by (simp add: cast_DEFL oo_def cfun_eq_iff ssum_map_map)
@@ -514,5 +649,48 @@ end
 lemma DEFL_ssum:
   "DEFL('a::bifinite \<oplus> 'b::bifinite) = ssum_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_ssum_def)
+
+lemma LIFTDEFL_ssum:
+  "LIFTDEFL('a::bifinite \<oplus> 'b::bifinite) = u_defl\<cdot>DEFL('a \<oplus> 'b)"
+by (rule liftdefl_ssum_def)
+
+subsection {* Lifted countable types are bifinite domains *}
+
+instantiation lift :: (countable) bifinite
+begin
+
+definition
+  "emb = emb oo (\<Lambda> x. Rep_lift x)"
+
+definition
+  "prj = (\<Lambda> y. Abs_lift y) oo prj"
+
+definition
+  "defl (t::'a lift itself) = DEFL('a discr u)"
+
+definition
+  "(liftemb :: 'a lift u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> 'a lift u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::'a lift itself) = u_defl\<cdot>DEFL('a lift)"
+
+instance
+using liftemb_lift_def liftprj_lift_def liftdefl_lift_def
+proof (rule bifinite_class_intro)
+  note [simp] = cont_Rep_lift cont_Abs_lift Rep_lift_inverse Abs_lift_inverse
+  have "ep_pair (\<Lambda>(x::'a lift). Rep_lift x) (\<Lambda> y. Abs_lift y)"
+    by (simp add: ep_pair_def)
+  thus "ep_pair emb (prj :: udom \<rightarrow> 'a lift)"
+    unfolding emb_lift_def prj_lift_def
+    using ep_pair_emb_prj by (rule ep_pair_comp)
+  show "cast\<cdot>DEFL('a lift) = emb oo (prj :: udom \<rightarrow> 'a lift)"
+    unfolding emb_lift_def prj_lift_def defl_lift_def cast_DEFL
+    by (simp add: cfcomp1)
+qed
+
+end
 
 end
