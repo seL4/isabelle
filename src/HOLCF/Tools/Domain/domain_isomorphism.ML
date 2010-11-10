@@ -522,19 +522,10 @@ fun gen_domain_isomorphism
     fun make_repdef ((vs, tbind, mx, _, _), defl) thy =
       let
         val spec = (tbind, map (rpair dummyS) vs, mx);
-        val ((_, _, _, {DEFL, LIFTDEFL, liftemb_def, liftprj_def, ...}), thy) =
+        val ((_, _, _, {DEFL, liftemb_def, liftprj_def, ...}), thy) =
           Repdef.add_repdef false NONE spec defl NONE thy;
         (* declare domain_defl_simps rules *)
         val thy = Context.theory_map (RepData.add_thm DEFL) thy;
-        val thy = Context.theory_map (RepData.add_thm LIFTDEFL) thy;
-        (* declare domain_isodefl rule *)
-        val liftemb' = Thm.transfer thy (liftemb_def RS meta_eq_to_obj_eq);
-        val liftprj' = Thm.transfer thy (liftprj_def RS meta_eq_to_obj_eq);
-        val (_, thy) =
-          Global_Theory.add_thm
-          ((Binding.suffix_name "_u" (Binding.prefix_name "isodefl_" tbind),
-            Drule.zero_var_indexes (@{thm isodefl_u} OF [liftemb', liftprj'])),
-           [IsodeflData.add]) thy;
       in
         (DEFL, thy)
       end;

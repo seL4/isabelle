@@ -104,10 +104,10 @@ lemma typedef_rep_class:
   assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom) \<equiv> udom_emb u_approx oo u_map\<cdot>emb"
   assumes liftprj: "(liftprj :: udom \<rightarrow> 'a u) \<equiv> u_map\<cdot>prj oo udom_prj u_approx"
   assumes liftdefl: "(liftdefl :: 'a itself \<Rightarrow> defl) \<equiv> (\<lambda>t. u_defl\<cdot>DEFL('a))"
-  shows "OFCLASS('a, bifinite_class)"
+  shows "OFCLASS('a, liftdomain_class)"
 using liftemb [THEN meta_eq_to_obj_eq]
 using liftprj [THEN meta_eq_to_obj_eq]
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   have emb_beta: "\<And>x. emb\<cdot>x = Rep x"
     unfolding emb
     apply (rule beta_cfun)
@@ -140,11 +140,6 @@ qed
 lemma typedef_DEFL:
   assumes "defl \<equiv> (\<lambda>a::'a::pcpo itself. t)"
   shows "DEFL('a::pcpo) = t"
-unfolding assms ..
-
-lemma typedef_LIFTDEFL:
-  assumes "liftdefl \<equiv> (\<lambda>a::'a::pcpo itself. u_defl\<cdot>DEFL('a))"
-  shows "LIFTDEFL('a::pcpo) = u_defl\<cdot>DEFL('a)"
 unfolding assms ..
 
 text {* Restore original typing constraints. *}
@@ -277,26 +272,13 @@ apply (simp add: cprod_map_map cfcomp1)
 done
 
 lemma isodefl_u:
-  assumes "(liftemb :: 'a u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
-  assumes "(liftprj :: udom \<rightarrow> 'a u) = u_map\<cdot>prj oo udom_prj u_approx"
+  fixes d :: "'a::liftdomain \<rightarrow> 'a"
   shows "isodefl (d :: 'a \<rightarrow> 'a) t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_defl\<cdot>t)"
 apply (rule isodeflI)
 apply (simp add: cast_u_defl cast_isodefl)
-apply (simp add: emb_u_def prj_u_def assms)
+apply (simp add: emb_u_def prj_u_def liftemb_eq liftprj_eq)
 apply (simp add: u_map_map)
 done
-
-lemma isodefl_u_u:
-  assumes "isodefl (u_map\<cdot>d) (u_defl\<cdot>t)"
-  shows "isodefl (u_map\<cdot>(u_map\<cdot>d)) (u_defl\<cdot>(u_defl\<cdot>t))"
-using liftemb_u_def liftprj_u_def assms
-by (rule isodefl_u)
-
-lemma isodefl_cfun_u:
-  assumes "isodefl d1 t1" and "isodefl d2 t2"
-  shows "isodefl (u_map\<cdot>(cfun_map\<cdot>d1\<cdot>d2)) (u_defl\<cdot>(cfun_defl\<cdot>t1\<cdot>t2))"
-using liftemb_cfun_def liftprj_cfun_def isodefl_cfun [OF assms]
-by (rule isodefl_u)
 
 lemma encode_prod_u_map:
   "encode_prod_u\<cdot>(u_map\<cdot>(cprod_map\<cdot>f\<cdot>g)\<cdot>(decode_prod_u\<cdot>x))
@@ -315,18 +297,6 @@ apply (simp add: emb_u_def [symmetric] prj_u_def [symmetric])
 apply (simp add: cfcomp1 encode_prod_u_map cast_sprod_defl sprod_map_map)
 done
 
-lemma isodefl_sprod_u:
-  assumes "isodefl d1 t1" and "isodefl d2 t2"
-  shows "isodefl (u_map\<cdot>(sprod_map\<cdot>d1\<cdot>d2)) (u_defl\<cdot>(sprod_defl\<cdot>t1\<cdot>t2))"
-using liftemb_sprod_def liftprj_sprod_def isodefl_sprod [OF assms]
-by (rule isodefl_u)
-
-lemma isodefl_ssum_u:
-  assumes "isodefl d1 t1" and "isodefl d2 t2"
-  shows "isodefl (u_map\<cdot>(ssum_map\<cdot>d1\<cdot>d2)) (u_defl\<cdot>(ssum_defl\<cdot>t1\<cdot>t2))"
-using liftemb_ssum_def liftprj_ssum_def isodefl_ssum [OF assms]
-by (rule isodefl_u)
-
 subsection {* Constructing Domain Isomorphisms *}
 
 use "Tools/Domain/domain_isomorphism.ML"
@@ -335,14 +305,14 @@ setup Domain_Isomorphism.setup
 
 lemmas [domain_defl_simps] =
   DEFL_cfun DEFL_ssum DEFL_sprod DEFL_prod DEFL_u
-  LIFTDEFL_cfun LIFTDEFL_ssum LIFTDEFL_sprod LIFTDEFL_prod LIFTDEFL_u
+  liftdefl_eq LIFTDEFL_prod
 
 lemmas [domain_map_ID] =
   cfun_map_ID ssum_map_ID sprod_map_ID cprod_map_ID u_map_ID
 
 lemmas [domain_isodefl] =
-  isodefl_cfun isodefl_ssum isodefl_sprod isodefl_cprod isodefl_u_u
-  isodefl_cfun_u isodefl_ssum_u isodefl_sprod_u isodefl_cprod_u
+  isodefl_u isodefl_cfun isodefl_ssum isodefl_sprod
+  isodefl_cprod isodefl_cprod_u
 
 lemmas [domain_deflation] =
   deflation_cfun_map deflation_ssum_map deflation_sprod_map

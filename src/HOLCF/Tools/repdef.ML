@@ -14,8 +14,7 @@ sig
       liftemb_def : thm,
       liftprj_def : thm,
       liftdefl_def : thm,
-      DEFL : thm,
-      LIFTDEFL : thm
+      DEFL : thm
     }
 
   val add_repdef: bool -> binding option -> binding * (string * sort) list * mixfix ->
@@ -44,8 +43,7 @@ type rep_info =
     liftemb_def : thm,
     liftprj_def : thm,
     liftdefl_def : thm,
-    DEFL : thm,
-    LIFTDEFL : thm
+    DEFL : thm
   };
 
 (* building types and terms *)
@@ -151,7 +149,7 @@ fun gen_add_repdef
 
     (*instantiate class rep*)
     val lthy = thy
-      |> Class.instantiation ([full_tname], lhs_tfrees, @{sort bifinite});
+      |> Class.instantiation ([full_tname], lhs_tfrees, @{sort liftdomain});
     val ((_, (_, emb_ldef)), lthy) =
         Specification.definition (NONE, (emb_bind, emb_eqn)) lthy;
     val ((_, (_, prj_ldef)), lthy) =
@@ -185,25 +183,17 @@ fun gen_add_repdef
 
     (*other theorems*)
     val defl_thm' = Thm.transfer thy defl_def;
-    val liftdefl_thm' = Thm.transfer thy liftdefl_def;
     val (DEFL_thm, thy) = thy
       |> Sign.add_path (Binding.name_of name)
       |> Global_Theory.add_thm
          ((Binding.prefix_name "DEFL_" name,
           Drule.zero_var_indexes (@{thm typedef_DEFL} OF [defl_thm'])), [])
       ||> Sign.restore_naming thy;
-    val (LIFTDEFL_thm, thy) = thy
-      |> Sign.add_path (Binding.name_of name)
-      |> Global_Theory.add_thm
-         ((Binding.prefix_name "LIFTDEFL_" name,
-          Drule.zero_var_indexes (@{thm typedef_LIFTDEFL} OF [liftdefl_thm'])), [])
-      ||> Sign.restore_naming thy;
 
     val rep_info =
       { emb_def = emb_def, prj_def = prj_def, defl_def = defl_def,
         liftemb_def = liftemb_def, liftprj_def = liftprj_def,
-        liftdefl_def = liftdefl_def,
-        DEFL = DEFL_thm, LIFTDEFL = LIFTDEFL_thm };
+        liftdefl_def = liftdefl_def, DEFL = DEFL_thm };
   in
     ((info, cpo_info, pcpo_info, rep_info), thy)
   end

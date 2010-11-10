@@ -28,8 +28,8 @@ syntax "_LIFTDEFL" :: "type \<Rightarrow> logic"  ("(1LIFTDEFL/(1'(_')))")
 translations "LIFTDEFL('t)" \<rightleftharpoons> "CONST liftdefl TYPE('t)"
 
 class bifinite = predomain + pcpo +
-  fixes emb :: "'a::pcpo \<rightarrow> udom"
-  fixes prj :: "udom \<rightarrow> 'a::pcpo"
+  fixes emb :: "'a::cpo \<rightarrow> udom"
+  fixes prj :: "udom \<rightarrow> 'a::cpo"
   fixes defl :: "'a itself \<Rightarrow> defl"
   assumes ep_pair_emb_prj: "ep_pair emb prj"
   assumes cast_DEFL: "cast\<cdot>(defl TYPE('a)) = emb oo prj"
@@ -256,6 +256,16 @@ unfolding ssum_defl_def by (rule cast_defl_fun2)
 
 subsection {* Lemma for proving bifinite instances *}
 
+text {*
+  A class of bifinite domains where @{const liftemb}, @{const liftprj},
+  and @{const liftdefl} are all defined in the standard way.
+*}
+
+class liftdomain = bifinite +
+  assumes liftemb_eq: "liftemb = udom_emb u_approx oo u_map\<cdot>emb"
+  assumes liftprj_eq: "liftprj = u_map\<cdot>prj oo udom_prj u_approx"
+  assumes liftdefl_eq: "liftdefl TYPE('a::cpo) = u_defl\<cdot>DEFL('a)"
+
 text {* Temporarily relax type constraints. *}
 
 setup {*
@@ -268,13 +278,13 @@ setup {*
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::pcpo u"}) ]
 *}
 
-lemma bifinite_class_intro:
+lemma liftdomain_class_intro:
   assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
   assumes liftprj: "(liftprj :: udom \<rightarrow> 'a u) = u_map\<cdot>prj oo udom_prj u_approx"
   assumes liftdefl: "liftdefl TYPE('a) = u_defl\<cdot>DEFL('a)"
   assumes ep_pair: "ep_pair emb (prj :: udom \<rightarrow> 'a)"
   assumes cast_defl: "cast\<cdot>DEFL('a) = emb oo (prj :: udom \<rightarrow> 'a)"
-  shows "OFCLASS('a, bifinite_class)"
+  shows "OFCLASS('a, liftdomain_class)"
 proof
   show "ep_pair liftemb (liftprj :: udom \<rightarrow> 'a u)"
     unfolding liftemb liftprj
@@ -282,6 +292,7 @@ proof
   show "cast\<cdot>LIFTDEFL('a) = liftemb oo (liftprj :: udom \<rightarrow> 'a u)"
     unfolding liftemb liftprj liftdefl
     by (simp add: cfcomp1 cast_u_defl cast_defl u_map_map)
+next
 qed fact+
 
 text {* Restore original type constraints. *}
@@ -298,7 +309,7 @@ setup {*
 
 subsection {* The universal domain is bifinite *}
 
-instantiation udom :: bifinite
+instantiation udom :: liftdomain
 begin
 
 definition [simp]:
@@ -321,7 +332,7 @@ definition
 
 instance
 using liftemb_udom_def liftprj_udom_def liftdefl_udom_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> udom)"
     by (simp add: ep_pair.intro)
   show "cast\<cdot>DEFL(udom) = emb oo (prj :: udom \<rightarrow> udom)"
@@ -342,7 +353,7 @@ end
 
 subsection {* Lifted predomains are bifinite *}
 
-instantiation u :: (predomain) bifinite
+instantiation u :: (predomain) liftdomain
 begin
 
 definition
@@ -365,7 +376,7 @@ definition
 
 instance
 using liftemb_u_def liftprj_u_def liftdefl_u_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a u)"
     unfolding emb_u_def prj_u_def
     by (rule predomain_ep)
@@ -379,12 +390,9 @@ end
 lemma DEFL_u: "DEFL('a::predomain u) = LIFTDEFL('a)"
 by (rule defl_u_def)
 
-lemma LIFTDEFL_u: "LIFTDEFL('a::predomain u) = u_defl\<cdot>DEFL('a u)"
-by (rule liftdefl_u_def)
-
 subsection {* Continuous function space is a bifinite domain *}
 
-instantiation cfun :: (bifinite, bifinite) bifinite
+instantiation cfun :: (bifinite, bifinite) liftdomain
 begin
 
 definition
@@ -407,7 +415,7 @@ definition
 
 instance
 using liftemb_cfun_def liftprj_cfun_def liftdefl_cfun_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow> 'b)"
     unfolding emb_cfun_def prj_cfun_def
     using ep_pair_udom [OF cfun_approx]
@@ -422,10 +430,6 @@ end
 lemma DEFL_cfun:
   "DEFL('a::bifinite \<rightarrow> 'b::bifinite) = cfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_cfun_def)
-
-lemma LIFTDEFL_cfun:
-  "LIFTDEFL('a::bifinite \<rightarrow> 'b::bifinite) = u_defl\<cdot>DEFL('a \<rightarrow> 'b)"
-by (rule liftdefl_cfun_def)
 
 subsection {* Cartesian product is a bifinite domain *}
 
@@ -515,7 +519,7 @@ by (rule liftdefl_prod_def)
 
 subsection {* Strict product is a bifinite domain *}
 
-instantiation sprod :: (bifinite, bifinite) bifinite
+instantiation sprod :: (bifinite, bifinite) liftdomain
 begin
 
 definition
@@ -538,7 +542,7 @@ definition
 
 instance
 using liftemb_sprod_def liftprj_sprod_def liftdefl_sprod_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<otimes> 'b)"
     unfolding emb_sprod_def prj_sprod_def
     using ep_pair_udom [OF sprod_approx]
@@ -554,10 +558,6 @@ end
 lemma DEFL_sprod:
   "DEFL('a::bifinite \<otimes> 'b::bifinite) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sprod_def)
-
-lemma LIFTDEFL_sprod:
-  "LIFTDEFL('a::bifinite \<otimes> 'b::bifinite) = u_defl\<cdot>DEFL('a \<otimes> 'b)"
-by (rule liftdefl_sprod_def)
 
 subsection {* Countable discrete cpos are predomains *}
 
@@ -650,7 +650,7 @@ end
 
 subsection {* Strict sum is a bifinite domain *}
 
-instantiation ssum :: (bifinite, bifinite) bifinite
+instantiation ssum :: (bifinite, bifinite) liftdomain
 begin
 
 definition
@@ -673,7 +673,7 @@ definition
 
 instance
 using liftemb_ssum_def liftprj_ssum_def liftdefl_ssum_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<oplus> 'b)"
     unfolding emb_ssum_def prj_ssum_def
     using ep_pair_udom [OF ssum_approx]
@@ -689,13 +689,9 @@ lemma DEFL_ssum:
   "DEFL('a::bifinite \<oplus> 'b::bifinite) = ssum_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_ssum_def)
 
-lemma LIFTDEFL_ssum:
-  "LIFTDEFL('a::bifinite \<oplus> 'b::bifinite) = u_defl\<cdot>DEFL('a \<oplus> 'b)"
-by (rule liftdefl_ssum_def)
-
 subsection {* Lifted countable types are bifinite domains *}
 
-instantiation lift :: (countable) bifinite
+instantiation lift :: (countable) liftdomain
 begin
 
 definition
@@ -718,7 +714,7 @@ definition
 
 instance
 using liftemb_lift_def liftprj_lift_def liftdefl_lift_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   note [simp] = cont_Rep_lift cont_Abs_lift Rep_lift_inverse Abs_lift_inverse
   have "ep_pair (\<Lambda>(x::'a lift). Rep_lift x) (\<Lambda> y. Abs_lift y)"
     by (simp add: ep_pair_def)

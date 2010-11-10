@@ -173,7 +173,7 @@ apply (rule cast_defl_fun2 [OF sfun_approx])
 apply (erule (1) finite_deflation_sfun_map)
 done
 
-instantiation sfun :: (bifinite, bifinite) bifinite
+instantiation sfun :: (bifinite, bifinite) liftdomain
 begin
 
 definition
@@ -196,7 +196,7 @@ definition
 
 instance
 using liftemb_sfun_def liftprj_sfun_def liftdefl_sfun_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
     unfolding emb_sfun_def prj_sfun_def
     using ep_pair_udom [OF sfun_approx]

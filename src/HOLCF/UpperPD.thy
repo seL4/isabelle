@@ -448,7 +448,7 @@ lemma cast_upper_defl:
 using upper_approx finite_deflation_upper_map
 unfolding upper_defl_def by (rule cast_defl_fun1)
 
-instantiation upper_pd :: (bifinite) bifinite
+instantiation upper_pd :: (bifinite) liftdomain
 begin
 
 definition
@@ -471,7 +471,7 @@ definition
 
 instance
 using liftemb_upper_pd_def liftprj_upper_pd_def liftdefl_upper_pd_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a upper_pd)"
     unfolding emb_upper_pd_def prj_upper_pd_def
     using ep_pair_udom [OF upper_approx]

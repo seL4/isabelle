@@ -460,7 +460,7 @@ lemma cast_convex_defl:
 using convex_approx finite_deflation_convex_map
 unfolding convex_defl_def by (rule cast_defl_fun1)
 
-instantiation convex_pd :: (bifinite) bifinite
+instantiation convex_pd :: (bifinite) liftdomain
 begin
 
 definition
@@ -483,7 +483,7 @@ definition
 
 instance
 using liftemb_convex_pd_def liftprj_convex_pd_def liftdefl_convex_pd_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a convex_pd)"
     unfolding emb_convex_pd_def prj_convex_pd_def
     using ep_pair_udom [OF convex_approx]

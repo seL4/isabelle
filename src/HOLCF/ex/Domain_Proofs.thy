@@ -94,7 +94,7 @@ by (rule defl_set_bottom, rule adm_defl_set)
 
 text {* Prove rep instance using lemma @{text typedef_rep_class}. *}
 
-instantiation foo :: (bifinite) bifinite
+instantiation foo :: (bifinite) liftdomain
 begin
 
 definition emb_foo :: "'a foo \<rightarrow> udom"
@@ -129,7 +129,7 @@ done
 
 end
 
-instantiation bar :: (bifinite) bifinite
+instantiation bar :: (bifinite) liftdomain
 begin
 
 definition emb_bar :: "'a bar \<rightarrow> udom"
@@ -164,7 +164,7 @@ done
 
 end
 
-instantiation baz :: (bifinite) bifinite
+instantiation baz :: (bifinite) liftdomain
 begin
 
 definition emb_baz :: "'a baz \<rightarrow> udom"
@@ -206,32 +206,14 @@ apply (rule typedef_DEFL)
 apply (rule defl_foo_def)
 done
 
-lemma LIFTDEFL_foo [domain_defl_simps]:
-  "LIFTDEFL('a foo) = u_defl\<cdot>DEFL('a foo)"
-apply (rule typedef_LIFTDEFL)
-apply (rule liftdefl_foo_def)
-done
-
 lemma DEFL_bar: "DEFL('a bar) = bar_defl\<cdot>LIFTDEFL('a)"
 apply (rule typedef_DEFL)
 apply (rule defl_bar_def)
 done
 
-lemma LIFTDEFL_bar [domain_defl_simps]:
-  "LIFTDEFL('a bar) = u_defl\<cdot>DEFL('a bar)"
-apply (rule typedef_LIFTDEFL)
-apply (rule liftdefl_bar_def)
-done
-
 lemma DEFL_baz: "DEFL('a baz) = baz_defl\<cdot>LIFTDEFL('a)"
 apply (rule typedef_DEFL)
 apply (rule defl_baz_def)
-done
-
-lemma LIFTDEFL_baz [domain_defl_simps]:
-  "LIFTDEFL('a baz) = u_defl\<cdot>DEFL('a baz)"
-apply (rule typedef_LIFTDEFL)
-apply (rule liftdefl_baz_def)
 done
 
 text {* Prove DEFL equations using type combinator unfold lemmas. *}
@@ -305,24 +287,6 @@ by (rule isodefl_abs_rep [OF DEFL_bar' bar_abs_def bar_rep_def])
 lemma isodefl_baz_abs:
   "isodefl d t \<Longrightarrow> isodefl (baz_abs oo d oo baz_rep) t"
 by (rule isodefl_abs_rep [OF DEFL_baz' baz_abs_def baz_rep_def])
-
-lemma isodefl_foo_u [domain_isodefl]:
-  "isodefl (d :: 'a foo \<rightarrow> _) t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_defl\<cdot>t)"
-using liftemb_foo_def [THEN meta_eq_to_obj_eq]
-using liftprj_foo_def [THEN meta_eq_to_obj_eq]
-by (rule isodefl_u)
-
-lemma isodefl_bar_u [domain_isodefl]:
-  "isodefl (d :: 'a bar \<rightarrow> _) t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_defl\<cdot>t)"
-using liftemb_bar_def [THEN meta_eq_to_obj_eq]
-using liftprj_bar_def [THEN meta_eq_to_obj_eq]
-by (rule isodefl_u)
-
-lemma isodefl_baz_u [domain_isodefl]:
-  "isodefl (d :: 'a baz \<rightarrow> _) t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_defl\<cdot>t)"
-using liftemb_baz_def [THEN meta_eq_to_obj_eq]
-using liftprj_baz_def [THEN meta_eq_to_obj_eq]
-by (rule isodefl_u)
 
 (********************************************************************)
 

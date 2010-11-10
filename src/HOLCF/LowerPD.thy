@@ -453,7 +453,7 @@ lemma cast_lower_defl:
 using lower_approx finite_deflation_lower_map
 unfolding lower_defl_def by (rule cast_defl_fun1)
 
-instantiation lower_pd :: (bifinite) bifinite
+instantiation lower_pd :: (bifinite) liftdomain
 begin
 
 definition
@@ -476,7 +476,7 @@ definition
 
 instance
 using liftemb_lower_pd_def liftprj_lower_pd_def liftdefl_lower_pd_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a lower_pd)"
     unfolding emb_lower_pd_def prj_lower_pd_def
     using ep_pair_udom [OF lower_approx]

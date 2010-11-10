@@ -609,7 +609,7 @@ qed
 
 subsection {* Algebraic deflations are a bifinite domain *}
 
-instantiation defl :: bifinite
+instantiation defl :: liftdomain
 begin
 
 definition
@@ -633,7 +633,7 @@ definition
 
 instance
 using liftemb_defl_def liftprj_defl_def liftdefl_defl_def
-proof (rule bifinite_class_intro)
+proof (rule liftdomain_class_intro)
   show ep: "ep_pair emb (prj :: udom \<rightarrow> defl)"
     unfolding emb_defl_def prj_defl_def
     by (rule ep_pair_udom [OF defl_approx])
