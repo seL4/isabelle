@@ -33,10 +33,28 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
   def + (name: String): Outer_Syntax = this + (name, Keyword.MINOR)
 
   def is_command(name: String): Boolean =
-    keywords.get(name) match {
+    keyword_kind(name) match {
       case Some(kind) => kind != Keyword.MINOR
       case None => false
     }
+
+  def heading_level(name: String): Option[Int] =
+    name match {
+      // FIXME avoid hard-wired info!?
+      case "header" => Some(1)
+      case "chapter" => Some(2)
+      case "section" | "sect" => Some(3)
+      case "subsection" | "subsect" => Some(4)
+      case "subsubsection" | "subsubsect" => Some(5)
+      case _ =>
+        keyword_kind(name) match {
+          case Some(kind) if Keyword.theory(kind) => Some(6)
+          case _ => None
+        }
+    }
+
+  def heading_level(command: Command): Option[Int] =
+    heading_level(command.name)
 
 
   /* tokenize */

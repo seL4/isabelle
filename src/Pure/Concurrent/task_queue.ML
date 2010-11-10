@@ -38,13 +38,16 @@ end;
 structure Task_Queue: TASK_QUEUE =
 struct
 
+val new_id = Synchronized.counter ();
+
+
 (* tasks *)
 
-abstype task = Task of int option * serial
+abstype task = Task of int option * int
 with
 
 val dummy_task = Task (NONE, ~1);
-fun new_task pri = Task (pri, serial ());
+fun new_task pri = Task (pri, new_id ());
 
 fun pri_of_task (Task (pri, _)) = the_default 0 pri;
 fun str_of_task (Task (_, i)) = string_of_int i;
@@ -61,13 +64,13 @@ structure Task_Graph = Graph(type key = task val ord = task_ord);
 
 abstype group = Group of
  {parent: group option,
-  id: serial,
+  id: int,
   status: exn list Synchronized.var}
 with
 
 fun make_group (parent, id, status) = Group {parent = parent, id = id, status = status};
 
-fun new_group parent = make_group (parent, serial (), Synchronized.var "group" []);
+fun new_group parent = make_group (parent, new_id (), Synchronized.var "group" []);
 
 fun group_id (Group {id, ...}) = id;
 fun eq_group (group1, group2) = group_id group1 = group_id group2;

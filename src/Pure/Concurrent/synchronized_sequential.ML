@@ -24,4 +24,15 @@ fun change_result var f = guarded_access var (SOME o f);
 fun change var f = change_result var (fn x => ((), f x));
 
 end;
+
+fun counter () =
+  let
+    val counter = var "counter" 0;
+    fun next () =
+      change_result counter
+        (fn i =>
+          let val j = i + 1
+          in (j, j) end);
+  in next end;
+
 end;
