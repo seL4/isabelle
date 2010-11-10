@@ -240,4 +240,53 @@ setup {*
       (@{const_name Inr}, @{const_name match_Inr}) ]
 *}
 
+subsection {* Disjoint sum is a predomain *}
+
+definition
+  "encode_sum_u =
+    (\<Lambda>(up\<cdot>x). case x of Inl a \<Rightarrow> sinl\<cdot>(up\<cdot>a) | Inr b \<Rightarrow> sinr\<cdot>(up\<cdot>b))"
+
+definition
+  "decode_sum_u = sscase\<cdot>(\<Lambda>(up\<cdot>a). up\<cdot>(Inl a))\<cdot>(\<Lambda>(up\<cdot>b). up\<cdot>(Inr b))"
+
+lemma decode_encode_sum_u [simp]: "decode_sum_u\<cdot>(encode_sum_u\<cdot>x) = x"
+unfolding decode_sum_u_def encode_sum_u_def
+by (case_tac x, simp, rename_tac y, case_tac y, simp_all)
+
+lemma encode_decode_sum_u [simp]: "encode_sum_u\<cdot>(decode_sum_u\<cdot>x) = x"
+unfolding decode_sum_u_def encode_sum_u_def
+apply (case_tac x, simp)
+apply (rename_tac a, case_tac a, simp, simp)
+apply (rename_tac b, case_tac b, simp, simp)
+done
+
+instantiation sum :: (predomain, predomain) predomain
+begin
+
+definition
+  "liftemb = (udom_emb ssum_approx oo ssum_map\<cdot>emb\<cdot>emb) oo encode_sum_u"
+
+definition
+  "liftprj =
+    decode_sum_u oo (ssum_map\<cdot>prj\<cdot>prj oo udom_prj ssum_approx)"
+
+definition
+  "liftdefl (t::('a + 'b) itself) = ssum_defl\<cdot>DEFL('a u)\<cdot>DEFL('b u)"
+
+instance proof
+  show "ep_pair liftemb (liftprj :: udom \<rightarrow> ('a + 'b) u)"
+    unfolding liftemb_sum_def liftprj_sum_def
+    apply (rule ep_pair_comp)
+    apply (rule ep_pair.intro, simp, simp)
+    apply (rule ep_pair_comp)
+    apply (intro ep_pair_ssum_map ep_pair_emb_prj)
+    apply (rule ep_pair_udom [OF ssum_approx])
+    done
+  show "cast\<cdot>LIFTDEFL('a + 'b) = liftemb oo (liftprj :: udom \<rightarrow> ('a + 'b) u)"
+    unfolding liftemb_sum_def liftprj_sum_def liftdefl_sum_def
+    by (simp add: cast_ssum_defl cast_DEFL cfcomp1 ssum_map_map)
+qed
+
+end
+
 end
