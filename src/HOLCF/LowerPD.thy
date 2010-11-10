@@ -78,7 +78,7 @@ typedef (open) 'a lower_pd =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (fast intro: lower_le.ideal_principal)
 
-instantiation lower_pd :: (bifinite) below
+instantiation lower_pd :: ("domain") below
 begin
 
 definition
@@ -87,11 +87,11 @@ definition
 instance ..
 end
 
-instance lower_pd :: (bifinite) po
+instance lower_pd :: ("domain") po
 using type_definition_lower_pd below_lower_pd_def
 by (rule lower_le.typedef_ideal_po)
 
-instance lower_pd :: (bifinite) cpo
+instance lower_pd :: ("domain") cpo
 using type_definition_lower_pd below_lower_pd_def
 by (rule lower_le.typedef_ideal_cpo)
 
@@ -110,7 +110,7 @@ text {* Lower powerdomain is pointed *}
 lemma lower_pd_minimal: "lower_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: lower_pd.principal_induct, simp, simp)
 
-instance lower_pd :: (bifinite) pcpo
+instance lower_pd :: ("domain") pcpo
 by intro_classes (fast intro: lower_pd_minimal)
 
 lemma inst_lower_pd_pcpo: "\<bottom> = lower_principal (PDUnit compact_bot)"
@@ -433,7 +433,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Lower powerdomain is a bifinite domain *}
+subsection {* Lower powerdomain is a domain *}
 
 definition
   lower_approx :: "nat \<Rightarrow> udom lower_pd \<rightarrow> udom lower_pd"
@@ -453,7 +453,7 @@ lemma cast_lower_defl:
 using lower_approx finite_deflation_lower_map
 unfolding lower_defl_def by (rule cast_defl_fun1)
 
-instantiation lower_pd :: (bifinite) liftdomain
+instantiation lower_pd :: ("domain") liftdomain
 begin
 
 definition

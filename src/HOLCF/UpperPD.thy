@@ -76,7 +76,7 @@ typedef (open) 'a upper_pd =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (fast intro: upper_le.ideal_principal)
 
-instantiation upper_pd :: (bifinite) below
+instantiation upper_pd :: ("domain") below
 begin
 
 definition
@@ -85,11 +85,11 @@ definition
 instance ..
 end
 
-instance upper_pd :: (bifinite) po
+instance upper_pd :: ("domain") po
 using type_definition_upper_pd below_upper_pd_def
 by (rule upper_le.typedef_ideal_po)
 
-instance upper_pd :: (bifinite) cpo
+instance upper_pd :: ("domain") cpo
 using type_definition_upper_pd below_upper_pd_def
 by (rule upper_le.typedef_ideal_cpo)
 
@@ -108,7 +108,7 @@ text {* Upper powerdomain is pointed *}
 lemma upper_pd_minimal: "upper_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: upper_pd.principal_induct, simp, simp)
 
-instance upper_pd :: (bifinite) pcpo
+instance upper_pd :: ("domain") pcpo
 by intro_classes (fast intro: upper_pd_minimal)
 
 lemma inst_upper_pd_pcpo: "\<bottom> = upper_principal (PDUnit compact_bot)"
@@ -428,7 +428,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Upper powerdomain is a bifinite domain *}
+subsection {* Upper powerdomain is a domain *}
 
 definition
   upper_approx :: "nat \<Rightarrow> udom upper_pd \<rightarrow> udom upper_pd"
@@ -448,7 +448,7 @@ lemma cast_upper_defl:
 using upper_approx finite_deflation_upper_map
 unfolding upper_defl_def by (rule cast_defl_fun1)
 
-instantiation upper_pd :: (bifinite) liftdomain
+instantiation upper_pd :: ("domain") liftdomain
 begin
 
 definition

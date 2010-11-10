@@ -8,8 +8,6 @@ theory Powerdomain_ex
 imports HOLCF
 begin
 
-default_sort bifinite
-
 subsection {* Monadic sorting example *}
 
 domain ordering = LT | EQ | GT

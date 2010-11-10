@@ -173,7 +173,7 @@ apply (rule cast_defl_fun2 [OF sfun_approx])
 apply (erule (1) finite_deflation_sfun_map)
 done
 
-instantiation sfun :: (bifinite, bifinite) liftdomain
+instantiation sfun :: ("domain", "domain") liftdomain
 begin
 
 definition
@@ -210,7 +210,7 @@ qed
 end
 
 lemma DEFL_sfun [domain_defl_simps]:
-  "DEFL('a::bifinite \<rightarrow>! 'b::bifinite) = sfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
+  "DEFL('a \<rightarrow>! 'b) = sfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sfun_def)
 
 lemma isodefl_sfun [domain_isodefl]:

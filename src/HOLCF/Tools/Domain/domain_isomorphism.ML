@@ -429,15 +429,15 @@ fun gen_domain_isomorphism
     val tmp_thy =
       let
         fun arity (vs, tbind, mx, _, _) =
-          (Sign.full_name thy tbind, map the_sort vs, @{sort bifinite});
+          (Sign.full_name thy tbind, map the_sort vs, @{sort "domain"});
       in
         fold AxClass.axiomatize_arity (map arity doms) tmp_thy
       end;
 
     (* check bifiniteness of right-hand sides *)
     fun check_rhs (vs, tbind, mx, rhs, morphs) =
-      if Sign.of_sort tmp_thy (rhs, @{sort bifinite}) then ()
-      else error ("Type not of sort bifinite: " ^
+      if Sign.of_sort tmp_thy (rhs, @{sort "domain"}) then ()
+      else error ("Type not of sort domain: " ^
         quote (Syntax.string_of_typ_global tmp_thy rhs));
     val _ = map check_rhs doms;
 

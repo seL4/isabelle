@@ -11,10 +11,11 @@ begin
 subsection {* Class of bifinite domains *}
 
 text {*
-  We define a bifinite domain as a pcpo that is isomorphic to some
-  algebraic deflation over the universal domain.
+  We define a ``domain'' as a pcpo that is isomorphic to some
+  algebraic deflation over the universal domain; this is equivalent
+  to being omega-bifinite.
 
-  A predomain is a cpo that, when lifted, becomes bifinite.
+  A predomain is a cpo that, when lifted, becomes a domain.
 *}
 
 class predomain = cpo +
@@ -27,7 +28,7 @@ class predomain = cpo +
 syntax "_LIFTDEFL" :: "type \<Rightarrow> logic"  ("(1LIFTDEFL/(1'(_')))")
 translations "LIFTDEFL('t)" \<rightleftharpoons> "CONST liftdefl TYPE('t)"
 
-class bifinite = predomain + pcpo +
+class "domain" = predomain + pcpo +
   fixes emb :: "'a::cpo \<rightarrow> udom"
   fixes prj :: "udom \<rightarrow> 'a::cpo"
   fixes defl :: "'a itself \<Rightarrow> defl"
@@ -37,25 +38,25 @@ class bifinite = predomain + pcpo +
 syntax "_DEFL" :: "type \<Rightarrow> defl"  ("(1DEFL/(1'(_')))")
 translations "DEFL('t)" \<rightleftharpoons> "CONST defl TYPE('t)"
 
-interpretation bifinite: pcpo_ep_pair emb prj
+interpretation "domain": pcpo_ep_pair emb prj
   unfolding pcpo_ep_pair_def
   by (rule ep_pair_emb_prj)
 
-lemmas emb_inverse = bifinite.e_inverse
-lemmas emb_prj_below = bifinite.e_p_below
-lemmas emb_eq_iff = bifinite.e_eq_iff
-lemmas emb_strict = bifinite.e_strict
-lemmas prj_strict = bifinite.p_strict
+lemmas emb_inverse = domain.e_inverse
+lemmas emb_prj_below = domain.e_p_below
+lemmas emb_eq_iff = domain.e_eq_iff
+lemmas emb_strict = domain.e_strict
+lemmas prj_strict = domain.p_strict
 
-subsection {* Bifinite domains have a countable compact basis *}
+subsection {* Domains have a countable compact basis *}
 
 text {*
   Eventually it should be possible to generalize this to an unpointed
-  variant of the bifinite class.
+  variant of the domain class.
 *}
 
 interpretation compact_basis:
-  ideal_completion below Rep_compact_basis "approximants::'a::bifinite \<Rightarrow> _"
+  ideal_completion below Rep_compact_basis "approximants::'a::domain \<Rightarrow> _"
 proof -
   obtain Y where Y: "\<forall>i. Y i \<sqsubseteq> Y (Suc i)"
   and DEFL: "DEFL('a) = (\<Squnion>i. defl_principal (Y i))"
@@ -70,7 +71,7 @@ proof -
       by (simp add: lub_distribs Y DEFL [symmetric] cast_DEFL cfun_eq_iff)
     show "\<And>i. finite_deflation (approx i)"
       unfolding approx_def
-      apply (rule bifinite.finite_deflation_p_d_e)
+      apply (rule domain.finite_deflation_p_d_e)
       apply (rule finite_deflation_cast)
       apply (rule defl.compact_principal)
       apply (rule below_trans [OF monofun_cfun_fun])
@@ -254,14 +255,14 @@ lemma cast_ssum_defl:
 using ssum_approx finite_deflation_ssum_map
 unfolding ssum_defl_def by (rule cast_defl_fun2)
 
-subsection {* Lemma for proving bifinite instances *}
+subsection {* Lemma for proving domain instances *}
 
 text {*
-  A class of bifinite domains where @{const liftemb}, @{const liftprj},
+  A class of domains where @{const liftemb}, @{const liftprj},
   and @{const liftdefl} are all defined in the standard way.
 *}
 
-class liftdomain = bifinite +
+class liftdomain = "domain" +
   assumes liftemb_eq: "liftemb = udom_emb u_approx oo u_map\<cdot>emb"
   assumes liftprj_eq: "liftprj = u_map\<cdot>prj oo udom_prj u_approx"
   assumes liftdefl_eq: "liftdefl TYPE('a::cpo) = u_defl\<cdot>DEFL('a)"
@@ -299,15 +300,15 @@ text {* Restore original type constraints. *}
 
 setup {*
   fold Sign.add_const_constraint
-  [ (@{const_name defl}, SOME @{typ "'a::bifinite itself \<Rightarrow> defl"})
-  , (@{const_name emb}, SOME @{typ "'a::bifinite \<rightarrow> udom"})
-  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::bifinite"})
+  [ (@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> defl"})
+  , (@{const_name emb}, SOME @{typ "'a::domain \<rightarrow> udom"})
+  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::domain"})
   , (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> defl"})
   , (@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom"})
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::predomain u"}) ]
 *}
 
-subsection {* The universal domain is bifinite *}
+subsection {* The universal domain is a domain *}
 
 instantiation udom :: liftdomain
 begin
@@ -351,7 +352,7 @@ qed
 
 end
 
-subsection {* Lifted predomains are bifinite *}
+subsection {* Lifted predomains are domains *}
 
 instantiation u :: (predomain) liftdomain
 begin
@@ -390,9 +391,11 @@ end
 lemma DEFL_u: "DEFL('a::predomain u) = LIFTDEFL('a)"
 by (rule defl_u_def)
 
-subsection {* Continuous function space is a bifinite domain *}
+subsection {* Continuous function space is a domain *}
 
-instantiation cfun :: (bifinite, bifinite) liftdomain
+text {* TODO: Allow argument type to be a predomain. *}
+
+instantiation cfun :: ("domain", "domain") liftdomain
 begin
 
 definition
@@ -428,10 +431,10 @@ qed
 end
 
 lemma DEFL_cfun:
-  "DEFL('a::bifinite \<rightarrow> 'b::bifinite) = cfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
+  "DEFL('a::domain \<rightarrow> 'b::domain) = cfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_cfun_def)
 
-subsection {* Cartesian product is a bifinite domain *}
+subsection {* Cartesian product is a domain *}
 
 text {*
   Types @{typ "('a * 'b) u"} and @{typ "'a u \<otimes> 'b u"} are isomorphic.
@@ -484,7 +487,7 @@ qed
 
 end
 
-instantiation prod :: (bifinite, bifinite) bifinite
+instantiation prod :: ("domain", "domain") "domain"
 begin
 
 definition
@@ -510,16 +513,16 @@ qed
 end
 
 lemma DEFL_prod:
-  "DEFL('a::bifinite \<times> 'b::bifinite) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
+  "DEFL('a::domain \<times> 'b::domain) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_prod_def)
 
 lemma LIFTDEFL_prod:
   "LIFTDEFL('a::predomain \<times> 'b::predomain) = sprod_defl\<cdot>DEFL('a u)\<cdot>DEFL('b u)"
 by (rule liftdefl_prod_def)
 
-subsection {* Strict product is a bifinite domain *}
+subsection {* Strict product is a domain *}
 
-instantiation sprod :: (bifinite, bifinite) liftdomain
+instantiation sprod :: ("domain", "domain") liftdomain
 begin
 
 definition
@@ -556,7 +559,7 @@ qed
 end
 
 lemma DEFL_sprod:
-  "DEFL('a::bifinite \<otimes> 'b::bifinite) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
+  "DEFL('a::domain \<otimes> 'b::domain) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sprod_def)
 
 subsection {* Countable discrete cpos are predomains *}
@@ -648,9 +651,9 @@ qed
 
 end
 
-subsection {* Strict sum is a bifinite domain *}
+subsection {* Strict sum is a domain *}
 
-instantiation ssum :: (bifinite, bifinite) liftdomain
+instantiation ssum :: ("domain", "domain") liftdomain
 begin
 
 definition
@@ -686,7 +689,7 @@ qed
 end
 
 lemma DEFL_ssum:
-  "DEFL('a::bifinite \<oplus> 'b::bifinite) = ssum_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
+  "DEFL('a::domain \<oplus> 'b::domain) = ssum_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_ssum_def)
 
 subsection {* Lifted countable types are bifinite domains *}

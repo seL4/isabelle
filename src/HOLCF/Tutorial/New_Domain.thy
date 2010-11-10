@@ -13,10 +13,8 @@ text {*
   package. This file should be merged with @{text Domain_ex.thy}.
 *}
 
-default_sort bifinite
-
 text {*
-  Provided that @{text bifinite} is the default sort, the @{text new_domain}
+  Provided that @{text domain} is the default sort, the @{text new_domain}
   package should work with any type definition supported by the old
   domain package.
 *}

@@ -94,7 +94,7 @@ by (rule defl_set_bottom, rule adm_defl_set)
 
 text {* Prove rep instance using lemma @{text typedef_rep_class}. *}
 
-instantiation foo :: (bifinite) liftdomain
+instantiation foo :: ("domain") liftdomain
 begin
 
 definition emb_foo :: "'a foo \<rightarrow> udom"
@@ -129,7 +129,7 @@ done
 
 end
 
-instantiation bar :: (bifinite) liftdomain
+instantiation bar :: ("domain") liftdomain
 begin
 
 definition emb_bar :: "'a bar \<rightarrow> udom"
@@ -164,7 +164,7 @@ done
 
 end
 
-instantiation baz :: (bifinite) liftdomain
+instantiation baz :: ("domain") liftdomain
 begin
 
 definition emb_baz :: "'a baz \<rightarrow> udom"

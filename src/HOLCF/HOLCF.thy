@@ -11,7 +11,7 @@ imports
   Powerdomains
 begin
 
-default_sort bifinite
+default_sort "domain"
 
 ML {* path_add "~~/src/HOLCF/Library" *}
 

@@ -11,7 +11,7 @@ uses
   ("Tools/Domain/domain_isomorphism.ML")
 begin
 
-default_sort bifinite
+default_sort "domain"
 
 subsection {* Representations of types *}
 
@@ -146,9 +146,9 @@ text {* Restore original typing constraints. *}
 
 setup {*
   fold Sign.add_const_constraint
-  [ (@{const_name defl}, SOME @{typ "'a::bifinite itself \<Rightarrow> defl"})
-  , (@{const_name emb}, SOME @{typ "'a::bifinite \<rightarrow> udom"})
-  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::bifinite"})
+  [ (@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> defl"})
+  , (@{const_name emb}, SOME @{typ "'a::domain \<rightarrow> udom"})
+  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::domain"})
   , (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> defl"})
   , (@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom"})
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::predomain u"}) ]
