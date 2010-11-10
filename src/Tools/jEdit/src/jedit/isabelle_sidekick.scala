@@ -137,8 +137,7 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
         case _ => Nil
       }
 
-    val buffer = model.buffer
-    val text = Isabelle.buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
+    val text = Isabelle.buffer_text(model.buffer)
     val structure = Structure.parse_sections(syntax, "theory " + model.thy_name, text)
 
     make_tree(0, structure) foreach (node => data.root.add(node))

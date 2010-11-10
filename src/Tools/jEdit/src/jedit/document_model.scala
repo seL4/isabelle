@@ -219,7 +219,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     buffer.setTokenMarker(token_marker)
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
-    pending_edits += Text.Edit.insert(0, buffer.getText(0, buffer.getLength))
+    pending_edits += Text.Edit.insert(0, Isabelle.buffer_text(buffer))
   }
 
   def refresh()
