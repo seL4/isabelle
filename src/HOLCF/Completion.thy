@@ -351,11 +351,9 @@ proof -
     apply (rule ub_imageI, rename_tac a)
     apply (clarsimp simp add: rep_x)
     apply (drule f_mono)
-    apply (erule below_trans)
-    apply (rule is_ub_thelub [OF chain])
-    apply (rule is_lub_thelub [OF chain])
-    apply (rule ub_rangeI)
-    apply (drule_tac x="Y i" in ub_imageD)
+    apply (erule below_lub [OF chain])
+    apply (rule lub_below [OF chain])
+    apply (drule_tac x="Y n" in ub_imageD)
     apply (simp add: rep_x, fast intro: r_refl)
     apply assumption
     done

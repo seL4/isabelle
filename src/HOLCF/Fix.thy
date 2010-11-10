@@ -82,9 +82,8 @@ done
 
 lemma fix_least_below: "F\<cdot>x \<sqsubseteq> x \<Longrightarrow> fix\<cdot>F \<sqsubseteq> x"
 apply (simp add: fix_def2)
-apply (rule is_lub_thelub)
+apply (rule lub_below)
 apply (rule chain_iterate)
-apply (rule ub_rangeI)
 apply (induct_tac i)
 apply simp
 apply simp

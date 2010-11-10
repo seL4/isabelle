@@ -851,7 +851,7 @@ next
     unfolding approximants_def
     apply safe
     apply (simp add: compactD2 [OF compact_Rep_compact_basis Y])
-    apply (erule below_trans, rule is_ub_thelub [OF Y])
+    apply (erule below_lub [OF Y])
     done
 next
   fix a :: "'a compact_basis"
@@ -990,14 +990,12 @@ done
 lemma lub_udom_approx [simp]: "(\<Squnion>i. udom_approx i) = ID"
 apply (rule cfun_eqI, simp add: contlub_cfun_fun)
 apply (rule below_antisym)
-apply (rule is_lub_thelub)
+apply (rule lub_below)
 apply (simp)
-apply (rule ub_rangeI)
 apply (rule udom_approx.below)
 apply (rule_tac x=x in udom.principal_induct)
 apply (simp add: lub_distribs)
-apply (rule rev_below_trans)
-apply (rule_tac x=a in is_ub_thelub)
+apply (rule_tac i=a in below_lub)
 apply simp
 apply (simp add: udom_approx_principal)
 apply (simp add: ubasis_until_same ubasis_le_refl)

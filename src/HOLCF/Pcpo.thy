@@ -36,11 +36,16 @@ lemma is_lub_thelub:
 lemma lub_below_iff: "chain S \<Longrightarrow> (\<Squnion>i. S i) \<sqsubseteq> x \<longleftrightarrow> (\<forall>i. S i \<sqsubseteq> x)"
   by (simp add: is_lub_below_iff [OF cpo_lubI] is_ub_def)
 
+lemma lub_below: "\<lbrakk>chain S; \<And>i. S i \<sqsubseteq> x\<rbrakk> \<Longrightarrow> (\<Squnion>i. S i) \<sqsubseteq> x"
+  by (simp add: lub_below_iff)
+
+lemma below_lub: "\<lbrakk>chain S; x \<sqsubseteq> S i\<rbrakk> \<Longrightarrow> x \<sqsubseteq> (\<Squnion>i. S i)"
+  by (erule below_trans, erule is_ub_thelub)
+
 lemma lub_range_mono:
   "\<lbrakk>range X \<subseteq> range Y; chain Y; chain X\<rbrakk>
     \<Longrightarrow> (\<Squnion>i. X i) \<sqsubseteq> (\<Squnion>i. Y i)"
-apply (erule is_lub_thelub)
-apply (rule ub_rangeI)
+apply (erule lub_below)
 apply (subgoal_tac "\<exists>j. X i = Y j")
 apply  clarsimp
 apply  (erule is_ub_thelub)
@@ -54,14 +59,12 @@ apply (rule lub_range_mono)
 apply    fast
 apply   assumption
 apply (erule chain_shift)
-apply (rule is_lub_thelub)
+apply (rule lub_below)
 apply assumption
-apply (rule ub_rangeI)
-apply (rule_tac y="Y (i + j)" in below_trans)
+apply (rule_tac i="i" in below_lub)
+apply (erule chain_shift)
 apply (erule chain_mono)
 apply (rule le_add1)
-apply (rule is_ub_thelub)
-apply (erule chain_shift)
 done
 
 lemma maxinch_is_thelub:
@@ -80,51 +83,13 @@ text {* the @{text "\<sqsubseteq>"} relation between two chains is preserved by 
 lemma lub_mono:
   "\<lbrakk>chain X; chain Y; \<And>i. X i \<sqsubseteq> Y i\<rbrakk> 
     \<Longrightarrow> (\<Squnion>i. X i) \<sqsubseteq> (\<Squnion>i. Y i)"
-apply (erule is_lub_thelub)
-apply (rule ub_rangeI)
-apply (rule below_trans)
-apply (erule meta_spec)
-apply (erule is_ub_thelub)
-done
+by (fast elim: lub_below below_lub)
 
 text {* the = relation between two chains is preserved by their lubs *}
-
-lemma lub_equal:
-  "\<lbrakk>chain X; chain Y; \<forall>k. X k = Y k\<rbrakk>
-    \<Longrightarrow> (\<Squnion>i. X i) = (\<Squnion>i. Y i)"
-  by (simp only: fun_eq_iff [symmetric])
 
 lemma lub_eq:
   "(\<And>i. X i = Y i) \<Longrightarrow> (\<Squnion>i. X i) = (\<Squnion>i. Y i)"
   by simp
-
-text {* more results about mono and = of lubs of chains *}
-
-lemma lub_mono2:
-  "\<lbrakk>\<exists>j. \<forall>i>j. X i = Y i; chain X; chain Y\<rbrakk>
-    \<Longrightarrow> (\<Squnion>i. X i) \<sqsubseteq> (\<Squnion>i. Y i)"
-apply (erule exE)
-apply (subgoal_tac "(\<Squnion>i. X (i + Suc j)) \<sqsubseteq> (\<Squnion>i. Y (i + Suc j))")
-apply (thin_tac "\<forall>i>j. X i = Y i")
-apply (simp only: lub_range_shift)
-apply simp
-done
-
-lemma lub_equal2:
-  "\<lbrakk>\<exists>j. \<forall>i>j. X i = Y i; chain X; chain Y\<rbrakk>
-    \<Longrightarrow> (\<Squnion>i. X i) = (\<Squnion>i. Y i)"
-  by (blast intro: below_antisym lub_mono2 sym)
-
-lemma lub_mono3:
-  "\<lbrakk>chain Y; chain X; \<forall>i. \<exists>j. Y i \<sqsubseteq> X j\<rbrakk>
-    \<Longrightarrow> (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. X i)"
-apply (erule is_lub_thelub)
-apply (rule ub_rangeI)
-apply (erule allE)
-apply (erule exE)
-apply (erule below_trans)
-apply (erule is_ub_thelub)
-done
 
 lemma ch2ch_lub:
   assumes 1: "\<And>j. chain (\<lambda>i. Y i j)"
@@ -149,10 +114,9 @@ proof (rule below_antisym)
   have 4: "chain (\<lambda>i. \<Squnion>j. Y i j)"
     by (rule ch2ch_lub [OF 1 2])
   show "(\<Squnion>i. \<Squnion>j. Y i j) \<sqsubseteq> (\<Squnion>i. Y i i)"
-    apply (rule is_lub_thelub [OF 4])
-    apply (rule ub_rangeI)
-    apply (rule lub_mono3 [rule_format, OF 2 3])
-    apply (rule exI)
+    apply (rule lub_below [OF 4])
+    apply (rule lub_below [OF 2])
+    apply (rule below_lub [OF 3])
     apply (rule below_trans)
     apply (rule chain_mono [OF 1 le_maxI1])
     apply (rule chain_mono [OF 2 le_maxI2])
