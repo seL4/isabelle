@@ -121,7 +121,7 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
         case Structure.Block(name, body) =>
           val node =
             new DefaultMutableTreeNode(
-              new Isabelle_Sidekick.Asset(name, offset, offset + entry.length))
+              new Isabelle_Sidekick.Asset(Library.first_line(name), offset, offset + entry.length))
           (offset /: body)((i, e) =>
             {
               make_tree(i, e) foreach (nd => node.add(nd))
