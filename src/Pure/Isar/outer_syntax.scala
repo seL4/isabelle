@@ -38,6 +38,20 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
       case None => false
     }
 
+  def heading_level(name: String): Option[Int] =
+    name match {
+      // FIXME avoid hard-wired info
+      case "header" => Some(1)
+      case "chapter" => Some(2)
+      case "section" | "sect" => Some(3)
+      case "subsection" | "subsect" => Some(4)
+      case "subsubsection" | "subsubsect" => Some(5)
+      case _ => None
+    }
+
+  def heading_level(command: Command): Option[Int] =
+    heading_level(command.name)
+
 
   /* tokenize */
 
