@@ -238,9 +238,6 @@ lemma chain_UU_I_inverse2: "(\<Squnion>i. Y i) \<noteq> \<bottom> \<Longrightarr
 lemma notUU_I: "\<lbrakk>x \<sqsubseteq> y; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> y \<noteq> \<bottom>"
   by (blast intro: UU_I)
 
-lemma chain_mono2: "\<lbrakk>\<exists>j. Y j \<noteq> \<bottom>; chain Y\<rbrakk> \<Longrightarrow> \<exists>j. \<forall>i>j. Y i \<noteq> \<bottom>"
-  by (blast dest: notUU_I chain_mono_less)
-
 end
 
 subsection {* Chain-finite and flat cpos *}
