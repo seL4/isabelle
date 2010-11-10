@@ -110,20 +110,38 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 
 class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
 {
+  import Thy_Syntax.Structure
+
   def parser(data: SideKickParsedData, model: Document_Model)
   {
-    val root = data.root
-    val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
-    for {
-      (command, command_start) <- snapshot.node.command_range()
-      if command.is_command && !stopped
-    }
-    {
-      val node =
-        new DefaultMutableTreeNode(
-          new Isabelle_Sidekick.Asset(command.name, command_start, command_start + command.length))
-      root.add(node)
-    }
+    val syntax = model.session.current_syntax()
+
+    def make_tree(offset: Int, entry: Structure.Entry): List[DefaultMutableTreeNode] =
+      entry match {
+        case Structure.Block(name, body) =>
+          val node =
+            new DefaultMutableTreeNode(
+              new Isabelle_Sidekick.Asset(name, offset, offset + entry.length))
+          (offset /: body)((i, e) =>
+            {
+              make_tree(i, e) foreach (nd => node.add(nd))
+              i + e.length
+            })
+          List(node)
+        case Structure.Atom(command)
+        if command.is_command && !syntax.is_heading(command.name) =>
+          val node =
+            new DefaultMutableTreeNode(
+              new Isabelle_Sidekick.Asset(command.name, offset, offset + entry.length))
+          List(node)
+        case _ => Nil
+      }
+
+    val buffer = model.buffer
+    val text = Isabelle.buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
+    val structure = Structure.parse_sections(syntax, "theory " + model.thy_name, text)
+
+    make_tree(0, structure) foreach (node => data.root.add(node))
   }
 }
 

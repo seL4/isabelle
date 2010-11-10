@@ -38,6 +38,12 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
       case None => false
     }
 
+  def is_heading(name: String): Boolean =
+    keywords.get(name) match {
+      case Some(kind) => Keyword.heading(kind)
+      case None => false
+    }
+
   def heading_level(name: String): Option[Int] =
     name match {
       // FIXME avoid hard-wired info
