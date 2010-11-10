@@ -37,8 +37,7 @@ class bifinite = predomain + pcpo +
 syntax "_DEFL" :: "type \<Rightarrow> defl"  ("(1DEFL/(1'(_')))")
 translations "DEFL('t)" \<rightleftharpoons> "CONST defl TYPE('t)"
 
-interpretation bifinite:
-  pcpo_ep_pair "emb :: 'a::bifinite \<rightarrow> udom" "prj :: udom \<rightarrow> 'a::bifinite"
+interpretation bifinite: pcpo_ep_pair emb prj
   unfolding pcpo_ep_pair_def
   by (rule ep_pair_emb_prj)
 
@@ -430,6 +429,57 @@ by (rule liftdefl_cfun_def)
 
 subsection {* Cartesian product is a bifinite domain *}
 
+text {*
+  Types @{typ "('a * 'b) u"} and @{typ "'a u \<otimes> 'b u"} are isomorphic.
+*}
+
+definition
+  "encode_prod_u = (\<Lambda>(up\<cdot>(x, y)). (:up\<cdot>x, up\<cdot>y:))"
+
+definition
+  "decode_prod_u = (\<Lambda>(:up\<cdot>x, up\<cdot>y:). up\<cdot>(x, y))"
+
+lemma decode_encode_prod_u [simp]: "decode_prod_u\<cdot>(encode_prod_u\<cdot>x) = x"
+unfolding encode_prod_u_def decode_prod_u_def
+by (case_tac x, simp, rename_tac y, case_tac y, simp)
+
+lemma encode_decode_prod_u [simp]: "encode_prod_u\<cdot>(decode_prod_u\<cdot>y) = y"
+unfolding encode_prod_u_def decode_prod_u_def
+apply (case_tac y, simp, rename_tac a b)
+apply (case_tac a, simp, case_tac b, simp, simp)
+done
+
+instantiation prod :: (predomain, predomain) predomain
+begin
+
+definition
+  "liftemb =
+    (udom_emb sprod_approx oo sprod_map\<cdot>emb\<cdot>emb) oo encode_prod_u"
+
+definition
+  "liftprj =
+    decode_prod_u oo (sprod_map\<cdot>prj\<cdot>prj oo udom_prj sprod_approx)"
+
+definition
+  "liftdefl (t::('a \<times> 'b) itself) = sprod_defl\<cdot>DEFL('a u)\<cdot>DEFL('b u)"
+
+instance proof
+  have "ep_pair encode_prod_u decode_prod_u"
+    by (rule ep_pair.intro, simp_all)
+  thus "ep_pair liftemb (liftprj :: udom \<rightarrow> ('a \<times> 'b) u)"
+    unfolding liftemb_prod_def liftprj_prod_def
+    apply (rule ep_pair_comp)
+    apply (rule ep_pair_comp)
+    apply (intro ep_pair_sprod_map ep_pair_emb_prj)
+    apply (rule ep_pair_udom [OF sprod_approx])
+    done
+  show "cast\<cdot>LIFTDEFL('a \<times> 'b) = liftemb oo (liftprj :: udom \<rightarrow> ('a \<times> 'b) u)"
+    unfolding liftemb_prod_def liftprj_prod_def liftdefl_prod_def
+    by (simp add: cast_sprod_defl cast_DEFL cfcomp1 sprod_map_map)
+qed
+
+end
+
 instantiation prod :: (bifinite, bifinite) bifinite
 begin
 
@@ -442,18 +492,7 @@ definition
 definition
   "defl (t::('a \<times> 'b) itself) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
-definition
-  "(liftemb :: ('a \<times> 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
-
-definition
-  "(liftprj :: udom \<rightarrow> ('a \<times> 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
-
-definition
-  "liftdefl (t::('a \<times> 'b) itself) = u_defl\<cdot>DEFL('a \<times> 'b)"
-
-instance
-using liftemb_prod_def liftprj_prod_def liftdefl_prod_def
-proof (rule bifinite_class_intro)
+instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<times> 'b)"
     unfolding emb_prod_def prj_prod_def
     using ep_pair_udom [OF prod_approx]
@@ -471,7 +510,7 @@ lemma DEFL_prod:
 by (rule defl_prod_def)
 
 lemma LIFTDEFL_prod:
-  "LIFTDEFL('a::bifinite \<times> 'b::bifinite) = u_defl\<cdot>DEFL('a \<times> 'b)"
+  "LIFTDEFL('a::predomain \<times> 'b::predomain) = sprod_defl\<cdot>DEFL('a u)\<cdot>DEFL('b u)"
 by (rule liftdefl_prod_def)
 
 subsection {* Strict product is a bifinite domain *}

@@ -298,11 +298,22 @@ lemma isodefl_cfun_u:
 using liftemb_cfun_def liftprj_cfun_def isodefl_cfun [OF assms]
 by (rule isodefl_u)
 
+lemma encode_prod_u_map:
+  "encode_prod_u\<cdot>(u_map\<cdot>(cprod_map\<cdot>f\<cdot>g)\<cdot>(decode_prod_u\<cdot>x))
+    = sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>g)\<cdot>x"
+unfolding encode_prod_u_def decode_prod_u_def
+apply (case_tac x, simp, rename_tac a b)
+apply (case_tac a, simp, case_tac b, simp, simp)
+done
+
 lemma isodefl_cprod_u:
-  assumes "isodefl d1 t1" and "isodefl d2 t2"
-  shows "isodefl (u_map\<cdot>(cprod_map\<cdot>d1\<cdot>d2)) (u_defl\<cdot>(prod_defl\<cdot>t1\<cdot>t2))"
-using liftemb_prod_def liftprj_prod_def isodefl_cprod [OF assms]
-by (rule isodefl_u)
+  assumes "isodefl (u_map\<cdot>d1) t1" and "isodefl (u_map\<cdot>d2) t2"
+  shows "isodefl (u_map\<cdot>(cprod_map\<cdot>d1\<cdot>d2)) (sprod_defl\<cdot>t1\<cdot>t2)"
+using assms unfolding isodefl_def
+apply (simp add: emb_u_def prj_u_def liftemb_prod_def liftprj_prod_def)
+apply (simp add: emb_u_def [symmetric] prj_u_def [symmetric])
+apply (simp add: cfcomp1 encode_prod_u_map cast_sprod_defl sprod_map_map)
+done
 
 lemma isodefl_sprod_u:
   assumes "isodefl d1 t1" and "isodefl d2 t2"
