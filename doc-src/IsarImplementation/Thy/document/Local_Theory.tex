@@ -1,6 +1,6 @@
 %
 \begin{isabellebody}%
-\def\isabellecontext{Local{\isacharunderscore}Theory}%
+\def\isabellecontext{Local{\isaliteral{5F}{\isacharunderscore}}Theory}%
 %
 \isadelimtheory
 %
@@ -8,7 +8,7 @@
 %
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
-\ Local{\isacharunderscore}Theory\isanewline
+\ Local{\isaliteral{5F}{\isacharunderscore}}Theory\isanewline
 \isakeyword{imports}\ Base\isanewline
 \isakeyword{begin}%
 \endisatagtheory
@@ -31,11 +31,11 @@ A \emph{local theory} combines aspects of both theory and proof
   context}.
 
   The target is usually derived from the background theory by adding
-  local \isa{{\isasymFIX}} and \isa{{\isasymASSUME}} elements, plus
+  local \isa{{\isaliteral{5C3C4649583E}{\isasymFIX}}} and \isa{{\isaliteral{5C3C415353554D453E}{\isasymASSUME}}} elements, plus
   suitable modifications of non-logical context data (e.g.\ a special
   type-checking discipline).  Once initialized, the target is ready to
-  absorb definitional primitives: \isa{{\isasymDEFINE}} for terms and
-  \isa{{\isasymNOTE}} for theorems.  Such definitions may get
+  absorb definitional primitives: \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}}} for terms and
+  \isa{{\isaliteral{5C3C4E4F54453E}{\isasymNOTE}}} for theorems.  Such definitions may get
   transformed in a target-specific way, but the programming interface
   hides such details.
 
@@ -59,13 +59,13 @@ A \emph{local theory} combines aspects of both theory and proof
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for terms, and
-  \isa{{\isasymNOTE}\ b\ {\isacharequal}\ thm} for theorems.  Types are treated
+There are separate elements \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}}\ c\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t} for terms, and
+  \isa{{\isaliteral{5C3C4E4F54453E}{\isasymNOTE}}\ b\ {\isaliteral{3D}{\isacharequal}}\ thm} for theorems.  Types are treated
   implicitly, according to Hindley-Milner discipline (cf.\
   \secref{sec:variables}).  These definitional primitives essentially
   act like \isa{let}-bindings within a local context that may
   already contain earlier \isa{let}-bindings and some initial
-  \isa{{\isasymlambda}}-bindings.  Thus we gain \emph{dependent definitions}
+  \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-bindings.  Thus we gain \emph{dependent definitions}
   that are relative to an initial axiomatic context.  The following
   diagram illustrates this idea of axiomatic elements versus
   definitional elements:
@@ -73,28 +73,28 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   \begin{center}
   \begin{tabular}{|l|l|l|}
   \hline
-  & \isa{{\isasymlambda}}-binding & \isa{let}-binding \\
+  & \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}}-binding & \isa{let}-binding \\
   \hline
-  types & fixed \isa{{\isasymalpha}} & arbitrary \isa{{\isasymbeta}} \\
-  terms & \isa{{\isasymFIX}\ x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} & \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} \\
-  theorems & \isa{{\isasymASSUME}\ a{\isacharcolon}\ A} & \isa{{\isasymNOTE}\ b\ {\isacharequal}\ \isactrlBG B\isactrlEN } \\
+  types & fixed \isa{{\isaliteral{5C3C616C7068613E}{\isasymalpha}}} & arbitrary \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}} \\
+  terms & \isa{{\isaliteral{5C3C4649583E}{\isasymFIX}}\ x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} & \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}}\ c\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t} \\
+  theorems & \isa{{\isaliteral{5C3C415353554D453E}{\isasymASSUME}}\ a{\isaliteral{3A}{\isacharcolon}}\ A} & \isa{{\isaliteral{5C3C4E4F54453E}{\isasymNOTE}}\ b\ {\isaliteral{3D}{\isacharequal}}\ \isaliteral{5C3C5E42473E}{}\isactrlBG B\isaliteral{5C3C5E454E3E}{}\isactrlEN } \\
   \hline
   \end{tabular}
   \end{center}
 
-  A user package merely needs to produce suitable \isa{{\isasymDEFINE}}
-  and \isa{{\isasymNOTE}} elements according to the application.  For
-  example, a package for inductive definitions might first \isa{{\isasymDEFINE}} a certain predicate as some fixed-point construction,
-  then \isa{{\isasymNOTE}} a proven result about monotonicity of the
+  A user package merely needs to produce suitable \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}}}
+  and \isa{{\isaliteral{5C3C4E4F54453E}{\isasymNOTE}}} elements according to the application.  For
+  example, a package for inductive definitions might first \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}}} a certain predicate as some fixed-point construction,
+  then \isa{{\isaliteral{5C3C4E4F54453E}{\isasymNOTE}}} a proven result about monotonicity of the
   functor involved here, and then produce further derived concepts via
-  additional \isa{{\isasymDEFINE}} and \isa{{\isasymNOTE}} elements.
+  additional \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}}} and \isa{{\isaliteral{5C3C4E4F54453E}{\isasymNOTE}}} elements.
 
-  The cumulative sequence of \isa{{\isasymDEFINE}} and \isa{{\isasymNOTE}}
+  The cumulative sequence of \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}}} and \isa{{\isaliteral{5C3C4E4F54453E}{\isasymNOTE}}}
   produced at package runtime is managed by the local theory
   infrastructure by means of an \emph{auxiliary context}.  Thus the
   system holds up the impression of working within a fully abstract
-  situation with hypothetical entities: \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t}
-  always results in a literal fact \isa{\isactrlBG c\ {\isasymequiv}\ t\isactrlEN }, where
+  situation with hypothetical entities: \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}}\ c\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t}
+  always results in a literal fact \isa{\isaliteral{5C3C5E42473E}{}\isactrlBG c\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t\isaliteral{5C3C5E454E3E}{}\isactrlEN }, where
   \isa{c} is a fixed variable \isa{c}.  The details about
   global constants, name spaces etc. are handled internally.
 
@@ -107,7 +107,7 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
 
   When a definitional package is finished, the auxiliary context is
   reset to the target context.  The target now holds definitions for
-  terms and theorems that stem from the hypothetical \isa{{\isasymDEFINE}} and \isa{{\isasymNOTE}} elements, transformed by the
+  terms and theorems that stem from the hypothetical \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}}} and \isa{{\isaliteral{5C3C4E4F54453E}{\isasymNOTE}}} elements, transformed by the
   particular target policy (see \cite[\S4--5]{Haftmann-Wenzel:2009}
   for details).%
 \end{isamarkuptext}%
@@ -135,8 +135,8 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   Although this is merely an alias for \verb|Proof.context|, it is
   semantically a subtype of the same: a \verb|local_theory| holds
   target information as special context data.  Subtyping means that
-  any value \isa{lthy{\isacharcolon}}~\verb|local_theory| can be also used
-  with operations on expecting a regular \isa{ctxt{\isacharcolon}}~\verb|Proof.context|.
+  any value \isa{lthy{\isaliteral{3A}{\isacharcolon}}}~\verb|local_theory| can be also used
+  with operations on expecting a regular \isa{ctxt{\isaliteral{3A}{\isacharcolon}}}~\verb|Proof.context|.
 
   \item \verb|Named_Target.init|~\isa{name\ thy} initializes a local
   theory derived from the given background theory.  An empty name
@@ -146,7 +146,7 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   experimentation --- normally the Isar toplevel already takes care to
   initialize the local theory context.
 
-  \item \verb|Local_Theory.define|~\isa{{\isacharparenleft}{\isacharparenleft}b{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}a{\isacharcomma}\ rhs{\isacharparenright}{\isacharparenright}\ lthy} defines a local entity according to the specification that is
+  \item \verb|Local_Theory.define|~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}b{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ rhs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ lthy} defines a local entity according to the specification that is
   given relatively to the current \isa{lthy} context.  In
   particular the term of the RHS may refer to earlier local entities
   from the auxiliary context, or hypothetical parameters from the
@@ -156,7 +156,7 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   definition as a hypothetical fact.
 
   Unless an explicit name binding is given for the RHS, the resulting
-  fact will be called \isa{b{\isacharunderscore}def}.  Any given attributes are
+  fact will be called \isa{b{\isaliteral{5F}{\isacharunderscore}}def}.  Any given attributes are
   applied to that same fact --- immediately in the auxiliary context
   \emph{and} in any transformed versions stemming from target-specific
   policies or any later interpretations of results from the target
@@ -165,7 +165,7 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   declarations such as \hyperlink{attribute.simp}{\mbox{\isa{simp}}}, while non-trivial rules like
   \hyperlink{attribute.simplified}{\mbox{\isa{simplified}}} are better avoided.
 
-  \item \verb|Local_Theory.note|~\isa{{\isacharparenleft}a{\isacharcomma}\ ths{\isacharparenright}\ lthy} is
+  \item \verb|Local_Theory.note|~\isa{{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ ths{\isaliteral{29}{\isacharparenright}}\ lthy} is
   analogous to \verb|Local_Theory.define|, but defines facts instead of
   terms.  There is also a slightly more general variant \verb|Local_Theory.notes| that defines several facts (with attribute
   expressions) simultaneously.

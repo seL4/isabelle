@@ -120,7 +120,7 @@ A \emph{proof command} is state transition of the Isar/VM
   defined by the proof method that is applied in that situation.
 
   \item \verb|Proof.assert_forward|, \verb|Proof.assert_chain|, \verb|Proof.assert_backward| are partial identity functions that fail
-  unless a certain linguistic mode is active, namely ``\isa{proof{\isacharparenleft}state{\isacharparenright}}'', ``\isa{proof{\isacharparenleft}chain{\isacharparenright}}'', ``\isa{proof{\isacharparenleft}prove{\isacharparenright}}'', respectively (using the terminology of
+  unless a certain linguistic mode is active, namely ``\isa{proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}}'', ``\isa{proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}}'', ``\isa{proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}}'', respectively (using the terminology of
   \cite{isabelle-isar-ref}).
 
   It is advisable study the implementations of existing proof commands
@@ -143,14 +143,14 @@ A \emph{proof command} is state transition of the Isar/VM
   for dignostic tools; \verb|Proof.simple_goal| or \verb|Proof.goal|
   should be used in most situations.
 
-  \item \verb|Proof.theorem|~\isa{before{\isacharunderscore}qed\ after{\isacharunderscore}qed\ statement\ ctxt}
+  \item \verb|Proof.theorem|~\isa{before{\isaliteral{5F}{\isacharunderscore}}qed\ after{\isaliteral{5F}{\isacharunderscore}}qed\ statement\ ctxt}
   initializes a toplevel Isar proof state within a given context.
 
-  The optional \isa{before{\isacharunderscore}qed} method is applied at the end of
+  The optional \isa{before{\isaliteral{5F}{\isacharunderscore}}qed} method is applied at the end of
   the proof, just before extracting the result (this feature is rarely
   used).
 
-  The \isa{after{\isacharunderscore}qed} continuation receives the extracted result
+  The \isa{after{\isaliteral{5F}{\isacharunderscore}}qed} continuation receives the extracted result
   in order to apply it to the final context in a suitable way (e.g.\
   storing named facts).  Note that at this generic level the target
   context is specified as \verb|Proof.context|, but the usual
@@ -161,7 +161,7 @@ A \emph{proof command} is state transition of the Isar/VM
   The \isa{statement} is given as a nested list of terms, each
   associated with optional \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns as usual in the
   Isar source language.  The original nested list structure over terms
-  is turned into one over theorems when \isa{after{\isacharunderscore}qed} is
+  is turned into one over theorems when \isa{after{\isaliteral{5F}{\isacharunderscore}}qed} is
   invoked.
 
   \end{description}%
@@ -183,16 +183,16 @@ A \emph{proof command} is state transition of the Isar/VM
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-  \indexdef{}{ML antiquotation}{Isar.goal}\hypertarget{ML antiquotation.Isar.goal}{\hyperlink{ML antiquotation.Isar.goal}{\mbox{\isa{Isar{\isachardot}goal}}}} & : & \isa{ML{\isacharunderscore}antiquotation} \\
+  \indexdef{}{ML antiquotation}{Isar.goal}\hypertarget{ML antiquotation.Isar.goal}{\hyperlink{ML antiquotation.Isar.goal}{\mbox{\isa{Isar{\isaliteral{2E}{\isachardot}}goal}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
   \begin{description}
 
-  \item \isa{{\isacharat}{\isacharbraceleft}Isar{\isachardot}goal{\isacharbraceright}} refers to the regular goal state (if
+  \item \isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}Isar{\isaliteral{2E}{\isachardot}}goal{\isaliteral{7D}{\isacharbraceright}}} refers to the regular goal state (if
   available) of the current proof state managed by the Isar toplevel
   --- as abstract value.
 
-  This only works for diagnostic ML commands, such as \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} or \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}.
+  This only works for diagnostic ML commands, such as \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}}}} or \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}}}}.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -222,7 +222,7 @@ The following example peeks at a certain goal configuration.%
 \isadelimmlex
 %
 \endisadelimmlex
-\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
 \isanewline
 %
 \isadelimproof
@@ -245,19 +245,19 @@ The following example peeks at a certain goal configuration.%
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ \ \ \ \ val\ n\ {\isacharequal}\ Thm{\isachardot}nprems{\isacharunderscore}of\ {\isacharparenleft}{\isacharhash}goal\ %
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ \ \ \ \ val\ n\ {\isaliteral{3D}{\isacharequal}}\ Thm{\isaliteral{2E}{\isachardot}}nprems{\isaliteral{5F}{\isacharunderscore}}of\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{23}{\isacharhash}}goal\ %
 \isaantiq
-Isar{\isachardot}goal%
+Isar{\isaliteral{2E}{\isachardot}}goal{}%
 \endisaantiq
-{\isacharparenright}{\isacharsemicolon}\isanewline
+{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ \ \ \ \ %
 \isaantiq
-assert%
+assert{}%
 \endisaantiq
-\ {\isacharparenleft}n\ {\isacharequal}\ {\isadigit{3}}{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ {\isacharverbatimclose}%
+\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{3}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -291,7 +291,7 @@ Here we see 3 individual subgoals in the same way as regular
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {\isacharasterisk}\ {\isasymrightarrow}\ goal\ {\isasymrightarrow}\ {\isacharparenleft}cases\ {\isasymtimes}\ goal{\isacharparenright}\isactrlsup {\isacharasterisk}\isactrlsup {\isacharasterisk}} that operates on the full Isar goal
+A \isa{method} is a function \isa{context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ thm\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ goal\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}cases\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ goal{\isaliteral{29}{\isacharparenright}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}} that operates on the full Isar goal
   configuration with context, goal facts, and tactical goal state and
   enumerates possible follow-up goal states, with the potential
   addition of named extensions of the proof context (\emph{cases}).
@@ -309,15 +309,15 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
   \emph{first} subgoal.
 
   Exception: old-style tactic emulations that are embedded into the
-  method space, e.g.\ \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}}.
+  method space, e.g.\ \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isaliteral{5F}{\isacharunderscore}}tac}}}.
 
   \item A non-trivial method always needs to make progress: an
   identical follow-up goal state has to be avoided.\footnote{This
-  enables the user to write method expressions like \isa{meth\isactrlsup {\isacharplus}}
+  enables the user to write method expressions like \isa{meth\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2B}{\isacharplus}}}
   without looping, while the trivial do-nothing case can be recovered
-  via \isa{meth\isactrlsup {\isacharquery}}.}
+  via \isa{meth\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{3F}{\isacharquery}}}.}
 
-  Exception: trivial stuttering steps, such as ``\hyperlink{method.-}{\mbox{\isa{{\isacharminus}}}}'' or
+  Exception: trivial stuttering steps, such as ``\hyperlink{method.-}{\mbox{\isa{{\isaliteral{2D}{\isacharminus}}}}}'' or
   \hyperlink{method.succeed}{\mbox{\isa{succeed}}}.
 
   \item Goal facts passed to the method must not be ignored.  If there
@@ -330,7 +330,7 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
   arguments to Isar commands like \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}} or \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}.
   User-space additions are reasonably easy by plugging suitable
   method-valued parser functions into the framework, using the
-  \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} command, for example.
+  \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}}}} command, for example.
 
   To get a better idea about the range of possibilities, consider the
   following Isar proof schemes.  This is the general form of
@@ -338,17 +338,17 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
 
   \medskip
   \begin{tabular}{l}
-  \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{facts\isactrlsub {\isadigit{1}}}~\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{props}~\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{facts\isactrlsub {\isadigit{2}}} \\
-  \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isacharparenleft}initial{\isacharunderscore}method{\isacharparenright}} \\
+  \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{facts\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{props}~\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{facts\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} \\
+  \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isaliteral{28}{\isacharparenleft}}initial{\isaliteral{5F}{\isacharunderscore}}method{\isaliteral{29}{\isacharparenright}}} \\
   \quad\isa{body} \\
-  \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}~\isa{{\isacharparenleft}terminal{\isacharunderscore}method{\isacharparenright}} \\
+  \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}~\isa{{\isaliteral{28}{\isacharparenleft}}terminal{\isaliteral{5F}{\isacharunderscore}}method{\isaliteral{29}{\isacharparenright}}} \\
   \end{tabular}
   \medskip
 
-  The goal configuration consists of \isa{facts\isactrlsub {\isadigit{1}}} and
-  \isa{facts\isactrlsub {\isadigit{2}}} appended in that order, and various \isa{props} being claimed.  The \isa{initial{\isacharunderscore}method} is invoked
+  The goal configuration consists of \isa{facts\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} and
+  \isa{facts\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} appended in that order, and various \isa{props} being claimed.  The \isa{initial{\isaliteral{5F}{\isacharunderscore}}method} is invoked
   with facts and goals together and refines the problem to something
-  that is handled recursively in the proof \isa{body}.  The \isa{terminal{\isacharunderscore}method} has another chance to finish any remaining
+  that is handled recursively in the proof \isa{body}.  The \isa{terminal{\isaliteral{5F}{\isacharunderscore}}method} has another chance to finish any remaining
   subgoals, but it does not see the facts of the initial step.
 
   \medskip This pattern illustrates unstructured proof scripts:
@@ -356,17 +356,17 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
   \medskip
   \begin{tabular}{l}
   \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{props} \\
-  \quad\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{facts\isactrlsub {\isadigit{1}}}~\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{method\isactrlsub {\isadigit{1}}} \\
-  \quad\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{method\isactrlsub {\isadigit{2}}} \\
-  \quad\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{facts\isactrlsub {\isadigit{3}}}~\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{method\isactrlsub {\isadigit{3}}} \\
+  \quad\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{facts\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}~\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{method\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} \\
+  \quad\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{method\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} \\
+  \quad\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{facts\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{3}}}~\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{method\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{3}}} \\
   \quad\hyperlink{command.done}{\mbox{\isa{\isacommand{done}}}} \\
   \end{tabular}
   \medskip
 
-  The \isa{method\isactrlsub {\isadigit{1}}} operates on the original claim while
-  using \isa{facts\isactrlsub {\isadigit{1}}}.  Since the \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}} command
-  structurally resets the facts, the \isa{method\isactrlsub {\isadigit{2}}} will
-  operate on the remaining goal state without facts.  The \isa{method\isactrlsub {\isadigit{3}}} will see again a collection of \isa{facts\isactrlsub {\isadigit{3}}} that has been inserted into the script explicitly.
+  The \isa{method\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}} operates on the original claim while
+  using \isa{facts\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}}.  Since the \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}} command
+  structurally resets the facts, the \isa{method\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}} will
+  operate on the remaining goal state without facts.  The \isa{method\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{3}}} will see again a collection of \isa{facts\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{3}}} that has been inserted into the script explicitly.
 
   \medskip Empirically, any Isar proof method can be categorized as
   follows.
@@ -396,10 +396,10 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
   \item \emph{Old-style tactic emulation} with detailed numeric goal
   addressing and explicit references to entities of the internal goal
   state (which are otherwise invisible from proper Isar proof text).
-  The naming convention \isa{foo{\isacharunderscore}tac} makes this special
+  The naming convention \isa{foo{\isaliteral{5F}{\isacharunderscore}}tac} makes this special
   non-standard status clear.
 
-  Example: \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}}.
+  Example: \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isaliteral{5F}{\isacharunderscore}}tac}}}.
 
   \end{enumerate}
 
@@ -438,11 +438,11 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
   \item Type \verb|Proof.method| represents proof methods as
   abstract type.
 
-  \item \verb|METHOD_CASES|~\isa{{\isacharparenleft}fn\ facts\ {\isacharequal}{\isachargreater}\ cases{\isacharunderscore}tactic{\isacharparenright}} wraps
-  \isa{cases{\isacharunderscore}tactic} depending on goal facts as proof method with
+  \item \verb|METHOD_CASES|~\isa{{\isaliteral{28}{\isacharparenleft}}fn\ facts\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ cases{\isaliteral{5F}{\isacharunderscore}}tactic{\isaliteral{29}{\isacharparenright}}} wraps
+  \isa{cases{\isaliteral{5F}{\isacharunderscore}}tactic} depending on goal facts as proof method with
   cases; the goal context is passed via method syntax.
 
-  \item \verb|METHOD|~\isa{{\isacharparenleft}fn\ facts\ {\isacharequal}{\isachargreater}\ tactic{\isacharparenright}} wraps \isa{tactic} depending on goal facts as regular proof method; the goal
+  \item \verb|METHOD|~\isa{{\isaliteral{28}{\isacharparenleft}}fn\ facts\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ tactic{\isaliteral{29}{\isacharparenright}}} wraps \isa{tactic} depending on goal facts as regular proof method; the goal
   context is passed via method syntax.
 
   \item \verb|SIMPLE_METHOD|~\isa{tactic} wraps a tactic that
@@ -463,7 +463,7 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
   within regular \verb|METHOD|, for example.
 
   \item \verb|Method.setup|~\isa{name\ parser\ description} provides
-  the functionality of the Isar command \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} as ML
+  the functionality of the Isar command \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}}}} as ML
   function.
 
   \end{description}%
@@ -484,7 +484,7 @@ A \isa{method} is a function \isa{context\ {\isasymrightarrow}\ thm\isactrlsup {
 \isatagmlex
 %
 \begin{isamarkuptext}%
-See also \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} in
+See also \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}}}} in
   \cite{isabelle-isar-ref} which includes some abstract examples.
 
   \medskip The following toy examples illustrate how the goal facts
@@ -500,7 +500,7 @@ See also \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isachar
 \isadelimmlex
 %
 \endisadelimmlex
-\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
 \isanewline
 %
 \isadelimproof
@@ -509,27 +509,27 @@ See also \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isachar
 %
 \isatagproof
 \isacommand{assume}\isamarkupfalse%
-\ a{\isacharcolon}\ A\ \isakeyword{and}\ b{\isacharcolon}\ B\isanewline
+\ a{\isaliteral{3A}{\isacharcolon}}\ A\ \isakeyword{and}\ b{\isaliteral{3A}{\isacharcolon}}\ B\isanewline
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ rtac\ %
+\ {\isaliteral{28}{\isacharparenleft}}tactic\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ rtac\ %
 \isaantiq
-thm\ conjI%
+thm\ conjI{}%
 \endisaantiq
-\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{using}\isamarkupfalse%
 \ a\ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ resolve{\isacharunderscore}tac\ facts\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}tactic\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ resolve{\isaliteral{5F}{\isacharunderscore}}tac\ facts\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{using}\isamarkupfalse%
 \ b\ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ resolve{\isacharunderscore}tac\ facts\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}tactic\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ resolve{\isaliteral{5F}{\isacharunderscore}}tac\ facts\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{done}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{using}\isamarkupfalse%
 \ a\ \isakeyword{and}\ b%
 \endisatagproof
@@ -545,8 +545,8 @@ thm\ conjI%
 \endisadelimML
 %
 \isatagML
-\isacommand{ML{\isacharunderscore}val}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharat}{\isacharbraceleft}Isar{\isachardot}goal{\isacharbraceright}{\isachardoublequoteclose}%
+\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}Isar{\isaliteral{2E}{\isachardot}}goal{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -561,13 +561,13 @@ thm\ conjI%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ Method{\isachardot}insert{\isacharunderscore}tac\ facts\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}tactic\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ Method{\isaliteral{2E}{\isachardot}}insert{\isaliteral{5F}{\isacharunderscore}}tac\ facts\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}tactic\ {\isacharverbatimopen}\ {\isacharparenleft}rtac\ %
+\ {\isaliteral{28}{\isacharparenleft}}tactic\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ {\isaliteral{28}{\isacharparenleft}}rtac\ %
 \isaantiq
-thm\ conjI%
+thm\ conjI{}%
 \endisaantiq
-\ THEN{\isacharunderscore}ALL{\isacharunderscore}NEW\ atac{\isacharparenright}\ {\isadigit{1}}\ {\isacharverbatimclose}{\isacharparenright}\isanewline
+\ THEN{\isaliteral{5F}{\isacharunderscore}}ALL{\isaliteral{5F}{\isacharunderscore}}NEW\ atac{\isaliteral{29}{\isacharparenright}}\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{done}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
@@ -590,13 +590,13 @@ thm\ conjI%
 \endisadelimML
 %
 \isatagML
-\isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
-\ my{\isacharunderscore}simp\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
-\ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ thms\ {\isacharequal}{\isachargreater}\ fn\ ctxt\ {\isacharequal}{\isachargreater}\isanewline
-\ \ \ \ SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i\ {\isacharequal}{\isachargreater}\isanewline
-\ \ \ \ \ \ CHANGED\ {\isacharparenleft}asm{\isacharunderscore}full{\isacharunderscore}simp{\isacharunderscore}tac\isanewline
-\ \ \ \ \ \ \ \ {\isacharparenleft}HOL{\isacharunderscore}basic{\isacharunderscore}ss\ addsimps\ thms{\isacharparenright}\ i{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
-{\isacharverbatimclose}\ {\isachardoublequoteopen}rewrite\ subgoal\ by\ given\ rules{\isachardoublequoteclose}%
+\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
+\ my{\isaliteral{5F}{\isacharunderscore}}simp\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ Attrib{\isaliteral{2E}{\isachardot}}thms\ {\isaliteral{3E}{\isachargreater}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}fn\ thms\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ ctxt\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ SIMPLE{\isaliteral{5F}{\isacharunderscore}}METHOD{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}fn\ i\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ \ \ CHANGED\ {\isaliteral{28}{\isacharparenleft}}asm{\isaliteral{5F}{\isacharunderscore}}full{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5F}{\isacharunderscore}}tac\isanewline
+\ \ \ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}HOL{\isaliteral{5F}{\isacharunderscore}}basic{\isaliteral{5F}{\isacharunderscore}}ss\ addsimps\ thms{\isaliteral{29}{\isacharparenright}}\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}rewrite\ subgoal\ by\ given\ rules{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -605,7 +605,7 @@ thm\ conjI%
 \endisadelimML
 %
 \begin{isamarkuptext}%
-The concrete syntax wrapping of \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}} always
+The concrete syntax wrapping of \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}}}} always
   passes-through the proof context at the end of parsing, but it is
   not used in this example.
 
@@ -620,11 +620,11 @@ The concrete syntax wrapping of \hyperlink{command.method-setup}{\mbox{\isa{\isa
   states are filtered out explicitly to make the raw tactic conform to
   standard Isar method behaviour.
 
-  \medskip Method \hyperlink{method.my-simp}{\mbox{\isa{my{\isacharunderscore}simp}}} can be used in Isar proofs like
+  \medskip Method \hyperlink{method.my-simp}{\mbox{\isa{my{\isaliteral{5F}{\isacharunderscore}}simp}}} can be used in Isar proofs like
   this:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
 \isanewline
 %
 \isadelimproof
@@ -635,12 +635,12 @@ The concrete syntax wrapping of \hyperlink{command.method-setup}{\mbox{\isa{\isa
 \isacommand{fix}\isamarkupfalse%
 \ a\ b\ c\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ a{\isacharcolon}\ {\isachardoublequoteopen}a\ {\isacharequal}\ b{\isachardoublequoteclose}\isanewline
+\ a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ b{\isacharcolon}\ {\isachardoublequoteopen}b\ {\isacharequal}\ c{\isachardoublequoteclose}\isanewline
+\ b{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}b\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}a\ {\isacharequal}\ c{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}my{\isacharunderscore}simp\ a\ b{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}my{\isaliteral{5F}{\isacharunderscore}}simp\ a\ b{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -661,14 +661,14 @@ Here is a similar method that operates on all subgoals,
 \endisadelimML
 %
 \isatagML
-\isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
-\ my{\isacharunderscore}simp{\isacharunderscore}all\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
-\ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ thms\ {\isacharequal}{\isachargreater}\ fn\ ctxt\ {\isacharequal}{\isachargreater}\isanewline
-\ \ \ \ SIMPLE{\isacharunderscore}METHOD\isanewline
-\ \ \ \ \ \ {\isacharparenleft}CHANGED\isanewline
-\ \ \ \ \ \ \ \ {\isacharparenleft}ALLGOALS\ {\isacharparenleft}asm{\isacharunderscore}full{\isacharunderscore}simp{\isacharunderscore}tac\isanewline
-\ \ \ \ \ \ \ \ \ \ {\isacharparenleft}HOL{\isacharunderscore}basic{\isacharunderscore}ss\ addsimps\ thms{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
-{\isacharverbatimclose}\ {\isachardoublequoteopen}rewrite\ all\ subgoals\ by\ given\ rules{\isachardoublequoteclose}%
+\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
+\ my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5F}{\isacharunderscore}}all\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ Attrib{\isaliteral{2E}{\isachardot}}thms\ {\isaliteral{3E}{\isachargreater}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}fn\ thms\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ ctxt\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ SIMPLE{\isaliteral{5F}{\isacharunderscore}}METHOD\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}CHANGED\isanewline
+\ \ \ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}ALLGOALS\ {\isaliteral{28}{\isacharparenleft}}asm{\isaliteral{5F}{\isacharunderscore}}full{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5F}{\isacharunderscore}}tac\isanewline
+\ \ \ \ \ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}HOL{\isaliteral{5F}{\isacharunderscore}}basic{\isaliteral{5F}{\isacharunderscore}}ss\ addsimps\ thms{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}rewrite\ all\ subgoals\ by\ given\ rules{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -677,7 +677,7 @@ Here is a similar method that operates on all subgoals,
 \endisadelimML
 \isanewline
 \isanewline
-\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
 \isanewline
 %
 \isadelimproof
@@ -688,12 +688,12 @@ Here is a similar method that operates on all subgoals,
 \isacommand{fix}\isamarkupfalse%
 \ a\ b\ c\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ a{\isacharcolon}\ {\isachardoublequoteopen}a\ {\isacharequal}\ b{\isachardoublequoteclose}\isanewline
+\ a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ b{\isacharcolon}\ {\isachardoublequoteopen}b\ {\isacharequal}\ c{\isachardoublequoteclose}\isanewline
+\ b{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}b\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}a\ {\isacharequal}\ c{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}c\ {\isacharequal}\ b{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}my{\isacharunderscore}simp{\isacharunderscore}all\ a\ b{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}c\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5F}{\isacharunderscore}}all\ a\ b{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -708,7 +708,7 @@ Here is a similar method that operates on all subgoals,
 \medskip Apart from explicit arguments, common proof methods
   typically work with a default configuration provided by the context.
   As a shortcut to rule management we use a cheap solution via functor
-  \verb|Named_Thms| (see also \hyperlink{file.~~/src/Pure/Tools/named-thms.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}Tools{\isacharslash}named{\isacharunderscore}thms{\isachardot}ML}}}}).%
+  \verb|Named_Thms| (see also \hyperlink{file.~~/src/Pure/Tools/named-thms.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}Tools{\isaliteral{2F}{\isacharslash}}named{\isaliteral{5F}{\isacharunderscore}}thms{\isaliteral{2E}{\isachardot}}ML}}}}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -718,13 +718,13 @@ Here is a similar method that operates on all subgoals,
 %
 \isatagML
 \isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ structure\ My{\isacharunderscore}Simps\ {\isacharequal}\isanewline
-\ \ \ \ Named{\isacharunderscore}Thms\isanewline
-\ \ \ \ \ \ {\isacharparenleft}val\ name\ {\isacharequal}\ {\isachardoublequote}my{\isacharunderscore}simp{\isachardoublequote}\ val\ description\ {\isacharequal}\ {\isachardoublequote}my{\isacharunderscore}simp\ rule{\isachardoublequote}{\isacharparenright}\isanewline
-{\isacharverbatimclose}\isanewline
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ structure\ My{\isaliteral{5F}{\isacharunderscore}}Simps\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Named{\isaliteral{5F}{\isacharunderscore}}Thms\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}val\ name\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{22}{\isachardoublequote}}\ val\ description\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequote}}my{\isaliteral{5F}{\isacharunderscore}}simp\ rule{\isaliteral{22}{\isachardoublequote}}{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \isacommand{setup}\isamarkupfalse%
-\ My{\isacharunderscore}Simps{\isachardot}setup%
+\ My{\isaliteral{5F}{\isacharunderscore}}Simps{\isaliteral{2E}{\isachardot}}setup%
 \endisatagML
 {\isafoldML}%
 %
@@ -735,7 +735,7 @@ Here is a similar method that operates on all subgoals,
 \begin{isamarkuptext}%
 This provides ML access to a list of theorems in canonical
   declaration order via \verb|My_Simps.get|.  The user can add or
-  delete rules via the attribute \hyperlink{attribute.my-simp}{\mbox{\isa{my{\isacharunderscore}simp}}}.  The actual
+  delete rules via the attribute \hyperlink{attribute.my-simp}{\mbox{\isa{my{\isaliteral{5F}{\isacharunderscore}}simp}}}.  The actual
   proof method is now defined as before, but we append the explicit
   arguments and the rules from the context.%
 \end{isamarkuptext}%
@@ -746,13 +746,13 @@ This provides ML access to a list of theorems in canonical
 \endisadelimML
 %
 \isatagML
-\isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
-\ my{\isacharunderscore}simp{\isacharprime}\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
-\ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ thms\ {\isacharequal}{\isachargreater}\ fn\ ctxt\ {\isacharequal}{\isachargreater}\isanewline
-\ \ \ \ SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i\ {\isacharequal}{\isachargreater}\isanewline
-\ \ \ \ \ \ CHANGED\ {\isacharparenleft}asm{\isacharunderscore}full{\isacharunderscore}simp{\isacharunderscore}tac\isanewline
-\ \ \ \ \ \ \ \ {\isacharparenleft}HOL{\isacharunderscore}basic{\isacharunderscore}ss\ addsimps\ {\isacharparenleft}thms\ {\isacharat}\ My{\isacharunderscore}Simps{\isachardot}get\ ctxt{\isacharparenright}{\isacharparenright}\ i{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
-{\isacharverbatimclose}\ {\isachardoublequoteopen}rewrite\ subgoal\ by\ given\ rules\ and\ my{\isacharunderscore}simp\ rules\ from\ the\ context{\isachardoublequoteclose}%
+\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
+\ my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ Attrib{\isaliteral{2E}{\isachardot}}thms\ {\isaliteral{3E}{\isachargreater}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}fn\ thms\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ ctxt\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ SIMPLE{\isaliteral{5F}{\isacharunderscore}}METHOD{\isaliteral{27}{\isacharprime}}\ {\isaliteral{28}{\isacharparenleft}}fn\ i\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ \ \ CHANGED\ {\isaliteral{28}{\isacharparenleft}}asm{\isaliteral{5F}{\isacharunderscore}}full{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5F}{\isacharunderscore}}tac\isanewline
+\ \ \ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}HOL{\isaliteral{5F}{\isacharunderscore}}basic{\isaliteral{5F}{\isacharunderscore}}ss\ addsimps\ {\isaliteral{28}{\isacharparenleft}}thms\ {\isaliteral{40}{\isacharat}}\ My{\isaliteral{5F}{\isacharunderscore}}Simps{\isaliteral{2E}{\isachardot}}get\ ctxt{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}\ {\isaliteral{22}{\isachardoublequoteopen}}rewrite\ subgoal\ by\ given\ rules\ and\ my{\isaliteral{5F}{\isacharunderscore}}simp\ rules\ from\ the\ context{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -761,11 +761,11 @@ This provides ML access to a list of theorems in canonical
 \endisadelimML
 %
 \begin{isamarkuptext}%
-\medskip Method \hyperlink{method.my-simp'}{\mbox{\isa{my{\isacharunderscore}simp{\isacharprime}}}} can be used in Isar proofs
+\medskip Method \hyperlink{method.my-simp'}{\mbox{\isa{my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{27}{\isacharprime}}}}} can be used in Isar proofs
   like this:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{example{\isacharunderscore}proof}\isamarkupfalse%
+\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
 \isanewline
 %
 \isadelimproof
@@ -776,12 +776,12 @@ This provides ML access to a list of theorems in canonical
 \isacommand{fix}\isamarkupfalse%
 \ a\ b\ c\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isacharbrackleft}my{\isacharunderscore}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}a\ {\isasymequiv}\ b{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isacharbrackleft}my{\isacharunderscore}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}b\ {\isasymequiv}\ c{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}b\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}a\ {\isasymequiv}\ c{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ my{\isacharunderscore}simp{\isacharprime}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{27}{\isacharprime}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -792,7 +792,7 @@ This provides ML access to a list of theorems in canonical
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\medskip The \hyperlink{method.my-simp}{\mbox{\isa{my{\isacharunderscore}simp}}} variants defined above are
+\medskip The \hyperlink{method.my-simp}{\mbox{\isa{my{\isaliteral{5F}{\isacharunderscore}}simp}}} variants defined above are
   ``simple'' methods, i.e.\ the goal facts are merely inserted as goal
   premises by the \verb|SIMPLE_METHOD'| or \verb|SIMPLE_METHOD| wrapper.
   For proof methods that are similar to the standard collection of
@@ -803,7 +803,7 @@ This provides ML access to a list of theorems in canonical
   method arguments obtained via concrete syntax or the context does
   not meet the requirement of ``strong emphasis on facts'' of regular
   proof methods, because rewrite rules as used above can be easily
-  ignored.  A proof text ``\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{foo}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{my{\isacharunderscore}simp}'' where \isa{foo} is not used would
+  ignored.  A proof text ``\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{foo}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{my{\isaliteral{5F}{\isacharunderscore}}simp}'' where \isa{foo} is not used would
   deceive the reader.
 
   \medskip The technical treatment of rules from the context requires
@@ -830,11 +830,11 @@ This provides ML access to a list of theorems in canonical
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-An \emph{attribute} is a function \isa{context\ {\isasymtimes}\ thm\ {\isasymrightarrow}\ context\ {\isasymtimes}\ thm}, which means both a (generic) context and a theorem
+An \emph{attribute} is a function \isa{context\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ thm\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ thm}, which means both a (generic) context and a theorem
   can be modified simultaneously.  In practice this fully general form
   is very rare, instead attributes are presented either as
-  \emph{declaration attribute:} \isa{thm\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} or
-  \emph{rule attribute:} \isa{context\ {\isasymrightarrow}\ thm\ {\isasymrightarrow}\ thm}.
+  \emph{declaration attribute:} \isa{thm\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ context} or
+  \emph{rule attribute:} \isa{context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ thm\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ thm}.
 
   Attributes can have additional arguments via concrete syntax.  There
   is a collection of context-sensitive parsers for various logical
@@ -871,14 +871,14 @@ An \emph{attribute} is a function \isa{context\ {\isasymtimes}\ thm\ {\isasymrig
   \item Type \verb|attribute| represents attributes as concrete
   type alias.
 
-  \item \verb|Thm.rule_attribute|~\isa{{\isacharparenleft}fn\ context\ {\isacharequal}{\isachargreater}\ rule{\isacharparenright}} wraps
+  \item \verb|Thm.rule_attribute|~\isa{{\isaliteral{28}{\isacharparenleft}}fn\ context\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ rule{\isaliteral{29}{\isacharparenright}}} wraps
   a context-dependent rule (mapping on \verb|thm|) as attribute.
 
-  \item \verb|Thm.declaration_attribute|~\isa{{\isacharparenleft}fn\ thm\ {\isacharequal}{\isachargreater}\ decl{\isacharparenright}}
+  \item \verb|Thm.declaration_attribute|~\isa{{\isaliteral{28}{\isacharparenleft}}fn\ thm\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ decl{\isaliteral{29}{\isacharparenright}}}
   wraps a theorem-dependent declaration (mapping on \verb|Context.generic|) as attribute.
 
   \item \verb|Attrib.setup|~\isa{name\ parser\ description} provides
-  the functionality of the Isar command \hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isacharunderscore}setup}}}} as
+  the functionality of the Isar command \hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isaliteral{5F}{\isacharunderscore}}setup}}}} as
   ML function.
 
   \end{description}%
@@ -899,7 +899,7 @@ An \emph{attribute} is a function \isa{context\ {\isasymtimes}\ thm\ {\isasymrig
 \isatagmlex
 %
 \begin{isamarkuptext}%
-See also \hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isacharunderscore}setup}}}} in
+See also \hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isaliteral{5F}{\isacharunderscore}}setup}}}} in
   \cite{isabelle-isar-ref} which includes some abstract examples.%
 \end{isamarkuptext}%
 \isamarkuptrue%

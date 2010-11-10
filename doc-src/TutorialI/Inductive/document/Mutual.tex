@@ -25,23 +25,23 @@ by mutual induction. As a trivial example we consider the even and odd
 natural numbers:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
 \isanewline
-\ \ Even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ Odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\isanewline
+\ \ Even\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ set{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ Odd\ \ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-\ \ zero{\isacharcolon}\ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ EvenI{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ Odd\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ Even{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ OddI{\isacharcolon}\ \ {\isachardoublequoteopen}n\ {\isasymin}\ Even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ Odd{\isachardoublequoteclose}%
+\ \ zero{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{0}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Even{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ EvenI{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Odd\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Suc\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Even{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ OddI{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Suc\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Odd{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 The mutually inductive definition of multiple sets is no different from
 that of a single set, except for induction: just as for mutually recursive
 datatypes, induction needs to involve all the simultaneously defined sets. In
-the above case, the induction rule is called \isa{Even{\isacharunderscore}Odd{\isachardot}induct}
+the above case, the induction rule is called \isa{Even{\isaliteral{5F}{\isacharunderscore}}Odd{\isaliteral{2E}{\isachardot}}induct}
 (simply concatenate the names of the sets involved) and has the conclusion
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}{\isacharquery}x\ {\isasymin}\ Even\ {\isasymlongrightarrow}\ {\isacharquery}P\ {\isacharquery}x{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isacharquery}y\ {\isasymin}\ Odd\ {\isasymlongrightarrow}\ {\isacharquery}Q\ {\isacharquery}y{\isacharparenright}%
+\ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Even\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}P\ {\isaliteral{3F}{\isacharquery}}x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}y\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Odd\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}Q\ {\isaliteral{3F}{\isacharquery}}y{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 
 If we want to prove that all even numbers are divisible by two, we have to
@@ -49,7 +49,7 @@ generalize the statement as follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}m\ {\isasymin}\ Even\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ m{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymin}\ Odd\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}m\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Even\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isadigit{2}}\ dvd\ m{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Odd\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isadigit{2}}\ dvd\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -64,12 +64,12 @@ inductive definitions:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}rule\ Even{\isacharunderscore}Odd{\isachardot}induct{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}rule\ Even{\isaliteral{5F}{\isacharunderscore}}Odd{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Odd{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ Suc\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ n\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Odd{\isaliteral{3B}{\isacharsemicolon}}\ {\isadigit{2}}\ dvd\ Suc\ n{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isadigit{2}}\ dvd\ Suc\ n\isanewline
+\ {\isadigit{3}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Even{\isaliteral{3B}{\isacharsemicolon}}\ {\isadigit{2}}\ dvd\ n{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isadigit{2}}\ dvd\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 The first two subgoals are proved by simplification and the final one can be
 proved in the same manner as in \S\ref{sec:rule-induction}
@@ -95,19 +95,19 @@ Instead of a set of even numbers one can also define a predicate on \isa{nat}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{inductive}\isamarkupfalse%
-\ evn\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-zero{\isacharcolon}\ {\isachardoublequoteopen}evn\ {\isadigit{0}}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-step{\isacharcolon}\ {\isachardoublequoteopen}evn\ n\ {\isasymLongrightarrow}\ evn{\isacharparenleft}Suc{\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\ evn\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+zero{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}evn\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+step{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}evn\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ evn{\isaliteral{28}{\isacharparenleft}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent Everything works as before, except that
 you write \commdx{inductive} instead of \isacommand{inductive\_set} and
-\isa{evn\ n} instead of \isa{n\ {\isasymin}\ even}.
+\isa{evn\ n} instead of \isa{n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even}.
 When defining an n-ary relation as a predicate, it is recommended to curry
-the predicate: its type should be \mbox{\isa{{\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymtau}\isactrlisub n\ {\isasymRightarrow}\ bool}}
+the predicate: its type should be \mbox{\isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool}}
 rather than
-\isa{{\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymtimes}\ {\isasymdots}\ {\isasymtimes}\ {\isasymtau}\isactrlisub n\ {\isasymRightarrow}\ bool}. The curried version facilitates inductions.
+\isa{{\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool}. The curried version facilitates inductions.
 
-When should you choose sets and when predicates? If you intend to combine your notion with set theoretic notation, define it as an inductive set. If not, define it as an inductive predicate, thus avoiding the \isa{{\isasymin}} notation. But note that predicates of more than one argument cannot be combined with the usual set theoretic operators: \isa{P\ {\isasymunion}\ Q} is not well-typed if \isa{P{\isacharcomma}\ Q\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\isactrlisub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymtau}\isactrlisub {\isadigit{2}}\ {\isasymRightarrow}\ bool}, you have to write \isa{{\isasymlambda}x\ y{\isachardot}\ P\ x\ y\ {\isasymand}\ Q\ x\ y} instead.
+When should you choose sets and when predicates? If you intend to combine your notion with set theoretic notation, define it as an inductive set. If not, define it as an inductive predicate, thus avoiding the \isa{{\isaliteral{5C3C696E3E}{\isasymin}}} notation. But note that predicates of more than one argument cannot be combined with the usual set theoretic operators: \isa{P\ {\isaliteral{5C3C756E696F6E3E}{\isasymunion}}\ Q} is not well-typed if \isa{P{\isaliteral{2C}{\isacharcomma}}\ Q\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool}, you have to write \isa{{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x\ y{\isaliteral{2E}{\isachardot}}\ P\ x\ y\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q\ x\ y} instead.
 \index{inductive predicates|)}%
 \end{isamarkuptext}%
 \isamarkuptrue%

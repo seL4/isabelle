@@ -1,6 +1,6 @@
 %
 \begin{isabellebody}%
-\def\isabellecontext{ZF{\isacharunderscore}Specific}%
+\def\isabellecontext{ZF{\isaliteral{5F}{\isacharunderscore}}Specific}%
 %
 \isadelimtheory
 %
@@ -8,7 +8,7 @@
 %
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
-\ ZF{\isacharunderscore}Specific\isanewline
+\ ZF{\isaliteral{5F}{\isacharunderscore}}Specific\isanewline
 \isakeyword{imports}\ Main\isanewline
 \isakeyword{begin}%
 \endisatagtheory
@@ -34,7 +34,7 @@ The ZF logic is essentially untyped, so the concept of ``type
   Simplifier setup.
 
   \begin{matharray}{rcl}
-    \indexdef{ZF}{command}{print\_tcset}\hypertarget{command.ZF.print-tcset}{\hyperlink{command.ZF.print-tcset}{\mbox{\isa{\isacommand{print{\isacharunderscore}tcset}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{ZF}{command}{print\_tcset}\hypertarget{command.ZF.print-tcset}{\hyperlink{command.ZF.print-tcset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}tcset}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{ZF}{method}{typecheck}\hypertarget{method.ZF.typecheck}{\hyperlink{method.ZF.typecheck}{\mbox{\isa{typecheck}}}} & : & \isa{method} \\
     \indexdef{ZF}{attribute}{TC}\hypertarget{attribute.ZF.TC}{\hyperlink{attribute.ZF.TC}{\mbox{\isa{TC}}}} & : & \isa{attribute} \\
   \end{matharray}
@@ -46,7 +46,7 @@ The ZF logic is essentially untyped, so the concept of ``type
 
   \begin{description}
   
-  \item \hyperlink{command.ZF.print-tcset}{\mbox{\isa{\isacommand{print{\isacharunderscore}tcset}}}} prints the collection of
+  \item \hyperlink{command.ZF.print-tcset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}tcset}}}} prints the collection of
   typechecking rules of the current context.
   
   \item \hyperlink{method.ZF.typecheck}{\mbox{\isa{typecheck}}} attempts to solve any pending
@@ -73,10 +73,10 @@ In ZF everything is a set.  The generic inductive package also
   Coinductive definitions are available in both cases, too.
 
   \begin{matharray}{rcl}
-    \indexdef{ZF}{command}{inductive}\hypertarget{command.ZF.inductive}{\hyperlink{command.ZF.inductive}{\mbox{\isa{\isacommand{inductive}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{ZF}{command}{coinductive}\hypertarget{command.ZF.coinductive}{\hyperlink{command.ZF.coinductive}{\mbox{\isa{\isacommand{coinductive}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{ZF}{command}{datatype}\hypertarget{command.ZF.datatype}{\hyperlink{command.ZF.datatype}{\mbox{\isa{\isacommand{datatype}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{ZF}{command}{codatatype}\hypertarget{command.ZF.codatatype}{\hyperlink{command.ZF.codatatype}{\mbox{\isa{\isacommand{codatatype}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{ZF}{command}{inductive}\hypertarget{command.ZF.inductive}{\hyperlink{command.ZF.inductive}{\mbox{\isa{\isacommand{inductive}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{ZF}{command}{coinductive}\hypertarget{command.ZF.coinductive}{\hyperlink{command.ZF.coinductive}{\mbox{\isa{\isacommand{coinductive}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{ZF}{command}{datatype}\hypertarget{command.ZF.datatype}{\hyperlink{command.ZF.datatype}{\mbox{\isa{\isacommand{datatype}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{ZF}{command}{codatatype}\hypertarget{command.ZF.codatatype}{\hyperlink{command.ZF.codatatype}{\mbox{\isa{\isacommand{codatatype}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   \begin{rail}
@@ -99,7 +99,7 @@ In ZF everything is a set.  The generic inductive package also
     ;
   \end{rail}
 
-  In the following syntax specification \isa{{\isachardoublequote}monos{\isachardoublequote}}, \isa{typeintros}, and \isa{typeelims} are the same as above.
+  In the following syntax specification \isa{{\isaliteral{22}{\isachardoublequote}}monos{\isaliteral{22}{\isachardoublequote}}}, \isa{typeintros}, and \isa{typeelims} are the same as above.
 
   \begin{rail}
     ('datatype' | 'codatatype') domain? (dtspec + 'and') hints
@@ -127,7 +127,7 @@ In ZF everything is a set.  The generic inductive package also
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{ZF}{command}{primrec}\hypertarget{command.ZF.primrec}{\hyperlink{command.ZF.primrec}{\mbox{\isa{\isacommand{primrec}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{ZF}{command}{primrec}\hypertarget{command.ZF.primrec}{\hyperlink{command.ZF.primrec}{\mbox{\isa{\isacommand{primrec}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   \begin{rail}
@@ -146,10 +146,10 @@ The following important tactical tools of Isabelle/ZF have been
   ported to Isar.  These should not be used in proper proof texts.
 
   \begin{matharray}{rcl}
-    \indexdef{ZF}{method}{case\_tac}\hypertarget{method.ZF.case-tac}{\hyperlink{method.ZF.case-tac}{\mbox{\isa{case{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{method} \\
-    \indexdef{ZF}{method}{induct\_tac}\hypertarget{method.ZF.induct-tac}{\hyperlink{method.ZF.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{method} \\
-    \indexdef{ZF}{method}{ind\_cases}\hypertarget{method.ZF.ind-cases}{\hyperlink{method.ZF.ind-cases}{\mbox{\isa{ind{\isacharunderscore}cases}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{method} \\
-    \indexdef{ZF}{command}{inductive\_cases}\hypertarget{command.ZF.inductive-cases}{\hyperlink{command.ZF.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{ZF}{method}{case\_tac}\hypertarget{method.ZF.case-tac}{\hyperlink{method.ZF.case-tac}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}tac}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{method} \\
+    \indexdef{ZF}{method}{induct\_tac}\hypertarget{method.ZF.induct-tac}{\hyperlink{method.ZF.induct-tac}{\mbox{\isa{induct{\isaliteral{5F}{\isacharunderscore}}tac}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{method} \\
+    \indexdef{ZF}{method}{ind\_cases}\hypertarget{method.ZF.ind-cases}{\hyperlink{method.ZF.ind-cases}{\mbox{\isa{ind{\isaliteral{5F}{\isacharunderscore}}cases}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{method} \\
+    \indexdef{ZF}{command}{inductive\_cases}\hypertarget{command.ZF.inductive-cases}{\hyperlink{command.ZF.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}cases}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   \begin{rail}

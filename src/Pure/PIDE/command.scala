@@ -74,10 +74,13 @@ object Command
   }
 
 
-  /* unparsed dummy commands */
+  /* dummy commands */
 
-  def unparsed(source: String) =
+  def unparsed(source: String): Command =
     new Command(Document.NO_ID, List(Token(Token.Kind.UNPARSED, source)))
+
+  def span(toks: List[Token]): Command =
+    new Command(Document.NO_ID, toks)
 }
 
 

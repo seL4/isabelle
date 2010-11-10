@@ -21,6 +21,7 @@ object Keyword
   val THY_DECL = "theory-decl"
   val THY_SCRIPT = "theory-script"
   val THY_GOAL = "theory-goal"
+  val THY_SCHEMATIC_GOAL = "theory-schematic-goal"
   val QED = "qed"
   val QED_BLOCK = "qed-block"
   val QED_GLOBAL = "qed-global"
@@ -41,9 +42,14 @@ object Keyword
   val minor = Set(MINOR)
   val control = Set(CONTROL)
   val diag = Set(DIAG)
-  val heading = Set(THY_HEADING, PRF_HEADING)
+  val theory =
+    Set(THY_BEGIN, THY_SWITCH, THY_END, THY_HEADING, THY_DECL, THY_SCRIPT,
+      THY_GOAL, THY_SCHEMATIC_GOAL)
   val theory1 = Set(THY_BEGIN, THY_SWITCH, THY_END)
   val theory2 = Set(THY_DECL, THY_GOAL)
+  val proof =
+    Set(QED, QED_BLOCK, QED_GLOBAL, PRF_HEADING, PRF_GOAL, PRF_BLOCK,
+      PRF_OPEN, PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_SCRIPT)
   val proof1 =
     Set(QED, QED_BLOCK, QED_GLOBAL, PRF_GOAL, PRF_BLOCK, PRF_OPEN, PRF_CLOSE, PRF_CHAIN, PRF_DECL)
   val proof2 = Set(PRF_ASM, PRF_ASM_GOAL)

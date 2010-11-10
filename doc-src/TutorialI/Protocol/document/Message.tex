@@ -41,16 +41,16 @@ friendly agents, and the~\isa{Spy}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ agent\ {\isacharequal}\ Server\ {\isacharbar}\ Friend\ nat\ {\isacharbar}\ Spy%
+\ agent\ {\isaliteral{3D}{\isacharequal}}\ Server\ {\isaliteral{7C}{\isacharbar}}\ Friend\ nat\ {\isaliteral{7C}{\isacharbar}}\ Spy%
 \begin{isamarkuptext}%
 Keys are just natural numbers.  Function \isa{invKey} maps a public key to
 the matching private key, and vice versa:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{types}\isamarkupfalse%
-\ key\ {\isacharequal}\ nat\isanewline
+\ key\ {\isaliteral{3D}{\isacharequal}}\ nat\isanewline
 \isacommand{consts}\isamarkupfalse%
-\ invKey\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}key\ {\isasymRightarrow}\ key{\isachardoublequoteclose}%
+\ invKey\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}key\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ key{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -72,11 +72,11 @@ keys, compound messages, and encryptions.%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ msg\ {\isacharequal}\ Agent\ \ agent\isanewline
-\ \ \ \ \ \ \ \ \ {\isacharbar}\ Nonce\ \ nat\isanewline
-\ \ \ \ \ \ \ \ \ {\isacharbar}\ Key\ \ \ \ key\isanewline
-\ \ \ \ \ \ \ \ \ {\isacharbar}\ MPair\ \ msg\ msg\isanewline
-\ \ \ \ \ \ \ \ \ {\isacharbar}\ Crypt\ \ key\ msg%
+\ \ \ \ \ msg\ {\isaliteral{3D}{\isacharequal}}\ Agent\ \ agent\isanewline
+\ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Nonce\ \ nat\isanewline
+\ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Key\ \ \ \ key\isanewline
+\ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ MPair\ \ msg\ msg\isanewline
+\ \ \ \ \ \ \ \ \ {\isaliteral{7C}{\isacharbar}}\ Crypt\ \ key\ msg%
 \begin{isamarkuptext}%
 \noindent
 The notation $\comp{X\sb 1,\ldots X\sb{n-1},X\sb n}$
@@ -85,7 +85,7 @@ $\isa{MPair}\,X\sb 1\,\ldots\allowbreak(\isa{MPair}\,X\sb{n-1}\,X\sb n)$.
 
 Since datatype constructors are injective, we have the theorem
 \begin{isabelle}%
-Crypt\ K\ X\ {\isacharequal}\ Crypt\ K{\isacharprime}\ X{\isacharprime}\ {\isasymLongrightarrow}\ K\ {\isacharequal}\ K{\isacharprime}\ {\isasymand}\ X\ {\isacharequal}\ X{\isacharprime}%
+Crypt\ K\ X\ {\isaliteral{3D}{\isacharequal}}\ Crypt\ K{\isaliteral{27}{\isacharprime}}\ X{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ K\ {\isaliteral{3D}{\isacharequal}}\ K{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ X\ {\isaliteral{3D}{\isacharequal}}\ X{\isaliteral{27}{\isacharprime}}%
 \end{isabelle}
 A ciphertext can be decrypted using only one key and
 can yield only one plaintext.  In the real world, decryption with the
@@ -672,17 +672,17 @@ from the set of messages~$H$.  The closure properties of this set are
 defined inductively.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
 \isanewline
-\ \ analz\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}msg\ set\ {\isasymRightarrow}\ msg\ set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ H\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}msg\ set{\isachardoublequoteclose}\isanewline
+\ \ analz\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}msg\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ msg\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{for}\ H\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}msg\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isakeyword{where}\isanewline
-\ \ \ \ Inj\ {\isacharbrackleft}intro{\isacharcomma}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}X\ {\isasymin}\ H\ {\isasymLongrightarrow}\ X\ {\isasymin}\ analz\ H{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ Fst{\isacharcolon}\ \ \ \ \ {\isachardoublequoteopen}{\isasymlbrace}X{\isacharcomma}Y{\isasymrbrace}\ {\isasymin}\ analz\ H\ {\isasymLongrightarrow}\ X\ {\isasymin}\ analz\ H{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ Snd{\isacharcolon}\ \ \ \ \ {\isachardoublequoteopen}{\isasymlbrace}X{\isacharcomma}Y{\isasymrbrace}\ {\isasymin}\ analz\ H\ {\isasymLongrightarrow}\ Y\ {\isasymin}\ analz\ H{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ Decrypt\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\ \isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}Crypt\ K\ X\ {\isasymin}\ analz\ H{\isacharsemicolon}\ Key{\isacharparenleft}invKey\ K{\isacharparenright}\ {\isasymin}\ analz\ H{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ X\ {\isasymin}\ analz\ H{\isachardoublequoteclose}%
+\ \ \ \ Inj\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{2C}{\isacharcomma}}simp{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ H\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ H{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Fst{\isaliteral{3A}{\isacharcolon}}\ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}X{\isaliteral{2C}{\isacharcomma}}Y{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ H\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ H{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Snd{\isaliteral{3A}{\isacharcolon}}\ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}X{\isaliteral{2C}{\isacharcomma}}Y{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ H\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Y\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ H{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Decrypt\ {\isaliteral{5B}{\isacharbrackleft}}dest{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}Crypt\ K\ X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ H{\isaliteral{3B}{\isacharsemicolon}}\ Key{\isaliteral{28}{\isacharparenleft}}invKey\ K{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ H{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ analz\ H{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -1104,26 +1104,26 @@ Note the \isa{Decrypt} rule: the spy can decrypt a
 message encrypted with key~$K$ if he has the matching key,~$K^{-1}$. 
 Properties proved by rule induction include the following:
 \begin{isabelle}%
-G\ {\isasymsubseteq}\ H\ {\isasymLongrightarrow}\ analz\ G\ {\isasymsubseteq}\ analz\ H\rulename{analz{\isacharunderscore}mono}\par\smallskip%
-analz\ {\isacharparenleft}analz\ H{\isacharparenright}\ {\isacharequal}\ analz\ H\rulename{analz{\isacharunderscore}idem}%
+G\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ H\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ analz\ G\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ analz\ H\rulename{analz{\isaliteral{5F}{\isacharunderscore}}mono}\par\smallskip%
+analz\ {\isaliteral{28}{\isacharparenleft}}analz\ H{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ analz\ H\rulename{analz{\isaliteral{5F}{\isacharunderscore}}idem}%
 \end{isabelle}
 
 The set of fake messages that an intruder could invent
-starting from~\isa{H} is \isa{synth{\isacharparenleft}analz\ H{\isacharparenright}}, where \isa{synth\ H}
+starting from~\isa{H} is \isa{synth{\isaliteral{28}{\isacharparenleft}}analz\ H{\isaliteral{29}{\isacharparenright}}}, where \isa{synth\ H}
 formalizes what the adversary can build from the set of messages~$H$.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
 \isanewline
-\ \ synth\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}msg\ set\ {\isasymRightarrow}\ msg\ set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ H\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}msg\ set{\isachardoublequoteclose}\isanewline
+\ \ synth\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}msg\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ msg\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{for}\ H\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}msg\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isakeyword{where}\isanewline
-\ \ \ \ Inj\ \ \ \ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}X\ {\isasymin}\ H\ {\isasymLongrightarrow}\ X\ {\isasymin}\ synth\ H{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ Agent\ \ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Agent\ agt\ {\isasymin}\ synth\ H{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ MPair\ \ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}X\ {\isasymin}\ synth\ H{\isacharsemicolon}\ \ Y\ {\isasymin}\ synth\ H{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymlbrace}X{\isacharcomma}Y{\isasymrbrace}\ {\isasymin}\ synth\ H{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ Crypt\ \ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isachardoublequoteopen}{\isasymlbrakk}X\ {\isasymin}\ synth\ H{\isacharsemicolon}\ \ Key\ K\ {\isasymin}\ H{\isasymrbrakk}\ {\isasymLongrightarrow}\ Crypt\ K\ X\ {\isasymin}\ synth\ H{\isachardoublequoteclose}%
+\ \ \ \ Inj\ \ \ \ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ H\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ H{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Agent\ \ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}Agent\ agt\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ H{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ MPair\ \ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ H{\isaliteral{3B}{\isacharsemicolon}}\ \ Y\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ H{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}X{\isaliteral{2C}{\isacharcomma}}Y{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ H{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Crypt\ \ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ H{\isaliteral{3B}{\isacharsemicolon}}\ \ Key\ K\ {\isaliteral{5C3C696E3E}{\isasymin}}\ H{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Crypt\ K\ X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ H{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -1172,18 +1172,18 @@ using a key present in~$H$.
 Like \isa{analz}, this set operator is monotone and idempotent.  It also
 satisfies an interesting equation involving \isa{analz}:
 \begin{isabelle}%
-analz\ {\isacharparenleft}synth\ H{\isacharparenright}\ {\isacharequal}\ analz\ H\ {\isasymunion}\ synth\ H\rulename{analz{\isacharunderscore}synth}%
+analz\ {\isaliteral{28}{\isacharparenleft}}synth\ H{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ analz\ H\ {\isaliteral{5C3C756E696F6E3E}{\isasymunion}}\ synth\ H\rulename{analz{\isaliteral{5F}{\isacharunderscore}}synth}%
 \end{isabelle}
 Rule inversion plays a major role in reasoning about \isa{synth}, through
 declarations such as this one:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}cases}\isamarkupfalse%
-\ Nonce{\isacharunderscore}synth\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Nonce\ n\ {\isasymin}\ synth\ H{\isachardoublequoteclose}%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}cases}\isamarkupfalse%
+\ Nonce{\isaliteral{5F}{\isacharunderscore}}synth\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}Nonce\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ H{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 The resulting elimination rule replaces every assumption of the form
-\isa{Nonce\ n\ {\isasymin}\ synth\ H} by \isa{Nonce\ n\ {\isasymin}\ H},
+\isa{Nonce\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ synth\ H} by \isa{Nonce\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ H},
 expressing that a nonce cannot be guessed.  
 
 A third operator, \isa{parts}, is useful for stating correctness
@@ -1194,7 +1194,7 @@ message to its immediate parts.
 Its definition resembles that of \isa{analz} except in the rule
 corresponding to the constructor \isa{Crypt}: 
 \begin{isabelle}%
-\ \ \ \ \ Crypt\ K\ X\ {\isasymin}\ parts\ H\ {\isasymLongrightarrow}\ X\ {\isasymin}\ parts\ H%
+\ \ \ \ \ Crypt\ K\ X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ parts\ H\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ X\ {\isaliteral{5C3C696E3E}{\isasymin}}\ parts\ H%
 \end{isabelle}
 The body of an encrypted message is always regarded as part of it.  We can
 use \isa{parts} to express general well-formedness properties of a protocol,

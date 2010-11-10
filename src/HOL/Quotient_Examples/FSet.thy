@@ -14,10 +14,10 @@ text {*
   over lists. The definition of the equivalence:
 *}
 
-fun
+definition
   list_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "\<approx>" 50)
 where
-  "list_eq xs ys \<longleftrightarrow> set xs = set ys"
+  [simp]: "list_eq xs ys \<longleftrightarrow> set xs = set ys"
 
 lemma list_eq_equivp:
   shows "equivp list_eq"
@@ -96,8 +96,7 @@ proof
 qed
 
 lemma map_list_eq_cong: "b \<approx> ba \<Longrightarrow> map f b \<approx> map f ba"
-  unfolding list_eq.simps
-  by (simp only: set_map)
+  by (simp only: list_eq_def set_map)
 
 lemma quotient_compose_list_g:
   assumes q: "Quotient R Abs Rep"
@@ -167,19 +166,19 @@ subsection {* Respectfulness lemmas for list operations *}
 
 lemma list_equiv_rsp [quot_respect]:
   shows "(op \<approx> ===> op \<approx> ===> op =) op \<approx> op \<approx>"
-  by auto
+  by (auto intro!: fun_relI)
 
 lemma append_rsp [quot_respect]:
   shows "(op \<approx> ===> op \<approx> ===> op \<approx>) append append"
-  by simp
+  by (auto intro!: fun_relI)
 
 lemma sub_list_rsp [quot_respect]:
   shows "(op \<approx> ===> op \<approx> ===> op =) sub_list sub_list"
-  by simp
+  by (auto intro!: fun_relI)
 
 lemma memb_rsp [quot_respect]:
   shows "(op = ===> op \<approx> ===> op =) memb memb"
-  by simp
+  by (auto intro!: fun_relI)
 
 lemma nil_rsp [quot_respect]:
   shows "(op \<approx>) Nil Nil"
@@ -187,35 +186,35 @@ lemma nil_rsp [quot_respect]:
 
 lemma cons_rsp [quot_respect]:
   shows "(op = ===> op \<approx> ===> op \<approx>) Cons Cons"
-  by simp
+  by (auto intro!: fun_relI)
 
 lemma map_rsp [quot_respect]:
   shows "(op = ===> op \<approx> ===> op \<approx>) map map"
-  by auto
+  by (auto intro!: fun_relI)
 
 lemma set_rsp [quot_respect]:
   "(op \<approx> ===> op =) set set"
-  by auto
+  by (auto intro!: fun_relI)
 
 lemma inter_list_rsp [quot_respect]:
   shows "(op \<approx> ===> op \<approx> ===> op \<approx>) inter_list inter_list"
-  by simp
+  by (auto intro!: fun_relI)
 
 lemma removeAll_rsp [quot_respect]:
   shows "(op = ===> op \<approx> ===> op \<approx>) removeAll removeAll"
-  by simp
+  by (auto intro!: fun_relI)
 
 lemma diff_list_rsp [quot_respect]:
   shows "(op \<approx> ===> op \<approx> ===> op \<approx>) diff_list diff_list"
-  by simp
+  by (auto intro!: fun_relI)
 
 lemma card_list_rsp [quot_respect]:
   shows "(op \<approx> ===> op =) card_list card_list"
-  by simp
+  by (auto intro!: fun_relI)
 
 lemma filter_rsp [quot_respect]:
   shows "(op = ===> op \<approx> ===> op \<approx>) filter filter"
-  by simp
+  by (auto intro!: fun_relI)
 
 lemma memb_commute_fold_list:
   assumes a: "rsp_fold f"
@@ -348,13 +347,11 @@ quotient_definition
   "minus :: 'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
   is "diff_list :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 
-
 instance
 proof
   fix x y z :: "'a fset"
   show "x |\<subset>| y \<longleftrightarrow> x |\<subseteq>| y \<and> \<not> y |\<subseteq>| x"
-    unfolding less_fset_def 
-    by (descending) (auto)
+    by (unfold less_fset_def, descending) auto
   show "x |\<subseteq>| x"  by (descending) (simp)
   show "{||} |\<subseteq>| x" by (descending) (simp)
   show "x |\<subseteq>| x |\<union>| y" by (descending) (simp)
@@ -451,7 +448,7 @@ lemma Nil_rsp2 [quot_respect]:
 
 lemma Cons_rsp2 [quot_respect]:
   shows "(op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) Cons Cons"
-  apply auto
+  apply (auto intro!: fun_relI)
   apply (rule_tac b="x # b" in pred_compI)
   apply auto
   apply (rule_tac b="x # ba" in pred_compI)
@@ -477,7 +474,7 @@ lemma list_all2_app_l:
   assumes a: "reflp R"
   and b: "list_all2 R l r"
   shows "list_all2 R (z @ l) (z @ r)"
-  by (induct z) (simp_all add: b rev_iffD1[OF a meta_eq_to_obj_eq[OF reflp_def]])
+  by (induct z) (simp_all add: b rev_iffD1 [OF a reflp_def])
 
 lemma append_rsp2_pre0:
   assumes a:"list_all2 op \<approx> x x'"
@@ -490,7 +487,7 @@ lemma append_rsp2_pre1:
   shows "list_all2 op \<approx> (z @ x) (z @ x')"
   using a apply (induct x x' arbitrary: z rule: list_induct2')
   apply (rule list_all2_refl'[OF list_eq_equivp])
-  apply (simp_all del: list_eq.simps)
+  apply (simp_all del: list_eq_def)
   apply (rule list_all2_app_l)
   apply (simp_all add: reflp_def)
   done
@@ -760,7 +757,7 @@ lemma map_fset_image [simp]:
 
 lemma inj_map_fset_cong:
   shows "inj f \<Longrightarrow> map_fset f S = map_fset f T \<longleftrightarrow> S = T"
-  by (descending) (metis inj_vimage_image_eq list_eq.simps set_map)
+  by (descending) (metis inj_vimage_image_eq list_eq_def set_map)
 
 lemma map_union_fset: 
   shows "map_fset f (S |\<union>| T) = map_fset f S |\<union>| map_fset f T"
@@ -1111,7 +1108,7 @@ next
 	apply(blast)
 	done
       then obtain a where e: "memb a l" by auto
-      then have e': "memb a r" using list_eq.simps[simplified memb_def[symmetric], of l r] b 
+      then have e': "memb a r" using list_eq_def [simplified memb_def [symmetric], of l r] b 
 	by auto
       have f: "card_list (removeAll a l) = m" using e d by (simp)
       have g: "removeAll a l \<approx> removeAll a r" using removeAll_rsp b by simp

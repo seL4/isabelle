@@ -15,9 +15,9 @@
 %
 \endisadelimtheory
 \isacommand{types}\isamarkupfalse%
-\ number\ \ \ \ \ \ \ {\isacharequal}\ nat\isanewline
-\ \ \ \ \ \ gate\ \ \ \ \ \ \ \ \ {\isacharequal}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}alist\ {\isacharequal}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}list{\isachardoublequoteclose}%
+\ number\ \ \ \ \ \ \ {\isaliteral{3D}{\isacharequal}}\ nat\isanewline
+\ \ \ \ \ \ gate\ \ \ \ \ \ \ \ \ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}{\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}alist\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}list{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
@@ -39,9 +39,9 @@ command, for example \isa{nand} and \isa{xor} gates
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ nand\ {\isacharcolon}{\isacharcolon}\ gate\ \isakeyword{where}\ {\isachardoublequoteopen}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ nand\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ gate\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}nand\ A\ B\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isacommand{definition}\isamarkupfalse%
-\ xor\ \ {\isacharcolon}{\isacharcolon}\ gate\ \isakeyword{where}\ {\isachardoublequoteopen}xor\ \ A\ B\ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequoteclose}%
+\ xor\ \ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ gate\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}xor\ \ A\ B\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}B\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent%
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
@@ -49,7 +49,7 @@ that must be used in constant definitions.
 Pattern-matching is not allowed: each definition must be of
 the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
 Section~\ref{sec:Simp-with-Defs} explains how definitions are used
-in proofs. The default name of each definition is $f$\isa{{\isacharunderscore}def}, where
+in proofs. The default name of each definition is $f$\isa{{\isaliteral{5F}{\isacharunderscore}}def}, where
 $f$ is the name of the defined constant.%
 \end{isamarkuptext}%
 \isamarkuptrue%

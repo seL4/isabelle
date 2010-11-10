@@ -8,13 +8,16 @@ theory Quotient_Product
 imports Main Quotient_Syntax
 begin
 
-fun
-  prod_rel
+definition
+  prod_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
 where
   "prod_rel R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
 
 declare [[map prod = (prod_fun, prod_rel)]]
 
+lemma prod_rel_apply [simp]:
+  "prod_rel R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
+  by (simp add: prod_rel_def)
 
 lemma prod_equivp[quot_equiv]:
   assumes a: "equivp R1"
@@ -22,7 +25,7 @@ lemma prod_equivp[quot_equiv]:
   shows "equivp (prod_rel R1 R2)"
   apply(rule equivpI)
   unfolding reflp_def symp_def transp_def
-  apply(simp_all add: split_paired_all)
+  apply(simp_all add: split_paired_all prod_rel_def)
   apply(blast intro: equivp_reflp[OF a] equivp_reflp[OF b])
   apply(blast intro: equivp_symp[OF a] equivp_symp[OF b])
   apply(blast intro: equivp_transp[OF a] equivp_transp[OF b])
@@ -45,7 +48,7 @@ lemma Pair_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(R1 ===> R2 ===> prod_rel R1 R2) Pair Pair"
-  by simp
+  by (auto simp add: prod_rel_def)
 
 lemma Pair_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
@@ -59,33 +62,29 @@ lemma fst_rsp[quot_respect]:
   assumes "Quotient R1 Abs1 Rep1"
   assumes "Quotient R2 Abs2 Rep2"
   shows "(prod_rel R1 R2 ===> R1) fst fst"
-  by simp
+  by auto
 
 lemma fst_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(prod_fun Rep1 Rep2 ---> Abs1) fst = fst"
-  apply(simp add: fun_eq_iff)
-  apply(simp add: Quotient_abs_rep[OF q1])
-  done
+  by (simp add: fun_eq_iff Quotient_abs_rep[OF q1])
 
 lemma snd_rsp[quot_respect]:
   assumes "Quotient R1 Abs1 Rep1"
   assumes "Quotient R2 Abs2 Rep2"
   shows "(prod_rel R1 R2 ===> R2) snd snd"
-  by simp
+  by auto
 
 lemma snd_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(prod_fun Rep1 Rep2 ---> Abs2) snd = snd"
-  apply(simp add: fun_eq_iff)
-  apply(simp add: Quotient_abs_rep[OF q2])
-  done
+  by (simp add: fun_eq_iff Quotient_abs_rep[OF q2])
 
 lemma split_rsp[quot_respect]:
   shows "((R1 ===> R2 ===> (op =)) ===> (prod_rel R1 R2) ===> (op =)) split split"
-  by auto
+  by (auto intro!: fun_relI elim!: fun_relE)
 
 lemma split_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
@@ -96,7 +95,7 @@ lemma split_prs[quot_preserve]:
 lemma [quot_respect]:
   shows "((R2 ===> R2 ===> op =) ===> (R1 ===> R1 ===> op =) ===>
   prod_rel R2 R1 ===> prod_rel R2 R1 ===> op =) prod_rel prod_rel"
-  by auto
+  by (auto simp add: fun_rel_def)
 
 lemma [quot_preserve]:
   assumes q1: "Quotient R1 abs1 rep1"
@@ -114,7 +113,7 @@ declare Pair_eq[quot_preserve]
 
 lemma prod_fun_id[id_simps]:
   shows "prod_fun id id = id"
-  by (simp add: prod_fun_def)
+  by (simp add: fun_eq_iff)
 
 lemma prod_rel_eq[id_simps]:
   shows "prod_rel (op =) (op =) = (op =)"

@@ -57,9 +57,9 @@ Record types are not primitive in Isabelle and have a delicate
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{record}\isamarkupfalse%
-\ point\ {\isacharequal}\isanewline
-\ \ Xcoord\ {\isacharcolon}{\isacharcolon}\ int\isanewline
-\ \ Ycoord\ {\isacharcolon}{\isacharcolon}\ int%
+\ point\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int\isanewline
+\ \ Ycoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int%
 \begin{isamarkuptext}%
 \noindent
   Records of type \isa{point} have two fields named \isa{Xcoord}
@@ -68,19 +68,19 @@ Record types are not primitive in Isabelle and have a delicate
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ pt{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ point\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}pt{\isadigit{1}}\ {\isasymequiv}\ {\isacharparenleft}{\isacharbar}\ Xcoord\ {\isacharequal}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ {\isadigit{2}}{\isadigit{3}}\ {\isacharbar}{\isacharparenright}{\isachardoublequoteclose}%
+\ pt{\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ point\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}pt{\isadigit{1}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{7C}{\isacharbar}}\ Xcoord\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{2}}{\isadigit{3}}\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
   We see above the ASCII notation for record brackets.  You can also
-  use the symbolic brackets \isa{{\isasymlparr}} and \isa{{\isasymrparr}}.  Record type
+  use the symbolic brackets \isa{{\isaliteral{5C3C6C706172723E}{\isasymlparr}}} and \isa{{\isaliteral{5C3C72706172723E}{\isasymrparr}}}.  Record type
   expressions can be also written directly with individual fields.
   The type name above is merely an abbreviation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ pt{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharcolon}\ int{\isasymrparr}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}pt{\isadigit{2}}\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ {\isacharminus}{\isadigit{4}}{\isadigit{5}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ {\isadigit{9}}{\isadigit{7}}{\isasymrparr}{\isachardoublequoteclose}%
+\ pt{\isadigit{2}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}pt{\isadigit{2}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{2D}{\isacharminus}}{\isadigit{4}}{\isadigit{5}}{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{9}}{\isadigit{7}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 For each field, there is a \emph{selector}\index{selector!record}
   function of the same name.  For example, if \isa{p} has type \isa{point} then \isa{Xcoord\ p} denotes the value of the \isa{Xcoord} field of~\isa{p}.  Expressions involving field selection
@@ -88,7 +88,7 @@ For each field, there is a \emph{selector}\index{selector!record}
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}Xcoord\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ a{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}Xcoord\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -106,13 +106,13 @@ For each field, there is a \emph{selector}\index{selector!record}
 %
 \begin{isamarkuptext}%
 The \emph{update}\index{update!record} operation is functional.  For
-  example, \isa{p{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ {\isadigit{0}}{\isasymrparr}} is a record whose \isa{Xcoord}
+  example, \isa{p{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}} is a record whose \isa{Xcoord}
   value is zero and whose \isa{Ycoord} value is copied from~\isa{p}.  Updates of explicit records are also simplified automatically:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ {\isadigit{0}}{\isasymrparr}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ \ \ \ {\isasymlparr}Xcoord\ {\isacharequal}\ {\isadigit{0}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ \ \ \ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -149,11 +149,11 @@ The \emph{update}\index{update!record} operation is functional.  For
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ colour\ {\isacharequal}\ Red\ {\isacharbar}\ Green\ {\isacharbar}\ Blue\isanewline
+\ colour\ {\isaliteral{3D}{\isacharequal}}\ Red\ {\isaliteral{7C}{\isacharbar}}\ Green\ {\isaliteral{7C}{\isacharbar}}\ Blue\isanewline
 \isanewline
 \isacommand{record}\isamarkupfalse%
-\ cpoint\ {\isacharequal}\ point\ {\isacharplus}\isanewline
-\ \ col\ {\isacharcolon}{\isacharcolon}\ colour%
+\ cpoint\ {\isaliteral{3D}{\isacharequal}}\ point\ {\isaliteral{2B}{\isacharplus}}\isanewline
+\ \ col\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ colour%
 \begin{isamarkuptext}%
 \noindent
   The fields of this new type are \isa{Xcoord}, \isa{Ycoord} and
@@ -161,22 +161,22 @@ The \emph{update}\index{update!record} operation is functional.  For
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ cpt{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ cpoint\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}cpt{\isadigit{1}}\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ {\isadigit{2}}{\isadigit{3}}{\isacharcomma}\ col\ {\isacharequal}\ Green{\isasymrparr}{\isachardoublequoteclose}%
+\ cpt{\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ cpoint\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}cpt{\isadigit{1}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{2}}{\isadigit{3}}{\isaliteral{2C}{\isacharcomma}}\ col\ {\isaliteral{3D}{\isacharequal}}\ Green{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 We can define generic operations that work on arbitrary
   instances of a record scheme, e.g.\ covering \isa{point}, \isa{cpoint}, and any further extensions.  Every record structure has an
   implicit pseudo-field, \cdx{more}, that keeps the extension as an
   explicit value.  Its type is declared as completely
-  polymorphic:~\isa{{\isacharprime}a}.  When a fixed record value is expressed
+  polymorphic:~\isa{{\isaliteral{27}{\isacharprime}}a}.  When a fixed record value is expressed
   using just its standard fields, the value of \isa{more} is
-  implicitly set to \isa{{\isacharparenleft}{\isacharparenright}}, the empty tuple, which has type
+  implicitly set to \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}}, the empty tuple, which has type
   \isa{unit}.  Within the record brackets, you can refer to the
-  \isa{more} field by writing ``\isa{{\isasymdots}}'' (three dots):%
+  \isa{more} field by writing ``\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}'' (three dots):%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}Xcoord\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ p{\isasymrparr}\ {\isacharequal}\ a{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}Xcoord\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ p{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -193,7 +193,7 @@ We can define generic operations that work on arbitrary
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-This lemma applies to any record whose first two fields are \isa{Xcoord} and~\isa{Ycoord}.  Note that \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}} is exactly the same as \isa{{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}}.  Selectors and updates are always polymorphic wrt.\ the
+This lemma applies to any record whose first two fields are \isa{Xcoord} and~\isa{Ycoord}.  Note that \isa{{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}} is exactly the same as \isa{{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}}.  Selectors and updates are always polymorphic wrt.\ the
   \isa{more} part of a record scheme, its value is just ignored (for
   select) or copied (for update).
 
@@ -202,7 +202,7 @@ This lemma applies to any record whose first two fields are \isa{Xcoord} and~\is
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}point{\isachardot}more\ cpt{\isadigit{1}}\ {\isacharequal}\ {\isasymlparr}col\ {\isacharequal}\ Green{\isasymrparr}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}point{\isaliteral{2E}{\isachardot}}more\ cpt{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}col\ {\isaliteral{3D}{\isacharequal}}\ Green{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -210,7 +210,7 @@ This lemma applies to any record whose first two fields are \isa{Xcoord} and~\is
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ cpt{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ cpt{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -221,7 +221,7 @@ This lemma applies to any record whose first two fields are \isa{Xcoord} and~\is
 \begin{isamarkuptext}%
 \noindent
   We see that the colour part attached to this \isa{point} is a
-  rudimentary record in its own right, namely \isa{{\isasymlparr}col\ {\isacharequal}\ Green{\isasymrparr}}.  In order to select or update \isa{col}, this fragment
+  rudimentary record in its own right, namely \isa{{\isaliteral{5C3C6C706172723E}{\isasymlparr}}col\ {\isaliteral{3D}{\isacharequal}}\ Green{\isaliteral{5C3C72706172723E}{\isasymrparr}}}.  In order to select or update \isa{col}, this fragment
   needs to be put back into the context of the parent type scheme, say
   as \isa{more} part of another \isa{point}.
 
@@ -231,26 +231,26 @@ This lemma applies to any record whose first two fields are \isa{Xcoord} and~\is
 
   \medskip
   \begin{tabular}{l}
-  \isa{point}~\isa{{\isacharequal}}~\isa{{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharcolon}\ int{\isasymrparr}} \\
-  \isa{{\isacharprime}a\ point{\isacharunderscore}scheme}~\isa{{\isacharequal}}~\isa{{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharcolon}\ int{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a{\isasymrparr}} \\
+  \isa{point}~\isa{{\isaliteral{3D}{\isacharequal}}}~\isa{{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{5C3C72706172723E}{\isasymrparr}}} \\
+  \isa{{\isaliteral{27}{\isacharprime}}a\ point{\isaliteral{5F}{\isacharunderscore}}scheme}~\isa{{\isaliteral{3D}{\isacharequal}}}~\isa{{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{5C3C72706172723E}{\isasymrparr}}} \\
   \end{tabular}
   \medskip
   
 \noindent
   Type \isa{point} is for fixed records having exactly the two fields
-  \isa{Xcoord} and~\isa{Ycoord}, while the polymorphic type \isa{{\isacharprime}a\ point{\isacharunderscore}scheme} comprises all possible extensions to those two
-  fields.  Note that \isa{unit\ point{\isacharunderscore}scheme} coincides with \isa{point}, and \isa{{\isasymlparr}col\ {\isacharcolon}{\isacharcolon}\ colour{\isasymrparr}\ point{\isacharunderscore}scheme} with \isa{cpoint}.
+  \isa{Xcoord} and~\isa{Ycoord}, while the polymorphic type \isa{{\isaliteral{27}{\isacharprime}}a\ point{\isaliteral{5F}{\isacharunderscore}}scheme} comprises all possible extensions to those two
+  fields.  Note that \isa{unit\ point{\isaliteral{5F}{\isacharunderscore}}scheme} coincides with \isa{point}, and \isa{{\isaliteral{5C3C6C706172723E}{\isasymlparr}}col\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ colour{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ point{\isaliteral{5F}{\isacharunderscore}}scheme} with \isa{cpoint}.
 
   In the following example we define two operations --- methods, if we
   regard records as objects --- to get and set any point's \isa{Xcoord} field.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ getX\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ point{\isacharunderscore}scheme\ {\isasymRightarrow}\ int{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}getX\ r\ {\isasymequiv}\ Xcoord\ r{\isachardoublequoteclose}\isanewline
+\ getX\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ point{\isaliteral{5F}{\isacharunderscore}}scheme\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ int{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}getX\ r\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ Xcoord\ r{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isacommand{definition}\isamarkupfalse%
-\ setX\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ point{\isacharunderscore}scheme\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ {\isacharprime}a\ point{\isacharunderscore}scheme{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}setX\ r\ a\ {\isasymequiv}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isachardoublequoteclose}%
+\ setX\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ point{\isaliteral{5F}{\isacharunderscore}}scheme\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ point{\isaliteral{5F}{\isacharunderscore}}scheme{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}setX\ r\ a\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 Here is a generic method that modifies a point, incrementing its
   \isa{Xcoord} field.  The \isa{Ycoord} and \isa{more} fields
@@ -259,16 +259,16 @@ Here is a generic method that modifies a point, incrementing its
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ incX\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ point{\isacharunderscore}scheme\ {\isasymRightarrow}\ {\isacharprime}a\ point{\isacharunderscore}scheme{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}incX\ r\ {\isasymequiv}\isanewline
-\ \ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r\ {\isacharplus}\ {\isadigit{1}}{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ point{\isachardot}more\ r{\isasymrparr}{\isachardoublequoteclose}%
+\ incX\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ point{\isaliteral{5F}{\isacharunderscore}}scheme\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ point{\isaliteral{5F}{\isacharunderscore}}scheme{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}incX\ r\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\isanewline
+\ \ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord\ r\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord\ r{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ point{\isaliteral{2E}{\isachardot}}more\ r{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 Generic theorems can be proved about generic methods.  This trivial
   lemma relates \isa{incX} to \isa{getX} and \isa{setX}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}incX\ r\ {\isacharequal}\ setX\ r\ {\isacharparenleft}getX\ r\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}incX\ r\ {\isaliteral{3D}{\isacharequal}}\ setX\ r\ {\isaliteral{28}{\isacharparenleft}}getX\ r\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -276,7 +276,7 @@ Generic theorems can be proved about generic methods.  This trivial
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ getX{\isacharunderscore}def\ setX{\isacharunderscore}def\ incX{\isacharunderscore}def{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ getX{\isaliteral{5F}{\isacharunderscore}}def\ setX{\isaliteral{5F}{\isacharunderscore}}def\ incX{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -286,9 +286,9 @@ Generic theorems can be proved about generic methods.  This trivial
 %
 \begin{isamarkuptext}%
 \begin{warn}
-  If you use the symbolic record brackets \isa{{\isasymlparr}} and \isa{{\isasymrparr}},
-  then you must also use the symbolic ellipsis, ``\isa{{\isasymdots}}'', rather
-  than three consecutive periods, ``\isa{{\isachardot}{\isachardot}{\isachardot}}''.  Mixing the ASCII
+  If you use the symbolic record brackets \isa{{\isaliteral{5C3C6C706172723E}{\isasymlparr}}} and \isa{{\isaliteral{5C3C72706172723E}{\isasymrparr}}},
+  then you must also use the symbolic ellipsis, ``\isa{{\isaliteral{5C3C646F74733E}{\isasymdots}}}'', rather
+  than three consecutive periods, ``\isa{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}''.  Mixing the ASCII
   and symbolic versions causes a syntax error.  (The two versions are
   more distinct on screen than they are on paper.)
   \end{warn}%
@@ -307,8 +307,8 @@ Two records are equal\index{equality!of records} if all pairs of
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ a{\isacharprime}{\isacharcomma}\ Ycoord\ {\isacharequal}\ b{\isacharprime}{\isasymrparr}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ {\isacharparenleft}a\ {\isacharequal}\ a{\isacharprime}\ {\isasymand}\ b\ {\isacharequal}\ b{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ b\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -326,11 +326,11 @@ Two records are equal\index{equality!of records} if all pairs of
 %
 \begin{isamarkuptext}%
 The following equality is similar, but generic, in that \isa{r}
-  can be any instance of \isa{{\isacharprime}a\ point{\isacharunderscore}scheme}:%
+  can be any instance of \isa{{\isaliteral{27}{\isacharprime}}a\ point{\isaliteral{5F}{\isacharunderscore}}scheme}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharcomma}\ Ycoord\ {\isacharcolon}{\isacharequal}\ b{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Ycoord\ {\isacharcolon}{\isacharequal}\ b{\isacharcomma}\ Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{3D}{\isacharequal}}\ r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Ycoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -349,7 +349,7 @@ The following equality is similar, but generic, in that \isa{r}
 \begin{isamarkuptext}%
 \noindent
   We see above the syntax for iterated updates.  We could equivalently
-  have written the left-hand side as \isa{r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isasymlparr}Ycoord\ {\isacharcolon}{\isacharequal}\ b{\isasymrparr}}.
+  have written the left-hand side as \isa{r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Ycoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}}.
 
   Record equality is \emph{extensional}:
   \index{extensionality!for records} a record is determined entirely
@@ -357,7 +357,7 @@ The following equality is similar, but generic, in that \isa{r}
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}r\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isasymrparr}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}r\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord\ r{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord\ r{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -380,7 +380,7 @@ The following equality is similar, but generic, in that \isa{r}
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}r\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ point{\isachardot}more\ r{\isasymrparr}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}r\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord\ r{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord\ r{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ point{\isaliteral{2E}{\isachardot}}more\ r{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -403,7 +403,7 @@ The simplifier can prove many record equalities
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{3D}{\isacharequal}}\ r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ a\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -411,7 +411,7 @@ The simplifier can prove many record equalities
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ simp{\isacharquery}\isanewline
+\ simp{\isaliteral{3F}{\isacharquery}}\isanewline
 \ \ \isacommand{oops}\isamarkupfalse%
 %
 \endisatagproof
@@ -430,7 +430,7 @@ The simplifier can prove many record equalities
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{3D}{\isacharequal}}\ r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ a\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -438,10 +438,10 @@ The simplifier can prove many record equalities
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}drule{\isacharunderscore}tac\ f\ {\isacharequal}\ Xcoord\ \isakeyword{in}\ arg{\isacharunderscore}cong{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}drule{\isaliteral{5F}{\isacharunderscore}}tac\ f\ {\isaliteral{3D}{\isacharequal}}\ Xcoord\ \isakeyword{in}\ arg{\isaliteral{5F}{\isacharunderscore}}cong{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ Xcoord\ {\isacharparenleft}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isacharparenright}\ {\isacharequal}\ Xcoord\ {\isacharparenleft}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}{\isacharparenright}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ Xcoord\ {\isaliteral{28}{\isacharparenleft}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Xcoord\ {\isaliteral{28}{\isacharparenleft}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ a\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}%
 \end{isabelle}
     Now, \isa{simp} will reduce the assumption to the desired
     conclusion.%
@@ -464,7 +464,7 @@ The \isa{cases} method is preferable to such a forward proof.  We
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}\ {\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{3D}{\isacharequal}}\ r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ a\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -479,13 +479,13 @@ The \methdx{cases} method adds an equality to replace the
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}cases\ r{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}cases\ r{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}Xcoord\ Ycoord\ more{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}\ {\isacharequal}\ r{\isasymlparr}Xcoord\ {\isacharcolon}{\isacharequal}\ a{\isacharprime}{\isasymrparr}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }r\ {\isacharequal}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ a\ {\isacharequal}\ a{\isacharprime}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}Xcoord\ Ycoord\ more{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{3D}{\isacharequal}}\ r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }r\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ more{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ a\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}%
 \end{isabelle} Again, \isa{simp} finishes the proof.  Because \isa{r} is now represented as
   an explicit record construction, the updates can be applied and the
   record equality can be replaced by equality of the corresponding
@@ -506,9 +506,9 @@ The \methdx{cases} method adds an equality to replace the
 \begin{isamarkuptext}%
 The generic cases method does not admit references to locally bound
   parameters of a goal.  In longer proof scripts one might have to
-  fall back on the primitive \isa{rule{\isacharunderscore}tac} used together with the
+  fall back on the primitive \isa{rule{\isaliteral{5F}{\isacharunderscore}}tac} used together with the
   internal field representation rules of records.  The above use of
-  \isa{{\isacharparenleft}cases\ r{\isacharparenright}} would become \isa{{\isacharparenleft}rule{\isacharunderscore}tac\ r\ {\isacharequal}\ r\ in\ point{\isachardot}cases{\isacharunderscore}scheme{\isacharparenright}}.%
+  \isa{{\isaliteral{28}{\isacharparenleft}}cases\ r{\isaliteral{29}{\isacharparenright}}} would become \isa{{\isaliteral{28}{\isacharparenleft}}rule{\isaliteral{5F}{\isacharunderscore}}tac\ r\ {\isaliteral{3D}{\isacharequal}}\ r\ in\ point{\isaliteral{2E}{\isachardot}}cases{\isaliteral{5F}{\isacharunderscore}}scheme{\isaliteral{29}{\isacharparenright}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -543,37 +543,37 @@ Each record declaration introduces a number of derived operations to
   These functions provide useful abbreviations for standard
   record expressions involving constructors and selectors.  The
   definitions, which are \emph{not} unfolded by default, are made
-  available by the collective name of \isa{defs} (\isa{point{\isachardot}defs}, \isa{cpoint{\isachardot}defs}, etc.).
+  available by the collective name of \isa{defs} (\isa{point{\isaliteral{2E}{\isachardot}}defs}, \isa{cpoint{\isaliteral{2E}{\isachardot}}defs}, etc.).
   For example, here are the versions of those functions generated for
-  record \isa{point}.  We omit \isa{point{\isachardot}fields}, which happens to
-  be the same as \isa{point{\isachardot}make}.
+  record \isa{point}.  We omit \isa{point{\isaliteral{2E}{\isachardot}}fields}, which happens to
+  be the same as \isa{point{\isaliteral{2E}{\isachardot}}make}.
 
   \begin{isabelle}%
-point{\isachardot}make\ Xcoord\ Ycoord\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isasymrparr}\isasep\isanewline%
-point{\isachardot}extend\ r\ more\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}\isasep\isanewline%
-point{\isachardot}truncate\ r\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isasymrparr}%
+point{\isaliteral{2E}{\isachardot}}make\ Xcoord\ Ycoord\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord{\isaliteral{5C3C72706172723E}{\isasymrparr}}\isasep\isanewline%
+point{\isaliteral{2E}{\isachardot}}extend\ r\ more\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\isanewline
+{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord\ r{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord\ r{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ more{\isaliteral{5C3C72706172723E}{\isasymrparr}}\isasep\isanewline%
+point{\isaliteral{2E}{\isachardot}}truncate\ r\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord\ r{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord\ r{\isaliteral{5C3C72706172723E}{\isasymrparr}}%
 \end{isabelle}
-  Contrast those with the corresponding functions for record \isa{cpoint}.  Observe \isa{cpoint{\isachardot}fields} in particular.
+  Contrast those with the corresponding functions for record \isa{cpoint}.  Observe \isa{cpoint{\isaliteral{2E}{\isachardot}}fields} in particular.
   \begin{isabelle}%
-cpoint{\isachardot}make\ Xcoord\ Ycoord\ col\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isacharcomma}\ col\ {\isacharequal}\ col{\isasymrparr}\isasep\isanewline%
-cpoint{\isachardot}fields\ col\ {\isasymequiv}\ {\isasymlparr}col\ {\isacharequal}\ col{\isasymrparr}\isasep\isanewline%
-cpoint{\isachardot}extend\ r\ more\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ col\ {\isacharequal}\ col\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}\isasep\isanewline%
-cpoint{\isachardot}truncate\ r\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ col\ {\isacharequal}\ col\ r{\isasymrparr}%
+cpoint{\isaliteral{2E}{\isachardot}}make\ Xcoord\ Ycoord\ col\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\isanewline
+{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord{\isaliteral{2C}{\isacharcomma}}\ col\ {\isaliteral{3D}{\isacharequal}}\ col{\isaliteral{5C3C72706172723E}{\isasymrparr}}\isasep\isanewline%
+cpoint{\isaliteral{2E}{\isachardot}}fields\ col\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}col\ {\isaliteral{3D}{\isacharequal}}\ col{\isaliteral{5C3C72706172723E}{\isasymrparr}}\isasep\isanewline%
+cpoint{\isaliteral{2E}{\isachardot}}extend\ r\ more\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\isanewline
+{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord\ r{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord\ r{\isaliteral{2C}{\isacharcomma}}\ col\ {\isaliteral{3D}{\isacharequal}}\ col\ r{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ more{\isaliteral{5C3C72706172723E}{\isasymrparr}}\isasep\isanewline%
+cpoint{\isaliteral{2E}{\isachardot}}truncate\ r\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\isanewline
+{\isaliteral{5C3C6C706172723E}{\isasymlparr}}Xcoord\ {\isaliteral{3D}{\isacharequal}}\ Xcoord\ r{\isaliteral{2C}{\isacharcomma}}\ Ycoord\ {\isaliteral{3D}{\isacharequal}}\ Ycoord\ r{\isaliteral{2C}{\isacharcomma}}\ col\ {\isaliteral{3D}{\isacharequal}}\ col\ r{\isaliteral{5C3C72706172723E}{\isasymrparr}}%
 \end{isabelle}
 
   To demonstrate these functions, we declare a new coloured point by
-  extending an ordinary point.  Function \isa{point{\isachardot}extend} augments
+  extending an ordinary point.  Function \isa{point{\isaliteral{2E}{\isachardot}}extend} augments
   \isa{pt{\isadigit{1}}} with a colour value, which is converted into an
-  appropriate record fragment by \isa{cpoint{\isachardot}fields}.%
+  appropriate record fragment by \isa{cpoint{\isaliteral{2E}{\isachardot}}fields}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ cpt{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ cpoint\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}cpt{\isadigit{2}}\ {\isasymequiv}\ point{\isachardot}extend\ pt{\isadigit{1}}\ {\isacharparenleft}cpoint{\isachardot}fields\ Green{\isacharparenright}{\isachardoublequoteclose}%
+\ cpt{\isadigit{2}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ cpoint\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}cpt{\isadigit{2}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ point{\isaliteral{2E}{\isachardot}}extend\ pt{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}cpoint{\isaliteral{2E}{\isachardot}}fields\ Green{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 The coloured points \isa{cpt{\isadigit{1}}} and \isa{cpt{\isadigit{2}}} are equal.  The
   proof is trivial, by unfolding all the definitions.  We deliberately
@@ -582,7 +582,7 @@ The coloured points \isa{cpt{\isadigit{1}}} and \isa{cpt{\isadigit{2}}} are equa
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}cpt{\isadigit{1}}\ {\isacharequal}\ cpt{\isadigit{2}}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}cpt{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ cpt{\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -590,15 +590,15 @@ The coloured points \isa{cpt{\isadigit{1}}} and \isa{cpt{\isadigit{2}}} are equa
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ cpt{\isadigit{1}}{\isacharunderscore}def\ cpt{\isadigit{2}}{\isacharunderscore}def\ point{\isachardot}defs\ cpoint{\isachardot}defs{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ cpt{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}def\ cpt{\isadigit{2}}{\isaliteral{5F}{\isacharunderscore}}def\ point{\isaliteral{2E}{\isachardot}}defs\ cpoint{\isaliteral{2E}{\isachardot}}defs{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ Xcoord\ pt{\isadigit{1}}\ {\isacharequal}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}\ {\isasymand}\ Ycoord\ pt{\isadigit{1}}\ {\isacharequal}\ {\isadigit{2}}{\isadigit{3}}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ Xcoord\ pt{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Ycoord\ pt{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{2}}{\isadigit{3}}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ pt{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ pt{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -614,7 +614,7 @@ In the example below, a coloured point is truncated to leave a
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}point{\isachardot}truncate\ cpt{\isadigit{2}}\ {\isacharequal}\ pt{\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}point{\isaliteral{2E}{\isachardot}}truncate\ cpt{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ pt{\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -622,7 +622,7 @@ In the example below, a coloured point is truncated to leave a
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ pt{\isadigit{1}}{\isacharunderscore}def\ cpt{\isadigit{2}}{\isacharunderscore}def\ point{\isachardot}defs{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ pt{\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}def\ cpt{\isadigit{2}}{\isaliteral{5F}{\isacharunderscore}}def\ point{\isaliteral{2E}{\isachardot}}defs{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %

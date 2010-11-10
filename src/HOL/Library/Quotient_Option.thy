@@ -9,7 +9,7 @@ imports Main Quotient_Syntax
 begin
 
 fun
-  option_rel
+  option_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> 'a option \<Rightarrow> bool"
 where
   "option_rel R None None = True"
 | "option_rel R (Some x) None = False"
@@ -56,7 +56,7 @@ lemma option_None_rsp[quot_respect]:
 lemma option_Some_rsp[quot_respect]:
   assumes q: "Quotient R Abs Rep"
   shows "(R ===> option_rel R) Some Some"
-  by simp
+  by auto
 
 lemma option_None_prs[quot_preserve]:
   assumes q: "Quotient R Abs Rep"

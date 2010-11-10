@@ -77,7 +77,7 @@ lemma [quot_respect]:
   shows "(op \<approx> ===> op \<approx> ===> op \<approx>) plus_int_raw plus_int_raw"
   and   "(op \<approx> ===> op \<approx>) uminus_int_raw uminus_int_raw"
   and   "(op \<approx> ===> op \<approx> ===> op =) le_int_raw le_int_raw"
-  by auto
+  by (auto intro!: fun_relI)
 
 lemma times_int_raw_fst:
   assumes a: "x \<approx> z"
@@ -167,7 +167,7 @@ quotient_definition
 
 lemma[quot_respect]:
   shows "(op = ===> op \<approx>) int_of_nat_raw int_of_nat_raw"
-  by (simp add: equivp_reflp[OF int_equivp])
+  by (auto simp add: equivp_reflp [OF int_equivp])
 
 lemma int_of_nat:
   shows "of_nat m = int_of_nat m"

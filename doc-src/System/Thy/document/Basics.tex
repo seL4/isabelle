@@ -37,7 +37,7 @@ This manual describes Isabelle together with related tools and user
   environment variables to all Isabelle executables (including tools
   and user interfaces).
 
-  \item The \emph{raw Isabelle process} (\indexref{}{executable}{isabelle-process}\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}) runs logic sessions either interactively or in
+  \item The \emph{raw Isabelle process} (\indexref{}{executable}{isabelle-process}\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}}) runs logic sessions either interactively or in
   batch mode.  In particular, this view abstracts over the invocation
   of the actual ML system to be used.  Regular users rarely need to
   care about the low-level process.
@@ -58,7 +58,7 @@ This manual describes Isabelle together with related tools and user
 \begin{isamarkuptext}%
 The Isabelle system heavily depends on the \emph{settings
   mechanism}\indexbold{settings}.  Essentially, this is a statically
-  scoped collection of environment variables, such as \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}, \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isacharunderscore}SYSTEM}}}}, \hyperlink{setting.ML-HOME}{\mbox{\isa{\isatt{ML{\isacharunderscore}HOME}}}}.  These
+  scoped collection of environment variables, such as \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}, \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}SYSTEM}}}}, \hyperlink{setting.ML-HOME}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}HOME}}}}.  These
   variables are \emph{not} intended to be set directly from the shell,
   though.  Isabelle employs a somewhat more sophisticated scheme of
   \emph{settings files} --- one for site-wide defaults, another for
@@ -71,7 +71,7 @@ The Isabelle system heavily depends on the \emph{settings
   their shell startup scripts, before being able to actually run the
   program. Isabelle requires none such administrative chores of its
   end-users --- the executables can be invoked straight away.
-  Occasionally, users would still want to put the \hyperlink{file.$ISABELLE-HOME/bin}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}bin}}}} directory into their shell's search path, but
+  Occasionally, users would still want to put the \hyperlink{file.$ISABELLE-HOME/bin}{\mbox{\isa{\isatt{{\isaliteral{24}{\isachardollar}}ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{2F}{\isacharslash}}bin}}}} directory into their shell's search path, but
   this is not required.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -90,17 +90,17 @@ Isabelle executables need to be run within a proper settings
 
   \begin{enumerate}
 
-  \item The special variable \indexdef{}{setting}{ISABELLE\_HOME}\hypertarget{setting.ISABELLE-HOME}{\hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}} is
+  \item The special variable \indexdef{}{setting}{ISABELLE\_HOME}\hypertarget{setting.ISABELLE-HOME}{\hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}} is
   determined automatically from the location of the binary that has
   been run.
   
-  You should not try to set \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}} manually. Also
+  You should not try to set \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}} manually. Also
   note that the Isabelle executables either have to be run from their
   original location in the distribution directory, or via the
   executable objects created by the \hyperlink{tool.install}{\mbox{\isa{\isatt{install}}}} utility.  Symbolic
-  links are admissible, but a plain copy of the \hyperlink{file.$ISABELLE-HOME/bin}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}bin}}}} files will not work!
+  links are admissible, but a plain copy of the \hyperlink{file.$ISABELLE-HOME/bin}{\mbox{\isa{\isatt{{\isaliteral{24}{\isachardollar}}ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{2F}{\isacharslash}}bin}}}} files will not work!
 
-  \item The file \hyperlink{file.$ISABELLE-HOME/etc/settings}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}etc{\isacharslash}settings}}}} is run as a
+  \item The file \hyperlink{file.$ISABELLE-HOME/etc/settings}{\mbox{\isa{\isatt{{\isaliteral{24}{\isachardollar}}ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{2F}{\isacharslash}}etc{\isaliteral{2F}{\isacharslash}}settings}}}} is run as a
   \indexref{}{executable}{bash}\hyperlink{executable.bash}{\mbox{\isa{\isatt{bash}}}} shell script with the auto-export option for
   variables enabled.
   
@@ -108,19 +108,19 @@ Isabelle executables need to be run within a proper settings
   thus providing the site-wide default settings.  The Isabelle
   distribution already contains a global settings file with sensible
   defaults for most variables.  When installing the system, only a few
-  of these may have to be adapted (probably \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isacharunderscore}SYSTEM}}}}
+  of these may have to be adapted (probably \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}SYSTEM}}}}
   etc.).
   
   \item The file \verb|$ISABELLE_HOME_USER/etc/settings| (if it
   exists) is run in the same way as the site default settings. Note
-  that the variable \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER}}}} has already been set
+  that the variable \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}} has already been set
   before --- usually to something like \verb|$HOME/.isabelle/IsabelleXXXX|.
   
   Thus individual users may override the site-wide defaults.  See also
-  file \hyperlink{file.$ISABELLE-HOME/etc/user-settings.sample}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}etc{\isacharslash}user{\isacharminus}settings{\isachardot}sample}}}} in the
+  file \hyperlink{file.$ISABELLE-HOME/etc/user-settings.sample}{\mbox{\isa{\isatt{{\isaliteral{24}{\isachardollar}}ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{2F}{\isacharslash}}etc{\isaliteral{2F}{\isacharslash}}user{\isaliteral{2D}{\isacharminus}}settings{\isaliteral{2E}{\isachardot}}sample}}}} in the
   distribution.  Typically, a user settings file would contain only a
   few lines, just the assigments that are really changed.  One should
-  definitely \emph{not} start with a full copy the basic \hyperlink{file.$ISABELLE-HOME/etc/settings}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}etc{\isacharslash}settings}}}}. This could cause very annoying
+  definitely \emph{not} start with a full copy the basic \hyperlink{file.$ISABELLE-HOME/etc/settings}{\mbox{\isa{\isatt{{\isaliteral{24}{\isachardollar}}ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{2F}{\isacharslash}}etc{\isaliteral{2F}{\isacharslash}}settings}}}}. This could cause very annoying
   maintainance problems later, when the Isabelle installation is
   updated or changed otherwise.
   
@@ -138,13 +138,13 @@ Isabelle executables need to be run within a proper settings
 
   \begin{itemize}
 
-  \item \indexdef{}{setting}{ISABELLE\_PROCESS}\hypertarget{setting.ISABELLE-PROCESS}{\hyperlink{setting.ISABELLE-PROCESS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PROCESS}}}}} and \indexdef{}{setting}{ISABELLE\_TOOL}\hypertarget{setting.ISABELLE-TOOL}{\hyperlink{setting.ISABELLE-TOOL}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOL}}}}} are set
-  automatically to the absolute path names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} and \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} executables,
+  \item \indexdef{}{setting}{ISABELLE\_PROCESS}\hypertarget{setting.ISABELLE-PROCESS}{\hyperlink{setting.ISABELLE-PROCESS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PROCESS}}}}} and \indexdef{}{setting}{ISABELLE\_TOOL}\hypertarget{setting.ISABELLE-TOOL}{\hyperlink{setting.ISABELLE-TOOL}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}TOOL}}}}} are set
+  automatically to the absolute path names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}} and \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} executables,
   respectively.
   
-  \item \indexref{}{setting}{ISABELLE\_OUTPUT}\hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}OUTPUT}}}} will have the identifiers of
-  the Isabelle distribution (cf.\ \hyperlink{setting.ISABELLE-IDENTIFIER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}IDENTIFIER}}}}) and
-  the ML system (cf.\ \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isacharunderscore}IDENTIFIER}}}}) appended automatically
+  \item \indexref{}{setting}{ISABELLE\_OUTPUT}\hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}OUTPUT}}}} will have the identifiers of
+  the Isabelle distribution (cf.\ \hyperlink{setting.ISABELLE-IDENTIFIER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}}) and
+  the ML system (cf.\ \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}}) appended automatically
   to its value.
 
   \end{itemize}
@@ -163,110 +163,110 @@ Isabelle executables need to be run within a proper settings
 This is a reference of common Isabelle settings variables. Note that
   the list is somewhat open-ended. Third-party utilities or interfaces
   may add their own selection. Variables that are special in some
-  sense are marked with \isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}.
+  sense are marked with \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}.
 
   \begin{description}
 
-  \item[\indexdef{}{setting}{ISABELLE\_HOME}\hypertarget{setting.ISABELLE-HOME}{\hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] is the
+  \item[\indexdef{}{setting}{ISABELLE\_HOME}\hypertarget{setting.ISABELLE-HOME}{\hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is the
   location of the top-level Isabelle distribution directory. This is
   automatically determined from the Isabelle executable that has been
-  invoked.  Do not attempt to set \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}} yourself
+  invoked.  Do not attempt to set \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}} yourself
   from the shell!
   
-  \item[\indexdef{}{setting}{ISABELLE\_HOME\_USER}\hypertarget{setting.ISABELLE-HOME-USER}{\hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER}}}}}] is the user-specific
-  counterpart of \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}. The default value is
+  \item[\indexdef{}{setting}{ISABELLE\_HOME\_USER}\hypertarget{setting.ISABELLE-HOME-USER}{\hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}}}] is the user-specific
+  counterpart of \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}. The default value is
   relative to \verb|$HOME/.isabelle|, under rare circumstances
   this may be changed in the global setting file.  Typically, the
-  \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER}}}} directory mimics \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}} to some extend. In particular, site-wide defaults may
+  \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}} directory mimics \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}} to some extend. In particular, site-wide defaults may
   be overridden by a private \verb|$ISABELLE_HOME_USER/etc/settings|.
   
-  \item[\indexdef{}{setting}{ISABELLE\_PLATFORM}\hypertarget{setting.ISABELLE-PLATFORM}{\hyperlink{setting.ISABELLE-PLATFORM}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PLATFORM}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] is automatically
+  \item[\indexdef{}{setting}{ISABELLE\_PLATFORM}\hypertarget{setting.ISABELLE-PLATFORM}{\hyperlink{setting.ISABELLE-PLATFORM}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is automatically
   set to a symbolic identifier for the underlying hardware and
   operating system.  The Isabelle platform identification always
   refers to the 32 bit variant, even this is a 64 bit machine.  Note
   that the ML or Java runtime may have a different idea, depending on
   which binaries are actually run.
 
-  \item[\indexdef{}{setting}{ISABELLE\_PLATFORM64}\hypertarget{setting.ISABELLE-PLATFORM64}{\hyperlink{setting.ISABELLE-PLATFORM64}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PLATFORM{\isadigit{6}}{\isadigit{4}}}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] is similar to
-  \hyperlink{setting.ISABELLE-PLATFORM}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PLATFORM}}}} but refers to the proper 64 bit variant
+  \item[\indexdef{}{setting}{ISABELLE\_PLATFORM64}\hypertarget{setting.ISABELLE-PLATFORM64}{\hyperlink{setting.ISABELLE-PLATFORM64}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PLATFORM{\isadigit{6}}{\isadigit{4}}}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is similar to
+  \hyperlink{setting.ISABELLE-PLATFORM}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}} but refers to the proper 64 bit variant
   on a platform that supports this; the value is empty for 32 bit.
 
-  \item[\indexdef{}{setting}{ISABELLE\_PROCESS}\hypertarget{setting.ISABELLE-PROCESS}{\hyperlink{setting.ISABELLE-PROCESS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PROCESS}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}, \hyperlink{setting.ISABELLE-TOOL}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOL}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] are automatically set to the full path
-  names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} and \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} executables, respectively.  Thus other tools and scripts
-  need not assume that the \hyperlink{file.$ISABELLE-HOME/bin}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}bin}}}} directory is
+  \item[\indexdef{}{setting}{ISABELLE\_PROCESS}\hypertarget{setting.ISABELLE-PROCESS}{\hyperlink{setting.ISABELLE-PROCESS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PROCESS}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}, \hyperlink{setting.ISABELLE-TOOL}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}TOOL}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] are automatically set to the full path
+  names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}} and \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} executables, respectively.  Thus other tools and scripts
+  need not assume that the \hyperlink{file.$ISABELLE-HOME/bin}{\mbox{\isa{\isatt{{\isaliteral{24}{\isachardollar}}ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{2F}{\isacharslash}}bin}}}} directory is
   on the current search path of the shell.
   
-  \item[\indexdef{}{setting}{ISABELLE\_IDENTIFIER}\hypertarget{setting.ISABELLE-IDENTIFIER}{\hyperlink{setting.ISABELLE-IDENTIFIER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}IDENTIFIER}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] refers
+  \item[\indexdef{}{setting}{ISABELLE\_IDENTIFIER}\hypertarget{setting.ISABELLE-IDENTIFIER}{\hyperlink{setting.ISABELLE-IDENTIFIER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] refers
   to the name of this Isabelle distribution, e.g.\ ``\verb|Isabelle2008|''.
 
-  \item[\indexdef{}{setting}{ML\_SYSTEM}\hypertarget{setting.ML-SYSTEM}{\hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isacharunderscore}SYSTEM}}}}}, \indexdef{}{setting}{ML\_HOME}\hypertarget{setting.ML-HOME}{\hyperlink{setting.ML-HOME}{\mbox{\isa{\isatt{ML{\isacharunderscore}HOME}}}}},
-  \indexdef{}{setting}{ML\_OPTIONS}\hypertarget{setting.ML-OPTIONS}{\hyperlink{setting.ML-OPTIONS}{\mbox{\isa{\isatt{ML{\isacharunderscore}OPTIONS}}}}}, \indexdef{}{setting}{ML\_PLATFORM}\hypertarget{setting.ML-PLATFORM}{\hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isacharunderscore}PLATFORM}}}}}, \indexdef{}{setting}{ML\_IDENTIFIER}\hypertarget{setting.ML-IDENTIFIER}{\hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isacharunderscore}IDENTIFIER}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] specify the underlying ML system
+  \item[\indexdef{}{setting}{ML\_SYSTEM}\hypertarget{setting.ML-SYSTEM}{\hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}SYSTEM}}}}}, \indexdef{}{setting}{ML\_HOME}\hypertarget{setting.ML-HOME}{\hyperlink{setting.ML-HOME}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}HOME}}}}},
+  \indexdef{}{setting}{ML\_OPTIONS}\hypertarget{setting.ML-OPTIONS}{\hyperlink{setting.ML-OPTIONS}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}OPTIONS}}}}}, \indexdef{}{setting}{ML\_PLATFORM}\hypertarget{setting.ML-PLATFORM}{\hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}}}, \indexdef{}{setting}{ML\_IDENTIFIER}\hypertarget{setting.ML-IDENTIFIER}{\hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] specify the underlying ML system
   to be used for Isabelle.  There is only a fixed set of admissable
-  \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isacharunderscore}SYSTEM}}}} names (see the \hyperlink{file.$ISABELLE-HOME/etc/settings}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}etc{\isacharslash}settings}}}} file of the distribution).
+  \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}SYSTEM}}}} names (see the \hyperlink{file.$ISABELLE-HOME/etc/settings}{\mbox{\isa{\isatt{{\isaliteral{24}{\isachardollar}}ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{2F}{\isacharslash}}etc{\isaliteral{2F}{\isacharslash}}settings}}}} file of the distribution).
   
-  The actual compiler binary will be run from the directory \hyperlink{setting.ML-HOME}{\mbox{\isa{\isatt{ML{\isacharunderscore}HOME}}}}, with \hyperlink{setting.ML-OPTIONS}{\mbox{\isa{\isatt{ML{\isacharunderscore}OPTIONS}}}} as first arguments on the
-  command line.  The optional \hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isacharunderscore}PLATFORM}}}} may specify the
+  The actual compiler binary will be run from the directory \hyperlink{setting.ML-HOME}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}HOME}}}}, with \hyperlink{setting.ML-OPTIONS}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}OPTIONS}}}} as first arguments on the
+  command line.  The optional \hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}} may specify the
   binary format of ML heap images, which is useful for cross-platform
-  installations.  The value of \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isacharunderscore}IDENTIFIER}}}} is
-  automatically obtained by composing the values of \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isacharunderscore}SYSTEM}}}}, \hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isacharunderscore}PLATFORM}}}} and the Isabelle version values.
+  installations.  The value of \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}} is
+  automatically obtained by composing the values of \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}SYSTEM}}}}, \hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}PLATFORM}}}} and the Isabelle version values.
   
-  \item[\indexdef{}{setting}{ISABELLE\_PATH}\hypertarget{setting.ISABELLE-PATH}{\hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PATH}}}}}] is a list of directories
+  \item[\indexdef{}{setting}{ISABELLE\_PATH}\hypertarget{setting.ISABELLE-PATH}{\hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PATH}}}}}] is a list of directories
   (separated by colons) where Isabelle logic images may reside.  When
-  looking up heaps files, the value of \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isacharunderscore}IDENTIFIER}}}} is
+  looking up heaps files, the value of \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}} is
   appended to each component internally.
   
-  \item[\indexdef{}{setting}{ISABELLE\_OUTPUT}\hypertarget{setting.ISABELLE-OUTPUT}{\hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}OUTPUT}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] is a
+  \item[\indexdef{}{setting}{ISABELLE\_OUTPUT}\hypertarget{setting.ISABELLE-OUTPUT}{\hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}OUTPUT}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is a
   directory where output heap files should be stored by default. The
   ML system and Isabelle version identifier is appended here, too.
   
-  \item[\indexdef{}{setting}{ISABELLE\_BROWSER\_INFO}\hypertarget{setting.ISABELLE-BROWSER-INFO}{\hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BROWSER{\isacharunderscore}INFO}}}}}] is the directory where
+  \item[\indexdef{}{setting}{ISABELLE\_BROWSER\_INFO}\hypertarget{setting.ISABELLE-BROWSER-INFO}{\hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BROWSER{\isaliteral{5F}{\isacharunderscore}}INFO}}}}}] is the directory where
   theory browser information (HTML text, graph data, and printable
   documents) is stored (see also \secref{sec:info}).  The default
   value is \verb|$ISABELLE_HOME_USER/browser_info|.
   
-  \item[\indexdef{}{setting}{ISABELLE\_LOGIC}\hypertarget{setting.ISABELLE-LOGIC}{\hyperlink{setting.ISABELLE-LOGIC}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}LOGIC}}}}}] specifies the default logic to
+  \item[\indexdef{}{setting}{ISABELLE\_LOGIC}\hypertarget{setting.ISABELLE-LOGIC}{\hyperlink{setting.ISABELLE-LOGIC}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LOGIC}}}}}] specifies the default logic to
   load if none is given explicitely by the user.  The default value is
   \verb|HOL|.
   
-  \item[\indexdef{}{setting}{ISABELLE\_LINE\_EDITOR}\hypertarget{setting.ISABELLE-LINE-EDITOR}{\hyperlink{setting.ISABELLE-LINE-EDITOR}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}LINE{\isacharunderscore}EDITOR}}}}}] specifies the default
+  \item[\indexdef{}{setting}{ISABELLE\_LINE\_EDITOR}\hypertarget{setting.ISABELLE-LINE-EDITOR}{\hyperlink{setting.ISABELLE-LINE-EDITOR}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LINE{\isaliteral{5F}{\isacharunderscore}}EDITOR}}}}}] specifies the default
   line editor for the \indexref{}{tool}{tty}\hyperlink{tool.tty}{\mbox{\isa{\isatt{tty}}}} interface.
 
-  \item[\indexdef{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hypertarget{setting.ISABELLE-USEDIR-OPTIONS}{\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}USEDIR{\isacharunderscore}OPTIONS}}}}}] is implicitly prefixed
+  \item[\indexdef{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hypertarget{setting.ISABELLE-USEDIR-OPTIONS}{\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}USEDIR{\isaliteral{5F}{\isacharunderscore}}OPTIONS}}}}}] is implicitly prefixed
   to the command line of any \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} invocation. This
   typically contains compilation options for object-logics --- \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} is the basic utility for managing logic sessions (cf.\ the
   \verb|IsaMakefile|s in the distribution).
 
-  \item[\indexdef{}{setting}{ISABELLE\_FILE\_IDENT}\hypertarget{setting.ISABELLE-FILE-IDENT}{\hyperlink{setting.ISABELLE-FILE-IDENT}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}FILE{\isacharunderscore}IDENT}}}}}] specifies a shell command
+  \item[\indexdef{}{setting}{ISABELLE\_FILE\_IDENT}\hypertarget{setting.ISABELLE-FILE-IDENT}{\hyperlink{setting.ISABELLE-FILE-IDENT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}FILE{\isaliteral{5F}{\isacharunderscore}}IDENT}}}}}] specifies a shell command
   for producing a source file identification, based on the actual
   content instead of the full physical path and date stamp (which is
   the default). A typical identification would produce a ``digest'' of
   the text, using a cryptographic hash function like SHA-1, for
   example.
   
-  \item[\indexdef{}{setting}{ISABELLE\_LATEX}\hypertarget{setting.ISABELLE-LATEX}{\hyperlink{setting.ISABELLE-LATEX}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}LATEX}}}}}, \indexdef{}{setting}{ISABELLE\_PDFLATEX}\hypertarget{setting.ISABELLE-PDFLATEX}{\hyperlink{setting.ISABELLE-PDFLATEX}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PDFLATEX}}}}}, \indexdef{}{setting}{ISABELLE\_BIBTEX}\hypertarget{setting.ISABELLE-BIBTEX}{\hyperlink{setting.ISABELLE-BIBTEX}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BIBTEX}}}}}, \indexdef{}{setting}{ISABELLE\_DVIPS}\hypertarget{setting.ISABELLE-DVIPS}{\hyperlink{setting.ISABELLE-DVIPS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}DVIPS}}}}}] refer to {\LaTeX} related tools for Isabelle
+  \item[\indexdef{}{setting}{ISABELLE\_LATEX}\hypertarget{setting.ISABELLE-LATEX}{\hyperlink{setting.ISABELLE-LATEX}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LATEX}}}}}, \indexdef{}{setting}{ISABELLE\_PDFLATEX}\hypertarget{setting.ISABELLE-PDFLATEX}{\hyperlink{setting.ISABELLE-PDFLATEX}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PDFLATEX}}}}}, \indexdef{}{setting}{ISABELLE\_BIBTEX}\hypertarget{setting.ISABELLE-BIBTEX}{\hyperlink{setting.ISABELLE-BIBTEX}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BIBTEX}}}}}, \indexdef{}{setting}{ISABELLE\_DVIPS}\hypertarget{setting.ISABELLE-DVIPS}{\hyperlink{setting.ISABELLE-DVIPS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}DVIPS}}}}}] refer to {\LaTeX} related tools for Isabelle
   document preparation (see also \secref{sec:tool-latex}).
   
-  \item[\indexdef{}{setting}{ISABELLE\_TOOLS}\hypertarget{setting.ISABELLE-TOOLS}{\hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOLS}}}}}] is a colon separated list of
+  \item[\indexdef{}{setting}{ISABELLE\_TOOLS}\hypertarget{setting.ISABELLE-TOOLS}{\hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}TOOLS}}}}}] is a colon separated list of
   directories that are scanned by \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} for external
   utility programs (see also \secref{sec:isabelle-tool}).
   
-  \item[\indexdef{}{setting}{ISABELLE\_DOCS}\hypertarget{setting.ISABELLE-DOCS}{\hyperlink{setting.ISABELLE-DOCS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}DOCS}}}}}] is a colon separated list of
+  \item[\indexdef{}{setting}{ISABELLE\_DOCS}\hypertarget{setting.ISABELLE-DOCS}{\hyperlink{setting.ISABELLE-DOCS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}DOCS}}}}}] is a colon separated list of
   directories with documentation files.
   
-  \item[\indexdef{}{setting}{ISABELLE\_DOC\_FORMAT}\hypertarget{setting.ISABELLE-DOC-FORMAT}{\hyperlink{setting.ISABELLE-DOC-FORMAT}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}DOC{\isacharunderscore}FORMAT}}}}}] specifies the preferred
+  \item[\indexdef{}{setting}{ISABELLE\_DOC\_FORMAT}\hypertarget{setting.ISABELLE-DOC-FORMAT}{\hyperlink{setting.ISABELLE-DOC-FORMAT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}DOC{\isaliteral{5F}{\isacharunderscore}}FORMAT}}}}}] specifies the preferred
   document format, typically \verb|dvi| or \verb|pdf|.
   
-  \item[\indexdef{}{setting}{DVI\_VIEWER}\hypertarget{setting.DVI-VIEWER}{\hyperlink{setting.DVI-VIEWER}{\mbox{\isa{\isatt{DVI{\isacharunderscore}VIEWER}}}}}] specifies the command to be used
+  \item[\indexdef{}{setting}{DVI\_VIEWER}\hypertarget{setting.DVI-VIEWER}{\hyperlink{setting.DVI-VIEWER}{\mbox{\isa{\isatt{DVI{\isaliteral{5F}{\isacharunderscore}}VIEWER}}}}}] specifies the command to be used
   for displaying \verb|dvi| files.
   
-  \item[\indexdef{}{setting}{PDF\_VIEWER}\hypertarget{setting.PDF-VIEWER}{\hyperlink{setting.PDF-VIEWER}{\mbox{\isa{\isatt{PDF{\isacharunderscore}VIEWER}}}}}] specifies the command to be used
+  \item[\indexdef{}{setting}{PDF\_VIEWER}\hypertarget{setting.PDF-VIEWER}{\hyperlink{setting.PDF-VIEWER}{\mbox{\isa{\isatt{PDF{\isaliteral{5F}{\isacharunderscore}}VIEWER}}}}}] specifies the command to be used
   for displaying \verb|pdf| files.
   
-  \item[\indexdef{}{setting}{PRINT\_COMMAND}\hypertarget{setting.PRINT-COMMAND}{\hyperlink{setting.PRINT-COMMAND}{\mbox{\isa{\isatt{PRINT{\isacharunderscore}COMMAND}}}}}] specifies the standard printer
+  \item[\indexdef{}{setting}{PRINT\_COMMAND}\hypertarget{setting.PRINT-COMMAND}{\hyperlink{setting.PRINT-COMMAND}{\mbox{\isa{\isatt{PRINT{\isaliteral{5F}{\isacharunderscore}}COMMAND}}}}}] specifies the standard printer
   spool command, which is expected to accept \verb|ps| files.
   
-  \item[\indexdef{}{setting}{ISABELLE\_TMP\_PREFIX}\hypertarget{setting.ISABELLE-TMP-PREFIX}{\hyperlink{setting.ISABELLE-TMP-PREFIX}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TMP{\isacharunderscore}PREFIX}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] is the
-  prefix from which any running \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}
+  \item[\indexdef{}{setting}{ISABELLE\_TMP\_PREFIX}\hypertarget{setting.ISABELLE-TMP-PREFIX}{\hyperlink{setting.ISABELLE-TMP-PREFIX}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}TMP{\isaliteral{5F}{\isacharunderscore}}PREFIX}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}] is the
+  prefix from which any running \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}}
   derives an individual directory for temporary files.  The default is
   somewhere in \verb|/tmp|.
   
@@ -300,7 +300,7 @@ Any directory may be registered as an explicit \emph{Isabelle
   \end{ttbox}
 
   Components can also add to existing Isabelle settings such as
-  \indexdef{}{setting}{ISABELLE\_TOOLS}\hypertarget{setting.ISABELLE-TOOLS}{\hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOLS}}}}}, in order to provide
+  \indexdef{}{setting}{ISABELLE\_TOOLS}\hypertarget{setting.ISABELLE-TOOLS}{\hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}TOOLS}}}}}, in order to provide
   component-specific tools that can be invoked by end-users.  For
   example:
 
@@ -315,9 +315,9 @@ Any directory may be registered as an explicit \emph{Isabelle
 
   \end{itemize}
 
-  The root of component initialization is \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}
+  The root of component initialization is \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME}}}}
   itself.  After initializing all of its sub-components recursively,
-  \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER}}}} is included in the same manner (if
+  \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{5F}{\isacharunderscore}}USER}}}} is included in the same manner (if
   that directory exists).  Thus users can easily add private
   components to \verb|$ISABELLE_HOME_USER/etc/components|.
 
@@ -332,7 +332,7 @@ Any directory may be registered as an explicit \emph{Isabelle
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{executable}{isabelle-process}\hypertarget{executable.isabelle-process}{\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}} executable runs bare-bones
+The \indexdef{}{executable}{isabelle-process}\hypertarget{executable.isabelle-process}{\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}}} executable runs bare-bones
   Isabelle logic sessions --- either interactively or in batch mode.
   It provides an abstraction over the underlying ML system, and over
   the actual heap file locations.  Its usage is:
@@ -361,11 +361,11 @@ Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
 \end{ttbox}
 
   Input files without path specifications are looked up in the
-  \hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PATH}}}} setting, which may consist of multiple
+  \hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}PATH}}}} setting, which may consist of multiple
   components separated by colons --- these are tried in the given
-  order with the value of \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isacharunderscore}IDENTIFIER}}}} appended
+  order with the value of \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isaliteral{5F}{\isacharunderscore}}IDENTIFIER}}}} appended
   internally.  In a similar way, base names are relative to the
-  directory specified by \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}OUTPUT}}}}.  In any case,
+  directory specified by \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}OUTPUT}}}}.  In any case,
   actual file locations may also be given by including at least one
   slash (\verb|/|) in the name (hint: use \verb|./| to
   refer to the current directory).%
@@ -423,7 +423,7 @@ If the input heap file does not have write permission bits set, or
 
   \medskip The \verb|-W| option makes Isabelle enter a special
   process wrapper for interaction via the Isabelle/Scala layer, see
-  also \hyperlink{file.~~/src/Pure/System/isabelle-process.scala}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}System{\isacharslash}isabelle{\isacharunderscore}process{\isachardot}scala}}}}.  The
+  also \hyperlink{file.~~/src/Pure/System/isabelle-process.scala}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}System{\isaliteral{2F}{\isacharslash}}isabelle{\isaliteral{5F}{\isacharunderscore}}process{\isaliteral{2E}{\isachardot}}scala}}}}.  The
   protocol between the ML and JVM process is private to the
   implementation.
 
@@ -439,15 +439,15 @@ If the input heap file does not have write permission bits set, or
 %
 \begin{isamarkuptext}%
 Run an interactive session of the default object-logic (as specified
-  by the \hyperlink{setting.ISABELLE-LOGIC}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}LOGIC}}}} setting) like this:
+  by the \hyperlink{setting.ISABELLE-LOGIC}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LOGIC}}}} setting) like this:
 \begin{ttbox}
 isabelle-process
 \end{ttbox}
 
-  Usually \hyperlink{setting.ISABELLE-LOGIC}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}LOGIC}}}} refers to one of the standard
+  Usually \hyperlink{setting.ISABELLE-LOGIC}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LOGIC}}}} refers to one of the standard
   logic images, which are read-only by default.  A writable session
   --- based on \verb|FOL|, but output to \verb|Foo| (in the
-  directory specified by the \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}OUTPUT}}}} setting) ---
+  directory specified by the \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}OUTPUT}}}} setting) ---
   may be invoked as follows:
 \begin{ttbox}
 isabelle-process FOL Foo
@@ -505,7 +505,7 @@ Usage: isabelle TOOL [ARGS ...]
   In principle, Isabelle tools are ordinary executable scripts that
   are run within the Isabelle settings environment, see
   \secref{sec:settings}.  The set of available tools is collected by
-  \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} from the directories listed in the \hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOLS}}}} setting.  Do not try to call the scripts directly
+  \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} from the directories listed in the \hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}TOOLS}}}} setting.  Do not try to call the scripts directly
   from the shell.  Neither should you add the tool directories to your
   shell's search path!%
 \end{isamarkuptext}%

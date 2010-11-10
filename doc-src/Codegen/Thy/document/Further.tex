@@ -27,8 +27,8 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} command it is possible to leave
-  out the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isacharunderscore}name}}}} part;  then code is distributed over
+When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isaliteral{5F}{\isacharunderscore}}code}}}} command it is possible to leave
+  out the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isaliteral{5F}{\isacharunderscore}}name}}}} part;  then code is distributed over
   different modules, where the module name space roughly is induced
   by the Isabelle theory name space.
 
@@ -49,7 +49,7 @@ When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{
 \endisadelimquote
 %
 \isatagquote
-\isacommand{code{\isacharunderscore}modulename}\isamarkupfalse%
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}modulename}\isamarkupfalse%
 \ SML\isanewline
 \ \ A\ ABC\isanewline
 \ \ B\ ABC\isanewline
@@ -88,9 +88,9 @@ A technical issue comes to surface when generating code from
 %
 \isatagquote
 \isacommand{locale}\isamarkupfalse%
-\ power\ {\isacharequal}\isanewline
-\ \ \isakeyword{fixes}\ power\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{assumes}\ power{\isacharunderscore}commute{\isacharcolon}\ {\isachardoublequoteopen}power\ x\ {\isasymcirc}\ power\ y\ {\isacharequal}\ power\ y\ {\isasymcirc}\ power\ x{\isachardoublequoteclose}\isanewline
+\ power\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \isakeyword{fixes}\ power\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{assumes}\ power{\isaliteral{5F}{\isacharunderscore}}commute{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}power\ x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ power\ y\ {\isaliteral{3D}{\isacharequal}}\ power\ y\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ power\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{begin}%
 \endisatagquote
 {\isafoldquote}%
@@ -111,29 +111,29 @@ A technical issue comes to surface when generating code from
 %
 \isatagquote
 \isacommand{primrec}\isamarkupfalse%
-\ powers\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}powers\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ id{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}powers\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharequal}\ power\ x\ {\isasymcirc}\ powers\ xs{\isachardoublequoteclose}\isanewline
+\ powers\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}powers\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ id{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}powers\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ power\ x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ powers\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ powers{\isacharunderscore}append{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}powers\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ powers\ xs\ {\isasymcirc}\ powers\ ys{\isachardoublequoteclose}\isanewline
+\ powers{\isaliteral{5F}{\isacharunderscore}}append{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}powers\ {\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{40}{\isacharat}}\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ powers\ xs\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ powers\ ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ xs{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ powers{\isacharunderscore}power{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}powers\ xs\ {\isasymcirc}\ power\ x\ {\isacharequal}\ power\ x\ {\isasymcirc}\ powers\ xs{\isachardoublequoteclose}\isanewline
+\ powers{\isaliteral{5F}{\isacharunderscore}}power{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}powers\ xs\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ power\ x\ {\isaliteral{3D}{\isacharequal}}\ power\ x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ powers\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\isanewline
-\ \ \ \ {\isacharparenleft}simp{\isacharunderscore}all\ del{\isacharcolon}\ o{\isacharunderscore}apply\ id{\isacharunderscore}apply\ add{\isacharcolon}\ o{\isacharunderscore}assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharcomma}\isanewline
-\ \ \ \ \ \ simp\ del{\isacharcolon}\ o{\isacharunderscore}apply\ add{\isacharcolon}\ o{\isacharunderscore}assoc\ power{\isacharunderscore}commute{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ xs{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ del{\isaliteral{3A}{\isacharcolon}}\ o{\isaliteral{5F}{\isacharunderscore}}apply\ id{\isaliteral{5F}{\isacharunderscore}}apply\ add{\isaliteral{3A}{\isacharcolon}}\ o{\isaliteral{5F}{\isacharunderscore}}assoc\ {\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\isanewline
+\ \ \ \ \ \ simp\ del{\isaliteral{3A}{\isacharcolon}}\ o{\isaliteral{5F}{\isacharunderscore}}apply\ add{\isaliteral{3A}{\isacharcolon}}\ o{\isaliteral{5F}{\isacharunderscore}}assoc\ power{\isaliteral{5F}{\isacharunderscore}}commute{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ powers{\isacharunderscore}rev{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}powers\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ powers\ xs{\isachardoublequoteclose}\isanewline
+\ powers{\isaliteral{5F}{\isacharunderscore}}rev{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}powers\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ powers\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ powers{\isacharunderscore}append\ powers{\isacharunderscore}power{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ powers{\isaliteral{5F}{\isacharunderscore}}append\ powers{\isaliteral{5F}{\isacharunderscore}}power{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \isacommand{end}\isamarkupfalse%
 %
@@ -145,10 +145,10 @@ A technical issue comes to surface when generating code from
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-After an interpretation of this locale (say, \indexdef{}{command}{interpretation}\hypertarget{command.interpretation}{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}} \isa{fun{\isacharunderscore}power{\isacharcolon}} \isa{{\isachardoublequote}power\ {\isacharparenleft}{\isasymlambda}n\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}{\isachardoublequote}}), one would expect to have a constant \isa{fun{\isacharunderscore}power{\isachardot}powers\ {\isacharcolon}{\isacharcolon}\ nat\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} for which code
+After an interpretation of this locale (say, \indexdef{}{command}{interpretation}\hypertarget{command.interpretation}{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}} \isa{fun{\isaliteral{5F}{\isacharunderscore}}power{\isaliteral{3A}{\isacharcolon}}} \isa{{\isaliteral{22}{\isachardoublequote}}power\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ f\ {\isaliteral{5E}{\isacharcircum}}{\isaliteral{5E}{\isacharcircum}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}), one would expect to have a constant \isa{fun{\isaliteral{5F}{\isacharunderscore}}power{\isaliteral{2E}{\isachardot}}powers\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a} for which code
   can be generated.  But this not the case: internally, the term
-  \isa{fun{\isacharunderscore}power{\isachardot}powers} is an abbreviation for the foundational
-  term \isa{{\isachardoublequote}power{\isachardot}powers\ {\isacharparenleft}{\isasymlambda}n\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}{\isachardoublequote}}
+  \isa{fun{\isaliteral{5F}{\isacharunderscore}}power{\isaliteral{2E}{\isachardot}}powers} is an abbreviation for the foundational
+  term \isa{{\isaliteral{22}{\isachardoublequote}}power{\isaliteral{2E}{\isachardot}}powers\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ f\ {\isaliteral{5E}{\isacharcircum}}{\isaliteral{5E}{\isacharcircum}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
   (see \cite{isabelle-locale} for the details behind).
 
   Fortunately, with minor effort the desired behaviour can be achieved.
@@ -163,8 +163,8 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
 %
 \isatagquote
 \isacommand{definition}\isamarkupfalse%
-\ funpows\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isacharbrackleft}code\ del{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}funpows\ {\isacharequal}\ power{\isachardot}powers\ {\isacharparenleft}{\isasymlambda}n\ f{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}{\isachardoublequoteclose}%
+\ funpows\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{5B}{\isacharbrackleft}}code\ del{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}funpows\ {\isaliteral{3D}{\isacharequal}}\ power{\isaliteral{2E}{\isachardot}}powers\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n\ f{\isaliteral{2E}{\isachardot}}\ f\ {\isaliteral{5E}{\isacharcircum}}{\isaliteral{5E}{\isacharcircum}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -173,11 +173,11 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent In general, the pattern is \isa{c\ {\isacharequal}\ t} where \isa{c} is
+\noindent In general, the pattern is \isa{c\ {\isaliteral{3D}{\isacharequal}}\ t} where \isa{c} is
   the name of the future constant and \isa{t} the foundational term
   corresponding to the local constant after interpretation.
 
-  The interpretation itself is enriched with an equation \isa{t\ {\isacharequal}\ c}:%
+  The interpretation itself is enriched with an equation \isa{t\ {\isaliteral{3D}{\isacharequal}}\ c}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -187,11 +187,11 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
 %
 \isatagquote
 \isacommand{interpretation}\isamarkupfalse%
-\ fun{\isacharunderscore}power{\isacharcolon}\ power\ {\isachardoublequoteopen}{\isasymlambda}n\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}power{\isachardot}powers\ {\isacharparenleft}{\isasymlambda}n\ f{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}\ {\isacharequal}\ funpows{\isachardoublequoteclose}\isanewline
+\ fun{\isaliteral{5F}{\isacharunderscore}}power{\isaliteral{3A}{\isacharcolon}}\ power\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ f\ {\isaliteral{5E}{\isacharcircum}}{\isaliteral{5E}{\isacharcircum}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}power{\isaliteral{2E}{\isachardot}}powers\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n\ f{\isaliteral{2E}{\isachardot}}\ f\ {\isaliteral{5E}{\isacharcircum}}{\isaliteral{5E}{\isacharcircum}}\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ funpows{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales\isanewline
-\ \ \ \ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ fun{\isacharunderscore}eq{\isacharunderscore}iff\ funpow{\isacharunderscore}mult\ mult{\isacharunderscore}commute\ funpows{\isacharunderscore}def{\isacharparenright}%
+\ unfold{\isaliteral{5F}{\isacharunderscore}}locales\isanewline
+\ \ \ \ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ fun{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}iff\ funpow{\isaliteral{5F}{\isacharunderscore}}mult\ mult{\isaliteral{5F}{\isacharunderscore}}commute\ funpows{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -214,13 +214,13 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
 \isatagquotetypewriter
 %
 \begin{isamarkuptext}%
-funpow\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ Nat\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a\ {\isacharminus}{\isachargreater}\ a{\isacharparenright}\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
-funpow\ Zero{\isacharunderscore}nat\ f\ {\isacharequal}\ id{\isacharsemicolon}\isanewline
-funpow\ {\isacharparenleft}Suc\ n{\isacharparenright}\ f\ {\isacharequal}\ f\ {\isachardot}\ funpow\ n\ f{\isacharsemicolon}\isanewline
+funpow\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ Nat\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+funpow\ Zero{\isaliteral{5F}{\isacharunderscore}}nat\ f\ {\isaliteral{3D}{\isacharequal}}\ id{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+funpow\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ f\ {\isaliteral{3D}{\isacharequal}}\ f\ {\isaliteral{2E}{\isachardot}}\ funpow\ n\ f{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-funpows\ {\isacharcolon}{\isacharcolon}\ forall\ a{\isachardot}\ {\isacharbrackleft}Nat{\isacharbrackright}\ {\isacharminus}{\isachargreater}\ {\isacharparenleft}a\ {\isacharminus}{\isachargreater}\ a{\isacharparenright}\ {\isacharminus}{\isachargreater}\ a\ {\isacharminus}{\isachargreater}\ a{\isacharsemicolon}\isanewline
-funpows\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ id{\isacharsemicolon}\isanewline
-funpows\ {\isacharparenleft}x\ {\isacharcolon}\ xs{\isacharparenright}\ {\isacharequal}\ funpow\ x\ {\isachardot}\ funpows\ xs{\isacharsemicolon}\isanewline%
+funpows\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ forall\ a{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5B}{\isacharbrackleft}}Nat{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ a{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+funpows\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ id{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+funpows\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ funpow\ x\ {\isaliteral{2E}{\isachardot}}\ funpows\ xs{\isaliteral{3B}{\isacharsemicolon}}\isanewline%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -240,7 +240,7 @@ If you consider imperative data structures as inevitable for a
   specific application, you should consider \emph{Imperative
   Functional Programming with Isabelle/HOL}
   \cite{bulwahn-et-al:2008:imperative}; the framework described there
-  is available in session \isa{Imperative{\isacharunderscore}HOL}, together with a short
+  is available in session \isa{Imperative{\isaliteral{5F}{\isacharunderscore}}HOL}, together with a short
   primer document.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -298,7 +298,7 @@ Since the code generator framework not only aims to provide a nice
   \item \verb|Code_Preproc.map_pre|~\isa{f}~\isa{thy} changes
      the preprocessor simpset.
 
-  \item \verb|Code_Preproc.add_functrans|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
+  \item \verb|Code_Preproc.add_functrans|~\isa{{\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ f{\isaliteral{29}{\isacharparenright}}}~\isa{thy} adds
      function transformer \isa{f} (named \isa{name}) to executable content;
      \isa{f} is a transformer of the code equations belonging
      to a certain function definition, depending on the
@@ -354,7 +354,7 @@ Implementing code generator applications on top
   \medskip
   \begin{tabular}{l}
   \isa{type\ T} \\
-  \isa{val\ empty{\isacharcolon}\ T} \\
+  \isa{val\ empty{\isaliteral{3A}{\isacharcolon}}\ T} \\
   \end{tabular}
 
   \begin{description}
@@ -370,8 +370,8 @@ Implementing code generator applications on top
 
   \medskip
   \begin{tabular}{l}
-  \isa{change{\isacharcolon}\ theory\ {\isasymrightarrow}\ {\isacharparenleft}T\ {\isasymrightarrow}\ T{\isacharparenright}\ {\isasymrightarrow}\ T} \\
-  \isa{change{\isacharunderscore}yield{\isacharcolon}\ theory\ {\isasymrightarrow}\ {\isacharparenleft}T\ {\isasymrightarrow}\ {\isacharprime}a\ {\isacharasterisk}\ T{\isacharparenright}\ {\isasymrightarrow}\ {\isacharprime}a\ {\isacharasterisk}\ T}
+  \isa{change{\isaliteral{3A}{\isacharcolon}}\ theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}T\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ T} \\
+  \isa{change{\isaliteral{5F}{\isacharunderscore}}yield{\isaliteral{3A}{\isacharcolon}}\ theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}T\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2A}{\isacharasterisk}}\ T{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2A}{\isacharasterisk}}\ T}
   \end{tabular}
 
   \begin{description}
@@ -379,7 +379,7 @@ Implementing code generator applications on top
   \item \isa{change} update of current data (cached!)
     by giving a continuation.
 
-  \item \isa{change{\isacharunderscore}yield} update with side result.
+  \item \isa{change{\isaliteral{5F}{\isacharunderscore}}yield} update with side result.
 
   \end{description}%
 \end{isamarkuptext}%

@@ -11,17 +11,27 @@ object Markup
 {
   /* plain values */
 
-  object Int {
-    def apply(i: scala.Int): String = i.toString
+  object Int
+  {
+    def apply(x: scala.Int): String = x.toString
     def unapply(s: String): Option[scala.Int] =
       try { Some(Integer.parseInt(s)) }
       catch { case _: NumberFormatException => None }
   }
 
-  object Long {
-    def apply(i: scala.Long): String = i.toString
+  object Long
+  {
+    def apply(x: scala.Long): String = x.toString
     def unapply(s: String): Option[scala.Long] =
       try { Some(java.lang.Long.parseLong(s)) }
+      catch { case _: NumberFormatException => None }
+  }
+
+  object Double
+  {
+    def apply(x: scala.Double): String = x.toString
+    def unapply(s: String): Option[scala.Double] =
+      try { Some(java.lang.Double.parseDouble(s)) }
       catch { case _: NumberFormatException => None }
   }
 
@@ -52,6 +62,16 @@ object Markup
       props.find(_._1 == name) match {
         case None => None
         case Some((_, value)) => Long.unapply(value)
+      }
+  }
+
+  class Double_Property(name: String)
+  {
+    def apply(value: scala.Double): List[(String, String)] = List((name, Double(value)))
+    def unapply(props: List[(String, String)]): Option[Double] =
+      props.find(_._1 == name) match {
+        case None => None
+        case Some((_, value)) => Double.unapply(value)
       }
   }
 
@@ -194,6 +214,31 @@ object Markup
   val COMMAND_SPAN = "command_span"
   val IGNORED_SPAN = "ignored_span"
   val MALFORMED_SPAN = "malformed_span"
+
+
+  /* timing */
+
+  val TIMING = "timing"
+  val ELAPSED = "elapsed"
+  val CPU = "cpu"
+  val GC = "gc"
+
+  object Timing
+  {
+    def apply(timing: isabelle.Timing): Markup =
+      Markup(TIMING, List(
+        (ELAPSED, Double(timing.elapsed)),
+        (CPU, Double(timing.cpu)),
+        (GC, Double(timing.gc))))
+    def unapply(markup: Markup): Option[isabelle.Timing] =
+      markup match {
+        case Markup(TIMING, List(
+          (ELAPSED, Double(elapsed)),
+          (CPU, Double(cpu)),
+          (GC, Double(gc)))) => Some(isabelle.Timing(elapsed, cpu, gc))
+        case _ => None
+      }
+  }
 
 
   /* toplevel */

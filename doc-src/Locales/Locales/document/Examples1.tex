@@ -42,8 +42,8 @@ Locales can be interpreted in the contexts of theories and
   Section~\ref{sec:local-interpretation}.
 
   As an example, consider the type of integers \isa{int}.  The
-  relation \isa{op\ {\isasymle}} is a total order over \isa{int}.  We start
-  with the interpretation that \isa{op\ {\isasymle}} is a partial order.  The
+  relation \isa{op\ {\isaliteral{5C3C6C653E}{\isasymle}}} is a total order over \isa{int}.  We start
+  with the interpretation that \isa{op\ {\isaliteral{5C3C6C653E}{\isasymle}}} is a partial order.  The
   facilities of the interpretation command are explored gradually in
   three versions.%
 \end{isamarkuptext}%
@@ -57,7 +57,7 @@ Locales can be interpreted in the contexts of theories and
 \begin{isamarkuptext}%
 The command \isakeyword{interpretation} is for the interpretation of
   locale in theories.  In the following example, the parameter of locale
-  \isa{partial{\isacharunderscore}order} is replaced by \isa{op\ {\isasymle}} and the locale instance is interpreted in the current
+  \isa{partial{\isaliteral{5F}{\isacharunderscore}}order} is replaced by \isa{op\ {\isaliteral{5C3C6C653E}{\isasymle}}} and the locale instance is interpreted in the current
   theory.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -68,12 +68,12 @@ The command \isakeyword{interpretation} is for the interpretation of
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ int{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}%
+\ int{\isaliteral{3A}{\isacharcolon}}\ partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{22}{\isachardoublequoteopen}}op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptxt}%
 \normalsize
   The argument of the command is a simple \emph{locale expression}
   consisting of the name of the interpreted locale, which is
-  preceded by the qualifier \isa{int{\isacharcolon}} and succeeded by a
+  preceded by the qualifier \isa{int{\isaliteral{3A}{\isacharcolon}}} and succeeded by a
   white-space-separated list of terms, which provide a full
   instantiation of the locale parameters.  The parameters are referred
   to by order of declaration, which is also the order in which
@@ -83,12 +83,12 @@ The command \isakeyword{interpretation} is for the interpretation of
 
   The command creates the goal
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ partial{\isacharunderscore}order\ op\ {\isasymle}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ partial{\isaliteral{5F}{\isacharunderscore}}order\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}%
 \end{isabelle} which can be shown easily:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales\ auto%
+\ unfold{\isaliteral{5F}{\isacharunderscore}}locales\ auto%
 \endisatagvisible
 {\isafoldvisible}%
 %
@@ -99,10 +99,10 @@ The command \isakeyword{interpretation} is for the interpretation of
 \begin{isamarkuptext}%
 The effect of the command is that instances of all
   conclusions of the locale are available in the theory, where names
-  are prefixed by the qualifier.  For example, transitivity for \isa{int} is named \isa{int{\isachardot}trans} and is the following
+  are prefixed by the qualifier.  For example, transitivity for \isa{int} is named \isa{int{\isaliteral{2E}{\isachardot}}trans} and is the following
   theorem:
   \begin{isabelle}%
-\ \ {\isasymlbrakk}{\isacharquery}x\ {\isasymle}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymle}\ {\isacharquery}z%
+\ \ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3F}{\isacharquery}}y{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{3F}{\isacharquery}}y\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3F}{\isacharquery}}z{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3F}{\isacharquery}}z%
 \end{isabelle}
   It is not possible to reference this theorem simply as \isa{trans}.  This prevents unwanted hiding of existing theorems of the
   theory by an interpretation.%
@@ -117,20 +117,20 @@ The effect of the command is that instances of all
 Not only does the above interpretation qualify theorem names.
   The prefix \isa{int} is applied to all names introduced in locale
   conclusions including names introduced in definitions.  The
-  qualified name \isa{int{\isachardot}less} is short for
-  the interpretation of the definition, which is \isa{partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}}.
+  qualified name \isa{int{\isaliteral{2E}{\isachardot}}less} is short for
+  the interpretation of the definition, which is \isa{partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}}.
   Qualified name and expanded form may be used almost
   interchangeably.%
-\footnote{Since \isa{op\ {\isasymle}} is polymorphic, for \isa{partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}} a
-  more general type will be inferred than for \isa{int{\isachardot}less} which
+\footnote{Since \isa{op\ {\isaliteral{5C3C6C653E}{\isasymle}}} is polymorphic, for \isa{partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}} a
+  more general type will be inferred than for \isa{int{\isaliteral{2E}{\isachardot}}less} which
   is over type \isa{int}.}
   The latter is preferred on output, as for example in the theorem
-  \isa{int{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}: \begin{isabelle}%
-\ \ {\isasymlbrakk}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}z{\isasymrbrakk}\isanewline
-\isaindent{\ \ }{\isasymLongrightarrow}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}z%
+  \isa{int{\isaliteral{2E}{\isachardot}}less{\isaliteral{5F}{\isacharunderscore}}le{\isaliteral{5F}{\isacharunderscore}}trans}: \begin{isabelle}%
+\ \ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{3F}{\isacharquery}}y{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{3F}{\isacharquery}}y\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3F}{\isacharquery}}z{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ \ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{3F}{\isacharquery}}z%
 \end{isabelle}
   Both notations for the strict order are not satisfactory.  The
-  constant \isa{op\ {\isacharless}} is the strict order for \isa{int}.
+  constant \isa{op\ {\isaliteral{3C}{\isacharless}}} is the strict order for \isa{int}.
   In order to allow for the desired replacement, interpretation
   accepts \emph{equations} in addition to the parameter instantiation.
   These follow the locale expression and are indicated with the

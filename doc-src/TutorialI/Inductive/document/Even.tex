@@ -39,10 +39,10 @@ Using \commdx{inductive\protect\_set}, we declare the constant \isa{even} to be
 a set of natural numbers with the desired properties.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
-\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ set{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-zero{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
+\ even\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ set{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+zero{\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{0}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\isanewline
+step{\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 An inductive definition consists of introduction rules.  The first one
 above states that 0 is even; the second states that if $n$ is even, then so
@@ -54,8 +54,8 @@ include the introduction rules specified in the declaration, an elimination
 rule for case analysis and an induction rule.  We can refer to these
 theorems by automatically-generated names.  Here are two examples:
 \begin{isabelle}%
-{\isadigit{0}}\ {\isasymin}\ even\rulename{even{\isachardot}zero}\par\smallskip%
-n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\rulename{even{\isachardot}step}%
+{\isadigit{0}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\rulename{even{\isaliteral{2E}{\isachardot}}zero}\par\smallskip%
+n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\rulename{even{\isaliteral{2E}{\isachardot}}step}%
 \end{isabelle}
 
 The introduction rules can be given attributes.  Here
@@ -80,7 +80,7 @@ induction, perhaps over some other inductive set.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ two{\isacharunderscore}times{\isacharunderscore}even{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{2}}{\isacharasterisk}k\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
+\ two{\isaliteral{5F}{\isacharunderscore}}times{\isaliteral{5F}{\isacharunderscore}}even{\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{2}}{\isaliteral{2A}{\isacharasterisk}}k\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -88,7 +88,7 @@ induction, perhaps over some other inductive set.%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct{\isacharunderscore}tac\ k{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}induct{\isaliteral{5F}{\isacharunderscore}}tac\ k{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \isacommand{apply}\isamarkupfalse%
 \ auto\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -111,8 +111,8 @@ induction, perhaps over some other inductive set.%
 The first step is induction on the natural number \isa{k}, which leaves
 two subgoals:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ {\isadigit{0}}\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ {\isacharasterisk}\ Suc\ n\ {\isasymin}\ even%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ {\isadigit{0}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ {\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ Suc\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even%
 \end{isabelle}
 Here \isa{auto} simplifies both subgoals so that they match the introduction
 rules, which are then applied automatically.
@@ -120,7 +120,7 @@ rules, which are then applied automatically.
 Our ultimate goal is to prove the equivalence between the traditional
 definition of \isa{even} (using the divides relation) and our inductive
 definition.  One direction of this equivalence is immediate by the lemma
-just proved, whose \isa{intro{\isacharbang}} attribute ensures it is applied automatically.%
+just proved, whose \isa{intro{\isaliteral{21}{\isacharbang}}} attribute ensures it is applied automatically.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 %
@@ -131,7 +131,7 @@ just proved, whose \isa{intro{\isacharbang}} attribute ensures it is applied aut
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ dvd{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{2}}\ dvd\ n\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
+\ dvd{\isaliteral{5F}{\isacharunderscore}}imp{\isaliteral{5F}{\isacharunderscore}}even{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{2}}\ dvd\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -139,7 +139,7 @@ just proved, whose \isa{intro{\isacharbang}} attribute ensures it is applied aut
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}auto\ simp\ add{\isaliteral{3A}{\isacharcolon}}\ dvd{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -157,9 +157,9 @@ From the definition of the set
 \isa{even}, Isabelle has
 generated an induction rule:
 \begin{isabelle}%
-{\isasymlbrakk}x\ {\isasymin}\ even{\isacharsemicolon}\ P\ {\isadigit{0}}{\isacharsemicolon}\isanewline
-\isaindent{\ }{\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ P\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\isanewline
-{\isasymLongrightarrow}\ P\ x\rulename{even{\isachardot}induct}%
+{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{3B}{\isacharsemicolon}}\ P\ {\isadigit{0}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ }{\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{3B}{\isacharsemicolon}}\ P\ n{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ x\rulename{even{\isaliteral{2E}{\isachardot}}induct}%
 \end{isabelle}
 A property \isa{P} holds for every even number provided it
 holds for~\isa{{\isadigit{0}}} and is closed under the operation
@@ -178,7 +178,7 @@ inductively defined set.  Let us prove that all members of the set
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ n{\isachardoublequoteclose}%
+\ even{\isaliteral{5F}{\isacharunderscore}}imp{\isaliteral{5F}{\isacharunderscore}}dvd{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isadigit{2}}\ dvd\ n{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -186,44 +186,44 @@ inductively defined set.  Let us prove that all members of the set
 \isatagproof
 %
 \begin{isamarkuptxt}%
-We begin by applying induction.  Note that \isa{even{\isachardot}induct} has the form
+We begin by applying induction.  Note that \isa{even{\isaliteral{2E}{\isachardot}}induct} has the form
 of an elimination rule, so we use the method \isa{erule}.  We get two
 subgoals:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}erule\ even{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{3B}{\isacharsemicolon}}\ {\isadigit{2}}\ dvd\ n{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isadigit{2}}\ dvd\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 We unfold the definition of \isa{dvd} in both subgoals, proving the first
 one and simplifying the second:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ dvd{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isasymexists}k{\isachardot}\ n\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}k{\isachardot}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}k{\isaliteral{2E}{\isachardot}}\ n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ k{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}k{\isaliteral{2E}{\isachardot}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ k%
 \end{isabelle}
 The next command eliminates the existential quantifier from the assumption
-and replaces \isa{n} by \isa{{\isadigit{2}}\ {\isacharasterisk}\ k}.%
+and replaces \isa{n} by \isa{{\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ k}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
 \ clarify%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ k{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ k\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isasymexists}ka{\isachardot}\ Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ ka%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n\ k{\isaliteral{2E}{\isachardot}}\ {\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ k\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}ka{\isaliteral{2E}{\isachardot}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ k{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ ka%
 \end{isabelle}
 To conclude, we tell Isabelle that the desired value is
 \isa{Suc\ k}.  With this hint, the subgoal falls to \isa{simp}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}Suc\ k{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharcomma}\ simp{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}rule{\isaliteral{5F}{\isacharunderscore}}tac\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}Suc\ k{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{in}\ exI{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -239,7 +239,7 @@ equivalence relating \isa{even} and \isa{dvd}.
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ even{\isacharunderscore}iff{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{2}}\ dvd\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ even{\isaliteral{5F}{\isacharunderscore}}iff{\isaliteral{5F}{\isacharunderscore}}dvd{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}\ dvd\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -247,7 +247,7 @@ equivalence relating \isa{even} and \isa{dvd}.
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}blast\ intro{\isacharcolon}\ dvd{\isacharunderscore}imp{\isacharunderscore}even\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}blast\ intro{\isaliteral{3A}{\isacharcolon}}\ dvd{\isaliteral{5F}{\isacharunderscore}}imp{\isaliteral{5F}{\isacharunderscore}}even\ even{\isaliteral{5F}{\isacharunderscore}}imp{\isaliteral{5F}{\isacharunderscore}}dvd{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -269,7 +269,7 @@ the result.  It fails:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -277,7 +277,7 @@ the result.  It fails:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}erule\ even{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{oops}\isamarkupfalse%
 %
 \endisatagproof
@@ -294,12 +294,12 @@ the result.  It fails:%
 \isatagproof
 %
 \begin{isamarkuptxt}%
-Rule induction finds no occurrences of \isa{Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}} in the
+Rule induction finds no occurrences of \isa{Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}} in the
 conclusion, which it therefore leaves unchanged.  (Look at
-\isa{even{\isachardot}induct} to see why this happens.)  We have these subgoals:
+\isa{even{\isaliteral{2E}{\isachardot}}induct} to see why this happens.)  We have these subgoals:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ n\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}na{\isachardot}\ {\isasymlbrakk}na\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}na{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}na\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{3B}{\isacharsemicolon}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even%
 \end{isabelle}
 The first one is hopeless.  Rule induction on
 a non-variable term discards information, and usually fails.
@@ -317,7 +317,7 @@ we have the necessary inverse, subtraction:%
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
+\ even{\isaliteral{5F}{\isacharunderscore}}imp{\isaliteral{5F}{\isacharunderscore}}even{\isaliteral{5F}{\isacharunderscore}}minus{\isaliteral{5F}{\isacharunderscore}}{\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -325,7 +325,7 @@ we have the necessary inverse, subtraction:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}erule\ even{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \isacommand{apply}\isamarkupfalse%
 \ auto\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -346,11 +346,11 @@ we have the necessary inverse, subtraction:%
 \begin{isamarkuptxt}%
 This lemma is trivially inductive.  Here are the subgoals:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isadigit{0}}\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{3B}{\isacharsemicolon}}\ n\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even%
 \end{isabelle}
-The first is trivial because \isa{{\isadigit{0}}\ {\isacharminus}\ {\isadigit{2}}} simplifies to \isa{{\isadigit{0}}}, which is
-even.  The second is trivial too: \isa{Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isadigit{2}}} simplifies to
+The first is trivial because \isa{{\isadigit{0}}\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}} simplifies to \isa{{\isadigit{0}}}, which is
+even.  The second is trivial too: \isa{Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{2}}} simplifies to
 \isa{n}, matching the assumption.%
 \index{rule induction|)}  %the sequel isn't really about induction
 
@@ -366,7 +366,7 @@ Using our lemma, we can easily prove the result we originally wanted:%
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequoteopen}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequoteclose}\isanewline
+\ Suc{\isaliteral{5F}{\isacharunderscore}}Suc{\isaliteral{5F}{\isacharunderscore}}even{\isaliteral{5F}{\isacharunderscore}}imp{\isaliteral{5F}{\isacharunderscore}}even{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -374,7 +374,7 @@ Using our lemma, we can easily prove the result we originally wanted:%
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}drule\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcomma}\ simp{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}drule\ even{\isaliteral{5F}{\isacharunderscore}}imp{\isaliteral{5F}{\isacharunderscore}}even{\isaliteral{5F}{\isacharunderscore}}minus{\isaliteral{5F}{\isacharunderscore}}{\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -383,13 +383,13 @@ Using our lemma, we can easily prove the result we originally wanted:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-We have just proved the converse of the introduction rule \isa{even{\isachardot}step}.
+We have just proved the converse of the introduction rule \isa{even{\isaliteral{2E}{\isachardot}}step}.
 This suggests proving the following equivalence.  We give it the
 \attrdx{iff} attribute because of its obvious value for simplification.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}iff{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}iff{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -397,7 +397,7 @@ This suggests proving the following equivalence.  We give it the
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}blast\ dest{\isacharcolon}\ Suc{\isacharunderscore}Suc{\isacharunderscore}even{\isacharunderscore}imp{\isacharunderscore}even{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}blast\ dest{\isaliteral{3A}{\isacharcolon}}\ Suc{\isaliteral{5F}{\isacharunderscore}}Suc{\isaliteral{5F}{\isacharunderscore}}even{\isaliteral{5F}{\isacharunderscore}}imp{\isaliteral{5F}{\isacharunderscore}}even{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -419,60 +419,60 @@ Isabelle/HOL\@.
 
 Recall that \isa{even} is the minimal set closed under these two rules:
 \begin{isabelle}%
-{\isadigit{0}}\ {\isasymin}\ even\isasep\isanewline%
-n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even%
+{\isadigit{0}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\isasep\isanewline%
+n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even%
 \end{isabelle}
 Minimality means that \isa{even} contains only the elements that these
 rules force it to contain.  If we are told that \isa{a}
 belongs to
 \isa{even} then there are only two possibilities.  Either \isa{a} is \isa{{\isadigit{0}}}
-or else \isa{a} has the form \isa{Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}}, for some suitable \isa{n}
+or else \isa{a} has the form \isa{Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}}, for some suitable \isa{n}
 that belongs to
 \isa{even}.  That is the gist of the \isa{cases} rule, which Isabelle proves
 for us when it accepts an inductive definition:
 \begin{isabelle}%
-{\isasymlbrakk}a\ {\isasymin}\ even{\isacharsemicolon}\ a\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\isanewline
-\isaindent{\ }{\isasymAnd}n{\isachardot}\ {\isasymlbrakk}a\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\isanewline
-{\isasymLongrightarrow}\ P\rulename{even{\isachardot}cases}%
+{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}a\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{3B}{\isacharsemicolon}}\ a\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ }{\isaliteral{5C3C416E643E}{\isasymAnd}}n{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}a\ {\isaliteral{3D}{\isacharequal}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\rulename{even{\isaliteral{2E}{\isachardot}}cases}%
 \end{isabelle}
 This general rule is less useful than instances of it for
 specific patterns.  For example, if \isa{a} has the form
-\isa{Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}} then the first case becomes irrelevant, while the second
+\isa{Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}} then the first case becomes irrelevant, while the second
 case tells us that \isa{n} belongs to \isa{even}.  Isabelle will generate
 this instance for us:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}cases}\isamarkupfalse%
-\ Suc{\isacharunderscore}Suc{\isacharunderscore}cases\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}cases}\isamarkupfalse%
+\ Suc{\isaliteral{5F}{\isacharunderscore}}Suc{\isaliteral{5F}{\isacharunderscore}}cases\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 The \commdx{inductive\protect\_cases} command generates an instance of
 the \isa{cases} rule for the supplied pattern and gives it the supplied name:
 \begin{isabelle}%
-{\isasymlbrakk}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\rulename{Suc{\isacharunderscore}Suc{\isacharunderscore}cases}%
+{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{3B}{\isacharsemicolon}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\rulename{Suc{\isaliteral{5F}{\isacharunderscore}}Suc{\isaliteral{5F}{\isacharunderscore}}cases}%
 \end{isabelle}
-Applying this as an elimination rule yields one case where \isa{even{\isachardot}cases}
+Applying this as an elimination rule yields one case where \isa{even{\isaliteral{2E}{\isachardot}}cases}
 would yield two.  Rule inversion works well when the conclusions of the
-introduction rules involve datatype constructors like \isa{Suc} and \isa{{\isacharhash}}
+introduction rules involve datatype constructors like \isa{Suc} and \isa{{\isaliteral{23}{\isacharhash}}}
 (list ``cons''); freeness reasoning discards all but one or two cases.
 
 In the \isacommand{inductive\_cases} command we supplied an
-attribute, \isa{elim{\isacharbang}},
+attribute, \isa{elim{\isaliteral{21}{\isacharbang}}},
 \index{elim"!@\isa {elim"!} (attribute)}%
 indicating that this elimination rule can be
 applied aggressively.  The original
 \isa{cases} rule would loop if used in that manner because the
 pattern~\isa{a} matches everything.
 
-The rule \isa{Suc{\isacharunderscore}Suc{\isacharunderscore}cases} is equivalent to the following implication:
+The rule \isa{Suc{\isaliteral{5F}{\isacharunderscore}}Suc{\isaliteral{5F}{\isacharunderscore}}cases} is equivalent to the following implication:
 \begin{isabelle}%
-Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even%
+Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even%
 \end{isabelle}
 Just above we devoted some effort to reaching precisely
 this result.  Yet we could have obtained it by a one-line declaration,
-dispensing with the lemma \isa{even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}}. 
+dispensing with the lemma \isa{even{\isaliteral{5F}{\isacharunderscore}}imp{\isaliteral{5F}{\isacharunderscore}}even{\isaliteral{5F}{\isacharunderscore}}minus{\isaliteral{5F}{\isacharunderscore}}{\isadigit{2}}}. 
 This example also justifies the terminology
 \textbf{rule inversion}: the new rule inverts the introduction rule
-\isa{even{\isachardot}step}.  In general, a rule can be inverted when the set of elements
+\isa{even{\isaliteral{2E}{\isachardot}}step}.  In general, a rule can be inverted when the set of elements
 it introduces is disjoint from those of the other introduction rules.
 
 For one-off applications of rule inversion, use the \methdx{ind_cases} method. 
@@ -486,7 +486,7 @@ Here is an example:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}ind{\isacharunderscore}cases\ {\isachardoublequoteopen}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequoteclose}{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}ind{\isaliteral{5F}{\isacharunderscore}}cases\ {\isaliteral{22}{\isachardoublequoteopen}}Suc{\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -501,7 +501,7 @@ as an elimination rule.
 To summarize, every inductive definition produces a \isa{cases} rule.  The
 \commdx{inductive\protect\_cases} command stores an instance of the
 \isa{cases} rule for a given pattern.  Within a proof, the
-\isa{ind{\isacharunderscore}cases} method applies an instance of the \isa{cases}
+\isa{ind{\isaliteral{5F}{\isacharunderscore}}cases} method applies an instance of the \isa{cases}
 rule.
 
 The even numbers example has shown how inductive definitions can be

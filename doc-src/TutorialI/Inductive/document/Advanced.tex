@@ -42,7 +42,7 @@ whose argument is a type of  function symbols.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ {\isacharprime}f\ gterm\ {\isacharequal}\ Apply\ {\isacharprime}f\ {\isachardoublequoteopen}{\isacharprime}f\ gterm\ list{\isachardoublequoteclose}%
+\ {\isaliteral{27}{\isacharprime}}f\ gterm\ {\isaliteral{3D}{\isacharequal}}\ Apply\ {\isaliteral{27}{\isacharprime}}f\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}f\ gterm\ list{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 To try it out, we declare a datatype of some integer operations: 
 integer constants, the unary minus operator and the addition 
@@ -50,16 +50,16 @@ operator.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{datatype}\isamarkupfalse%
-\ integer{\isacharunderscore}op\ {\isacharequal}\ Number\ int\ {\isacharbar}\ UnaryMinus\ {\isacharbar}\ Plus%
+\ integer{\isaliteral{5F}{\isacharunderscore}}op\ {\isaliteral{3D}{\isacharequal}}\ Number\ int\ {\isaliteral{7C}{\isacharbar}}\ UnaryMinus\ {\isaliteral{7C}{\isacharbar}}\ Plus%
 \begin{isamarkuptext}%
-Now the type \isa{integer{\isacharunderscore}op\ gterm} denotes the ground 
+Now the type \isa{integer{\isaliteral{5F}{\isacharunderscore}}op\ gterm} denotes the ground 
 terms built over those symbols.
 
 The type constructor \isa{gterm} can be generalized to a function 
 over sets.  It returns 
 the set of ground terms that can be formed over a set \isa{F} of function symbols. For
 example,  we could consider the set of ground terms formed from the finite 
-set \isa{{\isacharbraceleft}Number\ {\isadigit{2}}{\isacharcomma}\ UnaryMinus{\isacharcomma}\ Plus{\isacharbraceright}}.
+set \isa{{\isaliteral{7B}{\isacharbraceleft}}Number\ {\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ UnaryMinus{\isaliteral{2C}{\isacharcomma}}\ Plus{\isaliteral{7D}{\isacharbraceright}}}.
 
 This concept is inductive. If we have a list \isa{args} of ground terms 
 over~\isa{F} and a function symbol \isa{f} in \isa{F}, then we 
@@ -74,13 +74,13 @@ over~\isa{F}.  The function \isa{set} denotes the set of elements in a given
 list.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
 \isanewline
-\ \ gterms\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ set\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ F\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ set{\isachardoublequoteclose}\isanewline
+\ \ gterms\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}f\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}f\ gterm\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{for}\ F\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}f\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}{\isasymforall}t\ {\isasymin}\ set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ \ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ gterms\ F{\isachardoublequoteclose}%
+step{\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ args{\isaliteral{2E}{\isachardot}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ F{\isaliteral{3B}{\isacharsemicolon}}\ \ f\ {\isaliteral{5C3C696E3E}{\isasymin}}\ F{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Apply\ f\ args{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ F{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 To demonstrate a proof from this definition, let us 
 show that the function \isa{gterms}
@@ -88,7 +88,7 @@ is \textbf{monotone}.  We shall need this concept shortly.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ gterms{\isacharunderscore}mono{\isacharcolon}\ {\isachardoublequoteopen}F{\isasymsubseteq}G\ {\isasymLongrightarrow}\ gterms\ F\ {\isasymsubseteq}\ gterms\ G{\isachardoublequoteclose}\isanewline
+\ gterms{\isaliteral{5F}{\isacharunderscore}}mono{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}F{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}G\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ gterms\ F\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ gterms\ G{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -98,7 +98,7 @@ is \textbf{monotone}.  We shall need this concept shortly.%
 \isacommand{apply}\isamarkupfalse%
 \ clarify\isanewline
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}erule\ gterms{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ blast\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -124,9 +124,9 @@ First we use the \isa{clarify} method to assume the existence of an element of
 \isa{gterms\ F}.  (We could have used \isa{intro\ subsetI}.)  We then
 apply rule induction. Here is the resulting subgoal:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}F\ {\isasymsubseteq}\ G{\isacharsemicolon}\ {\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasymand}\ t\ {\isasymin}\ gterms\ G{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ args\ f{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}F\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ G{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t{\isaliteral{5C3C696E3E}{\isasymin}}set\ args{\isaliteral{2E}{\isachardot}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ F\ {\isaliteral{5C3C616E643E}{\isasymand}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ G{\isaliteral{3B}{\isacharsemicolon}}\ f\ {\isaliteral{5C3C696E3E}{\isasymin}}\ F{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Apply\ f\ args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ G%
 \end{isabelle}
 The assumptions state that \isa{f} belongs 
 to~\isa{F}, which is included in~\isa{G}, and that every element of the list \isa{args} is
@@ -146,8 +146,8 @@ a ground term over~\isa{G}.  The \isa{blast} method finds this chain of reasonin
 Why do we call this function \isa{gterms} instead 
 of \isa{gterm}?  A constant may have the same name as a type.  However,
 name  clashes could arise in the theorems that Isabelle generates. 
-Our choice of names keeps \isa{gterms{\isachardot}induct} separate from 
-\isa{gterm{\isachardot}induct}.
+Our choice of names keeps \isa{gterms{\isaliteral{2E}{\isachardot}}induct} separate from 
+\isa{gterm{\isaliteral{2E}{\isachardot}}induct}.
 \end{warn}
 
 Call a term \textbf{well-formed} if each symbol occurring in it is applied
@@ -162,14 +162,14 @@ function's arity  then applying \isa{f} to \isa{args} yields a well-formed
 term.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
 \isanewline
-\ \ well{\isacharunderscore}formed{\isacharunderscore}gterm\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ arity\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ \ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}f\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}f\ gterm\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{for}\ arity\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}f\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}{\isasymforall}t\ {\isasymin}\ set\ args{\isachardot}\ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharsemicolon}\ \ \isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequoteclose}%
+step{\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ set\ args{\isaliteral{2E}{\isachardot}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ arity{\isaliteral{3B}{\isacharsemicolon}}\ \ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isaliteral{3D}{\isacharequal}}\ arity\ f{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Apply\ f\ args{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ arity{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 The inductive definition neatly captures the reasoning above.
 The universal quantification over the
@@ -200,22 +200,22 @@ the \isa{lists} of well-formed terms.  This formulation is more
 direct, if more obscure, than using a universal quantifier.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
 \isanewline
-\ \ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ arity\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
+\ \ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}f\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}f\ gterm\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{for}\ arity\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}f\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{where}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharparenright}{\isacharsemicolon}\ \ \isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequoteclose}\isanewline
-\isakeyword{monos}\ lists{\isacharunderscore}mono%
+step{\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ lists\ {\isaliteral{28}{\isacharparenleft}}well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ arity{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\ \ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isaliteral{3D}{\isacharequal}}\ arity\ f{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Apply\ f\ args{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ arity{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isakeyword{monos}\ lists{\isaliteral{5F}{\isacharunderscore}}mono%
 \begin{isamarkuptext}%
-We cite the theorem \isa{lists{\isacharunderscore}mono} to justify 
+We cite the theorem \isa{lists{\isaliteral{5F}{\isacharunderscore}}mono} to justify 
 using the function \isa{lists}.%
 \footnote{This particular theorem is installed by default already, but we
 include the \isakeyword{monos} declaration in order to illustrate its syntax.}
 \begin{isabelle}%
-A\ {\isasymsubseteq}\ B\ {\isasymLongrightarrow}\ lists\ A\ {\isasymsubseteq}\ lists\ B\rulename{lists{\isacharunderscore}mono}%
+A\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ lists\ A\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ lists\ B\rulename{lists{\isaliteral{5F}{\isacharunderscore}}mono}%
 \end{isabelle}
 Why must the function be monotone?  An inductive definition describes
 an iterative construction: each element of the set is constructed by a
@@ -223,8 +223,8 @@ finite number of introduction rule applications.  For example, the
 elements of \isa{even} are constructed by finitely many applications of
 the rules
 \begin{isabelle}%
-{\isadigit{0}}\ {\isasymin}\ even\isasep\isanewline%
-n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even%
+{\isadigit{0}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\isasep\isanewline%
+n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Suc\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even%
 \end{isabelle}
 All references to a set in its
 inductive definition must be positive.  Applications of an
@@ -232,8 +232,8 @@ introduction rule cannot invalidate previous applications, allowing the
 construction process to converge.
 The following pair of rules do not constitute an inductive definition:
 \begin{trivlist}
-\item \isa{{\isadigit{0}}\ {\isasymin}\ even}
-\item \isa{n\ {\isasymnotin}\ even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ even}
+\item \isa{{\isadigit{0}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even}
+\item \isa{n\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ even\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Suc\ n\ {\isaliteral{5C3C696E3E}{\isasymin}}\ even}
 \end{trivlist}
 Showing that 4 is even using these rules requires showing that 3 is not
 even.  It is far from trivial to show that this set of rules
@@ -242,7 +242,7 @@ characterizes the even numbers.
 Even with its use of the function \isa{lists}, the premise of our
 introduction rule is positive:
 \begin{isabelle}%
-args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharparenright}%
+args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ lists\ {\isaliteral{28}{\isacharparenleft}}well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ arity{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 To apply the rule we construct a list \isa{args} of previously
 constructed well-formed terms.  We obtain a
@@ -265,7 +265,7 @@ each direction.  Each is a trivial rule induction.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ arity\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ arity{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -275,7 +275,7 @@ each direction.  Each is a trivial rule induction.%
 \isacommand{apply}\isamarkupfalse%
 \ clarify\isanewline
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isachardot}induct{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}erule\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ auto\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -295,14 +295,14 @@ each direction.  Each is a trivial rule induction.%
 %
 \begin{isamarkuptxt}%
 The \isa{clarify} method gives
-us an element of \isa{well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity} on which to perform 
+us an element of \isa{well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ arity} on which to perform 
 induction.  The resulting subgoal can be proved automatically:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymand}\ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ args\ f{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t{\isaliteral{5C3C696E3E}{\isasymin}}set\ args{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ \ \ }t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ arity\ {\isaliteral{5C3C616E643E}{\isasymand}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ arity{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }length\ args\ {\isaliteral{3D}{\isacharequal}}\ arity\ f{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Apply\ f\ args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ arity%
 \end{isabelle}
 This proof resembles the one given in
 {\S}\ref{sec:gterm-datatype} above, especially in the form of the
@@ -317,7 +317,7 @@ induction hypothesis.  Next, we consider the opposite inclusion:%
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ arity\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ arity{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -327,7 +327,7 @@ induction hypothesis.  Next, we consider the opposite inclusion:%
 \isacommand{apply}\isamarkupfalse%
 \ clarify\isanewline
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}{\isachardot}induct{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}erule\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ auto\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -349,28 +349,28 @@ induction hypothesis.  Next, we consider the opposite inclusion:%
 The proof script is virtually identical,
 but the subgoal after applying induction may be surprising:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}args\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}}{\isasymin}\ lists\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ }{\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasyminter}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ {\isacharparenleft}}{\isacharbraceleft}a{\isachardot}\ a\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharbraceright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x\ args\ f{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}args\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}}{\isaliteral{5C3C696E3E}{\isasymin}}\ lists\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C696E3E}{\isasymin}}\ \ }{\isaliteral{28}{\isacharparenleft}}well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ arity\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C696E3E}{\isasymin}}\ \ {\isaliteral{28}{\isacharparenleft}}}{\isaliteral{7B}{\isacharbraceleft}}a{\isaliteral{2E}{\isachardot}}\ a\ {\isaliteral{5C3C696E3E}{\isasymin}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ arity{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }length\ args\ {\isaliteral{3D}{\isacharequal}}\ arity\ f{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Apply\ f\ args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ arity%
 \end{isabelle}
 The induction hypothesis contains an application of \isa{lists}.  Using a
 monotone function in the inductive definition always has this effect.  The
 subgoal may look uninviting, but fortunately 
 \isa{lists} distributes over intersection:
 \begin{isabelle}%
-listsp\ {\isacharparenleft}{\isacharparenleft}{\isasymlambda}x{\isachardot}\ x\ {\isasymin}\ A{\isacharparenright}\ {\isasyminter}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ x\ {\isasymin}\ B{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ x\ {\isasymin}\ lists\ A{\isacharparenright}\ {\isasyminter}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ x\ {\isasymin}\ lists\ B{\isacharparenright}\rulename{lists{\isacharunderscore}Int{\isacharunderscore}eq}%
+listsp\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ lists\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ lists\ B{\isaliteral{29}{\isacharparenright}}\rulename{lists{\isaliteral{5F}{\isacharunderscore}}Int{\isaliteral{5F}{\isacharunderscore}}eq}%
 \end{isabelle}
 Thanks to this default simplification rule, the induction hypothesis 
 is quickly replaced by its two parts:
 \begin{trivlist}
-\item \isa{args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharparenright}}
-\item \isa{args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharparenright}}
+\item \isa{args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ lists\ {\isaliteral{28}{\isacharparenleft}}well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{27}{\isacharprime}}\ arity{\isaliteral{29}{\isacharparenright}}}
+\item \isa{args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ lists\ {\isaliteral{28}{\isacharparenleft}}well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm\ arity{\isaliteral{29}{\isacharparenright}}}
 \end{trivlist}
-Invoking the rule \isa{well{\isacharunderscore}formed{\isacharunderscore}gterm{\isachardot}step} completes the proof.  The
+Invoking the rule \isa{well{\isaliteral{5F}{\isacharunderscore}}formed{\isaliteral{5F}{\isacharunderscore}}gterm{\isaliteral{2E}{\isachardot}}step} completes the proof.  The
 call to \isa{auto} does all this work.
 
 This example is typical of how monotone functions
@@ -378,7 +378,7 @@ This example is typical of how monotone functions
 distribute over intersection.  Monotonicity implies one direction of
 this set equality; we have this theorem:
 \begin{isabelle}%
-mono\ f\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isasymsubseteq}\ f\ A\ {\isasyminter}\ f\ B\rulename{mono{\isacharunderscore}Int}%
+mono\ f\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ f\ A\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ f\ B\rulename{mono{\isaliteral{5F}{\isacharunderscore}}Int}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -397,16 +397,16 @@ mono\ f\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}A\ {\isasyminter}\ B{\is
 \begin{isamarkuptext}%
 \index{rule inversion|(}%
 Does \isa{gterms} distribute over intersection?  We have proved that this
-function is monotone, so \isa{mono{\isacharunderscore}Int} gives one of the inclusions.  The
+function is monotone, so \isa{mono{\isaliteral{5F}{\isacharunderscore}}Int} gives one of the inclusions.  The
 opposite inclusion asserts that if \isa{t} is a ground term over both of the
 sets
 \isa{F} and~\isa{G} then it is also a ground term over their intersection,
-\isa{F\ {\isasyminter}\ G}.%
+\isa{F\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ G}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ gterms{\isacharunderscore}IntI{\isacharcolon}\isanewline
-\ \ \ \ \ {\isachardoublequoteopen}t\ {\isasymin}\ gterms\ F\ {\isasymLongrightarrow}\ t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F{\isasyminter}G{\isacharparenright}{\isachardoublequoteclose}%
+\ gterms{\isaliteral{5F}{\isacharunderscore}}IntI{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ F\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ G\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ {\isaliteral{28}{\isacharparenleft}}F{\isaliteral{5C3C696E7465723E}{\isasyminter}}G{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -422,32 +422,32 @@ sets
 %
 \begin{isamarkuptext}%
 Attempting this proof, we get the assumption 
-\isa{Apply\ f\ args\ {\isasymin}\ gterms\ G}, which cannot be broken down. 
+\isa{Apply\ f\ args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ G}, which cannot be broken down. 
 It looks like a job for rule inversion:\cmmdx{inductive\protect\_cases}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{inductive{\isacharunderscore}cases}\isamarkupfalse%
-\ gterm{\isacharunderscore}Apply{\isacharunderscore}elim\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Apply\ f\ args\ {\isasymin}\ gterms\ F{\isachardoublequoteclose}%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}cases}\isamarkupfalse%
+\ gterm{\isaliteral{5F}{\isacharunderscore}}Apply{\isaliteral{5F}{\isacharunderscore}}elim\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}Apply\ f\ args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ F{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 Here is the result.
 \begin{isabelle}%
-{\isasymlbrakk}Apply\ f\ args\ {\isasymin}\ gterms\ F{\isacharsemicolon}\isanewline
-\isaindent{\ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\isanewline
-{\isasymLongrightarrow}\ P\rulename{gterm{\isacharunderscore}Apply{\isacharunderscore}elim}%
+{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}Apply\ f\ args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ F{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t{\isaliteral{5C3C696E3E}{\isasymin}}set\ args{\isaliteral{2E}{\isachardot}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ F{\isaliteral{3B}{\isacharsemicolon}}\ f\ {\isaliteral{5C3C696E3E}{\isasymin}}\ F{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\rulename{gterm{\isaliteral{5F}{\isacharunderscore}}Apply{\isaliteral{5F}{\isacharunderscore}}elim}%
 \end{isabelle}
 This rule replaces an assumption about \isa{Apply\ f\ args} by 
 assumptions about \isa{f} and~\isa{args}.  
 No cases are discarded (there was only one to begin
 with) but the rule applies specifically to the pattern \isa{Apply\ f\ args}.
 It can be applied repeatedly as an elimination rule without looping, so we
-have given the \isa{elim{\isacharbang}} attribute. 
+have given the \isa{elim{\isaliteral{21}{\isacharbang}}} attribute. 
 
 Now we can prove the other half of that distributive law.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ gterms{\isacharunderscore}IntI\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ {\isachardoublequoteopen}t\ {\isasymin}\ gterms\ F\ {\isasymLongrightarrow}\ t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F{\isasyminter}G{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ gterms{\isaliteral{5F}{\isacharunderscore}}IntI\ {\isaliteral{5B}{\isacharbrackleft}}rule{\isaliteral{5F}{\isacharunderscore}}format{\isaliteral{2C}{\isacharcomma}}\ intro{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ F\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ G\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ {\isaliteral{28}{\isacharparenleft}}F{\isaliteral{5C3C696E7465723E}{\isasyminter}}G{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -455,7 +455,7 @@ Now we can prove the other half of that distributive law.%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}erule\ gterms{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ blast\isanewline
 \isacommand{done}\isamarkupfalse%
@@ -477,19 +477,19 @@ Now we can prove the other half of that distributive law.%
 The proof begins with rule induction over the definition of
 \isa{gterms}, which leaves a single subgoal:  
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ gterms\ F\ {\isasymand}\ {\isacharparenleft}t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ }f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }Apply\ f\ args\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}args\ f{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}t{\isaliteral{5C3C696E3E}{\isasymin}}set\ args{\isaliteral{2E}{\isachardot}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ \ \ }t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ F\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ G\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ t\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ {\isaliteral{28}{\isacharparenleft}}F\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ G{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ \ }f\ {\isaliteral{5C3C696E3E}{\isasymin}}\ F{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ }{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Apply\ f\ args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ G\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ \ \ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ }Apply\ f\ args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ {\isaliteral{28}{\isacharparenleft}}F\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ G{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
-To prove this, we assume \isa{Apply\ f\ args\ {\isasymin}\ gterms\ G}.  Rule inversion,
-in the form of \isa{gterm{\isacharunderscore}Apply{\isacharunderscore}elim}, infers
+To prove this, we assume \isa{Apply\ f\ args\ {\isaliteral{5C3C696E3E}{\isasymin}}\ gterms\ G}.  Rule inversion,
+in the form of \isa{gterm{\isaliteral{5F}{\isacharunderscore}}Apply{\isaliteral{5F}{\isacharunderscore}}elim}, infers
 that every element of \isa{args} belongs to 
 \isa{gterms\ G}; hence (by the induction hypothesis) it belongs
-to \isa{gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}}.  Rule inversion also yields
-\isa{f\ {\isasymin}\ G} and hence \isa{f\ {\isasymin}\ F\ {\isasyminter}\ G}. 
+to \isa{gterms\ {\isaliteral{28}{\isacharparenleft}}F\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ G{\isaliteral{29}{\isacharparenright}}}.  Rule inversion also yields
+\isa{f\ {\isaliteral{5C3C696E3E}{\isasymin}}\ G} and hence \isa{f\ {\isaliteral{5C3C696E3E}{\isasymin}}\ F\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ G}. 
 All of this reasoning is done by \isa{blast}.
 
 \smallskip
@@ -504,8 +504,8 @@ Our distributive law is a trivial consequence of previously-proved results:%
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ gterms{\isacharunderscore}Int{\isacharunderscore}eq\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ {\isachardoublequoteopen}gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}\ {\isacharequal}\ gterms\ F\ {\isasyminter}\ gterms\ G{\isachardoublequoteclose}\isanewline
+\ gterms{\isaliteral{5F}{\isacharunderscore}}Int{\isaliteral{5F}{\isacharunderscore}}eq\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}gterms\ {\isaliteral{28}{\isacharparenleft}}F\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ G{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ gterms\ F\ {\isaliteral{5C3C696E7465723E}{\isasyminter}}\ gterms\ G{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -513,7 +513,7 @@ Our distributive law is a trivial consequence of previously-proved results:%
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ mono{\isacharunderscore}Int\ monoI\ gterms{\isacharunderscore}mono{\isacharparenright}%
+\ {\isaliteral{28}{\isacharparenleft}}blast\ intro{\isaliteral{21}{\isacharbang}}{\isaliteral{3A}{\isacharcolon}}\ mono{\isaliteral{5F}{\isacharunderscore}}Int\ monoI\ gterms{\isaliteral{5F}{\isacharunderscore}}mono{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -533,10 +533,10 @@ ranging over type symbols, we can represent a function's type by a
 list of argument types paired with the result type. 
 Complete this inductive definition:
 \begin{isabelle}
-\isacommand{inductive{\isacharunderscore}set}\isamarkupfalse%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
 \isanewline
-\ \ well{\isacharunderscore}typed{\isacharunderscore}gterm\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}f\ gterm\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}set{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{for}\ sig\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isachardoublequoteclose}%
+\ \ well{\isaliteral{5F}{\isacharunderscore}}typed{\isaliteral{5F}{\isacharunderscore}}gterm\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}f\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}t\ list\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}f\ gterm\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}t{\isaliteral{29}{\isacharparenright}}set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{for}\ sig\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}f\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}t\ list\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}t{\isaliteral{22}{\isachardoublequoteclose}}%
 \end{isabelle}
 \end{exercise}
 \end{isamarkuptext}

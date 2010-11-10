@@ -434,7 +434,7 @@ fun fun_map_simple_conv xs ctrm =
     ((Const (@{const_name "fun_map"}, _) $ _ $ _) $ h $ _) =>
         if member (op=) xs h
         then Conv.all_conv ctrm
-        else Conv.rewr_conv @{thm fun_map_def[THEN eq_reflection]} ctrm
+        else Conv.rewr_conv @{thm fun_map_apply [THEN eq_reflection]} ctrm
   | _ => Conv.all_conv ctrm
 
 fun fun_map_conv xs ctxt ctrm =

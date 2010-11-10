@@ -22,7 +22,7 @@
 \begin{isamarkuptext}%
 \index{simplification rules}
 To facilitate simplification,  
-the attribute \isa{{\isacharbrackleft}simp{\isacharbrackright}}\index{*simp (attribute)}
+the attribute \isa{{\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}}\index{*simp (attribute)}
 declares theorems to be simplification rules, which the simplifier
 will use automatically.  In addition, \isacommand{datatype} and
 \isacommand{primrec} declarations (and a few others) 
@@ -33,14 +33,14 @@ simplification rules automatically!
 Nearly any theorem can become a simplification
 rule. The simplifier will try to transform it into an equation.  
 For example, the theorem
-\isa{{\isasymnot}\ P} is turned into \isa{P\ {\isacharequal}\ False}. The details
+\isa{{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P} is turned into \isa{P\ {\isaliteral{3D}{\isacharequal}}\ False}. The details
 are explained in \S\ref{sec:SimpHow}.
 
 The simplification attribute of theorems can be turned on and off:%
 \index{*simp del (attribute)}
 \begin{quote}
-\isacommand{declare} \textit{theorem-name}\isa{{\isacharbrackleft}simp{\isacharbrackright}}\\
-\isacommand{declare} \textit{theorem-name}\isa{{\isacharbrackleft}simp\ del{\isacharbrackright}}
+\isacommand{declare} \textit{theorem-name}\isa{{\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}}\\
+\isacommand{declare} \textit{theorem-name}\isa{{\isaliteral{5B}{\isacharbrackleft}}simp\ del{\isaliteral{5D}{\isacharbrackright}}}
 \end{quote}
 Only equations that really simplify, like \isa{rev\
 {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs} and
@@ -99,17 +99,17 @@ we do not need to make it a global simplification rule. Instead we can modify
 the set of simplification rules used in a simplification step by adding rules
 to it and/or deleting rules from it. The two modifiers for this are
 \begin{quote}
-\isa{add{\isacharcolon}} \textit{list of theorem names}\index{*add (modifier)}\\
-\isa{del{\isacharcolon}} \textit{list of theorem names}\index{*del (modifier)}
+\isa{add{\isaliteral{3A}{\isacharcolon}}} \textit{list of theorem names}\index{*add (modifier)}\\
+\isa{del{\isaliteral{3A}{\isacharcolon}}} \textit{list of theorem names}\index{*del (modifier)}
 \end{quote}
 Or you can use a specific list of theorems and omit all others:
 \begin{quote}
-\isa{only{\isacharcolon}} \textit{list of theorem names}\index{*only (modifier)}
+\isa{only{\isaliteral{3A}{\isacharcolon}}} \textit{list of theorem names}\index{*only (modifier)}
 \end{quote}
 In this example, we invoke the simplifier, adding two distributive
 laws:
 \begin{quote}
-\isacommand{apply}\isa{{\isacharparenleft}simp\ add{\isacharcolon}\ mod{\isacharunderscore}mult{\isacharunderscore}distrib\ add{\isacharunderscore}mult{\isacharunderscore}distrib{\isacharparenright}}
+\isacommand{apply}\isa{{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ mod{\isaliteral{5F}{\isacharunderscore}}mult{\isaliteral{5F}{\isacharunderscore}}distrib\ add{\isaliteral{5F}{\isacharunderscore}}mult{\isaliteral{5F}{\isacharunderscore}}distrib{\isaliteral{29}{\isacharparenright}}}
 \end{quote}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -125,7 +125,7 @@ as simplification rules and are simplified themselves. For example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymlbrakk}\ xs\ {\isacharat}\ zs\ {\isacharequal}\ ys\ {\isacharat}\ xs{\isacharsemicolon}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ ys\ {\isacharequal}\ zs{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}\ xs\ {\isaliteral{40}{\isacharat}}\ zs\ {\isaliteral{3D}{\isacharequal}}\ ys\ {\isaliteral{40}{\isacharat}}\ xs{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{40}{\isacharat}}\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ zs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -145,15 +145,15 @@ as simplification rules and are simplified themselves. For example:%
 %
 \begin{isamarkuptext}%
 \noindent
-The second assumption simplifies to \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}}, which in turn
-simplifies the first assumption to \isa{zs\ {\isacharequal}\ ys}, thus reducing the
-conclusion to \isa{ys\ {\isacharequal}\ ys} and hence to \isa{True}.
+The second assumption simplifies to \isa{xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}, which in turn
+simplifies the first assumption to \isa{zs\ {\isaliteral{3D}{\isacharequal}}\ ys}, thus reducing the
+conclusion to \isa{ys\ {\isaliteral{3D}{\isacharequal}}\ ys} and hence to \isa{True}.
 
 In some cases, using the assumptions can lead to nontermination:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ f\ x\ {\isacharequal}\ g\ {\isacharparenleft}f\ {\isacharparenleft}g\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ f\ x\ {\isaliteral{3D}{\isacharequal}}\ g\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}g\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ f\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{40}{\isacharat}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -163,14 +163,14 @@ In some cases, using the assumptions can lead to nontermination:%
 \begin{isamarkuptxt}%
 \noindent
 An unmodified application of \isa{simp} loops.  The culprit is the
-simplification rule \isa{f\ x\ {\isacharequal}\ g\ {\isacharparenleft}f\ {\isacharparenleft}g\ x{\isacharparenright}{\isacharparenright}}, which is extracted from
+simplification rule \isa{f\ x\ {\isaliteral{3D}{\isacharequal}}\ g\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{28}{\isacharparenleft}}g\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}}, which is extracted from
 the assumption.  (Isabelle notices certain simple forms of
 nontermination but not this one.)  The problem can be circumvented by
 telling the simplifier to ignore the assumptions:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}simp\ {\isaliteral{28}{\isacharparenleft}}no{\isaliteral{5F}{\isacharunderscore}}asm{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -184,12 +184,12 @@ telling the simplifier to ignore the assumptions:%
 \noindent
 Three modifiers influence the treatment of assumptions:
 \begin{description}
-\item[\isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}}]\index{*no_asm (modifier)}
+\item[\isa{{\isaliteral{28}{\isacharparenleft}}no{\isaliteral{5F}{\isacharunderscore}}asm{\isaliteral{29}{\isacharparenright}}}]\index{*no_asm (modifier)}
  means that assumptions are completely ignored.
-\item[\isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}}]\index{*no_asm_simp (modifier)}
+\item[\isa{{\isaliteral{28}{\isacharparenleft}}no{\isaliteral{5F}{\isacharunderscore}}asm{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{29}{\isacharparenright}}}]\index{*no_asm_simp (modifier)}
  means that the assumptions are not simplified but
   are used in the simplification of the conclusion.
-\item[\isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}}]\index{*no_asm_use (modifier)}
+\item[\isa{{\isaliteral{28}{\isacharparenleft}}no{\isaliteral{5F}{\isacharunderscore}}asm{\isaliteral{5F}{\isacharunderscore}}use{\isaliteral{29}{\isacharparenright}}}]\index{*no_asm_use (modifier)}
  means that the assumptions are simplified but are not
   used in the simplification of each other or the conclusion.
 \end{description}
@@ -226,15 +226,15 @@ For example, given%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
-\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}xor\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
+\ xor\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+{\isaliteral{22}{\isachardoublequoteopen}}xor\ A\ B\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent
 we may want to prove%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}xor\ A\ {\isacharparenleft}{\isasymnot}A{\isacharparenright}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}xor\ A\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}A{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -248,12 +248,12 @@ Typically, we begin by unfolding some definitions:
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ only{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ only{\isaliteral{3A}{\isacharcolon}}\ xor{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 In this particular case, the resulting goal
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ A\ {\isasymand}\ {\isasymnot}\ {\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ A\ {\isasymand}\ {\isasymnot}\ A%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A%
 \end{isabelle}
 can be proved by simplification. Thus we could have proved the lemma outright by%
 \end{isamarkuptxt}%
@@ -272,7 +272,7 @@ can be proved by simplification. Thus we could have proved the lemma outright by
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ xor{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -313,7 +313,7 @@ means rewriting with \tdx{Let_def}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}let\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ in\ xs{\isacharat}ys{\isacharat}xs{\isacharparenright}\ {\isacharequal}\ ys{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}let\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ in\ xs{\isaliteral{40}{\isacharat}}ys{\isaliteral{40}{\isacharat}}xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -321,7 +321,7 @@ means rewriting with \tdx{Let_def}:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ add{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ Let{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -333,12 +333,12 @@ means rewriting with \tdx{Let_def}:%
 %
 \begin{isamarkuptext}%
 If, in a particular context, there is no danger of a combinatorial explosion
-of nested \isa{let}s, you could even simplify with \isa{Let{\isacharunderscore}def} by
+of nested \isa{let}s, you could even simplify with \isa{Let{\isaliteral{5F}{\isacharunderscore}}def} by
 default:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{declare}\isamarkupfalse%
-\ Let{\isacharunderscore}def\ {\isacharbrackleft}simp{\isacharbrackright}%
+\ Let{\isaliteral{5F}{\isacharunderscore}}def\ {\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}%
 \isamarkupsubsection{Conditional Simplification Rules%
 }
 \isamarkuptrue%
@@ -350,7 +350,7 @@ accepts \emph{conditional} equations, for example%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ hd{\isacharunderscore}Cons{\isacharunderscore}tl{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ \ {\isasymLongrightarrow}\ \ hd\ xs\ {\isacharhash}\ tl\ xs\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
+\ hd{\isaliteral{5F}{\isacharunderscore}}Cons{\isaliteral{5F}{\isacharunderscore}}tl{\isaliteral{5B}{\isacharbrackleft}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ \ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ \ hd\ xs\ {\isaliteral{23}{\isacharhash}}\ tl\ xs\ {\isaliteral{3D}{\isacharequal}}\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -358,7 +358,7 @@ accepts \emph{conditional} equations, for example%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp{\isacharparenright}\isanewline
+{\isaliteral{28}{\isacharparenleft}}case{\isaliteral{5F}{\isacharunderscore}}tac\ xs{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{2C}{\isacharcomma}}\ simp{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{done}\isamarkupfalse%
 %
 \endisatagproof
@@ -372,13 +372,13 @@ accepts \emph{conditional} equations, for example%
 \noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
 sequence of methods. Assuming that the simplification rule
-\isa{{\isacharparenleft}rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}}
+\isa{{\isaliteral{28}{\isacharparenleft}}rev\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}}
 is present as well,
 the lemma below is proved by plain simplification:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ hd{\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{23}{\isacharhash}}\ tl{\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ rev\ xs{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -394,10 +394,10 @@ the lemma below is proved by plain simplification:%
 %
 \begin{isamarkuptext}%
 \noindent
-The conditional equation \isa{hd{\isacharunderscore}Cons{\isacharunderscore}tl} above
-can simplify \isa{hd\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl\ {\isacharparenleft}rev\ xs{\isacharparenright}} to \isa{rev\ xs}
-because the corresponding precondition \isa{rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}}
-simplifies to \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}}, which is exactly the local
+The conditional equation \isa{hd{\isaliteral{5F}{\isacharunderscore}}Cons{\isaliteral{5F}{\isacharunderscore}}tl} above
+can simplify \isa{hd\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{23}{\isacharhash}}\ tl\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}} to \isa{rev\ xs}
+because the corresponding precondition \isa{rev\ xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}
+simplifies to \isa{xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}}, which is exactly the local
 assumption of the subgoal.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -414,7 +414,7 @@ distinction on the boolean condition.  Here is an example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymforall}xs{\isachardot}\ if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ else\ rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}xs{\isaliteral{2E}{\isachardot}}\ if\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ then\ rev\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ else\ rev\ xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \isadelimproof
 %
 \endisadelimproof
@@ -427,16 +427,16 @@ The goal can be split by a special method, \methdx{split}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}split\ split{\isacharunderscore}if{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}split\ split{\isaliteral{5F}{\isacharunderscore}}if{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymforall}xs{\isachardot}\ {\isacharparenleft}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}xs{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ rev\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ rev\ xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 where \tdx{split_if} is a theorem that expresses splitting of
 \isa{if}s. Because
 splitting the \isa{if}s is usually the right proof strategy, the
-simplifier does it automatically.  Try \isacommand{apply}\isa{{\isacharparenleft}simp{\isacharparenright}}
+simplifier does it automatically.  Try \isacommand{apply}\isa{{\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{29}{\isacharparenright}}}
 on the initial goal above.
 
 This splitting idea generalizes from \isa{if} to \sdx{case}.
@@ -451,7 +451,7 @@ Let us simplify a case analysis over lists:\index{*list.split (theorem)}%
 %
 \endisadelimproof
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ zs\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ y{\isacharhash}{\isacharparenleft}ys{\isacharat}zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ xs{\isacharat}zs{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}case\ xs\ of\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ zs\ {\isaliteral{7C}{\isacharbar}}\ y{\isaliteral{23}{\isacharhash}}ys\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ y{\isaliteral{23}{\isacharhash}}{\isaliteral{28}{\isacharparenleft}}ys{\isaliteral{40}{\isacharat}}zs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ xs{\isaliteral{40}{\isacharat}}zs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -459,11 +459,11 @@ Let us simplify a case analysis over lists:\index{*list.split (theorem)}%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}split\ list{\isachardot}split{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}split\ list{\isaliteral{2E}{\isachardot}}split{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ zs{\isacharparenright}\ {\isasymand}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ }{\isacharparenleft}{\isasymforall}a\ list{\isachardot}\ xs\ {\isacharequal}\ a\ {\isacharhash}\ list\ {\isasymlongrightarrow}\ a\ {\isacharhash}\ list\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ zs{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{28}{\isacharparenleft}}xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ zs\ {\isaliteral{3D}{\isacharequal}}\ xs\ {\isaliteral{40}{\isacharat}}\ zs{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\isanewline
+\isaindent{\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ }{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}a\ list{\isaliteral{2E}{\isachardot}}\ xs\ {\isaliteral{3D}{\isacharequal}}\ a\ {\isaliteral{23}{\isacharhash}}\ list\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ a\ {\isaliteral{23}{\isacharhash}}\ list\ {\isaliteral{40}{\isacharat}}\ zs\ {\isaliteral{3D}{\isacharequal}}\ xs\ {\isaliteral{40}{\isacharat}}\ zs{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
 The simplifier does not split
 \isa{case}-expressions, as it does \isa{if}-expressions, 
@@ -488,7 +488,7 @@ lemma above can be proved in one step by%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ split{\isaliteral{3A}{\isacharcolon}}\ list{\isaliteral{2E}{\isachardot}}split{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -498,15 +498,15 @@ lemma above can be proved in one step by%
 %
 \begin{isamarkuptext}%
 \noindent
-whereas \isacommand{apply}\isa{{\isacharparenleft}simp{\isacharparenright}} alone will not succeed.
+whereas \isacommand{apply}\isa{{\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{29}{\isacharparenright}}} alone will not succeed.
 
 Every datatype $t$ comes with a theorem
-$t$\isa{{\isachardot}split} which can be declared to be a \bfindex{split rule} either
+$t$\isa{{\isaliteral{2E}{\isachardot}}split} which can be declared to be a \bfindex{split rule} either
 locally as above, or by giving it the \attrdx{split} attribute globally:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{declare}\isamarkupfalse%
-\ list{\isachardot}split\ {\isacharbrackleft}split{\isacharbrackright}%
+\ list{\isaliteral{2E}{\isachardot}}split\ {\isaliteral{5B}{\isacharbrackleft}}split{\isaliteral{5D}{\isacharbrackright}}%
 \begin{isamarkuptext}%
 \noindent
 The \isa{split} attribute can be removed with the \isa{del} modifier,
@@ -520,7 +520,7 @@ either locally%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp\ split\ del{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp\ split\ del{\isaliteral{3A}{\isacharcolon}}\ split{\isaliteral{5F}{\isacharunderscore}}if{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -534,7 +534,7 @@ or globally:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{declare}\isamarkupfalse%
-\ list{\isachardot}split\ {\isacharbrackleft}split\ del{\isacharbrackright}%
+\ list{\isaliteral{2E}{\isachardot}}split\ {\isaliteral{5B}{\isacharbrackleft}}split\ del{\isaliteral{5D}{\isacharbrackright}}%
 \begin{isamarkuptext}%
 Polished proofs typically perform splitting within \isa{simp} rather than 
 invoking the \isa{split} method.  However, if a goal contains
@@ -545,11 +545,11 @@ helpful in selectively exploring the effects of splitting.
 The split rules shown above are intended to affect only the subgoal's
 conclusion.  If you want to split an \isa{if} or \isa{case}-expression
 in the assumptions, you have to apply \tdx{split_if_asm} or
-$t$\isa{{\isachardot}split{\isacharunderscore}asm}:%
+$t$\isa{{\isaliteral{2E}{\isachardot}}split{\isaliteral{5F}{\isacharunderscore}}asm}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ else\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}if\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ then\ ys\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ else\ ys\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ xs\ {\isaliteral{40}{\isacharat}}\ ys\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -557,18 +557,18 @@ $t$\isa{{\isachardot}split{\isacharunderscore}asm}:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}split\ split{\isacharunderscore}if{\isacharunderscore}asm{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}split\ split{\isaliteral{5F}{\isacharunderscore}}if{\isaliteral{5F}{\isacharunderscore}}asm{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptxt}%
 \noindent
 Unlike splitting the conclusion, this step creates two
-separate subgoals, which here can be solved by \isa{simp{\isacharunderscore}all}:
+separate subgoals, which here can be solved by \isa{simp{\isaliteral{5F}{\isacharunderscore}}all}:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymlbrakk}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\ ys\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ xs\ {\isaliteral{40}{\isacharat}}\ ys\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6C6272616B6B3E}{\isasymlbrakk}}xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\ ys\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5C3C726272616B6B3E}{\isasymrbrakk}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ xs\ {\isaliteral{40}{\isacharat}}\ ys\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}%
 \end{isabelle}
 If you need to split both in the assumptions and the conclusion,
-use $t$\isa{{\isachardot}splits} which subsumes $t$\isa{{\isachardot}split} and
-$t$\isa{{\isachardot}split{\isacharunderscore}asm}. Analogously, there is \isa{if{\isacharunderscore}splits}.
+use $t$\isa{{\isaliteral{2E}{\isachardot}}splits} which subsumes $t$\isa{{\isaliteral{2E}{\isachardot}}split} and
+$t$\isa{{\isaliteral{2E}{\isachardot}}split{\isaliteral{5F}{\isacharunderscore}}asm}. Analogously, there is \isa{if{\isaliteral{5F}{\isacharunderscore}}splits}.
 
 \begin{warn}
   The simplifier merely simplifies the condition of an 
@@ -600,7 +600,7 @@ Proof General flag \pgmenu{Isabelle} $>$ \pgmenu{Settings} $>$ \pgmenu{Trace Sim
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}rev\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}rev\ {\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -608,7 +608,7 @@ Proof General flag \pgmenu{Isabelle} $>$ \pgmenu{Settings} $>$ \pgmenu{Trace Sim
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}simp{\isacharparenright}%
+{\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -673,7 +673,7 @@ the trace on locally in a proof:%
 %
 \isatagproof
 \isacommand{using}\isamarkupfalse%
-\ {\isacharbrackleft}{\isacharbrackleft}trace{\isacharunderscore}simp{\isacharequal}true{\isacharbrackright}{\isacharbrackright}\isanewline
+\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5B}{\isacharbrackleft}}trace{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{3D}{\isacharequal}}true{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ simp%
 \endisatagproof
@@ -737,11 +737,11 @@ simp: "_ * (_ + _)"
 \end{ttbox}
 This finds \emph{all} equations---not just those with a \isa{simp} attribute---whose conclusion has the form
 \begin{isabelle}%
-\ \ \ \ \ {\isacharunderscore}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharunderscore}\ {\isacharplus}\ {\isacharunderscore}{\isacharparenright}\ {\isacharequal}\ {\isasymdots}%
+\ \ \ \ \ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{5F}{\isacharunderscore}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}%
 \end{isabelle}
 It only finds equations that can simplify the given pattern
 at the root, not somewhere inside: for example, equations of the form
-\isa{{\isacharunderscore}\ {\isacharplus}\ {\isacharunderscore}\ {\isacharequal}\ {\isasymdots}} do not match.
+\isa{{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}} do not match.
 
 You may also search for theorems by name---you merely
 need to specify a substring. For example, you could search for all
@@ -767,7 +767,7 @@ the criteria. For example,
 "_ + _"  -"_ - _"  -simp: "_ * (_ + _)"  name: assoc
 \end{ttbox}
 looks for theorems containing plus but not minus, and which do not simplify
-\mbox{\isa{{\isacharunderscore}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharunderscore}\ {\isacharplus}\ {\isacharunderscore}{\isacharparenright}}} at the root, and whose name contains \texttt{assoc}.
+\mbox{\isa{{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{5F}{\isacharunderscore}}{\isaliteral{29}{\isacharparenright}}}} at the root, and whose name contains \texttt{assoc}.
 
 Further search criteria are explained in \S\ref{sec:find2}.
 

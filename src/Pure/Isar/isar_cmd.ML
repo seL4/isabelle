@@ -37,8 +37,6 @@ sig
   val ml_diag: bool -> Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
   val diag_state: unit -> Toplevel.state
   val diag_goal: unit -> {context: Proof.context, facts: thm list, goal: thm}
-  val cd: Path.T -> Toplevel.transition -> Toplevel.transition
-  val pwd: Toplevel.transition -> Toplevel.transition
   val display_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
   val print_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
   val print_context: Toplevel.transition -> Toplevel.transition
@@ -287,12 +285,6 @@ fun diag_goal () =
 
 val _ = ML_Antiquote.value "Isar.state" (Scan.succeed "Isar_Cmd.diag_state ()");
 val _ = ML_Antiquote.value "Isar.goal" (Scan.succeed "Isar_Cmd.diag_goal ()");
-
-
-(* current working directory *)
-
-fun cd path = Toplevel.imperative (fn () => File.cd path);
-val pwd = Toplevel.imperative (fn () => writeln (Path.implode (File.pwd ())));
 
 
 (* present draft files *)

@@ -29,32 +29,32 @@
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ int{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ {\isacharbrackleft}int{\isacharcomma}\ int{\isacharbrackright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ int{\isaliteral{3A}{\isacharcolon}}\ partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{22}{\isachardoublequoteopen}}op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5B}{\isacharbrackleft}}int{\isaliteral{2C}{\isacharcomma}}\ int{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}int{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3C}{\isacharless}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}%
+\ {\isaliteral{2D}{\isacharminus}}%
 \begin{isamarkuptxt}%
 \normalsize The goals are now:
       \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ partial{\isacharunderscore}order\ op\ {\isasymle}\isanewline
-\ {\isadigit{2}}{\isachardot}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ x\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}%
+\ {\isadigit{1}}{\isaliteral{2E}{\isachardot}}\ partial{\isaliteral{5F}{\isacharunderscore}}order\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\isanewline
+\ {\isadigit{2}}{\isaliteral{2E}{\isachardot}}\ partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ x\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3C}{\isacharless}}\ y{\isaliteral{29}{\isacharparenright}}%
 \end{isabelle}
-      The proof that~\isa{{\isasymle}} is a partial order is as above.%
+      The proof that~\isa{{\isaliteral{5C3C6C653E}{\isasymle}}} is a partial order is as above.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}partial{\isacharunderscore}order\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ int\ {\isasymRightarrow}\ int\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{28}{\isacharparenleft}}op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales\ auto%
+\ unfold{\isaliteral{5F}{\isacharunderscore}}locales\ auto%
 \begin{isamarkuptxt}%
 \normalsize The second goal is shown by unfolding the
-      definition of \isa{partial{\isacharunderscore}order{\isachardot}less}.%
+      definition of \isa{partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less}.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}int{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}int{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3C}{\isacharless}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
-\ partial{\isacharunderscore}order{\isachardot}less{\isacharunderscore}def\ {\isacharbrackleft}OF\ {\isacharbackquoteopen}partial{\isacharunderscore}order\ op\ {\isasymle}{\isacharbackquoteclose}{\isacharbrackright}\isanewline
+\ partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less{\isaliteral{5F}{\isacharunderscore}}def\ {\isaliteral{5B}{\isacharbrackleft}}OF\ {\isaliteral{60}{\isacharbackquoteopen}}partial{\isaliteral{5F}{\isacharunderscore}}order\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}{\isaliteral{60}{\isacharbackquoteclose}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
@@ -68,7 +68,7 @@
 %
 \begin{isamarkuptext}%
 Note that the above proof is not in the context of the
-  interpreted locale.  Hence, the premise of \isa{partial{\isacharunderscore}order{\isachardot}less{\isacharunderscore}def} is discharged manually with \isa{OF}.%
+  interpreted locale.  Hence, the premise of \isa{partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less{\isaliteral{5F}{\isacharunderscore}}def} is discharged manually with \isa{OF}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

@@ -34,7 +34,7 @@ Isabelle provides several ways to present the outcome of formal
   The Isabelle tools \indexref{}{tool}{mkdir}\hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}} and \indexref{}{tool}{make}\hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}} provide
   the primary means for managing Isabelle sessions, including proper
   setup for presentation.  Here the \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} tool takes care
-  to let \indexref{}{executable}{isabelle-process}\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} process run any
+  to let \indexref{}{executable}{isabelle-process}\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}} process run any
   additional stages required for document preparation, notably the
   tools \indexref{}{tool}{document}\hyperlink{tool.document}{\mbox{\isa{\isatt{document}}}} and \indexref{}{tool}{latex}\hyperlink{tool.latex}{\mbox{\isa{\isatt{latex}}}}.  The complete tool
   chain for managing batch-mode Isabelle sessions is illustrated in
@@ -53,7 +53,7 @@ Isabelle provides several ways to present the outcome of formal
       \verb|isabelle| \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} & part of the standard
       \verb|IsaMakefile| entry of a session; \\
 
-      \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} & run through \verb|isabelle| \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}; \\
+      \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}} & run through \verb|isabelle| \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}; \\
 
       \verb|isabelle| \indexref{}{tool}{document}\hyperlink{tool.document}{\mbox{\isa{\isatt{document}}}} & run by the Isabelle
       process if document preparation is enabled; \\
@@ -96,14 +96,14 @@ Isabelle provides several ways to present the outcome of formal
 
   The easiest way to let Isabelle generate theory browsing information
   for existing sessions is to append ``\verb|-i true|'' to the
-  \indexref{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}USEDIR{\isacharunderscore}OPTIONS}}}} before invoking \verb|isabelle| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}} (or \hyperlink{file.$ISABELLE-HOME/build}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}build}}}}).  For
+  \indexref{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}USEDIR{\isaliteral{5F}{\isacharunderscore}}OPTIONS}}}} before invoking \verb|isabelle| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}} (or \hyperlink{file.$ISABELLE-HOME/build}{\mbox{\isa{\isatt{{\isaliteral{24}{\isachardollar}}ISABELLE{\isaliteral{5F}{\isacharunderscore}}HOME{\isaliteral{2F}{\isacharslash}}build}}}}).  For
   example, add something like this to your Isabelle settings file
 
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true"
 \end{ttbox}
 
-  and then change into the \hyperlink{file.~~/src/FOL}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL}}}} directory and run
+  and then change into the \hyperlink{file.~~/src/FOL}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}FOL}}}} directory and run
   \verb|isabelle| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}}, or even \verb|isabelle|
   \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}}~\verb|all|.  The presentation output will appear
   in \verb|ISABELLE_BROWSER_INFO/FOL|, which usually refers to
@@ -111,7 +111,7 @@ ISABELLE_USEDIR_OPTIONS="-i true"
   \verb|-v true| will make the internal runs of \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}
   more explicit about such details.
 
-  Many standard Isabelle sessions (such as \hyperlink{file.~~/src/HOL/ex}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}HOL{\isacharslash}ex}}}})
+  Many standard Isabelle sessions (such as \hyperlink{file.~~/src/HOL/ex}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}HOL{\isaliteral{2F}{\isacharslash}}ex}}}})
   also provide actual printable documents.  These are prepared
   automatically as well if enabled like this, using the \verb|-d| option
 \begin{ttbox}
@@ -124,7 +124,7 @@ ISABELLE_USEDIR_OPTIONS="-i true -d dvi"
   well, see \secref{sec:tool-document} for further details.
 
   \bigskip The theory browsing information is stored in a
-  sub-directory directory determined by the \indexref{}{setting}{ISABELLE\_BROWSER\_INFO}\hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BROWSER{\isacharunderscore}INFO}}}} setting plus a prefix corresponding to the
+  sub-directory directory determined by the \indexref{}{setting}{ISABELLE\_BROWSER\_INFO}\hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BROWSER{\isaliteral{5F}{\isacharunderscore}}INFO}}}} setting plus a prefix corresponding to the
   session identifier (according to the tree structure of sub-sessions
   by default).  A complete WWW view of all standard object-logics and
   examples of the Isabelle distribution is available at the usual
@@ -138,7 +138,7 @@ ISABELLE_USEDIR_OPTIONS="-i true -d dvi"
   \end{center}
   
   \medskip In order to present your own theories on the web, simply
-  copy the corresponding subdirectory from \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BROWSER{\isacharunderscore}INFO}}}} to your WWW server, having generated browser
+  copy the corresponding subdirectory from \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BROWSER{\isaliteral{5F}{\isacharunderscore}}INFO}}}} to your WWW server, having generated browser
   info like this:
 \begin{ttbox}
 isabelle usedir -i true HOL Foo
@@ -204,7 +204,7 @@ Usage: browser [OPTIONS] [GRAPHFILE]
     -o FILE      output to FILE (ps, eps, pdf)
 \end{ttbox}
   When no filename is specified, the browser automatically changes to
-  the directory \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BROWSER{\isacharunderscore}INFO}}}}.
+  the directory \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BROWSER{\isaliteral{5F}{\isacharunderscore}}INFO}}}}.
 
   \medskip The \verb|-b| option indicates that this is for
   administrative build only, i.e.\ no browser popup if no files are
@@ -327,8 +327,8 @@ A graph definition file has the following syntax:
 
   \begin{center}\small
   \begin{tabular}{rcl}
-    \isa{graph} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharbraceleft}\ vertex{\isachardoublequote}}~\verb|;|~\isa{{\isachardoublequote}{\isacharbraceright}{\isacharplus}{\isachardoublequote}} \\
-    \isa{vertex} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \isa{{\isachardoublequote}vertex{\isacharunderscore}name\ vertex{\isacharunderscore}ID\ dir{\isacharunderscore}name\ {\isacharbrackleft}{\isachardoublequote}}~\verb|+|~\isa{{\isachardoublequote}{\isacharbrackright}\ path\ {\isacharbrackleft}{\isachardoublequote}}~\verb|<|~\isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}}~\verb|>|~\isa{{\isachardoublequote}{\isacharbrackright}\ {\isacharbraceleft}\ vertex{\isacharunderscore}ID\ {\isacharbraceright}{\isacharasterisk}{\isachardoublequote}}
+    \isa{graph} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{7B}{\isacharbraceleft}}\ vertex{\isaliteral{22}{\isachardoublequote}}}~\verb|;|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{2B}{\isacharplus}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \isa{vertex} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}vertex{\isaliteral{5F}{\isacharunderscore}}name\ vertex{\isaliteral{5F}{\isacharunderscore}}ID\ dir{\isaliteral{5F}{\isacharunderscore}}name\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}}~\verb|+|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ path\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}}~\verb|<|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{7C}{\isacharbar}}{\isaliteral{22}{\isachardoublequote}}}~\verb|>|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\ vertex{\isaliteral{5F}{\isacharunderscore}}ID\ {\isaliteral{7D}{\isacharbraceright}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}
   \end{tabular}
   \end{center}
 
@@ -336,14 +336,14 @@ A graph definition file has the following syntax:
 
   \begin{description}
   
-  \item[\isa{vertex{\isacharunderscore}name}] The name of the vertex.
+  \item[\isa{vertex{\isaliteral{5F}{\isacharunderscore}}name}] The name of the vertex.
   
-  \item[\isa{vertex{\isacharunderscore}ID}] The vertex identifier. Note that there may
+  \item[\isa{vertex{\isaliteral{5F}{\isacharunderscore}}ID}] The vertex identifier. Note that there may
   be several vertices with equal names, whereas identifiers must be
   unique.
   
-  \item[\isa{dir{\isacharunderscore}name}] The name of the ``directory'' the vertex
-  should be placed in.  A ``\verb|+|'' sign after \isa{dir{\isacharunderscore}name} indicates that the nodes in the directory are initially
+  \item[\isa{dir{\isaliteral{5F}{\isacharunderscore}}name}] The name of the ``directory'' the vertex
+  should be placed in.  A ``\verb|+|'' sign after \isa{dir{\isaliteral{5F}{\isacharunderscore}}name} indicates that the nodes in the directory are initially
   visible. Directories are initially invisible by default.
   
   \item[\isa{path}] The path of the corresponding theory file. This
@@ -451,7 +451,7 @@ isabelle mkdir Foo && isabelle make
   manual editing of the generated \verb|IsaMakefile|, which is
   meant to cover all of the sub-session directories at the same time
   (this is the deeper reasong why \verb|IsaMakefile| is not made
-  part of the initial session directory created by \verb|isabelle| \hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}}).  See \hyperlink{file.~~/src/HOL/IsaMakefile}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}HOL{\isacharslash}IsaMakefile}}}} for
+  part of the initial session directory created by \verb|isabelle| \hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}}).  See \hyperlink{file.~~/src/HOL/IsaMakefile}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}HOL{\isaliteral{2F}{\isacharslash}}IsaMakefile}}}} for
   a full-blown example.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -498,7 +498,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
   ML_OPTIONS=-H 500
 \end{ttbox}
 
-  Note that the value of the \indexref{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}USEDIR{\isacharunderscore}OPTIONS}}}}
+  Note that the value of the \indexref{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}USEDIR{\isaliteral{5F}{\isacharunderscore}}OPTIONS}}}}
   setting is implicitly prefixed to \emph{any} \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}
   call. Since the \verb|IsaMakefile|s of all object-logics
   distributed with Isabelle just invoke \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} for the real
@@ -517,7 +517,7 @@ Basically, there are two different modes of operation: \emph{build
   mode} (enabled through the \verb|-b| option) and
   \emph{example mode} (default).
 
-  Calling \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} with \verb|-b| runs \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} with input image \verb|LOGIC| and output to
+  Calling \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} with \verb|-b| runs \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isaliteral{2D}{\isacharminus}}process}}}} with input image \verb|LOGIC| and output to
   \verb|NAME|, as provided on the command line. This will be a
   batch session, running \verb|ROOT.ML| from the current
   directory and then quitting.  It is assumed that \verb|ROOT.ML|
@@ -621,7 +621,7 @@ Basically, there are two different modes of operation: \emph{build
 \begin{isamarkuptext}%
 Refer to the \verb|IsaMakefile|s of the Isabelle distribution's
   object-logics as a model for your own developments.  For example,
-  see \hyperlink{file.~~/src/FOL/IsaMakefile}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL{\isacharslash}IsaMakefile}}}}.  The Isabelle \indexref{}{tool}{mkdir}\hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}} tool creates \verb|IsaMakefile|s with proper invocation
+  see \hyperlink{file.~~/src/FOL/IsaMakefile}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}FOL{\isaliteral{2F}{\isacharslash}}IsaMakefile}}}}.  The Isabelle \indexref{}{tool}{mkdir}\hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}} tool creates \verb|IsaMakefile|s with proper invocation
   of \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} as well.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -670,7 +670,7 @@ Usage: document [OPTIONS] [DIR]
   fold text tagged as \isa{foo}.  The builtin default is equivalent
   to the tag specification ``\verb|+theory,+proof,+ML,+visible,-invisible|''; see also the {\LaTeX}
   macros \verb|\isakeeptag|, \verb|\isadroptag|, and
-  \verb|\isafoldtag|, in \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}isabelle{\isachardot}sty}}}}.
+  \verb|\isafoldtag|, in \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}lib{\isaliteral{2F}{\isacharslash}}texinputs{\isaliteral{2F}{\isacharslash}}isabelle{\isaliteral{2E}{\isachardot}}sty}}}}.
 
   \medskip Document preparation requires a properly setup ``\verb|document|'' directory within the logic session sources.  This
   directory is supposed to contain all the files needed to produce the
@@ -692,7 +692,7 @@ Usage: document [OPTIONS] [DIR]
 
   \medskip When running the session, Isabelle copies the original
   \verb|document| directory into its proper place within
-  \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BROWSER{\isacharunderscore}INFO}}}} according to the session path.
+  \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BROWSER{\isaliteral{5F}{\isacharunderscore}}INFO}}}} according to the session path.
   Then, for any processed theory \isa{A} some {\LaTeX} source is
   generated and put there as \isa{A}\verb|.tex|.
   Furthermore, a list of all generated theory files is put into
@@ -701,7 +701,7 @@ Usage: document [OPTIONS] [DIR]
   containing all the theories.
 
   The {\LaTeX} versions of the theories require some macros defined in
-  \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}isabelle{\isachardot}sty}}}}.  Doing \verb|\usepackage{isabelle}| in \verb|root.tex| should be fine;
+  \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}lib{\isaliteral{2F}{\isacharslash}}texinputs{\isaliteral{2F}{\isacharslash}}isabelle{\isaliteral{2E}{\isachardot}}sty}}}}.  Doing \verb|\usepackage{isabelle}| in \verb|root.tex| should be fine;
   the underlying Isabelle \hyperlink{tool.latex}{\mbox{\isa{\isatt{latex}}}} tool already includes an
   appropriate path specification for {\TeX} inputs.
 
@@ -710,11 +710,11 @@ Usage: document [OPTIONS] [DIR]
   contains a standard set of {\LaTeX} macro definitions \verb|\isasym|\isa{foo} corresponding to \verb|\|\verb|<|\isa{foo}\verb|>|, see \cite{isabelle-implementation} for a
   complete list of predefined Isabelle symbols.  Users may invent
   further symbols as well, just by providing {\LaTeX} macros in a
-  similar fashion as in \hyperlink{file.~~/lib/texinputs/isabellesym.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}isabellesym{\isachardot}sty}}}} of
+  similar fashion as in \hyperlink{file.~~/lib/texinputs/isabellesym.sty}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}lib{\isaliteral{2F}{\isacharslash}}texinputs{\isaliteral{2F}{\isacharslash}}isabellesym{\isaliteral{2E}{\isachardot}}sty}}}} of
   the distribution.
 
   For proper setup of DVI and PDF documents (with hyperlinks and
-  bookmarks), we recommend to include \hyperlink{file.~~/lib/texinputs/pdfsetup.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}pdfsetup{\isachardot}sty}}}} as well.
+  bookmarks), we recommend to include \hyperlink{file.~~/lib/texinputs/pdfsetup.sty}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}lib{\isaliteral{2F}{\isacharslash}}texinputs{\isaliteral{2F}{\isacharslash}}pdfsetup{\isaliteral{2E}{\isachardot}}sty}}}} as well.
 
   \medskip As a final step of document preparation within Isabelle,
   \verb|isabelle| \hyperlink{tool.document}{\mbox{\isa{\isatt{document}}}}~\verb|-c| is run on the
@@ -752,7 +752,7 @@ Usage: latex [OPTIONS] [FILE]
   according to the given output format: \hyperlink{executable.latex}{\mbox{\isa{\isatt{latex}}}},
   \hyperlink{executable.pdflatex}{\mbox{\isa{\isatt{pdflatex}}}}, \hyperlink{executable.dvips}{\mbox{\isa{\isatt{dvips}}}}, \hyperlink{executable.bibtex}{\mbox{\isa{\isatt{bibtex}}}}
   (for \verb|bbl|), and \hyperlink{executable.makeindex}{\mbox{\isa{\isatt{makeindex}}}} (for \verb|idx|).  The actual commands are determined from the settings
-  environment (\hyperlink{setting.ISABELLE-LATEX}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}LATEX}}}} etc.).
+  environment (\hyperlink{setting.ISABELLE-LATEX}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}LATEX}}}} etc.).
 
   The \verb|sty| output format causes the Isabelle style files to
   be updated from the distribution.  This is useful in special
@@ -773,7 +773,7 @@ Usage: latex [OPTIONS] [FILE]
 Invoking \verb|isabelle| \hyperlink{tool.latex}{\mbox{\isa{\isatt{latex}}}} by hand may be
   occasionally useful when debugging failed attempts of the automatic
   document preparation stage of batch-mode Isabelle.  The abortive
-  process leaves the sources at a certain place within \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BROWSER{\isacharunderscore}INFO}}}}, see the runtime error message for details.
+  process leaves the sources at a certain place within \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isaliteral{5F}{\isacharunderscore}}BROWSER{\isaliteral{5F}{\isacharunderscore}}INFO}}}}, see the runtime error message for details.
   This enables users to inspect {\LaTeX} runs in further detail, e.g.\
   like this:
 \begin{ttbox}

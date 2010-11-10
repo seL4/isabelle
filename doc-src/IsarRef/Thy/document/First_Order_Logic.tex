@@ -1,6 +1,6 @@
 %
 \begin{isabellebody}%
-\def\isabellecontext{First{\isacharunderscore}Order{\isacharunderscore}Logic}%
+\def\isabellecontext{First{\isaliteral{5F}{\isacharunderscore}}Order{\isaliteral{5F}{\isacharunderscore}}Logic}%
 %
 \isamarkupheader{Example: First-Order Logic%
 }
@@ -12,7 +12,7 @@
 %
 \isatagvisible
 \isacommand{theory}\isamarkupfalse%
-\ First{\isacharunderscore}Order{\isacharunderscore}Logic\isanewline
+\ First{\isaliteral{5F}{\isacharunderscore}}Order{\isaliteral{5F}{\isacharunderscore}}Logic\isanewline
 \isakeyword{imports}\ Pure\isanewline
 \isakeyword{begin}%
 \endisatagvisible
@@ -24,8 +24,8 @@
 %
 \begin{isamarkuptext}%
 \noindent In order to commence a new object-logic within
-  Isabelle/Pure we introduce abstract syntactic categories \isa{{\isachardoublequote}i{\isachardoublequote}}
-  for individuals and \isa{{\isachardoublequote}o{\isachardoublequote}} for object-propositions.  The latter
+  Isabelle/Pure we introduce abstract syntactic categories \isa{{\isaliteral{22}{\isachardoublequote}}i{\isaliteral{22}{\isachardoublequote}}}
+  for individuals and \isa{{\isaliteral{22}{\isachardoublequote}}o{\isaliteral{22}{\isachardoublequote}}} for object-propositions.  The latter
   is embedded into the language of Pure propositions by means of a
   separate judgment.%
 \end{isamarkuptext}%
@@ -37,10 +37,10 @@
 \isanewline
 \isacommand{judgment}\isamarkupfalse%
 \isanewline
-\ \ Trueprop\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ prop{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}{\isachardoublequoteclose}\ {\isadigit{5}}{\isacharparenright}%
+\ \ Trueprop\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}o\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ prop{\isaliteral{22}{\isachardoublequoteclose}}\ \ \ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isaliteral{29}{\isacharparenright}}%
 \begin{isamarkuptext}%
 \noindent Note that the object-logic judgement is implicit in the
-  syntax: writing \isa{A} produces \isa{{\isachardoublequote}Trueprop\ A{\isachardoublequote}} internally.
+  syntax: writing \isa{A} produces \isa{{\isaliteral{22}{\isachardoublequote}}Trueprop\ A{\isaliteral{22}{\isachardoublequote}}} internally.
   From the Pure perspective this means ``\isa{A} is derivable in the
   object-logic''.%
 \end{isamarkuptext}%
@@ -55,16 +55,16 @@ Equality is axiomatized as a binary predicate on individuals, with
   reflexivity as introduction, and substitution as elimination
   principle.  Note that the latter is particularly convenient in a
   framework like Isabelle, because syntactic congruences are
-  implicitly produced by unification of \isa{{\isachardoublequote}B\ x{\isachardoublequote}} against
+  implicitly produced by unification of \isa{{\isaliteral{22}{\isachardoublequote}}B\ x{\isaliteral{22}{\isachardoublequote}}} against
   expressions containing occurrences of \isa{x}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{axiomatization}\isamarkupfalse%
 \isanewline
-\ \ equal\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}i\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isacharequal}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ equal\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infix}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3D}{\isacharequal}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \isakeyword{where}\isanewline
-\ \ refl\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ subst\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isacharequal}\ y\ {\isasymLongrightarrow}\ B\ x\ {\isasymLongrightarrow}\ B\ y{\isachardoublequoteclose}%
+\ \ refl\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ subst\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ y{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent Substitution is very powerful, but also hard to control in
   full generality.  We derive some common symmetry~/ transitivity
@@ -72,9 +72,9 @@ Equality is axiomatized as a binary predicate on individuals, with
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ sym\ {\isacharbrackleft}sym{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}y\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ sym\ {\isaliteral{5B}{\isacharbrackleft}}sym{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -82,13 +82,13 @@ Equality is axiomatized as a binary predicate on individuals, with
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{with}\isamarkupfalse%
-\ {\isacharbackquoteopen}x\ {\isacharequal}\ y{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}y\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -101,9 +101,9 @@ Equality is axiomatized as a binary predicate on individuals, with
 \endisadelimproof
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ forw{\isacharunderscore}subst\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}y\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}B\ x{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+\ forw{\isaliteral{5F}{\isacharunderscore}}subst\ {\isaliteral{5B}{\isacharbrackleft}}trans{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}B\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}B\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -111,14 +111,14 @@ Equality is axiomatized as a binary predicate on individuals, with
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}y\ {\isacharequal}\ x{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isacharequal}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}y\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ this\ \isakeyword{and}\ {\isacharbackquoteopen}B\ x{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ this\ \isakeyword{and}\ {\isaliteral{60}{\isacharbackquoteopen}}B\ x{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}B\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -131,9 +131,9 @@ Equality is axiomatized as a binary predicate on individuals, with
 \endisadelimproof
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ back{\isacharunderscore}subst\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}B\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+\ back{\isaliteral{5F}{\isacharunderscore}}subst\ {\isaliteral{5B}{\isacharbrackleft}}trans{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}B\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}B\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -141,11 +141,11 @@ Equality is axiomatized as a binary predicate on individuals, with
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}x\ {\isacharequal}\ y{\isacharbackquoteclose}\ \isakeyword{and}\ {\isacharbackquoteopen}B\ x{\isacharbackquoteclose}\isanewline
+\ {\isaliteral{60}{\isacharbackquoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{60}{\isacharbackquoteclose}}\ \isakeyword{and}\ {\isaliteral{60}{\isacharbackquoteopen}}B\ x{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}B\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -158,9 +158,9 @@ Equality is axiomatized as a binary predicate on individuals, with
 \endisadelimproof
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ trans\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}x\ {\isacharequal}\ y{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}x\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
+\ trans\ {\isaliteral{5B}{\isacharbrackleft}}trans{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}y\ {\isaliteral{3D}{\isacharequal}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -168,11 +168,11 @@ Equality is axiomatized as a binary predicate on individuals, with
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}y\ {\isacharequal}\ z{\isacharbackquoteclose}\ \isakeyword{and}\ {\isacharbackquoteopen}x\ {\isacharequal}\ y{\isacharbackquoteclose}\isanewline
+\ {\isaliteral{60}{\isacharbackquoteopen}}y\ {\isaliteral{3D}{\isacharequal}}\ z{\isaliteral{60}{\isacharbackquoteclose}}\ \isakeyword{and}\ {\isaliteral{60}{\isacharbackquoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isacharequal}\ z{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ z{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -195,17 +195,17 @@ As an example for equational reasoning we consider some bits of
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{locale}\isamarkupfalse%
-\ group\ {\isacharequal}\isanewline
-\ \ \isakeyword{fixes}\ prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}i\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ i{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isasymcirc}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \ \ \isakeyword{and}\ inv\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}i\ {\isasymRightarrow}\ i{\isachardoublequoteclose}\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharparenleft}{\isacharunderscore}{\isasyminverse}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
-\ \ \ \ \isakeyword{and}\ unit\ {\isacharcolon}{\isacharcolon}\ i\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isadigit{1}}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymcirc}\ y{\isacharparenright}\ {\isasymcirc}\ z\ {\isacharequal}\ x\ {\isasymcirc}\ {\isacharparenleft}y\ {\isasymcirc}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ left{\isacharunderscore}unit{\isacharcolon}\ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isasymcirc}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ left{\isacharunderscore}inv{\isacharcolon}\ {\isachardoublequoteopen}x{\isasyminverse}\ {\isasymcirc}\ x\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\ group\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \isakeyword{fixes}\ prod\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ i{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infix}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C636972633E}{\isasymcirc}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{7}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isakeyword{and}\ inv\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ i{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isaliteral{5D}{\isacharbrackright}}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isakeyword{and}\ unit\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ i\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isakeyword{assumes}\ assoc{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ z\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isakeyword{and}\ left{\isaliteral{5F}{\isacharunderscore}}unit{\isaliteral{3A}{\isacharcolon}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{1}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isakeyword{and}\ left{\isaliteral{5F}{\isacharunderscore}}inv{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ right{\isacharunderscore}inv{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\ right{\isaliteral{5F}{\isacharunderscore}}inv{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -213,41 +213,41 @@ As an example for equational reasoning we consider some bits of
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isadigit{1}}\ {\isasymcirc}\ {\isacharparenleft}x\ {\isasymcirc}\ x{\isasyminverse}{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ left{\isacharunderscore}unit\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ left{\isaliteral{5F}{\isacharunderscore}}unit\ {\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{1}}\ {\isasymcirc}\ x{\isacharparenright}\ {\isasymcirc}\ x{\isasyminverse}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ assoc\ {\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ x{\isasyminverse}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ left{\isacharunderscore}inv\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ left{\isaliteral{5F}{\isacharunderscore}}inv\ {\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isasymcirc}\ x\ {\isacharequal}\ {\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ {\isacharparenleft}x{\isasyminverse}\ {\isasymcirc}\ x{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ assoc{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ assoc{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x{\isasyminverse}\ {\isasymcirc}\ x\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ left{\isacharunderscore}inv{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ left{\isaliteral{5F}{\isacharunderscore}}inv{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ {\isasymdots}{\isacharparenright}\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ {\isacharparenleft}{\isadigit{1}}\ {\isasymcirc}\ x{\isasyminverse}{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ assoc{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ assoc{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isadigit{1}}\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ x{\isasyminverse}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{1}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ left{\isaliteral{5F}{\isacharunderscore}}unit{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ {\isasymdots}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ left{\isacharunderscore}inv{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ left{\isaliteral{5F}{\isacharunderscore}}inv{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -260,7 +260,7 @@ As an example for equational reasoning we consider some bits of
 \endisadelimproof
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isadigit{1}}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ right{\isaliteral{5F}{\isacharunderscore}}unit{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -268,25 +268,25 @@ As an example for equational reasoning we consider some bits of
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ x{\isasyminverse}\ {\isasymcirc}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ left{\isacharunderscore}inv\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ left{\isaliteral{5F}{\isacharunderscore}}inv\ {\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymcirc}\ x{\isasyminverse}{\isacharparenright}\ {\isasymcirc}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ assoc\ {\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ right{\isacharunderscore}inv{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ right{\isaliteral{5F}{\isacharunderscore}}inv{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isasymcirc}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ left{\isaliteral{5F}{\isacharunderscore}}unit{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isadigit{1}}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -300,12 +300,12 @@ As an example for equational reasoning we consider some bits of
 \begin{isamarkuptext}%
 \noindent Reasoning from basic axioms is often tedious.  Our proofs
   work by producing various instances of the given rules (potentially
-  the symmetric form) using the pattern ``\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{eq}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharparenleft}rule\ r{\isacharparenright}{\isachardoublequote}}'' and composing the chain of
+  the symmetric form) using the pattern ``\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{eq}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}rule\ r{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' and composing the chain of
   results via \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}/\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}.  These steps may
   involve any of the transitivity rules declared in
   \secref{sec:framework-ex-equal}, namely \isa{trans} in combining
-  the first two results in \isa{right{\isacharunderscore}inv} and in the final steps of
-  both proofs, \isa{forw{\isacharunderscore}subst} in the first combination of \isa{right{\isacharunderscore}unit}, and \isa{back{\isacharunderscore}subst} in all other calculational steps.
+  the first two results in \isa{right{\isaliteral{5F}{\isacharunderscore}}inv} and in the final steps of
+  both proofs, \isa{forw{\isaliteral{5F}{\isacharunderscore}}subst} in the first combination of \isa{right{\isaliteral{5F}{\isacharunderscore}}unit}, and \isa{back{\isaliteral{5F}{\isacharunderscore}}subst} in all other calculational steps.
 
   Occasional substitutions in calculations are adequate, but should
   not be over-emphasized.  The other extreme is to compose a chain by
@@ -320,27 +320,27 @@ As an example for equational reasoning we consider some bits of
 %
 \isatagproof
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isadigit{1}}\ {\isacharequal}\ x\ {\isasymcirc}\ {\isacharparenleft}x{\isasyminverse}\ {\isasymcirc}\ x{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
-\ left{\isacharunderscore}inv\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{unfolding}\isamarkupfalse%
+\ left{\isaliteral{5F}{\isacharunderscore}}inv\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymcirc}\ x{\isasyminverse}{\isacharparenright}\ {\isasymcirc}\ x{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
-\ assoc\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{5C3C696E76657273653E}{\isasyminverse}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{unfolding}\isamarkupfalse%
+\ assoc\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ {\isadigit{1}}\ {\isasymcirc}\ x{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
-\ right{\isacharunderscore}inv\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{unfolding}\isamarkupfalse%
+\ right{\isaliteral{5F}{\isacharunderscore}}inv\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{also}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
-\ left{\isacharunderscore}unit\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{unfolding}\isamarkupfalse%
+\ left{\isaliteral{5F}{\isacharunderscore}}unit\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{finally}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isadigit{1}}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ {\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -354,7 +354,7 @@ As an example for equational reasoning we consider some bits of
   definitions in order to normalize each equational problem.  A more
   realistic object-logic would include proper setup for the Simplifier
   (\secref{sec:simplifier}), the main automated tool for equational
-  reasoning in Isabelle.  Then ``\hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}~\isa{left{\isacharunderscore}inv}~\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}'' would become ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharparenleft}simp\ only{\isacharcolon}\ left{\isacharunderscore}inv{\isacharparenright}{\isachardoublequote}}'' etc.%
+  reasoning in Isabelle.  Then ``\hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}~\isa{left{\isaliteral{5F}{\isacharunderscore}}inv}~\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}}}}'' would become ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}simp\ only{\isaliteral{3A}{\isacharcolon}}\ left{\isaliteral{5F}{\isacharunderscore}}inv{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' etc.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{end}\isamarkupfalse%
@@ -371,34 +371,34 @@ We axiomatize basic connectives of propositional logic: implication,
 \isamarkuptrue%
 \isacommand{axiomatization}\isamarkupfalse%
 \isanewline
-\ \ imp\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isasymlongrightarrow}{\isachardoublequoteclose}\ {\isadigit{2}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ impI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymlongrightarrow}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ impD\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymLongrightarrow}\ B{\isachardoublequoteclose}\isanewline
+\ \ imp\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}o\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixr}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{2}}{\isadigit{5}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\isanewline
+\ \ impI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ impD\ {\isaliteral{5B}{\isacharbrackleft}}dest{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ B{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{axiomatization}\isamarkupfalse%
 \isanewline
-\ \ disj\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isasymor}{\isachardoublequoteclose}\ {\isadigit{3}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ disjI\isactrlisub {\isadigit{1}}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymLongrightarrow}\ A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ disjI\isactrlisub {\isadigit{2}}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}B\ {\isasymLongrightarrow}\ A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ disjE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymor}\ B\ {\isasymLongrightarrow}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}\isanewline
+\ \ disj\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}o\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixr}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6F723E}{\isasymor}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{3}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\isanewline
+\ \ disjI\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ disjI\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ disjE\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{axiomatization}\isamarkupfalse%
 \isanewline
-\ \ conj\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isasymand}{\isachardoublequoteclose}\ {\isadigit{3}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ conjI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isasymand}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ conjD\isactrlisub {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ A{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ conjD\isactrlisub {\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B{\isachardoublequoteclose}%
+\ \ conj\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}o\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixr}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C616E643E}{\isasymand}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{3}}{\isadigit{5}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\isanewline
+\ \ conjI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ conjD\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ conjD\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent The conjunctive destructions have the disadvantage that
-  decomposing \isa{{\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}} involves an immediate decision which
+  decomposing \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequote}}} involves an immediate decision which
   component should be projected.  The more convenient simultaneous
-  elimination \isa{{\isachardoublequote}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequote}} can be derived as
+  elimination \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{22}{\isachardoublequote}}} can be derived as
   follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
-\ conjE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ conjE\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isakeyword{obtains}\ A\ \isakeyword{and}\ B\isanewline
 %
 \isadelimproof
@@ -409,13 +409,13 @@ We axiomatize basic connectives of propositional logic: implication,
 \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}A\ {\isasymand}\ B{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
 \ A\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ conjD\isactrlisub {\isadigit{1}}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ conjD\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}A\ {\isasymand}\ B{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
 \ B\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ conjD\isactrlisub {\isadigit{2}}{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ conjD\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -437,14 +437,14 @@ We axiomatize basic connectives of propositional logic: implication,
 %
 \isatagproof
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{obtain}\isamarkupfalse%
-\ B\ \isakeyword{and}\ A\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ B\ \isakeyword{and}\ A\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}B\ {\isaliteral{5C3C616E643E}{\isasymand}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -455,7 +455,7 @@ We axiomatize basic connectives of propositional logic: implication,
 %
 \begin{isamarkuptext}%
 \noindent Note that the analogous elimination rule for disjunction
-  ``\isa{{\isachardoublequote}{\isasymASSUMES}\ A\ {\isasymor}\ B\ {\isasymOBTAINS}\ A\ {\isasymBBAR}\ B{\isachardoublequote}}'' coincides with
+  ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B\ {\isaliteral{5C3C4F425441494E533E}{\isasymOBTAINS}}\ A\ {\isaliteral{5C3C424241523E}{\isasymBBAR}}\ B{\isaliteral{22}{\isachardoublequote}}}'' coincides with
   the original axiomatization of \isa{disjE}.
 
   \medskip We continue propositional logic by introducing absurdity
@@ -465,16 +465,16 @@ We axiomatize basic connectives of propositional logic: implication,
 \isamarkuptrue%
 \isacommand{axiomatization}\isamarkupfalse%
 \isanewline
-\ \ false\ {\isacharcolon}{\isacharcolon}\ o\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymbottom}{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ falseE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymbottom}\ {\isasymLongrightarrow}\ A{\isachardoublequoteclose}\isanewline
+\ \ false\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ o\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\isanewline
+\ \ falseE\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ true\ {\isacharcolon}{\isacharcolon}\ o\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymtop}{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}{\isasymtop}\ {\isasymequiv}\ {\isasymbottom}\ {\isasymlongrightarrow}\ {\isasymbottom}{\isachardoublequoteclose}\isanewline
+\ \ true\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ o\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C746F703E}{\isasymtop}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C746F703E}{\isasymtop}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ trueI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isasymtop}\isanewline
+\ trueI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C746F703E}{\isasymtop}}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -482,7 +482,7 @@ We axiomatize basic connectives of propositional logic: implication,
 %
 \isatagproof
 \isacommand{unfolding}\isamarkupfalse%
-\ true{\isacharunderscore}def\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ true{\isaliteral{5F}{\isacharunderscore}}def\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
@@ -498,13 +498,13 @@ We axiomatize basic connectives of propositional logic: implication,
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ not\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymnot}\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{4}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{4}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}{\isasymnot}\ A\ {\isasymequiv}\ A\ {\isasymlongrightarrow}\ {\isasymbottom}{\isachardoublequoteclose}\isanewline
+\ \ not\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}o\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{5F}{\isacharunderscore}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{4}}{\isadigit{0}}{\isaliteral{5D}{\isacharbrackright}}\ {\isadigit{4}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ notI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}A\ {\isasymLongrightarrow}\ {\isasymbottom}{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\isanewline
+\ notI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -512,15 +512,15 @@ We axiomatize basic connectives of propositional logic: implication,
 %
 \isatagproof
 \isacommand{unfolding}\isamarkupfalse%
-\ not{\isacharunderscore}def\isanewline
+\ not{\isaliteral{5F}{\isacharunderscore}}def\isanewline
 \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
 \ A\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isasymbottom}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}rule\ {\isacharbackquoteopen}A\ {\isasymLongrightarrow}\ {\isasymbottom}{\isacharbackquoteclose}{\isacharparenright}\isanewline
+\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ {\isaliteral{60}{\isacharbackquoteopen}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{60}{\isacharbackquoteclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -532,8 +532,8 @@ We axiomatize basic connectives of propositional logic: implication,
 \endisadelimproof
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ notE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\ \isakeyword{and}\ A\isanewline
+\ notE\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ A\isanewline
 \ \ \isakeyword{shows}\ B\isanewline
 %
 \isadelimproof
@@ -542,19 +542,19 @@ We axiomatize basic connectives of propositional logic: implication,
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharminus}\isanewline
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}{\isasymnot}\ A{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ {\isasymbottom}{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
-\ not{\isacharunderscore}def\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{unfolding}\isamarkupfalse%
+\ not{\isaliteral{5F}{\isacharunderscore}}def\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{from}\isamarkupfalse%
-\ {\isacharbackquoteopen}A\ {\isasymlongrightarrow}\ {\isasymbottom}{\isacharbackquoteclose}\ \isakeyword{and}\ {\isacharbackquoteopen}A{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
-\ {\isasymbottom}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isakeyword{and}\ {\isaliteral{60}{\isacharbackquoteopen}}A{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ B\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -577,13 +577,13 @@ Subsequently we state the principle of classical contradiction as a
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{locale}\isamarkupfalse%
-\ classical\ {\isacharequal}\isanewline
-\ \ \isakeyword{assumes}\ classical{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymnot}\ C\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}\isanewline
+\ classical\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \isakeyword{assumes}\ classical{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ double{\isacharunderscore}negation{\isacharcolon}\isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isasymnot}\ {\isasymnot}\ C{\isachardoublequoteclose}\isanewline
+\ double{\isaliteral{5F}{\isacharunderscore}}negation{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isakeyword{shows}\ C\isanewline
 %
 \isadelimproof
@@ -592,12 +592,12 @@ Subsequently we state the principle of classical contradiction as a
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ classical{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ classical{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ C{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{with}\isamarkupfalse%
-\ {\isacharbackquoteopen}{\isasymnot}\ {\isasymnot}\ C{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ C\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ C\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
 %
@@ -610,7 +610,7 @@ Subsequently we state the principle of classical contradiction as a
 \endisadelimproof
 \isanewline
 \isacommand{theorem}\isamarkupfalse%
-\ tertium{\isacharunderscore}non{\isacharunderscore}datur{\isacharcolon}\ {\isachardoublequoteopen}C\ {\isasymor}\ {\isasymnot}\ C{\isachardoublequoteclose}\isanewline
+\ tertium{\isaliteral{5F}{\isacharunderscore}}non{\isaliteral{5F}{\isacharunderscore}}datur{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}C\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -618,35 +618,35 @@ Subsequently we state the principle of classical contradiction as a
 %
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
-\ {\isacharparenleft}rule\ double{\isacharunderscore}negation{\isacharparenright}\isanewline
+\ {\isaliteral{28}{\isacharparenleft}}rule\ double{\isaliteral{5F}{\isacharunderscore}}negation{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ {\isasymnot}\ {\isacharparenleft}C\ {\isasymor}\ {\isasymnot}\ C{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}C\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ {\isacharparenleft}C\ {\isasymor}\ {\isasymnot}\ C{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}C\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ C{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
 \ C\ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}C\ {\isasymor}\ {\isasymnot}\ C{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}C\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ {\isacharbackquoteopen}{\isasymnot}\ {\isacharparenleft}C\ {\isasymor}\ {\isasymnot}\ C{\isacharparenright}{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isasymbottom}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}C\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{29}{\isacharparenright}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}C\ {\isasymor}\ {\isasymnot}\ C{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}C\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{with}\isamarkupfalse%
-\ {\isacharbackquoteopen}{\isasymnot}\ {\isacharparenleft}C\ {\isasymor}\ {\isasymnot}\ C{\isacharparenright}{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ {\isasymbottom}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}C\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C{\isaliteral{29}{\isacharparenright}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
@@ -664,9 +664,9 @@ Subsequently we state the principle of classical contradiction as a
   non-trivial propositional proofs in general.  All three rules
   characterize classical logic independently, but the original rule is
   already the most convenient to use, because it leaves the conclusion
-  unchanged.  Note that \isa{{\isachardoublequote}{\isacharparenleft}{\isasymnot}\ C\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequote}} fits again into our
+  unchanged.  Note that \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ C\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{22}{\isachardoublequote}}} fits again into our
   format for eliminations, despite the additional twist that the
-  context refers to the main conclusion.  So we may write \isa{classical} as the Isar statement ``\isa{{\isachardoublequote}{\isasymOBTAINS}\ {\isasymnot}\ thesis{\isachardoublequote}}''.
+  context refers to the main conclusion.  So we may write \isa{classical} as the Isar statement ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C4F425441494E533E}{\isasymOBTAINS}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ thesis{\isaliteral{22}{\isachardoublequote}}}''.
   This also explains nicely how classical reasoning really works:
   whatever the main \isa{thesis} might be, we may always assume its
   negation!%
@@ -682,31 +682,31 @@ Subsequently we state the principle of classical contradiction as a
 Representing quantifiers is easy, thanks to the higher-order nature
   of the underlying framework.  According to the well-known technique
   introduced by Church \cite{church40}, quantifiers are operators on
-  predicates, which are syntactically represented as \isa{{\isachardoublequote}{\isasymlambda}{\isachardoublequote}}-terms
-  of type \isa{{\isachardoublequote}i\ {\isasymRightarrow}\ o{\isachardoublequote}}.  Binder notation turns \isa{{\isachardoublequote}All\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ B\ x{\isacharparenright}{\isachardoublequote}} into \isa{{\isachardoublequote}{\isasymforall}x{\isachardot}\ B\ x{\isachardoublequote}} etc.%
+  predicates, which are syntactically represented as \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}{\isaliteral{22}{\isachardoublequote}}}-terms
+  of type \isa{{\isaliteral{22}{\isachardoublequote}}i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{22}{\isachardoublequote}}}.  Binder notation turns \isa{{\isaliteral{22}{\isachardoublequote}}All\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} into \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequote}}} etc.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{axiomatization}\isamarkupfalse%
 \isanewline
-\ \ All\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}i\ {\isasymRightarrow}\ o{\isacharparenright}\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{binder}\ {\isachardoublequoteopen}{\isasymforall}{\isachardoublequoteclose}\ {\isadigit{1}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ allI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}x{\isachardot}\ B\ x{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ allD\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymforall}x{\isachardot}\ B\ x{\isacharparenright}\ {\isasymLongrightarrow}\ B\ a{\isachardoublequoteclose}\isanewline
+\ \ All\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{binder}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{1}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\isanewline
+\ \ allI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ allD\ {\isaliteral{5B}{\isacharbrackleft}}dest{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ a{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
 \isacommand{axiomatization}\isamarkupfalse%
 \isanewline
-\ \ Ex\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}i\ {\isasymRightarrow}\ o{\isacharparenright}\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{binder}\ {\isachardoublequoteopen}{\isasymexists}{\isachardoublequoteclose}\ {\isadigit{1}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ exI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}B\ a\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymexists}x{\isachardot}\ B\ x{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ exE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymexists}x{\isachardot}\ B\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}%
+\ \ Ex\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ o{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{binder}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{1}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ \isakeyword{where}\isanewline
+\ \ exI\ {\isaliteral{5B}{\isacharbrackleft}}intro{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}B\ a\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ exE\ {\isaliteral{5B}{\isacharbrackleft}}elim{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ B\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
-\noindent The statement of \isa{exE} corresponds to ``\isa{{\isachardoublequote}{\isasymASSUMES}\ {\isasymexists}x{\isachardot}\ B\ x\ {\isasymOBTAINS}\ x\ {\isasymWHERE}\ B\ x{\isachardoublequote}}'' in Isar.  In the
+\noindent The statement of \isa{exE} corresponds to ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ B\ x\ {\isaliteral{5C3C4F425441494E533E}{\isasymOBTAINS}}\ x\ {\isaliteral{5C3C57484552453E}{\isasymWHERE}}\ B\ x{\isaliteral{22}{\isachardoublequote}}}'' in Isar.  In the
   subsequent example we illustrate quantifier reasoning involving all
   four rules:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
 \isanewline
-\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ {\isasymforall}y{\isachardot}\ R\ x\ y{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymforall}y{\isachardot}\ {\isasymexists}x{\isachardot}\ R\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}y{\isaliteral{2E}{\isachardot}}\ R\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ R\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 %
 \isadelimproof
 %
@@ -715,29 +715,29 @@ Representing quantifiers is easy, thanks to the higher-order nature
 \isatagproof
 \isacommand{proof}\isamarkupfalse%
 \ \ \ \ %
-\isamarkupcmt{\isa{{\isachardoublequote}{\isasymforall}{\isachardoublequote}} introduction%
+\isamarkupcmt{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{22}{\isachardoublequote}}} introduction%
 }
 \isanewline
 \ \ \isacommand{obtain}\isamarkupfalse%
-\ x\ \isakeyword{where}\ {\isachardoublequoteopen}{\isasymforall}y{\isachardot}\ R\ x\ y{\isachardoublequoteclose}\ \isacommand{using}\isamarkupfalse%
-\ {\isacharbackquoteopen}{\isasymexists}x{\isachardot}\ {\isasymforall}y{\isachardot}\ R\ x\ y{\isacharbackquoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ x\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}y{\isaliteral{2E}{\isachardot}}\ R\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{using}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}y{\isaliteral{2E}{\isachardot}}\ R\ x\ y{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \ \ \ \ %
-\isamarkupcmt{\isa{{\isachardoublequote}{\isasymexists}{\isachardoublequote}} elimination%
+\isamarkupcmt{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}{\isaliteral{22}{\isachardoublequote}}} elimination%
 }
 \isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
 \ y\ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}R\ x\ y{\isachardoublequoteclose}\ \isacommand{using}\isamarkupfalse%
-\ {\isacharbackquoteopen}{\isasymforall}y{\isachardot}\ R\ x\ y{\isacharbackquoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}R\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{using}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}y{\isaliteral{2E}{\isachardot}}\ R\ x\ y{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \ \ \ \ %
-\isamarkupcmt{\isa{{\isachardoublequote}{\isasymforall}{\isachardoublequote}} destruction%
+\isamarkupcmt{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{22}{\isachardoublequote}}} destruction%
 }
 \isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ R\ x\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ R\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \ \ \ \ %
-\isamarkupcmt{\isa{{\isachardoublequote}{\isasymexists}{\isachardoublequote}} introduction%
+\isamarkupcmt{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}{\isaliteral{22}{\isachardoublequote}}} introduction%
 }
 \isanewline
 \isacommand{qed}\isamarkupfalse%
@@ -761,27 +761,27 @@ The main rules of first-order predicate logic from
 
   \medskip
   \begin{tabular}{l}
-  \isa{{\isachardoublequote}impI{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymLongrightarrow}\ B\ {\isasymSHOWS}\ A\ {\isasymlongrightarrow}\ B{\isachardoublequote}} \\
-  \isa{{\isachardoublequote}impD{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymlongrightarrow}\ B\ {\isasymAND}\ A\ {\isasymSHOWS}\ B{\isachardoublequote}} \\[1ex]
+  \isa{{\isaliteral{22}{\isachardoublequote}}impI{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ B{\isaliteral{22}{\isachardoublequote}}} \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}impD{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ B\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ A\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ B{\isaliteral{22}{\isachardoublequote}}} \\[1ex]
 
-  \isa{{\isachardoublequote}disjI\isactrlisub {\isadigit{1}}{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymSHOWS}\ A\ {\isasymor}\ B{\isachardoublequote}} \\
-  \isa{{\isachardoublequote}disjI\isactrlisub {\isadigit{2}}{\isacharcolon}\ {\isasymASSUMES}\ B\ {\isasymSHOWS}\ A\ {\isasymor}\ B{\isachardoublequote}} \\
-  \isa{{\isachardoublequote}disjE{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymor}\ B\ {\isasymOBTAINS}\ A\ {\isasymBBAR}\ B{\isachardoublequote}} \\[1ex]
+  \isa{{\isaliteral{22}{\isachardoublequote}}disjI\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ A\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B{\isaliteral{22}{\isachardoublequote}}} \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}disjI\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ B\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B{\isaliteral{22}{\isachardoublequote}}} \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}disjE{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B\ {\isaliteral{5C3C4F425441494E533E}{\isasymOBTAINS}}\ A\ {\isaliteral{5C3C424241523E}{\isasymBBAR}}\ B{\isaliteral{22}{\isachardoublequote}}} \\[1ex]
 
-  \isa{{\isachardoublequote}conjI{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymAND}\ B\ {\isasymSHOWS}\ A\ {\isasymand}\ B{\isachardoublequote}} \\
-  \isa{{\isachardoublequote}conjE{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymand}\ B\ {\isasymOBTAINS}\ A\ {\isasymAND}\ B{\isachardoublequote}} \\[1ex]
+  \isa{{\isaliteral{22}{\isachardoublequote}}conjI{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ A\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ B\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequote}}} \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}conjE{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B\ {\isaliteral{5C3C4F425441494E533E}{\isasymOBTAINS}}\ A\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ B{\isaliteral{22}{\isachardoublequote}}} \\[1ex]
 
-  \isa{{\isachardoublequote}falseE{\isacharcolon}\ {\isasymASSUMES}\ {\isasymbottom}\ {\isasymSHOWS}\ A{\isachardoublequote}} \\
-  \isa{{\isachardoublequote}trueI{\isacharcolon}\ {\isasymSHOWS}\ {\isasymtop}{\isachardoublequote}} \\[1ex]
+  \isa{{\isaliteral{22}{\isachardoublequote}}falseE{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ A{\isaliteral{22}{\isachardoublequote}}} \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}trueI{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ {\isaliteral{5C3C746F703E}{\isasymtop}}{\isaliteral{22}{\isachardoublequote}}} \\[1ex]
 
-  \isa{{\isachardoublequote}notI{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymLongrightarrow}\ {\isasymbottom}\ {\isasymSHOWS}\ {\isasymnot}\ A{\isachardoublequote}} \\
-  \isa{{\isachardoublequote}notE{\isacharcolon}\ {\isasymASSUMES}\ {\isasymnot}\ A\ {\isasymAND}\ A\ {\isasymSHOWS}\ B{\isachardoublequote}} \\[1ex]
+  \isa{{\isaliteral{22}{\isachardoublequote}}notI{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequote}}} \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}notE{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ A\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ B{\isaliteral{22}{\isachardoublequote}}} \\[1ex]
 
-  \isa{{\isachardoublequote}allI{\isacharcolon}\ {\isasymASSUMES}\ {\isasymAnd}x{\isachardot}\ B\ x\ {\isasymSHOWS}\ {\isasymforall}x{\isachardot}\ B\ x{\isachardoublequote}} \\
-  \isa{{\isachardoublequote}allE{\isacharcolon}\ {\isasymASSUMES}\ {\isasymforall}x{\isachardot}\ B\ x\ {\isasymSHOWS}\ B\ a{\isachardoublequote}} \\[1ex]
+  \isa{{\isaliteral{22}{\isachardoublequote}}allI{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ B\ x\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequote}}} \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}allE{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ B\ x\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ B\ a{\isaliteral{22}{\isachardoublequote}}} \\[1ex]
 
-  \isa{{\isachardoublequote}exI{\isacharcolon}\ {\isasymASSUMES}\ B\ a\ {\isasymSHOWS}\ {\isasymexists}x{\isachardot}\ B\ x{\isachardoublequote}} \\
-  \isa{{\isachardoublequote}exE{\isacharcolon}\ {\isasymASSUMES}\ {\isasymexists}x{\isachardot}\ B\ x\ {\isasymOBTAINS}\ a\ {\isasymWHERE}\ B\ a{\isachardoublequote}}
+  \isa{{\isaliteral{22}{\isachardoublequote}}exI{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ B\ a\ {\isaliteral{5C3C53484F57533E}{\isasymSHOWS}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequote}}} \\
+  \isa{{\isaliteral{22}{\isachardoublequote}}exE{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C415353554D45533E}{\isasymASSUMES}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ B\ x\ {\isaliteral{5C3C4F425441494E533E}{\isasymOBTAINS}}\ a\ {\isaliteral{5C3C57484552453E}{\isasymWHERE}}\ B\ a{\isaliteral{22}{\isachardoublequote}}}
   \end{tabular}
   \medskip
 
@@ -803,7 +803,7 @@ The main rules of first-order predicate logic from
 \begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ B{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
@@ -842,7 +842,7 @@ The main rules of first-order predicate logic from
 \end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ B{\isachardoublequoteclose}\ \isakeyword{and}\ A%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ A%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -872,7 +872,7 @@ The main rules of first-order predicate logic from
 \isatagproof
 \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ B\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
 \isanewline
@@ -907,7 +907,7 @@ The main rules of first-order predicate logic from
 \isatagproof
 \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
@@ -941,12 +941,12 @@ The main rules of first-order predicate logic from
 \isatagproof
 \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymor}\ B{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1080,12 +1080,12 @@ The main rules of first-order predicate logic from
 \isatagproof
 \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1115,12 +1115,12 @@ The main rules of first-order predicate logic from
 \isatagproof
 \isacommand{then}\isamarkupfalse%
 \ \isacommand{obtain}\isamarkupfalse%
-\ A\ \isakeyword{and}\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ A\ \isakeyword{and}\ B\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymbottom}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1150,24 +1150,24 @@ The main rules of first-order predicate logic from
 \isatagproof
 \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ A\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ A\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymtop}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C746F703E}{\isasymtop}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{assume}\isamarkupfalse%
 \ A\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymbottom}{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1200,7 +1200,7 @@ The main rules of first-order predicate logic from
 \end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\ \isakeyword{and}\ A%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ A%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1230,18 +1230,18 @@ The main rules of first-order predicate logic from
 \isatagproof
 \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ B\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ B\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ x\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}B\ x{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}B\ x{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1274,7 +1274,7 @@ The main rules of first-order predicate logic from
 \end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ B\ x{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1304,16 +1304,16 @@ The main rules of first-order predicate logic from
 \isatagproof
 \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}B\ a{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}B\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ B\ x{\isachardoublequoteclose}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}B\ a{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}B\ a{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1346,7 +1346,7 @@ The main rules of first-order predicate logic from
 \end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
 \isanewline
 \ \ \isacommand{have}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ B\ x{\isachardoublequoteclose}%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1376,7 +1376,7 @@ The main rules of first-order predicate logic from
 \isatagproof
 \isacommand{then}\isamarkupfalse%
 \ \isacommand{obtain}\isamarkupfalse%
-\ a\ \isakeyword{where}\ {\isachardoublequoteopen}B\ a{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ a\ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}B\ a{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 %
 \end{minipage}
 %
