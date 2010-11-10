@@ -42,7 +42,6 @@ object Keyword
   val minor = Set(MINOR)
   val control = Set(CONTROL)
   val diag = Set(DIAG)
-  val heading = Set(THY_HEADING, PRF_HEADING)
   val theory =
     Set(THY_BEGIN, THY_SWITCH, THY_END, THY_HEADING, THY_DECL, THY_SCRIPT,
       THY_GOAL, THY_SCHEMATIC_GOAL)
