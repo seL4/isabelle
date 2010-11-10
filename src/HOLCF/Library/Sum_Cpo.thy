@@ -216,4 +216,28 @@ done
 instance sum :: (discrete_cpo, discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_sum_def split: sum.split)
 
+subsection {* Using sum types with fixrec *}
+
+definition
+  "match_Inl = (\<Lambda> x k. case x of Inl a \<Rightarrow> k\<cdot>a | Inr b \<Rightarrow> Fixrec.fail)"
+
+definition
+  "match_Inr = (\<Lambda> x k. case x of Inl a \<Rightarrow> Fixrec.fail | Inr b \<Rightarrow> k\<cdot>b)"
+
+lemma match_Inl_simps [simp]:
+  "match_Inl\<cdot>(Inl a)\<cdot>k = k\<cdot>a"
+  "match_Inl\<cdot>(Inr b)\<cdot>k = Fixrec.fail"
+unfolding match_Inl_def by simp_all
+
+lemma match_Inr_simps [simp]:
+  "match_Inr\<cdot>(Inl a)\<cdot>k = Fixrec.fail"
+  "match_Inr\<cdot>(Inr b)\<cdot>k = k\<cdot>b"
+unfolding match_Inr_def by simp_all
+
+setup {*
+  Fixrec.add_matchers
+    [ (@{const_name Inl}, @{const_name match_Inl}),
+      (@{const_name Inr}, @{const_name match_Inr}) ]
+*}
+
 end
