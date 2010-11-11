@@ -8,6 +8,10 @@ theory Domain_Aux
 imports Map_Functions Fixrec
 uses
   ("Tools/Domain/domain_take_proofs.ML")
+  ("Tools/cont_consts.ML")
+  ("Tools/cont_proc.ML")
+  ("Tools/Domain/domain_constructors.ML")
+  ("Tools/Domain/domain_induction.ML")
 begin
 
 subsection {* Continuous isomorphisms *}
@@ -110,7 +114,6 @@ qed
 
 end
 
-
 subsection {* Proofs about take functions *}
 
 text {*
@@ -171,7 +174,6 @@ proof -
   from `adm P` this `\<And>n. P (t n\<cdot>x)` have "P (\<Squnion>n. t n\<cdot>x)" by (rule admD)
   with `chain t` `(\<Squnion>n. t n) = ID` show "P x" by (simp add: lub_distribs)
 qed
-
 
 subsection {* Finiteness *}
 
@@ -256,9 +258,103 @@ lemma lub_ID_finite_take_induct:
   shows "(\<And>n. P (d n\<cdot>x)) \<Longrightarrow> P x"
 using lub_ID_finite [OF assms] by metis
 
+subsection {* Proofs about constructor functions *}
+
+text {* Lemmas for proving nchotomy rule: *}
+
+lemma ex_one_bottom_iff:
+  "(\<exists>x. P x \<and> x \<noteq> \<bottom>) = P ONE"
+by simp
+
+lemma ex_up_bottom_iff:
+  "(\<exists>x. P x \<and> x \<noteq> \<bottom>) = (\<exists>x. P (up\<cdot>x))"
+by (safe, case_tac x, auto)
+
+lemma ex_sprod_bottom_iff:
+ "(\<exists>y. P y \<and> y \<noteq> \<bottom>) =
+  (\<exists>x y. (P (:x, y:) \<and> x \<noteq> \<bottom>) \<and> y \<noteq> \<bottom>)"
+by (safe, case_tac y, auto)
+
+lemma ex_sprod_up_bottom_iff:
+ "(\<exists>y. P y \<and> y \<noteq> \<bottom>) =
+  (\<exists>x y. P (:up\<cdot>x, y:) \<and> y \<noteq> \<bottom>)"
+by (safe, case_tac y, simp, case_tac x, auto)
+
+lemma ex_ssum_bottom_iff:
+ "(\<exists>x. P x \<and> x \<noteq> \<bottom>) =
+ ((\<exists>x. P (sinl\<cdot>x) \<and> x \<noteq> \<bottom>) \<or>
+  (\<exists>x. P (sinr\<cdot>x) \<and> x \<noteq> \<bottom>))"
+by (safe, case_tac x, auto)
+
+lemma exh_start: "p = \<bottom> \<or> (\<exists>x. p = x \<and> x \<noteq> \<bottom>)"
+  by auto
+
+lemmas ex_bottom_iffs =
+   ex_ssum_bottom_iff
+   ex_sprod_up_bottom_iff
+   ex_sprod_bottom_iff
+   ex_up_bottom_iff
+   ex_one_bottom_iff
+
+text {* Rules for turning nchotomy into exhaust: *}
+
+lemma exh_casedist0: "\<lbrakk>R; R \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P" (* like make_elim *)
+  by auto
+
+lemma exh_casedist1: "((P \<or> Q \<Longrightarrow> R) \<Longrightarrow> S) \<equiv> (\<lbrakk>P \<Longrightarrow> R; Q \<Longrightarrow> R\<rbrakk> \<Longrightarrow> S)"
+  by rule auto
+
+lemma exh_casedist2: "(\<exists>x. P x \<Longrightarrow> Q) \<equiv> (\<And>x. P x \<Longrightarrow> Q)"
+  by rule auto
+
+lemma exh_casedist3: "(P \<and> Q \<Longrightarrow> R) \<equiv> (P \<Longrightarrow> Q \<Longrightarrow> R)"
+  by rule auto
+
+lemmas exh_casedists = exh_casedist1 exh_casedist2 exh_casedist3
+
+text {* Rules for proving constructor properties *}
+
+lemmas con_strict_rules =
+  sinl_strict sinr_strict spair_strict1 spair_strict2
+
+lemmas con_bottom_iff_rules =
+  sinl_bottom_iff sinr_bottom_iff spair_bottom_iff up_defined ONE_defined
+
+lemmas con_below_iff_rules =
+  sinl_below sinr_below sinl_below_sinr sinr_below_sinl con_bottom_iff_rules
+
+lemmas con_eq_iff_rules =
+  sinl_eq sinr_eq sinl_eq_sinr sinr_eq_sinl con_bottom_iff_rules
+
+lemmas sel_strict_rules =
+  cfcomp2 sscase1 sfst_strict ssnd_strict fup1
+
+lemma sel_app_extra_rules:
+  "sscase\<cdot>ID\<cdot>\<bottom>\<cdot>(sinr\<cdot>x) = \<bottom>"
+  "sscase\<cdot>ID\<cdot>\<bottom>\<cdot>(sinl\<cdot>x) = x"
+  "sscase\<cdot>\<bottom>\<cdot>ID\<cdot>(sinl\<cdot>x) = \<bottom>"
+  "sscase\<cdot>\<bottom>\<cdot>ID\<cdot>(sinr\<cdot>x) = x"
+  "fup\<cdot>ID\<cdot>(up\<cdot>x) = x"
+by (cases "x = \<bottom>", simp, simp)+
+
+lemmas sel_app_rules =
+  sel_strict_rules sel_app_extra_rules
+  ssnd_spair sfst_spair up_defined spair_defined
+
+lemmas sel_bottom_iff_rules =
+  cfcomp2 sfst_bottom_iff ssnd_bottom_iff
+
+lemmas take_con_rules =
+  ssum_map_sinl' ssum_map_sinr' sprod_map_spair' u_map_up
+  deflation_strict deflation_ID ID1 cfcomp2
+
 subsection {* ML setup *}
 
 use "Tools/Domain/domain_take_proofs.ML"
+use "Tools/cont_consts.ML"
+use "Tools/cont_proc.ML"
+use "Tools/Domain/domain_constructors.ML"
+use "Tools/Domain/domain_induction.ML"
 
 setup Domain_Take_Proofs.setup
 
