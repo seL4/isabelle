@@ -122,8 +122,10 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       val edits = snapshot()
       pending.clear
 
-      if (!edits.isEmpty || !more_edits.isEmpty)
-        session.edit_version((Some(edits) :: more_edits.toList).map((thy_name, _)))
+      val all_edits =
+        if (edits.isEmpty) more_edits.toList
+        else Some(edits) :: more_edits.toList
+      if (!all_edits.isEmpty) session.edit_version(all_edits.map((thy_name, _)))
     }
 
     def init()
