@@ -62,7 +62,6 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Porder.thy \
   Powerdomains.thy \
   Product_Cpo.thy \
-  Representable.thy \
   Sprod.thy \
   Ssum.thy \
   Tr.thy \
