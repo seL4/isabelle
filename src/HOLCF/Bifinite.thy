@@ -308,7 +308,9 @@ setup {*
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::predomain u"}) ]
 *}
 
-subsection {* The universal domain is a domain *}
+subsection {* Class instance proofs *}
+
+subsubsection {* Universal domain *}
 
 instantiation udom :: liftdomain
 begin
@@ -352,7 +354,7 @@ qed
 
 end
 
-subsection {* Lifted predomains are domains *}
+subsubsection {* Lifted cpo *}
 
 instantiation u :: (predomain) liftdomain
 begin
@@ -391,7 +393,7 @@ end
 lemma DEFL_u: "DEFL('a::predomain u) = LIFTDEFL('a)"
 by (rule defl_u_def)
 
-subsection {* Continuous function space is a domain *}
+subsubsection {* Continuous function space *}
 
 text {* TODO: Allow argument type to be a predomain. *}
 
@@ -434,7 +436,7 @@ lemma DEFL_cfun:
   "DEFL('a::domain \<rightarrow> 'b::domain) = cfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_cfun_def)
 
-subsection {* Cartesian product is a domain *}
+subsubsection {* Cartesian product *}
 
 text {*
   Types @{typ "('a * 'b) u"} and @{typ "'a u \<otimes> 'b u"} are isomorphic.
@@ -520,7 +522,7 @@ lemma LIFTDEFL_prod:
   "LIFTDEFL('a::predomain \<times> 'b::predomain) = sprod_defl\<cdot>DEFL('a u)\<cdot>DEFL('b u)"
 by (rule liftdefl_prod_def)
 
-subsection {* Strict product is a domain *}
+subsubsection {* Strict product *}
 
 instantiation sprod :: ("domain", "domain") liftdomain
 begin
@@ -562,7 +564,7 @@ lemma DEFL_sprod:
   "DEFL('a::domain \<otimes> 'b::domain) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sprod_def)
 
-subsection {* Countable discrete cpos are predomains *}
+subsubsection {* Discrete cpo *}
 
 definition discr_approx :: "nat \<Rightarrow> 'a::countable discr u \<rightarrow> 'a discr u"
   where "discr_approx = (\<lambda>i. \<Lambda>(up\<cdot>x). if to_nat (undiscr x) < i then up\<cdot>x else \<bottom>)"
@@ -651,7 +653,7 @@ qed
 
 end
 
-subsection {* Strict sum is a domain *}
+subsubsection {* Strict sum *}
 
 instantiation ssum :: ("domain", "domain") liftdomain
 begin
@@ -692,7 +694,7 @@ lemma DEFL_ssum:
   "DEFL('a::domain \<oplus> 'b::domain) = ssum_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_ssum_def)
 
-subsection {* Lifted countable types are bifinite domains *}
+subsubsection {* Lifted HOL type *}
 
 instantiation lift :: (countable) liftdomain
 begin
