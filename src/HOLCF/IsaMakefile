@@ -54,9 +54,11 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   HOLCF.thy \
   Lift.thy \
   LowerPD.thy \
+  Map_Functions.thy \
   One.thy \
   Pcpodef.thy \
   Pcpo.thy \
+  Plain_HOLCF.thy \
   Porder.thy \
   Powerdomains.thy \
   Product_Cpo.thy \

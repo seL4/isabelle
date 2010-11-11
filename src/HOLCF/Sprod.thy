@@ -1,11 +1,12 @@
 (*  Title:      HOLCF/Sprod.thy
-    Author:     Franz Regensburger and Brian Huffman
+    Author:     Franz Regensburger
+    Author:     Brian Huffman
 *)
 
 header {* The type of strict products *}
 
 theory Sprod
-imports Deflation
+imports Cfun
 begin
 
 default_sort pcpo
@@ -208,85 +209,6 @@ proof
     apply (induct y, simp)
     apply (simp add: spair_below_iff flat_below_iff)
     done
-qed
-
-subsection {* Map function for strict products *}
-
-definition
-  sprod_map :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<otimes> 'c \<rightarrow> 'b \<otimes> 'd"
-where
-  "sprod_map = (\<Lambda> f g. ssplit\<cdot>(\<Lambda> x y. (:f\<cdot>x, g\<cdot>y:)))"
-
-lemma sprod_map_strict [simp]: "sprod_map\<cdot>a\<cdot>b\<cdot>\<bottom> = \<bottom>"
-unfolding sprod_map_def by simp
-
-lemma sprod_map_spair [simp]:
-  "x \<noteq> \<bottom> \<Longrightarrow> y \<noteq> \<bottom> \<Longrightarrow> sprod_map\<cdot>f\<cdot>g\<cdot>(:x, y:) = (:f\<cdot>x, g\<cdot>y:)"
-by (simp add: sprod_map_def)
-
-lemma sprod_map_spair':
-  "f\<cdot>\<bottom> = \<bottom> \<Longrightarrow> g\<cdot>\<bottom> = \<bottom> \<Longrightarrow> sprod_map\<cdot>f\<cdot>g\<cdot>(:x, y:) = (:f\<cdot>x, g\<cdot>y:)"
-by (cases "x = \<bottom> \<or> y = \<bottom>") auto
-
-lemma sprod_map_ID: "sprod_map\<cdot>ID\<cdot>ID = ID"
-unfolding sprod_map_def by (simp add: cfun_eq_iff eta_cfun)
-
-lemma sprod_map_map:
-  "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>
-    sprod_map\<cdot>f1\<cdot>g1\<cdot>(sprod_map\<cdot>f2\<cdot>g2\<cdot>p) =
-     sprod_map\<cdot>(\<Lambda> x. f1\<cdot>(f2\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
-apply (induct p, simp)
-apply (case_tac "f2\<cdot>x = \<bottom>", simp)
-apply (case_tac "g2\<cdot>y = \<bottom>", simp)
-apply simp
-done
-
-lemma ep_pair_sprod_map:
-  assumes "ep_pair e1 p1" and "ep_pair e2 p2"
-  shows "ep_pair (sprod_map\<cdot>e1\<cdot>e2) (sprod_map\<cdot>p1\<cdot>p2)"
-proof
-  interpret e1p1: pcpo_ep_pair e1 p1 unfolding pcpo_ep_pair_def by fact
-  interpret e2p2: pcpo_ep_pair e2 p2 unfolding pcpo_ep_pair_def by fact
-  fix x show "sprod_map\<cdot>p1\<cdot>p2\<cdot>(sprod_map\<cdot>e1\<cdot>e2\<cdot>x) = x"
-    by (induct x) simp_all
-  fix y show "sprod_map\<cdot>e1\<cdot>e2\<cdot>(sprod_map\<cdot>p1\<cdot>p2\<cdot>y) \<sqsubseteq> y"
-    apply (induct y, simp)
-    apply (case_tac "p1\<cdot>x = \<bottom>", simp, case_tac "p2\<cdot>y = \<bottom>", simp)
-    apply (simp add: monofun_cfun e1p1.e_p_below e2p2.e_p_below)
-    done
-qed
-
-lemma deflation_sprod_map:
-  assumes "deflation d1" and "deflation d2"
-  shows "deflation (sprod_map\<cdot>d1\<cdot>d2)"
-proof
-  interpret d1: deflation d1 by fact
-  interpret d2: deflation d2 by fact
-  fix x
-  show "sprod_map\<cdot>d1\<cdot>d2\<cdot>(sprod_map\<cdot>d1\<cdot>d2\<cdot>x) = sprod_map\<cdot>d1\<cdot>d2\<cdot>x"
-    apply (induct x, simp)
-    apply (case_tac "d1\<cdot>x = \<bottom>", simp, case_tac "d2\<cdot>y = \<bottom>", simp)
-    apply (simp add: d1.idem d2.idem)
-    done
-  show "sprod_map\<cdot>d1\<cdot>d2\<cdot>x \<sqsubseteq> x"
-    apply (induct x, simp)
-    apply (simp add: monofun_cfun d1.below d2.below)
-    done
-qed
-
-lemma finite_deflation_sprod_map:
-  assumes "finite_deflation d1" and "finite_deflation d2"
-  shows "finite_deflation (sprod_map\<cdot>d1\<cdot>d2)"
-proof (rule finite_deflation_intro)
-  interpret d1: finite_deflation d1 by fact
-  interpret d2: finite_deflation d2 by fact
-  have "deflation d1" and "deflation d2" by fact+
-  thus "deflation (sprod_map\<cdot>d1\<cdot>d2)" by (rule deflation_sprod_map)
-  have "{x. sprod_map\<cdot>d1\<cdot>d2\<cdot>x = x} \<subseteq> insert \<bottom>
-        ((\<lambda>(x, y). (:x, y:)) ` ({x. d1\<cdot>x = x} \<times> {y. d2\<cdot>y = y}))"
-    by (rule subsetI, case_tac x, auto simp add: spair_eq_iff)
-  thus "finite {x. sprod_map\<cdot>d1\<cdot>d2\<cdot>x = x}"
-    by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
 end

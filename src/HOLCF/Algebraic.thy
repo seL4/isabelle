@@ -5,7 +5,7 @@
 header {* Algebraic deflations *}
 
 theory Algebraic
-imports Universal
+imports Universal Map_Functions
 begin
 
 subsection {* Type constructor for finite deflations *}

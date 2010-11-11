@@ -1,5 +1,6 @@
 (*  Title:      HOLCF/Ssum.thy
-    Author:     Franz Regensburger and Brian Huffman
+    Author:     Franz Regensburger
+    Author:     Brian Huffman
 *)
 
 header {* The type of strict sums *}
@@ -193,89 +194,5 @@ apply (case_tac x, simp)
 apply (case_tac y, simp_all add: flat_below_iff)
 apply (case_tac y, simp_all add: flat_below_iff)
 done
-
-subsection {* Map function for strict sums *}
-
-definition
-  ssum_map :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<oplus> 'c \<rightarrow> 'b \<oplus> 'd"
-where
-  "ssum_map = (\<Lambda> f g. sscase\<cdot>(sinl oo f)\<cdot>(sinr oo g))"
-
-lemma ssum_map_strict [simp]: "ssum_map\<cdot>f\<cdot>g\<cdot>\<bottom> = \<bottom>"
-unfolding ssum_map_def by simp
-
-lemma ssum_map_sinl [simp]: "x \<noteq> \<bottom> \<Longrightarrow> ssum_map\<cdot>f\<cdot>g\<cdot>(sinl\<cdot>x) = sinl\<cdot>(f\<cdot>x)"
-unfolding ssum_map_def by simp
-
-lemma ssum_map_sinr [simp]: "x \<noteq> \<bottom> \<Longrightarrow> ssum_map\<cdot>f\<cdot>g\<cdot>(sinr\<cdot>x) = sinr\<cdot>(g\<cdot>x)"
-unfolding ssum_map_def by simp
-
-lemma ssum_map_sinl': "f\<cdot>\<bottom> = \<bottom> \<Longrightarrow> ssum_map\<cdot>f\<cdot>g\<cdot>(sinl\<cdot>x) = sinl\<cdot>(f\<cdot>x)"
-by (cases "x = \<bottom>") simp_all
-
-lemma ssum_map_sinr': "g\<cdot>\<bottom> = \<bottom> \<Longrightarrow> ssum_map\<cdot>f\<cdot>g\<cdot>(sinr\<cdot>x) = sinr\<cdot>(g\<cdot>x)"
-by (cases "x = \<bottom>") simp_all
-
-lemma ssum_map_ID: "ssum_map\<cdot>ID\<cdot>ID = ID"
-unfolding ssum_map_def by (simp add: cfun_eq_iff eta_cfun)
-
-lemma ssum_map_map:
-  "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>
-    ssum_map\<cdot>f1\<cdot>g1\<cdot>(ssum_map\<cdot>f2\<cdot>g2\<cdot>p) =
-     ssum_map\<cdot>(\<Lambda> x. f1\<cdot>(f2\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
-apply (induct p, simp)
-apply (case_tac "f2\<cdot>x = \<bottom>", simp, simp)
-apply (case_tac "g2\<cdot>y = \<bottom>", simp, simp)
-done
-
-lemma ep_pair_ssum_map:
-  assumes "ep_pair e1 p1" and "ep_pair e2 p2"
-  shows "ep_pair (ssum_map\<cdot>e1\<cdot>e2) (ssum_map\<cdot>p1\<cdot>p2)"
-proof
-  interpret e1p1: pcpo_ep_pair e1 p1 unfolding pcpo_ep_pair_def by fact
-  interpret e2p2: pcpo_ep_pair e2 p2 unfolding pcpo_ep_pair_def by fact
-  fix x show "ssum_map\<cdot>p1\<cdot>p2\<cdot>(ssum_map\<cdot>e1\<cdot>e2\<cdot>x) = x"
-    by (induct x) simp_all
-  fix y show "ssum_map\<cdot>e1\<cdot>e2\<cdot>(ssum_map\<cdot>p1\<cdot>p2\<cdot>y) \<sqsubseteq> y"
-    apply (induct y, simp)
-    apply (case_tac "p1\<cdot>x = \<bottom>", simp, simp add: e1p1.e_p_below)
-    apply (case_tac "p2\<cdot>y = \<bottom>", simp, simp add: e2p2.e_p_below)
-    done
-qed
-
-lemma deflation_ssum_map:
-  assumes "deflation d1" and "deflation d2"
-  shows "deflation (ssum_map\<cdot>d1\<cdot>d2)"
-proof
-  interpret d1: deflation d1 by fact
-  interpret d2: deflation d2 by fact
-  fix x
-  show "ssum_map\<cdot>d1\<cdot>d2\<cdot>(ssum_map\<cdot>d1\<cdot>d2\<cdot>x) = ssum_map\<cdot>d1\<cdot>d2\<cdot>x"
-    apply (induct x, simp)
-    apply (case_tac "d1\<cdot>x = \<bottom>", simp, simp add: d1.idem)
-    apply (case_tac "d2\<cdot>y = \<bottom>", simp, simp add: d2.idem)
-    done
-  show "ssum_map\<cdot>d1\<cdot>d2\<cdot>x \<sqsubseteq> x"
-    apply (induct x, simp)
-    apply (case_tac "d1\<cdot>x = \<bottom>", simp, simp add: d1.below)
-    apply (case_tac "d2\<cdot>y = \<bottom>", simp, simp add: d2.below)
-    done
-qed
-
-lemma finite_deflation_ssum_map:
-  assumes "finite_deflation d1" and "finite_deflation d2"
-  shows "finite_deflation (ssum_map\<cdot>d1\<cdot>d2)"
-proof (rule finite_deflation_intro)
-  interpret d1: finite_deflation d1 by fact
-  interpret d2: finite_deflation d2 by fact
-  have "deflation d1" and "deflation d2" by fact+
-  thus "deflation (ssum_map\<cdot>d1\<cdot>d2)" by (rule deflation_ssum_map)
-  have "{x. ssum_map\<cdot>d1\<cdot>d2\<cdot>x = x} \<subseteq>
-        (\<lambda>x. sinl\<cdot>x) ` {x. d1\<cdot>x = x} \<union>
-        (\<lambda>x. sinr\<cdot>x) ` {x. d2\<cdot>x = x} \<union> {\<bottom>}"
-    by (rule subsetI, case_tac x, simp_all)
-  thus "finite {x. ssum_map\<cdot>d1\<cdot>d2\<cdot>x = x}"
-    by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
-qed
 
 end

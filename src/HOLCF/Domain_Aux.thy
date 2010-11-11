@@ -5,7 +5,7 @@
 header {* Domain package support *}
 
 theory Domain_Aux
-imports Ssum Sprod Fixrec
+imports Map_Functions Fixrec
 uses
   ("Tools/Domain/domain_take_proofs.ML")
 begin

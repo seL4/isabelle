@@ -5,7 +5,7 @@
 header "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
-imports Cprod Sprod Ssum Up One Tr Fix
+imports Plain_HOLCF
 uses
   ("Tools/holcf_library.ML")
   ("Tools/fixrec.ML")
