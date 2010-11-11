@@ -24,10 +24,10 @@ import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion, IAsset}
 
 object Isabelle_Sidekick
 {
-  def int_to_pos(offset: Int): Position =
+  def int_to_pos(offset: Text.Offset): Position =
     new Position { def getOffset = offset; override def toString = offset.toString }
 
-  class Asset(name: String, start: Int, end: Int) extends IAsset
+  class Asset(name: String, start: Text.Offset, end: Text.Offset) extends IAsset
   {
     protected var _name = name
     protected var _start = int_to_pos(start)
@@ -79,7 +79,7 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
   override def supportsCompletion = true
   override def canCompleteAnywhere = true
 
-  override def complete(pane: EditPane, caret: Int): SideKickCompletion =
+  override def complete(pane: EditPane, caret: Text.Offset): SideKickCompletion =
   {
     val buffer = pane.getBuffer
     Isabelle.swing_buffer_lock(buffer) {
@@ -116,7 +116,7 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
   {
     val syntax = model.session.current_syntax()
 
-    def make_tree(offset: Int, entry: Structure.Entry): List[DefaultMutableTreeNode] =
+    def make_tree(offset: Text.Offset, entry: Structure.Entry): List[DefaultMutableTreeNode] =
       entry match {
         case Structure.Block(name, body) =>
           val node =
