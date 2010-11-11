@@ -140,7 +140,7 @@ trait Isar_Document extends Isabelle_Process
   /* document versions */
 
   def edit_version(old_id: Document.Version_ID, new_id: Document.Version_ID,
-      edits: List[Document.Edit[Document.Command_ID]])
+      edits: List[Document.Edit_Command_ID])
   {
     val arg =
       XML_Data.make_list(

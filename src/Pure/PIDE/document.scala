@@ -35,13 +35,13 @@ object Document
 
   /* named nodes -- development graph */
 
-  type Text_Edit =
+  type Edit[A] =
    (String,  // node name
-    Option[List[Text.Edit]])  // None: remove, Some: insert/remove text
+    Option[List[A]])  // None: remove node, Some: edit content
 
-  type Edit[C] =
-   (String,  // node name
-    Option[List[(Option[C], Option[C])]])  // None: remove, Some: insert/remove commands
+  type Edit_Text = Edit[Text.Edit]
+  type Edit_Command = Edit[(Option[Command], Option[Command])]
+  type Edit_Command_ID = Edit[(Option[Command_ID], Option[Command_ID])]
 
   object Node
   {
@@ -136,8 +136,8 @@ object Document
 
   class Change(
     val previous: Future[Version],
-    val edits: List[Text_Edit],
-    val result: Future[(List[Edit[Command]], Version)])
+    val edits: List[Edit_Text],
+    val result: Future[(List[Edit_Command], Version)])
   {
     val version: Future[Version] = result.map(_._2)
     def is_finished: Boolean = previous.is_finished && version.is_finished
@@ -270,8 +270,8 @@ object Document
       }
 
     def extend_history(previous: Future[Version],
-        edits: List[Text_Edit],
-        result: Future[(List[Edit[Command]], Version)]): (Change, State) =
+        edits: List[Edit_Text],
+        result: Future[(List[Edit_Command], Version)]): (Change, State) =
     {
       val change = new Change(previous, edits, result)
       (change, copy(history = history + change))

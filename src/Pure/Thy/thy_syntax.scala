@@ -100,7 +100,7 @@ object Thy_Syntax
   /** text edits **/
 
   def text_edits(session: Session, previous: Document.Version,
-      edits: List[Document.Text_Edit]): (List[Document.Edit[Command]], Document.Version) =
+      edits: List[Document.Edit_Text]): (List[Document.Edit_Command], Document.Version) =
   {
     /* phase 1: edit individual command source */
 
@@ -172,7 +172,7 @@ object Thy_Syntax
     /* resulting document edits */
 
     {
-      val doc_edits = new mutable.ListBuffer[Document.Edit[Command]]
+      val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
       var nodes = previous.nodes
 
       edits foreach {
