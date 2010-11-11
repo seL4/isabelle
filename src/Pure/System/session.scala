@@ -135,7 +135,7 @@ class Session(system: Isabelle_System)
   def current_state(): Document.State = global_state.peek()
 
   private case object Interrupt_Prover
-  private case class Edit_Version(edits: List[Document.Node_Text_Edit])
+  private case class Edit_Version(edits: List[Document.Text_Edit])
   private case class Start(timeout: Int, args: List[String])
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
@@ -289,7 +289,7 @@ class Session(system: Isabelle_System)
 
   def interrupt() { session_actor ! Interrupt_Prover }
 
-  def edit_version(edits: List[Document.Node_Text_Edit]) { session_actor !? Edit_Version(edits) }
+  def edit_version(edits: List[Document.Text_Edit]) { session_actor !? Edit_Version(edits) }
 
   def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
     global_state.peek().snapshot(name, pending_edits)

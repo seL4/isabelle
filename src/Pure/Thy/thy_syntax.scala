@@ -17,10 +17,7 @@ object Thy_Syntax
 
   object Structure
   {
-    sealed abstract class Entry
-    {
-      def length: Int
-    }
+    sealed abstract class Entry { def length: Int }
     case class Block(val name: String, val body: List[Entry]) extends Entry
     {
       val length: Int = (0 /: body)(_ + _.length)
@@ -103,7 +100,7 @@ object Thy_Syntax
   /** text edits **/
 
   def text_edits(session: Session, previous: Document.Version,
-      edits: List[Document.Node_Text_Edit]): (List[Document.Edit[Command]], Document.Version) =
+      edits: List[Document.Text_Edit]): (List[Document.Edit[Command]], Document.Version) =
   {
     /* phase 1: edit individual command source */
 
@@ -178,20 +175,25 @@ object Thy_Syntax
       val doc_edits = new mutable.ListBuffer[Document.Edit[Command]]
       var nodes = previous.nodes
 
-      for ((name, text_edits) <- edits) {
-        val commands0 = nodes(name).commands
-        val commands1 = edit_text(text_edits, commands0)
-        val commands2 = recover_spans(commands1)   // FIXME somewhat slow
+      edits foreach {
+        case (name, None) =>
+          doc_edits += (name -> None)
+          nodes -= name
 
-        val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
-        val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
+        case (name, Some(text_edits)) =>
+          val commands0 = nodes(name).commands
+          val commands1 = edit_text(text_edits, commands0)
+          val commands2 = recover_spans(commands1)   // FIXME somewhat slow
 
-        val cmd_edits =
-          removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
-          inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
+          val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
+          val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
 
-        doc_edits += (name -> Some(cmd_edits))
-        nodes += (name -> new Document.Node(commands2))
+          val cmd_edits =
+            removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
+            inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
+
+          doc_edits += (name -> Some(cmd_edits))
+          nodes += (name -> new Document.Node(commands2))
       }
       (doc_edits.toList, new Document.Version(session.new_id(), nodes))
     }
