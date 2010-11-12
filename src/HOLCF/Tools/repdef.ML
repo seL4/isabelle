@@ -88,7 +88,7 @@ fun gen_add_repdef
       (thy: theory)
     : (Typedef.info * Pcpodef.cpo_info * Pcpodef.pcpo_info * rep_info) * theory =
   let
-    val _ = Theory.requires thy "Representable" "repdefs";
+    val _ = Theory.requires thy "Domain" "repdefs";
 
     (*rhs*)
     val tmp_ctxt =
