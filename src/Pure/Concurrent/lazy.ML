@@ -55,8 +55,9 @@ fun force_result (Lazy var) =
           (case expr of
             SOME e =>
               let
-                val res = restore_interrupts (fn () => Exn.capture e ()) ();
-                val _ = Future.fulfill_result x res;
+                val res0 = restore_interrupts (fn () => Exn.capture e ()) ();
+                val _ = Future.fulfill_result x res0;
+                val res = Future.join_result x;
                 (*semantic race: some other threads might see the same
                   interrupt, until there is a fresh start*)
                 val _ =
