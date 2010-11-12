@@ -36,7 +36,7 @@ implementation max(array : [int]int, length : int) returns (max : int)
 \end{verbatim}
 *}
 
-boogie_open "~~/src/HOL/Boogie/Examples/Boogie_Max"
+boogie_open "Boogie_Max"
 
 declare [[smt_certificates="Boogie_Max.certs"]]
 declare [[smt_fixed=true]]

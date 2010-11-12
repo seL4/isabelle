@@ -16,13 +16,20 @@ struct
 
 fun boogie_open ((quiet, base_name), offsets) thy =
   let
-    val path = Path.explode (base_name ^ ".b2i")
-    val _ = File.exists path orelse
-      error ("Unable to find file " ^ quote (Path.implode path))
+    val ext = "b2i"
+    fun add_ext path = path |> snd (Path.split_ext path) <> ext ? Path.ext ext
+    val base_path = add_ext (Path.explode base_name)
+    val path_id = Thy_Load.check_file [Thy_Load.master_directory thy] base_path
+
     val _ = Boogie_VCs.is_closed thy orelse
       error ("Found the beginning of a new Boogie environment, " ^
         "but another Boogie environment is still open.")
-  in Boogie_Loader.load_b2i (not quiet) offsets path thy end
+  in
+    thy
+    |> Thy_Load.require base_path
+    |> Boogie_Loader.load_b2i (not quiet) offsets (fst path_id)
+    |> Thy_Load.provide (base_path, path_id)
+  end
 
 
 datatype vc_opts =
