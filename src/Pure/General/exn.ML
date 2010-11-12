@@ -85,3 +85,6 @@ fun release_first results = release_all results
   handle EXCEPTIONS (exn :: _) => reraise exn;
 
 end;
+
+datatype illegal = Interrupt;
+
