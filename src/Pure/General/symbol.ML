@@ -6,7 +6,7 @@ Generalized characters with infinitely many named symbols.
 
 signature SYMBOL =
 sig
-  type symbol
+  type symbol = string
   val SOH: symbol
   val STX: symbol
   val ENQ: symbol
