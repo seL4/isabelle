@@ -106,24 +106,25 @@ fun make_cmd solver args problem_path proof_path = space_implode " " (
   map File.shell_quote (solver @ args) @
   [File.shell_path problem_path, "2>&1", ">", File.shell_path proof_path])
 
+fun check_return_code {output, redirected_output, return_code} =
+  if return_code <> 0 then
+    raise SMT_Failure.SMT (SMT_Failure.Solver_Crashed return_code)
+  else (redirected_output, output)
+
 fun run ctxt cmd args input =
   (case C.certificates_of ctxt of
-    NONE =>
-      let
-        val {output, redirected_output, ...} =
-          Cache_IO.run (make_cmd (choose cmd) args) input
-      in (redirected_output, output) end 
+    NONE => Cache_IO.run (make_cmd (choose cmd) args) input
   | SOME certs =>
       (case Cache_IO.lookup certs input of
         (NONE, key) =>
-          if Config.get ctxt C.fixed
-          then error ("Bad certificates cache: missing certificate")
-          else Cache_IO.run_and_cache certs key (make_cmd (choose cmd) args)
-            input
+          if Config.get ctxt C.fixed then
+            error ("Bad certificates cache: missing certificate")
+          else
+            Cache_IO.run_and_cache certs key (make_cmd (choose cmd) args) input
       | (SOME output, _) =>
          (tracing ("Using cached certificate from " ^
             File.shell_path (Cache_IO.cache_path_of certs) ^ " ...");
-          output)))
+          output))) |> check_return_code
 
 in
 

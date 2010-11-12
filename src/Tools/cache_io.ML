@@ -9,18 +9,20 @@ sig
   (*IO wrapper*)
   val with_tmp_file: string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
-  val run: (Path.T -> Path.T -> string) -> string ->
-    {output: string list, redirected_output: string list, return_code: int}
+  type result = {
+    output: string list,
+    redirected_output: string list,
+    return_code: int}
+  val run: (Path.T -> Path.T -> string) -> string -> result
 
   (*cache*)
   type cache
   val make: Path.T -> cache
   val cache_path_of: cache -> Path.T
-  val lookup: cache -> string -> (string list * string list) option * string
+  val lookup: cache -> string -> result option * string
   val run_and_cache: cache -> string -> (Path.T -> Path.T -> string) ->
-    string -> string list * string list
-  val run_cached: cache -> (Path.T -> Path.T -> string) -> string ->
-    string list * string list
+    string -> result
+  val run_cached: cache -> (Path.T -> Path.T -> string) -> string -> result
 end
 
 structure Cache_IO : CACHE_IO =
@@ -44,6 +46,11 @@ fun with_tmp_dir name f =
     val x = Exn.capture f path
     val _ = try File.rm_tree path
   in Exn.release x end
+
+type result = {
+  output: string list,
+  redirected_output: string list,
+  return_code: int}
 
 fun run make_cmd str =
   with_tmp_file cache_io_prefix (fn in_path =>
@@ -98,7 +105,9 @@ fun load_cached_result cache_path (p, len1, len2) =
       else if i < p + len1 then (i+1, apfst (cons line) xsp)
       else if i < p + len2 then (i+1, apsnd (cons line) xsp)
       else (i, xsp)
-  in pairself rev (snd (File.fold_lines load cache_path (1, ([], [])))) end
+    val (out, err) =
+      pairself rev (snd (File.fold_lines load cache_path (1, ([], []))))
+  in {output=err, redirected_output=out, return_code=0} end
 
 fun lookup (Cache {path=cache_path, table}) str =
   let val key = SHA1.digest str
@@ -110,9 +119,8 @@ fun lookup (Cache {path=cache_path, table}) str =
 
 fun run_and_cache (Cache {path=cache_path, table}) key make_cmd str =
   let
-    val {output=err, redirected_output=out, ...} = run make_cmd str
-    val res = (out, err)
-    val (l1, l2) = pairself length res
+    val {output=err, redirected_output=out, return_code} = run make_cmd str
+    val (l1, l2) = pairself length (out, err)
     val header = key ^ " " ^ string_of_int l1 ^ " " ^ string_of_int l2
     val lines = map (suffix "\n") (header :: out @ err)
 
@@ -121,7 +129,7 @@ fun run_and_cache (Cache {path=cache_path, table}) key make_cmd str =
       else
         let val _ = File.append_list cache_path lines
         in (p+l1+l2+1, Symtab.update (key, (p+1, l1, l2)) tab) end)
-  in res end
+  in {output=err, redirected_output=out, return_code=return_code} end
 
 fun run_cached cache make_cmd str =
   (case lookup cache str of
