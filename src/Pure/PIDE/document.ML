@@ -98,10 +98,12 @@ fun edit_nodes (name, SOME edits) (Version nodes) =
         |> Graph.default_node (name, empty_node)
         |> Graph.map_node name (fold edit_node edits))
   | edit_nodes (name, NONE) (Version nodes) =
-      Version (Graph.del_node name nodes);
+      Version (perhaps (try (Graph.del_node name)) nodes);
 
 fun put_node name node (Version nodes) =
-  Version (Graph.map_node name (K node) nodes);
+  Version (nodes
+    |> Graph.default_node (name, empty_node)
+    |> Graph.map_node name (K node));
 
 end;
 

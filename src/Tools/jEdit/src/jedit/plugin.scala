@@ -147,6 +147,9 @@ object Isabelle
   def swing_buffer_lock[A](buffer: JEditBuffer)(body: => A): A =
     Swing_Thread.now { buffer_lock(buffer) { body } }
 
+  def buffer_text(buffer: JEditBuffer): String =
+    buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
+
 
   /* dockable windows */
 

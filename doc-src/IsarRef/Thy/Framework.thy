@@ -649,25 +649,25 @@ text {*
 theorem True
 proof
 (*>*)
-  txt_raw {* \begin{minipage}[t]{0.4\textwidth} *}
+  txt_raw {* \begin{minipage}[t]{0.45\textwidth} *}
   {
     fix x
     have "B x" sorry %noproof
   }
   note `\<And>x. B x`
-  txt_raw {* \end{minipage}\quad\begin{minipage}[t]{0.4\textwidth} *}(*<*)next(*>*)
+  txt_raw {* \end{minipage}\quad\begin{minipage}[t]{0.45\textwidth} *}(*<*)next(*>*)
   {
     assume A
     have B sorry %noproof
   }
   note `A \<Longrightarrow> B`
-  txt_raw {* \end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth} *}(*<*)next(*>*)
+  txt_raw {* \end{minipage}\\[3ex]\begin{minipage}[t]{0.45\textwidth} *}(*<*)next(*>*)
   {
     def x \<equiv> a
     have "B x" sorry %noproof
   }
   note `B a`
-  txt_raw {* \end{minipage}\quad\begin{minipage}[t]{0.4\textwidth} *}(*<*)next(*>*)
+  txt_raw {* \end{minipage}\quad\begin{minipage}[t]{0.45\textwidth} *}(*<*)next(*>*)
   {
     obtain x where "A x" sorry %noproof
     have B sorry %noproof
