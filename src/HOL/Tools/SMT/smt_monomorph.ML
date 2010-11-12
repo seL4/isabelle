@@ -17,8 +17,7 @@ val typ_has_tvars = Term.exists_subtype (fn TVar _ => true | _ => false)
 
 val ignored = member (op =) [
   @{const_name All}, @{const_name Ex}, @{const_name Let}, @{const_name If},
-  @{const_name HOL.eq}, @{const_name zero_class.zero},
-  @{const_name one_class.one}, @{const_name number_of}]
+  @{const_name HOL.eq}]
 
 fun is_const f (n, T) = not (ignored n) andalso f T
 fun add_const_if f g (Const c) = if is_const f c then g c else I
