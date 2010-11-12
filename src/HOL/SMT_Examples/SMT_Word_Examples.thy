@@ -9,7 +9,7 @@ imports Word
 begin
 
 declare [[smt_solver=z3, smt_oracle=true]]
-declare [[smt_certificates="~~/src/HOL/SMT_Examples/SMT_Word_Examples.certs"]]
+declare [[smt_certificates="SMT_Word_Examples.certs"]]
 declare [[smt_fixed=true]]
 
 

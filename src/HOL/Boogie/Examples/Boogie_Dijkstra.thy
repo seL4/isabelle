@@ -81,7 +81,7 @@ implementation Dijkstra()
 
 boogie_open "~~/src/HOL/Boogie/Examples/Boogie_Dijkstra"
 
-declare [[smt_certificates="~~/src/HOL/Boogie/Examples/Boogie_Dijkstra.certs"]]
+declare [[smt_certificates="Boogie_Dijkstra.certs"]]
 declare [[smt_fixed=true]]
 declare [[smt_oracle=false]]
 

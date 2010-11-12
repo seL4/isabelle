@@ -173,9 +173,12 @@ structure Certificates = Generic_Data
 val get_certificates_path =
   Option.map (Cache_IO.cache_path_of) o Certificates.get o Context.Proof
 
-fun select_certificates name = Certificates.put (
+fun select_certificates name context = context |> Certificates.put (
   if name = "" then NONE
-  else SOME (Cache_IO.make (Path.explode name)))
+  else
+    Path.explode name
+    |> Path.append (Thy_Load.master_directory (Context.theory_of context))
+    |> SOME o Cache_IO.make)
 
 val certificates_of = Certificates.get o Context.Proof
 

@@ -7,7 +7,7 @@ theory Integration
   imports Derivative "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Indicator_Function
 begin
 
-declare [[smt_certificates="~~/src/HOL/Multivariate_Analysis/Integration.certs"]]
+declare [[smt_certificates="Integration.certs"]]
 declare [[smt_fixed=true]]
 declare [[smt_oracle=false]]
 

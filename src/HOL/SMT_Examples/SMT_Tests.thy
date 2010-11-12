@@ -9,7 +9,7 @@ imports Complex_Main
 begin
 
 declare [[smt_solver=z3, smt_oracle=false]]
-declare [[smt_certificates="~~/src/HOL/SMT_Examples/SMT_Tests.certs"]]
+declare [[smt_certificates="SMT_Tests.certs"]]
 declare [[smt_fixed=true]]
 
 
