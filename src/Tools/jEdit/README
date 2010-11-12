@@ -15,9 +15,9 @@ See also the paper:
   http://www4.in.tum.de/~wenzelm/papers/async-isabelle-scala.pdf
 
 
-Some limitations of the current implementation (as of Isabelle2009-2):
+Some limitations of the current implementation:
 
-  * No provisions for editing multiple theory files.
+  * No provisions for theory file dependencies inside the editor.
 
   * No reclaiming of old/unused document versions.  Memory will fill
     up eventually, both on the JVM and ML side.
