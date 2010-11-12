@@ -26,7 +26,9 @@ datatype failure =
 
 fun string_of_failure ctxt (Counterexample (real, ex)) =
       let
-        val msg = (if real then "C" else "Potential c") ^ "ounterexample found"
+        val msg =
+          if real then "Counterexample found (possibly spurious)"
+          else "Potential counterexample found"
       in
         if null ex then msg
         else Pretty.string_of (Pretty.big_list (msg ^ ":")

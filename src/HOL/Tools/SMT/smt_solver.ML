@@ -342,8 +342,12 @@ fun smt_tac' pass_exns ctxt rules =
       val str_of = SMT_Failure.string_of_failure ctxt'
       fun safe_solve irules =
         if pass_exns then SOME (solve irules)
-        else (SOME (solve irules) handle SMT_Failure.SMT fail =>
-          (C.trace_msg ctxt' (prefix tag o str_of) fail; NONE))
+        else (SOME (solve irules)
+          handle
+            SMT_Failure.SMT (fail as SMT_Failure.Counterexample _) =>
+              (C.verbose_msg ctxt' (prefix tag o str_of) fail; NONE)
+          | SMT_Failure.SMT fail =>
+              (C.trace_msg ctxt' (prefix tag o str_of) fail; NONE))
     in
       safe_solve (map (pair ~1) (rules @ prems))
       |> (fn SOME thm => Tactic.rtac thm 1 | _ => Tactical.no_tac)
