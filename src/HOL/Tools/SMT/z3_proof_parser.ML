@@ -13,7 +13,7 @@ sig
     PullQuantStar | PushQuant | ElimUnusedVars | DestEqRes | QuantInst |
     Hypothesis | Lemma | UnitResolution | IffTrue | IffFalse | Commutativity |
     DefAxiom | IntroDef | ApplyDef | IffOeq | NnfPos | NnfNeg | NnfStar |
-    CnfStar | Skolemize | ModusPonensOeq | ThLemma
+    CnfStar | Skolemize | ModusPonensOeq | ThLemma of string list
   val string_of_rule: rule -> string
 
   (* proof parser *)
@@ -41,7 +41,7 @@ datatype rule = TrueAxiom | Asserted | Goal | ModusPonens | Reflexivity |
   PullQuantStar | PushQuant | ElimUnusedVars | DestEqRes | QuantInst |
   Hypothesis | Lemma | UnitResolution | IffTrue | IffFalse | Commutativity |
   DefAxiom | IntroDef | ApplyDef | IffOeq | NnfPos | NnfNeg | NnfStar |
-  CnfStar | Skolemize | ModusPonensOeq | ThLemma
+  CnfStar | Skolemize | ModusPonensOeq | ThLemma of string list
 
 val rule_names = Symtab.make [
   ("true-axiom", TrueAxiom),
@@ -81,11 +81,12 @@ val rule_names = Symtab.make [
   ("cnf*", CnfStar),
   ("sk", Skolemize),
   ("mp~", ModusPonensOeq),
-  ("th-lemma", ThLemma)]
+  ("th-lemma", ThLemma [])]
 
-fun string_of_rule r =
-  let fun eq_rule (s, r') = if r = r' then SOME s else NONE 
-  in the (Symtab.get_first eq_rule rule_names) end
+fun string_of_rule (ThLemma args) = space_implode " " ("th-lemma" :: args)
+  | string_of_rule r =
+      let fun eq_rule (s, r') = if r = r' then SOME s else NONE 
+      in the (Symtab.get_first eq_rule rule_names) end
 
 
 
@@ -271,14 +272,17 @@ fun lookup_context f x (st as ((_, cx), _)) = (f cx x, st)
 
 fun $$ s = Scan.lift (Scan.$$ s)
 fun this s = Scan.lift (Scan.this_string s)
-fun blank st = Scan.lift (Scan.many1 Symbol.is_ascii_blank) st
+val is_blank = Symbol.is_ascii_blank
+fun blank st = Scan.lift (Scan.many1 is_blank) st
 fun sep scan = blank |-- scan
 fun seps scan = Scan.repeat (sep scan)
 fun seps1 scan = Scan.repeat1 (sep scan)
 fun seps_by scan_sep scan = scan ::: Scan.repeat (scan_sep |-- scan)
 
-fun par scan = $$ "(" |-- scan --| $$ ")"
-fun bra scan = $$ "[" |-- scan --| $$ "]"
+val lpar = "(" and rpar = ")"
+val lbra = "[" and rbra = "]"
+fun par scan = $$ lpar |-- scan --| $$ rpar
+fun bra scan = $$ lbra |-- scan --| $$ rbra
 
 val digit = (fn
   "0" => SOME 0 | "1" => SOME 1 | "2" => SOME 2 | "3" => SOME 3 |
@@ -368,8 +372,14 @@ fun expr k =
   Scan.first [bound, quantifier, pattern, application, number, constant] :|--
   with_context (pair NONE oo add_expr k)
 
+fun th_lemma_arg st =
+  Scan.lift (Scan.many1 (not o (is_blank orf equal rbra)) >> implode) st
+
 fun rule_name st = ((name >> `(Symtab.lookup rule_names)) :|-- (fn 
-    (SOME r, _) => Scan.succeed r
+    (SOME (ThLemma _), _) =>
+      let fun stop st = (sep id >> K "" || $$ rbra) st
+      in Scan.repeat (Scan.unless stop (sep th_lemma_arg)) >> ThLemma end
+  | (SOME r, _) => Scan.succeed r
   | (NONE, n) => scan_exn ("unknown proof rule: " ^ quote n))) st
 
 fun rule f k =

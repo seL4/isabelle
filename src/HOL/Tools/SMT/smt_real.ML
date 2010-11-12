@@ -78,7 +78,8 @@ end
 local
   structure I = Z3_Interface
 
-  fun z3_mk_builtin_typ (I.Sym ("real", _)) = SOME @{typ real}
+  fun z3_mk_builtin_typ (I.Sym ("Real", _)) = SOME @{typ real}
+    | z3_mk_builtin_typ (I.Sym ("real", _)) = SOME @{typ real} (*FIXME: delete*)
     | z3_mk_builtin_typ _ = NONE
 
   fun z3_mk_builtin_num _ i T =

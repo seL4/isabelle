@@ -787,7 +787,7 @@ local
     | (P.Skolemize, _) => skolemize ct cx ||> rpair ptab
 
       (* theory rules *)
-    | (P.ThLemma, _) =>
+    | (P.ThLemma _, _) =>  (* FIXME: use arguments *)
         (th_lemma cx simpset (map (thm_of o fst) ps) ct, cxp)
     | (P.Rewrite, _) => (rewrite cx simpset [] ct, cxp)
     | (P.RewriteStar, ps) =>
