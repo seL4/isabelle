@@ -82,6 +82,13 @@ object Library
       }
   }
 
+  def first_line(source: CharSequence): String =
+  {
+    val lines = chunks(source)
+    if (lines.hasNext) lines.next.toString
+    else ""
+  }
+
 
   /* simple dialogs */
 

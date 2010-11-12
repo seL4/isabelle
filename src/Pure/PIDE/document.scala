@@ -17,7 +17,8 @@ object Document
 
   type ID = Long
 
-  object ID {
+  object ID
+  {
     def apply(id: ID): String = Markup.Long.apply(id)
     def unapply(s: String): Option[ID] = Markup.Long.unapply(s)
   }
@@ -34,11 +35,13 @@ object Document
 
   /* named nodes -- development graph */
 
-  type Node_Text_Edit = (String, List[Text.Edit])  // FIXME None: remove
-
-  type Edit[C] =
+  type Edit[A] =
    (String,  // node name
-    Option[List[(Option[C], Option[C])]])  // None: remove, Some: insert/remove commands
+    Option[List[A]])  // None: remove node, Some: edit content
+
+  type Edit_Text = Edit[Text.Edit]
+  type Edit_Command = Edit[(Option[Command], Option[Command])]
+  type Edit_Command_ID = Edit[(Option[Command_ID], Option[Command_ID])]
 
   object Node
   {
@@ -133,8 +136,8 @@ object Document
 
   class Change(
     val previous: Future[Version],
-    val edits: List[Node_Text_Edit],
-    val result: Future[(List[Edit[Command]], Version)])
+    val edits: List[Edit_Text],
+    val result: Future[(List[Edit_Command], Version)])
   {
     val version: Future[Version] = result.map(_._2)
     def is_finished: Boolean = previous.is_finished && version.is_finished
@@ -267,8 +270,8 @@ object Document
       }
 
     def extend_history(previous: Future[Version],
-        edits: List[Node_Text_Edit],
-        result: Future[(List[Edit[Command]], Version)]): (Change, State) =
+        edits: List[Edit_Text],
+        result: Future[(List[Edit_Command], Version)]): (Change, State) =
     {
       val change = new Change(previous, edits, result)
       (change, copy(history = history + change))
@@ -284,9 +287,10 @@ object Document
       val stable = found_stable.get
       val latest = history.undo_list.head
 
+      // FIXME proper treatment of deleted nodes
       val edits =
         (pending_edits /: history.undo_list.takeWhile(_ != stable))((edits, change) =>
-            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
+            (for ((a, Some(eds)) <- change.edits if a == name) yield eds).flatten ::: edits)
       lazy val reverse_edits = edits.reverse
 
       new Snapshot
