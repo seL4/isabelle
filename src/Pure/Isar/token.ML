@@ -269,8 +269,8 @@ fun !!! msg = Symbol_Pos.!!! ("Outer lexical error: " ^ msg);
 val is_sym_char = member (op =) (explode "!#$%&*+-/<=>?@^_|~");
 
 val scan_symid =
-  Scan.many1 (is_sym_char o symbol) ||
-  Scan.one (Symbol.is_symbolic o symbol) >> single;
+  Scan.many1 (is_sym_char o Symbol_Pos.symbol) ||
+  Scan.one (Symbol.is_symbolic o Symbol_Pos.symbol) >> single;
 
 fun is_symid str =
   (case try Symbol.explode str of
@@ -301,8 +301,8 @@ val scan_verbatim =
 fun is_space s = Symbol.is_blank s andalso s <> "\n";
 
 val scan_space =
-  Scan.many1 (is_space o symbol) @@@ Scan.optional ($$$ "\n") [] ||
-  Scan.many (is_space o symbol) @@@ $$$ "\n";
+  Scan.many1 (is_space o Symbol_Pos.symbol) @@@ Scan.optional ($$$ "\n") [] ||
+  Scan.many (is_space o Symbol_Pos.symbol) @@@ $$$ "\n";
 
 
 (* scan comment *)
@@ -332,8 +332,8 @@ fun scan (lex1, lex2) = !!! "bad input"
     scan_verbatim >> token_range Verbatim ||
     scan_comment >> token_range Comment ||
     scan_space >> token Space ||
-    Scan.one (Symbol.is_malformed o symbol) >> (token Malformed o single) ||
-    Scan.one (Symbol.is_sync o symbol) >> (token Sync o single) ||
+    Scan.one (Symbol.is_malformed o Symbol_Pos.symbol) >> (token Malformed o single) ||
+    Scan.one (Symbol.is_sync o Symbol_Pos.symbol) >> (token Sync o single) ||
     (Scan.max token_leq
       (Scan.max token_leq
         (Scan.literal lex2 >> pair Command)
@@ -348,7 +348,7 @@ fun scan (lex1, lex2) = !!! "bad input"
         scan_symid >> pair SymIdent) >> uncurry token));
 
 fun recover msg =
-  Scan.many ((Symbol.is_regular andf (not o Symbol.is_blank)) o symbol)
+  Scan.many ((Symbol.is_regular andf (not o Symbol.is_blank)) o Symbol_Pos.symbol)
   >> (single o token (Error msg));
 
 in

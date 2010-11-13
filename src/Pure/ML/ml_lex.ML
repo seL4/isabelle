@@ -135,7 +135,7 @@ fun !!! msg = Symbol_Pos.!!! ("SML lexical error: " ^ msg);
 
 (* blanks *)
 
-val scan_blank = Scan.one (Symbol.is_ascii_blank o symbol);
+val scan_blank = Scan.one (Symbol.is_ascii_blank o Symbol_Pos.symbol);
 val scan_blanks1 = Scan.repeat1 scan_blank;
 
 
@@ -158,11 +158,15 @@ fun scan_keyword x = Scan.literal lex x;
 local
 
 val scan_letdigs =
-  Scan.many ((Symbol.is_ascii_letter orf Symbol.is_ascii_digit orf Symbol.is_ascii_quasi) o symbol);
+  Scan.many
+    ((Symbol.is_ascii_letter orf Symbol.is_ascii_digit orf Symbol.is_ascii_quasi) o
+      Symbol_Pos.symbol);
 
-val scan_alphanumeric = Scan.one (Symbol.is_ascii_letter o symbol) -- scan_letdigs >> op ::;
+val scan_alphanumeric =
+  Scan.one (Symbol.is_ascii_letter o Symbol_Pos.symbol) -- scan_letdigs >> op ::;
 
-val scan_symbolic = Scan.many1 (member (op =) (explode "!#$%&*+-/:<=>?@\\^`|~") o symbol);
+val scan_symbolic =
+  Scan.many1 (member (op =) (explode "!#$%&*+-/:<=>?@\\^`|~") o Symbol_Pos.symbol);
 
 in
 
@@ -180,8 +184,8 @@ end;
 
 local
 
-val scan_dec = Scan.many1 (Symbol.is_ascii_digit o symbol);
-val scan_hex = Scan.many1 (Symbol.is_ascii_hex o symbol);
+val scan_dec = Scan.many1 (Symbol.is_ascii_digit o Symbol_Pos.symbol);
+val scan_hex = Scan.many1 (Symbol.is_ascii_hex o Symbol_Pos.symbol);
 val scan_sign = Scan.optional ($$$ "~") [];
 val scan_decint = scan_sign @@@ scan_dec;
 
@@ -207,11 +211,11 @@ end;
 local
 
 val scan_escape =
-  Scan.one (member (op =) (explode "\"\\abtnvfr") o symbol) >> single ||
+  Scan.one (member (op =) (explode "\"\\abtnvfr") o Symbol_Pos.symbol) >> single ||
   $$$ "^" @@@ (Scan.one (fn (s, _) => ord "@" <= ord s andalso ord s <= ord "_") >> single) ||
-  Scan.one (Symbol.is_ascii_digit o symbol) --
-    Scan.one (Symbol.is_ascii_digit o symbol) --
-    Scan.one (Symbol.is_ascii_digit o symbol) >> (fn ((a, b), c) => [a, b, c]);
+  Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) --
+    Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) --
+    Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) >> (fn ((a, b), c) => [a, b, c]);
 
 val scan_str =
   Scan.one (fn (s, _) => Symbol.is_regular s andalso s <> "\"" andalso s <> "\\" andalso
@@ -256,7 +260,7 @@ val scan_ml =
 val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
 
 fun recover msg =
-  Scan.many (((not o Symbol.is_blank) andf Symbol.is_regular) o symbol)
+  Scan.many (((not o Symbol.is_blank) andf Symbol.is_regular) o Symbol_Pos.symbol)
   >> (fn cs => [token (Error msg) cs]);
 
 in
