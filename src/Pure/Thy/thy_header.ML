@@ -79,7 +79,7 @@ fun split_thy_path path =
 
 fun consistent_name name name' =
   if name = name' then ()
-  else error ("Filename " ^ quote (Path.implode (thy_path name)) ^
-    " does not agree with theory name " ^ quote name');
+  else error ("Bad file name " ^ quote (Path.implode (thy_path name)) ^
+    " for theory " ^ quote name');
 
 end;
