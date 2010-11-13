@@ -389,7 +389,7 @@ fun thms_of_name ctxt name =
     val get = maps (ProofContext.get_fact ctxt o fst)
   in
     Source.of_string name
-    |> Symbol.source {do_recover=false}
+    |> Symbol.source
     |> Token.source {do_recover=SOME false} lex Position.start
     |> Token.source_proper
     |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
