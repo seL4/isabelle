@@ -31,9 +31,9 @@ object Symbol
   /* Symbol regexps */
 
   private val plain = new Regex("""(?xs)
-      [^\r\\ \ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
+      [^\r\\\ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
 
-  private val newline = new Regex("""(?xs) \r\n | \r """)
+  private val physical_newline = new Regex("""(?xs) \n | \r\n | \r """)
 
   private val symbol = new Regex("""(?xs)
       \\ < (?:
@@ -46,7 +46,7 @@ object Symbol
     """ \\ < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
 
   // total pattern
-  val regex = new Regex(plain + "|" + newline + "|" + symbol + "|" + bad_symbol + "| .")
+  val regex = new Regex(plain + "|" + physical_newline + "|" + symbol + "|" + bad_symbol + "| .")
 
 
   /* basic matching */
@@ -81,7 +81,8 @@ object Symbol
     private val matcher = new Matcher(text)
     private var i = 0
     def hasNext = i < text.length
-    def next = {
+    def next =
+    {
       val n = matcher(i, text.length)
       val s = text.subSequence(i, i + n)
       i += n
