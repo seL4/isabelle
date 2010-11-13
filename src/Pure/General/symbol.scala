@@ -31,7 +31,7 @@ object Symbol
   /* Symbol regexps */
 
   private val plain = new Regex("""(?xs)
-      [^\r\\\ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
+      [^\r\\\ud800-\udfff\ufffd] | [\ud800-\udbff][\udc00-\udfff] """)
 
   private val physical_newline = new Regex("""(?xs) \n | \r\n | \r """)
 
@@ -41,7 +41,7 @@ object Symbol
       \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
 
   private val malformed_symbol = new Regex("(?xs) (?!" + symbol + ")" +
-    """ [\ud800-\udbff] | \\<^? """)
+    """ [\ud800-\udbff\ufffd] | \\<^? """)
 
   val regex_total =
     new Regex(plain + "|" + physical_newline + "|" + symbol + "|" + malformed_symbol + "| .")
