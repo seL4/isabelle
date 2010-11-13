@@ -265,11 +265,7 @@ fun source src =
   Symbol_Pos.source (Position.line 1) src
   |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME (false, recover));
 
-val tokenize =
-  Source.of_string #>
-  Symbol.source {do_recover = true} #>
-  source #>
-  Source.exhaust;
+val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
 
 fun read pos txt =
   let

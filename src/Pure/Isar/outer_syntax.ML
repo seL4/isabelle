@@ -187,13 +187,13 @@ fun toplevel_source term do_recover cmd src =
 
 fun scan pos str =
   Source.of_string str
-  |> Symbol.source {do_recover = false}
+  |> Symbol.source
   |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
   |> Source.exhaust;
 
 fun parse pos str =
   Source.of_string str
-  |> Symbol.source {do_recover = false}
+  |> Symbol.source
   |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
   |> toplevel_source false NONE get_command
   |> Source.exhaust;
@@ -224,7 +224,7 @@ type isar =
 
 fun isar in_stream term : isar =
   Source.tty in_stream
-  |> Symbol.source {do_recover = true}
+  |> Symbol.source
   |> Token.source {do_recover = SOME true} Keyword.get_lexicons Position.none
   |> toplevel_source term (SOME true) get_command;
 

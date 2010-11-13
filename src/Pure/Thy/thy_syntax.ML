@@ -32,14 +32,11 @@ struct
 
 (* parse *)
 
-fun token_source lexs pos src =
-  Symbol.source {do_recover = true} src
-  |> Token.source {do_recover = SOME false} (K lexs) pos;
+fun token_source lexs pos =
+  Symbol.source #> Token.source {do_recover = SOME false} (K lexs) pos;
 
-fun parse_tokens lexs pos str =
-  Source.of_string str
-  |> token_source lexs pos
-  |> Source.exhaust;
+fun parse_tokens lexs pos =
+  Source.of_string #> token_source lexs pos #> Source.exhaust;
 
 
 (* present *)

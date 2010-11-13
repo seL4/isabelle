@@ -210,8 +210,7 @@ fun text_of tok =
   else
     let
       val k = str_of_kind (kind_of tok);
-      val s = unparse tok
-        handle ERROR _ => Symbol.separate_chars (content_of tok);
+      val s = unparse tok;
     in
       if s = "" then (k, "")
       else if size s < 40 andalso not (exists_string (fn c => c = "\n") s) then (k ^ " " ^ s, "")
@@ -312,14 +311,6 @@ val scan_comment =
   Symbol_Pos.scan_pos -- (Symbol_Pos.scan_comment_body !!! -- Symbol_Pos.scan_pos);
 
 
-(* scan malformed symbols *)
-
-val scan_malformed =
-  $$$ Symbol.malformed |--
-    Symbol_Pos.change_prompt (Scan.many (Symbol.is_regular o symbol))
-  --| Scan.option ($$$ Symbol.end_malformed);
-
-
 
 (** token sources **)
 
@@ -341,7 +332,7 @@ fun scan (lex1, lex2) = !!! "bad input"
     scan_verbatim >> token_range Verbatim ||
     scan_comment >> token_range Comment ||
     scan_space >> token Space ||
-    scan_malformed >> token Malformed ||
+    Scan.one (Symbol.is_malformed o symbol) >> (token Malformed o single) ||
     Scan.one (Symbol.is_sync o symbol) >> (token Sync o single) ||
     (Scan.max token_leq
       (Scan.max token_leq

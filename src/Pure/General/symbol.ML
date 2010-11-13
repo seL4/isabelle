@@ -24,10 +24,9 @@ sig
   val stopper: symbol Scan.stopper
   val sync: symbol
   val is_sync: symbol -> bool
-  val malformed: symbol
-  val end_malformed: symbol
-  val separate_chars: string -> string
   val is_regular: symbol -> bool
+  val is_malformed: symbol -> bool
+  val malformed_msg: symbol -> string
   val is_ascii: symbol -> bool
   val is_ascii_letter: symbol -> bool
   val is_ascii_digit: symbol -> bool
@@ -42,7 +41,9 @@ sig
   val is_raw: symbol -> bool
   val decode_raw: symbol -> string
   val encode_raw: string -> string
-  datatype sym = Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string
+  datatype sym =
+    Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string |
+    Malformed of string
   val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
   val kind: symbol -> kind
@@ -56,8 +57,7 @@ sig
   val beginning: int -> symbol list -> string
   val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
   val scan_id: string list -> string * string list
-  val source: {do_recover: bool} -> (string, 'a) Source.source ->
-    (symbol, (string, 'a) Source.source) Source.source
+  val source: (string, 'a) Source.source -> (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
   val esc: symbol -> string
   val escape: string -> string
@@ -111,11 +111,11 @@ fun is_char s = size s = 1;
 fun is_utf8 s = size s > 0 andalso forall_string (fn c => ord c >= 128) s;
 
 fun is_symbolic s =
-  String.isPrefix "\\<" s andalso not (String.isPrefix "\\<^" s);
+  String.isPrefix "\\<" s andalso String.isSuffix ">" s andalso not (String.isPrefix "\\<^" s);
 
 fun is_printable s =
   if is_char s then ord space <= ord s andalso ord s <= ord "~"
-  else is_utf8 s orelse not (String.isPrefix "\\<^" s);
+  else is_utf8 s orelse is_symbolic s;
 
 
 (* input source control *)
@@ -128,14 +128,10 @@ val stopper = Scan.stopper (K eof) is_eof;
 val sync = "\\<^sync>";
 fun is_sync s = s = sync;
 
-val malformed = "[[";
-val end_malformed = "]]";
+fun is_regular s = not_eof s andalso s <> sync;
 
-val separate_chars = explode #> space_implode space;
-fun malformed_msg s = "Malformed symbolic character: " ^ quote (separate_chars s);
-
-fun is_regular s =
-  not_eof s andalso s <> sync andalso s <> malformed andalso s <> end_malformed;
+fun is_malformed s = String.isPrefix "\\<" s andalso not (String.isSuffix ">" s);
+fun malformed_msg s = "Malformed symbolic character: " ^ quote s;
 
 
 (* ascii symbols *)
@@ -225,15 +221,16 @@ fun decode_raw s =
 (* symbol variants *)
 
 datatype sym =
-  Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string;
+  Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string |
+  Malformed of string;
 
 fun decode s =
   if is_char s then Char s
   else if is_utf8 s then UTF8 s
   else if is_raw s then Raw (decode_raw s)
+  else if is_malformed s then Malformed s
   else if String.isPrefix "\\<^" s then Ctrl (String.substring (s, 3, size s - 4))
-  else if String.isPrefix "\\<" s then Sym (String.substring (s, 2, size s - 3))
-  else error (malformed_msg s);
+  else Sym (String.substring (s, 2, size s - 3));
 
 
 (* standard symbol kinds *)
@@ -445,30 +442,18 @@ val scan_raw =
   Scan.this_string "raw:" ^^ (Scan.many raw_chr >> implode) ||
   Scan.this_string "raw" ^^ (Scan.many1 is_ascii_digit >> implode);
 
-val scan =
+val scan_total =
   Scan.one is_plain ||
   Scan.one is_utf8 ::: Scan.many is_utf8_trailer >> implode_pseudo_utf8 ||
   scan_encoded_newline ||
-  ($$ "\\" ^^ $$ "<" ^^
-    !! (fn (cs, _) => malformed_msg (beginning 10 ("\\" :: "<" :: cs)))
-      (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ $$ ">")) ||
+  ($$ "\\" ^^ $$ "<" ^^ (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ $$ ">")) ||
+  Scan.this_string "\\<^" ||
+  Scan.this_string "\\<" ||
   Scan.one not_eof;
-
-val scan_resync =
-  Scan.one is_ascii_blank || $$ "\"" || $$ "`" || $$ "\\" ||
-  Scan.this_string "(*" || Scan.this_string "*)" ||
-  Scan.this_string "{*" || Scan.this_string "*}";
-
-val recover =
-  Scan.this ["\\", "<"] @@@
-    Scan.repeat (Scan.unless scan_resync (Scan.one not_eof))
-  >> (fn ss => malformed :: ss @ [end_malformed]);
 
 in
 
-fun source {do_recover} src =
-  Source.source stopper (Scan.bulk scan)
-    (if do_recover then SOME (false, K recover) else NONE) src;
+fun source src = Source.source stopper (Scan.bulk scan_total) NONE src;
 
 end;
 
@@ -487,7 +472,7 @@ in
 fun sym_explode str =
   let val chs = explode str in
     if no_explode chs then chs
-    else Source.exhaust (source {do_recover = false} (Source.of_list chs))
+    else Source.exhaust (source (Source.of_list chs))
   end;
 
 end;

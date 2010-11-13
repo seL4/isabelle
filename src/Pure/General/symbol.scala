@@ -40,13 +40,11 @@ object Symbol
       \^? [A-Za-z][A-Za-z0-9_']* |
       \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
 
-  // FIXME cover bad surrogates!?
-  // FIXME check wrt. Isabelle/ML version
-  private val bad_symbol = new Regex("(?xs) (?!" + symbol + ")" +
-    """ \\ < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
+  private val malformed_symbol = new Regex("(?xs) (?!" + symbol + ")" +
+    """ [\ud800-\udbff] | \\<^? """)
 
-  // total pattern
-  val regex = new Regex(plain + "|" + physical_newline + "|" + symbol + "|" + bad_symbol + "| .")
+  val regex_total =
+    new Regex(plain + "|" + physical_newline + "|" + symbol + "|" + malformed_symbol + "| .")
 
 
   /* basic matching */
@@ -56,12 +54,12 @@ object Symbol
   def is_physical_newline(s: CharSequence): Boolean =
     "\n".contentEquals(s) || "\r".contentEquals(s) || "\r\n".contentEquals(s)
 
-  def is_wellformed(s: CharSequence): Boolean =
-    s.length == 1 && is_plain(s.charAt(0)) || !bad_symbol.pattern.matcher(s).matches
+  def is_malformed(s: CharSequence): Boolean =
+    !(s.length == 1 && is_plain(s.charAt(0))) && malformed_symbol.pattern.matcher(s).matches
 
   class Matcher(text: CharSequence)
   {
-    private val matcher = regex.pattern.matcher(text)
+    private val matcher = regex_total.pattern.matcher(text)
     def apply(start: Int, end: Int): Int =
     {
       require(0 <= start && start < end && end <= text.length)
@@ -162,7 +160,7 @@ object Symbol
     def recode(text: String): String =
     {
       val len = text.length
-      val matcher = regex.pattern.matcher(text)
+      val matcher = regex_total.pattern.matcher(text)
       val result = new StringBuilder(len)
       var i = 0
       while (i < len) {
@@ -204,7 +202,7 @@ object Symbol
         }
       }
       decl.split("\\s+").toList match {
-        case sym :: props if sym.length > 1 && is_wellformed(sym) => (sym, read_props(props))
+        case sym :: props if sym.length > 1 && !is_malformed(sym) => (sym, read_props(props))
         case _ => err()
       }
     }
@@ -313,6 +311,7 @@ object Symbol
     def is_letdig(sym: String): Boolean = is_letter(sym) || is_digit(sym) || is_quasi(sym)
     def is_blank(sym: String): Boolean = blanks.contains(sym)
     def is_symbolic_char(sym: String): Boolean = sym_chars.contains(sym)
-    def is_symbolic(sym: String): Boolean = sym.startsWith("\\<") && !sym.startsWith("\\<^")
+    def is_symbolic(sym: String): Boolean =
+      sym.startsWith("\\<") && sym.endsWith(">") && !sym.startsWith("\\<^")
   }
 }
