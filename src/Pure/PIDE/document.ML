@@ -197,7 +197,7 @@ fun proof_status tr st =
   | NONE => ());
 
 fun async_state tr st =
-  if Toplevel.print_of tr then
+  if Toplevel.print_of tr orelse Keyword.is_proof (Toplevel.name_of tr) then
     ignore
       (Future.fork_group (Task_Queue.new_group NONE)
         (fn () =>
