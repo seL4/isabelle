@@ -200,7 +200,6 @@ fun unparse (Token (_, (kind, x), _)) =
   | AltString => x |> enclose "`" "`" o escape "`"
   | Verbatim => x |> enclose "{*" "*}"
   | Comment => x |> enclose "(*" "*)"
-  | Malformed => space_implode " " (explode x)
   | Sync => ""
   | EOF => ""
   | _ => x);
