@@ -6,6 +6,7 @@ header {* Boogie example from VCC: get the greatest element of a list *}
 
 theory VCC_Max
 imports Boogie
+uses ("VCC_Max.b2i")
 begin
 
 text {*

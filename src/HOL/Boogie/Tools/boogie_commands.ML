@@ -19,16 +19,16 @@ fun boogie_open ((quiet, base_name), offsets) thy =
     val ext = "b2i"
     fun add_ext path = path |> snd (Path.split_ext path) <> ext ? Path.ext ext
     val base_path = add_ext (Path.explode base_name)
-    val path_id = Thy_Load.check_file [Thy_Load.master_directory thy] base_path
+    val (full_path, _) =
+      Thy_Load.check_file [Thy_Load.master_directory thy] base_path
 
     val _ = Boogie_VCs.is_closed thy orelse
       error ("Found the beginning of a new Boogie environment, " ^
         "but another Boogie environment is still open.")
   in
     thy
-    |> Thy_Load.require base_path
-    |> Boogie_Loader.load_b2i (not quiet) offsets (fst path_id)
-    |> Thy_Load.provide (base_path, path_id)
+    |> Boogie_Loader.load_b2i (not quiet) offsets full_path
+    |> Thy_Load.provide_file base_path
   end
 
 

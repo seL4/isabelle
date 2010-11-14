@@ -6,6 +6,7 @@ header {* Boogie example: get the greatest element of a list *}
 
 theory Boogie_Max_Stepwise
 imports Boogie
+uses ("Boogie_Max.b2i")
 begin
 
 text {*
