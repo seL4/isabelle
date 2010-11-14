@@ -210,12 +210,12 @@ sig
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
-  type stamp
+  type stamp = unit Unsynchronized.ref
   val stamp: unit -> stamp
-  type serial
+  type serial = int
   val serial: unit -> serial
   val serial_string: unit -> string
-  structure Object: sig type T end
+  structure Object: sig type T = exn end
 end;
 
 signature LIBRARY =

@@ -197,13 +197,11 @@ fun proof_status tr st =
   | NONE => ());
 
 fun async_state tr st =
-  if Toplevel.print_of tr then
-    ignore
-      (Future.fork_group (Task_Queue.new_group NONE)
-        (fn () =>
-          Toplevel.setmp_thread_position tr
-            (fn () => Toplevel.print_state false st) ()))
-  else ();
+  ignore
+    (Future.fork_group (Task_Queue.new_group NONE)
+      (fn () =>
+        Toplevel.setmp_thread_position tr
+          (fn () => Toplevel.print_state false st) ()));
 
 fun run int tr st =
   (case Toplevel.transition int tr st of
@@ -223,9 +221,12 @@ fun run_command thy_name tr st =
       | NONE => Exn.Result ()) of
     Exn.Result () =>
       let
-        val int = is_some (Toplevel.init_of tr);
+        val is_init = is_some (Toplevel.init_of tr);
+        val is_proof = Keyword.is_proof (Toplevel.name_of tr);
+        val do_print = not is_init andalso (Toplevel.print_of tr orelse is_proof);
+
         val start = start_timing ();
-        val (errs, result) = run int tr st;
+        val (errs, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
         val _ = timing tr (end_timing start);
         val _ = List.app (Toplevel.error_msg tr) errs;
         val res =
@@ -234,7 +235,7 @@ fun run_command thy_name tr st =
           | SOME st' =>
              (Toplevel.status tr Markup.finished;
               proof_status tr st';
-              if int then () else async_state tr st';
+              if do_print then async_state tr st' else ();
               (true, st')));
       in res end
   | Exn.Exn exn =>
@@ -319,8 +320,7 @@ fun execute version_id state =
         | force_exec (SOME exec_id) = ignore (Lazy.force (the_exec state exec_id));
 
       val _ = List.app Future.cancel execution;
-      fun await_cancellation () =
-        uninterruptible (fn _ => fn () => Future.join_results execution) ();
+      fun await_cancellation () = Future.join_results execution;
 
       val execution' = (* FIXME proper node deps *)
         node_names_of version |> map (fn name =>
@@ -328,6 +328,9 @@ fun execute version_id state =
             (await_cancellation ();
               fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
                 (get_node version name) ())));
+
+      val _ = await_cancellation ();
+
     in (versions, commands, execs, execution') end);
 
 end;

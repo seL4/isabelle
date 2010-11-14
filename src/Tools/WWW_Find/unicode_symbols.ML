@@ -66,7 +66,7 @@ fun is_eof (Token (EOF, _, _)) = true
 
 fun end_position_of (Token (_, _, (_, epos))) = epos;
 
-val is_space = symbol #> (fn s => Symbol.is_blank s andalso s <> "\n");
+val is_space = Symbol_Pos.symbol #> (fn s => Symbol.is_blank s andalso s <> "\n");
 val scan_space =
   (Scan.many1 is_space @@@ Scan.optional ($$$ "\n") []
    ||
@@ -78,11 +78,11 @@ val scan_ascii_symbol = Scan.one
   ((fn x => Symbol.is_ascii x andalso
       not (Symbol.is_ascii_letter x
            orelse Symbol.is_ascii_digit x
-           orelse Symbol.is_ascii_blank x)) o symbol)
-  -- Scan.many (not o Symbol.is_ascii_blank o symbol)
+           orelse Symbol.is_ascii_blank x)) o Symbol_Pos.symbol)
+  -- Scan.many (not o Symbol.is_ascii_blank o Symbol_Pos.symbol)
   >> (token AsciiSymbol o op ::);
 
-fun not_contains xs c = not (member (op =) (explode xs) (symbol c));
+fun not_contains xs c = not (member (op =) (explode xs) (Symbol_Pos.symbol c));
 val scan_comment =
   $$$ "#" |-- (Scan.many (not_contains "\n") @@@ ($$$ "\n"))
   >> token Comment;
@@ -90,7 +90,7 @@ val scan_comment =
 fun tokenize syms =
   let
     val scanner =
-      Scan.one (Symbol.is_symbolic o symbol) >> (token Symbol o single) ||
+      Scan.one (Symbol.is_symbolic o Symbol_Pos.symbol) >> (token Symbol o single) ||
       scan_comment ||
       scan_space ||
       scan_code ||

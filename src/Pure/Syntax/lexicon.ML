@@ -103,15 +103,18 @@ open Basic_Symbol_Pos;
 
 fun !!! msg = Symbol_Pos.!!! ("Inner lexical error: " ^ msg);
 
-val scan_id = Scan.one (Symbol.is_letter o symbol) ::: Scan.many (Symbol.is_letdig o symbol);
+val scan_id =
+  Scan.one (Symbol.is_letter o Symbol_Pos.symbol) :::
+  Scan.many (Symbol.is_letdig o Symbol_Pos.symbol);
+
 val scan_longid = scan_id @@@ (Scan.repeat1 ($$$ "." @@@ scan_id) >> flat);
 val scan_tid = $$$ "'" @@@ scan_id;
 
-val scan_nat = Scan.many1 (Symbol.is_digit o symbol);
+val scan_nat = Scan.many1 (Symbol.is_digit o Symbol_Pos.symbol);
 val scan_int = $$$ "-" @@@ scan_nat || scan_nat;
 val scan_natdot = scan_nat @@@ $$$ "." @@@ scan_nat;
 val scan_float = $$$ "-" @@@ scan_natdot || scan_natdot;
-val scan_hex = $$$ "0" @@@ $$$ "x" @@@ Scan.many1 (Symbol.is_ascii_hex o symbol);
+val scan_hex = $$$ "0" @@@ $$$ "x" @@@ Scan.many1 (Symbol.is_ascii_hex o Symbol_Pos.symbol);
 val scan_bin = $$$ "0" @@@ $$$ "b" @@@ Scan.many1 (fn (s, _) => s = "0" orelse s = "1");
 
 val scan_id_nat = scan_id @@@ Scan.optional ($$$ "." @@@ scan_nat) [];
@@ -221,7 +224,9 @@ fun predef_term s =
 
 val scan_chr =
   $$$ "\\" |-- $$$ "'" ||
-  Scan.one ((fn s => s <> "\\" andalso s <> "'" andalso Symbol.is_regular s) o symbol) >> single ||
+  Scan.one
+    ((fn s => s <> "\\" andalso s <> "'" andalso Symbol.is_regular s) o
+      Symbol_Pos.symbol) >> single ||
   $$$ "'" --| Scan.ahead (~$$$ "'");
 
 val scan_str =
@@ -237,7 +242,7 @@ fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c)
 
 fun explode_xstr str =
   (case Scan.read Symbol_Pos.stopper scan_str_body (Symbol_Pos.explode (str, Position.none)) of
-    SOME cs => map symbol cs
+    SOME cs => map Symbol_Pos.symbol cs
   | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
 
 
@@ -271,7 +276,7 @@ fun tokenize lex xids syms =
       Symbol_Pos.scan_comment !!! >> token Comment ||
       Scan.max token_leq scan_lit scan_val ||
       scan_str >> token StrSy ||
-      Scan.many1 (Symbol.is_blank o symbol) >> token Space;
+      Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol) >> token Space;
   in
     (case Scan.error
         (Scan.finite Symbol_Pos.stopper (Scan.repeat scan_token)) syms of
@@ -301,8 +306,8 @@ val scan_vname =
           if Symbol.is_digit c then chop_idx cs (c :: ds)
           else idxname (c :: cs) ds;
 
-    val scan = (scan_id >> map symbol) --
-      Scan.optional ($$$ "." |-- scan_nat >> (nat 0 o map symbol)) ~1;
+    val scan = (scan_id >> map Symbol_Pos.symbol) --
+      Scan.optional ($$$ "." |-- scan_nat >> (nat 0 o map Symbol_Pos.symbol)) ~1;
   in
     scan >>
       (fn (cs, ~1) => chop_idx (rev cs) []
@@ -334,7 +339,7 @@ fun read_var str =
   let
     val scan =
       $$$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof) >> var ||
-      Scan.many (Symbol.is_regular o symbol) >> (free o implode o map symbol);
+      Scan.many (Symbol.is_regular o Symbol_Pos.symbol) >> (free o implode o map Symbol_Pos.symbol);
   in the (Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none))) end;
 
 
@@ -378,7 +383,7 @@ val is_marked =
 local
 
 fun nat cs =
-  Option.map (#1 o Library.read_int o map symbol)
+  Option.map (#1 o Library.read_int o map Symbol_Pos.symbol)
     (Scan.read Symbol_Pos.stopper scan_nat cs);
 
 in

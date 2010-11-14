@@ -18,17 +18,19 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
 
   def keyword_kind(name: String): Option[String] = keywords.get(name)
 
-  def + (name: String, kind: String): Outer_Syntax =
+  def + (name: String, kind: String, replace: String): Outer_Syntax =
   {
     val new_keywords = keywords + (name -> kind)
     val new_lexicon = lexicon + name
-    val new_completion = completion + name
+    val new_completion = completion + (name, replace)
     new Outer_Syntax(symbols) {
       override val lexicon = new_lexicon
       override val keywords = new_keywords
       override lazy val completion = new_completion
     }
   }
+
+  def + (name: String, kind: String): Outer_Syntax = this + (name, kind, name)
 
   def + (name: String): Outer_Syntax = this + (name, Keyword.MINOR)
 

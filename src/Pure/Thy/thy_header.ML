@@ -57,7 +57,7 @@ fun read pos str =
   let val res =
     str
     |> Source.of_string_limited 8000
-    |> Symbol.source {do_recover = false}
+    |> Symbol.source
     |> Token.source {do_recover = NONE} (fn () => (header_lexicon, Scan.empty_lexicon)) pos
     |> Token.source_proper
     |> Source.source Token.stopper (Scan.single (Scan.error (Parse.!!! header))) NONE
@@ -79,7 +79,7 @@ fun split_thy_path path =
 
 fun consistent_name name name' =
   if name = name' then ()
-  else error ("Filename " ^ quote (Path.implode (thy_path name)) ^
-    " does not agree with theory name " ^ quote name');
+  else error ("Bad file name " ^ quote (Path.implode (thy_path name)) ^
+    " for theory " ^ quote name');
 
 end;

@@ -208,7 +208,12 @@ class Session(system: Isabelle_System)
         case _ =>
           if (result.is_syslog) {
             reverse_syslog ::= result.message
-            if (result.is_ready) phase = Session.Ready
+            if (result.is_ready) {
+              // FIXME move to ML side
+              syntax += ("hence", Keyword.PRF_ASM_GOAL, "then have")
+              syntax += ("thus", Keyword.PRF_ASM_GOAL, "then show")
+              phase = Session.Ready
+            }
             else if (result.is_exit && phase == Session.Startup) phase = Session.Failed
             else if (result.is_exit) phase = Session.Inactive
           }

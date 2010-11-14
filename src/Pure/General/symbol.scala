@@ -31,22 +31,20 @@ object Symbol
   /* Symbol regexps */
 
   private val plain = new Regex("""(?xs)
-      [^\r\\ \ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
+      [^\r\\\ud800-\udfff\ufffd] | [\ud800-\udbff][\udc00-\udfff] """)
 
-  private val newline = new Regex("""(?xs) \r\n | \r """)
+  private val physical_newline = new Regex("""(?xs) \n | \r\n | \r """)
 
   private val symbol = new Regex("""(?xs)
       \\ < (?:
       \^? [A-Za-z][A-Za-z0-9_']* |
       \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
 
-  // FIXME cover bad surrogates!?
-  // FIXME check wrt. Isabelle/ML version
-  private val bad_symbol = new Regex("(?xs) (?!" + symbol + ")" +
-    """ \\ < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
+  private val malformed_symbol = new Regex("(?xs) (?!" + symbol + ")" +
+    """ [\ud800-\udbff\ufffd] | \\<\^? """)
 
-  // total pattern
-  val regex = new Regex(plain + "|" + newline + "|" + symbol + "|" + bad_symbol + "| .")
+  val regex_total =
+    new Regex(plain + "|" + physical_newline + "|" + symbol + "|" + malformed_symbol + "| .")
 
 
   /* basic matching */
@@ -56,12 +54,12 @@ object Symbol
   def is_physical_newline(s: CharSequence): Boolean =
     "\n".contentEquals(s) || "\r".contentEquals(s) || "\r\n".contentEquals(s)
 
-  def is_wellformed(s: CharSequence): Boolean =
-    s.length == 1 && is_plain(s.charAt(0)) || !bad_symbol.pattern.matcher(s).matches
+  def is_malformed(s: CharSequence): Boolean =
+    !(s.length == 1 && is_plain(s.charAt(0))) && malformed_symbol.pattern.matcher(s).matches
 
   class Matcher(text: CharSequence)
   {
-    private val matcher = regex.pattern.matcher(text)
+    private val matcher = regex_total.pattern.matcher(text)
     def apply(start: Int, end: Int): Int =
     {
       require(0 <= start && start < end && end <= text.length)
@@ -81,7 +79,8 @@ object Symbol
     private val matcher = new Matcher(text)
     private var i = 0
     def hasNext = i < text.length
-    def next = {
+    def next =
+    {
       val n = matcher(i, text.length)
       val s = text.subSequence(i, i + n)
       i += n
@@ -161,7 +160,7 @@ object Symbol
     def recode(text: String): String =
     {
       val len = text.length
-      val matcher = regex.pattern.matcher(text)
+      val matcher = regex_total.pattern.matcher(text)
       val result = new StringBuilder(len)
       var i = 0
       while (i < len) {
@@ -203,7 +202,7 @@ object Symbol
         }
       }
       decl.split("\\s+").toList match {
-        case sym :: props if sym.length > 1 && is_wellformed(sym) => (sym, read_props(props))
+        case sym :: props if sym.length > 1 && !is_malformed(sym) => (sym, read_props(props))
         case _ => err()
       }
     }
@@ -312,6 +311,7 @@ object Symbol
     def is_letdig(sym: String): Boolean = is_letter(sym) || is_digit(sym) || is_quasi(sym)
     def is_blank(sym: String): Boolean = blanks.contains(sym)
     def is_symbolic_char(sym: String): Boolean = sym_chars.contains(sym)
-    def is_symbolic(sym: String): Boolean = sym.startsWith("\\<") && !sym.startsWith("\\<^")
+    def is_symbolic(sym: String): Boolean =
+      sym.startsWith("\\<") && sym.endsWith(">") && !sym.startsWith("\\<^")
   }
 }

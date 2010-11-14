@@ -32,14 +32,11 @@ struct
 
 (* parse *)
 
-fun token_source lexs pos src =
-  Symbol.source {do_recover = true} src
-  |> Token.source {do_recover = SOME false} (K lexs) pos;
+fun token_source lexs pos =
+  Symbol.source #> Token.source {do_recover = SOME false} (K lexs) pos;
 
-fun parse_tokens lexs pos str =
-  Source.of_string str
-  |> token_source lexs pos
-  |> Source.exhaust;
+fun parse_tokens lexs pos =
+  Source.of_string #> token_source lexs pos #> Source.exhaust;
 
 
 (* present *)
@@ -79,13 +76,17 @@ fun token_markup tok =
         else I;
     in props (token_kind_markup kind) end;
 
+fun report_symbol (sym, pos) =
+  if Symbol.is_malformed sym then Position.report pos Markup.malformed else ();
+
 in
 
 fun present_token tok =
   Markup.enclose (token_markup tok) (Output.output (Token.unparse tok));
 
 fun report_token tok =
-  Position.report (Token.position_of tok) (token_markup tok);
+ (Position.report (Token.position_of tok) (token_markup tok);
+  List.app report_symbol (Symbol_Pos.explode (Token.source_position_of tok)));
 
 end;
 

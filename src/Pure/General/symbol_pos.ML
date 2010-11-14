@@ -182,7 +182,6 @@ end;
 
 structure Basic_Symbol_Pos =   (*not open by default*)
 struct
-  val symbol = Symbol_Pos.symbol;
   val $$$ = Symbol_Pos.$$$;
   val ~$$$ = Symbol_Pos.~$$$;
 end;

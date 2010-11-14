@@ -23,7 +23,7 @@ private object Completion
 
     def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+<\\""".r
     def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}<\\""".r
-    def word: Parser[String] = "[a-zA-Z0-9_']{3,}".r
+    def word: Parser[String] = "[a-zA-Z0-9_']{2,}".r
 
     def read(in: CharSequence): Option[String] =
     {
@@ -49,16 +49,18 @@ class Completion
 
   /* adding stuff */
 
-  def + (keyword: String): Completion =
+  def + (keyword: String, replace: String): Completion =
   {
     val old = this
     new Completion {
       override val words_lex = old.words_lex + keyword
-      override val words_map = old.words_map + (keyword -> keyword)
+      override val words_map = old.words_map + (keyword -> replace)
       override val abbrevs_lex = old.abbrevs_lex
       override val abbrevs_map = old.abbrevs_map
     }
   }
+
+  def + (keyword: String): Completion = this + (keyword, keyword)
 
   def + (symbols: Symbol.Interpretation): Completion =
   {

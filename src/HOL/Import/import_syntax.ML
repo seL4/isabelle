@@ -147,7 +147,7 @@ fun import_thy s =
         val inp = TextIO.inputAll is
         val _ = TextIO.closeIn is
         val orig_source = Source.of_string inp
-        val symb_source = Symbol.source {do_recover = false} orig_source
+        val symb_source = Symbol.source orig_source
         val lexes =
           (Scan.make_lexicon
             (map Symbol.explode ["import_segment","ignore_thms","import","end",">","::","const_maps","const_moves","thm_maps","const_renames","type_maps","def_maps"]),
