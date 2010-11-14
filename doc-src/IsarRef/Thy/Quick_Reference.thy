@@ -100,9 +100,9 @@ text {*
   \begin{tabular}{ll}
     @{command "pr"} & print current state \\
     @{command "thm"}~@{text a} & print fact \\
+    @{command "prop"}~@{text \<phi>} & print proposition \\
     @{command "term"}~@{text t} & print term \\
-    @{command "prop"}~@{text \<phi>} & print meta-level proposition \\
-    @{command "typ"}~@{text \<tau>} & print meta-level type \\
+    @{command "typ"}~@{text \<tau>} & print type \\
   \end{tabular}
 *}
 
