@@ -1,16 +1,17 @@
+# -*- shell-script -*- :mode=shellscript:
 
-EXEC_SWIPL=$(choosefrom \
+EXEC_SWIPL="$(choosefrom \
   "$ISABELLE_HOME/contrib/swipl/$ISABELLE_PLATFORM/bin/swipl" \
   "$ISABELLE_HOME/contrib_devel/swipl/$ISABELLE_PLATFORM/bin/swipl" \
   "$ISABELLE_HOME/../swipl" \
   $(type -p swipl) \
-  "")
+  "")"
 
-EXEC_YAP=$(choosefrom \
+EXEC_YAP="$(choosefrom \
   "$ISABELLE_HOME/contrib/yap/$ISABELLE_PLATFORM/bin/yap" \
   "$ISABELLE_HOME/contrib_devel/yap/$ISABELLE_PLATFORM/bin/yap" \
   "$ISABELLE_HOME/../yap" \
   $(type -p yap) \
-  "")
+  "")"
 
 SWIPL_VERSION=$("$COMPONENT/lib/scripts/swipl_version")
