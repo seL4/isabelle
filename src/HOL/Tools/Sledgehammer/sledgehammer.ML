@@ -512,6 +512,9 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
                           command_call smtN (map fst used_facts)) ^
         minimize_line minimize_command (map fst used_facts)
       | SOME SMT_Failure.Time_Out => "Timed out."
+      | SOME (SMT_Failure.Solver_Crashed code) =>
+        "The SMT solver terminated abnormally with exit code " ^
+        string_of_int code ^ "."
       | SOME (SMT_Failure.Counterexample _) => "The SMT problem is unprovable."
       | SOME failure =>
         SMT_Failure.string_of_failure ctxt failure
