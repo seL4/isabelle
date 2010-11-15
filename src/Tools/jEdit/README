@@ -60,10 +60,12 @@ Known problems with Mac OS
   used in Isabelle sub/superscripts).
 
 
-Windows/Linux
-=============
+Known problems with OpenJDK
+===========================
 
-- Works best with Sun Java 1.6.x -- avoid OpenJDK for now.
+- The 2D rendering engine of OpenJDK 1.6.x distorts the appearance of
+  the jEdit text area.  Always use official JRE 1.6.x from
+  Sun/Oracle/Apple.
 
 
 Licenses and home sites of contributing systems
@@ -77,7 +79,3 @@ Licenses and home sites of contributing systems
 
 * Lobo/Cobra: GPL and LGPL
   http://lobobrowser.org/
-
-
-     Makarius
-     31-May-2010
