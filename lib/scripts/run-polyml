@@ -9,23 +9,26 @@ export -n INFILE OUTFILE MLTEXT TERMINATE NOWRITE
 
 ## diagnostics
 
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
 function fail_out()
 {
-  echo "Unable to create output heap file: \"$OUTFILE\"" >&2
-  exit 2
+  fail "Unable to create output heap file: \"$OUTFILE\""
 }
 
 function check_file()
 {
-  if [ ! -f "$1" ]; then
-    echo "Unable to locate $1" >&2
-    echo "Please check your ML system settings!" >&2
-    exit 2
-  fi
+  [ ! -f "$1" ] && fail "Unable to locate \"$1\""
 }
 
 
 ## compiler executables and libraries
+
+[ -z "$ML_HOME" ] && fail "Missing ML installation (ML_HOME)"
 
 POLY="$ML_HOME/poly"
 check_file "$POLY"
