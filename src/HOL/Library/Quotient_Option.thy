@@ -9,7 +9,7 @@ imports Main Quotient_Syntax
 begin
 
 fun
-  option_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> 'a option \<Rightarrow> bool"
+  option_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> bool"
 where
   "option_rel R None None = True"
 | "option_rel R (Some x) None = False"
