@@ -516,6 +516,7 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
         "The SMT solver terminated abnormally with exit code " ^
         string_of_int code ^ "."
       | SOME (SMT_Failure.Counterexample _) => "The SMT problem is unprovable."
+      | SOME SMT_Failure.Out_Of_Memory => "The SMT solver ran out of memory."
       | SOME failure =>
         SMT_Failure.string_of_failure ctxt failure
     val outcome = outcome |> Option.map failure_from_smt_failure (* FIXME *)
