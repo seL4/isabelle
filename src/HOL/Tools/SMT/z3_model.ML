@@ -114,18 +114,30 @@ fun remove_int_nat_coercions terms vs =
   let
     fun match ts ((n, _), _) = matches terms (member (op aconv) ts) n
 
-    val ints =
-      find_first (match [@{term int}]) vs
-      |> Option.map (fn (_, cases) =>
-           let val (cs, (_, e)) = split_last cases
-           in (e, map (apfst hd) cs) end)
-    fun nat_of (v as Value _) = 
-          (case ints of
-            NONE => v
-          | SOME (e, tab) => the_default e (AList.lookup (op =) tab v))
-      | nat_of e = e
+    val (default_int, ints) =
+      (case find_first (match [@{term int}]) vs of
+        NONE => (NONE, [])
+      | SOME (_, cases) =>
+          let val (cs, (_, e)) = split_last cases
+          in (SOME e, map (apfst hd) cs) end)
+
+    fun nat_of @{typ nat} (v as Value _) =
+          AList.lookup (op =) ints v |> the_default (the_default v default_int)
+      | nat_of _ e = e
+
+    fun subst_nat T k ([], e) =
+          let fun app f i = if i <= 0 then I else app f (i-1) o f
+          in ([], nat_of (app Term.range_type k T) e) end
+      | subst_nat T k (arg :: args, e) =
+          subst_nat (Term.range_type T) (k-1) (args, e)
+          |> apfst (cons (nat_of (Term.domain_type T) arg))
+
+    fun subst_nats (v as ((n, k), cases)) =
+      (case Symtab.lookup terms n of
+        NONE => v
+      | SOME t => ((n, k), map (subst_nat (Term.fastype_of t) k) cases))
   in
-    map (subst nat_of) vs
+    map subst_nats vs
     |> filter_out (match [@{term int}, @{term nat}])
   end
 
