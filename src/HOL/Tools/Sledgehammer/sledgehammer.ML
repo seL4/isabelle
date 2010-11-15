@@ -409,14 +409,14 @@ fun run_atp auto atp_name
      run_time_in_msecs = msecs}
   end
 
-(* "SMT_Failure.Solver_Crashed" is a misnomer; it should really be called
-   "Abnormal_Termination". Return codes 1 to 127 are application-specific,
-   whereas (at least on Unix) 128 to 255 are reserved for signals (e.g.,
-   SIGSEGV) and other system codes. *)
+(* "SMT_Failure.Abnormal_Termination" carries the solver's return code.
+   Return codes 1 to 127 are application-specific, whereas (at least on
+   Unix) 128 to 255 are reserved for signals (e.g., SIGSEGV) and other
+   system codes. *)
 
 fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
   | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
-  | failure_from_smt_failure (SMT_Failure.Solver_Crashed code) =
+  | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
     if code >= 128 then Crashed else IncompleteUnprovable
   | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
   | failure_from_smt_failure _ = UnknownError
@@ -469,7 +469,7 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
             NONE => false
           | SOME (SMT_Failure.Counterexample _) => false
           | SOME SMT_Failure.Time_Out => iter_timeout <> timeout
-          | SOME (SMT_Failure.Solver_Crashed code) =>
+          | SOME (SMT_Failure.Abnormal_Termination code) =>
             (if verbose then
                "The SMT solver invoked with " ^ string_of_int num_facts ^
                " fact" ^ plural_s num_facts ^ " terminated abnormally with \
@@ -512,7 +512,7 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
                           command_call smtN (map fst used_facts)) ^
         minimize_line minimize_command (map fst used_facts)
       | SOME SMT_Failure.Time_Out => "Timed out."
-      | SOME (SMT_Failure.Solver_Crashed code) =>
+      | SOME (SMT_Failure.Abnormal_Termination code) =>
         "The SMT solver terminated abnormally with exit code " ^
         string_of_int code ^ "."
       | SOME (SMT_Failure.Counterexample _) => "The SMT problem is unprovable."

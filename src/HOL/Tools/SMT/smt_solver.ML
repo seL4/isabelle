@@ -138,7 +138,7 @@ fun run_solver ctxt cmd args input =
     val _ = C.trace_msg ctxt (pretty "Result:") ls
 
     val _ = null ls andalso return_code <> 0 andalso
-      raise SMT_Failure.SMT (SMT_Failure.Solver_Crashed return_code)
+      raise SMT_Failure.SMT (SMT_Failure.Abnormal_Termination return_code)
   in ls end
 
 end
