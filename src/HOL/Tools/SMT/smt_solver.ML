@@ -106,11 +106,6 @@ fun make_cmd solver args problem_path proof_path = space_implode " " (
   map File.shell_quote (solver @ args) @
   [File.shell_path problem_path, "2>&1", ">", File.shell_path proof_path])
 
-fun check_return_code {output, redirected_output, return_code} =
-  if return_code <> 0 then
-    raise SMT_Failure.SMT (SMT_Failure.Solver_Crashed return_code)
-  else (redirected_output, output)
-
 fun run ctxt cmd args input =
   (case C.certificates_of ctxt of
     NONE => Cache_IO.run (make_cmd (choose cmd) args) input
@@ -124,7 +119,7 @@ fun run ctxt cmd args input =
       | (SOME output, _) =>
          (tracing ("Using cached certificate from " ^
             File.shell_path (Cache_IO.cache_path_of certs) ^ " ...");
-          output))) |> check_return_code
+          output)))
 
 in
 
@@ -135,11 +130,15 @@ fun run_solver ctxt cmd args input =
 
     val _ = C.trace_msg ctxt (pretty "Problem:" o split_lines) input
 
-    val (res, err) = C.with_timeout ctxt (run ctxt cmd args) input
+    val {redirected_output=res, output=err, return_code} =
+      C.with_timeout ctxt (run ctxt cmd args) input
     val _ = C.trace_msg ctxt (pretty "Solver:") err
 
     val ls = rev (snd (chop_while (equal "") (rev res)))
     val _ = C.trace_msg ctxt (pretty "Result:") ls
+
+    val _ = null ls andalso return_code <> 0 andalso
+      raise SMT_Failure.SMT (SMT_Failure.Solver_Crashed return_code)
   in ls end
 
 end
