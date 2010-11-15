@@ -22,14 +22,14 @@ text {*
     @{command "next"} & switch blocks \\
     @{command "note"}~@{text "a = b"} & reconsider facts \\
     @{command "let"}~@{text "p = t"} & abbreviate terms by higher-order matching \\
+    @{command "write"}~@{text "c  (mx)"} & declare local mixfix syntax \\
   \end{tabular}
 
   \medskip
 
   \begin{tabular}{rcl}
-    @{text "theory\<dash>stmt"} & = & @{command "theorem"}~@{text "name: props proof  |"}~~@{command "definition"}~@{text "\<dots>  |  \<dots>"} \\[1ex]
     @{text "proof"} & = & @{text "prfx\<^sup>*"}~@{command "proof"}~@{text "method\<^sup>? stmt\<^sup>*"}~@{command "qed"}~@{text "method\<^sup>?"} \\
-    & @{text "|"} & @{text "prfx\<^sup>*"}~@{command "done"} \\[1ex]
+    & @{text "|"} & @{text "prfx\<^sup>*"}~@{command "done"} \\[0.5ex]
     @{text prfx} & = & @{command "apply"}~@{text method} \\
     & @{text "|"} & @{command "using"}~@{text "facts"} \\
     & @{text "|"} & @{command "unfolding"}~@{text "facts"} \\
@@ -37,6 +37,7 @@ text {*
     & @{text "|"} & @{command "next"} \\
     & @{text "|"} & @{command "note"}~@{text "name = facts"} \\
     & @{text "|"} & @{command "let"}~@{text "term = term"} \\
+    & @{text "|"} & @{command "write"}~@{text "name (mixfix)"} \\
     & @{text "|"} & @{command "fix"}~@{text "var\<^sup>+"} \\
     & @{text "|"} & @{command "assume"}~@{text "name: props"} \\
     & @{text "|"} & @{command "then"}@{text "\<^sup>?"}~@{text goal} \\
@@ -57,7 +58,7 @@ text {*
     @{command "hence"} & @{text "\<equiv>"} & @{command "then"}~@{command "have"} \\
     @{command "thus"} & @{text "\<equiv>"} & @{command "then"}~@{command "show"} \\
     @{command "from"}~@{text a} & @{text "\<equiv>"} & @{command "note"}~@{text a}~@{command "then"} \\
-    @{command "with"}~@{text a} & @{text "\<equiv>"} & @{command "from"}~@{text "a \<AND> this"} \\[1ex]
+    @{command "with"}~@{text a} & @{text "\<equiv>"} & @{command "from"}~@{text "a \<AND> this"} \\[0.5ex]
     @{command "from"}~@{text this} & @{text "\<equiv>"} & @{command "then"} \\
     @{command "from"}~@{text this}~@{command "have"} & @{text "\<equiv>"} & @{command "hence"} \\
     @{command "from"}~@{text this}~@{command "show"} & @{text "\<equiv>"} & @{command "thus"} \\
@@ -99,9 +100,9 @@ text {*
   \begin{tabular}{ll}
     @{command "pr"} & print current state \\
     @{command "thm"}~@{text a} & print fact \\
+    @{command "prop"}~@{text \<phi>} & print proposition \\
     @{command "term"}~@{text t} & print term \\
-    @{command "prop"}~@{text \<phi>} & print meta-level proposition \\
-    @{command "typ"}~@{text \<tau>} & print meta-level type \\
+    @{command "typ"}~@{text \<tau>} & print type \\
   \end{tabular}
 *}
 

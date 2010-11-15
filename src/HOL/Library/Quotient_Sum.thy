@@ -9,7 +9,7 @@ imports Main Quotient_Syntax
 begin
 
 fun
-  sum_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'a + 'b \<Rightarrow> bool"
+  sum_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool"
 where
   "sum_rel R1 R2 (Inl a1) (Inl b1) = R1 a1 b1"
 | "sum_rel R1 R2 (Inl a1) (Inr b2) = False"

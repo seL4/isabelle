@@ -244,6 +244,10 @@ proof -
     done
 qed
 
+section {* Setup for String.literal *}
+
+setup {* Predicate_Compile_Data.ignore_consts [@{const_name "STR"}] *}
+
 section {* Simplification rules for optimisation *}
 
 lemma [code_pred_simp]: "\<not> False == True"
