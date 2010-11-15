@@ -27,10 +27,10 @@ open Sledgehammer
 
 (* wrapper for calling external prover *)
 
-fun string_for_failure Unprovable = "Unprovable."
-  | string_for_failure TimedOut = "Timed out."
-  | string_for_failure Interrupted = "Interrupted."
-  | string_for_failure _ = "Unknown error."
+fun string_for_failure ATP_Proof.Unprovable = "Unprovable."
+  | string_for_failure ATP_Proof.TimedOut = "Timed out."
+  | string_for_failure ATP_Proof.Interrupted = "Interrupted."
+  | string_for_failure _ = "Error."
 
 fun n_facts names =
   let val n = length names in

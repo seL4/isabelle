@@ -411,57 +411,83 @@ fun run_atp auto atp_name
 
 fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
   | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
+  | failure_from_smt_failure (SMT_Failure.Solver_Crashed _) = Crashed
   | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
   | failure_from_smt_failure _ = UnknownError
 
-val smt_max_iter = 5
+val smt_max_iter = 8
 val smt_iter_fact_divisor = 2
 val smt_iter_min_msecs = 5000
 val smt_iter_timeout_divisor = 2
 val smt_monomorph_limit = 4
 
-fun smt_filter_loop iter outcome0 msecs_so_far remote timeout state facts i =
+fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
   let
-    val timer = Timer.startRealTimer ()
-    val ms = timeout |> Time.toMilliseconds
-    val iter_timeout =
-      if iter < smt_max_iter then
-        Int.min (ms, Int.max (smt_iter_min_msecs,
-                              ms div smt_iter_timeout_divisor))
-        |> Time.fromMilliseconds
-      else
-        timeout
-    val {outcome, used_facts, run_time_in_msecs} =
-      TimeLimit.timeLimit iter_timeout
-          (SMT_Solver.smt_filter remote iter_timeout state facts) i
-      handle TimeLimit.TimeOut =>
-             {outcome = SOME SMT_Failure.Time_Out, used_facts = [],
-              run_time_in_msecs = NONE}
-    val outcome0 = if is_none outcome0 then SOME outcome else outcome0
-    val msecs_so_far = int_opt_add run_time_in_msecs msecs_so_far
-    val too_many_facts_perhaps =
-      case outcome of
-        NONE => false
-      | SOME (SMT_Failure.Counterexample _) => false
-      | SOME SMT_Failure.Time_Out => iter_timeout <> timeout
-      | SOME SMT_Failure.Out_Of_Memory => true
-      | SOME _ => true
-    val timeout = Time.- (timeout, Timer.checkRealTimer timer)
-  in
-    if too_many_facts_perhaps andalso iter < smt_max_iter andalso
-       not (null facts) andalso Time.> (timeout, Time.zeroTime) then
-      let val facts = take (length facts div smt_iter_fact_divisor) facts in
-        smt_filter_loop (iter + 1) outcome0 msecs_so_far remote timeout state
-                        facts i
+    val ctxt = Proof.context_of state
+    fun iter timeout iter_num outcome0 msecs_so_far facts =
+      let
+        val timer = Timer.startRealTimer ()
+        val ms = timeout |> Time.toMilliseconds
+        val iter_timeout =
+          if iter_num < smt_max_iter then
+            Int.min (ms, Int.max (smt_iter_min_msecs,
+                                  ms div smt_iter_timeout_divisor))
+            |> Time.fromMilliseconds
+          else
+            timeout
+        val num_facts = length facts
+        val _ =
+          if verbose then
+            "SMT iteration with " ^ string_of_int num_facts ^ " fact" ^
+            plural_s num_facts ^ " for " ^ string_from_time iter_timeout ^
+            "..."
+            |> Output.urgent_message
+          else
+            ()
+        val {outcome, used_facts, run_time_in_msecs} =
+          TimeLimit.timeLimit iter_timeout
+              (SMT_Solver.smt_filter remote iter_timeout state facts) i
+          handle TimeLimit.TimeOut =>
+                 {outcome = SOME SMT_Failure.Time_Out, used_facts = [],
+                  run_time_in_msecs = NONE}
+        val _ =
+          if verbose andalso is_some outcome then
+            "SMT outcome: " ^ SMT_Failure.string_of_failure ctxt (the outcome)
+            |> Output.urgent_message
+          else
+            ()
+        val outcome0 = if is_none outcome0 then SOME outcome else outcome0
+        val msecs_so_far = int_opt_add run_time_in_msecs msecs_so_far
+        val too_many_facts_perhaps =
+          case outcome of
+            NONE => false
+          | SOME (SMT_Failure.Counterexample _) => false
+          | SOME SMT_Failure.Time_Out => iter_timeout <> timeout
+          | SOME (SMT_Failure.Solver_Crashed _) =>
+            (if verbose then
+               "The SMT solver crashed with " ^ string_of_int num_facts ^
+               " fact" ^ plural_s num_facts ^ "."
+               |> (if debug then error else warning)
+             else
+               ();
+             true (* kind of *))
+          | SOME SMT_Failure.Out_Of_Memory => true
+          | SOME _ => true
+        val timeout = Time.- (timeout, Timer.checkRealTimer timer)
+      in
+        if too_many_facts_perhaps andalso iter_num < smt_max_iter andalso
+           num_facts > 0 andalso Time.> (timeout, Time.zeroTime) then
+          let val facts = take (num_facts div smt_iter_fact_divisor) facts in
+            iter timeout (iter_num + 1) outcome0 msecs_so_far facts
+          end
+        else
+          {outcome = if is_none outcome then NONE else the outcome0,
+           used_facts = used_facts, run_time_in_msecs = msecs_so_far}
       end
-    else
-      {outcome = if is_none outcome then NONE else the outcome0,
-       used_facts = used_facts, run_time_in_msecs = msecs_so_far}
-  end
+  in iter timeout 1 NONE (SOME 0) end
 
-fun run_smt_solver auto remote ({debug, timeout, ...} : params) minimize_command
-                   ({state, subgoal, subgoal_count, facts, ...}
-                    : prover_problem) =
+fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
+        ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val repair_context =
       Config.put SMT_Config.verbose debug
@@ -469,8 +495,8 @@ fun run_smt_solver auto remote ({debug, timeout, ...} : params) minimize_command
     val state = state |> Proof.map_context repair_context
     val ctxt = Proof.context_of state
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop 1 NONE (SOME 0) remote timeout state
-                      (map_filter (try dest_Untranslated) facts) subgoal
+      smt_filter_loop params remote state subgoal
+                      (map_filter (try dest_Untranslated) facts)
     val message =
       case outcome of
         NONE =>

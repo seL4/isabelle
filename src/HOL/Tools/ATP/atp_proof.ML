@@ -14,7 +14,7 @@ sig
   datatype failure =
     Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
     OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
-    MalformedInput | MalformedOutput | Interrupted | InternalError |
+    MalformedInput | MalformedOutput | Interrupted | Crashed | InternalError |
     UnknownError
 
   type step_name = string * string option
@@ -48,7 +48,7 @@ open ATP_Problem
 datatype failure =
   Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
   SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl | MalformedInput |
-  MalformedOutput | Interrupted | InternalError | UnknownError
+  MalformedOutput | Interrupted | Crashed | InternalError | UnknownError
 
 fun strip_spaces_in_list _ [] = []
   | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
@@ -102,6 +102,7 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
     \developers."
   | string_for_failure MalformedOutput = "The ATP output is malformed."
   | string_for_failure Interrupted = "The ATP was interrupted."
+  | string_for_failure Crashed = "The ATP crashed."
   | string_for_failure InternalError = "An internal ATP error occurred."
   | string_for_failure UnknownError = "An unknown ATP error occurred."
 
