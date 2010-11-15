@@ -350,7 +350,8 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
                  #> Config.put Sledgehammer.measure_run_time true)
     val params as {full_types, relevance_thresholds, max_relevant, ...} =
       Sledgehammer_Isar.default_params ctxt
-          [("timeout", Int.toString timeout)]
+          [("verbose", "true"),
+           ("timeout", Int.toString timeout)]
     val default_max_relevant =
       Sledgehammer.default_max_relevant_for_prover thy prover_name
     val is_built_in_const =
@@ -446,7 +447,9 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
       |> Option.map (fst o read_int o explode)
       |> the_default 5
     val params = Sledgehammer_Isar.default_params ctxt
-      [("provers", prover_name), ("timeout", Int.toString timeout)]
+      [("verbose", "true"),
+       ("provers", prover_name),
+       ("timeout", Int.toString timeout)]
     val minimize =
       Sledgehammer_Minimize.minimize_facts params 1
                                            (Sledgehammer_Util.subgoal_count st)
