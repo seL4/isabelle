@@ -308,7 +308,7 @@ fun smt_filter run_remote time_limit st xrules i =
     val ctxt =
       Proof.context_of st
       |> Config.put C.oracle false
-      |> Config.put C.timeout (Real.fromInt (Time.toSeconds time_limit))
+      |> Config.put C.timeout (Time.toReal time_limit)
       |> Config.put C.drop_bad_facts true
       |> Config.put C.filter_only_facts true
     val ({context=ctxt', prems, concl, ...}, _) = Subgoal.focus ctxt i goal
