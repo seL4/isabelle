@@ -9,19 +9,20 @@ export -n INFILE OUTFILE MLTEXT TERMINATE NOWRITE
 
 ## diagnostics
 
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
 function fail_out()
 {
-  echo "Unable to create output heap file: \"$OUTFILE\"" >&2
-  exit 2
+  fail "Unable to create output heap file: \"$OUTFILE\""
 }
 
 function check_mlhome_file()
 {
-  if [ ! -f "$1" ]; then
-    echo "Unable to locate $1" >&2
-    echo "Please check your ML_HOME setting!" >&2
-    exit 2
-  fi
+  [ ! -f "$1" ] && fail "Unable to locate \"$1\""
 }
 
 function check_heap_file()
@@ -37,6 +38,8 @@ function check_heap_file()
 
 
 ## compiler binaries
+
+[ -z "$ML_HOME" ] && fail "Missing ML installation (ML_HOME)"
 
 SML="$ML_HOME/sml"
 ARCH_N_OPSYS="$ML_HOME/.arch-n-opsys"
