@@ -473,7 +473,7 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
             (if verbose then
                "The SMT solver invoked with " ^ string_of_int num_facts ^
                " fact" ^ plural_s num_facts ^ " terminated abnormally with \
-               \exit code " ^ string_of_int code
+               \exit code " ^ string_of_int code ^ "."
                |> (if debug then error else warning)
              else
                ();
