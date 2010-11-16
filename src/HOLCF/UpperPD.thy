@@ -363,6 +363,9 @@ lemma upper_map_plus [simp]:
   "upper_map\<cdot>f\<cdot>(xs +\<sharp> ys) = upper_map\<cdot>f\<cdot>xs +\<sharp> upper_map\<cdot>f\<cdot>ys"
 unfolding upper_map_def by simp
 
+lemma upper_map_bottom [simp]: "upper_map\<cdot>f\<cdot>\<bottom> = {f\<cdot>\<bottom>}\<sharp>"
+unfolding upper_map_def by simp
+
 lemma upper_map_ident: "upper_map\<cdot>(\<Lambda> x. x)\<cdot>xs = xs"
 by (induct xs rule: upper_pd_induct, simp_all)
 
@@ -501,6 +504,9 @@ unfolding upper_join_def by simp
 
 lemma upper_join_plus [simp]:
   "upper_join\<cdot>(xss +\<sharp> yss) = upper_join\<cdot>xss +\<sharp> upper_join\<cdot>yss"
+unfolding upper_join_def by simp
+
+lemma upper_join_bottom [simp]: "upper_join\<cdot>\<bottom> = \<bottom>"
 unfolding upper_join_def by simp
 
 lemma upper_join_map_unit:

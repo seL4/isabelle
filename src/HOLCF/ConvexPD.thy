@@ -375,6 +375,9 @@ lemma convex_map_plus [simp]:
   "convex_map\<cdot>f\<cdot>(xs +\<natural> ys) = convex_map\<cdot>f\<cdot>xs +\<natural> convex_map\<cdot>f\<cdot>ys"
 unfolding convex_map_def by simp
 
+lemma convex_map_bottom [simp]: "convex_map\<cdot>f\<cdot>\<bottom> = {f\<cdot>\<bottom>}\<natural>"
+unfolding convex_map_def by simp
+
 lemma convex_map_ident: "convex_map\<cdot>(\<Lambda> x. x)\<cdot>xs = xs"
 by (induct xs rule: convex_pd_induct, simp_all)
 
@@ -515,6 +518,9 @@ unfolding convex_join_def by simp
 
 lemma convex_join_plus [simp]:
   "convex_join\<cdot>(xss +\<natural> yss) = convex_join\<cdot>xss +\<natural> convex_join\<cdot>yss"
+unfolding convex_join_def by simp
+
+lemma convex_join_bottom [simp]: "convex_join\<cdot>\<bottom> = \<bottom>"
 unfolding convex_join_def by simp
 
 lemma convex_join_map_unit:
