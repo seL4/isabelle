@@ -91,6 +91,13 @@ ISABELLE_COMPONENTS=""
 function init_component ()
 {
   local COMPONENT="$1"
+  case "$COMPONENT" in
+    /*) ;;
+    *)
+      echo >&2 "Absolute component path required: \"$COMPONENT\""
+      exit 2
+      ;;
+  esac
 
   if [ ! -d "$COMPONENT" ]; then
     echo >&2 "Bad Isabelle component: \"$COMPONENT\""
