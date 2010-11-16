@@ -353,6 +353,10 @@ by (induct xs ys rule: lower_pd.principal_induct2, simp, simp, simp)
 lemma lower_bind_strict [simp]: "lower_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
 unfolding lower_unit_strict [symmetric] by (rule lower_bind_unit)
 
+lemma lower_bind_bind:
+  "lower_bind\<cdot>(lower_bind\<cdot>xs\<cdot>f)\<cdot>g = lower_bind\<cdot>xs\<cdot>(\<Lambda> x. lower_bind\<cdot>(f\<cdot>x)\<cdot>g)"
+by (induct xs, simp_all)
+
 
 subsection {* Map *}
 

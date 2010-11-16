@@ -348,6 +348,10 @@ by (induct xs ys rule: upper_pd.principal_induct2, simp, simp, simp)
 lemma upper_bind_strict [simp]: "upper_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
 unfolding upper_unit_strict [symmetric] by (rule upper_bind_unit)
 
+lemma upper_bind_bind:
+  "upper_bind\<cdot>(upper_bind\<cdot>xs\<cdot>f)\<cdot>g = upper_bind\<cdot>xs\<cdot>(\<Lambda> x. upper_bind\<cdot>(f\<cdot>x)\<cdot>g)"
+by (induct xs, simp_all)
+
 
 subsection {* Map *}
 

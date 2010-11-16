@@ -360,6 +360,11 @@ by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 lemma convex_bind_strict [simp]: "convex_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
 unfolding convex_unit_strict [symmetric] by (rule convex_bind_unit)
 
+lemma convex_bind_bind:
+  "convex_bind\<cdot>(convex_bind\<cdot>xs\<cdot>f)\<cdot>g =
+    convex_bind\<cdot>xs\<cdot>(\<Lambda> x. convex_bind\<cdot>(f\<cdot>x)\<cdot>g)"
+by (induct xs, simp_all)
+
 
 subsection {* Map *}
 
