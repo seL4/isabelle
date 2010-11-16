@@ -276,7 +276,8 @@ apply (simp only: upper_unit_Rep_compact_basis [symmetric]
 apply (erule insert [OF unit])
 done
 
-lemma upper_pd_induct:
+lemma upper_pd_induct
+  [case_names adm upper_unit upper_plus, induct type: upper_pd]:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<sharp>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs +\<sharp> ys)"

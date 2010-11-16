@@ -289,7 +289,8 @@ apply (simp only: convex_unit_Rep_compact_basis [symmetric]
 apply (erule insert [OF unit])
 done
 
-lemma convex_pd_induct:
+lemma convex_pd_induct
+  [case_names adm convex_unit convex_plus, induct type: convex_pd]:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<natural>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs +\<natural> ys)"
