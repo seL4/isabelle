@@ -196,8 +196,6 @@ class Session(system: Isabelle_System)
     def handle_result(result: Isabelle_Process.Result)
     //{{{
     {
-      raw_messages.event(result)
-
       result.properties match {
         case Position.Id(state_id) =>
           try {
@@ -234,6 +232,8 @@ class Session(system: Isabelle_System)
           }
           else bad_result(result)
         }
+
+      raw_messages.event(result)
     }
     //}}}
 
