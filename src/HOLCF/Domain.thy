@@ -7,7 +7,7 @@ header {* Domain package *}
 theory Domain
 imports Bifinite Domain_Aux
 uses
-  ("Tools/repdef.ML")
+  ("Tools/domaindef.ML")
   ("Tools/Domain/domain_isomorphism.ML")
   ("Tools/Domain/domain_axioms.ML")
   ("Tools/Domain/domain.ML")
@@ -94,7 +94,7 @@ setup {*
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::pcpo u"}) ]
 *}
 
-lemma typedef_rep_class:
+lemma typedef_liftdomain_class:
   fixes Rep :: "'a::pcpo \<Rightarrow> udom"
   fixes Abs :: "udom \<Rightarrow> 'a::pcpo"
   fixes t :: defl
@@ -156,7 +156,7 @@ setup {*
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::predomain u"}) ]
 *}
 
-use "Tools/repdef.ML"
+use "Tools/domaindef.ML"
 
 subsection {* Isomorphic deflations *}
 

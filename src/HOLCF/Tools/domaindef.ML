@@ -4,7 +4,7 @@
 Defining representable domains using algebraic deflations.
 *)
 
-signature REPDEF =
+signature DOMAINDEF =
 sig
   type rep_info =
     {
@@ -17,15 +17,15 @@ sig
       DEFL : thm
     }
 
-  val add_repdef: bool -> binding option -> binding * (string * sort) list * mixfix ->
+  val add_domaindef: bool -> binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> theory ->
     (Typedef.info * Pcpodef.cpo_info * Pcpodef.pcpo_info * rep_info) * theory
 
-  val repdef_cmd: (bool * binding) * (binding * (string * string option) list * mixfix) * string
+  val domaindef_cmd: (bool * binding) * (binding * (string * string option) list * mixfix) * string
     * (binding * binding) option -> theory -> theory
 end;
 
-structure Repdef :> REPDEF =
+structure Domaindef :> DOMAINDEF =
 struct
 
 open HOLCF_Library;
@@ -78,7 +78,7 @@ fun mk_cast (t, x) =
 fun declare_type_name a =
   Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
-fun gen_add_repdef
+fun gen_add_domaindef
       (prep_term: Proof.context -> 'a -> term)
       (def: bool)
       (name: binding)
@@ -88,7 +88,7 @@ fun gen_add_repdef
       (thy: theory)
     : (Typedef.info * Pcpodef.cpo_info * Pcpodef.pcpo_info * rep_info) * theory =
   let
-    val _ = Theory.requires thy "Domain" "repdefs";
+    val _ = Theory.requires thy "Domain" "domaindefs";
 
     (*rhs*)
     val tmp_ctxt =
@@ -178,7 +178,7 @@ fun gen_add_repdef
       liftemb_def, liftprj_def, liftdefl_def];
     val thy = lthy
       |> Class.prove_instantiation_instance
-          (K (Tactic.rtac (@{thm typedef_rep_class} OF typedef_thms) 1))
+          (K (Tactic.rtac (@{thm typedef_liftdomain_class} OF typedef_thms) 1))
       |> Local_Theory.exit_global;
 
     (*other theorems*)
@@ -198,25 +198,25 @@ fun gen_add_repdef
     ((info, cpo_info, pcpo_info, rep_info), thy)
   end
   handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in repdef " ^ quote (Binding.str_of name));
+    cat_error msg ("The error(s) above occurred in domaindef " ^ quote (Binding.str_of name));
 
-fun add_repdef def opt_name typ defl opt_morphs thy =
+fun add_domaindef def opt_name typ defl opt_morphs thy =
   let
     val name = the_default (#1 typ) opt_name;
   in
-    gen_add_repdef Syntax.check_term def name typ defl opt_morphs thy
+    gen_add_domaindef Syntax.check_term def name typ defl opt_morphs thy
   end;
 
-fun repdef_cmd ((def, name), (b, raw_args, mx), A, morphs) thy =
+fun domaindef_cmd ((def, name), (b, raw_args, mx), A, morphs) thy =
   let
     val ctxt = ProofContext.init_global thy;
     val args = map (apsnd (Typedecl.read_constraint ctxt)) raw_args;
-  in snd (gen_add_repdef Syntax.read_term def name (b, args, mx) A morphs thy) end;
+  in snd (gen_add_domaindef Syntax.read_term def name (b, args, mx) A morphs thy) end;
 
 
 (** outer syntax **)
 
-val repdef_decl =
+val domaindef_decl =
   Scan.optional (Parse.$$$ "(" |--
       ((Parse.$$$ "open" >> K false) -- Scan.option Parse.binding ||
         Parse.binding >> (fn s => (true, SOME s)))
@@ -225,12 +225,12 @@ val repdef_decl =
     Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.term) --
     Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding));
 
-fun mk_repdef ((((((def, opt_name), (args, t)), mx), A), morphs)) =
-  repdef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs);
+fun mk_domaindef ((((((def, opt_name), (args, t)), mx), A), morphs)) =
+  domaindef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs);
 
 val _ =
-  Outer_Syntax.command "repdef" "HOLCF definition of representable domains" Keyword.thy_decl
-    (repdef_decl >>
-      (Toplevel.print oo (Toplevel.theory o mk_repdef)));
+  Outer_Syntax.command "domaindef" "HOLCF definition of domains from deflations" Keyword.thy_decl
+    (domaindef_decl >>
+      (Toplevel.print oo (Toplevel.theory o mk_domaindef)));
 
 end;

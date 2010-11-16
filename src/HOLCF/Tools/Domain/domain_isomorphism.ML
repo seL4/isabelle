@@ -523,7 +523,7 @@ fun gen_domain_isomorphism
       let
         val spec = (tbind, map (rpair dummyS) vs, mx);
         val ((_, _, _, {DEFL, liftemb_def, liftprj_def, ...}), thy) =
-          Repdef.add_repdef false NONE spec defl NONE thy;
+          Domaindef.add_domaindef false NONE spec defl NONE thy;
         (* declare domain_defl_simps rules *)
         val thy = Context.theory_map (RepData.add_thm DEFL) thy;
       in

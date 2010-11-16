@@ -77,9 +77,9 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/Domain/domain_induction.ML \
   Tools/Domain/domain_isomorphism.ML \
   Tools/Domain/domain_take_proofs.ML \
+  Tools/domaindef.ML \
   Tools/fixrec.ML \
   Tools/pcpodef.ML \
-  Tools/repdef.ML \
   document/root.tex
 	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
 

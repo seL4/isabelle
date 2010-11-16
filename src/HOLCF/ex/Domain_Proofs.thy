@@ -116,7 +116,7 @@ definition
   "liftdefl \<equiv> \<lambda>(t::'a foo itself). u_defl\<cdot>DEFL('a foo)"
 
 instance
-apply (rule typedef_rep_class)
+apply (rule typedef_liftdomain_class)
 apply (rule type_definition_foo)
 apply (rule below_foo_def)
 apply (rule emb_foo_def)
@@ -151,7 +151,7 @@ definition
   "liftdefl \<equiv> \<lambda>(t::'a bar itself). u_defl\<cdot>DEFL('a bar)"
 
 instance
-apply (rule typedef_rep_class)
+apply (rule typedef_liftdomain_class)
 apply (rule type_definition_bar)
 apply (rule below_bar_def)
 apply (rule emb_bar_def)
@@ -186,7 +186,7 @@ definition
   "liftdefl \<equiv> \<lambda>(t::'a baz itself). u_defl\<cdot>DEFL('a baz)"
 
 instance
-apply (rule typedef_rep_class)
+apply (rule typedef_liftdomain_class)
 apply (rule type_definition_baz)
 apply (rule below_baz_def)
 apply (rule emb_baz_def)
