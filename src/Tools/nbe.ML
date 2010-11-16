@@ -170,11 +170,10 @@ datatype Univ =
   | Abs of (int * (Univ list -> Univ)) * Univ list
                                        (*abstractions as closures*);
 
-fun same (Const (k, xs)) (Const (l, ys)) = k = l andalso sames xs ys
+fun same (Const (k, xs)) (Const (l, ys)) = k = l andalso forall2 same xs ys
   | same (DFree (s, k)) (DFree (t, l)) = s = t andalso k = l
-  | same (BVar (k, xs)) (BVar (l, ys)) = k = l andalso sames xs ys
-  | same _ _ = false
-and sames xs ys = length xs = length ys andalso forall (uncurry same) (xs ~~ ys);
+  | same (BVar (k, xs)) (BVar (l, ys)) = k = l andalso forall2 same xs ys
+  | same _ _ = false;
 
 
 (* constructor functions *)
