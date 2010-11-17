@@ -5,7 +5,7 @@
 header {* Plain HOLCF *}
 
 theory Plain_HOLCF
-imports Cfun Cprod Sprod Ssum Up Discrete Lift One Tr Fix
+imports Cfun Sfun Cprod Sprod Ssum Up Discrete Lift One Tr Fix
 begin
 
 text {*

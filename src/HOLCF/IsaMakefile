@@ -62,6 +62,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Porder.thy \
   Powerdomains.thy \
   Product_Cpo.thy \
+  Sfun.thy \
   Sprod.thy \
   Ssum.thy \
   Tr.thy \
@@ -105,7 +106,6 @@ $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
   Library/Defl_Bifinite.thy \
   Library/List_Cpo.thy \
   Library/Stream.thy \
-  Library/Strict_Fun.thy \
   Library/Sum_Cpo.thy \
   Library/HOLCF_Library.thy \
   Library/ROOT.ML

@@ -237,13 +237,13 @@ lemma isodefl_abs_rep:
 unfolding isodefl_def
 by (simp add: cfun_eq_iff assms prj_emb_prj emb_prj_emb)
 
-lemma isodefl_cfun:
+lemma isodefl_sfun:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
-    isodefl (cfun_map\<cdot>d1\<cdot>d2) (cfun_defl\<cdot>t1\<cdot>t2)"
+    isodefl (sfun_map\<cdot>d1\<cdot>d2) (sfun_defl\<cdot>t1\<cdot>t2)"
 apply (rule isodeflI)
-apply (simp add: cast_cfun_defl cast_isodefl)
-apply (simp add: emb_cfun_def prj_cfun_def)
-apply (simp add: cfun_map_map cfcomp1)
+apply (simp add: cast_sfun_defl cast_isodefl)
+apply (simp add: emb_sfun_def prj_sfun_def)
+apply (simp add: sfun_map_map isodefl_strict)
 done
 
 lemma isodefl_ssum:
@@ -299,6 +299,23 @@ apply (simp add: emb_u_def [symmetric] prj_u_def [symmetric])
 apply (simp add: cfcomp1 encode_prod_u_map cast_sprod_defl sprod_map_map)
 done
 
+lemma encode_cfun_map:
+  "encode_cfun\<cdot>(cfun_map\<cdot>f\<cdot>g\<cdot>(decode_cfun\<cdot>x))
+    = sfun_map\<cdot>(u_map\<cdot>f)\<cdot>g\<cdot>x"
+unfolding encode_cfun_def decode_cfun_def
+apply (simp add: sfun_eq_iff cfun_map_def sfun_map_def)
+apply (rule cfun_eqI, rename_tac y, case_tac y, simp_all)
+done
+
+lemma isodefl_cfun:
+  "isodefl (u_map\<cdot>d1) t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
+    isodefl (cfun_map\<cdot>d1\<cdot>d2) (sfun_defl\<cdot>t1\<cdot>t2)"
+apply (rule isodeflI)
+apply (simp add: cast_sfun_defl cast_isodefl)
+apply (simp add: emb_cfun_def prj_cfun_def encode_cfun_map)
+apply (simp add: sfun_map_map isodefl_strict)
+done
+
 subsection {* Setting up the domain package *}
 
 use "Tools/Domain/domain_isomorphism.ML"
@@ -308,23 +325,24 @@ use "Tools/Domain/domain.ML"
 setup Domain_Isomorphism.setup
 
 lemmas [domain_defl_simps] =
-  DEFL_cfun DEFL_ssum DEFL_sprod DEFL_prod DEFL_u
+  DEFL_cfun DEFL_sfun DEFL_ssum DEFL_sprod DEFL_prod DEFL_u
   liftdefl_eq LIFTDEFL_prod
 
 lemmas [domain_map_ID] =
-  cfun_map_ID ssum_map_ID sprod_map_ID cprod_map_ID u_map_ID
+  cfun_map_ID sfun_map_ID ssum_map_ID sprod_map_ID cprod_map_ID u_map_ID
 
 lemmas [domain_isodefl] =
-  isodefl_u isodefl_cfun isodefl_ssum isodefl_sprod
-  isodefl_cprod isodefl_cprod_u
+  isodefl_u isodefl_sfun isodefl_ssum isodefl_sprod
+  isodefl_cfun isodefl_cprod isodefl_cprod_u
 
 lemmas [domain_deflation] =
-  deflation_cfun_map deflation_ssum_map deflation_sprod_map
-  deflation_cprod_map deflation_u_map
+  deflation_cfun_map deflation_sfun_map deflation_ssum_map
+  deflation_sprod_map deflation_cprod_map deflation_u_map
 
 setup {*
   fold Domain_Take_Proofs.add_map_function
     [(@{type_name cfun}, @{const_name cfun_map}, [true, true]),
+     (@{type_name "sfun"}, @{const_name sfun_map}, [true, true]),
      (@{type_name ssum}, @{const_name ssum_map}, [true, true]),
      (@{type_name sprod}, @{const_name sprod_map}, [true, true]),
      (@{type_name prod}, @{const_name cprod_map}, [true, true]),

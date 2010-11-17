@@ -34,14 +34,14 @@ definition
 where
   "foo_bar_baz_deflF = (\<Lambda> a. Abs_cfun (\<lambda>(t1, t2, t3). 
     ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>a\<cdot>(u_defl\<cdot>t2))
-    , u_defl\<cdot>(cfun_defl\<cdot>t3\<cdot>DEFL(tr))
-    , u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>t1)\<cdot>DEFL(tr)))))"
+    , u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>t3)\<cdot>DEFL(tr))
+    , u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(convex_defl\<cdot>t1))\<cdot>DEFL(tr)))))"
 
 lemma foo_bar_baz_deflF_beta:
   "foo_bar_baz_deflF\<cdot>a\<cdot>t =
     ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>a\<cdot>(u_defl\<cdot>(fst (snd t))))
-    , u_defl\<cdot>(cfun_defl\<cdot>(snd (snd t))\<cdot>DEFL(tr))
-    , u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>(fst t))\<cdot>DEFL(tr)))"
+    , u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(snd (snd t)))\<cdot>DEFL(tr))
+    , u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(convex_defl\<cdot>(fst t)))\<cdot>DEFL(tr)))"
 unfolding foo_bar_baz_deflF_def
 by (simp add: split_def)
 
@@ -68,10 +68,10 @@ lemma foo_defl_unfold:
   "foo_defl\<cdot>a = ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>a\<cdot>(u_defl\<cdot>(bar_defl\<cdot>a)))"
 unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
-lemma bar_defl_unfold: "bar_defl\<cdot>a = u_defl\<cdot>(cfun_defl\<cdot>(baz_defl\<cdot>a)\<cdot>DEFL(tr))"
+lemma bar_defl_unfold: "bar_defl\<cdot>a = u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(baz_defl\<cdot>a))\<cdot>DEFL(tr))"
 unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
-lemma baz_defl_unfold: "baz_defl\<cdot>a = u_defl\<cdot>(cfun_defl\<cdot>(convex_defl\<cdot>(foo_defl\<cdot>a))\<cdot>DEFL(tr))"
+lemma baz_defl_unfold: "baz_defl\<cdot>a = u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(convex_defl\<cdot>(foo_defl\<cdot>a)))\<cdot>DEFL(tr))"
 unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
 text "The automation for the previous steps will be quite similar to

@@ -3,7 +3,6 @@ imports
   Defl_Bifinite
   List_Cpo
   Stream
-  Strict_Fun
   Sum_Cpo
 begin
 
