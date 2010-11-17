@@ -147,4 +147,21 @@ fun register tyco mapper variances raw_concatenate raw_identity thy =
         concatenate = concatenate, identity = identity }))
   end;
 
+fun gen_type_mapper prep_term raw_t thy =
+  let
+    val t = prep_term thy raw_t;
+    val after_qed = K I;
+  in
+    thy
+    |> Named_Target.theory_init
+    |> Proof.theorem NONE after_qed []
+  end
+
+val type_mapper = gen_type_mapper Sign.cert_term;
+val type_mapper_cmd = gen_type_mapper Syntax.read_term_global;
+
+val _ =
+  Outer_Syntax.command "type_mapper" "register functorial mapper for type with its properties" Keyword.thy_goal
+    (Parse.term >> (fn t => Toplevel.print o (Toplevel.theory_to_proof (type_mapper_cmd t))));
+
 end;
