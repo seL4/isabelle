@@ -89,7 +89,7 @@ by simp
 
 lemma "Rep_unit () = True"
 nitpick [expect = none]
-by (insert Rep_unit) (simp add: unit_def)
+by (insert Rep_unit) simp
 
 lemma "Rep_unit () = False"
 nitpick [expect = genuine]

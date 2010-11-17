@@ -37,7 +37,7 @@ code_instance bool :: equal
 
 subsection {* The @{text unit} type *}
 
-typedef unit = "{True}"
+typedef (open) unit = "{True}"
 proof
   show "True : ?unit" ..
 qed
@@ -48,7 +48,7 @@ where
   "() = Abs_unit True"
 
 lemma unit_eq [no_atp]: "u = ()"
-  by (induct u) (simp add: unit_def Unity_def)
+  by (induct u) (simp add: Unity_def)
 
 text {*
   Simplification procedure for @{thm [source] unit_eq}.  Cannot use
