@@ -11,6 +11,7 @@ sig
     -> bool -> typ -> typ -> term
   val register: string -> string -> (sort * (bool * bool)) list -> thm -> thm
     -> theory -> theory
+  val type_mapper: term -> theory -> Proof.state
   type entry
   val entries: theory -> entry Symtab.table
 end;
