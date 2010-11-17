@@ -129,7 +129,7 @@ fun make_identity_prop variances (tyco, mapper) =
   in (x, (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, x)) end;
 
 
-(* registering primitive mappers *)
+(* registering mappers *)
 
 fun register tyco mapper variances raw_concatenate raw_identity thy =
   let
@@ -148,14 +148,56 @@ fun register tyco mapper variances raw_concatenate raw_identity thy =
         concatenate = concatenate, identity = identity }))
   end;
 
+fun split_mapper_typ "fun" T =
+      let
+        val (Ts', T') = strip_type T;
+        val (Ts'', T'') = split_last Ts';
+        val (Ts''', T''') = split_last Ts'';
+      in (Ts''', T''', T'' --> T') end
+  | split_mapper_typ tyco T =
+      let
+        val (Ts', T') = strip_type T;
+        val (Ts'', T'') = split_last Ts';
+      in (Ts'', T'', T') end;
+
+fun analyze_variances thy tyco T =
+  let
+    fun bad_typ () = error ("Bad mapper type: " ^ Syntax.string_of_typ_global thy T);
+    val (Ts, T1, T2) = split_mapper_typ tyco T
+      handle List.Empty => bad_typ ();
+    val _ = pairself
+      ((fn tyco' => if tyco' = tyco then () else bad_typ ()) o fst o dest_Type) (T1, T2)
+    val (vs1, vs2) = pairself (map dest_TFree o snd o dest_Type) (T1, T2)
+      handle TYPE _ => bad_typ ();
+    val _ = if has_duplicates (eq_fst (op =)) (vs1 @ vs2)
+      then bad_typ () else ();
+  in [] end;
+
 fun gen_type_mapper prep_term raw_t thy =
   let
-    val t = prep_term thy raw_t;
-    val after_qed = K I;
+    val (mapper, T) = case prep_term thy raw_t
+     of Const cT => cT
+      | t => error ("No constant: " ^ Syntax.string_of_term_global thy t);
+    val _ = Type.no_tvars T;
+    fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
+      | add_tycos _ = I;
+    val tycos = add_tycos T [];
+    val tyco = if tycos = ["fun"] then "fun"
+      else case remove (op =) "fun" tycos
+       of [tyco] => tyco
+        | _ => error ("Bad number of type constructors: " ^ Syntax.string_of_typ_global thy T);
+    val variances = analyze_variances thy tyco T;
+    val (_, concatenate_prop) = make_concatenate_prop variances (tyco, mapper);
+    val (_, identity_prop) = make_identity_prop variances (tyco, mapper);
+    fun after_qed [[concatenate], [identity]] lthy =
+      lthy
+      |> (Local_Theory.background_theory o Data.map)
+          (Symtab.update (tyco, { mapper = mapper, variances = variances,
+            concatenate = concatenate, identity = identity }));
   in
     thy
     |> Named_Target.theory_init
-    |> Proof.theorem NONE after_qed []
+    |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [concatenate_prop, identity_prop])
   end
 
 val type_mapper = gen_type_mapper Sign.cert_term;
