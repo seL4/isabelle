@@ -214,11 +214,10 @@ definition
   sublist :: "'a list => nat set => 'a list" where
   "sublist xs A = map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
 
-primrec
-  splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "splice [] ys = ys"
-  | "splice (x # xs) ys = (if ys = [] then x # xs else x # hd ys # splice xs (tl ys))"
-    -- {*Warning: simpset does not contain the second eqn but a derived one. *}
+fun splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"splice [] ys = ys" |
+"splice xs [] = xs" |
+"splice (x#xs) (y#ys) = x # y # splice xs ys"
 
 text{*
 \begin{figure}[htbp]
@@ -3477,21 +3476,14 @@ qed
 
 subsubsection {* @{const splice} *}
 
-lemma splice_Nil2 [simp, code]:
- "splice xs [] = xs"
+lemma splice_Nil2 [simp, code]: "splice xs [] = xs"
 by (cases xs) simp_all
 
-lemma splice_Cons_Cons [simp, code]:
- "splice (x#xs) (y#ys) = x # y # splice xs ys"
-by simp
-
-declare splice.simps(2) [simp del, code del]
+declare splice.simps(1,3)[code]
+declare splice.simps(2)[simp del]
 
 lemma length_splice[simp]: "length(splice xs ys) = length xs + length ys"
-apply(induct xs arbitrary: ys) apply simp
-apply(case_tac ys)
- apply auto
-done
+by (induct xs ys rule: splice.induct) auto
 
 
 subsubsection {* Transpose *}
