@@ -54,7 +54,9 @@ object Command
                 val props = Position.purge(atts)
                 val info = Text.Info[Any](range, XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
-              case _ => System.err.println("Ignored report message: " + msg); state
+              case _ =>
+                // FIXME System.err.println("Ignored report message: " + msg)
+                state
             })
         case XML.Elem(Markup(name, atts), body) =>
           atts match {
