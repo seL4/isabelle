@@ -32,6 +32,7 @@ uses
   "Tools/async_manager.ML"
   "Tools/try.ML"
   ("Tools/cnf_funcs.ML")
+  ("Tools/functorial_mappers.ML")
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
@@ -708,6 +709,7 @@ lemmas [trans] = trans
   and [Pure.elim?] = iffD1 iffD2 impE
 
 use "Tools/hologic.ML"
+use "Tools/functorial_mappers.ML"
 
 
 subsubsection {* Atomizing meta-level connectives *}
