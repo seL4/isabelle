@@ -8,7 +8,7 @@ uses ("Tools/smallvalue_generators.ML")
 begin
 
 
-section {* small value generator type classes *}
+subsection {* small value generator type classes *}
 
 class small = term_of +
 fixes small :: "('a \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
@@ -48,7 +48,7 @@ instance ..
 
 end
 
-section {* Defining combinators for any first-order data type *}
+subsection {* Defining combinators for any first-order data type *}
 
 definition catch_match :: "term list option => term list option => term list option"
 where

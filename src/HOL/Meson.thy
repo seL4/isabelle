@@ -14,7 +14,7 @@ uses ("Tools/Meson/meson.ML")
      ("Tools/Meson/meson_tactic.ML")
 begin
 
-section {* Negation Normal Form *}
+subsection {* Negation Normal Form *}
 
 text {* de Morgan laws *}
 
@@ -37,7 +37,7 @@ lemma imp_to_disjD: "P-->Q ==> ~P | Q"
   by fast+
 
 
-section {* Pulling out the existential quantifiers *}
+subsection {* Pulling out the existential quantifiers *}
 
 text {* Conjunction *}
 
@@ -95,7 +95,7 @@ lemma make_pos_goal: "P ==> ((P==>~P) ==> False)"
 by blast
 
 
-section {* Lemmas for Forward Proof *}
+subsection {* Lemmas for Forward Proof *}
 
 text{*There is a similarity to congruence rules*}
 
@@ -120,7 +120,7 @@ lemma ex_forward: "[| \<exists>x. P'(x);  !!x. P'(x) ==> P(x) |] ==> \<exists>x.
 by blast
 
 
-section {* Clausification helper *}
+subsection {* Clausification helper *}
 
 lemma TruepropI: "P \<equiv> Q \<Longrightarrow> Trueprop P \<equiv> Trueprop Q"
 by simp
@@ -174,7 +174,7 @@ apply (simp add: COMBC_def)
 done
 
 
-section {* Skolemization helpers *}
+subsection {* Skolemization helpers *}
 
 definition skolem :: "'a \<Rightarrow> 'a" where
 [no_atp]: "skolem = (\<lambda>x. x)"
@@ -186,7 +186,7 @@ lemmas skolem_COMBK_I = iffD1 [OF skolem_COMBK_iff]
 lemmas skolem_COMBK_D = iffD2 [OF skolem_COMBK_iff]
 
 
-section {* Meson package *}
+subsection {* Meson package *}
 
 use "Tools/Meson/meson.ML"
 use "Tools/Meson/meson_clausify.ML"
