@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/functorial-mappers.ML
+(*  Title:      HOL/Tools/functorial_mappers.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Functorial mappers on types.
