@@ -70,8 +70,8 @@ local
   val {is_builtin_pred, ...}= the strict
   val {builtin_typ, builtin_num, builtin_fun, ...} = builtins
 
-  fun is_int_div_mod @{term "op div :: int => _"} = true
-    | is_int_div_mod @{term "op mod :: int => _"} = true
+  fun is_int_div_mod @{const div (int)} = true
+    | is_int_div_mod @{const mod (int)} = true
     | is_int_div_mod _ = false
 
   fun add_div_mod irules =
@@ -170,11 +170,13 @@ fun mk_inst_pair destT cpat = (destT (Thm.ctyp_of_term cpat), cpat)
 val destT1 = hd o Thm.dest_ctyp
 val destT2 = hd o tl o Thm.dest_ctyp
 
-val mk_true = @{cterm "~False"}
-val mk_false = @{cterm False}
-val mk_not = Thm.capply @{cterm Not}
-val mk_implies = Thm.mk_binop @{cterm HOL.implies}
-val mk_iff = Thm.mk_binop @{cterm "op = :: bool => _"}
+val mk_true = Thm.cterm_of @{theory} (@{const Not} $ @{const False})
+val mk_false = Thm.cterm_of @{theory} @{const False}
+val mk_not = Thm.capply (Thm.cterm_of @{theory} @{const Not})
+val mk_implies = Thm.mk_binop (Thm.cterm_of @{theory} @{const HOL.implies})
+val mk_iff = Thm.mk_binop (Thm.cterm_of @{theory} @{const HOL.eq (bool)})
+val conj = Thm.cterm_of @{theory} @{const HOL.conj}
+val disj = Thm.cterm_of @{theory} @{const HOL.disj}
 
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
@@ -205,22 +207,22 @@ fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_term array)
   in Thm.capply (Thm.mk_binop (instTs cTs update) array index) value end
 
-val mk_uminus = Thm.capply @{cterm "uminus :: int => _"}
-val mk_add = Thm.mk_binop @{cterm "op + :: int => _"}
-val mk_sub = Thm.mk_binop @{cterm "op - :: int => _"}
-val mk_mul = Thm.mk_binop @{cterm "op * :: int => _"}
-val mk_div = Thm.mk_binop @{cterm "z3div :: int => _"}
-val mk_mod = Thm.mk_binop @{cterm "z3mod :: int => _"}
-val mk_lt = Thm.mk_binop @{cterm "op < :: int => _"}
-val mk_le = Thm.mk_binop @{cterm "op <= :: int => _"}
+val mk_uminus = Thm.capply (Thm.cterm_of @{theory} @{const uminus (int)})
+val mk_add = Thm.mk_binop (Thm.cterm_of @{theory} @{const plus (int)})
+val mk_sub = Thm.mk_binop (Thm.cterm_of @{theory} @{const minus (int)})
+val mk_mul = Thm.mk_binop (Thm.cterm_of @{theory} @{const times (int)})
+val mk_div = Thm.mk_binop (Thm.cterm_of @{theory} @{const z3div})
+val mk_mod = Thm.mk_binop (Thm.cterm_of @{theory} @{const z3mod})
+val mk_lt = Thm.mk_binop (Thm.cterm_of @{theory} @{const less (int)})
+val mk_le = Thm.mk_binop (Thm.cterm_of @{theory} @{const less_eq (int)})
 
 fun mk_builtin_fun ctxt sym cts =
   (case (sym, cts) of
     (Sym ("true", _), []) => SOME mk_true
   | (Sym ("false", _), []) => SOME mk_false
   | (Sym ("not", _), [ct]) => SOME (mk_not ct)
-  | (Sym ("and", _), _) => SOME (mk_nary @{cterm HOL.conj} mk_true cts)
-  | (Sym ("or", _), _) => SOME (mk_nary @{cterm HOL.disj} mk_false cts)
+  | (Sym ("and", _), _) => SOME (mk_nary conj mk_true cts)
+  | (Sym ("or", _), _) => SOME (mk_nary disj mk_false cts)
   | (Sym ("implies", _), [ct, cu]) => SOME (mk_implies ct cu)
   | (Sym ("iff", _), [ct, cu]) => SOME (mk_iff ct cu)
   | (Sym ("~", _), [ct, cu]) => SOME (mk_iff ct cu)

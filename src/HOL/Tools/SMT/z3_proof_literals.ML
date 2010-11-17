@@ -22,6 +22,7 @@ sig
   val is_conj: term -> bool
   val is_disj: term -> bool
   val exists_lit: bool -> (term -> bool) -> term -> bool
+  val negate: cterm -> cterm
 
   (* proof tools *)
   val explode: bool -> bool -> bool -> term list -> thm -> thm list
@@ -59,19 +60,19 @@ val rewrite_true = @{lemma "True == ~ False" by simp}
 
 (** properties and term operations **)
 
-val is_neg = (fn @{term Not} $ _ => true | _ => false)
-fun is_neg' f = (fn @{term Not} $ t => f t | _ => false)
+val is_neg = (fn @{const Not} $ _ => true | _ => false)
+fun is_neg' f = (fn @{const Not} $ t => f t | _ => false)
 val is_dneg = is_neg' is_neg
-val is_conj = (fn @{term HOL.conj} $ _ $ _ => true | _ => false)
-val is_disj = (fn @{term HOL.disj} $ _ $ _ => true | _ => false)
+val is_conj = (fn @{const HOL.conj} $ _ $ _ => true | _ => false)
+val is_disj = (fn @{const HOL.disj} $ _ $ _ => true | _ => false)
 
 fun dest_disj_term' f = (fn
-    @{term Not} $ (@{term HOL.disj} $ t $ u) => SOME (f t, f u)
+    @{const Not} $ (@{const HOL.disj} $ t $ u) => SOME (f t, f u)
   | _ => NONE)
 
-val dest_conj_term = (fn @{term HOL.conj} $ t $ u => SOME (t, u) | _ => NONE)
+val dest_conj_term = (fn @{const HOL.conj} $ t $ u => SOME (t, u) | _ => NONE)
 val dest_disj_term =
-  dest_disj_term' (fn @{term Not} $ t => t | t => @{term Not} $ t)
+  dest_disj_term' (fn @{const Not} $ t => t | t => @{const Not} $ t)
 
 fun exists_lit is_conj P =
   let
@@ -81,6 +82,8 @@ fun exists_lit is_conj P =
         SOME (t1, t2) => exists t1 orelse exists t2
       | NONE => false)
   in exists end
+
+val negate = Thm.capply (Thm.cterm_of @{theory} @{const Not})
 
 
 
@@ -135,7 +138,7 @@ fun explode_term is_conj =
           end
       | NONE => add (t, rev rules))
 
-    fun explode0 (@{term Not} $ (@{term Not} $ t)) =
+    fun explode0 (@{const Not} $ (@{const Not} $ t)) =
           Termtab.make [(t, [dneg_rule])]
       | explode0 t = explode1 [] t Termtab.empty
 
@@ -202,23 +205,23 @@ local
     | comp_disj ((true, thm1), (false, thm2)) = comp2 disj3 thm1 thm2
     | comp_disj ((true, thm1), (true, thm2)) = comp2 disj4 thm1 thm2
 
-  fun dest_conj (@{term HOL.conj} $ t $ u) = ((false, t), (false, u))
+  fun dest_conj (@{const HOL.conj} $ t $ u) = ((false, t), (false, u))
     | dest_conj t = raise TERM ("dest_conj", [t])
 
-  val neg = (fn @{term Not} $ t => (true, t) | t => (false, @{term Not} $ t))
-  fun dest_disj (@{term Not} $ (@{term HOL.disj} $ t $ u)) = (neg t, neg u)
+  val neg = (fn @{const Not} $ t => (true, t) | t => (false, @{const Not} $ t))
+  fun dest_disj (@{const Not} $ (@{const HOL.disj} $ t $ u)) = (neg t, neg u)
     | dest_disj t = raise TERM ("dest_disj", [t])
 
   val dnegE = T.precompose (single o d2 o d1) @{thm notnotD}
   val dnegI = T.precompose (single o d1) @{lemma "P ==> ~~P" by fast}
-  fun as_dneg f t = f (@{term Not} $ (@{term Not} $ t))
+  fun as_dneg f t = f (@{const Not} $ (@{const Not} $ t))
 
   fun dni f = apsnd f o Thm.dest_binop o f o d1
   val negIffE = T.precompose2 (dni d1) @{lemma "~(P = (~Q)) ==> Q = P" by fast}
   val negIffI = T.precompose2 (dni I) @{lemma "P = Q ==> ~(Q = (~P))" by fast}
-  val iff_const = @{term "op = :: bool => _"}
-  fun as_negIff f (@{term "op = :: bool => _"} $ t $ u) =
-        f (@{term Not} $ (iff_const $ u $ (@{term Not} $ t)))
+  val iff_const = @{const HOL.eq (bool)}
+  fun as_negIff f (@{const HOL.eq (bool)} $ t $ u) =
+        f (@{const Not} $ (iff_const $ u $ (@{const Not} $ t)))
     | as_negIff _ _ = NONE
 in
 
@@ -231,12 +234,12 @@ fun join is_conj littab t =
 
     fun lookup_rule t =
       (case t of
-        @{term Not} $ (@{term Not} $ t) => (T.compose dnegI, lookup t)
-      | @{term Not} $ (@{term "op = :: bool => _"} $ t $ (@{term Not} $ u)) =>
-          (T.compose negIffI, lookup (iff_const $ u $ t))
-      | @{term Not} $ ((eq as Const (@{const_name HOL.eq}, _)) $ t $ u) =>
+        @{const Not} $ (@{const Not} $ t) => (T.compose dnegI, lookup t)
+      | @{const Not} $ (@{const HOL.eq (bool)} $ t $ (@{const Not} $ u)) =>
+            (T.compose negIffI, lookup (iff_const $ u $ t))
+      | @{const Not} $ ((eq as Const (@{const_name HOL.eq}, _)) $ t $ u) =>
           let fun rewr lit = lit COMP @{thm not_sym}
-          in (rewr, lookup (@{term Not} $ (eq $ u $ t))) end
+          in (rewr, lookup (@{const Not} $ (eq $ u $ t))) end
       | _ =>
           (case as_dneg lookup t of
             NONE => (T.compose negIffE, as_negIff lookup t)
@@ -264,11 +267,10 @@ local
   val cp1 = @{lemma "(~P) = (~Q) ==> P = Q" by simp}
   val cp2 = @{lemma "(~P) = Q ==> P = (~Q)" by fastsimp}
   val cp3 = @{lemma "P = (~Q) ==> (~P) = Q" by simp}
-  val neg = Thm.capply @{cterm Not}
 in
-fun contrapos1 prove (ct, cu) = prove (neg ct, neg cu) COMP cp1
-fun contrapos2 prove (ct, cu) = prove (neg ct, Thm.dest_arg cu) COMP cp2
-fun contrapos3 prove (ct, cu) = prove (Thm.dest_arg ct, neg cu) COMP cp3
+fun contrapos1 prove (ct, cu) = prove (negate ct, negate cu) COMP cp1
+fun contrapos2 prove (ct, cu) = prove (negate ct, Thm.dest_arg cu) COMP cp2
+fun contrapos3 prove (ct, cu) = prove (Thm.dest_arg ct, negate cu) COMP cp3
 end
 
 
@@ -279,10 +281,10 @@ local
       val rules = explode_term conj (T.prop_of thm)
       fun contra_lits (t, rs) =
         (case t of
-          @{term Not} $ u => Termtab.lookup rules u |> Option.map (pair rs)
+          @{const Not} $ u => Termtab.lookup rules u |> Option.map (pair rs)
         | _ => NONE)
     in
-      (case Termtab.lookup rules @{term False} of
+      (case Termtab.lookup rules @{const False} of
         SOME rs => extract_lit thm rs
       | NONE =>
           the (Termtab.get_first contra_lits rules)
@@ -322,8 +324,9 @@ fun prove_conj_disj_eq ct =
   let val cp as (cl, cr) = Thm.dest_binop (Thm.dest_arg ct)
   in
     (case (kind_of (Thm.term_of cl), Thm.term_of cr) of
-      (SOME CONJ, @{term False}) => contradict true cl
-    | (SOME DISJ, @{term "~False"}) => contrapos2 (contradict false o fst) cp
+      (SOME CONJ, @{const False}) => contradict true cl
+    | (SOME DISJ, @{const Not} $ @{const False}) =>
+        contrapos2 (contradict false o fst) cp
     | (kl, _) =>
         (case (kl, kind_of (Thm.term_of cr)) of
           (SOME CONJ, SOME CONJ) => prove_eq true true cp
