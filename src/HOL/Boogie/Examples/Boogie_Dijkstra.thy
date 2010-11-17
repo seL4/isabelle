@@ -80,7 +80,7 @@ implementation Dijkstra()
 *}
 
 
-boogie_open "Boogie_Dijkstra"
+boogie_open "Boogie_Dijkstra.b2i"
 
 declare [[smt_certificates="Boogie_Dijkstra.certs"]]
 declare [[smt_fixed=true]]

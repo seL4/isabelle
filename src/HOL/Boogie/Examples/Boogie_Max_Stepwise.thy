@@ -37,7 +37,7 @@ implementation max(array : [int]int, length : int) returns (max : int)
 \end{verbatim}
 *}
 
-boogie_open "Boogie_Max"
+boogie_open "Boogie_Max.b2i"
 
 boogie_status -- {* gives an overview of all verification conditions *}
 
