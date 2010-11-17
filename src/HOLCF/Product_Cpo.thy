@@ -276,6 +276,13 @@ lemma cont2cont_split_simple [simp, cont2cont]:
  shows "cont (\<lambda>x. case p of (a, b) \<Rightarrow> f x a b)"
 using assms by (cases p) auto
 
+text {* Admissibility of predicates on product types. *}
+
+lemma adm_prod_case [simp]:
+  assumes "adm (\<lambda>x. P x (fst (f x)) (snd (f x)))"
+  shows "adm (\<lambda>x. case f x of (a, b) \<Rightarrow> P x a b)"
+unfolding prod_case_beta using assms .
+
 subsection {* Compactness and chain-finiteness *}
 
 lemma fst_below_iff: "fst (x::'a \<times> 'b) \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (y, snd x)"
