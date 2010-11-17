@@ -108,7 +108,17 @@ fun make_cmd solver args problem_path proof_path = space_implode " " (
 
 fun run ctxt cmd args input =
   (case C.certificates_of ctxt of
-    NONE => Cache_IO.run (make_cmd (choose cmd) args) input
+    NONE =>
+      if Config.get ctxt C.debug_files = "" then
+        Cache_IO.run (make_cmd (choose cmd) args) input
+      else
+        let
+          val base_path = Path.explode (Config.get ctxt C.debug_files)
+          val in_path = Path.ext "smt_in" base_path
+          val out_path = Path.ext "smt_out" base_path
+        in
+          Cache_IO.raw_run (make_cmd (choose cmd) args) input in_path out_path 
+        end
   | SOME certs =>
       (case Cache_IO.lookup certs input of
         (NONE, key) =>

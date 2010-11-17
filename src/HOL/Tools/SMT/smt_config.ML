@@ -25,6 +25,7 @@ sig
   val monomorph_limit: int Config.T
   val drop_bad_facts: bool Config.T
   val filter_only_facts: bool Config.T
+  val debug_files: string Config.T
 
   (*tools*)
   val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
@@ -131,6 +132,10 @@ val filter_only_factsN = "smt_filter_only_facts"
 val (filter_only_facts, setup_filter_only_facts) =
   Attrib.config_bool filter_only_factsN (K false)
 
+val debug_filesN = "smt_debug_files"
+val (debug_files, setup_debug_files) =
+  Attrib.config_string debug_filesN (K "")
+
 val setup_options =
   setup_oracle #>
   setup_datatypes #>
@@ -141,7 +146,8 @@ val setup_options =
   setup_monomorph_limit #>
   setup_drop_bad_facts #>
   setup_filter_only_facts #>
-  setup_trace_used_facts
+  setup_trace_used_facts #>
+  setup_debug_files
 
 
 (* diagnostics *)
