@@ -81,6 +81,7 @@
     "display_drafts"
     "domain"
     "domain_isomorphism"
+    "domaindef"
     "done"
     "enable_pr"
     "end"
@@ -207,7 +208,6 @@
     "refute_params"
     "remove_thy"
     "rep_datatype"
-    "repdef"
     "schematic_corollary"
     "schematic_lemma"
     "schematic_theorem"
@@ -247,6 +247,7 @@
     "txt"
     "txt_raw"
     "typ"
+    "type_mapper"
     "type_notation"
     "typed_print_translation"
     "typedecl"
@@ -460,6 +461,7 @@
     "defs"
     "domain"
     "domain_isomorphism"
+    "domaindef"
     "equivariance"
     "extract"
     "extract_type"
@@ -501,7 +503,6 @@
     "recdef"
     "record"
     "refute_params"
-    "repdef"
     "setup"
     "simproc_setup"
     "sledgehammer_params"
@@ -548,6 +549,7 @@
     "sublocale"
     "termination"
     "theorem"
+    "type_mapper"
     "typedef"))
 
 (defconst isar-keywords-qed
