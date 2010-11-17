@@ -115,7 +115,7 @@ fun remove_int_nat_coercions terms vs =
     fun match ts ((n, _), _) = matches terms (member (op aconv) ts) n
 
     val (default_int, ints) =
-      (case find_first (match [@{term int}]) vs of
+      (case find_first (match [@{const of_nat (int)}]) vs of
         NONE => (NONE, [])
       | SOME (_, cases) =>
           let val (cs, (_, e)) = split_last cases
@@ -138,7 +138,7 @@ fun remove_int_nat_coercions terms vs =
       | SOME t => ((n, k), map (subst_nat (Term.fastype_of t) k) cases))
   in
     map subst_nats vs
-    |> filter_out (match [@{term int}, @{term nat}])
+    |> filter_out (match [@{const of_nat (int)}, @{const nat}])
   end
 
 fun filter_valid_valuations terms = map_filter (fn
@@ -179,8 +179,8 @@ fun term_of_value T i (cx as (_, _, values)) =
 
 fun get_term n (cx as (_, terms, _)) = (the (Symtab.lookup terms n), cx)
 
-fun trans_expr _ True = pair @{term True}
-  | trans_expr _ False = pair @{term False}
+fun trans_expr _ True = pair @{const True}
+  | trans_expr _ False = pair @{const False}
   | trans_expr T (Number (i, NONE)) = pair (HOLogic.mk_number T i)
   | trans_expr T (Number (i, SOME j)) =
       pair (Const (@{const_name divide}, [T, T] ---> T) $

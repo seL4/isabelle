@@ -231,7 +231,7 @@ local
 in
 fun lemma thm ct =
   let
-    val cu = Thm.capply @{cterm Not} (Thm.dest_arg ct)
+    val cu = L.negate (Thm.dest_arg ct)
     val hyps = map_filter (try HOLogic.dest_Trueprop) (#hyps (Thm.rep_thm thm))
   in Thm (T.compose ccontr (T.under_assumption (intro hyps thm) cu)) end
 end
@@ -243,7 +243,7 @@ local
   val explode_disj = L.explode false true false
   val join_disj = L.join false
   fun unit thm thms th =
-    let val t = @{term Not} $ T.prop_of thm and ts = map T.prop_of thms
+    let val t = @{const Not} $ T.prop_of thm and ts = map T.prop_of thms
     in join_disj (L.make_littab (thms @ explode_disj ts th)) t end
 
   fun dest_arg2 ct = Thm.dest_arg (Thm.dest_arg ct)
@@ -251,7 +251,7 @@ local
   val contrapos = T.precompose2 dest @{lemma "(~P ==> ~Q) ==> Q ==> P" by fast}
 in
 fun unit_resolution thm thms ct =
-  Thm.capply @{cterm Not} (Thm.dest_arg ct)
+  L.negate (Thm.dest_arg ct)
   |> T.under_assumption (unit thm thms)
   |> Thm o T.discharge thm o T.compose contrapos
 end
@@ -295,14 +295,14 @@ local
     let val (ct1, ct2) = Thm.dest_binop (Thm.dest_arg ct)
     in
       (case Thm.term_of ct1 of
-        @{term Not} $ (@{term HOL.conj} $ _ $ _) =>
+        @{const Not} $ (@{const HOL.conj} $ _ $ _) =>
           prove disjI1 (Thm.dest_arg ct1, true) (ct2, true)
-      | @{term HOL.conj} $ _ $ _ =>
-          prove disjI3 (Thm.capply @{cterm Not} ct2, false) (ct1, true)
-      | @{term Not} $ (@{term HOL.disj} $ _ $ _) =>
-          prove disjI3 (Thm.capply @{cterm Not} ct2, false) (ct1, false)
-      | @{term HOL.disj} $ _ $ _ =>
-          prove disjI2 (Thm.capply @{cterm Not} ct1, false) (ct2, true)
+      | @{const HOL.conj} $ _ $ _ =>
+          prove disjI3 (L.negate ct2, false) (ct1, true)
+      | @{const Not} $ (@{const HOL.disj} $ _ $ _) =>
+          prove disjI3 (L.negate ct2, false) (ct1, false)
+      | @{const HOL.disj} $ _ $ _ =>
+          prove disjI2 (L.negate ct1, false) (ct2, true)
       | Const (@{const_name SMT.distinct}, _) $ _ =>
           let
             fun dis_conv cv = Conv.arg_conv (Conv.arg1_conv cv)
@@ -310,7 +310,7 @@ local
               let val (cu1, cu2) = Thm.dest_binop (Thm.dest_arg cu)
               in prove disjI4 (Thm.dest_arg cu2, true) (cu1, true) end
           in T.with_conv (dis_conv T.unfold_distinct_conv) prv ct end
-      | @{term Not} $ (Const (@{const_name SMT.distinct}, _) $ _) =>
+      | @{const Not} $ (Const (@{const_name SMT.distinct}, _) $ _) =>
           let
             fun dis_conv cv = Conv.arg_conv (Conv.arg1_conv (Conv.arg_conv cv))
             fun prv cu =
@@ -392,7 +392,7 @@ fun nnf ctxt vars ps ct =
       if l aconv r
       then MetaEq (Thm.reflexive (Thm.dest_arg (Thm.dest_arg ct)))
       else MetaEq (nnf_quant vars quant_rules1 (hd ps) ct)
-  | _ $ (@{term Not} $ (Const _ $ Abs _)) $ (Const _ $ Abs _) =>
+  | _ $ (@{const Not} $ (Const _ $ Abs _)) $ (Const _ $ Abs _) =>
       MetaEq (nnf_quant vars quant_rules2 (hd ps) ct)
   | _ =>
       let
@@ -474,8 +474,8 @@ local
 
   fun mono f (cp as (cl, _)) =
     (case Term.head_of (Thm.term_of cl) of
-      @{term HOL.conj} => prove_nary L.is_conj (prove_eq_exn f)
-    | @{term HOL.disj} => prove_nary L.is_disj (prove_eq_exn f)
+      @{const HOL.conj} => prove_nary L.is_conj (prove_eq_exn f)
+    | @{const HOL.disj} => prove_nary L.is_disj (prove_eq_exn f)
     | Const (@{const_name SMT.distinct}, _) => prove_distinct (prove_eq_safe f)
     | _ => prove (prove_eq_safe f)) cp
 in
@@ -589,8 +589,8 @@ local
     |> Conv.fconv_rule (Thm.beta_conversion true)
 
   fun kind (Const (@{const_name Ex}, _) $ _) = (sk_ex_rule, I, I)
-    | kind (@{term Not} $ (Const (@{const_name All}, _) $ _)) =
-        (sk_all_rule, Thm.dest_arg, Thm.capply @{cterm Not})
+    | kind (@{const Not} $ (Const (@{const_name All}, _) $ _)) =
+        (sk_all_rule, Thm.dest_arg, L.negate)
     | kind t = raise TERM ("skolemize", [t])
 
   fun dest_abs_type (Abs (_, T, _)) = T

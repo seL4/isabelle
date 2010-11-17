@@ -63,7 +63,7 @@ end
 (* Z3 builtins *)
 
 local
-  fun z3_builtin_fun @{term "op / :: real => _"} ts = SOME ("/", ts)
+  fun z3_builtin_fun @{const divide (real)} ts = SOME ("/", ts)
     | z3_builtin_fun _ _ = NONE
 in
 
@@ -86,13 +86,13 @@ local
     if T = @{typ real} then SOME (Numeral.mk_cnumber @{ctyp real} i)
     else NONE
 
-  val mk_uminus = Thm.capply @{cterm "uminus :: real => _"}
-  val mk_add = Thm.mk_binop @{cterm "op + :: real => _"}
-  val mk_sub = Thm.mk_binop @{cterm "op - :: real => _"}
-  val mk_mul = Thm.mk_binop @{cterm "op * :: real => _"}
-  val mk_div = Thm.mk_binop @{cterm "op / :: real => _"}
-  val mk_lt = Thm.mk_binop @{cterm "op < :: real => _"}
-  val mk_le = Thm.mk_binop @{cterm "op <= :: real => _"}
+  val mk_uminus = Thm.capply (Thm.cterm_of @{theory} @{const uminus (real)})
+  val mk_add = Thm.mk_binop (Thm.cterm_of @{theory} @{const plus (real)})
+  val mk_sub = Thm.mk_binop (Thm.cterm_of @{theory} @{const minus (real)})
+  val mk_mul = Thm.mk_binop (Thm.cterm_of @{theory} @{const times (real)})
+  val mk_div = Thm.mk_binop (Thm.cterm_of @{theory} @{const divide (real)})
+  val mk_lt = Thm.mk_binop (Thm.cterm_of @{theory} @{const less (real)})
+  val mk_le = Thm.mk_binop (Thm.cterm_of @{theory} @{const less_eq (real)})
 
   fun z3_mk_builtin_fun (I.Sym ("-", _)) [ct] = SOME (mk_uminus ct)
     | z3_mk_builtin_fun (I.Sym ("+", _)) [ct, cu] = SOME (mk_add ct cu)

@@ -24,7 +24,6 @@ usage()
   echo "    -m MODE      add print mode for output"
   echo
   echo "Start jEdit with Isabelle plugin setup and opens theory FILES"
-  echo "(default ~/Scratch.thy)."
   echo
   exit 1
 }
@@ -93,14 +92,10 @@ shift $(($OPTIND - 1))
 
 # args
 
-if [ "$#" -eq 0 ]; then
-  ARGS["${#ARGS[@]}"]="Scratch.thy"
-else
-  while [ "$#" -gt 0 ]; do
-    ARGS["${#ARGS[@]}"]="$(jvmpath "$1")"
-    shift
-  done
-fi
+while [ "$#" -gt 0 ]; do
+  ARGS["${#ARGS[@]}"]="$(jvmpath "$1")"
+  shift
+done
 
 
 ## default perspective

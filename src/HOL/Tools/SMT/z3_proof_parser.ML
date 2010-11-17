@@ -113,10 +113,11 @@ fun mk_inst ctxt vars =
     fun mk (i, v) = (v, certify ctxt (Free (nth ns i, #T (Thm.rep_cterm v))))
   in map mk vars end
 
+val mk_prop = Thm.capply (Thm.cterm_of @{theory} @{const Trueprop})
+
 fun close ctxt (ct, vars) =
   let
     val inst = mk_inst ctxt vars
-    val mk_prop = Thm.capply @{cterm Trueprop}
     val names = fold (Term.add_free_names o Thm.term_of o snd) inst []
   in (mk_prop (Thm.instantiate_cterm ([], inst) ct), names) end
 
@@ -182,6 +183,8 @@ datatype proof_step = Proof_Step of {
 
 (* parser context *)
 
+val not_false = Thm.cterm_of @{theory} (@{const Not} $ @{const False})
+
 fun make_context ctxt typs terms =
   let
     val ctxt' = 
@@ -189,7 +192,7 @@ fun make_context ctxt typs terms =
       |> Symtab.fold (Variable.declare_typ o snd) typs
       |> Symtab.fold (Variable.declare_term o snd) terms
 
-    fun cert @{term True} = @{cterm "~False"}
+    fun cert @{const True} = not_false
       | cert t = certify ctxt' t
 
   in (typs, Symtab.map (K cert) terms, Inttab.empty, Inttab.empty, [], ctxt') end
@@ -357,8 +360,10 @@ fun variables st = par (this "vars" |-- seps1 (par (name |-- sep sort))) st
 
 fun pats st = seps (par ((this ":pat" || this ":nopat") |-- seps1 id)) st
 
+val ctrue = Thm.cterm_of @{theory} @{const True}
+
 fun pattern st = par (this "pattern" |-- Scan.repeat1 (sep arg) >>
-  (the o mk_fun (K (SOME @{cterm True})))) st
+  (the o mk_fun (K (SOME ctrue)))) st
 
 fun quant_kind st = st |> (
   this "forall" >> K (mk_forall o theory_of) ||

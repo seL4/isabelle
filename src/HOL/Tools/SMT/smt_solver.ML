@@ -108,7 +108,17 @@ fun make_cmd solver args problem_path proof_path = space_implode " " (
 
 fun run ctxt cmd args input =
   (case C.certificates_of ctxt of
-    NONE => Cache_IO.run (make_cmd (choose cmd) args) input
+    NONE =>
+      if Config.get ctxt C.debug_files = "" then
+        Cache_IO.run (make_cmd (choose cmd) args) input
+      else
+        let
+          val base_path = Path.explode (Config.get ctxt C.debug_files)
+          val in_path = Path.ext "smt_in" base_path
+          val out_path = Path.ext "smt_out" base_path
+        in
+          Cache_IO.raw_run (make_cmd (choose cmd) args) input in_path out_path 
+        end
   | SOME certs =>
       (case Cache_IO.lookup certs input of
         (NONE, key) =>
@@ -254,6 +264,8 @@ local
         in
           raise SMT_Failure.SMT (SMT_Failure.Counterexample (result = Sat, ts))
         end)
+
+  val cfalse = Thm.cterm_of @{theory} (@{const Trueprop} $ @{const False})
 in
 
 fun add_solver cfg =
@@ -261,7 +273,7 @@ fun add_solver cfg =
     val {name, env_var, is_remote, options, interface, outcome, cex_parser,
       reconstruct} = cfg
 
-    fun core_oracle () = @{cprop False}
+    fun core_oracle () = cfalse
 
     fun solver ocl = { env_var=env_var, is_remote=is_remote, options=options,
       interface=interface,
@@ -302,6 +314,8 @@ fun smt_solver rm ctxt irules =
       "contains the universal sort {}"))
   else solver_of ctxt rm ctxt irules
 
+val cnot = Thm.cterm_of @{theory} @{const Not}
+
 fun smt_filter run_remote time_limit st xrules i =
   let
     val {facts, goal, ...} = Proof.goal st
@@ -312,10 +326,8 @@ fun smt_filter run_remote time_limit st xrules i =
       |> Config.put C.drop_bad_facts true
       |> Config.put C.filter_only_facts true
     val ({context=ctxt', prems, concl, ...}, _) = Subgoal.focus ctxt i goal
-    val cprop =
-      concl
-      |> Thm.rhs_of o SMT_Normalize.atomize_conv ctxt'
-      |> Thm.capply @{cterm Trueprop} o Thm.capply @{cterm Not} o Thm.dest_arg
+    fun negate ct = Thm.dest_comb ct ||> Thm.capply cnot |-> Thm.capply
+    val cprop = negate (Thm.rhs_of (SMT_Normalize.atomize_conv ctxt' concl))
     val irs = map (pair ~1) (Thm.assume cprop :: prems @ facts)
     val rm = SOME run_remote
   in

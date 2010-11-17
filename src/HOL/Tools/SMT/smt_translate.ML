@@ -134,7 +134,7 @@ fun dest_pats [] = I
       | (ps, [false]) => cons (SNoPat ps)
       | _ => raise TERM ("dest_pats", ts))
 
-fun dest_trigger (@{term trigger} $ tl $ t) =
+fun dest_trigger (@{const trigger} $ tl $ t) =
       (rev (fold (dest_pats o HOLogic.dest_list) (HOLogic.dest_list tl) []), t)
   | dest_trigger t = ([], t)
 
@@ -161,8 +161,8 @@ val term_bool' = Simplifier.rewrite_rule [term_eq_rewr] term_bool
 
 val needs_rewrite = Thm.prop_of #> Term.exists_subterm (fn
     Const (@{const_name Let}, _) => true
-  | @{term "op = :: bool => _"} $ _ $ @{term True} => true
-  | Const (@{const_name If}, _) $ _ $ @{term True} $ @{term False} => true
+  | @{const HOL.eq (bool)} $ _ $ @{const True} => true
+  | Const (@{const_name If}, _) $ _ $ @{const True} $ @{const False} => true
   | _ => false)
 
 val rewrite_rules = [
@@ -199,11 +199,11 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
     fun conn (n, T) = (n, mapTs as_propT as_propT T)
     fun pred (n, T) = (n, mapTs I as_propT T)
 
-    val term_eq = @{term "op = :: bool => _"} |> Term.dest_Const |> pred
-    fun as_term t = Const term_eq $ t $ @{term True}
+    val term_eq = @{const HOL.eq (bool)} |> Term.dest_Const |> pred
+    fun as_term t = Const term_eq $ t $ @{const True}
 
     val if_term = Const (@{const_name If}, [propT, boolT, boolT] ---> boolT)
-    fun wrap_in_if t = if_term $ t $ @{term True} $ @{term False}
+    fun wrap_in_if t = if_term $ t $ @{const True} $ @{const False}
 
     fun in_list T f t = HOLogic.mk_list T (map f (HOLogic.dest_list t))
 
@@ -225,7 +225,7 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
     and in_pats ps =
       in_list @{typ "pattern list"} (in_list @{typ pattern} in_pat) ps
 
-    and in_trig ((c as @{term trigger}) $ p $ t) = c $ in_pats p $ in_form t
+    and in_trig ((c as @{const trigger}) $ p $ t) = c $ in_pats p $ in_form t
       | in_trig t = in_form t
 
     and in_form t =

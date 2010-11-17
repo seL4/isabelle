@@ -53,12 +53,12 @@ structure I = Z3_Interface
 
 (* accessing terms *)
 
-val dest_prop = (fn @{term Trueprop} $ t => t | t => t)
+val dest_prop = (fn @{const Trueprop} $ t => t | t => t)
 
 fun term_of ct = dest_prop (Thm.term_of ct)
 fun prop_of thm = dest_prop (Thm.prop_of thm)
 
-val mk_prop = Thm.capply @{cterm Trueprop}
+val mk_prop = Thm.capply (Thm.cterm_of @{theory} @{const Trueprop})
 
 val eq = I.mk_inst_pair I.destT1 @{cpat "op =="}
 fun mk_meta_eq_cterm ct cu = Thm.mk_binop (I.instT' ct eq) ct cu
@@ -195,14 +195,14 @@ fun abstract (ext_logic, with_theories) =
 
     and abstr cvs ct =
       (case Thm.term_of ct of
-        @{term Trueprop} $ _ => abstr1 cvs ct
-      | @{term "op ==>"} $ _ $ _ => abstr2 cvs ct
-      | @{term True} => pair ct
-      | @{term False} => pair ct
-      | @{term Not} $ _ => abstr1 cvs ct
-      | @{term HOL.conj} $ _ $ _ => abstr2 cvs ct
-      | @{term HOL.disj} $ _ $ _ => abstr2 cvs ct
-      | @{term HOL.implies} $ _ $ _ => abstr2 cvs ct
+        @{const Trueprop} $ _ => abstr1 cvs ct
+      | @{const "==>"} $ _ $ _ => abstr2 cvs ct
+      | @{const True} => pair ct
+      | @{const False} => pair ct
+      | @{const Not} $ _ => abstr1 cvs ct
+      | @{const HOL.conj} $ _ $ _ => abstr2 cvs ct
+      | @{const HOL.disj} $ _ $ _ => abstr2 cvs ct
+      | @{const HOL.implies} $ _ $ _ => abstr2 cvs ct
       | Const (@{const_name HOL.eq}, _) $ _ $ _ => abstr2 cvs ct
       | Const (@{const_name SMT.distinct}, _) $ _ =>
           if ext_logic then abs_arg (abs_list abstr fresh_abstraction) cvs ct
@@ -221,8 +221,10 @@ fun abstract (ext_logic, with_theories) =
           else fresh_abstraction cvs ct cx))
   in abstr [] end
 
+val cimp = Thm.cterm_of @{theory} @{const "==>"}
+
 fun with_prems thms f ct =
-  fold_rev (Thm.mk_binop @{cterm "op ==>"} o Thm.cprop_of) thms ct
+  fold_rev (Thm.mk_binop cimp o Thm.cprop_of) thms ct
   |> f
   |> fold (fn prem => fn th => Thm.implies_elim th prem) thms
 

@@ -162,10 +162,12 @@ local
     addsimps [@{thm Nat_Numeral.int_nat_number_of}]
     addsimps @{thms neg_simps}
 
+  val int_eq = Thm.cterm_of @{theory} @{const "==" (int)}
+
   fun cancel_int_nat_simproc _ ss ct = 
     let
       val num = Thm.dest_arg (Thm.dest_arg ct)
-      val goal = Thm.mk_binop @{cterm "op == :: int => _"} ct num
+      val goal = Thm.mk_binop int_eq ct num
       val simpset = Simplifier.inherit_context ss cancel_int_nat_ss
       fun tac _ = Simplifier.simp_tac simpset 1
     in on_positive num (Goal.prove_internal [] goal) tac end
@@ -180,8 +182,8 @@ local
   fun conv ctxt = Simplifier.rewrite (Simplifier.context ctxt nat_ss)
 
   val uses_nat_type = Term.exists_type (Term.exists_subtype (equal @{typ nat}))
-  val uses_nat_int =
-    Term.exists_subterm (member (op aconv) [@{term int}, @{term nat}])
+  val uses_nat_int = Term.exists_subterm (member (op aconv)
+    [@{const of_nat (int)}, @{const nat}])
 in
 fun nat_as_int ctxt =
   map (apsnd ((uses_nat_type o Thm.prop_of) ?? Conv.fconv_rule (conv ctxt))) #>
@@ -285,7 +287,7 @@ end
 
 fun norm_def ctxt thm =
   (case Thm.prop_of thm of
-    @{term Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _ $ Abs _) =>
+    @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _ $ Abs _) =>
       norm_def ctxt (thm RS @{thm fun_cong})
   | Const (@{const_name "=="}, _) $ _ $ Abs _ =>
       norm_def ctxt (thm RS @{thm meta_eq_to_obj_eq})
@@ -293,7 +295,7 @@ fun norm_def ctxt thm =
 
 fun atomize_conv ctxt ct =
   (case Thm.term_of ct of
-    @{term "op ==>"} $ _ $ _ =>
+    @{const "==>"} $ _ $ _ =>
       Conv.binop_conv (atomize_conv ctxt) then_conv
       Conv.rewr_conv @{thm atomize_imp}
   | Const (@{const_name "=="}, _) $ _ $ _ =>

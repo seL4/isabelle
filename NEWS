@@ -355,6 +355,9 @@ INCOMPATIBILITY.
     cvc3_options
     yices_options
 
+* Boogie output files (.b2i files) need to be declared in the
+theory header.
+
 * Removed [split_format ... and ... and ...] version of
 [split_format].  Potential INCOMPATIBILITY.
 

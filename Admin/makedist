@@ -108,7 +108,7 @@ DISTDATE=$(env LC_ALL=C date "+%B %Y")
 
 if [ -z "$RELEASE" ]; then
   DISTNAME="Isabelle_$DATE"
-  DISTVERSION="Isabelle repository snapshot $IDENT ($DATE)"
+  DISTVERSION="Isabelle repository snapshot $IDENT $DATE"
 else
   DISTNAME="$RELEASE"
   DISTVERSION="$DISTNAME: $DISTDATE"

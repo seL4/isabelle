@@ -55,7 +55,11 @@ ML_SOURCES="$ML_HOME/../src"
 ### JVM components (Scala or Java)
 ###
 
-ISABELLE_JAVA="java"
+if [ -n "$JAVA_HOME" ]; then
+  ISABELLE_JAVA="$JAVA_HOME/bin/java"
+else
+  ISABELLE_JAVA="java"
+fi
 
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 

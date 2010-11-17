@@ -60,7 +60,7 @@ local
 
   fun dest_word_funT (Type ("fun", [T, U])) = (dest_wordT T, dest_wordT U)
     | dest_word_funT T = raise TYPE ("dest_word_funT", [T], [])
-  fun dest_nat (@{term nat} $ n :: ts) = (snd (HOLogic.dest_number n), ts)
+  fun dest_nat (@{const nat} $ n :: ts) = (snd (HOLogic.dest_number n), ts)
     | dest_nat ts = raise TERM ("dest_nat", ts)
   fun dest_nat_word_funT (T, ts) =
     (dest_word_funT (Term.range_type T), dest_nat ts)
