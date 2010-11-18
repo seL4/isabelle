@@ -178,6 +178,9 @@ lemma map_Set [code]:
   "map f (Set xs) = Set (remdups (List.map f xs))"
   by (simp add: Set_def)
 
+type_mapper map
+  by (simp_all add: image_image)
+
 definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
   [simp]: "filter P A = Fset (More_Set.project P (member A))"
 
