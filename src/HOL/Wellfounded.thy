@@ -240,7 +240,7 @@ done
 
 text{*Well-foundedness of image*}
 
-lemma wf_prod_fun_image: "[| wf r; inj f |] ==> wf(prod_fun f f ` r)"
+lemma wf_map_pair_image: "[| wf r; inj f |] ==> wf(map_pair f f ` r)"
 apply (simp only: wf_eq_minimal, clarify)
 apply (case_tac "EX p. f p : Q")
 apply (erule_tac x = "{p. f p : Q}" in allE)

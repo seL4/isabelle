@@ -51,8 +51,8 @@ lemma times_nat_code [code]:
   unfolding of_nat_mult [symmetric] by simp
 
 lemma divmod_nat_code [code]:
-  "divmod_nat n m = prod_fun nat nat (pdivmod (of_nat n) (of_nat m))"
-  by (simp add: prod_fun_def split_def pdivmod_def nat_div_distrib nat_mod_distrib divmod_nat_div_mod)
+  "divmod_nat n m = map_pair nat nat (pdivmod (of_nat n) (of_nat m))"
+  by (simp add: map_pair_def split_def pdivmod_def nat_div_distrib nat_mod_distrib divmod_nat_div_mod)
 
 lemma eq_nat_code [code]:
   "HOL.equal n m \<longleftrightarrow> HOL.equal (of_nat n \<Colon> int) (of_nat m)"

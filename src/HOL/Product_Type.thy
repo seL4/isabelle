@@ -824,58 +824,63 @@ no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 text {*
-  @{term prod_fun} --- action of the product functor upon
+  @{term map_pair} --- action of the product functor upon
   functions.
 *}
 
-definition prod_fun :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd" where
-  "prod_fun f g = (\<lambda>(x, y). (f x, g y))"
+definition map_pair :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd" where
+  "map_pair f g = (\<lambda>(x, y). (f x, g y))"
 
-lemma prod_fun [simp, code]: "prod_fun f g (a, b) = (f a, g b)"
-  by (simp add: prod_fun_def)
+lemma map_pair_simp [simp, code]:
+  "map_pair f g (a, b) = (f a, g b)"
+  by (simp add: map_pair_def)
 
-lemma fst_prod_fun[simp]: "fst (prod_fun f g x) = f (fst x)"
-by (cases x, auto)
+type_mapper map_pair
+  by (simp_all add: split_paired_all)
 
-lemma snd_prod_fun[simp]: "snd (prod_fun f g x) = g (snd x)"
-by (cases x, auto)
+lemma fst_map_pair [simp]:
+  "fst (map_pair f g x) = f (fst x)"
+  by (cases x) simp_all
 
-lemma fst_comp_prod_fun[simp]: "fst \<circ> prod_fun f g = f \<circ> fst"
-by (rule ext) auto
+lemma snd_prod_fun [simp]:
+  "snd (map_pair f g x) = g (snd x)"
+  by (cases x) simp_all
 
-lemma snd_comp_prod_fun[simp]: "snd \<circ> prod_fun f g = g \<circ> snd"
-by (rule ext) auto
+lemma fst_comp_map_pair [simp]:
+  "fst \<circ> map_pair f g = f \<circ> fst"
+  by (rule ext) simp_all
 
+lemma snd_comp_map_pair [simp]:
+  "snd \<circ> map_pair f g = g \<circ> snd"
+  by (rule ext) simp_all
 
-lemma prod_fun_compose:
-  "prod_fun (f1 o f2) (g1 o g2) = (prod_fun f1 g1 o prod_fun f2 g2)"
-by (rule ext) auto
+lemma map_pair_compose:
+  "map_pair (f1 o f2) (g1 o g2) = (map_pair f1 g1 o map_pair f2 g2)"
+  by (rule ext) (simp add: map_pair.compositionality comp_def)
 
-lemma prod_fun_ident [simp]: "prod_fun (%x. x) (%y. y) = (%z. z)"
-  by (rule ext) auto
+lemma map_pair_ident [simp]:
+  "map_pair (%x. x) (%y. y) = (%z. z)"
+  by (rule ext) (simp add: map_pair.identity)
 
-lemma prod_fun_imageI [intro]: "(a, b) : r ==> (f a, g b) : prod_fun f g ` r"
-  apply (rule image_eqI)
-  apply (rule prod_fun [symmetric], assumption)
-  done
+lemma map_pair_imageI [intro]:
+  "(a, b) \<in> R \<Longrightarrow> (f a, g b) \<in> map_pair f g ` R"
+  by (rule image_eqI) simp_all
 
 lemma prod_fun_imageE [elim!]:
-  assumes major: "c: (prod_fun f g)`r"
-    and cases: "!!x y. [| c=(f(x),g(y));  (x,y):r |] ==> P"
+  assumes major: "c \<in> map_pair f g ` R"
+    and cases: "\<And>x y. c = (f x, g y) \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> P"
   shows P
   apply (rule major [THEN imageE])
   apply (case_tac x)
   apply (rule cases)
-   apply (blast intro: prod_fun)
-  apply blast
+  apply simp_all
   done
 
-
 definition apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b" where
-  "apfst f = prod_fun f id"
+  "apfst f = map_pair f id"
 
 definition apsnd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c" where
-  "apsnd f = prod_fun id f"
+  "apsnd f = map_pair id f"
 
 lemma apfst_conv [simp, code]:
   "apfst f (x, y) = (f x, y)" 
@@ -941,7 +946,7 @@ text {*
   Disjoint union of a family of sets -- Sigma.
 *}
 
-definition  Sigma :: "['a set, 'a => 'b set] => ('a \<times> 'b) set" where
+definition Sigma :: "['a set, 'a => 'b set] => ('a \<times> 'b) set" where
   Sigma_def: "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
 
 abbreviation
@@ -1091,66 +1096,6 @@ by blast
 lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd \<circ> f) -` B)"
   by (auto, case_tac "f x", auto)
 
-text{* The following @{const prod_fun} lemmas are due to Joachim Breitner: *}
-
-lemma prod_fun_inj_on:
-  assumes "inj_on f A" and "inj_on g B"
-  shows "inj_on (prod_fun f g) (A \<times> B)"
-proof (rule inj_onI)
-  fix x :: "'a \<times> 'c" and y :: "'a \<times> 'c"
-  assume "x \<in> A \<times> B" hence "fst x \<in> A" and "snd x \<in> B" by auto
-  assume "y \<in> A \<times> B" hence "fst y \<in> A" and "snd y \<in> B" by auto
-  assume "prod_fun f g x = prod_fun f g y"
-  hence "fst (prod_fun f g x) = fst (prod_fun f g y)" by (auto)
-  hence "f (fst x) = f (fst y)" by (cases x,cases y,auto)
-  with `inj_on f A` and `fst x \<in> A` and `fst y \<in> A`
-  have "fst x = fst y" by (auto dest:dest:inj_onD)
-  moreover from `prod_fun f g x = prod_fun f g y`
-  have "snd (prod_fun f g x) = snd (prod_fun f g y)" by (auto)
-  hence "g (snd x) = g (snd y)" by (cases x,cases y,auto)
-  with `inj_on g B` and `snd x \<in> B` and `snd y \<in> B`
-  have "snd x = snd y" by (auto dest:dest:inj_onD)
-  ultimately show "x = y" by(rule prod_eqI)
-qed
-
-lemma prod_fun_surj:
-  assumes "surj f" and "surj g"
-  shows "surj (prod_fun f g)"
-unfolding surj_def
-proof
-  fix y :: "'b \<times> 'd"
-  from `surj f` obtain a where "fst y = f a" by (auto elim:surjE)
-  moreover
-  from `surj g` obtain b where "snd y = g b" by (auto elim:surjE)
-  ultimately have "(fst y, snd y) = prod_fun f g (a,b)" by auto
-  thus "\<exists>x. y = prod_fun f g x" by auto
-qed
-
-lemma prod_fun_surj_on:
-  assumes "f ` A = A'" and "g ` B = B'"
-  shows "prod_fun f g ` (A \<times> B) = A' \<times> B'"
-unfolding image_def
-proof(rule set_eqI,rule iffI)
-  fix x :: "'a \<times> 'c"
-  assume "x \<in> {y\<Colon>'a \<times> 'c. \<exists>x\<Colon>'b \<times> 'd\<in>A \<times> B. y = prod_fun f g x}"
-  then obtain y where "y \<in> A \<times> B" and "x = prod_fun f g y" by blast
-  from `image f A = A'` and `y \<in> A \<times> B` have "f (fst y) \<in> A'" by auto
-  moreover from `image g B = B'` and `y \<in> A \<times> B` have "g (snd y) \<in> B'" by auto
-  ultimately have "(f (fst y), g (snd y)) \<in> (A' \<times> B')" by auto
-  with `x = prod_fun f g y` show "x \<in> A' \<times> B'" by (cases y, auto)
-next
-  fix x :: "'a \<times> 'c"
-  assume "x \<in> A' \<times> B'" hence "fst x \<in> A'" and "snd x \<in> B'" by auto
-  from `image f A = A'` and `fst x \<in> A'` have "fst x \<in> image f A" by auto
-  then obtain a where "a \<in> A" and "fst x = f a" by (rule imageE)
-  moreover from `image g B = B'` and `snd x \<in> B'`
-  obtain b where "b \<in> B" and "snd x = g b" by auto
-  ultimately have "(fst x, snd x) = prod_fun f g (a,b)" by auto
-  moreover from `a \<in> A` and  `b \<in> B` have "(a , b) \<in> A \<times> B" by auto
-  ultimately have "\<exists>y \<in> A \<times> B. x = prod_fun f g y" by auto
-  thus "x \<in> {x. \<exists>y \<in> A \<times> B. x = prod_fun f g y}" by auto
-qed
-
 lemma swap_inj_on:
   "inj_on (\<lambda>(i, j). (j, i)) A"
   by (auto intro!: inj_onI)
@@ -1166,6 +1111,66 @@ proof (safe intro!: imageI vimageI)
   show "(f b, g a) \<in> (\<lambda>x. (f x, g x)) ` A"
     using * eq[symmetric] by auto
 qed simp_all
+
+text {* The following @{const map_pair} lemmas are due to Joachim Breitner: *}
+
+lemma map_pair_inj_on:
+  assumes "inj_on f A" and "inj_on g B"
+  shows "inj_on (map_pair f g) (A \<times> B)"
+proof (rule inj_onI)
+  fix x :: "'a \<times> 'c" and y :: "'a \<times> 'c"
+  assume "x \<in> A \<times> B" hence "fst x \<in> A" and "snd x \<in> B" by auto
+  assume "y \<in> A \<times> B" hence "fst y \<in> A" and "snd y \<in> B" by auto
+  assume "map_pair f g x = map_pair f g y"
+  hence "fst (map_pair f g x) = fst (map_pair f g y)" by (auto)
+  hence "f (fst x) = f (fst y)" by (cases x,cases y,auto)
+  with `inj_on f A` and `fst x \<in> A` and `fst y \<in> A`
+  have "fst x = fst y" by (auto dest:dest:inj_onD)
+  moreover from `map_pair f g x = map_pair f g y`
+  have "snd (map_pair f g x) = snd (map_pair f g y)" by (auto)
+  hence "g (snd x) = g (snd y)" by (cases x,cases y,auto)
+  with `inj_on g B` and `snd x \<in> B` and `snd y \<in> B`
+  have "snd x = snd y" by (auto dest:dest:inj_onD)
+  ultimately show "x = y" by(rule prod_eqI)
+qed
+
+lemma map_pair_surj:
+  assumes "surj f" and "surj g"
+  shows "surj (map_pair f g)"
+unfolding surj_def
+proof
+  fix y :: "'b \<times> 'd"
+  from `surj f` obtain a where "fst y = f a" by (auto elim:surjE)
+  moreover
+  from `surj g` obtain b where "snd y = g b" by (auto elim:surjE)
+  ultimately have "(fst y, snd y) = map_pair f g (a,b)" by auto
+  thus "\<exists>x. y = map_pair f g x" by auto
+qed
+
+lemma map_pair_surj_on:
+  assumes "f ` A = A'" and "g ` B = B'"
+  shows "map_pair f g ` (A \<times> B) = A' \<times> B'"
+unfolding image_def
+proof(rule set_eqI,rule iffI)
+  fix x :: "'a \<times> 'c"
+  assume "x \<in> {y\<Colon>'a \<times> 'c. \<exists>x\<Colon>'b \<times> 'd\<in>A \<times> B. y = map_pair f g x}"
+  then obtain y where "y \<in> A \<times> B" and "x = map_pair f g y" by blast
+  from `image f A = A'` and `y \<in> A \<times> B` have "f (fst y) \<in> A'" by auto
+  moreover from `image g B = B'` and `y \<in> A \<times> B` have "g (snd y) \<in> B'" by auto
+  ultimately have "(f (fst y), g (snd y)) \<in> (A' \<times> B')" by auto
+  with `x = map_pair f g y` show "x \<in> A' \<times> B'" by (cases y, auto)
+next
+  fix x :: "'a \<times> 'c"
+  assume "x \<in> A' \<times> B'" hence "fst x \<in> A'" and "snd x \<in> B'" by auto
+  from `image f A = A'` and `fst x \<in> A'` have "fst x \<in> image f A" by auto
+  then obtain a where "a \<in> A" and "fst x = f a" by (rule imageE)
+  moreover from `image g B = B'` and `snd x \<in> B'`
+  obtain b where "b \<in> B" and "snd x = g b" by auto
+  ultimately have "(fst x, snd x) = map_pair f g (a,b)" by auto
+  moreover from `a \<in> A` and  `b \<in> B` have "(a , b) \<in> A \<times> B" by auto
+  ultimately have "\<exists>y \<in> A \<times> B. x = map_pair f g y" by auto
+  thus "x \<in> {x. \<exists>y \<in> A \<times> B. x = map_pair f g y}" by auto
+qed
 
 
 subsection {* Inductively defined sets *}
