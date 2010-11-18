@@ -31,9 +31,9 @@ by (rule admI, erule spec)
 
 subsection {* Admissibility on chain-finite types *}
 
-text {* for chain-finite (easy) types every formula is admissible *}
+text {* For chain-finite (easy) types every formula is admissible. *}
 
-lemma adm_chfin: "adm (P::'a::chfin \<Rightarrow> bool)"
+lemma adm_chfin [simp]: "adm (P::'a::chfin \<Rightarrow> bool)"
 by (rule admI, frule chfin, auto simp add: maxinch_is_thelub)
 
 subsection {* Admissibility of special formulae and propagation *}
