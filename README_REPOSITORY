@@ -1,32 +1,41 @@
 Important notes on Mercurial repository access for Isabelle
 ===========================================================
 
-Preamble
---------
+Introduction
+------------
 
-Mercurial http://www.selenic.com/mercurial belongs to a new generation
-of source code management systems, following the paradigm of
-"distributed version control".  Compared to the old centralized model
-of CVS or SVN, this gives considerable more power and freedom in
-organizing the flow of changes, both between individual developers and
-designated pull/push areas that are shared with others.
+Mercurial http://www.selenic.com/mercurial belongs to the current
+generation of source code management systems that follow the so-called
+paradigm of "distributed version control".  This is a terrific name
+for plain revision control without the legacy of CVS or SVN.  See also
+http://hginit.com/ for an introduction to the main ideas.  The
+Mercurial book http://hgbook.red-bean.com/ explains many more details.
 
-More power for the user also means more responsibility!  Due to its
-decentralized nature, changesets that have been published once,
-e.g. via "push" to a shared repository that is visible on the net,
-cannot be easily retracted from the public again.  Regular Mercurial
-operations are strictly monotonic, where changset transactions are
-only added, but never deleted.  There are special tools to manipulate
-individual repositories via non-monotonic actions, but this does not
-yet retrieve any changesets that have escaped into the public by
-accident.
+Mercurial offers great flexibility in organizing the flow of changes,
+both between individual developers and designated pull/push areas that
+are shared with others.  This additional power demands some additional
+responsibility to maintain a certain development process that fits to
+a particular project.
 
-Only global operations like "pull" and "push" fall into this critical
-category.  Note that "incoming" / "outgoing" allow to inspect
-changesets before exchanging them globally.  Anything else in
-Mercurial is local to the user's repository clone (including "commit",
-"update", "merge" etc.) and is in fact much simpler and safer to use
-than the corresponding operations of CVS or SVN.
+Regular Mercurial operations are strictly monotonic, where changeset
+transactions are only added, but never deleted.  There are special
+tools to manipulate repositories via non-monotonic actions (such as
+"rollback" or "strip"), but recovering from gross mistakes that have
+escaped into the public can be hard and embarrassing.  It is much
+easier to inspect and amend changesets routinely before pushing.
+
+The effect of the critical "pull" / "push" operations can be tested in
+a dry run via "incoming" / "outgoing".  The "fetch" extension includes
+useful sanity checks beyond raw "pull" / "update" / "merge".  Most
+other operations are local to the user's repository clone.  This gives
+some freedom for experimentation without affecting anybody else.
+
+Mercurial provides nice web presentation of incoming changes with a
+digest of log entries; this also includes RSS/Atom news feeds.  There
+are add-on browsers, notably hgtk that is part of the TortoiseHg
+distribution and works for generic Python/GTk platforms.  The
+alternative "view" utility helps to inspect the semantic content of
+merge nodes.
 
 
 Initial configuration
@@ -40,45 +49,37 @@ This will create a local directory "isabelle", unless an alternative
 name is specified.  The full repository meta-data and history of
 changes is in isabelle/.hg; local configuration for this clone can be
 added to isabelle/.hg/hgrc, but note that hgrc files are never copied
-by another clone operation!
+by another clone operation.
 
 
 There is also $HOME/.hgrc for per-user Mercurial configuration.  The
-initial configuration should include at least an entry to identify
-yourself.  For example, something like this in /home/wenzelm/.hgrc:
+initial configuration requires at least an entry to identify yourself
+as follows:
 
   [ui]
-  username = wenzelm
+  username = XXX
 
-Of course, the user identity can be also configured in
-isabelle/.hg/hgrc on per-repository basis.  Failing to specify the
-username correctly makes the system invent funny machine names that
-may persist indefinitely in the public flow of changesets.
+Isabelle contributors are free to choose either a short "login name"
+(for accounts at TU Munich) or a "full name" -- with or without mail
+address.  It is important to stick to this choice once and for all.
+The machine default that Mercurial produces for unspecified
+[ui]username is not appropriate.
 
-In principle, user names can be chosen freely, but for longterm
-committers of the Isabelle repository the obvious choice is to keep
-with the old CVS naming scheme.  Others should use their regular "full
-name"; including an email address is optional.
+Such configuration can be given in $HOME/.hgrc (for each home
+directory on each machine) or in .hg/hgrc (for each repository clone).
 
 
-There are other useful configuration to go into $HOME/.hgrc,
-e.g. defaults for common commands:
+Here are some further examples for hgrc.  This is how to provide
+default options for common commands:
 
   [defaults]
   log = -l 10
 
-The next example shows how to install some Mercurial extension:
+This is how to configure some extension, which is called "graphlog"
+and provides the "glog" command:
 
   [extensions]
   hgext.graphlog =
-
-Now the additional glog command will be available.
-
-
-See also the fine documentation for further details, especially the
-book http://hgbook.red-bean.com/
-
-There is also a nice tutorial at http://hginit.com/
 
 
 Shared pull/push access
@@ -86,24 +87,29 @@ Shared pull/push access
 
 The entry point http://isabelle.in.tum.de/repos/isabelle is world
 readable, both via plain web browsing and the hg client as described
-above.  Anybody can produce a clone, change it arbitrarily, and then
-use regular mechanisms of Mercurial to report changes upstream, say
-via e-mail to someone with write access to that file space.  It is
-also quite easy to publish changed clones again on the web, using the
-adhoc command "hg serve -v", or the hgweb.cgi or hgwebdir.cgi scripts
-that are included in the Mercurial distribution.
+above.  Anybody can produce a clone, change it locally, and then use
+regular mechanisms of Mercurial to report changes upstream, say via
+mail to someone with write access to that file space.  It is also
+quite easy to publish changed clones again on the web, using the
+ad-hoc command "hg serve -v", or the hgweb.cgi or hgwebdir.cgi scripts
+that are included in the Mercurial distribution, and send a "pull
+request" to someone else.  There are also public hosting services for
+Mercurial repositories.
 
 The downstream/upstream mode of operation is quite common in the
 distributed version control community, and works well for occasional
 changes produced by anybody out there.  Of course, upstream
 maintainers need to review and moderate changes being proposed, before
-pushing anything onto the official Isabelle repository at TUM.
+pushing anything onto the official Isabelle repository at TUM.  Direct
+pushes are also reviewed routinely in a post-hoc fashion; everybody
+hooked on the main repository is called to keep an eye on incoming
+changes.  In any case, changesets need to be understandable, at the
+time of writing and many years later.
 
-
-Write access to the Isabelle repository requires an account at TUM,
-with properly configured ssh access to the local machines
-(e.g. macbroy20, atbroy100).  You also need to be a member of the
-"isabelle" Unix group.
+Push access to the Isabelle repository requires an account at TUM,
+with properly configured ssh to the local machines (e.g. macbroy20,
+atbroy100).  You also need to be a member of the "isabelle" Unix
+group.
 
 Sharing a locally modified clone then works as follows, using your
 user name instead of "wenzelm":
@@ -117,8 +123,8 @@ with a lasting effect on the Isabelle repository, works like this:
   hg push ssh://wenzelm@atbroy100//home/isabelle-repository/repos/isabelle
 
 
-Default paths for push and pull can be configure in isabelle/.hg/hgrc,
-for example:
+Default paths for push and pull can be configured in
+isabelle/.hg/hgrc, for example:
 
   [paths]
   default = ssh://wenzelm@atbroy100//home/isabelle-repository/repos/isabelle
@@ -133,18 +139,17 @@ place, to get exactly to the same point:
   hg clone ssh://wenzelm@atbroy100//home/isabelle-repository/repos/isabelle
 
 
-Simplified merges
------------------
+Simple merges
+-------------
 
 The main idea of Mercurial is to let individual users produce
 independent branches of development first, but merge with others
 frequently.  The basic hg merge operation is more general than
 required for the mode of operation with a shared pull/push area.  The
-hg fetch extension accommodates this case nicely, automating trivial
+"fetch" extension accommodates this case nicely, automating trivial
 merges and requiring manual intervention for actual conflicts only.
 
-The fetch extension can be configured via the user's ~/.hgrc like
-this:
+The fetch extension can be configured via $HOME/.hgrc like this:
 
   [extensions]
   hgext.fetch =
@@ -152,68 +157,91 @@ this:
   [defaults]
   fetch = -m "merged"
 
-Note that the potential for merge conflicts can be greatly reduced by
-doing "hg fetch" before any starting local changes!
+To keep merges semantically trivial and prevent genuine merge
+conflicts or lost updates, it is essential to observe to following
+general discipline wrt. the public Isabelle push area:
+
+  * Before editing, pull or fetch the latest version.
+
+  * Accumulate private commits for a maximum of 1-3 days.
+
+  * Start publishing again by pull or fetch, which normally produces
+    local merges.
+
+  * Test the merged result as usual and push back in real time.
+
+Piling private changes and public merges longer than 0.5-2 hours is
+apt to produce some mess when pushing eventually!
 
 
 Content discipline
 ------------------
 
-Old-style centralized version control is occasionally compared to "a
-library where everybody scribbles into the books".  Or seen the other
-way round, the centralized model discourages individual
-experimentation (with local branches etc.), because everything is
-forced to happen on a shared file space.  With Mercurial, arbitrary
-variations on local clones are no problem, but care is required again
-when publishing changes eventually.
-
 The following principles should be kept in mind when producing
-changesets that might become public at some point.
+changesets that are meant to be published at some point.
 
-  * The author of changes should be properly identified, using
-    ui/username configuration as described above.
+  * The author of changes needs to be properly identified, using
+    [ui]username configuration as described above.
 
     While Mercurial also provides means for signed changesets, we want
     to keep things simple and trust that users specify their identity
-    correctly.
+    correctly (and uniquely).
 
   * The history of sources is an integral part of the sources
     themselves.  This means that private experiments and branches
-    should not be published, unless they are really meant to become
-    universally available.
+    should not be published by accident.  Named branches are not
+    allowed on the public version.  Note that old SVN-style branching
+    is replaced by regular repository clones in Mercurial.
 
-    Note that exchanging local experiments with some other users can
-    be done directly on peer-to-peer basis, without affecting the
-    central pull/push area.
+    Exchanging local experiments with some other users can be done
+    directly on peer-to-peer basis, without affecting the central
+    pull/push area.
 
   * Log messages are an integral part of the history of sources.
-    Other users will have to look there eventually, to understand why
-    things have been done in a certain way at some point.
+    Other people will have to inspect them routinely, to understand
+    why things have been done in a certain way at some point.
 
-    Mercurial provides nice web presentation of incoming changes with
-    a digest of log entries; this also includes RSS/Atom news feeds.
-    Users should be aware that others will actually read what is
-    written into log messages.  There are also add-on browsers,
-    notably hgtk that is part of the TortoiseHg distribution and works
-    for generic Python/GTk platforms.
+    Authors of log entries should be aware that published changes are
+    actually read.  The main point is not to announce novelties, but
+    to describe faithfully what has been done, and provide some clues
+    about the motivation behind it.  The main recipient is someone who
+    needs to understand the change in the distant future to isolate
+    problems.  Sometimes it is helpful to reference past changes via
+    changeset ids in the log entry.
 
-    The usual changelog presentation style for the Isabelle repository
-    admits log entries that consist of several lines, but without the
-    special headline that is used in Mercurial projects elsewhere.
-    Since some display styles strip newlines from text, it is
-    advisable to separate lines via punctuation, and not rely on
-    two-dimensional presentation too much.
+  * The standard changelog entry format of the Isabelle repository
+    admits several (vaguely related) items to be rolled into one
+    changeset.  Each item is then described on a separate line that
+    may become longer as screen line and is terminated by punctuation.
+    These lines are roughly ordered by importance.
+
+    This format conforms to established Isabelle tradition.  In
+    contrast, the default of Mercurial prefers a single headline
+    followed by a long body text.  The reason for that is a somewhat
+    different development model of typical "distributed" projects,
+    where external changes pass through a hierarchy of reviewers and
+    maintainers, until they end up in some authoritative repository.
+    Isabelle changesets can be more spontaneous, growing from the
+    bottom-up.
+
+    The web style of http://isabelle.in.tum.de/repos/isabelle/
+    accommodates the Isabelle changelog format.  Note that multiple
+    lines will sometimes display as a single paragraph in HTML, so
+    some terminating punctuation is required.  Do not squeeze multiple
+    items on the same line in the original text!
 
 
 Building a repository version of Isabelle
 -----------------------------------------
 
-Compared to a proper distribution or development snapshot, a
-repository version of Isabelle lacks textual version identifiers in
-some sources and scripts, and various components produced by
-Admin/build are missing.  After applying that script with suitable
-arguments, the regular user instructions for building and running
-Isabelle from sources apply.
+Compared to a proper distribution or development snapshot, it is
+relatively hard to build from the raw repository version.  Essential
+contributing components are missing and need to be reconstructed by
+running the Admin/build script by hand.  Afterwards the main Isabelle
+system and logic images can be compiled via the toplevel ./build
+script.  Note that the repository lacks some textual version
+identifiers in the sources and scripts; this implies some changed
+behavior when processing settings etc.
 
-Needless to say, the results from the build process must not be added
-to the repository!
+There is no guarantee that the NEWS file is up to date at an arbitrary
+point in history.
