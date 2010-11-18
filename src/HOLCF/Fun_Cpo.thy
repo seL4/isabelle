@@ -46,11 +46,6 @@ by (simp add: below_fun_def)
 
 subsection {* Full function space is chain complete *}
 
-text {* Function application is monotone. *}
-
-lemma monofun_app: "monofun (\<lambda>f. f x)"
-by (rule monofunI, simp add: below_fun_def)
-
 text {* Properties of chains of functions. *}
 
 lemma fun_chain_iff: "chain S \<longleftrightarrow> (\<forall>x. chain (\<lambda>i. S i x))"
@@ -157,6 +152,9 @@ apply (rule contI2)
 apply (erule cont2mono [THEN mono2mono_fun])
 apply (simp add: cont2contlubE thelub_fun ch2ch_cont)
 done
+
+lemma cont_fun: "cont (\<lambda>f. f x)"
+using cont_id by (rule cont2cont_fun)
 
 text {*
   Lambda abstraction preserves monotonicity and continuity.
