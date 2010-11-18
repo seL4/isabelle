@@ -160,18 +160,11 @@ lemma in_respects:
 
 subsection {* Function map and function relation *}
 
-definition
-  fun_map :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'c \<Rightarrow> 'd" (infixr "--->" 55)
-where
-  "fun_map f g = (\<lambda>h. g \<circ> h \<circ> f)"
+notation map_fun (infixr "--->" 55)
 
-lemma fun_map_apply [simp]:
-  "(f ---> g) h x = g (h (f x))"
-  by (simp add: fun_map_def)
-
-lemma fun_map_id:
+lemma map_fun_id:
   "(id ---> id) = id"
-  by (simp add: fun_eq_iff id_def)
+  by (simp add: fun_eq_iff)
 
 definition
   fun_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" (infixr "===>" 55)
@@ -520,13 +513,13 @@ lemma bex1_rsp:
 lemma all_prs:
   assumes a: "Quotient R absf repf"
   shows "Ball (Respects R) ((absf ---> id) f) = All f"
-  using a unfolding Quotient_def Ball_def in_respects id_apply comp_def fun_map_def
+  using a unfolding Quotient_def Ball_def in_respects id_apply comp_def map_fun_def
   by metis
 
 lemma ex_prs:
   assumes a: "Quotient R absf repf"
   shows "Bex (Respects R) ((absf ---> id) f) = Ex f"
-  using a unfolding Quotient_def Bex_def in_respects id_apply comp_def fun_map_def
+  using a unfolding Quotient_def Bex_def in_respects id_apply comp_def map_fun_def
   by metis
 
 subsection {* @{text Bex1_rel} quantifier *}
@@ -789,7 +782,7 @@ text {* Auxiliary data for the quotient package *}
 
 use "Tools/Quotient/quotient_info.ML"
 
-declare [[map "fun" = (fun_map, fun_rel)]]
+declare [[map "fun" = (map_fun, fun_rel)]]
 
 lemmas [quot_thm] = fun_quotient
 lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp mem_rsp id_rsp
@@ -800,7 +793,7 @@ lemmas [quot_equiv] = identity_equivp
 text {* Lemmas about simplifying id's. *}
 lemmas [id_simps] =
   id_def[symmetric]
-  fun_map_id
+  map_fun_id
   id_apply
   id_o
   o_id
@@ -880,7 +873,7 @@ attribute_setup quot_lifted =
 
 no_notation
   rel_conj (infixr "OOO" 75) and
-  fun_map (infixr "--->" 55) and
+  map_fun (infixr "--->" 55) and
   fun_rel (infixr "===>" 55)
 
 end
