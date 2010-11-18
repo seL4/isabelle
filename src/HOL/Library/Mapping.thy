@@ -41,6 +41,19 @@ definition delete :: "'a \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) m
   "delete k m = Mapping ((lookup m)(k := None))"
 
 
+subsection {* Functorial structure *}
+
+definition map :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('c, 'd) mapping" where
+  "map f g m = Mapping (Option.map g \<circ> lookup m \<circ> f)"
+
+lemma lookup_map [simp]:
+  "lookup (map f g m) = Option.map g \<circ> lookup m \<circ> f"
+  by (simp add: map_def)
+
+type_mapper map
+  by (auto intro!: mapping_eqI ext simp add: Option.map.compositionality Option.map.identity)
+
+
 subsection {* Derived operations *}
 
 definition keys :: "('a, 'b) mapping \<Rightarrow> 'a set" where
@@ -69,7 +82,7 @@ definition map_default :: "'a \<Rightarrow> 'b \<Rightarrow> ('b \<Rightarrow> '
   "map_default k v f m = map_entry k f (default k v m)" 
 
 definition tabulate :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping" where
-  "tabulate ks f = Mapping (map_of (map (\<lambda>k. (k, f k)) ks))"
+  "tabulate ks f = Mapping (map_of (List.map (\<lambda>k. (k, f k)) ks))"
 
 definition bulkload :: "'a list \<Rightarrow> (nat, 'a) mapping" where
   "bulkload xs = Mapping (\<lambda>k. if k < length xs then Some (xs ! k) else None)"
@@ -294,6 +307,6 @@ end
 
 
 hide_const (open) empty is_empty lookup update delete ordered_keys keys size
-  replace default map_entry map_default tabulate bulkload
+  replace default map_entry map_default tabulate bulkload map
 
 end
