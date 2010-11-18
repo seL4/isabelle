@@ -9,8 +9,6 @@ sig
   val find_atomic: theory -> typ -> (typ * (bool * bool)) list
   val construct_mapper: theory -> (string * bool -> term)
     -> bool -> typ -> typ -> term
-  val register: string -> string -> (sort * (bool * bool)) list -> thm -> thm
-    -> theory -> theory
   val type_mapper: term -> theory -> Proof.state
   type entry
   val entries: theory -> entry Symtab.table
@@ -115,7 +113,7 @@ fun make_concatenate_prop variances (tyco, mapper) =
     val lhs = mk_mapper T2 T1 (map Free args21) $
       (mk_mapper T3 T2 (map Free args32) $ x);
     val rhs = mk_mapper T3 T1 args31 $ x;
-  in (x, (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, rhs)) end;
+  in (map Free (args21 @ args32) @ [x], (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, rhs)) end;
 
 fun make_identity_prop variances (tyco, mapper) =
   let
@@ -132,26 +130,7 @@ fun make_identity_prop variances (tyco, mapper) =
   in (x, (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, x)) end;
 
 
-(* registering mappers *)
-
-fun register tyco mapper variances raw_concatenate raw_identity thy =
-  let
-    val concatenate_prop = uncurry Logic.all
-      (make_concatenate_prop variances (tyco, mapper));
-    val identity_prop = uncurry Logic.all
-      (make_identity_prop variances (tyco, mapper));
-    val concatenate = Goal.prove_global thy
-      (Term.add_free_names concatenate_prop []) [] concatenate_prop
-      (K (ALLGOALS (ProofContext.fact_tac [raw_concatenate])));
-    val identity = Goal.prove_global thy
-      (Term.add_free_names identity_prop []) [] identity_prop
-      (K (ALLGOALS (ProofContext.fact_tac [raw_identity])));
-  in
-    thy
-    |> Data.map (Symtab.update (tyco, { mapper = mapper,
-        variances = variances,
-        concatenate = concatenate, identity = identity }))
-  end;
+(* analyzing and registering mappers *)
 
 fun consume eq x [] = (false, [])
   | consume eq x (ys as z :: zs) = if eq (x, z) then (true, zs) else (false, ys);
@@ -207,7 +186,7 @@ fun gen_type_mapper prep_term raw_t thy =
        of [tyco] => tyco
         | _ => error ("Bad number of type constructors: " ^ Syntax.string_of_typ_global thy T);
     val variances = analyze_variances thy tyco T;
-    val concatenate_prop = uncurry Logic.all
+    val concatenate_prop = uncurry (fold_rev Logic.all)
       (make_concatenate_prop variances (tyco, mapper));
     val identity_prop = uncurry Logic.all
       (make_identity_prop variances (tyco, mapper));
