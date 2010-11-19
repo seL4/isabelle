@@ -166,7 +166,6 @@ val vampire_config : atp_config =
      [(Unprovable, "UNPROVABLE"),
       (IncompleteUnprovable, "CANNOT PROVE"),
       (TimedOut, "SZS status Timeout"),
-      (TimedOut, "Time limit reached"),
       (Unprovable, "Satisfiability detected"),
       (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option"),

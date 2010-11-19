@@ -131,7 +131,7 @@ const_maps
     SND       > snd
     CURRY     > curry
     UNCURRY   > split
-    "##"      > prod_fun
+    "##"      > map_pair
     pair_case > split;
 
 ignore_thms

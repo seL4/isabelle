@@ -173,6 +173,12 @@ proof (cases dxs)
 qed
 
 
+section {* Functorial structure *}
+
+type_mapper map
+  by (auto intro: dlist_eqI simp add: remdups_map_remdups comp_def)
+
+
 section {* Implementation of sets by distinct lists -- canonical! *}
 
 definition Set :: "'a dlist \<Rightarrow> 'a fset" where

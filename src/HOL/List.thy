@@ -214,11 +214,10 @@ definition
   sublist :: "'a list => nat set => 'a list" where
   "sublist xs A = map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
 
-primrec
-  splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "splice [] ys = ys"
-  | "splice (x # xs) ys = (if ys = [] then x # xs else x # hd ys # splice xs (tl ys))"
-    -- {*Warning: simpset does not contain the second eqn but a derived one. *}
+fun splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"splice [] ys = ys" |
+"splice xs [] = xs" |
+"splice (x#xs) (y#ys) = x # y # splice xs ys"
 
 text{*
 \begin{figure}[htbp]
@@ -881,6 +880,9 @@ by (induct rule:list_induct2, simp_all)
 lemma map_snd_zip[simp]:
   "length xs = length ys \<Longrightarrow> map snd (zip xs ys) = ys"
 by (induct rule:list_induct2, simp_all)
+
+type_mapper map
+  by simp_all
 
 
 subsubsection {* @{text rev} *}
@@ -3477,21 +3479,14 @@ qed
 
 subsubsection {* @{const splice} *}
 
-lemma splice_Nil2 [simp, code]:
- "splice xs [] = xs"
+lemma splice_Nil2 [simp, code]: "splice xs [] = xs"
 by (cases xs) simp_all
 
-lemma splice_Cons_Cons [simp, code]:
- "splice (x#xs) (y#ys) = x # y # splice xs ys"
-by simp
-
-declare splice.simps(2) [simp del, code del]
+declare splice.simps(1,3)[code]
+declare splice.simps(2)[simp del]
 
 lemma length_splice[simp]: "length(splice xs ys) = length xs + length ys"
-apply(induct xs arbitrary: ys) apply simp
-apply(case_tac ys)
- apply auto
-done
+by (induct xs ys rule: splice.induct) auto
 
 
 subsubsection {* Transpose *}
@@ -4308,7 +4303,7 @@ text{*These orderings preserve well-foundedness: shorter lists
 primrec -- {*The lexicographic ordering for lists of the specified length*}
   lexn :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a list \<times> 'a list) set" where
     "lexn r 0 = {}"
-  | "lexn r (Suc n) = (prod_fun (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
+  | "lexn r (Suc n) = (map_pair (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
       {(xs, ys). length xs = Suc n \<and> length ys = Suc n}"
 
 definition
@@ -4324,7 +4319,7 @@ lemma wf_lexn: "wf r ==> wf (lexn r n)"
 apply (induct n, simp, simp)
 apply(rule wf_subset)
  prefer 2 apply (rule Int_lower1)
-apply(rule wf_prod_fun_image)
+apply(rule wf_map_pair_image)
  prefer 2 apply (rule inj_onI, auto)
 done
 

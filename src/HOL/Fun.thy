@@ -117,6 +117,19 @@ code_const fcomp
 no_notation fcomp (infixl "\<circ>>" 60)
 
 
+subsection {* Mapping functions *}
+
+definition map_fun :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'c \<Rightarrow> 'd" where
+  "map_fun f g h = g \<circ> h \<circ> f"
+
+lemma map_fun_apply [simp]:
+  "map_fun f g h x = g (h (f x))"
+  by (simp add: map_fun_def)
+
+type_mapper map_fun
+  by (simp_all add: fun_eq_iff)
+
+
 subsection {* Injectivity, Surjectivity and Bijectivity *}
 
 definition inj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> bool" where -- "injective"

@@ -144,7 +144,7 @@ lemma lookup_map_entry [simp]:
 
 lemma lookup_map [simp]:
   "lookup (map f t) k = Option.map (f k) (lookup t k)"
-  by (simp add: map_def lookup_RBT lookup_map lookup_impl_of)
+  by (simp add: map_def lookup_RBT RBT_Impl.lookup_map lookup_impl_of)
 
 lemma fold_fold:
   "fold f t = More_List.fold (prod_case f) (entries t)"

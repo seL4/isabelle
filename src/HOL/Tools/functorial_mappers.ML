@@ -9,8 +9,6 @@ sig
   val find_atomic: theory -> typ -> (typ * (bool * bool)) list
   val construct_mapper: theory -> (string * bool -> term)
     -> bool -> typ -> typ -> term
-  val register: string -> string -> (sort * (bool * bool)) list -> thm -> thm
-    -> theory -> theory
   val type_mapper: term -> theory -> Proof.state
   type entry
   val entries: theory -> entry Symtab.table
@@ -19,17 +17,20 @@ end;
 structure Functorial_Mappers : FUNCTORIAL_MAPPERS =
 struct
 
+val compositionalityN = "compositionality";
+val identityN = "identity";
+
 (** functorial mappers and their properties **)
 
 (* bookkeeping *)
 
 type entry = { mapper: string, variances: (sort * (bool * bool)) list,
-  concatenate: thm, identity: thm };
+  compositionality: thm, identity: thm };
 
 structure Data = Theory_Data(
   type T = entry Symtab.table
   val empty = Symtab.empty
-  val merge = Symtab.merge (K true)
+  fun merge (xy : T * T) = Symtab.merge (K true) xy
   val extend = I
 );
 
@@ -73,7 +74,7 @@ fun construct_mapper thy atomic =
 
 (* mapper properties *)
 
-fun make_concatenate_prop variances (tyco, mapper) =
+fun make_compositionality_prop variances (tyco, mapper) =
   let
     fun invents n k nctxt =
       let
@@ -112,7 +113,7 @@ fun make_concatenate_prop variances (tyco, mapper) =
     val lhs = mk_mapper T2 T1 (map Free args21) $
       (mk_mapper T3 T2 (map Free args32) $ x);
     val rhs = mk_mapper T3 T1 args31 $ x;
-  in (x, (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, rhs)) end;
+  in (map Free (args21 @ args32) @ [x], (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, rhs)) end;
 
 fun make_identity_prop variances (tyco, mapper) =
   let
@@ -129,24 +130,10 @@ fun make_identity_prop variances (tyco, mapper) =
   in (x, (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, x)) end;
 
 
-(* registering mappers *)
+(* analyzing and registering mappers *)
 
-fun register tyco mapper variances raw_concatenate raw_identity thy =
-  let
-    val (_, concatenate_prop) = make_concatenate_prop variances (tyco, mapper);
-    val (_, identity_prop) = make_identity_prop variances (tyco, mapper);
-    val concatenate = Goal.prove_global thy
-      (Term.add_free_names concatenate_prop []) [] concatenate_prop
-      (K (ALLGOALS (ProofContext.fact_tac [raw_concatenate])));
-    val identity = Goal.prove_global thy
-      (Term.add_free_names identity_prop []) [] identity_prop
-      (K (ALLGOALS (ProofContext.fact_tac [raw_identity])));
-  in
-    thy
-    |> Data.map (Symtab.update (tyco, { mapper = mapper,
-        variances = variances,
-        concatenate = concatenate, identity = identity }))
-  end;
+fun consume eq x [] = (false, [])
+  | consume eq x (ys as z :: zs) = if eq (x, z) then (true, zs) else (false, ys);
 
 fun split_mapper_typ "fun" T =
       let
@@ -171,7 +158,19 @@ fun analyze_variances thy tyco T =
       handle TYPE _ => bad_typ ();
     val _ = if has_duplicates (eq_fst (op =)) (vs1 @ vs2)
       then bad_typ () else ();
-  in [] end;
+    fun check_variance_pair (var1 as (v1, sort1), var2 as (v2, sort2)) =
+      let
+        val coT = TFree var1 --> TFree var2;
+        val contraT = TFree var2 --> TFree var1;
+        val sort = Sign.inter_sort thy (sort1, sort2);
+      in
+        consume (op =) coT
+        ##>> consume (op =) contraT
+        #>> pair sort
+      end;
+    val (variances, left_variances) = fold_map check_variance_pair (vs1 ~~ vs2) Ts;
+    val _ = if null left_variances then () else bad_typ ();
+  in variances end;
 
 fun gen_type_mapper prep_term raw_t thy =
   let
@@ -187,17 +186,23 @@ fun gen_type_mapper prep_term raw_t thy =
        of [tyco] => tyco
         | _ => error ("Bad number of type constructors: " ^ Syntax.string_of_typ_global thy T);
     val variances = analyze_variances thy tyco T;
-    val (_, concatenate_prop) = make_concatenate_prop variances (tyco, mapper);
-    val (_, identity_prop) = make_identity_prop variances (tyco, mapper);
-    fun after_qed [[concatenate], [identity]] lthy =
+    val compositionality_prop = uncurry (fold_rev Logic.all)
+      (make_compositionality_prop variances (tyco, mapper));
+    val identity_prop = uncurry Logic.all
+      (make_identity_prop variances (tyco, mapper));
+    val qualify = Binding.qualify true (Long_Name.base_name mapper) o Binding.name;
+    fun after_qed [single_compositionality, single_identity] lthy =
       lthy
-      |> (Local_Theory.background_theory o Data.map)
-          (Symtab.update (tyco, { mapper = mapper, variances = variances,
-            concatenate = concatenate, identity = identity }));
+      |> Local_Theory.note ((qualify compositionalityN, []), single_compositionality)
+      ||>> Local_Theory.note ((qualify identityN, []), single_identity)
+      |-> (fn ((_, [compositionality]), (_, [identity])) =>
+          (Local_Theory.background_theory o Data.map)
+            (Symtab.update (tyco, { mapper = mapper, variances = variances,
+              compositionality = compositionality, identity = identity })));
   in
     thy
     |> Named_Target.theory_init
-    |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [concatenate_prop, identity_prop])
+    |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [compositionality_prop, identity_prop])
   end
 
 val type_mapper = gen_type_mapper Sign.cert_term;

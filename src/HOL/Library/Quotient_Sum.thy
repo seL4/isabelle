@@ -16,12 +16,6 @@ where
 | "sum_rel R1 R2 (Inr a2) (Inl b1) = False"
 | "sum_rel R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
 
-primrec
-  sum_map :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd"
-where
-  "sum_map f1 f2 (Inl a) = Inl (f1 a)"
-| "sum_map f1 f2 (Inr a) = Inr (f2 a)"
-
 declare [[map sum = (sum_map, sum_rel)]]
 
 

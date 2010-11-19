@@ -95,8 +95,8 @@ lemma OPTION_JOIN_DEF: "(OPTION_JOIN None = None) & (ALL x. OPTION_JOIN (Some x)
 lemma PAIR: "(fst x,snd x) = x"
   by simp
 
-lemma PAIR_MAP: "prod_fun f g p = (f (fst p),g (snd p))"
-  by (simp add: prod_fun_def split_def)
+lemma PAIR_MAP: "map_pair f g p = (f (fst p),g (snd p))"
+  by (simp add: map_pair_def split_def)
 
 lemma pair_case_def: "split = split"
   ..;

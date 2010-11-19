@@ -314,6 +314,8 @@ INCOMPATIBILITY.
   "solve_direct".
 
 * Sledgehammer:
+  - Added "smt" and "remote_smt" provers based on the "smt" proof method. See
+    the Sledgehammer manual for details ("isabelle doc sledgehammer").
   - Renamed lemmas:
     COMBI_def ~> Meson.COMBI_def
     COMBK_def ~> Meson.COMBK_def
