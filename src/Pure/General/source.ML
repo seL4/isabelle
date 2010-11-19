@@ -107,7 +107,7 @@ fun exhausted src = of_list (exhaust src);
 
 (* string source *)
 
-val of_string = of_list o explode;
+val of_string = of_list o raw_explode;
 
 fun of_string_limited limit str =
   make_source [] (Substring.full str) default_prompt
@@ -127,14 +127,14 @@ fun slurp_input instream =
         NONE => []
       | SOME 0 => []
       | SOME _ => TextIO.input instream :: slurp ());
-  in maps explode (slurp ()) end;
+  in maps raw_explode (slurp ()) end;
 
 fun tty in_stream = make_source [] () default_prompt (fn prompt => fn () =>
   let val input = slurp_input in_stream in
     if exists (fn c => c = "\n") input then (input, ())
     else
       (case (Output.prompt prompt; TextIO.inputLine in_stream) of
-        SOME line => (input @ explode line, ())
+        SOME line => (input @ raw_explode line, ())
       | NONE => (input, ()))
   end);
 

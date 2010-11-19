@@ -256,7 +256,7 @@ fun with_info f cx =
 
 fun parse_line _ _ (st as ((SOME _, _), _)) = st
   | parse_line scan line ((_, line_no), cx) =
-      let val st = ((line_no, cx), explode line)
+      let val st = ((line_no, cx), raw_explode line)
       in
         (case Scan.catch (Scan.finite' Symbol.stopper (Scan.option scan)) st of
           (SOME r, ((_, cx'), _)) => ((r, line_no+1), cx')
@@ -299,7 +299,7 @@ fun int_num st = (Scan.optional ($$ "-" >> K (fn i => ~i)) I :|--
   (fn sign => nat_num >> sign)) st
 
 val is_char = Symbol.is_ascii_letter orf Symbol.is_ascii_digit orf
-  member (op =) (explode "_+*-/%~=<>$&|?!.@^#")
+  member (op =) (raw_explode "_+*-/%~=<>$&|?!.@^#")
 fun name st = (Scan.lift (Scan.many1 is_char) >> implode) st
 
 fun sym st =

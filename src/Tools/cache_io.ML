@@ -81,7 +81,7 @@ fun load cache_path =
       File.shell_path cache_path)
 
     fun int_of_string s =
-      (case read_int (explode s) of
+      (case read_int (raw_explode s) of
         (i, []) => i
       | _ => err ())    
 

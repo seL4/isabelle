@@ -908,7 +908,7 @@ fun extract_instance new_kodkodi =
                                 raise SYNTAX ("Kodkod.extract_instance",
                                               "ill-formed Kodkodi output"))
                             (parse_instance new_kodkodi)))
-  o strip_blanks o explode
+  o strip_blanks o raw_explode
 
 val problem_marker = "*** PROBLEM "
 val outcome_marker = "---OUTCOME---\n"

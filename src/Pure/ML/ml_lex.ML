@@ -149,7 +149,7 @@ val keywords = ["#", "(", ")", ",", "->", "...", ":", ":>", ";", "=",
   "sharing", "sig", "signature", "struct", "structure", "then", "type",
   "val", "where", "while", "with", "withtype"];
 
-val lex = Scan.make_lexicon (map explode keywords);
+val lex = Scan.make_lexicon (map raw_explode keywords);
 fun scan_keyword x = Scan.literal lex x;
 
 
@@ -166,7 +166,7 @@ val scan_alphanumeric =
   Scan.one (Symbol.is_ascii_letter o Symbol_Pos.symbol) -- scan_letdigs >> op ::;
 
 val scan_symbolic =
-  Scan.many1 (member (op =) (explode "!#$%&*+-/:<=>?@\\^`|~") o Symbol_Pos.symbol);
+  Scan.many1 (member (op =) (raw_explode "!#$%&*+-/:<=>?@\\^`|~") o Symbol_Pos.symbol);
 
 in
 
@@ -211,7 +211,7 @@ end;
 local
 
 val scan_escape =
-  Scan.one (member (op =) (explode "\"\\abtnvfr") o Symbol_Pos.symbol) >> single ||
+  Scan.one (member (op =) (raw_explode "\"\\abtnvfr") o Symbol_Pos.symbol) >> single ||
   $$$ "^" @@@ (Scan.one (fn (s, _) => ord "@" <= ord s andalso ord s <= ord "_") >> single) ||
   Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) --
     Scan.one (Symbol.is_ascii_digit o Symbol_Pos.symbol) --

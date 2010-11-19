@@ -543,7 +543,7 @@ fun foldr f e s =
         F e (getItem s)
     end
 
-fun fromString s = of_list (explode s)
+fun fromString s = of_list (raw_explode s)
 
 end
 

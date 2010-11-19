@@ -501,8 +501,8 @@ fun mk_lambda (v as Free (x, T)) t = Abs (protect_boundvarname x, T, abstract_ov
 
 fun replacestr x y s =
 let
-  val xl = explode x
-  val yl = explode y
+  val xl = raw_explode x
+  val yl = raw_explode y
   fun isprefix [] ys = true
     | isprefix (x::xs) (y::ys) = if x = y then isprefix xs ys else false
     | isprefix _ _ = false
@@ -511,7 +511,7 @@ let
   fun r [] = []
     | r (S as (s::ss)) = if isp S then r (chg S) else s::(r ss)
 in
-  implode(r (explode s))
+  implode(r (raw_explode s))
 end
 
 fun protect_factname s = replacestr "." "_dot_" s

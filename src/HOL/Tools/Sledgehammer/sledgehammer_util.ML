@@ -51,7 +51,7 @@ fun parse_bool_option option name s =
          end
 
 val has_junk =
-  exists (fn s => not (Symbol.is_digit s) andalso s <> ".") o explode
+  exists (fn s => not (Symbol.is_digit s) andalso s <> ".") o raw_explode (* FIXME Symbol.explode (?) *)
 
 fun parse_time_option _ "none" = NONE
   | parse_time_option name s =
@@ -66,7 +66,7 @@ fun parse_time_option _ "none" = NONE
 fun string_from_time t =
   string_of_real (0.01 * Real.fromInt (Time.toMilliseconds t div 10)) ^ " s"
 
-val subscript = implode o map (prefix "\<^isub>") o explode
+val subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =
   n |> string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
 

@@ -82,7 +82,7 @@ val scan_ascii_symbol = Scan.one
   -- Scan.many (not o Symbol.is_ascii_blank o Symbol_Pos.symbol)
   >> (token AsciiSymbol o op ::);
 
-fun not_contains xs c = not (member (op =) (explode xs) (Symbol_Pos.symbol c));
+fun not_contains xs c = not (member (op =) (raw_explode xs) (Symbol_Pos.symbol c));
 val scan_comment =
   $$$ "#" |-- (Scan.many (not_contains "\n") @@@ ($$$ "\n"))
   >> token Comment;

@@ -73,9 +73,9 @@ fun is_current (Path []) = true
 
 val current = Path [];
 val root = Path [Root ""];
-fun named_root s = Path [root_elem (explode s)];
-fun basic s = Path [basic_elem (explode s)];
-fun variable s = Path [variable_elem (explode s)];
+fun named_root s = Path [root_elem (raw_explode s)];
+fun basic s = Path [basic_elem (raw_explode s)];
+fun variable s = Path [variable_elem (raw_explode s)];
 val parent = Path [Parent];
 
 fun is_absolute (Path xs) =
@@ -128,7 +128,7 @@ fun explode_elem ".." = Parent
   | explode_elem "~" = Variable "HOME"
   | explode_elem "~~" = Variable "ISABELLE_HOME"
   | explode_elem s =
-      (case explode s of
+      (case raw_explode s of
         "$" :: cs => variable_elem cs
       | cs => basic_elem cs);
 
@@ -143,7 +143,7 @@ fun explode_path str =
       (0, es) => ([], es)
     | (1, es) => ([Root ""], es)
     | (_, []) => ([Root ""], [])
-    | (_, e :: es) => ([root_elem (explode e)], es))
+    | (_, e :: es) => ([root_elem (raw_explode e)], es))
   in Path (norm (explode_elems raw_elems @ roots)) end;
 
 end;
@@ -161,7 +161,7 @@ fun ext "" = I
   | ext e = split_path (fn (prfx, s) => append prfx (basic (s ^ "." ^ e)));
 
 val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
-  (case take_suffix (fn c => c <> ".") (explode s) of
+  (case take_suffix (fn c => c <> ".") (raw_explode s) of
     ([], _) => (Path [Basic s], "")
   | (cs, e) => (Path [Basic (implode (take (length cs - 1) cs))], implode e)));
 

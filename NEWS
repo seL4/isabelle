@@ -490,6 +490,10 @@ are now named 'foo_case' instead of 'foo_when'. INCOMPATIBILITY.
 
 *** ML ***
 
+* Renamed raw "explode" function to "raw_explode" to emphasize its
+meaning.  Note that internally to Isabelle, Symbol.explode is used in
+almost all situations.
+
 * Discontinued obsolete function sys_error and exception SYS_ERROR.
 See implementation manual for further details on exceptions in
 Isabelle/ML.

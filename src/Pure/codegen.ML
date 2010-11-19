@@ -355,7 +355,7 @@ fun is_ascii_letdig x = Symbol.is_ascii_letter x orelse
   Symbol.is_ascii_digit x orelse Symbol.is_ascii_quasi x;
 
 fun dest_sym s =
-  (case split_last (snd (take_prefix (fn c => c = "\\") (explode s))) of
+  (case split_last (snd (take_prefix (fn c => c = "\\") (raw_explode s))) of
     ("<" :: "^" :: xs, ">") => (true, implode xs)
   | ("<" :: xs, ">") => (false, implode xs)
   | _ => raise Fail "dest_sym");
@@ -374,7 +374,7 @@ fun mk_id s = if s = "" then "" else
         | (ys, zs) => implode ys :: check_str zs);
     val s' = space_implode "_" (maps (check_str o Symbol.explode) (Long_Name.explode s))
   in
-    if Symbol.is_ascii_letter (hd (explode s')) then s' else "id_" ^ s'
+    if Symbol.is_ascii_letter (hd (raw_explode s')) then s' else "id_" ^ s'
   end;
 
 fun mk_long_id (p as (tab, used)) module s =
@@ -826,7 +826,7 @@ val generate_code =
 
 (**** Reflection ****)
 
-val strip_tname = implode o tl o explode;
+val strip_tname = implode o tl o raw_explode;
 
 fun pretty_list xs = Pretty.block (str "[" ::
   flat (separate [str ",", Pretty.brk 1] (map single xs)) @
@@ -962,7 +962,7 @@ fun parse_mixfix rd s =
 val _ = List.app Keyword.keyword ["attach", "file", "contains"];
 
 fun strip_whitespace s = implode (fst (take_suffix (fn c => c = "\n" orelse c = " ")
-  (snd (take_prefix (fn c => c = "\n" orelse c = " ") (explode s))))) ^ "\n";
+  (snd (take_prefix (fn c => c = "\n" orelse c = " ") (raw_explode s))))) ^ "\n";
 
 val parse_attach = Scan.repeat (Parse.$$$ "attach" |--
   Scan.optional (Parse.$$$ "(" |-- Parse.xname --| Parse.$$$ ")") "" --

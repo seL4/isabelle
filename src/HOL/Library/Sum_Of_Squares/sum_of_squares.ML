@@ -79,7 +79,7 @@ fun decimalize d x =
    val z = pow10(~ e) */ y +/ rat_1
    val k = int_of_rat (round_rat(pow10 d */ z))
   in (if x </ rat_0 then "-0." else "0.") ^
-     implode(tl(explode(string_of_int k))) ^
+     implode(tl(raw_explode(string_of_int k))) ^
      (if e = 0 then "" else "e"^string_of_int e)
   end
 end;
@@ -558,7 +558,7 @@ fun emptyin def xs = if null xs then (def,xs) else Scan.fail xs
     >> (fn (h, x) => h */ pow10 (int_of_rat x));
 
  fun mkparser p s =
-  let val (x,rst) = p (explode s)
+  let val (x,rst) = p (raw_explode s)
   in if null rst then x
      else error "mkparser: unparsed input"
   end;;

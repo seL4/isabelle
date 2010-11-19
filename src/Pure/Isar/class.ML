@@ -477,7 +477,7 @@ val sanitize_name = (*necessary as long as "dirty" type identifiers are permitte
         --| junk))
       ::: Scan.repeat ((Scan.many1 is_valid >> implode) --| junk));
   in
-    explode #> scan_valids #> implode
+    raw_explode #> scan_valids #> implode
   end;
 
 val type_name = sanitize_name o Long_Name.base_name;

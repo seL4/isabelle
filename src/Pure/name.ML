@@ -166,7 +166,7 @@ fun desymbolize upper "" = if upper then "X" else "x"
           if is_valid x then x :: xs
           else
             (case Symbol.decode x of
-              Symbol.Sym name => "_" :: explode name @ sep xs
+              Symbol.Sym name => "_" :: raw_explode name @ sep xs
             | _ => sep xs);
         fun upper_lower cs =
           if upper then nth_map 0 Symbol.to_ascii_upper cs

@@ -313,7 +313,7 @@ fun run_atp auto atp_name
         val digit = Scan.one Symbol.is_ascii_digit;
         val num3 = as_num (digit ::: digit ::: (digit >> single));
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
-        val as_time = Scan.read Symbol.stopper time o explode
+        val as_time = Scan.read Symbol.stopper time o raw_explode
       in (output, as_time t) end;
     fun run_on probfile =
       case filter (curry (op =) "" o getenv o fst) (exec :: required_execs) of

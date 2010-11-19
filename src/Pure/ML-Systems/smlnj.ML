@@ -30,9 +30,9 @@ val pointer_eq = InlineT.ptreql;
 
 (* restore old-style character / string functions *)
 
-val ord     = mk_int o SML90.ord;
-val chr     = SML90.chr o dest_int;
-val explode = SML90.explode;
+val ord = mk_int o SML90.ord;
+val chr = SML90.chr o dest_int;
+val raw_explode = SML90.explode;
 val implode = SML90.implode;
 
 

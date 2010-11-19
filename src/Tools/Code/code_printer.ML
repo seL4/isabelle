@@ -173,8 +173,8 @@ fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
  of SOME name' => name'
   | NONE => error ("Invalid name in context: " ^ quote name);
 
-val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
-val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
+val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o raw_explode;
+val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o raw_explode;
 
 fun aux_params vars lhss =
   let

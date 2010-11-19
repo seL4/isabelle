@@ -116,7 +116,7 @@ fun boogie_vc (vc_name, vc_opts) thy =
 end
 
 fun write_list head =
-  map Pretty.str o sort (dict_ord string_ord o pairself explode) #>
+  map Pretty.str o sort (dict_ord string_ord o pairself raw_explode) #>
   Pretty.writeln o Pretty.big_list head
 
 fun parens s = "(" ^ s ^ ")"

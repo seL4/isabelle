@@ -265,7 +265,7 @@ fun !!! msg = Symbol_Pos.!!! ("Outer lexical error: " ^ msg);
 
 (* scan symbolic idents *)
 
-val is_sym_char = member (op =) (explode "!#$%&*+-/<=>?@^_|~");
+val is_sym_char = member (op =) (raw_explode "!#$%&*+-/<=>?@^_|~");
 
 val scan_symid =
   Scan.many1 (is_sym_char o Symbol_Pos.symbol) ||

@@ -20,10 +20,10 @@ be violated - in contrast list locations are correct by
 construction/definition. *)
 (*
 fun dest_fake_bound_name n = 
-    case (explode n) of 
+    case (raw_explode n) of   (* FIXME Symbol.explode (?) *)
       (":" :: realchars) => implode realchars
     | _ => n; *)
-fun is_fake_bound_name n = (hd (explode n) = ":");
+fun is_fake_bound_name n = (hd (raw_explode n) = ":");  (* FIXME Symbol.explode (?) *)
 fun mk_fake_bound_name n = ":b_" ^ n;
 
 
@@ -31,20 +31,20 @@ fun mk_fake_bound_name n = ":b_" ^ n;
 (* fake free variable names for local meta variables - these work
 as placeholders. *)
 fun dest_fake_fix_name n = 
-    case (explode n) of 
+    case (raw_explode n) of  (* FIXME Symbol.explode (?) *)
       ("@" :: realchars) => implode realchars
     | _ => n;
-fun is_fake_fix_name n = (hd (explode n) = "@");
+fun is_fake_fix_name n = (hd (raw_explode n) = "@");  (* FIXME Symbol.explode (?) *)
 fun mk_fake_fix_name n = "@" ^ n;
 
 
 
 (* fake free variable names for meta level bound variables *)
 fun dest_fake_all_name n = 
-    case (explode n) of 
+    case (raw_explode n) of   (* FIXME Symbol.explode (?) *)
       ("+" :: realchars) => implode realchars
     | _ => n;
-fun is_fake_all_name n = (hd (explode n) = "+");
+fun is_fake_all_name n = (hd (raw_explode n) = "+");  (* FIXME Symbol.explode (?) *)
 fun mk_fake_all_name n = "+" ^ n;
 
 

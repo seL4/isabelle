@@ -158,7 +158,7 @@ in
 val parse_comments =
   blanks -- Scan.repeat (parse_comment -- blanks >> K ()) >> K ();
 
-val parse_string = Scan.read Symbol.stopper parse_chars o explode;
+val parse_string = Scan.read Symbol.stopper parse_chars o raw_explode;
 
 fun parse_content xs =
   (parse_optional_text @@@
@@ -184,7 +184,7 @@ val parse_document =
 
 fun parse s =
   (case Scan.finite Symbol.stopper (Scan.error (!! (err "Malformed element")
-      (blanks |-- parse_document --| blanks))) (explode s) of
+      (blanks |-- parse_document --| blanks))) (raw_explode s) of
     (x, []) => x
   | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^ Symbol.beginning 100 ys));
 

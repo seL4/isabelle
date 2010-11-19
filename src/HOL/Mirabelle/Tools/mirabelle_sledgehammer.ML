@@ -444,7 +444,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
     val (prover_name, _) = get_prover ctxt args
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
-      |> Option.map (fst o read_int o explode)
+      |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
       |> the_default 5
     val params = Sledgehammer_Isar.default_params ctxt
       [("verbose", "true"),

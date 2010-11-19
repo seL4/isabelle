@@ -723,7 +723,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       | reindex (DtRec i) = DtRec (the (AList.lookup op = ty_idxs i))
       | reindex dt = dt;
 
-    fun strip_suffix i s = implode (List.take (explode s, size s - i));
+    fun strip_suffix i s = implode (List.take (raw_explode s, size s - i));  (* FIXME Symbol.explode (?) *)
 
     (** strips the "_Rep" in type names *)
     fun strip_nth_name i s =

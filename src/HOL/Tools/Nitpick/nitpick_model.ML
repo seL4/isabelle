@@ -120,7 +120,7 @@ fun nth_atom_number pool T j =
   | NONE => (Unsynchronized.change pool (cons (T, [j])); 1)
 fun atom_suffix s =
   nat_subscript
-  #> (s <> "" andalso Symbol.is_ascii_digit (List.last (explode s)))
+  #> (s <> "" andalso Symbol.is_ascii_digit (List.last (raw_explode s)))  (* FIXME Symbol.explode (?) *)
      ? prefix "\<^isub>,"
 fun nth_atom_name thy atomss pool prefix T j =
   let

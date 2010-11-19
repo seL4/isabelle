@@ -81,7 +81,7 @@ val parse_clause_formula_relation =
 val extract_clause_formula_relation =
   Substring.full #> Substring.position set_ClauseFormulaRelationN
   #> snd #> Substring.position "." #> fst #> Substring.string
-  #> explode #> filter_out Symbol.is_blank #> parse_clause_formula_relation
+  #> raw_explode #> filter_out Symbol.is_blank #> parse_clause_formula_relation
   #> fst
 
 fun repair_conjecture_shape_and_fact_names output conjecture_shape fact_names =

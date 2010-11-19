@@ -188,7 +188,7 @@ fun encode_raw "" = ""
           | enc ([], d :: ds) = raw2 d :: encode ds
           | enc (cs, d :: ds) = raw1 cs :: raw2 d :: encode ds;
       in
-        if exists_string (not o raw_chr) str then implode (encode (explode str))
+        if exists_string (not o raw_chr) str then implode (encode (raw_explode str))
         else raw0 str
       end;
 
@@ -215,7 +215,7 @@ fun is_raw s =
 fun decode_raw s =
   if not (is_raw s) then error (malformed_msg s)
   else if String.isPrefix "\\<^raw:" s then String.substring (s, 7, size s - 8)
-  else chr (#1 (Library.read_int (explode (String.substring (s, 6, size s - 7)))));
+  else chr (#1 (Library.read_int (raw_explode (String.substring (s, 6, size s - 7)))));
 
 
 (* symbol variants *)
@@ -470,7 +470,7 @@ fun no_explode [] = true
 in
 
 fun sym_explode str =
-  let val chs = explode str in
+  let val chs = raw_explode str in
     if no_explode chs then chs
     else Source.exhaust (source (Source.of_list chs))
   end;

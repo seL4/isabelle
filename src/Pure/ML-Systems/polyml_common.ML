@@ -29,6 +29,7 @@ val _ = PolyML.Compiler.forgetValue "valOf";
 val _ = PolyML.Compiler.forgetValue "foldl";
 val _ = PolyML.Compiler.forgetValue "foldr";
 val _ = PolyML.Compiler.forgetValue "print";
+val _ = PolyML.Compiler.forgetValue "explode";
 
 
 (* Compiler options *)
@@ -48,7 +49,7 @@ fun quit () = exit 0;
 
 val ord = SML90.ord;
 val chr = SML90.chr;
-val explode = SML90.explode;
+val raw_explode = SML90.explode;
 val implode = SML90.implode;
 
 

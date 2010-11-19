@@ -2955,7 +2955,7 @@ fun stlc_printer ctxt model T intr assignment =
     (* string -> string *)
     fun strip_leading_quote s =
       (implode o (fn [] => [] | x::xs => if x="'" then xs else x::xs)
-        o explode) s
+        o raw_explode) s  (* FIXME Symbol.explode (?) *)
     (* Term.typ -> string *)
     fun string_of_typ (Type (s, _)) = s
       | string_of_typ (TFree (x, _)) = strip_leading_quote x

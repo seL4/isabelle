@@ -38,7 +38,7 @@ val int_num = spaced (Scan.optional ($$ "-" >> K (fn i => ~i)) I :|--
   (fn sign => nat_num >> sign))
 
 val is_char = Symbol.is_ascii_letter orf Symbol.is_ascii_digit orf
-  member (op =) (explode "_+*-/%~=<>$&|?!.@^#")
+  member (op =) (raw_explode "_+*-/%~=<>$&|?!.@^#")
 val name = spaced (Scan.many1 is_char >> implode)
 
 fun $$$ s = spaced (Scan.this_string s)
@@ -68,7 +68,7 @@ val cex = space |--
   Scan.repeat (name --| $$$ "->" -- (func || expr >> (single o pair [])))
 
 fun read_cex ls =
-  maps (cons "\n" o explode) ls
+  maps (cons "\n" o raw_explode) ls
   |> try (fst o Scan.finite Symbol.stopper cex)
   |> the_default []
 

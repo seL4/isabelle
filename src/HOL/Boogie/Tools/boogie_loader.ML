@@ -344,7 +344,7 @@ fun finite scan path =
     | (_, ts') => error (scan_err "unparsed input" ts'))
   end
 
-fun read_int' s = (case read_int (explode s) of (i, []) => SOME i | _ => NONE)
+fun read_int' s = (case read_int (raw_explode s) of (i, []) => SOME i | _ => NONE)
 
 fun $$$ s = Scan.one (fn (_, Token s') => s = s' | _ => false)
 fun str st = Scan.some (fn (_, Token s) => SOME s | _ => NONE) st

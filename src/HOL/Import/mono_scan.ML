@@ -233,6 +233,6 @@ val scan_nat = repeat1 (one Symbol.is_digit) >> nat_of_list
 fun this [] = (fn toks => ([], toks))
   | this (xs' as (x::xs)) = one (fn y => x=y) -- this xs >> K xs'
 
-fun this_string s = this (explode s) >> K s
+fun this_string s = this (raw_explode s) >> K s
 
 end

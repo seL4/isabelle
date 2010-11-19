@@ -321,7 +321,7 @@ val parse_proof =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
                             (Scan.repeat1 parse_line)))
-  o explode o strip_spaces_except_between_ident_chars
+  o raw_explode o strip_spaces_except_between_ident_chars
 
 fun clean_up_dependency seen dep = find_first (curry is_same_step dep) seen
 fun clean_up_dependencies _ [] = []

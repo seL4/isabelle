@@ -389,7 +389,7 @@ text {*
 ML {*
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       @{code Fun} (dBtype_of_typ T, dBtype_of_typ U)
-  | dBtype_of_typ (TFree (s, _)) = (case explode s of
+  | dBtype_of_typ (TFree (s, _)) = (case raw_explode s of
         ["'", a] => @{code Atom} (@{code nat} (ord a - 97))
       | _ => error "dBtype_of_typ: variable name")
   | dBtype_of_typ _ = error "dBtype_of_typ: bad type";
@@ -458,7 +458,7 @@ fun int_of_nat Norm.zero = 0
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       Norm.Fun (dBtype_of_typ T, dBtype_of_typ U)
-  | dBtype_of_typ (TFree (s, _)) = (case explode s of
+  | dBtype_of_typ (TFree (s, _)) = (case raw_explode s of
         ["'", a] => Norm.Atom (nat_of_int (ord a - 97))
       | _ => error "dBtype_of_typ: variable name")
   | dBtype_of_typ _ = error "dBtype_of_typ: bad type";

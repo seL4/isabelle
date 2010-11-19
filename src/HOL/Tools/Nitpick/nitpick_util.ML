@@ -240,7 +240,7 @@ val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
 val string_from_time = Sledgehammer_Util.string_from_time
 
-val i_subscript = implode o map (prefix "\<^isub>") o explode
+val i_subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol.explode (?) *)
 fun be_subscript s = "\<^bsub>" ^ s ^ "\<^esub>"
 fun nat_subscript n =
   let val s = signed_string_of_int n in
