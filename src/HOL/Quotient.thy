@@ -167,7 +167,7 @@ lemma map_fun_id:
   by (simp add: fun_eq_iff)
 
 definition
-  fun_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" (infixr "===>" 55)
+  fun_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool" (infixr "===>" 55)
 where
   "fun_rel E1 E2 = (\<lambda>f g. \<forall>x y. E1 x y \<longrightarrow> E2 (f x) (g y))"
 
