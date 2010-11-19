@@ -30,7 +30,7 @@ type entry = { mapper: string, variances: (sort * (bool * bool)) list,
 structure Data = Theory_Data(
   type T = entry Symtab.table
   val empty = Symtab.empty
-  val merge = Symtab.merge (K true)
+  fun merge (xy : T * T) = Symtab.merge (K true) xy
   val extend = I
 );
 
