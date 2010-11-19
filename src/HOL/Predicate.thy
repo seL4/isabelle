@@ -377,14 +377,17 @@ lemma Pred_eval [simp]:
   "Pred (eval x) = x"
   by (cases x) simp
 
-lemma eval_inject: "eval x = eval y \<longleftrightarrow> x = y"
-  by (cases x) auto
+lemma pred_eqI:
+  "(\<And>w. eval P w \<longleftrightarrow> eval Q w) \<Longrightarrow> P = Q"
+  by (cases P, cases Q) (auto simp add: fun_eq_iff)
 
-definition single :: "'a \<Rightarrow> 'a pred" where
-  "single x = Pred ((op =) x)"
+lemma eval_mem [simp]:
+  "x \<in> eval P \<longleftrightarrow> eval P x"
+  by (simp add: mem_def)
 
-definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<guillemotright>=" 70) where
-  "P \<guillemotright>= f = Pred (\<lambda>x. (\<exists>y. eval P y \<and> eval (f y) x))"
+lemma eq_mem [simp]:
+  "x \<in> (op =) y \<longleftrightarrow> x = y"
+  by (auto simp add: mem_def)
 
 instantiation pred :: (type) "{complete_lattice, boolean_algebra}"
 begin
@@ -398,97 +401,146 @@ definition
 definition
   "\<bottom> = Pred \<bottom>"
 
+lemma eval_bot [simp]:
+  "eval \<bottom>  = \<bottom>"
+  by (simp add: bot_pred_def)
+
 definition
   "\<top> = Pred \<top>"
+
+lemma eval_top [simp]:
+  "eval \<top>  = \<top>"
+  by (simp add: top_pred_def)
 
 definition
   "P \<sqinter> Q = Pred (eval P \<sqinter> eval Q)"
 
+lemma eval_inf [simp]:
+  "eval (P \<sqinter> Q) = eval P \<sqinter> eval Q"
+  by (simp add: inf_pred_def)
+
 definition
   "P \<squnion> Q = Pred (eval P \<squnion> eval Q)"
+
+lemma eval_sup [simp]:
+  "eval (P \<squnion> Q) = eval P \<squnion> eval Q"
+  by (simp add: sup_pred_def)
 
 definition
   "\<Sqinter>A = Pred (INFI A eval)"
 
+lemma eval_Inf [simp]:
+  "eval (\<Sqinter>A) = INFI A eval"
+  by (simp add: Inf_pred_def)
+
 definition
   "\<Squnion>A = Pred (SUPR A eval)"
+
+lemma eval_Sup [simp]:
+  "eval (\<Squnion>A) = SUPR A eval"
+  by (simp add: Sup_pred_def)
 
 definition
   "- P = Pred (- eval P)"
 
+lemma eval_compl [simp]:
+  "eval (- P) = - eval P"
+  by (simp add: uminus_pred_def)
+
 definition
   "P - Q = Pred (eval P - eval Q)"
 
+lemma eval_minus [simp]:
+  "eval (P - Q) = eval P - eval Q"
+  by (simp add: minus_pred_def)
+
 instance proof
-qed (auto simp add: less_eq_pred_def less_pred_def
-    inf_pred_def sup_pred_def bot_pred_def top_pred_def
-    Inf_pred_def Sup_pred_def uminus_pred_def minus_pred_def fun_Compl_def bool_Compl_def,
-    auto simp add: le_fun_def less_fun_def le_bool_def less_bool_def
-    eval_inject mem_def)
+qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def
+  fun_Compl_def fun_diff_def bool_Compl_def bool_diff_def)
 
 end
 
+lemma eval_INFI [simp]:
+  "eval (INFI A f) = INFI A (eval \<circ> f)"
+  by (unfold INFI_def) simp
+
+lemma eval_SUPR [simp]:
+  "eval (SUPR A f) = SUPR A (eval \<circ> f)"
+  by (unfold SUPR_def) simp
+
+definition single :: "'a \<Rightarrow> 'a pred" where
+  "single x = Pred ((op =) x)"
+
+lemma eval_single [simp]:
+  "eval (single x) = (op =) x"
+  by (simp add: single_def)
+
+definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<guillemotright>=" 70) where
+  "P \<guillemotright>= f = (SUPR (Predicate.eval P) f)"
+
+lemma eval_bind [simp]:
+  "eval (P \<guillemotright>= f) = Predicate.eval (SUPR (Predicate.eval P) f)"
+  by (simp add: bind_def)
+
 lemma bind_bind:
   "(P \<guillemotright>= Q) \<guillemotright>= R = P \<guillemotright>= (\<lambda>x. Q x \<guillemotright>= R)"
-  by (auto simp add: bind_def fun_eq_iff)
+  by (rule pred_eqI) simp
 
 lemma bind_single:
   "P \<guillemotright>= single = P"
-  by (simp add: bind_def single_def)
+  by (rule pred_eqI) auto
 
 lemma single_bind:
   "single x \<guillemotright>= P = P x"
-  by (simp add: bind_def single_def)
+  by (rule pred_eqI) auto
 
 lemma bottom_bind:
   "\<bottom> \<guillemotright>= P = \<bottom>"
-  by (auto simp add: bot_pred_def bind_def fun_eq_iff)
+  by (rule pred_eqI) simp
 
 lemma sup_bind:
   "(P \<squnion> Q) \<guillemotright>= R = P \<guillemotright>= R \<squnion> Q \<guillemotright>= R"
-  by (auto simp add: bind_def sup_pred_def fun_eq_iff)
+  by (rule pred_eqI) simp
 
-lemma Sup_bind: "(\<Squnion>A \<guillemotright>= f) = \<Squnion>((\<lambda>x. x \<guillemotright>= f) ` A)"
-  by (auto simp add: bind_def Sup_pred_def SUP1_iff fun_eq_iff)
+lemma Sup_bind:
+  "(\<Squnion>A \<guillemotright>= f) = \<Squnion>((\<lambda>x. x \<guillemotright>= f) ` A)"
+  by (rule pred_eqI) simp
 
 lemma pred_iffI:
   assumes "\<And>x. eval A x \<Longrightarrow> eval B x"
   and "\<And>x. eval B x \<Longrightarrow> eval A x"
   shows "A = B"
-proof -
-  from assms have "\<And>x. eval A x \<longleftrightarrow> eval B x" by blast
-  then show ?thesis by (cases A, cases B) (simp add: fun_eq_iff)
-qed
+  using assms by (auto intro: pred_eqI)
   
 lemma singleI: "eval (single x) x"
-  unfolding single_def by simp
+  by simp
 
 lemma singleI_unit: "eval (single ()) x"
-  by simp (rule singleI)
+  by simp
 
 lemma singleE: "eval (single x) y \<Longrightarrow> (y = x \<Longrightarrow> P) \<Longrightarrow> P"
-  unfolding single_def by simp
+  by simp
 
 lemma singleE': "eval (single x) y \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> P"
-  by (erule singleE) simp
+  by simp
 
 lemma bindI: "eval P x \<Longrightarrow> eval (Q x) y \<Longrightarrow> eval (P \<guillemotright>= Q) y"
-  unfolding bind_def by auto
+  by auto
 
 lemma bindE: "eval (R \<guillemotright>= Q) y \<Longrightarrow> (\<And>x. eval R x \<Longrightarrow> eval (Q x) y \<Longrightarrow> P) \<Longrightarrow> P"
-  unfolding bind_def by auto
+  by auto
 
 lemma botE: "eval \<bottom> x \<Longrightarrow> P"
-  unfolding bot_pred_def by auto
+  by auto
 
 lemma supI1: "eval A x \<Longrightarrow> eval (A \<squnion> B) x"
-  unfolding sup_pred_def by (simp add: sup_fun_eq sup_bool_eq)
+  by auto
 
 lemma supI2: "eval B x \<Longrightarrow> eval (A \<squnion> B) x" 
-  unfolding sup_pred_def by (simp add: sup_fun_eq sup_bool_eq)
+  by auto
 
 lemma supE: "eval (A \<squnion> B) x \<Longrightarrow> (eval A x \<Longrightarrow> P) \<Longrightarrow> (eval B x \<Longrightarrow> P) \<Longrightarrow> P"
-  unfolding sup_pred_def by auto
+  by auto
 
 lemma single_not_bot [simp]:
   "single x \<noteq> \<bottom>"
@@ -497,8 +549,8 @@ lemma single_not_bot [simp]:
 lemma not_bot:
   assumes "A \<noteq> \<bottom>"
   obtains x where "eval A x"
-using assms by (cases A)
-  (auto simp add: bot_pred_def, auto simp add: mem_def)
+  using assms by (cases A)
+    (auto simp add: bot_pred_def, auto simp add: mem_def)
   
 
 subsubsection {* Emptiness check and definite choice *}
@@ -518,7 +570,7 @@ lemma is_empty_sup:
   "is_empty (A \<squnion> B) \<longleftrightarrow> is_empty A \<and> is_empty B"
   by (auto simp add: is_empty_def)
 
-definition singleton :: "(unit => 'a) \<Rightarrow> 'a pred \<Rightarrow> 'a" where
+definition singleton :: "(unit \<Rightarrow> 'a) \<Rightarrow> 'a pred \<Rightarrow> 'a" where
   "singleton dfault A = (if \<exists>!x. eval A x then THE x. eval A x else dfault ())"
 
 lemma singleton_eqI:
@@ -544,7 +596,9 @@ proof -
     by (rule singleton_eqI)
   ultimately have "eval (single (singleton dfault A)) = eval A"
     by (simp (no_asm_use) add: single_def fun_eq_iff) blast
-  then show ?thesis by (simp add: eval_inject)
+  then have "\<And>x. eval (single (singleton dfault A)) x = eval A x"
+    by simp
+  then show ?thesis by (rule pred_eqI)
 qed
 
 lemma singleton_undefinedI:
