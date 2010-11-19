@@ -20,7 +20,6 @@ sig
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
   val master_directory: theory -> Path.T
-  val require: Path.T -> theory -> theory
   val provide: Path.T * (Path.T * File.ident) -> theory -> theory
   val check_file: Path.T list -> Path.T -> Path.T * File.ident
   val check_thy: Path.T -> string -> Path.T * File.ident
