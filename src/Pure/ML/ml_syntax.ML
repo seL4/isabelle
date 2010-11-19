@@ -104,7 +104,7 @@ fun pretty_string raw_str =
     val str =
       implode (map (fn XML.Elem _ => "<markup>" | XML.Text s => s) (YXML.parse_body raw_str))
         handle Fail _ => raw_str;
-    val syms = Symbol.explode str handle ERROR _ => explode str;
+    val syms = Symbol.explode str;
   in Pretty.str (quote (implode (map print_char syms))) end;
 
 end;
