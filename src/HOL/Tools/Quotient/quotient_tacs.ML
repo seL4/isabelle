@@ -383,7 +383,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
     => resolve_tac (rsp_rules_get ctxt) THEN_ALL_NEW quotient_tac ctxt
 
     (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)
-    (* observe fun_map *)
+    (* observe map_fun *)
 | _ $ _ $ _
     => (rtac @{thm quot_rel_rsp} THEN_ALL_NEW quotient_tac ctxt)
        ORELSE' rep_abs_rsp_tac ctxt
@@ -428,23 +428,23 @@ fun all_injection_tac ctxt =
 
 (*** Cleaning of the Theorem ***)
 
-(* expands all fun_maps, except in front of the (bound) variables listed in xs *)
-fun fun_map_simple_conv xs ctrm =
+(* expands all map_funs, except in front of the (bound) variables listed in xs *)
+fun map_fun_simple_conv xs ctrm =
   case (term_of ctrm) of
-    ((Const (@{const_name "fun_map"}, _) $ _ $ _) $ h $ _) =>
+    ((Const (@{const_name "map_fun"}, _) $ _ $ _) $ h $ _) =>
         if member (op=) xs h
         then Conv.all_conv ctrm
-        else Conv.rewr_conv @{thm fun_map_apply [THEN eq_reflection]} ctrm
+        else Conv.rewr_conv @{thm map_fun_apply [THEN eq_reflection]} ctrm
   | _ => Conv.all_conv ctrm
 
-fun fun_map_conv xs ctxt ctrm =
+fun map_fun_conv xs ctxt ctrm =
   case (term_of ctrm) of
-      _ $ _ => (Conv.comb_conv (fun_map_conv xs ctxt) then_conv
-                fun_map_simple_conv xs) ctrm
-    | Abs _ => Conv.abs_conv (fn (x, ctxt) => fun_map_conv ((term_of x)::xs) ctxt) ctxt ctrm
+      _ $ _ => (Conv.comb_conv (map_fun_conv xs ctxt) then_conv
+                map_fun_simple_conv xs) ctrm
+    | Abs _ => Conv.abs_conv (fn (x, ctxt) => map_fun_conv ((term_of x)::xs) ctxt) ctxt ctrm
     | _ => Conv.all_conv ctrm
 
-fun fun_map_tac ctxt = CONVERSION (fun_map_conv [] ctxt)
+fun map_fun_tac ctxt = CONVERSION (map_fun_conv [] ctxt)
 
 (* custom matching functions *)
 fun mk_abs u i t =
@@ -480,7 +480,7 @@ end
 *)
 fun lambda_prs_simple_conv ctxt ctrm =
   case (term_of ctrm) of
-    (Const (@{const_name fun_map}, _) $ r1 $ a2) $ (Abs _) =>
+    (Const (@{const_name map_fun}, _) $ r1 $ a2) $ (Abs _) =>
       let
         val thy = ProofContext.theory_of ctxt
         val (ty_b, ty_a) = dest_fun_type (fastype_of r1)
@@ -534,7 +534,7 @@ let
 
   val ss = (mk_minimal_ss lthy) addsimps thms addSolver quotient_solver
 in
-  EVERY' [fun_map_tac lthy,
+  EVERY' [map_fun_tac lthy,
           lambda_prs_tac lthy,
           simp_tac ss,
           TRY o rtac refl]

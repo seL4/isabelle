@@ -81,6 +81,16 @@ lemma option_map_o_sum_case [simp]:
     "map f o sum_case g h = sum_case (map f o g) (map f o h)"
   by (rule ext) (simp split: sum.split)
 
+type_mapper Option.map proof -
+  fix f g x
+  show "Option.map f (Option.map g x) = Option.map (\<lambda>x. f (g x)) x"
+    by (cases x) simp_all
+next
+  fix x
+  show "Option.map (\<lambda>x. x) x = x"
+    by (cases x) simp_all
+qed
+
 primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option" where
 bind_lzero: "bind None f = None" |
 bind_lunit: "bind (Some x) f = f x"

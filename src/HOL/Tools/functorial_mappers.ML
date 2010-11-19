@@ -17,7 +17,7 @@ end;
 structure Functorial_Mappers : FUNCTORIAL_MAPPERS =
 struct
 
-val concatenateN = "concatenate";
+val compositionalityN = "compositionality";
 val identityN = "identity";
 
 (** functorial mappers and their properties **)
@@ -25,7 +25,7 @@ val identityN = "identity";
 (* bookkeeping *)
 
 type entry = { mapper: string, variances: (sort * (bool * bool)) list,
-  concatenate: thm, identity: thm };
+  compositionality: thm, identity: thm };
 
 structure Data = Theory_Data(
   type T = entry Symtab.table
@@ -74,7 +74,7 @@ fun construct_mapper thy atomic =
 
 (* mapper properties *)
 
-fun make_concatenate_prop variances (tyco, mapper) =
+fun make_compositionality_prop variances (tyco, mapper) =
   let
     fun invents n k nctxt =
       let
@@ -186,23 +186,23 @@ fun gen_type_mapper prep_term raw_t thy =
        of [tyco] => tyco
         | _ => error ("Bad number of type constructors: " ^ Syntax.string_of_typ_global thy T);
     val variances = analyze_variances thy tyco T;
-    val concatenate_prop = uncurry (fold_rev Logic.all)
-      (make_concatenate_prop variances (tyco, mapper));
+    val compositionality_prop = uncurry (fold_rev Logic.all)
+      (make_compositionality_prop variances (tyco, mapper));
     val identity_prop = uncurry Logic.all
       (make_identity_prop variances (tyco, mapper));
     val qualify = Binding.qualify true (Long_Name.base_name mapper) o Binding.name;
-    fun after_qed [single_concatenate, single_identity] lthy =
+    fun after_qed [single_compositionality, single_identity] lthy =
       lthy
-      |> Local_Theory.note ((qualify concatenateN, []), single_concatenate)
+      |> Local_Theory.note ((qualify compositionalityN, []), single_compositionality)
       ||>> Local_Theory.note ((qualify identityN, []), single_identity)
-      |-> (fn ((_, [concatenate]), (_, [identity])) =>
+      |-> (fn ((_, [compositionality]), (_, [identity])) =>
           (Local_Theory.background_theory o Data.map)
             (Symtab.update (tyco, { mapper = mapper, variances = variances,
-              concatenate = concatenate, identity = identity })));
+              compositionality = compositionality, identity = identity })));
   in
     thy
     |> Named_Target.theory_init
-    |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [concatenate_prop, identity_prop])
+    |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [compositionality_prop, identity_prop])
   end
 
 val type_mapper = gen_type_mapper Sign.cert_term;

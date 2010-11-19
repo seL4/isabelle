@@ -18,7 +18,7 @@ const_maps
   "LEX" > "HOL4Base.pair.LEX"
   "CURRY" > "Product_Type.curry"
   "," > "Product_Type.Pair"
-  "##" > "prod_fun"
+  "##" > "map_pair"
 
 thm_maps
   "pair_induction" > "Datatype.prod.induct_correctness"
@@ -39,7 +39,7 @@ thm_maps
   "RPROD_DEF" > "HOL4Base.pair.RPROD_DEF"
   "PFORALL_THM" > "HOL4Base.pair.PFORALL_THM"
   "PEXISTS_THM" > "HOL4Base.pair.PEXISTS_THM"
-  "PAIR_MAP_THM" > "Product_Type.prod_fun"
+  "PAIR_MAP_THM" > "Product_Type.map_pair"
   "PAIR_MAP" > "HOL4Compat.PAIR_MAP"
   "PAIR_EQ" > "Datatype.prod.simps_1"
   "PAIR" > "HOL4Compat.PAIR"

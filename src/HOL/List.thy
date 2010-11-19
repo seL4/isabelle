@@ -881,6 +881,9 @@ lemma map_snd_zip[simp]:
   "length xs = length ys \<Longrightarrow> map snd (zip xs ys) = ys"
 by (induct rule:list_induct2, simp_all)
 
+type_mapper map
+  by simp_all
+
 
 subsubsection {* @{text rev} *}
 
@@ -4300,7 +4303,7 @@ text{*These orderings preserve well-foundedness: shorter lists
 primrec -- {*The lexicographic ordering for lists of the specified length*}
   lexn :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a list \<times> 'a list) set" where
     "lexn r 0 = {}"
-  | "lexn r (Suc n) = (prod_fun (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
+  | "lexn r (Suc n) = (map_pair (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
       {(xs, ys). length xs = Suc n \<and> length ys = Suc n}"
 
 definition
@@ -4316,7 +4319,7 @@ lemma wf_lexn: "wf r ==> wf (lexn r n)"
 apply (induct n, simp, simp)
 apply(rule wf_subset)
  prefer 2 apply (rule Int_lower1)
-apply(rule wf_prod_fun_image)
+apply(rule wf_map_pair_image)
  prefer 2 apply (rule inj_onI, auto)
 done
 
