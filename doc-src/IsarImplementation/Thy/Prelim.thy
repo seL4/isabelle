@@ -799,15 +799,15 @@ text %mlref {*
   \end{description}
 
   \paragraph{Historical note.} In the original SML90 standard the
-  primitive ML type @{ML_type char} did not exists, and the basic @{ML
+  primitive ML type @{ML_type char} did not exists, and the @{ML_text
   "explode: string -> string list"} operation would produce a list of
-  singleton strings as in Isabelle/ML today.  When SML97 came out,
-  Isabelle did not adopt its slightly anachronistic 8-bit characters,
-  but the idea of exploding a string into a list of small strings was
-  extended to ``symbols'' as explained above.  Thus Isabelle sources
-  can refer to an infinite store of user-defined symbols, without
-  having to worry about the multitude of Unicode encodings.
-*}
+  singleton strings as does @{ML "raw_explode: string -> string list"}
+  in Isabelle/ML today.  When SML97 came out, Isabelle did not adopt
+  its slightly anachronistic 8-bit characters, but the idea of
+  exploding a string into a list of small strings was extended to
+  ``symbols'' as explained above.  Thus Isabelle sources can refer to
+  an infinite store of user-defined symbols, without having to worry
+  about the multitude of Unicode encodings.  *}
 
 
 subsection {* Basic names \label{sec:basic-name} *}
