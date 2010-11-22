@@ -453,6 +453,6 @@ hide_const a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4 a\<^isub>5
 
 
 hide_type finite_1 finite_2 finite_3 finite_4 finite_5
-hide_const (open) n_lists product
+hide_const (open) enum n_lists product
 
 end
