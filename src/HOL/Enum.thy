@@ -69,6 +69,9 @@ lemma all_code [code]: "(\<forall>x. P x) \<longleftrightarrow> list_all P enum"
 lemma exists_code [code]: "(\<exists>x. P x) \<longleftrightarrow> list_ex P enum"
   by (simp add: list_ex_iff enum_all)
 
+lemma exists1_code[code]: "(\<exists>!x. P x) \<longleftrightarrow> list_ex1 P enum"
+unfolding list_ex1_iff enum_all by auto
+
 
 subsection {* Default instances *}
 
