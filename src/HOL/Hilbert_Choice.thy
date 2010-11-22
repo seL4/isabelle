@@ -151,10 +151,10 @@ lemma inv_into_image_cancel[simp]:
 by(fastsimp simp: image_def)
 
 lemma inj_imp_surj_inv: "inj f ==> surj (inv f)"
-by (blast intro: surjI inv_into_f_f)
+by (blast intro!: surjI inv_into_f_f)
 
 lemma surj_f_inv_f: "surj f ==> f(inv f y) = y"
-by (simp add: f_inv_into_f surj_range)
+by (simp add: f_inv_into_f)
 
 lemma inv_into_injective:
   assumes eq: "inv_into A f x = inv_into A f y"
@@ -173,12 +173,13 @@ lemma bij_betw_inv_into: "bij_betw f A B ==> bij_betw (inv_into A f) B A"
 by (auto simp add: bij_betw_def inj_on_inv_into)
 
 lemma surj_imp_inj_inv: "surj f ==> inj (inv f)"
-by (simp add: inj_on_inv_into surj_range)
+by (simp add: inj_on_inv_into)
 
 lemma surj_iff: "(surj f) = (f o inv f = id)"
-apply (simp add: o_def fun_eq_iff)
-apply (blast intro: surjI surj_f_inv_f)
-done
+by (auto intro!: surjI simp: surj_f_inv_f fun_eq_iff[where 'b='a])
+
+lemma surj_iff_all: "surj f \<longleftrightarrow> (\<forall>x. f (inv f x) = x)"
+  unfolding surj_iff by (simp add: o_def fun_eq_iff)
 
 lemma surj_imp_inv_eq: "[| surj f; \<forall>x. g(f x) = x |] ==> inv f = g"
 apply (rule ext)

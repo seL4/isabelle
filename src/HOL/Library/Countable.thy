@@ -165,7 +165,7 @@ proof
 qed
 
 lemma Rats_eq_range_nat_to_rat_surj: "\<rat> = range nat_to_rat_surj"
-by (simp add: Rats_def surj_nat_to_rat_surj surj_range)
+by (simp add: Rats_def surj_nat_to_rat_surj)
 
 context field_char_0
 begin

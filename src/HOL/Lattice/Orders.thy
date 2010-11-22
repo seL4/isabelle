@@ -118,8 +118,8 @@ next
   qed
 qed
 
-lemma range_dual [simp]: "dual ` UNIV = UNIV"
-proof (rule surj_range)
+lemma range_dual [simp]: "surj dual"
+proof -
   have "\<And>x'. dual (undual x') = x'" by simp
   thus "surj dual" by (rule surjI)
 qed

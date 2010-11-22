@@ -2843,7 +2843,7 @@ proof-
     h: "linear h" "\<forall> x\<in> basis ` {..<DIM('b)}. h x = inv f x" by blast
   from h(2)
   have th: "\<forall>i<DIM('b). (f o h) (basis i) = id (basis i)"
-    using sf by(auto simp add: surj_iff o_def fun_eq_iff)
+    using sf by(auto simp add: surj_iff_all)
   from linear_eq_stdbasis[OF linear_compose[OF h(1) lf] linear_id th]
   have "f o h = id" .
   then show ?thesis using h(1) by blast
@@ -2995,7 +2995,7 @@ proof-
   {fix f f':: "'a => 'a"
     assume lf: "linear f" "linear f'" and f: "f o f' = id"
     from f have sf: "surj f"
-      apply (auto simp add: o_def fun_eq_iff id_def surj_def)
+      apply (auto simp add: o_def id_def surj_def)
       by metis
     from linear_surjective_isomorphism[OF lf(1) sf] lf f
     have "f' o f = id" unfolding fun_eq_iff o_def id_def

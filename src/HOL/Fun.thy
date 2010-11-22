@@ -130,24 +130,22 @@ type_mapper map_fun
   by (simp_all add: fun_eq_iff)
 
 
-subsection {* Injectivity, Surjectivity and Bijectivity *}
+subsection {* Injectivity and Bijectivity *}
 
 definition inj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> bool" where -- "injective"
   "inj_on f A \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. f x = f y \<longrightarrow> x = y)"
 
-definition surj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b set \<Rightarrow> bool" where -- "surjective"
-  "surj_on f B \<longleftrightarrow> B \<subseteq> range f"
-
 definition bij_betw :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool" where -- "bijective"
   "bij_betw f A B \<longleftrightarrow> inj_on f A \<and> f ` A = B"
 
-text{*A common special case: functions injective over the entire domain type.*}
+text{*A common special case: functions injective, surjective or bijective over
+the entire domain type.*}
 
 abbreviation
   "inj f \<equiv> inj_on f UNIV"
 
-abbreviation
-  "surj f \<equiv> surj_on f UNIV"
+abbreviation surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool" where -- "surjective"
+  "surj f \<equiv> (range f = UNIV)"
 
 abbreviation
   "bij f \<equiv> bij_betw f UNIV UNIV"
@@ -187,8 +185,8 @@ lemma inj_on_id[simp]: "inj_on id A"
 lemma inj_on_id2[simp]: "inj_on (%x. x) A"
 by (simp add: inj_on_def)
 
-lemma surj_id[simp]: "surj_on id A"
-by (simp add: surj_on_def)
+lemma surj_id: "surj id"
+by simp
 
 lemma bij_id[simp]: "bij id"
 by (simp add: bij_betw_def)
@@ -251,20 +249,11 @@ apply(unfold inj_on_def)
 apply (blast)
 done
 
-lemma surj_onI: "(\<And>x. x \<in> B \<Longrightarrow> g (f x) = x) \<Longrightarrow> surj_on g B"
-  by (simp add: surj_on_def) (blast intro: sym)
-
-lemma surj_onD: "surj_on f B \<Longrightarrow> y \<in> B \<Longrightarrow> \<exists>x. y = f x"
-  by (auto simp: surj_on_def)
-
-lemma surj_on_range_iff: "surj_on f B \<longleftrightarrow> (\<exists>A. f ` A = B)"
-  unfolding surj_on_def by (auto intro!: exI[of _ "f -` B"])
-
 lemma surj_def: "surj f \<longleftrightarrow> (\<forall>y. \<exists>x. y = f x)"
-  by (simp add: surj_on_def subset_eq image_iff)
+  by auto
 
-lemma surjI: "(\<And> x. g (f x) = x) \<Longrightarrow> surj g"
-  by (blast intro: surj_onI)
+lemma surjI: assumes *: "\<And> x. g (f x) = x" shows "surj g"
+  using *[symmetric] by auto
 
 lemma surjD: "surj f \<Longrightarrow> \<exists>x. y = f x"
   by (simp add: surj_def)
@@ -278,17 +267,11 @@ apply (drule_tac x = y in spec, clarify)
 apply (drule_tac x = x in spec, blast)
 done
 
-lemma surj_range: "surj f \<Longrightarrow> range f = UNIV"
-  by (auto simp add: surj_on_def)
-
-lemma surj_range_iff: "surj f \<longleftrightarrow> range f = UNIV"
-  unfolding surj_on_def by auto
-
 lemma bij_betw_imp_surj: "bij_betw f A UNIV \<Longrightarrow> surj f"
-  unfolding bij_betw_def surj_range_iff by auto
+  unfolding bij_betw_def by auto
 
 lemma bij_def: "bij f \<longleftrightarrow> inj f \<and> surj f"
-  unfolding surj_range_iff bij_betw_def ..
+  unfolding bij_betw_def ..
 
 lemma bijI: "[| inj f; surj f |] ==> bij f"
 by (simp add: bij_def)
@@ -302,15 +285,12 @@ by (simp add: bij_def)
 lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"
 by (simp add: bij_betw_def)
 
-lemma bij_betw_imp_surj_on: "bij_betw f A B \<Longrightarrow> surj_on f B"
-by (auto simp: bij_betw_def surj_on_range_iff)
-
-lemma bij_comp: "bij f \<Longrightarrow> bij g \<Longrightarrow> bij (g o f)"
-by(fastsimp intro: comp_inj_on comp_surj simp: bij_def surj_range)
-
 lemma bij_betw_trans:
   "bij_betw f A B \<Longrightarrow> bij_betw g B C \<Longrightarrow> bij_betw (g o f) A C"
 by(auto simp add:bij_betw_def comp_inj_on)
+
+lemma bij_comp: "bij f \<Longrightarrow> bij g \<Longrightarrow> bij (g o f)"
+  by (rule bij_betw_trans)
 
 lemma bij_betw_inv: assumes "bij_betw f A B" shows "EX g. bij_betw g B A"
 proof -
@@ -349,15 +329,13 @@ lemma bij_betw_combine:
   using assms unfolding bij_betw_def inj_on_Un image_Un by auto
 
 lemma surj_image_vimage_eq: "surj f ==> f ` (f -` A) = A"
-by (simp add: surj_range)
+by simp
 
 lemma inj_vimage_image_eq: "inj f ==> f -` (f ` A) = A"
 by (simp add: inj_on_def, blast)
 
 lemma vimage_subsetD: "surj f ==> f -` B <= A ==> B <= f ` A"
-apply (unfold surj_def)
-apply (blast intro: sym)
-done
+by (blast intro: sym)
 
 lemma vimage_subsetI: "inj f ==> B <= f ` A ==> f -` B <= A"
 by (unfold inj_on_def, blast)
@@ -410,7 +388,7 @@ apply (simp add: inj_on_def surj_def, blast)
 done
 
 lemma surj_Compl_image_subset: "surj f ==> -(f`A) <= f`(-A)"
-by (auto simp add: surj_def)
+by auto
 
 lemma inj_image_Compl_subset: "inj f ==> f`(-A) <= -(f`A)"
 by (auto simp add: inj_on_def)
@@ -559,10 +537,10 @@ next
 qed
 
 lemma surj_imp_surj_swap: "surj f \<Longrightarrow> surj (swap a b f)"
-  unfolding surj_range_iff by simp
+  by simp
 
 lemma surj_swap_iff [simp]: "surj (swap a b f) \<longleftrightarrow> surj f"
-  unfolding surj_range_iff by simp
+  by simp
 
 lemma bij_betw_swap_iff [simp]:
   "\<lbrakk> x \<in> A; y \<in> A \<rbrakk> \<Longrightarrow> bij_betw (swap x y f) A B \<longleftrightarrow> bij_betw f A B"

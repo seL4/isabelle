@@ -948,14 +948,12 @@ text {* Hence the following eccentric variant of the inverse function theorem.  
    assumes lf: "linear f" and gf: "f o g = id"
    shows "linear g"
  proof-
-   from gf have fi: "surj f" apply (auto simp add: surj_def o_def id_def fun_eq_iff)
-     by metis 
+   from gf have fi: "surj f" by (auto simp add: surj_def o_def id_def) metis
    from linear_surjective_isomorphism[OF lf fi]
    obtain h:: "'a => 'a" where
      h: "linear h" "\<forall>x. h (f x) = x" "\<forall>x. f (h x) = x" by blast
    have "h = g" apply (rule ext) using gf h(2,3)
-     apply (simp add: o_def id_def fun_eq_iff)
-     by metis
+     by (simp add: o_def id_def fun_eq_iff) metis
    with h(1) show ?thesis by blast
  qed
  
