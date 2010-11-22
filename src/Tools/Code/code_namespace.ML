@@ -120,8 +120,7 @@ fun flat_program labelled_name { module_alias, module_prefix, reserved,
       end;
     val name_tabs = AList.make (uncurry classify_names o Graph.get_node flat_program)
       (Graph.keys flat_program);
-    val deresolver_tab = Symtab.empty
-      |> fold (fn (module_name, name_tab) => Symtab.update (module_name, name_tab)) name_tabs;
+    val deresolver_tab = fold Symtab.update name_tabs Symtab.empty;
     fun deresolver module_name name =
       the (Symtab.lookup (the (Symtab.lookup deresolver_tab module_name)) name)
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
