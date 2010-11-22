@@ -88,10 +88,11 @@ val (report, setup_report) = Attrib.config_bool "quickcheck_report" (K true)
 val (quiet, setup_quiet) = Attrib.config_bool "quickcheck_quiet" (K false)
 val (timeout, setup_timeout) = Attrib.config_real "quickcheck_timeout" (K 30.0)
 val (finite_types, setup_finite_types) = Attrib.config_bool "quickcheck_finite_types" (K true)
+val (finite_type_size, setup_finite_type_size) = Attrib.config_int "quickcheck_finite_type_size" (K 3)
 
 val setup_config =
   setup_size #> setup_iterations #> setup_no_assms #> setup_report #> setup_quiet #> setup_timeout
-    #> setup_finite_types
+    #> setup_finite_types #> setup_finite_type_size
 
 datatype test_params = Test_Params of
   {default_type: typ list, expect : expectation};
@@ -246,6 +247,11 @@ fun test_term ctxt generator_name t =
     (result, ([exec_time, comp_time], if Config.get ctxt report then SOME reports else NONE))
   end;
 
+fun get_finite_types ctxt =
+  fst (chop (Config.get ctxt finite_type_size)
+    (map (Type o rpair []) ["Enum.finite_1", "Enum.finite_2", "Enum.finite_3",
+     "Enum.finite_4", "Enum.finite_5"]))  
+
 exception WELLSORTED of string
 
 fun monomorphic_term thy insts default_T = 
@@ -286,9 +292,15 @@ fun test_goal (generator_name, insts) i state =
      of NONE => [proto_goal]
       | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal)
         (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
-    val inst_goals = maps (fn check_goal => map (fn T =>
-      Term ((Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
-        handle WELLSORTED s => Wellsorted_Error s) (default_type lthy)) check_goals
+    val inst_goals =
+      if Config.get lthy finite_types then 
+        maps (fn check_goal => map (fn T =>
+          Term ((Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
+            handle WELLSORTED s => Wellsorted_Error s) (get_finite_types lthy)) check_goals
+      else
+        maps (fn check_goal => map (fn T =>
+          Term ((Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
+            handle WELLSORTED s => Wellsorted_Error s) (default_type lthy)) check_goals
     val error_msg = cat_lines (map_filter (fn Term t => NONE | Wellsorted_Error s => SOME s) inst_goals)
     val correct_inst_goals =
       case map_filter (fn Term t => SOME t | Wellsorted_Error s => NONE) inst_goals of
@@ -395,6 +407,7 @@ fun parse_test_param ("size", [arg]) = Config.put_generic size (read_nat arg)
   | parse_test_param ("quiet", [arg]) = Config.put_generic quiet (read_bool arg)
   | parse_test_param ("timeout", [arg]) = Config.put_generic timeout (read_real arg)
   | parse_test_param ("finite_types", [arg]) = Config.put_generic finite_types (read_bool arg)
+  | parse_test_param ("finite_type_size", [arg]) = Config.put_generic finite_type_size (read_nat arg)
   | parse_test_param (name, _) = error ("Unknown test parameter: " ^ name);
 
 fun parse_test_param_inst ("generator", [arg]) ((generator, insts), ctxt) =

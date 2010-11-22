@@ -305,4 +305,75 @@ qed (auto simp add: enum_all enum_option_def, rule option.exhaust, auto intro: s
 
 end
 
+subsection {* Small finite types *}
+
+text {* We define small finite types for the use in Quickcheck *}
+
+datatype finite_1 = a\<^isub>1
+
+instantiation finite_1 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1]"
+
+instance proof
+qed (auto simp add: enum_finite_1_def intro: finite_1.exhaust)
+
+end
+
+datatype finite_2 = a\<^isub>1 | a\<^isub>2
+
+instantiation finite_2 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1, a\<^isub>2]"
+
+instance proof
+qed (auto simp add: enum_finite_2_def intro: finite_2.exhaust)
+
+end
+
+datatype finite_3 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3
+
+instantiation finite_3 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3]"
+
+instance proof
+qed (auto simp add: enum_finite_3_def intro: finite_3.exhaust)
+
+end
+
+datatype finite_4 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4
+
+instantiation finite_4 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4]"
+
+instance proof
+qed (auto simp add: enum_finite_4_def intro: finite_4.exhaust)
+
+end
+
+datatype finite_5 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4 | a\<^isub>5
+
+instantiation finite_5 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4, a\<^isub>5]"
+
+instance proof
+qed (auto simp add: enum_finite_5_def intro: finite_5.exhaust)
+
+end
+
+hide_type finite_1 finite_2 finite_3 finite_4 finite_5
+
 end
