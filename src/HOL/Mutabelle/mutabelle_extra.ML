@@ -8,7 +8,7 @@ sig
 
 val take_random : int -> 'a list -> 'a list
 
-datatype outcome = GenuineCex | PotentialCex | NoCex | Donno | Timeout | Error
+datatype outcome = GenuineCex | PotentialCex | NoCex | Donno | Timeout | Error | Solved | Unsolved
 type timing = (string * int) list
 
 type mtd = string * (theory -> term -> outcome * (timing * (int * Quickcheck.report list) list option))
@@ -20,7 +20,10 @@ type subentry = string * int * int * int * int * int * int
 type entry = string * bool * subentry list
 type report = entry list
 
-val quickcheck_mtd : string -> mtd
+val quickcheck_mtd : (Proof.context -> Proof.context) -> string -> mtd
+
+val solve_direct_mtd : mtd
+val try_mtd : mtd
 (*
 val refute_mtd : mtd
 val nitpick_mtd : mtd
@@ -45,14 +48,16 @@ val random_seed = Unsynchronized.ref 1.0;
 
 
 (* mutation options *)
-val max_mutants = 4
-val num_mutations = 1
+(*val max_mutants = 4
+val num_mutations = 1*)
 (* soundness check: *)
-(*val max_mutants = 1
-val num_mutations = 0*)
+val max_mutants =  10
+val num_mutations = 1
 
 (* quickcheck options *)
 (*val quickcheck_generator = "SML"*)
+
+(* Another Random engine *)
 
 exception RANDOM;
 
@@ -73,7 +78,26 @@ fun random_range l h =
   if h < l orelse l < 0 then raise RANDOM
   else l + Real.floor (rmod (random ()) (real (h - l + 1)));
 
-datatype outcome = GenuineCex | PotentialCex | NoCex | Donno | Timeout | Error
+fun take_random 0 _ = []
+  | take_random _ [] = []
+  | take_random n xs =
+    let val j = random_range 0 (length xs - 1) in
+      Library.nth xs j :: take_random (n - 1) (nth_drop j xs)
+    end
+  
+(* possible outcomes *)
+
+datatype outcome = GenuineCex | PotentialCex | NoCex | Donno | Timeout | Error | Solved | Unsolved
+
+fun string_of_outcome GenuineCex = "GenuineCex"
+  | string_of_outcome PotentialCex = "PotentialCex"
+  | string_of_outcome NoCex = "NoCex"
+  | string_of_outcome Donno = "Donno"
+  | string_of_outcome Timeout = "Timeout"
+  | string_of_outcome Error = "Error"
+  | string_of_outcome Solved = "Solved"
+  | string_of_outcome Unsolved = "Unsolved"
+
 type timing = (string * int) list
 
 type mtd = string * (theory -> term -> outcome * (timing * (int * Quickcheck.report list) list option))
@@ -85,25 +109,49 @@ type subentry = string * int * int * int * int * int * int
 type entry = string * bool * subentry list
 type report = entry list
 
-fun inst_type insts (Type (s, Ts)) = Type (s, map (inst_type insts) Ts)
-  | inst_type insts T = the_default HOLogic.intT (AList.lookup op = insts T)
+(* possible invocations *)
 
-fun preprocess thy insts t = Object_Logic.atomize_term thy
- (map_types (inst_type insts) (Mutabelle.freeze t));
+(** quickcheck **)
 
-fun invoke_quickcheck quickcheck_generator thy t =
+fun invoke_quickcheck change_options quickcheck_generator thy t =
   TimeLimit.timeLimit (Time.fromSeconds (!Auto_Tools.time_limit))
       (fn _ =>
-          case Quickcheck.test_term (ProofContext.init_global thy)
-              (SOME quickcheck_generator) (preprocess thy [] t) of
-            (NONE, (time_report, report)) => (NoCex, (time_report, report))
-          | (SOME _, (time_report, report)) => (GenuineCex, (time_report, report))) ()
+          case Quickcheck.test_goal_terms (change_options (ProofContext.init_global thy))
+              (SOME quickcheck_generator, []) [t] of
+            (NONE, _) => (NoCex, ([], NONE))
+          | (SOME _, _) => (GenuineCex, ([], NONE))) ()
   handle TimeLimit.TimeOut => (Timeout, ([("timelimit", !Auto_Tools.time_limit)], NONE))
 
-fun quickcheck_mtd quickcheck_generator =
-  ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck quickcheck_generator)
+fun quickcheck_mtd change_options quickcheck_generator =
+  ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck change_options quickcheck_generator)
 
-  (*
+(** solve direct **)
+ 
+fun invoke_solve_direct thy t =
+  let
+    val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (ProofContext.init_global thy) 
+  in
+    case Solve_Direct.solve_direct false state of
+      (true, _) => (Solved, ([], NONE))
+    | (false, _) => (Unsolved, ([], NONE))
+  end
+
+val solve_direct_mtd = ("solve_direct", invoke_solve_direct) 
+
+(** try **)
+
+fun invoke_try thy t =
+  let
+    val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (ProofContext.init_global thy) 
+  in
+    case Try.invoke_try NONE state of
+      true => (Solved, ([], NONE))
+    | false => (Unsolved, ([], NONE))
+  end
+
+val try_mtd = ("try", invoke_try)
+
+(*
 fun invoke_refute thy t =
   let
     val res = MyRefute.refute_term thy [] t
@@ -185,6 +233,8 @@ fun invoke_nitpick thy t =
 val nitpick_mtd = ("nitpick", invoke_nitpick)
 *)
 
+(* filtering forbidden theorems and mutants *)
+
 val comms = [@{const_name HOL.eq}, @{const_name HOL.disj}, @{const_name HOL.conj}]
 
 val forbidden =
@@ -200,7 +250,6 @@ val forbidden =
   (@{const_name "top_fun_inst.top_fun"}, "'a"),
   (@{const_name "Pure.term"}, "'a"),
   (@{const_name "top_class.top"}, "'a"),
-  (@{const_name "HOL.equal"}, "'a"),
   (@{const_name "Quotient.Quot_True"}, "'a")(*,
   (@{const_name "uminus"}, "'a"),
   (@{const_name "Nat.size"}, "'a"),
@@ -211,7 +260,7 @@ val forbidden_thms =
   "nibble"]
 
 val forbidden_consts =
- [@{const_name nibble_pair_of_char}]
+ [@{const_name nibble_pair_of_char}, @{const_name "TYPE"}]
 
 fun is_forbidden_theorem (s, th) =
   let val consts = Term.add_const_names (prop_of th) [] in
@@ -220,7 +269,8 @@ fun is_forbidden_theorem (s, th) =
     length (space_explode "." s) <> 2 orelse
     String.isPrefix "type_definition" (List.last (space_explode "." s)) orelse
     String.isSuffix "_def" s orelse
-    String.isSuffix "_raw" s
+    String.isSuffix "_raw" s orelse
+    String.isPrefix "term_of" (List.last (space_explode "." s))
   end
 
 val forbidden_mutant_constnames =
@@ -235,23 +285,54 @@ val forbidden_mutant_constnames =
  @{const_name "top_fun_inst.top_fun"},
  @{const_name "Pure.term"},
  @{const_name "top_class.top"},
- @{const_name "HOL.equal"},
- @{const_name "Quotient.Quot_True"}]
+ (*@{const_name "HOL.equal"},*)
+ @{const_name "Quotient.Quot_True"}
+ (*@{const_name "==>"}, @{const_name "=="}*)]
+
+val forbidden_mutant_consts =
+  [
+   (@{const_name "Groups.zero_class.zero"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Groups.one_class.one"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Groups.plus_class.plus"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Groups.minus_class.minus"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Groups.times_class.times"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Rings.inverse_class.divide"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Lattices.semilattice_inf_class.inf"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Lattices.semilattice_sup_class.sup"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Orderings.bot_class.bot"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Orderings.ord_class.min"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Orderings.ord_class.max"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Divides.div_class.mod"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Divides.div_class.div"}, @{typ "prop => prop => prop"}),
+   (@{const_name "GCD.gcd_class.gcd"}, @{typ "prop => prop => prop"}),
+   (@{const_name "GCD.gcd_class.lcm"}, @{typ "prop => prop => prop"}),
+   (@{const_name "Orderings.bot_class.bot"}, @{typ "bool => prop"}),
+   (@{const_name "Groups.one_class.one"}, @{typ "bool => prop"}),
+   (@{const_name "Groups.zero_class.zero"},@{typ "bool => prop"})]
 
 fun is_forbidden_mutant t =
   let
-    val consts = Term.add_const_names t []
+    val const_names = Term.add_const_names t []
+    val consts = Term.add_consts t []
   in
-    exists (String.isPrefix "Nitpick") consts orelse
-    exists (String.isSubstring "_sumC") consts orelse
-    exists (member (op =) forbidden_mutant_constnames) consts
+    exists (String.isPrefix "Nitpick") const_names orelse
+    exists (String.isSubstring "_sumC") const_names orelse
+    exists (member (op =) forbidden_mutant_constnames) const_names orelse
+    exists (member (op =) forbidden_mutant_consts) consts
   end
 
+(* executable via quickcheck *)
+
 fun is_executable_term thy t =
-  can (TimeLimit.timeLimit (seconds 2.0)
-    (Quickcheck.test_term
-      (Context.proof_map (Quickcheck.map_test_params (apfst (K (1, 0)))) (ProofContext.init_global thy))
-      (SOME "SML"))) (preprocess thy [] t)
+  let
+    val ctxt = ProofContext.init_global thy
+  in
+    can (TimeLimit.timeLimit (seconds 2.0)
+      (Quickcheck.test_goal_terms
+        ((Config.put Quickcheck.finite_types true #>
+          Config.put Quickcheck.size 1 #> Config.put Quickcheck.iterations 1) ctxt)
+        (SOME "random" , []))) (map (Object_Logic.atomize_term thy) (fst (Variable.import_terms true [t] ctxt)))
+  end
 
 fun is_executable_thm thy th = is_executable_term thy (prop_of th)
 
@@ -267,44 +348,47 @@ fun thms_of all thy =
 
 val count = length oo filter o equal
 
-fun take_random 0 _ = []
-  | take_random _ [] = []
-  | take_random n xs =
-    let val j = random_range 0 (length xs - 1) in
-      Library.nth xs j :: take_random (n - 1) (nth_drop j xs)
-    end
-
 fun cpu_time description f =
   let
     val start = start_timing ()
     val result = Exn.capture f ()
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
-
+(*
+fun unsafe_invoke_mtd thy (mtd_name, invoke_mtd) t =
+  let
+    val _ = Output.urgent_message ("Invoking " ^ mtd_name)
+    val ((res, (timing, reports)), time) = cpu_time "total time" (fn () => invoke_mtd thy t
+      handle ERROR s => (tracing s; (Error, ([], NONE))))
+    val _ = Output.urgent_message (" Done")
+  in (res, (time :: timing, reports)) end
+*)  
 fun safe_invoke_mtd thy (mtd_name, invoke_mtd) t =
   let
     val _ = Output.urgent_message ("Invoking " ^ mtd_name)
-    val ((res, (timing, reports)), time) = cpu_time "total time"
-      (fn () => case try (invoke_mtd thy) t of
+    val (res, (timing, reports)) = (*cpu_time "total time"
+      (fn () => *)case try (invoke_mtd thy) t of
           SOME (res, (timing, reports)) => (res, (timing, reports))
         | NONE => (Output.urgent_message ("**** PROBLEMS WITH " ^ Syntax.string_of_term_global thy t);
-           (Error , ([], NONE))))
+           (Error, ([], NONE)))
     val _ = Output.urgent_message (" Done")
-  in (res, (time :: timing, reports)) end
+  in (res, (timing, reports)) end
 
 (* theory -> term list -> mtd -> subentry *)
-(*
+
 fun test_mutants_using_one_method thy mutants (mtd_name, invoke_mtd) =
   let
-     val res = map (safe_invoke_mtd thy (mtd_name, invoke_mtd)) mutants
+     val res = map (fst o safe_invoke_mtd thy (mtd_name, invoke_mtd)) mutants
   in
     (mtd_name, count GenuineCex res, count PotentialCex res, count NoCex res,
      count Donno res, count Timeout res, count Error res)
   end
 
+(* creating entries *)
+
 fun create_entry thy thm exec mutants mtds =
   (Thm.get_name_hint thm, exec, map (test_mutants_using_one_method thy mutants) mtds)
-*)
+
 fun create_detailed_entry thy thm exec mutants mtds =
   let
     fun create_mutant_subentry mutant = (mutant,
@@ -318,13 +402,14 @@ fun create_detailed_entry thy thm exec mutants mtds =
 fun mutate_theorem create_entry thy mtds thm =
   let
     val exec = is_executable_thm thy thm
-    val _ = Output.urgent_message (if exec then "EXEC" else "NOEXEC")
+    val _ = Output.tracing (if exec then "EXEC" else "NOEXEC")
     val mutants =
           (if num_mutations = 0 then
              [Thm.prop_of thm]
            else
              Mutabelle.mutate_mix (Thm.prop_of thm) thy comms forbidden
                                   num_mutations)
+             |> tap (fn muts => tracing ("mutants: " ^ string_of_int (length muts)))
              |> filter_out is_forbidden_mutant
     val mutants =
       if exec then
@@ -344,6 +429,7 @@ fun mutate_theorem create_entry thy mtds thm =
           |> map Mutabelle.freeze |> map freezeT
 (*          |> filter (not o is_forbidden_mutant) *)
           |> List.mapPartial (try (Sign.cert_term thy))
+          |> List.filter (is_some o try (cterm_of thy))
     val _ = map (fn t => Output.urgent_message ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants
   in
     create_entry thy thm exec mutants mtds
@@ -351,13 +437,6 @@ fun mutate_theorem create_entry thy mtds thm =
 
 (* theory -> mtd list -> thm list -> report *)
 val mutate_theorems = map ooo mutate_theorem
-
-fun string_of_outcome GenuineCex = "GenuineCex"
-  | string_of_outcome PotentialCex = "PotentialCex"
-  | string_of_outcome NoCex = "NoCex"
-  | string_of_outcome Donno = "Donno"
-  | string_of_outcome Timeout = "Timeout"
-  | string_of_outcome Error = "Error"
 
 fun string_of_mutant_subentry thy thm_name (t, results) =
   "mutant: " ^ Syntax.string_of_term_global thy t ^ "\n" ^
@@ -378,12 +457,12 @@ fun string_of_mutant_subentry' thy thm_name (t, results) =
         cat_lines (map (fn (size, [report]) =>
           "size " ^ string_of_int size ^ ": " ^ string_of_report report) (rev reports))
     fun string_of_mtd_result (mtd_name, (outcome, (timing, reports))) =
-      mtd_name ^ ": " ^ string_of_outcome outcome ^ "; " ^
-      space_implode "; " (map (fn (s, t) => (s ^ ": " ^ string_of_int t)) timing)
+      mtd_name ^ ": " ^ string_of_outcome outcome
+      (*" with time " ^ " (" ^ space_implode "; " (map (fn (s, t) => (s ^ ": " ^ string_of_int t)) timing) ^ ")"*)
       (*^ "\n" ^ string_of_reports reports*)
   in
     "mutant of " ^ thm_name ^ ":\n"
-    ^ unyxml (Syntax.string_of_term_global thy t) ^ "\n" ^ cat_lines (map string_of_mtd_result results)
+    ^ unyxml (Syntax.string_of_term_global thy t) ^ "\n" ^ space_implode "; " (map string_of_mtd_result results)
   end
 
 fun string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) = 
@@ -394,8 +473,7 @@ fun string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) =
 fun theoryfile_string_of_mutant_subentry thy thm_name (i, (t, results)) =
   "lemma " ^ thm_name ^ "_" ^ string_of_int (i + 1) ^ ":\n" ^
   "\"" ^ unyxml (Syntax.string_of_term_global thy t) ^
-  "\" \nquickcheck[generator = SML]\nquickcheck[generator = predicate_compile_wo_ff]\n" ^
-  "quickcheck[generator = predicate_compile_ff_nofs]\noops\n"
+  "\" \nquickcheck\noops\n"
 
 fun theoryfile_string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) =
   "subsubsection {* mutants of " ^ thm_name ^ " *}\n\n" ^
@@ -409,10 +487,12 @@ fun string_for_subentry (mtd_name, genuine_cex, potential_cex, no_cex, donno,
   Int.toString potential_cex ^ "= " ^ Int.toString no_cex ^ "- " ^
   Int.toString donno ^ "? " ^ Int.toString timeout ^ "T " ^
   Int.toString error ^ "!"
+
 (* entry -> string *)
 fun string_for_entry (thm_name, exec, subentries) =
   thm_name ^ " " ^ (if exec then "[exe]" else "[noexe]") ^ ":\n" ^
   cat_lines (map string_for_subentry subentries) ^ "\n"
+
 (* report -> string *)
 fun string_for_report report = cat_lines (map string_for_entry report)
 
@@ -424,15 +504,16 @@ fun write_report file_name =
 fun mutate_theorems_and_write_report thy mtds thms file_name =
   let
     val _ = Output.urgent_message "Starting Mutabelle..."
-    val Quickcheck.Test_Params test_params = Quickcheck.test_params_of (ProofContext.init_global thy)
+    val ctxt = ProofContext.init_global thy
     val path = Path.explode file_name
     (* for normal report: *)
-    (*val (gen_create_entry, gen_string_for_entry) = (create_entry, string_for_entry)*)
-    (*for detailled report: *)
-    val (gen_create_entry, gen_string_for_entry) =
-      (create_detailed_entry, string_of_detailed_entry thy)
-    val (gen_create_entry, gen_string_for_entry) =
-      (create_detailed_entry, theoryfile_string_of_detailed_entry thy)
+    (*
+    val (gen_create_entry, gen_string_for_entry) = (create_entry, string_for_entry)
+    *)
+    (* for detailled report: *)
+    val (gen_create_entry, gen_string_for_entry) = (create_detailed_entry, string_of_detailed_entry thy)
+    (* for theory creation: *)
+    (*val (gen_create_entry, gen_string_for_entry) = (create_detailed_entry, theoryfile_string_of_detailed_entry thy)*)
   in
     File.write path (
     "Mutation options = "  ^
@@ -440,8 +521,8 @@ fun mutate_theorems_and_write_report thy mtds thms file_name =
       "; num_mutations: " ^ string_of_int num_mutations ^ "\n" ^
     "QC options = " ^
       (*"quickcheck_generator: " ^ quickcheck_generator ^ ";*)
-      "size: " ^ string_of_int (#size test_params) ^
-      "; iterations: " ^ string_of_int (#iterations test_params) ^ "\n");
+      "size: " ^ string_of_int (Config.get ctxt Quickcheck.size) ^
+      "; iterations: " ^ string_of_int (Config.get ctxt Quickcheck.iterations) ^ "\n");
     map (File.append path o gen_string_for_entry o mutate_theorem gen_create_entry thy mtds) thms;
     ()
   end
