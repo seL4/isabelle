@@ -3,7 +3,7 @@
 header {* A simple counterexample generator *}
 
 theory Quickcheck
-imports Random Code_Evaluation
+imports Random Code_Evaluation Enum
 uses ("Tools/quickcheck_generators.ML")
 begin
 

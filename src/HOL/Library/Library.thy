@@ -14,7 +14,6 @@ imports
   Countable
   Diagonalize
   Dlist
-  Enum
   Eval_Witness
   Float
   Formal_Power_Series

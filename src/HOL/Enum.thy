@@ -3,7 +3,7 @@
 header {* Finite types as explicit enumerations *}
 
 theory Enum
-imports Map Main
+imports Map String
 begin
 
 subsection {* Class @{text enum} *}
