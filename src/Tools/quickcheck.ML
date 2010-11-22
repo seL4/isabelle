@@ -16,6 +16,8 @@ sig
   val report : bool Config.T
   val quiet : bool Config.T
   val timeout : real Config.T
+  val finite_types : bool Config.T
+  val finite_type_size : int Config.T
   datatype report = Report of
     { iterations : int, raised_match_errors : int,
       satisfied_assms : int list, positive_concl_tests : int }
@@ -32,6 +34,9 @@ sig
     (string * term) list option * ((string * int) list * ((int * report list) list) option)
   val test_term: Proof.context -> string option -> term ->
     (string * term) list option * ((string * int) list * ((int * report list) list) option)
+  val test_goal_terms:
+    Proof.context -> string option * (string * typ) list -> term list
+      -> (string * term) list option * ((string * int) list * ((int * report list) list) option) list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
 end;
 
@@ -199,6 +204,10 @@ fun test_term_small ctxt t =
      apsnd (rpair NONE) (apfst (Option.map (curry (op ~~) names)) result)
    end
 
+(* we actually assume we know the generators and its behaviour *)
+fun is_iteratable "small" = false
+  | is_iteratable "random" = true
+  
 fun test_term ctxt generator_name t =
   let
     val (names, t') = prep_test_term t;
@@ -223,15 +232,24 @@ fun test_term ctxt generator_name t =
       satisfied_assms = [], positive_concl_tests = 0 }
     fun with_testers k [] = (NONE, [])
       | with_testers k (tester :: testers) =
-          case iterate (fn () => tester (k - 1)) (Config.get ctxt iterations) empty_report
+        let
+          val niterations = case generator_name of
+            SOME generator_name =>
+              if is_iteratable generator_name then Config.get ctxt iterations else 1
+          | NONE => Config.get ctxt iterations
+          val (result, timing) = cpu_time ("size " ^ string_of_int k)
+            (fn () => iterate (fn () => tester (k - 1)) niterations empty_report)
+        in
+          case result
            of (NONE, report) => apsnd (cons report) (with_testers k testers)
-            | (SOME q, report) => (SOME q, [report]);
+            | (SOME q, report) => (SOME q, [report])
+        end
     fun with_size k reports =
       if k > Config.get ctxt size then (NONE, reports)
       else
        (if Config.get ctxt quiet then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
         let
-          val _ = current_size := k  
+          val _ = current_size := k
           val (result, new_report) = with_testers k testers
           val reports = ((k, new_report) :: reports)
         in case result of NONE => with_size (k + 1) reports | SOME q => (SOME q, reports) end);
@@ -272,26 +290,9 @@ fun monomorphic_term thy insts default_T =
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term
 
-fun test_goal (generator_name, insts) i state =
+fun test_goal_terms lthy (generator_name, insts) check_goals =
   let
-    val lthy = Proof.context_of state;
-    val thy = Proof.theory_of state;
-    fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
-      | strip t = t;
-    val {goal = st, ...} = Proof.raw_goal state;
-    val (gi, frees) = Logic.goal_params (prop_of st) i;
-    val some_locale = case (Option.map #target o Named_Target.peek) lthy
-     of NONE => NONE
-      | SOME "" => NONE
-      | SOME locale => SOME locale;
-    val assms = if Config.get lthy no_assms then [] else case some_locale
-     of NONE => Assumption.all_assms_of lthy
-      | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy);
-    val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
-    val check_goals = case some_locale
-     of NONE => [proto_goal]
-      | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal)
-        (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
+    val thy = ProofContext.theory_of lthy 
     val inst_goals =
       if Config.get lthy finite_types then 
         maps (fn check_goal => map (fn T =>
@@ -313,6 +314,30 @@ fun test_goal (generator_name, insts) i state =
           (SOME res, report) => (SOME res, rev (report :: reports))
         | (NONE, report) => collect_results f (report :: reports) ts
   in collect_results (test_term lthy generator_name) [] correct_inst_goals end;
+
+fun test_goal (generator_name, insts) i state =
+  let
+    val lthy = Proof.context_of state;
+    val thy = Proof.theory_of state;
+    fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
+      | strip t = t;
+    val {goal = st, ...} = Proof.raw_goal state;
+    val (gi, frees) = Logic.goal_params (prop_of st) i;
+    val some_locale = case (Option.map #target o Named_Target.peek) lthy
+     of NONE => NONE
+      | SOME "" => NONE
+      | SOME locale => SOME locale;
+    val assms = if Config.get lthy no_assms then [] else case some_locale
+     of NONE => Assumption.all_assms_of lthy
+      | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy);
+    val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
+    val check_goals = case some_locale
+     of NONE => [proto_goal]
+      | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal)
+        (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
+  in
+    test_goal_terms lthy (generator_name, insts) check_goals
+  end
 
 (* pretty printing *)
 
