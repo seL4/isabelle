@@ -118,9 +118,9 @@ fun flat_program labelled_name { module_alias, module_prefix, reserved,
             Long_Name.append (the (AList.lookup (op =) import_tab name))
               (base_deresolver name))) imported_names
       end;
-    val name_tabs = AList.make (uncurry classify_names o Graph.get_node flat_program)
-      (Graph.keys flat_program);
-    val deresolver_tab = fold Symtab.update name_tabs Symtab.empty;
+    val deresolver_tab = Symtab.make (AList.make
+      (uncurry classify_names o Graph.get_node flat_program)
+        (Graph.keys flat_program));
     fun deresolver module_name name =
       the (Symtab.lookup (the (Symtab.lookup deresolver_tab module_name)) name)
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
