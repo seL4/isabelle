@@ -6,7 +6,6 @@ Generators for small values for various types.
 
 signature SMALLVALUE_GENERATORS =
 sig
-  val ensure_smallvalue_datatype: Datatype.config -> string list -> theory -> theory
   val compile_generator_expr:
     Proof.context -> term -> int -> term list option * (bool list * bool)
   val put_counterexample: (unit -> int -> term list option)
@@ -51,10 +50,12 @@ fun mk_sumcases rT f (Type (@{type_name Sum_Type.sum}, [TL, TR])) =
 
 (** abstract syntax **)
 
+fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => Code_Evaluation.term"});
+
 val size = @{term "i :: code_numeral"}
 val size_pred = @{term "(i :: code_numeral) - 1"}
 val size_ge_zero = @{term "(i :: code_numeral) > 0"}
-fun test_function T = Free ("f", T --> @{typ "term list option"})
+fun test_function T = Free ("f", termifyT T --> @{typ "term list option"})
 
 fun mk_none_continuation (x, y) =
   let
@@ -75,16 +76,23 @@ val smallN = "small";
 fun smallT T = (T --> @{typ "Code_Evaluation.term list option"}) --> @{typ code_numeral}
   --> @{typ "Code_Evaluation.term list option"}
 
+val full_smallN = "full_small";
+
+fun full_smallT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
+  --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
+ 
 fun mk_equations thy descr vs tycos (names, auxnames) (Ts, Us) =
   let
-    val smallsN = map (prefix (smallN ^ "_")) (names @ auxnames);
-    val smalls = map2 (fn name => fn T => Free (name, smallT T))
+    val smallsN = map (prefix (full_smallN ^ "_")) (names @ auxnames);
+    val smalls = map2 (fn name => fn T => Free (name, full_smallT T))
       smallsN (Ts @ Us)
     fun mk_small_call T =
       let
-        val small = Const (@{const_name "Smallcheck.small_class.small"}, smallT T)        
+        val small = Const (@{const_name "Smallcheck.full_small_class.full_small"}, full_smallT T)        
       in
-        (T, (fn t => small $ absdummy (T, t) $ size_pred))
+        (T, (fn t => small $
+          (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, @{typ "Code_Evaluation.term list option"})
+          $ absdummy (T, absdummy (@{typ "unit => Code_Evaluation.term"}, t))) $ size_pred))
       end
     fun mk_small_aux_call fTs (k, _) (tyco, Ts) =
       let
@@ -92,14 +100,23 @@ fun mk_equations thy descr vs tycos (names, auxnames) (Ts, Us) =
         val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
         val small = nth smalls k
       in
-        (T, (fn t => small $ absdummy (T, t) $ size_pred))
+       (T, (fn t => small $
+          (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, @{typ "Code_Evaluation.term list option"})
+            $ absdummy (T, absdummy (@{typ "unit => Code_Evaluation.term"}, t))) $ size_pred))  
       end
     fun mk_consexpr simpleT (c, xs) =
       let
         val (Ts, fns) = split_list xs
         val constr = Const (c, Ts ---> simpleT)
-        val bounds = map Bound (((length xs) - 1) downto 0)
-        val start_term = test_function simpleT $ (list_comb (constr, bounds))
+        val bounds = map (fn x => Bound (2 * x + 1)) (((length xs) - 1) downto 0)
+        val term_bounds = map (fn x => Bound (2 * x)) (((length xs) - 1) downto 0)
+        val Eval_App = Const ("Code_Evaluation.App", HOLogic.termT --> HOLogic.termT --> HOLogic.termT)
+        val Eval_Const = Const ("Code_Evaluation.Const", HOLogic.literalT --> @{typ typerep} --> HOLogic.termT)
+        val term = fold (fn u => fn t => Eval_App $ t $ (u $ @{term "()"}))
+          bounds (Eval_Const $ HOLogic.mk_literal c $ HOLogic.mk_typerep (Ts ---> simpleT))
+        val start_term = test_function simpleT $ 
+        (HOLogic.pair_const simpleT @{typ "unit => Code_Evaluation.term"}
+          $ (list_comb (constr, bounds)) $ absdummy (@{typ unit}, term))
       in fold_rev (fn f => fn t => f t) fns start_term end
     fun mk_rhs exprs =
         @{term "If :: bool => term list option => term list option => term list option"}
@@ -129,7 +146,7 @@ fun gen_inst_state_tac ctxt rel st =
         PRIMITIVE (Drule.cterm_instantiate [(cert (Var v), rel')]) st'
       end
   | _ => Seq.empty;
-
+  
 fun instantiate_smallvalue_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = Datatype_Aux.message config "Creating smallvalue generators ...";
@@ -155,45 +172,22 @@ fun instantiate_smallvalue_datatype config descr vs tycos prfx (names, auxnames)
       Pat_Completeness.pat_completeness_tac ctxt 1
       THEN auto_tac (clasimpset_of ctxt)
   in
-    thy
-    |> Class.instantiation (tycos, vs, @{sort small})
+    (thy
+    |> Class.instantiation (tycos, vs, @{sort full_small})
     |> Function.add_function
       (map (fn (T, (name, _)) =>
-          Syntax.no_syn (Binding.conceal (Binding.name name), SOME (smallT T))) eqs)
+          Syntax.no_syn (Binding.conceal (Binding.name name), SOME (full_smallT T))) eqs)
         (map (pair (apfst Binding.conceal Attrib.empty_binding) o snd o snd) eqs)
         Function_Common.default_config pat_completeness_auto
     |> snd
     |> Local_Theory.restore
     |> (fn lthy => Function.prove_termination NONE (termination_tac lthy) lthy)
     |> snd
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
-  end;
-
-fun ensure_smallvalue_datatype config raw_tycos thy =
-  let
-    val algebra = Sign.classes_of thy;
-    val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) =
-      Datatype.the_descr thy raw_tycos;
-    val typerep_vs = (map o apsnd)
-      (curry (Sorts.inter_sort algebra) @{sort typerep}) raw_vs;
-    val smallvalue_insts = (map (rpair @{sort small}) o flat o maps snd o maps snd)
-      (Datatype_Aux.interpret_construction descr typerep_vs
-        { atyp = single, dtyp = (K o K o K) [] });
-    (*val term_of_insts = (map (rpair @{sort term_of}) o flat o maps snd o maps snd)
-      (Datatype_Aux.interpret_construction descr typerep_vs
-        { atyp = K [], dtyp = K o K });*)
-    val has_inst = exists (fn tyco =>
-      can (Sorts.mg_domain algebra tyco) @{sort small}) tycos;
-  in if has_inst then thy
-    else case Quickcheck_Generators.perhaps_constrain thy smallvalue_insts typerep_vs
-     of SOME constrain => (instantiate_smallvalue_datatype config descr
-          (map constrain typerep_vs) tycos prfx (names, auxnames)
-            ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
-            handle FUNCTION_TYPE =>
-              (Datatype_Aux.message config
-                "Creation of smallvalue generators failed because the datatype contains a function type";
-              thy))
-      | NONE => thy
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac [])))
+    handle FUNCTION_TYPE =>
+    (Datatype_Aux.message config
+      "Creation of smallvalue generators failed because the datatype contains a function type";
+    thy)
   end;
 
 (** building and compiling generator expressions **)
@@ -209,19 +203,20 @@ val target = "Quickcheck";
 fun mk_generator_expr thy prop Ts =
   let
     val bound_max = length Ts - 1;
-    val bounds = map Bound (bound_max downto 0)
-    val result = list_comb (prop, bounds);
-    val terms = HOLogic.mk_list @{typ term} (map2 HOLogic.mk_term_of Ts bounds);
+    val bounds = map_index (fn (i, ty) =>
+      (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
+    val result = list_comb (prop, map (fn (i, _, _, _) => Bound i) bounds);
+    val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds);
     val check =
       @{term "Smallcheck.catch_match :: term list option => term list option => term list option"} $
         (@{term "If :: bool => term list option => term list option => term list option"}
-        $ result $ @{term "None :: term list option"}
-        $ (@{term "Some :: term list => term list option"} $ terms))
+        $ result $ @{term "None :: term list option"} $ (@{term "Some :: term list => term list option"} $ terms))
       $ @{term "None :: term list option"};
-    fun mk_small_closure (depth, T) t =
-      Const (@{const_name "Smallcheck.small_class.small"}, smallT T)
-        $ absdummy (T, t) $ depth
-  in Abs ("d", @{typ code_numeral}, fold_rev mk_small_closure (rev bounds ~~ Ts) check) end
+    fun mk_small_closure (_, _, i, T) t =
+      Const (@{const_name "Smallcheck.full_small_class.full_small"}, full_smallT T)
+        $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
+        $ absdummy (T, absdummy (@{typ "unit => term"}, t))) $ Bound i
+  in Abs ("d", @{typ code_numeral}, fold_rev mk_small_closure bounds check) end
 
 fun compile_generator_expr ctxt t =
   let
@@ -242,7 +237,8 @@ fun compile_generator_expr ctxt t =
 (** setup **)
 
 val setup =
-  Datatype.interpretation ensure_smallvalue_datatype
+  Datatype.interpretation
+    (Quickcheck_Generators.ensure_sort_datatype (@{sort full_small}, instantiate_smallvalue_datatype))
   #> Context.theory_map
     (Quickcheck.add_generator ("small", compile_generator_expr));
 
