@@ -11,9 +11,14 @@ begin
 
 text {*
 The 'quickcheck' command allows to find counterexamples by evaluating
-formulae under an assignment of free variables to random values.
-In contrast to 'refute', it can deal with inductive datatypes,
-but cannot handle quantifiers.
+formulae.
+Currently, there are two different exploration schemes:
+- random testing: this is incomplete, but explores the search space faster.
+- exhaustive testing: this is complete, but increasing the depth leads to
+  exponentially many assignments.
+
+quickcheck can handle quantifiers on finite universes.
+
 *}
 
 subsection {* Lists *}
@@ -227,6 +232,24 @@ lemma
   "(ys = zs) = (xs @ ys = splice xs zs)"
 quickcheck[generator = random]
 quickcheck[generator = small, expect = counterexample]
+oops
+
+section {* Examples with quantifiers *}
+
+text {*
+  These examples show that we can handle quantifiers.
+*}
+
+lemma "(\<exists>x. P x) \<longrightarrow> (\<forall>x. P x)"
+  quickcheck[expect = counterexample]
+oops
+
+lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>y. \<forall>x. P x y)"
+  quickcheck[expect = counterexample]
+oops
+
+lemma "(\<exists>x. P x) \<longrightarrow> (EX! x. P x)"
+  quickcheck[expect = counterexample]
 oops
 
 end

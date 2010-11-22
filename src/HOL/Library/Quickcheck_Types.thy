@@ -460,7 +460,7 @@ end
 
 section {* Quickcheck configuration *}
 
-quickcheck_params[default_type = ["int", "non_distrib_lattice", "int bot", "int top", "int flat_complete_lattice"]]
+quickcheck_params[finite_types = false, default_type = ["int", "non_distrib_lattice", "int bot", "int top", "int flat_complete_lattice"]]
 
 hide_type non_distrib_lattice flat_complete_lattice bot top
 
