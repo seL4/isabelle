@@ -89,6 +89,9 @@ and type constructors.
 
 *** HOL ***
 
+* Renamed theory Fset to Cset, type Fset.fset to Cset.set, in order to
+avoid confusion with finite sets.  INCOMPATIBILITY.
+
 * Quickcheck's generator for random generation is renamed from "code" to
 "random". INCOMPATIBILITY. 
 

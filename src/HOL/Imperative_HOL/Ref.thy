@@ -143,15 +143,15 @@ lemma success_refI [success_intros]:
   "success (ref v) h"
   by (auto intro: success_intros simp add: ref_def)
 
-lemma crel_refI [crel_intros]:
+lemma effect_refI [effect_intros]:
   assumes "(r, h') = alloc v h"
-  shows "crel (ref v) h h' r"
-  by (rule crelI) (insert assms, simp add: execute_simps)
+  shows "effect (ref v) h h' r"
+  by (rule effectI) (insert assms, simp add: execute_simps)
 
-lemma crel_refE [crel_elims]:
-  assumes "crel (ref v) h h' r"
+lemma effect_refE [effect_elims]:
+  assumes "effect (ref v) h h' r"
   obtains "get h' r = v" and "present h' r" and "\<not> present h r"
-  using assms by (rule crelE) (simp add: execute_simps)
+  using assms by (rule effectE) (simp add: execute_simps)
 
 lemma execute_lookup [execute_simps]:
   "Heap_Monad.execute (lookup r) h = Some (get h r, h)"
@@ -161,15 +161,15 @@ lemma success_lookupI [success_intros]:
   "success (lookup r) h"
   by (auto intro: success_intros  simp add: lookup_def)
 
-lemma crel_lookupI [crel_intros]:
+lemma effect_lookupI [effect_intros]:
   assumes "h' = h" "x = get h r"
-  shows "crel (!r) h h' x"
-  by (rule crelI) (insert assms, simp add: execute_simps)
+  shows "effect (!r) h h' x"
+  by (rule effectI) (insert assms, simp add: execute_simps)
 
-lemma crel_lookupE [crel_elims]:
-  assumes "crel (!r) h h' x"
+lemma effect_lookupE [effect_elims]:
+  assumes "effect (!r) h h' x"
   obtains "h' = h" "x = get h r"
-  using assms by (rule crelE) (simp add: execute_simps)
+  using assms by (rule effectE) (simp add: execute_simps)
 
 lemma execute_update [execute_simps]:
   "Heap_Monad.execute (update r v) h = Some ((), set r v h)"
@@ -179,15 +179,15 @@ lemma success_updateI [success_intros]:
   "success (update r v) h"
   by (auto intro: success_intros  simp add: update_def)
 
-lemma crel_updateI [crel_intros]:
+lemma effect_updateI [effect_intros]:
   assumes "h' = set r v h"
-  shows "crel (r := v) h h' x"
-  by (rule crelI) (insert assms, simp add: execute_simps)
+  shows "effect (r := v) h h' x"
+  by (rule effectI) (insert assms, simp add: execute_simps)
 
-lemma crel_updateE [crel_elims]:
-  assumes "crel (r' := v) h h' r"
+lemma effect_updateE [effect_elims]:
+  assumes "effect (r' := v) h h' r"
   obtains "h' = set r' v h"
-  using assms by (rule crelE) (simp add: execute_simps)
+  using assms by (rule effectE) (simp add: execute_simps)
 
 lemma execute_change [execute_simps]:
   "Heap_Monad.execute (change f r) h = Some (f (get h r), set r (f (get h r)) h)"
@@ -195,17 +195,17 @@ lemma execute_change [execute_simps]:
 
 lemma success_changeI [success_intros]:
   "success (change f r) h"
-  by (auto intro!: success_intros crel_intros simp add: change_def)
+  by (auto intro!: success_intros effect_intros simp add: change_def)
 
-lemma crel_changeI [crel_intros]: 
+lemma effect_changeI [effect_intros]: 
   assumes "h' = set r (f (get h r)) h" "x = f (get h r)"
-  shows "crel (change f r) h h' x"
-  by (rule crelI) (insert assms, simp add: execute_simps)  
+  shows "effect (change f r) h h' x"
+  by (rule effectI) (insert assms, simp add: execute_simps)  
 
-lemma crel_changeE [crel_elims]:
-  assumes "crel (change f r') h h' r"
+lemma effect_changeE [effect_elims]:
+  assumes "effect (change f r') h h' r"
   obtains "h' = set r' (f (get h r')) h" "r = f (get h r')"
-  using assms by (rule crelE) (simp add: execute_simps)
+  using assms by (rule effectE) (simp add: execute_simps)
 
 lemma lookup_chain:
   "(!r \<guillemotright> f) = f"

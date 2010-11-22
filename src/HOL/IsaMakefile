@@ -420,7 +420,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Efficient_Nat.thy Library/Eval_Witness.thy 			\
   Library/Executable_Set.thy Library/Float.thy				\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
-  Library/FrechetDeriv.thy Library/Fset.thy Library/FuncSet.thy		\
+  Library/FrechetDeriv.thy Library/Cset.thy Library/FuncSet.thy		\
   Library/Function_Algebras.thy						\
   Library/Fundamental_Theorem_Algebra.thy Library/Glbs.thy		\
   Library/Indicator_Function.thy Library/Infinite_Set.thy		\

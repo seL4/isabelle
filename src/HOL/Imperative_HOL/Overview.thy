@@ -96,13 +96,13 @@ text {*
   To establish correctness of imperative programs, predicate
 
   \begin{quote}
-    @{term_type crel}
+    @{term_type effect}
   \end{quote}
 
   provides a simple relational calculus.  Primitive rules are @{text
-  crelI} and @{text crelE}, rules appropriate for reasoning about
-  imperative operations are available in the @{text crel_intros} and
-  @{text crel_elims} fact collections.
+  effectI} and @{text effectE}, rules appropriate for reasoning about
+  imperative operations are available in the @{text effect_intros} and
+  @{text effect_elims} fact collections.
 
   Often non-failure of imperative computations does not depend
   on the heap at all;  reasoning then can be easier using predicate
@@ -114,10 +114,10 @@ text {*
   Introduction rules for @{const success} are available in the
   @{text success_intro} fact collection.
 
-  @{const execute}, @{const crel}, @{const success} and @{const bind}
+  @{const execute}, @{const effect}, @{const success} and @{const bind}
   are related by rules @{text execute_bind_success}, @{text
-  success_bind_executeI}, @{text success_bind_crelI}, @{text
-  crel_bindI}, @{text crel_bindE} and @{text execute_bind_eq_SomeI}.
+  success_bind_executeI}, @{text success_bind_effectI}, @{text
+  effect_bindI}, @{text effect_bindE} and @{text execute_bind_eq_SomeI}.
 *}
 
 
@@ -235,7 +235,7 @@ text {*
       
     \item Whether one should prefer equational reasoning (fact
       collection @{text execute_simps} or relational reasoning (fact
-      collections @{text crel_intros} and @{text crel_elims}) depends
+      collections @{text effect_intros} and @{text effect_elims}) depends
       on the problems to solve.  For complex expressions or
       expressions involving binders, the relation style usually is
       superior but requires more proof text.

@@ -145,20 +145,20 @@ lemmas MREC_rule = mrec.MREC_rule
 lemmas MREC_pinduct = mrec.MREC_pinduct
 
 lemma MREC_induct:
-  assumes "crel (MREC f g x) h h' r"
-  assumes "\<And> x h h' r. crel (f x) h h' (Inl r) \<Longrightarrow> P x h h' r"
-  assumes "\<And> x h h1 h2 h' s z r. crel (f x) h h1 (Inr s) \<Longrightarrow> crel (MREC f g s) h1 h2 z \<Longrightarrow> P s h1 h2 z
-    \<Longrightarrow> crel (g x s z) h2 h' r \<Longrightarrow> P x h h' r"
+  assumes "effect (MREC f g x) h h' r"
+  assumes "\<And> x h h' r. effect (f x) h h' (Inl r) \<Longrightarrow> P x h h' r"
+  assumes "\<And> x h h1 h2 h' s z r. effect (f x) h h1 (Inr s) \<Longrightarrow> effect (MREC f g s) h1 h2 z \<Longrightarrow> P s h1 h2 z
+    \<Longrightarrow> effect (g x s z) h2 h' r \<Longrightarrow> P x h h' r"
   shows "P x h h' r"
-proof (rule MREC_pinduct[OF assms(1) [unfolded crel_def]])
+proof (rule MREC_pinduct[OF assms(1) [unfolded effect_def]])
   fix x h h1 h2 h' s z r
   assume "Heap_Monad.execute (f x) h = Some (Inr s, h1)"
     "Heap_Monad.execute (MREC f g s) h1 = Some (z, h2)"
     "P s h1 h2 z"
     "Heap_Monad.execute (g x s z) h2 = Some (r, h')"
-  from assms(3) [unfolded crel_def, OF this(1) this(2) this(3) this(4)]
+  from assms(3) [unfolded effect_def, OF this(1) this(2) this(3) this(4)]
   show "P x h h' r" .
 next
-qed (auto simp add: assms(2)[unfolded crel_def])
+qed (auto simp add: assms(2)[unfolded effect_def])
 
 end

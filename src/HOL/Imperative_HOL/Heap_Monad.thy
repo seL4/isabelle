@@ -122,25 +122,25 @@ lemma success_ifI:
 subsubsection {* Predicate for a simple relational calculus *}
 
 text {*
-  The @{text crel} predicate states that when a computation @{text c}
+  The @{text effect} predicate states that when a computation @{text c}
   runs with the heap @{text h} will result in return value @{text r}
   and a heap @{text "h'"}, i.e.~no exception occurs.
 *}  
 
-definition crel :: "'a Heap \<Rightarrow> heap \<Rightarrow> heap \<Rightarrow> 'a \<Rightarrow> bool" where
-  crel_def: "crel c h h' r \<longleftrightarrow> execute c h = Some (r, h')"
+definition effect :: "'a Heap \<Rightarrow> heap \<Rightarrow> heap \<Rightarrow> 'a \<Rightarrow> bool" where
+  effect_def: "effect c h h' r \<longleftrightarrow> execute c h = Some (r, h')"
 
-lemma crelI:
-  "execute c h = Some (r, h') \<Longrightarrow> crel c h h' r"
-  by (simp add: crel_def)
+lemma effectI:
+  "execute c h = Some (r, h') \<Longrightarrow> effect c h h' r"
+  by (simp add: effect_def)
 
-lemma crelE:
-  assumes "crel c h h' r"
+lemma effectE:
+  assumes "effect c h h' r"
   obtains "r = fst (the (execute c h))"
     and "h' = snd (the (execute c h))"
     and "success c h"
 proof (rule that)
-  from assms have *: "execute c h = Some (r, h')" by (simp add: crel_def)
+  from assms have *: "execute c h = Some (r, h')" by (simp add: effect_def)
   then show "success c h" by (simp add: success_def)
   from * have "fst (the (execute c h)) = r" and "snd (the (execute c h)) = h'"
     by simp_all
@@ -148,84 +148,84 @@ proof (rule that)
     and "h' = snd (the (execute c h))" by simp_all
 qed
 
-lemma crel_success:
-  "crel c h h' r \<Longrightarrow> success c h"
-  by (simp add: crel_def success_def)
+lemma effect_success:
+  "effect c h h' r \<Longrightarrow> success c h"
+  by (simp add: effect_def success_def)
 
-lemma success_crelE:
+lemma success_effectE:
   assumes "success c h"
-  obtains r h' where "crel c h h' r"
-  using assms by (auto simp add: crel_def success_def)
+  obtains r h' where "effect c h h' r"
+  using assms by (auto simp add: effect_def success_def)
 
-lemma crel_deterministic:
-  assumes "crel f h h' a"
-    and "crel f h h'' b"
+lemma effect_deterministic:
+  assumes "effect f h h' a"
+    and "effect f h h'' b"
   shows "a = b" and "h' = h''"
-  using assms unfolding crel_def by auto
+  using assms unfolding effect_def by auto
 
 ML {* structure Crel_Intros = Named_Thms(
-  val name = "crel_intros"
-  val description = "introduction rules for crel"
+  val name = "effect_intros"
+  val description = "introduction rules for effect"
 ) *}
 
 ML {* structure Crel_Elims = Named_Thms(
-  val name = "crel_elims"
-  val description = "elimination rules for crel"
+  val name = "effect_elims"
+  val description = "elimination rules for effect"
 ) *}
 
 setup "Crel_Intros.setup #> Crel_Elims.setup"
 
-lemma crel_LetI [crel_intros]:
-  assumes "x = t" "crel (f x) h h' r"
-  shows "crel (let x = t in f x) h h' r"
+lemma effect_LetI [effect_intros]:
+  assumes "x = t" "effect (f x) h h' r"
+  shows "effect (let x = t in f x) h h' r"
   using assms by simp
 
-lemma crel_LetE [crel_elims]:
-  assumes "crel (let x = t in f x) h h' r"
-  obtains "crel (f t) h h' r"
+lemma effect_LetE [effect_elims]:
+  assumes "effect (let x = t in f x) h h' r"
+  obtains "effect (f t) h h' r"
   using assms by simp
 
-lemma crel_ifI:
-  assumes "c \<Longrightarrow> crel t h h' r"
-    and "\<not> c \<Longrightarrow> crel e h h' r"
-  shows "crel (if c then t else e) h h' r"
+lemma effect_ifI:
+  assumes "c \<Longrightarrow> effect t h h' r"
+    and "\<not> c \<Longrightarrow> effect e h h' r"
+  shows "effect (if c then t else e) h h' r"
   by (cases c) (simp_all add: assms)
 
-lemma crel_ifE:
-  assumes "crel (if c then t else e) h h' r"
-  obtains "c" "crel t h h' r"
-    | "\<not> c" "crel e h h' r"
+lemma effect_ifE:
+  assumes "effect (if c then t else e) h h' r"
+  obtains "c" "effect t h h' r"
+    | "\<not> c" "effect e h h' r"
   using assms by (cases c) simp_all
 
-lemma crel_tapI [crel_intros]:
+lemma effect_tapI [effect_intros]:
   assumes "h' = h" "r = f h"
-  shows "crel (tap f) h h' r"
-  by (rule crelI) (simp add: assms execute_simps)
+  shows "effect (tap f) h h' r"
+  by (rule effectI) (simp add: assms execute_simps)
 
-lemma crel_tapE [crel_elims]:
-  assumes "crel (tap f) h h' r"
+lemma effect_tapE [effect_elims]:
+  assumes "effect (tap f) h h' r"
   obtains "h' = h" and "r = f h"
-  using assms by (rule crelE) (auto simp add: execute_simps)
+  using assms by (rule effectE) (auto simp add: execute_simps)
 
-lemma crel_heapI [crel_intros]:
+lemma effect_heapI [effect_intros]:
   assumes "h' = snd (f h)" "r = fst (f h)"
-  shows "crel (heap f) h h' r"
-  by (rule crelI) (simp add: assms execute_simps)
+  shows "effect (heap f) h h' r"
+  by (rule effectI) (simp add: assms execute_simps)
 
-lemma crel_heapE [crel_elims]:
-  assumes "crel (heap f) h h' r"
+lemma effect_heapE [effect_elims]:
+  assumes "effect (heap f) h h' r"
   obtains "h' = snd (f h)" and "r = fst (f h)"
-  using assms by (rule crelE) (simp add: execute_simps)
+  using assms by (rule effectE) (simp add: execute_simps)
 
-lemma crel_guardI [crel_intros]:
+lemma effect_guardI [effect_intros]:
   assumes "P h" "h' = snd (f h)" "r = fst (f h)"
-  shows "crel (guard P f) h h' r"
-  by (rule crelI) (simp add: assms execute_simps)
+  shows "effect (guard P f) h h' r"
+  by (rule effectI) (simp add: assms execute_simps)
 
-lemma crel_guardE [crel_elims]:
-  assumes "crel (guard P f) h h' r"
+lemma effect_guardE [effect_elims]:
+  assumes "effect (guard P f) h h' r"
   obtains "h' = snd (f h)" "r = fst (f h)" "P h"
-  using assms by (rule crelE)
+  using assms by (rule effectE)
     (auto simp add: execute_simps elim!: successE, cases "P h", auto simp add: execute_simps)
 
 
@@ -242,14 +242,14 @@ lemma success_returnI [success_intros]:
   "success (return x) h"
   by (rule successI) (simp add: execute_simps)
 
-lemma crel_returnI [crel_intros]:
-  "h = h' \<Longrightarrow> crel (return x) h h' x"
-  by (rule crelI) (simp add: execute_simps)
+lemma effect_returnI [effect_intros]:
+  "h = h' \<Longrightarrow> effect (return x) h h' x"
+  by (rule effectI) (simp add: execute_simps)
 
-lemma crel_returnE [crel_elims]:
-  assumes "crel (return x) h h' r"
+lemma effect_returnE [effect_elims]:
+  assumes "effect (return x) h h' r"
   obtains "r = x" "h' = h"
-  using assms by (rule crelE) (simp add: execute_simps)
+  using assms by (rule effectE) (simp add: execute_simps)
 
 definition raise :: "string \<Rightarrow> 'a Heap" where -- {* the string is just decoration *}
   [code del]: "raise s = Heap (\<lambda>_. None)"
@@ -258,10 +258,10 @@ lemma execute_raise [execute_simps]:
   "execute (raise s) = (\<lambda>_. None)"
   by (simp add: raise_def)
 
-lemma crel_raiseE [crel_elims]:
-  assumes "crel (raise x) h h' r"
+lemma effect_raiseE [effect_elims]:
+  assumes "effect (raise x) h h' r"
   obtains "False"
-  using assms by (rule crelE) (simp add: success_def execute_simps)
+  using assms by (rule effectE) (simp add: success_def execute_simps)
 
 definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" where
   [code del]: "bind f g = Heap (\<lambda>h. case execute f h of
@@ -291,22 +291,22 @@ lemma success_bind_executeI:
   "execute f h = Some (x, h') \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<guillemotright>= g) h"
   by (auto intro!: successI elim!: successE simp add: bind_def)
 
-lemma success_bind_crelI [success_intros]:
-  "crel f h h' x \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<guillemotright>= g) h"
-  by (auto simp add: crel_def success_def bind_def)
+lemma success_bind_effectI [success_intros]:
+  "effect f h h' x \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<guillemotright>= g) h"
+  by (auto simp add: effect_def success_def bind_def)
 
-lemma crel_bindI [crel_intros]:
-  assumes "crel f h h' r" "crel (g r) h' h'' r'"
-  shows "crel (f \<guillemotright>= g) h h'' r'"
+lemma effect_bindI [effect_intros]:
+  assumes "effect f h h' r" "effect (g r) h' h'' r'"
+  shows "effect (f \<guillemotright>= g) h h'' r'"
   using assms
-  apply (auto intro!: crelI elim!: crelE successE)
+  apply (auto intro!: effectI elim!: effectE successE)
   apply (subst execute_bind, simp_all)
   done
 
-lemma crel_bindE [crel_elims]:
-  assumes "crel (f \<guillemotright>= g) h h'' r'"
-  obtains h' r where "crel f h h' r" "crel (g r) h' h'' r'"
-  using assms by (auto simp add: crel_def bind_def split: option.split_asm)
+lemma effect_bindE [effect_elims]:
+  assumes "effect (f \<guillemotright>= g) h h'' r'"
+  obtains h' r where "effect f h h' r" "effect (g r) h' h'' r'"
+  using assms by (auto simp add: effect_def bind_def split: option.split_asm)
 
 lemma execute_bind_eq_SomeI:
   assumes "execute f h = Some (x, h')"
@@ -343,14 +343,14 @@ lemma success_assertI [success_intros]:
   "P x \<Longrightarrow> success (assert P x) h"
   by (rule successI) (simp add: execute_assert)
 
-lemma crel_assertI [crel_intros]:
-  "P x \<Longrightarrow> h' = h \<Longrightarrow> r = x \<Longrightarrow> crel (assert P x) h h' r"
-  by (rule crelI) (simp add: execute_assert)
+lemma effect_assertI [effect_intros]:
+  "P x \<Longrightarrow> h' = h \<Longrightarrow> r = x \<Longrightarrow> effect (assert P x) h h' r"
+  by (rule effectI) (simp add: execute_assert)
  
-lemma crel_assertE [crel_elims]:
-  assumes "crel (assert P x) h h' r"
+lemma effect_assertE [effect_elims]:
+  assumes "effect (assert P x) h h' r"
   obtains "P x" "r = x" "h' = h"
-  using assms by (rule crelE) (cases "P x", simp_all add: execute_assert success_def)
+  using assms by (rule effectE) (cases "P x", simp_all add: execute_assert success_def)
 
 lemma assert_cong [fundef_cong]:
   assumes "P = P'"
