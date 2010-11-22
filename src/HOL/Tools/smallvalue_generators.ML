@@ -156,8 +156,8 @@ fun instantiate_smallvalue_datatype config descr vs tycos prfx (names, auxnames)
     fun pat_completeness_auto ctxt =
       Pat_Completeness.pat_completeness_tac ctxt 1
       THEN auto_tac (clasimpset_of ctxt)
-  in
-    (thy
+  in 
+    thy
     |> Class.instantiation (tycos, vs, @{sort full_small})
     |> Function.add_function
       (map (fn (T, (name, _)) =>
@@ -168,12 +168,11 @@ fun instantiate_smallvalue_datatype config descr vs tycos prfx (names, auxnames)
     |> Local_Theory.restore
     |> (fn lthy => Function.prove_termination NONE (termination_tac lthy) lthy)
     |> snd
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac [])))
-    handle FUNCTION_TYPE =>
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+  end handle FUNCTION_TYPE =>
     (Datatype_Aux.message config
       "Creation of smallvalue generators failed because the datatype contains a function type";
     thy)
-  end;
 
 (** building and compiling generator expressions **)
 
