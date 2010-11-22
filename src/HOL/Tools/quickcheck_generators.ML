@@ -391,7 +391,7 @@ fun compile_generator_expr ctxt t =
   let
     val Ts = (map snd o fst o strip_abs) t;
     val thy = ProofContext.theory_of ctxt
-  in if Quickcheck.report ctxt then
+  in if Config.get ctxt Quickcheck.report then
     let
       val t' = mk_reporting_generator_expr thy t Ts;
       val compile = Code_Runtime.dynamic_value_strict

@@ -206,7 +206,7 @@ fun compile_generator_expr ctxt t =
   let
     val Ts = (map snd o fst o strip_abs) t;
     val thy = ProofContext.theory_of ctxt
-  in if Quickcheck.report ctxt then
+  in if Config.get ctxt Quickcheck.report then
     error "Compilation with reporting facility is not supported"
   else
     let
