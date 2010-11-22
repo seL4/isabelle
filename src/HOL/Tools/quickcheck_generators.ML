@@ -12,7 +12,10 @@ sig
     -> seed -> (('a -> 'b) * (unit -> term)) * seed
   val perhaps_constrain: theory -> (typ * sort) list -> (string * sort) list
     -> (string * sort -> string * sort) option
-  val ensure_random_datatype: Datatype.config -> string list -> theory -> theory
+  val ensure_sort_datatype:
+    sort * (Datatype.config -> Datatype.descr -> (string * sort) list -> string list -> string ->
+      string list * string list -> typ list * typ list -> theory -> theory)
+    -> Datatype.config -> string list -> theory -> theory
   val compile_generator_expr:
     Proof.context -> term -> int -> term list option * (bool list * bool)
   val put_counterexample: (unit -> int -> seed -> term list option * seed)
@@ -279,29 +282,28 @@ fun perhaps_constrain thy insts raw_vs =
   in SOME (fn (v, _) => (v, (the o Vartab.lookup vtab) (v, 0)))
   end handle Sorts.CLASS_ERROR _ => NONE;
 
-fun ensure_random_datatype config raw_tycos thy =
+fun ensure_sort_datatype (sort, instantiate_datatype) config raw_tycos thy =
   let
     val algebra = Sign.classes_of thy;
     val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) =
       Datatype.the_descr thy raw_tycos;
     val typerep_vs = (map o apsnd)
       (curry (Sorts.inter_sort algebra) @{sort typerep}) raw_vs;
-    val random_insts = (map (rpair @{sort random}) o flat o maps snd o maps snd)
+    val sort_insts = (map (rpair sort) o flat o maps snd o maps snd)
       (Datatype_Aux.interpret_construction descr typerep_vs
         { atyp = single, dtyp = (K o K o K) [] });
     val term_of_insts = (map (rpair @{sort term_of}) o flat o maps snd o maps snd)
       (Datatype_Aux.interpret_construction descr typerep_vs
         { atyp = K [], dtyp = K o K });
     val has_inst = exists (fn tyco =>
-      can (Sorts.mg_domain algebra tyco) @{sort random}) tycos;
+      can (Sorts.mg_domain algebra tyco) sort) tycos;
   in if has_inst then thy
-    else case perhaps_constrain thy (random_insts @ term_of_insts) typerep_vs
-     of SOME constrain => instantiate_random_datatype config descr
+    else case perhaps_constrain thy (sort_insts @ term_of_insts) typerep_vs
+     of SOME constrain => instantiate_datatype config descr
           (map constrain typerep_vs) tycos prfx (names, auxnames)
             ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
       | NONE => thy
   end;
-
 
 (** building and compiling generator expressions **)
 
@@ -410,7 +412,7 @@ fun compile_generator_expr ctxt t =
 (** setup **)
 
 val setup =
-  Datatype.interpretation ensure_random_datatype
+  Datatype.interpretation (ensure_sort_datatype (@{sort random}, instantiate_random_datatype))
   #> Code_Target.extend_target (target, (Code_Runtime.target, K I))
   #> Context.theory_map
     (Quickcheck.add_generator ("random", compile_generator_expr));
