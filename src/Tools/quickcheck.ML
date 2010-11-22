@@ -205,8 +205,9 @@ fun test_term_small ctxt t =
    end
 
 (* we actually assume we know the generators and its behaviour *)
-fun is_iteratable "small" = false
+fun is_iteratable "SML" = true
   | is_iteratable "random" = true
+  | is_iteratable _ = false
   
 fun test_term ctxt generator_name t =
   let
