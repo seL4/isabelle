@@ -49,7 +49,7 @@ theorem "rev (rev xs) = xs"
   oops
 
 theorem "rev xs = xs"
-  quickcheck[generator = small]
+  quickcheck[generator = small, report = false]
   quickcheck[expect = counterexample]
   oops
 
@@ -61,12 +61,12 @@ primrec app :: "('a \<Rightarrow> 'a) list \<Rightarrow> 'a \<Rightarrow> 'a" wh
 
 lemma "app (fs @ gs) x = app gs (app fs x)"
   quickcheck[generator = random, expect = no_counterexample]
-  quickcheck[generator = small, iterations = 1, size = 4, expect = no_counterexample]
+  quickcheck[generator = small, iterations = 1, size = 4, report = false, expect = no_counterexample]
   by (induct fs arbitrary: x) simp_all
 
 lemma "app (fs @ gs) x = app fs (app gs x)"
   quickcheck[generator = random, expect = counterexample]
-  quickcheck[generator = small, expect = counterexample]
+  quickcheck[generator = small, report = false, expect = counterexample]
   oops
 
 primrec occurs :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
@@ -80,18 +80,18 @@ primrec del1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 text {* A lemma, you'd think to be true from our experience with delAll *}
 lemma "Suc (occurs a (del1 a xs)) = occurs a xs"
   -- {* Wrong. Precondition needed.*}
-  quickcheck[generator = small]
+  quickcheck[generator = small, report = false]
   quickcheck[expect = counterexample]
   oops
 
 lemma "xs ~= [] \<longrightarrow> Suc (occurs a (del1 a xs)) = occurs a xs"
-  quickcheck[generator = small]
+  quickcheck[generator = small, report = false]
   quickcheck[expect = counterexample]
     -- {* Also wrong.*}
   oops
 
 lemma "0 < occurs a xs \<longrightarrow> Suc (occurs a (del1 a xs)) = occurs a xs"
-  quickcheck[generator = small]
+  quickcheck[generator = small, report = false]
   quickcheck[expect = no_counterexample]
   by (induct xs) auto
 
@@ -101,13 +101,13 @@ primrec replace :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a l
                             else (x#(replace a b xs)))"
 
 lemma "occurs a xs = occurs b (replace a b xs)"
-  quickcheck[generator = small]
+  quickcheck[generator = small, report = false]
   quickcheck[expect = counterexample]
   -- {* Wrong. Precondition needed.*}
   oops
 
 lemma "occurs b xs = 0 \<or> a=b \<longrightarrow> occurs a xs = occurs b (replace a b xs)"
-  quickcheck[expect = no_counterexample]
+  quickcheck[expect = no_counterexample, report = false]
   by (induct xs) simp_all
 
 
@@ -150,7 +150,7 @@ primrec root :: "'a ntree \<Rightarrow> 'a" where
   | "root (Node f x y) = f"
 
 theorem "hd (inOrder xt) = root xt"
-  quickcheck[generator = small]
+  quickcheck[generator = small, report = false]
   quickcheck[expect = counterexample]
     --{* Wrong! *} 
   oops
@@ -163,7 +163,7 @@ where exhaustive testing beats random testing *}
 
 lemma
   "[] ~= xs ==> hd xs = last (x # xs)"
-quickcheck[generator = random]
+quickcheck[generator = random, report = false]
 quickcheck[generator = small, report = false, expect = counterexample]
 oops
 
@@ -183,55 +183,55 @@ oops
 lemma
   "i < n - m ==> f (lcm m i) = map f [m..<n] ! i"
 quickcheck[generator = random, iterations = 10000, report = false, quiet]
-quickcheck[generator = small, expect = counterexample]
+quickcheck[generator = small, finite_types = false, report = false, expect = counterexample]
 oops
 
 lemma
   "i < n - m ==> f (lcm m i) = map f [m..<n] ! i"
 quickcheck[generator = random, iterations = 1000, report = false, quiet]
-quickcheck[generator = small, expect = counterexample]
+quickcheck[generator = small, finite_types = false, report = false, expect = counterexample]
 oops
 
 lemma
   "ns ! k < length ns ==> k <= listsum ns"
 quickcheck[generator = random, iterations = 10000, report = true, quiet]
-quickcheck[generator = small, expect = counterexample]
+quickcheck[generator = small, report = false, expect = counterexample]
 oops
 
 lemma
   "[| ys = x # xs1; zs = xs1 @ xs |] ==> ys @ zs = x # xs"
 quickcheck[generator = random, iterations = 10000, report = true]
-quickcheck[generator = small, expect = counterexample]
+quickcheck[generator = small, report = false, expect = counterexample]
 oops
 
 lemma
 "i < length xs ==> take (Suc i) xs = [] @ xs ! i # take i xs"
 quickcheck[generator = random]
-quickcheck[generator = small, expect = counterexample]
+quickcheck[generator = small, report = false, expect = counterexample]
 oops
 
 lemma
   "i < length xs ==> take (Suc i) xs = (xs ! i # xs) @ take i []"
 quickcheck[generator = random]
-quickcheck[generator = small, expect = counterexample]
+quickcheck[generator = small, report = false, expect = counterexample]
 oops
 
 lemma
   "[| sorted (rev (map length xs)); i < length xs |] ==> xs ! i = map (%ys. ys ! i) [ys<-remdups xs. i < length ys]"
 quickcheck[generator = random]
-quickcheck[generator = small]
+quickcheck[generator = small, report = false]
 oops
 
 lemma
   "[| sorted (rev (map length xs)); i < length xs |] ==> xs ! i = map (%ys. ys ! i) [ys<-List.transpose xs. {..<i} (length ys)]"
 quickcheck[generator = random]
-quickcheck[generator = small, expect = counterexample]
+quickcheck[generator = small, report = false, expect = counterexample]
 oops
 
 lemma
   "(ys = zs) = (xs @ ys = splice xs zs)"
 quickcheck[generator = random]
-quickcheck[generator = small, expect = counterexample]
+quickcheck[generator = small, report = false, expect = counterexample]
 oops
 
 section {* Examples with quantifiers *}
