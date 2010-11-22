@@ -21,7 +21,10 @@ definition Const :: "String.literal \<Rightarrow> typerep \<Rightarrow> term" wh
 definition App :: "term \<Rightarrow> term \<Rightarrow> term" where
   "App _ _ = dummy_term"
 
-code_datatype Const App
+definition Abs :: "String.literal \<Rightarrow> typerep \<Rightarrow> term \<Rightarrow> term" where
+  "Abs _ _ _ = dummy_term"
+
+code_datatype Const App Abs
 
 class term_of = typerep +
   fixes term_of :: "'a \<Rightarrow> term"
@@ -124,8 +127,8 @@ lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def
 code_type "term"
   (Eval "Term.term")
 
-code_const Const and App
-  (Eval "Term.Const/ ((_), (_))" and "Term.$/ ((_), (_))")
+code_const Const and App and Abs
+  (Eval "Term.Const/ ((_), (_))" and "Term.$/ ((_), (_))" and "Term.Abs/ ((_), (_), (_))")
 
 code_const "term_of \<Colon> String.literal \<Rightarrow> term"
   (Eval "HOLogic.mk'_literal")
@@ -184,7 +187,7 @@ code_const "tracing :: String.literal => 'a => 'a"
   (Eval "Code'_Evaluation.tracing")
 
 
-hide_const dummy_term App valapp
-hide_const (open) Const termify valtermify term_of term_of_num tracing
+hide_const dummy_term valapp
+hide_const (open) Const App Abs termify valtermify term_of term_of_num tracing
 
 end
