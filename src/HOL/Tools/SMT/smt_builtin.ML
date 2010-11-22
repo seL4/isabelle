@@ -55,6 +55,7 @@ val builtins = Symtab.make [
   (@{const_name SMT.pat}, K true),
   (@{const_name SMT.nopat}, K true),
   (@{const_name SMT.trigger}, K true),
+  (@{const_name SMT.weight}, K true),
   (@{const_name SMT.fun_app}, K true),
   (@{const_name SMT.z3div}, K true),
   (@{const_name SMT.z3mod}, K true),

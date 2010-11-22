@@ -13,7 +13,7 @@ sig
     SVar of int |
     SApp of string * sterm list |
     SLet of string * sterm * sterm |
-    SQua of squant * string list * sterm spattern list * sterm
+    SQua of squant * string list * sterm spattern list * int option * sterm
 
   (* configuration options *)
   type prefixes = {sort_prefix: string, func_prefix: string}
@@ -65,7 +65,7 @@ datatype sterm =
   SVar of int |
   SApp of string * sterm list |
   SLet of string * sterm * sterm |
-  SQua of squant * string list * sterm spattern list * sterm
+  SQua of squant * string list * sterm spattern list * int option * sterm
 
 
 
@@ -119,6 +119,10 @@ fun group_quant qname Ts (t as Const (q, _) $ Abs (_, T, u)) =
       if q = qname then group_quant qname (T :: Ts) u else (Ts, t)
   | group_quant _ Ts t = (Ts, t)
 
+fun dest_weight (@{const SMT.weight} $ w $ t) =
+      (SOME (snd (HOLogic.dest_number w)), t)
+  | dest_weight t = (NONE, t)
+
 fun dest_pat (Const (@{const_name pat}, _) $ t) = (t, true)
   | dest_pat (Const (@{const_name nopat}, _) $ t) = (t, false)
   | dest_pat t = raise TERM ("dest_pat", [t])
@@ -137,8 +141,9 @@ fun dest_trigger (@{const trigger} $ tl $ t) =
 fun dest_quant qn T t = quantifier qn |> Option.map (fn q =>
   let
     val (Ts, u) = group_quant qn [T] t
-    val (ps, b) = dest_trigger u
-  in (q, rev Ts, ps, b) end)
+    val (ps, p) = dest_trigger u
+    val (w, b) = dest_weight p
+  in (q, rev Ts, ps, w, b) end)
 
 fun fold_map_pat f (SPat ts) = fold_map f ts #>> SPat
   | fold_map_pat f (SNoPat ts) = fold_map f ts #>> SNoPat
@@ -214,6 +219,9 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
       | (h as Free _, ts) => Term.list_comb (h, map in_term ts)
       | _ => t)
 
+    and in_weight ((c as @{const SMT.weight}) $ w $ t) = c $ w $ in_form t
+      | in_weight t = in_form t 
+
     and in_pat ((c as Const (@{const_name pat}, _)) $ t) = c $ in_term t
       | in_pat ((c as Const (@{const_name nopat}, _)) $ t) = c $ in_term t
       | in_pat t = raise TERM ("in_pat", [t])
@@ -221,8 +229,8 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
     and in_pats ps =
       in_list @{typ "pattern list"} (in_list @{typ pattern} in_pat) ps
 
-    and in_trig ((c as @{const trigger}) $ p $ t) = c $ in_pats p $ in_form t
-      | in_trig t = in_form t
+    and in_trig ((c as @{const trigger}) $ p $ t) = c $ in_pats p $ in_weight t
+      | in_trig t = in_weight t
 
     and in_form t =
       (case Term.strip_comb t of
@@ -366,9 +374,9 @@ fun translate {prefixes, strict, header, builtins, serialize} ctxt comments =
       (case Term.strip_comb t of
         (Const (qn, _), [Abs (_, T, t1)]) =>
           (case dest_quant qn T t1 of
-            SOME (q, Ts, ps, b) =>
+            SOME (q, Ts, ps, w, b) =>
               fold_map transT Ts ##>> fold_map (fold_map_pat trans) ps ##>>
-              trans b #>> (fn ((Ts', ps'), b') => SQua (q, Ts', ps', b'))
+              trans b #>> (fn ((Ts', ps'), b') => SQua (q, Ts', ps', w, b'))
           | NONE => raise TERM ("intermediate", [t]))
       | (Const (@{const_name Let}, _), [t1, Abs (_, T, t2)]) =>
           transT T ##>> trans t1 ##>> trans t2 #>>

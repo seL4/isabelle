@@ -142,7 +142,11 @@ local
   val remove_trigger = @{lemma "trigger t p == p"
     by (rule eq_reflection, rule trigger_def)}
 
-  val prep_rules = [@{thm Let_def}, remove_trigger, L.rewrite_true]
+  val remove_weight = @{lemma "weight w p == p"
+    by (rule eq_reflection, rule weight_def)}
+
+  val prep_rules = [@{thm Let_def}, remove_trigger, remove_weight,
+    L.rewrite_true]
 
   fun rewrite_conv ctxt eqs = Simplifier.full_rewrite
     (Simplifier.context ctxt Simplifier.empty_ss addsimps eqs)

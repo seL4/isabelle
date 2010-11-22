@@ -238,7 +238,7 @@ fun var i = add "?v" #> add (string_of_int i)
 fun sterm l (T.SVar i) = sep (var (l - i - 1))
   | sterm l (T.SApp (n, ts)) = app n (sterm l) ts
   | sterm _ (T.SLet _) = raise Fail "SMT-LIB: unsupported let expression"
-  | sterm l (T.SQua (q, ss, ps, t)) =
+  | sterm l (T.SQua (q, ss, ps, w, t)) =
       let
         val quant = add o (fn T.SForall => "forall" | T.SExists => "exists")
         val vs = map_index (apfst (Integer.add l)) ss
@@ -247,7 +247,12 @@ fun sterm l (T.SVar i) = sep (var (l - i - 1))
         fun pat kind ts = sep (add kind #> enclose "{" " }" (fold sub ts))
         fun pats (T.SPat ts) = pat ":pat" ts
           | pats (T.SNoPat ts) = pat ":nopat" ts
-      in par (quant q #> fold var_decl vs #> sub t #> fold pats ps) end
+        fun weight NONE = I
+          | weight (SOME i) =
+              sep (add ":weight { " #> add (string_of_int i) #> add " }")
+      in
+        par (quant q #> fold var_decl vs #> sub t #> fold pats ps #> weight w)
+      end
 
 fun ssort sorts = sort fast_string_ord sorts
 fun fsort funcs = sort (prod_ord fast_string_ord (K EQUAL)) funcs
