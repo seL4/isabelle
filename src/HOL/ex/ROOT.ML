@@ -67,7 +67,8 @@ use_thys [
   "Summation",
   "Gauge_Integration",
   "Dedekind_Real",
-  "Quicksort"
+  "Quicksort",
+  "Birthday_Paradoxon"
 ];
 
 HTML.with_charset "utf-8" (no_document use_thys)

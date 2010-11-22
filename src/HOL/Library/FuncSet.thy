@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/FuncSet.thy
-    Author:     Florian Kammueller and Lawrence C Paulson
+    Author:     Florian Kammueller and Lawrence C Paulson, Lukas Bulwahn
 *)
 
 header {* Pi and Function Sets *}
@@ -250,5 +250,159 @@ lemma card_bij:
   "[|f \<in> A\<rightarrow>B; inj_on f A;
      g \<in> B\<rightarrow>A; inj_on g B; finite A; finite B|] ==> card(A) = card(B)"
 by (blast intro: card_inj order_antisym)
+
+subsection {* Extensional Function Spaces *} 
+
+definition extensional_funcset
+where "extensional_funcset S T = (S -> T) \<inter> (extensional S)"
+
+lemma extensional_empty[simp]: "extensional {} = {%x. undefined}"
+unfolding extensional_def by (auto intro: ext)
+
+lemma extensional_funcset_empty_domain: "extensional_funcset {} T = {%x. undefined}"
+unfolding extensional_funcset_def by simp
+
+lemma extensional_funcset_empty_range:
+  assumes "S \<noteq> {}"
+  shows "extensional_funcset S {} = {}"
+using assms unfolding extensional_funcset_def by auto
+
+lemma extensional_funcset_arb:
+  assumes "f \<in> extensional_funcset S T" "x \<notin> S"
+  shows "f x = undefined"
+using assms
+unfolding extensional_funcset_def by auto (auto dest!: extensional_arb)
+
+lemma extensional_funcset_mem: "f \<in> extensional_funcset S T \<Longrightarrow> x \<in> S \<Longrightarrow> f x \<in> T"
+unfolding extensional_funcset_def by auto
+
+lemma extensional_subset: "f : extensional A ==> A <= B ==> f : extensional B"
+unfolding extensional_def by auto
+
+lemma extensional_funcset_extend_domainI: "\<lbrakk> y \<in> T; f \<in> extensional_funcset S T\<rbrakk> \<Longrightarrow> f(x := y) \<in> extensional_funcset (insert x S) T"
+unfolding extensional_funcset_def extensional_def by auto
+
+lemma extensional_funcset_restrict_domain:
+  "x \<notin> S \<Longrightarrow> f \<in> extensional_funcset (insert x S) T \<Longrightarrow> f(x := undefined) \<in> extensional_funcset S T"
+unfolding extensional_funcset_def extensional_def by auto
+
+lemma extensional_funcset_extend_domain_eq:
+  assumes "x \<notin> S"
+  shows
+    "extensional_funcset (insert x S) T = (\<lambda>(y, g). g(x := y)) ` {(y, g). y \<in> T \<and> g \<in> extensional_funcset S T}"
+  using assms
+proof -
+  {
+    fix f
+    assume "f : extensional_funcset (insert x S) T"
+    from this assms have "f : (%(y, g). g(x := y)) ` (T <*> extensional_funcset S T)"
+      unfolding image_iff
+      apply (rule_tac x="(f x, f(x := undefined))" in bexI)
+    apply (auto intro: extensional_funcset_extend_domainI extensional_funcset_restrict_domain extensional_funcset_mem) done 
+  }
+  moreover
+  {
+    fix f
+    assume "f : (%(y, g). g(x := y)) ` (T <*> extensional_funcset S T)"
+    from this assms have "f : extensional_funcset (insert x S) T"
+      by (auto intro: extensional_funcset_extend_domainI)
+  }
+  ultimately show ?thesis by auto
+qed
+
+lemma extensional_funcset_fun_upd_restricts_rangeI:  "\<forall> y \<in> S. f x \<noteq> f y ==> f : extensional_funcset (insert x S) T ==> f(x := undefined) : extensional_funcset S (T - {f x})"
+unfolding extensional_funcset_def extensional_def
+apply auto
+apply (case_tac "x = xa")
+apply auto done
+
+lemma extensional_funcset_fun_upd_extends_rangeI:
+  assumes "a \<in> T" "f : extensional_funcset S (T - {a})"
+  shows "f(x := a) : extensional_funcset (insert x S) T"
+  using assms unfolding extensional_funcset_def extensional_def by auto
+
+subsubsection {* Injective Extensional Function Spaces *}
+
+lemma extensional_funcset_fun_upd_inj_onI:
+  assumes "f \<in> extensional_funcset S (T - {a})" "inj_on f S"
+  shows "inj_on (f(x := a)) S"
+  using assms unfolding extensional_funcset_def by (auto intro!: inj_on_fun_updI)
+
+lemma extensional_funcset_extend_domain_inj_on_eq:
+  assumes "x \<notin> S"
+  shows"{f. f \<in> extensional_funcset (insert x S) T \<and> inj_on f (insert x S)} =
+    (%(y, g). g(x:=y)) ` {(y, g). y \<in> T \<and> g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S}"
+proof -
+  from assms show ?thesis
+    apply auto
+    apply (auto intro: extensional_funcset_fun_upd_inj_onI extensional_funcset_fun_upd_extends_rangeI)
+    apply (auto simp add: image_iff inj_on_def)
+    apply (rule_tac x="xa x" in exI)
+    apply (auto intro: extensional_funcset_mem)
+    apply (rule_tac x="xa(x := undefined)" in exI)
+    apply (auto intro!: extensional_funcset_fun_upd_restricts_rangeI)
+    apply (auto dest!: extensional_funcset_mem split: split_if_asm)
+    done
+qed
+
+lemma extensional_funcset_extend_domain_inj_onI:
+  assumes "x \<notin> S"
+  shows "inj_on (\<lambda>(y, g). g(x := y)) {(y, g). y \<in> T \<and> g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S}"
+proof -
+  from assms show ?thesis
+    apply (auto intro!: inj_onI)
+    apply (metis fun_upd_same)
+    by (metis assms extensional_funcset_arb fun_upd_triv fun_upd_upd)
+qed
+  
+
+subsubsection {* Cardinality *}
+
+lemma card_extensional_funcset:
+  assumes "finite S"
+  shows "card (extensional_funcset S T) = (card T) ^ (card S)"
+using assms
+proof (induct rule: finite_induct)
+  case empty
+  show ?case
+    by (auto simp add: extensional_funcset_empty_domain)
+next
+  case (insert x S)
+  {
+    fix g g' y y'
+    assume assms: "g \<in> extensional_funcset S T"
+      "g' \<in> extensional_funcset S T"
+      "y \<in> T" "y' \<in> T"
+      "g(x := y) = g'(x := y')"
+    from this have "y = y'"
+      by (metis fun_upd_same)
+    have "g = g'"
+      by (metis assms(1) assms(2) assms(5) extensional_funcset_arb fun_upd_triv fun_upd_upd insert(2))
+  from `y = y'` `g = g'` have "y = y' & g = g'" by simp
+  }
+  from this have "inj_on (\<lambda>(y, g). g (x := y)) (T \<times> extensional_funcset S T)"
+    by (auto intro: inj_onI)
+  from this insert.hyps show ?case
+    by (simp add: extensional_funcset_extend_domain_eq card_image card_cartesian_product)
+qed
+
+lemma finite_extensional_funcset:
+  assumes "finite S" "finite T"
+  shows "finite (extensional_funcset S T)"
+proof -
+  from card_extensional_funcset[OF assms(1), of T] assms(2)
+  have "(card (extensional_funcset S T) \<noteq> 0) \<or> (S \<noteq> {} \<and> T = {})"
+    by auto
+  from this show ?thesis
+  proof
+    assume "card (extensional_funcset S T) \<noteq> 0"
+    from this show ?thesis
+      by (auto intro: card_ge_0_finite)
+  next
+    assume "S \<noteq> {} \<and> T = {}"
+    from this show ?thesis
+      by (auto simp add: extensional_funcset_empty_range)
+  qed
+qed
 
 end

@@ -246,6 +246,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Divides.thy \
   DSequence.thy \
   Equiv_Relations.thy \
+  Enum.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
   Int.thy \
@@ -416,7 +417,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Code_Prolog.thy Tools/Predicate_Compile/code_prolog.ML	\
   Library/ContNotDenum.thy Library/Continuity.thy Library/Convex.thy	\
   Library/Countable.thy Library/Diagonalize.thy Library/Dlist.thy	\
-  Library/Efficient_Nat.thy Library/Enum.thy Library/Eval_Witness.thy	\
+  Library/Efficient_Nat.thy Library/Eval_Witness.thy 			\
   Library/Executable_Set.thy Library/Float.thy				\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
   Library/FrechetDeriv.thy Library/Cset.thy Library/FuncSet.thy		\
@@ -1016,7 +1017,8 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   Number_Theory/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
   ex/Arith_Examples.thy ex/Arithmetic_Series_Complex.thy ex/BT.thy	\
-  ex/BinEx.thy ex/Binary.thy ex/CTL.thy ex/Chinese.thy			\
+  ex/BinEx.thy ex/Binary.thy ex/Birthday_Paradoxon.thy ex/CTL.thy   \
+  ex/Chinese.thy \
   ex/Classical.thy ex/CodegenSML_Test.thy ex/Coercion_Examples.thy	\
   ex/Coherent.thy ex/Dedekind_Real.thy ex/Efficient_Nat_examples.thy	\
   ex/Eval_Examples.thy ex/Fundefs.thy ex/Gauge_Integration.thy		\
@@ -1294,7 +1296,8 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy	\
   Mirabelle/Tools/mirabelle_metis.ML					\
   Mirabelle/Tools/mirabelle_quickcheck.ML				\
   Mirabelle/Tools/mirabelle_refute.ML					\
-  Mirabelle/Tools/mirabelle_sledgehammer.ML
+  Mirabelle/Tools/mirabelle_sledgehammer.ML 				\
+  Mirabelle/Tools/sledgehammer_tactic.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle
 
 

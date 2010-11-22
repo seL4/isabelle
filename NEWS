@@ -92,6 +92,9 @@ and type constructors.
 * Renamed theory Fset to Cset, type Fset.fset to Cset.set, in order to
 avoid confusion with finite sets.  INCOMPATIBILITY.
 
+* Quickcheck's generator for random generation is renamed from "code" to
+"random". INCOMPATIBILITY. 
+
 * Theory Multiset provides stable quicksort implementation of sort_key.
 
 * Quickcheck now has a configurable time limit which is set to 30 seconds

@@ -3,7 +3,7 @@
 header {* Finite types as explicit enumerations *}
 
 theory Enum
-imports Map Main
+imports Map String
 begin
 
 subsection {* Class @{text enum} *}
@@ -50,6 +50,10 @@ lemma [code nbe]:
   "HOL.equal (f :: _ \<Rightarrow> _) f \<longleftrightarrow> True"
   by (fact equal_refl)
 
+lemma [code]:
+  "HOL.equal f g \<longleftrightarrow>  list_all (%x. f x = g x) enum"
+by (auto simp add: list_all_iff enum_all equal fun_eq_iff)
+
 lemma order_fun [code]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
   shows "f \<le> g \<longleftrightarrow> list_all (\<lambda>x. f x \<le> g x) enum"
@@ -64,6 +68,9 @@ lemma all_code [code]: "(\<forall>x. P x) \<longleftrightarrow> list_all P enum"
 
 lemma exists_code [code]: "(\<exists>x. P x) \<longleftrightarrow> list_ex P enum"
   by (simp add: list_ex_iff enum_all)
+
+lemma exists1_code[code]: "(\<exists>!x. P x) \<longleftrightarrow> list_ex1 P enum"
+unfolding list_ex1_iff enum_all by auto
 
 
 subsection {* Default instances *}
@@ -304,5 +311,148 @@ instance proof
 qed (auto simp add: enum_all enum_option_def, rule option.exhaust, auto intro: simp add: distinct_map enum_distinct)
 
 end
+
+subsection {* Small finite types *}
+
+text {* We define small finite types for the use in Quickcheck *}
+
+datatype finite_1 = a\<^isub>1
+
+instantiation finite_1 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1]"
+
+instance proof
+qed (auto simp add: enum_finite_1_def intro: finite_1.exhaust)
+
+end
+
+instantiation finite_1 :: linorder
+begin
+
+definition less_eq_finite_1 :: "finite_1 \<Rightarrow> finite_1 \<Rightarrow> bool"
+where
+  "less_eq_finite_1 x y = True"
+
+definition less_finite_1 :: "finite_1 \<Rightarrow> finite_1 \<Rightarrow> bool"
+where
+  "less_finite_1 x y = False"
+
+instance
+apply (intro_classes)
+apply (auto simp add: less_finite_1_def less_eq_finite_1_def)
+apply (metis finite_1.exhaust)
+done
+
+end
+
+hide_const a\<^isub>1
+
+datatype finite_2 = a\<^isub>1 | a\<^isub>2
+
+instantiation finite_2 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1, a\<^isub>2]"
+
+instance proof
+qed (auto simp add: enum_finite_2_def intro: finite_2.exhaust)
+
+end
+
+instantiation finite_2 :: linorder
+begin
+
+definition less_finite_2 :: "finite_2 \<Rightarrow> finite_2 \<Rightarrow> bool"
+where
+  "less_finite_2 x y = ((x = a\<^isub>1) & (y = a\<^isub>2))"
+
+definition less_eq_finite_2 :: "finite_2 \<Rightarrow> finite_2 \<Rightarrow> bool"
+where
+  "less_eq_finite_2 x y = ((x = y) \<or> (x < y))"
+
+
+instance
+apply (intro_classes)
+apply (auto simp add: less_finite_2_def less_eq_finite_2_def)
+apply (metis finite_2.distinct finite_2.nchotomy)+
+done
+
+end
+
+hide_const a\<^isub>1 a\<^isub>2
+
+
+datatype finite_3 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3
+
+instantiation finite_3 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3]"
+
+instance proof
+qed (auto simp add: enum_finite_3_def intro: finite_3.exhaust)
+
+end
+
+instantiation finite_3 :: linorder
+begin
+
+definition less_finite_3 :: "finite_3 \<Rightarrow> finite_3 \<Rightarrow> bool"
+where
+  "less_finite_3 x y = (case x of a\<^isub>1 => (y \<noteq> a\<^isub>1)
+     | a\<^isub>2 => (y = a\<^isub>3)| a\<^isub>3 => False)"
+
+definition less_eq_finite_3 :: "finite_3 \<Rightarrow> finite_3 \<Rightarrow> bool"
+where
+  "less_eq_finite_3 x y = ((x = y) \<or> (x < y))"
+
+
+instance proof (intro_classes)
+qed (auto simp add: less_finite_3_def less_eq_finite_3_def split: finite_3.split_asm)
+
+end
+
+hide_const a\<^isub>1 a\<^isub>2 a\<^isub>3
+
+
+datatype finite_4 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4
+
+instantiation finite_4 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4]"
+
+instance proof
+qed (auto simp add: enum_finite_4_def intro: finite_4.exhaust)
+
+end
+
+hide_const a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4
+
+
+datatype finite_5 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4 | a\<^isub>5
+
+instantiation finite_5 :: enum
+begin
+
+definition
+  "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4, a\<^isub>5]"
+
+instance proof
+qed (auto simp add: enum_finite_5_def intro: finite_5.exhaust)
+
+end
+
+hide_const a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4 a\<^isub>5
+
+
+hide_type finite_1 finite_2 finite_3 finite_4 finite_5
+hide_const (open) enum n_lists product
 
 end

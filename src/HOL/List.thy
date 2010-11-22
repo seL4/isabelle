@@ -4877,6 +4877,10 @@ definition list_all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
 definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
   list_ex_iff [code_post]: "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
 
+definition list_ex1
+where
+  list_ex1_iff: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. x \<in> set xs \<and> P x)"
+
 text {*
   Usually you should prefer @{text "\<forall>x\<in>set xs"} and @{text "\<exists>x\<in>set xs"}
   over @{const list_all} and @{const list_ex} in specifications.
@@ -4891,6 +4895,11 @@ lemma list_ex_simps [simp, code]:
   "list_ex P (x # xs) \<longleftrightarrow> P x \<or> list_ex P xs"
   "list_ex P [] \<longleftrightarrow> False"
   by (simp_all add: list_ex_iff)
+
+lemma list_ex1_simps [simp, code]:
+  "list_ex1 P [] = False"
+  "list_ex1 P (x # xs) = (if P x then list_all (\<lambda>y. \<not> P y \<or> x = y) xs else list_ex1 P xs)"
+unfolding list_ex1_iff list_all_iff by auto
 
 lemma Ball_set_list_all [code_unfold]:
   "Ball (set xs) P \<longleftrightarrow> list_all P xs"
