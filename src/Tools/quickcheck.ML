@@ -87,10 +87,12 @@ val (no_assms, setup_no_assms) = Attrib.config_bool "quickcheck_no_assms" (K fal
 val (report, setup_report) = Attrib.config_bool "quickcheck_report" (K true)
 val (quiet, setup_quiet) = Attrib.config_bool "quickcheck_quiet" (K false)
 val (timeout, setup_timeout) = Attrib.config_real "quickcheck_timeout" (K 30.0)
+val (finite_types, setup_finite_types) = Attrib.config_bool "quickcheck_finite_types" (K true)
 
 val setup_config =
   setup_size #> setup_iterations #> setup_no_assms #> setup_report #> setup_quiet #> setup_timeout
-  
+    #> setup_finite_types
+
 datatype test_params = Test_Params of
   {default_type: typ list, expect : expectation};
 
@@ -392,6 +394,7 @@ fun parse_test_param ("size", [arg]) = Config.put_generic size (read_nat arg)
   | parse_test_param ("report", [arg]) = Config.put_generic report (read_bool arg)
   | parse_test_param ("quiet", [arg]) = Config.put_generic quiet (read_bool arg)
   | parse_test_param ("timeout", [arg]) = Config.put_generic timeout (read_real arg)
+  | parse_test_param ("finite_types", [arg]) = Config.put_generic finite_types (read_bool arg)
   | parse_test_param (name, _) = error ("Unknown test parameter: " ^ name);
 
 fun parse_test_param_inst ("generator", [arg]) ((generator, insts), ctxt) =
