@@ -27,6 +27,8 @@ sig
     string * (Proof.context -> term -> int -> term list option * (bool list * bool))
       -> Context.generic -> Context.generic
   (* testing terms and proof states *)
+  val test_term_small: Proof.context -> term ->
+    (string * term) list option * ((string * int) list * ((int * report list) list) option)
   val test_term: Proof.context -> string option -> term ->
     (string * term) list option * ((string * int) list * ((int * report list) list) option)
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
@@ -196,6 +198,34 @@ fun cpu_time description f =
     val result = Exn.capture f ()
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
+
+fun test_term_small ctxt t =
+  let
+    val (names, t') = prep_test_term t;
+    val current_size = Unsynchronized.ref 0
+    fun excipit s =
+      "Quickcheck " ^ s ^ " while testing at size " ^ string_of_int (!current_size)
+    val (tester, comp_time) = cpu_time "compilation"
+      (fn () => the (AList.lookup (op =) ((fst o Data.get o Context.Proof) ctxt) "small") ctxt t');
+    val empty_report = Report { iterations = 0, raised_match_errors = 0,
+      satisfied_assms = [], positive_concl_tests = 0 }
+    fun with_size k timings =
+      if k > size ctxt then (NONE, timings)
+      else
+         let
+           val _ = if quiet ctxt then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
+           val _ = current_size := k
+           val (result, timing) = cpu_time ("size " ^ string_of_int k) (fn () => (fst (tester k)) handle Match => (if quiet ctxt then ()
+             else warning "Exception Match raised during quickcheck"; NONE))
+        in
+          case result of
+            NONE => with_size (k + 1) (timing :: timings)
+          | SOME q => (SOME q, (timing :: timings))
+        end;
+     val result = with_size 1 [comp_time]
+   in
+     apsnd (rpair NONE) (apfst (Option.map (curry (op ~~) names)) result)
+   end
 
 fun test_term ctxt generator_name t =
   let
