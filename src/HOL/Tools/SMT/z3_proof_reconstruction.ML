@@ -18,6 +18,7 @@ struct
 structure P = Z3_Proof_Parser
 structure T = Z3_Proof_Tools
 structure L = Z3_Proof_Literals
+structure M = Z3_Proof_Methods
 
 fun z3_exn msg = raise SMT_Failure.SMT (SMT_Failure.Other_Failure
   ("Z3 proof reconstruction: " ^ msg))
@@ -684,7 +685,7 @@ local
   val prove_conj_disj_eq = T.with_conv unfold_conv L.prove_conj_disj_eq
 in
 
-fun rewrite ctxt simpset ths = Thm o with_conv ctxt ths (try_apply ctxt [] [
+fun rewrite' ctxt simpset ths = Thm o with_conv ctxt ths (try_apply ctxt [] [
   named ctxt "conj/disj/distinct" prove_conj_disj_eq,
   T.by_abstraction (true, false) ctxt [] (fn ctxt' => T.by_tac (
     NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
@@ -698,7 +699,17 @@ fun rewrite ctxt simpset ths = Thm o with_conv ctxt ths (try_apply ctxt [] [
     NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
     THEN_ALL_NEW (
       NAMED ctxt' "fast (full)" (Classical.fast_tac HOL_cs)
-      ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt'))))])
+      ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt')))),
+  named ctxt "injectivity" (M.prove_injectivity ctxt)])
+
+fun rewrite simpset thms ct ctxt = (* FIXME: join with rewrite' *)
+  let
+    val thm = rewrite' ctxt simpset thms ct
+    val ord = Term_Ord.fast_term_ord o pairself Thm.term_of
+    val chyps = fold (Ord_List.union ord o #hyps o Thm.crep_thm o thm_of) thms []
+    val new_chyps = Ord_List.subtract ord chyps (#hyps (Thm.crep_thm (thm_of thm)))
+    val (_, ctxt') = Assumption.add_assumes new_chyps ctxt
+  in (thm, ctxt') end
 
 end
 
@@ -789,9 +800,8 @@ local
       (* theory rules *)
     | (P.ThLemma _, _) =>  (* FIXME: use arguments *)
         (th_lemma cx simpset (map (thm_of o fst) ps) ct, cxp)
-    | (P.Rewrite, _) => (rewrite cx simpset [] ct, cxp)
-    | (P.RewriteStar, ps) =>
-        (rewrite cx simpset (map fst ps) ct, cxp)
+    | (P.Rewrite, _) => rewrite simpset [] ct cx ||> rpair ptab
+    | (P.RewriteStar, ps) => rewrite simpset (map fst ps) ct cx ||> rpair ptab
 
     | (P.NnfStar, _) => not_supported r
     | (P.CnfStar, _) => not_supported r

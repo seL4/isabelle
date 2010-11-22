@@ -29,6 +29,7 @@ end
 structure Z3_Proof_Parser: Z3_PROOF_PARSER =
 struct
 
+structure U = SMT_Utils
 structure I = Z3_Interface
 
 
@@ -134,10 +135,11 @@ local
           SOME cv => cv
         | _ => Thm.cterm_of thy (Var ((Name.uu, maxidx_of ct + 1), T)))
       fun dec (i, v) = if i = 0 then NONE else SOME (i-1, v)
-    in (Thm.capply (I.instT' cv q) (Thm.cabs cv ct), map_filter dec vars) end
+    in (Thm.capply (U.instT' cv q) (Thm.cabs cv ct), map_filter dec vars) end
 
-  val forall = I.mk_inst_pair (I.destT1 o I.destT1) @{cpat All}
-  val exists = I.mk_inst_pair (I.destT1 o I.destT1) @{cpat Ex}
+  fun quant name = U.mk_const_pat @{theory} name (U.destT1 o U.destT1)
+  val forall = quant @{const_name All}
+  val exists = quant @{const_name Ex}
 in
 fun mk_forall thy = fold_rev (mk_quant thy forall)
 fun mk_exists thy = fold_rev (mk_quant thy exists)

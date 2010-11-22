@@ -21,15 +21,12 @@ sig
   val mk_builtin_fun: Proof.context -> sym -> cterm list -> cterm option
 
   val is_builtin_theory_term: Proof.context -> term -> bool
-
-  val mk_inst_pair: (ctyp -> 'a) -> cterm -> 'a * cterm
-  val destT1: ctyp -> ctyp
-  val destT2: ctyp -> ctyp
-  val instT': cterm -> ctyp * cterm -> cterm
 end
 
 structure Z3_Interface: Z3_INTERFACE =
 struct
+
+structure U = SMT_Utils
 
 
 (** Z3-specific builtins **)
@@ -163,13 +160,6 @@ fun mk_builtin_num _ i @{typ int} = SOME (Numeral.mk_cnumber @{ctyp int} i)
   | mk_builtin_num ctxt i T =
       chained_mk_builtin_num ctxt (get_mk_builtins ctxt) i T
 
-fun instTs cUs (cTs, ct) = Thm.instantiate_cterm (cTs ~~ cUs, []) ct
-fun instT cU (cT, ct) = instTs [cU] ([cT], ct)
-fun instT' ct = instT (Thm.ctyp_of_term ct)
-fun mk_inst_pair destT cpat = (destT (Thm.ctyp_of_term cpat), cpat)
-val destT1 = hd o Thm.dest_ctyp
-val destT2 = hd o tl o Thm.dest_ctyp
-
 val mk_true = Thm.cterm_of @{theory} (@{const Not} $ @{const False})
 val mk_false = Thm.cterm_of @{theory} @{const False}
 val mk_not = Thm.capply (Thm.cterm_of @{theory} @{const Not})
@@ -181,31 +171,34 @@ val disj = Thm.cterm_of @{theory} @{const HOL.disj}
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-val eq = mk_inst_pair destT1 @{cpat HOL.eq}
-fun mk_eq ct cu = Thm.mk_binop (instT' ct eq) ct cu
+val eq = U.mk_const_pat @{theory} @{const_name HOL.eq} U.destT1
+fun mk_eq ct cu = Thm.mk_binop (U.instT' ct eq) ct cu
 
-val if_term = mk_inst_pair (destT1 o destT2) @{cpat If}
-fun mk_if cc ct cu = Thm.mk_binop (Thm.capply (instT' ct if_term) cc) ct cu
+val if_term = U.mk_const_pat @{theory} @{const_name If} (U.destT1 o U.destT2)
+fun mk_if cc ct cu = Thm.mk_binop (Thm.capply (U.instT' ct if_term) cc) ct cu
 
-val nil_term = mk_inst_pair destT1 @{cpat Nil}
-val cons_term = mk_inst_pair destT1 @{cpat Cons}
+val nil_term = U.mk_const_pat @{theory} @{const_name Nil} U.destT1
+val cons_term = U.mk_const_pat @{theory} @{const_name Cons} U.destT1
 fun mk_list cT cts =
-  fold_rev (Thm.mk_binop (instT cT cons_term)) cts (instT cT nil_term)
+  fold_rev (Thm.mk_binop (U.instT cT cons_term)) cts (U.instT cT nil_term)
 
-val distinct = mk_inst_pair (destT1 o destT1) @{cpat SMT.distinct}
+val distinct = U.mk_const_pat @{theory} @{const_name SMT.distinct}
+  (U.destT1 o U.destT1)
 fun mk_distinct [] = mk_true
   | mk_distinct (cts as (ct :: _)) =
-      Thm.capply (instT' ct distinct) (mk_list (Thm.ctyp_of_term ct) cts)
+      Thm.capply (U.instT' ct distinct) (mk_list (Thm.ctyp_of_term ct) cts)
 
-val access = mk_inst_pair (Thm.dest_ctyp o destT1) @{cpat fun_app}
+val access = U.mk_const_pat @{theory} @{const_name fun_app}
+  (Thm.dest_ctyp o U.destT1)
 fun mk_access array index =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_term array)
-  in Thm.mk_binop (instTs cTs access) array index end
+  in Thm.mk_binop (U.instTs cTs access) array index end
 
-val update = mk_inst_pair (Thm.dest_ctyp o destT1) @{cpat fun_upd}
+val update = U.mk_const_pat @{theory} @{const_name fun_upd}
+  (Thm.dest_ctyp o U.destT1)
 fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_term array)
-  in Thm.capply (Thm.mk_binop (instTs cTs update) array index) value end
+  in Thm.capply (Thm.mk_binop (U.instTs cTs update) array index) value end
 
 val mk_uminus = Thm.capply (Thm.cterm_of @{theory} @{const uminus (int)})
 val mk_add = Thm.mk_binop (Thm.cterm_of @{theory} @{const plus (int)})

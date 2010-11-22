@@ -47,6 +47,7 @@ end
 structure Z3_Proof_Tools: Z3_PROOF_TOOLS =
 struct
 
+structure U = SMT_Utils
 structure I = Z3_Interface
 
 
@@ -60,10 +61,7 @@ fun prop_of thm = dest_prop (Thm.prop_of thm)
 
 val mk_prop = Thm.capply (Thm.cterm_of @{theory} @{const Trueprop})
 
-val eq = I.mk_inst_pair I.destT1 @{cpat "op =="}
-fun mk_meta_eq_cterm ct cu = Thm.mk_binop (I.instT' ct eq) ct cu
-
-fun as_meta_eq ct = uncurry mk_meta_eq_cterm (Thm.dest_binop (Thm.dest_arg ct))
+fun as_meta_eq ct = uncurry U.mk_cequals (Thm.dest_binop (Thm.dest_arg ct))
 
 
 
@@ -112,7 +110,7 @@ fun make_hyp_def thm ctxt =
   let
     val (lhs, rhs) = Thm.dest_binop (Thm.cprem_of thm 1)
     val (cf, cvs) = Drule.strip_comb lhs
-    val eq = mk_meta_eq_cterm cf (fold_rev Thm.cabs cvs rhs)
+    val eq = U.mk_cequals cf (fold_rev Thm.cabs cvs rhs)
     fun apply cv th =
       Thm.combination th (Thm.reflexive cv)
       |> Conv.fconv_rule (Conv.arg_conv (Thm.beta_conversion false))

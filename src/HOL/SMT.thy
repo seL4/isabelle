@@ -10,6 +10,7 @@ uses
   "Tools/Datatype/datatype_selectors.ML"
   "Tools/SMT/smt_failure.ML"
   "Tools/SMT/smt_config.ML"
+  "Tools/SMT/smt_utils.ML"
   "Tools/SMT/smt_monomorph.ML"
   ("Tools/SMT/smt_builtin.ML")
   ("Tools/SMT/smt_normalize.ML")
@@ -19,6 +20,7 @@ uses
   ("Tools/SMT/z3_proof_parser.ML")
   ("Tools/SMT/z3_proof_tools.ML")
   ("Tools/SMT/z3_proof_literals.ML")
+  ("Tools/SMT/z3_proof_methods.ML")
   ("Tools/SMT/z3_proof_reconstruction.ML")
   ("Tools/SMT/z3_model.ML")
   ("Tools/SMT/z3_interface.ML")
@@ -137,6 +139,7 @@ use "Tools/SMT/z3_interface.ML"
 use "Tools/SMT/z3_proof_parser.ML"
 use "Tools/SMT/z3_proof_tools.ML"
 use "Tools/SMT/z3_proof_literals.ML"
+use "Tools/SMT/z3_proof_methods.ML"
 use "Tools/SMT/z3_proof_reconstruction.ML"
 use "Tools/SMT/z3_model.ML"
 use "Tools/SMT/smt_setup_solvers.ML"
