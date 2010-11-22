@@ -134,36 +134,21 @@ fun mk_equations thy descr vs tycos (names, auxnames) (Ts, Us) =
   end
     
 val less_int_pred = @{lemma "i > 0 ==> Code_Numeral.nat_of ((i :: code_numeral) - 1) < Code_Numeral.nat_of i" by auto}
-
-fun gen_inst_state_tac ctxt rel st =
-  case Term.add_vars (prop_of st) [] of
-    [v as (_, T)] =>
-      let
-        val cert = Thm.cterm_of (ProofContext.theory_of ctxt)
-        val rel' = cert rel
-        val st' = Thm.incr_indexes (#maxidx (Thm.rep_cterm rel') + 1) st (*FIXME??*)
-      in        
-        PRIMITIVE (Drule.cterm_instantiate [(cert (Var v), rel')]) st'
-      end
-  | _ => Seq.empty;
   
 fun instantiate_smallvalue_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = Datatype_Aux.message config "Creating smallvalue generators ...";
     val eqs = mk_equations thy descr vs tycos (names, auxnames) (Ts, Us)
-    fun my_relation_tac ctxt st =
+    fun mk_single_measure T = mk_fun_comp (@{term "Code_Numeral.nat_of"},
+      Const (@{const_name "Product_Type.snd"}, T --> @{typ "code_numeral"}))
+    fun mk_termination_measure T =
       let
-        val ((_ $ (_ $ rel)) :: tl) = prems_of st
-        val domT = (HOLogic.dest_setT (fastype_of rel))
-        fun mk_single_measure T = mk_fun_comp (@{term "Code_Numeral.nat_of"},
-            Const (@{const_name "Product_Type.snd"}, T --> @{typ "code_numeral"}))
-        val measure = mk_measure (mk_sumcases @{typ nat} mk_single_measure domT)
+        val T' = fst (HOLogic.dest_prodT (HOLogic.dest_setT T))
       in
-        (Function_Common.apply_termination_rule ctxt 1
-        THEN gen_inst_state_tac ctxt measure) st
+        mk_measure (mk_sumcases @{typ nat} mk_single_measure T')
       end
     fun termination_tac ctxt = 
-      my_relation_tac ctxt
+      Function_Relation.relation_tac ctxt mk_termination_measure 1
       THEN rtac @{thm wf_measure} 1
       THEN (REPEAT_DETERM (Simplifier.asm_full_simp_tac 
         (HOL_basic_ss addsimps [@{thm in_measure}, @{thm o_def}, @{thm snd_conv},
