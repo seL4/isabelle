@@ -21,8 +21,8 @@ fun run_atp force_full_types timeout i n ctxt goal name =
       ((if force_full_types then [("full_types", "true")] else [])
        @ [("timeout", Int.toString (Time.toMilliseconds timeout) ^ " ms")])
 (*      @ [("overlord", "true")] *)
-      |> Sledgehammer_Isar.default_params thy
-    val prover = Sledgehammer.get_prover_fun thy name
+      |> Sledgehammer_Isar.default_params ctxt
+    val prover = Sledgehammer.get_prover thy false name
     val facts = []
     (* Check for constants other than the built-in HOL constants. If none of
        them appear (as should be the case for TPTP problems, unless "auto" or
@@ -32,8 +32,8 @@ fun run_atp force_full_types timeout i n ctxt goal name =
                                       not (String.isSubstring "HOL" s))
                         (prop_of goal))
     val problem =
-      {state = Proof.init ctxt, goal = goal, subgoal = i, axioms = [],
-       only = true}
+      {state = Proof.init ctxt, goal = goal, subgoal = i, facts = [],
+       only = true, subgoal_count = n}
   in
     prover params (K "") problem |> #message
     handle ERROR message => "Error: " ^ message ^ "\n"
@@ -47,7 +47,7 @@ fun to_period ("." :: _) = []
 val extract_metis_facts =
   space_explode " "
   #> fold (maps o space_explode) ["(", ")", Symbol.ENQ, Symbol.ACK, "\n"]
-  #> Library.dropwhile (not o member (op =) ["metis", "metisFT"])
+  #> fst o chop_while (not o member (op =) ["metis", "metisFT"])
   #> (fn _ :: ss => SOME (to_period ss) | _ => NONE)
 
 val atp = "e" (* or "vampire" *)
@@ -58,7 +58,7 @@ fun thms_of_name ctxt name =
     val get = maps (ProofContext.get_fact ctxt o fst)
   in
     Source.of_string name
-    |> Symbol.source {do_recover=false}
+    |> Symbol.source
     |> Token.source {do_recover=SOME false} lex Position.start
     |> Token.source_proper
     |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
