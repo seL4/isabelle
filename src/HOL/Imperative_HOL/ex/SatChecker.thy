@@ -212,33 +212,33 @@ declare res_mem.simps [simp del] resolve1.simps [simp del] resolve2.simps [simp 
 subsection {* Proofs about these functions *}
 
 lemma res_mem:
-assumes "crel (res_mem l xs) h h' r"
+assumes "effect (res_mem l xs) h h' r"
   shows "l \<in> set xs \<and> r = remove1 l xs"
 using assms
 proof (induct xs arbitrary: r)
   case Nil
-  thus ?case unfolding res_mem.simps by (auto elim: crel_raiseE)
+  thus ?case unfolding res_mem.simps by (auto elim: effect_raiseE)
 next
   case (Cons x xs')
   thus ?case
     unfolding res_mem.simps
-    by (elim crel_raiseE crel_returnE crel_ifE crel_bindE) auto
+    by (elim effect_raiseE effect_returnE effect_ifE effect_bindE) auto
 qed
 
 lemma resolve1_Inv:
-assumes "crel (resolve1 l xs ys) h h' r"
+assumes "effect (resolve1 l xs ys) h h' r"
   shows "l \<in> set xs \<and> r = merge (remove1 l xs) ys"
 using assms
 proof (induct xs ys arbitrary: r rule: resolve1.induct)
   case (1 l x xs y ys r)
   thus ?case
     unfolding resolve1.simps
-    by (elim crel_bindE crel_ifE crel_returnE) auto
+    by (elim effect_bindE effect_ifE effect_returnE) auto
 next
   case (2 l ys r)
   thus ?case
     unfolding resolve1.simps
-    by (elim crel_raiseE) auto
+    by (elim effect_raiseE) auto
 next
   case (3 l v va r)
   thus ?case
@@ -247,19 +247,19 @@ next
 qed
 
 lemma resolve2_Inv: 
-  assumes "crel (resolve2 l xs ys) h h' r"
+  assumes "effect (resolve2 l xs ys) h h' r"
   shows "l \<in> set ys \<and> r = merge xs (remove1 l ys)"
 using assms
 proof (induct xs ys arbitrary: r rule: resolve2.induct)
   case (1 l x xs y ys r)
   thus ?case
     unfolding resolve2.simps
-    by (elim crel_bindE crel_ifE crel_returnE) auto
+    by (elim effect_bindE effect_ifE effect_returnE) auto
 next
   case (2 l ys r)
   thus ?case
     unfolding resolve2.simps
-    by (elim crel_raiseE) auto
+    by (elim effect_raiseE) auto
 next
   case (3 l v va r)
   thus ?case
@@ -268,7 +268,7 @@ next
 qed
 
 lemma res_thm'_Inv:
-assumes "crel (res_thm' l xs ys) h h' r"
+assumes "effect (res_thm' l xs ys) h h' r"
 shows "\<exists>l'. (l' \<in> set xs \<and> compl l' \<in> set ys \<and> (l' = compl l \<or> l' = l)) \<and> r = merge (remove1 l' xs) (remove1 (compl l') ys)"
 using assms
 proof (induct xs ys arbitrary: r rule: res_thm'.induct)
@@ -276,14 +276,14 @@ case (1 l x xs y ys r)
 (* There are five cases for res_thm: We will consider them one after another: *) 
   {
     assume cond: "x = l \<or> x = compl l"
-    assume resolve2: "crel (resolve2 (compl x) xs (y # ys)) h h' r"   
+    assume resolve2: "effect (resolve2 (compl x) xs (y # ys)) h h' r"   
     from resolve2_Inv [OF resolve2] cond have ?case
       apply -
       by (rule exI[of _ "x"]) fastsimp
   } moreover
   {
     assume cond: "\<not> (x = l \<or> x = compl l)" "y = l \<or> y = compl l" 
-    assume resolve1: "crel (resolve1 (compl y) (x # xs) ys) h h' r"
+    assume resolve1: "effect (resolve1 (compl y) (x # xs) ys) h h' r"
     from resolve1_Inv [OF resolve1] cond have ?case
       apply -
       by (rule exI[of _ "compl y"]) fastsimp
@@ -291,28 +291,28 @@ case (1 l x xs y ys r)
   {
     fix r'
     assume cond: "\<not> (x = l \<or> x = compl l)" "\<not> (y = l \<or> y = compl l)" "x < y"
-    assume res_thm: "crel (res_thm' l xs (y # ys)) h h' r'"
+    assume res_thm: "effect (res_thm' l xs (y # ys)) h h' r'"
     assume return: "r = x # r'"
     from "1.hyps"(1) [OF cond res_thm] cond return have ?case by auto
   } moreover
   {
     fix r'
     assume cond: "\<not> (x = l \<or> x = compl l)" "\<not> (y = l \<or> y = compl l)" "\<not> x < y" "y < x"
-    assume res_thm: "crel (res_thm' l (x # xs) ys) h h' r'"
+    assume res_thm: "effect (res_thm' l (x # xs) ys) h h' r'"
     assume return: "r = y # r'"
     from "1.hyps"(2) [OF cond res_thm] cond return have ?case by auto
   } moreover
   {
     fix r'
     assume cond: "\<not> (x = l \<or> x = compl l)" "\<not> (y = l \<or> y = compl l)" "\<not> x < y" "\<not> y < x"
-    assume res_thm: "crel (res_thm' l xs ys) h h' r'"
+    assume res_thm: "effect (res_thm' l xs ys) h h' r'"
     assume return: "r = x # r'"
     from "1.hyps"(3) [OF cond res_thm] cond return have ?case by auto
   } moreover
   note "1.prems"
   ultimately show ?case
     unfolding res_thm'.simps
-    apply (elim crel_bindE crel_ifE crel_returnE)
+    apply (elim effect_bindE effect_ifE effect_returnE)
     apply simp
     apply simp
     apply simp
@@ -323,72 +323,72 @@ next
   case (2 l ys r)
   thus ?case
     unfolding res_thm'.simps
-    by (elim crel_raiseE) auto
+    by (elim effect_raiseE) auto
 next
   case (3 l v va r)
   thus ?case
     unfolding res_thm'.simps
-    by (elim crel_raiseE) auto
+    by (elim effect_raiseE) auto
 qed
 
 lemma res_mem_no_heap:
-assumes "crel (res_mem l xs) h h' r"
+assumes "effect (res_mem l xs) h h' r"
   shows "h = h'"
 using assms
 apply (induct xs arbitrary: r)
 unfolding res_mem.simps
-apply (elim crel_raiseE)
+apply (elim effect_raiseE)
 apply auto
-apply (elim crel_ifE crel_bindE crel_raiseE crel_returnE)
+apply (elim effect_ifE effect_bindE effect_raiseE effect_returnE)
 apply auto
 done
 
 lemma resolve1_no_heap:
-assumes "crel (resolve1 l xs ys) h h' r"
+assumes "effect (resolve1 l xs ys) h h' r"
   shows "h = h'"
 using assms
 apply (induct xs ys arbitrary: r rule: resolve1.induct)
 unfolding resolve1.simps
-apply (elim crel_bindE crel_ifE crel_returnE crel_raiseE)
+apply (elim effect_bindE effect_ifE effect_returnE effect_raiseE)
 apply (auto simp add: res_mem_no_heap)
-by (elim crel_raiseE) auto
+by (elim effect_raiseE) auto
 
 lemma resolve2_no_heap:
-assumes "crel (resolve2 l xs ys) h h' r"
+assumes "effect (resolve2 l xs ys) h h' r"
   shows "h = h'"
 using assms
 apply (induct xs ys arbitrary: r rule: resolve2.induct)
 unfolding resolve2.simps
-apply (elim crel_bindE crel_ifE crel_returnE crel_raiseE)
+apply (elim effect_bindE effect_ifE effect_returnE effect_raiseE)
 apply (auto simp add: res_mem_no_heap)
-by (elim crel_raiseE) auto
+by (elim effect_raiseE) auto
 
 
 lemma res_thm'_no_heap:
-  assumes "crel (res_thm' l xs ys) h h' r"
+  assumes "effect (res_thm' l xs ys) h h' r"
   shows "h = h'"
   using assms
 proof (induct xs ys arbitrary: r rule: res_thm'.induct)
   case (1 l x xs y ys r)
   thus ?thesis
     unfolding res_thm'.simps
-    by (elim crel_bindE crel_ifE crel_returnE)
+    by (elim effect_bindE effect_ifE effect_returnE)
   (auto simp add: resolve1_no_heap resolve2_no_heap)
 next
   case (2 l ys r)
   thus ?case
     unfolding res_thm'.simps
-    by (elim crel_raiseE) auto
+    by (elim effect_raiseE) auto
 next
   case (3 l v va r)
   thus ?case
     unfolding res_thm'.simps
-    by (elim crel_raiseE) auto
+    by (elim effect_raiseE) auto
 qed
 
 
 lemma res_thm'_Inv2:
-  assumes res_thm: "crel (res_thm' l xs ys) h h' rcl"
+  assumes res_thm: "effect (res_thm' l xs ys) h h' rcl"
   assumes l_not_null: "l \<noteq> 0"
   assumes ys: "correctClause r ys \<and> sorted ys \<and> distinct ys"
   assumes xs: "correctClause r xs \<and> sorted xs \<and> distinct xs"
@@ -459,20 +459,20 @@ where
                 else raise(''No empty clause''))
   }"
 
-lemma crel_option_case:
-  assumes "crel (case x of None \<Rightarrow> n | Some y \<Rightarrow> s y) h h' r"
-  obtains "x = None" "crel n h h' r"
-         | y where "x = Some y" "crel (s y) h h' r" 
-  using assms unfolding crel_def by (auto split: option.splits)
+lemma effect_option_case:
+  assumes "effect (case x of None \<Rightarrow> n | Some y \<Rightarrow> s y) h h' r"
+  obtains "x = None" "effect n h h' r"
+         | y where "x = Some y" "effect (s y) h h' r" 
+  using assms unfolding effect_def by (auto split: option.splits)
 
 lemma res_thm2_Inv:
-  assumes res_thm: "crel (res_thm2 a (l, j) cli) h h' rs"
+  assumes res_thm: "effect (res_thm2 a (l, j) cli) h h' rs"
   assumes correct_a: "correctArray r a h"
   assumes correct_cli: "correctClause r cli \<and> sorted cli \<and> distinct cli"
   shows "h = h' \<and> correctClause r rs \<and> sorted rs \<and> distinct rs"
 proof -
   from res_thm have l_not_zero: "l \<noteq> 0" 
-    by (auto elim: crel_raiseE)
+    by (auto elim: effect_raiseE)
   {
     fix clj
     let ?rs = "merge (remove l cli) (remove (compl l) clj)"
@@ -494,17 +494,17 @@ proof -
     assume "Some clj = Array.get h a ! j" "j < Array.length h a"
     with correct_a have clj: "correctClause r clj \<and> sorted clj \<and> distinct clj"
       unfolding correctArray_def by (auto intro: array_ranI)
-    assume "crel (res_thm' l cli clj) h h' rs"
+    assume "effect (res_thm' l cli clj) h h' rs"
     from res_thm'_no_heap[OF this] res_thm'_Inv2[OF this l_not_zero clj correct_cli]
     have "h = h' \<and> correctClause r rs \<and> sorted rs \<and> distinct rs" by simp
   }
   with assms show ?thesis
     unfolding res_thm2.simps get_clause_def
-    by (elim crel_bindE crel_ifE crel_nthE crel_raiseE crel_returnE crel_option_case) auto
+    by (elim effect_bindE effect_ifE effect_nthE effect_raiseE effect_returnE effect_option_case) auto
 qed
 
 lemma foldM_Inv2:
-  assumes "crel (foldM (res_thm2 a) rs cli) h h' rcl"
+  assumes "effect (foldM (res_thm2 a) rs cli) h h' rcl"
   assumes correct_a: "correctArray r a h"
   assumes correct_cli: "correctClause r cli \<and> sorted cli \<and> distinct cli"
   shows "h = h' \<and> correctClause r rcl \<and> sorted rcl \<and> distinct rcl"
@@ -512,39 +512,39 @@ using assms
 proof (induct rs arbitrary: h h' cli)
   case Nil thus ?case
     unfolding foldM.simps
-    by (elim crel_returnE) auto
+    by (elim effect_returnE) auto
 next
   case (Cons x xs)
   {
     fix h1 ret
     obtain l j where x_is: "x = (l, j)" by fastsimp
-    assume res_thm2: "crel (res_thm2 a x cli) h h1 ret"
-    with x_is have res_thm2': "crel (res_thm2 a (l, j) cli) h h1 ret" by simp
+    assume res_thm2: "effect (res_thm2 a x cli) h h1 ret"
+    with x_is have res_thm2': "effect (res_thm2 a (l, j) cli) h h1 ret" by simp
     note step = res_thm2_Inv [OF res_thm2' Cons.prems(2) Cons.prems(3)]
     from step have ret: "correctClause r ret \<and> sorted ret \<and> distinct ret" by simp
     from step Cons.prems(2) have correct_a: "correctArray r a h1"  by simp
-    assume foldM: "crel (foldM (res_thm2 a) xs ret) h1 h' rcl"
+    assume foldM: "effect (foldM (res_thm2 a) xs ret) h1 h' rcl"
     from step Cons.hyps [OF foldM correct_a ret] have
     "h = h' \<and> correctClause r rcl \<and> sorted rcl \<and> distinct rcl" by auto
   }
   with Cons show ?case
     unfolding foldM.simps
-    by (elim crel_bindE) auto
+    by (elim effect_bindE) auto
 qed
 
 
 lemma step_correct2:
-  assumes crel: "crel (doProofStep2 a step rcs) h h' res"
+  assumes effect: "effect (doProofStep2 a step rcs) h h' res"
   assumes correctArray: "correctArray rcs a h"
   shows "correctArray res a h'"
 proof (cases "(a,step,rcs)" rule: doProofStep2.cases)
   case (1 a saveTo i rs rcs)
-  with crel correctArray
+  with effect correctArray
   show ?thesis
     apply auto
-    apply (auto simp: get_clause_def elim!: crel_bindE crel_nthE)
-    apply (auto elim!: crel_bindE crel_nthE crel_option_case crel_raiseE
-      crel_returnE crel_updE)
+    apply (auto simp: get_clause_def elim!: effect_bindE effect_nthE)
+    apply (auto elim!: effect_bindE effect_nthE effect_option_case effect_raiseE
+      effect_returnE effect_updE)
     apply (frule foldM_Inv2)
     apply assumption
     apply (simp add: correctArray_def)
@@ -553,42 +553,42 @@ proof (cases "(a,step,rcs)" rule: doProofStep2.cases)
     by (auto intro: correctArray_update)
 next
   case (2 a cid rcs)
-  with crel correctArray
+  with effect correctArray
   show ?thesis
-    by (auto simp: correctArray_def elim!: crel_bindE crel_updE crel_returnE
+    by (auto simp: correctArray_def elim!: effect_bindE effect_updE effect_returnE
      dest: array_ran_upd_array_None)
 next
   case (3 a cid c rcs)
-  with crel correctArray
+  with effect correctArray
   show ?thesis
-    apply (auto elim!: crel_bindE crel_updE crel_returnE)
+    apply (auto elim!: effect_bindE effect_updE effect_returnE)
     apply (auto simp: correctArray_def dest!: array_ran_upd_array_Some)
     apply (auto intro: correctClause_mono)
     by (auto simp: correctClause_def)
 next
   case 4
-  with crel correctArray
-  show ?thesis by (auto elim: crel_raiseE)
+  with effect correctArray
+  show ?thesis by (auto elim: effect_raiseE)
 next
   case 5
-  with crel correctArray
-  show ?thesis by (auto elim: crel_raiseE)
+  with effect correctArray
+  show ?thesis by (auto elim: effect_raiseE)
 qed
   
 
 theorem fold_steps_correct:
-  assumes "crel (foldM (doProofStep2 a) steps rcs) h h' res"
+  assumes "effect (foldM (doProofStep2 a) steps rcs) h h' res"
   assumes "correctArray rcs a h"
   shows "correctArray res a h'"
 using assms
 by (induct steps arbitrary: rcs h h' res)
- (auto elim!: crel_bindE crel_returnE dest:step_correct2)
+ (auto elim!: effect_bindE effect_returnE dest:step_correct2)
 
 theorem checker_soundness:
-  assumes "crel (checker n p i) h h' cs"
+  assumes "effect (checker n p i) h h' cs"
   shows "inconsistent cs"
 using assms unfolding checker_def
-apply (elim crel_bindE crel_nthE crel_ifE crel_returnE crel_raiseE crel_newE)
+apply (elim effect_bindE effect_nthE effect_ifE effect_returnE effect_raiseE effect_newE)
 prefer 2 apply simp
 apply auto
 apply (drule fold_steps_correct)

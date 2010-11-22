@@ -21,20 +21,20 @@ where
        return ()
      }"
 
-lemma crel_swapI [crel_intros]:
+lemma effect_swapI [effect_intros]:
   assumes "i < Array.length h a" "j < Array.length h a"
     "x = Array.get h a ! i" "y = Array.get h a ! j"
     "h' = Array.update a j x (Array.update a i y h)"
-  shows "crel (swap a i j) h h' r"
-  unfolding swap_def using assms by (auto intro!: crel_intros)
+  shows "effect (swap a i j) h h' r"
+  unfolding swap_def using assms by (auto intro!: effect_intros)
 
 lemma swap_permutes:
-  assumes "crel (swap a i j) h h' rs"
+  assumes "effect (swap a i j) h h' rs"
   shows "multiset_of (Array.get h' a) 
   = multiset_of (Array.get h a)"
   using assms
   unfolding swap_def
-  by (auto simp add: Array.length_def multiset_of_swap dest: sym [of _ "h'"] elim!: crel_bindE crel_nthE crel_returnE crel_updE)
+  by (auto simp add: Array.length_def multiset_of_swap dest: sym [of _ "h'"] elim!: effect_bindE effect_nthE effect_returnE effect_updE)
 
 function part1 :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat Heap"
 where
@@ -54,7 +54,7 @@ by (relation "measure (\<lambda>(_,l,r,_). r - l )") auto
 declare part1.simps[simp del]
 
 lemma part_permutes:
-  assumes "crel (part1 a l r p) h h' rs"
+  assumes "effect (part1 a l r p) h h' rs"
   shows "multiset_of (Array.get h' a) 
   = multiset_of (Array.get h a)"
   using assms
@@ -62,23 +62,23 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
   thus ?case
     unfolding part1.simps [of a l r p]
-    by (elim crel_bindE crel_ifE crel_returnE crel_nthE) (auto simp add: swap_permutes)
+    by (elim effect_bindE effect_ifE effect_returnE effect_nthE) (auto simp add: swap_permutes)
 qed
 
 lemma part_returns_index_in_bounds:
-  assumes "crel (part1 a l r p) h h' rs"
+  assumes "effect (part1 a l r p) h h' rs"
   assumes "l \<le> r"
   shows "l \<le> rs \<and> rs \<le> r"
 using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
-  note cr = `crel (part1 a l r p) h h' rs`
+  note cr = `effect (part1 a l r p) h h' rs`
   show ?case
   proof (cases "r \<le> l")
     case True (* Terminating case *)
     with cr `l \<le> r` show ?thesis
       unfolding part1.simps[of a l r p]
-      by (elim crel_bindE crel_ifE crel_returnE crel_nthE) auto
+      by (elim effect_bindE effect_ifE effect_returnE effect_nthE) auto
   next
     case False (* recursive case *)
     note rec_condition = this
@@ -87,19 +87,19 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
     proof (cases "?v \<le> p")
       case True
       with cr False
-      have rec1: "crel (part1 a (l + 1) r p) h h' rs"
+      have rec1: "effect (part1 a (l + 1) r p) h h' rs"
         unfolding part1.simps[of a l r p]
-        by (elim crel_bindE crel_nthE crel_ifE crel_returnE) auto
+        by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from rec_condition have "l + 1 \<le> r" by arith
       from 1(1)[OF rec_condition True rec1 `l + 1 \<le> r`]
       show ?thesis by simp
     next
       case False
       with rec_condition cr
-      obtain h1 where swp: "crel (swap a l r) h h1 ()"
-        and rec2: "crel (part1 a l (r - 1) p) h1 h' rs"
+      obtain h1 where swp: "effect (swap a l r) h h1 ()"
+        and rec2: "effect (part1 a l (r - 1) p) h1 h' rs"
         unfolding part1.simps[of a l r p]
-        by (elim crel_bindE crel_nthE crel_ifE crel_returnE) auto
+        by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from rec_condition have "l \<le> r - 1" by arith
       from 1(2) [OF rec_condition False rec2 `l \<le> r - 1`] show ?thesis by fastsimp
     qed
@@ -107,41 +107,41 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
 qed
 
 lemma part_length_remains:
-  assumes "crel (part1 a l r p) h h' rs"
+  assumes "effect (part1 a l r p) h h' rs"
   shows "Array.length h a = Array.length h' a"
 using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
-  note cr = `crel (part1 a l r p) h h' rs`
+  note cr = `effect (part1 a l r p) h h' rs`
   
   show ?case
   proof (cases "r \<le> l")
     case True (* Terminating case *)
     with cr show ?thesis
       unfolding part1.simps[of a l r p]
-      by (elim crel_bindE crel_ifE crel_returnE crel_nthE) auto
+      by (elim effect_bindE effect_ifE effect_returnE effect_nthE) auto
   next
     case False (* recursive case *)
     with cr 1 show ?thesis
       unfolding part1.simps [of a l r p] swap_def
-      by (auto elim!: crel_bindE crel_ifE crel_nthE crel_returnE crel_updE) fastsimp
+      by (auto elim!: effect_bindE effect_ifE effect_nthE effect_returnE effect_updE) fastsimp
   qed
 qed
 
 lemma part_outer_remains:
-  assumes "crel (part1 a l r p) h h' rs"
+  assumes "effect (part1 a l r p) h h' rs"
   shows "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h (a::nat array) ! i = Array.get h' a ! i"
   using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
-  note cr = `crel (part1 a l r p) h h' rs`
+  note cr = `effect (part1 a l r p) h h' rs`
   
   show ?case
   proof (cases "r \<le> l")
     case True (* Terminating case *)
     with cr show ?thesis
       unfolding part1.simps[of a l r p]
-      by (elim crel_bindE crel_ifE crel_returnE crel_nthE) auto
+      by (elim effect_bindE effect_ifE effect_returnE effect_nthE) auto
   next
     case False (* recursive case *)
     note rec_condition = this
@@ -150,22 +150,22 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
     proof (cases "?v \<le> p")
       case True
       with cr False
-      have rec1: "crel (part1 a (l + 1) r p) h h' rs"
+      have rec1: "effect (part1 a (l + 1) r p) h h' rs"
         unfolding part1.simps[of a l r p]
-        by (elim crel_bindE crel_nthE crel_ifE crel_returnE) auto
+        by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from 1(1)[OF rec_condition True rec1]
       show ?thesis by fastsimp
     next
       case False
       with rec_condition cr
-      obtain h1 where swp: "crel (swap a l r) h h1 ()"
-        and rec2: "crel (part1 a l (r - 1) p) h1 h' rs"
+      obtain h1 where swp: "effect (swap a l r) h h1 ()"
+        and rec2: "effect (part1 a l (r - 1) p) h1 h' rs"
         unfolding part1.simps[of a l r p]
-        by (elim crel_bindE crel_nthE crel_ifE crel_returnE) auto
+        by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from swp rec_condition have
         "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h a ! i = Array.get h1 a ! i"
         unfolding swap_def
-        by (elim crel_bindE crel_nthE crel_updE crel_returnE) auto
+        by (elim effect_bindE effect_nthE effect_updE effect_returnE) auto
       with 1(2) [OF rec_condition False rec2] show ?thesis by fastsimp
     qed
   qed
@@ -173,20 +173,20 @@ qed
 
 
 lemma part_partitions:
-  assumes "crel (part1 a l r p) h h' rs"
+  assumes "effect (part1 a l r p) h h' rs"
   shows "(\<forall>i. l \<le> i \<and> i < rs \<longrightarrow> Array.get h' (a::nat array) ! i \<le> p)
   \<and> (\<forall>i. rs < i \<and> i \<le> r \<longrightarrow> Array.get h' a ! i \<ge> p)"
   using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
-  note cr = `crel (part1 a l r p) h h' rs`
+  note cr = `effect (part1 a l r p) h h' rs`
   
   show ?case
   proof (cases "r \<le> l")
     case True (* Terminating case *)
     with cr have "rs = r"
       unfolding part1.simps[of a l r p]
-      by (elim crel_bindE crel_ifE crel_returnE crel_nthE) auto
+      by (elim effect_bindE effect_ifE effect_returnE effect_nthE) auto
     with True
     show ?thesis by auto
   next
@@ -197,9 +197,9 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
     proof (cases "?v \<le> p")
       case True
       with lr cr
-      have rec1: "crel (part1 a (l + 1) r p) h h' rs"
+      have rec1: "effect (part1 a (l + 1) r p) h h' rs"
         unfolding part1.simps[of a l r p]
-        by (elim crel_bindE crel_nthE crel_ifE crel_returnE) auto
+        by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from True part_outer_remains[OF rec1] have a_l: "Array.get h' a ! l \<le> p"
         by fastsimp
       have "\<forall>i. (l \<le> i = (l = i \<or> Suc l \<le> i))" by arith
@@ -208,13 +208,13 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
     next
       case False
       with lr cr
-      obtain h1 where swp: "crel (swap a l r) h h1 ()"
-        and rec2: "crel (part1 a l (r - 1) p) h1 h' rs"
+      obtain h1 where swp: "effect (swap a l r) h h1 ()"
+        and rec2: "effect (part1 a l (r - 1) p) h1 h' rs"
         unfolding part1.simps[of a l r p]
-        by (elim crel_bindE crel_nthE crel_ifE crel_returnE) auto
+        by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from swp False have "Array.get h1 a ! r \<ge> p"
         unfolding swap_def
-        by (auto simp add: Array.length_def elim!: crel_bindE crel_nthE crel_updE crel_returnE)
+        by (auto simp add: Array.length_def elim!: effect_bindE effect_nthE effect_updE effect_returnE)
       with part_outer_remains [OF rec2] lr have a_r: "Array.get h' a ! r \<ge> p"
         by fastsimp
       have "\<forall>i. (i \<le> r = (i = r \<or> i \<le> r - 1))" by arith
@@ -239,70 +239,70 @@ where
 declare partition.simps[simp del]
 
 lemma partition_permutes:
-  assumes "crel (partition a l r) h h' rs"
+  assumes "effect (partition a l r) h h' rs"
   shows "multiset_of (Array.get h' a) 
   = multiset_of (Array.get h a)"
 proof -
     from assms part_permutes swap_permutes show ?thesis
       unfolding partition.simps
-      by (elim crel_bindE crel_returnE crel_nthE crel_ifE crel_updE) auto
+      by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) auto
 qed
 
 lemma partition_length_remains:
-  assumes "crel (partition a l r) h h' rs"
+  assumes "effect (partition a l r) h h' rs"
   shows "Array.length h a = Array.length h' a"
 proof -
   from assms part_length_remains show ?thesis
     unfolding partition.simps swap_def
-    by (elim crel_bindE crel_returnE crel_nthE crel_ifE crel_updE) auto
+    by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) auto
 qed
 
 lemma partition_outer_remains:
-  assumes "crel (partition a l r) h h' rs"
+  assumes "effect (partition a l r) h h' rs"
   assumes "l < r"
   shows "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h (a::nat array) ! i = Array.get h' a ! i"
 proof -
   from assms part_outer_remains part_returns_index_in_bounds show ?thesis
     unfolding partition.simps swap_def
-    by (elim crel_bindE crel_returnE crel_nthE crel_ifE crel_updE) fastsimp
+    by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) fastsimp
 qed
 
 lemma partition_returns_index_in_bounds:
-  assumes crel: "crel (partition a l r) h h' rs"
+  assumes effect: "effect (partition a l r) h h' rs"
   assumes "l < r"
   shows "l \<le> rs \<and> rs \<le> r"
 proof -
-  from crel obtain middle h'' p where part: "crel (part1 a l (r - 1) p) h h'' middle"
+  from effect obtain middle h'' p where part: "effect (part1 a l (r - 1) p) h h'' middle"
     and rs_equals: "rs = (if Array.get h'' a ! middle \<le> Array.get h a ! r then middle + 1
          else middle)"
     unfolding partition.simps
-    by (elim crel_bindE crel_returnE crel_nthE crel_ifE crel_updE) simp 
+    by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) simp 
   from `l < r` have "l \<le> r - 1" by arith
   from part_returns_index_in_bounds[OF part this] rs_equals `l < r` show ?thesis by auto
 qed
 
 lemma partition_partitions:
-  assumes crel: "crel (partition a l r) h h' rs"
+  assumes effect: "effect (partition a l r) h h' rs"
   assumes "l < r"
   shows "(\<forall>i. l \<le> i \<and> i < rs \<longrightarrow> Array.get h' (a::nat array) ! i \<le> Array.get h' a ! rs) \<and>
   (\<forall>i. rs < i \<and> i \<le> r \<longrightarrow> Array.get h' a ! rs \<le> Array.get h' a ! i)"
 proof -
   let ?pivot = "Array.get h a ! r" 
-  from crel obtain middle h1 where part: "crel (part1 a l (r - 1) ?pivot) h h1 middle"
-    and swap: "crel (swap a rs r) h1 h' ()"
+  from effect obtain middle h1 where part: "effect (part1 a l (r - 1) ?pivot) h h1 middle"
+    and swap: "effect (swap a rs r) h1 h' ()"
     and rs_equals: "rs = (if Array.get h1 a ! middle \<le> ?pivot then middle + 1
          else middle)"
     unfolding partition.simps
-    by (elim crel_bindE crel_returnE crel_nthE crel_ifE crel_updE) simp
+    by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) simp
   from swap have h'_def: "h' = Array.update a r (Array.get h1 a ! rs)
     (Array.update a rs (Array.get h1 a ! r) h1)"
     unfolding swap_def
-    by (elim crel_bindE crel_returnE crel_nthE crel_updE) simp
+    by (elim effect_bindE effect_returnE effect_nthE effect_updE) simp
   from swap have in_bounds: "r < Array.length h1 a \<and> rs < Array.length h1 a"
     unfolding swap_def
-    by (elim crel_bindE crel_returnE crel_nthE crel_updE) simp
+    by (elim effect_bindE effect_returnE effect_nthE effect_updE) simp
   from swap have swap_length_remains: "Array.length h1 a = Array.length h' a"
-    unfolding swap_def by (elim crel_bindE crel_returnE crel_nthE crel_updE) auto
+    unfolding swap_def by (elim effect_bindE effect_returnE effect_nthE effect_updE) auto
   from `l < r` have "l \<le> r - 1" by simp
   note middle_in_bounds = part_returns_index_in_bounds[OF part this]
   from part_outer_remains[OF part] `l < r`
@@ -311,7 +311,7 @@ proof -
   with swap
   have right_remains: "Array.get h a ! r = Array.get h' a ! rs"
     unfolding swap_def
-    by (auto simp add: Array.length_def elim!: crel_bindE crel_returnE crel_nthE crel_updE) (cases "r = rs", auto)
+    by (auto simp add: Array.length_def elim!: effect_bindE effect_returnE effect_nthE effect_updE) (cases "r = rs", auto)
   from part_partitions [OF part]
   show ?thesis
   proof (cases "Array.get h1 a ! middle \<le> ?pivot")
@@ -419,7 +419,7 @@ declare quicksort.simps[simp del]
 
 
 lemma quicksort_permutes:
-  assumes "crel (quicksort a l r) h h' rs"
+  assumes "effect (quicksort a l r) h h' rs"
   shows "multiset_of (Array.get h' a) 
   = multiset_of (Array.get h a)"
   using assms
@@ -427,41 +427,41 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
   with partition_permutes show ?case
     unfolding quicksort.simps [of a l r]
-    by (elim crel_ifE crel_bindE crel_assertE crel_returnE) auto
+    by (elim effect_ifE effect_bindE effect_assertE effect_returnE) auto
 qed
 
 lemma length_remains:
-  assumes "crel (quicksort a l r) h h' rs"
+  assumes "effect (quicksort a l r) h h' rs"
   shows "Array.length h a = Array.length h' a"
 using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
   with partition_length_remains show ?case
     unfolding quicksort.simps [of a l r]
-    by (elim crel_ifE crel_bindE crel_assertE crel_returnE) auto
+    by (elim effect_ifE effect_bindE effect_assertE effect_returnE) auto
 qed
 
 lemma quicksort_outer_remains:
-  assumes "crel (quicksort a l r) h h' rs"
+  assumes "effect (quicksort a l r) h h' rs"
    shows "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h (a::nat array) ! i = Array.get h' a ! i"
   using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
-  note cr = `crel (quicksort a l r) h h' rs`
+  note cr = `effect (quicksort a l r) h h' rs`
   thus ?case
   proof (cases "r > l")
     case False
     with cr have "h' = h"
       unfolding quicksort.simps [of a l r]
-      by (elim crel_ifE crel_returnE) auto
+      by (elim effect_ifE effect_returnE) auto
     thus ?thesis by simp
   next
   case True
    { 
       fix h1 h2 p ret1 ret2 i
-      assume part: "crel (partition a l r) h h1 p"
-      assume qs1: "crel (quicksort a l (p - 1)) h1 h2 ret1"
-      assume qs2: "crel (quicksort a (p + 1) r) h2 h' ret2"
+      assume part: "effect (partition a l r) h h1 p"
+      assume qs1: "effect (quicksort a l (p - 1)) h1 h2 ret1"
+      assume qs2: "effect (quicksort a (p + 1) r) h2 h' ret2"
       assume pivot: "l \<le> p \<and> p \<le> r"
       assume i_outer: "i < l \<or> r < i"
       from  partition_outer_remains [OF part True] i_outer
@@ -476,25 +476,25 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
     }
     with cr show ?thesis
       unfolding quicksort.simps [of a l r]
-      by (elim crel_ifE crel_bindE crel_assertE crel_returnE) auto
+      by (elim effect_ifE effect_bindE effect_assertE effect_returnE) auto
   qed
 qed
 
 lemma quicksort_is_skip:
-  assumes "crel (quicksort a l r) h h' rs"
+  assumes "effect (quicksort a l r) h h' rs"
   shows "r \<le> l \<longrightarrow> h = h'"
   using assms
   unfolding quicksort.simps [of a l r]
-  by (elim crel_ifE crel_returnE) auto
+  by (elim effect_ifE effect_returnE) auto
  
 lemma quicksort_sorts:
-  assumes "crel (quicksort a l r) h h' rs"
+  assumes "effect (quicksort a l r) h h' rs"
   assumes l_r_length: "l < Array.length h a" "r < Array.length h a" 
   shows "sorted (subarray l (r + 1) a h')"
   using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
-  note cr = `crel (quicksort a l r) h h' rs`
+  note cr = `effect (quicksort a l r) h h' rs`
   thus ?case
   proof (cases "r > l")
     case False
@@ -505,9 +505,9 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
     case True
     { 
       fix h1 h2 p
-      assume part: "crel (partition a l r) h h1 p"
-      assume qs1: "crel (quicksort a l (p - 1)) h1 h2 ()"
-      assume qs2: "crel (quicksort a (p + 1) r) h2 h' ()"
+      assume part: "effect (partition a l r) h h1 p"
+      assume qs1: "effect (quicksort a l (p - 1)) h1 h2 ()"
+      assume qs2: "effect (quicksort a (p + 1) r) h2 h' ()"
       from partition_returns_index_in_bounds [OF part True]
       have pivot: "l\<le> p \<and> p \<le> r" .
      note length_remains = length_remains[OF qs2] length_remains[OF qs1] partition_length_remains[OF part]
@@ -557,25 +557,25 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
     }
     with True cr show ?thesis
       unfolding quicksort.simps [of a l r]
-      by (elim crel_ifE crel_returnE crel_bindE crel_assertE) auto
+      by (elim effect_ifE effect_returnE effect_bindE effect_assertE) auto
   qed
 qed
 
 
 lemma quicksort_is_sort:
-  assumes crel: "crel (quicksort a 0 (Array.length h a - 1)) h h' rs"
+  assumes effect: "effect (quicksort a 0 (Array.length h a - 1)) h h' rs"
   shows "Array.get h' a = sort (Array.get h a)"
 proof (cases "Array.get h a = []")
   case True
-  with quicksort_is_skip[OF crel] show ?thesis
+  with quicksort_is_skip[OF effect] show ?thesis
   unfolding Array.length_def by simp
 next
   case False
-  from quicksort_sorts [OF crel] False have "sorted (sublist' 0 (List.length (Array.get h a)) (Array.get h' a))"
+  from quicksort_sorts [OF effect] False have "sorted (sublist' 0 (List.length (Array.get h a)) (Array.get h' a))"
     unfolding Array.length_def subarray_def by auto
-  with length_remains[OF crel] have "sorted (Array.get h' a)"
+  with length_remains[OF effect] have "sorted (Array.get h' a)"
     unfolding Array.length_def by simp
-  with quicksort_permutes [OF crel] properties_for_sort show ?thesis by fastsimp
+  with quicksort_permutes [OF effect] properties_for_sort show ?thesis by fastsimp
 qed
 
 subsection {* No Errors in quicksort *}
@@ -590,26 +590,26 @@ proof (induct a l r p arbitrary: h rule: part1.induct)
   case (1 a l r p)
   thus ?case unfolding part1.simps [of a l r]
   apply (auto intro!: success_intros del: success_ifI simp add: not_le)
-  apply (auto intro!: crel_intros crel_swapI)
+  apply (auto intro!: effect_intros effect_swapI)
   done
 qed
 
 lemma success_bindI' [success_intros]: (*FIXME move*)
   assumes "success f h"
-  assumes "\<And>h' r. crel f h h' r \<Longrightarrow> success (g r) h'"
+  assumes "\<And>h' r. effect f h h' r \<Longrightarrow> success (g r) h'"
   shows "success (f \<guillemotright>= g) h"
-using assms(1) proof (rule success_crelE)
+using assms(1) proof (rule success_effectE)
   fix h' r
-  assume "crel f h h' r"
+  assume "effect f h h' r"
   moreover with assms(2) have "success (g r) h'" .
-  ultimately show "success (f \<guillemotright>= g) h" by (rule success_bind_crelI)
+  ultimately show "success (f \<guillemotright>= g) h" by (rule success_bind_effectI)
 qed
 
 lemma success_partitionI:
   assumes "l < r" "l < Array.length h a" "r < Array.length h a"
   shows "success (partition a l r) h"
 using assms unfolding partition.simps swap_def
-apply (auto intro!: success_bindI' success_ifI success_returnI success_nthI success_updI success_part1I elim!: crel_bindE crel_updE crel_nthE crel_returnE simp add:)
+apply (auto intro!: success_bindI' success_ifI success_returnI success_nthI success_updI success_part1I elim!: effect_bindE effect_updE effect_nthE effect_returnE simp add:)
 apply (frule part_length_remains)
 apply (frule part_returns_index_in_bounds)
 apply auto
@@ -633,7 +633,7 @@ proof (induct a l r arbitrary: h rule: quicksort.induct)
     apply auto
     apply (frule partition_returns_index_in_bounds)
     apply auto
-    apply (auto elim!: crel_assertE dest!: partition_length_remains length_remains)
+    apply (auto elim!: effect_assertE dest!: partition_length_remains length_remains)
     apply (subgoal_tac "Suc r \<le> ri \<or> r = ri") 
     apply (erule disjE)
     apply auto

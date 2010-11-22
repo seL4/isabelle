@@ -170,16 +170,16 @@ lemma success_newI [success_intros]:
   "success (new n x) h"
   by (auto intro: success_intros simp add: new_def)
 
-lemma crel_newI [crel_intros]:
+lemma effect_newI [effect_intros]:
   assumes "(a, h') = alloc (replicate n x) h"
-  shows "crel (new n x) h h' a"
-  by (rule crelI) (simp add: assms execute_simps)
+  shows "effect (new n x) h h' a"
+  by (rule effectI) (simp add: assms execute_simps)
 
-lemma crel_newE [crel_elims]:
-  assumes "crel (new n x) h h' r"
+lemma effect_newE [effect_elims]:
+  assumes "effect (new n x) h h' r"
   obtains "r = fst (alloc (replicate n x) h)" "h' = snd (alloc (replicate n x) h)" 
     "get h' r = replicate n x" "present h' r" "\<not> present h r"
-  using assms by (rule crelE) (simp add: get_alloc execute_simps)
+  using assms by (rule effectE) (simp add: get_alloc execute_simps)
 
 lemma execute_of_list [execute_simps]:
   "execute (of_list xs) h = Some (alloc xs h)"
@@ -189,16 +189,16 @@ lemma success_of_listI [success_intros]:
   "success (of_list xs) h"
   by (auto intro: success_intros simp add: of_list_def)
 
-lemma crel_of_listI [crel_intros]:
+lemma effect_of_listI [effect_intros]:
   assumes "(a, h') = alloc xs h"
-  shows "crel (of_list xs) h h' a"
-  by (rule crelI) (simp add: assms execute_simps)
+  shows "effect (of_list xs) h h' a"
+  by (rule effectI) (simp add: assms execute_simps)
 
-lemma crel_of_listE [crel_elims]:
-  assumes "crel (of_list xs) h h' r"
+lemma effect_of_listE [effect_elims]:
+  assumes "effect (of_list xs) h h' r"
   obtains "r = fst (alloc xs h)" "h' = snd (alloc xs h)" 
     "get h' r = xs" "present h' r" "\<not> present h r"
-  using assms by (rule crelE) (simp add: get_alloc execute_simps)
+  using assms by (rule effectE) (simp add: get_alloc execute_simps)
 
 lemma execute_make [execute_simps]:
   "execute (make n f) h = Some (alloc (map f [0 ..< n]) h)"
@@ -208,16 +208,16 @@ lemma success_makeI [success_intros]:
   "success (make n f) h"
   by (auto intro: success_intros simp add: make_def)
 
-lemma crel_makeI [crel_intros]:
+lemma effect_makeI [effect_intros]:
   assumes "(a, h') = alloc (map f [0 ..< n]) h"
-  shows "crel (make n f) h h' a"
-  by (rule crelI) (simp add: assms execute_simps)
+  shows "effect (make n f) h h' a"
+  by (rule effectI) (simp add: assms execute_simps)
 
-lemma crel_makeE [crel_elims]:
-  assumes "crel (make n f) h h' r"
+lemma effect_makeE [effect_elims]:
+  assumes "effect (make n f) h h' r"
   obtains "r = fst (alloc (map f [0 ..< n]) h)" "h' = snd (alloc (map f [0 ..< n]) h)" 
     "get h' r = map f [0 ..< n]" "present h' r" "\<not> present h r"
-  using assms by (rule crelE) (simp add: get_alloc execute_simps)
+  using assms by (rule effectE) (simp add: get_alloc execute_simps)
 
 lemma execute_len [execute_simps]:
   "execute (len a) h = Some (length h a, h)"
@@ -227,15 +227,15 @@ lemma success_lenI [success_intros]:
   "success (len a) h"
   by (auto intro: success_intros simp add: len_def)
 
-lemma crel_lengthI [crel_intros]:
+lemma effect_lengthI [effect_intros]:
   assumes "h' = h" "r = length h a"
-  shows "crel (len a) h h' r"
-  by (rule crelI) (simp add: assms execute_simps)
+  shows "effect (len a) h h' r"
+  by (rule effectI) (simp add: assms execute_simps)
 
-lemma crel_lengthE [crel_elims]:
-  assumes "crel (len a) h h' r"
+lemma effect_lengthE [effect_elims]:
+  assumes "effect (len a) h h' r"
   obtains "r = length h' a" "h' = h" 
-  using assms by (rule crelE) (simp add: execute_simps)
+  using assms by (rule effectE) (simp add: execute_simps)
 
 lemma execute_nth [execute_simps]:
   "i < length h a \<Longrightarrow>
@@ -247,15 +247,15 @@ lemma success_nthI [success_intros]:
   "i < length h a \<Longrightarrow> success (nth a i) h"
   by (auto intro: success_intros simp add: nth_def)
 
-lemma crel_nthI [crel_intros]:
+lemma effect_nthI [effect_intros]:
   assumes "i < length h a" "h' = h" "r = get h a ! i"
-  shows "crel (nth a i) h h' r"
-  by (rule crelI) (insert assms, simp add: execute_simps)
+  shows "effect (nth a i) h h' r"
+  by (rule effectI) (insert assms, simp add: execute_simps)
 
-lemma crel_nthE [crel_elims]:
-  assumes "crel (nth a i) h h' r"
+lemma effect_nthE [effect_elims]:
+  assumes "effect (nth a i) h h' r"
   obtains "i < length h a" "r = get h a ! i" "h' = h"
-  using assms by (rule crelE)
+  using assms by (rule effectE)
     (erule successE, cases "i < length h a", simp_all add: execute_simps)
 
 lemma execute_upd [execute_simps]:
@@ -268,15 +268,15 @@ lemma success_updI [success_intros]:
   "i < length h a \<Longrightarrow> success (upd i x a) h"
   by (auto intro: success_intros simp add: upd_def)
 
-lemma crel_updI [crel_intros]:
+lemma effect_updI [effect_intros]:
   assumes "i < length h a" "h' = update a i v h"
-  shows "crel (upd i v a) h h' a"
-  by (rule crelI) (insert assms, simp add: execute_simps)
+  shows "effect (upd i v a) h h' a"
+  by (rule effectI) (insert assms, simp add: execute_simps)
 
-lemma crel_updE [crel_elims]:
-  assumes "crel (upd i v a) h h' r"
+lemma effect_updE [effect_elims]:
+  assumes "effect (upd i v a) h h' r"
   obtains "r = a" "h' = update a i v h" "i < length h a"
-  using assms by (rule crelE)
+  using assms by (rule effectE)
     (erule successE, cases "i < length h a", simp_all add: execute_simps)
 
 lemma execute_map_entry [execute_simps]:
@@ -290,15 +290,15 @@ lemma success_map_entryI [success_intros]:
   "i < length h a \<Longrightarrow> success (map_entry i f a) h"
   by (auto intro: success_intros simp add: map_entry_def)
 
-lemma crel_map_entryI [crel_intros]:
+lemma effect_map_entryI [effect_intros]:
   assumes "i < length h a" "h' = update a i (f (get h a ! i)) h" "r = a"
-  shows "crel (map_entry i f a) h h' r"
-  by (rule crelI) (insert assms, simp add: execute_simps)
+  shows "effect (map_entry i f a) h h' r"
+  by (rule effectI) (insert assms, simp add: execute_simps)
 
-lemma crel_map_entryE [crel_elims]:
-  assumes "crel (map_entry i f a) h h' r"
+lemma effect_map_entryE [effect_elims]:
+  assumes "effect (map_entry i f a) h h' r"
   obtains "r = a" "h' = update a i (f (get h a ! i)) h" "i < length h a"
-  using assms by (rule crelE)
+  using assms by (rule effectE)
     (erule successE, cases "i < length h a", simp_all add: execute_simps)
 
 lemma execute_swap [execute_simps]:
@@ -312,15 +312,15 @@ lemma success_swapI [success_intros]:
   "i < length h a \<Longrightarrow> success (swap i x a) h"
   by (auto intro: success_intros simp add: swap_def)
 
-lemma crel_swapI [crel_intros]:
+lemma effect_swapI [effect_intros]:
   assumes "i < length h a" "h' = update a i x h" "r = get h a ! i"
-  shows "crel (swap i x a) h h' r"
-  by (rule crelI) (insert assms, simp add: execute_simps)
+  shows "effect (swap i x a) h h' r"
+  by (rule effectI) (insert assms, simp add: execute_simps)
 
-lemma crel_swapE [crel_elims]:
-  assumes "crel (swap i x a) h h' r"
+lemma effect_swapE [effect_elims]:
+  assumes "effect (swap i x a) h h' r"
   obtains "r = get h a ! i" "h' = update a i x h" "i < length h a"
-  using assms by (rule crelE)
+  using assms by (rule effectE)
     (erule successE, cases "i < length h a", simp_all add: execute_simps)
 
 lemma execute_freeze [execute_simps]:
@@ -331,15 +331,15 @@ lemma success_freezeI [success_intros]:
   "success (freeze a) h"
   by (auto intro: success_intros simp add: freeze_def)
 
-lemma crel_freezeI [crel_intros]:
+lemma effect_freezeI [effect_intros]:
   assumes "h' = h" "r = get h a"
-  shows "crel (freeze a) h h' r"
-  by (rule crelI) (insert assms, simp add: execute_simps)
+  shows "effect (freeze a) h h' r"
+  by (rule effectI) (insert assms, simp add: execute_simps)
 
-lemma crel_freezeE [crel_elims]:
-  assumes "crel (freeze a) h h' r"
+lemma effect_freezeE [effect_elims]:
+  assumes "effect (freeze a) h h' r"
   obtains "h' = h" "r = get h a"
-  using assms by (rule crelE) (simp add: execute_simps)
+  using assms by (rule effectE) (simp add: execute_simps)
 
 lemma upd_return:
   "upd i x a \<guillemotright> return a = upd i x a"
