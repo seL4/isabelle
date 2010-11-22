@@ -348,6 +348,8 @@ done
 
 end
 
+hide_const a\<^isub>1
+
 datatype finite_2 = a\<^isub>1 | a\<^isub>2
 
 instantiation finite_2 :: enum
@@ -381,6 +383,8 @@ done
 
 end
 
+hide_const a\<^isub>1 a\<^isub>2
+
 
 datatype finite_3 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3
 
@@ -413,6 +417,8 @@ qed (auto simp add: less_finite_3_def less_eq_finite_3_def split: finite_3.split
 
 end
 
+hide_const a\<^isub>1 a\<^isub>2 a\<^isub>3
+
 
 datatype finite_4 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4
 
@@ -427,6 +433,7 @@ qed (auto simp add: enum_finite_4_def intro: finite_4.exhaust)
 
 end
 
+hide_const a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4
 
 
 datatype finite_5 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4 | a\<^isub>5
@@ -441,6 +448,9 @@ instance proof
 qed (auto simp add: enum_finite_5_def intro: finite_5.exhaust)
 
 end
+
+hide_const a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4 a\<^isub>5
+
 
 hide_type finite_1 finite_2 finite_3 finite_4 finite_5
 hide_const (open) n_lists product
