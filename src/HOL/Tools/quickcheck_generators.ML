@@ -413,6 +413,6 @@ val setup =
   Datatype.interpretation ensure_random_datatype
   #> Code_Target.extend_target (target, (Code_Runtime.target, K I))
   #> Context.theory_map
-    (Quickcheck.add_generator ("code", compile_generator_expr));
+    (Quickcheck.add_generator ("random", compile_generator_expr));
 
 end;
