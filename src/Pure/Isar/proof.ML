@@ -16,6 +16,7 @@ sig
   val context_of: state -> context
   val theory_of: state -> theory
   val map_context: (context -> context) -> state -> state
+  val map_context_result : (context -> 'a * context) -> state -> 'a * state
   val map_contexts: (context -> context) -> state -> state
   val propagate_ml_env: state -> state
   val bind_terms: (indexname * term option) list -> state -> state
