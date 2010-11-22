@@ -9,6 +9,8 @@ theory Quickcheck_Examples
 imports Main
 begin
 
+setup {* Smallvalue_Generators.setup *}
+
 text {*
 The 'quickcheck' command allows to find counterexamples by evaluating
 formulae.
