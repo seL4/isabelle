@@ -52,6 +52,9 @@ end
 structure SMT_Translate: SMT_TRANSLATE =
 struct
 
+structure U = SMT_Utils
+
+
 (* intermediate term structure *)
 
 datatype squant = SForall | SExists
@@ -106,13 +109,6 @@ type recon = {
 
 
 (* utility functions *)
-
-val dest_funT =
-  let
-    fun dest Ts 0 T = (rev Ts, T)
-      | dest Ts i (Type ("fun", [T, U])) = dest (T::Ts) (i-1) U
-      | dest _ _ T = raise TYPE ("dest_funT", [T], [])
-  in dest [] end
 
 val quantifier = (fn
     @{const_name All} => SOME SForall
@@ -348,7 +344,7 @@ fun translate {prefixes, strict, header, builtins, serialize} ctxt comments =
     and new_dtyps dts cx =
       let
         fun new_decl i t =
-          let val (Ts, T) = dest_funT i (Term.fastype_of t)
+          let val (Ts, T) = U.dest_funT i (Term.fastype_of t)
           in
             fold_map transT Ts ##>> transT T ##>>
             new_fun func_prefix t NONE #>> swap
@@ -396,7 +392,7 @@ fun translate {prefixes, strict, header, builtins, serialize} ctxt comments =
       | _ => raise TERM ("smt_translate", [t]))
 
     and transs t T ts =
-      let val (Us, U) = dest_funT (length ts) T
+      let val (Us, U) = U.dest_funT (length ts) T
       in
         fold_map transT Us ##>> transT U #-> (fn Up =>
         fresh_fun func_prefix t (SOME Up) ##>> fold_map trans ts #>> SApp)

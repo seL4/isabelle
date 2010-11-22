@@ -28,11 +28,10 @@ end
 structure SMT_Normalize: SMT_NORMALIZE =
 struct
 
+structure U = SMT_Utils
+
 infix 2 ??
 fun (test ?? f) x = if test x then f x else x
-
-fun if_conv c cv1 cv2 ct = (if c (Thm.term_of ct) then cv1 else cv2) ct
-fun if_true_conv c cv = if_conv c cv Conv.all_conv
 
 
 
@@ -53,7 +52,7 @@ local
     "SMT.distinct [x, y] = (x ~= y)"
     by (simp_all add: distinct_def)}
   fun distinct_conv _ =
-    if_true_conv is_trivial_distinct (Conv.rewrs_conv thms)
+    U.if_true_conv is_trivial_distinct (Conv.rewrs_conv thms)
 in
 fun trivial_distinct ctxt =
   map (apsnd ((Term.exists_subterm is_trivial_distinct o Thm.prop_of) ??
@@ -71,7 +70,7 @@ local
 
   val thm = mk_meta_eq @{lemma
     "(case P of True => x | False => y) = (if P then x else y)" by simp}
-  val unfold_conv = if_true_conv is_bool_case (Conv.rewr_conv thm)
+  val unfold_conv = U.if_true_conv is_bool_case (Conv.rewr_conv thm)
 in
 fun rewrite_bool_cases ctxt =
   map (apsnd ((Term.exists_subterm is_bool_case o Thm.prop_of) ??
@@ -105,7 +104,7 @@ local
       "Int.Bit1 (- k) = - Int.Bit1 (Int.pred k)"
       by simp_all (simp add: pred_def)}
 
-  fun pos_conv ctxt = if_conv (is_strange_number ctxt)
+  fun pos_conv ctxt = U.if_conv (is_strange_number ctxt)
     (Simplifier.rewrite (Simplifier.context ctxt pos_numeral_ss))
     Conv.no_conv
 in
@@ -282,7 +281,7 @@ local
         | (_, ts) => forall (is_normed ctxt) ts))
 in
 fun norm_binder_conv ctxt =
-  if_conv (is_normed ctxt) Conv.all_conv (norm_conv ctxt)
+  U.if_conv (is_normed ctxt) Conv.all_conv (norm_conv ctxt)
 end
 
 fun norm_def ctxt thm =
@@ -321,13 +320,6 @@ fun normalize_rule ctxt =
 (* lift lambda terms into additional rules *)
 
 local
-  val meta_eq = @{cpat "op =="}
-  val meta_eqT = hd (Thm.dest_ctyp (Thm.ctyp_of_term meta_eq))
-  fun inst_meta cT = Thm.instantiate_cterm ([(meta_eqT, cT)], []) meta_eq
-  fun mk_meta_eq ct cu = Thm.mk_binop (inst_meta (Thm.ctyp_of_term ct)) ct cu
-
-  fun cert ctxt = Thm.cterm_of (ProofContext.theory_of ctxt)
-
   fun used_vars cvs ct =
     let
       val lookup = AList.lookup (op aconv) (map (` Thm.term_of) cvs)
@@ -350,7 +342,7 @@ local
           let
             val {T, ...} = Thm.rep_cterm ct' and n = Name.uu
             val (n', ctxt') = yield_singleton Variable.variant_fixes n ctxt
-            val cu = mk_meta_eq (cert ctxt (Free (n', T))) ct'
+            val cu = U.mk_cequals (U.certify ctxt (Free (n', T))) ct'
             val (eq, ctxt'') = yield_singleton Assumption.add_assumes cu ctxt'
             val defs' = Termtab.update (Thm.term_of ct', eq) defs
           in (apply_def cvs' eq, (ctxt'', defs')) end)

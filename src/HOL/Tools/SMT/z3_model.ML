@@ -13,6 +13,9 @@ end
 structure Z3_Model: Z3_MODEL =
 struct
 
+structure U = SMT_Utils
+
+
 (* counterexample expressions *)
 
 datatype expr = True | False | Number of int * int option | Value of int |
@@ -214,15 +217,13 @@ fun trans_pattern T ([], e) = trans_expr T e #>> pair []
 
 fun mk_fun_upd T U = Const (@{const_name fun_upd}, [T --> U, T, U, T] ---> U)
 
-fun split_type T = (Term.domain_type T, Term.range_type T)
-
 fun mk_update ([], u) _ = u
   | mk_update ([t], u) f =
-      uncurry mk_fun_upd (split_type (Term.fastype_of f)) $ f $ t $ u
+      uncurry mk_fun_upd (U.split_type (Term.fastype_of f)) $ f $ t $ u
   | mk_update (t :: ts, u) f =
       let
-        val (dT, rT) = split_type (Term.fastype_of f)
-        val (dT', rT') = split_type rT
+        val (dT, rT) = U.split_type (Term.fastype_of f)
+        val (dT', rT') = U.split_type rT
       in
         mk_fun_upd dT rT $ f $ t $
           mk_update (ts, u) (Term.absdummy (dT', Const ("_", rT')))

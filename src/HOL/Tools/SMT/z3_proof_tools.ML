@@ -9,7 +9,6 @@ sig
   (* accessing and modifying terms *)
   val term_of: cterm -> term
   val prop_of: thm -> term
-  val mk_prop: cterm -> cterm
   val as_meta_eq: cterm -> cterm
 
   (* theorem nets *)
@@ -59,9 +58,7 @@ val dest_prop = (fn @{const Trueprop} $ t => t | t => t)
 fun term_of ct = dest_prop (Thm.term_of ct)
 fun prop_of thm = dest_prop (Thm.prop_of thm)
 
-val mk_prop = Thm.capply (Thm.cterm_of @{theory} @{const Trueprop})
-
-fun as_meta_eq ct = uncurry U.mk_cequals (Thm.dest_binop (Thm.dest_arg ct))
+fun as_meta_eq ct = uncurry U.mk_cequals (Thm.dest_binop (U.dest_cprop ct))
 
 
 
@@ -85,7 +82,7 @@ val net_instance = net_instance' I
 (* proof combinators *)
 
 fun under_assumption f ct =
-  let val ct' = mk_prop ct
+  let val ct' = U.mk_cprop ct
   in Thm.implies_intr ct' (f (Thm.assume ct')) end
 
 fun with_conv conv prove ct =
@@ -125,9 +122,6 @@ fun make_hyp_def thm ctxt =
 
 local
 
-fun typ_of ct = #T (Thm.rep_cterm ct)
-fun certify ctxt = Thm.cterm_of (ProofContext.theory_of ctxt)
-
 fun abs_context ctxt = (ctxt, Termtab.empty, 1, false)
 
 fun context_of (ctxt, _, _, _) = ctxt
@@ -153,7 +147,8 @@ fun fresh_abstraction cvs ct (cx as (ctxt, tab, idx, beta_norm)) =
     | NONE =>
         let
           val (n, ctxt') = yield_singleton Variable.variant_fixes "x" ctxt
-          val cv = certify ctxt' (Free (n, map typ_of cvs' ---> typ_of ct))
+          val cv = U.certify ctxt'
+            (Free (n, map U.typ_of cvs' ---> U.typ_of ct))
           val cu = Drule.list_comb (cv, cvs')
           val e = (t, (cv, fold_rev Thm.cabs cvs' ct))
           val beta_norm' = beta_norm orelse not (null cvs')

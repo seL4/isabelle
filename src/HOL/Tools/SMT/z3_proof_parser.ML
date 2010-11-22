@@ -103,24 +103,20 @@ val (var_prefix, decl_prefix) = ("v", "sk")
    context-independent modulo the current proof context to be able to
    use fast inference kernel rules during proof reconstruction. *)
 
-fun certify ctxt = Thm.cterm_of (ProofContext.theory_of ctxt)
-
 val maxidx_of = #maxidx o Thm.rep_cterm
 
 fun mk_inst ctxt vars =
   let
     val max = fold (Integer.max o fst) vars 0
     val ns = fst (Variable.variant_fixes (replicate (max + 1) var_prefix) ctxt)
-    fun mk (i, v) = (v, certify ctxt (Free (nth ns i, #T (Thm.rep_cterm v))))
+    fun mk (i, v) = (v, U.certify ctxt (Free (nth ns i, #T (Thm.rep_cterm v))))
   in map mk vars end
-
-val mk_prop = Thm.capply (Thm.cterm_of @{theory} @{const Trueprop})
 
 fun close ctxt (ct, vars) =
   let
     val inst = mk_inst ctxt vars
     val names = fold (Term.add_free_names o Thm.term_of o snd) inst []
-  in (mk_prop (Thm.instantiate_cterm ([], inst) ct), names) end
+  in (U.mk_cprop (Thm.instantiate_cterm ([], inst) ct), names) end
 
 
 fun mk_bound thy (i, T) =
@@ -195,7 +191,7 @@ fun make_context ctxt typs terms =
       |> Symtab.fold (Variable.declare_term o snd) terms
 
     fun cert @{const True} = not_false
-      | cert t = certify ctxt' t
+      | cert t = U.certify ctxt' t
 
   in (typs, Symtab.map (K cert) terms, Inttab.empty, Inttab.empty, [], ctxt') end
 
@@ -210,7 +206,7 @@ fun add_decl (n, T) (cx as (_, terms, _, _, _, _)) =
     SOME _ => cx
   | NONE => cx |> fresh_name (decl_prefix ^ n)
       |> (fn (m, (typs, terms, exprs, steps, vars, ctxt)) =>
-           let val upd = Symtab.update (n, certify ctxt (Free (m, T)))
+           let val upd = Symtab.update (n, U.certify ctxt (Free (m, T)))
            in (typs, upd terms, exprs, steps, vars, ctxt) end))
 
 fun mk_typ (typs, _, _, _, _, ctxt) (s as I.Sym (n, _)) = 

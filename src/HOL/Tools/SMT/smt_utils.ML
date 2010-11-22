@@ -9,6 +9,10 @@ sig
   val repeat: ('a -> 'a option) -> 'a -> 'a
   val repeat_yield: ('a -> 'b -> ('a * 'b) option) -> 'a -> 'b -> 'a * 'b
 
+  (* types *)
+  val split_type: typ -> typ * typ
+  val dest_funT: int -> typ -> typ list * typ
+
   (* terms *)
   val dest_conj: term -> term * term
   val dest_disj: term -> term * term
@@ -23,6 +27,7 @@ sig
 
   (* certified terms *)
   val certify: Proof.context -> term -> cterm
+  val typ_of: cterm -> typ
   val dest_cabs: cterm -> Proof.context -> cterm * Proof.context
   val dest_all_cabs: cterm -> Proof.context -> cterm * Proof.context
   val dest_cbinder: cterm -> Proof.context -> cterm * Proof.context
@@ -48,6 +53,18 @@ fun repeat f =
 fun repeat_yield f =
   let fun rep x y = (case f x y of SOME (x', y') => rep x' y' | NONE => (x, y))
   in rep end
+
+
+(* types *)
+
+fun split_type T = (Term.domain_type T, Term.range_type T)
+
+val dest_funT =
+  let
+    fun dest Ts 0 T = (rev Ts, T)
+      | dest Ts i (Type ("fun", [T, U])) = dest (T::Ts) (i-1) U
+      | dest _ _ T = raise TYPE ("not a function type", [T], [])
+  in dest [] end
 
 
 (* terms *)
@@ -77,6 +94,8 @@ fun instT' ct = instT (Thm.ctyp_of_term ct)
 
 fun certify ctxt = Thm.cterm_of (ProofContext.theory_of ctxt)
 
+fun typ_of ct = #T (Thm.rep_cterm ct) 
+
 fun dest_cabs ct ctxt =
   (case Thm.term_of ct of
     Abs _ =>
@@ -93,7 +112,7 @@ fun dest_cbinder ct ctxt =
 
 val dest_all_cbinders = repeat_yield (try o dest_cbinder)
 
-val mk_cprop = Thm.capply @{cterm Trueprop}
+val mk_cprop = Thm.capply (Thm.cterm_of @{theory} @{const Trueprop})
 
 fun dest_cprop ct =
   (case Thm.term_of ct of
@@ -106,9 +125,9 @@ fun mk_cequals ct cu = Thm.mk_binop (instT' ct equals) ct cu
 
 (* conversions *)
 
-fun if_conv f cv1 cv2 ct = if f (Thm.term_of ct) then cv1 ct else cv2 ct
+fun if_conv pred cv1 cv2 ct = if pred (Thm.term_of ct) then cv1 ct else cv2 ct
 
-fun if_true_conv f cv = if_conv f cv Conv.all_conv
+fun if_true_conv pred cv = if_conv pred cv Conv.all_conv
 
 fun binders_conv cv ctxt =
   Conv.binder_conv (binders_conv cv o snd) ctxt else_conv cv ctxt

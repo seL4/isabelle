@@ -683,33 +683,29 @@ local
   val unfold_conv =
     Conv.arg_conv (Conv.binop_conv (Conv.try_conv T.unfold_distinct_conv))
   val prove_conj_disj_eq = T.with_conv unfold_conv L.prove_conj_disj_eq
+
+  fun assume_prems ctxt thm =
+    Assumption.add_assumes (Drule.cprems_of thm) ctxt
+    |>> (fn thms => fold Thm.elim_implies thms thm)
 in
 
-fun rewrite' ctxt simpset ths = Thm o with_conv ctxt ths (try_apply ctxt [] [
-  named ctxt "conj/disj/distinct" prove_conj_disj_eq,
-  T.by_abstraction (true, false) ctxt [] (fn ctxt' => T.by_tac (
-    NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
-    THEN_ALL_NEW NAMED ctxt' "fast (logic)" (Classical.fast_tac HOL_cs))),
-  T.by_abstraction (false, true) ctxt [] (fn ctxt' => T.by_tac (
-    NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
-    THEN_ALL_NEW (
-      NAMED ctxt' "fast (theory)" (Classical.fast_tac HOL_cs)
-      ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
-  T.by_abstraction (true, true) ctxt [] (fn ctxt' => T.by_tac (
-    NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
-    THEN_ALL_NEW (
-      NAMED ctxt' "fast (full)" (Classical.fast_tac HOL_cs)
-      ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt')))),
-  named ctxt "injectivity" (M.prove_injectivity ctxt)])
-
-fun rewrite simpset thms ct ctxt = (* FIXME: join with rewrite' *)
-  let
-    val thm = rewrite' ctxt simpset thms ct
-    val ord = Term_Ord.fast_term_ord o pairself Thm.term_of
-    val chyps = fold (Ord_List.union ord o #hyps o Thm.crep_thm o thm_of) thms []
-    val new_chyps = Ord_List.subtract ord chyps (#hyps (Thm.crep_thm (thm_of thm)))
-    val (_, ctxt') = Assumption.add_assumes new_chyps ctxt
-  in (thm, ctxt') end
+fun rewrite simpset ths ct ctxt =
+  apfst Thm (assume_prems ctxt (with_conv ctxt ths (try_apply ctxt [] [
+    named ctxt "conj/disj/distinct" prove_conj_disj_eq,
+    T.by_abstraction (true, false) ctxt [] (fn ctxt' => T.by_tac (
+      NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
+      THEN_ALL_NEW NAMED ctxt' "fast (logic)" (Classical.fast_tac HOL_cs))),
+    T.by_abstraction (false, true) ctxt [] (fn ctxt' => T.by_tac (
+      NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
+      THEN_ALL_NEW (
+        NAMED ctxt' "fast (theory)" (Classical.fast_tac HOL_cs)
+        ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
+    T.by_abstraction (true, true) ctxt [] (fn ctxt' => T.by_tac (
+      NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
+      THEN_ALL_NEW (
+        NAMED ctxt' "fast (full)" (Classical.fast_tac HOL_cs)
+        ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt')))),
+    named ctxt "injectivity" (M.prove_injectivity ctxt)]) ct))
 
 end
 

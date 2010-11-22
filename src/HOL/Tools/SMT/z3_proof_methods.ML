@@ -13,6 +13,7 @@ structure Z3_Proof_Methods: Z3_PROOF_METHODS =
 struct
 
 structure U = SMT_Utils
+structure T = Z3_Proof_Tools
 
 
 fun apply tac st =
@@ -35,26 +36,24 @@ fun mk_inv_into T U =
 
 fun mk_inv_of ctxt ct =
   let
-    val T = #T (Thm.rep_cterm ct)
-    val dT = Term.domain_type T
-    val inv = U.certify ctxt (mk_inv_into dT (Term.range_type T))
+    val (dT, rT) = U.split_type (U.typ_of ct)
+    val inv = U.certify ctxt (mk_inv_into dT rT)
     val univ = U.certify ctxt (mk_univ dT)
   in Thm.mk_binop inv univ ct end
 
 fun mk_inj_prop ctxt ct =
   let
-    val T = #T (Thm.rep_cterm ct)
-    val dT = Term.domain_type T
-    val inj = U.certify ctxt (mk_inj_on dT (Term.range_type T))
+    val (dT, rT) = U.split_type (U.typ_of ct)
+    val inj = U.certify ctxt (mk_inj_on dT rT)
     val univ = U.certify ctxt (mk_univ dT)
   in U.mk_cprop (Thm.mk_binop inj ct univ) end
 
 
 val disjE = @{lemma "~P | Q ==> P ==> Q" by fast}
 
-fun prove_inj_prop ctxt hdef lhs =
+fun prove_inj_prop ctxt def lhs =
   let
-    val (ct, ctxt') = U.dest_all_cabs (Thm.rhs_of hdef) ctxt
+    val (ct, ctxt') = U.dest_all_cabs (Thm.rhs_of def) ctxt
     val rule = disjE OF [Object_Logic.rulify (Thm.assume lhs)]
   in
     Goal.init (mk_inj_prop ctxt' (Thm.dest_arg ct))
@@ -64,12 +63,12 @@ fun prove_inj_prop ctxt hdef lhs =
     |> singleton (Variable.export ctxt' ctxt)
   end
 
-fun prove_rhs ctxt hdef lhs rhs =
-  Goal.init rhs
-  |> apply (CONVERSION (Conv.top_sweep_conv (K (Conv.rewr_conv hdef)) ctxt))
-  |> apply (REPEAT_ALL_NEW (Tactic.match_tac @{thms allI}))
-  |> apply (Tactic.rtac (@{thm inv_f_f} OF [prove_inj_prop ctxt hdef lhs]))
-  |> Goal.norm_result o Goal.finish ctxt
+fun prove_rhs ctxt def lhs =
+  T.by_tac (
+    CONVERSION (Conv.top_sweep_conv (K (Conv.rewr_conv def)) ctxt)
+    THEN' REPEAT_ALL_NEW (Tactic.match_tac @{thms allI})
+    THEN' Tactic.rtac (@{thm inv_f_f} OF [prove_inj_prop ctxt def lhs])) #>
+  Thm.elim_implies def
 
 
 fun expand thm ct =
@@ -80,18 +79,17 @@ fun expand thm ct =
     val thm2 = Thm.instantiate (Thm.match (cpat, cr)) thm
   in Conv.arg_conv (Conv.binop_conv (Conv.rewrs_conv [thm1, thm2])) ct end
 
-fun prove_lhs ctxt rhs lhs =
+fun prove_lhs ctxt rhs =
   let
     val eq = Thm.symmetric (mk_meta_eq (Object_Logic.rulify (Thm.assume rhs)))
   in
-    Goal.init lhs
-    |> apply (CONVERSION (U.prop_conv (U.binders_conv (K (expand eq)) ctxt)))
-    |> apply (Simplifier.simp_tac HOL_ss)
-    |> Goal.finish ctxt
+    T.by_tac (
+      CONVERSION (U.prop_conv (U.binders_conv (K (expand eq)) ctxt))
+      THEN' Simplifier.simp_tac HOL_ss)
   end
 
 
-fun mk_hdef ctxt rhs =
+fun mk_inv_def ctxt rhs =
   let
     val (ct, ctxt') = U.dest_all_cbinders (U.dest_cprop rhs) ctxt
     val (cl, cv) = Thm.dest_binop ct
@@ -102,9 +100,8 @@ fun mk_hdef ctxt rhs =
 fun prove_inj_eq ctxt ct =
   let
     val (lhs, rhs) = pairself U.mk_cprop (Thm.dest_binop (U.dest_cprop ct))
-    val hdef = mk_hdef ctxt rhs
-    val lhs_thm = Thm.implies_intr rhs (prove_lhs ctxt rhs lhs)
-    val rhs_thm = Thm.implies_intr lhs (prove_rhs ctxt hdef lhs rhs)
+    val lhs_thm = prove_lhs ctxt rhs lhs
+    val rhs_thm = prove_rhs ctxt (mk_inv_def ctxt rhs) lhs rhs
   in lhs_thm COMP (rhs_thm COMP @{thm iffI}) end
 
 
@@ -125,12 +122,10 @@ fun norm_conv ctxt =
 
 in
 
-fun prove_injectivity ctxt ct =
-  ct
-  |> Goal.init
-  |> apply (CONVERSION (U.prop_conv (norm_conv ctxt)))
-  |> apply (CSUBGOAL (uncurry (Tactic.rtac o prove_inj_eq ctxt)))
-  |> Goal.norm_result o Goal.finish ctxt
+fun prove_injectivity ctxt =
+  T.by_tac (
+    CONVERSION (U.prop_conv (norm_conv ctxt))
+    THEN' CSUBGOAL (uncurry (Tactic.rtac o prove_inj_eq ctxt)))
 
 end
 
