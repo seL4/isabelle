@@ -16,13 +16,17 @@ end
 structure SMT_Builtin: SMT_BUILTIN =
 struct
 
-fun is_arithT (Type (@{type_name fun}, [T, _])) =
-      (case T of
-        @{typ int} => true
-      | @{typ nat} => true
-      | Type ("RealDef.real", []) => true
-      | _ => false)
-  | is_arithT _ = false
+fun is_arithT T =
+  (case T of
+     @{typ int} => true
+   | @{typ nat} => true
+   | Type ("RealDef.real", []) => true
+   | _ => false)
+
+fun is_arithT_dom (Type (@{type_name fun}, [T, _])) = is_arithT T
+  | is_arithT_dom _ = false
+fun is_arithT_ran (Type (@{type_name fun}, [_, T])) = is_arithT T
+  | is_arithT_ran _ = false
 
 val builtins = Symtab.make [
 
@@ -64,26 +68,26 @@ val builtins = Symtab.make [
   (@{const_name HOL.eq}, K true),
 
   (* numerals *)
-  (@{const_name zero_class.zero}, K true),
-  (@{const_name one_class.one}, K true),
+  (@{const_name zero_class.zero}, is_arithT_dom),
+  (@{const_name one_class.one}, is_arithT_dom),
   (@{const_name Int.Pls}, K true),
   (@{const_name Int.Min}, K true),
   (@{const_name Int.Bit0}, K true),
   (@{const_name Int.Bit1}, K true),
-  (@{const_name number_of}, K true),
+  (@{const_name number_of}, is_arithT_ran),
 
   (* arithmetic *)
   (@{const_name nat}, K true),
   (@{const_name of_nat}, K true),
   (@{const_name Suc}, K true),
-  (@{const_name plus}, is_arithT),
-  (@{const_name uminus}, is_arithT),
-  (@{const_name minus}, is_arithT),
-  (@{const_name abs}, is_arithT),
-  (@{const_name min}, is_arithT),
-  (@{const_name max}, is_arithT),
-  (@{const_name less}, is_arithT),
-  (@{const_name less_eq}, is_arithT),
+  (@{const_name plus}, is_arithT_dom),
+  (@{const_name uminus}, is_arithT_dom),
+  (@{const_name minus}, is_arithT_dom),
+  (@{const_name abs}, is_arithT_dom),
+  (@{const_name min}, is_arithT_dom),
+  (@{const_name max}, is_arithT_dom),
+  (@{const_name less}, is_arithT_dom),
+  (@{const_name less_eq}, is_arithT_dom),
   
   (* pairs *)
   (@{const_name fst}, K true),
@@ -94,10 +98,10 @@ val builtins = Symtab.make [
 
 val all_builtins =
   builtins
-  |> Symtab.update (@{const_name times}, is_arithT)
-  |> Symtab.update (@{const_name div_class.div}, is_arithT)
-  |> Symtab.update (@{const_name div_class.mod}, is_arithT)
-  |> Symtab.update ("Rings.inverse_class.divide", is_arithT)
+  |> Symtab.update (@{const_name times}, is_arithT_dom)
+  |> Symtab.update (@{const_name div_class.div}, is_arithT_dom)
+  |> Symtab.update (@{const_name div_class.mod}, is_arithT_dom)
+  |> Symtab.update ("Rings.inverse_class.divide", is_arithT_dom)
 
 fun lookup_builtin bs (name, T) =
   (case Symtab.lookup bs name of
