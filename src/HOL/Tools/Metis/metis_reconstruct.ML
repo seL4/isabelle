@@ -13,6 +13,8 @@ sig
 
   val trace : bool Config.T
   val trace_msg : Proof.context -> (unit -> string) -> unit
+  val verbose : bool Config.T
+  val verbose_warning : Proof.context -> string -> unit
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
   val untyped_aconv : term -> term -> bool
   val replay_one_inference :
@@ -30,8 +32,11 @@ struct
 open Metis_Translate
 
 val (trace, trace_setup) = Attrib.config_bool "trace_metis" (K false)
+val (verbose, verbose_setup) = Attrib.config_bool "verbose_metis" (K true)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
+fun verbose_warning ctxt msg =
+  if Config.get ctxt verbose then warning msg else ()
 
 datatype term_or_type = SomeTerm of term | SomeType of typ
 
@@ -821,6 +826,6 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                     \Error when discharging Skolem assumptions.")
     end
 
-val setup = trace_setup
+val setup = trace_setup #> verbose_setup
 
 end;
