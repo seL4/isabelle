@@ -493,6 +493,24 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
       end
   in iter timeout 1 NONE (SOME 0) end
 
+(* taken from "Mirabelle" and generalized *)
+fun can_apply timeout tac state i =
+  let
+    val {context = ctxt, facts, goal} = Proof.goal state
+    val ctxt = ctxt |> Config.put Metis_Tactics.verbose false
+    val full_tac = Method.insert_tac facts i THEN tac ctxt i
+  in
+    case try (TimeLimit.timeLimit timeout (Seq.pull o full_tac)) goal of
+      SOME (SOME _) => true
+    | _ => false
+  end
+
+val smt_metis_timeout = seconds 0.5
+
+fun can_apply_metis state i ths =
+  can_apply smt_metis_timeout (fn ctxt => Metis_Tactics.metis_tac ctxt ths)
+            state i
+
 fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
         ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
@@ -507,10 +525,16 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
     val message =
       case outcome of
         NONE =>
-        try_command_line (proof_banner auto)
-                         (apply_on_subgoal subgoal subgoal_count ^
-                          command_call smtN (map fst used_facts)) ^
-        minimize_line minimize_command (map fst used_facts)
+        let
+          val method =
+            if can_apply_metis state subgoal (map snd used_facts) then "metis"
+            else "smt"
+        in
+          try_command_line (proof_banner auto)
+                           (apply_on_subgoal subgoal subgoal_count ^
+                            command_call method (map (fst o fst) used_facts)) ^
+          minimize_line minimize_command (map (fst o fst) used_facts)
+        end
       | SOME SMT_Failure.Time_Out => "Timed out."
       | SOME (SMT_Failure.Abnormal_Termination code) =>
         "The SMT solver terminated abnormally with exit code " ^
@@ -521,7 +545,7 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
         SMT_Failure.string_of_failure ctxt failure
     val outcome = outcome |> Option.map failure_from_smt_failure (* FIXME *)
   in
-    {outcome = outcome, used_facts = used_facts,
+    {outcome = outcome, used_facts = map fst used_facts,
      run_time_in_msecs = run_time_in_msecs, message = message}
   end
 

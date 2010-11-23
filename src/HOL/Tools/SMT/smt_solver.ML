@@ -32,7 +32,7 @@ sig
 
   (*filter*)
   val smt_filter: bool -> Time.time -> Proof.state -> ('a * thm) list -> int ->
-    {outcome: SMT_Failure.failure option, used_facts: 'a list,
+    {outcome: SMT_Failure.failure option, used_facts: ('a * thm) list,
     run_time_in_msecs: int option}
 
   (*tactic*)
@@ -331,7 +331,7 @@ fun smt_filter run_remote time_limit st xrules i =
     val irs = map (pair ~1) (Thm.assume cprop :: prems @ facts)
     val rm = SOME run_remote
   in
-    split_list xrules
+    (xrules, map snd xrules)
     ||> distinct (op =) o fst o smt_solver rm ctxt' o append irs o map_index I
     |-> map_filter o try o nth
     |> (fn xs => {outcome=NONE, used_facts=xs, run_time_in_msecs=NONE})
