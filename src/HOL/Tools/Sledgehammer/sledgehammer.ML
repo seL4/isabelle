@@ -445,8 +445,7 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
         val _ =
           if verbose then
             "SMT iteration with " ^ string_of_int num_facts ^ " fact" ^
-            plural_s num_facts ^ " for " ^ string_from_time iter_timeout ^
-            "..."
+            plural_s num_facts ^ " for " ^ string_from_time iter_timeout ^ "..."
             |> Output.urgent_message
           else
             ()
@@ -472,8 +471,8 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
           | SOME (SMT_Failure.Abnormal_Termination code) =>
             (if verbose then
                "The SMT solver invoked with " ^ string_of_int num_facts ^
-               " fact" ^ plural_s num_facts ^ " terminated abnormally with \
-               \exit code " ^ string_of_int code ^ "."
+               " fact" ^ plural_s num_facts ^ " terminated abnormally with exit\
+               \code " ^ string_of_int code ^ "."
                |> (if debug then error else warning)
              else
                ();
@@ -497,7 +496,6 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
 fun can_apply timeout tac state i =
   let
     val {context = ctxt, facts, goal} = Proof.goal state
-    val ctxt = ctxt |> Config.put Metis_Tactics.verbose false
     val full_tac = Method.insert_tac facts i THEN tac ctxt i
   in
     case try (TimeLimit.timeLimit timeout (Seq.pull o full_tac)) goal of
@@ -515,13 +513,15 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
         ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val repair_context =
-      Config.put SMT_Config.verbose debug
+      Config.put Metis_Tactics.verbose debug
+      #> Config.put SMT_Config.verbose debug
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
     val ctxt = Proof.context_of state
+    val thy = Proof.theory_of state
+    val smt_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop params remote state subgoal
-                      (map_filter (try dest_Untranslated) facts)
+      smt_filter_loop params remote state subgoal (map_filter smt_fact facts)
     val message =
       case outcome of
         NONE =>
