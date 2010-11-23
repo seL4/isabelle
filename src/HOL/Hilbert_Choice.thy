@@ -261,6 +261,208 @@ proof -
   ultimately show "finite (UNIV :: 'a set)" by simp
 qed
 
+lemma image_inv_into_cancel:
+  assumes SURJ: "f`A=A'" and SUB: "B' \<le> A'"
+  shows "f `((inv_into A f)`B') = B'"
+  using assms
+proof (auto simp add: f_inv_into_f)
+  let ?f' = "(inv_into A f)"
+  fix a' assume *: "a' \<in> B'"
+  then have "a' \<in> A'" using SUB by auto
+  then have "a' = f (?f' a')"
+    using SURJ by (auto simp add: f_inv_into_f)
+  then show "a' \<in> f ` (?f' ` B')" using * by blast
+qed
+
+lemma inv_into_inv_into_eq:
+  assumes "bij_betw f A A'" "a \<in> A"
+  shows "inv_into A' (inv_into A f) a = f a"
+proof -
+  let ?f' = "inv_into A f"   let ?f'' = "inv_into A' ?f'"
+  have 1: "bij_betw ?f' A' A" using assms
+  by (auto simp add: bij_betw_inv_into)
+  obtain a' where 2: "a' \<in> A'" and 3: "?f' a' = a"
+    using 1 `a \<in> A` unfolding bij_betw_def by force
+  hence "?f'' a = a'"
+    using `a \<in> A` 1 3 by (auto simp add: f_inv_into_f bij_betw_def)
+  moreover have "f a = a'" using assms 2 3
+    by (auto simp add: inv_into_f_f bij_betw_def)
+  ultimately show "?f'' a = f a" by simp
+qed
+
+lemma inj_on_iff_surj:
+  assumes "A \<noteq> {}"
+  shows "(\<exists>f. inj_on f A \<and> f ` A \<le> A') \<longleftrightarrow> (\<exists>g. g ` A' = A)"
+proof safe
+  fix f assume INJ: "inj_on f A" and INCL: "f ` A \<le> A'"
+  let ?phi = "\<lambda>a' a. a \<in> A \<and> f a = a'"  let ?csi = "\<lambda>a. a \<in> A"
+  let ?g = "\<lambda>a'. if a' \<in> f ` A then (SOME a. ?phi a' a) else (SOME a. ?csi a)"
+  have "?g ` A' = A"
+  proof
+    show "?g ` A' \<le> A"
+    proof clarify
+      fix a' assume *: "a' \<in> A'"
+      show "?g a' \<in> A"
+      proof cases
+        assume Case1: "a' \<in> f ` A"
+        then obtain a where "?phi a' a" by blast
+        hence "?phi a' (SOME a. ?phi a' a)" using someI[of "?phi a'" a] by blast
+        with Case1 show ?thesis by auto
+      next
+        assume Case2: "a' \<notin> f ` A"
+        hence "?csi (SOME a. ?csi a)" using assms someI_ex[of ?csi] by blast
+        with Case2 show ?thesis by auto
+      qed
+    qed
+  next
+    show "A \<le> ?g ` A'"
+    proof-
+      {fix a assume *: "a \<in> A"
+       let ?b = "SOME aa. ?phi (f a) aa"
+       have "?phi (f a) a" using * by auto
+       hence 1: "?phi (f a) ?b" using someI[of "?phi(f a)" a] by blast
+       hence "?g(f a) = ?b" using * by auto
+       moreover have "a = ?b" using 1 INJ * by (auto simp add: inj_on_def)
+       ultimately have "?g(f a) = a" by simp
+       with INCL * have "?g(f a) = a \<and> f a \<in> A'" by auto
+      }
+      thus ?thesis by force
+    qed
+  qed
+  thus "\<exists>g. g ` A' = A" by blast
+next
+  fix g  let ?f = "inv_into A' g"
+  have "inj_on ?f (g ` A')"
+    by (auto simp add: inj_on_inv_into)
+  moreover
+  {fix a' assume *: "a' \<in> A'"
+   let ?phi = "\<lambda> b'. b' \<in> A' \<and> g b' = g a'"
+   have "?phi a'" using * by auto
+   hence "?phi(SOME b'. ?phi b')" using someI[of ?phi] by blast
+   hence "?f(g a') \<in> A'" unfolding inv_into_def by auto
+  }
+  ultimately show "\<exists>f. inj_on f (g ` A') \<and> f ` g ` A' \<subseteq> A'" by auto
+qed
+
+lemma Ex_inj_on_UNION_Sigma:
+  "\<exists>f. (inj_on f (\<Union> i \<in> I. A i) \<and> f ` (\<Union> i \<in> I. A i) \<le> (SIGMA i : I. A i))"
+proof
+  let ?phi = "\<lambda> a i. i \<in> I \<and> a \<in> A i"
+  let ?sm = "\<lambda> a. SOME i. ?phi a i"
+  let ?f = "\<lambda>a. (?sm a, a)"
+  have "inj_on ?f (\<Union> i \<in> I. A i)" unfolding inj_on_def by auto
+  moreover
+  { { fix i a assume "i \<in> I" and "a \<in> A i"
+      hence "?sm a \<in> I \<and> a \<in> A(?sm a)" using someI[of "?phi a" i] by auto
+    }
+    hence "?f ` (\<Union> i \<in> I. A i) \<le> (SIGMA i : I. A i)" by auto
+  }
+  ultimately
+  show "inj_on ?f (\<Union> i \<in> I. A i) \<and> ?f ` (\<Union> i \<in> I. A i) \<le> (SIGMA i : I. A i)"
+  by auto
+qed
+
+subsection {* The Cantor-Bernstein Theorem *}
+
+lemma Cantor_Bernstein_aux:
+  shows "\<exists>A' h. A' \<le> A \<and>
+                (\<forall>a \<in> A'. a \<notin> g`(B - f ` A')) \<and>
+                (\<forall>a \<in> A'. h a = f a) \<and>
+                (\<forall>a \<in> A - A'. h a \<in> B - (f ` A') \<and> a = g(h a))"
+proof-
+  obtain H where H_def: "H = (\<lambda> A'. A - (g`(B - (f ` A'))))" by blast
+  have 0: "mono H" unfolding mono_def H_def by blast
+  then obtain A' where 1: "H A' = A'" using lfp_unfold by blast
+  hence 2: "A' = A - (g`(B - (f ` A')))" unfolding H_def by simp
+  hence 3: "A' \<le> A" by blast
+  have 4: "\<forall>a \<in> A'.  a \<notin> g`(B - f ` A')"
+  using 2 by blast
+  have 5: "\<forall>a \<in> A - A'. \<exists>b \<in> B - (f ` A'). a = g b"
+  using 2 by blast
+  (*  *)
+  obtain h where h_def:
+  "h = (\<lambda> a. if a \<in> A' then f a else (SOME b. b \<in> B - (f ` A') \<and> a = g b))" by blast
+  hence "\<forall>a \<in> A'. h a = f a" by auto
+  moreover
+  have "\<forall>a \<in> A - A'. h a \<in> B - (f ` A') \<and> a = g(h a)"
+  proof
+    fix a assume *: "a \<in> A - A'"
+    let ?phi = "\<lambda> b. b \<in> B - (f ` A') \<and> a = g b"
+    have "h a = (SOME b. ?phi b)" using h_def * by auto
+    moreover have "\<exists>b. ?phi b" using 5 *  by auto
+    ultimately show  "?phi (h a)" using someI_ex[of ?phi] by auto
+  qed
+  ultimately show ?thesis using 3 4 by blast
+qed
+
+theorem Cantor_Bernstein:
+  assumes INJ1: "inj_on f A" and SUB1: "f ` A \<le> B" and
+          INJ2: "inj_on g B" and SUB2: "g ` B \<le> A"
+  shows "\<exists>h. bij_betw h A B"
+proof-
+  obtain A' and h where 0: "A' \<le> A" and
+  1: "\<forall>a \<in> A'. a \<notin> g`(B - f ` A')" and
+  2: "\<forall>a \<in> A'. h a = f a" and
+  3: "\<forall>a \<in> A - A'. h a \<in> B - (f ` A') \<and> a = g(h a)"
+  using Cantor_Bernstein_aux[of A g B f] by blast
+  have "inj_on h A"
+  proof (intro inj_onI)
+    fix a1 a2
+    assume 4: "a1 \<in> A" and 5: "a2 \<in> A" and 6: "h a1 = h a2"
+    show "a1 = a2"
+    proof(cases "a1 \<in> A'")
+      assume Case1: "a1 \<in> A'"
+      show ?thesis
+      proof(cases "a2 \<in> A'")
+        assume Case11: "a2 \<in> A'"
+        hence "f a1 = f a2" using Case1 2 6 by auto
+        thus ?thesis using INJ1 Case1 Case11 0
+        unfolding inj_on_def by blast
+      next
+        assume Case12: "a2 \<notin> A'"
+        hence False using 3 5 2 6 Case1 by force
+        thus ?thesis by simp
+      qed
+    next
+    assume Case2: "a1 \<notin> A'"
+      show ?thesis
+      proof(cases "a2 \<in> A'")
+        assume Case21: "a2 \<in> A'"
+        hence False using 3 4 2 6 Case2 by auto
+        thus ?thesis by simp
+      next
+        assume Case22: "a2 \<notin> A'"
+        hence "a1 = g(h a1) \<and> a2 = g(h a2)" using Case2 4 5 3 by auto
+        thus ?thesis using 6 by simp
+      qed
+    qed
+  qed
+  (*  *)
+  moreover
+  have "h ` A = B"
+  proof safe
+    fix a assume "a \<in> A"
+    thus "h a \<in> B" using SUB1 2 3 by (case_tac "a \<in> A'", auto)
+  next
+    fix b assume *: "b \<in> B"
+    show "b \<in> h ` A"
+    proof(cases "b \<in> f ` A'")
+      assume Case1: "b \<in> f ` A'"
+      then obtain a where "a \<in> A' \<and> b = f a" by blast
+      thus ?thesis using 2 0 by force
+    next
+      assume Case2: "b \<notin> f ` A'"
+      hence "g b \<notin> A'" using 1 * by auto
+      hence 4: "g b \<in> A - A'" using * SUB2 by auto
+      hence "h(g b) \<in> B \<and> g(h(g b)) = g b"
+      using 3 by auto
+      hence "h(g b) = b" using * INJ2 unfolding inj_on_def by auto
+      thus ?thesis using 4 by force
+    qed
+  qed
+  (*  *)
+  ultimately show ?thesis unfolding bij_betw_def by auto
+qed
 
 subsection {*Other Consequences of Hilbert's Epsilon*}
 

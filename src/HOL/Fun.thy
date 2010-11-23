@@ -169,6 +169,14 @@ by (simp add: inj_on_def)
 lemma inj_on_eq_iff: "inj_on f A ==> x:A ==> y:A ==> (f(x) = f(y)) = (x=y)"
 by (force simp add: inj_on_def)
 
+lemma inj_on_cong:
+  "(\<And> a. a : A \<Longrightarrow> f a = g a) \<Longrightarrow> inj_on f A = inj_on g A"
+unfolding inj_on_def by auto
+
+lemma inj_on_strict_subset:
+  "\<lbrakk> inj_on f B; A < B \<rbrakk> \<Longrightarrow> f`A < f`B"
+unfolding inj_on_def unfolding image_def by blast
+
 lemma inj_comp:
   "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (f \<circ> g)"
   by (simp add: inj_on_def)
@@ -184,6 +192,42 @@ lemma inj_on_id[simp]: "inj_on id A"
 
 lemma inj_on_id2[simp]: "inj_on (%x. x) A"
 by (simp add: inj_on_def)
+
+lemma inj_on_Int: "\<lbrakk>inj_on f A; inj_on f B\<rbrakk> \<Longrightarrow> inj_on f (A \<inter> B)"
+unfolding inj_on_def by blast
+
+lemma inj_on_INTER:
+  "\<lbrakk>I \<noteq> {}; \<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)\<rbrakk> \<Longrightarrow> inj_on f (\<Inter> i \<in> I. A i)"
+unfolding inj_on_def by blast
+
+lemma inj_on_Inter:
+  "\<lbrakk>S \<noteq> {}; \<And> A. A \<in> S \<Longrightarrow> inj_on f A\<rbrakk> \<Longrightarrow> inj_on f (Inter S)"
+unfolding inj_on_def by blast
+
+lemma inj_on_UNION_chain:
+  assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
+         INJ: "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
+  shows "inj_on f (\<Union> i \<in> I. A i)"
+proof(unfold inj_on_def UNION_def, auto)
+  fix i j x y
+  assume *: "i \<in> I" "j \<in> I" and **: "x \<in> A i" "y \<in> A j"
+         and ***: "f x = f y"
+  show "x = y"
+  proof-
+    {assume "A i \<le> A j"
+     with ** have "x \<in> A j" by auto
+     with INJ * ** *** have ?thesis
+     by(auto simp add: inj_on_def)
+    }
+    moreover
+    {assume "A j \<le> A i"
+     with ** have "y \<in> A i" by auto
+     with INJ * ** *** have ?thesis
+     by(auto simp add: inj_on_def)
+    }
+    ultimately show ?thesis using  CH * by blast
+  qed
+qed
 
 lemma surj_id: "surj id"
 by simp
@@ -249,6 +293,14 @@ apply(unfold inj_on_def)
 apply (blast)
 done
 
+lemma comp_inj_on_iff:
+  "inj_on f A \<Longrightarrow> inj_on f' (f ` A) \<longleftrightarrow> inj_on (f' o f) A"
+by(auto simp add: comp_inj_on inj_on_def)
+
+lemma inj_on_imageI2:
+  "inj_on (f' o f) A \<Longrightarrow> inj_on f A"
+by(auto simp add: comp_inj_on inj_on_def)
+
 lemma surj_def: "surj f \<longleftrightarrow> (\<forall>y. \<exists>x. y = f x)"
   by auto
 
@@ -269,6 +321,20 @@ done
 
 lemma bij_betw_imp_surj: "bij_betw f A UNIV \<Longrightarrow> surj f"
   unfolding bij_betw_def by auto
+
+lemma bij_betw_empty1:
+  assumes "bij_betw f {} A"
+  shows "A = {}"
+using assms unfolding bij_betw_def by blast
+
+lemma bij_betw_empty2:
+  assumes "bij_betw f A {}"
+  shows "A = {}"
+using assms unfolding bij_betw_def by blast
+
+lemma inj_on_imp_bij_betw:
+  "inj_on f A \<Longrightarrow> bij_betw f A (f ` A)"
+unfolding bij_betw_def by simp
 
 lemma bij_def: "bij f \<longleftrightarrow> inj f \<and> surj f"
   unfolding bij_betw_def ..
@@ -291,6 +357,32 @@ by(auto simp add:bij_betw_def comp_inj_on)
 
 lemma bij_comp: "bij f \<Longrightarrow> bij g \<Longrightarrow> bij (g o f)"
   by (rule bij_betw_trans)
+
+lemma bij_betw_comp_iff:
+  "bij_betw f A A' \<Longrightarrow> bij_betw f' A' A'' \<longleftrightarrow> bij_betw (f' o f) A A''"
+by(auto simp add: bij_betw_def inj_on_def)
+
+lemma bij_betw_comp_iff2:
+  assumes BIJ: "bij_betw f' A' A''" and IM: "f ` A \<le> A'"
+  shows "bij_betw f A A' \<longleftrightarrow> bij_betw (f' o f) A A''"
+using assms
+proof(auto simp add: bij_betw_comp_iff)
+  assume *: "bij_betw (f' \<circ> f) A A''"
+  thus "bij_betw f A A'"
+  using IM
+  proof(auto simp add: bij_betw_def)
+    assume "inj_on (f' \<circ> f) A"
+    thus "inj_on f A" using inj_on_imageI2 by blast
+  next
+    fix a' assume **: "a' \<in> A'"
+    hence "f' a' \<in> A''" using BIJ unfolding bij_betw_def by auto
+    then obtain a where 1: "a \<in> A \<and> f'(f a) = f' a'" using *
+    unfolding bij_betw_def by force
+    hence "f a \<in> A'" using IM by auto
+    hence "f a = a'" using BIJ ** 1 unfolding bij_betw_def inj_on_def by auto
+    thus "a' \<in> f ` A" using 1 by auto
+  qed
+qed
 
 lemma bij_betw_inv: assumes "bij_betw f A B" shows "EX g. bij_betw g B A"
 proof -
@@ -323,10 +415,72 @@ proof -
   ultimately show ?thesis by(auto simp:bij_betw_def)
 qed
 
+lemma bij_betw_cong:
+  "(\<And> a. a \<in> A \<Longrightarrow> f a = g a) \<Longrightarrow> bij_betw f A A' = bij_betw g A A'"
+unfolding bij_betw_def inj_on_def by force
+
+lemma bij_betw_id[intro, simp]:
+  "bij_betw id A A"
+unfolding bij_betw_def id_def by auto
+
+lemma bij_betw_id_iff:
+  "bij_betw id A B \<longleftrightarrow> A = B"
+by(auto simp add: bij_betw_def)
+
 lemma bij_betw_combine:
   assumes "bij_betw f A B" "bij_betw f C D" "B \<inter> D = {}"
   shows "bij_betw f (A \<union> C) (B \<union> D)"
   using assms unfolding bij_betw_def inj_on_Un image_Un by auto
+
+lemma bij_betw_UNION_chain:
+  assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
+         BIJ: "\<And> i. i \<in> I \<Longrightarrow> bij_betw f (A i) (A' i)"
+  shows "bij_betw f (\<Union> i \<in> I. A i) (\<Union> i \<in> I. A' i)"
+proof(unfold bij_betw_def, auto simp add: image_def)
+  have "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
+  using BIJ bij_betw_def[of f] by auto
+  thus "inj_on f (\<Union> i \<in> I. A i)"
+  using CH inj_on_UNION_chain[of I A f] by auto
+next
+  fix i x
+  assume *: "i \<in> I" "x \<in> A i"
+  hence "f x \<in> A' i" using BIJ bij_betw_def[of f] by auto
+  thus "\<exists>j \<in> I. f x \<in> A' j" using * by blast
+next
+  fix i x'
+  assume *: "i \<in> I" "x' \<in> A' i"
+  hence "\<exists>x \<in> A i. x' = f x" using BIJ bij_betw_def[of f] by blast
+  thus "\<exists>j \<in> I. \<exists>x \<in> A j. x' = f x"
+  using * by blast
+qed
+
+lemma bij_betw_Disj_Un:
+  assumes DISJ: "A \<inter> B = {}" and DISJ': "A' \<inter> B' = {}" and
+          B1: "bij_betw f A A'" and B2: "bij_betw f B B'"
+  shows "bij_betw f (A \<union> B) (A' \<union> B')"
+proof-
+  have 1: "inj_on f A \<and> inj_on f B"
+  using B1 B2 by (auto simp add: bij_betw_def)
+  have 2: "f`A = A' \<and> f`B = B'"
+  using B1 B2 by (auto simp add: bij_betw_def)
+  hence "f`(A - B) \<inter> f`(B - A) = {}"
+  using DISJ DISJ' by blast
+  hence "inj_on f (A \<union> B)"
+  using 1 by (auto simp add: inj_on_Un)
+  (*  *)
+  moreover
+  have "f`(A \<union> B) = A' \<union> B'"
+  using 2 by auto
+  ultimately show ?thesis
+  unfolding bij_betw_def by auto
+qed
+
+lemma bij_betw_subset:
+  assumes BIJ: "bij_betw f A A'" and
+          SUB: "B \<le> A" and IM: "f ` B = B'"
+  shows "bij_betw f B B'"
+using assms
+by(unfold bij_betw_def inj_on_def, auto simp add: inj_on_def)
 
 lemma surj_image_vimage_eq: "surj f ==> f ` (f -` A) = A"
 by simp
@@ -613,6 +767,17 @@ lemma the_inv_f_f:
   shows "the_inv f (f x) = x" using assms UNIV_I
   by (rule the_inv_into_f_f)
 
+subsection {* Cantor's Paradox *}
+
+lemma Cantors_paradox:
+  "\<not>(\<exists>f. f ` A = Pow A)"
+proof clarify
+  fix f assume "f ` A = Pow A" hence *: "Pow A \<le> f ` A" by blast
+  let ?X = "{a \<in> A. a \<notin> f a}"
+  have "?X \<in> Pow A" unfolding Pow_def by auto
+  with * obtain x where "x \<in> A \<and> f x = ?X" by blast
+  thus False by best
+qed
 
 subsection {* Proof tool setup *} 
 

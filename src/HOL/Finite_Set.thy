@@ -2179,6 +2179,11 @@ lemma card_bij_eq:
      finite A; finite B |] ==> card A = card B"
 by (auto intro: le_antisym card_inj_on_le)
 
+lemma bij_betw_finite:
+  assumes "bij_betw f A B"
+  shows "finite A \<longleftrightarrow> finite B"
+using assms unfolding bij_betw_def
+using finite_imageD[of f A] by auto
 
 subsubsection {* Pigeonhole Principles *}
 
