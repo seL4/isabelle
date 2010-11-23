@@ -26,7 +26,7 @@ sig
   type 'a proof = 'a uniform_formula step list
 
   val strip_spaces : (char -> bool) -> string -> string
-  val string_for_failure : failure -> string
+  val string_for_failure : string -> failure -> string
   val extract_important_message : string -> string
   val extract_known_failure :
     (failure * string) list -> string -> failure option
@@ -75,13 +75,15 @@ val missing_message_tail =
   " appears to be missing. You will need to install it if you want to run \
   \ATPs remotely."
 
-fun string_for_failure Unprovable = "The ATP problem is unprovable."
-  | string_for_failure IncompleteUnprovable =
-    "The ATP cannot prove the problem."
-  | string_for_failure CantConnect = "Can't connect to remote server."
-  | string_for_failure TimedOut = "Timed out."
-  | string_for_failure OutOfResources = "The ATP ran out of resources."
-  | string_for_failure SpassTooOld =
+fun string_for_failure prover Unprovable =
+    "The " ^ prover ^ " problem is unprovable."
+  | string_for_failure prover IncompleteUnprovable =
+    "The " ^ prover ^ " cannot prove the problem."
+  | string_for_failure _ CantConnect = "Cannot connect to remote server."
+  | string_for_failure _ TimedOut = "Timed out."
+  | string_for_failure prover OutOfResources =
+    "The " ^ prover ^ " ran out of resources."
+  | string_for_failure _ SpassTooOld =
     "Isabelle requires a more recent version of SPASS with support for the \
     \TPTP syntax. To install it, download and extract the package \
     \\"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and add the \
@@ -90,21 +92,24 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
                (Path.variable "ISABELLE_HOME_USER" ::
                 map Path.basic ["etc", "components"])))) ^
     " on a line of its own."
-  | string_for_failure VampireTooOld =
+  | string_for_failure _ VampireTooOld =
     "Isabelle requires a more recent version of Vampire. To install it, follow \
     \the instructions from the Sledgehammer manual (\"isabelle doc\
     \ sledgehammer\")."
-  | string_for_failure NoPerl = "Perl" ^ missing_message_tail
-  | string_for_failure NoLibwwwPerl =
+  | string_for_failure _ NoPerl = "Perl" ^ missing_message_tail
+  | string_for_failure _ NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail
-  | string_for_failure MalformedInput =
-    "The ATP problem is malformed. Please report this to the Isabelle \
+  | string_for_failure prover MalformedInput =
+    "The " ^ prover ^ " problem is malformed. Please report this to the Isabelle \
     \developers."
-  | string_for_failure MalformedOutput = "The ATP output is malformed."
-  | string_for_failure Interrupted = "The ATP was interrupted."
-  | string_for_failure Crashed = "The ATP crashed."
-  | string_for_failure InternalError = "An internal ATP error occurred."
-  | string_for_failure UnknownError = "An unknown ATP error occurred."
+  | string_for_failure prover MalformedOutput =
+    "The " ^ prover ^ " output is malformed."
+  | string_for_failure prover Interrupted = "The " ^ prover ^ " was interrupted."
+  | string_for_failure prover Crashed = "The " ^ prover ^ " crashed."
+  | string_for_failure prover InternalError =
+    "An internal " ^ prover ^ " error occurred."
+  | string_for_failure prover UnknownError =
+    "An unknown " ^ prover ^ " error occurred."
 
 fun extract_delimited (begin_delim, end_delim) output =
   output |> first_field begin_delim |> the |> snd

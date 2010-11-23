@@ -403,21 +403,25 @@ fun run_atp auto atp_name
                    important_message
                  else
                    ""))
-      | SOME failure => (string_for_failure failure, [])
+      | SOME failure => (string_for_failure "ATP" failure, [])
   in
     {outcome = outcome, message = message, used_facts = used_facts,
      run_time_in_msecs = msecs}
   end
 
-(* "SMT_Failure.Abnormal_Termination" carries the solver's return code.
-   Return codes 1 to 127 are application-specific, whereas (at least on
-   Unix) 128 to 255 are reserved for signals (e.g., SIGSEGV) and other
-   system codes. *)
+(* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
+   these are sorted out properly in the SMT module, we have to interpret these
+   ourselves. *)
+
+val z3_malformed_input_codes = [103, 110]
+val sigsegv_code = 139
 
 fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
   | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
   | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
-    if code >= 128 then Crashed else IncompleteUnprovable
+    if member (op =) z3_malformed_input_codes code then MalformedInput
+    else if code = sigsegv_code then Crashed
+    else IncompleteUnprovable
   | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
   | failure_from_smt_failure _ = UnknownError
 
@@ -522,6 +526,7 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
     val smt_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop params remote state subgoal (map_filter smt_fact facts)
+    val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
       case outcome of
         NONE =>
@@ -535,15 +540,7 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
                             command_call method (map (fst o fst) used_facts)) ^
           minimize_line minimize_command (map (fst o fst) used_facts)
         end
-      | SOME SMT_Failure.Time_Out => "Timed out."
-      | SOME (SMT_Failure.Abnormal_Termination code) =>
-        "The SMT solver terminated abnormally with exit code " ^
-        string_of_int code ^ "."
-      | SOME (SMT_Failure.Counterexample _) => "The SMT problem is unprovable."
-      | SOME SMT_Failure.Out_Of_Memory => "The SMT solver ran out of memory."
-      | SOME failure =>
-        SMT_Failure.string_of_failure ctxt failure
-    val outcome = outcome |> Option.map failure_from_smt_failure (* FIXME *)
+      | SOME failure => string_for_failure "SMT solver" failure
   in
     {outcome = outcome, used_facts = map fst used_facts,
      run_time_in_msecs = run_time_in_msecs, message = message}
