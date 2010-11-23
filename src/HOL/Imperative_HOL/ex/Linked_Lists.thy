@@ -448,8 +448,8 @@ next
     by simp
 qed
 
-lemma crel_ref:
-  assumes "crel (ref v) h h' x"
+lemma effect_ref:
+  assumes "effect (ref v) h h' x"
   obtains "Ref.get h' x = v"
   and "\<not> Ref.present h x"
   and "Ref.present h' x"
@@ -458,7 +458,7 @@ lemma crel_ref:
   and "\<forall>y. Ref.present h y \<longrightarrow> Ref.present h' y"
   using assms
   unfolding Ref.ref_def
-  apply (elim crel_heapE)
+  apply (elim effect_heapE)
   unfolding Ref.alloc_def
   apply (simp add: Let_def)
   unfolding Ref.present_def
@@ -468,56 +468,56 @@ lemma crel_ref:
   done
 
 lemma make_llist:
-assumes "crel (make_llist xs) h h' r"
+assumes "effect (make_llist xs) h h' r"
 shows "list_of h' r xs \<and> (\<forall>rs. refs_of h' r rs \<longrightarrow> (\<forall>ref \<in> (set rs). Ref.present h' ref))"
 using assms 
 proof (induct xs arbitrary: h h' r)
-  case Nil thus ?case by (auto elim: crel_returnE simp add: make_llist.simps)
+  case Nil thus ?case by (auto elim: effect_returnE simp add: make_llist.simps)
 next
   case (Cons x xs')
-  from Cons.prems obtain h1 r1 r' where make_llist: "crel (make_llist xs') h h1 r1"
-    and crel_refnew:"crel (ref r1) h1 h' r'" and Node: "r = Node x r'"
+  from Cons.prems obtain h1 r1 r' where make_llist: "effect (make_llist xs') h h1 r1"
+    and effect_refnew:"effect (ref r1) h1 h' r'" and Node: "r = Node x r'"
     unfolding make_llist.simps
-    by (auto elim!: crel_bindE crel_returnE)
+    by (auto elim!: effect_bindE effect_returnE)
   from Cons.hyps[OF make_llist] have list_of_h1: "list_of h1 r1 xs'" ..
   from Cons.hyps[OF make_llist] obtain rs' where rs'_def: "refs_of h1 r1 rs'" by (auto intro: list_of_refs_of)
   from Cons.hyps[OF make_llist] rs'_def have refs_present: "\<forall>ref\<in>set rs'. Ref.present h1 ref" by simp
-  from crel_refnew rs'_def refs_present have refs_unchanged: "\<forall>refs. refs_of h1 r1 refs \<longrightarrow>
+  from effect_refnew rs'_def refs_present have refs_unchanged: "\<forall>refs. refs_of h1 r1 refs \<longrightarrow>
          (\<forall>ref\<in>set refs. Ref.present h1 ref \<and> Ref.present h' ref \<and> Ref.get h1 ref = Ref.get h' ref)"
-    by (auto elim!: crel_ref dest: refs_of_is_fun)
-  with list_of_invariant[OF list_of_h1 refs_unchanged] Node crel_refnew have fstgoal: "list_of h' r (x # xs')"
+    by (auto elim!: effect_ref dest: refs_of_is_fun)
+  with list_of_invariant[OF list_of_h1 refs_unchanged] Node effect_refnew have fstgoal: "list_of h' r (x # xs')"
     unfolding list_of.simps
-    by (auto elim!: crel_refE)
+    by (auto elim!: effect_refE)
   from refs_unchanged rs'_def have refs_still_present: "\<forall>ref\<in>set rs'. Ref.present h' ref" by auto
-  from refs_of_invariant[OF rs'_def refs_unchanged] refs_unchanged Node crel_refnew refs_still_present
+  from refs_of_invariant[OF rs'_def refs_unchanged] refs_unchanged Node effect_refnew refs_still_present
   have sndgoal: "\<forall>rs. refs_of h' r rs \<longrightarrow> (\<forall>ref\<in>set rs. Ref.present h' ref)"
-    by (fastsimp elim!: crel_refE dest: refs_of_is_fun)
+    by (fastsimp elim!: effect_refE dest: refs_of_is_fun)
   from fstgoal sndgoal show ?case ..
 qed
 
-lemma traverse: "list_of h n r \<Longrightarrow> crel (traverse n) h h r"
+lemma traverse: "list_of h n r \<Longrightarrow> effect (traverse n) h h r"
 proof (induct r arbitrary: n)
   case Nil
   thus ?case
-    by (auto intro: crel_returnI)
+    by (auto intro: effect_returnI)
 next
   case (Cons x xs)
   thus ?case
   apply (cases n, auto)
-  by (auto intro!: crel_bindI crel_returnI crel_lookupI)
+  by (auto intro!: effect_bindI effect_returnI effect_lookupI)
 qed
 
 lemma traverse_make_llist':
-  assumes crel: "crel (make_llist xs \<guillemotright>= traverse) h h' r"
+  assumes effect: "effect (make_llist xs \<guillemotright>= traverse) h h' r"
   shows "r = xs"
 proof -
-  from crel obtain h1 r1
-    where makell: "crel (make_llist xs) h h1 r1"
-    and trav: "crel (traverse r1) h1 h' r"
-    by (auto elim!: crel_bindE)
+  from effect obtain h1 r1
+    where makell: "effect (make_llist xs) h h1 r1"
+    and trav: "effect (traverse r1) h1 h' r"
+    by (auto elim!: effect_bindE)
   from make_llist[OF makell] have "list_of h1 r1 xs" ..
   from traverse [OF this] trav show ?thesis
-    using crel_deterministic by fastsimp
+    using effect_deterministic by fastsimp
 qed
 
 section {* Proving correctness of in-place reversal *}
@@ -546,7 +546,7 @@ where
 subsection {* Correctness Proof *}
 
 lemma rev'_invariant:
-  assumes "crel (rev' q p) h h' v"
+  assumes "effect (rev' q p) h h' v"
   assumes "list_of' h q qs"
   assumes "list_of' h p ps"
   assumes "\<forall>qrs prs. refs_of' h q qrs \<and> refs_of' h p prs \<longrightarrow> set prs \<inter> set qrs = {}"
@@ -556,7 +556,7 @@ proof (induct ps arbitrary: qs p q h)
   case Nil
   thus ?case
     unfolding rev'.simps[of q p] list_of'_def
-    by (auto elim!: crel_bindE crel_lookupE crel_returnE)
+    by (auto elim!: effect_bindE effect_lookupE effect_returnE)
 next
   case (Cons x xs)
   (*"LinkedList.list_of h' (get_ref v h') (List.rev xs @ x # qsa)"*)
@@ -565,8 +565,8 @@ next
     (*and "ref_present ref h"*)
     and list_of'_ref: "list_of' h ref xs"
     unfolding list_of'_def by (cases "Ref.get h p", auto)
-  from p_is_Node Cons(2) have crel_rev': "crel (rev' p ref) (Ref.set p (Node x q) h) h' v"
-    by (auto simp add: rev'.simps [of q p] elim!: crel_bindE crel_lookupE crel_updateE)
+  from p_is_Node Cons(2) have effect_rev': "effect (rev' p ref) (Ref.set p (Node x q) h) h' v"
+    by (auto simp add: rev'.simps [of q p] elim!: effect_bindE effect_lookupE effect_updateE)
   from Cons(3) obtain qrs where qrs_def: "refs_of' h q qrs" by (elim list_of'_refs_of')
   from Cons(4) obtain prs where prs_def: "refs_of' h p prs" by (elim list_of'_refs_of')
   from qrs_def prs_def Cons(5) have distinct_pointers: "set qrs \<inter> set prs = {}" by fastsimp
@@ -594,60 +594,60 @@ next
     apply (drule refs_of'_is_fun) back back apply assumption
     apply (drule refs_of'_is_fun) back back apply assumption
     apply auto done
-  from Cons.hyps [OF crel_rev' 1 2 3] show ?case by simp
+  from Cons.hyps [OF effect_rev' 1 2 3] show ?case by simp
 qed
 
 
 lemma rev_correctness:
   assumes list_of_h: "list_of h r xs"
   assumes validHeap: "\<forall>refs. refs_of h r refs \<longrightarrow> (\<forall>r \<in> set refs. Ref.present h r)"
-  assumes crel_rev: "crel (rev r) h h' r'"
+  assumes effect_rev: "effect (rev r) h h' r'"
   shows "list_of h' r' (List.rev xs)"
 using assms
 proof (cases r)
   case Empty
-  with list_of_h crel_rev show ?thesis
-    by (auto simp add: list_of_Empty elim!: crel_returnE)
+  with list_of_h effect_rev show ?thesis
+    by (auto simp add: list_of_Empty elim!: effect_returnE)
 next
   case (Node x ps)
-  with crel_rev obtain p q h1 h2 h3 v where
-    init: "crel (ref Empty) h h1 q"
-    "crel (ref (Node x ps)) h1 h2 p"
-    and crel_rev':"crel (rev' q p) h2 h3 v"
-    and lookup: "crel (!v) h3 h' r'"
+  with effect_rev obtain p q h1 h2 h3 v where
+    init: "effect (ref Empty) h h1 q"
+    "effect (ref (Node x ps)) h1 h2 p"
+    and effect_rev':"effect (rev' q p) h2 h3 v"
+    and lookup: "effect (!v) h3 h' r'"
     using rev.simps
-    by (auto elim!: crel_bindE)
+    by (auto elim!: effect_bindE)
   from init have a1:"list_of' h2 q []"
     unfolding list_of'_def
-    by (auto elim!: crel_ref)
+    by (auto elim!: effect_ref)
   from list_of_h obtain refs where refs_def: "refs_of h r refs" by (rule list_of_refs_of)
   from validHeap init refs_def have heap_eq: "\<forall>refs. refs_of h r refs \<longrightarrow> (\<forall>ref\<in>set refs. Ref.present h ref \<and> Ref.present h2 ref \<and> Ref.get h ref = Ref.get h2 ref)"
-    by (fastsimp elim!: crel_ref dest: refs_of_is_fun)
+    by (fastsimp elim!: effect_ref dest: refs_of_is_fun)
   from list_of_invariant[OF list_of_h heap_eq] have "list_of h2 r xs" .
   from init this Node have a2: "list_of' h2 p xs"
     apply -
     unfolding list_of'_def
-    apply (auto elim!: crel_refE)
+    apply (auto elim!: effect_refE)
     done
   from init have refs_of_q: "refs_of' h2 q [q]"
-    by (auto elim!: crel_ref)
+    by (auto elim!: effect_ref)
   from refs_def Node have refs_of'_ps: "refs_of' h ps refs"
     by (auto simp add: refs_of'_def'[symmetric])
   from validHeap refs_def have all_ref_present: "\<forall>r\<in>set refs. Ref.present h r" by simp
   from init refs_of'_ps this
     have heap_eq: "\<forall>refs. refs_of' h ps refs \<longrightarrow> (\<forall>ref\<in>set refs. Ref.present h ref \<and> Ref.present h2 ref \<and> Ref.get h ref = Ref.get h2 ref)"
-    by (auto elim!: crel_ref [where ?'a="'a node", where ?'b="'a node", where ?'c="'a node"] dest: refs_of'_is_fun)
+    by (auto elim!: effect_ref [where ?'a="'a node", where ?'b="'a node", where ?'c="'a node"] dest: refs_of'_is_fun)
   from refs_of'_invariant[OF refs_of'_ps this] have "refs_of' h2 ps refs" .
   with init have refs_of_p: "refs_of' h2 p (p#refs)"
-    by (auto elim!: crel_refE simp add: refs_of'_def')
+    by (auto elim!: effect_refE simp add: refs_of'_def')
   with init all_ref_present have q_is_new: "q \<notin> set (p#refs)"
-    by (auto elim!: crel_refE intro!: Ref.noteq_I)
+    by (auto elim!: effect_refE intro!: Ref.noteq_I)
   from refs_of_p refs_of_q q_is_new have a3: "\<forall>qrs prs. refs_of' h2 q qrs \<and> refs_of' h2 p prs \<longrightarrow> set prs \<inter> set qrs = {}"
     by (fastsimp simp only: set.simps dest: refs_of'_is_fun)
-  from rev'_invariant [OF crel_rev' a1 a2 a3] have "list_of h3 (Ref.get h3 v) (List.rev xs)" 
+  from rev'_invariant [OF effect_rev' a1 a2 a3] have "list_of h3 (Ref.get h3 v) (List.rev xs)" 
     unfolding list_of'_def by auto
   with lookup show ?thesis
-    by (auto elim: crel_lookupE)
+    by (auto elim: effect_lookupE)
 qed
 
 
@@ -780,21 +780,21 @@ next
 qed
 
 
-text {* secondly, we add the crel statement in the premise, and derive the crel statements for the single cases which we then eliminate with our crel elim rules. *}
+text {* secondly, we add the effect statement in the premise, and derive the effect statements for the single cases which we then eliminate with our effect elim rules. *}
   
 lemma merge_induct3: 
 assumes  "list_of' h p xs"
 assumes  "list_of' h q ys"
-assumes  "crel (merge p q) h h' r"
+assumes  "effect (merge p q) h h' r"
 assumes  "\<And> ys p q. \<lbrakk> list_of' h p []; list_of' h q ys; Ref.get h p = Empty \<rbrakk> \<Longrightarrow> P p q h h q [] ys"
 assumes  "\<And> x xs' p q pn. \<lbrakk> list_of' h p (x#xs'); list_of' h q []; Ref.get h p = Node x pn; Ref.get h q = Empty \<rbrakk> \<Longrightarrow> P p q h h p (x#xs') []"
 assumes  "\<And> x xs' y ys' p q pn qn h1 r1 h'.
   \<lbrakk> list_of' h p (x#xs'); list_of' h q (y#ys');Ref.get h p = Node x pn; Ref.get h q = Node y qn;
-  x \<le> y; crel (merge pn q) h h1 r1 ; P pn q h h1 r1 xs' (y#ys'); h' = Ref.set p (Node x r1) h1 \<rbrakk>
+  x \<le> y; effect (merge pn q) h h1 r1 ; P pn q h h1 r1 xs' (y#ys'); h' = Ref.set p (Node x r1) h1 \<rbrakk>
   \<Longrightarrow> P p q h h' p (x#xs') (y#ys')"
 assumes "\<And> x xs' y ys' p q pn qn h1 r1 h'.
   \<lbrakk> list_of' h p (x#xs'); list_of' h q (y#ys'); Ref.get h p = Node x pn; Ref.get h q = Node y qn;
-  \<not> x \<le> y; crel (merge p qn) h h1 r1; P p qn h h1 r1 (x#xs') ys'; h' = Ref.set q (Node y r1) h1 \<rbrakk>
+  \<not> x \<le> y; effect (merge p qn) h h1 r1; P p qn h h1 r1 (x#xs') ys'; h' = Ref.set q (Node y r1) h1 \<rbrakk>
   \<Longrightarrow> P p q h h' q (x#xs') (y#ys')"
 shows "P p q h h' r xs ys"
 using assms(3)
@@ -802,29 +802,29 @@ proof (induct arbitrary: h' r rule: merge_induct2[OF assms(1) assms(2)])
   case (1 ys p q)
   from 1(3-4) have "h = h' \<and> r = q"
     unfolding merge_simps[of p q]
-    by (auto elim!: crel_lookupE crel_bindE crel_returnE)
+    by (auto elim!: effect_lookupE effect_bindE effect_returnE)
   with assms(4)[OF 1(1) 1(2) 1(3)] show ?case by simp
 next
   case (2 x xs' p q pn)
   from 2(3-5) have "h = h' \<and> r = p"
     unfolding merge_simps[of p q]
-    by (auto elim!: crel_lookupE crel_bindE crel_returnE)
+    by (auto elim!: effect_lookupE effect_bindE effect_returnE)
   with assms(5)[OF 2(1-4)] show ?case by simp
 next
   case (3 x xs' y ys' p q pn qn)
   from 3(3-5) 3(7) obtain h1 r1 where
-    1: "crel (merge pn q) h h1 r1" 
+    1: "effect (merge pn q) h h1 r1" 
     and 2: "h' = Ref.set p (Node x r1) h1 \<and> r = p"
     unfolding merge_simps[of p q]
-    by (auto elim!: crel_lookupE crel_bindE crel_returnE crel_ifE crel_updateE)
+    by (auto elim!: effect_lookupE effect_bindE effect_returnE effect_ifE effect_updateE)
   from 3(6)[OF 1] assms(6) [OF 3(1-5)] 1 2 show ?case by simp
 next
   case (4 x xs' y ys' p q pn qn)
   from 4(3-5) 4(7) obtain h1 r1 where
-    1: "crel (merge p qn) h h1 r1" 
+    1: "effect (merge p qn) h h1 r1" 
     and 2: "h' = Ref.set q (Node y r1) h1 \<and> r = q"
     unfolding merge_simps[of p q]
-    by (auto elim!: crel_lookupE crel_bindE crel_returnE crel_ifE crel_updateE)
+    by (auto elim!: effect_lookupE effect_bindE effect_returnE effect_ifE effect_updateE)
   from 4(6)[OF 1] assms(7) [OF 4(1-5)] 1 2 show ?case by simp
 qed
 
@@ -837,7 +837,7 @@ same reasoning into an extended induction rule *}
 lemma merge_unchanged:
   assumes "refs_of' h p xs"
   assumes "refs_of' h q ys"  
-  assumes "crel (merge p q) h h' r'"
+  assumes "effect (merge p q) h h' r'"
   assumes "set xs \<inter> set ys = {}"
   assumes "r \<notin> set xs \<union> set ys"
   shows "Ref.get h r = Ref.get h' r"
@@ -882,7 +882,7 @@ qed
 lemma refs_of'_merge:
   assumes "refs_of' h p xs"
   assumes "refs_of' h q ys"
-  assumes "crel (merge p q) h h' r"
+  assumes "effect (merge p q) h h' r"
   assumes "set xs \<inter> set ys = {}"
   assumes "refs_of' h' r rs"
   shows "set rs \<subseteq> set xs \<union> set ys"
@@ -930,7 +930,7 @@ qed
 lemma
   assumes "list_of' h p xs"
   assumes "list_of' h q ys"
-  assumes "crel (merge p q) h h' r"
+  assumes "effect (merge p q) h h' r"
   assumes "\<forall>qrs prs. refs_of' h q qrs \<and> refs_of' h p prs \<longrightarrow> set prs \<inter> set qrs = {}"
   shows "list_of' h' r (Lmerge xs ys)"
 using assms(4)

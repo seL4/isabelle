@@ -476,15 +476,15 @@ lemma eval_single [simp]:
   by (simp add: single_def)
 
 definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<guillemotright>=" 70) where
-  "P \<guillemotright>= f = (SUPR (Predicate.eval P) f)"
+  "P \<guillemotright>= f = (SUPR {x. Predicate.eval P x} f)"
 
 lemma eval_bind [simp]:
-  "eval (P \<guillemotright>= f) = Predicate.eval (SUPR (Predicate.eval P) f)"
+  "eval (P \<guillemotright>= f) = Predicate.eval (SUPR {x. Predicate.eval P x} f)"
   by (simp add: bind_def)
 
 lemma bind_bind:
   "(P \<guillemotright>= Q) \<guillemotright>= R = P \<guillemotright>= (\<lambda>x. Q x \<guillemotright>= R)"
-  by (rule pred_eqI) simp
+  by (rule pred_eqI) auto
 
 lemma bind_single:
   "P \<guillemotright>= single = P"
@@ -496,15 +496,15 @@ lemma single_bind:
 
 lemma bottom_bind:
   "\<bottom> \<guillemotright>= P = \<bottom>"
-  by (rule pred_eqI) simp
+  by (rule pred_eqI) auto
 
 lemma sup_bind:
   "(P \<squnion> Q) \<guillemotright>= R = P \<guillemotright>= R \<squnion> Q \<guillemotright>= R"
-  by (rule pred_eqI) simp
+  by (rule pred_eqI) auto
 
 lemma Sup_bind:
   "(\<Squnion>A \<guillemotright>= f) = \<Squnion>((\<lambda>x. x \<guillemotright>= f) ` A)"
-  by (rule pred_eqI) simp
+  by (rule pred_eqI) auto
 
 lemma pred_iffI:
   assumes "\<And>x. eval A x \<Longrightarrow> eval B x"
@@ -933,8 +933,12 @@ definition the :: "'a pred => 'a"
 where
   "the A = (THE x. eval A x)"
 
-lemma the_eq[code]: "the A = singleton (\<lambda>x. not_unique A) A"
-by (auto simp add: the_def singleton_def not_unique_def)
+lemma the_eqI:
+  "(THE x. Predicate.eval P x) = x \<Longrightarrow> Predicate.the P = x"
+  by (simp add: the_def)
+
+lemma the_eq [code]: "the A = singleton (\<lambda>x. not_unique A) A"
+  by (rule the_eqI) (simp add: singleton_def not_unique_def)
 
 code_abort not_unique
 

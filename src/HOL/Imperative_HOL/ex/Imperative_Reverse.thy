@@ -26,15 +26,15 @@ fun rev :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarro
 
 declare swap.simps [simp del] rev.simps [simp del]
 
-lemma swap_pointwise: assumes "crel (swap a i j) h h' r"
+lemma swap_pointwise: assumes "effect (swap a i j) h h' r"
   shows "Array.get h' a ! k = (if k = i then Array.get h a ! j
       else if k = j then Array.get h a ! i
       else Array.get h a ! k)"
 using assms unfolding swap.simps
-by (elim crel_elims)
+by (elim effect_elims)
  (auto simp: length_def)
 
-lemma rev_pointwise: assumes "crel (rev a i j) h h' r"
+lemma rev_pointwise: assumes "effect (rev a i j) h h' r"
   shows "Array.get h' a ! k = (if k < i then Array.get h a ! k
       else if j < k then Array.get h a ! k
       else Array.get h a ! (j - (k - i)))" (is "?P a i j h h'")
@@ -45,9 +45,9 @@ using assms proof (induct a i j arbitrary: h h' rule: rev.induct)
     case True
     with 1[unfolded rev.simps[of a i j]]
     obtain h' where
-      swp: "crel (swap a i j) h h' ()"
-      and rev: "crel (rev a (i + 1) (j - 1)) h' h'' ()"
-      by (auto elim: crel_elims)
+      swp: "effect (swap a i j) h h' ()"
+      and rev: "effect (rev a (i + 1) (j - 1)) h' h'' ()"
+      by (auto elim: effect_elims)
     from rev 1 True
     have eq: "?P a (i + 1) (j - 1) h' h''" by auto
 
@@ -58,12 +58,12 @@ using assms proof (induct a i j arbitrary: h h' rule: rev.induct)
     case False
     with 1[unfolded rev.simps[of a i j]]
     show ?thesis
-      by (cases "k = j") (auto elim: crel_elims)
+      by (cases "k = j") (auto elim: effect_elims)
   qed
 qed
 
 lemma rev_length:
-  assumes "crel (rev a i j) h h' r"
+  assumes "effect (rev a i j) h h' r"
   shows "Array.length h a = Array.length h' a"
 using assms
 proof (induct a i j arbitrary: h h' rule: rev.induct)
@@ -73,21 +73,21 @@ proof (induct a i j arbitrary: h h' rule: rev.induct)
     case True
     with 1[unfolded rev.simps[of a i j]]
     obtain h' where
-      swp: "crel (swap a i j) h h' ()"
-      and rev: "crel (rev a (i + 1) (j - 1)) h' h'' ()"
-      by (auto elim: crel_elims)
+      swp: "effect (swap a i j) h h' ()"
+      and rev: "effect (rev a (i + 1) (j - 1)) h' h'' ()"
+      by (auto elim: effect_elims)
     from swp rev 1 True show ?thesis
       unfolding swap.simps
-      by (elim crel_elims) fastsimp
+      by (elim effect_elims) fastsimp
   next
     case False
     with 1[unfolded rev.simps[of a i j]]
     show ?thesis
-      by (auto elim: crel_elims)
+      by (auto elim: effect_elims)
   qed
 qed
 
-lemma rev2_rev': assumes "crel (rev a i j) h h' u"
+lemma rev2_rev': assumes "effect (rev a i j) h h' u"
   assumes "j < Array.length h a"
   shows "subarray i (j + 1) a h' = List.rev (subarray i (j + 1) a h)"
 proof - 
@@ -103,11 +103,11 @@ proof -
 qed
 
 lemma rev2_rev: 
-  assumes "crel (rev a 0 (Array.length h a - 1)) h h' u"
+  assumes "effect (rev a 0 (Array.length h a - 1)) h h' u"
   shows "Array.get h' a = List.rev (Array.get h a)"
   using rev2_rev'[OF assms] rev_length[OF assms] assms
     by (cases "Array.length h a = 0", auto simp add: Array.length_def
-      subarray_def sublist'_all rev.simps[where j=0] elim!: crel_elims)
+      subarray_def sublist'_all rev.simps[where j=0] elim!: effect_elims)
   (drule sym[of "List.length (Array.get h a)"], simp)
 
 definition "example = (Array.make 10 id \<guillemotright>= (\<lambda>a. rev a 0 9))"
