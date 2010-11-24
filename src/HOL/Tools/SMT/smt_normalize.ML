@@ -35,6 +35,26 @@ fun (test ?? f) x = if test x then f x else x
 
 
 
+(* instantiate elimination rules *)
+ 
+local
+  val (cpfalse, cfalse) = `U.mk_cprop (Thm.cterm_of @{theory} @{const False})
+
+  fun inst f ct thm =
+    let val cv = f (Drule.strip_imp_concl (Thm.cprop_of thm))
+    in Thm.instantiate ([], [(cv, ct)]) thm end
+in
+
+fun instantiate_elim thm =
+  (case Thm.concl_of thm of
+    @{const Trueprop} $ Var (_, @{typ bool}) => inst Thm.dest_arg cfalse thm
+  | Var _ => inst I cpfalse thm
+  | _ => thm)
+
+end
+
+
+
 (* simplification of trivial distincts (distinct should have at least
    three elements in the argument list) *)
 
@@ -520,6 +540,7 @@ fun normalize extra_norm with_datatypes irules ctxt =
       else SOME (i, f ctxt' thm)
   in
     irules
+    |> map (apsnd instantiate_elim)
     |> trivial_distinct ctxt
     |> rewrite_bool_cases ctxt
     |> normalize_numerals ctxt
