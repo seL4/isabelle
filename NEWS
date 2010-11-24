@@ -89,6 +89,14 @@ and type constructors.
 
 *** HOL ***
 
+* Theory Enum (for explicit enumerations of finite types) is now part of
+the HOL-Main image. INCOMPATIBILITY: All constants of the Enum theory now 
+have to be referred to by its qualified name.
+  constants
+    enum -> Enum.enum
+    nlists -> Enum.nlists
+    product -> Enum.product
+
 * Renamed theory Fset to Cset, type Fset.fset to Cset.set, in order to
 avoid confusion with finite sets.  INCOMPATIBILITY.
 
