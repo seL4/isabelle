@@ -19,7 +19,7 @@ qed (simp add: UNIV_enum)
 
 lemma enum_all: "set enum = UNIV" unfolding UNIV_enum ..
 
-lemma in_enum [intro]: "x \<in> set enum"
+lemma in_enum: "x \<in> set enum"
   unfolding enum_all by auto
 
 lemma enum_eq_I:
@@ -167,9 +167,9 @@ instance proof
   proof (rule UNIV_eq_I)
     fix f :: "'a \<Rightarrow> 'b"
     have "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
-      by (auto simp add: map_of_zip_map fun_eq_iff)
+      by (auto simp add: map_of_zip_map fun_eq_iff intro: in_enum)
     then show "f \<in> set enum"
-      by (auto simp add: enum_fun_def set_n_lists)
+      by (auto simp add: enum_fun_def set_n_lists intro: in_enum)
   qed
 next
   from map_of_zip_enum_inject
