@@ -26,6 +26,6 @@ my $response = $agent->post($ENV{"REMOTE_SMT_URL"}, [
   "Options" => join(" ", @options),
   "Problem" => [$problem_file] ],
   "Content_Type" => "form-data");
-if (not $response->is_success) { die "HTTP-Error: " . $response->message; }
+if (not $response->is_success) { die "HTTP error: " . $response->message; }
 else { print $response->content; }
 

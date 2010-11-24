@@ -71,9 +71,9 @@ fun strip_spaces is_evil =
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 val strip_spaces_except_between_ident_chars = strip_spaces is_ident_char
 
-val missing_message_tail =
-  " appears to be missing. You will need to install it if you want to run \
-  \ATPs remotely."
+fun missing_message_tail prover =
+  " appears to be missing. You will need to install it if you want to run " ^
+  prover ^ "s remotely."
 
 fun string_for_failure prover Unprovable =
     "The " ^ prover ^ " problem is unprovable."
@@ -96,9 +96,9 @@ fun string_for_failure prover Unprovable =
     "Isabelle requires a more recent version of Vampire. To install it, follow \
     \the instructions from the Sledgehammer manual (\"isabelle doc\
     \ sledgehammer\")."
-  | string_for_failure _ NoPerl = "Perl" ^ missing_message_tail
-  | string_for_failure _ NoLibwwwPerl =
-    "The Perl module \"libwww-perl\"" ^ missing_message_tail
+  | string_for_failure prover NoPerl = "Perl" ^ missing_message_tail prover
+  | string_for_failure prover NoLibwwwPerl =
+    "The Perl module \"libwww-perl\"" ^ missing_message_tail prover
   | string_for_failure prover MalformedInput =
     "The " ^ prover ^ " problem is malformed. Please report this to the Isabelle \
     \developers."
