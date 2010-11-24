@@ -69,8 +69,8 @@ val builtins = Symtab.make [
   (@{const_name HOL.eq}, K true),
 
   (* numerals *)
-  (@{const_name zero_class.zero}, is_arithT_dom),
-  (@{const_name one_class.one}, is_arithT_dom),
+  (@{const_name zero_class.zero}, is_arithT),
+  (@{const_name one_class.one}, is_arithT),
   (@{const_name Int.Pls}, K true),
   (@{const_name Int.Min}, K true),
   (@{const_name Int.Bit0}, K true),
