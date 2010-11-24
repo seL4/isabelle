@@ -9,8 +9,8 @@ remaining implementation.
 
 signature SMT_BUILTIN =
 sig
-  val is_partially_builtin: Proof.context -> string * typ -> bool
   val is_builtin: Proof.context -> string * typ -> bool
+  val is_partially_builtin: Proof.context -> string * typ -> bool
 end
 
 structure SMT_Builtin: SMT_BUILTIN =
@@ -109,8 +109,8 @@ fun lookup_builtin bs (name, T) =
     SOME proper_type => proper_type T
   | NONE => false)
 
-fun is_partially_builtin _ = lookup_builtin builtins
+fun is_builtin _ = lookup_builtin builtins
 
-fun is_builtin _ = lookup_builtin all_builtins
+fun is_partially_builtin _ = lookup_builtin all_builtins
 
 end

@@ -263,7 +263,7 @@ local
     | _ =>
         (case Term.strip_comb (Thm.term_of ct) of
           (Const (c as (_, T)), ts) =>
-            if SMT_Builtin.is_builtin ctxt c
+            if SMT_Builtin.is_partially_builtin ctxt c
             then eta_args_conv norm_conv
               (length (Term.binder_types T) - length ts)
             else args_conv o norm_conv
