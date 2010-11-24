@@ -25,7 +25,7 @@ lemma list_eq_equivp:
   unfolding reflp_def symp_def transp_def
   by auto
 
-text {* Cset type *}
+text {* The @{text fset} type *}
 
 quotient_type
   'a fset = "'a list" / "list_eq"
