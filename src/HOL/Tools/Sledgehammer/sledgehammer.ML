@@ -412,16 +412,23 @@ fun run_atp auto atp_name
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
    these are sorted out properly in the SMT module, we have to interpret these
    ourselves. *)
-
-val z3_malformed_input_codes = [103, 110]
-val sigsegv_code = 139
+val remote_smt_failures =
+  [(22, CantConnect),
+   (127, NoPerl),
+   (2, NoLibwwwPerl)]
+val z3_failures =
+  [(103, MalformedInput),
+   (110, MalformedInput)]
+val unix_failures =
+  [(139, Crashed)]
+val smt_failures = remote_smt_failures @ z3_failures @ unix_failures
 
 fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
   | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
   | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
-    if member (op =) z3_malformed_input_codes code then MalformedInput
-    else if code = sigsegv_code then Crashed
-    else IncompleteUnprovable
+    (case AList.lookup (op =) smt_failures code of
+       SOME failure => failure
+     | NONE => UnknownError)
   | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
   | failure_from_smt_failure _ = UnknownError
 
@@ -521,7 +528,6 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
       #> Config.put SMT_Config.verbose debug
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
-    val ctxt = Proof.context_of state
     val thy = Proof.theory_of state
     val smt_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
     val {outcome, used_facts, run_time_in_msecs} =
