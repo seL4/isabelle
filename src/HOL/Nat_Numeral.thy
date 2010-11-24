@@ -674,7 +674,7 @@ lemmas power_number_of_odd_number_of [simp] =
 lemma nat_number_of_Pls: "Numeral0 = (0::nat)"
   by (simp add: nat_number_of_def)
 
-lemma nat_number_of_Min: "number_of Int.Min = (0::nat)"
+lemma nat_number_of_Min [no_atp]: "number_of Int.Min = (0::nat)"
   apply (simp only: number_of_Min nat_number_of_def nat_zminus_int)
   done
 
