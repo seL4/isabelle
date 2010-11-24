@@ -197,7 +197,7 @@ fun abstract (ext_logic, with_theories) =
       | @{const HOL.disj} $ _ $ _ => abstr2 cvs ct
       | @{const HOL.implies} $ _ $ _ => abstr2 cvs ct
       | Const (@{const_name HOL.eq}, _) $ _ $ _ => abstr2 cvs ct
-      | Const (@{const_name SMT.distinct}, _) $ _ =>
+      | Const (@{const_name distinct}, _) $ _ =>
           if ext_logic then abs_arg (abs_list abstr fresh_abstraction) cvs ct
           else fresh_abstraction cvs ct
       | Const (@{const_name If}, _) $ _ $ _ $ _ =>
@@ -258,9 +258,9 @@ local
     (Conv.rewrs_conv [set1, set2, set3, set4] else_conv
     (Conv.rewr_conv set5 then_conv Conv.arg_conv set_conv)) ct
 
-  val dist1 = @{lemma "SMT.distinct [] == ~False" by (simp add: distinct_def)}
-  val dist2 = @{lemma "SMT.distinct [x] == ~False" by (simp add: distinct_def)}
-  val dist3 = @{lemma "SMT.distinct (x # xs) == x ~: set xs & distinct xs"
+  val dist1 = @{lemma "distinct [] == ~False" by (simp add: distinct_def)}
+  val dist2 = @{lemma "distinct [x] == ~False" by (simp add: distinct_def)}
+  val dist3 = @{lemma "distinct (x # xs) == x ~: set xs & distinct xs"
     by (simp add: distinct_def)}
 
   fun binop_conv cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2

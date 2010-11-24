@@ -53,7 +53,8 @@ val builtins = Symtab.make [
   (@{const_name If}, K true),
   (@{const_name bool.bool_case}, K true),
   (@{const_name Let}, K true),
-  (@{const_name SMT.distinct}, K true),
+  (* (@{const_name distinct}, K true),  -- not a real builtin, only when
+                                           applied to an explicit list *)
 
   (* technicalities *)
   (@{const_name SMT.pat}, K true),

@@ -167,8 +167,11 @@ fun conn @{const_name True} = SOME "true"
   | conn @{const_name If} = SOME "if_then_else"
   | conn _ = NONE
 
-fun pred @{const_name SMT.distinct} _ = SOME "distinct"
-  | pred @{const_name HOL.eq} _ = SOME "="
+fun distinct_pred (@{const_name distinct}, _) [t] =
+      try HOLogic.dest_list t |> Option.map (pair "distinct")
+  | distinct_pred _ _ = NONE
+
+fun pred @{const_name HOL.eq} _ = SOME "="
   | pred @{const_name term_eq} _ = SOME "="
   | pred @{const_name less} T = if_int_type T "<"
   | pred @{const_name less_eq} T = if_int_type T "<="
@@ -192,7 +195,10 @@ fun is_builtin_pred ctxt (n, T) = is_predT T andalso
 fun builtin_fun ctxt (c as (n, T)) ts =
   let
     val builtin_func' = chained_builtin_func (get_builtins ctxt)
-    val builtin_pred' = chained_builtin_pred (get_builtins ctxt)
+    fun builtin_pred' c t =
+      (case distinct_pred c ts of
+        SOME b => SOME b
+      | NONE => chained_builtin_pred (get_builtins ctxt) c ts)
   in
     if is_connT T then conn n |> Option.map (rpair ts)
     else if is_predT T then

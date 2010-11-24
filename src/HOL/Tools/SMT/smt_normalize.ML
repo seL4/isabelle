@@ -39,18 +39,18 @@ fun (test ?? f) x = if test x then f x else x
    three elements in the argument list) *)
 
 local
-  fun is_trivial_distinct (Const (@{const_name SMT.distinct}, _) $ t) =
-       (length (HOLogic.dest_list t) <= 2
-        handle TERM _ => error ("SMT: constant " ^
-          quote @{const_name SMT.distinct} ^ " must be applied to " ^
-          "an explicit list."))
+  fun is_trivial_distinct (Const (@{const_name distinct}, _) $ t) =
+        (case try HOLogic.dest_list t of
+          SOME [] => true
+        | SOME [_] => true
+        | _ => false)
     | is_trivial_distinct _ = false
 
   val thms = map mk_meta_eq @{lemma
-    "SMT.distinct [] = True"
-    "SMT.distinct [x] = True"
-    "SMT.distinct [x, y] = (x ~= y)"
-    by (simp_all add: distinct_def)}
+    "distinct [] = True"
+    "distinct [x] = True"
+    "distinct [x, y] = (x ~= y)"
+    by simp_all}
   fun distinct_conv _ =
     U.if_true_conv is_trivial_distinct (Conv.rewrs_conv thms)
 in

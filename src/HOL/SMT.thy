@@ -81,20 +81,6 @@ quantifier has triggers).  Valid usages of weights are as follows:
 
 
 
-subsection {* Distinctness *}
-
-text {*
-As an abbreviation for a quadratic number of inequalities, SMT solvers
-provide a built-in @{text distinct}.  To avoid confusion with the
-already defined (and more general) @{term List.distinct}, a separate
-constant is defined.
-*}
-
-definition distinct :: "'a list \<Rightarrow> bool"
-where "distinct xs = List.distinct xs"
-
-
-
 subsection {* Higher-order encoding *}
 
 text {*
@@ -369,7 +355,7 @@ lemma [z3_rule]:
 
 hide_type (open) pattern
 hide_const Pattern term_eq
-hide_const (open) trigger pat nopat weight distinct fun_app z3div z3mod
+hide_const (open) trigger pat nopat weight fun_app z3div z3mod
 
 
 

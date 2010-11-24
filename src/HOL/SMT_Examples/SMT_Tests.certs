@@ -53701,3 +53701,42 @@ decl f3 :: S2
 #60 := [asserted]: #10
 [mp #60 #69]: false
 unsat
+c4d2e4408924ee75f6b9b17e513fd22b6307bf65 38 0
+#2 := false
+decl f4 :: S2
+#9 := f4
+decl f3 :: S2
+#8 := f3
+#11 := (distinct f3 f4)
+#12 := (not #11)
+#10 := (= f3 f4)
+#13 := (implies #10 #12)
+#14 := (not #13)
+#54 := (iff #14 false)
+#1 := true
+#49 := (not true)
+#52 := (iff #49 false)
+#53 := [rewrite]: #52
+#50 := (iff #14 #49)
+#47 := (iff #13 true)
+#42 := (implies #10 #10)
+#45 := (iff #42 true)
+#46 := [rewrite]: #45
+#43 := (iff #13 #42)
+#40 := (iff #12 #10)
+#32 := (not #10)
+#35 := (not #32)
+#38 := (iff #35 #10)
+#39 := [rewrite]: #38
+#36 := (iff #12 #35)
+#33 := (iff #11 #32)
+#34 := [rewrite]: #33
+#37 := [monotonicity #34]: #36
+#41 := [trans #37 #39]: #40
+#44 := [monotonicity #41]: #43
+#48 := [trans #44 #46]: #47
+#51 := [monotonicity #48]: #50
+#55 := [trans #51 #53]: #54
+#31 := [asserted]: #14
+[mp #31 #55]: false
+unsat

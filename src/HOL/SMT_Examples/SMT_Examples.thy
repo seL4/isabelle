@@ -293,11 +293,11 @@ lemma
 
 lemma "(0 \<le> y + -1 * x \<or> \<not> 0 \<le> x \<or> 0 \<le> (x::int)) = (\<not> False)" by smt
 
-lemma "SMT.distinct [x < (3::int), 3 \<le> x]" by smt
+lemma "distinct [x < (3::int), 3 \<le> x]" by smt
 
 lemma
   assumes "a > (0::int)"
-  shows "SMT.distinct [a, a * 2, a - a]"
+  shows "distinct [a, a * 2, a - a]"
   using assms by smt
 
 lemma "
@@ -430,7 +430,7 @@ lemma
    False \<or> P = (x - 1 = y) \<or> (\<not>P \<longrightarrow> False)"
   by smt
 
-lemma "SMT.distinct [a + (1::nat), a * 2 + 3, a - a]" by smt
+lemma "distinct [a + (1::nat), a * 2 + 3, a - a]" by smt
 
 lemma "int (nat \<bar>x::int\<bar>) = \<bar>x\<bar>" by smt
 

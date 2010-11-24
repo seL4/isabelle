@@ -182,7 +182,7 @@ val cons_term = U.mk_const_pat @{theory} @{const_name Cons} U.destT1
 fun mk_list cT cts =
   fold_rev (Thm.mk_binop (U.instT cT cons_term)) cts (U.instT cT nil_term)
 
-val distinct = U.mk_const_pat @{theory} @{const_name SMT.distinct}
+val distinct = U.mk_const_pat @{theory} @{const_name distinct}
   (U.destT1 o U.destT1)
 fun mk_distinct [] = mk_true
   | mk_distinct (cts as (ct :: _)) =

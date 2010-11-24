@@ -194,6 +194,10 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
       | is_builtin_conn' (@{const_name False}, _) = false
       | is_builtin_conn' c = is_builtin_conn c
 
+    fun is_builtin_pred' ctxt (@{const_name distinct}, _) [t] =
+          is_builtin_distinct andalso can HOLogic.dest_list t
+      | is_builtin_pred' ctxt c _ = is_builtin_pred ctxt c
+
     val propT = @{typ prop} and boolT = @{typ bool}
     val as_propT = (fn @{typ bool} => propT | T => T)
     fun mapTs f g = Term.strip_type #> (fn (Ts, T) => map f Ts ---> g T)
@@ -213,7 +217,7 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
         (c as Const (@{const_name If}, _), [t1, t2, t3]) =>
           c $ in_form t1 $ in_term t2 $ in_term t3
       | (h as Const c, ts) =>
-          if is_builtin_conn' (conn c) orelse is_builtin_pred ctxt (pred c)
+          if is_builtin_conn' (conn c) orelse is_builtin_pred' ctxt (pred c) ts
           then wrap_in_if (in_form t)
           else Term.list_comb (h, map in_term ts)
       | (h as Free _, ts) => Term.list_comb (h, map in_term ts)
@@ -237,8 +241,9 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
         (q as Const (qn, _), [Abs (n, T, t')]) =>
           if is_some (quantifier qn) then q $ Abs (n, T, in_trig t')
           else as_term (in_term t)
-      | (Const (c as (@{const_name SMT.distinct}, T)), [t']) =>
-          if is_builtin_distinct then Const (pred c) $ in_list T in_term t'
+      | (Const (c as (@{const_name distinct}, T)), [t']) =>
+          if is_builtin_distinct andalso can HOLogic.dest_list t' then
+            Const (pred c) $ in_list T in_term t'
           else as_term (in_term t)
       | (Const c, ts) =>
           if is_builtin_conn (conn c)
@@ -381,10 +386,10 @@ fun translate {prefixes, strict, header, builtins, serialize} ctxt comments =
       | (Const (@{const_name Let}, _), [t1, Abs (_, T, t2)]) =>
           transT T ##>> trans t1 ##>> trans t2 #>>
           (fn ((U, u1), u2) => SLet (U, u1, u2))
-      | (h as Const (c as (@{const_name SMT.distinct}, T)), [t1]) =>
-          (case builtin_fun ctxt c (HOLogic.dest_list t1) of
+      | (h as Const (c as (@{const_name distinct}, T)), ts) =>
+          (case builtin_fun ctxt c ts of
             SOME (n, ts) => fold_map trans ts #>> app n
-          | NONE => transs h T [t1])
+          | NONE => transs h T ts)
       | (h as Const (c as (_, T)), ts) =>
           (case try HOLogic.dest_number t of
             SOME (T, i) =>
