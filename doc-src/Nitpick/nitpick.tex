@@ -10,7 +10,7 @@
 \usepackage{multicol}
 \usepackage{stmaryrd}
 %\usepackage[scaled=.85]{beramono}
-\usepackage{../iman,../pdfsetup}
+\usepackage{../isabelle,../iman,../pdfsetup}
 
 %\oddsidemargin=4.6mm
 %\evensidemargin=4.6mm
@@ -117,8 +117,9 @@ C-n. This is equivalent to entering the \textbf{nitpick} command with no
 arguments in the theory text.
 
 Nitpick requires the Kodkodi package for Isabelle as well as a Java 1.5 virtual
-machine called \texttt{java}. The examples presented in this manual can be found
-in Isabelle's \texttt{src/HOL/Nitpick\_Examples/Manual\_Nits.thy} theory.
+machine called \texttt{java}. To run Nitpick, you must also make sure that the
+theory \textit{Nitpick} is imported---this is rarely a problem in practice
+since it is part of \textit{Main}.
 
 Throughout this manual, we will explicitly invoke the \textbf{nitpick} command.
 Nitpick also provides an automatic mode that can be enabled via the ``Auto
@@ -129,6 +130,8 @@ and other automatic tools can be set using the ``Auto Tools Time Limit'' option.
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
 
+The examples presented in this manual can be found
+in Isabelle's \texttt{src/HOL/\allowbreak Nitpick\_Examples/Manual\_Nits.thy} theory.
 The known bugs and limitations at the time of writing are listed in
 \S\ref{known-bugs-and-limitations}. Comments and bug reports concerning Nitpick
 or this manual should be directed to

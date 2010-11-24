@@ -10,7 +10,7 @@
 \usepackage{multicol}
 \usepackage{stmaryrd}
 %\usepackage[scaled=.85]{beramono}
-\usepackage{../iman,../pdfsetup}
+\usepackage{../isabelle,../iman,../pdfsetup}
 
 %\oddsidemargin=4.6mm
 %\evensidemargin=4.6mm
@@ -109,7 +109,9 @@ Tools Time Limit'' option.
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
 
-Examples of Sledgehammer use can be found in Isabelle's
+To run Sledgehammer, you must make sure that the theory \textit{Sledgehammer} is
+imported---this is rarely a problem in practice since it is part of
+\textit{Main}. Examples of Sledgehammer use can be found in Isabelle's
 \texttt{src/HOL/Metis\_Examples} directory.
 Comments and bug reports concerning Sledgehammer or this manual should be
 directed to
