@@ -486,7 +486,9 @@ local
 in
 fun monotonicity eqs ct =
   let
-    val lookup = AList.lookup (op aconv) (map (`Thm.prop_of o meta_eq_of) eqs)
+    fun and_symmetric (t, thm) = [(t, thm), (t, Thm.symmetric thm)]
+    val teqs = maps (and_symmetric o `Thm.prop_of o meta_eq_of) eqs
+    val lookup = AList.lookup (op aconv) teqs
     val cp = Thm.dest_binop (Thm.dest_arg ct)
   in MetaEq (prove_eq_exn lookup cp handle MONO => mono lookup cp) end
 end
