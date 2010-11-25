@@ -8,6 +8,113 @@ theory Ramsey
 imports Main Infinite_Set
 begin
 
+subsection{* Finite Ramsey theorem(s) *}
+
+text{* To distinguish the finite and infinite ones, lower and upper case
+names are used.
+
+This is the most basic version in terms of cliques and independent
+sets, i.e. the version for graphs and 2 colours. *}
+
+definition "clique V E = (\<forall>v\<in>V. \<forall>w\<in>V. v\<noteq>w \<longrightarrow> {v,w} : E)"
+definition "indep V E = (\<forall>v\<in>V. \<forall>w\<in>V. v\<noteq>w \<longrightarrow> \<not> {v,w} : E)"
+
+lemma ramsey2:
+  "\<exists>r\<ge>1. \<forall> (V::'a set) (E::'a set set). finite V \<and> card V \<ge> r \<longrightarrow>
+  (\<exists> R \<subseteq> V. card R = m \<and> clique R E \<or> card R = n \<and> indep R E)"
+  (is "\<exists>r\<ge>1. ?R m n r")
+proof(induct k == "m+n" arbitrary: m n)
+  case 0
+  show ?case (is "EX r. ?R r")
+  proof
+    show "?R 1" using 0
+      by (clarsimp simp: indep_def)(metis card.empty emptyE empty_subsetI)
+  qed
+next
+  case (Suc k)
+  { assume "m=0"
+    have ?case (is "EX r. ?R r")
+    proof
+      show "?R 1" using `m=0`
+        by (simp add:clique_def)(metis card.empty emptyE empty_subsetI)
+    qed
+  } moreover
+  { assume "n=0"
+    have ?case (is "EX r. ?R r")
+    proof
+      show "?R 1" using `n=0`
+        by (simp add:indep_def)(metis card.empty emptyE empty_subsetI)
+    qed
+  } moreover
+  { assume "m\<noteq>0" "n\<noteq>0"
+    hence "k = (m - 1) + n" "k = m + (n - 1)" using `Suc k = m+n` by auto
+    from Suc(1)[OF this(1)] Suc(1)[OF this(2)] 
+    obtain r1 r2 where "r1\<ge>1" "r2\<ge>1" "?R (m - 1) n r1" "?R m (n - 1) r2"
+      by auto
+    hence "r1+r2 \<ge> 1" by arith
+    moreover
+    have "?R m n (r1+r2)" (is "ALL V E. _ \<longrightarrow> ?EX V E m n")
+    proof clarify
+      fix V :: "'a set" and E :: "'a set set"
+      assume "finite V" "r1+r2 \<le> card V"
+      with `r1\<ge>1` have "V \<noteq> {}" by auto
+      then obtain v where "v : V" by blast
+      let ?M = "{w : V. w\<noteq>v & {v,w} : E}"
+      let ?N = "{w : V. w\<noteq>v & {v,w} ~: E}"
+      have "V = insert v (?M \<union> ?N)" using `v : V` by auto
+      hence "card V = card(insert v (?M \<union> ?N))" by metis
+      also have "\<dots> = card ?M + card ?N + 1" using `finite V`
+        by(fastsimp intro: card_Un_disjoint)
+      finally have "card V = card ?M + card ?N + 1" .
+      hence "r1+r2 \<le> card ?M + card ?N + 1" using `r1+r2 \<le> card V` by simp
+      hence "r1 \<le> card ?M \<or> r2 \<le> card ?N" by arith
+      moreover
+      { assume "r1 \<le> card ?M"
+        moreover have "finite ?M" using `finite V` by auto
+        ultimately have "?EX ?M E (m - 1) n" using `?R (m - 1) n r1` by blast
+        then obtain R where "R \<subseteq> ?M" "v ~: R" and
+          CI: "card R = m - 1 \<and> clique R E \<or>
+               card R = n \<and> indep R E" (is "?C \<or> ?I")
+          by blast
+        have "R <= V" using `R <= ?M` by auto
+        have "finite R" using `finite V` `R \<subseteq> V` by (metis finite_subset)
+        { assume "?I"
+          with `R <= V` have "?EX V E m n" by blast
+        } moreover
+        { assume "?C"
+          hence "clique (insert v R) E" using `R <= ?M`
+           by(auto simp:clique_def insert_commute)
+          moreover have "card(insert v R) = m"
+            using `?C` `finite R` `v ~: R` `m\<noteq>0` by simp
+          ultimately have "?EX V E m n" using `R <= V` `v : V` by blast
+        } ultimately have "?EX V E m n" using CI by blast
+      } moreover
+      { assume "r2 \<le> card ?N"
+        moreover have "finite ?N" using `finite V` by auto
+        ultimately have "?EX ?N E m (n - 1)" using `?R m (n - 1) r2` by blast
+        then obtain R where "R \<subseteq> ?N" "v ~: R" and
+          CI: "card R = m \<and> clique R E \<or>
+               card R = n - 1 \<and> indep R E" (is "?C \<or> ?I")
+          by blast
+        have "R <= V" using `R <= ?N` by auto
+        have "finite R" using `finite V` `R \<subseteq> V` by (metis finite_subset)
+        { assume "?C"
+          with `R <= V` have "?EX V E m n" by blast
+        } moreover
+        { assume "?I"
+          hence "indep (insert v R) E" using `R <= ?N`
+            by(auto simp:indep_def insert_commute)
+          moreover have "card(insert v R) = n"
+            using `?I` `finite R` `v ~: R` `n\<noteq>0` by simp
+          ultimately have "?EX V E m n" using `R <= V` `v : V` by blast
+        } ultimately have "?EX V E m n" using CI by blast
+      } ultimately show "?EX V E m n" by blast
+    qed
+    ultimately have ?case by blast
+  } ultimately show ?case by blast
+qed
+
+
 subsection {* Preliminaries *}
 
 subsubsection {* ``Axiom'' of Dependent Choice *}
