@@ -516,16 +516,16 @@ fun can_apply timeout tac state i =
 
 val smt_metis_timeout = seconds 0.5
 
-fun can_apply_metis state i ths =
-  can_apply smt_metis_timeout (fn ctxt => Metis_Tactics.metis_tac ctxt ths)
-            state i
+fun can_apply_metis debug state i ths =
+  can_apply smt_metis_timeout
+            (Config.put Metis_Tactics.verbose debug
+             #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
 fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
         ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val repair_context =
-      Config.put Metis_Tactics.verbose debug
-      #> Config.put SMT_Config.verbose debug
+      Config.put SMT_Config.verbose debug
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
     val thy = Proof.theory_of state
@@ -538,8 +538,10 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
         NONE =>
         let
           val method =
-            if can_apply_metis state subgoal (map snd used_facts) then "metis"
-            else "smt"
+            if can_apply_metis debug state subgoal (map snd used_facts) then
+              "metis"
+            else
+              "smt"
         in
           try_command_line (proof_banner auto)
                            (apply_on_subgoal subgoal subgoal_count ^
