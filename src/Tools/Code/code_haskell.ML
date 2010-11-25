@@ -362,7 +362,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
   in
     Code_Target.serialization
       (fn width => fn destination => K () o map (write_module width destination))
-      (fn present => fn width => rpair (fn _ => error "no deresolving")
+      (fn present => fn width => rpair (try (deresolver ""))
         o format present width o Pretty.chunks o map snd)
       (map (uncurry print_module_frame o apsnd single) includes
         @ map (fn module_name => print_module module_name (Graph.get_node haskell_program module_name))
