@@ -402,6 +402,9 @@ fun translate {prefixes, strict, header, builtins, serialize} ctxt comments =
               | NONE => transs h T ts))
       | (h as Free (_, T), ts) => transs h T ts
       | (Bound i, []) => pair (SVar i)
+      | (Abs (_, _, t1 $ Bound 0), []) =>
+        if not (loose_bvar1 (t1, 0)) then trans t1 (* eta-reduce on the fly *)
+        else raise TERM ("smt_translate", [t])
       | _ => raise TERM ("smt_translate", [t]))
 
     and transs t T ts =
