@@ -526,12 +526,10 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
       val (prover_name, _) = get_prover ctxt args
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
-      val trivial = false
-(* FIXME
+      val trivial =
        TimeLimit.timeLimit try_outer_timeout
                                    (Try.invoke_try (SOME try_inner_timeout)) pre
                     handle TimeLimit.TimeOut => false
-*)
       fun apply_reconstructor m1 m2 =
         if metis_ft
         then
