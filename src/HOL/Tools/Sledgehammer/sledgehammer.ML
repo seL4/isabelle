@@ -104,8 +104,9 @@ fun is_prover_installed ctxt name =
     else is_atp_installed thy name
   end
 
-val smt_default_max_relevant = 200 (* FUDGE *)
-val auto_max_relevant_divisor = 2 (* FUDGE *)
+(* FUDGE *)
+val smt_default_max_relevant = 200
+val auto_max_relevant_divisor = 2
 
 fun default_max_relevant_for_prover thy name =
   if is_smt_prover name then smt_default_max_relevant
@@ -432,6 +433,7 @@ fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
   | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
   | failure_from_smt_failure _ = UnknownError
 
+(* FUDGE *)
 val smt_max_iter = 8
 val smt_iter_fact_divisor = 2
 val smt_iter_min_msecs = 5000
