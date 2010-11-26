@@ -214,6 +214,9 @@ lemma ssubst: "t = s ==> P s ==> P t"
 lemma trans: "[| r=s; s=t |] ==> r=t"
   by (erule subst)
 
+lemma trans_sym [Pure.elim?]: "r = s ==> t = s ==> r = t"
+  by (rule trans [OF _ sym])
+
 lemma meta_eq_to_obj_eq: 
   assumes meq: "A == B"
   shows "A = B"
