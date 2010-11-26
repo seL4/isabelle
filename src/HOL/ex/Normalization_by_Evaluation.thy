@@ -66,7 +66,7 @@ lemma "[] @ xs = xs" by normalization
 lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization
 
 lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"
-  by normalization rule+
+  by normalization
 lemma "rev [a, b, c] = [c, b, a]" by normalization
 value [nbe] "rev (a#b#cs) = rev cs @ [b, a]"
 value [nbe] "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
@@ -108,10 +108,13 @@ lemma "max (Suc 0) 0 = Suc 0" by normalization
 lemma "(42::rat) / 1704 = 1 / 284 + 3 / 142" by normalization
 value [nbe] "Suc 0 \<in> set ms"
 
+(* non-left-linear patterns, equality by extensionality *)
+
 lemma "f = f" by normalization
 lemma "f x = f x" by normalization
 lemma "(f o g) x = f (g x)" by normalization
 lemma "(f o id) x = f x" by normalization
+lemma "(id :: bool \<Rightarrow> bool) = id" by normalization
 value [nbe] "(\<lambda>x. x)"
 
 (* Church numerals: *)

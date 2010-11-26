@@ -18,7 +18,7 @@ sig
   val apps: Univ -> Univ list -> Univ        (*explicit applications*)
   val abss: int -> (Univ list -> Univ) -> Univ
                                              (*abstractions as closures*)
-  val same: Univ -> Univ -> bool
+  val eq_Univ: Univ * Univ -> bool
 
   val put_result: (unit -> Univ list -> Univ list) -> Proof.context -> Proof.context
   val trace: bool Unsynchronized.ref
@@ -170,11 +170,6 @@ datatype Univ =
   | Abs of (int * (Univ list -> Univ)) * Univ list
                                        (*abstractions as closures*);
 
-fun same (Const (k, xs)) (Const (l, ys)) = k = l andalso forall2 same xs ys
-  | same (DFree (s, k)) (DFree (t, l)) = s = t andalso k = l
-  | same (BVar (k, xs)) (BVar (l, ys)) = k = l andalso forall2 same xs ys
-  | same _ _ = false;
-
 
 (* constructor functions *)
 
@@ -187,6 +182,28 @@ fun apps (Abs ((n, f), xs)) ys = let val k = n - length ys in
       end
   | apps (Const (name, xs)) ys = Const (name, ys @ xs)
   | apps (BVar (n, xs)) ys = BVar (n, ys @ xs);
+
+fun satisfy_abs (abs as ((n, f), xs)) some_k =
+  let
+    val ys = case some_k
+     of NONE => replicate n (BVar (0, []))
+      | SOME k => map_range (fn l => BVar (k + l, [])) n;
+  in (apps (Abs abs) ys, ys) end;
+
+fun maxidx (Const (_, xs)) = fold maxidx xs
+  | maxidx (DFree _) = I
+  | maxidx (BVar (l, xs)) = fold maxidx xs #> Integer.max (l + 1)
+  | maxidx (Abs abs) = maxidx (fst (satisfy_abs abs NONE));
+
+fun eq_Univ (Const (k, xs), Const (l, ys)) = k = l andalso eq_list eq_Univ (xs, ys)
+  | eq_Univ (DFree (s, k), DFree (t, l)) = s = t andalso k = l
+  | eq_Univ (BVar (k, xs), BVar (l, ys)) = k = l andalso eq_list eq_Univ (xs, ys)
+  | eq_Univ (x as Abs abs, y) =
+      let
+        val (x, ys) = satisfy_abs abs ((SOME o maxidx x o maxidx y) 0)
+      in eq_Univ (x, apps y ys) end
+  | eq_Univ (x, y as Abs _) = eq_Univ (y, x)
+  | eq_Univ _ = false;
 
 
 (** assembling and compiling ML code from terms **)
@@ -241,7 +258,7 @@ local
   val name_const =  prefix ^ "Const";
   val name_abss =   prefix ^ "abss";
   val name_apps =   prefix ^ "apps";
-  val name_same =   prefix ^ "same";
+  val name_eq =     prefix ^ "eq_Univ";
 in
 
 val univs_cookie = (Univs.get, put_result, name_put);
@@ -267,7 +284,7 @@ fun nbe_apps_constr idx_of c ts =
 fun nbe_abss 0 f = f `$` ml_list []
   | nbe_abss n f = name_abss `$$` [string_of_int n, f];
 
-fun nbe_same v1 v2 = "(" ^ name_same ^ " " ^ nbe_bound v1 ^ " " ^ nbe_bound v2 ^ ")";
+fun nbe_eq (v1, v2) = "(" ^ name_eq ^ " (" ^ nbe_bound v1 ^ ", " ^ nbe_bound v2 ^ "))";
 
 end;
 
@@ -353,7 +370,7 @@ fun assemble_eqnss idx_of deps eqnss =
         val (samepairs, args') = subst_nonlin_vars args;
         val s_args = map assemble_arg args';
         val s_rhs = if null samepairs then assemble_rhs rhs
-          else ml_if (ml_and (map (uncurry nbe_same) samepairs))
+          else ml_if (ml_and (map nbe_eq samepairs))
             (assemble_rhs rhs) default_rhs;
         val eqns = if is_eval then
             [([ml_list (rev (dicts @ s_args))], s_rhs)]
