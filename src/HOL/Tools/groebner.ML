@@ -233,14 +233,9 @@ fun poly_lt  p q =
 
 fun align  ((p,hp),(q,hq)) =
   if poly_lt p q then ((p,hp),(q,hq)) else ((q,hq),(p,hp));
-fun forall2 p l1 l2 =
-  case (l1,l2) of
-    ([],[]) => true
-  | (h1::t1,h2::t2) => p h1 h2 andalso forall2 p t1 t2
-  | _ => false;
 
 fun poly_eq p1 p2 =
-  forall2 (fn (c1,m1) => fn (c2,m2) => c1 =/ c2 andalso (m1: int list) = m2) p1 p2;
+  eq_list (fn ((c1, m1), (c2, m2)) => c1 =/ c2 andalso (m1: int list) = m2) (p1, p2);
 
 fun memx ((p1,h1),(p2,h2)) ppairs =
   not (exists (fn ((q1,_),(q2,_)) => poly_eq p1 q1 andalso poly_eq p2 q2) ppairs);
