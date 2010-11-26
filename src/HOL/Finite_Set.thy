@@ -2009,6 +2009,15 @@ proof -
     by (simp add: card_Diff_subset AB) 
 qed
 
+lemma diff_card_le_card_Diff:
+assumes "finite B" shows "card A - card B \<le> card(A - B)"
+proof-
+  have "card A - card B \<le> card A - card (A \<inter> B)"
+    using card_mono[OF assms Int_lower2, of A] by arith
+  also have "\<dots> = card(A-B)" using assms by(simp add: card_Diff_subset_Int)
+  finally show ?thesis .
+qed
+
 lemma card_Diff1_less: "finite A ==> x: A ==> card (A - {x}) < card A"
 apply (rule Suc_less_SucD)
 apply (simp add: card_Suc_Diff1 del:card_Diff_insert)
