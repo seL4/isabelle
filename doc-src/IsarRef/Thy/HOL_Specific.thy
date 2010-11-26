@@ -1143,7 +1143,8 @@ text {*
     'code_modulename' target ( ( string string ) + )
     ;
 
-    'code_reflect' string ( 'datatypes' ( string '=' ( string + '|' ) + 'and' ) ) ? \\
+    'code_reflect' string \\
+      ( 'datatypes' ( string '=' ( '"*"' | ( string + '|' ) + 'and' ) ) ) ? \\
       ( 'functions' ( string + ) ) ? ( 'file' string ) ?
     ;
 
