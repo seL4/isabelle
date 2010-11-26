@@ -546,7 +546,7 @@ fun fold2 f [] [] z = z
 
 fun forall2 P [] [] = true
   | forall2 P (x :: xs) (y :: ys) = P x y andalso forall2 P xs ys
-  | forall2 P _ _ = false;
+  | forall2 P _ _ = raise UnequalLengths;
 
 fun map_split f [] = ([], [])
   | map_split f (x :: xs) =
