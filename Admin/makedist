@@ -186,16 +186,13 @@ cd "$DISTBASE"
 echo "$DISTBASE/$DISTNAME.tar.gz" > ../ISABELLE_DIST
 echo "$IDENT" >../ISABELLE_IDENT
 
-rm -f Isabelle
-ln -s "$DISTNAME" Isabelle
-
 chown -R "$LOGNAME" "$DISTNAME"
 chmod -R u+w "$DISTNAME"
 chmod -R g=o "$DISTNAME"
-chgrp -R isabelle "$DISTNAME" Isabelle
+chgrp -R isabelle "$DISTNAME"
 
 echo "$DISTNAME.tar.gz"
-tar -czf "$DISTNAME.tar.gz" Isabelle "$DISTNAME"
+tar -czf "$DISTNAME.tar.gz" "$DISTNAME"
 
 
 # cleanup dist
