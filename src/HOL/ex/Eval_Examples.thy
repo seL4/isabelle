@@ -75,16 +75,17 @@ value [nbe] "[(nat 100, ())]"
 
 text {* a fancy datatype *}
 
-datatype ('a, 'b) bair =
-    Bair "'a\<Colon>order" 'b
-  | Shift "('a, 'b) cair"
-  | Dummy unit
-and ('a, 'b) cair =
-    Cair 'a 'b
+datatype ('a, 'b) foo =
+    Foo "'a\<Colon>order" 'b
+  | Bla "('a, 'b) bar"
+  | Dummy nat
+and ('a, 'b) bar =
+    Bar 'a 'b
+  | Blubb "('a, 'b) foo"
 
-value "Shift (Cair (4::nat) [Suc 0])"
-value [code] "Shift (Cair (4::nat) [Suc 0])"
-value [SML] "Shift (Cair (4::nat) [Suc 0])"
-value [nbe] "Shift (Cair (4::nat) [Suc 0])"
+value "Bla (Bar (4::nat) [Suc 0])"
+value [code] "Bla (Bar (4::nat) [Suc 0])"
+value [SML] "Bla (Bar (4::nat) [Suc 0])"
+value [nbe] "Bla (Bar (4::nat) [Suc 0])"
 
 end
