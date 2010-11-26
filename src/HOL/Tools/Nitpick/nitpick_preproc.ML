@@ -527,7 +527,7 @@ fun destroy_existential_equalities ({ctxt, stds, ...} : hol_context) =
          | NONE =>
            Const (@{const_name Ex}, (T --> bool_T) --> bool_T)
            $ Abs (s, T, kill ss Ts ts))
-      | kill _ _ _ = raise UnequalLengths
+      | kill _ _ _ = raise ListPair.UnequalLengths
     fun gather ss Ts (Const (@{const_name Ex}, _) $ Abs (s1, T1, t1)) =
         gather (ss @ [s1]) (Ts @ [T1]) t1
       | gather [] [] (Abs (s, T, t1)) = Abs (s, T, gather [] [] t1)

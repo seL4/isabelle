@@ -103,11 +103,6 @@ type matrix = (int*int)*(Rat.rat FuncUtil.Intpairfunc.table);
 
 fun iszero (k,r) = r =/ rat_0;
 
-fun fold_rev2 f l1 l2 b =
-  case (l1,l2) of
-    ([],[]) => b
-  | (h1::t1,h2::t2) => f h1 h2 (fold_rev2 f t1 t2 b)
-  | _ => error "fold_rev2";
 
 (* Vectors. Conventionally indexed 1..n.                                     *)
 

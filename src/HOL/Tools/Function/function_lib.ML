@@ -44,11 +44,11 @@ fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (n,T,b)) =
 
 fun map4 _ [] [] [] [] = []
   | map4 f (x :: xs) (y :: ys) (z :: zs) (u :: us) = f x y z u :: map4 f xs ys zs us
-  | map4 _ _ _ _ _ = raise Library.UnequalLengths;
+  | map4 _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun map7 _ [] [] [] [] [] [] [] = []
   | map7 f (x :: xs) (y :: ys) (z :: zs) (u :: us) (v :: vs) (w :: ws) (b :: bs) = f x y z u v w b :: map7 f xs ys zs us vs ws bs
-  | map7 _ _ _ _ _ _ _ _ = raise Library.UnequalLengths;
+  | map7 _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 
 

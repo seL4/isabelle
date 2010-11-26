@@ -19,7 +19,7 @@ lemma linear_scaleR: "linear (%(x :: 'n::euclidean_space). scaleR c x)"
 lemma injective_scaleR: 
 assumes "(c :: real) ~= 0"
 shows "inj (%(x :: 'n::euclidean_space). scaleR c x)"
-by (metis assms datatype_injI injI real_vector.scale_cancel_left)
+  by (metis assms injI real_vector.scale_cancel_left)
 
 lemma linear_add_cmul:
 fixes f :: "('m::euclidean_space) => ('n::euclidean_space)" 
