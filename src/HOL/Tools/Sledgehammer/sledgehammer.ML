@@ -440,7 +440,7 @@ val smt_iter_min_msecs = 5000
 val smt_iter_timeout_divisor = 2
 val smt_monomorph_limit = 4
 
-fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
+fun smt_filter_loop ({verbose, timeout, ...} : params) remote state i =
   let
     val ctxt = Proof.context_of state
     fun iter timeout iter_num outcome0 msecs_so_far facts =
@@ -534,6 +534,7 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
     val smt_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop params remote state subgoal (map_filter smt_fact facts)
+    val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
     val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
       case outcome of
@@ -547,8 +548,9 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
         in
           try_command_line (proof_banner auto)
                            (apply_on_subgoal subgoal subgoal_count ^
-                            command_call method (map (fst o fst) used_facts)) ^
-          minimize_line minimize_command (map (fst o fst) used_facts)
+                            command_call method (map fst other_lemmas)) ^
+          minimize_line minimize_command
+                        (map fst (other_lemmas @ chained_lemmas))
         end
       | SOME failure => string_for_failure "SMT solver" failure
   in
