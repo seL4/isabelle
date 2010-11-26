@@ -2953,9 +2953,7 @@ fun Product_Type_snd_interpreter ctxt model args t =
 fun stlc_printer ctxt model T intr assignment =
   let
     (* string -> string *)
-    fun strip_leading_quote s =
-      (implode o (fn [] => [] | x::xs => if x="'" then xs else x::xs)
-        o raw_explode) s  (* FIXME Symbol.explode (?) *)
+    val strip_leading_quote = perhaps (try (unprefix "'"))
     (* Term.typ -> string *)
     fun string_of_typ (Type (s, _)) = s
       | string_of_typ (TFree (x, _)) = strip_leading_quote x

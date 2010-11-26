@@ -71,7 +71,7 @@ fun prove_size_thms (info : info) new_type_names thy =
     val ((param_size_fs, param_size_fTs), f_names) = paramTs |>
       map (fn T as TFree (s, _) =>
         let
-          val name = "f" ^ implode (tl (raw_explode s));  (* FIXME Symbol.explode (?) *)
+          val name = "f" ^ unprefix "'" s;
           val U = T --> HOLogic.natT
         in
           (((s, Free (name, U)), U), name)
