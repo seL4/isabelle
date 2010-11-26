@@ -258,7 +258,7 @@ end; (*local*)
 
 fun check_datatype thy tyco some_consts =
   let
-    val constrs = (map (fst o fst) o snd o Code.get_type thy) tyco;
+    val constrs = (map fst o snd o fst o Code.get_type thy) tyco;
     val _ = case some_consts
      of SOME consts =>
           let
