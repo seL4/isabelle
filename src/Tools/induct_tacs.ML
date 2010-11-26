@@ -96,7 +96,7 @@ fun gen_induct_tac ctxt0 varss opt_rules i st =
     val _ = Method.trace ctxt [rule'];
 
     val concls = Logic.dest_conjunctions (Thm.concl_of rule);
-    val insts = maps prep_inst (concls ~~ varss) handle Library.UnequalLengths =>
+    val insts = maps prep_inst (concls ~~ varss) handle ListPair.UnequalLengths =>
       error "Induction rule has different numbers of variables";
   in res_inst_tac ctxt insts rule' i st end
   handle THM _ => Seq.empty;

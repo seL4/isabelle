@@ -204,7 +204,7 @@ fun chunk_list_unevenly _ [] = []
 
 fun map3 _ [] [] [] = []
   | map3 f (x :: xs) (y :: ys) (z :: zs) = f x y z :: map3 f xs ys zs
-  | map3 _ _ _ _ = raise UnequalLengths
+  | map3 _ _ _ _ = raise ListPair.UnequalLengths
 
 fun double_lookup eq ps key =
   case AList.lookup (fn (SOME x, SOME y) => eq (x, y) | _ => false) ps

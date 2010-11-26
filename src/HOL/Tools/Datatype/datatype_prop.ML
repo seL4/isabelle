@@ -48,8 +48,8 @@ fun indexify_names names =
 
 fun make_tnames Ts =
   let
-    fun type_name (TFree (name, _)) = implode (tl (raw_explode name))  (* FIXME Symbol.explode (?) *)
-      | type_name (Type (name, _)) = 
+    fun type_name (TFree (name, _)) = unprefix "'" name
+      | type_name (Type (name, _)) =
           let val name' = Long_Name.base_name name
           in if Syntax.is_identifier name' then name' else "x" end;
   in indexify_names (map type_name Ts) end;
