@@ -105,7 +105,7 @@ fun is_prover_installed ctxt name =
   end
 
 (* FUDGE *)
-val smt_default_max_relevant = 200
+val smt_default_max_relevant = 225
 val auto_max_relevant_divisor = 2
 
 fun default_max_relevant_for_prover thy name =
