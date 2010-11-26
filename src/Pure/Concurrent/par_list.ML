@@ -26,20 +26,26 @@ end;
 structure Par_List: PAR_LIST =
 struct
 
-fun raw_map f xs =
+fun managed_results f xs =
   if Multithreading.enabled () andalso not (Multithreading.self_critical ()) then
-    let val shared_group = Task_Queue.new_group (Future.worker_group ())
-    in Future.join_results (map (fn x => Future.fork_group shared_group (fn () => f x)) xs) end
+    let
+      val shared_group = Task_Queue.new_group (Future.worker_group ());
+      val results =
+        Future.join_results (map (fn x => Future.fork_group shared_group (fn () => f x)) xs)
+          handle exn =>
+            (if Exn.is_interrupt exn then Future.cancel_group shared_group else (); reraise exn);
+    in results end
   else map (Exn.capture f) xs;
 
-fun map f xs = Exn.release_first (raw_map f xs);
+fun map f xs = Exn.release_first (managed_results f xs);
 
 fun get_some f xs =
   let
     exception FOUND of 'b option;
     fun found (Exn.Exn (FOUND some)) = some
       | found _ = NONE;
-    val results = raw_map (fn x => (case f x of NONE => () | some => raise FOUND some)) xs;
+    val results =
+      managed_results (fn x => (case f x of NONE => () | some => raise FOUND some)) xs;
   in
     (case get_first found results of
       SOME y => SOME y
