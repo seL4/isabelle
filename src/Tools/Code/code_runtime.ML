@@ -349,7 +349,8 @@ val andK = "and"
 val _ = List.app Keyword.keyword [datatypesK, functionsK];
 
 val parse_datatype =
-  Parse.name --| Parse.$$$ "=" -- ((Parse.string >> (fn "*" => NONE | _ => Scan.fail ()))
+  Parse.name --| Parse.$$$ "=" --
+    (((Parse.sym_ident || Parse.string) >> (fn "_" => NONE | _ => Scan.fail ()))
     || ((Parse.term ::: (Scan.repeat (Parse.$$$ "|" |-- Parse.term))) >> SOME));
 
 in

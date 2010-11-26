@@ -1082,7 +1082,7 @@ text {*
     const: term
     ;
 
-    constexpr: ( const | 'name.*' | '*' )
+    constexpr: ( const | 'name._' | '_' )
     ;
 
     typeconstructor: nameref
@@ -1144,7 +1144,7 @@ text {*
     ;
 
     'code_reflect' string \\
-      ( 'datatypes' ( string '=' ( '"*"' | ( string + '|' ) + 'and' ) ) ) ? \\
+      ( 'datatypes' ( string '=' ( '_' | ( string + '|' ) + 'and' ) ) ) ? \\
       ( 'functions' ( string + ) ) ? ( 'file' string ) ?
     ;
 

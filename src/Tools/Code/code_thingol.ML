@@ -940,9 +940,9 @@ fun read_const_exprs thy =
     fun belongs_here thy' c = forall
       (fn thy'' => not (Sign.declared_const thy'' c)) (Theory.parents_of thy');
     fun consts_of_select thy' = filter (belongs_here thy') (consts_of thy');
-    fun read_const_expr "*" = ([], consts_of thy)
-      | read_const_expr s = if String.isSuffix ".*" s
-          then ([], consts_of_select (Context.this_theory thy (unsuffix ".*" s)))
+    fun read_const_expr "_" = ([], consts_of thy)
+      | read_const_expr s = if String.isSuffix "._" s
+          then ([], consts_of_select (Context.this_theory thy (unsuffix "._" s)))
           else ([Code.read_const thy s], []);
   in pairself flat o split_list o map read_const_expr end;
 
