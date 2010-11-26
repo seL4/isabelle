@@ -97,6 +97,7 @@ sig
   val eq_list: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
+  val fold_rev2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val forall2: ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
   val zip_options: 'a list -> 'b option list -> ('a * 'b) list
   val ~~ : 'a list * 'b list -> ('a * 'b) list
@@ -543,6 +544,10 @@ fun map2 _ [] [] = []
 fun fold2 f [] [] z = z
   | fold2 f (x :: xs) (y :: ys) z = fold2 f xs ys (f x y z)
   | fold2 f _ _ _ = raise UnequalLengths;
+
+fun fold_rev2 f [] [] z = z
+  | fold_rev2 f (x :: xs) (y :: ys) z = f x y (fold_rev2 f xs ys z)
+  | fold_rev2 f _ _ _ = raise UnequalLengths;
 
 fun forall2 P [] [] = true
   | forall2 P (x :: xs) (y :: ys) = P x y andalso forall2 P xs ys

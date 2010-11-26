@@ -239,10 +239,6 @@ fun norm_canon_conv ct = case term_of ct of
   Const(@{const_name norm},_)$_ => arg_conv vector_canon_conv ct
  | _ => raise CTERM ("norm_canon_conv", [ct])
 
-fun fold_rev2 f [] [] z = z
- | fold_rev2 f (x::xs) (y::ys) z = f x y (fold_rev2 f xs ys z)
- | fold_rev2 f _ _ _ = raise UnequalLengths;
-
 fun int_flip v eq =
   if FuncUtil.Intfunc.defined eq v
   then FuncUtil.Intfunc.update (v, Rat.neg (FuncUtil.Intfunc.apply eq v)) eq else eq;
