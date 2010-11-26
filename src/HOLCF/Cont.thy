@@ -97,22 +97,26 @@ apply (erule (1) contE)
 done
 
 lemma contI2:
+  fixes f :: "'a::cpo \<Rightarrow> 'b::cpo"
   assumes mono: "monofun f"
   assumes below: "\<And>Y. \<lbrakk>chain Y; chain (\<lambda>i. f (Y i))\<rbrakk>
      \<Longrightarrow> f (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. f (Y i))"
   shows "cont f"
-apply (rule contI)
-apply (rule thelubE)
-apply (erule ch2ch_monofun [OF mono])
-apply (rule below_antisym)
-apply (rule is_lub_thelub)
-apply (erule ch2ch_monofun [OF mono])
-apply (rule ub2ub_monofun [OF mono])
-apply (rule is_lubD1)
-apply (erule cpo_lubI)
-apply (rule below, assumption)
-apply (erule ch2ch_monofun [OF mono])
-done
+proof (rule contI)
+  fix Y :: "nat \<Rightarrow> 'a"
+  assume Y: "chain Y"
+  with mono have fY: "chain (\<lambda>i. f (Y i))"
+    by (rule ch2ch_monofun)
+  have "(\<Squnion>i. f (Y i)) = f (\<Squnion>i. Y i)"
+    apply (rule below_antisym)
+    apply (rule lub_below [OF fY])
+    apply (rule monofunE [OF mono])
+    apply (rule is_ub_thelub [OF Y])
+    apply (rule below [OF Y fY])
+    done
+  with fY show "range (\<lambda>i. f (Y i)) <<| f (\<Squnion>i. Y i)"
+    by (rule thelubE)
+qed
 
 subsection {* Collection of continuity rules *}
 
