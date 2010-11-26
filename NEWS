@@ -89,6 +89,9 @@ and type constructors.
 
 *** HOL ***
 
+* Code generator: globbing constant expressions "*" and "Theory.*" have been
+replaced by the more idiomatic "_" and "Theory._".  INCOMPATIBILITY.
+
 * Theory Enum (for explicit enumerations of finite types) is now part of
 the HOL-Main image. INCOMPATIBILITY: All constants of the Enum theory now 
 have to be referred to by its qualified name.
@@ -101,7 +104,7 @@ have to be referred to by its qualified name.
 avoid confusion with finite sets.  INCOMPATIBILITY.
 
 * Quickcheck's generator for random generation is renamed from "code" to
-"random". INCOMPATIBILITY. 
+"random".  INCOMPATIBILITY. 
 
 * Theory Multiset provides stable quicksort implementation of sort_key.
 
@@ -124,7 +127,7 @@ now named distinct_simps and sorted_simps.
 * Constant `contents` renamed to `the_elem`, to free the generic name
 contents for other uses.  INCOMPATIBILITY.
 
-* Dropped old primrec package.  INCOMPATIBILITY.
+* Dropped syntax for old primrec package.  INCOMPATIBILITY.
 
 * Improved infrastructure for term evaluation using code generator
 techniques, in particular static evaluation conversions.
