@@ -24,7 +24,9 @@ sig
   val command_call : string -> string list -> string
   val try_command_line : string -> string -> string
   val minimize_line : ('a list -> string) -> 'a list -> string
-  val metis_proof_text : metis_params -> text_result
+  val split_used_facts :
+    (string * locality) list
+    -> (string * locality) list * (string * locality) list
   val isar_proof_text : isar_params -> metis_params -> text_result
   val proof_text : bool -> isar_params -> metis_params -> text_result
 end;
@@ -159,15 +161,15 @@ fun add_fact fact_names (Inference (name, _, [])) =
 fun used_facts_in_tstplike_proof fact_names =
   atp_proof_from_tstplike_string #> rpair [] #-> fold (add_fact fact_names)
 
-fun used_facts fact_names =
-  used_facts_in_tstplike_proof fact_names
-  #> List.partition (curry (op =) Chained o snd)
+val split_used_facts =
+  List.partition (curry (op =) Chained o snd)
   #> pairself (sort_distinct (string_ord o pairself fst))
 
 fun metis_proof_text (banner, full_types, minimize_command,
                       tstplike_proof, fact_names, goal, i) =
   let
-    val (chained_lemmas, other_lemmas) = used_facts fact_names tstplike_proof
+    val (chained_lemmas, other_lemmas) =
+      split_used_facts (used_facts_in_tstplike_proof fact_names tstplike_proof)
     val n = Logic.count_prems (prop_of goal)
   in
     (metis_line banner full_types i n (map fst other_lemmas) ^
@@ -912,14 +914,14 @@ fun string_for_proof ctxt0 full_types i n =
   in do_proof end
 
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-                    (other_params as (_, full_types, _, tstplike_proof,
+                    (metis_params as (_, full_types, _, tstplike_proof,
                                       fact_names, goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
     val n = Logic.count_prems (prop_of goal)
-    val (one_line_proof, lemma_names) = metis_proof_text other_params
+    val (one_line_proof, lemma_names) = metis_proof_text metis_params
     fun isar_proof_for () =
       case isar_proof_from_tstplike_proof pool ctxt full_types tfrees
                isar_shrink_factor tstplike_proof conjecture_shape fact_names
@@ -940,8 +942,8 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
         |> the_default "\nWarning: The Isar proof construction failed."
   in (one_line_proof ^ isar_proof, lemma_names) end
 
-fun proof_text isar_proof isar_params other_params =
+fun proof_text isar_proof isar_params metis_params =
   (if isar_proof then isar_proof_text isar_params else metis_proof_text)
-      other_params
+      metis_params
 
 end;

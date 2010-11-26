@@ -104,14 +104,13 @@ have to be referred to by its qualified name.
 avoid confusion with finite sets.  INCOMPATIBILITY.
 
 * Quickcheck's generator for random generation is renamed from "code" to
-"random".  INCOMPATIBILITY. 
+"random".  INCOMPATIBILITY.
 
 * Theory Multiset provides stable quicksort implementation of sort_key.
 
 * Quickcheck now has a configurable time limit which is set to 30 seconds
 by default. This can be changed by adding [timeout = n] to the quickcheck
-command. The time limit for auto quickcheck is still set independently,
-by default to 5 seconds.
+command. The time limit for Auto Quickcheck is still set independently.
 
 * New command 'partial_function' provides basic support for recursive
 function definitions over complete partial orders. Concrete instances
@@ -357,11 +356,26 @@ INCOMPATIBILITY.
     (and "ms" and "min" are no longer supported)
     INCOMPATIBILITY.
 
+* Metis and Meson now have configuration options "meson_trace", "metis_trace",
+  and "metis_verbose" that can be enabled to diagnose these tools. E.g.
+
+    using [[metis_trace = true]]
+
 * Nitpick:
   - Renamed options:
     nitpick [timeout = 77 s] ~> nitpick [timeout = 77]
     nitpick [tac_timeout = 777 ms] ~> nitpick [tac_timeout = 0.777]
     INCOMPATIBILITY.
+  - Now requires Kodkodi 1.2.9. INCOMPATIBILITY.
+  - Added support for partial quotient types.
+  - Added local versions of the "Nitpick.register_xxx" functions.
+  - Added "whack" option.
+  - Allow registration of quotient types as codatatypes.
+  - Improved "merge_type_vars" option to merge more types.
+  - Removed unsound "fast_descrs" option.
+  - Added custom symmetry breaking for datatypes, making it possible to reach
+    higher cardinalities.
+  - Prevent the expansion of too large definitions.
 
 * Changed SMT configuration options:
   - Renamed:
@@ -507,6 +521,9 @@ are now named 'foo_case' instead of 'foo_when'. INCOMPATIBILITY.
 
 *** ML ***
 
+* Former exception Library.UnequalLengths now coincides with
+ListPair.UnequalLengths.
+
 * Renamed raw "explode" function to "raw_explode" to emphasize its
 meaning.  Note that internally to Isabelle, Symbol.explode is used in
 almost all situations.
@@ -650,7 +667,7 @@ case of debugging is similar) in proofs works via
 
 Tracing is then active for all invocations of the simplifier in
 subsequent goal refinement steps. Tracing may also still be enabled or
-disabled via the ProofGeneral settings menu.
+disabled via the Proof General settings menu.
 
 * Separate commands 'hide_class', 'hide_type', 'hide_const',
 'hide_fact' replace the former 'hide' KIND command.  Minor

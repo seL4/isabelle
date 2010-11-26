@@ -324,7 +324,7 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : info Symtab.table) descr i
            \ nested recursion")
        | (SOME {index, descr, ...}) =>
            let val (_, vars, _) = (the o AList.lookup (op =) descr) index;
-               val subst = ((map dest_DtTFree vars) ~~ dts) handle Library.UnequalLengths =>
+               val subst = ((map dest_DtTFree vars) ~~ dts) handle ListPair.UnequalLengths =>
                  typ_error T ("Type constructor " ^ tname ^ " used with wrong\
                   \ number of arguments")
            in (i + index, map (fn (j, (tn, args, cs)) => (i + j,

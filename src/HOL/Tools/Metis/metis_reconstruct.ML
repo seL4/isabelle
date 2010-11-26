@@ -31,8 +31,8 @@ struct
 
 open Metis_Translate
 
-val (trace, trace_setup) = Attrib.config_bool "trace_metis" (K false)
-val (verbose, verbose_setup) = Attrib.config_bool "verbose_metis" (K true)
+val (trace, trace_setup) = Attrib.config_bool "metis_trace" (K false)
+val (verbose, verbose_setup) = Attrib.config_bool "metis_verbose" (K true)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 fun verbose_warning ctxt msg =

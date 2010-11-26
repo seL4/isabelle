@@ -393,7 +393,7 @@ fun do_mtype_comp _ _ _ _ NONE = NONE
   | do_mtype_comp cmp xs (M1 as MPair (M11, M12)) (M2 as MPair (M21, M22))
                   accum =
     (accum |> fold (uncurry (do_mtype_comp cmp xs)) [(M11, M21), (M12, M22)]
-     handle Library.UnequalLengths =>
+     handle ListPair.UnequalLengths =>
             raise MTYPE ("Nitpick_Mono.do_mtype_comp", [M1, M2], []))
   | do_mtype_comp _ _ (MType _) (MType _) accum =
     accum (* no need to compare them thanks to the cache *)

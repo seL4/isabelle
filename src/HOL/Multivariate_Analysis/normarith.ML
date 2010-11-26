@@ -117,13 +117,6 @@ fun combinations k l = if k = 0 then [[]] else
   [] => []
 | h::t => map (cons h) (combinations (k - 1) t) @ combinations k t
 
-
-fun forall2 p l1 l2 = case (l1,l2) of
-   ([],[]) => true
- | (h1::t1,h2::t2) => p h1 h2 andalso forall2 p t1 t2
- | _ => false;
-
-
 fun vertices vs eqs =
  let
   fun vertex cmb = case solve(vs,cmb) of
@@ -131,16 +124,16 @@ fun vertices vs eqs =
    | SOME soln => SOME (map (fn v => FuncUtil.Intfunc.tryapplyd soln v Rat.zero) vs)
   val rawvs = map_filter vertex (combinations (length vs) eqs)
   val unset = filter (forall (fn c => c >=/ Rat.zero)) rawvs
- in fold_rev (insert (uncurry (forall2 (curry op =/)))) unset []
+ in fold_rev (insert (eq_list op =/)) unset []
  end
 
-fun subsumes l m = forall2 (fn x => fn y => Rat.abs x <=/ Rat.abs y) l m
+val subsumes = eq_list (fn (x, y) => Rat.abs x <=/ Rat.abs y)
 
 fun subsume todo dun = case todo of
  [] => dun
 |v::ovs =>
-   let val dun' = if exists (fn w => subsumes w v) dun then dun
-                  else v::(filter (fn w => not(subsumes v w)) dun)
+   let val dun' = if exists (fn w => subsumes (w, v)) dun then dun
+                  else v:: filter (fn w => not (subsumes (v, w))) dun
    in subsume ovs dun'
    end;
 
@@ -245,10 +238,6 @@ fun vector_canon_conv ct = case term_of ct of
 fun norm_canon_conv ct = case term_of ct of
   Const(@{const_name norm},_)$_ => arg_conv vector_canon_conv ct
  | _ => raise CTERM ("norm_canon_conv", [ct])
-
-fun fold_rev2 f [] [] z = z
- | fold_rev2 f (x::xs) (y::ys) z = f x y (fold_rev2 f xs ys z)
- | fold_rev2 f _ _ _ = raise UnequalLengths;
 
 fun int_flip v eq =
   if FuncUtil.Intfunc.defined eq v

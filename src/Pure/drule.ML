@@ -891,7 +891,7 @@ fun instantiate' cTs cts thm =
         handle TYPE (msg, _, _) => err msg;
 
     fun zip_vars xs ys =
-      zip_options xs ys handle Library.UnequalLengths =>
+      zip_options xs ys handle ListPair.UnequalLengths =>
         err "more instantiations than variables in thm";
 
     (*instantiate types first!*)

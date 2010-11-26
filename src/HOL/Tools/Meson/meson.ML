@@ -46,7 +46,7 @@ end
 structure Meson : MESON =
 struct
 
-val (trace, trace_setup) = Attrib.config_bool "trace_meson" (K false)
+val (trace, trace_setup) = Attrib.config_bool "meson_trace" (K false)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 

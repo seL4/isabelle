@@ -573,12 +573,12 @@ fun not_wellsorted thy permissive some_thm ty sort e =
 
 fun ensure_tyco thy algbr eqngr permissive tyco =
   let
-    val (vs, cos) = Code.get_type thy tyco;
+    val ((vs, cos), _) = Code.get_type thy tyco;
     val stmt_datatype =
       fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
-      ##>> fold_map (fn ((c, vs), tys) =>
+      ##>> fold_map (fn (c, (vs, tys)) =>
         ensure_const thy algbr eqngr permissive c
-        ##>> pair (map (unprefix "'") vs)
+        ##>> pair (map (unprefix "'" o fst) vs)
         ##>> fold_map (translate_typ thy algbr eqngr permissive) tys) cos
       #>> (fn info => Datatype (tyco, info));
   in ensure_stmt lookup_tyco (declare_tyco thy) stmt_datatype tyco end

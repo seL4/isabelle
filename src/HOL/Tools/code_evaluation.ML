@@ -54,7 +54,7 @@ fun ensure_term_of (tyco, (raw_vs, _)) thy =
 
 (* code equations for datatypes *)
 
-fun mk_term_of_eq thy ty (c, tys) =
+fun mk_term_of_eq thy ty (c, (_, tys)) =
   let
     val t = list_comb (Const (c, tys ---> ty),
       map Free (Name.names Name.context "a" tys));
@@ -74,7 +74,7 @@ fun add_term_of_code tyco raw_vs raw_cs thy =
     val vs = map (fn (v, sort) =>
       (v, curry (Sorts.inter_sort algebra) @{sort typerep} sort)) raw_vs;
     val ty = Type (tyco, map TFree vs);
-    val cs = (map o apsnd o map o map_atyps)
+    val cs = (map o apsnd o apsnd o map o map_atyps)
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
     val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
     val eqs = map (mk_term_of_eq thy ty) cs;
@@ -121,7 +121,7 @@ fun add_abs_term_of_code tyco raw_vs abs raw_ty_rep proj thy =
     |> Code.add_eqn eq
   end;
 
-fun ensure_abs_term_of_code (tyco, (raw_vs, ((abs, ty), (proj, _)))) thy =
+fun ensure_abs_term_of_code (tyco, (raw_vs, ((abs, (_, ty)), (proj, _)))) thy =
   let
     val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
   in if has_inst then add_abs_term_of_code tyco raw_vs abs ty proj thy else thy end;
