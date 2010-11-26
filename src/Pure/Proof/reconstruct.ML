@@ -137,7 +137,7 @@ fun make_constraints_cprf thy env cprf =
                 NONE => fold_map mk_tvar (map snd tvars @ map snd tfrees) env
               | SOME Ts => (Ts, env));
             val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
-              (forall_intr_vfs prop) handle Library.UnequalLengths =>
+              (forall_intr_vfs prop) handle ListPair.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^ quote (Proofterm.guess_name prf))
           in (prop', Proofterm.change_type (SOME Ts) prf, [], env', vTs) end;
 

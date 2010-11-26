@@ -507,6 +507,9 @@ are now named 'foo_case' instead of 'foo_when'. INCOMPATIBILITY.
 
 *** ML ***
 
+* Former exception Library.UnequalLengths now coincides with
+ListPair.UnequalLengths.
+
 * Renamed raw "explode" function to "raw_explode" to emphasize its
 meaning.  Note that internally to Isabelle, Symbol.explode is used in
 almost all situations.

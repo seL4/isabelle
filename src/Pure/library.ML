@@ -58,7 +58,6 @@ sig
   val setmp_thread_data: 'a Universal.tag -> 'a -> 'a -> ('b -> 'c) -> 'b -> 'c
 
   (*lists*)
-  exception UnequalLengths
   val single: 'a -> 'a list
   val the_single: 'a list -> 'a
   val singleton: ('a list -> 'b list) -> 'a -> 'b
@@ -322,8 +321,6 @@ fun setmp_thread_data tag orig_data data f x =
 
 (** lists **)
 
-exception UnequalLengths;
-
 fun single x = [x];
 
 fun the_single [x] = x
@@ -496,7 +493,7 @@ fun unflat (xs :: xss) ys =
       let val (ps, qs) = chop (length xs) ys
       in ps :: unflat xss qs end
   | unflat [] [] = []
-  | unflat _ _ = raise UnequalLengths;
+  | unflat _ _ = raise ListPair.UnequalLengths;
 
 fun burrow f xss = unflat xss (f (flat xss));
 
@@ -535,19 +532,17 @@ fun fold_product f _ [] z = z
 
 (* lists of pairs *)
 
-exception UnequalLengths;
-
 fun map2 _ [] [] = []
   | map2 f (x :: xs) (y :: ys) = f x y :: map2 f xs ys
-  | map2 _ _ _ = raise UnequalLengths;
+  | map2 _ _ _ = raise ListPair.UnequalLengths;
 
 fun fold2 f [] [] z = z
   | fold2 f (x :: xs) (y :: ys) z = fold2 f xs ys (f x y z)
-  | fold2 f _ _ _ = raise UnequalLengths;
+  | fold2 f _ _ _ = raise ListPair.UnequalLengths;
 
 fun fold_rev2 f [] [] z = z
   | fold_rev2 f (x :: xs) (y :: ys) z = f x y (fold_rev2 f xs ys z)
-  | fold_rev2 f _ _ _ = raise UnequalLengths;
+  | fold_rev2 f _ _ _ = raise ListPair.UnequalLengths;
 
 fun forall2 P [] [] = true
   | forall2 P (x :: xs) (y :: ys) = P x y andalso forall2 P xs ys
@@ -563,13 +558,13 @@ fun map_split f [] = ([], [])
 fun zip_options (x :: xs) (SOME y :: ys) = (x, y) :: zip_options xs ys
   | zip_options (_ :: xs) (NONE :: ys) = zip_options xs ys
   | zip_options _ [] = []
-  | zip_options [] _ = raise UnequalLengths;
+  | zip_options [] _ = raise ListPair.UnequalLengths;
 
 (*combine two lists forming a list of pairs:
   [x1, ..., xn] ~~ [y1, ..., yn]  ===>  [(x1, y1), ..., (xn, yn)]*)
 fun [] ~~ [] = []
   | (x :: xs) ~~ (y :: ys) = (x, y) :: (xs ~~ ys)
-  | _ ~~ _ = raise UnequalLengths;
+  | _ ~~ _ = raise ListPair.UnequalLengths;
 
 (*inverse of ~~; the old 'split':
   [(x1, y1), ..., (xn, yn)]  ===>  ([x1, ..., xn], [y1, ..., yn])*)
@@ -848,10 +843,11 @@ fun has_duplicates eq =
 
 fun map_transpose f xss =
   let
-    val n = case distinct (op =) (map length xss)
-     of [] => 0
+    val n =
+      (case distinct (op =) (map length xss) of
+        [] => 0
       | [n] => n
-      | _ => raise UnequalLengths;
+      | _ => raise ListPair.UnequalLengths);
   in map_range (fn m => f (map (fn xs => nth xs m) xss)) n end;
 
 
@@ -1071,3 +1067,5 @@ end;
 
 structure Basic_Library: BASIC_LIBRARY = Library;
 open Basic_Library;
+
+datatype legacy = UnequalLengths;
