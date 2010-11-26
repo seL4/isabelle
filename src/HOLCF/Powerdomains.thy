@@ -42,10 +42,10 @@ lemmas [domain_deflation] =
   deflation_upper_map deflation_lower_map deflation_convex_map
 
 setup {*
-  fold Domain_Take_Proofs.add_map_function
-    [(@{type_name "upper_pd"}, @{const_name upper_map}, [true]),
-     (@{type_name "lower_pd"}, @{const_name lower_map}, [true]),
-     (@{type_name "convex_pd"}, @{const_name convex_map}, [true])]
+  fold Domain_Take_Proofs.add_rec_type
+    [(@{type_name "upper_pd"}, [true]),
+     (@{type_name "lower_pd"}, [true]),
+     (@{type_name "convex_pd"}, [true])]
 *}
 
 end

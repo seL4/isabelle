@@ -350,17 +350,17 @@ fun define_map_functions
       (Global_Theory.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (conjuncts deflation_map_binds deflation_map_thm);
 
-    (* register map functions in theory data *)
+    (* register indirect recursion in theory data *)
     local
-      fun register_map ((dname, map_name), args) =
-          Domain_Take_Proofs.add_map_function (dname, map_name, args);
+      fun register_map (dname, args) =
+        Domain_Take_Proofs.add_rec_type (dname, args);
       val dnames = map (fst o dest_Type o fst) dom_eqns;
       val map_names = map (fst o dest_Const) map_consts;
       fun args (T, _) = case T of Type (_, Ts) => map (is_cpo thy) Ts | _ => [];
       val argss = map args dom_eqns;
     in
       val thy =
-          fold register_map (dnames ~~ map_names ~~ argss) thy;
+          fold register_map (dnames ~~ argss) thy;
     end;
 
     (* register deflation theorems *)

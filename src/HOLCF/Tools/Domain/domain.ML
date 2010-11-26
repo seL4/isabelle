@@ -118,14 +118,14 @@ fun gen_add_domain
     (* test for free type variables, illegal sort constraints on rhs,
        non-pcpo-types and invalid use of recursive type;
        replace sorts in type variables on rhs *)
-    val map_tab = Domain_Take_Proofs.get_map_tab thy;
+    val rec_tab = Domain_Take_Proofs.get_rec_tab thy;
     fun check_rec rec_ok (T as TFree (v,_))  =
         if AList.defined (op =) sorts v then T
         else error ("Free type variable " ^ quote v ^ " on rhs.")
       | check_rec rec_ok (T as Type (s, Ts)) =
         (case AList.lookup (op =) dtnvs' s of
           NONE =>
-            let val rec_ok' = rec_ok andalso Symtab.defined map_tab s;
+            let val rec_ok' = rec_ok andalso Symtab.defined rec_tab s;
             in Type (s, map (check_rec rec_ok') Ts) end
         | SOME typevars =>
           if typevars <> Ts

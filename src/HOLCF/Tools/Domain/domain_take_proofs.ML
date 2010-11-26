@@ -55,8 +55,8 @@ sig
   val map_of_typ :
     theory -> (typ * term) list -> typ -> term
 
-  val add_map_function : (string * string * bool list) -> theory -> theory
-  val get_map_tab : theory -> (string * bool list) Symtab.table
+  val add_rec_type : (string * bool list) -> theory -> theory
+  val get_rec_tab : theory -> (bool list) Symtab.table
   val add_deflation_thm : thm -> theory -> theory
   val get_deflation_thms : theory -> thm list
   val map_ID_add : attribute
@@ -119,12 +119,10 @@ val beta_tac = simp_tac beta_ss;
 (******************************** theory data *********************************)
 (******************************************************************************)
 
-structure MapData = Theory_Data
+structure Rec_Data = Theory_Data
 (
-  (* constant names like "foo_map" *)
-  (* list indicates which type arguments correspond to map arguments *)
-  (* alternatively, which type arguments allow indirect recursion *)
-  type T = (string * bool list) Symtab.table;
+  (* list indicates which type arguments allow indirect recursion *)
+  type T = (bool list) Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data = Symtab.merge (K true) data;
@@ -142,13 +140,13 @@ structure Map_Id_Data = Named_Thms
   val description = "theorems like foo_map$ID = ID"
 );
 
-fun add_map_function (tname, map_name, bs) =
-    MapData.map (Symtab.insert (K true) (tname, (map_name, bs)));
+fun add_rec_type (tname, bs) =
+    Rec_Data.map (Symtab.insert (K true) (tname, bs));
 
 fun add_deflation_thm thm =
     Context.theory_map (DeflMapData.add_thm thm);
 
-val get_map_tab = MapData.get;
+val get_rec_tab = Rec_Data.get;
 fun get_deflation_thms thy = DeflMapData.get (ProofContext.init_global thy);
 
 val map_ID_add = Map_Id_Data.add;
