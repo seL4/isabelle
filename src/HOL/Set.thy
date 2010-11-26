@@ -622,6 +622,8 @@ lemma Pow_bottom: "{} \<in> Pow B"
 lemma Pow_top: "A \<in> Pow A"
   by simp
 
+lemma Pow_not_empty: "Pow A \<noteq> {}"
+  using Pow_top by blast
 
 subsubsection {* Set complement *}
 
@@ -971,6 +973,21 @@ lemma atomize_ball:
 
 lemmas [symmetric, rulify] = atomize_ball
   and [symmetric, defn] = atomize_ball
+
+lemma image_Pow_mono:
+  assumes "f ` A \<le> B"
+  shows "(image f) ` (Pow A) \<le> Pow B"
+using assms by blast
+
+lemma image_Pow_surj:
+  assumes "f ` A = B"
+  shows "(image f) ` (Pow A) = Pow B"
+using assms unfolding Pow_def proof(auto)
+  fix Y assume *: "Y \<le> f ` A"
+  obtain X where X_def: "X = {x \<in> A. f x \<in> Y}" by blast
+  have "f ` X = Y \<and> X \<le> A" unfolding X_def using * by auto
+  thus "Y \<in> (image f) ` {X. X \<le> A}" by blast
+qed
 
 subsubsection {* Derived rules involving subsets. *}
 

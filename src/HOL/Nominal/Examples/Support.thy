@@ -47,7 +47,7 @@ proof -
   also have "\<dots> = (\<lambda>n. atom n) ` ({n. \<exists>i. n = 2*i \<or> n = 2*i+1})" by auto
   also have "\<dots> = (\<lambda>n. atom n) ` (UNIV::nat set)" using even_or_odd by auto
   also have "\<dots> = (UNIV::atom set)" using atom.exhaust
-    by (rule_tac  surj_range) (auto simp add: surj_def)
+    by (auto simp add: surj_def)
   finally show "EVEN \<union> ODD = UNIV" by simp
 qed
 

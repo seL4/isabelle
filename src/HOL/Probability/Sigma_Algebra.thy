@@ -132,7 +132,7 @@ proof -
       by (auto intro!: exI[of _ "from_nat i"])
   qed
   have **: "range ?A' = range A"
-    using surj_range[OF surj_from_nat]
+    using surj_from_nat
     by (auto simp: image_compose intro!: imageI)
   show ?thesis unfolding * ** ..
 qed

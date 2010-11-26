@@ -1135,6 +1135,7 @@ proof (rule inj_onI)
 qed
 
 lemma map_pair_surj:
+  fixes f :: "'a \<Rightarrow> 'b" and g :: "'c \<Rightarrow> 'd"
   assumes "surj f" and "surj g"
   shows "surj (map_pair f g)"
 unfolding surj_def

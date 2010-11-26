@@ -565,8 +565,7 @@ theorem real_non_denum:
   shows "\<not> (\<exists>f::nat\<Rightarrow>real. surj f)"
 proof -- "by contradiction"
   assume "\<exists>f::nat\<Rightarrow>real. surj f"
-  then obtain f::"nat\<Rightarrow>real" where "surj f" by auto
-  hence rangeF: "range f = UNIV" by (rule surj_range)
+  then obtain f::"nat\<Rightarrow>real" where rangeF: "surj f" by auto
   -- "We now produce a real number x that is not in the range of f, using the properties of newInt. "
   have "\<exists>x. x \<in> (\<Inter>n. newInt n f)" using newInt_notempty by blast
   moreover have "\<forall>n. f n \<notin> (\<Inter>n. newInt n f)" by (rule newInt_inter)

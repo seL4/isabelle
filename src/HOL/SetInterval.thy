@@ -159,6 +159,10 @@ apply (rule iffI)
  apply simp_all
 done
 
+lemma lessThan_strict_subset_iff:
+  fixes m n :: "'a::linorder"
+  shows "{..<m} < {..<n} \<longleftrightarrow> m < n"
+  by (metis leD lessThan_subset_iff linorder_linear not_less_iff_gr_or_eq psubset_eq)
 
 subsection {*Two-sided intervals*}
 
@@ -261,6 +265,18 @@ apply(frule_tac x=a in spec)
 apply(erule_tac x=d in allE)
 apply (simp add: less_imp_le)
 done
+
+lemma atLeastLessThan_inj:
+  fixes a b c d :: "'a::linorder"
+  assumes eq: "{a ..< b} = {c ..< d}" and "a < b" "c < d"
+  shows "a = c" "b = d"
+using assms by (metis atLeastLessThan_subset_iff eq less_le_not_le linorder_antisym_conv2 subset_refl)+
+
+lemma atLeastLessThan_eq_iff:
+  fixes a b c d :: "'a::linorder"
+  assumes "a < b" "c < d"
+  shows "{a ..< b} = {c ..< d} \<longleftrightarrow> a = c \<and> b = d"
+  using atLeastLessThan_inj assms by auto
 
 subsubsection {* Intersection *}
 
@@ -705,6 +721,39 @@ lemma ex_bij_betw_nat_finite_1:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h {1 .. card M} M"
 by (rule finite_same_card_bij) auto
 
+lemma bij_betw_iff_card:
+  assumes FIN: "finite A" and FIN': "finite B"
+  shows BIJ: "(\<exists>f. bij_betw f A B) \<longleftrightarrow> (card A = card B)"
+using assms
+proof(auto simp add: bij_betw_same_card)
+  assume *: "card A = card B"
+  obtain f where "bij_betw f A {0 ..< card A}"
+  using FIN ex_bij_betw_finite_nat by blast
+  moreover obtain g where "bij_betw g {0 ..< card B} B"
+  using FIN' ex_bij_betw_nat_finite by blast
+  ultimately have "bij_betw (g o f) A B"
+  using * by (auto simp add: bij_betw_trans)
+  thus "(\<exists>f. bij_betw f A B)" by blast
+qed
+
+lemma inj_on_iff_card_le:
+  assumes FIN: "finite A" and FIN': "finite B"
+  shows "(\<exists>f. inj_on f A \<and> f ` A \<le> B) = (card A \<le> card B)"
+proof (safe intro!: card_inj_on_le)
+  assume *: "card A \<le> card B"
+  obtain f where 1: "inj_on f A" and 2: "f ` A = {0 ..< card A}"
+  using FIN ex_bij_betw_finite_nat unfolding bij_betw_def by force
+  moreover obtain g where "inj_on g {0 ..< card B}" and 3: "g ` {0 ..< card B} = B"
+  using FIN' ex_bij_betw_nat_finite unfolding bij_betw_def by force
+  ultimately have "inj_on g (f ` A)" using subset_inj_on[of g _ "f ` A"] * by force
+  hence "inj_on (g o f) A" using 1 comp_inj_on by blast
+  moreover
+  {have "{0 ..< card A} \<le> {0 ..< card B}" using * by force
+   with 2 have "f ` A  \<le> {0 ..< card B}" by blast
+   hence "(g o f) ` A \<le> B" unfolding comp_def using 3 by force
+  }
+  ultimately show "(\<exists>f. inj_on f A \<and> f ` A \<le> B)" by blast
+qed (insert assms, auto)
 
 subsection {* Intervals of integers *}
 

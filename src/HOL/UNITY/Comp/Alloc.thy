@@ -358,7 +358,7 @@ lemma inv_sysOfAlloc_eq [simp]: "!!s. inv sysOfAlloc s =
   done
 
 lemma surj_sysOfAlloc [iff]: "surj sysOfAlloc"
-  apply (simp add: surj_iff fun_eq_iff o_apply)
+  apply (simp add: surj_iff_all)
   apply record_auto
   done
 
@@ -386,7 +386,7 @@ lemma inv_sysOfClient_eq [simp]: "!!s. inv sysOfClient s =
   done
 
 lemma surj_sysOfClient [iff]: "surj sysOfClient"
-  apply (simp add: surj_iff fun_eq_iff o_apply)
+  apply (simp add: surj_iff_all)
   apply record_auto
   done
 
@@ -410,7 +410,7 @@ lemma inv_client_map_eq [simp]: "!!s. inv client_map s =
   done
 
 lemma surj_client_map [iff]: "surj client_map"
-  apply (simp add: surj_iff fun_eq_iff o_apply)
+  apply (simp add: surj_iff_all)
   apply record_auto
   done
 
@@ -682,7 +682,7 @@ lemma OK_lift_rename_Client [simp]: "OK I (%i. lift i (rename client_map Client)
 lemma fst_lift_map_eq_fst [simp]: "fst (lift_map i x) i = fst x"
 apply (insert fst_o_lift_map [of i])
 apply (drule fun_cong [where x=x])
-apply (simp add: o_def);
+apply (simp add: o_def)
 done
 
 lemma fst_o_lift_map' [simp]:
@@ -702,7 +702,7 @@ done
   RS guarantees_PLam_I
   RS (bij_sysOfClient RS rename_rename_guarantees_eq RS iffD2)
   |> simplify (simpset() addsimps [lift_image_eq_rename, o_def, split_def,
-                                   surj_rename RS surj_range])
+                                   surj_rename])
 
 However, the "preserves" property remains to be discharged, and the unfolding
 of "o" and "sub" complicates subsequent reasoning.
@@ -723,7 +723,7 @@ fun rename_client_map_tac ss =
     asm_simp_tac
         (ss addsimps [@{thm lift_guarantees_eq_lift_inv},
                       @{thm rename_guarantees_eq_rename_inv},
-                      @{thm bij_imp_bij_inv}, @{thm surj_rename} RS @{thm surj_range},
+                      @{thm bij_imp_bij_inv}, @{thm surj_rename},
                       @{thm inv_inv_eq}]) 1,
     asm_simp_tac
         (@{simpset} addsimps [@{thm o_def}, @{thm non_dummy_def}, @{thm guarantees_Int_right}]) 1]
@@ -798,9 +798,9 @@ lemmas rename_guarantees_sysOfAlloc_I =
 lemmas rename_Alloc_Increasing =
   Alloc_Increasing
     [THEN rename_guarantees_sysOfAlloc_I,
-     simplified surj_rename [THEN surj_range] o_def sub_apply
+     simplified surj_rename o_def sub_apply
                 rename_image_Increasing bij_sysOfAlloc
-                allocGiv_o_inv_sysOfAlloc_eq'];
+                allocGiv_o_inv_sysOfAlloc_eq']
 
 lemma System_Increasing_allocGiv:
      "i < Nclients ==> System : Increasing (sub i o allocGiv)"
@@ -879,7 +879,7 @@ lemma System_sum_bounded:
             \<le> NbT + (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocRel) s)}"
   apply (simp add: o_apply)
   apply (insert Alloc_Safety [THEN rename_guarantees_sysOfAlloc_I])
-  apply (simp add: o_def);
+  apply (simp add: o_def)
   apply (erule component_guaranteesD)
   apply (auto simp add: System_Increasing_allocRel [simplified sub_apply o_def])
   done

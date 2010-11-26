@@ -60,7 +60,8 @@ done
 lemma bij_extend_act: "bij h ==> bij (extend_act (%(x,u::'c). h x))"
 apply (rule bijI)
 apply (rule Extend.inj_extend_act)
-apply (auto simp add: bij_extend_act_eq_project_act)
+apply simp
+apply (simp add: bij_extend_act_eq_project_act)
 apply (rule surjI)
 apply (rule Extend.extend_act_inverse)
 apply (blast intro: bij_imp_bij_inv good_map_bij)
@@ -75,7 +76,7 @@ lemma bij_inv_project_act_eq: "bij h ==> inv (project_act (%(x,u::'c). inv h x))
                 project_act (%(x,u::'c). h x)"
 apply (simp (no_asm_simp) add: bij_extend_act_eq_project_act [symmetric])
 apply (rule surj_imp_inv_eq)
-apply (blast intro: bij_extend_act bij_is_surj)
+apply (blast intro!: bij_extend_act bij_is_surj)
 apply (simp (no_asm_simp) add: Extend.extend_act_inverse)
 done
 
