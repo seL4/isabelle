@@ -528,7 +528,7 @@ text {*
   @{prop "X:C"} does not!  This rule is analogous to @{text spec}.
 *}
 
-lemma InterD [elim]: "A : Inter C ==> X:C ==> A:X"
+lemma InterD [elim, Pure.elim]: "A : Inter C ==> X:C ==> A:X"
   by auto
 
 lemma InterE [elim]: "A : Inter C ==> (X~:C ==> R) ==> (A:X ==> R) ==> R"
@@ -622,7 +622,7 @@ lemma INT_iff [simp]: "(b: (INT x:A. B x)) = (ALL x:A. b: B x)"
 lemma INT_I [intro!]: "(!!x. x:A ==> b: B x) ==> b : (INT x:A. B x)"
   by (unfold INTER_def) blast
 
-lemma INT_D [elim]: "b : (INT x:A. B x) ==> a:A ==> b: B a"
+lemma INT_D [elim, Pure.elim]: "b : (INT x:A. B x) ==> a:A ==> b: B a"
   by auto
 
 lemma INT_E [elim]: "b : (INT x:A. B x) ==> (b: B a ==> R) ==> (a~:A ==> R) ==> R"

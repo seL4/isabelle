@@ -603,7 +603,7 @@ by (simp add: Inter_iff)
 
 (*A "destruct" rule -- every B in C contains A as an element, but
   A\<in>B can hold when B\<in>C does not!  This rule is analogous to "spec". *)
-lemma InterD [elim]: "[| A \<in> Inter(C);  B \<in> C |] ==> A \<in> B"
+lemma InterD [elim, Pure.elim]: "[| A \<in> Inter(C);  B \<in> C |] ==> A \<in> B"
 by (unfold Inter_def, blast)
 
 (*"Classical" elimination rule -- does not require exhibiting B\<in>C *)
