@@ -53,11 +53,24 @@ by (simp add: fatbar_def)
 
 lemmas run_fatbar_simps [simp] = run_fatbar1 run_fatbar2 run_fatbar3
 
+subsection {* Bind operator for match monad *}
+
+definition match_bind :: "'a match \<rightarrow> ('a \<rightarrow> 'b match) \<rightarrow> 'b match" where
+  "match_bind = (\<Lambda> m k. sscase\<cdot>(\<Lambda> _. fail)\<cdot>(fup\<cdot>k)\<cdot>(Rep_match m))"
+
+lemma match_bind_simps [simp]:
+  "match_bind\<cdot>\<bottom>\<cdot>k = \<bottom>"
+  "match_bind\<cdot>fail\<cdot>k = fail"
+  "match_bind\<cdot>(succeed\<cdot>x)\<cdot>k = k\<cdot>x"
+unfolding match_bind_def fail_def succeed_def
+by (simp_all add: cont2cont_Rep_match cont_Abs_match
+  Rep_match_strict Abs_match_inverse)
+
 subsection {* Case branch combinator *}
 
 definition
   branch :: "('a \<rightarrow> 'b match) \<Rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'c match)" where
-  "branch p \<equiv> \<Lambda> r x. match_case\<cdot>fail\<cdot>(\<Lambda> y. succeed\<cdot>(r\<cdot>y))\<cdot>(p\<cdot>x)"
+  "branch p \<equiv> \<Lambda> r x. match_bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> y. succeed\<cdot>(r\<cdot>y))"
 
 lemma branch_simps:
   "p\<cdot>x = \<bottom> \<Longrightarrow> branch p\<cdot>r\<cdot>x = \<bottom>"
@@ -72,7 +85,7 @@ subsection {* Cases operator *}
 
 definition
   cases :: "'a match \<rightarrow> 'a::pcpo" where
-  "cases = match_case\<cdot>\<bottom>\<cdot>ID"
+  "cases = Fixrec.run"
 
 text {* rewrite rules for cases *}
 
@@ -165,7 +178,7 @@ types ('a, 'b) pat = "'a \<rightarrow> 'b match"
 definition
   cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat" where
   "cpair_pat p1 p2 = (\<Lambda>(x, y).
-    match_case\<cdot>fail\<cdot>(\<Lambda> a. match_case\<cdot>fail\<cdot>(\<Lambda> b. succeed\<cdot>(a, b))\<cdot>(p2\<cdot>y))\<cdot>(p1\<cdot>x))"
+    match_bind\<cdot>(p1\<cdot>x)\<cdot>(\<Lambda> a. match_bind\<cdot>(p2\<cdot>y)\<cdot>(\<Lambda> b. succeed\<cdot>(a, b))))"
 
 definition
   spair_pat ::
@@ -313,7 +326,7 @@ definition
 
 definition
   as_pat :: "('a \<rightarrow> 'b match) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) match" where
-  "as_pat p = (\<Lambda> x. match_case\<cdot>fail\<cdot>(\<Lambda> a. succeed\<cdot>(x, a))\<cdot>(p\<cdot>x))"
+  "as_pat p = (\<Lambda> x. match_bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> a. succeed\<cdot>(x, a)))"
 
 definition
   lazy_pat :: "('a \<rightarrow> 'b::pcpo match) \<Rightarrow> ('a \<rightarrow> 'b match)" where
@@ -544,7 +557,7 @@ fun add_pattern_combinators
           val (fun1, fun2, taken) = pat_lhs (pat, args);
           val defs = @{thm branch_def} :: pat_defs;
           val goal = mk_trp (mk_strict fun1);
-          val rules = @{thms match_case_simps} @ case_rews;
+          val rules = @{thms match_bind_simps} @ case_rews;
           val tacs = [simp_tac (beta_ss addsimps rules) 1];
         in prove thy defs goal (K tacs) end;
       fun pat_apps (i, (pat, (con, args))) =
@@ -559,7 +572,7 @@ fun add_pattern_combinators
               val concl = mk_trp (mk_eq (fun1 ` con_app, rhs));
               val goal = Logic.list_implies (assms, concl);
               val defs = @{thm branch_def} :: pat_defs;
-              val rules = @{thms match_case_simps} @ case_rews;
+              val rules = @{thms match_bind_simps} @ case_rews;
               val tacs = [asm_simp_tac (beta_ss addsimps rules) 1];
             in prove thy defs goal (K tacs) end;
         in map_index pat_app spec end;

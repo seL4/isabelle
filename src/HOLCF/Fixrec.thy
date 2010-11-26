@@ -26,10 +26,6 @@ definition
   succeed :: "'a \<rightarrow> 'a match" where
   "succeed = (\<Lambda> x. Abs_match (sinr\<cdot>(up\<cdot>x)))"
 
-definition
-  match_case :: "'b \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a match \<rightarrow> 'b::pcpo" where
-  "match_case = (\<Lambda> f r m. sscase\<cdot>(\<Lambda> x. f)\<cdot>(fup\<cdot>r)\<cdot>(Rep_match m))"
-
 lemma matchE [case_names bottom fail succeed, cases type: match]:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = fail \<Longrightarrow> Q; \<And>x. p = succeed\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 unfolding fail_def succeed_def
@@ -52,40 +48,31 @@ lemma succeed_neq_fail [simp]:
   "succeed\<cdot>x \<noteq> fail" "fail \<noteq> succeed\<cdot>x"
 by (simp_all add: succeed_def fail_def cont_Abs_match Abs_match_inject)
 
-lemma match_case_simps [simp]:
-  "match_case\<cdot>f\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "match_case\<cdot>f\<cdot>r\<cdot>fail = f"
-  "match_case\<cdot>f\<cdot>r\<cdot>(succeed\<cdot>x) = r\<cdot>x"
-by (simp_all add: succeed_def fail_def match_case_def cont_Rep_match
-                  cont2cont_LAM
-                  cont_Abs_match Abs_match_inverse Rep_match_strict)
-
-translations
-  "case m of XCONST fail \<Rightarrow> t1 | XCONST succeed\<cdot>x \<Rightarrow> t2"
-    == "CONST match_case\<cdot>t1\<cdot>(\<Lambda> x. t2)\<cdot>m"
-
 subsubsection {* Run operator *}
 
 definition
   run :: "'a match \<rightarrow> 'a::pcpo" where
-  "run = match_case\<cdot>\<bottom>\<cdot>ID"
+  "run = (\<Lambda> m. sscase\<cdot>\<bottom>\<cdot>(fup\<cdot>ID)\<cdot>(Rep_match m))"
 
 text {* rewrite rules for run *}
 
 lemma run_strict [simp]: "run\<cdot>\<bottom> = \<bottom>"
-by (simp add: run_def)
+unfolding run_def
+by (simp add: cont_Rep_match Rep_match_strict)
 
 lemma run_fail [simp]: "run\<cdot>fail = \<bottom>"
-by (simp add: run_def)
+unfolding run_def fail_def
+by (simp add: cont_Rep_match Abs_match_inverse)
 
 lemma run_succeed [simp]: "run\<cdot>(succeed\<cdot>x) = x"
-by (simp add: run_def)
+unfolding run_def succeed_def
+by (simp add: cont_Rep_match cont_Abs_match Abs_match_inverse)
 
 subsubsection {* Monad plus operator *}
 
 definition
   mplus :: "'a match \<rightarrow> 'a match \<rightarrow> 'a match" where
-  "mplus = (\<Lambda> m1 m2. case m1 of fail \<Rightarrow> m2 | succeed\<cdot>x \<Rightarrow> m1)"
+  "mplus = (\<Lambda> m1 m2. sscase\<cdot>(\<Lambda> _. m2)\<cdot>(\<Lambda> _. m1)\<cdot>(Rep_match m1))"
 
 abbreviation
   mplus_syn :: "['a match, 'a match] \<Rightarrow> 'a match"  (infixr "+++" 65)  where
@@ -93,14 +80,19 @@ abbreviation
 
 text {* rewrite rules for mplus *}
 
+lemmas cont2cont_Rep_match = cont_Rep_match [THEN cont_compose]
+
 lemma mplus_strict [simp]: "\<bottom> +++ m = \<bottom>"
-by (simp add: mplus_def)
+unfolding mplus_def
+by (simp add: cont2cont_Rep_match Rep_match_strict)
 
 lemma mplus_fail [simp]: "fail +++ m = m"
-by (simp add: mplus_def)
+unfolding mplus_def fail_def
+by (simp add: cont2cont_Rep_match Abs_match_inverse)
 
 lemma mplus_succeed [simp]: "succeed\<cdot>x +++ m = succeed\<cdot>x"
-by (simp add: mplus_def)
+unfolding mplus_def succeed_def
+by (simp add: cont2cont_Rep_match cont_Abs_match Abs_match_inverse)
 
 lemma mplus_fail2 [simp]: "m +++ fail = m"
 by (cases m, simp_all)
