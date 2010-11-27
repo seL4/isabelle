@@ -316,7 +316,7 @@ fun change_yield_data (kind, mk, dest) theory f =
     val data = case Datatab.lookup datatab kind
      of SOME data => data
       | NONE => invoke_init kind;
-    val result as (x, data') = f (dest data);
+    val result as (_, data') = f (dest data);
     val _ = Synchronized.change dataref
       ((K o SOME) (Datatab.update (kind, mk data') datatab, thy_ref));
   in result end;
@@ -360,9 +360,9 @@ fun const_typ thy c = case lookup_typ thy c
 
 fun subst_signature thy c ty =
   let
-    fun mk_subst (Type (tyco, tys1)) (ty2 as Type (tyco2, tys2)) =
+    fun mk_subst (Type (_, tys1)) (Type (_, tys2)) =
           fold2 mk_subst tys1 tys2
-      | mk_subst ty (TVar (v, sort)) = Vartab.update (v, ([], ty))
+      | mk_subst ty (TVar (v, _)) = Vartab.update (v, ([], ty))
   in case lookup_typ thy c
    of SOME ty' => Envir.subst_type (mk_subst ty (expand_signature thy ty') Vartab.empty) ty'
     | NONE => ty
@@ -407,8 +407,9 @@ fun constrset_of_consts thy cs =
         val _ = if (tyco' : string) <> tyco
           then error "Different type constructors in constructor set"
           else ();
-        val sorts'' = map2 (curry (Sorts.inter_sort (Sign.classes_of thy))) sorts' sorts
-      in ((tyco, sorts), c :: cs) end;
+        val sorts'' =
+          map2 (curry (Sorts.inter_sort (Sign.classes_of thy))) sorts' sorts
+      in ((tyco, sorts''), c :: cs) end;
     fun inst vs' (c, (vs, ty)) =
       let
         val the_v = the o AList.lookup (op =) (vs ~~ vs');
@@ -439,7 +440,7 @@ fun get_abstype_spec thy tyco = case get_type_entry thy tyco
  
 fun get_type_of_constr_or_abstr thy c =
   case (snd o strip_type o const_typ thy) c
-   of Type (tyco, _) => let val ((vs, cos), abstract) = get_type thy tyco
+   of Type (tyco, _) => let val ((_, cos), abstract) = get_type thy tyco
         in if member (op =) (map fst cos) c then SOME (tyco, abstract) else NONE end
     | _ => NONE;
 
@@ -641,19 +642,19 @@ fun mk_desymbolization pre post mk vs =
     else SOME (((v, i), x), mk ((v', 0), x))) (vs ~~ names)
   end;
 
-fun desymbolize_tvars thy thms =
+fun desymbolize_tvars thms =
   let
     val tvs = fold (Term.add_tvars o Thm.prop_of) thms [];
     val tvar_subst = mk_desymbolization (unprefix "'") (prefix "'") TVar tvs;
   in map (Thm.certify_instantiate (tvar_subst, [])) thms end;
 
-fun desymbolize_vars thy thm =
+fun desymbolize_vars thm =
   let
     val vs = Term.add_vars (Thm.prop_of thm) [];
     val var_subst = mk_desymbolization I I Var vs;
   in Thm.certify_instantiate ([], var_subst) thm end;
 
-fun canonize_thms thy = desymbolize_tvars thy #> same_arity thy #> map (desymbolize_vars thy);
+fun canonize_thms thy = desymbolize_tvars #> same_arity thy #> map desymbolize_vars;
 
 
 (* abstype certificates *)
@@ -672,13 +673,12 @@ fun check_abstype_cert thy proto_thm =
       then error ("Is a class parameter: " ^ string_of_const thy c) else ()) (abs, rep);
     val _ = check_decl_ty thy (abs, raw_ty);
     val _ = check_decl_ty thy (rep, rep_ty);
-    val var = (fst o dest_Var) param
+    val _ = (fst o dest_Var) param
       handle TERM _ => bad "Not an abstype certificate";
     val _ = if param = rhs then () else bad "Not an abstype certificate";
     val ((tyco, sorts), (abs, (vs, ty'))) = ty_sorts thy (abs, Logic.unvarifyT_global raw_ty);
     val ty = domain_type ty';
     val vs' = map dest_TFree (Sign.const_typargs thy (abs, ty'));
-    val ty_abs = range_type ty';
   in (tyco, (vs ~~ sorts, ((abs, (vs', ty)), (rep, thm)))) end;
 
 
@@ -716,7 +716,7 @@ fun constrain_thm thy vs sorts thm =
 
 fun concretify_abs thy tyco abs_thm =
   let
-    val (vs, ((c, _), (_, cert))) = get_abstype_spec thy tyco;
+    val (_, ((c, _), (_, cert))) = get_abstype_spec thy tyco;
     val lhs = (fst o Logic.dest_equals o Thm.prop_of) abs_thm
     val ty = fastype_of lhs;
     val ty_abs = (fastype_of o snd o dest_comb) lhs;
@@ -742,13 +742,16 @@ with
 
 fun empty_cert thy c = 
   let
-    val raw_ty = const_typ thy c;
-    val tvars = Term.add_tvar_namesT raw_ty [];
-    val tvars' = case AxClass.class_of_param thy c
-     of SOME class => [TFree (Name.aT, [class])]
-      | NONE => Name.invent_list [] Name.aT (length tvars)
-          |> map (fn v => TFree (v, []));
-    val ty = typ_subst_TVars (tvars ~~ tvars') raw_ty;
+    val raw_ty = Logic.unvarifyT_global (const_typ thy c);
+    val (vs, _) = typscheme thy (c, raw_ty);
+    val sortargs = case AxClass.class_of_param thy c
+     of SOME class => [[class]]
+      | NONE => (case get_type_of_constr_or_abstr thy c
+         of SOME (tyco, _) => (map snd o fst o the)
+              (AList.lookup (op =) ((snd o fst o get_type thy) tyco) c)
+          | NONE => replicate (length vs) []);
+    val the_sort = the o AList.lookup (op =) (map fst vs ~~ sortargs);
+    val ty = map_type_tfree (fn (v, _) => TFree (v, the_sort v)) raw_ty
     val chead = build_head thy (c, ty);
   in Equations (Thm.weaken chead Drule.dummy_thm, []) end;
 
@@ -767,19 +770,19 @@ fun cert_of_eqns thy c [] = empty_cert thy c
           fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
         val sorts = map_transpose inter_sorts vss;
         val vts = Name.names Name.context Name.aT sorts;
-        val thms as thm :: _ =
+        val thms' =
           map2 (fn vs => Thm.certify_instantiate (vs ~~ map TFree vts, [])) vss thms;
-        val head_thm = Thm.symmetric (Thm.assume (build_head thy (head_eqn (hd thms))));
+        val head_thm = Thm.symmetric (Thm.assume (build_head thy (head_eqn (hd thms'))));
         fun head_conv ct = if can Thm.dest_comb ct
           then Conv.fun_conv head_conv ct
           else Conv.rewr_conv head_thm ct;
         val rewrite_head = Conv.fconv_rule (Conv.arg1_conv head_conv);
-        val cert_thm = Conjunction.intr_balanced (map rewrite_head thms);
+        val cert_thm = Conjunction.intr_balanced (map rewrite_head thms');
       in Equations (cert_thm, propers) end;
 
 fun cert_of_proj thy c tyco =
   let
-    val (vs, ((abs, (_, ty)), (rep, cert))) = get_abstype_spec thy tyco;
+    val (vs, ((abs, (_, ty)), (rep, _))) = get_abstype_spec thy tyco;
     val _ = if c = rep then () else
       error ("Wrong head of projection,\nexpected constant " ^ string_of_const thy rep);
   in Projection (mk_proj tyco vs ty abs rep, tyco) end;
@@ -824,7 +827,7 @@ fun typargs_deps_of_cert thy (Equations (cert_thm, propers)) =
           Thm.prop_of cert_thm
           |> Logic.dest_conjunction_balanced (length propers);
       in (vs, fold (add_rhss_of_eqn thy) equations []) end
-  | typargs_deps_of_cert thy (Projection (t, tyco)) =
+  | typargs_deps_of_cert thy (Projection (t, _)) =
       (fst (typscheme_projection thy t), add_rhss_of_eqn thy t [])
   | typargs_deps_of_cert thy (Abstract (abs_thm, tyco)) =
       let
@@ -864,7 +867,7 @@ fun pretty_cert thy (cert as Equations _) =
          o snd o equations_of_cert thy) cert
   | pretty_cert thy (Projection (t, _)) =
       [Syntax.pretty_term_global thy (map_types Logic.varifyT_global t)]
-  | pretty_cert thy (Abstract (abs_thm, tyco)) =
+  | pretty_cert thy (Abstract (abs_thm, _)) =
       [(Display.pretty_thm_global thy o AxClass.overload thy o Thm.varifyT_global) abs_thm];
 
 fun bare_thms_of_cert thy (cert as Equations _) =
@@ -1118,7 +1121,7 @@ fun add_abs_eqn raw_thm thy =
 
 fun del_eqn thm thy = case mk_eqn_liberal thy thm
  of SOME (thm, _) => let
-        fun del_eqn' (Default eqns) = empty_fun_spec
+        fun del_eqn' (Default _) = empty_fun_spec
           | del_eqn' (Eqns eqns) =
               Eqns (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns)
           | del_eqn' spec = spec
@@ -1130,7 +1133,7 @@ fun del_eqns c = change_fun_spec true c (K empty_fun_spec);
 
 (* cases *)
 
-fun case_cong thy case_const (num_args, (pos, constrs)) =
+fun case_cong thy case_const (num_args, (pos, _)) =
   let
     val ([x, y], ctxt) = Name.variants ["A", "A'"] Name.context;
     val (zs, _) = Name.variants (replicate (num_args - 1) "") ctxt;
