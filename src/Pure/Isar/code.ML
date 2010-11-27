@@ -358,6 +358,8 @@ fun const_typ thy c = case lookup_typ thy c
  of SOME ty => ty
   | NONE => (Type.strip_sorts o Sign.the_const_type thy) c;
 
+fun args_number thy = length o fst o strip_type o const_typ thy;
+
 fun subst_signature thy c ty =
   let
     fun mk_subst (Type (_, tys1)) (Type (_, tys2)) =
@@ -370,7 +372,10 @@ fun subst_signature thy c ty =
 
 fun subst_signatures thy = map_aterms (fn Const (c, ty) => Const (c, subst_signature thy c ty) | t => t);
 
-fun args_number thy = length o fst o strip_type o const_typ thy;
+fun logical_typscheme thy (c, ty) =
+  (map dest_TFree (Sign.const_typargs thy (c, ty)), Type.strip_sorts ty);
+
+fun typscheme thy (c, ty) = logical_typscheme thy (c, subst_signature thy c ty);
 
 
 (* datatypes *)
@@ -414,7 +419,7 @@ fun constrset_of_consts thy cs =
       let
         val the_v = the o AList.lookup (op =) (vs ~~ vs');
         val ty' = map_atyps (fn TFree (v, _) => TFree (the_v v)) ty;
-        val vs'' = map dest_TFree (Sign.const_typargs thy (c, ty'));
+        val (vs'', _) = logical_typscheme thy (c, ty');
       in (c, (vs'', (fst o strip_type) ty')) end;
     val c' :: cs' = map (ty_sorts thy) cs;
     val ((tyco, sorts), cs'') = fold add cs' (apsnd single c');
@@ -593,11 +598,6 @@ fun const_eqn thy = fst o const_typ_eqn thy;
 fun const_abs_eqn thy = AxClass.unoverload_const thy o dest_Const o fst o strip_comb o snd
   o dest_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 
-fun logical_typscheme thy (c, ty) =
-  (map dest_TFree (Sign.const_typargs thy (c, ty)), Type.strip_sorts ty);
-
-fun typscheme thy (c, ty) = logical_typscheme thy (c, subst_signature thy c ty);
-
 fun mk_proj tyco vs ty abs rep =
   let
     val ty_abs = Type (tyco, map TFree vs);
@@ -678,7 +678,7 @@ fun check_abstype_cert thy proto_thm =
     val _ = if param = rhs then () else bad "Not an abstype certificate";
     val ((tyco, sorts), (abs, (vs, ty'))) = ty_sorts thy (abs, Logic.unvarifyT_global raw_ty);
     val ty = domain_type ty';
-    val vs' = map dest_TFree (Sign.const_typargs thy (abs, ty'));
+    val (vs', _) = logical_typscheme thy (abs, ty');
   in (tyco, (vs ~~ sorts, ((abs, (vs', ty)), (rep, thm)))) end;
 
 
@@ -743,7 +743,7 @@ with
 fun empty_cert thy c = 
   let
     val raw_ty = Logic.unvarifyT_global (const_typ thy c);
-    val (vs, _) = typscheme thy (c, raw_ty);
+    val (vs, _) = logical_typscheme thy (c, raw_ty);
     val sortargs = case AxClass.class_of_param thy c
      of SOME class => [[class]]
       | NONE => (case get_type_of_constr_or_abstr thy c
