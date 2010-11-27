@@ -165,6 +165,15 @@ struct
   val fromInt = Word.fromInt o dest_int;
 end;
 
+structure Word8 =
+struct
+  open Word8;
+  val wordSize = mk_int Word8.wordSize;
+  val toInt = mk_int o Word8.toInt;
+  val toIntX = mk_int o Word8.toIntX;
+  val fromInt = Word8.fromInt o dest_int;
+end;
+
 structure Word32 =
 struct
   open Word32;
@@ -172,6 +181,15 @@ struct
   val toInt = mk_int o Word32.toInt;
   val toIntX = mk_int o Word32.toIntX;
   val fromInt = Word32.fromInt o dest_int;
+end;
+
+structure LargeWord =
+struct
+  open LargeWord;
+  val wordSize = mk_int LargeWord.wordSize;
+  val toInt = mk_int o LargeWord.toInt;
+  val toIntX = mk_int o LargeWord.toIntX;
+  val fromInt = LargeWord.fromInt o dest_int;
 end;
 
 

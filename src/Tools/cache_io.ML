@@ -44,9 +44,9 @@ fun with_tmp_file name f =
 fun with_tmp_dir name f =
   let
     val path = File.tmp_path (Path.explode (name ^ serial_string ()))
-    val _ = File.mkdir path
+    val _ = Isabelle_System.mkdirs path
     val x = Exn.capture f path
-    val _ = try File.rm_tree path
+    val _ = try Isabelle_System.rm_tree path
   in Exn.release x end
 
 type result = {
