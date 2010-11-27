@@ -14,7 +14,6 @@ use "ML-Systems/universal.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
 use "General/timing.ML";
-use "ML-Systems/bash.ML";
 use "ML-Systems/ml_name_space.ML";
 use "ML-Systems/ml_pretty.ML";
 structure PolyML = struct end;
@@ -168,11 +167,6 @@ use "ML-Systems/unsynchronized.ML";
 
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
-
-
-(* system command execution *)
-
-val bash_output = (fn (output, rc) => (output, mk_int rc)) o bash_output;
 
 
 (* getenv *)

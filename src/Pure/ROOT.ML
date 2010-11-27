@@ -72,6 +72,15 @@ use "Concurrent/synchronized.ML";
 if Multithreading.available then ()
 else use "Concurrent/synchronized_sequential.ML";
 
+if Multithreading.available
+then use "Concurrent/bash.ML"
+else use "Concurrent/bash_sequential.ML";
+
+fun bash s =
+  (case bash_output s of
+    ("", rc) => rc
+  | (out, rc) => (writeln (perhaps (try (unsuffix "\n")) out); rc));
+
 use "Concurrent/mailbox.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";

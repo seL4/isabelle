@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML-Systems/bash.ML
+(*  Title:      Pure/Concurrent/bash_sequential.ML
     Author:     Makarius
 
 Generic GNU bash processes (no provisions to propagate interrupts, but
