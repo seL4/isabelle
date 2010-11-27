@@ -131,34 +131,40 @@ text {*
 
 lemma %quote empty_AQueue [code]:
   "empty = AQueue [] []"
-  unfolding AQueue_def empty_def by simp
+  by (simp add: AQueue_def empty_def)
 
 lemma %quote enqueue_AQueue [code]:
   "enqueue x (AQueue xs ys) = AQueue (x # xs) ys"
-  unfolding AQueue_def by simp
+  by (simp add: AQueue_def)
 
 lemma %quote dequeue_AQueue [code]:
   "dequeue (AQueue xs []) =
     (if xs = [] then (None, AQueue [] [])
     else dequeue (AQueue [] (rev xs)))"
   "dequeue (AQueue xs (y # ys)) = (Some y, AQueue xs ys)"
-  unfolding AQueue_def by simp_all
+  by (simp_all add: AQueue_def)
 
 text {*
-  \noindent For completeness, we provide a substitute for the
-  @{text case} combinator on queues:
+  \noindent It is good style, although no absolute requirement, to
+  provide code equations for the original artefacts of the implemented
+  type, if possible; in our case, these are the datatype constructor
+  @{const Queue} and the case combinator @{const queue_case}:
 *}
+
+lemma %quote Queue_AQueue [code]:
+  "Queue = AQueue []"
+  by (simp add: AQueue_def fun_eq_iff)
 
 lemma %quote queue_case_AQueue [code]:
   "queue_case f (AQueue xs ys) = f (ys @ rev xs)"
-  unfolding AQueue_def by simp
+  by (simp add: AQueue_def)
 
 text {*
   \noindent The resulting code looks as expected:
 *}
 
 text %quotetypewriter {*
-  @{code_stmts empty enqueue dequeue (SML)}
+  @{code_stmts empty enqueue dequeue Queue queue_case (SML)}
 *}
 
 text {*
@@ -260,7 +266,7 @@ text %quotetypewriter {*
 text {*
   Typical data structures implemented by representations involving
   invariants are available in the library, e.g.~theories @{theory
-  Fset} and @{theory Mapping} specify sets (type @{typ "'a fset"}) and
+  Cset} and @{theory Mapping} specify sets (type @{typ "'a Cset.set"}) and
   key-value-mappings (type @{typ "('a, 'b) mapping"}) respectively;
   these can be implemented by distinct lists as presented here as
   example (theory @{theory Dlist}) and red-black-trees respectively

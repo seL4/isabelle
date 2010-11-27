@@ -80,7 +80,9 @@ then
 fi
 
 cd $DISTPREFIX >> $DISTLOG 2>&1
-$TAR xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
+ISABELLE_DIST=`cat $DISTPREFIX/ISABELLE_DIST`
+$TAR xvzf $ISABELLE_DIST >> $DISTLOG 2>&1
+ln -sf $(basename $ISABELLE_DIST .tar.gz) Isabelle
 
 ssh atbroy102 "rm -rf /home/isatest/isadist && mkdir -p /home/isatest/isadist" && \
 rsync -a "$HOME/isadist/." atbroy102:/home/isatest/isadist/.
