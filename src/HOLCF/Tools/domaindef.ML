@@ -19,7 +19,7 @@ sig
 
   val add_domaindef: bool -> binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> theory ->
-    (Typedef.info * Pcpodef.cpo_info * Pcpodef.pcpo_info * rep_info) * theory
+    (Typedef.info * Cpodef.cpo_info * Cpodef.pcpo_info * rep_info) * theory
 
   val domaindef_cmd: (bool * binding) * (binding * (string * string option) list * mixfix) * string
     * (binding * binding) option -> theory -> theory
@@ -86,7 +86,7 @@ fun gen_add_domaindef
       (raw_defl: 'a)
       (opt_morphs: (binding * binding) option)
       (thy: theory)
-    : (Typedef.info * Pcpodef.cpo_info * Pcpodef.pcpo_info * rep_info) * theory =
+    : (Typedef.info * Cpodef.cpo_info * Cpodef.pcpo_info * rep_info) * theory =
   let
     val _ = Theory.requires thy "Domain" "domaindefs";
 
@@ -118,7 +118,7 @@ fun gen_add_domaindef
     val tac1 = rtac @{thm defl_set_bottom} 1;
     val tac2 = rtac @{thm adm_defl_set} 1;
     val ((info, cpo_info, pcpo_info), thy) = thy
-      |> Pcpodef.add_pcpodef def (SOME name) typ set (SOME morphs) (tac1, tac2);
+      |> Cpodef.add_pcpodef def (SOME name) typ set (SOME morphs) (tac1, tac2);
 
     (*definitions*)
     val Rep_const = Const (#Rep_name (#1 info), newT --> udomT);

@@ -1,11 +1,11 @@
-(*  Title:      HOLCF/Tools/pcpodef.ML
+(*  Title:      HOLCF/Tools/cpodef.ML
     Author:     Brian Huffman
 
 Primitive domain definitions for HOLCF, similar to Gordon/HOL-style
 typedef (see also ~~/src/HOL/Tools/typedef.ML).
 *)
 
-signature PCPODEF =
+signature CPODEF =
 sig
   type cpo_info =
     { below_def: thm, adm: thm, cont_Rep: thm, cont_Abs: thm,
@@ -38,7 +38,7 @@ sig
     * (binding * binding) option -> theory -> Proof.state
 end;
 
-structure Pcpodef :> PCPODEF =
+structure Cpodef :> CPODEF =
 struct
 
 (** type definitions **)
@@ -166,7 +166,7 @@ fun declare_type_name a =
 
 fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
   let
-    val _ = Theory.requires thy "Pcpodef" "pcpodefs";
+    val _ = Theory.requires thy "Cpodef" "cpodefs";
 
     (*rhs*)
     val tmp_ctxt =

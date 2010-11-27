@@ -43,6 +43,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Completion.thy \
   Cont.thy \
   ConvexPD.thy \
+  Cpodef.thy \
   Cprod.thy \
   Discrete.thy \
   Deflation.thy \
@@ -56,7 +57,6 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   LowerPD.thy \
   Map_Functions.thy \
   One.thy \
-  Pcpodef.thy \
   Pcpo.thy \
   Plain_HOLCF.thy \
   Porder.thy \
@@ -78,9 +78,9 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/Domain/domain_induction.ML \
   Tools/Domain/domain_isomorphism.ML \
   Tools/Domain/domain_take_proofs.ML \
+  Tools/cpodef.ML \
   Tools/domaindef.ML \
   Tools/fixrec.ML \
-  Tools/pcpodef.ML \
   document/root.tex
 	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
 

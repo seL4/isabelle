@@ -4,9 +4,9 @@
 
 header {* Subtypes of pcpos *}
 
-theory Pcpodef
+theory Cpodef
 imports Adm
-uses ("Tools/pcpodef.ML")
+uses ("Tools/cpodef.ML")
 begin
 
 subsection {* Proving a subtype is a partial order *}
@@ -280,6 +280,6 @@ done
 
 subsection {* HOLCF type definition package *}
 
-use "Tools/pcpodef.ML"
+use "Tools/cpodef.ML"
 
 end
