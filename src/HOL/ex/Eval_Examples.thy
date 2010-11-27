@@ -9,26 +9,26 @@ begin
 text {* evaluation oracle *}
 
 lemma "True \<or> False" by eval
-lemma "\<not> (Suc 0 = Suc 1)" by eval
-lemma "[] = ([]\<Colon> int list)" by eval
+lemma "Suc 0 \<noteq> Suc 1" by eval
+lemma "[] = ([] :: int list)" by eval
 lemma "[()] = [()]" by eval
-lemma "fst ([]::nat list, Suc 0) = []" by eval
+lemma "fst ([] :: nat list, Suc 0) = []" by eval
 
 text {* SML evaluation oracle *}
 
 lemma "True \<or> False" by evaluation
-lemma "\<not> (Suc 0 = Suc 1)" by evaluation
-lemma "[] = ([]\<Colon> int list)" by evaluation
+lemma "Suc 0 \<noteq> Suc 1" by evaluation
+lemma "[] = ([] :: int list)" by evaluation
 lemma "[()] = [()]" by evaluation
-lemma "fst ([]::nat list, Suc 0) = []" by evaluation
+lemma "fst ([] :: nat list, Suc 0) = []" by evaluation
 
 text {* normalization *}
 
 lemma "True \<or> False" by normalization
-lemma "\<not> (Suc 0 = Suc 1)" by normalization
-lemma "[] = ([]\<Colon> int list)" by normalization
+lemma "Suc 0 \<noteq> Suc 1" by normalization
+lemma "[] = ([] :: int list)" by normalization
 lemma "[()] = [()]" by normalization
-lemma "fst ([]::nat list, Suc 0) = []" by normalization
+lemma "fst ([] :: nat list, Suc 0) = []" by normalization
 
 text {* term evaluation *}
 
@@ -47,10 +47,10 @@ value [code] "nat 100"
 value [SML] "nat 100"
 value [nbe] "nat 100"
 
-value "(10\<Colon>int) \<le> 12"
-value [code] "(10\<Colon>int) \<le> 12"
-value [SML] "(10\<Colon>int) \<le> 12"
-value [nbe] "(10\<Colon>int) \<le> 12"
+value "(10::int) \<le> 12"
+value [code] "(10::int) \<le> 12"
+value [SML] "(10::int) \<le> 12"
+value [nbe] "(10::int) \<le> 12"
 
 value "max (2::int) 4"
 value [code] "max (2::int) 4"
@@ -62,29 +62,29 @@ value [code] "of_int 2 / of_int 4 * (1::rat)"
 value [SML] "of_int 2 / of_int 4 * (1::rat)"
 value [nbe] "of_int 2 / of_int 4 * (1::rat)"
 
-value "[]::nat list"
-value [code] "[]::nat list"
-value [SML] "[]::nat list"
-value [nbe] "[]::nat list"
+value "[] :: nat list"
+value [code] "[] :: nat list"
+value [SML] "[] :: nat list"
+value [nbe] "[] :: nat list"
 
 value "[(nat 100, ())]"
 value [code] "[(nat 100, ())]"
 value [SML] "[(nat 100, ())]"
 value [nbe] "[(nat 100, ())]"
 
-
 text {* a fancy datatype *}
 
-datatype ('a, 'b) bair =
-    Bair "'a\<Colon>order" 'b
-  | Shift "('a, 'b) cair"
-  | Dummy unit
-and ('a, 'b) cair =
-    Cair 'a 'b
+datatype ('a, 'b) foo =
+    Foo "'a\<Colon>order" 'b
+  | Bla "('a, 'b) bar"
+  | Dummy nat
+and ('a, 'b) bar =
+    Bar 'a 'b
+  | Blubb "('a, 'b) foo"
 
-value "Shift (Cair (4::nat) [Suc 0])"
-value [code] "Shift (Cair (4::nat) [Suc 0])"
-value [SML] "Shift (Cair (4::nat) [Suc 0])"
-value [nbe] "Shift (Cair (4::nat) [Suc 0])"
+value "Bla (Bar (4::nat) [Suc 0])"
+value [code] "Bla (Bar (4::nat) [Suc 0])"
+value [SML] "Bla (Bar (4::nat) [Suc 0])"
+value [nbe] "Bla (Bar (4::nat) [Suc 0])"
 
 end

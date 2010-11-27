@@ -22,7 +22,6 @@ LOG = $(OUT)/log
 BOOTSTRAP_FILES = 					\
   General/exn.ML					\
   General/timing.ML					\
-  ML-Systems/bash.ML 					\
   ML-Systems/compiler_polyml-5.2.ML			\
   ML-Systems/compiler_polyml-5.3.ML			\
   ML-Systems/ml_name_space.ML				\
@@ -55,6 +54,8 @@ $(OUT)/RAW: $(BOOTSTRAP_FILES)
 Pure: $(OUT)/Pure
 
 $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
+  Concurrent/bash.ML 					\
+  Concurrent/bash_sequential.ML				\
   Concurrent/cache.ML					\
   Concurrent/future.ML					\
   Concurrent/lazy.ML					\
@@ -188,6 +189,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Syntax/syntax.ML					\
   Syntax/type_ext.ML					\
   System/isabelle_process.ML				\
+  System/isabelle_system.ML				\
   System/isar.ML					\
   System/session.ML					\
   Thy/html.ML						\

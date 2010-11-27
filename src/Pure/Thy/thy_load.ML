@@ -17,14 +17,17 @@ end;
 signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
+  eqtype file_ident
+  val pretty_file_ident: file_ident -> Pretty.T
+  val file_ident: Path.T -> file_ident option
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
   val master_directory: theory -> Path.T
-  val provide: Path.T * (Path.T * File.ident) -> theory -> theory
-  val check_file: Path.T list -> Path.T -> Path.T * File.ident
-  val check_thy: Path.T -> string -> Path.T * File.ident
+  val provide: Path.T * (Path.T * file_ident) -> theory -> theory
+  val check_file: Path.T list -> Path.T -> Path.T * file_ident
+  val check_thy: Path.T -> string -> Path.T * file_ident
   val deps_thy: Path.T -> string ->
-   {master: Path.T * File.ident, text: string, imports: string list, uses: Path.T list}
+   {master: Path.T * file_ident, text: string, imports: string list, uses: Path.T list}
   val loaded_files: theory -> Path.T list
   val all_current: theory -> bool
   val provide_file: Path.T -> theory -> theory
@@ -36,12 +39,57 @@ end;
 structure Thy_Load: THY_LOAD =
 struct
 
+(* file identification *)
+
+local
+  val file_ident_cache =
+    Synchronized.var "file_ident_cache"
+      (Symtab.empty: {time_stamp: string, id: string} Symtab.table);
+in
+
+fun check_cache (path, time) =
+  (case Symtab.lookup (Synchronized.value file_ident_cache) path of
+    NONE => NONE
+  | SOME {time_stamp, id} => if time_stamp = time then SOME id else NONE);
+
+fun update_cache (path, (time, id)) =
+  Synchronized.change file_ident_cache
+    (Symtab.update (path, {time_stamp = time, id = id}));
+
+end;
+
+datatype file_ident = File_Ident of string;
+
+fun pretty_file_ident (File_Ident s) = Pretty.str (quote s);
+
+fun file_ident path =
+  let val physical_path = perhaps (try OS.FileSys.fullPath) (File.platform_path path) in
+    (case try (Time.toString o OS.FileSys.modTime) physical_path of
+      NONE => NONE
+    | SOME mod_time => SOME (File_Ident
+        (case getenv "ISABELLE_FILE_IDENT" of
+          "" => physical_path ^ ": " ^ mod_time
+        | cmd =>
+            (case check_cache (physical_path, mod_time) of
+              SOME id => id
+            | NONE =>
+                let
+                  val (id, rc) =  (*potentially slow*)
+                    bash_output
+                      ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ File.shell_quote physical_path);
+                in
+                  if id <> "" andalso rc = 0 then (update_cache (physical_path, (mod_time, id)); id)
+                  else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)
+                end))))
+  end;
+
+
 (* manage source files *)
 
 type files =
- {master_dir: Path.T,                                 (*master directory of theory source*)
-  required: Path.T list,                              (*source path*)
-  provided: (Path.T * (Path.T * File.ident)) list};   (*source path, physical path, identifier*)
+ {master_dir: Path.T,  (*master directory of theory source*)
+  required: Path.T list,  (*source path*)
+  provided: (Path.T * (Path.T * file_ident)) list};  (*source path, physical path, identifier*)
 
 fun make_files (master_dir, required, provided): files =
  {master_dir = master_dir, required = required, provided = provided};
@@ -79,26 +127,26 @@ fun provide (src_path, path_id) =
 (* maintain default paths *)
 
 local
-  val load_path = Unsynchronized.ref [Path.current];
+  val load_path = Synchronized.var "load_path" [Path.current];
   val master_path = Unsynchronized.ref Path.current;
 in
 
-fun show_path () = map Path.implode (! load_path);
+fun show_path () = map Path.implode (Synchronized.value load_path);
 
-fun del_path s =
-  CRITICAL (fn () => Unsynchronized.change load_path (remove (op =) (Path.explode s)));
+fun del_path s = Synchronized.change load_path (remove (op =) (Path.explode s));
 
-fun add_path s =
-  CRITICAL (fn () => (del_path s; Unsynchronized.change load_path (cons (Path.explode s))));
+fun add_path s = Synchronized.change load_path (update (op =) (Path.explode s));
 
 fun path_add s =
-  CRITICAL (fn () =>
-    (del_path s; Unsynchronized.change load_path (fn path => path @ [Path.explode s])));
+  Synchronized.change load_path (fn path =>
+    let val p = Path.explode s
+    in remove (op =) p path @ [p] end);
 
-fun reset_path () = CRITICAL (fn () => load_path := [Path.current]);
+fun reset_path () = Synchronized.change load_path (K [Path.current]);
 
 fun search_path dir path =
-  distinct (op =) (dir :: (if Path.is_basic path then (! load_path) else [Path.current]));
+  distinct (op =)
+    (dir :: (if Path.is_basic path then (Synchronized.value load_path) else [Path.current]));
 
 fun set_master_path path = master_path := path;
 fun get_master_path () = ! master_path;
@@ -115,7 +163,7 @@ fun get_file dirs src_path =
   in
     dirs |> get_first (fn dir =>
       let val full_path = File.full_path (Path.append dir path) in
-        (case File.ident full_path of
+        (case file_ident full_path of
           NONE => NONE
         | SOME id => SOME (full_path, id))
       end)

@@ -983,7 +983,7 @@ fun serial_string_and_temporary_dir_for_overlord overlord =
     let
       val dir = getenv "ISABELLE_TMP"
       val _ = if !created_temp_dir then ()
-              else (created_temp_dir := true; File.mkdir (Path.explode dir))
+              else (created_temp_dir := true; Isabelle_System.mkdirs (Path.explode dir))
     in (serial_string (), dir) end
 
 (* The fudge term below is to account for Kodkodi's slow start-up time, which

@@ -15,8 +15,6 @@ sig
   val toplevel_pp: string list -> string -> unit
   val PG_setup: unit -> unit
   val commit: unit -> unit
-  val bash_output: string -> string * int
-  val bash: string -> int
 end;
 
 structure Secure: SECURE =
@@ -58,20 +56,6 @@ fun commit () = use_global "commit();";   (*commit is dynamically bound!*)
 fun PG_setup () =
   use_global "val change = Unsynchronized.change; structure ThyLoad = ProofGeneral.ThyLoad;";
 
-
-(* shell commands *)
-
-fun secure_shell () = deny_secure "Cannot execute shell commands in secure mode";
-
-val orig_bash_output = bash_output;
-
-fun bash_output s = (secure_shell (); orig_bash_output s);
-
-fun bash s =
-  (case bash_output s of
-    ("", rc) => rc
-  | (out, rc) => (writeln (perhaps (try (unsuffix "\n")) out); rc));
-
 end;
 
 (*override previous toplevel bindings!*)
@@ -80,5 +64,4 @@ val use_file = Secure.use_file;
 fun use s = Secure.use_file ML_Parse.global_context true s
   handle ERROR msg => (writeln msg; error "ML error");
 val toplevel_pp = Secure.toplevel_pp;
-val bash_output = Secure.bash_output;
-val bash = Secure.bash;
+
