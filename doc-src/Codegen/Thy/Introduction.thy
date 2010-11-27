@@ -214,6 +214,10 @@ text {*
     \item Inductive predicates can be turned executable using an
       extension of the code generator \secref{sec:inductive}.
 
+    \item If you want to utilize code generation to obtain fast
+      evaluators e.g.~for decision procedures, have a look at
+      \secref{sec:evaluation}.
+
     \item You may want to skim over the more technical sections
       \secref{sec:adaptation} and \secref{sec:further}.
 
