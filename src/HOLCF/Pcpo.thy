@@ -19,19 +19,19 @@ begin
 text {* in cpo's everthing equal to THE lub has lub properties for every chain *}
 
 lemma cpo_lubI: "chain S \<Longrightarrow> range S <<| (\<Squnion>i. S i)"
-  by (fast dest: cpo elim: lubI)
+  by (fast dest: cpo elim: is_lub_lub)
 
 lemma thelubE: "\<lbrakk>chain S; (\<Squnion>i. S i) = l\<rbrakk> \<Longrightarrow> range S <<| l"
-  by (blast dest: cpo intro: lubI)
+  by (blast dest: cpo intro: is_lub_lub)
 
 text {* Properties of the lub *}
 
 lemma is_ub_thelub: "chain S \<Longrightarrow> S x \<sqsubseteq> (\<Squnion>i. S i)"
-  by (blast dest: cpo intro: lubI [THEN is_ub_lub])
+  by (blast dest: cpo intro: is_lub_lub [THEN is_lub_rangeD1])
 
 lemma is_lub_thelub:
   "\<lbrakk>chain S; range S <| x\<rbrakk> \<Longrightarrow> (\<Squnion>i. S i) \<sqsubseteq> x"
-  by (blast dest: cpo intro: lubI [THEN is_lub_lub])
+  by (blast dest: cpo intro: is_lub_lub [THEN is_lubD2])
 
 lemma lub_below_iff: "chain S \<Longrightarrow> (\<Squnion>i. S i) \<sqsubseteq> x \<longleftrightarrow> (\<forall>i. S i \<sqsubseteq> x)"
   by (simp add: is_lub_below_iff [OF cpo_lubI] is_ub_def)
@@ -70,7 +70,7 @@ done
 lemma maxinch_is_thelub:
   "chain Y \<Longrightarrow> max_in_chain i Y = ((\<Squnion>i. Y i) = Y i)"
 apply (rule iffI)
-apply (fast intro!: thelubI lub_finch1)
+apply (fast intro!: lub_eqI lub_finch1)
 apply (unfold max_in_chain_def)
 apply (safe intro!: below_antisym)
 apply (fast elim!: chain_mono)

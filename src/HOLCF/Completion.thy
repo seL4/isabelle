@@ -55,7 +55,7 @@ by (rule exI, rule ideal_principal)
 lemma lub_image_principal:
   assumes f: "\<And>x y. x \<preceq> y \<Longrightarrow> f x \<sqsubseteq> f y"
   shows "(\<Squnion>x\<in>{x. x \<preceq> y}. f x) = f y"
-apply (rule thelubI)
+apply (rule lub_eqI)
 apply (rule is_lub_maximal)
 apply (rule ub_imageI)
 apply (simp add: f)
@@ -117,7 +117,7 @@ proof -
     apply (simp add: below 2 is_ub_def, fast)
     done
   hence 4: "(\<Squnion>i. S i) = Abs (\<Union>i. Rep (S i))"
-    by (rule thelubI)
+    by (rule lub_eqI)
   show 5: "Rep (\<Squnion>i. S i) = (\<Union>i. Rep (S i))"
     by (simp add: 4 2)
 qed
@@ -140,13 +140,13 @@ done
 subsection {* Lemmas about least upper bounds *}
 
 lemma is_ub_thelub_ex: "\<lbrakk>\<exists>u. S <<| u; x \<in> S\<rbrakk> \<Longrightarrow> x \<sqsubseteq> lub S"
-apply (erule exE, drule lubI)
+apply (erule exE, drule is_lub_lub)
 apply (drule is_lubD1)
 apply (erule (1) is_ubD)
 done
 
 lemma is_lub_thelub_ex: "\<lbrakk>\<exists>u. S <<| u; S <| x\<rbrakk> \<Longrightarrow> lub S \<sqsubseteq> x"
-by (erule exE, drule lubI, erule is_lub_lub)
+by (erule exE, drule is_lub_lub, erule is_lubD2)
 
 subsection {* Locale for ideal completion *}
 
@@ -163,7 +163,7 @@ begin
 lemma rep_mono: "x \<sqsubseteq> y \<Longrightarrow> rep x \<subseteq> rep y"
 apply (frule bin_chain)
 apply (drule rep_lub)
-apply (simp only: thelubI [OF lub_bin_chain])
+apply (simp only: lub_eqI [OF is_lub_bin_chain])
 apply (rule subsetI, rule UN_I [where a=0], simp_all)
 done
 

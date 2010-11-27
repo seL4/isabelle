@@ -107,7 +107,7 @@ proof -
     by (rule typedef_is_lubI [OF below])
 qed
 
-lemmas typedef_lub = typedef_is_lub [THEN thelubI, standard]
+lemmas typedef_lub = typedef_is_lub [THEN lub_eqI, standard]
 
 theorem typedef_cpo:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::po"

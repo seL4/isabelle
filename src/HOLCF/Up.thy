@@ -111,7 +111,7 @@ proof
   proof (rule up_chain_lemma)
     assume "\<forall>i. S i = Ibottom"
     hence "range (\<lambda>i. S i) <<| Ibottom"
-      by (simp add: lub_const)
+      by (simp add: is_lub_const)
     thus ?thesis ..
   next
     fix A :: "nat \<Rightarrow> 'a"
@@ -160,7 +160,7 @@ proof (rule contI2)
     assume A: "\<forall>i. Iup (A i) = Y (i + k)"
     assume "chain A" and "range Y <<| Iup (\<Squnion>i. A i)"
     hence "Ifup f (\<Squnion>i. Y i) = (\<Squnion>i. Ifup f (Iup (A i)))"
-      by (simp add: thelubI contlub_cfun_arg)
+      by (simp add: lub_eqI contlub_cfun_arg)
     also have "\<dots> = (\<Squnion>i. Ifup f (Y (i + k)))"
       by (simp add: A)
     also have "\<dots> = (\<Squnion>i. Ifup f (Y i))"
@@ -223,7 +223,7 @@ lemma up_chain_cases:
   assumes Y: "chain Y" obtains "\<forall>i. Y i = \<bottom>"
   | A k where "\<forall>i. up\<cdot>(A i) = Y (i + k)" and "chain A" and "(\<Squnion>i. Y i) = up\<cdot>(\<Squnion>i. A i)"
 apply (rule up_chain_lemma [OF Y])
-apply (simp_all add: inst_up_pcpo up_def cont_Iup thelubI)
+apply (simp_all add: inst_up_pcpo up_def cont_Iup lub_eqI)
 done
 
 lemma compact_up: "compact x \<Longrightarrow> compact (up\<cdot>x)"

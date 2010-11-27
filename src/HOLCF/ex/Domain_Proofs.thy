@@ -467,7 +467,7 @@ by (simp only: iterate_Suc foo_bar_baz_takeF_beta fst_conv snd_conv)+
 lemma lub_take_lemma:
   "(\<Squnion>n. foo_take n, \<Squnion>n. bar_take n, \<Squnion>n. baz_take n)
     = (foo_map\<cdot>(ID::'a \<rightarrow> 'a), bar_map\<cdot>(ID::'a \<rightarrow> 'a), baz_map\<cdot>(ID::'a \<rightarrow> 'a))"
-apply (simp only: thelub_Pair [symmetric] ch2ch_Pair chain_take_thms)
+apply (simp only: lub_Pair [symmetric] ch2ch_Pair chain_take_thms)
 apply (simp only: map_apply_thms pair_collapse)
 apply (simp only: fix_def2)
 apply (rule lub_eq)

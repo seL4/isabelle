@@ -209,14 +209,8 @@ text {* contlub, cont properties of @{term Rep_cfun} in each argument *}
 lemma contlub_cfun_arg: "chain Y \<Longrightarrow> f\<cdot>(\<Squnion>i. Y i) = (\<Squnion>i. f\<cdot>(Y i))"
 by (rule cont_Rep_cfun2 [THEN cont2contlubE])
 
-lemma cont_cfun_arg: "chain Y \<Longrightarrow> range (\<lambda>i. f\<cdot>(Y i)) <<| f\<cdot>(\<Squnion>i. Y i)"
-by (rule cont_Rep_cfun2 [THEN contE])
-
 lemma contlub_cfun_fun: "chain F \<Longrightarrow> (\<Squnion>i. F i)\<cdot>x = (\<Squnion>i. F i\<cdot>x)"
 by (rule cont_Rep_cfun1 [THEN cont2contlubE])
-
-lemma cont_cfun_fun: "chain F \<Longrightarrow> range (\<lambda>i. F i\<cdot>x) <<| (\<Squnion>i. F i)\<cdot>x"
-by (rule cont_Rep_cfun1 [THEN contE])
 
 text {* monotonicity of application *}
 
@@ -287,7 +281,7 @@ lemma lub_cfun: "chain F \<Longrightarrow> range F <<| (\<Lambda> x. \<Squnion>i
 by (simp only: contlub_cfun_fun [symmetric] eta_cfun thelubE)
 
 lemma thelub_cfun: "chain F \<Longrightarrow> (\<Squnion>i. F i) = (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
-by (rule lub_cfun [THEN thelubI])
+by (rule lub_cfun [THEN lub_eqI])
 
 subsection {* Continuity simplification procedure *}
 
@@ -370,7 +364,7 @@ lemma chfin_Rep_cfunR: "chain (Y::nat => 'a::cpo->'b::chfin)
 apply (rule allI)
 apply (subst contlub_cfun_fun)
 apply assumption
-apply (fast intro!: thelubI chfin lub_finch2 chfin2finch ch2ch_Rep_cfunL)
+apply (fast intro!: lub_eqI chfin lub_finch2 chfin2finch ch2ch_Rep_cfunL)
 done
 
 lemma adm_chfindom: "adm (\<lambda>(u::'a::cpo \<rightarrow> 'b::chfin). P(u\<cdot>s))"

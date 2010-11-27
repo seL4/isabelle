@@ -37,7 +37,7 @@ apply (case_tac "finite_chain Y")
 prefer 2 apply fast
 apply (unfold finite_chain_def)
 apply safe
-apply (erule lub_finch1 [THEN thelubI, THEN ssubst])
+apply (erule lub_finch1 [THEN lub_eqI, THEN ssubst])
 apply assumption
 apply (erule spec)
 done

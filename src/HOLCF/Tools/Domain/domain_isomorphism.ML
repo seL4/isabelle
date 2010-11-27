@@ -711,7 +711,7 @@ fun gen_domain_isomorphism
         val goal = mk_trp (mk_eq (lhs, rhs));
         val map_ID_thms = Domain_Take_Proofs.get_map_ID_thms thy;
         val start_rules =
-            @{thms thelub_Pair [symmetric] ch2ch_Pair} @ chain_take_thms
+            @{thms lub_Pair [symmetric] ch2ch_Pair} @ chain_take_thms
             @ @{thms pair_collapse split_def}
             @ map_apply_thms @ map_ID_thms;
         val rules0 =

@@ -72,7 +72,7 @@ apply (erule subst)
 apply (erule contE)
 apply (erule bin_chain)
 apply (rule_tac f=f in arg_cong)
-apply (erule lub_bin_chain [THEN thelubI])
+apply (erule is_lub_bin_chain [THEN lub_eqI])
 done
 
 text {* continuity implies monotonicity *}
@@ -80,7 +80,7 @@ text {* continuity implies monotonicity *}
 lemma cont2mono: "cont f \<Longrightarrow> monofun f"
 apply (rule monofunI)
 apply (drule (1) binchain_cont)
-apply (drule_tac i=0 in is_ub_lub)
+apply (drule_tac i=0 in is_lub_rangeD1)
 apply simp
 done
 
@@ -92,7 +92,7 @@ text {* continuity implies preservation of lubs *}
 
 lemma cont2contlubE:
   "\<lbrakk>cont f; chain Y\<rbrakk> \<Longrightarrow> f (\<Squnion> i. Y i) = (\<Squnion> i. f (Y i))"
-apply (rule thelubI [symmetric])
+apply (rule lub_eqI [symmetric])
 apply (erule (1) contE)
 done
 
@@ -142,9 +142,7 @@ done
 text {* constant functions are continuous *}
 
 lemma cont_const [simp, cont2cont]: "cont (\<lambda>x. c)"
-apply (rule contI)
-apply (rule lub_const)
-done
+  using is_lub_const by (rule contI)
 
 text {* application of functions is continuous *}
 
@@ -235,7 +233,7 @@ text {* All functions with discrete domain are continuous. *}
 lemma cont_discrete_cpo [simp, cont2cont]: "cont (f::'a::discrete_cpo \<Rightarrow> 'b::cpo)"
 apply (rule contI)
 apply (drule discrete_chain_const, clarify)
-apply (simp add: lub_const)
+apply (simp add: is_lub_const)
 done
 
 end

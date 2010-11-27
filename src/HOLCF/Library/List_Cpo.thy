@@ -141,7 +141,7 @@ proof
   fix S :: "nat \<Rightarrow> 'a list"
   assume "chain S" thus "\<exists>x. range S <<| x"
   proof (induct rule: list_chain_induct)
-    case Nil thus ?case by (auto intro: lub_const)
+    case Nil thus ?case by (auto intro: is_lub_const)
   next
     case (Cons A B) thus ?case by (auto intro: is_lub_Cons cpo_lubI)
   qed
@@ -163,7 +163,7 @@ lemma lub_Cons:
   fixes A :: "nat \<Rightarrow> 'a::cpo"
   assumes A: "chain A" and B: "chain B"
   shows "(\<Squnion>i. A i # B i) = (\<Squnion>i. A i) # (\<Squnion>i. B i)"
-by (intro thelubI is_lub_Cons cpo_lubI A B)
+by (intro lub_eqI is_lub_Cons cpo_lubI A B)
 
 lemma cont2cont_list_case:
   assumes f: "cont (\<lambda>x. f x)"
@@ -175,7 +175,7 @@ lemma cont2cont_list_case:
 apply (rule cont_apply [OF f])
 apply (rule contI)
 apply (erule list_chain_cases)
-apply (simp add: lub_const)
+apply (simp add: is_lub_const)
 apply (simp add: lub_Cons)
 apply (simp add: cont2contlubE [OF h2])
 apply (simp add: cont2contlubE [OF h3])

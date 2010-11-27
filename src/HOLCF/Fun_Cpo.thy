@@ -80,7 +80,7 @@ done
 lemma thelub_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo)
     \<Longrightarrow> (\<Squnion>i. S i) = (\<lambda>x. \<Squnion>i. S i x)"
-by (rule lub_fun [THEN thelubI])
+by (rule lub_fun [THEN lub_eqI])
 
 instance "fun"  :: (type, cpo) cpo
 by intro_classes (rule exI, erule lub_fun)

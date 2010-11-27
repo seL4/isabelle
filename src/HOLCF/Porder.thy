@@ -126,7 +126,7 @@ text {* access to some definition as inference rule *}
 lemma is_lubD1: "S <<| x \<Longrightarrow> S <| x"
   unfolding is_lub_def by fast
 
-lemma is_lub_lub: "\<lbrakk>S <<| x; S <| u\<rbrakk> \<Longrightarrow> x \<sqsubseteq> u"
+lemma is_lubD2: "\<lbrakk>S <<| x; S <| u\<rbrakk> \<Longrightarrow> x \<sqsubseteq> u"
   unfolding is_lub_def by fast
 
 lemma is_lubI: "\<lbrakk>S <| x; \<And>u. S <| u \<Longrightarrow> x \<sqsubseteq> u\<rbrakk> \<Longrightarrow> S <<| x"
@@ -137,40 +137,34 @@ lemma is_lub_below_iff: "S <<| x \<Longrightarrow> x \<sqsubseteq> u \<longleftr
 
 text {* lubs are unique *}
 
-lemma unique_lub: "\<lbrakk>S <<| x; S <<| y\<rbrakk> \<Longrightarrow> x = y"
-apply (unfold is_lub_def is_ub_def)
-apply (blast intro: below_antisym)
-done
+lemma is_lub_unique: "\<lbrakk>S <<| x; S <<| y\<rbrakk> \<Longrightarrow> x = y"
+  unfolding is_lub_def is_ub_def by (blast intro: below_antisym)
 
 text {* technical lemmas about @{term lub} and @{term is_lub} *}
 
-lemma lubI: "M <<| x \<Longrightarrow> M <<| lub M"
-apply (unfold lub_def)
-apply (rule theI)
-apply assumption
-apply (erule (1) unique_lub)
-done
+lemma is_lub_lub: "M <<| x \<Longrightarrow> M <<| lub M"
+  unfolding lub_def by (rule theI [OF _ is_lub_unique])
 
-lemma thelubI: "M <<| l \<Longrightarrow> lub M = l"
-  by (rule unique_lub [OF lubI])
+lemma lub_eqI: "M <<| l \<Longrightarrow> lub M = l"
+  by (rule is_lub_unique [OF is_lub_lub])
 
 lemma is_lub_singleton: "{x} <<| x"
   by (simp add: is_lub_def)
 
 lemma lub_singleton [simp]: "lub {x} = x"
-  by (rule thelubI [OF is_lub_singleton])
+  by (rule is_lub_singleton [THEN lub_eqI])
 
 lemma is_lub_bin: "x \<sqsubseteq> y \<Longrightarrow> {x, y} <<| y"
   by (simp add: is_lub_def)
 
 lemma lub_bin: "x \<sqsubseteq> y \<Longrightarrow> lub {x, y} = y"
-  by (rule is_lub_bin [THEN thelubI])
+  by (rule is_lub_bin [THEN lub_eqI])
 
 lemma is_lub_maximal: "\<lbrakk>S <| x; x \<in> S\<rbrakk> \<Longrightarrow> S <<| x"
   by (erule is_lubI, erule (1) is_ubD)
 
 lemma lub_maximal: "\<lbrakk>S <| x; x \<in> S\<rbrakk> \<Longrightarrow> lub S = x"
-  by (rule is_lub_maximal [THEN thelubI])
+  by (rule is_lub_maximal [THEN lub_eqI])
 
 subsection {* Countable chains *}
 
@@ -197,7 +191,7 @@ lemma chain_shift: "chain Y \<Longrightarrow> chain (\<lambda>i. Y (i + j))"
 
 text {* technical lemmas about (least) upper bounds of chains *}
 
-lemma is_ub_lub: "range S <<| x \<Longrightarrow> S i \<sqsubseteq> x"
+lemma is_lub_rangeD1: "range S <<| x \<Longrightarrow> S i \<sqsubseteq> x"
   by (rule is_lubD1 [THEN ub_rangeD])
 
 lemma is_ub_range_shift:
@@ -221,11 +215,11 @@ text {* the lub of a constant chain is the constant *}
 lemma chain_const [simp]: "chain (\<lambda>i. c)"
   by (simp add: chainI)
 
-lemma lub_const: "range (\<lambda>x. c) <<| c"
+lemma is_lub_const: "range (\<lambda>x. c) <<| c"
 by (blast dest: ub_rangeD intro: is_lubI ub_rangeI)
 
-lemma thelub_const [simp]: "(\<Squnion>i. c) = c"
-  by (rule lub_const [THEN thelubI])
+lemma lub_const [simp]: "(\<Squnion>i. c) = c"
+  by (rule is_lub_const [THEN lub_eqI])
 
 subsection {* Finite chains *}
 
@@ -324,7 +318,7 @@ lemma bin_chainmax:
   "x \<sqsubseteq> y \<Longrightarrow> max_in_chain (Suc 0) (\<lambda>i. if i=0 then x else y)"
   unfolding max_in_chain_def by simp
 
-lemma lub_bin_chain:
+lemma is_lub_bin_chain:
   "x \<sqsubseteq> y \<Longrightarrow> range (\<lambda>i::nat. if i=0 then x else y) <<| y"
 apply (frule bin_chain)
 apply (drule bin_chainmax)
@@ -335,7 +329,7 @@ done
 text {* the maximal element in a chain is its lub *}
 
 lemma lub_chain_maxelem: "\<lbrakk>Y i = c; \<forall>i. Y i \<sqsubseteq> c\<rbrakk> \<Longrightarrow> lub (range Y) = c"
-  by (blast dest: ub_rangeD intro: thelubI is_lubI ub_rangeI)
+  by (blast dest: ub_rangeD intro: lub_eqI is_lubI ub_rangeI)
 
 end
 

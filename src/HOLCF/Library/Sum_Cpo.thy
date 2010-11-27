@@ -98,10 +98,10 @@ done
 lemma is_lub_Inl: "range S <<| x \<Longrightarrow> range (\<lambda>i. Inl (S i)) <<| Inl x"
  apply (rule is_lubI)
   apply (rule ub_rangeI)
-  apply (simp add: is_ub_lub)
+  apply (simp add: is_lub_rangeD1)
  apply (frule ub_rangeD [where i=arbitrary])
  apply (erule Inl_belowE, simp)
- apply (erule is_lub_lub)
+ apply (erule is_lubD2)
  apply (rule ub_rangeI)
  apply (drule ub_rangeD, simp)
 done
@@ -109,10 +109,10 @@ done
 lemma is_lub_Inr: "range S <<| x \<Longrightarrow> range (\<lambda>i. Inr (S i)) <<| Inr x"
  apply (rule is_lubI)
   apply (rule ub_rangeI)
-  apply (simp add: is_ub_lub)
+  apply (simp add: is_lub_rangeD1)
  apply (frule ub_rangeD [where i=arbitrary])
  apply (erule Inr_belowE, simp)
- apply (erule is_lub_lub)
+ apply (erule is_lubD2)
  apply (rule ub_rangeI)
  apply (drule ub_rangeD, simp)
 done

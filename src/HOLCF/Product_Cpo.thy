@@ -111,46 +111,30 @@ subsection {* Product type is a cpo *}
 
 lemma is_lub_Pair:
   "\<lbrakk>range A <<| x; range B <<| y\<rbrakk> \<Longrightarrow> range (\<lambda>i. (A i, B i)) <<| (x, y)"
-apply (rule is_lubI [OF ub_rangeI])
-apply (simp add: is_ub_lub)
-apply (frule ub2ub_monofun [OF monofun_fst])
-apply (drule ub2ub_monofun [OF monofun_snd])
-apply (simp add: below_prod_def is_lub_lub)
-done
+unfolding is_lub_def is_ub_def ball_simps below_prod_def by simp
 
-lemma thelub_Pair:
+lemma lub_Pair:
   "\<lbrakk>chain (A::nat \<Rightarrow> 'a::cpo); chain (B::nat \<Rightarrow> 'b::cpo)\<rbrakk>
     \<Longrightarrow> (\<Squnion>i. (A i, B i)) = (\<Squnion>i. A i, \<Squnion>i. B i)"
-by (fast intro: thelubI is_lub_Pair elim: thelubE)
+by (fast intro: lub_eqI is_lub_Pair elim: thelubE)
 
-lemma lub_cprod:
+lemma is_lub_prod:
   fixes S :: "nat \<Rightarrow> ('a::cpo \<times> 'b::cpo)"
   assumes S: "chain S"
   shows "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
-proof -
-  from `chain S` have "chain (\<lambda>i. fst (S i))"
-    by (rule ch2ch_fst)
-  hence 1: "range (\<lambda>i. fst (S i)) <<| (\<Squnion>i. fst (S i))"
-    by (rule cpo_lubI)
-  from `chain S` have "chain (\<lambda>i. snd (S i))"
-    by (rule ch2ch_snd)
-  hence 2: "range (\<lambda>i. snd (S i)) <<| (\<Squnion>i. snd (S i))"
-    by (rule cpo_lubI)
-  show "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
-    using is_lub_Pair [OF 1 2] by simp
-qed
+using S by (auto elim: prod_chain_cases simp add: is_lub_Pair cpo_lubI)
 
-lemma thelub_cprod:
+lemma lub_prod:
   "chain (S::nat \<Rightarrow> 'a::cpo \<times> 'b::cpo)
     \<Longrightarrow> (\<Squnion>i. S i) = (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
-by (rule lub_cprod [THEN thelubI])
+by (rule is_lub_prod [THEN lub_eqI])
 
 instance prod :: (cpo, cpo) cpo
 proof
   fix S :: "nat \<Rightarrow> ('a \<times> 'b)"
   assume "chain S"
   hence "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
-    by (rule lub_cprod)
+    by (rule is_lub_prod)
   thus "\<exists>x. range S <<| x" ..
 qed
 
@@ -164,23 +148,23 @@ qed
 
 subsection {* Product type is pointed *}
 
-lemma minimal_cprod: "(\<bottom>, \<bottom>) \<sqsubseteq> p"
+lemma minimal_prod: "(\<bottom>, \<bottom>) \<sqsubseteq> p"
 by (simp add: below_prod_def)
 
 instance prod :: (pcpo, pcpo) pcpo
-by intro_classes (fast intro: minimal_cprod)
+by intro_classes (fast intro: minimal_prod)
 
-lemma inst_cprod_pcpo: "\<bottom> = (\<bottom>, \<bottom>)"
-by (rule minimal_cprod [THEN UU_I, symmetric])
+lemma inst_prod_pcpo: "\<bottom> = (\<bottom>, \<bottom>)"
+by (rule minimal_prod [THEN UU_I, symmetric])
 
 lemma Pair_bottom_iff [simp]: "(x, y) = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
-unfolding inst_cprod_pcpo by simp
+unfolding inst_prod_pcpo by simp
 
 lemma fst_strict [simp]: "fst \<bottom> = \<bottom>"
-unfolding inst_cprod_pcpo by (rule fst_conv)
+unfolding inst_prod_pcpo by (rule fst_conv)
 
 lemma snd_strict [simp]: "snd \<bottom> = \<bottom>"
-unfolding inst_cprod_pcpo by (rule snd_conv)
+unfolding inst_prod_pcpo by (rule snd_conv)
 
 lemma Pair_strict [simp]: "(\<bottom>, \<bottom>) = \<bottom>"
 by simp
@@ -194,25 +178,25 @@ lemma cont_pair1: "cont (\<lambda>x. (x, y))"
 apply (rule contI)
 apply (rule is_lub_Pair)
 apply (erule cpo_lubI)
-apply (rule lub_const)
+apply (rule is_lub_const)
 done
 
 lemma cont_pair2: "cont (\<lambda>y. (x, y))"
 apply (rule contI)
 apply (rule is_lub_Pair)
-apply (rule lub_const)
+apply (rule is_lub_const)
 apply (erule cpo_lubI)
 done
 
 lemma cont_fst: "cont fst"
 apply (rule contI)
-apply (simp add: thelub_cprod)
+apply (simp add: lub_prod)
 apply (erule cpo_lubI [OF ch2ch_fst])
 done
 
 lemma cont_snd: "cont snd"
 apply (rule contI)
-apply (simp add: thelub_cprod)
+apply (simp add: lub_prod)
 apply (erule cpo_lubI [OF ch2ch_snd])
 done
 

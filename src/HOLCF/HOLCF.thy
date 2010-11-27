@@ -30,5 +30,10 @@ lemmas cont_lub_fun = adm_cont [THEN admD]
 lemmas cont2cont_Rep_CFun = cont2cont_APP
 lemmas cont_Rep_CFun_app = cont_APP_app
 lemmas cont_Rep_CFun_app_app = cont_APP_app_app
+lemmas cont_cfun_fun = cont_Rep_cfun1 [THEN contE]
+lemmas cont_cfun_arg = cont_Rep_cfun2 [THEN contE]
+(*
+lemmas thelubI = lub_eqI
+*)
 
 end

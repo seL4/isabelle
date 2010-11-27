@@ -183,7 +183,7 @@ proof -
   hence "split P (\<Squnion>i. (iterate i\<cdot>F\<cdot>\<bottom>, iterate i\<cdot>G\<cdot>\<bottom>))"
     by - (rule admD [OF adm'], simp, assumption)
   hence "split P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>, \<Squnion>i. iterate i\<cdot>G\<cdot>\<bottom>)"
-    by (simp add: thelub_Pair)
+    by (simp add: lub_Pair)
   hence "P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>) (\<Squnion>i. iterate i\<cdot>G\<cdot>\<bottom>)"
     by simp
   thus "P (fix\<cdot>F) (fix\<cdot>G)"

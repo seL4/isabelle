@@ -225,7 +225,7 @@ by (simp add: fsfilter_fscons)
 lemma fstream_lub_lemma1:
     "\<lbrakk>chain Y; (\<Squnion>i. Y i) = a\<leadsto>s\<rbrakk> \<Longrightarrow> \<exists>j t. Y j = a\<leadsto>t"
 apply (case_tac "max_in_chain i Y")
-apply  (drule (1) lub_finch1 [THEN thelubI, THEN sym])
+apply  (drule (1) lub_finch1 [THEN lub_eqI, THEN sym])
 apply  (force)
 apply (unfold max_in_chain_def)
 apply auto
@@ -254,7 +254,7 @@ apply  (subst contlub_cfun [symmetric])
 apply   (rule chainI)
 apply   (fast)
 apply  (erule chain_shift)
-apply (subst lub_const [THEN thelubI])
+apply (subst lub_const)
 apply (subst lub_range_shift)
 apply  (assumption)
 apply (simp)
