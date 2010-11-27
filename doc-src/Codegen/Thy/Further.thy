@@ -7,20 +7,20 @@ section {* Further issues \label{sec:further} *}
 subsection {* Modules namespace *}
 
 text {*
-  When invoking the @{command export_code} command it is possible to leave
-  out the @{keyword "module_name"} part;  then code is distributed over
-  different modules, where the module name space roughly is induced
-  by the Isabelle theory name space.
+  When invoking the @{command export_code} command it is possible to
+  leave out the @{keyword "module_name"} part; then code is
+  distributed over different modules, where the module name space
+  roughly is induced by the Isabelle theory name space.
 
-  Then sometimes the awkward situation occurs that dependencies between
-  definitions introduce cyclic dependencies between modules, which in the
-  @{text Haskell} world leaves you to the mercy of the @{text Haskell} implementation
-  you are using,  while for @{text SML}/@{text OCaml} code generation is not possible.
+  Then sometimes the awkward situation occurs that dependencies
+  between definitions introduce cyclic dependencies between modules,
+  which in the @{text Haskell} world leaves you to the mercy of the
+  @{text Haskell} implementation you are using, while for @{text
+  SML}/@{text OCaml} code generation is not possible.
 
-  A solution is to declare module names explicitly.
-  Let use assume the three cyclically dependent
-  modules are named \emph{A}, \emph{B} and \emph{C}.
-  Then, by stating
+  A solution is to declare module names explicitly.  Let use assume
+  the three cyclically dependent modules are named \emph{A}, \emph{B}
+  and \emph{C}.  Then, by stating
 *}
 
 code_modulename %quote SML
@@ -28,10 +28,10 @@ code_modulename %quote SML
   B ABC
   C ABC
 
-text {*\noindent
-  we explicitly map all those modules on \emph{ABC},
-  resulting in an ad-hoc merge of this three modules
-  at serialisation time.
+text {*
+  \noindent we explicitly map all those modules on \emph{ABC},
+  resulting in an ad-hoc merge of this three modules at serialisation
+  time.
 *}
 
 subsection {* Locales and interpretation *}
@@ -40,8 +40,8 @@ text {*
   A technical issue comes to surface when generating code from
   specifications stemming from locale interpretation.
 
-  Let us assume a locale specifying a power operation
-  on arbitrary types:
+  Let us assume a locale specifying a power operation on arbitrary
+  types:
 *}
 
 locale %quote power =
@@ -50,8 +50,8 @@ locale %quote power =
 begin
 
 text {*
-  \noindent Inside that locale we can lift @{text power} to exponent lists
-  by means of specification relative to that locale:
+  \noindent Inside that locale we can lift @{text power} to exponent
+  lists by means of specification relative to that locale:
 *}
 
 primrec %quote powers :: "'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
@@ -76,26 +76,27 @@ end %quote
 
 text {*
   After an interpretation of this locale (say, @{command_def
-  interpretation} @{text "fun_power:"} @{term [source] "power (\<lambda>n (f ::
-  'a \<Rightarrow> 'a). f ^^ n)"}), one would expect to have a constant @{text
+  interpretation} @{text "fun_power:"} @{term [source] "power (\<lambda>n (f
+  :: 'a \<Rightarrow> 'a). f ^^ n)"}), one would expect to have a constant @{text
   "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"} for which code
   can be generated.  But this not the case: internally, the term
   @{text "fun_power.powers"} is an abbreviation for the foundational
   term @{term [source] "power.powers (\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"}
   (see \cite{isabelle-locale} for the details behind).
 
-  Fortunately, with minor effort the desired behaviour can be achieved.
-  First, a dedicated definition of the constant on which the local @{text "powers"}
-  after interpretation is supposed to be mapped on:
+  Fortunately, with minor effort the desired behaviour can be
+  achieved.  First, a dedicated definition of the constant on which
+  the local @{text "powers"} after interpretation is supposed to be
+  mapped on:
 *}
 
 definition %quote funpows :: "nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
   [code del]: "funpows = power.powers (\<lambda>n f. f ^^ n)"
 
 text {*
-  \noindent In general, the pattern is @{text "c = t"} where @{text c} is
-  the name of the future constant and @{text t} the foundational term
-  corresponding to the local constant after interpretation.
+  \noindent In general, the pattern is @{text "c = t"} where @{text c}
+  is the name of the future constant and @{text t} the foundational
+  term corresponding to the local constant after interpretation.
 
   The interpretation itself is enriched with an equation @{text "t = c"}:
 *}
@@ -106,8 +107,8 @@ interpretation %quote fun_power: power "\<lambda>n (f :: 'a \<Rightarrow> 'a). f
     (simp_all add: fun_eq_iff funpow_mult mult_commute funpows_def)
 
 text {*
-  \noindent This additional equation is trivially proved by the definition
-  itself.
+  \noindent This additional equation is trivially proved by the
+  definition itself.
 
   After this setup procedure, code generation can continue as usual:
 *}
@@ -124,8 +125,8 @@ text {*
   specific application, you should consider \emph{Imperative
   Functional Programming with Isabelle/HOL}
   \cite{bulwahn-et-al:2008:imperative}; the framework described there
-  is available in session @{text Imperative_HOL}, together with a short
-  primer document.
+  is available in session @{text Imperative_HOL}, together with a
+  short primer document.
 *}
 
 
@@ -153,7 +154,7 @@ text %mlref {*
   @{index_ML Code_Preproc.del_functrans: "string -> theory -> theory"} \\
   @{index_ML Code.add_datatype: "(string * typ) list -> theory -> theory"} \\
   @{index_ML Code.get_type: "theory -> string
-    -> (string * sort) list * ((string * string list) * typ list) list"} \\
+    -> ((string * sort) list * (string * ((string * sort) list * typ list)) list) * bool"} \\
   @{index_ML Code.get_type_of_constr_or_abstr: "theory -> string -> (string * bool) option"}
   \end{mldecls}
 
@@ -198,22 +199,19 @@ text %mlref {*
 subsubsection {* Data depending on the theory's executable content *}
 
 text {*
-  Implementing code generator applications on top
-  of the framework set out so far usually not only
-  involves using those primitive interfaces
-  but also storing code-dependent data and various
-  other things.
+  Implementing code generator applications on top of the framework set
+  out so far usually not only involves using those primitive
+  interfaces but also storing code-dependent data and various other
+  things.
 
-  Due to incrementality of code generation, changes in the
-  theory's executable content have to be propagated in a
-  certain fashion.  Additionally, such changes may occur
-  not only during theory extension but also during theory
-  merge, which is a little bit nasty from an implementation
-  point of view.  The framework provides a solution
-  to this technical challenge by providing a functorial
-  data slot @{ML_functor Code_Data}; on instantiation
-  of this functor, the following types and operations
-  are required:
+  Due to incrementality of code generation, changes in the theory's
+  executable content have to be propagated in a certain fashion.
+  Additionally, such changes may occur not only during theory
+  extension but also during theory merge, which is a little bit nasty
+  from an implementation point of view.  The framework provides a
+  solution to this technical challenge by providing a functorial data
+  slot @{ML_functor Code_Data}; on instantiation of this functor, the
+  following types and operations are required:
 
   \medskip
   \begin{tabular}{l}
@@ -229,8 +227,8 @@ text {*
 
   \end{description}
 
-  \noindent An instance of @{ML_functor Code_Data} provides the following
-  interface:
+  \noindent An instance of @{ML_functor Code_Data} provides the
+  following interface:
 
   \medskip
   \begin{tabular}{l}
@@ -240,8 +238,8 @@ text {*
 
   \begin{description}
 
-  \item @{text change} update of current data (cached!)
-    by giving a continuation.
+  \item @{text change} update of current data (cached!) by giving a
+    continuation.
 
   \item @{text change_yield} update with side result.
 
