@@ -67,9 +67,6 @@ fun check path =
 
 val rm = OS.FileSys.remove o platform_path;
 
-fun is_dir path =
-  the_default false (try OS.FileSys.isDir (platform_path path));
-
 
 (* open files *)
 
@@ -126,6 +123,9 @@ fun eq paths =
   (case try (pairself (OS.FileSys.fileId o platform_path)) paths of
     SOME ids => is_equal (OS.FileSys.compare ids)
   | NONE => false);
+
+fun is_dir path =
+  the_default false (try OS.FileSys.isDir (platform_path path));
 
 fun copy src dst =
   if eq (src, dst) then ()
