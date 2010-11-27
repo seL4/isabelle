@@ -155,11 +155,6 @@ lemma injI:
   shows "inj f"
   using assms unfolding inj_on_def by auto
 
-text{*For Proofs in @{text "Tools/Datatype/datatype_rep_proofs"}*}
-lemma datatype_injI:
-    "(!! x. ALL y. f(x) = f(y) --> x=y) ==> inj(f)"
-by (simp add: inj_on_def)
-
 theorem range_ex1_eq: "inj f \<Longrightarrow> b : range f = (EX! x. b = f x)"
   by (unfold inj_on_def, blast)
 

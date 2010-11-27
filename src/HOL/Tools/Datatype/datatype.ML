@@ -54,6 +54,8 @@ val Inr_inject = @{thm Inr_inject};
 val Suml_inject = @{thm Suml_inject};
 val Sumr_inject = @{thm Sumr_inject};
 
+val datatype_injI =
+  @{lemma "(!!x. ALL y. f x = f y --> x = y) ==> inj f" by (simp add: inj_on_def)};
 
 
 (** proof of characteristic theorems **)
@@ -438,8 +440,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
                              Lim_inject :: inj_thms') @ fun_congs) 1),
                          atac 1]))])])])]);
 
-        val inj_thms'' = map (fn r => r RS @{thm datatype_injI})
-                             (split_conj_thm inj_thm);
+        val inj_thms'' = map (fn r => r RS datatype_injI) (split_conj_thm inj_thm);
 
         val elem_thm = 
             Skip_Proof.prove_global thy5 [] [] (HOLogic.mk_Trueprop (mk_conj ind_concl2))

@@ -195,7 +195,7 @@ apply (subst lower_plus_absorb [of zs, symmetric])
 apply (erule (1) monofun_cfun [OF monofun_cfun_arg])
 done
 
-lemma lower_plus_below_iff:
+lemma lower_plus_below_iff [simp]:
   "xs +\<flat> ys \<sqsubseteq> zs \<longleftrightarrow> xs \<sqsubseteq> zs \<and> ys \<sqsubseteq> zs"
 apply safe
 apply (erule below_trans [OF lower_plus_below1])
@@ -203,7 +203,7 @@ apply (erule below_trans [OF lower_plus_below2])
 apply (erule (1) lower_plus_least)
 done
 
-lemma lower_unit_below_plus_iff:
+lemma lower_unit_below_plus_iff [simp]:
   "{x}\<flat> \<sqsubseteq> ys +\<flat> zs \<longleftrightarrow> {x}\<flat> \<sqsubseteq> ys \<or> {x}\<flat> \<sqsubseteq> zs"
 apply (induct x rule: compact_basis.principal_induct, simp)
 apply (induct ys rule: lower_pd.principal_induct, simp)
@@ -328,7 +328,7 @@ unfolding cfun_below_iff
 apply (erule lower_le_induct, safe)
 apply (simp add: monofun_cfun)
 apply (simp add: rev_below_trans [OF lower_plus_below1])
-apply (simp add: lower_plus_below_iff)
+apply simp
 done
 
 definition
@@ -389,14 +389,14 @@ lemma ep_pair_lower_map: "ep_pair e p \<Longrightarrow> ep_pair (lower_map\<cdot
 apply default
 apply (induct_tac x rule: lower_pd_induct, simp_all add: ep_pair.e_inverse)
 apply (induct_tac y rule: lower_pd_induct)
-apply (simp_all add: ep_pair.e_p_below monofun_cfun)
+apply (simp_all add: ep_pair.e_p_below monofun_cfun del: lower_plus_below_iff)
 done
 
 lemma deflation_lower_map: "deflation d \<Longrightarrow> deflation (lower_map\<cdot>d)"
 apply default
 apply (induct_tac x rule: lower_pd_induct, simp_all add: deflation.idem)
 apply (induct_tac x rule: lower_pd_induct)
-apply (simp_all add: deflation.below monofun_cfun)
+apply (simp_all add: deflation.below monofun_cfun del: lower_plus_below_iff)
 done
 
 (* FIXME: long proof! *)

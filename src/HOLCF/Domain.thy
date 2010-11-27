@@ -340,13 +340,13 @@ lemmas [domain_deflation] =
   deflation_sprod_map deflation_cprod_map deflation_u_map
 
 setup {*
-  fold Domain_Take_Proofs.add_map_function
-    [(@{type_name cfun}, @{const_name cfun_map}, [true, true]),
-     (@{type_name "sfun"}, @{const_name sfun_map}, [true, true]),
-     (@{type_name ssum}, @{const_name ssum_map}, [true, true]),
-     (@{type_name sprod}, @{const_name sprod_map}, [true, true]),
-     (@{type_name prod}, @{const_name cprod_map}, [true, true]),
-     (@{type_name "u"}, @{const_name u_map}, [true])]
+  fold Domain_Take_Proofs.add_rec_type
+    [(@{type_name cfun}, [true, true]),
+     (@{type_name "sfun"}, [true, true]),
+     (@{type_name ssum}, [true, true]),
+     (@{type_name sprod}, [true, true]),
+     (@{type_name prod}, [true, true]),
+     (@{type_name "u"}, [true])]
 *}
 
 end

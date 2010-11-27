@@ -917,7 +917,7 @@ fun record_tr' ctxt t =
                     val fields' = extern f :: map Long_Name.base_name fs;
                     val (args', more) = split_last args;
                   in (fields' ~~ args') @ strip_fields more end
-                  handle Library.UnequalLengths => [("", t)])
+                  handle ListPair.UnequalLengths => [("", t)])
               | NONE => [("", t)])
           | NONE => [("", t)])
        | _ => [("", t)]);
