@@ -9,7 +9,7 @@ signature PCPODEF =
 sig
   type cpo_info =
     { below_def: thm, adm: thm, cont_Rep: thm, cont_Abs: thm,
-      lub: thm, thelub: thm, compact: thm }
+      is_lub: thm, lub: thm, compact: thm }
   type pcpo_info =
     { Rep_strict: thm, Abs_strict: thm, Rep_bottom_iff: thm, Abs_bottom_iff: thm,
       Rep_defined: thm, Abs_defined: thm }
@@ -45,7 +45,7 @@ struct
 
 type cpo_info =
   { below_def: thm, adm: thm, cont_Rep: thm, cont_Abs: thm,
-    lub: thm, thelub: thm, compact: thm }
+    is_lub: thm, lub: thm, compact: thm }
 
 type pcpo_info =
   { Rep_strict: thm, Abs_strict: thm, Rep_bottom_iff: thm, Abs_bottom_iff: thm,
@@ -94,8 +94,8 @@ fun prove_cpo
     fun make thm = Drule.zero_var_indexes (thm OF cpo_thms');
     val cont_Rep = make @{thm typedef_cont_Rep};
     val cont_Abs = make @{thm typedef_cont_Abs};
+    val is_lub = make @{thm typedef_is_lub};
     val lub = make @{thm typedef_lub};
-    val thelub = make @{thm typedef_thelub};
     val compact = make @{thm typedef_compact};
     val (_, thy) =
       thy
@@ -104,13 +104,13 @@ fun prove_cpo
         ([((Binding.prefix_name "adm_"      name, admissible'), []),
           ((Binding.prefix_name "cont_" Rep_name, cont_Rep   ), []),
           ((Binding.prefix_name "cont_" Abs_name, cont_Abs   ), []),
+          ((Binding.prefix_name "is_lub_"   name, is_lub     ), []),
           ((Binding.prefix_name "lub_"      name, lub        ), []),
-          ((Binding.prefix_name "thelub_"   name, thelub     ), []),
           ((Binding.prefix_name "compact_"  name, compact    ), [])])
       ||> Sign.parent_path;
     val cpo_info : cpo_info =
       { below_def = below_def, adm = admissible', cont_Rep = cont_Rep,
-        cont_Abs = cont_Abs, lub = lub, thelub = thelub, compact = compact };
+        cont_Abs = cont_Abs, is_lub = is_lub, lub = lub, compact = compact };
   in
     (cpo_info, thy)
   end;

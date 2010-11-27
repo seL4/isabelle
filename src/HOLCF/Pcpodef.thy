@@ -91,7 +91,7 @@ lemma Abs_inverse_lub_Rep:
  apply (rule type_definition.Rep [OF type])
 done
 
-theorem typedef_lub:
+theorem typedef_is_lub:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::po"
   assumes type: "type_definition Rep Abs A"
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
@@ -107,7 +107,7 @@ proof -
     by (rule typedef_is_lubI [OF below])
 qed
 
-lemmas typedef_thelub = typedef_lub [THEN thelubI, standard]
+lemmas typedef_lub = typedef_is_lub [THEN thelubI, standard]
 
 theorem typedef_cpo:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::po"
@@ -118,7 +118,7 @@ theorem typedef_cpo:
 proof
   fix S::"nat \<Rightarrow> 'b" assume "chain S"
   hence "range S <<| Abs (\<Squnion>i. Rep (S i))"
-    by (rule typedef_lub [OF type below adm])
+    by (rule typedef_is_lub [OF type below adm])
   thus "\<exists>x. range S <<| x" ..
 qed
 
@@ -133,7 +133,7 @@ theorem typedef_cont_Rep:
     and adm: "adm (\<lambda>x. x \<in> A)"
   shows "cont Rep"
  apply (rule contI)
- apply (simp only: typedef_thelub [OF type below adm])
+ apply (simp only: typedef_lub [OF type below adm])
  apply (simp only: Abs_inverse_lub_Rep [OF type below adm])
  apply (rule cpo_lubI)
  apply (erule ch2ch_Rep [OF below])

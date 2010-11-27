@@ -264,7 +264,7 @@ done
 lemma contlub_LAM:
   "\<lbrakk>\<And>x. chain (\<lambda>i. F i x); \<And>i. cont (\<lambda>x. F i x)\<rbrakk>
     \<Longrightarrow> (\<Lambda> x. \<Squnion>i. F i x) = (\<Squnion>i. \<Lambda> x. F i x)"
-apply (simp add: thelub_cfun)
+apply (simp add: lub_cfun)
 apply (simp add: Abs_cfun_inverse2)
 apply (simp add: thelub_fun ch2ch_lambda)
 done
