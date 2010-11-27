@@ -100,7 +100,7 @@ lemma
   assumes below: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
   assumes S: "chain S"
   shows typedef_ideal_lub: "range S <<| Abs (\<Union>i. Rep (S i))"
-    and typedef_ideal_rep_contlub: "Rep (\<Squnion>i. S i) = (\<Union>i. Rep (S i))"
+    and typedef_ideal_rep_lub: "Rep (\<Squnion>i. S i) = (\<Union>i. Rep (S i))"
 proof -
   have 1: "ideal (\<Union>i. Rep (S i))"
     apply (rule ideal_UN)
@@ -154,7 +154,7 @@ locale ideal_completion = preorder +
   fixes principal :: "'a::type \<Rightarrow> 'b::cpo"
   fixes rep :: "'b::cpo \<Rightarrow> 'a::type set"
   assumes ideal_rep: "\<And>x. ideal (rep x)"
-  assumes rep_contlub: "\<And>Y. chain Y \<Longrightarrow> rep (\<Squnion>i. Y i) = (\<Union>i. rep (Y i))"
+  assumes rep_lub: "\<And>Y. chain Y \<Longrightarrow> rep (\<Squnion>i. Y i) = (\<Union>i. rep (Y i))"
   assumes rep_principal: "\<And>a. rep (principal a) = {b. b \<preceq> a}"
   assumes subset_repD: "\<And>x y. rep x \<subseteq> rep y \<Longrightarrow> x \<sqsubseteq> y"
   assumes countable: "\<exists>f::'a \<Rightarrow> nat. inj f"
@@ -162,7 +162,7 @@ begin
 
 lemma rep_mono: "x \<sqsubseteq> y \<Longrightarrow> rep x \<subseteq> rep y"
 apply (frule bin_chain)
-apply (drule rep_contlub)
+apply (drule rep_lub)
 apply (simp only: thelubI [OF lub_bin_chain])
 apply (rule subsetI, rule UN_I [where a=0], simp_all)
 done
@@ -215,7 +215,7 @@ done
 subsubsection {* Principal ideals approximate all elements *}
 
 lemma compact_principal [simp]: "compact (principal a)"
-by (rule compactI2, simp add: principal_below_iff_mem_rep rep_contlub)
+by (rule compactI2, simp add: principal_below_iff_mem_rep rep_lub)
 
 text {* Construct a chain whose lub is the same as a given ideal *}
 
@@ -285,7 +285,7 @@ proof -
   have 1: "\<forall>i. enum (X i) \<preceq> enum (X (Suc i))"
     by (simp add: X_chain)
   have 2: "x = (\<Squnion>n. principal (enum (X n)))"
-    apply (simp add: eq_iff rep_contlub 1 rep_principal)
+    apply (simp add: eq_iff rep_lub 1 rep_principal)
     apply (auto, rename_tac a)
     apply (subgoal_tac "\<exists>i. a = enum i", erule exE)
     apply (rule_tac x=i in exI, simp add: X_covers)
@@ -345,7 +345,7 @@ proof -
   have chain: "chain (\<lambda>i. f (Y i))"
     by (rule chainI, simp add: f_mono Y)
   have rep_x: "rep x = (\<Union>n. {a. a \<preceq> Y n})"
-    by (simp add: x rep_contlub Y rep_principal)
+    by (simp add: x rep_lub Y rep_principal)
   have "f ` rep x <<| (\<Squnion>n. f (Y n))"
     apply (rule is_lubI)
     apply (rule ub_imageI, rename_tac a)
@@ -375,7 +375,7 @@ proof (rule beta_cfun)
      apply (rule is_ub_thelub_ex [OF lub imageI])
      apply (erule (1) subsetD [OF rep_mono])
     apply (rule is_lub_thelub_ex [OF lub ub_imageI])
-    apply (simp add: rep_contlub, clarify)
+    apply (simp add: rep_lub, clarify)
     apply (erule rev_below_trans [OF is_ub_thelub])
     apply (erule is_ub_thelub_ex [OF lub imageI])
     done
@@ -421,7 +421,7 @@ proof
   show "ideal (Rep x)"
     using Rep [of x] by simp
   show "chain Y \<Longrightarrow> Rep (\<Squnion>i. Y i) = (\<Union>i. Rep (Y i))"
-    using type below by (rule typedef_ideal_rep_contlub)
+    using type below by (rule typedef_ideal_rep_lub)
   show "Rep (principal a) = {b. b \<preceq> a}"
     by (simp add: principal Abs_inverse ideal_principal)
   show "Rep x \<subseteq> Rep y \<Longrightarrow> x \<sqsubseteq> y"
