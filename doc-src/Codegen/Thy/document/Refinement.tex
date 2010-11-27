@@ -281,16 +281,14 @@ Selecting specific code equations \emph{and} datatype constructors
 \isacommand{lemma}\isamarkupfalse%
 \ empty{\isaliteral{5F}{\isacharunderscore}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
 \ \ {\isaliteral{22}{\isachardoublequoteopen}}empty\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
-\ AQueue{\isaliteral{5F}{\isacharunderscore}}def\ empty{\isaliteral{5F}{\isacharunderscore}}def\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ AQueue{\isaliteral{5F}{\isacharunderscore}}def\ empty{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
 \ enqueue{\isaliteral{5F}{\isacharunderscore}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
 \ \ {\isaliteral{22}{\isachardoublequoteopen}}enqueue\ x\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{23}{\isacharhash}}\ xs{\isaliteral{29}{\isacharparenright}}\ ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
-\ AQueue{\isaliteral{5F}{\isacharunderscore}}def\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ AQueue{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
 \ dequeue{\isaliteral{5F}{\isacharunderscore}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
@@ -298,9 +296,8 @@ Selecting specific code equations \emph{and} datatype constructors
 \ \ \ \ {\isaliteral{28}{\isacharparenleft}}if\ xs\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ then\ {\isaliteral{28}{\isacharparenleft}}None{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ else\ dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{28}{\isacharparenleft}}rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ {\isaliteral{22}{\isachardoublequoteopen}}dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ {\isaliteral{28}{\isacharparenleft}}y\ {\isaliteral{23}{\isacharhash}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Some\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
-\ AQueue{\isaliteral{5F}{\isacharunderscore}}def\ \isacommand{by}\isamarkupfalse%
-\ simp{\isaliteral{5F}{\isacharunderscore}}all%
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ AQueue{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -309,8 +306,10 @@ Selecting specific code equations \emph{and} datatype constructors
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent For completeness, we provide a substitute for the
-  \isa{case} combinator on queues:%
+\noindent It is good style, although no absolute requirement, to
+  provide code equations for the original artefacts of the implemented
+  type, if possible; in our case, these are the datatype constructor
+  \isa{Queue} and the case combinator \isa{queue{\isaliteral{5F}{\isacharunderscore}}case}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -320,11 +319,16 @@ Selecting specific code equations \emph{and} datatype constructors
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
+\ Queue{\isaliteral{5F}{\isacharunderscore}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}Queue\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ AQueue{\isaliteral{5F}{\isacharunderscore}}def\ fun{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{5F}{\isacharunderscore}}iff{\isaliteral{29}{\isacharparenright}}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
 \ queue{\isaliteral{5F}{\isacharunderscore}}case{\isaliteral{5F}{\isacharunderscore}}AQueue\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
 \ \ {\isaliteral{22}{\isachardoublequoteopen}}queue{\isaliteral{5F}{\isacharunderscore}}case\ f\ {\isaliteral{28}{\isacharparenleft}}AQueue\ xs\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ {\isaliteral{28}{\isacharparenleft}}ys\ {\isaliteral{40}{\isacharat}}\ rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
-\ AQueue{\isaliteral{5F}{\isacharunderscore}}def\ \isacommand{by}\isamarkupfalse%
-\ simp%
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ AQueue{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -351,8 +355,10 @@ structure\ Example\ {\isaliteral{3A}{\isacharcolon}}\ sig\isanewline
 \ \ val\ null\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ bool\isanewline
 \ \ datatype\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ of\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}a\ list\isanewline
 \ \ val\ empty\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ queue\isanewline
+\ \ val\ queue\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ queue\isanewline
 \ \ val\ dequeue\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ option\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{27}{\isacharprime}}a\ queue\isanewline
 \ \ val\ enqueue\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ queue\isanewline
+\ \ val\ queue{\isaliteral{5F}{\isacharunderscore}}case\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ list\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{27}{\isacharprime}}b\isanewline
 end\ {\isaliteral{3D}{\isacharequal}}\ struct\isanewline
 \isanewline
 fun\ id\ x\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}fn\ xa\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ xa{\isaliteral{29}{\isacharparenright}}\ x{\isaliteral{3B}{\isacharsemicolon}}\isanewline
@@ -369,12 +375,16 @@ datatype\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{3D}{\isacharequ
 \isanewline
 val\ empty\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ queue\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
+fun\ queue\ x\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isanewline
 fun\ dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}SOME\ y{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ {\isaliteral{7C}{\isacharbar}}\ dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \ \ \ \ {\isaliteral{28}{\isacharparenleft}}if\ null\ xs\ then\ {\isaliteral{28}{\isacharparenleft}}NONE{\isaliteral{2C}{\isacharcomma}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \ \ else\ dequeue\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\ rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 fun\ enqueue\ x\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ AQueue\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\isanewline
+fun\ queue{\isaliteral{5F}{\isacharunderscore}}case\ f\ {\isaliteral{28}{\isacharparenleft}}AQueue\ {\isaliteral{28}{\isacharparenleft}}xs{\isaliteral{2C}{\isacharcomma}}\ ys{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ {\isaliteral{28}{\isacharparenleft}}ys\ {\isaliteral{40}{\isacharat}}\ rev\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 end{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{2A}{\isacharasterisk}}struct\ Example{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{29}{\isacharparenright}}\isanewline%
 \end{isamarkuptext}%
@@ -618,7 +628,7 @@ remove\ x\ dxs\ {\isaliteral{3D}{\isacharequal}}\ Dlist\ {\isaliteral{28}{\isach
 %
 \begin{isamarkuptext}%
 Typical data structures implemented by representations involving
-  invariants are available in the library, e.g.~theories \hyperlink{theory.Fset}{\mbox{\isa{Fset}}} and \hyperlink{theory.Mapping}{\mbox{\isa{Mapping}}} specify sets (type \isa{{\isaliteral{27}{\isacharprime}}a\ fset}) and
+  invariants are available in the library, e.g.~theories \hyperlink{theory.Cset}{\mbox{\isa{Cset}}} and \hyperlink{theory.Mapping}{\mbox{\isa{Mapping}}} specify sets (type \isa{{\isaliteral{27}{\isacharprime}}a\ Cset{\isaliteral{2E}{\isachardot}}set}) and
   key-value-mappings (type \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ mapping}) respectively;
   these can be implemented by distinct lists as presented here as
   example (theory \hyperlink{theory.Dlist}{\mbox{\isa{Dlist}}}) and red-black-trees respectively

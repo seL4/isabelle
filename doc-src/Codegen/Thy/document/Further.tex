@@ -27,20 +27,19 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isaliteral{5F}{\isacharunderscore}}code}}}} command it is possible to leave
-  out the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isaliteral{5F}{\isacharunderscore}}name}}}} part;  then code is distributed over
-  different modules, where the module name space roughly is induced
-  by the Isabelle theory name space.
+When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isaliteral{5F}{\isacharunderscore}}code}}}} command it is possible to
+  leave out the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isaliteral{5F}{\isacharunderscore}}name}}}} part; then code is
+  distributed over different modules, where the module name space
+  roughly is induced by the Isabelle theory name space.
 
-  Then sometimes the awkward situation occurs that dependencies between
-  definitions introduce cyclic dependencies between modules, which in the
-  \isa{Haskell} world leaves you to the mercy of the \isa{Haskell} implementation
-  you are using,  while for \isa{SML}/\isa{OCaml} code generation is not possible.
+  Then sometimes the awkward situation occurs that dependencies
+  between definitions introduce cyclic dependencies between modules,
+  which in the \isa{Haskell} world leaves you to the mercy of the
+  \isa{Haskell} implementation you are using, while for \isa{SML}/\isa{OCaml} code generation is not possible.
 
-  A solution is to declare module names explicitly.
-  Let use assume the three cyclically dependent
-  modules are named \emph{A}, \emph{B} and \emph{C}.
-  Then, by stating%
+  A solution is to declare module names explicitly.  Let use assume
+  the three cyclically dependent modules are named \emph{A}, \emph{B}
+  and \emph{C}.  Then, by stating%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -62,10 +61,9 @@ When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent
-  we explicitly map all those modules on \emph{ABC},
-  resulting in an ad-hoc merge of this three modules
-  at serialisation time.%
+\noindent we explicitly map all those modules on \emph{ABC},
+  resulting in an ad-hoc merge of this three modules at serialisation
+  time.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -77,8 +75,8 @@ When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{
 A technical issue comes to surface when generating code from
   specifications stemming from locale interpretation.
 
-  Let us assume a locale specifying a power operation
-  on arbitrary types:%
+  Let us assume a locale specifying a power operation on arbitrary
+  types:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -100,8 +98,8 @@ A technical issue comes to surface when generating code from
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent Inside that locale we can lift \isa{power} to exponent lists
-  by means of specification relative to that locale:%
+\noindent Inside that locale we can lift \isa{power} to exponent
+  lists by means of specification relative to that locale:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -151,9 +149,10 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
   term \isa{{\isaliteral{22}{\isachardoublequote}}power{\isaliteral{2E}{\isachardot}}powers\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}n\ {\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}{\isaliteral{2E}{\isachardot}}\ f\ {\isaliteral{5E}{\isacharcircum}}{\isaliteral{5E}{\isacharcircum}}\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
   (see \cite{isabelle-locale} for the details behind).
 
-  Fortunately, with minor effort the desired behaviour can be achieved.
-  First, a dedicated definition of the constant on which the local \isa{powers}
-  after interpretation is supposed to be mapped on:%
+  Fortunately, with minor effort the desired behaviour can be
+  achieved.  First, a dedicated definition of the constant on which
+  the local \isa{powers} after interpretation is supposed to be
+  mapped on:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -173,9 +172,9 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent In general, the pattern is \isa{c\ {\isaliteral{3D}{\isacharequal}}\ t} where \isa{c} is
-  the name of the future constant and \isa{t} the foundational term
-  corresponding to the local constant after interpretation.
+\noindent In general, the pattern is \isa{c\ {\isaliteral{3D}{\isacharequal}}\ t} where \isa{c}
+  is the name of the future constant and \isa{t} the foundational
+  term corresponding to the local constant after interpretation.
 
   The interpretation itself is enriched with an equation \isa{t\ {\isaliteral{3D}{\isacharequal}}\ c}:%
 \end{isamarkuptext}%
@@ -200,8 +199,8 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent This additional equation is trivially proved by the definition
-  itself.
+\noindent This additional equation is trivially proved by the
+  definition itself.
 
   After this setup procedure, code generation can continue as usual:%
 \end{isamarkuptext}%
@@ -240,8 +239,8 @@ If you consider imperative data structures as inevitable for a
   specific application, you should consider \emph{Imperative
   Functional Programming with Isabelle/HOL}
   \cite{bulwahn-et-al:2008:imperative}; the framework described there
-  is available in session \isa{Imperative{\isaliteral{5F}{\isacharunderscore}}HOL}, together with a short
-  primer document.%
+  is available in session \isa{Imperative{\isaliteral{5F}{\isacharunderscore}}HOL}, together with a
+  short primer document.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -280,7 +279,7 @@ Since the code generator framework not only aims to provide a nice
   \indexdef{}{ML}{Code\_Preproc.del\_functrans}\verb|Code_Preproc.del_functrans: string -> theory -> theory| \\
   \indexdef{}{ML}{Code.add\_datatype}\verb|Code.add_datatype: (string * typ) list -> theory -> theory| \\
   \indexdef{}{ML}{Code.get\_type}\verb|Code.get_type: theory -> string|\isasep\isanewline%
-\verb|    -> (string * sort) list * ((string * string list) * typ list) list| \\
+\verb|    -> ((string * sort) list * (string * ((string * sort) list * typ list)) list) * bool| \\
   \indexdef{}{ML}{Code.get\_type\_of\_constr\_or\_abstr}\verb|Code.get_type_of_constr_or_abstr: theory -> string -> (string * bool) option|
   \end{mldecls}
 
@@ -334,22 +333,19 @@ Since the code generator framework not only aims to provide a nice
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Implementing code generator applications on top
-  of the framework set out so far usually not only
-  involves using those primitive interfaces
-  but also storing code-dependent data and various
-  other things.
+Implementing code generator applications on top of the framework set
+  out so far usually not only involves using those primitive
+  interfaces but also storing code-dependent data and various other
+  things.
 
-  Due to incrementality of code generation, changes in the
-  theory's executable content have to be propagated in a
-  certain fashion.  Additionally, such changes may occur
-  not only during theory extension but also during theory
-  merge, which is a little bit nasty from an implementation
-  point of view.  The framework provides a solution
-  to this technical challenge by providing a functorial
-  data slot \verb|Code_Data|; on instantiation
-  of this functor, the following types and operations
-  are required:
+  Due to incrementality of code generation, changes in the theory's
+  executable content have to be propagated in a certain fashion.
+  Additionally, such changes may occur not only during theory
+  extension but also during theory merge, which is a little bit nasty
+  from an implementation point of view.  The framework provides a
+  solution to this technical challenge by providing a functorial data
+  slot \verb|Code_Data|; on instantiation of this functor, the
+  following types and operations are required:
 
   \medskip
   \begin{tabular}{l}
@@ -365,8 +361,8 @@ Implementing code generator applications on top
 
   \end{description}
 
-  \noindent An instance of \verb|Code_Data| provides the following
-  interface:
+  \noindent An instance of \verb|Code_Data| provides the
+  following interface:
 
   \medskip
   \begin{tabular}{l}
@@ -376,8 +372,8 @@ Implementing code generator applications on top
 
   \begin{description}
 
-  \item \isa{change} update of current data (cached!)
-    by giving a continuation.
+  \item \isa{change} update of current data (cached!) by giving a
+    continuation.
 
   \item \isa{change{\isaliteral{5F}{\isacharunderscore}}yield} update with side result.
 
