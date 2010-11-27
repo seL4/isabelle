@@ -9,7 +9,7 @@ sig
   val isabelle_tool: string -> string -> int
   val rm_tree: Path.T -> unit
   val mkdirs: Path.T -> unit
-  val mkdir_leaf: Path.T -> unit
+  val mkdir: Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
 end;
 
@@ -41,7 +41,7 @@ fun rm_tree path = system_command ("rm -r " ^ File.shell_path path);
 
 fun mkdirs path = system_command ("mkdir -p " ^ File.shell_path path);
 
-fun mkdir_leaf path = (File.check (Path.dir path); mkdirs path);  (* FIXME ? *)
+val mkdir = OS.FileSys.mkDir o File.platform_path;
 
 fun copy_dir src dst =
   if File.eq (src, dst) then ()
