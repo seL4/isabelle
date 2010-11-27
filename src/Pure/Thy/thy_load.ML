@@ -42,18 +42,19 @@ struct
 (* file identification *)
 
 local
-  val ident_cache =
-    Unsynchronized.ref (Symtab.empty: {time_stamp: string, id: string} Symtab.table);
+  val file_ident_cache =
+    Synchronized.var "file_ident_cache"
+      (Symtab.empty: {time_stamp: string, id: string} Symtab.table);
 in
 
 fun check_cache (path, time) =
-  (case Symtab.lookup (! ident_cache) path of
+  (case Symtab.lookup (Synchronized.value file_ident_cache) path of
     NONE => NONE
   | SOME {time_stamp, id} => if time_stamp = time then SOME id else NONE);
 
-fun update_cache (path, (time, id)) = CRITICAL (fn () =>
-  Unsynchronized.change ident_cache
-    (Symtab.update (path, {time_stamp = time, id = id})));
+fun update_cache (path, (time, id)) =
+  Synchronized.change file_ident_cache
+    (Symtab.update (path, {time_stamp = time, id = id}));
 
 end;
 
@@ -126,26 +127,26 @@ fun provide (src_path, path_id) =
 (* maintain default paths *)
 
 local
-  val load_path = Unsynchronized.ref [Path.current];
+  val load_path = Synchronized.var "load_path" [Path.current];
   val master_path = Unsynchronized.ref Path.current;
 in
 
-fun show_path () = map Path.implode (! load_path);
+fun show_path () = map Path.implode (Synchronized.value load_path);
 
-fun del_path s =
-  CRITICAL (fn () => Unsynchronized.change load_path (remove (op =) (Path.explode s)));
+fun del_path s = Synchronized.change load_path (remove (op =) (Path.explode s));
 
-fun add_path s =
-  CRITICAL (fn () => (del_path s; Unsynchronized.change load_path (cons (Path.explode s))));
+fun add_path s = Synchronized.change load_path (update (op =) (Path.explode s));
 
 fun path_add s =
-  CRITICAL (fn () =>
-    (del_path s; Unsynchronized.change load_path (fn path => path @ [Path.explode s])));
+  Synchronized.change load_path (fn path =>
+    let val p = Path.explode s
+    in remove (op =) p path @ [p] end);
 
-fun reset_path () = CRITICAL (fn () => load_path := [Path.current]);
+fun reset_path () = Synchronized.change load_path (K [Path.current]);
 
 fun search_path dir path =
-  distinct (op =) (dir :: (if Path.is_basic path then (! load_path) else [Path.current]));
+  distinct (op =)
+    (dir :: (if Path.is_basic path then (Synchronized.value load_path) else [Path.current]));
 
 fun set_master_path path = master_path := path;
 fun get_master_path () = ! master_path;
