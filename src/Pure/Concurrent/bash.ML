@@ -38,28 +38,41 @@ val bash_output = uninterruptible (fn restore_attributes => fn script =>
           in Synchronized.change result (K res) end
           handle _ (*sic*) => Synchronized.change result (fn Wait => Signal | res => res)));
 
+    fun terminate () =
+      let
+        val sig_test = Posix.Signal.fromWord 0w0;
+
+        fun kill_group pid s =
+          (Posix.Process.kill
+            (Posix.Process.K_GROUP (Posix.Process.wordToPid (LargeWord.fromInt pid)), s); true)
+          handle OS.SysErr _ => false;
+
+        fun kill s =
+          (case Int.fromString (File.read pid_path) of
+            NONE => true
+          | SOME pid => (kill_group pid s; kill_group pid sig_test))
+          handle IO.Io _ => true;
+
+        fun multi_kill count s =
+          count = 0 orelse
+            kill s andalso (OS.Process.sleep (seconds 0.1); multi_kill (count - 1) s);
+        val _ =
+          multi_kill 10 Posix.Signal.int andalso
+          multi_kill 10 Posix.Signal.term andalso
+          multi_kill 10 Posix.Signal.kill;
+      in () end;
+
     fun cleanup () =
-     (Simple_Thread.interrupt system_thread;
+     (terminate ();
+      Simple_Thread.interrupt system_thread;
       try File.rm script_path;
       try File.rm output_path;
       try File.rm pid_path);
-
-    fun kill n =
-      (case Int.fromString (File.read pid_path) of
-        SOME pid =>
-          Posix.Process.kill
-            (Posix.Process.K_GROUP (Posix.Process.wordToPid (LargeWord.fromInt pid)),
-              Posix.Signal.int)
-      | NONE => ())
-      handle OS.SysErr _ => ()
-        | IO.Io _ => (OS.Process.sleep (seconds 0.1); if n > 0 then kill (n - 1) else ());
   in
     let
-      (*proxy for interrupts*)
       val _ =
         restore_attributes (fn () =>
-          Synchronized.guarded_access result (fn Wait => NONE | x => SOME ((), x))) ()
-        handle exn => (if Exn.is_interrupt exn then kill 10 else (); reraise exn);
+          Synchronized.guarded_access result (fn Wait => NONE | x => SOME ((), x))) ();
 
       val output = the_default "" (try File.read output_path);
       val rc = (case Synchronized.value result of Signal => Exn.interrupt () | Result rc => rc);
