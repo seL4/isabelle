@@ -484,28 +484,28 @@ subsection {* Strictified functions *}
 default_sort pcpo
 
 definition
-  strict :: "'a \<rightarrow> 'b \<rightarrow> 'b" where
-  "strict = (\<Lambda> x. if x = \<bottom> then \<bottom> else ID)"
+  seq :: "'a \<rightarrow> 'b \<rightarrow> 'b" where
+  "seq = (\<Lambda> x. if x = \<bottom> then \<bottom> else ID)"
 
-lemma cont_strict: "cont (\<lambda>x. if x = \<bottom> then \<bottom> else y)"
+lemma cont_seq: "cont (\<lambda>x. if x = \<bottom> then \<bottom> else y)"
 unfolding cont_def is_lub_def is_ub_def ball_simps
 by (simp add: lub_eq_bottom_iff)
 
-lemma strict_conv_if: "strict\<cdot>x = (if x = \<bottom> then \<bottom> else ID)"
-unfolding strict_def by (simp add: cont_strict)
+lemma seq_conv_if: "seq\<cdot>x = (if x = \<bottom> then \<bottom> else ID)"
+unfolding seq_def by (simp add: cont_seq)
 
-lemma strict1 [simp]: "strict\<cdot>\<bottom> = \<bottom>"
-by (simp add: strict_conv_if)
+lemma seq1 [simp]: "seq\<cdot>\<bottom> = \<bottom>"
+by (simp add: seq_conv_if)
 
-lemma strict2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> strict\<cdot>x = ID"
-by (simp add: strict_conv_if)
+lemma seq2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> seq\<cdot>x = ID"
+by (simp add: seq_conv_if)
 
-lemma strict3 [simp]: "strict\<cdot>x\<cdot>\<bottom> = \<bottom>"
-by (simp add: strict_conv_if)
+lemma seq3 [simp]: "seq\<cdot>x\<cdot>\<bottom> = \<bottom>"
+by (simp add: seq_conv_if)
 
 definition
   strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b" where
-  "strictify = (\<Lambda> f x. strict\<cdot>x\<cdot>(f\<cdot>x))"
+  "strictify = (\<Lambda> f x. seq\<cdot>x\<cdot>(f\<cdot>x))"
 
 lemma strictify_conv_if: "strictify\<cdot>f\<cdot>x = (if x = \<bottom> then \<bottom> else f\<cdot>x)"
 unfolding strictify_def by simp

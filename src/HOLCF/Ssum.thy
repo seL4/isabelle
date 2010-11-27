@@ -32,22 +32,22 @@ subsection {* Definitions of constructors *}
 
 definition
   sinl :: "'a \<rightarrow> ('a ++ 'b)" where
-  "sinl = (\<Lambda> a. Abs_ssum (strict\<cdot>a\<cdot>TT, a, \<bottom>))"
+  "sinl = (\<Lambda> a. Abs_ssum (seq\<cdot>a\<cdot>TT, a, \<bottom>))"
 
 definition
   sinr :: "'b \<rightarrow> ('a ++ 'b)" where
-  "sinr = (\<Lambda> b. Abs_ssum (strict\<cdot>b\<cdot>FF, \<bottom>, b))"
+  "sinr = (\<Lambda> b. Abs_ssum (seq\<cdot>b\<cdot>FF, \<bottom>, b))"
 
-lemma sinl_ssum: "(strict\<cdot>a\<cdot>TT, a, \<bottom>) \<in> ssum"
-by (simp add: ssum_def strict_conv_if)
+lemma sinl_ssum: "(seq\<cdot>a\<cdot>TT, a, \<bottom>) \<in> ssum"
+by (simp add: ssum_def seq_conv_if)
 
-lemma sinr_ssum: "(strict\<cdot>b\<cdot>FF, \<bottom>, b) \<in> ssum"
-by (simp add: ssum_def strict_conv_if)
+lemma sinr_ssum: "(seq\<cdot>b\<cdot>FF, \<bottom>, b) \<in> ssum"
+by (simp add: ssum_def seq_conv_if)
 
-lemma Rep_ssum_sinl: "Rep_ssum (sinl\<cdot>a) = (strict\<cdot>a\<cdot>TT, a, \<bottom>)"
+lemma Rep_ssum_sinl: "Rep_ssum (sinl\<cdot>a) = (seq\<cdot>a\<cdot>TT, a, \<bottom>)"
 by (simp add: sinl_def cont_Abs_ssum Abs_ssum_inverse sinl_ssum)
 
-lemma Rep_ssum_sinr: "Rep_ssum (sinr\<cdot>b) = (strict\<cdot>b\<cdot>FF, \<bottom>, b)"
+lemma Rep_ssum_sinr: "Rep_ssum (sinr\<cdot>b) = (seq\<cdot>b\<cdot>FF, \<bottom>, b)"
 by (simp add: sinr_def cont_Abs_ssum Abs_ssum_inverse sinr_ssum)
 
 lemmas Rep_ssum_simps =
@@ -60,16 +60,16 @@ subsection {* Properties of \emph{sinl} and \emph{sinr} *}
 text {* Ordering *}
 
 lemma sinl_below [simp]: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: Rep_ssum_simps strict_conv_if)
+by (simp add: Rep_ssum_simps seq_conv_if)
 
 lemma sinr_below [simp]: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: Rep_ssum_simps strict_conv_if)
+by (simp add: Rep_ssum_simps seq_conv_if)
 
 lemma sinl_below_sinr [simp]: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
-by (simp add: Rep_ssum_simps strict_conv_if)
+by (simp add: Rep_ssum_simps seq_conv_if)
 
 lemma sinr_below_sinl [simp]: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
-by (simp add: Rep_ssum_simps strict_conv_if)
+by (simp add: Rep_ssum_simps seq_conv_if)
 
 text {* Equality *}
 
