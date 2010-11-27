@@ -2,7 +2,7 @@ theory Evaluation
 imports Setup
 begin
 
-section {* Evaluation *}
+section {* Evaluation \label{sec:evaluation} *}
 
 text {*
   Recalling \secref{sec:principle}, code generation turns a system of
