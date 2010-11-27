@@ -17,14 +17,17 @@ end;
 signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
+  eqtype file_ident
+  val pretty_file_ident: file_ident -> Pretty.T
+  val file_ident: Path.T -> file_ident option
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
   val master_directory: theory -> Path.T
-  val provide: Path.T * (Path.T * File.ident) -> theory -> theory
-  val check_file: Path.T list -> Path.T -> Path.T * File.ident
-  val check_thy: Path.T -> string -> Path.T * File.ident
+  val provide: Path.T * (Path.T * file_ident) -> theory -> theory
+  val check_file: Path.T list -> Path.T -> Path.T * file_ident
+  val check_thy: Path.T -> string -> Path.T * file_ident
   val deps_thy: Path.T -> string ->
-   {master: Path.T * File.ident, text: string, imports: string list, uses: Path.T list}
+   {master: Path.T * file_ident, text: string, imports: string list, uses: Path.T list}
   val loaded_files: theory -> Path.T list
   val all_current: theory -> bool
   val provide_file: Path.T -> theory -> theory
@@ -36,12 +39,56 @@ end;
 structure Thy_Load: THY_LOAD =
 struct
 
+(* file identification *)
+
+local
+  val ident_cache =
+    Unsynchronized.ref (Symtab.empty: {time_stamp: string, id: string} Symtab.table);
+in
+
+fun check_cache (path, time) =
+  (case Symtab.lookup (! ident_cache) path of
+    NONE => NONE
+  | SOME {time_stamp, id} => if time_stamp = time then SOME id else NONE);
+
+fun update_cache (path, (time, id)) = CRITICAL (fn () =>
+  Unsynchronized.change ident_cache
+    (Symtab.update (path, {time_stamp = time, id = id})));
+
+end;
+
+datatype file_ident = File_Ident of string;
+
+fun pretty_file_ident (File_Ident s) = Pretty.str (quote s);
+
+fun file_ident path =
+  let val physical_path = perhaps (try OS.FileSys.fullPath) (File.platform_path path) in
+    (case try (Time.toString o OS.FileSys.modTime) physical_path of
+      NONE => NONE
+    | SOME mod_time => SOME (File_Ident
+        (case getenv "ISABELLE_FILE_IDENT" of
+          "" => physical_path ^ ": " ^ mod_time
+        | cmd =>
+            (case check_cache (physical_path, mod_time) of
+              SOME id => id
+            | NONE =>
+                let
+                  val (id, rc) =  (*potentially slow*)
+                    bash_output
+                      ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ File.shell_quote physical_path);
+                in
+                  if id <> "" andalso rc = 0 then (update_cache (physical_path, (mod_time, id)); id)
+                  else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)
+                end))))
+  end;
+
+
 (* manage source files *)
 
 type files =
- {master_dir: Path.T,                                 (*master directory of theory source*)
-  required: Path.T list,                              (*source path*)
-  provided: (Path.T * (Path.T * File.ident)) list};   (*source path, physical path, identifier*)
+ {master_dir: Path.T,  (*master directory of theory source*)
+  required: Path.T list,  (*source path*)
+  provided: (Path.T * (Path.T * file_ident)) list};  (*source path, physical path, identifier*)
 
 fun make_files (master_dir, required, provided): files =
  {master_dir = master_dir, required = required, provided = provided};
@@ -115,7 +162,7 @@ fun get_file dirs src_path =
   in
     dirs |> get_first (fn dir =>
       let val full_path = File.full_path (Path.append dir path) in
-        (case File.ident full_path of
+        (case file_ident full_path of
           NONE => NONE
         | SOME id => SOME (full_path, id))
       end)
