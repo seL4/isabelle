@@ -94,7 +94,7 @@ fun display_graph gr =
     val _ = writeln "Displaying graph ...";
     val path = File.tmp_path (Path.explode "tmp.graph");
     val _ = write_graph gr path;
-    val _ = File.isabelle_tool "browser" ("-c " ^ File.shell_path path ^ " &");
+    val _ = Isabelle_System.isabelle_tool "browser" ("-c " ^ File.shell_path path ^ " &");
   in () end;
 
 
@@ -344,7 +344,7 @@ fun isabelle_browser graph =
     val args = "-o " ^ File.shell_path pdf_path ^ " " ^ File.shell_path gr_path;
   in
     write_graph graph gr_path;
-    if File.isabelle_tool "browser" args <> 0 orelse
+    if Isabelle_System.isabelle_tool "browser" args <> 0 orelse
       not (File.exists eps_path) orelse not (File.exists pdf_path)
     then error "Failed to prepare dependency graph"
     else
@@ -384,9 +384,9 @@ fun finish () = CRITICAL (fn () =>
       else NONE;
 
     fun prepare_sources cp path =
-     (File.mkdir path;
-      if cp then File.copy_dir document_path path else ();
-      File.isabelle_tool "latex"
+     (Isabelle_System.mkdirs path;
+      if cp then Isabelle_System.copy_dir document_path path else ();
+      Isabelle_System.isabelle_tool "latex"
         ("-o sty " ^ File.shell_path (Path.append path (Path.basic "root.tex")));
       (case opt_graphs of NONE => () | SOME (pdf, eps) =>
         (File.write (Path.append path graph_pdf_path) pdf;
@@ -395,14 +395,14 @@ fun finish () = CRITICAL (fn () =>
       List.app (finish_tex path) thys);
   in
     if info then
-     (File.mkdir (Path.append html_prefix session_path);
+     (Isabelle_System.mkdirs (Path.append html_prefix session_path);
       File.write_buffer (Path.append html_prefix pre_index_path) (index_buffer html_index);
       File.write (Path.append html_prefix session_entries_path) "";
       create_index html_prefix;
       if length path > 1 then update_index parent_html_prefix name else ();
       (case readme of NONE => () | SOME path => File.copy path html_prefix);
       write_graph sorted_graph (Path.append html_prefix graph_path);
-      File.isabelle_tool "browser" "-b";
+      Isabelle_System.isabelle_tool "browser" "-b";
       File.copy (Path.explode "~~/lib/browser/GraphBrowser.jar") html_prefix;
       List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
         (HTML.applet_pages name (Url.File index_path, name));
@@ -509,11 +509,11 @@ fun drafts doc_format src_paths =
 
     val doc_path = File.tmp_path document_path;
     val result_path = Path.append doc_path Path.parent;
-    val _ = File.mkdir doc_path;
+    val _ = Isabelle_System.mkdirs doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
     val _ = File.copy (Path.explode "~~/lib/texinputs/draft.tex") root_path;
-    val _ = File.isabelle_tool "latex" ("-o sty " ^ File.shell_path root_path);
-    val _ = File.isabelle_tool "latex" ("-o syms " ^ File.shell_path root_path);
+    val _ = Isabelle_System.isabelle_tool "latex" ("-o sty " ^ File.shell_path root_path);
+    val _ = Isabelle_System.isabelle_tool "latex" ("-o syms " ^ File.shell_path root_path);
 
     fun known name =
       let val ss = split_lines (File.read (Path.append doc_path (Path.basic name)))

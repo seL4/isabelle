@@ -13,13 +13,9 @@ sig
   val pwd: unit -> Path.T
   val full_path: Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
-  val isabelle_tool: string -> string -> int
   val exists: Path.T -> bool
   val check: Path.T -> unit
   val rm: Path.T -> unit
-  val rm_tree: Path.T -> unit
-  val mkdir: Path.T -> unit
-  val mkdir_leaf: Path.T -> unit
   val open_input: (TextIO.instream -> 'a) -> Path.T -> 'a
   val open_output: (TextIO.outstream -> 'a) -> Path.T -> 'a
   val open_append: (TextIO.outstream -> 'a) -> Path.T -> 'a
@@ -32,7 +28,6 @@ sig
   val write_buffer: Path.T -> Buffer.T -> unit
   val eq: Path.T * Path.T -> bool
   val copy: Path.T -> Path.T -> unit
-  val copy_dir: Path.T -> Path.T -> unit
 end;
 
 structure File: FILE =
@@ -62,25 +57,6 @@ fun tmp_path path =
   Path.append (Path.variable "ISABELLE_TMP") (Path.base path);
 
 
-(* system commands *)
-
-fun isabelle_tool name args =
-  (case space_explode ":" (getenv "ISABELLE_TOOLS") |> get_first (fn dir =>
-      let val path = dir ^ "/" ^ name in
-        if can OS.FileSys.modTime path andalso
-          not (OS.FileSys.isDir path) andalso
-          OS.FileSys.access (path, [OS.FileSys.A_READ, OS.FileSys.A_EXEC])
-        then SOME path
-        else NONE
-      end handle OS.SysErr _ => NONE) of
-    SOME path => bash (shell_quote path ^ " " ^ args)
-  | NONE => (writeln ("Unknown Isabelle tool: " ^ name); 2));
-
-fun system_command cmd =
-  if bash cmd <> 0 then error ("System command failed: " ^ cmd)
-  else ();
-
-
 (* directory entries *)
 
 val exists = can OS.FileSys.modTime o platform_path;
@@ -90,12 +66,6 @@ fun check path =
   else error ("No such file or directory: " ^ quote (Path.implode path));
 
 val rm = OS.FileSys.remove o platform_path;
-
-fun rm_tree path = system_command ("rm -r " ^ shell_path path);
-
-fun mkdir path = system_command ("mkdir -p " ^ shell_path path);
-
-fun mkdir_leaf path = (check (Path.dir path); mkdir path);
 
 fun is_dir path =
   the_default false (try OS.FileSys.isDir (platform_path path));
@@ -162,9 +132,5 @@ fun copy src dst =
   else
     let val target = if is_dir dst then Path.append dst (Path.base src) else dst
     in write target (read src) end;
-
-fun copy_dir src dst =
-  if eq (src, dst) then ()
-  else (system_command ("cp -r -f " ^ shell_path src ^ "/. " ^ shell_path dst); ());
 
 end;

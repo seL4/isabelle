@@ -188,6 +188,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Syntax/syntax.ML					\
   Syntax/type_ext.ML					\
   System/isabelle_process.ML				\
+  System/isabelle_system.ML				\
   System/isar.ML					\
   System/session.ML					\
   Thy/html.ML						\

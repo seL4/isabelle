@@ -233,6 +233,7 @@ use "Isar/proof_node.ML";
 use "Isar/toplevel.ML";
 
 (*theory documents*)
+use "System/isabelle_system.ML";
 use "Thy/present.ML";
 use "Thy/term_style.ML";
 use "Thy/thy_output.ML";

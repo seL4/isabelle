@@ -291,11 +291,11 @@ val _ = ML_Antiquote.value "Isar.goal" (Scan.succeed "Isar_Cmd.diag_goal ()");
 
 fun display_drafts files = Toplevel.imperative (fn () =>
   let val outfile = File.shell_path (Present.drafts (getenv "ISABELLE_DOC_FORMAT") files)
-  in File.isabelle_tool "display" ("-c " ^ outfile ^ " &"); () end);
+  in Isabelle_System.isabelle_tool "display" ("-c " ^ outfile ^ " &"); () end);
 
 fun print_drafts files = Toplevel.imperative (fn () =>
   let val outfile = File.shell_path (Present.drafts "ps" files)
-  in File.isabelle_tool "print" ("-c " ^ outfile); () end);
+  in Isabelle_System.isabelle_tool "print" ("-c " ^ outfile); () end);
 
 
 (* print parts of theory and proof context *)
