@@ -105,9 +105,9 @@ subsection {* Match functions for built-in types *}
 default_sort pcpo
 
 definition
-  match_UU :: "'a \<rightarrow> 'c match \<rightarrow> 'c match"
+  match_bottom :: "'a \<rightarrow> 'c match \<rightarrow> 'c match"
 where
-  "match_UU = (\<Lambda> x k. seq\<cdot>x\<cdot>fail)"
+  "match_bottom = (\<Lambda> x k. seq\<cdot>x\<cdot>fail)"
 
 definition
   match_Pair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"
@@ -149,10 +149,10 @@ definition
 where
   "match_FF = (\<Lambda> x k. If x then fail else k)"
 
-lemma match_UU_simps [simp]:
-  "match_UU\<cdot>\<bottom>\<cdot>k = \<bottom>"
-  "x \<noteq> \<bottom> \<Longrightarrow> match_UU\<cdot>x\<cdot>k = fail"
-by (simp_all add: match_UU_def)
+lemma match_bottom_simps [simp]:
+  "match_bottom\<cdot>\<bottom>\<cdot>k = \<bottom>"
+  "x \<noteq> \<bottom> \<Longrightarrow> match_bottom\<cdot>x\<cdot>k = fail"
+by (simp_all add: match_bottom_def)
 
 lemma match_Pair_simps [simp]:
   "match_Pair\<cdot>(x, y)\<cdot>k = k\<cdot>x\<cdot>y"
@@ -244,7 +244,7 @@ setup {*
       (@{const_name ONE}, @{const_name match_ONE}),
       (@{const_name TT}, @{const_name match_TT}),
       (@{const_name FF}, @{const_name match_FF}),
-      (@{const_name UU}, @{const_name match_UU}) ]
+      (@{const_name UU}, @{const_name match_bottom}) ]
 *}
 
 hide_const (open) succeed fail run
