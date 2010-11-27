@@ -742,16 +742,16 @@ with
 
 fun empty_cert thy c = 
   let
-    val raw_ty = const_typ thy c;
-    val tvars = Term.add_tvar_namesT raw_ty [];
-    val tvars' = case AxClass.class_of_param thy c
-     of SOME class => [TFree (Name.aT, [class])]
-      | NONE =>  (case get_type_of_constr_or_abstr thy c
-         of SOME (tyco, _) => map TFree ((fst o the)
-              (AList.lookup (op =) ((snd o fst o get_type thy) tyco) c))
-          | NONE => Name.invent_list [] Name.aT (length tvars)
-              |> map (fn v => TFree (v, [])));
-    val ty = typ_subst_TVars (tvars ~~ tvars') raw_ty;
+    val raw_ty = Logic.unvarifyT_global (const_typ thy c);
+    val (vs, _) = typscheme thy (c, raw_ty);
+    val sortargs = case AxClass.class_of_param thy c
+     of SOME class => [[class]]
+      | NONE => (case get_type_of_constr_or_abstr thy c
+         of SOME (tyco, _) => (map snd o fst o the)
+              (AList.lookup (op =) ((snd o fst o get_type thy) tyco) c)
+          | NONE => replicate (length vs) []);
+    val the_sort = the o AList.lookup (op =) (map fst vs ~~ sortargs);
+    val ty = map_type_tfree (fn (v, _) => TFree (v, the_sort v)) raw_ty
     val chead = build_head thy (c, ty);
   in Equations (Thm.weaken chead Drule.dummy_thm, []) end;
 
