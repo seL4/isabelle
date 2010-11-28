@@ -12,7 +12,7 @@ fi
 
 ## global settings
 
-ALL_LOGICS="Pure FOL HOL ZF CCL CTT Cube FOLP HOLCF LCF Sequents"
+ALL_LOGICS="Pure FOL HOL ZF CCL CTT Cube FOLP LCF Sequents"
 
 
 ## settings
