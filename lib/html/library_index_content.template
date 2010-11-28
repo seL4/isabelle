@@ -8,9 +8,11 @@
         that of the <a href="http://www.cl.cam.ac.uk/Research/HVG/HOL/">HOL System</a>.
         </li>
 
-        <li><a href="HOLCF/index.html">HOLCF (Higher-Order Logic of Computable Functions)</a>
-        adds Scott's Logic for Computable Functions (domain theory) to HOL.
-        </li>
+        <ul>
+          <li><a href="HOL/HOLCF/index.html">HOLCF (Higher-Order Logic of Computable Functions)</a>
+          formalizes a model of Scott's Logic for Computable Functions (domain theory) in HOL.
+          </li>
+        </ul>
       </ul>
     </li>
   </ul>
