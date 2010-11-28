@@ -140,17 +140,17 @@ fun eval verbose pos toks =
           else ();
 
         fun apply_fix (a, b) =
-          (display PolyML.NameSpace.displayFix (a, b); #enterFix space (a, b));
+          (#enterFix space (a, b); display PolyML.NameSpace.displayFix (a, b));
         fun apply_type (a, b) =
-          (display PolyML.NameSpace.displayType (b, depth, space); #enterType space (a, b));
+          (#enterType space (a, b); display PolyML.NameSpace.displayType (b, depth, space));
         fun apply_sig (a, b) =
-          (display PolyML.NameSpace.displaySig (b, depth, space); #enterSig space (a, b));
+          (#enterSig space (a, b); display PolyML.NameSpace.displaySig (b, depth, space));
         fun apply_struct (a, b) =
-          (display PolyML.NameSpace.displayStruct (b, depth, space); #enterStruct space (a, b));
+          (#enterStruct space (a, b); display PolyML.NameSpace.displayStruct (b, depth, space));
         fun apply_funct (a, b) =
-          (display PolyML.NameSpace.displayFunct (b, depth, space); #enterFunct space (a, b));
+          (#enterFunct space (a, b); display PolyML.NameSpace.displayFunct (b, depth, space));
         fun apply_val (a, b) =
-          (display PolyML.NameSpace.displayVal (b, depth, space); #enterVal space (a, b));
+          (#enterVal space (a, b); display PolyML.NameSpace.displayVal (b, depth, space));
       in
         List.app apply_fix fixes;
         List.app apply_type types;
