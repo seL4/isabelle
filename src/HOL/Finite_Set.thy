@@ -274,7 +274,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma finite_Diff [simp]: "finite A ==> finite (A - B)"
+lemma finite_Diff [simp, intro]: "finite A ==> finite (A - B)"
 by (rule Diff_subset [THEN finite_subset])
 
 lemma finite_Diff2 [simp]:
@@ -303,7 +303,7 @@ lemma finite_Diff_insert [iff]: "finite (A - insert a B) = finite (A - B)"
 
 text {* Image and Inverse Image over Finite Sets *}
 
-lemma finite_imageI[simp]: "finite F ==> finite (h ` F)"
+lemma finite_imageI[simp, intro]: "finite F ==> finite (h ` F)"
   -- {* The image of a finite set is finite. *}
   by (induct set: finite) simp_all
 
@@ -372,8 +372,9 @@ lemma finite_vimage_iff: "bij h \<Longrightarrow> finite (h -` F) \<longleftrigh
 
 text {* The finite UNION of finite sets *}
 
-lemma finite_UN_I: "finite A ==> (!!a. a:A ==> finite (B a)) ==> finite (UN a:A. B a)"
-  by (induct set: finite) simp_all
+lemma finite_UN_I[intro]:
+  "finite A ==> (!!a. a:A ==> finite (B a)) ==> finite (UN a:A. B a)"
+by (induct set: finite) simp_all
 
 text {*
   Strengthen RHS to
@@ -385,7 +386,7 @@ text {*
 
 lemma finite_UN [simp]:
   "finite A ==> finite (UNION A B) = (ALL x:A. finite (B x))"
-by (blast intro: finite_UN_I finite_subset)
+by (blast intro: finite_subset)
 
 lemma finite_Collect_bex[simp]: "finite A \<Longrightarrow>
   finite{x. EX y:A. Q x y} = (ALL y:A. finite{x. Q x y})"
@@ -428,9 +429,9 @@ by(subst UNIV_Plus_UNIV[symmetric])(rule finite_Plus_iff)
 
 text {* Sigma of finite sets *}
 
-lemma finite_SigmaI [simp]:
+lemma finite_SigmaI [simp, intro]:
     "finite A ==> (!!a. a:A ==> finite (B a)) ==> finite (SIGMA a:A. B a)"
-  by (unfold Sigma_def) (blast intro!: finite_UN_I)
+  by (unfold Sigma_def) blast
 
 lemma finite_cartesian_product: "[| finite A; finite B |] ==>
     finite (A <*> B)"
@@ -2266,7 +2267,7 @@ lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME num
 apply (induct set: finite)
  apply (simp_all add: Pow_insert)
 apply (subst card_Un_disjoint, blast)
-  apply (blast intro: finite_imageI, blast)
+  apply (blast, blast)
 apply (subgoal_tac "inj_on (insert x) (Pow F)")
  apply (simp add: card_image Pow_insert)
 apply (unfold inj_on_def)

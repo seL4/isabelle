@@ -339,7 +339,7 @@ lemma inf_img_fin_dom:
   shows "\<exists>y \<in> f`A. infinite (f -` {y})"
 proof (rule ccontr)
   assume "\<not> ?thesis"
-  with img have "finite (UN y:f`A. f -` {y})" by (blast intro: finite_UN_I)
+  with img have "finite (UN y:f`A. f -` {y})" by blast
   moreover have "A \<subseteq> (UN y:f`A. f -` {y})" by auto
   moreover note dom
   ultimately show False by (simp add: infinite_super)

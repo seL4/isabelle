@@ -130,7 +130,7 @@ lemma (in LCD) foldSetD_determ_aux:
    apply (rule Suc_le_mono [THEN subst])
    apply (simp add: card_Suc_Diff1)
   apply (rule_tac A1 = "Aa - {xb}" in finite_imp_foldSetD [THEN exE])
-     apply (blast intro: foldSetD_imp_finite finite_Diff)
+     apply (blast intro: foldSetD_imp_finite)
     apply best
    apply assumption
   apply (frule (1) Diff1_foldSetD)
