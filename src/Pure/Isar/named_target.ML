@@ -38,7 +38,7 @@ val peek = Option.map (fn Target args => args) o Data.get;
 
 (* generic declarations *)
 
-fun locale_declaration locale { syntax, pervasive } decl lthy =
+fun locale_declaration locale {syntax, pervasive} decl lthy =
   let
     val add = if syntax then Locale.add_syntax_declaration else Locale.add_declaration;
     val locale_decl = Morphism.transform (Local_Theory.target_morphism lthy) decl;
@@ -48,9 +48,9 @@ fun locale_declaration locale { syntax, pervasive } decl lthy =
     |> Local_Theory.target (add locale locale_decl)
   end;
 
-fun target_declaration (Target {target, ...}) { syntax, pervasive } =
+fun target_declaration (Target {target, ...}) {syntax, pervasive} =
   if target = "" then Generic_Target.theory_declaration
-  else locale_declaration target { syntax = syntax, pervasive = pervasive };
+  else locale_declaration target {syntax = syntax, pervasive = pervasive};
 
 
 (* consts in locales *)
@@ -81,7 +81,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
   end;
 
 fun locale_const_declaration (ta as Target {target, ...}) prmode arg =
-  locale_declaration target { syntax = true, pervasive = false } (locale_const ta prmode arg);
+  locale_declaration target {syntax = true, pervasive = false} (locale_const ta prmode arg);
 
 
 (* define *)
@@ -106,7 +106,7 @@ fun target_foundation (ta as Target {is_locale, is_class, ...}) =
 
 (* notes *)
 
-fun locale_notes locale kind global_facts local_facts lthy = 
+fun locale_notes locale kind global_facts local_facts lthy =
   let
     val global_facts' = Attrib.map_facts (K I) global_facts;
     val local_facts' = Element.facts_map
@@ -119,7 +119,7 @@ fun locale_notes locale kind global_facts local_facts lthy =
 
 fun target_notes (Target {target, is_locale, ...}) =
   if is_locale then locale_notes target
-    else fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts;
+  else fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts;
 
 
 (* abbrev *)
@@ -156,10 +156,11 @@ fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
-    val body_elems =  if not is_locale then []
+    val body_elems =
+      if not is_locale then []
       else if null elems then [Pretty.block target_name]
       else [Pretty.block (Pretty.fbreaks (Pretty.block (target_name @ [Pretty.str " ="]) ::
-        map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))]
+        map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))];
   in
     Pretty.block [Pretty.command "theory", Pretty.brk 1,
       Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] :: body_elems
@@ -185,9 +186,9 @@ fun init target thy =
         notes = Generic_Target.notes (target_notes ta),
         abbrev = Generic_Target.abbrev (target_abbrev ta),
         declaration = fn pervasive => target_declaration ta
-          { syntax = false, pervasive = pervasive },
+          {syntax = false, pervasive = pervasive},
         syntax_declaration = fn pervasive => target_declaration ta
-          { syntax = true, pervasive = pervasive },
+          {syntax = true, pervasive = pervasive},
         pretty = pretty ta,
         exit = Local_Theory.target_of}
   end;

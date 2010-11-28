@@ -41,7 +41,8 @@ fun rm_tree path = system_command ("rm -r " ^ File.shell_path path);
 
 fun mkdirs path = system_command ("mkdir -p " ^ File.shell_path path);
 
-val mkdir = OS.FileSys.mkDir o File.platform_path;
+fun mkdir path =
+  if File.is_dir path then () else OS.FileSys.mkDir (File.platform_path path);
 
 fun copy_dir src dst =
   if File.eq (src, dst) then ()

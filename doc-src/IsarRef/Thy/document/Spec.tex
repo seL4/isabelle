@@ -273,11 +273,12 @@ Arbitrary operations on the background context may be wrapped-up as
 
   \begin{matharray}{rcl}
     \indexdef{}{command}{declaration}\hypertarget{command.declaration}{\hyperlink{command.declaration}{\mbox{\isa{\isacommand{declaration}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{syntax\_declaration}\hypertarget{command.syntax-declaration}{\hyperlink{command.syntax-declaration}{\mbox{\isa{\isacommand{syntax{\isaliteral{5F}{\isacharunderscore}}declaration}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{declare}\hypertarget{command.declare}{\hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   \begin{rail}
-    'declaration' ('(pervasive)')? target? text
+    ('declaration' | 'syntax_declaration') ('(pervasive)')? target? text
     ;
     'declare' target? (thmrefs + 'and')
     ;
@@ -294,6 +295,9 @@ Arbitrary operations on the background context may be wrapped-up as
   If the \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}pervasive{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} option is given, the corresponding
   declaration is applied to all possible contexts involved, including
   the global background theory.
+
+  \item \hyperlink{command.syntax-declaration}{\mbox{\isa{\isacommand{syntax{\isaliteral{5F}{\isacharunderscore}}declaration}}}} is similar to \hyperlink{command.declaration}{\mbox{\isa{\isacommand{declaration}}}}, but is meant to affect only ``syntactic'' tools by
+  convention (such as notation and type-checking information).
 
   \item \hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}}~\isa{thms} declares theorems to the
   current local theory context.  No theorem binding is involved here,

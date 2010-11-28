@@ -48,15 +48,16 @@ structure ImprovableSyntax = Proof_Data
 );
 
 fun map_improvable_syntax f = ImprovableSyntax.map (fn { primary_constraints,
-  secondary_constraints, improve, subst, consider_abbrevs, unchecks, passed } => let
+    secondary_constraints, improve, subst, consider_abbrevs, unchecks, passed } =>
+  let
     val (((primary_constraints', secondary_constraints'),
       (((improve', subst'), consider_abbrevs'), unchecks')), passed')
         = f (((primary_constraints, secondary_constraints),
             (((improve, subst), consider_abbrevs), unchecks)), passed)
   in { primary_constraints = primary_constraints', secondary_constraints = secondary_constraints',
     improve = improve', subst = subst', consider_abbrevs = consider_abbrevs',
-    unchecks = unchecks', passed = passed'
-  } end);
+    unchecks = unchecks', passed = passed' }
+  end);
 
 val mark_passed = (map_improvable_syntax o apsnd) (K true);
 
@@ -80,7 +81,8 @@ fun improve_term_check ts ctxt =
           | NONE => NONE)
         | _ => NONE) t;
     val ts'' = if is_abbrev then ts' else map apply_subst ts';
-  in if eq_list (op aconv) (ts, ts'') andalso passed_or_abbrev then NONE else
+  in
+    if eq_list (op aconv) (ts, ts'') andalso passed_or_abbrev then NONE else
     if passed_or_abbrev then SOME (ts'', ctxt)
     else SOME (ts'', ctxt
       |> fold (ProofContext.add_const_constraint o apsnd SOME) secondary_constraints
@@ -166,9 +168,11 @@ fun pretty lthy =
 fun conclude lthy =
   let
     val overloading = get_overloading lthy;
-    val _ = if null overloading then () else
-      error ("Missing definition(s) for parameter(s) " ^ commas (map (quote
-        o Syntax.string_of_term lthy o Const o fst) overloading));
+    val _ =
+      if null overloading then ()
+      else
+        error ("Missing definition(s) for parameter(s) " ^ commas (map (quote
+          o Syntax.string_of_term lthy o Const o fst) overloading));
   in lthy end;
 
 fun gen_overloading prep_const raw_overloading thy =
