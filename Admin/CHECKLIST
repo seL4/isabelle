@@ -1,9 +1,9 @@
 Checklist for official releases
 ===============================
 
-- test polyml-5.3.0, polyml-5.2.1, polyml-5.2, polyml-5.1, polyml-5.0, smlnj;
+- test polyml-5.4.0, polyml-5.3.0, polyml-5.2.1, smlnj;
 
-- test Proof General;
+- test Proof General 3.7.1.1, 4.0;
 
 - test Scala wrapper;
 
