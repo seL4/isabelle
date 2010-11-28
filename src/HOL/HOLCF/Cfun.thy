@@ -481,12 +481,19 @@ definition
   seq :: "'a \<rightarrow> 'b \<rightarrow> 'b" where
   "seq = (\<Lambda> x. if x = \<bottom> then \<bottom> else ID)"
 
-lemma cont_seq: "cont (\<lambda>x. if x = \<bottom> then \<bottom> else y)"
-unfolding cont_def is_lub_def is_ub_def ball_simps
-by (simp add: lub_eq_bottom_iff)
+lemma cont2cont_if_bottom [cont2cont, simp]:
+  assumes f: "cont (\<lambda>x. f x)" and g: "cont (\<lambda>x. g x)"
+  shows "cont (\<lambda>x. if f x = \<bottom> then \<bottom> else g x)"
+proof (rule cont_apply [OF f])
+  show "\<And>x. cont (\<lambda>y. if y = \<bottom> then \<bottom> else g x)"
+    unfolding cont_def is_lub_def is_ub_def ball_simps
+    by (simp add: lub_eq_bottom_iff)
+  show "\<And>y. cont (\<lambda>x. if y = \<bottom> then \<bottom> else g x)"
+    by (simp add: g)
+qed
 
 lemma seq_conv_if: "seq\<cdot>x = (if x = \<bottom> then \<bottom> else ID)"
-unfolding seq_def by (simp add: cont_seq)
+unfolding seq_def by simp
 
 lemma seq1 [simp]: "seq\<cdot>\<bottom> = \<bottom>"
 by (simp add: seq_conv_if)
