@@ -27,6 +27,7 @@ Checklist for official releases
 
 - maintain Logics:
     build
+    etc/components
     lib/html/library_index_content.template
 
 

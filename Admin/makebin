@@ -101,7 +101,7 @@ if [ -n "$DO_LIBRARY" ]; then
   ./build -bait
 else
   ./build -b -m HOL-Nominal HOL
-  ./build -b HOLCF
+  ./build -b -m HOLCF HOL
   ./build -b ZF
 fi
 
