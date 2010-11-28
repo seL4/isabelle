@@ -162,7 +162,8 @@ val properties =
 in
 
 val antiq =
-  Parse.!!! (Parse.position Parse.xname -- properties -- Args.parse --| Scan.ahead Parse.eof)
+  Parse.!!!
+    (Parse.position Parse.liberal_name -- properties -- Args.parse --| Scan.ahead Parse.eof)
   >> (fn (((x, pos), y), z) => (y, Args.src ((x, z), pos)));
 
 end;

@@ -63,7 +63,7 @@ subsection {* Header and sectioning *}
 text {* Isabelle source files have a certain standardized header
   format (with precise spacing) that follows ancient traditions
   reaching back to the earliest versions of the system by Larry
-  Paulson.  See @{"file" "~~/src/Pure/thm.ML"}, for example.
+  Paulson.  See @{file "~~/src/Pure/thm.ML"}, for example.
 
   The header includes at least @{verbatim Title} and @{verbatim
   Author} entries, followed by a prose description of the purpose of
@@ -1282,7 +1282,7 @@ text %mlref {*
   integer type --- overloading of SML97 is disabled.
 
   Structure @{ML_struct IntInf} of SML97 is obsolete and superseded by
-  @{ML_struct Int}.  Structure @{ML_struct Integer} in @{"file"
+  @{ML_struct Int}.  Structure @{ML_struct Integer} in @{file
   "~~/src/Pure/General/integer.ML"} provides some additional
   operations.
 
@@ -1330,7 +1330,7 @@ text %mlref {*
 
 text {* Apart from @{ML Option.map} most operations defined in
   structure @{ML_struct Option} are alien to Isabelle/ML.  The
-  operations shown above are defined in @{"file"
+  operations shown above are defined in @{file
   "~~/src/Pure/General/basics.ML"}, among others.  *}
 
 
@@ -1360,7 +1360,7 @@ text %mlref {*
 
   \item @{ML member}, @{ML insert}, @{ML remove}, @{ML update} treat
   lists as a set-like container that maintains the order of elements.
-  See @{"file" "~~/src/Pure/library.ML"} for the full specifications
+  See @{file "~~/src/Pure/library.ML"} for the full specifications
   (written in ML).  There are some further derived operations like
   @{ML union} or @{ML inter}.
 
@@ -1407,7 +1407,7 @@ text {* Here the first list is treated conservatively: only the new
 
   This way of merging lists is typical for context data
   (\secref{sec:context-data}).  See also @{ML merge} as defined in
-  @{"file" "~~/src/Pure/library.ML"}.
+  @{file "~~/src/Pure/library.ML"}.
 *}
 
 
@@ -1448,7 +1448,7 @@ text {*
 
   Association lists are adequate as simple and light-weight
   implementation of finite mappings in many practical situations.  A
-  more heavy-duty table structure is defined in @{"file"
+  more heavy-duty table structure is defined in @{file
   "~~/src/Pure/General/table.ML"}; that version scales easily to
   thousands or millions of elements.
 *}
@@ -1739,7 +1739,7 @@ text %mlref {*
   \end{description}
 
   There are some further variants of the @{ML
-  Synchronized.guarded_access} combinator, see @{"file"
+  Synchronized.guarded_access} combinator, see @{file
   "~~/src/Pure/Concurrent/synchronized.ML"} for details.
 *}
 
@@ -1766,7 +1766,7 @@ ML {*
   @{assert} (a <> b);
 *}
 
-text {* \medskip See @{"file" "~~/src/Pure/Concurrent/mailbox.ML"} how
+text {* \medskip See @{file "~~/src/Pure/Concurrent/mailbox.ML"} how
   to implement a mailbox as synchronized variable over a purely
   functional queue. *}
 

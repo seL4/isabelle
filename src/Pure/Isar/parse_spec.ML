@@ -37,10 +37,7 @@ struct
 
 (* theorem specifications *)
 
-val attrib =
-  Parse.position ((Parse.keyword_ident_or_symbolic || Parse.xname) -- Parse.!!! Args.parse)
-  >> Args.src;
-
+val attrib = Parse.position (Parse.liberal_name -- Parse.!!! Args.parse) >> Args.src;
 val attribs = Parse.$$$ "[" |-- Parse.list attrib --| Parse.$$$ "]";
 val opt_attribs = Scan.optional attribs [];
 

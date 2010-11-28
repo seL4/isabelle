@@ -63,6 +63,7 @@ sig
   val xname: xstring parser
   val text: string parser
   val path: Path.T parser
+  val liberal_name: xstring parser
   val parname: string parser
   val parbinding: binding parser
   val sort: string parser
@@ -233,6 +234,8 @@ val binding = position name >> Binding.make;
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 val path = group "file name/path specification" name >> Path.explode;
+
+val liberal_name = keyword_ident_or_symbolic || xname;
 
 val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
 val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Binding.empty;

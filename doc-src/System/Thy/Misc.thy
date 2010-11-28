@@ -219,7 +219,7 @@ subsubsection {* Examples *}
 text {*
   Refer to the @{verbatim IsaMakefile}s of the Isabelle distribution's
   object-logics as a model for your own developments.  For example,
-  see @{"file" "~~/src/FOL/IsaMakefile"}.
+  see @{file "~~/src/FOL/IsaMakefile"}.
 *}
 
 
@@ -324,8 +324,8 @@ text {*
   sub-chunks separated by @{text "\<^bold>Y"}.  Markup chunks start
   with an empty sub-chunk, and a second empty sub-chunk indicates
   close of an element.  Any other non-empty chunk consists of plain
-  text.  For example, see @{"file" "~~/src/Pure/General/yxml.ML"} or
-  @{"file" "~~/src/Pure/General/yxml.scala"}.
+  text.  For example, see @{file "~~/src/Pure/General/yxml.ML"} or
+  @{file "~~/src/Pure/General/yxml.scala"}.
 
   YXML documents may be detected quickly by checking that the first
   two characters are @{text "\<^bold>X\<^bold>Y"}.

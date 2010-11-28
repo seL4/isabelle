@@ -53,7 +53,7 @@ text {*
   their shell startup scripts, before being able to actually run the
   program. Isabelle requires none such administrative chores of its
   end-users --- the executables can be invoked straight away.
-  Occasionally, users would still want to put the @{"file"
+  Occasionally, users would still want to put the @{file
   "$ISABELLE_HOME/bin"} directory into their shell's search path, but
   this is not required.
 *}
@@ -78,10 +78,10 @@ text {* Isabelle executables need to be run within a proper settings
   note that the Isabelle executables either have to be run from their
   original location in the distribution directory, or via the
   executable objects created by the @{tool install} utility.  Symbolic
-  links are admissible, but a plain copy of the @{"file"
+  links are admissible, but a plain copy of the @{file
   "$ISABELLE_HOME/bin"} files will not work!
 
-  \item The file @{"file" "$ISABELLE_HOME/etc/settings"} is run as a
+  \item The file @{file "$ISABELLE_HOME/etc/settings"} is run as a
   @{executable_ref bash} shell script with the auto-export option for
   variables enabled.
   
@@ -99,10 +99,10 @@ text {* Isabelle executables need to be run within a proper settings
   "$HOME/.isabelle/IsabelleXXXX"}.
   
   Thus individual users may override the site-wide defaults.  See also
-  file @{"file" "$ISABELLE_HOME/etc/user-settings.sample"} in the
+  file @{file "$ISABELLE_HOME/etc/user-settings.sample"} in the
   distribution.  Typically, a user settings file would contain only a
   few lines, just the assigments that are really changed.  One should
-  definitely \emph{not} start with a full copy the basic @{"file"
+  definitely \emph{not} start with a full copy the basic @{file
   "$ISABELLE_HOME/etc/settings"}. This could cause very annoying
   maintainance problems later, when the Isabelle installation is
   updated or changed otherwise.
@@ -179,7 +179,7 @@ text {*
   ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
   names of the @{executable "isabelle-process"} and @{executable
   isabelle} executables, respectively.  Thus other tools and scripts
-  need not assume that the @{"file" "$ISABELLE_HOME/bin"} directory is
+  need not assume that the @{file "$ISABELLE_HOME/bin"} directory is
   on the current search path of the shell.
   
   \item[@{setting_def ISABELLE_IDENTIFIER}@{text "\<^sup>*"}] refers
@@ -190,7 +190,7 @@ text {*
   @{setting_def ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def
   ML_IDENTIFIER}@{text "\<^sup>*"}] specify the underlying ML system
   to be used for Isabelle.  There is only a fixed set of admissable
-  @{setting ML_SYSTEM} names (see the @{"file"
+  @{setting ML_SYSTEM} names (see the @{file
   "$ISABELLE_HOME/etc/settings"} file of the distribution).
   
   The actual compiler binary will be run from the directory @{setting
@@ -418,7 +418,7 @@ text {*
 
   \medskip The @{verbatim "-W"} option makes Isabelle enter a special
   process wrapper for interaction via the Isabelle/Scala layer, see
-  also @{"file" "~~/src/Pure/System/isabelle_process.scala"}.  The
+  also @{file "~~/src/Pure/System/isabelle_process.scala"}.  The
   protocol between the ML and JVM process is private to the
   implementation.
 

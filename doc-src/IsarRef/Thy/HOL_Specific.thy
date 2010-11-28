@@ -880,7 +880,7 @@ text {*
   The @{method (HOL) coherent} method solves problems of
   \emph{Coherent Logic} \cite{Bezem-Coquand:2005}, which covers
   applications in confluence theory, lattice theory and projective
-  geometry.  See @{"file" "~~/src/HOL/ex/Coherent.thy"} for some
+  geometry.  See @{file "~~/src/HOL/ex/Coherent.thy"} for some
   examples.
 *}
 

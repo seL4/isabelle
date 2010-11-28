@@ -440,7 +440,7 @@ qed
 text {* \medskip Apart from explicit arguments, common proof methods
   typically work with a default configuration provided by the context.
   As a shortcut to rule management we use a cheap solution via functor
-  @{ML_functor Named_Thms} (see also @{"file"
+  @{ML_functor Named_Thms} (see also @{file
   "~~/src/Pure/Tools/named_thms.ML"}).  *}
 
 ML {*

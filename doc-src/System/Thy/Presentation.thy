@@ -80,14 +80,14 @@ text {*
   The easiest way to let Isabelle generate theory browsing information
   for existing sessions is to append ``@{verbatim "-i true"}'' to the
   @{setting_ref ISABELLE_USEDIR_OPTIONS} before invoking @{verbatim
-  isabelle} @{tool make} (or @{"file" "$ISABELLE_HOME/build"}).  For
+  isabelle} @{tool make} (or @{file "$ISABELLE_HOME/build"}).  For
   example, add something like this to your Isabelle settings file
 
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true"
 \end{ttbox}
 
-  and then change into the @{"file" "~~/src/FOL"} directory and run
+  and then change into the @{file "~~/src/FOL"} directory and run
   @{verbatim isabelle} @{tool make}, or even @{verbatim isabelle}
   @{tool make}~@{verbatim all}.  The presentation output will appear
   in @{verbatim "ISABELLE_BROWSER_INFO/FOL"}, which usually refers to
@@ -96,7 +96,7 @@ ISABELLE_USEDIR_OPTIONS="-i true"
   @{verbatim "-v true"} will make the internal runs of @{tool usedir}
   more explicit about such details.
 
-  Many standard Isabelle sessions (such as @{"file" "~~/src/HOL/ex"})
+  Many standard Isabelle sessions (such as @{file "~~/src/HOL/ex"})
   also provide actual printable documents.  These are prepared
   automatically as well if enabled like this, using the @{verbatim
   "-d"} option
@@ -427,7 +427,7 @@ isabelle mkdir Foo && isabelle make
   meant to cover all of the sub-session directories at the same time
   (this is the deeper reasong why @{verbatim IsaMakefile} is not made
   part of the initial session directory created by @{verbatim
-  isabelle} @{tool mkdir}).  See @{"file" "~~/src/HOL/IsaMakefile"} for
+  isabelle} @{tool mkdir}).  See @{file "~~/src/HOL/IsaMakefile"} for
   a full-blown example.
 *}
 
@@ -604,7 +604,7 @@ subsubsection {* Examples *}
 text {*
   Refer to the @{verbatim IsaMakefile}s of the Isabelle distribution's
   object-logics as a model for your own developments.  For example,
-  see @{"file" "~~/src/FOL/IsaMakefile"}.  The Isabelle @{tool_ref
+  see @{file "~~/src/FOL/IsaMakefile"}.  The Isabelle @{tool_ref
   mkdir} tool creates @{verbatim IsaMakefile}s with proper invocation
   of @{tool usedir} as well.
 *}
@@ -656,7 +656,7 @@ Usage: document [OPTIONS] [DIR]
   to the tag specification ``@{verbatim
   "+theory,+proof,+ML,+visible,-invisible"}''; see also the {\LaTeX}
   macros @{verbatim "\\isakeeptag"}, @{verbatim "\\isadroptag"}, and
-  @{verbatim "\\isafoldtag"}, in @{"file"
+  @{verbatim "\\isafoldtag"}, in @{file
   "~~/lib/texinputs/isabelle.sty"}.
 
   \medskip Document preparation requires a properly setup ``@{verbatim
@@ -689,7 +689,7 @@ Usage: document [OPTIONS] [DIR]
   containing all the theories.
 
   The {\LaTeX} versions of the theories require some macros defined in
-  @{"file" "~~/lib/texinputs/isabelle.sty"}.  Doing @{verbatim
+  @{file "~~/lib/texinputs/isabelle.sty"}.  Doing @{verbatim
   "\\usepackage{isabelle}"} in @{verbatim root.tex} should be fine;
   the underlying Isabelle @{tool latex} tool already includes an
   appropriate path specification for {\TeX} inputs.
@@ -702,11 +702,11 @@ Usage: document [OPTIONS] [DIR]
   "<"}@{text foo}@{verbatim ">"}, see \cite{isabelle-implementation} for a
   complete list of predefined Isabelle symbols.  Users may invent
   further symbols as well, just by providing {\LaTeX} macros in a
-  similar fashion as in @{"file" "~~/lib/texinputs/isabellesym.sty"} of
+  similar fashion as in @{file "~~/lib/texinputs/isabellesym.sty"} of
   the distribution.
 
   For proper setup of DVI and PDF documents (with hyperlinks and
-  bookmarks), we recommend to include @{"file"
+  bookmarks), we recommend to include @{file
   "~~/lib/texinputs/pdfsetup.sty"} as well.
 
   \medskip As a final step of document preparation within Isabelle,

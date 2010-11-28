@@ -74,7 +74,7 @@ text {*
   document generated from a theory.  Each markup command takes a
   single @{syntax text} argument, which is passed as argument to a
   corresponding {\LaTeX} macro.  The default macros provided by
-  @{"file" "~~/lib/texinputs/isabelle.sty"} can be redefined according
+  @{file "~~/lib/texinputs/isabelle.sty"} can be redefined according
   to the needs of the underlying document and {\LaTeX} styles.
 
   Note that formal comments (\secref{sec:comments}) are similar to
@@ -449,7 +449,7 @@ text {* Each Isabelle/Isar command may be decorated by additional
 
   \medskip Command tags merely produce certain markup environments for
   type-setting.  The meaning of these is determined by {\LaTeX}
-  macros, as defined in @{"file" "~~/lib/texinputs/isabelle.sty"} or
+  macros, as defined in @{file "~~/lib/texinputs/isabelle.sty"} or
   by the document author.  The Isabelle document preparation tools
   also provide some high-level options to specify the meaning of
   arbitrary tags to ``keep'', ``drop'', or ``fold'' the corresponding
