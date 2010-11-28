@@ -1458,7 +1458,7 @@ $(LOG)/HOLCF-Tutorial.gz: $(OUT)/HOLCF \
   HOLCF/Tutorial/New_Domain.thy \
   HOLCF/Tutorial/document/root.tex \
   HOLCF/Tutorial/ROOT.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF Tutorial
+	@cd HOLCF; $(ISABELLE_TOOL) usedir $(OUT)/HOLCF Tutorial
 
 
 ## HOLCF-Library
@@ -1479,9 +1479,12 @@ $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
 
 HOLCF-IMP: HOLCF $(LOG)/HOLCF-IMP.gz
 
-$(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
-  HOLCF/IMP/Denotational.thy IMP/ROOT.ML IMP/document/root.tex
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF IMP
+$(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF \
+  HOLCF/IMP/HoareEx.thy \
+  HOLCF/IMP/Denotational.thy \
+  HOLCF/IMP/ROOT.ML \
+  HOLCF/IMP/document/root.tex
+	@cd HOLCF; $(ISABELLE_TOOL) usedir $(OUT)/HOLCF IMP
 
 
 ## HOLCF-ex
@@ -1489,7 +1492,7 @@ $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
 HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
-  HOLCF/../HOL/Library/Nat_Infinity.thy \
+  Library/Nat_Infinity.thy \
   HOLCF/ex/Dagstuhl.thy \
   HOLCF/ex/Dnat.thy \
   HOLCF/ex/Domain_Proofs.thy \
@@ -1501,7 +1504,7 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   HOLCF/ex/Pattern_Match.thy \
   HOLCF/ex/Powerdomain_ex.thy \
   HOLCF/ex/ROOT.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF ex
+	@cd HOLCF; $(ISABELLE_TOOL) usedir $(OUT)/HOLCF ex
 
 
 ## HOLCF-FOCUS
@@ -1511,10 +1514,14 @@ HOLCF-FOCUS: HOLCF $(LOG)/HOLCF-FOCUS.gz
 $(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF \
   HOLCF/Library/Stream.thy \
   HOLCF/FOCUS/Fstreams.thy \
-  HOLCF/FOCUS/Fstream.thy FOCUS/FOCUS.thy \
-  HOLCF/FOCUS/Stream_adm.thy ../HOL/Library/Continuity.thy \
-  HOLCF/FOCUS/Buffer.thy FOCUS/Buffer_adm.thy
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF FOCUS
+  HOLCF/FOCUS/Fstream.thy \
+  HOLCF/FOCUS/FOCUS.thy \
+  HOLCF/FOCUS/Stream_adm.thy \
+  HOLCF/FOCUS/Buffer.thy \
+  HOLCF/FOCUS/Buffer_adm.thy \
+  Library/Continuity.thy
+	@cd HOLCF; $(ISABELLE_TOOL) usedir $(OUT)/HOLCF FOCUS
+
 
 ## IOA
 
@@ -1544,6 +1551,7 @@ $(OUT)/IOA: $(OUT)/HOLCF \
   HOLCF/IOA/meta_theory/SimCorrectness.thy
 	@cd HOLCF/IOA; $(ISABELLE_TOOL) usedir -b $(OUT)/HOLCF IOA
 
+
 ## IOA-ABP
 
 IOA-ABP: IOA $(LOG)/IOA-ABP.gz
@@ -1564,6 +1572,7 @@ $(LOG)/IOA-ABP.gz: $(OUT)/IOA \
   HOLCF/IOA/ABP/Sender.thy \
   HOLCF/IOA/ABP/Spec.thy
 	@cd HOLCF/IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA ABP
+
 
 ## IOA-NTP
 
