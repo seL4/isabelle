@@ -20,6 +20,8 @@ images: \
   HOL-Proofs \
   HOL-Word \
   HOL4 \
+  HOLCF \
+  IOA \
   TLA \
   HOL-Base \
   HOL-Main \
@@ -35,9 +37,18 @@ test: \
   HOL-Hahn_Banach \
   HOL-Hoare \
   HOL-Hoare_Parallel \
+      HOLCF-FOCUS \
+      HOLCF-IMP \
+      HOLCF-Library \
+      HOLCF-Tutorial \
+      HOLCF-ex \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
+      IOA-ABP \
+      IOA-NTP \
+      IOA-Storage \
+      IOA-ex \
   HOL-Imperative_HOL \
   HOL-Import \
   HOL-Induct \
@@ -1381,6 +1392,222 @@ $(LOG)/HOL-Predicate_Compile_Examples.gz: $(OUT)/HOL			\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Predicate_Compile_Examples
 
 
+## HOLCF
+
+HOLCF: HOL $(OUT)/HOLCF
+
+$(OUT)/HOLCF: $(OUT)/HOL \
+  HOLCF/ROOT.ML \
+  HOLCF/Adm.thy \
+  HOLCF/Algebraic.thy \
+  HOLCF/Bifinite.thy \
+  HOLCF/Cfun.thy \
+  HOLCF/CompactBasis.thy \
+  HOLCF/Completion.thy \
+  HOLCF/Cont.thy \
+  HOLCF/ConvexPD.thy \
+  HOLCF/Cpodef.thy \
+  HOLCF/Cprod.thy \
+  HOLCF/Discrete.thy \
+  HOLCF/Deflation.thy \
+  HOLCF/Domain.thy \
+  HOLCF/Domain_Aux.thy \
+  HOLCF/Fixrec.thy \
+  HOLCF/Fix.thy \
+  HOLCF/Fun_Cpo.thy \
+  HOLCF/HOLCF.thy \
+  HOLCF/Lift.thy \
+  HOLCF/LowerPD.thy \
+  HOLCF/Map_Functions.thy \
+  HOLCF/One.thy \
+  HOLCF/Pcpo.thy \
+  HOLCF/Plain_HOLCF.thy \
+  HOLCF/Porder.thy \
+  HOLCF/Powerdomains.thy \
+  HOLCF/Product_Cpo.thy \
+  HOLCF/Sfun.thy \
+  HOLCF/Sprod.thy \
+  HOLCF/Ssum.thy \
+  HOLCF/Tr.thy \
+  HOLCF/Universal.thy \
+  HOLCF/UpperPD.thy \
+  HOLCF/Up.thy \
+  HOLCF/Tools/cont_consts.ML \
+  HOLCF/Tools/cont_proc.ML \
+  HOLCF/Tools/holcf_library.ML \
+  HOLCF/Tools/Domain/domain.ML \
+  HOLCF/Tools/Domain/domain_axioms.ML \
+  HOLCF/Tools/Domain/domain_constructors.ML \
+  HOLCF/Tools/Domain/domain_induction.ML \
+  HOLCF/Tools/Domain/domain_isomorphism.ML \
+  HOLCF/Tools/Domain/domain_take_proofs.ML \
+  HOLCF/Tools/cpodef.ML \
+  HOLCF/Tools/domaindef.ML \
+  HOLCF/Tools/fixrec.ML \
+  HOLCF/document/root.tex
+	@cd HOLCF; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOLCF
+
+
+## HOLCF-Tutorial
+
+HOLCF-Tutorial: HOLCF $(LOG)/HOLCF-Tutorial.gz
+
+$(LOG)/HOLCF-Tutorial.gz: $(OUT)/HOLCF \
+  HOLCF/Tutorial/Domain_ex.thy \
+  HOLCF/Tutorial/Fixrec_ex.thy \
+  HOLCF/Tutorial/New_Domain.thy \
+  HOLCF/Tutorial/document/root.tex \
+  HOLCF/Tutorial/ROOT.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF Tutorial
+
+
+## HOLCF-Library
+
+HOLCF-Library: HOLCF $(LOG)/HOLCF-Library.gz
+
+$(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
+  HOLCF/Library/Defl_Bifinite.thy \
+  HOLCF/Library/List_Cpo.thy \
+  HOLCF/Library/Stream.thy \
+  HOLCF/Library/Sum_Cpo.thy \
+  HOLCF/Library/HOLCF_Library.thy \
+  HOLCF/Library/ROOT.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF Library
+
+
+## HOLCF-IMP
+
+HOLCF-IMP: HOLCF $(LOG)/HOLCF-IMP.gz
+
+$(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
+  HOLCF/IMP/Denotational.thy IMP/ROOT.ML IMP/document/root.tex
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF IMP
+
+
+## HOLCF-ex
+
+HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
+
+$(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
+  HOLCF/../HOL/Library/Nat_Infinity.thy \
+  HOLCF/ex/Dagstuhl.thy \
+  HOLCF/ex/Dnat.thy \
+  HOLCF/ex/Domain_Proofs.thy \
+  HOLCF/ex/Fix2.thy \
+  HOLCF/ex/Focus_ex.thy \
+  HOLCF/ex/Hoare.thy \
+  HOLCF/ex/Letrec.thy \
+  HOLCF/ex/Loop.thy \
+  HOLCF/ex/Pattern_Match.thy \
+  HOLCF/ex/Powerdomain_ex.thy \
+  HOLCF/ex/ROOT.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF ex
+
+
+## HOLCF-FOCUS
+
+HOLCF-FOCUS: HOLCF $(LOG)/HOLCF-FOCUS.gz
+
+$(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF \
+  HOLCF/Library/Stream.thy \
+  HOLCF/FOCUS/Fstreams.thy \
+  HOLCF/FOCUS/Fstream.thy FOCUS/FOCUS.thy \
+  HOLCF/FOCUS/Stream_adm.thy ../HOL/Library/Continuity.thy \
+  HOLCF/FOCUS/Buffer.thy FOCUS/Buffer_adm.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF FOCUS
+
+## IOA
+
+IOA: HOLCF $(OUT)/IOA
+
+$(OUT)/IOA: $(OUT)/HOLCF \
+  HOLCF/IOA/ROOT.ML \
+  HOLCF/IOA/meta_theory/Traces.thy \
+  HOLCF/IOA/meta_theory/Asig.thy \
+  HOLCF/IOA/meta_theory/CompoScheds.thy \
+  HOLCF/IOA/meta_theory/CompoTraces.thy \
+  HOLCF/IOA/meta_theory/Seq.thy \
+  HOLCF/IOA/meta_theory/RefCorrectness.thy \
+  HOLCF/IOA/meta_theory/Automata.thy \
+  HOLCF/IOA/meta_theory/ShortExecutions.thy \
+  HOLCF/IOA/meta_theory/IOA.thy \
+  HOLCF/IOA/meta_theory/Sequence.thy \
+  HOLCF/IOA/meta_theory/CompoExecs.thy \
+  HOLCF/IOA/meta_theory/RefMappings.thy \
+  HOLCF/IOA/meta_theory/Compositionality.thy \
+  HOLCF/IOA/meta_theory/TL.thy \
+  HOLCF/IOA/meta_theory/TLS.thy \
+  HOLCF/IOA/meta_theory/LiveIOA.thy \
+  HOLCF/IOA/meta_theory/Pred.thy \
+  HOLCF/IOA/meta_theory/Abstraction.thy \
+  HOLCF/IOA/meta_theory/Simulations.thy \
+  HOLCF/IOA/meta_theory/SimCorrectness.thy
+	@cd HOLCF/IOA; $(ISABELLE_TOOL) usedir -b $(OUT)/HOLCF IOA
+
+## IOA-ABP
+
+IOA-ABP: IOA $(LOG)/IOA-ABP.gz
+
+$(LOG)/IOA-ABP.gz: $(OUT)/IOA \
+  HOLCF/IOA/ABP/Abschannel.thy \
+  HOLCF/IOA/ABP/Abschannel_finite.thy \
+  HOLCF/IOA/ABP/Action.thy \
+  HOLCF/IOA/ABP/Check.ML \
+  HOLCF/IOA/ABP/Correctness.thy \
+  HOLCF/IOA/ABP/Env.thy \
+  HOLCF/IOA/ABP/Impl.thy \
+  HOLCF/IOA/ABP/Impl_finite.thy \
+  HOLCF/IOA/ABP/Lemmas.thy \
+  HOLCF/IOA/ABP/Packet.thy \
+  HOLCF/IOA/ABP/ROOT.ML \
+  HOLCF/IOA/ABP/Receiver.thy \
+  HOLCF/IOA/ABP/Sender.thy \
+  HOLCF/IOA/ABP/Spec.thy
+	@cd HOLCF/IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA ABP
+
+## IOA-NTP
+
+IOA-NTP: IOA $(LOG)/IOA-NTP.gz
+
+$(LOG)/IOA-NTP.gz: $(OUT)/IOA \
+  HOLCF/IOA/NTP/Abschannel.thy \
+  HOLCF/IOA/NTP/Action.thy \
+  HOLCF/IOA/NTP/Correctness.thy \
+  HOLCF/IOA/NTP/Impl.thy \
+  HOLCF/IOA/NTP/Lemmas.thy \
+  HOLCF/IOA/NTP/Multiset.thy \
+  HOLCF/IOA/NTP/Packet.thy \
+  HOLCF/IOA/NTP/ROOT.ML \
+  HOLCF/IOA/NTP/Receiver.thy \
+  HOLCF/IOA/NTP/Sender.thy \
+  HOLCF/IOA/NTP/Spec.thy
+	@cd HOLCF/IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA NTP
+
+
+## IOA-Storage
+
+IOA-Storage: IOA $(LOG)/IOA-Storage.gz
+
+$(LOG)/IOA-Storage.gz: $(OUT)/IOA \
+  HOLCF/IOA/Storage/Action.thy \
+  HOLCF/IOA/Storage/Correctness.thy \
+  HOLCF/IOA/Storage/Impl.thy \
+  HOLCF/IOA/Storage/ROOT.ML \
+  HOLCF/IOA/Storage/Spec.thy
+	@cd HOLCF/IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA Storage
+
+
+## IOA-ex
+
+IOA-ex: IOA $(LOG)/IOA-ex.gz
+
+$(LOG)/IOA-ex.gz: $(OUT)/IOA \
+  HOLCF/IOA/ex/ROOT.ML \
+  HOLCF/IOA/ex/TrivEx.thy \
+  HOLCF/IOA/ex/TrivEx2.thy
+	@cd HOLCF/IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA ex
+
+
 ## clean
 
 clean:
@@ -1419,4 +1646,9 @@ clean:
 		$(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
 		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
 		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
-		$(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA
+		$(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA			\
+		$(OUT)/HOLCF $(LOG)/HOLCF.gz $(LOG)/HOLCF-IMP.gz	\
+		$(LOG)/HOLCF-ex.gz $(LOG)/HOLCF-FOCUS.gz $(OUT)/IOA	\
+		$(LOG)/IOA.gz $(LOG)/IOA-ABP.gz $(LOG)/IOA-NTP.gz	\
+		$(LOG)/IOA-Storage.gz $(LOG)/HOLCF-Library.gz		\
+		$(LOG)/IOA-ex.gz $(LOG)/HOLCF-Tutorial.gz

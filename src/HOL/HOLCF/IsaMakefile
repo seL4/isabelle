@@ -82,7 +82,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/domaindef.ML \
   Tools/fixrec.ML \
   document/root.tex
-	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
+	@$(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOLCF
 
 
 ## HOLCF-Tutorial
@@ -126,7 +126,7 @@ $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
 HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
-  ../HOL/Library/Nat_Infinity.thy \
+  ../Library/Nat_Infinity.thy \
   ex/Dagstuhl.thy \
   ex/Dnat.thy \
   ex/Domain_Proofs.thy \
@@ -149,7 +149,7 @@ $(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF \
   Library/Stream.thy \
   FOCUS/Fstreams.thy \
   FOCUS/Fstream.thy FOCUS/FOCUS.thy \
-  FOCUS/Stream_adm.thy ../HOL/Library/Continuity.thy \
+  FOCUS/Stream_adm.thy ../Library/Continuity.thy \
   FOCUS/Buffer.thy FOCUS/Buffer_adm.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF FOCUS
 

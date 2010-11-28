@@ -5,7 +5,7 @@
 
 header "Denotational Semantics of Commands in HOLCF"
 
-theory Denotational imports HOLCF "../../HOL/IMP/Natural" begin
+theory Denotational imports HOLCF "~~/src/HOL/IMP/Natural" begin
 
 text {* Disable conflicting syntax from HOL Map theory. *}
 
