@@ -325,8 +325,16 @@ val _ =
       >> (fn (name, (txt, cmt)) => Toplevel.theory (Method.method_setup name txt cmt)));
 
 val _ =
-  Outer_Syntax.local_theory "declaration" "generic ML declaration" (Keyword.tag_ml Keyword.thy_decl)
-    (Parse.opt_keyword "pervasive" -- Parse.ML_source >> uncurry Isar_Cmd.declaration);
+  Outer_Syntax.local_theory "declaration" "generic ML declaration"
+    (Keyword.tag_ml Keyword.thy_decl)
+    (Parse.opt_keyword "pervasive" -- Parse.ML_source
+      >> (fn (pervasive, txt) => Isar_Cmd.declaration {syntax = false, pervasive = pervasive} txt));
+
+val _ =
+  Outer_Syntax.local_theory "syntax_declaration" "generic ML declaration"
+    (Keyword.tag_ml Keyword.thy_decl)
+    (Parse.opt_keyword "pervasive" -- Parse.ML_source
+      >> (fn (pervasive, txt) => Isar_Cmd.declaration {syntax = true, pervasive = pervasive} txt));
 
 val _ =
   Outer_Syntax.local_theory "simproc_setup" "define simproc in ML" (Keyword.tag_ml Keyword.thy_decl)

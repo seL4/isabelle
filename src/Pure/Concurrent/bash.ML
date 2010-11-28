@@ -36,7 +36,8 @@ val bash_output = uninterruptible (fn restore_attributes => fn script =>
               | Posix.Process.W_STOPPED s =>
                   Result (512 + LargeWord.toInt (Posix.Signal.toWord s)));
           in Synchronized.change result (K res) end
-          handle _ (*sic*) => Synchronized.change result (fn Wait => Signal | res => res)));
+          handle exn =>
+            (Synchronized.change result (fn Wait => Signal | res => res); reraise exn)));
 
     fun terminate () =
       let

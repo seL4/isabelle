@@ -79,7 +79,7 @@ sig
   val print_locale: theory -> bool -> xstring -> unit
   val print_registrations: Proof.context -> string -> unit
   val locale_deps: theory ->
-    { params: ((string * typ) * mixfix) list, axioms: term list, registrations: term list list } Graph.T
+    {params: ((string * typ) * mixfix) list, axioms: term list, registrations: term list list} Graph.T
       * term list list Symtab.table Symtab.table
 end;
 
@@ -191,10 +191,9 @@ fun pretty_reg thy (name, morph) =
     val qs = Binding.name "x" |> Morphism.binding morph |> Binding.prefix_of;
     val ts = instance_of thy name morph;
   in
-    case qs of
-       [] => prt_inst ts
-     | qs => Pretty.block [prt_quals qs, Pretty.brk 1, Pretty.str ":",
-         Pretty.brk 1, prt_inst ts]
+    (case qs of
+      [] => prt_inst ts
+    | qs => Pretty.block [prt_quals qs, Pretty.brk 1, Pretty.str ":", Pretty.brk 1, prt_inst ts])
   end;
 
 
@@ -206,9 +205,9 @@ fun ident_le thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess t
 
 (* total order *)
 fun ident_ord ((n: string, ts), (m, ss)) =
-  case fast_string_ord (m, n) of
-      EQUAL => list_ord Term_Ord.fast_term_ord (ts, ss)
-    | ord => ord;
+  (case fast_string_ord (m, n) of
+    EQUAL => list_ord Term_Ord.fast_term_ord (ts, ss)
+  | ord => ord);
 
 local
 
@@ -256,7 +255,8 @@ fun add thy depth export (name, morph) (deps, marked) =
       then (deps, marked)
       else
         let
-          val dependencies' = map (fn (name, (morph', export')) => (name, morph' $> export' $> morph)) dependencies;
+          val dependencies' =
+            map (fn (name, (morph', export')) => (name, morph' $> export' $> morph)) dependencies;
           val marked' = (name, instance) :: marked;
           val (deps', marked'') = fold_rev (add thy (depth + 1) export) dependencies' ([], marked');
         in
@@ -309,9 +309,10 @@ structure Registrations = Generic_Data
         val (_, s1) = Idtab.lookup reg1 id |> the;
         val (morph2, s2) = Idtab.lookup reg2 id |> the;
         val reg2' = Idtab.update (id, (morph2, s1)) reg2;
-        val mix2' = case Inttab.lookup mix2 s2 of
-              NONE => mix2 |
-              SOME mxs => Inttab.delete s2 mix2 |> Inttab.update_new (s1, mxs);
+        val mix2' =
+          (case Inttab.lookup mix2 s2 of
+            NONE => mix2
+          | SOME mxs => Inttab.delete s2 mix2 |> Inttab.update_new (s1, mxs));
         val _ = warning "Removed duplicate interpretation after retrieving its mixins.";
         (* FIXME print interpretations,
            which is not straightforward without theory context *)
@@ -335,9 +336,9 @@ fun get_mixins context (name, morph) =
     val thy = Context.theory_of context;
     val (regs, mixins) = Registrations.get context;
   in
-    case Idtab.lookup regs (name, instance_of thy name morph) of
+    (case Idtab.lookup regs (name, instance_of thy name morph) of
       NONE => []
-    | SOME (_, serial) => the_default [] (Inttab.lookup mixins serial)
+    | SOME (_, serial) => the_default [] (Inttab.lookup mixins serial))
   end;
 
 fun compose_mixins mixins =
@@ -385,9 +386,12 @@ fun activate_notes activ_elem transfer context export' (name, morph) input =
     val {notes, ...} = the_locale thy name;
     fun activate ((kind, facts), _) input =
       let
-        val mixin = case export' of NONE => Morphism.identity
-         | SOME export => collect_mixins context (name, morph $> export) $> export;
-        val facts' = facts |> Element.facts_map (Element.morph_ctxt (transfer input $> morph $> mixin))
+        val mixin =
+          (case export' of
+            NONE => Morphism.identity
+          | SOME export => collect_mixins context (name, morph $> export) $> export);
+        val facts' = facts
+          |> Element.facts_map (Element.morph_ctxt (transfer input $> morph $> mixin));
       in activ_elem (Notes (kind, facts')) input end;
   in
     fold_rev activate notes input
@@ -401,9 +405,8 @@ fun activate_all name thy activ_elem transfer (marked, input) =
         activ_elem (Fixes (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params))) |>
       (* FIXME type parameters *)
       (case asm of SOME A => activ_elem (Assumes [(Attrib.empty_binding, [(A, [])])]) | _ => I) |>
-      (if not (null defs)
-        then activ_elem (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs))
-        else I);
+      (not (null defs) ?
+        activ_elem (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs)));
     val activate = activate_notes activ_elem transfer (Context.Theory thy) NONE;
   in
     roundup thy activate Morphism.identity (name, Morphism.identity) (marked, input')
@@ -443,12 +446,13 @@ fun amend_registration (name, morph) mixin export context =
     val regs = Registrations.get context |> fst;
     val base = instance_of thy name (morph $> export);
   in
-    case Idtab.lookup regs (name, base) of
-        NONE => error ("No interpretation of locale " ^
+    (case Idtab.lookup regs (name, base) of
+      NONE =>
+        error ("No interpretation of locale " ^
           quote (extern thy name) ^ " and\nparameter instantiation " ^
           space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
           " available")
-      | SOME (_, serial') => add_mixin serial' mixin context
+    | SOME (_, serial') => add_mixin serial' mixin context)
   end;
 
 (* Note that a registration that would be subsumed by an existing one will not be
@@ -457,8 +461,7 @@ fun amend_registration (name, morph) mixin export context =
 fun add_registration (name, base_morph) mixin export context =
   let
     val thy = Context.theory_of context;
-    val mix = case mixin of NONE => Morphism.identity
-          | SOME (mix, _) => mix;
+    val mix = (case mixin of NONE => Morphism.identity | SOME (mix, _) => mix);
     val morph = base_morph $> mix;
     val inst = instance_of thy name morph;
   in
@@ -470,8 +473,10 @@ fun add_registration (name, base_morph) mixin export context =
       |> roundup thy (add_reg thy export) export (name, morph)
       |> snd
       (* add mixin *)
-      |> (case mixin of NONE => I
-           | SOME mixin => amend_registration (name, morph) mixin export)
+      |>
+        (case mixin of
+          NONE => I
+        | SOME mixin => amend_registration (name, morph) mixin export)
       (* activate import hierarchy as far as not already active *)
       |> activate_facts (SOME export) (name, morph)
   end;
@@ -551,7 +556,7 @@ val unfold_add =
   Thm.declaration_attribute (fn th => Thms.map (fn (x, y, z) => (x, y, Thm.add_thm th z)));
 
 
-(* Tactic *)
+(* Tactics *)
 
 fun gen_intro_locales_tac intros_tac eager ctxt =
   intros_tac
@@ -593,11 +598,10 @@ fun print_registrations ctxt raw_name =
   let
     val thy = ProofContext.theory_of ctxt;
   in
-    (case registrations_of  (Context.Proof ctxt) (* FIXME *) (intern thy raw_name) of
-        [] => Pretty.str ("no interpretations")
-      | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
-    |> Pretty.writeln
-  end;
+    (case registrations_of (Context.Proof ctxt) (* FIXME *) (intern thy raw_name) of
+      [] => Pretty.str ("no interpretations")
+    | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
+  end |> Pretty.writeln;
 
 fun locale_deps thy =
   let
@@ -605,16 +609,17 @@ fun locale_deps thy =
     fun add_locale_node name =
       let
         val params = params_of thy name;
-        val axioms = (these o Option.map (Logic.strip_imp_prems o Thm.prop_of) o fst o intros_of thy) name;
-        val registrations = map (instance_of thy name o snd)
-          (registrations_of (Context.Theory thy) name);
-      in 
-        Graph.new_node (name, { params = params, axioms = axioms, registrations = registrations })
+        val axioms =
+          these (Option.map (Logic.strip_imp_prems o Thm.prop_of) (fst (intros_of thy name)));
+        val registrations =
+          map (instance_of thy name o snd) (registrations_of (Context.Theory thy) name);
+      in
+        Graph.new_node (name, {params = params, axioms = axioms, registrations = registrations})
       end;
     fun add_locale_deps name =
       let
-        val dependencies = (map o apsnd) (instance_of thy name o op $>)
-          (dependencies_of thy name);
+        val dependencies =
+          (map o apsnd) (instance_of thy name o op $>) (dependencies_of thy name);
       in
         fold (fn (super, ts) => fn (gr, deps) => (gr |> Graph.add_edge (super, name),
           deps |> Symtab.map_default (super, Symtab.empty) (Symtab.cons_list (name, ts))))
