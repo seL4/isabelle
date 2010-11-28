@@ -253,11 +253,12 @@ text {*
 
   \begin{matharray}{rcl}
     @{command_def "declaration"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "syntax_declaration"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "declare"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   \begin{rail}
-    'declaration' ('(pervasive)')? target? text
+    ('declaration' | 'syntax_declaration') ('(pervasive)')? target? text
     ;
     'declare' target? (thmrefs + 'and')
     ;
@@ -274,6 +275,10 @@ text {*
   If the @{text "(pervasive)"} option is given, the corresponding
   declaration is applied to all possible contexts involved, including
   the global background theory.
+
+  \item @{command "syntax_declaration"} is similar to @{command
+  "declaration"}, but is meant to affect only ``syntactic'' tools by
+  convention (such as notation and type-checking information).
 
   \item @{command "declare"}~@{text thms} declares theorems to the
   current local theory context.  No theorem binding is involved here,
