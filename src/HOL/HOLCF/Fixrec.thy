@@ -150,9 +150,8 @@ where
   "match_FF = (\<Lambda> x k. If x then fail else k)"
 
 lemma match_bottom_simps [simp]:
-  "match_bottom\<cdot>\<bottom>\<cdot>k = \<bottom>"
-  "x \<noteq> \<bottom> \<Longrightarrow> match_bottom\<cdot>x\<cdot>k = fail"
-by (simp_all add: match_bottom_def)
+  "match_bottom\<cdot>x\<cdot>k = (if x = \<bottom> then \<bottom> else fail)"
+by (simp add: match_bottom_def)
 
 lemma match_Pair_simps [simp]:
   "match_Pair\<cdot>(x, y)\<cdot>k = k\<cdot>x\<cdot>y"
