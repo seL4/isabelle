@@ -1300,7 +1300,7 @@ lemma infnorm_set_lemma_cart:
   shows "finite {abs((x::'a::abs ^'n)$i) |i. i\<in> (UNIV :: 'n set)}"
   and "{abs(x$i) |i. i\<in> (UNIV :: 'n::finite set)} \<noteq> {}"
   unfolding  infnorm_set_image_cart
-  by (auto intro: finite_imageI)
+  by auto
 
 lemma component_le_infnorm_cart:
   shows "\<bar>x$i\<bar> \<le> infnorm (x::real^'n)"

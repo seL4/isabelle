@@ -7,7 +7,6 @@ src/CCL
 src/CTT
 src/Cube
 src/FOLP
-src/HOLCF
 src/LCF
 src/Sequents
 #misc components

@@ -94,7 +94,7 @@ lemma MultInvPair_card_two: "[| zprime p; 2 < p; ~([a = 0] (mod p));
 subsection {* Properties of SetS *}
 
 lemma SetS_finite: "2 < p ==> finite (SetS a p)"
-  by (auto simp add: SetS_def SRStar_finite [of p] finite_imageI)
+  by (auto simp add: SetS_def SRStar_finite [of p])
 
 lemma SetS_elems_finite: "\<forall>X \<in> SetS a p. finite X"
   by (auto simp add: SetS_def MultInvPair_def)

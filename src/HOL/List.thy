@@ -3625,7 +3625,7 @@ next
   have "?S (Suc n) = (\<Union>x\<in>A. (\<lambda>xs. x#xs) ` ?S n)"
     by (auto simp:length_Suc_conv)
   then show ?case using `finite A`
-    by (auto intro: finite_imageI Suc) (* FIXME metis? *)
+    by (auto intro: Suc) (* FIXME metis? *)
 qed
 
 lemma finite_lists_length_le:

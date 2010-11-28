@@ -707,7 +707,7 @@ lemma setsum_Plus:
 proof -
   have "A <+> B = Inl ` A \<union> Inr ` B" by auto
   moreover from fin have "finite (Inl ` A :: ('a + 'b) set)" "finite (Inr ` B :: ('a + 'b) set)"
-    by(auto intro: finite_imageI)
+    by auto
   moreover have "Inl ` A \<inter> Inr ` B = ({} :: ('a + 'b) set)" by auto
   moreover have "inj_on (Inl :: 'a \<Rightarrow> 'a + 'b) A" "inj_on (Inr :: 'b \<Rightarrow> 'a + 'b) B" by(auto intro: inj_onI)
   ultimately show ?thesis using fin by(simp add: setsum_Un_disjoint setsum_reindex)

@@ -511,7 +511,7 @@ proof-
       (\<lambda>(x,y). f -` {x} \<inter> g -` {y} \<inter> space M) ` (f`space M \<times> g`space M)"
       by auto
     hence "finite (?p ` (A \<inter> space M))"
-      by (rule finite_subset) (auto intro: finite_SigmaI finite_imageI) }
+      by (rule finite_subset) auto }
   note this[intro, simp]
 
   { fix x assume "x \<in> space M"

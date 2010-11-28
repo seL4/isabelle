@@ -73,22 +73,22 @@ lemma finite_A: "finite (A)"
   done
 
 lemma finite_B: "finite (B)"
-  by (auto simp add: B_def finite_A finite_imageI)
+by (auto simp add: B_def finite_A)
 
 lemma finite_C: "finite (C)"
-  by (auto simp add: C_def finite_B finite_imageI)
+by (auto simp add: C_def finite_B)
 
 lemma finite_D: "finite (D)"
-  by (auto simp add: D_def finite_Int finite_C)
+by (auto simp add: D_def finite_Int finite_C)
 
 lemma finite_E: "finite (E)"
-  by (auto simp add: E_def finite_Int finite_C)
+by (auto simp add: E_def finite_Int finite_C)
 
 lemma finite_F: "finite (F)"
-  by (auto simp add: F_def finite_E finite_imageI)
+by (auto simp add: F_def finite_E)
 
 lemma C_eq: "C = D \<union> E"
-  by (auto simp add: C_def D_def E_def)
+by (auto simp add: C_def D_def E_def)
 
 lemma A_card_eq: "card A = nat ((p - 1) div 2)"
   apply (auto simp add: A_def)

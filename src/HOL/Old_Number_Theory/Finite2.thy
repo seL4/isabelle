@@ -55,7 +55,7 @@ lemma setsum_const_mult: "finite A ==> setsum (%x. c * ((f x)::int)) A =
 subsection {* Cardinality of explicit finite sets *}
 
 lemma finite_surjI: "[| B \<subseteq> f ` A; finite A |] ==> finite B"
-  by (simp add: finite_subset finite_imageI)
+by (simp add: finite_subset)
 
 lemma bdd_nat_set_l_finite: "finite {y::nat . y < x}"
   by (rule bounded_nat_set_is_finite) blast
