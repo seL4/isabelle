@@ -90,6 +90,7 @@ sig
   val prop_group: string parser
   val term: string parser
   val prop: string parser
+  val literal_fact: string parser
   val propp: (string * string list) parser
   val termp: (string * string list) parser
   val target: xstring parser
@@ -315,13 +316,15 @@ val doc_source = source_position (group "document source" text);
 
 (* terms *)
 
-val trm = short_ident || long_ident || sym_ident || term_var || number || string;
+val tm = short_ident || long_ident || sym_ident || term_var || number || string;
 
-val term_group = group "term" trm;
-val prop_group = group "proposition" trm;
+val term_group = group "term" tm;
+val prop_group = group "proposition" tm;
 
 val term = inner_syntax term_group;
 val prop = inner_syntax prop_group;
+
+val literal_fact = inner_syntax (group "literal fact" alt_string);
 
 
 (* patterns *)
