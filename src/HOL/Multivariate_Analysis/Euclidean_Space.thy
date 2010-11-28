@@ -2929,7 +2929,7 @@ proof-
       using sf B(3)
       unfolding span_linear_image[OF lf] surj_def subset_eq image_iff
       apply blast
-      using fB apply (blast intro: finite_imageI)
+      using fB apply blast
       unfolding d[symmetric]
       apply (rule card_image_le)
       apply (rule fB)
@@ -3035,7 +3035,7 @@ lemma infnorm_set_lemma:
   shows "finite {abs((x::'a::euclidean_space)$$i) |i. i<DIM('a)}"
   and "{abs(x$$i) |i. i<DIM('a::euclidean_space)} \<noteq> {}"
   unfolding infnorm_set_image
-  by (auto intro: finite_imageI)
+  by auto
 
 lemma infnorm_pos_le: "0 \<le> infnorm (x::'a::euclidean_space)"
   unfolding infnorm_def

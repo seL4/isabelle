@@ -367,7 +367,7 @@ apply (induct_tac n)
 apply  (tactic {* ALLGOALS (clarsimp_tac @{clasimpset}) *})
 apply  (subgoal_tac "G = mgt_call ` U")
 prefer 2
-apply   (simp add: card_seteq finite_imageI)
+apply   (simp add: card_seteq)
 apply  simp
 apply  (erule prems(3-)) (*MGF_lemma1*)
 apply (rule ballI)

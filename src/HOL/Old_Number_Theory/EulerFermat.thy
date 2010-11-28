@@ -257,8 +257,7 @@ lemma Bnor_prod_power [rule_format]:
   apply (subst setprod_insert)
     apply (rule_tac [2] Bnor_prod_power_aux)
      apply (unfold inj_on_def)
-     apply (simp_all add: zmult_ac Bnor_fin finite_imageI
-       Bnor_mem_zle_swap)
+     apply (simp_all add: zmult_ac Bnor_fin Bnor_mem_zle_swap)
   done
 
 
