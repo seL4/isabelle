@@ -7,28 +7,25 @@ Common target infrastructure.
 
 signature GENERIC_TARGET =
 sig
-  val define: (((binding * typ) * mixfix) * (binding * term)
-    -> term list * term list -> local_theory -> (term * thm) * local_theory)
-    -> (binding * mixfix) * (Attrib.binding * term) -> local_theory
-    -> (term * (string * thm)) * local_theory
-  val notes: (string
-    -> (Attrib.binding * (thm list * Args.src list) list) list
-    -> (Attrib.binding * (thm list * Args.src list) list) list
-    -> local_theory -> local_theory)
-    -> string -> (Attrib.binding * (thm list * Args.src list) list) list
-    -> local_theory -> (string * thm list) list * local_theory
-  val abbrev: (string * bool -> binding * mixfix -> term * term
-    -> term list -> local_theory -> local_theory)
-    -> string * bool -> (binding * mixfix) * term -> local_theory
-    -> (term * term) * local_theory
+  val define: (((binding * typ) * mixfix) * (binding * term) ->
+      term list * term list -> local_theory -> (term * thm) * local_theory) ->
+    (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+    (term * (string * thm)) * local_theory
+  val notes: (string -> (Attrib.binding * (thm list * Args.src list) list) list ->
+      (Attrib.binding * (thm list * Args.src list) list) list -> local_theory -> local_theory) ->
+    string -> (Attrib.binding * (thm list * Args.src list) list) list -> local_theory ->
+    (string * thm list) list * local_theory
+  val abbrev: (string * bool -> binding * mixfix -> term * term ->
+      term list -> local_theory -> local_theory) ->
+    string * bool -> (binding * mixfix) * term -> local_theory ->
+    (term * term) * local_theory
 
   val theory_declaration: declaration -> local_theory -> local_theory
-  val theory_foundation: ((binding * typ) * mixfix) * (binding * term)
-    -> term list * term list -> local_theory -> (term * thm) * local_theory
-  val theory_notes: string -> (Attrib.binding * (thm list * Args.src list) list) list
-    -> local_theory -> local_theory
-  val theory_abbrev: Syntax.mode -> (binding * mixfix) * term
-    -> local_theory -> local_theory
+  val theory_foundation: ((binding * typ) * mixfix) * (binding * term) ->
+    term list * term list -> local_theory -> (term * thm) * local_theory
+  val theory_notes: string -> (Attrib.binding * (thm list * Args.src list) list) list ->
+    local_theory -> local_theory
+  val theory_abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory -> local_theory
 end;
 
 structure Generic_Target: GENERIC_TARGET =
