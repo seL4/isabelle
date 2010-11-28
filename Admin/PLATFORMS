@@ -29,12 +29,12 @@ supported by the Isabelle distribution (and bundled tools), with the
 following reference versions (which have been selected to be neither
 too old nor too new):
 
-  x86-linux         Ubuntu 8.04 LTS Server
-  x86-darwin        Mac OS Leopard
-  x86-cygwin        Cygwin 1.7
+  x86-linux         SuSE 11.0 (atbroy51)
+  x86-darwin        Mac OS Leopard (macbroy6)
+  x86-cygwin        Cygwin 1.7 (atbroy102)
 
-  x86_64-linux      Ubuntu 8.04 LTS Server (64)
-  x86_64-darwin     Mac OS Leopard
+  x86_64-linux      SuSE 11.0 (atbroy100)
+  x86_64-darwin     Mac OS Leopard (macbroy6)
 
 All of the above platforms are 100% supported by Isabelle -- end-users
 should not have to care about the differences at all.  There are also

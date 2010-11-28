@@ -27,7 +27,7 @@ object Thy_Syntax
       def length: Int = command.length
     }
 
-    def parse_sections(syntax: Outer_Syntax, root_name: String, text: CharSequence): Entry =
+    def parse(syntax: Outer_Syntax, root_name: String, text: CharSequence): Entry =
     {
       /* stack operations */
 

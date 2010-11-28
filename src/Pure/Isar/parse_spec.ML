@@ -61,7 +61,7 @@ val where_alt_specs = Parse.where_ |-- Parse.!!! alt_specs;
 
 val xthm =
   Parse.$$$ "[" |-- attribs --| Parse.$$$ "]" >> pair (Facts.named "") ||
-  (Parse.alt_string >> Facts.Fact ||
+  (Parse.literal_fact >> Facts.Fact ||
     Parse.position Parse.xname -- Scan.option Attrib.thm_sel >> Facts.Named) -- opt_attribs;
 
 val xthms1 = Scan.repeat1 xthm;
