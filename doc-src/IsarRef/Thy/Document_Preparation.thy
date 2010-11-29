@@ -156,6 +156,7 @@ text {*
     @{antiquotation_def ML} & : & @{text antiquotation} \\
     @{antiquotation_def ML_type} & : & @{text antiquotation} \\
     @{antiquotation_def ML_struct} & : & @{text antiquotation} \\
+    @{antiquotation_def "file"} & : & @{text antiquotation} \\
   \end{matharray}
 
   The overall content of an Isabelle/Isar theory may alternate between
@@ -201,7 +202,8 @@ text {*
       'full_prf' options thmrefs |
       'ML' options name |
       'ML_type' options name |
-      'ML_struct' options name
+      'ML_struct' options name |
+      'file' options name
     ;
     options: '[' (option * ',') ']'
     ;
@@ -286,6 +288,9 @@ text {*
   \item @{text "@{ML s}"}, @{text "@{ML_type s}"}, and @{text
   "@{ML_struct s}"} check text @{text s} as ML value, type, and
   structure, respectively.  The source is printed verbatim.
+
+  \item @{text "@{file path}"} checks that @{text "path"} refers to a
+  file (or directory) and prints it verbatim.
 
   \end{description}
 *}

@@ -95,7 +95,7 @@ Isabelle/Isar provides a simple document preparation system
   document generated from a theory.  Each markup command takes a
   single \hyperlink{syntax.text}{\mbox{\isa{text}}} argument, which is passed as argument to a
   corresponding {\LaTeX} macro.  The default macros provided by
-  \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}lib{\isaliteral{2F}{\isacharslash}}texinputs{\isaliteral{2F}{\isacharslash}}isabelle{\isaliteral{2E}{\isachardot}}sty}}}} can be redefined according
+  \verb|~~/lib/texinputs/isabelle.sty| can be redefined according
   to the needs of the underlying document and {\LaTeX} styles.
 
   Note that formal comments (\secref{sec:comments}) are similar to
@@ -174,6 +174,7 @@ Isabelle/Isar provides a simple document preparation system
     \indexdef{}{antiquotation}{ML}\hypertarget{antiquotation.ML}{\hyperlink{antiquotation.ML}{\mbox{\isa{ML}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{ML\_type}\hypertarget{antiquotation.ML-type}{\hyperlink{antiquotation.ML-type}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}type}}}} & : & \isa{antiquotation} \\
     \indexdef{}{antiquotation}{ML\_struct}\hypertarget{antiquotation.ML-struct}{\hyperlink{antiquotation.ML-struct}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}struct}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{file}\hypertarget{antiquotation.file}{\hyperlink{antiquotation.file}{\mbox{\isa{file}}}} & : & \isa{antiquotation} \\
   \end{matharray}
 
   The overall content of an Isabelle/Isar theory may alternate between
@@ -219,7 +220,8 @@ Isabelle/Isar provides a simple document preparation system
       'full_prf' options thmrefs |
       'ML' options name |
       'ML_type' options name |
-      'ML_struct' options name
+      'ML_struct' options name |
+      'file' options name
     ;
     options: '[' (option * ',') ']'
     ;
@@ -299,6 +301,9 @@ Isabelle/Isar provides a simple document preparation system
   
   \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML{\isaliteral{5F}{\isacharunderscore}}type\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}}, and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}ML{\isaliteral{5F}{\isacharunderscore}}struct\ s{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} check text \isa{s} as ML value, type, and
   structure, respectively.  The source is printed verbatim.
+
+  \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}file\ path{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} checks that \isa{{\isaliteral{22}{\isachardoublequote}}path{\isaliteral{22}{\isachardoublequote}}} refers to a
+  file (or directory) and prints it verbatim.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -466,7 +471,7 @@ Each Isabelle/Isar command may be decorated by additional
 
   \medskip Command tags merely produce certain markup environments for
   type-setting.  The meaning of these is determined by {\LaTeX}
-  macros, as defined in \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}lib{\isaliteral{2F}{\isacharslash}}texinputs{\isaliteral{2F}{\isacharslash}}isabelle{\isaliteral{2E}{\isachardot}}sty}}}} or
+  macros, as defined in \verb|~~/lib/texinputs/isabelle.sty| or
   by the document author.  The Isabelle document preparation tools
   also provide some high-level options to specify the meaning of
   arbitrary tags to ``keep'', ``drop'', or ``fold'' the corresponding

@@ -89,7 +89,7 @@ The sources of Isabelle/Isar are optimized for
 Isabelle source files have a certain standardized header
   format (with precise spacing) that follows ancient traditions
   reaching back to the earliest versions of the system by Larry
-  Paulson.  See \hyperlink{file.~~/src/Pure/thm.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}thm{\isaliteral{2E}{\isachardot}}ML}}}}, for example.
+  Paulson.  See \verb|~~/src/Pure/thm.ML|, for example.
 
   The header includes at least \verb|Title| and \verb|Author| entries, followed by a prose description of the purpose of
   the module.  The latter can range from a single line to several
@@ -1645,7 +1645,7 @@ The basis library proposal of SML97 needs to be treated with
   integer type --- overloading of SML97 is disabled.
 
   Structure \verb|IntInf| of SML97 is obsolete and superseded by
-  \verb|Int|.  Structure \verb|Integer| in \hyperlink{file.~~/src/Pure/General/integer.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}General{\isaliteral{2F}{\isacharslash}}integer{\isaliteral{2E}{\isachardot}}ML}}}} provides some additional
+  \verb|Int|.  Structure \verb|Integer| in \verb|~~/src/Pure/General/integer.ML| provides some additional
   operations.
 
   \end{description}%
@@ -1730,7 +1730,7 @@ The basis library proposal of SML97 needs to be treated with
 \begin{isamarkuptext}%
 Apart from \verb|Option.map| most operations defined in
   structure \verb|Option| are alien to Isabelle/ML.  The
-  operations shown above are defined in \hyperlink{file.~~/src/Pure/General/basics.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}General{\isaliteral{2F}{\isacharslash}}basics{\isaliteral{2E}{\isachardot}}ML}}}}, among others.%
+  operations shown above are defined in \verb|~~/src/Pure/General/basics.ML|, among others.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1771,7 +1771,7 @@ Lists are ubiquitous in ML as simple and light-weight
 
   \item \verb|member|, \verb|insert|, \verb|remove|, \verb|update| treat
   lists as a set-like container that maintains the order of elements.
-  See \hyperlink{file.~~/src/Pure/library.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}library{\isaliteral{2E}{\isachardot}}ML}}}} for the full specifications
+  See \verb|~~/src/Pure/library.ML| for the full specifications
   (written in ML).  There are some further derived operations like
   \verb|union| or \verb|inter|.
 
@@ -1877,7 +1877,7 @@ Here the first list is treated conservatively: only the new
 
   This way of merging lists is typical for context data
   (\secref{sec:context-data}).  See also \verb|merge| as defined in
-  \hyperlink{file.~~/src/Pure/library.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}library{\isaliteral{2E}{\isachardot}}ML}}}}.%
+  \verb|~~/src/Pure/library.ML|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1921,7 +1921,7 @@ The operations for association lists interpret a concrete list
 
   Association lists are adequate as simple and light-weight
   implementation of finite mappings in many practical situations.  A
-  more heavy-duty table structure is defined in \hyperlink{file.~~/src/Pure/General/table.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}General{\isaliteral{2F}{\isacharslash}}table{\isaliteral{2E}{\isachardot}}ML}}}}; that version scales easily to
+  more heavy-duty table structure is defined in \verb|~~/src/Pure/General/table.ML|; that version scales easily to
   thousands or millions of elements.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -2290,7 +2290,7 @@ Isabelle/ML also provides some explicit synchronization
 
   \end{description}
 
-  There are some further variants of the \verb|Synchronized.guarded_access| combinator, see \hyperlink{file.~~/src/Pure/Concurrent/synchronized.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}Concurrent{\isaliteral{2F}{\isacharslash}}synchronized{\isaliteral{2E}{\isachardot}}ML}}}} for details.%
+  There are some further variants of the \verb|Synchronized.guarded_access| combinator, see \verb|~~/src/Pure/Concurrent/synchronized.ML| for details.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -2357,7 +2357,7 @@ assert{}%
 \endisadelimML
 %
 \begin{isamarkuptext}%
-\medskip See \hyperlink{file.~~/src/Pure/Concurrent/mailbox.ML}{\mbox{\isa{\isatt{{\isaliteral{7E}{\isachartilde}}{\isaliteral{7E}{\isachartilde}}{\isaliteral{2F}{\isacharslash}}src{\isaliteral{2F}{\isacharslash}}Pure{\isaliteral{2F}{\isacharslash}}Concurrent{\isaliteral{2F}{\isacharslash}}mailbox{\isaliteral{2E}{\isachardot}}ML}}}} how
+\medskip See \verb|~~/src/Pure/Concurrent/mailbox.ML| how
   to implement a mailbox as synchronized variable over a purely
   functional queue.%
 \end{isamarkuptext}%
