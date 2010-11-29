@@ -356,7 +356,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
             val _ = Isabelle_System.mkdir (Path.dir filepath);
           in
             (File.write filepath o format [] width o Pretty.chunks2)
-              [str "{-# OPTIONS_GHC -fglasgow-exts #-}", content]
+              [str "{-# LANGUAGE ScopedTypeVariables #-}", content]
           end
       | write_module width NONE (_, content) = writeln (format [] width content);
   in
