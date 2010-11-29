@@ -324,6 +324,7 @@ lemma [z3_rule]:
   "(if P then True else False) = P"
   "(if P then False else True) = (\<not>P)"
   "(if \<not>P then x else y) = (if P then y else x)"
+  "f (if P then x else y) = (if P then f x else f y)"
   by auto
 
 lemma [z3_rule]:
