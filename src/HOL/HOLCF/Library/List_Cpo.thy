@@ -237,6 +237,54 @@ text {* There are probably lots of other list operations that also
 deserve to have continuity lemmas.  I'll add more as they are
 needed. *}
 
+subsection {* Lists are a discrete cpo *}
+
+instance list :: (discrete_cpo) discrete_cpo
+proof
+  fix xs ys :: "'a list"
+  show "xs \<sqsubseteq> ys \<longleftrightarrow> xs = ys"
+    by (induct xs arbitrary: ys, case_tac [!] ys, simp_all)
+qed
+
+subsection {* Compactness and chain-finiteness *}
+
+lemma compact_Nil [simp]: "compact []"
+apply (rule compactI2)
+apply (erule list_chain_cases)
+apply simp
+apply (simp add: lub_Cons)
+done
+
+lemma compact_Cons: "\<lbrakk>compact x; compact xs\<rbrakk> \<Longrightarrow> compact (x # xs)"
+apply (rule compactI2)
+apply (erule list_chain_cases)
+apply (auto simp add: lub_Cons dest!: compactD2)
+apply (rename_tac i j, rule_tac x="max i j" in exI)
+apply (drule (1) below_trans [OF _ chain_mono [OF _ le_maxI1]])
+apply (drule (1) below_trans [OF _ chain_mono [OF _ le_maxI2]])
+apply (erule (1) conjI)
+done
+
+lemma compact_Cons_iff [simp]:
+  "compact (x # xs) \<longleftrightarrow> compact x \<and> compact xs"
+apply (safe intro!: compact_Cons)
+apply (simp only: compact_def)
+apply (subgoal_tac "cont (\<lambda>x. x # xs)")
+apply (drule (1) adm_subst, simp, simp)
+apply (simp only: compact_def)
+apply (subgoal_tac "cont (\<lambda>xs. x # xs)")
+apply (drule (1) adm_subst, simp, simp)
+done
+
+instance list :: (chfin) chfin
+proof
+  fix Y :: "nat \<Rightarrow> 'a list" assume "chain Y"
+  moreover have "\<And>(xs::'a list). compact xs"
+    by (induct_tac xs, simp_all)
+  ultimately show "\<exists>i. max_in_chain i Y"
+    by (rule compact_imp_max_in_chain)
+qed
+
 subsection {* Using lists with fixrec *}
 
 definition
