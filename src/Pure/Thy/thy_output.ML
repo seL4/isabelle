@@ -575,7 +575,6 @@ val _ = basic_entity "text" (Scan.lift Args.name) pretty_text;
 val _ = basic_entities "prf" Attrib.thms (pretty_prf false);
 val _ = basic_entities "full_prf" Attrib.thms (pretty_prf true);
 val _ = basic_entity "theory" (Scan.lift Args.name) pretty_theory;
-
 val _ = basic_entities_style "thm_style" (Term_Style.parse_bare -- Attrib.thms) pretty_thm_style;
 val _ = basic_entity "term_style" (Term_Style.parse_bare -- Args.term) pretty_term_style;
 
@@ -622,6 +621,11 @@ val _ = antiquotation "lemma"
 
 (* ML text *)
 
+val verb_text =
+  split_lines
+  #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
+  #> space_implode "\\isasep\\isanewline%\n";
+
 local
 
 fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
@@ -630,10 +634,7 @@ fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
     Symbol_Pos.content (Symbol_Pos.explode (txt, pos))
     |> (if Config.get context quotes then quote else I)
     |> (if Config.get context display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
-    else
-      split_lines
-      #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
-      #> space_implode "\\isasep\\isanewline%\n")));
+        else verb_text)));
 
 fun ml_enclose bg en pos txt =
   ML_Lex.read Position.none bg @ ML_Lex.read pos txt @ ML_Lex.read Position.none en;
@@ -652,5 +653,13 @@ val _ = ml_text "ML_functor"   (* FIXME formal treatment of functor name (!?) *)
 val _ = ml_text "ML_text" (K (K []));
 
 end;
+
+
+(* files *)
+
+val _ = antiquotation "file" (Scan.lift Args.name)
+  (fn {context, ...} => fn path =>
+    if File.exists (Path.explode path) then verb_text path
+    else error ("Bad file: " ^ quote path));
 
 end;

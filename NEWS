@@ -83,8 +83,11 @@ feature is still required for historical reasons.
 * Discontinued ancient 'constdefs' command.  INCOMPATIBILITY, use
 'definition' instead.
 
-* Document antiquotations @{class} and @{type} for printing classes
-and type constructors.
+* Document antiquotations @{class} and @{type} print classes and type
+constructors.
+
+* Document antiquotation @{file} checks file/directory entries within
+the local file system.
 
 
 *** HOL ***
