@@ -377,7 +377,7 @@ lemma real_case_2:
   apply (subst real_case_1 [OF _ Y])
    apply (rule congruent2_implies_congruent [OF equiv_realrel f])
    apply (simp add: realrel_def)
-  apply (erule congruent2.congruent2 [OF f])
+  apply (erule congruent2D [OF f])
   apply (rule refl_onD [OF refl_realrel])
   apply (simp add: Y)
   apply (rule real_case_1 [OF _ Y])

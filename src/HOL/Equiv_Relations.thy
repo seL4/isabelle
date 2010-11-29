@@ -164,16 +164,16 @@ subsection {* Defining unary operations upon equivalence classes *}
 
 text{*A congruence-preserving function*}
 
-definition congruent where
-  "congruent r f \<longleftrightarrow> (\<forall>y z. (y, z) \<in> r \<longrightarrow> f y = f z)"
+definition congruent :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"  where
+  "congruent r f \<longleftrightarrow> (\<forall>(y, z) \<in> r. f y = f z)"
 
 lemma congruentI:
   "(\<And>y z. (y, z) \<in> r \<Longrightarrow> f y = f z) \<Longrightarrow> congruent r f"
-  by (simp add: congruent_def)
+  by (auto simp add: congruent_def)
 
 lemma congruentD:
   "congruent r f \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> f y = f z"
-  by (simp add: congruent_def)
+  by (auto simp add: congruent_def)
 
 abbreviation
   RESPECTS :: "('a => 'b) => ('a * 'a) set => bool"
@@ -228,10 +228,18 @@ lemma UN_equiv_class_inject:
 subsection {* Defining binary operations upon equivalence classes *}
 
 text{*A congruence-preserving function of two arguments*}
-locale congruent2 =
-  fixes r1 and r2 and f
-  assumes congruent2:
-    "(y1,z1) \<in> r1 ==> (y2,z2) \<in> r2 ==> f y1 y2 = f z1 z2"
+
+definition congruent2 :: "('a \<times> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<times> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> bool" where
+  "congruent2 r1 r2 f \<longleftrightarrow> (\<forall>(y1, z1) \<in> r1. \<forall>(y2, z2) \<in> r2. f y1 y2 = f z1 z2)"
+
+lemma congruent2I':
+  assumes "\<And>y1 z1 y2 z2. (y1, z1) \<in> r1 \<Longrightarrow> (y2, z2) \<in> r2 \<Longrightarrow> f y1 y2 = f z1 z2"
+  shows "congruent2 r1 r2 f"
+  using assms by (auto simp add: congruent2_def)
+
+lemma congruent2D:
+  "congruent2 r1 r2 f \<Longrightarrow> (y1, z1) \<in> r1 \<Longrightarrow> (y2, z2) \<in> r2 \<Longrightarrow> f y1 y2 = f z1 z2"
+  using assms by (auto simp add: congruent2_def)
 
 text{*Abbreviation for the common case where the relations are identical*}
 abbreviation
