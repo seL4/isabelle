@@ -4,7 +4,7 @@
 Auxiliary antiquotations for the Isabelle manuals.
 *)
 
-structure AntiquoteSetup: sig end =
+structure Antiquote_Setup: sig end =
 struct
 
 (* misc utils *)
@@ -190,7 +190,6 @@ val _ = entity_antiqs (fn _ => fn name => is_some (OS.Process.getEnv name)) "isa
 val _ = entity_antiqs no_check "" "inference";
 val _ = entity_antiqs no_check "isatt" "executable";
 val _ = entity_antiqs (K check_tool) "isatt" "tool";
-val _ = entity_antiqs (K (File.exists o Path.explode)) "isatt" "file";
 val _ = entity_antiqs (K (can Thy_Info.get_theory)) "" "theory";
 val _ = entity_antiqs no_check "" "ML antiquotation";  (* FIXME proper check *)
 
