@@ -8,13 +8,10 @@ theory Equiv_Relations
 imports Big_Operators Relation Plain
 begin
 
-subsection {* Equivalence relations *}
+subsection {* Equivalence relations -- set version *}
 
-locale equiv =
-  fixes A and r
-  assumes refl_on: "refl_on A r"
-    and sym: "sym r"
-    and trans: "trans r"
+definition equiv :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool" where
+  "equiv A r \<longleftrightarrow> refl_on A r \<and> sym r \<and> trans r"
 
 text {*
   Suppes, Theorem 70: @{text r} is an equiv relation iff @{text "r\<inverse> O
@@ -330,5 +327,100 @@ apply(subst card_UN_disjoint)
  apply(fastsimp simp add:inj_on_def)
 apply simp
 done
+
+
+subsection {* Equivalence relations -- predicate version *}
+
+text {* Partial equivalences *}
+
+definition part_equivp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "part_equivp R \<longleftrightarrow> (\<exists>x. R x x) \<and> (\<forall>x y. R x y \<longleftrightarrow> R x x \<and> R y y \<and> R x = R y)"
+    -- {* John-Harrison-style characterization *}
+
+lemma part_equivpI:
+  "(\<exists>x. R x x) \<Longrightarrow> symp R \<Longrightarrow> transp R \<Longrightarrow> part_equivp R"
+  by (auto simp add: part_equivp_def mem_def) (auto elim: sympE transpE)
+
+lemma part_equivpE:
+  assumes "part_equivp R"
+  obtains x where "R x x" and "symp R" and "transp R"
+proof -
+  from assms have 1: "\<exists>x. R x x"
+    and 2: "\<And>x y. R x y \<longleftrightarrow> R x x \<and> R y y \<and> R x = R y"
+    by (unfold part_equivp_def) blast+
+  from 1 obtain x where "R x x" ..
+  moreover have "symp R"
+  proof (rule sympI)
+    fix x y
+    assume "R x y"
+    with 2 [of x y] show "R y x" by auto
+  qed
+  moreover have "transp R"
+  proof (rule transpI)
+    fix x y z
+    assume "R x y" and "R y z"
+    with 2 [of x y] 2 [of y z] show "R x z" by auto
+  qed
+  ultimately show thesis by (rule that)
+qed
+
+lemma part_equivp_refl_symp_transp:
+  "part_equivp R \<longleftrightarrow> (\<exists>x. R x x) \<and> symp R \<and> transp R"
+  by (auto intro: part_equivpI elim: part_equivpE)
+
+lemma part_equivp_symp:
+  "part_equivp R \<Longrightarrow> R x y \<Longrightarrow> R y x"
+  by (erule part_equivpE, erule sympE)
+
+lemma part_equivp_transp:
+  "part_equivp R \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
+  by (erule part_equivpE, erule transpE)
+
+lemma part_equivp_typedef:
+  "part_equivp R \<Longrightarrow> \<exists>d. d \<in> (\<lambda>c. \<exists>x. R x x \<and> c = R x)"
+  by (auto elim: part_equivpE simp add: mem_def)
+
+
+text {* Total equivalences *}
+
+definition equivp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "equivp R \<longleftrightarrow> (\<forall>x y. R x y = (R x = R y))" -- {* John-Harrison-style characterization *}
+
+lemma equivpI:
+  "reflp R \<Longrightarrow> symp R \<Longrightarrow> transp R \<Longrightarrow> equivp R"
+  by (auto elim: reflpE sympE transpE simp add: equivp_def mem_def)
+
+lemma equivpE:
+  assumes "equivp R"
+  obtains "reflp R" and "symp R" and "transp R"
+  using assms by (auto intro!: that reflpI sympI transpI simp add: equivp_def)
+
+lemma equivp_implies_part_equivp:
+  "equivp R \<Longrightarrow> part_equivp R"
+  by (auto intro: part_equivpI elim: equivpE reflpE)
+
+lemma equivp_equiv:
+  "equiv UNIV A \<longleftrightarrow> equivp (\<lambda>x y. (x, y) \<in> A)"
+  by (auto intro: equivpI elim: equivpE simp add: equiv_def reflp_def symp_def transp_def)
+
+lemma equivp_reflp_symp_transp:
+  shows "equivp R \<longleftrightarrow> reflp R \<and> symp R \<and> transp R"
+  by (auto intro: equivpI elim: equivpE)
+
+lemma identity_equivp:
+  "equivp (op =)"
+  by (auto intro: equivpI reflpI sympI transpI)
+
+lemma equivp_reflp:
+  "equivp R \<Longrightarrow> R x x"
+  by (erule equivpE, erule reflpE)
+
+lemma equivp_symp:
+  "equivp R \<Longrightarrow> R x y \<Longrightarrow> R y x"
+  by (erule equivpE, erule sympE)
+
+lemma equivp_transp:
+  "equivp R \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
+  by (erule equivpE, erule transpE)
 
 end
