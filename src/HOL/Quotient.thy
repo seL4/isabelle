@@ -22,7 +22,7 @@ text {*
 text {* Composition of Relations *}
 
 abbreviation
-  rel_conj (infixr "OOO" 75)
+  rel_conj :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" (infixr "OOO" 75)
 where
   "r1 OOO r2 \<equiv> r1 OO r2 OO r1"
 
@@ -75,7 +75,14 @@ subsection {* Quotient Predicate *}
 definition
   "Quotient R Abs Rep \<longleftrightarrow>
      (\<forall>a. Abs (Rep a) = a) \<and> (\<forall>a. R (Rep a) (Rep a)) \<and>
-     (\<forall>r s. R r s = (R r r \<and> R s s \<and> (Abs r = Abs s)))"
+     (\<forall>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s)"
+
+lemma QuotientI:
+  assumes "\<And>a. Abs (Rep a) = a"
+    and "\<And>a. R (Rep a) (Rep a)"
+    and "\<And>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s"
+  shows "Quotient R Abs Rep"
+  using assms unfolding Quotient_def by blast
 
 lemma Quotient_abs_rep:
   assumes a: "Quotient R Abs Rep"
@@ -93,14 +100,14 @@ lemma Quotient_rep_reflp:
 
 lemma Quotient_rel:
   assumes a: "Quotient R Abs Rep"
-  shows " R r s = (R r r \<and> R s s \<and> (Abs r = Abs s))"
+  shows "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
   using a
   unfolding Quotient_def
   by blast
 
 lemma Quotient_rel_rep:
   assumes a: "Quotient R Abs Rep"
-  shows "R (Rep a) (Rep b) = (a = b)"
+  shows "R (Rep a) (Rep b) \<longleftrightarrow> a = b"
   using a
   unfolding Quotient_def
   by metis
