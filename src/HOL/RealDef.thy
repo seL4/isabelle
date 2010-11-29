@@ -324,7 +324,7 @@ lemma trans_realrel: "trans realrel"
 
 lemma equiv_realrel: "equiv {X. cauchy X} realrel"
   using refl_realrel sym_realrel trans_realrel
-  by (rule equiv.intro)
+  by (rule equivI)
 
 subsection {* The field of real numbers *}
 

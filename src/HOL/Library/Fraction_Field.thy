@@ -43,7 +43,7 @@ proof (rule transI, unfold split_paired_all)
 qed
   
 lemma equiv_fractrel: "equiv {x. snd x \<noteq> 0} fractrel"
-  by (rule equiv.intro [OF refl_fractrel sym_fractrel trans_fractrel])
+  by (rule equivI [OF refl_fractrel sym_fractrel trans_fractrel])
 
 lemmas UN_fractrel = UN_equiv_class [OF equiv_fractrel]
 lemmas UN_fractrel2 = UN_equiv_class2 [OF equiv_fractrel equiv_fractrel]

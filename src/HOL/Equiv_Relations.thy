@@ -13,6 +13,15 @@ subsection {* Equivalence relations -- set version *}
 definition equiv :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool" where
   "equiv A r \<longleftrightarrow> refl_on A r \<and> sym r \<and> trans r"
 
+lemma equivI:
+  "refl_on A r \<Longrightarrow> sym r \<Longrightarrow> trans r \<Longrightarrow> equiv A r"
+  by (simp add: equiv_def)
+
+lemma equivE:
+  assumes "equiv A r"
+  obtains "refl_on A r" and "sym r" and "trans r"
+  using assms by (simp add: equiv_def)
+
 text {*
   Suppes, Theorem 70: @{text r} is an equiv relation iff @{text "r\<inverse> O
   r = r"}.

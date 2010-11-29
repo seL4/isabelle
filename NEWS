@@ -89,6 +89,9 @@ and type constructors.
 
 *** HOL ***
 
+* Abandoned locale equiv for equivalence relations.  INCOMPATIBILITY: use
+equivI rather than equiv_intro.
+
 * Code generator: globbing constant expressions "*" and "Theory.*" have been
 replaced by the more idiomatic "_" and "Theory._".  INCOMPATIBILITY.
 

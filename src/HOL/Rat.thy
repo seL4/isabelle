@@ -44,7 +44,7 @@ proof (rule transI, unfold split_paired_all)
 qed
   
 lemma equiv_ratrel: "equiv {x. snd x \<noteq> 0} ratrel"
-  by (rule equiv.intro [OF refl_on_ratrel sym_ratrel trans_ratrel])
+  by (rule equivI [OF refl_on_ratrel sym_ratrel trans_ratrel])
 
 lemmas UN_ratrel = UN_equiv_class [OF equiv_ratrel]
 lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]
