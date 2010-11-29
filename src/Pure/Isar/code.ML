@@ -383,7 +383,7 @@ fun typscheme thy (c, ty) = logical_typscheme thy (c, subst_signature thy c ty);
 fun no_constr thy s (c, ty) = error ("Not a datatype constructor:\n" ^ string_of_const thy c
   ^ " :: " ^ string_of_typ thy ty ^ "\n" ^ enclose "(" ")" s);
 
-fun ty_sorts thy (c, raw_ty) =
+fun analyze_constructor thy (c, raw_ty) =
   let
     val _ = Thm.cterm_of thy (Const (c, raw_ty));
     val ty = subst_signature thy c raw_ty;
@@ -418,10 +418,10 @@ fun constrset_of_consts thy cs =
     fun inst vs' (c, (vs, ty)) =
       let
         val the_v = the o AList.lookup (op =) (vs ~~ vs');
-        val ty' = map_atyps (fn TFree (v, _) => TFree (the_v v)) ty;
+        val ty' = map_type_tfree (fn (v, _) => TFree (the_v v)) ty;
         val (vs'', _) = logical_typscheme thy (c, ty');
       in (c, (vs'', (fst o strip_type) ty')) end;
-    val c' :: cs' = map (ty_sorts thy) cs;
+    val c' :: cs' = map (analyze_constructor thy) cs;
     val ((tyco, sorts), cs'') = fold add cs' (apsnd single c');
     val vs = Name.names Name.context Name.aT sorts;
     val cs''' = map (inst vs) cs'';
@@ -676,7 +676,7 @@ fun check_abstype_cert thy proto_thm =
     val _ = (fst o dest_Var) param
       handle TERM _ => bad "Not an abstype certificate";
     val _ = if param = rhs then () else bad "Not an abstype certificate";
-    val ((tyco, sorts), (abs, (vs, ty'))) = ty_sorts thy (abs, Logic.unvarifyT_global raw_ty);
+    val ((tyco, sorts), (abs, (vs, ty'))) = analyze_constructor thy (abs, Logic.unvarifyT_global raw_ty);
     val ty = domain_type ty';
     val (vs', _) = logical_typscheme thy (abs, ty');
   in (tyco, (vs ~~ sorts, ((abs, (vs', ty)), (rep, thm)))) end;
@@ -705,8 +705,8 @@ fun constrain_thm thy vs sorts thm =
       (v, Sorts.inter_sort (Sign.classes_of thy) (sort, sort'))) vs sorts;
     val inst = map2 (fn (v, sort) => fn (_, sort') =>
       (((v, 0), sort), TFree (v, sort'))) vs mapping;
-    val subst = (map_types o map_atyps)
-      (fn TFree (v, _) => TFree (v, the (AList.lookup (op =) mapping v)));
+    val subst = (map_types o map_type_tfree)
+      (fn (v, _) => TFree (v, the (AList.lookup (op =) mapping v)));
   in
     thm
     |> Thm.varifyT_global
