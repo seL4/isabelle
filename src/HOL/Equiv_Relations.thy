@@ -163,9 +163,17 @@ done
 subsection {* Defining unary operations upon equivalence classes *}
 
 text{*A congruence-preserving function*}
-locale congruent =
-  fixes r and f
-  assumes congruent: "(y,z) \<in> r ==> f y = f z"
+
+definition congruent where
+  "congruent r f \<longleftrightarrow> (\<forall>y z. (y, z) \<in> r \<longrightarrow> f y = f z)"
+
+lemma congruentI:
+  "(\<And>y z. (y, z) \<in> r \<Longrightarrow> f y = f z) \<Longrightarrow> congruent r f"
+  by (simp add: congruent_def)
+
+lemma congruentD:
+  "congruent r f \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> f y = f z"
+  by (simp add: congruent_def)
 
 abbreviation
   RESPECTS :: "('a => 'b) => ('a * 'a) set => bool"

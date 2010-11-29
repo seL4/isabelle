@@ -781,7 +781,7 @@ end
 
 lemma of_rat_congruent:
   "(\<lambda>(a, b). {of_int a / of_int b :: 'a::field_char_0}) respects ratrel"
-apply (rule congruent.intro)
+apply (rule congruentI)
 apply (clarsimp simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq)
 apply (simp only: of_int_mult [symmetric])
 done
