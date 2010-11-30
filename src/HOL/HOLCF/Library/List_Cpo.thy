@@ -233,6 +233,19 @@ proof (rule contI2)
     done
 qed
 
+text {* Continuity rule for map *}
+
+lemma cont2cont_map [simp, cont2cont]:
+  assumes f: "cont (\<lambda>(x, y). f x y)"
+  assumes g: "cont (\<lambda>x. g x)"
+  shows "cont (\<lambda>x. map (\<lambda>y. f x y) (g x))"
+using f
+apply (simp add: prod_cont_iff)
+apply (rule cont_apply [OF g])
+apply (rule list_contI, rule map.simps, simp, simp, simp)
+apply (induct_tac y, simp, simp)
+done
+
 text {* There are probably lots of other list operations that also
 deserve to have continuity lemmas.  I'll add more as they are
 needed. *}
