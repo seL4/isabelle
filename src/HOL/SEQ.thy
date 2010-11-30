@@ -221,15 +221,7 @@ by (rule tendsto_diff)
 lemma LIMSEQ_unique:
   fixes a b :: "'a::metric_space"
   shows "\<lbrakk>X ----> a; X ----> b\<rbrakk> \<Longrightarrow> a = b"
-apply (rule ccontr)
-apply (drule_tac r="dist a b / 2" in metric_LIMSEQ_D, simp add: zero_less_dist_iff)
-apply (drule_tac r="dist a b / 2" in metric_LIMSEQ_D, simp add: zero_less_dist_iff)
-apply (clarify, rename_tac M N)
-apply (subgoal_tac "dist a b < dist a b / 2 + dist a b / 2", simp)
-apply (subgoal_tac "dist a b \<le> dist (X (max M N)) a + dist (X (max M N)) b")
-apply (erule le_less_trans, rule add_strict_mono, simp, simp)
-apply (subst dist_commute, rule dist_triangle)
-done
+by (drule (1) tendsto_dist, simp add: LIMSEQ_const_iff)
 
 lemma (in bounded_linear) LIMSEQ:
   "X ----> a \<Longrightarrow> (\<lambda>n. f (X n)) ----> f a"
