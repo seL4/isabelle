@@ -121,7 +121,7 @@ definition
 lemma minus_fract [simp, code]: "- Fract a b = Fract (- a) (b::'a::idom)"
 proof -
   have "(\<lambda>x. fractrel `` {(- fst x, snd x :: 'a)}) respects fractrel"
-    by (simp add: congruent_def)
+    by (simp add: congruent_def split_paired_all)
   then show ?thesis by (simp add: Fract_def minus_fract_def UN_fractrel)
 qed
 

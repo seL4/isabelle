@@ -125,14 +125,19 @@ primrec freeargs :: "freeExp \<Rightarrow> freeExp list" where
 | "freeargs (FNCALL F Xs) = Xs"
 
 theorem exprel_imp_eqv_freeargs:
-     "U \<sim> V \<Longrightarrow> (freeargs U, freeargs V) \<in> listrel exprel"
-apply (induct set: exprel)
-apply (erule_tac [4] listrel.induct) 
-apply (simp_all add: listrel.intros)
-apply (blast intro: symD [OF equiv.sym [OF equiv_list_exprel]])
-apply (blast intro: transD [OF equiv.trans [OF equiv_list_exprel]])
-done
-
+  assumes "U \<sim> V"
+  shows "(freeargs U, freeargs V) \<in> listrel exprel"
+proof -
+  from equiv_list_exprel have sym: "sym (listrel exprel)" by (rule equivE)
+  from equiv_list_exprel have trans: "trans (listrel exprel)" by (rule equivE)
+  from assms show ?thesis
+    apply induct
+    apply (erule_tac [4] listrel.induct) 
+    apply (simp_all add: listrel.intros)
+    apply (blast intro: symD [OF sym])
+    apply (blast intro: transD [OF trans])
+    done
+qed
 
 
 subsection{*The Initial Algebra: A Quotiented Message Type*}
@@ -220,7 +225,7 @@ lemma Plus: "Plus (Abs_Exp(exprel``{U})) (Abs_Exp(exprel``{V})) =
              Abs_Exp (exprel``{PLUS U V})"
 proof -
   have "(\<lambda>U V. exprel `` {PLUS U V}) respects2 exprel"
-    by (simp add: congruent2_def exprel.PLUS)
+    by (auto simp add: congruent2_def exprel.PLUS)
   thus ?thesis
     by (simp add: Plus_def UN_equiv_class2 [OF equiv_exprel equiv_exprel])
 qed
@@ -236,13 +241,13 @@ lemma FnCall_Nil: "FnCall F [] = Abs_Exp (exprel``{FNCALL F []})"
 
 lemma FnCall_respects: 
      "(\<lambda>Us. exprel `` {FNCALL F Us}) respects (listrel exprel)"
-  by (simp add: congruent_def exprel.FNCALL)
+  by (auto simp add: congruent_def exprel.FNCALL)
 
 lemma FnCall_sing:
      "FnCall F [Abs_Exp(exprel``{U})] = Abs_Exp (exprel``{FNCALL F [U]})"
 proof -
   have "(\<lambda>U. exprel `` {FNCALL F [U]}) respects exprel"
-    by (simp add: congruent_def FNCALL_Cons listrel.intros)
+    by (auto simp add: congruent_def FNCALL_Cons listrel.intros)
   thus ?thesis
     by (simp add: FnCall_def UN_equiv_class [OF equiv_exprel])
 qed
@@ -255,7 +260,7 @@ lemma FnCall:
      "FnCall F (Abs_ExpList Us) = Abs_Exp (exprel``{FNCALL F Us})"
 proof -
   have "(\<lambda>Us. exprel `` {FNCALL F Us}) respects (listrel exprel)"
-    by (simp add: congruent_def exprel.FNCALL)
+    by (auto simp add: congruent_def exprel.FNCALL)
   thus ?thesis
     by (simp add: FnCall_def UN_equiv_class [OF equiv_list_exprel]
                   listset_Rep_Exp_Abs_Exp)
@@ -275,7 +280,7 @@ definition
   "vars X = (\<Union>U \<in> Rep_Exp X. freevars U)"
 
 lemma vars_respects: "freevars respects exprel"
-by (simp add: congruent_def exprel_imp_eq_freevars) 
+by (auto simp add: congruent_def exprel_imp_eq_freevars) 
 
 text{*The extension of the function @{term vars} to lists*}
 primrec vars_list :: "exp list \<Rightarrow> nat set" where
@@ -340,7 +345,7 @@ definition
   "fun X = the_elem (\<Union>U \<in> Rep_Exp X. {freefun U})"
 
 lemma fun_respects: "(%U. {freefun U}) respects exprel"
-by (simp add: congruent_def exprel_imp_eq_freefun) 
+by (auto simp add: congruent_def exprel_imp_eq_freefun) 
 
 lemma fun_FnCall [simp]: "fun (FnCall F Xs) = F"
 apply (cases Xs rule: eq_Abs_ExpList) 
@@ -358,7 +363,7 @@ lemma Abs_ExpList_eq:
   by (induct set: listrel) simp_all
 
 lemma args_respects: "(%U. {Abs_ExpList (freeargs U)}) respects exprel"
-by (simp add: congruent_def Abs_ExpList_eq exprel_imp_eqv_freeargs) 
+by (auto simp add: congruent_def Abs_ExpList_eq exprel_imp_eqv_freeargs) 
 
 lemma args_FnCall [simp]: "args (FnCall F Xs) = Xs"
 apply (cases Xs rule: eq_Abs_ExpList) 
@@ -387,7 +392,7 @@ definition
   "discrim X = the_elem (\<Union>U \<in> Rep_Exp X. {freediscrim U})"
 
 lemma discrim_respects: "(\<lambda>U. {freediscrim U}) respects exprel"
-by (simp add: congruent_def exprel_imp_eq_freediscrim) 
+by (auto simp add: congruent_def exprel_imp_eq_freediscrim) 
 
 text{*Now prove the four equations for @{term discrim}*}
 
