@@ -893,9 +893,9 @@ proof -
   have "(\<lambda> g h. {Abs_Pg (eq_game_rel `` {plus_game g h})}) respects2 eq_game_rel" 
     apply (simp add: congruent2_def)
     apply (auto simp add: eq_game_rel_def eq_game_def)
-    apply (rule_tac y="plus_game y1 z2" in ge_game_trans)
+    apply (rule_tac y="plus_game a ba" in ge_game_trans)
     apply (simp add: ge_plus_game_left[symmetric] ge_plus_game_right[symmetric])+
-    apply (rule_tac y="plus_game z1 y2" in ge_game_trans)
+    apply (rule_tac y="plus_game b aa" in ge_game_trans)
     apply (simp add: ge_plus_game_left[symmetric] ge_plus_game_right[symmetric])+
     done
   then show ?thesis
