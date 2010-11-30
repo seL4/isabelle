@@ -176,7 +176,7 @@ lemma MPair: "MPair (Abs_Msg(msgrel``{U})) (Abs_Msg(msgrel``{V})) =
               Abs_Msg (msgrel``{MPAIR U V})"
 proof -
   have "(\<lambda>U V. msgrel `` {MPAIR U V}) respects2 msgrel"
-    by (simp add: congruent2_def msgrel.MPAIR)
+    by (auto simp add: congruent2_def msgrel.MPAIR)
   thus ?thesis
     by (simp add: MPair_def UN_equiv_class2 [OF equiv_msgrel equiv_msgrel])
 qed
@@ -184,7 +184,7 @@ qed
 lemma Crypt: "Crypt K (Abs_Msg(msgrel``{U})) = Abs_Msg (msgrel``{CRYPT K U})"
 proof -
   have "(\<lambda>U. msgrel `` {CRYPT K U}) respects msgrel"
-    by (simp add: congruent_def msgrel.CRYPT)
+    by (auto simp add: congruent_def msgrel.CRYPT)
   thus ?thesis
     by (simp add: Crypt_def UN_equiv_class [OF equiv_msgrel])
 qed
@@ -193,7 +193,7 @@ lemma Decrypt:
      "Decrypt K (Abs_Msg(msgrel``{U})) = Abs_Msg (msgrel``{DECRYPT K U})"
 proof -
   have "(\<lambda>U. msgrel `` {DECRYPT K U}) respects msgrel"
-    by (simp add: congruent_def msgrel.DECRYPT)
+    by (auto simp add: congruent_def msgrel.DECRYPT)
   thus ?thesis
     by (simp add: Decrypt_def UN_equiv_class [OF equiv_msgrel])
 qed
@@ -221,7 +221,7 @@ definition
    "nonces X = (\<Union>U \<in> Rep_Msg X. freenonces U)"
 
 lemma nonces_congruent: "freenonces respects msgrel"
-by (simp add: congruent_def msgrel_imp_eq_freenonces) 
+by (auto simp add: congruent_def msgrel_imp_eq_freenonces) 
 
 
 text{*Now prove the four equations for @{term nonces}*}
@@ -256,7 +256,7 @@ definition
    "left X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeleft U})"
 
 lemma left_congruent: "(\<lambda>U. msgrel `` {freeleft U}) respects msgrel"
-by (simp add: congruent_def msgrel_imp_eqv_freeleft) 
+by (auto simp add: congruent_def msgrel_imp_eqv_freeleft) 
 
 text{*Now prove the four equations for @{term left}*}
 
@@ -290,7 +290,7 @@ definition
    "right X = Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeright U})"
 
 lemma right_congruent: "(\<lambda>U. msgrel `` {freeright U}) respects msgrel"
-by (simp add: congruent_def msgrel_imp_eqv_freeright) 
+by (auto simp add: congruent_def msgrel_imp_eqv_freeright) 
 
 text{*Now prove the four equations for @{term right}*}
 
@@ -425,7 +425,7 @@ definition
    "discrim X = the_elem (\<Union>U \<in> Rep_Msg X. {freediscrim U})"
 
 lemma discrim_congruent: "(\<lambda>U. {freediscrim U}) respects msgrel"
-by (simp add: congruent_def msgrel_imp_eq_freediscrim) 
+by (auto simp add: congruent_def msgrel_imp_eq_freediscrim) 
 
 text{*Now prove the four equations for @{term discrim}*}
 
