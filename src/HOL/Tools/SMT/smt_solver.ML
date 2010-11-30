@@ -19,7 +19,7 @@ sig
     interface: interface,
     outcome: string -> string list -> outcome * string list,
     cex_parser: (Proof.context -> SMT_Translate.recon -> string list ->
-      term list) option,
+      term list * term list) option,
     reconstruct: (Proof.context -> SMT_Translate.recon -> string list ->
       (int list * thm) * Proof.context) option }
 
@@ -65,7 +65,7 @@ type solver_config = {
   interface: interface,
   outcome: string -> string list -> outcome * string list,
   cex_parser: (Proof.context -> SMT_Translate.recon -> string list ->
-    term list) option,
+    term list * term list) option,
   reconstruct: (Proof.context -> SMT_Translate.recon -> string list ->
     (int list * thm) * Proof.context) option }
 
@@ -260,9 +260,14 @@ local
         then the reconstruct ctxt recon ls
         else (([], ocl ()), ctxt)
     | (result, ls) =>
-        let val ts = (case cex_parser of SOME f => f ctxt recon ls | _ => [])
-        in
-          raise SMT_Failure.SMT (SMT_Failure.Counterexample (result = Sat, ts))
+        let
+          val (ts, us) =
+            (case cex_parser of SOME f => f ctxt recon ls | _ => ([], []))
+         in
+          raise SMT_Failure.SMT (SMT_Failure.Counterexample {
+            is_real_cex = (result = Sat),
+            free_constraints = ts,
+            const_defs = us})
         end)
 
   val cfalse = Thm.cterm_of @{theory} (@{const Trueprop} $ @{const False})
@@ -351,15 +356,14 @@ fun smt_tac' pass_exns ctxt rules =
     let
       fun solve irules = snd (smt_solver NONE ctxt' irules)
       val tag = "Solver " ^ C.solver_of ctxt' ^ ": "
-      val str_of = SMT_Failure.string_of_failure ctxt'
+      val str_of = prefix tag o SMT_Failure.string_of_failure ctxt'
       fun safe_solve irules =
         if pass_exns then SOME (solve irules)
         else (SOME (solve irules)
           handle
             SMT_Failure.SMT (fail as SMT_Failure.Counterexample _) =>
-              (C.verbose_msg ctxt' (prefix tag o str_of) fail; NONE)
-          | SMT_Failure.SMT fail =>
-              (C.trace_msg ctxt' (prefix tag o str_of) fail; NONE))
+              (C.verbose_msg ctxt' str_of fail; NONE)
+          | SMT_Failure.SMT fail => (C.trace_msg ctxt' str_of fail; NONE))
     in
       safe_solve (map (pair ~1) (rules @ prems))
       |> (fn SOME thm => Tactic.rtac thm 1 | _ => Tactical.no_tac)

@@ -6,12 +6,17 @@ Failures and exception of SMT.
 
 signature SMT_FAILURE =
 sig
+  type counterexample = {
+    is_real_cex: bool,
+    free_constraints: term list,
+    const_defs: term list}
   datatype failure =
-    Counterexample of bool * term list |
+    Counterexample of counterexample |
     Time_Out |
     Out_Of_Memory |
     Abnormal_Termination of int |
     Other_Failure of string
+  val pretty_counterexample: Proof.context -> counterexample -> Pretty.T
   val string_of_failure: Proof.context -> failure -> string
   exception SMT of failure
 end
@@ -19,23 +24,32 @@ end
 structure SMT_Failure: SMT_FAILURE =
 struct
 
+type counterexample = {
+  is_real_cex: bool,
+  free_constraints: term list,
+  const_defs: term list}
+
 datatype failure =
-  Counterexample of bool * term list |
+  Counterexample of counterexample |
   Time_Out |
   Out_Of_Memory |
   Abnormal_Termination of int |
   Other_Failure of string
 
-fun string_of_failure ctxt (Counterexample (real, ex)) =
-      let
-        val msg =
-          if real then "Counterexample found (possibly spurious)"
-          else "Potential counterexample found"
-      in
-        if null ex then msg
-        else Pretty.string_of (Pretty.big_list (msg ^ ":")
-          (map (Syntax.pretty_term ctxt) ex))
-      end
+fun pretty_counterexample ctxt {is_real_cex, free_constraints, const_defs} =
+  let
+    val msg =
+      if is_real_cex then "Counterexample found (possibly spurious)"
+      else "Potential counterexample found"
+  in
+    if null free_constraints andalso null const_defs then Pretty.str msg
+    else
+      Pretty.big_list (msg ^ ":")
+        (map (Syntax.pretty_term ctxt) (free_constraints @ const_defs))
+  end
+
+fun string_of_failure ctxt (Counterexample cex) =
+      Pretty.string_of (pretty_counterexample ctxt cex)
   | string_of_failure _ Time_Out = "Timed out"
   | string_of_failure _ Out_Of_Memory = "Ran out of memory"
   | string_of_failure _ (Abnormal_Termination err) =
