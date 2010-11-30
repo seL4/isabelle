@@ -26,26 +26,26 @@ sig
       ((string * sort) list * binding * mixfix *
        (binding * (bool * binding option * typ) list * mixfix) list) list
       -> theory -> theory
-end;
+end
 
 structure Domain :> DOMAIN =
 struct
 
-open HOLCF_Library;
+open HOLCF_Library
 
-fun first  (x,_,_) = x;
-fun second (_,x,_) = x;
-fun third  (_,_,x) = x;
+fun first  (x,_,_) = x
+fun second (_,x,_) = x
+fun third  (_,_,x) = x
 
 (* ----- calls for building new thy and thms -------------------------------- *)
 
 type info =
-     Domain_Take_Proofs.iso_info list * Domain_Take_Proofs.take_induct_info;
+     Domain_Take_Proofs.iso_info list * Domain_Take_Proofs.take_induct_info
 
 fun add_arity ((b, sorts, mx), sort) thy : theory =
   thy
   |> Sign.add_types [(b, length sorts, mx)]
-  |> AxClass.axiomatize_arity (Sign.full_name thy b, sorts, sort);
+  |> AxClass.axiomatize_arity (Sign.full_name thy b, sorts, sort)
 
 fun gen_add_domain
     (prep_sort : theory -> 'a -> sort)
@@ -58,52 +58,52 @@ fun gen_add_domain
   let
     val dtnvs : (binding * typ list * mixfix) list =
       let
-        fun prep_tvar (a, s) = TFree (a, prep_sort thy s);
+        fun prep_tvar (a, s) = TFree (a, prep_sort thy s)
       in
         map (fn (vs, dbind, mx, _) =>
                 (dbind, map prep_tvar vs, mx)) raw_specs
-      end;
+      end
 
     fun thy_arity (dbind, tvars, mx) =
-      ((dbind, map (snd o dest_TFree) tvars, mx), arg_sort false);
+      ((dbind, map (snd o dest_TFree) tvars, mx), arg_sort false)
 
     (* this theory is used just for parsing and error checking *)
     val tmp_thy = thy
       |> Theory.copy
-      |> fold (add_arity o thy_arity) dtnvs;
+      |> fold (add_arity o thy_arity) dtnvs
 
     val dbinds : binding list =
-        map (fn (_,dbind,_,_) => dbind) raw_specs;
+        map (fn (_,dbind,_,_) => dbind) raw_specs
     val raw_rhss :
         (binding * (bool * binding option * 'b) list * mixfix) list list =
-        map (fn (_,_,_,cons) => cons) raw_specs;
+        map (fn (_,_,_,cons) => cons) raw_specs
     val dtnvs' : (string * typ list) list =
-        map (fn (dbind, vs, mx) => (Sign.full_name thy dbind, vs)) dtnvs;
+        map (fn (dbind, vs, mx) => (Sign.full_name thy dbind, vs)) dtnvs
 
-    val all_cons = map (Binding.name_of o first) (flat raw_rhss);
+    val all_cons = map (Binding.name_of o first) (flat raw_rhss)
     val test_dupl_cons =
       case duplicates (op =) all_cons of 
         [] => false | dups => error ("Duplicate constructors: " 
-                                      ^ commas_quote dups);
+                                      ^ commas_quote dups)
     val all_sels =
-      (map Binding.name_of o map_filter second o maps second) (flat raw_rhss);
+      (map Binding.name_of o map_filter second o maps second) (flat raw_rhss)
     val test_dupl_sels =
       case duplicates (op =) all_sels of
-        [] => false | dups => error("Duplicate selectors: "^commas_quote dups);
+        [] => false | dups => error("Duplicate selectors: "^commas_quote dups)
 
     fun test_dupl_tvars s =
       case duplicates (op =) (map(fst o dest_TFree)s) of
         [] => false | dups => error("Duplicate type arguments: " 
-                                    ^commas_quote dups);
-    val test_dupl_tvars' = exists test_dupl_tvars (map snd dtnvs');
+                                    ^commas_quote dups)
+    val test_dupl_tvars' = exists test_dupl_tvars (map snd dtnvs')
 
     val sorts : (string * sort) list =
-      let val all_sorts = map (map dest_TFree o snd) dtnvs';
+      let val all_sorts = map (map dest_TFree o snd) dtnvs'
       in
         case distinct (eq_set (op =)) all_sorts of
           [sorts] => sorts
         | _ => error "Mutually recursive domains must have same type parameters"
-      end;
+      end
 
     (* a lazy argument may have an unpointed type *)
     (* unless the argument has a selector function *)
@@ -113,19 +113,19 @@ fun gen_add_domain
         else error ("Constructor argument type is not of sort " ^
                     Syntax.string_of_sort_global tmp_thy sort ^ ": " ^
                     Syntax.string_of_typ_global tmp_thy T)
-      end;
+      end
 
     (* test for free type variables, illegal sort constraints on rhs,
-       non-pcpo-types and invalid use of recursive type;
+       non-pcpo-types and invalid use of recursive type
        replace sorts in type variables on rhs *)
-    val rec_tab = Domain_Take_Proofs.get_rec_tab thy;
+    val rec_tab = Domain_Take_Proofs.get_rec_tab thy
     fun check_rec rec_ok (T as TFree (v,_))  =
         if AList.defined (op =) sorts v then T
         else error ("Free type variable " ^ quote v ^ " on rhs.")
       | check_rec rec_ok (T as Type (s, Ts)) =
         (case AList.lookup (op =) dtnvs' s of
           NONE =>
-            let val rec_ok' = rec_ok andalso Symtab.defined rec_tab s;
+            let val rec_ok' = rec_ok andalso Symtab.defined rec_tab s
             in Type (s, map (check_rec rec_ok') Ts) end
         | SOME typevars =>
           if typevars <> Ts
@@ -135,114 +135,114 @@ fun gen_add_domain
           else if rec_ok then T
           else error ("Illegal indirect recursion of type " ^ 
                       quote (Syntax.string_of_typ_global tmp_thy T)))
-      | check_rec rec_ok (TVar _) = error "extender:check_rec";
+      | check_rec rec_ok (TVar _) = error "extender:check_rec"
 
     fun prep_arg (lazy, sel, raw_T) =
       let
-        val T = prep_typ tmp_thy sorts raw_T;
-        val _ = check_rec true T;
-        val _ = check_pcpo (lazy, sel, T);
-      in (lazy, sel, T) end;
-    fun prep_con (b, args, mx) = (b, map prep_arg args, mx);
-    fun prep_rhs cons = map prep_con cons;
+        val T = prep_typ tmp_thy sorts raw_T
+        val _ = check_rec true T
+        val _ = check_pcpo (lazy, sel, T)
+      in (lazy, sel, T) end
+    fun prep_con (b, args, mx) = (b, map prep_arg args, mx)
+    fun prep_rhs cons = map prep_con cons
     val rhss : (binding * (bool * binding option * typ) list * mixfix) list list =
-        map prep_rhs raw_rhss;
+        map prep_rhs raw_rhss
 
-    fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_upT T else T;
+    fun mk_arg_typ (lazy, dest_opt, T) = if lazy then mk_upT T else T
     fun mk_con_typ (bind, args, mx) =
-        if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args);
-    fun mk_rhs_typ cons = foldr1 mk_ssumT (map mk_con_typ cons);
+        if null args then oneT else foldr1 mk_sprodT (map mk_arg_typ args)
+    fun mk_rhs_typ cons = foldr1 mk_ssumT (map mk_con_typ cons)
 
-    val absTs : typ list = map Type dtnvs';
-    val repTs : typ list = map mk_rhs_typ rhss;
+    val absTs : typ list = map Type dtnvs'
+    val repTs : typ list = map mk_rhs_typ rhss
 
     val iso_spec : (binding * mixfix * (typ * typ)) list =
         map (fn ((dbind, _, mx), eq) => (dbind, mx, eq))
-          (dtnvs ~~ (absTs ~~ repTs));
+          (dtnvs ~~ (absTs ~~ repTs))
 
-    val ((iso_infos, take_info), thy) = add_isos iso_spec thy;
+    val ((iso_infos, take_info), thy) = add_isos iso_spec thy
 
     val (constr_infos, thy) =
         thy
           |> fold_map (fn ((dbind, cons), info) =>
                 Domain_Constructors.add_domain_constructors dbind cons info)
-             (dbinds ~~ rhss ~~ iso_infos);
+             (dbinds ~~ rhss ~~ iso_infos)
 
     val (take_rews, thy) =
         Domain_Induction.comp_theorems
-          dbinds take_info constr_infos thy;
+          dbinds take_info constr_infos thy
   in
     thy
-  end;
+  end
 
 fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
   let
     fun prep (dbind, mx, (lhsT, rhsT)) =
-      let val (dname, vs) = dest_Type lhsT;
-      in (map (fst o dest_TFree) vs, dbind, mx, rhsT, NONE) end;
+      let val (dname, vs) = dest_Type lhsT
+      in (map (fst o dest_TFree) vs, dbind, mx, rhsT, NONE) end
   in
     Domain_Isomorphism.domain_isomorphism (map prep spec)
-  end;
+  end
 
-fun pcpo_arg lazy = if lazy then @{sort cpo} else @{sort pcpo};
-fun rep_arg lazy = if lazy then @{sort predomain} else @{sort "domain"};
+fun pcpo_arg lazy = if lazy then @{sort cpo} else @{sort pcpo}
+fun rep_arg lazy = if lazy then @{sort predomain} else @{sort "domain"}
 
 fun read_sort thy (SOME s) = Syntax.read_sort_global thy s
-  | read_sort thy NONE = Sign.defaultS thy;
+  | read_sort thy NONE = Sign.defaultS thy
 
 (* Adapted from src/HOL/Tools/Datatype/datatype_data.ML *)
 fun read_typ thy sorts str =
   let
     val ctxt = ProofContext.init_global thy
-      |> fold (Variable.declare_typ o TFree) sorts;
-  in Syntax.read_typ ctxt str end;
+      |> fold (Variable.declare_typ o TFree) sorts
+  in Syntax.read_typ ctxt str end
 
 fun cert_typ sign sorts raw_T =
   let
     val T = Type.no_tvars (Sign.certify_typ sign raw_T)
-      handle TYPE (msg, _, _) => error msg;
-    val sorts' = Term.add_tfreesT T sorts;
+      handle TYPE (msg, _, _) => error msg
+    val sorts' = Term.add_tfreesT T sorts
     val _ =
       case duplicates (op =) (map fst sorts') of
         [] => ()
       | dups => error ("Inconsistent sort constraints for " ^ commas dups)
-  in T end;
+  in T end
 
 val add_domain =
-    gen_add_domain (K I) cert_typ Domain_Axioms.add_axioms pcpo_arg;
+    gen_add_domain (K I) cert_typ Domain_Axioms.add_axioms pcpo_arg
 
 val add_new_domain =
-    gen_add_domain (K I) cert_typ define_isos rep_arg;
+    gen_add_domain (K I) cert_typ define_isos rep_arg
 
 val add_domain_cmd =
-    gen_add_domain read_sort read_typ Domain_Axioms.add_axioms pcpo_arg;
+    gen_add_domain read_sort read_typ Domain_Axioms.add_axioms pcpo_arg
 
 val add_new_domain_cmd =
-    gen_add_domain read_sort read_typ define_isos rep_arg;
+    gen_add_domain read_sort read_typ define_isos rep_arg
 
 
 (** outer syntax **)
 
-val _ = Keyword.keyword "lazy";
-val _ = Keyword.keyword "unsafe";
+val _ = Keyword.keyword "lazy"
+val _ = Keyword.keyword "unsafe"
 
 val dest_decl : (bool * binding option * string) parser =
   Parse.$$$ "(" |-- Scan.optional (Parse.$$$ "lazy" >> K true) false --
     (Parse.binding >> SOME) -- (Parse.$$$ "::" |-- Parse.typ)  --| Parse.$$$ ")" >> Parse.triple1
     || Parse.$$$ "(" |-- Parse.$$$ "lazy" |-- Parse.typ --| Parse.$$$ ")"
     >> (fn t => (true,NONE,t))
-    || Parse.typ >> (fn t => (false,NONE,t));
+    || Parse.typ >> (fn t => (false,NONE,t))
 
 val cons_decl =
-  Parse.binding -- Scan.repeat dest_decl -- Parse.opt_mixfix;
+  Parse.binding -- Scan.repeat dest_decl -- Parse.opt_mixfix
 
 val domain_decl =
   (Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix) --
-    (Parse.$$$ "=" |-- Parse.enum1 "|" cons_decl);
+    (Parse.$$$ "=" |-- Parse.enum1 "|" cons_decl)
 
 val domains_decl =
   Scan.optional (Parse.$$$ "(" |-- (Parse.$$$ "unsafe" >> K true) --| Parse.$$$ ")") false --
-    Parse.and_list1 domain_decl;
+    Parse.and_list1 domain_decl
 
 fun mk_domain
     (unsafe : bool,
@@ -252,15 +252,15 @@ fun mk_domain
     val specs : ((string * string option) list * binding * mixfix *
                  (binding * (bool * binding option * string) list * mixfix) list) list =
         map (fn (((vs, t), mx), cons) =>
-                (vs, t, mx, map (fn ((c, ds), mx) => (c, ds, mx)) cons)) doms;
+                (vs, t, mx, map (fn ((c, ds), mx) => (c, ds, mx)) cons)) doms
   in
     if unsafe
     then add_domain_cmd specs
     else add_new_domain_cmd specs
-  end;
+  end
 
 val _ =
   Outer_Syntax.command "domain" "define recursive domains (HOLCF)"
-    Keyword.thy_decl (domains_decl >> (Toplevel.theory o mk_domain));
+    Keyword.thy_decl (domains_decl >> (Toplevel.theory o mk_domain))
 
-end;
+end

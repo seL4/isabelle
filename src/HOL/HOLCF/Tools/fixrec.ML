@@ -13,23 +13,23 @@ sig
   val add_matchers: (string * string) list -> theory -> theory
   val fixrec_simp_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
-end;
+end
 
 structure Fixrec :> FIXREC =
 struct
 
-open HOLCF_Library;
+open HOLCF_Library
 
-infixr 6 ->>;
-infix -->>;
-infix 9 `;
+infixr 6 ->>
+infix -->>
+infix 9 `
 
-val def_cont_fix_eq = @{thm def_cont_fix_eq};
-val def_cont_fix_ind = @{thm def_cont_fix_ind};
+val def_cont_fix_eq = @{thm def_cont_fix_eq}
+val def_cont_fix_ind = @{thm def_cont_fix_ind}
 
-fun fixrec_err s = error ("fixrec definition error:\n" ^ s);
+fun fixrec_err s = error ("fixrec definition error:\n" ^ s)
 fun fixrec_eq_err thy s eq =
-  fixrec_err (s ^ "\nin\n" ^ quote (Syntax.string_of_term_global thy eq));
+  fixrec_err (s ^ "\nin\n" ^ quote (Syntax.string_of_term_global thy eq))
 
 (*************************************************************************)
 (***************************** building types ****************************)
@@ -39,19 +39,19 @@ local
 
 fun binder_cfun (Type(@{type_name cfun},[T, U])) = T :: binder_cfun U
   | binder_cfun (Type(@{type_name "fun"},[T, U])) = T :: binder_cfun U
-  | binder_cfun _   =  [];
+  | binder_cfun _   =  []
 
 fun body_cfun (Type(@{type_name cfun},[T, U])) = body_cfun U
   | body_cfun (Type(@{type_name "fun"},[T, U])) = body_cfun U
-  | body_cfun T   =  T;
+  | body_cfun T   =  T
 
 fun strip_cfun T : typ list * typ =
-  (binder_cfun T, body_cfun T);
+  (binder_cfun T, body_cfun T)
 
 in
 
 fun matcherT (T, U) =
-  body_cfun T ->> (binder_cfun T -->> U) ->> U;
+  body_cfun T ->> (binder_cfun T -->> U) ->> U
 
 end
 
@@ -59,21 +59,21 @@ end
 (***************************** building terms ****************************)
 (*************************************************************************)
 
-val mk_trp = HOLogic.mk_Trueprop;
+val mk_trp = HOLogic.mk_Trueprop
 
 (* splits a cterm into the right and lefthand sides of equality *)
-fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
+fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t)
 
 (* similar to Thm.head_of, but for continuous application *)
 fun chead_of (Const(@{const_name Rep_cfun},_)$f$t) = chead_of f
-  | chead_of u = u;
+  | chead_of u = u
 
-infix 0 ==;  val (op ==) = Logic.mk_equals;
-infix 1 ===; val (op ===) = HOLogic.mk_eq;
+infix 0 ==  val (op ==) = Logic.mk_equals
+infix 1 === val (op ===) = HOLogic.mk_eq
 
 fun mk_mplus (t, u) =
   let val mT = Term.fastype_of t
-  in Const(@{const_name Fixrec.mplus}, mT ->> mT ->> mT) ` t ` u end;
+  in Const(@{const_name Fixrec.mplus}, mT ->> mT ->> mT) ` t ` u end
 
 fun mk_run t =
   let
@@ -85,7 +85,7 @@ fun mk_run t =
       Const(@{const_name Rep_cfun}, _) $
         Const(@{const_name Fixrec.succeed}, _) $ u => u
     | _ => run ` t
-  end;
+  end
 
 
 (*************************************************************************)
@@ -94,26 +94,26 @@ fun mk_run t =
 
 structure FixrecUnfoldData = Generic_Data
 (
-  type T = thm Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I;
-  fun merge data : T = Symtab.merge (K true) data;
-);
+  type T = thm Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data : T = Symtab.merge (K true) data
+)
 
 local
 
 fun name_of (Const (n, T)) = n
   | name_of (Free (n, T)) = n
-  | name_of t = raise TERM ("Fixrec.add_unfold: lhs not a constant", [t]);
+  | name_of t = raise TERM ("Fixrec.add_unfold: lhs not a constant", [t])
 
 val lhs_name =
-  name_of o head_of o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of;
+  name_of o head_of o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of
 
 in
 
 val add_unfold : attribute =
   Thm.declaration_attribute
-    (fn th => FixrecUnfoldData.map (Symtab.insert (K true) (lhs_name th, th)));
+    (fn th => FixrecUnfoldData.map (Symtab.insert (K true) (lhs_name th, th)))
 
 end
 
@@ -122,73 +122,73 @@ fun add_fixdefs
   (spec : (Attrib.binding * term) list)
   (lthy : local_theory) =
   let
-    val thy = ProofContext.theory_of lthy;
-    val names = map (Binding.name_of o fst o fst) fixes;
-    val all_names = space_implode "_" names;
-    val (lhss, rhss) = ListPair.unzip (map (dest_eqs o snd) spec);
-    val functional = lambda_tuple lhss (mk_tuple rhss);
-    val fixpoint = mk_fix (mk_cabs functional);
+    val thy = ProofContext.theory_of lthy
+    val names = map (Binding.name_of o fst o fst) fixes
+    val all_names = space_implode "_" names
+    val (lhss, rhss) = ListPair.unzip (map (dest_eqs o snd) spec)
+    val functional = lambda_tuple lhss (mk_tuple rhss)
+    val fixpoint = mk_fix (mk_cabs functional)
 
     val cont_thm =
       let
-        val prop = mk_trp (mk_cont functional);
+        val prop = mk_trp (mk_cont functional)
         fun err _ = error (
-          "Continuity proof failed; please check that cont2cont rules\n" ^
+          "Continuity proof failed please check that cont2cont rules\n" ^
           "or simp rules are configured for all non-HOLCF constants.\n" ^
           "The error occurred for the goal statement:\n" ^
-          Syntax.string_of_term lthy prop);
-        val rules = Cont2ContData.get lthy;
-        val fast_tac = SOLVED' (REPEAT_ALL_NEW (match_tac rules));
-        val slow_tac = SOLVED' (simp_tac (simpset_of lthy));
-        val tac = fast_tac 1 ORELSE slow_tac 1 ORELSE err;
+          Syntax.string_of_term lthy prop)
+        val rules = Cont2ContData.get lthy
+        val fast_tac = SOLVED' (REPEAT_ALL_NEW (match_tac rules))
+        val slow_tac = SOLVED' (simp_tac (simpset_of lthy))
+        val tac = fast_tac 1 ORELSE slow_tac 1 ORELSE err
       in
         Goal.prove lthy [] [] prop (K tac)
-      end;
+      end
 
     fun one_def (l as Free(n,_)) r =
           let val b = Long_Name.base_name n
           in ((Binding.name (b^"_def"), []), r) end
-      | one_def _ _ = fixrec_err "fixdefs: lhs not of correct form";
+      | one_def _ _ = fixrec_err "fixdefs: lhs not of correct form"
     fun defs [] _ = []
       | defs (l::[]) r = [one_def l r]
-      | defs (l::ls) r = one_def l (mk_fst r) :: defs ls (mk_snd r);
-    val fixdefs = defs lhss fixpoint;
+      | defs (l::ls) r = one_def l (mk_fst r) :: defs ls (mk_snd r)
+    val fixdefs = defs lhss fixpoint
     val (fixdef_thms : (term * (string * thm)) list, lthy) = lthy
-      |> fold_map Local_Theory.define (map (apfst fst) fixes ~~ fixdefs);
-    fun pair_equalI (thm1, thm2) = @{thm Pair_equalI} OF [thm1, thm2];
-    val tuple_fixdef_thm = foldr1 pair_equalI (map (snd o snd) fixdef_thms);
-    val P = Var (("P", 0), map Term.fastype_of lhss ---> HOLogic.boolT);
-    val predicate = lambda_tuple lhss (list_comb (P, lhss));
+      |> fold_map Local_Theory.define (map (apfst fst) fixes ~~ fixdefs)
+    fun pair_equalI (thm1, thm2) = @{thm Pair_equalI} OF [thm1, thm2]
+    val tuple_fixdef_thm = foldr1 pair_equalI (map (snd o snd) fixdef_thms)
+    val P = Var (("P", 0), map Term.fastype_of lhss ---> HOLogic.boolT)
+    val predicate = lambda_tuple lhss (list_comb (P, lhss))
     val tuple_induct_thm = (def_cont_fix_ind OF [tuple_fixdef_thm, cont_thm])
       |> Drule.instantiate' [] [SOME (Thm.cterm_of thy predicate)]
-      |> Local_Defs.unfold lthy @{thms split_paired_all split_conv split_strict};
+      |> Local_Defs.unfold lthy @{thms split_paired_all split_conv split_strict}
     val tuple_unfold_thm = (def_cont_fix_eq OF [tuple_fixdef_thm, cont_thm])
-      |> Local_Defs.unfold lthy @{thms split_conv};
+      |> Local_Defs.unfold lthy @{thms split_conv}
     fun unfolds [] thm = []
       | unfolds (n::[]) thm = [(n, thm)]
       | unfolds (n::ns) thm = let
-          val thmL = thm RS @{thm Pair_eqD1};
-          val thmR = thm RS @{thm Pair_eqD2};
-        in (n, thmL) :: unfolds ns thmR end;
-    val unfold_thms = unfolds names tuple_unfold_thm;
+          val thmL = thm RS @{thm Pair_eqD1}
+          val thmR = thm RS @{thm Pair_eqD2}
+        in (n, thmL) :: unfolds ns thmR end
+    val unfold_thms = unfolds names tuple_unfold_thm
     val induct_note : Attrib.binding * Thm.thm list =
       let
-        val thm_name = Binding.qualify true all_names (Binding.name "induct");
+        val thm_name = Binding.qualify true all_names (Binding.name "induct")
       in
         ((thm_name, []), [tuple_induct_thm])
-      end;
+      end
     fun unfold_note (name, thm) : Attrib.binding * Thm.thm list =
       let
-        val thm_name = Binding.qualify true name (Binding.name "unfold");
-        val src = Attrib.internal (K add_unfold);
+        val thm_name = Binding.qualify true name (Binding.name "unfold")
+        val src = Attrib.internal (K add_unfold)
       in
         ((thm_name, [src]), [thm])
-      end;
+      end
     val (thmss, lthy) = lthy
-      |> fold_map Local_Theory.note (induct_note :: map unfold_note unfold_thms);
+      |> fold_map Local_Theory.note (induct_note :: map unfold_note unfold_thms)
   in
     (lthy, names, fixdef_thms, map snd unfold_thms)
-  end;
+  end
 
 (*************************************************************************)
 (*********** monadic notation and pattern matching compilation ***********)
@@ -196,14 +196,14 @@ fun add_fixdefs
 
 structure FixrecMatchData = Theory_Data
 (
-  type T = string Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I;
-  fun merge data = Symtab.merge (K true) data;
-);
+  type T = string Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data = Symtab.merge (K true) data
+)
 
 (* associate match functions with pattern constants *)
-fun add_matchers ms = FixrecMatchData.map (fold Symtab.update ms);
+fun add_matchers ms = FixrecMatchData.map (fold Symtab.update ms)
 
 fun taken_names (t : term) : bstring list =
   let
@@ -211,10 +211,10 @@ fun taken_names (t : term) : bstring list =
       | taken (Free(a,_) , bs) = insert (op =) a bs
       | taken (f $ u     , bs) = taken (f, taken (u, bs))
       | taken (Abs(a,_,t), bs) = taken (t, insert (op =) a bs)
-      | taken (_         , bs) = bs;
+      | taken (_         , bs) = bs
   in
     taken (t, [])
-  end;
+  end
 
 (* builds a monadic term for matching a pattern *)
 (* returns (rhs, free variable, used varnames) *)
@@ -244,87 +244,87 @@ fun compile_pat match_name pat rhs taken =
       | _ => raise TERM ("fixrec: invalid pattern ", [p])
   in
     comp_pat pat rhs taken
-  end;
+  end
 
 (* builds a monadic term for matching a function definition pattern *)
 (* returns (constant, (vars, matcher)) *)
 fun compile_lhs match_name pat rhs vs taken =
   case pat of
     Const(@{const_name Rep_cfun}, _) $ f $ x =>
-      let val (rhs', v, taken') = compile_pat match_name x rhs taken;
+      let val (rhs', v, taken') = compile_pat match_name x rhs taken
       in compile_lhs match_name f rhs' (v::vs) taken' end
   | Free(_,_) => (pat, (vs, rhs))
   | Const(_,_) => (pat, (vs, rhs))
   | _ => fixrec_err ("invalid function pattern: "
-                    ^ ML_Syntax.print_term pat);
+                    ^ ML_Syntax.print_term pat)
 
 fun strip_alls t =
-  if Logic.is_all t then strip_alls (snd (Logic.dest_all t)) else t;
+  if Logic.is_all t then strip_alls (snd (Logic.dest_all t)) else t
 
 fun compile_eq match_name eq =
   let
-    val (lhs,rhs) = dest_eqs (Logic.strip_imp_concl (strip_alls eq));
+    val (lhs,rhs) = dest_eqs (Logic.strip_imp_concl (strip_alls eq))
   in
     compile_lhs match_name lhs (mk_succeed rhs) [] (taken_names eq)
-  end;
+  end
 
 (* this is the pattern-matching compiler function *)
 fun compile_eqs match_name eqs =
   let
     val (consts, matchers) =
-      ListPair.unzip (map (compile_eq match_name) eqs);
+      ListPair.unzip (map (compile_eq match_name) eqs)
     val const =
         case distinct (op =) consts of
           [n] => n
-        | _ => fixrec_err "all equations in block must define the same function";
+        | _ => fixrec_err "all equations in block must define the same function"
     val vars =
         case distinct (op = o pairself length) (map fst matchers) of
           [vars] => vars
-        | _ => fixrec_err "all equations in block must have the same arity";
+        | _ => fixrec_err "all equations in block must have the same arity"
     (* rename so all matchers use same free variables *)
-    fun rename (vs, t) = Term.subst_free (filter_out (op =) (vs ~~ vars)) t;
-    val rhs = big_lambdas vars (mk_run (foldr1 mk_mplus (map rename matchers)));
+    fun rename (vs, t) = Term.subst_free (filter_out (op =) (vs ~~ vars)) t
+    val rhs = big_lambdas vars (mk_run (foldr1 mk_mplus (map rename matchers)))
   in
     mk_trp (const === rhs)
-  end;
+  end
 
 (*************************************************************************)
 (********************** Proving associated theorems **********************)
 (*************************************************************************)
 
-fun eta_tac i = CONVERSION Thm.eta_conversion i;
+fun eta_tac i = CONVERSION Thm.eta_conversion i
 
 fun fixrec_simp_tac ctxt =
   let
-    val tab = FixrecUnfoldData.get (Context.Proof ctxt);
-    val ss = Simplifier.simpset_of ctxt;
+    val tab = FixrecUnfoldData.get (Context.Proof ctxt)
+    val ss = Simplifier.simpset_of ctxt
     fun concl t =
       if Logic.is_all t then concl (snd (Logic.dest_all t))
-      else HOLogic.dest_Trueprop (Logic.strip_imp_concl t);
+      else HOLogic.dest_Trueprop (Logic.strip_imp_concl t)
     fun tac (t, i) =
       let
         val (c, T) =
-            (dest_Const o head_of o chead_of o fst o HOLogic.dest_eq o concl) t;
-        val unfold_thm = the (Symtab.lookup tab c);
-        val rule = unfold_thm RS @{thm ssubst_lhs};
+            (dest_Const o head_of o chead_of o fst o HOLogic.dest_eq o concl) t
+        val unfold_thm = the (Symtab.lookup tab c)
+        val rule = unfold_thm RS @{thm ssubst_lhs}
       in
         CHANGED (rtac rule i THEN eta_tac i THEN asm_simp_tac ss i)
       end
   in
     SUBGOAL (fn ti => the_default no_tac (try tac ti))
-  end;
+  end
 
 (* proves a block of pattern matching equations as theorems, using unfold *)
 fun make_simps ctxt (unfold_thm, eqns : (Attrib.binding * term) list) =
   let
-    val ss = Simplifier.simpset_of ctxt;
-    val rule = unfold_thm RS @{thm ssubst_lhs};
-    val tac = rtac rule 1 THEN eta_tac 1 THEN asm_simp_tac ss 1;
-    fun prove_term t = Goal.prove ctxt [] [] t (K tac);
-    fun prove_eqn (bind, eqn_t) = (bind, prove_term eqn_t);
+    val ss = Simplifier.simpset_of ctxt
+    val rule = unfold_thm RS @{thm ssubst_lhs}
+    val tac = rtac rule 1 THEN eta_tac 1 THEN asm_simp_tac ss 1
+    fun prove_term t = Goal.prove ctxt [] [] t (K tac)
+    fun prove_eqn (bind, eqn_t) = (bind, prove_term eqn_t)
   in
     map prove_eqn eqns
-  end;
+  end
 
 (*************************************************************************)
 (************************* Main fixrec function **************************)
@@ -339,54 +339,54 @@ fun gen_fixrec
   (raw_spec' : (bool * (Attrib.binding * 'b)) list)
   (lthy : local_theory) =
   let
-    val (skips, raw_spec) = ListPair.unzip raw_spec';
+    val (skips, raw_spec) = ListPair.unzip raw_spec'
     val (fixes : ((binding * typ) * mixfix) list,
          spec : (Attrib.binding * term) list) =
-          fst (prep_spec raw_fixes raw_spec lthy);
+          fst (prep_spec raw_fixes raw_spec lthy)
     val chead_of_spec =
-      chead_of o fst o dest_eqs o Logic.strip_imp_concl o strip_alls o snd;
+      chead_of o fst o dest_eqs o Logic.strip_imp_concl o strip_alls o snd
     fun name_of (Free (n, _)) = n
-      | name_of t = fixrec_err ("unknown term");
-    val all_names = map (name_of o chead_of_spec) spec;
-    val names = distinct (op =) all_names;
+      | name_of t = fixrec_err ("unknown term")
+    val all_names = map (name_of o chead_of_spec) spec
+    val names = distinct (op =) all_names
     fun block_of_name n =
       map_filter
         (fn (m,eq) => if m = n then SOME eq else NONE)
-        (all_names ~~ (spec ~~ skips));
-    val blocks = map block_of_name names;
+        (all_names ~~ (spec ~~ skips))
+    val blocks = map block_of_name names
 
-    val matcher_tab = FixrecMatchData.get (ProofContext.theory_of lthy);
+    val matcher_tab = FixrecMatchData.get (ProofContext.theory_of lthy)
     fun match_name c =
       case Symtab.lookup matcher_tab c of SOME m => m
-        | NONE => fixrec_err ("unknown pattern constructor: " ^ c);
+        | NONE => fixrec_err ("unknown pattern constructor: " ^ c)
 
-    val matches = map (compile_eqs match_name) (map (map (snd o fst)) blocks);
-    val spec' = map (pair Attrib.empty_binding) matches;
+    val matches = map (compile_eqs match_name) (map (map (snd o fst)) blocks)
+    val spec' = map (pair Attrib.empty_binding) matches
     val (lthy, cnames, fixdef_thms, unfold_thms) =
-      add_fixdefs fixes spec' lthy;
+      add_fixdefs fixes spec' lthy
 
-    val blocks' = map (map fst o filter_out snd) blocks;
+    val blocks' = map (map fst o filter_out snd) blocks
     val simps : (Attrib.binding * thm) list list =
-      map (make_simps lthy) (unfold_thms ~~ blocks');
+      map (make_simps lthy) (unfold_thms ~~ blocks')
     fun mk_bind n : Attrib.binding =
      (Binding.qualify true n (Binding.name "simps"),
-       [Attrib.internal (K Simplifier.simp_add)]);
+       [Attrib.internal (K Simplifier.simp_add)])
     val simps1 : (Attrib.binding * thm list) list =
-      map (fn (n,xs) => (mk_bind n, map snd xs)) (names ~~ simps);
+      map (fn (n,xs) => (mk_bind n, map snd xs)) (names ~~ simps)
     val simps2 : (Attrib.binding * thm list) list =
-      map (apsnd (fn thm => [thm])) (flat simps);
+      map (apsnd (fn thm => [thm])) (flat simps)
     val (_, lthy) = lthy
-      |> fold_map Local_Theory.note (simps1 @ simps2);
+      |> fold_map Local_Theory.note (simps1 @ simps2)
   in
     lthy
-  end;
+  end
 
 in
 
-val add_fixrec = gen_fixrec Specification.check_spec;
-val add_fixrec_cmd = gen_fixrec Specification.read_spec;
+val add_fixrec = gen_fixrec Specification.check_spec
+val add_fixrec_cmd = gen_fixrec Specification.read_spec
 
-end; (* local *)
+end (* local *)
 
 
 (*************************************************************************)
@@ -395,23 +395,23 @@ end; (* local *)
 
 val opt_thm_name' : (bool * Attrib.binding) parser =
   Parse.$$$ "(" -- Parse.$$$ "unchecked" -- Parse.$$$ ")" >> K (true, Attrib.empty_binding)
-    || Parse_Spec.opt_thm_name ":" >> pair false;
+    || Parse_Spec.opt_thm_name ":" >> pair false
 
 val spec' : (bool * (Attrib.binding * string)) parser =
-  opt_thm_name' -- Parse.prop >> (fn ((a, b), c) => (a, (b, c)));
+  opt_thm_name' -- Parse.prop >> (fn ((a, b), c) => (a, (b, c)))
 
 val alt_specs' : (bool * (Attrib.binding * string)) list parser =
-  let val unexpected = Scan.ahead (Parse.name || Parse.$$$ "[" || Parse.$$$ "(");
-  in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! (Parse.$$$ "|"))) end;
+  let val unexpected = Scan.ahead (Parse.name || Parse.$$$ "[" || Parse.$$$ "(")
+  in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! (Parse.$$$ "|"))) end
 
 val _ =
   Outer_Syntax.local_theory "fixrec" "define recursive functions (HOLCF)" Keyword.thy_decl
     (Parse.fixes -- (Parse.where_ |-- Parse.!!! alt_specs')
-      >> (fn (fixes, specs) => add_fixrec_cmd fixes specs));
+      >> (fn (fixes, specs) => add_fixrec_cmd fixes specs))
 
 val setup =
   Method.setup @{binding fixrec_simp}
     (Scan.succeed (SIMPLE_METHOD' o fixrec_simp_tac))
-    "pattern prover for fixrec constants";
+    "pattern prover for fixrec constants"
 
-end;
+end

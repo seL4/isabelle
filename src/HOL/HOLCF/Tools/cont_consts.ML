@@ -9,7 +9,7 @@ signature CONT_CONSTS =
 sig
   val add_consts: (binding * typ * mixfix) list -> theory -> theory
   val add_consts_cmd: (binding * string * mixfix) list -> theory -> theory
-end;
+end
 
 structure Cont_Consts: CONT_CONSTS =
 struct
@@ -19,12 +19,12 @@ struct
 
 fun change_arrow 0 T = T
   | change_arrow n (Type (_, [S, T])) = Type ("fun", [S, change_arrow (n - 1) T])
-  | change_arrow _ T = raise TYPE ("cont_consts: change_arrow", [T], []);
+  | change_arrow _ T = raise TYPE ("cont_consts: change_arrow", [T], [])
 
 fun trans_rules name2 name1 n mx =
   let
-    val vnames = Name.invents Name.context "a" n;
-    val extra_parse_rule = Syntax.ParseRule (Constant name2, Constant name1);
+    val vnames = Name.invents Name.context "a" n
+    val extra_parse_rule = Syntax.ParseRule (Constant name2, Constant name1)
   in
     [Syntax.ParsePrintRule
       (Syntax.mk_appl (Constant name2) (map Variable vnames),
@@ -35,7 +35,7 @@ fun trans_rules name2 name1 n mx =
     | Infixl _ => [extra_parse_rule]
     | Infixr _ => [extra_parse_rule]
     | _ => [])
-  end;
+  end
 
 
 (* transforming infix/mixfix declarations of constants with type ...->...
@@ -46,26 +46,26 @@ fun trans_rules name2 name1 n mx =
 *)
 fun transform thy (c, T, mx) =
   let
-    fun syntax b = Syntax.mark_const (Sign.full_bname thy b);
-    val c1 = Binding.name_of c;
-    val c2 = c1 ^ "_cont_syntax";
-    val n = Syntax.mixfix_args mx;
+    fun syntax b = Syntax.mark_const (Sign.full_bname thy b)
+    val c1 = Binding.name_of c
+    val c2 = c1 ^ "_cont_syntax"
+    val n = Syntax.mixfix_args mx
   in
     ((c, T, NoSyn),
       (Binding.name c2, change_arrow n T, mx),
       trans_rules (syntax c2) (syntax c1) n mx)
-  end;
+  end
 
 fun cfun_arity (Type (n, [_, T])) = if n = @{type_name cfun} then 1 + cfun_arity T else 0
-  | cfun_arity _ = 0;
+  | cfun_arity _ = 0
 
 fun is_contconst (_, _, NoSyn) = false
   | is_contconst (_, _, Binder _) = false    (* FIXME ? *)
   | is_contconst (c, T, mx) =
       let
         val n = Syntax.mixfix_args mx handle ERROR msg =>
-          cat_error msg ("in mixfix annotation for " ^ quote (Binding.str_of c));
-      in cfun_arity T >= n end;
+          cat_error msg ("in mixfix annotation for " ^ quote (Binding.str_of c))
+      in cfun_arity T >= n end
 
 
 (* add_consts *)
@@ -74,20 +74,20 @@ local
 
 fun gen_add_consts prep_typ raw_decls thy =
   let
-    val decls = map (fn (c, T, mx) => (c, prep_typ thy T, mx)) raw_decls;
-    val (contconst_decls, normal_decls) = List.partition is_contconst decls;
-    val transformed_decls = map (transform thy) contconst_decls;
+    val decls = map (fn (c, T, mx) => (c, prep_typ thy T, mx)) raw_decls
+    val (contconst_decls, normal_decls) = List.partition is_contconst decls
+    val transformed_decls = map (transform thy) contconst_decls
   in
     thy
     |> Sign.add_consts_i (normal_decls @ map #1 transformed_decls @ map #2 transformed_decls)
     |> Sign.add_trrules_i (maps #3 transformed_decls)
-  end;
+  end
 
 in
 
-val add_consts = gen_add_consts Sign.certify_typ;
-val add_consts_cmd = gen_add_consts Syntax.read_typ_global;
+val add_consts = gen_add_consts Sign.certify_typ
+val add_consts_cmd = gen_add_consts Syntax.read_typ_global
 
-end;
+end
 
-end;
+end
