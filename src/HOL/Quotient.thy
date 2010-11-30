@@ -14,131 +14,15 @@ uses
   ("Tools/Quotient/quotient_tacs.ML")
 begin
 
-
 text {*
   Basic definition for equivalence relations
   that are represented by predicates.
 *}
 
-definition
-  "reflp E \<longleftrightarrow> (\<forall>x. E x x)"
-
-lemma refl_reflp:
-  "refl A \<longleftrightarrow> reflp (\<lambda>x y. (x, y) \<in> A)"
-  by (simp add: refl_on_def reflp_def)
-
-definition
-  "symp E \<longleftrightarrow> (\<forall>x y. E x y \<longrightarrow> E y x)"
-
-lemma sym_symp:
-  "sym A \<longleftrightarrow> symp (\<lambda>x y. (x, y) \<in> A)"
-  by (simp add: sym_def symp_def)
-
-definition
-  "transp E \<longleftrightarrow> (\<forall>x y z. E x y \<and> E y z \<longrightarrow> E x z)"
-
-lemma trans_transp:
-  "trans A \<longleftrightarrow> transp (\<lambda>x y. (x, y) \<in> A)"
-  by (auto simp add: trans_def transp_def)
-
-definition
-  "equivp E \<longleftrightarrow> (\<forall>x y. E x y = (E x = E y))"
-
-lemma equivp_reflp_symp_transp:
-  shows "equivp E = (reflp E \<and> symp E \<and> transp E)"
-  unfolding equivp_def reflp_def symp_def transp_def fun_eq_iff
-  by blast
-
-lemma equiv_equivp:
-  "equiv UNIV A \<longleftrightarrow> equivp (\<lambda>x y. (x, y) \<in> A)"
-  by (simp add: equiv_def equivp_reflp_symp_transp refl_reflp sym_symp trans_transp)
-
-lemma equivp_reflp:
-  shows "equivp E \<Longrightarrow> E x x"
-  by (simp only: equivp_reflp_symp_transp reflp_def)
-
-lemma equivp_symp:
-  shows "equivp E \<Longrightarrow> E x y \<Longrightarrow> E y x"
-  by (simp add: equivp_def)
-
-lemma equivp_transp:
-  shows "equivp E \<Longrightarrow> E x y \<Longrightarrow> E y z \<Longrightarrow> E x z"
-  by (simp add: equivp_def)
-
-lemma equivpI:
-  assumes "reflp R" "symp R" "transp R"
-  shows "equivp R"
-  using assms by (simp add: equivp_reflp_symp_transp)
-
-lemma identity_equivp:
-  shows "equivp (op =)"
-  unfolding equivp_def
-  by auto
-
-text {* Partial equivalences *}
-
-definition
-  "part_equivp E \<longleftrightarrow> (\<exists>x. E x x) \<and> (\<forall>x y. E x y = (E x x \<and> E y y \<and> (E x = E y)))"
-
-lemma equivp_implies_part_equivp:
-  assumes a: "equivp E"
-  shows "part_equivp E"
-  using a
-  unfolding equivp_def part_equivp_def
-  by auto
-
-lemma part_equivp_symp:
-  assumes e: "part_equivp R"
-  and a: "R x y"
-  shows "R y x"
-  using e[simplified part_equivp_def] a
-  by (metis)
-
-lemma part_equivp_typedef:
-  shows "part_equivp R \<Longrightarrow> \<exists>d. d \<in> (\<lambda>c. \<exists>x. R x x \<and> c = R x)"
-  unfolding part_equivp_def mem_def
-  apply clarify
-  apply (intro exI)
-  apply (rule conjI)
-  apply assumption
-  apply (rule refl)
-  done
-
-lemma part_equivp_refl_symp_transp:
-  shows "part_equivp E \<longleftrightarrow> ((\<exists>x. E x x) \<and> symp E \<and> transp E)"
-proof
-  assume "part_equivp E"
-  then show "(\<exists>x. E x x) \<and> symp E \<and> transp E"
-  unfolding part_equivp_def symp_def transp_def
-  by metis
-next
-  assume a: "(\<exists>x. E x x) \<and> symp E \<and> transp E"
-  then have b: "(\<forall>x y. E x y \<longrightarrow> E y x)" and c: "(\<forall>x y z. E x y \<and> E y z \<longrightarrow> E x z)"
-    unfolding symp_def transp_def by (metis, metis)
-  have "(\<forall>x y. E x y = (E x x \<and> E y y \<and> E x = E y))"
-  proof (intro allI iffI conjI)
-    fix x y
-    assume d: "E x y"
-    then show "E x x" using b c by metis
-    show "E y y" using b c d by metis
-    show "E x = E y" unfolding fun_eq_iff using b c d by metis
-  next
-    fix x y
-    assume "E x x \<and> E y y \<and> E x = E y"
-    then show "E x y" using b c by metis
-  qed
-  then show "part_equivp E" unfolding part_equivp_def using a by metis
-qed
-
-lemma part_equivpI:
-  assumes "\<exists>x. R x x" "symp R" "transp R"
-  shows "part_equivp R"
-  using assms by (simp add: part_equivp_refl_symp_transp)
-
 text {* Composition of Relations *}
 
 abbreviation
-  rel_conj (infixr "OOO" 75)
+  rel_conj :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" (infixr "OOO" 75)
 where
   "r1 OOO r2 \<equiv> r1 OO r2 OO r1"
 
@@ -169,16 +53,16 @@ lemma map_fun_id:
 definition
   fun_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool" (infixr "===>" 55)
 where
-  "fun_rel E1 E2 = (\<lambda>f g. \<forall>x y. E1 x y \<longrightarrow> E2 (f x) (g y))"
+  "fun_rel R1 R2 = (\<lambda>f g. \<forall>x y. R1 x y \<longrightarrow> R2 (f x) (g y))"
 
 lemma fun_relI [intro]:
-  assumes "\<And>x y. E1 x y \<Longrightarrow> E2 (f x) (g y)"
-  shows "(E1 ===> E2) f g"
+  assumes "\<And>x y. R1 x y \<Longrightarrow> R2 (f x) (g y)"
+  shows "(R1 ===> R2) f g"
   using assms by (simp add: fun_rel_def)
 
 lemma fun_relE:
-  assumes "(E1 ===> E2) f g" and "E1 x y"
-  obtains "E2 (f x) (g y)"
+  assumes "(R1 ===> R2) f g" and "R1 x y"
+  obtains "R2 (f x) (g y)"
   using assms by (simp add: fun_rel_def)
 
 lemma fun_rel_eq:
@@ -189,34 +73,41 @@ lemma fun_rel_eq:
 subsection {* Quotient Predicate *}
 
 definition
-  "Quotient E Abs Rep \<longleftrightarrow>
-     (\<forall>a. Abs (Rep a) = a) \<and> (\<forall>a. E (Rep a) (Rep a)) \<and>
-     (\<forall>r s. E r s = (E r r \<and> E s s \<and> (Abs r = Abs s)))"
+  "Quotient R Abs Rep \<longleftrightarrow>
+     (\<forall>a. Abs (Rep a) = a) \<and> (\<forall>a. R (Rep a) (Rep a)) \<and>
+     (\<forall>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s)"
+
+lemma QuotientI:
+  assumes "\<And>a. Abs (Rep a) = a"
+    and "\<And>a. R (Rep a) (Rep a)"
+    and "\<And>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s"
+  shows "Quotient R Abs Rep"
+  using assms unfolding Quotient_def by blast
 
 lemma Quotient_abs_rep:
-  assumes a: "Quotient E Abs Rep"
+  assumes a: "Quotient R Abs Rep"
   shows "Abs (Rep a) = a"
   using a
   unfolding Quotient_def
   by simp
 
 lemma Quotient_rep_reflp:
-  assumes a: "Quotient E Abs Rep"
-  shows "E (Rep a) (Rep a)"
+  assumes a: "Quotient R Abs Rep"
+  shows "R (Rep a) (Rep a)"
   using a
   unfolding Quotient_def
   by blast
 
 lemma Quotient_rel:
-  assumes a: "Quotient E Abs Rep"
-  shows " E r s = (E r r \<and> E s s \<and> (Abs r = Abs s))"
+  assumes a: "Quotient R Abs Rep"
+  shows "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
   using a
   unfolding Quotient_def
   by blast
 
 lemma Quotient_rel_rep:
   assumes a: "Quotient R Abs Rep"
-  shows "R (Rep a) (Rep b) = (a = b)"
+  shows "R (Rep a) (Rep b) \<longleftrightarrow> a = b"
   using a
   unfolding Quotient_def
   by metis
@@ -228,22 +119,20 @@ lemma Quotient_rep_abs:
   by blast
 
 lemma Quotient_rel_abs:
-  assumes a: "Quotient E Abs Rep"
-  shows "E r s \<Longrightarrow> Abs r = Abs s"
+  assumes a: "Quotient R Abs Rep"
+  shows "R r s \<Longrightarrow> Abs r = Abs s"
   using a unfolding Quotient_def
   by blast
 
 lemma Quotient_symp:
-  assumes a: "Quotient E Abs Rep"
-  shows "symp E"
-  using a unfolding Quotient_def symp_def
-  by metis
+  assumes a: "Quotient R Abs Rep"
+  shows "symp R"
+  using a unfolding Quotient_def using sympI by metis
 
 lemma Quotient_transp:
-  assumes a: "Quotient E Abs Rep"
-  shows "transp E"
-  using a unfolding Quotient_def transp_def
-  by metis
+  assumes a: "Quotient R Abs Rep"
+  shows "transp R"
+  using a unfolding Quotient_def using transpI by metis
 
 lemma identity_quotient:
   shows "Quotient (op =) id id"
@@ -291,8 +180,7 @@ lemma equals_rsp:
   and     a: "R xa xb" "R ya yb"
   shows "R xa ya = R xb yb"
   using a Quotient_symp[OF q] Quotient_transp[OF q]
-  unfolding symp_def transp_def
-  by blast
+  by (blast elim: sympE transpE)
 
 lemma lambda_prs:
   assumes q1: "Quotient R1 Abs1 Rep1"
@@ -300,7 +188,7 @@ lemma lambda_prs:
   shows "(Rep1 ---> Abs2) (\<lambda>x. Rep2 (f (Abs1 x))) = (\<lambda>x. f x)"
   unfolding fun_eq_iff
   using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2]
-  by (simp add:)
+  by simp
 
 lemma lambda_prs1:
   assumes q1: "Quotient R1 Abs1 Rep1"
@@ -308,7 +196,7 @@ lemma lambda_prs1:
   shows "(Rep1 ---> Abs2) (\<lambda>x. (Abs1 ---> Rep2) f x) = (\<lambda>x. f x)"
   unfolding fun_eq_iff
   using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2]
-  by (simp add:)
+  by simp
 
 lemma rep_abs_rsp:
   assumes q: "Quotient R Abs Rep"
@@ -392,9 +280,7 @@ lemma ball_reg_eqv_range:
   apply(simp add: in_respects fun_rel_def)
   apply(rule impI)
   using a equivp_reflp_symp_transp[of "R2"]
-  apply(simp add: reflp_def)
-  apply(simp)
-  apply(simp)
+  apply (auto elim: equivpE reflpE)
   done
 
 lemma bex_reg_eqv_range:
@@ -406,7 +292,7 @@ lemma bex_reg_eqv_range:
   apply(simp add: Respects_def in_respects fun_rel_def)
   apply(rule impI)
   using a equivp_reflp_symp_transp[of "R2"]
-  apply(simp add: reflp_def)
+  apply (auto elim: equivpE reflpE)
   done
 
 (* Next four lemmas are unused *)

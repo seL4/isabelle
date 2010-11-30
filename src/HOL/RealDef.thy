@@ -324,7 +324,7 @@ lemma trans_realrel: "trans realrel"
 
 lemma equiv_realrel: "equiv {X. cauchy X} realrel"
   using refl_realrel sym_realrel trans_realrel
-  by (rule equiv.intro)
+  by (rule equivI)
 
 subsection {* The field of real numbers *}
 
@@ -358,7 +358,7 @@ lemma real_case_1:
   apply (simp add: quotientI X)
   apply (rule the_equality)
   apply clarsimp
-  apply (erule congruent.congruent [OF f])
+  apply (erule congruentD [OF f])
   apply (erule bspec)
   apply simp
   apply (rule refl_onD [OF refl_realrel])
@@ -370,14 +370,14 @@ lemma real_case_2:
   assumes X: "cauchy X" and Y: "cauchy Y"
   shows "real_case (\<lambda>X. real_case (\<lambda>Y. f X Y) (Real Y)) (Real X) = f X Y"
  apply (subst real_case_1 [OF _ X])
-  apply (rule congruent.intro)
+  apply (rule congruentI)
   apply (subst real_case_1 [OF _ Y])
    apply (rule congruent2_implies_congruent [OF equiv_realrel f])
    apply (simp add: realrel_def)
   apply (subst real_case_1 [OF _ Y])
    apply (rule congruent2_implies_congruent [OF equiv_realrel f])
    apply (simp add: realrel_def)
-  apply (erule congruent2.congruent2 [OF f])
+  apply (erule congruent2D [OF f])
   apply (rule refl_onD [OF refl_realrel])
   apply (simp add: Y)
   apply (rule real_case_1 [OF _ Y])
@@ -416,7 +416,7 @@ qed
 
 lemma minus_respects_realrel:
   "(\<lambda>X. Real (\<lambda>n. - X n)) respects realrel"
-proof (rule congruent.intro)
+proof (rule congruentI)
   fix X Y assume "(X, Y) \<in> realrel"
   hence X: "cauchy X" and Y: "cauchy Y" and XY: "vanishes (\<lambda>n. X n - Y n)"
     unfolding realrel_def by simp_all
@@ -492,7 +492,7 @@ qed
 lemma inverse_respects_realrel:
   "(\<lambda>X. if vanishes X then c else Real (\<lambda>n. inverse (X n))) respects realrel"
     (is "?inv respects realrel")
-proof (rule congruent.intro)
+proof (rule congruentI)
   fix X Y assume "(X, Y) \<in> realrel"
   hence X: "cauchy X" and Y: "cauchy Y" and XY: "vanishes (\<lambda>n. X n - Y n)"
     unfolding realrel_def by simp_all
@@ -622,7 +622,7 @@ lemma bool_congruentI:
   assumes sym: "sym r"
   assumes P: "\<And>x y. (x, y) \<in> r \<Longrightarrow> P x \<Longrightarrow> P y"
   shows "P respects r"
-apply (rule congruent.intro)
+apply (rule congruentI)
 apply (rule iffI)
 apply (erule (1) P)
 apply (erule (1) P [OF symD [OF sym]])

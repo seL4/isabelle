@@ -62,7 +62,7 @@ lemma starrel_iff [iff]: "((X,Y) \<in> starrel) = ({n. X n = Y n} \<in> \<U>)"
 by (simp add: starrel_def)
 
 lemma equiv_starrel: "equiv UNIV starrel"
-proof (rule equiv.intro)
+proof (rule equivI)
   show "refl starrel" by (simp add: refl_on_def)
   show "sym starrel" by (simp add: sym_def eq_commute)
   show "trans starrel" by (auto intro: transI elim!: ultra)

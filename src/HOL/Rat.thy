@@ -44,7 +44,7 @@ proof (rule transI, unfold split_paired_all)
 qed
   
 lemma equiv_ratrel: "equiv {x. snd x \<noteq> 0} ratrel"
-  by (rule equiv.intro [OF refl_on_ratrel sym_ratrel trans_ratrel])
+  by (rule equivI [OF refl_on_ratrel sym_ratrel trans_ratrel])
 
 lemmas UN_ratrel = UN_equiv_class [OF equiv_ratrel]
 lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]
@@ -146,7 +146,7 @@ definition
 lemma minus_rat [simp]: "- Fract a b = Fract (- a) b"
 proof -
   have "(\<lambda>x. ratrel `` {(- fst x, snd x)}) respects ratrel"
-    by (simp add: congruent_def)
+    by (simp add: congruent_def split_paired_all)
   then show ?thesis by (simp add: Fract_def minus_rat_def UN_ratrel)
 qed
 
@@ -781,7 +781,7 @@ end
 
 lemma of_rat_congruent:
   "(\<lambda>(a, b). {of_int a / of_int b :: 'a::field_char_0}) respects ratrel"
-apply (rule congruent.intro)
+apply (rule congruentI)
 apply (clarsimp simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq)
 apply (simp only: of_int_mult [symmetric])
 done

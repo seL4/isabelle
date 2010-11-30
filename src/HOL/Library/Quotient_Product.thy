@@ -19,38 +19,39 @@ lemma prod_rel_apply [simp]:
   "prod_rel R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
   by (simp add: prod_rel_def)
 
-lemma prod_equivp[quot_equiv]:
-  assumes a: "equivp R1"
-  assumes b: "equivp R2"
+lemma map_pair_id [id_simps]:
+  shows "map_pair id id = id"
+  by (simp add: fun_eq_iff)
+
+lemma prod_rel_eq [id_simps]:
+  shows "prod_rel (op =) (op =) = (op =)"
+  by (simp add: fun_eq_iff)
+
+lemma prod_equivp [quot_equiv]:
+  assumes "equivp R1"
+  assumes "equivp R2"
   shows "equivp (prod_rel R1 R2)"
-  apply(rule equivpI)
-  unfolding reflp_def symp_def transp_def
-  apply(simp_all add: split_paired_all prod_rel_def)
-  apply(blast intro: equivp_reflp[OF a] equivp_reflp[OF b])
-  apply(blast intro: equivp_symp[OF a] equivp_symp[OF b])
-  apply(blast intro: equivp_transp[OF a] equivp_transp[OF b])
-  done
+  using assms by (auto intro!: equivpI reflpI sympI transpI elim!: equivpE elim: reflpE sympE transpE)
 
-lemma prod_quotient[quot_thm]:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  assumes q2: "Quotient R2 Abs2 Rep2"
+lemma prod_quotient [quot_thm]:
+  assumes "Quotient R1 Abs1 Rep1"
+  assumes "Quotient R2 Abs2 Rep2"
   shows "Quotient (prod_rel R1 R2) (map_pair Abs1 Abs2) (map_pair Rep1 Rep2)"
-  unfolding Quotient_def
-  apply(simp add: split_paired_all)
-  apply(simp add: Quotient_abs_rep[OF q1] Quotient_rel_rep[OF q1])
-  apply(simp add: Quotient_abs_rep[OF q2] Quotient_rel_rep[OF q2])
-  using q1 q2
-  unfolding Quotient_def
-  apply(blast)
+  apply (rule QuotientI)
+  apply (simp add: map_pair.compositionality map_pair.identity
+     Quotient_abs_rep [OF assms(1)] Quotient_abs_rep [OF assms(2)])
+  apply (simp add: split_paired_all Quotient_rel_rep [OF assms(1)] Quotient_rel_rep [OF assms(2)])
+  using Quotient_rel [OF assms(1)] Quotient_rel [OF assms(2)]
+  apply (auto simp add: split_paired_all)
   done
 
-lemma Pair_rsp[quot_respect]:
+lemma Pair_rsp [quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(R1 ===> R2 ===> prod_rel R1 R2) Pair Pair"
   by (auto simp add: prod_rel_def)
 
-lemma Pair_prs[quot_preserve]:
+lemma Pair_prs [quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(Rep1 ---> Rep2 ---> (map_pair Abs1 Abs2)) Pair = Pair"
@@ -58,35 +59,35 @@ lemma Pair_prs[quot_preserve]:
   apply(simp add: Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2])
   done
 
-lemma fst_rsp[quot_respect]:
+lemma fst_rsp [quot_respect]:
   assumes "Quotient R1 Abs1 Rep1"
   assumes "Quotient R2 Abs2 Rep2"
   shows "(prod_rel R1 R2 ===> R1) fst fst"
   by auto
 
-lemma fst_prs[quot_preserve]:
+lemma fst_prs [quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(map_pair Rep1 Rep2 ---> Abs1) fst = fst"
   by (simp add: fun_eq_iff Quotient_abs_rep[OF q1])
 
-lemma snd_rsp[quot_respect]:
+lemma snd_rsp [quot_respect]:
   assumes "Quotient R1 Abs1 Rep1"
   assumes "Quotient R2 Abs2 Rep2"
   shows "(prod_rel R1 R2 ===> R2) snd snd"
   by auto
 
-lemma snd_prs[quot_preserve]:
+lemma snd_prs [quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(map_pair Rep1 Rep2 ---> Abs2) snd = snd"
   by (simp add: fun_eq_iff Quotient_abs_rep[OF q2])
 
-lemma split_rsp[quot_respect]:
+lemma split_rsp [quot_respect]:
   shows "((R1 ===> R2 ===> (op =)) ===> (prod_rel R1 R2) ===> (op =)) split split"
   by (auto intro!: fun_relI elim!: fun_relE)
 
-lemma split_prs[quot_preserve]:
+lemma split_prs [quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "(((Abs1 ---> Abs2 ---> id) ---> map_pair Rep1 Rep2 ---> id) split) = split"
@@ -110,13 +111,5 @@ lemma [quot_preserve]:
   by simp
 
 declare Pair_eq[quot_preserve]
-
-lemma map_pair_id[id_simps]:
-  shows "map_pair id id = id"
-  by (simp add: fun_eq_iff)
-
-lemma prod_rel_eq[id_simps]:
-  shows "prod_rel (op =) (op =) = (op =)"
-  by (simp add: fun_eq_iff)
 
 end
