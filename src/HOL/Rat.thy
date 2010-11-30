@@ -146,7 +146,7 @@ definition
 lemma minus_rat [simp]: "- Fract a b = Fract (- a) b"
 proof -
   have "(\<lambda>x. ratrel `` {(- fst x, snd x)}) respects ratrel"
-    by (simp add: congruent_def)
+    by (simp add: congruent_def split_paired_all)
   then show ?thesis by (simp add: Fract_def minus_rat_def UN_ratrel)
 qed
 
