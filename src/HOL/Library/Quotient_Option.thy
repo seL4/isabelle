@@ -18,64 +18,73 @@ where
 
 declare [[map option = (Option.map, option_rel)]]
 
-text {* should probably be in Option.thy *}
-lemma split_option_all:
-  shows "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (\<forall>a. P (Some a))"
-  apply(auto)
-  apply(case_tac x)
-  apply(simp_all)
-  done
+lemma option_rel_unfold:
+  "option_rel R x y = (case (x, y) of (None, None) \<Rightarrow> True
+    | (Some x, Some y) \<Rightarrow> R x y
+    | _ \<Rightarrow> False)"
+  by (cases x) (cases y, simp_all)+
 
-lemma option_quotient[quot_thm]:
-  assumes q: "Quotient R Abs Rep"
+lemma option_rel_map1:
+  "option_rel R (Option.map f x) y \<longleftrightarrow> option_rel (\<lambda>x. R (f x)) x y"
+  by (simp add: option_rel_unfold split: option.split)
+
+lemma option_rel_map2:
+  "option_rel R x (Option.map f y) \<longleftrightarrow> option_rel (\<lambda>x y. R x (f y)) x y"
+  by (simp add: option_rel_unfold split: option.split)
+
+lemma option_map_id [id_simps]:
+  "Option.map id = id"
+  by (simp add: id_def Option.map.identity fun_eq_iff)
+
+lemma option_rel_eq [id_simps]:
+  "option_rel (op =) = (op =)"
+  by (simp add: option_rel_unfold fun_eq_iff split: option.split)
+
+lemma option_reflp:
+  "reflp R \<Longrightarrow> reflp (option_rel R)"
+  by (auto simp add: option_rel_unfold split: option.splits intro!: reflpI elim: reflpE)
+
+lemma option_symp:
+  "symp R \<Longrightarrow> symp (option_rel R)"
+  by (auto simp add: option_rel_unfold split: option.splits intro!: sympI elim: sympE)
+
+lemma option_transp:
+  "transp R \<Longrightarrow> transp (option_rel R)"
+  by (auto simp add: option_rel_unfold split: option.splits intro!: transpI elim: transpE)
+
+lemma option_equivp [quot_equiv]:
+  "equivp R \<Longrightarrow> equivp (option_rel R)"
+  by (blast intro: equivpI option_reflp option_symp option_transp elim: equivpE)
+
+lemma option_quotient [quot_thm]:
+  assumes "Quotient R Abs Rep"
   shows "Quotient (option_rel R) (Option.map Abs) (Option.map Rep)"
-  unfolding Quotient_def
-  apply(simp add: split_option_all)
-  apply(simp add: Quotient_abs_rep[OF q] Quotient_rel_rep[OF q])
-  using q
-  unfolding Quotient_def
-  apply(blast)
+  apply (rule QuotientI)
+  apply (simp_all add: Option.map.compositionality Option.map.identity option_rel_eq option_rel_map1 option_rel_map2 Quotient_abs_rep [OF assms] Quotient_rel_rep [OF assms])
+  using Quotient_rel [OF assms]
+  apply (simp add: option_rel_unfold split: option.split)
   done
 
-lemma option_equivp[quot_equiv]:
-  assumes a: "equivp R"
-  shows "equivp (option_rel R)"
-  apply(rule equivpI)
-  unfolding reflp_def symp_def transp_def
-  apply(simp_all add: split_option_all)
-  apply(blast intro: equivp_reflp[OF a])
-  apply(blast intro: equivp_symp[OF a])
-  apply(blast intro: equivp_transp[OF a])
-  done
-
-lemma option_None_rsp[quot_respect]:
+lemma option_None_rsp [quot_respect]:
   assumes q: "Quotient R Abs Rep"
   shows "option_rel R None None"
   by simp
 
-lemma option_Some_rsp[quot_respect]:
+lemma option_Some_rsp [quot_respect]:
   assumes q: "Quotient R Abs Rep"
   shows "(R ===> option_rel R) Some Some"
   by auto
 
-lemma option_None_prs[quot_preserve]:
+lemma option_None_prs [quot_preserve]:
   assumes q: "Quotient R Abs Rep"
   shows "Option.map Abs None = None"
   by simp
 
-lemma option_Some_prs[quot_preserve]:
+lemma option_Some_prs [quot_preserve]:
   assumes q: "Quotient R Abs Rep"
   shows "(Rep ---> Option.map Abs) Some = Some"
   apply(simp add: fun_eq_iff)
   apply(simp add: Quotient_abs_rep[OF q])
   done
-
-lemma option_map_id[id_simps]:
-  shows "Option.map id = id"
-  by (simp add: fun_eq_iff split_option_all)
-
-lemma option_rel_eq[id_simps]:
-  shows "option_rel (op =) = (op =)"
-  by (simp add: fun_eq_iff split_option_all)
 
 end

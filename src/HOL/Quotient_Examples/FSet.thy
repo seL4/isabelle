@@ -19,11 +19,21 @@ definition
 where
   [simp]: "list_eq xs ys \<longleftrightarrow> set xs = set ys"
 
+lemma list_eq_reflp:
+  "reflp list_eq"
+  by (auto intro: reflpI)
+
+lemma list_eq_symp:
+  "symp list_eq"
+  by (auto intro: sympI)
+
+lemma list_eq_transp:
+  "transp list_eq"
+  by (auto intro: transpI)
+
 lemma list_eq_equivp:
-  shows "equivp list_eq"
-  unfolding equivp_reflp_symp_transp
-  unfolding reflp_def symp_def transp_def
-  by auto
+  "equivp list_eq"
+  by (auto intro: equivpI list_eq_reflp list_eq_symp list_eq_transp)
 
 text {* The @{text fset} type *}
 
@@ -141,7 +151,7 @@ proof (intro conjI allI)
       \<and> abs_fset (map Abs r) = abs_fset (map Abs s)"
     then have s: "(list_all2 R OOO op \<approx>) s s" by simp
     have d: "map Abs r \<approx> map Abs s"
-      by (subst Quotient_rel[OF Quotient_fset]) (simp add: a)
+      by (subst Quotient_rel [OF Quotient_fset, symmetric]) (simp add: a)
     have b: "map Rep (map Abs r) \<approx> map Rep (map Abs s)"
       by (rule map_list_eq_cong[OF d])
     have y: "list_all2 R (map Rep (map Abs s)) s"
@@ -267,8 +277,11 @@ lemma concat_rsp [quot_respect]:
 proof (rule fun_relI, elim pred_compE)
   fix a b ba bb
   assume a: "list_all2 op \<approx> a ba"
+  with list_symp [OF list_eq_symp] have a': "list_all2 op \<approx> ba a" by (rule sympE)
   assume b: "ba \<approx> bb"
+  with list_eq_symp have b': "bb \<approx> ba" by (rule sympE)
   assume c: "list_all2 op \<approx> bb b"
+  with list_symp [OF list_eq_symp] have c': "list_all2 op \<approx> b bb" by (rule sympE)
   have "\<forall>x. (\<exists>xa\<in>set a. x \<in> set xa) = (\<exists>xa\<in>set b. x \<in> set xa)" 
   proof
     fix x
@@ -278,15 +291,11 @@ proof (rule fun_relI, elim pred_compE)
       show "\<exists>xa\<in>set b. x \<in> set xa" by (rule concat_rsp_pre[OF a b c d])
     next
       assume e: "\<exists>xa\<in>set b. x \<in> set xa"
-      have a': "list_all2 op \<approx> ba a" by (rule list_all2_symp[OF list_eq_equivp, OF a])
-      have b': "bb \<approx> ba" by (rule equivp_symp[OF list_eq_equivp, OF b])
-      have c': "list_all2 op \<approx> b bb" by (rule list_all2_symp[OF list_eq_equivp, OF c])
       show "\<exists>xa\<in>set a. x \<in> set xa" by (rule concat_rsp_pre[OF c' b' a' e])
     qed
   qed
   then show "concat a \<approx> concat b" by auto
 qed
-
 
 
 section {* Quotient definitions for fsets *}
@@ -474,7 +483,7 @@ lemma list_all2_app_l:
   assumes a: "reflp R"
   and b: "list_all2 R l r"
   shows "list_all2 R (z @ l) (z @ r)"
-  by (induct z) (simp_all add: b rev_iffD1 [OF a reflp_def])
+  using a b by (induct z) (auto elim: reflpE)
 
 lemma append_rsp2_pre0:
   assumes a:"list_all2 op \<approx> x x'"
@@ -489,23 +498,14 @@ lemma append_rsp2_pre1:
   apply (rule list_all2_refl'[OF list_eq_equivp])
   apply (simp_all del: list_eq_def)
   apply (rule list_all2_app_l)
-  apply (simp_all add: reflp_def)
+  apply (simp_all add: reflpI)
   done
 
 lemma append_rsp2_pre:
-  assumes a:"list_all2 op \<approx> x x'"
-  and     b: "list_all2 op \<approx> z z'"
+  assumes "list_all2 op \<approx> x x'"
+    and "list_all2 op \<approx> z z'"
   shows "list_all2 op \<approx> (x @ z) (x' @ z')"
-  apply (rule list_all2_transp[OF fset_equivp])
-  apply (rule append_rsp2_pre0)
-  apply (rule a)
-  using b apply (induct z z' rule: list_induct2')
-  apply (simp_all only: append_Nil2)
-  apply (rule list_all2_refl'[OF list_eq_equivp])
-  apply simp_all
-  apply (rule append_rsp2_pre1)
-  apply simp
-  done
+  using assms by (rule list_all2_appendI)
 
 lemma append_rsp2 [quot_respect]:
   "(list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) append append"

@@ -363,6 +363,44 @@ abbreviation transP :: "('a => 'a => bool) => bool" where
 abbreviation single_valuedP :: "('a => 'b => bool) => bool" where
   "single_valuedP r == single_valued {(x, y). r x y}"
 
+(*FIXME inconsistencies: abbreviations vs. definitions, suffix `P` vs. suffix `p`*)
+
+definition reflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "reflp r \<longleftrightarrow> refl {(x, y). r x y}"
+
+definition symp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "symp r \<longleftrightarrow> sym {(x, y). r x y}"
+
+definition transp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "transp r \<longleftrightarrow> trans {(x, y). r x y}"
+
+lemma reflpI:
+  "(\<And>x. r x x) \<Longrightarrow> reflp r"
+  by (auto intro: refl_onI simp add: reflp_def)
+
+lemma reflpE:
+  assumes "reflp r"
+  obtains "r x x"
+  using assms by (auto dest: refl_onD simp add: reflp_def)
+
+lemma sympI:
+  "(\<And>x y. r x y \<Longrightarrow> r y x) \<Longrightarrow> symp r"
+  by (auto intro: symI simp add: symp_def)
+
+lemma sympE:
+  assumes "symp r" and "r x y"
+  obtains "r y x"
+  using assms by (auto dest: symD simp add: symp_def)
+
+lemma transpI:
+  "(\<And>x y z. r x y \<Longrightarrow> r y z \<Longrightarrow> r x z) \<Longrightarrow> transp r"
+  by (auto intro: transI simp add: transp_def)
+  
+lemma transpE:
+  assumes "transp r" and "r x y" and "r y z"
+  obtains "r x z"
+  using assms by (auto dest: transD simp add: transp_def)
+
 
 subsection {* Predicates as enumerations *}
 
