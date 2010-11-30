@@ -1288,7 +1288,7 @@ lemma real_add:
 proof -
   have "(\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). {Abs_Real (realrel `` {(x+u, y+v)})}) w) z)
         respects2 realrel"
-    by (simp add: congruent2_def, blast intro: real_add_congruent2_lemma) 
+    by (auto simp add: congruent2_def, blast intro: real_add_congruent2_lemma) 
   thus ?thesis
     by (simp add: real_add_def UN_UN_split_split_eq
                   UN_equiv_class2 [OF equiv_realrel equiv_realrel])
@@ -1297,7 +1297,7 @@ qed
 lemma real_minus: "- Abs_Real(realrel``{(x,y)}) = Abs_Real(realrel `` {(y,x)})"
 proof -
   have "(\<lambda>(x,y). {Abs_Real (realrel``{(y,x)})}) respects realrel"
-    by (simp add: congruent_def add_commute) 
+    by (auto simp add: congruent_def add_commute) 
   thus ?thesis
     by (simp add: real_minus_def UN_equiv_class [OF equiv_realrel])
 qed

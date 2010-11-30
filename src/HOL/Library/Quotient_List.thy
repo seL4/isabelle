@@ -10,94 +10,96 @@ begin
 
 declare [[map list = (map, list_all2)]]
 
-lemma split_list_all:
-  shows "(\<forall>x. P x) \<longleftrightarrow> P [] \<and> (\<forall>x xs. P (x#xs))"
-  apply(auto)
-  apply(case_tac x)
-  apply(simp_all)
-  done
+lemma map_id [id_simps]:
+  "map id = id"
+  by (simp add: id_def fun_eq_iff map.identity)
 
-lemma map_id[id_simps]:
-  shows "map id = id"
-  apply(simp add: fun_eq_iff)
-  apply(rule allI)
-  apply(induct_tac x)
-  apply(simp_all)
-  done
+lemma list_all2_map1:
+  "list_all2 R (map f xs) ys \<longleftrightarrow> list_all2 (\<lambda>x. R (f x)) xs ys"
+  by (induct xs ys rule: list_induct2') simp_all
 
-lemma list_all2_reflp:
-  shows "equivp R \<Longrightarrow> list_all2 R xs xs"
-  by (induct xs, simp_all add: equivp_reflp)
+lemma list_all2_map2:
+  "list_all2 R xs (map f ys) \<longleftrightarrow> list_all2 (\<lambda>x y. R x (f y)) xs ys"
+  by (induct xs ys rule: list_induct2') simp_all
 
-lemma list_all2_symp:
-  assumes a: "equivp R"
-  and b: "list_all2 R xs ys"
-  shows "list_all2 R ys xs"
-  using list_all2_lengthD[OF b] b
-  apply(induct xs ys rule: list_induct2)
-  apply(simp_all)
-  apply(rule equivp_symp[OF a])
-  apply(simp)
-  done
+lemma list_all2_eq [id_simps]:
+  "list_all2 (op =) = (op =)"
+proof (rule ext)+
+  fix xs ys
+  show "list_all2 (op =) xs ys \<longleftrightarrow> xs = ys"
+    by (induct xs ys rule: list_induct2') simp_all
+qed
 
-lemma list_all2_transp:
-  assumes a: "equivp R"
-  and b: "list_all2 R xs1 xs2"
-  and c: "list_all2 R xs2 xs3"
-  shows "list_all2 R xs1 xs3"
-  using list_all2_lengthD[OF b] list_all2_lengthD[OF c] b c
-  apply(induct rule: list_induct3)
-  apply(simp_all)
-  apply(auto intro: equivp_transp[OF a])
-  done
+lemma list_reflp:
+  assumes "reflp R"
+  shows "reflp (list_all2 R)"
+proof (rule reflpI)
+  from assms have *: "\<And>xs. R xs xs" by (rule reflpE)
+  fix xs
+  show "list_all2 R xs xs"
+    by (induct xs) (simp_all add: *)
+qed
 
-lemma list_equivp[quot_equiv]:
-  assumes a: "equivp R"
-  shows "equivp (list_all2 R)"
-  apply (intro equivpI)
-  unfolding reflp_def symp_def transp_def
-  apply(simp add: list_all2_reflp[OF a])
-  apply(blast intro: list_all2_symp[OF a])
-  apply(blast intro: list_all2_transp[OF a])
-  done
+lemma list_symp:
+  assumes "symp R"
+  shows "symp (list_all2 R)"
+proof (rule sympI)
+  from assms have *: "\<And>xs ys. R xs ys \<Longrightarrow> R ys xs" by (rule sympE)
+  fix xs ys
+  assume "list_all2 R xs ys"
+  then show "list_all2 R ys xs"
+    by (induct xs ys rule: list_induct2') (simp_all add: *)
+qed
 
-lemma list_all2_rel:
-  assumes q: "Quotient R Abs Rep"
-  shows "list_all2 R r s = (list_all2 R r r \<and> list_all2 R s s \<and> (map Abs r = map Abs s))"
-  apply(induct r s rule: list_induct2')
-  apply(simp_all)
-  using Quotient_rel[OF q]
-  apply(metis)
-  done
+lemma list_transp:
+  assumes "transp R"
+  shows "transp (list_all2 R)"
+proof (rule transpI)
+  from assms have *: "\<And>xs ys zs. R xs ys \<Longrightarrow> R ys zs \<Longrightarrow> R xs zs" by (rule transpE)
+  fix xs ys zs
+  assume A: "list_all2 R xs ys" "list_all2 R ys zs"
+  then have "length xs = length ys" "length ys = length zs" by (blast dest: list_all2_lengthD)+
+  then show "list_all2 R xs zs" using A
+    by (induct xs ys zs rule: list_induct3) (auto intro: *)
+qed
 
-lemma list_quotient[quot_thm]:
-  assumes q: "Quotient R Abs Rep"
+lemma list_equivp [quot_equiv]:
+  "equivp R \<Longrightarrow> equivp (list_all2 R)"
+  by (blast intro: equivpI list_reflp list_symp list_transp elim: equivpE)
+
+lemma list_quotient [quot_thm]:
+  assumes "Quotient R Abs Rep"
   shows "Quotient (list_all2 R) (map Abs) (map Rep)"
-  unfolding Quotient_def
-  apply(subst split_list_all)
-  apply(simp add: Quotient_abs_rep[OF q] abs_o_rep[OF q] map_id)
-  apply(intro conjI allI)
-  apply(induct_tac a)
-  apply(simp_all add: Quotient_rep_reflp[OF q])
-  apply(rule list_all2_rel[OF q])
-  done
+proof (rule QuotientI)
+  from assms have "\<And>x. Abs (Rep x) = x" by (rule Quotient_abs_rep)
+  then show "\<And>xs. map Abs (map Rep xs) = xs" by (simp add: comp_def)
+next
+  from assms have "\<And>x y. R (Rep x) (Rep y) \<longleftrightarrow> x = y" by (rule Quotient_rel_rep)
+  then show "\<And>xs. list_all2 R (map Rep xs) (map Rep xs)"
+    by (simp add: list_all2_map1 list_all2_map2 list_all2_eq)
+next
+  fix xs ys
+  from assms have "\<And>x y. R x x \<and> R y y \<and> Abs x = Abs y \<longleftrightarrow> R x y" by (rule Quotient_rel)
+  then show "list_all2 R xs ys \<longleftrightarrow> list_all2 R xs xs \<and> list_all2 R ys ys \<and> map Abs xs = map Abs ys"
+    by (induct xs ys rule: list_induct2') auto
+qed
 
-lemma cons_prs[quot_preserve]:
+lemma cons_prs [quot_preserve]:
   assumes q: "Quotient R Abs Rep"
   shows "(Rep ---> (map Rep) ---> (map Abs)) (op #) = (op #)"
   by (auto simp add: fun_eq_iff comp_def Quotient_abs_rep [OF q])
 
-lemma cons_rsp[quot_respect]:
+lemma cons_rsp [quot_respect]:
   assumes q: "Quotient R Abs Rep"
   shows "(R ===> list_all2 R ===> list_all2 R) (op #) (op #)"
   by auto
 
-lemma nil_prs[quot_preserve]:
+lemma nil_prs [quot_preserve]:
   assumes q: "Quotient R Abs Rep"
   shows "map Abs [] = []"
   by simp
 
-lemma nil_rsp[quot_respect]:
+lemma nil_rsp [quot_respect]:
   assumes q: "Quotient R Abs Rep"
   shows "list_all2 R [] []"
   by simp
@@ -109,7 +111,7 @@ lemma map_prs_aux:
   by (induct l)
      (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
 
-lemma map_prs[quot_preserve]:
+lemma map_prs [quot_preserve]:
   assumes a: "Quotient R1 abs1 rep1"
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> rep2) ---> (map rep1) ---> (map abs2)) map = map"
@@ -117,8 +119,7 @@ lemma map_prs[quot_preserve]:
   by (simp_all only: fun_eq_iff map_prs_aux[OF a b] comp_def)
     (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
 
-
-lemma map_rsp[quot_respect]:
+lemma map_rsp [quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "((R1 ===> R2) ===> (list_all2 R1) ===> list_all2 R2) map map"
@@ -137,7 +138,7 @@ lemma foldr_prs_aux:
   shows "abs2 (foldr ((abs1 ---> abs2 ---> rep2) f) (map rep1 l) (rep2 e)) = foldr f l e"
   by (induct l) (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
 
-lemma foldr_prs[quot_preserve]:
+lemma foldr_prs [quot_preserve]:
   assumes a: "Quotient R1 abs1 rep1"
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> abs2 ---> rep2) ---> (map rep1) ---> rep2 ---> abs2) foldr = foldr"
@@ -151,8 +152,7 @@ lemma foldl_prs_aux:
   shows "abs1 (foldl ((abs1 ---> abs2 ---> rep1) f) (rep1 e) (map rep2 l)) = foldl f e l"
   by (induct l arbitrary:e) (simp_all add: Quotient_abs_rep[OF a] Quotient_abs_rep[OF b])
 
-
-lemma foldl_prs[quot_preserve]:
+lemma foldl_prs [quot_preserve]:
   assumes a: "Quotient R1 abs1 rep1"
   and     b: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> abs2 ---> rep1) ---> rep1 ---> (map rep2) ---> abs1) foldl = foldl"
@@ -217,11 +217,11 @@ lemma list_all2_rsp:
     qed
   qed
 
-lemma[quot_respect]:
+lemma [quot_respect]:
   "((R ===> R ===> op =) ===> list_all2 R ===> list_all2 R ===> op =) list_all2 list_all2"
   by (simp add: list_all2_rsp fun_rel_def)
 
-lemma[quot_preserve]:
+lemma [quot_preserve]:
   assumes a: "Quotient R abs1 rep1"
   shows "((abs1 ---> abs1 ---> id) ---> map rep1 ---> map rep1 ---> id) list_all2 = list_all2"
   apply (simp add: fun_eq_iff)
@@ -230,18 +230,10 @@ lemma[quot_preserve]:
   apply (simp_all add: Quotient_abs_rep[OF a])
   done
 
-lemma[quot_preserve]:
+lemma [quot_preserve]:
   assumes a: "Quotient R abs1 rep1"
   shows "(list_all2 ((rep1 ---> rep1 ---> id) R) l m) = (l = m)"
   by (induct l m rule: list_induct2') (simp_all add: Quotient_rel_rep[OF a])
-
-lemma list_all2_eq[id_simps]:
-  shows "(list_all2 (op =)) = (op =)"
-  unfolding fun_eq_iff
-  apply(rule allI)+
-  apply(induct_tac x xa rule: list_induct2')
-  apply(simp_all)
-  done
 
 lemma list_all2_find_element:
   assumes a: "x \<in> set a"

@@ -102,7 +102,7 @@ subsection {* Arithmetic Operations *}
 lemma minus: "- Abs_Integ(intrel``{(x,y)}) = Abs_Integ(intrel `` {(y,x)})"
 proof -
   have "(\<lambda>(x,y). intrel``{(y,x)}) respects intrel"
-    by (simp add: congruent_def) 
+    by (auto simp add: congruent_def)
   thus ?thesis
     by (simp add: minus_int_def UN_equiv_class [OF equiv_intrel])
 qed
@@ -113,7 +113,7 @@ lemma add:
 proof -
   have "(\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). intrel `` {(x+u, y+v)}) w) z) 
         respects2 intrel"
-    by (simp add: congruent2_def)
+    by (auto simp add: congruent2_def)
   thus ?thesis
     by (simp add: add_int_def UN_UN_split_split_eq
                   UN_equiv_class2 [OF equiv_intrel equiv_intrel])
@@ -288,7 +288,7 @@ definition of_int :: "int \<Rightarrow> 'a" where
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
 proof -
   have "(\<lambda>(i,j). { of_nat i - (of_nat j :: 'a) }) respects intrel"
-    by (simp add: congruent_def algebra_simps of_nat_add [symmetric]
+    by (auto simp add: congruent_def) (simp add: algebra_simps of_nat_add [symmetric]
             del: of_nat_add) 
   thus ?thesis
     by (simp add: of_int_def UN_equiv_class [OF equiv_intrel])
@@ -394,7 +394,7 @@ definition nat :: "int \<Rightarrow> nat" where
 lemma nat: "nat (Abs_Integ (intrel``{(x,y)})) = x-y"
 proof -
   have "(\<lambda>(x,y). {x-y}) respects intrel"
-    by (simp add: congruent_def) arith
+    by (auto simp add: congruent_def)
   thus ?thesis
     by (simp add: nat_def UN_equiv_class [OF equiv_intrel])
 qed
