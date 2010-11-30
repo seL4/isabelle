@@ -34,13 +34,8 @@ end
 structure Domain_Isomorphism : DOMAIN_ISOMORPHISM =
 struct
 
-val beta_rules =
-  @{thms beta_cfun cont_id cont_const cont2cont_APP cont2cont_LAM'} @
-  @{thms cont2cont_fst cont2cont_snd cont2cont_Pair cont2cont_prod_case'}
-
-val beta_ss = HOL_basic_ss addsimps (simp_thms @ beta_rules)
-
-val beta_tac = simp_tac beta_ss
+val beta_ss =
+  HOL_basic_ss addsimps simp_thms addsimprocs [@{simproc beta_cfun_proc}]
 
 fun is_cpo thy T = Sign.of_sort thy (T, @{sort cpo})
 
@@ -165,7 +160,7 @@ fun add_fixdefs
     (* prove applied version of definitions *)
     fun prove_proj (lhs, rhs) =
       let
-        val tac = rewrite_goals_tac fixdef_thms THEN beta_tac 1
+        val tac = rewrite_goals_tac fixdef_thms THEN (simp_tac beta_ss) 1
         val goal = Logic.mk_equals (lhs, rhs)
       in Goal.prove_global thy [] [] goal (K tac) end
     val proj_thms = map prove_proj projs
@@ -175,8 +170,14 @@ fun add_fixdefs
     val tuple_fixdef_thm = foldr1 pair_equalI proj_thms
 
     val cont_thm =
-      Goal.prove_global thy [] [] (mk_trp (mk_cont functional))
-        (K (beta_tac 1))
+      let
+        val prop = mk_trp (mk_cont functional)
+        val rules = Cont2ContData.get (ProofContext.init_global thy)
+        val tac = REPEAT_ALL_NEW (match_tac rules) 1
+      in
+        Goal.prove_global thy [] [] prop (K tac)
+      end
+
     val tuple_unfold_thm =
       (@{thm def_cont_fix_eq} OF [tuple_fixdef_thm, cont_thm])
       |> Local_Defs.unfold (ProofContext.init_global thy) @{thms split_conv}

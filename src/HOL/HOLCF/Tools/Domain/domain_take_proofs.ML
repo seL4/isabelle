@@ -107,13 +107,8 @@ type take_induct_info =
     take_induct_thms    : thm list
   }
 
-val beta_rules =
-  @{thms beta_cfun cont_id cont_const cont2cont_APP cont2cont_LAM'} @
-  @{thms cont2cont_fst cont2cont_snd cont2cont_Pair}
-
-val beta_ss = HOL_basic_ss addsimps (simp_thms @ beta_rules)
-
-val beta_tac = simp_tac beta_ss
+val beta_ss =
+  HOL_basic_ss addsimps simp_thms addsimprocs [@{simproc beta_cfun_proc}]
 
 (******************************************************************************)
 (******************************** theory data *********************************)
