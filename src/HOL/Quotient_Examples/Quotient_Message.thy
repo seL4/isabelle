@@ -36,16 +36,16 @@ by (induct X) (auto intro: msgrel.intros)
 
 theorem equiv_msgrel: "equivp msgrel"
 proof (rule equivpI)
-  show "reflp msgrel" by (simp add: reflp_def msgrel_refl)
-  show "symp msgrel" by (simp add: symp_def, blast intro: msgrel.SYM)
-  show "transp msgrel" by (simp add: transp_def, blast intro: msgrel.TRANS)
+  show "reflp msgrel" by (rule reflpI) (simp add: msgrel_refl)
+  show "symp msgrel" by (rule sympI) (blast intro: msgrel.SYM)
+  show "transp msgrel" by (rule transpI) (blast intro: msgrel.TRANS)
 qed
 
 subsection{*Some Functions on the Free Algebra*}
 
 subsubsection{*The Set of Nonces*}
 
-fun
+primrec
   freenonces :: "freemsg \<Rightarrow> nat set"
 where
   "freenonces (NONCE N) = {N}"
@@ -62,7 +62,7 @@ subsubsection{*The Left Projection*}
 
 text{*A function to return the left part of the top pair in a message.  It will
 be lifted to the initial algrebra, to serve as an example of that process.*}
-fun
+primrec
   freeleft :: "freemsg \<Rightarrow> freemsg"
 where
   "freeleft (NONCE N) = NONCE N"
@@ -75,7 +75,7 @@ equivalence relation.  It also helps us prove that MPair
   (the abstract constructor) is injective*}
 lemma msgrel_imp_eqv_freeleft_aux:
   shows "freeleft U \<sim> freeleft U"
-  by (induct rule: freeleft.induct) (auto)
+  by (fact msgrel_refl)
 
 theorem msgrel_imp_eqv_freeleft:
   assumes a: "U \<sim> V"
@@ -86,7 +86,7 @@ theorem msgrel_imp_eqv_freeleft:
 subsubsection{*The Right Projection*}
 
 text{*A function to return the right part of the top pair in a message.*}
-fun
+primrec
   freeright :: "freemsg \<Rightarrow> freemsg"
 where
   "freeright (NONCE N) = NONCE N"
@@ -99,7 +99,7 @@ equivalence relation.  It also helps us prove that MPair
   (the abstract constructor) is injective*}
 lemma msgrel_imp_eqv_freeright_aux:
   shows "freeright U \<sim> freeright U"
-  by (induct rule: freeright.induct) (auto)
+  by (fact msgrel_refl)
 
 theorem msgrel_imp_eqv_freeright:
   assumes a: "U \<sim> V"
@@ -110,7 +110,7 @@ theorem msgrel_imp_eqv_freeright:
 subsubsection{*The Discriminator for Constructors*}
 
 text{*A function to distinguish nonces, mpairs and encryptions*}
-fun
+primrec
   freediscrim :: "freemsg \<Rightarrow> int"
 where
    "freediscrim (NONCE N) = 0"
