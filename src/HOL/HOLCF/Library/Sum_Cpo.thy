@@ -264,27 +264,24 @@ instantiation sum :: (predomain, predomain) predomain
 begin
 
 definition
-  "liftemb = (udom_emb ssum_approx oo ssum_map\<cdot>emb\<cdot>emb) oo encode_sum_u"
+  "liftemb = emb oo encode_sum_u"
 
 definition
-  "liftprj =
-    decode_sum_u oo (ssum_map\<cdot>prj\<cdot>prj oo udom_prj ssum_approx)"
+  "liftprj = decode_sum_u oo prj"
 
 definition
-  "liftdefl (t::('a + 'b) itself) = ssum_defl\<cdot>DEFL('a u)\<cdot>DEFL('b u)"
+  "liftdefl (t::('a + 'b) itself) = DEFL('a u \<oplus> 'b u)"
 
 instance proof
   show "ep_pair liftemb (liftprj :: udom \<rightarrow> ('a + 'b) u)"
     unfolding liftemb_sum_def liftprj_sum_def
     apply (rule ep_pair_comp)
     apply (rule ep_pair.intro, simp, simp)
-    apply (rule ep_pair_comp)
-    apply (intro ep_pair_ssum_map ep_pair_emb_prj)
-    apply (rule ep_pair_udom [OF ssum_approx])
+    apply (rule ep_pair_emb_prj)
     done
   show "cast\<cdot>LIFTDEFL('a + 'b) = liftemb oo (liftprj :: udom \<rightarrow> ('a + 'b) u)"
     unfolding liftemb_sum_def liftprj_sum_def liftdefl_sum_def
-    by (simp add: cast_ssum_defl cast_DEFL cfcomp1 ssum_map_map)
+    by (simp add: cast_DEFL cfcomp1)
 qed
 
 end

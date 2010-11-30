@@ -460,13 +460,13 @@ instantiation cfun :: (predomain, "domain") liftdomain
 begin
 
 definition
-  "emb = (udom_emb sfun_approx oo sfun_map\<cdot>prj\<cdot>emb) oo encode_cfun"
+  "emb = emb oo encode_cfun"
 
 definition
-  "prj = decode_cfun oo (sfun_map\<cdot>emb\<cdot>prj oo udom_prj sfun_approx)"
+  "prj = decode_cfun oo prj"
 
 definition
-  "defl (t::('a \<rightarrow> 'b) itself) = sfun_defl\<cdot>DEFL('a u)\<cdot>DEFL('b)"
+  "defl (t::('a \<rightarrow> 'b) itself) = DEFL('a u \<rightarrow>! 'b)"
 
 definition
   "(liftemb :: ('a \<rightarrow> 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
@@ -484,107 +484,17 @@ proof (rule liftdomain_class_intro)
     by (rule ep_pair.intro, simp_all)
   thus "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow> 'b)"
     unfolding emb_cfun_def prj_cfun_def
-    apply (rule ep_pair_comp)
-    apply (rule ep_pair_comp)
-    apply (intro ep_pair_sfun_map ep_pair_emb_prj)
-    apply (rule ep_pair_udom [OF sfun_approx])
-    done
+    using ep_pair_emb_prj by (rule ep_pair_comp)
   show "cast\<cdot>DEFL('a \<rightarrow> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<rightarrow> 'b)"
-    unfolding emb_cfun_def prj_cfun_def defl_cfun_def cast_sfun_defl
-    by (simp add: cast_DEFL oo_def cfun_eq_iff sfun_map_map)
+    unfolding emb_cfun_def prj_cfun_def defl_cfun_def
+    by (simp add: cast_DEFL cfcomp1)
 qed
 
 end
 
 lemma DEFL_cfun:
-  "DEFL('a::predomain \<rightarrow> 'b::domain) = sfun_defl\<cdot>DEFL('a u)\<cdot>DEFL('b)"
+  "DEFL('a::predomain \<rightarrow> 'b::domain) = DEFL('a u \<rightarrow>! 'b)"
 by (rule defl_cfun_def)
-
-subsubsection {* Cartesian product *}
-
-text {*
-  Types @{typ "('a * 'b) u"} and @{typ "'a u \<otimes> 'b u"} are isomorphic.
-*}
-
-definition
-  "encode_prod_u = (\<Lambda>(up\<cdot>(x, y)). (:up\<cdot>x, up\<cdot>y:))"
-
-definition
-  "decode_prod_u = (\<Lambda>(:up\<cdot>x, up\<cdot>y:). up\<cdot>(x, y))"
-
-lemma decode_encode_prod_u [simp]: "decode_prod_u\<cdot>(encode_prod_u\<cdot>x) = x"
-unfolding encode_prod_u_def decode_prod_u_def
-by (case_tac x, simp, rename_tac y, case_tac y, simp)
-
-lemma encode_decode_prod_u [simp]: "encode_prod_u\<cdot>(decode_prod_u\<cdot>y) = y"
-unfolding encode_prod_u_def decode_prod_u_def
-apply (case_tac y, simp, rename_tac a b)
-apply (case_tac a, simp, case_tac b, simp, simp)
-done
-
-instantiation prod :: (predomain, predomain) predomain
-begin
-
-definition
-  "liftemb =
-    (udom_emb sprod_approx oo sprod_map\<cdot>emb\<cdot>emb) oo encode_prod_u"
-
-definition
-  "liftprj =
-    decode_prod_u oo (sprod_map\<cdot>prj\<cdot>prj oo udom_prj sprod_approx)"
-
-definition
-  "liftdefl (t::('a \<times> 'b) itself) = sprod_defl\<cdot>DEFL('a u)\<cdot>DEFL('b u)"
-
-instance proof
-  have "ep_pair encode_prod_u decode_prod_u"
-    by (rule ep_pair.intro, simp_all)
-  thus "ep_pair liftemb (liftprj :: udom \<rightarrow> ('a \<times> 'b) u)"
-    unfolding liftemb_prod_def liftprj_prod_def
-    apply (rule ep_pair_comp)
-    apply (rule ep_pair_comp)
-    apply (intro ep_pair_sprod_map ep_pair_emb_prj)
-    apply (rule ep_pair_udom [OF sprod_approx])
-    done
-  show "cast\<cdot>LIFTDEFL('a \<times> 'b) = liftemb oo (liftprj :: udom \<rightarrow> ('a \<times> 'b) u)"
-    unfolding liftemb_prod_def liftprj_prod_def liftdefl_prod_def
-    by (simp add: cast_sprod_defl cast_DEFL cfcomp1 sprod_map_map)
-qed
-
-end
-
-instantiation prod :: ("domain", "domain") "domain"
-begin
-
-definition
-  "emb = udom_emb prod_approx oo cprod_map\<cdot>emb\<cdot>emb"
-
-definition
-  "prj = cprod_map\<cdot>prj\<cdot>prj oo udom_prj prod_approx"
-
-definition
-  "defl (t::('a \<times> 'b) itself) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
-
-instance proof
-  show "ep_pair emb (prj :: udom \<rightarrow> 'a \<times> 'b)"
-    unfolding emb_prod_def prj_prod_def
-    using ep_pair_udom [OF prod_approx]
-    by (intro ep_pair_comp ep_pair_cprod_map ep_pair_emb_prj)
-next
-  show "cast\<cdot>DEFL('a \<times> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<times> 'b)"
-    unfolding emb_prod_def prj_prod_def defl_prod_def cast_prod_defl
-    by (simp add: cast_DEFL oo_def cfun_eq_iff cprod_map_map)
-qed
-
-end
-
-lemma DEFL_prod:
-  "DEFL('a::domain \<times> 'b::domain) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
-by (rule defl_prod_def)
-
-lemma LIFTDEFL_prod:
-  "LIFTDEFL('a::predomain \<times> 'b::predomain) = sprod_defl\<cdot>DEFL('a u)\<cdot>DEFL('b u)"
-by (rule liftdefl_prod_def)
 
 subsubsection {* Strict product *}
 
@@ -627,6 +537,86 @@ end
 lemma DEFL_sprod:
   "DEFL('a::domain \<otimes> 'b::domain) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sprod_def)
+
+subsubsection {* Cartesian product *}
+
+text {*
+  Types @{typ "('a * 'b) u"} and @{typ "'a u \<otimes> 'b u"} are isomorphic.
+*}
+
+definition
+  "encode_prod_u = (\<Lambda>(up\<cdot>(x, y)). (:up\<cdot>x, up\<cdot>y:))"
+
+definition
+  "decode_prod_u = (\<Lambda>(:up\<cdot>x, up\<cdot>y:). up\<cdot>(x, y))"
+
+lemma decode_encode_prod_u [simp]: "decode_prod_u\<cdot>(encode_prod_u\<cdot>x) = x"
+unfolding encode_prod_u_def decode_prod_u_def
+by (case_tac x, simp, rename_tac y, case_tac y, simp)
+
+lemma encode_decode_prod_u [simp]: "encode_prod_u\<cdot>(decode_prod_u\<cdot>y) = y"
+unfolding encode_prod_u_def decode_prod_u_def
+apply (case_tac y, simp, rename_tac a b)
+apply (case_tac a, simp, case_tac b, simp, simp)
+done
+
+instantiation prod :: (predomain, predomain) predomain
+begin
+
+definition
+  "liftemb = emb oo encode_prod_u"
+
+definition
+  "liftprj = decode_prod_u oo prj"
+
+definition
+  "liftdefl (t::('a \<times> 'b) itself) = DEFL('a\<^sub>\<bottom> \<otimes> 'b\<^sub>\<bottom>)"
+
+instance proof
+  have "ep_pair encode_prod_u decode_prod_u"
+    by (rule ep_pair.intro, simp_all)
+  thus "ep_pair liftemb (liftprj :: udom \<rightarrow> ('a \<times> 'b) u)"
+    unfolding liftemb_prod_def liftprj_prod_def
+    using ep_pair_emb_prj by (rule ep_pair_comp)
+  show "cast\<cdot>LIFTDEFL('a \<times> 'b) = liftemb oo (liftprj :: udom \<rightarrow> ('a \<times> 'b) u)"
+    unfolding liftemb_prod_def liftprj_prod_def liftdefl_prod_def
+    by (simp add: cast_DEFL cfcomp1)
+qed
+
+end
+
+instantiation prod :: ("domain", "domain") "domain"
+begin
+
+definition
+  "emb = udom_emb prod_approx oo cprod_map\<cdot>emb\<cdot>emb"
+
+definition
+  "prj = cprod_map\<cdot>prj\<cdot>prj oo udom_prj prod_approx"
+
+definition
+  "defl (t::('a \<times> 'b) itself) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
+
+instance proof
+  show "ep_pair emb (prj :: udom \<rightarrow> 'a \<times> 'b)"
+    unfolding emb_prod_def prj_prod_def
+    using ep_pair_udom [OF prod_approx]
+    by (intro ep_pair_comp ep_pair_cprod_map ep_pair_emb_prj)
+next
+  show "cast\<cdot>DEFL('a \<times> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<times> 'b)"
+    unfolding emb_prod_def prj_prod_def defl_prod_def cast_prod_defl
+    by (simp add: cast_DEFL oo_def cfun_eq_iff cprod_map_map)
+qed
+
+end
+
+lemma DEFL_prod:
+  "DEFL('a::domain \<times> 'b::domain) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
+by (rule defl_prod_def)
+
+lemma LIFTDEFL_prod:
+  "LIFTDEFL('a::predomain \<times> 'b::predomain) = DEFL('a u \<otimes> 'b u)"
+by (rule liftdefl_prod_def)
 
 subsubsection {* Discrete cpo *}
 

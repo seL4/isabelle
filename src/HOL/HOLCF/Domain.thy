@@ -293,11 +293,9 @@ done
 lemma isodefl_cprod_u:
   assumes "isodefl (u_map\<cdot>d1) t1" and "isodefl (u_map\<cdot>d2) t2"
   shows "isodefl (u_map\<cdot>(cprod_map\<cdot>d1\<cdot>d2)) (sprod_defl\<cdot>t1\<cdot>t2)"
-using assms unfolding isodefl_def
-apply (simp add: emb_u_def prj_u_def liftemb_prod_def liftprj_prod_def)
-apply (simp add: emb_u_def [symmetric] prj_u_def [symmetric])
-apply (simp add: cfcomp1 encode_prod_u_map cast_sprod_defl sprod_map_map)
-done
+using isodefl_sprod [OF assms] unfolding isodefl_def
+unfolding emb_u_def prj_u_def liftemb_prod_def liftprj_prod_def
+by (simp add: cfcomp1 encode_prod_u_map)
 
 lemma encode_cfun_map:
   "encode_cfun\<cdot>(cfun_map\<cdot>f\<cdot>g\<cdot>(decode_cfun\<cdot>x))
@@ -308,13 +306,10 @@ apply (rule cfun_eqI, rename_tac y, case_tac y, simp_all)
 done
 
 lemma isodefl_cfun:
-  "isodefl (u_map\<cdot>d1) t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
-    isodefl (cfun_map\<cdot>d1\<cdot>d2) (sfun_defl\<cdot>t1\<cdot>t2)"
-apply (rule isodeflI)
-apply (simp add: cast_sfun_defl cast_isodefl)
-apply (simp add: emb_cfun_def prj_cfun_def encode_cfun_map)
-apply (simp add: sfun_map_map isodefl_strict)
-done
+  assumes "isodefl (u_map\<cdot>d1) t1" and "isodefl d2 t2"
+  shows "isodefl (cfun_map\<cdot>d1\<cdot>d2) (sfun_defl\<cdot>t1\<cdot>t2)"
+using isodefl_sfun [OF assms] unfolding isodefl_def
+by (simp add: emb_cfun_def prj_cfun_def cfcomp1 encode_cfun_map)
 
 subsection {* Setting up the domain package *}
 
