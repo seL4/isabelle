@@ -14,8 +14,8 @@ begin
 text {*
   This theory contains a formalization of the real numbers as
   equivalence classes of Cauchy sequences of rationals.  See
-  \url{HOL/ex/Dedekind_Real.thy} for an alternative construction
-  using Dedekind cuts.
+  @{file "~~/src/HOL/ex/Dedekind_Real.thy"} for an alternative
+  construction using Dedekind cuts.
 *}
 
 subsection {* Preliminary lemmas *}
