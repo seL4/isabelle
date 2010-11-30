@@ -73,8 +73,13 @@ fun maybe_instantiate ct thm =
   |> Option.map (fn inst => Thm.instantiate inst thm)
 
 fun net_instance' f net ct =
-  let fun first_of f xthms ct = get_first (f (maybe_instantiate ct)) xthms 
-  in first_of f (Net.match_term net (Thm.term_of ct)) ct end
+  let
+    val xthms = Net.match_term net (Thm.term_of ct)
+    fun first_of f ct = get_first (f (maybe_instantiate ct)) xthms 
+    fun first_of' f ct =
+      let val thm = Thm.trivial ct
+      in get_first (f (try (fn rule => rule COMP thm))) xthms end
+  in (case first_of f ct of NONE => first_of' f ct | some_thm => some_thm) end
 val net_instance = net_instance' I
 
 
