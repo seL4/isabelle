@@ -131,7 +131,8 @@ theorem typedef_cont_Rep:
   assumes type: "type_definition Rep Abs A"
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and adm: "adm (\<lambda>x. x \<in> A)"
-  shows "cont Rep"
+  shows "cont (\<lambda>x. f x) \<Longrightarrow> cont (\<lambda>x. Rep (f x))"
+ apply (erule cont_apply [OF _ _ cont_const])
  apply (rule contI)
  apply (simp only: typedef_lub [OF type below adm])
  apply (simp only: Abs_inverse_lub_Rep [OF type below adm])
@@ -166,7 +167,7 @@ theorem typedef_compact:
   shows "compact (Rep k) \<Longrightarrow> compact k"
 proof (unfold compact_def)
   have cont_Rep: "cont Rep"
-    by (rule typedef_cont_Rep [OF type below adm])
+    by (rule typedef_cont_Rep [OF type below adm cont_id])
   assume "adm (\<lambda>x. \<not> Rep k \<sqsubseteq> x)"
   with cont_Rep have "adm (\<lambda>x. \<not> Rep k \<sqsubseteq> Rep x)" by (rule adm_subst)
   thus "adm (\<lambda>x. \<not> k \<sqsubseteq> x)" by (unfold below)

@@ -63,7 +63,7 @@ lemma match_bind_simps [simp]:
   "match_bind\<cdot>fail\<cdot>k = fail"
   "match_bind\<cdot>(succeed\<cdot>x)\<cdot>k = k\<cdot>x"
 unfolding match_bind_def fail_def succeed_def
-by (simp_all add: cont2cont_Rep_match cont_Abs_match
+by (simp_all add: cont_Rep_match cont_Abs_match
   Rep_match_strict Abs_match_inverse)
 
 subsection {* Case branch combinator *}

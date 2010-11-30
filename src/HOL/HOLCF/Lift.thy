@@ -87,7 +87,7 @@ done
 
 lemma cont2cont_lift_case [simp]:
   "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. lift_case \<bottom> (f x) (g x))"
-unfolding lift_case_eq by (simp add: cont_Rep_lift [THEN cont_compose])
+unfolding lift_case_eq by (simp add: cont_Rep_lift)
 
 subsection {* Further operations *}
 

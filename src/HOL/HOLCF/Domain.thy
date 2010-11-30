@@ -113,7 +113,7 @@ proof (rule liftdomain_class_intro)
   have emb_beta: "\<And>x. emb\<cdot>x = Rep x"
     unfolding emb
     apply (rule beta_cfun)
-    apply (rule typedef_cont_Rep [OF type below adm_defl_set])
+    apply (rule typedef_cont_Rep [OF type below adm_defl_set cont_id])
     done
   have prj_beta: "\<And>y. prj\<cdot>y = Abs (cast\<cdot>t\<cdot>y)"
     unfolding prj

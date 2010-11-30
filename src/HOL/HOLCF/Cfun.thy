@@ -192,7 +192,7 @@ by simp
 subsection {* Continuity of application *}
 
 lemma cont_Rep_cfun1: "cont (\<lambda>f. f\<cdot>x)"
-by (rule cont_Rep_cfun [THEN cont2cont_fun])
+by (rule cont_Rep_cfun [OF cont_id, THEN cont2cont_fun])
 
 lemma cont_Rep_cfun2: "cont (\<lambda>x. f\<cdot>x)"
 apply (cut_tac x=f in Rep_cfun)

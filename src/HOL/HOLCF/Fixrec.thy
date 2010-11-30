@@ -80,19 +80,17 @@ abbreviation
 
 text {* rewrite rules for mplus *}
 
-lemmas cont2cont_Rep_match = cont_Rep_match [THEN cont_compose]
-
 lemma mplus_strict [simp]: "\<bottom> +++ m = \<bottom>"
 unfolding mplus_def
-by (simp add: cont2cont_Rep_match Rep_match_strict)
+by (simp add: cont_Rep_match Rep_match_strict)
 
 lemma mplus_fail [simp]: "fail +++ m = m"
 unfolding mplus_def fail_def
-by (simp add: cont2cont_Rep_match Abs_match_inverse)
+by (simp add: cont_Rep_match Abs_match_inverse)
 
 lemma mplus_succeed [simp]: "succeed\<cdot>x +++ m = succeed\<cdot>x"
 unfolding mplus_def succeed_def
-by (simp add: cont2cont_Rep_match cont_Abs_match Abs_match_inverse)
+by (simp add: cont_Rep_match cont_Abs_match Abs_match_inverse)
 
 lemma mplus_fail2 [simp]: "m +++ fail = m"
 by (cases m, simp_all)
