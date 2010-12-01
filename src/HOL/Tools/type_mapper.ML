@@ -1,20 +1,20 @@
-(*  Title:      HOL/Tools/functorial_mappers.ML
+(*  Title:      HOL/Tools/type_mapper.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Functorial mappers on types.
 *)
 
-signature FUNCTORIAL_MAPPERS =
+signature TYPE_MAPPER =
 sig
   val find_atomic: theory -> typ -> (typ * (bool * bool)) list
   val construct_mapper: theory -> (string * bool -> term)
     -> bool -> typ -> typ -> term
-  val type_mapper: term -> theory -> Proof.state
+  val type_mapper: string option -> term -> theory -> Proof.state
   type entry
   val entries: theory -> entry Symtab.table
 end;
 
-structure Functorial_Mappers : FUNCTORIAL_MAPPERS =
+structure Type_Mapper : TYPE_MAPPER =
 struct
 
 val compositionalityN = "compositionality";
@@ -100,7 +100,7 @@ fun make_compositionality_prop variances (tyco, mapper) =
     val T1 = Type (tyco, Ts1);
     val T2 = Type (tyco, Ts2);
     val T3 = Type (tyco, Ts3);
-    val x = Free (the_single (Name.invents nctxt "a" 1), T3);
+    val x = Free (the_single (Name.invents nctxt (Long_Name.base_name tyco) 1), T3);
     val (args21, args32) = (names21 ~~ Ts21, names32 ~~ Ts32);
     val args31 = map2 (fn is_contra => fn ((f21, T21), (f32, T32)) =>
       if not is_contra then
@@ -124,7 +124,7 @@ fun make_identity_prop variances (tyco, mapper) =
       replicate (bool_num co + bool_num contra) (T --> T)
     val Ts' = maps mk_argT (Ts ~~ variances)
     val T = Type (tyco, Ts);
-    val x = Free ("a", T);
+    val x = Free (Long_Name.base_name tyco, T);
     val lhs = list_comb (Const (mapper, Ts' ---> T --> T),
       map (fn T => Abs ("x", domain_type T, Bound 0)) Ts') $ x;
   in (x, (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, x)) end;
@@ -172,11 +172,12 @@ fun analyze_variances thy tyco T =
     val _ = if null left_variances then () else bad_typ ();
   in variances end;
 
-fun gen_type_mapper prep_term raw_t thy =
+fun gen_type_mapper prep_term some_prfx raw_t thy =
   let
     val (mapper, T) = case prep_term thy raw_t
      of Const cT => cT
       | t => error ("No constant: " ^ Syntax.string_of_term_global thy t);
+    val prfx = the_default (Long_Name.base_name mapper) some_prfx;
     val _ = Type.no_tvars T;
     fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
       | add_tycos _ = I;
@@ -190,7 +191,7 @@ fun gen_type_mapper prep_term raw_t thy =
       (make_compositionality_prop variances (tyco, mapper));
     val identity_prop = uncurry Logic.all
       (make_identity_prop variances (tyco, mapper));
-    val qualify = Binding.qualify true (Long_Name.base_name mapper) o Binding.name;
+    val qualify = Binding.qualify true prfx o Binding.name;
     fun after_qed [single_compositionality, single_identity] lthy =
       lthy
       |> Local_Theory.note ((qualify compositionalityN, []), single_compositionality)
@@ -210,6 +211,7 @@ val type_mapper_cmd = gen_type_mapper Syntax.read_term_global;
 
 val _ =
   Outer_Syntax.command "type_mapper" "register functorial mapper for type with its properties" Keyword.thy_goal
-    (Parse.term >> (fn t => Toplevel.print o (Toplevel.theory_to_proof (type_mapper_cmd t))));
+    (Scan.option (Parse.name --| Parse.$$$ ":") -- Parse.term
+      >> (fn (prfx, t) => Toplevel.print o (Toplevel.theory_to_proof (type_mapper_cmd prfx t))));
 
 end;
