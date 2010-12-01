@@ -71,6 +71,17 @@ object Isabelle
   }
 
 
+  object Double_Property
+  {
+    def apply(name: String): Double =
+      jEdit.getDoubleProperty(OPTION_PREFIX + name, 0.0)
+    def apply(name: String, default: Double): Double =
+      jEdit.getDoubleProperty(OPTION_PREFIX + name, default)
+    def update(name: String, value: Double) =
+      jEdit.setDoubleProperty(OPTION_PREFIX + name, value)
+  }
+
+
   /* font */
 
   def font_family(): String = jEdit.getProperty("view.font")
@@ -210,14 +221,14 @@ object Isabelle
 
   def start_session()
   {
-    val timeout = Int_Property("startup-timeout") max 1000
+    val timeout = Double_Property("startup-timeout") max 5.0
     val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
     val logic = {
       val logic = Property("logic")
       if (logic != null && logic != "") logic
       else Isabelle.default_logic()
     }
-    session.start(timeout, modes ::: List(logic))
+    session.start(Time.seconds(timeout), modes ::: List(logic))
   }
 }
 

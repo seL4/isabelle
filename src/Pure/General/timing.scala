@@ -6,15 +6,23 @@ Basic support for time measurement.
 
 package isabelle
 
-
-sealed case class Timing(val elapsed: Double, cpu: Double, gc: Double)
+object Time
 {
-  private def print_time(seconds: Double): String =
-    String.format(java.util.Locale.ROOT, "%.3f", seconds.asInstanceOf[AnyRef])
+  def seconds(s: Double): Time = new Time((s * 1000.0) round)
+}
 
+class Time(val ms: Long)
+{
+  def seconds: Double = ms / 1000.0
+  override def toString =
+    String.format(java.util.Locale.ROOT, "%.3f", seconds.asInstanceOf[AnyRef])
+  def message: String = toString + "s"
+}
+
+class Timing(val elapsed: Time, val cpu: Time, val gc: Time)
+{
   def message: String =
-    print_time(elapsed) + "s elapsed time, " +
-    print_time(cpu) + "s cpu time, " +
-    print_time(gc) + "s GC time"
+    elapsed.message + " elapsed time, " + cpu.message + " cpu time, " + gc.message + " GC time"
+  override def toString = message
 }
 
