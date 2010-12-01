@@ -710,7 +710,7 @@ and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
       else ()
     val arg_typs = Sign.const_typargs thy (c, ty);
     val sorts = Code_Preproc.sortargs eqngr c;
-    val function_typs = (fst o Term.strip_type) ty;
+    val function_typs = Term.binder_types ty;
   in
     ensure_const thy algbr eqngr permissive c
     ##>> fold_map (translate_typ thy algbr eqngr permissive) arg_typs
@@ -724,7 +724,7 @@ and translate_app_const thy algbr eqngr permissive some_thm ((c_ty, ts), some_ab
   #>> (fn (t, ts) => t `$$ ts)
 and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
   let
-    fun arg_types num_args ty = (fst o chop num_args o fst o strip_type) ty;
+    fun arg_types num_args ty = fst (chop num_args (binder_types ty));
     val tys = arg_types num_args (snd c_ty);
     val ty = nth tys t_pos;
     fun mk_constr c t = let val n = Code.args_number thy c

@@ -1869,7 +1869,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
          (fn _ => fn eq_def => tac eq_def) eq_def)
     |-> (fn eq_def => fn thy => thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
     |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
-    |> ensure_random_record ext_tyco vs (fst ext) ((fst o strip_type o snd) ext)
+    |> ensure_random_record ext_tyco vs (fst ext) (binder_types (snd ext))
   end;
 
 

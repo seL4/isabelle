@@ -72,7 +72,7 @@ fun the_info thy name =
 fun info_of_constr thy (c, T) =
   let
     val tab = Symtab.lookup_list ((#constrs o DatatypesData.get) thy) c;
-    val hint = case strip_type T of (_, Type (tyco, _)) => SOME tyco | _ => NONE;
+    val hint = case body_type T of Type (tyco, _) => SOME tyco | _ => NONE;
     val default = if null tab then NONE
       else SOME (snd (Library.last_elem tab))
         (*conservative wrt. overloaded constructors*);
@@ -387,7 +387,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
     fun type_of_constr (cT as (_, T)) =
       let
         val frees = OldTerm.typ_tfrees T;
-        val (tyco, vs) = ((apsnd o map) (dest_TFree) o dest_Type o snd o strip_type) T
+        val (tyco, vs) = (apsnd o map) dest_TFree (dest_Type (body_type T))
           handle TYPE _ => no_constr cT
         val _ = if has_duplicates (eq_fst (op =)) vs then no_constr cT else ();
         val _ = if length frees <> length vs then no_constr cT else ();
@@ -412,8 +412,8 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
       (TFree o (the o AList.lookup (op =) (map fst raw_vs ~~ vs)) o fst o dest_TFree) T);
 
     val cs = map (apsnd (map norm_constr)) raw_cs;
-    val dtyps_of_typ = map (dtyp_of_typ (map (rpair (map fst vs) o fst) cs))
-      o fst o strip_type;
+    val dtyps_of_typ =
+      map (dtyp_of_typ (map (rpair (map fst vs) o fst) cs)) o binder_types;
     val dt_names = map fst cs;
 
     fun mk_spec (i, (tyco, constr)) = (i, (tyco,

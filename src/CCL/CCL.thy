@@ -233,7 +233,7 @@ local
          | arg_str 1 a s = "(" ^ a ^ "a" ^ s ^ ")"
          | arg_str n a s = arg_str (n-1) a ("," ^ a ^ (chr((ord "a")+n-1)) ^ s)
            val T = Sign.the_const_type thy (Sign.intern_const thy sy);
-           val arity = length (fst (strip_type T))
+           val arity = length (binder_types T)
        in sy ^ (arg_str arity name "") end
 
   fun mk_thm_str thy a b = "~ " ^ (saturate thy a "a") ^ " = " ^ (saturate thy b "b")

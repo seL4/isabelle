@@ -712,7 +712,7 @@ fun strip_abs_eta k t =
             val (vs, t') = expand_eta Ts (t $ Free (v, T)) used';
           in ((v, T) :: vs, t') end;
     val ((vs1, t'), (k', used')) = strip_abs t (k, used);
-    val Ts = (fst o chop k' o fst o strip_type o fastype_of) t';
+    val Ts = fst (chop k' (binder_types (fastype_of t')));
     val (vs2, t'') = expand_eta Ts t' used';
   in (vs1 @ vs2, t'') end;
 

@@ -34,7 +34,8 @@ fun add_thm_target module_name thm thy =
 
 fun avoid_value thy [thm] =
       let val (_, T) = Code.const_typ_eqn thy thm
-      in if null (Term.add_tvarsT T []) orelse (null o fst o strip_type) T
+      in
+        if null (Term.add_tvarsT T []) orelse null (binder_types T)
         then [thm]
         else [Code.expand_eta thy 1 thm]
       end
