@@ -760,7 +760,7 @@ lemma measure_down:
 
 theorem (in algebra) caratheodory:
   assumes posf: "positive f" and ca: "countably_additive M f"
-  shows "\<exists>\<mu> :: 'a set \<Rightarrow> pinfreal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and> measure_space (sigma (space M) (sets M)) \<mu>"
+  shows "\<exists>\<mu> :: 'a set \<Rightarrow> pinfreal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and> measure_space (sigma M) \<mu>"
   proof -
     have inc: "increasing M f"
       by (metis additive_increasing ca countably_additive_additive posf)
@@ -778,7 +778,7 @@ theorem (in algebra) caratheodory:
     hence sgs_sb: "sigma_sets (space M) (sets M) \<subseteq> ls"
       using sigma_algebra.sigma_sets_subset [OF sls, of "sets M"]
       by simp
-    have "measure_space (sigma (space M) (sets M)) ?infm"
+    have "measure_space (sigma M) ?infm"
       unfolding sigma_def
       by (rule measure_down [OF mls], rule sigma_algebra_sigma_sets)
          (simp_all add: sgs_sb space_closed)

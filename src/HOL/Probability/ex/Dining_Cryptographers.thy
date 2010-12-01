@@ -2,12 +2,6 @@ theory Dining_Cryptographers
 imports Information
 begin
 
-lemma finite_information_spaceI:
-  "\<lbrakk> finite_measure_space M \<mu> ; \<mu> (space M) = 1 ; 1 < b \<rbrakk> \<Longrightarrow> finite_information_space M \<mu> b"
-  unfolding finite_information_space_def finite_measure_space_def finite_measure_space_axioms_def
-    finite_prob_space_def prob_space_def prob_space_axioms_def finite_information_space_axioms_def
-  by auto
-
 locale finite_space =
   fixes S :: "'a set"
   assumes finite[simp]: "finite S"
@@ -21,19 +15,17 @@ lemma (in finite_space)
   and sets_M[simp]: "sets M = Pow S"
   by (simp_all add: M_def)
 
-sublocale finite_space \<subseteq> finite_information_space M \<mu> 2
-proof (rule finite_information_spaceI)
-  let ?measure = "\<lambda>s::'a set. real (card s) / real (card S)"
+sublocale finite_space \<subseteq> finite_measure_space M \<mu>
+proof (rule finite_measure_spaceI)
+  fix A B :: "'a set" assume "A \<inter> B = {}" "A \<subseteq> space M" "B \<subseteq> space M"
+  then show "\<mu> (A \<union> B) = \<mu> A + \<mu> B"
+    by (simp add: inverse_eq_divide field_simps Real_real
+                  divide_le_0_iff zero_le_divide_iff
+                  card_Un_disjoint finite_subset[OF _ finite])
+qed auto
 
-  show "finite_measure_space M \<mu>"
-  proof (rule finite_measure_spaceI)
-    fix A B :: "'a set" assume "A \<inter> B = {}" "A \<subseteq> space M" "B \<subseteq> space M"
-    then show "\<mu> (A \<union> B) = \<mu> A + \<mu> B"
-      by (simp add: inverse_eq_divide field_simps Real_real
-                    divide_le_0_iff zero_le_divide_iff
-                    card_Un_disjoint finite_subset[OF _ finite])
-  qed auto
-qed simp_all
+sublocale finite_space \<subseteq> information_space M \<mu> 2
+  by default simp_all
 
 lemma set_of_list_extend:
   "{xs. length xs = Suc n \<and> (\<forall>x\<in>set xs. x \<in> A)} =
@@ -477,21 +469,19 @@ proof
 qed
 
 notation (in dining_cryptographers_space)
-  finite_mutual_information ("\<I>'( _ ; _ ')")
+  mutual_information_Pow ("\<I>'( _ ; _ ')")
 
 notation (in dining_cryptographers_space)
-  finite_entropy ("\<H>'( _ ')")
+  entropy_Pow ("\<H>'( _ ')")
 
 notation (in dining_cryptographers_space)
-  finite_conditional_entropy ("\<H>'( _ | _ ')")
+  conditional_entropy_Pow ("\<H>'( _ | _ ')")
 
 theorem (in dining_cryptographers_space)
   "\<I>( inversion ; payer ) = 0"
 proof -
   have n: "0 < n" using n_gt_3 by auto
-
   have lists: "{xs. length xs = n} \<noteq> {}" using Ex_list_of_length by auto
-
   have card_image_inversion:
     "real (card (inversion ` dc_crypto)) = 2^n / 2"
     unfolding card_image_inversion using `0 < n` by (cases n) auto
@@ -502,7 +492,7 @@ proof -
 
   { have "\<H>(inversion|payer) =
         - (\<Sum>x\<in>inversion`dc_crypto. (\<Sum>z\<in>Some ` {0..<n}. real (?dIP {(x, z)}) * log 2 (real (?dIP {(x, z)}) / real (?dP {z}))))"
-      unfolding conditional_entropy_eq
+      unfolding conditional_entropy_eq[OF simple_function_finite simple_function_finite]
       by (simp add: image_payer_dc_crypto setsum_Sigma)
     also have "... =
         - (\<Sum>x\<in>inversion`dc_crypto. (\<Sum>z\<in>Some ` {0..<n}. 2 / (real n * 2^n) * (1 - real n)))"
@@ -538,7 +528,7 @@ proof -
     finally have "\<H>(inversion|payer) = real n - 1" . }
   moreover
   { have "\<H>(inversion) = - (\<Sum>x \<in> inversion`dc_crypto. real (?dI {x}) * log 2 (real (?dI {x})))"
-      unfolding entropy_eq by simp
+      unfolding entropy_eq[OF simple_function_finite] by simp
     also have "... = - (\<Sum>x \<in> inversion`dc_crypto. 2 * (1 - real n) / 2^n)"
       unfolding neg_equal_iff_equal
     proof (rule setsum_cong[OF refl])
@@ -556,7 +546,7 @@ proof -
     finally have "\<H>(inversion) = real n - 1" .
   }
   ultimately show ?thesis
-    unfolding mutual_information_eq_entropy_conditional_entropy
+    unfolding mutual_information_eq_entropy_conditional_entropy[OF simple_function_finite simple_function_finite]
     by simp
 qed
 
