@@ -135,11 +135,13 @@ fun strip_abs 0 t = t
 
 val prf_subst_TVars = Proofterm.map_proof_types o typ_subst_TVars;
 
-fun relevant_vars types prop = List.foldr (fn
-      (Var ((a, _), T), vs) => (case strip_type T of
-        (_, Type (s, _)) => if member (op =) types s then a :: vs else vs
-      | _ => vs)
-    | (_, vs) => vs) [] (vars_of prop);
+fun relevant_vars types prop =
+  List.foldr
+    (fn (Var ((a, _), T), vs) =>
+        (case body_type T of
+          Type (s, _) => if member (op =) types s then a :: vs else vs
+        | _ => vs)
+      | (_, vs) => vs) [] (vars_of prop);
 
 fun tname_of (Type (s, _)) = s
   | tname_of _ = "";

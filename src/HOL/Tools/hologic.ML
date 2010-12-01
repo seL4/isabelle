@@ -8,6 +8,7 @@ signature HOLOGIC =
 sig
   val typeS: sort
   val typeT: typ
+  val mk_comp: term * term -> term
   val boolN: string
   val boolT: typ
   val Trueprop: term
@@ -140,6 +141,16 @@ struct
 
 val typeS: sort = ["HOL.type"];
 val typeT = Type_Infer.anyT typeS;
+
+
+(* functions *)
+
+fun mk_comp (f, g) =
+  let
+    val fT = fastype_of f;
+    val gT = fastype_of g;
+    val compT = fT --> gT --> domain_type gT --> range_type fT;
+  in Const ("Fun.comp", compT) $ f $ g end;
 
 
 (* bool and set *)

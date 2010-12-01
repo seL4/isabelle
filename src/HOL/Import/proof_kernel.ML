@@ -415,9 +415,6 @@ fun mk_thy_type thy Thy Tyop Args = Type(intern_type_name Thy Tyop thy,Args)
 
 val mk_var = Free
 
-fun dom_rng (Type("fun",[dom,rng])) = (dom,rng)
-  | dom_rng _ = raise ERR "dom_rng" "Not a functional type"
-
 fun mk_thy_const thy Thy Nam Ty = Const(intern_const_name Thy Nam thy,Ty)
 
 local
@@ -1481,7 +1478,7 @@ fun mk_COMB th1 th2 thy =
                         _ $ (Const(@{const_name HOL.eq},_) $ x $ y) => (x,y)
                       | _ => raise ERR "mk_COMB" "Second theorem not an equality"
         val fty = type_of f
-        val (fd,fr) = dom_rng fty
+        val (fd,fr) = Term.dest_funT fty
         val comb_thm' = Drule.instantiate'
                             [SOME (ctyp_of thy fd),SOME (ctyp_of thy fr)]
                             [SOME (cterm_of thy f),SOME (cterm_of thy g),
@@ -1789,7 +1786,7 @@ fun mk_ABS v th thy =
         val (f,g) = case concl_of th1 of
                         _ $ (Const(@{const_name HOL.eq},_) $ f $ g) => (Term.lambda v f,Term.lambda v g)
                       | _ => raise ERR "mk_ABS" "Bad conclusion"
-        val (fd,fr) = dom_rng (type_of f)
+        val (fd,fr) = Term.dest_funT (type_of f)
         val abs_thm' = Drule.instantiate' [SOME (ctyp_of thy fd), SOME (ctyp_of thy fr)] [SOME (cterm_of thy f), SOME (cterm_of thy g)] abs_thm
         val th2 = Thm.forall_intr cv th1
         val th3 = th2 COMP abs_thm'
@@ -1835,7 +1832,7 @@ fun GEN_ABS copt vlist hth thy =
                 in
                     fold_rev (fn v => fn th =>
                               let
-                                  val cdom = fst (dom_rng (fst (dom_rng cty)))
+                                  val cdom = fst (Term.dest_funT (fst (Term.dest_funT cty)))
                                   val vty  = type_of v
                                   val newcty = inst_type cdom vty cty
                                   val cc = cterm_of thy (Const(cname,newcty))
@@ -1991,7 +1988,7 @@ fun new_specification thyname thmname names hth thy =
                                fun dest_eta_abs (Abs(x,xT,body)) = (x,xT,body)
                                  | dest_eta_abs body =
                                    let
-                                       val (dT,rT) = dom_rng (type_of body)
+                                       val (dT,rT) = Term.dest_funT (type_of body)
                                    in
                                        ("x",dT,body $ Bound 0)
                                    end

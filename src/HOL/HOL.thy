@@ -1796,9 +1796,8 @@ declare eq_equal [code]
 setup {*
   Code_Preproc.map_pre (fn simpset =>
     simpset addsimprocs [Simplifier.simproc_global_i @{theory} "equal" [@{term HOL.eq}]
-      (fn thy => fn _ => fn Const (_, T) => case strip_type T
-        of (Type _ :: _, _) => SOME @{thm eq_equal}
-         | _ => NONE)])
+      (fn thy => fn _ =>
+        fn Const (_, Type ("fun", [Type _, _])) => SOME @{thm eq_equal} | _ => NONE)])
 *}
 
 

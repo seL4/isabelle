@@ -25,7 +25,7 @@ fun subsets i j =
 fun prf_of thm =
   Reconstruct.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
 
-fun is_unit t = snd (strip_type (fastype_of t)) = HOLogic.unitT;
+fun is_unit t = body_type (fastype_of t) = HOLogic.unitT;
 
 fun tname_of (Type (s, _)) = s
   | tname_of _ = "";

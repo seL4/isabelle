@@ -48,6 +48,7 @@ sig
   val dest_comb: term -> term * term
   val domain_type: typ -> typ
   val range_type: typ -> typ
+  val dest_funT: typ -> typ * typ
   val binder_types: typ -> typ list
   val body_type: typ -> typ
   val strip_type: typ -> typ list * typ
@@ -283,20 +284,24 @@ fun dest_comb (t1 $ t2) = (t1, t2)
   | dest_comb t = raise TERM("dest_comb", [t]);
 
 
-fun domain_type (Type("fun", [T,_])) = T
-and range_type  (Type("fun", [_,T])) = T;
+fun domain_type (Type ("fun", [T, _])) = T;
+
+fun range_type (Type ("fun", [_, U])) = U;
+
+fun dest_funT (Type ("fun", [T, U])) = (T, U)
+  | dest_funT T = raise TYPE ("dest_funT", [T], []);
+
 
 (* maps  [T1,...,Tn]--->T  to the list  [T1,T2,...,Tn]*)
-fun binder_types (Type("fun",[S,T])) = S :: binder_types T
-  | binder_types _   =  [];
+fun binder_types (Type ("fun", [T, U])) = T :: binder_types U
+  | binder_types _ = [];
 
 (* maps  [T1,...,Tn]--->T  to T*)
-fun body_type (Type("fun",[S,T])) = body_type T
-  | body_type T   =  T;
+fun body_type (Type ("fun", [_, U])) = body_type U
+  | body_type T = T;
 
 (* maps  [T1,...,Tn]--->T  to   ([T1,T2,...,Tn], T)  *)
-fun strip_type T : typ list * typ =
-  (binder_types T, body_type T);
+fun strip_type T = (binder_types T, body_type T);
 
 
 (*Compute the type of the term, checking that combinations are well-typed
@@ -707,7 +712,7 @@ fun strip_abs_eta k t =
             val (vs, t') = expand_eta Ts (t $ Free (v, T)) used';
           in ((v, T) :: vs, t') end;
     val ((vs1, t'), (k', used')) = strip_abs t (k, used);
-    val Ts = (fst o chop k' o fst o strip_type o fastype_of) t';
+    val Ts = fst (chop k' (binder_types (fastype_of t')));
     val (vs2, t'') = expand_eta Ts t' used';
   in (vs1 @ vs2, t'') end;
 
@@ -1002,5 +1007,5 @@ fun string_of_vname' (x, ~1) = x
 
 end;
 
-structure BasicTerm: BASIC_TERM = Term;
-open BasicTerm;
+structure Basic_Term: BASIC_TERM = Term;
+open Basic_Term;

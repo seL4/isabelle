@@ -131,7 +131,7 @@ fun trans_expr _ True = pair @{const True}
       end)
 
 and trans_array T a =
-  let val (dT, rT) = U.split_type T
+  let val (dT, rT) = Term.dest_funT T
   in
     (case a of
       Fresh e => trans_expr rT e #>> (fn t => Abs ("x", dT, t))
@@ -151,11 +151,11 @@ fun mk_fun_upd T U = Const (@{const_name fun_upd}, [T --> U, T, U, T] ---> U)
 
 fun mk_update ([], u) _ = u
   | mk_update ([t], u) f =
-      uncurry mk_fun_upd (U.split_type (Term.fastype_of f)) $ f $ t $ u
+      uncurry mk_fun_upd (Term.dest_funT (Term.fastype_of f)) $ f $ t $ u
   | mk_update (t :: ts, u) f =
       let
-        val (dT, rT) = U.split_type (Term.fastype_of f)
-        val (dT', rT') = U.split_type rT
+        val (dT, rT) = Term.dest_funT (Term.fastype_of f)
+        val (dT', rT') = Term.dest_funT rT
       in
         mk_fun_upd dT rT $ f $ t $
           mk_update (ts, u) (Term.absdummy (dT', Const ("_", rT')))

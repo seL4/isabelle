@@ -10,7 +10,6 @@ sig
   val repeat_yield: ('a -> 'b -> ('a * 'b) option) -> 'a -> 'b -> 'a * 'b
 
   (* types *)
-  val split_type: typ -> typ * typ
   val dest_funT: int -> typ -> typ list * typ
 
   (* terms *)
@@ -56,8 +55,6 @@ fun repeat_yield f =
 
 
 (* types *)
-
-fun split_type T = (Term.domain_type T, Term.range_type T)
 
 val dest_funT =
   let

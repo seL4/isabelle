@@ -358,7 +358,7 @@ fun const_typ thy c = case lookup_typ thy c
  of SOME ty => ty
   | NONE => (Type.strip_sorts o Sign.the_const_type thy) c;
 
-fun args_number thy = length o fst o strip_type o const_typ thy;
+fun args_number thy = length o binder_types o const_typ thy;
 
 fun subst_signature thy c ty =
   let
@@ -391,7 +391,7 @@ fun analyze_constructor thy (c, raw_ty) =
     fun last_typ c_ty ty =
       let
         val tfrees = Term.add_tfreesT ty [];
-        val (tyco, vs) = ((apsnd o map) (dest_TFree) o dest_Type o snd o strip_type) ty
+        val (tyco, vs) = (apsnd o map) dest_TFree (dest_Type (body_type ty))
           handle TYPE _ => no_constr thy "bad type" c_ty
         val _ = if tyco = "fun" then no_constr thy "bad type" c_ty else ();
         val _ = if has_duplicates (eq_fst (op =)) vs
@@ -420,7 +420,7 @@ fun constrset_of_consts thy cs =
         val the_v = the o AList.lookup (op =) (vs ~~ vs');
         val ty' = map_type_tfree (fn (v, _) => TFree (the_v v)) ty;
         val (vs'', _) = logical_typscheme thy (c, ty');
-      in (c, (vs'', (fst o strip_type) ty')) end;
+      in (c, (vs'', binder_types ty')) end;
     val c' :: cs' = map (analyze_constructor thy) cs;
     val ((tyco, sorts), cs'') = fold add cs' (apsnd single c');
     val vs = Name.names Name.context Name.aT sorts;
@@ -444,7 +444,7 @@ fun get_abstype_spec thy tyco = case get_type_entry thy tyco
   | _ => error ("Not an abstract type: " ^ tyco);
  
 fun get_type_of_constr_or_abstr thy c =
-  case (snd o strip_type o const_typ thy) c
+  case (body_type o const_typ thy) c
    of Type (tyco, _) => let val ((_, cos), abstract) = get_type thy tyco
         in if member (op =) (map fst cos) c then SOME (tyco, abstract) else NONE end
     | _ => NONE;
@@ -517,7 +517,7 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
       | check n (Const (c_ty as (c, ty))) =
           if allow_pats then let
             val c' = AxClass.unoverload_const thy c_ty
-          in if n = (length o fst o strip_type o subst_signature thy c') ty
+          in if n = (length o binder_types o subst_signature thy c') ty
             then if allow_consts orelse is_constr thy c'
               then ()
               else bad (quote c ^ " is not a constructor, on left hand side of equation")
@@ -1139,7 +1139,7 @@ fun case_cong thy case_const (num_args, (pos, _)) =
     val (zs, _) = Name.variants (replicate (num_args - 1) "") ctxt;
     val (ws, vs) = chop pos zs;
     val T = Logic.unvarifyT_global (Sign.the_const_type thy case_const);
-    val Ts = (fst o strip_type) T;
+    val Ts = binder_types T;
     val T_cong = nth Ts pos;
     fun mk_prem z = Free (z, T_cong);
     fun mk_concl z = list_comb (Const (case_const, T), map2 (curry Free) (ws @ z :: vs) Ts);

@@ -1013,18 +1013,9 @@ fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
     SOME u_name => u_name = s
   | NONE => raise TERM ("is_sel_upd_pair: not update", [Const (u, t')]));
 
-fun mk_comp f g =
-  let
-    val X = fastype_of g;
-    val A = domain_type X;
-    val B = range_type X;
-    val C = range_type (fastype_of f);
-    val T = (B --> C) --> (A --> B) --> A --> C;
-  in Const (@{const_name Fun.comp}, T) $ f $ g end;
-
 fun mk_comp_id f =
   let val T = range_type (fastype_of f)
-  in mk_comp (Const (@{const_name Fun.id}, T --> T)) f end;
+  in HOLogic.mk_comp (Const (@{const_name Fun.id}, T --> T), f) end;
 
 fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
   | get_upd_funs _ = [];
@@ -1037,10 +1028,10 @@ fun get_accupd_simps thy term defset =
       let
         (* FIXME fresh "f" (!?) *)
         val T = domain_type (fastype_of upd);
-        val lhs = mk_comp acc (upd $ Free ("f", T));
+        val lhs = HOLogic.mk_comp (acc, upd $ Free ("f", T));
         val rhs =
           if is_sel_upd_pair thy acc upd
-          then mk_comp (Free ("f", T)) acc
+          then HOLogic.mk_comp (Free ("f", T), acc)
           else mk_comp_id acc;
         val prop = lhs === rhs;
         val othm =
@@ -1061,11 +1052,11 @@ fun get_updupd_simp thy defset u u' comp =
     (* FIXME fresh "f" (!?) *)
     val f = Free ("f", domain_type (fastype_of u));
     val f' = Free ("f'", domain_type (fastype_of u'));
-    val lhs = mk_comp (u $ f) (u' $ f');
+    val lhs = HOLogic.mk_comp (u $ f, u' $ f');
     val rhs =
       if comp
-      then u $ mk_comp f f'
-      else mk_comp (u' $ f') (u $ f);
+      then u $ HOLogic.mk_comp (f, f')
+      else HOLogic.mk_comp (u' $ f', u $ f);
     val prop = lhs === rhs;
     val othm =
       Goal.prove (ProofContext.init_global thy) [] [] prop
@@ -1870,7 +1861,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
          (fn _ => fn eq_def => tac eq_def) eq_def)
     |-> (fn eq_def => fn thy => thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
     |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
-    |> ensure_random_record ext_tyco vs (fst ext) ((fst o strip_type o snd) ext)
+    |> ensure_random_record ext_tyco vs (fst ext) (binder_types (snd ext))
   end;
 
 

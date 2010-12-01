@@ -87,17 +87,6 @@ fun mk_scomp (t, u) =
     Const (@{const_name "scomp"}, T --> U --> A --> D) $ t $ u
   end;
 
-fun dest_funT (Type ("fun",[S, T])) = (S, T)
-  | dest_funT T = raise TYPE ("dest_funT", [T], [])
- 
-fun mk_fun_comp (t, u) =
-  let
-    val (_, B) = dest_funT (fastype_of t)
-    val (C, A) = dest_funT (fastype_of u)
-  in
-    Const(@{const_name "Fun.comp"}, (A --> B) --> (C --> A) --> C --> B) $ t $ u
-  end;
-
 fun dest_randomT (Type ("fun", [@{typ Random.seed},
   Type (@{type_name Product_Type.prod}, [Type (@{type_name Product_Type.prod}, [T, @{typ "unit => Code_Evaluation.term"}]) ,@{typ Random.seed}])])) = T
   | dest_randomT T = raise TYPE ("dest_randomT", [T], [])

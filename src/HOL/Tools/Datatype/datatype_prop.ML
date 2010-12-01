@@ -385,7 +385,7 @@ fun make_case_congs new_type_names descr sorts thy =
 
         fun mk_clause ((f, g), (cname, _)) =
           let
-            val (Ts, _) = strip_type (fastype_of f);
+            val Ts = binder_types (fastype_of f);
             val tnames = Name.variant_list used (make_tnames Ts);
             val frees = map Free (tnames ~~ Ts)
           in
