@@ -403,6 +403,12 @@ lemma (in sigma_algebra) sets_sigma_subset:
   shows "sets (sigma N) \<subseteq> sets M"
   by (unfold assms sets_sigma, rule sigma_sets_subset, rule assms)
 
+lemma in_sigma[intro, simp]: "A \<in> sets M \<Longrightarrow> A \<in> sets (sigma M)"
+  unfolding sigma_def by (auto intro!: sigma_sets.Basic)
+
+lemma (in sigma_algebra) sigma_eq[simp]: "sigma M = M"
+  unfolding sigma_def sigma_sets_eq by simp
+
 section {* Measurable functions *}
 
 definition
@@ -863,6 +869,22 @@ next
       using assms Union by auto
     finally show ?case .
   qed
+qed
+
+lemma vimage_algebra_sigma:
+  assumes E: "sets E \<subseteq> Pow (space E)"
+    and f: "f \<in> space F \<rightarrow> space E"
+    and "\<And>A. A \<in> sets F \<Longrightarrow> A \<in> (\<lambda>X. f -` X \<inter> space F) ` sets E"
+    and "\<And>A. A \<in> sets E \<Longrightarrow> f -` A \<inter> space F \<in> sets F"
+  shows "sigma_algebra.vimage_algebra (sigma E) (space F) f = sigma F"
+proof -
+  interpret sigma_algebra "sigma E"
+    using assms by (intro sigma_algebra_sigma) auto
+  have eq: "sets F = (\<lambda>X. f -` X \<inter> space F) ` sets E"
+    using assms by auto
+  show "vimage_algebra (space F) f = sigma F"
+    unfolding vimage_algebra_def using assms
+    by (simp add: sigma_def eq sigma_sets_vimage)
 qed
 
 section {* Conditional space *}

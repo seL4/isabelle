@@ -6,20 +6,6 @@ theory Lebesgue_Integration
 imports Measure Borel_Space
 begin
 
-lemma image_set_cong:
-  assumes A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y\<in>B. f x = g y"
-  assumes B: "\<And>y. y \<in> B \<Longrightarrow> \<exists>x\<in>A. g y = f x"
-  shows "f ` A = g ` B"
-proof safe
-  fix x assume "x \<in> A"
-  with A obtain y where "f x = g y" "y \<in> B" by auto
-  then show "f x \<in> g ` B" by auto
-next
-  fix y assume "y \<in> B"
-  with B obtain x where "g y = f x" "x \<in> A" by auto
-  then show "g y \<in> f ` A" by auto
-qed
-
 lemma sums_If_finite:
   assumes finite: "finite {r. P r}"
   shows "(\<lambda>r. if P r then f r else 0) sums (\<Sum>r\<in>{r. P r}. f r)" (is "?F sums _")
@@ -57,9 +43,20 @@ definition (in sigma_algebra) "simple_function g \<longleftrightarrow>
 
 lemma (in sigma_algebra) simple_functionD:
   assumes "simple_function g"
-  shows "finite (g ` space M)"
-  "x \<in> g ` space M \<Longrightarrow> g -` {x} \<inter> space M \<in> sets M"
-  using assms unfolding simple_function_def by auto
+  shows "finite (g ` space M)" and "g -` {x} \<inter> space M \<in> sets M"
+proof -
+  show "finite (g ` space M)"
+    using assms unfolding simple_function_def by auto
+  show "g -` {x} \<inter> space M \<in> sets M"
+  proof cases
+    assume "x \<in> g`space M" then show ?thesis
+      using assms unfolding simple_function_def by auto
+  next
+    assume "x \<notin> g`space M"
+    then have "g -` {x} \<inter> space M = {}" by auto
+    then show ?thesis by auto
+  qed
+qed
 
 lemma (in sigma_algebra) simple_function_indicator_representation:
   fixes f ::"'a \<Rightarrow> pinfreal"
@@ -516,9 +513,7 @@ lemma (in measure_space) simple_integral_cong_measure:
 proof -
   interpret v: measure_space M \<nu>
     by (rule measure_space_cong) fact
-  have "\<And>x. x \<in> space M \<Longrightarrow> f -` {f x} \<inter> space M \<in> sets M"
-    using `simple_function f`[THEN simple_functionD(2)] by auto
-  with assms show ?thesis
+  from simple_functionD[OF `simple_function f`] assms show ?thesis
     unfolding simple_integral_def v.simple_integral_def
     by (auto intro!: setsum_cong)
 qed
@@ -629,6 +624,28 @@ proof -
     by (auto simp: setsum_right_distrib field_simps intro!: setsum_cong)
 qed
 
+lemma (in sigma_algebra) simple_function_If:
+  assumes sf: "simple_function f" "simple_function g" and A: "A \<in> sets M"
+  shows "simple_function (\<lambda>x. if x \<in> A then f x else g x)" (is "simple_function ?IF")
+proof -
+  def F \<equiv> "\<lambda>x. f -` {x} \<inter> space M" and G \<equiv> "\<lambda>x. g -` {x} \<inter> space M"
+  show ?thesis unfolding simple_function_def
+  proof safe
+    have "?IF ` space M \<subseteq> f ` space M \<union> g ` space M" by auto
+    from finite_subset[OF this] assms
+    show "finite (?IF ` space M)" unfolding simple_function_def by auto
+  next
+    fix x assume "x \<in> space M"
+    then have *: "?IF -` {?IF x} \<inter> space M = (if x \<in> A
+      then ((F (f x) \<inter> A) \<union> (G (f x) - (G (f x) \<inter> A)))
+      else ((F (g x) \<inter> A) \<union> (G (g x) - (G (g x) \<inter> A))))"
+      using sets_into_space[OF A] by (auto split: split_if_asm simp: G_def F_def)
+    have [intro]: "\<And>x. F x \<in> sets M" "\<And>x. G x \<in> sets M"
+      unfolding F_def G_def using sf[THEN simple_functionD(2)] by auto
+    show "?IF -` {?IF x} \<inter> space M \<in> sets M" unfolding * using A by auto
+  qed
+qed
+
 lemma (in measure_space) simple_integral_mono_AE:
   assumes "simple_function f" and "simple_function g"
   and mono: "AE x. f x \<le> g x"
@@ -652,8 +669,8 @@ proof -
       obtain N where N: "{x\<in>space M. \<not> f x \<le> g x} \<subseteq> N" "N \<in> sets M" "\<mu> N = 0"
         using mono by (auto elim!: AE_E)
       have "?S x \<subseteq> N" using N `x \<in> space M` False by auto
-      moreover have "?S x \<in> sets M" using assms `x \<in> space M`
-        by (rule_tac Int) (auto intro!: simple_functionD(2))
+      moreover have "?S x \<in> sets M" using assms
+        by (rule_tac Int) (auto intro!: simple_functionD)
       ultimately have "\<mu> (?S x) \<le> \<mu> N"
         using `N \<in> sets M` by (auto intro!: measure_mono)
       then show ?thesis using `\<mu> N = 0` by auto
@@ -1008,6 +1025,12 @@ lemma (in measure_space) positive_integral_mono:
   shows "positive_integral u \<le> positive_integral v"
   using mono by (auto intro!: AE_cong positive_integral_mono_AE)
 
+lemma image_set_cong:
+  assumes A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y\<in>B. f x = g y"
+  assumes B: "\<And>y. y \<in> B \<Longrightarrow> \<exists>x\<in>A. g y = f x"
+  shows "f ` A = g ` B"
+  using assms by blast
+
 lemma (in measure_space) positive_integral_vimage:
   fixes g :: "'a \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
   assumes f: "bij_betw f S (space M)"
@@ -1030,6 +1053,7 @@ proof -
 
   from simple_integral_vimage[OF assms, symmetric]
   have *: "simple_integral = T.simple_integral \<circ> (\<lambda>g. g \<circ> f)" by (simp add: comp_def)
+
   show ?thesis
     unfolding positive_integral_alt1 T.positive_integral_alt1 SUPR_def * image_compose
   proof (safe intro!: arg_cong[where f=Sup] image_set_cong, simp_all add: comp_def)

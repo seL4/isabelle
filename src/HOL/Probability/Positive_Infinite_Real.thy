@@ -6,6 +6,49 @@ theory Positive_Infinite_Real
   imports Complex_Main Nat_Bijection Multivariate_Analysis
 begin
 
+lemma (in complete_lattice) SUPR_upper:
+  "x \<in> A \<Longrightarrow> f x \<le> SUPR A f"
+  unfolding SUPR_def apply(rule Sup_upper) by auto
+
+lemma (in complete_lattice) SUPR_subset:
+  assumes "A \<subseteq> B" shows "SUPR A f \<le> SUPR B f"
+  apply(rule SUP_leI) apply(rule SUPR_upper) using assms by auto
+
+lemma (in complete_lattice) SUPR_mono:
+  assumes "\<forall>a\<in>A. \<exists>b\<in>B. f b \<ge> f a"
+  shows "SUPR A f \<le> SUPR B f"
+  unfolding SUPR_def apply(rule Sup_mono)
+  using assms by auto
+
+lemma (in complete_lattice) SUP_pair:
+  "(SUP i:A. SUP j:B. f i j) = (SUP p:A\<times>B. (\<lambda> (i, j). f i j) p)" (is "?l = ?r")
+proof (intro antisym SUP_leI)
+  fix i j assume "i \<in> A" "j \<in> B"
+  then have "(case (i,j) of (i,j) \<Rightarrow> f i j) \<le> ?r"
+    by (intro SUPR_upper) auto
+  then show "f i j \<le> ?r" by auto
+next
+  fix p assume "p \<in> A \<times> B"
+  then obtain i j where "p = (i,j)" "i \<in> A" "j \<in> B" by auto
+  have "f i j \<le> (SUP j:B. f i j)" using `j \<in> B` by (intro SUPR_upper)
+  also have "(SUP j:B. f i j) \<le> ?l" using `i \<in> A` by (intro SUPR_upper)
+  finally show "(case p of (i, j) \<Rightarrow> f i j) \<le> ?l" using `p = (i,j)` by simp
+qed
+
+lemma (in complete_lattice) SUP_surj_compose:
+  assumes *: "f`A = B" shows "SUPR A (g \<circ> f) = SUPR B g"
+  unfolding SUPR_def unfolding *[symmetric]
+  by (simp add: image_compose)
+
+lemma (in complete_lattice) SUP_swap:
+  "(SUP i:A. SUP j:B. f i j) = (SUP j:B. SUP i:A. f i j)"
+proof -
+  have *: "(\<lambda>(i,j). (j,i)) ` (B \<times> A) = A \<times> B" by auto
+  show ?thesis
+    unfolding SUP_pair SUP_surj_compose[symmetric, OF *]
+    by (auto intro!: arg_cong[where f=Sup] image_eqI simp: comp_def SUPR_def)
+qed
+
 lemma range_const[simp]: "range (\<lambda>x. c) = {c}" by auto
 
 lemma (in complete_lattice) SUPR_const[simp]: "(SUP i. c) = c"
@@ -549,6 +592,14 @@ lemma Real_power_\<omega>[simp]:
 lemma pinfreal_of_nat[simp]: "of_nat m = Real (real m)"
   by (induct m) (auto simp: real_of_nat_Suc one_pinfreal_def simp del: Real_1)
 
+lemma less_\<omega>_Ex_of_nat: "x < \<omega> \<longleftrightarrow> (\<exists>n. x < of_nat n)"
+proof safe
+  assume "x < \<omega>"
+  then obtain r where "0 \<le> r" "x = Real r" by (cases x) auto
+  moreover obtain n where "r < of_nat n" using ex_less_of_nat by auto
+  ultimately show "\<exists>n. x < of_nat n" by (auto simp: real_eq_of_nat)
+qed auto
+
 lemma real_of_pinfreal_mono:
   fixes a b :: pinfreal
   assumes "b \<noteq> \<omega>" "a \<le> b"
@@ -830,6 +881,34 @@ proof (rule pinfreal_SUPI)
     with *[of k] preal show ?thesis by auto
   qed simp
 qed simp
+
+lemma less_SUP_iff:
+  fixes a :: "'a::{complete_lattice,linorder}"
+  shows "(a < (SUP i:A. f i)) \<longleftrightarrow> (\<exists>x\<in>A. a < f x)"
+  unfolding SUPR_def less_Sup_iff by auto
+
+lemma SUP_\<omega>: "(SUP i:A. f i) = \<omega> \<longleftrightarrow> (\<forall>x<\<omega>. \<exists>i\<in>A. x < f i)"
+proof
+  assume *: "(SUP i:A. f i) = \<omega>"
+  show "(\<forall>x<\<omega>. \<exists>i\<in>A. x < f i)" unfolding *[symmetric]
+  proof (intro allI impI)
+    fix x assume "x < SUPR A f" then show "\<exists>i\<in>A. x < f i"
+      unfolding less_SUP_iff by auto
+  qed
+next
+  assume *: "\<forall>x<\<omega>. \<exists>i\<in>A. x < f i"
+  show "(SUP i:A. f i) = \<omega>"
+  proof (rule pinfreal_SUPI)
+    fix y assume **: "\<And>i. i \<in> A \<Longrightarrow> f i \<le> y"
+    show "\<omega> \<le> y"
+    proof cases
+      assume "y < \<omega>"
+      from *[THEN spec, THEN mp, OF this]
+      obtain i where "i \<in> A" "\<not> (f i \<le> y)" by auto
+      with ** show ?thesis by auto
+    qed auto
+  qed auto
+qed
 
 subsubsection {* Equivalence between @{text "f ----> x"} and @{text SUP} on @{typ pinfreal} *}
 
@@ -1383,6 +1462,37 @@ proof cases
       by (auto intro!: setsum_mono)
   qed simp
 qed simp
+
+lemma psuminf_SUP_eq:
+  assumes "\<And>n i. f n i \<le> f (Suc n) i"
+  shows "(\<Sum>\<^isub>\<infinity> i. SUP n::nat. f n i) = (SUP n::nat. \<Sum>\<^isub>\<infinity> i. f n i)"
+proof -
+  { fix n :: nat
+    have "(\<Sum>i<n. SUP k. f k i) = (SUP k. \<Sum>i<n. f k i)"
+      using assms by (auto intro!: SUPR_pinfreal_setsum[symmetric]) }
+  note * = this
+  show ?thesis
+    unfolding psuminf_def
+    unfolding *
+    apply (subst SUP_swap) ..
+qed
+
+lemma psuminf_commute:
+  shows "(\<Sum>\<^isub>\<infinity> i j. f i j) = (\<Sum>\<^isub>\<infinity> j i. f i j)"
+proof -
+  have "(SUP n. \<Sum> i < n. SUP m. \<Sum> j < m. f i j) = (SUP n. SUP m. \<Sum> i < n. \<Sum> j < m. f i j)"
+    apply (subst SUPR_pinfreal_setsum)
+    by auto
+  also have "\<dots> = (SUP m n. \<Sum> j < m. \<Sum> i < n. f i j)"
+    apply (subst SUP_swap)
+    apply (subst setsum_commute)
+    by auto
+  also have "\<dots> = (SUP m. \<Sum> j < m. SUP n. \<Sum> i < n. f i j)"
+    apply (subst SUPR_pinfreal_setsum)
+    by auto
+  finally show ?thesis
+    unfolding psuminf_def by auto
+qed
 
 lemma Real_max:
   assumes "x \<ge> 0" "y \<ge> 0"
@@ -2076,20 +2186,6 @@ qed
 lemma real_Real_max:"real (Real x) = max x 0"
   unfolding real_Real by auto
 
-lemma (in complete_lattice) SUPR_upper:
-  "x \<in> A \<Longrightarrow> f x \<le> SUPR A f"
-  unfolding SUPR_def apply(rule Sup_upper) by auto
-
-lemma (in complete_lattice) SUPR_subset:
-  assumes "A \<subseteq> B" shows "SUPR A f \<le> SUPR B f"
-  apply(rule SUP_leI) apply(rule SUPR_upper) using assms by auto
-
-lemma (in complete_lattice) SUPR_mono:
-  assumes "\<forall>a\<in>A. \<exists>b\<in>B. f b \<ge> f a"
-  shows "SUPR A f \<le> SUPR B f"
-  unfolding SUPR_def apply(rule Sup_mono)
-  using assms by auto
-
 lemma Sup_lim:
   assumes "\<forall>n. b n \<in> s" "b ----> (a::pinfreal)"
   shows "a \<le> Sup s"
@@ -2160,11 +2256,6 @@ proof(rule ccontr,unfold not_le)
     thus False using complete_lattice_class.Sup_upper[OF assms(1)[rule_format,of N]] 
       unfolding Real_real using om by auto
   qed qed
-
-lemma less_SUP_iff:
-  fixes a :: pinfreal
-  shows "(a < (SUP i:A. f i)) \<longleftrightarrow> (\<exists>x\<in>A. a < f x)"
-  unfolding SUPR_def less_Sup_iff by auto
 
 lemma Sup_mono_lim:
   assumes "\<forall>a\<in>A. \<exists>b. \<forall>n. b n \<in> B \<and> b ----> (a::pinfreal)"
@@ -2706,5 +2797,22 @@ lemma atLeast0AtMost_eq_atMost: "{0 :: pinfreal .. a} = {.. a}" by auto
 lemma greaterThan_omega_Empty: "{\<omega> <..} = {}" by auto
 
 lemma lessThan_0_Empty: "{..< 0 :: pinfreal} = {}" by auto
+
+lemma real_of_pinfreal_inverse[simp]:
+  fixes X :: pinfreal
+  shows "real (inverse X) = 1 / real X"
+  by (cases X) (auto simp: inverse_eq_divide)
+
+lemma real_of_pinfreal_le_0[simp]: "real (X :: pinfreal) \<le> 0 \<longleftrightarrow> (X = 0 \<or> X = \<omega>)"
+  by (cases X) auto
+
+lemma real_of_pinfreal_less_0[simp]: "\<not> (real (X :: pinfreal) < 0)"
+  by (cases X) auto
+
+lemma abs_real_of_pinfreal[simp]: "\<bar>real (X :: pinfreal)\<bar> = real X"
+  by simp
+
+lemma zero_less_real_of_pinfreal: "0 < real (X :: pinfreal) \<longleftrightarrow> X \<noteq> 0 \<and> X \<noteq> \<omega>"
+  by (cases X) auto
 
 end
