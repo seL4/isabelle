@@ -464,13 +464,13 @@ fun add_case_combinator
           if n = m then arg1 (n, c) else (Constant @{const_syntax UU})
       val case_constant = Constant (syntax (case_const dummyT))
       fun case_trans authentic =
-          ParsePrintRule
+          (if authentic then ParsePrintRule else ParseRule)
             (app "_case_syntax"
               (Variable "x",
                foldr1 (app "_case2") (map_index (case1 authentic) spec)),
              capp (capps (case_constant, map_index arg1 spec), Variable "x"))
       fun one_abscon_trans authentic (n, c) =
-          ParsePrintRule
+          (if authentic then ParsePrintRule else ParseRule)
             (cabs (con1 authentic n c, expvar n),
              capps (case_constant, map_index (when1 n) spec))
       fun abscon_trans authentic =
