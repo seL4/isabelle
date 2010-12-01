@@ -70,7 +70,6 @@ object Isabelle
       jEdit.setIntegerProperty(OPTION_PREFIX + name, value)
   }
 
-
   object Double_Property
   {
     def apply(name: String): Double =
@@ -79,6 +78,16 @@ object Isabelle
       jEdit.getDoubleProperty(OPTION_PREFIX + name, default)
     def update(name: String, value: Double) =
       jEdit.setDoubleProperty(OPTION_PREFIX + name, value)
+  }
+
+  object Time_Property
+  {
+    def apply(name: String): Time =
+      Time.seconds(Double_Property(name))
+    def apply(name: String, default: Time): Time =
+      Time.seconds(Double_Property(name, default.seconds))
+    def update(name: String, value: Time) =
+      Double_Property.update(name, value.seconds)
   }
 
 
@@ -112,7 +121,7 @@ object Isabelle
       HTML.encode(text) + "</pre></html>"
 
   def tooltip_dismiss_delay(): Time =
-    Time.seconds(Double_Property("tooltip-dismiss-delay", 8.0) max 0.5)
+    Time_Property("tooltip-dismiss-delay", Time.seconds(8.0))
 
   def setup_tooltips()
   {
@@ -221,14 +230,14 @@ object Isabelle
 
   def start_session()
   {
-    val timeout = Double_Property("startup-timeout") max 5.0
+    val timeout = Time_Property("startup-timeout", Time.seconds(10))
     val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
     val logic = {
       val logic = Property("logic")
       if (logic != null && logic != "") logic
       else Isabelle.default_logic()
     }
-    session.start(Time.seconds(timeout), modes ::: List(logic))
+    session.start(timeout, modes ::: List(logic))
   }
 }
 
