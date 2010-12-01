@@ -274,7 +274,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           fun perm_arg (dt, x) =
             let val T = type_of x
             in if is_rec_type dt then
-                let val (Us, _) = strip_type T
+                let val Us = binder_types T
                 in list_abs (map (pair "x") Us,
                   Free (nth perm_names_types' (body_index dt)) $ pi $
                     list_comb (x, map (fn (i, U) =>

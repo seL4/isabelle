@@ -334,14 +334,14 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
         val t :: ts2 = drop i ts;
         val names = List.foldr OldTerm.add_term_names
           (map (fst o fst o dest_Var) (List.foldr OldTerm.add_term_vars [] ts1)) ts1;
-        val (Ts, dT) = split_last (take (i+1) (fst (strip_type T)));
+        val (Ts, dT) = split_last (take (i+1) (binder_types T));
 
         fun pcase [] [] [] gr = ([], gr)
           | pcase ((cname, cargs)::cs) (t::ts) (U::Us) gr =
               let
                 val j = length cargs;
                 val xs = Name.variant_list names (replicate j "x");
-                val Us' = take j (fst (strip_type U));
+                val Us' = take j (binder_types U);
                 val frees = map2 (curry Free) xs Us';
                 val (cp, gr0) = invoke_codegen thy defs dep module false
                   (list_comb (Const (cname, Us' ---> dT), frees)) gr;
@@ -385,26 +385,33 @@ fun pretty_constr thy defs dep module brack args (c as Const (s, T)) ts gr =
 
 (* code generators for terms and types *)
 
-fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
-   (c as Const (s, T), ts) =>
-     (case Datatype_Data.info_of_case thy s of
+fun datatype_codegen thy defs dep module brack t gr =
+  (case strip_comb t of
+    (c as Const (s, T), ts) =>
+      (case Datatype_Data.info_of_case thy s of
         SOME {index, descr, ...} =>
-          if is_some (get_assoc_code thy (s, T)) then NONE else
-          SOME (pretty_case thy defs dep module brack
-            (#3 (the (AList.lookup op = descr index))) c ts gr )
-      | NONE => case (Datatype_Data.info_of_constr thy (s, T), strip_type T) of
-        (SOME {index, descr, ...}, (_, U as Type (tyname, _))) =>
-          if is_some (get_assoc_code thy (s, T)) then NONE else
-          let
-            val SOME (tyname', _, constrs) = AList.lookup op = descr index;
-            val SOME args = AList.lookup op = constrs s
-          in
-            if tyname <> tyname' then NONE
-            else SOME (pretty_constr thy defs
-              dep module brack args c ts (snd (invoke_tycodegen thy defs dep module false U gr)))
-          end
-      | _ => NONE)
- | _ => NONE);
+          if is_some (get_assoc_code thy (s, T)) then NONE
+          else
+            SOME (pretty_case thy defs dep module brack
+              (#3 (the (AList.lookup op = descr index))) c ts gr)
+      | NONE =>
+          (case (Datatype_Data.info_of_constr thy (s, T), body_type T) of
+            (SOME {index, descr, ...}, U as Type (tyname, _)) =>
+              if is_some (get_assoc_code thy (s, T)) then NONE
+              else
+                let
+                  val SOME (tyname', _, constrs) = AList.lookup op = descr index;
+                  val SOME args = AList.lookup op = constrs s;
+                in
+                  if tyname <> tyname' then NONE
+                  else
+                    SOME
+                      (pretty_constr thy defs
+                        dep module brack args c ts
+                        (snd (invoke_tycodegen thy defs dep module false U gr)))
+                end
+          | _ => NONE))
+  | _ => NONE);
 
 fun datatype_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
       (case Datatype_Data.get_info thy s of

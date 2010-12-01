@@ -234,9 +234,6 @@ fun unlam t =
     (Abs a) => snd (Term.dest_abs a)
   | _ => unlam (Abs("", domain_type (fastype_of t), (incr_boundvars 1 t) $ (Bound 0)))
 
-fun dest_fun_type (Type("fun", [T, S])) = (T, S)
-  | dest_fun_type _ = error "dest_fun_type"
-
 val bare_concl = HOLogic.dest_Trueprop o Logic.strip_assums_concl
 
 (* We apply apply_rsp only in case if the type needs lifting.
@@ -296,7 +293,7 @@ fun rep_abs_rsp_tac ctxt =
     | SOME (rel $ _ $ (rep $ (abs $ _))) =>
         let
           val thy = ProofContext.theory_of ctxt;
-          val (ty_a, ty_b) = dest_fun_type (fastype_of abs);
+          val (ty_a, ty_b) = dest_funT (fastype_of abs);
           val ty_inst = map (SOME o (ctyp_of thy)) [ty_a, ty_b];
         in
           case try (map (SOME o (cterm_of thy))) [rel, abs, rep] of
@@ -483,8 +480,8 @@ fun lambda_prs_simple_conv ctxt ctrm =
     (Const (@{const_name map_fun}, _) $ r1 $ a2) $ (Abs _) =>
       let
         val thy = ProofContext.theory_of ctxt
-        val (ty_b, ty_a) = dest_fun_type (fastype_of r1)
-        val (ty_c, ty_d) = dest_fun_type (fastype_of a2)
+        val (ty_b, ty_a) = dest_funT (fastype_of r1)
+        val (ty_c, ty_d) = dest_funT (fastype_of a2)
         val tyinst = map (SOME o (ctyp_of thy)) [ty_a, ty_b, ty_c, ty_d]
         val tinst = [NONE, NONE, SOME (cterm_of thy r1), NONE, SOME (cterm_of thy a2)]
         val thm1 = Drule.instantiate' tyinst tinst @{thm lambda_prs[THEN eq_reflection]}

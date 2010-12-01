@@ -36,14 +36,14 @@ fun mk_inv_into T U =
 
 fun mk_inv_of ctxt ct =
   let
-    val (dT, rT) = U.split_type (U.typ_of ct)
+    val (dT, rT) = Term.dest_funT (U.typ_of ct)
     val inv = U.certify ctxt (mk_inv_into dT rT)
     val univ = U.certify ctxt (mk_univ dT)
   in Thm.mk_binop inv univ ct end
 
 fun mk_inj_prop ctxt ct =
   let
-    val (dT, rT) = U.split_type (U.typ_of ct)
+    val (dT, rT) = Term.dest_funT (U.typ_of ct)
     val inj = U.certify ctxt (mk_inj_on dT rT)
     val univ = U.certify ctxt (mk_univ dT)
   in U.mk_cprop (Thm.mk_binop inj ct univ) end

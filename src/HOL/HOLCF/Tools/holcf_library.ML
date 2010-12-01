@@ -83,7 +83,7 @@ fun cabs_const (S, T) =
 
 fun mk_cabs t =
   let val T = fastype_of t
-  in cabs_const (Term.domain_type T, Term.range_type T) $ t end
+  in cabs_const (Term.dest_funT T) $ t end
 
 (* builds the expression (% v1 v2 .. vn. rhs) *)
 fun lambdas [] rhs = rhs

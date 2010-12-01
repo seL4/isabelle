@@ -5,11 +5,8 @@ Examples for coercive subtyping via subtype constraints.
 *)
 
 theory Coercion_Examples
-imports Main
-uses "~~/src/Tools/subtyping.ML"
+imports Complex_Main
 begin
-
-setup Subtyping.setup
 
 (* Error messages test *)
 

@@ -10,6 +10,9 @@ imports
   Ln
   Taylor
   Deriv
+uses "~~/src/Tools/subtyping.ML"
 begin
+
+setup Subtyping.setup
 
 end
