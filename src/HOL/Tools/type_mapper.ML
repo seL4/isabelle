@@ -100,7 +100,7 @@ fun make_compositionality_prop variances (tyco, mapper) =
     val T1 = Type (tyco, Ts1);
     val T2 = Type (tyco, Ts2);
     val T3 = Type (tyco, Ts3);
-    val x = Free (the_single (Name.invents nctxt "a" 1), T3);
+    val x = Free (the_single (Name.invents nctxt (Long_Name.base_name tyco) 1), T3);
     val (args21, args32) = (names21 ~~ Ts21, names32 ~~ Ts32);
     val args31 = map2 (fn is_contra => fn ((f21, T21), (f32, T32)) =>
       if not is_contra then
@@ -124,7 +124,7 @@ fun make_identity_prop variances (tyco, mapper) =
       replicate (bool_num co + bool_num contra) (T --> T)
     val Ts' = maps mk_argT (Ts ~~ variances)
     val T = Type (tyco, Ts);
-    val x = Free ("a", T);
+    val x = Free (Long_Name.base_name tyco, T);
     val lhs = list_comb (Const (mapper, Ts' ---> T --> T),
       map (fn T => Abs ("x", domain_type T, Bound 0)) Ts') $ x;
   in (x, (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, x)) end;
