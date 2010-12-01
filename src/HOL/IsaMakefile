@@ -1176,7 +1176,7 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
 
 HOL-Probability: HOL-Multivariate_Analysis $(OUT)/HOL-Probability
 
-$(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis
+$(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
   Probability/Borel_Space.thy Probability/Caratheodory.thy		\
   Probability/Complete_Measure.thy					\
   Probability/ex/Dining_Cryptographers.thy				\
