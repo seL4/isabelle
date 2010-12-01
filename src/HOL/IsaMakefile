@@ -385,6 +385,7 @@ $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
 
 HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
+  $(SRC)/Tools/subtyping.ML \
   Archimedean_Field.thy \
   Complex.thy \
   Complex_Main.thy \
@@ -408,9 +409,9 @@ HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
   Series.thy \
   SupInf.thy \
   Taylor.thy \
-  Transcendental.thy \
+  Tools/SMT/smt_real.ML \
   Tools/float_syntax.ML \
-  Tools/SMT/smt_real.ML
+  Transcendental.thy
 
 $(OUT)/HOL: ROOT.ML $(HOL_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -g true $(OUT)/Pure HOL
@@ -1049,7 +1050,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy ex/Transfer_Ex.thy	\
   ex/Tree23.thy ex/Unification.thy ex/While_Combinator_Example.thy	\
   ex/document/root.bib ex/document/root.tex ex/set.thy ex/svc_funcs.ML	\
-  ex/svc_test.thy $(SRC)/Tools/subtyping.ML
+  ex/svc_test.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
