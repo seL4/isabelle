@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/functorial_mappers.ML
+(*  Title:      HOL/Tools/type_mapper.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Functorial mappers on types.
 *)
 
-signature FUNCTORIAL_MAPPERS =
+signature TYPE_MAPPER =
 sig
   val find_atomic: theory -> typ -> (typ * (bool * bool)) list
   val construct_mapper: theory -> (string * bool -> term)
@@ -14,7 +14,7 @@ sig
   val entries: theory -> entry Symtab.table
 end;
 
-structure Functorial_Mappers : FUNCTORIAL_MAPPERS =
+structure Type_Mapper : TYPE_MAPPER =
 struct
 
 val compositionalityN = "compositionality";
