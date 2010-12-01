@@ -81,7 +81,7 @@ in ((func, args), rhs) end;
 (* TODO: does not work with higher order functions yet *)
 fun mk_rewr_eq (func, pred) =
   let
-    val (argTs, resT) = (strip_type (fastype_of func))
+    val (argTs, resT) = strip_type (fastype_of func)
     val nctxt =
       Name.make_context (Term.fold_aterms (fn Free (x, _) => insert (op =) x | _ => I) (func $ pred) [])
     val (argnames, nctxt') = Name.variants (replicate (length argTs) "a") nctxt
