@@ -9,7 +9,7 @@ sig
   val find_atomic: theory -> typ -> (typ * (bool * bool)) list
   val construct_mapper: theory -> (string * bool -> term)
     -> bool -> typ -> typ -> term
-  val type_mapper: term -> theory -> Proof.state
+  val type_mapper: string option -> term -> theory -> Proof.state
   type entry
   val entries: theory -> entry Symtab.table
 end;
@@ -172,11 +172,12 @@ fun analyze_variances thy tyco T =
     val _ = if null left_variances then () else bad_typ ();
   in variances end;
 
-fun gen_type_mapper prep_term raw_t thy =
+fun gen_type_mapper prep_term some_prfx raw_t thy =
   let
     val (mapper, T) = case prep_term thy raw_t
      of Const cT => cT
       | t => error ("No constant: " ^ Syntax.string_of_term_global thy t);
+    val prfx = the_default (Long_Name.base_name mapper) some_prfx;
     val _ = Type.no_tvars T;
     fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
       | add_tycos _ = I;
@@ -190,7 +191,7 @@ fun gen_type_mapper prep_term raw_t thy =
       (make_compositionality_prop variances (tyco, mapper));
     val identity_prop = uncurry Logic.all
       (make_identity_prop variances (tyco, mapper));
-    val qualify = Binding.qualify true (Long_Name.base_name mapper) o Binding.name;
+    val qualify = Binding.qualify true prfx o Binding.name;
     fun after_qed [single_compositionality, single_identity] lthy =
       lthy
       |> Local_Theory.note ((qualify compositionalityN, []), single_compositionality)
@@ -210,6 +211,7 @@ val type_mapper_cmd = gen_type_mapper Syntax.read_term_global;
 
 val _ =
   Outer_Syntax.command "type_mapper" "register functorial mapper for type with its properties" Keyword.thy_goal
-    (Parse.term >> (fn t => Toplevel.print o (Toplevel.theory_to_proof (type_mapper_cmd t))));
+    (Scan.option (Parse.name --| Parse.$$$ ":") -- Parse.term
+      >> (fn (prfx, t) => Toplevel.print o (Toplevel.theory_to_proof (type_mapper_cmd prfx t))));
 
 end;
