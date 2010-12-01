@@ -18,14 +18,6 @@ struct
 
 (** general term functions **)
 
-fun mk_fun_comp (t, u) =
-  let
-    val (_, B) = dest_funT (fastype_of t)
-    val (C, A) = dest_funT (fastype_of u)
-  in
-    Const(@{const_name "Fun.comp"}, (A --> B) --> (C --> A) --> C --> B) $ t $ u
-  end;
-
 fun mk_measure f =
   let
     val Type ("fun", [T, @{typ nat}]) = fastype_of f 
@@ -136,7 +128,7 @@ fun instantiate_smallvalue_datatype config descr vs tycos prfx (names, auxnames)
   let
     val _ = Datatype_Aux.message config "Creating smallvalue generators ...";
     val eqs = mk_equations thy descr vs tycos (names, auxnames) (Ts, Us)
-    fun mk_single_measure T = mk_fun_comp (@{term "Code_Numeral.nat_of"},
+    fun mk_single_measure T = HOLogic.mk_comp (@{term "Code_Numeral.nat_of"},
       Const (@{const_name "Product_Type.snd"}, T --> @{typ "code_numeral"}))
     fun mk_termination_measure T =
       let
