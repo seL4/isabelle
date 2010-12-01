@@ -397,7 +397,7 @@ fun process_constraints ctxt err cs tye_idx =
         val pairs = (last, hd nodes) :: (but_last ~~ tl nodes);
       in
         map_filter
-          (fn (TU, pack) => if member (eq_pair (op =) (op =)) pairs TU then SOME pack else NONE) 
+          (fn (TU, pack) => if member (op =) pairs TU then SOME pack else NONE)
           cs'
       end;
 
