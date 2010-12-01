@@ -39,7 +39,8 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
     tooltip_margin.setValue(Isabelle.Int_Property("tooltip-margin", 40))
     addComponent(Isabelle.Property("tooltip-margin.title"), tooltip_margin)
 
-    tooltip_dismiss_delay.setValue(Isabelle.Int_Property("tooltip-dismiss-delay", 8000))
+    tooltip_dismiss_delay.setValue(
+      (Isabelle.Double_Property("tooltip-dismiss-delay", 8.0) * 1000) round)
     addComponent(Isabelle.Property("tooltip-dismiss-delay.title"), tooltip_dismiss_delay)
   }
 
@@ -58,7 +59,7 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
     Isabelle.Int_Property("tooltip-margin") =
       tooltip_margin.getValue().asInstanceOf[Int]
 
-    Isabelle.Int_Property("tooltip-dismiss-delay") =
-      tooltip_dismiss_delay.getValue().asInstanceOf[Int]
+    Isabelle.Double_Property("tooltip-dismiss-delay") =
+      tooltip_dismiss_delay.getValue().asInstanceOf[Int].toDouble / 1000
   }
 }

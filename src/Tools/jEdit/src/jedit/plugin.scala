@@ -111,14 +111,14 @@ object Isabelle
         Int_Property("tooltip-font-size", 10).toString + "px; \">" +  // FIXME proper scaling (!?)
       HTML.encode(text) + "</pre></html>"
 
-  def tooltip_dismiss_delay(): Int =
-    Int_Property("tooltip-dismiss-delay", 8000) max 500
+  def tooltip_dismiss_delay(): Time =
+    Time.seconds(Double_Property("tooltip-dismiss-delay", 8.0) max 0.5)
 
   def setup_tooltips()
   {
     Swing_Thread.now {
       val manager = javax.swing.ToolTipManager.sharedInstance
-      manager.setDismissDelay(tooltip_dismiss_delay())
+      manager.setDismissDelay(tooltip_dismiss_delay().ms.toInt)
     }
   }
 
