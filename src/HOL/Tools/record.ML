@@ -1016,8 +1016,7 @@ fun is_sel_upd_pair thy (Const (s, _)) (Const (u, t')) =
 fun mk_comp f g =
   let
     val X = fastype_of g;
-    val A = domain_type X;
-    val B = range_type X;
+    val (A, B) = dest_funT X;
     val C = range_type (fastype_of f);
     val T = (B --> C) --> (A --> B) --> A --> C;
   in Const (@{const_name Fun.comp}, T) $ f $ g end;

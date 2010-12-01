@@ -48,6 +48,7 @@ sig
   val dest_comb: term -> term * term
   val domain_type: typ -> typ
   val range_type: typ -> typ
+  val dest_funT: typ -> typ * typ
   val binder_types: typ -> typ list
   val body_type: typ -> typ
   val strip_type: typ -> typ list * typ
@@ -285,6 +286,10 @@ fun dest_comb (t1 $ t2) = (t1, t2)
 
 fun domain_type (Type("fun", [T,_])) = T
 and range_type  (Type("fun", [_,T])) = T;
+
+fun dest_funT (Type ("fun", [T, U])) = (T, U)
+  | dest_funT T = raise TYPE ("dest_funT", [T], []);
+
 
 (* maps  [T1,...,Tn]--->T  to the list  [T1,T2,...,Tn]*)
 fun binder_types (Type("fun",[S,T])) = S :: binder_types T

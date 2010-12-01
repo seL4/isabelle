@@ -774,8 +774,8 @@ fun add_coercion raw_t context =
         Syntax.string_of_term ctxt t ^ ":\n" ^
         Syntax.string_of_typ ctxt (fastype_of t));
 
-    val (Type ("fun", [T1, T2])) = fastype_of t
-      handle Bind => err_coercion ();
+    val (T1, T2) = Term.dest_funT (fastype_of t)
+      handle TYPE _ => err_coercion ();
 
     val a =
       (case T1 of

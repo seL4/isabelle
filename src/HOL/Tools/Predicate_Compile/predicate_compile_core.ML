@@ -87,9 +87,6 @@ fun mk_scomp (t, u) =
     Const (@{const_name "scomp"}, T --> U --> A --> D) $ t $ u
   end;
 
-fun dest_funT (Type ("fun",[S, T])) = (S, T)
-  | dest_funT T = raise TYPE ("dest_funT", [T], [])
- 
 fun mk_fun_comp (t, u) =
   let
     val (_, B) = dest_funT (fastype_of t)
