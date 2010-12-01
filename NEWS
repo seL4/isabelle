@@ -138,7 +138,7 @@ contents for other uses.  INCOMPATIBILITY.
 techniques, in particular static evaluation conversions.
 
 * String.literal is a type, but not a datatype.  INCOMPATIBILITY.
- 
+
 * Renamed lemmas:
   expand_fun_eq -> fun_eq_iff
   expand_set_eq -> set_eq_iff
@@ -285,15 +285,13 @@ cartesian products.
 Also note that the indices are now natural numbers and not from some finite
 type. Finite cartesian products of euclidean spaces, products of euclidean
 spaces the real and complex numbers are instantiated to be euclidean_spaces.
-
 INCOMPATIBILITY.
 
 * Probability: Introduced pinfreal as real numbers with infinity. Use pinfreal
-as value for measures. Introduces Lebesgue Measure based on the integral in
-Multivariate Analysis. Proved Radon Nikodym for arbitrary sigma finite measure
-spaces.
-
- INCOMPATIBILITY.
+as value for measures. Introduce the Radon-Nikodym derivative, product spaces
+and Fubini's theorem for arbitrary sigma finite measures. Introduces Lebesgue
+measure based on the integral in Multivariate Analysis.
+INCOMPATIBILITY.
 
 * Inductive package: offers new command "inductive_simps" to automatically
 derive instantiated and simplified equations for inductive predicates,

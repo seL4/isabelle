@@ -6,6 +6,14 @@ theory Positive_Infinite_Real
   imports Complex_Main Nat_Bijection Multivariate_Analysis
 begin
 
+lemma range_const[simp]: "range (\<lambda>x. c) = {c}" by auto
+
+lemma (in complete_lattice) SUPR_const[simp]: "(SUP i. c) = c"
+  unfolding SUPR_def by simp
+
+lemma (in complete_lattice) INFI_const[simp]: "(INF i. c) = c"
+  unfolding INFI_def by simp
+
 lemma (in complete_lattice) Sup_start:
   assumes *: "\<And>x. f x \<le> f 0"
   shows "(SUP n. f n) = f 0"
@@ -415,6 +423,13 @@ lemma pinfreal_0_less_mult_iff[simp]:
   fixes x y :: pinfreal shows "0 < x * y \<longleftrightarrow> 0 < x \<and> 0 < y"
   by (cases x, cases y) (auto simp: zero_less_mult_iff)
 
+lemma pinfreal_ord_one[simp]:
+  "Real p < 1 \<longleftrightarrow> p < 1"
+  "Real p \<le> 1 \<longleftrightarrow> p \<le> 1"
+  "1 < Real p \<longleftrightarrow> 1 < p"
+  "1 \<le> Real p \<longleftrightarrow> 1 \<le> p"
+  by (simp_all add: one_pinfreal_def del: Real_1)
+
 subsection {* @{text "x - y"} on @{typ pinfreal} *}
 
 instantiation pinfreal :: minus
@@ -539,6 +554,26 @@ lemma real_of_pinfreal_mono:
   assumes "b \<noteq> \<omega>" "a \<le> b"
   shows "real a \<le> real b"
 using assms by (cases b, cases a) auto
+
+lemma setprod_pinfreal_0:
+  "(\<Prod>i\<in>I. f i) = (0::pinfreal) \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = 0)"
+proof cases
+  assume "finite I" then show ?thesis
+  proof (induct I)
+    case (insert i I)
+    then show ?case by simp
+  qed simp
+qed simp
+
+lemma setprod_\<omega>:
+  "(\<Prod>i\<in>I. f i) = \<omega> \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = \<omega>) \<and> (\<forall>i\<in>I. f i \<noteq> 0)"
+proof cases
+  assume "finite I" then show ?thesis
+  proof (induct I)
+    case (insert i I) then show ?case
+      by (auto simp: setprod_pinfreal_0)
+  qed simp
+qed simp
 
 instance pinfreal :: "semiring_char_0"
 proof
@@ -1573,7 +1608,25 @@ definition (in complete_lattice) isoton :: "(nat \<Rightarrow> 'a) \<Rightarrow>
 definition (in complete_lattice) antiton (infix "\<down>" 50) where
   "A \<down> X \<longleftrightarrow> (\<forall>i. A i \<ge> A (Suc i)) \<and> (INF i. A i) = X"
 
-lemma range_const[simp]: "range (\<lambda>x. c) = {c}" by auto
+lemma isotoneI[intro?]: "\<lbrakk> \<And>i. f i \<le> f (Suc i) ; (SUP i. f i) = F \<rbrakk> \<Longrightarrow> f \<up> F"
+  unfolding isoton_def by auto
+
+lemma (in complete_lattice) isotonD[dest]:
+  assumes "A \<up> X" shows "A i \<le> A (Suc i)" "(SUP i. A i) = X"
+  using assms unfolding isoton_def by auto
+
+lemma isotonD'[dest]:
+  assumes "(A::_=>_) \<up> X" shows "A i x \<le> A (Suc i) x" "(SUP i. A i) = X"
+  using assms unfolding isoton_def le_fun_def by auto
+
+lemma isoton_mono_le:
+  assumes "f \<up> x" "i \<le> j"
+  shows "f i \<le> f j"
+  using `f \<up> x`[THEN isotonD(1)] lift_Suc_mono_le[of f, OF _ `i \<le> j`] by auto
+
+lemma isoton_const:
+  shows "(\<lambda> i. c) \<up> c"
+unfolding isoton_def by auto
 
 lemma isoton_cmult_right:
   assumes "f \<up> (x::pinfreal)"
@@ -1605,12 +1658,23 @@ lemma isoton_indicator:
   shows "(\<lambda>i x. f i x * indicator A x) \<up> (\<lambda>x. g x * indicator A x :: pinfreal)"
   using assms unfolding isoton_fun_expand by (auto intro!: isoton_cmult_left)
 
-lemma pinfreal_ord_one[simp]:
-  "Real p < 1 \<longleftrightarrow> p < 1"
-  "Real p \<le> 1 \<longleftrightarrow> p \<le> 1"
-  "1 < Real p \<longleftrightarrow> 1 < p"
-  "1 \<le> Real p \<longleftrightarrow> 1 \<le> p"
-  by (simp_all add: one_pinfreal_def del: Real_1)
+lemma isoton_setsum:
+  fixes f :: "'a \<Rightarrow> nat \<Rightarrow> pinfreal"
+  assumes "finite A" "A \<noteq> {}"
+  assumes "\<And> x. x \<in> A \<Longrightarrow> f x \<up> y x"
+  shows "(\<lambda> i. (\<Sum> x \<in> A. f x i)) \<up> (\<Sum> x \<in> A. y x)"
+using assms
+proof (induct A rule:finite_ne_induct)
+  case singleton thus ?case by auto
+next
+  case (insert a A) note asms = this
+  hence *: "(\<lambda> i. \<Sum> x \<in> A. f x i) \<up> (\<Sum> x \<in> A. y x)" by auto
+  have **: "(\<lambda> i. f a i) \<up> y a" using asms by simp
+  have "(\<lambda> i. f a i + (\<Sum> x \<in> A. f x i)) \<up> (y a + (\<Sum> x \<in> A. y x))"
+    using * ** isoton_add by auto
+  thus "(\<lambda> i. \<Sum> x \<in> insert a A. f x i) \<up> (\<Sum> x \<in> insert a A. y x)"
+    using asms by fastsimp
+qed
 
 lemma isoton_Sup:
   assumes "f \<up> u"
@@ -1980,14 +2044,6 @@ lemma Lim_omega_pos: "f ----> \<omega> \<longleftrightarrow> (\<forall>B>0. \<ex
   apply(erule_tac x="max 1 B" in allE) apply safe defer
   apply(rule_tac x=N in exI,safe) apply(erule_tac x=n in allE,safe)
   apply(rule_tac y="Real (max 1 B)" in order_trans) by auto
-
-lemma (in complete_lattice) isotonD[dest]:
-  assumes "A \<up> X" shows "A i \<le> A (Suc i)" "(SUP i. A i) = X"
-  using assms unfolding isoton_def by auto
-
-lemma isotonD'[dest]:
-  assumes "(A::_=>_) \<up> X" shows "A i x \<le> A (Suc i) x" "(SUP i. A i) = X"
-  using assms unfolding isoton_def le_fun_def by auto
 
 lemma pinfreal_LimI_finite:
   assumes "x \<noteq> \<omega>" "\<And>r. 0 < r \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. u n < x + r \<and> x < u n + r"

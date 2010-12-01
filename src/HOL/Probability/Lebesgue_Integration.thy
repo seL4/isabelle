@@ -3,12 +3,22 @@
 header {*Lebesgue Integration*}
 
 theory Lebesgue_Integration
-imports Measure Borel
+imports Measure Borel_Space
 begin
 
-section "@{text \<mu>}-null sets"
-
-abbreviation (in measure_space) "null_sets \<equiv> {N\<in>sets M. \<mu> N = 0}"
+lemma image_set_cong:
+  assumes A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y\<in>B. f x = g y"
+  assumes B: "\<And>y. y \<in> B \<Longrightarrow> \<exists>x\<in>A. g y = f x"
+  shows "f ` A = g ` B"
+proof safe
+  fix x assume "x \<in> A"
+  with A obtain y where "f x = g y" "y \<in> B" by auto
+  then show "f x \<in> g ` B" by auto
+next
+  fix y assume "y \<in> B"
+  with B obtain x where "g y = f x" "x \<in> A" by auto
+  then show "g y \<in> f ` A" by auto
+qed
 
 lemma sums_If_finite:
   assumes finite: "finite {r. P r}"
@@ -469,6 +479,22 @@ lemma (in sigma_algebra) simple_function_subalgebra:
   unfolding sigma_algebra.simple_function_def[OF N_subalgebra(2)]
   by auto
 
+lemma (in sigma_algebra) simple_function_vimage:
+  fixes g :: "'a \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
+  assumes g: "simple_function g" and f: "f \<in> S \<rightarrow> space M"
+  shows "sigma_algebra.simple_function (vimage_algebra S f) (\<lambda>x. g (f x))"
+proof -
+  have subset: "(\<lambda>x. g (f x)) ` S \<subseteq> g ` space M"
+    using f by auto
+  interpret V: sigma_algebra "vimage_algebra S f"
+    using f by (rule sigma_algebra_vimage)
+  show ?thesis using g
+    unfolding simple_function_eq_borel_measurable
+    unfolding V.simple_function_eq_borel_measurable
+    using measurable_vimage[OF _ f, of g borel]
+    using finite_subset[OF subset] by auto
+qed
+
 section "Simple integral"
 
 definition (in measure_space)
@@ -482,6 +508,19 @@ proof -
     "\<And>x. f -` {x} \<inter> space M = g -` {x} \<inter> space M"
     using assms by (auto intro!: image_eqI)
   thus ?thesis unfolding simple_integral_def by simp
+qed
+
+lemma (in measure_space) simple_integral_cong_measure:
+  assumes "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = \<mu> A" and "simple_function f"
+  shows "measure_space.simple_integral M \<nu> f = simple_integral f"
+proof -
+  interpret v: measure_space M \<nu>
+    by (rule measure_space_cong) fact
+  have "\<And>x. x \<in> space M \<Longrightarrow> f -` {f x} \<inter> space M \<in> sets M"
+    using `simple_function f`[THEN simple_functionD(2)] by auto
+  with assms show ?thesis
+    unfolding simple_integral_def v.simple_integral_def
+    by (auto intro!: setsum_cong)
 qed
 
 lemma (in measure_space) simple_integral_const[simp]:
@@ -590,21 +629,61 @@ proof -
     by (auto simp: setsum_right_distrib field_simps intro!: setsum_cong)
 qed
 
+lemma (in measure_space) simple_integral_mono_AE:
+  assumes "simple_function f" and "simple_function g"
+  and mono: "AE x. f x \<le> g x"
+  shows "simple_integral f \<le> simple_integral g"
+proof -
+  let "?S x" = "(g -` {g x} \<inter> space M) \<inter> (f -` {f x} \<inter> space M)"
+  have *: "\<And>x. g -` {g x} \<inter> f -` {f x} \<inter> space M = ?S x"
+    "\<And>x. f -` {f x} \<inter> g -` {g x} \<inter> space M = ?S x" by auto
+  show ?thesis
+    unfolding *
+      simple_function_partition[OF `simple_function f` `simple_function g`]
+      simple_function_partition[OF `simple_function g` `simple_function f`]
+  proof (safe intro!: setsum_mono)
+    fix x assume "x \<in> space M"
+    then have *: "f ` ?S x = {f x}" "g ` ?S x = {g x}" by auto
+    show "the_elem (f`?S x) * \<mu> (?S x) \<le> the_elem (g`?S x) * \<mu> (?S x)"
+    proof (cases "f x \<le> g x")
+      case True then show ?thesis using * by (auto intro!: mult_right_mono)
+    next
+      case False
+      obtain N where N: "{x\<in>space M. \<not> f x \<le> g x} \<subseteq> N" "N \<in> sets M" "\<mu> N = 0"
+        using mono by (auto elim!: AE_E)
+      have "?S x \<subseteq> N" using N `x \<in> space M` False by auto
+      moreover have "?S x \<in> sets M" using assms `x \<in> space M`
+        by (rule_tac Int) (auto intro!: simple_functionD(2))
+      ultimately have "\<mu> (?S x) \<le> \<mu> N"
+        using `N \<in> sets M` by (auto intro!: measure_mono)
+      then show ?thesis using `\<mu> N = 0` by auto
+    qed
+  qed
+qed
+
 lemma (in measure_space) simple_integral_mono:
   assumes "simple_function f" and "simple_function g"
   and mono: "\<And> x. x \<in> space M \<Longrightarrow> f x \<le> g x"
   shows "simple_integral f \<le> simple_integral g"
-  unfolding
-    simple_function_partition[OF `simple_function f` `simple_function g`]
-    simple_function_partition[OF `simple_function g` `simple_function f`]
-  apply (subst Int_commute)
-proof (safe intro!: setsum_mono)
-  fix x let ?S = "g -` {g x} \<inter> f -` {f x} \<inter> space M"
-  assume "x \<in> space M"
-  hence "f ` ?S = {f x}" "g ` ?S = {g x}" by auto
-  thus "the_elem (f`?S) * \<mu> ?S \<le> the_elem (g`?S) * \<mu> ?S"
-    using mono[OF `x \<in> space M`] by (auto intro!: mult_right_mono)
+proof (rule simple_integral_mono_AE[OF assms(1, 2)])
+  show "AE x. f x \<le> g x"
+    using mono by (rule AE_cong) auto
 qed
+
+lemma (in measure_space) simple_integral_cong_AE:
+  assumes "simple_function f" "simple_function g" and "AE x. f x = g x"
+  shows "simple_integral f = simple_integral g"
+  using assms by (auto simp: eq_iff intro!: simple_integral_mono_AE)
+
+lemma (in measure_space) simple_integral_cong':
+  assumes sf: "simple_function f" "simple_function g"
+  and mea: "\<mu> {x\<in>space M. f x \<noteq> g x} = 0"
+  shows "simple_integral f = simple_integral g"
+proof (intro simple_integral_cong_AE sf AE_I)
+  show "\<mu> {x\<in>space M. f x \<noteq> g x} = 0" by fact
+  show "{x \<in> space M. f x \<noteq> g x} \<in> sets M"
+    using sf[THEN borel_measurable_simple_function] by auto
+qed simp
 
 lemma (in measure_space) simple_integral_indicator:
   assumes "A \<in> sets M"
@@ -637,7 +716,8 @@ next
       using assms(2) unfolding simple_function_def by auto
     show "f ` A \<union> {0} \<subseteq> f`space M \<union> {0}"
       using sets_into_space[OF assms(1)] by auto
-    have "\<And>x. f x \<notin> f ` A \<Longrightarrow> f -` {f x} \<inter> space M \<inter> A = {}" by (auto simp: image_iff)
+    have "\<And>x. f x \<notin> f ` A \<Longrightarrow> f -` {f x} \<inter> space M \<inter> A = {}"
+      by (auto simp: image_iff)
     thus "\<forall>i\<in>f ` space M \<union> {0} - (f ` A \<union> {0}).
       i * \<mu> (f -` {i} \<inter> space M \<inter> A) = 0" by auto
   next
@@ -670,45 +750,22 @@ lemma (in measure_space) simple_integral_null_set:
   assumes "simple_function u" "N \<in> null_sets"
   shows "simple_integral (\<lambda>x. u x * indicator N x) = 0"
 proof -
-  have "simple_integral (\<lambda>x. u x * indicator N x) \<le>
-    simple_integral (\<lambda>x. \<omega> * indicator N x)"
-    using assms
-    by (safe intro!: simple_integral_mono simple_function_mult simple_function_indicator simple_function_const) simp
-  also have "... = 0" apply(subst simple_integral_mult)
-    using assms(2) by auto
-  finally show ?thesis by auto
+  have "AE x. indicator N x = (0 :: pinfreal)"
+    using `N \<in> null_sets` by (auto simp: indicator_def intro!: AE_I[of _ N])
+  then have "simple_integral (\<lambda>x. u x * indicator N x) = simple_integral (\<lambda>x. 0)"
+    using assms by (intro simple_integral_cong_AE) (auto intro!: AE_disjI2)
+  then show ?thesis by simp
 qed
 
-lemma (in measure_space) simple_integral_cong':
-  assumes f: "simple_function f" and g: "simple_function g"
-  and mea: "\<mu> {x\<in>space M. f x \<noteq> g x} = 0"
-  shows "simple_integral f = simple_integral g"
-proof -
-  let ?h = "\<lambda>h. \<lambda>x. (h x * indicator {x\<in>space M. f x = g x} x
-    + h x * indicator {x\<in>space M. f x \<noteq> g x} x
-    + h x * indicator (-space M) x::pinfreal)"
-  have *:"\<And>h. h = ?h h" unfolding indicator_def apply rule by auto
-  have mea_neq:"{x \<in> space M. f x \<noteq> g x} \<in> sets M" using f g by (auto simp: borel_measurable_simple_function)
-  then have mea_nullset: "{x \<in> space M. f x \<noteq> g x} \<in> null_sets" using mea by auto
-  have h1:"\<And>h::_=>pinfreal. simple_function h \<Longrightarrow>
-    simple_function (\<lambda>x. h x * indicator {x\<in>space M. f x = g x} x)"
-    apply(safe intro!: simple_function_add simple_function_mult simple_function_indicator)
-    using f g by (auto simp: borel_measurable_simple_function)
-  have h2:"\<And>h::_\<Rightarrow>pinfreal. simple_function h \<Longrightarrow>
-    simple_function (\<lambda>x. h x * indicator {x\<in>space M. f x \<noteq> g x} x)"
-    apply(safe intro!: simple_function_add simple_function_mult simple_function_indicator)
-    by(rule mea_neq)
-  have **:"\<And>a b c d e f. a = b \<Longrightarrow> c = d \<Longrightarrow> e = f \<Longrightarrow> a+c+e = b+d+f" by auto
-  note *** = simple_integral_add[OF simple_function_add[OF h1 h2] simple_function_notspace]
-    simple_integral_add[OF h1 h2]
-  show ?thesis apply(subst *[of g]) apply(subst *[of f])
-    unfolding ***[OF f f] ***[OF g g]
-  proof(rule **) case goal1 show ?case apply(rule arg_cong[where f=simple_integral]) apply rule 
-      unfolding indicator_def by auto
-  next note * = simple_integral_null_set[OF _ mea_nullset]
-    case goal2 show ?case unfolding *[OF f] *[OF g] ..
-  next case goal3 show ?case apply(rule simple_integral_cong) by auto
-  qed
+lemma (in measure_space) simple_integral_cong_AE_mult_indicator:
+  assumes sf: "simple_function f" and eq: "AE x. x \<in> S" and "S \<in> sets M"
+  shows "simple_integral f = simple_integral (\<lambda>x. f x * indicator S x)"
+proof (rule simple_integral_cong_AE)
+  show "simple_function f" by fact
+  show "simple_function (\<lambda>x. f x * indicator S x)"
+    using sf `S \<in> sets M` by auto
+  from eq show "AE x. f x = f x * indicator S x"
+    by (rule AE_mp) simp
 qed
 
 lemma (in measure_space) simple_integral_restricted:
@@ -746,11 +803,48 @@ lemma (in measure_space) simple_integral_subalgebra[simp]:
   unfolding simple_integral_def_raw
   unfolding measure_space.simple_integral_def_raw[OF assms] by simp
 
+lemma (in measure_space) simple_integral_vimage:
+  fixes g :: "'a \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
+  assumes f: "bij_betw f S (space M)"
+  shows "simple_integral g =
+         measure_space.simple_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>x. g (f x))"
+    (is "_ = measure_space.simple_integral ?T ?\<mu> _")
+proof -
+  from f interpret T: measure_space ?T ?\<mu> by (rule measure_space_isomorphic)
+  have surj: "f`S = space M"
+    using f unfolding bij_betw_def by simp
+  have *: "(\<lambda>x. g (f x)) ` S = g ` f ` S" by auto
+  have **: "f`S = space M" using f unfolding bij_betw_def by auto
+  { fix x assume "x \<in> space M"
+    have "(f ` ((\<lambda>x. g (f x)) -` {g x} \<inter> S)) =
+      (f ` (f -` (g -` {g x}) \<inter> S))" by auto
+    also have "f -` (g -` {g x}) \<inter> S = f -` (g -` {g x} \<inter> space M) \<inter> S"
+      using f unfolding bij_betw_def by auto
+    also have "(f ` (f -` (g -` {g x} \<inter> space M) \<inter> S)) = g -` {g x} \<inter> space M"
+      using ** by (intro image_vimage_inter_eq) auto
+    finally have "(f ` ((\<lambda>x. g (f x)) -` {g x} \<inter> S)) = g -` {g x} \<inter> space M" by auto }
+  then show ?thesis using assms
+    unfolding simple_integral_def T.simple_integral_def bij_betw_def
+    by (auto simp add: * intro!: setsum_cong)
+qed
+
 section "Continuous posititve integration"
 
 definition (in measure_space)
   "positive_integral f =
     (SUP g : {g. simple_function g \<and> g \<le> f \<and> \<omega> \<notin> g`space M}. simple_integral g)"
+
+lemma (in measure_space) positive_integral_cong_measure:
+  assumes "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = \<mu> A"
+  shows "measure_space.positive_integral M \<nu> f = positive_integral f"
+proof -
+  interpret v: measure_space M \<nu>
+    by (rule measure_space_cong) fact
+  with assms show ?thesis
+    unfolding positive_integral_def v.positive_integral_def SUPR_def
+    by (auto intro!: arg_cong[where f=Sup] image_cong
+             simp: simple_integral_cong_measure[of \<nu>])
+qed
 
 lemma (in measure_space) positive_integral_alt1:
   "positive_integral f =
@@ -863,15 +957,122 @@ next
   with assms show "simple_integral f \<le> y" by auto
 qed
 
-lemma (in measure_space) positive_integral_mono:
-  assumes mono: "\<And>x. x \<in> space M \<Longrightarrow> u x \<le> v x"
+lemma (in measure_space) positive_integral_mono_AE:
+  assumes ae: "AE x. u x \<le> v x"
   shows "positive_integral u \<le> positive_integral v"
   unfolding positive_integral_alt1
 proof (safe intro!: SUPR_mono)
-  fix a assume a: "simple_function a" and "\<forall>x\<in>space M. a x \<le> u x \<and> a x \<noteq> \<omega>"
-  with mono have "\<forall>x\<in>space M. a x \<le> v x \<and> a x \<noteq> \<omega>" by fastsimp
-  with a show "\<exists>b\<in>{g. simple_function g \<and> (\<forall>x\<in>space M. g x \<le> v x \<and> g x \<noteq> \<omega>)}. simple_integral a \<le> simple_integral b"
-    by (auto intro!: bexI[of _ a])
+  fix a assume a: "simple_function a" and mono: "\<forall>x\<in>space M. a x \<le> u x \<and> a x \<noteq> \<omega>"
+  from ae obtain N where N: "{x\<in>space M. \<not> u x \<le> v x} \<subseteq> N" "N \<in> sets M" "\<mu> N = 0"
+    by (auto elim!: AE_E)
+  have "simple_function (\<lambda>x. a x * indicator (space M - N) x)"
+    using `N \<in> sets M` a by auto
+  with a show "\<exists>b\<in>{g. simple_function g \<and> (\<forall>x\<in>space M. g x \<le> v x \<and> g x \<noteq> \<omega>)}.
+    simple_integral a \<le> simple_integral b"
+  proof (safe intro!: bexI[of _ "\<lambda>x. a x * indicator (space M - N) x"]
+                      simple_integral_mono_AE)
+    show "AE x. a x \<le> a x * indicator (space M - N) x"
+    proof (rule AE_I, rule subset_refl)
+      have *: "{x \<in> space M. \<not> a x \<le> a x * indicator (space M - N) x} =
+        N \<inter> {x \<in> space M. a x \<noteq> 0}" (is "?N = _")
+        using `N \<in> sets M`[THEN sets_into_space] by (auto simp: indicator_def)
+      then show "?N \<in> sets M" 
+        using `N \<in> sets M` `simple_function a`[THEN borel_measurable_simple_function]
+        by (auto intro!: measure_mono Int)
+      then have "\<mu> ?N \<le> \<mu> N"
+        unfolding * using `N \<in> sets M` by (auto intro!: measure_mono)
+      then show "\<mu> ?N = 0" using `\<mu> N = 0` by auto
+    qed
+  next
+    fix x assume "x \<in> space M"
+    show "a x * indicator (space M - N) x \<le> v x"
+    proof (cases "x \<in> N")
+      case True then show ?thesis by simp
+    next
+      case False
+      with N mono have "a x \<le> u x" "u x \<le> v x" using `x \<in> space M` by auto
+      with False `x \<in> space M` show "a x * indicator (space M - N) x \<le> v x" by auto
+    qed
+    assume "a x * indicator (space M - N) x = \<omega>"
+    with mono `x \<in> space M` show False
+      by (simp split: split_if_asm add: indicator_def)
+  qed
+qed
+
+lemma (in measure_space) positive_integral_cong_AE:
+  "AE x. u x = v x \<Longrightarrow> positive_integral u = positive_integral v"
+  by (auto simp: eq_iff intro!: positive_integral_mono_AE)
+
+lemma (in measure_space) positive_integral_mono:
+  assumes mono: "\<And>x. x \<in> space M \<Longrightarrow> u x \<le> v x"
+  shows "positive_integral u \<le> positive_integral v"
+  using mono by (auto intro!: AE_cong positive_integral_mono_AE)
+
+lemma (in measure_space) positive_integral_vimage:
+  fixes g :: "'a \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
+  assumes f: "bij_betw f S (space M)"
+  shows "positive_integral g =
+         measure_space.positive_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>x. g (f x))"
+    (is "_ = measure_space.positive_integral ?T ?\<mu> _")
+proof -
+  from f interpret T: measure_space ?T ?\<mu> by (rule measure_space_isomorphic)
+  have f_fun: "f \<in> S \<rightarrow> space M" using assms unfolding bij_betw_def by auto
+  from assms have inv: "bij_betw (the_inv_into S f) (space M) S"
+    by (rule bij_betw_the_inv_into)
+  then have inv_fun: "the_inv_into S f \<in> space M \<rightarrow> S" unfolding bij_betw_def by auto
+
+  have surj: "f`S = space M"
+    using f unfolding bij_betw_def by simp
+  have inj: "inj_on f S"
+    using f unfolding bij_betw_def by simp
+  have inv_f: "\<And>x. x \<in> space M \<Longrightarrow> f (the_inv_into S f x) = x"
+    using f_the_inv_into_f[of f S] f unfolding bij_betw_def by auto
+
+  from simple_integral_vimage[OF assms, symmetric]
+  have *: "simple_integral = T.simple_integral \<circ> (\<lambda>g. g \<circ> f)" by (simp add: comp_def)
+  show ?thesis
+    unfolding positive_integral_alt1 T.positive_integral_alt1 SUPR_def * image_compose
+  proof (safe intro!: arg_cong[where f=Sup] image_set_cong, simp_all add: comp_def)
+    fix g' :: "'a \<Rightarrow> pinfreal" assume "simple_function g'" "\<forall>x\<in>space M. g' x \<le> g x \<and> g' x \<noteq> \<omega>"
+    then show "\<exists>h. T.simple_function h \<and> (\<forall>x\<in>S. h x \<le> g (f x) \<and> h x \<noteq> \<omega>) \<and>
+                   T.simple_integral (\<lambda>x. g' (f x)) = T.simple_integral h"
+      using f unfolding bij_betw_def
+      by (auto intro!: exI[of _ "\<lambda>x. g' (f x)"]
+               simp add: le_fun_def simple_function_vimage[OF _ f_fun])
+  next
+    fix g' :: "'d \<Rightarrow> pinfreal" assume g': "T.simple_function g'" "\<forall>x\<in>S. g' x \<le> g (f x) \<and> g' x \<noteq> \<omega>"
+    let ?g = "\<lambda>x. g' (the_inv_into S f x)"
+    show "\<exists>h. simple_function h \<and> (\<forall>x\<in>space M. h x \<le> g x \<and> h x \<noteq> \<omega>) \<and>
+              T.simple_integral g' = T.simple_integral (\<lambda>x. h (f x))"
+    proof (intro exI[of _ ?g] conjI ballI)
+      { fix x assume x: "x \<in> space M"
+        then have "the_inv_into S f x \<in> S" using inv_fun by auto
+        with g' have "g' (the_inv_into S f x) \<le> g (f (the_inv_into S f x)) \<and> g' (the_inv_into S f x) \<noteq> \<omega>"
+          by auto
+        then show "g' (the_inv_into S f x) \<le> g x" "g' (the_inv_into S f x) \<noteq> \<omega>"
+          using f_the_inv_into_f[of f S x] x f unfolding bij_betw_def by auto }
+      note vimage_vimage_inv[OF f inv_f inv_fun, simp]
+      from T.simple_function_vimage[OF g'(1), unfolded space_vimage_algebra, OF inv_fun]
+      show "simple_function (\<lambda>x. g' (the_inv_into S f x))"
+        unfolding simple_function_def by (simp add: simple_function_def)
+      show "T.simple_integral g' = T.simple_integral (\<lambda>x. ?g (f x))"
+        using the_inv_into_f_f[OF inj] by (auto intro!: T.simple_integral_cong)
+    qed
+  qed
+qed
+
+lemma (in measure_space) positive_integral_vimage_inv:
+  fixes g :: "'d \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
+  assumes f: "bij_betw f S (space M)"
+  shows "measure_space.positive_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) g =
+      positive_integral (\<lambda>x. g (the_inv_into S f x))"
+proof -
+  interpret v: measure_space "vimage_algebra S f" "\<lambda>A. \<mu> (f ` A)"
+    using f by (rule measure_space_isomorphic)
+  show ?thesis
+    unfolding positive_integral_vimage[OF f, of "\<lambda>x. g (the_inv_into S f x)"]
+    using f[unfolded bij_betw_def]
+    by (auto intro!: v.positive_integral_cong simp: the_inv_into_f_f)
 qed
 
 lemma (in measure_space) positive_integral_SUP_approx:
@@ -901,26 +1102,25 @@ proof (rule pinfreal_le_mult_one_interval)
   have u: "\<And>x. x \<in> space M \<Longrightarrow> u -` {u x} \<inter> space M \<in> sets M"
     using `simple_function u` by (auto simp add: simple_function_def)
 
-  { fix i
-    have "(\<lambda>n. (u -` {i} \<inter> space M) \<inter> ?B n) \<up> (u -` {i} \<inter> space M)" using B_mono unfolding isoton_def
-    proof safe
-      fix x assume "x \<in> space M"
-      show "x \<in> (\<Union>i. (u -` {u x} \<inter> space M) \<inter> ?B i)"
-      proof cases
-        assume "u x = 0" thus ?thesis using `x \<in> space M` by simp
-      next
-        assume "u x \<noteq> 0"
-        with `a < 1` real `x \<in> space M`
-        have "a * u x < 1 * u x" by (rule_tac pinfreal_mult_strict_right_mono) (auto simp: image_iff)
-        also have "\<dots> \<le> (SUP i. f i x)" using le `f \<up> s`
-          unfolding isoton_fun_expand by (auto simp: isoton_def le_fun_def)
-        finally obtain i where "a * u x < f i x" unfolding SUPR_def
-          by (auto simp add: less_Sup_iff)
-        hence "a * u x \<le> f i x" by auto
-        thus ?thesis using `x \<in> space M` by auto
-      qed
-    qed auto }
-  note measure_conv = measure_up[OF u Int[OF u B] this]
+  have "\<And>i. (\<lambda>n. (u -` {i} \<inter> space M) \<inter> ?B n) \<up> (u -` {i} \<inter> space M)" using B_mono unfolding isoton_def
+  proof safe
+    fix x i assume "x \<in> space M"
+    show "x \<in> (\<Union>i. (u -` {u x} \<inter> space M) \<inter> ?B i)"
+    proof cases
+      assume "u x = 0" thus ?thesis using `x \<in> space M` by simp
+    next
+      assume "u x \<noteq> 0"
+      with `a < 1` real `x \<in> space M`
+      have "a * u x < 1 * u x" by (rule_tac pinfreal_mult_strict_right_mono) (auto simp: image_iff)
+      also have "\<dots> \<le> (SUP i. f i x)" using le `f \<up> s`
+        unfolding isoton_fun_expand by (auto simp: isoton_def le_fun_def)
+      finally obtain i where "a * u x < f i x" unfolding SUPR_def
+        by (auto simp add: less_Sup_iff)
+      hence "a * u x \<le> f i x" by auto
+      thus ?thesis using `x \<in> space M` by auto
+    qed
+  qed auto
+  note measure_conv = measure_up[OF Int[OF u B] this]
 
   have "simple_integral u = (SUP i. simple_integral (?uB i))"
     unfolding simple_integral_indicator[OF B `simple_function u`]
@@ -983,6 +1183,34 @@ next
     show "positive_integral u \<le> (SUP i. positive_integral (f i))"
       unfolding positive_integral_def[of u]
       by (auto intro!: SUP_leI positive_integral_SUP_approx[OF assms])
+  qed
+qed
+
+lemma (in measure_space) positive_integral_monotone_convergence_SUP:
+  assumes "\<And>i x. x \<in> space M \<Longrightarrow> f i x \<le> f (Suc i) x"
+  assumes "\<And>i. f i \<in> borel_measurable M"
+  shows "(SUP i. positive_integral (f i)) = positive_integral (\<lambda>x. SUP i. f i x)"
+    (is "_ = positive_integral ?u")
+proof -
+  have "?u \<in> borel_measurable M"
+    using borel_measurable_SUP[of _ f] assms by (simp add: SUPR_fun_expand)
+
+  show ?thesis
+  proof (rule antisym)
+    show "(SUP j. positive_integral (f j)) \<le> positive_integral ?u"
+      by (auto intro!: SUP_leI positive_integral_mono le_SUPI)
+  next
+    def rf \<equiv> "\<lambda>i. \<lambda>x\<in>space M. f i x" and ru \<equiv> "\<lambda>x\<in>space M. ?u x"
+    have "\<And>i. rf i \<in> borel_measurable M" unfolding rf_def
+      using assms by (simp cong: measurable_cong)
+    moreover have iso: "rf \<up> ru" using assms unfolding rf_def ru_def
+      unfolding isoton_def SUPR_fun_expand le_fun_def fun_eq_iff
+      by (auto simp: restrict_def le_fun_def SUPR_fun_expand fun_eq_iff)
+    ultimately have "positive_integral ru \<le> (SUP i. positive_integral (rf i))"
+      unfolding positive_integral_def[of ru]
+      by (auto simp: le_fun_def intro!: SUP_leI positive_integral_SUP_approx)
+    then show "positive_integral ?u \<le> (SUP i. positive_integral (f i))"
+      unfolding ru_def rf_def by (simp cong: positive_integral_cong)
   qed
 qed
 
@@ -1193,47 +1421,16 @@ proof -
 qed
 
 lemma (in measure_space) positive_integral_null_set:
-  assumes borel: "u \<in> borel_measurable M" and "N \<in> null_sets"
-  shows "positive_integral (\<lambda>x. u x * indicator N x) = 0" (is "?I = 0")
+  assumes "N \<in> null_sets" shows "positive_integral (\<lambda>x. u x * indicator N x) = 0"
 proof -
-  have "N \<in> sets M" using `N \<in> null_sets` by auto
-  have "(\<lambda>i x. min (of_nat i) (u x) * indicator N x) \<up> (\<lambda>x. u x * indicator N x)"
-    unfolding isoton_fun_expand
-  proof (safe intro!: isoton_cmult_left, unfold isoton_def, safe)
-    fix j i show "min (of_nat j) (u i) \<le> min (of_nat (Suc j)) (u i)"
-      by (rule min_max.inf_mono) auto
-  next
-    fix i show "(SUP j. min (of_nat j) (u i)) = u i"
-    proof (cases "u i")
-      case infinite
-      moreover hence "\<And>j. min (of_nat j) (u i) = of_nat j"
-        by (auto simp: min_def)
-      ultimately show ?thesis by (simp add: Sup_\<omega>)
-    next
-      case (preal r)
-      obtain j where "r \<le> of_nat j" using ex_le_of_nat ..
-      hence "u i \<le> of_nat j" using preal by (auto simp: real_of_nat_def)
-      show ?thesis
-      proof (rule pinfreal_SUPI)
-        fix y assume "\<And>j. j \<in> UNIV \<Longrightarrow> min (of_nat j) (u i) \<le> y"
-        note this[of j]
-        moreover have "min (of_nat j) (u i) = u i"
-          using `u i \<le> of_nat j` by (auto simp: min_def)
-        ultimately show "u i \<le> y" by simp
-      qed simp
-    qed
+  have "positive_integral (\<lambda>x. u x * indicator N x) = positive_integral (\<lambda>x. 0)"
+  proof (intro positive_integral_cong_AE AE_I)
+    show "{x \<in> space M. u x * indicator N x \<noteq> 0} \<subseteq> N"
+      by (auto simp: indicator_def)
+    show "\<mu> N = 0" "N \<in> sets M"
+      using assms by auto
   qed
-  from positive_integral_isoton[OF this]
-  have "?I = (SUP i. positive_integral (\<lambda>x. min (of_nat i) (u x) * indicator N x))"
-    unfolding isoton_def using borel `N \<in> sets M` by (simp add: borel_measurable_indicator)
-  also have "\<dots> \<le> (SUP i. positive_integral (\<lambda>x. of_nat i * indicator N x))"
-  proof (rule SUP_mono, rule bexI, rule positive_integral_mono)
-    fix x i show "min (of_nat i) (u x) * indicator N x \<le> of_nat i * indicator N x"
-      by (cases "x \<in> N") auto
-  qed simp
-  also have "\<dots> = 0"
-    using `N \<in> null_sets` by (simp add: positive_integral_cmult_indicator)
-  finally show ?thesis by simp
+  then show ?thesis by simp
 qed
 
 lemma (in measure_space) positive_integral_Markov_inequality:
@@ -1270,7 +1467,7 @@ proof -
   proof
     assume "\<mu> ?A = 0"
     hence "?A \<in> null_sets" using `?A \<in> sets M` by auto
-    from positive_integral_null_set[OF borel this]
+    from positive_integral_null_set[OF this]
     have "0 = positive_integral (\<lambda>x. u x * indicator ?A x)" by simp
     thus "positive_integral u = 0" unfolding u by simp
   next
@@ -1309,34 +1506,6 @@ proof -
   qed
 qed
 
-lemma (in measure_space) positive_integral_cong_on_null_sets:
-  assumes f: "f \<in> borel_measurable M" and g: "g \<in> borel_measurable M"
-  and measure: "\<mu> {x\<in>space M. f x \<noteq> g x} = 0"
-  shows "positive_integral f = positive_integral g"
-proof -
-  let ?N = "{x\<in>space M. f x \<noteq> g x}" and ?E = "{x\<in>space M. f x = g x}"
-  let "?A h x" = "h x * indicator ?E x :: pinfreal"
-  let "?B h x" = "h x * indicator ?N x :: pinfreal"
-
-  have A: "positive_integral (?A f) = positive_integral (?A g)"
-    by (auto intro!: positive_integral_cong simp: indicator_def)
-
-  have [intro]: "?N \<in> sets M" "?E \<in> sets M" using f g by auto
-  hence "?N \<in> null_sets" using measure by auto
-  hence B: "positive_integral (?B f) = positive_integral (?B g)"
-    using f g by (simp add: positive_integral_null_set)
-
-  have "positive_integral f = positive_integral (\<lambda>x. ?A f x + ?B f x)"
-    by (auto intro!: positive_integral_cong simp: indicator_def)
-  also have "\<dots> = positive_integral (?A f) + positive_integral (?B f)"
-    using f g by (auto intro!: positive_integral_add borel_measurable_indicator)
-  also have "\<dots> = positive_integral (\<lambda>x. ?A g x + ?B g x)"
-    unfolding A B using f g by (auto intro!: positive_integral_add[symmetric] borel_measurable_indicator)
-  also have "\<dots> = positive_integral g"
-    by (auto intro!: positive_integral_cong simp: indicator_def)
-  finally show ?thesis by simp
-qed
-
 lemma (in measure_space) positive_integral_restricted:
   assumes "A \<in> sets M"
   shows "measure_space.positive_integral (restricted_space A) \<mu> f = positive_integral (\<lambda>x. f x * indicator A x)"
@@ -1346,13 +1515,13 @@ proof -
   then interpret R: measure_space ?R \<mu> .
   have saR: "sigma_algebra ?R" by fact
   have *: "R.positive_integral f = R.positive_integral ?f"
-    by (auto intro!: R.positive_integral_cong)
+    by (intro R.positive_integral_cong) auto
   show ?thesis
     unfolding * R.positive_integral_def positive_integral_def
     unfolding simple_function_restricted[OF `A \<in> sets M`]
     apply (simp add: SUPR_def)
     apply (rule arg_cong[where f=Sup])
-  proof (auto simp: image_iff simple_integral_restricted[OF `A \<in> sets M`])
+  proof (auto simp add: image_iff simple_integral_restricted[OF `A \<in> sets M`])
     fix g assume "simple_function (\<lambda>x. g x * indicator A x)"
       "g \<le> f" "\<forall>x\<in>A. \<omega> \<noteq> g x"
     then show "\<exists>x. simple_function x \<and> x \<le> (\<lambda>x. f x * indicator A x) \<and> (\<forall>y\<in>space M. \<omega> \<noteq> x y) \<and>
@@ -1413,6 +1582,29 @@ lemma (in measure_space) integral_cong:
   shows "integral f = integral g"
   using assms by (simp cong: positive_integral_cong add: integral_def)
 
+lemma (in measure_space) integral_cong_measure:
+  assumes "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = \<mu> A"
+  shows "measure_space.integral M \<nu> f = integral f"
+proof -
+  interpret v: measure_space M \<nu>
+    by (rule measure_space_cong) fact
+  show ?thesis
+    unfolding integral_def v.integral_def
+    by (simp add: positive_integral_cong_measure[OF assms])
+qed
+
+lemma (in measure_space) integral_cong_AE:
+  assumes cong: "AE x. f x = g x"
+  shows "integral f = integral g"
+proof -
+  have "AE x. Real (f x) = Real (g x)"
+    using cong by (rule AE_mp) simp
+  moreover have "AE x. Real (- f x) = Real (- g x)"
+    using cong by (rule AE_mp) simp
+  ultimately show ?thesis
+    by (simp cong: positive_integral_cong_AE add: integral_def)
+qed
+
 lemma (in measure_space) integrable_cong:
   "(\<And>x. x \<in> space M \<Longrightarrow> f x = g x) \<Longrightarrow> integrable f \<longleftrightarrow> integrable g"
   by (simp cong: positive_integral_cong measurable_cong add: integrable_def)
@@ -1423,6 +1615,23 @@ lemma (in measure_space) integral_eq_positive_integral:
 proof -
   have "\<And>x. Real (- f x) = 0" using assms by simp
   thus ?thesis by (simp del: Real_eq_0 add: integral_def)
+qed
+
+lemma (in measure_space) integral_vimage_inv:
+  assumes f: "bij_betw f S (space M)"
+  shows "measure_space.integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>x. g x) = integral (\<lambda>x. g (the_inv_into S f x))"
+proof -
+  interpret v: measure_space "vimage_algebra S f" "\<lambda>A. \<mu> (f ` A)"
+    using f by (rule measure_space_isomorphic)
+  have "\<And>x. x \<in> space (vimage_algebra S f) \<Longrightarrow> the_inv_into S f (f x) = x"
+    using f[unfolded bij_betw_def] by (simp add: the_inv_into_f_f)
+  then have *: "v.positive_integral (\<lambda>x. Real (g (the_inv_into S f (f x)))) = v.positive_integral (\<lambda>x. Real (g x))"
+     "v.positive_integral (\<lambda>x. Real (- g (the_inv_into S f (f x)))) = v.positive_integral (\<lambda>x. Real (- g x))"
+    by (auto intro!: v.positive_integral_cong)
+  show ?thesis
+    unfolding integral_def v.integral_def
+    unfolding positive_integral_vimage[OF f]
+    by (simp add: *)
 qed
 
 lemma (in measure_space) integral_minus[intro, simp]:
@@ -1549,15 +1758,26 @@ proof -
   thus ?P ?I by auto
 qed
 
+lemma (in measure_space) integral_mono_AE:
+  assumes fg: "integrable f" "integrable g"
+  and mono: "AE t. f t \<le> g t"
+  shows "integral f \<le> integral g"
+proof -
+  have "AE x. Real (f x) \<le> Real (g x)"
+    using mono by (rule AE_mp) (auto intro!: AE_cong)
+  moreover have "AE x. Real (- g x) \<le> Real (- f x)" 
+    using mono by (rule AE_mp) (auto intro!: AE_cong)
+  ultimately show ?thesis using fg
+    by (auto simp: integral_def integrable_def diff_minus
+             intro!: add_mono real_of_pinfreal_mono positive_integral_mono_AE)
+qed
+
 lemma (in measure_space) integral_mono:
   assumes fg: "integrable f" "integrable g"
   and mono: "\<And>t. t \<in> space M \<Longrightarrow> f t \<le> g t"
   shows "integral f \<le> integral g"
-  using fg unfolding integral_def integrable_def diff_minus
-proof (safe intro!: add_mono real_of_pinfreal_mono le_imp_neg_le positive_integral_mono)
-  fix x assume "x \<in> space M" from mono[OF this]
-  show "Real (f x) \<le> Real (g x)" "Real (- g x) \<le> Real (- f x)" by auto
-qed
+  apply (rule integral_mono_AE[OF fg])
+  using mono by (rule AE_cong) auto
 
 lemma (in measure_space) integral_diff[simp, intro]:
   assumes f: "integrable f" and g: "integrable g"
@@ -1794,6 +2014,29 @@ proof -
   from positive_integral_0_iff[OF this(1)] this(2)
   show ?thesis unfolding integral_def *
     by (simp add: real_of_pinfreal_eq_0)
+qed
+
+lemma (in measure_space) positive_integral_omega:
+  assumes "f \<in> borel_measurable M"
+  and "positive_integral f \<noteq> \<omega>"
+  shows "\<mu> (f -` {\<omega>} \<inter> space M) = 0"
+proof -
+  have "\<omega> * \<mu> (f -` {\<omega>} \<inter> space M) = positive_integral (\<lambda>x. \<omega> * indicator (f -` {\<omega>} \<inter> space M) x)"
+    using positive_integral_cmult_indicator[OF borel_measurable_vimage, OF assms(1), of \<omega> \<omega>] by simp
+  also have "\<dots> \<le> positive_integral f"
+    by (auto intro!: positive_integral_mono simp: indicator_def)
+  finally show ?thesis
+    using assms(2) by (cases ?thesis) auto
+qed
+
+lemma (in measure_space) simple_integral_omega:
+  assumes "simple_function f"
+  and "simple_integral f \<noteq> \<omega>"
+  shows "\<mu> (f -` {\<omega>} \<inter> space M) = 0"
+proof (rule positive_integral_omega)
+  show "f \<in> borel_measurable M" using assms by (auto intro: borel_measurable_simple_function)
+  show "positive_integral f \<noteq> \<omega>"
+    using assms by (simp add: positive_integral_eq_simple_integral)
 qed
 
 lemma (in measure_space) integral_dominated_convergence:
