@@ -397,6 +397,12 @@ next
     by (auto intro: sigma_sets.Empty sigma_sets_top)
 qed
 
+lemma (in sigma_algebra) sets_sigma_subset:
+  assumes "space N = space M"
+  assumes "sets N \<subseteq> sets M"
+  shows "sets (sigma N) \<subseteq> sets M"
+  by (unfold assms sets_sigma, rule sigma_sets_subset, rule assms)
+
 section {* Measurable functions *}
 
 definition
@@ -1148,7 +1154,6 @@ proof -
 qed
 
 section {* Dynkin systems *}
-
 
 locale dynkin_system =
   fixes M :: "'a algebra"
