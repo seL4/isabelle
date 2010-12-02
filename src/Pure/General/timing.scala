@@ -14,6 +14,10 @@ object Time
 class Time(val ms: Long)
 {
   def seconds: Double = ms / 1000.0
+
+  def min(t: Time): Time = if (ms < t.ms) this else t
+  def max(t: Time): Time = if (ms > t.ms) this else t
+
   override def toString =
     String.format(java.util.Locale.ROOT, "%.3f", seconds.asInstanceOf[AnyRef])
   def message: String = toString + "s"

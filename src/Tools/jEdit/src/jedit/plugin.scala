@@ -121,7 +121,7 @@ object Isabelle
       HTML.encode(text) + "</pre></html>"
 
   def tooltip_dismiss_delay(): Time =
-    Time_Property("tooltip-dismiss-delay", Time.seconds(8.0))
+    Time_Property("tooltip-dismiss-delay", Time.seconds(8.0)) max Time.seconds(0.5)
 
   def setup_tooltips()
   {
@@ -230,7 +230,7 @@ object Isabelle
 
   def start_session()
   {
-    val timeout = Time_Property("startup-timeout", Time.seconds(10))
+    val timeout = Time_Property("startup-timeout", Time.seconds(10)) max Time.seconds(5)
     val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
     val logic = {
       val logic = Property("logic")
