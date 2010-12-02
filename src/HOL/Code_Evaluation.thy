@@ -153,7 +153,7 @@ lemma (in term_syntax) term_of_nat_code [code]:
   by (simp only: term_of_anything)
 
 lemma (in term_syntax) term_of_code_numeral_code [code]:
-  "term_of (k::code_numeral) = termify (number_of :: int \<Rightarrow> code_numeral) <\<cdot>> term_of_num (2::code_numeral) k"
+  "term_of (k::code_numeral) = termify (number_of :: int \<Rightarrow> code_numeral) <\<cdot>> term_of_num_semiring (2::code_numeral) k"
   by (simp only: term_of_anything)
 
 definition term_of_num_ring :: "'a\<Colon>ring_div \<Rightarrow> 'a \<Rightarrow> term" where
