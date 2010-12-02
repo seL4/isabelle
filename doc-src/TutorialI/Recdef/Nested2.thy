@@ -30,7 +30,7 @@ by(simp_all add: rev_map sym[OF map_compose] cong: map_cong)
 text{*\noindent
 If the proof of the induction step mystifies you, we recommend that you go through
 the chain of simplification steps in detail; you will probably need the help of
-@{text"trace_simp"}. Theorem @{thm[source]map_cong} is discussed below.
+@{text"simp_trace"}. Theorem @{thm[source]map_cong} is discussed below.
 %\begin{quote}
 %{term[display]"trev(trev(App f ts))"}\\
 %{term[display]"App f (rev(map trev (rev(map trev ts))))"}\\

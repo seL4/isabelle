@@ -16,8 +16,7 @@ subsection {* Abstract syntax and semantics *}
 text {* The following abstract syntax and semantics of Hoare Logic
   over \texttt{WHILE} programs closely follows the existing tradition
   in Isabelle/HOL of formalizing the presentation given in
-  \cite[\S6]{Winskel:1993}.  See also
-  \url{http://isabelle.in.tum.de/library/Hoare/} and
+  \cite[\S6]{Winskel:1993}.  See also @{file "~~/src/HOL/Hoare"} and
   \cite{Nipkow:1998:Winskel}. *}
 
 types
@@ -364,7 +363,7 @@ subsection {* Verification conditions \label{sec:hoare-vcg} *}
 
 text {* We now load the \emph{original} ML file for proof scripts and
   tactic definition for the Hoare Verification Condition Generator
-  (see \url{http://isabelle.in.tum.de/library/Hoare/}).  As far as we
+  (see @{file "~~/src/HOL/Hoare/"}).  As far as we
   are concerned here, the result is a proof method \name{hoare}, which
   may be applied to a Hoare Logic assertion to extract purely logical
   verification conditions.  It is important to note that the method

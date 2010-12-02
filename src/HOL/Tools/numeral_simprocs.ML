@@ -764,7 +764,7 @@ Addsimprocs [Numeral_Simprocs.assoc_fold_simproc];
 (*examples:
 print_depth 22;
 set timing;
-set trace_simp;
+set simp_trace;
 fun test s = (Goal s, by (Simp_tac 1));
 
 test "l + 2 + 2 + 2 + (l + 2) + (oo + 2) = (uu::int)";
@@ -803,7 +803,7 @@ Addsimprocs Numeral_Simprocs.cancel_numeral_factors;
 (*examples:
 print_depth 22;
 set timing;
-set trace_simp;
+set simp_trace;
 fun test s = (Goal s; by (Simp_tac 1));
 
 test "9*x = 12 * (y::int)";
@@ -873,7 +873,7 @@ Addsimprocs Numeral_Simprocs.cancel_factors;
 (*examples:
 print_depth 22;
 set timing;
-set trace_simp;
+set simp_trace;
 fun test s = (Goal s; by (Asm_simp_tac 1));
 
 test "x*k = k*(y::int)";
@@ -890,7 +890,7 @@ test "(a*(b*c)) div (d*(b::int)*(x*a)) = (uu::int)";
 (*And the same examples for fields such as rat or real:
 print_depth 22;
 set timing;
-set trace_simp;
+set simp_trace;
 fun test s = (Goal s; by (Asm_simp_tac 1));
 
 test "x*k = k*(y::rat)";

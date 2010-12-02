@@ -99,6 +99,7 @@ text {*
     @{index_ML show_types: "bool Config.T"} & default @{ML false} \\
     @{index_ML show_sorts: "bool Config.T"} & default @{ML false} \\
     @{index_ML show_consts: "bool Config.T"} & default @{ML false} \\
+    @{index_ML show_abbrevs: "bool Config.T"} & default @{ML true} \\
     @{index_ML long_names: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML short_names: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML unique_names: "bool Unsynchronized.ref"} & default @{ML true} \\
@@ -140,6 +141,8 @@ text {*
 
   Note that the output can be enormous, because polymorphic constants
   often occur at several different type instances.
+
+  \item @{ML show_abbrevs} controls folding of constant abbreviations.
 
   \item @{ML long_names}, @{ML short_names}, and @{ML unique_names}
   control the way of printing fully qualified internal names in

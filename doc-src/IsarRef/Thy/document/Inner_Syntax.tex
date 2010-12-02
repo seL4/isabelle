@@ -121,6 +121,7 @@
     \indexdef{}{ML}{show\_types}\verb|show_types: bool Config.T| & default \verb|false| \\
     \indexdef{}{ML}{show\_sorts}\verb|show_sorts: bool Config.T| & default \verb|false| \\
     \indexdef{}{ML}{show\_consts}\verb|show_consts: bool Config.T| & default \verb|false| \\
+    \indexdef{}{ML}{show\_abbrevs}\verb|show_abbrevs: bool Config.T| & default \verb|true| \\
     \indexdef{}{ML}{long\_names}\verb|long_names: bool Unsynchronized.ref| & default \verb|false| \\
     \indexdef{}{ML}{short\_names}\verb|short_names: bool Unsynchronized.ref| & default \verb|false| \\
     \indexdef{}{ML}{unique\_names}\verb|unique_names: bool Unsynchronized.ref| & default \verb|true| \\
@@ -161,6 +162,8 @@
 
   Note that the output can be enormous, because polymorphic constants
   often occur at several different type instances.
+
+  \item \verb|show_abbrevs| controls folding of constant abbreviations.
 
   \item \verb|long_names|, \verb|short_names|, and \verb|unique_names|
   control the way of printing fully qualified internal names in

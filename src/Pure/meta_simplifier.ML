@@ -11,12 +11,12 @@ infix 4
 
 signature BASIC_META_SIMPLIFIER =
 sig
-  val debug_simp: bool Config.T
-  val debug_simp_raw: Config.raw
-  val trace_simp: bool Config.T
-  val trace_simp_raw: Config.raw
-  val trace_simp_default: bool Unsynchronized.ref
-  val trace_simp_depth_limit: int Unsynchronized.ref
+  val simp_debug: bool Config.T
+  val simp_debug_raw: Config.raw
+  val simp_trace: bool Config.T
+  val simp_trace_raw: Config.raw
+  val simp_trace_default: bool Unsynchronized.ref
+  val simp_trace_depth_limit: int Unsynchronized.ref
   type rrule
   val eq_rrule: rrule * rrule -> bool
   type simpset
@@ -253,18 +253,18 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
 val simp_depth_limit_raw = Config.declare "simp_depth_limit" (K (Config.Int 100));
 val simp_depth_limit = Config.int simp_depth_limit_raw;
 
-val trace_simp_depth_limit = Unsynchronized.ref 1;
+val simp_trace_depth_limit = Unsynchronized.ref 1;
 
 fun trace_depth (Simpset ({depth = (depth, exceeded), ...}, _)) msg =
-  if depth > ! trace_simp_depth_limit then
-    if ! exceeded then () else (tracing "trace_simp_depth_limit exceeded!"; exceeded := true)
+  if depth > ! simp_trace_depth_limit then
+    if ! exceeded then () else (tracing "simp_trace_depth_limit exceeded!"; exceeded := true)
   else
     (tracing (enclose "[" "]" (string_of_int depth) ^ msg); exceeded := false);
 
 val inc_simp_depth = map_simpset1 (fn (rules, prems, bounds, (depth, exceeded), context) =>
   (rules, prems, bounds,
     (depth + 1,
-      if depth = ! trace_simp_depth_limit then Unsynchronized.ref false else exceeded), context));
+      if depth = ! simp_trace_depth_limit then Unsynchronized.ref false else exceeded), context));
 
 fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
@@ -273,12 +273,12 @@ fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
 exception SIMPLIFIER of string * thm;
 
-val debug_simp_raw = Config.declare "debug_simp" (K (Config.Bool false));
-val debug_simp = Config.bool debug_simp_raw;
+val simp_debug_raw = Config.declare "simp_debug" (K (Config.Bool false));
+val simp_debug = Config.bool simp_debug_raw;
 
-val trace_simp_default = Unsynchronized.ref false;
-val trace_simp_raw = Config.declare "trace_simp" (fn _ => Config.Bool (! trace_simp_default));
-val trace_simp = Config.bool trace_simp_raw;
+val simp_trace_default = Unsynchronized.ref false;
+val simp_trace_raw = Config.declare "simp_trace" (fn _ => Config.Bool (! simp_trace_default));
+val simp_trace = Config.bool simp_trace_raw;
 
 fun if_enabled (Simpset ({context, ...}, _)) flag f =
   (case context of
@@ -303,27 +303,27 @@ fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
 
 fun print_term ss warn a t ctxt = prnt ss warn (a () ^ "\n" ^
   Syntax.string_of_term ctxt
-    (if Config.get ctxt debug_simp then t else show_bounds ss t));
+    (if Config.get ctxt simp_debug then t else show_bounds ss t));
 
 in
 
 fun print_term_global ss warn a thy t =
   print_term ss warn (K a) t (ProofContext.init_global thy);
 
-fun debug warn a ss = if_enabled ss debug_simp (fn _ => prnt ss warn (a ()));
-fun trace warn a ss = if_enabled ss trace_simp (fn _ => prnt ss warn (a ()));
+fun debug warn a ss = if_enabled ss simp_debug (fn _ => prnt ss warn (a ()));
+fun trace warn a ss = if_enabled ss simp_trace (fn _ => prnt ss warn (a ()));
 
-fun debug_term warn a ss t = if_enabled ss debug_simp (print_term ss warn a t);
-fun trace_term warn a ss t = if_enabled ss trace_simp (print_term ss warn a t);
+fun debug_term warn a ss t = if_enabled ss simp_debug (print_term ss warn a t);
+fun trace_term warn a ss t = if_enabled ss simp_trace (print_term ss warn a t);
 
 fun trace_cterm warn a ss ct =
-  if_enabled ss trace_simp (print_term ss warn a (Thm.term_of ct));
+  if_enabled ss simp_trace (print_term ss warn a (Thm.term_of ct));
 
 fun trace_thm a ss th =
-  if_enabled ss trace_simp (print_term ss false a (Thm.full_prop_of th));
+  if_enabled ss simp_trace (print_term ss false a (Thm.full_prop_of th));
 
 fun trace_named_thm a ss (th, name) =
-  if_enabled ss trace_simp (print_term ss false
+  if_enabled ss simp_trace (print_term ss false
     (fn () => if name = "" then a () else a () ^ " " ^ quote name ^ ":")
     (Thm.full_prop_of th));
 

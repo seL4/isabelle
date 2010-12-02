@@ -446,7 +446,7 @@ Addsimprocs Nat_Numeral_Simprocs.cancel_factor;
 (*examples:
 print_depth 22;
 set timing;
-set trace_simp;
+set simp_trace;
 fun test s = (Goal s; by (Simp_tac 1));
 
 (*cancel_numerals*)
