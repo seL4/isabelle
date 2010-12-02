@@ -43,19 +43,14 @@ definition (in sigma_algebra) "simple_function g \<longleftrightarrow>
 
 lemma (in sigma_algebra) simple_functionD:
   assumes "simple_function g"
-  shows "finite (g ` space M)" and "g -` {x} \<inter> space M \<in> sets M"
+  shows "finite (g ` space M)" and "g -` X \<inter> space M \<in> sets M"
 proof -
   show "finite (g ` space M)"
     using assms unfolding simple_function_def by auto
-  show "g -` {x} \<inter> space M \<in> sets M"
-  proof cases
-    assume "x \<in> g`space M" then show ?thesis
-      using assms unfolding simple_function_def by auto
-  next
-    assume "x \<notin> g`space M"
-    then have "g -` {x} \<inter> space M = {}" by auto
-    then show ?thesis by auto
-  qed
+  have "g -` X \<inter> space M = g -` (X \<inter> g`space M) \<inter> space M" by auto
+  also have "\<dots> = (\<Union>x\<in>X \<inter> g`space M. g-`{x} \<inter> space M)" by auto
+  finally show "g -` X \<inter> space M \<in> sets M" using assms
+    by (auto intro!: finite_UN simp del: UN_simps simp: simple_function_def)
 qed
 
 lemma (in sigma_algebra) simple_function_indicator_representation:
@@ -2309,7 +2304,7 @@ proof -
 qed
 
 lemma (in finite_measure_space) simple_function_finite[simp, intro]: "simple_function f"
-  unfolding simple_function_def sets_eq_Pow using finite_space by auto
+  unfolding simple_function_def using finite_space by auto
 
 lemma (in finite_measure_space) borel_measurable_finite[intro, simp]: "f \<in> borel_measurable M"
   by (auto intro: borel_measurable_simple_function)
@@ -2320,7 +2315,7 @@ proof -
   have *: "positive_integral f = positive_integral (\<lambda>x. \<Sum>y\<in>space M. f y * indicator {y} x)"
     by (auto intro!: positive_integral_cong simp add: indicator_def if_distrib setsum_cases[OF finite_space])
   show ?thesis unfolding * using borel_measurable_finite[of f]
-    by (simp add: positive_integral_setsum positive_integral_cmult_indicator sets_eq_Pow)
+    by (simp add: positive_integral_setsum positive_integral_cmult_indicator)
 qed
 
 lemma (in finite_measure_space) integral_finite_singleton:
@@ -2332,9 +2327,9 @@ proof -
     "positive_integral (\<lambda>x. Real (- f x)) = (\<Sum>x \<in> space M. Real (- f x) * \<mu> {x})"
     unfolding positive_integral_finite_eq_setsum by auto
   show "integrable f" using finite_space finite_measure
-    by (simp add: setsum_\<omega> integrable_def sets_eq_Pow)
+    by (simp add: setsum_\<omega> integrable_def)
   show ?I using finite_measure
-    apply (simp add: integral_def sets_eq_Pow real_of_pinfreal_setsum[symmetric]
+    apply (simp add: integral_def real_of_pinfreal_setsum[symmetric]
       real_of_pinfreal_mult[symmetric] setsum_subtractf[symmetric])
     by (rule setsum_cong) (simp_all split: split_if)
 qed
