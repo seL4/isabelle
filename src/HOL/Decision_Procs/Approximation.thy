@@ -3,7 +3,7 @@
 
 header {* Prove Real Valued Inequalities by Computation *}
 
-theory Approximation_coercion
+theory Approximation
 imports Complex_Main Float Reflection "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Efficient_Nat
 begin
 
