@@ -73,7 +73,7 @@ by (rule finite_deflation_imp_compact)
 subsection {* Defining algebraic deflations by ideal completion *}
 
 typedef (open) defl = "{S::fin_defl set. below.ideal S}"
-by (fast intro: below.ideal_principal)
+by (rule below.ex_ideal)
 
 instantiation defl :: below
 begin

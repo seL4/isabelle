@@ -76,7 +76,7 @@ subsection {* Type definition *}
 
 typedef (open) 'a lower_pd =
   "{S::'a pd_basis set. lower_le.ideal S}"
-by (fast intro: lower_le.ideal_principal)
+by (rule lower_le.ex_ideal)
 
 instantiation lower_pd :: ("domain") below
 begin

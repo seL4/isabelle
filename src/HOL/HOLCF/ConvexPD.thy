@@ -121,7 +121,7 @@ subsection {* Type definition *}
 
 typedef (open) 'a convex_pd =
   "{S::'a pd_basis set. convex_le.ideal S}"
-by (fast intro: convex_le.ideal_principal)
+by (rule convex_le.ex_ideal)
 
 instantiation convex_pd :: ("domain") below
 begin

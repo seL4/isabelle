@@ -49,8 +49,8 @@ apply (fast intro: r_refl)
 apply (fast intro: r_trans)
 done
 
-lemma ex_ideal: "\<exists>A. ideal A"
-by (rule exI, rule ideal_principal)
+lemma ex_ideal: "\<exists>A. A \<in> {A. ideal A}"
+by (fast intro: ideal_principal)
 
 lemma lub_image_principal:
   assumes f: "\<And>x y. x \<preceq> y \<Longrightarrow> f x \<sqsubseteq> f y"

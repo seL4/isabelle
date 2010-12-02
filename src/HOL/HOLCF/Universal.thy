@@ -199,7 +199,7 @@ done
 subsection {* Defining the universal domain by ideal completion *}
 
 typedef (open) udom = "{S. udom.ideal S}"
-by (fast intro: udom.ideal_principal)
+by (rule udom.ex_ideal)
 
 instantiation udom :: below
 begin
