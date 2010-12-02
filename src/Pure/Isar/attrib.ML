@@ -405,6 +405,7 @@ val _ = Context.>> (Context.map_theory
   register_config Syntax.show_question_marks_raw #>
   register_config Syntax.ambiguity_level_raw #>
   register_config Syntax.eta_contract_raw #>
+  register_config ProofContext.show_abbrevs_raw #>
   register_config Goal_Display.goals_limit_raw #>
   register_config Goal_Display.show_main_goal_raw #>
   register_config Goal_Display.show_consts_raw #>

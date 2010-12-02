@@ -34,8 +34,8 @@ files exclusively use the .ML extension.  Minor INCOMPATIBILTY.
 
 * Various options that affect pretty printing etc. are now properly
 handled within the context via configuration options, instead of
-unsynchronized references.  There are both ML Config.T entities and
-Isar declaration attributes to access these.
+unsynchronized references or print modes.  There are both ML Config.T
+entities and Isar declaration attributes to access these.
 
   ML (Config.T)                 Isar (attribute)
 
@@ -45,6 +45,7 @@ Isar declaration attributes to access these.
   show_types                    show_types
   show_question_marks           show_question_marks
   show_consts                   show_consts
+  show_abbrevs                  show_abbrevs
 
   Syntax.ambiguity_level        syntax_ambiguity_level
 
@@ -59,6 +60,8 @@ Isar declaration attributes to access these.
 
 Note that corresponding "..._default" references in ML may be only
 changed globally at the ROOT session setup, but *not* within a theory.
+The option "show_abbrevs" supersedes the former print mode
+"no_abbrevs" with inverted meaning.
 
 * More systematic naming of some configuration options.
   INCOMPATIBILTY.

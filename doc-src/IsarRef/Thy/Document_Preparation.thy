@@ -339,6 +339,9 @@ text {* The following options are available to tune the printed output
   \item @{antiquotation_option_def show_structs}~@{text "= bool"}
   controls printing of implicit structures.
 
+  \item @{antiquotation_option_def show_abbrevs}~@{text "= bool"}
+  controls folding of abbreviations.
+
   \item @{antiquotation_option_def long_names}~@{text "= bool"} forces
   names of types and constants etc.\ to be printed in their fully
   qualified internal form.
