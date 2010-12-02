@@ -685,11 +685,11 @@ fun infer_types ctxt const_type var_type raw_ts =
                 raise TYPE_INFERENCE_ERROR (err_appl_msg ctxt msg tye' bs t T u U);
           in (tu, V, tye_idx'') end;
 
-    fun infer_single t (ts, tye_idx) = 
+    fun infer_single t tye_idx = 
       let val (t, _, tye_idx') = inf [] t tye_idx;
-      in (ts @ [t], tye_idx') end;
+      in (t, tye_idx') end;
       
-    val (ts', (tye, _)) = (fold infer_single ts ([], (Vartab.empty, idx))
+    val (ts', (tye, _)) = (fold_map infer_single ts (Vartab.empty, idx)
       handle TYPE_INFERENCE_ERROR err =>     
         let
           fun gen_single t (tye_idx, constraints) =
