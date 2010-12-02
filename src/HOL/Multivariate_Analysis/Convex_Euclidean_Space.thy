@@ -313,7 +313,7 @@ lemma fst_linear: "linear fst" unfolding linear_def by (simp add: algebra_simps)
 
 lemma snd_linear: "linear snd" unfolding linear_def by (simp add: algebra_simps)
 
-lemma fst_snd_linear: "linear (%z. fst z + snd z)" unfolding linear_def by (simp add: algebra_simps)
+lemma fst_snd_linear: "linear (%(x,y). x + y)" unfolding linear_def by (simp add: algebra_simps)
 
 lemma scaleR_2:
   fixes x :: "'a::real_vector"
@@ -5451,11 +5451,11 @@ fixes S T :: "('n::euclidean_space) set"
 shows "convex hull (S \<oplus> T) = (convex hull S) \<oplus> (convex hull T)"
 proof-
 have "(convex hull S) \<oplus> (convex hull T) =
-      (%z. fst z + snd z) ` ((convex hull S) <*> (convex hull T))"
+      (%(x,y). x + y) ` ((convex hull S) <*> (convex hull T))"
    by (simp add: set_plus_image)
-also have "... = (%z. fst z + snd z) ` (convex hull (S <*> T))" using convex_hull_direct_sum by auto
+also have "... = (%(x,y). x + y) ` (convex hull (S <*> T))" using convex_hull_direct_sum by auto
 also have "...= convex hull (S \<oplus> T)" using fst_snd_linear linear_conv_bounded_linear
-   convex_hull_linear_image[of "(%z. fst z + snd z)" "S <*> T"] by (auto simp add: set_plus_image)
+   convex_hull_linear_image[of "(%(x,y). x + y)" "S <*> T"] by (auto simp add: set_plus_image)
 finally show ?thesis by auto
 qed
 
@@ -5464,11 +5464,11 @@ fixes S T :: "('n::euclidean_space) set"
 assumes "convex S" "convex T"
 shows "rel_interior (S \<oplus> T) = (rel_interior S) \<oplus> (rel_interior T)"
 proof-
-have "(rel_interior S) \<oplus> (rel_interior T) = (%z. fst z + snd z) ` (rel_interior S <*> rel_interior T)"
+have "(rel_interior S) \<oplus> (rel_interior T) = (%(x,y). x + y) ` (rel_interior S <*> rel_interior T)"
    by (simp add: set_plus_image)
-also have "... = (%z. fst z + snd z) ` rel_interior (S <*> T)" using rel_interior_direct_sum assms by auto
+also have "... = (%(x,y). x + y) ` rel_interior (S <*> T)" using rel_interior_direct_sum assms by auto
 also have "...= rel_interior (S \<oplus> T)" using fst_snd_linear convex_direct_sum assms
-   rel_interior_convex_linear_image[of "(%z. fst z + snd z)" "S <*> T"] by (auto simp add: set_plus_image)
+   rel_interior_convex_linear_image[of "(%(x,y). x + y)" "S <*> T"] by (auto simp add: set_plus_image)
 finally show ?thesis by auto
 qed
 
