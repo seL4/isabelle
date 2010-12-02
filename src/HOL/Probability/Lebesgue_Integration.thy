@@ -848,52 +848,13 @@ qed
 section "Continuous posititve integration"
 
 definition (in measure_space)
-  "positive_integral f =
-    SUPR {g. simple_function g \<and> g \<le> f \<and> \<omega> \<notin> g`space M} simple_integral"
-
-lemma (in measure_space) positive_integral_cong_measure:
-  assumes "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = \<mu> A"
-  shows "measure_space.positive_integral M \<nu> f = positive_integral f"
-proof -
-  interpret v: measure_space M \<nu>
-    by (rule measure_space_cong) fact
-  with assms show ?thesis
-    unfolding positive_integral_def v.positive_integral_def SUPR_def
-    by (auto intro!: arg_cong[where f=Sup] image_cong
-             simp: simple_integral_cong_measure[of \<nu>])
-qed
-
-lemma (in measure_space) positive_integral_alt1:
-  "positive_integral f =
-    (SUP g : {g. simple_function g \<and> (\<forall>x\<in>space M. g x \<le> f x \<and> g x \<noteq> \<omega>)}. simple_integral g)"
-  unfolding positive_integral_def SUPR_def
-proof (safe intro!: arg_cong[where f=Sup])
-  fix g let ?g = "\<lambda>x. if x \<in> space M then g x else f x"
-  assume "simple_function g" "\<forall>x\<in>space M. g x \<le> f x \<and> g x \<noteq> \<omega>"
-  hence "?g \<le> f" "simple_function ?g" "simple_integral g = simple_integral ?g"
-    "\<omega> \<notin> g`space M"
-    unfolding le_fun_def by (auto cong: simple_function_cong simple_integral_cong)
-  thus "simple_integral g \<in> simple_integral ` {g. simple_function g \<and> g \<le> f \<and> \<omega> \<notin> g`space M}"
-    by auto
-next
-  fix g assume "simple_function g" "g \<le> f" "\<omega> \<notin> g`space M"
-  hence "simple_function g" "\<forall>x\<in>space M. g x \<le> f x \<and> g x \<noteq> \<omega>"
-    by (auto simp add: le_fun_def image_iff)
-  thus "simple_integral g \<in> simple_integral ` {g. simple_function g \<and> (\<forall>x\<in>space M. g x \<le> f x \<and> g x \<noteq> \<omega>)}"
-    by auto
-qed
-
-lemma image_set_cong:
-  assumes A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y\<in>B. f x = g y"
-  assumes B: "\<And>y. y \<in> B \<Longrightarrow> \<exists>x\<in>A. g y = f x"
-  shows "f ` A = g ` B"
-  using assms by blast
+  "positive_integral f = SUPR {g. simple_function g \<and> g \<le> f} simple_integral"
 
 lemma (in measure_space) positive_integral_alt:
   "positive_integral f =
-    (SUP g : {g. simple_function g \<and> g \<le> f}. simple_integral g)" (is "_ = ?alt")
+    (SUPR {g. simple_function g \<and> g \<le> f \<and> \<omega> \<notin> g`space M} simple_integral)" (is "_ = ?alt")
 proof (rule antisym SUP_leI)
-  show "?alt \<le> positive_integral f" unfolding positive_integral_def
+  show "positive_integral f \<le> ?alt" unfolding positive_integral_def
   proof (safe intro!: SUP_leI)
     fix g assume g: "simple_function g" "g \<le> f"
     let ?G = "g -` {\<omega>} \<inter> space M"
@@ -949,6 +910,38 @@ proof (rule antisym SUP_leI)
   qed
 qed (auto intro!: SUP_subset simp: positive_integral_def)
 
+lemma (in measure_space) positive_integral_cong_measure:
+  assumes "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = \<mu> A"
+  shows "measure_space.positive_integral M \<nu> f = positive_integral f"
+proof -
+  interpret v: measure_space M \<nu>
+    by (rule measure_space_cong) fact
+  with assms show ?thesis
+    unfolding positive_integral_def v.positive_integral_def SUPR_def
+    by (auto intro!: arg_cong[where f=Sup] image_cong
+             simp: simple_integral_cong_measure[of \<nu>])
+qed
+
+lemma (in measure_space) positive_integral_alt1:
+  "positive_integral f =
+    (SUP g : {g. simple_function g \<and> (\<forall>x\<in>space M. g x \<le> f x \<and> g x \<noteq> \<omega>)}. simple_integral g)"
+  unfolding positive_integral_alt SUPR_def
+proof (safe intro!: arg_cong[where f=Sup])
+  fix g let ?g = "\<lambda>x. if x \<in> space M then g x else f x"
+  assume "simple_function g" "\<forall>x\<in>space M. g x \<le> f x \<and> g x \<noteq> \<omega>"
+  hence "?g \<le> f" "simple_function ?g" "simple_integral g = simple_integral ?g"
+    "\<omega> \<notin> g`space M"
+    unfolding le_fun_def by (auto cong: simple_function_cong simple_integral_cong)
+  thus "simple_integral g \<in> simple_integral ` {g. simple_function g \<and> g \<le> f \<and> \<omega> \<notin> g`space M}"
+    by auto
+next
+  fix g assume "simple_function g" "g \<le> f" "\<omega> \<notin> g`space M"
+  hence "simple_function g" "\<forall>x\<in>space M. g x \<le> f x \<and> g x \<noteq> \<omega>"
+    by (auto simp add: le_fun_def image_iff)
+  thus "simple_integral g \<in> simple_integral ` {g. simple_function g \<and> (\<forall>x\<in>space M. g x \<le> f x \<and> g x \<noteq> \<omega>)}"
+    by auto
+qed
+
 lemma (in measure_space) positive_integral_cong:
   assumes "\<And>x. x \<in> space M \<Longrightarrow> f x = g x"
   shows "positive_integral f = positive_integral g"
@@ -961,7 +954,7 @@ qed
 lemma (in measure_space) positive_integral_eq_simple_integral:
   assumes "simple_function f"
   shows "positive_integral f = simple_integral f"
-  unfolding positive_integral_alt
+  unfolding positive_integral_def
 proof (safe intro!: pinfreal_SUPI)
   fix g assume "simple_function g" "g \<le> f"
   with assms show "simple_integral g \<le> simple_integral f"
@@ -1022,6 +1015,12 @@ lemma (in measure_space) positive_integral_mono:
   shows "positive_integral u \<le> positive_integral v"
   using mono by (auto intro!: AE_cong positive_integral_mono_AE)
 
+lemma image_set_cong:
+  assumes A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y\<in>B. f x = g y"
+  assumes B: "\<And>y. y \<in> B \<Longrightarrow> \<exists>x\<in>A. g y = f x"
+  shows "f ` A = g ` B"
+  using assms by blast
+
 lemma (in measure_space) positive_integral_vimage:
   fixes g :: "'a \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
   assumes f: "bij_betw f S (space M)"
@@ -1034,17 +1033,14 @@ proof -
   from assms have inv: "bij_betw (the_inv_into S f) (space M) S"
     by (rule bij_betw_the_inv_into)
   then have inv_fun: "the_inv_into S f \<in> space M \<rightarrow> S" unfolding bij_betw_def by auto
-
   have surj: "f`S = space M"
     using f unfolding bij_betw_def by simp
   have inj: "inj_on f S"
     using f unfolding bij_betw_def by simp
   have inv_f: "\<And>x. x \<in> space M \<Longrightarrow> f (the_inv_into S f x) = x"
     using f_the_inv_into_f[of f S] f unfolding bij_betw_def by auto
-
   from simple_integral_vimage[OF assms, symmetric]
   have *: "simple_integral = T.simple_integral \<circ> (\<lambda>g. g \<circ> f)" by (simp add: comp_def)
-
   show ?thesis
     unfolding positive_integral_alt1 T.positive_integral_alt1 SUPR_def * image_compose
   proof (safe intro!: arg_cong[where f=Sup] image_set_cong, simp_all add: comp_def)
@@ -1196,7 +1192,7 @@ next
       by (auto intro!: SUP_leI positive_integral_mono)
   next
     show "positive_integral u \<le> (SUP i. positive_integral (f i))"
-      unfolding positive_integral_def[of u]
+      unfolding positive_integral_alt[of u]
       by (auto intro!: SUP_leI positive_integral_SUP_approx[OF assms])
   qed
 qed
@@ -1209,7 +1205,6 @@ lemma (in measure_space) positive_integral_monotone_convergence_SUP:
 proof -
   have "?u \<in> borel_measurable M"
     using borel_measurable_SUP[of _ f] assms by (simp add: SUPR_fun_expand)
-
   show ?thesis
   proof (rule antisym)
     show "(SUP j. positive_integral (f j)) \<le> positive_integral ?u"
@@ -1223,7 +1218,7 @@ proof -
       using SUP_const[OF UNIV_not_empty]
       by (auto simp: restrict_def le_fun_def SUPR_fun_expand fun_eq_iff)
     ultimately have "positive_integral ru \<le> (SUP i. positive_integral (rf i))"
-      unfolding positive_integral_def[of ru]
+      unfolding positive_integral_alt[of ru]
       by (auto simp: le_fun_def intro!: SUP_leI positive_integral_SUP_approx)
     then show "positive_integral ?u \<le> (SUP i. positive_integral (f i))"
       unfolding ru_def rf_def by (simp cong: positive_integral_cong)
@@ -1539,19 +1534,18 @@ proof -
     apply (rule arg_cong[where f=Sup])
   proof (auto simp add: image_iff simple_integral_restricted[OF `A \<in> sets M`])
     fix g assume "simple_function (\<lambda>x. g x * indicator A x)"
-      "g \<le> f" "\<forall>x\<in>A. \<omega> \<noteq> g x"
-    then show "\<exists>x. simple_function x \<and> x \<le> (\<lambda>x. f x * indicator A x) \<and> (\<forall>y\<in>space M. \<omega> \<noteq> x y) \<and>
+      "g \<le> f"
+    then show "\<exists>x. simple_function x \<and> x \<le> (\<lambda>x. f x * indicator A x) \<and>
       simple_integral (\<lambda>x. g x * indicator A x) = simple_integral x"
       apply (rule_tac exI[of _ "\<lambda>x. g x * indicator A x"])
       by (auto simp: indicator_def le_fun_def)
   next
     fix g assume g: "simple_function g" "g \<le> (\<lambda>x. f x * indicator A x)"
-      "\<forall>x\<in>space M. \<omega> \<noteq> g x"
     then have *: "(\<lambda>x. g x * indicator A x) = g"
       "\<And>x. g x * indicator A x = g x"
       "\<And>x. g x \<le> f x"
       by (auto simp: le_fun_def fun_eq_iff indicator_def split: split_if_asm)
-    from g show "\<exists>x. simple_function (\<lambda>xa. x xa * indicator A xa) \<and> x \<le> f \<and> (\<forall>xa\<in>A. \<omega> \<noteq> x xa) \<and>
+    from g show "\<exists>x. simple_function (\<lambda>xa. x xa * indicator A xa) \<and> x \<le> f \<and>
       simple_integral g = simple_integral (\<lambda>xa. x xa * indicator A xa)"
       using `A \<in> sets M`[THEN sets_into_space]
       apply (rule_tac exI[of _ "\<lambda>x. g x * indicator A x"])
