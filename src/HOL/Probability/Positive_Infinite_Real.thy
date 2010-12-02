@@ -360,6 +360,20 @@ lemma real_pinfreal_1[simp]: "real (1 :: pinfreal) = 1"
 lemma real_of_pinfreal_mult: "real X * real Y = real (X * Y :: pinfreal)"
   by (cases X, cases Y) (auto simp: zero_le_mult_iff)
 
+lemma Real_mult_nonneg: assumes "x \<ge> 0" "y \<ge> 0"
+  shows "Real (x * y) = Real x * Real y" using assms by auto
+
+lemma Real_setprod: assumes "\<forall>x\<in>A. f x \<ge> 0" shows "Real (setprod f A) = setprod (\<lambda>x. Real (f x)) A"
+proof(cases "finite A")
+  case True thus ?thesis using assms
+  proof(induct A) case (insert x A)
+    have "0 \<le> setprod f A" apply(rule setprod_nonneg) using insert by auto
+    thus ?case unfolding setprod_insert[OF insert(1-2)] apply-
+      apply(subst Real_mult_nonneg) prefer 3 apply(subst insert(3)[THEN sym])
+      using insert by auto
+  qed auto
+qed auto
+
 subsection "@{typ pinfreal} is a linear order"
 
 instantiation pinfreal :: linorder

@@ -755,20 +755,6 @@ proof- note bor = borel_eq_lessThan
   qed
 qed
 
-lemma Real_mult_nonneg: assumes "x \<ge> 0" "y \<ge> 0"
-  shows "Real (x * y) = Real x * Real y" using assms by auto
-
-lemma Real_setprod: assumes "\<forall>x\<in>A. f x \<ge> 0" shows "Real (setprod f A) = setprod (\<lambda>x. Real (f x)) A"
-proof(cases "finite A")
-  case True thus ?thesis using assms
-  proof(induct A) case (insert x A)
-    have "0 \<le> setprod f A" apply(rule setprod_nonneg) using insert by auto
-    thus ?case unfolding setprod_insert[OF insert(1-2)] apply-
-      apply(subst Real_mult_nonneg) prefer 3 apply(subst insert(3)[THEN sym])
-      using insert by auto
-  qed auto
-qed auto
-
 lemma e2p_Int:"e2p ` A \<inter> e2p ` B = e2p ` (A \<inter> B)" (is "?L = ?R")
   apply(rule image_Int[THEN sym]) using bij_euclidean_component
   unfolding bij_betw_def by auto
