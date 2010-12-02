@@ -8,11 +8,6 @@ theory Summation
 imports Main
 begin
 
-text_raw {* \footnote{This example is somewhat reminiscent of the
-  \url{http://isabelle.in.tum.de/library/HOL/ex/NatSum.html}, which is
-  discussed in \cite{isabelle-ref} in the context of permutative
-  rewrite rules and ordered rewriting.} *}
-
 text {* Subsequently, we prove some summation laws of natural numbers
   (including odds, squares, and cubes).  These examples demonstrate
   how plain natural deduction (including induction) may be combined
@@ -126,8 +121,8 @@ next
 qed
 
 text {* Comparing these examples with the tactic script version
-  \url{http://isabelle.in.tum.de/library/HOL/ex/NatSum.html}, we note
-  an important difference of how induction vs.\ simplification is
+  @{file "~~/src/HOL/ex/NatSum.thy"}, we note an important difference
+  of how induction vs.\ simplification is
   applied.  While \cite[\S10]{isabelle-ref} advises for these examples
   that ``induction should not be applied until the goal is in the
   simplest form'' this would be a very bad idea in our setting.

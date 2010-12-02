@@ -10,9 +10,7 @@ imports Main
 begin
 
 text {* The Mutilated Checker Board Problem, formalized inductively.
-  See \cite{paulson-mutilated-board} and
-  \url{http://isabelle.in.tum.de/library/HOL/Induct/Mutil.html} for
-  the original tactic script version. *}
+  See \cite{paulson-mutilated-board} for the original tactic script version. *}
 
 subsection {* Tilings *}
 
