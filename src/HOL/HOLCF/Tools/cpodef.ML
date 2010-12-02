@@ -193,7 +193,7 @@ fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
 fun add_podef def opt_name typ set opt_morphs tac thy =
   let
     val name = the_default (#1 typ) opt_name
-    val ((full_tname, info as ({Rep_name, ...}, {type_definition, set_def, ...})), thy2) = thy
+    val ((full_tname, info as ({Rep_name, ...}, {type_definition, set_def, ...})), thy) = thy
       |> Typedef.add_typedef_global def opt_name typ set opt_morphs tac
     val oldT = #rep_type (#1 info)
     val newT = #abs_type (#1 info)
@@ -202,18 +202,16 @@ fun add_podef def opt_name typ set opt_morphs tac thy =
     val RepC = Const (Rep_name, newT --> oldT)
     val below_eqn = Logic.mk_equals (below_const newT,
       Abs ("x", newT, Abs ("y", newT, below_const oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0))))
-    val lthy3 = thy2
+    val ((_, (_, below_ldef)), lthy) = thy
       |> Class.instantiation ([full_tname], lhs_tfrees, @{sort po})
-    val ((_, (_, below_ldef)), lthy4) = lthy3
       |> Specification.definition (NONE,
           ((Binding.prefix_name "below_" (Binding.suffix_name "_def" name), []), below_eqn))
-    val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy4)
-    val below_def = singleton (ProofContext.export lthy4 ctxt_thy) below_ldef
-    val thy5 = lthy4
-      |> Class.prove_instantiation_instance
+    val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy)
+    val below_def = singleton (ProofContext.export lthy ctxt_thy) below_ldef
+    val thy = lthy
+      |> Class.prove_instantiation_exit
           (K (Tactic.rtac (@{thm typedef_po} OF [type_definition, below_def]) 1))
-      |> Local_Theory.exit_global
-  in ((info, below_def), thy5) end
+  in ((info, below_def), thy) end
 
 fun prepare_cpodef
       (prep_term: Proof.context -> 'a -> term)
@@ -235,12 +233,12 @@ fun prepare_cpodef
 
     fun cpodef_result nonempty admissible thy =
       let
-        val ((info as (_, {type_definition, set_def, ...}), below_def), thy2) = thy
+        val ((info as (_, {type_definition, set_def, ...}), below_def), thy) = thy
           |> add_podef def (SOME name) typ set opt_morphs (Tactic.rtac nonempty 1)
-        val (cpo_info, thy3) = thy2
+        val (cpo_info, thy) = thy
           |> prove_cpo name newT morphs type_definition set_def below_def admissible
       in
-        ((info, cpo_info), thy3)
+        ((info, cpo_info), thy)
       end
   in
     (goal_nonempty, goal_admissible, cpodef_result)
@@ -270,14 +268,14 @@ fun prepare_pcpodef
     fun pcpodef_result UU_mem admissible thy =
       let
         val tac = Tactic.rtac exI 1 THEN Tactic.rtac UU_mem 1
-        val ((info as (_, {type_definition, set_def, ...}), below_def), thy2) = thy
+        val ((info as (_, {type_definition, set_def, ...}), below_def), thy) = thy
           |> add_podef def (SOME name) typ set opt_morphs tac
-        val (cpo_info, thy3) = thy2
+        val (cpo_info, thy) = thy
           |> prove_cpo name newT morphs type_definition set_def below_def admissible
-        val (pcpo_info, thy4) = thy3
+        val (pcpo_info, thy) = thy
           |> prove_pcpo name newT morphs type_definition set_def below_def UU_mem
       in
-        ((info, cpo_info, pcpo_info), thy4)
+        ((info, cpo_info, pcpo_info), thy)
       end
   in
     (goal_UU_mem, goal_admissible, pcpodef_result)
