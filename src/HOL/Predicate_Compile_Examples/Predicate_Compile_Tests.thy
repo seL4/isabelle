@@ -1272,7 +1272,7 @@ thm minus_int_test.new_random_dseq_equation
 
 values [expected "{4::int}"] "{c. minus_int_test 9 5 c}"
 values [expected "{9::int}"] "{a. minus_int_test a 4 5}"
-values [expected "{- 1::int}"] "{b. minus_int_test 4 b 5}"
+values [expected "{-1::int}"] "{b. minus_int_test 4 b 5}"
 
 subsection {* minus on bool *}
 
