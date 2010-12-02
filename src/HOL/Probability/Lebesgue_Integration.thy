@@ -849,7 +849,7 @@ section "Continuous posititve integration"
 
 definition (in measure_space)
   "positive_integral f =
-    (SUP g : {g. simple_function g \<and> g \<le> f \<and> \<omega> \<notin> g`space M}. simple_integral g)"
+    SUPR {g. simple_function g \<and> g \<le> f \<and> \<omega> \<notin> g`space M} simple_integral"
 
 lemma (in measure_space) positive_integral_cong_measure:
   assumes "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = \<mu> A"
@@ -883,74 +883,71 @@ next
     by auto
 qed
 
+lemma image_set_cong:
+  assumes A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y\<in>B. f x = g y"
+  assumes B: "\<And>y. y \<in> B \<Longrightarrow> \<exists>x\<in>A. g y = f x"
+  shows "f ` A = g ` B"
+  using assms by blast
+
 lemma (in measure_space) positive_integral_alt:
   "positive_integral f =
-    (SUP g : {g. simple_function g \<and> g \<le> f}. simple_integral g)"
-  apply(rule order_class.antisym) unfolding positive_integral_def 
-  apply(rule SUPR_subset) apply blast apply(rule SUPR_mono_lim)
-proof safe fix u assume u:"simple_function u" and uf:"u \<le> f"
-  let ?u = "\<lambda>n x. if u x = \<omega> then Real (real (n::nat)) else u x"
-  have su:"\<And>n. simple_function (?u n)" using simple_function_compose1[OF u] .
-  show "\<exists>b. \<forall>n. b n \<in> {g. simple_function g \<and> g \<le> f \<and> \<omega> \<notin> g ` space M} \<and>
-    (\<lambda>n. simple_integral (b n)) ----> simple_integral u"
-    apply(rule_tac x="?u" in exI, safe) apply(rule su)
-  proof- fix n::nat have "?u n \<le> u" unfolding le_fun_def by auto
-    also note uf finally show "?u n \<le> f" .
-    let ?s = "{x \<in> space M. u x = \<omega>}"
-    show "(\<lambda>n. simple_integral (?u n)) ----> simple_integral u"
-    proof(cases "\<mu> ?s = 0")
-      case True have *:"\<And>n. {x\<in>space M. ?u n x \<noteq> u x} = {x\<in>space M. u x = \<omega>}" by auto 
-      have *:"\<And>n. simple_integral (?u n) = simple_integral u"
-        apply(rule simple_integral_cong'[OF su u]) unfolding * True ..
-      show ?thesis unfolding * by auto 
-    next case False note m0=this
-      have s:"{x \<in> space M. u x = \<omega>} \<in> sets M" using u  by (auto simp: borel_measurable_simple_function)
-      have "\<omega> = simple_integral (\<lambda>x. \<omega> * indicator {x\<in>space M. u x = \<omega>} x)"
-        apply(subst simple_integral_mult) using s
-        unfolding simple_integral_indicator_only[OF s] using False by auto
-      also have "... \<le> simple_integral u"
-        apply (rule simple_integral_mono)
-        apply (rule simple_function_mult)
-        apply (rule simple_function_const)
-        apply(rule ) prefer 3 apply(subst indicator_def)
-        using s u by auto
-      finally have *:"simple_integral u = \<omega>" by auto
-      show ?thesis unfolding * Lim_omega_pos
-      proof safe case goal1
-        from real_arch_simple[of "B / real (\<mu> ?s)"] guess N0 .. note N=this
-        def N \<equiv> "Suc N0" have N:"real N \<ge> B / real (\<mu> ?s)" "N > 0"
-          unfolding N_def using N by auto
-        show ?case apply-apply(rule_tac x=N in exI,safe) 
-        proof- case goal1
-          have "Real B \<le> Real (real N) * \<mu> ?s"
-          proof(cases "\<mu> ?s = \<omega>")
-            case True thus ?thesis using `B>0` N by auto
-          next case False
-            have *:"B \<le> real N * real (\<mu> ?s)" 
-              using N(1) apply-apply(subst (asm) pos_divide_le_eq)
-              apply rule using m0 False by auto
-            show ?thesis apply(subst Real_real'[THEN sym,OF False])
-              apply(subst pinfreal_times,subst if_P) defer
-              apply(subst pinfreal_less_eq,subst if_P) defer
-              using * N `B>0` by(auto intro: mult_nonneg_nonneg)
-          qed
-          also have "... \<le> Real (real n) * \<mu> ?s"
-            apply(rule mult_right_mono) using goal1 by auto
-          also have "... = simple_integral (\<lambda>x. Real (real n) * indicator ?s x)" 
-            apply(subst simple_integral_mult) apply(rule simple_function_indicator[OF s])
-            unfolding simple_integral_indicator_only[OF s] ..
-          also have "... \<le> simple_integral (\<lambda>x. if u x = \<omega> then Real (real n) else u x)"
-            apply(rule simple_integral_mono) apply(rule simple_function_mult)
-            apply(rule simple_function_const)
-            apply(rule simple_function_indicator) apply(rule s su)+ by auto
-          finally show ?case .
-        qed qed qed
-    fix x assume x:"\<omega> = (if u x = \<omega> then Real (real n) else u x)" "x \<in> space M"
-    hence "u x = \<omega>" apply-apply(rule ccontr) by auto
-    hence "\<omega> = Real (real n)" using x by auto
-    thus False by auto
+    (SUP g : {g. simple_function g \<and> g \<le> f}. simple_integral g)" (is "_ = ?alt")
+proof (rule antisym SUP_leI)
+  show "?alt \<le> positive_integral f" unfolding positive_integral_def
+  proof (safe intro!: SUP_leI)
+    fix g assume g: "simple_function g" "g \<le> f"
+    let ?G = "g -` {\<omega>} \<inter> space M"
+    show "simple_integral g \<le>
+      SUPR {g. simple_function g \<and> g \<le> f \<and> \<omega> \<notin> g ` space M} simple_integral"
+      (is "simple_integral g \<le> SUPR ?A simple_integral")
+    proof cases
+      let ?g = "\<lambda>x. indicator (space M - ?G) x * g x"
+      have g': "simple_function ?g"
+        using g by (auto intro: simple_functionD)
+      moreover
+      assume "\<mu> ?G = 0"
+      then have "AE x. g x = ?g x" using g
+        by (intro AE_I[where N="?G"])
+           (auto intro: simple_functionD simp: indicator_def)
+      with g(1) g' have "simple_integral g = simple_integral ?g"
+        by (rule simple_integral_cong_AE)
+      moreover have "?g \<le> g" by (auto simp: le_fun_def indicator_def)
+      from this `g \<le> f` have "?g \<le> f" by (rule order_trans)
+      moreover have "\<omega> \<notin> ?g ` space M"
+        by (auto simp: indicator_def split: split_if_asm)
+      ultimately show ?thesis by (auto intro!: le_SUPI)
+    next
+      assume "\<mu> ?G \<noteq> 0"
+      then have "?G \<noteq> {}" by auto
+      then have "\<omega> \<in> g`space M" by force
+      then have "space M \<noteq> {}" by auto
+      have "SUPR ?A simple_integral = \<omega>"
+      proof (intro SUP_\<omega>[THEN iffD2] allI impI)
+        fix x assume "x < \<omega>"
+        then guess n unfolding less_\<omega>_Ex_of_nat .. note n = this
+        then have "0 < n" by (intro neq0_conv[THEN iffD1] notI) simp
+        let ?g = "\<lambda>x. (of_nat n / (if \<mu> ?G = \<omega> then 1 else \<mu> ?G)) * indicator ?G x"
+        show "\<exists>i\<in>?A. x < simple_integral i"
+        proof (intro bexI impI CollectI conjI)
+          show "simple_function ?g" using g
+            by (auto intro!: simple_functionD simple_function_add)
+          have "?g \<le> g" by (auto simp: le_fun_def indicator_def)
+          from this g(2) show "?g \<le> f" by (rule order_trans)
+          show "\<omega> \<notin> ?g ` space M"
+            using `\<mu> ?G \<noteq> 0` by (auto simp: indicator_def split: split_if_asm)
+          have "x < (of_nat n / (if \<mu> ?G = \<omega> then 1 else \<mu> ?G)) * \<mu> ?G"
+            using n `\<mu> ?G \<noteq> 0` `0 < n`
+            by (auto simp: pinfreal_noteq_omega_Ex field_simps)
+          also have "\<dots> = simple_integral ?g" using g `space M \<noteq> {}`
+            by (subst simple_integral_indicator)
+               (auto simp: image_constant ac_simps dest: simple_functionD)
+          finally show "x < simple_integral ?g" .
+        qed
+      qed
+      then show ?thesis by simp
+    qed
   qed
-qed
+qed (auto intro!: SUP_subset simp: positive_integral_def)
 
 lemma (in measure_space) positive_integral_cong:
   assumes "\<And>x. x \<in> space M \<Longrightarrow> f x = g x"
@@ -1024,12 +1021,6 @@ lemma (in measure_space) positive_integral_mono:
   assumes mono: "\<And>x. x \<in> space M \<Longrightarrow> u x \<le> v x"
   shows "positive_integral u \<le> positive_integral v"
   using mono by (auto intro!: AE_cong positive_integral_mono_AE)
-
-lemma image_set_cong:
-  assumes A: "\<And>x. x \<in> A \<Longrightarrow> \<exists>y\<in>B. f x = g y"
-  assumes B: "\<And>y. y \<in> B \<Longrightarrow> \<exists>x\<in>A. g y = f x"
-  shows "f ` A = g ` B"
-  using assms by blast
 
 lemma (in measure_space) positive_integral_vimage:
   fixes g :: "'a \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
@@ -1229,6 +1220,7 @@ proof -
       using assms by (simp cong: measurable_cong)
     moreover have iso: "rf \<up> ru" using assms unfolding rf_def ru_def
       unfolding isoton_def SUPR_fun_expand le_fun_def fun_eq_iff
+      using SUP_const[OF UNIV_not_empty]
       by (auto simp: restrict_def le_fun_def SUPR_fun_expand fun_eq_iff)
     ultimately have "positive_integral ru \<le> (SUP i. positive_integral (rf i))"
       unfolding positive_integral_def[of ru]

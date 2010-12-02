@@ -865,7 +865,7 @@ lemma space_product_algebra[simp]:
 
 lemma (in finite_product_sigma_algebra) P_empty:
   "I = {} \<Longrightarrow> P = \<lparr> space = {\<lambda>k. undefined}, sets = { {}, {\<lambda>k. undefined} }\<rparr>"
-  unfolding product_algebra_def by (simp add: sigma_def)
+  unfolding product_algebra_def by (simp add: sigma_def image_constant)
 
 lemma (in finite_product_sigma_algebra) in_P[simp, intro]:
   "\<lbrakk> \<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i) \<rbrakk> \<Longrightarrow> Pi\<^isub>E I A \<in> sets P"
@@ -1258,7 +1258,7 @@ using `finite I` proof induct
     by (auto intro!: exI[of _ "\<lambda>A. if A = {} then 0 else 1"] sigma_algebra_sigma
                      sigma_algebra.finite_additivity_sufficient
              simp add: positive_def additive_def sets_sigma sigma_finite_measure_def
-                       sigma_finite_measure_axioms_def)
+                       sigma_finite_measure_axioms_def image_constant)
 next
   case (insert i I)
   interpret finite_product_sigma_finite M \<mu> I by default fact
