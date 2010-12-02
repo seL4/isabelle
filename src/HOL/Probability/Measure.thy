@@ -651,27 +651,6 @@ section "@{text \<mu>}-null sets"
 
 abbreviation (in measure_space) "null_sets \<equiv> {N\<in>sets M. \<mu> N = 0}"
 
-definition (in measure_space)
-  almost_everywhere :: "('a \<Rightarrow> bool) \<Rightarrow> bool" (binder "AE " 10) where
-  "almost_everywhere P \<longleftrightarrow> (\<exists>N\<in>null_sets. { x \<in> space M. \<not> P x } \<subseteq> N)"
-
-lemma (in measure_space) AE_I':
-  "N \<in> null_sets \<Longrightarrow> {x\<in>space M. \<not> P x} \<subseteq> N \<Longrightarrow> (AE x. P x)"
-  unfolding almost_everywhere_def by auto
-
-lemma (in measure_space) AE_iff_null_set:
-  assumes "{x\<in>space M. \<not> P x} \<in> sets M" (is "?P \<in> sets M")
-  shows "(AE x. P x) \<longleftrightarrow> {x\<in>space M. \<not> P x} \<in> null_sets"
-proof
-  assume "AE x. P x" then obtain N where N: "N \<in> sets M" "?P \<subseteq> N" "\<mu> N = 0"
-    unfolding almost_everywhere_def by auto
-  moreover have "\<mu> ?P \<le> \<mu> N"
-    using assms N(1,2) by (auto intro: measure_mono)
-  ultimately show "?P \<in> null_sets" using assms by auto
-next
-  assume "?P \<in> null_sets" with assms show "AE x. P x" by (auto intro: AE_I')
-qed
-
 lemma (in measure_space) null_sets_Un[intro]:
   assumes "N \<in> null_sets" "N' \<in> null_sets"
   shows "N \<union> N' \<in> null_sets"
@@ -700,6 +679,17 @@ proof (intro conjI CollectI)
     unfolding UN_from_nat[of N]
     using assms by (intro measure_countably_subadditive) auto
   then show "\<mu> (\<Union>i. N i) = 0"
+    using assms by auto
+qed
+
+lemma (in measure_space) null_sets_finite_UN:
+  assumes "finite S" "\<And>i. i \<in> S \<Longrightarrow> A i \<in> null_sets"
+  shows "(\<Union>i\<in>S. A i) \<in> null_sets"
+proof (intro CollectI conjI)
+  show "(\<Union>i\<in>S. A i) \<in> sets M" using assms by (intro finite_UN) auto
+  have "\<mu> (\<Union>i\<in>S. A i) \<le> (\<Sum>i\<in>S. \<mu> (A i))"
+    using assms by (intro measure_finitely_subadditive) auto
+  then show "\<mu> (\<Union>i\<in>S. A i) = 0"
     using assms by auto
 qed
 
@@ -739,6 +729,29 @@ proof -
   then show ?thesis
     unfolding * using assms
     by (subst measure_additive[symmetric]) auto
+qed
+
+section "Formalise almost everywhere"
+
+definition (in measure_space)
+  almost_everywhere :: "('a \<Rightarrow> bool) \<Rightarrow> bool" (binder "AE " 10) where
+  "almost_everywhere P \<longleftrightarrow> (\<exists>N\<in>null_sets. { x \<in> space M. \<not> P x } \<subseteq> N)"
+
+lemma (in measure_space) AE_I':
+  "N \<in> null_sets \<Longrightarrow> {x\<in>space M. \<not> P x} \<subseteq> N \<Longrightarrow> (AE x. P x)"
+  unfolding almost_everywhere_def by auto
+
+lemma (in measure_space) AE_iff_null_set:
+  assumes "{x\<in>space M. \<not> P x} \<in> sets M" (is "?P \<in> sets M")
+  shows "(AE x. P x) \<longleftrightarrow> {x\<in>space M. \<not> P x} \<in> null_sets"
+proof
+  assume "AE x. P x" then obtain N where N: "N \<in> sets M" "?P \<subseteq> N" "\<mu> N = 0"
+    unfolding almost_everywhere_def by auto
+  moreover have "\<mu> ?P \<le> \<mu> N"
+    using assms N(1,2) by (auto intro: measure_mono)
+  ultimately show "?P \<in> null_sets" using assms by auto
+next
+  assume "?P \<in> null_sets" with assms show "AE x. P x" by (auto intro: AE_I')
 qed
 
 lemma (in measure_space) AE_True[intro, simp]: "AE x. True"
@@ -1409,7 +1422,7 @@ proof (intro allI impI conjI)
     show "\<mu> {x} \<noteq> \<omega>" by (auto simp: insert_absorb[OF *] Diff_subset) }
 qed
 
-sublocale finite_measure_space < finite_measure
+sublocale finite_measure_space \<subseteq> finite_measure
 proof
   show "\<mu> (space M) \<noteq> \<omega>"
     unfolding sum_over_space[symmetric] setsum_\<omega>

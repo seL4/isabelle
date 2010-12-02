@@ -4,89 +4,6 @@ theory Lebesgue_Measure
   imports Product_Measure Gauge_Measure Complete_Measure
 begin
 
-lemma (in complete_lattice) SUP_pair:
-  "(SUP i:A. SUP j:B. f i j) = (SUP p:A\<times>B. (\<lambda> (i, j). f i j) p)" (is "?l = ?r")
-proof (intro antisym SUP_leI)
-  fix i j assume "i \<in> A" "j \<in> B"
-  then have "(case (i,j) of (i,j) \<Rightarrow> f i j) \<le> ?r"
-    by (intro SUPR_upper) auto
-  then show "f i j \<le> ?r" by auto
-next
-  fix p assume "p \<in> A \<times> B"
-  then obtain i j where "p = (i,j)" "i \<in> A" "j \<in> B" by auto
-  have "f i j \<le> (SUP j:B. f i j)" using `j \<in> B` by (intro SUPR_upper)
-  also have "(SUP j:B. f i j) \<le> ?l" using `i \<in> A` by (intro SUPR_upper)
-  finally show "(case p of (i, j) \<Rightarrow> f i j) \<le> ?l" using `p = (i,j)` by simp
-qed
-
-lemma (in complete_lattice) SUP_surj_compose:
-  assumes *: "f`A = B" shows "SUPR A (g \<circ> f) = SUPR B g"
-  unfolding SUPR_def unfolding *[symmetric]
-  by (simp add: image_compose)
-
-lemma (in complete_lattice) SUP_swap:
-  "(SUP i:A. SUP j:B. f i j) = (SUP j:B. SUP i:A. f i j)"
-proof -
-  have *: "(\<lambda>(i,j). (j,i)) ` (B \<times> A) = A \<times> B" by auto
-  show ?thesis
-    unfolding SUP_pair SUP_surj_compose[symmetric, OF *]
-    by (auto intro!: arg_cong[where f=Sup] image_eqI simp: comp_def SUPR_def)
-qed
-
-lemma SUP_\<omega>: "(SUP i:A. f i) = \<omega> \<longleftrightarrow> (\<forall>x<\<omega>. \<exists>i\<in>A. x < f i)"
-proof
-  assume *: "(SUP i:A. f i) = \<omega>"
-  show "(\<forall>x<\<omega>. \<exists>i\<in>A. x < f i)" unfolding *[symmetric]
-  proof (intro allI impI)
-    fix x assume "x < SUPR A f" then show "\<exists>i\<in>A. x < f i"
-      unfolding less_SUP_iff by auto
-  qed
-next
-  assume *: "\<forall>x<\<omega>. \<exists>i\<in>A. x < f i"
-  show "(SUP i:A. f i) = \<omega>"
-  proof (rule pinfreal_SUPI)
-    fix y assume **: "\<And>i. i \<in> A \<Longrightarrow> f i \<le> y"
-    show "\<omega> \<le> y"
-    proof cases
-      assume "y < \<omega>"
-      from *[THEN spec, THEN mp, OF this]
-      obtain i where "i \<in> A" "\<not> (f i \<le> y)" by auto
-      with ** show ?thesis by auto
-    qed auto
-  qed auto
-qed
-
-lemma psuminf_commute:
-  shows "(\<Sum>\<^isub>\<infinity> i j. f i j) = (\<Sum>\<^isub>\<infinity> j i. f i j)"
-proof -
-  have "(SUP n. \<Sum> i < n. SUP m. \<Sum> j < m. f i j) = (SUP n. SUP m. \<Sum> i < n. \<Sum> j < m. f i j)"
-    apply (subst SUPR_pinfreal_setsum)
-    by auto
-  also have "\<dots> = (SUP m n. \<Sum> j < m. \<Sum> i < n. f i j)"
-    apply (subst SUP_swap)
-    apply (subst setsum_commute)
-    by auto
-  also have "\<dots> = (SUP m. \<Sum> j < m. SUP n. \<Sum> i < n. f i j)"
-    apply (subst SUPR_pinfreal_setsum)
-    by auto
-  finally show ?thesis
-    unfolding psuminf_def by auto
-qed
-
-lemma psuminf_SUP_eq:
-  assumes "\<And>n i. f n i \<le> f (Suc n) i"
-  shows "(\<Sum>\<^isub>\<infinity> i. SUP n::nat. f n i) = (SUP n::nat. \<Sum>\<^isub>\<infinity> i. f n i)"
-proof -
-  { fix n :: nat
-    have "(\<Sum>i<n. SUP k. f k i) = (SUP k. \<Sum>i<n. f k i)"
-      using assms by (auto intro!: SUPR_pinfreal_setsum[symmetric]) }
-  note * = this
-  show ?thesis
-    unfolding psuminf_def
-    unfolding *
-    apply (subst SUP_swap) ..
-qed
-
 subsection {* Standard Cubes *}
 
 definition cube :: "nat \<Rightarrow> 'a::ordered_euclidean_space set" where
@@ -837,20 +754,6 @@ proof- note bor = borel_eq_lessThan
     qed
   qed
 qed
-
-lemma Real_mult_nonneg: assumes "x \<ge> 0" "y \<ge> 0"
-  shows "Real (x * y) = Real x * Real y" using assms by auto
-
-lemma Real_setprod: assumes "\<forall>x\<in>A. f x \<ge> 0" shows "Real (setprod f A) = setprod (\<lambda>x. Real (f x)) A"
-proof(cases "finite A")
-  case True thus ?thesis using assms
-  proof(induct A) case (insert x A)
-    have "0 \<le> setprod f A" apply(rule setprod_nonneg) using insert by auto
-    thus ?case unfolding setprod_insert[OF insert(1-2)] apply-
-      apply(subst Real_mult_nonneg) prefer 3 apply(subst insert(3)[THEN sym])
-      using insert by auto
-  qed auto
-qed auto
 
 lemma e2p_Int:"e2p ` A \<inter> e2p ` B = e2p ` (A \<inter> B)" (is "?L = ?R")
   apply(rule image_Int[THEN sym]) using bij_euclidean_component

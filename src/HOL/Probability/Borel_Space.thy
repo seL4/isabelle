@@ -6,12 +6,6 @@ theory Borel_Space
   imports Sigma_Algebra Positive_Infinite_Real Multivariate_Analysis
 begin
 
-lemma (in sigma_algebra) sets_sigma_subset:
-  assumes "space N = space M"
-  assumes "sets N \<subseteq> sets M"
-  shows "sets (sigma N) \<subseteq> sets M"
-  by (unfold assms sets_sigma, rule sigma_sets_subset, rule assms)
-
 lemma LIMSEQ_max:
   "u ----> (x::real) \<Longrightarrow> (\<lambda>i. max (u i) 0) ----> max x 0"
   by (fastsimp intro!: LIMSEQ_I dest!: LIMSEQ_D)
@@ -612,13 +606,10 @@ proof -
   then show ?thesis by (intro sets_sigma_subset) auto
 qed
 
-lemma algebra_eqI: assumes "sets A = sets (B::'a algebra)" "space A = space B"
-  shows "A = B" using assms by auto
-
 lemma borel_eq_atMost:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> a. {.. a::'a\<Colon>ordered_euclidean_space})\<rparr>)"
     (is "_ = ?SIGMA")
-proof (rule algebra_eqI, rule antisym)
+proof (intro algebra.equality antisym)
   show "sets borel \<subseteq> sets ?SIGMA"
     using halfspace_le_span_atMost halfspace_span_halfspace_le open_span_halfspace
     by auto
@@ -629,7 +620,7 @@ qed auto
 lemma borel_eq_atLeastAtMost:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a :: 'a\<Colon>ordered_euclidean_space, b). {a .. b})\<rparr>)"
    (is "_ = ?SIGMA")
-proof (rule algebra_eqI, rule antisym)
+proof (intro algebra.equality antisym)
   show "sets borel \<subseteq> sets ?SIGMA"
     using atMost_span_atLeastAtMost halfspace_le_span_atMost
       halfspace_span_halfspace_le open_span_halfspace
@@ -641,7 +632,7 @@ qed auto
 lemma borel_eq_greaterThan:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a :: 'a\<Colon>ordered_euclidean_space). {a <..})\<rparr>)"
    (is "_ = ?SIGMA")
-proof (rule algebra_eqI, rule antisym)
+proof (intro algebra.equality antisym)
   show "sets borel \<subseteq> sets ?SIGMA"
     using halfspace_le_span_greaterThan
       halfspace_span_halfspace_le open_span_halfspace
@@ -653,7 +644,7 @@ qed auto
 lemma borel_eq_lessThan:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a :: 'a\<Colon>ordered_euclidean_space). {..< a})\<rparr>)"
    (is "_ = ?SIGMA")
-proof (rule algebra_eqI, rule antisym)
+proof (intro algebra.equality antisym)
   show "sets borel \<subseteq> sets ?SIGMA"
     using halfspace_le_span_lessThan
       halfspace_span_halfspace_ge open_span_halfspace
@@ -665,7 +656,7 @@ qed auto
 lemma borel_eq_greaterThanLessThan:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, b). {a <..< (b :: 'a \<Colon> ordered_euclidean_space)})\<rparr>)"
     (is "_ = ?SIGMA")
-proof (rule algebra_eqI, rule antisym)
+proof (intro algebra.equality antisym)
   show "sets ?SIGMA \<subseteq> sets borel"
     by (rule borel.sets_sigma_subset) auto
   show "sets borel \<subseteq> sets ?SIGMA"
@@ -686,7 +677,7 @@ qed auto
 lemma borel_eq_halfspace_le:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. x$$i \<le> a})\<rparr>)"
    (is "_ = ?SIGMA")
-proof (rule algebra_eqI, rule antisym)
+proof (intro algebra.equality antisym)
   show "sets borel \<subseteq> sets ?SIGMA"
     using open_span_halfspace halfspace_span_halfspace_le by auto
   show "sets ?SIGMA \<subseteq> sets borel"
@@ -696,7 +687,7 @@ qed auto
 lemma borel_eq_halfspace_less:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. x$$i < a})\<rparr>)"
    (is "_ = ?SIGMA")
-proof (rule algebra_eqI, rule antisym)
+proof (intro algebra.equality antisym)
   show "sets borel \<subseteq> sets ?SIGMA"
     using open_span_halfspace .
   show "sets ?SIGMA \<subseteq> sets borel"
@@ -706,7 +697,7 @@ qed auto
 lemma borel_eq_halfspace_gt:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. a < x$$i})\<rparr>)"
    (is "_ = ?SIGMA")
-proof (rule algebra_eqI, rule antisym)
+proof (intro algebra.equality antisym)
   show "sets borel \<subseteq> sets ?SIGMA"
     using halfspace_le_span_halfspace_gt open_span_halfspace halfspace_span_halfspace_le by auto
   show "sets ?SIGMA \<subseteq> sets borel"
@@ -716,7 +707,7 @@ qed auto
 lemma borel_eq_halfspace_ge:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. a \<le> x$$i})\<rparr>)"
    (is "_ = ?SIGMA")
-proof (rule algebra_eqI, rule antisym)
+proof (intro algebra.equality antisym)
   show "sets borel \<subseteq> sets ?SIGMA"
     using halfspace_span_halfspace_ge open_span_halfspace by auto
   show "sets ?SIGMA \<subseteq> sets borel"
@@ -1025,7 +1016,6 @@ proof (rule borel_measurable_translate)
   then obtain T x where T: "open T" "Real ` (T \<inter> {0..}) = B - {\<omega>}" and
     x: "\<omega> \<in> B \<Longrightarrow> 0 \<le> x" "\<omega> \<in> B \<Longrightarrow> {Real x <..} \<subseteq> B"
     unfolding open_pinfreal_def by blast
-
   have "Real -` B = Real -` (B - {\<omega>})" by auto
   also have "\<dots> = Real -` (Real ` (T \<inter> {0..}))" using T by simp
   also have "\<dots> = (if 0 \<in> T then T \<union> {.. 0} else T \<inter> {0..})"
@@ -1231,12 +1221,10 @@ next
   hence **: "\<forall>a. {x\<in>space M. f x < a} \<in> sets M"
     unfolding less_eq_le_pinfreal_measurable
     unfolding greater_eq_le_measurable .
-
   show "f \<in> borel_measurable M" unfolding borel_measurable_pinfreal_eq_real borel_measurable_iff_greater
   proof safe
     have "f -` {\<omega>} \<inter> space M = space M - {x\<in>space M. f x < \<omega>}" by auto
     then show \<omega>: "f -` {\<omega>} \<inter> space M \<in> sets M" using ** by auto
-
     fix a
     have "{w \<in> space M. a < real (f w)} =
       (if 0 \<le> a then {w\<in>space M. Real a < f w} - (f -` {\<omega>} \<inter> space M) else space M)"
@@ -1367,14 +1355,14 @@ proof cases
     by induct auto
 qed (simp add: borel_measurable_const)
 
-lemma (in sigma_algebra) borel_measurable_pinfreal_min[intro, simp]:
+lemma (in sigma_algebra) borel_measurable_pinfreal_min[simp, intro]:
   fixes f g :: "'a \<Rightarrow> pinfreal"
   assumes "f \<in> borel_measurable M"
   assumes "g \<in> borel_measurable M"
   shows "(\<lambda>x. min (g x) (f x)) \<in> borel_measurable M"
   using assms unfolding min_def by (auto intro!: measurable_If)
 
-lemma (in sigma_algebra) borel_measurable_pinfreal_max[intro]:
+lemma (in sigma_algebra) borel_measurable_pinfreal_max[simp, intro]:
   fixes f g :: "'a \<Rightarrow> pinfreal"
   assumes "f \<in> borel_measurable M"
   and "g \<in> borel_measurable M"
@@ -1421,7 +1409,7 @@ proof safe
     using assms by auto
 qed
 
-lemma (in sigma_algebra) borel_measurable_psuminf:
+lemma (in sigma_algebra) borel_measurable_psuminf[simp, intro]:
   assumes "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. (\<Sum>\<^isub>\<infinity> i. f i x)) \<in> borel_measurable M"
   using assms unfolding psuminf_def
@@ -1437,7 +1425,6 @@ lemma (in sigma_algebra) borel_measurable_LIMSEQ:
 proof -
   let "?pu x i" = "max (u i x) 0"
   let "?nu x i" = "max (- u i x) 0"
-
   { fix x assume x: "x \<in> space M"
     have "(?pu x) ----> max (u' x) 0"
       "(?nu x) ----> max (- u' x) 0"
@@ -1447,10 +1434,8 @@ proof -
       "(SUP n. INF m. Real (- u (n + m) x)) = Real (- u' x)"
       by (simp_all add: Real_max'[symmetric]) }
   note eq = this
-
   have *: "\<And>x. real (Real (u' x)) - real (Real (- u' x)) = u' x"
     by auto
-
   have "(SUP n. INF m. (\<lambda>x. Real (u (n + m) x))) \<in> borel_measurable M"
        "(SUP n. INF m. (\<lambda>x. Real (- u (n + m) x))) \<in> borel_measurable M"
     using u by (auto intro: borel_measurable_SUP borel_measurable_INF borel_measurable_Real)

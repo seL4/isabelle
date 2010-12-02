@@ -189,56 +189,13 @@ next
   qed
 qed
 
-lemma (in sigma_algebra) simple_functionD':
-  assumes "simple_function f"
-  shows "f -` {x} \<inter> space M \<in> sets M"
-proof cases
-  assume "x \<in> f`space M" from simple_functionD(2)[OF assms this] show ?thesis .
-next
-  assume "x \<notin> f`space M" then have "f -` {x} \<inter> space M = {}" by auto
-  then show ?thesis by auto
-qed
-
-lemma (in sigma_algebra) simple_function_If:
-  assumes sf: "simple_function f" "simple_function g" and A: "A \<in> sets M"
-  shows "simple_function (\<lambda>x. if x \<in> A then f x else g x)" (is "simple_function ?IF")
-proof -
-  def F \<equiv> "\<lambda>x. f -` {x} \<inter> space M" and G \<equiv> "\<lambda>x. g -` {x} \<inter> space M"
-  show ?thesis unfolding simple_function_def
-  proof safe
-    have "?IF ` space M \<subseteq> f ` space M \<union> g ` space M" by auto
-    from finite_subset[OF this] assms
-    show "finite (?IF ` space M)" unfolding simple_function_def by auto
-  next
-    fix x assume "x \<in> space M"
-    then have *: "?IF -` {?IF x} \<inter> space M = (if x \<in> A
-      then ((F (f x) \<inter> A) \<union> (G (f x) - (G (f x) \<inter> A)))
-      else ((F (g x) \<inter> A) \<union> (G (g x) - (G (g x) \<inter> A))))"
-      using sets_into_space[OF A] by (auto split: split_if_asm simp: G_def F_def)
-    have [intro]: "\<And>x. F x \<in> sets M" "\<And>x. G x \<in> sets M"
-      unfolding F_def G_def using sf[THEN simple_functionD'] by auto
-    show "?IF -` {?IF x} \<inter> space M \<in> sets M" unfolding * using A by auto
-  qed
-qed
-
-lemma (in measure_space) null_sets_finite_UN:
-  assumes "finite S" "\<And>i. i \<in> S \<Longrightarrow> A i \<in> null_sets"
-  shows "(\<Union>i\<in>S. A i) \<in> null_sets"
-proof (intro CollectI conjI)
-  show "(\<Union>i\<in>S. A i) \<in> sets M" using assms by (intro finite_UN) auto
-  have "\<mu> (\<Union>i\<in>S. A i) \<le> (\<Sum>i\<in>S. \<mu> (A i))"
-    using assms by (intro measure_finitely_subadditive) auto
-  then show "\<mu> (\<Union>i\<in>S. A i) = 0"
-    using assms by auto
-qed
-
 lemma (in completeable_measure_space) completion_ex_simple_function:
   assumes f: "completion.simple_function f"
   shows "\<exists>f'. simple_function f' \<and> (AE x. f x = f' x)"
 proof -
   let "?F x" = "f -` {x} \<inter> space M"
   have F: "\<And>x. ?F x \<in> sets completion" and fin: "finite (f`space M)"
-    using completion.simple_functionD'[OF f]
+    using completion.simple_functionD[OF f]
       completion.simple_functionD[OF f] by simp_all
   have "\<forall>x. \<exists>N. N \<in> null_sets \<and> null_part (?F x) \<subseteq> N"
     using F null_part by auto

@@ -172,6 +172,18 @@ lemma INF_mono:
   "(\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<le> g m) \<Longrightarrow> (INF n:A. f n) \<le> (INF n:B. g n)"
   by (force intro!: Inf_mono simp: INFI_def)
 
+lemma SUP_subset:  "A \<subseteq> B \<Longrightarrow> SUPR A f \<le> SUPR B f"
+  by (intro SUP_mono) auto
+
+lemma INF_subset:  "A \<subseteq> B \<Longrightarrow> INFI B f \<le> INFI A f"
+  by (intro INF_mono) auto
+
+lemma SUP_commute: "(SUP i:A. SUP j:B. f i j) = (SUP j:B. SUP i:A. f i j)"
+  by (iprover intro: SUP_leI le_SUPI order_trans antisym)
+
+lemma INF_commute: "(INF i:A. INF j:B. f i j) = (INF j:B. INF i:A. f i j)"
+  by (iprover intro: INF_leI le_INFI order_trans antisym)
+
 end
 
 lemma less_Sup_iff:
@@ -183,6 +195,16 @@ lemma Inf_less_iff:
   fixes a :: "'a\<Colon>{complete_lattice,linorder}"
   shows "Inf S < a \<longleftrightarrow> (\<exists>x\<in>S. x < a)"
   unfolding not_le[symmetric] le_Inf_iff by auto
+
+lemma less_SUP_iff:
+  fixes a :: "'a::{complete_lattice,linorder}"
+  shows "a < (SUP i:A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a < f x)"
+  unfolding SUPR_def less_Sup_iff by auto
+
+lemma INF_less_iff:
+  fixes a :: "'a::{complete_lattice,linorder}"
+  shows "(INF i:A. f i) < a \<longleftrightarrow> (\<exists>x\<in>A. f x < a)"
+  unfolding INFI_def Inf_less_iff by auto
 
 subsection {* @{typ bool} and @{typ "_ \<Rightarrow> _"} as complete lattice *}
 
