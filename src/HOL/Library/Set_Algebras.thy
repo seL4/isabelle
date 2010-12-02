@@ -354,4 +354,51 @@ lemma set_neg_intro2: "(a::'a::ring_1) : C ==>
     - a : (- 1) *o C"
   by (auto simp add: elt_set_times_def)
 
+lemma set_plus_image:
+  fixes S T :: "'n::semigroup_add set" shows "S \<oplus> T = (\<lambda>(x, y). x + y) ` (S \<times> T)"
+  unfolding set_plus_def by (fastsimp simp: image_iff)
+
+lemma set_setsum_alt:
+  assumes fin: "finite I"
+  shows "setsum_set S I = {setsum s I |s. \<forall>i\<in>I. s i \<in> S i}"
+    (is "_ = ?setsum I")
+using fin proof induct
+  case (insert x F)
+  have "setsum_set S (insert x F) = S x \<oplus> ?setsum F"
+    using insert.hyps by auto
+  also have "...= {s x + setsum s F |s. \<forall> i\<in>insert x F. s i \<in> S i}"
+    unfolding set_plus_def
+  proof safe
+    fix y s assume "y \<in> S x" "\<forall>i\<in>F. s i \<in> S i"
+    then show "\<exists>s'. y + setsum s F = s' x + setsum s' F \<and> (\<forall>i\<in>insert x F. s' i \<in> S i)"
+      using insert.hyps
+      by (intro exI[of _ "\<lambda>i. if i \<in> F then s i else y"]) (auto simp add: set_plus_def)
+  qed auto
+  finally show ?case
+    using insert.hyps by auto
+qed auto
+
+lemma setsum_set_cond_linear:
+  fixes f :: "('a::comm_monoid_add) set \<Rightarrow> ('b::comm_monoid_add) set"
+  assumes [intro!]: "\<And>A B. P A  \<Longrightarrow> P B  \<Longrightarrow> P (A \<oplus> B)" "P {0}"
+    and f: "\<And>A B. P A  \<Longrightarrow> P B \<Longrightarrow> f (A \<oplus> B) = f A \<oplus> f B" "f {0} = {0}"
+  assumes all: "\<And>i. i \<in> I \<Longrightarrow> P (S i)"
+  shows "f (setsum_set S I) = setsum_set (f \<circ> S) I"
+proof cases
+  assume "finite I" from this all show ?thesis
+  proof induct
+    case (insert x F)
+    from `finite F` `\<And>i. i \<in> insert x F \<Longrightarrow> P (S i)` have "P (setsum_set S F)"
+      by induct auto
+    with insert show ?case
+      by (simp, subst f) auto
+  qed (auto intro!: f)
+qed (auto intro!: f)
+
+lemma setsum_set_linear:
+  fixes f :: "('a::comm_monoid_add) set => ('b::comm_monoid_add) set"
+  assumes "\<And>A B. f(A) \<oplus> f(B) = f(A \<oplus> B)" "f {0} = {0}"
+  shows "f (setsum_set S I) = setsum_set (f \<circ> S) I"
+  using setsum_set_cond_linear[of "\<lambda>x. True" f I S] assms by auto
+
 end
