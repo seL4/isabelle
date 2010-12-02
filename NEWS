@@ -60,6 +60,12 @@ Isar declaration attributes to access these.
 Note that corresponding "..._default" references in ML may be only
 changed globally at the ROOT session setup, but *not* within a theory.
 
+* More systematic naming of some configuration options.
+  INCOMPATIBILTY.
+
+  trace_simp  ~>  simp_trace
+  debug_simp  ~>  simp_debug
+
 
 *** Pure ***
 

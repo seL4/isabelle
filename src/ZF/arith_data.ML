@@ -223,7 +223,7 @@ Addsimprocs ArithData.nat_cancel;
 (*examples:
 print_depth 22;
 set timing;
-set trace_simp;
+set simp_trace;
 fun test s = (Goal s; by (Asm_simp_tac 1));
 
 test "x #+ y = x #+ z";

@@ -422,7 +422,7 @@ the trace on locally in a proof: *}
 
 (*<*)lemma "x=x"
 (*>*)
-using [[trace_simp=true]]
+using [[simp_trace=true]]
 apply simp
 (*<*)oops(*>*)
 

@@ -312,7 +312,7 @@ Addsimprocs [Int_Numeral_Simprocs.combine_numerals,
 (*
 print_depth 22;
 set timing;
-set trace_simp;
+set simp_trace;
 fun test s = (Goal s; by (Asm_simp_tac 1));
 val sg = #sign (rep_thm (topthm()));
 val t = FOLogic.dest_Trueprop (Logic.strip_assums_concl(getgoal 1));
