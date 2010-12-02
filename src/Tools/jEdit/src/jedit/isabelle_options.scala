@@ -7,6 +7,8 @@ Editor pane for plugin options.
 package isabelle.jedit
 
 
+import isabelle._
+
 import javax.swing.JSpinner
 
 import scala.swing.CheckBox
@@ -39,7 +41,8 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
     tooltip_margin.setValue(Isabelle.Int_Property("tooltip-margin", 40))
     addComponent(Isabelle.Property("tooltip-margin.title"), tooltip_margin)
 
-    tooltip_dismiss_delay.setValue(Isabelle.Int_Property("tooltip-dismiss-delay", 8000))
+    tooltip_dismiss_delay.setValue(
+      Isabelle.Time_Property("tooltip-dismiss-delay", Time.seconds(8.0)).ms.toInt)
     addComponent(Isabelle.Property("tooltip-dismiss-delay.title"), tooltip_dismiss_delay)
   }
 
@@ -58,7 +61,7 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
     Isabelle.Int_Property("tooltip-margin") =
       tooltip_margin.getValue().asInstanceOf[Int]
 
-    Isabelle.Int_Property("tooltip-dismiss-delay") =
-      tooltip_dismiss_delay.getValue().asInstanceOf[Int]
+    Isabelle.Time_Property("tooltip-dismiss-delay") =
+      Time.seconds(tooltip_dismiss_delay.getValue().asInstanceOf[Int])
   }
 }
