@@ -61,7 +61,7 @@ object Isabelle_Process
 }
 
 
-class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, args: String*)
+class Isabelle_Process(system: Isabelle_System, timeout: Time, receiver: Actor, args: String*)
 {
   import Isabelle_Process._
 
@@ -69,7 +69,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
   /* demo constructor */
 
   def this(args: String*) =
-    this(new Isabelle_System, 10000,
+    this(new Isabelle_System, Time.seconds(10),
       actor { loop { react { case res => Console.println(res) } } }, args: _*)
 
 
@@ -141,7 +141,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Int, receiver: Actor, a
   {
     val (startup_failed, startup_output) =
     {
-      val expired = System.currentTimeMillis() + timeout
+      val expired = System.currentTimeMillis() + timeout.ms
       val result = new StringBuilder(100)
 
       var finished: Option[Boolean] = None

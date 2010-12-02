@@ -227,15 +227,14 @@ object Markup
   {
     def apply(timing: isabelle.Timing): Markup =
       Markup(TIMING, List(
-        (ELAPSED, Double(timing.elapsed)),
-        (CPU, Double(timing.cpu)),
-        (GC, Double(timing.gc))))
+        (ELAPSED, Double(timing.elapsed.seconds)),
+        (CPU, Double(timing.cpu.seconds)),
+        (GC, Double(timing.gc.seconds))))
     def unapply(markup: Markup): Option[isabelle.Timing] =
       markup match {
         case Markup(TIMING, List(
-          (ELAPSED, Double(elapsed)),
-          (CPU, Double(cpu)),
-          (GC, Double(gc)))) => Some(isabelle.Timing(elapsed, cpu, gc))
+          (ELAPSED, Double(elapsed)), (CPU, Double(cpu)), (GC, Double(gc)))) =>
+            Some(new isabelle.Timing(Time.seconds(elapsed), Time.seconds(cpu), Time.seconds(gc)))
         case _ => None
       }
   }
