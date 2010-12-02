@@ -36,13 +36,13 @@ class Session(system: Isabelle_System)
   /* real time parameters */  // FIXME properties or settings (!?)
 
   // user input (e.g. text edits, cursor movement)
-  val input_delay = 300
+  val input_delay = Time.seconds(0.3)
 
   // prover output (markup, common messages)
-  val output_delay = 100
+  val output_delay = Time.seconds(0.1)
 
   // GUI layout updates
-  val update_delay = 500
+  val update_delay = Time.seconds(0.5)
 
 
   /* pervasive event buses */
@@ -74,15 +74,13 @@ class Session(system: Isabelle_System)
     Simple_Thread.actor("command_change_buffer", daemon = true)
   //{{{
   {
-    import scala.compat.Platform.currentTime
-
     var changed: Set[Command] = Set()
     var flush_time: Option[Long] = None
 
     def flush_timeout: Long =
       flush_time match {
         case None => 5000L
-        case Some(time) => (time - currentTime) max 0
+        case Some(time) => (time - System.currentTimeMillis()) max 0
       }
 
     def flush()
@@ -94,9 +92,9 @@ class Session(system: Isabelle_System)
 
     def invoke()
     {
-      val now = currentTime
+      val now = System.currentTimeMillis()
       flush_time match {
-        case None => flush_time = Some(now + output_delay)
+        case None => flush_time = Some(now + output_delay.ms)
         case Some(time) => if (now >= time) flush()
       }
     }
@@ -136,7 +134,7 @@ class Session(system: Isabelle_System)
 
   private case object Interrupt_Prover
   private case class Edit_Version(edits: List[Document.Edit_Text])
-  private case class Start(timeout: Int, args: List[String])
+  private case class Start(timeout: Time, args: List[String])
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
@@ -288,7 +286,7 @@ class Session(system: Isabelle_System)
 
   /** main methods **/
 
-  def start(timeout: Int, args: List[String]) { session_actor ! Start(timeout, args) }
+  def start(timeout: Time, args: List[String]) { session_actor ! Start(timeout, args) }
 
   def stop() { command_change_buffer !? Stop; session_actor !? Stop }
 

@@ -147,7 +147,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/solve_direct.ML \
   $(SRC)/Tools/value.ML \
   HOL.thy \
-  Tools/functorial_mappers.ML \
+  Tools/type_mapper.ML \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \
   Tools/simpdata.ML
@@ -1156,7 +1156,7 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Finite_Cartesian_Product.thy			\
   Multivariate_Analysis/Integration.certs				\
   Multivariate_Analysis/Integration.thy					\
-  Multivariate_Analysis/Gauge_Measure.thy					\
+  Multivariate_Analysis/Gauge_Measure.thy				\
   Multivariate_Analysis/L2_Norm.thy					\
   Multivariate_Analysis/Multivariate_Analysis.thy			\
   Multivariate_Analysis/Operator_Norm.thy				\
@@ -1166,8 +1166,8 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Topology_Euclidean_Space.thy			\
   Multivariate_Analysis/document/root.tex				\
   Multivariate_Analysis/normarith.ML Library/Glbs.thy			\
-  Library/Inner_Product.thy Library/Numeral_Type.thy			\
-  Library/Convex.thy Library/FrechetDeriv.thy				\
+  Library/Indicator_Function.thy Library/Inner_Product.thy		\
+  Library/Numeral_Type.thy Library/Convex.thy Library/FrechetDeriv.thy	\
   Library/Product_Vector.thy Library/Product_plus.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
 
@@ -1176,16 +1176,19 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
 
 HOL-Probability: HOL-Multivariate_Analysis $(OUT)/HOL-Probability
 
-$(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis Probability/ROOT.ML	\
-  Probability/Probability.thy Probability/Sigma_Algebra.thy		\
-  Probability/Caratheodory.thy		\
-  Probability/Borel.thy Probability/Measure.thy				\
-  Probability/Lebesgue_Integration.thy Probability/Lebesgue_Measure.thy		\
-  Probability/Positive_Infinite_Real.thy Probability/Product_Measure.thy	\
-  Probability/Probability_Space.thy Probability/Information.thy		\
-  Probability/ex/Dining_Cryptographers.thy Library/FuncSet.thy		\
-  Probability/Lebesgue_Measure.thy \
-  Library/Nat_Bijection.thy Library/Countable.thy
+$(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
+  Probability/Borel_Space.thy Probability/Caratheodory.thy		\
+  Probability/Complete_Measure.thy					\
+  Probability/ex/Dining_Cryptographers.thy				\
+  Probability/ex/Koepf_Duermuth_Countermeasure.thy			\
+  Probability/Information.thy Probability/Lebesgue_Integration.thy	\
+  Probability/Lebesgue_Measure.thy Probability/Measure.thy		\
+  Probability/Positive_Infinite_Real.thy				\
+  Probability/Probability_Space.thy Probability/Probability.thy		\
+  Probability/Product_Measure.thy Probability/Radon_Nikodym.thy		\
+  Probability/ROOT.ML Probability/Sigma_Algebra.thy			\
+  Library/Countable.thy Library/FuncSet.thy				\
+  Library/Nat_Bijection.thy
 	@cd Probability; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Multivariate_Analysis HOL-Probability
 
 

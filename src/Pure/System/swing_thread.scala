@@ -44,12 +44,12 @@ object Swing_Thread
 
   /* delayed actions */
 
-  private def delayed_action(first: Boolean)(time_span: Int)(action: => Unit): () => Unit =
+  private def delayed_action(first: Boolean)(time: Time)(action: => Unit): () => Unit =
   {
     val listener = new ActionListener {
       override def actionPerformed(e: ActionEvent) { Swing_Thread.assert(); action }
     }
-    val timer = new Timer(time_span, listener)
+    val timer = new Timer(time.ms.toInt, listener)
     timer.setRepeats(false)
 
     def invoke() { if (first) timer.start() else timer.restart() }

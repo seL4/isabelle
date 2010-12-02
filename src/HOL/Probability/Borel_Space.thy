@@ -2,7 +2,7 @@
 
 header {*Borel spaces*}
 
-theory Borel
+theory Borel_Space
   imports Sigma_Algebra Positive_Infinite_Real Multivariate_Analysis
 begin
 
@@ -12,39 +12,39 @@ lemma LIMSEQ_max:
 
 section "Generic Borel spaces"
 
-definition "borel_space = sigma (UNIV::'a::topological_space set) open"
-abbreviation "borel_measurable M \<equiv> measurable M borel_space"
+definition "borel = sigma \<lparr> space = UNIV::'a::topological_space set, sets = open\<rparr>"
+abbreviation "borel_measurable M \<equiv> measurable M borel"
 
-interpretation borel_space: sigma_algebra borel_space
-  using sigma_algebra_sigma by (auto simp: borel_space_def)
+interpretation borel: sigma_algebra borel
+  by (auto simp: borel_def intro!: sigma_algebra_sigma)
 
 lemma in_borel_measurable:
    "f \<in> borel_measurable M \<longleftrightarrow>
-    (\<forall>S \<in> sets (sigma UNIV open).
+    (\<forall>S \<in> sets (sigma \<lparr> space = UNIV, sets = open\<rparr>).
       f -` S \<inter> space M \<in> sets M)"
-  by (auto simp add: measurable_def borel_space_def)
+  by (auto simp add: measurable_def borel_def)
 
-lemma in_borel_measurable_borel_space:
+lemma in_borel_measurable_borel:
    "f \<in> borel_measurable M \<longleftrightarrow>
-    (\<forall>S \<in> sets borel_space.
+    (\<forall>S \<in> sets borel.
       f -` S \<inter> space M \<in> sets M)"
-  by (auto simp add: measurable_def borel_space_def)
+  by (auto simp add: measurable_def borel_def)
 
-lemma space_borel_space[simp]: "space borel_space = UNIV"
-  unfolding borel_space_def by auto
+lemma space_borel[simp]: "space borel = UNIV"
+  unfolding borel_def by auto
 
-lemma borel_space_open[simp]:
-  assumes "open A" shows "A \<in> sets borel_space"
+lemma borel_open[simp]:
+  assumes "open A" shows "A \<in> sets borel"
 proof -
   have "A \<in> open" unfolding mem_def using assms .
-  thus ?thesis unfolding borel_space_def sigma_def by (auto intro!: sigma_sets.Basic)
+  thus ?thesis unfolding borel_def sigma_def by (auto intro!: sigma_sets.Basic)
 qed
 
-lemma borel_space_closed[simp]:
-  assumes "closed A" shows "A \<in> sets borel_space"
+lemma borel_closed[simp]:
+  assumes "closed A" shows "A \<in> sets borel"
 proof -
-  have "space borel_space - (- A) \<in> sets borel_space"
-    using assms unfolding closed_def by (blast intro: borel_space_open)
+  have "space borel - (- A) \<in> sets borel"
+    using assms unfolding closed_def by (blast intro: borel_open)
   thus ?thesis by simp
 qed
 
@@ -55,9 +55,9 @@ lemma (in sigma_algebra) borel_measurable_vimage:
 proof (cases "x \<in> f ` space M")
   case True then obtain y where "x = f y" by auto
   from closed_sing[of "f y"]
-  have "{f y} \<in> sets borel_space" by (rule borel_space_closed)
+  have "{f y} \<in> sets borel" by (rule borel_closed)
   with assms show ?thesis
-    unfolding in_borel_measurable_borel_space `x = f y` by auto
+    unfolding in_borel_measurable_borel `x = f y` by auto
 next
   case False hence "f -` {x} \<inter> space M = {}" by auto
   thus ?thesis by auto
@@ -67,18 +67,18 @@ lemma (in sigma_algebra) borel_measurableI:
   fixes f :: "'a \<Rightarrow> 'x\<Colon>topological_space"
   assumes "\<And>S. open S \<Longrightarrow> f -` S \<inter> space M \<in> sets M"
   shows "f \<in> borel_measurable M"
-  unfolding borel_space_def
-proof (rule measurable_sigma)
+  unfolding borel_def
+proof (rule measurable_sigma, simp_all)
   fix S :: "'x set" assume "S \<in> open" thus "f -` S \<inter> space M \<in> sets M"
     using assms[of S] by (simp add: mem_def)
-qed simp_all
+qed
 
-lemma borel_space_singleton[simp, intro]:
+lemma borel_singleton[simp, intro]:
   fixes x :: "'a::t1_space"
-  shows "A \<in> sets borel_space \<Longrightarrow> insert x A \<in> sets borel_space"
-  proof (rule borel_space.insert_in_sets)
-    show "{x} \<in> sets borel_space"
-      using closed_sing[of x] by (rule borel_space_closed)
+  shows "A \<in> sets borel \<Longrightarrow> insert x A \<in> sets borel"
+  proof (rule borel.insert_in_sets)
+    show "{x} \<in> sets borel"
+      using closed_sing[of x] by (rule borel_closed)
   qed simp
 
 lemma (in sigma_algebra) borel_measurable_const[simp, intro]:
@@ -91,21 +91,39 @@ lemma (in sigma_algebra) borel_measurable_indicator[simp, intro!]:
   unfolding indicator_def_raw using A
   by (auto intro!: measurable_If_set borel_measurable_const)
 
+lemma (in sigma_algebra) borel_measurable_indicator_iff:
+  "(indicator A :: 'a \<Rightarrow> 'x::{t1_space, zero_neq_one}) \<in> borel_measurable M \<longleftrightarrow> A \<inter> space M \<in> sets M"
+    (is "?I \<in> borel_measurable M \<longleftrightarrow> _")
+proof
+  assume "?I \<in> borel_measurable M"
+  then have "?I -` {1} \<inter> space M \<in> sets M"
+    unfolding measurable_def by auto
+  also have "?I -` {1} \<inter> space M = A \<inter> space M"
+    unfolding indicator_def_raw by auto
+  finally show "A \<inter> space M \<in> sets M" .
+next
+  assume "A \<inter> space M \<in> sets M"
+  moreover have "?I \<in> borel_measurable M \<longleftrightarrow>
+    (indicator (A \<inter> space M) :: 'a \<Rightarrow> 'x) \<in> borel_measurable M"
+    by (intro measurable_cong) (auto simp: indicator_def)
+  ultimately show "?I \<in> borel_measurable M" by auto
+qed
+
 lemma borel_measurable_translate:
-  assumes "A \<in> sets borel_space" and trans: "\<And>B. open B \<Longrightarrow> f -` B \<in> sets borel_space"
-  shows "f -` A \<in> sets borel_space"
+  assumes "A \<in> sets borel" and trans: "\<And>B. open B \<Longrightarrow> f -` B \<in> sets borel"
+  shows "f -` A \<in> sets borel"
 proof -
   have "A \<in> sigma_sets UNIV open" using assms
-    by (simp add: borel_space_def sigma_def)
+    by (simp add: borel_def sigma_def)
   thus ?thesis
   proof (induct rule: sigma_sets.induct)
     case (Basic a) thus ?case using trans[of a] by (simp add: mem_def)
   next
     case (Compl a)
-    moreover have "UNIV \<in> sets borel_space"
-      by (metis borel_space.top borel_space_def_raw mem_def space_sigma)
+    moreover have "UNIV \<in> sets borel"
+      using borel.top by simp
     ultimately show ?case
-      by (auto simp: vimage_Diff borel_space.Diff)
+      by (auto simp: vimage_Diff borel.Diff)
   qed (auto simp add: vimage_UN)
 qed
 
@@ -119,10 +137,10 @@ proof -
   have *: "f \<in> borel_measurable ?R \<longleftrightarrow> ?f \<in> borel_measurable ?R"
     by (auto intro!: measurable_cong)
   show ?thesis unfolding *
-    unfolding in_borel_measurable_borel_space
+    unfolding in_borel_measurable_borel
   proof (simp, safe)
-    fix S :: "'x set" assume "S \<in> sets borel_space"
-      "\<forall>S\<in>sets borel_space. ?f -` S \<inter> A \<in> op \<inter> A ` sets M"
+    fix S :: "'x set" assume "S \<in> sets borel"
+      "\<forall>S\<in>sets borel. ?f -` S \<inter> A \<in> op \<inter> A ` sets M"
     then have "?f -` S \<inter> A \<in> op \<inter> A ` sets M" by auto
     then have f: "?f -` S \<inter> A \<in> sets M"
       using `A \<in> sets M` sets_into_space by fastsimp
@@ -140,8 +158,8 @@ proof -
       then show ?thesis using f by auto
     qed
   next
-    fix S :: "'x set" assume "S \<in> sets borel_space"
-      "\<forall>S\<in>sets borel_space. ?f -` S \<inter> space M \<in> sets M"
+    fix S :: "'x set" assume "S \<in> sets borel"
+      "\<forall>S\<in>sets borel. ?f -` S \<inter> space M \<in> sets M"
     then have f: "?f -` S \<inter> space M \<in> sets M" by auto
     then show "?f -` S \<inter> A \<in> op \<inter> A ` sets M"
       using `A \<in> sets M` sets_into_space
@@ -160,63 +178,63 @@ section "Borel spaces on euclidean spaces"
 
 lemma lessThan_borel[simp, intro]:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{..< a} \<in> sets borel_space"
-  by (blast intro: borel_space_open)
+  shows "{..< a} \<in> sets borel"
+  by (blast intro: borel_open)
 
 lemma greaterThan_borel[simp, intro]:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{a <..} \<in> sets borel_space"
-  by (blast intro: borel_space_open)
+  shows "{a <..} \<in> sets borel"
+  by (blast intro: borel_open)
 
 lemma greaterThanLessThan_borel[simp, intro]:
   fixes a b :: "'a\<Colon>ordered_euclidean_space"
-  shows "{a<..<b} \<in> sets borel_space"
-  by (blast intro: borel_space_open)
+  shows "{a<..<b} \<in> sets borel"
+  by (blast intro: borel_open)
 
 lemma atMost_borel[simp, intro]:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{..a} \<in> sets borel_space"
-  by (blast intro: borel_space_closed)
+  shows "{..a} \<in> sets borel"
+  by (blast intro: borel_closed)
 
 lemma atLeast_borel[simp, intro]:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{a..} \<in> sets borel_space"
-  by (blast intro: borel_space_closed)
+  shows "{a..} \<in> sets borel"
+  by (blast intro: borel_closed)
 
 lemma atLeastAtMost_borel[simp, intro]:
   fixes a b :: "'a\<Colon>ordered_euclidean_space"
-  shows "{a..b} \<in> sets borel_space"
-  by (blast intro: borel_space_closed)
+  shows "{a..b} \<in> sets borel"
+  by (blast intro: borel_closed)
 
 lemma greaterThanAtMost_borel[simp, intro]:
   fixes a b :: "'a\<Colon>ordered_euclidean_space"
-  shows "{a<..b} \<in> sets borel_space"
+  shows "{a<..b} \<in> sets borel"
   unfolding greaterThanAtMost_def by blast
 
 lemma atLeastLessThan_borel[simp, intro]:
   fixes a b :: "'a\<Colon>ordered_euclidean_space"
-  shows "{a..<b} \<in> sets borel_space"
+  shows "{a..<b} \<in> sets borel"
   unfolding atLeastLessThan_def by blast
 
 lemma hafspace_less_borel[simp, intro]:
   fixes a :: real
-  shows "{x::'a::euclidean_space. a < x $$ i} \<in> sets borel_space"
-  by (auto intro!: borel_space_open open_halfspace_component_gt)
+  shows "{x::'a::euclidean_space. a < x $$ i} \<in> sets borel"
+  by (auto intro!: borel_open open_halfspace_component_gt)
 
 lemma hafspace_greater_borel[simp, intro]:
   fixes a :: real
-  shows "{x::'a::euclidean_space. x $$ i < a} \<in> sets borel_space"
-  by (auto intro!: borel_space_open open_halfspace_component_lt)
+  shows "{x::'a::euclidean_space. x $$ i < a} \<in> sets borel"
+  by (auto intro!: borel_open open_halfspace_component_lt)
 
 lemma hafspace_less_eq_borel[simp, intro]:
   fixes a :: real
-  shows "{x::'a::euclidean_space. a \<le> x $$ i} \<in> sets borel_space"
-  by (auto intro!: borel_space_closed closed_halfspace_component_ge)
+  shows "{x::'a::euclidean_space. a \<le> x $$ i} \<in> sets borel"
+  by (auto intro!: borel_closed closed_halfspace_component_ge)
 
 lemma hafspace_greater_eq_borel[simp, intro]:
   fixes a :: real
-  shows "{x::'a::euclidean_space. x $$ i \<le> a} \<in> sets borel_space"
-  by (auto intro!: borel_space_closed closed_halfspace_component_le)
+  shows "{x::'a::euclidean_space. x $$ i \<le> a} \<in> sets borel"
+  by (auto intro!: borel_closed closed_halfspace_component_le)
 
 lemma (in sigma_algebra) borel_measurable_less[simp, intro]:
   fixes f :: "'a \<Rightarrow> real"
@@ -350,20 +368,21 @@ proof safe
 qed auto
 
 lemma halfspace_span_open:
-  "sets (sigma UNIV (range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a})))
-    \<subseteq> sets borel_space"
-  by (auto intro!: borel_space.sigma_sets_subset[simplified] borel_space_open
-                   open_halfspace_component_lt simp: sets_sigma)
+  "sigma_sets UNIV (range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a}))
+    \<subseteq> sets borel"
+  by (auto intro!: borel.sigma_sets_subset[simplified] borel_open
+                   open_halfspace_component_lt)
 
 lemma halfspace_lt_in_halfspace:
-  "{x\<Colon>'a. x $$ i < a} \<in> sets (sigma UNIV (range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a})))"
-  unfolding sets_sigma by (rule sigma_sets.Basic) auto
+  "{x\<Colon>'a. x $$ i < a} \<in> sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a})\<rparr>)"
+  by (auto intro!: sigma_sets.Basic simp: sets_sigma)
 
 lemma halfspace_gt_in_halfspace:
-  "{x\<Colon>'a. a < x $$ i} \<in> sets (sigma UNIV (range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a})))"
-    (is "?set \<in> sets ?SIGMA")
+  "{x\<Colon>'a. a < x $$ i} \<in> sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a})\<rparr>)"
+  (is "?set \<in> sets ?SIGMA")
 proof -
-  interpret sigma_algebra ?SIGMA by (rule sigma_algebra_sigma) simp
+  interpret sigma_algebra "?SIGMA"
+    by (intro sigma_algebra_sigma_sets) (simp_all add: sets_sigma)
   have *: "?set = (\<Union>n. space ?SIGMA - {x\<Colon>'a. x $$ i < a + 1 / real (Suc n)})"
   proof (safe, simp_all add: not_less)
     fix x assume "a < x $$ i"
@@ -382,97 +401,95 @@ proof -
     by (safe intro!: countable_UN Diff halfspace_lt_in_halfspace)
 qed
 
-lemma (in sigma_algebra) sets_sigma_subset:
-  assumes "A = space M"
-  assumes "B \<subseteq> sets M"
-  shows "sets (sigma A B) \<subseteq> sets M"
-  by (unfold assms sets_sigma, rule sigma_sets_subset, rule assms)
-
 lemma open_span_halfspace:
-  "sets borel_space \<subseteq> sets (sigma UNIV (range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. x $$ i < a})))"
+  "sets borel \<subseteq> sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. x $$ i < a})\<rparr>)"
     (is "_ \<subseteq> sets ?SIGMA")
-proof (unfold borel_space_def, rule sigma_algebra.sets_sigma_subset, safe)
-  show "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) simp
+proof -
+  have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) simp
   then interpret sigma_algebra ?SIGMA .
-  fix S :: "'a set" assume "S \<in> open" then have "open S" unfolding mem_def .
-  from open_UNION[OF this]
-  obtain I where *: "S =
-    (\<Union>(a, b)\<in>I.
-        (\<Inter> i<DIM('a). {x. (Chi (real_of_rat \<circ> op ! a)::'a) $$ i < x $$ i}) \<inter>
-        (\<Inter> i<DIM('a). {x. x $$ i < (Chi (real_of_rat \<circ> op ! b)::'a) $$ i}))"
-    unfolding greaterThanLessThan_def
-    unfolding eucl_greaterThan_eq_halfspaces[where 'a='a]
-    unfolding eucl_lessThan_eq_halfspaces[where 'a='a]
-    by blast
-  show "S \<in> sets ?SIGMA"
-    unfolding *
-    by (auto intro!: countable_UN Int countable_INT halfspace_lt_in_halfspace halfspace_gt_in_halfspace)
-qed auto
+  { fix S :: "'a set" assume "S \<in> open" then have "open S" unfolding mem_def .
+    from open_UNION[OF this]
+    obtain I where *: "S =
+      (\<Union>(a, b)\<in>I.
+          (\<Inter> i<DIM('a). {x. (Chi (real_of_rat \<circ> op ! a)::'a) $$ i < x $$ i}) \<inter>
+          (\<Inter> i<DIM('a). {x. x $$ i < (Chi (real_of_rat \<circ> op ! b)::'a) $$ i}))"
+      unfolding greaterThanLessThan_def
+      unfolding eucl_greaterThan_eq_halfspaces[where 'a='a]
+      unfolding eucl_lessThan_eq_halfspaces[where 'a='a]
+      by blast
+    have "S \<in> sets ?SIGMA"
+      unfolding *
+      by (auto intro!: countable_UN Int countable_INT halfspace_lt_in_halfspace halfspace_gt_in_halfspace) }
+  then show ?thesis unfolding borel_def
+    by (intro sets_sigma_subset) auto
+qed
 
 lemma halfspace_span_halfspace_le:
-  "sets (sigma UNIV (range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a}))) \<subseteq>
-   sets (sigma UNIV (range (\<lambda> (a, i). {x. x $$ i \<le> a})))"
+  "sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a})\<rparr>) \<subseteq>
+   sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x. x $$ i \<le> a})\<rparr>)"
   (is "_ \<subseteq> sets ?SIGMA")
-proof (rule sigma_algebra.sets_sigma_subset, safe)
-  show "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
+proof -
+  have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
   then interpret sigma_algebra ?SIGMA .
-  fix a i
-  have *: "{x::'a. x$$i < a} = (\<Union>n. {x. x$$i \<le> a - 1/real (Suc n)})"
-  proof (safe, simp_all)
-    fix x::'a assume *: "x$$i < a"
-    with reals_Archimedean[of "a - x$$i"]
-    obtain n where "x $$ i < a - 1 / (real (Suc n))"
-      by (auto simp: field_simps inverse_eq_divide)
-    then show "\<exists>n. x $$ i \<le> a - 1 / (real (Suc n))"
-      by (blast intro: less_imp_le)
-  next
-    fix x::'a and n
-    assume "x$$i \<le> a - 1 / real (Suc n)"
-    also have "\<dots> < a" by auto
-    finally show "x$$i < a" .
-  qed
-  show "{x. x$$i < a} \<in> sets ?SIGMA" unfolding *
-    by (safe intro!: countable_UN)
-       (auto simp: sets_sigma intro!: sigma_sets.Basic)
-qed auto
+  { fix a i
+    have *: "{x::'a. x$$i < a} = (\<Union>n. {x. x$$i \<le> a - 1/real (Suc n)})"
+    proof (safe, simp_all)
+      fix x::'a assume *: "x$$i < a"
+      with reals_Archimedean[of "a - x$$i"]
+      obtain n where "x $$ i < a - 1 / (real (Suc n))"
+        by (auto simp: field_simps inverse_eq_divide)
+      then show "\<exists>n. x $$ i \<le> a - 1 / (real (Suc n))"
+        by (blast intro: less_imp_le)
+    next
+      fix x::'a and n
+      assume "x$$i \<le> a - 1 / real (Suc n)"
+      also have "\<dots> < a" by auto
+      finally show "x$$i < a" .
+    qed
+    have "{x. x$$i < a} \<in> sets ?SIGMA" unfolding *
+      by (safe intro!: countable_UN)
+         (auto simp: sets_sigma intro!: sigma_sets.Basic) }
+  then show ?thesis by (intro sets_sigma_subset) auto
+qed
 
 lemma halfspace_span_halfspace_ge:
-  "sets (sigma UNIV (range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a}))) \<subseteq> 
-   sets (sigma UNIV (range (\<lambda> (a, i). {x. a \<le> x $$ i})))"
+  "sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i < a})\<rparr>) \<subseteq>
+   sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x. a \<le> x $$ i})\<rparr>)"
   (is "_ \<subseteq> sets ?SIGMA")
-proof (rule sigma_algebra.sets_sigma_subset, safe)
-  show "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
+proof -
+  have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
   then interpret sigma_algebra ?SIGMA .
-  fix a i have *: "{x::'a. x$$i < a} = space ?SIGMA - {x::'a. a \<le> x$$i}" by auto
-  show "{x. x$$i < a} \<in> sets ?SIGMA" unfolding *
-    by (safe intro!: Diff)
-       (auto simp: sets_sigma intro!: sigma_sets.Basic)
-qed auto
+  { fix a i have *: "{x::'a. x$$i < a} = space ?SIGMA - {x::'a. a \<le> x$$i}" by auto
+    have "{x. x$$i < a} \<in> sets ?SIGMA" unfolding *
+      by (safe intro!: Diff)
+         (auto simp: sets_sigma intro!: sigma_sets.Basic) }
+  then show ?thesis by (intro sets_sigma_subset) auto
+qed
 
 lemma halfspace_le_span_halfspace_gt:
-  "sets (sigma UNIV (range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i \<le> a}))) \<subseteq> 
-   sets (sigma UNIV (range (\<lambda> (a, i). {x. a < x $$ i})))"
+  "sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i \<le> a})\<rparr>) \<subseteq>
+   sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x. a < x $$ i})\<rparr>)"
   (is "_ \<subseteq> sets ?SIGMA")
-proof (rule sigma_algebra.sets_sigma_subset, safe)
-  show "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
+proof -
+  have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
   then interpret sigma_algebra ?SIGMA .
-  fix a i have *: "{x::'a. x$$i \<le> a} = space ?SIGMA - {x::'a. a < x$$i}" by auto
-  show "{x. x$$i \<le> a} \<in> sets ?SIGMA" unfolding *
-    by (safe intro!: Diff)
-       (auto simp: sets_sigma intro!: sigma_sets.Basic)
-qed auto
+  { fix a i have *: "{x::'a. x$$i \<le> a} = space ?SIGMA - {x::'a. a < x$$i}" by auto
+    have "{x. x$$i \<le> a} \<in> sets ?SIGMA" unfolding *
+      by (safe intro!: Diff)
+         (auto simp: sets_sigma intro!: sigma_sets.Basic) }
+  then show ?thesis by (intro sets_sigma_subset) auto
+qed
 
 lemma halfspace_le_span_atMost:
-  "sets (sigma UNIV (range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i \<le> a}))) \<subseteq>
-   sets (sigma UNIV (range (\<lambda>a. {..a\<Colon>'a\<Colon>ordered_euclidean_space})))"
+  "sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i \<le> a})\<rparr>) \<subseteq>
+   sets (sigma \<lparr>space=UNIV, sets=range (\<lambda>a. {..a\<Colon>'a\<Colon>ordered_euclidean_space})\<rparr>)"
   (is "_ \<subseteq> sets ?SIGMA")
-proof (rule sigma_algebra.sets_sigma_subset, safe)
-  show "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
+proof -
+  have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
   then interpret sigma_algebra ?SIGMA .
-  fix a i
-  show "{x. x$$i \<le> a} \<in> sets ?SIGMA"
+  have "\<And>a i. {x. x$$i \<le> a} \<in> sets ?SIGMA"
   proof cases
-    assume "i < DIM('a)"
+    fix a i assume "i < DIM('a)"
     then have *: "{x::'a. x$$i \<le> a} = (\<Union>k::nat. {.. (\<chi>\<chi> n. if n = i then a else real k)})"
     proof (safe, simp_all add: eucl_le[where 'a='a] split: split_if_asm)
       fix x
@@ -486,23 +503,23 @@ proof (rule sigma_algebra.sets_sigma_subset, safe)
       by (safe intro!: countable_UN)
          (auto simp: sets_sigma intro!: sigma_sets.Basic)
   next
-    assume "\<not> i < DIM('a)"
+    fix a i assume "\<not> i < DIM('a)"
     then show "{x. x$$i \<le> a} \<in> sets ?SIGMA"
       using top by auto
   qed
-qed auto
+  then show ?thesis by (intro sets_sigma_subset) auto
+qed
 
 lemma halfspace_le_span_greaterThan:
-  "sets (sigma UNIV (range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i \<le> a}))) \<subseteq>
-   sets (sigma UNIV (range (\<lambda>a. {a<..})))"
+  "sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. x $$ i \<le> a})\<rparr>) \<subseteq>
+   sets (sigma \<lparr>space=UNIV, sets=range (\<lambda>a. {a<..})\<rparr>)"
   (is "_ \<subseteq> sets ?SIGMA")
-proof (rule sigma_algebra.sets_sigma_subset, safe)
-  show "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
+proof -
+  have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
   then interpret sigma_algebra ?SIGMA .
-  fix a i
-  show "{x. x$$i \<le> a} \<in> sets ?SIGMA"
+  have "\<And>a i. {x. x$$i \<le> a} \<in> sets ?SIGMA"
   proof cases
-    assume "i < DIM('a)"
+    fix a i assume "i < DIM('a)"
     have "{x::'a. x$$i \<le> a} = space ?SIGMA - {x::'a. a < x$$i}" by auto
     also have *: "{x::'a. a < x$$i} = (\<Union>k::nat. {(\<chi>\<chi> n. if n = i then a else -real k) <..})" using `i <DIM('a)`
     proof (safe, simp_all add: eucl_less[where 'a='a] split: split_if_asm)
@@ -521,135 +538,185 @@ proof (rule sigma_algebra.sets_sigma_subset, safe)
       apply (safe intro!: countable_UN Diff)
       by (auto simp: sets_sigma intro!: sigma_sets.Basic)
   next
-    assume "\<not> i < DIM('a)"
+    fix a i assume "\<not> i < DIM('a)"
     then show "{x. x$$i \<le> a} \<in> sets ?SIGMA"
       using top by auto
   qed
-qed auto
+  then show ?thesis by (intro sets_sigma_subset) auto
+qed
+
+lemma halfspace_le_span_lessThan:
+  "sets (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x\<Colon>'a\<Colon>ordered_euclidean_space. a \<le> x $$ i})\<rparr>) \<subseteq>
+   sets (sigma \<lparr>space=UNIV, sets=range (\<lambda>a. {..<a})\<rparr>)"
+  (is "_ \<subseteq> sets ?SIGMA")
+proof -
+  have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
+  then interpret sigma_algebra ?SIGMA .
+  have "\<And>a i. {x. a \<le> x$$i} \<in> sets ?SIGMA"
+  proof cases
+    fix a i assume "i < DIM('a)"
+    have "{x::'a. a \<le> x$$i} = space ?SIGMA - {x::'a. x$$i < a}" by auto
+    also have *: "{x::'a. x$$i < a} = (\<Union>k::nat. {..< (\<chi>\<chi> n. if n = i then a else real k)})" using `i <DIM('a)`
+    proof (safe, simp_all add: eucl_less[where 'a='a] split: split_if_asm)
+      fix x
+      from real_arch_lt[of "Max ((\<lambda>i. x$$i)`{..<DIM('a)})"]
+      guess k::nat .. note k = this
+      { fix i assume "i < DIM('a)"
+        then have "x$$i < real k"
+          using k by (subst (asm) Max_less_iff) auto
+        then have "x$$i < real k" by simp }
+      then show "\<exists>k::nat. \<forall>ia. ia \<noteq> i \<longrightarrow> ia < DIM('a) \<longrightarrow> x $$ ia < real k"
+        by (auto intro!: exI[of _ k])
+    qed
+    finally show "{x. a \<le> x$$i} \<in> sets ?SIGMA"
+      apply (simp only:)
+      apply (safe intro!: countable_UN Diff)
+      by (auto simp: sets_sigma intro!: sigma_sets.Basic)
+  next
+    fix a i assume "\<not> i < DIM('a)"
+    then show "{x. a \<le> x$$i} \<in> sets ?SIGMA"
+      using top by auto
+  qed
+  then show ?thesis by (intro sets_sigma_subset) auto
+qed
 
 lemma atMost_span_atLeastAtMost:
-  "sets (sigma UNIV (range (\<lambda>a. {..a\<Colon>'a\<Colon>ordered_euclidean_space}))) \<subseteq>
-   sets (sigma UNIV (range (\<lambda>(a,b). {a..b})))"
+  "sets (sigma \<lparr>space=UNIV, sets=range (\<lambda>a. {..a\<Colon>'a\<Colon>ordered_euclidean_space})\<rparr>) \<subseteq>
+   sets (sigma \<lparr>space=UNIV, sets=range (\<lambda>(a,b). {a..b})\<rparr>)"
   (is "_ \<subseteq> sets ?SIGMA")
-proof (rule sigma_algebra.sets_sigma_subset, safe)
-  show "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
+proof -
+  have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
   then interpret sigma_algebra ?SIGMA .
-  fix a::'a
-  have *: "{..a} = (\<Union>n::nat. {- real n *\<^sub>R One .. a})"
-  proof (safe, simp_all add: eucl_le[where 'a='a])
-    fix x
-    from real_arch_simple[of "Max ((\<lambda>i. - x$$i)`{..<DIM('a)})"]
-    guess k::nat .. note k = this
-    { fix i assume "i < DIM('a)"
-      with k have "- x$$i \<le> real k"
-        by (subst (asm) Max_le_iff) (auto simp: field_simps)
-      then have "- real k \<le> x$$i" by simp }
-    then show "\<exists>n::nat. \<forall>i<DIM('a). - real n \<le> x $$ i"
-      by (auto intro!: exI[of _ k])
-  qed
-  show "{..a} \<in> sets ?SIGMA" unfolding *
-    by (safe intro!: countable_UN)
-       (auto simp: sets_sigma intro!: sigma_sets.Basic)
-qed auto
-
-lemma borel_space_eq_greaterThanLessThan:
-  "sets borel_space = sets (sigma UNIV (range (\<lambda> (a, b). {a <..< (b :: 'a \<Colon> ordered_euclidean_space)})))"
-    (is "_ = sets ?SIGMA")
-proof (rule antisym)
-  show "sets ?SIGMA \<subseteq> sets borel_space"
-    by (rule borel_space.sets_sigma_subset) auto
-  show "sets borel_space \<subseteq> sets ?SIGMA"
-    unfolding borel_space_def
-  proof (rule sigma_algebra.sets_sigma_subset, safe)
-    show "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
-    then interpret sigma_algebra ?SIGMA .
-    fix M :: "'a set" assume "M \<in> open"
-    then have "open M" by (simp add: mem_def)
-    show "M \<in> sets ?SIGMA"
-      apply (subst open_UNION[OF `open M`])
-      apply (safe intro!: countable_UN)
-      by (auto simp add: sigma_def intro!: sigma_sets.Basic)
-  qed auto
+  { fix a::'a
+    have *: "{..a} = (\<Union>n::nat. {- real n *\<^sub>R One .. a})"
+    proof (safe, simp_all add: eucl_le[where 'a='a])
+      fix x
+      from real_arch_simple[of "Max ((\<lambda>i. - x$$i)`{..<DIM('a)})"]
+      guess k::nat .. note k = this
+      { fix i assume "i < DIM('a)"
+        with k have "- x$$i \<le> real k"
+          by (subst (asm) Max_le_iff) (auto simp: field_simps)
+        then have "- real k \<le> x$$i" by simp }
+      then show "\<exists>n::nat. \<forall>i<DIM('a). - real n \<le> x $$ i"
+        by (auto intro!: exI[of _ k])
+    qed
+    have "{..a} \<in> sets ?SIGMA" unfolding *
+      by (safe intro!: countable_UN)
+         (auto simp: sets_sigma intro!: sigma_sets.Basic) }
+  then show ?thesis by (intro sets_sigma_subset) auto
 qed
 
-lemma borel_space_eq_atMost:
-  "sets borel_space = sets (sigma UNIV (range (\<lambda> a. {.. a::'a\<Colon>ordered_euclidean_space})))"
-    (is "_ = sets ?SIGMA")
-proof (rule antisym)
-  show "sets borel_space \<subseteq> sets ?SIGMA"
+lemma borel_eq_atMost:
+  "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> a. {.. a::'a\<Colon>ordered_euclidean_space})\<rparr>)"
+    (is "_ = ?SIGMA")
+proof (intro algebra.equality antisym)
+  show "sets borel \<subseteq> sets ?SIGMA"
     using halfspace_le_span_atMost halfspace_span_halfspace_le open_span_halfspace
     by auto
-  show "sets ?SIGMA \<subseteq> sets borel_space"
-    by (rule borel_space.sets_sigma_subset) auto
-qed
+  show "sets ?SIGMA \<subseteq> sets borel"
+    by (rule borel.sets_sigma_subset) auto
+qed auto
 
-lemma borel_space_eq_atLeastAtMost:
-  "sets borel_space = sets (sigma UNIV (range (\<lambda> (a :: 'a\<Colon>ordered_euclidean_space, b). {a .. b})))"
-   (is "_ = sets ?SIGMA")
-proof (rule antisym)
-  show "sets borel_space \<subseteq> sets ?SIGMA"
+lemma borel_eq_atLeastAtMost:
+  "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a :: 'a\<Colon>ordered_euclidean_space, b). {a .. b})\<rparr>)"
+   (is "_ = ?SIGMA")
+proof (intro algebra.equality antisym)
+  show "sets borel \<subseteq> sets ?SIGMA"
     using atMost_span_atLeastAtMost halfspace_le_span_atMost
       halfspace_span_halfspace_le open_span_halfspace
     by auto
-  show "sets ?SIGMA \<subseteq> sets borel_space"
-    by (rule borel_space.sets_sigma_subset) auto
-qed
+  show "sets ?SIGMA \<subseteq> sets borel"
+    by (rule borel.sets_sigma_subset) auto
+qed auto
 
-lemma borel_space_eq_greaterThan:
-  "sets borel_space = sets (sigma UNIV (range (\<lambda> (a :: 'a\<Colon>ordered_euclidean_space). {a <..})))"
-   (is "_ = sets ?SIGMA")
-proof (rule antisym)
-  show "sets borel_space \<subseteq> sets ?SIGMA"
+lemma borel_eq_greaterThan:
+  "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a :: 'a\<Colon>ordered_euclidean_space). {a <..})\<rparr>)"
+   (is "_ = ?SIGMA")
+proof (intro algebra.equality antisym)
+  show "sets borel \<subseteq> sets ?SIGMA"
     using halfspace_le_span_greaterThan
       halfspace_span_halfspace_le open_span_halfspace
     by auto
-  show "sets ?SIGMA \<subseteq> sets borel_space"
-    by (rule borel_space.sets_sigma_subset) auto
-qed
+  show "sets ?SIGMA \<subseteq> sets borel"
+    by (rule borel.sets_sigma_subset) auto
+qed auto
 
-lemma borel_space_eq_halfspace_le:
-  "sets borel_space = sets (sigma UNIV (range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. x$$i \<le> a})))"
-   (is "_ = sets ?SIGMA")
-proof (rule antisym)
-  show "sets borel_space \<subseteq> sets ?SIGMA"
+lemma borel_eq_lessThan:
+  "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a :: 'a\<Colon>ordered_euclidean_space). {..< a})\<rparr>)"
+   (is "_ = ?SIGMA")
+proof (intro algebra.equality antisym)
+  show "sets borel \<subseteq> sets ?SIGMA"
+    using halfspace_le_span_lessThan
+      halfspace_span_halfspace_ge open_span_halfspace
+    by auto
+  show "sets ?SIGMA \<subseteq> sets borel"
+    by (rule borel.sets_sigma_subset) auto
+qed auto
+
+lemma borel_eq_greaterThanLessThan:
+  "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, b). {a <..< (b :: 'a \<Colon> ordered_euclidean_space)})\<rparr>)"
+    (is "_ = ?SIGMA")
+proof (intro algebra.equality antisym)
+  show "sets ?SIGMA \<subseteq> sets borel"
+    by (rule borel.sets_sigma_subset) auto
+  show "sets borel \<subseteq> sets ?SIGMA"
+  proof -
+    have "sigma_algebra ?SIGMA" by (rule sigma_algebra_sigma) auto
+    then interpret sigma_algebra ?SIGMA .
+    { fix M :: "'a set" assume "M \<in> open"
+      then have "open M" by (simp add: mem_def)
+      have "M \<in> sets ?SIGMA"
+        apply (subst open_UNION[OF `open M`])
+        apply (safe intro!: countable_UN)
+        by (auto simp add: sigma_def intro!: sigma_sets.Basic) }
+    then show ?thesis
+      unfolding borel_def by (intro sets_sigma_subset) auto
+  qed
+qed auto
+
+lemma borel_eq_halfspace_le:
+  "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. x$$i \<le> a})\<rparr>)"
+   (is "_ = ?SIGMA")
+proof (intro algebra.equality antisym)
+  show "sets borel \<subseteq> sets ?SIGMA"
     using open_span_halfspace halfspace_span_halfspace_le by auto
-  show "sets ?SIGMA \<subseteq> sets borel_space"
-    by (rule borel_space.sets_sigma_subset) auto
-qed
+  show "sets ?SIGMA \<subseteq> sets borel"
+    by (rule borel.sets_sigma_subset) auto
+qed auto
 
-lemma borel_space_eq_halfspace_less:
-  "sets borel_space = sets (sigma UNIV (range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. x$$i < a})))"
-   (is "_ = sets ?SIGMA")
-proof (rule antisym)
-  show "sets borel_space \<subseteq> sets ?SIGMA"
+lemma borel_eq_halfspace_less:
+  "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. x$$i < a})\<rparr>)"
+   (is "_ = ?SIGMA")
+proof (intro algebra.equality antisym)
+  show "sets borel \<subseteq> sets ?SIGMA"
     using open_span_halfspace .
-  show "sets ?SIGMA \<subseteq> sets borel_space"
-    by (rule borel_space.sets_sigma_subset) auto
-qed
+  show "sets ?SIGMA \<subseteq> sets borel"
+    by (rule borel.sets_sigma_subset) auto
+qed auto
 
-lemma borel_space_eq_halfspace_gt:
-  "sets borel_space = sets (sigma UNIV (range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. a < x$$i})))"
-   (is "_ = sets ?SIGMA")
-proof (rule antisym)
-  show "sets borel_space \<subseteq> sets ?SIGMA"
+lemma borel_eq_halfspace_gt:
+  "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. a < x$$i})\<rparr>)"
+   (is "_ = ?SIGMA")
+proof (intro algebra.equality antisym)
+  show "sets borel \<subseteq> sets ?SIGMA"
     using halfspace_le_span_halfspace_gt open_span_halfspace halfspace_span_halfspace_le by auto
-  show "sets ?SIGMA \<subseteq> sets borel_space"
-    by (rule borel_space.sets_sigma_subset) auto
-qed
+  show "sets ?SIGMA \<subseteq> sets borel"
+    by (rule borel.sets_sigma_subset) auto
+qed auto
 
-lemma borel_space_eq_halfspace_ge:
-  "sets borel_space = sets (sigma UNIV (range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. a \<le> x$$i})))"
-   (is "_ = sets ?SIGMA")
-proof (rule antisym)
-  show "sets borel_space \<subseteq> sets ?SIGMA"
+lemma borel_eq_halfspace_ge:
+  "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. a \<le> x$$i})\<rparr>)"
+   (is "_ = ?SIGMA")
+proof (intro algebra.equality antisym)
+  show "sets borel \<subseteq> sets ?SIGMA"
     using halfspace_span_halfspace_ge open_span_halfspace by auto
-  show "sets ?SIGMA \<subseteq> sets borel_space"
-    by (rule borel_space.sets_sigma_subset) auto
-qed
+  show "sets ?SIGMA \<subseteq> sets borel"
+    by (rule borel.sets_sigma_subset) auto
+qed auto
 
 lemma (in sigma_algebra) borel_measurable_halfspacesI:
   fixes f :: "'a \<Rightarrow> 'c\<Colon>ordered_euclidean_space"
-  assumes "sets borel_space = sets (sigma UNIV (range F))"
+  assumes "borel = (sigma \<lparr>space=UNIV, sets=range F\<rparr>)"
   and "\<And>a i. S a i = f -` F (a,i) \<inter> space M"
   and "\<And>a i. \<not> i < DIM('c) \<Longrightarrow> S a i \<in> sets M"
   shows "f \<in> borel_measurable M = (\<forall>i<DIM('c). \<forall>a::real. S a i \<in> sets M)"
@@ -667,7 +734,7 @@ next
       assume "\<not> i < DIM('c)"
       from assms(3)[OF this] show ?thesis .
     qed }
-  then have "f \<in> measurable M (sigma UNIV (range F))"
+  then have "f \<in> measurable M (sigma \<lparr>space=UNIV, sets=range F\<rparr>)"
     by (auto intro!: measurable_sigma simp: assms(2))
   then show "f \<in> borel_measurable M" unfolding measurable_def
     unfolding assms(1) by simp
@@ -676,22 +743,22 @@ qed
 lemma (in sigma_algebra) borel_measurable_iff_halfspace_le:
   fixes f :: "'a \<Rightarrow> 'c\<Colon>ordered_euclidean_space"
   shows "f \<in> borel_measurable M = (\<forall>i<DIM('c). \<forall>a. {w \<in> space M. f w $$ i \<le> a} \<in> sets M)"
-  by (rule borel_measurable_halfspacesI[OF borel_space_eq_halfspace_le]) auto
+  by (rule borel_measurable_halfspacesI[OF borel_eq_halfspace_le]) auto
 
 lemma (in sigma_algebra) borel_measurable_iff_halfspace_less:
   fixes f :: "'a \<Rightarrow> 'c\<Colon>ordered_euclidean_space"
   shows "f \<in> borel_measurable M \<longleftrightarrow> (\<forall>i<DIM('c). \<forall>a. {w \<in> space M. f w $$ i < a} \<in> sets M)"
-  by (rule borel_measurable_halfspacesI[OF borel_space_eq_halfspace_less]) auto
+  by (rule borel_measurable_halfspacesI[OF borel_eq_halfspace_less]) auto
 
 lemma (in sigma_algebra) borel_measurable_iff_halfspace_ge:
   fixes f :: "'a \<Rightarrow> 'c\<Colon>ordered_euclidean_space"
   shows "f \<in> borel_measurable M = (\<forall>i<DIM('c). \<forall>a. {w \<in> space M. a \<le> f w $$ i} \<in> sets M)"
-  by (rule borel_measurable_halfspacesI[OF borel_space_eq_halfspace_ge]) auto
+  by (rule borel_measurable_halfspacesI[OF borel_eq_halfspace_ge]) auto
 
 lemma (in sigma_algebra) borel_measurable_iff_halfspace_greater:
   fixes f :: "'a \<Rightarrow> 'c\<Colon>ordered_euclidean_space"
   shows "f \<in> borel_measurable M \<longleftrightarrow> (\<forall>i<DIM('c). \<forall>a. {w \<in> space M. a < f w $$ i} \<in> sets M)"
-  by (rule borel_measurable_halfspacesI[OF borel_space_eq_halfspace_gt]) auto
+  by (rule borel_measurable_halfspacesI[OF borel_eq_halfspace_gt]) auto
 
 lemma (in sigma_algebra) borel_measurable_iff_le:
   "(f::'a \<Rightarrow> real) \<in> borel_measurable M = (\<forall>a. {w \<in> space M. f w \<le> a} \<in> sets M)"
@@ -710,14 +777,14 @@ lemma (in sigma_algebra) borel_measurable_iff_greater:
   using borel_measurable_iff_halfspace_greater[where 'c=real] by simp
 
 lemma borel_measureable_euclidean_component:
-  "(\<lambda>x::'a::euclidean_space. x $$ i) \<in> borel_measurable borel_space"
-  unfolding borel_space_def[where 'a=real]
-proof (rule borel_space.measurable_sigma)
+  "(\<lambda>x::'a::euclidean_space. x $$ i) \<in> borel_measurable borel"
+  unfolding borel_def[where 'a=real]
+proof (rule borel.measurable_sigma, simp_all)
   fix S::"real set" assume "S \<in> open" then have "open S" unfolding mem_def .
   from open_vimage_euclidean_component[OF this]
-  show "(\<lambda>x. x $$ i) -` S \<inter> space borel_space \<in> sets borel_space"
-    by (auto intro: borel_space_open)
-qed auto
+  show "(\<lambda>x. x $$ i) -` S \<in> sets borel"
+    by (auto intro: borel_open)
+qed
 
 lemma (in sigma_algebra) borel_measureable_euclidean_space:
   fixes f :: "'a \<Rightarrow> 'c::ordered_euclidean_space"
@@ -746,12 +813,12 @@ proof (rule borel_measurableI)
     assume "b \<noteq> 0"
     with `open S` have "((\<lambda>x. (- a + x) /\<^sub>R b) ` S) \<in> open" (is "?S \<in> open")
       by (auto intro!: open_affinity simp: scaleR.add_right mem_def)
-    hence "?S \<in> sets borel_space"
-      unfolding borel_space_def by (auto simp: sigma_def intro!: sigma_sets.Basic)
+    hence "?S \<in> sets borel"
+      unfolding borel_def by (auto simp: sigma_def intro!: sigma_sets.Basic)
     moreover
     from `b \<noteq> 0` have "(\<lambda>x. a + b *\<^sub>R f x) -` S = f -` ?S"
       apply auto by (rule_tac x="a + b *\<^sub>R f x" in image_eqI, simp_all)
-    ultimately show ?thesis using assms unfolding in_borel_measurable_borel_space
+    ultimately show ?thesis using assms unfolding in_borel_measurable_borel
       by auto
   qed simp
 qed
@@ -942,26 +1009,25 @@ qed
 
 section "Borel space over the real line with infinity"
 
-lemma borel_space_Real_measurable:
-  "A \<in> sets borel_space \<Longrightarrow> Real -` A \<in> sets borel_space"
+lemma borel_Real_measurable:
+  "A \<in> sets borel \<Longrightarrow> Real -` A \<in> sets borel"
 proof (rule borel_measurable_translate)
   fix B :: "pinfreal set" assume "open B"
   then obtain T x where T: "open T" "Real ` (T \<inter> {0..}) = B - {\<omega>}" and
     x: "\<omega> \<in> B \<Longrightarrow> 0 \<le> x" "\<omega> \<in> B \<Longrightarrow> {Real x <..} \<subseteq> B"
     unfolding open_pinfreal_def by blast
-
   have "Real -` B = Real -` (B - {\<omega>})" by auto
   also have "\<dots> = Real -` (Real ` (T \<inter> {0..}))" using T by simp
   also have "\<dots> = (if 0 \<in> T then T \<union> {.. 0} else T \<inter> {0..})"
     apply (auto simp add: Real_eq_Real image_iff)
     apply (rule_tac x="max 0 x" in bexI)
     by (auto simp: max_def)
-  finally show "Real -` B \<in> sets borel_space"
+  finally show "Real -` B \<in> sets borel"
     using `open T` by auto
 qed simp
 
-lemma borel_space_real_measurable:
-  "A \<in> sets borel_space \<Longrightarrow> (real -` A :: pinfreal set) \<in> sets borel_space"
+lemma borel_real_measurable:
+  "A \<in> sets borel \<Longrightarrow> (real -` A :: pinfreal set) \<in> sets borel"
 proof (rule borel_measurable_translate)
   fix B :: "real set" assume "open B"
   { fix x have "0 < real x \<longleftrightarrow> (\<exists>r>0. x = Real r)" by (cases x) auto }
@@ -972,19 +1038,19 @@ proof (rule borel_measurable_translate)
   have "open (real -` (B \<inter> {0 <..}) :: pinfreal set)"
     unfolding open_pinfreal_def using `open B`
     by (auto intro!: open_Int exI[of _ "B \<inter> {0 <..}"] simp: image_iff Ex_less_real)
-  then show "(real -` B :: pinfreal set) \<in> sets borel_space" unfolding * by auto
+  then show "(real -` B :: pinfreal set) \<in> sets borel" unfolding * by auto
 qed simp
 
 lemma (in sigma_algebra) borel_measurable_Real[intro, simp]:
   assumes "f \<in> borel_measurable M"
   shows "(\<lambda>x. Real (f x)) \<in> borel_measurable M"
-  unfolding in_borel_measurable_borel_space
+  unfolding in_borel_measurable_borel
 proof safe
-  fix S :: "pinfreal set" assume "S \<in> sets borel_space"
-  from borel_space_Real_measurable[OF this]
+  fix S :: "pinfreal set" assume "S \<in> sets borel"
+  from borel_Real_measurable[OF this]
   have "(Real \<circ> f) -` S \<inter> space M \<in> sets M"
     using assms
-    unfolding vimage_compose in_borel_measurable_borel_space
+    unfolding vimage_compose in_borel_measurable_borel
     by auto
   thus "(\<lambda>x. Real (f x)) -` S \<inter> space M \<in> sets M" by (simp add: comp_def)
 qed
@@ -993,13 +1059,13 @@ lemma (in sigma_algebra) borel_measurable_real[intro, simp]:
   fixes f :: "'a \<Rightarrow> pinfreal"
   assumes "f \<in> borel_measurable M"
   shows "(\<lambda>x. real (f x)) \<in> borel_measurable M"
-  unfolding in_borel_measurable_borel_space
+  unfolding in_borel_measurable_borel
 proof safe
-  fix S :: "real set" assume "S \<in> sets borel_space"
-  from borel_space_real_measurable[OF this]
+  fix S :: "real set" assume "S \<in> sets borel"
+  from borel_real_measurable[OF this]
   have "(real \<circ> f) -` S \<inter> space M \<in> sets M"
     using assms
-    unfolding vimage_compose in_borel_measurable_borel_space
+    unfolding vimage_compose in_borel_measurable_borel
     by auto
   thus "(\<lambda>x. real (f x)) -` S \<inter> space M \<in> sets M" by (simp add: comp_def)
 qed
@@ -1155,12 +1221,10 @@ next
   hence **: "\<forall>a. {x\<in>space M. f x < a} \<in> sets M"
     unfolding less_eq_le_pinfreal_measurable
     unfolding greater_eq_le_measurable .
-
   show "f \<in> borel_measurable M" unfolding borel_measurable_pinfreal_eq_real borel_measurable_iff_greater
   proof safe
     have "f -` {\<omega>} \<inter> space M = space M - {x\<in>space M. f x < \<omega>}" by auto
     then show \<omega>: "f -` {\<omega>} \<inter> space M \<in> sets M" using ** by auto
-
     fix a
     have "{w \<in> space M. a < real (f w)} =
       (if 0 \<le> a then {w\<in>space M. Real a < f w} - (f -` {\<omega>} \<inter> space M) else space M)"
@@ -1291,14 +1355,14 @@ proof cases
     by induct auto
 qed (simp add: borel_measurable_const)
 
-lemma (in sigma_algebra) borel_measurable_pinfreal_min[intro, simp]:
+lemma (in sigma_algebra) borel_measurable_pinfreal_min[simp, intro]:
   fixes f g :: "'a \<Rightarrow> pinfreal"
   assumes "f \<in> borel_measurable M"
   assumes "g \<in> borel_measurable M"
   shows "(\<lambda>x. min (g x) (f x)) \<in> borel_measurable M"
   using assms unfolding min_def by (auto intro!: measurable_If)
 
-lemma (in sigma_algebra) borel_measurable_pinfreal_max[intro]:
+lemma (in sigma_algebra) borel_measurable_pinfreal_max[simp, intro]:
   fixes f g :: "'a \<Rightarrow> pinfreal"
   assumes "f \<in> borel_measurable M"
   and "g \<in> borel_measurable M"
@@ -1331,7 +1395,7 @@ proof safe
     using assms by auto
 qed
 
-lemma (in sigma_algebra) borel_measurable_pinfreal_diff:
+lemma (in sigma_algebra) borel_measurable_pinfreal_diff[simp, intro]:
   fixes f g :: "'a \<Rightarrow> pinfreal"
   assumes "f \<in> borel_measurable M"
   assumes "g \<in> borel_measurable M"
@@ -1345,7 +1409,7 @@ proof safe
     using assms by auto
 qed
 
-lemma (in sigma_algebra) borel_measurable_psuminf:
+lemma (in sigma_algebra) borel_measurable_psuminf[simp, intro]:
   assumes "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. (\<Sum>\<^isub>\<infinity> i. f i x)) \<in> borel_measurable M"
   using assms unfolding psuminf_def
@@ -1361,7 +1425,6 @@ lemma (in sigma_algebra) borel_measurable_LIMSEQ:
 proof -
   let "?pu x i" = "max (u i x) 0"
   let "?nu x i" = "max (- u i x) 0"
-
   { fix x assume x: "x \<in> space M"
     have "(?pu x) ----> max (u' x) 0"
       "(?nu x) ----> max (- u' x) 0"
@@ -1371,14 +1434,12 @@ proof -
       "(SUP n. INF m. Real (- u (n + m) x)) = Real (- u' x)"
       by (simp_all add: Real_max'[symmetric]) }
   note eq = this
-
   have *: "\<And>x. real (Real (u' x)) - real (Real (- u' x)) = u' x"
     by auto
-
   have "(SUP n. INF m. (\<lambda>x. Real (u (n + m) x))) \<in> borel_measurable M"
        "(SUP n. INF m. (\<lambda>x. Real (- u (n + m) x))) \<in> borel_measurable M"
     using u by (auto intro: borel_measurable_SUP borel_measurable_INF borel_measurable_Real)
-  with eq[THEN measurable_cong, of M "\<lambda>x. x" borel_space]
+  with eq[THEN measurable_cong, of M "\<lambda>x. x" borel]
   have "(\<lambda>x. Real (u' x)) \<in> borel_measurable M"
        "(\<lambda>x. Real (- u' x)) \<in> borel_measurable M"
     unfolding SUPR_fun_expand INFI_fun_expand by auto

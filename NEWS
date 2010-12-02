@@ -92,6 +92,22 @@ the local file system.
 
 *** HOL ***
 
+* Functions can be declared as coercions and type inference will add them
+as necessary upon input of a term. In Complex_Main, real :: nat => real
+and real :: int => real are declared as coercions. A new coercion function
+f is declared like this:
+
+declare [[coercion f]]
+
+To lift coercions through type constructors (eg from nat => real to
+nat list => real list), map functions can be declared, e.g.
+
+declare [[coercion_map map]]
+
+Currently coercion inference is activated only in theories including real
+numbers, i.e. descendants of Complex_Main. In other theories it needs to be
+loaded explicitly: uses "~~/src/Tools/subtyping.ML"
+
 * Abandoned locales equiv, congruent and congruent2 for equivalence relations.
 INCOMPATIBILITY: use equivI rather than equiv_intro (same for congruent(2)).
 
@@ -138,7 +154,7 @@ contents for other uses.  INCOMPATIBILITY.
 techniques, in particular static evaluation conversions.
 
 * String.literal is a type, but not a datatype.  INCOMPATIBILITY.
- 
+
 * Renamed lemmas:
   expand_fun_eq -> fun_eq_iff
   expand_set_eq -> set_eq_iff
@@ -285,15 +301,13 @@ cartesian products.
 Also note that the indices are now natural numbers and not from some finite
 type. Finite cartesian products of euclidean spaces, products of euclidean
 spaces the real and complex numbers are instantiated to be euclidean_spaces.
-
 INCOMPATIBILITY.
 
 * Probability: Introduced pinfreal as real numbers with infinity. Use pinfreal
-as value for measures. Introduces Lebesgue Measure based on the integral in
-Multivariate Analysis. Proved Radon Nikodym for arbitrary sigma finite measure
-spaces.
-
- INCOMPATIBILITY.
+as value for measures. Introduce the Radon-Nikodym derivative, product spaces
+and Fubini's theorem for arbitrary sigma finite measures. Introduces Lebesgue
+measure based on the integral in Multivariate Analysis.
+INCOMPATIBILITY.
 
 * Inductive package: offers new command "inductive_simps" to automatically
 derive instantiated and simplified equations for inductive predicates,

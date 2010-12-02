@@ -882,7 +882,6 @@ lemma rangeI: "f x \<in> range f"
 lemma rangeE [elim?]: "b \<in> range (\<lambda>x. f x) ==> (!!x. b = f x ==> P) ==> P"
   by blast
 
-
 subsubsection {* Some rules with @{text "if"} *}
 
 text{* Elimination of @{text"{x. \<dots> & x=t & \<dots>}"}. *}

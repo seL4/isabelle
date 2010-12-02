@@ -1,10 +1,47 @@
-header {*Measures*}
+(* Author: Lawrence C Paulson; Armin Heller, Johannes Hoelzl, TU Muenchen *)
 
 theory Measure
   imports Caratheodory
 begin
 
-text{*From the Hurd/Coble measure theory development, translated by Lawrence Paulson.*}
+lemma inj_on_image_eq_iff:
+  assumes "inj_on f S"
+  assumes "A \<subseteq> S" "B \<subseteq> S"
+  shows "(f ` A = f ` B) \<longleftrightarrow> (A = B)"
+proof -
+  have "inj_on f (A \<union> B)"
+    using assms by (auto intro: subset_inj_on)
+  from inj_on_Un_image_eq_iff[OF this]
+  show ?thesis .
+qed
+
+lemma image_vimage_inter_eq:
+  assumes "f ` S = T" "X \<subseteq> T"
+  shows "f ` (f -` X \<inter> S) = X"
+proof (intro antisym)
+  have "f ` (f -` X \<inter> S) \<subseteq> f ` (f -` X)" by auto
+  also have "\<dots> = X \<inter> range f" by simp
+  also have "\<dots> = X" using assms by auto
+  finally show "f ` (f -` X \<inter> S) \<subseteq> X" by auto
+next
+  show "X \<subseteq> f ` (f -` X \<inter> S)"
+  proof
+    fix x assume "x \<in> X"
+    then have "x \<in> T" using `X \<subseteq> T` by auto
+    then obtain y where "x = f y" "y \<in> S"
+      using assms by auto
+    then have "{y} \<subseteq> f -` X \<inter> S" using `x \<in> X` by auto
+    moreover have "x \<in> f ` {y}" using `x = f y` by auto
+    ultimately show "x \<in> f ` (f -` X \<inter> S)" by auto
+  qed
+qed
+
+text {*
+  This formalisation of measure theory is based on the work of Hurd/Coble wand
+  was later translated by Lawrence Paulson to Isabelle/HOL. Later it was
+  modified to use the positive infinite reals and to prove the uniqueness of
+  cut stable measures.
+*}
 
 section {* Equations for the measure function @{text \<mu>} *}
 
@@ -157,11 +194,19 @@ proof -
 qed
 
 lemma (in measure_space) measure_up:
-  assumes "P \<in> sets M" "\<And>i. B i \<in> sets M" "B \<up> P"
+  assumes "\<And>i. B i \<in> sets M" "B \<up> P"
   shows "(\<lambda>i. \<mu> (B i)) \<up> \<mu> P"
   using assms unfolding isoton_def
   by (auto intro!: measure_mono continuity_from_below)
 
+lemma (in measure_space) continuity_from_below':
+  assumes A: "range A \<subseteq> sets M" "\<And>i. A i \<subseteq> A (Suc i)"
+  shows "(\<lambda>i. (\<mu> (A i))) ----> (\<mu> (\<Union>i. A i))"
+proof- let ?A = "\<Union>i. A i"
+  have " (\<lambda>i. \<mu> (A i)) \<up> \<mu> ?A" apply(rule measure_up)
+    using assms unfolding complete_lattice_class.isoton_def by auto
+  thus ?thesis by(rule isotone_Lim(1))
+qed
 
 lemma (in measure_space) continuity_from_above:
   assumes A: "range A \<subseteq> sets M"
@@ -196,7 +241,7 @@ proof -
 qed
 
 lemma (in measure_space) measure_down:
-  assumes "P \<in> sets M" "\<And>i. B i \<in> sets M" "B \<down> P"
+  assumes "\<And>i. B i \<in> sets M" "B \<down> P"
   and finite: "\<And>i. \<mu> (B i) \<noteq> \<omega>"
   shows "(\<lambda>i. \<mu> (B i)) \<down> \<mu> P"
   using assms unfolding antiton_def
@@ -414,6 +459,11 @@ proof -
   finally show ?thesis .
 qed
 
+lemma (in measure_space) measure_eq_0:
+  assumes "N \<in> sets M" and "\<mu> N = 0" and "K \<subseteq> N" and "K \<in> sets M"
+  shows "\<mu> K = 0"
+using measure_mono[OF assms(3,4,1)] assms(2) by auto
+
 lemma (in measure_space) measure_finitely_subadditive:
   assumes "finite I" "A ` I \<subseteq> sets M"
   shows "\<mu> (\<Union>i\<in>I. A i) \<le> (\<Sum>i\<in>I. \<mu> (A i))"
@@ -427,7 +477,7 @@ using assms proof induct
   finally show ?case .
 qed simp
 
-lemma (in measure_space) measurable_countably_subadditive:
+lemma (in measure_space) measure_countably_subadditive:
   assumes "range f \<subseteq> sets M"
   shows "\<mu> (\<Union>i. f i) \<le> (\<Sum>\<^isub>\<infinity> i. \<mu> (f i))"
 proof -
@@ -444,6 +494,11 @@ proof -
   qed
   finally show ?thesis .
 qed
+
+lemma (in measure_space) measure_UN_eq_0:
+  assumes "\<And> i :: nat. \<mu> (N i) = 0" and "range N \<subseteq> sets M"
+  shows "\<mu> (\<Union> i. N i) = 0"
+using measure_countably_subadditive[OF assms(2)] assms(1) by auto
 
 lemma (in measure_space) measure_inter_full_set:
   assumes "S \<in> sets M" "T \<in> sets M" and not_\<omega>: "\<mu> (T - S) \<noteq> \<omega>"
@@ -470,6 +525,353 @@ proof (rule antisym)
   qed
 qed
 
+lemma measure_unique_Int_stable:
+  fixes M E :: "'a algebra" and A :: "nat \<Rightarrow> 'a set"
+  assumes "Int_stable E" "M = sigma E"
+  and A: "range  A \<subseteq> sets E" "A \<up> space E"
+  and ms: "measure_space M \<mu>" "measure_space M \<nu>"
+  and eq: "\<And>X. X \<in> sets E \<Longrightarrow> \<mu> X = \<nu> X"
+  and finite: "\<And>i. \<mu> (A i) \<noteq> \<omega>"
+  assumes "X \<in> sets M"
+  shows "\<mu> X = \<nu> X"
+proof -
+  let "?D F" = "{D. D \<in> sets M \<and> \<mu> (F \<inter> D) = \<nu> (F \<inter> D)}"
+  interpret M: measure_space M \<mu> by fact
+  interpret M': measure_space M \<nu> by fact
+  have "space E = space M"
+    using `M = sigma E` by simp
+  have sets_E: "sets E \<subseteq> Pow (space E)"
+  proof
+    fix X assume "X \<in> sets E"
+    then have "X \<in> sets M" unfolding `M = sigma E`
+      unfolding sigma_def by (auto intro!: sigma_sets.Basic)
+    with M.sets_into_space show "X \<in> Pow (space E)"
+      unfolding `space E = space M` by auto
+  qed
+  have A': "range A \<subseteq> sets M" using `M = sigma E` A
+    by (auto simp: sets_sigma intro!: sigma_sets.Basic)
+  { fix F assume "F \<in> sets E" and "\<mu> F \<noteq> \<omega>"
+    then have [intro]: "F \<in> sets M" unfolding `M = sigma E` sets_sigma
+      by (intro sigma_sets.Basic)
+    have "\<nu> F \<noteq> \<omega>" using `\<mu> F \<noteq> \<omega>` `F \<in> sets E` eq by simp
+    interpret D: dynkin_system "\<lparr>space=space E, sets=?D F\<rparr>"
+    proof (rule dynkin_systemI, simp_all)
+      fix A assume "A \<in> sets M \<and> \<mu> (F \<inter> A) = \<nu> (F \<inter> A)"
+      then show "A \<subseteq> space E"
+        unfolding `space E = space M` using M.sets_into_space by auto
+    next
+      have "F \<inter> space E = F" using `F \<in> sets E` sets_E by auto
+      then show "space E \<in> sets M \<and> \<mu> (F \<inter> space E) = \<nu> (F \<inter> space E)"
+        unfolding `space E = space M` using `F \<in> sets E` eq by auto
+    next
+      fix A assume *: "A \<in> sets M \<and> \<mu> (F \<inter> A) = \<nu> (F \<inter> A)"
+      then have **: "F \<inter> (space M - A) = F - (F \<inter> A)"
+        and [intro]: "F \<inter> A \<in> sets M"
+        using `F \<in> sets E` sets_E `space E = space M` by auto
+      have "\<nu> (F \<inter> A) \<le> \<nu> F" by (auto intro!: M'.measure_mono)
+      then have "\<nu> (F \<inter> A) \<noteq> \<omega>" using `\<nu> F \<noteq> \<omega>` by auto
+      have "\<mu> (F \<inter> A) \<le> \<mu> F" by (auto intro!: M.measure_mono)
+      then have "\<mu> (F \<inter> A) \<noteq> \<omega>" using `\<mu> F \<noteq> \<omega>` by auto
+      then have "\<mu> (F \<inter> (space M - A)) = \<mu> F - \<mu> (F \<inter> A)" unfolding **
+        using `F \<inter> A \<in> sets M` by (auto intro!: M.measure_Diff)
+      also have "\<dots> = \<nu> F - \<nu> (F \<inter> A)" using eq `F \<in> sets E` * by simp
+      also have "\<dots> = \<nu> (F \<inter> (space M - A))" unfolding **
+        using `F \<inter> A \<in> sets M` `\<nu> (F \<inter> A) \<noteq> \<omega>` by (auto intro!: M'.measure_Diff[symmetric])
+      finally show "space E - A \<in> sets M \<and> \<mu> (F \<inter> (space E - A)) = \<nu> (F \<inter> (space E - A))"
+        using `space E = space M` * by auto
+    next
+      fix A :: "nat \<Rightarrow> 'a set"
+      assume "disjoint_family A" "range A \<subseteq> {X \<in> sets M. \<mu> (F \<inter> X) = \<nu> (F \<inter> X)}"
+      then have A: "range (\<lambda>i. F \<inter> A i) \<subseteq> sets M" "F \<inter> (\<Union>x. A x) = (\<Union>x. F \<inter> A x)"
+        "disjoint_family (\<lambda>i. F \<inter> A i)" "\<And>i. \<mu> (F \<inter> A i) = \<nu> (F \<inter> A i)" "range A \<subseteq> sets M"
+        by ((fastsimp simp: disjoint_family_on_def)+)
+      then show "(\<Union>x. A x) \<in> sets M \<and> \<mu> (F \<inter> (\<Union>x. A x)) = \<nu> (F \<inter> (\<Union>x. A x))"
+        by (auto simp: M.measure_countably_additive[symmetric]
+                       M'.measure_countably_additive[symmetric]
+            simp del: UN_simps)
+    qed
+    have *: "sigma E = \<lparr>space = space E, sets = ?D F\<rparr>"
+      using `M = sigma E` `F \<in> sets E` `Int_stable E`
+      by (intro D.dynkin_lemma)
+         (auto simp add: sets_sigma Int_stable_def eq intro: sigma_sets.Basic)
+    have "\<And>D. D \<in> sets M \<Longrightarrow> \<mu> (F \<inter> D) = \<nu> (F \<inter> D)"
+      unfolding `M = sigma E` by (auto simp: *) }
+  note * = this
+  { fix i have "\<mu> (A i \<inter> X) = \<nu> (A i \<inter> X)"
+      using *[of "A i" X] `X \<in> sets M` A finite by auto }
+  moreover
+  have "(\<lambda>i. A i \<inter> X) \<up> X"
+    using `X \<in> sets M` M.sets_into_space A `space E = space M`
+    by (auto simp: isoton_def)
+  then have "(\<lambda>i. \<mu> (A i \<inter> X)) \<up> \<mu> X" "(\<lambda>i. \<nu> (A i \<inter> X)) \<up> \<nu> X"
+    using `X \<in> sets M` A' by (auto intro!: M.measure_up M'.measure_up M.Int)
+  ultimately show ?thesis by (simp add: isoton_def)
+qed
+
+section "Isomorphisms between measure spaces"
+
+lemma (in measure_space) measure_space_isomorphic:
+  fixes f :: "'c \<Rightarrow> 'a"
+  assumes "bij_betw f S (space M)"
+  shows "measure_space (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A))"
+    (is "measure_space ?T ?\<mu>")
+proof -
+  have "f \<in> S \<rightarrow> space M" using assms unfolding bij_betw_def by auto
+  then interpret T: sigma_algebra ?T by (rule sigma_algebra_vimage)
+  show ?thesis
+  proof
+    show "\<mu> (f`{}) = 0" by simp
+    show "countably_additive ?T (\<lambda>A. \<mu> (f ` A))"
+    proof (unfold countably_additive_def, intro allI impI)
+      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets ?T" "disjoint_family A"
+      then have "\<forall>i. \<exists>F'. F' \<in> sets M \<and> A i = f -` F' \<inter> S"
+        by (auto simp: image_iff image_subset_iff Bex_def vimage_algebra_def)
+      from choice[OF this] obtain F where F: "\<And>i. F i \<in> sets M" and A: "\<And>i. A i = f -` F i \<inter> S" by auto
+      then have [simp]: "\<And>i. f ` (A i) = F i"
+        using sets_into_space assms
+        by (force intro!: image_vimage_inter_eq[where T="space M"] simp: bij_betw_def)
+      have "disjoint_family F"
+      proof (intro disjoint_family_on_bisimulation[OF `disjoint_family A`])
+        fix n m assume "A n \<inter> A m = {}"
+        then have "f -` (F n \<inter> F m) \<inter> S = {}" unfolding A by auto
+        moreover
+        have "F n \<in> sets M" "F m \<in> sets M" using F by auto
+        then have "f`S = space M" "F n \<inter> F m \<subseteq> space M"
+          using sets_into_space assms by (auto simp: bij_betw_def)
+        note image_vimage_inter_eq[OF this, symmetric]
+        ultimately show "F n \<inter> F m = {}" by simp
+      qed
+      with F show "(\<Sum>\<^isub>\<infinity> i. \<mu> (f ` A i)) = \<mu> (f ` (\<Union>i. A i))"
+        by (auto simp add: image_UN intro!: measure_countably_additive)
+    qed
+  qed
+qed
+
+section "@{text \<mu>}-null sets"
+
+abbreviation (in measure_space) "null_sets \<equiv> {N\<in>sets M. \<mu> N = 0}"
+
+lemma (in measure_space) null_sets_Un[intro]:
+  assumes "N \<in> null_sets" "N' \<in> null_sets"
+  shows "N \<union> N' \<in> null_sets"
+proof (intro conjI CollectI)
+  show "N \<union> N' \<in> sets M" using assms by auto
+  have "\<mu> (N \<union> N') \<le> \<mu> N + \<mu> N'"
+    using assms by (intro measure_subadditive) auto
+  then show "\<mu> (N \<union> N') = 0"
+    using assms by auto
+qed
+
+lemma UN_from_nat: "(\<Union>i. N i) = (\<Union>i. N (Countable.from_nat i))"
+proof -
+  have "(\<Union>i. N i) = (\<Union>i. (N \<circ> Countable.from_nat) i)"
+    unfolding SUPR_def image_compose
+    unfolding surj_from_nat ..
+  then show ?thesis by simp
+qed
+
+lemma (in measure_space) null_sets_UN[intro]:
+  assumes "\<And>i::'i::countable. N i \<in> null_sets"
+  shows "(\<Union>i. N i) \<in> null_sets"
+proof (intro conjI CollectI)
+  show "(\<Union>i. N i) \<in> sets M" using assms by auto
+  have "\<mu> (\<Union>i. N i) \<le> (\<Sum>\<^isub>\<infinity> n. \<mu> (N (Countable.from_nat n)))"
+    unfolding UN_from_nat[of N]
+    using assms by (intro measure_countably_subadditive) auto
+  then show "\<mu> (\<Union>i. N i) = 0"
+    using assms by auto
+qed
+
+lemma (in measure_space) null_sets_finite_UN:
+  assumes "finite S" "\<And>i. i \<in> S \<Longrightarrow> A i \<in> null_sets"
+  shows "(\<Union>i\<in>S. A i) \<in> null_sets"
+proof (intro CollectI conjI)
+  show "(\<Union>i\<in>S. A i) \<in> sets M" using assms by (intro finite_UN) auto
+  have "\<mu> (\<Union>i\<in>S. A i) \<le> (\<Sum>i\<in>S. \<mu> (A i))"
+    using assms by (intro measure_finitely_subadditive) auto
+  then show "\<mu> (\<Union>i\<in>S. A i) = 0"
+    using assms by auto
+qed
+
+lemma (in measure_space) null_set_Int1:
+  assumes "B \<in> null_sets" "A \<in> sets M" shows "A \<inter> B \<in> null_sets"
+using assms proof (intro CollectI conjI)
+  show "\<mu> (A \<inter> B) = 0" using assms by (intro measure_eq_0[of B "A \<inter> B"]) auto
+qed auto
+
+lemma (in measure_space) null_set_Int2:
+  assumes "B \<in> null_sets" "A \<in> sets M" shows "B \<inter> A \<in> null_sets"
+  using assms by (subst Int_commute) (rule null_set_Int1)
+
+lemma (in measure_space) measure_Diff_null_set:
+  assumes "B \<in> null_sets" "A \<in> sets M"
+  shows "\<mu> (A - B) = \<mu> A"
+proof -
+  have *: "A - B = (A - (A \<inter> B))" by auto
+  have "A \<inter> B \<in> null_sets" using assms by (rule null_set_Int1)
+  then show ?thesis
+    unfolding * using assms
+    by (subst measure_Diff) auto
+qed
+
+lemma (in measure_space) null_set_Diff:
+  assumes "B \<in> null_sets" "A \<in> sets M" shows "B - A \<in> null_sets"
+using assms proof (intro CollectI conjI)
+  show "\<mu> (B - A) = 0" using assms by (intro measure_eq_0[of B "B - A"]) auto
+qed auto
+
+lemma (in measure_space) measure_Un_null_set:
+  assumes "A \<in> sets M" "B \<in> null_sets"
+  shows "\<mu> (A \<union> B) = \<mu> A"
+proof -
+  have *: "A \<union> B = A \<union> (B - A)" by auto
+  have "B - A \<in> null_sets" using assms(2,1) by (rule null_set_Diff)
+  then show ?thesis
+    unfolding * using assms
+    by (subst measure_additive[symmetric]) auto
+qed
+
+section "Formalise almost everywhere"
+
+definition (in measure_space)
+  almost_everywhere :: "('a \<Rightarrow> bool) \<Rightarrow> bool" (binder "AE " 10) where
+  "almost_everywhere P \<longleftrightarrow> (\<exists>N\<in>null_sets. { x \<in> space M. \<not> P x } \<subseteq> N)"
+
+lemma (in measure_space) AE_I':
+  "N \<in> null_sets \<Longrightarrow> {x\<in>space M. \<not> P x} \<subseteq> N \<Longrightarrow> (AE x. P x)"
+  unfolding almost_everywhere_def by auto
+
+lemma (in measure_space) AE_iff_null_set:
+  assumes "{x\<in>space M. \<not> P x} \<in> sets M" (is "?P \<in> sets M")
+  shows "(AE x. P x) \<longleftrightarrow> {x\<in>space M. \<not> P x} \<in> null_sets"
+proof
+  assume "AE x. P x" then obtain N where N: "N \<in> sets M" "?P \<subseteq> N" "\<mu> N = 0"
+    unfolding almost_everywhere_def by auto
+  moreover have "\<mu> ?P \<le> \<mu> N"
+    using assms N(1,2) by (auto intro: measure_mono)
+  ultimately show "?P \<in> null_sets" using assms by auto
+next
+  assume "?P \<in> null_sets" with assms show "AE x. P x" by (auto intro: AE_I')
+qed
+
+lemma (in measure_space) AE_True[intro, simp]: "AE x. True"
+  unfolding almost_everywhere_def by auto
+
+lemma (in measure_space) AE_E[consumes 1]:
+  assumes "AE x. P x"
+  obtains N where "{x \<in> space M. \<not> P x} \<subseteq> N" "\<mu> N = 0" "N \<in> sets M"
+  using assms unfolding almost_everywhere_def by auto
+
+lemma (in measure_space) AE_I:
+  assumes "{x \<in> space M. \<not> P x} \<subseteq> N" "\<mu> N = 0" "N \<in> sets M"
+  shows "AE x. P x"
+  using assms unfolding almost_everywhere_def by auto
+
+lemma (in measure_space) AE_mp:
+  assumes AE_P: "AE x. P x" and AE_imp: "AE x. P x \<longrightarrow> Q x"
+  shows "AE x. Q x"
+proof -
+  from AE_P obtain A where P: "{x\<in>space M. \<not> P x} \<subseteq> A"
+    and A: "A \<in> sets M" "\<mu> A = 0"
+    by (auto elim!: AE_E)
+
+  from AE_imp obtain B where imp: "{x\<in>space M. P x \<and> \<not> Q x} \<subseteq> B"
+    and B: "B \<in> sets M" "\<mu> B = 0"
+    by (auto elim!: AE_E)
+
+  show ?thesis
+  proof (intro AE_I)
+    show "A \<union> B \<in> sets M" "\<mu> (A \<union> B) = 0" using A B
+      using measure_subadditive[of A B] by auto
+    show "{x\<in>space M. \<not> Q x} \<subseteq> A \<union> B"
+      using P imp by auto
+  qed
+qed
+
+lemma (in measure_space) AE_iffI:
+  assumes P: "AE x. P x" and Q: "AE x. P x \<longleftrightarrow> Q x" shows "AE x. Q x"
+  using AE_mp[OF Q, of "\<lambda>x. P x \<longrightarrow> Q x"] AE_mp[OF P, of Q] by auto
+
+lemma (in measure_space) AE_disjI1:
+  assumes P: "AE x. P x" shows "AE x. P x \<or> Q x"
+  by (rule AE_mp[OF P]) auto
+
+lemma (in measure_space) AE_disjI2:
+  assumes P: "AE x. Q x" shows "AE x. P x \<or> Q x"
+  by (rule AE_mp[OF P]) auto
+
+lemma (in measure_space) AE_conjI:
+  assumes AE_P: "AE x. P x" and AE_Q: "AE x. Q x"
+  shows "AE x. P x \<and> Q x"
+proof -
+  from AE_P obtain A where P: "{x\<in>space M. \<not> P x} \<subseteq> A"
+    and A: "A \<in> sets M" "\<mu> A = 0"
+    by (auto elim!: AE_E)
+
+  from AE_Q obtain B where Q: "{x\<in>space M. \<not> Q x} \<subseteq> B"
+    and B: "B \<in> sets M" "\<mu> B = 0"
+    by (auto elim!: AE_E)
+
+  show ?thesis
+  proof (intro AE_I)
+    show "A \<union> B \<in> sets M" "\<mu> (A \<union> B) = 0" using A B
+      using measure_subadditive[of A B] by auto
+    show "{x\<in>space M. \<not> (P x \<and> Q x)} \<subseteq> A \<union> B"
+      using P Q by auto
+  qed
+qed
+
+lemma (in measure_space) AE_E2:
+  assumes "AE x. P x" "{x\<in>space M. P x} \<in> sets M"
+  shows "\<mu> {x\<in>space M. \<not> P x} = 0" (is "\<mu> ?P = 0")
+proof -
+  obtain A where A: "?P \<subseteq> A" "A \<in> sets M" "\<mu> A = 0"
+    using assms by (auto elim!: AE_E)
+  have "?P = space M - {x\<in>space M. P x}" by auto
+  then have "?P \<in> sets M" using assms by auto
+  with assms `?P \<subseteq> A` `A \<in> sets M` have "\<mu> ?P \<le> \<mu> A"
+    by (auto intro!: measure_mono)
+  then show "\<mu> ?P = 0" using A by simp
+qed
+
+lemma (in measure_space) AE_space[simp, intro]: "AE x. x \<in> space M"
+  by (rule AE_I[where N="{}"]) auto
+
+lemma (in measure_space) AE_cong:
+  assumes "\<And>x. x \<in> space M \<Longrightarrow> P x" shows "AE x. P x"
+proof -
+  have [simp]: "\<And>x. (x \<in> space M \<longrightarrow> P x) \<longleftrightarrow> True" using assms by auto
+  show ?thesis
+    by (rule AE_mp[OF AE_space]) auto
+qed
+
+lemma (in measure_space) AE_conj_iff[simp]:
+  shows "(AE x. P x \<and> Q x) \<longleftrightarrow> (AE x. P x) \<and> (AE x. Q x)"
+proof (intro conjI iffI AE_conjI)
+  assume *: "AE x. P x \<and> Q x"
+  from * show "AE x. P x" by (rule AE_mp) auto
+  from * show "AE x. Q x" by (rule AE_mp) auto
+qed auto
+
+lemma (in measure_space) all_AE_countable:
+  "(\<forall>i::'i::countable. AE x. P i x) \<longleftrightarrow> (AE x. \<forall>i. P i x)"
+proof
+  assume "\<forall>i. AE x. P i x"
+  from this[unfolded almost_everywhere_def Bex_def, THEN choice]
+  obtain N where N: "\<And>i. N i \<in> null_sets" "\<And>i. {x\<in>space M. \<not> P i x} \<subseteq> N i" by auto
+  have "{x\<in>space M. \<not> (\<forall>i. P i x)} \<subseteq> (\<Union>i. {x\<in>space M. \<not> P i x})" by auto
+  also have "\<dots> \<subseteq> (\<Union>i. N i)" using N by auto
+  finally have "{x\<in>space M. \<not> (\<forall>i. P i x)} \<subseteq> (\<Union>i. N i)" .
+  moreover from N have "(\<Union>i. N i) \<in> null_sets"
+    by (intro null_sets_UN) auto
+  ultimately show "AE x. \<forall>i. P i x"
+    unfolding almost_everywhere_def by auto
+next
+  assume *: "AE x. \<forall>i. P i x"
+  show "\<forall>i. AE x. P i x"
+    by (rule allI, rule AE_mp[OF *]) simp
+qed
+
 lemma (in measure_space) restricted_measure_space:
   assumes "S \<in> sets M"
   shows "measure_space (restricted_space S) \<mu>"
@@ -490,6 +892,7 @@ proof safe
 qed
 
 lemma (in measure_space) measure_space_vimage:
+  fixes M' :: "'b algebra"
   assumes "f \<in> measurable M M'"
   and "sigma_algebra M'"
   shows "measure_space M' (\<lambda>A. \<mu> (f -` A \<inter> space M))" (is "measure_space M' ?T")
@@ -502,7 +905,7 @@ proof -
 
     show "countably_additive M' ?T"
     proof (unfold countably_additive_def, safe)
-      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets M'" "disjoint_family A"
+      fix A :: "nat \<Rightarrow> 'b set" assume "range A \<subseteq> sets M'" "disjoint_family A"
       hence *: "\<And>i. f -` (A i) \<inter> space M \<in> sets M"
         using `f \<in> measurable M M'` by (auto simp: measurable_def)
       moreover have "(\<Union>i. f -`  A i \<inter> space M) \<in> sets M"
@@ -564,6 +967,20 @@ next
   qed
 qed
 
+lemma (in sigma_finite_measure) sigma_finite_measure_cong:
+  assumes cong: "\<And>A. A \<in> sets M \<Longrightarrow> \<mu>' A = \<mu> A"
+  shows "sigma_finite_measure M \<mu>'"
+proof -
+  interpret \<mu>': measure_space M \<mu>'
+    using cong by (rule measure_space_cong)
+  from sigma_finite guess A .. note A = this
+  then have "\<And>i. A i \<in> sets M" by auto
+  with A have fin: "(\<forall>i. \<mu>' (A i) \<noteq> \<omega>)" using cong by auto
+  show ?thesis
+    apply default
+    using A fin by auto
+qed
+
 lemma (in sigma_finite_measure) disjoint_sigma_finite:
   "\<exists>A::nat\<Rightarrow>'a set. range A \<subseteq> sets M \<and> (\<Union>i. A i) = space M \<and>
     (\<forall>i. \<mu> (A i) \<noteq> \<omega>) \<and> disjoint_family A"
@@ -581,6 +998,50 @@ proof -
       using measure[of i] by auto }
   with disjoint_family_disjointed UN_disjointed_eq[of A] space range'
   show ?thesis by (auto intro!: exI[of _ "disjointed A"])
+qed
+
+lemma (in sigma_finite_measure) sigma_finite_up:
+  "\<exists>F. range F \<subseteq> sets M \<and> F \<up> space M \<and> (\<forall>i. \<mu> (F i) \<noteq> \<omega>)"
+proof -
+  obtain F :: "nat \<Rightarrow> 'a set" where
+    F: "range F \<subseteq> sets M" "(\<Union>i. F i) = space M" "\<And>i. \<mu> (F i) \<noteq> \<omega>"
+    using sigma_finite by auto
+  then show ?thesis unfolding isoton_def
+  proof (intro exI[of _ "\<lambda>n. \<Union>i\<le>n. F i"] conjI allI)
+    from F have "\<And>x. x \<in> space M \<Longrightarrow> \<exists>i. x \<in> F i" by auto
+    then show "(\<Union>n. \<Union> i\<le>n. F i) = space M"
+      using F by fastsimp
+  next
+    fix n
+    have "\<mu> (\<Union> i\<le>n. F i) \<le> (\<Sum>i\<le>n. \<mu> (F i))" using F
+      by (auto intro!: measure_finitely_subadditive)
+    also have "\<dots> < \<omega>"
+      using F by (auto simp: setsum_\<omega>)
+    finally show "\<mu> (\<Union> i\<le>n. F i) \<noteq> \<omega>" by simp
+  qed force+
+qed
+
+lemma (in sigma_finite_measure) sigma_finite_measure_isomorphic:
+  assumes f: "bij_betw f S (space M)"
+  shows "sigma_finite_measure (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A))"
+proof -
+  interpret M: measure_space "vimage_algebra S f" "\<lambda>A. \<mu> (f ` A)"
+    using f by (rule measure_space_isomorphic)
+  show ?thesis
+  proof default
+    from sigma_finite guess A::"nat \<Rightarrow> 'a set" .. note A = this
+    show "\<exists>A::nat\<Rightarrow>'b set. range A \<subseteq> sets (vimage_algebra S f) \<and> (\<Union>i. A i) = space (vimage_algebra S f) \<and> (\<forall>i. \<mu> (f ` A i) \<noteq> \<omega>)"
+    proof (intro exI conjI)
+      show "(\<Union>i::nat. f -` A i \<inter> S) = space (vimage_algebra S f)"
+        using A f[THEN bij_betw_imp_funcset] by (auto simp: vimage_UN[symmetric])
+      show "range (\<lambda>i. f -` A i \<inter> S) \<subseteq> sets (vimage_algebra S f)"
+        using A by (auto simp: vimage_algebra_def)
+      have "\<And>i. f ` (f -` A i \<inter> S) = A i"
+        using f A sets_into_space
+        by (intro image_vimage_inter_eq) (auto simp: bij_betw_def)
+      then show "\<forall>i. \<mu> (f ` (f -` A i \<inter> S)) \<noteq> \<omega>"  using A by simp
+    qed
+  qed
 qed
 
 section "Real measure values"
@@ -638,12 +1099,12 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in measure_space) real_measurable_countably_subadditive:
+lemma (in measure_space) real_measure_countably_subadditive:
   assumes "range f \<subseteq> sets M" and "(\<Sum>\<^isub>\<infinity> i. \<mu> (f i)) \<noteq> \<omega>"
   shows "real (\<mu> (\<Union>i. f i)) \<le> (\<Sum> i. real (\<mu> (f i)))"
 proof -
   have "real (\<mu> (\<Union>i. f i)) \<le> real (\<Sum>\<^isub>\<infinity> i. \<mu> (f i))"
-    using assms by (auto intro!: real_of_pinfreal_mono measurable_countably_subadditive)
+    using assms by (auto intro!: real_of_pinfreal_mono measure_countably_subadditive)
   also have "\<dots> = (\<Sum> i. real (\<mu> (f i)))"
     using assms by (auto intro!: sums_unique psuminf_imp_suminf)
   finally show ?thesis .
@@ -725,6 +1186,17 @@ next
   show "\<mu> (space ?r) \<noteq> \<omega>" using finite_measure[OF `S \<in> sets M`] by auto
 qed
 
+lemma (in measure_space) restricted_to_finite_measure:
+  assumes "S \<in> sets M" "\<mu> S \<noteq> \<omega>"
+  shows "finite_measure (restricted_space S) \<mu>"
+proof -
+  have "measure_space (restricted_space S) \<mu>"
+    using `S \<in> sets M` by (rule restricted_measure_space)
+  then show ?thesis
+    unfolding finite_measure_def finite_measure_axioms_def
+    using assms by auto
+qed
+
 lemma (in finite_measure) real_finite_measure_Diff:
   assumes "A \<in> sets M" "B \<in> sets M" "B \<subseteq> A"
   shows "real (\<mu> (A - B)) = real (\<mu> A) - real (\<mu> B)"
@@ -761,10 +1233,10 @@ lemma (in finite_measure) real_finite_measure_subadditive:
   shows "real (\<mu> (A \<union> B)) \<le> real (\<mu> A) + real (\<mu> B)"
   using measurable measurable[THEN finite_measure] by (rule real_measure_subadditive)
 
-lemma (in finite_measure) real_finite_measurable_countably_subadditive:
+lemma (in finite_measure) real_finite_measure_countably_subadditive:
   assumes "range f \<subseteq> sets M" and "summable (\<lambda>i. real (\<mu> (f i)))"
   shows "real (\<mu> (\<Union>i. f i)) \<le> (\<Sum> i. real (\<mu> (f i)))"
-proof (rule real_measurable_countably_subadditive[OF assms(1)])
+proof (rule real_measure_countably_subadditive[OF assms(1)])
   have *: "\<And>i. f i \<in> sets M" using assms by auto
   have "(\<lambda>i. real (\<mu> (f i))) sums (\<Sum>i. real (\<mu> (f i)))"
     using assms(2) by (rule summable_sums)
@@ -817,11 +1289,11 @@ definition "measure_preserving A \<mu> B \<nu> =
     {f \<in> measurable A B. (\<forall>y \<in> sets B. \<mu> (f -` y \<inter> space A) = \<nu> y)}"
 
 lemma (in finite_measure) measure_preserving_lift:
-  fixes f :: "'a \<Rightarrow> 'a2" and A :: "('a2, 'b2) algebra_scheme"
+  fixes f :: "'a \<Rightarrow> 'a2" and A :: "'a2 algebra"
   assumes "algebra A"
-  assumes "finite_measure (sigma (space A) (sets A)) \<nu>" (is "finite_measure ?sA _")
+  assumes "finite_measure (sigma A) \<nu>" (is "finite_measure ?sA _")
   assumes fmp: "f \<in> measure_preserving M \<mu> A \<nu>"
-  shows "f \<in> measure_preserving M \<mu> (sigma (space A) (sets A)) \<nu>"
+  shows "f \<in> measure_preserving M \<mu> (sigma A) \<nu>"
 proof -
   interpret sA: finite_measure ?sA \<nu> by fact
   interpret A: algebra A by fact
@@ -916,24 +1388,8 @@ qed
 
 section "Finite spaces"
 
-locale finite_measure_space = measure_space +
-  assumes finite_space: "finite (space M)"
-  and sets_eq_Pow: "sets M = Pow (space M)"
-  and finite_single_measure: "\<And>x. x \<in> space M \<Longrightarrow> \<mu> {x} \<noteq> \<omega>"
-
-lemma (in finite_measure_space) sets_image_space_eq_Pow:
-  "sets (image_space X) = Pow (space (image_space X))"
-proof safe
-  fix x S assume "S \<in> sets (image_space X)" "x \<in> S"
-  then show "x \<in> space (image_space X)"
-    using sets_into_space by (auto intro!: imageI simp: image_space_def)
-next
-  fix S assume "S \<subseteq> space (image_space X)"
-  then obtain S' where "S = X`S'" "S'\<in>sets M"
-    by (auto simp: subset_image_iff sets_eq_Pow image_space_def)
-  then show "S \<in> sets (image_space X)"
-    by (auto simp: image_space_def)
-qed
+locale finite_measure_space = measure_space + finite_sigma_algebra +
+  assumes finite_single_measure[simp]: "\<And>x. x \<in> space M \<Longrightarrow> \<mu> {x} \<noteq> \<omega>"
 
 lemma (in finite_measure_space) sum_over_space: "(\<Sum>x\<in>space M. \<mu> {x}) = \<mu> (space M)"
   using measure_finitely_additive''[of "space M" "\<lambda>i. {i}"]
@@ -945,28 +1401,28 @@ lemma finite_measure_spaceI:
     and "\<mu> {} = 0"
   shows "finite_measure_space M \<mu>"
     unfolding finite_measure_space_def finite_measure_space_axioms_def
-proof (safe del: notI)
+proof (intro allI impI conjI)
   show "measure_space M \<mu>"
   proof (rule sigma_algebra.finite_additivity_sufficient)
+    have *: "\<lparr>space = space M, sets = sets M\<rparr> = M" by auto
     show "sigma_algebra M"
-      apply (rule sigma_algebra_cong)
-      apply (rule sigma_algebra_Pow[of "space M"])
-      using assms by simp_all
+      using sigma_algebra_Pow[of "space M" "more M"] assms(2)[symmetric] by (simp add: *)
     show "finite (space M)" by fact
     show "positive \<mu>" unfolding positive_def by fact
     show "additive M \<mu>" unfolding additive_def using assms by simp
   qed
-  show "finite (space M)" by fact
-  { fix A x assume "A \<in> sets M" "x \<in> A" then show "x \<in> space M"
-      using assms by auto }
-  { fix A assume "A \<subseteq> space M" then show "A \<in> sets M"
-      using assms by auto }
+  then interpret measure_space M \<mu> .
+  show "finite_sigma_algebra M"
+  proof
+    show "finite (space M)" by fact
+    show "sets M = Pow (space M)" using assms by auto
+  qed
   { fix x assume *: "x \<in> space M"
     with add[of "{x}" "space M - {x}"] space
     show "\<mu> {x} \<noteq> \<omega>" by (auto simp: insert_absorb[OF *] Diff_subset) }
 qed
 
-sublocale finite_measure_space < finite_measure
+sublocale finite_measure_space \<subseteq> finite_measure
 proof
   show "\<mu> (space M) \<noteq> \<omega>"
     unfolding sum_over_space[symmetric] setsum_\<omega>

@@ -86,6 +86,26 @@ proof -
   ultimately show ?thesis by simp
 qed
 
+lemma (in complete_lattice) lim_INF_le_lim_SUP:
+  fixes f :: "nat \<Rightarrow> 'a"
+  shows "(SUP n. INF m. f (n + m)) \<le> (INF n. SUP m. f (n + m))"
+proof (rule SUP_leI, rule le_INFI)
+  fix i j show "(INF m. f (i + m)) \<le> (SUP m. f (j + m))"
+  proof (cases rule: le_cases)
+    assume "i \<le> j"
+    have "(INF m. f (i + m)) \<le> f (i + (j - i))" by (rule INF_leI) simp
+    also have "\<dots> = f (j + 0)" using `i \<le> j` by auto
+    also have "\<dots> \<le> (SUP m. f (j + m))" by (rule le_SUPI) simp
+    finally show ?thesis .
+  next
+    assume "j \<le> i"
+    have "(INF m. f (i + m)) \<le> f (i + 0)" by (rule INF_leI) simp
+    also have "\<dots> = f (j + (i - j))" using `j \<le> i` by auto
+    also have "\<dots> \<le> (SUP m. f (j + m))" by (rule le_SUPI) simp
+    finally show ?thesis .
+  qed
+qed
+
 text {*
 
 We introduce the the positive real numbers as needed for measure theory.
@@ -340,6 +360,20 @@ lemma real_pinfreal_1[simp]: "real (1 :: pinfreal) = 1"
 lemma real_of_pinfreal_mult: "real X * real Y = real (X * Y :: pinfreal)"
   by (cases X, cases Y) (auto simp: zero_le_mult_iff)
 
+lemma Real_mult_nonneg: assumes "x \<ge> 0" "y \<ge> 0"
+  shows "Real (x * y) = Real x * Real y" using assms by auto
+
+lemma Real_setprod: assumes "\<forall>x\<in>A. f x \<ge> 0" shows "Real (setprod f A) = setprod (\<lambda>x. Real (f x)) A"
+proof(cases "finite A")
+  case True thus ?thesis using assms
+  proof(induct A) case (insert x A)
+    have "0 \<le> setprod f A" apply(rule setprod_nonneg) using insert by auto
+    thus ?case unfolding setprod_insert[OF insert(1-2)] apply-
+      apply(subst Real_mult_nonneg) prefer 3 apply(subst insert(3)[THEN sym])
+      using insert by auto
+  qed auto
+qed auto
+
 subsection "@{typ pinfreal} is a linear order"
 
 instantiation pinfreal :: linorder
@@ -414,6 +448,13 @@ lemma pinfreal_less_\<omega>: "x < \<omega> \<longleftrightarrow> x \<noteq> \<o
 lemma pinfreal_0_less_mult_iff[simp]:
   fixes x y :: pinfreal shows "0 < x * y \<longleftrightarrow> 0 < x \<and> 0 < y"
   by (cases x, cases y) (auto simp: zero_less_mult_iff)
+
+lemma pinfreal_ord_one[simp]:
+  "Real p < 1 \<longleftrightarrow> p < 1"
+  "Real p \<le> 1 \<longleftrightarrow> p \<le> 1"
+  "1 < Real p \<longleftrightarrow> 1 < p"
+  "1 \<le> Real p \<longleftrightarrow> 1 \<le> p"
+  by (simp_all add: one_pinfreal_def del: Real_1)
 
 subsection {* @{text "x - y"} on @{typ pinfreal} *}
 
@@ -534,11 +575,39 @@ lemma Real_power_\<omega>[simp]:
 lemma pinfreal_of_nat[simp]: "of_nat m = Real (real m)"
   by (induct m) (auto simp: real_of_nat_Suc one_pinfreal_def simp del: Real_1)
 
+lemma less_\<omega>_Ex_of_nat: "x < \<omega> \<longleftrightarrow> (\<exists>n. x < of_nat n)"
+proof safe
+  assume "x < \<omega>"
+  then obtain r where "0 \<le> r" "x = Real r" by (cases x) auto
+  moreover obtain n where "r < of_nat n" using ex_less_of_nat by auto
+  ultimately show "\<exists>n. x < of_nat n" by (auto simp: real_eq_of_nat)
+qed auto
+
 lemma real_of_pinfreal_mono:
   fixes a b :: pinfreal
   assumes "b \<noteq> \<omega>" "a \<le> b"
   shows "real a \<le> real b"
 using assms by (cases b, cases a) auto
+
+lemma setprod_pinfreal_0:
+  "(\<Prod>i\<in>I. f i) = (0::pinfreal) \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = 0)"
+proof cases
+  assume "finite I" then show ?thesis
+  proof (induct I)
+    case (insert i I)
+    then show ?case by simp
+  qed simp
+qed simp
+
+lemma setprod_\<omega>:
+  "(\<Prod>i\<in>I. f i) = \<omega> \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = \<omega>) \<and> (\<forall>i\<in>I. f i \<noteq> 0)"
+proof cases
+  assume "finite I" then show ?thesis
+  proof (induct I)
+    case (insert i I) then show ?case
+      by (auto simp: setprod_pinfreal_0)
+  qed simp
+qed simp
 
 instance pinfreal :: "semiring_char_0"
 proof
@@ -795,6 +864,29 @@ proof (rule pinfreal_SUPI)
     with *[of k] preal show ?thesis by auto
   qed simp
 qed simp
+
+lemma SUP_\<omega>: "(SUP i:A. f i) = \<omega> \<longleftrightarrow> (\<forall>x<\<omega>. \<exists>i\<in>A. x < f i)"
+proof
+  assume *: "(SUP i:A. f i) = \<omega>"
+  show "(\<forall>x<\<omega>. \<exists>i\<in>A. x < f i)" unfolding *[symmetric]
+  proof (intro allI impI)
+    fix x assume "x < SUPR A f" then show "\<exists>i\<in>A. x < f i"
+      unfolding less_SUP_iff by auto
+  qed
+next
+  assume *: "\<forall>x<\<omega>. \<exists>i\<in>A. x < f i"
+  show "(SUP i:A. f i) = \<omega>"
+  proof (rule pinfreal_SUPI)
+    fix y assume **: "\<And>i. i \<in> A \<Longrightarrow> f i \<le> y"
+    show "\<omega> \<le> y"
+    proof cases
+      assume "y < \<omega>"
+      from *[THEN spec, THEN mp, OF this]
+      obtain i where "i \<in> A" "\<not> (f i \<le> y)" by auto
+      with ** show ?thesis by auto
+    qed auto
+  qed auto
+qed
 
 subsubsection {* Equivalence between @{text "f ----> x"} and @{text SUP} on @{typ pinfreal} *}
 
@@ -1206,7 +1298,6 @@ proof -
   have [intro, simp]: "\<And>A. inj_on f A" using `bij f` unfolding bij_def by (auto intro: subset_inj_on)
   have f[intro, simp]: "\<And>x. f (inv f x) = x"
     using `bij f` unfolding bij_def by (auto intro: surj_f_inv_f)
-
   show ?thesis
   proof (rule psuminf_equality)
     fix n
@@ -1228,49 +1319,6 @@ proof -
       also have "\<dots> \<le> y" unfolding lessThan_Suc_atMost[symmetric] by (rule *)
       finally show "setsum g {..<N} \<le> y" .
     qed
-  qed
-qed
-
-lemma psuminf_2dimen:
-  fixes f:: "nat * nat \<Rightarrow> pinfreal"
-  assumes fsums: "\<And>m. g m = (\<Sum>\<^isub>\<infinity> n. f (m,n))"
-  shows "psuminf (f \<circ> prod_decode) = psuminf g"
-proof (rule psuminf_equality)
-  fix n :: nat
-  let ?P = "prod_decode ` {..<n}"
-  have "setsum (f \<circ> prod_decode) {..<n} = setsum f ?P"
-    by (auto simp: setsum_reindex inj_prod_decode)
-  also have "\<dots> \<le> setsum f ({..Max (fst ` ?P)} \<times> {..Max (snd ` ?P)})"
-  proof (safe intro!: setsum_mono3 Max_ge image_eqI)
-    fix a b x assume "(a, b) = prod_decode x"
-    from this[symmetric] show "a = fst (prod_decode x)" "b = snd (prod_decode x)"
-      by simp_all
-  qed simp_all
-  also have "\<dots> = (\<Sum>m\<le>Max (fst ` ?P). (\<Sum>n\<le>Max (snd ` ?P). f (m,n)))"
-    unfolding setsum_cartesian_product by simp
-  also have "\<dots> \<le> (\<Sum>m\<le>Max (fst ` ?P). g m)"
-    by (auto intro!: setsum_mono psuminf_upper simp del: setsum_lessThan_Suc
-        simp: fsums lessThan_Suc_atMost[symmetric])
-  also have "\<dots> \<le> psuminf g"
-    by (auto intro!: psuminf_upper simp del: setsum_lessThan_Suc
-        simp: lessThan_Suc_atMost[symmetric])
-  finally show "setsum (f \<circ> prod_decode) {..<n} \<le> psuminf g" .
-next
-  fix y assume *: "\<And>n. setsum (f \<circ> prod_decode) {..<n} \<le> y"
-  have g: "g = (\<lambda>m. \<Sum>\<^isub>\<infinity> n. f (m,n))" unfolding fsums[symmetric] ..
-  show "psuminf g \<le> y" unfolding g
-  proof (rule psuminf_bound, unfold setsum_pinfsum[symmetric], safe intro!: psuminf_bound)
-    fix N M :: nat
-    let ?P = "{..<N} \<times> {..<M}"
-    let ?M = "Max (prod_encode ` ?P)"
-    have "(\<Sum>n<M. \<Sum>m<N. f (m, n)) \<le> (\<Sum>(m, n)\<in>?P. f (m, n))"
-      unfolding setsum_commute[of _ _ "{..<M}"] unfolding setsum_cartesian_product ..
-    also have "\<dots> \<le> (\<Sum>(m,n)\<in>(prod_decode ` {..?M}). f (m, n))"
-      by (auto intro!: setsum_mono3 image_eqI[where f=prod_decode, OF prod_encode_inverse[symmetric]])
-    also have "\<dots> \<le> y" using *[of "Suc ?M"]
-      by (simp add: lessThan_Suc_atMost[symmetric] setsum_reindex
-               inj_prod_decode del: setsum_lessThan_Suc)
-    finally show "(\<Sum>n<M. \<Sum>m<N. f (m, n)) \<le> y" .
   qed
 qed
 
@@ -1348,6 +1396,80 @@ proof cases
       by (auto intro!: setsum_mono)
   qed simp
 qed simp
+
+lemma psuminf_SUP_eq:
+  assumes "\<And>n i. f n i \<le> f (Suc n) i"
+  shows "(\<Sum>\<^isub>\<infinity> i. SUP n::nat. f n i) = (SUP n::nat. \<Sum>\<^isub>\<infinity> i. f n i)"
+proof -
+  { fix n :: nat
+    have "(\<Sum>i<n. SUP k. f k i) = (SUP k. \<Sum>i<n. f k i)"
+      using assms by (auto intro!: SUPR_pinfreal_setsum[symmetric]) }
+  note * = this
+  show ?thesis
+    unfolding psuminf_def
+    unfolding *
+    apply (subst SUP_commute) ..
+qed
+
+lemma psuminf_commute:
+  shows "(\<Sum>\<^isub>\<infinity> i j. f i j) = (\<Sum>\<^isub>\<infinity> j i. f i j)"
+proof -
+  have "(SUP n. \<Sum> i < n. SUP m. \<Sum> j < m. f i j) = (SUP n. SUP m. \<Sum> i < n. \<Sum> j < m. f i j)"
+    apply (subst SUPR_pinfreal_setsum)
+    by auto
+  also have "\<dots> = (SUP m n. \<Sum> j < m. \<Sum> i < n. f i j)"
+    apply (subst SUP_commute)
+    apply (subst setsum_commute)
+    by auto
+  also have "\<dots> = (SUP m. \<Sum> j < m. SUP n. \<Sum> i < n. f i j)"
+    apply (subst SUPR_pinfreal_setsum)
+    by auto
+  finally show ?thesis
+    unfolding psuminf_def by auto
+qed
+
+lemma psuminf_2dimen:
+  fixes f:: "nat * nat \<Rightarrow> pinfreal"
+  assumes fsums: "\<And>m. g m = (\<Sum>\<^isub>\<infinity> n. f (m,n))"
+  shows "psuminf (f \<circ> prod_decode) = psuminf g"
+proof (rule psuminf_equality)
+  fix n :: nat
+  let ?P = "prod_decode ` {..<n}"
+  have "setsum (f \<circ> prod_decode) {..<n} = setsum f ?P"
+    by (auto simp: setsum_reindex inj_prod_decode)
+  also have "\<dots> \<le> setsum f ({..Max (fst ` ?P)} \<times> {..Max (snd ` ?P)})"
+  proof (safe intro!: setsum_mono3 Max_ge image_eqI)
+    fix a b x assume "(a, b) = prod_decode x"
+    from this[symmetric] show "a = fst (prod_decode x)" "b = snd (prod_decode x)"
+      by simp_all
+  qed simp_all
+  also have "\<dots> = (\<Sum>m\<le>Max (fst ` ?P). (\<Sum>n\<le>Max (snd ` ?P). f (m,n)))"
+    unfolding setsum_cartesian_product by simp
+  also have "\<dots> \<le> (\<Sum>m\<le>Max (fst ` ?P). g m)"
+    by (auto intro!: setsum_mono psuminf_upper simp del: setsum_lessThan_Suc
+        simp: fsums lessThan_Suc_atMost[symmetric])
+  also have "\<dots> \<le> psuminf g"
+    by (auto intro!: psuminf_upper simp del: setsum_lessThan_Suc
+        simp: lessThan_Suc_atMost[symmetric])
+  finally show "setsum (f \<circ> prod_decode) {..<n} \<le> psuminf g" .
+next
+  fix y assume *: "\<And>n. setsum (f \<circ> prod_decode) {..<n} \<le> y"
+  have g: "g = (\<lambda>m. \<Sum>\<^isub>\<infinity> n. f (m,n))" unfolding fsums[symmetric] ..
+  show "psuminf g \<le> y" unfolding g
+  proof (rule psuminf_bound, unfold setsum_pinfsum[symmetric], safe intro!: psuminf_bound)
+    fix N M :: nat
+    let ?P = "{..<N} \<times> {..<M}"
+    let ?M = "Max (prod_encode ` ?P)"
+    have "(\<Sum>n<M. \<Sum>m<N. f (m, n)) \<le> (\<Sum>(m, n)\<in>?P. f (m, n))"
+      unfolding setsum_commute[of _ _ "{..<M}"] unfolding setsum_cartesian_product ..
+    also have "\<dots> \<le> (\<Sum>(m,n)\<in>(prod_decode ` {..?M}). f (m, n))"
+      by (auto intro!: setsum_mono3 image_eqI[where f=prod_decode, OF prod_encode_inverse[symmetric]])
+    also have "\<dots> \<le> y" using *[of "Suc ?M"]
+      by (simp add: lessThan_Suc_atMost[symmetric] setsum_reindex
+               inj_prod_decode del: setsum_lessThan_Suc)
+    finally show "(\<Sum>n<M. \<Sum>m<N. f (m, n)) \<le> y" .
+  qed
+qed
 
 lemma Real_max:
   assumes "x \<ge> 0" "y \<ge> 0"
@@ -1573,7 +1695,25 @@ definition (in complete_lattice) isoton :: "(nat \<Rightarrow> 'a) \<Rightarrow>
 definition (in complete_lattice) antiton (infix "\<down>" 50) where
   "A \<down> X \<longleftrightarrow> (\<forall>i. A i \<ge> A (Suc i)) \<and> (INF i. A i) = X"
 
-lemma range_const[simp]: "range (\<lambda>x. c) = {c}" by auto
+lemma isotoneI[intro?]: "\<lbrakk> \<And>i. f i \<le> f (Suc i) ; (SUP i. f i) = F \<rbrakk> \<Longrightarrow> f \<up> F"
+  unfolding isoton_def by auto
+
+lemma (in complete_lattice) isotonD[dest]:
+  assumes "A \<up> X" shows "A i \<le> A (Suc i)" "(SUP i. A i) = X"
+  using assms unfolding isoton_def by auto
+
+lemma isotonD'[dest]:
+  assumes "(A::_=>_) \<up> X" shows "A i x \<le> A (Suc i) x" "(SUP i. A i) = X"
+  using assms unfolding isoton_def le_fun_def by auto
+
+lemma isoton_mono_le:
+  assumes "f \<up> x" "i \<le> j"
+  shows "f i \<le> f j"
+  using `f \<up> x`[THEN isotonD(1)] lift_Suc_mono_le[of f, OF _ `i \<le> j`] by auto
+
+lemma isoton_const:
+  shows "(\<lambda> i. c) \<up> c"
+unfolding isoton_def by auto
 
 lemma isoton_cmult_right:
   assumes "f \<up> (x::pinfreal)"
@@ -1605,12 +1745,23 @@ lemma isoton_indicator:
   shows "(\<lambda>i x. f i x * indicator A x) \<up> (\<lambda>x. g x * indicator A x :: pinfreal)"
   using assms unfolding isoton_fun_expand by (auto intro!: isoton_cmult_left)
 
-lemma pinfreal_ord_one[simp]:
-  "Real p < 1 \<longleftrightarrow> p < 1"
-  "Real p \<le> 1 \<longleftrightarrow> p \<le> 1"
-  "1 < Real p \<longleftrightarrow> 1 < p"
-  "1 \<le> Real p \<longleftrightarrow> 1 \<le> p"
-  by (simp_all add: one_pinfreal_def del: Real_1)
+lemma isoton_setsum:
+  fixes f :: "'a \<Rightarrow> nat \<Rightarrow> pinfreal"
+  assumes "finite A" "A \<noteq> {}"
+  assumes "\<And> x. x \<in> A \<Longrightarrow> f x \<up> y x"
+  shows "(\<lambda> i. (\<Sum> x \<in> A. f x i)) \<up> (\<Sum> x \<in> A. y x)"
+using assms
+proof (induct A rule:finite_ne_induct)
+  case singleton thus ?case by auto
+next
+  case (insert a A) note asms = this
+  hence *: "(\<lambda> i. \<Sum> x \<in> A. f x i) \<up> (\<Sum> x \<in> A. y x)" by auto
+  have **: "(\<lambda> i. f a i) \<up> y a" using asms by simp
+  have "(\<lambda> i. f a i + (\<Sum> x \<in> A. f x i)) \<up> (y a + (\<Sum> x \<in> A. y x))"
+    using * ** isoton_add by auto
+  thus "(\<lambda> i. \<Sum> x \<in> insert a A. f x i) \<up> (\<Sum> x \<in> insert a A. y x)"
+    using asms by fastsimp
+qed
 
 lemma isoton_Sup:
   assumes "f \<up> u"
@@ -1981,14 +2132,6 @@ lemma Lim_omega_pos: "f ----> \<omega> \<longleftrightarrow> (\<forall>B>0. \<ex
   apply(rule_tac x=N in exI,safe) apply(erule_tac x=n in allE,safe)
   apply(rule_tac y="Real (max 1 B)" in order_trans) by auto
 
-lemma (in complete_lattice) isotonD[dest]:
-  assumes "A \<up> X" shows "A i \<le> A (Suc i)" "(SUP i. A i) = X"
-  using assms unfolding isoton_def by auto
-
-lemma isotonD'[dest]:
-  assumes "(A::_=>_) \<up> X" shows "A i x \<le> A (Suc i) x" "(SUP i. A i) = X"
-  using assms unfolding isoton_def le_fun_def by auto
-
 lemma pinfreal_LimI_finite:
   assumes "x \<noteq> \<omega>" "\<And>r. 0 < r \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. u n < x + r \<and> x < u n + r"
   shows "u ----> x"
@@ -2019,20 +2162,6 @@ qed
 
 lemma real_Real_max:"real (Real x) = max x 0"
   unfolding real_Real by auto
-
-lemma (in complete_lattice) SUPR_upper:
-  "x \<in> A \<Longrightarrow> f x \<le> SUPR A f"
-  unfolding SUPR_def apply(rule Sup_upper) by auto
-
-lemma (in complete_lattice) SUPR_subset:
-  assumes "A \<subseteq> B" shows "SUPR A f \<le> SUPR B f"
-  apply(rule SUP_leI) apply(rule SUPR_upper) using assms by auto
-
-lemma (in complete_lattice) SUPR_mono:
-  assumes "\<forall>a\<in>A. \<exists>b\<in>B. f b \<ge> f a"
-  shows "SUPR A f \<le> SUPR B f"
-  unfolding SUPR_def apply(rule Sup_mono)
-  using assms by auto
 
 lemma Sup_lim:
   assumes "\<forall>n. b n \<in> s" "b ----> (a::pinfreal)"
@@ -2104,11 +2233,6 @@ proof(rule ccontr,unfold not_le)
     thus False using complete_lattice_class.Sup_upper[OF assms(1)[rule_format,of N]] 
       unfolding Real_real using om by auto
   qed qed
-
-lemma less_SUP_iff:
-  fixes a :: pinfreal
-  shows "(a < (SUP i:A. f i)) \<longleftrightarrow> (\<exists>x\<in>A. a < f x)"
-  unfolding SUPR_def less_Sup_iff by auto
 
 lemma Sup_mono_lim:
   assumes "\<forall>a\<in>A. \<exists>b. \<forall>n. b n \<in> B \<and> b ----> (a::pinfreal)"
@@ -2314,26 +2438,6 @@ lemma pinfreal_le_minus_imp_0:
   fixes a b :: pinfreal
   shows "a \<le> a - b \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> a \<noteq> \<omega> \<Longrightarrow> b = 0"
   by (cases a, cases b, auto split: split_if_asm)
-
-lemma lim_INF_le_lim_SUP:
-  fixes f :: "nat \<Rightarrow> pinfreal"
-  shows "(SUP n. INF m. f (n + m)) \<le> (INF n. SUP m. f (n + m))"
-proof (rule complete_lattice_class.SUP_leI, rule complete_lattice_class.le_INFI)
-  fix i j show "(INF m. f (i + m)) \<le> (SUP m. f (j + m))"
-  proof (cases rule: le_cases)
-    assume "i \<le> j"
-    have "(INF m. f (i + m)) \<le> f (i + (j - i))" by (rule INF_leI) simp
-    also have "\<dots> = f (j + 0)" using `i \<le> j` by auto
-    also have "\<dots> \<le> (SUP m. f (j + m))" by (rule le_SUPI) simp
-    finally show ?thesis .
-  next
-    assume "j \<le> i"
-    have "(INF m. f (i + m)) \<le> f (i + 0)" by (rule INF_leI) simp
-    also have "\<dots> = f (j + (i - j))" using `j \<le> i` by auto
-    also have "\<dots> \<le> (SUP m. f (j + m))" by (rule le_SUPI) simp
-    finally show ?thesis .
-  qed
-qed
 
 lemma lim_INF_eq_lim_SUP:
   fixes X :: "nat \<Rightarrow> real"
@@ -2650,5 +2754,22 @@ lemma atLeast0AtMost_eq_atMost: "{0 :: pinfreal .. a} = {.. a}" by auto
 lemma greaterThan_omega_Empty: "{\<omega> <..} = {}" by auto
 
 lemma lessThan_0_Empty: "{..< 0 :: pinfreal} = {}" by auto
+
+lemma real_of_pinfreal_inverse[simp]:
+  fixes X :: pinfreal
+  shows "real (inverse X) = 1 / real X"
+  by (cases X) (auto simp: inverse_eq_divide)
+
+lemma real_of_pinfreal_le_0[simp]: "real (X :: pinfreal) \<le> 0 \<longleftrightarrow> (X = 0 \<or> X = \<omega>)"
+  by (cases X) auto
+
+lemma real_of_pinfreal_less_0[simp]: "\<not> (real (X :: pinfreal) < 0)"
+  by (cases X) auto
+
+lemma abs_real_of_pinfreal[simp]: "\<bar>real (X :: pinfreal)\<bar> = real X"
+  by simp
+
+lemma zero_less_real_of_pinfreal: "0 < real (X :: pinfreal) \<longleftrightarrow> X \<noteq> 0 \<and> X \<noteq> \<omega>"
+  by (cases X) auto
 
 end

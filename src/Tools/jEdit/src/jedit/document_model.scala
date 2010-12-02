@@ -63,7 +63,7 @@ object Document_Model
       extends TokenMarker.LineContext(dummy_rules, prev)
     {
       override def hashCode: Int = line
-      override def equals(that: Any) =
+      override def equals(that: Any): Boolean =
         that match {
           case other: Line_Context => line == other.line
           case _ => false

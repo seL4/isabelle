@@ -9,13 +9,13 @@ imports Transcendental
 begin
 
 lemma exp_first_two_terms: "exp x = 1 + x + suminf (%n. 
-  inverse(real (fact (n+2))) * (x ^ (n+2)))"
+  inverse(fact (n+2)) * (x ^ (n+2)))"
 proof -
-  have "exp x = suminf (%n. inverse(real (fact n)) * (x ^ n))"
+  have "exp x = suminf (%n. inverse(fact n) * (x ^ n))"
     by (simp add: exp_def)
-  also from summable_exp have "... = (SUM n : {0..<2}. 
-      inverse(real (fact n)) * (x ^ n)) + suminf (%n.
-      inverse(real (fact (n+2))) * (x ^ (n+2)))" (is "_ = ?a + _")
+  also from summable_exp have "... = (SUM n::nat : {0..<2}. 
+      inverse(fact n) * (x ^ n)) + suminf (%n.
+      inverse(fact(n+2)) * (x ^ (n+2)))" (is "_ = ?a + _")
     by (rule suminf_split_initial_segment)
   also have "?a = 1 + x"
     by (simp add: numerals)
@@ -23,7 +23,7 @@ proof -
 qed
 
 lemma exp_tail_after_first_two_terms_summable: 
-  "summable (%n. inverse(real (fact (n+2))) * (x ^ (n+2)))"
+  "summable (%n. inverse(fact (n+2)) * (x ^ (n+2)))"
 proof -
   note summable_exp
   thus ?thesis
@@ -31,20 +31,19 @@ proof -
 qed
 
 lemma aux1: assumes a: "0 <= x" and b: "x <= 1"
-    shows "inverse (real (fact ((n::nat) + 2))) * x ^ (n + 2) <= (x^2/2) * ((1/2)^n)"
+    shows "inverse (fact ((n::nat) + 2)) * x ^ (n + 2) <= (x^2/2) * ((1/2)^n)"
 proof (induct n)
-  show "inverse (real (fact ((0::nat) + 2))) * x ^ (0 + 2) <= 
+  show "inverse (fact ((0::nat) + 2)) * x ^ (0 + 2) <= 
       x ^ 2 / 2 * (1 / 2) ^ 0"
     by (simp add: real_of_nat_Suc power2_eq_square)
 next
   fix n :: nat
-  assume c: "inverse (real (fact (n + 2))) * x ^ (n + 2)
+  assume c: "inverse (fact (n + 2)) * x ^ (n + 2)
        <= x ^ 2 / 2 * (1 / 2) ^ n"
-  show "inverse (real (fact (Suc n + 2))) * x ^ (Suc n + 2)
+  show "inverse (fact (Suc n + 2)) * x ^ (Suc n + 2)
            <= x ^ 2 / 2 * (1 / 2) ^ Suc n"
   proof -
-    have "inverse(real (fact (Suc n + 2))) <= 
-        (1 / 2) *inverse (real (fact (n+2)))"
+    have "inverse(fact (Suc n + 2)) <= (1/2) * inverse (fact (n+2))"
     proof -
       have "Suc n + 2 = Suc (n + 2)" by simp
       then have "fact (Suc n + 2) = Suc (n + 2) * fact (n + 2)" 
@@ -57,12 +56,12 @@ next
         by (rule real_of_nat_mult)
       finally have "real (fact (Suc n + 2)) = 
          real (Suc (n + 2)) * real (fact (n + 2))" .
-      then have "inverse(real (fact (Suc n + 2))) = 
-         inverse(real (Suc (n + 2))) * inverse(real (fact (n + 2)))"
+      then have "inverse(fact (Suc n + 2)) = 
+         inverse(Suc (n + 2)) * inverse(fact (n + 2))"
         apply (rule ssubst)
         apply (rule inverse_mult_distrib)
         done
-      also have "... <= (1/2) * inverse(real (fact (n + 2)))"
+      also have "... <= (1/2) * inverse(fact (n + 2))"
         apply (rule mult_right_mono)
         apply (subst inverse_eq_divide)
         apply simp
@@ -78,8 +77,8 @@ next
       apply (rule mult_nonneg_nonneg, rule a)+
       apply (rule zero_le_power, rule a)
       done
-    ultimately have "inverse (real (fact (Suc n + 2))) *  x ^ (Suc n + 2) <=
-        (1 / 2 * inverse (real (fact (n + 2)))) * x ^ (n + 2)"
+    ultimately have "inverse (fact (Suc n + 2)) *  x ^ (Suc n + 2) <=
+        (1 / 2 * inverse (fact (n + 2))) * x ^ (n + 2)"
       apply (rule mult_mono)
       apply (rule mult_nonneg_nonneg)
       apply simp
@@ -88,7 +87,7 @@ next
       apply (rule zero_le_power)
       apply (rule a)
       done
-    also have "... = 1 / 2 * (inverse (real (fact (n + 2))) * x ^ (n + 2))"
+    also have "... = 1 / 2 * (inverse (fact (n + 2)) * x ^ (n + 2))"
       by simp
     also have "... <= 1 / 2 * (x ^ 2 / 2 * (1 / 2) ^ n)"
       apply (rule mult_left_mono)
@@ -122,12 +121,12 @@ lemma exp_bound: "0 <= (x::real) ==> x <= 1 ==> exp x <= 1 + x + x^2"
 proof -
   assume a: "0 <= x"
   assume b: "x <= 1"
-  have c: "exp x = 1 + x + suminf (%n. inverse(real (fact (n+2))) * 
+  have c: "exp x = 1 + x + suminf (%n. inverse(fact (n+2)) * 
       (x ^ (n+2)))"
     by (rule exp_first_two_terms)
-  moreover have "suminf (%n. inverse(real (fact (n+2))) * (x ^ (n+2))) <= x^2"
+  moreover have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <= x^2"
   proof -
-    have "suminf (%n. inverse(real (fact (n+2))) * (x ^ (n+2))) <=
+    have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <=
         suminf (%n. (x^2/2) * ((1/2)^n))"
       apply (rule summable_le)
       apply (auto simp only: aux1 prems)

@@ -9,6 +9,7 @@ header {* Development of the Reals using Cauchy Sequences *}
 
 theory RealDef
 imports Rat
+uses "~~/src/Tools/subtyping.ML"
 begin
 
 text {*
@@ -1108,6 +1109,11 @@ consts
 defs (overloaded)
   real_of_nat_def [code_unfold]: "real == real_of_nat"
   real_of_int_def [code_unfold]: "real == real_of_int"
+
+setup Subtyping.setup
+
+declare [[coercion "real::nat\<Rightarrow>real"]]
+declare [[coercion "real::int\<Rightarrow>real"]]
 
 lemma real_eq_of_nat: "real = of_nat"
   unfolding real_of_nat_def ..
