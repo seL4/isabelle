@@ -318,6 +318,8 @@ text {* We define small finite types for the use in Quickcheck *}
 
 datatype finite_1 = a\<^isub>1
 
+notation (output) a\<^isub>1  ("a\<^isub>1")
+
 instantiation finite_1 :: enum
 begin
 
@@ -351,6 +353,9 @@ end
 hide_const a\<^isub>1
 
 datatype finite_2 = a\<^isub>1 | a\<^isub>2
+
+notation (output) a\<^isub>1  ("a\<^isub>1")
+notation (output) a\<^isub>2  ("a\<^isub>2")
 
 instantiation finite_2 :: enum
 begin
@@ -388,6 +393,10 @@ hide_const a\<^isub>1 a\<^isub>2
 
 datatype finite_3 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3
 
+notation (output) a\<^isub>1  ("a\<^isub>1")
+notation (output) a\<^isub>2  ("a\<^isub>2")
+notation (output) a\<^isub>3  ("a\<^isub>3")
+
 instantiation finite_3 :: enum
 begin
 
@@ -422,6 +431,11 @@ hide_const a\<^isub>1 a\<^isub>2 a\<^isub>3
 
 datatype finite_4 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4
 
+notation (output) a\<^isub>1  ("a\<^isub>1")
+notation (output) a\<^isub>2  ("a\<^isub>2")
+notation (output) a\<^isub>3  ("a\<^isub>3")
+notation (output) a\<^isub>4  ("a\<^isub>4")
+
 instantiation finite_4 :: enum
 begin
 
@@ -437,6 +451,12 @@ hide_const a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4
 
 
 datatype finite_5 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4 | a\<^isub>5
+
+notation (output) a\<^isub>1  ("a\<^isub>1")
+notation (output) a\<^isub>2  ("a\<^isub>2")
+notation (output) a\<^isub>3  ("a\<^isub>3")
+notation (output) a\<^isub>4  ("a\<^isub>4")
+notation (output) a\<^isub>5  ("a\<^isub>5")
 
 instantiation finite_5 :: enum
 begin
