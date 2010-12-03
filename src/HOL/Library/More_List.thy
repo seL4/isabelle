@@ -3,7 +3,7 @@
 header {* Operations on lists beyond the standard List theory *}
 
 theory More_List
-imports Main
+imports Main Multiset
 begin
 
 hide_const (open) Finite_Set.fold
@@ -78,10 +78,32 @@ lemma fold_map [code_unfold]:
   "fold g (map f xs) = fold (g o f) xs"
   by (induct xs) simp_all
 
+lemma fold_remove1_split:
+  assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
+    and x: "x \<in> set xs"
+  shows "fold f xs = fold f (remove1 x xs) \<circ> f x"
+  using assms by (induct xs) (auto simp add: o_assoc [symmetric])
+
+lemma fold_multiset_equiv:
+  assumes f: "\<And>x y. x \<in># multiset_of xs \<Longrightarrow> y \<in># multiset_of xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
+    and equiv: "multiset_of xs = multiset_of ys"
+  shows "fold f xs = fold f ys"
+using f equiv [symmetric] proof (induct xs arbitrary: ys)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  have "\<And>x y. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> f x \<circ> f y = f y \<circ> f x" 
+    by (rule Cons.prems(1)) (simp_all add: mem_set_multiset_eq Cons.prems(2))
+  moreover from Cons.prems have "x \<in> set ys" by (simp add: mem_set_multiset_eq)
+  ultimately have "fold f ys = fold f (remove1 x ys) \<circ> f x" by (fact fold_remove1_split)
+  moreover from Cons.prems have "fold f xs = fold f (remove1 x ys)" by (auto intro: Cons.hyps)
+  ultimately show ?case by simp
+qed
+
 lemma fold_rev:
   assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y"
   shows "fold f (rev xs) = fold f xs"
-  using assms by (induct xs) (simp_all del: o_apply add: fold_commute)
+  by (rule fold_multiset_equiv, rule assms) (simp_all add: in_multiset_in_set)
 
 lemma foldr_fold:
   assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y"
