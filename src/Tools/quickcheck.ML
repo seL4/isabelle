@@ -260,7 +260,7 @@ fun test_term ctxt is_interactive generator_name t =
          (fn result => case result of NONE => NONE
         | SOME ts => SOME (names ~~ ts)) (with_size 1 []))) ()
       handle TimeLimit.TimeOut =>
-        if is_interactive then error (excipit "ran out of time") else TimeLimit.TimeOut
+        if is_interactive then error (excipit "ran out of time") else raise TimeLimit.TimeOut
   in
     (result, ([exec_time, comp_time], if Config.get ctxt report then SOME reports else NONE))
   end;

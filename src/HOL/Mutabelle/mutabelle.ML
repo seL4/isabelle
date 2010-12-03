@@ -497,9 +497,9 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
  (map_types (inst_type insts) (freeze t));
 
 fun is_executable thy insts th =
-  ((Quickcheck.test_term
+  ((Quickcheck.test_term 
       ((Config.put Quickcheck.size 1 #> Config.put Quickcheck.iterations 1) (ProofContext.init_global thy))
-      (SOME (!testgen_name)) (preprocess thy insts (prop_of th));
+      false (SOME (!testgen_name)) (preprocess thy insts (prop_of th));
     Output.urgent_message "executable"; true) handle ERROR s =>
     (Output.urgent_message ("not executable: " ^ s); false));
 
@@ -509,7 +509,7 @@ fun qc_recursive usedthy [] insts sz qciter acc = rev acc
      ((x, pretty (the_default [] (fst (Quickcheck.test_term
        ((Config.put Quickcheck.size sz #> Config.put Quickcheck.iterations qciter)
          (ProofContext.init_global usedthy))
-       (SOME (!testgen_name)) (preprocess usedthy insts x))))) :: acc))
+       false (SOME (!testgen_name)) (preprocess usedthy insts x))))) :: acc))
           handle ERROR msg => (Output.urgent_message msg; qc_recursive usedthy xs insts sz qciter acc);
 
 
