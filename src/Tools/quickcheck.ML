@@ -185,7 +185,8 @@ fun test_term ctxt is_interactive t =
               cpu_time "quickcheck execution" (fn () => with_size test_fun 1 [])
           in
             (case result of NONE => NONE | SOME ts => SOME (names ~~ ts),
-              ([exec_time, comp_time], if Config.get ctxt report then SOME reports else NONE))
+              ([exec_time, comp_time],
+               if Config.get ctxt report andalso not (null reports) then SOME reports else NONE))
           end) ()
         handle TimeLimit.TimeOut =>
           if is_interactive then error (excipit "ran out of time") else raise TimeLimit.TimeOut
@@ -273,7 +274,7 @@ fun pretty_counterex ctxt auto NONE = Pretty.str (tool_name auto ^ " found no co
   | pretty_counterex ctxt auto (SOME cex) =
       Pretty.chunks (Pretty.str (tool_name auto ^ " found a counterexample:\n") ::
         map (fn (s, t) =>
-          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) cex);
+          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) (rev cex));
 
 fun pretty_report (Report {iterations = iterations, raised_match_errors = raised_match_errors,
     satisfied_assms = satisfied_assms, positive_concl_tests = positive_concl_tests}) =
@@ -288,7 +289,7 @@ fun pretty_report (Report {iterations = iterations, raised_match_errors = raised
   end
 
 fun pretty_reports ctxt (SOME reports) =
-  Pretty.chunks (Pretty.str "Quickcheck report:" ::
+  Pretty.chunks (Pretty.fbrk :: Pretty.str "Quickcheck report:" ::
     maps (fn (size, report) =>
       Pretty.str ("size " ^ string_of_int size ^ ":") :: pretty_report report @ [Pretty.brk 1])
       (rev reports))
