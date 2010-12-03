@@ -63,7 +63,7 @@ lemma wir_moel: "YS = YYS"
   done
 
 (* ------------------------------------------------------------------------ *)
-(* Zweite L"osung: Bernhard Möller                                          *)
+(* Zweite L"osung: Bernhard MÃ¶ller                                          *)
 (* statt Beweis von  wir_moel "uber take_lemma beidseitige Inclusion        *)
 (* verwendet lemma5                                                         *)
 (* ------------------------------------------------------------------------ *)

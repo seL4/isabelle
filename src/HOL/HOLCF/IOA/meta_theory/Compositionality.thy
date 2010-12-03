@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Compositionality.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Compositionality of I/O automata *}

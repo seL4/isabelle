@@ -106,16 +106,15 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
        SOME proofs =>
        let
          val {context = ctxt, facts, goal} = Proof.goal pre
-         val thy = ProofContext.theory_of ctxt
          val prover = AList.lookup (op =) args "prover"
                       |> the_default default_prover
          val default_max_relevant =
-           Sledgehammer.default_max_relevant_for_prover thy prover
+           Sledgehammer.default_max_relevant_for_prover ctxt prover
         val is_built_in_const =
           Sledgehammer.is_built_in_const_for_prover ctxt default_prover
          val relevance_fudge =
            extract_relevance_fudge args
-               (Sledgehammer.relevance_fudge_for_prover prover)
+               (Sledgehammer.relevance_fudge_for_prover ctxt prover)
          val relevance_override = {add = [], del = [], only = false}
          val {relevance_thresholds, full_types, max_relevant, ...} =
            Sledgehammer_Isar.default_params ctxt args

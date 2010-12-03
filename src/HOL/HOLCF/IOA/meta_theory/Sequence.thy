@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Sequence.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 
 Sequences over flat domains with lifted elements.
 *)

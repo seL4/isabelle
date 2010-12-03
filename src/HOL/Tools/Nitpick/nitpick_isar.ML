@@ -383,9 +383,8 @@ val _ = Outer_Syntax.command "nitpick_params"
             "set and display the default parameters for Nitpick"
             Keyword.thy_decl parse_nitpick_params_command
 
-fun auto_nitpick state =
-  if not (!auto) then (false, state) else pick_nits [] true 1 0 state
+val auto_nitpick = pick_nits [] true 1 0
 
-val setup = Auto_Tools.register_tool ("nitpick", auto_nitpick)
+val setup = Auto_Tools.register_tool (auto, auto_nitpick)
 
 end;

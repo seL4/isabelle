@@ -221,10 +221,6 @@ else
   %option greek for \<euro>
   %option english (default language) for \<guillemotleft>, \<guillemotright>
 
-%\usepackage[latin1]{inputenc}
-  %for \<onesuperior>, \<onequarter>, \<twosuperior>, \<onehalf>,
-  %\<threesuperior>, \<threequarters>, \<degree>
-
 %\usepackage[only,bigsqcap]{stmaryrd}
   %for \<Sqinter>
 
@@ -232,7 +228,8 @@ else
   %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
 
 %\usepackage{textcomp}
-  %for \<cent>, \<currency>
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
 
 % this should be the last package used
 \usepackage{pdfsetup}

@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/TLS.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Temporal Logic of Steps -- tailored for I/O automata *}

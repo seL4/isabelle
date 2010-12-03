@@ -7,6 +7,7 @@ Coercive subtyping via subtype constraints.
 signature SUBTYPING =
 sig
   datatype variance = COVARIANT | CONTRAVARIANT | INVARIANT
+  val coercion_enabled: bool Config.T
   val infer_types: Proof.context -> (string -> typ option) -> (indexname -> typ option) ->
     term list -> term list
   val add_type_map: term -> Context.generic -> Context.generic
@@ -685,11 +686,11 @@ fun infer_types ctxt const_type var_type raw_ts =
                 raise TYPE_INFERENCE_ERROR (err_appl_msg ctxt msg tye' bs t T u U);
           in (tu, V, tye_idx'') end;
 
-    fun infer_single t (ts, tye_idx) = 
+    fun infer_single t tye_idx = 
       let val (t, _, tye_idx') = inf [] t tye_idx;
-      in (ts @ [t], tye_idx') end;
+      in (t, tye_idx') end;
       
-    val (ts', (tye, _)) = (fold infer_single ts ([], (Vartab.empty, idx))
+    val (ts', (tye, _)) = (fold_map infer_single ts (Vartab.empty, idx)
       handle TYPE_INFERENCE_ERROR err =>     
         let
           fun gen_single t (tye_idx, constraints) =
@@ -716,11 +717,15 @@ fun coercion_infer_types ctxt =
     (try (Consts.the_constraint (ProofContext.consts_of ctxt)))
     (ProofContext.def_type ctxt);
 
+val (coercion_enabled, coercion_enabled_setup) = Attrib.config_bool "coercion_enabled" (K false);
+
 val add_term_check =
   Syntax.add_term_check ~100 "coercions"
     (fn xs => fn ctxt =>
-      let val xs' = coercion_infer_types ctxt xs
-      in if eq_list (op aconv) (xs, xs') then NONE else SOME (xs', ctxt) end);
+      if Config.get ctxt coercion_enabled then
+        let val xs' = coercion_infer_types ctxt xs
+        in if eq_list (op aconv) (xs, xs') then NONE else SOME (xs', ctxt) end
+      else NONE);
 
 
 (* declarations *)
@@ -821,6 +826,7 @@ fun add_coercion raw_t context =
 (* theory setup *)
 
 val setup =
+  coercion_enabled_setup #>
   Context.theory_map add_term_check #>
   Attrib.setup @{binding coercion}
     (Args.term >> (fn t => Thm.declaration_attribute (K (add_coercion t))))

@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/ABP/Action.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* The set of all actions of the system *}

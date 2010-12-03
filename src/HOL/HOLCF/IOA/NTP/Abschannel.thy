@@ -1,5 +1,5 @@
 (*  Title:      HOL/IOA/NTP/Abschannel.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* The (faulty) transmission channel (both directions) *}

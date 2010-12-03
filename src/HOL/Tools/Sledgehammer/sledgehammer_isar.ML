@@ -130,39 +130,36 @@ structure Data = Theory_Data(
   val extend = I
   fun merge p : T = AList.merge (op =) (K true) p)
 
-fun remotify_prover_if_available_and_not_already_remote thy name =
+fun remotify_prover_if_available_and_not_already_remote ctxt name =
   if String.isPrefix remote_prefix name then
     SOME name
   else
     let val remote_name = remote_prefix ^ name in
-      if is_prover_available thy remote_name then SOME remote_name else NONE
+      if is_prover_available ctxt remote_name then SOME remote_name else NONE
     end
 
 fun remotify_prover_if_not_installed ctxt name =
-  let val thy = ProofContext.theory_of ctxt in
-    if is_prover_available thy name andalso is_prover_installed ctxt name then
-      SOME name
-    else
-      remotify_prover_if_available_and_not_already_remote thy name
-  end
+  if is_prover_available ctxt name andalso is_prover_installed ctxt name then
+    SOME name
+  else
+    remotify_prover_if_available_and_not_already_remote ctxt name
 
 fun avoid_too_many_local_threads _ _ [] = []
-  | avoid_too_many_local_threads thy 0 provers =
-    map_filter (remotify_prover_if_available_and_not_already_remote thy) provers
-  | avoid_too_many_local_threads thy n (prover :: provers) =
+  | avoid_too_many_local_threads ctxt 0 provers =
+    map_filter (remotify_prover_if_available_and_not_already_remote ctxt)
+               provers
+  | avoid_too_many_local_threads ctxt n (prover :: provers) =
     let val n = if String.isPrefix remote_prefix prover then n else n - 1 in
-      prover :: avoid_too_many_local_threads thy n provers
+      prover :: avoid_too_many_local_threads ctxt n provers
     end
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
 fun default_provers_param_value ctxt =
-  let val thy = ProofContext.theory_of ctxt in
-    [spassN, eN, vampireN, sine_eN, smtN]
-    |> map_filter (remotify_prover_if_not_installed ctxt)
-    |> avoid_too_many_local_threads thy (Multithreading.max_threads_value ())
-    |> space_implode " "
-  end
+  [spassN, eN, vampireN, sine_eN, SMT_Solver.solver_name_of ctxt]
+  |> map_filter (remotify_prover_if_not_installed ctxt)
+  |> avoid_too_many_local_threads ctxt (Multithreading.max_threads_value ())
+  |> space_implode " "
 
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
 fun default_raw_params ctxt =
@@ -270,7 +267,6 @@ fun minimize_command override_params i prover_name fact_names =
 fun hammer_away override_params subcommand opt_i relevance_override state =
   let
     val ctxt = Proof.context_of state
-    val thy = Proof.theory_of state
     val _ = app check_raw_param override_params
   in
     if subcommand = runN then
@@ -286,7 +282,7 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = available_proversN then
-      available_provers thy
+      available_provers ctxt
     else if subcommand = running_proversN then
       running_provers ()
     else if subcommand = kill_proversN then
@@ -347,14 +343,11 @@ val _ =
       parse_sledgehammer_params_command
 
 fun auto_sledgehammer state =
-  if not (!auto) then
-    (false, state)
-  else
-    let val ctxt = Proof.context_of state in
-      run_sledgehammer (get_params true ctxt []) true 1 no_relevance_override
-                       (minimize_command [] 1) state
-    end
+  let val ctxt = Proof.context_of state in
+    run_sledgehammer (get_params true ctxt []) true 1 no_relevance_override
+                     (minimize_command [] 1) state
+  end
 
-val setup = Auto_Tools.register_tool (sledgehammerN, auto_sledgehammer)
+val setup = Auto_Tools.register_tool (auto, auto_sledgehammer)
 
 end;

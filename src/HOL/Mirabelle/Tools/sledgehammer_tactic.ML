@@ -16,19 +16,18 @@ struct
   
 fun run_atp force_full_types timeout i n ctxt goal name =
   let
-    val thy = ProofContext.theory_of ctxt
     val chained_ths = [] (* a tactic has no chained ths *)
     val params as {full_types, relevance_thresholds, max_relevant, ...} =
       ((if force_full_types then [("full_types", "true")] else [])
        @ [("timeout", Int.toString (Time.toSeconds timeout))])
        @ [("overlord", "true")]
       |> Sledgehammer_Isar.default_params ctxt
-    val prover = Sledgehammer.get_prover thy false name
+    val prover = Sledgehammer.get_prover ctxt false name
     val default_max_relevant =
-      Sledgehammer.default_max_relevant_for_prover thy name
+      Sledgehammer.default_max_relevant_for_prover ctxt name
     val is_built_in_const =
       Sledgehammer.is_built_in_const_for_prover ctxt name
-    val relevance_fudge = Sledgehammer.relevance_fudge_for_prover name
+    val relevance_fudge = Sledgehammer.relevance_fudge_for_prover ctxt name
     val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val facts =
@@ -75,7 +74,6 @@ fun thms_of_name ctxt name =
 
 fun sledgehammer_with_metis_tac ctxt i th =
   let
-    val thy = ProofContext.theory_of ctxt
     val timeout = Time.fromSeconds 30
   in
     case run_atp false timeout i i ctxt th atp of

@@ -1,5 +1,5 @@
 (*  Title:      ZF/IMP/Com.thy
-    Author:     Heiko Loetzbeyer and Robert Sandner, TU München
+    Author:     Heiko Loetzbeyer and Robert Sandner, TU MÃ¼nchen
 *)
 
 header {* Arithmetic expressions, boolean expressions, commands *}

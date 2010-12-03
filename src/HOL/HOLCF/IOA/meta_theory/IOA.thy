@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/IOA.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* The theory of I/O automata in HOLCF *}

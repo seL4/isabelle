@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Seq.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Partial, Finite and Infinite Sequences (lazy lists), modeled as domain *}

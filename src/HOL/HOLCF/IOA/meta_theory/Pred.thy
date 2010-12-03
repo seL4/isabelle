@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Pred.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Logical Connectives lifted to predicates *}

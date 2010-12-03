@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Simulations.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Simulations in HOLCF/IOA *}

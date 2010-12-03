@@ -27,8 +27,11 @@ sig
   type solver = bool option -> Proof.context -> (int * thm) list ->
     int list * thm
   val add_solver: solver_config -> theory -> theory
+  val solver_name_of: Proof.context -> string
   val solver_of: Proof.context -> solver
-  val is_locally_installed: Proof.context -> bool
+  val available_solvers_of: Proof.context -> string list
+  val is_locally_installed: Proof.context -> string -> bool
+  val is_remotely_available: Proof.context -> string -> bool
 
   (*filter*)
   val smt_filter: bool -> Time.time -> Proof.state -> ('a * thm) list -> int ->
@@ -295,14 +298,19 @@ fun name_and_solver_of ctxt =
   let val name = C.solver_of ctxt
   in (name, the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name)) end
 
+val solver_name_of = fst o name_and_solver_of
 fun solver_of ctxt =
   let val (name, raw_solver) = name_and_solver_of ctxt
   in gen_solver name raw_solver end
 
-fun is_locally_installed ctxt =
-  let val (_, {env_var, ...}) = name_and_solver_of ctxt
+val available_solvers_of = Symtab.keys o Solvers.get o Context.Proof
+
+fun is_locally_installed ctxt name =
+  let val {env_var, ...} = the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name)
   in is_some (get_local_solver env_var) end
 
+fun is_remotely_available ctxt name =
+  #is_remote (the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name))
 
 
 (* filter *)

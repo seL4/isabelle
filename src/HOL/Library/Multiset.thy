@@ -725,7 +725,7 @@ by (induct x) auto
 lemma multiset_of_zero_iff_right[simp]: "({#} = multiset_of x) = (x = [])"
 by (induct x) auto
 
-lemma set_of_multiset_of[simp]: "set_of(multiset_of x) = set x"
+lemma set_of_multiset_of[simp]: "set_of (multiset_of x) = set x"
 by (induct x) auto
 
 lemma mem_set_multiset_eq: "x \<in> set xs = (x :# multiset_of xs)"
@@ -737,6 +737,10 @@ lemma multiset_of_append [simp]:
 
 lemma multiset_of_filter:
   "multiset_of (filter P xs) = {#x :# multiset_of xs. P x #}"
+  by (induct xs) simp_all
+
+lemma multiset_of_rev [simp]:
+  "multiset_of (rev xs) = multiset_of xs"
   by (induct xs) simp_all
 
 lemma surj_multiset_of: "surj multiset_of"

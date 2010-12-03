@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/RefMappings.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Refinement Mappings in HOLCF/IOA *}

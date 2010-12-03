@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/TrivEx.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Trivial Abstraction Example *}

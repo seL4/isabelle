@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/ShortExecutions.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 theory ShortExecutions

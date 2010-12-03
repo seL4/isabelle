@@ -315,7 +315,7 @@ lemma congruent2_commuteI:
 
 subsection {* Quotients and finiteness *}
 
-text {*Suggested by Florian Kammüller*}
+text {*Suggested by Florian KammÃ¼ller*}
 
 lemma finite_quotient: "finite A ==> r \<subseteq> A \<times> A ==> finite (A//r)"
   -- {* recall @{thm equiv_type} *}

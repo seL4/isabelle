@@ -2277,7 +2277,7 @@ apply (unfold inj_on_def)
 apply (blast elim!: equalityE)
 done
 
-text {* Relates to equivalence classes.  Based on a theorem of F. Kammüller.  *}
+text {* Relates to equivalence classes.  Based on a theorem of F. KammÃ¼ller.  *}
 
 lemma dvd_partition:
   "finite (Union C) ==>

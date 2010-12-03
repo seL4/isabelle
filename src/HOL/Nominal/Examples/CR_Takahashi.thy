@@ -4,7 +4,7 @@
 (* This formalisation follows with some very slight exceptions    *)
 (* the version of this proof given by Randy Pollack in the paper: *)
 (*                                                                *)
-(*  Polishing Up the Tait-Martin Löf Proof of the                 *)
+(*  Polishing Up the Tait-Martin LÃ¶f Proof of the                 *)
 (*  Church-Rosser Theorem (1995).                                 *)
 
 theory CR_Takahashi

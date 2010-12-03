@@ -1,5 +1,5 @@
 (*  Title:      ZF/IMP/Denotation.thy
-    Author:     Heiko Loetzbeyer and Robert Sandner, TU München
+    Author:     Heiko Loetzbeyer and Robert Sandner, TU MÃ¼nchen
 *)
 
 header {* Denotational semantics of expressions and commands *}

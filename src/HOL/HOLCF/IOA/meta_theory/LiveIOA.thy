@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/LiveIOA.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Live I/O automata -- specified by temproal formulas *}

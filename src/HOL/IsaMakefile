@@ -156,6 +156,14 @@ $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f base.ML -d false -g false $(OUT)/Pure HOL-Base
 
 PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
+  $(SRC)/Provers/Arith/cancel_div_mod.ML \
+  $(SRC)/Provers/Arith/cancel_sums.ML \
+  $(SRC)/Provers/Arith/fast_lin_arith.ML \
+  $(SRC)/Provers/order.ML \
+  $(SRC)/Provers/trancl.ML \
+  $(SRC)/Tools/Metis/metis.ML \
+  $(SRC)/Tools/rat.ML \
+  $(SRC)/Tools/subtyping.ML \
   Complete_Lattice.thy \
   Complete_Partial_Order.thy \
   Datatype.thy \
@@ -182,10 +190,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   SAT.thy \
   Set.thy \
   Sum_Type.thy \
-  Tools/abel_cancel.ML \
-  Tools/arith_data.ML \
-  Tools/async_manager.ML \
-  Tools/cnf_funcs.ML \
+  Tools/Datatype/datatype.ML \
   Tools/Datatype/datatype_abs_proofs.ML \
   Tools/Datatype/datatype_aux.ML \
   Tools/Datatype/datatype_case.ML \
@@ -193,14 +198,12 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Datatype/datatype_data.ML \
   Tools/Datatype/datatype_prop.ML \
   Tools/Datatype/datatype_realizer.ML \
-  Tools/Datatype/datatype.ML \
-  Tools/dseq.ML \
   Tools/Function/context_tree.ML \
+  Tools/Function/fun.ML \
+  Tools/Function/function.ML \
   Tools/Function/function_common.ML \
   Tools/Function/function_core.ML \
   Tools/Function/function_lib.ML \
-  Tools/Function/function.ML \
-  Tools/Function/fun.ML \
   Tools/Function/induction_schema.ML \
   Tools/Function/lexicographic_order.ML \
   Tools/Function/measure_functions.ML \
@@ -214,17 +217,22 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Function/size.ML \
   Tools/Function/sum_tree.ML \
   Tools/Function/termination.ML \
-  Tools/inductive_codegen.ML \
-  Tools/inductive.ML \
-  Tools/inductive_realizer.ML \
-  Tools/inductive_set.ML \
-  Tools/lin_arith.ML \
   Tools/Meson/meson.ML \
   Tools/Meson/meson_clausify.ML \
   Tools/Meson/meson_tactic.ML \
   Tools/Metis/metis_reconstruct.ML \
-  Tools/Metis/metis_translate.ML \
   Tools/Metis/metis_tactics.ML \
+  Tools/Metis/metis_translate.ML \
+  Tools/abel_cancel.ML \
+  Tools/arith_data.ML \
+  Tools/async_manager.ML \
+  Tools/cnf_funcs.ML \
+  Tools/dseq.ML \
+  Tools/inductive.ML \
+  Tools/inductive_codegen.ML \
+  Tools/inductive_realizer.ML \
+  Tools/inductive_set.ML \
+  Tools/lin_arith.ML \
   Tools/nat_arith.ML \
   Tools/primrec.ML \
   Tools/prop_logic.ML \
@@ -237,14 +245,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/typedef.ML \
   Transitive_Closure.thy \
   Typedef.thy \
-  Wellfounded.thy \
-  $(SRC)/Provers/Arith/cancel_div_mod.ML \
-  $(SRC)/Provers/Arith/cancel_sums.ML \
-  $(SRC)/Provers/Arith/fast_lin_arith.ML \
-  $(SRC)/Provers/order.ML \
-  $(SRC)/Provers/trancl.ML \
-  $(SRC)/Tools/Metis/metis.ML \
-  $(SRC)/Tools/rat.ML
+  Wellfounded.thy
 
 $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
@@ -385,7 +386,6 @@ $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
 
 HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
-  $(SRC)/Tools/subtyping.ML \
   Archimedean_Field.thy \
   Complex.thy \
   Complex_Main.thy \

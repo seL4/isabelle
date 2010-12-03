@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/ABP/Spec.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* The specification of reliable transmission *}

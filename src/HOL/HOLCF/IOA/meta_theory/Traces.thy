@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Traces.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Executions and Traces of I/O automata in HOLCF *}

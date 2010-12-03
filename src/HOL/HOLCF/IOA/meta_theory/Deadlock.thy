@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Deadlock.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Deadlock freedom of I/O Automata *}

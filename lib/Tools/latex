@@ -88,7 +88,7 @@ function copy_styles ()
 function extract_syms ()
 {
   perl -n \
-    -e '(!m,%requires, || m,%requires latin1, || m,%requires amssymb, || m,%requires textcomp,) && m,\\newcommand\{\\isasym(\w+)\}, && print "$1\n";' \
+    -e '(!m,%requires, || m,%requires amssymb, || m,%requires textcomp,) && m,\\newcommand\{\\isasym(\w+)\}, && print "$1\n";' \
     "$ISABELLE_HOME/lib/texinputs/isabellesym.sty" > "$DIR/syms.lst"
   perl -n \
     -e 'm,\\newcommand\{\\isactrl(\w+)\}, && print "$1\n";' \

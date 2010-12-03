@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/RefCorrectness.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Correctness of Refinement Mappings in HOLCF/IOA *}

@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/ABP/Abschannels.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* The transmission channel -- finite version *}

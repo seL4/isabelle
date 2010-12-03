@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/ABP/Correctness.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* The main correctness proof: System_fin implements System *}

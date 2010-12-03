@@ -1,5 +1,5 @@
 (*  Title:      HOL/IOA/meta_theory/Asig.thy
-    Author:     Olaf Müller, Tobias Nipkow & Konrad Slind
+    Author:     Olaf MÃ¼ller, Tobias Nipkow & Konrad Slind
 *)
 
 header {* Action signatures *}
