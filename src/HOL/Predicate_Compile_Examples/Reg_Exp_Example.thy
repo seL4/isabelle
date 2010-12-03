@@ -89,9 +89,9 @@ where
 
 lemma "accepts (repInt n k (And p q)) s --> accepts (And (repInt n k p) (repInt n k q)) s"
 (*nitpick
-quickcheck[generator = code, iterations = 10000]
-quickcheck[generator = predicate_compile_wo_ff]
-quickcheck[generator = predicate_compile_ff_fs]
+quickcheck[tester = random, iterations = 10000]
+quickcheck[tester = predicate_compile_wo_ff]
+quickcheck[tester = predicate_compile_ff_fs]
 oops*)
 oops
 
@@ -115,10 +115,10 @@ text {* Finding the counterexample still seems out of reach for the
  prolog-style generation. *}
 
 lemma "accepts (And (repInt n k p) (repInt n k q)) s --> accepts (repInt n k (And p q)) s"
-quickcheck[generator = code, iterations = 100000, expect = counterexample]
-(*quickcheck[generator = predicate_compile_wo_ff]*)
-(*quickcheck[generator = predicate_compile_ff_fs, iterations = 1]*)
-(*quickcheck[generator = prolog, iterations = 1, size = 1]*)
+quickcheck[tester = random, iterations = 100000, expect = counterexample]
+(*quickcheck[tester = predicate_compile_wo_ff]*)
+(*quickcheck[tester = predicate_compile_ff_fs, iterations = 1]*)
+(*quickcheck[tester = prolog, iterations = 1, size = 1]*)
 oops
 
 section {* Given a partial solution *}
@@ -130,8 +130,8 @@ lemma
   assumes "q = Seq (Sym N0) (Sym N0)"
 (*  assumes "s = [N0, N0]"*)
   shows "accepts (And (repInt n k p) (repInt n k q)) s --> accepts (repInt n k (And p q)) s"
-(*quickcheck[generator = predicate_compile_wo_ff, iterations = 1]*)
-quickcheck[generator = prolog, iterations = 1, size = 1, expect = counterexample]
+(*quickcheck[tester = predicate_compile_wo_ff, iterations = 1]*)
+quickcheck[tester = prolog, iterations = 1, size = 1, expect = counterexample]
 oops
 
 section {* Checking the counterexample *}
@@ -147,7 +147,7 @@ lemma
   assumes "q = Seq (Sym N0) (Sym N0)"
   assumes "s = [N0, N0]"
   shows "accepts (repInt n k (And p q)) s --> accepts (And (repInt n k p) (repInt n k q)) s"
-(*quickcheck[generator = predicate_compile_wo_ff]*)
+(*quickcheck[tester = predicate_compile_wo_ff]*)
 oops
 
 lemma
@@ -157,8 +157,8 @@ lemma
   assumes "q = Seq (Sym N0) (Sym N0)"
   assumes "s = [N0, N0]"
   shows "accepts (And (repInt n k p) (repInt n k q)) s --> accepts (repInt n k (And p q)) s"
-(*quickcheck[generator = predicate_compile_wo_ff, iterations = 1, expect = counterexample]*)
-quickcheck[generator = prolog, iterations = 1, size = 1, expect = counterexample]
+(*quickcheck[tester = predicate_compile_wo_ff, iterations = 1, expect = counterexample]*)
+quickcheck[tester = prolog, iterations = 1, size = 1, expect = counterexample]
 oops
 
 lemma
@@ -168,13 +168,13 @@ lemma
   assumes "q = Seq (Sym N0) (Sym N0)"
   assumes "s = [N0, N0]"
 shows "prop_regex (n, (k, (p, (q, s))))"
-quickcheck[generator = predicate_compile_wo_ff]
-quickcheck[generator = prolog, expect = counterexample]
+quickcheck[tester = predicate_compile_wo_ff]
+quickcheck[tester = prolog, expect = counterexample]
 oops
 
 lemma "prop_regex a_sol"
-quickcheck[generator = code, expect = counterexample]
-quickcheck[generator = predicate_compile_ff_fs]
+quickcheck[tester = random, expect = counterexample]
+quickcheck[tester = predicate_compile_ff_fs]
 oops
 
 value [code] "prop_regex a_sol"

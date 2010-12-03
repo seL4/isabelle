@@ -23,8 +23,8 @@ values 40 "{s. hotel s}"
 setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}
 
 lemma "\<lbrakk> hotel s; g \<in> isin s r \<rbrakk> \<Longrightarrow> owns s r = Some g"
-quickcheck[generator = code, iterations = 10000, report]
-quickcheck[generator = prolog, iterations = 1, expect = counterexample]
+quickcheck[tester = random, iterations = 10000, report]
+quickcheck[tester = prolog, iterations = 1, expect = counterexample]
 oops
 
 section {* Manual setup to find the counterexample *}
@@ -39,7 +39,7 @@ setup {* Code_Prolog.map_code_options (K
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
-quickcheck[generator = prolog, iterations = 1, expect = no_counterexample]
+quickcheck[tester = prolog, iterations = 1, expect = no_counterexample]
 oops
 
 setup {* Code_Prolog.map_code_options (K 
@@ -52,7 +52,7 @@ setup {* Code_Prolog.map_code_options (K
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
-quickcheck[generator = prolog, iterations = 1, expect = counterexample]
+quickcheck[tester = prolog, iterations = 1, expect = counterexample]
 oops
 
 section {* Simulating a global depth limit manually by limiting all predicates *}
@@ -70,7 +70,7 @@ setup {*
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
-quickcheck[generator = prolog, iterations = 1, expect = no_counterexample]
+quickcheck[tester = prolog, iterations = 1, expect = no_counterexample]
 oops
 
 setup {*
@@ -86,7 +86,7 @@ setup {*
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
-quickcheck[generator = prolog, iterations = 1, expect = counterexample]
+quickcheck[tester = prolog, iterations = 1, expect = counterexample]
 oops
 
 section {* Using a global limit for limiting the execution *} 
@@ -105,7 +105,7 @@ setup {*
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
-quickcheck[generator = prolog, iterations = 1, expect = no_counterexample]
+quickcheck[tester = prolog, iterations = 1, expect = no_counterexample]
 oops
 
 text {* But a global depth limit of 14 does. *}
@@ -122,7 +122,7 @@ setup {*
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
-quickcheck[generator = prolog, iterations = 1, expect = counterexample]
+quickcheck[tester = prolog, iterations = 1, expect = counterexample]
 oops
 
 end

@@ -33,7 +33,7 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 
 lemma
   "w \<in> S\<^isub>1 \<Longrightarrow> w = []"
-quickcheck[generator = prolog, iterations=1, expect = counterexample]
+quickcheck[tester = prolog, iterations=1, expect = counterexample]
 oops
 
 definition "filter_a = filter (\<lambda>x. x = a)"
@@ -67,7 +67,7 @@ setup {* Code_Prolog.map_code_options (K
 
 theorem S\<^isub>1_sound:
 "w \<in> S\<^isub>1 \<Longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator = prolog, iterations=1, expect = counterexample]
+quickcheck[tester = prolog, iterations=1, expect = counterexample]
 oops
 
 
@@ -91,7 +91,7 @@ setup {* Code_Prolog.map_code_options (K
 
 theorem S\<^isub>2_sound:
 "w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=prolog, iterations=1, expect = counterexample]
+quickcheck[tester = prolog, iterations=1, expect = counterexample]
 oops
 
 inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
@@ -113,7 +113,7 @@ setup {* Code_Prolog.map_code_options (K
 
 lemma S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=prolog, iterations=1, size=1, expect = no_counterexample]
+quickcheck[tester = prolog, iterations=1, size=1, expect = no_counterexample]
 oops
 
 
@@ -131,7 +131,7 @@ setup {* Code_Prolog.map_code_options (K
 
 theorem S\<^isub>3_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>3"
-quickcheck[generator = prolog, size=1, iterations=1]
+quickcheck[tester = prolog, size=1, iterations=1]
 oops
 *)
 
@@ -156,7 +156,7 @@ setup {* Code_Prolog.map_code_options (K
 
 theorem S\<^isub>4_sound:
 "w \<in> S\<^isub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator = prolog, size=1, iterations=1, expect = no_counterexample]
+quickcheck[tester = prolog, size=1, iterations=1, expect = no_counterexample]
 oops
 
 (*

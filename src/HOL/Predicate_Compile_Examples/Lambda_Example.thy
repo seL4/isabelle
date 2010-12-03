@@ -92,7 +92,7 @@ setup {* Code_Prolog.map_code_options (K
 
 lemma
   "\<Gamma> \<turnstile> t : U \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> \<Gamma> \<turnstile> t' : U"
-quickcheck[generator = prolog, iterations = 1, expect = counterexample]
+quickcheck[tester = prolog, iterations = 1, expect = counterexample]
 oops
 
 text {* Verifying that the found counterexample really is one by means of a proof *}

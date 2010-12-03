@@ -48,7 +48,7 @@ where
 
 lemma
   "is_ten x = is_eleven x"
-quickcheck[generator = predicate_compile_wo_ff, iterations = 1, size = 1, expect = counterexample]
+quickcheck[tester = predicate_compile_wo_ff, iterations = 1, size = 1, expect = counterexample]
 oops
 
 section {* Context Free Grammar *}
@@ -65,7 +65,7 @@ inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
 
 lemma
   "w \<in> S\<^isub>1 \<Longrightarrow> w = []"
-quickcheck[generator = predicate_compile_ff_nofs, iterations=1]
+quickcheck[tester = predicate_compile_ff_nofs, iterations=1]
 oops
 
 theorem S\<^isub>1_sound:
@@ -136,7 +136,7 @@ quickcheck[generator=predicate_compile_ff_fs, size=10, iterations=10]
 oops
 
 lemma "\<not> (length w > 2) \<or> \<not> (length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b])"
-quickcheck[size=10, generator = predicate_compile_ff_fs]
+quickcheck[size=10, tester = predicate_compile_ff_fs]
 oops
 
 theorem S\<^isub>3_complete:
@@ -157,12 +157,12 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 
 theorem S\<^isub>4_sound:
 "w \<in> S\<^isub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator = predicate_compile_ff_nofs, size=5, iterations=1]
+quickcheck[tester = predicate_compile_ff_nofs, size=5, iterations=1]
 oops
 
 theorem S\<^isub>4_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>4"
-quickcheck[generator = predicate_compile_ff_nofs, size=5, iterations=1]
+quickcheck[tester = predicate_compile_ff_nofs, size=5, iterations=1]
 oops
 
 hide_const a b
@@ -202,7 +202,7 @@ values [random_dseq 1, 2, 3] 10 "{(c, s, s'). exec c s s'}"
 
 lemma
   "exec c s s' ==> exec (Seq c c) s s'"
-  quickcheck[generator = predicate_compile_wo_ff, size=2, iterations=20, expect = counterexample]
+  quickcheck[tester = predicate_compile_wo_ff, size=2, iterations=20, expect = counterexample]
 oops
 
 subsection {* Lambda *}
@@ -257,7 +257,7 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
 
 lemma
   "\<Gamma> \<turnstile> t : U \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> \<Gamma> \<turnstile> t' : U"
-quickcheck[generator = predicate_compile_ff_fs, size = 7, iterations = 10]
+quickcheck[tester = predicate_compile_ff_fs, size = 7, iterations = 10]
 oops
 
 subsection {* JAD *}
@@ -341,12 +341,12 @@ definition
   "jad_mv v = inflate o split zip o apsnd (map listsum o transpose o map (map (\<lambda> (i, x). v ! i * x)))"
 
 lemma "matrix (M::int list list) rs cs \<Longrightarrow> False"
-quickcheck[generator = predicate_compile_ff_nofs, size = 6]
+quickcheck[tester = predicate_compile_ff_nofs, size = 6]
 oops
 
 lemma
   "\<lbrakk> matrix M rs cs ; length v = cs \<rbrakk> \<Longrightarrow> jad_mv v (jad M) = mv M v"
-quickcheck[generator = predicate_compile_wo_ff]
+quickcheck[tester = predicate_compile_wo_ff]
 oops
 
 end

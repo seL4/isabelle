@@ -38,7 +38,7 @@ sig
   val write_program : logic_program -> string
   val run : (Time.time * prolog_system) -> logic_program -> (string * prol_term list) -> string list -> int option -> prol_term list list
   
-  val quickcheck : Proof.context -> term -> int -> term list option * (bool list * bool)
+  val quickcheck : Proof.context -> term -> int -> term list option * Quickcheck.report option
 
   val trace : bool Unsynchronized.ref
   
@@ -129,8 +129,8 @@ structure System_Config = Generic_Data
 
 (* general string functions *)
 
-val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
-val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
+val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o raw_explode;
+val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o raw_explode;
 
 (* internal program representation *)
 
@@ -835,7 +835,7 @@ and scan_term xs =
 
 val parse_term = fst o Scan.finite Symbol.stopper
     (Scan.error (!! (fn _ => raise Fail "parsing prolog output failed")) scan_term)
-  o explode
+  o raw_explode
   
 fun parse_solutions sol =
   let
@@ -1030,9 +1030,8 @@ fun quickcheck ctxt t size =
       case tss of
         [ts] => SOME (map (restore_term ctxt' constant_table) (ts ~~ map snd vs'))
       | _ => NONE
-    val empty_report = ([], false)
   in
-    (res, empty_report)
+    (res, NONE)
   end; 
 
 end;
