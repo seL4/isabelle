@@ -6,6 +6,13 @@ New in this Isabelle version
 
 *** General ***
 
+* Source files are always encoded as UTF-8, instead of old-fashioned
+ISO-Latin-1.  INCOMPATIBILITY.  Isabelle LaTeX documents might require
+the following packages declarations:
+
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp}
+
 * System settings: ISABELLE_HOME_USER now includes ISABELLE_IDENTIFIER
 (and thus refers to something like $HOME/.isabelle/IsabelleXXXX),
 while the default heap location within that directory lacks that extra
