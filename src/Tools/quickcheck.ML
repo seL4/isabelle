@@ -261,7 +261,6 @@ fun test_term ctxt generator_name t =
         | SOME ts => SOME (names ~~ ts)) (with_size 1 []))) ()
       handle TimeLimit.TimeOut =>
         error (excipit "ran out of time")
-     | Exn.Interrupt => error (excipit "was interrupted")  (* FIXME violates Isabelle/ML exception model *)
   in
     (result, ([exec_time, comp_time], if Config.get ctxt report then SOME reports else NONE))
   end;
