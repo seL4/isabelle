@@ -110,8 +110,8 @@ val _ =
       (Scan.succeed (Toplevel.keep (K () o do_try false (SOME default_timeout)
                                     o Toplevel.proof_of)))
 
-fun auto_try st = if not (!auto) then (false, st) else do_try true NONE st
+val auto_try = do_try true NONE
 
-val setup = Auto_Tools.register_tool (tryN, auto_try)
+val setup = Auto_Tools.register_tool (auto, auto_try)
 
 end;

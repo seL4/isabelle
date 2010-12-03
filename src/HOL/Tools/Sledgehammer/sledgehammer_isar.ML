@@ -347,14 +347,11 @@ val _ =
       parse_sledgehammer_params_command
 
 fun auto_sledgehammer state =
-  if not (!auto) then
-    (false, state)
-  else
-    let val ctxt = Proof.context_of state in
-      run_sledgehammer (get_params true ctxt []) true 1 no_relevance_override
-                       (minimize_command [] 1) state
-    end
+  let val ctxt = Proof.context_of state in
+    run_sledgehammer (get_params true ctxt []) true 1 no_relevance_override
+                     (minimize_command [] 1) state
+  end
 
-val setup = Auto_Tools.register_tool (sledgehammerN, auto_sledgehammer)
+val setup = Auto_Tools.register_tool (auto, auto_sledgehammer)
 
 end;

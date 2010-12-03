@@ -303,24 +303,21 @@ fun pretty_counterex_and_reports ctxt auto (cex, timing_and_reports) =
 (* automatic testing *)
 
 fun auto_quickcheck state =
-  if not (!auto) then
-    (false, state)
-  else
-    let
-      val ctxt = Proof.context_of state;
-      val res =
-        state
-        |> Proof.map_context (Config.put report false #> Config.put quiet true)
-        |> try (test_goal [] 1);
-    in
-      case res of
-        NONE => (false, state)
-      | SOME (NONE, report) => (false, state)
-      | SOME (cex, report) => (true, Proof.goal_message (K (Pretty.chunks [Pretty.str "",
-          Pretty.mark Markup.hilite (pretty_counterex ctxt true cex)])) state)
-    end
+  let
+    val ctxt = Proof.context_of state;
+    val res =
+      state
+      |> Proof.map_context (Config.put report false #> Config.put quiet true)
+      |> try (test_goal [] 1);
+  in
+    case res of
+      NONE => (false, state)
+    | SOME (NONE, report) => (false, state)
+    | SOME (cex, report) => (true, Proof.goal_message (K (Pretty.chunks [Pretty.str "",
+        Pretty.mark Markup.hilite (pretty_counterex ctxt true cex)])) state)
+  end
 
-val setup = Auto_Tools.register_tool ("quickcheck", auto_quickcheck)
+val setup = Auto_Tools.register_tool (auto, auto_quickcheck)
   #> setup_config
 
 (* Isar commands *)
