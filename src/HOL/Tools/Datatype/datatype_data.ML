@@ -362,14 +362,14 @@ fun prove_rep_datatype config dt_names alt_names descr sorts
   let
     val raw_distinct = (map o maps) (fn thm => [thm, thm RS not_sym]) half_distinct;
     val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
+    val prfx = Binding.qualify true (space_implode "_" new_type_names);
     val (((inject, distinct), [induct]), thy2) =
       thy1
       |> store_thmss "inject" new_type_names raw_inject
       ||>> store_thmss "distinct" new_type_names raw_distinct
-      ||> Sign.add_path (space_implode "_" new_type_names)
       ||>> Global_Theory.add_thms
-        [((Binding.name "induct", raw_induct), [mk_case_names_induct descr])]
-      ||> Sign.restore_naming thy1;
+        [((prfx (Binding.name "induct"), raw_induct),
+          [mk_case_names_induct descr])];
   in
     thy2
     |> derive_datatype_props config dt_names alt_names [descr] sorts

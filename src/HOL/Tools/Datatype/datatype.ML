@@ -628,9 +628,9 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
 
     val ([dt_induct'], thy7) =
       thy6
-      |> Sign.add_path big_name
-      |> Global_Theory.add_thms [((Binding.name "induct", dt_induct), [case_names_induct])]
-      ||> Sign.parent_path
+      |> Global_Theory.add_thms
+        [((Binding.qualify true big_name (Binding.name "induct"), dt_induct),
+          [case_names_induct])]
       ||> Theory.checkpoint;
 
   in

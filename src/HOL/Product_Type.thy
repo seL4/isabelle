@@ -160,7 +160,7 @@ qed
 
 declare prod.simps(2) [nitpick_simp del]
 
-declare weak_case_cong [cong del]
+declare prod.weak_case_cong [cong del]
 
 
 subsubsection {* Tuple syntax *}
@@ -440,7 +440,7 @@ lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
 
 lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
   -- {* Prevents simplification of @{term c}: much faster *}
-  by (fact weak_case_cong)
+  by (fact prod.weak_case_cong)
 
 lemma cond_split_eta: "(!!x y. f x y = g (x, y)) ==> (%(x, y). f x y) = g"
   by (simp add: split_eta)
@@ -578,7 +578,7 @@ text {*
   \medskip @{term split} used as a logical connective or set former.
 
   \medskip These rules are for use with @{text blast}; could instead
-  call @{text simp} using @{thm [source] split} as rewrite. *}
+  call @{text simp} using @{thm [source] prod.split} as rewrite. *}
 
 lemma splitI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> split c p"
   apply (simp only: split_tupled_all)
