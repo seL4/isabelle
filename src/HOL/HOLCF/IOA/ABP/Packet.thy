@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/ABP/Packet.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Packets *}

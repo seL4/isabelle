@@ -1,5 +1,5 @@
 (*  Title:      HOL/IOA/example/Correctness.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Correctness Proof *}

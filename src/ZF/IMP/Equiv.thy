@@ -1,5 +1,5 @@
 (*  Title:      ZF/IMP/Equiv.thy
-    Author:     Heiko Loetzbeyer and Robert Sandner, TU München
+    Author:     Heiko Loetzbeyer and Robert Sandner, TU MÃ¼nchen
 *)
 
 header {* Equivalence *}

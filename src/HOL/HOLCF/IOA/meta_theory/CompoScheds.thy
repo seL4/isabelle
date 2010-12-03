@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoScheds.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Compositionality on Schedule level *}

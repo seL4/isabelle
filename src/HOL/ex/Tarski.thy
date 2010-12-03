@@ -1,6 +1,6 @@
 (*  Title:      HOL/ex/Tarski.thy
     ID:         $Id$
-    Author:     Florian Kammüller, Cambridge University Computer Laboratory
+    Author:     Florian KammÃ¼ller, Cambridge University Computer Laboratory
 *)
 
 header {* The Full Theorem of Tarski *}

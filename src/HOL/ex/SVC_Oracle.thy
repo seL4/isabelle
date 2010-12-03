@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson
     Copyright   1999  University of Cambridge
 
-Based upon the work of Søren T. Heilmann.
+Based upon the work of SÃ¸ren T. Heilmann.
 *)
 
 header {* Installing an oracle for SVC (Stanford Validity Checker) *}
@@ -28,7 +28,7 @@ Installing the oracle for SVC (Stanford Validity Checker)
 The following code merely CALLS the oracle;
   the soundness-critical functions are at svc_funcs.ML
 
-Based upon the work of Søren T. Heilmann
+Based upon the work of SÃ¸ren T. Heilmann
 *)
 
 

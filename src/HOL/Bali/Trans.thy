@@ -364,7 +364,7 @@ abbreviation
          
 (* Equivalenzen:
   Bigstep zu Smallstep komplett.
-  Smallstep zu Bigstep, nur wenn nicht die Ausdrücke Callee, FinA ,\<dots>
+  Smallstep zu Bigstep, nur wenn nicht die AusdrÃ¼cke Callee, FinA ,\<dots>
 *)
 
 (*
@@ -372,8 +372,8 @@ lemma imp_eval_trans:
   assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" 
     shows trans: "G\<turnstile>(t,s0) \<mapsto>* (\<langle>Lit v\<rangle>,s1)"
 *)
-(* Jetzt muss man bei trans natürlich wieder unterscheiden: Stmt, Expr, Var!
-   Sowas blödes:
+(* Jetzt muss man bei trans natÃ¼rlich wieder unterscheiden: Stmt, Expr, Var!
+   Sowas blÃ¶des:
    Am besten den Terminus ground auf Var,Stmt,Expr hochziehen und dann
    the_vals definieren\<dots>
   G\<turnstile>(t,s0) \<mapsto>* (t',s1) \<and> the_vals t' = v

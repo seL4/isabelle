@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/SimCorrectness.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Correctness of Simulations in HOLCF/IOA *}

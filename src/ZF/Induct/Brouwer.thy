@@ -39,7 +39,7 @@ lemma brouwer_induct2 [consumes 1, case_names Zero Suc Lim]:
   done
 
 
-subsection {* The Martin-Löf wellordering type *}
+subsection {* The Martin-LÃ¶f wellordering type *}
 
 consts
   Well :: "[i, i => i] => i"

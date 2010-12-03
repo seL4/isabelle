@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Abstraction.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* Abstraction Theory -- tailored for I/O automata *}

@@ -1,5 +1,5 @@
 (*  Title:      HOL/IOA/example/Spec.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* The implementation of a memory *}

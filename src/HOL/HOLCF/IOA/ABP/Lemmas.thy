@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/ABP/Lemmas.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 theory Lemmas

@@ -6,7 +6,7 @@ The only hard one is WO6 ==> WO1.
 
 Every proof (except WO6 ==> WO1 and WO1 ==> WO2) are described as "clear"
 by Rubin & Rubin (page 2). 
-They refer reader to a book by Gödel to see the proof WO1 ==> WO2.
+They refer reader to a book by GÃ¶del to see the proof WO1 ==> WO2.
 Fortunately order types made this proof also very easy.
 *)
 

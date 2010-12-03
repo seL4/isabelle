@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Automata.thy
-    Author:     Olaf Müller, Konrad Slind, Tobias Nipkow
+    Author:     Olaf MÃ¼ller, Konrad Slind, Tobias Nipkow
 *)
 
 header {* The I/O automata of Lynch and Tuttle in HOLCF *}

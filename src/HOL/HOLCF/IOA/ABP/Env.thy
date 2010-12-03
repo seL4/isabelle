@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/ABP/Impl.thy
-    Author:     Olaf Müller
+    Author:     Olaf MÃ¼ller
 *)
 
 header {* The environment *}

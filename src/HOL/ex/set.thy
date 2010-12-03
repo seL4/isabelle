@@ -4,7 +4,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-header {* Set Theory examples: Cantor's Theorem, Schröder-Bernstein Theorem, etc. *}
+header {* Set Theory examples: Cantor's Theorem, SchrÃ¶der-Bernstein Theorem, etc. *}
 
 theory set imports Main begin
 
@@ -73,7 +73,7 @@ schematic_lemma "?S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
   by best
 
 
-subsection {* The Schröder-Berstein Theorem *}
+subsection {* The SchrÃ¶der-Berstein Theorem *}
 
 lemma disj_lemma: "- (f ` X) = g ` (-X) \<Longrightarrow> f a = g b \<Longrightarrow> a \<in> X \<Longrightarrow> b \<in> X"
   by blast
