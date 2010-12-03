@@ -133,9 +133,7 @@ code_const catch_match
 
 use "Tools/smallvalue_generators.ML"
 
-(* We do not activate smallcheck yet.
 setup {* Smallvalue_Generators.setup *}
-*)
 
 hide_fact orelse_def catch_match_def
 hide_const (open) orelse catch_match
