@@ -17,13 +17,24 @@ struct
 fun run_atp force_full_types timeout i n ctxt goal name =
   let
     val thy = ProofContext.theory_of ctxt
-    val params as {full_types, ...} =
+    val chained_ths = [] (* a tactic has no chained ths *)
+    val params as {full_types, relevance_thresholds, max_relevant, ...} =
       ((if force_full_types then [("full_types", "true")] else [])
-       @ [("timeout", Int.toString (Time.toMilliseconds timeout) ^ " ms")])
-(*      @ [("overlord", "true")] *)
+       @ [("timeout", Int.toString (Time.toSeconds timeout))])
+       @ [("overlord", "true")]
       |> Sledgehammer_Isar.default_params ctxt
     val prover = Sledgehammer.get_prover thy false name
-    val facts = []
+    val default_max_relevant =
+      Sledgehammer.default_max_relevant_for_prover thy name
+    val is_built_in_const =
+      Sledgehammer.is_built_in_const_for_prover ctxt name
+    val relevance_fudge = Sledgehammer.relevance_fudge_for_prover name
+    val relevance_override = {add = [], del = [], only = false}
+    val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
+    val facts =
+      Sledgehammer_Filter.relevant_facts ctxt full_types relevance_thresholds
+          (the_default default_max_relevant max_relevant) is_built_in_const
+          relevance_fudge relevance_override chained_ths hyp_ts concl_t
     (* Check for constants other than the built-in HOL constants. If none of
        them appear (as should be the case for TPTP problems, unless "auto" or
        "simp" already did its "magic"), we can skip the relevance filter. *)
@@ -32,23 +43,20 @@ fun run_atp force_full_types timeout i n ctxt goal name =
                                       not (String.isSubstring "HOL" s))
                         (prop_of goal))
     val problem =
-      {state = Proof.init ctxt, goal = goal, subgoal = i, facts = [],
+      {state = Proof.init ctxt, goal = goal, subgoal = i,
+       facts = map Sledgehammer.Untranslated facts,
        only = true, subgoal_count = n}
   in
-    prover params (K "") problem |> #message
-    handle ERROR message => "Error: " ^ message ^ "\n"
+    (case prover params (K "") problem of
+      {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
+    | _ => NONE)
+      handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
   end
 
 fun to_period ("." :: _) = []
   | to_period ("" :: ss) = to_period ss
   | to_period (s :: ss) = s :: to_period ss
   | to_period [] = []
-
-val extract_metis_facts =
-  space_explode " "
-  #> fold (maps o space_explode) ["(", ")", Symbol.ENQ, Symbol.ACK, "\n"]
-  #> fst o chop_while (not o member (op =) ["metis", "metisFT"])
-  #> (fn _ :: ss => SOME (to_period ss) | _ => NONE)
 
 val atp = "e" (* or "vampire" *)
 
@@ -68,19 +76,20 @@ fun thms_of_name ctxt name =
 fun sledgehammer_with_metis_tac ctxt i th =
   let
     val thy = ProofContext.theory_of ctxt
-    val timeout = Time.fromSeconds (60 * 60 * 24 * 365) (* one year *)
-    val s = run_atp false timeout i i ctxt th atp
-    val xs = these (extract_metis_facts s)
-    val ths = maps (thms_of_name ctxt) xs
-  in Metis_Tactics.metis_tac ctxt ths i th end
+    val timeout = Time.fromSeconds 30
+  in
+    case run_atp false timeout i i ctxt th atp of
+      SOME facts => Metis_Tactics.metis_tac ctxt (maps (thms_of_name ctxt) facts) i th
+    | NONE => Seq.empty
+  end
 
 fun sledgehammer_as_oracle_tac ctxt i th =
   let
     val thy = ProofContext.theory_of ctxt
-    val timeout = Time.fromSeconds (60 * 60 * 24 * 365) (* one year *)
-    val s = run_atp true timeout i i ctxt th atp
+    val timeout = Time.fromSeconds 30
+    val xs = run_atp true timeout i i ctxt th atp
   in
-    if is_some (extract_metis_facts s) then Skip_Proof.cheat_tac thy th
+    if is_some xs then Skip_Proof.cheat_tac thy th
     else Seq.empty
   end
 
