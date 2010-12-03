@@ -31,13 +31,11 @@ sig
     string * (Proof.context -> term -> int -> term list option * (bool list * bool))
       -> Context.generic -> Context.generic
   (* testing terms and proof states *)
-  val test_term_small: Proof.context -> term ->
-    (string * term) list option * ((string * int) list * ((int * report list) list) option)
-  val test_term: Proof.context -> bool -> string option -> term ->
-    (string * term) list option * ((string * int) list * ((int * report list) list) option)
+  val test_term: Proof.context -> bool -> term ->
+    (string * term) list option * ((string * int) list * ((int * report) list) option)
   val test_goal_terms:
-    Proof.context -> bool -> string option * (string * typ) list -> term list
-      -> (string * term) list option * ((string * int) list * ((int * report list) list) option) list
+    Proof.context -> bool -> (string * typ) list -> term list
+      -> (string * term) list option * ((string * int) list * ((int * report) list) option) list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
 end;
 
@@ -139,25 +137,23 @@ val add_generator = Data.map o apfst o AList.update (op =);
 
 (* generating tests *)
 
-fun mk_tester_select name ctxt =
-  case AList.lookup (op =) ((fst o Data.get o Context.Proof) ctxt) name
-   of NONE => error ("No such quickcheck generator: " ^ name)
-    | SOME generator => generator ctxt;
-
-fun mk_testers ctxt t =
-  (map snd o fst o Data.get o Context.Proof) ctxt
-  |> map_filter (fn generator => try (generator ctxt) t);
-
-fun mk_testers_strict ctxt t =
+fun mk_tester ctxt t =
   let
-    val generators = ((map snd o fst o Data.get o Context.Proof) ctxt)
-    val testers = map (fn generator => Exn.interruptible_capture (generator ctxt) t) generators;
+    val name = Config.get ctxt tester
+    val tester = case AList.lookup (op =) ((fst o Data.get o Context.Proof) ctxt) name
+      of NONE => error ("No such quickcheck tester: " ^ name)
+      | SOME tester => tester ctxt;
   in
-    if forall (is_none o Exn.get_result) testers
-    then [(Exn.release o snd o split_last) testers]
-    else map_filter Exn.get_result testers
-  end;
-
+    if Config.get ctxt quiet then
+      try tester t
+    else
+      let
+        val tester = Exn.interruptible_capture tester t
+      in case Exn.get_result tester of
+          NONE => SOME (Exn.release tester)
+        | SOME tester => SOME tester
+      end
+  end
 
 (* testing propositions *)
 
@@ -211,16 +207,13 @@ fun is_iteratable "SML" = true
   | is_iteratable "random" = true
   | is_iteratable _ = false
   
-fun test_term ctxt is_interactive generator_name t =
+fun test_term ctxt is_interactive t =
   let
     val (names, t') = prep_test_term t;
     val current_size = Unsynchronized.ref 0
     fun excipit s =
       "Quickcheck " ^ s ^ " while testing at size " ^ string_of_int (!current_size)
-    val (testers, comp_time) = cpu_time "quickcheck compilation"
-      (fn () => (case generator_name
-       of NONE => if Config.get ctxt quiet then mk_testers ctxt t' else mk_testers_strict ctxt t'
-        | SOME name => [mk_tester_select name ctxt t']));
+    val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => mk_tester ctxt t');
     fun iterate f 0 report = (NONE, report)
       | iterate f j report =
         let
@@ -233,38 +226,31 @@ fun test_term ctxt is_interactive generator_name t =
         end
     val empty_report = Report { iterations = 0, raised_match_errors = 0,
       satisfied_assms = [], positive_concl_tests = 0 }
-    fun with_testers k [] = (NONE, [])
-      | with_testers k (tester :: testers) =
-        let
-          val niterations = case generator_name of
-            SOME generator_name =>
-              if is_iteratable generator_name then Config.get ctxt iterations else 1
-          | NONE => Config.get ctxt iterations
-          val (result, timing) = cpu_time ("size " ^ string_of_int k)
-            (fn () => iterate (fn () => tester (k - 1)) niterations empty_report)
-        in
-          case result
-           of (NONE, report) => apsnd (cons report) (with_testers k testers)
-            | (SOME q, report) => (SOME q, [report])
-        end
-    fun with_size k reports =
+    fun with_size test_fun k reports =
       if k > Config.get ctxt size then (NONE, reports)
       else
        (if Config.get ctxt quiet then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
         let
           val _ = current_size := k
-          val (result, new_report) = with_testers k testers
+          val niterations =
+            if is_iteratable (Config.get ctxt tester) then Config.get ctxt iterations else 1
+          val ((result, new_report), timing) = cpu_time ("size " ^ string_of_int k)
+            (fn () => iterate (fn () => test_fun (k - 1)) niterations empty_report)
           val reports = ((k, new_report) :: reports)
-        in case result of NONE => with_size (k + 1) reports | SOME q => (SOME q, reports) end);
-    val ((result, reports), exec_time) =
-      TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) (fn () => cpu_time "quickcheck execution"
-      (fn () => apfst
-         (fn result => case result of NONE => NONE
-        | SOME ts => SOME (names ~~ ts)) (with_size 1 []))) ()
-      handle TimeLimit.TimeOut =>
-        if is_interactive then error (excipit "ran out of time") else raise TimeLimit.TimeOut
+        in case result of NONE => with_size test_fun (k + 1) reports | SOME q => (SOME q, reports) end);
   in
-    (result, ([exec_time, comp_time], if Config.get ctxt report then SOME reports else NONE))
+    case test_fun of NONE => (NONE, ([comp_time], NONE)) 
+      | SOME test_fun =>
+        TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) (fn () =>
+          let
+            val ((result, reports), exec_time) =
+              cpu_time "quickcheck execution" (fn () => with_size test_fun 1 [])
+          in
+            (case result of NONE => NONE | SOME ts => SOME (names ~~ ts),
+              ([exec_time, comp_time], if Config.get ctxt report then SOME reports else NONE))
+          end) ()
+        handle TimeLimit.TimeOut =>
+          if is_interactive then error (excipit "ran out of time") else raise TimeLimit.TimeOut
   end;
 
 fun get_finite_types ctxt =
@@ -292,7 +278,7 @@ fun monomorphic_term thy insts default_T =
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term
 
-fun test_goal_terms lthy is_interactive (generator_name, insts) check_goals =
+fun test_goal_terms lthy is_interactive insts check_goals =
   let
     val thy = ProofContext.theory_of lthy 
     val inst_goals =
@@ -315,9 +301,9 @@ fun test_goal_terms lthy is_interactive (generator_name, insts) check_goals =
         case f t of
           (SOME res, report) => (SOME res, rev (report :: reports))
         | (NONE, report) => collect_results f (report :: reports) ts
-  in collect_results (test_term lthy is_interactive generator_name) [] correct_inst_goals end;
+  in collect_results (test_term lthy is_interactive) [] correct_inst_goals end;
 
-fun test_goal (generator_name, insts) i state =
+fun test_goal insts i state =
   let
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
@@ -338,7 +324,7 @@ fun test_goal (generator_name, insts) i state =
       | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal)
         (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
   in
-    test_goal_terms lthy true (generator_name, insts) check_goals
+    test_goal_terms lthy true insts check_goals
   end
 
 (* pretty printing *)
@@ -363,16 +349,10 @@ fun pretty_report (Report {iterations = iterations, raised_match_errors = raised
      @ [pretty_stat "positive conclusion tests" positive_concl_tests])
   end
 
-fun pretty_reports' [report] = [Pretty.chunks (pretty_report report)]
-  | pretty_reports' reports =
-  map_index (fn (i, report) =>
-    Pretty.chunks (Pretty.str (string_of_int (i + 1) ^ ". generator:\n") :: pretty_report report))
-    reports
-
 fun pretty_reports ctxt (SOME reports) =
   Pretty.chunks (Pretty.str "Quickcheck report:" ::
-    maps (fn (size, reports) =>
-      Pretty.str ("size " ^ string_of_int size ^ ":") :: pretty_reports' reports @ [Pretty.brk 1])
+    maps (fn (size, report) =>
+      Pretty.str ("size " ^ string_of_int size ^ ":") :: pretty_report report @ [Pretty.brk 1])
       (rev reports))
   | pretty_reports ctxt NONE = Pretty.str ""
 
@@ -391,7 +371,7 @@ fun auto_quickcheck state =
       val res =
         state
         |> Proof.map_context (Config.put report false #> Config.put quiet true)
-        |> try (test_goal (NONE, []) 1);
+        |> try (test_goal [] 1);
     in
       case res of
         NONE => (false, state)
@@ -424,7 +404,8 @@ fun read_expectation "no_expectation" = No_Expectation
   | read_expectation "counterexample" = Counterexample
   | read_expectation s = error ("Not an expectation value: " ^ s)  
 
-fun parse_test_param ("size", [arg]) = Config.put_generic size (read_nat arg)
+fun parse_test_param ("tester", [arg]) = Config.put_generic tester arg
+  | parse_test_param ("size", [arg]) = Config.put_generic size (read_nat arg)
   | parse_test_param ("iterations", [arg]) = Config.put_generic iterations (read_nat arg)
   | parse_test_param ("default_type", arg) = (fn gen_ctxt =>
     map_test_params ((apfst o K) (map (ProofContext.read_typ (Context.proof_of gen_ctxt)) arg)) gen_ctxt)
@@ -437,20 +418,18 @@ fun parse_test_param ("size", [arg]) = Config.put_generic size (read_nat arg)
   | parse_test_param ("finite_type_size", [arg]) = Config.put_generic finite_type_size (read_nat arg)
   | parse_test_param (name, _) = error ("Unknown test parameter: " ^ name);
 
-fun parse_test_param_inst ("generator", [arg]) ((generator, insts), ctxt) =
-      (apfst o apfst o K o SOME) arg ((generator, insts), ctxt)
-  | parse_test_param_inst (name, arg) ((generator, insts), ctxt) =
+fun parse_test_param_inst (name, arg) (insts, ctxt) =
       case try (ProofContext.read_typ ctxt) name
-       of SOME (TFree (v, _)) => (apfst o apsnd o AList.update (op =))
-              (v, ProofContext.read_typ ctxt (the_single arg)) ((generator, insts), ctxt)
-        | _ => (apsnd o Context.proof_map o parse_test_param) (name, arg) ((generator, insts), ctxt);
+       of SOME (TFree (v, _)) => (apfst o AList.update (op =))
+              (v, ProofContext.read_typ ctxt (the_single arg)) (insts, ctxt)
+        | _ => (apsnd o Context.proof_map o parse_test_param) (name, arg) (insts, ctxt);
 
 fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args);
   
 fun gen_quickcheck args i state =
   state
-  |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args ((NONE, []), ctxt))
-  |> (fn ((generator, insts), state') => test_goal (generator, insts) i state'
+  |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args ([], ctxt))
+  |> (fn (insts, state') => test_goal insts i state'
   |> tap (fn (SOME x, _) => if expect (Proof.context_of state') = No_Counterexample then
                error ("quickcheck expected to find no counterexample but found one") else ()
            | (NONE, _) => if expect (Proof.context_of state') = Counterexample then
