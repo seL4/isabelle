@@ -6,7 +6,7 @@
 *)
 
 theory FSet
-imports Quotient_List
+imports Quotient_List More_List
 begin
 
 text {* 
@@ -42,15 +42,12 @@ quotient_type
   by (rule list_eq_equivp)
 
 text {* 
-  Definitions for membership, sublist, cardinality, 
+  Definitions for sublist, cardinality, 
   intersection, difference and respectful fold over 
   lists.
 *}
 
-definition
-  memb :: "'a \<Rightarrow> 'a list \<Rightarrow> bool"
-where
-  [simp]: "memb x xs \<longleftrightarrow> x \<in> set xs"
+declare List.member_def [simp]
 
 definition
   sub_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -186,9 +183,9 @@ lemma sub_list_rsp [quot_respect]:
   shows "(op \<approx> ===> op \<approx> ===> op =) sub_list sub_list"
   by (auto intro!: fun_relI)
 
-lemma memb_rsp [quot_respect]:
-  shows "(op = ===> op \<approx> ===> op =) memb memb"
-  by (auto intro!: fun_relI)
+lemma member_rsp [quot_respect]:
+  shows "(op \<approx> ===> op =) List.member List.member"
+  by (auto intro!: fun_relI simp add: mem_def)
 
 lemma nil_rsp [quot_respect]:
   shows "(op \<approx>) Nil Nil"
@@ -226,7 +223,7 @@ lemma filter_rsp [quot_respect]:
   shows "(op = ===> op \<approx> ===> op \<approx>) filter filter"
   by (auto intro!: fun_relI)
 
-lemma memb_commute_fold_list:
+lemma member_commute_fold_list:
   assumes a: "rsp_fold f"
   and     b: "x \<in> set xs"
   shows "fold_list f y xs = f x (fold_list f y (removeAll x xs))"
@@ -245,7 +242,7 @@ lemma fold_list_rsp_pre:
   apply (rule_tac [!] impI)
   apply (metis insert_absorb)
   apply (metis List.insert_def List.set.simps(2) List.set_insert fold_list.simps(2))
-  apply (metis Diff_insert_absorb insertI1 memb_commute_fold_list set_removeAll)
+  apply (metis Diff_insert_absorb insertI1 member_commute_fold_list set_removeAll)
   apply(drule_tac x="removeAll a ys" in meta_spec)
   apply(auto)
   apply(drule meta_mp)
@@ -408,9 +405,14 @@ translations
   "{|x|}"     == "CONST insert_fset x {||}"
 
 quotient_definition
-  in_fset (infix "|\<in>|" 50)
+  fset_member
 where
-  "in_fset :: 'a \<Rightarrow> 'a fset \<Rightarrow> bool" is "memb"
+  "fset_member :: 'a fset \<Rightarrow> 'a \<Rightarrow> bool" is "List.member"
+
+abbreviation
+  in_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50)
+where
+  "x |\<in>| S \<equiv> fset_member S x"
 
 abbreviation
   notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50)
@@ -570,7 +572,7 @@ subsection {* in_fset *}
 
 lemma in_fset: 
   shows "x |\<in>| S \<longleftrightarrow> x \<in> fset S"
-  by (descending) (simp)
+  by descending simp
 
 lemma notin_fset: 
   shows "x |\<notin>| S \<longleftrightarrow> x \<notin> fset S"
@@ -582,18 +584,18 @@ lemma notin_empty_fset:
 
 lemma fset_eq_iff:
   shows "S = T \<longleftrightarrow> (\<forall>x. (x |\<in>| S) = (x |\<in>| T))"
-  by (descending) (auto)
+  by descending auto
 
 lemma none_in_empty_fset:
   shows "(\<forall>x. x |\<notin>| S) \<longleftrightarrow> S = {||}"
-  by (descending) (simp)
+  by descending simp
 
 
 subsection {* insert_fset *}
 
 lemma in_insert_fset_iff [simp]:
   shows "x |\<in>| insert_fset y S \<longleftrightarrow> x = y \<or> x |\<in>| S"
-  by (descending) (simp)
+  by descending simp
 
 lemma
   shows insert_fsetI1: "x |\<in>| insert_fset x S"
@@ -926,7 +928,7 @@ lemma fold_insert_fset: "fold_fset f z (insert_fset a A) =
 
 lemma in_commute_fold_fset:
   "\<lbrakk>rsp_fold f; h |\<in>| b\<rbrakk> \<Longrightarrow> fold_fset f z b = f h (fold_fset f z (remove_fset h b))"
-  by (descending) (simp add: memb_commute_fold_list)
+  by (descending) (simp add: member_commute_fold_list)
 
 
 subsection {* Choice in fsets *}
@@ -988,34 +990,35 @@ qed
 
 lemma fset_raw_strong_cases:
   obtains "xs = []"
-    | x ys where "\<not> memb x ys" and "xs \<approx> x # ys"
+    | ys x where "\<not> List.member ys x" and "xs \<approx> x # ys"
 proof (induct xs arbitrary: x ys)
   case Nil
   then show thesis by simp
 next
   case (Cons a xs)
-  have a: "\<lbrakk>xs = [] \<Longrightarrow> thesis; \<And>x ys. \<lbrakk>\<not> memb x ys; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis\<rbrakk> \<Longrightarrow> thesis" by fact
-  have b: "\<And>x' ys'. \<lbrakk>\<not> memb x' ys'; a # xs \<approx> x' # ys'\<rbrakk> \<Longrightarrow> thesis" by fact
+  have a: "\<lbrakk>xs = [] \<Longrightarrow> thesis; \<And>x ys. \<lbrakk>\<not> List.member ys x; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis\<rbrakk> \<Longrightarrow> thesis"
+    by (rule Cons(1))
+  have b: "\<And>x' ys'. \<lbrakk>\<not> List.member ys' x'; a # xs \<approx> x' # ys'\<rbrakk> \<Longrightarrow> thesis" by fact
   have c: "xs = [] \<Longrightarrow> thesis" using b 
     apply(simp)
     by (metis List.set.simps(1) emptyE empty_subsetI)
-  have "\<And>x ys. \<lbrakk>\<not> memb x ys; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis"
+  have "\<And>x ys. \<lbrakk>\<not> List.member ys x; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis"
   proof -
     fix x :: 'a
     fix ys :: "'a list"
-    assume d:"\<not> memb x ys"
+    assume d:"\<not> List.member ys x"
     assume e:"xs \<approx> x # ys"
     show thesis
     proof (cases "x = a")
       assume h: "x = a"
-      then have f: "\<not> memb a ys" using d by simp
+      then have f: "\<not> List.member ys a" using d by simp
       have g: "a # xs \<approx> a # ys" using e h by auto
       show thesis using b f g by simp
     next
       assume h: "x \<noteq> a"
-      then have f: "\<not> memb x (a # ys)" using d by auto
+      then have f: "\<not> List.member (a # ys) x" using d by auto
       have g: "a # xs \<approx> x # (a # ys)" using e h by auto
-      show thesis using b f g by (simp del: memb_def) 
+      show thesis using b f g by (simp del: List.member_def) 
     qed
   qed
   then show thesis using a c by blast
@@ -1024,7 +1027,7 @@ qed
 
 lemma fset_strong_cases:
   obtains "xs = {||}"
-    | x ys where "x |\<notin>| ys" and "xs = insert_fset x ys"
+    | ys x where "x |\<notin>| ys" and "xs = insert_fset x ys"
   by (lifting fset_raw_strong_cases)
 
 
@@ -1061,22 +1064,22 @@ lemma list_eq2_refl:
   by (induct xs) (auto intro: list_eq2.intros)
 
 lemma cons_delete_list_eq2:
-  shows "(a # (removeAll a A)) \<approx>2 (if memb a A then A else a # A)"
+  shows "(a # (removeAll a A)) \<approx>2 (if List.member A a then A else a # A)"
   apply (induct A)
   apply (simp add: list_eq2_refl)
-  apply (case_tac "memb a (aa # A)")
+  apply (case_tac "List.member (aa # A) a")
   apply (simp_all)
   apply (case_tac [!] "a = aa")
   apply (simp_all)
-  apply (case_tac "memb a A")
+  apply (case_tac "List.member A a")
   apply (auto)[2]
   apply (metis list_eq2.intros(3) list_eq2.intros(4) list_eq2.intros(5) list_eq2.intros(6))
   apply (metis list_eq2.intros(1) list_eq2.intros(5) list_eq2.intros(6))
-  apply (auto simp add: list_eq2_refl memb_def)
+  apply (auto simp add: list_eq2_refl)
   done
 
-lemma memb_delete_list_eq2:
-  assumes a: "memb e r"
+lemma member_delete_list_eq2:
+  assumes a: "List.member r e"
   shows "(e # removeAll e r) \<approx>2 r"
   using a cons_delete_list_eq2[of e r]
   by simp
@@ -1094,7 +1097,7 @@ next
     proof (induct n arbitrary: l r)
       case 0
       have "card_list l = 0" by fact
-      then have "\<forall>x. \<not> memb x l" by auto
+      then have "\<forall>x. \<not> List.member l x" by auto
       then have z: "l = []" by auto
       then have "r = []" using `l \<approx> r` by simp
       then show ?case using z list_eq2_refl by simp
@@ -1102,22 +1105,22 @@ next
       case (Suc m)
       have b: "l \<approx> r" by fact
       have d: "card_list l = Suc m" by fact
-      then have "\<exists>a. memb a l" 
+      then have "\<exists>a. List.member l a" 
 	apply(simp)
 	apply(drule card_eq_SucD)
 	apply(blast)
 	done
-      then obtain a where e: "memb a l" by auto
-      then have e': "memb a r" using list_eq_def [simplified memb_def [symmetric], of l r] b 
+      then obtain a where e: "List.member l a" by auto
+      then have e': "List.member r a" using list_eq_def [simplified List.member_def [symmetric], of l r] b 
 	by auto
       have f: "card_list (removeAll a l) = m" using e d by (simp)
       have g: "removeAll a l \<approx> removeAll a r" using removeAll_rsp b by simp
       have "(removeAll a l) \<approx>2 (removeAll a r)" by (rule Suc.hyps[OF f g])
       then have h: "(a # removeAll a l) \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(5))
       have i: "l \<approx>2 (a # removeAll a l)"	
-        by (rule list_eq2.intros(3)[OF memb_delete_list_eq2[OF e]])
+        by (rule list_eq2.intros(3)[OF member_delete_list_eq2[OF e]])
       have "l \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(6)[OF i h])
-      then show ?case using list_eq2.intros(6)[OF _ memb_delete_list_eq2[OF e']] by simp
+      then show ?case using list_eq2.intros(6)[OF _ member_delete_list_eq2[OF e']] by simp
     qed
     }
   then show "l \<approx> r \<Longrightarrow> l \<approx>2 r" by blast
