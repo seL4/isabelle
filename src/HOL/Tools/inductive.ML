@@ -596,7 +596,7 @@ fun gen_inductive_simps prep_att prep_prop args lthy =
 
 val inductive_simps = gen_inductive_simps Attrib.intern_src Syntax.read_prop;
 val inductive_simps_i = gen_inductive_simps (K I) Syntax.check_prop;
-    
+
 (* prove induction rule *)
 
 fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
