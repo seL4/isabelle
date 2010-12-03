@@ -54,7 +54,7 @@ proof -
 qed
 
 lemma (in sigma_algebra) simple_function_indicator_representation:
-  fixes f ::"'a \<Rightarrow> pinfreal"
+  fixes f ::"'a \<Rightarrow> pextreal"
   assumes f: "simple_function f" and x: "x \<in> space M"
   shows "f x = (\<Sum>y \<in> f ` space M. y * indicator (f -` {y} \<inter> space M) x)"
   (is "?l = ?r")
@@ -69,7 +69,7 @@ proof -
 qed
 
 lemma (in measure_space) simple_function_notspace:
-  "simple_function (\<lambda>x. h x * indicator (- space M) x::pinfreal)" (is "simple_function ?h")
+  "simple_function (\<lambda>x. h x * indicator (- space M) x::pextreal)" (is "simple_function ?h")
 proof -
   have "?h ` space M \<subseteq> {0}" unfolding indicator_def by auto
   hence [simp, intro]: "finite (?h ` space M)" by (auto intro: finite_subset)
@@ -212,7 +212,7 @@ proof -
 qed
 
 lemma (in sigma_algebra) borel_measurable_implies_simple_function_sequence:
-  fixes u :: "'a \<Rightarrow> pinfreal"
+  fixes u :: "'a \<Rightarrow> pextreal"
   assumes u: "u \<in> borel_measurable M"
   shows "\<exists>f. (\<forall>i. simple_function (f i) \<and> (\<forall>x\<in>space M. f i x \<noteq> \<omega>)) \<and> f \<up> u"
 proof -
@@ -265,7 +265,7 @@ proof -
     qed simp }
   note f_upper = this
 
-  let "?g j x" = "of_nat (f x j) / 2^j :: pinfreal"
+  let "?g j x" = "of_nat (f x j) / 2^j :: pextreal"
   show ?thesis unfolding simple_function_def isoton_fun_expand unfolding isoton_def
   proof (safe intro!: exI[of _ ?g])
     fix j
@@ -350,7 +350,7 @@ proof -
     hence mono: "mono (\<lambda>i. ?g i t)" unfolding mono_iff_le_Suc by auto
 
     show "(SUP j. of_nat (f t j) / 2 ^ j) = u t"
-    proof (rule pinfreal_SUPI)
+    proof (rule pextreal_SUPI)
       fix j show "of_nat (f t j) / 2 ^ j \<le> u t"
       proof (rule fI)
         assume "of_nat j \<le> u t" thus "of_nat (j * 2 ^ j) / 2 ^ j \<le> u t"
@@ -362,7 +362,7 @@ proof -
              (auto simp: power_le_zero_eq divide_real_def[symmetric] field_simps zero_le_mult_iff)
       qed
     next
-      fix y :: pinfreal assume *: "\<And>j. j \<in> UNIV \<Longrightarrow> of_nat (f t j) / 2 ^ j \<le> y"
+      fix y :: pextreal assume *: "\<And>j. j \<in> UNIV \<Longrightarrow> of_nat (f t j) / 2 ^ j \<le> y"
       show "u t \<le> y"
       proof (cases "u t")
         case (preal r)
@@ -404,7 +404,7 @@ proof -
 qed
 
 lemma (in sigma_algebra) borel_measurable_implies_simple_function_sequence':
-  fixes u :: "'a \<Rightarrow> pinfreal"
+  fixes u :: "'a \<Rightarrow> pextreal"
   assumes "u \<in> borel_measurable M"
   obtains (x) f where "f \<up> u" "\<And>i. simple_function (f i)" "\<And>i. \<omega>\<notin>f i`space M"
 proof -
@@ -416,7 +416,7 @@ proof -
 qed
 
 lemma (in sigma_algebra) simple_function_eq_borel_measurable:
-  fixes f :: "'a \<Rightarrow> pinfreal"
+  fixes f :: "'a \<Rightarrow> pextreal"
   shows "simple_function f \<longleftrightarrow>
     finite (f`space M) \<and> f \<in> borel_measurable M"
   using simple_function_borel_measurable[of f]
@@ -424,7 +424,7 @@ lemma (in sigma_algebra) simple_function_eq_borel_measurable:
   by (fastsimp simp: simple_function_def)
 
 lemma (in measure_space) simple_function_restricted:
-  fixes f :: "'a \<Rightarrow> pinfreal" assumes "A \<in> sets M"
+  fixes f :: "'a \<Rightarrow> pextreal" assumes "A \<in> sets M"
   shows "sigma_algebra.simple_function (restricted_space A) f \<longleftrightarrow> simple_function (\<lambda>x. f x * indicator A x)"
     (is "sigma_algebra.simple_function ?R f \<longleftrightarrow> simple_function ?f")
 proof -
@@ -448,7 +448,7 @@ proof -
         using `A \<in> sets M` sets_into_space by (auto intro!: bexI[of _ x])
     next
       fix x
-      assume "indicator A x \<noteq> (0::pinfreal)"
+      assume "indicator A x \<noteq> (0::pextreal)"
       then have "x \<in> A" by (auto simp: indicator_def split: split_if_asm)
       moreover assume "x \<in> space M" "\<forall>y\<in>A. ?f x \<noteq> f y"
       ultimately show "f x = 0" by auto
@@ -472,7 +472,7 @@ lemma (in sigma_algebra) simple_function_subalgebra:
   by auto
 
 lemma (in sigma_algebra) simple_function_vimage:
-  fixes g :: "'a \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
+  fixes g :: "'a \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
   assumes g: "simple_function g" and f: "f \<in> S \<rightarrow> space M"
   shows "sigma_algebra.simple_function (vimage_algebra S f) (\<lambda>x. g (f x))"
 proof -
@@ -751,7 +751,7 @@ proof cases
   assume "space M = {}" hence "A = {}" using sets_into_space[OF assms] by auto
   thus ?thesis unfolding simple_integral_def using `space M = {}` by auto
 next
-  assume "space M \<noteq> {}" hence "(\<lambda>x. 1) ` space M = {1::pinfreal}" by auto
+  assume "space M \<noteq> {}" hence "(\<lambda>x. 1) ` space M = {1::pextreal}" by auto
   thus ?thesis
     using simple_integral_indicator[OF assms simple_function_const[of 1]]
     using sets_into_space[OF assms]
@@ -762,7 +762,7 @@ lemma (in measure_space) simple_integral_null_set:
   assumes "simple_function u" "N \<in> null_sets"
   shows "simple_integral (\<lambda>x. u x * indicator N x) = 0"
 proof -
-  have "AE x. indicator N x = (0 :: pinfreal)"
+  have "AE x. indicator N x = (0 :: pextreal)"
     using `N \<in> null_sets` by (auto simp: indicator_def intro!: AE_I[of _ N])
   then have "simple_integral (\<lambda>x. u x * indicator N x) = simple_integral (\<lambda>x. 0)"
     using assms by (intro simple_integral_cong_AE) (auto intro!: AE_disjI2)
@@ -806,7 +806,7 @@ next
     by (auto simp: indicator_def split: split_if_asm)
   then show "f x * \<mu> (f -` {f x} \<inter> A) =
     f x * \<mu> (?f -` {f x} \<inter> space M)"
-    unfolding pinfreal_mult_cancel_left by auto
+    unfolding pextreal_mult_cancel_left by auto
 qed
 
 lemma (in measure_space) simple_integral_subalgebra[simp]:
@@ -816,7 +816,7 @@ lemma (in measure_space) simple_integral_subalgebra[simp]:
   unfolding measure_space.simple_integral_def_raw[OF assms] by simp
 
 lemma (in measure_space) simple_integral_vimage:
-  fixes g :: "'a \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
+  fixes g :: "'a \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
   assumes f: "bij_betw f S (space M)"
   shows "simple_integral g =
          measure_space.simple_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>x. g (f x))"
@@ -893,7 +893,7 @@ proof (rule antisym SUP_leI)
             using `\<mu> ?G \<noteq> 0` by (auto simp: indicator_def split: split_if_asm)
           have "x < (of_nat n / (if \<mu> ?G = \<omega> then 1 else \<mu> ?G)) * \<mu> ?G"
             using n `\<mu> ?G \<noteq> 0` `0 < n`
-            by (auto simp: pinfreal_noteq_omega_Ex field_simps)
+            by (auto simp: pextreal_noteq_omega_Ex field_simps)
           also have "\<dots> = simple_integral ?g" using g `space M \<noteq> {}`
             by (subst simple_integral_indicator)
                (auto simp: image_constant ac_simps dest: simple_functionD)
@@ -950,7 +950,7 @@ lemma (in measure_space) positive_integral_eq_simple_integral:
   assumes "simple_function f"
   shows "positive_integral f = simple_integral f"
   unfolding positive_integral_def
-proof (safe intro!: pinfreal_SUPI)
+proof (safe intro!: pextreal_SUPI)
   fix g assume "simple_function g" "g \<le> f"
   with assms show "simple_integral g \<le> simple_integral f"
     by (auto intro!: simple_integral_mono simp: le_fun_def)
@@ -1017,7 +1017,7 @@ lemma image_set_cong:
   using assms by blast
 
 lemma (in measure_space) positive_integral_vimage:
-  fixes g :: "'a \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
+  fixes g :: "'a \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
   assumes f: "bij_betw f S (space M)"
   shows "positive_integral g =
          measure_space.positive_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>x. g (f x))"
@@ -1039,14 +1039,14 @@ proof -
   show ?thesis
     unfolding positive_integral_alt1 T.positive_integral_alt1 SUPR_def * image_compose
   proof (safe intro!: arg_cong[where f=Sup] image_set_cong, simp_all add: comp_def)
-    fix g' :: "'a \<Rightarrow> pinfreal" assume "simple_function g'" "\<forall>x\<in>space M. g' x \<le> g x \<and> g' x \<noteq> \<omega>"
+    fix g' :: "'a \<Rightarrow> pextreal" assume "simple_function g'" "\<forall>x\<in>space M. g' x \<le> g x \<and> g' x \<noteq> \<omega>"
     then show "\<exists>h. T.simple_function h \<and> (\<forall>x\<in>S. h x \<le> g (f x) \<and> h x \<noteq> \<omega>) \<and>
                    T.simple_integral (\<lambda>x. g' (f x)) = T.simple_integral h"
       using f unfolding bij_betw_def
       by (auto intro!: exI[of _ "\<lambda>x. g' (f x)"]
                simp add: le_fun_def simple_function_vimage[OF _ f_fun])
   next
-    fix g' :: "'d \<Rightarrow> pinfreal" assume g': "T.simple_function g'" "\<forall>x\<in>S. g' x \<le> g (f x) \<and> g' x \<noteq> \<omega>"
+    fix g' :: "'d \<Rightarrow> pextreal" assume g': "T.simple_function g'" "\<forall>x\<in>S. g' x \<le> g (f x) \<and> g' x \<noteq> \<omega>"
     let ?g = "\<lambda>x. g' (the_inv_into S f x)"
     show "\<exists>h. simple_function h \<and> (\<forall>x\<in>space M. h x \<le> g x \<and> h x \<noteq> \<omega>) \<and>
               T.simple_integral g' = T.simple_integral (\<lambda>x. h (f x))"
@@ -1068,7 +1068,7 @@ proof -
 qed
 
 lemma (in measure_space) positive_integral_vimage_inv:
-  fixes g :: "'d \<Rightarrow> pinfreal" and f :: "'d \<Rightarrow> 'a"
+  fixes g :: "'d \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
   assumes f: "bij_betw f S (space M)"
   shows "measure_space.positive_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) g =
       positive_integral (\<lambda>x. g (the_inv_into S f x))"
@@ -1087,8 +1087,8 @@ lemma (in measure_space) positive_integral_SUP_approx:
   and "simple_function u"
   and le: "u \<le> s" and real: "\<omega> \<notin> u`space M"
   shows "simple_integral u \<le> (SUP i. positive_integral (f i))" (is "_ \<le> ?S")
-proof (rule pinfreal_le_mult_one_interval)
-  fix a :: pinfreal assume "0 < a" "a < 1"
+proof (rule pextreal_le_mult_one_interval)
+  fix a :: pextreal assume "0 < a" "a < 1"
   hence "a \<noteq> 0" by auto
   let "?B i" = "{x \<in> space M. a * u x \<le> f i x}"
   have B: "\<And>i. ?B i \<in> sets M"
@@ -1117,7 +1117,7 @@ proof (rule pinfreal_le_mult_one_interval)
     next
       assume "u x \<noteq> 0"
       with `a < 1` real `x \<in> space M`
-      have "a * u x < 1 * u x" by (rule_tac pinfreal_mult_strict_right_mono) (auto simp: image_iff)
+      have "a * u x < 1 * u x" by (rule_tac pextreal_mult_strict_right_mono) (auto simp: image_iff)
       also have "\<dots> \<le> (SUP i. f i x)" using le `f \<up> s`
         unfolding isoton_fun_expand by (auto simp: isoton_def le_fun_def)
       finally obtain i where "a * u x < f i x" unfolding SUPR_def
@@ -1130,7 +1130,7 @@ proof (rule pinfreal_le_mult_one_interval)
 
   have "simple_integral u = (SUP i. simple_integral (?uB i))"
     unfolding simple_integral_indicator[OF B `simple_function u`]
-  proof (subst SUPR_pinfreal_setsum, safe)
+  proof (subst SUPR_pextreal_setsum, safe)
     fix x n assume "x \<in> space M"
     have "\<mu> (u -` {u x} \<inter> space M \<inter> {x \<in> space M. a * u x \<le> f n x})
       \<le> \<mu> (u -` {u x} \<inter> space M \<inter> {x \<in> space M. a * u x \<le> f (Suc n) x})"
@@ -1142,11 +1142,11 @@ proof (rule pinfreal_le_mult_one_interval)
     show "simple_integral u =
       (\<Sum>i\<in>u ` space M. SUP n. i * \<mu> (u -` {i} \<inter> space M \<inter> ?B n))"
       using measure_conv unfolding simple_integral_def isoton_def
-      by (auto intro!: setsum_cong simp: pinfreal_SUP_cmult)
+      by (auto intro!: setsum_cong simp: pextreal_SUP_cmult)
   qed
   moreover
   have "a * (SUP i. simple_integral (?uB i)) \<le> ?S"
-    unfolding pinfreal_SUP_cmult[symmetric]
+    unfolding pextreal_SUP_cmult[symmetric]
   proof (safe intro!: SUP_mono bexI)
     fix i
     have "a * simple_integral (?uB i) = simple_integral (\<lambda>x. a * ?uB i x)"
@@ -1306,7 +1306,7 @@ proof cases
     case (insert i P)
     have "f i \<in> borel_measurable M"
       "(\<lambda>x. \<Sum>i\<in>P. f i x) \<in> borel_measurable M"
-      using insert by (auto intro!: borel_measurable_pinfreal_setsum)
+      using insert by (auto intro!: borel_measurable_pextreal_setsum)
     from positive_integral_add[OF this]
     show ?case using insert by auto
   qed simp
@@ -1319,7 +1319,7 @@ lemma (in measure_space) positive_integral_diff:
   shows "positive_integral (\<lambda>x. f x - g x) = positive_integral f - positive_integral g"
 proof -
   have borel: "(\<lambda>x. f x - g x) \<in> borel_measurable M"
-    using f g by (rule borel_measurable_pinfreal_diff)
+    using f g by (rule borel_measurable_pextreal_diff)
   have "positive_integral (\<lambda>x. f x - g x) + positive_integral g =
     positive_integral f"
     unfolding positive_integral_add[OF borel g, symmetric]
@@ -1329,7 +1329,7 @@ proof -
       by (cases "f x", cases "g x", simp, simp, cases "g x", auto)
   qed
   with mono show ?thesis
-    by (subst minus_pinfreal_eq2[OF _ fin]) (auto intro!: positive_integral_mono)
+    by (subst minus_pextreal_eq2[OF _ fin]) (auto intro!: positive_integral_mono)
 qed
 
 lemma (in measure_space) positive_integral_psuminf:
@@ -1338,7 +1338,7 @@ lemma (in measure_space) positive_integral_psuminf:
 proof -
   have "(\<lambda>i. positive_integral (\<lambda>x. \<Sum>i<i. f i x)) \<up> positive_integral (\<lambda>x. \<Sum>\<^isub>\<infinity>i. f i x)"
     by (rule positive_integral_isoton)
-       (auto intro!: borel_measurable_pinfreal_setsum assms positive_integral_mono
+       (auto intro!: borel_measurable_pextreal_setsum assms positive_integral_mono
                      arg_cong[where f=Sup]
              simp: isoton_def le_fun_def psuminf_def fun_eq_iff SUPR_def Sup_fun_def)
   thus ?thesis
@@ -1347,7 +1347,7 @@ qed
 
 text {* Fatou's lemma: convergence theorem on limes inferior *}
 lemma (in measure_space) positive_integral_lim_INF:
-  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> pinfreal"
+  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> pextreal"
   assumes "\<And>i. u i \<in> borel_measurable M"
   shows "positive_integral (SUP n. INF m. u (m + n)) \<le>
     (SUP n. INF m. positive_integral (u (m + n)))"
@@ -1421,7 +1421,7 @@ proof -
   from G(2) have "(\<lambda>i x. f x * G i x) \<up> (\<lambda>x. f x * g x)"
     unfolding isoton_fun_expand by (auto intro!: isoton_cmult_right)
   then have "(\<lambda>i. positive_integral (\<lambda>x. f x * G i x)) \<up> positive_integral (\<lambda>x. f x * g x)"
-    using assms(1) G_borel by (auto intro!: positive_integral_isoton borel_measurable_pinfreal_times)
+    using assms(1) G_borel by (auto intro!: positive_integral_isoton borel_measurable_pextreal_times)
   with eq_Tg show "T.positive_integral g = positive_integral (\<lambda>x. f x * g x)"
     unfolding isoton_def by simp
 qed
@@ -1493,7 +1493,7 @@ proof -
     next
       fix n x assume "1 \<le> of_nat n * u x"
       also have "\<dots> \<le> of_nat (Suc n) * u x"
-        by (subst (1 2) mult_commute) (auto intro!: pinfreal_mult_cancel)
+        by (subst (1 2) mult_commute) (auto intro!: pextreal_mult_cancel)
       finally show "1 \<le> of_nat (Suc n) * u x" .
     qed
     also have "\<dots> = \<mu> ?A"
@@ -1774,7 +1774,7 @@ proof -
     using mono by (rule AE_mp) (auto intro!: AE_cong)
   ultimately show ?thesis using fg
     by (auto simp: integral_def integrable_def diff_minus
-             intro!: add_mono real_of_pinfreal_mono positive_integral_mono_AE)
+             intro!: add_mono real_of_pextreal_mono positive_integral_mono_AE)
 qed
 
 lemma (in measure_space) integral_mono:
@@ -1861,7 +1861,7 @@ proof -
   also have "\<dots> \<le> positive_integral (\<lambda>x. Real (f x))"
     using f by (auto intro!: positive_integral_mono)
   also have "\<dots> < \<omega>"
-    using `integrable f` unfolding integrable_def by (auto simp: pinfreal_less_\<omega>)
+    using `integrable f` unfolding integrable_def by (auto simp: pextreal_less_\<omega>)
   finally have pos: "positive_integral (\<lambda>x. Real (g x)) < \<omega>" .
 
   have "positive_integral (\<lambda>x. Real (- g x)) \<le> positive_integral (\<lambda>x. Real (\<bar>g x\<bar>))"
@@ -1869,7 +1869,7 @@ proof -
   also have "\<dots> \<le> positive_integral (\<lambda>x. Real (f x))"
     using f by (auto intro!: positive_integral_mono)
   also have "\<dots> < \<omega>"
-    using `integrable f` unfolding integrable_def by (auto simp: pinfreal_less_\<omega>)
+    using `integrable f` unfolding integrable_def by (auto simp: pextreal_less_\<omega>)
   finally have neg: "positive_integral (\<lambda>x. Real (- g x)) < \<omega>" .
 
   from neg pos borel show ?thesis
@@ -2018,7 +2018,7 @@ proof -
     "positive_integral (\<lambda>x. Real \<bar>f x\<bar>) \<noteq> \<omega>" unfolding integrable_def by auto
   from positive_integral_0_iff[OF this(1)] this(2)
   show ?thesis unfolding integral_def *
-    by (simp add: real_of_pinfreal_eq_0)
+    by (simp add: real_of_pextreal_eq_0)
 qed
 
 lemma (in measure_space) positive_integral_omega:
@@ -2125,8 +2125,8 @@ proof -
       by (auto intro!: positive_integral_lim_INF)
     also have "\<dots> = positive_integral (\<lambda>x. Real (2 * w x)) -
         (INF n. SUP m. positive_integral (\<lambda>x. Real \<bar>u (m + n) x - u' x\<bar>))"
-      unfolding PI_diff pinfreal_INF_minus[OF I2w_fin] pinfreal_SUP_minus ..
-    finally show ?thesis using neq_0 I2w_fin by (rule pinfreal_le_minus_imp_0)
+      unfolding PI_diff pextreal_INF_minus[OF I2w_fin] pextreal_SUP_minus ..
+    finally show ?thesis using neq_0 I2w_fin by (rule pextreal_le_minus_imp_0)
   qed
 
   have [simp]: "\<And>n m x. Real (- \<bar>u (m + n) x - u' x\<bar>) = 0" by auto
@@ -2260,7 +2260,7 @@ proof -
     also have "\<dots> = \<bar>enum r\<bar> * real (\<mu> (?A r))"
       using f fin by (simp add: borel_measurable_vimage integral_cmul_indicator)
     finally have "integral (\<lambda>x. \<bar>?F r x\<bar>) = \<bar>enum r * real (\<mu> (?A r))\<bar>"
-      by (simp add: abs_mult_pos real_pinfreal_pos) }
+      by (simp add: abs_mult_pos real_pextreal_pos) }
   note int_abs_F = this
 
   have 1: "\<And>i. integrable (\<lambda>x. ?F i x)"
@@ -2329,8 +2329,8 @@ proof -
   show "integrable f" using finite_space finite_measure
     by (simp add: setsum_\<omega> integrable_def)
   show ?I using finite_measure
-    apply (simp add: integral_def real_of_pinfreal_setsum[symmetric]
-      real_of_pinfreal_mult[symmetric] setsum_subtractf[symmetric])
+    apply (simp add: integral_def real_of_pextreal_setsum[symmetric]
+      real_of_pextreal_mult[symmetric] setsum_subtractf[symmetric])
     by (rule setsum_cong) (simp_all split: split_if)
 qed
 

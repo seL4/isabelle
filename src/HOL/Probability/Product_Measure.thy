@@ -379,7 +379,7 @@ proof -
       by (auto intro!: M2.finite_measure_compl measurable_cut_fst
                simp: vimage_Diff)
     with `A \<in> sets ?D` top show "space ?D - A \<in> sets ?D"
-      by (auto intro!: Diff M1.measurable_If M1.borel_measurable_pinfreal_diff)
+      by (auto intro!: Diff M1.measurable_If M1.borel_measurable_pextreal_diff)
   next
     fix F :: "nat \<Rightarrow> ('a\<times>'b) set" assume "disjoint_family F" "range F \<subseteq> sets ?D"
     moreover then have "\<And>x. \<mu>2 (\<Union>i. Pair x -` F i) = (\<Sum>\<^isub>\<infinity> i. ?s (F i) x)"
@@ -505,7 +505,7 @@ lemma (in pair_sigma_finite) pair_measure_alt:
   unfolding pair_measure_def
 proof (rule M1.positive_integral_cong)
   fix x assume "x \<in> space M1"
-  have *: "\<And>y. indicator A (x, y) = (indicator (Pair x -` A) y :: pinfreal)"
+  have *: "\<And>y. indicator A (x, y) = (indicator (Pair x -` A) y :: pextreal)"
     unfolding indicator_def by auto
   show "M2.positive_integral (\<lambda>y. indicator A (x, y)) = \<mu>2 (Pair x -` A)"
     unfolding *
@@ -703,7 +703,7 @@ proof -
     and "M1.positive_integral (\<lambda>x. M2.positive_integral (\<lambda>y. f (x, y)))
     = positive_integral f"
     by (auto simp del: vimage_Int cong: measurable_cong
-             intro!: M1.borel_measurable_pinfreal_setsum
+             intro!: M1.borel_measurable_pextreal_setsum
              simp add: M1.positive_integral_setsum simple_integral_def
                        M1.positive_integral_cmult
                        M1.positive_integral_cong[OF eq]
@@ -805,7 +805,7 @@ proof -
     show "\<mu>1 {x\<in>space M1. \<mu>2 (Pair x -` N) \<noteq> 0} = 0"
       by (simp add: M1.positive_integral_0_iff pair_measure_alt vimage_def)
     show "{x \<in> space M1. \<mu>2 (Pair x -` N) \<noteq> 0} \<in> sets M1"
-      by (intro M1.borel_measurable_pinfreal_neq_const measure_cut_measurable_fst N)
+      by (intro M1.borel_measurable_pextreal_neq_const measure_cut_measurable_fst N)
     { fix x assume "x \<in> space M1" "\<mu>2 (Pair x -` N) = 0"
       have "M2.almost_everywhere (\<lambda>y. Q (x, y))"
       proof (rule M2.AE_I)
@@ -1201,7 +1201,7 @@ proof -
 qed
 
 locale product_sigma_finite =
-  fixes M :: "'i \<Rightarrow> 'a algebra" and \<mu> :: "'i \<Rightarrow> 'a set \<Rightarrow> pinfreal"
+  fixes M :: "'i \<Rightarrow> 'a algebra" and \<mu> :: "'i \<Rightarrow> 'a set \<Rightarrow> pextreal"
   assumes sigma_finite_measures: "\<And>i. sigma_finite_measure (M i) (\<mu> i)"
 
 locale finite_product_sigma_finite = product_sigma_finite M \<mu> for M :: "'i \<Rightarrow> 'a algebra" and \<mu> +
@@ -1319,7 +1319,7 @@ next
 qed
 
 definition (in finite_product_sigma_finite)
-  measure :: "('i \<Rightarrow> 'a) set \<Rightarrow> pinfreal" where
+  measure :: "('i \<Rightarrow> 'a) set \<Rightarrow> pextreal" where
   "measure = (SOME \<nu>.
      (\<forall>A\<in>\<Pi> i\<in>I. sets (M i). \<nu> (Pi\<^isub>E I A) = (\<Prod>i\<in>I. \<mu> i (A i))) \<and>
      sigma_finite_measure P \<nu>)"

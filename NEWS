@@ -334,8 +334,8 @@ finite type. Finite cartesian products of euclidean spaces, products
 of euclidean spaces the real and complex numbers are instantiated to
 be euclidean_spaces.  INCOMPATIBILITY.
 
-* Probability: Introduced pinfreal as real numbers with infinity. Use
-pinfreal as value for measures. Introduce the Radon-Nikodym
+* Probability: Introduced pextreal as positive extended real numbers.
+Use pextreal as value for measures. Introduce the Radon-Nikodym
 derivative, product spaces and Fubini's theorem for arbitrary sigma
 finite measures. Introduces Lebesgue measure based on the integral in
 Multivariate Analysis.  INCOMPATIBILITY.

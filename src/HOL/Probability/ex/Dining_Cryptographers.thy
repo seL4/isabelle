@@ -8,7 +8,7 @@ locale finite_space =
   and not_empty[simp]: "S \<noteq> {}"
 
 definition (in finite_space) "M = \<lparr> space = S, sets = Pow S \<rparr>"
-definition (in finite_space) \<mu>_def[simp]: "\<mu> A = (of_nat (card A) / of_nat (card S) :: pinfreal)"
+definition (in finite_space) \<mu>_def[simp]: "\<mu> A = (of_nat (card A) / of_nat (card S) :: pextreal)"
 
 lemma (in finite_space)
   shows space_M[simp]: "space M = S"

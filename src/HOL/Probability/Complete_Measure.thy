@@ -243,7 +243,7 @@ proof -
 qed
 
 lemma (in completeable_measure_space) completion_ex_borel_measurable:
-  fixes g :: "'a \<Rightarrow> pinfreal"
+  fixes g :: "'a \<Rightarrow> pextreal"
   assumes g: "g \<in> borel_measurable completion"
   shows "\<exists>g'\<in>borel_measurable M. (AE x. g x = g' x)"
 proof -
