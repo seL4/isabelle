@@ -55,7 +55,7 @@ end;
 structure Mutabelle : MUTABELLE = 
 struct
 
-val testgen_name = Unsynchronized.ref "SML";
+val testgen_name = Unsynchronized.ref "random";
 
 fun all_unconcealed_thms_of thy =
   let
@@ -498,8 +498,11 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
 
 fun is_executable thy insts th =
   ((Quickcheck.test_term 
-      ((Config.put Quickcheck.size 1 #> Config.put Quickcheck.iterations 1) (ProofContext.init_global thy))
-      false (SOME (!testgen_name)) (preprocess thy insts (prop_of th));
+      (ProofContext.init_global thy
+      |> Config.put Quickcheck.size 1
+      |> Config.put Quickcheck.iterations 1
+      |> Config.put Quickcheck.tester (!testgen_name))
+      false (preprocess thy insts (prop_of th));
     Output.urgent_message "executable"; true) handle ERROR s =>
     (Output.urgent_message ("not executable: " ^ s); false));
 
@@ -507,9 +510,10 @@ fun qc_recursive usedthy [] insts sz qciter acc = rev acc
  | qc_recursive usedthy (x::xs) insts sz qciter acc = qc_recursive usedthy xs insts sz qciter 
      (Output.urgent_message ("qc_recursive: " ^ string_of_int (length xs));
      ((x, pretty (the_default [] (fst (Quickcheck.test_term
-       ((Config.put Quickcheck.size sz #> Config.put Quickcheck.iterations qciter)
+       ((Config.put Quickcheck.size sz #> Config.put Quickcheck.iterations qciter
+        #> Config.put Quickcheck.tester (!testgen_name))
          (ProofContext.init_global usedthy))
-       false (SOME (!testgen_name)) (preprocess usedthy insts x))))) :: acc))
+       false (preprocess usedthy insts x))))) :: acc))
           handle ERROR msg => (Output.urgent_message msg; qc_recursive usedthy xs insts sz qciter acc);
 
 
