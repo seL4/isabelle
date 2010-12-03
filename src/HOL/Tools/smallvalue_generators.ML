@@ -289,6 +289,6 @@ val setup =
     (Quickcheck_Generators.ensure_sort_datatype (@{sort full_small}, instantiate_smallvalue_datatype))
   #> setup_smart_quantifier
   #> Context.theory_map
-    (Quickcheck.add_generator ("small", compile_generator_expr));
+    (Quickcheck.add_generator ("exhaustive", compile_generator_expr));
 
 end;
