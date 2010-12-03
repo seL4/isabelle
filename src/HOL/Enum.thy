@@ -46,13 +46,13 @@ qed (simp_all add: equal_fun_def enum_all fun_eq_iff)
 
 end
 
-lemma [code nbe]:
-  "HOL.equal (f :: _ \<Rightarrow> _) f \<longleftrightarrow> True"
-  by (fact equal_refl)
-
 lemma [code]:
   "HOL.equal f g \<longleftrightarrow>  list_all (%x. f x = g x) enum"
 by (auto simp add: list_all_iff enum_all equal fun_eq_iff)
+
+lemma [code nbe]:
+  "HOL.equal (f :: _ \<Rightarrow> _) f \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 lemma order_fun [code]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
