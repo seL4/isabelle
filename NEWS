@@ -101,6 +101,14 @@ the local file system.
 
 *** HOL ***
 
+* Quickcheck now by default uses exhaustive testing instead of random testing.
+Random testing can be invoked by quickcheck[random],
+exhaustive testing by quickcheck[exhaustive].
+
+* Quickcheck instantiates polymorphic types with small finite datatypes
+by default. This enables a simple execution mechanism to handle
+quantifiers and function equality over the finite datatypes.   
+
 * Functions can be declared as coercions and type inference will add them
 as necessary upon input of a term. In Complex_Main, real :: nat => real
 and real :: int => real are declared as coercions. A new coercion function
