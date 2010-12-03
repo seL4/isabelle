@@ -64,8 +64,7 @@ val bash_output = uninterruptible (fn restore_attributes => fn script =>
       in () end;
 
     fun cleanup () =
-     (terminate ();
-      Simple_Thread.interrupt system_thread;
+     (Simple_Thread.interrupt system_thread;
       try File.rm script_path;
       try File.rm output_path;
       try File.rm pid_path);
@@ -79,6 +78,6 @@ val bash_output = uninterruptible (fn restore_attributes => fn script =>
       val rc = (case Synchronized.value result of Signal => Exn.interrupt () | Result rc => rc);
       val _ = cleanup ();
     in (output, rc) end
-    handle exn => (cleanup (); reraise exn)
+    handle exn => (terminate(); cleanup (); reraise exn)
   end);
 
