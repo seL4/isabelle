@@ -727,7 +727,7 @@ fun unenclose str = String.substring (str, 1, size str - 2);
 (*simple quoting (does not escape special chars)*)
 val quote = enclose "\"" "\"";
 
-(*space_implode "..." (explode "hello") = "h...e...l...l...o"*)
+(*space_implode "..." (space_explode "hello") = "h...e...l...l...o"*)
 fun space_implode a bs = implode (separate a bs);
 
 val commas = space_implode ", ";
