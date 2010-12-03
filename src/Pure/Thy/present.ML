@@ -489,7 +489,7 @@ fun begin_theory update_time dir files thy =
 
 
 
-(** draft document output **)
+(** draft document output **)  (* FIXME doc_path etc. not thread-safe *)
 
 fun drafts doc_format src_paths =
   let
