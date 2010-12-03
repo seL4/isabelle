@@ -231,7 +231,7 @@ proof (induct frs)
       with wf less loc
       have "approx_stk G hp [xcp] ST'"
         by (auto simp add: sup_state_conv approx_stk_def approx_val_def 
-                 elim: conf_widen split: Err.split)
+                 elim: conf_widen split: err.split)
       moreover
       note len pc
       ultimately
@@ -702,7 +702,7 @@ lemma Putfield_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>;
   fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs2 split_beta split: option.split List.split split_if_asm)
+apply (clarsimp simp add: defs2 split_beta split: option.split list.split split_if_asm)
 apply (frule conf_widen)
 prefer 2
   apply assumption

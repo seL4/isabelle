@@ -205,7 +205,7 @@ text {* The paper has no Example 10! *}
 lemma "(\<forall>A. 0 \<in> A \<and> (\<forall>x \<in> A. Suc x \<in> A) \<longrightarrow> n \<in> A) \<and>
   P 0 \<and> (\<forall>x. P x \<longrightarrow> P (Suc x)) \<longrightarrow> P n"
   -- {* Example 11: needs a hint. *}
-by(metis Nat.induct)
+by(metis nat.induct)
 
 lemma
   "(\<forall>A. (0, 0) \<in> A \<and> (\<forall>x y. (x, y) \<in> A \<longrightarrow> (Suc x, Suc y) \<in> A) \<longrightarrow> (n, m) \<in> A)

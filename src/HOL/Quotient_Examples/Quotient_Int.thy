@@ -275,7 +275,7 @@ lemma int_induct_raw:
 proof (cases x, clarify)
   fix a b
   show "P (a, b)"
-  proof (induct a arbitrary: b rule: Nat.induct)
+  proof (induct a arbitrary: b rule: nat.induct)
     case zero
     show "P (0, b)" using assms by (induct b) auto
   next
