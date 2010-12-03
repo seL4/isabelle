@@ -135,6 +135,8 @@ use "Tools/smallvalue_generators.ML"
 
 setup {* Smallvalue_Generators.setup *}
 
+declare [[quickcheck_tester = exhaustive]]
+
 hide_fact orelse_def catch_match_def
 hide_const (open) orelse catch_match
 
