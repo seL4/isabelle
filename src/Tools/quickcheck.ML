@@ -10,6 +10,7 @@ sig
   (* configuration *)
   val auto: bool Unsynchronized.ref
   val timing : bool Unsynchronized.ref
+  val tester : string Config.T 
   val size : int Config.T
   val iterations : int Config.T
   val no_assms : bool Config.T
@@ -86,6 +87,7 @@ fun merge_expectation (expect1, expect2) =
   if expect1 = expect2 then expect1 else No_Expectation
 
 (* quickcheck configuration -- default parameters, test generators *)
+val (tester, setup_tester) = Attrib.config_string "quickcheck_tester" (K "")
 val (size, setup_size) = Attrib.config_int "quickcheck_size" (K 10)
 val (iterations, setup_iterations) = Attrib.config_int "quickcheck_iterations" (K 100)
 val (no_assms, setup_no_assms) = Attrib.config_bool "quickcheck_no_assms" (K false)
@@ -96,8 +98,8 @@ val (finite_types, setup_finite_types) = Attrib.config_bool "quickcheck_finite_t
 val (finite_type_size, setup_finite_type_size) = Attrib.config_int "quickcheck_finite_type_size" (K 3)
 
 val setup_config =
-  setup_size #> setup_iterations #> setup_no_assms #> setup_report #> setup_quiet #> setup_timeout
-    #> setup_finite_types #> setup_finite_type_size
+  setup_tester #> setup_size #> setup_iterations #> setup_no_assms #> setup_report #> setup_quiet
+    #> setup_timeout #> setup_finite_types #> setup_finite_type_size
 
 datatype test_params = Test_Params of
   {default_type: typ list, expect : expectation};
