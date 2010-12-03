@@ -97,9 +97,8 @@ val _ =
 
 (* hook *)
 
-fun auto_solve_direct state =
-  if not (! auto) then (false, state) else solve_direct true state;
+val auto_solve_direct = solve_direct true
 
-val setup = Auto_Tools.register_tool (solve_directN, auto_solve_direct);
+val setup = Auto_Tools.register_tool (auto, auto_solve_direct);
 
 end;
