@@ -929,14 +929,21 @@ text {*
     and \emph{code} for code generation in SML.
 
   \item @{command (HOL) "quickcheck"} tests the current goal for
-    counter examples using a series of arbitrary assignments for its
+    counter examples using a series of assignments for its
     free variables; by default the first subgoal is tested, an other
     can be selected explicitly using an optional goal index.
+    Assignments can be chosen exhausting the search space upto a given
+    size or using a fixed number of random assignments in the search space.
+    By default, quickcheck uses exhaustive testing.
     A number of configuration options are supported for
     @{command (HOL) "quickcheck"}, notably:
 
     \begin{description}
 
+    \item[@{text tester}] specifies how to explore the search space
+      (e.g. exhaustive or random).
+      An unknown configuration option is treated as an argument to tester,
+      making @{text "tester ="} optional.
     \item[@{text size}] specifies the maximum size of the search space
     for assignment values.
 
