@@ -32,10 +32,10 @@ sig
   (* testing terms and proof states *)
   val test_term_small: Proof.context -> term ->
     (string * term) list option * ((string * int) list * ((int * report list) list) option)
-  val test_term: Proof.context -> string option -> term ->
+  val test_term: Proof.context -> bool -> string option -> term ->
     (string * term) list option * ((string * int) list * ((int * report list) list) option)
   val test_goal_terms:
-    Proof.context -> string option * (string * typ) list -> term list
+    Proof.context -> bool -> string option * (string * typ) list -> term list
       -> (string * term) list option * ((string * int) list * ((int * report list) list) option) list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
 end;
@@ -209,7 +209,7 @@ fun is_iteratable "SML" = true
   | is_iteratable "random" = true
   | is_iteratable _ = false
   
-fun test_term ctxt generator_name t =
+fun test_term ctxt is_interactive generator_name t =
   let
     val (names, t') = prep_test_term t;
     val current_size = Unsynchronized.ref 0
@@ -260,7 +260,7 @@ fun test_term ctxt generator_name t =
          (fn result => case result of NONE => NONE
         | SOME ts => SOME (names ~~ ts)) (with_size 1 []))) ()
       handle TimeLimit.TimeOut =>
-        error (excipit "ran out of time")
+        if is_interactive then error (excipit "ran out of time") else TimeLimit.TimeOut
   in
     (result, ([exec_time, comp_time], if Config.get ctxt report then SOME reports else NONE))
   end;
@@ -290,7 +290,7 @@ fun monomorphic_term thy insts default_T =
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term
 
-fun test_goal_terms lthy (generator_name, insts) check_goals =
+fun test_goal_terms lthy is_interactive (generator_name, insts) check_goals =
   let
     val thy = ProofContext.theory_of lthy 
     val inst_goals =
@@ -313,7 +313,7 @@ fun test_goal_terms lthy (generator_name, insts) check_goals =
         case f t of
           (SOME res, report) => (SOME res, rev (report :: reports))
         | (NONE, report) => collect_results f (report :: reports) ts
-  in collect_results (test_term lthy generator_name) [] correct_inst_goals end;
+  in collect_results (test_term lthy is_interactive generator_name) [] correct_inst_goals end;
 
 fun test_goal (generator_name, insts) i state =
   let
@@ -336,7 +336,7 @@ fun test_goal (generator_name, insts) i state =
       | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal)
         (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
   in
-    test_goal_terms lthy (generator_name, insts) check_goals
+    test_goal_terms lthy true (generator_name, insts) check_goals
   end
 
 (* pretty printing *)
