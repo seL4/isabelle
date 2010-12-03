@@ -517,6 +517,9 @@ begin
 lemma finite [simp]: "finite (A \<Colon> 'a set)"
   by (rule subset_UNIV finite_UNIV finite_subset)+
 
+lemma finite_code [code]: "finite (A \<Colon> 'a set) = True"
+  by simp
+
 end
 
 lemma UNIV_unit [no_atp]:
