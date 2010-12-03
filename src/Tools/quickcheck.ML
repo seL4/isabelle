@@ -188,12 +188,12 @@ fun test_term_small ctxt t =
     fun with_size k timings =
       if k > Config.get ctxt size then (NONE, timings)
       else
-         let
-           val _ = if Config.get ctxt quiet then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
-           val _ = current_size := k
-           val (result, timing) = cpu_time ("size " ^ string_of_int k)
-             (fn () => (fst (tester k)) handle Match => (if Config.get ctxt quiet then ()
-             else warning "Exception Match raised during quickcheck"; NONE))
+        let
+          val _ = if Config.get ctxt quiet then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
+          val _ = current_size := k
+          val (result, timing) = cpu_time ("size " ^ string_of_int k)
+            (fn () => (fst (tester k)) handle Match => (if Config.get ctxt quiet then ()
+              else warning "Exception Match raised during quickcheck"; NONE))
         in
           case result of
             NONE => with_size (k + 1) (timing :: timings)
@@ -276,16 +276,16 @@ exception WELLSORTED of string
 fun monomorphic_term thy insts default_T = 
   let
     fun subst (T as TFree (v, S)) =
-          let
-            val T' = AList.lookup (op =) insts v
-              |> the_default default_T
-          in if Sign.of_sort thy (T', S) then T'
-            else raise (WELLSORTED ("For instantiation with default_type " ^ Syntax.string_of_typ_global thy default_T ^
-              ":\n" ^ Syntax.string_of_typ_global thy T' ^
-              " to be substituted for variable " ^
-              Syntax.string_of_typ_global thy T ^ " does not have sort " ^
-              Syntax.string_of_sort_global thy S))
-          end
+      let
+        val T' = AList.lookup (op =) insts v
+          |> the_default default_T
+      in if Sign.of_sort thy (T', S) then T'
+        else raise (WELLSORTED ("For instantiation with default_type " ^ Syntax.string_of_typ_global thy default_T ^
+          ":\n" ^ Syntax.string_of_typ_global thy T' ^
+          " to be substituted for variable " ^
+          Syntax.string_of_typ_global thy T ^ " does not have sort " ^
+          Syntax.string_of_sort_global thy S))
+      end
       | subst T = T;
   in (map_types o map_atyps) subst end;
 
