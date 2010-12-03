@@ -33,9 +33,11 @@ uses
   "Tools/try.ML"
   ("Tools/cnf_funcs.ML")
   ("Tools/type_mapper.ML")
+  "~~/src/Tools/subtyping.ML"
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
+setup Subtyping.setup
 
 
 subsection {* Primitive logic *}

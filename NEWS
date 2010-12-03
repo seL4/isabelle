@@ -101,29 +101,32 @@ the local file system.
 
 *** HOL ***
 
-* Quickcheck now by default uses exhaustive testing instead of random testing.
-Random testing can be invoked by quickcheck[random],
+* Quickcheck now by default uses exhaustive testing instead of random
+testing.  Random testing can be invoked by quickcheck[random],
 exhaustive testing by quickcheck[exhaustive].
 
-* Quickcheck instantiates polymorphic types with small finite datatypes
-by default. This enables a simple execution mechanism to handle
-quantifiers and function equality over the finite datatypes.   
+* Quickcheck instantiates polymorphic types with small finite
+datatypes by default. This enables a simple execution mechanism to
+handle quantifiers and function equality over the finite datatypes.
 
-* Functions can be declared as coercions and type inference will add them
-as necessary upon input of a term. In Complex_Main, real :: nat => real
-and real :: int => real are declared as coercions. A new coercion function
-f is declared like this:
+* Functions can be declared as coercions and type inference will add
+them as necessary upon input of a term. In theory Complex_Main,
+real :: nat => real and real :: int => real are declared as
+coercions. A new coercion function f is declared like this:
 
-declare [[coercion f]]
+  declare [[coercion f]]
 
 To lift coercions through type constructors (eg from nat => real to
 nat list => real list), map functions can be declared, e.g.
 
-declare [[coercion_map map]]
+  declare [[coercion_map map]]
 
-Currently coercion inference is activated only in theories including real
-numbers, i.e. descendants of Complex_Main. In other theories it needs to be
-loaded explicitly: uses "~~/src/Tools/subtyping.ML"
+Currently coercion inference is activated only in theories including
+real numbers, i.e. descendants of Complex_Main.  This is controlled by
+the configuration option "infer_coercions", e.g. it can be enabled in
+other theories like this:
+
+  declare [[coercion_enabled]]
 
 * Abandoned locales equiv, congruent and congruent2 for equivalence relations.
 INCOMPATIBILITY: use equivI rather than equiv_intro (same for congruent(2)).
