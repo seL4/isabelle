@@ -70,9 +70,9 @@ where
   [simp]: "diff_list xs ys = [x \<leftarrow> xs. x \<notin> set ys]"
 
 definition
-  rsp_fold
+  rsp_fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> bool"
 where
-  "rsp_fold f \<equiv> \<forall>u v w. (f u (f v w) = f v (f u w))"
+  "rsp_fold f \<longleftrightarrow> (\<forall>u v. f u \<circ> f v = f v \<circ> f u)"
 
 primrec
   fold_list :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a list \<Rightarrow> 'b"
@@ -227,7 +227,7 @@ lemma member_commute_fold_list:
   assumes a: "rsp_fold f"
   and     b: "x \<in> set xs"
   shows "fold_list f y xs = f x (fold_list f y (removeAll x xs))"
-  using a b by (induct xs) (auto simp add: rsp_fold_def)
+  using a b by (induct xs) (auto simp add: rsp_fold_def fun_eq_iff)
 
 lemma fold_list_rsp_pre:
   assumes a: "set xs = set ys"
