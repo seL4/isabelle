@@ -50,21 +50,20 @@ sig
 
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
-  val smtN : string
-  val is_prover_available : theory -> string -> bool
+  val is_prover_available : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
-  val default_max_relevant_for_prover : theory -> string -> int
+  val default_max_relevant_for_prover : Proof.context -> string -> int
   val is_built_in_const_for_prover :
     Proof.context -> string -> string * typ -> bool
-  val relevance_fudge_for_prover : string -> relevance_fudge
+  val relevance_fudge_for_prover : Proof.context -> string -> relevance_fudge
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
-  val available_provers : theory -> unit
+  val available_provers : Proof.context -> unit
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
-  val get_prover : theory -> bool -> string -> prover
+  val get_prover : Proof.context -> bool -> string -> prover
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
     -> Proof.state -> bool * Proof.state
@@ -90,27 +89,43 @@ open Sledgehammer_ATP_Reconstruct
    "Async_Manager". *)
 val das_Tool = "Sledgehammer"
 
-val smtN = "smt"
-val smt_prover_names = [smtN, remote_prefix ^ smtN]
+fun is_smt_prover ctxt name =
+  let val smts = SMT_Solver.available_solvers_of ctxt in
+    case try (unprefix remote_prefix) name of
+      SOME suffix => member (op =) smts suffix andalso
+                     SMT_Solver.is_remotely_available ctxt suffix
+    | NONE => member (op =) smts name
+  end
 
-val is_smt_prover = member (op =) smt_prover_names
-
-fun is_prover_available thy name =
-  is_smt_prover name orelse member (op =) (available_atps thy) name
+fun is_prover_available ctxt name =
+  let val thy = ProofContext.theory_of ctxt in
+    is_smt_prover ctxt name orelse member (op =) (available_atps thy) name
+  end
 
 fun is_prover_installed ctxt name =
   let val thy = ProofContext.theory_of ctxt in
-    if is_smt_prover name then SMT_Solver.is_locally_installed ctxt
-    else is_atp_installed thy name
+    if is_smt_prover ctxt name then
+      String.isPrefix remote_prefix name orelse
+      SMT_Solver.is_locally_installed ctxt name
+    else
+      is_atp_installed thy name
+  end
+
+fun available_smt_solvers ctxt =
+  let val smts = SMT_Solver.available_solvers_of ctxt in
+    smts @ map (prefix remote_prefix)
+               (filter (SMT_Solver.is_remotely_available ctxt) smts)
   end
 
 (* FUDGE *)
 val smt_default_max_relevant = 225
 val auto_max_relevant_divisor = 2
 
-fun default_max_relevant_for_prover thy name =
-  if is_smt_prover name then smt_default_max_relevant
-  else #default_max_relevant (get_atp thy name)
+fun default_max_relevant_for_prover ctxt name =
+  let val thy = ProofContext.theory_of ctxt in
+    if is_smt_prover ctxt name then smt_default_max_relevant
+    else #default_max_relevant (get_atp thy name)
+  end
 
 (* These are typically simplified away by "Meson.presimplify". Equality is
    handled specially via "fequal". *)
@@ -119,7 +134,7 @@ val atp_irrelevant_consts =
    @{const_name HOL.eq}]
 
 fun is_built_in_const_for_prover ctxt name (s, T) =
-  if is_smt_prover name then SMT_Builtin.is_builtin ctxt (s, T)
+  if is_smt_prover ctxt name then SMT_Builtin.is_builtin ctxt (s, T)
   else member (op =) atp_irrelevant_consts s
 
 (* FUDGE *)
@@ -162,13 +177,15 @@ val smt_relevance_fudge =
    threshold_divisor = #threshold_divisor atp_relevance_fudge,
    ridiculous_threshold = #ridiculous_threshold atp_relevance_fudge}
 
-fun relevance_fudge_for_prover name =
-  if is_smt_prover name then smt_relevance_fudge else atp_relevance_fudge
+fun relevance_fudge_for_prover ctxt name =
+  if is_smt_prover ctxt name then smt_relevance_fudge else atp_relevance_fudge
 
-fun available_provers thy =
+fun available_provers ctxt =
   let
+    val thy = ProofContext.theory_of ctxt
     val (remote_provers, local_provers) =
-      sort_strings (available_atps thy) @ smt_prover_names
+      sort_strings (available_atps thy) @
+      sort_strings (available_smt_solvers ctxt)
       |> List.partition (String.isPrefix remote_prefix)
   in
     Output.urgent_message ("Available provers: " ^
@@ -523,11 +540,16 @@ fun can_apply_metis debug state i ths =
             (Config.put Metis_Tactics.verbose debug
              #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
-fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
+fun run_smt_solver auto name (params as {debug, ...}) minimize_command
         ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
+    val (remote, suffix) =
+      case try (unprefix remote_prefix) name of
+        SOME suffix => (true, suffix)
+      | NONE => (false, name)
     val repair_context =
-      Config.put SMT_Config.verbose debug
+      Context.proof_map (SMT_Config.select_solver suffix)
+      #> Config.put SMT_Config.verbose debug
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
     val thy = Proof.theory_of state
@@ -558,30 +580,34 @@ fun run_smt_solver auto remote (params as {debug, ...}) minimize_command
      run_time_in_msecs = run_time_in_msecs, message = message}
   end
 
-fun get_prover thy auto name =
-  if is_smt_prover name then
-    run_smt_solver auto (String.isPrefix remote_prefix name)
-  else
-    run_atp auto name (get_atp thy name)
+fun get_prover ctxt auto name =
+  let val thy = ProofContext.theory_of ctxt in
+    if is_smt_prover ctxt name then
+      run_smt_solver auto name
+    else if member (op =) (available_atps thy) name then
+      run_atp auto name (get_atp thy name)
+    else
+      error ("No such prover: " ^ name ^ ".")
+  end
 
 fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
                auto minimize_command
                (problem as {state, goal, subgoal, subgoal_count, facts, ...})
                name =
   let
-    val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
     val max_relevant =
-      the_default (default_max_relevant_for_prover thy name) max_relevant
+      the_default (default_max_relevant_for_prover ctxt name) max_relevant
     val num_facts = Int.min (length facts, max_relevant)
     val desc =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
+    val prover = get_prover ctxt auto name
     fun go () =
       let
         fun really_go () =
-          get_prover thy auto name params (minimize_command name) problem
+          prover params (minimize_command name) problem
           |> (fn {outcome, message, ...} =>
                  (if is_some outcome then "none" else "some", message))
         val (outcome_code, message) =
@@ -629,13 +655,15 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
   | n =>
     let
       val _ = Proof.assert_backward state
-      val thy = Proof.theory_of state
       val ctxt = Proof.context_of state
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val _ = () |> not blocking ? kill_provers
+      val _ = case find_first (not o is_prover_available ctxt) provers of
+                SOME name => error ("No such prover: " ^ name ^ ".")
+              | NONE => ()
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."
-      val (smts, atps) = provers |> List.partition is_smt_prover
+      val (smts, atps) = provers |> List.partition (is_smt_prover ctxt)
       fun run_provers label full_types relevance_fudge maybe_translate provers
                       (res as (success, state)) =
         if success orelse null provers then
@@ -646,7 +674,7 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
               case max_relevant of
                 SOME n => n
               | NONE =>
-                0 |> fold (Integer.max o default_max_relevant_for_prover thy)
+                0 |> fold (Integer.max o default_max_relevant_for_prover ctxt)
                           provers
                   |> auto ? (fn n => n div auto_max_relevant_divisor)
             val is_built_in_const =

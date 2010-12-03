@@ -316,11 +316,10 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 
 fun get_prover ctxt args =
   let
-    val thy = ProofContext.theory_of ctxt
     fun default_prover_name () =
       hd (#provers (Sledgehammer_Isar.default_params ctxt []))
       handle Empty => error "No ATP available."
-    fun get_prover name = (name, Sledgehammer.get_prover thy false name)
+    fun get_prover name = (name, Sledgehammer.get_prover ctxt false name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
@@ -356,10 +355,11 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
           [("verbose", "true"),
            ("timeout", Int.toString timeout)]
     val default_max_relevant =
-      Sledgehammer.default_max_relevant_for_prover thy prover_name
+      Sledgehammer.default_max_relevant_for_prover ctxt prover_name
     val is_built_in_const =
       Sledgehammer.is_built_in_const_for_prover ctxt prover_name
-    val relevance_fudge = Sledgehammer.relevance_fudge_for_prover prover_name
+    val relevance_fudge =
+      Sledgehammer.relevance_fudge_for_prover ctxt prover_name
     val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val facts =
