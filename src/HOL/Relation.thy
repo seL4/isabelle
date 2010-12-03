@@ -132,6 +132,11 @@ by (unfold Id_on_def) (iprover elim!: UN_E singletonE)
 lemma Id_on_iff: "((x, y) : Id_on A) = (x = y & x : A)"
 by blast
 
+lemma Id_on_def'[nitpick_def, code]:
+  "(Id_on (A :: 'a => bool)) = (%(x, y). x = y \<and> A x)"
+by (auto simp add: fun_eq_iff
+  elim: Id_onE[unfolded mem_def] intro: Id_onI[unfolded mem_def])
+
 lemma Id_on_subset_Times: "Id_on A \<subseteq> A \<times> A"
 by blast
 
