@@ -17,7 +17,7 @@ text {*
 definition
   list_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "\<approx>" 50)
 where
-  [simp]: "list_eq xs ys \<longleftrightarrow> set xs = set ys"
+  [simp]: "xs \<approx> ys \<longleftrightarrow> set xs = set ys"
 
 lemma list_eq_reflp:
   "reflp list_eq"
@@ -1047,14 +1047,14 @@ subsection {* alternate formulation with a different decomposition principle
   and a proof of equivalence *}
 
 inductive
-  list_eq2 ("_ \<approx>2 _")
+  list_eq2 :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" ("_ \<approx>2 _")
 where
   "(a # b # xs) \<approx>2 (b # a # xs)"
 | "[] \<approx>2 []"
-| "xs \<approx>2 ys \<Longrightarrow>  ys \<approx>2 xs"
+| "xs \<approx>2 ys \<Longrightarrow> ys \<approx>2 xs"
 | "(a # a # xs) \<approx>2 (a # xs)"
-| "xs \<approx>2 ys \<Longrightarrow>  (a # xs) \<approx>2 (a # ys)"
-| "\<lbrakk>xs1 \<approx>2 xs2;  xs2 \<approx>2 xs3\<rbrakk> \<Longrightarrow> xs1 \<approx>2 xs3"
+| "xs \<approx>2 ys \<Longrightarrow> (a # xs) \<approx>2 (a # ys)"
+| "xs1 \<approx>2 xs2 \<Longrightarrow> xs2 \<approx>2 xs3 \<Longrightarrow> xs1 \<approx>2 xs3"
 
 lemma list_eq2_refl:
   shows "xs \<approx>2 xs"
