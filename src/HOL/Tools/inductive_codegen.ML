@@ -9,7 +9,7 @@ sig
   val add : string option -> int option -> attribute
   val test_fn : (int * int * int -> term list option) Unsynchronized.ref
   val test_term:
-    Proof.context -> term -> int -> term list option * (bool list * bool)
+    Proof.context -> term -> int -> term list option * Quickcheck.report option
   val setup : theory -> theory
   val quickcheck_setup : theory -> theory
 end;
@@ -842,10 +842,9 @@ fun test_term ctxt t =
     val start = Config.get ctxt depth_start;
     val offset = Config.get ctxt size_offset;
     val test_fn' = !test_fn;
-    val dummy_report = ([], false)
     fun test k = (deepen bound (fn i =>
       (Output.urgent_message ("Search depth: " ^ string_of_int i);
-       test_fn' (i, values, k+offset))) start, dummy_report);
+       test_fn' (i, values, k+offset))) start, NONE);
   in test end;
 
 val quickcheck_setup =

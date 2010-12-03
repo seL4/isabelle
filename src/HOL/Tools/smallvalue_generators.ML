@@ -7,7 +7,7 @@ Generators for small values for various types.
 signature SMALLVALUE_GENERATORS =
 sig
   val compile_generator_expr:
-    Proof.context -> term -> int -> term list option * (bool list * bool)
+    Proof.context -> term -> int -> term list option * Quickcheck.report option
   val put_counterexample: (unit -> int -> term list option)
     -> Proof.context -> Proof.context
   val smart_quantifier : bool Config.T;
@@ -272,19 +272,15 @@ fun mk_generator_expr ctxt t =
   in Abs ("d", @{typ code_numeral}, fold_rev mk_small_closure bounds check) end
 
 fun compile_generator_expr ctxt t =
-  if Config.get ctxt Quickcheck.report then
-    error "Compilation with reporting facility is not supported"
-  else
-    let
-      val thy = ProofContext.theory_of ctxt
-      val t' =
-        (if Config.get ctxt smart_quantifier then mk_smart_generator_expr else mk_generator_expr)
-          ctxt t;
-      val compile = Code_Runtime.dynamic_value_strict
-        (Counterexample.get, put_counterexample, "Smallvalue_Generators.put_counterexample")
-        thy (SOME target) (fn proc => fn g => g #> (Option.map o map) proc) t' [];
-      val dummy_report = ([], false)
-    in compile #> rpair dummy_report end;
+  let
+    val thy = ProofContext.theory_of ctxt
+    val t' =
+      (if Config.get ctxt smart_quantifier then mk_smart_generator_expr else mk_generator_expr)
+        ctxt t;
+    val compile = Code_Runtime.dynamic_value_strict
+      (Counterexample.get, put_counterexample, "Smallvalue_Generators.put_counterexample")
+      thy (SOME target) (fn proc => fn g => g #> (Option.map o map) proc) t' [];
+  in fn size => rpair NONE (compile size) end;
 
 (** setup **)
 

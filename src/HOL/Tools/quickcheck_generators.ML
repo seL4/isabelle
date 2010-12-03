@@ -17,7 +17,7 @@ sig
       string list * string list -> typ list * typ list -> theory -> theory)
     -> Datatype.config -> string list -> theory -> theory
   val compile_generator_expr:
-    Proof.context -> term -> int -> term list option * (bool list * bool)
+    Proof.context -> term -> int -> term list option * Quickcheck.report option
   val put_counterexample: (unit -> int -> seed -> term list option * seed)
     -> Proof.context -> Proof.context
   val put_counterexample_report: (unit -> int -> seed -> (term list option * (bool list * bool)) * seed)
@@ -387,25 +387,73 @@ fun mk_reporting_generator_expr thy prop Ts =
     Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check))
   end
 
+(* single quickcheck report *)
+
+datatype single_report = Run of bool list * bool | MatchExc
+
+fun collect_single_report single_report
+    (Quickcheck.Report {iterations = iterations, raised_match_errors = raised_match_errors,
+    satisfied_assms = satisfied_assms, positive_concl_tests = positive_concl_tests}) =
+  case single_report
+  of MatchExc =>
+    Quickcheck.Report {iterations = iterations + 1, raised_match_errors = raised_match_errors + 1,
+      satisfied_assms = satisfied_assms, positive_concl_tests = positive_concl_tests}
+   | Run (assms, concl) =>
+    Quickcheck.Report {iterations = iterations + 1, raised_match_errors = raised_match_errors,
+      satisfied_assms =
+        map2 (fn b => fn s => if b then s + 1 else s) assms
+         (if null satisfied_assms then replicate (length assms) 0 else satisfied_assms),
+      positive_concl_tests = if concl then positive_concl_tests + 1 else positive_concl_tests}
+
+val empty_report = Quickcheck.Report { iterations = 0, raised_match_errors = 0,
+  satisfied_assms = [], positive_concl_tests = 0 }
+    
 fun compile_generator_expr ctxt t =
   let
     val Ts = (map snd o fst o strip_abs) t;
     val thy = ProofContext.theory_of ctxt
-  in if Config.get ctxt Quickcheck.report then
-    let
-      val t' = mk_reporting_generator_expr thy t Ts;
-      val compile = Code_Runtime.dynamic_value_strict
-        (Counterexample_Report.get, put_counterexample_report, "Quickcheck_Generators.put_counterexample_report")
-        thy (SOME target) (fn proc => fn g => fn s => g s #>> (apfst o Option.map o map) proc) t' [];
-    in compile #> Random_Engine.run end
-  else
-    let
-      val t' = mk_generator_expr thy t Ts;
-      val compile = Code_Runtime.dynamic_value_strict
-        (Counterexample.get, put_counterexample, "Quickcheck_Generators.put_counterexample")
-        thy (SOME target) (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) t' [];
-      val dummy_report = ([], false)
-    in compile #> Random_Engine.run #> rpair dummy_report end
+    val iterations = Config.get ctxt Quickcheck.iterations
+  in
+    if Config.get ctxt Quickcheck.report then
+      let
+        val t' = mk_reporting_generator_expr thy t Ts;
+        val compile = Code_Runtime.dynamic_value_strict
+          (Counterexample_Report.get, put_counterexample_report, "Quickcheck_Generators.put_counterexample_report")
+          thy (SOME target) (fn proc => fn g => fn s => g s #>> (apfst o Option.map o map) proc) t' [];
+        val single_tester = compile #> Random_Engine.run
+        fun iterate_and_collect size 0 report = (NONE, report)
+          | iterate_and_collect size j report =
+            let
+              val (test_result, single_report) = apsnd Run (single_tester size) handle Match => 
+                (if Config.get ctxt Quickcheck.quiet then ()
+                 else warning "Exception Match raised during quickcheck"; (NONE, MatchExc))
+              val report = collect_single_report single_report report
+            in
+              case test_result of NONE => iterate_and_collect size (j - 1) report
+                | SOME q => (SOME q, report)
+            end
+      in
+        fn size => apsnd SOME (iterate_and_collect size iterations empty_report)
+      end
+    else
+      let
+        val t' = mk_generator_expr thy t Ts;
+        val compile = Code_Runtime.dynamic_value_strict
+          (Counterexample.get, put_counterexample, "Quickcheck_Generators.put_counterexample")
+          thy (SOME target) (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) t' [];
+        val single_tester = compile #> Random_Engine.run
+        fun iterate size 0 = NONE
+          | iterate size j =
+            let
+              val result = single_tester size handle Match => 
+                (if Config.get ctxt Quickcheck.quiet then ()
+                 else warning "Exception Match raised during quickcheck"; NONE)
+            in
+              case result of NONE => iterate size (j - 1) | SOME q => SOME q
+            end
+      in
+        fn size => (rpair NONE (iterate size iterations))
+      end
   end;
 
 

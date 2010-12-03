@@ -28,7 +28,7 @@ sig
   val map_test_params : (typ list * expectation -> typ list * expectation)
     -> Context.generic -> Context.generic
   val add_generator:
-    string * (Proof.context -> term -> int -> term list option * (bool list * bool))
+    string * (Proof.context -> term -> int -> term list option * report option)
       -> Context.generic -> Context.generic
   (* testing terms and proof states *)
   val test_term: Proof.context -> bool -> term ->
@@ -57,25 +57,9 @@ val _ =
 
 (* quickcheck report *)
 
-datatype single_report = Run of bool list * bool | MatchExc
-
 datatype report = Report of
   { iterations : int, raised_match_errors : int,
     satisfied_assms : int list, positive_concl_tests : int }
-
-fun collect_single_report single_report
-    (Report {iterations = iterations, raised_match_errors = raised_match_errors,
-    satisfied_assms = satisfied_assms, positive_concl_tests = positive_concl_tests}) =
-  case single_report
-  of MatchExc =>
-    Report {iterations = iterations + 1, raised_match_errors = raised_match_errors + 1,
-      satisfied_assms = satisfied_assms, positive_concl_tests = positive_concl_tests}
-   | Run (assms, concl) =>
-    Report {iterations = iterations + 1, raised_match_errors = raised_match_errors,
-      satisfied_assms =
-        map2 (fn b => fn s => if b then s + 1 else s) assms
-         (if null satisfied_assms then replicate (length assms) 0 else satisfied_assms),
-      positive_concl_tests = if concl then positive_concl_tests + 1 else positive_concl_tests}
 
 (* expectation *)
 
@@ -116,7 +100,7 @@ fun merge_test_params
 structure Data = Generic_Data
 (
   type T =
-    (string * (Proof.context -> term -> int -> term list option * (bool list * bool))) list
+    (string * (Proof.context -> term -> int -> term list option * report option)) list
       * test_params;
   val empty = ([], Test_Params {default_type = [], expect = No_Expectation});
   val extend = I;
@@ -172,11 +156,6 @@ fun cpu_time description f =
     val result = Exn.capture f ()
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
-
-(* we actually assume we know the generators and its behaviour *)
-fun is_iteratable "SML" = true
-  | is_iteratable "random" = true
-  | is_iteratable _ = false
   
 fun test_term ctxt is_interactive t =
   let
@@ -185,30 +164,18 @@ fun test_term ctxt is_interactive t =
     fun excipit s =
       "Quickcheck " ^ s ^ " while testing at size " ^ string_of_int (!current_size)
     val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => mk_tester ctxt t');
-    fun iterate f 0 report = (NONE, report)
-      | iterate f j report =
-        let
-          val (test_result, single_report) = apsnd Run (f ()) handle Match => 
-            (if Config.get ctxt quiet then ()
-             else warning "Exception Match raised during quickcheck"; (NONE, MatchExc))
-          val report = collect_single_report single_report report
-        in
-          case test_result of NONE => iterate f (j - 1) report | SOME q => (SOME q, report)
-        end
-    val empty_report = Report { iterations = 0, raised_match_errors = 0,
-      satisfied_assms = [], positive_concl_tests = 0 }
     fun with_size test_fun k reports =
-      if k > Config.get ctxt size then (NONE, reports)
+      if k > Config.get ctxt size then
+        (NONE, reports)
       else
-       (if Config.get ctxt quiet then () else Output.urgent_message ("Test data size: " ^ string_of_int k);
         let
+          val _ = if Config.get ctxt quiet then () else Output.urgent_message
+            ("Test data size: " ^ string_of_int k)
           val _ = current_size := k
-          val niterations =
-            if is_iteratable (Config.get ctxt tester) then Config.get ctxt iterations else 1
-          val ((result, new_report), timing) = cpu_time ("size " ^ string_of_int k)
-            (fn () => iterate (fn () => test_fun (k - 1)) niterations empty_report)
-          val reports = ((k, new_report) :: reports)
-        in case result of NONE => with_size test_fun (k + 1) reports | SOME q => (SOME q, reports) end);
+          val ((result, new_report), timing) =
+            cpu_time ("size " ^ string_of_int k) (fn () => test_fun (k - 1))
+          val reports = case new_report of NONE => reports | SOME rep => (k, rep) :: reports
+        in case result of NONE => with_size test_fun (k + 1) reports | SOME q => (SOME q, reports) end;
   in
     case test_fun of NONE => (NONE, ([comp_time], NONE)) 
       | SOME test_fun =>
