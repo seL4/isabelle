@@ -220,15 +220,16 @@ datatype wellsorted_error = Wellsorted_Error of string | Term of term
 fun test_goal_terms lthy is_interactive insts check_goals =
   let
     val thy = ProofContext.theory_of lthy 
+    val default_insts =
+      if Config.get lthy finite_types then (get_finite_types lthy) else (default_type lthy)
     val inst_goals =
-      if Config.get lthy finite_types then 
-        maps (fn check_goal => map (fn T =>
-          Term ((Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
-            handle WELLSORTED s => Wellsorted_Error s) (get_finite_types lthy)) check_goals
-      else
-        maps (fn check_goal => map (fn T =>
-          Term ((Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
-            handle WELLSORTED s => Wellsorted_Error s) (default_type lthy)) check_goals
+      maps (fn check_goal =>
+        if not (null (Term.add_tfree_names check_goal [])) then
+          map (fn T =>
+            ((Term o Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
+              handle WELLSORTED s => Wellsorted_Error s) default_insts 
+        else
+          [Term (Object_Logic.atomize_term thy check_goal)]) check_goals
     val error_msg = cat_lines (map_filter (fn Term t => NONE | Wellsorted_Error s => SOME s) inst_goals)
     val correct_inst_goals =
       case map_filter (fn Term t => SOME t | Wellsorted_Error s => NONE) inst_goals of
