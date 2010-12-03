@@ -20,7 +20,6 @@ sig
   val para: text -> text
   val preform: text -> text
   val verbatim: string -> text
-  val with_charset: string -> ('a -> 'b) -> 'a -> 'b
   val begin_document: string -> text
   val end_document: text
   val begin_index: Url.T * string -> Url.T * string -> (Url.T * string) list -> Url.T -> text
@@ -276,25 +275,20 @@ val verbatim = preform o output;
 
 (* document *)
 
-val charset = Unsynchronized.ref "ISO-8859-1";
-fun with_charset s = Unsynchronized.setmp charset s;   (* FIXME unreliable *)
-
 fun begin_document title =
-  let val cs = ! charset in
-    "<?xml version=\"1.0\" encoding=\"" ^ cs ^ "\" ?>\n\
-    \<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \
-    \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n\
-    \<html xmlns=\"http://www.w3.org/1999/xhtml\">\n\
-    \<head>\n\
-    \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=" ^ cs ^ "\"/>\n\
-    \<title>" ^ plain (title ^ " (" ^ Distribution.version ^ ")") ^ "</title>\n\
-    \<link media=\"all\" rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\"/>\n\
-    \</head>\n\
-    \\n\
-    \<body>\n\
-    \<div class=\"head\">\
-    \<h1>" ^ plain title ^ "</h1>\n"
-  end;
+  "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n\
+  \<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \
+  \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n\
+  \<html xmlns=\"http://www.w3.org/1999/xhtml\">\n\
+  \<head>\n\
+  \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>\n\
+  \<title>" ^ plain (title ^ " (" ^ Distribution.version ^ ")") ^ "</title>\n\
+  \<link media=\"all\" rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\"/>\n\
+  \</head>\n\
+  \\n\
+  \<body>\n\
+  \<div class=\"head\">\
+  \<h1>" ^ plain title ^ "</h1>\n";
 
 val end_document = "\n</div>\n</body>\n</html>\n";
 

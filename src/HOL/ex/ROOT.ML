@@ -8,7 +8,10 @@ no_document use_thys [
   "Efficient_Nat_examples",
   "FuncSet",
   "Eval_Examples",
-  "Normalization_by_Evaluation"
+  "Normalization_by_Evaluation",
+  "Hebrew",
+  "Chinese",
+  "Serbian"
 ];
 
 use_thys [
@@ -70,9 +73,6 @@ use_thys [
   "Quicksort",
   "Birthday_Paradoxon"
 ];
-
-HTML.with_charset "utf-8" (no_document use_thys)
-  ["Hebrew", "Chinese", "Serbian"];
 
 use_thy "SVC_Oracle";
 if getenv "SVC_HOME" = "" then ()
