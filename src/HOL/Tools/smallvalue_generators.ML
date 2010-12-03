@@ -50,8 +50,8 @@ fun mk_none_continuation (x, y) =
   let
     val (T as Type(@{type_name "option"}, [T'])) = fastype_of x
   in
-    Const (@{const_name Option.option_case}, T --> (T' --> T) --> T --> T)
-      $ y $ Const (@{const_name Some}, T' --> T) $ x
+    Const (@{const_name "Smallcheck.orelse"}, T --> T --> T)
+      $ x $ y
   end
 
 (** datatypes **)
