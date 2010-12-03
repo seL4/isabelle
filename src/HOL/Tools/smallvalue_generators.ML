@@ -16,6 +16,10 @@ end;
 structure Smallvalue_Generators : SMALLVALUE_GENERATORS =
 struct
 
+(* static options *)
+
+val define_foundationally = false
+
 (** general term functions **)
 
 fun mk_measure f =
@@ -36,6 +40,8 @@ fun mk_sumcases rT f (Type (@{type_name Sum_Type.sum}, [TL, TR])) =
   end
   | mk_sumcases _ f T = f T
 
+fun mk_undefined T = Const(@{const_name undefined}, T)
+  
 
 (** abstract syntax **)
 
@@ -70,11 +76,8 @@ val full_smallN = "full_small";
 fun full_smallT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
   --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
  
-fun mk_equations thy descr vs tycos (names, auxnames) (Ts, Us) =
+fun mk_equations thy descr vs tycos smalls (Ts, Us) =
   let
-    val smallsN = map (prefix (full_smallN ^ "_")) (names @ auxnames);
-    val smalls = map2 (fn name => fn T => Free (name, full_smallT T))
-      smallsN (Ts @ Us)
     fun mk_small_call T =
       let
         val small = Const (@{const_name "Smallcheck.full_small_class.full_small"}, full_smallT T)        
@@ -119,44 +122,77 @@ fun mk_equations thy descr vs tycos (names, auxnames) (Ts, Us) =
     val lhss = map2 (fn t => fn T => t $ test_function T $ size) smalls (Ts @ Us);
     val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
   in
-    (Ts @ Us ~~ (smallsN ~~ eqs))
+    eqs
   end
-    
+
+(* foundational definition with the function package *)
+
 val less_int_pred = @{lemma "i > 0 ==> Code_Numeral.nat_of ((i :: code_numeral) - 1) < Code_Numeral.nat_of i" by auto}
-  
+
+fun mk_single_measure T = HOLogic.mk_comp (@{term "Code_Numeral.nat_of"},
+    Const (@{const_name "Product_Type.snd"}, T --> @{typ "code_numeral"}))
+
+fun mk_termination_measure T =
+  let
+    val T' = fst (HOLogic.dest_prodT (HOLogic.dest_setT T))
+  in
+    mk_measure (mk_sumcases @{typ nat} mk_single_measure T')
+  end
+
+fun termination_tac ctxt = 
+  Function_Relation.relation_tac ctxt mk_termination_measure 1
+  THEN rtac @{thm wf_measure} 1
+  THEN (REPEAT_DETERM (Simplifier.asm_full_simp_tac 
+    (HOL_basic_ss addsimps [@{thm in_measure}, @{thm o_def}, @{thm snd_conv},
+     @{thm nat_mono_iff}, less_int_pred] @ @{thms sum.cases}) 1))
+
+fun pat_completeness_auto ctxt =
+  Pat_Completeness.pat_completeness_tac ctxt 1
+  THEN auto_tac (clasimpset_of ctxt)    
+
+
+(* creating the instances *)
+
 fun instantiate_smallvalue_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = Datatype_Aux.message config "Creating smallvalue generators ...";
-    val eqs = mk_equations thy descr vs tycos (names, auxnames) (Ts, Us)
-    fun mk_single_measure T = HOLogic.mk_comp (@{term "Code_Numeral.nat_of"},
-      Const (@{const_name "Product_Type.snd"}, T --> @{typ "code_numeral"}))
-    fun mk_termination_measure T =
-      let
-        val T' = fst (HOLogic.dest_prodT (HOLogic.dest_setT T))
-      in
-        mk_measure (mk_sumcases @{typ nat} mk_single_measure T')
-      end
-    fun termination_tac ctxt = 
-      Function_Relation.relation_tac ctxt mk_termination_measure 1
-      THEN rtac @{thm wf_measure} 1
-      THEN (REPEAT_DETERM (Simplifier.asm_full_simp_tac 
-        (HOL_basic_ss addsimps [@{thm in_measure}, @{thm o_def}, @{thm snd_conv},
-         @{thm nat_mono_iff}, less_int_pred] @ @{thms sum.cases}) 1))
-    fun pat_completeness_auto ctxt =
-      Pat_Completeness.pat_completeness_tac ctxt 1
-      THEN auto_tac (clasimpset_of ctxt)
-  in 
+    val smallsN = map (prefix (full_smallN ^ "_")) (names @ auxnames);
+  in
     thy
     |> Class.instantiation (tycos, vs, @{sort full_small})
-    |> Function.add_function
-      (map (fn (T, (name, _)) =>
-          Syntax.no_syn (Binding.conceal (Binding.name name), SOME (full_smallT T))) eqs)
-        (map (pair (apfst Binding.conceal Attrib.empty_binding) o snd o snd) eqs)
-        Function_Common.default_config pat_completeness_auto
-    |> snd
-    |> Local_Theory.restore
-    |> (fn lthy => Function.prove_termination NONE (termination_tac lthy) lthy)
-    |> snd
+    |> (if define_foundationally then
+      let
+        val smalls = map2 (fn name => fn T => Free (name, full_smallT T)) smallsN (Ts @ Us)
+        val eqs = mk_equations thy descr vs tycos smalls (Ts, Us)
+      in
+        Function.add_function
+          (map (fn (name, T) =>
+              Syntax.no_syn (Binding.conceal (Binding.name name), SOME (full_smallT T)))
+                (smallsN ~~ (Ts @ Us)))
+            (map (pair (apfst Binding.conceal Attrib.empty_binding)) eqs)
+          Function_Common.default_config pat_completeness_auto
+        #> snd
+        #> Local_Theory.restore
+        #> (fn lthy => Function.prove_termination NONE (termination_tac lthy) lthy)
+        #> snd
+      end
+    else
+      fold_map (fn (name, T) => Local_Theory.define
+          ((Binding.conceal (Binding.name name), NoSyn),
+            (apfst Binding.conceal Attrib.empty_binding, mk_undefined (full_smallT T)))
+        #> apfst fst) (smallsN ~~ (Ts @ Us))
+      #> (fn (smalls, lthy) =>
+        let
+          val eqs_t = mk_equations thy descr vs tycos smalls (Ts, Us)
+          val eqs = map (fn eq => Goal.prove lthy ["f", "i"] [] eq
+            (fn _ => Skip_Proof.cheat_tac (ProofContext.theory_of lthy))) eqs_t
+        in
+          fold (fn (name, eq) => Local_Theory.note
+          ((Binding.conceal (Binding.qualify true prfx
+             (Binding.qualify true name (Binding.name "simps"))),
+             Code.add_default_eqn_attrib :: map (Attrib.internal o K)
+               [Simplifier.simp_add, Nitpick_Simps.add]), [eq]) #> snd) (smallsN ~~ eqs) lthy
+        end))
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end handle FUNCTION_TYPE =>
     (Datatype_Aux.message config
