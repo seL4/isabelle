@@ -342,7 +342,15 @@ fun read_expectation "no_expectation" = No_Expectation
   | read_expectation "counterexample" = Counterexample
   | read_expectation s = error ("Not an expectation value: " ^ s)  
 
-fun parse_test_param ("tester", [arg]) = Config.put_generic tester arg
+fun valid_tester_name genctxt = AList.defined (op =) (fst (Data.get genctxt))
+
+fun parse_tester name genctxt =
+  if valid_tester_name genctxt name then
+    Config.put_generic tester name genctxt
+  else
+    error ("Unknown tester: " ^ name)
+
+fun parse_test_param ("tester", [arg]) = parse_tester arg
   | parse_test_param ("size", [arg]) = Config.put_generic size (read_nat arg)
   | parse_test_param ("iterations", [arg]) = Config.put_generic iterations (read_nat arg)
   | parse_test_param ("default_type", arg) = (fn gen_ctxt =>
@@ -354,7 +362,10 @@ fun parse_test_param ("tester", [arg]) = Config.put_generic tester arg
   | parse_test_param ("timeout", [arg]) = Config.put_generic timeout (read_real arg)
   | parse_test_param ("finite_types", [arg]) = Config.put_generic finite_types (read_bool arg)
   | parse_test_param ("finite_type_size", [arg]) = Config.put_generic finite_type_size (read_nat arg)
-  | parse_test_param (name, _) = error ("Unknown test parameter: " ^ name);
+  | parse_test_param (name, _) = fn genctxt =>
+    if valid_tester_name genctxt name then
+      Config.put_generic tester name genctxt
+    else error ("Unknown tester or test parameter: " ^ name);
 
 fun parse_test_param_inst (name, arg) (insts, ctxt) =
       case try (ProofContext.read_typ ctxt) name
