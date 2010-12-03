@@ -76,7 +76,7 @@ sig
   val mk_term_of: codegr -> string -> bool -> typ -> Pretty.T
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
   val test_fn: (int -> term list option) Unsynchronized.ref
-  val test_term: Proof.context -> term -> int -> term list option * (bool list * bool)
+  val test_term: Proof.context -> term -> int -> term list option
   val eval_result: (unit -> term) Unsynchronized.ref
   val eval_term: theory -> term -> term
   val evaluation_conv: cterm -> thm
@@ -895,8 +895,7 @@ fun test_term ctxt t =
           str ");"]) ^
       "\n\nend;\n";
     val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none s;
-    val dummy_report = ([], false)
-  in (fn size => (! test_fn size, dummy_report)) end;
+  in (fn size => (! test_fn size)) end;
 
 
 
