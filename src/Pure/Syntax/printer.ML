@@ -22,6 +22,7 @@ sig
   val show_question_marks_default: bool Unsynchronized.ref
   val show_question_marks_raw: Config.raw
   val show_question_marks: bool Config.T
+  val pretty_priority: int Config.T
 end;
 
 signature PRINTER =
@@ -314,7 +315,9 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
-fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
+val pretty_priority = Config.int (Config.declare "Syntax.pretty_priority" (K (Config.Int 0)));
+
+fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 =
   let
     val {extern_class, extern_type, extern_const} = extern;
     val show_brackets = Config.get ctxt show_brackets;
@@ -341,7 +344,9 @@ fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
             val (Ts, args') = synT markup (symbs, args);
           in
             if type_mode then (astT (t, p) @ Ts, args')
-            else (pretty extern ctxt tabs trf tokentrf true curried t p @ Ts, args')
+            else
+              (pretty extern (Config.put pretty_priority p ctxt)
+                tabs trf tokentrf true curried t @ Ts, args')
           end
       | synT markup (String s :: symbs, args) =
           let val (Ts, args') = synT markup (symbs, args);
@@ -414,21 +419,19 @@ fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
       | astT (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _)), p) = combT (c, a, args, p)
       | astT (Ast.Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
       | astT (ast as Ast.Appl _, _) = raise Ast.AST ("pretty: malformed ast", [ast]);
-  in astT (ast0, p0) end;
+  in astT (ast0, Config.get ctxt pretty_priority) end;
 
 
 (* pretty_term_ast *)
 
 fun pretty_term_ast extern ctxt curried prtabs trf tokentrf ast =
-  pretty extern ctxt (mode_tabs prtabs (print_mode_value ()))
-    trf tokentrf false curried ast 0;
+  pretty extern ctxt (mode_tabs prtabs (print_mode_value ())) trf tokentrf false curried ast;
 
 
 (* pretty_typ_ast *)
 
 fun pretty_typ_ast {extern_class, extern_type} ctxt _ prtabs trf tokentrf ast =
   pretty {extern_class = extern_class, extern_type = extern_type, extern_const = I}
-    ctxt (mode_tabs prtabs (print_mode_value ()))
-    trf tokentrf true false ast 0;
+    ctxt (mode_tabs prtabs (print_mode_value ())) trf tokentrf true false ast;
 
 end;
