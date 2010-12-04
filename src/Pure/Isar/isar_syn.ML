@@ -35,7 +35,8 @@ val _ =
 
 val _ =
   Outer_Syntax.command "end" "end (local) theory" (Keyword.tag_theory Keyword.thy_end)
-    (Scan.succeed (Toplevel.exit o Toplevel.end_local_theory));
+    (Scan.succeed
+      (Toplevel.exit o Toplevel.end_local_theory o Toplevel.end_proof (K Proof.end_notepad)));
 
 
 
@@ -505,6 +506,11 @@ val _ = gen_theorem false Thm.corollaryK;
 val _ = gen_theorem true Thm.theoremK;
 val _ = gen_theorem true Thm.lemmaK;
 val _ = gen_theorem true Thm.corollaryK;
+
+val _ =
+  Outer_Syntax.local_theory_to_proof "notepad"
+    "Isar proof state as formal notepad, without any result" Keyword.thy_decl
+    (Parse.begin >> K Proof.begin_notepad);
 
 val _ =
   Outer_Syntax.local_theory_to_proof "example_proof"

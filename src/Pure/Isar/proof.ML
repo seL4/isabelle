@@ -76,6 +76,8 @@ sig
   val begin_block: state -> state
   val next_block: state -> state
   val end_block: state -> state
+  val begin_notepad: Proof.context -> state
+  val end_notepad: state -> Proof.context
   val proof: Method.text option -> state -> state Seq.seq
   val defer: int option -> state -> state Seq.seq
   val prefer: int -> state -> state Seq.seq
@@ -767,10 +769,28 @@ val next_block =
 fun end_block state =
   state
   |> assert_forward
+  |> assert_bottom false
   |> close_block
   |> assert_current_goal false
   |> close_block
   |> export_facts state;
+
+
+(* global notepad *)
+
+val begin_notepad =
+  init
+  #> open_block
+  #> map_context (Variable.set_body true)
+  #> open_block;
+
+val end_notepad =
+  assert_forward
+  #> assert_bottom true
+  #> close_block
+  #> assert_current_goal false
+  #> close_block
+  #> context_of;
 
 
 (* sub-proofs *)
