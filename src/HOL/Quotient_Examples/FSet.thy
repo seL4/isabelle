@@ -83,23 +83,18 @@ lemma rsp_foldE:
   obtains "f u \<circ> f v = f v \<circ> f u"
   using assms by (simp add: rsp_fold_def)
 
-primrec
-  fold_list :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b"
+definition
+  fold_once :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b"
 where
-  "fold_list f [] = id"
-| "fold_list f (a # xs) =
-     (if rsp_fold f then
-       if a \<in> set xs then fold_list f xs
-       else f a \<circ> fold_list f xs
-     else id)"
+  "fold_once f xs = (if rsp_fold f then fold f (remdups xs) else id)"
 
-lemma fold_list_default [simp]:
-  "\<not> rsp_fold f \<Longrightarrow> fold_list f xs = id"
-  by (cases xs) simp_all
+lemma fold_once_default [simp]:
+  "\<not> rsp_fold f \<Longrightarrow> fold_once f xs = id"
+  by (simp add: fold_once_def)
 
-lemma fold_list_fold_remdups:
-  "rsp_fold f \<Longrightarrow> fold_list f xs = fold f (remdups xs)"
-  by (induct xs) (auto elim: rsp_foldE intro: fold_commute)
+lemma fold_once_fold_remdups:
+  "rsp_fold f \<Longrightarrow> fold_once f xs = fold f (remdups xs)"
+  by (simp add: fold_once_def)
 
 
 section {* Quotient composition lemmas *}
@@ -239,15 +234,23 @@ lemma filter_rsp [quot_respect]:
   shows "(op = ===> op \<approx> ===> op \<approx>) filter filter"
   by (auto intro!: fun_relI)
 
-lemma member_commute_fold_list:
-  assumes a: "rsp_fold f"
-  and     b: "x \<in> set xs"
-  shows "fold_list f xs = f x \<circ> fold_list f (removeAll x xs)"
-  using a b by (induct xs) (auto simp add: rsp_fold_def fun_eq_iff)
+lemma remdups_removeAll: (*FIXME move*)
+  "remdups (removeAll x xs) = remove1 x (remdups xs)"
+  by (induct xs) auto
 
-lemma fold_list_set_equiv:
+lemma member_commute_fold_once:
+  assumes "rsp_fold f"
+    and "x \<in> set xs"
+  shows "fold_once f xs = fold_once f (removeAll x xs) \<circ> f x"
+proof -
+  from assms have "More_List.fold f (remdups xs) = More_List.fold f (remove1 x (remdups xs)) \<circ> f x"
+    by (auto intro!: fold_remove1_split elim: rsp_foldE)
+  then show ?thesis using `rsp_fold f` by (simp add: fold_once_fold_remdups remdups_removeAll)
+qed
+
+lemma fold_once_set_equiv:
   assumes "xs \<approx> ys"
-  shows "fold_list f xs = fold_list f ys"
+  shows "fold_once f xs = fold_once f ys"
 proof (cases "rsp_fold f")
   case False then show ?thesis by simp
 next
@@ -258,12 +261,12 @@ next
     by (simp add: set_eq_iff_multiset_of_remdups_eq)
   ultimately have "fold f (remdups xs) = fold f (remdups ys)"
     by (rule fold_multiset_equiv)
-  with True show ?thesis by (simp add: fold_list_fold_remdups)
+  with True show ?thesis by (simp add: fold_once_fold_remdups)
 qed
 
-lemma fold_list_rsp [quot_respect]:
-  shows "(op = ===> op \<approx> ===> op =) fold_list fold_list"
-  unfolding fun_rel_def by (auto intro: fold_list_set_equiv) 
+lemma fold_once_rsp [quot_respect]:
+  shows "(op = ===> op \<approx> ===> op =) fold_once fold_once"
+  unfolding fun_rel_def by (auto intro: fold_once_set_equiv) 
 
 lemma concat_rsp_pre:
   assumes a: "list_all2 op \<approx> x x'"
@@ -451,7 +454,7 @@ quotient_definition
 
 quotient_definition
   "fold_fset :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b \<Rightarrow> 'b"
-  is fold_list
+  is fold_once
 
 quotient_definition
   "concat_fset :: ('a fset) fset \<Rightarrow> 'a fset"
@@ -931,15 +934,15 @@ subsection {* fold_fset *}
 
 lemma fold_empty_fset: 
   "fold_fset f {||} = id"
-  by descending simp
+  by descending (simp add: fold_once_def)
 
 lemma fold_insert_fset: "fold_fset f (insert_fset a A) =
-  (if rsp_fold f then if a |\<in>| A then fold_fset f A else f a \<circ> fold_fset f A else id)"
-  by descending simp
+  (if rsp_fold f then if a |\<in>| A then fold_fset f A else fold_fset f A \<circ> f a else id)"
+  by descending (simp add: fold_once_fold_remdups)
 
 lemma in_commute_fold_fset:
-  "rsp_fold f \<Longrightarrow> h |\<in>| b \<Longrightarrow> fold_fset f b = f h \<circ> fold_fset f (remove_fset h b)"
-  by descending (simp add: member_commute_fold_list)
+  "rsp_fold f \<Longrightarrow> h |\<in>| b \<Longrightarrow> fold_fset f b = fold_fset f (remove_fset h b) \<circ> f h"
+  by descending (simp add: member_commute_fold_once)
 
 
 subsection {* Choice in fsets *}
