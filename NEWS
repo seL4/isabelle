@@ -585,6 +585,9 @@ names of constants and types involved. INCOMPATIBILITY.
 * Syntax.pretty_priority (default 0) configures the required priority
 of pretty-printed output and thus affects insertion of parentheses.
 
+* Syntax.default_root (default "any") configures the inner syntax
+category (nonterminal symbol) for parsing of terms.
+
 * Former exception Library.UnequalLengths now coincides with
 ListPair.UnequalLengths.
 

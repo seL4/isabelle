@@ -841,7 +841,7 @@ fun earley ctxt prods tags chains startsymbol indata =
     val start_tag =
       (case Symtab.lookup tags startsymbol of
         SOME tag => tag
-      | NONE => error ("Inner syntax: unknown startsymbol " ^ quote startsymbol));
+      | NONE => error ("Inner syntax: bad grammar root symbol " ^ quote startsymbol));
     val S0 = [(~1, 0, [], [Nonterminal (start_tag, 0), Terminal Lexicon.eof], "", 0)];
     val s = length indata + 1;
     val Estate = Array.array (s, []);

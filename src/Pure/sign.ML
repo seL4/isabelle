@@ -499,7 +499,7 @@ fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
 
 fun gen_trrules f args thy = thy |> map_syn (fn syn =>
   let val rules = map (Syntax.map_trrule (apfst (intern_type thy))) args
-  in f (ProofContext.init_global thy) (is_logtype thy) syn rules syn end);
+  in f (ProofContext.init_global thy) syn rules syn end);
 
 val add_trrules = gen_trrules Syntax.update_trrules;
 val del_trrules = gen_trrules Syntax.remove_trrules;

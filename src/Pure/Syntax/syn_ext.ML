@@ -10,6 +10,7 @@ sig
   val constrainC: string
   val typeT: typ
   val spropT: typ
+  val default_root: string Config.T
   val max_pri: int
   val stamp_trfun: stamp -> string * 'a -> string * ('a * stamp)
   val mk_trfun: string * 'a -> string * ('a * stamp)
@@ -111,6 +112,9 @@ val spropT = Type (sprop, []);
 
 val any = "any";
 val anyT = Type (any, []);
+
+val default_root =
+  Config.string (Config.declare "Syntax.default_root" (K (Config.String any)));
 
 
 

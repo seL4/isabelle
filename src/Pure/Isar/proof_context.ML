@@ -764,11 +764,19 @@ fun parse_term T ctxt text =
       if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
     val (syms, pos) = Syntax.parse_token ctxt markup text;
 
+    val default_root = Config.get ctxt Syntax.default_root;
+    val root =
+      (case T' of
+        Type (c, _) =>
+          if c <> "prop" andalso Type.is_logtype (tsig_of ctxt) c
+          then default_root else c
+      | _ => default_root);
+
     fun check t = (Syntax.check_term ctxt (Type.constraint T' t); NONE)
       handle ERROR msg => SOME msg;
     val t =
       Syntax.standard_parse_term check get_sort map_const map_free
-        ctxt (Type.is_logtype (tsig_of ctxt)) (syn_of ctxt) T' (syms, pos)
+        ctxt (syn_of ctxt) root (syms, pos)
       handle ERROR msg => parse_failed ctxt pos msg kind;
   in t end;
 

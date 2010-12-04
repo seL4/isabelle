@@ -117,7 +117,7 @@ sig
   val standard_parse_term: (term -> string option) ->
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> bool * string) -> (string -> string option) -> Proof.context ->
-    (string -> bool) -> syntax -> typ -> Symbol_Pos.T list * Position.T -> term
+    syntax -> string -> Symbol_Pos.T list * Position.T -> term
   val standard_parse_typ: Proof.context -> syntax ->
     ((indexname * sort) list -> indexname -> sort) -> Symbol_Pos.T list * Position.T -> typ
   val standard_parse_sort: Proof.context -> syntax -> Symbol_Pos.T list * Position.T -> sort
@@ -149,10 +149,8 @@ sig
   val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
   val update_const_gram: bool -> (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val update_trrules: Proof.context -> (string -> bool) -> syntax ->
-    (string * string) trrule list -> syntax -> syntax
-  val remove_trrules: Proof.context -> (string -> bool) -> syntax ->
-    (string * string) trrule list -> syntax -> syntax
+  val update_trrules: Proof.context -> syntax -> (string * string) trrule list -> syntax -> syntax
+  val remove_trrules: Proof.context -> syntax -> (string * string) trrule list -> syntax -> syntax
   val update_trrules_i: ast trrule list -> syntax -> syntax
   val remove_trrules_i: ast trrule list -> syntax -> syntax
 end;
@@ -702,14 +700,13 @@ val ambiguity_limit =
 
 fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
 
-fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
+fun read_asts ctxt (Syntax (tabs, _)) xids root (syms, pos) =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val toks = Lexicon.tokenize lexicon xids syms;
     val _ = List.app (Lexicon.report_token ctxt) toks;
 
-    val root' = if root <> "prop" andalso is_logtype root then Syn_Ext.logic else root;
-    val pts = Parser.parse ctxt gram root' (filter Lexicon.is_proper toks)
+    val pts = Parser.parse ctxt gram root (filter Lexicon.is_proper toks)
       handle ERROR msg =>
         error (msg ^
           implode (map (Markup.markup Markup.report o Lexicon.reported_token_range ctxt) toks));
@@ -733,10 +730,10 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
 
 (* read *)
 
-fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty inp =
+fun read ctxt (syn as Syntax (tabs, _)) root inp =
   let
     val {parse_ruletab, parse_trtab, ...} = tabs;
-    val asts = read_asts ctxt is_logtype syn false (Syn_Ext.typ_to_nonterm ty) inp;
+    val asts = read_asts ctxt syn false root inp;
   in
     Syn_Trans.asts_to_terms ctxt (lookup_tr parse_trtab)
       (map (Ast.normalize_ast (Symtab.lookup_list parse_ruletab)) asts)
@@ -778,8 +775,8 @@ fun disambig _ _ [t] = t
             map show_term (take limit results)))
       end;
 
-fun standard_parse_term check get_sort map_const map_free ctxt is_logtype syn ty (syms, pos) =
-  read ctxt is_logtype syn ty (syms, pos)
+fun standard_parse_term check get_sort map_const map_free ctxt syn root (syms, pos) =
+  read ctxt syn root (syms, pos)
   |> map (Type_Ext.decode_term get_sort map_const map_free)
   |> disambig ctxt check;
 
@@ -787,7 +784,7 @@ fun standard_parse_term check get_sort map_const map_free ctxt is_logtype syn ty
 (* read types *)
 
 fun standard_parse_typ ctxt syn get_sort (syms, pos) =
-  (case read ctxt (K false) syn Syn_Ext.typeT (syms, pos) of
+  (case read ctxt syn (Syn_Ext.typ_to_nonterm Syn_Ext.typeT) (syms, pos) of
     [t] => Type_Ext.typ_of_term (get_sort (Type_Ext.term_sorts t)) t
   | _ => error (ambiguity_msg pos));
 
@@ -795,7 +792,7 @@ fun standard_parse_typ ctxt syn get_sort (syms, pos) =
 (* read sorts *)
 
 fun standard_parse_sort ctxt syn (syms, pos) =
-  (case read ctxt (K false) syn Type_Ext.sortT (syms, pos) of
+  (case read ctxt syn (Syn_Ext.typ_to_nonterm Type_Ext.sortT) (syms, pos) of
     [t] => Type_Ext.sort_of_term t
   | _ => error (ambiguity_msg pos));
 
@@ -832,7 +829,7 @@ fun check_rule (rule as (lhs, rhs)) =
         Ast.str_of_ast lhs ^ "  ->  " ^ Ast.str_of_ast rhs)
   | NONE => rule);
 
-fun read_pattern ctxt is_logtype syn (root, str) =
+fun read_pattern ctxt syn (root, str) =
   let
     fun constify (ast as Ast.Constant _) = ast
       | constify (ast as Ast.Variable x) =
@@ -842,7 +839,7 @@ fun read_pattern ctxt is_logtype syn (root, str) =
 
     val (syms, pos) = read_token str;
   in
-    (case read_asts ctxt is_logtype syn true root (syms, pos) of
+    (case read_asts ctxt syn true root (syms, pos) of
       [ast] => constify ast
     | _ => error (ambiguity_msg pos))
   end;
@@ -857,8 +854,7 @@ in
 
 val cert_rules = prep_rules I;
 
-fun read_rules ctxt is_logtype syn =
-  prep_rules (read_pattern ctxt is_logtype syn);
+fun read_rules ctxt syn = prep_rules (read_pattern ctxt syn);
 
 end;
 
@@ -909,11 +905,11 @@ fun update_type_gram add prmode decls =
 fun update_const_gram add is_logtype prmode decls =
   (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts is_logtype decls);
 
-fun update_trrules ctxt is_logtype syn =
-  ext_syntax Syn_Ext.syn_ext_rules o read_rules ctxt is_logtype syn;
+fun update_trrules ctxt syn =
+  ext_syntax Syn_Ext.syn_ext_rules o read_rules ctxt syn;
 
-fun remove_trrules ctxt is_logtype syn =
-  remove_syntax mode_default o Syn_Ext.syn_ext_rules o read_rules ctxt is_logtype syn;
+fun remove_trrules ctxt syn =
+  remove_syntax mode_default o Syn_Ext.syn_ext_rules o read_rules ctxt syn;
 
 val update_trrules_i = ext_syntax Syn_Ext.syn_ext_rules o cert_rules;
 val remove_trrules_i = remove_syntax mode_default o Syn_Ext.syn_ext_rules o cert_rules;
