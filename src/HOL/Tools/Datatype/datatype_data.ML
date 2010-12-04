@@ -242,23 +242,21 @@ val _ = Thy_Output.antiquotation "datatype" (Args.type_name true)
       val thy = ProofContext.theory_of ctxt;
       val (vs, cos) = the_spec thy dtco;
       val ty = Type (dtco, map TFree vs);
-      fun pretty_typ_bracket (ty as Type (_, _ :: _)) =
-            Pretty.enclose "(" ")" [Syntax.pretty_typ ctxt ty]
-        | pretty_typ_bracket ty =
-            Syntax.pretty_typ ctxt ty;
+      val pretty_typ_bracket =
+        Syntax.pretty_typ (Config.put Syntax.pretty_priority (Syntax.max_pri + 1) ctxt);
       fun pretty_constr (co, tys) =
-        (Pretty.block o Pretty.breaks)
+        Pretty.block (Pretty.breaks
           (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::
-            map pretty_typ_bracket tys);
+            map pretty_typ_bracket tys));
       val pretty_datatype =
         Pretty.block
-          (Pretty.command "datatype" :: Pretty.brk 1 ::
-           Syntax.pretty_typ ctxt ty ::
-           Pretty.str " =" :: Pretty.brk 1 ::
-           flat (separate [Pretty.brk 1, Pretty.str "| "]
-             (map (single o pretty_constr) cos)));
+         (Pretty.command "datatype" :: Pretty.brk 1 ::
+          Syntax.pretty_typ ctxt ty ::
+          Pretty.str " =" :: Pretty.brk 1 ::
+          flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_constr) cos)));
     in
-      Thy_Output.output ctxt (Thy_Output.maybe_pretty_source (K (K pretty_datatype)) ctxt src [()])
+      Thy_Output.output ctxt
+        (Thy_Output.maybe_pretty_source (K (K pretty_datatype)) ctxt src [()])
     end);
 
 
