@@ -9,7 +9,7 @@ sig
   datatype kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | Float | String | AltString | Verbatim | Space | Comment | InternalValue |
-    Malformed | Error of string | Sync | EOF
+    Error of string | Sync | EOF
   datatype value =
     Text of string | Typ of typ | Term of term | Fact of thm list |
     Attribute of morphism -> attribute
@@ -90,7 +90,7 @@ datatype slot =
 datatype kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
   Nat | Float | String | AltString | Verbatim | Space | Comment | InternalValue |
-  Malformed | Error of string | Sync | EOF;
+  Error of string | Sync | EOF;
 
 datatype T = Token of (Symbol_Pos.text * Position.range) * (kind * string) * slot;
 
@@ -111,7 +111,6 @@ val str_of_kind =
   | Space => "white space"
   | Comment => "comment text"
   | InternalValue => "internal value"
-  | Malformed => "malformed symbolic character"
   | Error _ => "bad input"
   | Sync => "sync marker"
   | EOF => "end-of-file";
@@ -331,7 +330,6 @@ fun scan (lex1, lex2) = !!! "bad input"
     scan_verbatim >> token_range Verbatim ||
     scan_comment >> token_range Comment ||
     scan_space >> token Space ||
-    Scan.one (Symbol.is_malformed o Symbol_Pos.symbol) >> (token Malformed o single) ||
     Scan.one (Symbol.is_sync o Symbol_Pos.symbol) >> (token Sync o single) ||
     (Scan.max token_leq
       (Scan.max token_leq

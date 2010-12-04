@@ -60,7 +60,6 @@ val token_kind_markup =
   | Token.Space         => Markup.empty
   | Token.Comment       => Markup.comment
   | Token.InternalValue => Markup.empty
-  | Token.Malformed     => Markup.malformed
   | Token.Error _       => Markup.malformed
   | Token.Sync          => Markup.control
   | Token.EOF           => Markup.control;
