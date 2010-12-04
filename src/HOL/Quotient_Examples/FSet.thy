@@ -74,16 +74,32 @@ definition
 where
   "rsp_fold f \<longleftrightarrow> (\<forall>u v. f u \<circ> f v = f v \<circ> f u)"
 
-primrec
-  fold_list :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a list \<Rightarrow> 'b"
-where
-  "fold_list f z [] = z"
-| "fold_list f z (a # xs) =
-     (if (rsp_fold f) then
-       if a \<in> set xs then fold_list f z xs
-       else f a (fold_list f z xs)
-     else z)"
+lemma rsp_foldI:
+  "(\<And>u v. f u \<circ> f v = f v \<circ> f u) \<Longrightarrow> rsp_fold f"
+  by (simp add: rsp_fold_def)
 
+lemma rsp_foldE:
+  assumes "rsp_fold f"
+  obtains "f u \<circ> f v = f v \<circ> f u"
+  using assms by (simp add: rsp_fold_def)
+
+primrec
+  fold_list :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b"
+where
+  "fold_list f [] = id"
+| "fold_list f (a # xs) =
+     (if rsp_fold f then
+       if a \<in> set xs then fold_list f xs
+       else f a \<circ> fold_list f xs
+     else id)"
+
+lemma fold_list_default [simp]:
+  "\<not> rsp_fold f \<Longrightarrow> fold_list f xs = id"
+  by (cases xs) simp_all
+
+lemma fold_list_fold_remdups:
+  "rsp_fold f \<Longrightarrow> fold_list f xs = fold f (remdups xs)"
+  by (induct xs) (auto elim: rsp_foldE intro: fold_commute)
 
 
 section {* Quotient composition lemmas *}
@@ -226,33 +242,28 @@ lemma filter_rsp [quot_respect]:
 lemma member_commute_fold_list:
   assumes a: "rsp_fold f"
   and     b: "x \<in> set xs"
-  shows "fold_list f y xs = f x (fold_list f y (removeAll x xs))"
+  shows "fold_list f xs = f x \<circ> fold_list f (removeAll x xs)"
   using a b by (induct xs) (auto simp add: rsp_fold_def fun_eq_iff)
 
-lemma fold_list_rsp_pre:
-  assumes a: "set xs = set ys"
-  shows "fold_list f z xs = fold_list f z ys"
-  using a
-  apply (induct xs arbitrary: ys)
-  apply (simp)
-  apply (simp (no_asm_use))
-  apply (rule conjI)
-  apply (rule_tac [!] impI)
-  apply (rule_tac [!] conjI)
-  apply (rule_tac [!] impI)
-  apply (metis insert_absorb)
-  apply (metis List.insert_def List.set.simps(2) List.set_insert fold_list.simps(2))
-  apply (metis Diff_insert_absorb insertI1 member_commute_fold_list set_removeAll)
-  apply(drule_tac x="removeAll a ys" in meta_spec)
-  apply(auto)
-  apply(drule meta_mp)
-  apply(blast)
-  by (metis List.set.simps(2) emptyE fold_list.simps(2) in_listsp_conv_set listsp.simps mem_def)
+lemma fold_list_set_equiv:
+  assumes "xs \<approx> ys"
+  shows "fold_list f xs = fold_list f ys"
+proof (cases "rsp_fold f")
+  case False then show ?thesis by simp
+next
+  case True
+  then have "\<And>x y. x \<in> set (remdups xs) \<Longrightarrow> y \<in> set (remdups xs) \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
+    by (rule rsp_foldE)
+  moreover from assms have "multiset_of (remdups xs) = multiset_of (remdups ys)"
+    by (simp add: set_eq_iff_multiset_of_remdups_eq)
+  ultimately have "fold f (remdups xs) = fold f (remdups ys)"
+    by (rule fold_multiset_equiv)
+  with True show ?thesis by (simp add: fold_list_fold_remdups)
+qed
 
 lemma fold_list_rsp [quot_respect]:
-  shows "(op = ===> op = ===> op \<approx> ===> op =) fold_list fold_list"
-  unfolding fun_rel_def
-  by(auto intro: fold_list_rsp_pre)
+  shows "(op = ===> op \<approx> ===> op =) fold_list fold_list"
+  unfolding fun_rel_def by (auto intro: fold_list_set_equiv) 
 
 lemma concat_rsp_pre:
   assumes a: "list_all2 op \<approx> x x'"
@@ -439,7 +450,7 @@ quotient_definition
   is "set"
 
 quotient_definition
-  "fold_fset :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b"
+  "fold_fset :: ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b \<Rightarrow> 'b"
   is fold_list
 
 quotient_definition
@@ -903,15 +914,15 @@ lemma concat_inter_fset [simp]:
 subsection {* filter_fset *}
 
 lemma subset_filter_fset: 
-  shows "filter_fset P xs |\<subseteq>| filter_fset Q xs = (\<forall> x. x |\<in>| xs \<longrightarrow> P x \<longrightarrow> Q x)"
-  by  (descending) (auto)
+  "filter_fset P xs |\<subseteq>| filter_fset Q xs = (\<forall> x. x |\<in>| xs \<longrightarrow> P x \<longrightarrow> Q x)"
+  by descending auto
 
 lemma eq_filter_fset: 
-  shows "(filter_fset P xs = filter_fset Q xs) = (\<forall>x. x |\<in>| xs \<longrightarrow> P x = Q x)"
-  by (descending) (auto)
+  "(filter_fset P xs = filter_fset Q xs) = (\<forall>x. x |\<in>| xs \<longrightarrow> P x = Q x)"
+  by descending auto
 
 lemma psubset_filter_fset:
-  shows "(\<And>x. x |\<in>| xs \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| xs & \<not> P x & Q x) \<Longrightarrow> 
+  "(\<And>x. x |\<in>| xs \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| xs & \<not> P x & Q x) \<Longrightarrow> 
     filter_fset P xs |\<subset>| filter_fset Q xs"
   unfolding less_fset_def by (auto simp add: subset_filter_fset eq_filter_fset)
 
@@ -919,16 +930,16 @@ lemma psubset_filter_fset:
 subsection {* fold_fset *}
 
 lemma fold_empty_fset: 
-  shows "fold_fset f z {||} = z"
-  by (descending) (simp)
+  "fold_fset f {||} = id"
+  by descending simp
 
-lemma fold_insert_fset: "fold_fset f z (insert_fset a A) =
-  (if rsp_fold f then if a |\<in>| A then fold_fset f z A else f a (fold_fset f z A) else z)"
-  by (descending) (simp)
+lemma fold_insert_fset: "fold_fset f (insert_fset a A) =
+  (if rsp_fold f then if a |\<in>| A then fold_fset f A else f a \<circ> fold_fset f A else id)"
+  by descending simp
 
 lemma in_commute_fold_fset:
-  "\<lbrakk>rsp_fold f; h |\<in>| b\<rbrakk> \<Longrightarrow> fold_fset f z b = f h (fold_fset f z (remove_fset h b))"
-  by (descending) (simp add: member_commute_fold_list)
+  "rsp_fold f \<Longrightarrow> h |\<in>| b \<Longrightarrow> fold_fset f b = f h \<circ> fold_fset f (remove_fset h b)"
+  by descending (simp add: member_commute_fold_list)
 
 
 subsection {* Choice in fsets *}
