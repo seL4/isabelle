@@ -83,6 +83,9 @@ float_token.
 
 *** Pure ***
 
+* Command 'notepad' replaces former 'example_proof' for
+experimentation in Isar without and result.  INCOMPATIBILITY.
+
 * Support for real valued preferences (with approximative PGIP type).
 
 * Interpretation command 'interpret' accepts a list of equations like

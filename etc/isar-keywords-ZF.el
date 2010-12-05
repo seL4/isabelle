@@ -61,7 +61,6 @@
     "done"
     "enable_pr"
     "end"
-    "example_proof"
     "exit"
     "extract"
     "extract_type"
@@ -415,7 +414,6 @@
 
 (defconst isar-keywords-theory-goal
   '("corollary"
-    "example_proof"
     "instance"
     "interpretation"
     "lemma"

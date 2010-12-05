@@ -65,25 +65,30 @@ Proof commands perform transitions of Isar/VM machine
 }
 \isamarkuptrue%
 %
-\isamarkupsubsection{Example proofs%
+\isamarkupsubsection{Formal notepad%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{example\_proof}\hypertarget{command.example-proof}{\hyperlink{command.example-proof}{\mbox{\isa{\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{notepad}\hypertarget{command.notepad}{\hyperlink{command.notepad}{\mbox{\isa{\isacommand{notepad}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
+
+  \begin{rail}
+    'notepad' 'begin'
+    ;
+    'end'
+    ;
+  \end{rail}
 
   \begin{description}
 
-  \item \hyperlink{command.example-proof}{\mbox{\isa{\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}}}} opens an empty proof body.  This
-  allows to experiment with Isar, without producing any persistent
-  result.
+  \item \hyperlink{command.notepad}{\mbox{\isa{\isacommand{notepad}}}}~\hyperlink{keyword.begin}{\mbox{\isa{\isakeyword{begin}}}} opens a proof state
+  without any goal statement.  This allows to experiment with Isar,
+  without producing any persistent result.
 
-  Structurally, this is like a vacous \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}} statement
-  followed by ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{22}{\isachardoublequote}}}'', which means the
-  example proof may be closed by a regular \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}, or
-  discontinued by \hyperlink{command.oops}{\mbox{\isa{\isacommand{oops}}}}.
+  The notepad can be closed by \hyperlink{command.end}{\mbox{\isa{\isacommand{end}}}} or discontinued by
+  \hyperlink{command.oops}{\mbox{\isa{\isacommand{oops}}}}.
 
   \end{description}%
 \end{isamarkuptext}%

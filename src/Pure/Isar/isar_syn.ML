@@ -513,13 +513,6 @@ val _ =
     (Parse.begin >> K Proof.begin_notepad);
 
 val _ =
-  Outer_Syntax.local_theory_to_proof "example_proof"
-    "example proof body, without any result" Keyword.thy_schematic_goal
-    (Scan.succeed
-      (Specification.theorem_cmd "" NONE (K I)
-        Attrib.empty_binding [] (Element.Shows []) false #> Proof.enter_forward));
-
-val _ =
   Outer_Syntax.command "have" "state local goal"
     (Keyword.tag_proof Keyword.prf_goal)
     (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.have));
