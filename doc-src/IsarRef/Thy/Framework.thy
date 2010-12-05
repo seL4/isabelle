@@ -79,12 +79,13 @@ text {*
 text_raw {*\medskip\begin{minipage}{0.6\textwidth}*}
 
 (*<*)
-example_proof
+notepad
+begin
 (*>*)
     assume "x \<in> A" and "x \<in> B"
     then have "x \<in> A \<inter> B" ..
 (*<*)
-qed
+end
 (*>*)
 
 text_raw {*\end{minipage}\begin{minipage}{0.4\textwidth}*}
@@ -106,12 +107,13 @@ text {*
 *}
 
 (*<*)
-example_proof
+notepad
+begin
 (*>*)
     assume "x \<in> A" and "x \<in> B"
     then have "x \<in> A \<inter> B" by (rule IntI)
 (*<*)
-qed
+end
 (*>*)
 
 text {*
@@ -128,7 +130,8 @@ text {*
 text_raw {*\medskip\begin{minipage}{0.6\textwidth}*}
 
 (*<*)
-example_proof
+notepad
+begin
 (*>*)
     have "x \<in> \<Inter>\<A>"
     proof
@@ -137,7 +140,7 @@ example_proof
       show "x \<in> A" sorry %noproof
     qed
 (*<*)
-qed
+end
 (*>*)
 
 text_raw {*\end{minipage}\begin{minipage}{0.4\textwidth}*}
@@ -175,7 +178,8 @@ text {*
 text_raw {*\medskip\begin{minipage}{0.6\textwidth}*}
 
 (*<*)
-example_proof
+notepad
+begin
 (*>*)
     assume "x \<in> \<Union>\<A>"
     then have C
@@ -185,7 +189,7 @@ example_proof
       show C sorry %noproof
     qed
 (*<*)
-qed
+end
 (*>*)
 
 text_raw {*\end{minipage}\begin{minipage}{0.4\textwidth}*}
@@ -208,12 +212,13 @@ text {*
 *}
 
 (*<*)
-example_proof
+notepad
+begin
 (*>*)
     assume "x \<in> \<Union>\<A>"
     then obtain A where "x \<in> A" and "A \<in> \<A>" ..
 (*<*)
-qed
+end
 (*>*)
 
 text {*
@@ -812,7 +817,7 @@ text {*
 *}
 
 text_raw {* \begingroup\footnotesize *}
-(*<*)example_proof
+(*<*)notepad begin
 (*>*)
   txt_raw {* \begin{minipage}[t]{0.18\textwidth} *}
   have "A \<longrightarrow> B"
@@ -853,7 +858,7 @@ text_raw {* \begingroup\footnotesize *}
 @{text "(finish)"} \\
 \end{minipage} *}
 (*<*)
-qed
+end
 (*>*)
 text_raw {* \endgroup *}
 
@@ -871,7 +876,8 @@ text {*
 text_raw {*\begin{minipage}{0.5\textwidth}*}
 
 (*<*)
-example_proof
+notepad
+begin
 (*>*)
   have "\<And>x y. A x \<Longrightarrow> B y \<Longrightarrow> C x y"
   proof -
@@ -915,7 +921,7 @@ next
     show "C x y" sorry
   qed
 (*<*)
-qed
+end
 (*>*)
 
 text_raw {*\end{minipage}*}
@@ -980,14 +986,15 @@ text {*
 *}
 
 (*<*)
-example_proof
+notepad
+begin
 (*>*)
   have "a = b" sorry
   also have "\<dots> = c" sorry
   also have "\<dots> = d" sorry
   finally have "a = d" .
 (*<*)
-qed
+end
 (*>*)
 
 text {*

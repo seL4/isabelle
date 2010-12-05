@@ -574,13 +574,14 @@ text {* Here the ML environment is already managed by Isabelle, i.e.\
   the whole proof body, ignoring the block structure.
 *}
 
-example_proof
+notepad
+begin
   ML_prf %"ML" {* val a = 1 *}
   {
     ML_prf %"ML" {* val b = a + 1 *}
   } -- {* Isar block structure ignored by ML environment *}
   ML_prf %"ML" {* val c = b + 1 *}
-qed
+end
 
 text {* By side-stepping the normal scoping rules for Isar proof
   blocks, embedded ML code can refer to the different contexts and
@@ -599,10 +600,11 @@ text {* By side-stepping the normal scoping rules for Isar proof
 ML_val {* factorial 100 *}
 ML_command {* writeln (string_of_int (factorial 100)) *}
 
-example_proof
+notepad
+begin
   ML_val {* factorial 100 *}  (* FIXME check/fix indentation *)
   ML_command {* writeln (string_of_int (factorial 100)) *}
-qed
+end
 
 
 subsection {* Compile-time context *}

@@ -222,8 +222,9 @@ The following example peeks at a certain goal configuration.%
 \isadelimmlex
 %
 \endisadelimmlex
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -500,8 +501,9 @@ See also \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isalite
 \isadelimmlex
 %
 \endisadelimmlex
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -569,15 +571,15 @@ thm\ conjI{}%
 \endisaantiq
 \ THEN{\isaliteral{5F}{\isacharunderscore}}ALL{\isaliteral{5F}{\isacharunderscore}}NEW\ atac{\isaliteral{29}{\isacharparenright}}\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{done}\isamarkupfalse%
-\isanewline
-\isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
+\isanewline
 %
 \endisadelimproof
+\isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \medskip The next example implements a method that simplifies
@@ -624,8 +626,9 @@ The concrete syntax wrapping of \hyperlink{command.method-setup}{\mbox{\isa{\isa
   this:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -640,15 +643,15 @@ The concrete syntax wrapping of \hyperlink{command.method-setup}{\mbox{\isa{\isa
 \ b{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}b\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
 \ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
-\ {\isaliteral{28}{\isacharparenleft}}my{\isaliteral{5F}{\isacharunderscore}}simp\ a\ b{\isaliteral{29}{\isacharparenright}}\isanewline
-\isacommand{qed}\isamarkupfalse%
-%
+\ {\isaliteral{28}{\isacharparenleft}}my{\isaliteral{5F}{\isacharunderscore}}simp\ a\ b{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
+\isanewline
 %
 \endisadelimproof
+\isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Here is a similar method that operates on all subgoals,
@@ -677,8 +680,9 @@ Here is a similar method that operates on all subgoals,
 \endisadelimML
 \isanewline
 \isanewline
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -693,16 +697,15 @@ Here is a similar method that operates on all subgoals,
 \ b{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}b\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
 \ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\ {\isaliteral{22}{\isachardoublequoteopen}}c\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
-\ {\isaliteral{28}{\isacharparenleft}}my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5F}{\isacharunderscore}}all\ a\ b{\isaliteral{29}{\isacharparenright}}\isanewline
-\isanewline
-\isacommand{qed}\isamarkupfalse%
-%
+\ {\isaliteral{28}{\isacharparenleft}}my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5F}{\isacharunderscore}}all\ a\ b{\isaliteral{29}{\isacharparenright}}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
+\isanewline
 %
 \endisadelimproof
+\isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \medskip Apart from explicit arguments, common proof methods
@@ -765,8 +768,9 @@ This provides ML access to a list of theorems in canonical
   like this:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -781,15 +785,15 @@ This provides ML access to a list of theorems in canonical
 \ {\isaliteral{5B}{\isacharbrackleft}}my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}b\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{have}\isamarkupfalse%
 \ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
-\ my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{27}{\isacharprime}}\isanewline
-\isacommand{qed}\isamarkupfalse%
-%
+\ my{\isaliteral{5F}{\isacharunderscore}}simp{\isaliteral{27}{\isacharprime}}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
+\isanewline
 %
 \endisadelimproof
+\isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \medskip The \hyperlink{method.my-simp}{\mbox{\isa{my{\isaliteral{5F}{\isacharunderscore}}simp}}} variants defined above are

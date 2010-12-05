@@ -72,8 +72,9 @@ Any variable that is not explicitly bound by \isa{{\isaliteral{5C3C6C616D6264613
   The following Isar source text illustrates this scenario.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -130,20 +131,7 @@ Any variable that is not explicitly bound by \isa{{\isaliteral{5C3C6C616D6264613
 \isamarkupcmt{fully general result for arbitrary \isa{{\isaliteral{3F}{\isacharquery}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{27}{\isacharprime}}a}%
 }
 \isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
+\isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The Isabelle/Isar proof context manages the details of term
@@ -338,8 +326,9 @@ The following ML code can now work with the invented names of
   ``skolem constants'', e.g.\ as follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimML
 \ \ %
@@ -361,7 +350,7 @@ context{}%
 \ \ \ \ val\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}y{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ y{\isadigit{2}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{2C}{\isacharcomma}}\ ctxt{\isadigit{4}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
 \ \ \ \ \ \ ctxt{\isadigit{3}}\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ Variable{\isaliteral{2E}{\isachardot}}variant{\isaliteral{5F}{\isacharunderscore}}fixes\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}y{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}y{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
-\ \ \isacommand{oops}\isamarkupfalse%
+\isacommand{end}\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -685,8 +674,9 @@ The following minimal example illustrates how to access
 \isadelimmlex
 %
 \endisadelimmlex
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -751,8 +741,9 @@ Isar{\isaliteral{2E}{\isachardot}}goal{}%
   a local context, using \verb|Obtain.result|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -806,7 +797,7 @@ thm\ refl{}%
 \ \ \ \ ProofContext{\isaliteral{2E}{\isachardot}}export\ ctxt{\isadigit{1}}\ ctxt{\isadigit{0}}\ {\isaliteral{5B}{\isacharbrackleft}}Thm{\isaliteral{2E}{\isachardot}}reflexive\ x{\isaliteral{5D}{\isacharbrackright}}\isanewline
 \ \ \ \ \ \ handle\ ERROR\ msg\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}warning\ msg{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
-\isacommand{qed}\isamarkupfalse%
+\isacommand{end}\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%

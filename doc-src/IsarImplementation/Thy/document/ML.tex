@@ -630,8 +630,9 @@ Here the ML environment is already managed by Isabelle, i.e.\
   the whole proof body, ignoring the block structure.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimML
 \ \ %
@@ -651,7 +652,7 @@ Here the ML environment is already managed by Isabelle, i.e.\
 \isanewline
 \ \ \isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}\isamarkupfalse%
 \ {\isaliteral{7B2A}{\isacharverbatimopen}}\ val\ c\ {\isaliteral{3D}{\isacharequal}}\ b\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
-\isacommand{qed}\isamarkupfalse%
+\isacommand{end}\isamarkupfalse%
 %
 \endisatagML
 {\isafoldML}%
@@ -694,8 +695,9 @@ By side-stepping the normal scoping rules for Isar proof
 \endisadelimML
 \isanewline
 \isanewline
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimML
 \ \ %
@@ -713,20 +715,7 @@ By side-stepping the normal scoping rules for Isar proof
 \isanewline
 %
 \endisadelimML
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
+\isacommand{end}\isamarkupfalse%
 %
 \isamarkupsubsection{Compile-time context%
 }

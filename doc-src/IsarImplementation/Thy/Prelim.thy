@@ -567,7 +567,8 @@ text {* A \emph{configuration option} is a named optional value of
 declare [[show_types = false]]
   -- {* declaration within (local) theory context *}
 
-example_proof
+notepad
+begin
   note [[show_types = true]]
     -- {* declaration within proof (forward mode) *}
   term x
@@ -576,7 +577,7 @@ example_proof
     using [[show_types = false]]
       -- {* declaration within proof (backward mode) *}
     ..
-qed
+end
 
 text {* Configuration options that are not set explicitly hold a
   default value that can depend on the application context.  This
@@ -646,13 +647,14 @@ declare [[my_flag = true]]
 
 ML_val {* @{assert} (Config.get @{context} my_flag = true) *}
 
-example_proof
+notepad
+begin
   {
     note [[my_flag = false]]
     ML_val {* @{assert} (Config.get @{context} my_flag = false) *}
   }
   ML_val {* @{assert} (Config.get @{context} my_flag = true) *}
-qed
+end
 
 text {* Here is another example involving ML type @{ML_type real}
   (floating-point numbers). *}

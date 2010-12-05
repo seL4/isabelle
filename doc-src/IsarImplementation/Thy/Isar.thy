@@ -162,7 +162,8 @@ text %mlantiq {*
 
 text %mlex {* The following example peeks at a certain goal configuration. *}
 
-example_proof
+notepad
+begin
   have A and B and C
     ML_val {*
       val n = Thm.nprems_of (#goal @{Isar.goal});
@@ -364,7 +365,8 @@ text %mlex {* See also @{command method_setup} in
   tactic} (abstracted over @{ML_text facts}).  This allows immediate
   experimentation without parsing of concrete syntax. *}
 
-example_proof
+notepad
+begin
   assume a: A and b: B
 
   have "A \<and> B"
@@ -379,7 +381,7 @@ example_proof
     apply (tactic {* Method.insert_tac facts 1 *})
     apply (tactic {* (rtac @{thm conjI} THEN_ALL_NEW atac) 1 *})
     done
-qed
+end
 
 text {* \medskip The next example implements a method that simplifies
   the first subgoal by rewrite rules given as arguments.  *}
@@ -411,12 +413,13 @@ text {* The concrete syntax wrapping of @{command method_setup} always
   this:
 *}
 
-example_proof
+notepad
+begin
   fix a b c
   assume a: "a = b"
   assume b: "b = c"
   have "a = c" by (my_simp a b)
-qed
+end
 
 text {* Here is a similar method that operates on all subgoals,
   instead of just the first one. *}
@@ -429,13 +432,13 @@ method_setup my_simp_all = {*
           (HOL_basic_ss addsimps thms)))))
 *} "rewrite all subgoals by given rules"
 
-example_proof
+notepad
+begin
   fix a b c
   assume a: "a = b"
   assume b: "b = c"
   have "a = c" and "c = b" by (my_simp_all a b)
-
-qed
+end
 
 text {* \medskip Apart from explicit arguments, common proof methods
   typically work with a default configuration provided by the context.
@@ -468,12 +471,13 @@ text {*
   like this:
 *}
 
-example_proof
+notepad
+begin
   fix a b c
   assume [my_simp]: "a \<equiv> b"
   assume [my_simp]: "b \<equiv> c"
   have "a \<equiv> c" by my_simp'
-qed
+end
 
 text {* \medskip The @{method my_simp} variants defined above are
   ``simple'' methods, i.e.\ the goal facts are merely inserted as goal

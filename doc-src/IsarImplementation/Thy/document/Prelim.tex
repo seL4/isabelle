@@ -717,8 +717,9 @@ A \emph{configuration option} is a named optional value of
 }
 \isanewline
 \isanewline
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -756,15 +757,15 @@ A \emph{configuration option} is a named optional value of
 }
 \isanewline
 \ \ \ \ \isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
-\isanewline
-\isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
+\isanewline
 %
 \endisadelimproof
+\isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Configuration options that are not set explicitly hold a
@@ -925,8 +926,9 @@ context{}%
 %
 \endisadelimML
 \isanewline
-\isacommand{example{\isaliteral{5F}{\isacharunderscore}}proof}\isamarkupfalse%
+\isacommand{notepad}\isamarkupfalse%
 \isanewline
+\isakeyword{begin}\isanewline
 %
 \isadelimproof
 \ \ %
@@ -1005,20 +1007,7 @@ context{}%
 \isanewline
 %
 \endisadelimML
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
+\isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Here is another example involving ML type \verb|real|

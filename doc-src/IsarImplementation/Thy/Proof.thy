@@ -58,7 +58,8 @@ text {*
   The following Isar source text illustrates this scenario.
 *}
 
-example_proof
+notepad
+begin
   {
     fix x  -- {* all potential occurrences of some @{text "x::\<tau>"} are fixed *}
     {
@@ -68,7 +69,7 @@ example_proof
     thm this  -- {* result still with fixed type @{text "'a"} *}
   }
   thm this  -- {* fully general result for arbitrary @{text "?x::?'a"} *}
-qed
+end
 
 text {* The Isabelle/Isar proof context manages the details of term
   vs.\ type variables, with high-level principles for moving the
@@ -199,7 +200,8 @@ text {* The following ML code can now work with the invented names of
   Recall that within a proof body the system always invents fresh
   ``skolem constants'', e.g.\ as follows: *}
 
-example_proof
+notepad
+begin
   ML_prf %"ML" {*
     val ctxt0 = @{context};
 
@@ -210,7 +212,7 @@ example_proof
     val ([y1, y2], ctxt4) =
       ctxt3 |> Variable.variant_fixes ["y", "y"];
   *}
-  oops
+end
 
 text {* In this situation @{ML Variable.add_fixes} and @{ML
   Variable.variant_fixes} are very similar, but identical name
@@ -451,7 +453,8 @@ text %mlref {*
 text %mlex {* The following minimal example illustrates how to access
   the focus information of a structured goal state. *}
 
-example_proof
+notepad
+begin
   fix A B C :: "'a \<Rightarrow> bool"
 
   have "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
@@ -468,7 +471,8 @@ example_proof
 text {* \medskip The next example demonstrates forward-elimination in
   a local context, using @{ML Obtain.result}.  *}
 
-example_proof
+notepad
+begin
   assume ex: "\<exists>x. B x"
 
   ML_prf %"ML" {*
@@ -483,6 +487,6 @@ example_proof
     ProofContext.export ctxt1 ctxt0 [Thm.reflexive x]
       handle ERROR msg => (warning msg; []);
   *}
-qed
+end
 
 end
