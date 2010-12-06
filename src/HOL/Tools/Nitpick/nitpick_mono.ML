@@ -364,38 +364,41 @@ fun string_for_assign_clause [] = "\<bot>"
   | string_for_assign_clause asgs =
     space_implode " \<or> " (map string_for_assign asgs)
 
-fun do_assign _ NONE = NONE
-  | do_assign (x, a) (SOME asgs) =
+fun add_assign_conjunct _ NONE = NONE
+  | add_assign_conjunct (x, a) (SOME asgs) =
     case AList.lookup (op =) asgs x of
       SOME a' => if a = a' then SOME asgs else NONE
     | NONE => SOME ((x, a) :: asgs)
 
-fun do_annotation_atom_comp Eq [] aa1 aa2 (accum as (asgs, comps)) =
+fun add_assign_disjunct _ NONE = NONE
+  | add_assign_disjunct asg (SOME asgs) = SOME (insert (op =) asg asgs)
+
+fun add_annotation_atom_comp Eq [] aa1 aa2 (accum as (asgs, comps)) =
     (case (aa1, aa2) of
        (A a1, A a2) => if a1 = a2 then SOME accum else NONE
      | (V x1, A a2) =>
-       SOME asgs |> do_assign (x1, a2) |> Option.map (rpair comps)
+       SOME asgs |> add_assign_conjunct (x1, a2) |> Option.map (rpair comps)
      | (V _, V _) => SOME (asgs, insert (op =) (aa1, aa2, Eq, []) comps)
-     | _ => do_annotation_atom_comp Eq [] aa2 aa1 accum)
-  | do_annotation_atom_comp Leq [] aa1 aa2 (accum as (asgs, comps)) =
+     | _ => add_annotation_atom_comp Eq [] aa2 aa1 accum)
+  | add_annotation_atom_comp Leq [] aa1 aa2 (accum as (asgs, comps)) =
     (case (aa1, aa2) of
        (_, A Gen) => SOME accum
      | (A Gen, A _) => NONE
      | (A a1, A a2) => if a1 = a2 then SOME accum else NONE
      | _ => SOME (asgs, insert (op =) (aa1, aa2, Leq, []) comps))
-  | do_annotation_atom_comp cmp xs aa1 aa2 (asgs, comps) =
+  | add_annotation_atom_comp cmp xs aa1 aa2 (asgs, comps) =
     SOME (asgs, insert (op =) (aa1, aa2, cmp, xs) comps)
 
 fun do_mtype_comp _ _ _ _ NONE = NONE
   | do_mtype_comp _ _ MAlpha MAlpha accum = accum
   | do_mtype_comp Eq xs (MFun (M11, aa1, M12)) (MFun (M21, aa2, M22))
                   (SOME accum) =
-     accum |> do_annotation_atom_comp Eq xs aa1 aa2
+     accum |> add_annotation_atom_comp Eq xs aa1 aa2
            |> do_mtype_comp Eq xs M11 M21 |> do_mtype_comp Eq xs M12 M22
   | do_mtype_comp Leq xs (MFun (M11, aa1, M12)) (MFun (M21, aa2, M22))
                   (SOME accum) =
     (if exists_alpha_sub_mtype M11 then
-       accum |> do_annotation_atom_comp Leq xs aa1 aa2
+       accum |> add_annotation_atom_comp Leq xs aa1 aa2
              |> do_mtype_comp Leq xs M21 M11
              |> (case aa2 of
                    A Gen => I
@@ -416,11 +419,11 @@ fun do_mtype_comp _ _ _ _ NONE = NONE
                  [M1, M2], [])
 
 fun add_mtype_comp cmp M1 M2 ((asgs, comps, clauses) : constraint_set) =
-    (trace_msg (fn () => "*** Add " ^ string_for_mtype M1 ^ " " ^
-                         string_for_comp_op cmp ^ " " ^ string_for_mtype M2);
-     case do_mtype_comp cmp [] M1 M2 (SOME (asgs, comps)) of
-       NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-     | SOME (asgs, comps) => (asgs, comps, clauses))
+  (trace_msg (fn () => "*** Add " ^ string_for_mtype M1 ^ " " ^
+                       string_for_comp_op cmp ^ " " ^ string_for_mtype M2);
+   case do_mtype_comp cmp [] M1 M2 (SOME (asgs, comps)) of
+     NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
+   | SOME (asgs, comps) => (asgs, comps, clauses))
 
 val add_mtypes_equal = add_mtype_comp Eq
 val add_is_sub_mtype = add_mtype_comp Leq
@@ -429,7 +432,7 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
   | do_notin_mtype_fv Minus _ MAlpha accum = accum
   | do_notin_mtype_fv Plus [] MAlpha _ = NONE
   | do_notin_mtype_fv Plus [(x, a)] MAlpha (SOME (asgs, clauses)) =
-    SOME asgs |> do_assign (x, a) |> Option.map (rpair clauses)
+    SOME asgs |> add_assign_conjunct (x, a) |> Option.map (rpair clauses)
   | do_notin_mtype_fv Plus clause MAlpha (SOME (asgs, clauses)) =
     SOME (asgs, insert (op =) clause clauses)
   | do_notin_mtype_fv sn clause (MFun (M1, A aa, M2)) accum =
@@ -443,13 +446,13 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
                 I)
           |> do_notin_mtype_fv sn clause M2
   | do_notin_mtype_fv Plus clause (MFun (M1, V x, M2)) accum =
-    accum |> (case do_assign (x, Gen) (SOME clause) of
+    accum |> (case add_assign_disjunct (x, Gen) (SOME clause) of
                 NONE => I
               | SOME clause' => do_notin_mtype_fv Plus clause' M1)
           |> do_notin_mtype_fv Minus clause M1
           |> do_notin_mtype_fv Plus clause M2
   | do_notin_mtype_fv Minus clause (MFun (M1, V x, M2)) accum =
-    accum |> (case fold (fn a => do_assign (x, a)) (* [New, Fls, Tru] FIXME *) [Fls]
+    accum |> (case fold (fn a => add_assign_disjunct (x, a)) [New, Fls, Tru]
                         (SOME clause) of
                 NONE => I
               | SOME clause' => do_notin_mtype_fv Plus clause' M1)
