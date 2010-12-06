@@ -1161,27 +1161,27 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...}) t =
           (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2), accum)
         end
       and do_formula t accum =
-          case t of
-            (t0 as Const (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
-            do_all t0 s1 T1 t1 accum
-          | @{const Trueprop} $ t1 =>
-            let val (m1, accum) = do_formula t1 accum in
-              (MApp (MRaw (@{const Trueprop}, mtype_for (bool_T --> prop_T)),
-                     m1), accum)
-            end
-          | Const (x as (@{const_name "=="}, _)) $ t1 $ t2 =>
-            consider_general_equals mdata true x t1 t2 accum
-          | (t0 as @{const "==>"}) $ t1 $ t2 => do_implies t0 t1 t2 accum
-          | (t0 as @{const Pure.conjunction}) $ t1 $ t2 =>
-            do_conjunction t0 t1 t2 accum
-          | (t0 as Const (@{const_name All}, _)) $ Abs (s0, T1, t1) =>
-            do_all t0 s0 T1 t1 accum
-          | Const (x as (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
-            consider_general_equals mdata true x t1 t2 accum
-          | (t0 as @{const conj}) $ t1 $ t2 => do_conjunction t0 t1 t2 accum
-          | (t0 as @{const implies}) $ t1 $ t2 => do_implies t0 t1 t2 accum
-          | _ => raise TERM ("Nitpick_Mono.consider_definitional_axiom.\
-                             \do_formula", [t])
+        case t of
+          (t0 as Const (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
+          do_all t0 s1 T1 t1 accum
+        | @{const Trueprop} $ t1 =>
+          let val (m1, accum) = do_formula t1 accum in
+            (MApp (MRaw (@{const Trueprop}, mtype_for (bool_T --> prop_T)), m1),
+             accum)
+          end
+        | Const (x as (@{const_name "=="}, _)) $ t1 $ t2 =>
+          consider_general_equals mdata true x t1 t2 accum
+        | (t0 as @{const "==>"}) $ t1 $ t2 => do_implies t0 t1 t2 accum
+        | (t0 as @{const Pure.conjunction}) $ t1 $ t2 =>
+          do_conjunction t0 t1 t2 accum
+        | (t0 as Const (@{const_name All}, _)) $ Abs (s0, T1, t1) =>
+          do_all t0 s0 T1 t1 accum
+        | Const (x as (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
+          consider_general_equals mdata true x t1 t2 accum
+        | (t0 as @{const conj}) $ t1 $ t2 => do_conjunction t0 t1 t2 accum
+        | (t0 as @{const implies}) $ t1 $ t2 => do_implies t0 t1 t2 accum
+        | _ => raise TERM ("Nitpick_Mono.consider_definitional_axiom.\
+                           \do_formula", [t])
     in do_formula t end
 
 fun string_for_mtype_of_term ctxt asgs t M =
