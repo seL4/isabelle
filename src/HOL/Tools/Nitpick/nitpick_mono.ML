@@ -387,7 +387,7 @@ fun add_assign_literal (x, (sn, a)) clauses =
               | _ => false) clauses then
     NONE
   else
-    SOME ([(x, a)] :: clauses)
+    SOME ([(x, (sn, a))] :: clauses)
 
 fun add_assign_disjunct _ NONE = NONE
   | add_assign_disjunct asg (SOME asgs) = SOME (insert (op =) asg asgs)
@@ -445,7 +445,7 @@ fun do_mtype_comp _ _ _ _ NONE = NONE
   | do_mtype_comp cmp xs (M1 as MPair (M11, M12)) (M2 as MPair (M21, M22))
                   cset =
     (cset |> fold (uncurry (do_mtype_comp cmp xs)) [(M11, M21), (M12, M22)]
-     handle Library.UnequalLengths =>
+     handle ListPair.UnequalLengths =>
             raise MTYPE ("Nitpick_Mono.do_mtype_comp", [M1, M2], []))
   | do_mtype_comp _ _ (MType _) (MType _) cset =
     cset (* no need to compare them thanks to the cache *)
