@@ -553,19 +553,21 @@ type mtype_schema = mtyp * constraint_set
 type mtype_context =
   {bound_Ts: typ list,
    bound_Ms: mtyp list,
+   bound_frame: (int * annotation_atom) list,
    frees: (styp * mtyp) list,
    consts: (styp * mtyp) list}
 
 type accumulator = mtype_context * constraint_set
 
-val initial_gamma = {bound_Ts = [], bound_Ms = [], frees = [], consts = []}
+val initial_gamma =
+  {bound_Ts = [], bound_Ms = [], bound_frame = [], frees = [], consts = []}
 
-fun push_bound T M {bound_Ts, bound_Ms, frees, consts} =
-  {bound_Ts = T :: bound_Ts, bound_Ms = M :: bound_Ms, frees = frees,
-   consts = consts}
-fun pop_bound {bound_Ts, bound_Ms, frees, consts} =
-  {bound_Ts = tl bound_Ts, bound_Ms = tl bound_Ms, frees = frees,
-   consts = consts}
+fun push_bound T M {bound_Ts, bound_Ms, bound_frame, frees, consts} =
+  {bound_Ts = T :: bound_Ts, bound_Ms = M :: bound_Ms,
+   bound_frame = bound_frame, frees = frees, consts = consts}
+fun pop_bound {bound_Ts, bound_Ms, bound_frame, frees, consts} =
+  {bound_Ts = tl bound_Ts, bound_Ms = tl bound_Ms, bound_frame = bound_frame,
+   frees = frees, consts = consts}
   handle List.Empty => initial_gamma (* FIXME: needed? *)
 
 fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
@@ -643,7 +645,8 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                                  MApp (bound_m, MRaw (Bound 0, M1))),
                            body_m))), accum)
       end
-    and do_term t (accum as ({bound_Ts, bound_Ms, frees, consts}, cset)) =
+    and do_term t (accum as ({bound_Ts, bound_Ms, bound_frame, frees, consts},
+                             cset)) =
         (trace_msg (fn () => "  \<Gamma> \<turnstile> " ^
                              Syntax.string_of_term ctxt t ^ " : _?");
          case t of
@@ -747,7 +750,8 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                 else
                   let val M = mtype_for T in
                     (M, ({bound_Ts = bound_Ts, bound_Ms = bound_Ms,
-                          frees = frees, consts = (x, M) :: consts}, cset))
+                          bound_frame = bound_frame, frees = frees,
+                          consts = (x, M) :: consts}, cset))
                   end) |>> curry MRaw t
          | Free (x as (_, T)) =>
            (case AList.lookup (op =) frees x of
@@ -755,7 +759,8 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
             | NONE =>
               let val M = mtype_for T in
                 (M, ({bound_Ts = bound_Ts, bound_Ms = bound_Ms,
-                      frees = (x, M) :: frees, consts = consts}, cset))
+                      bound_frame = bound_frame, frees = (x, M) :: frees,
+                      consts = consts}, cset))
               end) |>> curry MRaw t
          | Var _ => (trace_msg (K "*** Var"); raise UNSOLVABLE ())
          | Bound j => (MRaw (t, nth bound_Ms j), accum)
