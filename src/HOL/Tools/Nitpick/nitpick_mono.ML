@@ -457,37 +457,37 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
   | do_notin_mtype_fv Plus [] MAlpha _ = NONE
   | do_notin_mtype_fv Plus [asg] MAlpha (SOME clauses) =
     clauses |> add_assign_literal asg
-  | do_notin_mtype_fv Plus clause MAlpha (SOME clauses) =
-    SOME (insert (op =) clause clauses)
-  | do_notin_mtype_fv sn clause (MFun (M1, A a, M2)) cset =
-    cset |> (if a <> Gen andalso sn = Plus then do_notin_mtype_fv Plus clause M1
+  | do_notin_mtype_fv Plus unless MAlpha (SOME clauses) =
+    SOME (insert (op =) unless clauses)
+  | do_notin_mtype_fv sn unless (MFun (M1, A a, M2)) cset =
+    cset |> (if a <> Gen andalso sn = Plus then do_notin_mtype_fv Plus unless M1
              else I)
-         |> (if a = Gen orelse sn = Plus then do_notin_mtype_fv Minus clause M1
+         |> (if a = Gen orelse sn = Plus then do_notin_mtype_fv Minus unless M1
              else I)
-         |> do_notin_mtype_fv sn clause M2
-  | do_notin_mtype_fv Plus clause (MFun (M1, V x, M2)) cset =
-    cset |> (case add_assign_disjunct (x, (Plus, Gen)) (SOME clause) of
+         |> do_notin_mtype_fv sn unless M2
+  | do_notin_mtype_fv Plus unless (MFun (M1, V x, M2)) cset =
+    cset |> (case add_assign_disjunct (x, (Plus, Gen)) (SOME unless) of
                NONE => I
-             | SOME clause' => do_notin_mtype_fv Plus clause' M1)
-         |> do_notin_mtype_fv Minus clause M1
-         |> do_notin_mtype_fv Plus clause M2
-  | do_notin_mtype_fv Minus clause (MFun (M1, V x, M2)) cset =
+             | SOME unless' => do_notin_mtype_fv Plus unless' M1)
+         |> do_notin_mtype_fv Minus unless M1
+         |> do_notin_mtype_fv Plus unless M2
+  | do_notin_mtype_fv Minus unless (MFun (M1, V x, M2)) cset =
     cset |> (case fold (fn a => add_assign_disjunct (x, (Plus, a))) [Fls, Tru]
-                       (SOME clause) of
+                       (SOME unless) of
                NONE => I
-             | SOME clause' => do_notin_mtype_fv Plus clause' M1)
-         |> do_notin_mtype_fv Minus clause M2
-  | do_notin_mtype_fv sn clause (MPair (M1, M2)) cset =
-    cset |> fold (do_notin_mtype_fv sn clause) [M1, M2]
-  | do_notin_mtype_fv sn clause (MType (_, Ms)) cset =
-    cset |> fold (do_notin_mtype_fv sn clause) Ms
+             | SOME unless' => do_notin_mtype_fv Plus unless' M1)
+         |> do_notin_mtype_fv Minus unless M2
+  | do_notin_mtype_fv sn unless (MPair (M1, M2)) cset =
+    cset |> fold (do_notin_mtype_fv sn unless) [M1, M2]
+  | do_notin_mtype_fv sn unless (MType (_, Ms)) cset =
+    cset |> fold (do_notin_mtype_fv sn unless) Ms
  | do_notin_mtype_fv _ _ M _ =
    raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
 
-fun add_notin_mtype_fv sn M (comps, clauses) =
+fun add_notin_mtype_fv sn unless M (comps, clauses) =
   (trace_msg (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
                        (case sn of Minus => "concrete" | Plus => "complete"));
-   case SOME clauses |> do_notin_mtype_fv sn [] M of
+   case SOME clauses |> do_notin_mtype_fv sn unless M of
      NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
    | SOME clauses => (comps, clauses))
 
@@ -695,8 +695,8 @@ fun add_annotation_clause_from_quasi_clause _ NONE = NONE
     | V x => add_annotation_clause_from_quasi_clause rest accum
              |> Option.map (cons (x, (sign_for_comp_op cmp, a)))
 
-fun assign_clause_from_quasi_clause clause =
-  add_annotation_clause_from_quasi_clause clause (SOME [])
+fun assign_clause_from_quasi_clause unless =
+  add_annotation_clause_from_quasi_clause unless (SOME [])
 
 fun add_connective_var conn mk_quasi_clauses res_aa aa1 aa2 =
   (trace_msg (fn () => "*** Add " ^ string_for_annotation_atom res_aa ^ " = " ^
@@ -767,7 +767,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         val body_M = mtype_for (body_type T)
       in
         (MFun (MFun (abs_M, A Gen, body_M), A Gen, body_M),
-         (gamma, cset |> add_mtype_is_complete abs_M))
+         (gamma, cset |> add_mtype_is_complete [] abs_M))
       end
     fun do_equals T (gamma, cset) =
       let
@@ -775,7 +775,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         val aa = V (Unsynchronized.inc max_fresh)
       in
         (MFun (M, A Gen, MFun (M, aa, mtype_for (nth_range_type 2 T))),
-         (gamma, cset |> add_mtype_is_concrete M
+         (gamma, cset |> add_mtype_is_concrete [] M
                       |> add_annotation_atom_comp Leq [] (A Fls) aa))
       end
     fun do_robust_set_operation T (gamma, cset) =
@@ -797,7 +797,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
             else MFun (custom_mtype_for T1, A Gen, custom_mtype_for T2)
           | custom_mtype_for T = mtype_for T
       in
-        (custom_mtype_for T, (gamma, cset |> add_mtype_is_concrete set_M))
+        (custom_mtype_for T, (gamma, cset |> add_mtype_is_concrete [] set_M))
       end
     fun do_pair_constr T accum =
       case mtype_for (nth_range_type 2 T) of
@@ -1067,89 +1067,89 @@ fun consider_general_equals mdata def (x as (_, T)) t1 t2 accum =
           accum)
   end
 
-fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
+fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
+                                        ...}) =
   let
     val mtype_for = fresh_mtype_for_type mdata false
     val do_term = consider_term mdata
     fun do_formula sn t (accum as (gamma, _)) =
-        let
-          fun do_quantifier (quant_x as (quant_s, _)) abs_s abs_T body_t =
-            let
-              val abs_M = mtype_for abs_T
-              val a = Gen (* FIXME: strengthen *)
-              val side_cond = ((sn = Minus) = (quant_s = @{const_name Ex}))
-              val (body_m, accum) =
-                accum ||> side_cond ? add_mtype_is_complete abs_M
-                      |>> push_bound (A a) abs_T abs_M |> do_formula sn body_t
-              val body_M = mtype_of_mterm body_m
-            in
-              (MApp (MRaw (Const quant_x,
-                           MFun (MFun (abs_M, A Gen, body_M), A Gen, body_M)),
-                     MAbs (abs_s, abs_T, abs_M, A Gen, body_m)),
-               accum |>> pop_bound)
-            end
-          fun do_equals x t1 t2 =
-            case sn of
-              Plus => do_term t accum
-            | Minus => consider_general_equals mdata false x t1 t2 accum
-        in
-          (trace_msg (fn () => "  " ^ string_for_mcontext ctxt t gamma ^
-                               " \<turnstile> " ^ Syntax.string_of_term ctxt t ^
-                               " : o\<^sup>" ^ string_for_sign sn ^ "?");
-           case t of
-             Const (x as (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
-             do_quantifier x s1 T1 t1
-           | Const (x as (@{const_name "=="}, _)) $ t1 $ t2 => do_equals x t1 t2
-           | @{const Trueprop} $ t1 =>
-             let val (m1, accum) = do_formula sn t1 accum in
-               (MApp (MRaw (@{const Trueprop}, mtype_for (bool_T --> prop_T)),
-                      m1), accum)
-             end
-           | @{const Not} $ t1 =>
-             let val (m1, accum) = do_formula (negate_sign sn) t1 accum in
-               (MApp (MRaw (@{const Not}, mtype_for (bool_T --> bool_T)), m1),
+      let
+        fun do_quantifier (quant_x as (quant_s, _)) abs_s abs_T body_t =
+          let
+            val abs_M = mtype_for abs_T
+            val x = Unsynchronized.inc max_fresh
+            val side_cond = ((sn = Minus) = (quant_s = @{const_name Ex}))
+            val (body_m, accum) =
+              accum ||> side_cond
+                        ? add_mtype_is_complete [(x, (Minus, Fls))] abs_M
+                    |>> push_bound (V x) abs_T abs_M |> do_formula sn body_t
+            val body_M = mtype_of_mterm body_m
+          in
+            (MApp (MRaw (Const quant_x,
+                         MFun (MFun (abs_M, A Gen, body_M), A Gen, body_M)),
+                   MAbs (abs_s, abs_T, abs_M, A Gen, body_m)),
+             accum |>> pop_bound)
+          end
+        fun do_equals x t1 t2 =
+          case sn of
+            Plus => do_term t accum
+          | Minus => consider_general_equals mdata false x t1 t2 accum
+      in
+        (trace_msg (fn () => "  " ^ string_for_mcontext ctxt t gamma ^
+                             " \<turnstile> " ^ Syntax.string_of_term ctxt t ^
+                             " : o\<^sup>" ^ string_for_sign sn ^ "?");
+         case t of
+           Const (x as (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
+           do_quantifier x s1 T1 t1
+         | Const (x as (@{const_name "=="}, _)) $ t1 $ t2 => do_equals x t1 t2
+         | @{const Trueprop} $ t1 =>
+           let val (m1, accum) = do_formula sn t1 accum in
+             (MApp (MRaw (@{const Trueprop}, mtype_for (bool_T --> prop_T)),
+                    m1), accum)
+           end
+         | @{const Not} $ t1 =>
+           let val (m1, accum) = do_formula (negate_sign sn) t1 accum in
+             (MApp (MRaw (@{const Not}, mtype_for (bool_T --> bool_T)), m1),
+              accum)
+           end
+         | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
+           do_quantifier x s1 T1 t1
+         | Const (x0 as (@{const_name Ex}, T0))
+           $ (t1 as Abs (s1, T1, t1')) =>
+           (case sn of
+              Plus => do_quantifier x0 s1 T1 t1'
+            | Minus =>
+              (* FIXME: Move elsewhere *)
+              do_term (@{const Not}
+                       $ (HOLogic.eq_const (domain_type T0) $ t1
+                          $ Abs (Name.uu, T1, @{const False}))) accum)
+         | Const (x as (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
+           do_equals x t1 t2
+         | Const (@{const_name Let}, _) $ t1 $ t2 =>
+           do_formula sn (betapply (t2, t1)) accum
+         | (t0 as Const (s0, _)) $ t1 $ t2 =>
+           if s0 = @{const_name "==>"} orelse
+              s0 = @{const_name Pure.conjunction} orelse
+              s0 = @{const_name conj} orelse s0 = @{const_name disj} orelse
+              s0 = @{const_name implies} then
+             let
+               val impl = (s0 = @{const_name "==>"} orelse
+                           s0 = @{const_name implies})
+               val (m1, accum) = do_formula (sn |> impl ? negate_sign) t1 accum
+               val (m2, accum) = do_formula sn t2 accum
+             in
+               (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
                 accum)
              end
-           | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
-             do_quantifier x s1 T1 t1
-           | Const (x0 as (@{const_name Ex}, T0))
-             $ (t1 as Abs (s1, T1, t1')) =>
-             (case sn of
-                Plus => do_quantifier x0 s1 T1 t1'
-              | Minus =>
-                (* FIXME: Move elsewhere *)
-                do_term (@{const Not}
-                         $ (HOLogic.eq_const (domain_type T0) $ t1
-                            $ Abs (Name.uu, T1, @{const False}))) accum)
-           | Const (x as (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
-             do_equals x t1 t2
-           | Const (@{const_name Let}, _) $ t1 $ t2 =>
-             do_formula sn (betapply (t2, t1)) accum
-           | (t0 as Const (s0, _)) $ t1 $ t2 =>
-             if s0 = @{const_name "==>"} orelse
-                s0 = @{const_name Pure.conjunction} orelse
-                s0 = @{const_name conj} orelse
-                s0 = @{const_name disj} orelse
-                s0 = @{const_name implies} then
-               let
-                 val impl = (s0 = @{const_name "==>"} orelse
-                             s0 = @{const_name implies})
-                 val (m1, accum) =
-                   do_formula (sn |> impl ? negate_sign) t1 accum
-                 val (m2, accum) = do_formula sn t2 accum
-               in
-                 (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
-                  accum)
-               end
-             else
-               do_term t accum
-           | _ => do_term t accum)
-        end
-        |> tap (fn (m, (gamma, _)) =>
-                   trace_msg (fn () => string_for_mcontext ctxt t gamma ^
-                                       " \<turnstile> " ^
-                                       string_for_mterm ctxt m ^ " : o\<^sup>" ^
-                                       string_for_sign sn))
+           else
+             do_term t accum
+         | _ => do_term t accum)
+      end
+      |> tap (fn (m, (gamma, _)) =>
+                 trace_msg (fn () => string_for_mcontext ctxt t gamma ^
+                                     " \<turnstile> " ^
+                                     string_for_mterm ctxt m ^ " : o\<^sup>" ^
+                                     string_for_sign sn))
   in do_formula end
 
 (* The harmless axiom optimization below is somewhat too aggressive in the face
