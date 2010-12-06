@@ -32,7 +32,7 @@ type var = int
 datatype annotation = Gen | New | Fls | Tru
 datatype annotation_atom = A of annotation | V of var
 
-type assign_literal = var * annotation
+type assign_literal = var * (sign * annotation)
 
 datatype mtyp =
   MAlpha |
@@ -82,8 +82,9 @@ fun string_for_annotation Gen = "G"
 fun string_for_annotation_atom (A a) = string_for_annotation a
   | string_for_annotation_atom (V x) = string_for_var x
 
-fun string_for_assign_literal (x, a) =
-  string_for_var x ^ " = " ^ string_for_annotation a
+fun string_for_assign_literal (x, (sn, a)) =
+  string_for_var x ^ (case sn of Plus => " = " | Minus => " \<noteq> ") ^
+  string_for_annotation a
 
 val bool_M = MType (@{type_name bool}, [])
 val dummy_M = MType (nitpick_prefix ^ "dummy", [])
@@ -346,7 +347,7 @@ fun resolve_mtype asgs =
       | aux (MRec z) = MRec z
   in aux end
 
-datatype comp_op = Eq | Leq
+datatype comp_op = Eq | Neq | Leq
 
 type comp = annotation_atom * annotation_atom * comp_op * var list
 type assign_clause = assign_literal list
@@ -354,6 +355,7 @@ type assign_clause = assign_literal list
 type constraint_set = comp list * assign_clause list
 
 fun string_for_comp_op Eq = "="
+  | string_for_comp_op Neq = "\<noteq>"
   | string_for_comp_op Leq = "\<le>"
 
 fun string_for_comp (aa1, aa2, cmp, xs) =
@@ -364,28 +366,39 @@ fun string_for_assign_clause [] = "\<bot>"
   | string_for_assign_clause asgs =
     space_implode " \<or> " (map string_for_assign_literal asgs)
 
-fun add_assign_literal (x, a) clauses =
-  if exists (fn [(x', a')] => x = x' andalso a <> a' | _ => false) clauses then
+fun add_assign_literal (x, (sn, a)) clauses =
+  if exists (fn [(x', (sn', a'))] =>
+                x = x' andalso ((sn = sn' andalso a <> a') orelse
+                                (sn <> sn' andalso a = a'))
+              | _ => false) clauses then
     NONE
   else
-    SOME ([(x, a)] :: clauses)fun add_assign_conjunct _ NONE = NONE
+    SOME ([(x, a)] :: clauses)
 
 fun add_assign_disjunct _ NONE = NONE
   | add_assign_disjunct asg (SOME asgs) = SOME (insert (op =) asg asgs)
 
-fun do_annotation_atom_comp Eq [] aa1 aa2 (cset as (comps, clauses)) =
+fun annotation_comp Eq a1 a2 = (a1 = a2)
+  | annotation_comp Neq a1 a2 = (a1 <> a2)
+  | annotation_comp Leq a1 a2 = (a1 = a2 orelse a2 = Gen)
+
+fun comp_op_sign Eq = Plus
+  | comp_op_sign Neq = Minus
+  | comp_op_sign Leq =
+    raise BAD ("Nitpick_Mono.comp_op_sign", "unexpected \"Leq\"")
+
+fun do_annotation_atom_comp Leq [] aa1 aa2 (cset as (comps, clauses)) =
     (case (aa1, aa2) of
-       (A a1, A a2) => if a1 = a2 then SOME cset else NONE
-     | (V x1, A a2) =>
-       clauses |> add_assign_literal (x1, a2) |> Option.map (pair comps)
-     | (V _, V _) => SOME (insert (op =) (aa1, aa2, Eq, []) comps, clauses)
-     | _ => do_annotation_atom_comp Eq [] aa2 aa1 cset)
-  | do_annotation_atom_comp Leq [] aa1 aa2 (cset as (comps, clauses)) =
-    (case (aa1, aa2) of
-       (_, A Gen) => SOME cset
-     | (A Gen, A _) => NONE
-     | (A a1, A a2) => if a1 = a2 then SOME cset else NONE
+       (A a1, A a2) => if annotation_comp Leq a1 a2 then SOME cset else NONE
      | _ => SOME (insert (op =) (aa1, aa2, Leq, []) comps, clauses))
+  | do_annotation_atom_comp cmp [] aa1 aa2 (cset as (comps, clauses)) =
+    (case (aa1, aa2) of
+       (A a1, A a2) => if annotation_comp cmp a1 a2 then SOME cset else NONE
+     | (V x1, A a2) =>
+       clauses |> add_assign_literal (x1, (comp_op_sign cmp, a2))
+               |> Option.map (pair comps)
+     | (A _, V _) => do_annotation_atom_comp cmp [] aa2 aa1 cset
+     | (V _, V _) => SOME (insert (op =) (aa1, aa2, cmp, []) comps, clauses))
   | do_annotation_atom_comp cmp xs aa1 aa2 (comps, clauses) =
     SOME (insert (op =) (aa1, aa2, cmp, xs) comps, clauses)
 
@@ -440,8 +453,8 @@ val add_is_sub_mtype = add_mtype_comp Leq
 fun do_notin_mtype_fv _ _ _ NONE = NONE
   | do_notin_mtype_fv Minus _ MAlpha cset = cset
   | do_notin_mtype_fv Plus [] MAlpha _ = NONE
-  | do_notin_mtype_fv Plus [(x, a)] MAlpha (SOME clauses) =
-    clauses |> add_assign_literal (x, a)
+  | do_notin_mtype_fv Plus [asg] MAlpha (SOME clauses) =
+    clauses |> add_assign_literal asg
   | do_notin_mtype_fv Plus clause MAlpha (SOME clauses) =
     SOME (insert (op =) clause clauses)
   | do_notin_mtype_fv sn clause (MFun (M1, A a, M2)) cset =
@@ -451,13 +464,13 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
              else I)
          |> do_notin_mtype_fv sn clause M2
   | do_notin_mtype_fv Plus clause (MFun (M1, V x, M2)) cset =
-    cset |> (case add_assign_disjunct (x, Gen) (SOME clause) of
+    cset |> (case add_assign_disjunct (x, (Plus, Gen)) (SOME clause) of
                NONE => I
              | SOME clause' => do_notin_mtype_fv Plus clause' M1)
          |> do_notin_mtype_fv Minus clause M1
          |> do_notin_mtype_fv Plus clause M2
   | do_notin_mtype_fv Minus clause (MFun (M1, V x, M2)) cset =
-    cset |> (case fold (fn a => add_assign_disjunct (x, a)) [Fls, Tru]
+    cset |> (case fold (fn a => add_assign_disjunct (x, (Plus, a))) [Fls, Tru]
                        (SOME clause) of
                NONE => I
              | SOME clause' => do_notin_mtype_fv Plus clause' M1)
@@ -495,13 +508,15 @@ fun prop_for_bool b = if b then PL.True else PL.False
 fun prop_for_bool_var_equality (v1, v2) =
   PL.And (PL.Or (PL.BoolVar v1, PL.Not (PL.BoolVar v2)),
           PL.Or (PL.Not (PL.BoolVar v1), PL.BoolVar v2))
-fun prop_for_assign_literal (x, a) =
+fun prop_for_assign (x, a) =
   let val (b1, b2) = bools_from_annotation a in
     PL.And (PL.BoolVar (fst_var x) |> not b1 ? PL.Not,
             PL.BoolVar (snd_var x) |> not b2 ? PL.Not)
   end
+fun prop_for_assign_literal (x, (Plus, a)) = prop_for_assign (x, a)
+  | prop_for_assign_literal (x, (Minus, a)) = PL.Not (prop_for_assign (x, a))
 fun prop_for_atom_assign (A a', a) = prop_for_bool (a = a')
-  | prop_for_atom_assign (V x, a) = prop_for_assign_literal (x, a)
+  | prop_for_atom_assign (V x, a) = prop_for_assign_literal (x, (Plus, a))
 fun prop_for_atom_equality (aa1, A a2) = prop_for_atom_assign (aa1, a2)
   | prop_for_atom_equality (A a1, aa2) = prop_for_atom_assign (aa2, a1)
   | prop_for_atom_equality (V x1, V x2) =
@@ -509,10 +524,12 @@ fun prop_for_atom_equality (aa1, A a2) = prop_for_atom_assign (aa1, a2)
             prop_for_bool_var_equality (pairself snd_var (x1, x2)))
 val prop_for_assign_clause = PL.exists o map prop_for_assign_literal
 fun prop_for_exists_var_assign_literal xs a =
-  PL.exists (map (fn x => prop_for_assign_literal (x, a)) xs)
+  PL.exists (map (fn x => prop_for_assign_literal (x, (Plus, a))) xs)
 fun prop_for_comp (aa1, aa2, Eq, []) =
     PL.SAnd (prop_for_comp (aa1, aa2, Leq, []),
              prop_for_comp (aa2, aa1, Leq, []))
+  | prop_for_comp (aa1, aa2, Neq, []) =
+    PL.Not (prop_for_comp (aa1, aa2, Eq, []))
   | prop_for_comp (aa1, aa2, Leq, []) =
     PL.SOr (prop_for_atom_equality (aa1, aa2), prop_for_atom_assign (aa2, Gen))
   | prop_for_comp (aa1, aa2, cmp, xs) =
@@ -526,7 +543,8 @@ fun variable_domain calculus =
   @ (if calculus > 2 then [New, Tru] else [])
 
 fun prop_for_variable_domain calculus x =
-  PL.exists (map (curry prop_for_assign_literal x) (variable_domain calculus))
+  PL.exists (map (fn a => prop_for_assign_literal (x, (Plus, a)))
+                 (variable_domain calculus))
 
 fun extract_assigns max_var assigns asgs =
   fold (fn x => fn accum =>
@@ -555,7 +573,7 @@ fun print_solution asgs =
 
 fun solve calculus max_var (comps, clauses) =
   let
-    val asgs = map_filter (fn [asg] => SOME asg | _ => NONE) clauses
+    val asgs = map_filter (fn [(x, (_, a))] => SOME (x, a) | _ => NONE) clauses
     fun do_assigns assigns =
       SOME (extract_assigns max_var assigns asgs |> tap print_solution)
     val _ = print_problem calculus comps clauses
