@@ -309,7 +309,7 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
       | _ => MType (simple_string_of_typ T, [])
   in do_type end
 
-val ground_and_sole_base_constrs = [@{const_name Nil}, @{const_name None}]
+val ground_and_sole_base_constrs = [] (* FIXME: [@{const_name Nil}, @{const_name None}], cf. lists_empty *)
 
 fun prodM_factors (MPair (M1, M2)) = maps prodM_factors [M1, M2]
   | prodM_factors M = [M]
@@ -579,7 +579,8 @@ val ml_solver_timeout = SOME (seconds 0.02)
 
 fun solve tac_timeout max_var (comps, clauses) =
   let
-    val asgs = map_filter (fn [(x, (_, a))] => SOME (x, a) | _ => NONE) clauses
+    val asgs =
+      map_filter (fn [(x, (Plus, a))] => SOME (x, a) | _ => NONE) clauses
     fun do_assigns assigns =
       SOME (extract_assigns max_var assigns asgs |> tap print_solution)
     val _ = print_problem comps clauses
