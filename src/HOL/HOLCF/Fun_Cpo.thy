@@ -79,26 +79,6 @@ by (rule is_lub_fun [THEN lub_eqI])
 instance "fun"  :: (type, cpo) cpo
 by intro_classes (rule exI, erule is_lub_fun)
 
-subsection {* Chain-finiteness of function space *}
-
-lemma maxinch2maxinch_lambda:
-  "(\<And>x. max_in_chain n (\<lambda>i. S i x)) \<Longrightarrow> max_in_chain n S"
-unfolding max_in_chain_def fun_eq_iff by simp
-
-lemma maxinch_mono:
-  "\<lbrakk>max_in_chain i Y; i \<le> j\<rbrakk> \<Longrightarrow> max_in_chain j Y"
-unfolding max_in_chain_def
-proof (intro allI impI)
-  fix k
-  assume Y: "\<forall>n\<ge>i. Y i = Y n"
-  assume ij: "i \<le> j"
-  assume jk: "j \<le> k"
-  from ij jk have ik: "i \<le> k" by simp
-  from Y ij have Yij: "Y i = Y j" by simp
-  from Y ik have Yik: "Y i = Y k" by simp
-  from Yij Yik show "Y j = Y k" by auto
-qed
-
 instance "fun" :: (type, discrete_cpo) discrete_cpo
 proof
   fix f g :: "'a \<Rightarrow> 'b"
