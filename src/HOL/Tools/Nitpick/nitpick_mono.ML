@@ -364,8 +364,9 @@ fun string_for_comp (aa1, aa2, cmp, xs) =
   string_for_annotation_atom aa1 ^ " " ^ string_for_comp_op cmp ^
   subscript_string_for_vars " \<and> " xs ^ " " ^ string_for_annotation_atom aa2
 
-fun string_for_assign_clause [] = "\<bot>"
-  | string_for_assign_clause asgs =
+fun string_for_assign_clause NONE = "\<top>"
+  | string_for_assign_clause (SOME []) = "\<bot>"
+  | string_for_assign_clause (SOME asgs) =
     space_implode " \<or> " (map string_for_assign_literal asgs)
 
 fun add_assign_literal (x, (sn, a)) clauses =
@@ -380,7 +381,8 @@ fun add_assign_literal (x, (sn, a)) clauses =
 fun add_assign_disjunct _ NONE = NONE
   | add_assign_disjunct asg (SOME asgs) = SOME (insert (op =) asg asgs)
 
-val add_assign_clause = insert (op =)
+fun add_assign_clause NONE = I
+  | add_assign_clause (SOME clause) = insert (op =) clause
 
 fun annotation_comp Eq a1 a2 = (a1 = a2)
   | annotation_comp Neq a1 a2 = (a1 <> a2)
@@ -506,22 +508,22 @@ val annotation_from_bools = AList.find (op =) bool_table #> the_single
 
 fun prop_for_bool b = if b then PL.True else PL.False
 fun prop_for_bool_var_equality (v1, v2) =
-  PL.And (PL.Or (PL.BoolVar v1, PL.Not (PL.BoolVar v2)),
-          PL.Or (PL.Not (PL.BoolVar v1), PL.BoolVar v2))
+  PL.SAnd (PL.SOr (PL.BoolVar v1, PL.SNot (PL.BoolVar v2)),
+           PL.SOr (PL.SNot (PL.BoolVar v1), PL.BoolVar v2))
 fun prop_for_assign (x, a) =
   let val (b1, b2) = bools_from_annotation a in
-    PL.And (PL.BoolVar (fst_var x) |> not b1 ? PL.Not,
-            PL.BoolVar (snd_var x) |> not b2 ? PL.Not)
+    PL.SAnd (PL.BoolVar (fst_var x) |> not b1 ? PL.SNot,
+             PL.BoolVar (snd_var x) |> not b2 ? PL.SNot)
   end
 fun prop_for_assign_literal (x, (Plus, a)) = prop_for_assign (x, a)
-  | prop_for_assign_literal (x, (Minus, a)) = PL.Not (prop_for_assign (x, a))
+  | prop_for_assign_literal (x, (Minus, a)) = PL.SNot (prop_for_assign (x, a))
 fun prop_for_atom_assign (A a', a) = prop_for_bool (a = a')
   | prop_for_atom_assign (V x, a) = prop_for_assign_literal (x, (Plus, a))
 fun prop_for_atom_equality (aa1, A a2) = prop_for_atom_assign (aa1, a2)
   | prop_for_atom_equality (A a1, aa2) = prop_for_atom_assign (aa2, a1)
   | prop_for_atom_equality (V x1, V x2) =
-    PL.And (prop_for_bool_var_equality (pairself fst_var (x1, x2)),
-            prop_for_bool_var_equality (pairself snd_var (x1, x2)))
+    PL.SAnd (prop_for_bool_var_equality (pairself fst_var (x1, x2)),
+             prop_for_bool_var_equality (pairself snd_var (x1, x2)))
 val prop_for_assign_clause = PL.exists o map prop_for_assign_literal
 fun prop_for_exists_var_assign_literal xs a =
   PL.exists (map (fn x => prop_for_assign_literal (x, (Plus, a))) xs)
@@ -529,7 +531,7 @@ fun prop_for_comp (aa1, aa2, Eq, []) =
     PL.SAnd (prop_for_comp (aa1, aa2, Leq, []),
              prop_for_comp (aa2, aa1, Leq, []))
   | prop_for_comp (aa1, aa2, Neq, []) =
-    PL.Not (prop_for_comp (aa1, aa2, Eq, []))
+    PL.SNot (prop_for_comp (aa1, aa2, Eq, []))
   | prop_for_comp (aa1, aa2, Leq, []) =
     PL.SOr (prop_for_atom_equality (aa1, aa2), prop_for_atom_assign (aa2, Gen))
   | prop_for_comp (aa1, aa2, cmp, xs) =
@@ -560,7 +562,7 @@ fun print_problem calculus comps clauses =
   trace_msg (fn () =>
                 "*** Problem (calculus M" ^ string_of_int calculus ^ "):\n" ^
                 cat_lines (map string_for_comp comps @
-                           map string_for_assign_clause clauses))
+                           map (string_for_assign_clause o SOME) clauses))
 
 fun print_solution asgs =
   trace_msg (fn () => "*** Solution:\n" ^
@@ -684,22 +686,24 @@ fun imp_clauses res_aa aa1 aa2 =
    [(aa1, (Eq, Fls)), (aa2, (Neq, Gen)), (res_aa, (Eq, Gen))],
    [(aa1, (Eq, Fls)), (aa2, (Neq, New)), (res_aa, (Eq, Gen))]]
 
-fun annotation_literal_from_quasi_literal (aa, (cmp, a)) =
-  case aa of
-    A a' => if annotation_comp cmp a' a then NONE
-            else (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-  | V x => SOME (x, (sign_for_comp_op cmp, a))
+fun add_annotation_clause_from_quasi_clause _ NONE = NONE
+  | add_annotation_clause_from_quasi_clause [] accum = accum
+  | add_annotation_clause_from_quasi_clause ((aa, (cmp, a)) :: rest) accum =
+    case aa of
+      A a' => if annotation_comp cmp a' a then NONE
+              else add_annotation_clause_from_quasi_clause rest accum
+    | V x => add_annotation_clause_from_quasi_clause rest accum
+             |> Option.map (cons (x, (sign_for_comp_op cmp, a)))
 
-val assign_clause_from_quasi_clause =
-  map_filter annotation_literal_from_quasi_literal
-val add_quasi_clause = assign_clause_from_quasi_clause #> add_assign_clause
+fun assign_clause_from_quasi_clause clause =
+  add_annotation_clause_from_quasi_clause clause (SOME [])
 
 fun add_connective_var conn mk_quasi_clauses res_aa aa1 aa2 =
   (trace_msg (fn () => "*** Add " ^ string_for_annotation_atom res_aa ^ " = " ^
                        string_for_annotation_atom aa1 ^ " " ^ conn ^ " " ^
                        string_for_annotation_atom aa2);
-   fold add_quasi_clause (mk_quasi_clauses res_aa aa1 aa2))
-
+   fold (add_assign_clause o assign_clause_from_quasi_clause)
+        (mk_quasi_clauses res_aa aa1 aa2))
 fun add_connective_frames conn mk_quasi_clauses res_frame frame1 frame2 =
   fold I (map3 (fn (_, res_aa) => fn (_, aa1) => fn (_, aa2) =>
                    add_connective_var conn mk_quasi_clauses res_aa aa1 aa2)
@@ -729,11 +733,17 @@ fun add_annotation_atom_comp_alt _ (A Gen) _ _ = I
   | add_annotation_atom_comp_alt cmp (V x) aa1 aa2 =
     add_annotation_atom_comp cmp [x] aa1 aa2
 
-fun add_arg_order1 ((_, aa), (_, prev_aa)) =
+fun add_arg_order1 ((_, aa), (_, prev_aa)) = I
   add_annotation_atom_comp_alt Neq prev_aa (A Gen) aa
-fun add_app1 fun_aa ((_, res_aa), (_, arg_aa)) =
-  add_annotation_atom_comp_alt Leq arg_aa fun_aa res_aa
-  ##> add_quasi_clause [(arg_aa, (Neq, Gen)), (res_aa, (Eq, Gen))]
+fun add_app1 fun_aa ((_, res_aa), (_, arg_aa)) = I
+  let
+    val clause = [(arg_aa, (Eq, New)), (res_aa, (Eq, Gen))]
+                 |> assign_clause_from_quasi_clause
+  in
+    trace_msg (fn () => "*** Add " ^ string_for_assign_clause clause);
+    apsnd (add_assign_clause clause)
+    #> add_annotation_atom_comp_alt Leq arg_aa fun_aa res_aa
+  end
 fun add_app _ [] [] = I
   | add_app fun_aa res_frame arg_frame =
     add_comp_frame (A New) Leq arg_frame
