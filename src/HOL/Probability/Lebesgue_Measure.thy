@@ -357,7 +357,7 @@ proof -
 qed
 
 lemma lebesgue_simple_function_indicator:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> pinfreal"
+  fixes f::"'a::ordered_euclidean_space \<Rightarrow> pextreal"
   assumes f:"lebesgue.simple_function f"
   shows "f = (\<lambda>x. (\<Sum>y \<in> f ` UNIV. y * indicator (f -` {y}) x))"
   apply(rule,subst lebesgue.simple_function_indicator_representation[OF f]) by auto
@@ -421,7 +421,7 @@ qed
 
 lemma lmeasure_singleton[simp]:
   fixes a :: "'a::ordered_euclidean_space" shows "lmeasure {a} = 0"
-  using has_gmeasure_interval[of a a] unfolding zero_pinfreal_def
+  using has_gmeasure_interval[of a a] unfolding zero_pextreal_def
   by (intro has_gmeasure_lmeasure)
      (simp add: content_closed_interval DIM_positive)
 
@@ -475,7 +475,7 @@ proof
 qed
 
 lemma simple_function_has_integral:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> pinfreal"
+  fixes f::"'a::ordered_euclidean_space \<Rightarrow> pextreal"
   assumes f:"lebesgue.simple_function f"
   and f':"\<forall>x. f x \<noteq> \<omega>"
   and om:"\<forall>x\<in>range f. lmeasure (f -` {x} \<inter> UNIV) = \<omega> \<longrightarrow> x = 0"
@@ -486,9 +486,9 @@ proof- case goal1
   have *:"\<And>x. \<forall>y\<in>range f. y * indicator (f -` {y}) x \<noteq> \<omega>"
     "\<forall>x\<in>range f. x * lmeasure (f -` {x} \<inter> UNIV) \<noteq> \<omega>"
     using f' om unfolding indicator_def by auto
-  show ?case unfolding space_lebesgue real_of_pinfreal_setsum'[OF *(1),THEN sym]
-    unfolding real_of_pinfreal_setsum'[OF *(2),THEN sym]
-    unfolding real_of_pinfreal_setsum space_lebesgue
+  show ?case unfolding space_lebesgue real_of_pextreal_setsum'[OF *(1),THEN sym]
+    unfolding real_of_pextreal_setsum'[OF *(2),THEN sym]
+    unfolding real_of_pextreal_setsum space_lebesgue
     apply(rule has_integral_setsum)
   proof safe show "finite (range f)" using f by (auto dest: lebesgue.simple_functionD)
     fix y::'a show "((\<lambda>x. real (f y * indicator (f -` {f y}) x)) has_integral
@@ -496,8 +496,8 @@ proof- case goal1
     proof(cases "f y = 0") case False
       have mea:"gmeasurable (f -` {f y})" apply(rule lmeasure_finite_gmeasurable)
         using assms unfolding lebesgue.simple_function_def using False by auto
-      have *:"\<And>x. real (indicator (f -` {f y}) x::pinfreal) = (if x \<in> f -` {f y} then 1 else 0)" by auto
-      show ?thesis unfolding real_of_pinfreal_mult[THEN sym]
+      have *:"\<And>x. real (indicator (f -` {f y}) x::pextreal) = (if x \<in> f -` {f y} then 1 else 0)" by auto
+      show ?thesis unfolding real_of_pextreal_mult[THEN sym]
         apply(rule has_integral_cmul[where 'b=real, unfolded real_scaleR_def])
         unfolding Int_UNIV_right lmeasure_gmeasure[OF mea,THEN sym]
         unfolding measure_integral_univ[OF mea] * apply(rule integrable_integral)
@@ -510,7 +510,7 @@ lemma bounded_realI: assumes "\<forall>x\<in>s. abs (x::real) \<le> B" shows "bo
   using assms by auto
 
 lemma simple_function_has_integral':
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> pinfreal"
+  fixes f::"'a::ordered_euclidean_space \<Rightarrow> pextreal"
   assumes f:"lebesgue.simple_function f"
   and i: "lebesgue.simple_integral f \<noteq> \<omega>"
   shows "((\<lambda>x. real (f x)) has_integral (real (lebesgue.simple_integral f))) UNIV"
@@ -544,7 +544,7 @@ proof- let ?f = "\<lambda>x. if f x = \<omega> then 0 else f x"
 qed
 
 lemma (in measure_space) positive_integral_monotone_convergence:
-  fixes f::"nat \<Rightarrow> 'a \<Rightarrow> pinfreal"
+  fixes f::"nat \<Rightarrow> 'a \<Rightarrow> pextreal"
   assumes i: "\<And>i. f i \<in> borel_measurable M" and mono: "\<And>x. mono (\<lambda>n. f n x)"
   and lim: "\<And>x. (\<lambda>i. f i x) ----> u x"
   shows "u \<in> borel_measurable M"
@@ -552,7 +552,7 @@ lemma (in measure_space) positive_integral_monotone_convergence:
 proof -
   from positive_integral_isoton[unfolded isoton_fun_expand isoton_iff_Lim_mono, of f u]
   show ?ilim using mono lim i by auto
-  have "(SUP i. f i) = u" using mono lim SUP_Lim_pinfreal
+  have "(SUP i. f i) = u" using mono lim SUP_Lim_pextreal
     unfolding fun_eq_iff SUPR_fun_expand mono_def by auto
   moreover have "(SUP i. f i) \<in> borel_measurable M"
     using i by (rule borel_measurable_SUP)
@@ -560,7 +560,7 @@ proof -
 qed
 
 lemma positive_integral_has_integral:
-  fixes f::"'a::ordered_euclidean_space => pinfreal"
+  fixes f::"'a::ordered_euclidean_space => pextreal"
   assumes f:"f \<in> borel_measurable lebesgue"
   and int_om:"lebesgue.positive_integral f \<noteq> \<omega>"
   and f_om:"\<forall>x. f x \<noteq> \<omega>" (* TODO: remove this *)
@@ -581,14 +581,14 @@ proof- let ?i = "lebesgue.positive_integral f"
   have "(\<lambda>x. real (f x)) integrable_on UNIV \<and>
     (\<lambda>k. Integration.integral UNIV (\<lambda>x. real (u k x))) ----> Integration.integral UNIV (\<lambda>x. real (f x))"
     apply(rule monotone_convergence_increasing) apply(rule,rule,rule u_int)
-  proof safe case goal1 show ?case apply(rule real_of_pinfreal_mono) using u(2,3) by auto
+  proof safe case goal1 show ?case apply(rule real_of_pextreal_mono) using u(2,3) by auto
   next case goal2 show ?case using u(3) apply(subst lim_Real[THEN sym])
       prefer 3 apply(subst Real_real') defer apply(subst Real_real')
       using isotone_Lim[OF u(3)[unfolded isoton_fun_expand, THEN spec]] using f_om u by auto
   next case goal3
     show ?case apply(rule bounded_realI[where B="real (lebesgue.positive_integral f)"])
       apply safe apply(subst abs_of_nonneg) apply(rule integral_nonneg,rule) apply(rule u_int)
-      unfolding integral_unique[OF u_int] defer apply(rule real_of_pinfreal_mono[OF _ int_u_le])
+      unfolding integral_unique[OF u_int] defer apply(rule real_of_pextreal_mono[OF _ int_u_le])
       using u int_om by auto
   qed note int = conjunctD2[OF this]
 
@@ -921,7 +921,7 @@ proof- fix x assume "x\<in>A"
 qed
 
 lemma borel_fubini_positiv_integral:
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> pinfreal"
+  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> pextreal"
   assumes f: "f \<in> borel_measurable borel"
   shows "borel.positive_integral f =
           borel_product.product_positive_integral {..<DIM('a)} (f \<circ> p2e)"

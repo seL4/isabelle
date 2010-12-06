@@ -7,13 +7,6 @@ theory Approximation
 imports Complex_Main Float Reflection "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Efficient_Nat
 begin
 
-declare [[coercion_map map]]
-declare [[coercion_map "% f g h . g o h o f"]]
-declare [[coercion_map "% f g (x,y) . (f x, g y)"]]
-declare [[coercion int]]
-declare [[coercion "% x . Float x 0"]]
-declare [[coercion "real::float\<Rightarrow>real"]]
-
 section "Horner Scheme"
 
 subsection {* Define auxiliary helper @{text horner} function *}

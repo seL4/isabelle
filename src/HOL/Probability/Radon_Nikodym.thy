@@ -29,10 +29,10 @@ proof -
     next
       assume not_0: "\<mu> (A i) \<noteq> 0"
       then have "?B i \<noteq> \<omega>" using measure[of i] by auto
-      then have "inverse (?B i) \<noteq> 0" unfolding pinfreal_inverse_eq_0 by simp
+      then have "inverse (?B i) \<noteq> 0" unfolding pextreal_inverse_eq_0 by simp
       then show ?thesis using measure[of i] not_0
         by (auto intro!: exI[of _ "inverse (?B i) / 2"]
-                 simp: pinfreal_noteq_omega_Ex zero_le_mult_iff zero_less_mult_iff mult_le_0_iff power_le_zero_eq)
+                 simp: pextreal_noteq_omega_Ex zero_le_mult_iff zero_less_mult_iff mult_le_0_iff power_le_zero_eq)
     qed
   qed
   from choice[OF this] obtain n where n: "\<And>i. 0 < n i"
@@ -49,7 +49,7 @@ proof -
       fix N show "n N * \<mu> (A N) \<le> Real ((1 / 2) ^ Suc N)"
         using measure[of N] n[of N]
         by (cases "n N")
-           (auto simp: pinfreal_noteq_omega_Ex field_simps zero_le_mult_iff
+           (auto simp: pextreal_noteq_omega_Ex field_simps zero_le_mult_iff
                        mult_le_0_iff mult_less_0_iff power_less_zero_eq
                        power_le_zero_eq inverse_eq_divide less_divide_eq
                        power_divide split: split_if_asm)
@@ -65,14 +65,14 @@ proof -
     then show "0 < ?h x" and "?h x < \<omega>" using n[of i] by auto
   next
     show "?h \<in> borel_measurable M" using range
-      by (auto intro!: borel_measurable_psuminf borel_measurable_pinfreal_times)
+      by (auto intro!: borel_measurable_psuminf borel_measurable_pextreal_times)
   qed
 qed
 
 subsection "Absolutely continuous"
 
 definition (in measure_space)
-  "absolutely_continuous \<nu> = (\<forall>N\<in>null_sets. \<nu> N = (0 :: pinfreal))"
+  "absolutely_continuous \<nu> = (\<forall>N\<in>null_sets. \<nu> N = (0 :: pextreal))"
 
 lemma (in sigma_finite_measure) absolutely_continuous_AE:
   assumes "measure_space M \<nu>" "absolutely_continuous \<nu>" "AE x. P x"
@@ -409,9 +409,9 @@ proof -
       moreover {
         have "positive_integral (\<lambda>x. f x * indicator (\<Union>i. A i) x) \<le> \<nu> (\<Union>i. A i)"
           using A `f \<in> G` unfolding G_def by (auto simp: countable_UN)
-        also have "\<nu> (\<Union>i. A i) < \<omega>" using v_fin by (simp add: pinfreal_less_\<omega>)
+        also have "\<nu> (\<Union>i. A i) < \<omega>" using v_fin by (simp add: pextreal_less_\<omega>)
         finally have "positive_integral (\<lambda>x. f x * indicator (\<Union>i. A i) x) \<noteq> \<omega>"
-          by (simp add: pinfreal_less_\<omega>) }
+          by (simp add: pextreal_less_\<omega>) }
       ultimately
       show "(\<Sum>\<^isub>\<infinity> n. ?t (A n)) = ?t (\<Union>i. A i)"
         apply (subst psuminf_minus) by simp_all
@@ -440,7 +440,7 @@ proof -
     def b \<equiv> "?t (space M) / \<mu> (space M) / 2"
     ultimately have b: "b \<noteq> 0" "b \<noteq> \<omega>"
       using M'.finite_measure_of_space
-      by (auto simp: pinfreal_inverse_eq_0 finite_measure_of_space)
+      by (auto simp: pextreal_inverse_eq_0 finite_measure_of_space)
     have "finite_measure M (\<lambda>A. b * \<mu> A)" (is "finite_measure M ?b")
     proof
       show "?b {} = 0" by simp
@@ -486,7 +486,7 @@ proof -
         by (cases "positive_integral (\<lambda>x. f x * indicator A x)", cases "\<nu> A", auto)
       finally have "positive_integral (\<lambda>x. ?f0 x * indicator A x) \<le> \<nu> A" . }
     hence "?f0 \<in> G" using `A0 \<in> sets M` unfolding G_def
-      by (auto intro!: borel_measurable_indicator borel_measurable_pinfreal_add borel_measurable_pinfreal_times)
+      by (auto intro!: borel_measurable_indicator borel_measurable_pextreal_add borel_measurable_pextreal_times)
     have real: "?t (space M) \<noteq> \<omega>" "?t A0 \<noteq> \<omega>"
       "b * \<mu> (space M) \<noteq> \<omega>" "b * \<mu> A0 \<noteq> \<omega>"
       using `A0 \<in> sets M` b
@@ -494,27 +494,27 @@ proof -
         finite_measure_of_space M.finite_measure_of_space
       by auto
     have int_f_finite: "positive_integral f \<noteq> \<omega>"
-      using M'.finite_measure_of_space pos_t unfolding pinfreal_zero_less_diff_iff
+      using M'.finite_measure_of_space pos_t unfolding pextreal_zero_less_diff_iff
       by (auto cong: positive_integral_cong)
     have "?t (space M) > b * \<mu> (space M)" unfolding b_def
       apply (simp add: field_simps)
       apply (subst mult_assoc[symmetric])
-      apply (subst pinfreal_mult_inverse)
+      apply (subst pextreal_mult_inverse)
       using finite_measure_of_space M'.finite_measure_of_space pos_t pos_M
-      using pinfreal_mult_strict_right_mono[of "Real (1/2)" 1 "?t (space M)"]
+      using pextreal_mult_strict_right_mono[of "Real (1/2)" 1 "?t (space M)"]
       by simp_all
     hence  "0 < ?t (space M) - b * \<mu> (space M)"
-      by (simp add: pinfreal_zero_less_diff_iff)
+      by (simp add: pextreal_zero_less_diff_iff)
     also have "\<dots> \<le> ?t A0 - b * \<mu> A0"
-      using space_less_A0 pos_M pos_t b real[unfolded pinfreal_noteq_omega_Ex] by auto
-    finally have "b * \<mu> A0 < ?t A0" unfolding pinfreal_zero_less_diff_iff .
+      using space_less_A0 pos_M pos_t b real[unfolded pextreal_noteq_omega_Ex] by auto
+    finally have "b * \<mu> A0 < ?t A0" unfolding pextreal_zero_less_diff_iff .
     hence "0 < ?t A0" by auto
     hence "0 < \<mu> A0" using ac unfolding absolutely_continuous_def
       using `A0 \<in> sets M` by auto
     hence "0 < b * \<mu> A0" using b by auto
     from int_f_finite this
     have "?y + 0 < positive_integral f + b * \<mu> A0" unfolding int_f_eq_y
-      by (rule pinfreal_less_add)
+      by (rule pextreal_less_add)
     also have "\<dots> = positive_integral ?f0" using f0_eq[OF top] `A0 \<in> sets M` sets_into_space
       by (simp cong: positive_integral_cong)
     finally have "?y < positive_integral ?f0" by simp
@@ -530,7 +530,7 @@ proof -
         using `f \<in> G` `A \<in> sets M` unfolding G_def by auto
       show "\<nu> A \<le> positive_integral (\<lambda>x. f x * indicator A x)"
         using upper_bound[THEN bspec, OF `A \<in> sets M`]
-         by (simp add: pinfreal_zero_le_diff)
+         by (simp add: pextreal_zero_le_diff)
     qed
   qed simp
 qed
@@ -573,8 +573,8 @@ proof -
       using Q' by (auto intro: finite_UN)
     with v.measure_finitely_subadditive[of "{.. i}" Q']
     have "\<nu> (?O i) \<le> (\<Sum>i\<le>i. \<nu> (Q' i))" by auto
-    also have "\<dots> < \<omega>" unfolding setsum_\<omega> pinfreal_less_\<omega> using Q' by auto
-    finally show "\<nu> (?O i) \<noteq> \<omega>" unfolding pinfreal_less_\<omega> by auto
+    also have "\<dots> < \<omega>" unfolding setsum_\<omega> pextreal_less_\<omega> using Q' by auto
+    finally show "\<nu> (?O i) \<noteq> \<omega>" unfolding pextreal_less_\<omega> by auto
   qed auto
   have O_mono: "\<And>n. ?O n \<subseteq> ?O (Suc n)" by fastsimp
   have a_eq: "?a = \<mu> (\<Union>i. ?O i)" unfolding Union[symmetric]
@@ -634,7 +634,7 @@ proof -
             then show "\<mu> (?O i \<union> A) \<le> ?a" by (rule le_SUPI)
           qed
           finally have "\<mu> A = 0" unfolding a_eq using finite_measure[OF `?O_0 \<in> sets M`]
-            by (cases "\<mu> A") (auto simp: pinfreal_noteq_omega_Ex)
+            by (cases "\<mu> A") (auto simp: pextreal_noteq_omega_Ex)
           with `\<mu> A \<noteq> 0` show ?thesis by auto
         qed
       qed }
@@ -682,7 +682,7 @@ proof -
     \<nu> (Q i \<inter> A) = positive_integral (\<lambda>x. f x * indicator (Q i \<inter> A) x))"
   proof
     fix i
-    have indicator_eq: "\<And>f x A. (f x :: pinfreal) * indicator (Q i \<inter> A) x * indicator (Q i) x
+    have indicator_eq: "\<And>f x A. (f x :: pextreal) * indicator (Q i \<inter> A) x * indicator (Q i) x
       = (f x * indicator (Q i) x) * indicator A x"
       unfolding indicator_def by auto
     have fm: "finite_measure (restricted_space (Q i)) \<mu>"
@@ -718,19 +718,19 @@ proof -
   show ?thesis
   proof (safe intro!: bexI[of _ ?f])
     show "?f \<in> borel_measurable M"
-      by (safe intro!: borel_measurable_psuminf borel_measurable_pinfreal_times
-        borel_measurable_pinfreal_add borel_measurable_indicator
+      by (safe intro!: borel_measurable_psuminf borel_measurable_pextreal_times
+        borel_measurable_pextreal_add borel_measurable_indicator
         borel_measurable_const borel Q_sets Q0 Diff countable_UN)
     fix A assume "A \<in> sets M"
     have *:
       "\<And>x i. indicator A x * (f i x * indicator (Q i) x) =
         f i x * indicator (Q i \<inter> A) x"
-      "\<And>x i. (indicator A x * indicator Q0 x :: pinfreal) =
+      "\<And>x i. (indicator A x * indicator Q0 x :: pextreal) =
         indicator (Q0 \<inter> A) x" by (auto simp: indicator_def)
     have "positive_integral (\<lambda>x. ?f x * indicator A x) =
       (\<Sum>\<^isub>\<infinity> i. \<nu> (Q i \<inter> A)) + \<omega> * \<mu> (Q0 \<inter> A)"
       unfolding f[OF `A \<in> sets M`]
-      apply (simp del: pinfreal_times(2) add: field_simps *)
+      apply (simp del: pextreal_times(2) add: field_simps *)
       apply (subst positive_integral_add)
       apply (fastsimp intro: Q0 `A \<in> sets M`)
       apply (fastsimp intro: Q_sets `A \<in> sets M` borel_measurable_psuminf borel)
@@ -775,7 +775,7 @@ proof -
   interpret T: finite_measure M ?T
     unfolding finite_measure_def finite_measure_axioms_def
     by (simp cong: positive_integral_cong)
-  have "\<And>N. N \<in> sets M \<Longrightarrow> {x \<in> space M. h x \<noteq> 0 \<and> indicator N x \<noteq> (0::pinfreal)} = N"
+  have "\<And>N. N \<in> sets M \<Longrightarrow> {x \<in> space M. h x \<noteq> 0 \<and> indicator N x \<noteq> (0::pextreal)} = N"
     using sets_into_space pos by (force simp: indicator_def)
   then have "T.absolutely_continuous \<nu>" using assms(2) borel
     unfolding T.absolutely_continuous_def absolutely_continuous_def
@@ -786,10 +786,10 @@ proof -
   show ?thesis
   proof (safe intro!: bexI[of _ "\<lambda>x. h x * f x"])
     show "(\<lambda>x. h x * f x) \<in> borel_measurable M"
-      using borel f_borel by (auto intro: borel_measurable_pinfreal_times)
+      using borel f_borel by (auto intro: borel_measurable_pextreal_times)
     fix A assume "A \<in> sets M"
     then have "(\<lambda>x. f x * indicator A x) \<in> borel_measurable M"
-      using f_borel by (auto intro: borel_measurable_pinfreal_times borel_measurable_indicator)
+      using f_borel by (auto intro: borel_measurable_pextreal_times borel_measurable_indicator)
     from positive_integral_translated_density[OF borel this]
     show "\<nu> A = positive_integral (\<lambda>x. h x * f x * indicator A x)"
       unfolding fT[OF `A \<in> sets M`] by (simp add: field_simps)
@@ -834,7 +834,7 @@ next
     finally have "\<mu> {x\<in>space M. (f x - g x) * indicator ?N x \<noteq> 0} = 0"
       using borel N by (subst (asm) positive_integral_0_iff) auto
     moreover have "{x\<in>space M. (f x - g x) * indicator ?N x \<noteq> 0} = ?N"
-      by (auto simp: pinfreal_zero_le_diff)
+      by (auto simp: pextreal_zero_le_diff)
     ultimately have "?N \<in> null_sets" using N by simp }
   from this[OF borel g_fin eq] this[OF borel(2,1) fin]
   have "{x\<in>space M. g x < f x} \<union> {x\<in>space M. f x < g x} \<in> null_sets"
@@ -866,15 +866,15 @@ proof -
   from Q have Q_sets: "\<And>i. Q i \<in> sets M" by auto
   let ?N = "{x\<in>space M. f x \<noteq> f' x}"
   have "?N \<in> sets M" using borel by auto
-  have *: "\<And>i x A. \<And>y::pinfreal. y * indicator (Q i) x * indicator A x = y * indicator (Q i \<inter> A) x"
+  have *: "\<And>i x A. \<And>y::pextreal. y * indicator (Q i) x * indicator A x = y * indicator (Q i \<inter> A) x"
     unfolding indicator_def by auto
   have 1: "\<forall>i. AE x. ?f (Q i) x = ?f' (Q i) x"
     using borel Q_fin Q
     by (intro finite_density_unique[THEN iffD1] allI)
-       (auto intro!: borel_measurable_pinfreal_times f Int simp: *)
+       (auto intro!: borel_measurable_pextreal_times f Int simp: *)
   have 2: "AE x. ?f Q0 x = ?f' Q0 x"
   proof (rule AE_I')
-    { fix f :: "'a \<Rightarrow> pinfreal" assume borel: "f \<in> borel_measurable M"
+    { fix f :: "'a \<Rightarrow> pextreal" assume borel: "f \<in> borel_measurable M"
         and eq: "\<And>A. A \<in> sets M \<Longrightarrow> ?\<nu> A = positive_integral (\<lambda>x. f x * indicator A x)"
       let "?A i" = "Q0 \<inter> {x \<in> space M. f x < of_nat i}"
       have "(\<Union>i. ?A i) \<in> null_sets"
@@ -893,7 +893,7 @@ proof -
       qed
       also have "(\<Union>i. ?A i) = Q0 \<inter> {x\<in>space M. f x < \<omega>}"
         by (auto simp: less_\<omega>_Ex_of_nat)
-      finally have "Q0 \<inter> {x\<in>space M. f x \<noteq> \<omega>} \<in> null_sets" by (simp add: pinfreal_less_\<omega>) }
+      finally have "Q0 \<inter> {x\<in>space M. f x \<noteq> \<omega>} \<in> null_sets" by (simp add: pextreal_less_\<omega>) }
     from this[OF borel(1) refl] this[OF borel(2) f]
     have "Q0 \<inter> {x\<in>space M. f x \<noteq> \<omega>} \<in> null_sets" "Q0 \<inter> {x\<in>space M. f' x \<noteq> \<omega>} \<in> null_sets" by simp_all
     then show "(Q0 \<inter> {x\<in>space M. f x \<noteq> \<omega>}) \<union> (Q0 \<inter> {x\<in>space M. f' x \<noteq> \<omega>}) \<in> null_sets" by (rule null_sets_Un)
@@ -927,7 +927,7 @@ proof -
   interpret f': measure_space M "\<lambda>A. positive_integral (\<lambda>x. f' x * indicator A x)"
     using borel(2) by (rule measure_space_density)
   { fix A assume "A \<in> sets M"
-    then have " {x \<in> space M. h x \<noteq> 0 \<and> indicator A x \<noteq> (0::pinfreal)} = A"
+    then have " {x \<in> space M. h x \<noteq> 0 \<and> indicator A x \<noteq> (0::pextreal)} = A"
       using pos sets_into_space by (force simp: indicator_def)
     then have "positive_integral (\<lambda>xa. h xa * indicator A xa) = 0 \<longleftrightarrow> A \<in> null_sets"
       using h_borel `A \<in> sets M` by (simp add: positive_integral_0_iff) }
@@ -1027,7 +1027,7 @@ next
         apply (subst positive_integral_0_iff)
         apply fast
         apply (subst (asm) AE_iff_null_set)
-        apply (intro borel_measurable_pinfreal_neq_const)
+        apply (intro borel_measurable_pextreal_neq_const)
         apply fast
         by simp
       then show ?thesis by simp
@@ -1130,7 +1130,7 @@ proof (rule RN_deriv_unique[OF \<nu>])
     using sf.RN_deriv(1)[OF \<nu>' ac]
     unfolding measurable_vimage_iff_inv[OF f] comp_def .
   fix A assume "A \<in> sets M"
-  then have *: "\<And>x. x \<in> space M \<Longrightarrow> indicator (f -` A \<inter> S) (the_inv_into S f x) = (indicator A x :: pinfreal)"
+  then have *: "\<And>x. x \<in> space M \<Longrightarrow> indicator (f -` A \<inter> S) (the_inv_into S f x) = (indicator A x :: pextreal)"
     using f[unfolded bij_betw_def]
     unfolding indicator_def by (auto simp: f_the_inv_into_f the_inv_into_in)
   have "\<nu> (f ` (f -` A \<inter> S)) = sf.positive_integral (\<lambda>x. sf.RN_deriv (\<lambda>A. \<nu> (f ` A)) x * indicator (f -` A \<inter> S) x)"
@@ -1160,7 +1160,7 @@ lemma (in sigma_finite_measure)
 proof -
   interpret \<nu>: sigma_finite_measure M \<nu> by fact
   have ms: "measure_space M \<nu>" by default
-  have minus_cong: "\<And>A B A' B'::pinfreal. A = A' \<Longrightarrow> B = B' \<Longrightarrow> real A - real B = real A' - real B'" by simp
+  have minus_cong: "\<And>A B A' B'::pextreal. A = A' \<Longrightarrow> B = B' \<Longrightarrow> real A - real B = real A' - real B'" by simp
   have f': "(\<lambda>x. - f x) \<in> borel_measurable M" using f by auto
   { fix f :: "'a \<Rightarrow> real" assume "f \<in> borel_measurable M"
     { fix x assume *: "RN_deriv \<nu> x \<noteq> \<omega>"

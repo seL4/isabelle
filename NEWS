@@ -84,7 +84,7 @@ float_token.
 *** Pure ***
 
 * Command 'notepad' replaces former 'example_proof' for
-experimentation in Isar without and result.  INCOMPATIBILITY.
+experimentation in Isar without any result.  INCOMPATIBILITY.
 
 * Support for real valued preferences (with approximative PGIP type).
 
@@ -133,7 +133,7 @@ nat list => real list), map functions can be declared, e.g.
 
 Currently coercion inference is activated only in theories including
 real numbers, i.e. descendants of Complex_Main.  This is controlled by
-the configuration option "infer_coercions", e.g. it can be enabled in
+the configuration option "coercion_enabled", e.g. it can be enabled in
 other theories like this:
 
   declare [[coercion_enabled]]
@@ -334,8 +334,8 @@ finite type. Finite cartesian products of euclidean spaces, products
 of euclidean spaces the real and complex numbers are instantiated to
 be euclidean_spaces.  INCOMPATIBILITY.
 
-* Probability: Introduced pinfreal as real numbers with infinity. Use
-pinfreal as value for measures. Introduce the Radon-Nikodym
+* Probability: Introduced pextreal as positive extended real numbers.
+Use pextreal as value for measures. Introduce the Radon-Nikodym
 derivative, product spaces and Fubini's theorem for arbitrary sigma
 finite measures. Introduces Lebesgue measure based on the integral in
 Multivariate Analysis.  INCOMPATIBILITY.
@@ -651,6 +651,9 @@ the program subject to physical effects of the environment.
 
 
 *** System ***
+
+* The IsabelleText font now includes Cyrillic, Hebrew, Arabic from
+DajaVu Sans.
 
 * Discontinued support for Poly/ML 5.0 and 5.1 versions.
 

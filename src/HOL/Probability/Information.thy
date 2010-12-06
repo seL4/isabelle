@@ -210,7 +210,7 @@ proof (simp add: KL_divergence_def finite_measure_space.integral_finite_singleto
   have ms: "measure_space M \<nu>" by fact
   show "(\<Sum>x \<in> space M. log b (real (RN_deriv \<nu> x)) * real (\<nu> {x})) = ?sum"
     using RN_deriv_finite_measure[OF ms ac]
-    by (auto intro!: setsum_cong simp: field_simps real_of_pinfreal_mult[symmetric])
+    by (auto intro!: setsum_cong simp: field_simps real_of_pextreal_mult[symmetric])
 qed
 
 lemma (in finite_prob_space) KL_divergence_positive_finite:
@@ -285,7 +285,7 @@ proof -
   note jd_commute = this
 
   { fix A assume A: "A \<in> sets (sigma (pair_algebra T S))"
-    have *: "\<And>x y. indicator ((\<lambda>(x, y). (y, x)) ` A) (x, y) = (indicator A (y, x) :: pinfreal)"
+    have *: "\<And>x y. indicator ((\<lambda>(x, y). (y, x)) ` A) (x, y) = (indicator A (y, x) :: pextreal)"
       unfolding indicator_def by auto
     have "ST.pair_measure ((\<lambda>(x, y). (y, x)) ` A) = TS.pair_measure A"
       unfolding ST.pair_measure_def TS.pair_measure_def
@@ -361,7 +361,7 @@ proof -
   show ?sum
     unfolding Let_def mutual_information_def
     by (subst XY.KL_divergence_eq_finite[OF P_ms finite_variables_absolutely_continuous[OF MX MY]])
-       (auto simp add: pair_algebra_def setsum_cartesian_product' real_of_pinfreal_mult[symmetric])
+       (auto simp add: pair_algebra_def setsum_cartesian_product' real_of_pextreal_mult[symmetric])
 
   show ?positive
     using XY.KL_divergence_positive_finite[OF P_ps finite_variables_absolutely_continuous[OF MX MY] b_gt_1]
@@ -463,7 +463,7 @@ proof -
     by (auto simp: simple_function_def)
   also have "\<dots> = log b (\<Sum>x\<in>X`space M. if ?d x \<noteq> 0 then 1 else 0)"
     using distribution_finite[OF `simple_function X`[THEN simple_function_imp_random_variable], simplified]
-    by (intro arg_cong[where f="\<lambda>X. log b X"] setsum_cong) (auto simp: real_of_pinfreal_eq_0)
+    by (intro arg_cong[where f="\<lambda>X. log b X"] setsum_cong) (auto simp: real_of_pextreal_eq_0)
   finally show ?thesis
     using `simple_function X` by (auto simp: setsum_cases real_eq_of_nat simple_function_def)
 qed
@@ -610,14 +610,14 @@ proof -
     then have *: "?XYZ x y z / (?XZ x z * ?YZdZ y z) =
       (?XYZ x y z / (?X x * ?YZ y z)) / (?XZ x z / (?X x * ?Z z))"
       using order1(3)
-      by (auto simp: real_of_pinfreal_mult[symmetric] real_of_pinfreal_eq_0)
+      by (auto simp: real_of_pextreal_mult[symmetric] real_of_pextreal_eq_0)
     show "?L x y z = ?R x y z"
     proof cases
       assume "?XYZ x y z \<noteq> 0"
       with space b_gt_1 order1 order2 show ?thesis unfolding *
         by (subst log_divide)
-           (auto simp: zero_less_divide_iff zero_less_real_of_pinfreal
-                       real_of_pinfreal_eq_0 zero_less_mult_iff)
+           (auto simp: zero_less_divide_iff zero_less_real_of_pextreal
+                       real_of_pextreal_eq_0 zero_less_mult_iff)
     qed simp
   qed
   also have "\<dots> = (\<Sum>(x, y, z)\<in>?S. ?XYZ x y z * log b (?XYZ x y z / (?X x * ?YZ y z))) -
@@ -721,7 +721,7 @@ next
   have "- conditional_mutual_information b MX MY MZ X Y Z = - (\<Sum>(x, y, z) \<in> ?M. ?dXYZ {(x, y, z)} *
     log b (?dXYZ {(x, y, z)} / (?dXZ {(x, z)} * ?dYZ {(y,z)} / ?dZ {z})))"
     unfolding conditional_mutual_information_generic_eq[OF assms] neg_equal_iff_equal
-    by (intro setsum_cong) (auto intro!: arg_cong[where f="log b"] simp: real_of_pinfreal_mult[symmetric])
+    by (intro setsum_cong) (auto intro!: arg_cong[where f="log b"] simp: real_of_pextreal_mult[symmetric])
   also have "\<dots> \<le> log b (\<Sum>(x, y, z) \<in> ?M. ?dXZ {(x, z)} * ?dYZ {(y,z)} / ?dZ {z})"
     unfolding split_beta
   proof (rule log_setsum_divide)
@@ -743,15 +743,15 @@ next
     fix x assume "x \<in> ?M"
     let ?x = "(fst x, fst (snd x), snd (snd x))"
 
-    show "0 \<le> ?dXYZ {?x}" using real_pinfreal_nonneg .
+    show "0 \<le> ?dXYZ {?x}" using real_pextreal_nonneg .
     show "0 \<le> ?dXZ {(fst x, snd (snd x))} * ?dYZ {(fst (snd x), snd (snd x))} / ?dZ {snd (snd x)}"
-     by (simp add: real_pinfreal_nonneg mult_nonneg_nonneg divide_nonneg_nonneg)
+     by (simp add: real_pextreal_nonneg mult_nonneg_nonneg divide_nonneg_nonneg)
 
     assume *: "0 < ?dXYZ {?x}"
     with `x \<in> ?M` show "0 < ?dXZ {(fst x, snd (snd x))} * ?dYZ {(fst (snd x), snd (snd x))} / ?dZ {snd (snd x)}"
       using finite order
       by (cases x)
-         (auto simp add: zero_less_real_of_pinfreal zero_less_mult_iff zero_less_divide_iff)
+         (auto simp add: zero_less_real_of_pextreal zero_less_mult_iff zero_less_divide_iff)
   qed
   also have "(\<Sum>(x, y, z) \<in> ?M. ?dXZ {(x, z)} * ?dYZ {(y,z)} / ?dZ {z}) = (\<Sum>z\<in>space MZ. ?dZ {z})"
     apply (simp add: setsum_cartesian_product')
@@ -817,11 +817,11 @@ proof -
     also have "\<dots> = real (?XZ x z) * ?f x x z"
       using `x \<in> space MX` by (simp add: setsum_cases[OF MX.finite_space])
     also have "\<dots> = real (?XZ x z) * log b (real (?Z z) / real (?XZ x z))"
-      by (auto simp: real_of_pinfreal_mult[symmetric])
+      by (auto simp: real_of_pextreal_mult[symmetric])
     also have "\<dots> = - real (?XZ x z) * log b (real (?XZ x z) / real (?Z z))"
       using assms[THEN finite_distribution_finite]
       using finite_distribution_order(6)[OF MX MZ]
-      by (auto simp: log_simps field_simps zero_less_mult_iff zero_less_real_of_pinfreal real_of_pinfreal_eq_0)
+      by (auto simp: log_simps field_simps zero_less_mult_iff zero_less_real_of_pextreal real_of_pextreal_eq_0)
     finally have "(\<Sum>x'\<in>space MX. real (?XXZ x x' z) * ?f x x' z) =
       - real (?XZ x z) * log b (real (?XZ x z) / real (?Z z))" . }
   note * = this
@@ -830,7 +830,7 @@ proof -
     unfolding conditional_entropy_def
     unfolding conditional_mutual_information_generic_eq[OF MX MX MZ]
     by (auto simp: setsum_cartesian_product' setsum_negf[symmetric]
-                   setsum_commute[of _ "space MZ"] *   simp del: divide_pinfreal_def
+                   setsum_commute[of _ "space MZ"] *   simp del: divide_pextreal_def
              intro!: setsum_cong)
 qed
 
@@ -853,7 +853,7 @@ lemma (in information_space) conditional_entropy_eq_ce_with_hypothesis:
   using finite_distribution_finite[OF finite_random_variable_pairI[OF assms[THEN simple_function_imp_finite_random_variable]]]
   using finite_distribution_order(5,6)[OF assms[THEN simple_function_imp_finite_random_variable]]
   using finite_distribution_finite[OF Y[THEN simple_function_imp_finite_random_variable]]
-  by (auto simp: setsum_cartesian_product'  setsum_commute[of _ "Y`space M"] setsum_right_distrib real_of_pinfreal_eq_0
+  by (auto simp: setsum_cartesian_product'  setsum_commute[of _ "Y`space M"] setsum_right_distrib real_of_pextreal_eq_0
            intro!: setsum_cong)
 
 lemma (in information_space) conditional_entropy_eq_cartesian_product:
@@ -880,8 +880,8 @@ proof -
   { fix x z assume "x \<in> X`space M" "z \<in> Z`space M"
     have "?XZ x z * log b (?XZ x z / (?X x * ?Z z)) =
           ?XZ x z * log b (?XZ x z / ?Z z) - ?XZ x z * log b (?X x)"
-      by (auto simp: log_simps real_of_pinfreal_mult[symmetric] zero_less_mult_iff
-                     zero_less_real_of_pinfreal field_simps real_of_pinfreal_eq_0 abs_mult) }
+      by (auto simp: log_simps real_of_pextreal_mult[symmetric] zero_less_mult_iff
+                     zero_less_real_of_pextreal field_simps real_of_pextreal_eq_0 abs_mult) }
   note * = this
   show ?thesis
     unfolding entropy_eq[OF X] conditional_entropy_eq[OF X Z] mutual_information_eq[OF X Z]
@@ -913,8 +913,8 @@ proof -
   { fix x y assume "x \<in> X`space M" "y \<in> Y`space M"
     have "?XY x y * log b (?XY x y / ?X x) =
           ?XY x y * log b (?XY x y) - ?XY x y * log b (?X x)"
-      by (auto simp: log_simps real_of_pinfreal_mult[symmetric] zero_less_mult_iff
-                     zero_less_real_of_pinfreal field_simps real_of_pinfreal_eq_0 abs_mult) }
+      by (auto simp: log_simps real_of_pextreal_mult[symmetric] zero_less_mult_iff
+                     zero_less_real_of_pextreal field_simps real_of_pextreal_eq_0 abs_mult) }
   note * = this
   show ?thesis
     using setsum_real_joint_distribution_singleton[OF fY fX]

@@ -103,7 +103,7 @@ proof -
     by (rule additiveD [OF additive]) (auto simp add: s)
   finally have "\<mu> (space M) = \<mu> s + \<mu> (space M - s)" .
   thus ?thesis
-    unfolding minus_pinfreal_eq2[OF s_less_space fin]
+    unfolding minus_pextreal_eq2[OF s_less_space fin]
     by (simp add: ac_simps)
 qed
 
@@ -117,7 +117,7 @@ proof -
   have "\<mu> ((A - B) \<union> B) = \<mu> (A - B) + \<mu> B"
     using measurable by (rule_tac measure_additive[symmetric]) auto
   thus ?thesis unfolding * using `\<mu> B \<noteq> \<omega>`
-    by (simp add: pinfreal_cancel_plus_minus)
+    by (simp add: pextreal_cancel_plus_minus)
 qed
 
 lemma (in measure_space) measure_countable_increasing:
@@ -225,7 +225,7 @@ proof -
     by (rule INF_leI) simp
 
   have "\<mu> (A 0) - (INF n. \<mu> (A n)) = (SUP n. \<mu> (A 0 - A n))"
-    unfolding pinfreal_SUP_minus[symmetric]
+    unfolding pextreal_SUP_minus[symmetric]
     using mono A finite by (subst measure_Diff) auto
   also have "\<dots> = \<mu> (\<Union>i. A 0 - A i)"
   proof (rule continuity_from_below)
@@ -237,7 +237,7 @@ proof -
   also have "\<dots> = \<mu> (A 0) - \<mu> (\<Inter>i. A i)"
     using mono A finite * by (simp, subst measure_Diff) auto
   finally show ?thesis
-    by (rule pinfreal_diff_eq_diff_imp_eq[OF finite[of 0] le_IM le_MI])
+    by (rule pextreal_diff_eq_diff_imp_eq[OF finite[of 0] le_IM le_MI])
 qed
 
 lemma (in measure_space) measure_down:
@@ -516,7 +516,7 @@ proof (rule antisym)
     also have "\<dots> \<le> \<mu> (T - S) + \<mu> (S \<inter> T)"
       using assms by (auto intro!: measure_subadditive)
     also have "\<dots> < \<mu> (T - S) + \<mu> S"
-      by (rule pinfreal_less_add[OF not_\<omega>]) (insert contr, auto)
+      by (rule pextreal_less_add[OF not_\<omega>]) (insert contr, auto)
     also have "\<dots> = \<mu> (T \<union> S)"
       using assms by (subst measure_additive) auto
     also have "\<dots> \<le> \<mu> (space M)"
@@ -962,8 +962,8 @@ next
     fix i
     have "\<mu> (A i \<inter> S) \<le> \<mu> (A i)"
       using `range A \<subseteq> sets M` `S \<in> sets M` by (auto intro!: measure_mono)
-    also have "\<dots> < \<omega>" using `\<mu> (A i) \<noteq> \<omega>` by (auto simp: pinfreal_less_\<omega>)
-    finally show "\<mu> (A i \<inter> S) \<noteq> \<omega>" by (auto simp: pinfreal_less_\<omega>)
+    also have "\<dots> < \<omega>" using `\<mu> (A i) \<noteq> \<omega>` by (auto simp: pextreal_less_\<omega>)
+    finally show "\<mu> (A i \<inter> S) \<noteq> \<omega>" by (auto simp: pextreal_less_\<omega>)
   qed
 qed
 
@@ -1051,14 +1051,14 @@ lemma (in measure_space) real_measure_Union:
   and measurable: "A \<in> sets M" "B \<in> sets M" "A \<inter> B = {}"
   shows "real (\<mu> (A \<union> B)) = real (\<mu> A) + real (\<mu> B)"
   unfolding measure_additive[symmetric, OF measurable]
-  using finite by (auto simp: real_of_pinfreal_add)
+  using finite by (auto simp: real_of_pextreal_add)
 
 lemma (in measure_space) real_measure_finite_Union:
   assumes measurable:
     "finite S" "\<And>i. i \<in> S \<Longrightarrow> A i \<in> sets M" "disjoint_family_on A S"
   assumes finite: "\<And>i. i \<in> S \<Longrightarrow> \<mu> (A i) \<noteq> \<omega>"
   shows "real (\<mu> (\<Union>i\<in>S. A i)) = (\<Sum>i\<in>S. real (\<mu> (A i)))"
-  using real_of_pinfreal_setsum[of S, OF finite]
+  using real_of_pextreal_setsum[of S, OF finite]
         measure_finitely_additive''[symmetric, OF measurable]
   by simp
 
@@ -1093,9 +1093,9 @@ lemma (in measure_space) real_measure_subadditive:
   shows "real (\<mu> (A \<union> B)) \<le> real (\<mu> A) + real (\<mu> B)"
 proof -
   have "real (\<mu> (A \<union> B)) \<le> real (\<mu> A + \<mu> B)"
-    using measure_subadditive[OF measurable] fin by (auto intro!: real_of_pinfreal_mono)
+    using measure_subadditive[OF measurable] fin by (auto intro!: real_of_pextreal_mono)
   also have "\<dots> = real (\<mu> A) + real (\<mu> B)"
-    using fin by (simp add: real_of_pinfreal_add)
+    using fin by (simp add: real_of_pextreal_add)
   finally show ?thesis .
 qed
 
@@ -1104,7 +1104,7 @@ lemma (in measure_space) real_measure_countably_subadditive:
   shows "real (\<mu> (\<Union>i. f i)) \<le> (\<Sum> i. real (\<mu> (f i)))"
 proof -
   have "real (\<mu> (\<Union>i. f i)) \<le> real (\<Sum>\<^isub>\<infinity> i. \<mu> (f i))"
-    using assms by (auto intro!: real_of_pinfreal_mono measure_countably_subadditive)
+    using assms by (auto intro!: real_of_pextreal_mono measure_countably_subadditive)
   also have "\<dots> = (\<Sum> i. real (\<mu> (f i)))"
     using assms by (auto intro!: sums_unique psuminf_imp_suminf)
   finally show ?thesis .
@@ -1114,7 +1114,7 @@ lemma (in measure_space) real_measure_setsum_singleton:
   assumes S: "finite S" "\<And>x. x \<in> S \<Longrightarrow> {x} \<in> sets M"
   and fin: "\<And>x. x \<in> S \<Longrightarrow> \<mu> {x} \<noteq> \<omega>"
   shows "real (\<mu> S) = (\<Sum>x\<in>S. real (\<mu> {x}))"
-  using measure_finite_singleton[OF S] fin by (simp add: real_of_pinfreal_setsum)
+  using measure_finite_singleton[OF S] fin by (simp add: real_of_pextreal_setsum)
 
 lemma (in measure_space) real_continuity_from_below:
   assumes A: "range A \<subseteq> sets M" "\<And>i. A i \<subseteq> A (Suc i)" and "\<mu> (\<Union>i. A i) \<noteq> \<omega>"
@@ -1126,7 +1126,7 @@ proof (rule SUP_eq_LIMSEQ[THEN iffD1])
   note this[simp]
 
   show "mono (\<lambda>i. real (\<mu> (A i)))" unfolding mono_iff_le_Suc using A
-    by (auto intro!: real_of_pinfreal_mono measure_mono)
+    by (auto intro!: real_of_pextreal_mono measure_mono)
 
   show "(SUP n. Real (real (\<mu> (A n)))) = Real (real (\<mu> (\<Union>i. A i)))"
     using continuity_from_below[OF A(1), OF A(2)]
@@ -1145,7 +1145,7 @@ proof (rule INF_eq_LIMSEQ[THEN iffD1])
   note this[simp]
 
   show "mono (\<lambda>i. - real (\<mu> (A i)))" unfolding mono_iff_le_Suc using assms
-    by (auto intro!: real_of_pinfreal_mono measure_mono)
+    by (auto intro!: real_of_pextreal_mono measure_mono)
 
   show "(INF n. Real (real (\<mu> (A n)))) =
     Real (real (\<mu> (\<Inter>i. A i)))"
@@ -1171,8 +1171,8 @@ proof -
   hence "\<mu> A \<le> \<mu> (space M)"
     using assms top by (rule measure_mono)
   also have "\<dots> < \<omega>"
-    using finite_measure_of_space unfolding pinfreal_less_\<omega> .
-  finally show ?thesis unfolding pinfreal_less_\<omega> .
+    using finite_measure_of_space unfolding pextreal_less_\<omega> .
+  finally show ?thesis unfolding pextreal_less_\<omega> .
 qed
 
 lemma (in finite_measure) restricted_finite_measure:
@@ -1226,7 +1226,7 @@ qed
 
 lemma (in finite_measure) real_measure_mono:
   "A \<in> sets M \<Longrightarrow> B \<in> sets M \<Longrightarrow> A \<subseteq> B \<Longrightarrow> real (\<mu> A) \<le> real (\<mu> B)"
-  by (auto intro!: measure_mono real_of_pinfreal_mono finite_measure)
+  by (auto intro!: measure_mono real_of_pextreal_mono finite_measure)
 
 lemma (in finite_measure) real_finite_measure_subadditive:
   assumes measurable: "A \<in> sets M" "B \<in> sets M"
@@ -1449,13 +1449,13 @@ lemma psuminf_cmult_indicator:
   assumes "disjoint_family A" "x \<in> A i"
   shows "(\<Sum>\<^isub>\<infinity> n. f n * indicator (A n) x) = f i"
 proof -
-  have **: "\<And>n. f n * indicator (A n) x = (if n = i then f n else 0 :: pinfreal)"
+  have **: "\<And>n. f n * indicator (A n) x = (if n = i then f n else 0 :: pextreal)"
     using `x \<in> A i` assms unfolding disjoint_family_on_def indicator_def by auto
-  then have "\<And>n. (\<Sum>j<n. f j * indicator (A j) x) = (if i < n then f i else 0 :: pinfreal)"
+  then have "\<And>n. (\<Sum>j<n. f j * indicator (A j) x) = (if i < n then f i else 0 :: pextreal)"
     by (auto simp: setsum_cases)
-  moreover have "(SUP n. if i < n then f i else 0) = (f i :: pinfreal)"
-  proof (rule pinfreal_SUPI)
-    fix y :: pinfreal assume "\<And>n. n \<in> UNIV \<Longrightarrow> (if i < n then f i else 0) \<le> y"
+  moreover have "(SUP n. if i < n then f i else 0) = (f i :: pextreal)"
+  proof (rule pextreal_SUPI)
+    fix y :: pextreal assume "\<And>n. n \<in> UNIV \<Longrightarrow> (if i < n then f i else 0) \<le> y"
     from this[of "Suc i"] show "f i \<le> y" by auto
   qed simp
   ultimately show ?thesis using `x \<in> A i` unfolding psuminf_def by auto

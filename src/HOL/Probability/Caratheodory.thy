@@ -1,14 +1,14 @@
 header {*Caratheodory Extension Theorem*}
 
 theory Caratheodory
-  imports Sigma_Algebra Positive_Infinite_Real
+  imports Sigma_Algebra Positive_Extended_Real
 begin
 
 text{*From the Hurd/Coble measure theory development, translated by Lawrence Paulson.*}
 
 subsection {* Measure Spaces *}
 
-definition "positive f \<longleftrightarrow> f {} = (0::pinfreal)" -- "Positive is enforced by the type"
+definition "positive f \<longleftrightarrow> f {} = (0::pextreal)" -- "Positive is enforced by the type"
 
 definition
   additive  where
@@ -58,7 +58,7 @@ definition
      {r . \<exists>A. range A \<subseteq> sets M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i) \<and> (\<Sum>\<^isub>\<infinity> i. f (A i)) = r}"
 
 locale measure_space = sigma_algebra +
-  fixes \<mu> :: "'a set \<Rightarrow> pinfreal"
+  fixes \<mu> :: "'a set \<Rightarrow> pextreal"
   assumes empty_measure [simp]: "\<mu> {} = 0"
       and ca: "countably_additive M \<mu>"
 
@@ -148,7 +148,7 @@ lemma lambda_system_sets:
   by (simp add:  lambda_system_def)
 
 lemma (in algebra) lambda_system_Compl:
-  fixes f:: "'a set \<Rightarrow> pinfreal"
+  fixes f:: "'a set \<Rightarrow> pextreal"
   assumes x: "x \<in> lambda_system M f"
   shows "space M - x \<in> lambda_system M f"
   proof -
@@ -161,7 +161,7 @@ lemma (in algebra) lambda_system_Compl:
   qed
 
 lemma (in algebra) lambda_system_Int:
-  fixes f:: "'a set \<Rightarrow> pinfreal"
+  fixes f:: "'a set \<Rightarrow> pextreal"
   assumes xl: "x \<in> lambda_system M f" and yl: "y \<in> lambda_system M f"
   shows "x \<inter> y \<in> lambda_system M f"
   proof -
@@ -196,7 +196,7 @@ lemma (in algebra) lambda_system_Int:
 
 
 lemma (in algebra) lambda_system_Un:
-  fixes f:: "'a set \<Rightarrow> pinfreal"
+  fixes f:: "'a set \<Rightarrow> pextreal"
   assumes xl: "x \<in> lambda_system M f" and yl: "y \<in> lambda_system M f"
   shows "x \<union> y \<in> lambda_system M f"
 proof -
@@ -295,7 +295,7 @@ lemma countably_subadditiveD:
   by (auto simp add: countably_subadditive_def o_def)
 
 lemma (in algebra) increasing_additive_bound:
-  fixes A:: "nat \<Rightarrow> 'a set" and  f :: "'a set \<Rightarrow> pinfreal"
+  fixes A:: "nat \<Rightarrow> 'a set" and  f :: "'a set \<Rightarrow> pextreal"
   assumes f: "positive f" and ad: "additive M f"
       and inc: "increasing M f"
       and A: "range A \<subseteq> sets M"
@@ -315,7 +315,7 @@ lemma lambda_system_increasing:
   by (simp add: increasing_def lambda_system_def)
 
 lemma (in algebra) lambda_system_strong_sum:
-  fixes A:: "nat \<Rightarrow> 'a set" and f :: "'a set \<Rightarrow> pinfreal"
+  fixes A:: "nat \<Rightarrow> 'a set" and f :: "'a set \<Rightarrow> pextreal"
   assumes f: "positive f" and a: "a \<in> sets M"
       and A: "range A \<subseteq> lambda_system M f"
       and disj: "disjoint_family A"
@@ -497,7 +497,7 @@ lemma (in algebra) inf_measure_agrees:
   assumes posf: "positive f" and ca: "countably_additive M f"
       and s: "s \<in> sets M"
   shows "Inf (measure_set M f s) = f s"
-  unfolding Inf_pinfreal_def
+  unfolding Inf_pextreal_def
 proof (safe intro!: Greatest_equality)
   fix z
   assume z: "z \<in> measure_set M f s"
@@ -608,8 +608,8 @@ lemma (in algebra) inf_measure_countably_subadditive:
   shows "countably_subadditive (| space = space M, sets = Pow (space M) |)
                   (\<lambda>x. Inf (measure_set M f x))"
   unfolding countably_subadditive_def o_def
-proof (safe, simp, rule pinfreal_le_epsilon)
-  fix A :: "nat \<Rightarrow> 'a set" and e :: pinfreal
+proof (safe, simp, rule pextreal_le_epsilon)
+  fix A :: "nat \<Rightarrow> 'a set" and e :: pextreal
 
   let "?outer n" = "Inf (measure_set M f (A n))"
   assume A: "range A \<subseteq> Pow (space M)"
@@ -688,8 +688,8 @@ proof (auto dest: sets_into_space
     by blast
   have "Inf (measure_set M f (s\<inter>x)) + Inf (measure_set M f (s-x))
         \<le> Inf (measure_set M f s)"
-    proof (rule pinfreal_le_epsilon)
-      fix e :: pinfreal
+    proof (rule pextreal_le_epsilon)
+      fix e :: pextreal
       assume e: "0 < e"
       from inf_measure_close [of f, OF posf e s]
       obtain A where A: "range A \<subseteq> sets M" and disj: "disjoint_family A"
@@ -760,7 +760,7 @@ lemma measure_down:
 
 theorem (in algebra) caratheodory:
   assumes posf: "positive f" and ca: "countably_additive M f"
-  shows "\<exists>\<mu> :: 'a set \<Rightarrow> pinfreal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and> measure_space (sigma M) \<mu>"
+  shows "\<exists>\<mu> :: 'a set \<Rightarrow> pextreal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and> measure_space (sigma M) \<mu>"
   proof -
     have inc: "increasing M f"
       by (metis additive_increasing ca countably_additive_additive posf)
