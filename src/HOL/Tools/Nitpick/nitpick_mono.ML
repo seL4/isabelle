@@ -669,6 +669,12 @@ fun imp_clauses res_aa aa1 aa2 =
    [(aa1, (Eq, Fls)), (aa2, (Neq, Gen)), (res_aa, (Eq, Gen))],
    [(aa1, (Eq, Fls)), (aa2, (Neq, New)), (res_aa, (Eq, Gen))]]
 
+val meta_conj_triple = ("\<and>", conj_clauses, @{const Pure.conjunction})
+val meta_imp_triple = ("\<implies>", imp_clauses, @{const "==>"})
+val conj_triple = ("\<and>", conj_clauses, @{const conj})
+val disj_triple = ("\<or>", disj_clauses, @{const disj})
+val imp_triple = ("\<implies>", imp_clauses, @{const implies})
+
 fun add_annotation_clause_from_quasi_clause _ NONE = NONE
   | add_annotation_clause_from_quasi_clause [] accum = accum
   | add_annotation_clause_from_quasi_clause ((aa, (cmp, a)) :: rest) accum =
@@ -733,6 +739,21 @@ fun add_app _ [] [] = I
     #> fold add_arg_order1 (tl arg_frame ~~ (fst (split_last arg_frame)))
     #> fold (add_app1 fun_aa) (res_frame ~~ arg_frame)
 
+fun consider_connective mdata (conn, mk_quasi_clauses, t0) do_t1 do_t2
+                        (accum as ({frame, ...}, _)) =
+  let
+    val mtype_for = fresh_mtype_for_type mdata false
+    val frame1 = fresh_frame mdata (SOME Tru) NONE frame
+    val frame2 = fresh_frame mdata (SOME Fls) NONE frame
+    val (m1, accum) = accum |>> set_frame frame1 |> do_t1
+    val (m2, accum) = accum |>> set_frame frame2 |> do_t2
+  in
+    (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
+     accum |>> set_frame frame
+           ||> apsnd (add_connective_frames conn mk_quasi_clauses frame frame1
+                                            frame2))
+  end
+
 fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                              max_fresh, ...}) =
   let
@@ -792,18 +813,8 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         M as MPair (a_M, b_M) =>
         pair (MFun (M, A Gen, if n = 0 then a_M else b_M))
       | M => raise MTYPE ("Nitpick_Mono.consider_term.do_nth_pair_sel", [M], [])
-    and do_connect conn mk_quasi_clauses t0 t1 t2 (accum as ({frame, ...}, _)) =
-      let
-        val frame1 = fresh_frame mdata (SOME Tru) NONE frame
-        val frame2 = fresh_frame mdata (SOME Fls) NONE frame
-        val (m1, accum) = accum |>> set_frame frame1 |> do_term t1
-        val (m2, accum) = accum |>> set_frame frame2 |> do_term t2
-      in
-        (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
-         accum |>> set_frame frame
-               ||> apsnd (add_connective_frames conn mk_quasi_clauses
-                                                frame frame1 frame2))
-      end
+    and do_connect triple t1 t2 =
+      consider_connective mdata triple (do_term t1) (do_term t2)
     and do_term t
             (accum as (gamma as {bound_Ts, bound_Ms, frame, frees, consts},
                        cset)) =
@@ -960,15 +971,10 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                         val (m', accum) =
                           do_term t' (accum |>> push_bound aa T M)
                       in (MAbs (s, T, M, aa, m'), accum |>> pop_bound) end))
-         | @{const Not} $ t1 =>
-           do_connect "\<implies>" imp_clauses @{const implies} t1
-                      @{const False} accum
-         | (t0 as @{const conj}) $ t1 $ t2 =>
-           do_connect "\<and>" conj_clauses t0 t1 t2 accum
-         | (t0 as @{const disj}) $ t1 $ t2 =>
-           do_connect "\<or>" disj_clauses t0 t1 t2 accum
-         | (t0 as @{const implies}) $ t1 $ t2 =>
-           do_connect "\<implies>" imp_clauses t0 t1 t2 accum
+         | @{const Not} $ t1 => do_connect imp_triple t1 @{const False} accum
+         | @{const conj} $ t1 $ t2 => do_connect conj_triple t1 t2 accum
+         | @{const disj} $ t1 $ t2 => do_connect disj_triple t1 t2 accum
+         | @{const implies} $ t1 $ t2 => do_connect imp_triple t1 t2 accum
          | Const (@{const_name Let}, _) $ t1 $ t2 =>
            do_term (betapply (t2, t1)) accum
          | t1 $ t2 =>
@@ -1047,6 +1053,9 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
                    MAbs (abs_s, abs_T, abs_M, A Gen, body_m)),
              accum |>> pop_bound)
           end
+        fun do_connect triple neg1 t1 t2 =
+          consider_connective mdata triple
+              (do_formula (sn |> neg1 ? negate_sign) t1) (do_formula sn t2)
         fun do_equals x t1 t2 =
           case sn of
             Plus => do_term t accum
@@ -1064,11 +1073,6 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
              (MApp (MRaw (@{const Trueprop}, mtype_for (bool_T --> prop_T)),
                     m1), accum)
            end
-         | @{const Not} $ t1 =>
-           let val (m1, accum) = do_formula (negate_sign sn) t1 accum in
-             (MApp (MRaw (@{const Not}, mtype_for (bool_T --> bool_T)), m1),
-              accum)
-           end
          | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
            do_quantifier x s1 T1 t1
          | Const (x0 as (@{const_name Ex}, T0)) $ (t1 as Abs (s1, T1, t1')) =>
@@ -1083,22 +1087,15 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
            do_equals x t1 t2
          | Const (@{const_name Let}, _) $ t1 $ t2 =>
            do_formula sn (betapply (t2, t1)) accum
-         | (t0 as Const (s0, _)) $ t1 $ t2 =>
-           if s0 = @{const_name "==>"} orelse
-              s0 = @{const_name Pure.conjunction} orelse
-              s0 = @{const_name conj} orelse s0 = @{const_name disj} orelse
-              s0 = @{const_name implies} then
-             let
-               val impl = (s0 = @{const_name "==>"} orelse
-                           s0 = @{const_name implies})
-               val (m1, accum) = do_formula (sn |> impl ? negate_sign) t1 accum
-               val (m2, accum) = do_formula sn t2 accum
-             in
-               (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
-                accum)
-             end
-           else
-             do_term t accum
+         | @{const Pure.conjunction} $ t1 $ t2 =>
+           do_connect meta_conj_triple false t1 t2 accum
+         | @{const "==>"} $ t1 $ t2 =>
+           do_connect meta_imp_triple true t1 t2 accum
+         | @{const Not} $ t1 =>
+           do_connect imp_triple true t1 @{const False} accum
+         | @{const conj} $ t1 $ t2 => do_connect conj_triple false t1 t2 accum
+         | @{const disj} $ t1 $ t2 => do_connect disj_triple false t1 t2 accum
+         | @{const implies} $ t1 $ t2 => do_connect imp_triple true t1 t2 accum
          | _ => do_term t accum)
       end
       |> tap (fn (m, (gamma, _)) =>
