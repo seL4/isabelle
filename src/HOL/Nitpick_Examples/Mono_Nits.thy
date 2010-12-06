@@ -8,23 +8,8 @@ Examples featuring Nitpick's monotonicity check.
 header {* Examples Featuring Nitpick's Monotonicity Check *}
 
 theory Mono_Nits
-imports Nitpick2d(*###*) "~/afp/thys/AVL-Trees/AVL2" "~/afp/thys/Huffman/Huffman"
+imports Main (* "~/afp/thys/AVL-Trees/AVL2" "~/afp/thys/Huffman/Huffman" *)
 begin
-
-(* ML {* Nitpick_Mono.first_calculus := false *} *)
-ML {* Nitpick_Mono.trace := true *}
-
-thm alphabet.simps
-
-fun alphabetx where
-"alphabetx (Leaf w a) = {a}" |
-"alphabetx (InnerNode w t\<^isub>1 t\<^isub>2) = alphabetx t\<^isub>1 \<union> alphabetx t\<^isub>2"
-
-lemma "\<exists>a. alphabetx (t::'a tree) (a::'a)"
-nitpick [debug, card = 1-2, dont_box, dont_finitize, dont_destroy_constrs]
-
-lemma "consistent t \<Longrightarrow> \<exists>a\<in>alphabet t. depth t a = Huffman.height t"
-nitpick [debug, card = 1-2, dont_box, dont_finitize]
 
 ML {*
 open Nitpick_Util
@@ -216,13 +201,15 @@ fun check_theory thy =
   in thy |> theorems_of |> List.app check_theorem end
 *}
 
-ML {* getenv "ISABELLE_TMP" *}
-
+(*
 ML {* check_theory @{theory AVL2} *}
 ML {* check_theory @{theory Fun} *}
 ML {* check_theory @{theory Huffman} *}
 ML {* check_theory @{theory List} *}
 ML {* check_theory @{theory Map} *}
 ML {* check_theory @{theory Relation} *}
+*)
+
+ML {* getenv "ISABELLE_TMP" *}
 
 end
