@@ -524,6 +524,8 @@ names of constants and types involved. INCOMPATIBILITY.
   unique_lub      ~> is_lub_unique
   is_ub_lub       ~> is_lub_rangeD1
   lub_bin_chain   ~> is_lub_bin_chain
+  lub_fun         ~> is_lub_fun
+  thelub_fun      ~> lub_fun
   thelub_Pair     ~> lub_Pair
   lub_cprod       ~> is_lub_prod
   thelub_cprod    ~> lub_prod

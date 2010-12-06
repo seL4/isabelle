@@ -260,7 +260,7 @@ lemma lub_LAM:
     \<Longrightarrow> (\<Squnion>i. \<Lambda> x. F i x) = (\<Lambda> x. \<Squnion>i. F i x)"
 apply (simp add: lub_cfun)
 apply (simp add: Abs_cfun_inverse2)
-apply (simp add: thelub_fun ch2ch_lambda)
+apply (simp add: lub_fun ch2ch_lambda)
 done
 
 lemmas lub_distribs = lub_APP lub_LAM

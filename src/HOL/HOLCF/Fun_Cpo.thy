@@ -57,19 +57,13 @@ by (simp add: chain_def below_fun_def)
 lemma ch2ch_lambda: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> chain S"
 by (simp add: chain_def below_fun_def)
 
-text {* upper bounds of function chains yield upper bound in the po range *}
-
-lemma ub2ub_fun:
-  "range S <| u \<Longrightarrow> range (\<lambda>i. S i x) <| u x"
-by (auto simp add: is_ub_def below_fun_def)
-
 text {* Type @{typ "'a::type => 'b::cpo"} is chain complete *}
 
 lemma is_lub_lambda:
   "(\<And>x. range (\<lambda>i. Y i x) <<| f x) \<Longrightarrow> range Y <<| f"
 unfolding is_lub_def is_ub_def below_fun_def by simp
 
-lemma lub_fun:
+lemma is_lub_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo)
     \<Longrightarrow> range S <<| (\<lambda>x. \<Squnion>i. S i x)"
 apply (rule is_lub_lambda)
@@ -77,13 +71,13 @@ apply (rule cpo_lubI)
 apply (erule ch2ch_fun)
 done
 
-lemma thelub_fun:
+lemma lub_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo)
     \<Longrightarrow> (\<Squnion>i. S i) = (\<lambda>x. \<Squnion>i. S i x)"
-by (rule lub_fun [THEN lub_eqI])
+by (rule is_lub_fun [THEN lub_eqI])
 
 instance "fun"  :: (type, cpo) cpo
-by intro_classes (rule exI, erule lub_fun)
+by intro_classes (rule exI, erule is_lub_fun)
 
 subsection {* Chain-finiteness of function space *}
 
@@ -135,12 +129,12 @@ subsection {* Propagation of monotonicity and continuity *}
 text {* The lub of a chain of monotone functions is monotone. *}
 
 lemma adm_monofun: "adm monofun"
-by (rule admI, simp add: thelub_fun fun_chain_iff monofun_def lub_mono)
+by (rule admI, simp add: lub_fun fun_chain_iff monofun_def lub_mono)
 
 text {* The lub of a chain of continuous functions is continuous. *}
 
 lemma adm_cont: "adm cont"
-by (rule admI, simp add: thelub_fun fun_chain_iff)
+by (rule admI, simp add: lub_fun fun_chain_iff)
 
 text {* Function application preserves monotonicity and continuity. *}
 
@@ -150,7 +144,7 @@ by (simp add: monofun_def fun_below_iff)
 lemma cont2cont_fun: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
 apply (rule contI2)
 apply (erule cont2mono [THEN mono2mono_fun])
-apply (simp add: cont2contlubE thelub_fun ch2ch_cont)
+apply (simp add: cont2contlubE lub_fun ch2ch_cont)
 done
 
 lemma cont_fun: "cont (\<lambda>f. f x)"
@@ -174,6 +168,6 @@ text {* What D.A.Schmidt calls continuity of abstraction; never used here *}
 lemma contlub_lambda:
   "(\<And>x::'a::type. chain (\<lambda>i. S i x::'b::cpo))
     \<Longrightarrow> (\<lambda>x. \<Squnion>i. S i x) = (\<Squnion>i. (\<lambda>x. S i x))"
-by (simp add: thelub_fun ch2ch_lambda)
+by (simp add: lub_fun ch2ch_lambda)
 
 end
