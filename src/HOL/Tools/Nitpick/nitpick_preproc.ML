@@ -1261,7 +1261,7 @@ fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
                                       triple_lookup (type_match thy) monos T
                                       = SOME (SOME false))
     in
-      fold (finitize_funs hol_ctxt binarize finitizes) Ts (nondef_ts, def_ts)
+      fold (finitize_funs hol_ctxt binarize finitizes 3) Ts (nondef_ts, def_ts)
     end
 
 (** Preprocessor entry point **)
