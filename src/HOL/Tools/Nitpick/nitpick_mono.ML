@@ -229,6 +229,8 @@ fun is_fin_fun_supported_type @{typ prop} = true
   | is_fin_fun_supported_type @{typ bool} = true
   | is_fin_fun_supported_type (Type (@{type_name option}, _)) = true
   | is_fin_fun_supported_type _ = false
+
+(* TODO: clean this up *)
 fun fin_fun_body _ _ (t as @{term False}) = SOME t
   | fin_fun_body _ _ (t as Const (@{const_name None}, _)) = SOME t
   | fin_fun_body dom_T ran_T
@@ -307,14 +309,23 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
       | _ => MType (simple_string_of_typ T, [])
   in do_type end
 
+val ground_and_sole_base_constrs = [@{const_name Nil}, @{const_name None}]
+
 fun prodM_factors (MPair (M1, M2)) = maps prodM_factors [M1, M2]
   | prodM_factors M = [M]
 fun curried_strip_mtype (MFun (M1, _, M2)) =
     curried_strip_mtype M2 |>> append (prodM_factors M1)
   | curried_strip_mtype M = ([], M)
 fun sel_mtype_from_constr_mtype s M =
-  let val (arg_Ms, dataM) = curried_strip_mtype M in
-    MFun (dataM, A Gen,
+  let
+    val (arg_Ms, dataM) = curried_strip_mtype M
+    val a = if member (op =) ground_and_sole_base_constrs
+                             (constr_name_for_sel_like s) then
+              Fls
+            else
+              Gen
+  in
+    MFun (dataM, A a,
           case sel_no_from_name s of ~1 => bool_M | n => nth arg_Ms n)
   end
 
@@ -836,6 +847,8 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                            " : _?");
        case t of
          @{const False} =>
+         (MRaw (t, bool_M), accum ||> add_comp_frame (A Fls) Leq frame)
+       | Const (@{const_name None}, _) =>
          (MRaw (t, bool_M), accum ||> add_comp_frame (A Fls) Leq frame)
        | @{const True} =>
          (MRaw (t, bool_M), accum ||> add_comp_frame (A Tru) Leq frame)
