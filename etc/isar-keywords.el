@@ -248,7 +248,7 @@
     "txt"
     "txt_raw"
     "typ"
-    "type_mapper"
+    "type_lifting"
     "type_notation"
     "typed_print_translation"
     "typedecl"
@@ -551,7 +551,7 @@
     "sublocale"
     "termination"
     "theorem"
-    "type_mapper"
+    "type_lifting"
     "typedef"))
 
 (defconst isar-keywords-qed
