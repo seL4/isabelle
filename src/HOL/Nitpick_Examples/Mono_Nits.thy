@@ -14,6 +14,7 @@ begin
 ML {*
 open Nitpick_Util
 open Nitpick_HOL
+open Nitpick_Preproc
 
 exception BUG
 
@@ -36,7 +37,7 @@ val ersatz_table = ersatz_table ctxt
 val hol_ctxt as {thy, ...} =
   {thy = thy, ctxt = ctxt, max_bisim_depth = ~1, boxes = [],
    stds = stds, wfs = [], user_axioms = NONE, debug = false,
-   whacks = [], binary_ints = SOME false, destroy_constrs = false,
+   whacks = [], binary_ints = SOME false, destroy_constrs = true,
    specialize = false, star_linear_preds = false,
    tac_timeout = NONE, evals = [], case_names = case_names,
    def_table = def_table, nondef_table = nondef_table,
@@ -138,7 +139,8 @@ ML {* nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. False)"
 ML {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h"} *}
 
 ML {*
-val max_secs = 1.0
+val preproc_timeout = SOME (seconds 5.0)
+val mono_timeout = SOME (seconds 1.0)
 
 fun all_unconcealed_theorems_of thy =
   let val facts = Global_Theory.facts_of thy in
@@ -161,15 +163,14 @@ fun theorems_of thy =
              (theory_of_thm th, thy) |> pairself Context.theory_name |> op =)
          (all_unconcealed_theorems_of thy)
 
-fun check_formula t =
+fun check_formulas tsp =
   let
     fun is_type_actually_monotonic T =
-      TimeLimit.timeLimit (seconds max_secs)
-          (Nitpick_Mono.formulas_monotonic hol_ctxt binarize T) ([t], [])
-
-    val free_Ts = Term.add_tfrees t [] |> map TFree
+      Nitpick_Mono.formulas_monotonic hol_ctxt binarize T tsp
+    val free_Ts = fold Term.add_tfrees (op @ tsp) [] |> map TFree
     val (mono_free_Ts, nonmono_free_Ts) =
-      List.partition is_type_actually_monotonic free_Ts
+      time_limit mono_timeout (List.partition is_type_actually_monotonic)
+                 free_Ts
   in
     if not (null mono_free_Ts) then "MONO"
     else if not (null nonmono_free_Ts) then "NONMONO"
@@ -181,19 +182,32 @@ fun check_formula t =
 
 fun check_theory thy =
   let
+    val finitizes = [(NONE, NONE)]
+    val monos = [(NONE, NONE)]
     val path = File.tmp_path (Context.theory_name thy ^ ".out" |> Path.explode)
     val _ = File.write path ""
     fun check_theorem (name, th) =
       let
         val t = th |> prop_of |> Type.legacy_freeze |> close_form
         val neg_t = Logic.mk_implies (t, @{prop False})
-        val res = name ^ ": " ^ check_formula neg_t
+        val (nondef_ts, def_ts, _, _, _) =
+          time_limit preproc_timeout
+              (preprocess_formulas hol_ctxt finitizes monos []) neg_t
+        val res = name ^ ": " ^ check_formulas (nondef_ts, def_ts)
       in File.append path (res ^ "\n"); writeln res end
+      handle TimeLimit.TimeOut => ()
   in thy |> theorems_of |> List.app check_theorem end
 *}
 
 (*
+ML {* getenv "ISABELLE_TMP" *}
+
+(* ML {* check_theory @{theory AVL2} *} *)
+ML {* check_theory @{theory Fun} *}
+(* ML {* check_theory @{theory Huffman} *} *)
 ML {* check_theory @{theory List} *}
+ML {* check_theory @{theory Map} *}
+ML {* check_theory @{theory Relation} *}
 *)
 
 end
