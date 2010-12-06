@@ -109,9 +109,9 @@ val string_for_mtype =
            "_"
          else case M of
              MAlpha => "\<alpha>"
-           | MFun (M1, a, M2) =>
+           | MFun (M1, aa, M2) =>
              aux (prec + 1) M1 ^ " \<Rightarrow>\<^bsup>" ^
-             string_for_annotation_atom a ^ "\<^esup> " ^ aux prec M2
+             string_for_annotation_atom aa ^ "\<^esup> " ^ aux prec M2
            | MPair (M1, M2) => aux (prec + 1) M1 ^ " \<times> " ^ aux prec M2
            | MType (s, []) =>
              if s = @{type_name prop} orelse s = @{type_name bool} then "o"
@@ -141,16 +141,16 @@ fun string_for_mterm ctxt =
         (if need_parens then "(" else "") ^
         (case m of
            MRaw (t, M) => Syntax.string_of_term ctxt t ^ mtype_annotation M
-         | MAbs (s, _, M, a, m) =>
+         | MAbs (s, _, M, aa, m) =>
            "\<lambda>" ^ s ^ mtype_annotation M ^ ".\<^bsup>" ^
-           string_for_annotation_atom a ^ "\<^esup> " ^ aux prec m
+           string_for_annotation_atom aa ^ "\<^esup> " ^ aux prec m
          | MApp (m1, m2) => aux prec m1 ^ " " ^ aux (prec + 1) m2) ^
         (if need_parens then ")" else "")
       end
   in aux 0 end
 
 fun mtype_of_mterm (MRaw (_, M)) = M
-  | mtype_of_mterm (MAbs (_, _, M, a, m)) = MFun (M, a, mtype_of_mterm m)
+  | mtype_of_mterm (MAbs (_, _, M, aa, m)) = MFun (M, aa, mtype_of_mterm m)
   | mtype_of_mterm (MApp (m1, _)) =
     case mtype_of_mterm m1 of
       MFun (_, _, M12) => M12
@@ -196,8 +196,8 @@ fun constr_mtype_for_binders z Ms =
   fold_rev (fn M => curry3 MFun M (A Gen)) Ms (MRec z)
 
 fun repair_mtype _ _ MAlpha = MAlpha
-  | repair_mtype cache seen (MFun (M1, a, M2)) =
-    MFun (repair_mtype cache seen M1, a, repair_mtype cache seen M2)
+  | repair_mtype cache seen (MFun (M1, aa, M2)) =
+    MFun (repair_mtype cache seen M1, aa, repair_mtype cache seen M2)
   | repair_mtype cache seen (MPair Mp) =
     MPair (pairself (repair_mtype cache seen) Mp)
   | repair_mtype cache seen (MType (s, Ms)) =
@@ -246,12 +246,12 @@ fun fresh_mfun_for_fun_type (mdata as {max_fresh, ...} : mdata) all_minus
   let
     val M1 = fresh_mtype_for_type mdata all_minus T1
     val M2 = fresh_mtype_for_type mdata all_minus T2
-    val a = if not all_minus andalso exists_alpha_sub_mtype_fresh M1 andalso
-               is_fin_fun_supported_type (body_type T2) then
-              V (Unsynchronized.inc max_fresh)
-            else
-              A Gen
-  in (M1, a, M2) end
+    val aa = if not all_minus andalso exists_alpha_sub_mtype_fresh M1 andalso
+                is_fin_fun_supported_type (body_type T2) then
+               V (Unsynchronized.inc max_fresh)
+             else
+               A Gen
+  in (M1, aa, M2) end
 and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
                                     datatype_mcache, constr_mcache, ...})
                          all_minus =
@@ -333,12 +333,12 @@ fun mtype_for_sel (mdata as {hol_ctxt, binarize, ...}) (x as (s, _)) =
 
 fun resolve_annotation_atom lits (V x) =
     x |> AList.lookup (op =) lits |> Option.map A |> the_default (V x)
-  | resolve_annotation_atom _ a = a
+  | resolve_annotation_atom _ aa = aa
 fun resolve_mtype lits =
   let
     fun aux MAlpha = MAlpha
-      | aux (MFun (M1, a, M2)) =
-        MFun (aux M1, resolve_annotation_atom lits a, aux M2)
+      | aux (MFun (M1, aa, M2)) =
+        MFun (aux M1, resolve_annotation_atom lits aa, aux M2)
       | aux (MPair Mp) = MPair (pairself aux Mp)
       | aux (MType (s, Ms)) = MType (s, map aux Ms)
       | aux (MRec z) = MRec z
@@ -364,35 +364,35 @@ fun do_literal _ NONE = NONE
       SOME a' => if a = a' then SOME lits else NONE
     | NONE => SOME ((x, a) :: lits)
 
-fun do_annotation_atom_comp Eq [] a1 a2 (accum as (lits, comps)) =
-    (case (a1, a2) of
-       (A sn1, A sn2) => if sn1 = sn2 then SOME accum else NONE
-     | (V x1, A sn2) =>
-       Option.map (rpair comps) (do_literal (x1, sn2) (SOME lits))
-     | (V _, V _) => SOME (lits, insert (op =) (a1, a2, Eq, []) comps)
-     | _ => do_annotation_atom_comp Eq [] a2 a1 accum)
-  | do_annotation_atom_comp Leq [] a1 a2 (accum as (lits, comps)) =
-    (case (a1, a2) of
+fun do_annotation_atom_comp Eq [] aa1 aa2 (accum as (lits, comps)) =
+    (case (aa1, aa2) of
+       (A a1, A a2) => if a1 = a2 then SOME accum else NONE
+     | (V x1, A a2) =>
+       SOME lits |> do_literal (x1, a2) |> Option.map (rpair comps)
+     | (V _, V _) => SOME (lits, insert (op =) (aa1, aa2, Eq, []) comps)
+     | _ => do_annotation_atom_comp Eq [] aa2 aa1 accum)
+  | do_annotation_atom_comp Leq [] aa1 aa2 (accum as (lits, comps)) =
+    (case (aa1, aa2) of
        (_, A Gen) => SOME accum
      | (A Fls, _) => SOME accum
      | (A Gen, A Fls) => NONE
-     | (V _, V _) => SOME (lits, insert (op =) (a1, a2, Leq, []) comps)
-     | _ => do_annotation_atom_comp Eq [] a1 a2 accum)
-  | do_annotation_atom_comp cmp xs a1 a2 (lits, comps) =
-    SOME (lits, insert (op =) (a1, a2, cmp, xs) comps)
+     | (V _, V _) => SOME (lits, insert (op =) (aa1, aa2, Leq, []) comps)
+     | _ => do_annotation_atom_comp Eq [] aa1 aa2 accum)
+  | do_annotation_atom_comp cmp xs aa1 aa2 (lits, comps) =
+    SOME (lits, insert (op =) (aa1, aa2, cmp, xs) comps)
 
 fun do_mtype_comp _ _ _ _ NONE = NONE
   | do_mtype_comp _ _ MAlpha MAlpha accum = accum
-  | do_mtype_comp Eq xs (MFun (M11, a1, M12)) (MFun (M21, a2, M22))
+  | do_mtype_comp Eq xs (MFun (M11, aa1, M12)) (MFun (M21, aa2, M22))
                   (SOME accum) =
-     accum |> do_annotation_atom_comp Eq xs a1 a2 |> do_mtype_comp Eq xs M11 M21
-           |> do_mtype_comp Eq xs M12 M22
-  | do_mtype_comp Leq xs (MFun (M11, a1, M12)) (MFun (M21, a2, M22))
+     accum |> do_annotation_atom_comp Eq xs aa1 aa2
+           |> do_mtype_comp Eq xs M11 M21 |> do_mtype_comp Eq xs M12 M22
+  | do_mtype_comp Leq xs (MFun (M11, aa1, M12)) (MFun (M21, aa2, M22))
                   (SOME accum) =
     (if exists_alpha_sub_mtype M11 then
-       accum |> do_annotation_atom_comp Leq xs a1 a2
+       accum |> do_annotation_atom_comp Leq xs aa1 aa2
              |> do_mtype_comp Leq xs M21 M11
-             |> (case a2 of
+             |> (case aa2 of
                    A Gen => I
                  | A Fls => do_mtype_comp Leq xs M11 M21
                  | V x => do_mtype_comp Leq (x :: xs) M11 M21)
@@ -427,10 +427,10 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
     SOME lits |> do_literal (x, sn) |> Option.map (rpair sexps)
   | do_notin_mtype_fv Plus sexp MAlpha (SOME (lits, sexps)) =
     SOME (lits, insert (op =) sexp sexps)
-  | do_notin_mtype_fv sn sexp (MFun (M1, A a, M2)) accum =
-    accum |> (if a = Fls andalso sn = Plus then do_notin_mtype_fv Plus sexp M1
+  | do_notin_mtype_fv sn sexp (MFun (M1, A aa, M2)) accum =
+    accum |> (if aa = Fls andalso sn = Plus then do_notin_mtype_fv Plus sexp M1
               else I)
-          |> (if a = Gen orelse sn = Plus then do_notin_mtype_fv Minus sexp M1
+          |> (if aa = Gen orelse sn = Plus then do_notin_mtype_fv Minus sexp M1
               else I)
           |> do_notin_mtype_fv sn sexp M2
   | do_notin_mtype_fv Plus sexp (MFun (M1, V x, M2)) accum =
@@ -484,14 +484,14 @@ fun prop_for_annotation_atom_eq (A a', a) =
 fun prop_for_annotation_expr xs = PropLogic.exists (map prop_for_literal xs)
 fun prop_for_exists_eq xs a =
   PropLogic.exists (map (fn x => prop_for_literal (x, a)) xs)
-fun prop_for_comp (a1, a2, Eq, []) =
-    PropLogic.SAnd (prop_for_comp (a1, a2, Leq, []),
-                    prop_for_comp (a2, a1, Leq, []))
-  | prop_for_comp (a1, a2, Leq, []) =
-    PropLogic.SOr (prop_for_annotation_atom_eq (a1, Fls),
-                   prop_for_annotation_atom_eq (a2, Gen))
-  | prop_for_comp (a1, a2, cmp, xs) =
-    PropLogic.SOr (prop_for_exists_eq xs Gen, prop_for_comp (a1, a2, cmp, []))
+fun prop_for_comp (aa1, aa2, Eq, []) =
+    PropLogic.SAnd (prop_for_comp (aa1, aa2, Leq, []),
+                    prop_for_comp (aa2, aa1, Leq, []))
+  | prop_for_comp (aa1, aa2, Leq, []) =
+    PropLogic.SOr (prop_for_annotation_atom_eq (aa1, Fls),
+                   prop_for_annotation_atom_eq (aa2, Gen))
+  | prop_for_comp (aa1, aa2, cmp, xs) =
+    PropLogic.SOr (prop_for_exists_eq xs Gen, prop_for_comp (aa1, aa2, cmp, []))
 
 fun fix_bool_options (NONE, NONE) = (false, false)
   | fix_bool_options (NONE, SOME b) = (b, b)
@@ -507,9 +507,9 @@ fun literals_from_assignments max_var assigns lits =
            | bp => (x, annotation_from_bools (fix_bool_options bp)) :: accum)
        (max_var downto 1) lits
 
-fun string_for_comp (a1, a2, cmp, xs) =
-  string_for_annotation_atom a1 ^ " " ^ string_for_comp_op cmp ^
-  subscript_string_for_vars " \<and> " xs ^ " " ^ string_for_annotation_atom a2
+fun string_for_comp (aa1, aa2, cmp, xs) =
+  string_for_annotation_atom aa1 ^ " " ^ string_for_comp_op cmp ^
+  subscript_string_for_vars " \<and> " xs ^ " " ^ string_for_annotation_atom aa2
 
 fun print_problem lits comps sexps =
   trace_msg (fn () => "*** Problem:\n" ^
@@ -636,10 +636,10 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
           accum ||> add_mtypes_equal expected_bound_M (mtype_of_mterm bound_m)
                 |> do_term body_t ||> apfst pop_bound
         val bound_M = mtype_of_mterm bound_m
-        val (M1, a, _) = dest_MFun bound_M
+        val (M1, aa, _) = dest_MFun bound_M
       in
         (MApp (MRaw (t0, MFun (bound_M, A Gen, bool_M)),
-               MAbs (abs_s, abs_T, M1, a,
+               MAbs (abs_s, abs_T, M1, aa,
                      MApp (MApp (MRaw (connective_t,
                                        mtype_for (fastype_of connective_t)),
                                  MApp (bound_m, MRaw (Bound 0, M1))),
@@ -769,9 +769,9 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
               SOME t' =>
               let
                 val M = mtype_for T
-                val a = V (Unsynchronized.inc max_fresh)
+                val aa = V (Unsynchronized.inc max_fresh)
                 val (m', accum) = do_term t' (accum |>> push_bound T M)
-              in (MAbs (s, T, M, a, m'), accum |>> pop_bound) end
+              in (MAbs (s, T, M, aa, m'), accum |>> pop_bound) end
             | NONE =>
               ((case t' of
                   t1' $ Bound 0 =>
@@ -1049,15 +1049,15 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, constr_cache, ...})
       tsp
     else
       let
-        fun should_finitize T a =
+        fun should_finitize T aa =
           case triple_lookup (type_match thy) finitizes T of
             SOME (SOME false) => false
-          | _ => resolve_annotation_atom lits a = A Fls
+          | _ => resolve_annotation_atom lits aa = A Fls
         fun type_from_mtype T M =
           case (M, T) of
             (MAlpha, _) => T
-          | (MFun (M1, a, M2), Type (@{type_name fun}, Ts)) =>
-            Type (if should_finitize T a then @{type_name fin_fun}
+          | (MFun (M1, aa, M2), Type (@{type_name fun}, Ts)) =>
+            Type (if should_finitize T aa then @{type_name fin_fun}
                   else @{type_name fun}, map2 type_from_mtype Ts [M1, M2])
           | (MPair (M1, M2), Type (@{type_name prod}, Ts)) =>
             Type (@{type_name prod}, map2 type_from_mtype Ts [M1, M2])
@@ -1128,14 +1128,14 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, constr_cache, ...})
                 | _ => raise TYPE ("Nitpick_Mono.finitize_funs.term_from_mterm",
                                    [T1], [])
             in betapply (t1', coerce_term hol_ctxt new_Ts T2' T2 t2) end
-          | MAbs (s, old_T, M, a, m') =>
+          | MAbs (s, old_T, M, aa, m') =>
             let
               val new_T = type_from_mtype old_T M
               val t' = term_from_mterm (new_T :: new_Ts) (old_T :: old_Ts) m'
               val T' = fastype_of1 (new_T :: new_Ts, t')
             in
               Abs (s, new_T, t')
-              |> should_finitize (new_T --> T') a
+              |> should_finitize (new_T --> T') aa
                  ? construct_value ctxt stds (fin_fun_constr new_T T') o single
             end
       in
