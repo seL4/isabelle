@@ -790,10 +790,11 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
     fun do_all T (gamma, cset) =
       let
         val abs_M = mtype_for (domain_type (domain_type T))
+        val x = Unsynchronized.inc max_fresh
         val body_M = mtype_for (body_type T)
       in
-        (MFun (MFun (abs_M, A Gen, body_M), A Gen, body_M),
-         (gamma, cset |> add_mtype_is_complete [] abs_M))
+        (MFun (MFun (abs_M, V x, body_M), A Gen, body_M),
+         (gamma, cset |> add_mtype_is_complete [(x, (Plus, Tru))] abs_M))
       end
     fun do_equals T (gamma, cset) =
       let

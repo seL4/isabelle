@@ -113,9 +113,9 @@ ML {* const @{term "p = (\<lambda>y. x \<noteq> y)"} *}
 ML {* const @{term "(\<lambda>x. (p\<Colon>'a\<Rightarrow>bool\<Rightarrow>bool) x False)"} *}
 ML {* const @{term "(\<lambda>x y. (p\<Colon>'a\<Rightarrow>'a\<Rightarrow>bool\<Rightarrow>bool) x y False)"} *}
 ML {* const @{term "f = (\<lambda>x\<Colon>'a. P x \<longrightarrow> Q x)"} *}
+ML {* const @{term "\<forall>a\<Colon>'a. P a"} *}
 
 ML {* nonconst @{term "\<forall>P (a\<Colon>'a). P a"} *}
-ML {* nonconst @{term "\<forall>a\<Colon>'a. P a"} *}
 ML {* nonconst @{term "THE x\<Colon>'a. P x"} *}
 ML {* nonconst @{term "SOME x\<Colon>'a. P x"} *}
 ML {* nonconst @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) = myunion"} *}
@@ -199,9 +199,9 @@ fun check_theory thy =
   in thy |> theorems_of |> List.app check_theorem end
 *}
 
-(*
 ML {* getenv "ISABELLE_TMP" *}
 
+(*
 (* ML {* check_theory @{theory AVL2} *} *)
 ML {* check_theory @{theory Fun} *}
 (* ML {* check_theory @{theory Huffman} *} *)
