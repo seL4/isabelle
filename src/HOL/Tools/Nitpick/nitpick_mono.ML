@@ -23,23 +23,25 @@ struct
 open Nitpick_Util
 open Nitpick_HOL
 
+datatype sign = Plus | Minus
+
 type var = int
 
-datatype sign = Plus | Minus
-datatype sign_atom = S of sign | V of var
+datatype annotation = Gen | New | Fls | Tru
+datatype annotation_atom = A of annotation | V of var
 
-type literal = var * sign
+type literal = var * annotation
 
 datatype mtyp =
   MAlpha |
-  MFun of mtyp * sign_atom * mtyp |
+  MFun of mtyp * annotation_atom * mtyp |
   MPair of mtyp * mtyp |
   MType of string * mtyp list |
   MRec of string * typ list
 
 datatype mterm =
   MRaw of term * mtyp |
-  MAbs of string * typ * mtyp * sign_atom * mterm |
+  MAbs of string * typ * mtyp * annotation_atom * mterm |
   MApp of mterm * mterm
 
 type mdata =
@@ -58,22 +60,28 @@ exception MTERM of string * mterm list
 val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
+fun string_for_sign Plus = "+"
+  | string_for_sign Minus = "-"
+
+fun negate_sign Plus = Minus
+  | negate_sign Minus = Plus
+
 val string_for_var = signed_string_of_int
 fun string_for_vars sep [] = "0\<^bsub>" ^ sep ^ "\<^esub>"
   | string_for_vars sep xs = space_implode sep (map string_for_var xs)
 fun subscript_string_for_vars sep xs =
   if null xs then "" else "\<^bsub>" ^ string_for_vars sep xs ^ "\<^esub>"
 
-fun string_for_sign Plus = "+"
-  | string_for_sign Minus = "-"
+fun string_for_annotation Gen = "G"
+  | string_for_annotation New = "N"
+  | string_for_annotation Fls = "F"
+  | string_for_annotation Tru = "T"
 
-fun xor sn1 sn2 = if sn1 = sn2 then Plus else Minus
-val negate = xor Minus
+fun string_for_annotation_atom (A a) = string_for_annotation a
+  | string_for_annotation_atom (V x) = string_for_var x
 
-fun string_for_sign_atom (S sn) = string_for_sign sn
-  | string_for_sign_atom (V x) = string_for_var x
-
-fun string_for_literal (x, sn) = string_for_var x ^ " = " ^ string_for_sign sn
+fun string_for_literal (x, a) =
+  string_for_var x ^ " = " ^ string_for_annotation a
 
 val bool_M = MType (@{type_name bool}, [])
 val dummy_M = MType (nitpick_prefix ^ "dummy", [])
@@ -103,7 +111,7 @@ val string_for_mtype =
              MAlpha => "\<alpha>"
            | MFun (M1, a, M2) =>
              aux (prec + 1) M1 ^ " \<Rightarrow>\<^bsup>" ^
-             string_for_sign_atom a ^ "\<^esup> " ^ aux prec M2
+             string_for_annotation_atom a ^ "\<^esup> " ^ aux prec M2
            | MPair (M1, M2) => aux (prec + 1) M1 ^ " \<times> " ^ aux prec M2
            | MType (s, []) =>
              if s = @{type_name prop} orelse s = @{type_name bool} then "o"
@@ -135,7 +143,7 @@ fun string_for_mterm ctxt =
            MRaw (t, M) => Syntax.string_of_term ctxt t ^ mtype_annotation M
          | MAbs (s, _, M, a, m) =>
            "\<lambda>" ^ s ^ mtype_annotation M ^ ".\<^bsup>" ^
-           string_for_sign_atom a ^ "\<^esup> " ^ aux prec m
+           string_for_annotation_atom a ^ "\<^esup> " ^ aux prec m
          | MApp (m1, m2) => aux prec m1 ^ " " ^ aux (prec + 1) m2) ^
         (if need_parens then ")" else "")
       end
@@ -185,7 +193,7 @@ fun exists_alpha_sub_mtype_fresh MAlpha = true
   | exists_alpha_sub_mtype_fresh (MRec _) = true
 
 fun constr_mtype_for_binders z Ms =
-  fold_rev (fn M => curry3 MFun M (S Minus)) Ms (MRec z)
+  fold_rev (fn M => curry3 MFun M (A Gen)) Ms (MRec z)
 
 fun repair_mtype _ _ MAlpha = MAlpha
   | repair_mtype cache seen (MFun (M1, a, M2)) =
@@ -242,7 +250,7 @@ fun fresh_mfun_for_fun_type (mdata as {max_fresh, ...} : mdata) all_minus
                is_fin_fun_supported_type (body_type T2) then
               V (Unsynchronized.inc max_fresh)
             else
-              S Minus
+              A Gen
   in (M1, a, M2) end
 and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
                                     datatype_mcache, constr_mcache, ...})
@@ -301,7 +309,7 @@ fun curried_strip_mtype (MFun (M1, _, M2)) =
   | curried_strip_mtype M = ([], M)
 fun sel_mtype_from_constr_mtype s M =
   let val (arg_Ms, dataM) = curried_strip_mtype M in
-    MFun (dataM, S Minus,
+    MFun (dataM, A Gen,
           case sel_no_from_name s of ~1 => bool_M | n => nth arg_Ms n)
   end
 
@@ -323,13 +331,14 @@ fun mtype_for_sel (mdata as {hol_ctxt, binarize, ...}) (x as (s, _)) =
   x |> binarized_and_boxed_constr_for_sel hol_ctxt binarize
     |> mtype_for_constr mdata |> sel_mtype_from_constr_mtype s
 
-fun resolve_sign_atom lits (V x) =
-    x |> AList.lookup (op =) lits |> Option.map S |> the_default (V x)
-  | resolve_sign_atom _ a = a
+fun resolve_annotation_atom lits (V x) =
+    x |> AList.lookup (op =) lits |> Option.map A |> the_default (V x)
+  | resolve_annotation_atom _ a = a
 fun resolve_mtype lits =
   let
     fun aux MAlpha = MAlpha
-      | aux (MFun (M1, a, M2)) = MFun (aux M1, resolve_sign_atom lits a, aux M2)
+      | aux (MFun (M1, a, M2)) =
+        MFun (aux M1, resolve_annotation_atom lits a, aux M2)
       | aux (MPair Mp) = MPair (pairself aux Mp)
       | aux (MType (s, Ms)) = MType (s, map aux Ms)
       | aux (MRec z) = MRec z
@@ -337,55 +346,55 @@ fun resolve_mtype lits =
 
 datatype comp_op = Eq | Leq
 
-type comp = sign_atom * sign_atom * comp_op * var list
-type sign_expr = literal list
+type comp = annotation_atom * annotation_atom * comp_op * var list
+type annotation_expr = literal list
 
-type constraint_set = literal list * comp list * sign_expr list
+type constraint_set = literal list * comp list * annotation_expr list
 
 fun string_for_comp_op Eq = "="
   | string_for_comp_op Leq = "\<le>"
 
-fun string_for_sign_expr [] = "\<bot>"
-  | string_for_sign_expr lits =
+fun string_for_annotation_expr [] = "\<bot>"
+  | string_for_annotation_expr lits =
     space_implode " \<or> " (map string_for_literal lits)
 
 fun do_literal _ NONE = NONE
-  | do_literal (x, sn) (SOME lits) =
+  | do_literal (x, a) (SOME lits) =
     case AList.lookup (op =) lits x of
-      SOME sn' => if sn = sn' then SOME lits else NONE
-    | NONE => SOME ((x, sn) :: lits)
+      SOME a' => if a = a' then SOME lits else NONE
+    | NONE => SOME ((x, a) :: lits)
 
-fun do_sign_atom_comp Eq [] a1 a2 (accum as (lits, comps)) =
+fun do_annotation_atom_comp Eq [] a1 a2 (accum as (lits, comps)) =
     (case (a1, a2) of
-       (S sn1, S sn2) => if sn1 = sn2 then SOME accum else NONE
-     | (V x1, S sn2) =>
+       (A sn1, A sn2) => if sn1 = sn2 then SOME accum else NONE
+     | (V x1, A sn2) =>
        Option.map (rpair comps) (do_literal (x1, sn2) (SOME lits))
      | (V _, V _) => SOME (lits, insert (op =) (a1, a2, Eq, []) comps)
-     | _ => do_sign_atom_comp Eq [] a2 a1 accum)
-  | do_sign_atom_comp Leq [] a1 a2 (accum as (lits, comps)) =
+     | _ => do_annotation_atom_comp Eq [] a2 a1 accum)
+  | do_annotation_atom_comp Leq [] a1 a2 (accum as (lits, comps)) =
     (case (a1, a2) of
-       (_, S Minus) => SOME accum
-     | (S Plus, _) => SOME accum
-     | (S Minus, S Plus) => NONE
+       (_, A Gen) => SOME accum
+     | (A Fls, _) => SOME accum
+     | (A Gen, A Fls) => NONE
      | (V _, V _) => SOME (lits, insert (op =) (a1, a2, Leq, []) comps)
-     | _ => do_sign_atom_comp Eq [] a1 a2 accum)
-  | do_sign_atom_comp cmp xs a1 a2 (lits, comps) =
+     | _ => do_annotation_atom_comp Eq [] a1 a2 accum)
+  | do_annotation_atom_comp cmp xs a1 a2 (lits, comps) =
     SOME (lits, insert (op =) (a1, a2, cmp, xs) comps)
 
 fun do_mtype_comp _ _ _ _ NONE = NONE
   | do_mtype_comp _ _ MAlpha MAlpha accum = accum
   | do_mtype_comp Eq xs (MFun (M11, a1, M12)) (MFun (M21, a2, M22))
                   (SOME accum) =
-     accum |> do_sign_atom_comp Eq xs a1 a2 |> do_mtype_comp Eq xs M11 M21
+     accum |> do_annotation_atom_comp Eq xs a1 a2 |> do_mtype_comp Eq xs M11 M21
            |> do_mtype_comp Eq xs M12 M22
   | do_mtype_comp Leq xs (MFun (M11, a1, M12)) (MFun (M21, a2, M22))
                   (SOME accum) =
     (if exists_alpha_sub_mtype M11 then
-       accum |> do_sign_atom_comp Leq xs a1 a2
+       accum |> do_annotation_atom_comp Leq xs a1 a2
              |> do_mtype_comp Leq xs M21 M11
              |> (case a2 of
-                   S Minus => I
-                 | S Plus => do_mtype_comp Leq xs M11 M21
+                   A Gen => I
+                 | A Fls => do_mtype_comp Leq xs M11 M21
                  | V x => do_mtype_comp Leq (x :: xs) M11 M21)
      else
        SOME accum)
@@ -418,24 +427,20 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
     SOME lits |> do_literal (x, sn) |> Option.map (rpair sexps)
   | do_notin_mtype_fv Plus sexp MAlpha (SOME (lits, sexps)) =
     SOME (lits, insert (op =) sexp sexps)
-  | do_notin_mtype_fv sn sexp (MFun (M1, S sn', M2)) accum =
-    accum |> (if sn' = Plus andalso sn = Plus then
-                do_notin_mtype_fv Plus sexp M1
-              else
-                I)
-          |> (if sn' = Minus orelse sn = Plus then
-                do_notin_mtype_fv Minus sexp M1
-              else
-                I)
+  | do_notin_mtype_fv sn sexp (MFun (M1, A a, M2)) accum =
+    accum |> (if a = Fls andalso sn = Plus then do_notin_mtype_fv Plus sexp M1
+              else I)
+          |> (if a = Gen orelse sn = Plus then do_notin_mtype_fv Minus sexp M1
+              else I)
           |> do_notin_mtype_fv sn sexp M2
   | do_notin_mtype_fv Plus sexp (MFun (M1, V x, M2)) accum =
-    accum |> (case do_literal (x, Minus) (SOME sexp) of
+    accum |> (case do_literal (x, Gen) (SOME sexp) of
                 NONE => I
               | SOME sexp' => do_notin_mtype_fv Plus sexp' M1)
           |> do_notin_mtype_fv Minus sexp M1
           |> do_notin_mtype_fv Plus sexp M2
   | do_notin_mtype_fv Minus sexp (MFun (M1, V x, M2)) accum =
-    accum |> (case do_literal (x, Plus) (SOME sexp) of
+    accum |> (case do_literal (x, Fls) (SOME sexp) of
                 NONE => I
               | SOME sexp' => do_notin_mtype_fv Plus sexp' M1)
           |> do_notin_mtype_fv Minus sexp M2
@@ -447,37 +452,37 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
     raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
 
 fun add_notin_mtype_fv sn M ((lits, comps, sexps) : constraint_set) =
-    (trace_msg (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
-                         (case sn of Minus => "concrete" | Plus => "complete"));
-     case do_notin_mtype_fv sn [] M (SOME (lits, sexps)) of
-       NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-     | SOME (lits, sexps) => (lits, comps, sexps))
+  (trace_msg (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
+                       (case sn of Minus => "concrete" | Plus => "complete"));
+   case do_notin_mtype_fv sn [] M (SOME (lits, sexps)) of
+     NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
+   | SOME (lits, sexps) => (lits, comps, sexps))
 
 val add_mtype_is_concrete = add_notin_mtype_fv Minus
 val add_mtype_is_complete = add_notin_mtype_fv Plus
 
 val bool_from_minus = true
 
-fun bool_from_sign Plus = not bool_from_minus
-  | bool_from_sign Minus = bool_from_minus
-fun sign_from_bool b = if b = bool_from_minus then Minus else Plus
+fun bool_from_annotation Fls = not bool_from_minus
+  | bool_from_annotation Gen = bool_from_minus
+fun sign_from_bool b = if b = bool_from_minus then Gen else Fls
 
-fun prop_for_literal (x, sn) =
-  (not (bool_from_sign sn) ? PropLogic.Not) (PropLogic.BoolVar x)
-fun prop_for_sign_atom_eq (S sn', sn) =
-    if sn = sn' then PropLogic.True else PropLogic.False
-  | prop_for_sign_atom_eq (V x, sn) = prop_for_literal (x, sn)
-fun prop_for_sign_expr xs = PropLogic.exists (map prop_for_literal xs)
-fun prop_for_exists_eq xs sn =
-  PropLogic.exists (map (fn x => prop_for_literal (x, sn)) xs)
+fun prop_for_literal (x, a) =
+  PropLogic.BoolVar x |> not (bool_from_annotation a) ? PropLogic.Not
+fun prop_for_annotation_atom_eq (A a', a) =
+    if a = a' then PropLogic.True else PropLogic.False
+  | prop_for_annotation_atom_eq (V x, a) = prop_for_literal (x, a)
+fun prop_for_annotation_expr xs = PropLogic.exists (map prop_for_literal xs)
+fun prop_for_exists_eq xs a =
+  PropLogic.exists (map (fn x => prop_for_literal (x, a)) xs)
 fun prop_for_comp (a1, a2, Eq, []) =
     PropLogic.SAnd (prop_for_comp (a1, a2, Leq, []),
                     prop_for_comp (a2, a1, Leq, []))
   | prop_for_comp (a1, a2, Leq, []) =
-    PropLogic.SOr (prop_for_sign_atom_eq (a1, Plus),
-                   prop_for_sign_atom_eq (a2, Minus))
+    PropLogic.SOr (prop_for_annotation_atom_eq (a1, Fls),
+                   prop_for_annotation_atom_eq (a2, Gen))
   | prop_for_comp (a1, a2, cmp, xs) =
-    PropLogic.SOr (prop_for_exists_eq xs Minus, prop_for_comp (a1, a2, cmp, []))
+    PropLogic.SOr (prop_for_exists_eq xs Gen, prop_for_comp (a1, a2, cmp, []))
 
 fun literals_from_assignments max_var assigns lits =
   fold (fn x => fn accum =>
@@ -488,20 +493,20 @@ fun literals_from_assignments max_var assigns lits =
            | NONE => accum) (max_var downto 1) lits
 
 fun string_for_comp (a1, a2, cmp, xs) =
-  string_for_sign_atom a1 ^ " " ^ string_for_comp_op cmp ^
-  subscript_string_for_vars " \<and> " xs ^ " " ^ string_for_sign_atom a2
+  string_for_annotation_atom a1 ^ " " ^ string_for_comp_op cmp ^
+  subscript_string_for_vars " \<and> " xs ^ " " ^ string_for_annotation_atom a2
 
 fun print_problem lits comps sexps =
   trace_msg (fn () => "*** Problem:\n" ^
                       cat_lines (map string_for_literal lits @
                                  map string_for_comp comps @
-                                 map string_for_sign_expr sexps))
+                                 map string_for_annotation_expr sexps))
 
 fun print_solution lits =
-  let val (pos, neg) = List.partition (curry (op =) Plus o snd) lits in
+  let val (fs, gs) = List.partition (curry (op =) Fls o snd) lits in
     trace_msg (fn () => "*** Solution:\n" ^
-                        "+: " ^ commas (map (string_for_var o fst) pos) ^ "\n" ^
-                        "-: " ^ commas (map (string_for_var o fst) neg))
+                        "F: " ^ commas (map (string_for_var o fst) fs) ^ "\n" ^
+                        "G: " ^ commas (map (string_for_var o fst) gs))
   end
 
 fun solve max_var (lits, comps, sexps) =
@@ -512,8 +517,8 @@ fun solve max_var (lits, comps, sexps) =
     val _ = print_problem lits comps sexps
     val prop = PropLogic.all (map prop_for_literal lits @
                               map prop_for_comp comps @
-                              map prop_for_sign_expr sexps)
-    val default_val = bool_from_sign Minus
+                              map prop_for_annotation_expr sexps)
+    val default_val = bool_from_annotation Gen
   in
     if PropLogic.eval (K default_val) prop then
       do_assigns (K (SOME default_val))
@@ -558,19 +563,19 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
       | _ => true
     val mtype_for = fresh_mtype_for_type mdata false
     fun plus_set_mtype_for_dom M =
-      MFun (M, S (if exists_alpha_sub_mtype M then Plus else Minus), bool_M)
+      MFun (M, A (if exists_alpha_sub_mtype M then Fls else Gen), bool_M)
     fun do_all T (gamma, cset) =
       let
         val abs_M = mtype_for (domain_type (domain_type T))
         val body_M = mtype_for (body_type T)
       in
-        (MFun (MFun (abs_M, S Minus, body_M), S Minus, body_M),
+        (MFun (MFun (abs_M, A Gen, body_M), A Gen, body_M),
          (gamma, cset |> add_mtype_is_complete abs_M))
       end
     fun do_equals T (gamma, cset) =
       let val M = mtype_for (domain_type T) in
-        (MFun (M, S Minus, MFun (M, V (Unsynchronized.inc max_fresh),
-                                 mtype_for (nth_range_type 2 T))),
+        (MFun (M, A Gen, MFun (M, V (Unsynchronized.inc max_fresh),
+                               mtype_for (nth_range_type 2 T))),
          (gamma, cset |> add_mtype_is_concrete M))
       end
     fun do_robust_set_operation T (gamma, cset) =
@@ -580,7 +585,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         val M2 = mtype_for set_T
         val M3 = mtype_for set_T
       in
-        (MFun (M1, S Minus, MFun (M2, S Minus, M3)),
+        (MFun (M1, A Gen, MFun (M2, A Gen, M3)),
          (gamma, cset |> add_is_sub_mtype M1 M3 |> add_is_sub_mtype M2 M3))
       end
     fun do_fragile_set_operation T (gamma, cset) =
@@ -589,7 +594,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         val set_M = mtype_for set_T
         fun custom_mtype_for (T as Type (@{type_name fun}, [T1, T2])) =
             if T = set_T then set_M
-            else MFun (custom_mtype_for T1, S Minus, custom_mtype_for T2)
+            else MFun (custom_mtype_for T1, A Gen, custom_mtype_for T2)
           | custom_mtype_for T = mtype_for T
       in
         (custom_mtype_for T, (gamma, cset |> add_mtype_is_concrete set_M))
@@ -597,12 +602,12 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
     fun do_pair_constr T accum =
       case mtype_for (nth_range_type 2 T) of
         M as MPair (a_M, b_M) =>
-        (MFun (a_M, S Minus, MFun (b_M, S Minus, M)), accum)
+        (MFun (a_M, A Gen, MFun (b_M, A Gen, M)), accum)
       | M => raise MTYPE ("Nitpick_Mono.consider_term.do_pair_constr", [M], [])
     fun do_nth_pair_sel n T =
       case mtype_for (domain_type T) of
         M as MPair (a_M, b_M) =>
-        pair (MFun (M, S Minus, if n = 0 then a_M else b_M))
+        pair (MFun (M, A Gen, if n = 0 then a_M else b_M))
       | M => raise MTYPE ("Nitpick_Mono.consider_term.do_nth_pair_sel", [M], [])
     fun do_bounded_quantifier t0 abs_s abs_T connective_t bound_t body_t accum =
       let
@@ -616,7 +621,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         val bound_M = mtype_of_mterm bound_m
         val (M1, a, _) = dest_MFun bound_M
       in
-        (MApp (MRaw (t0, MFun (bound_M, S Minus, bool_M)),
+        (MApp (MRaw (t0, MFun (bound_M, A Gen, bool_M)),
                MAbs (abs_s, abs_T, M1, a,
                      MApp (MApp (MRaw (connective_t,
                                        mtype_for (fastype_of connective_t)),
@@ -653,12 +658,12 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                 (trace_msg (K "*** Eps"); raise UNSOLVABLE ())
               | @{const_name If} =>
                 do_robust_set_operation (range_type T) accum
-                |>> curry3 MFun bool_M (S Minus)
+                |>> curry3 MFun bool_M (A Gen)
               | @{const_name Pair} => do_pair_constr T accum
               | @{const_name fst} => do_nth_pair_sel 0 T accum
               | @{const_name snd} => do_nth_pair_sel 1 T accum
               | @{const_name Id} =>
-                (MFun (mtype_for (domain_type T), S Minus, bool_M), accum)
+                (MFun (mtype_for (domain_type T), A Gen, bool_M), accum)
               | @{const_name converse} =>
                 let
                   val x = Unsynchronized.inc max_fresh
@@ -666,7 +671,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                     MFun (mtype_for (domain_type T), V x, bool_M)
                   val ab_set_M = domain_type T |> mtype_for_set
                   val ba_set_M = range_type T |> mtype_for_set
-                in (MFun (ab_set_M, S Minus, ba_set_M), accum) end
+                in (MFun (ab_set_M, A Gen, ba_set_M), accum) end
               | @{const_name trancl} => do_fragile_set_operation T accum
               | @{const_name rel_comp} =>
                 let
@@ -677,7 +682,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                   val ab_set_M = domain_type (range_type T) |> mtype_for_set
                   val ac_set_M = nth_range_type 2 T |> mtype_for_set
                 in
-                  (MFun (bc_set_M, S Minus, MFun (ab_set_M, S Minus, ac_set_M)),
+                  (MFun (bc_set_M, A Gen, MFun (ab_set_M, A Gen, ac_set_M)),
                    accum)
                 end
               | @{const_name image} =>
@@ -685,13 +690,13 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                   val a_M = mtype_for (domain_type (domain_type T))
                   val b_M = mtype_for (range_type (domain_type T))
                 in
-                  (MFun (MFun (a_M, S Minus, b_M), S Minus,
-                         MFun (plus_set_mtype_for_dom a_M, S Minus,
+                  (MFun (MFun (a_M, A Gen, b_M), A Gen,
+                         MFun (plus_set_mtype_for_dom a_M, A Gen,
                                plus_set_mtype_for_dom b_M)), accum)
                 end
               | @{const_name finite} =>
                 let val M1 = mtype_for (domain_type (domain_type T)) in
-                  (MFun (plus_set_mtype_for_dom M1, S Minus, bool_M), accum)
+                  (MFun (plus_set_mtype_for_dom M1, A Gen, bool_M), accum)
                 end
               | @{const_name Sigma} =>
                 let
@@ -703,18 +708,18 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                   val b_set_M = mtype_for_set (range_type (domain_type
                                                                (range_type T)))
                   val a_set_M = mtype_for_set a_set_T
-                  val a_to_b_set_M = MFun (a_M, S Minus, b_set_M)
+                  val a_to_b_set_M = MFun (a_M, A Gen, b_set_M)
                   val ab_set_M = mtype_for_set (nth_range_type 2 T)
                 in
-                  (MFun (a_set_M, S Minus,
-                         MFun (a_to_b_set_M, S Minus, ab_set_M)), accum)
+                  (MFun (a_set_M, A Gen, MFun (a_to_b_set_M, A Gen, ab_set_M)),
+                   accum)
                 end
               | _ =>
                 if s = @{const_name safe_The} then
                   let
                     val a_set_M = mtype_for (domain_type T)
                     val a_M = dest_MFun a_set_M |> #1
-                  in (MFun (a_set_M, S Minus, a_M), accum) end
+                  in (MFun (a_set_M, A Gen, a_M), accum) end
                 else if s = @{const_name ord_class.less_eq} andalso
                         is_set_type (domain_type T) then
                   do_fragile_set_operation T accum
@@ -765,9 +770,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                       let
                         val M = mtype_for T
                         val (m', accum) = do_term t' (accum |>> push_bound T M)
-                      in
-                        (MAbs (s, T, M, S Minus, m'), accum |>> pop_bound)
-                      end))
+                      in (MAbs (s, T, M, A Gen, m'), accum |>> pop_bound) end))
          | (t0 as Const (@{const_name All}, _))
            $ Abs (s', T', (t10 as @{const HOL.implies}) $ (t11 $ Bound 0) $ t12) =>
            do_bounded_quantifier t0 s' T' t10 t11 t12 accum
@@ -792,8 +795,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
 
 fun force_minus_funs 0 _ = I
   | force_minus_funs n (M as MFun (M1, _, M2)) =
-    add_mtypes_equal M (MFun (M1, S Minus, M2))
-    #> force_minus_funs (n - 1) M2
+    add_mtypes_equal M (MFun (M1, A Gen, M2)) #> force_minus_funs (n - 1) M2
   | force_minus_funs _ M =
     raise MTYPE ("Nitpick_Mono.force_minus_funs", [M], [])
 fun consider_general_equals mdata def (x as (_, T)) t1 t2 accum =
@@ -805,7 +807,7 @@ fun consider_general_equals mdata def (x as (_, T)) t1 t2 accum =
     val accum = accum ||> add_mtypes_equal M1 M2
     val body_M = fresh_mtype_for_type mdata false (nth_range_type 2 T)
     val m = MApp (MApp (MRaw (Const x,
-                MFun (M1, S Minus, MFun (M2, S Minus, body_M))), m1), m2)
+                           MFun (M1, A Gen, MFun (M2, A Gen, body_M))), m1), m2)
   in
     (m, if def then
           let val (head_m, arg_ms) = strip_mcomb m1 in
@@ -831,9 +833,8 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
               val body_M = mtype_of_mterm body_m
             in
               (MApp (MRaw (Const quant_x,
-                           MFun (MFun (abs_M, S Minus, body_M), S Minus,
-                                 body_M)),
-                     MAbs (abs_s, abs_T, abs_M, S Minus, body_m)),
+                           MFun (MFun (abs_M, A Gen, body_M), A Gen, body_M)),
+                     MAbs (abs_s, abs_T, abs_M, A Gen, body_m)),
                accum |>> pop_bound)
             end
           fun do_equals x t1 t2 =
@@ -854,7 +855,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
                       m1), accum)
              end
            | @{const Not} $ t1 =>
-             let val (m1, accum) = do_formula (negate sn) t1 accum in
+             let val (m1, accum) = do_formula (negate_sign sn) t1 accum in
                (MApp (MRaw (@{const Not}, mtype_for (bool_T --> bool_T)), m1),
                 accum)
              end
@@ -882,7 +883,8 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
                let
                  val impl = (s0 = @{const_name "==>"} orelse
                              s0 = @{const_name HOL.implies})
-                 val (m1, accum) = do_formula (sn |> impl ? negate) t1 accum
+                 val (m1, accum) =
+                   do_formula (sn |> impl ? negate_sign) t1 accum
                  val (m2, accum) = do_formula sn t2 accum
                in
                  (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
@@ -931,9 +933,9 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...}) t =
             accum |>> push_bound abs_T abs_M |> do_formula body_t
           val body_M = mtype_of_mterm body_m
         in
-          (MApp (MRaw (quant_t,
-                       MFun (MFun (abs_M, S Minus, body_M), S Minus, body_M)),
-                 MAbs (abs_s, abs_T, abs_M, S Minus, body_m)),
+          (MApp (MRaw (quant_t, MFun (MFun (abs_M, A Gen, body_M), A Gen,
+                       body_M)),
+                 MAbs (abs_s, abs_T, abs_M, A Gen, body_m)),
            accum |>> pop_bound)
         end
       and do_conjunction t0 t1 t2 accum =
@@ -1023,14 +1025,14 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, constr_cache, ...})
                   binarize finitizes alpha_T tsp =
   case infer "Finiteness" true hol_ctxt binarize alpha_T tsp of
     SOME (lits, msp, constr_mtypes) =>
-    if forall (curry (op =) Minus o snd) lits then
+    if forall (curry (op =) Gen o snd) lits then
       tsp
     else
       let
         fun should_finitize T a =
           case triple_lookup (type_match thy) finitizes T of
             SOME (SOME false) => false
-          | _ => resolve_sign_atom lits a = S Plus
+          | _ => resolve_annotation_atom lits a = A Fls
         fun type_from_mtype T M =
           case (M, T) of
             (MAlpha, _) => T
