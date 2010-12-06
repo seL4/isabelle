@@ -84,7 +84,7 @@ float_token.
 *** Pure ***
 
 * Command 'notepad' replaces former 'example_proof' for
-experimentation in Isar without and result.  INCOMPATIBILITY.
+experimentation in Isar without any result.  INCOMPATIBILITY.
 
 * Support for real valued preferences (with approximative PGIP type).
 
@@ -133,7 +133,7 @@ nat list => real list), map functions can be declared, e.g.
 
 Currently coercion inference is activated only in theories including
 real numbers, i.e. descendants of Complex_Main.  This is controlled by
-the configuration option "infer_coercions", e.g. it can be enabled in
+the configuration option "coercion_enabled", e.g. it can be enabled in
 other theories like this:
 
   declare [[coercion_enabled]]
