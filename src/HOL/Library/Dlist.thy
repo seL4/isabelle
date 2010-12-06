@@ -175,7 +175,7 @@ qed
 
 section {* Functorial structure *}
 
-type_mapper map
+type_lifting map
   by (auto intro: dlist_eqI simp add: remdups_map_remdups comp_def)
 
 

@@ -1631,7 +1631,7 @@ text {*
   @{term "{#x+x|x:#M. x<c#}"}.
 *}
 
-type_mapper image_mset proof -
+type_lifting image_mset proof -
   fix f g A show "image_mset f (image_mset g A) = image_mset (\<lambda>x. f (g x)) A"
     by (induct A) simp_all
 next

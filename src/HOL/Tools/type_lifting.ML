@@ -1,20 +1,20 @@
-(*  Title:      HOL/Tools/type_mapper.ML
+(*  Title:      HOL/Tools/type_lifting.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Functorial mappers on types.
+Functorial structure of types.
 *)
 
-signature TYPE_MAPPER =
+signature TYPE_LIFTING =
 sig
   val find_atomic: theory -> typ -> (typ * (bool * bool)) list
   val construct_mapper: theory -> (string * bool -> term)
     -> bool -> typ -> typ -> term
-  val type_mapper: string option -> term -> theory -> Proof.state
+  val type_lifting: string option -> term -> theory -> Proof.state
   type entry
   val entries: theory -> entry Symtab.table
 end;
 
-structure Type_Mapper : TYPE_MAPPER =
+structure Type_Lifting : TYPE_LIFTING =
 struct
 
 val compositionalityN = "compositionality";
@@ -172,7 +172,7 @@ fun analyze_variances thy tyco T =
     val _ = if null left_variances then () else bad_typ ();
   in variances end;
 
-fun gen_type_mapper prep_term some_prfx raw_t thy =
+fun gen_type_lifting prep_term some_prfx raw_t thy =
   let
     val (mapper, T) = case prep_term thy raw_t
      of Const cT => cT
@@ -206,12 +206,12 @@ fun gen_type_mapper prep_term some_prfx raw_t thy =
     |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [compositionality_prop, identity_prop])
   end
 
-val type_mapper = gen_type_mapper Sign.cert_term;
-val type_mapper_cmd = gen_type_mapper Syntax.read_term_global;
+val type_lifting = gen_type_lifting Sign.cert_term;
+val type_lifting_cmd = gen_type_lifting Syntax.read_term_global;
 
 val _ =
-  Outer_Syntax.command "type_mapper" "register functorial mapper for type with its properties" Keyword.thy_goal
+  Outer_Syntax.command "type_lifting" "register operations managing the functorial structure of a type" Keyword.thy_goal
     (Scan.option (Parse.name --| Parse.$$$ ":") -- Parse.term
-      >> (fn (prfx, t) => Toplevel.print o (Toplevel.theory_to_proof (type_mapper_cmd prfx t))));
+      >> (fn (prfx, t) => Toplevel.print o (Toplevel.theory_to_proof (type_lifting_cmd prfx t))));
 
 end;

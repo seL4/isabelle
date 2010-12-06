@@ -126,7 +126,7 @@ lemma map_fun_apply [simp]:
   "map_fun f g h x = g (h (f x))"
   by (simp add: map_fun_def)
 
-type_mapper map_fun
+type_lifting map_fun
   by (simp_all add: fun_eq_iff)
 
 

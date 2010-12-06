@@ -188,7 +188,7 @@ lemma map_set [code]:
   "map f (Cset.set xs) = Cset.set (remdups (List.map f xs))"
   by (simp add: set_def)
 
-type_mapper map
+type_lifting map
   by (simp_all add: image_image)
 
 definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Cset.set \<Rightarrow> 'a Cset.set" where

@@ -835,7 +835,7 @@ lemma map_pair_simp [simp, code]:
   "map_pair f g (a, b) = (f a, g b)"
   by (simp add: map_pair_def)
 
-type_mapper map_pair
+type_lifting map_pair
   by (simp_all add: split_paired_all)
 
 lemma fst_map_pair [simp]:
