@@ -30,7 +30,7 @@ type var = int
 datatype annotation = Gen | New | Fls | Tru
 datatype annotation_atom = A of annotation | V of var
 
-type literal = var * annotation
+type assignment = var * annotation
 
 datatype mtyp =
   MAlpha |
@@ -80,7 +80,7 @@ fun string_for_annotation Gen = "G"
 fun string_for_annotation_atom (A a) = string_for_annotation a
   | string_for_annotation_atom (V x) = string_for_var x
 
-fun string_for_literal (x, a) =
+fun string_for_assignment (x, a) =
   string_for_var x ^ " = " ^ string_for_annotation a
 
 val bool_M = MType (@{type_name bool}, [])
@@ -331,14 +331,14 @@ fun mtype_for_sel (mdata as {hol_ctxt, binarize, ...}) (x as (s, _)) =
   x |> binarized_and_boxed_constr_for_sel hol_ctxt binarize
     |> mtype_for_constr mdata |> sel_mtype_from_constr_mtype s
 
-fun resolve_annotation_atom lits (V x) =
-    x |> AList.lookup (op =) lits |> Option.map A |> the_default (V x)
+fun resolve_annotation_atom asgs (V x) =
+    x |> AList.lookup (op =) asgs |> Option.map A |> the_default (V x)
   | resolve_annotation_atom _ aa = aa
-fun resolve_mtype lits =
+fun resolve_mtype asgs =
   let
     fun aux MAlpha = MAlpha
       | aux (MFun (M1, aa, M2)) =
-        MFun (aux M1, resolve_annotation_atom lits aa, aux M2)
+        MFun (aux M1, resolve_annotation_atom asgs aa, aux M2)
       | aux (MPair Mp) = MPair (pairself aux Mp)
       | aux (MType (s, Ms)) = MType (s, map aux Ms)
       | aux (MRec z) = MRec z
@@ -347,39 +347,38 @@ fun resolve_mtype lits =
 datatype comp_op = Eq | Leq
 
 type comp = annotation_atom * annotation_atom * comp_op * var list
-type annotation_expr = literal list
+type annotation_expr = assignment list
 
-type constraint_set = literal list * comp list * annotation_expr list
+type constraint_set = assignment list * comp list * annotation_expr list
 
 fun string_for_comp_op Eq = "="
   | string_for_comp_op Leq = "\<le>"
 
 fun string_for_annotation_expr [] = "\<bot>"
-  | string_for_annotation_expr lits =
-    space_implode " \<or> " (map string_for_literal lits)
+  | string_for_annotation_expr asgs =
+    space_implode " \<or> " (map string_for_assignment asgs)
 
-fun do_literal _ NONE = NONE
-  | do_literal (x, a) (SOME lits) =
-    case AList.lookup (op =) lits x of
-      SOME a' => if a = a' then SOME lits else NONE
-    | NONE => SOME ((x, a) :: lits)
+fun do_assignment _ NONE = NONE
+  | do_assignment (x, a) (SOME asgs) =
+    case AList.lookup (op =) asgs x of
+      SOME a' => if a = a' then SOME asgs else NONE
+    | NONE => SOME ((x, a) :: asgs)
 
-fun do_annotation_atom_comp Eq [] aa1 aa2 (accum as (lits, comps)) =
+fun do_annotation_atom_comp Eq [] aa1 aa2 (accum as (asgs, comps)) =
     (case (aa1, aa2) of
        (A a1, A a2) => if a1 = a2 then SOME accum else NONE
      | (V x1, A a2) =>
-       SOME lits |> do_literal (x1, a2) |> Option.map (rpair comps)
-     | (V _, V _) => SOME (lits, insert (op =) (aa1, aa2, Eq, []) comps)
+       SOME asgs |> do_assignment (x1, a2) |> Option.map (rpair comps)
+     | (V _, V _) => SOME (asgs, insert (op =) (aa1, aa2, Eq, []) comps)
      | _ => do_annotation_atom_comp Eq [] aa2 aa1 accum)
-  | do_annotation_atom_comp Leq [] aa1 aa2 (accum as (lits, comps)) =
+  | do_annotation_atom_comp Leq [] aa1 aa2 (accum as (asgs, comps)) =
     (case (aa1, aa2) of
        (_, A Gen) => SOME accum
-     | (A Fls, _) => SOME accum
-     | (A Gen, A Fls) => NONE
-     | (V _, V _) => SOME (lits, insert (op =) (aa1, aa2, Leq, []) comps)
-     | _ => do_annotation_atom_comp Eq [] aa1 aa2 accum)
-  | do_annotation_atom_comp cmp xs aa1 aa2 (lits, comps) =
-    SOME (lits, insert (op =) (aa1, aa2, cmp, xs) comps)
+     | (A Gen, A _) => NONE
+     | (A a1, A a2) => if a1 = a2 then SOME accum else NONE
+     | _ => SOME (asgs, insert (op =) (aa1, aa2, Leq, []) comps))
+  | do_annotation_atom_comp cmp xs aa1 aa2 (asgs, comps) =
+    SOME (asgs, insert (op =) (aa1, aa2, cmp, xs) comps)
 
 fun do_mtype_comp _ _ _ _ NONE = NONE
   | do_mtype_comp _ _ MAlpha MAlpha accum = accum
@@ -394,7 +393,7 @@ fun do_mtype_comp _ _ _ _ NONE = NONE
              |> do_mtype_comp Leq xs M21 M11
              |> (case aa2 of
                    A Gen => I
-                 | A Fls => do_mtype_comp Leq xs M11 M21
+                 | A _ => do_mtype_comp Leq xs M11 M21
                  | V x => do_mtype_comp Leq (x :: xs) M11 M21)
      else
        SOME accum)
@@ -410,12 +409,12 @@ fun do_mtype_comp _ _ _ _ NONE = NONE
     raise MTYPE ("Nitpick_Mono.do_mtype_comp (" ^ string_for_comp_op cmp ^ ")",
                  [M1, M2], [])
 
-fun add_mtype_comp cmp M1 M2 ((lits, comps, sexps) : constraint_set) =
+fun add_mtype_comp cmp M1 M2 ((asgs, comps, sexps) : constraint_set) =
     (trace_msg (fn () => "*** Add " ^ string_for_mtype M1 ^ " " ^
                          string_for_comp_op cmp ^ " " ^ string_for_mtype M2);
-     case do_mtype_comp cmp [] M1 M2 (SOME (lits, comps)) of
+     case do_mtype_comp cmp [] M1 M2 (SOME (asgs, comps)) of
        NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-     | SOME (lits, comps) => (lits, comps, sexps))
+     | SOME (asgs, comps) => (asgs, comps, sexps))
 
 val add_mtypes_equal = add_mtype_comp Eq
 val add_is_sub_mtype = add_mtype_comp Leq
@@ -423,24 +422,24 @@ val add_is_sub_mtype = add_mtype_comp Leq
 fun do_notin_mtype_fv _ _ _ NONE = NONE
   | do_notin_mtype_fv Minus _ MAlpha accum = accum
   | do_notin_mtype_fv Plus [] MAlpha _ = NONE
-  | do_notin_mtype_fv Plus [(x, sn)] MAlpha (SOME (lits, sexps)) =
-    SOME lits |> do_literal (x, sn) |> Option.map (rpair sexps)
-  | do_notin_mtype_fv Plus sexp MAlpha (SOME (lits, sexps)) =
-    SOME (lits, insert (op =) sexp sexps)
+  | do_notin_mtype_fv Plus [(x, a)] MAlpha (SOME (asgs, sexps)) =
+    SOME asgs |> do_assignment (x, a) |> Option.map (rpair sexps)
+  | do_notin_mtype_fv Plus sexp MAlpha (SOME (asgs, sexps)) =
+    SOME (asgs, insert (op =) sexp sexps)
   | do_notin_mtype_fv sn sexp (MFun (M1, A aa, M2)) accum =
-    accum |> (if aa = Fls andalso sn = Plus then do_notin_mtype_fv Plus sexp M1
+    accum |> (if aa <> Gen andalso sn = Plus then do_notin_mtype_fv Plus sexp M1
               else I)
           |> (if aa = Gen orelse sn = Plus then do_notin_mtype_fv Minus sexp M1
               else I)
           |> do_notin_mtype_fv sn sexp M2
   | do_notin_mtype_fv Plus sexp (MFun (M1, V x, M2)) accum =
-    accum |> (case do_literal (x, Gen) (SOME sexp) of
+    accum |> (case do_assignment (x, Gen) (SOME sexp) of
                 NONE => I
               | SOME sexp' => do_notin_mtype_fv Plus sexp' M1)
           |> do_notin_mtype_fv Minus sexp M1
           |> do_notin_mtype_fv Plus sexp M2
   | do_notin_mtype_fv Minus sexp (MFun (M1, V x, M2)) accum =
-    accum |> (case do_literal (x, Fls) (SOME sexp) of
+    accum |> (case do_assignment (x, Fls) (*### FIXME: not Gen *) (SOME sexp) of
                 NONE => I
               | SOME sexp' => do_notin_mtype_fv Plus sexp' M1)
           |> do_notin_mtype_fv Minus sexp M2
@@ -451,12 +450,12 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
   | do_notin_mtype_fv _ _ M _ =
     raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
 
-fun add_notin_mtype_fv sn M ((lits, comps, sexps) : constraint_set) =
+fun add_notin_mtype_fv sn M ((asgs, comps, sexps) : constraint_set) =
   (trace_msg (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
                        (case sn of Minus => "concrete" | Plus => "complete"));
-   case do_notin_mtype_fv sn [] M (SOME (lits, sexps)) of
+   case do_notin_mtype_fv sn [] M (SOME (asgs, sexps)) of
      NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-   | SOME (lits, sexps) => (lits, comps, sexps))
+   | SOME (asgs, sexps) => (asgs, comps, sexps))
 
 val add_mtype_is_concrete = add_notin_mtype_fv Minus
 val add_mtype_is_complete = add_notin_mtype_fv Plus
@@ -473,21 +472,22 @@ val bool_table =
 val bools_from_annotation = AList.lookup (op =) bool_table #> the
 val annotation_from_bools = AList.find (op =) bool_table #> the_single
 
-fun prop_for_literal (x, a) =
+fun prop_for_assignment (x, a) =
   let val (b1, b2) = bools_from_annotation a in
     PropLogic.SAnd (PropLogic.BoolVar (fst_var x) |> not b1 ? PropLogic.Not,
                     PropLogic.BoolVar (snd_var x) |> not b2 ? PropLogic.Not)
   end
 fun prop_for_annotation_atom_eq (A a', a) =
     if a = a' then PropLogic.True else PropLogic.False
-  | prop_for_annotation_atom_eq (V x, a) = prop_for_literal (x, a)
-fun prop_for_annotation_expr xs = PropLogic.exists (map prop_for_literal xs)
+  | prop_for_annotation_atom_eq (V x, a) = prop_for_assignment (x, a)
+fun prop_for_annotation_expr xs = PropLogic.exists (map prop_for_assignment xs)
 fun prop_for_exists_eq xs a =
-  PropLogic.exists (map (fn x => prop_for_literal (x, a)) xs)
+  PropLogic.exists (map (fn x => prop_for_assignment (x, a)) xs)
 fun prop_for_comp (aa1, aa2, Eq, []) =
     PropLogic.SAnd (prop_for_comp (aa1, aa2, Leq, []),
                     prop_for_comp (aa2, aa1, Leq, []))
   | prop_for_comp (aa1, aa2, Leq, []) =
+    (* FIXME *)
     PropLogic.SOr (prop_for_annotation_atom_eq (aa1, Fls),
                    prop_for_annotation_atom_eq (aa2, Gen))
   | prop_for_comp (aa1, aa2, cmp, xs) =
@@ -498,39 +498,40 @@ fun fix_bool_options (NONE, NONE) = (false, false)
   | fix_bool_options (SOME b, NONE) = (b, b)
   | fix_bool_options (SOME b1, SOME b2) = (b1, b2)
 
-fun literals_from_assignments max_var assigns lits =
+fun extract_assignments max_var assigns asgs =
   fold (fn x => fn accum =>
-           if AList.defined (op =) lits x then
+           if AList.defined (op =) asgs x then
              accum
            else case (fst_var x, snd_var x) |> pairself assigns of
              (NONE, NONE) => accum
            | bp => (x, annotation_from_bools (fix_bool_options bp)) :: accum)
-       (max_var downto 1) lits
+       (max_var downto 1) asgs
 
 fun string_for_comp (aa1, aa2, cmp, xs) =
   string_for_annotation_atom aa1 ^ " " ^ string_for_comp_op cmp ^
   subscript_string_for_vars " \<and> " xs ^ " " ^ string_for_annotation_atom aa2
 
-fun print_problem lits comps sexps =
+fun print_problem asgs comps sexps =
   trace_msg (fn () => "*** Problem:\n" ^
-                      cat_lines (map string_for_literal lits @
+                      cat_lines (map string_for_assignment asgs @
                                  map string_for_comp comps @
                                  map string_for_annotation_expr sexps))
 
-fun print_solution lits =
-  let val (fs, gs) = List.partition (curry (op =) Fls o snd) lits in
-    trace_msg (fn () => "*** Solution:\n" ^
-                        "F: " ^ commas (map (string_for_var o fst) fs) ^ "\n" ^
-                        "G: " ^ commas (map (string_for_var o fst) gs))
-  end
+fun print_solution asgs =
+  trace_msg (fn () => "*** Solution:\n" ^
+      (asgs
+       |> map swap
+       |> AList.group (op =)
+       |> map (fn (a, xs) => string_for_annotation a ^ ": " ^
+                             string_for_vars ", " xs)
+       |> space_implode "\n"))
 
-fun solve max_var (lits, comps, sexps) =
+fun solve max_var (asgs, comps, sexps) =
   let
     fun do_assigns assigns =
-      SOME (literals_from_assignments max_var assigns lits
-            |> tap print_solution)
-    val _ = print_problem lits comps sexps
-    val prop = PropLogic.all (map prop_for_literal lits @
+      SOME (extract_assignments max_var assigns asgs |> tap print_solution)
+    val _ = print_problem asgs comps sexps
+    val prop = PropLogic.all (map prop_for_assignment asgs @
                               map prop_for_comp comps @
                               map prop_for_annotation_expr sexps)
     val default_val = fst (bools_from_annotation Gen)
@@ -996,13 +997,13 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...}) t =
                              \do_formula", [t])
     in do_formula t end
 
-fun string_for_mtype_of_term ctxt lits t M =
-  Syntax.string_of_term ctxt t ^ " : " ^ string_for_mtype (resolve_mtype lits M)
+fun string_for_mtype_of_term ctxt asgs t M =
+  Syntax.string_of_term ctxt t ^ " : " ^ string_for_mtype (resolve_mtype asgs M)
 
-fun print_mtype_context ctxt lits ({frees, consts, ...} : mtype_context) =
+fun print_mtype_context ctxt asgs ({frees, consts, ...} : mtype_context) =
   trace_msg (fn () =>
-      map (fn (x, M) => string_for_mtype_of_term ctxt lits (Free x) M) frees @
-      map (fn (x, M) => string_for_mtype_of_term ctxt lits (Const x) M) consts
+      map (fn (x, M) => string_for_mtype_of_term ctxt asgs (Free x) M) frees @
+      map (fn (x, M) => string_for_mtype_of_term ctxt asgs (Const x) M) consts
       |> cat_lines)
 
 fun amass f t (ms, accum) =
@@ -1025,8 +1026,8 @@ fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize alpha_T
       ([], accum) |> fold (amass (consider_definitional_axiom mdata)) def_ts
   in
     case solve (!max_fresh) cset of
-      SOME lits => (print_mtype_context ctxt lits gamma;
-                    SOME (lits, (nondef_ms, def_ms), !constr_mcache))
+      SOME asgs => (print_mtype_context ctxt asgs gamma;
+                    SOME (asgs, (nondef_ms, def_ms), !constr_mcache))
     | _ => NONE
   end
   handle UNSOLVABLE () => NONE
@@ -1044,15 +1045,15 @@ fun fin_fun_constr T1 T2 =
 fun finitize_funs (hol_ctxt as {thy, ctxt, stds, constr_cache, ...})
                   binarize finitizes alpha_T tsp =
   case infer "Finiteness" true hol_ctxt binarize alpha_T tsp of
-    SOME (lits, msp, constr_mtypes) =>
-    if forall (curry (op =) Gen o snd) lits then
+    SOME (asgs, msp, constr_mtypes) =>
+    if forall (curry (op =) Gen o snd) asgs then
       tsp
     else
       let
         fun should_finitize T aa =
           case triple_lookup (type_match thy) finitizes T of
             SOME (SOME false) => false
-          | _ => resolve_annotation_atom lits aa = A Fls
+          | _ => resolve_annotation_atom asgs aa = A Fls
         fun type_from_mtype T M =
           case (M, T) of
             (MAlpha, _) => T
