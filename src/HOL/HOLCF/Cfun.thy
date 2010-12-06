@@ -248,13 +248,6 @@ lemma lub_APP:
   "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> (\<Squnion>i. F i\<cdot>(Y i)) = (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i)"
 by (simp add: contlub_cfun_fun contlub_cfun_arg diag_lub)
 
-lemma cont_cfun:
-  "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> range (\<lambda>i. F i\<cdot>(Y i)) <<| (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i)"
-apply (rule thelubE)
-apply (simp only: ch2ch_Rep_cfun)
-apply (simp only: lub_APP)
-done
-
 lemma lub_LAM:
   "\<lbrakk>\<And>x. chain (\<lambda>i. F i x); \<And>i. cont (\<lambda>x. F i x)\<rbrakk>
     \<Longrightarrow> (\<Squnion>i. \<Lambda> x. F i x) = (\<Lambda> x. \<Squnion>i. F i x)"
@@ -275,11 +268,8 @@ done
 
 text {* type @{typ "'a -> 'b"} is chain complete *}
 
-lemma lub_cfun: "chain F \<Longrightarrow> range F <<| (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
-by (simp only: contlub_cfun_fun [symmetric] eta_cfun cpo_lubI)
-
-lemma thelub_cfun: "chain F \<Longrightarrow> (\<Squnion>i. F i) = (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
-by (rule lub_cfun [THEN lub_eqI])
+lemma lub_cfun: "chain F \<Longrightarrow> (\<Squnion>i. F i) = (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
+by (simp add: lub_cfun lub_fun ch2ch_lambda)
 
 subsection {* Continuity simplification procedure *}
 
