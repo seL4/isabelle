@@ -12,7 +12,7 @@ imports Main
 begin
 
 ML {*
-exception FAIL
+exception BUG
 
 val subst = []
 val defs = Nitpick_HOL.all_axioms_of @{context} subst |> #1
@@ -30,7 +30,6 @@ val hol_ctxt : Nitpick_HOL.hol_context =
    skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
    unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
    constr_cache = Unsynchronized.ref []}
-(* term -> bool *)
 fun is_mono t =
   Nitpick_Mono.formulas_monotonic hol_ctxt false @{typ 'a} ([t], [])
 fun is_const t =
@@ -38,10 +37,10 @@ fun is_const t =
     is_mono (Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t),
                                @{const False}))
   end
-fun mono t = is_mono t orelse raise FAIL
-fun nonmono t = not (is_mono t) orelse raise FAIL
-fun const t = is_const t orelse raise FAIL
-fun nonconst t = not (is_const t) orelse raise FAIL
+fun mono t = is_mono t orelse raise BUG
+fun nonmono t = not (is_mono t) orelse raise BUG
+fun const t = is_const t orelse raise BUG
+fun nonconst t = not (is_const t) orelse raise BUG
 *}
 
 ML {* const @{term "A::('a\<Rightarrow>'b)"} *}
