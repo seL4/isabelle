@@ -24,6 +24,9 @@ val quickcheck_mtd : (Proof.context -> Proof.context) -> string -> mtd
 
 val solve_direct_mtd : mtd
 val try_mtd : mtd
+
+val sledgehammer_mtd : mtd
+
 (*
 val refute_mtd : mtd
 val nitpick_mtd : mtd
@@ -143,7 +146,7 @@ val solve_direct_mtd = ("solve_direct", invoke_solve_direct)
 
 fun invoke_try thy t =
   let
-    val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (ProofContext.init_global thy) 
+    val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (ProofContext.init_global thy)
   in
     case Try.invoke_try NONE state of
       true => (Solved, ([], NONE))
@@ -151,6 +154,17 @@ fun invoke_try thy t =
   end
 
 val try_mtd = ("try", invoke_try)
+
+(** sledgehammer **)
+
+fun invoke_sledgehammer thy t =
+  if can (Goal.prove_global thy (Term.add_free_names t [])  [] t)
+      (fn {context, ...} => Sledgehammer_Tactics.sledgehammer_with_metis_tac context 1) then
+    (Solved, ([], NONE))
+  else
+    (Unsolved, ([], NONE))
+
+val sledgehammer_mtd = ("sledgehammer", invoke_sledgehammer)
 
 (*
 fun invoke_refute thy t =
@@ -287,7 +301,14 @@ val forbidden_mutant_constnames =
  @{const_name "Pure.term"},
  @{const_name "top_class.top"},
  (*@{const_name "HOL.equal"},*)
- @{const_name "Quotient.Quot_True"}
+ @{const_name "Quotient.Quot_True"},
+ @{const_name "equal_fun_inst.equal_fun"},
+ @{const_name "equal_bool_inst.equal_bool"},
+ @{const_name "ord_fun_inst.less_eq_fun"},
+ @{const_name "ord_fun_inst.less_fun"},
+ @{const_name Metis.fequal},
+ @{const_name Meson.skolem},
+ @{const_name transfer_morphism}
  (*@{const_name "==>"}, @{const_name "=="}*)]
 
 val forbidden_mutant_consts =
@@ -426,11 +447,12 @@ fun mutate_theorem create_entry thy mtds thm =
       else
         mutants
     val mutants = mutants
-          |> take_random max_mutants
           |> map Mutabelle.freeze |> map freezeT
 (*          |> filter (not o is_forbidden_mutant) *)
           |> List.mapPartial (try (Sign.cert_term thy))
-          |> List.filter (is_some o try (cterm_of thy))
+          |> List.filter (is_some o try (Thm.cterm_of thy))
+          |> List.filter (is_some o try (Syntax.check_term (ProofContext.init_global thy)))
+          |> take_random max_mutants
     val _ = map (fn t => Output.urgent_message ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants
   in
     create_entry thy thm exec mutants mtds
