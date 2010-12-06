@@ -848,8 +848,8 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
        case t of
          @{const False} =>
          (MRaw (t, bool_M), accum ||> add_comp_frame (A Fls) Leq frame)
-       | Const (@{const_name None}, _) =>
-         (MRaw (t, bool_M), accum ||> add_comp_frame (A Fls) Leq frame)
+       | Const (@{const_name None}, T) =>
+         (MRaw (t, mtype_for T), accum ||> add_comp_frame (A Fls) Leq frame)
        | @{const True} =>
          (MRaw (t, bool_M), accum ||> add_comp_frame (A Tru) Leq frame)
        | (t0 as Const (@{const_name HOL.eq}, _)) $ Bound 0 $ t2 =>
