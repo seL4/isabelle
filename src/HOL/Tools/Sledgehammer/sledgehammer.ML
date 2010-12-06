@@ -616,8 +616,12 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
           else
             (really_go ()
              handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
-                  | exn => ("unknown", "Internal error:\n" ^
-                                       ML_Compiler.exn_message exn ^ "\n"))
+                  | exn =>
+                    if Exn.is_interrupt exn then
+                      reraise exn
+                    else
+                      ("unknown", "Internal error:\n" ^
+                                  ML_Compiler.exn_message exn ^ "\n"))
         val _ =
           if expect = "" orelse outcome_code = expect then
             ()
