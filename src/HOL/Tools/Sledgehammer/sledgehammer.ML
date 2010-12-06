@@ -118,13 +118,15 @@ fun available_smt_solvers ctxt =
   end
 
 (* FUDGE *)
-val smt_default_max_relevant = 225
 val auto_max_relevant_divisor = 2
 
 fun default_max_relevant_for_prover ctxt name =
   let val thy = ProofContext.theory_of ctxt in
-    if is_smt_prover ctxt name then smt_default_max_relevant
-    else #default_max_relevant (get_atp thy name)
+    if is_smt_prover ctxt name then
+      SMT_Solver.default_max_relevant ctxt
+          (perhaps (try (unprefix remote_prefix)) name)
+    else
+      #default_max_relevant (get_atp thy name)
   end
 
 (* These are typically simplified away by "Meson.presimplify". Equality is
@@ -536,8 +538,9 @@ fun can_apply_metis debug state i ths =
             (Config.put Metis_Tactics.verbose debug
              #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
-fun run_smt_solver auto name (params as {debug, ...}) minimize_command
-        ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
+fun run_smt_solver auto name (params as {debug, max_relevant, ...})
+        minimize_command
+        ({state, subgoal, subgoal_count, facts, only, ...} : prover_problem) =
   let
     val (remote, suffix) =
       case try (unprefix remote_prefix) name of
@@ -548,10 +551,15 @@ fun run_smt_solver auto name (params as {debug, ...}) minimize_command
       #> Config.put SMT_Config.verbose debug
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
+    val ctxt = Proof.context_of state
     val thy = Proof.theory_of state
-    val smt_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
+    val get_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
+    val default_max_relevant = SMT_Solver.default_max_relevant ctxt suffix
+    val facts =
+      facts |> map_filter get_fact
+            |> not only ? take (the_default default_max_relevant max_relevant)
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop params remote state subgoal (map_filter smt_fact facts)
+      smt_filter_loop params remote state subgoal facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
     val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
