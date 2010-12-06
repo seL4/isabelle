@@ -480,11 +480,7 @@ fun smt_filter_loop ({verbose, timeout, ...} : params) remote state i =
           else
             ()
         val {outcome, used_facts, run_time_in_msecs} =
-          TimeLimit.timeLimit iter_timeout
-              (SMT_Solver.smt_filter remote iter_timeout state facts) i
-          handle TimeLimit.TimeOut =>
-                 {outcome = SOME SMT_Failure.Time_Out, used_facts = [],
-                  run_time_in_msecs = NONE}
+          SMT_Solver.smt_filter remote iter_timeout state facts i
         val _ =
           if verbose andalso is_some outcome then
             "SMT outcome: " ^ SMT_Failure.string_of_failure ctxt (the outcome)
