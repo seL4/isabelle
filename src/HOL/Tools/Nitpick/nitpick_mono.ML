@@ -246,7 +246,7 @@ fun fin_fun_body _ _ (t as @{term False}) = SOME t
                 $ (Const (@{const_name unknown}, ran_T)) $ (t0 $ t1 $ t2 $ t3)))
   | fin_fun_body _ _ _ = NONE
 
-(* ### FIXME: make sure wellformed! *)
+(* ### FIXME: make sure well-annotated! *)
 
 fun fresh_mfun_for_fun_type (mdata as {max_fresh, ...} : mdata) all_minus
                             T1 T2 =
@@ -787,8 +787,6 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         <= length ts
       | _ => true
     val mtype_for = fresh_mtype_for_type mdata false
-    fun plus_set_mtype_for_dom M =
-      MFun (M, A (if exists_alpha_sub_mtype M then Fls else Gen), bool_M)
     fun do_all T (gamma, cset) =
       let
         val abs_M = mtype_for (domain_type (domain_type T))
@@ -891,7 +889,10 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                   MFun (mtype_for (domain_type T), V x, bool_M)
                 val ab_set_M = domain_type T |> mtype_for_set
                 val ba_set_M = range_type T |> mtype_for_set
-              in (MFun (ab_set_M, A Gen, ba_set_M), accum) end
+              in
+                (MFun (ab_set_M, A Gen, ba_set_M),
+                 accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
+              end
             | @{const_name trancl} => do_fragile_set_operation T accum
             | @{const_name rel_comp} =>
               let
@@ -903,21 +904,24 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                 val ac_set_M = nth_range_type 2 T |> mtype_for_set
               in
                 (MFun (bc_set_M, A Gen, MFun (ab_set_M, A Gen, ac_set_M)),
-                 accum)
+                 accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
             | @{const_name image} =>
               let
+                val x = Unsynchronized.inc max_fresh
                 val a_M = mtype_for (domain_type (domain_type T))
                 val b_M = mtype_for (range_type (domain_type T))
               in
                 (MFun (MFun (a_M, A Gen, b_M), A Gen,
-                       MFun (plus_set_mtype_for_dom a_M, A Gen,
-                             plus_set_mtype_for_dom b_M)), accum)
+                       MFun (MFun (a_M, V x, bool_M), A Gen,
+                             MFun (b_M, V x, bool_M))),
+                 accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
             | @{const_name finite} =>
-              let val M1 = mtype_for (domain_type (domain_type T)) in
-                (MFun (plus_set_mtype_for_dom M1, A Gen, bool_M), accum)
-              end
+              let
+                val M1 = mtype_for (domain_type (domain_type T))
+                val a = if exists_alpha_sub_mtype M1 then Fls else Gen
+              in (MFun (MFun (M1, A a, bool_M), A Gen, bool_M), accum) end
             | @{const_name Sigma} =>
               let
                 val x = Unsynchronized.inc max_fresh
@@ -932,7 +936,7 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                 val ab_set_M = mtype_for_set (nth_range_type 2 T)
               in
                 (MFun (a_set_M, A Gen, MFun (a_to_b_set_M, A Gen, ab_set_M)),
-                 accum)
+                 accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
             | _ =>
               if s = @{const_name safe_The} then
