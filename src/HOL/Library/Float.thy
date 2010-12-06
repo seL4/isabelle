@@ -21,6 +21,9 @@ primrec of_float :: "float \<Rightarrow> real" where
 defs (overloaded)
   real_of_float_def [code_unfold]: "real == of_float"
 
+declare [[coercion "% x . Float x 0"]]
+declare [[coercion "real::float\<Rightarrow>real"]]
+
 primrec mantissa :: "float \<Rightarrow> int" where
   "mantissa (Float a b) = a"
 
