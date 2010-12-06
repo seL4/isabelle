@@ -129,7 +129,6 @@ lemma random_aux_rec:
 use "Tools/quickcheck_generators.ML"
 setup Quickcheck_Generators.setup
 
-declare [[quickcheck_tester = random]]
 
 subsection {* Code setup *}
 
