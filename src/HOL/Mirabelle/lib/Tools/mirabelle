@@ -22,7 +22,7 @@ function usage() {
   echo "Usage: isabelle $PRG [OPTIONS] ACTIONS FILES"
   echo
   echo "  Options are:"
-  echo "    -L LOGIC     parent logic to use (default $ISABELLE_LOGIC)"
+  echo "    -L LOGIC     parent logic to use (default $MIRABELLE_LOGIC)"
   echo "    -T THEORY    parent theory to use (default $MIRABELLE_THEORY)"
   echo "    -O DIR       output directory for test data (default $out)"
   echo "    -t TIMEOUT   timeout for each action in seconds (default $timeout)"
