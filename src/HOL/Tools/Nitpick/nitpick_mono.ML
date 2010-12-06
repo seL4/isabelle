@@ -559,7 +559,7 @@ fun print_solution asgs =
        |> map swap
        |> AList.group (op =)
        |> map (fn (a, xs) => string_for_annotation a ^ ": " ^
-                             string_for_vars ", " xs)
+                             string_for_vars ", " (sort int_ord xs))
        |> space_implode "\n"))
 
 fun solve max_var (comps, clauses) =
@@ -1044,7 +1044,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
             fun ann () = if quant_s = @{const_name Ex} then Fls else Tru
             val (body_m, accum) =
               accum ||> side_cond
-                        ? add_mtype_is_complete [(x, (Minus, ann ()))] abs_M
+                        ? add_mtype_is_complete [(x, (Plus, ann ()))] abs_M
                     |>> push_bound (V x) abs_T abs_M |> do_formula sn body_t
             val body_M = mtype_of_mterm body_m
           in
