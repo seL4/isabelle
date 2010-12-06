@@ -335,6 +335,13 @@ definition
   lower_bind :: "'a lower_pd \<rightarrow> ('a \<rightarrow> 'b lower_pd) \<rightarrow> 'b lower_pd" where
   "lower_bind = lower_pd.basis_fun lower_bind_basis"
 
+syntax
+  "_lower_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
+    ("(3\<Union>\<flat>_\<in>_./ _)" [0, 0, 10] 10)
+
+translations
+  "\<Union>\<flat>x\<in>xs. e" == "CONST lower_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"
+
 lemma lower_bind_principal [simp]:
   "lower_bind\<cdot>(lower_principal t) = lower_bind_basis t"
 unfolding lower_bind_def

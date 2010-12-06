@@ -330,6 +330,13 @@ definition
   upper_bind :: "'a upper_pd \<rightarrow> ('a \<rightarrow> 'b upper_pd) \<rightarrow> 'b upper_pd" where
   "upper_bind = upper_pd.basis_fun upper_bind_basis"
 
+syntax
+  "_upper_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
+    ("(3\<Union>\<sharp>_\<in>_./ _)" [0, 0, 10] 10)
+
+translations
+  "\<Union>\<sharp>x\<in>xs. e" == "CONST upper_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"
+
 lemma upper_bind_principal [simp]:
   "upper_bind\<cdot>(upper_principal t) = upper_bind_basis t"
 unfolding upper_bind_def
