@@ -852,6 +852,10 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
          (MRaw (t, bool_M), accum ||> add_comp_frame (A Fls) Leq frame)
        | @{const True} =>
          (MRaw (t, bool_M), accum ||> add_comp_frame (A Tru) Leq frame)
+       | (t0 as Const (@{const_name HOL.eq}, _)) $ Bound 0 $ t2 =>
+         (* hack to exploit symmetry of equality when typing "insert" *)
+         (if t2 = Bound 0 then do_term @{term True}
+          else do_term (t0 $ t2 $ Bound 0)) accum
        | Const (x as (s, T)) =>
          (case AList.lookup (op =) consts x of
             SOME M => (M, accum)
