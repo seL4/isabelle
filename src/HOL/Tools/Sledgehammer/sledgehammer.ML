@@ -39,8 +39,7 @@ sig
      goal: thm,
      subgoal: int,
      subgoal_count: int,
-     facts: fact list,
-     only: bool}
+     facts: fact list}
 
   type prover_result =
     {outcome: failure option,
@@ -224,8 +223,7 @@ type prover_problem =
    goal: thm,
    subgoal: int,
    subgoal_count: int,
-   facts: fact list,
-   only: bool}
+   facts: fact list}
 
 type prover_result =
   {outcome: failure option,
@@ -287,18 +285,15 @@ val important_message_keep_factor = 0.1
 
 fun run_atp auto atp_name
         {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
-         known_failures, default_max_relevant, explicit_forall,
-         use_conjecture_for_hypotheses}
-        ({debug, verbose, overlord, full_types, explicit_apply,
-          max_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
-        minimize_command
-        ({state, goal, subgoal, facts, only, ...} : prover_problem) =
+         known_failures, explicit_forall, use_conjecture_for_hypotheses, ...}
+        ({debug, verbose, overlord, full_types, explicit_apply, isar_proof,
+          isar_shrink_factor, timeout, ...} : params)
+        minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val facts =
-      facts |> not only ? take (the_default default_max_relevant max_relevant)
-            |> map (translated_fact ctxt)
+      facts |> map (translated_fact ctxt)
     val dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                    else Config.get ctxt dest_dir
     val problem_prefix = Config.get ctxt problem_prefix
@@ -538,9 +533,8 @@ fun can_apply_metis debug state i ths =
             (Config.put Metis_Tactics.verbose debug
              #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
-fun run_smt_solver auto name (params as {debug, max_relevant, ...})
-        minimize_command
-        ({state, subgoal, subgoal_count, facts, only, ...} : prover_problem) =
+fun run_smt_solver auto name (params as {debug, ...}) minimize_command
+        ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val (remote, suffix) =
       case try (unprefix remote_prefix) name of
@@ -551,13 +545,9 @@ fun run_smt_solver auto name (params as {debug, max_relevant, ...})
       #> Config.put SMT_Config.verbose debug
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
-    val ctxt = Proof.context_of state
     val thy = Proof.theory_of state
     val get_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
-    val default_max_relevant = SMT_Solver.default_max_relevant ctxt suffix
-    val facts =
-      facts |> map_filter get_fact
-            |> not only ? take (the_default default_max_relevant max_relevant)
+    val facts = facts |> map_filter get_fact
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop params remote state subgoal facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
@@ -595,19 +585,21 @@ fun get_prover ctxt auto name =
   end
 
 fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
-               auto minimize_command
-               (problem as {state, goal, subgoal, subgoal_count, facts, ...})
-               name =
+               auto minimize_command only
+               {state, goal, subgoal, subgoal_count, facts} name =
   let
     val ctxt = Proof.context_of state
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
     val max_relevant =
       the_default (default_max_relevant_for_prover ctxt name) max_relevant
-    val num_facts = Int.min (length facts, max_relevant)
+    val num_facts = length facts |> not only ? Integer.min max_relevant
     val desc =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
     val prover = get_prover ctxt auto name
+    val problem =
+      {state = state, goal = goal, subgoal = subgoal,
+       subgoal_count = subgoal_count, facts = take num_facts facts}
     fun go () =
       let
         fun really_go () =
@@ -694,8 +686,8 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
               |> map maybe_translate
             val problem =
               {state = state, goal = goal, subgoal = i, subgoal_count = n,
-               facts = facts, only = only}
-            val run_prover = run_prover params auto minimize_command
+               facts = facts}
+            val run_prover = run_prover params auto minimize_command only
           in
             if debug then
               Output.urgent_message (label ^ plural_s (length provers) ^ ": " ^

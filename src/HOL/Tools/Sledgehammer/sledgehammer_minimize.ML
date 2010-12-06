@@ -59,7 +59,7 @@ fun test_facts ({debug, overlord, provers, full_types, isar_proof,
     val {goal, ...} = Proof.goal state
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       facts = facts, only = true}
+       facts = facts}
     val result as {outcome, used_facts, ...} = prover params (K "") problem
   in
     Output.urgent_message
