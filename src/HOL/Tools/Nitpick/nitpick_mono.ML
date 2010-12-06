@@ -1061,42 +1061,41 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
             Plus => do_term t accum
           | Minus => consider_general_equals mdata false x t1 t2 accum
       in
-        (trace_msg (fn () => "  " ^ string_for_mcontext ctxt t gamma ^
-                             " \<turnstile> " ^ Syntax.string_of_term ctxt t ^
-                             " : o\<^sup>" ^ string_for_sign sn ^ "?");
-         case t of
-           Const (x as (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
-           do_quantifier x s1 T1 t1
-         | Const (x as (@{const_name "=="}, _)) $ t1 $ t2 => do_equals x t1 t2
-         | @{const Trueprop} $ t1 =>
-           let val (m1, accum) = do_formula sn t1 accum in
-             (MApp (MRaw (@{const Trueprop}, mtype_for (bool_T --> prop_T)),
-                    m1), accum)
-           end
-         | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
-           do_quantifier x s1 T1 t1
-         | Const (x0 as (@{const_name Ex}, T0)) $ (t1 as Abs (s1, T1, t1')) =>
-           (case sn of
-              Plus => do_quantifier x0 s1 T1 t1'
-            | Minus =>
-              (* FIXME: Move elsewhere *)
-              do_term (@{const Not}
-                       $ (HOLogic.eq_const (domain_type T0) $ t1
-                          $ Abs (Name.uu, T1, @{const False}))) accum)
-         | Const (x as (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
-           do_equals x t1 t2
-         | Const (@{const_name Let}, _) $ t1 $ t2 =>
-           do_formula sn (betapply (t2, t1)) accum
-         | @{const Pure.conjunction} $ t1 $ t2 =>
-           do_connect meta_conj_triple false t1 t2 accum
-         | @{const "==>"} $ t1 $ t2 =>
-           do_connect meta_imp_triple true t1 t2 accum
-         | @{const Not} $ t1 =>
-           do_connect imp_triple true t1 @{const False} accum
-         | @{const conj} $ t1 $ t2 => do_connect conj_triple false t1 t2 accum
-         | @{const disj} $ t1 $ t2 => do_connect disj_triple false t1 t2 accum
-         | @{const implies} $ t1 $ t2 => do_connect imp_triple true t1 t2 accum
-         | _ => do_term t accum)
+        trace_msg (fn () => "  " ^ string_for_mcontext ctxt t gamma ^
+                            " \<turnstile> " ^ Syntax.string_of_term ctxt t ^
+                            " : o\<^sup>" ^ string_for_sign sn ^ "?");
+        case t of
+          Const (x as (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
+          do_quantifier x s1 T1 t1
+        | Const (x as (@{const_name "=="}, _)) $ t1 $ t2 => do_equals x t1 t2
+        | @{const Trueprop} $ t1 =>
+          let val (m1, accum) = do_formula sn t1 accum in
+            (MApp (MRaw (@{const Trueprop}, mtype_for (bool_T --> prop_T)), m1),
+             accum)
+          end
+        | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
+          do_quantifier x s1 T1 t1
+        | Const (x0 as (@{const_name Ex}, T0)) $ (t1 as Abs (s1, T1, t1')) =>
+          (case sn of
+             Plus => do_quantifier x0 s1 T1 t1'
+           | Minus =>
+             (* FIXME: Move elsewhere *)
+             do_term (@{const Not}
+                      $ (HOLogic.eq_const (domain_type T0) $ t1
+                         $ Abs (Name.uu, T1, @{const False}))) accum)
+        | Const (x as (@{const_name HOL.eq}, _)) $ t1 $ t2 => do_equals x t1 t2
+        | Const (@{const_name Let}, _) $ t1 $ t2 =>
+          do_formula sn (betapply (t2, t1)) accum
+        | @{const Pure.conjunction} $ t1 $ t2 =>
+          do_connect meta_conj_triple false t1 t2 accum
+        | @{const "==>"} $ t1 $ t2 =>
+          do_connect meta_imp_triple true t1 t2 accum
+        | @{const Not} $ t1 =>
+          do_connect imp_triple true t1 @{const False} accum
+        | @{const conj} $ t1 $ t2 => do_connect conj_triple false t1 t2 accum
+        | @{const disj} $ t1 $ t2 => do_connect disj_triple false t1 t2 accum
+        | @{const implies} $ t1 $ t2 => do_connect imp_triple true t1 t2 accum
+        | _ => do_term t accum
       end
       |> tap (fn (m, (gamma, _)) =>
                  trace_msg (fn () => string_for_mcontext ctxt t gamma ^
