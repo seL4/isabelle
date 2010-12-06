@@ -351,7 +351,7 @@ datatype comp_op = Eq | Leq
 type comp = annotation_atom * annotation_atom * comp_op * var list
 type assign_clause = assign list
 
-type constraint_set = assign list * comp list * assign_clause list
+type constraint_set = comp list * assign_clause list
 
 fun string_for_comp_op Eq = "="
   | string_for_comp_op Leq = "\<le>"
@@ -364,121 +364,117 @@ fun string_for_assign_clause [] = "\<bot>"
   | string_for_assign_clause asgs =
     space_implode " \<or> " (map string_for_assign asgs)
 
-fun add_assign_conjunct _ NONE = NONE
-  | add_assign_conjunct (x, a) (SOME asgs) =
-    case AList.lookup (op =) asgs x of
-      SOME a' => if a = a' then SOME asgs else NONE
-    | NONE => SOME ((x, a) :: asgs)
+fun add_assign (x, a) clauses =
+  if exists (fn [(x', a')] => x = x' andalso a <> a' | _ => false) clauses then
+    NONE
+  else
+    SOME ([(x, a)] :: clauses)fun add_assign_conjunct _ NONE = NONE
 
 fun add_assign_disjunct _ NONE = NONE
   | add_assign_disjunct asg (SOME asgs) = SOME (insert (op =) asg asgs)
 
-fun do_annotation_atom_comp Eq [] aa1 aa2 (accum as (asgs, comps)) =
+fun do_annotation_atom_comp Eq [] aa1 aa2 (cset as (comps, clauses)) =
     (case (aa1, aa2) of
-       (A a1, A a2) => if a1 = a2 then SOME accum else NONE
+       (A a1, A a2) => if a1 = a2 then SOME cset else NONE
      | (V x1, A a2) =>
-       SOME asgs |> add_assign_conjunct (x1, a2) |> Option.map (rpair comps)
-     | (V _, V _) => SOME (asgs, insert (op =) (aa1, aa2, Eq, []) comps)
-     | _ => do_annotation_atom_comp Eq [] aa2 aa1 accum)
-  | do_annotation_atom_comp Leq [] aa1 aa2 (accum as (asgs, comps)) =
+       clauses |> add_assign (x1, a2) |> Option.map (pair comps)
+     | (V _, V _) => SOME (insert (op =) (aa1, aa2, Eq, []) comps, clauses)
+     | _ => do_annotation_atom_comp Eq [] aa2 aa1 cset)
+  | do_annotation_atom_comp Leq [] aa1 aa2 (cset as (comps, clauses)) =
     (case (aa1, aa2) of
-       (_, A Gen) => SOME accum
+       (_, A Gen) => SOME cset
      | (A Gen, A _) => NONE
-     | (A a1, A a2) => if a1 = a2 then SOME accum else NONE
-     | _ => SOME (asgs, insert (op =) (aa1, aa2, Leq, []) comps))
-  | do_annotation_atom_comp cmp xs aa1 aa2 (asgs, comps) =
-    SOME (asgs, insert (op =) (aa1, aa2, cmp, xs) comps)
+     | (A a1, A a2) => if a1 = a2 then SOME cset else NONE
+     | _ => SOME (insert (op =) (aa1, aa2, Leq, []) comps, clauses))
+  | do_annotation_atom_comp cmp xs aa1 aa2 (comps, clauses) =
+    SOME (insert (op =) (aa1, aa2, cmp, xs) comps, clauses)
 
 fun add_annotation_atom_comp cmp xs aa1 aa2
-                             ((asgs, comps, clauses) : constraint_set) =
+                             ((comps, clauses) : constraint_set) =
   (trace_msg (fn () => "*** Add " ^ string_for_annotation_atom aa1 ^ " " ^
                        string_for_comp_op cmp ^ " " ^
                        string_for_annotation_atom aa2);
-   case do_annotation_atom_comp cmp xs aa1 aa2 (asgs, comps) of
+   case do_annotation_atom_comp cmp xs aa1 aa2 (comps, clauses) of
      NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-   | SOME (asgs, comps) => (asgs, comps, clauses))
+   | SOME cset => cset)
 
 fun do_mtype_comp _ _ _ _ NONE = NONE
-  | do_mtype_comp _ _ MAlpha MAlpha accum = accum
+  | do_mtype_comp _ _ MAlpha MAlpha cset = cset
   | do_mtype_comp Eq xs (MFun (M11, aa1, M12)) (MFun (M21, aa2, M22))
-                  (SOME accum) =
-     accum |> do_annotation_atom_comp Eq xs aa1 aa2
-           |> do_mtype_comp Eq xs M11 M21 |> do_mtype_comp Eq xs M12 M22
+                  (SOME cset) =
+    cset |> do_annotation_atom_comp Eq xs aa1 aa2
+         |> do_mtype_comp Eq xs M11 M21 |> do_mtype_comp Eq xs M12 M22
   | do_mtype_comp Leq xs (MFun (M11, aa1, M12)) (MFun (M21, aa2, M22))
-                  (SOME accum) =
+                  (SOME cset) =
     (if exists_alpha_sub_mtype M11 then
-       accum |> do_annotation_atom_comp Leq xs aa1 aa2
-             |> do_mtype_comp Leq xs M21 M11
-             |> (case aa2 of
-                   A Gen => I
-                 | A _ => do_mtype_comp Leq xs M11 M21
-                 | V x => do_mtype_comp Leq (x :: xs) M11 M21)
+       cset |> do_annotation_atom_comp Leq xs aa1 aa2
+            |> do_mtype_comp Leq xs M21 M11
+            |> (case aa2 of
+                  A Gen => I
+                | A _ => do_mtype_comp Leq xs M11 M21
+                | V x => do_mtype_comp Leq (x :: xs) M11 M21)
      else
-       SOME accum)
+       SOME cset)
     |> do_mtype_comp Leq xs M12 M22
   | do_mtype_comp cmp xs (M1 as MPair (M11, M12)) (M2 as MPair (M21, M22))
-                  accum =
-    (accum |> fold (uncurry (do_mtype_comp cmp xs)) [(M11, M21), (M12, M22)]
-     handle ListPair.UnequalLengths =>
+                  cset =
+    (cset |> fold (uncurry (do_mtype_comp cmp xs)) [(M11, M21), (M12, M22)]
+     handle Library.UnequalLengths =>
             raise MTYPE ("Nitpick_Mono.do_mtype_comp", [M1, M2], []))
-  | do_mtype_comp _ _ (MType _) (MType _) accum =
-    accum (* no need to compare them thanks to the cache *)
+  | do_mtype_comp _ _ (MType _) (MType _) cset =
+    cset (* no need to compare them thanks to the cache *)
   | do_mtype_comp cmp _ M1 M2 _ =
     raise MTYPE ("Nitpick_Mono.do_mtype_comp (" ^ string_for_comp_op cmp ^ ")",
                  [M1, M2], [])
 
-fun add_mtype_comp cmp M1 M2 ((asgs, comps, clauses) : constraint_set) =
+fun add_mtype_comp cmp M1 M2 cset =
   (trace_msg (fn () => "*** Add " ^ string_for_mtype M1 ^ " " ^
                        string_for_comp_op cmp ^ " " ^ string_for_mtype M2);
-   case do_mtype_comp cmp [] M1 M2 (SOME (asgs, comps)) of
+   case SOME cset |> do_mtype_comp cmp [] M1 M2 of
      NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-   | SOME (asgs, comps) => (asgs, comps, clauses))
+   | SOME cset => cset)
 
 val add_mtypes_equal = add_mtype_comp Eq
 val add_is_sub_mtype = add_mtype_comp Leq
 
 fun do_notin_mtype_fv _ _ _ NONE = NONE
-  | do_notin_mtype_fv Minus _ MAlpha accum = accum
+  | do_notin_mtype_fv Minus _ MAlpha cset = cset
   | do_notin_mtype_fv Plus [] MAlpha _ = NONE
-  | do_notin_mtype_fv Plus [(x, a)] MAlpha (SOME (asgs, clauses)) =
-    SOME asgs |> add_assign_conjunct (x, a) |> Option.map (rpair clauses)
-  | do_notin_mtype_fv Plus clause MAlpha (SOME (asgs, clauses)) =
-    SOME (asgs, insert (op =) clause clauses)
-  | do_notin_mtype_fv sn clause (MFun (M1, A a, M2)) accum =
-    accum |> (if a <> Gen andalso sn = Plus then
-                do_notin_mtype_fv Plus clause M1
-              else
-                I)
-          |> (if a = Gen orelse sn = Plus then
-                do_notin_mtype_fv Minus clause M1
-              else
-                I)
-          |> do_notin_mtype_fv sn clause M2
-  | do_notin_mtype_fv Plus clause (MFun (M1, V x, M2)) accum =
-    accum |> (case add_assign_disjunct (x, Gen) (SOME clause) of
-                NONE => I
-              | SOME clause' => do_notin_mtype_fv Plus clause' M1)
-          |> do_notin_mtype_fv Minus clause M1
-          |> do_notin_mtype_fv Plus clause M2
-  | do_notin_mtype_fv Minus clause (MFun (M1, V x, M2)) accum =
-    accum |> (case fold (fn a => add_assign_disjunct (x, a)) [Fls, Tru]
-                        (SOME clause) of
-                NONE => I
-              | SOME clause' => do_notin_mtype_fv Plus clause' M1)
-          |> do_notin_mtype_fv Minus clause M2
-  | do_notin_mtype_fv sn clause (MPair (M1, M2)) accum =
-    accum |> fold (do_notin_mtype_fv sn clause) [M1, M2]
-  | do_notin_mtype_fv sn clause (MType (_, Ms)) accum =
-    accum |> fold (do_notin_mtype_fv sn clause) Ms
-  | do_notin_mtype_fv _ _ M _ =
-    raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
+  | do_notin_mtype_fv Plus [(x, a)] MAlpha (SOME clauses) =
+    clauses |> add_assign (x, a)
+  | do_notin_mtype_fv Plus clause MAlpha (SOME clauses) =
+    SOME (insert (op =) clause clauses)
+  | do_notin_mtype_fv sn clause (MFun (M1, A a, M2)) cset =
+    cset |> (if a <> Gen andalso sn = Plus then do_notin_mtype_fv Plus clause M1
+             else I)
+         |> (if a = Gen orelse sn = Plus then do_notin_mtype_fv Minus clause M1
+             else I)
+         |> do_notin_mtype_fv sn clause M2
+  | do_notin_mtype_fv Plus clause (MFun (M1, V x, M2)) cset =
+    cset |> (case add_assign_disjunct (x, Gen) (SOME clause) of
+               NONE => I
+             | SOME clause' => do_notin_mtype_fv Plus clause' M1)
+         |> do_notin_mtype_fv Minus clause M1
+         |> do_notin_mtype_fv Plus clause M2
+  | do_notin_mtype_fv Minus clause (MFun (M1, V x, M2)) cset =
+    cset |> (case fold (fn a => add_assign_disjunct (x, a)) [Fls, Tru]
+                       (SOME clause) of
+               NONE => I
+             | SOME clause' => do_notin_mtype_fv Plus clause' M1)
+         |> do_notin_mtype_fv Minus clause M2
+  | do_notin_mtype_fv sn clause (MPair (M1, M2)) cset =
+    cset |> fold (do_notin_mtype_fv sn clause) [M1, M2]
+  | do_notin_mtype_fv sn clause (MType (_, Ms)) cset =
+    cset |> fold (do_notin_mtype_fv sn clause) Ms
+ | do_notin_mtype_fv _ _ M _ =
+   raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
 
-fun add_notin_mtype_fv sn M ((asgs, comps, clauses) : constraint_set) =
+fun add_notin_mtype_fv sn M ((comps, clauses) : constraint_set) =
   (trace_msg (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
                        (case sn of Minus => "concrete" | Plus => "complete"));
-   case do_notin_mtype_fv sn [] M (SOME (asgs, clauses)) of
+   case SOME clauses |> do_notin_mtype_fv sn [] M of
      NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-   | SOME (asgs, clauses) => (asgs, comps, clauses))
+   | SOME clauses => (comps, clauses))
 
 val add_mtype_is_concrete = add_notin_mtype_fv Minus
 val add_mtype_is_complete = add_notin_mtype_fv Plus
@@ -542,11 +538,11 @@ fun extract_assigns max_var assigns asgs =
                    :: accum)
        (max_var downto 1) asgs
 
-fun print_problem asgs comps clauses =
-  trace_msg (fn () => "*** Problem:\n" ^
-                      cat_lines (map string_for_assign asgs @
-                                 map string_for_comp comps @
-                                 map string_for_assign_clause clauses))
+fun print_problem calculus comps clauses =
+  trace_msg (fn () =>
+                "*** Problem (calculus M" ^ string_of_int calculus ^ "):\n" ^
+                cat_lines (map string_for_comp comps @
+                           map string_for_assign_clause clauses))
 
 fun print_solution asgs =
   trace_msg (fn () => "*** Solution:\n" ^
@@ -557,13 +553,13 @@ fun print_solution asgs =
                              string_for_vars ", " xs)
        |> space_implode "\n"))
 
-fun solve calculus max_var (asgs, comps, clauses) =
+fun solve calculus max_var (comps, clauses) =
   let
+    val asgs = map_filter (fn [asg] => SOME asg | _ => NONE) clauses
     fun do_assigns assigns =
       SOME (extract_assigns max_var assigns asgs |> tap print_solution)
-    val _ = print_problem asgs comps clauses
+    val _ = print_problem calculus comps clauses
     val prop =
-      map prop_for_assign asgs @
       map prop_for_comp comps @
       map prop_for_assign_clause clauses @
       (if calculus < 3 then
@@ -584,7 +580,7 @@ fun solve calculus max_var (asgs, comps, clauses) =
       in
         case snd (hd solvers) prop of
           SatSolver.SATISFIABLE assigns => do_assigns assigns
-        | _ => NONE
+        | _ => (trace_msg (K "*** Unsolvable"); NONE)
       end
   end
 
@@ -595,6 +591,10 @@ type mtype_context =
    bound_frame: (int * annotation_atom) list,
    frees: (styp * mtyp) list,
    consts: (styp * mtyp) list}
+
+val string_for_frame =
+  commas o map (fn (j, aa) => "#" ^ string_of_int j ^ " |-> " ^
+                              string_for_annotation_atom aa)
 
 type accumulator = mtype_context * constraint_set
 
@@ -608,9 +608,44 @@ fun push_bound aa T M {bound_Ts, bound_Ms, bound_frame, frees, consts} =
 fun pop_bound {bound_Ts, bound_Ms, bound_frame, frees, consts} =
   {bound_Ts = tl bound_Ts, bound_Ms = tl bound_Ms,
    bound_frame = bound_frame
-                 |> filter_out (fn (depth, _) => depth = length bound_Ts - 1),
+                 |> filter_out (fn (j, _) => j = length bound_Ts - 1),
    frees = frees, consts = consts}
   handle List.Empty => initial_gamma (* FIXME: needed? *)
+
+fun set_frame bound_frame ({bound_Ts, bound_Ms, frees, consts, ...}
+                           : mtype_context) =
+  {bound_Ts = bound_Ts, bound_Ms = bound_Ms, bound_frame = bound_frame,
+   frees = frees, consts = consts}
+
+(* FIXME: make sure tracing messages are complete *)
+
+fun add_comp_frame a cmp frame =
+  (trace_msg (fn () => "*** Add " ^ string_for_annotation a ^
+                       string_for_comp_op cmp ^ " frame " ^
+                       string_for_frame frame);
+   fold (add_annotation_atom_comp cmp [] (A a) o snd) frame)
+
+fun add_bound_frame j frame =
+  let
+    val (new_frame, gen_frame) = List.partition (curry (op =) j o fst) frame
+  in
+    add_comp_frame New Leq new_frame
+    #> add_comp_frame Gen Eq gen_frame
+  end
+
+fun fresh_imp_frame ({max_fresh, ...} : mdata) sn =
+  let
+    fun do_var (j, A Fls) = (j, A (case sn of Plus => Fls | Minus => Tru))
+      | do_var (j, A Gen) = (j, A Gen)
+      | do_var (j, _) = (j, V (Unsynchronized.inc max_fresh))
+  in map do_var end
+
+fun add_imp_frames res_frame frame1 frame2 = I
+(*###
+  let
+    fun do_var_pair (j, aa0) (_, aa1) (_, aa2) =
+  in map3 do_var_pair res_frame frame1 frame2 end
+*)
 
 fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                              max_fresh, ...}) =
@@ -693,117 +728,115 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
       (trace_msg (fn () => "  \<Gamma> \<turnstile> " ^
                            Syntax.string_of_term ctxt t ^ " : _?");
        case t of
-         Const (x as (s, T)) =>
+         @{const False} =>
+         (MRaw (t, bool_M), accum ||> add_comp_frame Fls Leq bound_frame)
+       | @{const True} =>
+         (MRaw (t, bool_M), accum ||> add_comp_frame Tru Leq bound_frame)
+       | Const (x as (s, T)) =>
          (case AList.lookup (op =) consts x of
             SOME M => (M, accum)
           | NONE =>
-            case s of
-              @{const_name False} =>
-              (bool_M, accum ||> fold (add_annotation_atom_comp Leq [] (A Fls))
-                                      (map snd bound_frame))
-            | @{const_name True} =>
-              (bool_M, accum ||> fold (add_annotation_atom_comp Leq [] (A Tru))
-                                      (map snd bound_frame))
+            if not (could_exist_alpha_subtype alpha_T T) then
+              (mtype_for T, accum)
+            else case s of
+              @{const_name all} => do_all T accum
+            | @{const_name "=="} => do_equals T accum
+            | @{const_name All} => do_all T accum
+            | @{const_name Ex} =>
+              let val set_T = domain_type T in
+                do_term (Abs (Name.uu, set_T,
+                              @{const Not} $ (HOLogic.mk_eq
+                                  (Abs (Name.uu, domain_type set_T,
+                                        @{const False}),
+                                   Bound 0)))) accum
+                |>> mtype_of_mterm
+              end
+            | @{const_name HOL.eq} => do_equals T accum
+            | @{const_name The} =>
+              (trace_msg (K "*** The"); raise UNSOLVABLE ())
+            | @{const_name Eps} =>
+              (trace_msg (K "*** Eps"); raise UNSOLVABLE ())
+            | @{const_name If} =>
+              do_robust_set_operation (range_type T) accum
+              |>> curry3 MFun bool_M (A Gen)
+            | @{const_name Pair} => do_pair_constr T accum
+            | @{const_name fst} => do_nth_pair_sel 0 T accum
+            | @{const_name snd} => do_nth_pair_sel 1 T accum
+            | @{const_name Id} =>
+              (MFun (mtype_for (domain_type T), A Gen, bool_M), accum)
+            | @{const_name converse} =>
+              let
+                val x = Unsynchronized.inc max_fresh
+                fun mtype_for_set T =
+                  MFun (mtype_for (domain_type T), V x, bool_M)
+                val ab_set_M = domain_type T |> mtype_for_set
+                val ba_set_M = range_type T |> mtype_for_set
+              in (MFun (ab_set_M, A Gen, ba_set_M), accum) end
+            | @{const_name trancl} => do_fragile_set_operation T accum
+            | @{const_name rel_comp} =>
+              let
+                val x = Unsynchronized.inc max_fresh
+                fun mtype_for_set T =
+                  MFun (mtype_for (domain_type T), V x, bool_M)
+                val bc_set_M = domain_type T |> mtype_for_set
+                val ab_set_M = domain_type (range_type T) |> mtype_for_set
+                val ac_set_M = nth_range_type 2 T |> mtype_for_set
+              in
+                (MFun (bc_set_M, A Gen, MFun (ab_set_M, A Gen, ac_set_M)),
+                 accum)
+              end
+            | @{const_name image} =>
+              let
+                val a_M = mtype_for (domain_type (domain_type T))
+                val b_M = mtype_for (range_type (domain_type T))
+              in
+                (MFun (MFun (a_M, A Gen, b_M), A Gen,
+                       MFun (plus_set_mtype_for_dom a_M, A Gen,
+                             plus_set_mtype_for_dom b_M)), accum)
+              end
+            | @{const_name finite} =>
+              let val M1 = mtype_for (domain_type (domain_type T)) in
+                (MFun (plus_set_mtype_for_dom M1, A Gen, bool_M), accum)
+              end
+            | @{const_name Sigma} =>
+              let
+                val x = Unsynchronized.inc max_fresh
+                fun mtype_for_set T =
+                  MFun (mtype_for (domain_type T), V x, bool_M)
+                val a_set_T = domain_type T
+                val a_M = mtype_for (domain_type a_set_T)
+                val b_set_M =
+                  mtype_for_set (range_type (domain_type (range_type T)))
+                val a_set_M = mtype_for_set a_set_T
+                val a_to_b_set_M = MFun (a_M, A Gen, b_set_M)
+                val ab_set_M = mtype_for_set (nth_range_type 2 T)
+              in
+                (MFun (a_set_M, A Gen, MFun (a_to_b_set_M, A Gen, ab_set_M)),
+                 accum)
+              end
             | _ =>
-              if not (could_exist_alpha_subtype alpha_T T) then
-                (mtype_for T, accum)
-              else case s of
-                @{const_name all} => do_all T accum
-              | @{const_name "=="} => do_equals T accum
-              | @{const_name All} => do_all T accum
-              | @{const_name Ex} =>
-                let val set_T = domain_type T in
-                  do_term (Abs (Name.uu, set_T,
-                                @{const Not} $ (HOLogic.mk_eq
-                                    (Abs (Name.uu, domain_type set_T,
-                                          @{const False}),
-                                     Bound 0)))) accum
-                  |>> mtype_of_mterm
-                end
-              | @{const_name HOL.eq} => do_equals T accum
-              | @{const_name The} =>
-                (trace_msg (K "*** The"); raise UNSOLVABLE ())
-              | @{const_name Eps} =>
-                (trace_msg (K "*** Eps"); raise UNSOLVABLE ())
-              | @{const_name If} =>
-                do_robust_set_operation (range_type T) accum
-                |>> curry3 MFun bool_M (A Gen)
-              | @{const_name Pair} => do_pair_constr T accum
-              | @{const_name fst} => do_nth_pair_sel 0 T accum
-              | @{const_name snd} => do_nth_pair_sel 1 T accum
-              | @{const_name Id} =>
-                (MFun (mtype_for (domain_type T), A Gen, bool_M), accum)
-              | @{const_name converse} =>
+              if s = @{const_name safe_The} then
                 let
-                  val x = Unsynchronized.inc max_fresh
-                  fun mtype_for_set T =
-                    MFun (mtype_for (domain_type T), V x, bool_M)
-                  val ab_set_M = domain_type T |> mtype_for_set
-                  val ba_set_M = range_type T |> mtype_for_set
-                in (MFun (ab_set_M, A Gen, ba_set_M), accum) end
-              | @{const_name trancl} => do_fragile_set_operation T accum
-              | @{const_name rel_comp} =>
-                let
-                  val x = Unsynchronized.inc max_fresh
-                  fun mtype_for_set T =
-                    MFun (mtype_for (domain_type T), V x, bool_M)
-                  val bc_set_M = domain_type T |> mtype_for_set
-                  val ab_set_M = domain_type (range_type T) |> mtype_for_set
-                  val ac_set_M = nth_range_type 2 T |> mtype_for_set
-                in
-                  (MFun (bc_set_M, A Gen, MFun (ab_set_M, A Gen, ac_set_M)),
-                   accum)
-                end
-              | @{const_name image} =>
-                let
-                  val a_M = mtype_for (domain_type (domain_type T))
-                  val b_M = mtype_for (range_type (domain_type T))
-                in
-                  (MFun (MFun (a_M, A Gen, b_M), A Gen,
-                         MFun (plus_set_mtype_for_dom a_M, A Gen,
-                               plus_set_mtype_for_dom b_M)), accum)
-                end
-              | @{const_name finite} =>
-                let val M1 = mtype_for (domain_type (domain_type T)) in
-                  (MFun (plus_set_mtype_for_dom M1, A Gen, bool_M), accum)
-                end
-              | @{const_name Sigma} =>
-                let
-                  val x = Unsynchronized.inc max_fresh
-                  fun mtype_for_set T =
-                    MFun (mtype_for (domain_type T), V x, bool_M)
-                  val a_set_T = domain_type T
-                  val a_M = mtype_for (domain_type a_set_T)
-                  val b_set_M =
-                    mtype_for_set (range_type (domain_type (range_type T)))
-                  val a_set_M = mtype_for_set a_set_T
-                  val a_to_b_set_M = MFun (a_M, A Gen, b_set_M)
-                  val ab_set_M = mtype_for_set (nth_range_type 2 T)
-                in
-                  (MFun (a_set_M, A Gen, MFun (a_to_b_set_M, A Gen, ab_set_M)),
-                   accum)
-                end
-              | _ =>
-                if s = @{const_name safe_The} then
-                  let
-                    val a_set_M = mtype_for (domain_type T)
-                    val a_M = dest_MFun a_set_M |> #1
-                  in (MFun (a_set_M, A Gen, a_M), accum) end
-                else if s = @{const_name ord_class.less_eq} andalso
-                        is_set_type (domain_type T) then
-                  do_fragile_set_operation T accum
-                else if is_sel s then
-                  (mtype_for_sel mdata x, accum)
-                else if is_constr ctxt stds x then
-                  (mtype_for_constr mdata x, accum)
-                else if is_built_in_const thy stds x then
-                  (fresh_mtype_for_type mdata true T, accum)
-                else
-                  let val M = mtype_for T in
-                    (M, ({bound_Ts = bound_Ts, bound_Ms = bound_Ms,
-                          bound_frame = bound_frame, frees = frees,
-                          consts = (x, M) :: consts}, cset))
-                  end) |>> curry MRaw t
+                  val a_set_M = mtype_for (domain_type T)
+                  val a_M = dest_MFun a_set_M |> #1
+                in (MFun (a_set_M, A Gen, a_M), accum) end
+              else if s = @{const_name ord_class.less_eq} andalso
+                      is_set_type (domain_type T) then
+                do_fragile_set_operation T accum
+              else if is_sel s then
+                (mtype_for_sel mdata x, accum)
+              else if is_constr ctxt stds x then
+                (mtype_for_constr mdata x, accum)
+              else if is_built_in_const thy stds x then
+                (fresh_mtype_for_type mdata true T, accum)
+              else
+                let val M = mtype_for T in
+                  (M, ({bound_Ts = bound_Ts, bound_Ms = bound_Ms,
+                        bound_frame = bound_frame, frees = frees,
+                        consts = (x, M) :: consts}, cset))
+                end)
+           |>> curry MRaw t
+           ||> apsnd (add_comp_frame Gen Eq bound_frame)
          | Free (x as (_, T)) =>
            (case AList.lookup (op =) frees x of
               SOME M => (M, accum)
@@ -812,9 +845,12 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                 (M, ({bound_Ts = bound_Ts, bound_Ms = bound_Ms,
                       bound_frame = bound_frame, frees = (x, M) :: frees,
                       consts = consts}, cset))
-              end) |>> curry MRaw t
+              end)
+           |>> curry MRaw t ||> apsnd (add_comp_frame Gen Eq bound_frame)
          | Var _ => (trace_msg (K "*** Var"); raise UNSOLVABLE ())
-         | Bound j => (MRaw (t, nth bound_Ms j), accum)
+         | Bound j =>
+           (MRaw (t, nth bound_Ms j),
+            accum ||> add_bound_frame (length bound_Ts - j - 1) bound_frame)
          | Abs (s, T, t') =>
            (case fin_fun_body T (fastype_of1 (T :: bound_Ts, t')) t' of
               SOME t' =>
@@ -843,6 +879,18 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                         val (m', accum) =
                           do_term t' (accum |>> push_bound aa T M)
                       in (MAbs (s, T, M, aa, m'), accum |>> pop_bound) end))
+         | (t0 as @{const implies}) $ t1 $ t2 =>
+           let
+             val frame1 = fresh_imp_frame mdata Minus bound_frame
+             val frame2 = fresh_imp_frame mdata Plus bound_frame
+             val (m0, accum) = accum |> do_term t0
+             val (m1, accum) = accum |>> set_frame frame1 |> do_term t1
+             val (m2, accum) = accum |>> set_frame frame2 |> do_term t2
+           in
+             (MApp (MApp (m0, m1), m2),
+              accum |>> set_frame bound_frame
+                    ||> add_imp_frames bound_frame frame1 frame2)
+           end
          | (t0 as Const (@{const_name All}, _))
            $ Abs (s', T', (t10 as @{const HOL.implies})
                           $ (t11 $ Bound 0) $ t12) =>
@@ -1071,7 +1119,7 @@ fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize calculus alpha_T
                                 Syntax.string_of_typ ctxt alpha_T)
     val mdata as {max_fresh, constr_mcache, ...} =
       initial_mdata hol_ctxt binarize no_harmless alpha_T
-    val accum = (initial_gamma, ([], [], []))
+    val accum = (initial_gamma, ([], []))
     val (nondef_ms, accum) =
       ([], accum) |> amass (consider_general_formula mdata Plus) (hd nondef_ts)
                   |> fold (amass (consider_nondefinitional_axiom mdata))
