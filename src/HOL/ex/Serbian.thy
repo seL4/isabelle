@@ -1,5 +1,4 @@
-(* -*- coding: utf-8 -*- :encoding=utf-8:  
-    Author:     Filip Maric
+(*  Author:     Filip Maric
 
 Example theory involving Unicode characters (UTF-8 encoding) -- 
 Conversion between Serbian cyrillic and latin letters (српска ћирилица и латиница)
