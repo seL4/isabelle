@@ -347,7 +347,8 @@ fun smt_filter run_remote time_limit st xrules i =
     (xrules, map snd xrules)
     ||> distinct (op =) o fst o smt_solver rm ctxt' o append irs o map_index I
     |-> map_filter o try o nth
-    |> (fn xs => {outcome=NONE, used_facts=xs, run_time_in_msecs=NONE})
+    |> (fn xs => {outcome=NONE, used_facts=if solver_name_of ctxt = "z3" (* FIXME *) then xs
+      else xrules, run_time_in_msecs=NONE})
   end
   handle SMT_Failure.SMT fail => {outcome=SOME fail, used_facts=[],
     run_time_in_msecs=NONE}
