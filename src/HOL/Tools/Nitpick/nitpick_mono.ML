@@ -23,6 +23,8 @@ struct
 open Nitpick_Util
 open Nitpick_HOL
 
+structure PL = PropLogic
+
 datatype sign = Plus | Minus
 
 type var = int
@@ -30,7 +32,7 @@ type var = int
 datatype annotation = Gen | New | Fls | Tru
 datatype annotation_atom = A of annotation | V of var
 
-type assignment = var * annotation
+type assign = var * annotation
 
 datatype mtyp =
   MAlpha |
@@ -80,7 +82,7 @@ fun string_for_annotation Gen = "G"
 fun string_for_annotation_atom (A a) = string_for_annotation a
   | string_for_annotation_atom (V x) = string_for_var x
 
-fun string_for_assignment (x, a) =
+fun string_for_assign (x, a) =
   string_for_var x ^ " = " ^ string_for_annotation a
 
 val bool_M = MType (@{type_name bool}, [])
@@ -347,19 +349,23 @@ fun resolve_mtype asgs =
 datatype comp_op = Eq | Leq
 
 type comp = annotation_atom * annotation_atom * comp_op * var list
-type annotation_expr = assignment list
+type assign_clause = assign list
 
-type constraint_set = assignment list * comp list * annotation_expr list
+type constraint_set = assign list * comp list * assign_clause list
 
 fun string_for_comp_op Eq = "="
   | string_for_comp_op Leq = "\<le>"
 
-fun string_for_annotation_expr [] = "\<bot>"
-  | string_for_annotation_expr asgs =
-    space_implode " \<or> " (map string_for_assignment asgs)
+fun string_for_comp (aa1, aa2, cmp, xs) =
+  string_for_annotation_atom aa1 ^ " " ^ string_for_comp_op cmp ^
+  subscript_string_for_vars " \<and> " xs ^ " " ^ string_for_annotation_atom aa2
 
-fun do_assignment _ NONE = NONE
-  | do_assignment (x, a) (SOME asgs) =
+fun string_for_assign_clause [] = "\<bot>"
+  | string_for_assign_clause asgs =
+    space_implode " \<or> " (map string_for_assign asgs)
+
+fun do_assign _ NONE = NONE
+  | do_assign (x, a) (SOME asgs) =
     case AList.lookup (op =) asgs x of
       SOME a' => if a = a' then SOME asgs else NONE
     | NONE => SOME ((x, a) :: asgs)
@@ -368,7 +374,7 @@ fun do_annotation_atom_comp Eq [] aa1 aa2 (accum as (asgs, comps)) =
     (case (aa1, aa2) of
        (A a1, A a2) => if a1 = a2 then SOME accum else NONE
      | (V x1, A a2) =>
-       SOME asgs |> do_assignment (x1, a2) |> Option.map (rpair comps)
+       SOME asgs |> do_assign (x1, a2) |> Option.map (rpair comps)
      | (V _, V _) => SOME (asgs, insert (op =) (aa1, aa2, Eq, []) comps)
      | _ => do_annotation_atom_comp Eq [] aa2 aa1 accum)
   | do_annotation_atom_comp Leq [] aa1 aa2 (accum as (asgs, comps)) =
@@ -409,12 +415,12 @@ fun do_mtype_comp _ _ _ _ NONE = NONE
     raise MTYPE ("Nitpick_Mono.do_mtype_comp (" ^ string_for_comp_op cmp ^ ")",
                  [M1, M2], [])
 
-fun add_mtype_comp cmp M1 M2 ((asgs, comps, sexps) : constraint_set) =
+fun add_mtype_comp cmp M1 M2 ((asgs, comps, clauses) : constraint_set) =
     (trace_msg (fn () => "*** Add " ^ string_for_mtype M1 ^ " " ^
                          string_for_comp_op cmp ^ " " ^ string_for_mtype M2);
      case do_mtype_comp cmp [] M1 M2 (SOME (asgs, comps)) of
        NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-     | SOME (asgs, comps) => (asgs, comps, sexps))
+     | SOME (asgs, comps) => (asgs, comps, clauses))
 
 val add_mtypes_equal = add_mtype_comp Eq
 val add_is_sub_mtype = add_mtype_comp Leq
@@ -422,40 +428,45 @@ val add_is_sub_mtype = add_mtype_comp Leq
 fun do_notin_mtype_fv _ _ _ NONE = NONE
   | do_notin_mtype_fv Minus _ MAlpha accum = accum
   | do_notin_mtype_fv Plus [] MAlpha _ = NONE
-  | do_notin_mtype_fv Plus [(x, a)] MAlpha (SOME (asgs, sexps)) =
-    SOME asgs |> do_assignment (x, a) |> Option.map (rpair sexps)
-  | do_notin_mtype_fv Plus sexp MAlpha (SOME (asgs, sexps)) =
-    SOME (asgs, insert (op =) sexp sexps)
-  | do_notin_mtype_fv sn sexp (MFun (M1, A aa, M2)) accum =
-    accum |> (if aa <> Gen andalso sn = Plus then do_notin_mtype_fv Plus sexp M1
-              else I)
-          |> (if aa = Gen orelse sn = Plus then do_notin_mtype_fv Minus sexp M1
-              else I)
-          |> do_notin_mtype_fv sn sexp M2
-  | do_notin_mtype_fv Plus sexp (MFun (M1, V x, M2)) accum =
-    accum |> (case do_assignment (x, Gen) (SOME sexp) of
+  | do_notin_mtype_fv Plus [(x, a)] MAlpha (SOME (asgs, clauses)) =
+    SOME asgs |> do_assign (x, a) |> Option.map (rpair clauses)
+  | do_notin_mtype_fv Plus clause MAlpha (SOME (asgs, clauses)) =
+    SOME (asgs, insert (op =) clause clauses)
+  | do_notin_mtype_fv sn clause (MFun (M1, A aa, M2)) accum =
+    accum |> (if aa <> Gen andalso sn = Plus then
+                do_notin_mtype_fv Plus clause M1
+              else
+                I)
+          |> (if aa = Gen orelse sn = Plus then
+                do_notin_mtype_fv Minus clause M1
+              else
+                I)
+          |> do_notin_mtype_fv sn clause M2
+  | do_notin_mtype_fv Plus clause (MFun (M1, V x, M2)) accum =
+    accum |> (case do_assign (x, Gen) (SOME clause) of
                 NONE => I
-              | SOME sexp' => do_notin_mtype_fv Plus sexp' M1)
-          |> do_notin_mtype_fv Minus sexp M1
-          |> do_notin_mtype_fv Plus sexp M2
-  | do_notin_mtype_fv Minus sexp (MFun (M1, V x, M2)) accum =
-    accum |> (case do_assignment (x, Fls) (*### FIXME: not Gen *) (SOME sexp) of
+              | SOME clause' => do_notin_mtype_fv Plus clause' M1)
+          |> do_notin_mtype_fv Minus clause M1
+          |> do_notin_mtype_fv Plus clause M2
+  | do_notin_mtype_fv Minus clause (MFun (M1, V x, M2)) accum =
+    accum |> (case fold (fn a => do_assign (x, a)) (* [New, Fls, Tru] FIXME *) [Fls]
+                        (SOME clause) of
                 NONE => I
-              | SOME sexp' => do_notin_mtype_fv Plus sexp' M1)
-          |> do_notin_mtype_fv Minus sexp M2
-  | do_notin_mtype_fv sn sexp (MPair (M1, M2)) accum =
-    accum |> fold (do_notin_mtype_fv sn sexp) [M1, M2]
-  | do_notin_mtype_fv sn sexp (MType (_, Ms)) accum =
-    accum |> fold (do_notin_mtype_fv sn sexp) Ms
+              | SOME clause' => do_notin_mtype_fv Plus clause' M1)
+          |> do_notin_mtype_fv Minus clause M2
+  | do_notin_mtype_fv sn clause (MPair (M1, M2)) accum =
+    accum |> fold (do_notin_mtype_fv sn clause) [M1, M2]
+  | do_notin_mtype_fv sn clause (MType (_, Ms)) accum =
+    accum |> fold (do_notin_mtype_fv sn clause) Ms
   | do_notin_mtype_fv _ _ M _ =
     raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
 
-fun add_notin_mtype_fv sn M ((asgs, comps, sexps) : constraint_set) =
+fun add_notin_mtype_fv sn M ((asgs, comps, clauses) : constraint_set) =
   (trace_msg (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
                        (case sn of Minus => "concrete" | Plus => "complete"));
-   case do_notin_mtype_fv sn [] M (SOME (asgs, sexps)) of
+   case do_notin_mtype_fv sn [] M (SOME (asgs, clauses)) of
      NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
-   | SOME (asgs, sexps) => (asgs, comps, sexps))
+   | SOME (asgs, clauses) => (asgs, comps, clauses))
 
 val add_mtype_is_concrete = add_notin_mtype_fv Minus
 val add_mtype_is_complete = add_notin_mtype_fv Plus
@@ -472,33 +483,40 @@ val bool_table =
 val bools_from_annotation = AList.lookup (op =) bool_table #> the
 val annotation_from_bools = AList.find (op =) bool_table #> the_single
 
-fun prop_for_assignment (x, a) =
+fun prop_for_bool b = if b then PL.True else PL.False
+fun prop_for_bool_var_equality (v1, v2) =
+  PL.And (PL.Or (PL.BoolVar v1, PL.Not (PL.BoolVar v2)),
+          PL.Or (PL.Not (PL.BoolVar v1), PL.BoolVar v2))
+fun prop_for_assign (x, a) =
   let val (b1, b2) = bools_from_annotation a in
-    PropLogic.SAnd (PropLogic.BoolVar (fst_var x) |> not b1 ? PropLogic.Not,
-                    PropLogic.BoolVar (snd_var x) |> not b2 ? PropLogic.Not)
+    PL.And (PL.BoolVar (fst_var x) |> not b1 ? PL.Not,
+            PL.BoolVar (snd_var x) |> not b2 ? PL.Not)
   end
-fun prop_for_annotation_atom_eq (A a', a) =
-    if a = a' then PropLogic.True else PropLogic.False
-  | prop_for_annotation_atom_eq (V x, a) = prop_for_assignment (x, a)
-fun prop_for_annotation_expr xs = PropLogic.exists (map prop_for_assignment xs)
-fun prop_for_exists_eq xs a =
-  PropLogic.exists (map (fn x => prop_for_assignment (x, a)) xs)
+fun prop_for_atom_assign (A a', a) = prop_for_bool (a = a')
+  | prop_for_atom_assign (V x, a) = prop_for_assign (x, a)
+fun prop_for_atom_equality (aa1, A a2) = prop_for_atom_assign (aa1, a2)
+  | prop_for_atom_equality (A a1, aa2) = prop_for_atom_assign (aa2, a1)
+  | prop_for_atom_equality (V x1, V x2) =
+    PL.And (prop_for_bool_var_equality (pairself fst_var (x1, x2)),
+            prop_for_bool_var_equality (pairself snd_var (x1, x2)))
+val prop_for_assign_clause = PL.exists o map prop_for_assign
+fun prop_for_exists_var_assign xs a =
+  PL.exists (map (fn x => prop_for_assign (x, a)) xs)
 fun prop_for_comp (aa1, aa2, Eq, []) =
-    PropLogic.SAnd (prop_for_comp (aa1, aa2, Leq, []),
-                    prop_for_comp (aa2, aa1, Leq, []))
+    PL.SAnd (prop_for_comp (aa1, aa2, Leq, []),
+             prop_for_comp (aa2, aa1, Leq, []))
   | prop_for_comp (aa1, aa2, Leq, []) =
-    (* FIXME *)
-    PropLogic.SOr (prop_for_annotation_atom_eq (aa1, Fls),
-                   prop_for_annotation_atom_eq (aa2, Gen))
+    PL.SOr (prop_for_atom_equality (aa1, aa2), prop_for_atom_assign (aa2, Gen))
   | prop_for_comp (aa1, aa2, cmp, xs) =
-    PropLogic.SOr (prop_for_exists_eq xs Gen, prop_for_comp (aa1, aa2, cmp, []))
+    PL.SOr (prop_for_exists_var_assign xs Gen,
+            prop_for_comp (aa1, aa2, cmp, []))
 
 fun fix_bool_options (NONE, NONE) = (false, false)
   | fix_bool_options (NONE, SOME b) = (b, b)
   | fix_bool_options (SOME b, NONE) = (b, b)
   | fix_bool_options (SOME b1, SOME b2) = (b1, b2)
 
-fun extract_assignments max_var assigns asgs =
+fun extract_assigns max_var assigns asgs =
   fold (fn x => fn accum =>
            if AList.defined (op =) asgs x then
              accum
@@ -507,15 +525,11 @@ fun extract_assignments max_var assigns asgs =
            | bp => (x, annotation_from_bools (fix_bool_options bp)) :: accum)
        (max_var downto 1) asgs
 
-fun string_for_comp (aa1, aa2, cmp, xs) =
-  string_for_annotation_atom aa1 ^ " " ^ string_for_comp_op cmp ^
-  subscript_string_for_vars " \<and> " xs ^ " " ^ string_for_annotation_atom aa2
-
-fun print_problem asgs comps sexps =
+fun print_problem asgs comps clauses =
   trace_msg (fn () => "*** Problem:\n" ^
-                      cat_lines (map string_for_assignment asgs @
+                      cat_lines (map string_for_assign asgs @
                                  map string_for_comp comps @
-                                 map string_for_annotation_expr sexps))
+                                 map string_for_assign_clause clauses))
 
 fun print_solution asgs =
   trace_msg (fn () => "*** Solution:\n" ^
@@ -526,18 +540,19 @@ fun print_solution asgs =
                              string_for_vars ", " xs)
        |> space_implode "\n"))
 
-fun solve max_var (asgs, comps, sexps) =
+fun solve max_var (asgs, comps, clauses) =
   let
     fun do_assigns assigns =
-      SOME (extract_assignments max_var assigns asgs |> tap print_solution)
-    val _ = print_problem asgs comps sexps
-    val prop = PropLogic.all (map prop_for_assignment asgs @
-                              map prop_for_comp comps @
-                              map prop_for_annotation_expr sexps)
-    val default_val = fst (bools_from_annotation Gen)
+      SOME (extract_assigns max_var assigns asgs |> tap print_solution)
+    val _ = print_problem asgs comps clauses
+    val prop = PL.all (map prop_for_assign asgs @
+                       map prop_for_comp comps @
+                       map prop_for_assign_clause clauses)
   in
-    if PropLogic.eval (K default_val) prop then
-      do_assigns (K (SOME default_val))
+    if PL.eval (K false) prop then
+      do_assigns (K (SOME false))
+    else if PL.eval (K true) prop then
+      do_assigns (K (SOME true))
     else
       let
         (* use the first ML solver (to avoid startup overhead) *)
