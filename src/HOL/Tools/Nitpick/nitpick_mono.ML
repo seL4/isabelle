@@ -461,14 +461,23 @@ fun add_notin_mtype_fv sn M ((lits, comps, sexps) : constraint_set) =
 val add_mtype_is_concrete = add_notin_mtype_fv Minus
 val add_mtype_is_complete = add_notin_mtype_fv Plus
 
-val bool_from_minus = true
+fun fst_var n = 2 * n
+fun snd_var n = 2 * n + 1
 
-fun bool_from_annotation Fls = not bool_from_minus
-  | bool_from_annotation Gen = bool_from_minus
-fun sign_from_bool b = if b = bool_from_minus then Gen else Fls
+val bool_table =
+  [(Gen, (false, false)),
+   (New, (false, true)),
+   (Fls, (true, false)),
+   (Tru, (true, true))]
+
+val bools_from_annotation = AList.lookup (op =) bool_table #> the
+val annotation_from_bools = AList.find (op =) bool_table #> the_single
 
 fun prop_for_literal (x, a) =
-  PropLogic.BoolVar x |> not (bool_from_annotation a) ? PropLogic.Not
+  let val (b1, b2) = bools_from_annotation a in
+    PropLogic.SAnd (PropLogic.BoolVar (fst_var x) |> not b1 ? PropLogic.Not,
+                    PropLogic.BoolVar (snd_var x) |> not b2 ? PropLogic.Not)
+  end
 fun prop_for_annotation_atom_eq (A a', a) =
     if a = a' then PropLogic.True else PropLogic.False
   | prop_for_annotation_atom_eq (V x, a) = prop_for_literal (x, a)
@@ -484,13 +493,19 @@ fun prop_for_comp (a1, a2, Eq, []) =
   | prop_for_comp (a1, a2, cmp, xs) =
     PropLogic.SOr (prop_for_exists_eq xs Gen, prop_for_comp (a1, a2, cmp, []))
 
+fun fix_bool_options (NONE, NONE) = (false, false)
+  | fix_bool_options (NONE, SOME b) = (b, b)
+  | fix_bool_options (SOME b, NONE) = (b, b)
+  | fix_bool_options (SOME b1, SOME b2) = (b1, b2)
+
 fun literals_from_assignments max_var assigns lits =
   fold (fn x => fn accum =>
            if AList.defined (op =) lits x then
              accum
-           else case assigns x of
-             SOME b => (x, sign_from_bool b) :: accum
-           | NONE => accum) (max_var downto 1) lits
+           else case (fst_var x, snd_var x) |> pairself assigns of
+             (NONE, NONE) => accum
+           | bp => (x, annotation_from_bools (fix_bool_options bp)) :: accum)
+       (max_var downto 1) lits
 
 fun string_for_comp (a1, a2, cmp, xs) =
   string_for_annotation_atom a1 ^ " " ^ string_for_comp_op cmp ^
@@ -518,7 +533,7 @@ fun solve max_var (lits, comps, sexps) =
     val prop = PropLogic.all (map prop_for_literal lits @
                               map prop_for_comp comps @
                               map prop_for_annotation_expr sexps)
-    val default_val = bool_from_annotation Gen
+    val default_val = fst (bools_from_annotation Gen)
   in
     if PropLogic.eval (K default_val) prop then
       do_assigns (K (SOME default_val))
