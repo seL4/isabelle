@@ -2034,6 +2034,15 @@ proof -
     using assms(2) by (cases ?thesis) auto
 qed
 
+lemma (in measure_space) positive_integral_omega_AE:
+  assumes "f \<in> borel_measurable M" "positive_integral f \<noteq> \<omega>" shows "AE x. f x \<noteq> \<omega>"
+proof (rule AE_I)
+  show "\<mu> (f -` {\<omega>} \<inter> space M) = 0"
+    by (rule positive_integral_omega[OF assms])
+  show "f -` {\<omega>} \<inter> space M \<in> sets M"
+    using assms by (auto intro: borel_measurable_vimage)
+qed auto
+
 lemma (in measure_space) simple_integral_omega:
   assumes "simple_function f"
   and "simple_integral f \<noteq> \<omega>"
@@ -2042,6 +2051,23 @@ proof (rule positive_integral_omega)
   show "f \<in> borel_measurable M" using assms by (auto intro: borel_measurable_simple_function)
   show "positive_integral f \<noteq> \<omega>"
     using assms by (simp add: positive_integral_eq_simple_integral)
+qed
+
+lemma (in measure_space) integral_real:
+  fixes f :: "'a \<Rightarrow> pextreal"
+  assumes "AE x. f x \<noteq> \<omega>"
+  shows "integral (\<lambda>x. real (f x)) = real (positive_integral f)" (is ?plus)
+    and "integral (\<lambda>x. - real (f x)) = - real (positive_integral f)" (is ?minus)
+proof -
+  have "positive_integral (\<lambda>x. Real (real (f x))) = positive_integral f"
+    apply (rule positive_integral_cong_AE)
+    apply (rule AE_mp[OF assms(1)])
+    by (auto intro!: AE_cong simp: Real_real)
+  moreover
+  have "positive_integral (\<lambda>x. Real (- real (f x))) = positive_integral (\<lambda>x. 0)"
+    by (intro positive_integral_cong) auto
+  ultimately show ?plus ?minus
+    by (auto simp: integral_def integrable_def)
 qed
 
 lemma (in measure_space) integral_dominated_convergence:

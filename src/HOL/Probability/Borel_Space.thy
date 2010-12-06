@@ -847,6 +847,15 @@ proof -
     by (simp add: borel_measurable_iff_ge)
 qed
 
+lemma (in sigma_algebra) borel_measurable_setsum[simp, intro]:
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> real"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
+  shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
+proof cases
+  assume "finite S"
+  thus ?thesis using assms by induct auto
+qed simp
+
 lemma (in sigma_algebra) borel_measurable_square:
   fixes f :: "'a \<Rightarrow> real"
   assumes f: "f \<in> borel_measurable M"
@@ -930,21 +939,21 @@ proof -
     using 1 2 by simp
 qed
 
+lemma (in sigma_algebra) borel_measurable_setprod[simp, intro]:
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> real"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
+  shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
+proof cases
+  assume "finite S"
+  thus ?thesis using assms by induct auto
+qed simp
+
 lemma (in sigma_algebra) borel_measurable_diff[simp, intro]:
   fixes f :: "'a \<Rightarrow> real"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x - g x) \<in> borel_measurable M"
   unfolding diff_minus using assms by fast
-
-lemma (in sigma_algebra) borel_measurable_setsum[simp, intro]:
-  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> real"
-  assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
-  shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
-proof cases
-  assume "finite S"
-  thus ?thesis using assms by induct auto
-qed simp
 
 lemma (in sigma_algebra) borel_measurable_inverse[simp, intro]:
   fixes f :: "'a \<Rightarrow> real"
@@ -1006,6 +1015,11 @@ proof -
   have *: "\<And>x. \<bar>f x\<bar> = max 0 (f x) + max 0 (- f x)" by (simp add: max_def)
   show ?thesis unfolding * using assms by auto
 qed
+
+lemma borel_measurable_nth[simp, intro]:
+  "(\<lambda>x::real^'n. x $ i) \<in> borel_measurable borel"
+  using borel_measurable_euclidean_component
+  unfolding nth_conv_component by auto
 
 section "Borel space over the real line with infinity"
 
