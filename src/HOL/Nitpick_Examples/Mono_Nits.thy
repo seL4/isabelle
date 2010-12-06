@@ -8,8 +8,23 @@ Examples featuring Nitpick's monotonicity check.
 header {* Examples Featuring Nitpick's Monotonicity Check *}
 
 theory Mono_Nits
-imports Main
+imports Nitpick2d(*###*) "~/afp/thys/AVL-Trees/AVL2" "~/afp/thys/Huffman/Huffman"
 begin
+
+(* ML {* Nitpick_Mono.first_calculus := false *} *)
+ML {* Nitpick_Mono.trace := true *}
+
+thm alphabet.simps
+
+fun alphabetx where
+"alphabetx (Leaf w a) = {a}" |
+"alphabetx (InnerNode w t\<^isub>1 t\<^isub>2) = alphabetx t\<^isub>1 \<union> alphabetx t\<^isub>2"
+
+lemma "\<exists>a. alphabetx (t::'a tree) (a::'a)"
+nitpick [debug, card = 1-2, dont_box, dont_finitize, dont_destroy_constrs]
+
+lemma "consistent t \<Longrightarrow> \<exists>a\<in>alphabet t. depth t a = Huffman.height t"
+nitpick [debug, card = 1-2, dont_box, dont_finitize]
 
 ML {*
 open Nitpick_Util
@@ -67,6 +82,7 @@ fun nonconst t = not (is_const t) orelse raise BUG
 ML {* Nitpick_Mono.trace := false *}
 
 ML {* const @{term "A\<Colon>('a\<Rightarrow>'b)"} *}
+(*
 ML {* const @{term "(A\<Colon>'a set) = A"} *}
 ML {* const @{term "(A\<Colon>'a set set) = A"} *}
 ML {* const @{term "(\<lambda>x\<Colon>'a set. x a)"} *}
@@ -137,6 +153,7 @@ ML {* mono @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) \<noteq> myunion"} 
 
 ML {* nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. False)"} *}
 ML {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h"} *}
+*)
 
 ML {*
 val preproc_timeout = SOME (seconds 5.0)
@@ -182,8 +199,8 @@ fun check_formulas tsp =
 
 fun check_theory thy =
   let
-    val finitizes = [(NONE, NONE)]
-    val monos = [(NONE, NONE)]
+    val finitizes = [(NONE, SOME false)]
+    val monos = [(NONE, SOME false)]
     val path = File.tmp_path (Context.theory_name thy ^ ".out" |> Path.explode)
     val _ = File.write path ""
     fun check_theorem (name, th) =
@@ -201,13 +218,11 @@ fun check_theory thy =
 
 ML {* getenv "ISABELLE_TMP" *}
 
-(*
-(* ML {* check_theory @{theory AVL2} *} *)
+ML {* check_theory @{theory AVL2} *}
 ML {* check_theory @{theory Fun} *}
-(* ML {* check_theory @{theory Huffman} *} *)
+ML {* check_theory @{theory Huffman} *}
 ML {* check_theory @{theory List} *}
 ML {* check_theory @{theory Map} *}
 ML {* check_theory @{theory Relation} *}
-*)
 
 end

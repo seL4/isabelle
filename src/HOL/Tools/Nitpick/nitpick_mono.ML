@@ -800,11 +800,11 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
     fun do_equals T (gamma, cset) =
       let
         val M = mtype_for (domain_type T)
-        val aa = V (Unsynchronized.inc max_fresh)
+        val x = Unsynchronized.inc max_fresh
       in
-        (MFun (M, A Gen, MFun (M, aa, mtype_for (nth_range_type 2 T))),
+        (MFun (M, A Gen, MFun (M, V x, mtype_for (nth_range_type 2 T))),
          (gamma, cset |> add_mtype_is_concrete [] M
-                      |> add_annotation_atom_comp Leq [] (A Fls) aa))
+                      |> add_annotation_atom_comp Leq [] (A Fls) (V x)))
       end
     fun do_robust_set_operation T (gamma, cset) =
       let
@@ -980,8 +980,13 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
               SOME t' =>
               let
                 val M = mtype_for T
-                val (m', accum) = do_term t' (accum |>> push_bound (A Fls) T M)
-              in (MAbs (s, T, M, A Fls, m'), accum |>> pop_bound) end
+                val x = Unsynchronized.inc max_fresh
+                val (m', accum) = do_term t' (accum |>> push_bound (V x) T M)
+              in
+                (MAbs (s, T, M, V x, m'),
+                 accum |>> pop_bound
+                       ||> add_annotation_atom_comp Leq [] (A Fls) (V x))
+              end
             | NONE =>
               ((case t' of
                   t1' $ Bound 0 =>
@@ -999,10 +1004,10 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                handle SAME () =>
                       let
                         val M = mtype_for T
-                        val aa = V (Unsynchronized.inc max_fresh)
+                        val x = Unsynchronized.inc max_fresh
                         val (m', accum) =
-                          do_term t' (accum |>> push_bound aa T M)
-                      in (MAbs (s, T, M, aa, m'), accum |>> pop_bound) end))
+                          do_term t' (accum |>> push_bound (V x) T M)
+                      in (MAbs (s, T, M, V x, m'), accum |>> pop_bound) end))
          | @{const Not} $ t1 => do_connect imp_triple t1 @{const False} accum
          | @{const conj} $ t1 $ t2 => do_connect conj_triple t1 t2 accum
          | @{const disj} $ t1 $ t2 => do_connect disj_triple t1 t2 accum
@@ -1051,14 +1056,14 @@ fun consider_general_equals mdata def (x as (_, T)) t1 t2 accum =
     val accum = accum ||> add_mtypes_equal M1 M2
     val body_M = fresh_mtype_for_type mdata false (nth_range_type 2 T)
     val m = MApp (MApp (MRaw (Const x,
-                           MFun (M1, A Gen, MFun (M2, A Fls, body_M))), m1), m2)
+                           MFun (M1, A Gen, MFun (M2, A Gen, body_M))), m1), m2)
   in
-    (m, if def then
-          let val (head_m, arg_ms) = strip_mcomb m1 in
-            accum ||> force_gen_funs (length arg_ms) (mtype_of_mterm head_m)
-          end
-        else
-          accum)
+    (m, (if def then
+           let val (head_m, arg_ms) = strip_mcomb m1 in
+             accum ||> force_gen_funs (length arg_ms) (mtype_of_mterm head_m)
+           end
+         else
+           accum))
   end
 
 fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
