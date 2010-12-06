@@ -11,9 +11,9 @@ sig
 
   val trace : bool Unsynchronized.ref
   val formulas_monotonic :
-    hol_context -> bool -> int -> typ -> term list * term list -> bool
+    hol_context -> bool -> typ -> term list * term list -> bool
   val finitize_funs :
-    hol_context -> bool -> (typ option * bool option) list -> int -> typ
+    hol_context -> bool -> (typ option * bool option) list -> typ
     -> term list * term list -> term list * term list
 end;
 
@@ -538,16 +538,6 @@ fun prop_for_comp (aa1, aa2, Eq, []) =
     PL.SOr (prop_for_exists_var_assign_literal xs Gen,
             prop_for_comp (aa1, aa2, cmp, []))
 
-(* The "calculus" parameter may be 1, 2, or 3, corresponding approximately to
-   the M1, M2, and M3 calculi from Blanchette & Krauss 2011. *)
-fun variable_domain calculus =
-  [Gen] @ (if calculus > 1 then [Fls] else [])
-  @ (if calculus > 2 then [New, Tru] else [])
-
-fun prop_for_variable_domain calculus x =
-  PL.exists (map (fn a => prop_for_assign_literal (x, (Plus, a)))
-                 (variable_domain calculus))
-
 fun extract_assigns max_var assigns asgs =
   fold (fn x => fn accum =>
            if AList.defined (op =) asgs x then
@@ -558,11 +548,10 @@ fun extract_assigns max_var assigns asgs =
                    :: accum)
        (max_var downto 1) asgs
 
-fun print_problem calculus comps clauses =
-  trace_msg (fn () =>
-                "*** Problem (calculus M" ^ string_of_int calculus ^ "):\n" ^
-                cat_lines (map string_for_comp comps @
-                           map (string_for_assign_clause o SOME) clauses))
+fun print_problem comps clauses =
+  trace_msg (fn () => "*** Problem:\n" ^
+                      cat_lines (map string_for_comp comps @
+                                 map (string_for_assign_clause o SOME) clauses))
 
 fun print_solution asgs =
   trace_msg (fn () => "*** Solution:\n" ^
@@ -573,20 +562,14 @@ fun print_solution asgs =
                              string_for_vars ", " xs)
        |> space_implode "\n"))
 
-fun solve calculus max_var (comps, clauses) =
+fun solve max_var (comps, clauses) =
   let
     val asgs = map_filter (fn [(x, (_, a))] => SOME (x, a) | _ => NONE) clauses
     fun do_assigns assigns =
       SOME (extract_assigns max_var assigns asgs |> tap print_solution)
-    val _ = print_problem calculus comps clauses
+    val _ = print_problem comps clauses
     val prop =
-      map prop_for_comp comps @
-      map prop_for_assign_clause clauses @
-      (if calculus < 3 then
-         map (prop_for_variable_domain calculus) (1 upto max_var)
-       else
-         [])
-      |> PL.all
+      PL.all (map prop_for_comp comps @ map prop_for_assign_clause clauses)
   in
     if PL.eval (K false) prop then
       do_assigns (K (SOME false))
@@ -809,26 +792,6 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
         M as MPair (a_M, b_M) =>
         pair (MFun (M, A Gen, if n = 0 then a_M else b_M))
       | M => raise MTYPE ("Nitpick_Mono.consider_term.do_nth_pair_sel", [M], [])
-    fun do_bounded_quantifier t0 abs_s abs_T connective_t bound_t body_t accum =
-      let
-        val abs_M = mtype_for abs_T
-        val aa = V (Unsynchronized.inc max_fresh)
-        val (bound_m, accum) =
-          accum |>> push_bound aa abs_T abs_M |> do_term bound_t
-        val expected_bound_M = plus_set_mtype_for_dom abs_M
-        val (body_m, accum) =
-          accum ||> add_mtypes_equal expected_bound_M (mtype_of_mterm bound_m)
-                |> do_term body_t ||> apfst pop_bound
-        val bound_M = mtype_of_mterm bound_m
-        val (M1, aa', _) = dest_MFun bound_M
-      in
-        (MApp (MRaw (t0, MFun (bound_M, aa, bool_M)),
-               MAbs (abs_s, abs_T, M1, aa',
-                     MApp (MApp (MRaw (connective_t,
-                                       mtype_for (fastype_of connective_t)),
-                                 MApp (bound_m, MRaw (Bound 0, M1))),
-                           body_m))), accum)
-      end
     and do_connect conn mk_quasi_clauses t0 t1 t2 (accum as ({frame, ...}, _)) =
       let
         val frame1 = fresh_frame mdata (SOME Tru) NONE frame
@@ -997,12 +960,6 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                         val (m', accum) =
                           do_term t' (accum |>> push_bound aa T M)
                       in (MAbs (s, T, M, aa, m'), accum |>> pop_bound) end))
-         | (t0 as Const (@{const_name All}, _))
-           $ Abs (s', T', (t10 as @{const implies}) $ (t11 $ Bound 0) $ t12) =>
-           do_bounded_quantifier t0 s' T' t10 t11 t12 accum
-         | (t0 as Const (@{const_name Ex}, _))
-           $ Abs (s', T', (t10 as @{const conj}) $ (t11 $ Bound 0) $ t12) =>
-           do_bounded_quantifier t0 s' T' t10 t11 t12 accum
          | @{const Not} $ t1 =>
            do_connect "\<implies>" imp_clauses @{const implies} t1
                       @{const False} accum
@@ -1043,11 +1000,10 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                                        string_for_mterm ctxt m))
   in do_term end
 
-fun force_minus_funs 0 _ = I
-  | force_minus_funs n (M as MFun (M1, _, M2)) =
-    add_mtypes_equal M (MFun (M1, A Gen, M2)) #> force_minus_funs (n - 1) M2
-  | force_minus_funs _ M =
-    raise MTYPE ("Nitpick_Mono.force_minus_funs", [M], [])
+fun force_gen_funs 0 _ = I
+  | force_gen_funs n (M as MFun (M1, _, M2)) =
+    add_mtypes_equal M (MFun (M1, A Gen, M2)) #> force_gen_funs (n - 1) M2
+  | force_gen_funs _ M = raise MTYPE ("Nitpick_Mono.force_gen_funs", [M], [])
 fun consider_general_equals mdata def (x as (_, T)) t1 t2 accum =
   let
     val (m1, accum) = consider_term mdata t1 accum
@@ -1057,11 +1013,11 @@ fun consider_general_equals mdata def (x as (_, T)) t1 t2 accum =
     val accum = accum ||> add_mtypes_equal M1 M2
     val body_M = fresh_mtype_for_type mdata false (nth_range_type 2 T)
     val m = MApp (MApp (MRaw (Const x,
-                           MFun (M1, A Gen, MFun (M2, A Gen, body_M))), m1), m2)
+                           MFun (M1, A Gen, MFun (M2, A Fls, body_M))), m1), m2)
   in
     (m, if def then
           let val (head_m, arg_ms) = strip_mcomb m1 in
-            accum ||> force_minus_funs (length arg_ms) (mtype_of_mterm head_m)
+            accum ||> force_gen_funs (length arg_ms) (mtype_of_mterm head_m)
           end
         else
           accum)
@@ -1079,9 +1035,10 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
             val abs_M = mtype_for abs_T
             val x = Unsynchronized.inc max_fresh
             val side_cond = ((sn = Minus) = (quant_s = @{const_name Ex}))
+            fun ann () = if quant_s = @{const_name Ex} then Fls else Tru
             val (body_m, accum) =
               accum ||> side_cond
-                        ? add_mtype_is_complete [(x, (Minus, Fls))] abs_M
+                        ? add_mtype_is_complete [(x, (Minus, ann ()))] abs_M
                     |>> push_bound (V x) abs_T abs_M |> do_formula sn body_t
             val body_M = mtype_of_mterm body_m
           in
@@ -1114,8 +1071,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
            end
          | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
            do_quantifier x s1 T1 t1
-         | Const (x0 as (@{const_name Ex}, T0))
-           $ (t1 as Abs (s1, T1, t1')) =>
+         | Const (x0 as (@{const_name Ex}, T0)) $ (t1 as Abs (s1, T1, t1')) =>
            (case sn of
               Plus => do_quantifier x0 s1 T1 t1'
             | Minus =>
@@ -1240,7 +1196,7 @@ fun print_mcontext ctxt asgs ({frees, consts, ...} : mcontext) =
 fun amass f t (ms, accum) =
   let val (m, accum) = f t accum in (m :: ms, accum) end
 
-fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize calculus alpha_T
+fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize alpha_T
           (nondef_ts, def_ts) =
   let
     val _ = trace_msg (fn () => "****** " ^ which ^ " analysis: " ^
@@ -1256,7 +1212,7 @@ fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize calculus alpha_T
     val (def_ms, (gamma, cset)) =
       ([], accum) |> fold (amass (consider_definitional_axiom mdata)) def_ts
   in
-    case solve calculus (!max_fresh) cset of
+    case solve (!max_fresh) cset of
       SOME asgs => (print_mcontext ctxt asgs gamma;
                     SOME (asgs, (nondef_ms, def_ms), !constr_mcache))
     | _ => NONE
@@ -1268,15 +1224,14 @@ fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize calculus alpha_T
        | MTERM (loc, ms) =>
          raise BAD (loc, commas (map (string_for_mterm ctxt) ms))
 
-fun formulas_monotonic hol_ctxt =
-  is_some oooo infer "Monotonicity" false hol_ctxt
+val formulas_monotonic = is_some oooo infer "Monotonicity" false
 
 fun fin_fun_constr T1 T2 =
   (@{const_name FinFun}, (T1 --> T2) --> Type (@{type_name fin_fun}, [T1, T2]))
 
 fun finitize_funs (hol_ctxt as {thy, ctxt, stds, constr_cache, ...}) binarize
-                  finitizes calculus alpha_T tsp =
-  case infer "Finiteness" true hol_ctxt binarize calculus alpha_T tsp of
+                  finitizes alpha_T tsp =
+  case infer "Finiteness" true hol_ctxt binarize alpha_T tsp of
     SOME (asgs, msp, constr_mtypes) =>
     if forall (curry (op =) Gen o snd) asgs then
       tsp
