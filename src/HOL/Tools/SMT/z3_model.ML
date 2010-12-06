@@ -113,7 +113,7 @@ fun get_term n T es (cx as (terms, next_val)) =
   (case Symtab.lookup terms n of
     SOME t => ((t, es), cx)
   | NONE =>
-      let val t = Var (("fresh", next_val), T)
+      let val t = Var (("skolem", next_val), T)
       in ((t, []), (Symtab.update (n, t) terms, next_val + 1)) end)
 
 fun trans_expr _ True = pair @{const True}
@@ -233,16 +233,23 @@ fun unfold_funapp (eqs, defs) =
 
   in (map unfold_eq eqs, filter_out is_fun_app defs) end
 
-fun unfold_simple_eqs (eqs, defs) =
+fun unfold_eqs (eqs, defs) =
   let
-    fun add_rewr (l as Const _) (r as Var _) = SOME (r, l)
-      | add_rewr (l as Free _) (r as Var _) = SOME (r, l)
+    val is_ground = not o Term.exists_subterm (fn Var _ => true | _ => false)
+    fun add_rewr l (r as Var _) = if is_ground l then SOME (r, l) else NONE
       | add_rewr _ _ = NONE
-    val (rs, eqs') = partition_eqs add_rewr eqs
 
     fun is_trivial (Const (@{const_name HOL.eq}, _) $ t $ u) = t aconv u
       | is_trivial _ = false
-  in pairself (replace_vars rs #> filter_out is_trivial) (eqs', defs) end
+
+    fun replace rs = replace_vars rs #> filter_out is_trivial
+
+    fun unfold (es, ds) =
+      (case partition_eqs add_rewr es of
+        ([], _) => (es, ds)
+      | (rs, es') => unfold (pairself (replace rs) (es', ds)))
+
+  in unfold (eqs, defs) end
 
 fun swap_free ((eq as Const (@{const_name HOL.eq}, _)) $ t $ (u as Free _)) =
       eq $ u $ t
@@ -284,7 +291,7 @@ fun parse_counterex ctxt ({terms, ...} : SMT_Translate.recon) ls =
   |> apfst flat o split_list
   |> remove_int_nat_coercions
   |> unfold_funapp
-  |> unfold_simple_eqs
+  |> unfold_eqs
   |>> map swap_free
   |>> filter is_free_constraint
   |> frees_for_vars ctxt
