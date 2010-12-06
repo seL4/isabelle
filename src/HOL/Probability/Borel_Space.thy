@@ -776,7 +776,7 @@ lemma (in sigma_algebra) borel_measurable_iff_greater:
   "(f::'a \<Rightarrow> real) \<in> borel_measurable M = (\<forall>a. {w \<in> space M. a < f w} \<in> sets M)"
   using borel_measurable_iff_halfspace_greater[where 'c=real] by simp
 
-lemma borel_measureable_euclidean_component:
+lemma borel_measurable_euclidean_component:
   "(\<lambda>x::'a::euclidean_space. x $$ i) \<in> borel_measurable borel"
   unfolding borel_def[where 'a=real]
 proof (rule borel.measurable_sigma, simp_all)
@@ -786,14 +786,14 @@ proof (rule borel.measurable_sigma, simp_all)
     by (auto intro: borel_open)
 qed
 
-lemma (in sigma_algebra) borel_measureable_euclidean_space:
+lemma (in sigma_algebra) borel_measurable_euclidean_space:
   fixes f :: "'a \<Rightarrow> 'c::ordered_euclidean_space"
   shows "f \<in> borel_measurable M \<longleftrightarrow> (\<forall>i<DIM('c). (\<lambda>x. f x $$ i) \<in> borel_measurable M)"
 proof safe
   fix i assume "f \<in> borel_measurable M"
   then show "(\<lambda>x. f x $$ i) \<in> borel_measurable M"
     using measurable_comp[of f _ _ "\<lambda>x. x $$ i", unfolded comp_def]
-    by (auto intro: borel_measureable_euclidean_component)
+    by (auto intro: borel_measurable_euclidean_component)
 next
   assume f: "\<forall>i<DIM('c). (\<lambda>x. f x $$ i) \<in> borel_measurable M"
   then show "f \<in> borel_measurable M"
@@ -1323,7 +1323,7 @@ qed
 
 lemma (in sigma_algebra) borel_measurable_pextreal_add[intro, simp]:
   fixes f :: "'a \<Rightarrow> pextreal"
-  assumes measure: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+  assumes "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x + g x) \<in> borel_measurable M"
 proof -
   have *: "(\<lambda>x. f x + g x) =
