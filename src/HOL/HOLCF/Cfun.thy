@@ -244,28 +244,26 @@ by (simp add: chain_def cfun_below_iff)
 
 text {* contlub, cont properties of @{term Rep_cfun} in both arguments *}
 
-lemma contlub_cfun: 
-  "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i) = (\<Squnion>i. F i\<cdot>(Y i))"
+lemma lub_APP:
+  "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> (\<Squnion>i. F i\<cdot>(Y i)) = (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i)"
 by (simp add: contlub_cfun_fun contlub_cfun_arg diag_lub)
 
-lemma cont_cfun: 
+lemma cont_cfun:
   "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> range (\<lambda>i. F i\<cdot>(Y i)) <<| (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i)"
 apply (rule thelubE)
 apply (simp only: ch2ch_Rep_cfun)
-apply (simp only: contlub_cfun)
+apply (simp only: lub_APP)
 done
 
-lemma contlub_LAM:
+lemma lub_LAM:
   "\<lbrakk>\<And>x. chain (\<lambda>i. F i x); \<And>i. cont (\<lambda>x. F i x)\<rbrakk>
-    \<Longrightarrow> (\<Lambda> x. \<Squnion>i. F i x) = (\<Squnion>i. \<Lambda> x. F i x)"
+    \<Longrightarrow> (\<Squnion>i. \<Lambda> x. F i x) = (\<Lambda> x. \<Squnion>i. F i x)"
 apply (simp add: lub_cfun)
 apply (simp add: Abs_cfun_inverse2)
 apply (simp add: thelub_fun ch2ch_lambda)
 done
 
-lemmas lub_distribs = 
-  contlub_cfun [symmetric]
-  contlub_LAM [symmetric]
+lemmas lub_distribs = lub_APP lub_LAM
 
 text {* strictness *}
 
@@ -278,7 +276,7 @@ done
 text {* type @{typ "'a -> 'b"} is chain complete *}
 
 lemma lub_cfun: "chain F \<Longrightarrow> range F <<| (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
-by (simp only: contlub_cfun_fun [symmetric] eta_cfun thelubE)
+by (simp only: contlub_cfun_fun [symmetric] eta_cfun cpo_lubI)
 
 lemma thelub_cfun: "chain F \<Longrightarrow> (\<Squnion>i. F i) = (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
 by (rule lub_cfun [THEN lub_eqI])
