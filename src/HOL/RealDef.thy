@@ -1112,6 +1112,7 @@ defs (overloaded)
 declare [[coercion_enabled]]
 declare [[coercion "real::nat\<Rightarrow>real"]]
 declare [[coercion "real::int\<Rightarrow>real"]]
+declare [[coercion "int"]]
 
 lemma real_eq_of_nat: "real = of_nat"
   unfolding real_of_nat_def ..
