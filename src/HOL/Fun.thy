@@ -7,6 +7,7 @@ header {* Notions about functions *}
 
 theory Fun
 imports Complete_Lattice
+uses ("Tools/type_lifting.ML")
 begin
 
 text{*As a simplification rule, it replaces all function equalities by
@@ -125,9 +126,6 @@ definition map_fun :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd)
 lemma map_fun_apply [simp]:
   "map_fun f g h x = g (h (f x))"
   by (simp add: map_fun_def)
-
-type_lifting map_fun
-  by (simp_all add: fun_eq_iff)
 
 
 subsection {* Injectivity and Bijectivity *}
@@ -774,7 +772,9 @@ proof clarify
   thus False by best
 qed
 
-subsection {* Proof tool setup *} 
+subsection {* Setup *} 
+
+subsubsection {* Proof tools *}
 
 text {* simplifies terms of the form
   f(...,x:=y,...,x:=z,...) to f(...,x:=z,...) *}
@@ -809,7 +809,7 @@ in proc end
 *}
 
 
-subsection {* Code generator setup *}
+subsubsection {* Code generator *}
 
 types_code
   "fun"  ("(_ ->/ _)")
@@ -839,5 +839,10 @@ code_const "op \<circ>"
 
 code_const "id"
   (Haskell "id")
+
+
+subsubsection {* Functorial structure of types *}
+
+use "Tools/type_lifting.ML"
 
 end

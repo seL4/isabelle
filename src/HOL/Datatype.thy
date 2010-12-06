@@ -13,6 +13,12 @@ uses
   ("Tools/Datatype/datatype_realizer.ML")
 begin
 
+subsection {* Prelude: lifting over function space *}
+
+type_lifting map_fun
+  by (simp_all add: fun_eq_iff)
+
+
 subsection {* The datatype universe *}
 
 typedef (Node)

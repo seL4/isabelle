@@ -32,7 +32,6 @@ uses
   "Tools/async_manager.ML"
   "Tools/try.ML"
   ("Tools/cnf_funcs.ML")
-  ("Tools/type_lifting.ML")
   "~~/src/Tools/subtyping.ML"
 begin
 
@@ -714,7 +713,6 @@ lemmas [trans] = trans
   and [Pure.elim?] = iffD1 iffD2 impE
 
 use "Tools/hologic.ML"
-use "Tools/type_lifting.ML"
 
 
 subsubsection {* Atomizing meta-level connectives *}

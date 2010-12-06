@@ -147,7 +147,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/solve_direct.ML \
   $(SRC)/Tools/value.ML \
   HOL.thy \
-  Tools/type_lifting.ML \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \
   Tools/simpdata.ML
@@ -243,6 +242,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/split_rule.ML \
   Tools/try.ML \
   Tools/typedef.ML \
+  Tools/type_lifting.ML \
   Transitive_Closure.thy \
   Typedef.thy \
   Wellfounded.thy
