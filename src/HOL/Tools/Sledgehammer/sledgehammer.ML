@@ -39,8 +39,7 @@ sig
      goal: thm,
      subgoal: int,
      subgoal_count: int,
-     facts: fact list,
-     only: bool}
+     facts: fact list}
 
   type prover_result =
     {outcome: failure option,
@@ -118,13 +117,15 @@ fun available_smt_solvers ctxt =
   end
 
 (* FUDGE *)
-val smt_default_max_relevant = 225
 val auto_max_relevant_divisor = 2
 
 fun default_max_relevant_for_prover ctxt name =
   let val thy = ProofContext.theory_of ctxt in
-    if is_smt_prover ctxt name then smt_default_max_relevant
-    else #default_max_relevant (get_atp thy name)
+    if is_smt_prover ctxt name then
+      SMT_Solver.default_max_relevant ctxt
+          (perhaps (try (unprefix remote_prefix)) name)
+    else
+      #default_max_relevant (get_atp thy name)
   end
 
 (* These are typically simplified away by "Meson.presimplify". Equality is
@@ -222,8 +223,7 @@ type prover_problem =
    goal: thm,
    subgoal: int,
    subgoal_count: int,
-   facts: fact list,
-   only: bool}
+   facts: fact list}
 
 type prover_result =
   {outcome: failure option,
@@ -285,18 +285,15 @@ val important_message_keep_factor = 0.1
 
 fun run_atp auto atp_name
         {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
-         known_failures, default_max_relevant, explicit_forall,
-         use_conjecture_for_hypotheses}
-        ({debug, verbose, overlord, full_types, explicit_apply,
-          max_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
-        minimize_command
-        ({state, goal, subgoal, facts, only, ...} : prover_problem) =
+         known_failures, explicit_forall, use_conjecture_for_hypotheses, ...}
+        ({debug, verbose, overlord, full_types, explicit_apply, isar_proof,
+          isar_shrink_factor, timeout, ...} : params)
+        minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val facts =
-      facts |> not only ? take (the_default default_max_relevant max_relevant)
-            |> map (translated_fact ctxt)
+      facts |> map (translated_fact ctxt)
     val dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                    else Config.get ctxt dest_dir
     val problem_prefix = Config.get ctxt problem_prefix
@@ -480,11 +477,7 @@ fun smt_filter_loop ({verbose, timeout, ...} : params) remote state i =
           else
             ()
         val {outcome, used_facts, run_time_in_msecs} =
-          TimeLimit.timeLimit iter_timeout
-              (SMT_Solver.smt_filter remote iter_timeout state facts) i
-          handle TimeLimit.TimeOut =>
-                 {outcome = SOME SMT_Failure.Time_Out, used_facts = [],
-                  run_time_in_msecs = NONE}
+          SMT_Solver.smt_filter remote iter_timeout state facts i
         val _ =
           if verbose andalso is_some outcome then
             "SMT outcome: " ^ SMT_Failure.string_of_failure ctxt (the outcome)
@@ -553,9 +546,10 @@ fun run_smt_solver auto name (params as {debug, ...}) minimize_command
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
     val thy = Proof.theory_of state
-    val smt_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
+    val get_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
+    val facts = facts |> map_filter get_fact
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop params remote state subgoal (map_filter smt_fact facts)
+      smt_filter_loop params remote state subgoal facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
     val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
@@ -591,19 +585,21 @@ fun get_prover ctxt auto name =
   end
 
 fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
-               auto minimize_command
-               (problem as {state, goal, subgoal, subgoal_count, facts, ...})
-               name =
+               auto minimize_command only
+               {state, goal, subgoal, subgoal_count, facts} name =
   let
     val ctxt = Proof.context_of state
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
     val max_relevant =
       the_default (default_max_relevant_for_prover ctxt name) max_relevant
-    val num_facts = Int.min (length facts, max_relevant)
+    val num_facts = length facts |> not only ? Integer.min max_relevant
     val desc =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
     val prover = get_prover ctxt auto name
+    val problem =
+      {state = state, goal = goal, subgoal = subgoal,
+       subgoal_count = subgoal_count, facts = take num_facts facts}
     fun go () =
       let
         fun really_go () =
@@ -616,8 +612,12 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
           else
             (really_go ()
              handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
-                  | exn => ("unknown", "Internal error:\n" ^
-                                       ML_Compiler.exn_message exn ^ "\n"))
+                  | exn =>
+                    if Exn.is_interrupt exn then
+                      reraise exn
+                    else
+                      ("unknown", "Internal error:\n" ^
+                                  ML_Compiler.exn_message exn ^ "\n"))
         val _ =
           if expect = "" orelse outcome_code = expect then
             ()
@@ -686,8 +686,8 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
               |> map maybe_translate
             val problem =
               {state = state, goal = goal, subgoal = i, subgoal_count = n,
-               facts = facts, only = only}
-            val run_prover = run_prover params auto minimize_command
+               facts = facts}
+            val run_prover = run_prover params auto minimize_command only
           in
             if debug then
               Output.urgent_message (label ^ plural_s (length provers) ^ ": " ^

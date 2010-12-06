@@ -2,7 +2,7 @@
     Author:     Philipp Meyer, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
-Minimization of fact list for Metis using ATPs.
+Minimization of fact list for Metis using external provers.
 *)
 
 signature SLEDGEHAMMER_MINIMIZE =
@@ -59,18 +59,26 @@ fun test_facts ({debug, overlord, provers, full_types, isar_proof,
     val {goal, ...} = Proof.goal state
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       facts = facts, only = true}
+       facts = facts}
     val result as {outcome, used_facts, ...} = prover params (K "") problem
   in
-    Output.urgent_message (case outcome of
-                SOME failure => string_for_failure failure
-              | NONE =>
-                if length used_facts = length facts then "Found proof."
-                else "Found proof with " ^ n_facts used_facts ^ ".");
+    Output.urgent_message
+        (case outcome of
+           SOME failure => string_for_failure failure
+         | NONE =>
+           if length used_facts = length facts then "Found proof."
+           else "Found proof with " ^ n_facts used_facts ^ ".");
     result
   end
 
 (* minimalization of facts *)
+
+(* The sublinear algorithm works well in almost all situations, except when the
+   external prover cannot return the list of used facts and hence returns all
+   facts as used. In that case, the binary algorithm is much more
+   appropriate. We can usually detect that situation just by looking at the
+   number of used facts reported by the prover. *)
+val binary_threshold = 50
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
@@ -82,9 +90,35 @@ fun sublinear_minimize _ [] p = p
                          (filter_used_facts used_facts seen, result)
     | _ => sublinear_minimize test xs (x :: seen, result)
 
-(* Give the ATP some slack. The ATP gets further slack because the Sledgehammer
-   preprocessing time is included in the estimate below but isn't part of the
-   timeout. *)
+fun binary_minimize test xs =
+  let
+    fun p xs = #outcome (test xs : prover_result) = NONE
+    fun split [] p = p
+      | split [h] (l, r) = (h :: l, r)
+      | split (h1 :: h2 :: t) (l, r) = split t (h1 :: l, h2 :: r)
+    fun min _ [] = raise Empty
+      | min _ [s0] = [s0]
+      | min sup xs =
+        let val (l0, r0) = split xs ([], []) in
+          if p (sup @ l0) then
+            min sup l0
+          else if p (sup @ r0) then
+            min sup r0
+          else
+            let
+              val l = min (sup @ r0) l0
+              val r = min (sup @ l) r0
+            in l @ r end
+        end
+    val xs =
+      case min [] xs of
+        [x] => if p [] then [] else [x]
+      | xs => xs
+  in (xs, test xs) end
+
+(* Give the external prover some slack. The ATP gets further slack because the
+   Sledgehammer preprocessing time is included in the estimate below but isn't
+   part of the timeout. *)
 val fudge_msecs = 1000
 
 fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
@@ -95,7 +129,8 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt false prover_name
     val msecs = Time.toMilliseconds timeout
-    val _ = Output.urgent_message ("Sledgehammer minimize: " ^ quote prover_name ^ ".")
+    val _ = Output.urgent_message ("Sledgehammer minimize: " ^
+                                   quote prover_name ^ ".")
     val {goal, ...} = Proof.goal state
     val (_, hyp_ts, concl_t) = strip_subgoal goal i
     val explicit_apply =
@@ -112,9 +147,12 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
          val new_timeout =
            Int.min (msecs, Time.toMilliseconds time + fudge_msecs)
            |> Time.fromMilliseconds
+         val facts = filter_used_facts used_facts facts
          val (min_thms, {message, ...}) =
-           sublinear_minimize (do_test new_timeout)
-               (filter_used_facts used_facts facts) ([], result)
+           if length facts >= binary_threshold then
+             binary_minimize (do_test new_timeout) facts
+           else
+             sublinear_minimize (do_test new_timeout) facts ([], result)
          val n = length min_thms
          val _ = Output.urgent_message (cat_lines
            ["Minimized: " ^ string_of_int n ^ " fact" ^ plural_s n] ^
@@ -132,7 +170,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
               \can increase the time limit using the \"timeout\" \
               \option (e.g., \"timeout = " ^
               string_of_int (10 + msecs div 1000) ^ "\").")
-     | {message, ...} => (NONE, "ATP error: " ^ message))
+     | {message, ...} => (NONE, "Prover error: " ^ message))
     handle ERROR msg => (NONE, "Error: " ^ msg)
   end
 

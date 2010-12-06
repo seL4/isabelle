@@ -43,8 +43,7 @@ fun run_atp force_full_types timeout i n ctxt goal name =
                         (prop_of goal))
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = i,
-       facts = map Sledgehammer.Untranslated facts,
-       only = true, subgoal_count = n}
+       subgoal_count = n, facts = map Sledgehammer.Untranslated facts}
   in
     (case prover params (K "") problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME

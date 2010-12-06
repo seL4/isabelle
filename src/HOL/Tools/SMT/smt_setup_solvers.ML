@@ -19,7 +19,7 @@ fun outcome_of unsat sat unknown solver_name line =
   else raise SMT_Failure.SMT (SMT_Failure.Other_Failure ("Solver " ^
     quote solver_name ^ " failed. Enable SMT tracing by setting the " ^
     "configuration option " ^ quote SMT_Config.traceN ^ " and " ^
-    " see the trace for details."))
+    "see the trace for details."))
 
 fun on_first_line test_outcome solver_name lines =
   let
@@ -40,7 +40,8 @@ fun cvc3 () = {
   outcome =
     on_first_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
   cex_parser = NONE,
-  reconstruct = NONE }
+  reconstruct = NONE,
+  default_max_relevant = 250 }
 
 
 (* Yices *)
@@ -53,7 +54,8 @@ fun yices () = {
   interface = SMTLIB_Interface.interface,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
   cex_parser = NONE,
-  reconstruct = NONE }
+  reconstruct = NONE,
+  default_max_relevant = 275 }
 
 
 (* Z3 *)
@@ -85,7 +87,8 @@ fun z3 () = {
   interface = Z3_Interface.interface,
   outcome = z3_on_last_line,
   cex_parser = SOME Z3_Model.parse_counterex,
-  reconstruct = SOME Z3_Proof_Reconstruction.reconstruct }
+  reconstruct = SOME Z3_Proof_Reconstruction.reconstruct,
+  default_max_relevant = 225 }
 
 
 (* overall setup *)
