@@ -270,7 +270,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val intro_table = inductive_intro_table ctxt subst def_table
     val ground_thm_table = ground_theorem_table thy
     val ersatz_table = ersatz_table ctxt
-    val (hol_ctxt as {wf_cache, ...}) =
+    val hol_ctxt as {wf_cache, ...} =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
        stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
        whacks = whacks, binary_ints = binary_ints,

@@ -562,7 +562,11 @@ fun print_solution asgs =
                              string_for_vars ", " (sort int_ord xs))
        |> space_implode "\n"))
 
-fun solve max_var (comps, clauses) =
+(* The ML solver timeout should correspond more or less to the overhead of
+   invoking an external prover. *)
+val ml_solver_timeout = SOME (seconds 0.02)
+
+fun solve tac_timeout max_var (comps, clauses) =
   let
     val asgs = map_filter (fn [(x, (_, a))] => SOME (x, a) | _ => NONE) clauses
     fun do_assigns assigns =
@@ -578,13 +582,22 @@ fun solve max_var (comps, clauses) =
     else
       let
         (* use the first ML solver (to avoid startup overhead) *)
-        val solvers = !SatSolver.solvers
-                      |> filter (member (op =) ["dptsat", "dpll"] o fst)
+        val (ml_solvers, nonml_solvers) =
+          !SatSolver.solvers
+          |> List.partition (member (op =) ["dptsat", "dpll"] o fst)
+        val res =
+          if null nonml_solvers then
+            time_limit tac_timeout (snd (hd ml_solvers)) prop
+          else
+            time_limit ml_solver_timeout (snd (hd ml_solvers)) prop
+            handle TimeLimit.TimeOut =>
+                   time_limit tac_timeout (SatSolver.invoke_solver "auto") prop
       in
-        case snd (hd solvers) prop of
+        case res of
           SatSolver.SATISFIABLE assigns => do_assigns assigns
         | _ => (trace_msg (K "*** Unsolvable"); NONE)
       end
+      handle TimeLimit.TimeOut => (trace_msg (K "*** Timed out"); NONE)
   end
 
 type mcontext =
@@ -1192,8 +1205,8 @@ fun print_mcontext ctxt asgs ({frees, consts, ...} : mcontext) =
 fun amass f t (ms, accum) =
   let val (m, accum) = f t accum in (m :: ms, accum) end
 
-fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize alpha_T
-          (nondef_ts, def_ts) =
+fun infer which no_harmless (hol_ctxt as {ctxt, tac_timeout, ...}) binarize
+          alpha_T (nondef_ts, def_ts) =
   let
     val _ = trace_msg (fn () => "****** " ^ which ^ " analysis: " ^
                                 string_for_mtype MAlpha ^ " is " ^
@@ -1208,7 +1221,7 @@ fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize alpha_T
     val (def_ms, (gamma, cset)) =
       ([], accum) |> fold (amass (consider_definitional_axiom mdata)) def_ts
   in
-    case solve (!max_fresh) cset of
+    case solve tac_timeout (!max_fresh) cset of
       SOME asgs => (print_mcontext ctxt asgs gamma;
                     SOME (asgs, (nondef_ms, def_ms), !constr_mcache))
     | _ => NONE
