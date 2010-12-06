@@ -32,7 +32,7 @@ type var = int
 datatype annotation = Gen | New | Fls | Tru
 datatype annotation_atom = A of annotation | V of var
 
-type assign = var * annotation
+type assign_literal = var * annotation
 
 datatype mtyp =
   MAlpha |
@@ -82,7 +82,7 @@ fun string_for_annotation Gen = "G"
 fun string_for_annotation_atom (A a) = string_for_annotation a
   | string_for_annotation_atom (V x) = string_for_var x
 
-fun string_for_assign (x, a) =
+fun string_for_assign_literal (x, a) =
   string_for_var x ^ " = " ^ string_for_annotation a
 
 val bool_M = MType (@{type_name bool}, [])
@@ -349,7 +349,7 @@ fun resolve_mtype asgs =
 datatype comp_op = Eq | Leq
 
 type comp = annotation_atom * annotation_atom * comp_op * var list
-type assign_clause = assign list
+type assign_clause = assign_literal list
 
 type constraint_set = comp list * assign_clause list
 
@@ -362,9 +362,9 @@ fun string_for_comp (aa1, aa2, cmp, xs) =
 
 fun string_for_assign_clause [] = "\<bot>"
   | string_for_assign_clause asgs =
-    space_implode " \<or> " (map string_for_assign asgs)
+    space_implode " \<or> " (map string_for_assign_literal asgs)
 
-fun add_assign (x, a) clauses =
+fun add_assign_literal (x, a) clauses =
   if exists (fn [(x', a')] => x = x' andalso a <> a' | _ => false) clauses then
     NONE
   else
@@ -377,7 +377,7 @@ fun do_annotation_atom_comp Eq [] aa1 aa2 (cset as (comps, clauses)) =
     (case (aa1, aa2) of
        (A a1, A a2) => if a1 = a2 then SOME cset else NONE
      | (V x1, A a2) =>
-       clauses |> add_assign (x1, a2) |> Option.map (pair comps)
+       clauses |> add_assign_literal (x1, a2) |> Option.map (pair comps)
      | (V _, V _) => SOME (insert (op =) (aa1, aa2, Eq, []) comps, clauses)
      | _ => do_annotation_atom_comp Eq [] aa2 aa1 cset)
   | do_annotation_atom_comp Leq [] aa1 aa2 (cset as (comps, clauses)) =
@@ -441,7 +441,7 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
   | do_notin_mtype_fv Minus _ MAlpha cset = cset
   | do_notin_mtype_fv Plus [] MAlpha _ = NONE
   | do_notin_mtype_fv Plus [(x, a)] MAlpha (SOME clauses) =
-    clauses |> add_assign (x, a)
+    clauses |> add_assign_literal (x, a)
   | do_notin_mtype_fv Plus clause MAlpha (SOME clauses) =
     SOME (insert (op =) clause clauses)
   | do_notin_mtype_fv sn clause (MFun (M1, A a, M2)) cset =
@@ -495,28 +495,28 @@ fun prop_for_bool b = if b then PL.True else PL.False
 fun prop_for_bool_var_equality (v1, v2) =
   PL.And (PL.Or (PL.BoolVar v1, PL.Not (PL.BoolVar v2)),
           PL.Or (PL.Not (PL.BoolVar v1), PL.BoolVar v2))
-fun prop_for_assign (x, a) =
+fun prop_for_assign_literal (x, a) =
   let val (b1, b2) = bools_from_annotation a in
     PL.And (PL.BoolVar (fst_var x) |> not b1 ? PL.Not,
             PL.BoolVar (snd_var x) |> not b2 ? PL.Not)
   end
 fun prop_for_atom_assign (A a', a) = prop_for_bool (a = a')
-  | prop_for_atom_assign (V x, a) = prop_for_assign (x, a)
+  | prop_for_atom_assign (V x, a) = prop_for_assign_literal (x, a)
 fun prop_for_atom_equality (aa1, A a2) = prop_for_atom_assign (aa1, a2)
   | prop_for_atom_equality (A a1, aa2) = prop_for_atom_assign (aa2, a1)
   | prop_for_atom_equality (V x1, V x2) =
     PL.And (prop_for_bool_var_equality (pairself fst_var (x1, x2)),
             prop_for_bool_var_equality (pairself snd_var (x1, x2)))
-val prop_for_assign_clause = PL.exists o map prop_for_assign
-fun prop_for_exists_var_assign xs a =
-  PL.exists (map (fn x => prop_for_assign (x, a)) xs)
+val prop_for_assign_clause = PL.exists o map prop_for_assign_literal
+fun prop_for_exists_var_assign_literal xs a =
+  PL.exists (map (fn x => prop_for_assign_literal (x, a)) xs)
 fun prop_for_comp (aa1, aa2, Eq, []) =
     PL.SAnd (prop_for_comp (aa1, aa2, Leq, []),
              prop_for_comp (aa2, aa1, Leq, []))
   | prop_for_comp (aa1, aa2, Leq, []) =
     PL.SOr (prop_for_atom_equality (aa1, aa2), prop_for_atom_assign (aa2, Gen))
   | prop_for_comp (aa1, aa2, cmp, xs) =
-    PL.SOr (prop_for_exists_var_assign xs Gen,
+    PL.SOr (prop_for_exists_var_assign_literal xs Gen,
             prop_for_comp (aa1, aa2, cmp, []))
 
 (* The "calculus" parameter may be 1, 2, or 3, corresponding approximately to
@@ -526,7 +526,7 @@ fun variable_domain calculus =
   @ (if calculus > 2 then [New, Tru] else [])
 
 fun prop_for_variable_domain calculus x =
-  PL.exists (map (curry prop_for_assign x) (variable_domain calculus))
+  PL.exists (map (curry prop_for_assign_literal x) (variable_domain calculus))
 
 fun extract_assigns max_var assigns asgs =
   fold (fn x => fn accum =>
@@ -593,8 +593,9 @@ type mtype_context =
    consts: (styp * mtyp) list}
 
 val string_for_frame =
-  commas o map (fn (j, aa) => "#" ^ string_of_int j ^ " |-> " ^
-                              string_for_annotation_atom aa)
+  map (fn (j, aa) => "#" ^ string_of_int j ^ " |-> " ^
+                     string_for_annotation_atom aa)
+  #> commas #> enclose "[" "]"
 
 type accumulator = mtype_context * constraint_set
 
@@ -620,8 +621,8 @@ fun set_frame bound_frame ({bound_Ts, bound_Ms, frees, consts, ...}
 (* FIXME: make sure tracing messages are complete *)
 
 fun add_comp_frame a cmp frame =
-  (trace_msg (fn () => "*** Add " ^ string_for_annotation a ^
-                       string_for_comp_op cmp ^ " frame " ^
+  (trace_msg (fn () => "*** Add " ^ string_for_annotation a ^ " " ^
+                       string_for_comp_op cmp ^ " " ^
                        string_for_frame frame);
    fold (add_annotation_atom_comp cmp [] (A a) o snd) frame)
 
@@ -640,12 +641,31 @@ fun fresh_imp_frame ({max_fresh, ...} : mdata) sn =
       | do_var (j, _) = (j, V (Unsynchronized.inc max_fresh))
   in map do_var end
 
-fun add_imp_frames res_frame frame1 frame2 = I
-(*###
-  let
-    fun do_var_pair (j, aa0) (_, aa1) (_, aa2) =
-  in map3 do_var_pair res_frame frame1 frame2 end
+fun do_not_var j aa0 aa1 _ = I
+(*
+x1 ~= T | x0 = F
+x1 ~= F | x0 = T
+x1 ~= G | x0 = G
+x1 ~= N | x0 = G
 *)
+
+fun do_conj_var j aa0 aa1 aa2 = I
+(*
+  (x1 ≠ T | x2 ≠ T | x0 = T) &
+  (x1 ≠ F | x0 = F) &
+  (x2 ≠ F | x0 = F) &
+  (x1 ≠ G | x2 = F | x0 = G) &
+  (x1 ≠ N | x2 = F | x0 = G) &
+  (x1 = F | x2 ≠ G | x0 = G) &
+  (x1 = F | x2 ≠ N | x0 = G)"
+*)
+
+fun do_disj_var j aa0 aa1 aa2 = I
+fun do_imp_var j aa0 aa1 aa2 = I
+
+fun add_connective_frames do_var res_frame frame1 frame2 =
+  fold I (map3 (fn (j, aa0) => fn (_, aa1) => fn (_, aa2) =>
+                   do_var j aa0 aa1 aa2) res_frame frame1 frame2)
 
 fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                              max_fresh, ...}) =
@@ -722,6 +742,17 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                                        mtype_for (fastype_of connective_t)),
                                  MApp (bound_m, MRaw (Bound 0, M1))),
                            body_m))), accum)
+      end
+    and do_connect do_var t0 t1 t2 (accum as ({bound_frame, ...}, _)) =
+      let
+        val frame1 = fresh_imp_frame mdata Minus bound_frame
+        val frame2 = fresh_imp_frame mdata Plus bound_frame
+        val (m1, accum) = accum |>> set_frame frame1 |> do_term t1
+        val (m2, accum) = accum |>> set_frame frame2 |> do_term t2
+      in
+        (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
+         accum |>> set_frame bound_frame
+               ||> add_connective_frames do_var bound_frame frame1 frame2)
       end
     and do_term t (accum as ({bound_Ts, bound_Ms, bound_frame, frees, consts},
                              cset)) =
@@ -879,18 +910,6 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                         val (m', accum) =
                           do_term t' (accum |>> push_bound aa T M)
                       in (MAbs (s, T, M, aa, m'), accum |>> pop_bound) end))
-         | (t0 as @{const implies}) $ t1 $ t2 =>
-           let
-             val frame1 = fresh_imp_frame mdata Minus bound_frame
-             val frame2 = fresh_imp_frame mdata Plus bound_frame
-             val (m0, accum) = accum |> do_term t0
-             val (m1, accum) = accum |>> set_frame frame1 |> do_term t1
-             val (m2, accum) = accum |>> set_frame frame2 |> do_term t2
-           in
-             (MApp (MApp (m0, m1), m2),
-              accum |>> set_frame bound_frame
-                    ||> add_imp_frames bound_frame frame1 frame2)
-           end
          | (t0 as Const (@{const_name All}, _))
            $ Abs (s', T', (t10 as @{const HOL.implies})
                           $ (t11 $ Bound 0) $ t12) =>
@@ -899,6 +918,22 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
            $ Abs (s', T', (t10 as @{const HOL.conj})
                           $ (t11 $ Bound 0) $ t12) =>
            do_bounded_quantifier t0 s' T' t10 t11 t12 accum
+         | (t0 as @{const Not}) $ t1 =>
+           let
+             val frame1 = fresh_imp_frame mdata Minus bound_frame
+             val (m1, accum) = accum |>> set_frame frame1 |> do_term t1
+           in
+             (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1),
+              accum |>> set_frame bound_frame
+                    ||> add_connective_frames do_not_var bound_frame frame1
+                                                         frame1)
+           end
+         | (t0 as @{const conj}) $ t1 $ t2 =>
+           do_connect do_conj_var t0 t1 t2 accum
+         | (t0 as @{const disj}) $ t1 $ t2 =>
+           do_connect do_disj_var t0 t1 t2 accum
+         | (t0 as @{const implies}) $ t1 $ t2 =>
+           do_connect do_imp_var t0 t1 t2 accum
          | Const (@{const_name Let}, _) $ t1 $ t2 =>
            do_term (betapply (t2, t1)) accum
          | t1 $ t2 =>
