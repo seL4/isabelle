@@ -24,9 +24,9 @@ val quickcheck_mtd : (Proof.context -> Proof.context) -> string -> mtd
 
 val solve_direct_mtd : mtd
 val try_mtd : mtd
-
+(*
 val sledgehammer_mtd : mtd
-
+*)
 (*
 val refute_mtd : mtd
 val nitpick_mtd : mtd
@@ -156,7 +156,7 @@ fun invoke_try thy t =
 val try_mtd = ("try", invoke_try)
 
 (** sledgehammer **)
-
+(*
 fun invoke_sledgehammer thy t =
   if can (Goal.prove_global thy (Term.add_free_names t [])  [] t)
       (fn {context, ...} => Sledgehammer_Tactics.sledgehammer_with_metis_tac context 1) then
@@ -165,7 +165,7 @@ fun invoke_sledgehammer thy t =
     (Unsolved, ([], NONE))
 
 val sledgehammer_mtd = ("sledgehammer", invoke_sledgehammer)
-
+*)
 (*
 fun invoke_refute thy t =
   let
