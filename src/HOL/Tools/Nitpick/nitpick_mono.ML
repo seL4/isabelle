@@ -378,14 +378,15 @@ fun add_assign_literal (x, (sn, a)) clauses =
 fun add_assign_disjunct _ NONE = NONE
   | add_assign_disjunct asg (SOME asgs) = SOME (insert (op =) asg asgs)
 
+val add_assign_clause = insert (op =)
+
 fun annotation_comp Eq a1 a2 = (a1 = a2)
   | annotation_comp Neq a1 a2 = (a1 <> a2)
   | annotation_comp Leq a1 a2 = (a1 = a2 orelse a2 = Gen)
 
-fun comp_op_sign Eq = Plus
-  | comp_op_sign Neq = Minus
-  | comp_op_sign Leq =
-    raise BAD ("Nitpick_Mono.comp_op_sign", "unexpected \"Leq\"")
+fun sign_for_comp_op Eq = Plus
+  | sign_for_comp_op Neq = Minus
+  | sign_for_comp_op Leq = raise BAD ("sign_for_comp_op", "unexpected \"Leq\"")
 
 fun do_annotation_atom_comp Leq [] aa1 aa2 (cset as (comps, clauses)) =
     (case (aa1, aa2) of
@@ -395,15 +396,14 @@ fun do_annotation_atom_comp Leq [] aa1 aa2 (cset as (comps, clauses)) =
     (case (aa1, aa2) of
        (A a1, A a2) => if annotation_comp cmp a1 a2 then SOME cset else NONE
      | (V x1, A a2) =>
-       clauses |> add_assign_literal (x1, (comp_op_sign cmp, a2))
+       clauses |> add_assign_literal (x1, (sign_for_comp_op cmp, a2))
                |> Option.map (pair comps)
      | (A _, V _) => do_annotation_atom_comp cmp [] aa2 aa1 cset
      | (V _, V _) => SOME (insert (op =) (aa1, aa2, cmp, []) comps, clauses))
   | do_annotation_atom_comp cmp xs aa1 aa2 (comps, clauses) =
     SOME (insert (op =) (aa1, aa2, cmp, xs) comps, clauses)
 
-fun add_annotation_atom_comp cmp xs aa1 aa2
-                             ((comps, clauses) : constraint_set) =
+fun add_annotation_atom_comp cmp xs aa1 aa2 (comps, clauses) =
   (trace_msg (fn () => "*** Add " ^ string_for_annotation_atom aa1 ^ " " ^
                        string_for_comp_op cmp ^ " " ^
                        string_for_annotation_atom aa2);
@@ -482,7 +482,7 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
  | do_notin_mtype_fv _ _ M _ =
    raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
 
-fun add_notin_mtype_fv sn M ((comps, clauses) : constraint_set) =
+fun add_notin_mtype_fv sn M (comps, clauses) =
   (trace_msg (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
                        (case sn of Minus => "concrete" | Plus => "complete"));
    case SOME clauses |> do_notin_mtype_fv sn [] M of
@@ -610,11 +610,6 @@ type mtype_context =
    frees: (styp * mtyp) list,
    consts: (styp * mtyp) list}
 
-val string_for_frame =
-  map (fn (j, aa) => "#" ^ string_of_int j ^ " |-> " ^
-                     string_for_annotation_atom aa)
-  #> commas #> enclose "[" "]"
-
 type accumulator = mtype_context * constraint_set
 
 val initial_gamma =
@@ -638,11 +633,7 @@ fun set_frame bound_frame ({bound_Ts, bound_Ms, frees, consts, ...}
 
 (* FIXME: make sure tracing messages are complete *)
 
-fun add_comp_frame a cmp frame =
-  (trace_msg (fn () => "*** Add " ^ string_for_annotation a ^ " " ^
-                       string_for_comp_op cmp ^ " " ^
-                       string_for_frame frame);
-   fold (add_annotation_atom_comp cmp [] (A a) o snd) frame)
+fun add_comp_frame a cmp = fold (add_annotation_atom_comp cmp [] (A a) o snd)
 
 fun add_bound_frame j frame =
   let
@@ -652,38 +643,62 @@ fun add_bound_frame j frame =
     #> add_comp_frame Gen Eq gen_frame
   end
 
-fun fresh_imp_frame ({max_fresh, ...} : mdata) sn =
-  let
-    fun do_var (j, A Fls) = (j, A (case sn of Plus => Fls | Minus => Tru))
-      | do_var (j, A Gen) = (j, A Gen)
-      | do_var (j, _) = (j, V (Unsynchronized.inc max_fresh))
-  in map do_var end
+fun fresh_frame ({max_fresh, ...} : mdata) fls tru =
+  map (apsnd (fn aa =>
+                 case (aa, fls, tru) of
+                   (A Fls, SOME a, _) => A a
+                 | (A Tru, _, SOME a) => A a
+                 | (A Gen, _, _) => A Gen
+                 | _ => V (Unsynchronized.inc max_fresh)))
 
-fun do_not_var j aa0 aa1 _ = I
-(*
-x1 ~= T | x0 = F
-x1 ~= F | x0 = T
-x1 ~= G | x0 = G
-x1 ~= N | x0 = G
-*)
+fun conj_clauses res_aa aa1 aa2 =
+  [[(aa1, (Neq, Tru)), (aa2, (Neq, Tru)), (res_aa, (Eq, Tru))],
+   [(aa1, (Neq, Fls)), (res_aa, (Eq, Fls))],
+   [(aa2, (Neq, Fls)), (res_aa, (Eq, Fls))],
+   [(aa1, (Neq, Gen)), (aa2, (Eq, Fls)), (res_aa, (Eq, Gen))],
+   [(aa1, (Neq, New)), (aa2, (Eq, Fls)), (res_aa, (Eq, Gen))],
+   [(aa1, (Eq, Fls)), (aa2, (Neq, Gen)), (res_aa, (Eq, Gen))],
+   [(aa1, (Eq, Fls)), (aa2, (Neq, New)), (res_aa, (Eq, Gen))]]
 
-fun do_conj_var j aa0 aa1 aa2 = I
-(*
-  (x1 ≠ T | x2 ≠ T | x0 = T) &
-  (x1 ≠ F | x0 = F) &
-  (x2 ≠ F | x0 = F) &
-  (x1 ≠ G | x2 = F | x0 = G) &
-  (x1 ≠ N | x2 = F | x0 = G) &
-  (x1 = F | x2 ≠ G | x0 = G) &
-  (x1 = F | x2 ≠ N | x0 = G)"
-*)
+fun disj_clauses res_aa aa1 aa2 =
+  [[(aa1, (Neq, Tru)), (res_aa, (Eq, Tru))],
+   [(aa2, (Neq, Tru)), (res_aa, (Eq, Tru))],
+   [(aa1, (Neq, Fls)), (aa2, (Neq, Fls)), (res_aa, (Eq, Fls))],
+   [(aa1, (Neq, Gen)), (aa2, (Eq, Tru)), (res_aa, (Eq, Gen))],
+   [(aa1, (Neq, New)), (aa2, (Eq, Tru)), (res_aa, (Eq, Gen))],
+   [(aa1, (Eq, Tru)), (aa2, (Neq, Gen)), (res_aa, (Eq, Gen))],
+   [(aa1, (Eq, Tru)), (aa2, (Neq, New)), (res_aa, (Eq, Gen))]]
 
-fun do_disj_var j aa0 aa1 aa2 = I
-fun do_imp_var j aa0 aa1 aa2 = I
+fun imp_clauses res_aa aa1 aa2 =
+  [[(aa1, (Neq, Fls)), (res_aa, (Eq, Tru))],
+   [(aa2, (Neq, Tru)), (res_aa, (Eq, Tru))],
+   [(aa1, (Neq, Tru)), (aa2, (Neq, Fls)), (res_aa, (Eq, Fls))],
+   [(aa1, (Neq, Gen)), (aa2, (Eq, Tru)), (res_aa, (Eq, Gen))],
+   [(aa1, (Neq, New)), (aa2, (Eq, Tru)), (res_aa, (Eq, Gen))],
+   [(aa1, (Eq, Fls)), (aa2, (Neq, Gen)), (res_aa, (Eq, Gen))],
+   [(aa1, (Eq, Fls)), (aa2, (Neq, New)), (res_aa, (Eq, Gen))]]
 
-fun add_connective_frames do_var res_frame frame1 frame2 =
-  fold I (map3 (fn (j, aa0) => fn (_, aa1) => fn (_, aa2) =>
-                   do_var j aa0 aa1 aa2) res_frame frame1 frame2)
+fun annotation_literal_from_quasi_literal (aa, (cmp, a)) =
+  case aa of
+    A a' => if annotation_comp cmp a' a then NONE
+            else (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
+  | V x => SOME (x, (sign_for_comp_op cmp, a))
+
+val annotation_clause_from_quasi_clause =
+  map_filter annotation_literal_from_quasi_literal
+
+val add_quasi_clause = annotation_clause_from_quasi_clause #> add_assign_clause
+
+fun add_connective_var conn mk_quasi_clauses res_aa aa1 aa2 =
+  (trace_msg (fn () => "*** Add " ^ string_for_annotation_atom res_aa ^ " = " ^
+                       string_for_annotation_atom aa1 ^ " " ^ conn ^ " " ^
+                       string_for_annotation_atom aa2);
+   fold add_quasi_clause (mk_quasi_clauses res_aa aa1 aa2))
+
+fun add_connective_frames conn mk_quasi_clauses res_frame frame1 frame2 =
+  fold I (map3 (fn (_, res_aa) => fn (_, aa1) => fn (_, aa2) =>
+                   add_connective_var conn mk_quasi_clauses res_aa aa1 aa2)
+               res_frame frame1 frame2)
 
 fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                              max_fresh, ...}) =
@@ -705,10 +720,13 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
          (gamma, cset |> add_mtype_is_complete abs_M))
       end
     fun do_equals T (gamma, cset) =
-      let val M = mtype_for (domain_type T) in
-        (MFun (M, A Gen, MFun (M, V (Unsynchronized.inc max_fresh),
-                               mtype_for (nth_range_type 2 T))),
-         (gamma, cset |> add_mtype_is_concrete M))
+      let
+        val M = mtype_for (domain_type T)
+        val aa = V (Unsynchronized.inc max_fresh)
+      in
+        (MFun (M, A Gen, MFun (M, aa, mtype_for (nth_range_type 2 T))),
+         (gamma, cset |> add_mtype_is_concrete M
+                      |> add_annotation_atom_comp Leq [] (A Fls) aa))
       end
     fun do_robust_set_operation T (gamma, cset) =
       let
@@ -761,16 +779,18 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                                  MApp (bound_m, MRaw (Bound 0, M1))),
                            body_m))), accum)
       end
-    and do_connect do_var t0 t1 t2 (accum as ({bound_frame, ...}, _)) =
+    and do_connect conn mk_quasi_clauses t0 t1 t2
+                   (accum as ({bound_frame, ...}, _)) =
       let
-        val frame1 = fresh_imp_frame mdata Minus bound_frame
-        val frame2 = fresh_imp_frame mdata Plus bound_frame
+        val frame1 = fresh_frame mdata (SOME Tru) NONE bound_frame
+        val frame2 = fresh_frame mdata (SOME Fls) NONE bound_frame
         val (m1, accum) = accum |>> set_frame frame1 |> do_term t1
         val (m2, accum) = accum |>> set_frame frame2 |> do_term t2
       in
         (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
          accum |>> set_frame bound_frame
-               ||> add_connective_frames do_var bound_frame frame1 frame2)
+               ||> apsnd (add_connective_frames conn mk_quasi_clauses
+                                                bound_frame frame1 frame2))
       end
     and do_term t (accum as ({bound_Ts, bound_Ms, bound_frame, frees, consts},
                              cset)) =
@@ -929,29 +949,20 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                           do_term t' (accum |>> push_bound aa T M)
                       in (MAbs (s, T, M, aa, m'), accum |>> pop_bound) end))
          | (t0 as Const (@{const_name All}, _))
-           $ Abs (s', T', (t10 as @{const HOL.implies})
-                          $ (t11 $ Bound 0) $ t12) =>
+           $ Abs (s', T', (t10 as @{const implies}) $ (t11 $ Bound 0) $ t12) =>
            do_bounded_quantifier t0 s' T' t10 t11 t12 accum
          | (t0 as Const (@{const_name Ex}, _))
-           $ Abs (s', T', (t10 as @{const HOL.conj})
-                          $ (t11 $ Bound 0) $ t12) =>
+           $ Abs (s', T', (t10 as @{const conj}) $ (t11 $ Bound 0) $ t12) =>
            do_bounded_quantifier t0 s' T' t10 t11 t12 accum
-         | (t0 as @{const Not}) $ t1 =>
-           let
-             val frame1 = fresh_imp_frame mdata Minus bound_frame
-             val (m1, accum) = accum |>> set_frame frame1 |> do_term t1
-           in
-             (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1),
-              accum |>> set_frame bound_frame
-                    ||> add_connective_frames do_not_var bound_frame frame1
-                                                         frame1)
-           end
+         | @{const Not} $ t1 =>
+           do_connect "\<implies>" imp_clauses @{const implies} t1
+                      @{const False} accum
          | (t0 as @{const conj}) $ t1 $ t2 =>
-           do_connect do_conj_var t0 t1 t2 accum
+           do_connect "\<and>" conj_clauses t0 t1 t2 accum
          | (t0 as @{const disj}) $ t1 $ t2 =>
-           do_connect do_disj_var t0 t1 t2 accum
+           do_connect "\<or>" disj_clauses t0 t1 t2 accum
          | (t0 as @{const implies}) $ t1 $ t2 =>
-           do_connect do_imp_var t0 t1 t2 accum
+           do_connect "\<implies>" imp_clauses t0 t1 t2 accum
          | Const (@{const_name Let}, _) $ t1 $ t2 =>
            do_term (betapply (t2, t1)) accum
          | t1 $ t2 =>
@@ -1053,12 +1064,12 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
            | (t0 as Const (s0, _)) $ t1 $ t2 =>
              if s0 = @{const_name "==>"} orelse
                 s0 = @{const_name Pure.conjunction} orelse
-                s0 = @{const_name HOL.conj} orelse
-                s0 = @{const_name HOL.disj} orelse
-                s0 = @{const_name HOL.implies} then
+                s0 = @{const_name conj} orelse
+                s0 = @{const_name disj} orelse
+                s0 = @{const_name implies} then
                let
                  val impl = (s0 = @{const_name "==>"} orelse
-                             s0 = @{const_name HOL.implies})
+                             s0 = @{const_name implies})
                  val (m1, accum) =
                    do_formula (sn |> impl ? negate_sign) t1 accum
                  val (m2, accum) = do_formula sn t2 accum
@@ -1146,8 +1157,8 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...}) t =
             do_all t0 s0 T1 t1 accum
           | Const (x as (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
             consider_general_equals mdata true x t1 t2 accum
-          | (t0 as @{const HOL.conj}) $ t1 $ t2 => do_conjunction t0 t1 t2 accum
-          | (t0 as @{const HOL.implies}) $ t1 $ t2 => do_implies t0 t1 t2 accum
+          | (t0 as @{const conj}) $ t1 $ t2 => do_conjunction t0 t1 t2 accum
+          | (t0 as @{const implies}) $ t1 $ t2 => do_implies t0 t1 t2 accum
           | _ => raise TERM ("Nitpick_Mono.consider_definitional_axiom.\
                              \do_formula", [t])
     in do_formula t end
