@@ -12,31 +12,51 @@ imports Main
 begin
 
 ML {*
+open Nitpick_Util
+open Nitpick_HOL
+
 exception BUG
 
+val thy = @{theory}
+val ctxt = @{context}
+val stds = [(NONE, true)]
 val subst = []
-val defs = Nitpick_HOL.all_axioms_of @{context} subst |> #1
-val def_table = Nitpick_HOL.const_def_table @{context} subst defs
-val hol_ctxt : Nitpick_HOL.hol_context =
-  {thy = @{theory}, ctxt = @{context}, max_bisim_depth = ~1, boxes = [],
-   stds = [(NONE, true)], wfs = [], user_axioms = NONE, debug = false,
+val case_names = case_const_names ctxt stds
+val (defs, built_in_nondefs, user_nondefs) = all_axioms_of ctxt subst
+val def_table = const_def_table ctxt subst defs
+val nondef_table = const_nondef_table (built_in_nondefs @ user_nondefs)
+val simp_table = Unsynchronized.ref (const_simp_table ctxt subst)
+val psimp_table = const_psimp_table ctxt subst
+val choice_spec_table = const_choice_spec_table ctxt subst
+val user_nondefs =
+  user_nondefs |> filter_out (is_choice_spec_axiom thy choice_spec_table)
+val intro_table = inductive_intro_table ctxt subst def_table
+val ground_thm_table = ground_theorem_table thy
+val ersatz_table = ersatz_table ctxt
+val hol_ctxt as {thy, ...} =
+  {thy = thy, ctxt = ctxt, max_bisim_depth = ~1, boxes = [],
+   stds = stds, wfs = [], user_axioms = NONE, debug = false,
    whacks = [], binary_ints = SOME false, destroy_constrs = false,
-   specialize = false, star_linear_preds = false, tac_timeout = NONE,
-   evals = [], case_names = [], def_table = def_table,
-   nondef_table = Symtab.empty, user_nondefs = [],
-   simp_table = Unsynchronized.ref Symtab.empty, psimp_table = Symtab.empty,
-   choice_spec_table = Symtab.empty, intro_table = Symtab.empty,
-   ground_thm_table = Inttab.empty, ersatz_table = [],
-   skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
-   unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
-   constr_cache = Unsynchronized.ref []}
+   specialize = false, star_linear_preds = false,
+   tac_timeout = NONE, evals = [], case_names = case_names,
+   def_table = def_table, nondef_table = nondef_table,
+   user_nondefs = user_nondefs, simp_table = simp_table,
+   psimp_table = psimp_table, choice_spec_table = choice_spec_table,
+   intro_table = intro_table, ground_thm_table = ground_thm_table,
+   ersatz_table = ersatz_table, skolems = Unsynchronized.ref [],
+   special_funs = Unsynchronized.ref [], unrolled_preds = Unsynchronized.ref [],
+   wf_cache = Unsynchronized.ref [], constr_cache = Unsynchronized.ref []}
+val binarize = false
+
 fun is_mono t =
-  Nitpick_Mono.formulas_monotonic hol_ctxt false @{typ 'a} ([t], [])
+  Nitpick_Mono.formulas_monotonic hol_ctxt binarize @{typ 'a} ([t], [])
+
 fun is_const t =
   let val T = fastype_of t in
     is_mono (Logic.mk_implies (Logic.mk_equals (Free ("dummyP", T), t),
                                @{const False}))
   end
+
 fun mono t = is_mono t orelse raise BUG
 fun nonmono t = not (is_mono t) orelse raise BUG
 fun const t = is_const t orelse raise BUG
@@ -116,5 +136,64 @@ ML {* mono @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) \<noteq> myunion"} 
 
 ML {* nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. False)"} *}
 ML {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h"} *}
+
+ML {*
+val max_secs = 1.0
+
+fun all_unconcealed_theorems_of thy =
+  let val facts = Global_Theory.facts_of thy in
+    Facts.fold_static
+        (fn (name, ths) =>
+            if Facts.is_concealed facts name then I
+            else append (map (`(Thm.get_name_hint)) ths))
+        facts []
+  end
+
+fun is_forbidden_theorem name =
+  length (space_explode "." name) <> 2 orelse
+  String.isPrefix "type_definition" (List.last (space_explode "." name)) orelse
+  String.isSuffix "_def" name orelse
+  String.isSuffix "_raw" name
+
+fun theorems_of thy =
+  filter (fn (name, th) =>
+             not (is_forbidden_theorem name) andalso
+             (theory_of_thm th, thy) |> pairself Context.theory_name |> op =)
+         (all_unconcealed_theorems_of thy)
+
+fun check_formula t =
+  let
+    fun is_type_actually_monotonic T =
+      TimeLimit.timeLimit (seconds max_secs)
+          (Nitpick_Mono.formulas_monotonic hol_ctxt binarize T) ([t], [])
+
+    val free_Ts = Term.add_tfrees t [] |> map TFree
+    val (mono_free_Ts, nonmono_free_Ts) =
+      List.partition is_type_actually_monotonic free_Ts
+  in
+    if not (null mono_free_Ts) then "MONO"
+    else if not (null nonmono_free_Ts) then "NONMONO"
+    else "NIX"
+  end
+  handle TimeLimit.TimeOut => "TIMEOUT"
+       | NOT_SUPPORTED _ => "UNSUP"
+       | _ => "UNKNOWN"
+
+fun check_theory thy =
+  let
+    val path = File.tmp_path (Context.theory_name thy ^ ".out" |> Path.explode)
+    val _ = File.write path ""
+    fun check_theorem (name, th) =
+      let
+        val t = th |> prop_of |> Type.legacy_freeze |> close_form
+        val neg_t = Logic.mk_implies (t, @{prop False})
+        val res = name ^ ": " ^ check_formula neg_t
+      in File.append path (res ^ "\n"); writeln res end
+  in thy |> theorems_of |> List.app check_theorem end
+*}
+
+(*
+ML {* check_theory @{theory List} *}
+*)
 
 end
