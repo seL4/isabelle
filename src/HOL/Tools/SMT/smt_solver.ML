@@ -21,7 +21,8 @@ sig
     cex_parser: (Proof.context -> SMT_Translate.recon -> string list ->
       term list * term list) option,
     reconstruct: (Proof.context -> SMT_Translate.recon -> string list ->
-      (int list * thm) * Proof.context) option }
+      (int list * thm) * Proof.context) option,
+    default_max_relevant: int }
 
   (*registry*)
   type solver = bool option -> Proof.context -> (int * thm) list ->
@@ -32,6 +33,7 @@ sig
   val available_solvers_of: Proof.context -> string list
   val is_locally_installed: Proof.context -> string -> bool
   val is_remotely_available: Proof.context -> string -> bool
+  val default_max_relevant: Proof.context -> string -> int
 
   (*filter*)
   val smt_filter: bool -> Time.time -> Proof.state -> ('a * thm) list -> int ->
@@ -70,7 +72,8 @@ type solver_config = {
   cex_parser: (Proof.context -> SMT_Translate.recon -> string list ->
     term list * term list) option,
   reconstruct: (Proof.context -> SMT_Translate.recon -> string list ->
-    (int list * thm) * Proof.context) option }
+    (int list * thm) * Proof.context) option,
+  default_max_relevant: int }
 
 
 (* interface to external solvers *)
@@ -215,7 +218,7 @@ fun trace_assumptions ctxt irules idxs =
 
 fun gen_solver name info rm ctxt irules =
   let
-    val {env_var, is_remote, options, interface, reconstruct} = info
+    val {env_var, is_remote, options, interface, reconstruct, ...} = info
     val {extra_norm, translate} = interface
     val (with_datatypes, translate') =
       set_has_datatypes (Config.get ctxt C.datatypes) translate
@@ -244,7 +247,8 @@ type solver_info = {
   options: Proof.context -> string list,
   interface: interface,
   reconstruct: string list * SMT_Translate.recon -> Proof.context ->
-    (int list * thm) * Proof.context }
+    (int list * thm) * Proof.context,
+  default_max_relevant: int }
 
 structure Solvers = Generic_Data
 (
@@ -279,13 +283,14 @@ in
 fun add_solver cfg =
   let
     val {name, env_var, is_remote, options, interface, outcome, cex_parser,
-      reconstruct} = cfg
+      reconstruct, default_max_relevant} = cfg
 
     fun core_oracle () = cfalse
 
     fun solver ocl = { env_var=env_var, is_remote=is_remote, options=options,
       interface=interface,
-      reconstruct=finish (outcome name) cex_parser reconstruct ocl }
+      reconstruct=finish (outcome name) cex_parser reconstruct ocl,
+      default_max_relevant=default_max_relevant }
   in
     Thm.add_oracle (Binding.name name, core_oracle) #-> (fn (_, ocl) =>
     Context.theory_map (Solvers.map (Symtab.update_new (name, solver ocl)))) #>
@@ -294,9 +299,12 @@ fun add_solver cfg =
 
 end
 
+fun get_info ctxt name =
+  the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name)
+
 fun name_and_solver_of ctxt =
   let val name = C.solver_of ctxt
-  in (name, the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name)) end
+  in (name, get_info ctxt name) end
 
 val solver_name_of = fst o name_and_solver_of
 fun solver_of ctxt =
@@ -306,11 +314,12 @@ fun solver_of ctxt =
 val available_solvers_of = Symtab.keys o Solvers.get o Context.Proof
 
 fun is_locally_installed ctxt name =
-  let val {env_var, ...} = the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name)
+  let val {env_var, ...} = get_info ctxt name
   in is_some (get_local_solver env_var) end
 
-fun is_remotely_available ctxt name =
-  #is_remote (the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name))
+val is_remotely_available = #is_remote oo get_info
+
+val default_max_relevant = #default_max_relevant oo get_info
 
 
 (* filter *)
