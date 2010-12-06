@@ -43,57 +43,78 @@ fun const t = is_const t orelse raise BUG
 fun nonconst t = not (is_const t) orelse raise BUG
 *}
 
-ML {* const @{term "A::('a\<Rightarrow>'b)"} *}
-ML {* const @{term "(A::'a set) = A"} *}
-ML {* const @{term "(A::'a set set) = A"} *}
-ML {* const @{term "(\<lambda>x::'a set. x a)"} *}
-ML {* const @{term "{{a::'a}} = C"} *}
-ML {* const @{term "{f::'a\<Rightarrow>nat} = {g::'a\<Rightarrow>nat}"} *}
-ML {* const @{term "A \<union> (B::'a set)"} *}
-ML {* const @{term "P (a::'a)"} *}
-ML {* const @{term "\<lambda>a::'a. b (c (d::'a)) (e::'a) (f::'a)"} *}
-ML {* const @{term "\<forall>A::'a set. A a"} *}
-ML {* const @{term "\<forall>A::'a set. P A"} *}
+ML {* Nitpick_Mono.trace := false *}
+
+ML {* const @{term "A\<Colon>('a\<Rightarrow>'b)"} *}
+ML {* const @{term "(A\<Colon>'a set) = A"} *}
+ML {* const @{term "(A\<Colon>'a set set) = A"} *}
+ML {* const @{term "(\<lambda>x\<Colon>'a set. x a)"} *}
+ML {* const @{term "{{a\<Colon>'a}} = C"} *}
+ML {* const @{term "{f\<Colon>'a\<Rightarrow>nat} = {g\<Colon>'a\<Rightarrow>nat}"} *}
+ML {* const @{term "A \<union> (B\<Colon>'a set)"} *}
+ML {* const @{term "\<lambda>A B x\<Colon>'a. A x \<or> B x"} *}
+ML {* const @{term "P (a\<Colon>'a)"} *}
+ML {* const @{term "\<lambda>a\<Colon>'a. b (c (d\<Colon>'a)) (e\<Colon>'a) (f\<Colon>'a)"} *}
+ML {* const @{term "\<forall>A\<Colon>'a set. A a"} *}
+ML {* const @{term "\<forall>A\<Colon>'a set. P A"} *}
 ML {* const @{term "P \<or> Q"} *}
-ML {* const @{term "A \<union> B = (C::'a set)"} *}
-ML {* const @{term "(if P then (A::'a set) else B) = C"} *}
-ML {* const @{term "let A = (C::'a set) in A \<union> B"} *}
-ML {* const @{term "THE x::'b. P x"} *}
-ML {* const @{term "(\<lambda>x::'a. False)"} *}
-ML {* const @{term "(\<lambda>x::'a. True)"} *}
-ML {* const @{term "Let (a::'a) A"} *}
-ML {* const @{term "A (a::'a)"} *}
-ML {* const @{term "insert (a::'a) A = B"} *}
-ML {* const @{term "- (A::'a set)"} *}
-ML {* const @{term "finite (A::'a set)"} *}
-ML {* const @{term "\<not> finite (A::'a set)"} *}
-ML {* const @{term "finite (A::'a set set)"} *}
-ML {* const @{term "\<lambda>a::'a. A a \<and> \<not> B a"} *}
-ML {* const @{term "A < (B::'a set)"} *}
-ML {* const @{term "A \<le> (B::'a set)"} *}
-ML {* const @{term "[a::'a]"} *}
-ML {* const @{term "[a::'a set]"} *}
-ML {* const @{term "[A \<union> (B::'a set)]"} *}
-ML {* const @{term "[A \<union> (B::'a set)] = [C]"} *}
-ML {* const @{term "{(\<lambda>x::'a. x = a)} = C"} *}
+ML {* const @{term "A \<union> B = (C\<Colon>'a set)"} *}
+ML {* const @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) A B = C"} *}
+ML {* const @{term "(if P then (A\<Colon>'a set) else B) = C"} *}
+ML {* const @{term "let A = (C\<Colon>'a set) in A \<union> B"} *}
+ML {* const @{term "THE x\<Colon>'b. P x"} *}
+ML {* const @{term "(\<lambda>x\<Colon>'a. False)"} *}
+ML {* const @{term "(\<lambda>x\<Colon>'a. True)"} *}
+ML {* const @{term "(\<lambda>x\<Colon>'a. False) = (\<lambda>x\<Colon>'a. False)"} *}
+ML {* const @{term "(\<lambda>x\<Colon>'a. True) = (\<lambda>x\<Colon>'a. True)"} *}
+ML {* const @{term "Let (a\<Colon>'a) A"} *}
+ML {* const @{term "A (a\<Colon>'a)"} *}
+ML {* const @{term "insert (a\<Colon>'a) A = B"} *}
+ML {* const @{term "- (A\<Colon>'a set)"} *}
+ML {* const @{term "finite (A\<Colon>'a set)"} *}
+ML {* const @{term "\<not> finite (A\<Colon>'a set)"} *}
+ML {* const @{term "finite (A\<Colon>'a set set)"} *}
+ML {* const @{term "\<lambda>a\<Colon>'a. A a \<and> \<not> B a"} *}
+ML {* const @{term "A < (B\<Colon>'a set)"} *}
+ML {* const @{term "A \<le> (B\<Colon>'a set)"} *}
+ML {* const @{term "[a\<Colon>'a]"} *}
+ML {* const @{term "[a\<Colon>'a set]"} *}
+ML {* const @{term "[A \<union> (B\<Colon>'a set)]"} *}
+ML {* const @{term "[A \<union> (B\<Colon>'a set)] = [C]"} *}
+ML {* const @{term "{(\<lambda>x\<Colon>'a. x = a)} = C"} *}
+ML {* const @{term "(\<lambda>a\<Colon>'a. \<not> A a) = B"} *}
+ML {* const @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> \<not> f a"} *}
+ML {* const @{term "\<lambda>A B x\<Colon>'a. A x \<and> B x \<and> A = B"} *}
+ML {* const @{term "p = (\<lambda>(x\<Colon>'a) (y\<Colon>'a). P x \<or> \<not> Q y)"} *}
+ML {* const @{term "p = (\<lambda>(x\<Colon>'a) (y\<Colon>'a). p x y \<Colon> bool)"} *}
+ML {* const @{term "p = (\<lambda>A B x. A x \<and> \<not> B x) (\<lambda>x. True) (\<lambda>y. x \<noteq> y)"} *}
+ML {* const @{term "p = (\<lambda>y. x \<noteq> y)"} *}
+ML {* const @{term "(\<lambda>x. (p\<Colon>'a\<Rightarrow>bool\<Rightarrow>bool) x False)"} *}
+ML {* const @{term "(\<lambda>x y. (p\<Colon>'a\<Rightarrow>'a\<Rightarrow>bool\<Rightarrow>bool) x y False)"} *}
+ML {* const @{term "f = (\<lambda>x\<Colon>'a. P x \<longrightarrow> Q x)"} *}
 
-ML {* nonconst @{term "\<forall>P (a::'a). P a"} *}
-ML {* nonconst @{term "\<forall>a::'a. P a"} *}
-ML {* nonconst @{term "(\<lambda>a::'a. \<not> A a) = B"} *}
-ML {* nonconst @{term "THE x::'a. P x"} *}
-ML {* nonconst @{term "SOME x::'a. P x"} *}
+ML {* nonconst @{term "\<forall>P (a\<Colon>'a). P a"} *}
+ML {* nonconst @{term "\<forall>a\<Colon>'a. P a"} *}
+ML {* nonconst @{term "THE x\<Colon>'a. P x"} *}
+ML {* nonconst @{term "SOME x\<Colon>'a. P x"} *}
+ML {* nonconst @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) = myunion"} *}
+ML {* nonconst @{term "(\<lambda>x\<Colon>'a. False) = (\<lambda>x\<Colon>'a. True)"} *}
+ML {* nonconst @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h"} *}
 
-ML {* mono @{prop "Q (\<forall>x::'a set. P x)"} *}
-ML {* mono @{prop "P (a::'a)"} *}
-ML {* mono @{prop "{a} = {b::'a}"} *}
-ML {* mono @{prop "P (a::'a) \<and> P \<union> P = P"} *}
-ML {* mono @{prop "\<forall>F::'a set set. P"} *}
-ML {* mono @{prop "\<not> (\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h)"} *}
-ML {* mono @{prop "\<not> Q (\<forall>x::'a set. P x)"} *}
-ML {* mono @{prop "\<not> (\<forall>x::'a. P x)"} *}
+ML {* mono @{prop "Q (\<forall>x\<Colon>'a set. P x)"} *}
+ML {* mono @{prop "P (a\<Colon>'a)"} *}
+ML {* mono @{prop "{a} = {b\<Colon>'a}"} *}
+ML {* mono @{prop "P (a\<Colon>'a) \<and> P \<union> P = P"} *}
+ML {* mono @{prop "\<forall>F\<Colon>'a set set. P"} *}
+ML {* mono @{prop "\<not> (\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h)"} *}
+ML {* mono @{prop "\<not> Q (\<forall>x\<Colon>'a set. P x)"} *}
+ML {* mono @{prop "\<not> (\<forall>x\<Colon>'a. P x)"} *}
+ML {* mono @{prop "myall P = (P = (\<lambda>x\<Colon>'a. True))"} *}
+ML {* mono @{prop "myall P = (P = (\<lambda>x\<Colon>'a. False))"} *}
+ML {* mono @{prop "\<forall>x\<Colon>'a. P x"} *}
+ML {* mono @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) \<noteq> myunion"} *}
 
-ML {* nonmono @{prop "\<forall>x::'a. P x"} *}
-ML {* nonmono @{prop "myall P = (P = (\<lambda>x::'a. True))"} *}
-ML {* nonmono @{prop "\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h"} *}
+ML {* nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. False)"} *}
+ML {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h"} *}
 
 end
