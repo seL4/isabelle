@@ -649,6 +649,9 @@ the program subject to physical effects of the environment.
 
 *** System ***
 
+* The IsabelleText font now includes Cyrillic, Hebrew, Arabic from
+DajaVu Sans.
+
 * Discontinued support for Poly/ML 5.0 and 5.1 versions.
 
 
