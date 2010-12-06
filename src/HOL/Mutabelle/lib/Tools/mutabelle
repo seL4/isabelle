@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+#
+# Author: Lukas Bulwahn
+#
+# DESCRIPTION: mutant-testing tool for counterexample generators and automated proof tools
+
+
+PRG="$(basename "$0")"
+
+function usage() {
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] THEORY"
+  echo
+  echo "  Options are:"
+  echo "    -L LOGIC     parent logic to use (default $MUTABELLE_LOGIC)"
+  echo "    -T THEORY    parent theory to use (default $MUTABELLE_IMPORT_THEORY)"
+  echo "    -O DIR       output directory for test data (default $MUTABELLE_OUTPUT_PATH)"
+  echo
+  echo "  THEORY is the name of the theory of which all theorems should be mutated and tested"
+  exit 1
+}
+
+
+## process command line
+
+# options
+
+while getopts "L:T:O:t:q?" OPT
+do
+  case "$OPT" in
+    L)
+      MIRABELLE_LOGIC="$OPTARG"
+      ;;
+    T)
+      MIRABELLE_IMPORT_THEORY="$OPTARG"
+      ;;
+    O)
+      MIRABELLE_OUTPUT_PATH="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+[ "$#" -ne 1 ] && usage
+
+MUTABELLE_TEST_THEORY="$1"
+
+## main
+
+echo "Starting Mutabelle..."
+
+# setup
+
+mkdir -p "$MIRABELLE_OUTPUT_PATH"
+
+echo "theory Mutabelle_Test
+imports $MUTABELLE_IMPORT_THEORY
+uses     
+  \"$MUTABELLE_HOME/mutabelle.ML\"
+  \"$MUTABELLE_HOME/mutabelle_extra.ML\"
+begin
+
+ML {*
+val mtds = [
+  MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"random\") \"random\",
+  MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"exhaustive\") \"exhaustive\"
+]
+*}
+
+ML {*
+fun mutation_testing_of thy =
+  (MutabelleExtra.random_seed := 1.0;
+  MutabelleExtra.thms_of false thy
+  |> (fn thms => MutabelleExtra.mutate_theorems_and_write_report
+         @{theory} mtds thms (\"$MUTABELLE_OUTPUT_PATH/log\")))
+*}
+
+ML {*
+  mutation_testing_of @{theory $MUTABELLE_TEST_THEORY}
+*}
+
+end" > $MUTABELLE_OUTPUT_PATH/Mutabelle_Test.thy
+
+# execution
+
+$ISABELLE_PROCESS -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' -q $MUTABELLE_LOGIC  > /dev/null 2>&1
+
+# make statistics
+
+GenuineCex_random=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_random: GenuineCex" | wc -l)
+NoCex_random=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_random: NoCex" | wc -l)
+Timeout_random=$(cat /$MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_random: Timeout" | wc -l)
+Errors_random=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_random: Error" | wc -l)
+
+GenuineCex_exh=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_exhaustive: GenuineCex" | wc -l)
+NoCex_exh=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_exhaustive: NoCex" | wc -l)
+Timeout_exh=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_exhaustive: Timeout" | wc -l)
+Errors_exh=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_exhaustive: Error" | wc -l)
+
+
+echo "random      :" C: $GenuineCex_random N: $NoCex_random T: $Timeout_random E: $Errors_random
+echo "exhaustive  :" C: $GenuineCex_exh N: $NoCex_exh T: $Timeout_exh E: $Errors_exh
+
