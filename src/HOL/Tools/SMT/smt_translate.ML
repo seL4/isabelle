@@ -194,7 +194,7 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
       | is_builtin_conn' (@{const_name False}, _) = false
       | is_builtin_conn' c = is_builtin_conn c
 
-    fun is_builtin_pred' ctxt (@{const_name distinct}, _) [t] =
+    fun is_builtin_pred' _ (@{const_name distinct}, _) [t] =
           is_builtin_distinct andalso can HOLogic.dest_list t
       | is_builtin_pred' ctxt c _ = is_builtin_pred ctxt c
 

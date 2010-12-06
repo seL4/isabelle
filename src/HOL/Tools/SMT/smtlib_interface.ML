@@ -195,7 +195,7 @@ fun is_builtin_pred ctxt (n, T) = is_predT T andalso
 fun builtin_fun ctxt (c as (n, T)) ts =
   let
     val builtin_func' = chained_builtin_func (get_builtins ctxt)
-    fun builtin_pred' c t =
+    fun builtin_pred' c ts =
       (case distinct_pred c ts of
         SOME b => SOME b
       | NONE => chained_builtin_pred (get_builtins ctxt) c ts)
