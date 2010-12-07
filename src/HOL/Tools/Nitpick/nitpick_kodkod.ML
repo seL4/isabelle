@@ -1510,28 +1510,6 @@ fun kodkod_formula_from_nut ofs
            | _ => raise NUT ("Nitpick_Kodkod.to_r (Composition)", [u]))
           |> rel_expr_from_rel_expr kk R (Func (Struct [a_R, c_R], body_R))
         end
-      | Op2 (Product, T, R, u1, u2) =>
-        let
-          val (a_T, b_T) = HOLogic.dest_prodT (domain_type T)
-          val a_k = card_of_domain_from_rep 2 (rep_of u1)
-          val b_k = card_of_domain_from_rep 2 (rep_of u2)
-          val a_R = Atom (a_k, offset_of_type ofs a_T)
-          val b_R = Atom (b_k, offset_of_type ofs b_T)
-          val body_R = body_rep R
-        in
-          (case body_R of
-             Formula Neut =>
-             kk_product (to_rep (Func (a_R, Formula Neut)) u1)
-                        (to_rep (Func (b_R, Formula Neut)) u2)
-           | Opt (Atom (2, _)) =>
-             let
-               fun do_nut r R u = kk_join (to_rep (Func (R, body_R)) u) r
-               fun do_term r =
-                 kk_product (kk_product (do_nut r a_R u1) (do_nut r b_R u2)) r
-             in kk_union (do_term true_atom) (do_term false_atom) end
-           | _ => raise NUT ("Nitpick_Kodkod.to_r (Product)", [u]))
-          |> rel_expr_from_rel_expr kk R (Func (Struct [a_R, b_R], body_R))
-        end
       | Op2 (Image, T, R, u1, u2) =>
         (case (rep_of u1, rep_of u2) of
            (Func (R11, R12), Func (R21, Formula Neut)) =>

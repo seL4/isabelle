@@ -424,7 +424,6 @@ val built_in_consts =
    (@{const_name converse}, 1),
    (@{const_name trancl}, 1),
    (@{const_name rel_comp}, 2),
-   (@{const_name prod}, 2),
    (@{const_name image}, 2),
    (@{const_name finite}, 1),
    (@{const_name unknown}, 0),

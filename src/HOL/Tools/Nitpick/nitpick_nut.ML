@@ -55,7 +55,6 @@ sig
     Eq |
     Triad |
     Composition |
-    Product |
     Image |
     Apply |
     Lambda
@@ -170,7 +169,6 @@ datatype op2 =
   Eq |
   Triad |
   Composition |
-  Product |
   Image |
   Apply |
   Lambda
@@ -235,7 +233,6 @@ fun string_for_op2 All = "All"
   | string_for_op2 Eq = "Eq"
   | string_for_op2 Triad = "Triad"
   | string_for_op2 Composition = "Composition"
-  | string_for_op2 Product = "Product"
   | string_for_op2 Image = "Image"
   | string_for_op2 Apply = "Apply"
   | string_for_op2 Lambda = "Lambda"
@@ -528,8 +525,6 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
           Op1 (Closure, range_type T, Any, sub t1)
         | (Const (@{const_name rel_comp}, T), [t1, t2]) =>
           Op2 (Composition, nth_range_type 2 T, Any, sub t1, sub t2)
-        | (Const (@{const_name prod}, T), [t1, t2]) =>
-          Op2 (Product, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (@{const_name image}, T), [t1, t2]) =>
           Op2 (Image, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (x as (s as @{const_name Suc}, T)), []) =>
