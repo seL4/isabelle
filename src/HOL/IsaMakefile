@@ -1254,7 +1254,7 @@ $(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML Library/Boolean_Algebra.thy	\
   Word/Type_Length.thy Word/Bit_Representation.thy Word/Bit_Int.thy	\
   Word/Bool_List_Representation.thy Word/Bit_Operations.thy		\
   Word/Word.thy Word/document/root.tex					\
-  Word/document/root.bib Tools/SMT/smt_word.ML
+  Word/document/root.bib Word/Tools/smt_word.ML
 	@cd Word; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Word
 
 

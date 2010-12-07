@@ -6,7 +6,7 @@ header {* A type of finite bit strings *}
 
 theory Word
 imports Type_Length Misc_Typedef Boolean_Algebra Bool_List_Representation
-uses ("~~/src/HOL/Tools/SMT/smt_word.ML")
+uses ("~~/src/HOL/Word/Tools/smt_word.ML")
 begin
 
 text {* see @{text "Examples/WordExamples.thy"} for examples *}
@@ -4748,7 +4748,7 @@ declare to_bl_0 [simp]
 declare of_bl_True [simp]
 
 
-use "~~/src/HOL/Tools/SMT/smt_word.ML"
+use "~~/src/HOL/Word/Tools/smt_word.ML"
 
 setup {* SMT_Word.setup *}
 
