@@ -755,7 +755,7 @@ val swi_prolog_prelude =
   "#!/usr/bin/swipl -q -t main -f\n\n" ^
   ":- use_module(library('dialect/ciao/aggregates')).\n" ^
   ":- style_check(-singleton).\n" ^
-  ":- style_check(-discontiguous).\n" ^ 	
+  ":- style_check(-discontiguous).\n" ^
   ":- style_check(-atom).\n\n" ^
   "main :- catch(eval, E, (print_message(error, E), fail)), halt.\n" ^
   "main :- halt(1).\n"

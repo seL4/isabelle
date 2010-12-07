@@ -1120,18 +1120,18 @@ next
       have b: "l \<approx> r" by fact
       have d: "card_list l = Suc m" by fact
       then have "\<exists>a. List.member l a" 
-	apply(simp)
-	apply(drule card_eq_SucD)
-	apply(blast)
-	done
+        apply(simp)
+        apply(drule card_eq_SucD)
+        apply(blast)
+        done
       then obtain a where e: "List.member l a" by auto
       then have e': "List.member r a" using list_eq_def [simplified List.member_def [symmetric], of l r] b 
-	by auto
+        by auto
       have f: "card_list (removeAll a l) = m" using e d by (simp)
       have g: "removeAll a l \<approx> removeAll a r" using removeAll_rsp b by simp
       have "(removeAll a l) \<approx>2 (removeAll a r)" by (rule Suc.hyps[OF f g])
       then have h: "(a # removeAll a l) \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(5))
-      have i: "l \<approx>2 (a # removeAll a l)"	
+      have i: "l \<approx>2 (a # removeAll a l)"
         by (rule list_eq2.intros(3)[OF member_delete_list_eq2[OF e]])
       have "l \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(6)[OF i h])
       then show ?case using list_eq2.intros(6)[OF _ member_delete_list_eq2[OF e']] by simp

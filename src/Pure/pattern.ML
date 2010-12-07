@@ -365,7 +365,7 @@ let
   and cases(binders,env as (iTs,itms),pat,obj) =
     let val (ph,pargs) = strip_comb pat
         fun rigrig1(iTs,oargs) = fold (mtch binders) (pargs~~oargs) (iTs,itms)
-				 handle ListPair.UnequalLengths => raise MATCH
+          handle ListPair.UnequalLengths => raise MATCH
         fun rigrig2((a:string,Ta),(b,Tb),oargs) =
               if a <> b then raise MATCH
               else rigrig1(typ_match thy (Ta,Tb) iTs, oargs)

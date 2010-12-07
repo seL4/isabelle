@@ -637,9 +637,9 @@ fun mutqc_file_rec_mix usedthy commutatives forbidden_funs iter sourceThms insts
 
 fun create_spaces entry spacenum =
  let 
-		val diff = spacenum - (size entry)
- in 
-		if (diff > 0) 
+   val diff = spacenum - (size entry)
+ in
+   if (diff > 0)
    then implode (replicate diff " ")
    else ""
  end;
@@ -756,7 +756,7 @@ fun mutqc_thystat option p mutthy usedthy commutatives forbidden_funs iter insts
  end;
 
 (*exchange version of function mutqc_thystat*)
-			
+
 fun mutqc_thystat_exc p mutthy usedthy commutatives iter insts sz qciter filename =
  mutqc_thystat 0 p mutthy usedthy commutatives [] iter insts sz qciter filename;
 
