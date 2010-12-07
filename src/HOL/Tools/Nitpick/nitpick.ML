@@ -233,8 +233,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val print_v = pprint_v o K o plazy
 
     fun check_deadline () =
-      if debug andalso passed_deadline deadline then raise TimeLimit.TimeOut
-      else ()
+      if passed_deadline deadline then raise TimeLimit.TimeOut else ()
 
     val assm_ts = if assms orelse auto then assm_ts else []
     val _ =
@@ -981,6 +980,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                 ".")
   in (outcome_code, !state_ref) end
 
+(* Give the inner timeout a chance. *)
+val timeout_bonus = seconds 0.25
+
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
                       step subst assm_ts orig_t =
   let val warning_m = if auto then K () else warning in
@@ -994,7 +996,8 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
         val unknown_outcome = ("unknown", state)
         val deadline = Option.map (curry Time.+ (Time.now ())) timeout
         val outcome as (outcome_code, _) =
-          time_limit (if debug then NONE else timeout)
+          time_limit (if debug orelse is_none timeout then NONE
+                      else SOME (Time.+ (the timeout, timeout_bonus)))
               (pick_them_nits_in_term deadline state params auto i n step subst
                                       assm_ts) orig_t
           handle TOO_LARGE (_, details) =>
