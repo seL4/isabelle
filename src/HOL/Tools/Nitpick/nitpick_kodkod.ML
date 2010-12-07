@@ -99,7 +99,7 @@ fun check_arity guilty_party univ_card n =
                         ""
                       else
                         " of Kodkod relation associated with " ^
-                        quote guilty_party) ^
+                        quote (original_name guilty_party)) ^
                      " too large for universe of cardinality " ^
                      string_of_int univ_card)
   else
@@ -1510,55 +1510,6 @@ fun kodkod_formula_from_nut ofs
            | _ => raise NUT ("Nitpick_Kodkod.to_r (Composition)", [u]))
           |> rel_expr_from_rel_expr kk R (Func (Struct [a_R, c_R], body_R))
         end
-      | Op2 (Product, T, R, u1, u2) =>
-        let
-          val (a_T, b_T) = HOLogic.dest_prodT (domain_type T)
-          val a_k = card_of_domain_from_rep 2 (rep_of u1)
-          val b_k = card_of_domain_from_rep 2 (rep_of u2)
-          val a_R = Atom (a_k, offset_of_type ofs a_T)
-          val b_R = Atom (b_k, offset_of_type ofs b_T)
-          val body_R = body_rep R
-        in
-          (case body_R of
-             Formula Neut =>
-             kk_product (to_rep (Func (a_R, Formula Neut)) u1)
-                        (to_rep (Func (b_R, Formula Neut)) u2)
-           | Opt (Atom (2, _)) =>
-             let
-               fun do_nut r R u = kk_join (to_rep (Func (R, body_R)) u) r
-               fun do_term r =
-                 kk_product (kk_product (do_nut r a_R u1) (do_nut r b_R u2)) r
-             in kk_union (do_term true_atom) (do_term false_atom) end
-           | _ => raise NUT ("Nitpick_Kodkod.to_r (Product)", [u]))
-          |> rel_expr_from_rel_expr kk R (Func (Struct [a_R, b_R], body_R))
-        end
-      | Op2 (Image, T, R, u1, u2) =>
-        (case (rep_of u1, rep_of u2) of
-           (Func (R11, R12), Func (R21, Formula Neut)) =>
-           if R21 = R11 andalso is_lone_rep R12 then
-             let
-               fun big_join r = kk_n_fold_join kk false R21 R12 r (to_r u1)
-               val core_r = big_join (to_r u2)
-               val core_R = Func (R12, Formula Neut)
-             in
-               if is_opt_rep R12 then
-                 let
-                   val schema = atom_schema_of_rep R21
-                   val decls = decls_for_atom_schema ~1 schema
-                   val vars = unary_var_seq ~1 (length decls)
-                   val f = kk_some (big_join (fold1 kk_product vars))
-                 in
-                   kk_rel_if (kk_all decls f)
-                             (rel_expr_from_rel_expr kk R core_R core_r)
-                             (rel_expr_from_rel_expr kk R (opt_rep ofs T core_R)
-                                              (kk_product core_r true_atom))
-                 end
-               else
-                 rel_expr_from_rel_expr kk R core_R core_r
-             end
-           else
-             raise NUT ("Nitpick_Kodkod.to_r (Image)", [u1, u2])
-         | _ => raise NUT ("Nitpick_Kodkod.to_r (Image)", [u1, u2]))
       | Op2 (Apply, @{typ nat}, _,
              Op2 (Apply, _, _, Cst (Subtract, _, _), u1), u2) =>
         if is_Cst Unrep u2 andalso not (is_opt_rep (rep_of u1)) then

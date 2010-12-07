@@ -67,7 +67,6 @@ fun nonconst t = not (is_const t) orelse raise BUG
 ML {* Nitpick_Mono.trace := false *}
 
 ML {* const @{term "A\<Colon>('a\<Rightarrow>'b)"} *}
-(*
 ML {* const @{term "(A\<Colon>'a set) = A"} *}
 ML {* const @{term "(A\<Colon>'a set set) = A"} *}
 ML {* const @{term "(\<lambda>x\<Colon>'a set. x a)"} *}
@@ -138,7 +137,6 @@ ML {* mono @{term "(\<lambda>A B x\<Colon>'a. A x \<or> B x) \<noteq> myunion"} 
 
 ML {* nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. False)"} *}
 ML {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> F h"} *}
-*)
 
 ML {*
 val preproc_timeout = SOME (seconds 5.0)
@@ -184,8 +182,6 @@ fun check_formulas tsp =
 
 fun check_theory thy =
   let
-    val finitizes = [(NONE, SOME false)]
-    val monos = [(NONE, SOME false)]
     val path = File.tmp_path (Context.theory_name thy ^ ".out" |> Path.explode)
     val _ = File.write path ""
     fun check_theorem (name, th) =
@@ -193,8 +189,7 @@ fun check_theory thy =
         val t = th |> prop_of |> Type.legacy_freeze |> close_form
         val neg_t = Logic.mk_implies (t, @{prop False})
         val (nondef_ts, def_ts, _, _, _) =
-          time_limit preproc_timeout
-              (preprocess_formulas hol_ctxt finitizes monos []) neg_t
+          time_limit preproc_timeout (preprocess_formulas hol_ctxt []) neg_t
         val res = name ^ ": " ^ check_formulas (nondef_ts, def_ts)
       in File.append path (res ^ "\n"); writeln res end
       handle TimeLimit.TimeOut => ()

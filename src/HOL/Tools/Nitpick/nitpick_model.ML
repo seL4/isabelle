@@ -178,9 +178,7 @@ val unregister_term_postprocessor_global =
 fun tuple_list_for_name rel_table bounds name =
   the (AList.lookup (op =) bounds (the_rel rel_table name)) handle NUT _ => [[]]
 
-fun unarize_unbox_etc_term (Const (@{const_name FinFun}, _) $ t1) =
-    unarize_unbox_etc_term t1
-  | unarize_unbox_etc_term (Const (@{const_name FunBox}, _) $ t1) =
+fun unarize_unbox_etc_term (Const (@{const_name FunBox}, _) $ t1) =
     unarize_unbox_etc_term t1
   | unarize_unbox_etc_term
         (Const (@{const_name PairBox},
@@ -559,9 +557,8 @@ and reconstruct_term maybe_opt unfold pool
                   if length arg_Ts = 0 then
                     []
                   else
-                    map3 (fn Ts =>
-                             term_for_rep (constr_s <> @{const_name FinFun})
-                                          seen Ts Ts) arg_Ts arg_Rs arg_jsss
+                    map3 (fn Ts => term_for_rep true seen Ts Ts) arg_Ts arg_Rs
+                         arg_jsss
                     |> mk_tuple (HOLogic.mk_tupleT uncur_arg_Ts)
                     |> dest_n_tuple (length uncur_arg_Ts)
                 val t =
@@ -935,8 +932,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
       Pretty.block (Pretty.breaks
           (pretty_for_type ctxt typ ::
            (case typ of
-              Type (@{type_name fin_fun}, _) => [Pretty.str "[finite]"]
-            | Type (@{type_name fun_box}, _) => [Pretty.str "[boxed]"]
+              Type (@{type_name fun_box}, _) => [Pretty.str "[boxed]"]
             | Type (@{type_name pair_box}, _) => [Pretty.str "[boxed]"]
             | _ => []) @
            [Pretty.str "=",
