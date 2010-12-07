@@ -58,7 +58,7 @@ proof -
     by (auto simp add: multiset_def intro: finite_subset)
 qed
 
-lemma MCollect_preserves_multiset:
+lemma filter_preserves_multiset:
   assumes "M \<in> multiset"
   shows "(\<lambda>x. if P x then M x else 0) \<in> multiset"
 proof -
@@ -69,21 +69,10 @@ proof -
 qed
 
 lemmas in_multiset = const0_in_multiset only1_in_multiset
-  union_preserves_multiset diff_preserves_multiset MCollect_preserves_multiset
+  union_preserves_multiset diff_preserves_multiset filter_preserves_multiset
 
 
 subsection {* Representing multisets *}
-
-text {* Multiset comprehension *}
-
-definition MCollect :: "'a multiset => ('a => bool) => 'a multiset" where
-  "MCollect M P = Abs_multiset (\<lambda>x. if P x then count M x else 0)"
-
-syntax
-  "_MCollect" :: "pttrn => 'a multiset => bool => 'a multiset"    ("(1{# _ :# _./ _#})")
-translations
-  "{#x :# M. P#}" == "CONST MCollect M (\<lambda>x. P)"
-
 
 text {* Multiset enumeration *}
 
@@ -395,7 +384,7 @@ end
 abbreviation multiset_inter :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" (infixl "#\<inter>" 70) where
   "multiset_inter \<equiv> inf"
 
-lemma multiset_inter_count:
+lemma multiset_inter_count [simp]:
   "count (A #\<inter> B) x = min (count A x) (count B x)"
   by (simp add: multiset_inter_def multiset_typedef)
 
@@ -416,22 +405,45 @@ proof (rule multiset_eqI)
 qed
 
 
-subsubsection {* Comprehension (filter) *}
+subsubsection {* Filter (with comprehension syntax) *}
 
-lemma count_MCollect [simp]:
-  "count {# x:#M. P x #} a = (if P a then count M a else 0)"
-  by (simp add: MCollect_def in_multiset multiset_typedef)
+text {* Multiset comprehension *}
 
-lemma MCollect_empty [simp]: "MCollect {#} P = {#}"
+definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" where
+  "filter P M = Abs_multiset (\<lambda>x. if P x then count M x else 0)"
+
+hide_const (open) filter
+
+lemma count_filter [simp]:
+  "count (Multiset.filter P M) a = (if P a then count M a else 0)"
+  by (simp add: filter_def in_multiset multiset_typedef)
+
+lemma filter_empty [simp]:
+  "Multiset.filter P {#} = {#}"
   by (rule multiset_eqI) simp
 
-lemma MCollect_single [simp]:
-  "MCollect {#x#} P = (if P x then {#x#} else {#})"
+lemma filter_single [simp]:
+  "Multiset.filter P {#x#} = (if P x then {#x#} else {#})"
   by (rule multiset_eqI) simp
 
-lemma MCollect_union [simp]:
-  "MCollect (M + N) f = MCollect M f + MCollect N f"
+lemma filter_union [simp]:
+  "Multiset.filter P (M + N) = Multiset.filter P M + Multiset.filter P N"
   by (rule multiset_eqI) simp
+
+lemma filter_diff [simp]:
+  "Multiset.filter P (M - N) = Multiset.filter P M - Multiset.filter P N"
+  by (rule multiset_eqI) simp
+
+lemma filter_inter [simp]:
+  "Multiset.filter P (M #\<inter> N) = Multiset.filter P M #\<inter> Multiset.filter P N"
+  by (rule multiset_eqI) simp
+
+syntax
+  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{# _ :# _./ _#})")
+syntax (xsymbol)
+  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{# _ \<in># _./ _#})")
+translations
+  "{#x \<in># M. P#}" == "CONST Multiset.filter (\<lambda>x. P) M"
 
 
 subsubsection {* Set of elements *}
@@ -454,7 +466,7 @@ by (auto simp add: set_of_def multiset_eq_iff)
 lemma mem_set_of_iff [simp]: "(x \<in> set_of M) = (x :# M)"
 by (auto simp add: set_of_def)
 
-lemma set_of_MCollect [simp]: "set_of {# x:#M. P x #} = set_of M \<inter> {x. P x}"
+lemma set_of_filter [simp]: "set_of {# x:#M. P x #} = set_of M \<inter> {x. P x}"
 by (auto simp add: set_of_def)
 
 lemma finite_set_of [iff]: "finite (set_of M)"
@@ -786,7 +798,7 @@ lemma multiset_of_compl_union [simp]:
   "multiset_of [x\<leftarrow>xs. P x] + multiset_of [x\<leftarrow>xs. \<not>P x] = multiset_of xs"
   by (induct xs) (auto simp: add_ac)
 
-lemma count_filter:
+lemma count_multiset_of_length_filter:
   "count (multiset_of xs) x = length (filter (\<lambda>y. x = y) xs)"
   by (induct xs) auto
 
@@ -823,7 +835,7 @@ lemma multiset_of_eq_length_filter:
 proof (cases "z \<in># multiset_of xs")
   case False
   moreover have "\<not> z \<in># multiset_of ys" using assms False by simp
-  ultimately show ?thesis by (simp add: count_filter)
+  ultimately show ?thesis by (simp add: count_multiset_of_length_filter)
 next
   case True
   moreover have "z \<in># multiset_of ys" using assms True by simp
@@ -1062,9 +1074,9 @@ lemma single_Bag [code]:
   "{#x#} = Bag [(x, 1)]"
   by (simp add: multiset_eq_iff)
 
-lemma MCollect_Bag [code]:
-  "MCollect (Bag xs) P = Bag (filter (P \<circ> fst) xs)"
-  by (simp add: multiset_eq_iff count_of_filter)
+lemma filter_Bag [code]:
+  "Multiset.filter P (Bag xs) = Bag (filter (P \<circ> fst) xs)"
+  by (rule multiset_eqI) (simp add: count_of_filter)
 
 lemma mset_less_eq_Bag [code]:
   "Bag xs \<le> A \<longleftrightarrow> (\<forall>(x, n) \<in> set xs. count_of xs x \<le> count A x)"

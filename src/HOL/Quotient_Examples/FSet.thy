@@ -958,28 +958,28 @@ lemma fset_choice:
 
 section {* Induction and Cases rules for fsets *}
 
-lemma fset_exhaust [case_names empty_fset insert_fset, cases type: fset]:
+lemma fset_exhaust [case_names empty insert, cases type: fset]:
   assumes empty_fset_case: "S = {||} \<Longrightarrow> P" 
   and     insert_fset_case: "\<And>x S'. S = insert_fset x S' \<Longrightarrow> P"
   shows "P"
   using assms by (lifting list.exhaust)
 
-lemma fset_induct [case_names empty_fset insert_fset]:
+lemma fset_induct [case_names empty insert]:
   assumes empty_fset_case: "P {||}"
   and     insert_fset_case: "\<And>x S. P S \<Longrightarrow> P (insert_fset x S)"
   shows "P S"
   using assms 
   by (descending) (blast intro: list.induct)
 
-lemma fset_induct_stronger [case_names empty_fset insert_fset, induct type: fset]:
+lemma fset_induct_stronger [case_names empty insert, induct type: fset]:
   assumes empty_fset_case: "P {||}"
   and     insert_fset_case: "\<And>x S. \<lbrakk>x |\<notin>| S; P S\<rbrakk> \<Longrightarrow> P (insert_fset x S)"
   shows "P S"
 proof(induct S rule: fset_induct)
-  case empty_fset
+  case empty
   show "P {||}" using empty_fset_case by simp
 next
-  case (insert_fset x S)
+  case (insert x S)
   have "P S" by fact
   then show "P (insert_fset x S)" using insert_fset_case 
     by (cases "x |\<in>| S") (simp_all)
@@ -990,10 +990,10 @@ lemma fset_card_induct:
   and     card_fset_Suc_case: "\<And>S T. Suc (card_fset S) = (card_fset T) \<Longrightarrow> P S \<Longrightarrow> P T"
   shows "P S"
 proof (induct S)
-  case empty_fset
+  case empty
   show "P {||}" by (rule empty_fset_case)
 next
-  case (insert_fset x S)
+  case (insert x S)
   have h: "P S" by fact
   have "x |\<notin>| S" by fact
   then have "Suc (card_fset S) = card_fset (insert_fset x S)" 
@@ -1058,7 +1058,22 @@ lemma fset_induct2:
   apply simp_all
   done
 
+text {* Extensionality *}
 
+lemma fset_eqI:
+  assumes "\<And>x. x \<in> fset A \<longleftrightarrow> x \<in> fset B"
+  shows "A = B"
+using assms proof (induct A arbitrary: B)
+  case empty then show ?case
+    by (auto simp add: in_fset none_in_empty_fset [symmetric] sym)
+next
+  case (insert x A)
+  from insert.prems insert.hyps(1) have "\<And>z. z \<in> fset A \<longleftrightarrow> z \<in> fset (B - {|x|})"
+    by (auto simp add: in_fset)
+  then have "A = B - {|x|}" by (rule insert.hyps(2))
+  moreover with insert.prems [symmetric, of x] have "x |\<in>| B" by (simp add: in_fset)
+  ultimately show ?case by (metis in_fset_mdef)
+qed
 
 subsection {* alternate formulation with a different decomposition principle
   and a proof of equivalence *}
