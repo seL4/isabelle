@@ -179,6 +179,10 @@ fun passed_deadline NONE = false
 
 fun none_true assigns = forall (not_equal (SOME true) o snd) assigns
 
+fun has_lonely_bool_var (@{const Pure.conjunction}
+                         $ (@{const Trueprop} $ Free _) $ _) = true
+  | has_lonely_bool_var _ = false
+
 val syntactic_sorts =
   @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,equal}"} @
   @{sort number}
@@ -661,7 +665,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                     \section for details (\"isabelle doc nitpick\")."
             else
               ();
-            if has_syntactic_sorts orig_t then
+            if has_lonely_bool_var orig_t then
+              print "Hint: Maybe you forgot a colon after the lemma's name?"
+            else if has_syntactic_sorts orig_t then
               print "Hint: Maybe you forgot a type constraint?"
             else
               ();
