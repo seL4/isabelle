@@ -1,4 +1,4 @@
-24d44e2684a632b0246b194cc850faec2cea7de6 33 0
+fc240ca706e2afb45ac99ed81ac8b1c880202f6e 33 0
 #2 := false
 decl f1 :: S1
 #4 := f1
@@ -32,7 +32,7 @@ decl f3 :: S1
 #29 := [asserted]: #12
 [mp #29 #49]: false
 unsat
-1b7b7e7109fa2efdf94c204be8d611210920badb 8 0
+27f3d7664eb694b08bf7c88f0f09b921356d5fea 8 0
 #2 := false
 #1 := true
 #8 := (not true)
@@ -41,7 +41,7 @@ unsat
 #25 := [asserted]: #8
 [mp #25 #27]: false
 unsat
-10a83d48b539d27c174c61f5874470265d21b40f 37 0
+368ad424ca75638589e4c70a835edc00c6230db7 37 0
 #2 := false
 decl f1 :: S1
 #4 := f1
@@ -79,7 +79,7 @@ decl f3 :: S1
 #29 := [asserted]: #12
 [mp #29 #53]: false
 unsat
-060c210941c0fd9eca58c8250fc66d664e976010 66 0
+02044173beff1ab91acfe25dc46973c9c3661be9 66 0
 #2 := false
 decl f4 :: S1
 #10 := f4
@@ -146,9 +146,9 @@ decl f3 :: S1
 #71 := [and-elim #69]: #40
 [mp #71 #85]: false
 unsat
-b0eed80076353895afe2bbf37d588b79cf593079 1 0
+b73beebe843d6f6b6668b07899f763420b9a2a4e 1 0
 unsat
-d37af75fba79a43c8aa95dbef345ea660c999f99 94 0
+88e70178e39332a364ba37d967c5530977fa5629 94 0
 #2 := false
 decl f1 :: S1
 #4 := f1
@@ -243,7 +243,7 @@ decl f4 :: S1
 #39 := [asserted]: #22
 [mp #39 #108]: false
 unsat
-b3ee7b71753d028d8ffbc5d42df5f0f79660f6e7 72 0
+1c5e9504bb6b90952679bac27416520abf816b19 72 0
 #2 := false
 decl f1 :: S1
 #4 := f1
@@ -316,7 +316,7 @@ decl f3 :: S1
 #36 := [asserted]: #19
 [mp #36 #88]: false
 unsat
-b6f4097a3d567e9383135805312389841b9ed5f3 234 0
+d2b17144ad45d64438c0595be2d8ec622dfb97ce 234 0
 #2 := false
 decl f6 :: S1
 #14 := f6
@@ -551,60 +551,60 @@ decl f9 :: S1
 #96 := [mp #69 #95]: #91
 [mp #96 #299]: false
 unsat
-75e07bc80c3184013212c0a5c60b827b399474ad 52 0
+7b4b543d0e43b7340967d161cba2cdc17d6ac7aa 52 0
 #2 := false
-decl f4 :: (-> S2 S2 S2)
-#16 := (:var 1 S2)
-#17 := (:var 0 S2)
-#19 := (f4 #17 #16)
-#535 := (pattern #19)
-#18 := (f4 #16 #17)
-#534 := (pattern #18)
-#20 := (= #18 #19)
-#536 := (forall (vars (?v0 S2) (?v1 S2)) (:pat #534 #535) #20)
-#21 := (forall (vars (?v0 S2) (?v1 S2)) #20)
-#539 := (iff #21 #536)
-#537 := (iff #20 #20)
+decl f3 :: (-> S2 S2 S2)
+decl f4 :: S2
+#14 := f4
+decl f5 :: S2
+#16 := f5
+#18 := (f3 f5 f4)
+#17 := (f3 f4 f5)
+#19 := (= #17 #18)
+#49 := (not #19)
+#15 := (= f4 f4)
+#20 := (and #15 #19)
+#21 := (not #20)
+#50 := (iff #21 #49)
+#47 := (iff #20 #19)
+#1 := true
+#42 := (and true #19)
+#45 := (iff #42 #19)
+#46 := [rewrite]: #45
+#43 := (iff #20 #42)
+#40 := (iff #15 true)
+#41 := [rewrite]: #40
+#44 := [monotonicity #41]: #43
+#48 := [trans #44 #46]: #47
+#51 := [monotonicity #48]: #50
+#39 := [asserted]: #21
+#54 := [mp #39 #51]: #49
+#8 := (:var 1 S2)
+#9 := (:var 0 S2)
+#11 := (f3 #9 #8)
+#535 := (pattern #11)
+#10 := (f3 #8 #9)
+#534 := (pattern #10)
+#12 := (= #10 #11)
+#536 := (forall (vars (?v0 S2) (?v1 S2)) (:pat #534 #535) #12)
+#13 := (forall (vars (?v0 S2) (?v1 S2)) #12)
+#539 := (iff #13 #536)
+#537 := (iff #12 #12)
 #538 := [refl]: #537
 #540 := [quant-intro #538]: #539
-#62 := (~ #21 #21)
-#60 := (~ #20 #20)
+#62 := (~ #13 #13)
+#60 := (~ #12 #12)
 #61 := [refl]: #60
 #63 := [nnf-pos #61]: #62
-#51 := [asserted]: #21
-#56 := [mp~ #51 #63]: #21
-#541 := [mp #56 #540]: #536
-decl f3 :: S2
-#8 := f3
-decl f5 :: S2
-#10 := f5
-#12 := (f4 f5 f3)
-#11 := (f4 f3 f5)
-#13 := (= #11 #12)
-#48 := (not #13)
-#9 := (= f3 f3)
-#14 := (and #9 #13)
-#15 := (not #14)
-#49 := (iff #15 #48)
-#46 := (iff #14 #13)
-#1 := true
-#41 := (and true #13)
-#44 := (iff #41 #13)
-#45 := [rewrite]: #44
-#42 := (iff #14 #41)
-#39 := (iff #9 true)
-#40 := [rewrite]: #39
-#43 := [monotonicity #40]: #42
-#47 := [trans #43 #45]: #46
-#50 := [monotonicity #47]: #49
-#38 := [asserted]: #15
-#53 := [mp #38 #50]: #48
+#38 := [asserted]: #13
+#55 := [mp~ #38 #63]: #13
+#541 := [mp #55 #540]: #536
 #117 := (not #536)
-#204 := (or #117 #13)
+#204 := (or #117 #19)
 #118 := [quant-inst]: #204
-[unit-resolution #118 #53 #541]: false
+[unit-resolution #118 #541 #54]: false
 unsat
-836f826330ec23da3f93f44a06ef6c00563d7781 2578 0
+7e2e7bb07882f96841bd79a84298a534331a1bfd 2578 0
 #2 := false
 decl f35 :: S1
 #112 := f35
@@ -3183,7 +3183,7 @@ decl f40 :: S1
 #3638 := [unit-resolution #705 #3637 #3636 #3635]: #683
 [unit-resolution #1968 #3638 #3634]: false
 unsat
-49266526e51dee0fe0083e5120f86525e2ef1056 95 0
+0e0405e00e1db857b4d13553d793f29fac01967a 95 0
 #2 := false
 decl f3 :: (-> int S1)
 decl ?v0!0 :: int
@@ -3279,7 +3279,7 @@ decl ?v1!1 :: int
 #102 := [and-elim #101]: #76
 [unit-resolution #102 #115]: false
 unsat
-107e72fe657296bfbc7688086b83c6164eff0b08 146 0
+9c268042fff487e7b26b60e0665b29c4f9035fd9 146 0
 #2 := false
 decl f3 :: (-> S1 S2 S1)
 #9 := (:var 0 S2)
@@ -3426,7 +3426,7 @@ decl ?v0!0 :: S2
 #261 := [quant-inst]: #256
 [unit-resolution #261 #584 #284]: false
 unsat
-2bb8a8ad07066951b9c2ff8c6c6ea8a4b3a62bfc 146 2
+84b4090aec162b66cf0450b7d84090e9d75558ae 146 2
 #2 := false
 decl f3 :: (-> S1 S2 S1)
 #9 := (:var 0 S2)
@@ -3575,7 +3575,7 @@ decl ?v0!3 :: S2
 unsat
 WARNING: failed to find a pattern for quantifier (quantifier id: k!13)
 
-3415c51851ea95b52ee39d82ddb23d7a42cd9b2f 91 0
+ac5d145f65d7c243f233206c12f40ac62829b79d 91 0
 #2 := false
 decl f3 :: (-> S2 S1)
 decl f4 :: S2
@@ -3667,7 +3667,7 @@ decl f5 :: S2
 #162 := [quant-inst]: #248
 [unit-resolution #162 #582 #79]: false
 unsat
-44eecf236b490147dbc51a13ab3759021603fcea 17 0
+8ec3689427316325ec1985fe59ea5618ec7318a2 17 0
 #2 := false
 #8 := 3::int
 #9 := (= 3::int 3::int)
@@ -3685,7 +3685,7 @@ unsat
 #27 := [asserted]: #10
 [mp #27 #36]: false
 unsat
-f79c070f64eae6123a31ed43ab22ff256427a856 17 0
+df5b3a48c37e6835717fda0b39e49a97c98242e3 17 0
 #2 := false
 #8 := 3::real
 #9 := (= 3::real 3::real)
@@ -3703,7 +3703,7 @@ f79c070f64eae6123a31ed43ab22ff256427a856 17 0
 #27 := [asserted]: #10
 [mp #27 #36]: false
 unsat
-4ebfd0cdcde15d352023497277a471fa091558e8 26 0
+9a83587f08e45fa0c86a86787b5852f3dae7a31a 26 0
 #2 := false
 #11 := 4::int
 #9 := 1::int
@@ -3730,7 +3730,7 @@ unsat
 #30 := [asserted]: #13
 [mp #30 #45]: false
 unsat
-c45eaaff3b4218ae166b1ee5b57daee45f751625 41 0
+22bf9099fbafaf6441822d212def68271e5543c2 41 0
 #2 := false
 decl f3 :: int
 #8 := f3
@@ -3772,7 +3772,7 @@ decl f4 :: int
 #33 := [asserted]: #16
 [mp #33 #57]: false
 unsat
-c12d97c9fd2930565ac865f67ef562b3c45fbf6a 35 0
+34b2179303cd4545725b4372e0c313389934e272 35 0
 #2 := false
 #9 := 3::int
 #10 := 8::int
@@ -3808,7 +3808,7 @@ c12d97c9fd2930565ac865f67ef562b3c45fbf6a 35 0
 #31 := [asserted]: #14
 [mp #31 #56]: false
 unsat
-7cb5a788981ee8a217912588519fd956ced665e2 209 0
+5162151cc0aa13db7036579b135b5e4956a6d3ad 209 0
 #2 := false
 #11 := 0::real
 decl f4 :: real
@@ -4018,50 +4018,61 @@ decl f3 :: real
 #231 := [unit-resolution #159 #230]: #150
 [th-lemma #125 #220 #227 #231]: false
 unsat
-1e234cc93c775a7f92c9808afe1122152dd4b38c 42 0
+8cadccb54aba63c5a507abf7579c610476d2ae45 53 0
 #2 := false
 decl f3 :: (-> S1 S2)
-decl f1 :: S1
-#4 := f1
-#13 := (f3 f1)
 decl f2 :: S1
 #5 := f2
+decl f1 :: S1
+#4 := f1
+#1 := true
+#13 := (ite true f1 f2)
+#14 := (f3 #13)
 #9 := 3::int
 #8 := 2::int
 #10 := (< 2::int 3::int)
 #11 := (ite #10 f1 f2)
 #12 := (f3 #11)
-#14 := (= #12 #13)
-#15 := (not #14)
-#57 := (iff #15 false)
-#1 := true
-#52 := (not true)
-#55 := (iff #52 false)
+#15 := (= #12 #14)
+#16 := (not #15)
+#66 := (iff #16 false)
+#36 := (f3 f1)
+#39 := (= #12 #36)
+#42 := (not #39)
+#64 := (iff #42 false)
+#59 := (not true)
+#62 := (iff #59 false)
+#63 := [rewrite]: #62
+#60 := (iff #42 #59)
+#57 := (iff #39 true)
+#52 := (= #36 #36)
+#55 := (iff #52 true)
 #56 := [rewrite]: #55
-#53 := (iff #15 #52)
-#50 := (iff #14 true)
-#45 := (= #13 #13)
-#48 := (iff #45 true)
-#49 := [rewrite]: #48
-#46 := (iff #14 #45)
-#42 := (= #11 f1)
-#37 := (ite true f1 f2)
-#40 := (= #37 f1)
-#41 := [rewrite]: #40
-#38 := (= #11 #37)
-#35 := (iff #10 true)
-#36 := [rewrite]: #35
-#39 := [monotonicity #36]: #38
-#43 := [trans #39 #41]: #42
-#44 := [monotonicity #43]: #14
-#47 := [monotonicity #44]: #46
-#51 := [trans #47 #49]: #50
+#53 := (iff #39 #52)
+#49 := (= #11 f1)
+#34 := (= #13 f1)
+#35 := [rewrite]: #34
+#47 := (= #11 #13)
+#45 := (iff #10 true)
+#46 := [rewrite]: #45
+#48 := [monotonicity #46]: #47
+#50 := [trans #48 #35]: #49
+#51 := [monotonicity #50]: #39
 #54 := [monotonicity #51]: #53
 #58 := [trans #54 #56]: #57
-#32 := [asserted]: #15
-[mp #32 #58]: false
+#61 := [monotonicity #58]: #60
+#65 := [trans #61 #63]: #64
+#43 := (iff #16 #42)
+#40 := (iff #15 #39)
+#37 := (= #14 #36)
+#38 := [monotonicity #35]: #37
+#41 := [monotonicity #38]: #40
+#44 := [monotonicity #41]: #43
+#67 := [trans #44 #65]: #66
+#33 := [asserted]: #16
+[mp #33 #67]: false
 unsat
-b18c0c1cf966295783ca6ddab09d2dabebd74ff7 54 0
+9ee8bccddf2109c959aa713167ad64d38274a3ce 54 0
 #2 := false
 #13 := 1::int
 decl f3 :: int
@@ -4116,7 +4127,7 @@ decl f3 :: int
 #33 := [asserted]: #16
 [mp #33 #72]: false
 unsat
-3db1a0441939b3cc14e2a4efb4f74cab6c664bd5 63 0
+306069d37156d9128c5200f6ece7cc1c2c32a1ca 63 0
 #2 := false
 #15 := 0::int
 decl f4 :: int
@@ -4180,7 +4191,7 @@ decl f3 :: int
 #81 := [mp #57 #80]: #68
 [mp #81 #93]: false
 unsat
-08fc4e7efc68a91cbed93f860a54fb029c71bcbb 35 0
+503d52dce584b309a1acdc08d36958c3ac5ae3ae 35 0
 #2 := false
 #10 := 5::int
 #8 := 2::int
@@ -4216,7 +4227,7 @@ unsat
 #30 := [asserted]: #13
 [mp #30 #54]: false
 unsat
-3adb493c0d9d387d1aebf7bcb353d3c00a0851a0 45 0
+c99d2f0ab7bdeadc342741456e2e67ddfe8c6df7 45 0
 #2 := false
 #15 := 4::real
 decl f4 :: real
@@ -4262,7 +4273,7 @@ decl f3 :: real
 #65 := [mp #41 #64]: #56
 [th-lemma #65 #52 #43]: false
 unsat
-5ee51bc5647785432ba0c87ce1c0376c614df467 59 0
+7be2e8e88cc2e8ec69e024f23a41c838fc271cf8 59 0
 #2 := false
 #20 := (not false)
 decl f4 :: int
@@ -4322,51 +4333,105 @@ decl f3 :: int
 #39 := [asserted]: #22
 [mp #39 #76]: false
 unsat
-28a095b5ca08adc7ff0222dfacd76cf43a8ba449 43 0
+f13245dba328ba82a1856f65d75c48730a2be16a 97 0
 #2 := false
+decl f1 :: S1
+#4 := f1
+decl f2 :: S1
+#5 := f2
+#9 := 3::int
 decl f3 :: int
 #8 := f3
-#9 := 3::int
-#11 := (<= 3::int f3)
+#46 := (>= f3 3::int)
+#51 := (ite #46 f2 f1)
+#73 := (= f1 #51)
+#58 := (ite #46 f1 f2)
+#69 := (= f1 #58)
+#115 := (iff #69 #73)
+#113 := (iff #73 #69)
+#61 := (= #51 #58)
+#12 := (<= 3::int f3)
+#13 := (ite #12 f1 f2)
 #10 := (< f3 3::int)
-#12 := (iff #10 #11)
-#13 := (not #12)
-#14 := (not #13)
-#61 := (iff #14 false)
-#59 := (iff #12 false)
-#50 := (>= f3 3::int)
-#48 := (not #50)
-#54 := (iff #48 #50)
-#57 := (iff #54 false)
-#58 := [rewrite]: #57
-#55 := (iff #12 #54)
-#52 := (iff #11 #50)
+#11 := (ite #10 f1 f2)
+#14 := (distinct #11 #13)
+#15 := (not #14)
+#64 := (iff #15 #61)
+#33 := (= #11 #13)
+#62 := (iff #33 #61)
+#59 := (= #13 #58)
+#56 := (iff #12 #46)
+#57 := [rewrite]: #56
+#60 := [monotonicity #57]: #59
+#54 := (= #11 #51)
+#44 := (not #46)
+#48 := (ite #44 f1 f2)
+#52 := (= #48 #51)
 #53 := [rewrite]: #52
-#49 := (iff #10 #48)
-#51 := [rewrite]: #49
-#56 := [monotonicity #51 #53]: #55
-#60 := [trans #56 #58]: #59
-#46 := (iff #14 #12)
-#40 := (iff #11 #10)
-#44 := (iff #40 #12)
-#45 := [rewrite]: #44
-#42 := (iff #14 #40)
-#32 := (not #10)
-#33 := (iff #11 #32)
-#36 := (not #33)
-#39 := (iff #36 #40)
-#41 := [rewrite]: #39
-#37 := (iff #14 #36)
-#34 := (iff #13 #33)
-#35 := [rewrite]: #34
-#38 := [monotonicity #35]: #37
-#43 := [trans #38 #41]: #42
-#47 := [trans #43 #45]: #46
-#62 := [trans #47 #60]: #61
-#31 := [asserted]: #14
-[mp #31 #62]: false
+#49 := (= #11 #48)
+#45 := (iff #10 #44)
+#47 := [rewrite]: #45
+#50 := [monotonicity #47]: #49
+#55 := [trans #50 #53]: #54
+#63 := [monotonicity #55 #60]: #62
+#42 := (iff #15 #33)
+#34 := (not #33)
+#37 := (not #34)
+#40 := (iff #37 #33)
+#41 := [rewrite]: #40
+#38 := (iff #15 #37)
+#35 := (iff #14 #34)
+#36 := [rewrite]: #35
+#39 := [monotonicity #36]: #38
+#43 := [trans #39 #41]: #42
+#65 := [trans #43 #63]: #64
+#32 := [asserted]: #15
+#66 := [mp #32 #65]: #61
+#114 := [monotonicity #66]: #113
+#116 := [symm #114]: #115
+#109 := (not #73)
+#6 := (= f1 f2)
+#67 := (= f2 #58)
+#105 := (iff #67 #6)
+#103 := (iff #6 #67)
+#98 := (= #58 f2)
+#101 := (iff #98 #67)
+#102 := [commutativity]: #101
+#99 := (iff #6 #98)
+#96 := [hypothesis]: #73
+#97 := [trans #96 #66]: #69
+#100 := [monotonicity #97]: #99
+#104 := [trans #100 #102]: #103
+#106 := [symm #104]: #105
+#72 := (= f2 #51)
+#84 := (iff #72 #67)
+#85 := [monotonicity #66]: #84
+#80 := (not #67)
+#81 := [hypothesis]: #80
+#78 := (or #46 #67)
+#79 := [def-axiom]: #78
+#82 := [unit-resolution #79 #81]: #46
+#74 := (or #44 #72)
+#75 := [def-axiom]: #74
+#83 := [unit-resolution #75 #82]: #72
+#86 := [mp #83 #85]: #67
+#87 := [unit-resolution #81 #86]: false
+#88 := [lemma #87]: #67
+#107 := [mp #88 #106]: #6
+#7 := (not #6)
+#31 := [asserted]: #7
+#108 := [unit-resolution #31 #107]: false
+#110 := [lemma #108]: #109
+#70 := (or #46 #73)
+#71 := [def-axiom]: #70
+#111 := [unit-resolution #71 #110]: #46
+#76 := (or #44 #69)
+#77 := [def-axiom]: #76
+#112 := [unit-resolution #77 #111]: #69
+#117 := [mp #112 #116]: #73
+[unit-resolution #110 #117]: false
 unsat
-d13adc55a1937ef83f29c016ef8623fe1fda09eb 86 0
+20ba41076072795cda240a8a9748e86d10779a3c 86 0
 #2 := false
 decl f3 :: int
 #9 := f3
@@ -4453,7 +4518,7 @@ decl f3 :: int
 #104 := [unit-resolution #82 #103 #96 #87]: #65
 [unit-resolution #104 #117]: false
 unsat
-372a6ad969cb318322945cf566c5d0dc9eaab120 551 0
+c7dd77e223fba57a1414f2ac31bcf364581c0489 551 0
 #2 := false
 #174 := 0::int
 decl f4 :: int
@@ -5005,7 +5070,7 @@ decl f5 :: int
 #617 := [unit-resolution #411 #614]: #421
 [unit-resolution #601 #617 #593 #616]: false
 unsat
-79f1383c7c06e3e99fb5b45b946ee8edd0a67644 2109 0
+7933e79d3cd73c97f525ad1b5130b2e50570acf4 2109 0
 #2 := false
 #10 := 0::int
 decl f3 :: int
@@ -7115,7 +7180,7 @@ decl f11 :: int
 #2119 := [unit-resolution #2118 #2109 #2056 #2114 #2113 #2112 #2096 #2108]: #945
 [unit-resolution #1969 #2119 #2109 #2096 #2042 #2105 #2108]: false
 unsat
-e5059b0c3e879c6b6b3ce8026895b93ab92e0728 52 0
+fa5f0f4797c0756b87438a177b9cadbd589f29ce 52 0
 #2 := false
 #12 := 1::real
 decl f3 :: real
@@ -7168,7 +7233,7 @@ decl f3 :: real
 #34 := [asserted]: #17
 [mp #34 #70]: false
 unsat
-58d0d0a0a699999905091a630166f1e00b881d19 348 0
+cb2e9115ca66826b4d3a05cbfae773d42313c9e8 348 0
 #2 := false
 #11 := 0::int
 decl f5 :: int
@@ -7517,7 +7582,7 @@ decl f4 :: (-> int int int)
 #638 := [unit-resolution #642 #647]: #643
 [unit-resolution #638 #640 #637]: false
 unsat
-4fc7df80f9cc116a2a88bcb88017dc9b0c75f7fc 354 0
+e1ee840c294e23269abf2c4622852c1bd3fa4be1 354 0
 #2 := false
 #11 := 0::int
 decl f5 :: int
@@ -7872,7 +7937,7 @@ decl f4 :: (-> int int int)
 #626 := [unit-resolution #621 #634]: #753
 [unit-resolution #626 #619 #508]: false
 unsat
-391853aefaeecebad29422aff20420b5c8400b71 101 0
+69cd5fda1074c29ecf66dafd109105cee62629d2 101 0
 #2 := false
 #9 := 0::real
 decl f3 :: real
@@ -7974,7 +8039,7 @@ decl f3 :: real
 #120 := [th-lemma]: #119
 [unit-resolution #120 #116 #109 #43]: false
 unsat
-fee0ab8e0ed90b0d56c8dc3103c9526d6f1496af 943 0
+c062eef3c5708d2de57fa6436f78f78380109cb0 943 0
 #2 := false
 #49 := 1::int
 decl f4 :: (-> int int int)
@@ -8918,7 +8983,7 @@ decl f5 :: int
 #1294 := [unit-resolution #1107 #1293 #1239]: #405
 [unit-resolution #1252 #1294 #1292]: false
 unsat
-a36cefa1a79f7b6b132d839263e2dbea9c7e87fc 24 0
+68c699417de116421e825411767435a3c1384b16 24 0
 #2 := false
 #8 := (exists (vars (?v0 int)) false)
 #9 := (not #8)
@@ -8943,7 +9008,7 @@ a36cefa1a79f7b6b132d839263e2dbea9c7e87fc 24 0
 #27 := [asserted]: #10
 [mp #27 #43]: false
 unsat
-54fcba387e363cf8083d4867a9793bbccb7a0314 24 0
+6b6a516b5bfeaa4eefcd34f4237f7e12561eee89 24 0
 #2 := false
 #8 := (exists (vars (?v0 real)) false)
 #9 := (not #8)
@@ -8968,13 +9033,13 @@ unsat
 #27 := [asserted]: #10
 [mp #27 #43]: false
 unsat
-fb9fab32fe487ed4f4e3d6fe3002d02a0faf856f 1 0
+d6869997502ff0714d93cc35b1ef3122ecda7c88 1 0
 unsat
-04a6b607d97a19c61cf9fb86541a5de438beb133 1 0
+95e052f4c9a5732c8ce45aff11ae1af02647de9a 1 0
 unsat
-12094d1935a50c8a07214f044f89a779adda7144 1 0
+cfb36ea62266ff4713577d89f992ba4e95f3a037 1 0
 unsat
-5e524c2f74a70173d25f03f6292e4c1715c27295 67 0
+7b7950d9e8b1bb67ce337ab127fa685513156901 67 0
 #2 := false
 #9 := 0::int
 #12 := 1::int
@@ -9042,7 +9107,7 @@ decl ?v1!0 :: int
 #143 := [trans #141 #80]: #142
 [mp #143 #145]: false
 unsat
-8d9412b39d1e4ff552ff059a2a38b571d1cc91d5 82 0
+a4d28a94dd63cac9469a1696c52b30c687cdf5cb 82 0
 #2 := false
 #9 := (:var 0 int)
 #11 := 0::int
@@ -9125,7 +9190,7 @@ unsat
 #35 := [asserted]: #18
 [mp #35 #101]: false
 unsat
-27ab42ad2d8b0d1fd722c36b1b4da113e0100061 78 0
+56bbb4b2f5d821b38f91a3e4872b388583d60377 78 0
 #2 := false
 #9 := (:var 0 int)
 #11 := 2::int
@@ -9204,7 +9269,7 @@ unsat
 #36 := [asserted]: #19
 [mp #36 #97]: false
 unsat
-df217f217128f3754a777d8b086332e1f6ca39ed 61 0
+5cabe3217d155dc3acf1647715348ec2dcd4dc81 61 0
 #2 := false
 #13 := (:var 0 int)
 #8 := 2::int
@@ -9266,7 +9331,7 @@ df217f217128f3754a777d8b086332e1f6ca39ed 61 0
 #35 := [asserted]: #18
 [mp #35 #80]: false
 unsat
-ae3d6219d877e775dfed10c63209e257accf66b7 111 0
+625e23e52edb34e94a66506c3c57ff44e4d017bd 111 0
 #2 := false
 #8 := 2::int
 decl ?v0!1 :: int
@@ -9378,7 +9443,7 @@ decl ?v1!0 :: int
 #189 := [th-lemma]: #188
 [unit-resolution #189 #132 #130 #131]: false
 unsat
-13bee6926c3836fd51ee6bc754d5c22e812fc512 89 0
+8f413540fb5f60c0499d83ef3fc732b58abc7a96 89 0
 #2 := false
 #8 := 0::int
 decl ?v0!0 :: int
@@ -9468,7 +9533,7 @@ decl ?v0!0 :: int
 #172 := [unit-resolution #157 #95]: #171
 [unit-resolution #172 #170 #167]: false
 unsat
-d8021ae1b4589558d9fd489bf446659dddb6bd92 83 2
+d07c63ee97a8f60d315d90b4b130fd8ac42deedf 83 2
 #2 := false
 #9 := 0::int
 #8 := (:var 0 int)
@@ -9554,7 +9619,7 @@ d8021ae1b4589558d9fd489bf446659dddb6bd92 83 2
 unsat
 WARNING: failed to find a pattern for quantifier (quantifier id: k!9)
 
-d2e44415b02dc3e73faa264730b98a3e42a2c4b7 180 2
+9a9269049a0a959c1316104f39491be47908d35f 180 2
 #2 := false
 #16 := 3::int
 #37 := -1::int
@@ -9737,7 +9802,7 @@ decl ?v0!1 :: int
 unsat
 WARNING: failed to find a pattern for quantifier (quantifier id: k!9)
 
-4b7d931172988b3d273106901290917cf166502b 68 0
+1ff2984f63665b8540e3fb3ed449f8b35bc4338c 68 0
 #2 := false
 #16 := 1::int
 #13 := (:var 1 int)
@@ -9806,7 +9871,7 @@ WARNING: failed to find a pattern for quantifier (quantifier id: k!9)
 #37 := [asserted]: #20
 [mp #37 #88]: false
 unsat
-3bad73f4a46430e1cd795e36a5d12f24c1d02fca 107 0
+7bf4f68751887bb031fd0b55bde3dba937693da8 107 0
 #2 := false
 #8 := 0::int
 decl ?v1!1 :: int
@@ -9914,7 +9979,7 @@ decl ?v2!0 :: int
 #128 := [and-elim #106]: #93
 [th-lemma #128 #129 #130]: false
 unsat
-87d0780ec63c3625f21f826c074cd13be4d62e3f 117 0
+55a31d7583f4f045069bbb513171666d429d1c4b 117 0
 #2 := false
 #8 := 0::int
 decl ?v1!1 :: int
@@ -10032,7 +10097,7 @@ decl ?v2!0 :: real
 #193 := [unit-resolution #192 #115]: #103
 [unit-resolution #193 #135]: false
 unsat
-8cf44aadad8c0d87f2f57333fcb342b5ab385732 148 0
+170f84855d9005d40ffde97bc6917d636084a3e6 148 0
 #2 := false
 #149 := (not false)
 #11 := 0::int
@@ -10181,7 +10246,7 @@ unsat
 #163 := [mp #131 #162]: #158
 [mp #163 #186]: false
 unsat
-505b296c347b1d80912f4657132db5ad5ac9be4f 67 0
+3d8bba4839380d81383d236278dcf751a8b91e19 67 0
 #2 := false
 #8 := (:var 0 int)
 #9 := (pattern #8)
@@ -10249,9 +10314,9 @@ decl f3 :: int
 #35 := [asserted]: #18
 [mp #35 #85]: false
 unsat
-69b5f9a8c6931a47249060824265e608f534018d 1 0
+60a76dc7c0f44320c5deeebd42c0e5f535f6bea5 1 0
 unsat
-153386649b53dd5f988fd1bc7b72bcd290f53da9 75 0
+d9291d10b9f36cd8fdb0de4c1eae205071171c6a 75 0
 #2 := false
 #10 := 1::int
 decl f5 :: int
@@ -10327,7 +10392,7 @@ decl f4 :: int
 #37 := [asserted]: #20
 [mp #37 #91]: false
 unsat
-68a3071b380f0f7c03304499d1f2835f0bf361c3 62 0
+dfe38da181b88ba6b4b62323e9d3a77ba60f80ef 62 0
 #2 := false
 decl f4 :: real
 #10 := f4
@@ -10390,7 +10455,7 @@ decl f3 :: real
 #37 := [asserted]: #20
 [mp #37 #79]: false
 unsat
-b6399504e06b7554863175061a53aa7486cc9086 141 0
+c3458fb64511798cff4b5e9982d22853bfb81cf0 141 0
 #2 := false
 decl f6 :: int
 #13 := f6
@@ -10532,7 +10597,7 @@ decl f3 :: int
 #50 := [asserted]: #33
 [mp #50 #155]: false
 unsat
-161d4df3b39a91bf1bc07402c22e85ffba8398b2 252 0
+043a836287de542d8a809f5adc4d78a4d49e5f62 252 0
 #2 := false
 #13 := 0::int
 decl f4 :: (-> S2 int)
@@ -10785,7 +10850,7 @@ decl f5 :: S2
 #544 := [unit-resolution #537 #456]: #562
 [th-lemma #460 #544 #542 #551]: false
 unsat
-2eacc8bb83fecb0fe81d96fc93fc64a7d11a9e4d 227 0
+ce1ab0c618fcab19a8a2dc122408577fac0c71ab 227 0
 #2 := false
 #27 := 3::int
 decl f4 :: (-> S2 int)
@@ -11013,7 +11078,7 @@ decl f3 :: (-> int S2)
 #607 := [unit-resolution #602 #605]: #632
 [th-lemma #161 #607 #160]: false
 unsat
-61d261a95e60947f23f698475332084ad9cfd094 367 0
+bf1e0ad2495acc888e0de7cd990a24e2435f945e 367 0
 #2 := false
 #13 := 0::int
 decl f4 :: (-> S2 int)
@@ -11381,7 +11446,7 @@ decl f3 :: (-> int S2)
 #461 := [th-lemma]: #460
 [unit-resolution #461 #469 #457]: false
 unsat
-ddf1adc32377020a68931e791f8d3bc93a479493 299 0
+fe37ed862726b19938d1bae1268f8dba5e58a394 299 0
 #2 := false
 #13 := 0::int
 decl f4 :: (-> S2 int)
@@ -11681,7 +11746,7 @@ decl f5 :: S2
 #603 := [unit-resolution #617 #615]: #685
 [th-lemma #625 #190 #603 #630]: false
 unsat
-044639db28fa915f30475668c634e5237efaa068 458 0
+2addf67c013d33ae3428e2558f560bbddeccb7e2 458 0
 #2 := false
 #13 := 0::int
 decl f4 :: (-> S2 int)
@@ -12140,7 +12205,7 @@ decl f5 :: S2
 #355 := [unit-resolution #374 #372]: #373
 [unit-resolution #355 #328]: false
 unsat
-35a0968e29848376b1a21560a270f15f6d19aed4 161 0
+419554e7e67067e10dc5e408bab61ba3d2f52467 161 0
 #2 := false
 #13 := 0::int
 decl f5 :: int
@@ -12302,7 +12367,7 @@ decl f3 :: (-> int S2)
 #366 := [unit-resolution #644 #660]: #652
 [th-lemma #661 #366 #266]: false
 unsat
-30478456884b028b09fee79763641a90a5f3dc95 604 0
+700cb6e25916af8647e57cef66cccee0c6fccb9b 604 0
 #2 := false
 #13 := 0::int
 decl f4 :: (-> S2 int)
@@ -12907,379 +12972,379 @@ decl ?v1!0 :: (-> S2 S2)
 #1005 := [unit-resolution #599 #859]: #455
 [unit-resolution #1005 #1004 #994]: false
 unsat
-b7294e8991937b94c2eeb87ee3638d9d5f007d01 61 0
+368d810de4ec653cd293bf439b046eb86d97318f 61 0
 #2 := false
-decl f7 :: S3
-#12 := f7
-decl f5 :: S3
-#8 := f5
-#14 := (= f5 f7)
-decl f3 :: (-> S2 S3)
-decl f4 :: (-> S3 S4 S2)
-decl f6 :: S4
-#9 := f6
-#10 := (f4 f5 f6)
-#11 := (f3 #10)
-#13 := (= #11 f7)
-#49 := (not #13)
-#50 := (or #49 #14)
-#53 := (not #50)
-#15 := (implies #13 #14)
-#16 := (not #15)
-#54 := (iff #16 #53)
-#51 := (iff #15 #50)
-#52 := [rewrite]: #51
-#55 := [monotonicity #52]: #54
-#48 := [asserted]: #16
-#58 := [mp #48 #55]: #53
-#56 := [not-or-elim #58]: #13
-#157 := (= f5 #11)
-#18 := (:var 0 S4)
-#17 := (:var 1 S3)
-#19 := (f4 #17 #18)
-#575 := (pattern #19)
-#20 := (f3 #19)
-#61 := (= #17 #20)
-#576 := (forall (vars (?v0 S3) (?v1 S4)) (:pat #575) #61)
-#64 := (forall (vars (?v0 S3) (?v1 S4)) #61)
-#579 := (iff #64 #576)
-#577 := (iff #61 #61)
-#578 := [refl]: #577
-#580 := [quant-intro #578]: #579
-#99 := (~ #64 #64)
-#97 := (~ #61 #61)
-#98 := [refl]: #97
-#100 := [nnf-pos #98]: #99
-#21 := (= #20 #17)
-#22 := (forall (vars (?v0 S3) (?v1 S4)) #21)
-#65 := (iff #22 #64)
-#62 := (iff #21 #61)
-#63 := [rewrite]: #62
-#66 := [quant-intro #63]: #65
-#60 := [asserted]: #22
-#69 := [mp #60 #66]: #64
-#89 := [mp~ #69 #100]: #64
-#581 := [mp #89 #580]: #576
-#245 := (not #576)
-#159 := (or #245 #157)
-#246 := [quant-inst]: #159
-#247 := [unit-resolution #246 #581]: #157
-#251 := [trans #247 #56]: #14
-#57 := (not #14)
-#59 := [not-or-elim #58]: #57
-[unit-resolution #59 #251]: false
-unsat
-0eb592b66cd32b0b3c146dc31bf114d3abca5113 116 0
-#2 := false
-decl f10 :: (-> S5 S3)
-decl f7 :: S5
-#13 := f7
-#18 := (f10 f7)
-decl f9 :: (-> S2 S3)
-decl f3 :: S2
-#8 := f3
-#17 := (f9 f3)
-#19 := (= #17 #18)
-decl f8 :: (-> S4 S3 S5)
-decl f5 :: S3
-#9 := f5
-decl f6 :: S4
-#10 := f6
-#14 := (f8 f6 f5)
-#219 := (f10 #14)
-#275 := (= #219 #18)
-#273 := (= #18 #219)
-#15 := (= f7 #14)
-decl f4 :: (-> S3 S4 S2)
-#11 := (f4 f5 f6)
-#12 := (= f3 #11)
-#16 := (and #12 #15)
-#69 := (not #16)
-#70 := (or #69 #19)
-#73 := (not #70)
-#20 := (implies #16 #19)
-#21 := (not #20)
-#74 := (iff #21 #73)
-#71 := (iff #20 #70)
-#72 := [rewrite]: #71
-#75 := [monotonicity #72]: #74
-#68 := [asserted]: #21
-#78 := [mp #68 #75]: #73
-#76 := [not-or-elim #78]: #16
-#79 := [and-elim #76]: #15
-#274 := [monotonicity #79]: #273
-#613 := [symm #274]: #275
-#616 := (= #17 #219)
-#306 := (= f5 #219)
-#23 := (:var 0 S3)
-#22 := (:var 1 S4)
-#24 := (f8 #22 #23)
-#636 := (pattern #24)
-#34 := (f10 #24)
-#98 := (= #23 #34)
-#650 := (forall (vars (?v0 S4) (?v1 S3)) (:pat #636) #98)
-#102 := (forall (vars (?v0 S4) (?v1 S3)) #98)
-#653 := (iff #102 #650)
-#651 := (iff #98 #98)
-#652 := [refl]: #651
-#654 := [quant-intro #652]: #653
-#141 := (~ #102 #102)
-#133 := (~ #98 #98)
-#134 := [refl]: #133
-#142 := [nnf-pos #134]: #141
-#35 := (= #34 #23)
-#36 := (forall (vars (?v0 S4) (?v1 S3)) #35)
-#103 := (iff #36 #102)
-#100 := (iff #35 #98)
-#101 := [rewrite]: #100
-#104 := [quant-intro #101]: #103
-#97 := [asserted]: #36
-#107 := [mp #97 #104]: #102
-#132 := [mp~ #107 #142]: #102
-#655 := [mp #132 #654]: #650
-#238 := (not #650)
-#311 := (or #238 #306)
-#308 := [quant-inst]: #311
-#625 := [unit-resolution #308 #655]: #306
-#614 := (= #17 f5)
-#309 := (f9 #11)
-#611 := (= #309 f5)
-#310 := (= f5 #309)
-#29 := (:var 0 S4)
-#28 := (:var 1 S3)
-#30 := (f4 #28 #29)
-#643 := (pattern #30)
-#31 := (f9 #30)
-#90 := (= #28 #31)
-#644 := (forall (vars (?v0 S3) (?v1 S4)) (:pat #643) #90)
-#94 := (forall (vars (?v0 S3) (?v1 S4)) #90)
-#647 := (iff #94 #644)
-#645 := (iff #90 #90)
-#646 := [refl]: #645
-#648 := [quant-intro #646]: #647
-#139 := (~ #94 #94)
-#138 := (~ #90 #90)
-#135 := [refl]: #138
-#140 := [nnf-pos #135]: #139
-#32 := (= #31 #28)
-#33 := (forall (vars (?v0 S3) (?v1 S4)) #32)
-#95 := (iff #33 #94)
-#92 := (iff #32 #90)
-#93 := [rewrite]: #92
-#96 := [quant-intro #93]: #95
-#89 := [asserted]: #33
-#99 := [mp #89 #96]: #94
-#136 := [mp~ #99 #140]: #94
-#649 := [mp #136 #648]: #644
-#628 := (not #644)
-#630 := (or #628 #310)
-#285 := [quant-inst]: #630
-#283 := [unit-resolution #285 #649]: #310
-#272 := [symm #283]: #611
-#627 := (= #17 #309)
-#77 := [and-elim #76]: #12
-#268 := [monotonicity #77]: #627
-#615 := [trans #268 #272]: #614
-#617 := [trans #615 #625]: #616
-#612 := [trans #617 #613]: #19
-#80 := (not #19)
-#81 := [not-or-elim #78]: #80
-[unit-resolution #81 #612]: false
-unsat
-919519ba12504066a1609e5f376b9f35de340ebd 192 0
-#2 := false
-decl f6 :: (-> S3 S2 S4)
-decl f3 :: S2
-#8 := f3
 decl f8 :: S3
-#16 := f8
-#22 := (f6 f8 f3)
-decl f7 :: (-> S3 S2 S4 S3)
+#27 := f8
+decl f6 :: S3
+#23 := f6
+#29 := (= f6 f8)
+decl f4 :: (-> S2 S3)
+decl f3 :: (-> S3 S4 S2)
+decl f7 :: S4
+#24 := f7
+#25 := (f3 f6 f7)
+#26 := (f4 #25)
+#28 := (= #26 f8)
+#72 := (not #28)
+#74 := (or #72 #29)
+#77 := (not #74)
+#30 := (implies #28 #29)
+#31 := (not #30)
+#78 := (iff #31 #77)
+#75 := (iff #30 #74)
+#76 := [rewrite]: #75
+#79 := [monotonicity #76]: #78
+#71 := [asserted]: #31
+#82 := [mp #71 #79]: #77
+#80 := [not-or-elim #82]: #28
+#159 := (= f6 #26)
+#15 := (:var 0 S4)
+#14 := (:var 1 S3)
+#16 := (f3 #14 #15)
+#583 := (pattern #16)
+#20 := (f4 #16)
+#64 := (= #14 #20)
+#590 := (forall (vars (?v0 S3) (?v1 S4)) (:pat #583) #64)
+#68 := (forall (vars (?v0 S3) (?v1 S4)) #64)
+#593 := (iff #68 #590)
+#591 := (iff #64 #64)
+#592 := [refl]: #591
+#594 := [quant-intro #592]: #593
+#89 := (~ #68 #68)
+#103 := (~ #64 #64)
+#104 := [refl]: #103
+#90 := [nnf-pos #104]: #89
+#21 := (= #20 #14)
+#22 := (forall (vars (?v0 S3) (?v1 S4)) #21)
+#69 := (iff #22 #68)
+#66 := (iff #21 #64)
+#67 := [rewrite]: #66
+#70 := [quant-intro #67]: #69
+#63 := [asserted]: #22
+#73 := [mp #63 #70]: #68
+#105 := [mp~ #73 #90]: #68
+#595 := [mp #105 #594]: #590
+#230 := (not #590)
+#567 := (or #230 #159)
+#569 := [quant-inst]: #567
+#249 := [unit-resolution #569 #595]: #159
+#251 := [trans #249 #80]: #29
+#81 := (not #29)
+#83 := [not-or-elim #82]: #81
+[unit-resolution #83 #251]: false
+unsat
+640737c0605c299e543c64374ff230f778c733c6 116 0
+#2 := false
+decl f5 :: (-> S2 S4)
+decl f12 :: S2
+#43 := f12
+#48 := (f5 f12)
+decl f7 :: (-> S5 S4)
+decl f9 :: S5
+#38 := f9
+#47 := (f7 f9)
+#49 := (= #47 #48)
+decl f3 :: (-> S3 S4 S2)
 decl f10 :: S4
-#19 := f10
-decl f5 :: S2
-#12 := f5
+#39 := f10
+decl f11 :: S3
+#40 := f11
+#44 := (f3 f11 f10)
+#218 := (f5 #44)
+#275 := (= #218 #48)
+#273 := (= #48 #218)
+#45 := (= f12 #44)
+decl f6 :: (-> S4 S3 S5)
+#41 := (f6 f10 f11)
+#42 := (= f9 #41)
+#46 := (and #42 #45)
+#116 := (not #46)
+#118 := (or #116 #49)
+#121 := (not #118)
+#50 := (implies #46 #49)
+#51 := (not #50)
+#122 := (iff #51 #121)
+#119 := (iff #50 #118)
+#120 := [rewrite]: #119
+#123 := [monotonicity #120]: #122
+#115 := [asserted]: #51
+#126 := [mp #115 #123]: #121
+#124 := [not-or-elim #126]: #46
+#127 := [and-elim #124]: #45
+#274 := [monotonicity #127]: #273
+#613 := [symm #274]: #275
+#616 := (= #47 #218)
+#308 := (= f10 #218)
+#21 := (:var 0 S4)
+#20 := (:var 1 S3)
+#22 := (f3 #20 #21)
+#652 := (pattern #22)
+#23 := (f5 #22)
+#84 := (= #21 #23)
+#653 := (forall (vars (?v0 S3) (?v1 S4)) (:pat #652) #84)
+#88 := (forall (vars (?v0 S3) (?v1 S4)) #84)
+#656 := (iff #88 #653)
+#654 := (iff #84 #84)
+#655 := [refl]: #654
+#657 := [quant-intro #655]: #656
+#135 := (~ #88 #88)
+#157 := (~ #84 #84)
+#158 := [refl]: #157
+#136 := [nnf-pos #158]: #135
+#24 := (= #23 #21)
+#25 := (forall (vars (?v0 S3) (?v1 S4)) #24)
+#89 := (iff #25 #88)
+#86 := (iff #24 #84)
+#87 := [rewrite]: #86
+#90 := [quant-intro #87]: #89
+#83 := [asserted]: #25
+#93 := [mp #83 #90]: #88
+#159 := [mp~ #93 #136]: #88
+#658 := [mp #159 #657]: #653
+#417 := (not #653)
+#624 := (or #417 #308)
+#296 := [quant-inst]: #624
+#634 := [unit-resolution #296 #658]: #308
+#614 := (= #47 f10)
+#307 := (f7 #41)
+#611 := (= #307 f10)
+#297 := (= f10 #307)
+#27 := (:var 0 S3)
+#26 := (:var 1 S4)
+#28 := (f6 #26 #27)
+#659 := (pattern #28)
+#35 := (f7 #28)
+#108 := (= #26 #35)
+#672 := (forall (vars (?v0 S4) (?v1 S3)) (:pat #659) #108)
+#112 := (forall (vars (?v0 S4) (?v1 S3)) #108)
+#675 := (iff #112 #672)
+#673 := (iff #108 #108)
+#674 := [refl]: #673
+#676 := [quant-intro #674]: #675
+#141 := (~ #112 #112)
+#166 := (~ #108 #108)
+#167 := [refl]: #166
+#142 := [nnf-pos #167]: #141
+#36 := (= #35 #26)
+#37 := (forall (vars (?v0 S4) (?v1 S3)) #36)
+#113 := (iff #37 #112)
+#110 := (iff #36 #108)
+#111 := [rewrite]: #110
+#114 := [quant-intro #111]: #113
+#107 := [asserted]: #37
+#117 := [mp #107 #114]: #112
+#168 := [mp~ #117 #142]: #112
+#677 := [mp #168 #676]: #672
+#288 := (not #672)
+#626 := (or #288 #297)
+#284 := [quant-inst]: #626
+#283 := [unit-resolution #284 #677]: #297
+#272 := [symm #283]: #611
+#627 := (= #47 #307)
+#125 := [and-elim #124]: #42
+#268 := [monotonicity #125]: #627
+#615 := [trans #268 #272]: #614
+#617 := [trans #615 #634]: #616
+#612 := [trans #617 #613]: #49
+#128 := (not #49)
+#129 := [not-or-elim #126]: #128
+[unit-resolution #129 #612]: false
+unsat
+78432c0558d849a6a565c450d2bc6b66780548c7 192 0
+#2 := false
+decl f3 :: (-> S2 S3 S4)
+decl f5 :: S3
+#26 := f5
+decl f8 :: S2
+#34 := f8
+#40 := (f3 f8 f5)
+decl f4 :: (-> S2 S3 S4 S2)
+decl f10 :: S4
+#37 := f10
+decl f7 :: S3
+#30 := f7
 decl f9 :: S4
-#17 := f9
-decl f4 :: S2
-#9 := f4
-#18 := (f7 f8 f4 f9)
-#20 := (f7 #18 f5 f10)
-#21 := (f6 #20 f3)
-#23 := (= #21 #22)
-#173 := (f6 #18 f4)
-#570 := (f7 f8 f4 #173)
-#538 := (f6 #570 f3)
-#539 := (= #538 #22)
-#542 := (= #22 #538)
-#533 := (= #173 #538)
-#10 := (= f3 f4)
-#374 := (ite #10 #533 #542)
-#37 := (:var 0 S2)
-#35 := (:var 1 S4)
-#34 := (:var 2 S2)
-#33 := (:var 3 S3)
-#36 := (f7 #33 #34 #35)
-#38 := (f6 #36 #37)
-#599 := (pattern #38)
-#40 := (f6 #33 #37)
-#100 := (= #38 #40)
-#99 := (= #35 #38)
-#82 := (= #34 #37)
-#107 := (ite #82 #99 #100)
-#600 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4) (?v3 S2)) (:pat #599) #107)
-#95 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4) (?v3 S2)) #107)
-#603 := (iff #95 #600)
-#601 := (iff #107 #107)
-#602 := [refl]: #601
-#604 := [quant-intro #602]: #603
-#86 := (ite #82 #35 #40)
-#89 := (= #38 #86)
-#92 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4) (?v3 S2)) #89)
-#113 := (iff #92 #95)
-#108 := (iff #89 #107)
-#98 := [rewrite]: #108
-#114 := [quant-intro #98]: #113
-#105 := (~ #92 #92)
-#104 := (~ #89 #89)
-#101 := [refl]: #104
-#106 := [nnf-pos #101]: #105
-#39 := (= #37 #34)
-#41 := (ite #39 #35 #40)
-#42 := (= #38 #41)
-#43 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4) (?v3 S2)) #42)
-#93 := (iff #43 #92)
-#90 := (iff #42 #89)
-#87 := (= #41 #86)
-#84 := (iff #39 #82)
-#85 := [rewrite]: #84
-#88 := [monotonicity #85]: #87
-#91 := [monotonicity #88]: #90
-#94 := [quant-intro #91]: #93
-#81 := [asserted]: #43
-#97 := [mp #81 #94]: #92
-#102 := [mp~ #97 #106]: #92
-#115 := [mp #102 #114]: #95
-#605 := [mp #115 #604]: #600
-#251 := (not #600)
-#530 := (or #251 #374)
-#534 := (= f4 f3)
-#540 := (ite #534 #533 #539)
-#531 := (or #251 #540)
-#532 := (iff #531 #530)
-#415 := (iff #530 #530)
-#416 := [rewrite]: #415
-#527 := (iff #540 #374)
-#371 := (iff #539 #542)
-#373 := [rewrite]: #371
-#541 := (iff #534 #10)
-#535 := [rewrite]: #541
-#528 := [monotonicity #535 #373]: #527
-#414 := [monotonicity #528]: #532
-#375 := [trans #414 #416]: #532
-#529 := [quant-inst]: #531
-#523 := [mp #529 #375]: #530
-#526 := [unit-resolution #523 #605]: #374
-#425 := (not #374)
-#513 := (or #425 #542)
-#11 := (not #10)
-#13 := (= f3 f5)
-#14 := (not #13)
-#15 := (and #11 #14)
-#61 := (not #15)
-#62 := (or #61 #23)
-#65 := (not #62)
-#24 := (implies #15 #23)
-#25 := (not #24)
-#66 := (iff #25 #65)
-#63 := (iff #24 #62)
-#64 := [rewrite]: #63
-#67 := [monotonicity #64]: #66
-#60 := [asserted]: #25
-#70 := [mp #60 #67]: #65
-#68 := [not-or-elim #70]: #15
-#69 := [and-elim #68]: #11
-#524 := (or #425 #10 #542)
-#409 := [def-axiom]: #524
-#515 := [unit-resolution #409 #69]: #513
-#507 := [unit-resolution #515 #526]: #542
-#509 := [symm #507]: #539
-#510 := (= #21 #538)
-#264 := (f6 #18 f3)
-#519 := (= #264 #538)
-#518 := (= #538 #264)
-#525 := (= #570 #18)
-#431 := (= #173 f9)
-#260 := (= f9 #173)
-#28 := (:var 0 S4)
-#27 := (:var 1 S2)
-#26 := (:var 2 S3)
-#29 := (f7 #26 #27 #28)
-#591 := (pattern #29)
-#30 := (f6 #29 #27)
-#75 := (= #28 #30)
-#593 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4)) (:pat #591) #75)
-#78 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4)) #75)
-#592 := (iff #78 #593)
-#595 := (iff #593 #593)
-#596 := [rewrite]: #595
-#594 := [rewrite]: #592
-#597 := [trans #594 #596]: #592
-#111 := (~ #78 #78)
-#109 := (~ #75 #75)
+#35 := f9
+decl f6 :: S3
+#27 := f6
+#36 := (f4 f8 f6 f9)
+#38 := (f4 #36 f7 f10)
+#39 := (f3 #38 f5)
+#41 := (= #39 #40)
+#239 := (f3 #36 f6)
+#230 := (f4 f8 f6 #239)
+#568 := (f3 #230 f5)
+#571 := (= #568 #40)
+#576 := (= #40 #568)
+#572 := (= #239 #568)
+#28 := (= f5 f6)
+#577 := (ite #28 #572 #576)
+#12 := (:var 0 S3)
+#10 := (:var 1 S4)
+#9 := (:var 2 S3)
+#8 := (:var 3 S2)
+#11 := (f4 #8 #9 #10)
+#13 := (f3 #11 #12)
+#591 := (pattern #13)
+#15 := (f3 #8 #12)
+#116 := (= #13 #15)
+#115 := (= #10 #13)
+#61 := (= #9 #12)
+#101 := (ite #61 #115 #116)
+#592 := (forall (vars (?v0 S2) (?v1 S3) (?v2 S4) (?v3 S3)) (:pat #591) #101)
+#108 := (forall (vars (?v0 S2) (?v1 S3) (?v2 S4) (?v3 S3)) #101)
+#595 := (iff #108 #592)
+#593 := (iff #101 #101)
+#594 := [refl]: #593
+#596 := [quant-intro #594]: #595
+#64 := (ite #61 #10 #15)
+#67 := (= #13 #64)
+#70 := (forall (vars (?v0 S2) (?v1 S3) (?v2 S4) (?v3 S3)) #67)
+#105 := (iff #70 #108)
+#102 := (iff #67 #101)
+#107 := [rewrite]: #102
+#106 := [quant-intro #107]: #105
+#111 := (~ #70 #70)
+#109 := (~ #67 #67)
 #110 := [refl]: #109
 #112 := [nnf-pos #110]: #111
-#31 := (= #30 #28)
-#32 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4)) #31)
-#79 := (iff #32 #78)
-#76 := (iff #31 #75)
+#14 := (= #12 #9)
+#16 := (ite #14 #10 #15)
+#17 := (= #13 #16)
+#18 := (forall (vars (?v0 S2) (?v1 S3) (?v2 S4) (?v3 S3)) #17)
+#71 := (iff #18 #70)
+#68 := (iff #17 #67)
+#65 := (= #16 #64)
+#62 := (iff #14 #61)
+#63 := [rewrite]: #62
+#66 := [monotonicity #63]: #65
+#69 := [monotonicity #66]: #68
+#72 := [quant-intro #69]: #71
+#60 := [asserted]: #18
+#75 := [mp #60 #72]: #70
+#98 := [mp~ #75 #112]: #70
+#103 := [mp #98 #106]: #108
+#597 := [mp #103 #596]: #592
+#266 := (not #592)
+#564 := (or #266 #577)
+#567 := (= f6 f5)
+#573 := (ite #567 #572 #571)
+#565 := (or #266 #573)
+#287 := (iff #565 #564)
+#289 := (iff #564 #564)
+#275 := [rewrite]: #289
+#575 := (iff #573 #577)
+#214 := (iff #571 #576)
+#215 := [rewrite]: #214
+#209 := (iff #567 #28)
+#574 := [rewrite]: #209
+#578 := [monotonicity #574 #215]: #575
+#288 := [monotonicity #578]: #287
+#290 := [trans #288 #275]: #287
+#271 := [quant-inst]: #565
+#181 := [mp #271 #290]: #564
+#526 := [unit-resolution #181 #597]: #577
+#560 := (not #577)
+#513 := (or #560 #576)
+#29 := (not #28)
+#31 := (= f5 f7)
+#32 := (not #31)
+#33 := (and #29 #32)
+#82 := (not #33)
+#84 := (or #82 #41)
+#87 := (not #84)
+#42 := (implies #33 #41)
+#43 := (not #42)
+#88 := (iff #43 #87)
+#85 := (iff #42 #84)
+#86 := [rewrite]: #85
+#89 := [monotonicity #86]: #88
+#81 := [asserted]: #43
+#92 := [mp #81 #89]: #87
+#90 := [not-or-elim #92]: #33
+#91 := [and-elim #90]: #29
+#284 := (or #560 #28 #576)
+#558 := [def-axiom]: #284
+#515 := [unit-resolution #558 #91]: #513
+#507 := [unit-resolution #515 #526]: #576
+#509 := [symm #507]: #571
+#510 := (= #39 #568)
+#173 := (f3 #36 f5)
+#519 := (= #173 #568)
+#518 := (= #568 #173)
+#525 := (= #230 #36)
+#431 := (= #239 f9)
+#582 := (= f9 #239)
+#21 := (:var 0 S4)
+#20 := (:var 1 S3)
+#19 := (:var 2 S2)
+#22 := (f4 #19 #20 #21)
+#598 := (pattern #22)
+#23 := (f3 #22 #20)
+#74 := (= #21 #23)
+#600 := (forall (vars (?v0 S2) (?v1 S3) (?v2 S4)) (:pat #598) #74)
+#78 := (forall (vars (?v0 S2) (?v1 S3) (?v2 S4)) #74)
+#599 := (iff #78 #600)
+#602 := (iff #600 #600)
+#603 := [rewrite]: #602
+#601 := [rewrite]: #599
+#604 := [trans #601 #603]: #599
+#99 := (~ #78 #78)
+#96 := (~ #74 #74)
+#113 := [refl]: #96
+#100 := [nnf-pos #113]: #99
+#24 := (= #23 #21)
+#25 := (forall (vars (?v0 S2) (?v1 S3) (?v2 S4)) #24)
+#79 := (iff #25 #78)
+#76 := (iff #24 #74)
 #77 := [rewrite]: #76
 #80 := [quant-intro #77]: #79
-#74 := [asserted]: #32
-#83 := [mp #74 #80]: #78
-#103 := [mp~ #83 #112]: #78
-#598 := [mp #103 #597]: #593
-#175 := (not #593)
-#262 := (or #175 #260)
-#253 := [quant-inst]: #262
-#430 := [unit-resolution #253 #598]: #260
+#73 := [asserted]: #25
+#83 := [mp #73 #80]: #78
+#114 := [mp~ #83 #100]: #78
+#605 := [mp #114 #604]: #600
+#227 := (not #600)
+#228 := (or #227 #582)
+#229 := [quant-inst]: #228
+#430 := [unit-resolution #229 #605]: #582
 #432 := [symm #430]: #431
 #522 := [monotonicity #432]: #525
 #514 := [monotonicity #522]: #518
 #508 := [symm #514]: #519
-#265 := (= #21 #264)
-#263 := (= f10 #21)
-#240 := (ite #13 #263 #265)
-#252 := (or #251 #240)
-#267 := (= f5 f3)
-#246 := (ite #267 #263 #265)
-#586 := (or #251 #246)
-#588 := (iff #586 #252)
-#584 := (iff #252 #252)
-#590 := [rewrite]: #584
-#372 := (iff #246 #240)
-#583 := (iff #267 #13)
-#585 := [rewrite]: #583
-#579 := [monotonicity #585]: #372
-#589 := [monotonicity #579]: #588
-#580 := [trans #589 #590]: #588
-#587 := [quant-inst]: #586
-#238 := [mp #587 #580]: #252
-#504 := [unit-resolution #238 #605]: #240
-#243 := (not #240)
-#506 := (or #243 #265)
-#71 := [and-elim #68]: #14
-#582 := (or #243 #13 #265)
-#223 := [def-axiom]: #582
-#516 := [unit-resolution #223 #71]: #506
-#517 := [unit-resolution #516 #504]: #265
+#260 := (= #39 #173)
+#174 := (= f10 #39)
+#264 := (ite #31 #174 #260)
+#263 := (or #266 #264)
+#261 := (= f7 f5)
+#175 := (ite #261 #174 #260)
+#267 := (or #266 #175)
+#583 := (iff #267 #263)
+#240 := (iff #263 #263)
+#372 := [rewrite]: #240
+#265 := (iff #175 #264)
+#262 := (iff #261 #31)
+#253 := [rewrite]: #262
+#193 := [monotonicity #253]: #265
+#585 := [monotonicity #193]: #583
+#579 := [trans #585 #372]: #583
+#246 := [quant-inst]: #267
+#251 := [mp #246 #579]: #263
+#504 := [unit-resolution #251 #597]: #264
+#252 := (not #264)
+#506 := (or #252 #260)
+#93 := [and-elim #90]: #32
+#588 := (or #252 #31 #260)
+#589 := [def-axiom]: #588
+#516 := [unit-resolution #589 #93]: #506
+#517 := [unit-resolution #516 #504]: #260
 #511 := [trans #517 #508]: #510
-#505 := [trans #511 #509]: #23
-#72 := (not #23)
-#73 := [not-or-elim #70]: #72
-[unit-resolution #73 #505]: false
+#505 := [trans #511 #509]: #41
+#94 := (not #41)
+#95 := [not-or-elim #92]: #94
+[unit-resolution #95 #505]: false
 unsat
-0e78b14dde5af897ffb16aaeab92efe89c61b5d1 80 0
+234820d946e273acfa4a19ddd440fa7b662b0b4a 80 0
 #2 := false
 decl f6 :: (-> S2 S3 S1)
 decl f5 :: S3
@@ -13360,234 +13425,252 @@ decl f3 :: (-> S2 S3 S1)
 #75 := [not-or-elim #69]: #74
 [mp #75 #96]: false
 unsat
-df98f2515329e244654c3b6826b0db995088c21e 128 0
+cfa5239afba9e02efaba4f8540ed9ac0fc0e8c77 146 0
 #2 := false
 decl f3 :: (-> S2 S2)
-#15 := (:var 0 S2)
-#16 := (f3 #15)
-#577 := (pattern #16)
-#55 := (= #15 #16)
-#578 := (forall (vars (?v0 S2)) (:pat #577) #55)
-#59 := (forall (vars (?v0 S2)) #55)
-#581 := (iff #59 #578)
-#579 := (iff #55 #55)
-#580 := [refl]: #579
-#582 := [quant-intro #580]: #581
-#88 := (~ #59 #59)
-#86 := (~ #55 #55)
-#87 := [refl]: #86
-#89 := [nnf-pos #87]: #88
-#17 := (= #16 #15)
-#18 := (forall (vars (?v0 S2)) #17)
-#60 := (iff #18 #59)
-#57 := (iff #17 #55)
-#58 := [rewrite]: #57
-#61 := [quant-intro #58]: #60
-#54 := [asserted]: #18
-#64 := [mp #54 #61]: #59
-#80 := [mp~ #64 #89]: #59
-#583 := [mp #80 #582]: #578
-decl f4 :: S2
-#8 := f4
-#9 := (f3 f4)
-#42 := (= f4 #9)
-#90 := (not #42)
-decl f5 :: (-> S1 S1)
+decl f5 :: (-> int S2)
+decl f6 :: (-> int int)
+decl f7 :: int
+#18 := f7
+#19 := (f6 f7)
+#20 := (f6 #19)
+#21 := (f5 #20)
+#22 := (f3 #21)
+#67 := (= #21 #22)
+#106 := (not #67)
+decl f4 :: (-> S1 S1)
 decl f1 :: S1
 #4 := f1
-#11 := (f5 f1)
-#45 := (= f1 #11)
-#19 := (:var 0 S1)
-#20 := (f5 #19)
-#584 := (pattern #20)
-#67 := (= f1 #19)
-#63 := (= f1 #20)
-#70 := (iff #63 #67)
-#585 := (forall (vars (?v0 S1)) (:pat #584) #70)
-#73 := (forall (vars (?v0 S1)) #70)
-#588 := (iff #73 #585)
-#586 := (iff #70 #70)
-#587 := [refl]: #586
-#589 := [quant-intro #587]: #588
-#82 := (~ #73 #73)
-#81 := (~ #70 #70)
-#79 := [refl]: #81
-#83 := [nnf-pos #79]: #82
-#22 := (= #19 f1)
-#21 := (= #20 f1)
-#23 := (iff #21 #22)
-#24 := (forall (vars (?v0 S1)) #23)
-#74 := (iff #24 #73)
-#71 := (iff #23 #70)
-#68 := (iff #22 #67)
-#69 := [rewrite]: #68
-#65 := (iff #21 #63)
-#66 := [rewrite]: #65
-#72 := [monotonicity #66 #69]: #71
-#75 := [quant-intro #72]: #74
-#62 := [asserted]: #24
-#78 := [mp #62 #75]: #73
-#76 := [mp~ #78 #83]: #73
-#590 := [mp #76 #589]: #585
-#91 := (not #45)
-#572 := [hypothesis]: #91
-#249 := (not #585)
-#253 := (or #249 #45)
-#159 := (= f1 f1)
-#246 := (iff #45 #159)
-#232 := (or #249 #246)
-#571 := (iff #232 #253)
-#358 := (iff #253 #253)
-#565 := [rewrite]: #358
-#179 := (iff #246 #45)
+#73 := (f4 f1)
+#79 := (= f1 #73)
+#107 := (not #79)
+#586 := [hypothesis]: #107
+#12 := (:var 0 S1)
+#13 := (f4 #12)
+#598 := (pattern #13)
+#57 := (= f1 #12)
+#53 := (= f1 #13)
+#60 := (iff #53 #57)
+#599 := (forall (vars (?v0 S1)) (:pat #598) #60)
+#63 := (forall (vars (?v0 S1)) #60)
+#602 := (iff #63 #599)
+#600 := (iff #60 #60)
+#601 := [refl]: #600
+#603 := [quant-intro #601]: #602
+#94 := (~ #63 #63)
+#90 := (~ #60 #60)
+#104 := [refl]: #90
+#95 := [nnf-pos #104]: #94
+#15 := (= #12 f1)
+#14 := (= #13 f1)
+#16 := (iff #14 #15)
+#17 := (forall (vars (?v0 S1)) #16)
+#64 := (iff #17 #63)
+#61 := (iff #16 #60)
+#58 := (iff #15 #57)
+#59 := [rewrite]: #58
+#55 := (iff #14 #53)
+#56 := [rewrite]: #55
+#62 := [monotonicity #56 #59]: #61
+#65 := [quant-intro #62]: #64
+#52 := [asserted]: #17
+#68 := [mp #52 #65]: #63
+#105 := [mp~ #68 #95]: #63
+#604 := [mp #105 #603]: #599
+#263 := (not #599)
+#267 := (or #263 #79)
+#173 := (= f1 f1)
+#260 := (iff #79 #173)
+#246 := (or #263 #260)
+#585 := (iff #246 #267)
+#372 := (iff #267 #267)
+#579 := [rewrite]: #372
+#193 := (iff #260 #79)
 #1 := true
-#161 := (iff #45 true)
-#250 := (iff #161 #45)
-#251 := [rewrite]: #250
-#248 := (iff #246 #161)
-#160 := (iff #159 true)
-#247 := [rewrite]: #160
-#239 := [monotonicity #247]: #248
-#252 := [trans #239 #251]: #179
-#226 := [monotonicity #252]: #571
-#237 := [trans #226 #565]: #571
-#569 := [quant-inst]: #232
-#238 := [mp #569 #237]: #253
-#573 := [unit-resolution #238 #572 #590]: false
-#574 := [lemma #573]: #45
-#84 := (or #90 #91)
-#48 := (and #42 #45)
-#51 := (not #48)
-#99 := (iff #51 #84)
-#85 := (not #84)
-#94 := (not #85)
-#97 := (iff #94 #84)
-#98 := [rewrite]: #97
-#95 := (iff #51 #94)
-#92 := (iff #48 #85)
-#93 := [rewrite]: #92
-#96 := [monotonicity #93]: #95
-#100 := [trans #96 #98]: #99
-#12 := (= #11 f1)
-#10 := (= #9 f4)
-#13 := (and #10 #12)
-#14 := (not #13)
-#52 := (iff #14 #51)
-#49 := (iff #13 #48)
-#46 := (iff #12 #45)
-#47 := [rewrite]: #46
-#43 := (iff #10 #42)
-#44 := [rewrite]: #43
-#50 := [monotonicity #44 #47]: #49
-#53 := [monotonicity #50]: #52
-#41 := [asserted]: #14
-#56 := [mp #41 #53]: #51
-#101 := [mp #56 #100]: #84
-#575 := [unit-resolution #101 #574]: #90
-#576 := (not #578)
-#566 := (or #576 #42)
-#224 := [quant-inst]: #566
-[unit-resolution #224 #575 #583]: false
+#175 := (iff #79 true)
+#264 := (iff #175 #79)
+#265 := [rewrite]: #264
+#262 := (iff #260 #175)
+#174 := (iff #173 true)
+#261 := [rewrite]: #174
+#253 := [monotonicity #261]: #262
+#266 := [trans #253 #265]: #193
+#240 := [monotonicity #266]: #585
+#251 := [trans #240 #579]: #585
+#583 := [quant-inst]: #246
+#252 := [mp #583 #251]: #267
+#587 := [unit-resolution #252 #604 #586]: false
+#588 := [lemma #587]: #79
+#96 := (or #106 #107)
+#84 := (and #67 #79)
+#87 := (not #84)
+#113 := (iff #87 #96)
+#97 := (not #96)
+#108 := (not #97)
+#111 := (iff #108 #96)
+#112 := [rewrite]: #111
+#109 := (iff #87 #108)
+#98 := (iff #84 #97)
+#99 := [rewrite]: #98
+#110 := [monotonicity #99]: #109
+#114 := [trans #110 #112]: #113
+decl f2 :: S1
+#5 := f2
+#24 := (ite true f1 f2)
+#25 := (f4 #24)
+#26 := (= #25 f1)
+#23 := (= #22 #21)
+#27 := (and #23 #26)
+#28 := (not #27)
+#88 := (iff #28 #87)
+#85 := (iff #27 #84)
+#82 := (iff #26 #79)
+#76 := (= #73 f1)
+#80 := (iff #76 #79)
+#81 := [rewrite]: #80
+#77 := (iff #26 #76)
+#74 := (= #25 #73)
+#71 := (= #24 f1)
+#72 := [rewrite]: #71
+#75 := [monotonicity #72]: #74
+#78 := [monotonicity #75]: #77
+#83 := [trans #78 #81]: #82
+#69 := (iff #23 #67)
+#70 := [rewrite]: #69
+#86 := [monotonicity #70 #83]: #85
+#89 := [monotonicity #86]: #88
+#66 := [asserted]: #28
+#92 := [mp #66 #89]: #87
+#115 := [mp #92 #114]: #96
+#589 := [unit-resolution #115 #588]: #106
+#8 := (:var 0 S2)
+#9 := (f3 #8)
+#591 := (pattern #9)
+#46 := (= #8 #9)
+#592 := (forall (vars (?v0 S2)) (:pat #591) #46)
+#49 := (forall (vars (?v0 S2)) #46)
+#595 := (iff #49 #592)
+#593 := (iff #46 #46)
+#594 := [refl]: #593
+#596 := [quant-intro #594]: #595
+#102 := (~ #49 #49)
+#100 := (~ #46 #46)
+#101 := [refl]: #100
+#103 := [nnf-pos #101]: #102
+#10 := (= #9 #8)
+#11 := (forall (vars (?v0 S2)) #10)
+#50 := (iff #11 #49)
+#47 := (iff #10 #46)
+#48 := [rewrite]: #47
+#51 := [quant-intro #48]: #50
+#45 := [asserted]: #11
+#54 := [mp #45 #51]: #49
+#93 := [mp~ #54 #103]: #49
+#597 := [mp #93 #596]: #592
+#590 := (not #592)
+#580 := (or #590 #67)
+#238 := [quant-inst]: #580
+[unit-resolution #238 #597 #589]: false
 unsat
-be52fda02d5daa6359d2f1d2bccf2f909cea5a49 469 0
+cb1a1c56598b7b2b9fb4f67d2d62604895ce83a9 464 0
 #2 := false
 decl f8 :: (-> S2 S4 S4)
 decl f9 :: S4
-#34 := f9
+#28 := f9
 decl f5 :: (-> int S2)
-#38 := 2::int
-#39 := (f5 2::int)
-#40 := (f8 #39 f9)
+#52 := 2::int
+#53 := (f5 2::int)
+#54 := (f8 #53 f9)
 #12 := 1::int
-#33 := (f5 1::int)
-#41 := (f8 #33 #40)
+#48 := (f5 1::int)
+#55 := (f8 #48 #54)
 decl f7 :: (-> S3 S4 S4)
-#35 := (f8 #33 f9)
-#20 := 0::int
-#32 := (f5 0::int)
-#36 := (f8 #32 #35)
+#49 := (f8 #48 f9)
+#35 := 0::int
+#47 := (f5 0::int)
+#50 := (f8 #47 #49)
 decl f4 :: S3
 #8 := f4
-#37 := (f7 f4 #36)
-#42 := (= #37 #41)
-#519 := (f7 f4 #35)
+#51 := (f7 f4 #50)
+#56 := (= #51 #55)
+#271 := (f7 f4 #49)
 decl f3 :: (-> S3 S2 S2)
-#521 := (f3 f4 #32)
-#522 := (f8 #521 #519)
-#812 := (= #522 #41)
-#810 := (= #41 #522)
-#773 := (= #40 #519)
-#598 := (f7 f4 f9)
-#599 := (f3 f4 #33)
-#584 := (f8 #599 #598)
-#771 := (= #584 #519)
-#585 := (= #519 #584)
-#50 := (:var 0 S4)
-#48 := (:var 2 S3)
-#54 := (f7 #48 #50)
-#49 := (:var 1 S2)
-#53 := (f3 #48 #49)
-#55 := (f8 #53 #54)
-#722 := (pattern #55)
-#51 := (f8 #49 #50)
-#52 := (f7 #48 #51)
-#721 := (pattern #52)
-#56 := (= #52 #55)
-#723 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4)) (:pat #721 #722) #56)
-#57 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4)) #56)
-#726 := (iff #57 #723)
-#724 := (iff #56 #56)
-#725 := [refl]: #724
-#727 := [quant-intro #725]: #726
-#196 := (~ #57 #57)
-#195 := (~ #56 #56)
-#214 := [refl]: #195
-#197 := [nnf-pos #214]: #196
-#181 := [asserted]: #57
-#215 := [mp~ #181 #197]: #57
-#728 := [mp #215 #727]: #723
-#525 := (not #723)
-#589 := (or #525 #585)
+#356 := (f3 f4 #47)
+#272 := (f8 #356 #271)
+#796 := (= #272 #55)
+#794 := (= #55 #272)
+#757 := (= #54 #271)
+#526 := (f7 f4 f9)
+#527 := (f3 f4 #48)
+#620 := (f8 #527 #526)
+#755 := (= #620 #271)
+#617 := (= #271 #620)
+#19 := (:var 0 S4)
+#17 := (:var 2 S3)
+#23 := (f7 #17 #19)
+#18 := (:var 1 S2)
+#22 := (f3 #17 #18)
+#24 := (f8 #22 #23)
+#695 := (pattern #24)
+#20 := (f8 #18 #19)
+#21 := (f7 #17 #20)
+#694 := (pattern #21)
+#25 := (= #21 #24)
+#696 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4)) (:pat #694 #695) #25)
+#26 := (forall (vars (?v0 S3) (?v1 S2) (?v2 S4)) #25)
+#699 := (iff #26 #696)
+#697 := (iff #25 #25)
+#698 := [refl]: #697
+#700 := [quant-intro #698]: #699
+#186 := (~ #26 #26)
+#183 := (~ #25 #25)
+#204 := [refl]: #183
+#187 := [nnf-pos #204]: #186
+#87 := [asserted]: #26
+#205 := [mp~ #87 #187]: #26
+#701 := [mp #205 #700]: #696
+#360 := (not #696)
+#610 := (or #360 #617)
+#602 := [quant-inst]: #610
+#279 := [unit-resolution #602 #701]: #617
+#756 := [symm #279]: #755
+#753 := (= #54 #620)
+#584 := (= f9 #526)
+#27 := (:var 0 S3)
+#29 := (f7 #27 f9)
+#702 := (pattern #29)
+#90 := (= f9 #29)
+#703 := (forall (vars (?v0 S3)) (:pat #702) #90)
+#93 := (forall (vars (?v0 S3)) #90)
+#706 := (iff #93 #703)
+#704 := (iff #90 #90)
+#705 := [refl]: #704
+#707 := [quant-intro #705]: #706
+#188 := (~ #93 #93)
+#206 := (~ #90 #90)
+#207 := [refl]: #206
+#189 := [nnf-pos #207]: #188
+#30 := (= #29 f9)
+#31 := (forall (vars (?v0 S3)) #30)
+#94 := (iff #31 #93)
+#91 := (iff #30 #90)
+#92 := [rewrite]: #91
+#95 := [quant-intro #92]: #94
+#88 := [asserted]: #31
+#98 := [mp #88 #95]: #93
+#208 := [mp~ #98 #189]: #93
+#708 := [mp #208 #707]: #703
+#588 := (not #703)
+#589 := (or #588 #584)
 #586 := [quant-inst]: #589
-#731 := [unit-resolution #586 #728]: #585
-#772 := [symm #731]: #771
-#769 := (= #40 #584)
-#397 := (= f9 #598)
-#44 := (:var 0 S3)
-#45 := (f7 #44 f9)
-#714 := (pattern #45)
-#175 := (= f9 #45)
-#715 := (forall (vars (?v0 S3)) (:pat #714) #175)
-#178 := (forall (vars (?v0 S3)) #175)
-#718 := (iff #178 #715)
-#716 := (iff #175 #175)
-#717 := [refl]: #716
-#719 := [quant-intro #717]: #718
-#192 := (~ #178 #178)
-#212 := (~ #175 #175)
-#213 := [refl]: #212
-#193 := [nnf-pos #213]: #192
-#46 := (= #45 f9)
-#47 := (forall (vars (?v0 S3)) #46)
-#179 := (iff #47 #178)
-#176 := (iff #46 #175)
-#177 := [rewrite]: #176
-#180 := [quant-intro #177]: #179
-#174 := [asserted]: #47
-#183 := [mp #174 #180]: #178
-#194 := [mp~ #183 #193]: #178
-#720 := [mp #194 #719]: #715
-#388 := (not #715)
-#380 := (or #388 #397)
-#389 := [quant-inst]: #380
-#732 := [unit-resolution #389 #720]: #397
-#767 := (= #39 #599)
+#280 := [unit-resolution #586 #708]: #584
+#751 := (= #53 #527)
 decl f6 :: (-> S2 int)
-#305 := (f6 #33)
-#617 := (+ 1::int #305)
-#621 := (f5 #617)
-#763 := (= #621 #599)
-#601 := (= #599 #621)
+#673 := (f6 #48)
+#601 := (+ 1::int #673)
+#611 := (f5 #601)
+#747 := (= #611 #527)
+#614 := (= #527 #611)
 #9 := (:var 0 S2)
 #11 := (f6 #9)
 #687 := (pattern #11)
@@ -13622,344 +13705,339 @@ decl f6 :: (-> S2 int)
 #89 := [mp #74 #86]: #84
 #185 := [mp~ #89 #203]: #84
 #693 := [mp #185 #692]: #688
-#608 := (not #688)
-#613 := (or #608 #601)
-#609 := [quant-inst]: #613
-#735 := [unit-resolution #609 #693]: #601
-#764 := [symm #735]: #763
-#765 := (= #39 #621)
-#507 := (f6 #621)
-#313 := (f5 #507)
-#292 := (= #313 #621)
-#17 := (f5 #11)
-#88 := (= #9 #17)
-#694 := (forall (vars (?v0 S2)) (:pat #687) #88)
-#92 := (forall (vars (?v0 S2)) #88)
-#695 := (iff #92 #694)
-#697 := (iff #694 #694)
-#698 := [rewrite]: #697
-#696 := [rewrite]: #695
-#699 := [trans #696 #698]: #695
-#186 := (~ #92 #92)
-#182 := (~ #88 #88)
-#204 := [refl]: #182
-#187 := [nnf-pos #204]: #186
-#18 := (= #17 #9)
-#19 := (forall (vars (?v0 S2)) #18)
-#93 := (iff #19 #92)
-#90 := (iff #18 #88)
-#91 := [rewrite]: #90
-#94 := [quant-intro #91]: #93
-#87 := [asserted]: #19
-#97 := [mp #87 #94]: #92
-#205 := [mp~ #97 #187]: #92
-#700 := [mp #205 #699]: #694
-#354 := (not #694)
-#300 := (or #354 #292)
-#288 := (= #621 #313)
-#301 := (or #354 #288)
-#299 := (iff #301 #300)
-#287 := (iff #300 #300)
-#290 := [rewrite]: #287
-#293 := (iff #288 #292)
-#298 := [rewrite]: #293
-#304 := [monotonicity #298]: #299
-#291 := [trans #304 #290]: #299
-#303 := [quant-inst]: #301
-#294 := [mp #303 #291]: #300
-#736 := [unit-resolution #294 #700]: #292
-#761 := (= #39 #313)
-#759 := (= 2::int #507)
-#757 := (= #507 2::int)
-#579 := -1::int
-#517 := (* -1::int #507)
-#518 := (+ #305 #517)
-#480 := (<= #518 -1::int)
-#528 := (= #518 -1::int)
-#484 := (>= #305 -1::int)
-#570 := (>= #305 1::int)
-#672 := (= #305 1::int)
-#21 := (:var 0 int)
-#23 := (f5 #21)
-#701 := (pattern #23)
-#114 := (>= #21 0::int)
-#115 := (not #114)
-#24 := (f6 #23)
-#96 := (= #21 #24)
-#121 := (or #96 #115)
-#702 := (forall (vars (?v0 int)) (:pat #701) #121)
-#126 := (forall (vars (?v0 int)) #121)
-#705 := (iff #126 #702)
-#703 := (iff #121 #121)
-#704 := [refl]: #703
-#706 := [quant-intro #704]: #705
-#188 := (~ #126 #126)
-#206 := (~ #121 #121)
-#207 := [refl]: #206
-#189 := [nnf-pos #207]: #188
-#25 := (= #24 #21)
-#22 := (<= 0::int #21)
-#26 := (implies #22 #25)
-#27 := (forall (vars (?v0 int)) #26)
-#129 := (iff #27 #126)
-#103 := (not #22)
-#104 := (or #103 #96)
-#109 := (forall (vars (?v0 int)) #104)
-#127 := (iff #109 #126)
-#124 := (iff #104 #121)
-#118 := (or #115 #96)
-#122 := (iff #118 #121)
-#123 := [rewrite]: #122
-#119 := (iff #104 #118)
-#116 := (iff #103 #115)
-#112 := (iff #22 #114)
-#113 := [rewrite]: #112
-#117 := [monotonicity #113]: #116
-#120 := [monotonicity #117]: #119
-#125 := [trans #120 #123]: #124
-#128 := [quant-intro #125]: #127
-#110 := (iff #27 #109)
-#107 := (iff #26 #104)
-#100 := (implies #22 #96)
-#105 := (iff #100 #104)
-#106 := [rewrite]: #105
-#101 := (iff #26 #100)
-#98 := (iff #25 #96)
-#99 := [rewrite]: #98
-#102 := [monotonicity #99]: #101
-#108 := [trans #102 #106]: #107
-#111 := [quant-intro #108]: #110
-#130 := [trans #111 #128]: #129
-#95 := [asserted]: #27
-#131 := [mp #95 #130]: #126
-#208 := [mp~ #131 #189]: #126
-#707 := [mp #208 #706]: #702
-#685 := (not #702)
-#379 := (or #685 #672)
-#662 := (>= 1::int 0::int)
-#668 := (not #662)
-#669 := (= 1::int #305)
-#671 := (or #669 #668)
-#653 := (or #685 #671)
-#654 := (iff #653 #379)
-#368 := (iff #379 #379)
-#369 := [rewrite]: #368
-#656 := (iff #671 #672)
-#383 := (or #672 false)
-#278 := (iff #383 #672)
-#655 := [rewrite]: #278
-#384 := (iff #671 #383)
-#367 := (iff #668 false)
+#612 := (not #688)
+#605 := (or #612 #614)
+#606 := [quant-inst]: #605
+#283 := [unit-resolution #606 #693]: #614
+#748 := [symm #283]: #747
+#749 := (= #53 #611)
+#531 := (f6 #611)
+#330 := (f5 #531)
+#332 := (= #330 #611)
+#32 := (f5 #11)
+#97 := (= #9 #32)
+#709 := (forall (vars (?v0 S2)) (:pat #687) #97)
+#101 := (forall (vars (?v0 S2)) #97)
+#710 := (iff #101 #709)
+#712 := (iff #709 #709)
+#713 := [rewrite]: #712
+#711 := [rewrite]: #710
+#714 := [trans #711 #713]: #710
+#190 := (~ #101 #101)
+#209 := (~ #97 #97)
+#210 := [refl]: #209
+#191 := [nnf-pos #210]: #190
+#33 := (= #32 #9)
+#34 := (forall (vars (?v0 S2)) #33)
+#102 := (iff #34 #101)
+#99 := (iff #33 #97)
+#100 := [rewrite]: #99
+#103 := [quant-intro #100]: #102
+#96 := [asserted]: #34
+#106 := [mp #96 #103]: #101
+#211 := [mp~ #106 #191]: #101
+#715 := [mp #211 #714]: #709
+#373 := (not #709)
+#314 := (or #373 #332)
+#331 := (= #611 #330)
+#316 := (or #373 #331)
+#315 := (iff #316 #314)
+#306 := (iff #314 #314)
+#308 := [rewrite]: #306
+#321 := (iff #331 #332)
+#333 := [rewrite]: #321
+#318 := [monotonicity #333]: #315
+#309 := [trans #318 #308]: #315
+#317 := [quant-inst]: #316
+#312 := [mp #317 #309]: #314
+#284 := [unit-resolution #312 #715]: #332
+#745 := (= #53 #330)
+#743 := (= 2::int #531)
+#741 := (= #531 2::int)
+#573 := -1::int
+#538 := (* -1::int #673)
+#506 := (+ #531 #538)
+#486 := (<= #506 1::int)
+#532 := (= #506 1::int)
+#472 := (>= #673 -1::int)
+#597 := (>= #673 1::int)
+#383 := (= #673 1::int)
+#36 := (:var 0 int)
+#38 := (f5 #36)
+#716 := (pattern #38)
+#123 := (>= #36 0::int)
+#124 := (not #123)
+#39 := (f6 #38)
+#105 := (= #36 #39)
+#130 := (or #105 #124)
+#717 := (forall (vars (?v0 int)) (:pat #716) #130)
+#135 := (forall (vars (?v0 int)) #130)
+#720 := (iff #135 #717)
+#718 := (iff #130 #130)
+#719 := [refl]: #718
+#721 := [quant-intro #719]: #720
+#192 := (~ #135 #135)
+#212 := (~ #130 #130)
+#213 := [refl]: #212
+#193 := [nnf-pos #213]: #192
+#40 := (= #39 #36)
+#37 := (<= 0::int #36)
+#41 := (implies #37 #40)
+#42 := (forall (vars (?v0 int)) #41)
+#138 := (iff #42 #135)
+#112 := (not #37)
+#113 := (or #112 #105)
+#118 := (forall (vars (?v0 int)) #113)
+#136 := (iff #118 #135)
+#133 := (iff #113 #130)
+#127 := (or #124 #105)
+#131 := (iff #127 #130)
+#132 := [rewrite]: #131
+#128 := (iff #113 #127)
+#125 := (iff #112 #124)
+#121 := (iff #37 #123)
+#122 := [rewrite]: #121
+#126 := [monotonicity #122]: #125
+#129 := [monotonicity #126]: #128
+#134 := [trans #129 #132]: #133
+#137 := [quant-intro #134]: #136
+#119 := (iff #42 #118)
+#116 := (iff #41 #113)
+#109 := (implies #37 #105)
+#114 := (iff #109 #113)
+#115 := [rewrite]: #114
+#110 := (iff #41 #109)
+#107 := (iff #40 #105)
+#108 := [rewrite]: #107
+#111 := [monotonicity #108]: #110
+#117 := [trans #111 #115]: #116
+#120 := [quant-intro #117]: #119
+#139 := [trans #120 #137]: #138
+#104 := [asserted]: #42
+#140 := [mp #104 #139]: #135
+#214 := [mp~ #140 #193]: #135
+#722 := [mp #214 #721]: #717
+#319 := (not #717)
+#370 := (or #319 #383)
+#672 := (>= 1::int 0::int)
+#670 := (not #672)
+#659 := (= 1::int #673)
+#660 := (or #659 #670)
+#371 := (or #319 #660)
+#650 := (iff #371 #370)
+#647 := (iff #370 #370)
+#651 := [rewrite]: #647
+#368 := (iff #660 #383)
+#379 := (or #383 false)
+#654 := (iff #379 #383)
+#658 := [rewrite]: #654
+#653 := (iff #660 #379)
+#656 := (iff #670 false)
 #1 := true
-#363 := (not true)
-#680 := (iff #363 false)
-#336 := [rewrite]: #680
-#659 := (iff #668 #363)
-#670 := (iff #662 true)
-#673 := [rewrite]: #670
-#660 := [monotonicity #673]: #659
-#382 := [trans #660 #336]: #367
-#310 := (iff #669 #672)
-#311 := [rewrite]: #310
-#385 := [monotonicity #311 #382]: #384
-#378 := [trans #385 #655]: #656
-#658 := [monotonicity #378]: #654
-#370 := [trans #658 #369]: #654
-#657 := [quant-inst]: #653
-#371 := [mp #657 #370]: #379
-#737 := [unit-resolution #371 #707]: #672
-#738 := (not #672)
-#739 := (or #738 #570)
-#740 := [th-lemma]: #739
-#741 := [unit-resolution #740 #737]: #570
-#742 := (not #570)
-#743 := (or #742 #484)
-#744 := [th-lemma]: #743
-#745 := [unit-resolution #744 #741]: #484
-#491 := (not #484)
-#486 := (or #685 #491 #528)
-#503 := (>= #617 0::int)
-#505 := (not #503)
-#514 := (= #617 #507)
-#516 := (or #514 #505)
-#502 := (or #685 #516)
-#477 := (iff #502 #486)
-#497 := (or #491 #528)
-#464 := (or #685 #497)
-#474 := (iff #464 #486)
-#475 := [rewrite]: #474
-#471 := (iff #502 #464)
-#500 := (iff #516 #497)
-#494 := (or #528 #491)
-#498 := (iff #494 #497)
-#499 := [rewrite]: #498
-#495 := (iff #516 #494)
-#492 := (iff #505 #491)
-#485 := (iff #503 #484)
-#490 := [rewrite]: #485
-#493 := [monotonicity #490]: #492
-#508 := (iff #514 #528)
-#529 := [rewrite]: #508
-#496 := [monotonicity #529 #493]: #495
-#501 := [trans #496 #499]: #500
-#473 := [monotonicity #501]: #471
-#478 := [trans #473 #475]: #477
-#463 := [quant-inst]: #502
-#479 := [mp #463 #478]: #486
-#746 := [unit-resolution #479 #707 #745]: #528
-#747 := (not #528)
-#748 := (or #747 #480)
-#749 := [th-lemma]: #748
-#750 := [unit-resolution #749 #746]: #480
-#481 := (>= #518 -1::int)
-#751 := (or #747 #481)
-#752 := [th-lemma]: #751
-#753 := [unit-resolution #752 #746]: #481
-#590 := (<= #305 1::int)
-#754 := (or #738 #590)
-#755 := [th-lemma]: #754
-#756 := [unit-resolution #755 #737]: #590
-#758 := [th-lemma #741 #756 #753 #750]: #757
-#760 := [symm #758]: #759
-#762 := [monotonicity #760]: #761
-#766 := [trans #762 #736]: #765
-#768 := [trans #766 #764]: #767
-#770 := [monotonicity #768 #732]: #769
-#774 := [trans #770 #772]: #773
-#807 := (= #33 #521)
-#272 := (f6 #32)
-#523 := (+ 1::int #272)
-#524 := (f5 #523)
-#803 := (= #524 #521)
-#620 := (= #521 #524)
-#610 := (or #608 #620)
-#602 := [quant-inst]: #610
-#775 := [unit-resolution #602 #693]: #620
-#804 := [symm #775]: #803
-#805 := (= #33 #524)
-#576 := (f6 #524)
-#337 := (f5 #576)
-#351 := (= #337 #524)
-#344 := (or #354 #351)
-#350 := (= #524 #337)
-#355 := (or #354 #350)
-#340 := (iff #355 #344)
-#320 := (iff #344 #344)
-#322 := [rewrite]: #320
-#352 := (iff #350 #351)
-#353 := [rewrite]: #352
-#341 := [monotonicity #353]: #340
-#327 := [trans #341 #322]: #340
-#338 := [quant-inst]: #355
-#328 := [mp #338 #327]: #344
-#776 := [unit-resolution #328 #700]: #351
-#801 := (= #33 #337)
-#799 := (= 1::int #576)
-#797 := (= #576 1::int)
-#580 := (* -1::int #576)
-#581 := (+ #272 #580)
-#541 := (<= #581 -1::int)
-#582 := (= #581 -1::int)
-#561 := (>= #272 -1::int)
-#588 := (>= #272 0::int)
-#361 := (= #272 0::int)
-#675 := (or #685 #361)
-#271 := (>= 0::int 0::int)
-#356 := (not #271)
-#357 := (= 0::int #272)
-#358 := (or #357 #356)
-#334 := (or #685 #358)
-#676 := (iff #334 #675)
-#677 := (iff #675 #675)
-#319 := [rewrite]: #677
-#684 := (iff #358 #361)
-#347 := (or #361 false)
-#682 := (iff #347 #361)
+#347 := (not true)
+#682 := (iff #347 false)
 #683 := [rewrite]: #682
-#348 := (iff #358 #347)
-#467 := (iff #356 false)
-#342 := (iff #356 #363)
-#362 := (iff #271 true)
-#359 := [rewrite]: #362
-#678 := [monotonicity #359]: #342
-#674 := [trans #678 #336]: #467
-#349 := (iff #357 #361)
-#360 := [rewrite]: #349
-#681 := [monotonicity #360 #674]: #348
+#278 := (iff #670 #347)
+#384 := (iff #672 true)
+#385 := [rewrite]: #384
+#655 := [monotonicity #385]: #278
+#378 := [trans #655 #683]: #656
+#367 := (iff #659 #383)
+#382 := [rewrite]: #367
+#657 := [monotonicity #382 #378]: #653
+#369 := [trans #657 #658]: #368
+#364 := [monotonicity #369]: #650
+#648 := [trans #364 #651]: #650
+#649 := [quant-inst]: #371
+#652 := [mp #649 #648]: #370
+#285 := [unit-resolution #652 #722]: #383
+#281 := (not #383)
+#286 := (or #281 #597)
+#273 := [th-lemma]: #286
+#275 := [unit-resolution #273 #285]: #597
+#276 := (not #597)
+#274 := (or #276 #472)
+#277 := [th-lemma]: #274
+#729 := [unit-resolution #277 #275]: #472
+#507 := (not #472)
+#491 := (or #319 #507 #532)
+#530 := (>= #601 0::int)
+#476 := (not #530)
+#512 := (= #601 #531)
+#536 := (or #512 #476)
+#492 := (or #319 #536)
+#499 := (iff #492 #491)
+#508 := (or #507 #532)
+#494 := (or #319 #508)
+#497 := (iff #494 #491)
+#498 := [rewrite]: #497
+#495 := (iff #492 #494)
+#485 := (iff #536 #508)
+#517 := (or #532 #507)
+#529 := (iff #517 #508)
+#484 := [rewrite]: #529
+#518 := (iff #536 #517)
+#514 := (iff #476 #507)
+#503 := (iff #530 #472)
+#505 := [rewrite]: #503
+#516 := [monotonicity #505]: #514
+#537 := (iff #512 #532)
+#513 := [rewrite]: #537
+#528 := [monotonicity #513 #516]: #518
+#490 := [trans #528 #484]: #485
+#496 := [monotonicity #490]: #495
+#500 := [trans #496 #498]: #499
+#493 := [quant-inst]: #492
+#501 := [mp #493 #500]: #491
+#730 := [unit-resolution #501 #722 #729]: #532
+#731 := (not #532)
+#732 := (or #731 #486)
+#733 := [th-lemma]: #732
+#734 := [unit-resolution #733 #730]: #486
+#502 := (>= #506 1::int)
+#735 := (or #731 #502)
+#736 := [th-lemma]: #735
+#737 := [unit-resolution #736 #730]: #502
+#596 := (<= #673 1::int)
+#738 := (or #281 #596)
+#739 := [th-lemma]: #738
+#740 := [unit-resolution #739 #285]: #596
+#742 := [th-lemma #275 #740 #737 #734]: #741
+#744 := [symm #742]: #743
+#746 := [monotonicity #744]: #745
+#750 := [trans #746 #284]: #749
+#752 := [trans #750 #748]: #751
+#754 := [monotonicity #752 #280]: #753
+#758 := [trans #754 #756]: #757
+#791 := (= #48 #356)
+#359 := (f6 #47)
+#621 := (+ 1::int #359)
+#608 := (f5 #621)
+#787 := (= #608 #356)
+#599 := (= #356 #608)
+#613 := (or #612 #599)
+#609 := [quant-inst]: #613
+#759 := [unit-resolution #609 #693]: #599
+#788 := [symm #759]: #787
+#789 := (= #48 #608)
+#590 := (f6 #608)
+#389 := (f5 #590)
+#381 := (= #389 #608)
+#374 := (or #373 #381)
+#390 := (= #608 #389)
+#365 := (or #373 #390)
+#376 := (iff #365 #374)
+#377 := (iff #374 #374)
+#343 := [rewrite]: #377
+#391 := (iff #390 #381)
+#372 := [rewrite]: #391
+#366 := [monotonicity #372]: #376
+#345 := [trans #366 #343]: #376
+#375 := [quant-inst]: #365
+#346 := [mp #375 #345]: #374
+#760 := [unit-resolution #346 #715]: #381
+#785 := (= #48 #389)
+#783 := (= 1::int #590)
+#781 := (= #590 1::int)
+#574 := (* -1::int #590)
+#575 := (+ #359 #574)
+#557 := (<= #575 -1::int)
+#576 := (= #575 -1::int)
+#579 := (>= #359 -1::int)
+#592 := (>= #359 0::int)
+#336 := (= #359 0::int)
+#661 := (or #319 #336)
+#358 := (>= 0::int 0::int)
+#349 := (not #358)
+#363 := (= 0::int #359)
+#342 := (or #363 #349)
+#323 := (or #319 #342)
+#325 := (iff #323 #661)
+#663 := (iff #661 #661)
+#664 := [rewrite]: #663
+#335 := (iff #342 #336)
+#685 := (or #336 false)
+#339 := (iff #685 #336)
+#676 := [rewrite]: #339
+#675 := (iff #342 #685)
+#684 := (iff #349 false)
+#348 := (iff #349 #347)
+#467 := (iff #358 true)
+#674 := [rewrite]: #467
+#681 := [monotonicity #674]: #348
 #679 := [trans #681 #683]: #684
-#335 := [monotonicity #679]: #676
-#661 := [trans #335 #319]: #676
-#339 := [quant-inst]: #334
-#323 := [mp #339 #661]: #675
-#777 := [unit-resolution #323 #707]: #361
-#778 := (not #361)
-#779 := (or #778 #588)
-#780 := [th-lemma]: #779
-#781 := [unit-resolution #780 #777]: #588
-#782 := (not #588)
-#783 := (or #782 #561)
-#784 := [th-lemma]: #783
-#785 := [unit-resolution #784 #781]: #561
-#565 := (not #561)
-#557 := (or #685 #565 #582)
-#574 := (>= #523 0::int)
-#575 := (not #574)
-#577 := (= #523 #576)
-#578 := (or #577 #575)
-#558 := (or #685 #578)
-#428 := (iff #558 #557)
-#555 := (or #565 #582)
-#554 := (or #685 #555)
-#534 := (iff #554 #557)
-#535 := [rewrite]: #534
-#560 := (iff #558 #554)
-#553 := (iff #578 #555)
-#568 := (or #582 #565)
-#551 := (iff #568 #555)
-#552 := [rewrite]: #551
-#563 := (iff #578 #568)
-#566 := (iff #575 #565)
-#562 := (iff #574 #561)
-#564 := [rewrite]: #562
-#567 := [monotonicity #564]: #566
-#572 := (iff #577 #582)
-#583 := [rewrite]: #572
-#569 := [monotonicity #583 #567]: #563
-#556 := [trans #569 #552]: #553
-#533 := [monotonicity #556]: #560
-#539 := [trans #533 #535]: #428
-#559 := [quant-inst]: #558
-#540 := [mp #559 #539]: #557
-#786 := [unit-resolution #540 #707 #785]: #582
-#787 := (not #582)
-#788 := (or #787 #541)
-#789 := [th-lemma]: #788
-#790 := [unit-resolution #789 #786]: #541
-#546 := (>= #581 -1::int)
-#791 := (or #787 #546)
-#792 := [th-lemma]: #791
-#793 := [unit-resolution #792 #786]: #546
-#587 := (<= #272 0::int)
-#794 := (or #778 #587)
-#795 := [th-lemma]: #794
-#796 := [unit-resolution #795 #777]: #587
-#798 := [th-lemma #781 #796 #793 #790]: #797
-#800 := [symm #798]: #799
-#802 := [monotonicity #800]: #801
-#806 := [trans #802 #776]: #805
-#808 := [trans #806 #804]: #807
-#811 := [monotonicity #808 #774]: #810
-#813 := [symm #811]: #812
-#515 := (= #37 #522)
-#526 := (or #525 #515)
-#527 := [quant-inst]: #526
-#809 := [unit-resolution #527 #728]: #515
-#814 := [trans #809 #813]: #42
-#43 := (not #42)
-#173 := [asserted]: #43
-[unit-resolution #173 #814]: false
+#678 := (iff #363 #336)
+#680 := [rewrite]: #678
+#334 := [monotonicity #680 #679]: #675
+#677 := [trans #334 #676]: #335
+#326 := [monotonicity #677]: #325
+#665 := [trans #326 #664]: #325
+#324 := [quant-inst]: #323
+#666 := [mp #324 #665]: #661
+#761 := [unit-resolution #666 #722]: #336
+#762 := (not #336)
+#763 := (or #762 #592)
+#764 := [th-lemma]: #763
+#765 := [unit-resolution #764 #761]: #592
+#766 := (not #592)
+#767 := (or #766 #579)
+#768 := [th-lemma]: #767
+#769 := [unit-resolution #768 #765]: #579
+#582 := (not #579)
+#565 := (or #319 #576 #582)
+#585 := (>= #621 0::int)
+#587 := (not #585)
+#570 := (= #621 #590)
+#571 := (or #570 #587)
+#566 := (or #319 #571)
+#552 := (iff #566 #565)
+#561 := (or #576 #582)
+#568 := (or #319 #561)
+#555 := (iff #568 #565)
+#551 := [rewrite]: #555
+#563 := (iff #566 #568)
+#562 := (iff #571 #561)
+#572 := (iff #587 #582)
+#580 := (iff #585 #579)
+#581 := [rewrite]: #580
+#583 := [monotonicity #581]: #572
+#577 := (iff #570 #576)
+#578 := [rewrite]: #577
+#564 := [monotonicity #578 #583]: #562
+#569 := [monotonicity #564]: #563
+#553 := [trans #569 #551]: #552
+#567 := [quant-inst]: #566
+#556 := [mp #567 #553]: #565
+#770 := [unit-resolution #556 #722 #769]: #576
+#771 := (not #576)
+#772 := (or #771 #557)
+#773 := [th-lemma]: #772
+#774 := [unit-resolution #773 #770]: #557
+#558 := (>= #575 -1::int)
+#775 := (or #771 #558)
+#776 := [th-lemma]: #775
+#777 := [unit-resolution #776 #770]: #558
+#591 := (<= #359 0::int)
+#778 := (or #762 #591)
+#779 := [th-lemma]: #778
+#780 := [unit-resolution #779 #761]: #591
+#782 := [th-lemma #765 #780 #777 #774]: #781
+#784 := [symm #782]: #783
+#786 := [monotonicity #784]: #785
+#790 := [trans #786 #760]: #789
+#792 := [trans #790 #788]: #791
+#795 := [monotonicity #792 #758]: #794
+#797 := [symm #795]: #796
+#357 := (= #51 #272)
+#361 := (or #360 #357)
+#362 := [quant-inst]: #361
+#793 := [unit-resolution #362 #701]: #357
+#798 := [trans #793 #797]: #56
+#57 := (not #56)
+#182 := [asserted]: #57
+[unit-resolution #182 #798]: false
 unsat
-ee30427d464b4fb3f94aa1806f026182963de849 38 0
+fd95e530253726c02553f27818cb8e2eea2a4b33 38 0
 #2 := false
 decl f1 :: S1
 #4 := f1
@@ -13998,7 +14076,7 @@ decl f3 :: (-> S2 S1)
 #31 := [asserted]: #14
 [mp #31 #54]: false
 unsat
-bb6927e05e73f0d1fe00658a23b5a23277a4c6fa 366 0
+e00bc51b49b06334d071f1e1c40b572f23bfbc3c 366 0
 #2 := false
 decl f3 :: (-> int S2)
 #41 := 6::int
@@ -14365,7 +14443,7 @@ decl f4 :: (-> S2 int)
 #187 := [asserted]: #44
 [unit-resolution #187 #404]: false
 unsat
-760a08d06b818c4b3a173eacf882e5d9145febb7 1271 0
+65953f98dc6fbf172ad6f11cfa297280d624458a 1271 0
 #2 := false
 decl f6 :: (-> int int int)
 #12 := 2::int
@@ -15637,657 +15715,588 @@ decl f8 :: S3
 #615 := [unit-resolution #638 #1762]: #367
 [unit-resolution #615 #1764]: false
 unsat
-1739856e83271d60ba99b4dd0f8fab6bba11b19a 76 0
+4d0565847e51fa1e70e0f66f5c05a0d01bccb4d7 76 0
 #2 := false
 decl f3 :: (-> int S1)
-#12 := (:var 0 int)
-#13 := (f3 #12)
-#1016 := (pattern #13)
+#129 := 1::int
+#130 := (f3 1::int)
 decl f1 :: S1
 #4 := f1
-#157 := (= f1 #13)
-#1017 := (forall (vars (?v0 int)) (:pat #1016) #157)
-#181 := (forall (vars (?v0 int)) #157)
-#1020 := (iff #181 #1017)
-#1018 := (iff #157 #157)
+#457 := (= f1 #130)
+#461 := (not #457)
+#131 := (= #130 f1)
+#132 := (not #131)
+#462 := (iff #132 #461)
+#459 := (iff #131 #457)
+#460 := [rewrite]: #459
+#463 := [monotonicity #460]: #462
+#456 := [asserted]: #132
+#466 := [mp #456 #463]: #461
+#8 := (:var 0 int)
+#9 := (f3 #8)
+#1016 := (pattern #9)
+#150 := (= f1 #9)
+#1017 := (forall (vars (?v0 int)) (:pat #1016) #150)
+#173 := (forall (vars (?v0 int)) #150)
+#1020 := (iff #173 #1017)
+#1018 := (iff #150 #150)
 #1019 := [refl]: #1018
 #1021 := [quant-intro #1019]: #1020
-#494 := (~ #181 #181)
-#492 := (~ #157 #157)
+#494 := (~ #173 #173)
+#492 := (~ #150 #150)
 #493 := [refl]: #492
 #495 := [nnf-pos #493]: #494
 decl f4 :: (-> S2 S1)
 decl f5 :: (-> int S2 S2)
 decl f6 :: S2
-#15 := f6
-#16 := (f5 #12 f6)
-#17 := (f4 #16)
-#18 := (= #17 f1)
-#19 := (not #18)
-#20 := (or #18 #19)
+#11 := f6
+#12 := (f5 #8 f6)
+#13 := (f4 #12)
 #14 := (= #13 f1)
-#21 := (and #14 #20)
-#22 := (forall (vars (?v0 int)) #21)
-#182 := (iff #22 #181)
-#179 := (iff #21 #157)
-#1 := true
-#174 := (and #157 true)
-#177 := (iff #174 #157)
-#178 := [rewrite]: #177
-#175 := (iff #21 #174)
-#172 := (iff #20 true)
-#161 := (= f1 #17)
-#164 := (not #161)
-#167 := (or #161 #164)
-#170 := (iff #167 true)
-#171 := [rewrite]: #170
-#168 := (iff #20 #167)
-#165 := (iff #19 #164)
-#162 := (iff #18 #161)
-#163 := [rewrite]: #162
-#166 := [monotonicity #163]: #165
-#169 := [monotonicity #163 #166]: #168
-#173 := [trans #169 #171]: #172
-#159 := (iff #14 #157)
-#160 := [rewrite]: #159
-#176 := [monotonicity #160 #173]: #175
-#180 := [trans #176 #178]: #179
-#183 := [quant-intro #180]: #182
-#156 := [asserted]: #22
-#186 := [mp #156 #183]: #181
-#468 := [mp~ #186 #495]: #181
-#1022 := [mp #468 #1021]: #1017
-#8 := 1::int
-#9 := (f3 1::int)
-#150 := (= f1 #9)
-#153 := (not #150)
+#15 := (not #14)
+#16 := (or #14 #15)
 #10 := (= #9 f1)
-#11 := (not #10)
-#154 := (iff #11 #153)
+#17 := (and #10 #16)
+#18 := (forall (vars (?v0 int)) #17)
+#174 := (iff #18 #173)
+#171 := (iff #17 #150)
+#1 := true
+#166 := (and #150 true)
+#169 := (iff #166 #150)
+#170 := [rewrite]: #169
+#167 := (iff #17 #166)
+#164 := (iff #16 true)
+#153 := (= f1 #13)
+#156 := (not #153)
+#159 := (or #153 #156)
+#162 := (iff #159 true)
+#163 := [rewrite]: #162
+#160 := (iff #16 #159)
+#157 := (iff #15 #156)
+#154 := (iff #14 #153)
+#155 := [rewrite]: #154
+#158 := [monotonicity #155]: #157
+#161 := [monotonicity #155 #158]: #160
+#165 := [trans #161 #163]: #164
 #151 := (iff #10 #150)
 #152 := [rewrite]: #151
-#155 := [monotonicity #152]: #154
-#149 := [asserted]: #11
-#158 := [mp #149 #155]: #153
+#168 := [monotonicity #152 #165]: #167
+#172 := [trans #168 #170]: #171
+#175 := [quant-intro #172]: #174
+#149 := [asserted]: #18
+#178 := [mp #149 #175]: #173
+#467 := [mp~ #178 #495]: #173
+#1022 := [mp #467 #1021]: #1017
 #603 := (not #1017)
-#688 := (or #603 #150)
+#688 := (or #603 #457)
 #689 := [quant-inst]: #688
-[unit-resolution #689 #158 #1022]: false
+[unit-resolution #689 #1022 #466]: false
 unsat
-e1c7435780cfee6dd8c9bac28159418631b73635 478 0
+2ca63958e3f098d25e6ec678f9170833411e17cf 507 0
 #2 := false
-decl f7 :: (-> S4 S2)
-decl f8 :: (-> S1 S4)
+decl f19 :: (-> S8 S3)
+decl f22 :: (-> S1 S8)
 decl f1 :: S1
 #4 := f1
-#28 := (f8 f1)
-#29 := (f7 #28)
-decl f5 :: (-> S3 S2)
-decl f6 :: (-> int S3)
-#25 := 3::int
-#26 := (f6 3::int)
-#27 := (f5 #26)
-#30 := (= #27 #29)
-decl f12 :: (-> S6 S2)
-decl f13 :: (-> S1 S6 S6)
-decl f14 :: S6
-#42 := f14
-#857 := (f13 f1 f14)
-#496 := (f12 #857)
-#602 := (= #496 #29)
-#859 := (= #29 #496)
-#39 := (:var 0 S1)
-#43 := (f13 #39 f14)
-#902 := (pattern #43)
-#40 := (f8 #39)
-#901 := (pattern #40)
-#44 := (f12 #43)
-#41 := (f7 #40)
-#45 := (= #41 #44)
-#903 := (forall (vars (?v0 S1)) (:pat #901 #902) #45)
-#46 := (forall (vars (?v0 S1)) #45)
-#906 := (iff #46 #903)
-#904 := (iff #45 #45)
-#905 := [refl]: #904
-#907 := [quant-intro #905]: #906
-#346 := (~ #46 #46)
-#345 := (~ #45 #45)
-#389 := [refl]: #345
-#347 := [nnf-pos #389]: #346
-#225 := [asserted]: #46
-#390 := [mp~ #225 #347]: #46
-#908 := [mp #390 #907]: #903
-#553 := (not #903)
-#568 := (or #553 #859)
-#569 := [quant-inst]: #568
-#625 := [unit-resolution #569 #908]: #859
-#603 := [symm #625]: #602
-#590 := (= #27 #496)
-decl f18 :: (-> S6 S2)
-#814 := (f18 #857)
-#600 := (= #814 #496)
-#815 := (= #496 #814)
-#62 := (:var 0 S6)
-#64 := (f18 #62)
-#918 := (pattern #64)
-#63 := (f12 #62)
-#917 := (pattern #63)
-#65 := (= #63 #64)
-#919 := (forall (vars (?v0 S6)) (:pat #917 #918) #65)
-#66 := (forall (vars (?v0 S6)) #65)
-#922 := (iff #66 #919)
-#920 := (iff #65 #65)
-#921 := [refl]: #920
-#923 := [quant-intro #921]: #922
-#358 := (~ #66 #66)
-#357 := (~ #65 #65)
-#354 := [refl]: #357
-#359 := [nnf-pos #354]: #358
-#238 := [asserted]: #66
-#355 := [mp~ #238 #359]: #66
-#924 := [mp #355 #923]: #919
-#564 := (not #919)
-#816 := (or #564 #815)
-#823 := [quant-inst]: #816
-#617 := [unit-resolution #823 #924]: #815
-#601 := [symm #617]: #600
-#588 := (= #27 #814)
-decl f3 :: (-> int S2)
-decl f4 :: (-> S2 int)
-#108 := (f18 f14)
-#821 := (f4 #108)
-#85 := 1::int
-#252 := (f3 1::int)
-#255 := (f4 #252)
-#655 := (+ #255 #821)
-#811 := (f3 #655)
-#697 := (= #811 #814)
-#94 := (:var 1 S1)
-#95 := (f13 #94 #62)
-#960 := (pattern #95)
-#117 := (f4 #64)
-#321 := (+ #117 #255)
-#325 := (f3 #321)
-#116 := (f18 #95)
-#328 := (= #116 #325)
-#961 := (forall (vars (?v0 S1) (?v1 S6)) (:pat #960) #328)
-#331 := (forall (vars (?v0 S1) (?v1 S6)) #328)
-#964 := (iff #331 #961)
-#962 := (iff #328 #328)
-#963 := [refl]: #962
-#965 := [quant-intro #963]: #964
-#374 := (~ #331 #331)
-#373 := (~ #328 #328)
-#370 := [refl]: #373
-#375 := [nnf-pos #370]: #374
-#13 := 0::int
-#86 := (+ 0::int 1::int)
-#87 := (f3 #86)
-#88 := (f4 #87)
-#118 := (+ #117 #88)
-#119 := (f3 #118)
-#120 := (= #116 #119)
-#121 := (forall (vars (?v0 S1) (?v1 S6)) #120)
-#332 := (iff #121 #331)
-#329 := (iff #120 #328)
-#326 := (= #119 #325)
-#323 := (= #118 #321)
-#256 := (= #88 #255)
-#253 := (= #87 #252)
-#249 := (= #86 1::int)
-#251 := [rewrite]: #249
-#254 := [monotonicity #251]: #253
-#257 := [monotonicity #254]: #256
-#324 := [monotonicity #257]: #323
-#327 := [monotonicity #324]: #326
-#330 := [monotonicity #327]: #329
-#333 := [quant-intro #330]: #332
-#320 := [asserted]: #121
-#336 := [mp #320 #333]: #331
-#371 := [mp~ #336 #375]: #331
-#966 := [mp #371 #965]: #961
-#802 := (not #961)
-#805 := (or #802 #697)
-#822 := (+ #821 #255)
-#652 := (f3 #822)
-#654 := (= #814 #652)
-#690 := (or #802 #654)
-#707 := (iff #690 #805)
-#701 := (iff #805 #805)
-#709 := [rewrite]: #701
-#706 := (iff #654 #697)
-#813 := (= #814 #811)
-#656 := (iff #813 #697)
-#804 := [rewrite]: #656
-#695 := (iff #654 #813)
-#812 := (= #652 #811)
-#808 := (= #822 #655)
-#809 := [rewrite]: #808
-#810 := [monotonicity #809]: #812
-#696 := [monotonicity #810]: #695
-#801 := [trans #696 #804]: #706
-#708 := [monotonicity #801]: #707
-#710 := [trans #708 #709]: #707
-#705 := [quant-inst]: #690
-#711 := [mp #705 #710]: #805
-#624 := [unit-resolution #711 #966]: #697
-#586 := (= #27 #811)
-#598 := (= #252 #811)
-#622 := (= #811 #252)
-#619 := (= #655 1::int)
-#807 := (<= #821 0::int)
-#803 := (= #821 0::int)
-#69 := (f3 0::int)
-#543 := (f4 #69)
-#548 := (= #543 0::int)
-#14 := (:var 0 int)
-#16 := (f3 #14)
-#880 := (pattern #16)
-#164 := (>= #14 0::int)
-#165 := (not #164)
-#17 := (f4 #16)
-#146 := (= #14 #17)
-#171 := (or #146 #165)
-#881 := (forall (vars (?v0 int)) (:pat #880) #171)
-#176 := (forall (vars (?v0 int)) #171)
-#884 := (iff #176 #881)
-#882 := (iff #171 #171)
-#883 := [refl]: #882
-#885 := [quant-intro #883]: #884
-#338 := (~ #176 #176)
-#334 := (~ #171 #171)
-#382 := [refl]: #334
-#339 := [nnf-pos #382]: #338
-#18 := (= #17 #14)
-#15 := (<= 0::int #14)
-#19 := (implies #15 #18)
-#20 := (forall (vars (?v0 int)) #19)
-#179 := (iff #20 #176)
-#153 := (not #15)
-#154 := (or #153 #146)
-#159 := (forall (vars (?v0 int)) #154)
-#177 := (iff #159 #176)
-#174 := (iff #154 #171)
-#168 := (or #165 #146)
-#172 := (iff #168 #171)
-#173 := [rewrite]: #172
-#169 := (iff #154 #168)
-#166 := (iff #153 #165)
-#162 := (iff #15 #164)
-#163 := [rewrite]: #162
-#167 := [monotonicity #163]: #166
+#355 := (f22 f1)
+#358 := (f19 #355)
+decl f17 :: (-> S7 S3)
+decl f21 :: (-> int S7)
+#115 := 3::int
+#116 := (f21 3::int)
+#117 := (f17 #116)
+#361 := (= #117 #358)
+decl f16 :: (-> S4 S3)
+decl f8 :: (-> S1 S4 S4)
+decl f10 :: S4
+#37 := f10
+#897 := (f8 f1 f10)
+#899 := (f16 #897)
+#640 := (= #899 #358)
+#566 := (= #358 #899)
+#93 := (:var 0 S1)
+#96 := (f8 #93 f10)
+#972 := (pattern #96)
+#94 := (f22 #93)
+#971 := (pattern #94)
+#97 := (f16 #96)
+#95 := (f19 #94)
+#98 := (= #95 #97)
+#973 := (forall (vars (?v0 S1)) (:pat #971 #972) #98)
+#99 := (forall (vars (?v0 S1)) #98)
+#976 := (iff #99 #973)
+#974 := (iff #98 #98)
+#975 := [refl]: #974
+#977 := [quant-intro #975]: #976
+#399 := (~ #99 #99)
+#398 := (~ #98 #98)
+#395 := [refl]: #398
+#400 := [nnf-pos #395]: #399
+#265 := [asserted]: #99
+#396 := [mp~ #265 #400]: #99
+#978 := [mp #396 #977]: #973
+#901 := (not #973)
+#902 := (or #901 #566)
+#903 := [quant-inst]: #902
+#644 := [unit-resolution #903 #978]: #566
+#617 := [symm #644]: #640
+#612 := (= #117 #899)
+decl f7 :: (-> S4 S3)
+#856 := (f7 #897)
+#685 := (= #856 #899)
+#24 := (:var 0 S4)
+#73 := (f16 #24)
+#956 := (pattern #73)
+#27 := (f7 #24)
+#955 := (pattern #27)
+#245 := (= #27 #73)
+#957 := (forall (vars (?v0 S4)) (:pat #955 #956) #245)
+#249 := (forall (vars (?v0 S4)) #245)
+#960 := (iff #249 #957)
+#958 := (iff #245 #245)
+#959 := [refl]: #958
+#961 := [quant-intro #959]: #960
+#387 := (~ #249 #249)
+#428 := (~ #245 #245)
+#429 := [refl]: #428
+#388 := [nnf-pos #429]: #387
+#74 := (= #73 #27)
+#75 := (forall (vars (?v0 S4)) #74)
+#250 := (iff #75 #249)
+#247 := (iff #74 #245)
+#248 := [rewrite]: #247
+#251 := [quant-intro #248]: #250
+#244 := [asserted]: #75
+#254 := [mp #244 #251]: #249
+#430 := [mp~ #254 #388]: #249
+#962 := [mp #430 #961]: #957
+#581 := (not #957)
+#841 := (or #581 #685)
+#842 := [quant-inst]: #841
+#643 := [unit-resolution #842 #962]: #685
+#626 := (= #117 #856)
+decl f5 :: (-> int S3)
+decl f6 :: (-> S3 int)
+#38 := (f7 f10)
+#687 := (f6 #38)
+#15 := 1::int
+#142 := (f5 1::int)
+#145 := (f6 #142)
+#843 := (+ #145 #687)
+#729 := (f5 #843)
+#835 := (= #729 #856)
+#23 := (:var 1 S1)
+#25 := (f8 #23 #24)
+#912 := (pattern #25)
+#28 := (f6 #27)
+#161 := (+ #28 #145)
+#165 := (f5 #161)
+#26 := (f7 #25)
+#168 := (= #26 #165)
+#913 := (forall (vars (?v0 S1) (?v1 S4)) (:pat #912) #168)
+#171 := (forall (vars (?v0 S1) (?v1 S4)) #168)
+#916 := (iff #171 #913)
+#914 := (iff #168 #168)
+#915 := [refl]: #914
+#917 := [quant-intro #915]: #916
+#371 := (~ #171 #171)
+#367 := (~ #168 #168)
+#415 := [refl]: #367
+#372 := [nnf-pos #415]: #371
+#14 := 0::int
+#16 := (+ 0::int 1::int)
+#17 := (f5 #16)
+#18 := (f6 #17)
+#29 := (+ #28 #18)
+#30 := (f5 #29)
+#31 := (= #26 #30)
+#32 := (forall (vars (?v0 S1) (?v1 S4)) #31)
+#172 := (iff #32 #171)
+#169 := (iff #31 #168)
+#166 := (= #30 #165)
+#163 := (= #29 #161)
+#146 := (= #18 #145)
+#143 := (= #17 #142)
+#140 := (= #16 1::int)
+#141 := [rewrite]: #140
+#144 := [monotonicity #141]: #143
+#147 := [monotonicity #144]: #146
+#164 := [monotonicity #147]: #163
+#167 := [monotonicity #164]: #166
 #170 := [monotonicity #167]: #169
-#175 := [trans #170 #173]: #174
-#178 := [quant-intro #175]: #177
-#160 := (iff #20 #159)
-#157 := (iff #19 #154)
-#150 := (implies #15 #146)
-#155 := (iff #150 #154)
-#156 := [rewrite]: #155
-#151 := (iff #19 #150)
-#148 := (iff #18 #146)
-#149 := [rewrite]: #148
-#152 := [monotonicity #149]: #151
-#158 := [trans #152 #156]: #157
-#161 := [quant-intro #158]: #160
-#180 := [trans #161 #178]: #179
-#145 := [asserted]: #20
-#181 := [mp #145 #180]: #176
-#383 := [mp~ #181 #339]: #176
-#886 := [mp #383 #885]: #881
-#861 := (not #881)
-#520 := (or #861 #548)
-#458 := (>= 0::int 0::int)
-#542 := (not #458)
-#544 := (= 0::int #543)
-#535 := (or #544 #542)
-#525 := (or #861 #535)
-#521 := (iff #525 #520)
-#505 := (iff #520 #520)
-#847 := [rewrite]: #505
-#865 := (iff #535 #548)
-#534 := (or #548 false)
-#869 := (iff #534 #548)
-#870 := [rewrite]: #869
-#867 := (iff #535 #534)
-#860 := (iff #542 false)
+#173 := [quant-intro #170]: #172
+#160 := [asserted]: #32
+#176 := [mp #160 #173]: #171
+#416 := [mp~ #176 #372]: #171
+#918 := [mp #416 #917]: #913
+#741 := (not #913)
+#734 := (or #741 #835)
+#688 := (+ #687 #145)
+#844 := (f5 #688)
+#845 := (= #856 #844)
+#742 := (or #741 #845)
+#744 := (iff #742 #734)
+#746 := (iff #734 #734)
+#839 := [rewrite]: #746
+#738 := (iff #845 #835)
+#837 := (= #856 #729)
+#838 := (iff #837 #835)
+#723 := [rewrite]: #838
+#739 := (iff #845 #837)
+#730 := (= #844 #729)
+#846 := (= #688 #843)
+#728 := [rewrite]: #846
+#689 := [monotonicity #728]: #730
+#834 := [monotonicity #689]: #739
+#740 := [trans #834 #723]: #738
+#745 := [monotonicity #740]: #744
+#836 := [trans #745 #839]: #744
+#743 := [quant-inst]: #742
+#840 := [mp #743 #836]: #734
+#641 := [unit-resolution #840 #918]: #835
+#625 := (= #117 #729)
+#639 := (= #142 #729)
+#630 := (= #729 #142)
+#654 := (= #843 1::int)
+#820 := (<= #687 0::int)
+#818 := (= #687 0::int)
+#35 := (f5 0::int)
+#898 := (f6 #35)
+#895 := (= #898 0::int)
+#86 := (:var 0 int)
+#106 := (f5 #86)
+#987 := (pattern #106)
+#293 := (>= #86 0::int)
+#294 := (not #293)
+#107 := (f6 #106)
+#275 := (= #86 #107)
+#300 := (or #275 #294)
+#988 := (forall (vars (?v0 int)) (:pat #987) #300)
+#305 := (forall (vars (?v0 int)) #300)
+#991 := (iff #305 #988)
+#989 := (iff #300 #300)
+#990 := [refl]: #989
+#992 := [quant-intro #990]: #991
+#403 := (~ #305 #305)
+#392 := (~ #300 #300)
+#433 := [refl]: #392
+#404 := [nnf-pos #433]: #403
+#108 := (= #107 #86)
+#105 := (<= 0::int #86)
+#109 := (implies #105 #108)
+#110 := (forall (vars (?v0 int)) #109)
+#308 := (iff #110 #305)
+#282 := (not #105)
+#283 := (or #282 #275)
+#288 := (forall (vars (?v0 int)) #283)
+#306 := (iff #288 #305)
+#303 := (iff #283 #300)
+#297 := (or #294 #275)
+#301 := (iff #297 #300)
+#302 := [rewrite]: #301
+#298 := (iff #283 #297)
+#295 := (iff #282 #294)
+#291 := (iff #105 #293)
+#292 := [rewrite]: #291
+#296 := [monotonicity #292]: #295
+#299 := [monotonicity #296]: #298
+#304 := [trans #299 #302]: #303
+#307 := [quant-intro #304]: #306
+#289 := (iff #110 #288)
+#286 := (iff #109 #283)
+#279 := (implies #105 #275)
+#284 := (iff #279 #283)
+#285 := [rewrite]: #284
+#280 := (iff #109 #279)
+#277 := (iff #108 #275)
+#278 := [rewrite]: #277
+#281 := [monotonicity #278]: #280
+#287 := [trans #281 #285]: #286
+#290 := [quant-intro #287]: #289
+#309 := [trans #290 #307]: #308
+#274 := [asserted]: #110
+#310 := [mp #274 #309]: #305
+#434 := [mp~ #310 #404]: #305
+#993 := [mp #434 #992]: #988
+#888 := (not #988)
+#890 := (or #888 #895)
+#567 := (>= 0::int 0::int)
+#900 := (not #567)
+#904 := (= 0::int #898)
+#894 := (or #904 #900)
+#529 := (or #888 #894)
+#891 := (iff #529 #890)
+#892 := (iff #890 #890)
+#878 := [rewrite]: #892
+#887 := (iff #894 #895)
+#883 := (or #895 false)
+#886 := (iff #883 #895)
+#881 := [rewrite]: #886
+#884 := (iff #894 #883)
+#545 := (iff #900 false)
 #1 := true
-#528 := (not true)
-#522 := (iff #528 false)
-#653 := [rewrite]: #522
-#864 := (iff #542 #528)
-#545 := (iff #458 true)
-#549 := [rewrite]: #545
-#866 := [monotonicity #549]: #864
-#533 := [trans #866 #653]: #860
-#546 := (iff #544 #548)
-#547 := [rewrite]: #546
-#868 := [monotonicity #547 #533]: #867
-#871 := [trans #868 #870]: #865
-#863 := [monotonicity #871]: #521
-#509 := [trans #863 #847]: #521
-#862 := [quant-inst]: #525
-#510 := [mp #862 #509]: #520
-#664 := [unit-resolution #510 #886]: #548
-#626 := (= #821 #543)
-#109 := (= #108 #69)
-#302 := (= #69 #108)
-#304 := (iff #109 #302)
-#305 := [rewrite]: #304
-#301 := [asserted]: #109
-#308 := [mp #301 #305]: #302
-#638 := [symm #308]: #109
-#629 := [monotonicity #638]: #626
-#631 := [trans #629 #664]: #803
-#632 := (not #803)
-#628 := (or #632 #807)
-#633 := [th-lemma]: #628
-#623 := [unit-resolution #633 #631]: #807
-#794 := (>= #821 0::int)
-#613 := (or #632 #794)
-#615 := [th-lemma]: #613
-#616 := [unit-resolution #615 #631]: #794
-#726 := (<= #255 1::int)
-#747 := (= #255 1::int)
-#744 := (or #861 #747)
-#756 := (>= 1::int 0::int)
-#757 := (not #756)
-#768 := (= 1::int #255)
-#758 := (or #768 #757)
-#745 := (or #861 #758)
-#746 := (iff #745 #744)
-#720 := (iff #744 #744)
-#721 := [rewrite]: #720
-#742 := (iff #758 #747)
-#755 := (or #747 false)
-#738 := (iff #755 #747)
-#739 := [rewrite]: #738
-#741 := (iff #758 #755)
-#754 := (iff #757 false)
-#752 := (iff #757 #528)
-#750 := (iff #756 true)
-#751 := [rewrite]: #750
-#753 := [monotonicity #751]: #752
-#749 := [trans #753 #653]: #754
-#769 := (iff #768 #747)
-#748 := [rewrite]: #769
-#737 := [monotonicity #748 #749]: #741
-#743 := [trans #737 #739]: #742
-#719 := [monotonicity #743]: #746
-#614 := [trans #719 #721]: #746
-#740 := [quant-inst]: #745
-#725 := [mp #740 #614]: #744
-#645 := [unit-resolution #725 #886]: #747
-#646 := (not #747)
-#488 := (or #646 #726)
-#647 := [th-lemma]: #488
-#643 := [unit-resolution #647 #645]: #726
-#727 := (>= #255 1::int)
-#648 := (or #646 #727)
-#627 := [th-lemma]: #648
-#630 := [unit-resolution #627 #645]: #727
-#620 := [th-lemma #630 #643 #616 #623]: #619
-#608 := [monotonicity #620]: #622
-#599 := [symm #608]: #598
-#607 := (= #27 #252)
-decl f17 :: (-> S5 S2)
-decl f11 :: S5
-#34 := f11
-#106 := (f17 f11)
-#843 := (f4 #106)
-#557 := (+ #255 #843)
-#550 := (f3 #557)
-#596 := (= #550 #252)
-#610 := (= #252 #550)
-#637 := (= 1::int #557)
-#634 := (= #557 1::int)
-#713 := (<= #843 0::int)
-#712 := (= #843 0::int)
-#666 := (= #843 #543)
-#107 := (= #106 #69)
-#297 := (= #69 #106)
-#299 := (iff #107 #297)
-#300 := [rewrite]: #299
-#296 := [asserted]: #107
-#303 := [mp #296 #300]: #297
-#665 := [symm #303]: #107
-#667 := [monotonicity #665]: #666
-#668 := [trans #667 #664]: #712
-#651 := (not #712)
-#669 := (or #651 #713)
-#639 := [th-lemma]: #669
-#640 := [unit-resolution #639 #668]: #713
-#806 := (>= #843 0::int)
-#641 := (or #651 #806)
-#642 := [th-lemma]: #641
-#644 := [unit-resolution #642 #668]: #806
-#636 := [th-lemma #630 #643 #644 #640]: #634
-#635 := [symm #636]: #637
-#611 := [monotonicity #635]: #610
-#597 := [symm #611]: #596
-#606 := (= #27 #550)
-decl f10 :: (-> int S5 S5)
-#854 := (f10 3::int f11)
-#570 := (f17 #854)
-#834 := (= #570 #550)
-#828 := (= #550 #570)
-#57 := (:var 0 S5)
-#77 := (:var 1 int)
-#78 := (f10 #77 #57)
-#953 := (pattern #78)
-#59 := (f17 #57)
-#111 := (f4 #59)
-#307 := (+ #111 #255)
-#311 := (f3 #307)
-#110 := (f17 #78)
-#314 := (= #110 #311)
-#954 := (forall (vars (?v0 int) (?v1 S5)) (:pat #953) #314)
-#317 := (forall (vars (?v0 int) (?v1 S5)) #314)
-#957 := (iff #317 #954)
-#955 := (iff #314 #314)
-#956 := [refl]: #955
-#958 := [quant-intro #956]: #957
-#368 := (~ #317 #317)
-#401 := (~ #314 #314)
-#402 := [refl]: #401
-#369 := [nnf-pos #402]: #368
-#112 := (+ #111 #88)
-#113 := (f3 #112)
-#114 := (= #110 #113)
-#115 := (forall (vars (?v0 int) (?v1 S5)) #114)
-#318 := (iff #115 #317)
-#315 := (iff #114 #314)
-#312 := (= #113 #311)
-#309 := (= #112 #307)
-#310 := [monotonicity #257]: #309
-#313 := [monotonicity #310]: #312
-#316 := [monotonicity #313]: #315
-#319 := [quant-intro #316]: #318
-#306 := [asserted]: #115
-#322 := [mp #306 #319]: #317
-#372 := [mp~ #322 #369]: #317
-#959 := [mp #372 #958]: #954
-#831 := (not #954)
-#826 := (or #831 #828)
-#840 := (+ #843 #255)
-#555 := (f3 #840)
-#556 := (= #570 #555)
-#832 := (or #831 #556)
-#674 := (iff #832 #826)
-#817 := (iff #826 #826)
-#818 := [rewrite]: #817
-#825 := (iff #556 #828)
-#829 := (iff #834 #828)
-#824 := [rewrite]: #829
-#838 := (iff #556 #834)
-#833 := (= #555 #550)
-#835 := (= #840 #557)
-#836 := [rewrite]: #835
-#837 := [monotonicity #836]: #833
-#827 := [monotonicity #837]: #838
-#830 := [trans #827 #824]: #825
-#675 := [monotonicity #830]: #674
-#819 := [trans #675 #818]: #674
-#673 := [quant-inst]: #832
-#820 := [mp #673 #819]: #826
-#659 := [unit-resolution #820 #959]: #828
-#594 := [symm #659]: #834
-#604 := (= #27 #570)
-decl f9 :: (-> S5 S2)
-#491 := (f9 #854)
-#842 := (= #491 #570)
-#910 := (pattern #59)
-#58 := (f9 #57)
-#909 := (pattern #58)
-#60 := (= #58 #59)
-#911 := (forall (vars (?v0 S5)) (:pat #909 #910) #60)
-#61 := (forall (vars (?v0 S5)) #60)
-#914 := (iff #61 #911)
-#912 := (iff #60 #60)
-#913 := [refl]: #912
-#915 := [quant-intro #913]: #914
-#348 := (~ #61 #61)
-#391 := (~ #60 #60)
-#392 := [refl]: #391
-#349 := [nnf-pos #392]: #348
-#237 := [asserted]: #61
-#356 := [mp~ #237 #349]: #61
-#916 := [mp #356 #915]: #911
-#571 := (not #911)
-#844 := (or #571 #842)
-#554 := [quant-inst]: #844
-#657 := [unit-resolution #554 #916]: #842
-#855 := (= #27 #491)
-#35 := (f10 #14 f11)
-#894 := (pattern #35)
-#32 := (f6 #14)
-#893 := (pattern #32)
-#36 := (f9 #35)
-#33 := (f5 #32)
-#37 := (= #33 #36)
-#895 := (forall (vars (?v0 int)) (:pat #893 #894) #37)
-#38 := (forall (vars (?v0 int)) #37)
-#898 := (iff #38 #895)
-#896 := (iff #37 #37)
-#897 := [refl]: #896
-#899 := [quant-intro #897]: #898
-#342 := (~ #38 #38)
-#387 := (~ #37 #37)
-#388 := [refl]: #387
-#343 := [nnf-pos #388]: #342
-#224 := [asserted]: #38
-#344 := [mp~ #224 #343]: #38
-#900 := [mp #344 #899]: #895
-#497 := (not #895)
-#858 := (or #497 #855)
-#856 := [quant-inst]: #858
-#618 := [unit-resolution #856 #900]: #855
-#605 := [trans #618 #657]: #604
-#595 := [trans #605 #594]: #606
-#584 := [trans #595 #597]: #607
-#587 := [trans #584 #599]: #586
-#589 := [trans #587 #624]: #588
-#591 := [trans #589 #601]: #590
-#592 := [trans #591 #603]: #30
-#31 := (not #30)
-#223 := [asserted]: #31
-[unit-resolution #223 #592]: false
-unsat
-030f06ff279b2b609c311e25ffea5c845380fd2c 97 0
-#2 := false
-decl f1 :: S1
-#4 := f1
+#538 := (not true)
+#543 := (iff #538 false)
+#544 := [rewrite]: #543
+#880 := (iff #900 #538)
+#554 := (iff #567 true)
+#896 := [rewrite]: #554
+#542 := [monotonicity #896]: #880
+#882 := [trans #542 #544]: #545
+#553 := (iff #904 #895)
+#558 := [rewrite]: #553
+#885 := [monotonicity #558 #882]: #884
+#524 := [trans #885 #881]: #887
+#889 := [monotonicity #524]: #891
+#879 := [trans #889 #878]: #891
+#530 := [quant-inst]: #529
+#586 := [mp #530 #879]: #890
+#684 := [unit-resolution #586 #993]: #895
+#656 := (= #687 #898)
+#39 := (= #38 #35)
+#177 := (= #35 #38)
+#178 := (iff #39 #177)
+#179 := [rewrite]: #178
+#175 := [asserted]: #39
+#182 := [mp #175 #179]: #177
+#666 := [symm #182]: #39
+#646 := [monotonicity #666]: #656
+#648 := [trans #646 #684]: #818
+#649 := (not #818)
+#652 := (or #649 #820)
+#653 := [th-lemma]: #652
+#657 := [unit-resolution #653 #648]: #820
+#830 := (>= #687 0::int)
+#650 := (or #649 #830)
+#658 := [th-lemma]: #650
+#651 := [unit-resolution #658 #648]: #830
+#763 := (<= #145 1::int)
+#786 := (= #145 1::int)
+#753 := (or #888 #786)
+#795 := (>= 1::int 0::int)
+#796 := (not #795)
+#783 := (= 1::int #145)
+#784 := (or #783 #796)
+#754 := (or #888 #784)
+#758 := (iff #754 #753)
+#760 := (iff #753 #753)
+#765 := [rewrite]: #760
+#779 := (iff #784 #786)
+#775 := (or #786 false)
+#778 := (iff #775 #786)
+#773 := [rewrite]: #778
+#776 := (iff #784 #775)
+#771 := (iff #796 false)
+#774 := (iff #796 #538)
+#782 := (iff #795 true)
+#788 := [rewrite]: #782
+#770 := [monotonicity #788]: #774
+#772 := [trans #770 #544]: #771
+#785 := (iff #783 #786)
+#787 := [rewrite]: #785
+#777 := [monotonicity #787 #772]: #776
+#752 := [trans #777 #773]: #779
+#759 := [monotonicity #752]: #758
+#761 := [trans #759 #765]: #758
+#647 := [quant-inst]: #754
+#762 := [mp #647 #761]: #753
+#660 := [unit-resolution #762 #993]: #786
+#663 := (not #786)
+#667 := (or #663 #763)
+#669 := [th-lemma]: #667
+#670 := [unit-resolution #669 #660]: #763
+#766 := (>= #145 1::int)
+#668 := (or #663 #766)
+#671 := [th-lemma]: #668
+#659 := [unit-resolution #671 #660]: #766
+#655 := [th-lemma #659 #670 #651 #657]: #654
+#631 := [monotonicity #655]: #630
+#628 := [symm #631]: #639
+#623 := (= #117 #142)
+decl f3 :: (-> S2 S3)
+decl f9 :: S2
+#33 := f9
+#34 := (f3 f9)
+#867 := (f6 #34)
+#862 := (+ #145 #867)
+#863 := (f5 #862)
+#637 := (= #863 #142)
+#632 := (= #142 #863)
+#665 := (= 1::int #862)
+#662 := (= #862 1::int)
+#829 := (<= #867 0::int)
+#827 := (= #867 0::int)
+#673 := (= #867 #898)
+#36 := (= #34 #35)
+#174 := [asserted]: #36
+#674 := [monotonicity #174]: #673
+#675 := [trans #674 #684]: #827
+#677 := (not #827)
+#678 := (or #677 #829)
+#679 := [th-lemma]: #678
+#521 := [unit-resolution #679 #675]: #829
+#821 := (>= #867 0::int)
+#680 := (or #677 #821)
+#676 := [th-lemma]: #680
+#681 := [unit-resolution #676 #675]: #821
+#664 := [th-lemma #659 #670 #681 #521]: #662
+#661 := [symm #664]: #665
+#633 := [monotonicity #661]: #632
+#638 := [symm #633]: #637
+#621 := (= #117 #863)
+decl f4 :: (-> int S2 S2)
+#576 := (f4 3::int f9)
+#598 := (f3 #576)
+#865 := (= #598 #863)
+#9 := (:var 0 S2)
+#8 := (:var 1 int)
+#10 := (f4 #8 #9)
+#905 := (pattern #10)
+#12 := (f3 #9)
+#13 := (f6 #12)
+#148 := (+ #13 #145)
+#151 := (f5 #148)
+#11 := (f3 #10)
+#154 := (= #11 #151)
+#906 := (forall (vars (?v0 int) (?v1 S2)) (:pat #905) #154)
+#157 := (forall (vars (?v0 int) (?v1 S2)) #154)
+#909 := (iff #157 #906)
+#907 := (iff #154 #154)
+#908 := [refl]: #907
+#910 := [quant-intro #908]: #909
+#413 := (~ #157 #157)
+#411 := (~ #154 #154)
+#412 := [refl]: #411
+#414 := [nnf-pos #412]: #413
+#19 := (+ #13 #18)
+#20 := (f5 #19)
+#21 := (= #11 #20)
+#22 := (forall (vars (?v0 int) (?v1 S2)) #21)
+#158 := (iff #22 #157)
+#155 := (iff #21 #154)
+#152 := (= #20 #151)
+#149 := (= #19 #148)
+#150 := [monotonicity #147]: #149
+#153 := [monotonicity #150]: #152
+#156 := [monotonicity #153]: #155
+#159 := [quant-intro #156]: #158
+#139 := [asserted]: #22
+#162 := [mp #139 #159]: #157
+#370 := [mp~ #162 #414]: #157
+#911 := [mp #370 #910]: #906
+#708 := (not #906)
+#850 := (or #708 #865)
+#871 := (+ #867 #145)
+#860 := (f5 #871)
+#861 := (= #598 #860)
+#851 := (or #708 #861)
+#853 := (iff #851 #850)
+#848 := (iff #850 #850)
+#854 := [rewrite]: #848
+#706 := (iff #861 #865)
+#864 := (= #860 #863)
+#857 := (= #871 #862)
+#858 := [rewrite]: #857
+#859 := [monotonicity #858]: #864
+#707 := [monotonicity #859]: #706
+#847 := [monotonicity #707]: #853
+#855 := [trans #847 #854]: #853
+#852 := [quant-inst]: #851
+#849 := [mp #852 #855]: #850
+#698 := [unit-resolution #849 #911]: #865
+#619 := (= #117 #598)
+decl f15 :: (-> S2 S3)
+#580 := (f15 #576)
+#876 := (= #580 #598)
+#70 := (f15 #9)
+#948 := (pattern #70)
+#947 := (pattern #12)
+#237 := (= #12 #70)
+#949 := (forall (vars (?v0 S2)) (:pat #947 #948) #237)
+#241 := (forall (vars (?v0 S2)) #237)
+#952 := (iff #241 #949)
+#950 := (iff #237 #237)
+#951 := [refl]: #950
+#953 := [quant-intro #951]: #952
+#385 := (~ #241 #241)
+#425 := (~ #237 #237)
+#426 := [refl]: #425
+#386 := [nnf-pos #426]: #385
+#71 := (= #70 #12)
+#72 := (forall (vars (?v0 S2)) #71)
+#242 := (iff #72 #241)
+#239 := (iff #71 #237)
+#240 := [rewrite]: #239
+#243 := [quant-intro #240]: #242
+#236 := [asserted]: #72
+#246 := [mp #236 #243]: #241
+#427 := [mp~ #246 #386]: #241
+#954 := [mp #427 #953]: #949
+#577 := (not #949)
+#587 := (or #577 #876)
+#872 := (= #598 #580)
+#588 := (or #577 #872)
+#590 := (iff #588 #587)
+#869 := (iff #587 #587)
+#583 := [rewrite]: #869
+#873 := (iff #872 #876)
+#877 := [rewrite]: #873
+#868 := [monotonicity #877]: #590
+#866 := [trans #868 #583]: #590
+#589 := [quant-inst]: #588
+#870 := [mp #589 #866]: #587
+#697 := [unit-resolution #870 #954]: #876
+#561 := (= #117 #580)
+#89 := (f4 #86 f9)
+#964 := (pattern #89)
+#87 := (f21 #86)
+#963 := (pattern #87)
+#90 := (f15 #89)
+#88 := (f17 #87)
+#91 := (= #88 #90)
+#965 := (forall (vars (?v0 int)) (:pat #963 #964) #91)
+#92 := (forall (vars (?v0 int)) #91)
+#968 := (iff #92 #965)
+#966 := (iff #91 #91)
+#967 := [refl]: #966
+#969 := [quant-intro #967]: #968
+#389 := (~ #92 #92)
+#431 := (~ #91 #91)
+#432 := [refl]: #431
+#390 := [nnf-pos #432]: #389
+#264 := [asserted]: #92
+#397 := [mp~ #264 #390]: #92
+#970 := [mp #397 #969]: #965
+#555 := (not #965)
+#686 := (or #555 #561)
+#893 := [quant-inst]: #686
+#642 := [unit-resolution #893 #970]: #561
+#620 := [trans #642 #697]: #619
+#622 := [trans #620 #698]: #621
+#624 := [trans #622 #638]: #623
+#618 := [trans #624 #628]: #625
+#611 := [trans #618 #641]: #626
+#613 := [trans #611 #643]: #612
+#615 := [trans #613 #617]: #361
+#364 := (not #361)
 decl f2 :: S1
 #5 := f2
-#9 := 3::int
-decl f3 :: int
-#8 := f3
-#46 := (>= f3 3::int)
-#51 := (ite #46 f2 f1)
-#73 := (= f1 #51)
-#58 := (ite #46 f1 f2)
-#69 := (= f1 #58)
-#115 := (iff #69 #73)
-#113 := (iff #73 #69)
-#61 := (= #51 #58)
-#12 := (<= 3::int f3)
-#13 := (ite #12 f1 f2)
-#10 := (< f3 3::int)
-#11 := (ite #10 f1 f2)
-#14 := (distinct #11 #13)
-#15 := (not #14)
-#64 := (iff #15 #61)
-#33 := (= #11 #13)
-#62 := (iff #33 #61)
-#59 := (= #13 #58)
-#56 := (iff #12 #46)
-#57 := [rewrite]: #56
-#60 := [monotonicity #57]: #59
-#54 := (= #11 #51)
-#44 := (not #46)
-#48 := (ite #44 f1 f2)
-#52 := (= #48 #51)
-#53 := [rewrite]: #52
-#49 := (= #11 #48)
-#45 := (iff #10 #44)
-#47 := [rewrite]: #45
-#50 := [monotonicity #47]: #49
-#55 := [trans #50 #53]: #54
-#63 := [monotonicity #55 #60]: #62
-#42 := (iff #15 #33)
-#34 := (not #33)
-#37 := (not #34)
-#40 := (iff #37 #33)
-#41 := [rewrite]: #40
-#38 := (iff #15 #37)
-#35 := (iff #14 #34)
-#36 := [rewrite]: #35
-#39 := [monotonicity #36]: #38
-#43 := [trans #39 #41]: #42
-#65 := [trans #43 #63]: #64
-#32 := [asserted]: #15
-#66 := [mp #32 #65]: #61
-#114 := [monotonicity #66]: #113
-#116 := [symm #114]: #115
-#109 := (not #73)
-#6 := (= f1 f2)
-#67 := (= f2 #58)
-#105 := (iff #67 #6)
-#103 := (iff #6 #67)
-#98 := (= #58 f2)
-#101 := (iff #98 #67)
-#102 := [commutativity]: #101
-#99 := (iff #6 #98)
-#96 := [hypothesis]: #73
-#97 := [trans #96 #66]: #69
-#100 := [monotonicity #97]: #99
-#104 := [trans #100 #102]: #103
-#106 := [symm #104]: #105
-#72 := (= f2 #51)
-#84 := (iff #72 #67)
-#85 := [monotonicity #66]: #84
-#80 := (not #67)
-#81 := [hypothesis]: #80
-#78 := (or #46 #67)
-#79 := [def-axiom]: #78
-#82 := [unit-resolution #79 #81]: #46
-#74 := (or #44 #72)
-#75 := [def-axiom]: #74
-#83 := [unit-resolution #75 #82]: #72
-#86 := [mp #83 #85]: #67
-#87 := [unit-resolution #81 #86]: false
-#88 := [lemma #87]: #67
-#107 := [mp #88 #106]: #6
-#7 := (not #6)
-#31 := [asserted]: #7
-#108 := [unit-resolution #31 #107]: false
-#110 := [lemma #108]: #109
-#70 := (or #46 #73)
-#71 := [def-axiom]: #70
-#111 := [unit-resolution #71 #110]: #46
-#76 := (or #44 #69)
-#77 := [def-axiom]: #76
-#112 := [unit-resolution #77 #111]: #69
-#117 := [mp #112 #116]: #73
-[unit-resolution #110 #117]: false
+#118 := (ite true f1 f2)
+#119 := (f22 #118)
+#120 := (f19 #119)
+#121 := (= #117 #120)
+#122 := (not #121)
+#365 := (iff #122 #364)
+#362 := (iff #121 #361)
+#359 := (= #120 #358)
+#356 := (= #119 #355)
+#353 := (= #118 f1)
+#354 := [rewrite]: #353
+#357 := [monotonicity #354]: #356
+#360 := [monotonicity #357]: #359
+#363 := [monotonicity #360]: #362
+#366 := [monotonicity #363]: #365
+#352 := [asserted]: #122
+#369 := [mp #352 #366]: #364
+[unit-resolution #369 #615]: false
 unsat
