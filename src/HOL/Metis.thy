@@ -12,6 +12,7 @@ uses "~~/src/Tools/Metis/metis.ML"
      ("Tools/Metis/metis_translate.ML")
      ("Tools/Metis/metis_reconstruct.ML")
      ("Tools/Metis/metis_tactics.ML")
+     ("Tools/try.ML")
 begin
 
 definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where [no_atp]:
@@ -37,5 +38,11 @@ setup {*
 
 hide_const (open) fequal
 hide_fact (open) fequal_def fequal_imp_equal equal_imp_fequal equal_imp_equal
+
+subsection {* Try *}
+
+use "Tools/try.ML"
+
+setup {* Try.setup *}
 
 end

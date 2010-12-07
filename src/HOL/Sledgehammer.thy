@@ -8,7 +8,8 @@ header {* Sledgehammer: Isabelle--ATP Linkup *}
 
 theory Sledgehammer
 imports ATP SMT
-uses "Tools/Sledgehammer/sledgehammer_util.ML"
+uses "Tools/Sledgehammer/async_manager.ML"
+     "Tools/Sledgehammer/sledgehammer_util.ML"
      "Tools/Sledgehammer/sledgehammer_filter.ML"
      "Tools/Sledgehammer/sledgehammer_atp_translate.ML"
      "Tools/Sledgehammer/sledgehammer_atp_reconstruct.ML"
