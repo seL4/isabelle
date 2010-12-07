@@ -917,20 +917,17 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                 val M1 = mtype_for (domain_type (domain_type T))
                 val a = if exists_alpha_sub_mtype M1 then Fls else Gen
               in (MFun (MFun (M1, A a, bool_M), A Gen, bool_M), accum) end
-            | @{const_name Sigma} =>
+            | @{const_name prod} =>
               let
                 val x = Unsynchronized.inc max_fresh
                 fun mtype_for_set T =
                   MFun (mtype_for (domain_type T), V x, bool_M)
-                val a_set_T = domain_type T
-                val a_M = mtype_for (domain_type a_set_T)
+                val a_set_M = mtype_for_set (domain_type T)
                 val b_set_M =
                   mtype_for_set (range_type (domain_type (range_type T)))
-                val a_set_M = mtype_for_set a_set_T
-                val a_to_b_set_M = MFun (a_M, A Gen, b_set_M)
                 val ab_set_M = mtype_for_set (nth_range_type 2 T)
               in
-                (MFun (a_set_M, A Gen, MFun (a_to_b_set_M, A Gen, ab_set_M)),
+                (MFun (a_set_M, A Gen, MFun (b_set_M, A Gen, ab_set_M)),
                  accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
             | _ =>
