@@ -528,8 +528,8 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
           Op1 (Closure, range_type T, Any, sub t1)
         | (Const (@{const_name rel_comp}, T), [t1, t2]) =>
           Op2 (Composition, nth_range_type 2 T, Any, sub t1, sub t2)
-        | (Const (@{const_name Sigma}, T), [t1, Abs (s, T', t2')]) =>
-          Op2 (Product, nth_range_type 2 T, Any, sub t1, sub_abs s T' t2')
+        | (Const (@{const_name prod}, T), [t1, t2]) =>
+          Op2 (Product, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (@{const_name image}, T), [t1, t2]) =>
           Op2 (Image, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (x as (s as @{const_name Suc}, T)), []) =>

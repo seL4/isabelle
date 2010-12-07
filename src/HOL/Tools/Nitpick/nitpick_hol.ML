@@ -424,6 +424,7 @@ val built_in_consts =
    (@{const_name converse}, 1),
    (@{const_name trancl}, 1),
    (@{const_name rel_comp}, 2),
+   (@{const_name prod}, 2),
    (@{const_name image}, 2),
    (@{const_name finite}, 1),
    (@{const_name unknown}, 0),
@@ -1645,9 +1646,14 @@ fun unfold_defs_in_term
                 s_betapply [] (do_term depth Ts t0, do_term depth Ts t1))
       | Const (@{const_name refl_on}, T) $ Const (@{const_name top}, _) $ t2 =>
         do_const depth Ts t (@{const_name refl'}, range_type T) [t2]
-      | (t0 as Const (@{const_name Sigma}, _)) $ t1 $ (t2 as Abs (_, _, t2')) =>
-        s_betapplys Ts (t0 |> loose_bvar1 (t2', 0) ? do_term depth Ts,
-                        map (do_term depth Ts) [t1, t2])
+      | (t0 as Const (@{const_name Sigma}, Type (_, [T1, Type (_, [T2, T3])])))
+        $ t1 $ (t2 as Abs (_, _, t2')) =>
+        if loose_bvar1 (t2', 0) then
+          s_betapplys Ts (do_term depth Ts t0, map (do_term depth Ts) [t1, t2])
+        else
+          do_term depth Ts
+                  (Const (@{const_name prod}, T1 --> range_type T2 --> T3)
+                   $ t1 $ incr_boundvars ~1 t2')
       | Const (x as (@{const_name distinct},
                Type (@{type_name fun}, [Type (@{type_name list}, [T']), _])))
         $ (t1 as _ $ _) =>
