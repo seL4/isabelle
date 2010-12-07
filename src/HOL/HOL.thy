@@ -29,8 +29,6 @@ uses
   "~~/src/Tools/induct.ML"
   ("~~/src/Tools/induct_tacs.ML")
   ("Tools/recfun_codegen.ML")
-  "Tools/async_manager.ML"
-  "Tools/try.ML"
   ("Tools/cnf_funcs.ML")
   "~~/src/Tools/subtyping.ML"
 begin
@@ -1981,10 +1979,6 @@ method_setup normalization = {*
     (CHANGED_PROP o (CONVERSION Nbe.dynamic_eval_conv THEN' (fn k => TRY (rtac TrueI k))))))
 *} "solve goal by normalization"
 
-
-subsection {* Try *}
-
-setup {* Try.setup *}
 
 subsection {* Counterexample Search Units *}
 

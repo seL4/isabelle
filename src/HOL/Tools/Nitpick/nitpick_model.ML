@@ -133,8 +133,9 @@ fun nth_atom_name thy atomss pool prefix T j =
       Type (s, _) =>
       let val s' = shortest_name s in
         prefix ^
-        (if String.isPrefix "\\" s' then s' else substring (s', 0, 1)) ^
-        atom_suffix s m
+        (if T = @{typ string} then "s"
+         else if String.isPrefix "\\" s' then s'
+         else substring (s', 0, 1)) ^ atom_suffix s m
       end
     | TFree (s, _) => prefix ^ perhaps (try (unprefix "'")) s ^ atom_suffix s m
     | _ => raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
