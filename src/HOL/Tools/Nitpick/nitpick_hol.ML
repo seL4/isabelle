@@ -462,9 +462,7 @@ fun unarize_type @{typ "unsigned_bit word"} = nat_T
   | unarize_type @{typ "signed_bit word"} = int_T
   | unarize_type (Type (s, Ts as _ :: _)) = Type (s, map unarize_type Ts)
   | unarize_type T = T
-fun unarize_unbox_etc_type (Type (@{type_name fin_fun}, Ts)) =
-    unarize_unbox_etc_type (Type (@{type_name fun}, Ts))
-  | unarize_unbox_etc_type (Type (@{type_name fun_box}, Ts)) =
+fun unarize_unbox_etc_type (Type (@{type_name fun_box}, Ts)) =
     unarize_unbox_etc_type (Type (@{type_name fun}, Ts))
   | unarize_unbox_etc_type (Type (@{type_name pair_box}, Ts)) =
     Type (@{type_name prod}, map unarize_unbox_etc_type Ts)
@@ -804,9 +802,9 @@ fun is_coconstr ctxt (s, T) =
     end
   | _ => false
 fun is_constr_like ctxt (s, T) =
-  member (op =) [@{const_name FinFun}, @{const_name FunBox},
-                 @{const_name PairBox}, @{const_name Quot},
-                 @{const_name Zero_Rep}, @{const_name Suc_Rep}] s orelse
+  member (op =) [@{const_name FunBox}, @{const_name PairBox},
+                 @{const_name Quot}, @{const_name Zero_Rep},
+                 @{const_name Suc_Rep}] s orelse
   let
     val thy = ProofContext.theory_of ctxt
     val (x as (_, T)) = (s, unarize_unbox_etc_type T)
@@ -1095,14 +1093,13 @@ and coerce_term (hol_ctxt as {ctxt, stds, ...}) Ts new_T old_T t =
          |> Envir.eta_contract
          |> new_s <> @{type_name fun}
             ? construct_value ctxt stds
-                  (if new_s = @{type_name fin_fun} then @{const_name FinFun}
-                   else @{const_name FunBox},
+                  (@{const_name FunBox},
                    Type (@{type_name fun}, new_Ts) --> new_T)
               o single
        | t' => raise TERM ("Nitpick_HOL.coerce_term", [t']))
     | (Type (new_s, new_Ts as [new_T1, new_T2]),
        Type (old_s, old_Ts as [old_T1, old_T2])) =>
-      if old_s = @{type_name fin_fun} orelse old_s = @{type_name fun_box} orelse
+      if old_s = @{type_name fun_box} orelse
          old_s = @{type_name pair_box} orelse old_s = @{type_name prod} then
         case constr_expand hol_ctxt old_T t of
           Const (old_s, _) $ t1 =>

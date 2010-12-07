@@ -9,8 +9,7 @@ signature NITPICK_PREPROC =
 sig
   type hol_context = Nitpick_HOL.hol_context
   val preprocess_formulas :
-    hol_context -> (typ option * bool option) list
-    -> (typ option * bool option) list -> term list -> term
+    hol_context -> term list -> term
     -> term list * term list * bool * bool * bool
 end;
 
@@ -1245,32 +1244,13 @@ val push_quantifiers_inward =
              | _ => t
   in aux "" [] [] end
 
-(** Inference of finite functions **)
-
-fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
-                               (nondef_ts, def_ts) =
-  if forall (curry (op =) (SOME false) o snd) finitizes then
-    (nondef_ts, def_ts)
-  else
-    let
-      val Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
-               |> filter_out (fn Type (@{type_name fun_box}, _) => true
-                               | @{typ signed_bit} => true
-                               | @{typ unsigned_bit} => true
-                               | T => is_small_finite_type hol_ctxt T orelse
-                                      triple_lookup (type_match thy) monos T
-                                      = SOME (SOME false))
-    in
-      fold (finitize_funs hol_ctxt binarize finitizes) Ts (nondef_ts, def_ts)
-    end
-
 (** Preprocessor entry point **)
 
 val max_skolem_depth = 3
 
 fun preprocess_formulas
         (hol_ctxt as {thy, ctxt, stds, binary_ints, destroy_constrs, boxes,
-                      ...}) finitizes monos assm_ts neg_t =
+                      ...}) assm_ts neg_t =
   let
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms) =
       neg_t |> unfold_defs_in_term hol_ctxt
@@ -1307,9 +1287,6 @@ fun preprocess_formulas
       #> Term.map_abs_vars shortest_name
     val nondef_ts = map (do_rest false) nondef_ts
     val def_ts = map (do_rest true) def_ts
-    val (nondef_ts, def_ts) =
-      finitize_all_types_of_funs hol_ctxt binarize finitizes monos
-                                 (nondef_ts, def_ts)
   in
     (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms, binarize)
   end

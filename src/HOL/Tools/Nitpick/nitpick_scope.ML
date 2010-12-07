@@ -112,8 +112,6 @@ fun constr_spec [] x = raise TERM ("Nitpick_Scope.constr_spec", [Const x])
 
 fun is_complete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     is_concrete_type dtypes facto T1 andalso is_complete_type dtypes facto T2
-  | is_complete_type dtypes facto (Type (@{type_name fin_fun}, [T1, T2])) =
-    is_exact_type dtypes facto T1 andalso is_complete_type dtypes facto T2
   | is_complete_type dtypes facto (Type (@{type_name prod}, Ts)) =
     forall (is_complete_type dtypes facto) Ts
   | is_complete_type dtypes facto T =
@@ -122,8 +120,6 @@ fun is_complete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     handle Option.Option => true
 and is_concrete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     is_complete_type dtypes facto T1 andalso is_concrete_type dtypes facto T2
-  | is_concrete_type dtypes facto (Type (@{type_name fin_fun}, [_, T2])) =
-    is_concrete_type dtypes facto T2
   | is_concrete_type dtypes facto (Type (@{type_name prod}, Ts)) =
     forall (is_concrete_type dtypes facto) Ts
   | is_concrete_type dtypes facto T =

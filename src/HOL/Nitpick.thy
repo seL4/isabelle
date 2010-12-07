@@ -35,7 +35,6 @@ axiomatization unknown :: 'a
            and Quot :: "'a \<Rightarrow> 'b"
            and safe_The :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
-datatype ('a, 'b) fin_fun = FinFun "('a \<Rightarrow> 'b)"
 datatype ('a, 'b) fun_box = FunBox "('a \<Rightarrow> 'b)"
 datatype ('a, 'b) pair_box = PairBox 'a 'b
 
@@ -240,12 +239,11 @@ use "Tools/Nitpick/nitpick_tests.ML"
 setup {* Nitpick_Isar.setup *}
 
 hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The
-    FinFun FunBox PairBox Word prod refl' wf' wf_wfrec wf_wfrec' wfrec' card'
-    setsum' fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac
-    zero_frac one_frac num denom norm_frac frac plus_frac times_frac uminus_frac
+    FunBox PairBox Word prod refl' wf' wf_wfrec wf_wfrec' wfrec' card' setsum'
+    fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac zero_frac
+    one_frac num denom norm_frac frac plus_frac times_frac uminus_frac
     number_of_frac inverse_frac less_frac less_eq_frac of_frac
-hide_type (open) bisim_iterator fin_fun fun_box pair_box unsigned_bit signed_bit
-    word
+hide_type (open) bisim_iterator fun_box pair_box unsigned_bit signed_bit word
 hide_fact (open) If_def Ex1_def rtrancl_def rtranclp_def tranclp_def prod_def
     refl'_def wf'_def wf_wfrec'_def wfrec'_def card'_def setsum'_def
     fold_graph'_def The_psimp Eps_psimp unit_case_def nat_case_def

@@ -12,9 +12,6 @@ sig
   val trace : bool Unsynchronized.ref
   val formulas_monotonic :
     hol_context -> bool -> typ -> term list * term list -> bool
-  val finitize_funs :
-    hol_context -> bool -> (typ option * bool option) list -> typ
-    -> term list * term list -> term list * term list
 end;
 
 structure Nitpick_Mono : NITPICK_MONO =
@@ -1248,111 +1245,5 @@ fun infer which no_harmless (hol_ctxt as {ctxt, tac_timeout, ...}) binarize
          raise BAD (loc, commas (map (string_for_mterm ctxt) ms))
 
 val formulas_monotonic = is_some oooo infer "Monotonicity" false
-
-fun fin_fun_constr T1 T2 =
-  (@{const_name FinFun}, (T1 --> T2) --> Type (@{type_name fin_fun}, [T1, T2]))
-
-fun finitize_funs (hol_ctxt as {thy, ctxt, stds, constr_cache, ...}) binarize
-                  finitizes alpha_T tsp =
-  case infer "Finiteness" true hol_ctxt binarize alpha_T tsp of
-    SOME (asgs, msp, constr_mtypes) =>
-    if forall (curry (op =) Gen o snd) asgs then
-      tsp
-    else
-      let
-        fun should_finitize T aa =
-          case triple_lookup (type_match thy) finitizes T of
-            SOME (SOME false) => false
-          | _ => resolve_annotation_atom asgs aa = A Fls
-        fun type_from_mtype T M =
-          case (M, T) of
-            (MAlpha, _) => T
-          | (MFun (M1, aa, M2), Type (@{type_name fun}, Ts)) =>
-            Type (if should_finitize T aa then @{type_name fin_fun}
-                  else @{type_name fun}, map2 type_from_mtype Ts [M1, M2])
-          | (MPair (M1, M2), Type (@{type_name prod}, Ts)) =>
-            Type (@{type_name prod}, map2 type_from_mtype Ts [M1, M2])
-          | (MType _, _) => T
-          | _ => raise MTYPE ("Nitpick_Mono.finitize_funs.type_from_mtype",
-                              [M], [T])
-        fun finitize_constr (x as (s, T)) =
-          (s, case AList.lookup (op =) constr_mtypes x of
-                SOME M => type_from_mtype T M
-              | NONE => T)
-        fun term_from_mterm new_Ts old_Ts m =
-          case m of
-            MRaw (t, M) =>
-            let
-              val T = fastype_of1 (old_Ts, t)
-              val T' = type_from_mtype T M
-            in
-              case t of
-                Const (x as (s, _)) =>
-                if s = @{const_name finite} then
-                  case domain_type T' of
-                    set_T' as Type (@{type_name fin_fun}, _) =>
-                    Abs (Name.uu, set_T', @{const True})
-                  | _ => Const (s, T')
-                else if s = @{const_name "=="} orelse
-                        s = @{const_name HOL.eq} then
-                  let
-                    val T =
-                      case T' of
-                        Type (_, [T1, Type (_, [T2, T3])]) =>
-                        T1 --> T2 --> T3
-                      | _ => raise TYPE ("Nitpick_Mono.finitize_funs.\
-                                         \term_from_mterm", [T, T'], [])
-                  in coerce_term hol_ctxt new_Ts T' T (Const (s, T)) end
-                else if is_built_in_const thy stds x then
-                  coerce_term hol_ctxt new_Ts T' T t
-                else if is_constr ctxt stds x then
-                  Const (finitize_constr x)
-                else if is_sel s then
-                  let
-                    val n = sel_no_from_name s
-                    val x' =
-                      x |> binarized_and_boxed_constr_for_sel hol_ctxt binarize
-                        |> finitize_constr
-                    val x'' =
-                      binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize
-                                                             x' n
-                  in Const x'' end
-                else
-                  Const (s, T')
-              | Free (s, T) => Free (s, type_from_mtype T M)
-              | Bound _ => t
-              | _ => raise MTERM ("Nitpick_Mono.finitize_funs.term_from_mterm",
-                                  [m])
-            end
-          | MApp (m1, m2) =>
-            let
-              val (t1, t2) = pairself (term_from_mterm new_Ts old_Ts) (m1, m2)
-              val (T1, T2) = pairself (curry fastype_of1 new_Ts) (t1, t2)
-              val (t1', T2') =
-                case T1 of
-                  Type (s, [T11, T12]) =>
-                  (if s = @{type_name fin_fun} then
-                     select_nth_constr_arg ctxt stds (fin_fun_constr T11 T12) t1
-                                           0 (T11 --> T12)
-                   else
-                     t1, T11)
-                | _ => raise TYPE ("Nitpick_Mono.finitize_funs.term_from_mterm",
-                                   [T1], [])
-            in betapply (t1', coerce_term hol_ctxt new_Ts T2' T2 t2) end
-          | MAbs (s, old_T, M, aa, m') =>
-            let
-              val new_T = type_from_mtype old_T M
-              val t' = term_from_mterm (new_T :: new_Ts) (old_T :: old_Ts) m'
-              val T' = fastype_of1 (new_T :: new_Ts, t')
-            in
-              Abs (s, new_T, t')
-              |> should_finitize (new_T --> T') aa
-                 ? construct_value ctxt stds (fin_fun_constr new_T T') o single
-            end
-      in
-        Unsynchronized.change constr_cache (map (apsnd (map finitize_constr)));
-        pairself (map (term_from_mterm [] [])) msp
-      end
-  | NONE => tsp
 
 end;

@@ -292,7 +292,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val _ = null (fold Term.add_tvars (neg_t :: assm_ts) []) orelse
             raise NOT_SUPPORTED "schematic type variables"
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms,
-         binarize) = preprocess_formulas hol_ctxt finitizes monos assm_ts neg_t
+         binarize) = preprocess_formulas hol_ctxt assm_ts neg_t
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
@@ -361,9 +361,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         SOME (SOME b) => b
       | _ => is_type_fundamentally_monotonic T orelse
              is_type_actually_monotonic T
-    fun is_shallow_datatype_finitizable (T as Type (@{type_name fin_fun}, _)) =
-        is_type_kind_of_monotonic T
-      | is_shallow_datatype_finitizable (T as Type (@{type_name fun_box}, _)) =
+    fun is_shallow_datatype_finitizable (T as Type (@{type_name fun_box}, _)) =
         is_type_kind_of_monotonic T
       | is_shallow_datatype_finitizable T =
         case triple_lookup (type_match thy) finitizes T of
