@@ -216,7 +216,22 @@ fun trace_assumptions ctxt irules idxs =
     else ()
   end
 
-fun gen_solver name info rm ctxt irules =
+
+
+(* registry *)
+
+type solver = bool option -> Proof.context -> (int * thm) list -> int list * thm
+
+type solver_info = {
+  env_var: string,
+  is_remote: bool,
+  options: Proof.context -> string list,
+  interface: interface,
+  reconstruct: string list * SMT_Translate.recon -> Proof.context ->
+    (int list * thm) * Proof.context,
+  default_max_relevant: int }
+
+fun gen_solver name (info : solver_info) rm ctxt irules =
   let
     val {env_var, is_remote, options, interface, reconstruct, ...} = info
     val {extra_norm, translate} = interface
@@ -234,21 +249,6 @@ fun gen_solver name info rm ctxt irules =
     |> tap (fn _ => trace_assumptions ctxt irules idxs)
     |> pair idxs)
   end
-
-
-
-(* registry *)
-
-type solver = bool option -> Proof.context -> (int * thm) list -> int list * thm
-
-type solver_info = {
-  env_var: string,
-  is_remote: bool,
-  options: Proof.context -> string list,
-  interface: interface,
-  reconstruct: string list * SMT_Translate.recon -> Proof.context ->
-    (int list * thm) * Proof.context,
-  default_max_relevant: int }
 
 structure Solvers = Generic_Data
 (
