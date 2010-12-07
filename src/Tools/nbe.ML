@@ -235,13 +235,13 @@ structure Univs = Proof_Data (
 val put_result = Univs.put;
 
 local
-  val prefix =      "Nbe.";
-  val name_put =    prefix ^ "put_result";
-  val name_ref =    prefix ^ "univs_ref";
-  val name_const =  prefix ^ "Const";
-  val name_abss =   prefix ^ "abss";
-  val name_apps =   prefix ^ "apps";
-  val name_same =     prefix ^ "same";
+  val prefix =     "Nbe.";
+  val name_put =   prefix ^ "put_result";
+  val name_ref =   prefix ^ "univs_ref";
+  val name_const = prefix ^ "Const";
+  val name_abss =  prefix ^ "abss";
+  val name_apps =  prefix ^ "apps";
+  val name_same =  prefix ^ "same";
 in
 
 val univs_cookie = (Univs.get, put_result, name_put);
