@@ -1,7 +1,29 @@
 (*  Title:      HOL/Tools/SMT/smt_monomorph.ML
     Author:     Sascha Boehme, TU Muenchen
 
-Monomorphization of theorems, i.e., computation of all (necessary) instances.
+Monomorphization of theorems, i.e., computation of all (necessary)
+instances.  This procedure is incomplete in general, but works well for
+most practical problems.
+
+For a list of universally closed theorems (without schematic term
+variables), monomorphization computes a list of theorems with schematic
+term variables: all polymorphic constants (i.e., constants occurring both
+with ground types and schematic type variables) are instantiated with all
+(necessary) ground types; thereby theorems containing these constants are
+copied.  To prevent non-termination, there is an upper limit for the number
+of iterations involved in the fixpoint construction.
+
+The search for instances is performed on the constants with schematic
+types, which are extracted from the initial set of theorems.  The search
+constructs, for each theorem with those constants, a set of substitutions,
+which, in the end, is applied to all corresponding theorems.  Remaining
+schematic type variables are substituted with fresh types.
+
+Searching for necessary substitutions is an iterative fixpoint
+construction: each iteration computes all required instances required by
+the ground instances computed in the previous step and which haven't been
+found before.  Computed substitutions are always nontrivial: schematic type
+variables are never mapped to schematic type variables.
 *)
 
 signature SMT_MONOMORPH =
@@ -13,35 +35,36 @@ end
 structure SMT_Monomorph: SMT_MONOMORPH =
 struct
 
+(* utility functions *)
+
 val typ_has_tvars = Term.exists_subtype (fn TVar _ => true | _ => false)
 
-val ignored = member (op =) [
-  @{const_name All}, @{const_name Ex}, @{const_name Let}, @{const_name If},
-  @{const_name HOL.eq}]
+val ignored = member (op =) [@{const_name All}, @{const_name Ex},
+  @{const_name Let}, @{const_name If}, @{const_name HOL.eq}]
 
-fun is_const f (n, T) = not (ignored n) andalso f T
-fun add_const_if f g (Const c) = if is_const f c then g c else I
-  | add_const_if _ _ _ = I
+fun is_const pred (n, T) = not (ignored n) andalso pred T
 
-fun collect_consts_if f g thm =
-  Term.fold_aterms (add_const_if f g) (Thm.prop_of thm)
-
-fun add_consts f =
-  collect_consts_if f (fn (n, T) => Symtab.map_entry n (insert (op =) T))
+fun collect_consts_if pred f =
+  Thm.prop_of #>
+  Term.fold_aterms (fn Const c => if is_const pred c then f c else I | _ => I)
 
 val insert_const = Ord_List.insert (prod_ord fast_string_ord Term_Ord.typ_ord)
+
 fun tvar_consts_of thm = collect_consts_if typ_has_tvars insert_const thm []
 
+fun add_const_types pred =
+  collect_consts_if pred (fn (n, T) => Symtab.map_entry n (insert (op =) T))
 
-fun incr_indexes irules =
+fun incr_indexes ithms =
   let
     fun inc (i, thm) idx =
       ((i, Thm.incr_indexes idx thm), Thm.maxidx_of thm + idx + 1)
-  in fst (fold_map inc irules 0) end
+  in fst (fold_map inc ithms 0) end
 
 
-(* Compute all substitutions from the types "Ts" to all relevant
-   types in "grounds", with respect to the given substitution. *)
+
+(* search for necessary substitutions *)
+
 fun new_substitutions thy grounds (n, T) subst =
   if not (typ_has_tvars T) then [subst]
   else
@@ -49,9 +72,6 @@ fun new_substitutions thy grounds (n, T) subst =
     |> map_filter (try (fn U => Sign.typ_match thy (T, U) subst))
     |> cons subst
 
-
-(* Instantiate a set of constants with a substitution.  Also collect
-   all new ground instances for the next round of specialization. *)
 fun apply_subst grounds consts subst =
   let
     fun is_new_ground (n, T) = not (typ_has_tvars T) andalso
@@ -66,14 +86,7 @@ fun apply_subst grounds consts subst =
       end
   in fold_map apply_const consts #>> pair subst end
 
-
-(* Compute new substitutions for the theorem "thm", based on
-   previously found substitutions.
-     Also collect new grounds, i.e., instantiated constants
-   (without schematic types) which do not occur in any of the
-   previous rounds. Note that thus no schematic type variables are
-   shared among theorems. *)
-fun specialize thy all_grounds new_grounds (irule, scs) =
+fun specialize thy all_grounds new_grounds scs =
   let
     fun spec (subst, consts) next_grounds =
       [subst]
@@ -82,30 +95,27 @@ fun specialize thy all_grounds new_grounds (irule, scs) =
       |-> fold_map (apply_subst all_grounds consts)
   in
     fold_map spec scs #>> (fn scss =>
-    (irule, fold (fold (insert (eq_snd (op =)))) scss []))
+    fold (fold (insert (eq_snd (op =)))) scss [])
   end
 
+val limit_reached_warning = "Warning: Monomorphization limit reached"
 
-(* Compute all necessary substitutions.
-     Instead of operating on the propositions of the theorems, the
-   computation uses only the constants occurring with schematic type
-   variables in the propositions. To ease comparisons, such sets of
-   costants are always kept in their initial order. *)
-fun incremental_monomorph ctxt limit all_grounds new_grounds irules =
+fun search_substitutions ctxt limit all_grounds new_grounds scss =
   let
     val thy = ProofContext.theory_of ctxt
     val all_grounds' = Symtab.merge_list (op =) (all_grounds, new_grounds)
     val spec = specialize thy all_grounds' new_grounds
-    val (irs, new_grounds') = fold_map spec irules Symtab.empty
+    val (scss', new_grounds') = fold_map spec scss Symtab.empty
   in
-    if Symtab.is_empty new_grounds' then irs
-    else if limit > 0
-    then incremental_monomorph ctxt (limit-1) all_grounds' new_grounds' irs
-    else
-     (SMT_Config.verbose_msg ctxt (K "Warning: Monomorphization limit reached")
-      (); irs)
+    if Symtab.is_empty new_grounds' then scss'
+    else if limit > 0 then
+      search_substitutions ctxt (limit-1) all_grounds' new_grounds' scss'
+    else (SMT_Config.verbose_msg ctxt (K limit_reached_warning) (); scss')
   end
 
+
+
+(* instantiation *)
 
 fun filter_most_specific thy =
   let
@@ -129,9 +139,16 @@ fun filter_most_specific thy =
 
   in most_specific [] end
 
-
-fun instantiate thy Tenv =
+fun instantiate (i, thm) substs (ithms, ctxt) =
   let
+    val (vs, Ss) = split_list (Term.add_tvars (Thm.prop_of thm) [])
+    val (Tenv, ctxt') =
+      ctxt
+      |> Variable.invent_types Ss
+      |>> map2 (fn v => fn (n, S) => (v, (S, TFree (n, S)))) vs
+
+    val thy = ProofContext.theory_of ctxt'
+
     fun replace (v, (_, T)) (U as TVar (u, _)) = if u = v then T else U
       | replace _ T = T
 
@@ -142,62 +159,41 @@ fun instantiate thy Tenv =
 
     fun cert (ix, (S, T)) = pairself (Thm.ctyp_of thy) (TVar (ix, S), T)
 
-    fun inst (i, thm) subst =
+    fun inst subst =
       let val cTs = Vartab.fold (cons o cert) (fold complete Tenv subst) []
       in (i, Thm.instantiate (cTs, []) thm) end
 
-  in uncurry (map o inst) end
+  in (map inst substs @ ithms, ctxt') end
 
 
-fun mono_all ctxt _ [] monos = (monos, ctxt)
-  | mono_all ctxt limit polys monos =
-      let
-        fun invent_types (_, thm) ctxt =
-          let val (vs, Ss) = split_list (Term.add_tvars (Thm.prop_of thm) [])
-          in
-            ctxt
-            |> Variable.invent_types Ss
-            |>> map2 (fn v => fn (n, S) => (v, (S, TFree (n, S)))) vs
-          end
-        val (Tenvs, ctxt') = fold_map invent_types polys ctxt
 
-        val thy = ProofContext.theory_of ctxt'
+(* overall procedure *)
 
-        val ths = polys
-          |> map (fn (_, thm) => (thm, [(Vartab.empty, tvar_consts_of thm)]))
+fun mono_all ctxt polys monos =
+  let
+    val scss = map (single o pair Vartab.empty o tvar_consts_of o snd) polys
 
-        (* all constant names occurring with schematic types *)
-        val ns = fold (fold (fold (insert (op =) o fst) o snd) o snd) ths []
+    (* all known non-schematic instances of polymorphic constants: find all
+       names of polymorphic constants, then add all known ground types *)
+    val grounds =
+      Symtab.empty
+      |> fold (fold (fold (Symtab.update o rpair [] o fst) o snd)) scss
+      |> fold (add_const_types (K true) o snd) monos
+      |> fold (add_const_types (not o typ_has_tvars) o snd) polys
 
-        (* all known instances with non-schematic types *)
-        val grounds =
-          Symtab.make (map (rpair []) ns)
-          |> fold (add_consts (K true) o snd) monos
-          |> fold (add_consts (not o typ_has_tvars) o snd) polys
-      in
-        polys
-        |> map (fn (i, thm) => ((i, thm), [(Vartab.empty, tvar_consts_of thm)]))
-        |> incremental_monomorph ctxt' limit Symtab.empty grounds
-        |> map (apsnd (filter_most_specific thy))
-        |> flat o map2 (instantiate thy) Tenvs
-        |> append monos
-        |> rpair ctxt'
-      end
+    val limit = Config.get ctxt SMT_Config.monomorph_limit
+  in
+    scss
+    |> search_substitutions ctxt limit Symtab.empty grounds
+    |> map (filter_most_specific (ProofContext.theory_of ctxt))
+    |> rpair (monos, ctxt)
+    |-> fold2 instantiate polys
+  end
 
-
-(* Instantiate all polymorphic constants (i.e., constants occurring
-   both with ground types and type variables) with all (necessary)
-   ground types; thereby create copies of theorems containing those
-   constants.
-     To prevent non-termination, there is an upper limit for the
-   number of recursions involved in the fixpoint construction.
-     The initial set of theorems must not contain any schematic term
-   variables, and the final list of theorems does not contain any
-   schematic type variables anymore. *)
 fun monomorph irules ctxt =
   irules
   |> List.partition (Term.exists_type typ_has_tvars o Thm.prop_of o snd)
-  |>> incr_indexes
-  |-> mono_all ctxt (Config.get ctxt SMT_Config.monomorph_limit)
+  |>> incr_indexes  (* avoid clashes of schematic type variables *)
+  |-> (fn [] => rpair ctxt | polys => mono_all ctxt polys)
 
 end
