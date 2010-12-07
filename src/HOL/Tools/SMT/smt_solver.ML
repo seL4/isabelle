@@ -180,7 +180,7 @@ fun invoke translate_config name cmd options irules ctxt =
   let
     val args = C.solver_options_of ctxt @ options ctxt
     val comments = ("solver: " ^ name) ::
-      ("timeout: " ^ Time.toString (seconds (Config.get ctxt C.timeout))) ::
+      ("timeout: " ^ string_of_real (Config.get ctxt C.timeout)) ::
       "arguments:" :: args
   in
     irules
