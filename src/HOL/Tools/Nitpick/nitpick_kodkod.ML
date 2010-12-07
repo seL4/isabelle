@@ -99,7 +99,7 @@ fun check_arity guilty_party univ_card n =
                         ""
                       else
                         " of Kodkod relation associated with " ^
-                        quote guilty_party) ^
+                        quote (original_name guilty_party)) ^
                      " too large for universe of cardinality " ^
                      string_of_int univ_card)
   else

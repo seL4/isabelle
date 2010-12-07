@@ -65,6 +65,7 @@ sig
   val strip_first_name_sep : string -> string * string
   val original_name : string -> string
   val abs_var : indexname * typ -> term -> term
+  val is_higher_order_type : typ -> bool
   val s_let : string -> int -> typ -> typ -> (term -> term) -> term -> term
   val s_betapply : typ list -> term * term -> term
   val s_betapplys : typ list -> term * term list -> term
@@ -87,7 +88,6 @@ sig
   val term_match : theory -> term * term -> bool
   val frac_from_term_pair : typ -> term -> term -> term
   val is_TFree : typ -> bool
-  val is_higher_order_type : typ -> bool
   val is_fun_type : typ -> bool
   val is_set_type : typ -> bool
   val is_pair_type : typ -> bool
@@ -319,13 +319,18 @@ fun original_name s =
   else
     s
 
+fun is_higher_order_type (Type (@{type_name fun}, _)) = true
+  | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
+  | is_higher_order_type _ = false
+
 fun abs_var ((s, j), T) body = Abs (s, T, abstract_over (Var ((s, j), T), body))
 
 fun let_var s = (nitpick_prefix ^ s, 999)
 val let_inline_threshold = 20
 
 fun s_let s n abs_T body_T f t =
-  if (n - 1) * (size_of_term t - 1) <= let_inline_threshold then
+  if (n - 1) * (size_of_term t - 1) <= let_inline_threshold orelse
+     is_higher_order_type abs_T then
     f t
   else
     let val z = (let_var s, abs_T) in
@@ -512,9 +517,6 @@ fun frac_from_term_pair T t1 t2 =
 
 fun is_TFree (TFree _) = true
   | is_TFree _ = false
-fun is_higher_order_type (Type (@{type_name fun}, _)) = true
-  | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
-  | is_higher_order_type _ = false
 fun is_fun_type (Type (@{type_name fun}, _)) = true
   | is_fun_type _ = false
 fun is_set_type (Type (@{type_name fun}, [_, @{typ bool}])) = true
@@ -1658,6 +1660,8 @@ fun unfold_defs_in_term
           do_term depth Ts t2
         else
           do_const depth Ts t x [t1, t2, t3]
+      | Const (@{const_name Let}, _) $ t1 $ t2 =>
+        s_betapply Ts (pairself (do_term depth Ts) (t2, t1))
       | Const x => do_const depth Ts t x []
       | t1 $ t2 =>
         (case strip_comb t of
