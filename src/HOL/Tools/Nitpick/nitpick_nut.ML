@@ -55,7 +55,6 @@ sig
     Eq |
     Triad |
     Composition |
-    Image |
     Apply |
     Lambda
 
@@ -169,7 +168,6 @@ datatype op2 =
   Eq |
   Triad |
   Composition |
-  Image |
   Apply |
   Lambda
 
@@ -233,7 +231,6 @@ fun string_for_op2 All = "All"
   | string_for_op2 Eq = "Eq"
   | string_for_op2 Triad = "Triad"
   | string_for_op2 Composition = "Composition"
-  | string_for_op2 Image = "Image"
   | string_for_op2 Apply = "Apply"
   | string_for_op2 Lambda = "Lambda"
 
@@ -525,8 +522,6 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
           Op1 (Closure, range_type T, Any, sub t1)
         | (Const (@{const_name rel_comp}, T), [t1, t2]) =>
           Op2 (Composition, nth_range_type 2 T, Any, sub t1, sub t2)
-        | (Const (@{const_name image}, T), [t1, t2]) =>
-          Op2 (Image, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (x as (s as @{const_name Suc}, T)), []) =>
           if is_built_in_const thy stds x then Cst (Suc, T, Any)
           else if is_constr ctxt stds x then do_construct x []
@@ -935,46 +930,6 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
             else
               Cst (False, T, Formula Pos)
               |> polar = Neut ? (fn pos_u => triad pos_u (gsub def Neg u))
-          end
-        | Op2 (Image, T, _, u1, u2) =>
-          let
-            val u1' = sub u1
-            val u2' = sub u2
-          in
-            (case (rep_of u1', rep_of u2') of
-               (Func (R11, R12), Func (R21, Formula Neut)) =>
-               if R21 = R11 andalso is_lone_rep R12 then
-                 let
-                   val R =
-                     best_non_opt_set_rep_for_type scope T
-                     |> exists (is_opt_rep o rep_of) [u1', u2'] ? opt_rep ofs T
-                 in s_op2 Image T R u1' u2' end
-               else
-                 raise SAME ()
-             | _ => raise SAME ())
-            handle SAME () =>
-                   let
-                     val T1 = type_of u1
-                     val dom_T = domain_type T1
-                     val ran_T = range_type T1
-                     val x_u = BoundName (~1, dom_T, Any, "image.x")
-                     val y_u = BoundName (~2, ran_T, Any, "image.y")
-                   in
-                     Op2 (Lambda, T, Any, y_u,
-                          Op2 (Exist, bool_T, Any, x_u,
-                               Op2 (And, bool_T, Any,
-                                    case u2 of
-                                      Op2 (Lambda, _, _, u21, u22) =>
-                                      if num_occurrences_in_nut u21 u22 = 0 then
-                                        u22
-                                      else
-                                        Op2 (Apply, bool_T, Any, u2, x_u)
-                                    | _ => Op2 (Apply, bool_T, Any, u2, x_u),
-
-                                    Op2 (Eq, bool_T, Any, y_u,
-                                         Op2 (Apply, ran_T, Any, u1, x_u)))))
-                     |> sub
-                   end
           end
         | Op2 (Apply, T, _, u1, u2) =>
           let

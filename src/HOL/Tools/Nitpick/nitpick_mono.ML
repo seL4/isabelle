@@ -912,17 +912,6 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                 (MFun (bc_set_M, A Gen, MFun (ab_set_M, A Gen, ac_set_M)),
                  accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
-            | @{const_name image} =>
-              let
-                val x = Unsynchronized.inc max_fresh
-                val a_M = mtype_for (domain_type (domain_type T))
-                val b_M = mtype_for (range_type (domain_type T))
-              in
-                (MFun (MFun (a_M, A Gen, b_M), A Gen,
-                       MFun (MFun (a_M, V x, bool_M), A Gen,
-                             MFun (b_M, V x, bool_M))),
-                 accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
-              end
             | @{const_name finite} =>
               let
                 val M1 = mtype_for (domain_type (domain_type T))
