@@ -2,7 +2,7 @@
 
 header {* A type for positive real numbers with infinity *}
 
-theory Positive_Infinite_Real
+theory Positive_Extended_Real
   imports Complex_Main Nat_Bijection Multivariate_Analysis
 begin
 
@@ -112,89 +112,89 @@ We introduce the the positive real numbers as needed for measure theory.
 
 *}
 
-typedef pinfreal = "(Some ` {0::real..}) \<union> {None}"
+typedef pextreal = "(Some ` {0::real..}) \<union> {None}"
   by (rule exI[of _ None]) simp
 
-subsection "Introduce @{typ pinfreal} similar to a datatype"
+subsection "Introduce @{typ pextreal} similar to a datatype"
 
-definition "Real x = Abs_pinfreal (Some (sup 0 x))"
-definition "\<omega> = Abs_pinfreal None"
+definition "Real x = Abs_pextreal (Some (sup 0 x))"
+definition "\<omega> = Abs_pextreal None"
 
-definition "pinfreal_case f i x = (if x = \<omega> then i else f (THE r. 0 \<le> r \<and> x = Real r))"
+definition "pextreal_case f i x = (if x = \<omega> then i else f (THE r. 0 \<le> r \<and> x = Real r))"
 
-definition "of_pinfreal = pinfreal_case (\<lambda>x. x) 0"
+definition "of_pextreal = pextreal_case (\<lambda>x. x) 0"
 
 defs (overloaded)
-  real_of_pinfreal_def [code_unfold]: "real == of_pinfreal"
+  real_of_pextreal_def [code_unfold]: "real == of_pextreal"
 
-lemma pinfreal_Some[simp]: "0 \<le> x \<Longrightarrow> Some x \<in> pinfreal"
-  unfolding pinfreal_def by simp
+lemma pextreal_Some[simp]: "0 \<le> x \<Longrightarrow> Some x \<in> pextreal"
+  unfolding pextreal_def by simp
 
-lemma pinfreal_Some_sup[simp]: "Some (sup 0 x) \<in> pinfreal"
+lemma pextreal_Some_sup[simp]: "Some (sup 0 x) \<in> pextreal"
   by (simp add: sup_ge1)
 
-lemma pinfreal_None[simp]: "None \<in> pinfreal"
-  unfolding pinfreal_def by simp
+lemma pextreal_None[simp]: "None \<in> pextreal"
+  unfolding pextreal_def by simp
 
 lemma Real_inj[simp]:
   assumes  "0 \<le> x" and "0 \<le> y"
   shows "Real x = Real y \<longleftrightarrow> x = y"
   unfolding Real_def assms[THEN sup_absorb2]
-  using assms by (simp add: Abs_pinfreal_inject)
+  using assms by (simp add: Abs_pextreal_inject)
 
 lemma Real_neq_\<omega>[simp]:
   "Real x = \<omega> \<longleftrightarrow> False"
   "\<omega> = Real x \<longleftrightarrow> False"
-  by (simp_all add: Abs_pinfreal_inject \<omega>_def Real_def)
+  by (simp_all add: Abs_pextreal_inject \<omega>_def Real_def)
 
 lemma Real_neg: "x < 0 \<Longrightarrow> Real x = Real 0"
-  unfolding Real_def by (auto simp add: Abs_pinfreal_inject intro!: sup_absorb1)
+  unfolding Real_def by (auto simp add: Abs_pextreal_inject intro!: sup_absorb1)
 
-lemma pinfreal_cases[case_names preal infinite, cases type: pinfreal]:
+lemma pextreal_cases[case_names preal infinite, cases type: pextreal]:
   assumes preal: "\<And>r. x = Real r \<Longrightarrow> 0 \<le> r \<Longrightarrow> P" and inf: "x = \<omega> \<Longrightarrow> P"
   shows P
-proof (cases x rule: pinfreal.Abs_pinfreal_cases)
-  case (Abs_pinfreal y)
+proof (cases x rule: pextreal.Abs_pextreal_cases)
+  case (Abs_pextreal y)
   hence "y = None \<or> (\<exists>x \<ge> 0. y = Some x)"
-    unfolding pinfreal_def by auto
+    unfolding pextreal_def by auto
   thus P
   proof (rule disjE)
     assume "\<exists>x\<ge>0. y = Some x" then guess x ..
-    thus P by (simp add: preal[of x] Real_def Abs_pinfreal(1) sup_absorb2)
-  qed (simp add: \<omega>_def Abs_pinfreal(1) inf)
+    thus P by (simp add: preal[of x] Real_def Abs_pextreal(1) sup_absorb2)
+  qed (simp add: \<omega>_def Abs_pextreal(1) inf)
 qed
 
-lemma pinfreal_case_\<omega>[simp]: "pinfreal_case f i \<omega> = i"
-  unfolding pinfreal_case_def by simp
+lemma pextreal_case_\<omega>[simp]: "pextreal_case f i \<omega> = i"
+  unfolding pextreal_case_def by simp
 
-lemma pinfreal_case_Real[simp]: "pinfreal_case f i (Real x) = (if 0 \<le> x then f x else f 0)"
+lemma pextreal_case_Real[simp]: "pextreal_case f i (Real x) = (if 0 \<le> x then f x else f 0)"
 proof (cases "0 \<le> x")
-  case True thus ?thesis unfolding pinfreal_case_def by (auto intro: theI2)
+  case True thus ?thesis unfolding pextreal_case_def by (auto intro: theI2)
 next
   case False
   moreover have "(THE r. 0 \<le> r \<and> Real 0 = Real r) = 0"
     by (auto intro!: the_equality)
-  ultimately show ?thesis unfolding pinfreal_case_def by (simp add: Real_neg)
+  ultimately show ?thesis unfolding pextreal_case_def by (simp add: Real_neg)
 qed
 
-lemma pinfreal_case_cancel[simp]: "pinfreal_case (\<lambda>c. i) i x = i"
+lemma pextreal_case_cancel[simp]: "pextreal_case (\<lambda>c. i) i x = i"
   by (cases x) simp_all
 
-lemma pinfreal_case_split:
-  "P (pinfreal_case f i x) = ((x = \<omega> \<longrightarrow> P i) \<and> (\<forall>r\<ge>0. x = Real r \<longrightarrow> P (f r)))"
+lemma pextreal_case_split:
+  "P (pextreal_case f i x) = ((x = \<omega> \<longrightarrow> P i) \<and> (\<forall>r\<ge>0. x = Real r \<longrightarrow> P (f r)))"
   by (cases x) simp_all
 
-lemma pinfreal_case_split_asm:
-  "P (pinfreal_case f i x) = (\<not> (x = \<omega> \<and> \<not> P i \<or> (\<exists>r. r \<ge> 0 \<and> x = Real r \<and> \<not> P (f r))))"
+lemma pextreal_case_split_asm:
+  "P (pextreal_case f i x) = (\<not> (x = \<omega> \<and> \<not> P i \<or> (\<exists>r. r \<ge> 0 \<and> x = Real r \<and> \<not> P (f r))))"
   by (cases x) auto
 
-lemma pinfreal_case_cong[cong]:
+lemma pextreal_case_cong[cong]:
   assumes eq: "x = x'" "i = i'" and cong: "\<And>r. 0 \<le> r \<Longrightarrow> f r = f' r"
-  shows "pinfreal_case f i x = pinfreal_case f' i' x'"
+  shows "pextreal_case f i x = pextreal_case f' i' x'"
   unfolding eq using cong by (cases x') simp_all
 
 lemma real_Real[simp]: "real (Real x) = (if 0 \<le> x then x else 0)"
-  unfolding real_of_pinfreal_def of_pinfreal_def by simp
+  unfolding real_of_pextreal_def of_pextreal_def by simp
 
 lemma Real_real_image:
   assumes "\<omega> \<notin> A" shows "Real ` real ` A = A"
@@ -210,46 +210,46 @@ next
     using `\<omega> \<notin> A` by (cases x) auto
 qed
 
-lemma real_pinfreal_nonneg[simp, intro]: "0 \<le> real (x :: pinfreal)"
-  unfolding real_of_pinfreal_def of_pinfreal_def
+lemma real_pextreal_nonneg[simp, intro]: "0 \<le> real (x :: pextreal)"
+  unfolding real_of_pextreal_def of_pextreal_def
   by (cases x) auto
 
 lemma real_\<omega>[simp]: "real \<omega> = 0"
-  unfolding real_of_pinfreal_def of_pinfreal_def by simp
+  unfolding real_of_pextreal_def of_pextreal_def by simp
 
-lemma pinfreal_noteq_omega_Ex: "X \<noteq> \<omega> \<longleftrightarrow> (\<exists>r\<ge>0. X = Real r)" by (cases X) auto
+lemma pextreal_noteq_omega_Ex: "X \<noteq> \<omega> \<longleftrightarrow> (\<exists>r\<ge>0. X = Real r)" by (cases X) auto
 
-subsection "@{typ pinfreal} is a monoid for addition"
+subsection "@{typ pextreal} is a monoid for addition"
 
-instantiation pinfreal :: comm_monoid_add
+instantiation pextreal :: comm_monoid_add
 begin
 
 definition "0 = Real 0"
-definition "x + y = pinfreal_case (\<lambda>r. pinfreal_case (\<lambda>p. Real (r + p)) \<omega> y) \<omega> x"
+definition "x + y = pextreal_case (\<lambda>r. pextreal_case (\<lambda>p. Real (r + p)) \<omega> y) \<omega> x"
 
-lemma pinfreal_plus[simp]:
+lemma pextreal_plus[simp]:
   "Real r + Real p = (if 0 \<le> r then if 0 \<le> p then Real (r + p) else Real r else Real p)"
   "x + 0 = x"
   "0 + x = x"
   "x + \<omega> = \<omega>"
   "\<omega> + x = \<omega>"
-  by (simp_all add: plus_pinfreal_def Real_neg zero_pinfreal_def split: pinfreal_case_split)
+  by (simp_all add: plus_pextreal_def Real_neg zero_pextreal_def split: pextreal_case_split)
 
 lemma \<omega>_neq_0[simp]:
   "\<omega> = 0 \<longleftrightarrow> False"
   "0 = \<omega> \<longleftrightarrow> False"
-  by (simp_all add: zero_pinfreal_def)
+  by (simp_all add: zero_pextreal_def)
 
 lemma Real_eq_0[simp]:
   "Real r = 0 \<longleftrightarrow> r \<le> 0"
   "0 = Real r \<longleftrightarrow> r \<le> 0"
-  by (auto simp add: Abs_pinfreal_inject zero_pinfreal_def Real_def sup_real_def)
+  by (auto simp add: Abs_pextreal_inject zero_pextreal_def Real_def sup_real_def)
 
-lemma Real_0[simp]: "Real 0 = 0" by (simp add: zero_pinfreal_def)
+lemma Real_0[simp]: "Real 0 = 0" by (simp add: zero_pextreal_def)
 
 instance
 proof
-  fix a :: pinfreal
+  fix a :: pextreal
   show "0 + a = a" by (cases a) simp_all
 
   fix b show "a + b = b + a"
@@ -260,14 +260,14 @@ proof
 qed
 end
 
-lemma pinfreal_plus_eq_\<omega>[simp]: "(a :: pinfreal) + b = \<omega> \<longleftrightarrow> a = \<omega> \<or> b = \<omega>"
+lemma pextreal_plus_eq_\<omega>[simp]: "(a :: pextreal) + b = \<omega> \<longleftrightarrow> a = \<omega> \<or> b = \<omega>"
   by (cases a, cases b) auto
 
-lemma pinfreal_add_cancel_left:
+lemma pextreal_add_cancel_left:
   "a + b = a + c \<longleftrightarrow> (a = \<omega> \<or> b = c)"
   by (cases a, cases b, cases c, simp_all, cases c, simp_all)
 
-lemma pinfreal_add_cancel_right:
+lemma pextreal_add_cancel_right:
   "b + a = c + a \<longleftrightarrow> (a = \<omega> \<or> b = c)"
   by (cases a, cases b, cases c, simp_all, cases c, simp_all)
 
@@ -289,30 +289,30 @@ next
   qed
 qed
 
-lemma real_pinfreal_0[simp]: "real (0 :: pinfreal) = 0"
-  unfolding zero_pinfreal_def real_Real by simp
+lemma real_pextreal_0[simp]: "real (0 :: pextreal) = 0"
+  unfolding zero_pextreal_def real_Real by simp
 
-lemma real_of_pinfreal_eq_0: "real X = 0 \<longleftrightarrow> (X = 0 \<or> X = \<omega>)"
+lemma real_of_pextreal_eq_0: "real X = 0 \<longleftrightarrow> (X = 0 \<or> X = \<omega>)"
   by (cases X) auto
 
-lemma real_of_pinfreal_eq: "real X = real Y \<longleftrightarrow>
+lemma real_of_pextreal_eq: "real X = real Y \<longleftrightarrow>
     (X = Y \<or> (X = 0 \<and> Y = \<omega>) \<or> (Y = 0 \<and> X = \<omega>))"
-  by (cases X, cases Y) (auto simp add: real_of_pinfreal_eq_0)
+  by (cases X, cases Y) (auto simp add: real_of_pextreal_eq_0)
 
-lemma real_of_pinfreal_add: "real X + real Y =
+lemma real_of_pextreal_add: "real X + real Y =
     (if X = \<omega> then real Y else if Y = \<omega> then real X else real (X + Y))"
-  by (auto simp: pinfreal_noteq_omega_Ex)
+  by (auto simp: pextreal_noteq_omega_Ex)
 
-subsection "@{typ pinfreal} is a monoid for multiplication"
+subsection "@{typ pextreal} is a monoid for multiplication"
 
-instantiation pinfreal :: comm_monoid_mult
+instantiation pextreal :: comm_monoid_mult
 begin
 
 definition "1 = Real 1"
 definition "x * y = (if x = 0 \<or> y = 0 then 0 else
-  pinfreal_case (\<lambda>r. pinfreal_case (\<lambda>p. Real (r * p)) \<omega> y) \<omega> x)"
+  pextreal_case (\<lambda>r. pextreal_case (\<lambda>p. Real (r * p)) \<omega> y) \<omega> x)"
 
-lemma pinfreal_times[simp]:
+lemma pextreal_times[simp]:
   "Real r * Real p = (if 0 \<le> r \<and> 0 \<le> p then Real (r * p) else 0)"
   "\<omega> * x = (if x = 0 then 0 else \<omega>)"
   "x * \<omega> = (if x = 0 then 0 else \<omega>)"
@@ -320,17 +320,17 @@ lemma pinfreal_times[simp]:
   "x * 0 = 0"
   "1 = \<omega> \<longleftrightarrow> False"
   "\<omega> = 1 \<longleftrightarrow> False"
-  by (auto simp add: times_pinfreal_def one_pinfreal_def)
+  by (auto simp add: times_pextreal_def one_pextreal_def)
 
-lemma pinfreal_one_mult[simp]:
+lemma pextreal_one_mult[simp]:
   "Real x + 1 = (if 0 \<le> x then Real (x + 1) else 1)"
   "1 + Real x = (if 0 \<le> x then Real (1 + x) else 1)"
-  unfolding one_pinfreal_def by simp_all
+  unfolding one_pextreal_def by simp_all
 
 instance
 proof
-  fix a :: pinfreal show "1 * a = a"
-    by (cases a) (simp_all add: one_pinfreal_def)
+  fix a :: pextreal show "1 * a = a"
+    by (cases a) (simp_all add: one_pextreal_def)
 
   fix b show "a * b = b * a"
     by (cases a, cases b) (simp_all add: mult_nonneg_nonneg)
@@ -344,20 +344,20 @@ proof
 qed
 end
 
-lemma pinfreal_mult_cancel_left:
+lemma pextreal_mult_cancel_left:
   "a * b = a * c \<longleftrightarrow> (a = 0 \<or> b = c \<or> (a = \<omega> \<and> b \<noteq> 0 \<and> c \<noteq> 0))"
   by (cases a, cases b, cases c, auto simp: Real_eq_Real mult_le_0_iff, cases c, auto)
 
-lemma pinfreal_mult_cancel_right:
+lemma pextreal_mult_cancel_right:
   "b * a = c * a \<longleftrightarrow> (a = 0 \<or> b = c \<or> (a = \<omega> \<and> b \<noteq> 0 \<and> c \<noteq> 0))"
   by (cases a, cases b, cases c, auto simp: Real_eq_Real mult_le_0_iff, cases c, auto)
 
-lemma Real_1[simp]: "Real 1 = 1" by (simp add: one_pinfreal_def)
+lemma Real_1[simp]: "Real 1 = 1" by (simp add: one_pextreal_def)
 
-lemma real_pinfreal_1[simp]: "real (1 :: pinfreal) = 1"
-  unfolding one_pinfreal_def real_Real by simp
+lemma real_pextreal_1[simp]: "real (1 :: pextreal) = 1"
+  unfolding one_pextreal_def real_Real by simp
 
-lemma real_of_pinfreal_mult: "real X * real Y = real (X * Y :: pinfreal)"
+lemma real_of_pextreal_mult: "real X * real Y = real (X * Y :: pextreal)"
   by (cases X, cases Y) (auto simp: zero_le_mult_iff)
 
 lemma Real_mult_nonneg: assumes "x \<ge> 0" "y \<ge> 0"
@@ -374,41 +374,41 @@ proof(cases "finite A")
   qed auto
 qed auto
 
-subsection "@{typ pinfreal} is a linear order"
+subsection "@{typ pextreal} is a linear order"
 
-instantiation pinfreal :: linorder
+instantiation pextreal :: linorder
 begin
 
-definition "x < y \<longleftrightarrow> pinfreal_case (\<lambda>i. pinfreal_case (\<lambda>j. i < j) True y) False x"
-definition "x \<le> y \<longleftrightarrow> pinfreal_case (\<lambda>j. pinfreal_case (\<lambda>i. i \<le> j) False x) True y"
+definition "x < y \<longleftrightarrow> pextreal_case (\<lambda>i. pextreal_case (\<lambda>j. i < j) True y) False x"
+definition "x \<le> y \<longleftrightarrow> pextreal_case (\<lambda>j. pextreal_case (\<lambda>i. i \<le> j) False x) True y"
 
-lemma pinfreal_less[simp]:
+lemma pextreal_less[simp]:
   "Real r < \<omega>"
   "Real r < Real p \<longleftrightarrow> (if 0 \<le> r \<and> 0 \<le> p then r < p else 0 < p)"
   "\<omega> < x \<longleftrightarrow> False"
   "0 < \<omega>"
   "0 < Real r \<longleftrightarrow> 0 < r"
   "x < 0 \<longleftrightarrow> False"
-  "0 < (1::pinfreal)"
-  by (simp_all add: less_pinfreal_def zero_pinfreal_def one_pinfreal_def del: Real_0 Real_1)
+  "0 < (1::pextreal)"
+  by (simp_all add: less_pextreal_def zero_pextreal_def one_pextreal_def del: Real_0 Real_1)
 
-lemma pinfreal_less_eq[simp]:
+lemma pextreal_less_eq[simp]:
   "x \<le> \<omega>"
   "Real r \<le> Real p \<longleftrightarrow> (if 0 \<le> r \<and> 0 \<le> p then r \<le> p else r \<le> 0)"
   "0 \<le> x"
-  by (simp_all add: less_eq_pinfreal_def zero_pinfreal_def del: Real_0)
+  by (simp_all add: less_eq_pextreal_def zero_pextreal_def del: Real_0)
 
-lemma pinfreal_\<omega>_less_eq[simp]:
+lemma pextreal_\<omega>_less_eq[simp]:
   "\<omega> \<le> x \<longleftrightarrow> x = \<omega>"
-  by (cases x) (simp_all add: not_le less_eq_pinfreal_def)
+  by (cases x) (simp_all add: not_le less_eq_pextreal_def)
 
-lemma pinfreal_less_eq_zero[simp]:
-  "(x::pinfreal) \<le> 0 \<longleftrightarrow> x = 0"
-  by (cases x) (simp_all add: zero_pinfreal_def del: Real_0)
+lemma pextreal_less_eq_zero[simp]:
+  "(x::pextreal) \<le> 0 \<longleftrightarrow> x = 0"
+  by (cases x) (simp_all add: zero_pextreal_def del: Real_0)
 
 instance
 proof
-  fix x :: pinfreal
+  fix x :: pextreal
   show "x \<le> x" by (cases x) simp_all
   fix y
   show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
@@ -422,48 +422,48 @@ proof
 qed
 end
 
-lemma pinfreal_zero_lessI[intro]:
-  "(a :: pinfreal) \<noteq> 0 \<Longrightarrow> 0 < a"
+lemma pextreal_zero_lessI[intro]:
+  "(a :: pextreal) \<noteq> 0 \<Longrightarrow> 0 < a"
   by (cases a) auto
 
-lemma pinfreal_less_omegaI[intro, simp]:
+lemma pextreal_less_omegaI[intro, simp]:
   "a \<noteq> \<omega> \<Longrightarrow> a < \<omega>"
   by (cases a) auto
 
-lemma pinfreal_plus_eq_0[simp]: "(a :: pinfreal) + b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
+lemma pextreal_plus_eq_0[simp]: "(a :: pextreal) + b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
   by (cases a, cases b) auto
 
-lemma pinfreal_le_add1[simp, intro]: "n \<le> n + (m::pinfreal)"
+lemma pextreal_le_add1[simp, intro]: "n \<le> n + (m::pextreal)"
   by (cases n, cases m) simp_all
 
-lemma pinfreal_le_add2: "(n::pinfreal) + m \<le> k \<Longrightarrow> m \<le> k"
+lemma pextreal_le_add2: "(n::pextreal) + m \<le> k \<Longrightarrow> m \<le> k"
   by (cases n, cases m, cases k) simp_all
 
-lemma pinfreal_le_add3: "(n::pinfreal) + m \<le> k \<Longrightarrow> n \<le> k"
+lemma pextreal_le_add3: "(n::pextreal) + m \<le> k \<Longrightarrow> n \<le> k"
   by (cases n, cases m, cases k) simp_all
 
-lemma pinfreal_less_\<omega>: "x < \<omega> \<longleftrightarrow> x \<noteq> \<omega>"
+lemma pextreal_less_\<omega>: "x < \<omega> \<longleftrightarrow> x \<noteq> \<omega>"
   by (cases x) auto
 
-lemma pinfreal_0_less_mult_iff[simp]:
-  fixes x y :: pinfreal shows "0 < x * y \<longleftrightarrow> 0 < x \<and> 0 < y"
+lemma pextreal_0_less_mult_iff[simp]:
+  fixes x y :: pextreal shows "0 < x * y \<longleftrightarrow> 0 < x \<and> 0 < y"
   by (cases x, cases y) (auto simp: zero_less_mult_iff)
 
-lemma pinfreal_ord_one[simp]:
+lemma pextreal_ord_one[simp]:
   "Real p < 1 \<longleftrightarrow> p < 1"
   "Real p \<le> 1 \<longleftrightarrow> p \<le> 1"
   "1 < Real p \<longleftrightarrow> 1 < p"
   "1 \<le> Real p \<longleftrightarrow> 1 \<le> p"
-  by (simp_all add: one_pinfreal_def del: Real_1)
+  by (simp_all add: one_pextreal_def del: Real_1)
 
-subsection {* @{text "x - y"} on @{typ pinfreal} *}
+subsection {* @{text "x - y"} on @{typ pextreal} *}
 
-instantiation pinfreal :: minus
+instantiation pextreal :: minus
 begin
-definition "x - y = (if y < x then THE d. x = y + d else 0 :: pinfreal)"
+definition "x - y = (if y < x then THE d. x = y + d else 0 :: pextreal)"
 
-lemma minus_pinfreal_eq:
-  "(x - y = (z :: pinfreal)) \<longleftrightarrow> (if y < x then x = y + z else z = 0)"
+lemma minus_pextreal_eq:
+  "(x - y = (z :: pextreal)) \<longleftrightarrow> (if y < x then x = y + z else z = 0)"
   (is "?diff \<longleftrightarrow> ?if")
 proof
   assume ?diff
@@ -472,15 +472,15 @@ proof
     case True
     then obtain p where p: "y = Real p" "0 \<le> p" by (cases y) auto
 
-    show ?thesis unfolding `?diff`[symmetric] if_P[OF True] minus_pinfreal_def
+    show ?thesis unfolding `?diff`[symmetric] if_P[OF True] minus_pextreal_def
     proof (rule theI2[where Q="\<lambda>d. x = y + d"])
-      show "x = y + pinfreal_case (\<lambda>r. Real (r - real y)) \<omega> x" (is "x = y + ?d")
+      show "x = y + pextreal_case (\<lambda>r. Real (r - real y)) \<omega> x" (is "x = y + ?d")
         using `y < x` p by (cases x) simp_all
 
       fix d assume "x = y + d"
       thus "d = ?d" using `y < x` p by (cases d, cases x) simp_all
     qed simp
-  qed (simp add: minus_pinfreal_def)
+  qed (simp add: minus_pextreal_def)
 next
   assume ?if
   thus ?diff
@@ -490,29 +490,29 @@ next
 
     from True `?if` have "x = y + z" by simp
 
-    show ?thesis unfolding minus_pinfreal_def if_P[OF True] unfolding `x = y + z`
+    show ?thesis unfolding minus_pextreal_def if_P[OF True] unfolding `x = y + z`
     proof (rule the_equality)
-      fix d :: pinfreal assume "y + z = y + d"
+      fix d :: pextreal assume "y + z = y + d"
       thus "d = z" using `y < x` p
         by (cases d, cases z) simp_all
     qed simp
-  qed (simp add: minus_pinfreal_def)
+  qed (simp add: minus_pextreal_def)
 qed
 
 instance ..
 end
 
-lemma pinfreal_minus[simp]:
+lemma pextreal_minus[simp]:
   "Real r - Real p = (if 0 \<le> r \<and> p < r then if 0 \<le> p then Real (r - p) else Real r else 0)"
-  "(A::pinfreal) - A = 0"
+  "(A::pextreal) - A = 0"
   "\<omega> - Real r = \<omega>"
   "Real r - \<omega> = 0"
   "A - 0 = A"
   "0 - A = 0"
-  by (auto simp: minus_pinfreal_eq not_less)
+  by (auto simp: minus_pextreal_eq not_less)
 
-lemma pinfreal_le_epsilon:
-  fixes x y :: pinfreal
+lemma pextreal_le_epsilon:
+  fixes x y :: pextreal
   assumes "\<And>e. 0 < e \<Longrightarrow> x \<le> y + e"
   shows "x \<le> y"
 proof (cases y)
@@ -525,15 +525,15 @@ proof (cases y)
   thus ?thesis using preal x by auto
 qed simp
 
-instance pinfreal :: "{ordered_comm_semiring, comm_semiring_1}"
+instance pextreal :: "{ordered_comm_semiring, comm_semiring_1}"
 proof
-  show "0 \<noteq> (1::pinfreal)" unfolding zero_pinfreal_def one_pinfreal_def
+  show "0 \<noteq> (1::pextreal)" unfolding zero_pextreal_def one_pextreal_def
     by (simp del: Real_1 Real_0)
 
-  fix a :: pinfreal
+  fix a :: pextreal
   show "0 * a = 0" "a * 0 = 0" by simp_all
 
-  fix b c :: pinfreal
+  fix b c :: pextreal
   show "(a + b) * c = a * c + b * c"
     by (cases c, cases a, cases b)
        (auto intro!: arg_cong[where f=Real] simp: field_simps not_le mult_le_0_iff mult_less_0_iff)
@@ -553,11 +553,11 @@ lemma mult_\<omega>[simp]: "x * y = \<omega> \<longleftrightarrow> (x = \<omega>
 lemma \<omega>_mult[simp]: "(\<omega> = x * y) = ((x = \<omega> \<or> y = \<omega>) \<and> x \<noteq> 0 \<and> y \<noteq> 0)"
   by (cases x, cases y) auto
 
-lemma pinfreal_mult_0[simp]: "x * y = 0 \<longleftrightarrow> x = 0 \<or> (y::pinfreal) = 0"
+lemma pextreal_mult_0[simp]: "x * y = 0 \<longleftrightarrow> x = 0 \<or> (y::pextreal) = 0"
   by (cases x, cases y) (auto simp: mult_le_0_iff)
 
-lemma pinfreal_mult_cancel:
-  fixes x y z :: pinfreal
+lemma pextreal_mult_cancel:
+  fixes x y z :: pextreal
   assumes "y \<le> z"
   shows "x * y \<le> x * z"
   using assms
@@ -572,8 +572,8 @@ lemma Real_power_\<omega>[simp]:
   "\<omega> ^ n = (if n = 0 then 1 else \<omega>)"
   by (induct n) auto
 
-lemma pinfreal_of_nat[simp]: "of_nat m = Real (real m)"
-  by (induct m) (auto simp: real_of_nat_Suc one_pinfreal_def simp del: Real_1)
+lemma pextreal_of_nat[simp]: "of_nat m = Real (real m)"
+  by (induct m) (auto simp: real_of_nat_Suc one_pextreal_def simp del: Real_1)
 
 lemma less_\<omega>_Ex_of_nat: "x < \<omega> \<longleftrightarrow> (\<exists>n. x < of_nat n)"
 proof safe
@@ -583,14 +583,14 @@ proof safe
   ultimately show "\<exists>n. x < of_nat n" by (auto simp: real_eq_of_nat)
 qed auto
 
-lemma real_of_pinfreal_mono:
-  fixes a b :: pinfreal
+lemma real_of_pextreal_mono:
+  fixes a b :: pextreal
   assumes "b \<noteq> \<omega>" "a \<le> b"
   shows "real a \<le> real b"
 using assms by (cases b, cases a) auto
 
-lemma setprod_pinfreal_0:
-  "(\<Prod>i\<in>I. f i) = (0::pinfreal) \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = 0)"
+lemma setprod_pextreal_0:
+  "(\<Prod>i\<in>I. f i) = (0::pextreal) \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = 0)"
 proof cases
   assume "finite I" then show ?thesis
   proof (induct I)
@@ -605,36 +605,36 @@ proof cases
   assume "finite I" then show ?thesis
   proof (induct I)
     case (insert i I) then show ?case
-      by (auto simp: setprod_pinfreal_0)
+      by (auto simp: setprod_pextreal_0)
   qed simp
 qed simp
 
-instance pinfreal :: "semiring_char_0"
+instance pextreal :: "semiring_char_0"
 proof
   fix m n
-  show "inj (of_nat::nat\<Rightarrow>pinfreal)" by (auto intro!: inj_onI)
+  show "inj (of_nat::nat\<Rightarrow>pextreal)" by (auto intro!: inj_onI)
 qed
 
-subsection "@{typ pinfreal} is a complete lattice"
+subsection "@{typ pextreal} is a complete lattice"
 
-instantiation pinfreal :: lattice
+instantiation pextreal :: lattice
 begin
-definition [simp]: "sup x y = (max x y :: pinfreal)"
-definition [simp]: "inf x y = (min x y :: pinfreal)"
+definition [simp]: "sup x y = (max x y :: pextreal)"
+definition [simp]: "inf x y = (min x y :: pextreal)"
 instance proof qed simp_all
 end
 
-instantiation pinfreal :: complete_lattice
+instantiation pextreal :: complete_lattice
 begin
 
 definition "bot = Real 0"
 definition "top = \<omega>"
 
-definition "Sup S = (LEAST z. \<forall>x\<in>S. x \<le> z :: pinfreal)"
-definition "Inf S = (GREATEST z. \<forall>x\<in>S. z \<le> x :: pinfreal)"
+definition "Sup S = (LEAST z. \<forall>x\<in>S. x \<le> z :: pextreal)"
+definition "Inf S = (GREATEST z. \<forall>x\<in>S. z \<le> x :: pextreal)"
 
-lemma pinfreal_complete_Sup:
-  fixes S :: "pinfreal set" assumes "S \<noteq> {}"
+lemma pextreal_complete_Sup:
+  fixes S :: "pextreal set" assumes "S \<noteq> {}"
   shows "\<exists>x. (\<forall>y\<in>S. y \<le> x) \<and> (\<forall>z. (\<forall>y\<in>S. y \<le> z) \<longrightarrow> x \<le> z)"
 proof (cases "\<exists>x\<ge>0. \<forall>a\<in>S. a \<le> Real x")
   case False
@@ -642,7 +642,7 @@ proof (cases "\<exists>x\<ge>0. \<forall>a\<in>S. a \<le> Real x")
   show ?thesis
   proof (safe intro!: exI[of _ \<omega>])
     fix y assume **: "\<forall>z\<in>S. z \<le> y"
-    show "\<omega> \<le> y" unfolding pinfreal_\<omega>_less_eq
+    show "\<omega> \<le> y" unfolding pextreal_\<omega>_less_eq
     proof (rule ccontr)
       assume "y \<noteq> \<omega>"
       then obtain x where [simp]: "y = Real x" and "0 \<le> x" by (cases y) auto
@@ -682,8 +682,8 @@ next
   qed
 qed
 
-lemma pinfreal_complete_Inf:
-  fixes S :: "pinfreal set" assumes "S \<noteq> {}"
+lemma pextreal_complete_Inf:
+  fixes S :: "pextreal set" assumes "S \<noteq> {}"
   shows "\<exists>x. (\<forall>y\<in>S. x \<le> y) \<and> (\<forall>z. (\<forall>y\<in>S. z \<le> y) \<longrightarrow> z \<le> x)"
 proof (cases "S = {\<omega>}")
   case True thus ?thesis by (auto intro!: exI[of _ \<omega>])
@@ -726,23 +726,23 @@ qed
 
 instance
 proof
-  fix x :: pinfreal and A
+  fix x :: pextreal and A
 
-  show "bot \<le> x" by (cases x) (simp_all add: bot_pinfreal_def)
-  show "x \<le> top" by (simp add: top_pinfreal_def)
+  show "bot \<le> x" by (cases x) (simp_all add: bot_pextreal_def)
+  show "x \<le> top" by (simp add: top_pextreal_def)
 
   { assume "x \<in> A"
-    with pinfreal_complete_Sup[of A]
+    with pextreal_complete_Sup[of A]
     obtain s where s: "\<forall>y\<in>A. y \<le> s" "\<forall>z. (\<forall>y\<in>A. y \<le> z) \<longrightarrow> s \<le> z" by auto
     hence "x \<le> s" using `x \<in> A` by auto
-    also have "... = Sup A" using s unfolding Sup_pinfreal_def
+    also have "... = Sup A" using s unfolding Sup_pextreal_def
       by (auto intro!: Least_equality[symmetric])
     finally show "x \<le> Sup A" . }
 
   { assume "x \<in> A"
-    with pinfreal_complete_Inf[of A]
+    with pextreal_complete_Inf[of A]
     obtain i where i: "\<forall>y\<in>A. i \<le> y" "\<forall>z. (\<forall>y\<in>A. z \<le> y) \<longrightarrow> z \<le> i" by auto
-    hence "Inf A = i" unfolding Inf_pinfreal_def
+    hence "Inf A = i" unfolding Inf_pextreal_def
       by (auto intro!: Greatest_equality)
     also have "i \<le> x" using i `x \<in> A` by auto
     finally show "Inf A \<le> x" . }
@@ -751,15 +751,15 @@ proof
     show "Sup A \<le> x"
     proof (cases "A = {}")
       case True
-      hence "Sup A = 0" unfolding Sup_pinfreal_def
+      hence "Sup A = 0" unfolding Sup_pextreal_def
         by (auto intro!: Least_equality)
       thus "Sup A \<le> x" by simp
     next
       case False
-      with pinfreal_complete_Sup[of A]
+      with pextreal_complete_Sup[of A]
       obtain s where s: "\<forall>y\<in>A. y \<le> s" "\<forall>z. (\<forall>y\<in>A. y \<le> z) \<longrightarrow> s \<le> z" by auto
       hence "Sup A = s"
-        unfolding Sup_pinfreal_def by (auto intro!: Least_equality)
+        unfolding Sup_pextreal_def by (auto intro!: Least_equality)
       also have "s \<le> x" using * s by auto
       finally show "Sup A \<le> x" .
     qed }
@@ -768,69 +768,69 @@ proof
     show "x \<le> Inf A"
     proof (cases "A = {}")
       case True
-      hence "Inf A = \<omega>" unfolding Inf_pinfreal_def
+      hence "Inf A = \<omega>" unfolding Inf_pextreal_def
         by (auto intro!: Greatest_equality)
       thus "x \<le> Inf A" by simp
     next
       case False
-      with pinfreal_complete_Inf[of A]
+      with pextreal_complete_Inf[of A]
       obtain i where i: "\<forall>y\<in>A. i \<le> y" "\<forall>z. (\<forall>y\<in>A. z \<le> y) \<longrightarrow> z \<le> i" by auto
       have "x \<le> i" using * i by auto
       also have "i = Inf A" using i
-        unfolding Inf_pinfreal_def by (auto intro!: Greatest_equality[symmetric])
+        unfolding Inf_pextreal_def by (auto intro!: Greatest_equality[symmetric])
       finally show "x \<le> Inf A" .
     qed }
 qed
 end
 
-lemma Inf_pinfreal_iff:
-  fixes z :: pinfreal
+lemma Inf_pextreal_iff:
+  fixes z :: pextreal
   shows "(\<And>x. x \<in> X \<Longrightarrow> z \<le> x) \<Longrightarrow> (\<exists>x\<in>X. x<y) \<longleftrightarrow> Inf X < y"
   by (metis complete_lattice_class.Inf_greatest complete_lattice_class.Inf_lower less_le_not_le linear
             order_less_le_trans)
 
 lemma Inf_greater:
-  fixes z :: pinfreal assumes "Inf X < z"
+  fixes z :: pextreal assumes "Inf X < z"
   shows "\<exists>x \<in> X. x < z"
 proof -
-  have "X \<noteq> {}" using assms by (auto simp: Inf_empty top_pinfreal_def)
+  have "X \<noteq> {}" using assms by (auto simp: Inf_empty top_pextreal_def)
   with assms show ?thesis
-    by (metis Inf_pinfreal_iff mem_def not_leE)
+    by (metis Inf_pextreal_iff mem_def not_leE)
 qed
 
 lemma Inf_close:
-  fixes e :: pinfreal assumes "Inf X \<noteq> \<omega>" "0 < e"
+  fixes e :: pextreal assumes "Inf X \<noteq> \<omega>" "0 < e"
   shows "\<exists>x \<in> X. x < Inf X + e"
 proof (rule Inf_greater)
   show "Inf X < Inf X + e" using assms
     by (cases "Inf X", cases e) auto
 qed
 
-lemma pinfreal_SUPI:
-  fixes x :: pinfreal
+lemma pextreal_SUPI:
+  fixes x :: pextreal
   assumes "\<And>i. i \<in> A \<Longrightarrow> f i \<le> x"
   assumes "\<And>y. (\<And>i. i \<in> A \<Longrightarrow> f i \<le> y) \<Longrightarrow> x \<le> y"
   shows "(SUP i:A. f i) = x"
-  unfolding SUPR_def Sup_pinfreal_def
+  unfolding SUPR_def Sup_pextreal_def
   using assms by (auto intro!: Least_equality)
 
-lemma Sup_pinfreal_iff:
-  fixes z :: pinfreal
+lemma Sup_pextreal_iff:
+  fixes z :: pextreal
   shows "(\<And>x. x \<in> X \<Longrightarrow> x \<le> z) \<Longrightarrow> (\<exists>x\<in>X. y<x) \<longleftrightarrow> y < Sup X"
   by (metis complete_lattice_class.Sup_least complete_lattice_class.Sup_upper less_le_not_le linear
             order_less_le_trans)
 
 lemma Sup_lesser:
-  fixes z :: pinfreal assumes "z < Sup X"
+  fixes z :: pextreal assumes "z < Sup X"
   shows "\<exists>x \<in> X. z < x"
 proof -
-  have "X \<noteq> {}" using assms by (auto simp: Sup_empty bot_pinfreal_def)
+  have "X \<noteq> {}" using assms by (auto simp: Sup_empty bot_pextreal_def)
   with assms show ?thesis
-    by (metis Sup_pinfreal_iff mem_def not_leE)
+    by (metis Sup_pextreal_iff mem_def not_leE)
 qed
 
 lemma Sup_eq_\<omega>: "\<omega> \<in> S \<Longrightarrow> Sup S = \<omega>"
-  unfolding Sup_pinfreal_def
+  unfolding Sup_pextreal_def
   by (auto intro!: Least_equality)
 
 lemma Sup_close:
@@ -845,16 +845,16 @@ next
   have "\<exists>X\<in>S. Sup S - e < X"
   proof (rule Sup_lesser)
     show "Sup S - e < Sup S" using `0 < e` `Sup S \<noteq> 0` `Sup S \<noteq> \<omega>`
-      by (cases e) (auto simp: pinfreal_noteq_omega_Ex)
+      by (cases e) (auto simp: pextreal_noteq_omega_Ex)
   qed
   then guess X .. note X = this
   with `Sup S \<noteq> \<omega>` Sup_eq_\<omega> have "X \<noteq> \<omega>" by auto
-  thus ?thesis using `Sup S \<noteq> \<omega>` X unfolding pinfreal_noteq_omega_Ex
+  thus ?thesis using `Sup S \<noteq> \<omega>` X unfolding pextreal_noteq_omega_Ex
     by (cases e) (auto intro!: bexI[OF _ `X\<in>S`] simp: split: split_if_asm)
 qed
 
 lemma Sup_\<omega>: "(SUP i::nat. Real (real i)) = \<omega>"
-proof (rule pinfreal_SUPI)
+proof (rule pextreal_SUPI)
   fix y assume *: "\<And>i::nat. i \<in> UNIV \<Longrightarrow> Real (real i) \<le> y"
   thus "\<omega> \<le> y"
   proof (cases y)
@@ -876,7 +876,7 @@ proof
 next
   assume *: "\<forall>x<\<omega>. \<exists>i\<in>A. x < f i"
   show "(SUP i:A. f i) = \<omega>"
-  proof (rule pinfreal_SUPI)
+  proof (rule pextreal_SUPI)
     fix y assume **: "\<And>i. i \<in> A \<Longrightarrow> f i \<le> y"
     show "\<omega> \<le> y"
     proof cases
@@ -888,7 +888,7 @@ next
   qed auto
 qed
 
-subsubsection {* Equivalence between @{text "f ----> x"} and @{text SUP} on @{typ pinfreal} *}
+subsubsection {* Equivalence between @{text "f ----> x"} and @{text SUP} on @{typ pextreal} *}
 
 lemma monoseq_monoI: "mono f \<Longrightarrow> monoseq f"
   unfolding mono_def monoseq_def by auto
@@ -925,7 +925,7 @@ proof
 next
   assume "f ----> x"
   show "(SUP n. Real (f n)) = Real x"
-  proof (rule pinfreal_SUPI)
+  proof (rule pextreal_SUPI)
     fix n
     from incseq_le[of f x] `mono f` `f ----> x`
     show "Real (f n) \<le> Real x" using assms incseq_mono by auto
@@ -946,46 +946,46 @@ lemma SUPR_bound:
   shows "(SUP n. f n) \<le> x"
   using assms by (simp add: SUPR_def Sup_le_iff)
 
-lemma pinfreal_less_eq_diff_eq_sum:
-  fixes x y z :: pinfreal
+lemma pextreal_less_eq_diff_eq_sum:
+  fixes x y z :: pextreal
   assumes "y \<le> x" and "x \<noteq> \<omega>"
   shows "z \<le> x - y \<longleftrightarrow> z + y \<le> x"
   using assms
   apply (cases z, cases y, cases x)
-  by (simp_all add: field_simps minus_pinfreal_eq)
+  by (simp_all add: field_simps minus_pextreal_eq)
 
 lemma Real_diff_less_omega: "Real r - x < \<omega>" by (cases x) auto
 
-subsubsection {* Numbers on @{typ pinfreal} *}
+subsubsection {* Numbers on @{typ pextreal} *}
 
-instantiation pinfreal :: number
+instantiation pextreal :: number
 begin
 definition [simp]: "number_of x = Real (number_of x)"
 instance proof qed
 end
 
-subsubsection {* Division on @{typ pinfreal} *}
+subsubsection {* Division on @{typ pextreal} *}
 
-instantiation pinfreal :: inverse
+instantiation pextreal :: inverse
 begin
 
-definition "inverse x = pinfreal_case (\<lambda>x. if x = 0 then \<omega> else Real (inverse x)) 0 x"
-definition [simp]: "x / y = x * inverse (y :: pinfreal)"
+definition "inverse x = pextreal_case (\<lambda>x. if x = 0 then \<omega> else Real (inverse x)) 0 x"
+definition [simp]: "x / y = x * inverse (y :: pextreal)"
 
 instance proof qed
 end
 
-lemma pinfreal_inverse[simp]:
+lemma pextreal_inverse[simp]:
   "inverse 0 = \<omega>"
   "inverse (Real x) = (if x \<le> 0 then \<omega> else Real (inverse x))"
   "inverse \<omega> = 0"
-  "inverse (1::pinfreal) = 1"
+  "inverse (1::pextreal) = 1"
   "inverse (inverse x) = x"
-  by (simp_all add: inverse_pinfreal_def one_pinfreal_def split: pinfreal_case_split del: Real_1)
+  by (simp_all add: inverse_pextreal_def one_pextreal_def split: pextreal_case_split del: Real_1)
 
-lemma pinfreal_inverse_le_eq:
+lemma pextreal_inverse_le_eq:
   assumes "x \<noteq> 0" "x \<noteq> \<omega>"
-  shows "y \<le> z / x \<longleftrightarrow> x * y \<le> (z :: pinfreal)"
+  shows "y \<le> z / x \<longleftrightarrow> x * y \<le> (z :: pextreal)"
 proof -
   from assms obtain r where r: "x = Real r" "0 < r" by (cases x) auto
   { fix p q :: real assume "0 \<le> p" "0 \<le> q"
@@ -997,28 +997,28 @@ proof -
 qed
 
 lemma inverse_antimono_strict:
-  fixes x y :: pinfreal
+  fixes x y :: pextreal
   assumes "x < y" shows "inverse y < inverse x"
   using assms by (cases x, cases y) auto
 
 lemma inverse_antimono:
-  fixes x y :: pinfreal
+  fixes x y :: pextreal
   assumes "x \<le> y" shows "inverse y \<le> inverse x"
   using assms by (cases x, cases y) auto
 
-lemma pinfreal_inverse_\<omega>_iff[simp]: "inverse x = \<omega> \<longleftrightarrow> x = 0"
+lemma pextreal_inverse_\<omega>_iff[simp]: "inverse x = \<omega> \<longleftrightarrow> x = 0"
   by (cases x) auto
 
-subsection "Infinite sum over @{typ pinfreal}"
+subsection "Infinite sum over @{typ pextreal}"
 
 text {*
 
-The infinite sum over @{typ pinfreal} has the nice property that it is always
+The infinite sum over @{typ pextreal} has the nice property that it is always
 defined.
 
 *}
 
-definition psuminf :: "(nat \<Rightarrow> pinfreal) \<Rightarrow> pinfreal" (binder "\<Sum>\<^isub>\<infinity>" 10) where
+definition psuminf :: "(nat \<Rightarrow> pextreal) \<Rightarrow> pextreal" (binder "\<Sum>\<^isub>\<infinity>" 10) where
   "(\<Sum>\<^isub>\<infinity> x. f x) = (SUP n. \<Sum>i<n. f i)"
 
 subsubsection {* Equivalence between @{text "\<Sum> n. f n"} and @{text "\<Sum>\<^isub>\<infinity> n. f n"} *}
@@ -1062,17 +1062,17 @@ next
   qed simp
 qed
 
-lemma real_of_pinfreal_setsum:
+lemma real_of_pextreal_setsum:
   assumes "\<And>x. x \<in> S \<Longrightarrow> f x \<noteq> \<omega>"
   shows "(\<Sum>x\<in>S. real (f x)) = real (setsum f S)"
 proof cases
   assume "finite S"
   from this assms show ?thesis
-    by induct (simp_all add: real_of_pinfreal_add setsum_\<omega>)
+    by induct (simp_all add: real_of_pextreal_add setsum_\<omega>)
 qed simp
 
 lemma setsum_0:
-  fixes f :: "'a \<Rightarrow> pinfreal" assumes "finite A"
+  fixes f :: "'a \<Rightarrow> pextreal" assumes "finite A"
   shows "(\<Sum>x\<in>A. f x) = 0 \<longleftrightarrow> (\<forall>i\<in>A. f i = 0)"
   using assms by induct auto
 
@@ -1097,7 +1097,7 @@ lemma psuminf_equality:
   and "\<And>y. y \<noteq> \<omega> \<Longrightarrow> (\<And>n. setsum f {..<n} \<le> y) \<Longrightarrow> x \<le> y"
   shows "psuminf f = x"
   unfolding psuminf_def
-proof (safe intro!: pinfreal_SUPI)
+proof (safe intro!: pextreal_SUPI)
   fix n show "setsum f {..<n} \<le> x" using assms(1) .
 next
   fix y assume *: "\<forall>n. n \<in> UNIV \<longrightarrow> setsum f {..<n} \<le> y"
@@ -1152,9 +1152,9 @@ lemma psuminf_bound_add:
   assumes "\<forall>N. (\<Sum>n<N. f n) + y \<le> x"
   shows "(\<Sum>\<^isub>\<infinity> n. f n) + y \<le> x"
 proof (cases "x = \<omega>")
-  have "y \<le> x" using assms by (auto intro: pinfreal_le_add2)
+  have "y \<le> x" using assms by (auto intro: pextreal_le_add2)
   assume "x \<noteq> \<omega>"
-  note move_y = pinfreal_less_eq_diff_eq_sum[OF `y \<le> x` this]
+  note move_y = pextreal_less_eq_diff_eq_sum[OF `y \<le> x` this]
 
   have "\<forall>N. (\<Sum>n<N. f n) \<le> x - y" using assms by (simp add: move_y)
   hence "(\<Sum>\<^isub>\<infinity> n. f n) \<le> x - y" by (rule psuminf_bound)
@@ -1272,7 +1272,7 @@ next
   next
     assume "\<not> (c = \<omega> \<or> c = 0)"
     hence "c \<noteq> 0" "c \<noteq> \<omega>" by auto
-    note rewrite_div = pinfreal_inverse_le_eq[OF this, of _ y]
+    note rewrite_div = pextreal_inverse_le_eq[OF this, of _ y]
     hence "\<forall>n. (\<Sum>n<n. f n) \<le> y / c" using * by simp
     hence "psuminf f \<le> y / c" by (rule psuminf_bound)
     thus ?thesis using rewrite_div by simp
@@ -1322,39 +1322,39 @@ proof -
   qed
 qed
 
-lemma pinfreal_mult_less_right:
+lemma pextreal_mult_less_right:
   assumes "b * a < c * a" "0 < a" "a < \<omega>"
   shows "b < c"
   using assms
   by (cases a, cases b, cases c) (auto split: split_if_asm simp: zero_less_mult_iff zero_le_mult_iff)
 
-lemma pinfreal_\<omega>_eq_plus[simp]: "\<omega> = a + b \<longleftrightarrow> (a = \<omega> \<or> b = \<omega>)"
+lemma pextreal_\<omega>_eq_plus[simp]: "\<omega> = a + b \<longleftrightarrow> (a = \<omega> \<or> b = \<omega>)"
   by (cases a, cases b) auto
 
-lemma pinfreal_of_nat_le_iff:
-  "(of_nat k :: pinfreal) \<le> of_nat m \<longleftrightarrow> k \<le> m" by auto
+lemma pextreal_of_nat_le_iff:
+  "(of_nat k :: pextreal) \<le> of_nat m \<longleftrightarrow> k \<le> m" by auto
 
-lemma pinfreal_of_nat_less_iff:
-  "(of_nat k :: pinfreal) < of_nat m \<longleftrightarrow> k < m" by auto
+lemma pextreal_of_nat_less_iff:
+  "(of_nat k :: pextreal) < of_nat m \<longleftrightarrow> k < m" by auto
 
-lemma pinfreal_bound_add:
-  assumes "\<forall>N. f N + y \<le> (x::pinfreal)"
+lemma pextreal_bound_add:
+  assumes "\<forall>N. f N + y \<le> (x::pextreal)"
   shows "(SUP n. f n) + y \<le> x"
 proof (cases "x = \<omega>")
-  have "y \<le> x" using assms by (auto intro: pinfreal_le_add2)
+  have "y \<le> x" using assms by (auto intro: pextreal_le_add2)
   assume "x \<noteq> \<omega>"
-  note move_y = pinfreal_less_eq_diff_eq_sum[OF `y \<le> x` this]
+  note move_y = pextreal_less_eq_diff_eq_sum[OF `y \<le> x` this]
 
   have "\<forall>N. f N \<le> x - y" using assms by (simp add: move_y)
   hence "(SUP n. f n) \<le> x - y" by (rule SUPR_bound)
   thus ?thesis by (simp add: move_y)
 qed simp
 
-lemma SUPR_pinfreal_add:
-  fixes f g :: "nat \<Rightarrow> pinfreal"
+lemma SUPR_pextreal_add:
+  fixes f g :: "nat \<Rightarrow> pextreal"
   assumes f: "\<forall>n. f n \<le> f (Suc n)" and g: "\<forall>n. g n \<le> g (Suc n)"
   shows "(SUP n. f n + g n) = (SUP n. f n) + (SUP n. g n)"
-proof (rule pinfreal_SUPI)
+proof (rule pextreal_SUPI)
   fix n :: nat from le_SUPI[of n UNIV f] le_SUPI[of n UNIV g]
   show "f n + g n \<le> (SUP n. f n) + (SUP n. g n)"
     by (auto intro!: add_mono)
@@ -1376,14 +1376,14 @@ next
       finally show ?thesis .
     qed }
   hence "\<And>m. \<forall>n. f n + g m \<le> y" by simp
-  from pinfreal_bound_add[OF this]
+  from pextreal_bound_add[OF this]
   have "\<forall>m. (g m) + (SUP n. f n) \<le> y" by (simp add: ac_simps)
-  from pinfreal_bound_add[OF this]
+  from pextreal_bound_add[OF this]
   show "SUPR UNIV f + SUPR UNIV g \<le> y" by (simp add: ac_simps)
 qed
 
-lemma SUPR_pinfreal_setsum:
-  fixes f :: "'x \<Rightarrow> nat \<Rightarrow> pinfreal"
+lemma SUPR_pextreal_setsum:
+  fixes f :: "'x \<Rightarrow> nat \<Rightarrow> pextreal"
   assumes "\<And>i. i \<in> P \<Longrightarrow> \<forall>n. f i n \<le> f i (Suc n)"
   shows "(SUP n. \<Sum>i\<in>P. f i n) = (\<Sum>i\<in>P. SUP n. f i n)"
 proof cases
@@ -1392,7 +1392,7 @@ proof cases
     case (insert i P)
     thus ?case
       apply simp
-      apply (subst SUPR_pinfreal_add)
+      apply (subst SUPR_pextreal_add)
       by (auto intro!: setsum_mono)
   qed simp
 qed simp
@@ -1403,7 +1403,7 @@ lemma psuminf_SUP_eq:
 proof -
   { fix n :: nat
     have "(\<Sum>i<n. SUP k. f k i) = (SUP k. \<Sum>i<n. f k i)"
-      using assms by (auto intro!: SUPR_pinfreal_setsum[symmetric]) }
+      using assms by (auto intro!: SUPR_pextreal_setsum[symmetric]) }
   note * = this
   show ?thesis
     unfolding psuminf_def
@@ -1415,21 +1415,21 @@ lemma psuminf_commute:
   shows "(\<Sum>\<^isub>\<infinity> i j. f i j) = (\<Sum>\<^isub>\<infinity> j i. f i j)"
 proof -
   have "(SUP n. \<Sum> i < n. SUP m. \<Sum> j < m. f i j) = (SUP n. SUP m. \<Sum> i < n. \<Sum> j < m. f i j)"
-    apply (subst SUPR_pinfreal_setsum)
+    apply (subst SUPR_pextreal_setsum)
     by auto
   also have "\<dots> = (SUP m n. \<Sum> j < m. \<Sum> i < n. f i j)"
     apply (subst SUP_commute)
     apply (subst setsum_commute)
     by auto
   also have "\<dots> = (SUP m. \<Sum> j < m. SUP n. \<Sum> i < n. f i j)"
-    apply (subst SUPR_pinfreal_setsum)
+    apply (subst SUPR_pextreal_setsum)
     by auto
   finally show ?thesis
     unfolding psuminf_def by auto
 qed
 
 lemma psuminf_2dimen:
-  fixes f:: "nat * nat \<Rightarrow> pinfreal"
+  fixes f:: "nat * nat \<Rightarrow> pextreal"
   assumes fsums: "\<And>m. g m = (\<Sum>\<^isub>\<infinity> n. f (m,n))"
   shows "psuminf (f \<circ> prod_decode) = psuminf g"
 proof (rule psuminf_equality)
@@ -1500,13 +1500,13 @@ proof safe
   thus "x = \<omega>" by (cases x) auto
 qed auto
 
-lemma pinfreal_SUP_cmult:
-  fixes f :: "'a \<Rightarrow> pinfreal"
+lemma pextreal_SUP_cmult:
+  fixes f :: "'a \<Rightarrow> pextreal"
   shows "(SUP i : R. z * f i) = z * (SUP i : R. f i)"
-proof (rule pinfreal_SUPI)
+proof (rule pextreal_SUPI)
   fix i assume "i \<in> R"
   from le_SUPI[OF this]
-  show "z * f i \<le> z * (SUP i:R. f i)" by (rule pinfreal_mult_cancel)
+  show "z * f i \<le> z * (SUP i:R. f i)" by (rule pextreal_mult_cancel)
 next
   fix y assume "\<And>i. i\<in>R \<Longrightarrow> z * f i \<le> y"
   hence *: "\<And>i. i\<in>R \<Longrightarrow> z * f i \<le> y" by auto
@@ -1517,7 +1517,7 @@ next
     proof cases
       assume "R \<noteq> {}" hence "f ` R = {0}" using True by auto
       thus ?thesis by (simp add: SUPR_def)
-    qed (simp add: SUPR_def Sup_empty bot_pinfreal_def)
+    qed (simp add: SUPR_def Sup_empty bot_pextreal_def)
   next
     case False then obtain i where i: "i \<in> R" and f0: "f i \<noteq> 0" by auto
     show ?thesis
@@ -1525,42 +1525,42 @@ next
       case True with f0 *[OF i] show ?thesis by auto
     next
       case False hence z: "z \<noteq> 0" "z \<noteq> \<omega>" by auto
-      note div = pinfreal_inverse_le_eq[OF this, symmetric]
+      note div = pextreal_inverse_le_eq[OF this, symmetric]
       hence "\<And>i. i\<in>R \<Longrightarrow> f i \<le> y / z" using * by auto
       thus ?thesis unfolding div SUP_le_iff by simp
     qed
   qed
 qed
 
-instantiation pinfreal :: topological_space
+instantiation pextreal :: topological_space
 begin
 
 definition "open A \<longleftrightarrow>
   (\<exists>T. open T \<and> (Real ` (T\<inter>{0..}) = A - {\<omega>})) \<and> (\<omega> \<in> A \<longrightarrow> (\<exists>x\<ge>0. {Real x <..} \<subseteq> A))"
 
 lemma open_omega: "open A \<Longrightarrow> \<omega> \<in> A \<Longrightarrow> (\<exists>x\<ge>0. {Real x<..} \<subseteq> A)"
-  unfolding open_pinfreal_def by auto
+  unfolding open_pextreal_def by auto
 
 lemma open_omegaD: assumes "open A" "\<omega> \<in> A" obtains x where "x\<ge>0" "{Real x<..} \<subseteq> A"
   using open_omega[OF assms] by auto
 
-lemma pinfreal_openE: assumes "open A" obtains A' x where
+lemma pextreal_openE: assumes "open A" obtains A' x where
   "open A'" "Real ` (A' \<inter> {0..}) = A - {\<omega>}"
   "x \<ge> 0" "\<omega> \<in> A \<Longrightarrow> {Real x<..} \<subseteq> A"
-  using assms open_pinfreal_def by auto
+  using assms open_pextreal_def by auto
 
 instance
 proof
-  let ?U = "UNIV::pinfreal set"
-  show "open ?U" unfolding open_pinfreal_def
+  let ?U = "UNIV::pextreal set"
+  show "open ?U" unfolding open_pextreal_def
     by (auto intro!: exI[of _ "UNIV"] exI[of _ 0])
 next
-  fix S T::"pinfreal set" assume "open S" and "open T"
-  from `open S`[THEN pinfreal_openE] guess S' xS . note S' = this
-  from `open T`[THEN pinfreal_openE] guess T' xT . note T' = this
+  fix S T::"pextreal set" assume "open S" and "open T"
+  from `open S`[THEN pextreal_openE] guess S' xS . note S' = this
+  from `open T`[THEN pextreal_openE] guess T' xT . note T' = this
 
   from S'(1-3) T'(1-3)
-  show "open (S \<inter> T)" unfolding open_pinfreal_def
+  show "open (S \<inter> T)" unfolding open_pextreal_def
   proof (safe intro!: exI[of _ "S' \<inter> T'"] exI[of _ "max xS xT"])
     fix x assume *: "Real (max xS xT) < x" and "\<omega> \<in> S" "\<omega> \<in> T"
     from `\<omega> \<in> S`[THEN S'(4)] * show "x \<in> S"
@@ -1575,11 +1575,11 @@ next
       using x[unfolded *] inj_on_image_Int[OF inj_on_Real] by auto
   qed auto
 next
-  fix K assume openK: "\<forall>S \<in> K. open (S:: pinfreal set)"
-  hence "\<forall>S\<in>K. \<exists>T. open T \<and> Real ` (T \<inter> {0..}) = S - {\<omega>}" by (auto simp: open_pinfreal_def)
+  fix K assume openK: "\<forall>S \<in> K. open (S:: pextreal set)"
+  hence "\<forall>S\<in>K. \<exists>T. open T \<and> Real ` (T \<inter> {0..}) = S - {\<omega>}" by (auto simp: open_pextreal_def)
   from bchoice[OF this] guess T .. note T = this[rule_format]
 
-  show "open (\<Union>K)" unfolding open_pinfreal_def
+  show "open (\<Union>K)" unfolding open_pextreal_def
   proof (safe intro!: exI[of _ "\<Union>(T ` K)"])
     fix x S assume "0 \<le> x" "x \<in> T S" "S \<in> K"
     with T[OF `S \<in> K`] show "Real x \<in> \<Union>K" by auto
@@ -1590,7 +1590,7 @@ next
     thus "x = \<omega>" using T[OF `S \<in> K`] `x \<in> S` by auto
   next
     fix S assume "\<omega> \<in> S" "S \<in> K"
-    from openK[rule_format, OF `S \<in> K`, THEN pinfreal_openE] guess S' x .
+    from openK[rule_format, OF `S \<in> K`, THEN pextreal_openE] guess S' x .
     from this(3, 4) `\<omega> \<in> S`
     show "\<exists>x\<ge>0. {Real x<..} \<subseteq> \<Union>K"
       by (auto intro!: exI[of _ x] bexI[OF _ `S \<in> K`])
@@ -1600,10 +1600,10 @@ next
 qed
 end
 
-lemma open_pinfreal_lessThan[simp]:
-  "open {..< a :: pinfreal}"
+lemma open_pextreal_lessThan[simp]:
+  "open {..< a :: pextreal}"
 proof (cases a)
-  case (preal x) thus ?thesis unfolding open_pinfreal_def
+  case (preal x) thus ?thesis unfolding open_pextreal_def
   proof (safe intro!: exI[of _ "{..< x}"])
     fix y assume "y < Real x"
     moreover assume "y \<notin> Real ` ({..<x} \<inter> {0..})"
@@ -1612,13 +1612,13 @@ proof (cases a)
   qed auto
 next
   case infinite thus ?thesis
-    unfolding open_pinfreal_def by (auto intro!: exI[of _ UNIV])
+    unfolding open_pextreal_def by (auto intro!: exI[of _ UNIV])
 qed
 
-lemma open_pinfreal_greaterThan[simp]:
-  "open {a :: pinfreal <..}"
+lemma open_pextreal_greaterThan[simp]:
+  "open {a :: pextreal <..}"
 proof (cases a)
-  case (preal x) thus ?thesis unfolding open_pinfreal_def
+  case (preal x) thus ?thesis unfolding open_pextreal_def
   proof (safe intro!: exI[of _ "{x <..}"])
     fix y assume "Real x < y"
     moreover assume "y \<notin> Real ` ({x<..} \<inter> {0..})"
@@ -1627,32 +1627,32 @@ proof (cases a)
   qed auto
 next
   case infinite thus ?thesis
-    unfolding open_pinfreal_def by (auto intro!: exI[of _ "{}"])
+    unfolding open_pextreal_def by (auto intro!: exI[of _ "{}"])
 qed
 
-lemma pinfreal_open_greaterThanLessThan[simp]: "open {a::pinfreal <..< b}"
+lemma pextreal_open_greaterThanLessThan[simp]: "open {a::pextreal <..< b}"
   unfolding greaterThanLessThan_def by auto
 
-lemma closed_pinfreal_atLeast[simp, intro]: "closed {a :: pinfreal ..}"
+lemma closed_pextreal_atLeast[simp, intro]: "closed {a :: pextreal ..}"
 proof -
   have "- {a ..} = {..< a}" by auto
   then show "closed {a ..}"
-    unfolding closed_def using open_pinfreal_lessThan by auto
+    unfolding closed_def using open_pextreal_lessThan by auto
 qed
 
-lemma closed_pinfreal_atMost[simp, intro]: "closed {.. b :: pinfreal}"
+lemma closed_pextreal_atMost[simp, intro]: "closed {.. b :: pextreal}"
 proof -
   have "- {.. b} = {b <..}" by auto
   then show "closed {.. b}" 
-    unfolding closed_def using open_pinfreal_greaterThan by auto
+    unfolding closed_def using open_pextreal_greaterThan by auto
 qed
 
-lemma closed_pinfreal_atLeastAtMost[simp, intro]:
-  shows "closed {a :: pinfreal .. b}"
+lemma closed_pextreal_atLeastAtMost[simp, intro]:
+  shows "closed {a :: pextreal .. b}"
   unfolding atLeastAtMost_def by auto
 
-lemma pinfreal_dense:
-  fixes x y :: pinfreal assumes "x < y"
+lemma pextreal_dense:
+  fixes x y :: pextreal assumes "x < y"
   shows "\<exists>z. x < z \<and> z < y"
 proof -
   from `x < y` obtain p where p: "x = Real p" "0 \<le> p" by (cases x) auto
@@ -1667,13 +1667,13 @@ proof -
   qed
 qed
 
-instance pinfreal :: t2_space
+instance pextreal :: t2_space
 proof
-  fix x y :: pinfreal assume "x \<noteq> y"
-  let "?P x (y::pinfreal)" = "\<exists> U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+  fix x y :: pextreal assume "x \<noteq> y"
+  let "?P x (y::pextreal)" = "\<exists> U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
 
-  { fix x y :: pinfreal assume "x < y"
-    from pinfreal_dense[OF this] obtain z where z: "x < z" "z < y" by auto
+  { fix x y :: pextreal assume "x < y"
+    from pextreal_dense[OF this] obtain z where z: "x < z" "z < y" by auto
     have "?P x y"
       apply (rule exI[of _ "{..<z}"])
       apply (rule exI[of _ "{z<..}"])
@@ -1716,20 +1716,20 @@ lemma isoton_const:
 unfolding isoton_def by auto
 
 lemma isoton_cmult_right:
-  assumes "f \<up> (x::pinfreal)"
+  assumes "f \<up> (x::pextreal)"
   shows "(\<lambda>i. c * f i) \<up> (c * x)"
-  using assms unfolding isoton_def pinfreal_SUP_cmult
-  by (auto intro: pinfreal_mult_cancel)
+  using assms unfolding isoton_def pextreal_SUP_cmult
+  by (auto intro: pextreal_mult_cancel)
 
 lemma isoton_cmult_left:
-  "f \<up> (x::pinfreal) \<Longrightarrow> (\<lambda>i. f i * c) \<up> (x * c)"
+  "f \<up> (x::pextreal) \<Longrightarrow> (\<lambda>i. f i * c) \<up> (x * c)"
   by (subst (1 2) mult_commute) (rule isoton_cmult_right)
 
 lemma isoton_add:
-  assumes "f \<up> (x::pinfreal)" and "g \<up> y"
+  assumes "f \<up> (x::pextreal)" and "g \<up> y"
   shows "(\<lambda>i. f i + g i) \<up> (x + y)"
   using assms unfolding isoton_def
-  by (auto intro: pinfreal_mult_cancel add_mono simp: SUPR_pinfreal_add)
+  by (auto intro: pextreal_mult_cancel add_mono simp: SUPR_pextreal_add)
 
 lemma isoton_fun_expand:
   "f \<up> x \<longleftrightarrow> (\<forall>i. (\<lambda>j. f j i) \<up> (x i))"
@@ -1742,11 +1742,11 @@ qed
 
 lemma isoton_indicator:
   assumes "f \<up> g"
-  shows "(\<lambda>i x. f i x * indicator A x) \<up> (\<lambda>x. g x * indicator A x :: pinfreal)"
+  shows "(\<lambda>i x. f i x * indicator A x) \<up> (\<lambda>x. g x * indicator A x :: pextreal)"
   using assms unfolding isoton_fun_expand by (auto intro!: isoton_cmult_left)
 
 lemma isoton_setsum:
-  fixes f :: "'a \<Rightarrow> nat \<Rightarrow> pinfreal"
+  fixes f :: "'a \<Rightarrow> nat \<Rightarrow> pextreal"
   assumes "finite A" "A \<noteq> {}"
   assumes "\<And> x. x \<in> A \<Longrightarrow> f x \<up> y x"
   shows "(\<lambda> i. (\<Sum> x \<in> A. f x i)) \<up> (\<Sum> x \<in> A. y x)"
@@ -1778,8 +1778,8 @@ proof -
   with * show ?thesis by (auto intro!: SUP_mono)
 qed
 
-lemma pinfreal_le_mult_one_interval:
-  fixes x y :: pinfreal
+lemma pextreal_le_mult_one_interval:
+  fixes x y :: pextreal
   assumes "\<And>z. \<lbrakk> 0 < z ; z < 1 \<rbrakk> \<Longrightarrow> z * x \<le> y"
   shows "x \<le> y"
 proof (cases x, cases y)
@@ -1797,57 +1797,57 @@ next
   thus "x \<le> y" using ** * by simp
 qed simp
 
-lemma pinfreal_greater_0[intro]:
-  fixes a :: pinfreal
+lemma pextreal_greater_0[intro]:
+  fixes a :: pextreal
   assumes "a \<noteq> 0"
   shows "a > 0"
 using assms apply (cases a) by auto
 
-lemma pinfreal_mult_strict_right_mono:
+lemma pextreal_mult_strict_right_mono:
   assumes "a < b" and "0 < c" "c < \<omega>"
   shows "a * c < b * c"
   using assms
   by (cases a, cases b, cases c)
-     (auto simp: zero_le_mult_iff pinfreal_less_\<omega>)
+     (auto simp: zero_le_mult_iff pextreal_less_\<omega>)
 
-lemma minus_pinfreal_eq2:
-  fixes x y z :: pinfreal
+lemma minus_pextreal_eq2:
+  fixes x y z :: pextreal
   assumes "y \<le> x" and "y \<noteq> \<omega>" shows "z = x - y \<longleftrightarrow> z + y = x"
   using assms
   apply (subst eq_commute)
-  apply (subst minus_pinfreal_eq)
+  apply (subst minus_pextreal_eq)
   by (cases x, cases z, auto simp add: ac_simps not_less)
 
-lemma pinfreal_diff_eq_diff_imp_eq:
+lemma pextreal_diff_eq_diff_imp_eq:
   assumes "a \<noteq> \<omega>" "b \<le> a" "c \<le> a"
   assumes "a - b = a - c"
   shows "b = c"
   using assms
   by (cases a, cases b, cases c) (auto split: split_if_asm)
 
-lemma pinfreal_inverse_eq_0: "inverse x = 0 \<longleftrightarrow> x = \<omega>"
+lemma pextreal_inverse_eq_0: "inverse x = 0 \<longleftrightarrow> x = \<omega>"
   by (cases x) auto
 
-lemma pinfreal_mult_inverse:
+lemma pextreal_mult_inverse:
   "\<lbrakk> x \<noteq> \<omega> ; x \<noteq> 0 \<rbrakk> \<Longrightarrow> x * inverse x = 1"
   by (cases x) auto
 
-lemma pinfreal_zero_less_diff_iff:
-  fixes a b :: pinfreal shows "0 < a - b \<longleftrightarrow> b < a"
+lemma pextreal_zero_less_diff_iff:
+  fixes a b :: pextreal shows "0 < a - b \<longleftrightarrow> b < a"
   apply (cases a, cases b)
-  apply (auto simp: pinfreal_noteq_omega_Ex pinfreal_less_\<omega>)
+  apply (auto simp: pextreal_noteq_omega_Ex pextreal_less_\<omega>)
   apply (cases b)
   by auto
 
-lemma pinfreal_less_Real_Ex:
-  fixes a b :: pinfreal shows "x < Real r \<longleftrightarrow> (\<exists>p\<ge>0. p < r \<and> x = Real p)"
+lemma pextreal_less_Real_Ex:
+  fixes a b :: pextreal shows "x < Real r \<longleftrightarrow> (\<exists>p\<ge>0. p < r \<and> x = Real p)"
   by (cases x) auto
 
 lemma open_Real: assumes "open S" shows "open (Real ` ({0..} \<inter> S))"
-  unfolding open_pinfreal_def apply(rule,rule,rule,rule assms) by auto
+  unfolding open_pextreal_def apply(rule,rule,rule,rule assms) by auto
 
-lemma pinfreal_zero_le_diff:
-  fixes a b :: pinfreal shows "a - b = 0 \<longleftrightarrow> a \<le> b"
+lemma pextreal_zero_le_diff:
+  fixes a b :: pextreal shows "a - b = 0 \<longleftrightarrow> a \<le> b"
   by (cases a, cases b, simp_all, cases b, auto)
 
 lemma lim_Real[simp]: assumes "\<forall>n. f n \<ge> 0" "m\<ge>0"
@@ -1867,7 +1867,7 @@ proof assume ?l show ?r unfolding Lim_sequentially
     qed qed
 next assume ?r show ?l unfolding tendsto_def eventually_sequentially 
   proof safe fix S assume S:"open S" "Real m \<in> S"
-    guess T y using S(1) apply-apply(erule pinfreal_openE) . note T=this
+    guess T y using S(1) apply-apply(erule pextreal_openE) . note T=this
     have "m\<in>real ` (S - {\<omega>})" unfolding image_iff 
       apply(rule_tac x="Real m" in bexI) using assms(2) S(2) by auto
     hence "m \<in> T" unfolding T(2)[THEN sym] by auto 
@@ -1884,35 +1884,35 @@ next assume ?r show ?l unfolding tendsto_def eventually_sequentially
   qed
 qed
 
-lemma pinfreal_INFI:
-  fixes x :: pinfreal
+lemma pextreal_INFI:
+  fixes x :: pextreal
   assumes "\<And>i. i \<in> A \<Longrightarrow> x \<le> f i"
   assumes "\<And>y. (\<And>i. i \<in> A \<Longrightarrow> y \<le> f i) \<Longrightarrow> y \<le> x"
   shows "(INF i:A. f i) = x"
-  unfolding INFI_def Inf_pinfreal_def
+  unfolding INFI_def Inf_pextreal_def
   using assms by (auto intro!: Greatest_equality)
 
-lemma real_of_pinfreal_less:"x < y \<Longrightarrow> y\<noteq>\<omega> \<Longrightarrow> real x < real y"
+lemma real_of_pextreal_less:"x < y \<Longrightarrow> y\<noteq>\<omega> \<Longrightarrow> real x < real y"
 proof- case goal1
   have *:"y = Real (real y)" "x = Real (real x)" using goal1 Real_real by auto
   show ?case using goal1 apply- apply(subst(asm) *(1))apply(subst(asm) *(2))
-    unfolding pinfreal_less by auto
+    unfolding pextreal_less by auto
 qed
 
 lemma not_less_omega[simp]:"\<not> x < \<omega> \<longleftrightarrow> x = \<omega>"
-  by (metis antisym_conv3 pinfreal_less(3)) 
+  by (metis antisym_conv3 pextreal_less(3)) 
 
 lemma Real_real': assumes "x\<noteq>\<omega>" shows "Real (real x) = x"
 proof- have *:"(THE r. 0 \<le> r \<and> x = Real r) = real x"
     apply(rule the_equality) using assms unfolding Real_real by auto
   have "Real (THE r. 0 \<le> r \<and> x = Real r) = x" unfolding *
     using assms unfolding Real_real by auto
-  thus ?thesis unfolding real_of_pinfreal_def of_pinfreal_def
-    unfolding pinfreal_case_def using assms by auto
+  thus ?thesis unfolding real_of_pextreal_def of_pextreal_def
+    unfolding pextreal_case_def using assms by auto
 qed 
 
 lemma Real_less_plus_one:"Real x < Real (max (x + 1) 1)" 
-  unfolding pinfreal_less by auto
+  unfolding pextreal_less by auto
 
 lemma Lim_omega: "f ----> \<omega> \<longleftrightarrow> (\<forall>B. \<exists>N. \<forall>n\<ge>N. f n \<ge> Real B)" (is "?l = ?r")
 proof assume ?r show ?l apply(rule topological_tendstoI)
@@ -1944,8 +1944,8 @@ proof(rule ccontr,unfold not_not) let ?B = "max (B + 1) 1" assume as:"l=\<omega>
   thus False by auto
 qed
 
-lemma incseq_le_pinfreal: assumes inc: "\<And>n m. n\<ge>m \<Longrightarrow> X n \<ge> X m"
-  and lim: "X ----> (L::pinfreal)" shows "X n \<le> L"
+lemma incseq_le_pextreal: assumes inc: "\<And>n m. n\<ge>m \<Longrightarrow> X n \<ge> X m"
+  and lim: "X ----> (L::pextreal)" shows "X n \<le> L"
 proof(cases "L = \<omega>")
   case False have "\<forall>n. X n \<noteq> \<omega>"
   proof(rule ccontr,unfold not_all not_not,safe)
@@ -1966,10 +1966,10 @@ proof(cases "L = \<omega>")
   thus ?thesis unfolding Real_real using * False by auto
 qed auto
 
-lemma SUP_Lim_pinfreal: assumes "\<And>n m. n\<ge>m \<Longrightarrow> f n \<ge> f m" "f ----> l"
-  shows "(SUP n. f n) = (l::pinfreal)" unfolding SUPR_def Sup_pinfreal_def
+lemma SUP_Lim_pextreal: assumes "\<And>n m. n\<ge>m \<Longrightarrow> f n \<ge> f m" "f ----> l"
+  shows "(SUP n. f n) = (l::pextreal)" unfolding SUPR_def Sup_pextreal_def
 proof (safe intro!: Least_equality)
-  fix n::nat show "f n \<le> l" apply(rule incseq_le_pinfreal)
+  fix n::nat show "f n \<le> l" apply(rule incseq_le_pextreal)
     using assms by auto
 next fix y assume y:"\<forall>x\<in>range f. x \<le> y" show "l \<le> y"
   proof(rule ccontr,cases "y=\<omega>",unfold not_le)
@@ -1980,7 +1980,7 @@ next fix y assume y:"\<forall>x\<in>range f. x \<le> y" show "l \<le> y"
     have yl:"real y < real l" using as apply-
       apply(subst(asm) Real_real'[THEN sym,OF `y\<noteq>\<omega>`])
       apply(subst(asm) Real_real'[THEN sym,OF `l\<noteq>\<omega>`]) 
-      unfolding pinfreal_less apply(subst(asm) if_P) by auto
+      unfolding pextreal_less apply(subst(asm) if_P) by auto
     hence "y + (y - l) * Real (1 / 2) < l" apply-
       apply(subst Real_real'[THEN sym,OF `y\<noteq>\<omega>`]) apply(subst(2) Real_real'[THEN sym,OF `y\<noteq>\<omega>`])
       apply(subst Real_real'[THEN sym,OF `l\<noteq>\<omega>`]) apply(subst(2) Real_real'[THEN sym,OF `l\<noteq>\<omega>`]) by auto
@@ -2001,8 +2001,8 @@ proof(cases "x < 0") case True
   show ?thesis unfolding * using True by auto
 qed auto
 
-lemma lim_pinfreal_increasing: assumes "\<forall>n m. n\<ge>m \<longrightarrow> f n \<ge> f m"
-  obtains l where "f ----> (l::pinfreal)"
+lemma lim_pextreal_increasing: assumes "\<forall>n m. n\<ge>m \<longrightarrow> f n \<ge> f m"
+  obtains l where "f ----> (l::pextreal)"
 proof(cases "\<exists>B. \<forall>n. f n < Real B")
   case False thus thesis apply- apply(rule that[of \<omega>]) unfolding Lim_omega not_ex not_all
     apply safe apply(erule_tac x=B in allE,safe) apply(rule_tac x=x in exI,safe)
@@ -2012,7 +2012,7 @@ next case True then guess B .. note B = this[rule_format]
   have *:"\<And>n. f n \<noteq> \<omega>" proof- case goal1 show ?case using *[of n] by auto qed
   have B':"\<And>n. real (f n) \<le> max 0 B" proof- case goal1 thus ?case
       using B[of n] apply-apply(subst(asm) Real_real'[THEN sym]) defer
-      apply(subst(asm)(2) Real_max') unfolding pinfreal_less apply(subst(asm) if_P) using *[of n] by auto
+      apply(subst(asm)(2) Real_max') unfolding pextreal_less apply(subst(asm) if_P) using *[of n] by auto
   qed
   have "\<exists>l. (\<lambda>n. real (f n)) ----> l" apply(rule Topology_Euclidean_Space.bounded_increasing_convergent)
   proof safe show "bounded {real (f n) |n. True}"
@@ -2042,11 +2042,11 @@ qed auto
 lemma real_Real': "0 \<le> x \<Longrightarrow> real (Real x) = x"
   unfolding real_Real by auto
 
-lemma real_pinfreal_pos[intro]:
+lemma real_pextreal_pos[intro]:
   assumes "x \<noteq> 0" "x \<noteq> \<omega>"
   shows "real x > 0"
   apply(subst real_Real'[THEN sym,of 0]) defer
-  apply(rule real_of_pinfreal_less) using assms by auto
+  apply(rule real_of_pextreal_less) using assms by auto
 
 lemma Lim_omega_gt: "f ----> \<omega> \<longleftrightarrow> (\<forall>B. \<exists>N. \<forall>n\<ge>N. f n > Real B)" (is "?l = ?r")
 proof assume ?l thus ?r unfolding Lim_omega apply safe
@@ -2057,73 +2057,73 @@ next assume ?r thus ?l unfolding Lim_omega apply safe
     apply(erule_tac x=B in allE,safe) apply(rule_tac x=N in exI,safe) by auto
 qed
 
-lemma pinfreal_minus_le_cancel:
-  fixes a b c :: pinfreal
+lemma pextreal_minus_le_cancel:
+  fixes a b c :: pextreal
   assumes "b \<le> a"
   shows "c - a \<le> c - b"
   using assms by (cases a, cases b, cases c, simp, simp, simp, cases b, cases c, simp_all)
 
-lemma pinfreal_minus_\<omega>[simp]: "x - \<omega> = 0" by (cases x) simp_all
+lemma pextreal_minus_\<omega>[simp]: "x - \<omega> = 0" by (cases x) simp_all
 
-lemma pinfreal_minus_mono[intro]: "a - x \<le> (a::pinfreal)"
+lemma pextreal_minus_mono[intro]: "a - x \<le> (a::pextreal)"
 proof- have "a - x \<le> a - 0"
-    apply(rule pinfreal_minus_le_cancel) by auto
+    apply(rule pextreal_minus_le_cancel) by auto
   thus ?thesis by auto
 qed
 
-lemma pinfreal_minus_eq_\<omega>[simp]: "x - y = \<omega> \<longleftrightarrow> (x = \<omega> \<and> y \<noteq> \<omega>)"
+lemma pextreal_minus_eq_\<omega>[simp]: "x - y = \<omega> \<longleftrightarrow> (x = \<omega> \<and> y \<noteq> \<omega>)"
   by (cases x, cases y) (auto, cases y, auto)
 
-lemma pinfreal_less_minus_iff:
-  fixes a b c :: pinfreal
+lemma pextreal_less_minus_iff:
+  fixes a b c :: pextreal
   shows "a < b - c \<longleftrightarrow> c + a < b"
   by (cases c, cases a, cases b, auto)
 
-lemma pinfreal_minus_less_iff:
-  fixes a b c :: pinfreal shows "a - c < b \<longleftrightarrow> (0 < b \<and> (c \<noteq> \<omega> \<longrightarrow> a < b + c))"
+lemma pextreal_minus_less_iff:
+  fixes a b c :: pextreal shows "a - c < b \<longleftrightarrow> (0 < b \<and> (c \<noteq> \<omega> \<longrightarrow> a < b + c))"
   by (cases c, cases a, cases b, auto)
 
-lemma pinfreal_le_minus_iff:
-  fixes a b c :: pinfreal
+lemma pextreal_le_minus_iff:
+  fixes a b c :: pextreal
   shows "a \<le> c - b \<longleftrightarrow> ((c \<le> b \<longrightarrow> a = 0) \<and> (b < c \<longrightarrow> a + b \<le> c))"
-  by (cases a, cases c, cases b, auto simp: pinfreal_noteq_omega_Ex)
+  by (cases a, cases c, cases b, auto simp: pextreal_noteq_omega_Ex)
 
-lemma pinfreal_minus_le_iff:
-  fixes a b c :: pinfreal
+lemma pextreal_minus_le_iff:
+  fixes a b c :: pextreal
   shows "a - c \<le> b \<longleftrightarrow> (c \<le> a \<longrightarrow> a \<le> b + c)"
-  by (cases a, cases c, cases b, auto simp: pinfreal_noteq_omega_Ex)
+  by (cases a, cases c, cases b, auto simp: pextreal_noteq_omega_Ex)
 
-lemmas pinfreal_minus_order = pinfreal_minus_le_iff pinfreal_minus_less_iff pinfreal_le_minus_iff pinfreal_less_minus_iff
+lemmas pextreal_minus_order = pextreal_minus_le_iff pextreal_minus_less_iff pextreal_le_minus_iff pextreal_less_minus_iff
 
-lemma pinfreal_minus_strict_mono:
+lemma pextreal_minus_strict_mono:
   assumes "a > 0" "x > 0" "a\<noteq>\<omega>"
-  shows "a - x < (a::pinfreal)"
+  shows "a - x < (a::pextreal)"
   using assms by(cases x, cases a, auto)
 
-lemma pinfreal_minus':
+lemma pextreal_minus':
   "Real r - Real p = (if 0 \<le> r \<and> p \<le> r then if 0 \<le> p then Real (r - p) else Real r else 0)"
-  by (auto simp: minus_pinfreal_eq not_less)
+  by (auto simp: minus_pextreal_eq not_less)
 
-lemma pinfreal_minus_plus:
-  "x \<le> (a::pinfreal) \<Longrightarrow> a - x + x = a"
+lemma pextreal_minus_plus:
+  "x \<le> (a::pextreal) \<Longrightarrow> a - x + x = a"
   by (cases a, cases x) auto
 
-lemma pinfreal_cancel_plus_minus: "b \<noteq> \<omega> \<Longrightarrow> a + b - b = a"
+lemma pextreal_cancel_plus_minus: "b \<noteq> \<omega> \<Longrightarrow> a + b - b = a"
   by (cases a, cases b) auto
 
-lemma pinfreal_minus_le_cancel_right:
-  fixes a b c :: pinfreal
+lemma pextreal_minus_le_cancel_right:
+  fixes a b c :: pextreal
   assumes "a \<le> b" "c \<le> a"
   shows "a - c \<le> b - c"
   using assms by (cases a, cases b, cases c, auto, cases c, auto)
 
-lemma real_of_pinfreal_setsum':
+lemma real_of_pextreal_setsum':
   assumes "\<forall>x \<in> S. f x \<noteq> \<omega>"
   shows "(\<Sum>x\<in>S. real (f x)) = real (setsum f S)"
 proof cases
   assume "finite S"
   from this assms show ?thesis
-    by induct (simp_all add: real_of_pinfreal_add setsum_\<omega>)
+    by induct (simp_all add: real_of_pextreal_add setsum_\<omega>)
 qed simp
 
 lemma Lim_omega_pos: "f ----> \<omega> \<longleftrightarrow> (\<forall>B>0. \<exists>N. \<forall>n\<ge>N. f n \<ge> Real B)" (is "?l = ?r")
@@ -2132,12 +2132,12 @@ lemma Lim_omega_pos: "f ----> \<omega> \<longleftrightarrow> (\<forall>B>0. \<ex
   apply(rule_tac x=N in exI,safe) apply(erule_tac x=n in allE,safe)
   apply(rule_tac y="Real (max 1 B)" in order_trans) by auto
 
-lemma pinfreal_LimI_finite:
+lemma pextreal_LimI_finite:
   assumes "x \<noteq> \<omega>" "\<And>r. 0 < r \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. u n < x + r \<and> x < u n + r"
   shows "u ----> x"
 proof (rule topological_tendstoI, unfold eventually_sequentially)
   fix S assume "open S" "x \<in> S"
-  then obtain A where "open A" and A_eq: "Real ` (A \<inter> {0..}) = S - {\<omega>}" by (auto elim!: pinfreal_openE)
+  then obtain A where "open A" and A_eq: "Real ` (A \<inter> {0..}) = S - {\<omega>}" by (auto elim!: pextreal_openE)
   then have "x \<in> Real ` (A \<inter> {0..})" using `x \<in> S` `x \<noteq> \<omega>` by auto
   then have "real x \<in> A" by auto
   then obtain r where "0 < r" and dist: "\<And>y. dist y (real x) < r \<Longrightarrow> y \<in> A"
@@ -2149,13 +2149,13 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
   proof (safe intro!: exI[of _ n])
     fix N assume "n \<le> N"
     from upper[OF this] `x \<noteq> \<omega>` `0 < r`
-    have "u N \<noteq> \<omega>" by (force simp: pinfreal_noteq_omega_Ex)
+    have "u N \<noteq> \<omega>" by (force simp: pextreal_noteq_omega_Ex)
     with `x \<noteq> \<omega>` `0 < r` lower[OF `n \<le> N`] upper[OF `n \<le> N`]
     have "dist (real (u N)) (real x) < r" "u N \<noteq> \<omega>"
-      by (auto simp: pinfreal_noteq_omega_Ex dist_real_def abs_diff_less_iff field_simps)
+      by (auto simp: pextreal_noteq_omega_Ex dist_real_def abs_diff_less_iff field_simps)
     from dist[OF this(1)]
     have "u N \<in> Real ` (A \<inter> {0..})" using `u N \<noteq> \<omega>`
-      by (auto intro!: image_eqI[of _ _ "real (u N)"] simp: pinfreal_noteq_omega_Ex Real_real)
+      by (auto intro!: image_eqI[of _ _ "real (u N)"] simp: pextreal_noteq_omega_Ex Real_real)
     thus "u N \<in> S" using A_eq by simp
   qed
 qed
@@ -2164,7 +2164,7 @@ lemma real_Real_max:"real (Real x) = max x 0"
   unfolding real_Real by auto
 
 lemma Sup_lim:
-  assumes "\<forall>n. b n \<in> s" "b ----> (a::pinfreal)"
+  assumes "\<forall>n. b n \<in> s" "b ----> (a::pextreal)"
   shows "a \<le> Sup s"
 proof(rule ccontr,unfold not_le)
   assume as:"Sup s < a" hence om:"Sup s \<noteq> \<omega>" by auto
@@ -2179,13 +2179,13 @@ proof(rule ccontr,unfold not_le)
   show False
   proof(cases "a = \<omega>")
     case False have *:"a - Sup s > 0" 
-      using False as by(auto simp: pinfreal_zero_le_diff)
-    have "(a - Sup s) / 2 \<le> a / 2" unfolding divide_pinfreal_def
+      using False as by(auto simp: pextreal_zero_le_diff)
+    have "(a - Sup s) / 2 \<le> a / 2" unfolding divide_pextreal_def
       apply(rule mult_right_mono) by auto
     also have "... = Real (real (a / 2))" apply(rule Real_real'[THEN sym])
       using False by auto
-    also have "... < Real (real a)" unfolding pinfreal_less using as False
-      by(auto simp add: real_of_pinfreal_mult[THEN sym])
+    also have "... < Real (real a)" unfolding pextreal_less using as False
+      by(auto simp add: real_of_pextreal_mult[THEN sym])
     also have "... = a" apply(rule Real_real') using False by auto
     finally have asup:"a > (a - Sup s) / 2" .
     have "\<exists>n. a - b n < (a - Sup s) / 2"
@@ -2194,32 +2194,32 @@ proof(rule ccontr,unfold not_le)
       have "(a - Sup s) * Real (1 / 2)  > 0" 
         using * by auto
       hence "a - (a - Sup s) * Real (1 / 2) < a"
-        apply-apply(rule pinfreal_minus_strict_mono)
+        apply-apply(rule pextreal_minus_strict_mono)
         using False * by auto
       hence *:"a \<in> {a - (a - Sup s) / 2<..}"using asup by auto 
-      note topological_tendstoD[OF assms(2) open_pinfreal_greaterThan,OF *]
+      note topological_tendstoD[OF assms(2) open_pextreal_greaterThan,OF *]
       from this[unfolded eventually_sequentially] guess n .. 
       note n = this[rule_format,of n] 
       have "b n + (a - Sup s) / 2 \<le> a" 
         using add_right_mono[OF goal1[rule_format,of n],of "b n"]
-        unfolding pinfreal_minus_plus[OF less_imp_le[OF b[rule_format]]]
+        unfolding pextreal_minus_plus[OF less_imp_le[OF b[rule_format]]]
         by(auto simp: add_commute)
-      hence "b n \<le> a - (a - Sup s) / 2" unfolding pinfreal_le_minus_iff
+      hence "b n \<le> a - (a - Sup s) / 2" unfolding pextreal_le_minus_iff
         using asup by auto
       hence "b n \<notin> {a - (a - Sup s) / 2<..}" by auto
       thus False using n by auto
     qed
     then guess n .. note n = this
     have "Sup s < a - (a - Sup s) / 2"
-      using False as om by (cases a) (auto simp: pinfreal_noteq_omega_Ex field_simps)
+      using False as om by (cases a) (auto simp: pextreal_noteq_omega_Ex field_simps)
     also have "... \<le> b n"
     proof- note add_right_mono[OF less_imp_le[OF n],of "b n"]
-      note this[unfolded pinfreal_minus_plus[OF less_imp_le[OF b[rule_format]]]]
+      note this[unfolded pextreal_minus_plus[OF less_imp_le[OF b[rule_format]]]]
       hence "a - (a - Sup s) / 2 \<le> (a - Sup s) / 2 + b n - (a - Sup s) / 2"
-        apply(rule pinfreal_minus_le_cancel_right) using asup by auto
+        apply(rule pextreal_minus_le_cancel_right) using asup by auto
       also have "... = b n + (a - Sup s) / 2 - (a - Sup s) / 2" 
         by(auto simp add: add_commute)
-      also have "... = b n" apply(subst pinfreal_cancel_plus_minus)
+      also have "... = b n" apply(subst pextreal_cancel_plus_minus)
       proof(rule ccontr,unfold not_not) case goal1
         show ?case using asup unfolding goal1 by auto 
       qed auto
@@ -2235,18 +2235,18 @@ proof(rule ccontr,unfold not_le)
   qed qed
 
 lemma Sup_mono_lim:
-  assumes "\<forall>a\<in>A. \<exists>b. \<forall>n. b n \<in> B \<and> b ----> (a::pinfreal)"
+  assumes "\<forall>a\<in>A. \<exists>b. \<forall>n. b n \<in> B \<and> b ----> (a::pextreal)"
   shows "Sup A \<le> Sup B"
   unfolding Sup_le_iff apply(rule) apply(drule assms[rule_format]) apply safe
   apply(rule_tac b=b in Sup_lim) by auto
 
-lemma pinfreal_less_add:
+lemma pextreal_less_add:
   assumes "x \<noteq> \<omega>" "a < b"
   shows "x + a < x + b"
   using assms by (cases a, cases b, cases x) auto
 
 lemma SUPR_lim:
-  assumes "\<forall>n. b n \<in> B" "(\<lambda>n. f (b n)) ----> (f a::pinfreal)"
+  assumes "\<forall>n. b n \<in> B" "(\<lambda>n. f (b n)) ----> (f a::pextreal)"
   shows "f a \<le> SUPR B f"
   unfolding SUPR_def apply(rule Sup_lim[of "\<lambda>n. f (b n)"])
   using assms by auto
@@ -2261,7 +2261,7 @@ proof (rule ccontr)
 qed
 
 lemma SUPR_mono_lim:
-  assumes "\<forall>a\<in>A. \<exists>b. \<forall>n. b n \<in> B \<and> (\<lambda>n. f (b n)) ----> (f a::pinfreal)"
+  assumes "\<forall>a\<in>A. \<exists>b. \<forall>n. b n \<in> B \<and> (\<lambda>n. f (b n)) ----> (f a::pextreal)"
   shows "SUPR A f \<le> SUPR B f"
   unfolding SUPR_def apply(rule Sup_mono_lim)
   apply safe apply(drule assms[rule_format],safe)
@@ -2280,26 +2280,26 @@ lemma SUPR_mono:
 
 lemma less_add_Real:
   fixes x :: real
-  fixes a b :: pinfreal
+  fixes a b :: pextreal
   assumes "x \<ge> 0" "a < b"
   shows "a + Real x < b + Real x"
 using assms by (cases a, cases b) auto
 
 lemma le_add_Real:
   fixes x :: real
-  fixes a b :: pinfreal
+  fixes a b :: pextreal
   assumes "x \<ge> 0" "a \<le> b"
   shows "a + Real x \<le> b + Real x"
 using assms by (cases a, cases b) auto
 
-lemma le_imp_less_pinfreal:
-  fixes x :: pinfreal
+lemma le_imp_less_pextreal:
+  fixes x :: pextreal
   assumes "x > 0" "a + x \<le> b" "a \<noteq> \<omega>"
   shows "a < b"
 using assms by (cases x, cases a, cases b) auto
 
-lemma pinfreal_INF_minus:
-  fixes f :: "nat \<Rightarrow> pinfreal"
+lemma pextreal_INF_minus:
+  fixes f :: "nat \<Rightarrow> pextreal"
   assumes "c \<noteq> \<omega>"
   shows "(INF i. c - f i) = c - (SUP i. f i)"
 proof (cases "SUP i. f i")
@@ -2308,16 +2308,16 @@ proof (cases "SUP i. f i")
   from SUP_\<omega>_imp[OF infinite] obtain i where "Real x < f i" by auto
   have "(INF i. c - f i) \<le> c - f i"
     by (auto intro!: complete_lattice_class.INF_leI)
-  also have "\<dots> = 0" using `Real x < f i` by (auto simp: minus_pinfreal_eq)
+  also have "\<dots> = 0" using `Real x < f i` by (auto simp: minus_pextreal_eq)
   finally show ?thesis using infinite by auto
 next
   case (preal r)
   from `c \<noteq> \<omega>` obtain x where c: "c = Real x" by (cases c) auto
 
   show ?thesis unfolding c
-  proof (rule pinfreal_INFI)
+  proof (rule pextreal_INFI)
     fix i have "f i \<le> (SUP i. f i)" by (rule le_SUPI) simp
-    thus "Real x - (SUP i. f i) \<le> Real x - f i" by (rule pinfreal_minus_le_cancel)
+    thus "Real x - (SUP i. f i) \<le> Real x - f i" by (rule pextreal_minus_le_cancel)
   next
     fix y assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> y \<le> Real x - f i"
     from this[of 0] obtain p where p: "y = Real p" "0 \<le> p"
@@ -2325,8 +2325,8 @@ next
     hence "\<And>i. Real p \<le> Real x - f i" using * by auto
     hence *: "\<And>i. Real x \<le> f i \<Longrightarrow> Real p = 0"
       "\<And>i. f i < Real x \<Longrightarrow> Real p + f i \<le> Real x"
-      unfolding pinfreal_le_minus_iff by auto
-    show "y \<le> Real x - (SUP i. f i)" unfolding p pinfreal_le_minus_iff
+      unfolding pextreal_le_minus_iff by auto
+    show "y \<le> Real x - (SUP i. f i)" unfolding p pextreal_le_minus_iff
     proof safe
       assume x_less: "Real x \<le> (SUP i. f i)"
       show "Real p = 0"
@@ -2358,7 +2358,7 @@ next
 
       have SUP_eq: "(SUP i. f i) \<le> Real x - Real p"
       proof (rule SUP_leI)
-        fix i show "f i \<le> Real x - Real p" unfolding pinfreal_le_minus_iff
+        fix i show "f i \<le> Real x - Real p" unfolding pextreal_le_minus_iff
         proof safe
           assume "Real x \<le> Real p"
           with *[of i] show "f i = 0"
@@ -2378,33 +2378,33 @@ next
         thus ?thesis by simp
       next
         assume "\<not> Real x \<le> Real p" hence "Real p < Real x" unfolding not_le .
-        with SUP_eq show ?thesis unfolding pinfreal_le_minus_iff by (auto simp: field_simps)
+        with SUP_eq show ?thesis unfolding pextreal_le_minus_iff by (auto simp: field_simps)
       qed
     qed
   qed
 qed
 
-lemma pinfreal_SUP_minus:
-  fixes f :: "nat \<Rightarrow> pinfreal"
+lemma pextreal_SUP_minus:
+  fixes f :: "nat \<Rightarrow> pextreal"
   shows "(SUP i. c - f i) = c - (INF i. f i)"
-proof (rule pinfreal_SUPI)
+proof (rule pextreal_SUPI)
   fix i have "(INF i. f i) \<le> f i" by (rule INF_leI) simp
-  thus "c - f i \<le> c - (INF i. f i)" by (rule pinfreal_minus_le_cancel)
+  thus "c - f i \<le> c - (INF i. f i)" by (rule pextreal_minus_le_cancel)
 next
   fix y assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> c - f i \<le> y"
   show "c - (INF i. f i) \<le> y"
   proof (cases y)
     case (preal p)
 
-    show ?thesis unfolding pinfreal_minus_le_iff preal
+    show ?thesis unfolding pextreal_minus_le_iff preal
     proof safe
       assume INF_le_x: "(INF i. f i) \<le> c"
       from * have *: "\<And>i. f i \<le> c \<Longrightarrow> c \<le> Real p + f i"
-        unfolding pinfreal_minus_le_iff preal by auto
+        unfolding pextreal_minus_le_iff preal by auto
 
       have INF_eq: "c - Real p \<le> (INF i. f i)"
       proof (rule le_INFI)
-        fix i show "c - Real p \<le> f i" unfolding pinfreal_minus_le_iff
+        fix i show "c - Real p \<le> f i" unfolding pextreal_minus_le_iff
         proof safe
           assume "Real p \<le> c"
           show "c \<le> f i + Real p"
@@ -2423,7 +2423,7 @@ next
       show "c \<le> Real p + (INF i. f i)"
       proof cases
         assume "Real p \<le> c"
-        with INF_eq show ?thesis unfolding pinfreal_minus_le_iff by (auto simp: field_simps)
+        with INF_eq show ?thesis unfolding pextreal_minus_le_iff by (auto simp: field_simps)
       next
         assume "\<not> Real p \<le> c"
         hence "c \<le> Real p" by auto
@@ -2434,8 +2434,8 @@ next
   qed simp
 qed
 
-lemma pinfreal_le_minus_imp_0:
-  fixes a b :: pinfreal
+lemma pextreal_le_minus_imp_0:
+  fixes a b :: pextreal
   shows "a \<le> a - b \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> a \<noteq> \<omega> \<Longrightarrow> b = 0"
   by (cases a, cases b, auto split: split_if_asm)
 
@@ -2478,22 +2478,22 @@ qed
 
 lemma Sup_countable_SUPR:
   assumes "Sup A \<noteq> \<omega>" "A \<noteq> {}"
-  shows "\<exists> f::nat \<Rightarrow> pinfreal. range f \<subseteq> A \<and> Sup A = SUPR UNIV f"
+  shows "\<exists> f::nat \<Rightarrow> pextreal. range f \<subseteq> A \<and> Sup A = SUPR UNIV f"
 proof -
-  have "\<And>n. 0 < 1 / (of_nat n :: pinfreal)" by auto
+  have "\<And>n. 0 < 1 / (of_nat n :: pextreal)" by auto
   from Sup_close[OF this assms]
   have "\<forall>n. \<exists>x. x \<in> A \<and> Sup A < x + 1 / of_nat n" by blast
   from choice[OF this] obtain f where "range f \<subseteq> A" and
     epsilon: "\<And>n. Sup A < f n + 1 / of_nat n" by blast
   have "SUPR UNIV f = Sup A"
-  proof (rule pinfreal_SUPI)
+  proof (rule pextreal_SUPI)
     fix i show "f i \<le> Sup A" using `range f \<subseteq> A`
       by (auto intro!: complete_lattice_class.Sup_upper)
   next
     fix y assume bound: "\<And>i. i \<in> UNIV \<Longrightarrow> f i \<le> y"
     show "Sup A \<le> y"
-    proof (rule pinfreal_le_epsilon)
-      fix e :: pinfreal assume "0 < e"
+    proof (rule pextreal_le_epsilon)
+      fix e :: pextreal assume "0 < e"
       show "Sup A \<le> y + e"
       proof (cases e)
         case (preal r)
@@ -2512,14 +2512,14 @@ qed
 
 lemma SUPR_countable_SUPR:
   assumes "SUPR A g \<noteq> \<omega>" "A \<noteq> {}"
-  shows "\<exists> f::nat \<Rightarrow> pinfreal. range f \<subseteq> g`A \<and> SUPR A g = SUPR UNIV f"
+  shows "\<exists> f::nat \<Rightarrow> pextreal. range f \<subseteq> g`A \<and> SUPR A g = SUPR UNIV f"
 proof -
   have "Sup (g`A) \<noteq> \<omega>" "g`A \<noteq> {}" using assms unfolding SUPR_def by auto
   from Sup_countable_SUPR[OF this]
   show ?thesis unfolding SUPR_def .
 qed
 
-lemma pinfreal_setsum_subtractf:
+lemma pextreal_setsum_subtractf:
   assumes "\<And>i. i\<in>A \<Longrightarrow> g i \<le> f i" and "\<And>i. i\<in>A \<Longrightarrow> f i \<noteq> \<omega>"
   shows "(\<Sum>i\<in>A. f i - g i) = (\<Sum>i\<in>A. f i) - (\<Sum>i\<in>A. g i)"
 proof cases
@@ -2530,18 +2530,18 @@ proof cases
       by auto
     { fix i assume *: "i \<in> insert x A"
       hence "g i \<le> f i" using insert by simp
-      also have "f i < \<omega>" using * insert by (simp add: pinfreal_less_\<omega>)
-      finally have "g i \<noteq> \<omega>" by (simp add: pinfreal_less_\<omega>) }
+      also have "f i < \<omega>" using * insert by (simp add: pextreal_less_\<omega>)
+      finally have "g i \<noteq> \<omega>" by (simp add: pextreal_less_\<omega>) }
     hence "setsum g A \<noteq> \<omega>" "g x \<noteq> \<omega>" by (auto simp: setsum_\<omega>)
     moreover have "setsum f A \<noteq> \<omega>" "f x \<noteq> \<omega>" using insert by (auto simp: setsum_\<omega>)
     moreover have "g x \<le> f x" using insert by auto
     moreover have "(\<Sum>i\<in>A. g i) \<le> (\<Sum>i\<in>A. f i)" using insert by (auto intro!: setsum_mono)
     ultimately show ?case using `finite A` `x \<notin> A` hyp
-      by (auto simp: pinfreal_noteq_omega_Ex)
+      by (auto simp: pextreal_noteq_omega_Ex)
   qed simp
 qed simp
 
-lemma real_of_pinfreal_diff:
+lemma real_of_pextreal_diff:
   "y \<le> x \<Longrightarrow> x \<noteq> \<omega> \<Longrightarrow> real x - real y = real (x - y)"
   by (cases x, cases y) auto
 
@@ -2555,7 +2555,7 @@ proof -
     by (auto intro: psuminf_imp_suminf)
   from sums_diff[OF this]
   have "(\<lambda>n. real (f n - g n)) sums (real ((\<Sum>\<^isub>\<infinity>x. f x) - (\<Sum>\<^isub>\<infinity>x. g x)))" using fin ord
-    by (subst (asm) (1 2) real_of_pinfreal_diff) (auto simp: psuminf_\<omega> psuminf_le)
+    by (subst (asm) (1 2) real_of_pextreal_diff) (auto simp: psuminf_\<omega> psuminf_le)
   hence "(\<Sum>\<^isub>\<infinity> i. Real (real (f i - g i))) = Real (real ((\<Sum>\<^isub>\<infinity>x. f x) - (\<Sum>\<^isub>\<infinity>x. g x)))"
     by (rule suminf_imp_psuminf) simp
   thus ?thesis using fin by (simp add: Real_real psuminf_\<omega>)
@@ -2592,7 +2592,7 @@ proof
 next
   assume "f ----> x"
   show "(INF n. Real (f n)) = Real x"
-  proof (rule pinfreal_INFI)
+  proof (rule pextreal_INFI)
     fix n
     from decseq_le[OF _ `f ----> x`] assms
     show "Real x \<le> Real (f n)" unfolding decseq_eq_incseq incseq_mono by auto
@@ -2622,7 +2622,7 @@ proof -
   have "\<And>n. (INF m. Real (X (n + m))) \<le> Real (X (n + 0))" by (rule INF_leI) simp
   also have "\<And>n. Real (X (n + 0)) < \<omega>" by simp
   finally have "\<forall>n. \<exists>r\<ge>0. (INF m. Real (X (n + m))) = Real r"
-    by (auto simp: pinfreal_less_\<omega> pinfreal_noteq_omega_Ex)
+    by (auto simp: pextreal_less_\<omega> pextreal_noteq_omega_Ex)
   from choice[OF this] obtain r where r: "\<And>n. (INF m. Real (X (n + m))) = Real (r n)" "\<And>n. 0 \<le> r n"
     by auto
 
@@ -2682,7 +2682,7 @@ proof -
   qed
 qed
 
-lemma real_of_pinfreal_strict_mono_iff:
+lemma real_of_pextreal_strict_mono_iff:
   "real a < real b \<longleftrightarrow> (b \<noteq> \<omega> \<and> ((a = \<omega> \<and> 0 < b) \<or> (a < b)))"
 proof (cases a)
   case infinite thus ?thesis by (cases b) auto
@@ -2690,7 +2690,7 @@ next
   case preal thus ?thesis by (cases b) auto
 qed
 
-lemma real_of_pinfreal_mono_iff:
+lemma real_of_pextreal_mono_iff:
   "real a \<le> real b \<longleftrightarrow> (a = \<omega> \<or> (b \<noteq> \<omega> \<and> a \<le> b) \<or> (b = \<omega> \<and> a = 0))"
 proof (cases a)
   case infinite thus ?thesis by (cases b) auto
@@ -2698,8 +2698,8 @@ next
   case preal thus ?thesis by (cases b)  auto
 qed
 
-lemma ex_pinfreal_inverse_of_nat_Suc_less:
-  fixes e :: pinfreal assumes "0 < e" shows "\<exists>n. inverse (of_nat (Suc n)) < e"
+lemma ex_pextreal_inverse_of_nat_Suc_less:
+  fixes e :: pextreal assumes "0 < e" shows "\<exists>n. inverse (of_nat (Suc n)) < e"
 proof (cases e)
   case (preal r)
   with `0 < e` ex_inverse_of_nat_Suc_less[of r]
@@ -2709,18 +2709,18 @@ proof (cases e)
 qed auto
 
 lemma Lim_eq_Sup_mono:
-  fixes u :: "nat \<Rightarrow> pinfreal" assumes "mono u"
+  fixes u :: "nat \<Rightarrow> pextreal" assumes "mono u"
   shows "u ----> (SUP i. u i)"
 proof -
-  from lim_pinfreal_increasing[of u] `mono u`
+  from lim_pextreal_increasing[of u] `mono u`
   obtain l where l: "u ----> l" unfolding mono_def by auto
-  from SUP_Lim_pinfreal[OF _ this] `mono u`
+  from SUP_Lim_pextreal[OF _ this] `mono u`
   have "(SUP i. u i) = l" unfolding mono_def by auto
   with l show ?thesis by simp
 qed
 
 lemma isotone_Lim:
-  fixes x :: pinfreal assumes "u \<up> x"
+  fixes x :: pextreal assumes "u \<up> x"
   shows "u ----> x" (is ?lim) and "mono u" (is ?mono)
 proof -
   show ?mono using assms unfolding mono_iff_le_Suc isoton_def by auto
@@ -2729,19 +2729,19 @@ proof -
 qed
 
 lemma isoton_iff_Lim_mono:
-  fixes u :: "nat \<Rightarrow> pinfreal"
+  fixes u :: "nat \<Rightarrow> pextreal"
   shows "u \<up> x \<longleftrightarrow> (mono u \<and> u ----> x)"
 proof safe
   assume "mono u" and x: "u ----> x"
-  with SUP_Lim_pinfreal[OF _ x]
+  with SUP_Lim_pextreal[OF _ x]
   show "u \<up> x" unfolding isoton_def
     using `mono u`[unfolded mono_def]
     using `mono u`[unfolded mono_iff_le_Suc]
     by auto
 qed (auto dest: isotone_Lim)
 
-lemma pinfreal_inverse_inverse[simp]:
-  fixes x :: pinfreal
+lemma pextreal_inverse_inverse[simp]:
+  fixes x :: pextreal
   shows "inverse (inverse x) = x"
   by (cases x) auto
 
@@ -2749,27 +2749,27 @@ lemma atLeastAtMost_omega_eq_atLeast:
   shows "{a .. \<omega>} = {a ..}"
 by auto
 
-lemma atLeast0AtMost_eq_atMost: "{0 :: pinfreal .. a} = {.. a}" by auto
+lemma atLeast0AtMost_eq_atMost: "{0 :: pextreal .. a} = {.. a}" by auto
 
 lemma greaterThan_omega_Empty: "{\<omega> <..} = {}" by auto
 
-lemma lessThan_0_Empty: "{..< 0 :: pinfreal} = {}" by auto
+lemma lessThan_0_Empty: "{..< 0 :: pextreal} = {}" by auto
 
-lemma real_of_pinfreal_inverse[simp]:
-  fixes X :: pinfreal
+lemma real_of_pextreal_inverse[simp]:
+  fixes X :: pextreal
   shows "real (inverse X) = 1 / real X"
   by (cases X) (auto simp: inverse_eq_divide)
 
-lemma real_of_pinfreal_le_0[simp]: "real (X :: pinfreal) \<le> 0 \<longleftrightarrow> (X = 0 \<or> X = \<omega>)"
+lemma real_of_pextreal_le_0[simp]: "real (X :: pextreal) \<le> 0 \<longleftrightarrow> (X = 0 \<or> X = \<omega>)"
   by (cases X) auto
 
-lemma real_of_pinfreal_less_0[simp]: "\<not> (real (X :: pinfreal) < 0)"
+lemma real_of_pextreal_less_0[simp]: "\<not> (real (X :: pextreal) < 0)"
   by (cases X) auto
 
-lemma abs_real_of_pinfreal[simp]: "\<bar>real (X :: pinfreal)\<bar> = real X"
+lemma abs_real_of_pextreal[simp]: "\<bar>real (X :: pextreal)\<bar> = real X"
   by simp
 
-lemma zero_less_real_of_pinfreal: "0 < real (X :: pinfreal) \<longleftrightarrow> X \<noteq> 0 \<and> X \<noteq> \<omega>"
+lemma zero_less_real_of_pextreal: "0 < real (X :: pextreal) \<longleftrightarrow> X \<noteq> 0 \<and> X \<noteq> \<omega>"
   by (cases X) auto
 
 end

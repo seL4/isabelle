@@ -228,7 +228,7 @@ proof (rule contI2)
     apply (induct rule: list_chain_induct)
     apply simp
     apply (simp add: lub_Cons f h)
-    apply (simp add: contlub_cfun [symmetric] ch2ch_monofun [OF mono])
+    apply (simp add: lub_APP ch2ch_monofun [OF mono])
     apply (simp add: monofun_cfun)
     done
 qed

@@ -1,5 +1,4 @@
-(* -*- coding: utf-8 -*- :encoding=utf-8:
-    Author:     Ning Zhang and Christian Urban
+(*  Author:     Ning Zhang and Christian Urban
 
 Example theory involving Unicode characters (UTF-8 encoding) -- both
 formal and informal ones.

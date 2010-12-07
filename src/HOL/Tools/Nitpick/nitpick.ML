@@ -179,6 +179,10 @@ fun passed_deadline NONE = false
 
 fun none_true assigns = forall (not_equal (SOME true) o snd) assigns
 
+fun has_lonely_bool_var (@{const Pure.conjunction}
+                         $ (@{const Trueprop} $ Free _) $ _) = true
+  | has_lonely_bool_var _ = false
+
 val syntactic_sorts =
   @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,equal}"} @
   @{sort number}
@@ -229,8 +233,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val print_v = pprint_v o K o plazy
 
     fun check_deadline () =
-      if debug andalso passed_deadline deadline then raise TimeLimit.TimeOut
-      else ()
+      if passed_deadline deadline then raise TimeLimit.TimeOut else ()
 
     val assm_ts = if assms orelse auto then assm_ts else []
     val _ =
@@ -289,7 +292,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val _ = null (fold Term.add_tvars (neg_t :: assm_ts) []) orelse
             raise NOT_SUPPORTED "schematic type variables"
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms,
-         binarize) = preprocess_formulas hol_ctxt finitizes monos assm_ts neg_t
+         binarize) = preprocess_formulas hol_ctxt assm_ts neg_t
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
@@ -358,9 +361,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         SOME (SOME b) => b
       | _ => is_type_fundamentally_monotonic T orelse
              is_type_actually_monotonic T
-    fun is_shallow_datatype_finitizable (T as Type (@{type_name fin_fun}, _)) =
-        is_type_kind_of_monotonic T
-      | is_shallow_datatype_finitizable (T as Type (@{type_name fun_box}, _)) =
+    fun is_shallow_datatype_finitizable (T as Type (@{type_name fun_box}, _)) =
         is_type_kind_of_monotonic T
       | is_shallow_datatype_finitizable T =
         case triple_lookup (type_match thy) finitizes T of
@@ -661,7 +662,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                     \section for details (\"isabelle doc nitpick\")."
             else
               ();
-            if has_syntactic_sorts orig_t then
+            if has_lonely_bool_var orig_t then
+              print "Hint: Maybe you forgot a colon after the lemma's name?"
+            else if has_syntactic_sorts orig_t then
               print "Hint: Maybe you forgot a type constraint?"
             else
               ();
@@ -975,6 +978,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                 ".")
   in (outcome_code, !state_ref) end
 
+(* Give the inner timeout a chance. *)
+val timeout_bonus = seconds 0.25
+
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
                       step subst assm_ts orig_t =
   let val warning_m = if auto then K () else warning in
@@ -988,7 +994,8 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
         val unknown_outcome = ("unknown", state)
         val deadline = Option.map (curry Time.+ (Time.now ())) timeout
         val outcome as (outcome_code, _) =
-          time_limit (if debug then NONE else timeout)
+          time_limit (if debug orelse is_none timeout then NONE
+                      else SOME (Time.+ (the timeout, timeout_bonus)))
               (pick_them_nits_in_term deadline state params auto i n step subst
                                       assm_ts) orig_t
           handle TOO_LARGE (_, details) =>

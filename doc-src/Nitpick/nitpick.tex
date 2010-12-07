@@ -2108,14 +2108,9 @@ Specifies the default boxing setting to use. This can be overridden on a
 per-type basis using the \textit{box}~\qty{type} option described above.
 
 \opargboolorsmart{finitize}{type}{dont\_finitize}
-Specifies whether Nitpick should attempt to finitize a given type, which can be
-a function type or an infinite ``shallow datatype'' (an infinite datatype whose
-constructors don't appear in the problem).
-
-For function types, Nitpick performs a monotonicity analysis to detect functions
-that are constant at all but finitely many points (e.g., finite sets) and treats
-such occurrences specially, thereby increasing the precision. The option can
-then take the following values:
+Specifies whether Nitpick should attempt to finitize an infinite ``shallow
+datatype'' (an infinite datatype whose constructors don't appear in the
+problem). The option can then take the following values:
 
 \begin{enum}
 \item[$\bullet$] \textbf{\textit{false}:} Don't attempt to finitize the type.
@@ -2132,11 +2127,8 @@ unsound, counterexamples generated under these conditions are tagged as ``quasi
 genuine.''
 \item[$\bullet$] \textbf{\textit{false}:} Don't attempt to finitize the datatype.
 \item[$\bullet$] \textbf{\textit{smart}:} Perform a monotonicity analysis to
-detect whether the datatype can be safely finitized before finitizing it.
+detect whether the datatype can be soundly finitized before finitizing it.
 \end{enum}
-
-Like other drastic optimizations, finitization can sometimes prevent the
-discovery of counterexamples.
 
 \nopagebreak
 {\small See also \textit{box} (\S\ref{scope-of-search}), \textit{mono}

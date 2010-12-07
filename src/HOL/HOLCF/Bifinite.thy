@@ -618,6 +618,42 @@ lemma LIFTDEFL_prod:
   "LIFTDEFL('a::predomain \<times> 'b::predomain) = DEFL('a u \<otimes> 'b u)"
 by (rule liftdefl_prod_def)
 
+subsubsection {* Unit type *}
+
+instantiation unit :: liftdomain
+begin
+
+definition
+  "emb = (\<bottom> :: unit \<rightarrow> udom)"
+
+definition
+  "prj = (\<bottom> :: udom \<rightarrow> unit)"
+
+definition
+  "defl (t::unit itself) = \<bottom>"
+
+definition
+  "(liftemb :: unit u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+
+definition
+  "(liftprj :: udom \<rightarrow> unit u) = u_map\<cdot>prj oo udom_prj u_approx"
+
+definition
+  "liftdefl (t::unit itself) = u_defl\<cdot>DEFL(unit)"
+
+instance
+using liftemb_unit_def liftprj_unit_def liftdefl_unit_def
+proof (rule liftdomain_class_intro)
+  show "ep_pair emb (prj :: udom \<rightarrow> unit)"
+    unfolding emb_unit_def prj_unit_def
+    by (simp add: ep_pair.intro)
+next
+  show "cast\<cdot>DEFL(unit) = emb oo (prj :: udom \<rightarrow> unit)"
+    unfolding emb_unit_def prj_unit_def defl_unit_def by simp
+qed
+
+end
+
 subsubsection {* Discrete cpo *}
 
 definition discr_approx :: "nat \<Rightarrow> 'a::countable discr u \<rightarrow> 'a discr u"

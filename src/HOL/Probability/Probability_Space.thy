@@ -2,24 +2,24 @@ theory Probability_Space
 imports Lebesgue_Integration Radon_Nikodym Product_Measure
 begin
 
-lemma real_of_pinfreal_inverse[simp]:
-  fixes X :: pinfreal
+lemma real_of_pextreal_inverse[simp]:
+  fixes X :: pextreal
   shows "real (inverse X) = 1 / real X"
   by (cases X) (auto simp: inverse_eq_divide)
 
-lemma real_of_pinfreal_le_0[simp]: "real (X :: pinfreal) \<le> 0 \<longleftrightarrow> (X = 0 \<or> X = \<omega>)"
+lemma real_of_pextreal_le_0[simp]: "real (X :: pextreal) \<le> 0 \<longleftrightarrow> (X = 0 \<or> X = \<omega>)"
   by (cases X) auto
 
-lemma real_of_pinfreal_less_0[simp]: "\<not> (real (X :: pinfreal) < 0)"
+lemma real_of_pextreal_less_0[simp]: "\<not> (real (X :: pextreal) < 0)"
   by (cases X) auto
 
 locale prob_space = measure_space +
   assumes measure_space_1: "\<mu> (space M) = 1"
 
-lemma abs_real_of_pinfreal[simp]: "\<bar>real (X :: pinfreal)\<bar> = real X"
+lemma abs_real_of_pextreal[simp]: "\<bar>real (X :: pextreal)\<bar> = real X"
   by simp
 
-lemma zero_less_real_of_pinfreal: "0 < real (X :: pinfreal) \<longleftrightarrow> X \<noteq> 0 \<and> X \<noteq> \<omega>"
+lemma zero_less_real_of_pextreal: "0 < real (X :: pextreal) \<longleftrightarrow> X \<noteq> 0 \<and> X \<noteq> \<omega>"
   by (cases X) auto
 
 sublocale prob_space < finite_measure
@@ -141,7 +141,7 @@ proof (rule antisym)
   show "prob (\<Union> i :: nat. c i) \<le> 0"
     using real_finite_measure_countably_subadditive[OF assms(1)]
     by (simp add: assms(2) suminf_zero summable_zero)
-  show "0 \<le> prob (\<Union> i :: nat. c i)" by (rule real_pinfreal_nonneg)
+  show "0 \<le> prob (\<Union> i :: nat. c i)" by (rule real_pextreal_nonneg)
 qed
 
 lemma (in prob_space) indep_sym:
@@ -606,7 +606,7 @@ proof -
   show ?thesis
     unfolding setsum_joint_distribution[OF assms, symmetric]
     using distribution_finite[OF random_variable_pairI[OF finite_random_variableD[OF X] Y(1)]] Y(2)
-    by (simp add: space_pair_algebra in_sigma pair_algebraI MX.sets_eq_Pow real_of_pinfreal_setsum)
+    by (simp add: space_pair_algebra in_sigma pair_algebraI MX.sets_eq_Pow real_of_pextreal_setsum)
 qed
 
 lemma (in prob_space) setsum_real_joint_distribution_singleton:
@@ -721,7 +721,7 @@ lemma (in finite_prob_space) sum_over_space_real_distribution:
 
 lemma (in finite_prob_space) finite_sum_over_space_eq_1:
   "(\<Sum>x\<in>space M. real (\<mu> {x})) = 1"
-  using sum_over_space_eq_1 finite_measure by (simp add: real_of_pinfreal_setsum sets_eq_Pow)
+  using sum_over_space_eq_1 finite_measure by (simp add: real_of_pextreal_setsum sets_eq_Pow)
 
 lemma (in finite_prob_space) distribution_finite:
   "distribution X A \<noteq> \<omega>"
@@ -730,27 +730,27 @@ lemma (in finite_prob_space) distribution_finite:
 
 lemma (in finite_prob_space) real_distribution_gt_0[simp]:
   "0 < real (distribution Y y) \<longleftrightarrow>  0 < distribution Y y"
-  using assms by (auto intro!: real_pinfreal_pos distribution_finite)
+  using assms by (auto intro!: real_pextreal_pos distribution_finite)
 
 lemma (in finite_prob_space) real_distribution_mult_pos_pos:
   assumes "0 < distribution Y y"
   and "0 < distribution X x"
   shows "0 < real (distribution Y y * distribution X x)"
-  unfolding real_of_pinfreal_mult[symmetric]
+  unfolding real_of_pextreal_mult[symmetric]
   using assms by (auto intro!: mult_pos_pos)
 
 lemma (in finite_prob_space) real_distribution_divide_pos_pos:
   assumes "0 < distribution Y y"
   and "0 < distribution X x"
   shows "0 < real (distribution Y y / distribution X x)"
-  unfolding divide_pinfreal_def real_of_pinfreal_mult[symmetric]
+  unfolding divide_pextreal_def real_of_pextreal_mult[symmetric]
   using assms distribution_finite[of X x] by (cases "distribution X x") (auto intro!: mult_pos_pos)
 
 lemma (in finite_prob_space) real_distribution_mult_inverse_pos_pos:
   assumes "0 < distribution Y y"
   and "0 < distribution X x"
   shows "0 < real (distribution Y y * inverse (distribution X x))"
-  unfolding divide_pinfreal_def real_of_pinfreal_mult[symmetric]
+  unfolding divide_pextreal_def real_of_pextreal_mult[symmetric]
   using assms distribution_finite[of X x] by (cases "distribution X x") (auto intro!: mult_pos_pos)
 
 lemma (in prob_space) distribution_remove_const:
@@ -805,9 +805,9 @@ lemma (in finite_prob_space) real_distribution_order:
   and "r < real (joint_distribution X Y {(x, y)}) \<Longrightarrow> r < real (distribution Y {y})"
   and "distribution X {x} = 0 \<Longrightarrow> real (joint_distribution X Y {(x, y)}) = 0"
   and "distribution Y {y} = 0 \<Longrightarrow> real (joint_distribution X Y {(x, y)}) = 0"
-  using real_of_pinfreal_mono[OF distribution_finite joint_distribution_restriction_fst, of X Y "{(x, y)}"]
-  using real_of_pinfreal_mono[OF distribution_finite joint_distribution_restriction_snd, of X Y "{(x, y)}"]
-  using real_pinfreal_nonneg[of "joint_distribution X Y {(x, y)}"]
+  using real_of_pextreal_mono[OF distribution_finite joint_distribution_restriction_fst, of X Y "{(x, y)}"]
+  using real_of_pextreal_mono[OF distribution_finite joint_distribution_restriction_snd, of X Y "{(x, y)}"]
+  using real_pextreal_nonneg[of "joint_distribution X Y {(x, y)}"]
   by auto
 
 lemma (in prob_space) joint_distribution_remove[simp]:
@@ -821,8 +821,8 @@ lemma (in finite_prob_space) distribution_1:
 
 lemma (in finite_prob_space) real_distribution_1:
   "real (distribution X A) \<le> 1"
-  unfolding real_pinfreal_1[symmetric]
-  by (rule real_of_pinfreal_mono[OF _ distribution_1]) simp
+  unfolding real_pextreal_1[symmetric]
+  by (rule real_of_pextreal_mono[OF _ distribution_1]) simp
 
 lemma (in finite_prob_space) uniform_prob:
   assumes "x \<in> space M"
@@ -865,7 +865,7 @@ lemma (in prob_space) prob_space_of_restricted_space:
   unfolding prob_space_def prob_space_axioms_def
 proof
   show "\<mu> (space (restricted_space A)) / \<mu> A = 1"
-    using `\<mu> A \<noteq> 0` `\<mu> A \<noteq> \<omega>` by (auto simp: pinfreal_noteq_omega_Ex)
+    using `\<mu> A \<noteq> 0` `\<mu> A \<noteq> \<omega>` by (auto simp: pextreal_noteq_omega_Ex)
   have *: "\<And>S. \<mu> S / \<mu> A = inverse (\<mu> A) * \<mu> S" by (simp add: mult_commute)
   interpret A: measure_space "restricted_space A" \<mu>
     using `A \<in> sets M` by (rule restricted_measure_space)
@@ -910,9 +910,9 @@ lemma (in finite_prob_space) finite_prob_space_of_images:
 lemma (in finite_prob_space) real_distribution_order':
   shows "real (distribution X {x}) = 0 \<Longrightarrow> real (joint_distribution X Y {(x, y)}) = 0"
   and "real (distribution Y {y}) = 0 \<Longrightarrow> real (joint_distribution X Y {(x, y)}) = 0"
-  using real_of_pinfreal_mono[OF distribution_finite joint_distribution_restriction_fst, of X Y "{(x, y)}"]
-  using real_of_pinfreal_mono[OF distribution_finite joint_distribution_restriction_snd, of X Y "{(x, y)}"]
-  using real_pinfreal_nonneg[of "joint_distribution X Y {(x, y)}"]
+  using real_of_pextreal_mono[OF distribution_finite joint_distribution_restriction_fst, of X Y "{(x, y)}"]
+  using real_of_pextreal_mono[OF distribution_finite joint_distribution_restriction_snd, of X Y "{(x, y)}"]
+  using real_pextreal_nonneg[of "joint_distribution X Y {(x, y)}"]
   by auto
 
 lemma (in finite_prob_space) finite_product_measure_space:
@@ -952,7 +952,7 @@ qed
 section "Conditional Expectation and Probability"
 
 lemma (in prob_space) conditional_expectation_exists:
-  fixes X :: "'a \<Rightarrow> pinfreal"
+  fixes X :: "'a \<Rightarrow> pextreal"
   assumes borel: "X \<in> borel_measurable M"
   and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
   shows "\<exists>Y\<in>borel_measurable (M\<lparr> sets := N \<rparr>). \<forall>C\<in>N.
@@ -999,7 +999,7 @@ abbreviation (in prob_space)
   "conditional_prob N A \<equiv> conditional_expectation N (indicator A)"
 
 lemma (in prob_space)
-  fixes X :: "'a \<Rightarrow> pinfreal"
+  fixes X :: "'a \<Rightarrow> pextreal"
   assumes borel: "X \<in> borel_measurable M"
   and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
   shows borel_measurable_conditional_expectation:
@@ -1018,7 +1018,7 @@ proof -
 qed
 
 lemma (in sigma_algebra) factorize_measurable_function:
-  fixes Z :: "'a \<Rightarrow> pinfreal" and Y :: "'a \<Rightarrow> 'c"
+  fixes Z :: "'a \<Rightarrow> pextreal" and Y :: "'a \<Rightarrow> 'c"
   assumes "sigma_algebra M'" and "Y \<in> measurable M M'" "Z \<in> borel_measurable M"
   shows "Z \<in> borel_measurable (sigma_algebra.vimage_algebra M' (space M) Y)
     \<longleftrightarrow> (\<exists>g\<in>borel_measurable M'. \<forall>x\<in>space M. Z x = g (Y x))"
@@ -1028,7 +1028,7 @@ proof safe
   from M'.sigma_algebra_vimage[OF this]
   interpret va: sigma_algebra "M'.vimage_algebra (space M) Y" .
 
-  { fix g :: "'c \<Rightarrow> pinfreal" assume "g \<in> borel_measurable M'"
+  { fix g :: "'c \<Rightarrow> pextreal" assume "g \<in> borel_measurable M'"
     with M'.measurable_vimage_algebra[OF Y]
     have "g \<circ> Y \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
       by (rule measurable_comp)
@@ -1058,7 +1058,7 @@ proof safe
       show "M'.simple_function ?g" using B by auto
 
       fix x assume "x \<in> space M"
-      then have "\<And>z. z \<in> f i`space M \<Longrightarrow> indicator (B z) (Y x) = (indicator (f i -` {z} \<inter> space M) x::pinfreal)"
+      then have "\<And>z. z \<in> f i`space M \<Longrightarrow> indicator (B z) (Y x) = (indicator (f i -` {z} \<inter> space M) x::pextreal)"
         unfolding indicator_def using B by auto
       then show "f i x = ?g (Y x)" using `x \<in> space M` f[of i]
         by (subst va.simple_function_indicator_representation) auto

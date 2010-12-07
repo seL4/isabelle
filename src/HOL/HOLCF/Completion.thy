@@ -52,17 +52,6 @@ done
 lemma ex_ideal: "\<exists>A. A \<in> {A. ideal A}"
 by (fast intro: ideal_principal)
 
-lemma lub_image_principal:
-  assumes f: "\<And>x y. x \<preceq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-  shows "(\<Squnion>x\<in>{x. x \<preceq> y}. f x) = f y"
-apply (rule lub_eqI)
-apply (rule is_lub_maximal)
-apply (rule ub_imageI)
-apply (simp add: f)
-apply (rule imageI)
-apply (simp add: r_refl)
-done
-
 text {* The set of ideals is a cpo *}
 
 lemma ideal_UN:
@@ -156,7 +145,7 @@ locale ideal_completion = preorder +
   assumes ideal_rep: "\<And>x. ideal (rep x)"
   assumes rep_lub: "\<And>Y. chain Y \<Longrightarrow> rep (\<Squnion>i. Y i) = (\<Union>i. rep (Y i))"
   assumes rep_principal: "\<And>a. rep (principal a) = {b. b \<preceq> a}"
-  assumes subset_repD: "\<And>x y. rep x \<subseteq> rep y \<Longrightarrow> x \<sqsubseteq> y"
+  assumes belowI: "\<And>x y. rep x \<subseteq> rep y \<Longrightarrow> x \<sqsubseteq> y"
   assumes countable: "\<exists>f::'a \<Rightarrow> nat. inj f"
 begin
 
@@ -168,20 +157,11 @@ apply (rule subsetI, rule UN_I [where a=0], simp_all)
 done
 
 lemma below_def: "x \<sqsubseteq> y \<longleftrightarrow> rep x \<subseteq> rep y"
-by (rule iffI [OF rep_mono subset_repD])
-
-lemma rep_eq: "rep x = {a. principal a \<sqsubseteq> x}"
-unfolding below_def rep_principal
-apply safe
-apply (erule (1) idealD3 [OF ideal_rep])
-apply (erule subsetD, simp add: r_refl)
-done
-
-lemma mem_rep_iff_principal_below: "a \<in> rep x \<longleftrightarrow> principal a \<sqsubseteq> x"
-by (simp add: rep_eq)
+by (rule iffI [OF rep_mono belowI])
 
 lemma principal_below_iff_mem_rep: "principal a \<sqsubseteq> x \<longleftrightarrow> a \<in> rep x"
-by (simp add: rep_eq)
+unfolding below_def rep_principal
+by (auto intro: r_refl elim: idealD3 [OF ideal_rep])
 
 lemma principal_below_iff [simp]: "principal a \<sqsubseteq> principal b \<longleftrightarrow> a \<preceq> b"
 by (simp add: principal_below_iff_mem_rep rep_principal)
@@ -192,25 +172,12 @@ unfolding po_eq_conv [where 'a='b] principal_below_iff ..
 lemma eq_iff: "x = y \<longleftrightarrow> rep x = rep y"
 unfolding po_eq_conv below_def by auto
 
-lemma repD: "a \<in> rep x \<Longrightarrow> principal a \<sqsubseteq> x"
-by (simp add: rep_eq)
-
 lemma principal_mono: "a \<preceq> b \<Longrightarrow> principal a \<sqsubseteq> principal b"
 by (simp only: principal_below_iff)
 
 lemma ch2ch_principal [simp]:
   "\<forall>i. Y i \<preceq> Y (Suc i) \<Longrightarrow> chain (\<lambda>i. principal (Y i))"
 by (simp add: chainI principal_mono)
-
-lemma lub_principal_rep: "principal ` rep x <<| x"
-apply (rule is_lubI)
-apply (rule ub_imageI)
-apply (erule repD)
-apply (subst below_def)
-apply (rule subsetI)
-apply (drule (1) ub_imageD)
-apply (simp add: rep_eq)
-done
 
 subsubsection {* Principal ideals approximate all elements *}
 
@@ -321,13 +288,6 @@ apply (subgoal_tac "chain (\<lambda>i. principal (Y i))")
 apply (drule (2) admD2, fast, simp)
 done
 
-lemma obtain_compact_chain:
-  obtains Y :: "nat \<Rightarrow> 'b"
-  where "chain Y" and "\<forall>i. compact (Y i)" and "x = (\<Squnion>i. Y i)"
-apply (rule obtain_principal_chain [of x])
-apply (rule_tac Y="\<lambda>i. principal (Y i)" in that, simp_all)
-done
-
 subsection {* Defining functions in terms of basis elements *}
 
 definition
@@ -387,7 +347,12 @@ lemma basis_fun_principal:
   shows "basis_fun f\<cdot>(principal a) = f a"
 apply (subst basis_fun_beta, erule f_mono)
 apply (subst rep_principal)
-apply (rule lub_image_principal, erule f_mono)
+apply (rule lub_eqI)
+apply (rule is_lub_maximal)
+apply (rule ub_imageI)
+apply (simp add: f_mono)
+apply (rule imageI)
+apply (simp add: r_refl)
 done
 
 lemma basis_fun_mono:

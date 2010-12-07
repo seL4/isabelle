@@ -227,6 +227,9 @@ by(simp add:refl_on_def)
 lemma refl_on_Id_on: "refl_on A (Id_on A)"
 by (rule refl_onI [OF Id_on_subset_Times Id_onI])
 
+lemma refl_on_def'[nitpick_def, code]:
+  "refl_on A r = ((\<forall>(x, y) \<in> r. x : A \<and> y : A) \<and> (\<forall>x \<in> A. (x, x) : r))"
+by (auto intro: refl_onI dest: refl_onD refl_onD1 refl_onD2)
 
 subsection {* Antisymmetry *}
 

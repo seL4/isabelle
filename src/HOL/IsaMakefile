@@ -224,7 +224,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/Metis/metis_translate.ML \
   Tools/abel_cancel.ML \
   Tools/arith_data.ML \
-  Tools/async_manager.ML \
   Tools/cnf_funcs.ML \
   Tools/dseq.ML \
   Tools/inductive.ML \
@@ -344,6 +343,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/recdef.ML \
   Tools/record.ML \
   Tools/semiring_normalizer.ML \
+  Tools/Sledgehammer/async_manager.ML \
   Tools/Sledgehammer/sledgehammer.ML \
   Tools/Sledgehammer/sledgehammer_filter.ML \
   Tools/Sledgehammer/sledgehammer_minimize.ML \
@@ -1183,7 +1183,7 @@ $(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
   Probability/ex/Koepf_Duermuth_Countermeasure.thy			\
   Probability/Information.thy Probability/Lebesgue_Integration.thy	\
   Probability/Lebesgue_Measure.thy Probability/Measure.thy		\
-  Probability/Positive_Infinite_Real.thy				\
+  Probability/Positive_Extended_Real.thy				\
   Probability/Probability_Space.thy Probability/Probability.thy		\
   Probability/Product_Measure.thy Probability/Radon_Nikodym.thy		\
   Probability/ROOT.ML Probability/Sigma_Algebra.thy			\

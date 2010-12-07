@@ -65,6 +65,7 @@ sig
   val strip_first_name_sep : string -> string * string
   val original_name : string -> string
   val abs_var : indexname * typ -> term -> term
+  val is_higher_order_type : typ -> bool
   val s_let : string -> int -> typ -> typ -> (term -> term) -> term -> term
   val s_betapply : typ list -> term * term -> term
   val s_betapplys : typ list -> term * term list -> term
@@ -87,7 +88,6 @@ sig
   val term_match : theory -> term * term -> bool
   val frac_from_term_pair : typ -> term -> term -> term
   val is_TFree : typ -> bool
-  val is_higher_order_type : typ -> bool
   val is_fun_type : typ -> bool
   val is_set_type : typ -> bool
   val is_pair_type : typ -> bool
@@ -319,13 +319,18 @@ fun original_name s =
   else
     s
 
+fun is_higher_order_type (Type (@{type_name fun}, _)) = true
+  | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
+  | is_higher_order_type _ = false
+
 fun abs_var ((s, j), T) body = Abs (s, T, abstract_over (Var ((s, j), T), body))
 
 fun let_var s = (nitpick_prefix ^ s, 999)
 val let_inline_threshold = 20
 
 fun s_let s n abs_T body_T f t =
-  if (n - 1) * (size_of_term t - 1) <= let_inline_threshold then
+  if (n - 1) * (size_of_term t - 1) <= let_inline_threshold orelse
+     is_higher_order_type abs_T then
     f t
   else
     let val z = (let_var s, abs_T) in
@@ -419,7 +424,6 @@ val built_in_consts =
    (@{const_name converse}, 1),
    (@{const_name trancl}, 1),
    (@{const_name rel_comp}, 2),
-   (@{const_name image}, 2),
    (@{const_name finite}, 1),
    (@{const_name unknown}, 0),
    (@{const_name is_unknown}, 1),
@@ -458,9 +462,7 @@ fun unarize_type @{typ "unsigned_bit word"} = nat_T
   | unarize_type @{typ "signed_bit word"} = int_T
   | unarize_type (Type (s, Ts as _ :: _)) = Type (s, map unarize_type Ts)
   | unarize_type T = T
-fun unarize_unbox_etc_type (Type (@{type_name fin_fun}, Ts)) =
-    unarize_unbox_etc_type (Type (@{type_name fun}, Ts))
-  | unarize_unbox_etc_type (Type (@{type_name fun_box}, Ts)) =
+fun unarize_unbox_etc_type (Type (@{type_name fun_box}, Ts)) =
     unarize_unbox_etc_type (Type (@{type_name fun}, Ts))
   | unarize_unbox_etc_type (Type (@{type_name pair_box}, Ts)) =
     Type (@{type_name prod}, map unarize_unbox_etc_type Ts)
@@ -512,9 +514,6 @@ fun frac_from_term_pair T t1 t2 =
 
 fun is_TFree (TFree _) = true
   | is_TFree _ = false
-fun is_higher_order_type (Type (@{type_name fun}, _)) = true
-  | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
-  | is_higher_order_type _ = false
 fun is_fun_type (Type (@{type_name fun}, _)) = true
   | is_fun_type _ = false
 fun is_set_type (Type (@{type_name fun}, [_, @{typ bool}])) = true
@@ -803,9 +802,9 @@ fun is_coconstr ctxt (s, T) =
     end
   | _ => false
 fun is_constr_like ctxt (s, T) =
-  member (op =) [@{const_name FinFun}, @{const_name FunBox},
-                 @{const_name PairBox}, @{const_name Quot},
-                 @{const_name Zero_Rep}, @{const_name Suc_Rep}] s orelse
+  member (op =) [@{const_name FunBox}, @{const_name PairBox},
+                 @{const_name Quot}, @{const_name Zero_Rep},
+                 @{const_name Suc_Rep}] s orelse
   let
     val thy = ProofContext.theory_of ctxt
     val (x as (_, T)) = (s, unarize_unbox_etc_type T)
@@ -1094,14 +1093,13 @@ and coerce_term (hol_ctxt as {ctxt, stds, ...}) Ts new_T old_T t =
          |> Envir.eta_contract
          |> new_s <> @{type_name fun}
             ? construct_value ctxt stds
-                  (if new_s = @{type_name fin_fun} then @{const_name FinFun}
-                   else @{const_name FunBox},
+                  (@{const_name FunBox},
                    Type (@{type_name fun}, new_Ts) --> new_T)
               o single
        | t' => raise TERM ("Nitpick_HOL.coerce_term", [t']))
     | (Type (new_s, new_Ts as [new_T1, new_T2]),
        Type (old_s, old_Ts as [old_T1, old_T2])) =>
-      if old_s = @{type_name fin_fun} orelse old_s = @{type_name fun_box} orelse
+      if old_s = @{type_name fun_box} orelse
          old_s = @{type_name pair_box} orelse old_s = @{type_name prod} then
         case constr_expand hol_ctxt old_T t of
           Const (old_s, _) $ t1 =>
@@ -1643,9 +1641,14 @@ fun unfold_defs_in_term
                 s_betapply [] (do_term depth Ts t0, do_term depth Ts t1))
       | Const (@{const_name refl_on}, T) $ Const (@{const_name top}, _) $ t2 =>
         do_const depth Ts t (@{const_name refl'}, range_type T) [t2]
-      | (t0 as Const (@{const_name Sigma}, _)) $ t1 $ (t2 as Abs (_, _, t2')) =>
-        s_betapplys Ts (t0 |> loose_bvar1 (t2', 0) ? do_term depth Ts,
-                        map (do_term depth Ts) [t1, t2])
+      | (t0 as Const (@{const_name Sigma}, Type (_, [T1, Type (_, [T2, T3])])))
+        $ t1 $ (t2 as Abs (_, _, t2')) =>
+        if loose_bvar1 (t2', 0) then
+          s_betapplys Ts (do_term depth Ts t0, map (do_term depth Ts) [t1, t2])
+        else
+          do_term depth Ts
+                  (Const (@{const_name prod}, T1 --> range_type T2 --> T3)
+                   $ t1 $ incr_boundvars ~1 t2')
       | Const (x as (@{const_name distinct},
                Type (@{type_name fun}, [Type (@{type_name list}, [T']), _])))
         $ (t1 as _ $ _) =>
@@ -1658,6 +1661,8 @@ fun unfold_defs_in_term
           do_term depth Ts t2
         else
           do_const depth Ts t x [t1, t2, t3]
+      | Const (@{const_name Let}, _) $ t1 $ t2 =>
+        s_betapply Ts (pairself (do_term depth Ts) (t2, t1))
       | Const x => do_const depth Ts t x []
       | t1 $ t2 =>
         (case strip_comb t of
