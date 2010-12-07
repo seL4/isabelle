@@ -192,6 +192,31 @@ fun test_term ctxt is_interactive t =
           if is_interactive then error (excipit "ran out of time") else raise TimeLimit.TimeOut
   end;
 
+fun test_term_with_increasing_cardinality ctxt is_interactive ts =
+  let
+    val (namess, ts') = split_list (map prep_test_term ts)
+    val (test_funs, comp_time) = cpu_time "quickcheck compilation"
+      (fn () => map (mk_tester ctxt) ts')
+    fun test_card_size (card, size) =
+      (* FIXME: why decrement size by one? *)
+      case fst (the (nth test_funs (card - 1)) (size - 1)) of
+        SOME ts => SOME ((nth namess (card - 1)) ~~ ts)
+      | NONE => NONE
+    val enumeration_card_size =
+      map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt size))
+      |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
+    in
+      if (forall is_none test_funs) then
+        (NONE, ([comp_time], NONE))
+      else if (forall is_some test_funs) then
+        TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) (fn () =>
+          (get_first test_card_size enumeration_card_size, ([comp_time], NONE))) ()
+        handle TimeLimit.TimeOut =>
+          if is_interactive then error ("Quickcheck ran out of time") else raise TimeLimit.TimeOut
+      else
+        error "Unexpectedly, testers of some cardinalities are executable but others are not"       
+    end
+
 fun get_finite_types ctxt =
   fst (chop (Config.get ctxt finite_type_size)
     (map (Type o rpair []) ["Enum.finite_1", "Enum.finite_2", "Enum.finite_3",
@@ -223,17 +248,19 @@ fun test_goal_terms lthy is_interactive insts check_goals =
     val default_insts =
       if Config.get lthy finite_types then (get_finite_types lthy) else (default_type lthy)
     val inst_goals =
-      maps (fn check_goal =>
+      map (fn check_goal =>
         if not (null (Term.add_tfree_names check_goal [])) then
           map (fn T =>
-            ((Term o Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
-              handle WELLSORTED s => Wellsorted_Error s) default_insts 
+            (pair (SOME T) o Term o Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal
+              handle WELLSORTED s => (SOME T, Wellsorted_Error s)) default_insts
         else
-          [Term (Object_Logic.atomize_term thy check_goal)]) check_goals
-    val error_msg = cat_lines (map_filter (fn Term t => NONE | Wellsorted_Error s => SOME s) inst_goals)
+          [(NONE, Term (Object_Logic.atomize_term thy check_goal))]) check_goals
+    val error_msg = cat_lines (maps (map_filter (fn (_, Term t) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
+    fun is_wellsorted_term (T, Term t) = SOME (T, t)
+      | is_wellsorted_term (_, Wellsorted_Error s) = NONE
     val correct_inst_goals =
-      case map_filter (fn Term t => SOME t | Wellsorted_Error s => NONE) inst_goals of
-        [] => error error_msg
+      case map (map_filter is_wellsorted_term) inst_goals of
+        [[]] => error error_msg
       | xs => xs
     val _ = if Config.get lthy quiet then () else warning error_msg
     fun collect_results f reports [] = (NONE, rev reports)
@@ -241,7 +268,16 @@ fun test_goal_terms lthy is_interactive insts check_goals =
         case f t of
           (SOME res, report) => (SOME res, rev (report :: reports))
         | (NONE, report) => collect_results f (report :: reports) ts
-  in collect_results (test_term lthy is_interactive) [] correct_inst_goals end;
+    fun test_term' goal =
+      case goal of
+        [(NONE, t)] => test_term lthy is_interactive t
+      | ts => test_term_with_increasing_cardinality lthy is_interactive (map snd ts)                           
+  in
+    if Config.get lthy finite_types then
+      collect_results test_term' [] correct_inst_goals
+    else
+      collect_results (test_term lthy is_interactive) [] (maps (map snd) correct_inst_goals)
+  end;
 
 fun test_goal insts i state =
   let
