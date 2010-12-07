@@ -53,7 +53,7 @@ sig
   val is_prover_installed : Proof.context -> string -> bool
   val default_max_relevant_for_prover : Proof.context -> string -> int
   val is_built_in_const_for_prover :
-    Proof.context -> string -> string * typ -> bool
+    Proof.context -> string -> string * typ -> term list -> bool
   val relevance_fudge_for_prover : Proof.context -> string -> relevance_fudge
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
@@ -134,8 +134,8 @@ val atp_irrelevant_consts =
   [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let},
    @{const_name HOL.eq}]
 
-fun is_built_in_const_for_prover ctxt name (s, T) =
-  if is_smt_prover ctxt name then SMT_Builtin.is_builtin_ext ctxt (s, T) [] (*FIXME*)
+fun is_built_in_const_for_prover ctxt name (s, T) args =
+  if is_smt_prover ctxt name then SMT_Builtin.is_builtin_ext ctxt (s, T) args
   else member (op =) atp_irrelevant_consts s
 
 (* FUDGE *)
