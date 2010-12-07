@@ -36,10 +36,10 @@ apply (rule_tac p=y in upE, simp, simp add: cont_Abs_match)
 done
 
 lemma succeed_defined [simp]: "succeed\<cdot>x \<noteq> \<bottom>"
-by (simp add: succeed_def cont_Abs_match Abs_match_defined)
+by (simp add: succeed_def cont_Abs_match Abs_match_bottom_iff)
 
 lemma fail_defined [simp]: "fail \<noteq> \<bottom>"
-by (simp add: fail_def Abs_match_defined)
+by (simp add: fail_def Abs_match_bottom_iff)
 
 lemma succeed_eq [simp]: "(succeed\<cdot>x = succeed\<cdot>y) = (x = y)"
 by (simp add: succeed_def cont_Abs_match Abs_match_inject)

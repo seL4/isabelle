@@ -274,7 +274,7 @@ lemma SIGMA_image_vimage:
   "snd ` (SIGMA x:f`X. f -` {x} \<inter> X) = X"
   by (auto simp: image_iff)
 
-lemma zero_le_eq_True: "0 \<le> (x::pinfreal) \<longleftrightarrow> True" by simp
+lemma zero_le_eq_True: "0 \<le> (x::pextreal) \<longleftrightarrow> True" by simp
 
 lemma Real_setprod:
   assumes"\<And>i. i\<in>X \<Longrightarrow> 0 \<le> f i"

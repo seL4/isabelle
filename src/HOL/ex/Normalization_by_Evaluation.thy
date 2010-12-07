@@ -66,7 +66,7 @@ lemma "[] @ xs = xs" by normalization
 lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization
 
 lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"
-  by normalization
+  by normalization rule
 lemma "rev [a, b, c] = [c, b, a]" by normalization
 value [nbe] "rev (a#b#cs) = rev cs @ [b, a]"
 value [nbe] "map (%F. F [a,b,c::'x]) (map map [f,g,h])"

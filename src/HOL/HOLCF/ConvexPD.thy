@@ -342,6 +342,13 @@ definition
   convex_bind :: "'a convex_pd \<rightarrow> ('a \<rightarrow> 'b convex_pd) \<rightarrow> 'b convex_pd" where
   "convex_bind = convex_pd.basis_fun convex_bind_basis"
 
+syntax
+  "_convex_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
+    ("(3\<Union>\<natural>_\<in>_./ _)" [0, 0, 10] 10)
+
+translations
+  "\<Union>\<natural>x\<in>xs. e" == "CONST convex_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"
+
 lemma convex_bind_principal [simp]:
   "convex_bind\<cdot>(convex_principal t) = convex_bind_basis t"
 unfolding convex_bind_def
