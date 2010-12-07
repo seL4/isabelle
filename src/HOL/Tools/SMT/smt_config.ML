@@ -6,11 +6,16 @@ Configuration options and diagnostic tools for SMT.
 
 signature SMT_CONFIG =
 sig
+  (*class*)
+  type class = string list
+  val basicC: class
+
   (*solver*)
-  val add_solver: string -> Context.generic -> Context.generic
+  val add_solver: string * class -> Context.generic -> Context.generic
   val set_solver_options: string * string -> Context.generic -> Context.generic
   val select_solver: string -> Context.generic -> Context.generic
   val solver_of: Proof.context -> string
+  val solver_class_of: Proof.context -> class
   val solver_options_of: Proof.context -> string list
 
   (*options*)
@@ -46,11 +51,18 @@ end
 structure SMT_Config: SMT_CONFIG =
 struct
 
+(* class *)
+
+type class = string list
+
+val basicC = []
+
+
 (* solver *)
 
 structure Solvers = Generic_Data
 (
-  type T = string list Symtab.table * string option
+  type T = (class * string list) Symtab.table * string option
   val empty = (Symtab.empty, NONE)
   val extend = I
   fun merge ((ss1, s), (ss2, _)) = (Symtab.merge (K true) (ss1, ss2), s)
@@ -58,14 +70,14 @@ structure Solvers = Generic_Data
 
 fun set_solver_options (name, options) =
   let val opts = String.tokens (Symbol.is_ascii_blank o str) options
-  in Solvers.map (apfst (Symtab.map_entry name (K opts))) end
+  in Solvers.map (apfst (Symtab.map_entry name (apsnd (K opts)))) end
 
-fun add_solver name context =
+fun add_solver (name, class) context =
   if Symtab.defined (fst (Solvers.get context)) name then
     error ("Solver already registered: " ^ quote name)
   else
     context
-    |> Solvers.map (apfst (Symtab.update (name, [])))
+    |> Solvers.map (apfst (Symtab.update (name, (class, []))))
     |> Context.map_theory (Attrib.setup (Binding.name (name ^ "_options"))
         (Scan.lift (Parse.$$$ "=" |-- Args.name) >>
           (Thm.declaration_attribute o K o set_solver_options o pair name))
@@ -76,18 +88,23 @@ fun select_solver name context =
     Solvers.map (apsnd (K (SOME name))) context
   else error ("Trying to select unknown solver: " ^ quote name)
 
-val lookup_solver = snd o Solvers.get o Context.Proof
+fun no_solver_err () = error "No SMT solver selected"
 
 fun solver_of ctxt =
-  (case lookup_solver ctxt of
-    SOME name => name
-  | NONE => error "No SMT solver selected")
+  (case Solvers.get (Context.Proof ctxt) of
+    (_, SOME name) => name
+  | (_, NONE) => no_solver_err ())
+
+fun solver_class_of ctxt =
+  (case Solvers.get (Context.Proof ctxt) of
+    (solvers, SOME name) => fst (the (Symtab.lookup solvers name))
+  | (_, NONE) => no_solver_err())
 
 fun solver_options_of ctxt =
-  (case lookup_solver ctxt of
-    NONE => []
-  | SOME name =>
-      Symtab.lookup_list (fst (Solvers.get (Context.Proof ctxt))) name)
+  (case Solvers.get (Context.Proof ctxt) of
+    (solvers, SOME name) =>
+      (case Symtab.lookup solvers name of SOME (_, opts) => opts | NONE => [])
+  | (_, NONE) => [])
 
 val setup_solver =
   Attrib.setup @{binding smt_solver}

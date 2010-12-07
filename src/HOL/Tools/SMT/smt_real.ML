@@ -12,6 +12,8 @@ end
 structure SMT_Real: SMT_REAL =
 struct
 
+structure B = SMT_Builtin
+
 
 (* SMT-LIB logic *)
 
@@ -21,56 +23,26 @@ fun smtlib_logic ts =
   else NONE
 
 
-
-(* SMT-LIB builtins *)
-
-local
-  fun smtlib_builtin_typ @{typ real} = SOME "Real"
-    | smtlib_builtin_typ _ = NONE
-
-  fun smtlib_builtin_num @{typ real} i = SOME (string_of_int i ^ ".0")
-    | smtlib_builtin_num _ _ = NONE
-
-  fun smtlib_builtin_func @{const_name uminus} ts = SOME ("~", ts)
-    | smtlib_builtin_func @{const_name plus} ts = SOME ("+", ts)
-    | smtlib_builtin_func @{const_name minus} ts = SOME ("-", ts)
-    | smtlib_builtin_func @{const_name times} ts = SOME ("*", ts)
-    | smtlib_builtin_func _ _ = NONE
-
-  fun smtlib_builtin_pred @{const_name less} = SOME "<"
-    | smtlib_builtin_pred @{const_name less_eq} = SOME "<="
-    | smtlib_builtin_pred _ = NONE
-
-  fun real_fun T y f x = 
-    (case try Term.domain_type T of
-      SOME @{typ real} => f x
-    | _ => y)
-in
-
-val smtlib_builtins = {
-  builtin_typ = smtlib_builtin_typ,
-  builtin_num = smtlib_builtin_num,
-  builtin_func = (fn (n, T) => real_fun T NONE (smtlib_builtin_func n)),
-  builtin_pred = (fn (n, T) => fn ts =>
-    real_fun T NONE smtlib_builtin_pred n |> Option.map (rpair ts)),
-  is_builtin_pred = (fn n => fn T =>
-    real_fun T false (is_some o smtlib_builtin_pred) n) }
-
-end
-
-
-
-(* Z3 builtins *)
+(* SMT-LIB and Z3 built-ins *)
 
 local
-  fun z3_builtin_fun @{const divide (real)} ts = SOME ("/", ts)
-    | z3_builtin_fun _ _ = NONE
+  val smtlibC = SMTLIB_Interface.smtlibC
+
+  fun real_num _ i = SOME (string_of_int i ^ ".0")
 in
 
-val z3_builtins = (fn c => fn ts => z3_builtin_fun (Const c) ts)
+val setup_builtins =
+  B.add_builtin_typ smtlibC (@{typ real}, K (SOME "Real"), real_num) #>
+  fold (B.add_builtin_fun' smtlibC) [
+    (@{const uminus (real)}, "~"),
+    (@{const plus (real)}, "+"),
+    (@{const minus (real)}, "-"),
+    (@{const times (real)}, "*"),
+    (@{const less (real)}, "<"),
+    (@{const less_eq (real)}, "<=") ] #>
+  B.add_builtin_fun' Z3_Interface.smtlib_z3C (@{const divide (real)}, "/")
 
 end
-
 
 
 (* Z3 constructors *)
@@ -117,7 +89,6 @@ val z3_mk_builtins = {
 end
 
 
-
 (* Z3 proof reconstruction *)
 
 val real_rules = @{lemma
@@ -132,14 +103,12 @@ val real_linarith_proc = Simplifier.simproc_global @{theory} "fast_real_arith" [
   "(m::real) < n", "(m::real) <= n", "(m::real) = n"] (K Lin_Arith.simproc)
 
 
-
 (* setup *)
 
 val setup =
+  setup_builtins #>
   Context.theory_map (
-    SMTLIB_Interface.add_logic smtlib_logic #>
-    SMTLIB_Interface.add_builtins smtlib_builtins #>
-    Z3_Interface.add_builtin_funs z3_builtins #>
+    SMTLIB_Interface.add_logic (10, smtlib_logic) #>
     Z3_Interface.add_mk_builtins z3_mk_builtins #>
     fold Z3_Proof_Reconstruction.add_z3_rule real_rules #>
     Z3_Proof_Tools.add_simproc real_linarith_proc)

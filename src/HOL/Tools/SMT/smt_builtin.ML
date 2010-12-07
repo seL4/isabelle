@@ -1,116 +1,226 @@
 (*  Title:      HOL/Tools/SMT/smt_builtin.ML
     Author:     Sascha Boehme, TU Muenchen
 
-Crafted collection of SMT built-in symbols.
-
-FIXME: This list is currently not automatically kept synchronized with the
-remaining implementation.
+Tables of types and terms directly supported by SMT solvers.
 *)
 
 signature SMT_BUILTIN =
 sig
-  val is_builtin: Proof.context -> string * typ -> bool
-  val is_partially_builtin: Proof.context -> string * typ -> bool
+  (*built-in types*)
+  val add_builtin_typ: SMT_Config.class ->
+    typ * (typ -> string option) * (typ -> int -> string option) -> theory ->
+    theory
+  val add_builtin_typ_ext: typ * (typ -> bool) -> theory -> theory
+  val builtin_typ: Proof.context -> typ -> string option
+  val is_builtin_typ: Proof.context -> typ -> bool
+  val is_builtin_typ_ext: Proof.context -> typ -> bool
+
+  (*built-in numbers*)
+  val builtin_num: Proof.context -> term -> string option
+  val is_builtin_num: Proof.context -> term -> bool
+  val is_builtin_num_ext: Proof.context -> term -> bool
+
+  (*built-in functions*)
+  type 'a bfun = Proof.context -> typ -> term list -> 'a
+  val add_builtin_fun: SMT_Config.class ->
+    (string * typ) * (string * term list) option bfun -> theory -> theory
+  val add_builtin_fun': SMT_Config.class -> term * string -> theory -> theory
+  val add_builtin_fun_ext: (string * typ) * bool bfun -> theory -> theory
+  val add_builtin_fun_ext': string * typ -> theory -> theory
+  val add_builtin_fun_ext'': string -> theory -> theory
+  val builtin_fun: Proof.context -> string * typ -> term list ->
+    (string * term list) option
+  val is_builtin_fun: Proof.context -> string * typ -> term list -> bool
+  val is_builtin_pred: Proof.context -> string * typ -> term list -> bool
+  val is_builtin_conn: Proof.context -> string * typ -> term list -> bool
+  val is_builtin_ext: Proof.context -> string * typ -> term list -> bool
 end
 
 structure SMT_Builtin: SMT_BUILTIN =
 struct
 
-fun is_arithT T =
-  (case T of
-     @{typ int} => true
-   | @{typ nat} => true
-   | Type ("RealDef.real", []) => true
-   | _ => false)
+structure C = SMT_Config
 
-fun is_arithT_dom (Type (@{type_name fun}, [T, _])) = is_arithT T
-  | is_arithT_dom _ = false
-fun is_arithT_ran (Type (@{type_name fun}, [_, T])) = is_arithT T
-  | is_arithT_ran _ = false
 
-val builtins = Symtab.make [
+(* built-in tables *)
 
-  (* Pure constants *)
-  (@{const_name all}, K true),
-  (@{const_name "=="}, K true),
-  (@{const_name "==>"}, K true),
-  (@{const_name Trueprop}, K true),
+datatype ('a, 'b) kind = Ext of 'a | Int of 'b
 
-  (* logical constants *)
-  (@{const_name All}, K true),
-  (@{const_name Ex}, K true),
-  (@{const_name Ball}, K true),
-  (@{const_name Bex}, K true),
-  (@{const_name Ex1}, K true),
-  (@{const_name True}, K true),
-  (@{const_name False}, K true),
-  (@{const_name Not}, K true),
-  (@{const_name HOL.conj}, K true),
-  (@{const_name HOL.disj}, K true),
-  (@{const_name HOL.implies}, K true),
+type ('a, 'b) ttab = (C.class * (typ * ('a, 'b) kind) Ord_List.T) list 
 
-  (* term abbreviations *)
-  (@{const_name If}, K true),
-  (@{const_name bool.bool_case}, K true),
-  (@{const_name Let}, K true),
-  (* (@{const_name distinct}, K true),  -- not a real builtin, only when
-                                           applied to an explicit list *)
+fun empty_ttab () = []
 
-  (* technicalities *)
-  (@{const_name SMT.pat}, K true),
-  (@{const_name SMT.nopat}, K true),
-  (@{const_name SMT.trigger}, K true),
-  (@{const_name SMT.weight}, K true),
-  (@{const_name SMT.fun_app}, K true),
-  (@{const_name SMT.z3div}, K true),
-  (@{const_name SMT.z3mod}, K true),
+fun typ_ord ((T, _), (U, _)) =
+  let
+    fun tord (TVar _, Type _) = GREATER
+      | tord (Type _, TVar _) = LESS
+      | tord (Type (n, Ts), Type (m, Us)) =
+          if n = m then list_ord tord (Ts, Us)
+          else Term_Ord.typ_ord (T, U)
+      | tord TU = Term_Ord.typ_ord TU
+  in tord (T, U) end
 
-  (* equality *)
-  (@{const_name HOL.eq}, K true),
+fun insert_ttab cs T f =
+  AList.map_default (op =) (cs, [])
+    (Ord_List.insert typ_ord (perhaps (try Logic.varifyT_global) T, f))
 
-  (* numerals *)
-  (@{const_name zero_class.zero}, is_arithT),
-  (@{const_name one_class.one}, is_arithT),
-  (@{const_name Int.Pls}, K true),
-  (@{const_name Int.Min}, K true),
-  (@{const_name Int.Bit0}, K true),
-  (@{const_name Int.Bit1}, K true),
-  (@{const_name number_of}, is_arithT_ran),
+fun merge_ttab ttabp =
+  AList.join (op =) (K (uncurry (Ord_List.union typ_ord) o swap)) ttabp
 
-  (* arithmetic *)
-  (@{const_name nat}, K true),
-  (@{const_name of_nat}, K true),
-  (@{const_name Suc}, K true),
-  (@{const_name plus}, is_arithT_dom),
-  (@{const_name uminus}, is_arithT_dom),
-  (@{const_name minus}, is_arithT_dom),
-  (@{const_name abs}, is_arithT_dom),
-  (@{const_name min}, is_arithT_dom),
-  (@{const_name max}, is_arithT_dom),
-  (@{const_name less}, is_arithT_dom),
-  (@{const_name less_eq}, is_arithT_dom),
-  
-  (* pairs *)
-  (@{const_name fst}, K true),
-  (@{const_name snd}, K true),
-  (@{const_name Pair}, K true)
+fun lookup_ttab ctxt ttab T =
+  let
+    val cs = C.solver_class_of ctxt
+    fun match (U, _) = Sign.typ_instance (ProofContext.theory_of ctxt) (T, U)
 
-  ]
+    fun matching (cs', Txs) =
+      if is_prefix (op =) cs' cs then find_first match Txs
+      else NONE
+  in get_first matching ttab end
 
-val all_builtins =
-  builtins
-  |> Symtab.update (@{const_name times}, is_arithT_dom)
-  |> Symtab.update (@{const_name div_class.div}, is_arithT_dom)
-  |> Symtab.update (@{const_name div_class.mod}, is_arithT_dom)
-  |> Symtab.update ("Rings.inverse_class.divide", is_arithT_dom)
+type ('a, 'b) btab = ('a, 'b) ttab Symtab.table
 
-fun lookup_builtin bs (name, T) =
-  (case Symtab.lookup bs name of
-    SOME proper_type => proper_type T
+fun empty_btab () = Symtab.empty
+
+fun insert_btab cs n T f =
+  Symtab.map_default (n, []) (insert_ttab cs T f)
+
+fun merge_btab btabp = Symtab.join (K merge_ttab) btabp
+
+fun lookup_btab ctxt btab (n, T) =
+  (case Symtab.lookup btab n of
+    NONE => NONE
+  | SOME ttab => lookup_ttab ctxt ttab T)
+
+
+(* built-in types *)
+
+structure Builtin_Types = Theory_Data
+(
+  type T =
+    (typ -> bool, (typ -> string option) * (typ -> int -> string option)) ttab
+  val empty = empty_ttab ()
+  val extend = I
+  val merge = merge_ttab
+)
+
+fun add_builtin_typ cs (T, f, g) =
+  Builtin_Types.map (insert_ttab cs T (Int (f, g)))
+
+fun add_builtin_typ_ext (T, f) =
+  Builtin_Types.map (insert_ttab C.basicC T (Ext f))
+
+fun lookup_builtin_typ ctxt =
+  lookup_ttab ctxt (Builtin_Types.get (ProofContext.theory_of ctxt))
+
+fun builtin_typ ctxt T =
+  (case lookup_builtin_typ ctxt T of
+    SOME (_, Int (f, _)) => f T
+  | _ => NONE) 
+
+fun is_builtin_typ ctxt T = is_some (builtin_typ ctxt T)
+
+fun is_builtin_typ_ext ctxt T =
+  (case lookup_builtin_typ ctxt T of
+    SOME (_, Int (f, _)) => is_some (f T)
+  | SOME (_, Ext f) => f T
   | NONE => false)
 
-fun is_builtin _ = lookup_builtin builtins
 
-fun is_partially_builtin _ = lookup_builtin all_builtins
+(* built-in numbers *)
+
+fun builtin_num ctxt t =
+  (case try HOLogic.dest_number t of
+    NONE => NONE
+  | SOME (T, i) =>
+      (case lookup_builtin_typ ctxt T of
+        SOME (_, Int (_, g)) => g T i
+      | _ => NONE))
+
+val is_builtin_num = is_some oo builtin_num
+
+fun is_builtin_num_ext ctxt t =
+  (case try HOLogic.dest_number t of
+    NONE => false
+  | SOME (T, _) => is_builtin_typ_ext ctxt T)
+
+
+(* built-in functions *)
+
+type 'a bfun = Proof.context -> typ -> term list -> 'a
+
+fun true3 _ _ _ = true
+
+fun raw_add_builtin_fun_ext thy cs n =
+  insert_btab cs n (Sign.the_const_type thy n) (Ext true3)
+
+val basic_builtin_fun_names = [
+  @{const_name SMT.pat}, @{const_name SMT.nopat},
+  @{const_name SMT.trigger}, @{const_name SMT.weight}]
+
+fun basic_builtin_funcs () =
+  empty_btab ()
+  |> fold (raw_add_builtin_fun_ext @{theory} C.basicC) basic_builtin_fun_names
+       (* FIXME: SMT_Normalize should check that they are properly used *)
+
+structure Builtin_Funcs = Theory_Data
+(
+  type T = (bool bfun, (string * term list) option bfun) btab
+  val empty = basic_builtin_funcs ()
+  val extend = I
+  val merge = merge_btab
+)
+
+fun add_builtin_fun cs ((n, T), f) =
+  Builtin_Funcs.map (insert_btab cs n T (Int f))
+
+fun add_builtin_fun' cs (t, n) =
+  add_builtin_fun cs (Term.dest_Const t, fn _ => fn _ => SOME o pair n)
+
+fun add_builtin_fun_ext ((n, T), f) =
+  Builtin_Funcs.map (insert_btab C.basicC n T (Ext f))
+
+fun add_builtin_fun_ext' c = add_builtin_fun_ext (c, true3)
+
+fun add_builtin_fun_ext'' n thy =
+  add_builtin_fun_ext' (n, Sign.the_const_type thy n) thy
+
+fun lookup_builtin_fun ctxt =
+  lookup_btab ctxt (Builtin_Funcs.get (ProofContext.theory_of ctxt))
+
+fun builtin_fun ctxt (c as (_, T)) ts =
+  (case lookup_builtin_fun ctxt c of
+    SOME (_, Int f) => f ctxt T ts
+  | _ => NONE)
+
+fun is_builtin_fun ctxt c ts = is_some (builtin_fun ctxt c ts)
+
+fun is_special_builtin_fun pred ctxt (c as (_, T)) ts =
+  (case lookup_builtin_fun ctxt c of
+    SOME (U, Int f) => pred U andalso is_some (f ctxt T ts)
+  | _ => false)
+
+fun is_pred_type T = Term.body_type T = @{typ bool}
+fun is_conn_type T =
+  forall (equal @{typ bool}) (Term.body_type T :: Term.binder_types T)
+
+fun is_builtin_pred ctxt = is_special_builtin_fun is_pred_type ctxt
+fun is_builtin_conn ctxt = is_special_builtin_fun is_conn_type ctxt
+
+fun is_builtin_fun_ext ctxt (c as (_, T)) ts =
+  (case lookup_builtin_fun ctxt c of
+    SOME (_, Int f) => is_some (f ctxt T ts)
+  | SOME (_, Ext f) => f ctxt T ts
+  | NONE => false)
+
+(* FIXME: move this information to the interfaces *)
+val only_partially_supported = [
+  @{const_name times},
+  @{const_name div_class.div},
+  @{const_name div_class.mod},
+  @{const_name inverse_class.divide} ]
+
+fun is_builtin_ext ctxt (c as (n, _)) ts =
+  if member (op =) only_partially_supported n then false
+  else is_builtin_fun_ext ctxt c ts
 
 end

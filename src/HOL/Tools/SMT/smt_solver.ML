@@ -8,6 +8,7 @@ signature SMT_SOLVER =
 sig
   (*configuration*)
   type interface = {
+    class: SMT_Config.class,
     extra_norm: SMT_Normalize.extra_norm,
     translate: SMT_Translate.config }
   datatype outcome = Unsat | Sat | Unknown
@@ -57,6 +58,7 @@ structure C = SMT_Config
 (* configuration *)
 
 type interface = {
+  class: SMT_Config.class,
   extra_norm: SMT_Normalize.extra_norm,
   translate: SMT_Translate.config }
 
@@ -195,13 +197,10 @@ fun discharge_definitions thm =
 
 fun set_has_datatypes with_datatypes translate =
   let
-    val {prefixes, header, strict, builtins, serialize} = translate
-    val {builtin_typ, builtin_num, builtin_fun, has_datatypes} = builtins
+    val {prefixes, header, is_fol, has_datatypes, serialize} = translate
     val with_datatypes' = has_datatypes andalso with_datatypes
-    val builtins' = {builtin_typ=builtin_typ, builtin_num=builtin_num,
-      builtin_fun=builtin_fun, has_datatypes=with_datatypes}
-    val translate' = {prefixes=prefixes, header=header, strict=strict,
-      builtins=builtins', serialize=serialize}
+    val translate' = {prefixes=prefixes, header=header, is_fol=is_fol,
+      has_datatypes=with_datatypes', serialize=serialize}
   in (with_datatypes', translate') end
 
 fun trace_assumptions ctxt irules idxs =
@@ -219,7 +218,7 @@ fun trace_assumptions ctxt irules idxs =
 fun gen_solver name info rm ctxt irules =
   let
     val {env_var, is_remote, options, interface, reconstruct, ...} = info
-    val {extra_norm, translate} = interface
+    val {extra_norm, translate, ...} = interface
     val (with_datatypes, translate') =
       set_has_datatypes (Config.get ctxt C.datatypes) translate
     val cmd = (rm, env_var, is_remote, name)
@@ -284,6 +283,7 @@ fun add_solver cfg =
   let
     val {name, env_var, is_remote, options, interface, outcome, cex_parser,
       reconstruct, default_max_relevant} = cfg
+    val {class, ...} = interface
 
     fun core_oracle () = cfalse
 
@@ -294,7 +294,7 @@ fun add_solver cfg =
   in
     Thm.add_oracle (Binding.name name, core_oracle) #-> (fn (_, ocl) =>
     Context.theory_map (Solvers.map (Symtab.update_new (name, solver ocl)))) #>
-    Context.theory_map (C.add_solver name)
+    Context.theory_map (C.add_solver (name, class))
   end
 
 end

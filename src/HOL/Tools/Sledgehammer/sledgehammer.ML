@@ -135,7 +135,7 @@ val atp_irrelevant_consts =
    @{const_name HOL.eq}]
 
 fun is_built_in_const_for_prover ctxt name (s, T) =
-  if is_smt_prover ctxt name then SMT_Builtin.is_builtin ctxt (s, T)
+  if is_smt_prover ctxt name then SMT_Builtin.is_builtin_ext ctxt (s, T) [] (*FIXME*)
   else member (op =) atp_irrelevant_consts s
 
 (* FUDGE *)

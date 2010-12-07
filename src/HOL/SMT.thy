@@ -105,16 +105,18 @@ lemmas array_rules = ext fun_upd_apply fun_upd_same fun_upd_other
 subsection {* First-order logic *}
 
 text {*
-Some SMT solvers require a strict separation between formulas and
-terms.  When translating higher-order into first-order problems,
-all uninterpreted constants (those not builtin in the target solver)
+Some SMT solvers only accept problems in first-order logic, i.e.,
+where formulas and terms are syntactically separated. When
+translating higher-order into first-order problems, all
+uninterpreted constants (those not built-in in the target solver)
 are treated as function symbols in the first-order sense.  Their
-occurrences as head symbols in atoms (i.e., as predicate symbols) is
-turned into terms by equating such atoms with @{term True} using the
-following term-level equation symbol.
+occurrences as head symbols in atoms (i.e., as predicate symbols) are
+turned into terms by equating such atoms with @{term True}.
+Whenever the boolean type occurs in first-order terms, it is replaced
+by the following type.
 *}
 
-definition term_eq :: "bool \<Rightarrow> bool \<Rightarrow> bool" where "term_eq x y = (x = y)"
+typedecl term_bool
 
 
 
@@ -159,7 +161,10 @@ use "Tools/SMT/smt_setup_solvers.ML"
 
 setup {*
   SMT_Config.setup #>
+  SMT_Normalize.setup #>
   SMT_Solver.setup #>
+  SMTLIB_Interface.setup #>
+  Z3_Interface.setup #>
   Z3_Proof_Reconstruction.setup #>
   SMT_Setup_Solvers.setup
 *}
@@ -354,9 +359,10 @@ lemma [z3_rule]:
 
 
 
+hide_type term_bool
 hide_type (open) pattern
-hide_const Pattern term_eq
-hide_const (open) trigger pat nopat weight fun_app z3div z3mod
+hide_const Pattern fun_app
+hide_const (open) trigger pat nopat weight z3div z3mod
 
 
 
