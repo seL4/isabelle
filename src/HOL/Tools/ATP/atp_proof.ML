@@ -109,7 +109,8 @@ fun string_for_failure prover Unprovable =
   | string_for_failure prover InternalError =
     "An internal " ^ prover ^ " error occurred."
   | string_for_failure prover UnknownError =
-    "An unknown " ^ prover ^ " error occurred."
+    (* "An" is correct for "ATP" and "SMT". *)
+    "An " ^ prover ^ " error occurred."
 
 fun extract_delimited (begin_delim, end_delim) output =
   output |> first_field begin_delim |> the |> snd
