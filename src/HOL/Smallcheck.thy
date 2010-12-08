@@ -117,6 +117,92 @@ instance ..
 
 end
 
+subsubsection {* A smarter enumeration scheme for functions over finite datatypes *}
+
+
+class check_all = enum + term_of +
+fixes check_all :: "('a * (unit \<Rightarrow> term) \<Rightarrow> term list option) \<Rightarrow> term list option"
+
+fun check_all_n_lists :: "(('a :: check_all) list * (unit \<Rightarrow> term list) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
+where
+  "check_all_n_lists f n =
+     (if n = 0 then f ([], (%_. [])) else check_all (%(x, xt). check_all_n_lists (%(xs, xst). f ((x # xs), (%_. (xt () # xst ())))) (n - 1)))"
+
+instantiation "fun" :: ("{equal, enum, check_all}", "{enum, term_of, check_all}") check_all
+begin
+
+definition mk_map_term :: "'a list \<Rightarrow> (unit \<Rightarrow> term list) \<Rightarrow> (unit \<Rightarrow> typerep) \<Rightarrow> unit \<Rightarrow> term"
+where
+  "mk_map_term domm rng T2 =
+     (%_. let T1 = (Typerep.typerep (TYPE('a)));
+              T2 = T2 ();
+              update_term = (%g (a, b).
+                Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.App
+                 (Code_Evaluation.Const (STR ''Fun.fun_upd'')
+                   (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''fun'') [T1, T2],
+                      Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''fun'') [T1, T2]]]])) g) (Code_Evaluation.term_of a)) b)
+          in
+             List.foldl update_term (Code_Evaluation.Abs (STR ''x'') T1 (Code_Evaluation.Const (STR ''HOL.undefined'') T2)) (zip domm (rng ())))"
+
+definition
+  "check_all f = check_all_n_lists (\<lambda>(ys, yst). f (the o map_of (zip (Enum.enum\<Colon>'a list) ys), mk_map_term (Enum.enum::'a list) yst (%_. Typerep.typerep (TYPE('b))))) (Code_Numeral.of_nat (length (Enum.enum :: 'a list)))"
+
+instance ..
+
+end
+
+instantiation bool :: check_all
+begin
+
+definition
+  "check_all f = (case f (Code_Evaluation.valtermify False) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify True))"
+
+instance ..
+
+end
+
+instantiation prod :: (check_all, check_all) check_all
+begin
+
+definition
+  "check_all f = check_all (%(x, t1). check_all (%(y, t2). f ((x, y), %_. Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.term_of (Pair :: 'a => 'b => ('a * 'b))) (t1 ())) (t2 ()))))"
+
+instance ..
+
+end
+
+instantiation Enum.finite_1 :: check_all
+begin
+
+definition
+  "check_all f = f (Code_Evaluation.valtermify Enum.finite_1.a\<^isub>1)"
+
+instance ..
+
+end
+
+instantiation Enum.finite_2 :: check_all
+begin
+
+definition
+  "check_all f = (case f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>1) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>2))"
+
+instance ..
+
+end
+
+instantiation Enum.finite_3 :: check_all
+begin
+
+definition
+  "check_all f = (case f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>1) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> (case f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>2) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>3)))"
+
+instance ..
+
+end
+
+
+
 subsection {* Defining combinators for any first-order data type *}
 
 definition orelse :: "'a option => 'a option => 'a option"
@@ -138,6 +224,6 @@ setup {* Smallvalue_Generators.setup *}
 declare [[quickcheck_tester = exhaustive]]
 
 hide_fact orelse_def catch_match_def
-hide_const (open) orelse catch_match
+hide_const (open) orelse catch_match mk_map_term check_all_n_lists
 
 end

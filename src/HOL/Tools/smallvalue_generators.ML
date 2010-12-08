@@ -81,7 +81,10 @@ val full_smallN = "full_small";
 
 fun full_smallT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
   --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
- 
+
+fun check_allT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
+  --> @{typ "Code_Evaluation.term list option"}
+
 fun mk_equations thy descr vs tycos smalls (Ts, Us) =
   let
     fun mk_small_call T =
@@ -217,6 +220,7 @@ val target = "Quickcheck";
 
 fun mk_smart_generator_expr ctxt t =
   let
+    val thy = ProofContext.theory_of ctxt
     val ((vnames, Ts), t') = apfst split_list (strip_abs t)
     val ([depth_name], ctxt') = Variable.variant_fixes ["depth"] ctxt
     val (names, ctxt'') = Variable.variant_fixes vnames ctxt'
@@ -229,9 +233,14 @@ fun mk_smart_generator_expr ctxt t =
     val (assms, concl) = strip_imp (subst_bounds (rev frees, t'))
     val terms = HOLogic.mk_list @{typ term} (map (fn v => v $ @{term "()"}) term_vars)
     fun mk_small_closure (free as Free (_, T), term_var) t =
-      Const (@{const_name "Smallcheck.full_small_class.full_small"}, full_smallT T)
-        $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
-          $ lambda free (lambda term_var t)) $ depth
+      if Sign.of_sort thy (T, @{sort enum}) then
+        Const (@{const_name "Smallcheck.check_all_class.check_all"}, check_allT T)
+          $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
+            $ lambda free (lambda term_var t))
+      else
+        Const (@{const_name "Smallcheck.full_small_class.full_small"}, full_smallT T)
+          $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
+            $ lambda free (lambda term_var t)) $ depth
     fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
     val none_t = @{term "None :: term list option"}
     fun mk_safe_if (cond, then_t, else_t) =
