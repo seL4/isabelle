@@ -7,8 +7,8 @@ Interface to Z3 based on a relaxed version of SMT-LIB.
 signature Z3_INTERFACE =
 sig
   val smtlib_z3C: SMT_Config.class
-  val setup: theory -> theory
   val interface: SMT_Solver.interface
+  val setup: theory -> theory
 
   datatype sym = Sym of string * sym list
   type mk_builtins = {
@@ -49,11 +49,11 @@ local
     else irules
 
   fun extra_norm' has_datatypes = extra_norm has_datatypes o add_div_mod
-in
 
-val setup =
-  B.add_builtin_fun' smtlib_z3C (@{const z3div}, "div") #>
-  B.add_builtin_fun' smtlib_z3C (@{const z3mod}, "mod")
+  val setup_builtins =
+    B.add_builtin_fun' smtlib_z3C (@{const z3div}, "div") #>
+    B.add_builtin_fun' smtlib_z3C (@{const z3mod}, "mod")
+in
 
 val interface = {
   class = smtlib_z3C,
@@ -64,6 +64,8 @@ val interface = {
     header = header,
     has_datatypes = true,
     serialize = serialize}}
+
+val setup = Context.theory_map setup_builtins
 
 end
 

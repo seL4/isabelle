@@ -139,7 +139,8 @@ end
 (* setup *)
 
 val setup = 
-  Context.theory_map (SMTLIB_Interface.add_logic (20, smtlib_logic)) #>
-  setup_builtins
+  Context.theory_map (
+    SMTLIB_Interface.add_logic (20, smtlib_logic) #>
+    setup_builtins)
 
 end

@@ -9,8 +9,8 @@ sig
   val smtlibC: SMT_Config.class
   val add_logic: int * (term list -> string option) -> Context.generic ->
     Context.generic
-  val setup: theory -> theory
   val interface: SMT_Solver.interface
+  val setup: theory -> theory
 end
 
 structure SMTLIB_Interface: SMTLIB_INTERFACE =
@@ -106,7 +106,7 @@ local
     | distinct _ _ _ = NONE
 in
 
-val setup =
+val setup_builtins =
   B.add_builtin_typ smtlibC (@{typ int}, K (SOME "Int"), int_num) #>
   fold (B.add_builtin_fun' smtlibC) [
     (@{const True}, "true"),
@@ -155,7 +155,7 @@ fun choose_logic ctxt ts =
   in [":logic " ^ choose (Logics.get (Context.Proof ctxt))] end
 
 
-(* serialization *)
+(** serialization **)
 
 val add = Buffer.add
 fun sep f = add " " #> f
@@ -216,7 +216,7 @@ fun serialize comments {header, sorts, dtyps, funcs} ts =
 
 
 
-(** interfaces **)
+(* interface *)
 
 val interface = {
   class = smtlibC,
@@ -229,5 +229,7 @@ val interface = {
     is_fol = true,
     has_datatypes = false,
     serialize = serialize}}
+
+val setup = Context.theory_map setup_builtins
 
 end

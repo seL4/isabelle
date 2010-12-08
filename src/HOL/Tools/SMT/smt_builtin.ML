@@ -8,9 +8,10 @@ signature SMT_BUILTIN =
 sig
   (*built-in types*)
   val add_builtin_typ: SMT_Config.class ->
-    typ * (typ -> string option) * (typ -> int -> string option) -> theory ->
-    theory
-  val add_builtin_typ_ext: typ * (typ -> bool) -> theory -> theory
+    typ * (typ -> string option) * (typ -> int -> string option) ->
+    Context.generic -> Context.generic
+  val add_builtin_typ_ext: typ * (typ -> bool) -> Context.generic ->
+    Context.generic
   val builtin_typ: Proof.context -> typ -> string option
   val is_builtin_typ: Proof.context -> typ -> bool
   val is_builtin_typ_ext: Proof.context -> typ -> bool
@@ -23,11 +24,14 @@ sig
   (*built-in functions*)
   type 'a bfun = Proof.context -> typ -> term list -> 'a
   val add_builtin_fun: SMT_Config.class ->
-    (string * typ) * (string * term list) option bfun -> theory -> theory
-  val add_builtin_fun': SMT_Config.class -> term * string -> theory -> theory
-  val add_builtin_fun_ext: (string * typ) * bool bfun -> theory -> theory
-  val add_builtin_fun_ext': string * typ -> theory -> theory
-  val add_builtin_fun_ext'': string -> theory -> theory
+    (string * typ) * (string * term list) option bfun -> Context.generic ->
+    Context.generic
+  val add_builtin_fun': SMT_Config.class -> term * string -> Context.generic ->
+    Context.generic
+  val add_builtin_fun_ext: (string * typ) * bool bfun -> Context.generic ->
+    Context.generic
+  val add_builtin_fun_ext': string * typ -> Context.generic -> Context.generic
+  val add_builtin_fun_ext'': string -> Context.generic -> Context.generic
   val builtin_fun: Proof.context -> string * typ -> term list ->
     (string * term list) option
   val is_builtin_fun: Proof.context -> string * typ -> term list -> bool
@@ -47,8 +51,6 @@ structure C = SMT_Config
 datatype ('a, 'b) kind = Ext of 'a | Int of 'b
 
 type ('a, 'b) ttab = (C.class * (typ * ('a, 'b) kind) Ord_List.T) list 
-
-fun empty_ttab () = []
 
 fun typ_ord ((T, _), (U, _)) =
   let
@@ -94,11 +96,11 @@ fun lookup_btab ctxt btab (n, T) =
 
 (* built-in types *)
 
-structure Builtin_Types = Theory_Data
+structure Builtin_Types = Generic_Data
 (
   type T =
     (typ -> bool, (typ -> string option) * (typ -> int -> string option)) ttab
-  val empty = empty_ttab ()
+  val empty = []
   val extend = I
   val merge = merge_ttab
 )
@@ -110,7 +112,7 @@ fun add_builtin_typ_ext (T, f) =
   Builtin_Types.map (insert_ttab C.basicC T (Ext f))
 
 fun lookup_builtin_typ ctxt =
-  lookup_ttab ctxt (Builtin_Types.get (ProofContext.theory_of ctxt))
+  lookup_ttab ctxt (Builtin_Types.get (Context.Proof ctxt))
 
 fun builtin_typ ctxt T =
   (case lookup_builtin_typ ctxt T of
@@ -157,14 +159,16 @@ val basic_builtin_fun_names = [
   @{const_name SMT.pat}, @{const_name SMT.nopat},
   @{const_name SMT.trigger}, @{const_name SMT.weight}]
 
-fun basic_builtin_funcs () =
+type builtin_funcs = (bool bfun, (string * term list) option bfun) btab
+
+fun basic_builtin_funcs () : builtin_funcs =
   empty_btab ()
   |> fold (raw_add_builtin_fun_ext @{theory} C.basicC) basic_builtin_fun_names
        (* FIXME: SMT_Normalize should check that they are properly used *)
 
-structure Builtin_Funcs = Theory_Data
+structure Builtin_Funcs = Generic_Data
 (
-  type T = (bool bfun, (string * term list) option bfun) btab
+  type T = builtin_funcs
   val empty = basic_builtin_funcs ()
   val extend = I
   val merge = merge_btab
@@ -181,11 +185,12 @@ fun add_builtin_fun_ext ((n, T), f) =
 
 fun add_builtin_fun_ext' c = add_builtin_fun_ext (c, true3)
 
-fun add_builtin_fun_ext'' n thy =
-  add_builtin_fun_ext' (n, Sign.the_const_type thy n) thy
+fun add_builtin_fun_ext'' n context =
+  let val thy = Context.theory_of context
+  in add_builtin_fun_ext' (n, Sign.the_const_type thy n) context end
 
 fun lookup_builtin_fun ctxt =
-  lookup_btab ctxt (Builtin_Funcs.get (ProofContext.theory_of ctxt))
+  lookup_btab ctxt (Builtin_Funcs.get (Context.Proof ctxt))
 
 fun builtin_fun ctxt (c as (_, T)) ts =
   (case lookup_builtin_fun ctxt c of

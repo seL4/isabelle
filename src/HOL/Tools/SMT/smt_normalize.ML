@@ -582,10 +582,10 @@ fun normalize extra_norm with_datatypes irules ctxt =
 
 (* setup *)
 
-val setup =
+val setup = Context.theory_map (
   setup_bool_case #>
   setup_nat_as_int #>
   setup_unfolded_quants #>
-  setup_atomize
+  setup_atomize)
 
 end

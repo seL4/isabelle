@@ -106,9 +106,9 @@ val real_linarith_proc = Simplifier.simproc_global @{theory} "fast_real_arith" [
 (* setup *)
 
 val setup =
-  setup_builtins #>
   Context.theory_map (
     SMTLIB_Interface.add_logic (10, smtlib_logic) #>
+    setup_builtins #>
     Z3_Interface.add_mk_builtins z3_mk_builtins #>
     fold Z3_Proof_Reconstruction.add_z3_rule real_rules #>
     Z3_Proof_Tools.add_simproc real_linarith_proc)
