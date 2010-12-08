@@ -226,6 +226,8 @@ val only_partially_supported = [
 
 fun is_builtin_ext ctxt (c as (n, _)) ts =
   if member (op =) only_partially_supported n then false
-  else is_builtin_fun_ext ctxt c ts
+  else
+    is_builtin_num_ext ctxt (Term.list_comb (Const c, ts)) orelse 
+    is_builtin_fun_ext ctxt c ts
 
 end
