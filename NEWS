@@ -111,6 +111,17 @@ the local file system.
 
 *** HOL ***
 
+* More canonical naming convention for some fundamental definitions:
+
+    bot_bool_eq ~> bot_bool_def
+    top_bool_eq ~> top_bool_def
+    inf_bool_eq ~> inf_bool_def
+    sup_bool_eq ~> sup_bool_def
+    bot_fun_eq ~> bot_fun_def
+    top_fun_eq ~> top_fun_def
+    inf_fun_eq ~> inf_fun_def
+    sup_fun_eq ~> sup_fun_def
+
 * Quickcheck now by default uses exhaustive testing instead of random
 testing.  Random testing can be invoked by quickcheck[random],
 exhaustive testing by quickcheck[exhaustive].
