@@ -217,7 +217,8 @@ done
 lemma coinduct3: 
   "[| mono(f);  a:X;  X \<subseteq> f(lfp(%x. f(x) Un X Un gfp(f))) |] ==> a : gfp(f)"
 apply (rule coinduct3_lemma [THEN [2] weak_coinduct])
-apply (rule coinduct3_mono_lemma [THEN lfp_unfold, THEN ssubst], auto)
+apply (rule coinduct3_mono_lemma [THEN lfp_unfold, THEN ssubst])
+apply (simp_all)
 done
 
 
