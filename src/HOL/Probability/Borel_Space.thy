@@ -1347,6 +1347,16 @@ proof -
     by (auto intro!: measurable_If)
 qed
 
+lemma (in sigma_algebra) borel_measurable_pextreal_setsum[simp, intro]:
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> pextreal"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
+  shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
+proof cases
+  assume "finite S"
+  thus ?thesis using assms
+    by induct auto
+qed (simp add: borel_measurable_const)
+
 lemma (in sigma_algebra) borel_measurable_pextreal_times[intro, simp]:
   fixes f :: "'a \<Rightarrow> pextreal" assumes "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x * g x) \<in> borel_measurable M"
@@ -1359,15 +1369,14 @@ proof -
     by (auto intro!: measurable_If)
 qed
 
-lemma (in sigma_algebra) borel_measurable_pextreal_setsum[simp, intro]:
+lemma (in sigma_algebra) borel_measurable_pextreal_setprod[simp, intro]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> pextreal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
-  shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
+  shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
 proof cases
   assume "finite S"
-  thus ?thesis using assms
-    by induct auto
-qed (simp add: borel_measurable_const)
+  thus ?thesis using assms by induct auto
+qed simp
 
 lemma (in sigma_algebra) borel_measurable_pextreal_min[simp, intro]:
   fixes f g :: "'a \<Rightarrow> pextreal"

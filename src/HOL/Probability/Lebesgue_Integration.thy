@@ -1283,6 +1283,11 @@ lemma (in measure_space) positive_integral_cmult:
   shows "positive_integral (\<lambda>x. c * f x) = c * positive_integral f"
   using positive_integral_linear[OF assms, of "\<lambda>x. 0" c] by auto
 
+lemma (in measure_space) positive_integral_multc:
+  assumes "f \<in> borel_measurable M"
+  shows "positive_integral (\<lambda>x. f x * c) = positive_integral f * c"
+  unfolding mult_commute[of _ c] positive_integral_cmult[OF assms] by simp
+
 lemma (in measure_space) positive_integral_indicator[simp]:
   "A \<in> sets M \<Longrightarrow> positive_integral (\<lambda>x. indicator A x) = \<mu> A"
 by (subst positive_integral_eq_simple_integral) (auto simp: simple_function_indicator simple_integral_indicator)
@@ -1762,6 +1767,11 @@ proof -
   qed
   thus ?P ?I by auto
 qed
+
+lemma (in measure_space) integral_multc:
+  assumes "integrable f"
+  shows "integral (\<lambda>x. f x * c) = integral f * c"
+  unfolding mult_commute[of _ c] integral_cmult[OF assms] ..
 
 lemma (in measure_space) integral_mono_AE:
   assumes fg: "integrable f" "integrable g"

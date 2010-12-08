@@ -1638,6 +1638,17 @@ abbreviation (in product_sigma_finite)
   "product_integral I \<equiv>
     measure_space.integral (sigma (product_algebra M I)) (product_measure I)"
 
+abbreviation (in product_sigma_finite)
+  "product_integrable I \<equiv>
+    measure_space.integrable (sigma (product_algebra M I)) (product_measure I)"
+
+lemma (in product_sigma_finite) product_measure_empty[simp]:
+  "product_measure {} {\<lambda>x. undefined} = 1"
+proof -
+  interpret finite_product_sigma_finite M \<mu> "{}" by default auto
+  from measure_times[of "\<lambda>x. {}"] show ?thesis by simp
+qed
+
 lemma (in product_sigma_finite) positive_integral_empty:
   "product_positive_integral {} f = f (\<lambda>k. undefined)"
 proof -
@@ -1776,6 +1787,59 @@ proof -
   qed simp
 qed
 
+lemma (in product_sigma_finite) product_positive_integral_insert:
+  assumes [simp]: "finite I" "i \<notin> I"
+    and f: "f \<in> borel_measurable (sigma (product_algebra M (insert i I)))"
+  shows "product_positive_integral (insert i I) f
+    = product_positive_integral I (\<lambda>x. M.positive_integral i (\<lambda>y. f (x(i:=y))))"
+proof -
+  interpret I: finite_product_sigma_finite M \<mu> I by default auto
+  interpret i: finite_product_sigma_finite M \<mu> "{i}" by default auto
+  interpret P: pair_sigma_algebra I.P i.P ..
+  have IJ: "I \<inter> {i} = {}" by auto
+  show ?thesis
+    unfolding product_positive_integral_fold[OF IJ, simplified, OF f]
+  proof (rule I.positive_integral_cong, subst product_positive_integral_singleton)
+    fix x assume x: "x \<in> space I.P"
+    let "?f y" = "f (restrict (x(i := y)) (insert i I))"
+    have f'_eq: "\<And>y. ?f y = f (x(i := y))"
+      using x by (auto intro!: arg_cong[where f=f] simp: fun_eq_iff extensional_def)
+    note fP = f[unfolded measurable_merge_iff[OF IJ, simplified]]
+    show "?f \<in> borel_measurable (M i)"
+      using P.measurable_pair_image_snd[OF fP x]
+      unfolding measurable_singleton f'_eq by (simp add: f'_eq)
+    show "M.positive_integral i ?f = M.positive_integral i (\<lambda>y. f (x(i := y)))"
+      unfolding f'_eq by simp
+  qed
+qed
+
+lemma (in product_sigma_finite) product_positive_integral_setprod:
+  fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> pextreal"
+  assumes "finite I" and borel: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable (M i)"
+  shows "product_positive_integral I (\<lambda>x. (\<Prod>i\<in>I. f i (x i))) =
+    (\<Prod>i\<in>I. M.positive_integral i (f i))"
+using assms proof induct
+  case empty
+  interpret finite_product_sigma_finite M \<mu> "{}" by default auto
+  then show ?case by simp
+next
+  case (insert i I)
+  note `finite I`[intro, simp]
+  interpret I: finite_product_sigma_finite M \<mu> I by default auto
+  have *: "\<And>x y. (\<Prod>j\<in>I. f j (if j = i then y else x j)) = (\<Prod>j\<in>I. f j (x j))"
+    using insert by (auto intro!: setprod_cong)
+  have prod: "\<And>J. J \<subseteq> insert i I \<Longrightarrow>
+    (\<lambda>x. (\<Prod>i\<in>J. f i (x i))) \<in> borel_measurable (sigma (product_algebra M J))"
+    using sets_into_space insert
+    by (intro sigma_algebra.borel_measurable_pextreal_setprod
+              sigma_algebra_sigma product_algebra_sets_into_space
+              measurable_component)
+       auto
+  show ?case
+    by (simp add: product_positive_integral_insert[OF insert(1,2) prod])
+       (simp add: insert I.positive_integral_cmult M.positive_integral_multc * prod subset_insertI)
+qed
+
 lemma (in product_sigma_finite) product_integral_singleton:
   assumes f: "f \<in> borel_measurable (M i)"
   shows "product_integral {i} (\<lambda>x. f (x i)) = M.integral i f"
@@ -1827,6 +1891,84 @@ proof -
     unfolding P.integrable_fst_measurable(2)[OF `P.integrable ?f`, simplified]
     unfolding IJ.integral_def P.integral_def
     unfolding PI by simp
+qed
+
+lemma (in product_sigma_finite) product_integral_insert:
+  assumes [simp]: "finite I" "i \<notin> I"
+    and f: "measure_space.integrable (sigma (product_algebra M (insert i I))) (product_measure (insert i I)) f"
+  shows "product_integral (insert i I) f
+    = product_integral I (\<lambda>x. M.integral i (\<lambda>y. f (x(i:=y))))"
+proof -
+  interpret I: finite_product_sigma_finite M \<mu> I by default auto
+  interpret I': finite_product_sigma_finite M \<mu> "insert i I" by default auto
+  interpret i: finite_product_sigma_finite M \<mu> "{i}" by default auto
+  interpret P: pair_sigma_algebra I.P i.P ..
+  have IJ: "I \<inter> {i} = {}" by auto
+  show ?thesis
+    unfolding product_integral_fold[OF IJ, simplified, OF f]
+  proof (rule I.integral_cong, subst product_integral_singleton)
+    fix x assume x: "x \<in> space I.P"
+    let "?f y" = "f (restrict (x(i := y)) (insert i I))"
+    have f'_eq: "\<And>y. ?f y = f (x(i := y))"
+      using x by (auto intro!: arg_cong[where f=f] simp: fun_eq_iff extensional_def)
+    have "f \<in> borel_measurable I'.P" using f unfolding I'.integrable_def by auto
+    note fP = this[unfolded measurable_merge_iff[OF IJ, simplified]]
+    show "?f \<in> borel_measurable (M i)"
+      using P.measurable_pair_image_snd[OF fP x]
+      unfolding measurable_singleton f'_eq by (simp add: f'_eq)
+    show "M.integral i ?f = M.integral i (\<lambda>y. f (x(i := y)))"
+      unfolding f'_eq by simp
+  qed
+qed
+
+lemma (in product_sigma_finite) product_integrable_setprod:
+  fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> real"
+  assumes [simp]: "finite I" and integrable: "\<And>i. i \<in> I \<Longrightarrow> M.integrable i (f i)"
+  shows "product_integrable I (\<lambda>x. (\<Prod>i\<in>I. f i (x i)))" (is "product_integrable I ?f")
+proof -
+  interpret finite_product_sigma_finite M \<mu> I by default fact
+  have f: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable (M i)"
+    using integrable unfolding M.integrable_def by auto
+  then have borel: "?f \<in> borel_measurable P"
+    by (intro borel_measurable_setprod measurable_component) auto
+  moreover have "integrable (\<lambda>x. \<bar>\<Prod>i\<in>I. f i (x i)\<bar>)"
+  proof (unfold integrable_def, intro conjI)
+    show "(\<lambda>x. abs (?f x)) \<in> borel_measurable P"
+      using borel by auto
+    have "positive_integral (\<lambda>x. Real (abs (?f x))) =
+      positive_integral (\<lambda>x. \<Prod>i\<in>I. Real (abs (f i (x i))))"
+      by (simp add: Real_setprod abs_setprod)
+    also have "\<dots> = (\<Prod>i\<in>I. M.positive_integral i (\<lambda>x. Real (abs (f i x))))"
+      using f by (subst product_positive_integral_setprod) auto
+    also have "\<dots> < \<omega>"
+      using integrable[THEN M.integrable_abs]
+      unfolding pextreal_less_\<omega> setprod_\<omega> M.integrable_def by simp
+    finally show "positive_integral (\<lambda>x. Real (abs (?f x))) \<noteq> \<omega>" by auto
+    show "positive_integral (\<lambda>x. Real (- abs (?f x))) \<noteq> \<omega>" by simp
+  qed
+  ultimately show ?thesis
+    by (rule integrable_abs_iff[THEN iffD1])
+qed
+
+lemma (in product_sigma_finite) product_integral_setprod:
+  fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> real"
+  assumes "finite I" "I \<noteq> {}" and integrable: "\<And>i. i \<in> I \<Longrightarrow> M.integrable i (f i)"
+  shows "product_integral I (\<lambda>x. (\<Prod>i\<in>I. f i (x i))) = (\<Prod>i\<in>I. M.integral i (f i))"
+using assms proof (induct rule: finite_ne_induct)
+  case (singleton i)
+  then show ?case by (simp add: product_integral_singleton integrable_def)
+next
+  case (insert i I)
+  then have iI: "finite (insert i I)" by auto
+  then have prod: "\<And>J. J \<subseteq> insert i I \<Longrightarrow>
+    product_integrable J (\<lambda>x. (\<Prod>i\<in>J. f i (x i)))"
+    by (intro product_integrable_setprod insert(5)) (auto intro: finite_subset)
+  interpret I: finite_product_sigma_finite M \<mu> I by default fact
+  have *: "\<And>x y. (\<Prod>j\<in>I. f j (if j = i then y else x j)) = (\<Prod>j\<in>I. f j (x j))"
+    using `i \<notin> I` by (auto intro!: setprod_cong)
+  show ?case
+    unfolding product_integral_insert[OF insert(1,3) prod[OF subset_refl]]
+    by (simp add: * insert integral_multc I.integral_cmult[OF prod] subset_insertI)
 qed
 
 section "Products on finite spaces"
