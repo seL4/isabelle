@@ -13,7 +13,7 @@ sig
 
   val fact_prefix : string
   val conjecture_prefix : string
-  val translate_fact :
+  val translate_atp_fact :
     Proof.context -> (string * 'a) * thm
     -> term * ((string * 'a) * translated_formula) option
   val prepare_atp_problem :
@@ -247,7 +247,8 @@ fun get_helper_facts ctxt is_FO full_types conjectures facts =
     |> map_filter (Option.map snd o make_fact ctxt false)
   end
 
-fun translate_fact ctxt (ax as (_, th)) = (prop_of th, make_fact ctxt true ax)
+fun translate_atp_fact ctxt (ax as (_, th)) =
+  (prop_of th, make_fact ctxt true ax)
 
 fun translate_formulas ctxt full_types hyp_ts concl_t facts =
   let

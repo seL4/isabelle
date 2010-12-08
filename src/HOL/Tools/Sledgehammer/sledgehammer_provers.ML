@@ -31,7 +31,7 @@ sig
 
   datatype fact =
     Untranslated of (string * locality) * thm |
-    Translated of term * ((string * locality) * translated_formula) option
+    ATP_Translated of term * ((string * locality) * translated_formula) option
 
   type prover_problem =
     {state: Proof.state,
@@ -214,7 +214,7 @@ type params =
 
 datatype fact =
   Untranslated of (string * locality) * thm |
-  Translated of term * ((string * locality) * translated_formula) option
+  ATP_Translated of term * ((string * locality) * translated_formula) option
 
 type prover_problem =
   {state: Proof.state,
@@ -268,9 +268,9 @@ fun proof_banner auto =
 (* generic TPTP-based ATPs *)
 
 fun dest_Untranslated (Untranslated p) = p
-  | dest_Untranslated (Translated _) = raise Fail "dest_Untranslated"
-fun translated_fact ctxt (Untranslated p) = translate_fact ctxt p
-  | translated_fact _ (Translated p) = p
+  | dest_Untranslated (ATP_Translated _) = raise Fail "dest_Untranslated"
+fun atp_translated_fact ctxt (Untranslated p) = translate_atp_fact ctxt p
+  | atp_translated_fact _ (ATP_Translated p) = p
 
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
@@ -289,7 +289,7 @@ fun run_atp auto atp_name
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val facts =
-      facts |> map (translated_fact ctxt)
+      facts |> map (atp_translated_fact ctxt)
     val dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                    else Config.get ctxt dest_dir
     val problem_prefix = Config.get ctxt problem_prefix

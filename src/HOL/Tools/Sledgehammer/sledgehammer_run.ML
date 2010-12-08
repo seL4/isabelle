@@ -29,7 +29,7 @@ open Sledgehammer_Provers
 val auto_max_relevant_divisor = 2
 
 fun fact_name (Untranslated ((name, _), _)) = SOME name
-  | fact_name (Translated (_, p)) = Option.map (fst o fst) p
+  | fact_name (ATP_Translated (_, p)) = Option.map (fst o fst) p
 
 fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                                  relevance_thresholds, max_relevant, ...})
@@ -98,7 +98,7 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
           end
       val run_atps =
         run_provers "ATP" full_types atp_relevance_fudge
-                    (Translated o translate_fact ctxt) atps
+                    (ATP_Translated o translate_atp_fact ctxt) atps
       val run_smts =
         run_provers "SMT solver" true smt_relevance_fudge Untranslated smts
       fun run_atps_and_smt_solvers () =
