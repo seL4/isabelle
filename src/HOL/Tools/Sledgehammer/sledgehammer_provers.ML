@@ -48,6 +48,7 @@ sig
 
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
+  val das_Tool : string
   val is_smt_prover : Proof.context -> string -> bool
   val is_prover_available : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
@@ -65,9 +66,6 @@ sig
   val running_provers : unit -> unit
   val messages : int option -> unit
   val get_prover : Proof.context -> bool -> string -> prover
-  val run_prover :
-    params -> bool -> (string -> minimize_command) -> bool -> prover_problem
-    -> string -> bool * Proof.state
   val setup : theory -> theory
 end;
 
@@ -248,19 +246,6 @@ fun with_path cleanup after f path =
   |> tap (fn _ => cleanup path)
   |> Exn.release
   |> tap (after path)
-
-fun prover_description ctxt ({blocking, verbose, ...} : params) name num_facts i
-                       n goal =
-  quote name ^
-  (if verbose then
-     " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts
-   else
-     "") ^
-  " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^ ":" ^
-  (if blocking then
-     ""
-   else
-     "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
 
 fun proof_banner auto =
   if auto then "Auto Sledgehammer found a proof" else "Try this command"
@@ -578,66 +563,6 @@ fun get_prover ctxt auto name =
       run_atp auto name (get_atp thy name)
     else
       error ("No such prover: " ^ name ^ ".")
-  end
-
-fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
-               auto minimize_command only
-               {state, goal, subgoal, subgoal_count, facts} name =
-  let
-    val ctxt = Proof.context_of state
-    val birth_time = Time.now ()
-    val death_time = Time.+ (birth_time, timeout)
-    val max_relevant =
-      the_default (default_max_relevant_for_prover ctxt name) max_relevant
-    val num_facts = length facts |> not only ? Integer.min max_relevant
-    val desc =
-      prover_description ctxt params name num_facts subgoal subgoal_count goal
-    val prover = get_prover ctxt auto name
-    val problem =
-      {state = state, goal = goal, subgoal = subgoal,
-       subgoal_count = subgoal_count, facts = take num_facts facts}
-    fun go () =
-      let
-        fun really_go () =
-          prover params (minimize_command name) problem
-          |> (fn {outcome, message, ...} =>
-                 (if is_some outcome then "none" else "some", message))
-        val (outcome_code, message) =
-          if debug then
-            really_go ()
-          else
-            (really_go ()
-             handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
-                  | exn =>
-                    if Exn.is_interrupt exn then
-                      reraise exn
-                    else
-                      ("unknown", "Internal error:\n" ^
-                                  ML_Compiler.exn_message exn ^ "\n"))
-        val _ =
-          if expect = "" orelse outcome_code = expect then
-            ()
-          else if blocking then
-            error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
-          else
-            warning ("Unexpected outcome: " ^ quote outcome_code ^ ".");
-      in (outcome_code = "some", message) end
-  in
-    if auto then
-      let val (success, message) = TimeLimit.timeLimit timeout go () in
-        (success, state |> success ? Proof.goal_message (fn () =>
-             Pretty.chunks [Pretty.str "", Pretty.mark Markup.hilite
-                 (Pretty.str message)]))
-      end
-    else if blocking then
-      let val (success, message) = TimeLimit.timeLimit timeout go () in
-        List.app Output.urgent_message
-                 (Async_Manager.break_into_chunks [desc ^ "\n" ^ message]);
-        (success, state)
-      end
-    else
-      (Async_Manager.launch das_Tool birth_time death_time desc (snd o go);
-       (false, state))
   end
 
 val setup =
