@@ -323,9 +323,10 @@ proof -
   { fix f g assume  "f \<up> g" and f: "\<And>i. f i \<in> G"
     have "g \<in> G" unfolding G_def
     proof safe
-      from `f \<up> g` have [simp]: "g = (SUP i. f i)" unfolding isoton_def by simp
+      from `f \<up> g` have [simp]: "g = (\<lambda>x. SUP i. f i x)"
+        unfolding isoton_def fun_eq_iff SUPR_apply by simp
       have f_borel: "\<And>i. f i \<in> borel_measurable M" using f unfolding G_def by simp
-      thus "g \<in> borel_measurable M" by (auto intro!: borel_measurable_SUP)
+      thus "g \<in> borel_measurable M" by auto
       fix A assume "A \<in> sets M"
       hence "\<And>i. (\<lambda>x. f i x * indicator A x) \<in> borel_measurable M"
         using f_borel by (auto intro!: borel_measurable_indicator)

@@ -1176,8 +1176,6 @@ proof safe
     apply (rule positive_integral_mono)
     using `f \<up> u` unfolding isoton_def le_fun_def by auto
 next
-  have "u \<in> borel_measurable M"
-    using borel_measurable_SUP[of UNIV f] assms by (auto simp: isoton_def)
   have u: "u = (SUP i. f i)" using `f \<up> u` unfolding isoton_def by auto
 
   show "(SUP i. positive_integral (f i)) = positive_integral u"
@@ -1198,8 +1196,6 @@ lemma (in measure_space) positive_integral_monotone_convergence_SUP:
   shows "(SUP i. positive_integral (f i)) = positive_integral (\<lambda>x. SUP i. f i x)"
     (is "_ = positive_integral ?u")
 proof -
-  have "?u \<in> borel_measurable M"
-    using borel_measurable_SUP[of _ f] assms by (simp add: SUPR_fun_expand)
   show ?thesis
   proof (rule antisym)
     show "(SUP j. positive_integral (f j)) \<le> positive_integral ?u"
@@ -1209,9 +1205,9 @@ proof -
     have "\<And>i. rf i \<in> borel_measurable M" unfolding rf_def
       using assms by (simp cong: measurable_cong)
     moreover have iso: "rf \<up> ru" using assms unfolding rf_def ru_def
-      unfolding isoton_def SUPR_fun_expand le_fun_def fun_eq_iff
+      unfolding isoton_def le_fun_def fun_eq_iff SUPR_apply
       using SUP_const[OF UNIV_not_empty]
-      by (auto simp: restrict_def le_fun_def SUPR_fun_expand fun_eq_iff)
+      by (auto simp: restrict_def le_fun_def fun_eq_iff)
     ultimately have "positive_integral ru \<le> (SUP i. positive_integral (rf i))"
       unfolding positive_integral_alt[of ru]
       by (auto simp: le_fun_def intro!: SUP_leI positive_integral_SUP_approx)
@@ -1354,24 +1350,16 @@ text {* Fatou's lemma: convergence theorem on limes inferior *}
 lemma (in measure_space) positive_integral_lim_INF:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> pextreal"
   assumes "\<And>i. u i \<in> borel_measurable M"
-  shows "positive_integral (SUP n. INF m. u (m + n)) \<le>
+  shows "positive_integral (\<lambda>x. SUP n. INF m. u (m + n) x) \<le>
     (SUP n. INF m. positive_integral (u (m + n)))"
 proof -
-  have "(SUP n. INF m. u (m + n)) \<in> borel_measurable M"
-    by (auto intro!: borel_measurable_SUP borel_measurable_INF assms)
-
-  have "(\<lambda>n. INF m. u (m + n)) \<up> (SUP n. INF m. u (m + n))"
-  proof (unfold isoton_def, safe intro!: INF_mono bexI)
-    fix i m show "u (Suc m + i) \<le> u (m + Suc i)" by simp
-  qed simp
-  from positive_integral_isoton[OF this] assms
-  have "positive_integral (SUP n. INF m. u (m + n)) =
-    (SUP n. positive_integral (INF m. u (m + n)))"
-    unfolding isoton_def by (simp add: borel_measurable_INF)
+  have "positive_integral (\<lambda>x. SUP n. INF m. u (m + n) x)
+      = (SUP n. positive_integral (\<lambda>x. INF m. u (m + n) x))"
+    using assms
+    by (intro positive_integral_monotone_convergence_SUP[symmetric] INF_mono)
+       (auto simp del: add_Suc simp add: add_Suc[symmetric])
   also have "\<dots> \<le> (SUP n. INF m. positive_integral (u (m + n)))"
-    apply (rule SUP_mono)
-    apply (rule_tac x=n in bexI)
-    by (auto intro!: positive_integral_mono INFI_bound INF_leI exI simp: INFI_fun_expand)
+    by (auto intro!: SUP_mono bexI le_INFI positive_integral_mono INF_leI)
   finally show ?thesis .
 qed
 
@@ -1960,10 +1948,10 @@ proof -
 
   have borel_f: "\<And>i. (\<lambda>x. Real (f i x)) \<in> borel_measurable M"
     using i unfolding integrable_def by auto
-  hence "(SUP i. (\<lambda>x. Real (f i x))) \<in> borel_measurable M"
+  hence "(\<lambda>x. SUP i. Real (f i x)) \<in> borel_measurable M"
     by auto
   hence borel_u: "u \<in> borel_measurable M"
-    using pos_u by (auto simp: borel_measurable_Real_eq SUPR_fun_expand SUP_F)
+    using pos_u by (auto simp: borel_measurable_Real_eq SUP_F)
 
   have integral_eq: "\<And>n. positive_integral (\<lambda>x. Real (f n x)) = Real (integral (f n))"
     using i unfolding integral_def integrable_def by (auto simp: Real_real)
@@ -2144,8 +2132,8 @@ proof -
     thus ?thesis by simp
   next
     assume neq_0: "positive_integral (\<lambda>x. Real (2 * w x)) \<noteq> 0"
-    have "positive_integral (\<lambda>x. Real (2 * w x)) = positive_integral (SUP n. INF m. (\<lambda>x. Real (?diff (m + n) x)))"
-    proof (rule positive_integral_cong, unfold SUPR_fun_expand INFI_fun_expand, subst add_commute)
+    have "positive_integral (\<lambda>x. Real (2 * w x)) = positive_integral (\<lambda>x. SUP n. INF m. Real (?diff (m + n) x))"
+    proof (rule positive_integral_cong, subst add_commute)
       fix x assume x: "x \<in> space M"
       show "Real (2 * w x) = (SUP n. INF m. Real (?diff (n + m) x))"
       proof (rule LIMSEQ_imp_lim_INF[symmetric])

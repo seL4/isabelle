@@ -552,10 +552,10 @@ lemma (in measure_space) positive_integral_monotone_convergence:
 proof -
   from positive_integral_isoton[unfolded isoton_fun_expand isoton_iff_Lim_mono, of f u]
   show ?ilim using mono lim i by auto
-  have "(SUP i. f i) = u" using mono lim SUP_Lim_pextreal
-    unfolding fun_eq_iff SUPR_fun_expand mono_def by auto
-  moreover have "(SUP i. f i) \<in> borel_measurable M"
-    using i by (rule borel_measurable_SUP)
+  have "\<And>x. (SUP i. f i x) = u x" using mono lim SUP_Lim_pextreal
+    unfolding fun_eq_iff mono_def by auto
+  moreover have "(\<lambda>x. SUP i. f i x) \<in> borel_measurable M"
+    using i by auto
   ultimately show "u \<in> borel_measurable M" by simp
 qed
 

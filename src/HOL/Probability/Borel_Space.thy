@@ -1395,7 +1395,7 @@ lemma (in sigma_algebra) borel_measurable_pextreal_max[simp, intro]:
 lemma (in sigma_algebra) borel_measurable_SUP[simp, intro]:
   fixes f :: "'d\<Colon>countable \<Rightarrow> 'a \<Rightarrow> pextreal"
   assumes "\<And>i. i \<in> A \<Longrightarrow> f i \<in> borel_measurable M"
-  shows "(SUP i : A. f i) \<in> borel_measurable M" (is "?sup \<in> borel_measurable M")
+  shows "(\<lambda>x. SUP i : A. f i x) \<in> borel_measurable M" (is "?sup \<in> borel_measurable M")
   unfolding borel_measurable_pextreal_iff_greater
 proof safe
   fix a
@@ -1408,7 +1408,7 @@ qed
 lemma (in sigma_algebra) borel_measurable_INF[simp, intro]:
   fixes f :: "'d :: countable \<Rightarrow> 'a \<Rightarrow> pextreal"
   assumes "\<And>i. i \<in> A \<Longrightarrow> f i \<in> borel_measurable M"
-  shows "(INF i : A. f i) \<in> borel_measurable M" (is "?inf \<in> borel_measurable M")
+  shows "(\<lambda>x. INF i : A. f i x) \<in> borel_measurable M" (is "?inf \<in> borel_measurable M")
   unfolding borel_measurable_pextreal_iff_less
 proof safe
   fix a
@@ -1432,20 +1432,10 @@ proof safe
     using assms by auto
 qed
 
-lemma INFI_fun_expand:
-  "(INF y:A. f y) = (\<lambda>x. (INF y:A. f y x))"
-  by (simp add: fun_eq_iff INFI_apply)
-
-lemma SUPR_fun_expand:
-  "(SUP y:A. f y) = (\<lambda>x. (SUP y:A. f y x))"
-  by (simp add: fun_eq_iff SUPR_apply)
-
 lemma (in sigma_algebra) borel_measurable_psuminf[simp, intro]:
   assumes "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. (\<Sum>\<^isub>\<infinity> i. f i x)) \<in> borel_measurable M"
-  using assms unfolding psuminf_def
-  by (auto intro!: borel_measurable_SUP [unfolded SUPR_fun_expand])
-
+  using assms unfolding psuminf_def by auto
 
 section "LIMSEQ is borel measurable"
 
@@ -1468,13 +1458,12 @@ proof -
   note eq = this
   have *: "\<And>x. real (Real (u' x)) - real (Real (- u' x)) = u' x"
     by auto
-  have "(SUP n. INF m. (\<lambda>x. Real (u (n + m) x))) \<in> borel_measurable M"
-       "(SUP n. INF m. (\<lambda>x. Real (- u (n + m) x))) \<in> borel_measurable M"
-    using u by (auto intro: borel_measurable_SUP borel_measurable_INF borel_measurable_Real)
+  have "(\<lambda>x. SUP n. INF m. Real (u (n + m) x)) \<in> borel_measurable M"
+       "(\<lambda>x. SUP n. INF m. Real (- u (n + m) x)) \<in> borel_measurable M"
+    using u by auto
   with eq[THEN measurable_cong, of M "\<lambda>x. x" borel]
   have "(\<lambda>x. Real (u' x)) \<in> borel_measurable M"
-       "(\<lambda>x. Real (- u' x)) \<in> borel_measurable M"
-    unfolding SUPR_fun_expand INFI_fun_expand by auto
+       "(\<lambda>x. Real (- u' x)) \<in> borel_measurable M" by auto
   note this[THEN borel_measurable_real]
   from borel_measurable_diff[OF this]
   show ?thesis unfolding * .

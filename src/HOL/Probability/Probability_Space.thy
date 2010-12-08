@@ -1069,13 +1069,13 @@ proof safe
 
   show "\<exists>g\<in>borel_measurable M'. \<forall>x\<in>space M. Z x = g (Y x)"
   proof (intro ballI bexI)
-    show "(SUP i. g i) \<in> borel_measurable M'"
+    show "(\<lambda>x. SUP i. g i x) \<in> borel_measurable M'"
       using g by (auto intro: M'.borel_measurable_simple_function)
     fix x assume "x \<in> space M"
     have "Z x = (SUP i. f i) x" using `f \<up> Z` unfolding isoton_def by simp
-    also have "\<dots> = (SUP i. g i) (Y x)" unfolding SUPR_fun_expand
+    also have "\<dots> = (SUP i. g i (Y x))" unfolding SUPR_apply
       using g `x \<in> space M` by simp
-    finally show "Z x = (SUP i. g i) (Y x)" .
+    finally show "Z x = (SUP i. g i (Y x))" .
   qed
 qed
 

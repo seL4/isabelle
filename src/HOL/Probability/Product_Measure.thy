@@ -767,11 +767,11 @@ proof -
   then have F_borel: "\<And>i. F i \<in> borel_measurable P"
     and F_mono: "\<And>i x. F i x \<le> F (Suc i) x"
     and F_SUPR: "\<And>x. (SUP i. F i x) = f x"
-    unfolding isoton_def le_fun_def SUPR_fun_expand
+    unfolding isoton_fun_expand unfolding isoton_def le_fun_def
     by (auto intro: borel_measurable_simple_function)
   note sf = simple_function_cut[OF F(1)]
-  then have "(SUP i. ?C (F i)) \<in> borel_measurable M1"
-    using F(1) by (auto intro!: M1.borel_measurable_SUP)
+  then have "(\<lambda>x. SUP i. ?C (F i) x) \<in> borel_measurable M1"
+    using F(1) by auto
   moreover
   { fix x assume "x \<in> space M1"
     have isotone: "(\<lambda> i y. F i (x, y)) \<up> (\<lambda>y. f (x, y))"
@@ -783,7 +783,7 @@ proof -
       by (simp add: isoton_def) }
   note SUPR_C = this
   ultimately show "?C f \<in> borel_measurable M1"
-    unfolding SUPR_fun_expand by (simp cong: measurable_cong)
+    by (simp cong: measurable_cong)
   have "positive_integral (\<lambda>x. SUP i. F i x) = (SUP i. positive_integral (F i))"
     using F_borel F_mono
     by (auto intro!: positive_integral_monotone_convergence_SUP[symmetric])
