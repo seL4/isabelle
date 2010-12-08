@@ -7,7 +7,7 @@ section {* Common constants *}
 declare HOL.if_bool_eq_disj[code_pred_inline]
 
 declare bool_diff_def[code_pred_inline]
-declare inf_bool_eq_raw[code_pred_inline]
+declare inf_bool_def_raw[code_pred_inline]
 declare less_bool_def_raw[code_pred_inline]
 declare le_bool_def_raw[code_pred_inline]
 

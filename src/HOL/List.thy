@@ -4217,7 +4217,7 @@ proof (rule mono_inf [where f=listsp, THEN order_antisym])
   show "inf (listsp A) (listsp B) \<le> listsp (inf A B)" by (blast intro!: listsp_infI predicate1I)
 qed
 
-lemmas listsp_conj_eq [simp] = listsp_inf_eq [simplified inf_fun_eq inf_bool_eq]
+lemmas listsp_conj_eq [simp] = listsp_inf_eq [simplified inf_fun_def inf_bool_def]
 
 lemmas lists_Int_eq [simp] = listsp_inf_eq [to_set pred_equals_eq]
 

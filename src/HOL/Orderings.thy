@@ -1214,13 +1214,13 @@ definition
   less_bool_def: "(P\<Colon>bool) < Q \<longleftrightarrow> \<not> P \<and> Q"
 
 definition
-  top_bool_eq: "top = True"
+  top_bool_def: "top = True"
 
 definition
-  bot_bool_eq: "bot = False"
+  bot_bool_def: "bot = False"
 
 instance proof
-qed (auto simp add: bot_bool_eq top_bool_eq less_bool_def, auto simp add: le_bool_def)
+qed (auto simp add: bot_bool_def top_bool_def less_bool_def, auto simp add: le_bool_def)
 
 end
 
@@ -1237,10 +1237,10 @@ lemma le_boolD: "P \<le> Q \<Longrightarrow> P \<longrightarrow> Q"
   by (simp add: le_bool_def)
 
 lemma bot_boolE: "bot \<Longrightarrow> P"
-  by (simp add: bot_bool_eq)
+  by (simp add: bot_bool_def)
 
 lemma top_boolI: top
-  by (simp add: top_bool_eq)
+  by (simp add: top_bool_def)
 
 lemma [code]:
   "False \<le> b \<longleftrightarrow> True"
@@ -1276,11 +1276,11 @@ instantiation "fun" :: (type, top) top
 begin
 
 definition
-  top_fun_eq [no_atp]: "top = (\<lambda>x. top)"
-declare top_fun_eq_raw [no_atp]
+  top_fun_def [no_atp]: "top = (\<lambda>x. top)"
+declare top_fun_def_raw [no_atp]
 
 instance proof
-qed (simp add: top_fun_eq le_fun_def)
+qed (simp add: top_fun_def le_fun_def)
 
 end
 
@@ -1288,10 +1288,10 @@ instantiation "fun" :: (type, bot) bot
 begin
 
 definition
-  bot_fun_eq: "bot = (\<lambda>x. bot)"
+  bot_fun_def: "bot = (\<lambda>x. bot)"
 
 instance proof
-qed (simp add: bot_fun_eq le_fun_def)
+qed (simp add: bot_fun_def le_fun_def)
 
 end
 

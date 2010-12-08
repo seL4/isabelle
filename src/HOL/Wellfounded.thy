@@ -190,7 +190,7 @@ lemma wfP_empty [iff]:
   "wfP (\<lambda>x y. False)"
 proof -
   have "wfP bot" by (fact wf_empty [to_pred bot_empty_eq2])
-  then show ?thesis by (simp add: bot_fun_eq bot_bool_eq)
+  then show ?thesis by (simp add: bot_fun_def bot_bool_def)
 qed
 
 lemma wf_Int1: "wf r ==> wf (r Int r')"

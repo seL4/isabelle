@@ -593,28 +593,28 @@ definition
   bool_diff_def: "A - B \<longleftrightarrow> A \<and> \<not> B"
 
 definition
-  inf_bool_eq: "P \<sqinter> Q \<longleftrightarrow> P \<and> Q"
+  inf_bool_def: "P \<sqinter> Q \<longleftrightarrow> P \<and> Q"
 
 definition
-  sup_bool_eq: "P \<squnion> Q \<longleftrightarrow> P \<or> Q"
+  sup_bool_def: "P \<squnion> Q \<longleftrightarrow> P \<or> Q"
 
 instance proof
-qed (simp_all add: inf_bool_eq sup_bool_eq le_bool_def
-  bot_bool_eq top_bool_eq bool_Compl_def bool_diff_def, auto)
+qed (simp_all add: inf_bool_def sup_bool_def le_bool_def
+  bot_bool_def top_bool_def bool_Compl_def bool_diff_def, auto)
 
 end
 
 lemma sup_boolI1:
   "P \<Longrightarrow> P \<squnion> Q"
-  by (simp add: sup_bool_eq)
+  by (simp add: sup_bool_def)
 
 lemma sup_boolI2:
   "Q \<Longrightarrow> P \<squnion> Q"
-  by (simp add: sup_bool_eq)
+  by (simp add: sup_bool_def)
 
 lemma sup_boolE:
   "P \<squnion> Q \<Longrightarrow> (P \<Longrightarrow> R) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: sup_bool_eq)
+  by (auto simp add: sup_bool_def)
 
 
 subsection {* Fun as lattice *}
@@ -623,19 +623,19 @@ instantiation "fun" :: (type, lattice) lattice
 begin
 
 definition
-  inf_fun_eq: "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
+  inf_fun_def: "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
 
 definition
-  sup_fun_eq: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
+  sup_fun_def: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
 
 instance proof
-qed (simp_all add: le_fun_def inf_fun_eq sup_fun_eq)
+qed (simp_all add: le_fun_def inf_fun_def sup_fun_def)
 
 end
 
 instance "fun" :: (type, distrib_lattice) distrib_lattice
 proof
-qed (simp_all add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
+qed (simp_all add: inf_fun_def sup_fun_def sup_inf_distrib1)
 
 instance "fun" :: (type, bounded_lattice) bounded_lattice ..
 
@@ -661,7 +661,7 @@ end
 
 instance "fun" :: (type, boolean_algebra) boolean_algebra
 proof
-qed (simp_all add: inf_fun_eq sup_fun_eq bot_fun_eq top_fun_eq fun_Compl_def fun_diff_def
+qed (simp_all add: inf_fun_def sup_fun_def bot_fun_def top_fun_def fun_Compl_def fun_diff_def
   inf_compl_bot sup_compl_top diff_eq)
 
 
