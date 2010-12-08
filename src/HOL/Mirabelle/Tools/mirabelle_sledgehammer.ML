@@ -319,7 +319,8 @@ fun get_prover ctxt args =
     fun default_prover_name () =
       hd (#provers (Sledgehammer_Isar.default_params ctxt []))
       handle Empty => error "No ATP available."
-    fun get_prover name = (name, Sledgehammer.get_prover ctxt false name)
+    fun get_prover name =
+      (name, Sledgehammer_Provers.get_prover ctxt false name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
@@ -344,22 +345,22 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val thy = ProofContext.theory_of ctxt
     val i = 1
-    fun change_dir (SOME dir) = Config.put Sledgehammer.dest_dir dir
+    fun change_dir (SOME dir) = Config.put Sledgehammer_Provers.dest_dir dir
       | change_dir NONE = I
     val st' =
       st |> Proof.map_context
                 (change_dir dir
-                 #> Config.put Sledgehammer.measure_run_time true)
+                 #> Config.put Sledgehammer_Provers.measure_run_time true)
     val params as {full_types, relevance_thresholds, max_relevant, ...} =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("timeout", Int.toString timeout)]
     val default_max_relevant =
-      Sledgehammer.default_max_relevant_for_prover ctxt prover_name
+      Sledgehammer_Provers.default_max_relevant_for_prover ctxt prover_name
     val is_built_in_const =
-      Sledgehammer.is_built_in_const_for_prover ctxt prover_name
+      Sledgehammer_Provers.is_built_in_const_for_prover ctxt prover_name
     val relevance_fudge =
-      Sledgehammer.relevance_fudge_for_prover ctxt prover_name
+      Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover_name
     val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val facts =
@@ -369,13 +370,13 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
     val problem =
       {state = st', goal = goal, subgoal = i,
        subgoal_count = Sledgehammer_Util.subgoal_count st,
-       facts = facts |> map Sledgehammer.Untranslated}
+       facts = facts |> map Sledgehammer_Provers.Untranslated}
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     val ({outcome, message, used_facts, run_time_in_msecs, ...}
-         : Sledgehammer.prover_result,
+         : Sledgehammer_Provers.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time
                       (prover params (K ""))) problem
     val time_prover = run_time_in_msecs |> the_default ~1

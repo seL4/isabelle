@@ -8,7 +8,7 @@ Minimization of fact list for Metis using external provers.
 signature SLEDGEHAMMER_MINIMIZE =
 sig
   type locality = Sledgehammer_Filter.locality
-  type params = Sledgehammer.params
+  type params = Sledgehammer_Provers.params
 
   val minimize_facts :
     params -> int -> int -> Proof.state -> ((string * locality) * thm list) list
@@ -23,7 +23,7 @@ struct
 open ATP_Proof
 open Sledgehammer_Util
 open Sledgehammer_Filter
-open Sledgehammer
+open Sledgehammer_Provers
 
 (* wrapper for calling external prover *)
 

@@ -1,0 +1,112 @@
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_run.ML
+    Author:     Fabian Immler, TU Muenchen
+    Author:     Makarius
+    Author:     Jasmin Blanchette, TU Muenchen
+
+Sledgehammer's heart.
+*)
+
+signature SLEDGEHAMMER_RUN =
+sig
+  type relevance_override = Sledgehammer_Filter.relevance_override
+  type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
+  type params = Sledgehammer_Provers.params
+
+  val run_sledgehammer :
+    params -> bool -> int -> relevance_override -> (string -> minimize_command)
+    -> Proof.state -> bool * Proof.state
+end;
+
+structure Sledgehammer_Run : SLEDGEHAMMER_RUN =
+struct
+
+open Sledgehammer_Util
+open Sledgehammer_Filter
+open Sledgehammer_ATP_Translate
+open Sledgehammer_Provers
+
+(* FUDGE *)
+val auto_max_relevant_divisor = 2
+
+fun fact_name (Untranslated ((name, _), _)) = SOME name
+  | fact_name (Translated (_, p)) = Option.map (fst o fst) p
+
+fun run_sledgehammer (params as {blocking, debug, provers, full_types,
+                                 relevance_thresholds, max_relevant, ...})
+                     auto i (relevance_override as {only, ...}) minimize_command
+                     state =
+  if null provers then
+    error "No prover is set."
+  else case subgoal_count state of
+    0 => (Output.urgent_message "No subgoal!"; (false, state))
+  | n =>
+    let
+      val _ = Proof.assert_backward state
+      val ctxt = Proof.context_of state
+      val {facts = chained_ths, goal, ...} = Proof.goal state
+      val (_, hyp_ts, concl_t) = strip_subgoal goal i
+      val _ = () |> not blocking ? kill_provers
+      val _ = case find_first (not o is_prover_available ctxt) provers of
+                SOME name => error ("No such prover: " ^ name ^ ".")
+              | NONE => ()
+      val _ = if auto then () else Output.urgent_message "Sledgehammering..."
+      val (smts, atps) = provers |> List.partition (is_smt_prover ctxt)
+      fun run_provers label full_types relevance_fudge maybe_translate provers
+                      (res as (success, state)) =
+        if success orelse null provers then
+          res
+        else
+          let
+            val max_max_relevant =
+              case max_relevant of
+                SOME n => n
+              | NONE =>
+                0 |> fold (Integer.max o default_max_relevant_for_prover ctxt)
+                          provers
+                  |> auto ? (fn n => n div auto_max_relevant_divisor)
+            val is_built_in_const =
+              is_built_in_const_for_prover ctxt (hd provers)
+            val facts =
+              relevant_facts ctxt full_types relevance_thresholds
+                             max_max_relevant is_built_in_const relevance_fudge
+                             relevance_override chained_ths hyp_ts concl_t
+              |> map maybe_translate
+            val problem =
+              {state = state, goal = goal, subgoal = i, subgoal_count = n,
+               facts = facts}
+            val run_prover = run_prover params auto minimize_command only
+          in
+            if debug then
+              Output.urgent_message (label ^ plural_s (length provers) ^ ": " ^
+                  (if null facts then
+                     "Found no relevant facts."
+                   else
+                     "Including (up to) " ^ string_of_int (length facts) ^
+                     " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
+                     (facts |> map_filter fact_name
+                            |> space_implode " ") ^ "."))
+            else
+              ();
+            if auto then
+              fold (fn prover => fn (true, state) => (true, state)
+                                  | (false, _) => run_prover problem prover)
+                   provers (false, state)
+            else
+              provers |> (if blocking then Par_List.map else map)
+                             (run_prover problem)
+                      |> exists fst |> rpair state
+          end
+      val run_atps =
+        run_provers "ATP" full_types atp_relevance_fudge
+                    (Translated o translate_fact ctxt) atps
+      val run_smts =
+        run_provers "SMT solver" true smt_relevance_fudge Untranslated smts
+      fun run_atps_and_smt_solvers () =
+        [run_atps, run_smts] |> Par_List.map (fn f => f (false, state) |> K ())
+    in
+      (false, state)
+      |> (if blocking then run_atps #> not auto ? run_smts
+          else (fn p => Future.fork (tap run_atps_and_smt_solvers) |> K p))
+    end
+
+end;

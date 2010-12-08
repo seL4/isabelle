@@ -22,12 +22,13 @@ fun run_atp force_full_types timeout i n ctxt goal name =
        @ [("timeout", Int.toString (Time.toSeconds timeout))])
        @ [("overlord", "true")]
       |> Sledgehammer_Isar.default_params ctxt
-    val prover = Sledgehammer.get_prover ctxt false name
+    val prover = Sledgehammer_Provers.get_prover ctxt false name
     val default_max_relevant =
-      Sledgehammer.default_max_relevant_for_prover ctxt name
+      Sledgehammer_Provers.default_max_relevant_for_prover ctxt name
     val is_built_in_const =
-      Sledgehammer.is_built_in_const_for_prover ctxt name
-    val relevance_fudge = Sledgehammer.relevance_fudge_for_prover ctxt name
+      Sledgehammer_Provers.is_built_in_const_for_prover ctxt name
+    val relevance_fudge =
+      Sledgehammer_Provers.relevance_fudge_for_prover ctxt name
     val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val facts =
@@ -43,7 +44,7 @@ fun run_atp force_full_types timeout i n ctxt goal name =
                         (prop_of goal))
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = i,
-       subgoal_count = n, facts = map Sledgehammer.Untranslated facts}
+       subgoal_count = n, facts = map Sledgehammer_Provers.Untranslated facts}
   in
     (case prover params (K "") problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
