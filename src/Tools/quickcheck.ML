@@ -148,7 +148,7 @@ fun prep_test_term t =
     val _ = null (Term.add_vars t []) orelse
       error "Term to be tested contains schematic variables";
     val frees = Term.add_frees t [];
-  in (map fst frees, list_abs_free (frees, t)) end
+  in (frees, list_abs_free (frees, t)) end
 
 fun cpu_time description f =
   let
@@ -159,7 +159,7 @@ fun cpu_time description f =
   
 fun test_term ctxt is_interactive t =
   let
-    val (names, t') = prep_test_term t;
+    val (names, t') = apfst (map fst) (prep_test_term t);
     val current_size = Unsynchronized.ref 0
     fun excipit s =
       "Quickcheck " ^ s ^ " while testing at size " ^ string_of_int (!current_size)
@@ -192,19 +192,29 @@ fun test_term ctxt is_interactive t =
           if is_interactive then error (excipit "ran out of time") else raise TimeLimit.TimeOut
   end;
 
+(* FIXME: this function shows that many assumptions are made upon the generation *)
+(* In the end there is probably no generic quickcheck interface left... *)
+
 fun test_term_with_increasing_cardinality ctxt is_interactive ts =
   let
-    val (namess, ts') = split_list (map prep_test_term ts)
+    val thy = ProofContext.theory_of ctxt
+    val (freess, ts') = split_list (map prep_test_term ts)
+    val Ts = map snd (hd freess)
     val (test_funs, comp_time) = cpu_time "quickcheck compilation"
       (fn () => map (mk_tester ctxt) ts')
     fun test_card_size (card, size) =
       (* FIXME: why decrement size by one? *)
       case fst (the (nth test_funs (card - 1)) (size - 1)) of
-        SOME ts => SOME ((nth namess (card - 1)) ~~ ts)
+        SOME ts => SOME (map fst (nth freess (card - 1)) ~~ ts)
       | NONE => NONE
     val enumeration_card_size =
-      map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt size))
-      |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
+      if forall (fn T => Sign.of_sort thy (T,  ["Enum.enum"])) Ts then
+        (* size does not matter *)
+        map (rpair 0) (1 upto (length ts))
+      else
+        (* size does matter *)
+        map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt size))
+        |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
     in
       if (forall is_none test_funs) then
         (NONE, ([comp_time], NONE))
