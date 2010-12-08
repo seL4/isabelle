@@ -1391,7 +1391,7 @@ lemma (in sigma_algebra) borel_measurable_SUP[simp, intro]:
 proof safe
   fix a
   have "{x\<in>space M. a < ?sup x} = (\<Union>i\<in>A. {x\<in>space M. a < f i x})"
-    by (auto simp: less_Sup_iff SUPR_def[where 'a=pextreal] SUPR_fun_expand[where 'c=pextreal])
+    by (auto simp: less_Sup_iff SUPR_def[where 'a=pextreal] SUPR_apply[where 'c=pextreal])
   then show "{x\<in>space M. a < ?sup x} \<in> sets M"
     using assms by auto
 qed
@@ -1404,7 +1404,7 @@ lemma (in sigma_algebra) borel_measurable_INF[simp, intro]:
 proof safe
   fix a
   have "{x\<in>space M. ?inf x < a} = (\<Union>i\<in>A. {x\<in>space M. f i x < a})"
-    by (auto simp: Inf_less_iff INFI_def[where 'a=pextreal] INFI_fun_expand)
+    by (auto simp: Inf_less_iff INFI_def[where 'a=pextreal] INFI_apply)
   then show "{x\<in>space M. ?inf x < a} \<in> sets M"
     using assms by auto
 qed
@@ -1427,7 +1427,7 @@ lemma (in sigma_algebra) borel_measurable_psuminf[simp, intro]:
   assumes "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. (\<Sum>\<^isub>\<infinity> i. f i x)) \<in> borel_measurable M"
   using assms unfolding psuminf_def
-  by (auto intro!: borel_measurable_SUP[unfolded SUPR_fun_expand])
+  by (auto intro!: borel_measurable_SUP[unfolded SUPR_apply])
 
 section "LIMSEQ is borel measurable"
 
@@ -1456,7 +1456,7 @@ proof -
   with eq[THEN measurable_cong, of M "\<lambda>x. x" borel]
   have "(\<lambda>x. Real (u' x)) \<in> borel_measurable M"
        "(\<lambda>x. Real (- u' x)) \<in> borel_measurable M"
-    unfolding SUPR_fun_expand INFI_fun_expand by auto
+    unfolding SUPR_apply INFI_apply by auto
   note this[THEN borel_measurable_real]
   from borel_measurable_diff[OF this]
   show ?thesis unfolding * .

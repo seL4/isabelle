@@ -587,34 +587,33 @@ instantiation bool :: boolean_algebra
 begin
 
 definition
-  bool_Compl_def: "uminus = Not"
+  bool_Compl_def [simp]: "uminus = Not"
 
 definition
-  bool_diff_def: "A - B \<longleftrightarrow> A \<and> \<not> B"
+  bool_diff_def [simp]: "A - B \<longleftrightarrow> A \<and> \<not> B"
 
 definition
-  inf_bool_def: "P \<sqinter> Q \<longleftrightarrow> P \<and> Q"
+  [simp]: "P \<sqinter> Q \<longleftrightarrow> P \<and> Q"
 
 definition
-  sup_bool_def: "P \<squnion> Q \<longleftrightarrow> P \<or> Q"
+  [simp]: "P \<squnion> Q \<longleftrightarrow> P \<or> Q"
 
 instance proof
-qed (simp_all add: inf_bool_def sup_bool_def le_bool_def
-  bot_bool_def top_bool_def bool_Compl_def bool_diff_def, auto)
+qed auto
 
 end
 
 lemma sup_boolI1:
   "P \<Longrightarrow> P \<squnion> Q"
-  by (simp add: sup_bool_def)
+  by simp
 
 lemma sup_boolI2:
   "Q \<Longrightarrow> P \<squnion> Q"
-  by (simp add: sup_bool_def)
+  by simp
 
 lemma sup_boolE:
   "P \<squnion> Q \<Longrightarrow> (P \<Longrightarrow> R) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: sup_bool_def)
+  by auto
 
 
 subsection {* Fun as lattice *}
@@ -623,19 +622,26 @@ instantiation "fun" :: (type, lattice) lattice
 begin
 
 definition
-  inf_fun_def: "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
+  "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
+
+lemma inf_apply:
+  "(f \<sqinter> g) x = f x \<sqinter> g x"
+  by (simp add: inf_fun_def)
 
 definition
-  sup_fun_def: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
+  "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
+
+lemma sup_apply:
+  "(f \<squnion> g) x = f x \<squnion> g x"
+  by (simp add: sup_fun_def)
 
 instance proof
-qed (simp_all add: le_fun_def inf_fun_def sup_fun_def)
+qed (simp_all add: le_fun_def inf_apply sup_apply)
 
 end
 
-instance "fun" :: (type, distrib_lattice) distrib_lattice
-proof
-qed (simp_all add: inf_fun_def sup_fun_def sup_inf_distrib1)
+instance "fun" :: (type, distrib_lattice) distrib_lattice proof
+qed (rule ext, simp add: sup_inf_distrib1 inf_apply sup_apply)
 
 instance "fun" :: (type, bounded_lattice) bounded_lattice ..
 
@@ -644,6 +650,10 @@ begin
 
 definition
   fun_Compl_def: "- A = (\<lambda>x. - A x)"
+
+lemma uminus_apply:
+  "(- A) x = - (A x)"
+  by (simp add: fun_Compl_def)
 
 instance ..
 
@@ -655,15 +665,16 @@ begin
 definition
   fun_diff_def: "A - B = (\<lambda>x. A x - B x)"
 
+lemma minus_apply:
+  "(A - B) x = A x - B x"
+  by (simp add: fun_diff_def)
+
 instance ..
 
 end
 
-instance "fun" :: (type, boolean_algebra) boolean_algebra
-proof
-qed (simp_all add: inf_fun_def sup_fun_def bot_fun_def top_fun_def fun_Compl_def fun_diff_def
-  inf_compl_bot sup_compl_top diff_eq)
-
+instance "fun" :: (type, boolean_algebra) boolean_algebra proof
+qed (rule ext, simp_all add: inf_apply sup_apply bot_apply top_apply uminus_apply minus_apply inf_compl_bot sup_compl_top diff_eq)+
 
 no_notation
   less_eq  (infix "\<sqsubseteq>" 50) and

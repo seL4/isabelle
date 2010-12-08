@@ -44,13 +44,21 @@ lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<sqsubseteq> 
 lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<sqsubseteq> b}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
-lemma Inf_empty:
+lemma Inf_empty [simp]:
   "\<Sqinter>{} = \<top>"
   by (auto intro: antisym Inf_greatest)
 
-lemma Sup_empty:
+lemma Sup_empty [simp]:
   "\<Squnion>{} = \<bottom>"
   by (auto intro: antisym Sup_least)
+
+lemma Inf_UNIV [simp]:
+  "\<Sqinter>UNIV = \<bottom>"
+  by (simp add: Sup_Inf Sup_empty [symmetric])
+
+lemma Sup_UNIV [simp]:
+  "\<Squnion>UNIV = \<top>"
+  by (simp add: Inf_Sup Inf_empty [symmetric])
 
 lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
@@ -73,14 +81,6 @@ lemma Inf_binary:
 lemma Sup_binary:
   "\<Squnion>{a, b} = a \<squnion> b"
   by (simp add: Sup_empty Sup_insert)
-
-lemma Inf_UNIV:
-  "\<Sqinter>UNIV = bot"
-  by (simp add: Sup_Inf Sup_empty [symmetric])
-
-lemma Sup_UNIV:
-  "\<Squnion>UNIV = top"
-  by (simp add: Inf_Sup Inf_empty [symmetric])
 
 lemma Sup_le_iff: "Sup A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A. a \<sqsubseteq> b)"
   by (auto intro: Sup_least dest: Sup_upper)
@@ -117,10 +117,16 @@ definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 end
 
 syntax
-  "_SUP1"     :: "pttrns => 'b => 'b"           ("(3SUP _./ _)" [0, 10] 10)
-  "_SUP"      :: "pttrn => 'a set => 'b => 'b"  ("(3SUP _:_./ _)" [0, 0, 10] 10)
-  "_INF1"     :: "pttrns => 'b => 'b"           ("(3INF _./ _)" [0, 10] 10)
-  "_INF"      :: "pttrn => 'a set => 'b => 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3SUP _./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3SUP _:_./ _)" [0, 0, 10] 10)
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
+
+syntax (xsymbols)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
 
 translations
   "SUP x y. B"   == "SUP x. SUP y. B"
@@ -212,25 +218,17 @@ instantiation bool :: complete_lattice
 begin
 
 definition
-  Inf_bool_def: "\<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x)"
+  "\<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x)"
 
 definition
-  Sup_bool_def: "\<Squnion>A \<longleftrightarrow> (\<exists>x\<in>A. x)"
+  "\<Squnion>A \<longleftrightarrow> (\<exists>x\<in>A. x)"
 
 instance proof
 qed (auto simp add: Inf_bool_def Sup_bool_def le_bool_def)
 
 end
 
-lemma Inf_empty_bool [simp]:
-  "\<Sqinter>{}"
-  unfolding Inf_bool_def by auto
-
-lemma not_Sup_empty_bool [simp]:
-  "\<not> \<Squnion>{}"
-  unfolding Sup_bool_def by auto
-
-lemma INFI_bool_eq:
+lemma INFI_bool_eq [simp]:
   "INFI = Ball"
 proof (rule ext)+
   fix A :: "'a set"
@@ -239,7 +237,7 @@ proof (rule ext)+
     by (auto simp add: Ball_def INFI_def Inf_bool_def)
 qed
 
-lemma SUPR_bool_eq:
+lemma SUPR_bool_eq [simp]:
   "SUPR = Bex"
 proof (rule ext)+
   fix A :: "'a set"
@@ -252,36 +250,32 @@ instantiation "fun" :: (type, complete_lattice) complete_lattice
 begin
 
 definition
-  Inf_fun_def: "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
+  "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
+
+lemma Inf_apply:
+  "(\<Sqinter>A) x = \<Sqinter>{y. \<exists>f\<in>A. y = f x}"
+  by (simp add: Inf_fun_def)
 
 definition
-  Sup_fun_def: "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
+  "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
+
+lemma Sup_apply:
+  "(\<Squnion>A) x = \<Squnion>{y. \<exists>f\<in>A. y = f x}"
+  by (simp add: Sup_fun_def)
 
 instance proof
-qed (auto simp add: Inf_fun_def Sup_fun_def le_fun_def
+qed (auto simp add: le_fun_def Inf_apply Sup_apply
   intro: Inf_lower Sup_upper Inf_greatest Sup_least)
 
 end
 
-lemma SUPR_fun_expand:
-  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c\<Colon>{complete_lattice}"
-  shows "(SUP y:A. f y) = (\<lambda>x. SUP y:A. f y x)"
-  by (auto intro!: arg_cong[where f=Sup] ext[where 'a='b]
-           simp: SUPR_def Sup_fun_def)
+lemma INFI_apply:
+  "(\<Sqinter>y\<in>A. f y) x = (\<Sqinter>y\<in>A. f y x)"
+  by (auto intro: arg_cong [of _ _ Inf] simp add: INFI_def Inf_apply)
 
-lemma INFI_fun_expand:
-  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c\<Colon>{complete_lattice}"
-  shows "(INF y:A. f y) x = (INF y:A. f y x)"
-  by (auto intro!: arg_cong[where f=Inf] ext[where 'a='b]
-           simp: INFI_def Inf_fun_def)
-
-lemma Inf_empty_fun:
-  "\<Sqinter>{} = (\<lambda>_. \<Sqinter>{})"
-  by (simp add: Inf_fun_def)
-
-lemma Sup_empty_fun:
-  "\<Squnion>{} = (\<lambda>_. \<Squnion>{})"
-  by (simp add: Sup_fun_def)
+lemma SUPR_apply:
+  "(\<Squnion>y\<in>A. f y) x = (\<Squnion>y\<in>A. f y x)"
+  by (auto intro: arg_cong [of _ _ Sup] simp add: SUPR_def Sup_apply)
 
 
 subsection {* Union *}
@@ -572,7 +566,7 @@ lemma Int_eq_Inter: "A \<inter> B = \<Inter>{A, B}"
   by blast
 
 lemma Inter_empty [simp]: "\<Inter>{} = UNIV"
-  by blast
+  by (fact Inf_empty)
 
 lemma Inter_UNIV [simp]: "\<Inter>UNIV = {}"
   by blast
@@ -870,6 +864,12 @@ no_notation
   Sup  ("\<Squnion>_" [900] 900) and
   top ("\<top>") and
   bot ("\<bottom>")
+
+no_syntax (xsymbols)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
 
 lemmas mem_simps =
   insert_iff empty_iff Un_iff Int_iff Compl_iff Diff_iff
