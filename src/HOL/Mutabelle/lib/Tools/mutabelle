@@ -12,11 +12,12 @@ function usage() {
   echo "Usage: isabelle $PRG [OPTIONS] THEORY"
   echo
   echo "  Options are:"
-  echo "    -L LOGIC     parent logic to use (default $MUTABELLE_LOGIC)"
-  echo "    -T THEORY    parent theory to use (default $MUTABELLE_IMPORT_THEORY)"
-  echo "    -O DIR       output directory for test data (default $MUTABELLE_OUTPUT_PATH)"
+  echo "    -L LOGIC     parent logic to use (default $DEFAULT_MUTABELLE_LOGIC)"
+  echo "    -T THEORY    parent theory to use (default $DEFAULT_MUTABELLE_IMPORT_THEORY)"
+  echo "    -O DIR       output directory for test data (default $DEFAULT_MUTABELLE_OUTPUT_PATH)"
   echo
   echo "  THEORY is the name of the theory of which all theorems should be mutated and tested"
+  echo
   exit 1
 }
 
@@ -25,16 +26,21 @@ function usage() {
 
 # options
 
-while getopts "L:T:O:t:q?" OPT
+MUTABELLE_LOGIC="$DEFAULT_MUTABELLE_LOGIC"
+MUTABELLE_OUTPUT_PATH="$DEFAULT_MUTABELLE_OUTPUT_PATH"
+
+MUTABELLE_IMPORT_THEORY=""
+
+while getopts "L:T:O:" OPT
 do
   case "$OPT" in
     L)
       MUTABELLE_LOGIC="$OPTARG"
       ;;
     T)
-      MUTABELLE_IMPORT_THEORY="$OPTARG"
+      MUTABELLE_IMPORT_THEORY="$MUTABELLE_IMPORT_THEORY \"$OPTARG\""
       ;;
-    O)
+    O)      
       MUTABELLE_OUTPUT_PATH="$OPTARG"
       ;;
     \?)
@@ -45,9 +51,16 @@ done
 
 shift $(($OPTIND - 1))
 
+if [ "$MUTABELLE_IMPORT_THEORY" = "" ]
+then
+  MUTABELLE_IMPORT_THEORY="$DEFAULT_MUTABELLE_IMPORT_THEORY"
+fi
+
 [ "$#" -ne 1 ] && usage
 
 MUTABELLE_TEST_THEORY="$1"
+
+export MUTABELLE_OUTPUT_PATH
 
 ## main
 
@@ -55,7 +68,7 @@ echo "Starting Mutabelle..."
 
 # setup
 
-mkdir -p "$MIRABELLE_OUTPUT_PATH"
+mkdir -p "$MUTABELLE_OUTPUT_PATH"
 
 echo "theory Mutabelle_Test
 imports $MUTABELLE_IMPORT_THEORY
@@ -83,25 +96,23 @@ ML {*
   mutation_testing_of @{theory $MUTABELLE_TEST_THEORY}
 *}
 
-end" > $MUTABELLE_OUTPUT_PATH/Mutabelle_Test.thy
+end" > "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test.thy"
 
 # execution
 
-$ISABELLE_PROCESS -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' -q $MUTABELLE_LOGIC  > /dev/null 2>&1
+"$ISABELLE_PROCESS" -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' -q $MUTABELLE_LOGIC > /dev/null 2>&1
+
+
+[ $? -ne 0 ] && echo "isabelle processing of mutabelle failed"
 
 # make statistics
 
-GenuineCex_random=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_random: GenuineCex" | wc -l)
-NoCex_random=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_random: NoCex" | wc -l)
-Timeout_random=$(cat /$MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_random: Timeout" | wc -l)
-Errors_random=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_random: Error" | wc -l)
+function count() {
+  cat "$MUTABELLE_OUTPUT_PATH/log" | grep "quickcheck_$1: $2" | wc -l
+}
 
-GenuineCex_exh=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_exhaustive: GenuineCex" | wc -l)
-NoCex_exh=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_exhaustive: NoCex" | wc -l)
-Timeout_exh=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_exhaustive: Timeout" | wc -l)
-Errors_exh=$(cat $MUTABELLE_OUTPUT_PATH/log | grep "quickcheck_exhaustive: Error" | wc -l)
-
-
-echo "random      :" C: $GenuineCex_random N: $NoCex_random T: $Timeout_random E: $Errors_random
-echo "exhaustive  :" C: $GenuineCex_exh N: $NoCex_exh T: $Timeout_exh E: $Errors_exh
+echo "random      : C: $(count "random" "GenuineCex") N: $(count "random" "NoCex") \
+T: $(count "random" "Timeout") E: $(count "random" "Error")"
+echo "exhaustive  : C: $(count "exhaustive" "GenuineCex") N: $(count "exhaustive" "NoCex") \
+T: $(count "exhaustive" "Timeout") E: $(count "exhaustive" "Error")"
 
