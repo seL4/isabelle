@@ -1069,16 +1069,16 @@ qed
 
 lemma (in measure_space) positive_integral_vimage_inv:
   fixes g :: "'d \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
-  assumes f: "bij_betw f S (space M)"
+  assumes f: "bij_inv S (space M) f h"
   shows "measure_space.positive_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) g =
-      positive_integral (\<lambda>x. g (the_inv_into S f x))"
+      positive_integral (\<lambda>x. g (h x))"
 proof -
   interpret v: measure_space "vimage_algebra S f" "\<lambda>A. \<mu> (f ` A)"
-    using f by (rule measure_space_isomorphic)
+    using f by (rule measure_space_isomorphic[OF bij_inv_bij_betw(1)])
   show ?thesis
-    unfolding positive_integral_vimage[OF f, of "\<lambda>x. g (the_inv_into S f x)"]
-    using f[unfolded bij_betw_def]
-    by (auto intro!: v.positive_integral_cong simp: the_inv_into_f_f)
+    unfolding positive_integral_vimage[OF f[THEN bij_inv_bij_betw(1)], of "\<lambda>x. g (h x)"]
+    using f[unfolded bij_inv_def]
+    by (auto intro!: v.positive_integral_cong)
 qed
 
 lemma (in measure_space) positive_integral_SUP_approx:

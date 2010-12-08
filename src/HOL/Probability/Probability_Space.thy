@@ -352,7 +352,7 @@ proof
   show "sigma_algebra (sigma (pair_algebra MX MY))" by default
   have sa: "sigma_algebra M" by default
   show "(\<lambda>x. (X x, Y x)) \<in> measurable M (sigma (pair_algebra MX MY))"
-    unfolding P.measurable_pair[OF sa] using assms by (simp add: comp_def)
+    unfolding P.measurable_pair_iff[OF sa] using assms by (simp add: comp_def)
 qed
 
 lemma (in prob_space) distribution_order:
@@ -410,8 +410,9 @@ proof -
       assume A: "range A \<subseteq> sets XY.P" and df: "disjoint_family A"
       have "(\<Sum>\<^isub>\<infinity>n. \<mu> (?X (A n))) = \<mu> (\<Union>x. ?X (A x))"
       proof (intro measure_countably_additive)
-        from assms have *: "(\<lambda>x. (X x, Y x)) \<in> measurable M XY.P"
-          by (intro XY.measurable_prod_sigma) (simp_all add: comp_def, default)
+        have "sigma_algebra M" by default
+        then have *: "(\<lambda>x. (X x, Y x)) \<in> measurable M XY.P"
+          using assms by (simp add: XY.measurable_pair comp_def)
         show "range (\<lambda>n. ?X (A n)) \<subseteq> events"
           using measurable_sets[OF *] A by auto
         show "disjoint_family (\<lambda>n. ?X (A n))"
@@ -503,7 +504,7 @@ proof
   show "finite_sigma_algebra (sigma (pair_algebra MX MY))" by default
   have sa: "sigma_algebra M" by default
   show "(\<lambda>x. (X x, Y x)) \<in> measurable M (sigma (pair_algebra MX MY))"
-    unfolding P.measurable_pair[OF sa] using assms by (simp add: comp_def)
+    unfolding P.measurable_pair_iff[OF sa] using assms by (simp add: comp_def)
 qed
 
 lemma (in prob_space) finite_random_variable_imp_sets:
@@ -640,7 +641,7 @@ proof -
   proof
     fix x assume "x \<in> space XY.P"
     moreover have "(\<lambda>x. (X x, Y x)) \<in> measurable M XY.P"
-      using X Y by (subst XY.measurable_pair) (simp_all add: o_def, default)
+      using X Y by (intro XY.measurable_pair) (simp_all add: o_def, default)
     ultimately have "(\<lambda>x. (X x, Y x)) -` {x} \<inter> space M \<in> sets M"
       unfolding measurable_def by simp
     then show "joint_distribution X Y {x} \<noteq> \<omega>"

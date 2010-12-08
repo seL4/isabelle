@@ -188,7 +188,7 @@ proof -
     using f by (rule \<nu>.measure_space_isomorphic)
 
   let ?RN = "sigma_finite_measure.RN_deriv ?M ?\<mu> ?\<nu>"
-  from RN_deriv_vimage[OF f \<nu>]
+  from RN_deriv_vimage[OF f[THEN bij_inv_the_inv_into] \<nu>]
   have *: "\<nu>.almost_everywhere (\<lambda>x. ?RN (the_inv_into S f x) = RN_deriv \<nu> x)"
     by (rule absolutely_continuous_AE[OF \<nu>])
 

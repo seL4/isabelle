@@ -1103,42 +1103,36 @@ proof (rule density_unique[OF f RN_deriv(1)[OF \<nu>]])
     unfolding eq[OF A, symmetric] RN_deriv(2)[OF \<nu> A, symmetric] ..
 qed
 
-lemma the_inv_into_in:
-  assumes "inj_on f A" and x: "x \<in> f`A"
-  shows "the_inv_into A f x \<in> A"
-  using assms by (auto simp: the_inv_into_f_f)
-
 lemma (in sigma_finite_measure) RN_deriv_vimage:
   fixes f :: "'b \<Rightarrow> 'a"
-  assumes f: "bij_betw f S (space M)"
+  assumes f: "bij_inv S (space M) f g"
   assumes \<nu>: "measure_space M \<nu>" "absolutely_continuous \<nu>"
   shows "AE x.
-    sigma_finite_measure.RN_deriv (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>A. \<nu> (f ` A)) (the_inv_into S f x) = RN_deriv \<nu> x"
+    sigma_finite_measure.RN_deriv (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>A. \<nu> (f ` A)) (g x) = RN_deriv \<nu> x"
 proof (rule RN_deriv_unique[OF \<nu>])
   interpret sf: sigma_finite_measure "vimage_algebra S f" "\<lambda>A. \<mu> (f ` A)"
-    using f by (rule sigma_finite_measure_isomorphic)
+    using f by (rule sigma_finite_measure_isomorphic[OF bij_inv_bij_betw(1)])
   interpret \<nu>: measure_space M \<nu> using \<nu>(1) .
   have \<nu>': "measure_space (vimage_algebra S f) (\<lambda>A. \<nu> (f ` A))"
-    using f by (rule \<nu>.measure_space_isomorphic)
+    using f by (rule \<nu>.measure_space_isomorphic[OF bij_inv_bij_betw(1)])
   { fix A assume "A \<in> sets M" then have "f ` (f -` A \<inter> S) = A"
-      using sets_into_space f[unfolded bij_betw_def]
+      using sets_into_space f[THEN bij_inv_bij_betw(1), unfolded bij_betw_def]
       by (intro image_vimage_inter_eq[where T="space M"]) auto }
   note A_f = this
   then have ac: "sf.absolutely_continuous (\<lambda>A. \<nu> (f ` A))"
     using \<nu>(2) by (auto simp: sf.absolutely_continuous_def absolutely_continuous_def)
-  show "(\<lambda>x. sf.RN_deriv (\<lambda>A. \<nu> (f ` A)) (the_inv_into S f x)) \<in> borel_measurable M"
+  show "(\<lambda>x. sf.RN_deriv (\<lambda>A. \<nu> (f ` A)) (g x)) \<in> borel_measurable M"
     using sf.RN_deriv(1)[OF \<nu>' ac]
     unfolding measurable_vimage_iff_inv[OF f] comp_def .
   fix A assume "A \<in> sets M"
-  then have *: "\<And>x. x \<in> space M \<Longrightarrow> indicator (f -` A \<inter> S) (the_inv_into S f x) = (indicator A x :: pextreal)"
-    using f[unfolded bij_betw_def]
-    unfolding indicator_def by (auto simp: f_the_inv_into_f the_inv_into_in)
+  then have *: "\<And>x. x \<in> space M \<Longrightarrow> indicator (f -` A \<inter> S) (g x) = (indicator A x :: pextreal)"
+    using f by (auto simp: bij_inv_def indicator_def)
   have "\<nu> (f ` (f -` A \<inter> S)) = sf.positive_integral (\<lambda>x. sf.RN_deriv (\<lambda>A. \<nu> (f ` A)) x * indicator (f -` A \<inter> S) x)"
     using `A \<in> sets M` by (force intro!: sf.RN_deriv(2)[OF \<nu>' ac])
-  also have "\<dots> = positive_integral (\<lambda>x. sf.RN_deriv (\<lambda>A. \<nu> (f ` A)) (the_inv_into S f x) * indicator A x)"
+  also have "\<dots> = positive_integral (\<lambda>x. sf.RN_deriv (\<lambda>A. \<nu> (f ` A)) (g x) * indicator A x)"
     unfolding positive_integral_vimage_inv[OF f]
     by (simp add: * cong: positive_integral_cong)
-  finally show "\<nu> A = positive_integral (\<lambda>x. sf.RN_deriv (\<lambda>A. \<nu> (f ` A)) (the_inv_into S f x) * indicator A x)"
+  finally show "\<nu> A = positive_integral (\<lambda>x. sf.RN_deriv (\<lambda>A. \<nu> (f ` A)) (g x) * indicator A x)"
     unfolding A_f[OF `A \<in> sets M`] .
 qed
 
