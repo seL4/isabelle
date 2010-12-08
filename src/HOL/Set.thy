@@ -540,7 +540,7 @@ abbreviation UNIV :: "'a set" where
 
 lemma UNIV_def:
   "UNIV = {x. True}"
-  by (simp add: top_fun_eq top_bool_eq Collect_def)
+  by (simp add: top_fun_def top_bool_def Collect_def)
 
 lemma UNIV_I [simp]: "x : UNIV"
   by (simp add: UNIV_def)
@@ -573,7 +573,7 @@ subsubsection {* The empty set *}
 
 lemma empty_def:
   "{} = {x. False}"
-  by (simp add: bot_fun_eq bot_bool_eq Collect_def)
+  by (simp add: bot_fun_def bot_bool_def Collect_def)
 
 lemma empty_iff [simp]: "(c : {}) = False"
   by (simp add: empty_def)
@@ -625,6 +625,7 @@ lemma Pow_top: "A \<in> Pow A"
 lemma Pow_not_empty: "Pow A \<noteq> {}"
   using Pow_top by blast
 
+
 subsubsection {* Set complement *}
 
 lemma Compl_iff [simp]: "(c \<in> -A) = (c \<notin> A)"
@@ -649,7 +650,7 @@ lemma Compl_eq: "- A = {x. ~ x : A}" by blast
 subsubsection {* Binary union -- Un *}
 
 abbreviation union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Un" 65) where
-  "op Un \<equiv> sup"
+  "union \<equiv> sup"
 
 notation (xsymbols)
   union  (infixl "\<union>" 65)
@@ -659,7 +660,7 @@ notation (HTML output)
 
 lemma Un_def:
   "A \<union> B = {x. x \<in> A \<or> x \<in> B}"
-  by (simp add: sup_fun_eq sup_bool_eq Collect_def mem_def)
+  by (simp add: sup_fun_def sup_bool_def Collect_def mem_def)
 
 lemma Un_iff [simp]: "(c : A Un B) = (c:A | c:B)"
   by (unfold Un_def) blast
@@ -701,7 +702,7 @@ notation (HTML output)
 
 lemma Int_def:
   "A \<inter> B = {x. x \<in> A \<and> x \<in> B}"
-  by (simp add: inf_fun_eq inf_bool_eq Collect_def mem_def)
+  by (simp add: inf_fun_def inf_bool_def Collect_def mem_def)
 
 lemma Int_iff [simp]: "(c : A Int B) = (c:A & c:B)"
   by (unfold Int_def) blast
