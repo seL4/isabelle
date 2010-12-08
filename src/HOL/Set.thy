@@ -533,6 +533,36 @@ lemma eqelem_imp_iff: "x = y ==> (x : A) = (y : A)"
   by simp
 
 
+subsubsection {* The empty set *}
+
+lemma empty_def:
+  "{} = {x. False}"
+  by (simp add: bot_fun_def bot_bool_def Collect_def)
+
+lemma empty_iff [simp]: "(c : {}) = False"
+  by (simp add: empty_def)
+
+lemma emptyE [elim!]: "a : {} ==> P"
+  by simp
+
+lemma empty_subsetI [iff]: "{} \<subseteq> A"
+    -- {* One effect is to delete the ASSUMPTION @{prop "{} <= A"} *}
+  by blast
+
+lemma equals0I: "(!!y. y \<in> A ==> False) ==> A = {}"
+  by blast
+
+lemma equals0D: "A = {} ==> a \<notin> A"
+    -- {* Use for reasoning about disjointness: @{text "A Int B = {}"} *}
+  by blast
+
+lemma ball_empty [simp]: "Ball {} P = True"
+  by (simp add: Ball_def)
+
+lemma bex_empty [simp]: "Bex {} P = False"
+  by (simp add: Bex_def)
+
+
 subsubsection {* The universal set -- UNIV *}
 
 abbreviation UNIV :: "'a set" where
@@ -567,36 +597,6 @@ lemma bex_UNIV [simp]: "Bex UNIV P = Ex P"
 
 lemma UNIV_eq_I: "(\<And>x. x \<in> A) \<Longrightarrow> UNIV = A"
   by auto
-
-
-subsubsection {* The empty set *}
-
-lemma empty_def:
-  "{} = {x. False}"
-  by (simp add: bot_fun_def bot_bool_def Collect_def)
-
-lemma empty_iff [simp]: "(c : {}) = False"
-  by (simp add: empty_def)
-
-lemma emptyE [elim!]: "a : {} ==> P"
-  by simp
-
-lemma empty_subsetI [iff]: "{} \<subseteq> A"
-    -- {* One effect is to delete the ASSUMPTION @{prop "{} <= A"} *}
-  by blast
-
-lemma equals0I: "(!!y. y \<in> A ==> False) ==> A = {}"
-  by blast
-
-lemma equals0D: "A = {} ==> a \<notin> A"
-    -- {* Use for reasoning about disjointness: @{text "A Int B = {}"} *}
-  by blast
-
-lemma ball_empty [simp]: "Ball {} P = True"
-  by (simp add: Ball_def)
-
-lemma bex_empty [simp]: "Bex {} P = False"
-  by (simp add: Bex_def)
 
 lemma UNIV_not_empty [iff]: "UNIV ~= {}"
   by (blast elim: equalityE)
@@ -647,7 +647,41 @@ lemmas ComplE = ComplD [elim_format]
 lemma Compl_eq: "- A = {x. ~ x : A}" by blast
 
 
-subsubsection {* Binary union -- Un *}
+subsubsection {* Binary intersection *}
+
+abbreviation inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Int" 70) where
+  "op Int \<equiv> inf"
+
+notation (xsymbols)
+  inter  (infixl "\<inter>" 70)
+
+notation (HTML output)
+  inter  (infixl "\<inter>" 70)
+
+lemma Int_def:
+  "A \<inter> B = {x. x \<in> A \<and> x \<in> B}"
+  by (simp add: inf_fun_def inf_bool_def Collect_def mem_def)
+
+lemma Int_iff [simp]: "(c : A Int B) = (c:A & c:B)"
+  by (unfold Int_def) blast
+
+lemma IntI [intro!]: "c:A ==> c:B ==> c : A Int B"
+  by simp
+
+lemma IntD1: "c : A Int B ==> c:A"
+  by simp
+
+lemma IntD2: "c : A Int B ==> c:B"
+  by simp
+
+lemma IntE [elim!]: "c : A Int B ==> (c:A ==> c:B ==> P) ==> P"
+  by simp
+
+lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
+  by (fact mono_inf)
+
+
+subsubsection {* Binary union *}
 
 abbreviation union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Un" 65) where
   "union \<equiv> sup"
@@ -687,40 +721,6 @@ lemma insert_def: "insert a B = {x. x = a} \<union> B"
 
 lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
   by (fact mono_sup)
-
-
-subsubsection {* Binary intersection -- Int *}
-
-abbreviation inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Int" 70) where
-  "op Int \<equiv> inf"
-
-notation (xsymbols)
-  inter  (infixl "\<inter>" 70)
-
-notation (HTML output)
-  inter  (infixl "\<inter>" 70)
-
-lemma Int_def:
-  "A \<inter> B = {x. x \<in> A \<and> x \<in> B}"
-  by (simp add: inf_fun_def inf_bool_def Collect_def mem_def)
-
-lemma Int_iff [simp]: "(c : A Int B) = (c:A & c:B)"
-  by (unfold Int_def) blast
-
-lemma IntI [intro!]: "c:A ==> c:B ==> c : A Int B"
-  by simp
-
-lemma IntD1: "c : A Int B ==> c:A"
-  by simp
-
-lemma IntD2: "c : A Int B ==> c:B"
-  by simp
-
-lemma IntE [elim!]: "c : A Int B ==> (c:A ==> c:B ==> P) ==> P"
-  by simp
-
-lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
-  by (fact mono_inf)
 
 
 subsubsection {* Set difference *}

@@ -48,8 +48,9 @@ subsection {* Concrete lattices *}
 notation
   less_eq  (infix "\<sqsubseteq>" 50) and
   less  (infix "\<sqsubset>" 50) and
-  top ("\<top>") and
-  bot ("\<bottom>")
+  bot ("\<bottom>") and
+  top ("\<top>")
+
 
 class semilattice_inf = order +
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)

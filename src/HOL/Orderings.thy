@@ -1082,13 +1082,13 @@ done
 
 subsection {* Top and bottom elements *}
 
-class top = preorder +
-  fixes top :: 'a
-  assumes top_greatest [simp]: "x \<le> top"
-
 class bot = preorder +
   fixes bot :: 'a
   assumes bot_least [simp]: "bot \<le> x"
+
+class top = preorder +
+  fixes top :: 'a
+  assumes top_greatest [simp]: "x \<le> top"
 
 
 subsection {* Dense orders *}
@@ -1204,7 +1204,7 @@ end
 
 subsection {* Order on bool *}
 
-instantiation bool :: "{order, top, bot}"
+instantiation bool :: "{order, bot, top}"
 begin
 
 definition
@@ -1214,10 +1214,10 @@ definition
   [simp]: "(P\<Colon>bool) < Q \<longleftrightarrow> \<not> P \<and> Q"
 
 definition
-  [simp]: "top \<longleftrightarrow> True"
+  [simp]: "bot \<longleftrightarrow> False"
 
 definition
-  [simp]: "bot \<longleftrightarrow> False"
+  [simp]: "top \<longleftrightarrow> True"
 
 instance proof
 qed auto
@@ -1272,6 +1272,21 @@ qed (auto simp add: le_fun_def less_fun_def
 instance "fun" :: (type, order) order proof
 qed (auto simp add: le_fun_def intro: antisym ext)
 
+instantiation "fun" :: (type, bot) bot
+begin
+
+definition
+  "bot = (\<lambda>x. bot)"
+
+lemma bot_apply:
+  "bot x = bot"
+  by (simp add: bot_fun_def)
+
+instance proof
+qed (simp add: le_fun_def bot_apply)
+
+end
+
 instantiation "fun" :: (type, top) top
 begin
 
@@ -1285,21 +1300,6 @@ lemma top_apply:
 
 instance proof
 qed (simp add: le_fun_def top_apply)
-
-end
-
-instantiation "fun" :: (type, bot) bot
-begin
-
-definition
-  "bot = (\<lambda>x. bot)"
-
-lemma bot_apply:
-  "bot x = bot"
-  by (simp add: bot_fun_def)
-
-instance proof
-qed (simp add: le_fun_def bot_apply)
 
 end
 
