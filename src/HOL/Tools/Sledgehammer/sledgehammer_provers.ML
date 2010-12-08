@@ -29,16 +29,17 @@ sig
      timeout: Time.time,
      expect: string}
 
-  datatype fact =
-    Untranslated of (string * locality) * thm |
-    ATP_Translated of term * ((string * locality) * translated_formula) option
+  datatype prover_fact =
+    Untranslated_Fact of (string * locality) * thm |
+    ATP_Translated_Fact of
+      term * ((string * locality) * translated_formula) option
 
   type prover_problem =
     {state: Proof.state,
      goal: thm,
      subgoal: int,
      subgoal_count: int,
-     facts: fact list}
+     facts: prover_fact list}
 
   type prover_result =
     {outcome: failure option,
@@ -210,16 +211,17 @@ type params =
    timeout: Time.time,
    expect: string}
 
-datatype fact =
-  Untranslated of (string * locality) * thm |
-  ATP_Translated of term * ((string * locality) * translated_formula) option
+datatype prover_fact =
+  Untranslated_Fact of (string * locality) * thm |
+  ATP_Translated_Fact of
+    term * ((string * locality) * translated_formula) option
 
 type prover_problem =
   {state: Proof.state,
    goal: thm,
    subgoal: int,
    subgoal_count: int,
-   facts: fact list}
+   facts: prover_fact list}
 
 type prover_result =
   {outcome: failure option,
@@ -252,10 +254,11 @@ fun proof_banner auto =
 
 (* generic TPTP-based ATPs *)
 
-fun dest_Untranslated (Untranslated p) = p
-  | dest_Untranslated (ATP_Translated _) = raise Fail "dest_Untranslated"
-fun atp_translated_fact ctxt (Untranslated p) = translate_atp_fact ctxt p
-  | atp_translated_fact _ (ATP_Translated p) = p
+fun dest_Untranslated_Fact (Untranslated_Fact p) = p
+  | dest_Untranslated_Fact (ATP_Translated_Fact _) =
+    raise Fail "dest_Untranslated_Fact"
+fun atp_translated_fact ctxt (Untranslated_Fact p) = translate_atp_fact ctxt p
+  | atp_translated_fact _ (ATP_Translated_Fact p) = p
 
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
@@ -527,7 +530,8 @@ fun run_smt_solver auto name (params as {debug, ...}) minimize_command
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
     val thy = Proof.theory_of state
-    val get_fact = Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated
+    val get_fact =
+      Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated_Fact
     val facts = facts |> map_filter get_fact
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop params remote state subgoal facts

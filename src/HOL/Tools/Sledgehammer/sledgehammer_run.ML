@@ -101,8 +101,8 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
 (* FUDGE *)
 val auto_max_relevant_divisor = 2
 
-fun fact_name (Untranslated ((name, _), _)) = SOME name
-  | fact_name (ATP_Translated (_, p)) = Option.map (fst o fst) p
+fun fact_name (Untranslated_Fact ((name, _), _)) = SOME name
+  | fact_name (ATP_Translated_Fact (_, p)) = Option.map (fst o fst) p
 
 fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                                  relevance_thresholds, max_relevant, ...})
@@ -171,9 +171,9 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
           end
       val run_atps =
         run_provers "ATP" full_types atp_relevance_fudge
-                    (ATP_Translated o translate_atp_fact ctxt) atps
+                    (ATP_Translated_Fact o translate_atp_fact ctxt) atps
       val run_smts =
-        run_provers "SMT solver" true smt_relevance_fudge Untranslated smts
+        run_provers "SMT solver" true smt_relevance_fudge Untranslated_Fact smts
       fun run_atps_and_smt_solvers () =
         [run_atps, run_smts] |> Par_List.map (fn f => f (false, state) |> K ())
     in

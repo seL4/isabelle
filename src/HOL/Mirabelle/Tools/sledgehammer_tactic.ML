@@ -43,8 +43,8 @@ fun run_atp force_full_types timeout i n ctxt goal name =
                                       not (String.isSubstring "HOL" s))
                         (prop_of goal))
     val problem =
-      {state = Proof.init ctxt, goal = goal, subgoal = i,
-       subgoal_count = n, facts = map Sledgehammer_Provers.Untranslated facts}
+      {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
+       facts = map Sledgehammer_Provers.Untranslated_Fact facts}
   in
     (case prover params (K "") problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME

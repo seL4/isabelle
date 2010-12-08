@@ -370,7 +370,7 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
     val problem =
       {state = st', goal = goal, subgoal = i,
        subgoal_count = Sledgehammer_Util.subgoal_count st,
-       facts = facts |> map Sledgehammer_Provers.Untranslated}
+       facts = facts |> map Sledgehammer_Provers.Untranslated_Fact}
     val time_limit =
       (case hard_timeout of
         NONE => I

@@ -55,7 +55,7 @@ fun test_facts ({debug, overlord, provers, full_types, isar_proof,
        max_relevant = NONE, isar_proof = isar_proof,
        isar_shrink_factor = isar_shrink_factor, timeout = timeout, expect = ""}
     val facts =
-      facts |> maps (fn (n, ths) => ths |> map (Untranslated o pair n))
+      facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
     val {goal, ...} = Proof.goal state
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
