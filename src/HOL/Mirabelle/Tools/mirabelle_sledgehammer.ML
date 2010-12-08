@@ -457,7 +457,7 @@ fun run_minimize args reconstructor named_thms id
        ("provers", prover_name),
        ("timeout", Int.toString timeout)]
     val minimize =
-      Sledgehammer_Minimize.minimize_facts params 1
+      Sledgehammer_Minimize.minimize_facts params true 1
                                            (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
   in

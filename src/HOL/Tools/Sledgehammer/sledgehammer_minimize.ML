@@ -10,8 +10,12 @@ sig
   type locality = Sledgehammer_Filter.locality
   type params = Sledgehammer_Provers.params
 
+  val filter_used_facts :
+    (string * locality) list -> ((string * locality) * thm list) list
+    -> ((string * locality) * thm list) list
   val minimize_facts :
-    params -> int -> int -> Proof.state -> ((string * locality) * thm list) list
+    params -> bool -> int -> int -> Proof.state
+    -> ((string * locality) * thm list) list
     -> ((string * locality) * thm list) list option * string
   val run_minimize :
     params -> int -> (Facts.ref * Attrib.src list) list -> Proof.state -> unit
@@ -42,12 +46,13 @@ fun n_facts names =
        "")
   end
 
+fun print silent f = if silent then () else Output.urgent_message (f ())
+
 fun test_facts ({debug, overlord, provers, full_types, isar_proof,
-                 isar_shrink_factor, ...} : params) (prover : prover)
+                 isar_shrink_factor, ...} : params) silent (prover : prover)
                explicit_apply timeout i n state facts =
   let
-    val _ =
-      Output.urgent_message ("Testing " ^ n_facts (map fst facts) ^ "...")
+    val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^ "...")
     val params =
       {blocking = true, debug = debug, verbose = false, overlord = overlord,
        provers = provers, full_types = full_types,
@@ -62,12 +67,12 @@ fun test_facts ({debug, overlord, provers, full_types, isar_proof,
        facts = facts}
     val result as {outcome, used_facts, ...} = prover params (K "") problem
   in
-    Output.urgent_message
-        (case outcome of
-           SOME failure => string_for_failure failure
-         | NONE =>
-           if length used_facts = length facts then "Found proof."
-           else "Found proof with " ^ n_facts used_facts ^ ".");
+    print silent
+        (fn () => case outcome of
+                    SOME failure => string_for_failure failure
+                  | NONE =>
+                    if length used_facts = length facts then "Found proof."
+                    else "Found proof with " ^ n_facts used_facts ^ ".");
     result
   end
 
@@ -121,15 +126,15 @@ fun binary_minimize test xs =
    part of the timeout. *)
 val fudge_msecs = 1000
 
-fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
-  | minimize_facts (params as {provers = prover_name :: _, timeout, ...}) i n
-                   state facts =
+fun minimize_facts {provers = [], ...} _ _ _ _ _ = error "No prover is set."
+  | minimize_facts (params as {provers = prover_name :: _, timeout, ...}) silent
+                   i n state facts =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt false prover_name
     val msecs = Time.toMilliseconds timeout
-    val _ = Output.urgent_message ("Sledgehammer minimize: " ^
+    val _ = print silent (fn () => "Sledgehammer minimize: " ^
                                    quote prover_name ^ ".")
     val {goal, ...} = Proof.goal state
     val (_, hyp_ts, concl_t) = strip_subgoal goal i
@@ -137,7 +142,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
       not (forall (Meson.is_fol_term thy)
                   (concl_t :: hyp_ts @ maps (map prop_of o snd) facts))
     fun do_test timeout =
-      test_facts params prover explicit_apply timeout i n state
+      test_facts params silent prover explicit_apply timeout i n state
     val timer = Timer.startRealTimer ()
   in
     (case do_test timeout facts of
@@ -154,7 +159,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ = error "No prover is set."
            else
              sublinear_minimize (do_test new_timeout) facts ([], result)
          val n = length min_thms
-         val _ = Output.urgent_message (cat_lines
+         val _ = print silent (fn () => cat_lines
            ["Minimized: " ^ string_of_int n ^ " fact" ^ plural_s n] ^
             (case length (filter (curry (op =) Chained o snd o fst) min_thms) of
                0 => ""
@@ -180,13 +185,14 @@ fun run_minimize params i refs state =
     val reserved = reserved_isar_keyword_table ()
     val chained_ths = #facts (Proof.goal state)
     val facts =
-      maps (map (apsnd single) o fact_from_ref ctxt reserved chained_ths) refs
+      refs
+      |> maps (map (apsnd single) o fact_from_ref ctxt reserved chained_ths)
   in
     case subgoal_count state of
       0 => Output.urgent_message "No subgoal!"
     | n =>
       (kill_provers ();
-       Output.urgent_message (#2 (minimize_facts params i n state facts)))
+       Output.urgent_message (#2 (minimize_facts params false i n state facts)))
   end
 
 end;

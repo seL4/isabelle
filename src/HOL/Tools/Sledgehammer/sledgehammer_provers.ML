@@ -32,7 +32,7 @@ sig
   datatype prover_fact =
     Untranslated_Fact of (string * locality) * thm |
     ATP_Translated_Fact of
-      term * ((string * locality) * translated_formula) option
+      translated_formula option * ((string * locality) * thm)
 
   type prover_problem =
     {state: Proof.state,
@@ -62,6 +62,7 @@ sig
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
+  val untranslated_fact : prover_fact -> (string * locality) * thm
   val available_provers : Proof.context -> unit
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
@@ -213,8 +214,7 @@ type params =
 
 datatype prover_fact =
   Untranslated_Fact of (string * locality) * thm |
-  ATP_Translated_Fact of
-    term * ((string * locality) * translated_formula) option
+  ATP_Translated_Fact of translated_formula option * ((string * locality) * thm)
 
 type prover_problem =
   {state: Proof.state,
@@ -254,11 +254,10 @@ fun proof_banner auto =
 
 (* generic TPTP-based ATPs *)
 
-fun dest_Untranslated_Fact (Untranslated_Fact p) = p
-  | dest_Untranslated_Fact (ATP_Translated_Fact _) =
-    raise Fail "dest_Untranslated_Fact"
+fun untranslated_fact (Untranslated_Fact p) = p
+  | untranslated_fact (ATP_Translated_Fact (_, p)) = p
 fun atp_translated_fact ctxt (Untranslated_Fact p) = translate_atp_fact ctxt p
-  | atp_translated_fact _ (ATP_Translated_Fact p) = p
+  | atp_translated_fact _ (ATP_Translated_Fact q) = q
 
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
@@ -276,8 +275,7 @@ fun run_atp auto atp_name
   let
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
-    val facts =
-      facts |> map (atp_translated_fact ctxt)
+    val facts = facts |> map (atp_translated_fact ctxt)
     val dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                    else Config.get ctxt dest_dir
     val problem_prefix = Config.get ctxt problem_prefix
@@ -530,9 +528,7 @@ fun run_smt_solver auto name (params as {debug, ...}) minimize_command
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
     val thy = Proof.theory_of state
-    val get_fact =
-      Option.map (apsnd (Thm.transfer thy)) o try dest_Untranslated_Fact
-    val facts = facts |> map_filter get_fact
+    val facts = facts |> map (apsnd (Thm.transfer thy) o untranslated_fact)
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop params remote state subgoal facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)

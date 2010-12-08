@@ -24,6 +24,7 @@ open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_ATP_Translate
 open Sledgehammer_Provers
+open Sledgehammer_Minimize
 
 fun prover_description ctxt ({blocking, verbose, ...} : params) name num_facts i
                        n goal =
@@ -37,6 +38,8 @@ fun prover_description ctxt ({blocking, verbose, ...} : params) name num_facts i
      ""
    else
      "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
+
+val implicit_minimization_threshold = 50
 
 fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
                auto minimize_command only
@@ -58,8 +61,18 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
       let
         fun really_go () =
           prover params (minimize_command name) problem
-          |> (fn {outcome, message, ...} =>
-                 (if is_some outcome then "none" else "some", message))
+          |> (fn {outcome, used_facts, message, ...} =>
+                 if is_some outcome then
+                   ("none", message)
+                 else
+                   ("some",
+                    if length used_facts >= implicit_minimization_threshold then
+                      minimize_facts params true subgoal subgoal_count state
+                          (filter_used_facts used_facts
+                               (map (apsnd single o untranslated_fact) facts))
+                      |> snd
+                    else
+                      message))
         val (outcome_code, message) =
           if debug then
             really_go ()
@@ -84,8 +97,8 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
     if auto then
       let val (success, message) = TimeLimit.timeLimit timeout go () in
         (success, state |> success ? Proof.goal_message (fn () =>
-             Pretty.chunks [Pretty.str "", Pretty.mark Markup.hilite
-                 (Pretty.str message)]))
+             Pretty.chunks [Pretty.str "",
+                            Pretty.mark Markup.hilite (Pretty.str message)]))
       end
     else if blocking then
       let val (success, message) = TimeLimit.timeLimit timeout go () in
@@ -100,9 +113,6 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
 
 (* FUDGE *)
 val auto_max_relevant_divisor = 2
-
-fun fact_name (Untranslated_Fact ((name, _), _)) = SOME name
-  | fact_name (ATP_Translated_Fact (_, p)) = Option.map (fst o fst) p
 
 fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                                  relevance_thresholds, max_relevant, ...})
@@ -156,7 +166,7 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                    else
                      "Including (up to) " ^ string_of_int (length facts) ^
                      " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
-                     (facts |> map_filter fact_name
+                     (facts |> map (fst o fst o untranslated_fact)
                             |> space_implode " ") ^ "."))
             else
               ();

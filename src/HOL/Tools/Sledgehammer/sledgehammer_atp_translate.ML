@@ -15,10 +15,10 @@ sig
   val conjecture_prefix : string
   val translate_atp_fact :
     Proof.context -> (string * 'a) * thm
-    -> term * ((string * 'a) * translated_formula) option
+    -> translated_formula option * ((string * 'a) * thm)
   val prepare_atp_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
-    -> (term * ((string * 'a) * translated_formula) option) list
+    -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
 
@@ -194,10 +194,10 @@ fun make_formula ctxt presimp name kind t =
      ctypes_sorts = ctypes_sorts}
   end
 
-fun make_fact ctxt presimp ((name, loc), th) =
+fun make_fact ctxt presimp ((name, _), th) =
   case make_formula ctxt presimp name Axiom (prop_of th) of
     {combformula = AAtom (CombConst (("c_True", _), _, _)), ...} => NONE
-  | formula => SOME ((name, loc), formula)
+  | formula => SOME formula
 fun make_conjecture ctxt ts =
   let val last = length ts - 1 in
     map2 (fn j => make_formula ctxt true (Int.toString j)
@@ -244,16 +244,20 @@ fun get_helper_facts ctxt is_FO full_types conjectures facts =
      |> maps (fn (ss, ths) =>
                  if exists is_needed ss then map baptize ths else [])) @
     (if is_FO then [] else map baptize mandatory_helpers)
-    |> map_filter (Option.map snd o make_fact ctxt false)
+    |> map_filter (make_fact ctxt false)
   end
 
-fun translate_atp_fact ctxt (ax as (_, th)) =
-  (prop_of th, make_fact ctxt true ax)
+fun translate_atp_fact ctxt = `(make_fact ctxt true)
 
-fun translate_formulas ctxt full_types hyp_ts concl_t facts =
+fun translate_formulas ctxt full_types hyp_ts concl_t rich_facts =
   let
     val thy = ProofContext.theory_of ctxt
-    val (fact_ts, translated_facts) = ListPair.unzip facts
+    val fact_ts = map (prop_of o snd o snd) rich_facts
+    val (facts, fact_names) =
+      rich_facts
+      |> map_filter (fn (NONE, _) => NONE
+                      | (SOME fact, (name, _)) => SOME (fact, name))
+      |> ListPair.unzip
     (* Remove existing facts from the conjecture, as this can dramatically
        boost an ATP's performance (for some reason). *)
     val hyp_ts = hyp_ts |> filter_out (member (op aconv) fact_ts)
@@ -264,7 +268,6 @@ fun translate_formulas ctxt full_types hyp_ts concl_t facts =
     val tycons = type_consts_of_terms thy (goal_t :: fact_ts)
     (* TFrees in the conjecture; TVars in the facts *)
     val conjectures = make_conjecture ctxt (hyp_ts @ [concl_t])
-    val (fact_names, facts) = ListPair.unzip (map_filter I translated_facts)
     val helper_facts = get_helper_facts ctxt is_FO full_types conjectures facts
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
