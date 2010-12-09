@@ -92,7 +92,7 @@ fun obtain_serializer thy some_target = Code_Target.produce_code_for thy
 fun base_evaluator cookie serializer (naming : Code_Thingol.naming) thy program ((vs, ty), t) deps args =
   let
     val ctxt = ProofContext.init_global thy;
-    val _ = if Code_Thingol.contains_dictvar t then
+    val _ = if Code_Thingol.contains_dict_var t then
       error "Term to be evaluated contains free dictionaries" else ();
     val v' = Name.variant (map fst vs) "a";
     val vs' = (v', []) :: vs
