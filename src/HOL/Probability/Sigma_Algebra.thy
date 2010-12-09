@@ -806,13 +806,6 @@ next
        (simp_all add: f_the_inv_into_f cong: measurable_cong)
 qed
 
-lemma (in sigma_algebra) measurable_vimage_iff_inv:
-  fixes f :: "'b \<Rightarrow> 'a" assumes f: "bij_betw f S (space M)"
-  shows "g \<in> measurable (vimage_algebra S f) M' \<longleftrightarrow> (g \<circ> the_inv_into S f) \<in> measurable M M'"
-  unfolding measurable_vimage_iff[OF f]
-  using f[unfolded bij_betw_def]
-  by (auto intro!: measurable_cong simp add: the_inv_into_f_f)
-
 lemma sigma_sets_vimage:
   assumes "f \<in> S' \<rightarrow> S" and "A \<subseteq> Pow S"
   shows "sigma_sets S' ((\<lambda>X. f -` X \<inter> S') ` A) = (\<lambda>X. f -` X \<inter> S') ` sigma_sets S A"
@@ -869,22 +862,6 @@ next
       using assms Union by auto
     finally show ?case .
   qed
-qed
-
-lemma vimage_algebra_sigma:
-  assumes E: "sets E \<subseteq> Pow (space E)"
-    and f: "f \<in> space F \<rightarrow> space E"
-    and "\<And>A. A \<in> sets F \<Longrightarrow> A \<in> (\<lambda>X. f -` X \<inter> space F) ` sets E"
-    and "\<And>A. A \<in> sets E \<Longrightarrow> f -` A \<inter> space F \<in> sets F"
-  shows "sigma_algebra.vimage_algebra (sigma E) (space F) f = sigma F"
-proof -
-  interpret sigma_algebra "sigma E"
-    using assms by (intro sigma_algebra_sigma) auto
-  have eq: "sets F = (\<lambda>X. f -` X \<inter> space F) ` sets E"
-    using assms by auto
-  show "vimage_algebra (space F) f = sigma F"
-    unfolding vimage_algebra_def using assms
-    by (simp add: sigma_def eq sigma_sets_vimage)
 qed
 
 section {* Conditional space *}
@@ -1420,6 +1397,8 @@ proof -
     using E by simp
 qed
 
+subsection "Sigma algebras on finite sets"
+
 locale finite_sigma_algebra = sigma_algebra +
   assumes finite_space: "finite (space M)"
   and sets_eq_Pow[simp]: "sets M = Pow (space M)"
@@ -1436,6 +1415,94 @@ next
     by (auto simp: subset_image_iff sets_eq_Pow image_space_def)
   then show "S \<in> sets (image_space X)"
     by (auto simp: image_space_def)
+qed
+
+subsection "Bijective functions with inverse"
+
+definition "bij_inv A B f g \<longleftrightarrow>
+  f \<in> A \<rightarrow> B \<and> g \<in> B \<rightarrow> A \<and> (\<forall>x\<in>A. g (f x) = x) \<and> (\<forall>x\<in>B. f (g x) = x)"
+
+lemma bij_inv_symmetric[sym]: "bij_inv A B f g \<Longrightarrow> bij_inv B A g f"
+  unfolding bij_inv_def by auto
+
+lemma bij_invI:
+  assumes "f \<in> A \<rightarrow> B" "g \<in> B \<rightarrow> A"
+  and "\<And>x. x \<in> A \<Longrightarrow> g (f x) = x"
+  and "\<And>x. x \<in> B \<Longrightarrow> f (g x) = x"
+  shows "bij_inv A B f g"
+  using assms unfolding bij_inv_def by auto
+
+lemma bij_invE:
+  assumes "bij_inv A B f g"
+    "\<lbrakk> f \<in> A \<rightarrow> B ; g \<in> B \<rightarrow> A ;
+        (\<And>x. x \<in> A \<Longrightarrow> g (f x) = x) ;
+        (\<And>x. x \<in> B \<Longrightarrow> f (g x) = x) \<rbrakk> \<Longrightarrow> P"
+  shows P
+  using assms unfolding bij_inv_def by auto
+
+lemma bij_inv_bij_betw:
+  assumes "bij_inv A B f g"
+  shows "bij_betw f A B" "bij_betw g B A"
+  using assms by (auto intro: bij_betwI elim!: bij_invE)
+
+lemma bij_inv_vimage_vimage:
+  assumes "bij_inv A B f e"
+  shows "f -` (e -` X \<inter> B) \<inter> A = X \<inter> A"
+  using assms by (auto elim!: bij_invE)
+
+lemma (in sigma_algebra) measurable_vimage_iff_inv:
+  fixes f :: "'b \<Rightarrow> 'a" assumes "bij_inv S (space M) f g"
+  shows "h \<in> measurable (vimage_algebra S f) M' \<longleftrightarrow> (\<lambda>x. h (g x)) \<in> measurable M M'"
+  unfolding measurable_vimage_iff[OF bij_inv_bij_betw(1), OF assms]
+proof (rule measurable_cong)
+  fix w assume "w \<in> space (vimage_algebra S f)"
+  then have "w \<in> S" by auto
+  then show "h w = ((\<lambda>x. h (g x)) \<circ> f) w"
+    using assms by (auto elim: bij_invE)
+qed
+
+lemma vimage_algebra_sigma:
+  assumes bi: "bij_inv (space (sigma F)) (space (sigma E)) f e"
+    and "sets E \<subseteq> Pow (space E)" and F: "sets F \<subseteq> Pow (space F)"
+    and "f \<in> measurable F E" "e \<in> measurable E F"
+  shows "sigma_algebra.vimage_algebra (sigma E) (space (sigma F)) f = sigma F"
+proof -
+  interpret sigma_algebra "sigma E"
+    using assms by (intro sigma_algebra_sigma) auto
+  have eq: "sets F = (\<lambda>X. f -` X \<inter> space F) ` sets E"
+  proof safe
+    fix X assume "X \<in> sets F"
+    then have "e -` X \<inter> space E \<in> sets E"
+      using `e \<in> measurable E F` unfolding measurable_def by auto
+    then show "X \<in>(\<lambda>Y. f -` Y \<inter> space F) ` sets E"
+      apply (rule rev_image_eqI)
+      unfolding bij_inv_vimage_vimage[OF bi[simplified]]
+      using F `X \<in> sets F` by auto
+  next
+    fix X assume "X \<in> sets E" then show "f -` X \<inter> space F \<in> sets F"
+      using `f \<in> measurable F E` unfolding measurable_def by auto
+  qed
+  show "vimage_algebra (space (sigma F)) f = sigma F"
+    unfolding vimage_algebra_def
+    using assms by (auto simp: bij_inv_def eq sigma_sets_vimage[symmetric] sigma_def)
+qed
+
+lemma measurable_sigma_sigma:
+  assumes M: "sets M \<subseteq> Pow (space M)" and N: "sets N \<subseteq> Pow (space N)"
+  shows "f \<in> measurable M N \<Longrightarrow> f \<in> measurable (sigma M) (sigma N)"
+  using sigma_algebra.measurable_subset[OF sigma_algebra_sigma[OF M], of N]
+  using measurable_up_sigma[of M N] N by auto
+
+lemma bij_inv_the_inv_into:
+  assumes "bij_betw f A B" shows "bij_inv A B f (the_inv_into A f)"
+proof (rule bij_invI)
+  show "the_inv_into A f \<in> B \<rightarrow> A"
+    using bij_betw_the_inv_into[OF assms] by (rule bij_betw_imp_funcset)
+  show "f \<in> A \<rightarrow> B" using assms by (rule bij_betw_imp_funcset)
+  show "\<And>x. x \<in> A \<Longrightarrow> the_inv_into A f (f x) = x"
+    "\<And>x. x \<in> B \<Longrightarrow> f (the_inv_into A f x) = x"
+    using the_inv_into_f_f[of f A] f_the_inv_into_f[of f A]
+    using assms by (auto simp: bij_betw_def)
 qed
 
 end

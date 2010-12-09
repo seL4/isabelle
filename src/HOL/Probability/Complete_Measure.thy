@@ -257,17 +257,14 @@ proof -
   show ?thesis
   proof (intro bexI)
     from AE[unfolded all_AE_countable]
-    show "AE x. g x = (SUP i. f' i) x" (is "AE x. g x = ?f x")
+    show "AE x. g x = (SUP i. f' i x)" (is "AE x. g x = ?f x")
     proof (rule AE_mp, safe intro!: AE_cong)
       fix x assume eq: "\<forall>i. f i x = f' i x"
-      have "g x = (SUP i. f i x)"
-        using `f \<up> g` unfolding isoton_def SUPR_fun_expand by auto
-      then show "g x = ?f x"
-        using eq unfolding SUPR_fun_expand by auto
+      moreover have "g = SUPR UNIV f" using `f \<up> g` unfolding isoton_def by simp
+      ultimately show "g x = ?f x" by (simp add: SUPR_apply)
     qed
     show "?f \<in> borel_measurable M"
-      using sf by (auto intro!: borel_measurable_SUP
-        intro: borel_measurable_simple_function)
+      using sf by (auto intro: borel_measurable_simple_function)
   qed
 qed
 

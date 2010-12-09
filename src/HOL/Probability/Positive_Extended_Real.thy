@@ -260,6 +260,9 @@ proof
 qed
 end
 
+lemma Real_minus_abs[simp]: "Real (- \<bar>x\<bar>) = 0"
+  by simp
+
 lemma pextreal_plus_eq_\<omega>[simp]: "(a :: pextreal) + b = \<omega> \<longleftrightarrow> a = \<omega> \<or> b = \<omega>"
   by (cases a, cases b) auto
 

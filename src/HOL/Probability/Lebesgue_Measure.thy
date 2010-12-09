@@ -552,10 +552,10 @@ lemma (in measure_space) positive_integral_monotone_convergence:
 proof -
   from positive_integral_isoton[unfolded isoton_fun_expand isoton_iff_Lim_mono, of f u]
   show ?ilim using mono lim i by auto
-  have "(SUP i. f i) = u" using mono lim SUP_Lim_pextreal
-    unfolding fun_eq_iff SUPR_fun_expand mono_def by auto
-  moreover have "(SUP i. f i) \<in> borel_measurable M"
-    using i by (rule borel_measurable_SUP)
+  have "\<And>x. (SUP i. f i x) = u x" using mono lim SUP_Lim_pextreal
+    unfolding fun_eq_iff mono_def by auto
+  moreover have "(\<lambda>x. SUP i. f i x) \<in> borel_measurable M"
+    using i by auto
   ultimately show "u \<in> borel_measurable M" by simp
 qed
 
@@ -647,44 +647,20 @@ definition e2p :: "'a::ordered_euclidean_space \<Rightarrow> (nat \<Rightarrow> 
 definition p2e :: "(nat \<Rightarrow> real) \<Rightarrow> 'a::ordered_euclidean_space" where
   "p2e x = (\<chi>\<chi> i. x i)"
 
-lemma bij_euclidean_component:
-  "bij_betw (e2p::'a::ordered_euclidean_space \<Rightarrow> _) (UNIV :: 'a set)
-  ({..<DIM('a)} \<rightarrow>\<^isub>E (UNIV :: real set))"
-  unfolding bij_betw_def e2p_def_raw
-proof let ?e = "\<lambda>x.\<lambda>i\<in>{..<DIM('a::ordered_euclidean_space)}. (x::'a)$$i"
-  show "inj ?e" unfolding inj_on_def restrict_def apply(subst euclidean_eq) apply safe
-    apply(drule_tac x=i in fun_cong) by auto
-  { fix x::"nat \<Rightarrow> real" assume x:"\<forall>i. i \<notin> {..<DIM('a)} \<longrightarrow> x i = undefined"
-    hence "x = ?e (\<chi>\<chi> i. x i)" apply-apply(rule,case_tac "xa<DIM('a)") by auto
-    hence "x \<in> range ?e" by fastsimp
-  } thus "range ?e = ({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)}"
-    unfolding extensional_def using DIM_positive by auto
-qed
+lemma e2p_p2e[simp]:
+  "x \<in> extensional {..<DIM('a)} \<Longrightarrow> e2p (p2e x::'a::ordered_euclidean_space) = x"
+  by (auto simp: fun_eq_iff extensional_def p2e_def e2p_def)
 
-lemma bij_p2e:
-  "bij_betw (p2e::_ \<Rightarrow> 'a::ordered_euclidean_space) ({..<DIM('a)} \<rightarrow>\<^isub>E (UNIV :: real set))
-  (UNIV :: 'a set)" (is "bij_betw ?p ?U _")
-  unfolding bij_betw_def
-proof show "inj_on ?p ?U" unfolding inj_on_def p2e_def
-    apply(subst euclidean_eq) apply(safe,rule) unfolding extensional_def
-    apply(case_tac "xa<DIM('a)") by auto
-  { fix x::'a have "x \<in> ?p ` extensional {..<DIM('a)}"
-      unfolding image_iff apply(rule_tac x="\<lambda>i. if i<DIM('a) then x$$i else undefined" in bexI)
-      apply(subst euclidean_eq,safe) unfolding p2e_def extensional_def by auto
-  } thus "?p ` ?U = UNIV" by auto
-qed
+lemma p2e_e2p[simp]:
+  "p2e (e2p x) = (x::'a::ordered_euclidean_space)"
+  by (auto simp: euclidean_eq[where 'a='a] p2e_def e2p_def)
 
-lemma e2p_p2e[simp]: fixes z::"'a::ordered_euclidean_space"
-  assumes "x \<in> extensional {..<DIM('a)}"
-  shows "e2p (p2e x::'a) = x"
-proof fix i::nat
-  show "e2p (p2e x::'a) i = x i" unfolding e2p_def p2e_def restrict_def
-    using assms unfolding extensional_def by auto
-qed
-
-lemma p2e_e2p[simp]: fixes x::"'a::ordered_euclidean_space"
-  shows "p2e (e2p x) = x"
-  apply(subst euclidean_eq) unfolding e2p_def p2e_def restrict_def by auto
+lemma bij_inv_p2e_e2p:
+  shows "bij_inv ({..<DIM('a)} \<rightarrow>\<^isub>E UNIV) (UNIV :: 'a::ordered_euclidean_space set)
+     p2e e2p" (is "bij_inv ?P ?U _ _")
+proof (rule bij_invI)
+  show "p2e \<in> ?P \<rightarrow> ?U" "e2p \<in> ?U \<rightarrow> ?P" by (auto simp: e2p_def)
+qed auto
 
 interpretation borel_product: product_sigma_finite "\<lambda>x. borel::real algebra" "\<lambda>x. lmeasure"
   by default
@@ -692,71 +668,80 @@ interpretation borel_product: product_sigma_finite "\<lambda>x. borel::real alge
 lemma cube_subset_Suc[intro]: "cube n \<subseteq> cube (Suc n)"
   unfolding cube_def_raw subset_eq apply safe unfolding mem_interval by auto
 
-lemma borel_vimage_algebra_eq:
-  "sigma_algebra.vimage_algebra
-         (borel :: ('a::ordered_euclidean_space) algebra) ({..<DIM('a)} \<rightarrow>\<^isub>E UNIV) p2e =
-  sigma (product_algebra (\<lambda>x. \<lparr> space = UNIV::real set, sets = range (\<lambda>a. {..<a}) \<rparr>) {..<DIM('a)} )"
-proof- note bor = borel_eq_lessThan
-  def F \<equiv> "product_algebra (\<lambda>x. \<lparr> space = UNIV::real set, sets = range (\<lambda>a. {..<a}) \<rparr>) {..<DIM('a)}"
-  def E \<equiv> "\<lparr>space = (UNIV::'a set), sets = range lessThan\<rparr>"
-  have *:"(({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)}) = space F" unfolding F_def by auto
-  show ?thesis unfolding F_def[symmetric] * bor
-  proof(rule vimage_algebra_sigma,unfold E_def[symmetric])
-    show "sets E \<subseteq> Pow (space E)" "p2e \<in> space F \<rightarrow> space E" unfolding E_def by auto
-  next fix A assume "A \<in> sets F"
-    hence A:"A \<in> (Pi\<^isub>E {..<DIM('a)}) ` ({..<DIM('a)} \<rightarrow> range lessThan)"
-      unfolding F_def product_algebra_def algebra.simps .
-    then guess B unfolding image_iff .. note B=this
-    hence "\<forall>x<DIM('a). B x \<in> range lessThan" by auto
-    hence "\<forall>x. \<exists>xa. x<DIM('a) \<longrightarrow> B x = {..<xa}" unfolding image_iff by auto
-    from choice[OF this] guess b .. note b=this
-    hence b':"\<forall>i<DIM('a). Sup (B i) = b i" using Sup_lessThan by auto
+lemma Pi_iff: "f \<in> Pi I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i)"
+  unfolding Pi_def by auto
 
-    show "A \<in> (\<lambda>X. p2e -` X \<inter> space F) ` sets E" unfolding image_iff B
-    proof(rule_tac x="{..< \<chi>\<chi> i. Sup (B i)}" in bexI)
-      show "Pi\<^isub>E {..<DIM('a)} B = p2e -` {..<(\<chi>\<chi> i. Sup (B i))::'a} \<inter> space F"
-        unfolding F_def E_def product_algebra_def algebra.simps
-      proof(rule,unfold subset_eq,rule_tac[!] ballI)
-        fix x assume "x \<in> Pi\<^isub>E {..<DIM('a)} B"
-        hence *:"\<forall>i<DIM('a). x i < b i" "\<forall>i\<ge>DIM('a). x i = undefined"
-          unfolding Pi_def extensional_def using b by auto
-        have "(p2e x::'a) < (\<chi>\<chi> i. Sup (B i))" unfolding less_prod_def eucl_less[of "p2e x"]
-          apply safe unfolding euclidean_lambda_beta b'[rule_format] p2e_def using * by auto
-        moreover have "x \<in> extensional {..<DIM('a)}"
-          using *(2) unfolding extensional_def by auto
-        ultimately show "x \<in> p2e -` {..<(\<chi>\<chi> i. Sup (B i)) ::'a} \<inter>
-          (({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)})" by auto
-      next fix x assume as:"x \<in> p2e -` {..<(\<chi>\<chi> i. Sup (B i))::'a} \<inter>
-          (({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)})"
-        hence "p2e x < ((\<chi>\<chi> i. Sup (B i))::'a)" by auto
-        hence "\<forall>i<DIM('a). x i \<in> B i" apply-apply(subst(asm) eucl_less)
-          unfolding p2e_def using b b' by auto
-        thus "x \<in> Pi\<^isub>E {..<DIM('a)} B" using as unfolding Pi_def extensional_def by auto
-      qed
-      show "{..<(\<chi>\<chi> i. Sup (B i))::'a} \<in> sets E" unfolding E_def algebra.simps by auto
-    qed
-  next fix A assume "A \<in> sets E"
-    then guess a unfolding E_def algebra.simps image_iff .. note a = this(2)
-    def B \<equiv> "\<lambda>i. {..<a $$ i}"
-    show "p2e -` A \<inter> space F \<in> sets F" unfolding F_def
-      unfolding product_algebra_def algebra.simps image_iff
-      apply(rule_tac x=B in bexI) apply rule unfolding subset_eq apply(rule_tac[1-2] ballI)
-    proof- show "B \<in> {..<DIM('a)} \<rightarrow> range lessThan" unfolding B_def by auto
-      fix x assume as:"x \<in> p2e -` A \<inter> (({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)})"
-      hence "p2e x \<in> A" by auto
-      hence "\<forall>i<DIM('a). x i \<in> B i" unfolding B_def a lessThan_iff
-        apply-apply(subst (asm) eucl_less) unfolding p2e_def by auto
-      thus "x \<in> Pi\<^isub>E {..<DIM('a)} B" using as unfolding Pi_def extensional_def by auto
-    next fix x assume x:"x \<in> Pi\<^isub>E {..<DIM('a)} B"
-      moreover have "p2e x \<in> A" unfolding a lessThan_iff p2e_def apply(subst eucl_less)
-        using x unfolding Pi_def extensional_def B_def by auto
-      ultimately show "x \<in> p2e -` A \<inter> (({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)})" by auto
-    qed
-  qed
+lemma measurable_e2p_on_generator:
+  "e2p \<in> measurable \<lparr> space = UNIV::'a set, sets = range lessThan \<rparr>
+  (product_algebra
+    (\<lambda>x. \<lparr> space = UNIV::real set, sets = range lessThan \<rparr>)
+    {..<DIM('a::ordered_euclidean_space)})"
+  (is "e2p \<in> measurable ?E ?P")
+proof (unfold measurable_def, intro CollectI conjI ballI)
+  show "e2p \<in> space ?E \<rightarrow> space ?P" by (auto simp: e2p_def)
+  fix A assume "A \<in> sets ?P"
+  then obtain E where A: "A = (\<Pi>\<^isub>E i\<in>{..<DIM('a)}. E i)"
+    and "E \<in> {..<DIM('a)} \<rightarrow> (range lessThan)"
+    by (auto elim!: product_algebraE)
+  then have "\<forall>i\<in>{..<DIM('a)}. \<exists>xs. E i = {..< xs}" by auto
+  from this[THEN bchoice] guess xs ..
+  then have A_eq: "A = (\<Pi>\<^isub>E i\<in>{..<DIM('a)}. {..< xs i})"
+    using A by auto
+  have "e2p -` A = {..< (\<chi>\<chi> i. xs i) :: 'a}"
+    using DIM_positive by (auto simp add: Pi_iff set_eq_iff e2p_def A_eq
+      euclidean_eq[where 'a='a] eucl_less[where 'a='a])
+  then show "e2p -` A \<inter> space ?E \<in> sets ?E" by simp
 qed
 
+lemma measurable_p2e_on_generator:
+  "p2e \<in> measurable
+    (product_algebra
+      (\<lambda>x. \<lparr> space = UNIV::real set, sets = range lessThan \<rparr>)
+      {..<DIM('a::ordered_euclidean_space)})
+    \<lparr> space = UNIV::'a set, sets = range lessThan \<rparr>"
+  (is "p2e \<in> measurable ?P ?E")
+proof (unfold measurable_def, intro CollectI conjI ballI)
+  show "p2e \<in> space ?P \<rightarrow> space ?E" by simp
+  fix A assume "A \<in> sets ?E"
+  then obtain x where "A = {..<x}" by auto
+  then have "p2e -` A \<inter> space ?P = (\<Pi>\<^isub>E i\<in>{..<DIM('a)}. {..< x $$ i})"
+    using DIM_positive
+    by (auto simp: Pi_iff set_eq_iff p2e_def
+                   euclidean_eq[where 'a='a] eucl_less[where 'a='a])
+  then show "p2e -` A \<inter> space ?P \<in> sets ?P" by auto
+qed
+
+lemma borel_vimage_algebra_eq:
+  defines "F \<equiv> product_algebra (\<lambda>x. \<lparr> space = (UNIV::real set), sets = range lessThan \<rparr>) {..<DIM('a::ordered_euclidean_space)}"
+  shows "sigma_algebra.vimage_algebra (borel::'a::ordered_euclidean_space algebra) (space (sigma F)) p2e = sigma F"
+  unfolding borel_eq_lessThan
+proof (intro vimage_algebra_sigma)
+  let ?E = "\<lparr>space = (UNIV::'a set), sets = range lessThan\<rparr>"
+  show "bij_inv (space (sigma F)) (space (sigma ?E)) p2e e2p"
+    using bij_inv_p2e_e2p unfolding F_def by simp
+  show "sets F \<subseteq> Pow (space F)" "sets ?E \<subseteq> Pow (space ?E)" unfolding F_def
+    by (intro product_algebra_sets_into_space) auto
+  show "p2e \<in> measurable F ?E"
+    "e2p \<in> measurable ?E F"
+    unfolding F_def using measurable_p2e_on_generator measurable_e2p_on_generator by auto
+qed
+
+lemma product_borel_eq_vimage:
+  "sigma (product_algebra (\<lambda>x. borel) {..<DIM('a::ordered_euclidean_space)}) =
+  sigma_algebra.vimage_algebra borel (extensional {..<DIM('a)})
+  (p2e:: _ \<Rightarrow> 'a::ordered_euclidean_space)"
+  unfolding borel_vimage_algebra_eq[simplified]
+  unfolding borel_eq_lessThan
+  apply(subst sigma_product_algebra_sigma_eq[where S="\<lambda>i. \<lambda>n. lessThan (real n)"])
+  unfolding lessThan_iff
+proof- fix i assume i:"i<DIM('a)"
+  show "(\<lambda>n. {..<real n}) \<up> space \<lparr>space = UNIV, sets = range lessThan\<rparr>"
+    by(auto intro!:real_arch_lt isotoneI)
+qed auto
+
 lemma e2p_Int:"e2p ` A \<inter> e2p ` B = e2p ` (A \<inter> B)" (is "?L = ?R")
-  apply(rule image_Int[THEN sym]) using bij_euclidean_component
+  apply(rule image_Int[THEN sym])
+  using bij_inv_p2e_e2p[THEN bij_inv_bij_betw(2)]
   unfolding bij_betw_def by auto
 
 lemma Int_stable_cuboids: fixes x::"'a::ordered_euclidean_space"
@@ -774,18 +759,6 @@ lemma Int_stable_cuboids': fixes x::"'a::ordered_euclidean_space"
   shows "Int_stable \<lparr>space = UNIV, sets = range (\<lambda>(a, b::'a). {a..b})\<rparr>"
   unfolding Int_stable_def algebra.select_convs
   apply safe unfolding inter_interval by auto
-
-lemma product_borel_eq_vimage:
-  "sigma (product_algebra (\<lambda>x. borel) {..<DIM('a::ordered_euclidean_space)}) =
-  sigma_algebra.vimage_algebra borel (({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)})
-  (p2e:: _ \<Rightarrow> 'a::ordered_euclidean_space)"
-  unfolding borel_vimage_algebra_eq unfolding borel_eq_lessThan
-  apply(subst sigma_product_algebra_sigma_eq[where S="\<lambda>i. \<lambda>n. lessThan (real n)"])
-  unfolding lessThan_iff
-proof- fix i assume i:"i<DIM('a)"
-  show "(\<lambda>n. {..<real n}) \<up> space \<lparr>space = UNIV, sets = range lessThan\<rparr>"
-    by(auto intro!:real_arch_lt isotoneI)
-qed auto
 
 lemma inj_on_disjoint_family_on: assumes "disjoint_family_on A S" "inj f"
   shows "disjoint_family_on (\<lambda>x. f ` A x) S"
@@ -808,12 +781,12 @@ lemma e2p_extensional[intro]:"e2p (y::'a::ordered_euclidean_space) \<in> extensi
   unfolding e2p_def by auto
 
 lemma e2p_image_vimage: fixes A::"'a::ordered_euclidean_space set"
-  shows "e2p ` A = p2e -` A \<inter> (({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)})"
+  shows "e2p ` A = p2e -` A \<inter> extensional {..<DIM('a)}"
 proof(rule set_eqI,rule)
   fix x assume "x \<in> e2p ` A" then guess y unfolding image_iff .. note y=this
-  show "x \<in> p2e -` A \<inter> (({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)})"
+  show "x \<in> p2e -` A \<inter> extensional {..<DIM('a)}"
     apply safe apply(rule vimageI[OF _ y(1)]) unfolding y p2e_e2p by auto
-next fix x assume "x \<in> p2e -` A \<inter> (({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)})"
+next fix x assume "x \<in> p2e -` A \<inter> extensional {..<DIM('a)}"
   thus "x \<in> e2p ` A" unfolding image_iff apply(rule_tac x="p2e x" in bexI) apply(subst e2p_p2e) by auto
 qed
 
@@ -879,17 +852,15 @@ proof (rule measure_unique_Int_stable[where X=A and A=cube])
       qed
 
       show "disjoint_family (\<lambda>n. e2p ` A n)" apply(rule inj_on_disjoint_family_on)
-        using bij_euclidean_component using A(2) unfolding bij_betw_def by auto
+        using bij_inv_p2e_e2p[THEN bij_inv_bij_betw(2)] using A(2) unfolding bij_betw_def by auto
       show "(\<Union>n. e2p ` A n) \<in> sets (sigma (product_algebra (\<lambda>x. borel) {..<DIM('a)}))"
         unfolding product_borel_eq_vimage borel.in_vimage_algebra
       proof(rule bexI[OF _ A(3)],rule set_eqI,rule)
         fix x assume x:"x \<in> (\<Union>n. e2p ` A n)" hence "p2e x \<in> (\<Union>i. A i)" by auto
         moreover have "x \<in> extensional {..<DIM('a)}"
           using x unfolding extensional_def e2p_def_raw by auto
-        ultimately show "x \<in> p2e -` (\<Union>i. A i) \<inter> (({..<DIM('a)} \<rightarrow> UNIV) \<inter>
-          extensional {..<DIM('a)})" by auto
-      next fix x assume x:"x \<in> p2e -` (\<Union>i. A i) \<inter> (({..<DIM('a)} \<rightarrow> UNIV) \<inter>
-          extensional {..<DIM('a)})"
+        ultimately show "x \<in> p2e -` (\<Union>i. A i) \<inter> extensional {..<DIM('a)}" by auto
+      next fix x assume x:"x \<in> p2e -` (\<Union>i. A i) \<inter> extensional {..<DIM('a)}"
         hence "p2e x \<in> (\<Union>i. A i)" by auto
         hence "\<exists>n. x \<in> e2p ` A n" apply safe apply(rule_tac x=i in exI)
           unfolding image_iff apply(rule_tac x="p2e x" in bexI)
@@ -925,23 +896,20 @@ lemma borel_fubini_positiv_integral:
   assumes f: "f \<in> borel_measurable borel"
   shows "borel.positive_integral f =
           borel_product.product_positive_integral {..<DIM('a)} (f \<circ> p2e)"
-proof- def U \<equiv> "(({..<DIM('a)} \<rightarrow> UNIV) \<inter> extensional {..<DIM('a)}):: (nat \<Rightarrow> real) set"
+proof- def U \<equiv> "extensional {..<DIM('a)} :: (nat \<Rightarrow> real) set"
   interpret fprod: finite_product_sigma_finite "\<lambda>x. borel" "\<lambda>x. lmeasure" "{..<DIM('a)}" by default auto
-  have "\<And>x. \<exists>i::nat. x < real i" by (metis real_arch_lt)
-  hence "(\<lambda>n::nat. {..<real n}) \<up> UNIV" apply-apply(rule isotoneI) by auto
-  hence *:"sigma_algebra.vimage_algebra borel U (p2e:: _ \<Rightarrow> 'a)
+  have *:"sigma_algebra.vimage_algebra borel U (p2e:: _ \<Rightarrow> 'a)
     = sigma (product_algebra (\<lambda>x. borel) {..<DIM('a)})"
-    unfolding U_def apply-apply(subst borel_vimage_algebra_eq)
-    apply(subst sigma_product_algebra_sigma_eq[where S="\<lambda>x. \<lambda>n. {..<(\<chi>\<chi> i. real n)}", THEN sym])
-    unfolding borel_eq_lessThan[THEN sym] by auto
-  show ?thesis unfolding borel.positive_integral_vimage[unfolded space_borel,OF bij_p2e]
+    unfolding U_def product_borel_eq_vimage[symmetric] ..
+  show ?thesis
+    unfolding borel.positive_integral_vimage[unfolded space_borel, OF bij_inv_p2e_e2p[THEN bij_inv_bij_betw(1)]]
     apply(subst fprod.positive_integral_cong_measure[THEN sym, of "\<lambda>A. lmeasure (p2e ` A)"])
     unfolding U_def[symmetric] *[THEN sym] o_def
   proof- fix A assume A:"A \<in> sets (sigma_algebra.vimage_algebra borel U (p2e ::_ \<Rightarrow> 'a))"
     hence *:"A \<subseteq> extensional {..<DIM('a)}" unfolding U_def by auto
-    from A guess B unfolding borel.in_vimage_algebra U_def .. note B=this
-    have "(p2e ` A::'a set) \<in> sets borel" unfolding B apply(subst Int_left_commute)
-      apply(subst Int_absorb1) unfolding p2e_inv_extensional[of B,THEN sym] using B(1) by auto
+    from A guess B unfolding borel.in_vimage_algebra U_def ..
+    then have "(p2e ` A::'a set) \<in> sets borel"
+      by (simp add: p2e_inv_extensional[of B, symmetric])
     from lmeasure_measure_eq_borel_prod[OF this] show "lmeasure (p2e ` A::'a set) =
       finite_product_sigma_finite.measure (\<lambda>x. borel) (\<lambda>x. lmeasure) {..<DIM('a)} A"
       unfolding e2p_p2e'[OF *] .
