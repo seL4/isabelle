@@ -76,23 +76,20 @@ fun print_sml_stmt labelled_name tyco_syntax const_syntax reserved is_cons deres
         (print_product (fn class => print_dicttyp (class, ITyVar v)) sort)) vs @| p);
     fun print_typscheme (vs, ty) = print_typscheme_prefix (vs, print_typ NOBR ty);
     fun print_dicttypscheme (vs, class_ty) = print_typscheme_prefix (vs, print_dicttyp class_ty);
-    fun print_dict is_pseudo_fun fxy (DictConst (inst, dss)) =
-          brackify fxy ((str o deresolve) inst ::
+    fun print_classrels fxy [] ps = brackify fxy ps
+      | print_classrels fxy [classrel] ps = brackify fxy [(str o deresolve) classrel, brackify BR ps]
+      | print_classrels fxy classrels ps =
+          brackify fxy [enum " o" "(" ")" (map (str o deresolve) classrels), brackify BR ps]
+    fun print_dict is_pseudo_fun fxy (Dict_Const (classrels, (inst, dss))) =
+          print_classrels fxy classrels ((str o deresolve) inst ::
             (if is_pseudo_fun inst then [str "()"]
             else map_filter (print_dicts is_pseudo_fun BR) dss))
-      | print_dict is_pseudo_fun fxy (DictVar (classrels, (v, (i, k)))) =
-          let
-            val v_p = str (if k = 1 then first_upper v ^ "_"
-              else first_upper v ^ string_of_int (i+1) ^ "_");
-          in case classrels
-           of [] => v_p
-            | [classrel] => brackets [(str o deresolve) classrel, v_p]
-            | classrels => brackets
-                [enum " o" "(" ")" (map (str o deresolve) classrels), v_p]
-          end
+      | print_dict is_pseudo_fun fxy (Dict_Var (classrels, (v, (i, k)))) =
+          print_classrels fxy classrels [str (if k = 1 then first_upper v ^ "_"
+            else first_upper v ^ string_of_int (i+1) ^ "_")]
     and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
-      (map_index (fn (i, _) => DictVar ([], (v, (i, length sort)))) sort));
+      (map_index (fn (i, _) => Dict_Var ([], (v, (i, length sort)))) sort));
     fun print_term is_pseudo_fun some_thm vars fxy (IConst c) =
           print_app is_pseudo_fun some_thm vars fxy (c, [])
       | print_term is_pseudo_fun some_thm vars fxy (IVar NONE) =
@@ -218,11 +215,11 @@ fun print_sml_stmt labelled_name tyco_syntax const_syntax reserved is_cons deres
       | print_def is_pseudo_fun _ definer
           (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, (classparam_instances, _))))) =
           let
-            fun print_super_instance (_, (classrel, dss)) =
+            fun print_super_instance (_, (classrel, x)) =
               concat [
                 (str o Long_Name.base_name o deresolve) classrel,
                 str "=",
-                print_dict is_pseudo_fun NOBR (DictConst dss)
+                print_dict is_pseudo_fun NOBR (Dict_Const ([], x))
               ];
             fun print_classparam_instance ((classparam, const), (thm, _)) =
               concat [
@@ -381,18 +378,20 @@ fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons der
         (print_product (fn class => print_dicttyp (class, ITyVar v)) sort)) vs @| p);
     fun print_typscheme (vs, ty) = print_typscheme_prefix (vs, print_typ NOBR ty);
     fun print_dicttypscheme (vs, class_ty) = print_typscheme_prefix (vs, print_dicttyp class_ty);
-    fun print_dict is_pseudo_fun fxy (DictConst (inst, dss)) =
-          brackify fxy ((str o deresolve) inst ::
+    val print_classrels =
+      fold_rev (fn classrel => fn p => Pretty.block [p, str ".", (str o deresolve) classrel])
+    fun print_dict is_pseudo_fun fxy (Dict_Const (classrels, (inst, dss))) =
+          brackify BR ((str o deresolve) inst ::
             (if is_pseudo_fun inst then [str "()"]
             else map_filter (print_dicts is_pseudo_fun BR) dss))
-      | print_dict is_pseudo_fun fxy (DictVar (classrels, (v, (i, k)))) =
+          |> print_classrels classrels
+      | print_dict is_pseudo_fun fxy (Dict_Var (classrels, (v, (i, k)))) =
           str (if k = 1 then "_" ^ first_upper v
             else "_" ^ first_upper v ^ string_of_int (i+1))
-          |> fold_rev (fn classrel => fn p =>
-               Pretty.block [p, str ".", (str o deresolve) classrel]) classrels
+          |> print_classrels classrels
     and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
-      (map_index (fn (i, _) => DictVar ([], (v, (i, length sort)))) sort));
+      (map_index (fn (i, _) => Dict_Var ([], (v, (i, length sort)))) sort));
     fun print_term is_pseudo_fun some_thm vars fxy (IConst c) =
           print_app is_pseudo_fun some_thm vars fxy (c, [])
       | print_term is_pseudo_fun some_thm vars fxy (IVar NONE) =
@@ -553,11 +552,11 @@ fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons der
       | print_def is_pseudo_fun _ definer
             (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, (classparam_instances, _))))) =
           let
-            fun print_super_instance (_, (classrel, dss)) =
+            fun print_super_instance (_, (classrel, x)) =
               concat [
                 (str o deresolve) classrel,
                 str "=",
-                print_dict is_pseudo_fun NOBR (DictConst dss)
+                print_dict is_pseudo_fun NOBR (Dict_Const ([], x))
               ];
             fun print_classparam_instance ((classparam, const), (thm, _)) =
               concat [

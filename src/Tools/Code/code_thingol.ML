@@ -15,8 +15,8 @@ signature BASIC_CODE_THINGOL =
 sig
   type vname = string;
   datatype dict =
-      DictConst of string * dict list list
-    | DictVar of string list * (vname * (int * int));
+      Dict_Const of string list * (string * dict list list)
+    | Dict_Var of string list * (vname * (int * int));
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
@@ -50,7 +50,7 @@ sig
   val unfold_const_app: iterm -> (const * iterm list) option
   val is_IVar: iterm -> bool
   val eta_expand: int -> const * iterm list -> iterm
-  val contains_dictvar: iterm -> bool
+  val contains_dict_var: iterm -> bool
   val locally_monomorphic: iterm -> bool
   val add_constnames: iterm -> string list -> string list
   val add_tyconames: iterm -> string list -> string list
@@ -132,8 +132,8 @@ fun unfoldr dest x =
 type vname = string;
 
 datatype dict =
-    DictConst of string * dict list list
-  | DictVar of string list * (vname * (int * int));
+    Dict_Const of string list * (string * dict list list)
+  | Dict_Var of string list * (vname * (int * int));
 
 datatype itype =
     `%% of string * itype list
@@ -242,10 +242,10 @@ fun eta_expand k (c as (name, (_, tys)), ts) =
       (Name.names ctxt "a" ((take l o drop j) tys));
   in vs_tys `|==> IConst c `$$ ts @ map (IVar o fst) vs_tys end;
 
-fun contains_dictvar t =
+fun contains_dict_var t =
   let
-    fun cont_dict (DictConst (_, dss)) = (exists o exists) cont_dict dss
-      | cont_dict (DictVar _) = true;
+    fun cont_dict (Dict_Const (_, (_, dss))) = (exists o exists) cont_dict dss
+      | cont_dict (Dict_Var _) = true;
     fun cont_term (IConst (_, ((_, dss), _))) = (exists o exists) cont_dict dss
       | cont_term (IVar _) = false
       | cont_term (t1 `$ t2) = cont_term t1 orelse cont_term t2
@@ -641,7 +641,7 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
       ensure_class thy algbr eqngr permissive super_class
       ##>> ensure_classrel thy algbr eqngr permissive (class, super_class)
       ##>> translate_dicts thy algbr eqngr permissive NONE (arity_typ, [super_class])
-      #>> (fn ((super_class, classrel), [DictConst (inst, dss)]) =>
+      #>> (fn ((super_class, classrel), [Dict_Const ([], (inst, dss))]) =>
             (super_class, (classrel, (inst, dss))));
     fun translate_classparam_instance (c, ty) =
       let
@@ -801,32 +801,35 @@ and translate_tyvar_sort thy (algbr as (proj_sort, _)) eqngr permissive (v, sort
   #>> (fn sort => (unprefix "'" v, sort))
 and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr permissive some_thm (ty, sort) =
   let
-    datatype typarg =
-        Global of (class * string) * typarg list list
+    datatype typarg_witness =
+        Global of (class * class) list * ((class * string) * typarg_witness list list)
       | Local of (class * class) list * (string * (int * sort));
-    fun class_relation (Global ((_, tyco), yss), _) class =
-          Global ((class, tyco), yss)
-      | class_relation (Local (classrels, v), sub_class) super_class =
-          Local ((sub_class, super_class) :: classrels, v);
-    fun type_constructor (tyco, _) yss class =
-      Global ((class, tyco), (map o map) fst yss);
+    fun add_classrel classrel (Global (classrels, x)) =
+          Global (classrel :: classrels, x)
+      | add_classrel classrel (Local (classrels, x)) =
+          Local (classrel :: classrels, x)
+    fun class_relation (d, sub_class) super_class =
+      add_classrel (sub_class, super_class) d;
+    fun type_constructor (tyco, _) dss class =
+      Global ([], ((class, tyco), (map o map) fst dss));
     fun type_variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
       in map_index (fn (n, class) => (Local ([], (v, (n, sort'))), class)) sort' end;
-    val typargs = Sorts.of_sort_derivation algebra
+    val typarg_witnesses = Sorts.of_sort_derivation algebra
       {class_relation = K (Sorts.classrel_derivation algebra class_relation),
        type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
       handle Sorts.CLASS_ERROR e => not_wellsorted thy permissive some_thm ty sort e;
-    fun mk_dict (Global (inst, yss)) =
-          ensure_inst thy algbr eqngr permissive inst
-          ##>> (fold_map o fold_map) mk_dict yss
-          #>> (fn (inst, dss) => DictConst (inst, dss))
+    fun mk_dict (Global (classrels, (inst, dss))) =
+          fold_map (ensure_classrel thy algbr eqngr permissive) classrels
+          ##>> ensure_inst thy algbr eqngr permissive inst
+          ##>> (fold_map o fold_map) mk_dict dss
+          #>> (fn ((classrels, inst), dss) => Dict_Const (classrels, (inst, dss)))
       | mk_dict (Local (classrels, (v, (n, sort)))) =
           fold_map (ensure_classrel thy algbr eqngr permissive) classrels
-          #>> (fn classrels => DictVar (classrels, (unprefix "'" v, (n, length sort))))
-  in fold_map mk_dict typargs end;
+          #>> (fn classrels => Dict_Var (classrels, (unprefix "'" v, (n, length sort))))
+  in fold_map mk_dict typarg_witnesses end;
 
 
 (* store *)

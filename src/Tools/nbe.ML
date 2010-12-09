@@ -297,10 +297,12 @@ fun assemble_eqnss idx_of deps eqnss =
             then nbe_apps (nbe_fun 0 c) ts'
             else nbe_apps_constr idx_of c ts'
       end
-    and assemble_idict (DictConst (inst, dss)) =
-          assemble_constapp inst dss []
-      | assemble_idict (DictVar (supers, (v, (n, _)))) =
-          fold_rev (fn super => assemble_constapp super [] o single) supers (nbe_dict v n);
+    and assemble_classrels classrels =
+      fold_rev (fn classrel => assemble_constapp classrel [] o single) classrels
+    and assemble_idict (Dict_Const (classrels, (inst, dss))) =
+          assemble_classrels classrels (assemble_constapp inst dss [])
+      | assemble_idict (Dict_Var (classrels, (v, (n, _)))) =
+          assemble_classrels classrels (nbe_dict v n);
 
     fun assemble_iterm constapp =
       let
