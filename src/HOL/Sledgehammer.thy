@@ -20,7 +20,7 @@ uses "Tools/Sledgehammer/async_manager.ML"
 begin
 
 setup {*
-  Sledgehammer.setup
+  Sledgehammer_Provers.setup
   #> Sledgehammer_Isar.setup
 *}
 
