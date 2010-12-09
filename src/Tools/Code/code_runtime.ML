@@ -115,6 +115,9 @@ fun partiality_as_none e = SOME (Exn.release e)
 fun dynamic_value_exn cookie thy some_target postproc t args =
   let
     val _ = reject_vars thy t;
+    val _ = if ! trace
+      then tracing ("Evaluation of term " ^ quote (Syntax.string_of_term_global thy t))
+      else ()
     fun evaluator naming program ((_, vs_ty), t) deps =
       base_evaluator cookie (obtain_serializer thy some_target) naming thy program (vs_ty, t) deps args;
   in Code_Thingol.dynamic_eval_value thy (Exn.map_result o postproc) evaluator t end;
