@@ -7,6 +7,11 @@ imports Quickcheck
 uses ("Tools/smallvalue_generators.ML")
 begin
 
+subsection {* basic operations for generators *}
+
+definition orelse :: "'a option => 'a option => 'a option" (infixr "orelse" 55)
+where
+  [code_unfold]: "x orelse y = (case x of Some x' => Some x' | None => y)"
 
 subsection {* small value generator type classes *}
 
@@ -151,6 +156,18 @@ instance ..
 
 end
 
+
+instantiation unit :: check_all
+begin
+
+definition
+  "check_all f = f (Code_Evaluation.valtermify ())"
+
+instance ..
+
+end
+
+
 instantiation bool :: check_all
 begin
 
@@ -161,6 +178,7 @@ instance ..
 
 end
 
+
 instantiation prod :: (check_all, check_all) check_all
 begin
 
@@ -170,6 +188,67 @@ definition
 instance ..
 
 end
+
+
+instantiation sum :: (check_all, check_all) check_all
+begin
+
+definition
+  "check_all f = (case check_all (%(a, t). f (Inl a, %_. Code_Evaluation.App (Code_Evaluation.term_of (Inl :: 'a => 'a + 'b)) (t ()))) of Some x' => Some x'
+             | None => check_all (%(b, t). f (Inr b, %_. Code_Evaluation.App (Code_Evaluation.term_of (Inr :: 'b => 'a + 'b)) (t ()))))"
+
+instance ..
+
+end
+
+instantiation nibble :: check_all
+begin
+
+definition
+  "check_all f =
+    f (Code_Evaluation.valtermify Nibble0) orelse
+    f (Code_Evaluation.valtermify Nibble1) orelse
+    f (Code_Evaluation.valtermify Nibble2) orelse
+    f (Code_Evaluation.valtermify Nibble3) orelse
+    f (Code_Evaluation.valtermify Nibble4) orelse
+    f (Code_Evaluation.valtermify Nibble5) orelse
+    f (Code_Evaluation.valtermify Nibble6) orelse
+    f (Code_Evaluation.valtermify Nibble7) orelse
+    f (Code_Evaluation.valtermify Nibble8) orelse
+    f (Code_Evaluation.valtermify Nibble9) orelse
+    f (Code_Evaluation.valtermify NibbleA) orelse
+    f (Code_Evaluation.valtermify NibbleB) orelse
+    f (Code_Evaluation.valtermify NibbleC) orelse
+    f (Code_Evaluation.valtermify NibbleD) orelse
+    f (Code_Evaluation.valtermify NibbleE) orelse
+    f (Code_Evaluation.valtermify NibbleF)"
+
+instance ..
+
+end
+
+
+instantiation char :: check_all
+begin
+
+definition
+  "check_all f = check_all (%(x, t1). check_all (%(y, t2). f (Char x y, %_. Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.term_of Char) (t1 ())) (t2 ()))))"
+
+instance ..
+
+end
+
+
+instantiation option :: (check_all) check_all
+begin
+
+definition
+  "check_all f = f (Code_Evaluation.valtermify (None :: 'a option)) orelse check_all (%(x, t). f (Some x, %_. Code_Evaluation.App (Code_Evaluation.term_of (Some :: 'a => 'a option)) (t ())))"
+
+instance ..
+
+end
+
 
 instantiation Enum.finite_1 :: check_all
 begin
@@ -205,11 +284,6 @@ end
 
 subsection {* Defining combinators for any first-order data type *}
 
-definition orelse :: "'a option => 'a option => 'a option"
-where
-  [code_unfold]: "orelse x y = (case x of Some x' => Some x' | None => y)"
-
-
 definition catch_match :: "term list option => term list option => term list option"
 where
   [code del]: "catch_match t1 t2 = (SOME t. t = t1 \<or> t = t2)"
@@ -224,6 +298,7 @@ setup {* Smallvalue_Generators.setup *}
 declare [[quickcheck_tester = exhaustive]]
 
 hide_fact orelse_def catch_match_def
+no_notation orelse (infixr "orelse" 55)
 hide_const (open) orelse catch_match mk_map_term check_all_n_lists
 
 end
