@@ -39,6 +39,8 @@ notation (HTML output)
   not_member  ("op \<notin>") and
   not_member  ("(_/ \<notin> _)" [50, 51] 50)
 
+
+
 text {* Set comprehensions *}
 
 syntax
@@ -53,19 +55,19 @@ syntax (xsymbols)
 translations
   "{x:A. P}" => "{x. x:A & P}"
 
-lemma mem_Collect_eq [iff]: "(a : {x. P(x)}) = P(a)"
+lemma mem_Collect_eq [iff]: "a \<in> {x. P x} = P a"
   by (simp add: Collect_def mem_def)
 
-lemma Collect_mem_eq [simp]: "{x. x:A} = A"
+lemma Collect_mem_eq [simp]: "{x. x \<in> A} = A"
   by (simp add: Collect_def mem_def)
 
-lemma CollectI: "P(a) ==> a : {x. P(x)}"
+lemma CollectI: "P a \<Longrightarrow> a \<in> {x. P x}"
   by simp
 
-lemma CollectD: "a : {x. P(x)} ==> P(a)"
+lemma CollectD: "a \<in> {x. P x} \<Longrightarrow> P a"
   by simp
 
-lemma Collect_cong: "(!!x. P x = Q x) ==> {x. P(x)} = {x. Q(x)}"
+lemma Collect_cong: "(\<And>x. P x = Q x) ==> {x. P x} = {x. Q x}"
   by simp
 
 text {*
@@ -87,6 +89,18 @@ end
 *}
 
 lemmas CollectE = CollectD [elim_format]
+
+lemma set_eqI:
+  assumes "\<And>x. x \<in> A \<longleftrightarrow> x \<in> B"
+  shows "A = B"
+proof -
+  from assms have "{x. x \<in> A} = {x. x \<in> B}" by simp
+  then show ?thesis by simp
+qed
+
+lemma set_eq_iff [no_atp]:
+  "A = B \<longleftrightarrow> (\<forall>x. x \<in> A \<longleftrightarrow> x \<in> B)"
+  by (auto intro:set_eqI)
 
 text {* Set enumerations *}
 
@@ -488,15 +502,6 @@ lemmas basic_trans_rules [trans] =
 
 
 subsubsection {* Equality *}
-
-lemma set_eqI: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
-  apply (rule prem [THEN ext, THEN arg_cong, THEN box_equals])
-   apply (rule Collect_mem_eq)
-  apply (rule Collect_mem_eq)
-  done
-
-lemma set_eq_iff [no_atp]: "(A = B) = (ALL x. (x:A) = (x:B))"
-by(auto intro:set_eqI)
 
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
   -- {* Anti-symmetry of the subset relation. *}
