@@ -267,8 +267,8 @@ fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
 val important_message_keep_factor = 0.1
 
 fun run_atp auto atp_name
-        {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
-         known_failures, explicit_forall, use_conjecture_for_hypotheses, ...}
+        ({exec, required_execs, arguments, has_incomplete_mode, proof_delims,
+         known_failures, explicit_forall, use_conjecture_for_hypotheses, ...} : atp_config)
         ({debug, verbose, overlord, full_types, explicit_apply, isar_proof,
           isar_shrink_factor, timeout, ...} : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
