@@ -459,8 +459,8 @@ fun add_notin_mtype_fv sn unless M (comps, clauses) =
      NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
    | SOME clauses => (comps, clauses))
 
-val add_mtype_is_concrete = add_notin_mtype_fv Minus
-val add_mtype_is_complete = add_notin_mtype_fv Plus
+fun add_mtype_is_concrete x y z = add_notin_mtype_fv Minus x y z
+fun add_mtype_is_complete x y z = add_notin_mtype_fv Plus x y z
 
 val bool_table =
   [(Gen, (false, false)),
@@ -583,7 +583,7 @@ fun string_for_bound ctxt Ms (j, aa) =
 fun string_for_free relevant_frees ((s, _), M) =
   if member (op =) relevant_frees s then SOME (s ^ " : " ^ string_for_mtype M)
   else NONE
-fun string_for_mcontext ctxt t {bound_Ms, frame, frees, ...} =
+fun string_for_mcontext ctxt t ({bound_Ms, frame, frees, ...} : mcontext) =
   (map_filter (string_for_free (Term.add_free_names t [])) frees @
    map (string_for_bound ctxt bound_Ms) frame)
   |> commas |> enclose "[" "]"
@@ -678,13 +678,13 @@ fun add_connective_frames conn mk_quasi_clauses res_frame frame1 frame2 =
                    add_connective_var conn mk_quasi_clauses res_aa aa1 aa2)
                res_frame frame1 frame2)
 
-fun kill_unused_in_frame is_in (accum as ({frame, ...}, _)) =
+fun kill_unused_in_frame is_in (accum as ({frame, ...} : mcontext, _)) =
   let val (used_frame, unused_frame) = List.partition is_in frame in
     accum |>> set_frame used_frame
           ||> add_comp_frame (A Gen) Eq unused_frame
   end
 
-fun split_frame is_in_fun (gamma as {frame, ...}, cset) =
+fun split_frame is_in_fun (gamma as {frame, ...} : mcontext, cset) =
   let
     fun bubble fun_frame arg_frame [] cset =
         ((rev fun_frame, rev arg_frame), cset)
@@ -1072,7 +1072,7 @@ val harmless_consts =
   [@{const_name ord_class.less}, @{const_name ord_class.less_eq}]
 val bounteous_consts = [@{const_name bisim}]
 
-fun is_harmless_axiom {hol_ctxt = {thy, stds, ...}, ...} t =
+fun is_harmless_axiom ({hol_ctxt = {thy, stds, ...}, ...} : mdata) t =
     Term.add_consts t []
     |> filter_out (is_built_in_const thy stds)
     |> (forall (member (op =) harmless_consts o original_name o fst) orf
@@ -1082,7 +1082,7 @@ fun consider_nondefinitional_axiom mdata t =
   if is_harmless_axiom mdata t then I
   else consider_general_formula mdata Plus t
 
-fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...}) t =
+fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...} : mdata) t =
   if not (is_constr_pattern_formula ctxt t) then
     consider_nondefinitional_axiom mdata t
   else if is_harmless_axiom mdata t then
