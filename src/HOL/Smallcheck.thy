@@ -128,7 +128,7 @@ where
   "check_all_n_lists f n =
      (if n = 0 then f ([], (%_. [])) else check_all (%(x, xt). check_all_n_lists (%(xs, xst). f ((x # xs), (%_. (xt () # xst ())))) (n - 1)))"
 
-instantiation "fun" :: ("{equal, enum, check_all}", "{enum, term_of, check_all}") check_all
+instantiation "fun" :: ("{equal, check_all}", check_all) check_all
 begin
 
 definition mk_map_term :: "'a list \<Rightarrow> (unit \<Rightarrow> term list) \<Rightarrow> (unit \<Rightarrow> typerep) \<Rightarrow> unit \<Rightarrow> term"
