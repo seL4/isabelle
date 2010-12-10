@@ -352,6 +352,7 @@ fun is_executable_term thy t =
     can (TimeLimit.timeLimit (seconds 2.0)
       (Quickcheck.test_goal_terms
         ((Config.put Quickcheck.finite_types true #>
+          Config.put Quickcheck.finite_type_size 1 #>
           Config.put Quickcheck.size 1 #> Config.put Quickcheck.iterations 1) ctxt)
         false [])) (map (Object_Logic.atomize_term thy) (fst (Variable.import_terms true [t] ctxt)))
   end
