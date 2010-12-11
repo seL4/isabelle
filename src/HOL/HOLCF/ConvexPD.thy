@@ -123,6 +123,8 @@ typedef (open) 'a convex_pd =
   "{S::'a pd_basis set. convex_le.ideal S}"
 by (rule convex_le.ex_ideal)
 
+type_notation (xsymbols) convex_pd ("('(_')\<natural>)")
+
 instantiation convex_pd :: ("domain") below
 begin
 

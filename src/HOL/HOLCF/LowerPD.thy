@@ -78,6 +78,8 @@ typedef (open) 'a lower_pd =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (rule lower_le.ex_ideal)
 
+type_notation (xsymbols) lower_pd ("('(_')\<flat>)")
+
 instantiation lower_pd :: ("domain") below
 begin
 
