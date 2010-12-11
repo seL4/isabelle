@@ -400,6 +400,14 @@ lemma convex_map_map:
   "convex_map\<cdot>f\<cdot>(convex_map\<cdot>g\<cdot>xs) = convex_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
 by (induct xs rule: convex_pd_induct, simp_all)
 
+lemma convex_bind_map:
+  "convex_bind\<cdot>(convex_map\<cdot>f\<cdot>xs)\<cdot>g = convex_bind\<cdot>xs\<cdot>(\<Lambda> x. g\<cdot>(f\<cdot>x))"
+by (simp add: convex_map_def convex_bind_bind)
+
+lemma convex_map_bind:
+  "convex_map\<cdot>f\<cdot>(convex_bind\<cdot>xs\<cdot>g) = convex_bind\<cdot>xs\<cdot>(\<Lambda> x. convex_map\<cdot>f\<cdot>(g\<cdot>x))"
+by (simp add: convex_map_def convex_bind_bind)
+
 lemma ep_pair_convex_map: "ep_pair e p \<Longrightarrow> ep_pair (convex_map\<cdot>e) (convex_map\<cdot>p)"
 apply default
 apply (induct_tac x rule: convex_pd_induct, simp_all add: ep_pair.e_inverse)

@@ -392,6 +392,14 @@ lemma lower_map_map:
   "lower_map\<cdot>f\<cdot>(lower_map\<cdot>g\<cdot>xs) = lower_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
 by (induct xs rule: lower_pd_induct, simp_all)
 
+lemma lower_bind_map:
+  "lower_bind\<cdot>(lower_map\<cdot>f\<cdot>xs)\<cdot>g = lower_bind\<cdot>xs\<cdot>(\<Lambda> x. g\<cdot>(f\<cdot>x))"
+by (simp add: lower_map_def lower_bind_bind)
+
+lemma lower_map_bind:
+  "lower_map\<cdot>f\<cdot>(lower_bind\<cdot>xs\<cdot>g) = lower_bind\<cdot>xs\<cdot>(\<Lambda> x. lower_map\<cdot>f\<cdot>(g\<cdot>x))"
+by (simp add: lower_map_def lower_bind_bind)
+
 lemma ep_pair_lower_map: "ep_pair e p \<Longrightarrow> ep_pair (lower_map\<cdot>e) (lower_map\<cdot>p)"
 apply default
 apply (induct_tac x rule: lower_pd_induct, simp_all add: ep_pair.e_inverse)

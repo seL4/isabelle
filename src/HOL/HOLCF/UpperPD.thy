@@ -387,6 +387,14 @@ lemma upper_map_map:
   "upper_map\<cdot>f\<cdot>(upper_map\<cdot>g\<cdot>xs) = upper_map\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
 by (induct xs rule: upper_pd_induct, simp_all)
 
+lemma upper_bind_map:
+  "upper_bind\<cdot>(upper_map\<cdot>f\<cdot>xs)\<cdot>g = upper_bind\<cdot>xs\<cdot>(\<Lambda> x. g\<cdot>(f\<cdot>x))"
+by (simp add: upper_map_def upper_bind_bind)
+
+lemma upper_map_bind:
+  "upper_map\<cdot>f\<cdot>(upper_bind\<cdot>xs\<cdot>g) = upper_bind\<cdot>xs\<cdot>(\<Lambda> x. upper_map\<cdot>f\<cdot>(g\<cdot>x))"
+by (simp add: upper_map_def upper_bind_bind)
+
 lemma ep_pair_upper_map: "ep_pair e p \<Longrightarrow> ep_pair (upper_map\<cdot>e) (upper_map\<cdot>p)"
 apply default
 apply (induct_tac x rule: upper_pd_induct, simp_all add: ep_pair.e_inverse)
