@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/Function/context_tree.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions.
-Builds and traverses trees of nested contexts along a term.
+Construction and traversal of trees of nested contexts along a term.
 *)
 
 signature FUNCTION_CTXTREE =

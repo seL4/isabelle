@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/Function/function_core.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions:
-Main functionality.
+Core of the function package.
 *)
 
 signature FUNCTION_CORE =

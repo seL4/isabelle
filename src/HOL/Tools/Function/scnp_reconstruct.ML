@@ -2,7 +2,7 @@
     Author:      Armin Heller, TU Muenchen
     Author:      Alexander Krauss, TU Muenchen
 
-Proof reconstruction for SCNP
+Proof reconstruction for SCNP termination.
 *)
 
 signature SCNP_RECONSTRUCT =

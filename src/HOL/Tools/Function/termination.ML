@@ -1,9 +1,8 @@
 (*  Title:       HOL/Tools/Function/termination.ML
     Author:      Alexander Krauss, TU Muenchen
 
-Context data for termination proofs
+Context data for termination proofs.
 *)
-
 
 signature TERMINATION =
 sig

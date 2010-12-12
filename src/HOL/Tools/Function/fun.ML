@@ -1,8 +1,8 @@
 (*  Title:      HOL/Tools/Function/fun.ML
     Author:     Alexander Krauss, TU Muenchen
 
-Sequential mode for function definitions
-Command "fun" for fully automated function definitions
+Command "fun": Function definitions with pattern splitting/completion
+and automated termination proofs.
 *)
 
 signature FUNCTION_FUN =

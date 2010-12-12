@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/Function/relation.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions.
-Method "relation" to commence a termination proof using a user-specified relation.
+Method "relation" to start a termination proof using a user-specified relation.
 *)
 
 signature FUNCTION_RELATION =

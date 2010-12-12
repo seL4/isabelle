@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/Function/function.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions.
-Isar commands.
+Main entry points to the function package.
 *)
 
 signature FUNCTION =

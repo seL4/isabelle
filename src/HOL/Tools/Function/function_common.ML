@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/Function/function_common.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions.
-Common definitions and other infrastructure.
+Common definitions and other infrastructure for the function package.
 *)
 
 signature FUNCTION_DATA =

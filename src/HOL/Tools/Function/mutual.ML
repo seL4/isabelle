@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/Function/mutual.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions.
-Tools for mutual recursive definitions.
+Mutual recursive function definitions.
 *)
 
 signature FUNCTION_MUTUAL =

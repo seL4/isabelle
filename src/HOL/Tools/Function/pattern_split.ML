@@ -2,7 +2,6 @@
     Author:     Alexander Krauss, TU Muenchen
 
 Fairly ad-hoc pattern splitting.
-
 *)
 
 signature FUNCTION_SPLIT =

@@ -2,7 +2,7 @@
     Author:      Armin Heller, TU Muenchen
     Author:      Alexander Krauss, TU Muenchen
 
-Generate certificates for SCNP using a SAT solver
+Certificate generation for SCNP using a SAT solver.
 *)
 
 
