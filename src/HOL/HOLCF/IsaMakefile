@@ -104,7 +104,14 @@ HOLCF-Library: HOLCF $(LOG)/HOLCF-Library.gz
 
 $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
   Library/Defl_Bifinite.thy \
+  Library/Bool_Discrete.thy \
+  Library/Char_Discrete.thy \
+  Library/HOL_Cpo.thy \
+  Library/Int_Discrete.thy \
   Library/List_Cpo.thy \
+  Library/List_Predomain.thy \
+  Library/Nat_Discrete.thy \
+  Library/Option_Cpo.thy \
   Library/Stream.thy \
   Library/Sum_Cpo.thy \
   Library/HOLCF_Library.thy \

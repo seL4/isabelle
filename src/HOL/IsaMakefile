@@ -1471,7 +1471,14 @@ HOLCF-Library: HOLCF $(LOG)/HOLCF-Library.gz
 
 $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
   HOLCF/Library/Defl_Bifinite.thy \
+  HOLCF/Library/Bool_Discrete.thy \
+  HOLCF/Library/Char_Discrete.thy \
+  HOLCF/Library/HOL_Cpo.thy \
+  HOLCF/Library/Int_Discrete.thy \
   HOLCF/Library/List_Cpo.thy \
+  HOLCF/Library/List_Predomain.thy \
+  HOLCF/Library/Nat_Discrete.thy \
+  HOLCF/Library/Option_Cpo.thy \
   HOLCF/Library/Stream.thy \
   HOLCF/Library/Sum_Cpo.thy \
   HOLCF/Library/HOLCF_Library.thy \
