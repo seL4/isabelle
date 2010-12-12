@@ -1,11 +1,39 @@
 (*  Title:      HOL/Tools/Function/function_lib.ML
     Author:     Alexander Krauss, TU Muenchen
 
-A package for general recursive function definitions.
-Some fairly general functions that should probably go somewhere else...
+Ad-hoc collection of function waiting to be eliminated, generalized,
+moved elsewhere or otherwise cleaned up.
 *)
 
-structure Function_Lib =   (* FIXME proper signature *)
+signature FUNCTION_LIB =
+sig
+  val plural: string -> string -> 'a list -> string
+
+  val dest_all_all: term -> term list * term
+  val dest_all_all_ctx: Proof.context -> term -> Proof.context * (string * typ) list * term
+
+  val map4: ('a -> 'b -> 'c -> 'd -> 'e) -> 'a list -> 'b list -> 'c list -> 'd list -> 'e list
+  val map7: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h) -> 'a list -> 'b list -> 'c list ->
+    'd list -> 'e list -> 'f list -> 'g list -> 'h list
+
+  val unordered_pairs: 'a list -> ('a * 'a) list
+
+  val replace_frees: (string * term) list -> term -> term
+  val rename_bound: string -> term -> term
+  val mk_forall_rename: (string * term) -> term -> term
+  val forall_intr_rename: (string * cterm) -> thm -> thm
+
+  val frees_in_term: Proof.context -> term -> (string * typ) list
+
+  datatype proof_attempt = Solved of thm | Stuck of thm | Fail
+  val try_proof: cterm -> tactic -> proof_attempt
+
+  val dest_binop_list: string -> term -> term list
+  val regroup_conv: string -> string -> thm list -> int list -> conv
+  val regroup_union_conv: int list -> conv
+end
+
+structure Function_Lib: FUNCTION_LIB =
 struct
 
 (* "The variable" ^ plural " is" "s are" vs *)
