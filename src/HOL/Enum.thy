@@ -724,6 +724,42 @@ qed (auto simp add: enum_finite_5_def intro: finite_5.exhaust)
 
 end
 
+subsection {* An executable THE operator on finite types *}
+
+definition
+  [code del]: "enum_the P = The P"
+
+lemma [code]:
+  "The P = (case filter P enum of [x] => x | _ => enum_the P)"
+proof -
+  {
+    fix a
+    assume filter_enum: "filter P enum = [a]"
+    have "The P = a"
+    proof (rule the_equality)
+      fix x
+      assume "P x"
+      show "x = a"
+      proof (rule ccontr)
+        assume "x \<noteq> a"
+        from filter_enum obtain us vs
+          where enum_eq: "enum = us @ [a] @ vs"
+          and "\<forall> x \<in> set us. \<not> P x"
+          and "\<forall> x \<in> set vs. \<not> P x"
+          and "P a"
+          by (auto simp add: filter_eq_Cons_iff) (simp only: filter_empty_conv[symmetric])
+        with `P x` in_enum[of x, unfolded enum_eq] `x \<noteq> a` show "False" by auto
+      qed
+    next
+      from filter_enum show "P a" by (auto simp add: filter_eq_Cons_iff)
+    qed
+  }
+  from this show ?thesis
+    unfolding enum_the_def by (auto split: list.split)
+qed
+
+code_abort enum_the
+
 hide_const (open) a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4 a\<^isub>5
 
 
