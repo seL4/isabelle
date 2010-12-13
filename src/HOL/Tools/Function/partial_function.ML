@@ -165,7 +165,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
         "Known modes are " ^ commas_quote (known_modes lthy) ^ "."]);
 
     val ((fixes, [(eq_abinding, eqn)]), _) = prep fixes_raw [eqn_raw] lthy;
-    val (_, _, plain_eqn) = Function_Lib.dest_all_all_ctx lthy eqn;
+    val ((_, plain_eqn), _) = Function_Lib.focus_term eqn lthy;
 
     val ((f_binding, fT), mixfix) = the_single fixes;
     val fname = Binding.name_of f_binding;

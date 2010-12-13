@@ -11,7 +11,6 @@ sig
 
   val focus_term: term -> Proof.context -> ((string * typ) list * term) * Proof.context
   val dest_all_all: term -> term list * term
-  val dest_all_all_ctx: Proof.context -> term -> Proof.context * (string * typ) list * term
 
   val map4: ('a -> 'b -> 'c -> 'd -> 'e) -> 'a list -> 'b list -> 'c list -> 'd list -> 'e list
   val map7: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h) -> 'a list -> 'b list -> 'c list ->
@@ -65,10 +64,6 @@ fun dest_all_all (t as (Const ("all",_) $ _)) =
   end
   | dest_all_all t = ([],t)
 
-
-fun dest_all_all_ctx ctxt t =
-  let val ((vs, b), ctxt') = focus_term t ctxt
-  in (ctxt, vs, b) end
 
 fun map4 _ [] [] [] [] = []
   | map4 f (x :: xs) (y :: ys) (z :: zs) (u :: us) = f x y z u :: map4 f xs ys zs us
