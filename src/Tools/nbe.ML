@@ -287,7 +287,7 @@ fun assemble_eqnss idx_of deps eqnss =
 
     fun assemble_constapp c dss ts = 
       let
-        val ts' = (maps o map) assemble_idict dss @ ts;
+        val ts' = (maps o map) assemble_dict dss @ ts;
       in case AList.lookup (op =) eqnss' c
        of SOME (num_args, _) => if num_args <= length ts'
             then let val (ts1, ts2) = chop num_args ts'
@@ -299,10 +299,12 @@ fun assemble_eqnss idx_of deps eqnss =
       end
     and assemble_classrels classrels =
       fold_rev (fn classrel => assemble_constapp classrel [] o single) classrels
-    and assemble_idict (Dict_Const (classrels, (inst, dss))) =
-          assemble_classrels classrels (assemble_constapp inst dss [])
-      | assemble_idict (Dict_Var (classrels, (v, (n, _)))) =
-          assemble_classrels classrels (nbe_dict v n);
+    and assemble_dict (Dict (classrels, x)) =
+          assemble_classrels classrels (assemble_plain_dict x)
+    and assemble_plain_dict (Dict_Const (inst, dss)) =
+          assemble_constapp inst dss []
+      | assemble_plain_dict (Dict_Var (v, (n, _))) =
+          nbe_dict v n
 
     fun assemble_iterm constapp =
       let
