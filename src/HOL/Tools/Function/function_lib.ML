@@ -9,6 +9,7 @@ signature FUNCTION_LIB =
 sig
   val plural: string -> string -> 'a list -> string
 
+  val focus_term: term -> Proof.context -> ((string * typ) list * term) * Proof.context
   val dest_all_all: term -> term list * term
   val dest_all_all_ctx: Proof.context -> term -> Proof.context * (string * typ) list * term
 
@@ -41,6 +42,19 @@ fun plural sg pl [x] = sg
   | plural sg pl _ = pl
 
 
+(*term variant of Variable.focus*)
+fun focus_term t ctxt =
+  let
+    val ps = Term.variant_frees t (Term.strip_all_vars t);   (*as they are printed :-*)
+    val (xs, Ts) = split_list ps;
+    val (xs', ctxt') = Variable.variant_fixes xs ctxt;
+    val ps' = xs' ~~ Ts;
+    val inst = map Free ps'
+    val t' = Term.subst_bounds (rev inst, Term.strip_all_body t);
+    val ctxt'' = ctxt' |> fold Variable.declare_constraints inst;
+  in ((ps', t'), ctxt'') end;
+
+
 (* Removes all quantifiers from a term, replacing bound variables by frees. *)
 fun dest_all_all (t as (Const ("all",_) $ _)) =
   let
@@ -52,23 +66,9 @@ fun dest_all_all (t as (Const ("all",_) $ _)) =
   | dest_all_all t = ([],t)
 
 
-(* FIXME: similar to Variable.focus *)
-fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (n,T,b)) =
-  let
-    val [(n', _)] = Variable.variant_frees ctx [] [(n,T)]
-    val (_, ctx') = ProofContext.add_fixes [(Binding.name n', SOME T, NoSyn)] ctx
-
-    val (n'', body) = Term.dest_abs (n', T, b)
-    val _ = (n' = n'') orelse error "dest_all_ctx"
-      (* Note: We assume that n' does not occur in the body. Otherwise it would be fixed. *)
-
-    val (ctx'', vs, bd) = dest_all_all_ctx ctx' body
-  in
-    (ctx'', (n', T) :: vs, bd)
-  end
-  | dest_all_all_ctx ctx t =
-  (ctx, [], t)
-
+fun dest_all_all_ctx ctxt t =
+  let val ((vs, b), ctxt') = focus_term t ctxt
+  in (ctxt, vs, b) end
 
 fun map4 _ [] [] [] [] = []
   | map4 f (x :: xs) (y :: ys) (z :: zs) (u :: us) = f x y z u :: map4 f xs ys zs us
