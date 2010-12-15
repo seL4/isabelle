@@ -120,7 +120,7 @@ fun dynamic_value_exn cookie thy some_target postproc t args =
       else ()
     fun evaluator naming program ((_, vs_ty), t) deps =
       base_evaluator cookie (obtain_serializer thy some_target) naming thy program (vs_ty, t) deps args;
-  in Code_Thingol.dynamic_eval_value thy (Exn.map_result o postproc) evaluator t end;
+  in Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t end;
 
 fun dynamic_value_strict cookie thy some_target postproc t args =
   Exn.release (dynamic_value_exn cookie thy some_target postproc t args);
@@ -133,7 +133,7 @@ fun static_value_exn cookie thy some_target postproc consts =
     val serializer = obtain_serializer thy some_target;
     fun evaluator naming program thy ((_, vs_ty), t) deps =
       base_evaluator cookie serializer naming thy program (vs_ty, t) deps [];
-  in Code_Thingol.static_eval_value thy (Exn.map_result o postproc) consts evaluator o reject_vars thy end;
+  in Code_Thingol.static_value thy (Exn.map_result o postproc) consts evaluator o reject_vars thy end;
 
 fun static_value_strict cookie thy some_target postproc consts t =
   Exn.release (static_value_exn cookie thy some_target postproc consts t);
@@ -175,7 +175,7 @@ val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
 fun check_holds_oracle serializer naming thy program ((_, vs_ty), t) deps ct =
   raw_check_holds_oracle (serializer, naming, thy, program, (vs_ty, t), deps, ct);
 
-val dynamic_holds_conv = Conv.tap_thy (fn thy => Code_Thingol.dynamic_eval_conv thy
+val dynamic_holds_conv = Conv.tap_thy (fn thy => Code_Thingol.dynamic_conv thy
   (fn naming => check_holds_oracle (obtain_serializer thy NONE) naming thy)
   o reject_vars thy);
 
@@ -183,7 +183,7 @@ fun static_holds_conv thy consts =
   let
     val serializer = obtain_serializer thy NONE;
   in
-    Code_Thingol.static_eval_conv thy consts
+    Code_Thingol.static_conv thy consts
       (fn naming => fn program => fn thy => check_holds_oracle serializer naming thy program)
     o reject_vars thy
   end;
