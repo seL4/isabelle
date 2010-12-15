@@ -74,6 +74,7 @@ fun types_dangerous_types (Tags _) = true
    license to do unsound reasoning if the type system is "overloaded_args". *)
 fun is_overloaded thy s =
   not (!precise_overloaded_args) orelse
+  s = @{const_name finite} orelse
   (s <> @{const_name HOL.eq} andalso
    length (Defs.specifications_of (Theory.defs_of thy) s) > 1)
 
