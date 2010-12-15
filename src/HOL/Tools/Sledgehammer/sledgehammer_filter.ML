@@ -433,6 +433,26 @@ fun if_empty_replace_with_locality thy is_built_in_const facts loc tab =
   else
     tab
 
+fun add_arities is_built_in_const th =
+  let
+    fun aux _ _ NONE = NONE
+      | aux t args (SOME tab) =
+        case t of
+          t1 $ t2 => SOME tab |> aux t1 (t2 :: args) |> aux t2 []
+        | Const (x as (s, _)) =>
+          (if is_built_in_const x args then
+             SOME tab
+           else case Symtab.lookup tab s of
+             NONE => SOME (Symtab.update (s, length args) tab)
+           | SOME n => if n = length args then SOME tab else NONE)
+        | _ => SOME tab
+  in aux (prop_of th) [] end
+
+fun needs_ext is_built_in_const facts =
+  fold (add_arities is_built_in_const o snd) facts (SOME Symtab.empty)
+  |> is_none
+
+
 fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...})
         ({add, del, ...} : relevance_override) facts goal_ts =
@@ -516,8 +536,8 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                       |> map string_for_hyper_pconst));
           relevant [] [] hopeful
         end
-    fun add_add_ths accepts =
-      (facts |> filter ((member Thm.eq_thm add_ths
+    fun add_facts ths accepts =
+      (facts |> filter ((member Thm.eq_thm ths
                          andf (not o member (Thm.eq_thm o apsnd snd) accepts))
                         o snd))
       @ accepts
@@ -525,9 +545,12 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
           |> iter 0 max_relevant threshold0 goal_const_tab []
-          |> not (null add_ths) ? add_add_ths
-          |> tap (fn res => trace_msg (fn () =>
-                               "Total relevant: " ^ Int.toString (length res)))
+          |> not (null add_ths) ? add_facts add_ths
+          |> (fn accepts =>
+                 accepts |> needs_ext is_built_in_const accepts
+                            ? add_facts @{thms ext})
+          |> tap (fn accepts => trace_msg (fn () =>
+                      "Total relevant: " ^ Int.toString (length accepts)))
   end
 
 
