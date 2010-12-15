@@ -23,77 +23,6 @@ structure T = SMT_Translate
 val smtlibC = ["smtlib"]
 
 
-
-(* facts about uninterpreted constants *)
-
-infix 2 ??
-fun (ex ?? f) irules = irules |> exists (ex o Thm.prop_of o snd) irules ? f
-
-
-(** pairs **)
-
-val pair_rules = [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
-
-val pair_type = (fn Type (@{type_name Product_Type.prod}, _) => true | _ => false)
-val exists_pair_type = Term.exists_type (Term.exists_subtype pair_type)
-
-val add_pair_rules = exists_pair_type ?? append (map (pair ~1) pair_rules)
-
-
-(** function update **)
-
-val fun_upd_rules = [@{thm fun_upd_same}, @{thm fun_upd_apply}]
-
-val is_fun_upd = (fn Const (@{const_name fun_upd}, _) => true | _ => false)
-val exists_fun_upd = Term.exists_subterm is_fun_upd
-
-val add_fun_upd_rules = exists_fun_upd ?? append (map (pair ~1) fun_upd_rules)
-
-
-(** abs/min/max **)
-
-val exists_abs_min_max = Term.exists_subterm (fn
-    Const (@{const_name abs}, _) => true
-  | Const (@{const_name min}, _) => true
-  | Const (@{const_name max}, _) => true
-  | _ => false)
-
-val unfold_abs_conv = Conv.rewr_conv (mk_meta_eq @{thm abs_if})
-val unfold_min_conv = Conv.rewr_conv (mk_meta_eq @{thm min_def})
-val unfold_max_conv = Conv.rewr_conv (mk_meta_eq @{thm max_def})
-
-fun expand_conv cv = N.eta_expand_conv (K cv)
-fun expand2_conv cv = N.eta_expand_conv (N.eta_expand_conv (K cv))
-
-fun unfold_def_conv ctxt ct =
-  (case Thm.term_of ct of
-    Const (@{const_name abs}, _) $ _ => unfold_abs_conv
-  | Const (@{const_name abs}, _) => expand_conv unfold_abs_conv ctxt
-  | Const (@{const_name min}, _) $ _ $ _ => unfold_min_conv
-  | Const (@{const_name min}, _) $ _ => expand_conv unfold_min_conv ctxt
-  | Const (@{const_name min}, _) => expand2_conv unfold_min_conv ctxt
-  | Const (@{const_name max}, _) $ _ $ _ => unfold_max_conv
-  | Const (@{const_name max}, _) $ _ => expand_conv unfold_max_conv ctxt
-  | Const (@{const_name max}, _) => expand2_conv unfold_max_conv ctxt
-  | _ => Conv.all_conv) ct
-
-fun unfold_abs_min_max_defs ctxt thm =
-  if exists_abs_min_max (Thm.prop_of thm)
-  then Conv.fconv_rule (Conv.top_conv unfold_def_conv ctxt) thm
-  else thm
-
-
-(** include additional facts **)
-
-fun extra_norm has_datatypes irules ctxt =
-  irules
-  |> not has_datatypes ? add_pair_rules
-  |> add_fun_upd_rules
-  |> map (apsnd (unfold_abs_min_max_defs ctxt))
-  |> rpair ctxt
-
-
-
 (* builtins *)
 
 local
@@ -129,7 +58,6 @@ val setup_builtins =
   B.add_builtin_fun smtlibC (Term.dest_Const @{const distinct ('a)}, distinct)
 
 end
-
 
 
 (* serialization *)
@@ -215,12 +143,10 @@ fun serialize comments {header, sorts, dtyps, funcs} ts =
   |> Buffer.content
 
 
-
 (* interface *)
 
 val interface = {
   class = smtlibC,
-  extra_norm = extra_norm,
   translate = {
     prefixes = {
       sort_prefix = "S",

@@ -37,6 +37,7 @@ sig
   val is_builtin_fun: Proof.context -> string * typ -> term list -> bool
   val is_builtin_pred: Proof.context -> string * typ -> term list -> bool
   val is_builtin_conn: Proof.context -> string * typ -> term list -> bool
+  val is_builtin_fun_ext: Proof.context -> string * typ -> term list -> bool
   val is_builtin_ext: Proof.context -> string * typ -> term list -> bool
 end
 
@@ -77,8 +78,6 @@ fun lookup_ttab ctxt ttab T =
   end
 
 type ('a, 'b) btab = ('a, 'b) ttab Symtab.table
-
-fun empty_btab () = Symtab.empty
 
 fun insert_btab cs n T f =
   Symtab.map_default (n, []) (insert_ttab cs T f)
@@ -147,26 +146,10 @@ fun is_builtin_num_ext ctxt t =
 
 type 'a bfun = Proof.context -> typ -> term list -> 'a
 
-fun true3 _ _ _ = true
-
-fun raw_add_builtin_fun_ext thy cs n =
-  insert_btab cs n (Sign.the_const_type thy n) (Ext true3)
-
-val basic_builtin_fun_names = [
-  @{const_name SMT.pat}, @{const_name SMT.nopat},
-  @{const_name SMT.trigger}, @{const_name SMT.weight}]
-
-type builtin_funcs = (bool bfun, (string * term list) option bfun) btab
-
-fun basic_builtin_funcs () : builtin_funcs =
-  empty_btab ()
-  |> fold (raw_add_builtin_fun_ext @{theory} U.basicC) basic_builtin_fun_names
-       (* FIXME: SMT_Normalize should check that they are properly used *)
-
 structure Builtin_Funcs = Generic_Data
 (
-  type T = builtin_funcs
-  val empty = basic_builtin_funcs ()
+  type T = (bool bfun, (string * term list) option bfun) btab
+  val empty = Symtab.empty
   val extend = I
   val merge = merge_btab
 )
@@ -180,7 +163,8 @@ fun add_builtin_fun' cs (t, n) =
 fun add_builtin_fun_ext ((n, T), f) =
   Builtin_Funcs.map (insert_btab U.basicC n T (Ext f))
 
-fun add_builtin_fun_ext' c = add_builtin_fun_ext (c, true3)
+fun add_builtin_fun_ext' c =
+  add_builtin_fun_ext (c, fn _ => fn _ => fn _ => true)
 
 fun add_builtin_fun_ext'' n context =
   let val thy = Context.theory_of context

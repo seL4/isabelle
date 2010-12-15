@@ -528,7 +528,7 @@ fun run_smt_solver auto name (params as {debug, ...}) minimize_command
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
     val thy = Proof.theory_of state
-    val facts = facts |> map (apsnd (Thm.transfer thy) o untranslated_fact)
+    val facts = facts |> map (apsnd (pair NONE o Thm.transfer thy) o untranslated_fact)
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop params remote state subgoal facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)

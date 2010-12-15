@@ -25,6 +25,7 @@ sig
   (*terms*)
   val dest_conj: term -> term * term
   val dest_disj: term -> term * term
+  val under_quant: (term -> 'a) -> term -> 'a
 
   (*patterns and instantiations*)
   val mk_const_pat: theory -> string -> (ctyp -> 'a) -> 'a * cterm
@@ -48,7 +49,10 @@ sig
   (*conversions*)
   val if_conv: (term -> bool) -> conv -> conv -> conv
   val if_true_conv: (term -> bool) -> conv -> conv
+  val if_exists_conv: (term -> bool) -> conv -> conv
   val binders_conv: (Proof.context -> conv) -> Proof.context -> conv
+  val under_quant_conv: (Proof.context * cterm list -> conv) ->
+    Proof.context -> conv
   val prop_conv: conv -> conv
 end
 
@@ -110,6 +114,12 @@ fun dest_conj (@{const HOL.conj} $ t $ u) = (t, u)
 fun dest_disj (@{const HOL.disj} $ t $ u) = (t, u)
   | dest_disj t = raise TERM ("not a disjunction", [t])
 
+fun under_quant f t =
+  (case t of
+    Const (@{const_name All}, _) $ Abs (_, _, u) => under_quant f u
+  | Const (@{const_name Ex}, _) $ Abs (_, _, u) => under_quant f u
+  | _ => f t)
+
 
 (* patterns and instantiations *)
 
@@ -164,8 +174,22 @@ fun if_conv pred cv1 cv2 ct = if pred (Thm.term_of ct) then cv1 ct else cv2 ct
 
 fun if_true_conv pred cv = if_conv pred cv Conv.all_conv
 
+fun if_exists_conv pred = if_true_conv (Term.exists_subterm pred)
+
 fun binders_conv cv ctxt =
   Conv.binder_conv (binders_conv cv o snd) ctxt else_conv cv ctxt
+
+fun under_quant_conv cv ctxt =
+  let
+    fun quant_conv inside ctxt cvs ct =
+      (case Thm.term_of ct of
+        Const (@{const_name All}, _) $ Abs _ =>
+          Conv.binder_conv (under_conv cvs) ctxt
+      | Const (@{const_name Ex}, _) $ Abs _ =>
+          Conv.binder_conv (under_conv cvs) ctxt
+      | _ => if inside then cv (ctxt, cvs) else Conv.all_conv) ct
+    and under_conv cvs (cv, ctxt) = quant_conv true ctxt (cv :: cvs)
+  in quant_conv false ctxt [] end
 
 fun prop_conv cv ct =
   (case Thm.term_of ct of

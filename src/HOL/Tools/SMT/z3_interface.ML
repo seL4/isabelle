@@ -43,12 +43,13 @@ local
     | is_int_div_mod @{const mod (int)} = true
     | is_int_div_mod _ = false
 
-  fun add_div_mod irules =
-    if exists (Term.exists_subterm is_int_div_mod o Thm.prop_of o snd) irules
-    then [(~1, @{thm div_by_z3div}), (~1, @{thm mod_by_z3mod})] @ irules
-    else irules
+  val have_int_div_mod =
+    exists (Term.exists_subterm is_int_div_mod o Thm.prop_of)
 
-  fun extra_norm' has_datatypes = extra_norm has_datatypes o add_div_mod
+  fun add_div_mod _ (thms, extra_thms) =
+    if have_int_div_mod thms orelse have_int_div_mod extra_thms then
+      (thms, @{thm div_by_z3div} :: @{thm mod_by_z3mod} :: extra_thms)
+    else (thms, extra_thms)
 
   val setup_builtins =
     B.add_builtin_fun' smtlib_z3C (@{const z3div}, "div") #>
@@ -57,7 +58,6 @@ in
 
 val interface = {
   class = smtlib_z3C,
-  extra_norm = extra_norm',
   translate = {
     prefixes = prefixes,
     is_fol = is_fol,
@@ -65,7 +65,9 @@ val interface = {
     has_datatypes = true,
     serialize = serialize}}
 
-val setup = Context.theory_map setup_builtins
+val setup = Context.theory_map (
+  setup_builtins #>
+  SMT_Normalize.add_extra_norm (smtlib_z3C, add_div_mod))
 
 end
 
