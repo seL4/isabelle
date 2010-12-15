@@ -331,7 +331,9 @@ type locality = Sledgehammer_Filter.locality
 
 (* hack *)
 fun reconstructor_from_msg msg =
-  if String.isSubstring "metis" msg then "metis" else "smt"
+  if String.isSubstring "metisFT" msg then "metisFT"
+  else if String.isSubstring "metis" msg then "metis"
+  else "smt"
 
 local
 
@@ -482,9 +484,12 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
     fun do_reconstructor thms ctxt =
-      (if !reconstructor = "smt" then SMT_Solver.smt_tac
-       else if full then Metis_Tactics.metisFT_tac
-       else Metis_Tactics.metis_tac) ctxt thms
+      (if !reconstructor = "smt" then
+         SMT_Solver.smt_tac
+       else if full orelse !reconstructor = "metisFT" then
+         Metis_Tactics.metisFT_tac
+       else
+         Metis_Tactics.metis_tac) ctxt thms
     fun apply_reconstructor thms =
       Mirabelle.can_apply timeout (do_reconstructor thms) st
 
