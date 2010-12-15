@@ -1,4 +1,4 @@
-(*  Title:      HOL/MetisTest/TransClosure.thy
+(*  Title:      HOL/Metis_Examples/TransClosure.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Testing the metis method

@@ -1,4 +1,4 @@
-(*  Title:      HOL/MetisTest/Message.thy
+(*  Title:      HOL/Metis_Examples/Message.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Testing the metis method.

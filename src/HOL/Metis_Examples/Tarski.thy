@@ -1,4 +1,4 @@
-(*  Title:      HOL/MetisTest/Tarski.thy
+(*  Title:      HOL/Metis_Examples/Tarski.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Testing the metis method.

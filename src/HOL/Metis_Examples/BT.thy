@@ -1,4 +1,4 @@
-(*  Title:      HOL/MetisTest/BT.thy
+(*  Title:      HOL/Metis_Examples/BT.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
