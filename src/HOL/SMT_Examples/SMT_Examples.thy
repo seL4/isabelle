@@ -441,21 +441,29 @@ lemma "prime_nat (4*m + 1) \<Longrightarrow> m \<ge> (1::nat)" by (smt prime_nat
 
 section {* Pairs *}
 
-lemma "fst (x, y) = a \<Longrightarrow> x = a" by smt
+lemma "fst (x, y) = a \<Longrightarrow> x = a"
+  using fst_conv
+  by smt
 
-lemma "p1 = (x, y) \<and> p2 = (y, x) \<Longrightarrow> fst p1 = snd p2" by smt
+lemma "p1 = (x, y) \<and> p2 = (y, x) \<Longrightarrow> fst p1 = snd p2"
+  using fst_conv snd_conv
+  by smt
 
 
 section {* Higher-order problems and recursion *}
 
-lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> (f (i1 := v1, i2 := v2)) i = f i" by smt
+lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> (f (i1 := v1, i2 := v2)) i = f i"
+  using fun_upd_same fun_upd_apply
+  by smt
 
 lemma "(f g (x::'a::type) = (g x \<and> True)) \<or> (f g x = True) \<or> (g x = True)"
   by smt
 
 lemma "id 3 = 3 \<and> id True = True" by (smt id_def)
 
-lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> ((f (i1 := v1)) (i2 := v2)) i = f i" by smt
+lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> ((f (i1 := v1)) (i2 := v2)) i = f i"
+  using fun_upd_same fun_upd_apply
+  by smt
 
 
 
@@ -483,6 +491,7 @@ lemma
    (eval_dioph ks (map (\<lambda>x. x mod 2) xs) mod 2 = l mod 2 \<and>
     eval_dioph ks (map (\<lambda>x. x div 2) xs) =
       (l - eval_dioph ks (map (\<lambda>x. x mod 2) xs)) div 2)"
+  using [[smt_oracle=true]] (*FIXME*)
   by (smt eval_dioph_mod[where n=2] eval_dioph_div_mult[where n=2])
 
 

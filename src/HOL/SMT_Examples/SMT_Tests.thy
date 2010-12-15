@@ -152,12 +152,12 @@ lemma
   "(\<not>(\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"
   "(\<exists>x. P x \<longrightarrow> Q) \<longleftrightarrow> (\<forall>x. P x) \<longrightarrow> Q"
   "(\<forall>x y. R x y = x) \<longrightarrow> (\<exists>y. R x y) = R x c"
-  "\<forall>x. \<exists>y. f x y = f x (g x)"
   "(if P x then \<not>(\<exists>y. P y) else (\<forall>y. \<not>P y)) \<longrightarrow> P x \<longrightarrow> P y"
   "(\<forall>x y. R x y = x) \<and> (\<forall>x. \<exists>y. R x y) = (\<forall>x. R x c) \<longrightarrow> (\<exists>y. R x y) = R x c"
   by smt+
 
 lemma  (* only without proofs: *)
+  "\<forall>x. \<exists>y. f x y = f x (g x)"
   "(\<not>\<not>(\<exists>x. P x)) \<longleftrightarrow> (\<not>(\<forall>x. \<not> P x))"
   "\<forall>u. \<exists>v. \<forall>w. \<exists>x. f u v w x = f u (g u) w (h u w)"
   "\<exists>x. if x = y then (\<forall>y. y = x \<or> y \<noteq> x) else (\<forall>y. y = (x, x) \<or> y \<noteq> (x, x))"
@@ -522,8 +522,8 @@ lemma
   by smt+
 
 lemma
-  "(-1::int) = - 1"
-  "(-3::int) = - 3"
+  "(-1::real) = - 1"
+  "(-3::real) = - 3"
   "-(x::real) < 0 \<longleftrightarrow> x > 0"
   "x > 0 \<longrightarrow> -x < 0"
   "x < 0 \<longrightarrow> -x > 0"
@@ -539,7 +539,7 @@ lemma
   by smt+
 
 lemma
-  "(x::int) * 0 = 0"
+  "(x::real) * 0 = 0"
   "0 * x = 0"
   "x * 1 = x"
   "1 * x = x"
@@ -622,7 +622,7 @@ lemma
   "p1 = (x, y) \<and> p2 = (y, x) \<longrightarrow> fst p1 = snd p2"
   "(fst (x, y) = snd (x, y)) = (x = y)"
   "(fst p = snd p) = (p = (snd p, fst p))"
-  using [[smt_trace=true]]
+  using fst_conv snd_conv pair_collapse
   by smt+
 
 
@@ -637,6 +637,7 @@ lemma
   "i1 = i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v2"
   "i1 = i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v2"
   "distinct [i1, i2, i3] \<longrightarrow> (f (i1 := v1, i2 := v2)) i3 = f i3"
+  using fun_upd_same fun_upd_apply
   by smt+
 
 
