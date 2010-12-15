@@ -161,7 +161,8 @@ fun add_fact fact_names (Inference (name, _, [])) =
   | add_fact _ _ = I
 
 fun used_facts_in_tstplike_proof fact_names =
-  atp_proof_from_tstplike_string #> rpair [] #-> fold (add_fact fact_names)
+  atp_proof_from_tstplike_string false
+  #> rpair [] #-> fold (add_fact fact_names)
 
 val split_used_facts =
   List.partition (curry (op =) Chained o snd)
@@ -608,7 +609,7 @@ fun isar_proof_from_tstplike_proof pool ctxt type_sys tfrees isar_shrink_factor
   let
     val lines =
       tstplike_proof
-      |> atp_proof_from_tstplike_string
+      |> atp_proof_from_tstplike_string true
       |> nasty_atp_proof pool
       |> map_term_names_in_atp_proof repair_name
       |> decode_lines ctxt type_sys tfrees
