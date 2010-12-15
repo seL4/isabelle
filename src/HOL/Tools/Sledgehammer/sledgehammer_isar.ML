@@ -99,7 +99,7 @@ val negated_alias_params =
    ("no_isar_proof", "isar_proof")]
 
 val params_for_minimize =
-  ["debug", "verbose", "overlord", "full_types", "type_sys", "isar_proof",
+  ["debug", "verbose", "overlord", "type_sys", "full_types", "isar_proof",
    "isar_shrink_factor", "timeout"]
 
 val property_dependent_params = ["provers", "full_types", "timeout"]
@@ -221,8 +221,8 @@ fun extract_params auto default_params override_params =
     val overlord = lookup_bool "overlord"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
-    val full_types = lookup_bool "full_types"
     val type_sys = lookup_string "type_sys"
+    val full_types = lookup_bool "full_types"
     val explicit_apply = lookup_bool "explicit_apply"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
@@ -232,7 +232,7 @@ fun extract_params auto default_params override_params =
     val expect = lookup_string "expect"
   in
     {blocking = blocking, debug = debug, verbose = verbose, overlord = overlord,
-     provers = provers, full_types = full_types, type_sys = type_sys,
+     provers = provers, type_sys = type_sys, full_types = full_types,
      explicit_apply = explicit_apply,
      relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
      isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,

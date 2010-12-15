@@ -9,10 +9,11 @@ Proof reconstruction for Sledgehammer.
 signature SLEDGEHAMMER_ATP_RECONSTRUCT =
 sig
   type locality = Sledgehammer_Filter.locality
+  type type_system = Sledgehammer_ATP_Translate.type_system
   type minimize_command = string list -> string
   type metis_params =
-    string * bool * minimize_command * string * (string * locality) list vector
-    * thm * int
+    string * type_system * minimize_command * string
+    * (string * locality) list vector * thm * int
   type isar_params =
     string Symtab.table * bool * int * Proof.context * int list list
   type text_result = string * (string * locality) list
@@ -43,8 +44,8 @@ open Sledgehammer_ATP_Translate
 
 type minimize_command = string list -> string
 type metis_params =
-  string * bool * minimize_command * string * (string * locality) list vector
-  * thm * int
+  string * type_system * minimize_command * string
+  * (string * locality) list vector * thm * int
 type isar_params =
   string Symtab.table * bool * int * Proof.context * int list list
 type text_result = string * (string * locality) list
@@ -125,12 +126,12 @@ fun try_command_line banner command =
 fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun metis_name full_types = if full_types then "metisFT" else "metis"
-fun metis_call full_types ss = command_call (metis_name full_types) ss
-fun metis_command full_types i n (ls, ss) =
-  using_labels ls ^ apply_on_subgoal i n ^ metis_call full_types ss
-fun metis_line banner full_types i n ss =
-  try_command_line banner (metis_command full_types i n ([], ss))
+fun metis_name type_sys = if is_fully_typed type_sys then "metisFT" else "metis"
+fun metis_call type_sys ss = command_call (metis_name type_sys) ss
+fun metis_command type_sys i n (ls, ss) =
+  using_labels ls ^ apply_on_subgoal i n ^ metis_call type_sys ss
+fun metis_line banner type_sys i n ss =
+  try_command_line banner (metis_command type_sys i n ([], ss))
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
@@ -165,14 +166,14 @@ val split_used_facts =
   List.partition (curry (op =) Chained o snd)
   #> pairself (sort_distinct (string_ord o pairself fst))
 
-fun metis_proof_text (banner, full_types, minimize_command,
-                      tstplike_proof, fact_names, goal, i) =
+fun metis_proof_text (banner, type_sys, minimize_command, tstplike_proof,
+                      fact_names, goal, i) =
   let
     val (chained_lemmas, other_lemmas) =
       split_used_facts (used_facts_in_tstplike_proof fact_names tstplike_proof)
     val n = Logic.count_prems (prop_of goal)
   in
-    (metis_line banner full_types i n (map fst other_lemmas) ^
+    (metis_line banner type_sys i n (map fst other_lemmas) ^
      minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
      other_lemmas @ chained_lemmas)
   end
@@ -303,7 +304,7 @@ fun repair_atp_variable_name f s =
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
-fun raw_term_from_pred thy full_types tfrees =
+fun raw_term_from_pred thy type_sys tfrees =
   let
     fun aux opt_T extra_us u =
       case u of
@@ -327,25 +328,26 @@ fun raw_term_from_pred thy full_types tfrees =
         | SOME b =>
           let
             val c = invert_const b
-            val num_type_args = num_type_args thy c
-            val (type_us, term_us) =
-              chop (if full_types then 0 else num_type_args) us
+            val num_ty_args = num_atp_type_args thy type_sys c
+            val (type_us, term_us) = chop num_ty_args us
             (* Extra args from "hAPP" come after any arguments given directly to
                the constant. *)
             val term_ts = map (aux NONE []) term_us
             val extra_ts = map (aux NONE []) extra_us
             val t =
-              Const (c, if full_types then
+              Const (c, if is_fully_typed type_sys then
                           case opt_T of
                             SOME T => map fastype_of term_ts ---> T
                           | NONE =>
-                            if num_type_args = 0 then
+                            if num_type_args thy c = 0 then
                               Sign.const_instance thy (c, [])
                             else
                               raise Fail ("no type information for " ^ quote c)
-                        else
+                        else if num_type_args thy c = length type_us then
                           Sign.const_instance thy (c,
-                              map (type_from_fo_term tfrees) type_us))
+                              map (type_from_fo_term tfrees) type_us)
+                        else
+                          HOLogic.typeT)
           in list_comb (t, term_ts @ extra_ts) end
         | NONE => (* a free or schematic variable *)
           let
@@ -366,12 +368,12 @@ fun raw_term_from_pred thy full_types tfrees =
           in list_comb (t, ts) end
   in aux (SOME HOLogic.boolT) [] end
 
-fun term_from_pred thy full_types tfrees pos (u as ATerm (s, _)) =
+fun term_from_pred thy type_sys tfrees pos (u as ATerm (s, _)) =
   if String.isPrefix class_prefix s then
     add_type_constraint (type_constraint_from_term pos tfrees u)
     #> pair @{const True}
   else
-    pair (raw_term_from_pred thy full_types tfrees u)
+    pair (raw_term_from_pred thy type_sys tfrees u)
 
 val combinator_table =
   [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def_raw}),
@@ -412,7 +414,7 @@ fun quantify_over_var quant_of var_s t =
 
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they
    appear in the formula. *)
-fun prop_from_formula thy full_types tfrees phi =
+fun prop_from_formula thy type_sys tfrees phi =
   let
     fun do_formula pos phi =
       case phi of
@@ -435,7 +437,7 @@ fun prop_from_formula thy full_types tfrees phi =
              | AIff => s_iff
              | ANotIff => s_not o s_iff
              | _ => raise Fail "unexpected connective")
-      | AAtom tm => term_from_pred thy full_types tfrees pos tm
+      | AAtom tm => term_from_pred thy type_sys tfrees pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
@@ -449,14 +451,14 @@ fun check_formula ctxt =
 fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
   | unvarify_term t = raise TERM ("unvarify_term: non-Var", [t])
 
-fun decode_line full_types tfrees (Definition (name, phi1, phi2)) ctxt =
+fun decode_line type_sys tfrees (Definition (name, phi1, phi2)) ctxt =
     let
       val thy = ProofContext.theory_of ctxt
-      val t1 = prop_from_formula thy full_types tfrees phi1
+      val t1 = prop_from_formula thy type_sys tfrees phi1
       val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
       val unvarify_args = subst_atomic (vars ~~ frees)
-      val t2 = prop_from_formula thy full_types tfrees phi2
+      val t2 = prop_from_formula thy type_sys tfrees phi2
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
         |> unvarify_args |> uncombine_term |> check_formula ctxt
@@ -465,17 +467,17 @@ fun decode_line full_types tfrees (Definition (name, phi1, phi2)) ctxt =
       (Definition (name, t1, t2),
        fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
     end
-  | decode_line full_types tfrees (Inference (name, u, deps)) ctxt =
+  | decode_line type_sys tfrees (Inference (name, u, deps)) ctxt =
     let
       val thy = ProofContext.theory_of ctxt
-      val t = u |> prop_from_formula thy full_types tfrees
+      val t = u |> prop_from_formula thy type_sys tfrees
                 |> uncombine_term |> check_formula ctxt
     in
       (Inference (name, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
     end
-fun decode_lines ctxt full_types tfrees lines =
-  fst (fold_map (decode_line full_types tfrees) lines ctxt)
+fun decode_lines ctxt type_sys tfrees lines =
+  fst (fold_map (decode_line type_sys tfrees) lines ctxt)
 
 fun is_same_inference _ (Definition _) = false
   | is_same_inference t (Inference (_, t', _)) = t aconv t'
@@ -605,16 +607,15 @@ fun repair_name "$true" = "c_True"
     else
       s
 
-fun isar_proof_from_tstplike_proof pool ctxt full_types tfrees
-        isar_shrink_factor tstplike_proof conjecture_shape fact_names params
-        frees =
+fun isar_proof_from_tstplike_proof pool ctxt type_sys tfrees isar_shrink_factor
+        tstplike_proof conjecture_shape fact_names params frees =
   let
     val lines =
       tstplike_proof
       |> atp_proof_from_tstplike_string
       |> nasty_atp_proof pool
       |> map_term_names_in_atp_proof repair_name
-      |> decode_lines ctxt full_types tfrees
+      |> decode_lines ctxt type_sys tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape fact_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
       |> rpair (0, []) |-> fold_rev (add_desired_line isar_shrink_factor
@@ -857,7 +858,7 @@ val relabel_proof =
         step :: aux subst depth nextp proof
   in aux [] 0 (1, 1) end
 
-fun string_for_proof ctxt0 full_types i n =
+fun string_for_proof ctxt0 type_sys i n =
   let
     val ctxt = ctxt0
       |> Config.put show_free_types false
@@ -879,7 +880,7 @@ fun string_for_proof ctxt0 full_types i n =
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
     fun do_facts (ls, ss) =
-      metis_command full_types 1 1
+      metis_command type_sys 1 1
                     (ls |> sort_distinct (prod_ord string_ord int_ord),
                      ss |> sort_distinct string_ord)
     and do_step ind (Fix xs) =
@@ -914,7 +915,7 @@ fun string_for_proof ctxt0 full_types i n =
   in do_proof end
 
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-                    (metis_params as (_, full_types, _, tstplike_proof,
+                    (metis_params as (_, type_sys, _, tstplike_proof,
                                       fact_names, goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
@@ -923,7 +924,7 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
     val n = Logic.count_prems (prop_of goal)
     val (one_line_proof, lemma_names) = metis_proof_text metis_params
     fun isar_proof_for () =
-      case isar_proof_from_tstplike_proof pool ctxt full_types tfrees
+      case isar_proof_from_tstplike_proof pool ctxt type_sys tfrees
                isar_shrink_factor tstplike_proof conjecture_shape fact_names
                params frees
            |> redirect_proof hyp_ts concl_t
@@ -931,7 +932,7 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> string_for_proof ctxt full_types i n of
+           |> string_for_proof ctxt type_sys i n of
         "" => "\nNo structured proof available."
       | proof => "\n\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =

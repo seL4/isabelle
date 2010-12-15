@@ -20,8 +20,8 @@ sig
      verbose: bool,
      overlord: bool,
      provers: string list,
-     full_types: bool,
      type_sys: string,
+     full_types: bool,
      explicit_apply: bool,
      relevance_thresholds: real * real,
      max_relevant: int option,
@@ -204,8 +204,8 @@ type params =
    verbose: bool,
    overlord: bool,
    provers: string list,
-   full_types: bool,
    type_sys: string,
+   full_types: bool,
    explicit_apply: bool,
    relevance_thresholds: real * real,
    max_relevant: int option,
@@ -271,7 +271,7 @@ val important_message_keep_factor = 0.1
 fun run_atp auto atp_name
         ({exec, required_execs, arguments, has_incomplete_mode, proof_delims,
          known_failures, explicit_forall, use_conjecture_for_hypotheses, ...} : atp_config)
-        ({debug, verbose, overlord, full_types, type_sys, explicit_apply,
+        ({debug, verbose, overlord, type_sys, full_types, explicit_apply,
           isar_proof, isar_shrink_factor, timeout, ...} : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
@@ -398,7 +398,7 @@ fun run_atp auto atp_name
         NONE =>
         proof_text isar_proof
             (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-            (proof_banner auto, full_types, minimize_command, tstplike_proof,
+            (proof_banner auto, type_sys, minimize_command, tstplike_proof,
              fact_names, goal, subgoal)
         |>> (fn message =>
                 message ^
