@@ -81,7 +81,13 @@ fun strip_happ args (Metis_Term.Fn(".",[t,u])) = strip_happ (u::args) t
 
 fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS)
 
-fun smart_invert_const "fequal" = @{const_name HOL.eq}
+fun smart_invert_const "fFalse" = @{const_name False}
+  | smart_invert_const "fTrue" = @{const_name True}
+  | smart_invert_const "fNot" = @{const_name Not}
+  | smart_invert_const "fconj" = @{const_name conj}
+  | smart_invert_const "fdisj" = @{const_name disj}
+  | smart_invert_const "fimplies" = @{const_name implies}
+  | smart_invert_const "fequal" = @{const_name HOL.eq}
   | smart_invert_const s = invert_const s
 
 fun hol_type_from_metis_term _ (Metis_Term.Var v) =
@@ -378,7 +384,8 @@ fun make_last i th =
 
 (* Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
    double-negations. *)
-val negate_head = rewrite_rule [@{thm atomize_not}, not_not RS eq_reflection]
+val negate_head =
+  fold (rewrite_rule o single) [@{thm atomize_not}, not_not RS eq_reflection]
 
 (* Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P *)
 val select_literal = negate_head oo make_last
