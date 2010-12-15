@@ -42,17 +42,13 @@ struct
 
 val trace = Unsynchronized.ref false;
 
-structure R = Rules;
-structure S = USyntax;
-structure U = Utils;
 
+fun TFL_ERR func mesg = Utils.ERR {module = "Tfl", func = func, mesg = mesg};
 
-fun TFL_ERR func mesg = U.ERR {module = "Tfl", func = func, mesg = mesg};
+val concl = #2 o Rules.dest_thm;
+val hyp = #1 o Rules.dest_thm;
 
-val concl = #2 o R.dest_thm;
-val hyp = #1 o R.dest_thm;
-
-val list_mk_type = U.end_itlist (curry (op -->));
+val list_mk_type = Utils.end_itlist (curry (op -->));
 
 fun front_last [] = raise TFL_ERR "front_last" "empty list"
   | front_last [x] = ([],x)
@@ -99,12 +95,12 @@ fun ipartition gv (constructors,rows) =
               val (in_group, not_in_group) =
                fold_rev (fn (row as (p::rst, rhs)) =>
                          fn (in_group,not_in_group) =>
-                  let val (pc,args) = S.strip_comb p
+                  let val (pc,args) = USyntax.strip_comb p
                   in if (#1(dest_Const pc) = c)
                      then ((args@rst, rhs)::in_group, not_in_group)
                      else (in_group, row::not_in_group)
                   end)      rows ([],[])
-              val col_types = U.take type_of (length L, #1(hd in_group))
+              val col_types = Utils.take type_of (length L, #1(hd in_group))
           in
           part{constrs = crst, rows = not_in_group,
                A = {constructor = c,
@@ -142,8 +138,8 @@ fun fresh_constr ty_match colty gv c =
       val L = binder_types Ty
       and ty = body_type Ty
       val ty_theta = ty_match ty colty
-      val c' = S.inst ty_theta c
-      val gvars = map (S.inst ty_theta o gv) L
+      val c' = USyntax.inst ty_theta c
+      val gvars = map (USyntax.inst ty_theta o gv) L
   in (c', gvars)
   end;
 
@@ -155,7 +151,7 @@ fun fresh_constr ty_match colty gv c =
 fun mk_group name rows =
   fold_rev (fn (row as ((prfx, p::rst), rhs)) =>
             fn (in_group,not_in_group) =>
-               let val (pc,args) = S.strip_comb p
+               let val (pc,args) = USyntax.strip_comb p
                in if ((#1 (Term.dest_Const pc) = name) handle TERM _ => false)
                   then (((prfx,args@rst), rhs)::in_group, not_in_group)
                   else (in_group, row::not_in_group) end)
@@ -174,7 +170,7 @@ let val fresh = fresh_constr ty_match colty gv
              val (in_group, not_in_group) = mk_group (#1 (dest_Const c')) rows
              val in_group' =
                  if (null in_group)  (* Constructor not given *)
-                 then [((prfx, #2(fresh c)), (S.ARB res_ty, (~1,false)))]
+                 then [((prfx, #2(fresh c)), (USyntax.ARB res_ty, (~1,false)))]
                  else in_group
          in
          part{constrs = crst,
@@ -264,7 +260,7 @@ fun mk_case ty_info ty_match usednames range_ty =
                            (ListPair.zip (new_formals, groups))
             val rec_calls = map mk news
             val (pat_rect,dtrees) = ListPair.unzip rec_calls
-            val case_functions = map S.list_mk_abs
+            val case_functions = map USyntax.list_mk_abs
                                   (ListPair.zip (new_formals, dtrees))
             val types = map type_of (case_functions@[u]) @ [range_ty]
             val case_const' = Const(case_const_name, list_mk_type types)
@@ -279,11 +275,11 @@ fun mk_case ty_info ty_match usednames range_ty =
 
 (* Repeated variable occurrences in a pattern are not allowed. *)
 fun FV_multiset tm =
-   case (S.dest_term tm)
-     of S.VAR{Name = c, Ty = T} => [Free(c, T)]
-      | S.CONST _ => []
-      | S.COMB{Rator, Rand} => FV_multiset Rator @ FV_multiset Rand
-      | S.LAMB _ => raise TFL_ERR "FV_multiset" "lambda";
+   case (USyntax.dest_term tm)
+     of USyntax.VAR{Name = c, Ty = T} => [Free(c, T)]
+      | USyntax.CONST _ => []
+      | USyntax.COMB{Rator, Rand} => FV_multiset Rator @ FV_multiset Rand
+      | USyntax.LAMB _ => raise TFL_ERR "FV_multiset" "lambda";
 
 fun no_repeat_vars thy pat =
  let fun check [] = true
@@ -370,10 +366,10 @@ fun poly_tvars (Type(a,Ts)) = Type(a, map (poly_tvars) Ts)
   | poly_tvars (TVar ((a,i),sort)) = TVar (("?" ^ a, i+1), sort);
 
 local val f_eq_wfrec_R_M =
-           #ant(S.dest_imp(#2(S.strip_forall (concl Thms.WFREC_COROLLARY))))
-      val {lhs=f, rhs} = S.dest_eq f_eq_wfrec_R_M
+           #ant(USyntax.dest_imp(#2(USyntax.strip_forall (concl Thms.WFREC_COROLLARY))))
+      val {lhs=f, rhs} = USyntax.dest_eq f_eq_wfrec_R_M
       val (fname,_) = dest_Free f
-      val (wfrec,_) = S.strip_comb rhs
+      val (wfrec,_) = USyntax.strip_comb rhs
 in
 fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
  let val def_name = Long_Name.base_name fid ^ "_def"
@@ -422,15 +418,15 @@ fun givens pats = map pat_of (filter given pats);
 
 fun post_definition meta_tflCongs (theory, (def, pats)) =
  let val tych = Thry.typecheck theory
-     val f = #lhs(S.dest_eq(concl def))
-     val corollary = R.MATCH_MP Thms.WFREC_COROLLARY def
+     val f = #lhs(USyntax.dest_eq(concl def))
+     val corollary = Rules.MATCH_MP Thms.WFREC_COROLLARY def
      val pats' = filter given pats
      val given_pats = map pat_of pats'
      val rows = map row_of_pat pats'
-     val WFR = #ant(S.dest_imp(concl corollary))
-     val R = #Rand(S.dest_comb WFR)
-     val corollary' = R.UNDISCH corollary  (* put WF R on assums *)
-     val corollaries = map (fn pat => R.SPEC (tych pat) corollary')
+     val WFR = #ant(USyntax.dest_imp(concl corollary))
+     val R = #Rand(USyntax.dest_comb WFR)
+     val corollary' = Rules.UNDISCH corollary  (* put WF R on assums *)
+     val corollaries = map (fn pat => Rules.SPEC (tych pat) corollary')
                            given_pats
      val (case_rewrites,context_congs) = extraction_thms theory
      (*case_ss causes minimal simplification: bodies of case expressions are
@@ -440,12 +436,12 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
        (HOL_basic_ss addcongs
          (map (#weak_case_cong o snd) o Symtab.dest o Datatype.get_all) theory addsimps case_rewrites)
      val corollaries' = map (Simplifier.simplify case_ss) corollaries
-     val extract = R.CONTEXT_REWRITE_RULE
+     val extract = Rules.CONTEXT_REWRITE_RULE
                      (f, [R], @{thm cut_apply}, meta_tflCongs@context_congs)
      val (rules, TCs) = ListPair.unzip (map extract corollaries')
      val rules0 = map (rewrite_rule [Thms.CUT_DEF]) rules
-     val mk_cond_rule = R.FILTER_DISCH_ALL(not o curry (op aconv) WFR)
-     val rules1 = R.LIST_CONJ(map mk_cond_rule rules0)
+     val mk_cond_rule = Rules.FILTER_DISCH_ALL(not o curry (op aconv) WFR)
+     val rules1 = Rules.LIST_CONJ(map mk_cond_rule rules0)
  in
  {rules = rules1,
   rows = rows,
@@ -463,8 +459,8 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
  *---------------------------------------------------------------------------*)
 
 fun wfrec_eqns thy fid tflCongs eqns =
- let val {lhs,rhs} = S.dest_eq (hd eqns)
-     val (f,args) = S.strip_comb lhs
+ let val {lhs,rhs} = USyntax.dest_eq (hd eqns)
+     val (f,args) = USyntax.strip_comb lhs
      val (fname,fty) = dest_atom f
      val (SV,a) = front_last args    (* SV = schematic variables *)
      val g = list_comb(f,SV)
@@ -482,22 +478,22 @@ fun wfrec_eqns thy fid tflCongs eqns =
                  else ()
      val (case_rewrites,context_congs) = extraction_thms thy
      val tych = Thry.typecheck thy
-     val WFREC_THM0 = R.ISPEC (tych functional) Thms.WFREC_COROLLARY
+     val WFREC_THM0 = Rules.ISPEC (tych functional) Thms.WFREC_COROLLARY
      val Const(@{const_name All},_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
      val R = Free (Name.variant (List.foldr OldTerm.add_term_names [] eqns) Rname,
                    Rtype)
-     val WFREC_THM = R.ISPECL [tych R, tych g] WFREC_THM0
-     val ([proto_def, WFR],_) = S.strip_imp(concl WFREC_THM)
+     val WFREC_THM = Rules.ISPECL [tych R, tych g] WFREC_THM0
+     val ([proto_def, WFR],_) = USyntax.strip_imp(concl WFREC_THM)
      val dummy =
            if !trace then
                writeln ("ORIGINAL PROTO_DEF: " ^
                           Syntax.string_of_term_global thy proto_def)
            else ()
-     val R1 = S.rand WFR
-     val corollary' = R.UNDISCH(R.UNDISCH WFREC_THM)
-     val corollaries = map (fn pat => R.SPEC (tych pat) corollary') given_pats
+     val R1 = USyntax.rand WFR
+     val corollary' = Rules.UNDISCH (Rules.UNDISCH WFREC_THM)
+     val corollaries = map (fn pat => Rules.SPEC (tych pat) corollary') given_pats
      val corollaries' = map (rewrite_rule case_rewrites) corollaries
-     fun extract X = R.CONTEXT_REWRITE_RULE
+     fun extract X = Rules.CONTEXT_REWRITE_RULE
                        (f, R1::SV, @{thm cut_apply}, tflCongs@context_congs) X
  in {proto_def = proto_def,
      SV=SV,
@@ -517,8 +513,8 @@ fun wfrec_eqns thy fid tflCongs eqns =
 fun lazyR_def thy fid tflCongs eqns =
  let val {proto_def,WFR,pats,extracta,SV} =
            wfrec_eqns thy fid tflCongs eqns
-     val R1 = S.rand WFR
-     val f = #lhs(S.dest_eq proto_def)
+     val R1 = USyntax.rand WFR
+     val f = #lhs(USyntax.dest_eq proto_def)
      val (extractants,TCl) = ListPair.unzip extracta
      val dummy = if !trace
                  then writeln (cat_lines ("Extractants =" ::
@@ -526,17 +522,17 @@ fun lazyR_def thy fid tflCongs eqns =
                  else ()
      val TCs = fold_rev (union (op aconv)) TCl []
      val full_rqt = WFR::TCs
-     val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
-     val R'abs = S.rand R'
+     val R' = USyntax.mk_select{Bvar=R1, Body=USyntax.list_mk_conj full_rqt}
+     val R'abs = USyntax.rand R'
      val proto_def' = subst_free[(R1,R')] proto_def
      val dummy = if !trace then writeln ("proto_def' = " ^
                                          Syntax.string_of_term_global
                                          thy proto_def')
                            else ()
-     val {lhs,rhs} = S.dest_eq proto_def'
-     val (c,args) = S.strip_comb lhs
+     val {lhs,rhs} = USyntax.dest_eq proto_def'
+     val (c,args) = USyntax.strip_comb lhs
      val (name,Ty) = dest_atom c
-     val defn = const_def thy (name, Ty, S.list_mk_abs (args,rhs))
+     val defn = const_def thy (name, Ty, USyntax.list_mk_abs (args,rhs))
      val ([def0], theory) =
        thy
        |> Global_Theory.add_defs false
@@ -545,31 +541,31 @@ fun lazyR_def thy fid tflCongs eqns =
      val dummy =
        if !trace then writeln ("DEF = " ^ Display.string_of_thm_global theory def)
        else ()
-     (* val fconst = #lhs(S.dest_eq(concl def))  *)
+     (* val fconst = #lhs(USyntax.dest_eq(concl def))  *)
      val tych = Thry.typecheck theory
      val full_rqt_prop = map (Dcterm.mk_prop o tych) full_rqt
          (*lcp: a lot of object-logic inference to remove*)
-     val baz = R.DISCH_ALL
-                 (fold_rev R.DISCH full_rqt_prop
-                  (R.LIST_CONJ extractants))
+     val baz = Rules.DISCH_ALL
+                 (fold_rev Rules.DISCH full_rqt_prop
+                  (Rules.LIST_CONJ extractants))
      val dum = if !trace then writeln ("baz = " ^ Display.string_of_thm_global theory baz)
                            else ()
      val f_free = Free (fid, fastype_of f)  (*'cos f is a Const*)
      val SV' = map tych SV;
      val SVrefls = map Thm.reflexive SV'
-     val def0 = (fold (fn x => fn th => R.rbeta(Thm.combination th x))
+     val def0 = (fold (fn x => fn th => Rules.rbeta(Thm.combination th x))
                    SVrefls def)
                 RS meta_eq_to_obj_eq
-     val def' = R.MP (R.SPEC (tych R') (R.GEN (tych R1) baz)) def0
-     val body_th = R.LIST_CONJ (map R.ASSUME full_rqt_prop)
+     val def' = Rules.MP (Rules.SPEC (tych R') (Rules.GEN (tych R1) baz)) def0
+     val body_th = Rules.LIST_CONJ (map Rules.ASSUME full_rqt_prop)
      val SELECT_AX = (*in this way we hope to avoid a STATIC dependence upon
                        theory Hilbert_Choice*)
          ML_Context.thm "Hilbert_Choice.tfl_some"
          handle ERROR msg => cat_error msg
     "defer_recdef requires theory Main or at least Hilbert_Choice as parent"
-     val bar = R.MP (R.ISPECL[tych R'abs, tych R1] SELECT_AX) body_th
+     val bar = Rules.MP (Rules.ISPECL[tych R'abs, tych R1] SELECT_AX) body_th
  in {theory = theory, R=R1, SV=SV,
-     rules = fold (U.C R.MP) (R.CONJUNCTS bar) def',
+     rules = fold (Utils.C Rules.MP) (Rules.CONJUNCTS bar) def',
      full_pats_TCs = merge (map pat_of pats) (ListPair.zip (givens pats, TCl)),
      patterns = pats}
  end;
@@ -603,8 +599,8 @@ fun lazyR_def thy fid tflCongs eqns =
  *---------------------------------------------------------------------------*)
 
 fun alpha_ex_unroll (xlist, tm) =
-  let val (qvars,body) = S.strip_exists tm
-      val vlist = #2(S.strip_comb (S.rhs body))
+  let val (qvars,body) = USyntax.strip_exists tm
+      val vlist = #2 (USyntax.strip_comb (USyntax.rhs body))
       val plist = ListPair.zip (vlist, xlist)
       val args = map (the o AList.lookup (op aconv) plist) qvars
                    handle Option => raise Fail "TFL.alpha_ex_unroll: no correspondence"
@@ -634,7 +630,7 @@ fun mk_case ty_info usednames thy =
  fun fail s = raise TFL_ERR "mk_case" s
  fun mk{rows=[],...} = fail"no rows"
    | mk{path=[], rows = [([], (thm, bindings))]} =
-                         R.IT_EXISTS (map tych_binding bindings) thm
+                         Rules.IT_EXISTS (map tych_binding bindings) thm
    | mk{path = u::rstp, rows as (p::_, _)::_} =
      let val (pat_rectangle,rights) = ListPair.unzip rows
          val col0 = map hd pat_rectangle
@@ -651,8 +647,8 @@ fun mk_case ty_info usednames thy =
      case (ty_info ty_name)
      of NONE => fail("Not a known datatype: "^ty_name)
       | SOME{constructors,nchotomy} =>
-        let val thm' = R.ISPEC (tych u) nchotomy
-            val disjuncts = S.strip_disj (concl thm')
+        let val thm' = Rules.ISPEC (tych u) nchotomy
+            val disjuncts = USyntax.strip_disj (concl thm')
             val subproblems = divide(constructors, rows)
             val groups      = map #group subproblems
             and new_formals = map #new_formals subproblems
@@ -660,17 +656,17 @@ fun mk_case ty_info usednames thy =
                                    (new_formals, disjuncts)
             val constraints = map #1 existentials
             val vexl = map #2 existentials
-            fun expnd tm (pats,(th,b)) = (pats,(R.SUBS[R.ASSUME(tych tm)]th,b))
+            fun expnd tm (pats,(th,b)) = (pats, (Rules.SUBS [Rules.ASSUME (tych tm)] th, b))
             val news = map (fn (nf,rows,c) => {path = nf@rstp,
                                                rows = map (expnd c) rows})
-                           (U.zip3 new_formals groups constraints)
+                           (Utils.zip3 new_formals groups constraints)
             val recursive_thms = map mk news
             val build_exists = Library.foldr
                                 (fn((x,t), th) =>
-                                 R.CHOOSE (tych x, R.ASSUME (tych t)) th)
+                                 Rules.CHOOSE (tych x, Rules.ASSUME (tych t)) th)
             val thms' = ListPair.map build_exists (vexl, recursive_thms)
-            val same_concls = R.EVEN_ORS thms'
-        in R.DISJ_CASESL thm' same_concls
+            val same_concls = Rules.EVEN_ORS thms'
+        in Rules.DISJ_CASESL thm' same_concls
         end
      end end
  in mk
@@ -688,14 +684,14 @@ fun complete_cases thy =
      val a = Free (aname, T)
      val v = Free (vname, T)
      val a_eq_v = HOLogic.mk_eq(a,v)
-     val ex_th0 = R.EXISTS (tych (S.mk_exists{Bvar=v,Body=a_eq_v}), tych a)
-                           (R.REFL (tych a))
-     val th0 = R.ASSUME (tych a_eq_v)
+     val ex_th0 = Rules.EXISTS (tych (USyntax.mk_exists{Bvar=v,Body=a_eq_v}), tych a)
+                           (Rules.REFL (tych a))
+     val th0 = Rules.ASSUME (tych a_eq_v)
      val rows = map (fn x => ([x], (th0,[]))) pats
  in
- R.GEN (tych a)
-       (R.RIGHT_ASSOC
-          (R.CHOOSE(tych v, ex_th0)
+ Rules.GEN (tych a)
+       (Rules.RIGHT_ASSOC
+          (Rules.CHOOSE(tych v, ex_th0)
                 (mk_case ty_info (vname::aname::names)
                  thy {path=[v], rows=rows})))
  end end;
@@ -712,57 +708,57 @@ fun complete_cases thy =
  *---------------------------------------------------------------------------*)
 (*
 local infix 5 ==>
-      fun (tm1 ==> tm2) = S.mk_imp{ant = tm1, conseq = tm2}
+      fun (tm1 ==> tm2) = USyntax.mk_imp{ant = tm1, conseq = tm2}
 in
 fun build_ih f P (pat,TCs) =
- let val globals = S.free_vars_lr pat
-     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
+ let val globals = USyntax.free_vars_lr pat
+     fun nested tm = is_some (USyntax.find_term (curry (op aconv) f) tm)
      fun dest_TC tm =
-         let val (cntxt,R_y_pat) = S.strip_imp(#2(S.strip_forall tm))
-             val (R,y,_) = S.dest_relation R_y_pat
+         let val (cntxt,R_y_pat) = USyntax.strip_imp(#2(USyntax.strip_forall tm))
+             val (R,y,_) = USyntax.dest_relation R_y_pat
              val P_y = if (nested tm) then R_y_pat ==> P$y else P$y
          in case cntxt
               of [] => (P_y, (tm,[]))
                | _  => let
-                    val imp = S.list_mk_conj cntxt ==> P_y
-                    val lvs = gen_rems (op aconv) (S.free_vars_lr imp, globals)
-                    val locals = #2(U.pluck (curry (op aconv) P) lvs) handle U.ERR _ => lvs
-                    in (S.list_mk_forall(locals,imp), (tm,locals)) end
+                    val imp = USyntax.list_mk_conj cntxt ==> P_y
+                    val lvs = gen_rems (op aconv) (USyntax.free_vars_lr imp, globals)
+                    val locals = #2(Utils.pluck (curry (op aconv) P) lvs) handle Utils.ERR _ => lvs
+                    in (USyntax.list_mk_forall(locals,imp), (tm,locals)) end
          end
  in case TCs
-    of [] => (S.list_mk_forall(globals, P$pat), [])
+    of [] => (USyntax.list_mk_forall(globals, P$pat), [])
      |  _ => let val (ihs, TCs_locals) = ListPair.unzip(map dest_TC TCs)
-                 val ind_clause = S.list_mk_conj ihs ==> P$pat
-             in (S.list_mk_forall(globals,ind_clause), TCs_locals)
+                 val ind_clause = USyntax.list_mk_conj ihs ==> P$pat
+             in (USyntax.list_mk_forall(globals,ind_clause), TCs_locals)
              end
  end
 end;
 *)
 
 local infix 5 ==>
-      fun (tm1 ==> tm2) = S.mk_imp{ant = tm1, conseq = tm2}
+      fun (tm1 ==> tm2) = USyntax.mk_imp{ant = tm1, conseq = tm2}
 in
 fun build_ih f (P,SV) (pat,TCs) =
- let val pat_vars = S.free_vars_lr pat
+ let val pat_vars = USyntax.free_vars_lr pat
      val globals = pat_vars@SV
-     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = is_some (USyntax.find_term (curry (op aconv) f) tm)
      fun dest_TC tm =
-         let val (cntxt,R_y_pat) = S.strip_imp(#2(S.strip_forall tm))
-             val (R,y,_) = S.dest_relation R_y_pat
+         let val (cntxt,R_y_pat) = USyntax.strip_imp(#2(USyntax.strip_forall tm))
+             val (R,y,_) = USyntax.dest_relation R_y_pat
              val P_y = if (nested tm) then R_y_pat ==> P$y else P$y
          in case cntxt
               of [] => (P_y, (tm,[]))
                | _  => let
-                    val imp = S.list_mk_conj cntxt ==> P_y
-                    val lvs = subtract (op aconv) globals (S.free_vars_lr imp)
-                    val locals = #2(U.pluck (curry (op aconv) P) lvs) handle U.ERR _ => lvs
-                    in (S.list_mk_forall(locals,imp), (tm,locals)) end
+                    val imp = USyntax.list_mk_conj cntxt ==> P_y
+                    val lvs = subtract (op aconv) globals (USyntax.free_vars_lr imp)
+                    val locals = #2(Utils.pluck (curry (op aconv) P) lvs) handle Utils.ERR _ => lvs
+                    in (USyntax.list_mk_forall(locals,imp), (tm,locals)) end
          end
  in case TCs
-    of [] => (S.list_mk_forall(pat_vars, P$pat), [])
+    of [] => (USyntax.list_mk_forall(pat_vars, P$pat), [])
      |  _ => let val (ihs, TCs_locals) = ListPair.unzip(map dest_TC TCs)
-                 val ind_clause = S.list_mk_conj ihs ==> P$pat
-             in (S.list_mk_forall(pat_vars,ind_clause), TCs_locals)
+                 val ind_clause = USyntax.list_mk_conj ihs ==> P$pat
+             in (USyntax.list_mk_forall(pat_vars,ind_clause), TCs_locals)
              end
  end
 end;
@@ -776,29 +772,29 @@ end;
  *---------------------------------------------------------------------------*)
 fun prove_case f thy (tm,TCs_locals,thm) =
  let val tych = Thry.typecheck thy
-     val antc = tych(#ant(S.dest_imp tm))
-     val thm' = R.SPEC_ALL thm
-     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
-     fun get_cntxt TC = tych(#ant(S.dest_imp(#2(S.strip_forall(concl TC)))))
+     val antc = tych(#ant(USyntax.dest_imp tm))
+     val thm' = Rules.SPEC_ALL thm
+     fun nested tm = is_some (USyntax.find_term (curry (op aconv) f) tm)
+     fun get_cntxt TC = tych(#ant(USyntax.dest_imp(#2(USyntax.strip_forall(concl TC)))))
      fun mk_ih ((TC,locals),th2,nested) =
-         R.GENL (map tych locals)
-            (if nested then R.DISCH (get_cntxt TC) th2 handle U.ERR _ => th2
-             else if S.is_imp (concl TC) then R.IMP_TRANS TC th2
-             else R.MP th2 TC)
+         Rules.GENL (map tych locals)
+            (if nested then Rules.DISCH (get_cntxt TC) th2 handle Utils.ERR _ => th2
+             else if USyntax.is_imp (concl TC) then Rules.IMP_TRANS TC th2
+             else Rules.MP th2 TC)
  in
- R.DISCH antc
- (if S.is_imp(concl thm') (* recursive calls in this clause *)
-  then let val th1 = R.ASSUME antc
+ Rules.DISCH antc
+ (if USyntax.is_imp(concl thm') (* recursive calls in this clause *)
+  then let val th1 = Rules.ASSUME antc
            val TCs = map #1 TCs_locals
-           val ylist = map (#2 o S.dest_relation o #2 o S.strip_imp o
-                            #2 o S.strip_forall) TCs
-           val TClist = map (fn(TC,lvs) => (R.SPEC_ALL(R.ASSUME(tych TC)),lvs))
+           val ylist = map (#2 o USyntax.dest_relation o #2 o USyntax.strip_imp o
+                            #2 o USyntax.strip_forall) TCs
+           val TClist = map (fn(TC,lvs) => (Rules.SPEC_ALL(Rules.ASSUME(tych TC)),lvs))
                             TCs_locals
-           val th2list = map (U.C R.SPEC th1 o tych) ylist
+           val th2list = map (Utils.C Rules.SPEC th1 o tych) ylist
            val nlist = map nested TCs
-           val triples = U.zip3 TClist th2list nlist
+           val triples = Utils.zip3 TClist th2list nlist
            val Pylist = map mk_ih triples
-       in R.MP thm' (R.LIST_CONJ Pylist) end
+       in Rules.MP thm' (Rules.LIST_CONJ Pylist) end
   else thm')
  end;
 
@@ -812,12 +808,12 @@ fun prove_case f thy (tm,TCs_locals,thm) =
  *---------------------------------------------------------------------------*)
 fun LEFT_ABS_VSTRUCT tych thm =
   let fun CHOOSER v (tm,thm) =
-        let val ex_tm = S.mk_exists{Bvar=v,Body=tm}
-        in (ex_tm, R.CHOOSE(tych v, R.ASSUME (tych ex_tm)) thm)
+        let val ex_tm = USyntax.mk_exists{Bvar=v,Body=tm}
+        in (ex_tm, Rules.CHOOSE(tych v, Rules.ASSUME (tych ex_tm)) thm)
         end
-      val [veq] = filter (can S.dest_eq) (#1 (R.dest_thm thm))
-      val {lhs,rhs} = S.dest_eq veq
-      val L = S.free_vars_lr rhs
+      val [veq] = filter (can USyntax.dest_eq) (#1 (Rules.dest_thm thm))
+      val {lhs,rhs} = USyntax.dest_eq veq
+      val L = USyntax.free_vars_lr rhs
   in  #2 (fold_rev CHOOSER L (veq,thm))  end;
 
 
@@ -830,39 +826,39 @@ fun LEFT_ABS_VSTRUCT tych thm =
  *---------------------------------------------------------------------------*)
 fun mk_induction thy {fconst, R, SV, pat_TCs_list} =
 let val tych = Thry.typecheck thy
-    val Sinduction = R.UNDISCH (R.ISPEC (tych R) Thms.WF_INDUCTION_THM)
+    val Sinduction = Rules.UNDISCH (Rules.ISPEC (tych R) Thms.WF_INDUCTION_THM)
     val (pats,TCsl) = ListPair.unzip pat_TCs_list
     val case_thm = complete_cases thy pats
     val domain = (type_of o hd) pats
     val Pname = Name.variant (List.foldr (Library.foldr OldTerm.add_term_names)
                               [] (pats::TCsl)) "P"
     val P = Free(Pname, domain --> HOLogic.boolT)
-    val Sinduct = R.SPEC (tych P) Sinduction
-    val Sinduct_assumf = S.rand ((#ant o S.dest_imp o concl) Sinduct)
+    val Sinduct = Rules.SPEC (tych P) Sinduction
+    val Sinduct_assumf = USyntax.rand ((#ant o USyntax.dest_imp o concl) Sinduct)
     val Rassums_TCl' = map (build_ih fconst (P,SV)) pat_TCs_list
     val (Rassums,TCl') = ListPair.unzip Rassums_TCl'
-    val Rinduct_assum = R.ASSUME (tych (S.list_mk_conj Rassums))
+    val Rinduct_assum = Rules.ASSUME (tych (USyntax.list_mk_conj Rassums))
     val cases = map (fn pat => Term.betapply (Sinduct_assumf, pat)) pats
-    val tasks = U.zip3 cases TCl' (R.CONJUNCTS Rinduct_assum)
+    val tasks = Utils.zip3 cases TCl' (Rules.CONJUNCTS Rinduct_assum)
     val proved_cases = map (prove_case fconst thy) tasks
     val v = Free (Name.variant (List.foldr OldTerm.add_term_names [] (map concl proved_cases))
                     "v",
                   domain)
     val vtyped = tych v
-    val substs = map (R.SYM o R.ASSUME o tych o (curry HOLogic.mk_eq v)) pats
-    val proved_cases1 = ListPair.map (fn (th,th') => R.SUBS[th]th')
+    val substs = map (Rules.SYM o Rules.ASSUME o tych o (curry HOLogic.mk_eq v)) pats
+    val proved_cases1 = ListPair.map (fn (th,th') => Rules.SUBS[th]th')
                           (substs, proved_cases)
     val abs_cases = map (LEFT_ABS_VSTRUCT tych) proved_cases1
-    val dant = R.GEN vtyped (R.DISJ_CASESL (R.ISPEC vtyped case_thm) abs_cases)
-    val dc = R.MP Sinduct dant
-    val Parg_ty = type_of(#Bvar(S.dest_forall(concl dc)))
-    val vars = map (gvvariant[Pname]) (S.strip_prod_type Parg_ty)
-    val dc' = fold_rev (R.GEN o tych) vars
-                       (R.SPEC (tych(S.mk_vstruct Parg_ty vars)) dc)
+    val dant = Rules.GEN vtyped (Rules.DISJ_CASESL (Rules.ISPEC vtyped case_thm) abs_cases)
+    val dc = Rules.MP Sinduct dant
+    val Parg_ty = type_of(#Bvar(USyntax.dest_forall(concl dc)))
+    val vars = map (gvvariant[Pname]) (USyntax.strip_prod_type Parg_ty)
+    val dc' = fold_rev (Rules.GEN o tych) vars
+                       (Rules.SPEC (tych(USyntax.mk_vstruct Parg_ty vars)) dc)
 in
-   R.GEN (tych P) (R.DISCH (tych(concl Rinduct_assum)) dc')
+   Rules.GEN (tych P) (Rules.DISCH (tych(concl Rinduct_assum)) dc')
 end
-handle U.ERR _ => raise TFL_ERR "mk_induction" "failed derivation";
+handle Utils.ERR _ => raise TFL_ERR "mk_induction" "failed derivation";
 
 
 
@@ -876,15 +872,15 @@ handle U.ERR _ => raise TFL_ERR "mk_induction" "failed derivation";
 
 fun simplify_induction thy hth ind =
   let val tych = Thry.typecheck thy
-      val (asl,_) = R.dest_thm ind
-      val (_,tc_eq_tc') = R.dest_thm hth
-      val tc = S.lhs tc_eq_tc'
+      val (asl,_) = Rules.dest_thm ind
+      val (_,tc_eq_tc') = Rules.dest_thm hth
+      val tc = USyntax.lhs tc_eq_tc'
       fun loop [] = ind
         | loop (asm::rst) =
           if (can (Thry.match_term thy asm) tc)
-          then R.UNDISCH
-                 (R.MATCH_MP
-                     (R.MATCH_MP Thms.simp_thm (R.DISCH (tych asm) ind))
+          then Rules.UNDISCH
+                 (Rules.MATCH_MP
+                     (Rules.MATCH_MP Thms.simp_thm (Rules.DISCH (tych asm) ind))
                      hth)
          else loop rst
   in loop asl
@@ -896,7 +892,7 @@ end;
  * assumption to the theorem.
  *---------------------------------------------------------------------------*)
 fun elim_tc tcthm (rule,induction) =
-   (R.MP rule tcthm, R.PROVE_HYP tcthm induction)
+   (Rules.MP rule tcthm, Rules.PROVE_HYP tcthm induction)
 
 
 fun trace_thms s L =
@@ -911,17 +907,17 @@ fun trace_cterm s ct =
 
 fun postprocess strict {wf_tac, terminator, simplifier} theory {rules,induction,TCs} =
 let val tych = Thry.typecheck theory
-    val prove = R.prove strict;
+    val prove = Rules.prove strict;
 
    (*---------------------------------------------------------------------
     * Attempt to eliminate WF condition. It's the only assumption of rules
     *---------------------------------------------------------------------*)
    val (rules1,induction1)  =
        let val thm = prove(tych(HOLogic.mk_Trueprop
-                                  (hd(#1(R.dest_thm rules)))),
+                                  (hd(#1(Rules.dest_thm rules)))),
                              wf_tac)
-       in (R.PROVE_HYP thm rules,  R.PROVE_HYP thm induction)
-       end handle U.ERR _ => (rules,induction);
+       in (Rules.PROVE_HYP thm rules, Rules.PROVE_HYP thm induction)
+       end handle Utils.ERR _ => (rules,induction);
 
    (*----------------------------------------------------------------------
     * The termination condition (tc) is simplified to |- tc = tc' (there
@@ -938,14 +934,14 @@ let val tych = Thry.typecheck theory
            val tc_eq = simplifier tc1
            val _ = trace_thms "result: " [tc_eq]
        in
-       elim_tc (R.MATCH_MP Thms.eqT tc_eq) (r,ind)
-       handle U.ERR _ =>
-        (elim_tc (R.MATCH_MP(R.MATCH_MP Thms.rev_eq_mp tc_eq)
-                  (prove(tych(HOLogic.mk_Trueprop(S.rhs(concl tc_eq))),
+       elim_tc (Rules.MATCH_MP Thms.eqT tc_eq) (r,ind)
+       handle Utils.ERR _ =>
+        (elim_tc (Rules.MATCH_MP(Rules.MATCH_MP Thms.rev_eq_mp tc_eq)
+                  (prove(tych(HOLogic.mk_Trueprop(USyntax.rhs(concl tc_eq))),
                            terminator)))
                  (r,ind)
-         handle U.ERR _ =>
-          (R.UNDISCH(R.MATCH_MP (R.MATCH_MP Thms.simp_thm r) tc_eq),
+         handle Utils.ERR _ =>
+          (Rules.UNDISCH(Rules.MATCH_MP (Rules.MATCH_MP Thms.simp_thm r) tc_eq),
            simplify_induction theory tc_eq ind))
        end
 
@@ -963,35 +959,35 @@ let val tych = Thry.typecheck theory
     *   3. return |- tc = tc'
     *---------------------------------------------------------------------*)
    fun simplify_nested_tc tc =
-      let val tc_eq = simplifier (tych (#2 (S.strip_forall tc)))
+      let val tc_eq = simplifier (tych (#2 (USyntax.strip_forall tc)))
       in
-      R.GEN_ALL
-       (R.MATCH_MP Thms.eqT tc_eq
-        handle U.ERR _ =>
-          (R.MATCH_MP(R.MATCH_MP Thms.rev_eq_mp tc_eq)
-                      (prove(tych(HOLogic.mk_Trueprop (S.rhs(concl tc_eq))),
+      Rules.GEN_ALL
+       (Rules.MATCH_MP Thms.eqT tc_eq
+        handle Utils.ERR _ =>
+          (Rules.MATCH_MP(Rules.MATCH_MP Thms.rev_eq_mp tc_eq)
+                      (prove(tych(HOLogic.mk_Trueprop (USyntax.rhs(concl tc_eq))),
                                terminator))
-            handle U.ERR _ => tc_eq))
+            handle Utils.ERR _ => tc_eq))
       end
 
    (*-------------------------------------------------------------------
     * Attempt to simplify the termination conditions in each rule and
     * in the induction theorem.
     *-------------------------------------------------------------------*)
-   fun strip_imp tm = if S.is_neg tm then ([],tm) else S.strip_imp tm
+   fun strip_imp tm = if USyntax.is_neg tm then ([],tm) else USyntax.strip_imp tm
    fun loop ([],extras,R,ind) = (rev R, ind, extras)
      | loop ((r,ftcs)::rst, nthms, R, ind) =
         let val tcs = #1(strip_imp (concl r))
             val extra_tcs = subtract (op aconv) tcs ftcs
             val extra_tc_thms = map simplify_nested_tc extra_tcs
             val (r1,ind1) = fold simplify_tc tcs (r,ind)
-            val r2 = R.FILTER_DISCH_ALL(not o S.is_WFR) r1
+            val r2 = Rules.FILTER_DISCH_ALL(not o USyntax.is_WFR) r1
         in loop(rst, nthms@extra_tc_thms, r2::R, ind1)
         end
-   val rules_tcs = ListPair.zip (R.CONJUNCTS rules1, TCs)
+   val rules_tcs = ListPair.zip (Rules.CONJUNCTS rules1, TCs)
    val (rules2,ind2,extras) = loop(rules_tcs,[],[],induction1)
 in
-  {induction = ind2, rules = R.LIST_CONJ rules2, nested_tcs = extras}
+  {induction = ind2, rules = Rules.LIST_CONJ rules2, nested_tcs = extras}
 end;
 
 
