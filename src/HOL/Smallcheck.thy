@@ -117,7 +117,6 @@ definition full_small_fun :: "(('a => 'b) * (unit => term) => term list option) 
 where
   "full_small_fun f d = full_small_fun' f d d" 
 
-
 instance ..
 
 end
@@ -126,32 +125,46 @@ subsubsection {* A smarter enumeration scheme for functions over finite datatype
 
 
 class check_all = enum + term_of +
-fixes check_all :: "('a * (unit \<Rightarrow> term) \<Rightarrow> term list option) \<Rightarrow> term list option"
-
+  fixes check_all :: "('a * (unit \<Rightarrow> term) \<Rightarrow> term list option) \<Rightarrow> term list option"
+  fixes enum_term_of :: "'a itself \<Rightarrow> unit \<Rightarrow> term list"
+  
 fun check_all_n_lists :: "(('a :: check_all) list * (unit \<Rightarrow> term list) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
 where
   "check_all_n_lists f n =
      (if n = 0 then f ([], (%_. [])) else check_all (%(x, xt). check_all_n_lists (%(xs, xst). f ((x # xs), (%_. (xt () # xst ())))) (n - 1)))"
 
-instantiation "fun" :: ("{equal, check_all}", check_all) check_all
-begin
-
-definition mk_map_term :: "'a list \<Rightarrow> (unit \<Rightarrow> term list) \<Rightarrow> (unit \<Rightarrow> typerep) \<Rightarrow> unit \<Rightarrow> term"
+definition mk_map_term :: " (unit \<Rightarrow> typerep) \<Rightarrow> (unit \<Rightarrow> typerep) \<Rightarrow> (unit \<Rightarrow> term list) \<Rightarrow> (unit \<Rightarrow> term list) \<Rightarrow> unit \<Rightarrow> term"
 where
-  "mk_map_term domm rng T2 =
-     (%_. let T1 = (Typerep.typerep (TYPE('a)));
+  "mk_map_term T1 T2 domm rng =
+     (%_. let T1 = T1 ();
               T2 = T2 ();
               update_term = (%g (a, b).
                 Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.App
                  (Code_Evaluation.Const (STR ''Fun.fun_upd'')
                    (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''fun'') [T1, T2],
-                      Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''fun'') [T1, T2]]]])) g) (Code_Evaluation.term_of a)) b)
+                      Typerep.Typerep (STR ''fun'') [T1,
+                        Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''fun'') [T1, T2]]]]))
+                        g) a) b)
           in
-             List.foldl update_term (Code_Evaluation.Abs (STR ''x'') T1 (Code_Evaluation.Const (STR ''HOL.undefined'') T2)) (zip domm (rng ())))"
+             List.foldl update_term (Code_Evaluation.Abs (STR ''x'') T1 (Code_Evaluation.Const (STR ''HOL.undefined'') T2)) (zip (domm ()) (rng ())))"
+
+instantiation "fun" :: ("{equal, check_all}", check_all) check_all
+begin
 
 definition
-  "check_all f = check_all_n_lists (\<lambda>(ys, yst). f (the o map_of (zip (Enum.enum\<Colon>'a list) ys), mk_map_term (Enum.enum::'a list) yst (%_. Typerep.typerep (TYPE('b))))) (Code_Numeral.of_nat (length (Enum.enum :: 'a list)))"
+  "check_all f =
+    (let
+      mk_term = mk_map_term (%_. Typerep.typerep (TYPE('a))) (%_. Typerep.typerep (TYPE('b))) (enum_term_of (TYPE('a)));
+      enum = (Enum.enum :: 'a list)
+    in check_all_n_lists (\<lambda>(ys, yst). f (the o map_of (zip enum ys), mk_term yst)) (Code_Numeral.of_nat (length enum)))"
 
+definition enum_term_of_fun :: "('a => 'b) itself => unit => term list"
+where
+  "enum_term_of_fun = (%_ _. let
+    enum_term_of_a = enum_term_of (TYPE('a));
+    mk_term = mk_map_term (%_. Typerep.typerep (TYPE('a))) (%_. Typerep.typerep (TYPE('b))) enum_term_of_a
+  in map (%ys. mk_term (%_. ys) ()) (Enum.n_lists (length (enum_term_of_a ())) (enum_term_of (TYPE('b)) ())))"
+ 
 instance ..
 
 end
@@ -162,6 +175,10 @@ begin
 
 definition
   "check_all f = f (Code_Evaluation.valtermify ())"
+
+definition enum_term_of_unit :: "unit itself => unit => term list"
+where
+  "enum_term_of_unit = (%_ _. [Code_Evaluation.term_of ()])"
 
 instance ..
 
@@ -174,6 +191,10 @@ begin
 definition
   "check_all f = (case f (Code_Evaluation.valtermify False) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify True))"
 
+definition enum_term_of_bool :: "bool itself => unit => term list"
+where
+  "enum_term_of_bool = (%_ _. map Code_Evaluation.term_of (Enum.enum :: bool list))"
+
 instance ..
 
 end
@@ -184,6 +205,10 @@ begin
 
 definition
   "check_all f = check_all (%(x, t1). check_all (%(y, t2). f ((x, y), %_. Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.term_of (Pair :: 'a => 'b => ('a * 'b))) (t1 ())) (t2 ()))))"
+
+definition enum_term_of_prod :: "('a * 'b) itself => unit => term list"
+where
+  "enum_term_of_prod = (%_ _. map (%(x, y). Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.term_of (Pair :: 'a => 'b => ('a * 'b))) x) y) (Enum.product (enum_term_of (TYPE('a)) ()) (enum_term_of (TYPE('b)) ())))"
 
 instance ..
 
@@ -196,6 +221,11 @@ begin
 definition
   "check_all f = (case check_all (%(a, t). f (Inl a, %_. Code_Evaluation.App (Code_Evaluation.term_of (Inl :: 'a => 'a + 'b)) (t ()))) of Some x' => Some x'
              | None => check_all (%(b, t). f (Inr b, %_. Code_Evaluation.App (Code_Evaluation.term_of (Inr :: 'b => 'a + 'b)) (t ()))))"
+
+definition enum_term_of_sum :: "('a + 'b) itself => unit => term list"
+where
+  "enum_term_of_sum = (%_ _. map (Code_Evaluation.App (Code_Evaluation.term_of (Inl :: 'a => ('a + 'b)))) (enum_term_of (TYPE('a)) ()) @
+     map (Code_Evaluation.App (Code_Evaluation.term_of (Inr :: 'b => ('a + 'b)))) (enum_term_of (TYPE('b)) ()))"
 
 instance ..
 
@@ -223,6 +253,10 @@ definition
     f (Code_Evaluation.valtermify NibbleE) orelse
     f (Code_Evaluation.valtermify NibbleF)"
 
+definition enum_term_of_nibble :: "nibble itself => unit => term list"
+where
+  "enum_term_of_nibble = (%_ _. map Code_Evaluation.term_of (Enum.enum :: nibble list))"
+
 instance ..
 
 end
@@ -233,6 +267,10 @@ begin
 
 definition
   "check_all f = check_all (%(x, t1). check_all (%(y, t2). f (Char x y, %_. Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.term_of Char) (t1 ())) (t2 ()))))"
+
+definition enum_term_of_char :: "char itself => unit => term list"
+where
+  "enum_term_of_char = (%_ _. map Code_Evaluation.term_of (Enum.enum :: char list))"
 
 instance ..
 
@@ -245,6 +283,10 @@ begin
 definition
   "check_all f = f (Code_Evaluation.valtermify (None :: 'a option)) orelse check_all (%(x, t). f (Some x, %_. Code_Evaluation.App (Code_Evaluation.term_of (Some :: 'a => 'a option)) (t ())))"
 
+definition enum_term_of_option :: "'a option itself => unit => term list"
+where
+  "enum_term_of_option = (% _ _. (Code_Evaluation.term_of (None :: 'a option)) # (map (Code_Evaluation.App (Code_Evaluation.term_of (Some :: 'a => 'a option))) (enum_term_of (TYPE('a)) ())))"
+
 instance ..
 
 end
@@ -256,6 +298,10 @@ begin
 definition
   "check_all f = f (Code_Evaluation.valtermify Enum.finite_1.a\<^isub>1)"
 
+definition enum_term_of_finite_1 :: "Enum.finite_1 itself => unit => term list"
+where
+  "enum_term_of_finite_1 = (%_ _. [Code_Evaluation.term_of Enum.finite_1.a\<^isub>1])"
+
 instance ..
 
 end
@@ -266,6 +312,10 @@ begin
 definition
   "check_all f = (case f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>1) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify Enum.finite_2.a\<^isub>2))"
 
+definition enum_term_of_finite_2 :: "Enum.finite_2 itself => unit => term list"
+where
+  "enum_term_of_finite_2 = (%_ _. map Code_Evaluation.term_of (Enum.enum :: Enum.finite_2 list))"
+
 instance ..
 
 end
@@ -275,6 +325,10 @@ begin
 
 definition
   "check_all f = (case f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>1) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> (case f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>2) of Some x' \<Rightarrow> Some x' | None \<Rightarrow> f (Code_Evaluation.valtermify Enum.finite_3.a\<^isub>3)))"
+
+definition enum_term_of_finite_3 :: "Enum.finite_3 itself => unit => term list"
+where
+  "enum_term_of_finite_3 = (%_ _. map Code_Evaluation.term_of (Enum.enum :: Enum.finite_3 list))"
 
 instance ..
 
