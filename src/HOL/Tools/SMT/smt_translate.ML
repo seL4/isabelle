@@ -378,9 +378,7 @@ val term_bool_prop =
       | replace @{const True} = term_true
       | replace @{const False} = term_false
       | replace t = t
-  in
-    Term.map_aterms replace (HOLogic.dest_Trueprop (Thm.prop_of term_bool))
-  end
+  in Term.map_aterms replace (U.prop_of term_bool) end
 
 val fol_rules = [
   Let_def,
@@ -609,8 +607,7 @@ fun translate ctxt comments ithms =
 
     val (builtins, ts1) =
       ithms
-      |> map (HOLogic.dest_Trueprop o Thm.prop_of o snd)
-      |> map (Envir.eta_contract o Envir.beta_norm)
+      |> map (Envir.beta_eta_contract o U.prop_of o snd)
       |> mark_builtins ctxt
 
     val ((dtyps, tr_context, ctxt1), ts2) =

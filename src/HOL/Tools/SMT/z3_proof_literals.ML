@@ -33,6 +33,7 @@ end
 structure Z3_Proof_Literals: Z3_PROOF_LITERALS =
 struct
 
+structure U = SMT_Utils
 structure T = Z3_Proof_Tools
 
 
@@ -41,10 +42,10 @@ structure T = Z3_Proof_Tools
 
 type littab = thm Termtab.table
 
-fun make_littab thms = fold (Termtab.update o `T.prop_of) thms Termtab.empty
+fun make_littab thms = fold (Termtab.update o `U.prop_of) thms Termtab.empty
 
-fun insert_lit thm = Termtab.update (`T.prop_of thm)
-fun delete_lit thm = Termtab.delete (T.prop_of thm)
+fun insert_lit thm = Termtab.update (`U.prop_of thm)
+fun delete_lit thm = Termtab.delete (U.prop_of thm)
 fun lookup_lit lits = Termtab.lookup lits
 fun get_first_lit f =
   Termtab.get_first (fn (t, thm) => if f t then SOME thm else NONE)
@@ -161,9 +162,9 @@ fun explode is_conj full keep_intermediate stop_lits =
     val tab = fold (Termtab.update o rpair ()) stop_lits Termtab.empty
 
     fun explode1 thm =
-      if Termtab.defined tab (T.prop_of thm) then cons thm
+      if Termtab.defined tab (U.prop_of thm) then cons thm
       else
-        (case dest_rules (T.prop_of thm) of
+        (case dest_rules (U.prop_of thm) of
           SOME (rule1, rule2) =>
             explode2 rule1 thm #>
             explode2 rule2 thm #>
@@ -171,12 +172,12 @@ fun explode is_conj full keep_intermediate stop_lits =
         | NONE => cons thm)
 
     and explode2 dest_rule thm =
-      if full orelse exists_lit is_conj (Termtab.defined tab) (T.prop_of thm)
+      if full orelse exists_lit is_conj (Termtab.defined tab) (U.prop_of thm)
       then explode1 (T.compose dest_rule thm)
       else cons (T.compose dest_rule thm)
 
     fun explode0 thm =
-      if not is_conj andalso is_dneg (T.prop_of thm)
+      if not is_conj andalso is_dneg (U.prop_of thm)
       then [T.compose dneg_rule thm]
       else explode1 thm []
 
@@ -284,7 +285,7 @@ local
   val contra_rule = @{lemma "P ==> ~P ==> False" by (rule notE)}
   fun contra_left conj thm =
     let
-      val rules = explode_term conj (T.prop_of thm)
+      val rules = explode_term conj (U.prop_of thm)
       fun contra_lits (t, rs) =
         (case t of
           @{const Not} $ u => Termtab.lookup rules u |> Option.map (pair rs)
