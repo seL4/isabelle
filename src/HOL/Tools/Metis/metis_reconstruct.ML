@@ -663,12 +663,12 @@ fun instantiate_forall_tac thy t i st =
      THEN PRIMITIVE do_instantiate) st
   end
 
-fun fix_exists_tac thy t =
+fun fix_exists_tac t =
   etac @{thm exE}
   THEN' rename_tac [t |> dest_Var |> fst |> fst]
 
 fun release_quantifier_tac thy (skolem, t) =
-  (if skolem then fix_exists_tac else instantiate_forall_tac) thy t
+  (if skolem then fix_exists_tac else instantiate_forall_tac thy) t
 
 fun release_clusters_tac _ _ _ [] = K all_tac
   | release_clusters_tac thy ax_counts substs
