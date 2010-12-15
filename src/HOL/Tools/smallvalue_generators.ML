@@ -280,6 +280,28 @@ fun mk_generator_expr ctxt t =
         $ absdummy (T, absdummy (@{typ "unit => term"}, t))) $ Bound i
   in Abs ("d", @{typ code_numeral}, fold_rev mk_small_closure bounds check) end
 
+fun make_set T1 [] = Const (@{const_abbrev Set.empty}, T1 --> @{typ bool})
+  | make_set T1 ((t1, @{const False}) :: tps) = make_set T1 tps
+  | make_set T1 ((t1, @{const True}) :: tps) = insert_const t1 (make_set T1 tps)
+  | make_set T1 ((t1, _) :: tps) = raise TERM ("make_set", [t])
+
+fun dest_fun_upd (Const (@{const_name fun_upd}, _) $ t0 $ t1 $ t2) = (t0, (t1, t2))
+  | dest_fun_upd t = raise TERM ("dest_fun_upd", [t])
+
+fun dest_plain_fun t =
+  case try (dest_fun_upd t) of
+    NONE =>
+      case t of
+        (Abs (_, _, Const (@{const_name HOL.undefined}, _))) => []
+      | _ => raise TERM ("dest_plain_fun", [t])
+  | SOME (t0, (t1, t2)) => (t1, t2) :: dest_plain_fun t0
+
+fun post_process_term t =
+  case fastype_of t of
+    Type (@{type_name fun}, [T1, @{typ bool}]) =>
+      dest_plain_fun t |> map (pairself post_process_term) |> make_set
+  | _ => t
+
 fun compile_generator_expr ctxt t =
   let
     val thy = ProofContext.theory_of ctxt
@@ -289,7 +311,9 @@ fun compile_generator_expr ctxt t =
     val compile = Code_Runtime.dynamic_value_strict
       (Counterexample.get, put_counterexample, "Smallvalue_Generators.put_counterexample")
       thy (SOME target) (fn proc => fn g => g #> (Option.map o map) proc) t' [];
-  in fn size => rpair NONE (compile size) end;
+  in
+    fn size => rpair NONE (compile size |> Option.map post_process_term) 
+  end;
 
 (** setup **)
 
