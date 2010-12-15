@@ -28,9 +28,13 @@ fun unfold_labels_tac ctxt =
   let val unfold = Conv.rewrs_conv label_eqs
   in CONVERSION (Conv.top_sweep_conv (K unfold) ctxt) end
 
+val boogie_rules =
+  [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}] @
+  [@{thm fun_upd_same}, @{thm fun_upd_apply}]
+
 fun boogie_tac ctxt rules =
   unfold_labels_tac ctxt
-  THEN' SMT_Solver.smt_tac ctxt (Boogie_Axioms.get ctxt @ rules)
+  THEN' SMT_Solver.smt_tac ctxt (Boogie_Axioms.get ctxt @ boogie_rules @ rules)
 
 fun boogie_all_tac ctxt rules =
   PARALLEL_GOALS (HEADGOAL (boogie_tac ctxt rules))
