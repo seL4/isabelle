@@ -83,6 +83,9 @@ fun needs_type_args thy type_sys s =
 fun num_atp_type_args thy type_sys s =
   if needs_type_args thy type_sys s then num_type_args thy s else 0
 
+fun atp_type_literals_for_types type_sys Ts =
+  if type_sys = No_Types then [] else type_literals_for_types Ts
+
 fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
 fun mk_ahorn [] phi = phi
@@ -307,7 +310,9 @@ fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
     (* TFrees in the conjecture; TVars in the facts *)
     val conjectures = make_conjecture ctxt (hyp_ts @ [concl_t])
     val helper_facts = get_helper_facts ctxt is_FO type_sys conjectures facts
-    val (supers', arity_clauses) = make_arity_clauses thy tycons supers
+    val (supers', arity_clauses) =
+      if type_sys = No_Types then ([], [])
+      else make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
     (fact_names |> map single |> Vector.fromList,
@@ -379,7 +384,7 @@ fun formula_for_combformula thy type_sys =
 fun formula_for_fact thy type_sys
                      ({combformula, ctypes_sorts, ...} : translated_formula) =
   mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
-                (type_literals_for_types ctypes_sorts))
+                (atp_type_literals_for_types type_sys ctypes_sorts))
            (formula_for_combformula thy type_sys combformula)
 
 fun problem_line_for_fact thy prefix type_sys (formula as {name, kind, ...}) =
@@ -411,15 +416,16 @@ fun problem_line_for_conjecture thy type_sys
   Fof (conjecture_prefix ^ name, kind,
        formula_for_combformula thy type_sys combformula)
 
-fun free_type_literals_for_conjecture
+fun free_type_literals_for_conjecture type_sys
         ({ctypes_sorts, ...} : translated_formula) =
-  map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
+  ctypes_sorts |> atp_type_literals_for_types type_sys
+               |> map fo_literal_for_type_literal
 
 fun problem_line_for_free_type j lit =
   Fof (tfree_prefix ^ string_of_int j, Hypothesis, formula_for_fo_literal lit)
-fun problem_lines_for_free_types conjectures =
+fun problem_lines_for_free_types type_sys conjectures =
   let
-    val litss = map free_type_literals_for_conjecture conjectures
+    val litss = map (free_type_literals_for_conjecture type_sys) conjectures
     val lits = fold (union (op =)) litss []
   in map2 problem_line_for_free_type (0 upto length lits - 1) lits end
 
@@ -560,7 +566,7 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
       map (problem_line_for_fact thy helper_prefix type_sys) helper_facts
     val conjecture_lines =
       map (problem_line_for_conjecture thy type_sys) conjectures
-    val tfree_lines = problem_lines_for_free_types conjectures
+    val tfree_lines = problem_lines_for_free_types type_sys conjectures
     val class_rel_lines =
       map problem_line_for_class_rel_clause class_rel_clauses
     val arity_lines = map problem_line_for_arity_clause arity_clauses
