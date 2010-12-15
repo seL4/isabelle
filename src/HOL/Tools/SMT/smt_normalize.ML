@@ -141,7 +141,7 @@ local
       "must have the same kind: " ^ Syntax.string_of_term ctxt t)
 
   fun check_trigger_conv ctxt ct =
-    if proper_quant false proper_trigger (Thm.term_of ct) then Conv.all_conv ct
+    if proper_quant false proper_trigger (U.term_of ct) then Conv.all_conv ct
     else check_trigger_error ctxt (Thm.term_of ct)
 
 
@@ -256,20 +256,20 @@ local
 
   fun is_weight (@{const SMT.weight} $ w $ t) =
         (case try HOLogic.dest_number w of
-          SOME (_, i) => i > 0 andalso has_no_weight t
+          SOME (_, i) => i >= 0 andalso has_no_weight t
         | _ => false)
     | is_weight t = has_no_weight t
 
   fun proper_trigger (@{const SMT.trigger} $ _ $ t) = is_weight t
-    | proper_trigger t = has_no_weight t
+    | proper_trigger t = is_weight t 
 
   fun check_weight_error ctxt t =
-    error ("SMT weight must be a positive number and must only occur " ^
+    error ("SMT weight must be a non-negative number and must only occur " ^
       "under the top-most quantifier and an optional trigger: " ^
       Syntax.string_of_term ctxt t)
 
   fun check_weight_conv ctxt ct =
-    if U.under_quant proper_trigger (Thm.term_of ct) then Conv.all_conv ct
+    if U.under_quant proper_trigger (U.term_of ct) then Conv.all_conv ct
     else check_weight_error ctxt (Thm.term_of ct)
 
 

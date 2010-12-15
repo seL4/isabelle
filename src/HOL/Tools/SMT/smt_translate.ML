@@ -147,6 +147,8 @@ fun mark_builtins ctxt =
     fun mark t =
       (case Term.strip_comb t of
         (u as Const (@{const_name If}, _), ts) => marks u ts
+      | (u as @{const SMT.weight}, [t1, t2]) =>
+          mark t2 #>> (fn t2' => u $ t1 $ t2')
       | (u as Const c, ts) =>
           (case B.builtin_num ctxt t of
             SOME (n, T) =>
@@ -494,14 +496,7 @@ fun group_quant qname Ts (t as Const (q, _) $ Abs (_, T, u)) =
   | group_quant _ Ts t = (Ts, t)
 
 fun dest_weight (@{const SMT.weight} $ w $ t) =
-      ((SOME (snd (HOLogic.dest_number w)), t)
-       handle TERM _ =>
-                (case w of
-                  Var ((s, _), _) => (* FIXME: temporary workaround *)
-                    (case Int.fromString s of
-                      SOME n => (SOME n, t)
-                    | NONE => raise TERM ("bad weight", [w]))
-                 | _ => raise TERM ("bad weight", [w])))
+      (SOME (snd (HOLogic.dest_number w)), t)
   | dest_weight t = (NONE, t)
 
 fun dest_pat (Const (@{const_name pat}, _) $ t) = (t, true)
