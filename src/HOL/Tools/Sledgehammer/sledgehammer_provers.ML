@@ -540,15 +540,16 @@ fun run_smt_solver auto name (params as {debug, ...}) minimize_command
       case outcome of
         NONE =>
         let
-          val method =
+          val (method, settings) =
             if can_apply_metis debug state subgoal (map snd used_facts) then
-              "metis"
+              ("metis", "")
             else
-              "smt"
+              ("smt", if suffix = SMT_Config.solver_of @{context} then ""
+                      else "smt_solver = " ^ maybe_quote suffix)
         in
           try_command_line (proof_banner auto)
-                           (apply_on_subgoal subgoal subgoal_count ^
-                            command_call method (map fst other_lemmas)) ^
+              (apply_on_subgoal settings subgoal subgoal_count ^
+               command_call method (map fst other_lemmas)) ^
           minimize_line minimize_command
                         (map fst (other_lemmas @ chained_lemmas))
         end

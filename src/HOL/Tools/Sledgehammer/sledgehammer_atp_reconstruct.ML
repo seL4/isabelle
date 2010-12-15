@@ -21,7 +21,7 @@ sig
   val repair_conjecture_shape_and_fact_names :
     string -> int list list -> (string * locality) list vector
     -> int list list * (string * locality) list vector
-  val apply_on_subgoal : int -> int -> string
+  val apply_on_subgoal : string -> int -> int -> string
   val command_call : string -> string list -> string
   val try_command_line : string -> string -> string
   val minimize_line : ('a list -> string) -> 'a list -> string
@@ -116,9 +116,12 @@ fun repair_conjecture_shape_and_fact_names output conjecture_shape fact_names =
 
 fun string_for_label (s, num) = s ^ string_of_int num
 
-fun apply_on_subgoal _ 1 = "by "
-  | apply_on_subgoal 1 _ = "apply "
-  | apply_on_subgoal i _ = "prefer " ^ string_of_int i ^ " apply "
+fun set_settings "" = ""
+  | set_settings settings = "using [[" ^ settings ^ "]] "
+fun apply_on_subgoal settings _ 1 = set_settings settings ^ "by "
+  | apply_on_subgoal settings 1 _ = set_settings settings ^ "apply "
+  | apply_on_subgoal settings i n =
+    "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal settings 1 n
 fun command_call name [] = name
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
 fun try_command_line banner command =
@@ -130,7 +133,7 @@ fun metis_name type_sys =
   if types_dangerous_types type_sys then "metisFT" else "metis"
 fun metis_call type_sys ss = command_call (metis_name type_sys) ss
 fun metis_command type_sys i n (ls, ss) =
-  using_labels ls ^ apply_on_subgoal i n ^ metis_call type_sys ss
+  using_labels ls ^ apply_on_subgoal "" i n ^ metis_call type_sys ss
 fun metis_line banner type_sys i n ss =
   try_command_line banner (metis_command type_sys i n ([], ss))
 fun minimize_line _ [] = ""
