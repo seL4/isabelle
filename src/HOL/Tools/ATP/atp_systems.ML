@@ -205,14 +205,16 @@ fun the_system name versions =
     SOME sys => sys
   | NONE => error ("System " ^ quote name ^ " not available at SystemOnTPTP.")
 
+val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
+
 fun remote_config system_name system_versions proof_delims known_failures
                   default_max_relevant use_conjecture_for_hypotheses
                   : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
-     " -t " ^ string_of_int (to_secs 0 timeout) ^ " -s " ^
-     the_system system_name system_versions,
+     " -t " ^ string_of_int (Int.min (max_remote_secs, (to_secs 0 timeout)))
+     ^ " -s " ^ the_system system_name system_versions,
    has_incomplete_mode = false,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures =
