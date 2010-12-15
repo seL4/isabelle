@@ -94,18 +94,18 @@ sig
 
   val read_const_exprs: theory -> string list -> string list * string list
   val consts_program: theory -> bool -> string list -> string list * (naming * program)
-  val dynamic_eval_conv: theory -> (naming -> program
+  val dynamic_conv: theory -> (naming -> program
     -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
     -> conv
-  val dynamic_eval_value: theory -> ((term -> term) -> 'a -> 'a) -> (naming -> program
+  val dynamic_value: theory -> ((term -> term) -> 'a -> 'a) -> (naming -> program
     -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
     -> term -> 'a
-  val static_eval_conv: theory -> string list -> (naming -> program
+  val static_conv: theory -> string list -> (naming -> program
     -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
     -> conv
-  val static_eval_conv_simple: theory -> string list
+  val static_conv_simple: theory -> string list
     -> (program -> theory -> (string * sort) list -> term -> conv) -> conv
-  val static_eval_value: theory -> ((term -> term) -> 'a -> 'a) -> string list ->
+  val static_value: theory -> ((term -> term) -> 'a -> 'a) -> string list ->
     (naming -> program
       -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
     -> term -> 'a
@@ -906,11 +906,11 @@ fun dynamic_evaluator thy evaluator algebra eqngr vs t =
       invoke_generation false thy (algebra, eqngr) ensure_value t;
   in evaluator naming program ((original_sorts vs vs', (vs', ty')), t') deps end;
 
-fun dynamic_eval_conv thy evaluator =
-  Code_Preproc.dynamic_eval_conv thy (dynamic_evaluator thy evaluator);
+fun dynamic_conv thy evaluator =
+  Code_Preproc.dynamic_conv thy (dynamic_evaluator thy evaluator);
 
-fun dynamic_eval_value thy postproc evaluator =
-  Code_Preproc.dynamic_eval_value thy postproc (dynamic_evaluator thy evaluator);
+fun dynamic_value thy postproc evaluator =
+  Code_Preproc.dynamic_value thy postproc (dynamic_evaluator thy evaluator);
 
 fun provide_program thy consts f algebra eqngr =
   let
@@ -926,16 +926,16 @@ fun static_evaluator evaluator algebra eqngr naming program thy vs t =
       ensure_value thy algebra eqngr t (NONE, (naming, program));
   in evaluator naming program' thy ((original_sorts vs vs', (vs', ty')), t') deps end;
 
-fun static_eval_conv thy consts conv =
-  Code_Preproc.static_eval_conv thy consts
+fun static_conv thy consts conv =
+  Code_Preproc.static_conv thy consts
     (provide_program thy consts (static_evaluator conv));
 
-fun static_eval_conv_simple thy consts conv =
-  Code_Preproc.static_eval_conv thy consts
+fun static_conv_simple thy consts conv =
+  Code_Preproc.static_conv thy consts
     (provide_program thy consts ((K o K o K) conv));
 
-fun static_eval_value thy postproc consts evaluator =
-  Code_Preproc.static_eval_value thy postproc consts
+fun static_value thy postproc consts evaluator =
+  Code_Preproc.static_value thy postproc consts
     (provide_program thy consts (static_evaluator evaluator));
 
 
