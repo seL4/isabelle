@@ -183,7 +183,7 @@ local
           (case pairself (minimal_pats vs) (Thm.dest_comb ct) of
             ([], []) => [[ct]]
           | (ctss, ctss') => union (eq_set (op aconvc)) ctss ctss')
-      | _ => [[ct]])
+      | _ => [])
     else []
 
   fun proper_mpat _ _ _ [] = false
@@ -227,8 +227,11 @@ local
 
     in insert_trigger_conv (filter_mpats (get_mpats lhs)) ct end
 
+  fun has_trigger (@{const SMT.trigger} $ _ $ _) = true
+    | has_trigger _ = false
+
   fun try_trigger_conv cv ct =
-    if proper_quant false (K false) (Thm.term_of ct) then Conv.all_conv ct
+    if U.under_quant has_trigger (U.term_of ct) then Conv.all_conv ct
     else Conv.try_conv cv ct
 
   fun infer_trigger_conv ctxt =

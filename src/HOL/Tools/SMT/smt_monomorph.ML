@@ -45,8 +45,19 @@ val ignored = member (op =) [@{const_name All}, @{const_name Ex},
 fun is_const pred (n, T) = not (ignored n) andalso pred T
 
 fun collect_consts_if pred f =
-  Thm.prop_of #>
-  Term.fold_aterms (fn Const c => if is_const pred c then f c else I | _ => I)
+  let
+    fun collect (@{const trigger} $ p $ t) = collect_trigger p #> collect t
+      | collect (t $ u) = collect t #> collect u
+      | collect (Abs (_, _, t)) = collect t
+      | collect (Const c) = if is_const pred c then f c else I
+      | collect _ = I
+    and collect_trigger t =
+      let val dest = these o try HOLogic.dest_list 
+      in fold (fold collect_pat o dest) (dest t) end
+    and collect_pat (Const (@{const_name SMT.pat}, _) $ t) = collect t
+      | collect_pat (Const (@{const_name SMT.nopat}, _) $ t) = collect t
+      | collect_pat _ = I
+  in collect o Thm.prop_of end
 
 val insert_const = Ord_List.insert (prod_ord fast_string_ord Term_Ord.typ_ord)
 
