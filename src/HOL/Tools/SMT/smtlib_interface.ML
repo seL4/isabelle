@@ -9,7 +9,7 @@ sig
   val smtlibC: SMT_Utils.class
   val add_logic: int * (term list -> string option) -> Context.generic ->
     Context.generic
-  val interface: SMT_Solver.interface
+  val translate_config: Proof.context -> SMT_Translate.config
   val setup: theory -> theory
 end
 
@@ -28,9 +28,13 @@ val smtlibC = ["smtlib"]
 local
   fun int_num _ i = SOME (string_of_int i)
 
-  fun distinct _ _ [t] =
+  fun distinct _ (Type (_, [Type (_, [T]), _])) [t] =
         (case try HOLogic.dest_list t of
-          SOME (ts as _ :: _) => SOME ("distinct", ts)
+          SOME (ts as _ :: _) =>
+            let
+              fun mkT U = replicate (length ts) U ---> @{typ bool}
+              val U = mkT T and U' = mkT (TVar (("'a", 0), @{sort type}))
+            in SOME ((("distinct", length ts), U), ts, U') end
         | _ => NONE)
     | distinct _ _ _ = NONE
 in
@@ -40,7 +44,6 @@ val setup_builtins =
   fold (B.add_builtin_fun' smtlibC) [
     (@{const True}, "true"),
     (@{const False}, "false"),
- (* FIXME: we do not test if these constants are fully applied! *)
     (@{const Not}, "not"),
     (@{const HOL.conj}, "and"),
     (@{const HOL.disj}, "or"),
@@ -145,17 +148,17 @@ fun serialize comments {header, sorts, dtyps, funcs} ts =
 
 (* interface *)
 
-val interface = {
-  class = smtlibC,
-  translate = {
-    prefixes = {
-      sort_prefix = "S",
-      func_prefix = "f"},
-    header = choose_logic,
-    is_fol = true,
-    has_datatypes = false,
-    serialize = serialize}}
+fun translate_config ctxt = {
+  prefixes = {
+    sort_prefix = "S",
+    func_prefix = "f"},
+  header = choose_logic ctxt,
+  is_fol = true,
+  has_datatypes = false,
+  serialize = serialize}
 
-val setup = Context.theory_map setup_builtins
+val setup = Context.theory_map (
+  setup_builtins #>
+  T.add_config (smtlibC, translate_config))
 
 end

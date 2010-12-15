@@ -38,7 +38,7 @@ fun cvc3 () = {
   options = (fn ctxt => [
     "-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
     "-lang", "smtlib", "-output-lang", "presentation"]),
-  interface = SMTLIB_Interface.interface,
+  class = SMTLIB_Interface.smtlibC,
   outcome =
     on_first_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
   cex_parser = NONE,
@@ -55,7 +55,7 @@ fun yices () = {
   options = (fn ctxt => [
     "--rand-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
     "--smtlib"]),
-  interface = SMTLIB_Interface.interface,
+  class = SMTLIB_Interface.smtlibC,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
   cex_parser = NONE,
   reconstruct = NONE,
@@ -89,7 +89,7 @@ fun z3 () = {
   env_var = "Z3_SOLVER",
   is_remote = true,
   options = z3_options,
-  interface = Z3_Interface.interface,
+  class = Z3_Interface.smtlib_z3C,
   outcome = z3_on_last_line,
   cex_parser = SOME Z3_Model.parse_counterex,
   reconstruct = SOME Z3_Proof_Reconstruction.reconstruct,

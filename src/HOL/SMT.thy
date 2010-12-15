@@ -91,7 +91,7 @@ numbers of arguments.  This is achieved by the introduction of the
 following constant.
 *}
 
-definition fun_app where "fun_app f x = f x"
+definition fun_app where "fun_app f = f"
 
 text {*
 Some solvers support a theory of arrays which can be used to encode

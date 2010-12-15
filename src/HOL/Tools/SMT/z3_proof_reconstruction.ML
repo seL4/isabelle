@@ -8,7 +8,7 @@ signature Z3_PROOF_RECONSTRUCTION =
 sig
   val add_z3_rule: thm -> Context.generic -> Context.generic
   val reconstruct: Proof.context -> SMT_Translate.recon -> string list ->
-    (int list * thm) * Proof.context
+    int list * thm
   val setup: theory -> theory
 end
 
@@ -160,15 +160,17 @@ local
     | _ => z3_exn ("not asserted: " ^
         quote (Syntax.string_of_term ctxt (Thm.term_of ct))))
 in
-fun prepare_assms ctxt unfolds assms =
+fun prepare_assms ctxt rewrite_rules assms =
   let
-    val unfolds' = rewrites I ctxt [L.rewrite_true] unfolds
+    val eqs = rewrites I ctxt [L.rewrite_true] rewrite_rules
     val assms' =
-      rewrites apsnd ctxt (union Thm.eq_thm unfolds' prep_rules) assms
-  in (unfolds', T.thm_net_of snd assms') end
+      assms
+      |> rewrites apsnd ctxt (union Thm.eq_thm eqs prep_rules)
+      |> map (apsnd (Conv.fconv_rule Thm.eta_conversion))
+  in (eqs, T.thm_net_of snd assms') end
 
-fun asserted ctxt (unfolds, assms) ct =
-  let val revert_conv = rewrite_conv ctxt unfolds
+fun asserted ctxt (eqs, assms) ct =
+  let val revert_conv = rewrite_conv ctxt eqs then_conv Thm.eta_conversion
   in Thm (T.with_conv revert_conv (snd o lookup_assm ctxt assms) ct) end
 
 fun find_assm ctxt (unfolds, assms) ct =
@@ -835,6 +837,22 @@ local
       (fn idx => result o lookup idx o pair ctxt o Inttab.map (K Unproved))
     end
 
+  val disch_rules = map (pair false)
+    [@{thm allI}, @{thm refl}, @{thm reflexive}]
+
+  fun disch_assm thm =
+    if Thm.nprems_of thm = 0 then Drule.flexflex_unique thm
+    else
+      (case Seq.pull (Thm.biresolution false disch_rules 1 thm) of
+        SOME (thm', _) => disch_assm thm'
+      | NONE => raise THM ("failed to discharge premise", 1, [thm]))
+
+  fun discharge outer_ctxt (thm, inner_ctxt) =
+    thm
+    |> singleton (ProofContext.export inner_ctxt outer_ctxt)
+    |> tap (tracing o prefix "final goal: " o PolyML.makestring)
+    |> disch_assm    
+
   fun filter_assms ctxt assms ptab =
     let
       fun step r ct =
@@ -851,14 +869,18 @@ local
     in lookup end
 in
 
-fun reconstruct ctxt {typs, terms, unfolds, assms} output =
+fun reconstruct outer_ctxt recon output =
   let
-    val (idx, (ptab, vars, cx)) = P.parse ctxt typs terms output
-    val assms' = prepare_assms cx unfolds assms
+    val {context=ctxt, typs, terms, rewrite_rules, assms} = recon
+    val (idx, (ptab, vars, ctxt')) = P.parse ctxt typs terms output
+    val assms' = prepare_assms ctxt' rewrite_rules assms
   in
-    if Config.get cx SMT_Config.filter_only_facts
-    then ((filter_assms cx assms' ptab idx [], @{thm TrueI}), cx)
-    else apfst (pair []) (prove cx assms' vars idx ptab)
+    if Config.get ctxt' SMT_Config.filter_only_facts then
+      (filter_assms ctxt' assms' ptab idx [], @{thm TrueI})
+    else
+      prove ctxt' assms' vars idx ptab
+      |> discharge outer_ctxt
+      |> pair []
   end
 
 end

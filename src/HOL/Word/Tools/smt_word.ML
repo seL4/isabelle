@@ -59,12 +59,19 @@ local
     | word_num _ _ = NONE
 
   fun if_fixed n T ts =
-    let val (Ts, T) = Term.strip_type T
-    in if forall (can dest_wordT) (T :: Ts) then SOME (n, ts) else NONE end
+    let val (Us, U) = Term.strip_type T
+    in
+      if forall (can dest_wordT) (U :: Us) then
+        SOME (((n, length Us), T), ts, T)
+      else NONE
+    end
 
   fun if_fixed' n T ts =
-    if forall (can dest_wordT) (Term.binder_types T) then SOME (n, ts)
-    else NONE
+    let val Ts = Term.binder_types T
+    in
+      if forall (can dest_wordT) Ts then SOME (((n, length Ts), T), ts, T)
+      else NONE
+    end
 
   fun add_word_fun f (t, n) =
     B.add_builtin_fun smtlibC (Term.dest_Const t, K (f n))
@@ -79,28 +86,37 @@ local
     (dest_word_funT (Term.range_type T), dest_nat ts)
 
   fun shift n T ts =
-    let val U = Term.domain_type T
+    let
+      val U = Term.domain_type T
+      val T' = [U, U] ---> U
     in
-      (case (can dest_wordT U, ts) of
+      (case (can dest_wordT T', ts) of
         (true, [t, u]) =>
           (case try HOLogic.dest_number u of
-            SOME (_,i) => SOME (n, [t, HOLogic.mk_number U i])
+            SOME (_, i) => SOME (((n, 2), T'), [t, HOLogic.mk_number T' i], T')
           | NONE => NONE)  (* FIXME: also support non-numerical shifts *)
       | _ => NONE)
     end
 
   fun extract n T ts =
     try dest_nat_word_funT (T, ts)
-    |> Option.map (fn ((_, i), (lb, ts')) => (index2 n (i + lb - 1) lb, ts'))
+    |> Option.map (fn ((_, i), (lb, ts')) =>
+         let val T' = Term.range_type T
+         in (((index2 n (i + lb - 1) lb, 1), T'), ts', T') end)
 
   fun extend n T ts =
     (case try dest_word_funT T of
-      SOME (i, j) => if j-i >= 0 then SOME (index1 n (j-i), ts) else NONE
+      SOME (i, j) =>
+        if j-i >= 0 then SOME (((index1 n (j-i), 1), T), ts, T)
+        else NONE
     | _ => NONE)
 
   fun rotate n T ts =
-    try dest_nat ts
-    |> Option.map (fn (i, ts') => (index1 n i, ts'))
+    let val T' = Term.range_type T
+    in
+      try dest_nat ts
+      |> Option.map (fn (i, ts') => (((index1 n i, 1), T'), ts', T'))
+    end
 in
 
 val setup_builtins =

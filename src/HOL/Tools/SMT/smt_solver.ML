@@ -7,21 +7,18 @@ SMT solvers registry and SMT tactic.
 signature SMT_SOLVER =
 sig
   (*configuration*)
-  type interface = {
-    class: SMT_Utils.class,
-    translate: SMT_Translate.config }
   datatype outcome = Unsat | Sat | Unknown
   type solver_config = {
     name: string,
     env_var: string,
     is_remote: bool,
     options: Proof.context -> string list,
-    interface: interface,
+    class: SMT_Utils.class,
     outcome: string -> string list -> outcome * string list,
     cex_parser: (Proof.context -> SMT_Translate.recon -> string list ->
       term list * term list) option,
     reconstruct: (Proof.context -> SMT_Translate.recon -> string list ->
-      (int list * thm) * Proof.context) option,
+      int list * thm) option,
     default_max_relevant: int }
 
   (*registry*)
@@ -57,10 +54,6 @@ structure C = SMT_Config
 
 (* configuration *)
 
-type interface = {
-  class: SMT_Utils.class,
-  translate: SMT_Translate.config }
-
 datatype outcome = Unsat | Sat | Unknown
 
 type solver_config = {
@@ -68,12 +61,12 @@ type solver_config = {
   env_var: string,
   is_remote: bool,
   options: Proof.context -> string list,
-  interface: interface,
+  class: SMT_Utils.class,
   outcome: string -> string list -> outcome * string list,
   cex_parser: (Proof.context -> SMT_Translate.recon -> string list ->
     term list * term list) option,
   reconstruct: (Proof.context -> SMT_Translate.recon -> string list ->
-    (int list * thm) * Proof.context) option,
+    int list * thm) option,
   default_max_relevant: int }
 
 
@@ -163,7 +156,7 @@ end
 fun trace_assms ctxt = C.trace_msg ctxt (Pretty.string_of o
   Pretty.big_list "Assertions:" o map (Display.pretty_thm ctxt o snd))
 
-fun trace_recon_data ctxt ({typs, terms, ...} : SMT_Translate.recon) =
+fun trace_recon_data ({context=ctxt, typs, terms, ...} : SMT_Translate.recon) =
   let
     fun pretty_eq n p = Pretty.block [Pretty.str n, Pretty.str " = ", p]
     fun p_typ (n, T) = pretty_eq n (Syntax.pretty_typ ctxt T)
@@ -175,32 +168,20 @@ fun trace_recon_data ctxt ({typs, terms, ...} : SMT_Translate.recon) =
         Pretty.big_list "functions:" (map p_term (Symtab.dest terms))])) ()
   end
 
-fun invoke translate_config name cmd options ithms ctxt =
+fun invoke name cmd options ithms ctxt =
   let
     val args = C.solver_options_of ctxt @ options ctxt
     val comments = ("solver: " ^ name) ::
       ("timeout: " ^ string_of_real (Config.get ctxt C.timeout)) ::
       ("random seed: " ^ string_of_int (Config.get ctxt C.random_seed)) ::
       "arguments:" :: args
-  in
-    ithms
-    |> tap (trace_assms ctxt)
-    |> SMT_Translate.translate translate_config ctxt comments
-    ||> tap (trace_recon_data ctxt)
-    |>> run_solver ctxt cmd args
-    |> rpair ctxt
-  end
 
-fun discharge_definitions thm =
-  if Thm.nprems_of thm = 0 then thm
-  else discharge_definitions (@{thm reflexive} RS thm)
-
-fun set_has_datatypes with_datatypes translate =
-  let val {prefixes, header, is_fol, has_datatypes, serialize} = translate
-  in
-   {prefixes=prefixes, header=header, is_fol=is_fol,
-    has_datatypes=has_datatypes andalso with_datatypes, serialize=serialize}
-  end
+    val (str, recon as {context=ctxt', ...}) =
+      ithms
+      |> tap (trace_assms ctxt)
+      |> SMT_Translate.translate ctxt comments
+      ||> tap trace_recon_data
+  in (run_solver ctxt' cmd args str, recon) end
 
 fun trace_assumptions ctxt iwthms idxs =
   let
@@ -227,26 +208,21 @@ type solver_info = {
   env_var: string,
   is_remote: bool,
   options: Proof.context -> string list,
-  interface: interface,
-  reconstruct: string list * SMT_Translate.recon -> Proof.context ->
-    (int list * thm) * Proof.context,
+  reconstruct: Proof.context -> string list * SMT_Translate.recon ->
+    int list * thm,
   default_max_relevant: int }
 
 fun gen_solver name (info : solver_info) rm ctxt iwthms =
   let
-    val {env_var, is_remote, options, interface, reconstruct, ...} = info
-    val {translate, ...} = interface
-    val translate' = set_has_datatypes (Config.get ctxt C.datatypes) translate
+    val {env_var, is_remote, options, reconstruct, ...} = info
     val cmd = (rm, env_var, is_remote, name)
   in
     SMT_Normalize.normalize ctxt iwthms
     |> rpair ctxt
     |-> SMT_Monomorph.monomorph
-    |-> invoke translate' name cmd options
-    |-> reconstruct
-    |-> (fn (idxs, thm) => fn ctxt' => thm
-    |> singleton (ProofContext.export ctxt' ctxt)
-    |> discharge_definitions
+    |-> invoke name cmd options
+    |> reconstruct ctxt
+    |> (fn (idxs, thm) => thm
     |> tap (fn _ => trace_assumptions ctxt iwthms idxs)
     |> pair idxs)
   end
@@ -261,12 +237,13 @@ structure Solvers = Generic_Data
 )
 
 local
-  fun finish outcome cex_parser reconstruct ocl (output, recon) ctxt =
+  fun finish outcome cex_parser reconstruct ocl outer_ctxt
+      (output, (recon as {context=ctxt, ...} : SMT_Translate.recon)) =
     (case outcome output of
       (Unsat, ls) =>
         if not (Config.get ctxt C.oracle) andalso is_some reconstruct
-        then the reconstruct ctxt recon ls
-        else (([], ocl ()), ctxt)
+        then the reconstruct outer_ctxt recon ls
+        else ([], ocl ())
     | (result, ls) =>
         let
           val (ts, us) =
@@ -283,14 +260,12 @@ in
 
 fun add_solver cfg =
   let
-    val {name, env_var, is_remote, options, interface, outcome, cex_parser,
+    val {name, env_var, is_remote, options, class, outcome, cex_parser,
       reconstruct, default_max_relevant} = cfg
-    val {class, ...} = interface
 
     fun core_oracle () = cfalse
 
     fun solver ocl = { env_var=env_var, is_remote=is_remote, options=options,
-      interface=interface,
       reconstruct=finish (outcome name) cex_parser reconstruct ocl,
       default_max_relevant=default_max_relevant }
   in
