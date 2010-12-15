@@ -6,7 +6,7 @@ Interface to SMT solvers based on the SMT-LIB format.
 
 signature SMTLIB_INTERFACE =
 sig
-  val smtlibC: SMT_Config.class
+  val smtlibC: SMT_Utils.class
   val add_logic: int * (term list -> string option) -> Context.generic ->
     Context.generic
   val interface: SMT_Solver.interface

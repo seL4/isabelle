@@ -6,7 +6,7 @@ Interface to Z3 based on a relaxed version of SMT-LIB.
 
 signature Z3_INTERFACE =
 sig
-  val smtlib_z3C: SMT_Config.class
+  val smtlib_z3C: SMT_Utils.class
   val interface: SMT_Solver.interface
   val setup: theory -> theory
 

@@ -10,6 +10,15 @@ sig
   val repeat: ('a -> 'a option) -> 'a -> 'a
   val repeat_yield: ('a -> 'b -> ('a * 'b) option) -> 'a -> 'b -> 'a * 'b
 
+  (*class dictionaries*)
+  type class = string list
+  val basicC: class
+  type 'a dict = (class * 'a) Ord_List.T
+  val dict_map_default: class * 'a -> ('a -> 'a) -> 'a dict -> 'a dict
+  val dict_update: class * 'a -> 'a dict -> 'a dict
+  val dict_merge: ('a * 'a -> 'a) -> 'a dict * 'a dict -> 'a dict
+  val dict_lookup: 'a dict -> class -> 'a list
+
   (*types*)
   val dest_funT: int -> typ -> typ list * typ
 
@@ -55,6 +64,32 @@ fun repeat f =
 fun repeat_yield f =
   let fun rep x y = (case f x y of SOME (x', y') => rep x' y' | NONE => (x, y))
   in rep end
+
+
+(* class dictionaries *)
+
+type class = string list
+
+val basicC = []
+
+type 'a dict = (class * 'a) Ord_List.T
+
+fun class_ord ((cs1, _), (cs2, _)) = list_ord fast_string_ord (cs1, cs2)
+
+fun dict_insert (cs, x) d =
+  if AList.defined (op =) d cs then d
+  else Ord_List.insert class_ord (cs, x) d
+
+fun dict_map_default (cs, x) f =
+  dict_insert (cs, x) #> AList.map_entry (op =) cs f
+
+fun dict_update (e as (_, x)) = dict_map_default e (K x)
+
+fun dict_merge val_merge = sort class_ord o AList.join (op =) (K val_merge)
+
+fun dict_lookup d cs =
+  let fun match (cs', x) = if is_prefix (op =) cs' cs then SOME x else NONE
+  in map_filter match d end
 
 
 (* types *)

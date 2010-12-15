@@ -8,9 +8,9 @@ theory SMT
 imports List
 uses
   "Tools/Datatype/datatype_selectors.ML"
+  "Tools/SMT/smt_utils.ML"
   "Tools/SMT/smt_failure.ML"
   "Tools/SMT/smt_config.ML"
-  "Tools/SMT/smt_utils.ML"
   "Tools/SMT/smt_monomorph.ML"
   ("Tools/SMT/smt_builtin.ML")
   ("Tools/SMT/smt_normalize.ML")

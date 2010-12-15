@@ -8,7 +8,7 @@ signature SMT_SOLVER =
 sig
   (*configuration*)
   type interface = {
-    class: SMT_Config.class,
+    class: SMT_Utils.class,
     extra_norm: SMT_Normalize.extra_norm,
     translate: SMT_Translate.config }
   datatype outcome = Unsat | Sat | Unknown
@@ -58,7 +58,7 @@ structure C = SMT_Config
 (* configuration *)
 
 type interface = {
-  class: SMT_Config.class,
+  class: SMT_Utils.class,
   extra_norm: SMT_Normalize.extra_norm,
   translate: SMT_Translate.config }
 

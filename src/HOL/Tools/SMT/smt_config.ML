@@ -6,16 +6,13 @@ Configuration options and diagnostic tools for SMT.
 
 signature SMT_CONFIG =
 sig
-  (*class*)
-  type class = string list
-  val basicC: class
-
   (*solver*)
-  val add_solver: string * class -> Context.generic -> Context.generic
+  val add_solver: string * SMT_Utils.class -> Context.generic ->
+    Context.generic
   val set_solver_options: string * string -> Context.generic -> Context.generic
   val select_solver: string -> Context.generic -> Context.generic
   val solver_of: Proof.context -> string
-  val solver_class_of: Proof.context -> class
+  val solver_class_of: Proof.context -> SMT_Utils.class
   val solver_options_of: Proof.context -> string list
 
   (*options*)
@@ -52,18 +49,11 @@ end
 structure SMT_Config: SMT_CONFIG =
 struct
 
-(* class *)
-
-type class = string list
-
-val basicC = []
-
-
 (* solver *)
 
 structure Solvers = Generic_Data
 (
-  type T = (class * string list) Symtab.table * string option
+  type T = (SMT_Utils.class * string list) Symtab.table * string option
   val empty = (Symtab.empty, NONE)
   val extend = I
   fun merge ((ss1, s), (ss2, _)) = (Symtab.merge (K true) (ss1, ss2), s)
