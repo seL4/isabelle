@@ -1004,7 +1004,6 @@ fun create_nom_typedecls ak_names thy =
 
 
 (* syntax und parsing *)
-structure P = Parse and K = Keyword;
 
 val _ =
   Outer_Syntax.command "atom_decl" "declare new kinds of atoms" Keyword.thy_decl
