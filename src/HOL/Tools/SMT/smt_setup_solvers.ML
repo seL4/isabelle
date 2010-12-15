@@ -66,7 +66,7 @@ fun yices () = {
 
 fun z3_options ctxt =
   ["-rs:" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
-    "MODEL=true", "PRE_SIMPLIFY_EXPR=false", "CONTEXT_SIMPLIFIER=false", "-smt"]
+    "MODEL=true", "-smt"]
   |> not (Config.get ctxt SMT_Config.oracle) ?
        append ["DISPLAY_PROOF=true","PROOF_MODE=2"]
 
