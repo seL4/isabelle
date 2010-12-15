@@ -18,8 +18,6 @@ end;
 structure Tfl: TFL =
 struct
 
-structure S = USyntax
-
 (* misc *)
 
 (*---------------------------------------------------------------------------
@@ -53,16 +51,14 @@ val concl = #2 o Rules.dest_thm;
  * processing from the definition stage.
  *---------------------------------------------------------------------------*)
 local
-structure R = Rules
-structure U = Utils
 
 (* The rest of these local definitions are for the tricky nested case *)
-val solved = not o can S.dest_eq o #2 o S.strip_forall o concl
+val solved = not o can USyntax.dest_eq o #2 o USyntax.strip_forall o concl
 
 fun id_thm th =
-   let val {lhs,rhs} = S.dest_eq (#2 (S.strip_forall (#2 (R.dest_thm th))));
+   let val {lhs,rhs} = USyntax.dest_eq (#2 (USyntax.strip_forall (#2 (Rules.dest_thm th))));
    in lhs aconv rhs end
-   handle U.ERR _ => false;
+   handle Utils.ERR _ => false;
    
 val P_imp_P_eq_True = @{thm eqTrueI} RS eq_reflection;
 fun mk_meta_eq r = case concl_of r of
@@ -76,16 +72,16 @@ fun rewrite L = rewrite_rule (map mk_meta_eq (filter_out id_thm L))
 fun join_assums th =
   let val thy = Thm.theory_of_thm th
       val tych = cterm_of thy
-      val {lhs,rhs} = S.dest_eq(#2 (S.strip_forall (concl th)))
-      val cntxtl = (#1 o S.strip_imp) lhs  (* cntxtl should = cntxtr *)
-      val cntxtr = (#1 o S.strip_imp) rhs  (* but union is solider *)
+      val {lhs,rhs} = USyntax.dest_eq(#2 (USyntax.strip_forall (concl th)))
+      val cntxtl = (#1 o USyntax.strip_imp) lhs  (* cntxtl should = cntxtr *)
+      val cntxtr = (#1 o USyntax.strip_imp) rhs  (* but union is solider *)
       val cntxt = union (op aconv) cntxtl cntxtr
   in
-    R.GEN_ALL
-      (R.DISCH_ALL
-         (rewrite (map (R.ASSUME o tych) cntxt) (R.SPEC_ALL th)))
+    Rules.GEN_ALL
+      (Rules.DISCH_ALL
+         (rewrite (map (Rules.ASSUME o tych) cntxt) (Rules.SPEC_ALL th)))
   end
-  val gen_all = S.gen_all
+  val gen_all = USyntax.gen_all
 in
 fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
   let
@@ -117,7 +113,7 @@ fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
           in
           {induction = induction',
                rules = rules',
-                 tcs = map (gen_all o S.rhs o #2 o S.strip_forall o concl)
+                 tcs = map (gen_all o USyntax.rhs o #2 o USyntax.strip_forall o concl)
                            (simplified@stubborn)}
           end
   end;
@@ -144,8 +140,8 @@ fun simplify_defn strict thy cs ss congs wfs id pats def0 =
        val def = Thm.unvarify_global def0 RS meta_eq_to_obj_eq
        val {rules,rows,TCs,full_pats_TCs} =
            Prim.post_definition congs (thy, (def,pats))
-       val {lhs=f,rhs} = S.dest_eq (concl def)
-       val (_,[R,_]) = S.strip_comb rhs
+       val {lhs=f,rhs} = USyntax.dest_eq (concl def)
+       val (_,[R,_]) = USyntax.strip_comb rhs
        val dummy = Prim.trace_thms "congs =" congs
        (*the next step has caused simplifier looping in some cases*)
        val {induction, rules, tcs} =
@@ -154,12 +150,12 @@ fun simplify_defn strict thy cs ss congs wfs id pats def0 =
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
        val rules' = map (Drule.export_without_context o Object_Logic.rulify_no_asm)
-                        (R.CONJUNCTS rules)
+                        (Rules.CONJUNCTS rules)
          in  {induct = meta_outer ctxt (Object_Logic.rulify_no_asm (induction RS spec')),
         rules = ListPair.zip(rules', rows),
         tcs = (termination_goals rules') @ tcs}
    end
-  handle U.ERR {mesg,func,module} =>
+  handle Utils.ERR {mesg,func,module} =>
                error (mesg ^
                       "\n    (In TFL function " ^ module ^ "." ^ func ^ ")");
 
@@ -217,7 +213,7 @@ fun define_i strict thy cs ss congs wfs fid R eqs =
 fun define strict thy cs ss congs wfs fid R seqs =
   define_i strict thy cs ss congs wfs fid
       (Syntax.read_term_global thy R) (map (Syntax.read_term_global thy) seqs)
-    handle U.ERR {mesg,...} => error mesg;
+    handle Utils.ERR {mesg,...} => error mesg;
 
 
 (*---------------------------------------------------------------------------
@@ -227,11 +223,11 @@ fun define strict thy cs ss congs wfs fid R seqs =
  *---------------------------------------------------------------------------*)
 
 fun func_of_cond_eqn tm =
-  #1 (S.strip_comb (#lhs (S.dest_eq (#2 (S.strip_forall (#2 (S.strip_imp tm)))))));
+  #1 (USyntax.strip_comb (#lhs (USyntax.dest_eq (#2 (USyntax.strip_forall (#2 (USyntax.strip_imp tm)))))));
 
 fun defer_i thy congs fid eqs =
  let val {rules,R,theory,full_pats_TCs,SV,...} = Prim.lazyR_def thy fid congs eqs
-     val f = func_of_cond_eqn (concl (R.CONJUNCT1 rules handle U.ERR _ => rules));
+     val f = func_of_cond_eqn (concl (Rules.CONJUNCT1 rules handle Utils.ERR _ => rules));
      val dummy = writeln "Proving induction theorem ...";
      val induction = Prim.mk_induction theory
                         {fconst=f, R=R, SV=SV, pat_TCs_list=full_pats_TCs}
@@ -243,7 +239,7 @@ fun defer_i thy congs fid eqs =
 
 fun defer thy congs fid seqs =
   defer_i thy congs fid (map (Syntax.read_term_global thy) seqs)
-    handle U.ERR {mesg,...} => error mesg;
+    handle Utils.ERR {mesg,...} => error mesg;
 end;
 
 end;

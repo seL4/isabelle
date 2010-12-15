@@ -57,16 +57,11 @@ end;
 structure Rules: RULES =
 struct
 
-structure S = USyntax;
-structure U = Utils;
-structure D = Dcterm;
+fun RULES_ERR func mesg = Utils.ERR {module = "Rules", func = func, mesg = mesg};
 
 
-fun RULES_ERR func mesg = U.ERR {module = "Rules", func = func, mesg = mesg};
-
-
-fun cconcl thm = D.drop_prop (#prop (Thm.crep_thm thm));
-fun chyps thm = map D.drop_prop (#hyps (Thm.crep_thm thm));
+fun cconcl thm = Dcterm.drop_prop (#prop (Thm.crep_thm thm));
+fun chyps thm = map Dcterm.drop_prop (#hyps (Thm.crep_thm thm));
 
 fun dest_thm thm =
   let val {prop,hyps,...} = Thm.rep_thm thm
@@ -95,7 +90,7 @@ fun ALPHA thm ctm1 =
   handle THM (msg, _, _) => raise RULES_ERR "ALPHA" msg;
 
 fun rbeta th =
-  (case D.strip_comb (cconcl th) of
+  (case Dcterm.strip_comb (cconcl th) of
     (_, [l, r]) => Thm.transitive th (Thm.beta_conversion false r)
   | _ => raise RULES_ERR "rbeta" "");
 
@@ -108,7 +103,7 @@ fun rbeta th =
  * "B" results in something that looks like "A --> B".
  *---------------------------------------------------------------------------*)
 
-fun ASSUME ctm = Thm.assume (D.mk_prop ctm);
+fun ASSUME ctm = Thm.assume (Dcterm.mk_prop ctm);
 
 
 (*---------------------------------------------------------------------------
@@ -119,7 +114,7 @@ fun MP th1 th2 = th2 RS (th1 RS mp)
   handle THM (msg, _, _) => raise RULES_ERR "MP" msg;
 
 (*forces the first argument to be a proposition if necessary*)
-fun DISCH tm thm = Thm.implies_intr (D.mk_prop tm) thm COMP impI
+fun DISCH tm thm = Thm.implies_intr (Dcterm.mk_prop tm) thm COMP impI
   handle THM (msg, _, _) => raise RULES_ERR "DISCH" msg;
 
 fun DISCH_ALL thm = fold_rev DISCH (#hyps (Thm.crep_thm thm)) thm;
@@ -131,9 +126,9 @@ fun FILTER_DISCH_ALL P thm =
  end;
 
 fun UNDISCH thm =
-   let val tm = D.mk_prop (#1 (D.dest_imp (cconcl thm)))
+   let val tm = Dcterm.mk_prop (#1 (Dcterm.dest_imp (cconcl thm)))
    in Thm.implies_elim (thm RS mp) (ASSUME tm) end
-   handle U.ERR _ => raise RULES_ERR "UNDISCH" ""
+   handle Utils.ERR _ => raise RULES_ERR "UNDISCH" ""
      | THM _ => raise RULES_ERR "UNDISCH" "";
 
 fun PROVE_HYP ath bth = MP (DISCH (cconcl ath) bth) ath;
@@ -152,7 +147,7 @@ fun CONJUNCT1 thm = thm RS conjunct1
 fun CONJUNCT2 thm = thm RS conjunct2
   handle THM (msg, _, _) => raise RULES_ERR "CONJUNCT2" msg;
 
-fun CONJUNCTS th = CONJUNCTS (CONJUNCT1 th) @ CONJUNCTS (CONJUNCT2 th) handle U.ERR _ => [th];
+fun CONJUNCTS th = CONJUNCTS (CONJUNCT1 th) @ CONJUNCTS (CONJUNCT2 th) handle Utils.ERR _ => [th];
 
 fun LIST_CONJ [] = raise RULES_ERR "LIST_CONJ" "empty list"
   | LIST_CONJ [th] = th
@@ -168,7 +163,7 @@ local val thy = Thm.theory_of_thm disjI1
       val [P,Q] = OldTerm.term_vars prop
       val disj1 = Thm.forall_intr (Thm.cterm_of thy Q) disjI1
 in
-fun DISJ1 thm tm = thm RS (Thm.forall_elim (D.drop_prop tm) disj1)
+fun DISJ1 thm tm = thm RS (Thm.forall_elim (Dcterm.drop_prop tm) disj1)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ1" msg;
 end;
 
@@ -177,7 +172,7 @@ local val thy = Thm.theory_of_thm disjI2
       val [P,Q] = OldTerm.term_vars prop
       val disj2 = Thm.forall_intr (Thm.cterm_of thy P) disjI2
 in
-fun DISJ2 tm thm = thm RS (Thm.forall_elim (D.drop_prop tm) disj2)
+fun DISJ2 tm thm = thm RS (Thm.forall_elim (Dcterm.drop_prop tm) disj2)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ2" msg;
 end;
 
@@ -195,10 +190,10 @@ fun EVEN_ORS thms =
   let fun blue ldisjs [] _ = []
         | blue ldisjs (th::rst) rdisjs =
             let val tail = tl rdisjs
-                val rdisj_tl = D.list_mk_disj tail
+                val rdisj_tl = Dcterm.list_mk_disj tail
             in fold_rev DISJ2 ldisjs (DISJ1 th rdisj_tl)
                :: blue (ldisjs @ [cconcl th]) rst tail
-            end handle U.ERR _ => [fold_rev DISJ2 ldisjs th]
+            end handle Utils.ERR _ => [fold_rev DISJ2 ldisjs th]
    in blue [] thms (map cconcl thms) end;
 
 
@@ -212,8 +207,8 @@ fun EVEN_ORS thms =
 
 fun DISJ_CASES th1 th2 th3 =
   let
-    val c = D.drop_prop (cconcl th1);
-    val (disj1, disj2) = D.dest_disj c;
+    val c = Dcterm.drop_prop (cconcl th1);
+    val (disj1, disj2) = Dcterm.dest_disj c;
     val th2' = DISCH disj1 th2;
     val th3' = DISCH disj2 th3;
   in
@@ -253,12 +248,12 @@ fun DISJ_CASESL disjth thl =
        fun eq th atm = exists (fn t => HOLogic.dest_Trueprop t
                                        aconv term_of atm)
                               (#hyps(rep_thm th))
-       val tml = D.strip_disj c
+       val tml = Dcterm.strip_disj c
        fun DL th [] = raise RULES_ERR "DISJ_CASESL" "no cases"
          | DL th [th1] = PROVE_HYP th th1
          | DL th [th1,th2] = DISJ_CASES th th1 th2
          | DL th (th1::rst) =
-            let val tm = #2(D.dest_disj(D.drop_prop(cconcl th)))
+            let val tm = #2 (Dcterm.dest_disj (Dcterm.drop_prop(cconcl th)))
              in DISJ_CASES th th1 (DL (ASSUME tm) rst) end
    in DL disjth (organize eq tml thl)
    end;
@@ -279,7 +274,7 @@ fun SPEC tm thm =
    in thm RS (Thm.forall_elim tm gspec') end
 end;
 
-fun SPEC_ALL thm = fold SPEC (#1(D.strip_forall(cconcl thm))) thm;
+fun SPEC_ALL thm = fold SPEC (#1 (Dcterm.strip_forall(cconcl thm))) thm;
 
 val ISPEC = SPEC
 val ISPECL = fold ISPEC;
@@ -323,7 +318,7 @@ fun GEN_ALL thm =
 
 
 fun MATCH_MP th1 th2 =
-   if (D.is_forall (D.drop_prop(cconcl th1)))
+   if (Dcterm.is_forall (Dcterm.drop_prop(cconcl th1)))
    then MATCH_MP (th1 RS spec) th2
    else MP th1 th2;
 
@@ -345,8 +340,8 @@ fun MATCH_MP th1 th2 =
 
 fun CHOOSE (fvar, exth) fact =
   let
-    val lam = #2 (D.dest_comb (D.drop_prop (cconcl exth)))
-    val redex = D.capply lam fvar
+    val lam = #2 (Dcterm.dest_comb (Dcterm.drop_prop (cconcl exth)))
+    val redex = Dcterm.capply lam fvar
     val thy = Thm.theory_of_cterm redex
     val t$u = Thm.term_of redex
     val residue = Thm.cterm_of thy (Term.betapply (t, u))
@@ -364,7 +359,7 @@ fun EXISTS (template,witness) thm =
        val prop = Thm.prop_of thm
        val P' = cterm_of thy P
        val x' = cterm_of thy x
-       val abstr = #2 (D.dest_comb template)
+       val abstr = #2 (Dcterm.dest_comb template)
    in
    thm RS (cterm_instantiate[(P',abstr), (x',witness)] exI)
      handle THM (msg, _, _) => raise RULES_ERR "EXISTS" msg
@@ -380,7 +375,7 @@ end;
  *---------------------------------------------------------------------------*)
 
 fun EXISTL vlist th =
-  fold_rev (fn v => fn thm => EXISTS(D.mk_exists(v,cconcl thm), v) thm)
+  fold_rev (fn v => fn thm => EXISTS(Dcterm.mk_exists(v,cconcl thm), v) thm)
            vlist th;
 
 
@@ -397,7 +392,7 @@ fun IT_EXISTS blist th =
    let val thy = Thm.theory_of_thm th
        val tych = cterm_of thy
        val blist' = map (pairself Thm.term_of) blist
-       fun ex v M  = cterm_of thy (S.mk_exists{Bvar=v,Body = M})
+       fun ex v M  = cterm_of thy (USyntax.mk_exists{Bvar=v,Body = M})
 
   in
   fold_rev (fn (b as (r1,r2)) => fn thm =>
@@ -443,7 +438,7 @@ val RIGHT_ASSOC = rewrite_rule [Thms.disj_assoc];
 
 
 (* Object language quantifier, i.e., "!" *)
-fun Forall v M = S.mk_forall{Bvar=v, Body=M};
+fun Forall v M = USyntax.mk_forall{Bvar=v, Body=M};
 
 
 (* Fragile: it's a cong if it is not "R y x ==> cut f R x y = f y" *)
@@ -458,11 +453,11 @@ fun dest_equal(Const ("==",_) $
                (Const (@{const_name Trueprop},_) $ lhs)
                $ (Const (@{const_name Trueprop},_) $ rhs)) = {lhs=lhs, rhs=rhs}
   | dest_equal(Const ("==",_) $ lhs $ rhs)  = {lhs=lhs, rhs=rhs}
-  | dest_equal tm = S.dest_eq tm;
+  | dest_equal tm = USyntax.dest_eq tm;
 
 fun get_lhs tm = #lhs(dest_equal (HOLogic.dest_Trueprop tm));
 
-fun dest_all used (Const("all",_) $ (a as Abs _)) = S.dest_abs used a
+fun dest_all used (Const("all",_) $ (a as Abs _)) = USyntax.dest_abs used a
   | dest_all _ _ = raise RULES_ERR "dest_all" "not a !!";
 
 val is_all = can (dest_all []);
@@ -505,13 +500,13 @@ fun get ([],_,L) = rev L
         of ([],_) => get (rst, n+1,L)
          | (vlist,body) =>
             let val eq = Logic.strip_imp_concl body
-                val (f,args) = S.strip_comb (get_lhs eq)
-                val (vstrl,_) = S.strip_abs f
+                val (f,args) = USyntax.strip_comb (get_lhs eq)
+                val (vstrl,_) = USyntax.strip_abs f
                 val names  =
                   Name.variant_list (OldTerm.add_term_names(body, [])) (map (#1 o dest_Free) vstrl)
             in get (rst, n+1, (names,n)::L) end
             handle TERM _ => get (rst, n+1, L)
-              | U.ERR _ => get (rst, n+1, L);
+              | Utils.ERR _ => get (rst, n+1, L);
 
 (* Note: Thm.rename_params_rule counts from 1, not 0 *)
 fun rename thm =
@@ -529,7 +524,7 @@ fun rename thm =
  *---------------------------------------------------------------------------*)
 
 fun list_beta_conv tm =
-  let fun rbeta th = Thm.transitive th (Thm.beta_conversion false (#2(D.dest_eq(cconcl th))))
+  let fun rbeta th = Thm.transitive th (Thm.beta_conversion false (#2(Dcterm.dest_eq(cconcl th))))
       fun iter [] = Thm.reflexive tm
         | iter (v::rst) = rbeta (Thm.combination(iter rst) (Thm.reflexive v))
   in iter  end;
@@ -553,28 +548,28 @@ fun print_cterm s ct =
  * General abstraction handlers, should probably go in USyntax.
  *---------------------------------------------------------------------------*)
 fun mk_aabs (vstr, body) =
-  S.mk_abs {Bvar = vstr, Body = body}
-  handle U.ERR _ => S.mk_pabs {varstruct = vstr, body = body};
+  USyntax.mk_abs {Bvar = vstr, Body = body}
+  handle Utils.ERR _ => USyntax.mk_pabs {varstruct = vstr, body = body};
 
 fun list_mk_aabs (vstrl,tm) =
     fold_rev (fn vstr => fn tm => mk_aabs(vstr,tm)) vstrl tm;
 
 fun dest_aabs used tm =
-   let val ({Bvar,Body}, used') = S.dest_abs used tm
+   let val ({Bvar,Body}, used') = USyntax.dest_abs used tm
    in (Bvar, Body, used') end
-   handle U.ERR _ =>
-     let val {varstruct, body, used} = S.dest_pabs used tm
+   handle Utils.ERR _ =>
+     let val {varstruct, body, used} = USyntax.dest_pabs used tm
      in (varstruct, body, used) end;
 
 fun strip_aabs used tm =
    let val (vstr, body, used') = dest_aabs used tm
        val (bvs, core, used'') = strip_aabs used' body
    in (vstr::bvs, core, used'') end
-   handle U.ERR _ => ([], tm, used);
+   handle Utils.ERR _ => ([], tm, used);
 
 fun dest_combn tm 0 = (tm,[])
   | dest_combn tm n =
-     let val {Rator,Rand} = S.dest_comb tm
+     let val {Rator,Rand} = USyntax.dest_comb tm
          val (f,rands) = dest_combn Rator (n-1)
      in (f,Rand::rands)
      end;
@@ -582,7 +577,7 @@ fun dest_combn tm 0 = (tm,[])
 
 
 
-local fun dest_pair M = let val {fst,snd} = S.dest_pair M in (fst,snd) end
+local fun dest_pair M = let val {fst,snd} = USyntax.dest_pair M in (fst,snd) end
       fun mk_fst tm =
           let val ty as Type(@{type_name Product_Type.prod}, [fty,sty]) = type_of tm
           in  Const ("Product_Type.fst", ty --> fty) $ tm  end
@@ -610,7 +605,7 @@ end end;
  *---------------------------------------------------------------------------*)
 
 fun VSTRUCT_ELIM tych a vstr th =
-  let val L = S.free_vars_lr vstr
+  let val L = USyntax.free_vars_lr vstr
       val bind1 = tych (HOLogic.mk_Trueprop (HOLogic.mk_eq(a,vstr)))
       val thm1 = Thm.implies_intr bind1 (SUBS [SYM(Thm.assume bind1)] th)
       val thm2 = forall_intr_list (map tych L) thm1
@@ -641,7 +636,7 @@ fun dest_pbeta_redex used M n =
   in (strip_aabs used f,args)
   end;
 
-fun pbeta_redex M n = can (U.C (dest_pbeta_redex []) n) M;
+fun pbeta_redex M n = can (Utils.C (dest_pbeta_redex []) n) M;
 
 fun dest_impl tm =
   let val ants = Logic.strip_imp_prems tm
@@ -649,7 +644,7 @@ fun dest_impl tm =
   in (ants,get_lhs eq)
   end;
 
-fun restricted t = is_some (S.find_term
+fun restricted t = is_some (USyntax.find_term
                             (fn (Const(@{const_name Recdef.cut},_)) =>true | _ => false)
                             t)
 
@@ -675,7 +670,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      val lhs = tych(get_lhs eq)
                      val ss' = Simplifier.add_prems (map ASSUME ants) ss
                      val lhs_eq_lhs1 = MetaSimplifier.rewrite_cterm (false,true,false) (prover used) ss' lhs
-                       handle U.ERR _ => Thm.reflexive lhs
+                       handle Utils.ERR _ => Thm.reflexive lhs
                      val dummy = print_thms "proven:" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
                      val lhs_eeq_lhs2 = lhs_eq_lhs2 RS meta_eq_to_obj_eq
@@ -693,10 +688,10 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val eq1 = Logic.strip_imp_concl imp_body1
                   val Q = get_lhs eq1
                   val QeqQ1 = pbeta_reduce (tych Q)
-                  val Q1 = #2(D.dest_eq(cconcl QeqQ1))
+                  val Q1 = #2(Dcterm.dest_eq(cconcl QeqQ1))
                   val ss' = Simplifier.add_prems (map ASSUME ants1) ss
                   val Q1eeqQ2 = MetaSimplifier.rewrite_cterm (false,true,false) (prover used') ss' Q1
-                                handle U.ERR _ => Thm.reflexive Q1
+                                handle Utils.ERR _ => Thm.reflexive Q1
                   val Q2 = #2 (Logic.dest_equals (Thm.prop_of Q1eeqQ2))
                   val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
                   val Q2eeqQ3 = Thm.symmetric(pbeta_reduce Q3 RS eq_reflection)
@@ -708,7 +703,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val impth = implies_intr_list ants1 QeeqQ3
                   val impth1 = impth RS meta_eq_to_obj_eq
                   (* Need to abstract *)
-                  val ant_th = U.itlist2 (PGEN tych) args vstrl impth1
+                  val ant_th = Utils.itlist2 (PGEN tych) args vstrl impth1
               in ant_th COMP thm
               end
              fun q_eliminate (thm,imp,thy) =
@@ -722,7 +717,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      val ss' = MetaSimplifier.add_prems (map ASSUME ants1) ss
                      val Q_eeq_Q1 = MetaSimplifier.rewrite_cterm
                         (false,true,false) (prover used') ss' (tych Q)
-                      handle U.ERR _ => Thm.reflexive (tych Q)
+                      handle Utils.ERR _ => Thm.reflexive (tych Q)
                      val lhs_eeq_lhs2 = implies_intr_list ants1 Q_eeq_Q1
                      val lhs_eq_lhs2 = lhs_eeq_lhs2 RS meta_eq_to_obj_eq
                      val ant_th = forall_intr_list(map tych vlist)lhs_eq_lhs2
@@ -740,7 +735,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                             (* Assume that the leading constant is ==,   *)
                 | _ => thm  (* if it is not a ==>                        *)
          in SOME(eliminate (rename thm)) end
-         handle U.ERR _ => NONE    (* FIXME handle THM as well?? *)
+         handle Utils.ERR _ => NONE    (* FIXME handle THM as well?? *)
 
         fun restrict_prover ss thm =
           let val dummy = say "restrict_prover:"
@@ -765,12 +760,12 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val rcontext = rev cntxt
               val cncl = HOLogic.dest_Trueprop o Thm.prop_of
               val antl = case rcontext of [] => []
-                         | _   => [S.list_mk_conj(map cncl rcontext)]
-              val TC = genl(S.list_mk_imp(antl, A))
+                         | _   => [USyntax.list_mk_conj(map cncl rcontext)]
+              val TC = genl(USyntax.list_mk_imp(antl, A))
               val dummy = print_cterm "func:" (cterm_of thy func)
               val dummy = print_cterm "TC:" (cterm_of thy (HOLogic.mk_Trueprop TC))
               val dummy = tc_list := (TC :: !tc_list)
-              val nestedp = is_some (S.find_term is_func TC)
+              val nestedp = is_some (USyntax.find_term is_func TC)
               val dummy = if nestedp then say "nested" else say "not_nested"
               val th' = if nestedp then raise RULES_ERR "solver" "nested function"
                         else let val cTC = cterm_of thy
@@ -782,7 +777,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                              end
               val th'' = th' RS thm
           in SOME (th'')
-          end handle U.ERR _ => NONE    (* FIXME handle THM as well?? *)
+          end handle Utils.ERR _ => NONE    (* FIXME handle THM as well?? *)
     in
     (if (is_cong thm) then cong_prover else restrict_prover) ss thm
     end

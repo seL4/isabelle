@@ -49,9 +49,7 @@ end;
 structure Dcterm: DCTERM =
 struct
 
-structure U = Utils;
-
-fun ERR func mesg = U.ERR {module = "Dcterm", func = func, mesg = mesg};
+fun ERR func mesg = Utils.ERR {module = "Dcterm", func = func, mesg = mesg};
 
 
 fun dest_comb t = Thm.dest_comb t
@@ -110,19 +108,19 @@ fun dest_var ctm =
 fun dest_monop expected tm =
  let
    fun err () = raise ERR "dest_monop" ("Not a(n) " ^ quote expected);
-   val (c, N) = dest_comb tm handle U.ERR _ => err ();
-   val name = #Name (dest_const c handle U.ERR _ => err ());
+   val (c, N) = dest_comb tm handle Utils.ERR _ => err ();
+   val name = #Name (dest_const c handle Utils.ERR _ => err ());
  in if name = expected then N else err () end;
 
 fun dest_binop expected tm =
  let
    fun err () = raise ERR "dest_binop" ("Not a(n) " ^ quote expected);
-   val (M, N) = dest_comb tm handle U.ERR _ => err ()
- in (dest_monop expected M, N) handle U.ERR _ => err () end;
+   val (M, N) = dest_comb tm handle Utils.ERR _ => err ()
+ in (dest_monop expected M, N) handle Utils.ERR _ => err () end;
 
 fun dest_binder expected tm =
   dest_abs NONE (dest_monop expected tm)
-  handle U.ERR _ => raise ERR "dest_binder" ("Not a(n) " ^ quote expected);
+  handle Utils.ERR _ => raise ERR "dest_binder" ("Not a(n) " ^ quote expected);
 
 
 val dest_neg    = dest_monop @{const_name Not}
@@ -151,7 +149,7 @@ val is_pair   = can dest_pair
 (*---------------------------------------------------------------------------
  * Iterated creation.
  *---------------------------------------------------------------------------*)
-val list_mk_disj = U.end_itlist (fn d1 => fn tm => mk_disj (d1, tm));
+val list_mk_disj = Utils.end_itlist (fn d1 => fn tm => mk_disj (d1, tm));
 
 (*---------------------------------------------------------------------------
  * Iterated destruction. (To the "right" in a term.)
@@ -160,7 +158,7 @@ fun strip break tm =
   let fun dest (p as (ctm,accum)) =
         let val (M,N) = break ctm
         in dest (N, M::accum)
-        end handle U.ERR _ => p
+        end handle Utils.ERR _ => p
   in dest (tm,[])
   end;
 
@@ -190,7 +188,7 @@ fun mk_prop ctm =
   handle TYPE (msg, _, _) => raise ERR "mk_prop" msg
     | TERM (msg, _) => raise ERR "mk_prop" msg;
 
-fun drop_prop ctm = dest_monop @{const_name Trueprop} ctm handle U.ERR _ => ctm;
+fun drop_prop ctm = dest_monop @{const_name Trueprop} ctm handle Utils.ERR _ => ctm;
 
 
 end;
