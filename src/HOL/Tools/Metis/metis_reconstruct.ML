@@ -373,13 +373,16 @@ fun make_last i th =
       else raise THM("select_literal", i, [th])
   end;
 
+val neg_neg_imp = @{lemma "~ ~ Q ==> Q" by blast}
+
 (* Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
    double-negations. *)
-val negate_head =
-  fold (rewrite_rule o single) [@{thm atomize_not}, not_not RS eq_reflection]
+fun negate_head thy =
+  rewrite_rule @{thms atomize_not}
+  #> perhaps (try (fn th => resolve_inc_tyvars thy th 1 neg_neg_imp))
 
 (* Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P *)
-val select_literal = negate_head oo make_last
+fun select_literal thy = negate_head thy oo make_last
 
 fun resolve_inf ctxt mode skolem_params thpairs atm th1 th2 =
   let
@@ -410,7 +413,8 @@ fun resolve_inf ctxt mode skolem_params thpairs atm th1 th2 =
           handle Empty => raise Fail "Failed to find literal in th2"
         val _ = trace_msg ctxt (fn () => "  index_th2: " ^ Int.toString index_th2)
     in
-      resolve_inc_tyvars thy (select_literal index_th1 i_th1) index_th2 i_th2
+      resolve_inc_tyvars thy (select_literal thy index_th1 i_th1) index_th2
+                         i_th2
     end
   end;
 
