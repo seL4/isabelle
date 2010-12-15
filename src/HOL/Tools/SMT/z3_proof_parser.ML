@@ -24,7 +24,8 @@ sig
     prems: int list,
     prop: cterm }
   val parse: Proof.context -> typ Symtab.table -> term Symtab.table ->
-    string list -> (int * proof_step) list * string list * Proof.context
+    string list ->
+    (int * cterm) list * (int * proof_step) list * string list * Proof.context
 end
 
 structure Z3_Proof_Parser: Z3_PROOF_PARSER =
@@ -249,13 +250,17 @@ fun add_proof_step k ((r, args), prop) cx =
 
 fun finish (_, _, _, steps, vars, ctxt) =
   let
-    fun add_prems (p as (k, Proof_Step {prems, ...})) (ps, ids) =
-      if Inttab.defined ids k then
-        (p :: ps, fold (Inttab.update o rpair ()) prems ids)
-      else (ps, ids)
+    fun coll (p as (k, Proof_Step {prems, rule, prop, ...})) (ars, ps, ids) =
+      (case rule of
+        Asserted => ((k, prop) :: ars, ps, ids)
+      | Goal => ((k, prop) :: ars, ps, ids)
+      | _ =>
+          if Inttab.defined ids k then
+            (ars, p :: ps, fold (Inttab.update o rpair ()) prems ids)
+          else (ars, ps, ids))
 
-    val (steps', _) = fold add_prems steps ([], Inttab.make [(~1, ())])
-  in (steps', vars, ctxt) end
+    val (ars, steps', _) = fold coll steps ([], [], Inttab.make [(~1, ())])
+  in (ars, steps', vars, ctxt) end
 
 
 (** core parser **)

@@ -220,8 +220,8 @@ fun gen_solver name (info : solver_info) rm ctxt iwthms =
     SMT_Normalize.normalize ctxt iwthms
     |> rpair ctxt
     |-> SMT_Monomorph.monomorph
-    |-> invoke name cmd options
-    |> reconstruct ctxt
+    |> (fn (iwthms', ctxt') => invoke name cmd options iwthms' ctxt'
+    |> reconstruct ctxt')
     |> (fn (idxs, thm) => thm
     |> tap (fn _ => trace_assumptions ctxt iwthms idxs)
     |> pair idxs)
