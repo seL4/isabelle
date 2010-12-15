@@ -290,6 +290,17 @@ fun frees_for_vars ctxt (eqs, defs) =
 
 val is_free_constraint = Term.exists_subterm (fn Free _ => true | _ => false)
 
+fun is_free_def (Const (@{const_name HOL.eq}, _) $ Free _ $ _) = true
+  | is_free_def _ = false
+
+fun defined tp =
+  try (pairself (fst o HOLogic.dest_eq)) tp
+  |> the_default false o Option.map (op aconv)
+
+fun add_free_defs free_cs defs =
+  let val (free_defs, defs') = List.partition is_free_def defs
+  in (free_cs @ filter_out (member defined free_cs) free_defs, defs') end
+
 fun is_const_def (Const (@{const_name HOL.eq}, _) $ Const _ $ _) = true
   | is_const_def _ = false
 
@@ -302,6 +313,7 @@ fun parse_counterex ctxt ({terms, ...} : SMT_Translate.recon) ls =
   |> unfold_eqs
   |>> map swap_free
   |>> filter is_free_constraint
+  |-> add_free_defs
   |> frees_for_vars ctxt
   ||> filter is_const_def
 
