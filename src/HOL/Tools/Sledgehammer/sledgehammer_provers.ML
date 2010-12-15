@@ -511,7 +511,7 @@ fun can_apply timeout tac state i =
     | _ => false
   end
 
-val smt_metis_timeout = seconds 0.5
+val smt_metis_timeout = seconds 1.0
 
 fun can_apply_metis debug state i ths =
   can_apply smt_metis_timeout
