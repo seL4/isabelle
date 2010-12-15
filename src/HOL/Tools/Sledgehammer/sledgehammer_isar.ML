@@ -21,6 +21,7 @@ struct
 
 open ATP_Systems
 open Sledgehammer_Util
+open Sledgehammer_ATP_Translate
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 open Sledgehammer_Run
@@ -221,8 +222,15 @@ fun extract_params auto default_params override_params =
     val overlord = lookup_bool "overlord"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
-    val type_sys = lookup_string "type_sys"
-    val full_types = lookup_bool "full_types"
+    val type_sys = 
+      case (lookup_string "type_sys", lookup_bool "full_types") of
+        ("tags", full_types) => Tags full_types
+      | ("preds", full_types) => Preds full_types
+      | ("const_args", _) => Const_Args
+      | ("none", _) => No_Types
+      | ("smart", true) => Tags true
+      | ("smart", false) => Const_Args
+      | (type_sys, _) => error ("Unknown type system: " ^ quote type_sys ^ ".")
     val explicit_apply = lookup_bool "explicit_apply"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
@@ -232,8 +240,7 @@ fun extract_params auto default_params override_params =
     val expect = lookup_string "expect"
   in
     {blocking = blocking, debug = debug, verbose = verbose, overlord = overlord,
-     provers = provers, type_sys = type_sys, full_types = full_types,
-     explicit_apply = explicit_apply,
+     provers = provers, type_sys = type_sys, explicit_apply = explicit_apply,
      relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
      isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
      timeout = timeout, expect = expect}

@@ -661,19 +661,19 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
 (* Facts containing variables of type "unit" or "bool" or of the form
    "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
    are omitted. *)
-fun is_dangerous_term full_types t =
-  not full_types andalso
+fun is_dangerous_term no_dangerous_types t =
+  not no_dangerous_types andalso
   let val t = transform_elim_term t in
     has_bound_or_var_of_type dangerous_types t orelse
     is_exhaustive_finite t
   end
 
-fun is_theorem_bad_for_atps full_types thm =
+fun is_theorem_bad_for_atps no_dangerous_types thm =
   let val t = prop_of thm in
     is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
-    is_dangerous_term full_types t orelse exists_sledgehammer_const t orelse
-    exists_low_level_class_const t orelse is_metastrange_theorem thm orelse
-    is_that_fact thm
+    is_dangerous_term no_dangerous_types t orelse
+    exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
+    is_metastrange_theorem thm orelse is_that_fact thm
   end
 
 fun clasimpset_rules_of ctxt =
@@ -704,7 +704,7 @@ fun close_form t =
           (Term.add_vars t [] |> sort_wrt (fst o fst))
   |> fst
 
-fun all_facts ctxt reserved full_types
+fun all_facts ctxt reserved no_dangerous_types
               ({intro_bonus, elim_bonus, simp_bonus, ...} : relevance_fudge)
               add_ths chained_ths =
   let
@@ -754,7 +754,7 @@ fun all_facts ctxt reserved full_types
             pair 1
             #> fold (fn th => fn (j, rest) =>
                  (j + 1,
-                  if is_theorem_bad_for_atps full_types th andalso
+                  if is_theorem_bad_for_atps no_dangerous_types th andalso
                      not (member Thm.eq_thm add_ths th) then
                     rest
                   else
@@ -799,9 +799,9 @@ fun rearrange_facts ctxt respect_no_atp =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
-fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
-                   is_built_in_const fudge (override as {add, only, ...})
-                   chained_ths hyp_ts concl_t =
+fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
+                   max_relevant is_built_in_const fudge
+                   (override as {add, only, ...}) chained_ths hyp_ts concl_t =
   let
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
                           1.0 / Real.fromInt (max_relevant + 1))
@@ -812,7 +812,7 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
          maps (map (fn ((name, loc), th) => ((K name, loc), (true, th)))
                o fact_from_ref ctxt reserved chained_ths) add
        else
-         all_facts ctxt reserved full_types fudge add_ths chained_ths)
+         all_facts ctxt reserved no_dangerous_types fudge add_ths chained_ths)
       |> rearrange_facts ctxt (respect_no_atp andalso not only)
       |> uniquify
   in

@@ -114,7 +114,7 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
 (* FUDGE *)
 val auto_max_relevant_divisor = 2
 
-fun run_sledgehammer (params as {blocking, debug, provers, full_types,
+fun run_sledgehammer (params as {blocking, debug, provers, type_sys,
                                  relevance_thresholds, max_relevant, ...})
                      auto i (relevance_override as {only, ...}) minimize_command
                      state =
@@ -128,14 +128,15 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
       val ctxt = Proof.context_of state
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
+      val no_dangerous_types = types_dangerous_types type_sys
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_available ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")
               | NONE => ()
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."
       val (smts, atps) = provers |> List.partition (is_smt_prover ctxt)
-      fun run_provers label full_types relevance_fudge maybe_translate provers
-                      (res as (success, state)) =
+      fun run_provers label no_dangerous_types relevance_fudge maybe_translate
+                      provers (res as (success, state)) =
         if success orelse null provers then
           res
         else
@@ -150,7 +151,7 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
             val is_built_in_const =
               is_built_in_const_for_prover ctxt (hd provers)
             val facts =
-              relevant_facts ctxt full_types relevance_thresholds
+              relevant_facts ctxt no_dangerous_types relevance_thresholds
                              max_max_relevant is_built_in_const relevance_fudge
                              relevance_override chained_ths hyp_ts concl_t
               |> map maybe_translate
@@ -180,7 +181,7 @@ fun run_sledgehammer (params as {blocking, debug, provers, full_types,
                       |> exists fst |> rpair state
           end
       val run_atps =
-        run_provers "ATP" full_types atp_relevance_fudge
+        run_provers "ATP" no_dangerous_types atp_relevance_fudge
                     (ATP_Translated_Fact o translate_atp_fact ctxt) atps
       val run_smts =
         run_provers "SMT solver" true smt_relevance_fudge Untranslated_Fact smts

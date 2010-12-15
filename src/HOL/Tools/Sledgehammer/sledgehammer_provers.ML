@@ -12,6 +12,7 @@ sig
   type locality = Sledgehammer_Filter.locality
   type relevance_fudge = Sledgehammer_Filter.relevance_fudge
   type translated_formula = Sledgehammer_ATP_Translate.translated_formula
+  type type_system = Sledgehammer_ATP_Translate.type_system
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
 
   type params =
@@ -20,8 +21,7 @@ sig
      verbose: bool,
      overlord: bool,
      provers: string list,
-     type_sys: string,
-     full_types: bool,
+     type_sys: type_system,
      explicit_apply: bool,
      relevance_thresholds: real * real,
      max_relevant: int option,
@@ -204,8 +204,7 @@ type params =
    verbose: bool,
    overlord: bool,
    provers: string list,
-   type_sys: string,
-   full_types: bool,
+   type_sys: type_system,
    explicit_apply: bool,
    relevance_thresholds: real * real,
    max_relevant: int option,
@@ -270,22 +269,13 @@ val important_message_keep_factor = 0.1
 
 fun run_atp auto atp_name
         ({exec, required_execs, arguments, has_incomplete_mode, proof_delims,
-         known_failures, explicit_forall, use_conjecture_for_hypotheses, ...} : atp_config)
-        ({debug, verbose, overlord, type_sys, full_types, explicit_apply,
-          isar_proof, isar_shrink_factor, timeout, ...} : params)
+          known_failures, explicit_forall, use_conjecture_for_hypotheses, ...}
+          : atp_config)
+        ({debug, verbose, overlord, type_sys, explicit_apply, isar_proof,
+          isar_shrink_factor, timeout, ...} : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
-    val type_sys =
-      case (type_sys, full_types) of
-        ("tags", _) => Tags full_types
-      | ("preds", _) => Preds full_types
-      | ("const_args", _) => Const_Args
-      | ("overload_args", _) => Overload_Args
-      | ("none", _) => No_Types
-      | _ => (if type_sys = "smart" then ()
-              else warning ("Unknown type system: " ^ quote type_sys ^ ".");
-              if full_types then Tags true else Const_Args)
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val facts = facts |> map (atp_translated_fact ctxt)
     val dest_dir = if overlord then getenv "ISABELLE_HOME_USER"

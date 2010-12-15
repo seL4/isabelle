@@ -311,7 +311,7 @@ fun raw_term_from_pred thy type_sys tfrees =
         ATerm ("hBOOL", [u1]) => aux (SOME @{typ bool}) [] u1
       | ATerm ("hAPP", [u1, u2]) => aux opt_T (u2 :: extra_us) u1
       | ATerm (a, us) =>
-        if a = type_wrapper_name then
+        if a = type_tag_name then
           case us of
             [typ_u, term_u] =>
             aux (SOME (type_from_fo_term tfrees typ_u)) extra_us term_u

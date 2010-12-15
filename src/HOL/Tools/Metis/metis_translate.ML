@@ -36,7 +36,7 @@ sig
      tfrees: type_literal list,
      old_skolems: (string * term) list}
 
-  val type_wrapper_name : string
+  val type_tag_name : string
   val bound_var_prefix : string
   val schematic_var_prefix: string
   val fixed_var_prefix: string
@@ -82,7 +82,7 @@ end
 structure Metis_Translate : METIS_TRANSLATE =
 struct
 
-val type_wrapper_name = "ti"
+val type_tag_name = "ty"
 
 val bound_var_prefix = "B_"
 val schematic_var_prefix = "V_"
@@ -580,15 +580,16 @@ fun hol_term_to_fol_HO (CombConst ((a, _), _, tylist)) =
        Metis_Term.Fn (".", map hol_term_to_fol_HO [tm1, tm2]);
 
 (*The fully-typed translation, to avoid type errors*)
-fun wrap_type (tm, ty) =
-  Metis_Term.Fn (type_wrapper_name, [tm, metis_term_from_combtyp ty])
+fun tag_with_type tm ty =
+  Metis_Term.Fn (type_tag_name, [tm, metis_term_from_combtyp ty])
 
-fun hol_term_to_fol_FT (CombVar ((s, _), ty)) = wrap_type (Metis_Term.Var s, ty)
-  | hol_term_to_fol_FT (CombConst((a, _), ty, _)) =
-      wrap_type (Metis_Term.Fn(fn_isa_to_met_sublevel a, []), ty)
-  | hol_term_to_fol_FT (tm as CombApp(tm1,tm2)) =
-       wrap_type (Metis_Term.Fn(".", map hol_term_to_fol_FT [tm1,tm2]),
-                  combtyp_of tm)
+fun hol_term_to_fol_FT (CombVar ((s, _), ty)) =
+    tag_with_type (Metis_Term.Var s) ty
+  | hol_term_to_fol_FT (CombConst ((a, _), ty, _)) =
+    tag_with_type (Metis_Term.Fn (fn_isa_to_met_sublevel a, [])) ty
+  | hol_term_to_fol_FT (tm as CombApp (tm1,tm2)) =
+    tag_with_type (Metis_Term.Fn (".", map hol_term_to_fol_FT [tm1, tm2]))
+                  (combtyp_of tm)
 
 fun hol_literal_to_fol FO (FOLLiteral (pos, tm)) =
       let val (CombConst((p, _), _, tys), tms) = strip_combterm_comb tm

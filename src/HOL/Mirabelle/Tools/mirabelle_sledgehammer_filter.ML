@@ -116,12 +116,14 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
            extract_relevance_fudge args
                (Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover)
          val relevance_override = {add = [], del = [], only = false}
-         val {relevance_thresholds, full_types, max_relevant, ...} =
+         val {relevance_thresholds, type_sys, max_relevant, ...} =
            Sledgehammer_Isar.default_params ctxt args
          val subgoal = 1
          val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal subgoal
+         val no_dangerous_types =
+           Sledgehammer_ATP_Translate.types_dangerous_types type_sys
          val facts =
-           Sledgehammer_Filter.relevant_facts ctxt full_types
+           Sledgehammer_Filter.relevant_facts ctxt no_dangerous_types
                relevance_thresholds
                (the_default default_max_relevant max_relevant) is_built_in_const
                relevance_fudge relevance_override facts hyp_ts concl_t

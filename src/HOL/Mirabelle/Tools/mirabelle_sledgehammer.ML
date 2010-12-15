@@ -351,7 +351,7 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
       st |> Proof.map_context
                 (change_dir dir
                  #> Config.put Sledgehammer_Provers.measure_run_time true)
-    val params as {full_types, relevance_thresholds, max_relevant, ...} =
+    val params as {type_sys, relevance_thresholds, max_relevant, ...} =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("timeout", Int.toString timeout)]
@@ -363,8 +363,11 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
       Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover_name
     val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
+    val no_dangerous_types =
+      Sledgehammer_ATP_Translate.types_dangerous_types type_sys
     val facts =
-      Sledgehammer_Filter.relevant_facts ctxt full_types relevance_thresholds
+      Sledgehammer_Filter.relevant_facts ctxt no_dangerous_types
+          relevance_thresholds
           (the_default default_max_relevant max_relevant) is_built_in_const
           relevance_fudge relevance_override chained_ths hyp_ts concl_t
     val problem =
