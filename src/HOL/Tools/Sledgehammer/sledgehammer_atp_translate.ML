@@ -337,7 +337,7 @@ fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
       else make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
-    (fact_names |> map single |> Vector.fromList,
+    (fact_names |> map single,
      (conjectures, facts, class_rel_clauses, arity_clauses))
   end
 
@@ -612,49 +612,50 @@ fun repair_problem thy = map o apsnd o map ooo repair_problem_line thy
 
 fun dest_Fof (Fof z) = z
 
+val factsN = "Relevant facts"
+val class_relsN = "Class relationships"
+val aritiesN = "Arity declarations"
+val helpersN = "Helper facts"
+val conjsN = "Conjectures"
+val tfreesN = "Type variables"
+
+fun offset_of_heading_in_problem _ [] j = j
+  | offset_of_heading_in_problem needle ((heading, lines) :: problem) j =
+    if heading = needle then j
+    else offset_of_heading_in_problem needle problem (j + length lines)
+
 fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
                         explicit_apply hyp_ts concl_t facts =
   let
     val thy = ProofContext.theory_of ctxt
     val (fact_names, (conjectures, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt type_sys hyp_ts concl_t facts
-    val fact_lines = map (problem_line_for_fact ctxt fact_prefix type_sys) facts
-    val conjecture_lines =
-      map (problem_line_for_conjecture ctxt type_sys) conjectures
-    val tfree_lines = problem_lines_for_free_types type_sys conjectures
-    val class_rel_lines =
-      map problem_line_for_class_rel_clause class_rel_clauses
-    val arity_lines = map problem_line_for_arity_clause arity_clauses
     (* Reordering these might or might not confuse the proof reconstruction
        code or the SPASS Flotter hack. *)
     val problem =
-      [("Relevant facts", fact_lines),
-       ("Class relationships", class_rel_lines),
-       ("Arity declarations", arity_lines),
-       ("Helper facts", []),
-       ("Conjectures", conjecture_lines),
-       ("Type variables", tfree_lines)]
+      [(factsN, map (problem_line_for_fact ctxt fact_prefix type_sys) facts),
+       (class_relsN, map problem_line_for_class_rel_clause class_rel_clauses),
+       (aritiesN, map problem_line_for_arity_clause arity_clauses),
+       (helpersN, []),
+       (conjsN, map (problem_line_for_conjecture ctxt type_sys) conjectures),
+       (tfreesN, problem_lines_for_free_types type_sys conjectures)]
     val const_tab = const_table_for_problem explicit_apply problem
     val problem =
       problem |> repair_problem thy explicit_forall type_sys const_tab
-    val (helper_facts, raw_helper_lines) =
+    val helper_lines =
       get_helper_facts ctxt explicit_forall type_sys
                        (maps (map (#3 o dest_Fof) o snd) problem)
-    val helper_lines =
-      (helper_facts
-       |> map (problem_line_for_fact ctxt helper_prefix type_sys
-               #> repair_problem_line thy explicit_forall type_sys const_tab)) @
-      raw_helper_lines
+      |>> map (problem_line_for_fact ctxt helper_prefix type_sys
+               #> repair_problem_line thy explicit_forall type_sys const_tab)
+      |> op @
     val (problem, pool) =
-      problem |> AList.update (op =) ("Helper facts", helper_lines)
+      problem |> AList.update (op =) (helpersN, helper_lines)
               |> nice_atp_problem readable_names
-    val conjecture_offset =
-      length fact_lines + length class_rel_lines + length arity_lines
-      + length helper_lines
   in
     (problem,
      case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
-     conjecture_offset, fact_names)
+     offset_of_heading_in_problem conjsN problem 0,
+     fact_names |> Vector.fromList)
   end
 
 end;
