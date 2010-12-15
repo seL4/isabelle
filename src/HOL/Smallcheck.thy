@@ -281,7 +281,9 @@ instantiation option :: (check_all) check_all
 begin
 
 definition
-  "check_all f = f (Code_Evaluation.valtermify (None :: 'a option)) orelse check_all (%(x, t). f (Some x, %_. Code_Evaluation.App (Code_Evaluation.term_of (Some :: 'a => 'a option)) (t ())))"
+  "check_all f = f (Code_Evaluation.valtermify (None :: 'a option)) orelse check_all (%(x, t). f (Some x, %_. Code_Evaluation.App
+    (Code_Evaluation.Const (STR ''Option.option.Some'')
+      (Typerep.Typerep (STR ''fun'') [Typerep.typerep TYPE('a),  Typerep.Typerep (STR ''Option.option'') [Typerep.typerep TYPE('a)]])) (t ())))"
 
 definition enum_term_of_option :: "'a option itself => unit => term list"
 where
