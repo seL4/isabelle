@@ -410,7 +410,13 @@ fun fo_term_for_combterm ctxt type_sys =
             CombConst (name as (s, s'), _, ty_args) =>
             (case AList.lookup (op =) fname_table s of
                SOME (n, fname) =>
-               (if top_level andalso length args = n then name else fname, [])
+               (if top_level andalso length args = n then
+                  case s of
+                    "c_False" => ("$false", s')
+                  | "c_True" => ("$true", s')
+                  | _ => name
+                else
+                  fname, [])
              | NONE =>
                case strip_prefix_and_unascii const_prefix s of
                  NONE => (name, ty_args)
@@ -419,15 +425,7 @@ fun fo_term_for_combterm ctxt type_sys =
                    val s'' = invert_const s''
                    val ty_args =
                      if needs_type_args thy type_sys s'' then ty_args else []
-                  in
-                    if top_level then
-                      case s of
-                        "c_False" => (("$false", s'), [])
-                      | "c_True" => (("$true", s'), [])
-                      | _ => (name, ty_args)
-                    else
-                      (name, ty_args)
-                  end)
+                  in (name, ty_args) end)
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
         val t =
