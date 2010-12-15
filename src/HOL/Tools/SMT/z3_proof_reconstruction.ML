@@ -15,6 +15,7 @@ end
 structure Z3_Proof_Reconstruction: Z3_PROOF_RECONSTRUCTION =
 struct
 
+structure U = SMT_Utils
 structure P = Z3_Proof_Parser
 structure T = Z3_Proof_Tools
 structure L = Z3_Proof_Literals
@@ -233,9 +234,9 @@ local
   fun lit_elim conj (p, idx) ct ptab =
     let val lits = literals_of p
     in
-      (case L.lookup_lit lits (T.term_of ct) of
+      (case L.lookup_lit lits (U.term_of ct) of
         SOME lit => (Thm lit, ptab)
-      | NONE => apfst Thm (derive conj (T.term_of ct) lits idx ptab))
+      | NONE => apfst Thm (derive conj (U.term_of ct) lits idx ptab))
     end
 in
 val and_elim = lit_elim true
@@ -266,7 +267,7 @@ local
   val explode_disj = L.explode false true false
   val join_disj = L.join false
   fun unit thm thms th =
-    let val t = @{const Not} $ T.prop_of thm and ts = map T.prop_of thms
+    let val t = @{const Not} $ U.prop_of thm and ts = map U.prop_of thms
     in join_disj (L.make_littab (thms @ explode_disj ts th)) t end
 
   fun dest_arg2 ct = Thm.dest_arg (Thm.dest_arg ct)
@@ -403,7 +404,7 @@ local
       named ctxt' "simp+fast" (T.by_tac simp_fast_tac))]
 in
 fun nnf ctxt vars ps ct =
-  (case T.term_of ct of
+  (case U.term_of ct of
     _ $ (l as Const _ $ Abs _) $ (r as Const _ $ Abs _) =>
       if l aconv r
       then MetaEq (Thm.reflexive (Thm.dest_arg (Thm.dest_arg ct)))

@@ -6,9 +6,7 @@ Helper functions required for Z3 proof reconstruction.
 
 signature Z3_PROOF_TOOLS =
 sig
-  (*accessing and modifying terms*)
-  val term_of: cterm -> term
-  val prop_of: thm -> term
+  (*modifying terms*)
   val as_meta_eq: cterm -> cterm
 
   (*theorem nets*)
@@ -51,12 +49,7 @@ structure I = Z3_Interface
 
 
 
-(* accessing terms *)
-
-val dest_prop = (fn @{const Trueprop} $ t => t | t => t)
-
-fun term_of ct = dest_prop (Thm.term_of ct)
-fun prop_of thm = dest_prop (Thm.prop_of thm)
+(* modifying terms *)
 
 fun as_meta_eq ct = uncurry U.mk_cequals (Thm.dest_binop (U.dest_cprop ct))
 

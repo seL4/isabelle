@@ -47,6 +47,8 @@ sig
   val mk_cprop: cterm -> cterm
   val dest_cprop: cterm -> cterm
   val mk_cequals: cterm -> cterm -> cterm
+  val term_of: cterm -> term
+  val prop_of: thm -> term
 
   (*conversions*)
   val if_conv: (term -> bool) -> conv -> conv -> conv
@@ -176,6 +178,10 @@ fun dest_cprop ct =
 
 val equals = mk_const_pat @{theory} @{const_name "=="} destT1
 fun mk_cequals ct cu = Thm.mk_binop (instT' ct equals) ct cu
+
+val dest_prop = (fn @{const Trueprop} $ t => t | t => t)
+fun term_of ct = dest_prop (Thm.term_of ct)
+fun prop_of thm = dest_prop (Thm.prop_of thm)
 
 
 (* conversions *)

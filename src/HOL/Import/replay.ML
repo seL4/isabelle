@@ -2,10 +2,8 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-structure Replay =
+structure Replay =  (* FIXME proper signature *)
 struct
-
-structure P = ProofKernel
 
 open ProofKernel
 open ImportRecorder
@@ -17,12 +15,12 @@ fun NY f = raise ERR f "NOT YET!"
 fun replay_proof int_thms thyname thmname prf thy =
     let
         val _ = ImportRecorder.start_replay_proof thyname thmname 
-        fun rp (PRefl tm) thy = P.REFL tm thy
+        fun rp (PRefl tm) thy = ProofKernel.REFL tm thy
           | rp (PInstT(p,lambda)) thy =
             let
                 val (thy',th) = rp' p thy
             in
-                P.INST_TYPE lambda th thy'
+                ProofKernel.INST_TYPE lambda th thy'
             end
           | rp (PSubst(prfs,ctxt,prf)) thy =
             let
@@ -34,52 +32,52 @@ fun replay_proof int_thms thyname thmname prf thy =
                                            end) prfs (thy,[])
                 val (thy'',th) = rp' prf thy'
             in
-                P.SUBST ths ctxt th thy''
+                ProofKernel.SUBST ths ctxt th thy''
             end
           | rp (PAbs(prf,v)) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.ABS v th thy'
+                ProofKernel.ABS v th thy'
             end
           | rp (PDisch(prf,tm)) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.DISCH tm th thy'
+                ProofKernel.DISCH tm th thy'
             end
           | rp (PMp(prf1,prf2)) thy =
             let
                 val (thy1,th1) = rp' prf1 thy
                 val (thy2,th2) = rp' prf2 thy1
             in
-                P.MP th1 th2 thy2
+                ProofKernel.MP th1 th2 thy2
             end
-          | rp (PHyp tm) thy = P.ASSUME tm thy
+          | rp (PHyp tm) thy = ProofKernel.ASSUME tm thy
           | rp (PDef(seg,name,rhs)) thy =
-            (case P.get_def seg name rhs thy of
+            (case ProofKernel.get_def seg name rhs thy of
                  (thy',SOME res) => (thy',res)
                | (thy',NONE) => 
                  if seg = thyname
-                 then P.new_definition seg name rhs thy'
+                 then ProofKernel.new_definition seg name rhs thy'
                  else raise ERR "replay_proof" ("Too late for term definition: "^seg^" != "^thyname))
-          | rp (POracle(tg,asl,c)) thy = (*P.mk_oracle_thm tg (map be_contract asl,c)*) NY "ORACLE"
+          | rp (POracle(tg,asl,c)) thy = (*ProofKernel.mk_oracle_thm tg (map be_contract asl,c)*) NY "ORACLE"
           | rp (PSpec(prf,tm)) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.SPEC tm th thy'
+                ProofKernel.SPEC tm th thy'
             end
           | rp (PInst(prf,theta)) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.INST theta th thy'
+                ProofKernel.INST theta th thy'
             end
           | rp (PGen(prf,v)) thy =
             let
                 val (thy',th) = rp' prf thy
-                val p = P.GEN v th thy'
+                val p = ProofKernel.GEN v th thy'
             in
                 p
             end
@@ -87,91 +85,91 @@ fun replay_proof int_thms thyname thmname prf thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.GEN_ABS opt vl th thy'
+                ProofKernel.GEN_ABS opt vl th thy'
             end
           | rp (PImpAS(prf1,prf2)) thy =
             let
                 val (thy1,th1) = rp' prf1 thy
                 val (thy2,th2) = rp' prf2 thy1
             in
-                P.IMP_ANTISYM th1 th2 thy2
+                ProofKernel.IMP_ANTISYM th1 th2 thy2
             end
           | rp (PSym prf) thy =
             let
                 val (thy1,th) = rp' prf thy
             in
-                P.SYM th thy1
+                ProofKernel.SYM th thy1
             end
           | rp (PTrans(prf1,prf2)) thy =
             let
                 val (thy1,th1) = rp' prf1 thy
                 val (thy2,th2) = rp' prf2 thy1
             in
-                P.TRANS th1 th2 thy2
+                ProofKernel.TRANS th1 th2 thy2
             end
           | rp (PComb(prf1,prf2)) thy =
             let
                 val (thy1,th1) = rp' prf1 thy
                 val (thy2,th2) = rp' prf2 thy1
             in
-                P.COMB th1 th2 thy2
+                ProofKernel.COMB th1 th2 thy2
             end
           | rp (PEqMp(prf1,prf2)) thy =
             let
                 val (thy1,th1) = rp' prf1 thy
                 val (thy2,th2) = rp' prf2 thy1
             in
-                P.EQ_MP th1 th2 thy2
+                ProofKernel.EQ_MP th1 th2 thy2
             end
           | rp (PEqImp prf) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.EQ_IMP_RULE th thy'
+                ProofKernel.EQ_IMP_RULE th thy'
             end
           | rp (PExists(prf,ex,wit)) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.EXISTS ex wit th thy'
+                ProofKernel.EXISTS ex wit th thy'
             end
           | rp (PChoose(v,prf1,prf2)) thy =
             let
                 val (thy1,th1) = rp' prf1 thy
                 val (thy2,th2) = rp' prf2 thy1
             in
-                P.CHOOSE v th1 th2 thy2
+                ProofKernel.CHOOSE v th1 th2 thy2
             end
           | rp (PConj(prf1,prf2)) thy =
             let
                 val (thy1,th1) = rp' prf1 thy
                 val (thy2,th2) = rp' prf2 thy1
             in
-                P.CONJ th1 th2 thy2
+                ProofKernel.CONJ th1 th2 thy2
             end
           | rp (PConjunct1 prf) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.CONJUNCT1 th thy'
+                ProofKernel.CONJUNCT1 th thy'
             end
           | rp (PConjunct2 prf) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.CONJUNCT2 th thy'
+                ProofKernel.CONJUNCT2 th thy'
             end
           | rp (PDisj1(prf,tm)) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.DISJ1 th tm thy'
+                ProofKernel.DISJ1 th tm thy'
             end
           | rp (PDisj2(prf,tm)) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.DISJ2 tm th thy'
+                ProofKernel.DISJ2 tm th thy'
             end
           | rp (PDisjCases(prf,prf1,prf2)) thy =
             let
@@ -179,25 +177,25 @@ fun replay_proof int_thms thyname thmname prf thy =
                 val (thy1,th1) = rp' prf1 thy'
                 val (thy2,th2) = rp' prf2 thy1
             in
-                P.DISJ_CASES th th1 th2 thy2
+                ProofKernel.DISJ_CASES th th1 th2 thy2
             end
           | rp (PNotI prf) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.NOT_INTRO th thy'
+                ProofKernel.NOT_INTRO th thy'
             end
           | rp (PNotE prf) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.NOT_ELIM th thy'
+                ProofKernel.NOT_ELIM th thy'
             end
           | rp (PContr(prf,tm)) thy =
             let
                 val (thy',th) = rp' prf thy
             in
-                P.CCONTR tm th thy'
+                ProofKernel.CCONTR tm th thy'
             end
           | rp (PTmSpec _) _ = raise ERR "rp" "Shouldn't reach here (PTmSpec)"
           | rp (PTyDef _) _ = raise ERR "rp" "Shouldn't reach here (PTyDef)"
@@ -226,7 +224,7 @@ fun replay_proof int_thms thyname thmname prf thy =
                                               | SOME th => (thy,th))
                                        else raise ERR "replay_proof" ("Library " ^ thyname' ^ " should be built before " ^ thyname ^ " (" ^ thmname ^ ")")
                                      | NONE => 
-                                       (case P.get_thm thyname' thmname thy of
+                                       (case ProofKernel.get_thm thyname' thmname thy of
                                             (thy',SOME res) => (thy',res)
                                           | (thy',NONE) => 
                                             if thyname' = thyname
@@ -242,31 +240,31 @@ fun replay_proof int_thms thyname thmname prf thy =
                                                         PTmSpec _ => (thy',th)
                                                       | PTyDef  _ => (thy',th)
                                                       | PTyIntro _ => (thy',th)
-                                                      | _ => P.store_thm thyname' thmname th thy'
+                                                      | _ => ProofKernel.store_thm thyname' thmname th thy'
                                                 end
                                             else raise ERR "replay_proof" ("Library " ^ thyname' ^ " should be built before " ^ thyname ^ " (" ^ thmname ^ ")")))
                                 | NONE => raise ERR "rp'.PDisk" "Not enough information")
                   | PAxm(name,c) =>
-                    (case P.get_axiom thyname name thy of
+                    (case ProofKernel.get_axiom thyname name thy of
                             (thy',SOME res) => (thy',res)
-                          | (thy',NONE) => P.new_axiom name c thy')
+                          | (thy',NONE) => ProofKernel.new_axiom name c thy')
                   | PTmSpec(seg,names,prf') =>
                     let
                         val (thy',th) = rp' prf' thy
                     in
-                        P.new_specification seg thmname names th thy'
+                        ProofKernel.new_specification seg thmname names th thy'
                     end
                   | PTyDef(seg,name,prf') =>
                     let
                         val (thy',th) = rp' prf' thy
                     in
-                        P.new_type_definition seg thmname name th thy'
+                        ProofKernel.new_type_definition seg thmname name th thy'
                     end
                   | PTyIntro(seg,name,abs_name,rep_name,P,t,prf') =>
                     let
                         val (thy',th) = rp' prf' thy
                     in
-                        P.type_introduction seg thmname name abs_name rep_name (P,t) th thy'
+                        ProofKernel.type_introduction seg thmname name abs_name rep_name (P,t) th thy'
                     end
                   | _ => rp pc thy
             end
@@ -282,7 +280,7 @@ fun replay_proof int_thms thyname thmname prf thy =
 fun setup_int_thms thyname thy =
     let
         val fname =
-            case P.get_proof_dir thyname thy of
+            case ProofKernel.get_proof_dir thyname thy of
                 SOME p => OS.Path.joinDirFile {dir=p,file=OS.Path.joinBaseExt{base = "facts",ext=SOME "lst"}}
               | NONE => error "Cannot find proof files"
         val is = TextIO.openIn fname
@@ -291,7 +289,7 @@ fun setup_int_thms thyname thy =
                 fun get_facts facts =
                     case TextIO.inputLine is of
                         NONE => (case facts of
-                                   i::facts => (the (Int.fromString i),map P.protect_factname (rev facts))
+                                   i::facts => (the (Int.fromString i),map ProofKernel.protect_factname (rev facts))
                                  | _ => raise ERR "replay_thm" "Bad facts.lst file")
                       | SOME fact => get_facts ((String.substring(fact,0,String.size fact -1 ))::facts)
             in
@@ -349,9 +347,9 @@ fun replay_chached_thm int_thms thyname thmname =
           | delta (Hol_type_mapping (thyname, tycname, fulltyname)) thy =  
             add_hol4_type_mapping thyname tycname true fulltyname thy
           | delta (Indexed_theorem (i, th)) thy = 
-            (Array.update (int_thms,i-1,SOME (P.to_hol_thm (th_of thy th))); thy)                   
-          | delta (Protect_varname (s,t)) thy = (P.replay_protect_varname s t; thy)
-          | delta (Dump s) thy = P.replay_add_dump s thy
+            (Array.update (int_thms,i-1,SOME (ProofKernel.to_hol_thm (th_of thy th))); thy)                   
+          | delta (Protect_varname (s,t)) thy = (ProofKernel.replay_protect_varname s t; thy)
+          | delta (Dump s) thy = ProofKernel.replay_add_dump s thy
     in
         rps
     end
