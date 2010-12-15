@@ -95,6 +95,20 @@ fun mk_ahorn [] phi = phi
   | mk_ahorn (phi :: phis) psi =
     AConn (AImplies, [fold (mk_aconn AAnd) phis phi, psi])
 
+fun close_universally phi =
+  let
+    fun term_vars bounds (ATerm (name as (s, _), tms)) =
+        (is_atp_variable s andalso not (member (op =) bounds name))
+          ? insert (op =) name
+        #> fold (term_vars bounds) tms
+    fun formula_vars bounds (AQuant (_, xs, phi)) =
+        formula_vars (xs @ bounds) phi
+      | formula_vars bounds (AConn (_, phis)) = fold (formula_vars bounds) phis
+      | formula_vars bounds (AAtom tm) = term_vars bounds tm
+  in
+    case formula_vars [] phi [] of [] => phi | xs => AQuant (AForall, xs, phi)
+  end
+
 fun combformula_for_prop thy eq_as_iff =
   let
     fun do_term bs t ts =
@@ -264,7 +278,7 @@ val init_counters =
   metis_helpers |> map fst |> sort_distinct string_ord |> map (rpair 0)
   |> Symtab.make
 
-fun get_helper_facts ctxt type_sys formulas =
+fun get_helper_facts ctxt explicit_forall type_sys formulas =
   let
     val no_dangerous_types = types_dangerous_types type_sys
     val ct = init_counters |> fold count_formula formulas
@@ -274,15 +288,26 @@ fun get_helper_facts ctxt type_sys formulas =
         false), th)
     fun make_facts eq_as_iff = map_filter (make_fact ctxt eq_as_iff false)
   in
-    metis_helpers
-    |> filter (is_used o fst)
-    |> maps (fn (c, (needs_full_types, ths)) =>
-                if needs_full_types andalso not no_dangerous_types then
-                  []
-                else
-                  ths ~~ (1 upto length ths)
-                  |> map (dub c needs_full_types)
-                  |> make_facts (not needs_full_types))
+    (metis_helpers
+     |> filter (is_used o fst)
+     |> maps (fn (c, (needs_full_types, ths)) =>
+                 if needs_full_types andalso not no_dangerous_types then
+                   []
+                 else
+                   ths ~~ (1 upto length ths)
+                   |> map (dub c needs_full_types)
+                   |> make_facts (not needs_full_types)),
+     if type_sys = Tags false then
+       let
+         fun var s = ATerm (`I s, [])
+         fun tag tm = ATerm (`I type_tag_name, [var "X", tm])
+       in
+         [Fof (helper_prefix ^ ascii_of "ti_ti", Axiom,
+               AAtom (ATerm (`I "equal", [tag (tag (var "Y")), tag (var "Y")]))
+               |> explicit_forall ? close_universally)]
+       end
+     else
+       [])
   end
 
 fun translate_atp_fact ctxt = `(make_fact ctxt true true)
@@ -571,20 +596,6 @@ fun repair_predicates_in_term pred_const_tab (t as ATerm ((s, _), ts)) =
   else
     t |> not (is_predicate pred_const_tab s) ? boolify
 
-fun close_universally phi =
-  let
-    fun term_vars bounds (ATerm (name as (s, _), tms)) =
-        (is_atp_variable s andalso not (member (op =) bounds name))
-          ? insert (op =) name
-        #> fold (term_vars bounds) tms
-    fun formula_vars bounds (AQuant (_, xs, phi)) =
-        formula_vars (xs @ bounds) phi
-      | formula_vars bounds (AConn (_, phis)) = fold (formula_vars bounds) phis
-      | formula_vars bounds (AAtom tm) = term_vars bounds tm
-  in
-    case formula_vars [] phi [] of [] => phi | xs => AQuant (AForall, xs, phi)
-  end
-
 fun repair_formula thy explicit_forall type_sys const_tab =
   let
     val pred_const_tab = case type_sys of Tags _ => NONE | _ => const_tab
@@ -627,12 +638,14 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
     val const_tab = const_table_for_problem explicit_apply problem
     val problem =
       problem |> repair_problem thy explicit_forall type_sys const_tab
-    val helper_facts =
-      get_helper_facts ctxt type_sys (maps (map (#3 o dest_Fof) o snd) problem)
+    val (helper_facts, raw_helper_lines) =
+      get_helper_facts ctxt explicit_forall type_sys
+                       (maps (map (#3 o dest_Fof) o snd) problem)
     val helper_lines =
-      helper_facts
-      |> map (problem_line_for_fact ctxt helper_prefix type_sys
-              #> repair_problem_line thy explicit_forall type_sys const_tab)
+      (helper_facts
+       |> map (problem_line_for_fact ctxt helper_prefix type_sys
+               #> repair_problem_line thy explicit_forall type_sys const_tab)) @
+      raw_helper_lines
     val (problem, pool) =
       problem |> AList.update (op =) ("Helper facts", helper_lines)
               |> nice_atp_problem readable_names
