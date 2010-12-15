@@ -52,9 +52,9 @@ sig
 
   (* for experimentation purposes -- do not use in production code *)
   val smt_max_iter : int Unsynchronized.ref
-  val smt_iter_fact_divisor : int Unsynchronized.ref
+  val smt_iter_fact_frac : real Unsynchronized.ref
+  val smt_iter_time_frac : real Unsynchronized.ref
   val smt_iter_min_msecs : int Unsynchronized.ref
-  val smt_iter_timeout_divisor : int Unsynchronized.ref
   val smt_monomorph_limit : int Unsynchronized.ref
   val smt_weights : bool Unsynchronized.ref
   val smt_min_weight : int Unsynchronized.ref
@@ -281,7 +281,7 @@ fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
 fun overlord_file_location_for_prover prover =
   (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
 
-val atp_first_iter_frac = 0.67
+val atp_first_iter_time_frac = 0.67
 
 (* Important messages are important but not so important that users want to see
    them each time. *)
@@ -369,7 +369,7 @@ fun run_atp auto name
             val result =
               run false
                  (if run_twice then
-                    seconds (0.001 * atp_first_iter_frac
+                    seconds (0.001 * atp_first_iter_time_frac
                              * Real.fromInt (Time.toMilliseconds timeout))
                   else
                     timeout)
@@ -453,9 +453,9 @@ fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
 
 (* FUDGE *)
 val smt_max_iter = Unsynchronized.ref 8
-val smt_iter_fact_divisor = Unsynchronized.ref 2
+val smt_iter_fact_frac = Unsynchronized.ref 0.5
+val smt_iter_time_frac = Unsynchronized.ref 0.5
 val smt_iter_min_msecs = Unsynchronized.ref 5000
-val smt_iter_timeout_divisor = Unsynchronized.ref 2
 val smt_monomorph_limit = Unsynchronized.ref 4
 
 fun smt_filter_loop ({verbose, timeout, ...} : params) remote state i =
@@ -467,8 +467,9 @@ fun smt_filter_loop ({verbose, timeout, ...} : params) remote state i =
         val ms = timeout |> Time.toMilliseconds
         val iter_timeout =
           if iter_num < !smt_max_iter then
-            Int.min (ms, Int.max (!smt_iter_min_msecs,
-                                  ms div !smt_iter_timeout_divisor))
+            Int.min (ms,
+                Int.max (!smt_iter_min_msecs,
+                    Real.ceil (!smt_iter_time_frac * Real.fromInt ms)))
             |> Time.fromMilliseconds
           else
             timeout
@@ -512,9 +513,9 @@ fun smt_filter_loop ({verbose, timeout, ...} : params) remote state i =
       in
         if too_many_facts_perhaps andalso iter_num < !smt_max_iter andalso
            num_facts > 0 andalso Time.> (timeout, Time.zeroTime) then
-          let val facts = take (num_facts div !smt_iter_fact_divisor) facts in
-            iter timeout (iter_num + 1) outcome0 time_so_far facts
-          end
+          let
+            val n = Real.ceil (!smt_iter_fact_frac * Real.fromInt num_facts)
+          in iter timeout (iter_num + 1) outcome0 time_so_far (take n facts) end
         else
           {outcome = if is_none outcome then NONE else the outcome0,
            used_facts = used_facts,
@@ -552,8 +553,8 @@ val smt_weight_curve = Unsynchronized.ref (fn x : int => x * x)
 fun smt_fact_weight j num_facts =
   if !smt_weights andalso num_facts >= smt_weight_min_facts then
     SOME (!smt_max_weight
-          - (!smt_max_weight - !smt_min_weight)
-            * !smt_weight_curve (!smt_max_index - j)
+          - (!smt_max_weight - !smt_min_weight + 1)
+            * !smt_weight_curve (Int.max (0, !smt_max_index - j - 1))
             div !smt_weight_curve (!smt_max_index))
   else
     NONE
