@@ -993,7 +993,8 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       if ! testing then () else Proof_Display.print_results int ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
-      else if int then Output.urgent_message (Proof_Display.string_of_rule ctxt "Successful" th)
+      else if int then
+        writeln (Markup.markup Markup.state (Proof_Display.string_of_rule ctxt "Successful" th))
       else ();
     val test_proof =
       try (local_skip_proof true)
