@@ -114,20 +114,20 @@ val const_trans_table =
                (@{const_name disj}, "disj"),
                (@{const_name implies}, "implies"),
                (@{const_name HOL.eq}, "equal"),
+               (@{const_name If}, "If"),
                (@{const_name Set.member}, "member"),
+               (@{const_name Meson.COMBI}, "COMBI"),
+               (@{const_name Meson.COMBK}, "COMBK"),
+               (@{const_name Meson.COMBB}, "COMBB"),
+               (@{const_name Meson.COMBC}, "COMBC"),
+               (@{const_name Meson.COMBS}, "COMBS"),
                (@{const_name Metis.fFalse}, "fFalse"),
                (@{const_name Metis.fTrue}, "fTrue"),
                (@{const_name Metis.fNot}, "fNot"),
                (@{const_name Metis.fconj}, "fconj"),
                (@{const_name Metis.fdisj}, "fdisj"),
                (@{const_name Metis.fimplies}, "fimplies"),
-               (@{const_name Metis.fequal}, "fequal"),
-               (@{const_name Meson.COMBI}, "COMBI"),
-               (@{const_name Meson.COMBK}, "COMBK"),
-               (@{const_name Meson.COMBB}, "COMBB"),
-               (@{const_name Meson.COMBC}, "COMBC"),
-               (@{const_name Meson.COMBS}, "COMBS"),
-               (@{const_name If}, "If")]
+               (@{const_name Metis.fequal}, "fequal")]
 
 (* Invert the table of translations between Isabelle and ATPs. *)
 val const_trans_table_inv =
@@ -692,10 +692,9 @@ val metis_helpers =
     (false, @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
               by (unfold fdisj_def) fast+})),
    ("c_fimplies",
-    (false, @{lemma "P | Metis.fimplies P Q"
-                    "~ Q | Metis.fimplies P Q"
-                    "~ Metis.fimplies P Q | ~ P | Q"
-              by (unfold Metis.fimplies_def) fast+})),
+    (false, @{lemma "P | fimplies P Q" "~ Q | fimplies P Q"
+                    "~ fimplies P Q | ~ P | Q"
+              by (unfold fimplies_def) fast+})),
    ("c_If", (true, @{thms if_True if_False True_or_False})) (* FIXME *)]
 
 (* ------------------------------------------------------------------------- *)
@@ -732,9 +731,9 @@ fun add_type_thm [] lmap = lmap
 fun const_in_metis c (pred, tm_list) =
   let
     fun in_mterm (Metis_Term.Var _) = false
-      | in_mterm (Metis_Term.Fn (".", tm_list)) = exists in_mterm tm_list
-      | in_mterm (Metis_Term.Fn (nm, tm_list)) = c=nm orelse exists in_mterm tm_list
-  in  c = pred orelse exists in_mterm tm_list  end;
+      | in_mterm (Metis_Term.Fn (nm, tm_list)) =
+        c = nm orelse exists in_mterm tm_list
+  in c = pred orelse exists in_mterm tm_list end
 
 (* ARITY CLAUSE *)
 fun m_arity_cls (TConsLit ((c, _), (t, _), args)) =
@@ -794,9 +793,8 @@ fun prepare_metis_problem mode0 ctxt type_lits cls thss =
           lmap
         else
           let
-            val fdefs = @{thms Metis.fFalse_def Metis.fTrue_def Metis.fNot_def
-                               Metis.fconj_def Metis.fdisj_def
-                               Metis.fimplies_def Metis.fequal_def}
+            val fdefs = @{thms fFalse_def fTrue_def fNot_def fconj_def fdisj_def
+                               fimplies_def fequal_def}
             val prepare_helper =
               zero_var_indexes
               #> `(Meson.make_meta_clause
