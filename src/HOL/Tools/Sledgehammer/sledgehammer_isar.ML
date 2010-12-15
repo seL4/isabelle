@@ -179,6 +179,9 @@ fun default_raw_params ctxt =
                          end)]
   end
 
+val smart_full_type_sys = Tags true
+val smart_partial_type_sys = Const_Args
+
 val infinity_time_in_secs = 60 * 60 * 24 * 365
 val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
 
@@ -222,15 +225,17 @@ fun extract_params auto default_params override_params =
     val overlord = lookup_bool "overlord"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
-    val type_sys = 
+    val type_sys =
       case (lookup_string "type_sys", lookup_bool "full_types") of
         ("tags", full_types) => Tags full_types
       | ("preds", full_types) => Preds full_types
-      | ("const_args", _) => Const_Args
-      | ("none", _) => No_Types
-      | ("smart", true) => Tags true
-      | ("smart", false) => Const_Args
-      | (type_sys, _) => error ("Unknown type system: " ^ quote type_sys ^ ".")
+      | ("const_args", false) => Const_Args
+      | ("none", false) => No_Types
+      | (type_sys, full_types) =>
+        if member (op =) ["const_args", "none", "smart"] type_sys then
+          if full_types then smart_full_type_sys else smart_partial_type_sys
+        else
+          error ("Unknown type system: " ^ quote type_sys ^ ".")
     val explicit_apply = lookup_bool "explicit_apply"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
