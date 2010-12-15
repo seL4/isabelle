@@ -681,11 +681,11 @@ $(LOG)/HOL-Library-Codegenerator_Test.gz: $(OUT)/HOL-Library		\
 
 HOL-Metis_Examples: HOL $(LOG)/HOL-Metis_Examples.gz
 
-$(LOG)/HOL-Metis_Examples.gz: $(OUT)/HOL Metis_Examples/ROOT.ML		\
-  Metis_Examples/Abstraction.thy Metis_Examples/BigO.thy		\
-  Metis_Examples/BT.thy Metis_Examples/Message.thy			\
-  Metis_Examples/Tarski.thy Metis_Examples/TransClosure.thy		\
-  Metis_Examples/set.thy
+$(LOG)/HOL-Metis_Examples.gz: $(OUT)/HOL Metis_Examples/ROOT.ML \
+  Metis_Examples/Abstraction.thy Metis_Examples/BigO.thy \
+  Metis_Examples/BT.thy Metis_Examples/HO_Reas.thy \
+  Metis_Examples/Message.thy Metis_Examples/Tarski.thy \
+  Metis_Examples/TransClosure.thy Metis_Examples/set.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Metis_Examples
 
 

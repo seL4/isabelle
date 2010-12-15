@@ -1,7 +1,8 @@
 (*  Title:      HOL/Metis_Examples/TransClosure.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
 
-Testing the metis method
+Testing Metis.
 *)
 
 theory TransClosure
