@@ -74,7 +74,8 @@ fun types_dangerous_types (Tags _) = true
    license to do unsound reasoning if the type system is "overloaded_args". *)
 fun is_overloaded thy s =
   not (!precise_overloaded_args) orelse
-  length (Defs.specifications_of (Theory.defs_of thy) s) > 1
+  (s <> @{const_name HOL.eq} andalso
+   length (Defs.specifications_of (Theory.defs_of thy) s) > 1)
 
 fun needs_type_args thy type_sys s =
   case type_sys of
@@ -408,8 +409,7 @@ fun fo_term_for_combterm ctxt type_sys =
             CombConst (name as (s, s'), _, ty_args) =>
             (case AList.lookup (op =) fname_table s of
                SOME (n, fname) =>
-               if top_level andalso length args = n then (name, [])
-               else (fname, ty_args)
+               (if top_level andalso length args = n then name else fname, [])
              | NONE =>
                case strip_prefix_and_unascii const_prefix s of
                  NONE => (name, ty_args)
@@ -526,7 +526,7 @@ fun const_table_for_problem explicit_apply problem =
   if explicit_apply then
     NONE
   else
-    SOME (Symtab.empty |> Symtab.update equal_entry |> consider_problem problem)
+    SOME (Symtab.empty |> Symtab.default equal_entry |> consider_problem problem)
 
 fun min_arity_of thy type_sys NONE s =
     (if s = "equal" orelse s = type_tag_name orelse
