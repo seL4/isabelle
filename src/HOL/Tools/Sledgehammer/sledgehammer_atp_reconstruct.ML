@@ -126,7 +126,8 @@ fun try_command_line banner command =
 fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun metis_name type_sys = if is_fully_typed type_sys then "metisFT" else "metis"
+fun metis_name type_sys =
+  if types_dangerous_types type_sys then "metisFT" else "metis"
 fun metis_call type_sys ss = command_call (metis_name type_sys) ss
 fun metis_command type_sys i n (ls, ss) =
   using_labels ls ^ apply_on_subgoal i n ^ metis_call type_sys ss
@@ -335,19 +336,14 @@ fun raw_term_from_pred thy type_sys tfrees =
             val term_ts = map (aux NONE []) term_us
             val extra_ts = map (aux NONE []) extra_us
             val t =
-              Const (c, if is_fully_typed type_sys then
-                          case opt_T of
-                            SOME T => map fastype_of term_ts ---> T
-                          | NONE =>
-                            if num_type_args thy c = 0 then
-                              Sign.const_instance thy (c, [])
-                            else
-                              raise Fail ("no type information for " ^ quote c)
-                        else if num_type_args thy c = length type_us then
-                          Sign.const_instance thy (c,
-                              map (type_from_fo_term tfrees) type_us)
-                        else
-                          HOLogic.typeT)
+              Const (c, case opt_T of
+                          SOME T => map fastype_of term_ts ---> T
+                        | NONE =>
+                          if num_type_args thy c = length type_us then
+                            Sign.const_instance thy (c,
+                                map (type_from_fo_term tfrees) type_us)
+                          else
+                            HOLogic.typeT)
           in list_comb (t, term_ts @ extra_ts) end
         | NONE => (* a free or schematic variable *)
           let

@@ -74,6 +74,7 @@ sig
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
   val string_of_mode : mode -> string
+  val metis_helpers : (string * (bool * thm list)) list
   val prepare_metis_problem :
     mode -> Proof.context -> bool -> thm list -> thm list list
     -> mode * metis_problem
@@ -130,8 +131,14 @@ val const_trans_table =
 
 (* Invert the table of translations between Isabelle and ATPs. *)
 val const_trans_table_inv =
-  Symtab.update ("fequal", @{const_name HOL.eq})
-                (Symtab.make (map swap (Symtab.dest const_trans_table)))
+  const_trans_table |> Symtab.dest |> map swap |> Symtab.make
+  |> fold Symtab.update [("fFalse", @{const_name False}),
+                         ("fTrue", @{const_name True}),
+                         ("fNot", @{const_name Not}),
+                         ("fconj", @{const_name conj}),
+                         ("fdisj", @{const_name disj}),
+                         ("fimplies", @{const_name implies}),
+                         ("fequal", @{const_name HOL.eq})]
 
 val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
 
@@ -660,7 +667,7 @@ fun hol_thm_to_fol is_conjecture ctxt type_lits mode j old_skolems th =
       end
   end;
 
-val helpers =
+val metis_helpers =
   [("c_COMBI", (false, @{thms Meson.COMBI_def})),
    ("c_COMBK", (false, @{thms Meson.COMBK_def})),
    ("c_COMBB", (false, @{thms Meson.COMBB_def})),
@@ -670,26 +677,20 @@ val helpers =
     (false, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
                    fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
    ("c_fFalse", (true, [@{lemma "x = fTrue | x = fFalse"
-                          by (unfold Metis.fFalse_def Metis.fTrue_def) fast}])),
-   ("c_fFalse", (false, [@{lemma "~ fFalse"
-                           by (unfold Metis.fFalse_def) fast}])),
+                          by (unfold fFalse_def fTrue_def) fast}])),
+   ("c_fFalse", (false, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),
    ("c_fTrue", (true, [@{lemma "x = fTrue | x = fFalse"
-                         by (unfold Metis.fFalse_def Metis.fTrue_def) fast}])),
-   ("c_fTrue", (false, [@{lemma "fTrue"
-                          by (unfold Metis.fTrue_def) fast}])),
+                         by (unfold fFalse_def fTrue_def) fast}])),
+   ("c_fTrue", (false, [@{lemma "fTrue" by (unfold fTrue_def) fast}])),
    ("c_fNot",
     (false, @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
                    fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
    ("c_fconj",
-    (false, @{lemma "~ P | ~ Q | Metis.fconj P Q"
-                    "~ Metis.fconj P Q | P"
-                    "~ Metis.fconj P Q | Q"
-              by (unfold Metis.fconj_def) fast+})),
+    (false, @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q"
+              by (unfold fconj_def) fast+})),
    ("c_fdisj",
-    (false, @{lemma "~ P | Metis.fdisj P Q"
-                    "~ Q | Metis.fdisj P Q"
-                    "~ Metis.fdisj P Q | P | Q"
-              by (unfold Metis.fdisj_def) fast+})),
+    (false, @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
+              by (unfold fdisj_def) fast+})),
    ("c_fimplies",
     (false, @{lemma "P | Metis.fimplies P Q"
                     "~ Q | Metis.fimplies P Q"
@@ -801,10 +802,11 @@ fun prepare_metis_problem mode0 ctxt type_lits cls thss =
               #> `(Meson.make_meta_clause
                    #> rewrite_rule (map safe_mk_meta_eq fdefs))
             val helper_ths =
-              helpers |> filter (is_used o fst)
-                      |> maps (fn (c, (needs_full_types, thms)) =>
-                                  if needs_full_types andalso mode <> FT then []
-                                  else map prepare_helper thms)
+              metis_helpers
+              |> filter (is_used o fst)
+              |> maps (fn (c, (needs_full_types, thms)) =>
+                          if needs_full_types andalso mode <> FT then []
+                          else map prepare_helper thms)
           in lmap |> fold (add_thm false) helper_ths end
   in
     (mode, add_type_thm (type_ext thy (maps (map prop_of) (cls :: thss))) lmap)

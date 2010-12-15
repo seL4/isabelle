@@ -233,6 +233,8 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
         fold (do_term_or_formula T) [t1, t2]
       | @{const Trueprop} $ t1 => do_formula pos t1
+      | @{const False} => I
+      | @{const True} => I
       | @{const Not} $ t1 => do_formula (flip pos) t1
       | Const (@{const_name All}, _) $ Abs (_, T, t') =>
         do_quantifier (pos = SOME false) T t'

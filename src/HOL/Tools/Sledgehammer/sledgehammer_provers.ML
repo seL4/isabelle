@@ -127,11 +127,12 @@ fun default_max_relevant_for_prover ctxt name =
       #default_max_relevant (get_atp thy name)
   end
 
-(* These are typically simplified away by "Meson.presimplify". Equality is
-   handled specially via "fequal". *)
+(* These are either simplified away by "Meson.presimplify" (most of the time) or
+   handled specially via "fFalse", "fTrue", ..., "fequal". *)
 val atp_irrelevant_consts =
-  [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let},
-   @{const_name HOL.eq}]
+  [@{const_name False}, @{const_name True}, @{const_name Not},
+   @{const_name conj}, @{const_name disj}, @{const_name implies},
+   @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
 
 fun is_built_in_const_for_prover ctxt name (s, T) args =
   if is_smt_prover ctxt name then SMT_Builtin.is_builtin_ext ctxt (s, T) args
