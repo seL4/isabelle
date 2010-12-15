@@ -458,7 +458,7 @@ val smt_iter_time_frac = Unsynchronized.ref 0.5
 val smt_iter_min_msecs = Unsynchronized.ref 5000
 val smt_monomorph_limit = Unsynchronized.ref 4
 
-fun smt_filter_loop ({verbose, timeout, ...} : params) remote state i =
+fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
   let
     val ctxt = Proof.context_of state
     fun iter timeout iter_num outcome0 time_so_far facts =
@@ -482,6 +482,11 @@ fun smt_filter_loop ({verbose, timeout, ...} : params) remote state i =
           else
             ()
         val birth = Timer.checkRealTimer timer
+        val _ =
+          if debug then
+            Output.urgent_message "Invoking SMT solver..."
+          else
+            ()
         val {outcome, used_facts, ...} =
           SMT_Solver.smt_filter remote iter_timeout state facts i
         val death = Timer.checkRealTimer timer
@@ -489,6 +494,8 @@ fun smt_filter_loop ({verbose, timeout, ...} : params) remote state i =
           if verbose andalso is_some outcome then
             "SMT outcome: " ^ SMT_Failure.string_of_failure ctxt (the outcome)
             |> Output.urgent_message
+          else if debug then
+            Output.urgent_message "SMT solver returned."
           else
             ()
         val outcome0 = if is_none outcome0 then SOME outcome else outcome0

@@ -180,9 +180,11 @@ fun run_sledgehammer (params as {blocking, debug, provers, type_sys,
                                   | (false, _) => run_prover problem prover)
                    provers (false, state)
             else
-              provers |> (if blocking then Par_List.map else map)
-                             (run_prover problem)
-                      |> exists fst |> rpair state
+              provers
+              |> (if blocking andalso length provers > 1 then Par_List.map
+                  else map)
+                     (run_prover problem)
+              |> exists fst |> rpair state
           end
       val run_atps =
         run_provers "ATP" no_dangerous_types atp_relevance_fudge
