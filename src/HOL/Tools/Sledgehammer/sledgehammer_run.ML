@@ -86,7 +86,11 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
                       ("unknown", "Internal error:\n" ^
                                   ML_Compiler.exn_message exn ^ "\n"))
         val _ =
-          if expect = "" orelse outcome_code = expect then
+          (* The "expect" argument is deliberately ignored if the prover is
+             missing so that the "Metis_Examples" can be processed on any
+             machine. *)
+          if expect = "" orelse outcome_code = expect orelse
+             not (is_prover_installed ctxt name) then
             ()
           else if blocking then
             error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
