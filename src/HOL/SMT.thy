@@ -205,6 +205,13 @@ Since SMT solvers are potentially non-terminating, there is a timeout
 declare [[ smt_timeout = 20 ]]
 
 text {*
+SMT solvers apply randomized heuristics.  In case a problem is not
+solvable by an SMT solver, changing the following option might help.
+*}
+
+declare [[ smt_random_seed = 1 ]]
+
+text {*
 In general, the binding to SMT solvers runs as an oracle, i.e, the SMT
 solvers are fully trusted without additional checks.  The following
 option can cause the SMT solver to run in proof-producing mode, giving

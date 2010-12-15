@@ -35,7 +35,9 @@ fun cvc3 () = {
   name = "cvc3",
   env_var = "CVC3_SOLVER",
   is_remote = true,
-  options = K ["-lang", "smtlib", "-output-lang", "presentation"],
+  options = (fn ctxt => [
+    "-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
+    "-lang", "smtlib", "-output-lang", "presentation"]),
   interface = SMTLIB_Interface.interface,
   outcome =
     on_first_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
@@ -50,7 +52,9 @@ fun yices () = {
   name = "yices",
   env_var = "YICES_SOLVER",
   is_remote = false,
-  options = K ["--smtlib"],
+  options = (fn ctxt => [
+    "--rand-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
+    "--smtlib"]),
   interface = SMTLIB_Interface.interface,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
   cex_parser = NONE,
@@ -61,7 +65,8 @@ fun yices () = {
 (* Z3 *)
 
 fun z3_options ctxt =
-  ["MODEL=true", "PRE_SIMPLIFY_EXPR=false", "CONTEXT_SIMPLIFIER=false", "-smt"]
+  ["-rs:" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
+    "MODEL=true", "PRE_SIMPLIFY_EXPR=false", "CONTEXT_SIMPLIFIER=false", "-smt"]
   |> not (Config.get ctxt SMT_Config.oracle) ?
        append ["DISPLAY_PROOF=true","PROOF_MODE=2"]
 

@@ -181,6 +181,7 @@ fun invoke translate_config name cmd options irules ctxt =
     val args = C.solver_options_of ctxt @ options ctxt
     val comments = ("solver: " ^ name) ::
       ("timeout: " ^ string_of_real (Config.get ctxt C.timeout)) ::
+      ("random seed: " ^ string_of_int (Config.get ctxt C.random_seed)) ::
       "arguments:" :: args
   in
     irules

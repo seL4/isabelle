@@ -22,6 +22,7 @@ sig
   val oracle: bool Config.T
   val datatypes: bool Config.T
   val timeout: real Config.T
+  val random_seed: int Config.T
   val fixed: bool Config.T
   val verbose: bool Config.T
   val traceN: string
@@ -124,6 +125,9 @@ val (datatypes, setup_datatypes) = Attrib.config_bool datatypesN (K false)
 val timeoutN = "smt_timeout"
 val (timeout, setup_timeout) = Attrib.config_real timeoutN (K 30.0)
 
+val random_seedN = "smt_random_seed"
+val (random_seed, setup_random_seed) = Attrib.config_int random_seedN (K 1)
+
 val fixedN = "smt_fixed"
 val (fixed, setup_fixed) = Attrib.config_bool fixedN (K false)
 
@@ -157,6 +161,7 @@ val setup_options =
   setup_oracle #>
   setup_datatypes #>
   setup_timeout #>
+  setup_random_seed #>
   setup_fixed #>
   setup_trace #>
   setup_verbose #>
