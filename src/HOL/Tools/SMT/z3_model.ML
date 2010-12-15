@@ -194,6 +194,16 @@ fun partition_eqs f =
       | NONE => (xs, t :: ts))
   in (fn ts => fold part ts ([], [])) end
 
+fun first_eq pred =
+  let
+    fun part _ [] = NONE
+      | part us (t :: ts) =
+          (case try HOLogic.dest_eq t of
+            SOME lr =>
+              if pred lr then SOME (lr, fold cons us ts) else part (t :: us) ts
+          | NONE => part (t :: us) ts)
+  in (fn ts => part [] ts) end
+
 fun replace_vars tab =
   let
     fun replace (v as Var _) = the_default v (AList.lookup (op aconv) tab v)
@@ -235,19 +245,17 @@ fun unfold_funapp (eqs, defs) =
 
 fun unfold_eqs (eqs, defs) =
   let
-    val is_ground = not o Term.exists_subterm (fn Var _ => true | _ => false)
-    fun add_rewr l (r as Var _) = if is_ground l then SOME (r, l) else NONE
-      | add_rewr _ _ = NONE
+    val is_ground = not o Term.exists_subterm Term.is_Var
 
     fun is_trivial (Const (@{const_name HOL.eq}, _) $ t $ u) = t aconv u
       | is_trivial _ = false
 
-    fun replace rs = replace_vars rs #> filter_out is_trivial
+    fun replace r = replace_vars [r] #> filter_out is_trivial
 
     fun unfold (es, ds) =
-      (case partition_eqs add_rewr es of
-        ([], _) => (es, ds)
-      | (rs, es') => unfold (pairself (replace rs) (es', ds)))
+      (case first_eq (fn (l, Var _) => is_ground l | _ => false) es of
+        SOME ((l, r), es') => unfold (pairself (replace (r, l)) (es', ds))
+      | NONE => (es, ds))
 
   in unfold (eqs, defs) end
 
