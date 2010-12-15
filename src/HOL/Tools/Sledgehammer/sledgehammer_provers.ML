@@ -21,6 +21,7 @@ sig
      overlord: bool,
      provers: string list,
      full_types: bool,
+     type_sys: string,
      explicit_apply: bool,
      relevance_thresholds: real * real,
      max_relevant: int option,
@@ -204,6 +205,7 @@ type params =
    overlord: bool,
    provers: string list,
    full_types: bool,
+   type_sys: string,
    explicit_apply: bool,
    relevance_thresholds: real * real,
    max_relevant: int option,
@@ -269,11 +271,21 @@ val important_message_keep_factor = 0.1
 fun run_atp auto atp_name
         ({exec, required_execs, arguments, has_incomplete_mode, proof_delims,
          known_failures, explicit_forall, use_conjecture_for_hypotheses, ...} : atp_config)
-        ({debug, verbose, overlord, full_types, explicit_apply, isar_proof,
-          isar_shrink_factor, timeout, ...} : params)
+        ({debug, verbose, overlord, full_types, type_sys, explicit_apply,
+          isar_proof, isar_shrink_factor, timeout, ...} : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
+    val type_sys =
+      case (type_sys, full_types) of
+        ("tags", _) => Tags full_types
+      | ("preds", _) => Preds full_types
+      | ("const_args", _) => Const_Args
+      | ("overload_args", _) => Overload_Args
+      | ("none", _) => No_Types
+      | _ => (if type_sys = "smart" then ()
+              else warning ("Unknown type system: " ^ quote type_sys ^ ".");
+              if full_types then Tags true else Const_Args)
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val facts = facts |> map (atp_translated_fact ctxt)
     val dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
@@ -335,7 +347,7 @@ fun run_atp auto atp_name
               in (output, msecs, tstplike_proof, outcome) end
             val readable_names = debug andalso overlord
             val (atp_problem, pool, conjecture_offset, fact_names) =
-              prepare_atp_problem ctxt readable_names explicit_forall full_types
+              prepare_atp_problem ctxt readable_names explicit_forall type_sys
                                   explicit_apply hyp_ts concl_t facts
             val ss = tptp_strings_for_atp_problem use_conjecture_for_hypotheses
                                                   atp_problem

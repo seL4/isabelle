@@ -11,13 +11,20 @@ sig
   type 'a problem = 'a ATP_Problem.problem
   type translated_formula
 
+  datatype type_system =
+    Tags of bool |
+    Preds of bool |
+    Const_Args |
+    Overload_Args |
+    No_Types
+
   val fact_prefix : string
   val conjecture_prefix : string
   val translate_atp_fact :
     Proof.context -> (string * 'a) * thm
     -> translated_formula option * ((string * 'a) * thm)
   val prepare_atp_problem :
-    Proof.context -> bool -> bool -> bool -> bool -> term list -> term
+    Proof.context -> bool -> bool -> type_system -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
@@ -44,6 +51,17 @@ type translated_formula =
    kind: kind,
    combformula: (name, combterm) formula,
    ctypes_sorts: typ list}
+
+datatype type_system =
+  Tags of bool |
+  Preds of bool |
+  Const_Args |
+  Overload_Args |
+  No_Types
+
+fun is_fully_typed (Tags full_types) = full_types
+  | is_fully_typed (Preds full_types) = full_types
+  | is_fully_typed _ = false
 
 fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
@@ -223,16 +241,16 @@ val optional_helpers =
    (["c_COMBB"], @{thms Meson.COMBB_def}),
    (["c_COMBC"], @{thms Meson.COMBC_def}),
    (["c_COMBS"], @{thms Meson.COMBS_def})]
-val optional_typed_helpers =
+val optional_fully_typed_helpers =
   [(["c_True", "c_False", "c_If"], @{thms True_or_False}),
    (["c_If"], @{thms if_True if_False})]
 val mandatory_helpers = @{thms Metis.fequal_def}
 
 val init_counters =
-  [optional_helpers, optional_typed_helpers] |> maps (maps fst)
+  [optional_helpers, optional_fully_typed_helpers] |> maps (maps fst)
   |> sort_distinct string_ord |> map (rpair 0) |> Symtab.make
 
-fun get_helper_facts ctxt is_FO full_types conjectures facts =
+fun get_helper_facts ctxt is_FO type_sys conjectures facts =
   let
     val ct =
       fold (fold count_translated_formula) [conjectures, facts] init_counters
@@ -240,7 +258,7 @@ fun get_helper_facts ctxt is_FO full_types conjectures facts =
     fun baptize th = ((Thm.get_name_hint th, false), th)
   in
     (optional_helpers
-     |> full_types ? append optional_typed_helpers
+     |> is_fully_typed type_sys ? append optional_fully_typed_helpers
      |> maps (fn (ss, ths) =>
                  if exists is_needed ss then map baptize ths else [])) @
     (if is_FO then [] else map baptize mandatory_helpers)
@@ -249,7 +267,7 @@ fun get_helper_facts ctxt is_FO full_types conjectures facts =
 
 fun translate_atp_fact ctxt = `(make_fact ctxt true)
 
-fun translate_formulas ctxt full_types hyp_ts concl_t rich_facts =
+fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
   let
     val thy = ProofContext.theory_of ctxt
     val fact_ts = map (prop_of o snd o snd) rich_facts
@@ -268,7 +286,7 @@ fun translate_formulas ctxt full_types hyp_ts concl_t rich_facts =
     val tycons = type_consts_of_terms thy (goal_t :: fact_ts)
     (* TFrees in the conjecture; TVars in the facts *)
     val conjectures = make_conjecture ctxt (hyp_ts @ [concl_t])
-    val helper_facts = get_helper_facts ctxt is_FO full_types conjectures facts
+    val helper_facts = get_helper_facts ctxt is_FO type_sys conjectures facts
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
@@ -290,7 +308,7 @@ fun fo_literal_for_type_literal (TyLitVar (class, name)) =
 
 fun formula_for_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
-fun fo_term_for_combterm full_types =
+fun fo_term_for_combterm type_sys =
   let
     fun aux top_level u =
       let
@@ -298,7 +316,7 @@ fun fo_term_for_combterm full_types =
         val (x, ty_args) =
           case head of
             CombConst (name as (s, s'), _, ty_args) =>
-            let val ty_args = if full_types then [] else ty_args in
+            let val ty_args = if is_fully_typed type_sys then [] else ty_args in
               if s = "equal" then
                 if top_level andalso length args = 2 then (name, [])
                 else (("c_fequal", @{const_name Metis.fequal}), ty_args)
@@ -315,25 +333,28 @@ fun fo_term_for_combterm full_types =
         val t = ATerm (x, map fo_term_for_combtyp ty_args @
                           map (aux false) args)
     in
-      if full_types then wrap_type (fo_term_for_combtyp (combtyp_of u)) t else t
+      t |> (if type_sys = Tags true then
+              wrap_type (fo_term_for_combtyp (combtyp_of u))
+            else
+              I)
     end
   in aux true end
 
-fun formula_for_combformula full_types =
+fun formula_for_combformula type_sys =
   let
     fun aux (AQuant (q, xs, phi)) = AQuant (q, xs, aux phi)
       | aux (AConn (c, phis)) = AConn (c, map aux phis)
-      | aux (AAtom tm) = AAtom (fo_term_for_combterm full_types tm)
+      | aux (AAtom tm) = AAtom (fo_term_for_combterm type_sys tm)
   in aux end
 
-fun formula_for_fact full_types
+fun formula_for_fact type_sys
                      ({combformula, ctypes_sorts, ...} : translated_formula) =
   mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
                 (type_literals_for_types ctypes_sorts))
-           (formula_for_combformula full_types combformula)
+           (formula_for_combformula type_sys combformula)
 
-fun problem_line_for_fact prefix full_types (formula as {name, kind, ...}) =
-  Fof (prefix ^ ascii_of name, kind, formula_for_fact full_types formula)
+fun problem_line_for_fact prefix type_sys (formula as {name, kind, ...}) =
+  Fof (prefix ^ ascii_of name, kind, formula_for_fact type_sys formula)
 
 fun problem_line_for_class_rel_clause (ClassRelClause {name, subclass,
                                                        superclass, ...}) =
@@ -356,10 +377,10 @@ fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                 (formula_for_fo_literal
                      (fo_literal_for_arity_literal conclLit)))
 
-fun problem_line_for_conjecture full_types
+fun problem_line_for_conjecture type_sys
         ({name, kind, combformula, ...} : translated_formula) =
   Fof (conjecture_prefix ^ name, kind,
-       formula_for_combformula full_types combformula)
+       formula_for_combformula type_sys combformula)
 
 fun free_type_literals_for_conjecture
         ({ctypes_sorts, ...} : translated_formula) =
@@ -401,12 +422,12 @@ fun const_table_for_problem explicit_apply problem =
   if explicit_apply then NONE
   else SOME (Symtab.empty |> consider_problem problem)
 
-fun min_arity_of thy full_types NONE s =
+fun min_arity_of thy type_sys NONE s =
     (if s = "equal" orelse s = type_wrapper_name orelse
         String.isPrefix type_const_prefix s orelse
         String.isPrefix class_prefix s then
        16383 (* large number *)
-     else if full_types then
+     else if is_fully_typed type_sys then
        0
      else case strip_prefix_and_unascii const_prefix s of
        SOME s' => num_type_args thy (invert_const s')
@@ -429,7 +450,7 @@ fun list_hAPP_rev _ t1 [] = t1
       ATerm (`I "hAPP", [wrap_type ty' (list_hAPP_rev (SOME ty') t1 ts2), t2])
     end
 
-fun repair_applications_in_term thy full_types const_tab =
+fun repair_applications_in_term thy type_sys const_tab =
   let
     fun aux opt_ty (ATerm (name as (s, _), ts)) =
       if s = type_wrapper_name then
@@ -439,7 +460,7 @@ fun repair_applications_in_term thy full_types const_tab =
       else
         let
           val ts = map (aux NONE) ts
-          val (ts1, ts2) = chop (min_arity_of thy full_types const_tab s) ts
+          val (ts1, ts2) = chop (min_arity_of thy type_sys const_tab s) ts
         in list_hAPP_rev opt_ty (ATerm (name, ts1)) (rev ts2) end
   in aux NONE end
 
@@ -481,37 +502,37 @@ fun close_universally phi =
     case formula_vars [] phi [] of [] => phi | xs => AQuant (AForall, xs, phi)
   end
 
-fun repair_formula thy explicit_forall full_types const_tab =
+fun repair_formula thy explicit_forall type_sys const_tab =
   let
     fun aux (AQuant (q, xs, phi)) = AQuant (q, xs, aux phi)
       | aux (AConn (c, phis)) = AConn (c, map aux phis)
       | aux (AAtom tm) =
-        AAtom (tm |> repair_applications_in_term thy full_types const_tab
+        AAtom (tm |> repair_applications_in_term thy type_sys const_tab
                   |> repair_predicates_in_term const_tab)
   in aux #> explicit_forall ? close_universally end
 
-fun repair_problem_line thy explicit_forall full_types const_tab
+fun repair_problem_line thy explicit_forall type_sys const_tab
                         (Fof (ident, kind, phi)) =
-  Fof (ident, kind, repair_formula thy explicit_forall full_types const_tab phi)
+  Fof (ident, kind, repair_formula thy explicit_forall type_sys const_tab phi)
 fun repair_problem_with_const_table thy =
   map o apsnd o map ooo repair_problem_line thy
 
-fun repair_problem thy explicit_forall full_types explicit_apply problem =
-  repair_problem_with_const_table thy explicit_forall full_types
+fun repair_problem thy explicit_forall type_sys explicit_apply problem =
+  repair_problem_with_const_table thy explicit_forall type_sys
       (const_table_for_problem explicit_apply problem) problem
 
-fun prepare_atp_problem ctxt readable_names explicit_forall full_types
+fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
                         explicit_apply hyp_ts concl_t facts =
   let
     val thy = ProofContext.theory_of ctxt
     val (fact_names, (conjectures, facts, helper_facts, class_rel_clauses,
                       arity_clauses)) =
-      translate_formulas ctxt full_types hyp_ts concl_t facts
-    val fact_lines = map (problem_line_for_fact fact_prefix full_types) facts
+      translate_formulas ctxt type_sys hyp_ts concl_t facts
+    val fact_lines = map (problem_line_for_fact fact_prefix type_sys) facts
     val helper_lines =
-      map (problem_line_for_fact helper_prefix full_types) helper_facts
+      map (problem_line_for_fact helper_prefix type_sys) helper_facts
     val conjecture_lines =
-      map (problem_line_for_conjecture full_types) conjectures
+      map (problem_line_for_conjecture type_sys) conjectures
     val tfree_lines = problem_lines_for_free_types conjectures
     val class_rel_lines =
       map problem_line_for_class_rel_clause class_rel_clauses
@@ -525,7 +546,7 @@ fun prepare_atp_problem ctxt readable_names explicit_forall full_types
        ("Helper facts", helper_lines),
        ("Conjectures", conjecture_lines),
        ("Type variables", tfree_lines)]
-      |> repair_problem thy explicit_forall full_types explicit_apply
+      |> repair_problem thy explicit_forall type_sys explicit_apply
     val (problem, pool) = nice_atp_problem readable_names problem
     val conjecture_offset =
       length fact_lines + length class_rel_lines + length arity_lines
