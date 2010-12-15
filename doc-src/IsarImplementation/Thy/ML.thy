@@ -488,9 +488,15 @@ text {* The general Isabelle/ML source layout imitates regular
       val y = ...
     in ... end
 
+
+  (* WRONG *)
+
   fun foo x = let
     val y = ...
   in ... end
+
+
+  (* WRONG *)
 
   fun foo x =
   let
@@ -825,7 +831,7 @@ text {* Regular function application and infix notation works best for
   \medskip
   \begin{tabular}{lll}
   @{text "x |> f"} & @{text "\<equiv>"} & @{text "f x"} \\
-  @{text "f #> g"} & @{text "\<equiv>"} & @{text "x |> f |> g"} \\
+  @{text "(f #> g) x"} & @{text "\<equiv>"} & @{text "x |> f |> g"} \\
   \end{tabular}
   \medskip
 
@@ -840,7 +846,7 @@ text {* Regular function application and infix notation works best for
   \medskip
   \begin{tabular}{lll}
   @{text "(x, y) |-> f"} & @{text "\<equiv>"} & @{text "f x y"} \\
-  @{text "f #-> g"} & @{text "\<equiv>"} & @{text "x |> f |-> g"} \\
+  @{text "(f #-> g) x"} & @{text "\<equiv>"} & @{text "x |> f |-> g"} \\
   \end{tabular}
   \medskip
 *}

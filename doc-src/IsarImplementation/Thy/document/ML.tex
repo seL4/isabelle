@@ -509,9 +509,15 @@ The general Isabelle/ML source layout imitates regular
       val y = ...
     in ... end
 
+
+  (* WRONG *)
+
   fun foo x = let
     val y = ...
   in ... end
+
+
+  (* WRONG *)
 
   fun foo x =
   let
@@ -1010,7 +1016,7 @@ Regular function application and infix notation works best for
   \medskip
   \begin{tabular}{lll}
   \isa{x\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{f\ x} \\
-  \isa{f\ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\ g} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{x\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ g} \\
+  \isa{{\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{23}{\isacharhash}}{\isaliteral{3E}{\isachargreater}}\ g{\isaliteral{29}{\isacharparenright}}\ x} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{x\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ g} \\
   \end{tabular}
   \medskip
 
@@ -1024,7 +1030,7 @@ Regular function application and infix notation works best for
   \medskip
   \begin{tabular}{lll}
   \isa{{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ f} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{f\ x\ y} \\
-  \isa{f\ {\isaliteral{23}{\isacharhash}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ g} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{x\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ g} \\
+  \isa{{\isaliteral{28}{\isacharparenleft}}f\ {\isaliteral{23}{\isacharhash}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ g{\isaliteral{29}{\isacharparenright}}\ x} & \isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}} & \isa{x\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{3E}{\isachargreater}}\ f\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{3E}{\isachargreater}}\ g} \\
   \end{tabular}
   \medskip%
 \end{isamarkuptext}%
