@@ -6,7 +6,7 @@ Proof tools related to conjunctions and disjunctions.
 
 signature Z3_PROOF_LITERALS =
 sig
-  (* literal table *)
+  (*literal table*)
   type littab = thm Termtab.table
   val make_littab: thm list -> littab
   val insert_lit: thm -> littab -> littab
@@ -14,17 +14,17 @@ sig
   val lookup_lit: littab -> term -> thm option
   val get_first_lit: (term -> bool) -> littab -> thm option
 
-  (* rules *)
+  (*rules*)
   val true_thm: thm
   val rewrite_true: thm
 
-  (* properties *)
+  (*properties*)
   val is_conj: term -> bool
   val is_disj: term -> bool
   val exists_lit: bool -> (term -> bool) -> term -> bool
   val negate: cterm -> cterm
 
-  (* proof tools *)
+  (*proof tools*)
   val explode: bool -> bool -> bool -> term list -> thm -> thm list
   val join: bool -> littab -> term -> thm
   val prove_conj_disj_eq: cterm -> thm
@@ -37,7 +37,7 @@ structure T = Z3_Proof_Tools
 
 
 
-(** literal table **)
+(* literal table *)
 
 type littab = thm Termtab.table
 
@@ -51,14 +51,14 @@ fun get_first_lit f =
 
 
 
-(** rules **)
+(* rules *)
 
 val true_thm = @{lemma "~False" by simp}
 val rewrite_true = @{lemma "True == ~ False" by simp}
 
 
 
-(** properties and term operations **)
+(* properties and term operations *)
 
 val is_neg = (fn @{const Not} $ _ => true | _ => false)
 fun is_neg' f = (fn @{const Not} $ t => f t | _ => false)
@@ -87,9 +87,9 @@ val negate = Thm.capply (Thm.cterm_of @{theory} @{const Not})
 
 
 
-(** proof tools **)
+(* proof tools *)
 
-(* explosion of conjunctions and disjunctions *)
+(** explosion of conjunctions and disjunctions **)
 
 local
   fun destc ct = Thm.dest_binop (Thm.dest_arg ct)
@@ -117,8 +117,10 @@ local
   val dneg_rule = T.precompose destn @{thm notnotD}
 in
 
-(* explode a term into literals and collect all rules to be able to deduce
-   particular literals afterwards *)
+(*
+  explode a term into literals and collect all rules to be able to deduce
+  particular literals afterwards
+*)
 fun explode_term is_conj =
   let
     val dest = if is_conj then dest_conj_term else dest_disj_term
@@ -144,11 +146,15 @@ fun explode_term is_conj =
 
   in explode0 end
 
-(* extract a literal by applying previously collected rules *)
+(*
+  extract a literal by applying previously collected rules
+*)
 fun extract_lit thm rules = fold T.compose rules thm
 
 
-(* explode a theorem into its literals *)
+(*
+  explode a theorem into its literals
+*)
 fun explode is_conj full keep_intermediate stop_lits =
   let
     val dest_rules = if is_conj then dest_conj_rules else dest_disj_rules
@@ -180,7 +186,7 @@ end
 
 
 
-(* joining of literals to conjunctions or disjunctions *)
+(** joining of literals to conjunctions or disjunctions **)
 
 local
   fun on_cprem i f thm = f (Thm.cprem_of thm i)
@@ -259,7 +265,7 @@ end
 
 
 
-(* proving equality of conjunctions or disjunctions *)
+(** proving equality of conjunctions or disjunctions **)
 
 fun iff_intro thm1 thm2 = thm2 COMP (thm1 COMP @{thm iffI})
 

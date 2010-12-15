@@ -6,7 +6,7 @@ Translate theorems into an SMT intermediate format and serialize them.
 
 signature SMT_TRANSLATE =
 sig
-  (* intermediate term structure *)
+  (*intermediate term structure*)
   datatype squant = SForall | SExists
   datatype 'a spattern = SPat of 'a list | SNoPat of 'a list
   datatype sterm =
@@ -15,7 +15,7 @@ sig
     SLet of string * sterm * sterm |
     SQua of squant * string list * sterm spattern list * int option * sterm
 
-  (* configuration options *)
+  (*configuration options*)
   type prefixes = {sort_prefix: string, func_prefix: string}
   type sign = {
     header: string list,

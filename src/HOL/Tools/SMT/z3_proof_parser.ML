@@ -6,7 +6,7 @@ Parser for Z3 proofs.
 
 signature Z3_PROOF_PARSER =
 sig
-  (* proof rules *)
+  (*proof rules*)
   datatype rule = TrueAxiom | Asserted | Goal | ModusPonens | Reflexivity |
     Symmetry | Transitivity | TransitivityStar | Monotonicity | QuantIntro |
     Distributivity | AndElim | NotOrElim | Rewrite | RewriteStar | PullQuant |
@@ -16,7 +16,7 @@ sig
     CnfStar | Skolemize | ModusPonensOeq | ThLemma of string list
   val string_of_rule: rule -> string
 
-  (* proof parser *)
+  (*proof parser*)
   datatype proof_step = Proof_Step of {
     rule: rule,
     prems: int list,
@@ -34,7 +34,7 @@ structure I = Z3_Interface
 
 
 
-(** proof rules **)
+(* proof rules *)
 
 datatype rule = TrueAxiom | Asserted | Goal | ModusPonens | Reflexivity |
   Symmetry | Transitivity | TransitivityStar | Monotonicity | QuantIntro |
@@ -91,7 +91,7 @@ fun string_of_rule (ThLemma args) = space_implode " " ("th-lemma" :: args)
 
 
 
-(** certified terms and variables **)
+(* certified terms and variables *)
 
 val (var_prefix, decl_prefix) = ("v", "sk")
 (* "decl_prefix" is for skolem constants (represented by free variables)
@@ -171,7 +171,7 @@ end
 
 
 
-(** proof parser **)
+(* proof parser *)
 
 datatype proof_step = Proof_Step of {
   rule: rule,
@@ -179,7 +179,7 @@ datatype proof_step = Proof_Step of {
   prop: cterm }
 
 
-(* parser context *)
+(** parser context **)
 
 val not_false = Thm.cterm_of @{theory} (@{const Not} $ @{const False})
 
@@ -240,7 +240,7 @@ fun add_proof_step k ((r, prems), prop) cx =
 fun finish (_, _, _, steps, vars, ctxt) = (steps, vars, ctxt)
 
 
-(* core parser *)
+(** core parser **)
 
 fun parse_exn line_no msg = raise SMT_Failure.SMT (SMT_Failure.Other_Failure
   ("Z3 proof parser (line " ^ string_of_int line_no ^ "): " ^ msg))
@@ -269,7 +269,7 @@ fun with_context f x ((line_no, cx), st) =
 fun lookup_context f x (st as ((_, cx), _)) = (f cx x, st)
 
 
-(* parser combinators and parsers for basic entities *)
+(** parser combinators and parsers for basic entities **)
 
 fun $$ s = Scan.lift (Scan.$$ s)
 fun this s = Scan.lift (Scan.this_string s)
@@ -306,7 +306,7 @@ fun sym st =
 fun id st = ($$ "#" |-- nat_num) st
 
 
-(* parsers for various parts of Z3 proofs *)
+(** parsers for various parts of Z3 proofs **)
 
 fun sort st = Scan.first [
   this "array" |-- bra (sort --| $$ ":" -- sort) >> (op -->),
@@ -400,15 +400,17 @@ fun node st = st |> (
   rule SOME ~1)
 
 
-(* overall parser *)
+(** overall parser **)
 
-(* Currently, terms are parsed bottom-up (i.e., along with parsing the proof
-   text line by line), but proofs are reconstructed top-down (i.e. by an
-   in-order top-down traversal of the proof tree/graph).  The latter approach
-   was taken because some proof texts comprise irrelevant proof steps which
-   will thus not be reconstructed.  This approach might also be beneficial
-   for constructing terms, but it would also increase the complexity of the
-   (otherwise rather modular) code. *)
+(*
+  Currently, terms are parsed bottom-up (i.e., along with parsing the proof
+  text line by line), but proofs are reconstructed top-down (i.e. by an
+  in-order top-down traversal of the proof tree/graph).  The latter approach
+  was taken because some proof texts comprise irrelevant proof steps which
+  will thus not be reconstructed.  This approach might also be beneficial
+  for constructing terms, but it would also increase the complexity of the
+  (otherwise rather modular) code.
+*)
 
 fun parse ctxt typs terms proof_text =
   make_context ctxt typs terms

@@ -6,18 +6,18 @@ Helper functions required for Z3 proof reconstruction.
 
 signature Z3_PROOF_TOOLS =
 sig
-  (* accessing and modifying terms *)
+  (*accessing and modifying terms*)
   val term_of: cterm -> term
   val prop_of: thm -> term
   val as_meta_eq: cterm -> cterm
 
-  (* theorem nets *)
+  (*theorem nets*)
   val thm_net_of: ('a -> thm) -> 'a list -> 'a Net.net
   val net_instance': ((thm -> thm option) -> 'a -> 'a option) -> 'a Net.net ->
     cterm -> 'a option
   val net_instance: thm Net.net -> cterm -> thm option
 
-  (* proof combinators *)
+  (*proof combinators*)
   val under_assumption: (thm -> thm) -> cterm -> thm
   val with_conv: conv -> (cterm -> thm) -> cterm -> thm
   val discharge: thm -> thm -> thm
@@ -29,16 +29,16 @@ sig
   val by_abstraction: bool * bool -> Proof.context -> thm list ->
     (Proof.context -> cterm -> thm) -> cterm -> thm
 
-  (* a faster COMP *)
+  (*a faster COMP*)
   type compose_data
   val precompose: (cterm -> cterm list) -> thm -> compose_data
   val precompose2: (cterm -> cterm * cterm) -> thm -> compose_data
   val compose: compose_data -> thm -> thm
 
-  (* unfolding of 'distinct' *)
+  (*unfolding of 'distinct'*)
   val unfold_distinct_conv: conv
 
-  (* simpset *)
+  (*simpset*)
   val add_simproc: Simplifier.simproc -> Context.generic -> Context.generic
   val make_simpset: Proof.context -> thm list -> simpset
 end
@@ -107,7 +107,11 @@ fun match_instantiate f ct thm =
 
 fun by_tac tac ct = Goal.norm_result (Goal.prove_internal [] ct (K (tac 1)))
 
-(* |- c x == t x ==> P (c x)  ~~>  c == t |- P (c x) *) 
+(*
+   |- c x == t x ==> P (c x)
+  ---------------------------
+      c == t |- P (c x)
+*) 
 fun make_hyp_def thm ctxt =
   let
     val (lhs, rhs) = Thm.dest_binop (Thm.cprem_of thm 1)

@@ -6,17 +6,18 @@ General utility functions.
 
 signature SMT_UTILS =
 sig
+  (*basic combinators*)
   val repeat: ('a -> 'a option) -> 'a -> 'a
   val repeat_yield: ('a -> 'b -> ('a * 'b) option) -> 'a -> 'b -> 'a * 'b
 
-  (* types *)
+  (*types*)
   val dest_funT: int -> typ -> typ list * typ
 
-  (* terms *)
+  (*terms*)
   val dest_conj: term -> term * term
   val dest_disj: term -> term * term
 
-  (* patterns and instantiations *)
+  (*patterns and instantiations*)
   val mk_const_pat: theory -> string -> (ctyp -> 'a) -> 'a * cterm
   val destT1: ctyp -> ctyp
   val destT2: ctyp -> ctyp
@@ -24,7 +25,7 @@ sig
   val instT: ctyp -> ctyp * cterm -> cterm
   val instT': cterm -> ctyp * cterm -> cterm
 
-  (* certified terms *)
+  (*certified terms*)
   val certify: Proof.context -> term -> cterm
   val typ_of: cterm -> typ
   val dest_cabs: cterm -> Proof.context -> cterm * Proof.context
@@ -35,7 +36,7 @@ sig
   val dest_cprop: cterm -> cterm
   val mk_cequals: cterm -> cterm -> cterm
 
-  (* conversions *)
+  (*conversions*)
   val if_conv: (term -> bool) -> conv -> conv -> conv
   val if_true_conv: (term -> bool) -> conv -> conv
   val binders_conv: (Proof.context -> conv) -> Proof.context -> conv
@@ -44,6 +45,8 @@ end
 
 structure SMT_Utils: SMT_UTILS =
 struct
+
+(* basic combinators *)
 
 fun repeat f =
   let fun rep x = (case f x of SOME y => rep y | NONE => x)
