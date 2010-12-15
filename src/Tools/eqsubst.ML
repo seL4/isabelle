@@ -119,11 +119,8 @@ sig
 
 end;
 
-structure EqSubst
-: EQSUBST
-= struct
-
-structure Z = Zipper;
+structure EqSubst: EQSUBST =
+struct
 
 (* changes object "=" to meta "==" which prepares a given rewrite rule *)
 fun prep_meta_eq ctxt =
@@ -196,11 +193,11 @@ abstraction environment, and an outer context term (with the focus
 abstracted out) for use in rewriting with RWInst.rw *)
 fun prep_zipper_match z = 
     let 
-      val t = Z.trm z  
-      val c = Z.ctxt z
-      val Ts = Z.C.nty_ctxt c
+      val t = Zipper.trm z  
+      val c = Zipper.ctxt z
+      val Ts = Zipper.C.nty_ctxt c
       val (FakeTs', Ts', t') = fakefree_badbounds Ts t
-      val absterm = mk_foo_match (Z.C.apply c) Ts' t'
+      val absterm = mk_foo_match (Zipper.C.apply c) Ts' t'
     in
       (t', (FakeTs', Ts', absterm))
     end;
@@ -291,7 +288,7 @@ fun bot_left_leaf_of (l $ r) = bot_left_leaf_of l
 (* Avoid considering replacing terms which have a var at the head as
    they always succeed trivially, and uninterestingly. *)
 fun valid_match_start z =
-    (case bot_left_leaf_of (Z.trm z) of 
+    (case bot_left_leaf_of (Zipper.trm z) of 
       Var _ => false 
       | _ => true);
 
@@ -302,33 +299,33 @@ val search_lr_all = ZipperSearch.all_bl_ur;
 fun search_lr_valid validf =
     let 
       fun sf_valid_td_lr z = 
-          let val here = if validf z then [Z.Here z] else [] in
-            case Z.trm z 
-             of _ $ _ => [Z.LookIn (Z.move_down_left z)] 
+          let val here = if validf z then [Zipper.Here z] else [] in
+            case Zipper.trm z 
+             of _ $ _ => [Zipper.LookIn (Zipper.move_down_left z)] 
                          @ here 
-                         @ [Z.LookIn (Z.move_down_right z)]
-              | Abs _ => here @ [Z.LookIn (Z.move_down_abs z)]
+                         @ [Zipper.LookIn (Zipper.move_down_right z)]
+              | Abs _ => here @ [Zipper.LookIn (Zipper.move_down_abs z)]
               | _ => here
           end;
-    in Z.lzy_search sf_valid_td_lr end;
+    in Zipper.lzy_search sf_valid_td_lr end;
 
 (* search from bottom to top, left to right *)
 
 fun search_bt_valid validf =
     let 
       fun sf_valid_td_lr z = 
-          let val here = if validf z then [Z.Here z] else [] in
-            case Z.trm z 
-             of _ $ _ => [Z.LookIn (Z.move_down_left z), 
-                          Z.LookIn (Z.move_down_right z)] @ here
-              | Abs _ => [Z.LookIn (Z.move_down_abs z)] @ here
+          let val here = if validf z then [Zipper.Here z] else [] in
+            case Zipper.trm z 
+             of _ $ _ => [Zipper.LookIn (Zipper.move_down_left z), 
+                          Zipper.LookIn (Zipper.move_down_right z)] @ here
+              | Abs _ => [Zipper.LookIn (Zipper.move_down_abs z)] @ here
               | _ => here
           end;
-    in Z.lzy_search sf_valid_td_lr end;
+    in Zipper.lzy_search sf_valid_td_lr end;
 
 fun searchf_unify_gen f (sgn, maxidx, z) lhs =
     Seq.map (clean_unify_z sgn maxidx lhs) 
-            (Z.limit_apply f z);
+            (Zipper.limit_apply f z);
 
 (* search all unifications *)
 val searchf_lr_unify_all =
@@ -369,9 +366,9 @@ fun prep_concl_subst i gth =
       val conclterm = Logic.strip_imp_concl fixedbody;
       val conclthm = trivify conclterm;
       val maxidx = Thm.maxidx_of th;
-      val ft = ((Z.move_down_right (* ==> *)
-                 o Z.move_down_left (* Trueprop *)
-                 o Z.mktop
+      val ft = ((Zipper.move_down_right (* ==> *)
+                 o Zipper.move_down_left (* Trueprop *)
+                 o Zipper.mktop
                  o Thm.prop_of) conclthm)
     in
       ((cfvs, conclthm), (sgn, maxidx, ft))
@@ -487,8 +484,8 @@ fun prep_subst_in_asm i gth j =
       val pth = trivify asmt;
       val maxidx = Thm.maxidx_of th;
 
-      val ft = ((Z.move_down_right (* trueprop *)
-                 o Z.mktop
+      val ft = ((Zipper.move_down_right (* trueprop *)
+                 o Zipper.mktop
                  o Thm.prop_of) pth)
     in ((cfvs, j, asm_nprems, pth), (sgn, maxidx, ft)) end;
 

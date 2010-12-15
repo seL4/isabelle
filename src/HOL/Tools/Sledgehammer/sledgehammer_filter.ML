@@ -539,10 +539,8 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
           relevant [] [] hopeful
         end
     fun add_facts ths accepts =
-      (facts |> filter ((member Thm.eq_thm ths
-                         andf (not o member (Thm.eq_thm o apsnd snd) accepts))
-                        o snd))
-      @ accepts
+      (facts |> filter (member Thm.eq_thm ths o snd)) @
+      (accepts |> filter_out (member Thm.eq_thm ths o snd))
       |> take max_relevant
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
