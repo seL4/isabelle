@@ -26,6 +26,7 @@ sig
   val trace: bool Config.T
   val trace_used_facts: bool Config.T
   val monomorph_limit: int Config.T
+  val infer_triggers: bool Config.T
   val drop_bad_facts: bool Config.T
   val filter_only_facts: bool Config.T
   val debug_files: string Config.T
@@ -135,6 +136,10 @@ val monomorph_limitN = "smt_monomorph_limit"
 val (monomorph_limit, setup_monomorph_limit) =
   Attrib.config_int monomorph_limitN (K 10)
 
+val infer_triggersN = "smt_infer_triggers"
+val (infer_triggers, setup_infer_triggers) =
+  Attrib.config_bool infer_triggersN (K false)
+
 val drop_bad_factsN = "smt_drop_bad_facts"
 val (drop_bad_facts, setup_drop_bad_facts) =
   Attrib.config_bool drop_bad_factsN (K false)
@@ -156,6 +161,7 @@ val setup_options =
   setup_trace #>
   setup_verbose #>
   setup_monomorph_limit #>
+  setup_infer_triggers #>
   setup_drop_bad_facts #>
   setup_filter_only_facts #>
   setup_trace_used_facts #>

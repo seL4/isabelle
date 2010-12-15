@@ -32,16 +32,18 @@ begin
 subsection {* Triggers for quantifier instantiation *}
 
 text {*
-Some SMT solvers support triggers for quantifier instantiation.
-Each trigger consists of one ore more patterns.  A pattern may either
-be a list of positive subterms (each being tagged by "pat"), or a
-list of negative subterms (each being tagged by "nopat").
-
-When an SMT solver finds a term matching a positive pattern (a
-pattern with positive subterms only), it instantiates the
-corresponding quantifier accordingly.  Negative patterns inhibit
-quantifier instantiations.  Each pattern should mention all preceding
-bound variables.
+Some SMT solvers support patterns as a quantifier instantiation
+heuristics.  Patterns may either be positive terms (tagged by "pat")
+triggering quantifier instantiations -- when the solver finds a
+term matching a positive pattern, it instantiates the corresponding
+quantifier accordingly -- or negative terms (tagged by "nopat")
+inhibiting quantifier instantiations.  A list of patterns
+of the same kind is called a multipattern, and all patterns in a
+multipattern are considered conjunctively for quantifier instantiation.
+A list of multipatterns is called a trigger, and their multipatterns
+act disjunctively during quantifier instantiation.  Each multipattern
+should mention at least all quantified variables of the preceding
+quantifier block.
 *}
 
 datatype pattern = Pattern
@@ -235,6 +237,24 @@ mode.
 *}
 
 declare [[ smt_datatypes = false ]]
+
+text {*
+The SMT method provides an inference mechanism to detect simple triggers
+in quantified formulas, which might increase the number of problems
+solvable by SMT solvers (note: triggers guide quantifier instantiations
+in the SMT solver).  To turn it on, set the following option.
+*}
+
+declare [[ smt_infer_triggers = false ]]
+
+text {*
+The SMT method monomorphizes the given facts, that is, it tries to
+instantiate all schematic type variables with fixed types occurring
+in the problem.  This is a (possibly nonterminating) fixed-point
+construction whose cycles are limited by the following option.
+*}
+
+declare [[ smt_monomorph_limit = 10 ]]
 
 
 
