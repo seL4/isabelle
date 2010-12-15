@@ -140,7 +140,8 @@ fun is_built_in_const_for_prover ctxt name (s, T) args =
 
 (* FUDGE *)
 val atp_relevance_fudge =
-  {worse_irrel_freq = 100.0,
+  {allow_ext = true,
+   worse_irrel_freq = 100.0,
    higher_order_irrel_weight = 1.05,
    abs_rel_weight = 0.5,
    abs_irrel_weight = 2.0,
@@ -160,7 +161,8 @@ val atp_relevance_fudge =
 
 (* FUDGE (FIXME) *)
 val smt_relevance_fudge =
-  {worse_irrel_freq = #worse_irrel_freq atp_relevance_fudge,
+  {allow_ext = false,
+   worse_irrel_freq = #worse_irrel_freq atp_relevance_fudge,
    higher_order_irrel_weight = #higher_order_irrel_weight atp_relevance_fudge,
    abs_rel_weight = #abs_rel_weight atp_relevance_fudge,
    abs_irrel_weight = #abs_irrel_weight atp_relevance_fudge,
@@ -264,11 +266,14 @@ fun atp_translated_fact ctxt (Untranslated_Fact p) = translate_atp_fact ctxt p
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
 
+fun overlord_file_location_for_prover prover =
+  (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
+
 (* Important messages are important but not so important that users want to see
    them each time. *)
 val important_message_keep_factor = 0.1
 
-fun run_atp auto atp_name
+fun run_atp auto name
         ({exec, required_execs, arguments, has_incomplete_mode, proof_delims,
           known_failures, explicit_forall, use_conjecture_for_hypotheses, ...}
           : atp_config)
@@ -279,13 +284,12 @@ fun run_atp auto atp_name
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val facts = facts |> map (atp_translated_fact ctxt)
-    val dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
-                   else Config.get ctxt dest_dir
-    val problem_prefix = Config.get ctxt problem_prefix
+    val (dest_dir, problem_prefix) =
+      if overlord then overlord_file_location_for_prover name
+      else (Config.get ctxt dest_dir, Config.get ctxt problem_prefix)
     val problem_file_name =
-      Path.basic ((if overlord then "prob_" ^ atp_name
-                   else problem_prefix ^ serial_string ())
-                  ^ "_" ^ string_of_int subgoal)
+      Path.basic (problem_prefix ^ (if overlord then "" else serial_string ()) ^
+                  "_" ^ string_of_int subgoal)
     val problem_path_name =
       if dest_dir = "" then
         File.tmp_path problem_file_name
@@ -518,7 +522,7 @@ fun can_apply_metis debug state i ths =
             (Config.put Metis_Tactics.verbose debug
              #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
-fun run_smt_solver auto name (params as {debug, ...}) minimize_command
+fun run_smt_solver auto name (params as {debug, overlord, ...}) minimize_command
         ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val (remote, suffix) =
@@ -528,6 +532,12 @@ fun run_smt_solver auto name (params as {debug, ...}) minimize_command
     val repair_context =
       Context.proof_map (SMT_Config.select_solver suffix)
       #> Config.put SMT_Config.verbose debug
+      #> (if overlord then
+            Config.put SMT_Config.debug_files
+                       (overlord_file_location_for_prover name
+                        |> (fn (path, base) => path ^ "/" ^ base))
+          else
+            I)
       #> Config.put SMT_Config.monomorph_limit smt_monomorph_limit
     val state = state |> Proof.map_context repair_context
     val thy = Proof.theory_of state
