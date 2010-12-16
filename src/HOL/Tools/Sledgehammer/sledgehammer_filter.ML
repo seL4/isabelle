@@ -270,8 +270,9 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
        !skolem_cache)
     val flip = Option.map not
     (* We include free variables, as well as constants, to handle locales. For
-       each quantifiers that must necessarily be skolemized by the ATP, we
-       introduce a fresh constant to simulate the effect of Skolemization. *)
+       each quantifiers that must necessarily be skolemized by the automatic
+       prover, we introduce a fresh constant to simulate the effect of
+       Skolemization. *)
     fun do_const const x ts =
       (not (is_built_in_const x ts)
        ? add_pconst_to_table also_skolems (rich_pconst thy const x))
@@ -861,10 +862,6 @@ fun all_facts ctxt reserved no_dangerous_types
 fun rearrange_facts ctxt respect_no_atp =
   List.partition (fst o snd) #> op @ #> map (apsnd snd)
   #> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd)
-
-(***************************************************************)
-(* ATP invocation methods setup                                *)
-(***************************************************************)
 
 fun external_frees t =
   [] |> Term.add_frees t |> filter_out (can Name.dest_internal o fst)
