@@ -53,8 +53,7 @@ open Sledgehammer_Util
 val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
-(* experimental features *)
-val term_patterns = false
+(* experimental feature *)
 val respect_no_atp = true
 
 datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
@@ -241,21 +240,13 @@ fun pattern_for_type (Type (s, Ts)) = PApp (s, map pattern_for_type Ts)
   | pattern_for_type (TFree (s, _)) = PApp (s, [])
   | pattern_for_type (TVar _) = PVar
 
-fun pterm thy t =
-  case strip_comb t of
-    (Const x, ts) => PApp (pconst thy true x ts)
-  | (Free x, ts) => PApp (pconst thy false x ts)
-  | (Var _, []) => PVar
-  | _ => PApp ("?", [])  (* equivalence class of higher-order constructs *)
 (* Pairs a constant with the list of its type instantiations. *)
-and ptype thy const x ts =
+fun ptype thy const x =
   (if const then map pattern_for_type (these (try (Sign.const_typargs thy) x))
-   else []) @
-  (if term_patterns then map (pterm thy) ts else [])
-and pconst thy const (s, T) ts = (s, ptype thy const (s, T) ts)
-and rich_ptype thy const (s, T) ts =
-  PType (order_of_type T, ptype thy const (s, T) ts)
-and rich_pconst thy const (s, T) ts = (s, rich_ptype thy const (s, T) ts)
+   else [])
+fun rich_ptype thy const (s, T) =
+  PType (order_of_type T, ptype thy const (s, T))
+fun rich_pconst thy const (s, T) = (s, rich_ptype thy const (s, T))
 
 fun string_for_hyper_pconst (s, ps) =
   s ^ "{" ^ commas (map string_for_ptype ps) ^ "}"
@@ -283,7 +274,7 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
        introduce a fresh constant to simulate the effect of Skolemization. *)
     fun do_const const x ts =
       (not (is_built_in_const x ts)
-       ? add_pconst_to_table also_skolems (rich_pconst thy const x ts))
+       ? add_pconst_to_table also_skolems (rich_pconst thy const x))
       #> fold do_term ts
     and do_term t =
       case strip_comb t of
@@ -376,7 +367,7 @@ fun count_fact_consts thy fudge =
   let
     fun do_const const (s, T) ts =
       (* Two-dimensional table update. Constant maps to types maps to count. *)
-      PType_Tab.map_default (rich_ptype thy const (s, T) ts, 0) (Integer.add 1)
+      PType_Tab.map_default (rich_ptype thy const (s, T), 0) (Integer.add 1)
       |> Symtab.map_default (s, PType_Tab.empty)
       #> fold do_term ts
     and do_term t =
