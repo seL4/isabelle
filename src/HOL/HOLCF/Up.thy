@@ -38,7 +38,7 @@ end
 lemma minimal_up [iff]: "Ibottom \<sqsubseteq> z"
 by (simp add: below_up_def)
 
-lemma not_Iup_below [iff]: "\<not> Iup x \<sqsubseteq> Ibottom"
+lemma not_Iup_below [iff]: "Iup x \<notsqsubseteq> Ibottom"
 by (simp add: below_up_def)
 
 lemma Iup_below [iff]: "(Iup x \<sqsubseteq> Iup y) = (x \<sqsubseteq> y)"
@@ -200,7 +200,7 @@ by simp
 lemma up_defined [simp]: "up\<cdot>x \<noteq> \<bottom>"
 by (simp add: up_def cont_Iup inst_up_pcpo)
 
-lemma not_up_less_UU: "\<not> up\<cdot>x \<sqsubseteq> \<bottom>"
+lemma not_up_less_UU: "up\<cdot>x \<notsqsubseteq> \<bottom>"
 by simp (* FIXME: remove? *)
 
 lemma up_below [simp]: "up\<cdot>x \<sqsubseteq> up\<cdot>y \<longleftrightarrow> x \<sqsubseteq> y"

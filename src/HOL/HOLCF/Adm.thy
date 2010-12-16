@@ -121,19 +121,19 @@ by (simp add: po_eq_conv)
 lemma adm_subst: "\<lbrakk>cont (\<lambda>x. t x); adm P\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P (t x))"
 by (simp add: adm_def cont2contlubE ch2ch_cont)
 
-lemma adm_not_below [simp]: "cont (\<lambda>x. t x) \<Longrightarrow> adm (\<lambda>x. \<not> t x \<sqsubseteq> u)"
+lemma adm_not_below [simp]: "cont (\<lambda>x. t x) \<Longrightarrow> adm (\<lambda>x. t x \<notsqsubseteq> u)"
 by (rule admI, simp add: cont2contlubE ch2ch_cont lub_below_iff)
 
 subsection {* Compactness *}
 
 definition
   compact :: "'a::cpo \<Rightarrow> bool" where
-  "compact k = adm (\<lambda>x. \<not> k \<sqsubseteq> x)"
+  "compact k = adm (\<lambda>x. k \<notsqsubseteq> x)"
 
-lemma compactI: "adm (\<lambda>x. \<not> k \<sqsubseteq> x) \<Longrightarrow> compact k"
+lemma compactI: "adm (\<lambda>x. k \<notsqsubseteq> x) \<Longrightarrow> compact k"
 unfolding compact_def .
 
-lemma compactD: "compact k \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubseteq> x)"
+lemma compactD: "compact k \<Longrightarrow> adm (\<lambda>x. k \<notsqsubseteq> x)"
 unfolding compact_def .
 
 lemma compactI2:
@@ -164,7 +164,7 @@ done
 text {* admissibility and compactness *}
 
 lemma adm_compact_not_below [simp]:
-  "\<lbrakk>compact k; cont (\<lambda>x. t x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubseteq> t x)"
+  "\<lbrakk>compact k; cont (\<lambda>x. t x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. k \<notsqsubseteq> t x)"
 unfolding compact_def by (rule adm_subst)
 
 lemma adm_neq_compact [simp]:

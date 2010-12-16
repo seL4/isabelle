@@ -371,6 +371,21 @@ lemma basis_fun_mono:
  apply (erule imageI)
 done
 
+lemma cont_basis_fun:
+  assumes f_mono: "\<And>a b x. a \<preceq> b \<Longrightarrow> f x a \<sqsubseteq> f x b"
+  assumes f_cont: "\<And>a. cont (\<lambda>x. f x a)"
+  shows "cont (\<lambda>x. basis_fun (\<lambda>a. f x a))"
+ apply (rule contI2)
+  apply (rule monofunI)
+  apply (rule basis_fun_mono, erule f_mono, erule f_mono)
+  apply (erule cont2monofunE [OF f_cont])
+ apply (rule cfun_belowI)
+ apply (rule principal_induct, simp)
+ apply (simp only: contlub_cfun_fun)
+ apply (simp only: basis_fun_principal f_mono)
+ apply (simp add: cont2contlubE [OF f_cont])
+done
+
 end
 
 lemma (in preorder) typedef_ideal_completion:

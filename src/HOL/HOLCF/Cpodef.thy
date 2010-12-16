@@ -168,9 +168,9 @@ theorem typedef_compact:
 proof (unfold compact_def)
   have cont_Rep: "cont Rep"
     by (rule typedef_cont_Rep [OF type below adm cont_id])
-  assume "adm (\<lambda>x. \<not> Rep k \<sqsubseteq> x)"
-  with cont_Rep have "adm (\<lambda>x. \<not> Rep k \<sqsubseteq> Rep x)" by (rule adm_subst)
-  thus "adm (\<lambda>x. \<not> k \<sqsubseteq> x)" by (unfold below)
+  assume "adm (\<lambda>x. Rep k \<notsqsubseteq> x)"
+  with cont_Rep have "adm (\<lambda>x. Rep k \<notsqsubseteq> Rep x)" by (rule adm_subst)
+  thus "adm (\<lambda>x. k \<notsqsubseteq> x)" by (unfold below)
 qed
 
 subsection {* Proving a subtype is pointed *}

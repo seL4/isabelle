@@ -20,6 +20,13 @@ notation
 notation (xsymbols)
   below (infix "\<sqsubseteq>" 50)
 
+abbreviation
+  not_below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "~<<" 50)
+  where "not_below x y \<equiv> \<not> below x y"
+
+notation (xsymbols)
+  not_below (infix "\<notsqsubseteq>" 50)
+
 lemma below_eq_trans: "\<lbrakk>a \<sqsubseteq> b; b = c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
   by (rule subst)
 
@@ -46,7 +53,7 @@ lemma po_eq_conv: "x = y \<longleftrightarrow> x \<sqsubseteq> y \<and> y \<sqsu
 lemma rev_below_trans: "y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z"
   by (rule below_trans)
 
-lemma not_below2not_eq: "\<not> x \<sqsubseteq> y \<Longrightarrow> x \<noteq> y"
+lemma not_below2not_eq: "x \<notsqsubseteq> y \<Longrightarrow> x \<noteq> y"
   by auto
 
 end

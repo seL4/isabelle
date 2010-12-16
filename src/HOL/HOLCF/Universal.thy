@@ -392,7 +392,7 @@ apply simp
 done
 
 lemma choose_pos_lessD:
-  "\<lbrakk>choose_pos A x < choose_pos A y; finite A; x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> \<not> x \<sqsubseteq> y"
+  "\<lbrakk>choose_pos A x < choose_pos A y; finite A; x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> x \<notsqsubseteq> y"
  apply (induct A x arbitrary: y rule: choose_pos.induct)
  apply simp
  apply (case_tac "x = choose A")

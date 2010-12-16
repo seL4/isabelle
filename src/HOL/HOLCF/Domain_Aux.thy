@@ -86,10 +86,10 @@ lemma casedist_rule: "rep\<cdot>x = \<bottom> \<or> P \<Longrightarrow> x = \<bo
 
 lemma compact_abs_rev: "compact (abs\<cdot>x) \<Longrightarrow> compact x"
 proof (unfold compact_def)
-  assume "adm (\<lambda>y. \<not> abs\<cdot>x \<sqsubseteq> y)"
+  assume "adm (\<lambda>y. abs\<cdot>x \<notsqsubseteq> y)"
   with cont_Rep_cfun2
-  have "adm (\<lambda>y. \<not> abs\<cdot>x \<sqsubseteq> abs\<cdot>y)" by (rule adm_subst)
-  then show "adm (\<lambda>y. \<not> x \<sqsubseteq> y)" using abs_below by simp
+  have "adm (\<lambda>y. abs\<cdot>x \<notsqsubseteq> abs\<cdot>y)" by (rule adm_subst)
+  then show "adm (\<lambda>y. x \<notsqsubseteq> y)" using abs_below by simp
 qed
 
 lemma compact_rep_rev: "compact (rep\<cdot>x) \<Longrightarrow> compact x"

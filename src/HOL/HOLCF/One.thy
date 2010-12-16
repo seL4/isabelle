@@ -28,7 +28,7 @@ unfolding ONE_def by (induct p) simp_all
 lemma one_induct [case_names bottom ONE]: "\<lbrakk>P \<bottom>; P ONE\<rbrakk> \<Longrightarrow> P x"
 by (cases x rule: oneE) simp_all
 
-lemma dist_below_one [simp]: "\<not> ONE \<sqsubseteq> \<bottom>"
+lemma dist_below_one [simp]: "ONE \<notsqsubseteq> \<bottom>"
 unfolding ONE_def by simp
 
 lemma below_ONE [simp]: "x \<sqsubseteq> ONE"
