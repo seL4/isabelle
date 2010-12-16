@@ -361,7 +361,7 @@ fun intro_explicit_application ts =
       | (u as Bound i, ts) =>
           appl0 (nth arities i) (map (traverse env) ts) (u, nth Ts i)
       | (Abs (n, T, u), ts) =>
-          let val env' = (get_arities 0 u [] :: arities, T :: Ts)
+          let val env' = (get_arities 0 u [0] :: arities, T :: Ts)
           in traverses env (Abs (n, T, traverse env' u)) ts end
       | (u, ts) => traverses env u ts)
     and traverses env t ts = Term.list_comb (t, map (traverse env) ts)
