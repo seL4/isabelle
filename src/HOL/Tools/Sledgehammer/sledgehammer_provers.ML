@@ -487,10 +487,7 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
             ()
         val birth = Timer.checkRealTimer timer
         val _ =
-          if debug then
-            Output.urgent_message "Invoking SMT solver..."
-          else
-            ()
+          if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val (outcome, used_facts) =
           SMT_Solver.smt_filter remote iter_timeout state facts i
           |> (fn {outcome, used_facts, ...} => (outcome, used_facts))
@@ -525,7 +522,7 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
                ();
              true (* kind of *))
           | SOME SMT_Failure.Out_Of_Memory => true
-          | SOME _ => true
+          | SOME (SMT_Failure.Other_Failure _) => true
         val timeout = Time.- (timeout, Timer.checkRealTimer timer)
       in
         if too_many_facts_perhaps andalso iter_num < !smt_max_iter andalso

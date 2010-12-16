@@ -869,7 +869,7 @@ fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
     val reserved = reserved_isar_keyword_table ()
     val ind_stmt =
       Logic.list_implies (hyp_ts |> filter_out (null o external_frees), concl_t)
-      |> atomize_term
+      |> Object_Logic.atomize_term thy
     val ind_stmt_xs = external_frees ind_stmt
     val facts =
       (if only then

@@ -226,7 +226,7 @@ fun make_formula ctxt eq_as_iff presimp name kind t =
     val thy = ProofContext.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
               |> transform_elim_term
-              |> atomize_term
+              |> Object_Logic.atomize_term thy
     val need_trueprop = (fastype_of t = HOLogic.boolT)
     val t = t |> need_trueprop ? HOLogic.mk_Trueprop
               |> extensionalize_term
