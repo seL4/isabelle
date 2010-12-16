@@ -586,7 +586,7 @@ structure Extra_Norms = Generic_Data
   type T = extra_norm U.dict
   val empty = []
   val extend = I
-  val merge = U.dict_merge fst
+  fun merge xx = U.dict_merge fst xx
 )
 
 fun add_extra_norm (cs, norm) = Extra_Norms.map (U.dict_update (cs, norm))
