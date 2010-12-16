@@ -581,7 +581,7 @@ structure Configs = Generic_Data
   type T = (Proof.context -> config) U.dict
   val empty = []
   val extend = I
-  val merge = U.dict_merge fst
+  fun merge xx = U.dict_merge fst xx
 )
 
 fun add_config (cs, cfg) = Configs.map (U.dict_update (cs, cfg))
