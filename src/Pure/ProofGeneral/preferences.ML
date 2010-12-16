@@ -150,7 +150,7 @@ val tracing_preferences =
  [bool_pref simp_trace_default
     "trace-simplifier"
     "Trace simplification rules.",
-  nat_pref simp_trace_depth_limit
+  nat_pref simp_trace_depth_limit_default
     "trace-simplifier-depth"
     "Trace simplifier depth limit.",
   bool_pref trace_rules

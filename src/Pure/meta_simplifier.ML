@@ -16,7 +16,9 @@ sig
   val simp_trace: bool Config.T
   val simp_trace_raw: Config.raw
   val simp_trace_default: bool Unsynchronized.ref
-  val simp_trace_depth_limit: int Unsynchronized.ref
+  val simp_trace_depth_limit: int Config.T
+  val simp_trace_depth_limit_raw: Config.raw
+  val simp_trace_depth_limit_default: int Unsynchronized.ref
   type rrule
   val eq_rrule: rrule * rrule -> bool
   type simpset
@@ -253,10 +255,16 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
 val simp_depth_limit_raw = Config.declare "simp_depth_limit" (K (Config.Int 100));
 val simp_depth_limit = Config.int simp_depth_limit_raw;
 
-val simp_trace_depth_limit = Unsynchronized.ref 1;
+val simp_trace_depth_limit_default = Unsynchronized.ref 1;
+val simp_trace_depth_limit_raw = Config.declare "simp_trace_depth_limit"
+  (fn _ => Config.Int (! simp_trace_depth_limit_default));
+val simp_trace_depth_limit = Config.int simp_trace_depth_limit_raw;
 
-fun trace_depth (Simpset ({depth = (depth, exceeded), ...}, _)) msg =
-  if depth > ! simp_trace_depth_limit then
+fun simp_trace_depth_limit_of NONE = ! simp_trace_depth_limit_default
+  | simp_trace_depth_limit_of (SOME ctxt) = Config.get ctxt simp_trace_depth_limit;
+
+fun trace_depth (Simpset ({depth = (depth, exceeded), context, ...}, _)) msg =
+  if depth > simp_trace_depth_limit_of context then
     if ! exceeded then () else (tracing "simp_trace_depth_limit exceeded!"; exceeded := true)
   else
     (tracing (enclose "[" "]" (string_of_int depth) ^ msg); exceeded := false);
@@ -264,7 +272,7 @@ fun trace_depth (Simpset ({depth = (depth, exceeded), ...}, _)) msg =
 val inc_simp_depth = map_simpset1 (fn (rules, prems, bounds, (depth, exceeded), context) =>
   (rules, prems, bounds,
     (depth + 1,
-      if depth = ! simp_trace_depth_limit then Unsynchronized.ref false else exceeded), context));
+      if depth = simp_trace_depth_limit_of context then Unsynchronized.ref false else exceeded), context));
 
 fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
