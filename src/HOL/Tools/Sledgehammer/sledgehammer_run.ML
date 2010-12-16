@@ -26,7 +26,7 @@ open Sledgehammer_ATP_Translate
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 
-fun prover_description ctxt ({blocking, verbose, ...} : params) name num_facts i
+fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
                        n goal =
   quote name ^
   (if verbose then
@@ -41,7 +41,7 @@ fun prover_description ctxt ({blocking, verbose, ...} : params) name num_facts i
 
 val implicit_minimization_threshold = 50
 
-fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
+fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
                auto minimize_command only
                {state, goal, subgoal, subgoal_count, facts} name =
   let
@@ -118,7 +118,7 @@ fun run_prover (params as {blocking, debug, max_relevant, timeout, expect, ...})
 (* FUDGE *)
 val auto_max_relevant_divisor = 2
 
-fun run_sledgehammer (params as {blocking, debug, provers, type_sys,
+fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
                                  relevance_thresholds, max_relevant, ...})
                      auto i (relevance_override as {only, ...}) minimize_command
                      state =

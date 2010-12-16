@@ -75,10 +75,10 @@ val _ =
 type raw_param = string * string list
 
 val default_default_params =
-  [("blocking", "false"),
-   ("debug", "false"),
+  [("debug", "false"),
    ("verbose", "false"),
    ("overlord", "false"),
+   ("blocking", "false"),
    ("type_sys", "smart"),
    ("explicit_apply", "false"),
    ("relevance_thresholds", "0.45 0.85"),
@@ -91,10 +91,10 @@ val alias_params =
    ("atps", "provers"), (* FIXME: legacy *)
    ("atp", "provers")]  (* FIXME: legacy *)
 val negated_alias_params =
-  [("non_blocking", "blocking"),
-   ("no_debug", "debug"),
+  [("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
+   ("non_blocking", "blocking"),
    ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
    ("no_isar_proof", "isar_proof")]
@@ -219,10 +219,10 @@ fun extract_params auto default_params override_params =
       case lookup name of
         SOME "smart" => NONE
       | _ => SOME (lookup_int name)
-    val blocking = auto orelse lookup_bool "blocking"
     val debug = not auto andalso lookup_bool "debug"
     val verbose = debug orelse (not auto andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
+    val blocking = auto orelse debug orelse lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
     val type_sys =
@@ -244,7 +244,7 @@ fun extract_params auto default_params override_params =
     val timeout = (if auto then NONE else lookup_time "timeout") |> the_timeout
     val expect = lookup_string "expect"
   in
-    {blocking = blocking, debug = debug, verbose = verbose, overlord = overlord,
+    {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, type_sys = type_sys, explicit_apply = explicit_apply,
      relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
      isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,

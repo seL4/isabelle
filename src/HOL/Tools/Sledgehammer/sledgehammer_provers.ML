@@ -16,10 +16,10 @@ sig
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
 
   type params =
-    {blocking: bool,
-     debug: bool,
+    {debug: bool,
      verbose: bool,
      overlord: bool,
+     blocking: bool,
      provers: string list,
      type_sys: type_system,
      explicit_apply: bool,
@@ -214,10 +214,10 @@ val messages = Async_Manager.thread_messages das_Tool "prover"
 (** problems, results, ATPs, etc. **)
 
 type params =
-  {blocking: bool,
-   debug: bool,
+  {debug: bool,
    verbose: bool,
    overlord: bool,
+   blocking: bool,
    provers: string list,
    type_sys: type_system,
    explicit_apply: bool,

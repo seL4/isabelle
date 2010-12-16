@@ -552,11 +552,14 @@ empirically found to be appropriate for the prover. A typical value would be
 
 \opfalse{verbose}{quiet}
 Specifies whether the \textbf{sledgehammer} command should explain what it does.
+This option is implicitly disabled for automatic runs.
 
 \opfalse{debug}{no\_debug}
 Specifies whether Sledgehammer should display additional debugging information
 beyond what \textit{verbose} already displays. Enabling \textit{debug} also
-enables \textit{verbose} behind the scenes.
+enables \textit{verbose} and \textit{blocking} (\S\ref{mode-of-operation})
+behind the scenes. The \textit{debug} option is implicitly disabled for
+automatic runs.
 
 \nopagebreak
 {\small See also \textit{overlord} (\S\ref{mode-of-operation}).}
