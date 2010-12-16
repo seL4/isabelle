@@ -80,7 +80,8 @@ begin
 ML {*
 val mtds = [
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"random\") \"random\",
-  MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"exhaustive\") \"exhaustive\"
+  MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"exhaustive\") \"exhaustive\",
+  MutabelleExtra.nitpick_mtd
 ]
 *}
 
@@ -108,11 +109,13 @@ end" > "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test.thy"
 # make statistics
 
 function count() {
-  cat "$MUTABELLE_OUTPUT_PATH/log" | grep "quickcheck_$1: $2" | wc -l
+  cat "$MUTABELLE_OUTPUT_PATH/log" | grep "$1: $2" | wc -l
 }
 
-echo "random      : C: $(count "random" "GenuineCex") N: $(count "random" "NoCex") \
-T: $(count "random" "Timeout") E: $(count "random" "Error")"
-echo "exhaustive  : C: $(count "exhaustive" "GenuineCex") N: $(count "exhaustive" "NoCex") \
-T: $(count "exhaustive" "Timeout") E: $(count "exhaustive" "Error")"
+echo "random      : C: $(count "quickcheck_random" "GenuineCex") N: $(count "quickcheck_random" "NoCex") \
+T: $(count "quickcheck_random" "Timeout") E: $(count "quickcheck_random" "Error")"
+echo "exhaustive  : C: $(count "quickcheck_exhaustive" "GenuineCex") N: $(count "quickcheck_exhaustive" "NoCex") \
+T: $(count "quickcheck_exhaustive" "Timeout") E: $(count "quickcheck_exhaustive" "Error")"
+echo "nitpick     : C: $(count "nitpick" "GenuineCex") N: $(count "nitpick" "NoCex") \
+T: $(count "nitpick" "Timeout") E: $(count "nitpick" "Error")"
 
