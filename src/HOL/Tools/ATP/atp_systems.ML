@@ -153,8 +153,9 @@ val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
    arguments = fn complete => fn timeout =>
-     ("--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
-      " --thanks Andrei --input_file")
+     (* This would work too but it's less tested: "--proof tptp " ^ *)
+     "--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
+     " --thanks \"Andrei and Krystof\" --input_file"
      |> not complete ? prefix "--sos on ",
    has_incomplete_mode = true,
    proof_delims =

@@ -100,11 +100,12 @@ fun string_for_failure prover Unprovable =
   | string_for_failure prover NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail prover
   | string_for_failure prover MalformedInput =
-    "The " ^ prover ^ " problem is malformed. Please report this to the Isabelle \
-    \developers."
+    "The " ^ prover ^ " problem is malformed. Please report this to the \
+    \Isabelle developers."
   | string_for_failure prover MalformedOutput =
     "The " ^ prover ^ " output is malformed."
-  | string_for_failure prover Interrupted = "The " ^ prover ^ " was interrupted."
+  | string_for_failure prover Interrupted =
+    "The " ^ prover ^ " was interrupted."
   | string_for_failure prover Crashed = "The " ^ prover ^ " crashed."
   | string_for_failure prover InternalError =
     "An internal " ^ prover ^ " error occurred."
@@ -216,9 +217,9 @@ fun parse_vampire_detritus x =
 
 fun parse_term x =
   (scan_general_id
-    -- Scan.optional ($$ "(" |-- (parse_vampire_detritus || parse_terms)
-                      --| $$ ")") []
-    --| Scan.optional ($$ "(" |-- parse_vampire_detritus --| $$ ")") []
+     -- Scan.optional ($$ "(" |-- (parse_vampire_detritus || parse_terms)
+                       --| $$ ")") []
+     --| Scan.optional ($$ "(" |-- parse_vampire_detritus --| $$ ")") []
    >> ATerm) x
 and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
@@ -253,6 +254,8 @@ val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_annotation false
                  --| Scan.option ($$ "," |-- parse_annotations false)) []
 
+val vampire_unknown_fact = "unknown"
+
 (* Syntax: (fof|cnf)\(<num>, <formula_role>, <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
 val parse_tstp_line =
@@ -263,7 +266,8 @@ val parse_tstp_line =
           let
             val (name, deps) =
               case deps of
-                ["file", _, s] => ((num, SOME s), [])
+                ["file", _, s] =>
+                ((num, if s = vampire_unknown_fact then NONE else SOME s), [])
               | _ => ((num, NONE), deps)
           in
             case role of
@@ -282,12 +286,15 @@ val parse_tstp_line =
 
 val parse_vampire_braced_stuff =
   $$ "{" -- Scan.repeat (scan_general_id --| Scan.option ($$ ",")) -- $$ "}"
-  -- Scan.option ($$ "(" |-- parse_vampire_detritus --| $$ ")")
+val parse_vampire_parenthesized_detritus =
+  $$ "(" |-- parse_vampire_detritus --| $$ ")"
 
 (* Syntax: <num>. <formula> <annotation> *)
 val parse_vampire_line =
   scan_general_id --| $$ "." -- parse_formula
-    --| Scan.option parse_vampire_braced_stuff -- parse_annotation true
+    --| Scan.option parse_vampire_braced_stuff
+    --| Scan.option parse_vampire_parenthesized_detritus
+    -- parse_annotation true
   >> (fn ((num, phi), deps) =>
          Inference ((num, NONE), phi, map (rpair NONE) deps))
 

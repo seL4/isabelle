@@ -144,6 +144,8 @@ fun minimize_line _ [] = ""
       "\nTo minimize the number of lemmas, try this: " ^
       Markup.markup Markup.sendback command ^ "."
 
+val vampire_fact_prefix = "f" (* grrr... *)
+
 fun resolve_fact fact_names ((_, SOME s)) =
     (case strip_prefix_and_unascii fact_prefix s of
        SOME s' => (case find_first_in_list_vector fact_names s' of
@@ -151,7 +153,7 @@ fun resolve_fact fact_names ((_, SOME s)) =
                    | NONE => [])
      | NONE => [])
   | resolve_fact fact_names (num, NONE) =
-    case Int.fromString num of
+    case Int.fromString (perhaps (try (unprefix vampire_fact_prefix)) num) of
       SOME j =>
       if j > 0 andalso j <= Vector.length fact_names then
         Vector.sub (fact_names, j - 1)
