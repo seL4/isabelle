@@ -155,7 +155,7 @@ fun string_for_term ctxt t =
 
 (** Structural induction rules **)
 
-fun induct_rule_on th =
+fun struct_induct_rule_on th =
   case Logic.strip_horn (prop_of th) of
     (prems, @{const Trueprop}
             $ ((p as Var ((p_name, 0), _)) $ (a as Var (_, ind_T)))) =>
@@ -187,7 +187,7 @@ fun type_match thy (T1, T2) =
   handle Type.TYPE_MATCH => false
 
 fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, (_, th))) =
-  case induct_rule_on th of
+  case struct_induct_rule_on th of
     SOME (p_name, ind_T) =>
     let val thy = ProofContext.theory_of ctxt in
       stmt_xs |> filter (fn (_, T) => type_match thy (T, ind_T))
@@ -335,17 +335,16 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
-fun theory_const_prop_of ({theory_const_rel_weight,
-                           theory_const_irrel_weight, ...} : relevance_fudge)
-                         th =
+fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...}
+                     : relevance_fudge) thy_name t =
   if exists (curry (op <) 0.0) [theory_const_rel_weight,
                                 theory_const_irrel_weight] then
-    let
-      val name = Context.theory_name (theory_of_thm th)
-      val t = Const (name ^ theory_const_suffix, @{typ bool})
-    in t $ prop_of th end
+    Const (thy_name ^ theory_const_suffix, @{typ bool}) $ t
   else
-    prop_of th
+    t
+
+fun theory_const_prop_of fudge th =
+  theory_constify fudge (Context.theory_name (theory_of_thm th)) (prop_of th)
 
 (**** Constant / Type Frequencies ****)
 
@@ -875,6 +874,7 @@ fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
                    max_relevant is_built_in_const fudge
                    (override as {add, only, ...}) chained_ths hyp_ts concl_t =
   let
+    val thy = ProofContext.theory_of ctxt
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
                           1.0 / Real.fromInt (max_relevant + 1))
     val add_ths = Attrib.eval_thms ctxt add
@@ -901,8 +901,9 @@ fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
              max_relevant = 0 then
        []
      else
-       relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
-                        fudge override facts (concl_t :: hyp_ts))
+       ((concl_t |> theory_constify fudge (Context.theory_name thy)) :: hyp_ts)
+       |> relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
+                           fudge override facts)
     |> map (apfst (apfst (fn f => f ())))
   end
 
