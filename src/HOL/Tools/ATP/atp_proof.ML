@@ -281,7 +281,7 @@ val parse_tstp_line =
 (**** PARSING OF VAMPIRE OUTPUT ****)
 
 val parse_vampire_braced_stuff =
-  $$ "{" -- scan_general_id -- $$ "}"
+  $$ "{" -- Scan.repeat (scan_general_id --| Scan.option ($$ ",")) -- $$ "}"
   -- Scan.option ($$ "(" |-- parse_vampire_detritus --| $$ ")")
 
 (* Syntax: <num>. <formula> <annotation> *)
