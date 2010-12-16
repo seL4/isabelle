@@ -346,7 +346,6 @@ datatype sh_result =
 fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
-    val thy = ProofContext.theory_of ctxt
     val i = 1
     fun change_dir (SOME dir) = Config.put Sledgehammer_Provers.dest_dir dir
       | change_dir NONE = I
@@ -538,8 +537,6 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
       val named_thms =
         Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
       val ctxt = Proof.context_of pre
-      val (prover_name, _) = get_prover ctxt args
-      val type_sys = AList.lookup (op =) args type_sysK |> the_default "smart"
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
       val trivial =
