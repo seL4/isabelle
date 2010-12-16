@@ -404,7 +404,7 @@ fun expr k =
 val rule_arg = id
   (* if this is modified, then 'th_lemma_arg' needs reviewing *)
 
-val th_lemma_arg = Scan.unless (sep rule_arg >> K "" || $$ rbra) (sep name)
+fun th_lemma_arg st = Scan.unless (sep rule_arg >> K "" || $$ rbra) (sep name) st
 
 fun rule_name st = ((name >> `(Symtab.lookup rule_names)) :|-- (fn 
     (SOME (Th_Lemma _), _) => Scan.repeat th_lemma_arg >> Th_Lemma
