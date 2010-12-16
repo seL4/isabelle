@@ -433,25 +433,25 @@ fun run_atp auto name
    ourselves. *)
 val remote_smt_failures =
   [(22, CantConnect),
-   (127, NoPerl),
    (2, NoLibwwwPerl)]
 val z3_failures =
   [(103, MalformedInput),
-   (110, MalformedInput)]
+   (110, MalformedInput),
+   (127, NoPerl)] (* can occur with "z3_wrapper", written in Perl *)
 val unix_failures =
   [(139, Crashed)]
-val smt_failures = remote_smt_failures @ z3_failures @ unix_failures
 
 val internal_error_prefix = "Internal error: "
 
-fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
-  | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
-  | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
-    (case AList.lookup (op =) smt_failures code of
+fun failure_from_smt_failure _ (SMT_Failure.Counterexample _) = Unprovable
+  | failure_from_smt_failure _ SMT_Failure.Time_Out = TimedOut
+  | failure_from_smt_failure remote (SMT_Failure.Abnormal_Termination code) =
+    (case AList.lookup (op =) (z3_failures @ unix_failures
+                               |> remote ? append remote_smt_failures) code of
        SOME failure => failure
      | NONE => UnknownError)
-  | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
-  | failure_from_smt_failure (SMT_Failure.Other_Failure msg) =
+  | failure_from_smt_failure _ SMT_Failure.Out_Of_Memory = OutOfResources
+  | failure_from_smt_failure _ (SMT_Failure.Other_Failure msg) =
     if String.isPrefix internal_error_prefix msg then InternalError
     else UnknownError
 
@@ -603,7 +603,7 @@ fun run_smt_solver auto name (params as {debug, verbose, overlord, ...})
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop params remote state subgoal facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
-    val outcome = outcome |> Option.map failure_from_smt_failure
+    val outcome = outcome |> Option.map (failure_from_smt_failure remote)
     val message =
       case outcome of
         NONE =>
