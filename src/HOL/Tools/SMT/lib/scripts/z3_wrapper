@@ -29,12 +29,18 @@ close(ERR_FILE);
 print STDERR join("", @err_lines);
 
 if ($code != 0) {
-  foreach (@err_lines) {
-    if (m/[lL]ine ([0-9]+)/) {
+  foreach my $err_line (@err_lines) {
+    if ($err_line =~ /[lL]ine ([0-9]+)/) {
+      my $line_num = $1;
+
       open(IN_FILE, "<$in_file") || die "Cannot open file \"$in_file\"";
       my @in_lines = <IN_FILE>;
       close(IN_FILE);
-      delete $in_lines[$1 - 1];
+
+      $err_line =~ s/[\n\r]//g;
+      $in_lines[$line_num - 1] = ";;; " . $err_line . " -- "
+                                 . $in_lines[$line_num - 1];
+
       open(IN_FILE, ">$in_file") || die "Cannot open file \"$in_file\"";
       print IN_FILE join ("", @in_lines);
       close(IN_FILE);
