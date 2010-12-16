@@ -24,13 +24,13 @@ sig
   val all: code_graph -> string list
   val pretty: theory -> code_graph -> Pretty.T
   val obtain: bool -> theory -> string list -> term list -> code_algebra * code_graph
-  val dynamic_eval_conv: theory
+  val dynamic_conv: theory
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
-  val dynamic_eval_value: theory -> ((term -> term) -> 'a -> 'a)
+  val dynamic_value: theory -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
-  val static_eval_conv: theory -> string list
+  val static_conv: theory -> string list
     -> (code_algebra -> code_graph -> theory -> (string * sort) list -> term -> conv) -> conv
-  val static_eval_value: theory -> ((term -> term) -> 'a -> 'a) -> string list
+  val static_value: theory -> ((term -> term) -> 'a -> 'a) -> string list
     -> (code_algebra -> code_graph -> theory -> (string * sort) list -> term -> 'a) -> term -> 'a
 
   val setup: theory -> theory
@@ -457,7 +457,7 @@ fun obtain ignore_cache thy consts ts = apsnd snd
 
 fun dest_cterm ct = let val t = Thm.term_of ct in (Term.add_tfrees t [], t) end;
 
-fun dynamic_eval_conv thy conv = no_variables_conv (fn ct =>
+fun dynamic_conv thy conv = no_variables_conv (fn ct =>
   let
     val thm1 = preprocess_conv thy ct;
     val ct' = Thm.rhs_of thm1;
@@ -473,7 +473,7 @@ fun dynamic_eval_conv thy conv = no_variables_conv (fn ct =>
       ^ (cat_lines o map (Display.string_of_thm_global thy)) [thm1, thm2, thm3])
   end);
 
-fun dynamic_eval_value thy postproc evaluator t =
+fun dynamic_value thy postproc evaluator t =
   let
     val (resubst, t') = preprocess_term thy t;
     val vs' = Term.add_tfrees t' [];
@@ -486,7 +486,7 @@ fun dynamic_eval_value thy postproc evaluator t =
     |> postproc (postprocess_term thy o resubst)
   end;
 
-fun static_eval_conv thy consts conv =
+fun static_conv thy consts conv =
   let
     val (algebra, eqngr) = obtain true thy consts [];
     val conv' = conv algebra eqngr;
@@ -496,7 +496,7 @@ fun static_eval_conv thy consts conv =
       then_conv (postprocess_conv thy)))
   end;
 
-fun static_eval_value thy postproc consts evaluator =
+fun static_value thy postproc consts evaluator =
   let
     val (algebra, eqngr) = obtain true thy consts [];
     val evaluator' = evaluator algebra eqngr;

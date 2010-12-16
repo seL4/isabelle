@@ -174,15 +174,15 @@ text {*
     & plain evaluation & & & \ttsize@{ML "Code_Evaluation.dynamic_value"} \tabularnewline \cline{2-5}
     & evaluation method & @{method code_simp} & @{method normalization} & @{method eval} \tabularnewline
     & property conversion & & & \ttsize@{ML "Code_Runtime.dynamic_holds_conv"} \tabularnewline \cline{2-5}
-    & conversion & \ttsize@{ML "Code_Simp.dynamic_eval_conv"} & \ttsize@{ML "Nbe.dynamic_eval_conv"}
-      & \ttsize@{ML "Code_Evaluation.dynamic_eval_conv"} \tabularnewline \hline \hline
+    & conversion & \ttsize@{ML "Code_Simp.dynamic_conv"} & \ttsize@{ML "Nbe.dynamic_conv"}
+      & \ttsize@{ML "Code_Evaluation.dynamic_conv"} \tabularnewline \hline \hline
     \multirow{3}{1ex}{\rotatebox{90}{static}}
-      & plain evaluation & & & \ttsize@{ML "Code_Evaluation.static_value"} \tabularnewline \cline{2-5}
+    & plain evaluation & & & \ttsize@{ML "Code_Evaluation.static_value"} \tabularnewline \cline{2-5}
     & property conversion & &
       & \ttsize@{ML "Code_Runtime.static_holds_conv"} \tabularnewline \cline{2-5}
-    & conversion & \ttsize@{ML "Code_Simp.static_eval_conv"}
-      & \ttsize@{ML "Nbe.static_eval_conv"}
-      & \ttsize@{ML "Code_Evaluation.static_eval_conv"}
+    & conversion & \ttsize@{ML "Code_Simp.static_conv"}
+      & \ttsize@{ML "Nbe.static_conv"}
+      & \ttsize@{ML "Code_Evaluation.static_conv"}
   \end{tabular}
 *}
 
