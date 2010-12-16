@@ -51,7 +51,7 @@ sig
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
   (* for experimentation purposes -- do not use in production code *)
-  val smt_max_iter : int Unsynchronized.ref
+  val smt_max_iters : int Unsynchronized.ref
   val smt_iter_fact_frac : real Unsynchronized.ref
   val smt_iter_time_frac : real Unsynchronized.ref
   val smt_iter_min_msecs : int Unsynchronized.ref
@@ -431,32 +431,40 @@ fun run_atp auto name
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
    these are sorted out properly in the SMT module, we have to interpret these
    ourselves. *)
+val perl_failures =
+  [(127, NoPerl)]
 val remote_smt_failures =
   [(22, CantConnect),
    (2, NoLibwwwPerl)]
+val z3_wrapper_failures =
+  [(10, NoRealZ3),
+   (11, InternalError),
+   (12, InternalError),
+   (13, InternalError)]
 val z3_failures =
   [(103, MalformedInput),
-   (110, MalformedInput),
-   (127, NoPerl)] (* can occur with "z3_wrapper", written in Perl *)
+   (110, MalformedInput)]
 val unix_failures =
   [(139, Crashed)]
+val smt_failures =
+  perl_failures @ remote_smt_failures @ z3_wrapper_failures @ z3_failures @
+  unix_failures
 
 val internal_error_prefix = "Internal error: "
 
-fun failure_from_smt_failure _ (SMT_Failure.Counterexample _) = Unprovable
-  | failure_from_smt_failure _ SMT_Failure.Time_Out = TimedOut
-  | failure_from_smt_failure remote (SMT_Failure.Abnormal_Termination code) =
-    (case AList.lookup (op =) (z3_failures @ unix_failures
-                               |> remote ? append remote_smt_failures) code of
+fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
+  | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
+  | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
+    (case AList.lookup (op =) smt_failures code of
        SOME failure => failure
      | NONE => UnknownError)
-  | failure_from_smt_failure _ SMT_Failure.Out_Of_Memory = OutOfResources
-  | failure_from_smt_failure _ (SMT_Failure.Other_Failure msg) =
+  | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
+  | failure_from_smt_failure (SMT_Failure.Other_Failure msg) =
     if String.isPrefix internal_error_prefix msg then InternalError
     else UnknownError
 
 (* FUDGE *)
-val smt_max_iter = Unsynchronized.ref 8
+val smt_max_iters = Unsynchronized.ref 8
 val smt_iter_fact_frac = Unsynchronized.ref 0.5
 val smt_iter_time_frac = Unsynchronized.ref 0.5
 val smt_iter_min_msecs = Unsynchronized.ref 5000
@@ -470,7 +478,7 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
         val timer = Timer.startRealTimer ()
         val ms = timeout |> Time.toMilliseconds
         val iter_timeout =
-          if iter_num < !smt_max_iter then
+          if iter_num < !smt_max_iters then
             Int.min (ms,
                 Int.max (!smt_iter_min_msecs,
                     Real.ceil (!smt_iter_time_frac * Real.fromInt ms)))
@@ -525,7 +533,7 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
           | SOME (SMT_Failure.Other_Failure _) => true
         val timeout = Time.- (timeout, Timer.checkRealTimer timer)
       in
-        if too_many_facts_perhaps andalso iter_num < !smt_max_iter andalso
+        if too_many_facts_perhaps andalso iter_num < !smt_max_iters andalso
            num_facts > 0 andalso Time.> (timeout, Time.zeroTime) then
           let
             val n = Real.ceil (!smt_iter_fact_frac * Real.fromInt num_facts)
@@ -603,7 +611,7 @@ fun run_smt_solver auto name (params as {debug, verbose, overlord, ...})
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop params remote state subgoal facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
-    val outcome = outcome |> Option.map (failure_from_smt_failure remote)
+    val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
       case outcome of
         NONE =>

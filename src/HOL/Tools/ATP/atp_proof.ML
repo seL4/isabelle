@@ -14,8 +14,8 @@ sig
   datatype failure =
     Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
     OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
-    MalformedInput | MalformedOutput | Interrupted | Crashed | InternalError |
-    UnknownError
+    NoRealZ3 | MalformedInput | MalformedOutput | Interrupted | Crashed |
+    InternalError | UnknownError
 
   type step_name = string * string option
 
@@ -47,8 +47,9 @@ open ATP_Problem
 
 datatype failure =
   Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
-  SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl | MalformedInput |
-  MalformedOutput | Interrupted | Crashed | InternalError | UnknownError
+  SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl | NoRealZ3 |
+  MalformedInput | MalformedOutput | Interrupted | Crashed | InternalError |
+  UnknownError
 
 fun strip_spaces_in_list _ [] = []
   | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
@@ -99,6 +100,8 @@ fun string_for_failure prover Unprovable =
   | string_for_failure prover NoPerl = "Perl" ^ missing_message_tail prover
   | string_for_failure prover NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail prover
+  | string_for_failure prover NoRealZ3 =
+    "The environment variable \"Z3_REAL_SOLVER\" must be set to Z3's full path."
   | string_for_failure prover MalformedInput =
     "The " ^ prover ^ " problem is malformed. Please report this to the \
     \Isabelle developers."
