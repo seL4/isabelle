@@ -27,9 +27,10 @@ val try_mtd : mtd
 (*
 val sledgehammer_mtd : mtd
 *)
+val nitpick_mtd : mtd
+
 (*
 val refute_mtd : mtd
-val nitpick_mtd : mtd
 *)
 
 val freezeT : term -> term
@@ -186,67 +187,26 @@ fun invoke_refute thy t =
 val refute_mtd = ("refute", invoke_refute)
 *)
 
-(*
-open Nitpick_Util
-open Nitpick_Rep
-open Nitpick_Nut
+(** nitpick **)
 
 fun invoke_nitpick thy t =
   let
     val ctxt = ProofContext.init_global thy
     val state = Proof.init ctxt
+    val (res, _) = Nitpick.pick_nits_in_term state
+      (Nitpick_Isar.default_params thy []) false 1 1 1 [] [] t
+    val _ = Output.urgent_message ("Nitpick: " ^ res)
   in
-    let
-      val (res, _) = Nitpick.pick_nits_in_term state (Nitpick_Isar.default_params thy []) false [] t
-      val _ = Output.urgent_message ("Nitpick: " ^ res)
-    in
-      case res of
-        "genuine" => GenuineCex
-      | "likely_genuine" => GenuineCex
-      | "potential" => PotentialCex
-      | "none" => NoCex
-      | "unknown" => Donno
-      | _ => Error
-    end
-    handle ARG (loc, details) =>
-           (error ("Bad argument(s) to " ^ quote loc ^ ": " ^ details ^ "."))
-         | BAD (loc, details) =>
-           (error ("Internal error (" ^ quote loc ^ "): " ^ details ^ "."))
-         | LIMIT (_, details) =>
-           (warning ("Limit reached: " ^ details ^ "."); Donno)
-         | NOT_SUPPORTED details =>
-           (warning ("Unsupported case: " ^ details ^ "."); Donno)
-         | NUT (loc, us) =>
-           (error ("Invalid nut" ^ plural_s_for_list us ^
-                   " (" ^ quote loc ^ "): " ^
-                  commas (map (string_for_nut ctxt) us) ^ "."))
-         | REP (loc, Rs) =>
-           (error ("Invalid representation" ^ plural_s_for_list Rs ^
-                   " (" ^ quote loc ^ "): " ^
-                   commas (map string_for_rep Rs) ^ "."))
-         | TERM (loc, ts) =>
-           (error ("Invalid term" ^ plural_s_for_list ts ^
-                   " (" ^ quote loc ^ "): " ^
-                   commas (map (Syntax.string_of_term ctxt) ts) ^ "."))
-         | TYPE (loc, Ts, ts) =>
-           (error ("Invalid type" ^ plural_s_for_list Ts ^
-                   (if null ts then
-                      ""
-                    else
-                      " for term" ^ plural_s_for_list ts ^ " " ^
-                      commas (map (quote o Syntax.string_of_term ctxt) ts)) ^
-                   " (" ^ quote loc ^ "): " ^
-                   commas (map (Syntax.string_of_typ ctxt) Ts) ^ "."))
-         | Kodkod.SYNTAX (_, details) =>
-           (warning ("Ill-formed Kodkodi output: " ^ details ^ "."); Error)
-         | Refute.REFUTE (loc, details) =>
-           (error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^
-                   "."))
-         | Exn.Interrupt => raise Exn.Interrupt  (* FIXME violates Isabelle/ML exception model *)
-         | _ => (Output.urgent_message ("Unknown error in Nitpick"); Error)
+    rpair ([], NONE) (case res of
+      "genuine" => GenuineCex
+    | "likely_genuine" => GenuineCex
+    | "potential" => PotentialCex
+    | "none" => NoCex
+    | "unknown" => Donno
+    | _ => Error)
   end
+
 val nitpick_mtd = ("nitpick", invoke_nitpick)
-*)
 
 (* filtering forbidden theorems and mutants *)
 
