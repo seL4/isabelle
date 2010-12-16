@@ -442,6 +442,8 @@ val unix_failures =
   [(139, Crashed)]
 val smt_failures = remote_smt_failures @ z3_failures @ unix_failures
 
+val internal_error_prefix = "Internal error: "
+
 fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
   | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
   | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
@@ -449,7 +451,9 @@ fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
        SOME failure => failure
      | NONE => UnknownError)
   | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
-  | failure_from_smt_failure _ = UnknownError
+  | failure_from_smt_failure (SMT_Failure.Other_Failure msg) =
+    if String.isPrefix internal_error_prefix msg then InternalError
+    else UnknownError
 
 (* FUDGE *)
 val smt_max_iter = Unsynchronized.ref 8
@@ -487,8 +491,14 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
             Output.urgent_message "Invoking SMT solver..."
           else
             ()
-        val {outcome, used_facts, ...} =
+        val (outcome, used_facts) =
           SMT_Solver.smt_filter remote iter_timeout state facts i
+          |> (fn {outcome, used_facts, ...} => (outcome, used_facts))
+          handle exn => if Exn.is_interrupt exn then
+                          reraise exn
+                        else
+                          (internal_error_prefix ^ ML_Compiler.exn_message exn
+                           |> SMT_Failure.Other_Failure |> SOME, [])
         val death = Timer.checkRealTimer timer
         val _ =
           if verbose andalso is_some outcome then
