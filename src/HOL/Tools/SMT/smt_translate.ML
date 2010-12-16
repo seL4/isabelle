@@ -202,7 +202,12 @@ local
 
   fun expf t i T ts =
     let val Ts = U.dest_funT i T |> fst |> drop (length ts)
-    in Term.list_comb (t, ts) |> fold_rev eta Ts end
+    in
+      Term.list_comb (t, ts)
+      |> Term.incr_boundvars (length Ts)
+      |> fold_index (fn (i, _) => fn u => u $ Bound i) Ts
+      |> fold_rev (fn T => fn u => Abs (Name.uu, T, u)) Ts
+    end
 
   fun expand ((q as Const (@{const_name All}, _)) $ Abs a) = q $ abs_expand a
     | expand ((q as Const (@{const_name All}, T)) $ t) = q $ exp T t
