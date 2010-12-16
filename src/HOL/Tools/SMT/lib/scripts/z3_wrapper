@@ -10,29 +10,25 @@
 #
 # in your "~/.isabelle/etc/settings" file.
 
+use strict;
+use warnings;
 use POSIX;
 
-my $in_file = @ARGV[$ARGV - 1];
+my $in_file = $ARGV[$#ARGV - 1];
 my $out_file = tmpnam();
 my $err_file = tmpnam();
-
-print ;
 
 $ENV{'Z3_REAL_SOLVER'} || die "Environment variable \"Z3_REAL_SOLVER\" not set";
 
 RUN:
 my $code = system $ENV{'Z3_REAL_SOLVER'} . " " . join(" ", @ARGV) . " >$out_file 2>$err_file";
 
-if ($code == 0) {
-  open(OUT_FILE, "<$out_file") || die "Cannot open file \"$out_file\"";
-  my @out_lines = <OUT_FILE>;
-  close(OUT_FILE);
-  print @out_lines;
-} else {
-  open(ERR_FILE, "<$err_file") || die "Cannot open file \"$err_file\"";
-  my @err_lines = <ERR_FILE>;
-  close(ERR_FILE);
-  print STDERR @err_lines;
+open(ERR_FILE, "<$err_file") || die "Cannot open file \"$err_file\"";
+my @err_lines = <ERR_FILE>;
+close(ERR_FILE);
+print STDERR join("", @err_lines);
+
+if ($code != 0) {
   foreach (@err_lines) {
     if (m/[lL]ine ([0-9]+)/) {
       open(IN_FILE, "<$in_file") || die "Cannot open file \"$in_file\"";
@@ -46,6 +42,11 @@ if ($code == 0) {
     }
   }
 }
+
+open(OUT_FILE, "<$out_file") || die "Cannot open file \"$out_file\"";
+my @out_lines = <OUT_FILE>;
+close(OUT_FILE);
+print join("", @out_lines);
 
 unlink($out_file);
 unlink($err_file);
