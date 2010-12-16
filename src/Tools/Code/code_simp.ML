@@ -8,10 +8,10 @@ signature CODE_SIMP =
 sig
   val map_ss: (simpset -> simpset) -> theory -> theory
   val dynamic_conv: conv
-  val dynamic_eval_tac: theory -> int -> tactic
+  val dynamic_tac: theory -> int -> tactic
   val dynamic_value: theory -> term -> term
   val static_conv: theory -> simpset option -> string list -> conv
-  val static_eval_tac: theory -> simpset option -> string list -> int -> tactic
+  val static_tac: theory -> simpset option -> string list -> int -> tactic
   val setup: theory -> theory
 end;
 
@@ -54,12 +54,12 @@ fun conclude_tac thy some_ss = Simplifier.full_simp_tac (simpset_default thy som
 val dynamic_conv = Conv.tap_thy (fn thy => Code_Thingol.dynamic_conv thy
   (fn naming => fn program => fn t => fn deps => rewrite_modulo thy NONE program));
 
-fun dynamic_eval_tac thy = CONVERSION dynamic_conv THEN' conclude_tac thy NONE;
+fun dynamic_tac thy = CONVERSION dynamic_conv THEN' conclude_tac thy NONE;
 
 fun dynamic_value thy = snd o Logic.dest_equals o Thm.prop_of o dynamic_conv o Thm.cterm_of thy;
 
 val setup = Method.setup (Binding.name "code_simp")
-  (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_eval_tac o ProofContext.theory_of)))
+  (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_tac o ProofContext.theory_of)))
   "simplification with code equations"
   #> Value.add_evaluator ("simp", dynamic_value o ProofContext.theory_of);
 
@@ -70,7 +70,7 @@ fun static_conv thy some_ss consts =
   Code_Thingol.static_conv_simple thy consts
     (fn program => fn thy => fn _ => fn _ => rewrite_modulo thy some_ss program);
 
-fun static_eval_tac thy some_ss consts = CONVERSION (static_conv thy some_ss consts)
+fun static_tac thy some_ss consts = CONVERSION (static_conv thy some_ss consts)
   THEN' conclude_tac thy some_ss;
 
 end;
