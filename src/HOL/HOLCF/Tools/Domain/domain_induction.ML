@@ -58,7 +58,7 @@ let
   fun prove_take_apps
       ((dbind, take_const), constr_info) thy =
     let
-      val {iso_info, con_specs, con_betas, ...} = constr_info
+      val {iso_info, con_specs, con_betas, ...} : Domain_Constructors.constr_info = constr_info
       val {abs_inverse, ...} = iso_info
       fun prove_take_app (con_const, args) =
         let
@@ -220,7 +220,7 @@ let
       val bottoms =
           if length dnames = 1 then ["bottom"] else
           map (fn s => "bottom_" ^ Long_Name.base_name s) dnames
-      fun one_eq bot constr_info =
+      fun one_eq bot (constr_info : Domain_Constructors.constr_info) =
         let fun name_of (c, args) = Long_Name.base_name (fst (dest_Const c))
         in bot :: map name_of (#con_specs constr_info) end
     in adms @ flat (map2 one_eq bottoms constr_infos) end
