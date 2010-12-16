@@ -14,16 +14,16 @@ use strict;
 use warnings;
 use POSIX;
 
-my $in_file = $ARGV[$#ARGV - 1];
+my $in_file = $ARGV[$#ARGV];
 my $out_file = tmpnam();
 my $err_file = tmpnam();
 
-$ENV{'Z3_REAL_SOLVER'} || die "Environment variable \"Z3_REAL_SOLVER\" not set";
+$ENV{'Z3_REAL_SOLVER'} || exit 10;
 
 RUN:
 my $code = system $ENV{'Z3_REAL_SOLVER'} . " " . join(" ", @ARGV) . " >$out_file 2>$err_file";
 
-open(ERR_FILE, "<$err_file") || die "Cannot open file \"$err_file\"";
+open(ERR_FILE, "<$err_file") || exit 11;
 my @err_lines = <ERR_FILE>;
 close(ERR_FILE);
 print STDERR join("", @err_lines);
@@ -33,7 +33,7 @@ if ($code != 0) {
     if ($err_line =~ /[lL]ine ([0-9]+)/) {
       my $line_num = $1;
 
-      open(IN_FILE, "<$in_file") || die "Cannot open file \"$in_file\"";
+      open(IN_FILE, "<$in_file") || exit 12;
       my @in_lines = <IN_FILE>;
       close(IN_FILE);
 
@@ -41,7 +41,7 @@ if ($code != 0) {
       $in_lines[$line_num - 1] = ";;; " . $err_line . " -- "
                                  . $in_lines[$line_num - 1];
 
-      open(IN_FILE, ">$in_file") || die "Cannot open file \"$in_file\"";
+      open(IN_FILE, ">$in_file") || exit 13;
       print IN_FILE join ("", @in_lines);
       close(IN_FILE);
       goto RUN;
@@ -49,11 +49,11 @@ if ($code != 0) {
   }
 }
 
-open(OUT_FILE, "<$out_file") || die "Cannot open file \"$out_file\"";
+open(OUT_FILE, "<$out_file") || exit 14;
 my @out_lines = <OUT_FILE>;
 close(OUT_FILE);
 print join("", @out_lines);
 
 unlink($out_file);
 unlink($err_file);
-exit $code;
+exit(($code >> 8 | $code) & 0xff);
