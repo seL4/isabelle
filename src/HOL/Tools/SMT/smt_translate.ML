@@ -254,16 +254,18 @@ local
       val T = Term.fastype_of1 (Us @ Ts, t)
       val lev = length Us
       val bs = sort int_ord (Term.add_loose_bnos (t, lev, []))
-      val bss = map_index (fn (i, j) => (j, Integer.add lev i)) bs
+      val bss = map_index (fn (i, j) => (j + lev, i + lev)) bs
       val norm = perhaps (AList.lookup (op =) bss)
       val t' = Term.map_aterms (fn Bound i => Bound (norm i) | t => t) t
       val Ts' = map (nth Ts) bs
 
       fun mk_abs U u = Abs (Name.uu, U, u)
       val abs_rhs = fold mk_abs Ts' (fold mk_abs Us t')
+
+      fun app f = Term.list_comb (f, map Bound bs)
     in
       (case Termtab.lookup defs abs_rhs of
-        SOME (f, _) => (Term.list_comb (f, map Bound bs), cx)
+        SOME (f, _) => (app f, cx)
       | NONE =>
           let
             val (n, ctxt') =
@@ -275,7 +277,7 @@ local
               |> fold_rev (mk_bapp o snd) bss
               |> fold_rev mk_bapp (0 upto (length Us - 1))
             val def = mk_def (Us @ Ts') T lhs t'
-          in (f, (Termtab.update (abs_rhs, (f, def)) defs, ctxt')) end)
+          in (app f, (Termtab.update (abs_rhs, (f, def)) defs, ctxt')) end)
     end
 
   fun dest_abs Ts (Abs (_, T, t)) = dest_abs (T :: Ts) t
