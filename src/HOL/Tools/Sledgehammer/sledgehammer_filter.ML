@@ -167,7 +167,7 @@ fun struct_induct_rule_on th =
       NONE
   | _ => NONE
 
-fun instantiate_induct_rule ctxt concl_prop p_name ((name, loc), (multi, th))
+fun instantiate_induct_rule ctxt concl_prop p_name ((name, _), (multi, th))
                             ind_x =
   let
     fun varify_noninducts (t as Free (s, T)) =
@@ -178,7 +178,8 @@ fun instantiate_induct_rule ctxt concl_prop p_name ((name, loc), (multi, th))
                  |> lambda (Free ind_x)
                  |> string_for_term ctxt
   in
-    ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]", loc),
+    ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]",
+      Local),
      (multi, th |> read_instantiate ctxt [((p_name, 0), p_inst)]))
   end
 
@@ -269,6 +270,13 @@ fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
 
 fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
   let
+    (* Giving a penalty to Skolems is a good idea, but that penalty shouldn't
+       increase linearly with the number of Skolems in the fact. Hence, we
+       create equivalence classes of Skolems by reusing fresh Skolem names. *)
+    val skolem_cache = Unsynchronized.ref ""
+    fun get_skolem_name () =
+      (if !skolem_cache = "" then skolem_cache := gensym skolem_prefix else ();
+       !skolem_cache)
     val flip = Option.map not
     (* We include free variables, as well as constants, to handle locales. For
        each quantifiers that must necessarily be skolemized by the ATP, we
@@ -290,7 +298,7 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
       do_formula pos body_t
       #> (if also_skolems andalso will_surely_be_skolemized then
             add_pconst_to_table true
-                (gensym skolem_prefix, PType (order_of_type abs_T, []))
+                (get_skolem_name (), PType (order_of_type abs_T, []))
           else
             I)
     and do_term_or_formula T =
