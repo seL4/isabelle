@@ -1,0 +1,45 @@
+#!/usr/bin/env perl
+#
+# Author: Jasmin Blanchette, TU Muenchen
+#
+# Invoke Z3 with error detection and correction.
+# To use this wrapper, set
+#
+#     Z3_REAL_SOLVER=/path-to-z3/z3
+#     Z3_SOLVER=$ISABELLE_HOME/src/HOL/Tools/SMT/lib/scripts/z3_wrapper
+#
+# in your "~/.isabelle/etc/settings" file.
+
+my $in_file = @ARGV[$ARGV - 1];
+my $out_file = "/tmp/foo"; # FIXME
+my $err_file = "/tmp/bar"; # FIXME
+
+$ENV{'Z3_REAL_SOLVER'} || die "Environment variable \"Z3_REAL_SOLVER\" not set";
+
+RUN:
+my $code = system $ENV{'Z3_REAL_SOLVER'} . " " . join(" ", @ARGV) . " >$out_file 2>$err_file";
+
+if ($code == 0) {
+  open(OUT_FILE, "<$out_file") || die "Cannot open file \"$out_file\"";
+  my @out_lines = <OUT_FILE>;
+  close(OUT_FILE);
+  print @out_lines;
+} else {
+  open(ERR_FILE, "<$err_file") || die "Cannot open file \"$err_file\"";
+  my @err_lines = <ERR_FILE>;
+  close(ERR_FILE);
+  foreach (@err_lines) {
+    if (m/[lL]ine ([0-9]+)/) {
+      open(IN_FILE, "<$in_file") || die "Cannot open file \"$in_file\"";
+      my @in_lines = <IN_FILE>;
+      close(IN_FILE);
+      delete $in_lines[$1 - 1];
+      open(IN_FILE, ">$in_file") || die "Cannot open file \"$in_file\"";
+      print IN_FILE join ("", @in_lines);
+      close(IN_FILE);
+      goto RUN;
+    }
+  }
+  print STDERR @err_lines;
+  exit $code;
+}
