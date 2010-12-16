@@ -126,6 +126,75 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
     |> snd
   end
 
+(* This is a terrible hack. Free variables are sometimes code as "M__" when they
+   are displayed as "M" and we want to avoid clashes with these. But sometimes
+   it's even worse: "Ma__" encodes "M". So we simply reserve all prefixes of all
+   free variables. In the worse case scenario, where the fact won't be resolved
+   correctly, the user can fix it manually, e.g., by naming the fact in
+   question. Ideally we would need nothing of it, but backticks just don't work
+   with schematic variables. *)
+fun all_prefixes_of s =
+  map (fn i => String.extract (s, 0, SOME i)) (1 upto size s - 1)
+fun close_form t =
+  (t, [] |> Term.add_free_names t |> maps all_prefixes_of)
+  |> fold (fn ((s, i), T) => fn (t', taken) =>
+              let val s' = Name.variant taken s in
+                ((if fastype_of t' = HOLogic.boolT then HOLogic.all_const
+                  else Term.all) T
+                 $ Abs (s', T, abstract_over (Var ((s, i), T), t')),
+                 s' :: taken)
+              end)
+          (Term.add_vars t [] |> sort_wrt (fst o fst))
+  |> fst
+
+fun string_for_term ctxt t =
+  Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
+                   (print_mode_value ())) (Syntax.string_of_term ctxt) t
+  |> String.translate (fn c => if Char.isPrint c then str c else "")
+  |> simplify_spaces
+
+(** Structural induction rules **)
+
+fun induct_rule_on th =
+  case Logic.strip_horn (prop_of th) of
+    (prems, @{const Trueprop}
+            $ ((p as Var ((p_name, 0), _)) $ (a as Var (_, ind_T)))) =>
+    if not (is_TVar ind_T) andalso length prems > 1 andalso
+       exists (exists_subterm (curry (op aconv) p)) prems andalso
+       not (exists (exists_subterm (curry (op aconv) a)) prems) then
+      SOME (p_name, ind_T)
+    else
+      NONE
+  | _ => NONE
+
+fun instantiate_induct_rule ctxt concl_prop p_name ((name, loc), (multi, th))
+                            ind_x =
+  let
+    fun varify_noninducts (t as Free (s, T)) =
+        if (s, T) = ind_x orelse can dest_funT T then t else Var ((s, 0), T)
+      | varify_noninducts t = t
+    val p_inst =
+      concl_prop |> map_aterms varify_noninducts |> close_form
+                 |> lambda (Free ind_x)
+                 |> string_for_term ctxt
+  in
+    ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]", loc),
+     (multi, th |> read_instantiate ctxt [((p_name, 0), p_inst)]))
+  end
+
+fun type_match thy (T1, T2) =
+  (Sign.typ_match thy (T2, T1) Vartab.empty; true)
+  handle Type.TYPE_MATCH => false
+
+fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, (_, th))) =
+  case induct_rule_on th of
+    SOME (p_name, ind_T) =>
+    let val thy = ProofContext.theory_of ctxt in
+      stmt_xs |> filter (fn (_, T) => type_match thy (T, ind_T))
+              |> map_filter (try (instantiate_induct_rule ctxt stmt p_name ax))
+    end
+  | NONE => [ax]
+
 (***************************************************************)
 (* Relevance Filtering                                         *)
 (***************************************************************)
@@ -454,7 +523,6 @@ fun needs_ext is_built_in_const facts =
   fold (add_arities is_built_in_const o snd) facts (SOME Symtab.empty)
   |> is_none
 
-
 fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...})
         ({add, del, ...} : relevance_override) facts goal_ts =
@@ -574,9 +642,9 @@ fun uniquify xs = Termtab.fold (cons o snd) (mk_fact_table snd xs) []
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 val multi_base_blacklist =
-  ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
-   "split_asm", "cases", "ext_cases", "eq.simps", "eq.refl", "nchotomy",
-   "case_cong", "weak_case_cong"]
+  ["defs", "select_defs", "update_defs", "split", "splits", "split_asm",
+   "cases", "ext_cases", "eq.simps", "eq.refl", "nchotomy", "case_cong",
+   "weak_case_cong"]
   |> map (prefix ".")
 
 val max_lambda_nesting = 3
@@ -709,26 +777,6 @@ fun clasimpset_rules_of ctxt =
     val simps = ctxt |> simpset_of |> dest_ss |> #simps |> map snd
   in (mk_fact_table I intros, mk_fact_table I elims, mk_fact_table I simps) end
 
-fun all_prefixes_of s =
-  map (fn i => String.extract (s, 0, SOME i)) (1 upto size s - 1)
-
-(* This is a terrible hack. Free variables are sometimes code as "M__" when they
-   are displayed as "M" and we want to avoid clashes with these. But sometimes
-   it's even worse: "Ma__" encodes "M". So we simply reserve all prefixes of all
-   free variables. In the worse case scenario, where the fact won't be resolved
-   correctly, the user can fix it manually, e.g., by naming the fact in
-   question. Ideally we would need nothing of it, but backticks just don't work
-   with schematic variables. *)
-fun close_form t =
-  (t, [] |> Term.add_free_names t |> maps all_prefixes_of)
-  |> fold (fn ((s, i), T) => fn (t', taken) =>
-              let val s' = Name.variant taken s in
-                (Term.all T $ Abs (s', T, abstract_over (Var ((s, i), T), t')),
-                 s' :: taken)
-              end)
-          (Term.add_vars t [] |> sort_wrt (fst o fst))
-  |> fst
-
 fun all_facts ctxt reserved no_dangerous_types
               ({intro_bonus, elim_bonus, simp_bonus, ...} : relevance_fudge)
               add_ths chained_ths =
@@ -765,12 +813,8 @@ fun all_facts ctxt reserved no_dangerous_types
         else
           let
             val multi = length ths > 1
-            fun backquotify th =
-              "`" ^ Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
-                                             (print_mode_value ()))
-                   (Syntax.string_of_term ctxt) (close_form (prop_of th)) ^ "`"
-              |> String.translate (fn c => if Char.isPrint c then str c else "")
-              |> simplify_spaces
+            val backquotify =
+              enclose "`" "`" o string_for_term ctxt o close_form o prop_of
             fun check_thms a =
               case try (ProofContext.get_thms ctxt) a of
                 NONE => false
@@ -824,6 +868,9 @@ fun rearrange_facts ctxt respect_no_atp =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
+fun external_frees t =
+  [] |> Term.add_frees t |> filter_out (can Name.dest_internal o fst)
+
 fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
                    max_relevant is_built_in_const fudge
                    (override as {add, only, ...}) chained_ths hyp_ts concl_t =
@@ -832,12 +879,17 @@ fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
                           1.0 / Real.fromInt (max_relevant + 1))
     val add_ths = Attrib.eval_thms ctxt add
     val reserved = reserved_isar_keyword_table ()
+    val ind_stmt =
+      Logic.list_implies (hyp_ts |> filter_out (null o external_frees), concl_t)
+      |> atomize_term
+    val ind_stmt_xs = external_frees ind_stmt
     val facts =
       (if only then
          maps (map (fn ((name, loc), th) => ((K name, loc), (true, th)))
                o fact_from_ref ctxt reserved chained_ths) add
        else
          all_facts ctxt reserved no_dangerous_types fudge add_ths chained_ths)
+      |> maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
       |> rearrange_facts ctxt (respect_no_atp andalso not only)
       |> uniquify
   in

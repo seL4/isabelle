@@ -16,6 +16,7 @@ sig
   val unyxml : string -> string
   val maybe_quote : string -> string
   val monomorphic_term : Type.tyenv -> term -> term
+  val atomize_term : term -> term
   val eta_expand : typ list -> term -> int -> term
   val transform_elim_term : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
@@ -86,6 +87,21 @@ fun monomorphic_term subst t =
         SOME typ => typ
       | NONE => raise TERM ("monomorphic_term: uninstanitated schematic type \
                             \variable", [t]))) t
+
+(* "Object_Logic.atomize_term" isn't as powerful as it could be; for example,
+    it leaves metaequalities over "prop"s alone. *)
+val atomize_term =
+  let
+    fun aux (@{const Trueprop} $ t1) = t1
+      | aux (Const (@{const_name all}, _) $ Abs (s, T, t')) =
+        HOLogic.all_const T $ Abs (s, T, aux t')
+      | aux (@{const "==>"} $ t1 $ t2) = HOLogic.mk_imp (pairself aux (t1, t2))
+      | aux (Const (@{const_name "=="}, Type (_, [@{typ prop}, _])) $ t1 $ t2) =
+        HOLogic.eq_const HOLogic.boolT $ aux t1 $ aux t2
+      | aux (Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2) =
+        HOLogic.eq_const T $ t1 $ t2
+      | aux _ = raise Fail "aux"
+  in perhaps (try aux) end
 
 fun eta_expand _ t 0 = t
   | eta_expand Ts (Abs (s, T, t')) n =
