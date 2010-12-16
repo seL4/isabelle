@@ -536,7 +536,6 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
       val reconstructor = Unsynchronized.ref ""
       val named_thms =
         Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
-      val ctxt = Proof.context_of pre
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
       val trivial =
