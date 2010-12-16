@@ -76,12 +76,13 @@ fun incr_indexes ithms =
 
 (* search for necessary substitutions *)
 
-fun new_substitutions thy grounds (n, T) subst =
+fun new_substitutions thy limit grounds (n, T) subst =
   if not (typ_has_tvars T) then [subst]
   else
     Symtab.lookup_list grounds n
     |> map_filter (try (fn U => Sign.typ_match thy (T, U) subst))
     |> cons subst
+    |> take limit (* limit the breadth of the search as well as the width *)
 
 fun apply_subst grounds consts subst =
   let
@@ -97,11 +98,11 @@ fun apply_subst grounds consts subst =
       end
   in fold_map apply_const consts #>> pair subst end
 
-fun specialize thy all_grounds new_grounds scs =
+fun specialize thy limit all_grounds new_grounds scs =
   let
     fun spec (subst, consts) next_grounds =
       [subst]
-      |> fold (maps o new_substitutions thy new_grounds) consts
+      |> fold (maps o new_substitutions thy limit new_grounds) consts
       |> rpair next_grounds
       |-> fold_map (apply_subst all_grounds consts)
   in
@@ -115,7 +116,7 @@ fun search_substitutions ctxt limit all_grounds new_grounds scss =
   let
     val thy = ProofContext.theory_of ctxt
     val all_grounds' = Symtab.merge_list (op =) (all_grounds, new_grounds)
-    val spec = specialize thy all_grounds' new_grounds
+    val spec = specialize thy limit all_grounds' new_grounds
     val (scss', new_grounds') = fold_map spec scss Symtab.empty
   in
     if Symtab.is_empty new_grounds' then scss'
