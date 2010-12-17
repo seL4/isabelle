@@ -1,7 +1,7 @@
-(*  Title:      Pure/meta_simplifier.ML
+(*  Title:      Pure/raw_simplifier.ML
     Author:     Tobias Nipkow and Stefan Berghofer, TU Muenchen
 
-Meta-level Simplification.
+Higher-order Simplification.
 *)
 
 infix 4
@@ -9,16 +9,12 @@ infix 4
   setmksimps setmkcong setmksym setmkeqTrue settermless setsubgoaler
   setloop' setloop addloop addloop' delloop setSSolver addSSolver setSolver addSolver;
 
-signature BASIC_META_SIMPLIFIER =
+signature BASIC_RAW_SIMPLIFIER =
 sig
-  val simp_debug: bool Config.T
-  val simp_debug_raw: Config.raw
-  val simp_trace: bool Config.T
-  val simp_trace_raw: Config.raw
-  val simp_trace_default: bool Unsynchronized.ref
+  val simp_depth_limit: int Config.T
   val simp_trace_depth_limit: int Config.T
-  val simp_trace_depth_limit_raw: Config.raw
-  val simp_trace_depth_limit_default: int Unsynchronized.ref
+  val simp_debug: bool Config.T
+  val simp_trace: bool Config.T
   type rrule
   val eq_rrule: rrule * rrule -> bool
   type simpset
@@ -42,7 +38,6 @@ sig
   val make_simproc: {name: string, lhss: cterm list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} -> simproc
   val mk_simproc: string -> cterm list -> (theory -> simpset -> term -> thm option) -> simproc
-  val add_prems: thm list -> simpset -> simpset
   val prems_of_ss: simpset -> thm list
   val addsimps: simpset * thm list -> simpset
   val delsimps: simpset * thm list -> simpset
@@ -81,9 +76,9 @@ sig
   val norm_hhf_protect: thm -> thm
 end;
 
-signature META_SIMPLIFIER =
+signature RAW_SIMPLIFIER =
 sig
-  include BASIC_META_SIMPLIFIER
+  include BASIC_RAW_SIMPLIFIER
   exception SIMPLIFIER of string * thm
   val internal_ss: simpset ->
    {rules: rrule Net.net,
@@ -107,12 +102,17 @@ sig
   val del_simp: thm -> simpset -> simpset
   val solver: simpset -> solver -> int -> tactic
   val simp_depth_limit_raw: Config.raw
-  val simp_depth_limit: int Config.T
   val clear_ss: simpset -> simpset
   val simproc_global_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc_global: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
+  val simp_trace_depth_limit_raw: Config.raw
+  val simp_trace_depth_limit_default: int Unsynchronized.ref
+  val simp_trace_default: bool Unsynchronized.ref
+  val simp_trace_raw: Config.raw
+  val simp_debug_raw: Config.raw
+  val add_prems: thm list -> simpset -> simpset
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
@@ -133,7 +133,7 @@ sig
   val simplify: bool -> thm list -> thm -> thm
 end;
 
-structure MetaSimplifier: META_SIMPLIFIER =
+structure Raw_Simplifier: RAW_SIMPLIFIER =
 struct
 
 (** datatype simpset **)
@@ -1375,5 +1375,5 @@ end;
 
 end;
 
-structure Basic_Meta_Simplifier: BASIC_META_SIMPLIFIER = MetaSimplifier;
+structure Basic_Meta_Simplifier: BASIC_RAW_SIMPLIFIER = Raw_Simplifier;
 open Basic_Meta_Simplifier;

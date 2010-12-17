@@ -420,10 +420,10 @@ val equal_def' = Thm.symmetric Induct_Args.equal_def;
 
 fun mark_constraints n ctxt = Conv.fconv_rule
   (Conv.prems_conv (~1) (Conv.params_conv ~1 (K (Conv.prems_conv n
-     (MetaSimplifier.rewrite false [equal_def']))) ctxt));
+     (Raw_Simplifier.rewrite false [equal_def']))) ctxt));
 
 val unmark_constraints = Conv.fconv_rule
-  (MetaSimplifier.rewrite true [Induct_Args.equal_def]);
+  (Raw_Simplifier.rewrite true [Induct_Args.equal_def]);
 
 
 (* simplify *)
@@ -514,10 +514,10 @@ val conjunction_congs = [@{thm Pure.all_conjunction}, @{thm imp_conjunction}];
 (* atomize *)
 
 fun atomize_term thy =
-  MetaSimplifier.rewrite_term thy Induct_Args.atomize []
+  Raw_Simplifier.rewrite_term thy Induct_Args.atomize []
   #> Object_Logic.drop_judgment thy;
 
-val atomize_cterm = MetaSimplifier.rewrite true Induct_Args.atomize;
+val atomize_cterm = Raw_Simplifier.rewrite true Induct_Args.atomize;
 
 val atomize_tac = Simplifier.rewrite_goal_tac Induct_Args.atomize;
 
@@ -528,8 +528,8 @@ val inner_atomize_tac =
 (* rulify *)
 
 fun rulify_term thy =
-  MetaSimplifier.rewrite_term thy (Induct_Args.rulify @ conjunction_congs) [] #>
-  MetaSimplifier.rewrite_term thy Induct_Args.rulify_fallback [];
+  Raw_Simplifier.rewrite_term thy (Induct_Args.rulify @ conjunction_congs) [] #>
+  Raw_Simplifier.rewrite_term thy Induct_Args.rulify_fallback [];
 
 fun rulified_term thm =
   let
@@ -668,7 +668,7 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   end);
 
 fun miniscope_tac p = CONVERSION o
-  Conv.params_conv p (K (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]));
+  Conv.params_conv p (K (Raw_Simplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]));
 
 in
 

@@ -58,7 +58,7 @@ fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
     (*term and type parameters*)
     val crhs = Thm.cterm_of thy rhs;
     val (defs, rhs') = Local_Defs.export_cterm lthy thy_ctxt crhs ||> Thm.term_of;
-    val rhs_conv = MetaSimplifier.rewrite true defs crhs;
+    val rhs_conv = Raw_Simplifier.rewrite true defs crhs;
 
     val xs = Variable.add_fixed (Local_Theory.target_of lthy) rhs' [];
     val T = Term.fastype_of rhs;
@@ -107,7 +107,7 @@ fun import_export_proof ctxt (name, raw_th) =
     (*export assumes/defines*)
     val th = Goal.norm_result raw_th;
     val (defs, th') = Local_Defs.export ctxt thy_ctxt th;
-    val assms = map (MetaSimplifier.rewrite_rule defs o Thm.assume)
+    val assms = map (Raw_Simplifier.rewrite_rule defs o Thm.assume)
       (Assumption.all_assms_of ctxt);
     val nprems = Thm.nprems_of th' - Thm.nprems_of th;
 

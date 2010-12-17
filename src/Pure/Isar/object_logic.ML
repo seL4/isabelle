@@ -178,10 +178,10 @@ val _ = Context.>> (Context.map_theory (fold add_rulify Drule.norm_hhf_eqs));
 (* atomize *)
 
 fun atomize_term thy =
-  drop_judgment thy o MetaSimplifier.rewrite_term thy (get_atomize thy) [];
+  drop_judgment thy o Raw_Simplifier.rewrite_term thy (get_atomize thy) [];
 
 fun atomize ct =
-  MetaSimplifier.rewrite true (get_atomize (Thm.theory_of_cterm ct)) ct;
+  Raw_Simplifier.rewrite true (get_atomize (Thm.theory_of_cterm ct)) ct;
 
 fun atomize_prems ct =
   if Logic.has_meta_prems (Thm.term_of ct) then
@@ -195,11 +195,11 @@ val full_atomize_tac = CONVERSION atomize;
 
 (* rulify *)
 
-fun rulify_term thy = MetaSimplifier.rewrite_term thy (get_rulify thy) [];
-fun rulify_tac i st = MetaSimplifier.rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
+fun rulify_term thy = Raw_Simplifier.rewrite_term thy (get_rulify thy) [];
+fun rulify_tac i st = rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
 
 fun gen_rulify full thm =
-  MetaSimplifier.simplify full (get_rulify (Thm.theory_of_thm thm)) thm
+  Raw_Simplifier.simplify full (get_rulify (Thm.theory_of_thm thm)) thm
   |> Drule.gen_all |> Thm.strip_shyps |> Drule.zero_var_indexes;
 
 val rulify = gen_rulify true;

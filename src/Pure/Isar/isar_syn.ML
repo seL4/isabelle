@@ -111,16 +111,24 @@ val _ =
     (Parse.type_args -- Parse.binding -- Parse.opt_mixfix
       >> (fn ((args, a), mx) => Typedecl.typedecl (a, map (rpair dummyS) args, mx) #> snd));
 
-val _ =
-  Outer_Syntax.local_theory "types" "declare type abbreviations" Keyword.thy_decl
-    (Scan.repeat1
-      (Parse.type_args -- Parse.binding --
-        (Parse.$$$ "=" |-- Parse.!!! (Parse.typ -- Parse.opt_mixfix')))
-      >> (fold (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs)));
+val type_abbrev =
+  Parse.type_args -- Parse.binding --
+    (Parse.$$$ "=" |-- Parse.!!! (Parse.typ -- Parse.opt_mixfix'));
 
 val _ =
-  Outer_Syntax.command "nonterminals" "declare types treated as grammar nonterminal symbols"
-    Keyword.thy_decl (Scan.repeat1 Parse.binding >> (Toplevel.theory o Sign.add_nonterminals));
+  Outer_Syntax.local_theory "types" "declare type abbreviations" Keyword.thy_decl
+    (Scan.repeat1 type_abbrev >> (fn specs => fn lthy =>
+     (legacy_feature "Old 'types' commands -- use 'type_synonym' instead";
+      fold (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs) specs lthy)));
+
+val _ =
+  Outer_Syntax.local_theory "type_synonym" "declare type abbreviation" Keyword.thy_decl
+    (type_abbrev >> (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs));
+
+val _ =
+  Outer_Syntax.command "nonterminal"
+    "declare syntactic type constructors (grammar nonterminal symbols)" Keyword.thy_decl
+    (Parse.and_list1 Parse.binding >> (Toplevel.theory o Sign.add_nonterminals));
 
 val _ =
   Outer_Syntax.command "arities" "state type arities (axiomatic!)" Keyword.thy_decl

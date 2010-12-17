@@ -297,7 +297,7 @@ fun zap pos ct =
         else Conv.all_conv
       | _ => Conv.all_conv)
 
-fun ss_only ths = MetaSimplifier.clear_ss HOL_basic_ss addsimps ths
+fun ss_only ths = Simplifier.clear_ss HOL_basic_ss addsimps ths
 
 val cheat_choice =
   @{prop "ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)"}

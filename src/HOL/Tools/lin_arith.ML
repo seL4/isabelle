@@ -807,7 +807,7 @@ val init_arith_data =
   add_discrete_type @{type_name nat};
 
 fun add_arith_facts ss =
-  add_prems (Arith_Data.get_arith_facts (MetaSimplifier.the_context ss)) ss;
+  Simplifier.add_prems (Arith_Data.get_arith_facts (Simplifier.the_context ss)) ss;
 
 val simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
 

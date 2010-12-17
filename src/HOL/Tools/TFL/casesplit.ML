@@ -73,8 +73,8 @@ end;
 functor CaseSplitFUN(Data : CASE_SPLIT_DATA) =
 struct
 
-val rulify_goals = MetaSimplifier.rewrite_goals_rule Data.rulify;
-val atomize_goals = MetaSimplifier.rewrite_goals_rule Data.atomize;
+val rulify_goals = Raw_Simplifier.rewrite_goals_rule Data.rulify;
+val atomize_goals = Raw_Simplifier.rewrite_goals_rule Data.atomize;
 
 (* beta-eta contract the theorem *)
 fun beta_eta_contract thm =

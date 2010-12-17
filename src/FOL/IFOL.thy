@@ -754,7 +754,7 @@ lemmas basic_trans_rules [trans] =
 
 subsection {* ``Let'' declarations *}
 
-nonterminals letbinds letbind
+nonterminal letbinds and letbind
 
 definition Let :: "['a::{}, 'a => 'b] => ('b::{})" where
     "Let(s, f) == f(s)"

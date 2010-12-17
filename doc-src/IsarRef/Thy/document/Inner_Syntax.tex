@@ -742,7 +742,7 @@ The inner lexical syntax vaguely resembles the outer one
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{nonterminals}\hypertarget{command.nonterminals}{\hyperlink{command.nonterminals}{\mbox{\isa{\isacommand{nonterminals}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{nonterminal}\hypertarget{command.nonterminal}{\hyperlink{command.nonterminal}{\mbox{\isa{\isacommand{nonterminal}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{syntax}\hypertarget{command.syntax}{\hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{no\_syntax}\hypertarget{command.no-syntax}{\hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}syntax}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{translations}\hypertarget{command.translations}{\hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
@@ -750,7 +750,7 @@ The inner lexical syntax vaguely resembles the outer one
   \end{matharray}
 
   \begin{rail}
-    'nonterminals' (name +)
+    'nonterminal' (name + 'and')
     ;
     ('syntax' | 'no_syntax') mode? (constdecl +)
     ;
@@ -765,7 +765,7 @@ The inner lexical syntax vaguely resembles the outer one
 
   \begin{description}
   
-  \item \hyperlink{command.nonterminals}{\mbox{\isa{\isacommand{nonterminals}}}}~\isa{c} declares a type
+  \item \hyperlink{command.nonterminal}{\mbox{\isa{\isacommand{nonterminal}}}}~\isa{c} declares a type
   constructor \isa{c} (without arguments) to act as purely syntactic
   type: a nonterminal symbol of the inner syntax.
 

@@ -723,7 +723,7 @@ section {* Syntax and translations \label{sec:syn-trans} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "nonterminals"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "nonterminal"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "syntax"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "no_syntax"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "translations"} & : & @{text "theory \<rightarrow> theory"} \\
@@ -731,7 +731,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'nonterminals' (name +)
+    'nonterminal' (name + 'and')
     ;
     ('syntax' | 'no_syntax') mode? (constdecl +)
     ;
@@ -746,7 +746,7 @@ text {*
 
   \begin{description}
   
-  \item @{command "nonterminals"}~@{text c} declares a type
+  \item @{command "nonterminal"}~@{text c} declares a type
   constructor @{text c} (without arguments) to act as purely syntactic
   type: a nonterminal symbol of the inner syntax.
 

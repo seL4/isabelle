@@ -52,7 +52,7 @@ fun mk_case_cert thy tyco =
   in
     thms
     |> Conjunction.intr_balanced
-    |> MetaSimplifier.rewrite_rule [(Thm.symmetric o Thm.assume) asm]
+    |> Raw_Simplifier.rewrite_rule [(Thm.symmetric o Thm.assume) asm]
     |> Thm.implies_intr asm
     |> Thm.generalize ([], params) 0
     |> AxClass.unoverload thy

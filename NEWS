@@ -83,6 +83,13 @@ float_token.
 
 *** Pure ***
 
+* Command 'type_synonym' (with single argument) replaces somewhat
+outdated 'types', which is still available as legacy feature for some
+time.
+
+* Command 'nonterminal' (with 'and' separated list of arguments)
+replaces somewhat outdated 'nonterminals'.  INCOMPATIBILITY.
+
 * Command 'notepad' replaces former 'example_proof' for
 experimentation in Isar without any result.  INCOMPATIBILITY.
 
@@ -598,6 +605,9 @@ names of constants and types involved. INCOMPATIBILITY.
 
 
 *** ML ***
+
+* Renamed structure MetaSimplifier to Raw_Simplifier.  Note that the
+main functionality is provided by structure Simplifier.
 
 * Syntax.pretty_priority (default 0) configures the required priority
 of pretty-printed output and thus affects insertion of parentheses.

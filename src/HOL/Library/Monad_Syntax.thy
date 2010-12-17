@@ -37,8 +37,7 @@ notation (xsymbols output)
 notation (latex output)
   bind_do (infixr "\<bind>" 54)
 
-nonterminals
-  do_binds do_bind
+nonterminal do_binds and do_bind
 
 syntax
   "_do_block" :: "do_binds \<Rightarrow> 'a" ("do {//(2  _)//}" [12] 62)
