@@ -1768,6 +1768,16 @@ end
 no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
+instantiation real :: full_small
+begin
+
+definition
+  "full_small f d = full_small (%r. f (valterm_ratreal r)) d"
+
+instance ..
+
+end
+
 text {* Setup for SML code generator *}
 
 types_code
