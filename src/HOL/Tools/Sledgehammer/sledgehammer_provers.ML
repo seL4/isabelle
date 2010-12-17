@@ -498,8 +498,9 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
         val _ =
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val (outcome, used_facts) =
-          SMT_Solver.smt_filter remote iter_timeout state facts i
-          |> (fn {outcome, used_facts, ...} => (outcome, used_facts))
+          SMT_Solver.smt_filter_head iter_timeout state facts i
+          |> SMT_Solver.smt_filter_tail remote
+          |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
                           reraise exn
                         else
