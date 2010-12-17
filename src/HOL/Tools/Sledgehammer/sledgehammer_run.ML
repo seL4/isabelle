@@ -12,6 +12,14 @@ sig
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
   type params = Sledgehammer_Provers.params
 
+  (* for experimentation purposes -- do not use in production code *)
+  val smt_weights : bool Unsynchronized.ref
+  val smt_weight_min_facts : int Unsynchronized.ref
+  val smt_min_weight : int Unsynchronized.ref
+  val smt_max_weight : int Unsynchronized.ref
+  val smt_max_weight_index : int Unsynchronized.ref
+  val smt_weight_curve : (int -> int) Unsynchronized.ref
+
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
     -> Proof.state -> bool * Proof.state
@@ -117,20 +125,20 @@ fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
   end
 
 val smt_weights = Unsynchronized.ref true
-val smt_weight_min_facts = 20
+val smt_weight_min_facts = Unsynchronized.ref 20
 
 (* FUDGE *)
 val smt_min_weight = Unsynchronized.ref 0
 val smt_max_weight = Unsynchronized.ref 10
-val smt_max_index = Unsynchronized.ref 200
+val smt_max_weight_index = Unsynchronized.ref 200
 val smt_weight_curve = Unsynchronized.ref (fn x : int => x * x)
 
 fun smt_fact_weight j num_facts =
-  if !smt_weights andalso num_facts >= smt_weight_min_facts then
+  if !smt_weights andalso num_facts >= !smt_weight_min_facts then
     SOME (!smt_max_weight
           - (!smt_max_weight - !smt_min_weight + 1)
-            * !smt_weight_curve (Int.max (0, !smt_max_index - j - 1))
-            div !smt_weight_curve (!smt_max_index))
+            * !smt_weight_curve (Int.max (0, !smt_max_weight_index - j - 1))
+            div !smt_weight_curve (!smt_max_weight_index))
   else
     NONE
 
