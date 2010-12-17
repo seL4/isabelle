@@ -33,14 +33,16 @@ sig
   datatype prover_fact =
     Untranslated_Fact of (string * locality) * thm |
     ATP_Translated_Fact of
-      translated_formula option * ((string * locality) * thm)
+      translated_formula option * ((string * locality) * thm) |
+    SMT_Weighted_Fact of (string * locality) * (int option * thm)
 
   type prover_problem =
     {state: Proof.state,
      goal: thm,
      subgoal: int,
      subgoal_count: int,
-     facts: prover_fact list}
+     facts: prover_fact list,
+     smt_head: (string * locality) SMT_Solver.smt_filter_head_result option}
 
   type prover_result =
     {outcome: failure option,
@@ -56,13 +58,9 @@ sig
   val smt_iter_time_frac : real Unsynchronized.ref
   val smt_iter_min_msecs : int Unsynchronized.ref
   val smt_monomorph_limit : int Unsynchronized.ref
-  val smt_weights : bool Unsynchronized.ref
-  val smt_min_weight : int Unsynchronized.ref
-  val smt_max_weight : int Unsynchronized.ref
-  val smt_max_index : int Unsynchronized.ref
-  val smt_weight_curve : (int -> int) Unsynchronized.ref
 
   val das_Tool : string
+  val select_smt_solver : string -> Proof.context -> Proof.context
   val is_smt_prover : Proof.context -> string -> bool
   val is_prover_available : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
@@ -76,6 +74,8 @@ sig
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
   val untranslated_fact : prover_fact -> (string * locality) * thm
+  val smt_weighted_fact :
+    prover_fact -> (string * locality) * (int option * thm)
   val available_provers : Proof.context -> unit
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
@@ -102,11 +102,16 @@ open Sledgehammer_ATP_Reconstruct
    "Async_Manager". *)
 val das_Tool = "Sledgehammer"
 
+val unremotify = perhaps (try (unprefix remote_prefix))
+
+val select_smt_solver =
+  Context.proof_map o SMT_Config.select_solver o unremotify
+
 fun is_smt_prover ctxt name =
   let val smts = SMT_Solver.available_solvers_of ctxt in
     case try (unprefix remote_prefix) name of
-      SOME suffix => member (op =) smts suffix andalso
-                     SMT_Solver.is_remotely_available ctxt suffix
+      SOME base => member (op =) smts base andalso
+                   SMT_Solver.is_remotely_available ctxt base
     | NONE => member (op =) smts name
   end
 
@@ -133,8 +138,7 @@ fun available_smt_solvers ctxt =
 fun default_max_relevant_for_prover ctxt name =
   let val thy = ProofContext.theory_of ctxt in
     if is_smt_prover ctxt name then
-      SMT_Solver.default_max_relevant ctxt
-          (perhaps (try (unprefix remote_prefix)) name)
+      SMT_Solver.default_max_relevant ctxt (unremotify name)
     else
       #default_max_relevant (get_atp thy name)
   end
@@ -146,9 +150,11 @@ val atp_irrelevant_consts =
    @{const_name conj}, @{const_name disj}, @{const_name implies},
    @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
 
-fun is_built_in_const_for_prover ctxt name (s, T) args =
-  if is_smt_prover ctxt name then SMT_Builtin.is_builtin_ext ctxt (s, T) args
-  else member (op =) atp_irrelevant_consts s
+fun is_built_in_const_for_prover ctxt name =
+  if is_smt_prover ctxt name then
+    ctxt |> select_smt_solver name |> SMT_Builtin.is_builtin_ext
+  else
+    K o member (op =) atp_irrelevant_consts o fst
 
 (* FUDGE *)
 val atp_relevance_fudge =
@@ -230,14 +236,17 @@ type params =
 
 datatype prover_fact =
   Untranslated_Fact of (string * locality) * thm |
-  ATP_Translated_Fact of translated_formula option * ((string * locality) * thm)
+  ATP_Translated_Fact of
+    translated_formula option * ((string * locality) * thm) |
+  SMT_Weighted_Fact of (string * locality) * (int option * thm)
 
 type prover_problem =
   {state: Proof.state,
    goal: thm,
    subgoal: int,
    subgoal_count: int,
-   facts: prover_fact list}
+   facts: prover_fact list,
+   smt_head: (string * locality) SMT_Solver.smt_filter_head_result option}
 
 type prover_result =
   {outcome: failure option,
@@ -272,8 +281,12 @@ fun proof_banner auto =
 
 fun untranslated_fact (Untranslated_Fact p) = p
   | untranslated_fact (ATP_Translated_Fact (_, p)) = p
-fun atp_translated_fact ctxt (Untranslated_Fact p) = translate_atp_fact ctxt p
-  | atp_translated_fact _ (ATP_Translated_Fact q) = q
+  | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
+fun atp_translated_fact _ (ATP_Translated_Fact p) = p
+  | atp_translated_fact ctxt fact =
+    translate_atp_fact ctxt (untranslated_fact fact)
+fun smt_weighted_fact (SMT_Weighted_Fact p) = p
+  | smt_weighted_fact fact = untranslated_fact fact |> apsnd (pair NONE)
 
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
@@ -471,9 +484,26 @@ val smt_iter_time_frac = Unsynchronized.ref 0.5
 val smt_iter_min_msecs = Unsynchronized.ref 5000
 val smt_monomorph_limit = Unsynchronized.ref 4
 
-fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
+fun smt_filter_loop name ({debug, verbose, overlord, timeout, ...} : params)
+                    state i smt_head =
   let
     val ctxt = Proof.context_of state
+    val (remote, base) =
+      case try (unprefix remote_prefix) name of
+        SOME base => (true, base)
+      | NONE => (false, name)
+    val repair_context =
+      select_smt_solver base
+      #> Config.put SMT_Config.verbose debug
+      #> (if overlord then
+            Config.put SMT_Config.debug_files
+                       (overlord_file_location_for_prover name
+                        |> (fn (path, base) => path ^ "/" ^ base))
+          else
+            I)
+      #> Config.put SMT_Config.monomorph_limit (!smt_monomorph_limit)
+    val state = state |> Proof.map_context repair_context
+
     fun iter timeout iter_num outcome0 time_so_far facts =
       let
         val timer = Timer.startRealTimer ()
@@ -498,7 +528,9 @@ fun smt_filter_loop ({debug, verbose, timeout, ...} : params) remote state i =
         val _ =
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val (outcome, used_facts) =
-          SMT_Solver.smt_filter_head state facts i
+          (case (iter_num, smt_head) of
+             (1, SOME head) => head |> apsnd (apfst (apsnd repair_context))
+           | _ => SMT_Solver.smt_filter_head state facts i)
           |> SMT_Solver.smt_filter_tail iter_timeout remote
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
@@ -565,53 +597,14 @@ fun can_apply_metis debug state i ths =
             (Config.put Metis_Tactics.verbose debug
              #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
-val smt_weights = Unsynchronized.ref true
-val smt_weight_min_facts = 20
-
-(* FUDGE *)
-val smt_min_weight = Unsynchronized.ref 0
-val smt_max_weight = Unsynchronized.ref 10
-val smt_max_index = Unsynchronized.ref 200
-val smt_weight_curve = Unsynchronized.ref (fn x : int => x * x)
-
-fun smt_fact_weight j num_facts =
-  if !smt_weights andalso num_facts >= smt_weight_min_facts then
-    SOME (!smt_max_weight
-          - (!smt_max_weight - !smt_min_weight + 1)
-            * !smt_weight_curve (Int.max (0, !smt_max_index - j - 1))
-            div !smt_weight_curve (!smt_max_index))
-  else
-    NONE
-
-fun run_smt_solver auto name (params as {debug, verbose, overlord, ...})
-        minimize_command
-        ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
+fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
+        ({state, subgoal, subgoal_count, facts, smt_head, ...}
+         : prover_problem) =
   let
-    val (remote, suffix) =
-      case try (unprefix remote_prefix) name of
-        SOME suffix => (true, suffix)
-      | NONE => (false, name)
-    val repair_context =
-      Context.proof_map (SMT_Config.select_solver suffix)
-      #> Config.put SMT_Config.verbose debug
-      #> (if overlord then
-            Config.put SMT_Config.debug_files
-                       (overlord_file_location_for_prover name
-                        |> (fn (path, base) => path ^ "/" ^ base))
-          else
-            I)
-      #> Config.put SMT_Config.monomorph_limit (!smt_monomorph_limit)
-    val state = state |> Proof.map_context repair_context
-    val thy = Proof.theory_of state
-    val num_facts = length facts
-    val facts =
-      facts ~~ (0 upto num_facts - 1)
-      |> map (fn (fact, j) =>
-                 fact |> untranslated_fact
-                      |> apsnd (pair (smt_fact_weight j num_facts)
-                                o Thm.transfer thy))
+    val ctxt = Proof.context_of state
+    val facts = facts |> map smt_weighted_fact
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop params remote state subgoal facts
+      smt_filter_loop name params state subgoal smt_head facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
     val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
@@ -622,8 +615,10 @@ fun run_smt_solver auto name (params as {debug, verbose, overlord, ...})
             if can_apply_metis debug state subgoal (map snd used_facts) then
               ("metis", "")
             else
-              ("smt", if suffix = SMT_Config.solver_of @{context} then ""
-                      else "smt_solver = " ^ maybe_quote suffix)
+              let val base = unremotify name in
+                ("smt", if base = SMT_Config.solver_of ctxt then ""
+                        else "smt_solver = " ^ maybe_quote base)
+              end
         in
           try_command_line (proof_banner auto)
               (apply_on_subgoal settings subgoal subgoal_count ^

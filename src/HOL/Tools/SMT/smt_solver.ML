@@ -33,7 +33,7 @@ sig
   val default_max_relevant: Proof.context -> string -> int
 
   (*filter*)
-  type 'a smt_filter_head_result = 'a list * (int option * thm) list *
+  type 'a smt_filter_head_result = ('a list * (int option * thm) list) *
     (((int * thm) list * Proof.context) * (int * (int option * thm)) list)
   val smt_filter_head: Proof.state ->
     ('a * (int option * thm)) list -> int -> 'a smt_filter_head_result
@@ -322,7 +322,7 @@ val cnot = Thm.cterm_of @{theory} @{const Not}
 
 fun mk_result outcome xrules = { outcome = outcome, used_facts = xrules }
 
-type 'a smt_filter_head_result = 'a list * (int option * thm) list *
+type 'a smt_filter_head_result = ('a list * (int option * thm) list) *
   (((int * thm) list * Proof.context) * (int * (int option * thm)) list)
 
 fun smt_filter_head st xwrules i =
@@ -340,7 +340,7 @@ fun smt_filter_head st xwrules i =
 
     val (xs, wthms) = split_list xwrules
   in
-    (xs, wthms,
+    ((xs, wthms),
      wthms
      |> map_index I
      |> append (map (pair ~1 o pair NONE) (Thm.assume cprop :: prems @ facts))
@@ -349,7 +349,7 @@ fun smt_filter_head st xwrules i =
   end
 
 fun smt_filter_tail time_limit run_remote
-    (xs, wthms, ((iwthms', ctxt), iwthms)) =
+    ((xs, wthms), ((iwthms', ctxt), iwthms)) =
   let
     val ctxt = ctxt |> Config.put C.timeout (Time.toReal time_limit)
     val xrules = xs ~~ map snd wthms

@@ -64,7 +64,7 @@ fun test_facts ({debug, overlord, provers, type_sys, isar_proof,
     val {goal, ...} = Proof.goal state
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       facts = facts}
+       facts = facts, smt_head = NONE}
     val result as {outcome, used_facts, ...} = prover params (K "") problem
   in
     print silent
