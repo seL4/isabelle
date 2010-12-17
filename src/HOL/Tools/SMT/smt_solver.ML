@@ -35,9 +35,9 @@ sig
   (*filter*)
   type 'a smt_filter_head_result = 'a list * (int option * thm) list *
     (((int * thm) list * Proof.context) * (int * (int option * thm)) list)
-  val smt_filter_head: Time.time -> Proof.state ->
+  val smt_filter_head: Proof.state ->
     ('a * (int option * thm)) list -> int -> 'a smt_filter_head_result
-  val smt_filter_tail: bool -> 'a smt_filter_head_result ->
+  val smt_filter_tail: Time.time -> bool -> 'a smt_filter_head_result ->
     {outcome: SMT_Failure.failure option, used_facts: ('a * thm) list}
 
   (*tactic*)
@@ -325,12 +325,11 @@ fun mk_result outcome xrules = { outcome = outcome, used_facts = xrules }
 type 'a smt_filter_head_result = 'a list * (int option * thm) list *
   (((int * thm) list * Proof.context) * (int * (int option * thm)) list)
 
-fun smt_filter_head time_limit st xwrules i =
+fun smt_filter_head st xwrules i =
   let
     val ctxt =
       Proof.context_of st
       |> Config.put C.oracle false
-      |> Config.put C.timeout (Time.toReal time_limit)
       |> Config.put C.drop_bad_facts true
       |> Config.put C.filter_only_facts true
 
@@ -349,9 +348,13 @@ fun smt_filter_head time_limit st xwrules i =
      |> `(gen_solver_head ctxt'))
   end
 
-fun smt_filter_tail run_remote (xs, wthms, head as ((_, ctxt), _)) =
-  let val xrules = xs ~~ map snd wthms in
-    head
+fun smt_filter_tail time_limit run_remote
+    (xs, wthms, ((iwthms', ctxt), iwthms)) =
+  let
+    val ctxt = ctxt |> Config.put C.timeout (Time.toReal time_limit)
+    val xrules = xs ~~ map snd wthms
+  in
+    ((iwthms', ctxt), iwthms)
     |-> gen_solver_tail (name_and_solver_of ctxt) (SOME run_remote)
     |> distinct (op =) o fst
     |> map_filter (try (nth xrules))
