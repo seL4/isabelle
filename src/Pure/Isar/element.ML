@@ -224,7 +224,7 @@ fun pretty_statement ctxt kind raw_th =
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
-    val th = MetaSimplifier.norm_hhf raw_th;
+    val th = Raw_Simplifier.norm_hhf raw_th;
     val is_elim = Object_Logic.is_elim th;
 
     val ((_, [th']), ctxt') = Variable.import true [th] (Variable.set_body false ctxt);
@@ -318,7 +318,7 @@ fun compose_witness (Witness (_, th)) r =
   end;
 
 fun conclude_witness (Witness (_, th)) =
-  Thm.close_derivation (MetaSimplifier.norm_hhf_protect (Goal.conclude th));
+  Thm.close_derivation (Raw_Simplifier.norm_hhf_protect (Goal.conclude th));
 
 fun pretty_witness ctxt witn =
   let val prt_term = Pretty.quote o Syntax.pretty_term ctxt in
@@ -459,8 +459,8 @@ val satisfy_facts = facts_map o morph_ctxt o satisfy_morphism;
 fun eq_morphism thy thms = if null thms then NONE else SOME (Morphism.morphism
  {binding = I,
   typ = I,
-  term = MetaSimplifier.rewrite_term thy thms [],
-  fact = map (MetaSimplifier.rewrite_rule thms)});
+  term = Raw_Simplifier.rewrite_term thy thms [],
+  fact = map (Raw_Simplifier.rewrite_rule thms)});
 
 
 (* transfer to theory using closure *)

@@ -153,7 +153,7 @@ use "goal_display.ML";
 use "tactical.ML";
 use "search.ML";
 use "tactic.ML";
-use "meta_simplifier.ML";
+use "raw_simplifier.ML";
 use "conjunction.ML";
 use "assumption.ML";
 use "display.ML";

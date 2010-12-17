@@ -48,7 +48,7 @@ fun assume_export is_goal asms =
 *)
 fun presume_export _ = assume_export false;
 
-val assume = MetaSimplifier.norm_hhf o Thm.assume;
+val assume = Raw_Simplifier.norm_hhf o Thm.assume;
 
 
 
@@ -110,9 +110,9 @@ val add_assumes = add_assms assume_export;
 (* export *)
 
 fun export is_goal inner outer =
-  MetaSimplifier.norm_hhf_protect #>
+  Raw_Simplifier.norm_hhf_protect #>
   fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer) #>
-  MetaSimplifier.norm_hhf_protect;
+  Raw_Simplifier.norm_hhf_protect;
 
 fun export_term inner outer =
   fold_rev (fn (e, As) => #2 (e false As)) (local_assumptions_of inner outer);

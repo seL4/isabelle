@@ -19,10 +19,10 @@ val inductive_forall_def = @{thm induct_forall_def};
 val inductive_atomize = @{thms induct_atomize};
 val inductive_rulify = @{thms induct_rulify};
 
-fun rulify_term thy = MetaSimplifier.rewrite_term thy inductive_rulify [];
+fun rulify_term thy = Raw_Simplifier.rewrite_term thy inductive_rulify [];
 
 val atomize_conv =
-  MetaSimplifier.rewrite_cterm (true, false, false) (K (K NONE))
+  Raw_Simplifier.rewrite_cterm (true, false, false) (K (K NONE))
     (HOL_basic_ss addsimps inductive_atomize);
 val atomize_intr = Conv.fconv_rule (Conv.prems_conv ~1 atomize_conv);
 fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1

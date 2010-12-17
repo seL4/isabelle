@@ -973,13 +973,13 @@ subsection {* Types and type abbreviations \label{sec:types-pure} *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "types"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "type_synonym"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "typedecl"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "arities"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
 
   \begin{rail}
-    'types' (typespec '=' type mixfix? +)
+    'type_synonym' (typespec '=' type mixfix?)
     ;
     'typedecl' typespec mixfix?
     ;
@@ -989,12 +989,12 @@ text {*
 
   \begin{description}
 
-  \item @{command "types"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>"} introduces a
-  \emph{type synonym} @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} for the existing type
-  @{text "\<tau>"}.  Unlike actual type definitions, as are available in
-  Isabelle/HOL for example, type synonyms are merely syntactic
-  abbreviations without any logical significance.  Internally, type
-  synonyms are fully expanded.
+  \item @{command "type_synonym"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>"}
+  introduces a \emph{type synonym} @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} for the
+  existing type @{text "\<tau>"}.  Unlike actual type definitions, as are
+  available in Isabelle/HOL for example, type synonyms are merely
+  syntactic abbreviations without any logical significance.
+  Internally, type synonyms are fully expanded.
   
   \item @{command "typedecl"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} declares a new
   type constructor @{text t}.  If the object-logic defines a base sort

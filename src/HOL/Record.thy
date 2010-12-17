@@ -419,8 +419,15 @@ lemma o_eq_id_dest: "a o b = id o c \<Longrightarrow> a (b v) = c v"
 
 subsection {* Concrete record syntax *}
 
-nonterminals
-  ident field_type field_types field fields field_update field_updates
+nonterminal
+  ident and
+  field_type and
+  field_types and
+  field and
+  fields and
+  field_update and
+  field_updates
+
 syntax
   "_constify"           :: "id => ident"                        ("_")
   "_constify"           :: "longid => ident"                    ("_")

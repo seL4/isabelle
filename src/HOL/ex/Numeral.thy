@@ -592,14 +592,14 @@ simproc_setup numeral_minus ("of_num m - of_num n") = {*
     fun cdest_minus ct = case (rev o snd o Drule.strip_comb) ct of [n, m] => (m, n);
     fun attach_num ct = (dest_num (Thm.term_of ct), ct);
     fun cdifference t = (pairself (attach_num o cdest_of_num) o cdest_minus) t;
-    val simplify = MetaSimplifier.rewrite false (map mk_meta_eq @{thms Dig_plus_eval});
+    val simplify = Raw_Simplifier.rewrite false (map mk_meta_eq @{thms Dig_plus_eval});
     fun cert ck cl cj = @{thm eqTrueE} OF [@{thm meta_eq_to_obj_eq}
       OF [simplify (Drule.list_comb (@{cterm "op = :: num \<Rightarrow> _"},
         [Drule.list_comb (@{cterm "op + :: num \<Rightarrow> _"}, [ck, cl]), cj]))]];
   in fn phi => fn _ => fn ct => case try cdifference ct
    of NONE => (NONE)
     | SOME ((k, ck), (l, cl)) => SOME (let val j = k - l in if j = 0
-        then MetaSimplifier.rewrite false [mk_meta_eq (Morphism.thm phi @{thm Dig_of_num_zero})] ct
+        then Raw_Simplifier.rewrite false [mk_meta_eq (Morphism.thm phi @{thm Dig_of_num_zero})] ct
         else mk_meta_eq (let
           val cj = Thm.cterm_of (Thm.theory_of_cterm ct) (mk_num (abs j));
         in

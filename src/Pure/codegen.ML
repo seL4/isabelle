@@ -293,8 +293,8 @@ structure UnfoldData = Theory_Data
 );
 
 val map_unfold = UnfoldData.map;
-val add_unfold = map_unfold o MetaSimplifier.add_simp;
-val del_unfold = map_unfold o MetaSimplifier.del_simp;
+val add_unfold = map_unfold o Simplifier.add_simp;
+val del_unfold = map_unfold o Simplifier.del_simp;
 
 fun unfold_preprocessor thy =
   let val ss = Simplifier.global_context thy (UnfoldData.get thy)

@@ -39,12 +39,12 @@ datatype ind_scheme = IndScheme of
   branches: scheme_branch list,
   cases: scheme_case list}
 
-val ind_atomize = MetaSimplifier.rewrite true @{thms induct_atomize}
-val ind_rulify = MetaSimplifier.rewrite true @{thms induct_rulify}
+val ind_atomize = Raw_Simplifier.rewrite true @{thms induct_atomize}
+val ind_rulify = Raw_Simplifier.rewrite true @{thms induct_rulify}
 
 fun meta thm = thm RS eq_reflection
 
-val sum_prod_conv = MetaSimplifier.rewrite true
+val sum_prod_conv = Raw_Simplifier.rewrite true
   (map meta (@{thm split_conv} :: @{thms sum.cases}))
 
 fun term_conv thy cv t =
@@ -312,7 +312,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
 
         val Pxs = cert (HOLogic.mk_Trueprop (P_comp $ x))
           |> Goal.init
-          |> (MetaSimplifier.rewrite_goals_tac (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum.cases}))
+          |> (Simplifier.rewrite_goals_tac (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum.cases}))
               THEN CONVERSION ind_rulify 1)
           |> Seq.hd
           |> Thm.elim_implies (Conv.fconv_rule Drule.beta_eta_conversion bstep)

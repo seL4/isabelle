@@ -486,7 +486,7 @@ fun lambda_prs_simple_conv ctxt ctrm =
         val tinst = [NONE, NONE, SOME (cterm_of thy r1), NONE, SOME (cterm_of thy a2)]
         val thm1 = Drule.instantiate' tyinst tinst @{thm lambda_prs[THEN eq_reflection]}
         val thm2 = solve_quotient_assm ctxt (solve_quotient_assm ctxt thm1)
-        val thm3 = MetaSimplifier.rewrite_rule @{thms id_apply[THEN eq_reflection]} thm2
+        val thm3 = Raw_Simplifier.rewrite_rule @{thms id_apply[THEN eq_reflection]} thm2
         val (insp, inst) =
           if ty_c = ty_d
           then make_inst_id (term_of (Thm.lhs_of thm3)) (term_of ctrm)

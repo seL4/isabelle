@@ -83,7 +83,7 @@ fun prove_param options ctxt nargs t deriv =
         let
           val prems' = maps dest_conjunct_prem (take nargs prems)
         in
-          MetaSimplifier.rewrite_goal_tac
+          Simplifier.rewrite_goal_tac
             (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
         end) ctxt 1
     | Abs _ => raise Fail "prove_param: No valid parameter term"
@@ -127,7 +127,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
           fun param_rewrite prem =
             param = snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of prem)))
           val SOME rew_eq = find_first param_rewrite prems'
-          val param_prem' = MetaSimplifier.rewrite_rule
+          val param_prem' = Raw_Simplifier.rewrite_rule
             (map (fn th => th RS @{thm eq_reflection})
               [rew_eq RS @{thm sym}, @{thm split_beta}, @{thm fst_conv}, @{thm snd_conv}])
             param_prem
@@ -184,7 +184,7 @@ fun prove_match options ctxt nargs out_ts =
                 let
                   val prems' = maps dest_conjunct_prem (take nargs prems)
                 in
-                  MetaSimplifier.rewrite_goal_tac
+                  Simplifier.rewrite_goal_tac
                     (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
                 end
              THEN REPEAT_DETERM (rtac @{thm refl} 1))
@@ -225,7 +225,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
               let
                 val prems' = maps dest_conjunct_prem (take nargs prems)
               in
-                MetaSimplifier.rewrite_goal_tac
+                Simplifier.rewrite_goal_tac
                   (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
               end) ctxt 1
       THEN (rtac (if null clause_out_ts then @{thm singleI_unit} else @{thm singleI}) 1)

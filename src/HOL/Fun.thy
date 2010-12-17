@@ -558,8 +558,8 @@ definition
   fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)" where
   "fun_upd f a b == % x. if x=a then b else f x"
 
-nonterminals
-  updbinds updbind
+nonterminal updbinds and updbind
+
 syntax
   "_updbind" :: "['a, 'a] => updbind"             ("(2_ :=/ _)")
   ""         :: "updbind => updbinds"             ("_")
