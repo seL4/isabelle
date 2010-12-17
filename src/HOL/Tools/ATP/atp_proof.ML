@@ -15,7 +15,7 @@ sig
     Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
     OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
     NoRealZ3 | MalformedInput | MalformedOutput | Interrupted | Crashed |
-    InternalError | UnknownError
+    InternalError | UnknownError of string
 
   type step_name = string * string option
 
@@ -26,13 +26,14 @@ sig
   type 'a proof = 'a uniform_formula step list
 
   val strip_spaces : (char -> bool) -> string -> string
+  val short_output : bool -> string -> string
   val string_for_failure : string -> failure -> string
   val extract_important_message : string -> string
   val extract_known_failure :
     (failure * string) list -> string -> failure option
   val extract_tstplike_proof_and_outcome :
-    bool -> int -> (string * string) list -> (failure * string) list -> string
-    -> string * failure option
+    bool -> bool -> int -> (string * string) list -> (failure * string) list
+    -> string -> string * failure option
   val is_same_step : step_name * step_name -> bool
   val atp_proof_from_tstplike_string : bool -> string -> string proof
   val map_term_names_in_atp_proof :
@@ -49,7 +50,7 @@ datatype failure =
   Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
   SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl | NoRealZ3 |
   MalformedInput | MalformedOutput | Interrupted | Crashed | InternalError |
-  UnknownError
+  UnknownError of string
 
 fun strip_spaces_in_list _ [] = []
   | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
@@ -71,6 +72,15 @@ fun strip_spaces is_evil =
 
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 val strip_spaces_except_between_ident_chars = strip_spaces is_ident_char
+
+fun elide_string threshold s =
+  if size s > threshold then
+    String.extract (s, 0, SOME (threshold div 2 - 5)) ^ " ...... " ^
+    String.extract (s, size s - (threshold + 1) div 2 + 6, NONE)
+  else
+    s
+fun short_output verbose output =
+  if verbose then elide_string 1000 output else ""
 
 fun missing_message_tail prover =
   " appears to be missing. You will need to install it if you want to run " ^
@@ -112,9 +122,10 @@ fun string_for_failure prover Unprovable =
   | string_for_failure prover Crashed = "The " ^ prover ^ " crashed."
   | string_for_failure prover InternalError =
     "An internal " ^ prover ^ " error occurred."
-  | string_for_failure prover UnknownError =
+  | string_for_failure prover (UnknownError string) =
     (* "An" is correct for "ATP" and "SMT". *)
-    "An " ^ prover ^ " error occurred."
+    "An " ^ prover ^ " error occurred" ^
+    (if string = "" then "." else ":\n" ^ string)
 
 fun extract_delimited (begin_delim, end_delim) output =
   output |> first_field begin_delim |> the |> snd
@@ -146,16 +157,17 @@ fun extract_known_failure known_failures output =
   |> find_first (fn (_, pattern) => String.isSubstring pattern output)
   |> Option.map fst
 
-fun extract_tstplike_proof_and_outcome complete res_code proof_delims
+fun extract_tstplike_proof_and_outcome verbose complete res_code proof_delims
                                        known_failures output =
   case extract_known_failure known_failures output of
     NONE => (case extract_tstplike_proof proof_delims output of
              "" => ("", SOME (if res_code = 0 andalso output = "" then
                                 Interrupted
                               else
-                                UnknownError))
-           | tstplike_proof => if res_code = 0 then (tstplike_proof, NONE)
-                               else ("", SOME UnknownError))
+                                UnknownError (short_output verbose output)))
+           | tstplike_proof =>
+             if res_code = 0 then (tstplike_proof, NONE)
+             else ("", SOME (UnknownError (short_output verbose output))))
   | SOME failure =>
     ("", SOME (if failure = IncompleteUnprovable andalso complete then
                  Unprovable

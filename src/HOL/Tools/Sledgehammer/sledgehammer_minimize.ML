@@ -167,7 +167,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ _ = error "No prover is set."
        (NONE, "Timeout: You can increase the time limit using the \"timeout\" \
               \option (e.g., \"timeout = " ^
               string_of_int (10 + msecs div 1000) ^ "\").")
-     | {outcome = SOME UnknownError, ...} =>
+     | {outcome = SOME (UnknownError _), ...} =>
        (* Failure sometimes mean timeout, unfortunately. *)
        (NONE, "Failure: No proof was found with the current time limit. You \
               \can increase the time limit using the \"timeout\" \

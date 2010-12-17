@@ -396,7 +396,7 @@ fun run_atp auto name
                          I)
                   |>> (if measure_run_time then split_time else rpair NONE)
                 val (tstplike_proof, outcome) =
-                  extract_tstplike_proof_and_outcome complete res_code
+                  extract_tstplike_proof_and_outcome verbose complete res_code
                       proof_delims known_failures output
               in (output, msecs, tstplike_proof, outcome) end
             val readable_names = debug andalso overlord
@@ -503,11 +503,12 @@ fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
   | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
     (case AList.lookup (op =) smt_failures code of
        SOME failure => failure
-     | NONE => UnknownError)
+     | NONE => UnknownError ("Abnormal termination with exit code " ^
+                             string_of_int code ^ "."))
   | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
   | failure_from_smt_failure (SMT_Failure.Other_Failure msg) =
     if String.isPrefix internal_error_prefix msg then InternalError
-    else UnknownError
+    else UnknownError msg
 
 (* FUDGE *)
 val smt_max_iters = Unsynchronized.ref 8
