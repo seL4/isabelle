@@ -442,7 +442,8 @@ val z3_wrapper_failures =
    (12, InternalError),
    (13, InternalError)]
 val z3_failures =
-  [(103, MalformedInput),
+  [(101, OutOfResources),
+   (103, MalformedInput),
    (110, MalformedInput)]
 val unix_failures =
   [(139, Crashed)]
