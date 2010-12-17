@@ -111,9 +111,15 @@ fun is_known_raw_param s =
   AList.defined (op =) negated_alias_params s orelse
   member (op =) property_dependent_params s orelse s = "expect"
 
-fun check_raw_param (s, _) =
-  if is_known_raw_param s then ()
-  else error ("Unknown parameter: " ^ quote s ^ ".")
+fun is_prover_list ctxt s =
+  case space_explode " " s of
+    ss as _ :: _ => forall (is_prover_available ctxt) ss
+  | _ => false
+
+fun check_and_repair_raw_param ctxt (name, value) =
+  if is_known_raw_param name then (name, value)
+  else if is_prover_list ctxt name andalso null value then ("provers", [name])
+  else error ("Unknown parameter: " ^ quote name ^ ".")
 
 fun unalias_raw_param (name, value) =
   case AList.lookup (op =) alias_params name of
@@ -282,7 +288,8 @@ fun minimize_command override_params i prover_name fact_names =
 fun hammer_away override_params subcommand opt_i relevance_override state =
   let
     val ctxt = Proof.context_of state
-    val _ = app check_raw_param override_params
+    val override_params =
+      override_params |> map (check_and_repair_raw_param ctxt)
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
@@ -323,9 +330,9 @@ fun sledgehammer_params_trans params =
                              (case default_raw_params ctxt |> rev of
                                 [] => "none"
                               | params =>
-                                (map check_raw_param params;
-                                 params |> map string_for_raw_param
-                                        |> sort_strings |> cat_lines)))
+                                params |> map (check_and_repair_raw_param ctxt)
+                                       |> map string_for_raw_param
+                                       |> sort_strings |> cat_lines))
                   end))
 
 val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
