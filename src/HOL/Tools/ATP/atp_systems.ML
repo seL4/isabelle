@@ -243,7 +243,7 @@ val remote_e = remotify_atp e "EP" ["1.0", "1.1", "1.2"]
 val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_sine_e =
   remote_atp sine_eN "SInE" [] [] [(IncompleteUnprovable, "says Unknown")]
-                800 (* FUDGE *) true
+                600 (* FUDGE *) true
 val remote_snark =
   remote_atp snarkN "SNARK---" [] [("refutation.", "end_refutation.")] []
              250 (* FUDGE *) true
