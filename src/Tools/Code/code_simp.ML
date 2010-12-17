@@ -24,7 +24,7 @@ structure Simpset = Theory_Data
 (
   type T = simpset;
   val empty = empty_ss;
-  fun extend ss = MetaSimplifier.inherit_context empty_ss ss;
+  fun extend ss = Simplifier.inherit_context empty_ss ss;
   val merge = merge_ss;
 );
 

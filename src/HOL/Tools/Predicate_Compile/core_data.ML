@@ -237,7 +237,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
       (PEEK nprems_of
         (fn n =>
           ALLGOALS (fn i =>
-            MetaSimplifier.rewrite_goal_tac [@{thm split_paired_all}] i
+            Simplifier.rewrite_goal_tac [@{thm split_paired_all}] i
             THEN (SUBPROOF (instantiate i n) ctxt i))))
   in
     Goal.prove ctxt (Term.add_free_names cases_rule []) [] cases_rule (fn _ => tac)

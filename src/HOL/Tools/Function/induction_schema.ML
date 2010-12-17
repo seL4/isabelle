@@ -312,7 +312,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
 
         val Pxs = cert (HOLogic.mk_Trueprop (P_comp $ x))
           |> Goal.init
-          |> (MetaSimplifier.rewrite_goals_tac (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum.cases}))
+          |> (Simplifier.rewrite_goals_tac (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum.cases}))
               THEN CONVERSION ind_rulify 1)
           |> Seq.hd
           |> Thm.elim_implies (Conv.fconv_rule Drule.beta_eta_conversion bstep)

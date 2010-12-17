@@ -714,7 +714,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                  else
                  let val tych = cterm_of thy
                      val ants1 = map tych ants
-                     val ss' = MetaSimplifier.add_prems (map ASSUME ants1) ss
+                     val ss' = Simplifier.add_prems (map ASSUME ants1) ss
                      val Q_eeq_Q1 = MetaSimplifier.rewrite_cterm
                         (false,true,false) (prover used') ss' (tych Q)
                       handle Utils.ERR _ => Thm.reflexive (tych Q)
