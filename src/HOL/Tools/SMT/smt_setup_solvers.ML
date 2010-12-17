@@ -53,7 +53,7 @@ fun yices () = {
   env_var = "YICES_SOLVER",
   is_remote = false,
   options = (fn ctxt => [
-    "--rand-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
+    "--rand-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
     "--smtlib"]),
   class = SMTLIB_Interface.smtlibC,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
