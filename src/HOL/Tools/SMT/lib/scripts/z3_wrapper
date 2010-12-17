@@ -29,7 +29,7 @@ close(ERR_FILE);
 print STDERR join("", @err_lines);
 
 if ($code != 0) {
-  foreach my $err_line (@err_lines) {
+  foreach my $err_line (reverse(@err_lines)) {
     if ($err_line =~ /[lL]ine ([0-9]+)/) {
       my $line_num = $1;
 

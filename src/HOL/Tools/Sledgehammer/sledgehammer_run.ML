@@ -43,7 +43,7 @@ val implicit_minimization_threshold = 50
 
 fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
                auto minimize_command only
-               {state, goal, subgoal, subgoal_count, facts} name =
+               {state, goal, subgoal, subgoal_count, facts, smt_head} name =
   let
     val ctxt = Proof.context_of state
     val birth_time = Time.now ()
@@ -56,7 +56,8 @@ fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
     val prover = get_prover ctxt auto name
     val problem =
       {state = state, goal = goal, subgoal = subgoal,
-       subgoal_count = subgoal_count, facts = take num_facts facts}
+       subgoal_count = subgoal_count, facts = take num_facts facts,
+       smt_head = smt_head}
     fun go () =
       let
         fun really_go () =
@@ -115,6 +116,36 @@ fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
        (false, state))
   end
 
+val smt_weights = Unsynchronized.ref true
+val smt_weight_min_facts = 20
+
+(* FUDGE *)
+val smt_min_weight = Unsynchronized.ref 0
+val smt_max_weight = Unsynchronized.ref 10
+val smt_max_index = Unsynchronized.ref 200
+val smt_weight_curve = Unsynchronized.ref (fn x : int => x * x)
+
+fun smt_fact_weight j num_facts =
+  if !smt_weights andalso num_facts >= smt_weight_min_facts then
+    SOME (!smt_max_weight
+          - (!smt_max_weight - !smt_min_weight + 1)
+            * !smt_weight_curve (Int.max (0, !smt_max_index - j - 1))
+            div !smt_weight_curve (!smt_max_index))
+  else
+    NONE
+
+fun weight_smt_fact thy num_facts (fact, j) =
+  fact |> apsnd (pair (smt_fact_weight j num_facts) o Thm.transfer thy)
+
+fun class_of_smt_solver ctxt name =
+  ctxt |> select_smt_solver name
+       |> SMT_Config.solver_class_of |> SMT_Utils.string_of_class
+
+(* Makes backtraces more transparent and might be more efficient as well. *)
+fun smart_par_list_map _ [] = []
+  | smart_par_list_map f [x] = [f x]
+  | smart_par_list_map f xs = Par_List.map f xs
+
 (* FUDGE *)
 val auto_max_relevant_divisor = 2
 
@@ -129,7 +160,10 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
   | n =>
     let
       val _ = Proof.assert_backward state
+      val state =
+        state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
+      val thy = ProofContext.theory_of ctxt
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val no_dangerous_types = types_dangerous_types type_sys
@@ -139,60 +173,83 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
               | NONE => ()
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."
       val (smts, atps) = provers |> List.partition (is_smt_prover ctxt)
-      fun run_provers label no_dangerous_types relevance_fudge maybe_translate
-                      provers (res as (success, state)) =
+      fun run_provers get_facts translate maybe_smt_head provers
+                      (res as (success, state)) =
         if success orelse null provers then
           res
         else
           let
-            val max_max_relevant =
-              case max_relevant of
-                SOME n => n
-              | NONE =>
-                0 |> fold (Integer.max o default_max_relevant_for_prover ctxt)
-                          provers
-                  |> auto ? (fn n => n div auto_max_relevant_divisor)
-            val is_built_in_const =
-              is_built_in_const_for_prover ctxt (hd provers)
-            val facts =
-              relevant_facts ctxt no_dangerous_types relevance_thresholds
-                             max_max_relevant is_built_in_const relevance_fudge
-                             relevance_override chained_ths hyp_ts concl_t
-              |> map maybe_translate
+            val facts = get_facts ()
+            val num_facts = length facts
+            val facts = facts ~~ (0 upto num_facts - 1)
+                        |> map (translate num_facts)
             val problem =
               {state = state, goal = goal, subgoal = i, subgoal_count = n,
-               facts = facts}
+               facts = facts,
+               smt_head = maybe_smt_head (map smt_weighted_fact facts) i}
             val run_prover = run_prover params auto minimize_command only
           in
-            if debug then
-              Output.urgent_message (label ^ plural_s (length provers) ^ ": " ^
-                  (if null facts then
-                     "Found no relevant facts."
-                   else
-                     "Including (up to) " ^ string_of_int (length facts) ^
-                     " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
-                     (facts |> map (fst o fst o untranslated_fact)
-                            |> space_implode " ") ^ "."))
-            else
-              ();
             if auto then
               fold (fn prover => fn (true, state) => (true, state)
                                   | (false, _) => run_prover problem prover)
                    provers (false, state)
             else
               provers
-              |> (if blocking andalso length provers > 1 then Par_List.map
-                  else map)
+              |> (if blocking then smart_par_list_map else map)
                      (run_prover problem)
               |> exists fst |> rpair state
           end
+      fun get_facts label no_dangerous_types relevance_fudge provers =
+        let
+          val max_max_relevant =
+            case max_relevant of
+              SOME n => n
+            | NONE =>
+              0 |> fold (Integer.max o default_max_relevant_for_prover ctxt)
+                        provers
+                |> auto ? (fn n => n div auto_max_relevant_divisor)
+          val is_built_in_const =
+            is_built_in_const_for_prover ctxt (hd provers)
+        in
+          relevant_facts ctxt no_dangerous_types relevance_thresholds
+                         max_max_relevant is_built_in_const relevance_fudge
+                         relevance_override chained_ths hyp_ts concl_t
+          |> tap (fn facts =>
+                     if debug then
+                       label ^ plural_s (length provers) ^ ": " ^
+                       (if null facts then
+                          "Found no relevant facts."
+                        else
+                          "Including (up to) " ^ string_of_int (length facts) ^
+                          " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
+                          (facts |> map (fst o fst) |> space_implode " ") ^ ".")
+                       |> Output.urgent_message
+                     else
+                       ())
+        end
       val run_atps =
-        run_provers "ATP" no_dangerous_types atp_relevance_fudge
-                    (ATP_Translated_Fact o translate_atp_fact ctxt) atps
-      val run_smts =
-        run_provers "SMT solver" true smt_relevance_fudge Untranslated_Fact smts
+        run_provers
+            (get_facts "ATP" no_dangerous_types atp_relevance_fudge o K atps)
+            (ATP_Translated_Fact oo K (translate_atp_fact ctxt o fst))
+            (K (K NONE)) atps
+      fun run_smts (accum as (success, _)) =
+        if success orelse null smts then
+          accum
+        else
+          let
+            val facts = get_facts "SMT solver" true smt_relevance_fudge smts
+            val translate = SMT_Weighted_Fact oo weight_smt_fact thy
+            val maybe_smt_head = try o SMT_Solver.smt_filter_head state
+          in
+            smts |> map (`(class_of_smt_solver ctxt))
+                 |> AList.group (op =)
+                 |> map (fn (_, smts) => run_provers (K facts) translate
+                                                     maybe_smt_head smts accum)
+                 |> exists fst |> rpair state
+          end
       fun run_atps_and_smt_solvers () =
-        [run_atps, run_smts] |> Par_List.map (fn f => f (false, state) |> K ())
+        [run_atps, run_smts]
+        |> smart_par_list_map (fn f => f (false, state) |> K ())
         handle ERROR msg => (Output.urgent_message ("Error: " ^ msg); error msg)
     in
       (false, state)
