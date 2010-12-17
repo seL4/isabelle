@@ -12,9 +12,6 @@ sig
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
   type params = Sledgehammer_Provers.params
 
-  (* for experimentation purposes -- do not use in production code *)
-  val show_facts_in_proofs : bool Unsynchronized.ref
-
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
     -> Proof.state -> bool * Proof.state
@@ -41,8 +38,6 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
      ""
    else
      "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
-
-val show_facts_in_proofs = Unsynchronized.ref false
 
 val implicit_minimization_threshold = 50
 
@@ -79,7 +74,7 @@ fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
                    else
                      (SOME used_facts, message)
                  val _ =
-                   case (debug orelse !show_facts_in_proofs, used_facts) of
+                   case (debug, used_facts) of
                      (true, SOME (used_facts as _ :: _)) =>
                      facts ~~ (0 upto length facts - 1)
                      |> map (fn (fact, j) =>
