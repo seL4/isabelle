@@ -80,7 +80,7 @@ fun make_compositionality_prop variances (tyco, mapper) =
       let
         val names = Name.invents nctxt n k;
       in (names, fold Name.declare names nctxt) end;
-    val (((vs1, vs2), vs3), _) = Name.context
+    val (((vs3, vs2), vs1), _) = Name.context
       |> invents Name.aT (length variances)
       ||>> invents Name.aT (length variances)
       ||>> invents Name.aT (length variances);
