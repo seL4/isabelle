@@ -13,6 +13,7 @@ sig
   type params = Sledgehammer_Provers.params
 
   (* for experimentation purposes -- do not use in production code *)
+  val show_facts_in_proofs : bool Unsynchronized.ref
   val smt_weights : bool Unsynchronized.ref
   val smt_weight_min_facts : int Unsynchronized.ref
   val smt_min_weight : int Unsynchronized.ref
@@ -47,6 +48,8 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    else
      "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
 
+val show_facts_in_proofs = Unsynchronized.ref false
+
 val implicit_minimization_threshold = 50
 
 fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
@@ -66,22 +69,38 @@ fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
       {state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count, facts = take num_facts facts,
        smt_head = smt_head}
+    fun really_go () =
+      prover params (minimize_command name) problem
+      |> (fn {outcome, used_facts, message, ...} =>
+             if is_some outcome then
+               ("none", message)
+             else
+               let
+                 val (used_facts, message) =
+                   if length used_facts >= implicit_minimization_threshold then
+                     minimize_facts params true subgoal subgoal_count state
+                         (filter_used_facts used_facts
+                              (map (apsnd single o untranslated_fact) facts))
+                     |>> Option.map (map fst)
+                   else
+                     (SOME used_facts, message)
+                 val _ =
+                   case (debug orelse !show_facts_in_proofs, used_facts) of
+                     (true, SOME (used_facts as _ :: _)) =>
+                     facts ~~ (0 upto length facts - 1)
+                     |> map (fn (fact, j) =>
+                                fact |> untranslated_fact |> apsnd (K j))
+                     |> filter_used_facts used_facts
+                     |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
+                     |> commas
+                     |> enclose ("Fact" ^ plural_s num_facts ^ " in " ^
+                                 quote name ^ " proof (of " ^
+                                 string_of_int num_facts ^ "): ") "."
+                     |> Output.urgent_message
+                   | _ => ()
+               in ("some", message) end)
     fun go () =
       let
-        fun really_go () =
-          prover params (minimize_command name) problem
-          |> (fn {outcome, used_facts, message, ...} =>
-                 if is_some outcome then
-                   ("none", message)
-                 else
-                   ("some",
-                    if length used_facts >= implicit_minimization_threshold then
-                      minimize_facts params true subgoal subgoal_count state
-                          (filter_used_facts used_facts
-                               (map (apsnd single o untranslated_fact) facts))
-                      |> snd
-                    else
-                      message))
         val (outcome_code, message) =
           if debug then
             really_go ()
