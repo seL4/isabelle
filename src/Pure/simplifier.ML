@@ -33,6 +33,9 @@ sig
   val pretty_ss: Proof.context -> simpset -> Pretty.T
   val clear_ss: simpset -> simpset
   val debug_bounds: bool Unsynchronized.ref
+  val add_simp: thm -> simpset -> simpset
+  val del_simp: thm -> simpset -> simpset
+  val add_prems: thm list -> simpset -> simpset
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset

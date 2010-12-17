@@ -42,7 +42,6 @@ sig
   val make_simproc: {name: string, lhss: cterm list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} -> simproc
   val mk_simproc: string -> cterm list -> (theory -> simpset -> term -> thm option) -> simproc
-  val add_prems: thm list -> simpset -> simpset
   val prems_of_ss: simpset -> thm list
   val addsimps: simpset * thm list -> simpset
   val delsimps: simpset * thm list -> simpset
@@ -113,6 +112,7 @@ sig
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc_global: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
+  val add_prems: thm list -> simpset -> simpset
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset

@@ -83,10 +83,10 @@ val map_pre_post = map_data o apfst;
 val map_pre = map_pre_post o apfst;
 val map_post = map_pre_post o apsnd;
 
-val add_unfold = map_pre o MetaSimplifier.add_simp;
-val del_unfold = map_pre o MetaSimplifier.del_simp;
-val add_post = map_post o MetaSimplifier.add_simp;
-val del_post = map_post o MetaSimplifier.del_simp;
+val add_unfold = map_pre o Simplifier.add_simp;
+val del_unfold = map_pre o Simplifier.del_simp;
+val add_post = map_post o Simplifier.add_simp;
+val del_post = map_post o Simplifier.del_simp;
 
 fun add_unfold_post raw_thm thy =
   let
@@ -94,7 +94,7 @@ fun add_unfold_post raw_thm thy =
     val thm_sym = Thm.symmetric thm;
   in
     thy |> map_pre_post (fn (pre, post) =>
-      (pre |> MetaSimplifier.add_simp thm, post |> MetaSimplifier.add_simp thm_sym))
+      (pre |> Simplifier.add_simp thm, post |> Simplifier.add_simp thm_sym))
   end;
 
 fun add_functrans (name, f) = (map_data o apsnd)
