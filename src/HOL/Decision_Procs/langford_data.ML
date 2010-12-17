@@ -36,11 +36,9 @@ fun add entry =
     Thm.declaration_attribute (fn key => fn context => context |> Data.map 
       (del_data key #> apsnd (cons (key, entry))));
 
-val add_simp = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (fn (ss,ts') => (ss addsimps [th], ts'))) 
+val add_simp = Thm.declaration_attribute (Data.map o apfst o Simplifier.add_simp);
 
-val del_simp = Thm.declaration_attribute (fn th => fn context => 
-  context |> Data.map (fn (ss,ts') => (ss delsimps [th], ts'))) 
+val del_simp = Thm.declaration_attribute (Data.map o apfst o Simplifier.del_simp);
 
 fun match ctxt tm =
   let

@@ -114,8 +114,7 @@ lemmas monad_collapse = monad_simp fcomp_apply scomp_apply split_beta
 
 subsection {* Do-syntax *}
 
-nonterminals
-  sdo_binds sdo_bind
+nonterminal sdo_binds and sdo_bind
 
 syntax
   "_sdo_block" :: "sdo_binds \<Rightarrow> 'a" ("exec {//(2  _)//}" [12] 62)

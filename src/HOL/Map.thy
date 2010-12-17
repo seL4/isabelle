@@ -50,8 +50,7 @@ definition
   map_le :: "('a ~=> 'b) => ('a ~=> 'b) => bool"  (infix "\<subseteq>\<^sub>m" 50) where
   "(m\<^isub>1 \<subseteq>\<^sub>m m\<^isub>2) = (\<forall>a \<in> dom m\<^isub>1. m\<^isub>1 a = m\<^isub>2 a)"
 
-nonterminals
-  maplets maplet
+nonterminal maplets and maplet
 
 syntax
   "_maplet"  :: "['a, 'a] => maplet"             ("_ /|->/ _")

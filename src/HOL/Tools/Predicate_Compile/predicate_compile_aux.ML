@@ -969,7 +969,7 @@ fun case_betapply thy t =
     val Tcons = datatype_names_of_case_name thy case_name
     val ths = maps (instantiated_case_rewrites thy) Tcons
   in
-    MetaSimplifier.rewrite_term thy
+    Raw_Simplifier.rewrite_term thy
       (map (fn th => th RS @{thm eq_reflection}) ths) [] t
   end
 
@@ -1044,7 +1044,7 @@ fun remove_pointless_clauses intro =
 fun peephole_optimisation thy intro =
   let
     val process =
-      MetaSimplifier.rewrite_rule (Predicate_Compile_Simps.get (ProofContext.init_global thy))
+      Raw_Simplifier.rewrite_rule (Predicate_Compile_Simps.get (ProofContext.init_global thy))
     fun process_False intro_t =
       if member (op =) (Logic.strip_imp_prems intro_t) @{prop "False"} then NONE else SOME intro_t
     fun process_True intro_t =

@@ -422,7 +422,7 @@ fun IT_EXISTS blist th =
 fun SUBS thl =
   rewrite_rule (map (fn th => th RS eq_reflection handle THM _ => th) thl);
 
-val rew_conv = MetaSimplifier.rewrite_cterm (true, false, false) (K (K NONE));
+val rew_conv = Raw_Simplifier.rewrite_cterm (true, false, false) (K (K NONE));
 
 fun simpl_conv ss thl ctm =
  rew_conv (ss addsimps thl) ctm RS meta_eq_to_obj_eq;
@@ -669,7 +669,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
                      val ss' = Simplifier.add_prems (map ASSUME ants) ss
-                     val lhs_eq_lhs1 = MetaSimplifier.rewrite_cterm (false,true,false) (prover used) ss' lhs
+                     val lhs_eq_lhs1 = Raw_Simplifier.rewrite_cterm (false,true,false) (prover used) ss' lhs
                        handle Utils.ERR _ => Thm.reflexive lhs
                      val dummy = print_thms "proven:" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
@@ -690,7 +690,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val QeqQ1 = pbeta_reduce (tych Q)
                   val Q1 = #2(Dcterm.dest_eq(cconcl QeqQ1))
                   val ss' = Simplifier.add_prems (map ASSUME ants1) ss
-                  val Q1eeqQ2 = MetaSimplifier.rewrite_cterm (false,true,false) (prover used') ss' Q1
+                  val Q1eeqQ2 = Raw_Simplifier.rewrite_cterm (false,true,false) (prover used') ss' Q1
                                 handle Utils.ERR _ => Thm.reflexive Q1
                   val Q2 = #2 (Logic.dest_equals (Thm.prop_of Q1eeqQ2))
                   val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
@@ -714,8 +714,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                  else
                  let val tych = cterm_of thy
                      val ants1 = map tych ants
-                     val ss' = MetaSimplifier.add_prems (map ASSUME ants1) ss
-                     val Q_eeq_Q1 = MetaSimplifier.rewrite_cterm
+                     val ss' = Simplifier.add_prems (map ASSUME ants1) ss
+                     val Q_eeq_Q1 = Raw_Simplifier.rewrite_cterm
                         (false,true,false) (prover used') ss' (tych Q)
                       handle Utils.ERR _ => Thm.reflexive (tych Q)
                      val lhs_eeq_lhs2 = implies_intr_list ants1 Q_eeq_Q1
@@ -783,7 +783,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     end
     val ctm = cprop_of th
     val names = OldTerm.add_term_names (term_of ctm, [])
-    val th1 = MetaSimplifier.rewrite_cterm(false,true,false)
+    val th1 = Raw_Simplifier.rewrite_cterm (false,true,false)
       (prover names) (ss0 addsimps [cut_lemma'] addeqcongs congs) ctm
     val th2 = Thm.equal_elim th1 th
  in

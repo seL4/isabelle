@@ -33,9 +33,7 @@ consts
 
 (** concrete syntax **)
 
-nonterminals
-  lift
-  liftargs
+nonterminal lift and liftargs
 
 syntax
   ""            :: "id => lift"                          ("_")

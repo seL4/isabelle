@@ -103,9 +103,8 @@ abbreviation (iff)
 notation (xsymbols)
   iff  (infixr "\<longleftrightarrow>" 25)
 
-nonterminals
-  letbinds  letbind
-  case_syn  cases_syn
+nonterminal letbinds and letbind
+nonterminal case_syn and cases_syn
 
 syntax
   "_The"        :: "[pttrn, bool] => 'a"                 ("(3THE _./ _)" [0, 10] 10)

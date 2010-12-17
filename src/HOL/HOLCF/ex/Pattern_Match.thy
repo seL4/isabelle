@@ -100,8 +100,7 @@ by (simp add: cases_def)
 
 subsection {* Case syntax *}
 
-nonterminals
-  Case_syn  Cases_syn
+nonterminal Case_syn and Cases_syn
 
 syntax
   "_Case_syntax":: "['a, Cases_syn] => 'b"               ("(Case _ of/ _)" 10)

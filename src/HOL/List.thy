@@ -123,7 +123,7 @@ primrec
     "list_update [] i v = []"
   | "list_update (x # xs) i v = (case i of 0 \<Rightarrow> v # xs | Suc j \<Rightarrow> x # list_update xs j v)"
 
-nonterminals lupdbinds lupdbind
+nonterminal lupdbinds and lupdbind
 
 syntax
   "_lupdbind":: "['a, 'a] => lupdbind"    ("(2_ :=/ _)")
@@ -346,7 +346,7 @@ produced something like
 @{term"{z. EX x: set xs. EX y:set ys. P x y \<and> z = f x y}"}.
 *)
 
-nonterminals lc_qual lc_quals
+nonterminal lc_qual and lc_quals
 
 syntax
 "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")

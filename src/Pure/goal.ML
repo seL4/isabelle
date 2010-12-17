@@ -99,7 +99,7 @@ fun finish ctxt th = (check_finished ctxt th; conclude th);
 
 val norm_result =
   Drule.flexflex_unique
-  #> MetaSimplifier.norm_hhf_protect
+  #> Raw_Simplifier.norm_hhf_protect
   #> Thm.strip_shyps
   #> Drule.zero_var_indexes;
 
@@ -278,7 +278,7 @@ val norm_hhf_tac =
   rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
   THEN' SUBGOAL (fn (t, i) =>
     if Drule.is_norm_hhf t then all_tac
-    else MetaSimplifier.rewrite_goal_tac Drule.norm_hhf_eqs i);
+    else rewrite_goal_tac Drule.norm_hhf_eqs i);
 
 fun compose_hhf_tac th i st =
   PRIMSEQ (Thm.bicompose false (false, Drule.lift_all (Thm.cprem_of st i) th, 0) i) st;
@@ -296,7 +296,7 @@ fun assume_rule_tac ctxt = norm_hhf_tac THEN' CSUBGOAL (fn (goal, i) =>
     val goal'' = Drule.cterm_rule (singleton (Variable.export ctxt' ctxt)) goal';
     val Rs = filter (non_atomic o Thm.term_of) (Drule.strip_imp_prems goal'');
     val tacs = Rs |> map (fn R =>
-      Tactic.etac (MetaSimplifier.norm_hhf (Thm.trivial R)) THEN_ALL_NEW assume_tac);
+      Tactic.etac (Raw_Simplifier.norm_hhf (Thm.trivial R)) THEN_ALL_NEW assume_tac);
   in fold_rev (curry op APPEND') tacs (K no_tac) i end);
 
 

@@ -445,8 +445,7 @@ definition
   update  :: "[i,i,i] => i"  where
    "update(f,a,b) == lam x: cons(a, domain(f)). if(x=a, b, f`x)"
 
-nonterminals
-  updbinds  updbind
+nonterminal updbinds and updbind
 
 syntax
 

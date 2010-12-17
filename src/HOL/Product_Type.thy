@@ -173,8 +173,7 @@ text {*
   abstractions.
 *}
 
-nonterminals
-  tuple_args patterns
+nonterminal tuple_args and patterns
 
 syntax
   "_tuple"      :: "'a => tuple_args => 'a * 'b"        ("(1'(_,/ _'))")

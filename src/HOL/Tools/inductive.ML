@@ -282,7 +282,7 @@ val bad_ind_occ = "Inductive predicate occurs in argument of inductive predicate
 
 val bad_app = "Inductive predicate must be applied to parameter(s) ";
 
-fun atomize_term thy = MetaSimplifier.rewrite_term thy inductive_atomize [];
+fun atomize_term thy = Raw_Simplifier.rewrite_term thy inductive_atomize [];
 
 in
 

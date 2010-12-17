@@ -170,7 +170,7 @@ fun gen_add_domaindef
     val liftprj_def = singleton (ProofContext.export lthy ctxt_thy) liftprj_ldef
     val liftdefl_def = singleton (ProofContext.export lthy ctxt_thy) liftdefl_ldef
     val type_definition_thm =
-      MetaSimplifier.rewrite_rule
+      Raw_Simplifier.rewrite_rule
         (the_list (#set_def (#2 info)))
         (#type_definition (#2 info))
     val typedef_thms =
