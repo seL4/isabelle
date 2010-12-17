@@ -28,9 +28,7 @@ consts
 
 (* concrete syntax *)
 
-nonterminals
-  seq seqobj seqcont
-
+nonterminal seq and seqobj and seqcont
 
 syntax
  "_SeqEmp"         :: seq                                  ("")

@@ -27,8 +27,7 @@ translations
   "\<langle>c\<rangle>" \<rightleftharpoons> "AWAIT CONST True THEN c END"
   "WAIT b END" \<rightleftharpoons> "AWAIT b THEN SKIP END"
 
-nonterminals
-  prgs
+nonterminal prgs
 
 syntax
   "_PAR"        :: "prgs \<Rightarrow> 'a"              ("COBEGIN//_//COEND" 60)

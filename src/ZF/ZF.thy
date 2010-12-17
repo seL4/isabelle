@@ -102,7 +102,7 @@ abbreviation
   where "A -> B == Pi(A, %_. B)"
 
 
-nonterminals "is" patterns
+nonterminal "is" and patterns
 
 syntax
   ""          :: "i => is"                   ("_")

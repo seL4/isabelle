@@ -14,8 +14,7 @@ definition
   CLetrec :: "('a \<rightarrow> 'a \<times> 'b) \<rightarrow> 'b" where
   "CLetrec = (\<Lambda> F. snd (F\<cdot>(\<mu> x. fst (F\<cdot>x))))"
 
-nonterminals
-  recbinds recbindt recbind
+nonterminal recbinds and recbindt and recbind
 
 syntax
   "_recbind"  :: "['a, 'a] \<Rightarrow> recbind"               ("(2_ =/ _)" 10)

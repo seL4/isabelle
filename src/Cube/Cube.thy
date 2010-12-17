@@ -14,8 +14,7 @@ typedecl "term"
 typedecl "context"
 typedecl typing
 
-nonterminals
-  context' typing'
+nonterminal context' and typing'
 
 consts
   Abs :: "[term, term => term] => term"

@@ -119,8 +119,9 @@ val _ =
       >> (fold (fn ((args, a), (rhs, mx)) => snd o Typedecl.abbrev_cmd (a, args, mx) rhs)));
 
 val _ =
-  Outer_Syntax.command "nonterminals" "declare types treated as grammar nonterminal symbols"
-    Keyword.thy_decl (Scan.repeat1 Parse.binding >> (Toplevel.theory o Sign.add_nonterminals));
+  Outer_Syntax.command "nonterminal"
+    "declare syntactic type constructors (grammar nonterminal symbols)" Keyword.thy_decl
+    (Parse.and_list1 Parse.binding >> (Toplevel.theory o Sign.add_nonterminals));
 
 val _ =
   Outer_Syntax.command "arities" "state type arities (axiomatic!)" Keyword.thy_decl

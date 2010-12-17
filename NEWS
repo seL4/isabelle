@@ -83,6 +83,10 @@ float_token.
 
 *** Pure ***
 
+* Replaced command 'nonterminals' by slightly modernized version
+'nonterminal' (with 'and' separated list of arguments).
+INCOMPATIBILITY.
+
 * Command 'notepad' replaces former 'example_proof' for
 experimentation in Isar without any result.  INCOMPATIBILITY.
 
