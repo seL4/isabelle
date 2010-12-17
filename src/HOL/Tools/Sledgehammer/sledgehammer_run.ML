@@ -13,12 +13,7 @@ sig
   type params = Sledgehammer_Provers.params
 
   (* for experimentation purposes -- do not use in production code *)
-  val smt_weights : bool Unsynchronized.ref
-  val smt_weight_min_facts : int Unsynchronized.ref
-  val smt_min_weight : int Unsynchronized.ref
-  val smt_max_weight : int Unsynchronized.ref
-  val smt_max_weight_index : int Unsynchronized.ref
-  val smt_weight_curve : (int -> int) Unsynchronized.ref
+  val show_facts_in_proofs : bool Unsynchronized.ref
 
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
@@ -47,6 +42,8 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    else
      "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
 
+val show_facts_in_proofs = Unsynchronized.ref false
+
 val implicit_minimization_threshold = 50
 
 fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
@@ -66,22 +63,38 @@ fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
       {state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count, facts = take num_facts facts,
        smt_head = smt_head}
+    fun really_go () =
+      prover params (minimize_command name) problem
+      |> (fn {outcome, used_facts, message, ...} =>
+             if is_some outcome then
+               ("none", message)
+             else
+               let
+                 val (used_facts, message) =
+                   if length used_facts >= implicit_minimization_threshold then
+                     minimize_facts params true subgoal subgoal_count state
+                         (filter_used_facts used_facts
+                              (map (apsnd single o untranslated_fact) facts))
+                     |>> Option.map (map fst)
+                   else
+                     (SOME used_facts, message)
+                 val _ =
+                   case (debug orelse !show_facts_in_proofs, used_facts) of
+                     (true, SOME (used_facts as _ :: _)) =>
+                     facts ~~ (0 upto length facts - 1)
+                     |> map (fn (fact, j) =>
+                                fact |> untranslated_fact |> apsnd (K j))
+                     |> filter_used_facts used_facts
+                     |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
+                     |> commas
+                     |> enclose ("Fact" ^ plural_s num_facts ^ " in " ^
+                                 quote name ^ " proof (of " ^
+                                 string_of_int num_facts ^ "): ") "."
+                     |> Output.urgent_message
+                   | _ => ()
+               in ("some", message) end)
     fun go () =
       let
-        fun really_go () =
-          prover params (minimize_command name) problem
-          |> (fn {outcome, used_facts, message, ...} =>
-                 if is_some outcome then
-                   ("none", message)
-                 else
-                   ("some",
-                    if length used_facts >= implicit_minimization_threshold then
-                      minimize_facts params true subgoal subgoal_count state
-                          (filter_used_facts used_facts
-                               (map (apsnd single o untranslated_fact) facts))
-                      |> snd
-                    else
-                      message))
         val (outcome_code, message) =
           if debug then
             really_go ()
@@ -124,27 +137,6 @@ fun run_prover (params as {debug, blocking, max_relevant, timeout, expect, ...})
        (false, state))
   end
 
-val smt_weights = Unsynchronized.ref true
-val smt_weight_min_facts = Unsynchronized.ref 20
-
-(* FUDGE *)
-val smt_min_weight = Unsynchronized.ref 0
-val smt_max_weight = Unsynchronized.ref 10
-val smt_max_weight_index = Unsynchronized.ref 200
-val smt_weight_curve = Unsynchronized.ref (fn x : int => x * x)
-
-fun smt_fact_weight j num_facts =
-  if !smt_weights andalso num_facts >= !smt_weight_min_facts then
-    SOME (!smt_max_weight
-          - (!smt_max_weight - !smt_min_weight + 1)
-            * !smt_weight_curve (Int.max (0, !smt_max_weight_index - j - 1))
-            div !smt_weight_curve (!smt_max_weight_index))
-  else
-    NONE
-
-fun weight_smt_fact thy num_facts (fact, j) =
-  fact |> apsnd (pair (smt_fact_weight j num_facts) o Thm.transfer thy)
-
 fun class_of_smt_solver ctxt name =
   ctxt |> select_smt_solver name
        |> SMT_Config.solver_class_of |> SMT_Utils.string_of_class
@@ -153,6 +145,9 @@ fun class_of_smt_solver ctxt name =
 fun smart_par_list_map _ [] = []
   | smart_par_list_map f [x] = [f x]
   | smart_par_list_map f xs = Par_List.map f xs
+
+fun dest_SMT_Weighted_Fact (SMT_Weighted_Fact p) = p
+  | dest_SMT_Weighted_Fact _ = raise Fail "dest_SMT_Weighted_Fact"
 
 (* FUDGE *)
 val auto_max_relevant_divisor = 2
@@ -181,32 +176,29 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
               | NONE => ()
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."
       val (smts, atps) = provers |> List.partition (is_smt_prover ctxt)
-      fun run_provers get_facts translate maybe_smt_head provers
-                      (res as (success, state)) =
-        if success orelse null provers then
-          res
-        else
-          let
-            val facts = get_facts ()
-            val num_facts = length facts
-            val facts = facts ~~ (0 upto num_facts - 1)
-                        |> map (translate num_facts)
-            val problem =
-              {state = state, goal = goal, subgoal = i, subgoal_count = n,
-               facts = facts,
-               smt_head = maybe_smt_head (map smt_weighted_fact facts) i}
-            val run_prover = run_prover params auto minimize_command only
-          in
-            if auto then
-              fold (fn prover => fn (true, state) => (true, state)
-                                  | (false, _) => run_prover problem prover)
-                   provers (false, state)
-            else
-              provers
-              |> (if blocking then smart_par_list_map else map)
-                     (run_prover problem)
-              |> exists fst |> rpair state
-          end
+      fun run_provers state get_facts translate maybe_smt_head provers =
+        let
+          val facts = get_facts ()
+          val num_facts = length facts
+          val facts = facts ~~ (0 upto num_facts - 1)
+                      |> map (translate num_facts)
+          val problem =
+            {state = state, goal = goal, subgoal = i, subgoal_count = n,
+             facts = facts,
+             smt_head = maybe_smt_head
+                  (fn () => map_filter (try dest_SMT_Weighted_Fact) facts) i}
+          val run_prover = run_prover params auto minimize_command only
+        in
+          if auto then
+            fold (fn prover => fn (true, state) => (true, state)
+                                | (false, _) => run_prover problem prover)
+                 provers (false, state)
+          else
+            provers
+            |> (if blocking then smart_par_list_map else map)
+                   (run_prover problem)
+            |> exists fst |> rpair state
+        end
       fun get_facts label no_dangerous_types relevance_fudge provers =
         let
           val max_max_relevant =
@@ -235,24 +227,27 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
                      else
                        ())
         end
-      val run_atps =
-        run_provers
-            (get_facts "ATP" no_dangerous_types atp_relevance_fudge o K atps)
-            (ATP_Translated_Fact oo K (translate_atp_fact ctxt o fst))
-            (K (K NONE)) atps
+      fun run_atps (accum as (success, _)) =
+        if success orelse null atps then
+          accum
+        else
+          run_provers state
+              (get_facts "ATP" no_dangerous_types atp_relevance_fudge o K atps)
+              (ATP_Translated_Fact oo K (translate_atp_fact ctxt o fst))
+              (K (K NONE)) atps
       fun run_smts (accum as (success, _)) =
         if success orelse null smts then
           accum
         else
           let
             val facts = get_facts "SMT solver" true smt_relevance_fudge smts
-            val translate = SMT_Weighted_Fact oo weight_smt_fact thy
-            val maybe_smt_head = try o SMT_Solver.smt_filter_head state
+            val weight = SMT_Weighted_Fact oo weight_smt_fact thy
+            fun smt_head facts =
+              try (SMT_Solver.smt_filter_head state (facts ()))
           in
             smts |> map (`(class_of_smt_solver ctxt))
                  |> AList.group (op =)
-                 |> map (fn (_, smts) => run_provers (K facts) translate
-                                                     maybe_smt_head smts accum)
+                 |> map (run_provers state (K facts) weight smt_head o snd)
                  |> exists fst |> rpair state
           end
       fun run_atps_and_smt_solvers () =

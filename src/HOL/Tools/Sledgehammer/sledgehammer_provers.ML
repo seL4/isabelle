@@ -53,6 +53,12 @@ sig
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
   (* for experimentation purposes -- do not use in production code *)
+  val smt_weights : bool Unsynchronized.ref
+  val smt_weight_min_facts : int Unsynchronized.ref
+  val smt_min_weight : int Unsynchronized.ref
+  val smt_max_weight : int Unsynchronized.ref
+  val smt_max_weight_index : int Unsynchronized.ref
+  val smt_weight_curve : (int -> int) Unsynchronized.ref
   val smt_max_iters : int Unsynchronized.ref
   val smt_iter_fact_frac : real Unsynchronized.ref
   val smt_iter_time_frac : real Unsynchronized.ref
@@ -73,9 +79,13 @@ sig
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
+  val weight_smt_fact :
+    theory -> int -> ((string * locality) * thm) * int
+    -> (string * locality) * (int option * thm)
   val untranslated_fact : prover_fact -> (string * locality) * thm
   val smt_weighted_fact :
-    prover_fact -> (string * locality) * (int option * thm)
+    theory -> int -> prover_fact * int
+    -> (string * locality) * (int option * thm)
   val available_provers : Proof.context -> unit
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
@@ -277,7 +287,26 @@ fun with_path cleanup after f path =
 fun proof_banner auto =
   if auto then "Auto Sledgehammer found a proof" else "Try this command"
 
-(* generic TPTP-based ATPs *)
+val smt_weights = Unsynchronized.ref true
+val smt_weight_min_facts = Unsynchronized.ref 20
+
+(* FUDGE *)
+val smt_min_weight = Unsynchronized.ref 0
+val smt_max_weight = Unsynchronized.ref 10
+val smt_max_weight_index = Unsynchronized.ref 200
+val smt_weight_curve = Unsynchronized.ref (fn x : int => x * x)
+
+fun smt_fact_weight j num_facts =
+  if !smt_weights andalso num_facts >= !smt_weight_min_facts then
+    SOME (!smt_max_weight
+          - (!smt_max_weight - !smt_min_weight + 1)
+            * !smt_weight_curve (Int.max (0, !smt_max_weight_index - j - 1))
+            div !smt_weight_curve (!smt_max_weight_index))
+  else
+    NONE
+
+fun weight_smt_fact thy num_facts ((info, th), j) =
+  (info, (smt_fact_weight j num_facts, th |> Thm.transfer thy))
 
 fun untranslated_fact (Untranslated_Fact p) = p
   | untranslated_fact (ATP_Translated_Fact (_, p)) = p
@@ -285,8 +314,11 @@ fun untranslated_fact (Untranslated_Fact p) = p
 fun atp_translated_fact _ (ATP_Translated_Fact p) = p
   | atp_translated_fact ctxt fact =
     translate_atp_fact ctxt (untranslated_fact fact)
-fun smt_weighted_fact (SMT_Weighted_Fact p) = p
-  | smt_weighted_fact fact = untranslated_fact fact |> apsnd (pair NONE)
+fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
+  | smt_weighted_fact thy num_facts (fact, j) =
+    (untranslated_fact fact, j) |> weight_smt_fact thy num_facts
+
+(* generic TPTP-based ATPs *)
 
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
@@ -602,7 +634,10 @@ fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
          : prover_problem) =
   let
     val ctxt = Proof.context_of state
-    val facts = facts |> map smt_weighted_fact
+    val thy = Proof.theory_of state
+    val num_facts = length facts
+    val facts = facts ~~ (0 upto num_facts - 1)
+                |> map (smt_weighted_fact thy num_facts)
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop name params state subgoal smt_head facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)

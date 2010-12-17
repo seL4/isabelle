@@ -10,9 +10,7 @@ sig
   type locality = Sledgehammer_Filter.locality
   type params = Sledgehammer_Provers.params
 
-  val filter_used_facts :
-    (string * locality) list -> ((string * locality) * thm list) list
-    -> ((string * locality) * thm list) list
+  val filter_used_facts : ''a list -> (''a * 'b) list -> (''a * 'b) list
   val minimize_facts :
     params -> bool -> int -> int -> Proof.state
     -> ((string * locality) * thm list) list
