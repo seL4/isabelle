@@ -11,14 +11,10 @@ infix 4
 
 signature BASIC_META_SIMPLIFIER =
 sig
-  val simp_debug: bool Config.T
-  val simp_debug_raw: Config.raw
-  val simp_trace: bool Config.T
-  val simp_trace_raw: Config.raw
-  val simp_trace_default: bool Unsynchronized.ref
+  val simp_depth_limit: int Config.T
   val simp_trace_depth_limit: int Config.T
-  val simp_trace_depth_limit_raw: Config.raw
-  val simp_trace_depth_limit_default: int Unsynchronized.ref
+  val simp_debug: bool Config.T
+  val simp_trace: bool Config.T
   type rrule
   val eq_rrule: rrule * rrule -> bool
   type simpset
@@ -106,12 +102,16 @@ sig
   val del_simp: thm -> simpset -> simpset
   val solver: simpset -> solver -> int -> tactic
   val simp_depth_limit_raw: Config.raw
-  val simp_depth_limit: int Config.T
   val clear_ss: simpset -> simpset
   val simproc_global_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc_global: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
+  val simp_trace_depth_limit_raw: Config.raw
+  val simp_trace_depth_limit_default: int Unsynchronized.ref
+  val simp_trace_default: bool Unsynchronized.ref
+  val simp_trace_raw: Config.raw
+  val simp_debug_raw: Config.raw
   val add_prems: thm list -> simpset -> simpset
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
