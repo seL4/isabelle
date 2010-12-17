@@ -182,7 +182,7 @@ val trans_props = trans_list (fn eq => fn th => th COMP (eq COMP Drule.equal_eli
 end;
 
 fun contract ctxt defs ct th =
-  trans_props ctxt [th, Thm.symmetric (MetaSimplifier.rewrite true defs ct)];
+  trans_props ctxt [th, Thm.symmetric (Raw_Simplifier.rewrite true defs ct)];
 
 
 (** defived definitions **)
@@ -208,8 +208,8 @@ val defn_del = Thm.declaration_attribute (Rules.map o Thm.del_thm);
 (* meta rewrite rules *)
 
 fun meta_rewrite_conv ctxt =
-  MetaSimplifier.rewrite_cterm (false, false, false) (K (K NONE))
-    (MetaSimplifier.context ctxt MetaSimplifier.empty_ss
+  Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
+    (Raw_Simplifier.context ctxt empty_ss
       addeqcongs [Drule.equals_cong]    (*protect meta-level equality*)
       addsimps (Rules.get (Context.Proof ctxt)));
 
@@ -220,11 +220,11 @@ val meta_rewrite_rule = Conv.fconv_rule o meta_rewrite_conv;
 
 fun meta f ctxt = f o map (meta_rewrite_rule ctxt);
 
-val unfold       = meta MetaSimplifier.rewrite_rule;
-val unfold_goals = meta MetaSimplifier.rewrite_goals_rule;
-val unfold_tac   = meta MetaSimplifier.rewrite_goals_tac;
-val fold         = meta MetaSimplifier.fold_rule;
-val fold_tac     = meta MetaSimplifier.fold_goals_tac;
+val unfold       = meta Raw_Simplifier.rewrite_rule;
+val unfold_goals = meta Raw_Simplifier.rewrite_goals_rule;
+val unfold_tac   = meta Raw_Simplifier.rewrite_goals_tac;
+val fold         = meta Raw_Simplifier.fold_rule;
+val fold_tac     = meta Raw_Simplifier.fold_goals_tac;
 
 
 (* derived defs -- potentially within the object-logic *)
@@ -244,7 +244,7 @@ fun derived_def ctxt conditional prop =
       in
         Goal.prove ctxt' frees [] prop (K (ALLGOALS
           (CONVERSION (meta_rewrite_conv ctxt') THEN'
-            MetaSimplifier.rewrite_goal_tac [def] THEN'
+            rewrite_goal_tac [def] THEN'
             resolve_tac [Drule.reflexive_thm])))
         handle ERROR msg => cat_error msg "Failed to prove definitional specification"
       end;

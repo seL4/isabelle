@@ -127,7 +127,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
           fun param_rewrite prem =
             param = snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of prem)))
           val SOME rew_eq = find_first param_rewrite prems'
-          val param_prem' = MetaSimplifier.rewrite_rule
+          val param_prem' = Raw_Simplifier.rewrite_rule
             (map (fn th => th RS @{thm eq_reflection})
               [rew_eq RS @{thm sym}, @{thm split_beta}, @{thm fst_conv}, @{thm snd_conv}])
             param_prem

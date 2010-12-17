@@ -227,7 +227,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   item_net.ML						\
   library.ML						\
   logic.ML						\
-  meta_simplifier.ML					\
   more_thm.ML						\
   morphism.ML						\
   name.ML						\
@@ -238,6 +237,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   proofterm.ML						\
   pure_setup.ML						\
   pure_thy.ML						\
+  raw_simplifier.ML					\
   search.ML						\
   sign.ML						\
   simplifier.ML						\

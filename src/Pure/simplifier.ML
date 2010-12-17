@@ -7,7 +7,7 @@ meta_simplifier.ML for the actual meta-level rewriting engine).
 
 signature BASIC_SIMPLIFIER =
 sig
-  include BASIC_META_SIMPLIFIER
+  include BASIC_RAW_SIMPLIFIER
   val change_simpset: (simpset -> simpset) -> unit
   val global_simpset_of: theory -> simpset
   val Addsimprocs: simproc list -> unit
@@ -75,7 +75,7 @@ end;
 structure Simplifier: SIMPLIFIER =
 struct
 
-open MetaSimplifier;
+open Raw_Simplifier;
 
 
 (** pretty printing **)
@@ -107,7 +107,7 @@ structure Simpset = Generic_Data
 (
   type T = simpset;
   val empty = empty_ss;
-  fun extend ss = MetaSimplifier.inherit_context empty_ss ss;
+  fun extend ss = Raw_Simplifier.inherit_context empty_ss ss;
   val merge = merge_ss;
 );
 
@@ -130,7 +130,7 @@ val cong_del = attrib (op delcongs);
 fun map_simpset f = Context.theory_map (map_ss f);
 fun change_simpset f = Context.>> (Context.map_theory (map_simpset f));
 fun global_simpset_of thy =
-  MetaSimplifier.context (ProofContext.init_global thy) (get_ss (Context.Theory thy));
+  Raw_Simplifier.context (ProofContext.init_global thy) (get_ss (Context.Theory thy));
 
 fun Addsimprocs args = change_simpset (fn ss => ss addsimprocs args);
 fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
@@ -138,7 +138,7 @@ fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
 
 (* local simpset *)
 
-fun simpset_of ctxt = MetaSimplifier.context ctxt (get_ss (Context.Proof ctxt));
+fun simpset_of ctxt = Raw_Simplifier.context ctxt (get_ss (Context.Proof ctxt));
 
 val _ = ML_Antiquote.value "simpset"
   (Scan.succeed "Simplifier.simpset_of (ML_Context.the_local_context ())");
@@ -218,16 +218,16 @@ end;
 
 fun solve_all_tac solvers ss =
   let
-    val (_, {subgoal_tac, ...}) = MetaSimplifier.internal_ss ss;
-    val solve_tac = subgoal_tac (MetaSimplifier.set_solvers solvers ss) THEN_ALL_NEW (K no_tac);
+    val (_, {subgoal_tac, ...}) = Raw_Simplifier.internal_ss ss;
+    val solve_tac = subgoal_tac (Raw_Simplifier.set_solvers solvers ss) THEN_ALL_NEW (K no_tac);
   in DEPTH_SOLVE (solve_tac 1) end;
 
 (*NOTE: may instantiate unknowns that appear also in other subgoals*)
 fun generic_simp_tac safe mode ss =
   let
-    val (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = MetaSimplifier.internal_ss ss;
+    val (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = Raw_Simplifier.internal_ss ss;
     val loop_tac = FIRST' (map (fn (_, tac) => tac ss) (rev loop_tacs));
-    val solve_tac = FIRST' (map (MetaSimplifier.solver ss)
+    val solve_tac = FIRST' (map (Raw_Simplifier.solver ss)
       (rev (if safe then solvers else unsafe_solvers)));
 
     fun simp_loop_tac i =
@@ -239,15 +239,15 @@ local
 
 fun simp rew mode ss thm =
   let
-    val (_, {solvers = (unsafe_solvers, _), ...}) = MetaSimplifier.internal_ss ss;
+    val (_, {solvers = (unsafe_solvers, _), ...}) = Raw_Simplifier.internal_ss ss;
     val tacf = solve_all_tac (rev unsafe_solvers);
     fun prover s th = Option.map #1 (Seq.pull (tacf s th));
   in rew mode prover ss thm end;
 
 in
 
-val simp_thm = simp MetaSimplifier.rewrite_thm;
-val simp_cterm = simp MetaSimplifier.rewrite_cterm;
+val simp_thm = simp Raw_Simplifier.rewrite_thm;
+val simp_cterm = simp Raw_Simplifier.rewrite_cterm;
 
 end;
 
@@ -326,7 +326,7 @@ in
 
 val simplified = conv_mode -- Attrib.thms >>
   (fn (f, ths) => Thm.rule_attribute (fn context =>
-    f ((if null ths then I else MetaSimplifier.clear_ss)
+    f ((if null ths then I else Raw_Simplifier.clear_ss)
         (simpset_of (Context.proof_of context)) addsimps ths)));
 
 end;
@@ -357,14 +357,14 @@ val simp_modifiers =
   Args.$$$ simpN -- Args.add -- Args.colon >> K (I, simp_add),
   Args.$$$ simpN -- Args.del -- Args.colon >> K (I, simp_del),
   Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon
-    >> K (Context.proof_map (map_ss MetaSimplifier.clear_ss), simp_add)]
+    >> K (Context.proof_map (map_ss Raw_Simplifier.clear_ss), simp_add)]
    @ cong_modifiers;
 
 val simp_modifiers' =
  [Args.add -- Args.colon >> K (I, simp_add),
   Args.del -- Args.colon >> K (I, simp_del),
   Args.$$$ onlyN -- Args.colon
-    >> K (Context.proof_map (map_ss MetaSimplifier.clear_ss), simp_add)]
+    >> K (Context.proof_map (map_ss Raw_Simplifier.clear_ss), simp_add)]
    @ cong_modifiers;
 
 val simp_options =

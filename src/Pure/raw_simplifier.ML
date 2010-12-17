@@ -1,7 +1,7 @@
-(*  Title:      Pure/meta_simplifier.ML
+(*  Title:      Pure/raw_simplifier.ML
     Author:     Tobias Nipkow and Stefan Berghofer, TU Muenchen
 
-Meta-level Simplification.
+Higher-order Simplification.
 *)
 
 infix 4
@@ -9,7 +9,7 @@ infix 4
   setmksimps setmkcong setmksym setmkeqTrue settermless setsubgoaler
   setloop' setloop addloop addloop' delloop setSSolver addSSolver setSolver addSolver;
 
-signature BASIC_META_SIMPLIFIER =
+signature BASIC_RAW_SIMPLIFIER =
 sig
   val simp_depth_limit: int Config.T
   val simp_trace_depth_limit: int Config.T
@@ -76,9 +76,9 @@ sig
   val norm_hhf_protect: thm -> thm
 end;
 
-signature META_SIMPLIFIER =
+signature RAW_SIMPLIFIER =
 sig
-  include BASIC_META_SIMPLIFIER
+  include BASIC_RAW_SIMPLIFIER
   exception SIMPLIFIER of string * thm
   val internal_ss: simpset ->
    {rules: rrule Net.net,
@@ -133,7 +133,7 @@ sig
   val simplify: bool -> thm list -> thm -> thm
 end;
 
-structure MetaSimplifier: META_SIMPLIFIER =
+structure Raw_Simplifier: RAW_SIMPLIFIER =
 struct
 
 (** datatype simpset **)
@@ -1375,5 +1375,5 @@ end;
 
 end;
 
-structure Basic_Meta_Simplifier: BASIC_META_SIMPLIFIER = MetaSimplifier;
+structure Basic_Meta_Simplifier: BASIC_RAW_SIMPLIFIER = Raw_Simplifier;
 open Basic_Meta_Simplifier;

@@ -599,6 +599,9 @@ names of constants and types involved. INCOMPATIBILITY.
 
 *** ML ***
 
+* Renamed structure MetaSimplifier to Raw_Simplifier.  Note that the
+main functionality is provided by structure Simplifier.
+
 * Syntax.pretty_priority (default 0) configures the required priority
 of pretty-printed output and thus affects insertion of parentheses.
 

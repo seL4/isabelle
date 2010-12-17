@@ -219,9 +219,9 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
         fun inst_of_matches tts = fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)
           |> snd |> Vartab.dest |> map (pairself (cterm_of thy) o term_pair_of)
         val (cases, (eqs, prems)) = apsnd (chop (nargs - nparams)) (chop n prems)
-        val case_th = MetaSimplifier.simplify true
+        val case_th = Raw_Simplifier.simplify true
           (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))
-        val prems' = maps (dest_conjunct_prem o MetaSimplifier.simplify true tuple_rew_rules) prems
+        val prems' = maps (dest_conjunct_prem o Raw_Simplifier.simplify true tuple_rew_rules) prems
         val pats = map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop) (take nargs (prems_of case_th))
         val case_th' = Thm.instantiate ([], inst_of_matches pats) case_th
           OF (replicate nargs @{thm refl})
