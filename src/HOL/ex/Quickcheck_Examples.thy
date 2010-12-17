@@ -6,7 +6,7 @@
 header {* Examples for the 'quickcheck' command *}
 
 theory Quickcheck_Examples
-imports Main
+imports Complex_Main
 begin
 
 text {*
@@ -237,7 +237,7 @@ quickcheck[random]
 quickcheck[exhaustive, expect = counterexample]
 oops
 
-section {* Examples with quantifiers *}
+subsection {* Examples with quantifiers *}
 
 text {*
   These examples show that we can handle quantifiers.
@@ -256,6 +256,36 @@ oops
 lemma "(\<exists>x. P x) \<longrightarrow> (EX! x. P x)"
   quickcheck[random, expect = counterexample]
   quickcheck[expect = counterexample]
+oops
+
+subsection {* Examples with numerical types *}
+
+text {*
+Quickcheck supports the common types nat, int, rat and real.
+*}
+
+lemma
+  "(x :: nat) > 0 ==> y > 0 ==> z > 0 ==> x * x + y * y \<noteq> z * z"
+quickcheck[exhaustive, size = 10, expect = counterexample]
+quickcheck[random, size = 10]
+oops
+
+lemma
+  "(x :: int) > 0 ==> y > 0 ==> z > 0 ==> x * x + y * y \<noteq> z * z"
+quickcheck[exhaustive, size = 10, expect = counterexample]
+quickcheck[random, size = 10]
+oops
+
+lemma
+  "(x :: rat) > 0 ==> y > 0 ==> z > 0 ==> x * x + y * y \<noteq> z * z"
+quickcheck[exhaustive, size = 10, expect = counterexample]
+quickcheck[random, size = 10]
+oops
+
+lemma
+  "(x :: real) > 0 ==> y > 0 ==> z > 0 ==> x * x + y * y \<noteq> z * z"
+quickcheck[exhaustive, size = 10, expect = counterexample]
+quickcheck[random, size = 10]
 oops
 
 end

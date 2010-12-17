@@ -67,6 +67,31 @@ instance ..
 
 end
 
+instantiation code_numeral :: full_small
+begin
+
+function full_small_code_numeral' :: "(code_numeral * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
+  where "full_small_code_numeral' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => full_small_code_numeral' f d (i + 1)))"
+by pat_completeness auto
+
+termination 
+  by (relation "measure (%(_, d, i). Code_Numeral.nat_of (d + 1 - i))") auto
+
+definition "full_small f d = full_small_code_numeral' f d 0"
+
+instance ..
+
+end
+
+instantiation nat :: full_small
+begin
+
+definition "full_small f d = full_small (%(x, xt). f (Code_Numeral.nat_of x, %_. Code_Evaluation.term_of (Code_Numeral.nat_of x))) d"
+
+instance ..
+
+end
+
 instantiation int :: full_small
 begin
 
