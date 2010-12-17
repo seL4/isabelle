@@ -1964,19 +1964,20 @@ setup {*
 
 ML {*
 fun gen_eval_method conv ctxt = SIMPLE_METHOD'
-  (CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt)
+  (CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) (conv (ProofContext.theory_of ctxt)))) ctxt)
     THEN' rtac TrueI)
 *}
 
 method_setup eval = {* Scan.succeed (gen_eval_method Code_Runtime.dynamic_holds_conv) *}
   "solve goal by evaluation"
 
-method_setup evaluation = {* Scan.succeed (gen_eval_method Codegen.evaluation_conv) *}
+method_setup evaluation = {* Scan.succeed (gen_eval_method (K Codegen.evaluation_conv)) *}
   "solve goal by evaluation"
 
 method_setup normalization = {*
-  Scan.succeed (K (SIMPLE_METHOD'
-    (CHANGED_PROP o (CONVERSION Nbe.dynamic_conv THEN' (fn k => TRY (rtac TrueI k))))))
+  Scan.succeed (fn ctxt => SIMPLE_METHOD'
+    (CHANGED_PROP o (CONVERSION (Nbe.dynamic_conv (ProofContext.theory_of ctxt))
+      THEN' (fn k => TRY (rtac TrueI k)))))
 *} "solve goal by normalization"
 
 

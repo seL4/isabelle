@@ -12,7 +12,7 @@ sig
   val static_value: theory -> string list -> typ list -> term -> term option
   val static_value_strict: theory -> string list -> typ list -> term -> term
   val static_value_exn: theory -> string list -> typ list -> term -> term Exn.result
-  val dynamic_conv: conv
+  val dynamic_conv: theory -> conv
   val static_conv: theory -> string list -> typ list -> conv
   val put_term: (unit -> term) -> Proof.context -> Proof.context
   val tracing: string -> 'a -> 'a
@@ -194,8 +194,8 @@ fun certify_eval thy value conv ct =
           error ("Failed to certify evaluation result of " ^ Syntax.string_of_term_global thy t)
   end;
 
-val dynamic_conv = Conv.tap_thy
-  (fn thy => certify_eval thy (dynamic_value thy) Code_Runtime.dynamic_holds_conv);
+fun dynamic_conv thy = certify_eval thy (dynamic_value thy)
+  (Code_Runtime.dynamic_holds_conv thy);
 
 fun static_conv thy consts Ts =
   let

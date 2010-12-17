@@ -23,7 +23,7 @@ sig
     -> ((term -> term) -> 'a -> 'a) -> string list -> term -> 'a
   val static_value_exn: 'a cookie -> theory -> string option
     -> ((term -> term) -> 'a -> 'a) -> string list -> term -> 'a Exn.result
-  val dynamic_holds_conv: conv
+  val dynamic_holds_conv: theory -> conv
   val static_holds_conv: theory -> string list -> conv
   val code_reflect: (string * string list option) list -> string list -> string
     -> string option -> theory -> theory
@@ -175,9 +175,9 @@ val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
 fun check_holds_oracle serializer naming thy program ((_, vs_ty), t) deps ct =
   raw_check_holds_oracle (serializer, naming, thy, program, (vs_ty, t), deps, ct);
 
-val dynamic_holds_conv = Conv.tap_thy (fn thy => Code_Thingol.dynamic_conv thy
-  (fn naming => check_holds_oracle (obtain_serializer thy NONE) naming thy)
-  o reject_vars thy);
+fun dynamic_holds_conv thy = Code_Thingol.dynamic_conv thy
+    (fn naming => check_holds_oracle (obtain_serializer thy NONE) naming thy)
+  o reject_vars thy;
 
 fun static_holds_conv thy consts =
   let

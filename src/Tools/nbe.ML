@@ -6,7 +6,7 @@ Normalization by evaluation, based on generic code generator.
 
 signature NBE =
 sig
-  val dynamic_conv: conv
+  val dynamic_conv: theory -> conv
   val dynamic_value: theory -> term -> term
   val static_conv: theory -> string list -> conv
   val static_value: theory -> string list -> term -> term
@@ -593,9 +593,8 @@ val (_, raw_oracle) = Context.>>> (Context.map_theory_result
 fun oracle thy program nbe_program_idx_tab vsp_ty_t deps ct =
   raw_oracle (thy, program, nbe_program_idx_tab, vsp_ty_t, deps, ct);
 
-val dynamic_conv = Conv.tap_thy (fn thy =>
-  lift_triv_classes_conv thy (Code_Thingol.dynamic_conv thy
-    (K (fn program => oracle thy program (compile false thy program)))));
+fun dynamic_conv thy = lift_triv_classes_conv thy (Code_Thingol.dynamic_conv thy
+    (K (fn program => oracle thy program (compile false thy program))));
 
 fun dynamic_value thy = lift_triv_classes_rew thy
   (Code_Thingol.dynamic_value thy I
