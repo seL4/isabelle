@@ -235,6 +235,7 @@ fun declare naming (b, declT) =
   map_consts (fn (decls, constraints, rev_abbrevs) =>
     let
       val decl = {T = declT, typargs = typargs_of declT};
+      val _ = Binding.check b;
       val (_, decls') = decls |> Name_Space.define true naming (b, (decl, NONE));
     in (decls', constraints, rev_abbrevs) end);
 
@@ -287,6 +288,7 @@ fun abbreviate pp tsig naming mode (b, raw_rhs) consts =
       let
         val decl = {T = T, typargs = typargs_of T};
         val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
+        val _ = Binding.check b;
         val (_, decls') = decls
           |> Name_Space.define true naming (b, (decl, SOME abbr));
         val rev_abbrevs' = rev_abbrevs
