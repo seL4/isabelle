@@ -71,7 +71,8 @@ sig
   val amend_registration: string * morphism -> morphism * bool ->
     morphism -> Context.generic -> Context.generic
   val registrations_of: Context.generic -> string -> (string * morphism) list
-  val add_dependency: string -> string * morphism -> morphism -> theory -> theory
+  val add_dependency: string -> string * morphism -> (morphism * bool) option ->
+    morphism -> theory -> theory
 
   (* Diagnostic *)
   val all_locales: theory -> string list
@@ -292,7 +293,7 @@ structure Registrations = Generic_Data
 (
   type T = ((morphism * morphism) * serial) Idtab.table *
     (* registrations, indexed by locale name and instance;
-       serial points to mixin list *)
+       unique serial, points to mixin list *)
     (((morphism * bool) * serial) list) Inttab.table;
     (* table of mixin lists, per list mixins in reverse order of declaration;
        lists indexed by registration serial,
@@ -484,7 +485,7 @@ fun add_registration (name, base_morph) mixin export context =
 
 (*** Dependencies ***)
 
-fun add_dependency loc (name, morph) export thy =
+fun add_dependency loc (name, morph) mixin export thy =
   let
     val thy' = (change_locale loc o apsnd) (cons ((name, (morph, export)), serial ())) thy;
     val context' = Context.Theory thy';
