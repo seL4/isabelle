@@ -156,6 +156,8 @@ ML {*
     end;
 *}
 
+local_setup {* Config.put show_hyps true *}
+
 ML {*
   check_syntax @{context} @{thm d1_def} "d1(?x) <-> ~ p2(p1(?x))";
   check_syntax @{context} @{thm d2_def} "d2(?x) <-> ~ p2(?x)";
