@@ -5,7 +5,7 @@
 header {* Upper powerdomain *}
 
 theory UpperPD
-imports CompactBasis
+imports Compact_Basis
 begin
 
 subsection {* Basis preorder *}

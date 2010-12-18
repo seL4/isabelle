@@ -1,10 +1,10 @@
-(*  Title:      HOLCF/CompactBasis.thy
+(*  Title:      HOLCF/Compact_Basis.thy
     Author:     Brian Huffman
 *)
 
 header {* A compact basis for powerdomains *}
 
-theory CompactBasis
+theory Compact_Basis
 imports Bifinite
 begin
 

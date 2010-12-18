@@ -5,7 +5,7 @@
 header {* Lower powerdomain *}
 
 theory LowerPD
-imports CompactBasis
+imports Compact_Basis
 begin
 
 subsection {* Basis preorder *}
