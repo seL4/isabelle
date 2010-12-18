@@ -321,7 +321,7 @@ fun get_prover ctxt args =
       hd (#provers (Sledgehammer_Isar.default_params ctxt []))
       handle Empty => error "No ATP available."
     fun get_prover name =
-      (name, Sledgehammer_Provers.get_prover ctxt false name)
+      (name, Sledgehammer_Run.get_minimizing_prover ctxt false name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
