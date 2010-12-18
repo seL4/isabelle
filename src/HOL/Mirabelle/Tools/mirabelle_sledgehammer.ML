@@ -419,7 +419,9 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
     val type_sys = AList.lookup (op =) args type_sysK |> the_default "smart"
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
-    val hard_timeout = SOME timeout (* always use a hard timeout *)
+    (* always use a hard timeout, but give some slack so that the automatic
+       minimizer has a chance to do its magic *)
+    val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
       run_sh prover_name prover type_sys hard_timeout timeout dir st
   in
