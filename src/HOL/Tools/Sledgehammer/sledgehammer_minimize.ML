@@ -10,6 +10,7 @@ sig
   type locality = Sledgehammer_Filter.locality
   type params = Sledgehammer_Provers.params
 
+  val binary_threshold : int Unsynchronized.ref
   val filter_used_facts : ''a list -> (''a * 'b) list -> (''a * 'b) list
   val minimize_facts :
     string -> params -> bool -> int -> int -> Proof.state
@@ -78,10 +79,10 @@ fun test_facts ({debug, overlord, provers, type_sys, isar_proof,
 
 (* The sublinear algorithm works well in almost all situations, except when the
    external prover cannot return the list of used facts and hence returns all
-   facts as used. In that case, the binary algorithm is much more
-   appropriate. We can usually detect that situation just by looking at the
-   number of used facts reported by the prover. *)
-val binary_threshold = 50
+   facts as used. In that case, the binary algorithm is much more appropriate.
+   We can usually detect the situation by looking at the number of used facts
+   reported by the prover. *)
+val binary_threshold = Unsynchronized.ref 20
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
@@ -151,7 +152,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
            |> Time.fromMilliseconds
          val facts = filter_used_facts used_facts facts
          val (min_thms, {message, ...}) =
-           if length facts >= binary_threshold then
+           if length facts >= !binary_threshold then
              binary_minimize (do_test new_timeout) facts
            else
              sublinear_minimize (do_test new_timeout) facts ([], result)

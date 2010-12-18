@@ -42,7 +42,7 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    else
      "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
 
-val auto_minimization_threshold = Unsynchronized.ref 50
+val auto_minimization_threshold = Unsynchronized.ref (!binary_threshold)
 
 fun get_minimizing_prover ctxt auto name (params as {debug, verbose, ...})
         minimize_command
