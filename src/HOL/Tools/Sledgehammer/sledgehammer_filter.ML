@@ -53,8 +53,9 @@ open Sledgehammer_Util
 val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
-(* experimental feature *)
+(* experimental features *)
 val respect_no_atp = true
+val instantiate_inducts = false
 
 datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
@@ -256,8 +257,6 @@ fun add_pconst_to_table also_skolem (s, p) =
   if (not also_skolem andalso String.isPrefix skolem_prefix s) then I
   else Symtab.map_default (s, [p]) (insert (op =) p)
 
-fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
-
 fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
   let
     val flip = Option.map not
@@ -286,7 +285,7 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
           else
             I)
     and do_term_or_formula T =
-      if is_formula_type T then do_formula NONE else do_term
+      if T = HOLogic.boolT then do_formula NONE else do_term
     and do_formula pos t =
       case t of
         Const (@{const_name all}, _) $ Abs (_, T, t') =>
@@ -636,6 +635,7 @@ val multi_base_blacklist =
   ["defs", "select_defs", "update_defs", "split", "splits", "split_asm",
    "cases", "ext_cases", "eq.simps", "eq.refl", "nchotomy", "case_cong",
    "weak_case_cong"]
+  |> not instantiate_inducts ? append ["induct", "inducts"]
   |> map (prefix ".")
 
 val max_lambda_nesting = 3
@@ -651,7 +651,7 @@ fun term_has_too_many_lambdas max (t1 $ t2) =
 fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
     formula_has_too_many_lambdas (T :: Ts) t
   | formula_has_too_many_lambdas Ts t =
-    if is_formula_type (fastype_of1 (Ts, t)) then
+    if member (op =) [HOLogic.boolT, propT] (fastype_of1 (Ts, t)) then
       exists (formula_has_too_many_lambdas Ts) (#2 (strip_comb t))
     else
       term_has_too_many_lambdas max_lambda_nesting t
@@ -877,7 +877,8 @@ fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
                o fact_from_ref ctxt reserved chained_ths) add
        else
          all_facts ctxt reserved no_dangerous_types fudge add_ths chained_ths)
-      |> maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
+      |> instantiate_inducts
+         ? maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
       |> rearrange_facts ctxt (respect_no_atp andalso not only)
       |> uniquify
   in
