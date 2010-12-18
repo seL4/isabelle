@@ -531,8 +531,7 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
     |> snd
   end
 
-val try_inner_timeout = seconds 5.0
-val try_outer_timeout = seconds 30.0
+val try_timeout = seconds 5.0
 
 fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
   let val goal = Thm.major_prem_of (#goal (Proof.goal pre)) in
@@ -544,10 +543,8 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
         Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
-      val trivial =
-       TimeLimit.timeLimit try_outer_timeout
-                                   (Try.invoke_try (SOME try_inner_timeout)) pre
-                    handle TimeLimit.TimeOut => false
+      val trivial = Try.invoke_try (SOME try_timeout) pre
+        handle TimeLimit.TimeOut => false
       fun apply_reconstructor m1 m2 =
         if metis_ft
         then
