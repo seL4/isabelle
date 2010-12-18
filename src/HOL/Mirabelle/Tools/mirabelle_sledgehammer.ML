@@ -368,24 +368,25 @@ fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val no_dangerous_types =
       Sledgehammer_ATP_Translate.types_dangerous_types type_sys
-    val facts =
-      Sledgehammer_Filter.relevant_facts ctxt no_dangerous_types
-          relevance_thresholds
-          (the_default default_max_relevant max_relevant) is_built_in_const
-          relevance_fudge relevance_override chained_ths hyp_ts concl_t
-    val problem =
-      {state = st', goal = goal, subgoal = i,
-       subgoal_count = Sledgehammer_Util.subgoal_count st,
-       facts = facts |> map Sledgehammer_Provers.Untranslated_Fact,
-       smt_head = NONE}
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     val ({outcome, message, used_facts, run_time_in_msecs}
          : Sledgehammer_Provers.prover_result,
-        time_isa) = time_limit (Mirabelle.cpu_time
-                      (prover params (K ""))) problem
+        time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
+      let
+        val facts =
+          Sledgehammer_Filter.relevant_facts ctxt no_dangerous_types
+              relevance_thresholds
+              (the_default default_max_relevant max_relevant) is_built_in_const
+              relevance_fudge relevance_override chained_ths hyp_ts concl_t
+        val problem =
+          {state = st', goal = goal, subgoal = i,
+           subgoal_count = Sledgehammer_Util.subgoal_count st,
+           facts = facts |> map Sledgehammer_Provers.Untranslated_Fact,
+           smt_head = NONE}
+      in prover params (K "") problem end)) ()
       handle TimeLimit.TimeOut =>
              ({outcome = SOME ATP_Proof.TimedOut, message = "", used_facts = [],
                run_time_in_msecs = NONE}, ~1)
