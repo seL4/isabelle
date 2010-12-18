@@ -12,7 +12,7 @@ sig
 
   val filter_used_facts : ''a list -> (''a * 'b) list -> (''a * 'b) list
   val minimize_facts :
-    params -> bool -> int -> int -> Proof.state
+    string -> params -> bool -> int -> int -> Proof.state
     -> ((string * locality) * thm list) list
     -> ((string * locality) * thm list) list option * string
   val run_minimize :
@@ -124,9 +124,8 @@ fun binary_minimize test xs =
    part of the timeout. *)
 val fudge_msecs = 1000
 
-fun minimize_facts {provers = [], ...} _ _ _ _ _ = error "No prover is set."
-  | minimize_facts (params as {provers = prover_name :: _, timeout, ...}) silent
-                   i n state facts =
+fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
+                   facts =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -177,7 +176,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ _ = error "No prover is set."
     handle ERROR msg => (NONE, "Error: " ^ msg)
   end
 
-fun run_minimize params i refs state =
+fun run_minimize (params as {provers, ...}) i refs state =
   let
     val ctxt = Proof.context_of state
     val reserved = reserved_isar_keyword_table ()
@@ -188,9 +187,12 @@ fun run_minimize params i refs state =
   in
     case subgoal_count state of
       0 => Output.urgent_message "No subgoal!"
-    | n =>
-      (kill_provers ();
-       Output.urgent_message (#2 (minimize_facts params false i n state facts)))
+    | n => case provers of
+             [] => error "No prover is set."
+           | prover :: _ =>
+             (kill_provers ();
+              minimize_facts prover params false i n state facts
+              |> #2 |> Output.urgent_message)
   end
 
 end;
