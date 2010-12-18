@@ -92,6 +92,26 @@ datatype ctxt = datatype Element.ctxt;
 
 (*** Locales ***)
 
+type mixins = (((morphism * bool) * serial) list) Inttab.table;
+  (* table of mixin lists, per list mixins in reverse order of declaration;
+     lists indexed by registration/dependency serial,
+     entries for empty lists may be omitted *)
+
+fun lookup_mixins serial' mixins = the_default [] (Inttab.lookup mixins serial');
+
+fun merge_mixins (mix1, mix2) = Inttab.join (K (Library.merge (eq_snd op =))) (mix1, mix2);
+
+fun insert_mixin serial' mixin =
+  Inttab.map_default (serial', []) (cons (mixin, serial ()));
+
+fun rename_mixin (old, new) mix =
+  case Inttab.lookup mix old of
+    NONE => mix |
+    SOME mxs => Inttab.delete old mix |> Inttab.update_new (new, mxs);
+
+fun compose_mixins mixins =
+  fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
+
 datatype locale = Loc of {
   (** static part **)
   parameters: (string * sort) list * ((string * typ) * mixfix) list,
@@ -106,24 +126,31 @@ datatype locale = Loc of {
   notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * serial) list,
     (* theorem declarations *)
   dependencies: ((string * (morphism * morphism)) * serial) list
-    (* locale dependencies (sublocale relation) *)
+    (* locale dependencies (sublocale relation) in reverse order *),
+  mixins: mixins
+    (* mixin part of dependencies *)
 };
 
-fun mk_locale ((parameters, spec, intros, axioms), ((syntax_decls, notes), dependencies)) =
+fun mk_locale ((parameters, spec, intros, axioms),
+    ((syntax_decls, notes), (dependencies, mixins))) =
   Loc {parameters = parameters, intros = intros, axioms = axioms, spec = spec,
-    syntax_decls = syntax_decls, notes = notes, dependencies = dependencies};
+    syntax_decls = syntax_decls, notes = notes, dependencies = dependencies, mixins = mixins};
 
-fun map_locale f (Loc {parameters, spec, intros, axioms, syntax_decls, notes, dependencies}) =
-  mk_locale (f ((parameters, spec, intros, axioms), ((syntax_decls, notes), dependencies)));
+fun map_locale f (Loc {parameters, spec, intros, axioms,
+    syntax_decls, notes, dependencies, mixins}) =
+  mk_locale (f ((parameters, spec, intros, axioms),
+    ((syntax_decls, notes), (dependencies, mixins))));
 
 fun merge_locale
- (Loc {parameters, spec, intros, axioms, syntax_decls, notes, dependencies},
-  Loc {syntax_decls = syntax_decls', notes = notes', dependencies = dependencies', ...}) =
+ (Loc {parameters, spec, intros, axioms, syntax_decls, notes, dependencies, mixins},
+  Loc {syntax_decls = syntax_decls', notes = notes',
+      dependencies = dependencies', mixins = mixins', ...}) =
     mk_locale
       ((parameters, spec, intros, axioms),
         ((merge (eq_snd op =) (syntax_decls, syntax_decls'),
           merge (eq_snd op =) (notes, notes')),
-            merge (eq_snd op =) (dependencies, dependencies')));
+            (merge (eq_snd op =) (dependencies, dependencies'),
+              (merge_mixins (mixins, mixins')))));
 
 structure Locales = Theory_Data
 (
@@ -149,8 +176,9 @@ fun register_locale binding parameters spec intros axioms syntax_decls notes dep
     (binding,
       mk_locale ((parameters, spec, intros, axioms),
         ((map (fn decl => (decl, serial ())) syntax_decls, map (fn n => (n, serial ())) notes),
-          map (fn d => (d |> apsnd (rpair Morphism.identity), serial ())) dependencies))) #> snd);
-          (* FIXME *)
+          (map (fn d => (d |> apsnd (rpair Morphism.identity), serial ())) dependencies,
+            Inttab.empty)))) #> snd);
+          (* FIXME Morphism.identity *)
 
 fun change_locale name =
   Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
@@ -170,7 +198,17 @@ fun instance_of thy name morph = params_of thy name |>
 fun specification_of thy = #spec o the_locale thy;
 
 fun dependencies_of thy name = the_locale thy name |>
-  #dependencies |> map fst;
+  #dependencies;
+
+fun mixins_of thy name serial = the_locale thy name |>
+  #mixins |> lookup_mixins serial;
+
+(* unused *)
+fun identity_on thy name morph =
+  let val mk_instance = instance_of thy name
+  in
+    forall2 (curry Term.aconv_untyped) (mk_instance Morphism.identity) (mk_instance morph)
+  end;
 
 (* Print instance and qualifiers *)
 
@@ -244,24 +282,28 @@ local
 
 val roundup_bound = 120;
 
-fun add thy depth export (name, morph) (deps, marked) =
+fun add thy depth stem export (name, morph, mixins) (deps, marked) =
   if depth > roundup_bound
   then error "Roundup bound exceeded (sublocale relation probably not terminating)."
   else
     let
-      val dependencies = dependencies_of thy name;
-      val instance = instance_of thy name (morph $> export);
+      val instance = instance_of thy name (morph $> stem $> export);
     in
       if member (ident_le thy) marked (name, instance)
       then (deps, marked)
       else
         let
-          val dependencies' =
-            map (fn (name, (morph', export')) => (name, morph' $> export' $> morph)) dependencies;
+          val full_morph = morph $> compose_mixins mixins $> stem;
+          (* no inheritance of mixins, regardless of requests by clients *)
+          val dependencies = dependencies_of thy name |>
+            map (fn ((name', (morph', export')), serial') =>
+              (name', morph' $> export', mixins_of thy name serial'));
           val marked' = (name, instance) :: marked;
-          val (deps', marked'') = fold_rev (add thy (depth + 1) export) dependencies' ([], marked');
+          val (deps', marked'') =
+            fold_rev (add thy (depth + 1) full_morph export) dependencies
+              ([], marked');
         in
-          ((name, morph) :: deps' @ deps, marked'')
+          ((name, full_morph) :: deps' @ deps, marked'')
         end
     end;
 
@@ -272,9 +314,10 @@ in
 
 fun roundup thy activate_dep export (name, morph) (marked, input) =
   let
-    (* Find all dependencies incuding new ones (which are dependencies enriching
+    (* Find all dependencies including new ones (which are dependencies enriching
       existing registrations). *)
-    val (dependencies, marked') = add thy 0 export (name, morph) ([], []);
+    val (dependencies, marked') =
+      add thy 0 Morphism.identity export (name, morph, []) ([], []);
     (* Filter out fragments from marked; these won't be activated. *)
     val dependencies' = filter_out (fn (name, morph) =>
       member (ident_le thy) marked (name, instance_of thy name (morph $> export))) dependencies;
@@ -291,33 +334,25 @@ structure Idtab = Table(type key = string * term list val ord = ident_ord);
 
 structure Registrations = Generic_Data
 (
-  type T = ((morphism * morphism) * serial) Idtab.table *
+  type T = ((morphism * morphism) * serial) Idtab.table * mixins;
     (* registrations, indexed by locale name and instance;
-       unique serial, points to mixin list *)
-    (((morphism * bool) * serial) list) Inttab.table;
-    (* table of mixin lists, per list mixins in reverse order of declaration;
-       lists indexed by registration serial,
-       entries for empty lists may be omitted *)
+       unique registration serial points to mixin list *)
   val empty = (Idtab.empty, Inttab.empty);
   val extend = I;
   fun merge ((reg1, mix1), (reg2, mix2)) : T =
     (Idtab.join (fn id => fn (r1 as (_, s1), r2 as (_, s2)) =>
         if s1 = s2 then raise Idtab.SAME else raise Idtab.DUP id) (reg1, reg2),
-      Inttab.join (K (Library.merge (eq_snd op =))) (mix1, mix2))
+      merge_mixins (mix1, mix2))
     handle Idtab.DUP id =>
       (* distinct interpretations with same base: merge their mixins *)
       let
         val (_, s1) = Idtab.lookup reg1 id |> the;
         val (morph2, s2) = Idtab.lookup reg2 id |> the;
         val reg2' = Idtab.update (id, (morph2, s1)) reg2;
-        val mix2' =
-          (case Inttab.lookup mix2 s2 of
-            NONE => mix2
-          | SOME mxs => Inttab.delete s2 mix2 |> Inttab.update_new (s1, mxs));
         val _ = warning "Removed duplicate interpretation after retrieving its mixins.";
         (* FIXME print interpretations,
            which is not straightforward without theory context *)
-      in merge ((reg1, mix1), (reg2', mix2')) end;
+      in merge ((reg1, mix1), (reg2', rename_mixin (s2, s1) mix2)) end;
     (* FIXME consolidate with dependencies, consider one data slot only *)
 );
 
@@ -330,7 +365,7 @@ fun add_reg thy export (name, morph) =
 
 fun add_mixin serial' mixin =
   (* registration to be amended identified by its serial id *)
-  Registrations.map (apsnd (Inttab.map_default (serial', []) (cons (mixin, serial ()))));
+  Registrations.map (apsnd (insert_mixin serial' mixin));
 
 fun get_mixins context (name, morph) =
   let
@@ -339,11 +374,8 @@ fun get_mixins context (name, morph) =
   in
     (case Idtab.lookup regs (name, instance_of thy name morph) of
       NONE => []
-    | SOME (_, serial) => the_default [] (Inttab.lookup mixins serial))
+    | SOME (_, serial) => lookup_mixins serial mixins)
   end;
-
-fun compose_mixins mixins =
-  fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
 
 fun collect_mixins context (name, morph) =
   let
@@ -450,7 +482,7 @@ fun amend_registration (name, morph) mixin export context =
     (case Idtab.lookup regs (name, base) of
       NONE =>
         error ("No interpretation of locale " ^
-          quote (extern thy name) ^ " and\nparameter instantiation " ^
+          quote (extern thy name) ^ " with\nparameter instantiation " ^
           space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
           " available")
     | SOME (_, serial') => add_mixin serial' mixin context)
@@ -467,7 +499,7 @@ fun add_registration (name, base_morph) mixin export context =
     val inst = instance_of thy name morph;
   in
     if member (ident_le thy) (get_idents context) (name, inst)
-    then context
+    then context  (* FIXME amend mixins? *)
     else
       (get_idents context, context)
       (* add new registrations with inherited mixins *)
@@ -485,9 +517,28 @@ fun add_registration (name, base_morph) mixin export context =
 
 (*** Dependencies ***)
 
+(*
+fun amend_dependency loc (name, morph) mixin export thy =
+  let
+    val deps = dependencies_of thy loc;
+  in
+    case AList.lookup (fn ((name, morph), ((name', (morph', _)), _)) =>
+      ident_ord ((name, instance_of thy name morph), (name', instance_of thy name' morph')) = EQUAL) deps (name, morph) of
+        NONE => error ("Locale " ^
+          quote (extern thy name) ^ " with\parameter instantiation " ^
+          space_implode " " (map (quote o Syntax.string_of_term_global thy) morph) ^
+          " not a sublocale of " ^ quote (extern thy loc))
+      | SOME (_, serial') => change_locale ...
+  end;
+*)
+
 fun add_dependency loc (name, morph) mixin export thy =
   let
-    val thy' = (change_locale loc o apsnd) (cons ((name, (morph, export)), serial ())) thy;
+    val serial' = serial ();
+    val thy' = thy |>
+      (change_locale loc o apsnd)
+        (apfst (cons ((name, (morph, export)), serial')) #>
+          apsnd (case mixin of NONE => I | SOME mixin => insert_mixin serial' mixin));
     val context' = Context.Theory thy';
     val (_, regs) = fold_rev (roundup thy' cons export)
       (registrations_of context' loc) (get_idents (context'), []);
@@ -620,7 +671,7 @@ fun locale_deps thy =
     fun add_locale_deps name =
       let
         val dependencies =
-          (map o apsnd) (instance_of thy name o op $>) (dependencies_of thy name);
+          (map o apsnd) (instance_of thy name o op $>) (dependencies_of thy name |> map fst);
       in
         fold (fn (super, ts) => fn (gr, deps) => (gr |> Graph.add_edge (super, name),
           deps |> Symtab.map_default (super, Symtab.empty) (Symtab.cons_list (name, ts))))
