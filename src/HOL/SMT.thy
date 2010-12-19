@@ -113,12 +113,14 @@ translating higher-order into first-order problems, all
 uninterpreted constants (those not built-in in the target solver)
 are treated as function symbols in the first-order sense.  Their
 occurrences as head symbols in atoms (i.e., as predicate symbols) are
-turned into terms by equating such atoms with @{term True}.
-Whenever the boolean type occurs in first-order terms, it is replaced
-by the following type.
+turned into terms by logically equating such atoms with @{term True}.
+For technical reasons, @{term True} and @{term False} occurring inside
+terms are replaced by the following constants.
 *}
 
-typedecl term_bool
+definition term_true where "term_true = True"
+definition term_false where "term_false = False"
+
 
 
 
@@ -374,9 +376,8 @@ lemma [z3_rule]:
 
 
 
-hide_type term_bool
 hide_type (open) pattern
-hide_const Pattern fun_app z3div z3mod
+hide_const Pattern fun_app term_true term_false z3div z3mod
 hide_const (open) trigger pat nopat weight
 
 

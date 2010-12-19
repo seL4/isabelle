@@ -33,15 +33,17 @@ local
     | is_linear [t, u] = U.is_number t orelse U.is_number u
     | is_linear _ = false
 
-  fun times _ T ts = if is_linear ts then SOME ((("*", 2), T), ts, T) else NONE
+  fun times _ _ ts =
+    let val mk = Term.list_comb o pair @{const times (int)}
+    in if is_linear ts then SOME ("*", 2, ts, mk) else NONE end
 
-  fun distinct _ (Type (_, [Type (_, [T]), _])) [t] =
+  fun distinct _ T [t] =
         (case try HOLogic.dest_list t of
           SOME (ts as _ :: _) =>
             let
-              fun mkT U = replicate (length ts) U ---> @{typ bool}
-              val U = mkT T and U' = mkT (TVar (("'a", 0), @{sort type}))
-            in SOME ((("distinct", length ts), U), ts, U') end
+              val c = Const (@{const_name distinct}, T)
+              fun mk us = c $ HOLogic.mk_list T us
+            in SOME ("distinct", length ts, ts, mk) end
         | _ => NONE)
     | distinct _ _ _ = NONE
 in

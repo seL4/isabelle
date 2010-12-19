@@ -35,11 +35,15 @@ local
     | is_linear [t, u] = U.is_number t orelse U.is_number u
     | is_linear _ = false
 
-  fun times _ T ts = if is_linear ts then SOME ((("*", 2), T), ts, T) else NONE
+  fun mk_times ts = Term.list_comb (@{const times (real)}, ts)
+
+  fun times _ T ts = if is_linear ts then SOME ("*", 2, ts, mk_times) else NONE
     | times _ _ _  = NONE
 
+  fun mk_divide ts = Term.list_comb (@{const divide (real)}, ts)
+
   fun divide _ T (ts as [_, t]) =
-        if U.is_number t then SOME ((("/", 2), T), ts, T) else NONE
+        if U.is_number t then SOME ("/", 2, ts, mk_divide) else NONE
     | divide _ _ _ = NONE
 in
 
