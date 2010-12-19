@@ -25,7 +25,6 @@ lemma "(p \<and> True) = p" by smt
 lemma "(p \<or> q) \<and> \<not>p \<Longrightarrow> q" by smt
 
 lemma "(a \<and> b) \<or> (c \<and> d) \<Longrightarrow> (a \<and> b) \<or> (c \<and> d)"
-  using [[smt_oracle=true]] (* no Z3 proof *)
   by smt
 
 lemma "(p1 \<and> p2) \<or> p3 \<longrightarrow> (p1 \<longrightarrow> (p3 \<and> p2) \<or> (p1 \<and> p3)) \<or> p1" by smt
@@ -400,20 +399,20 @@ lemma "\<forall>x::int. SMT.trigger [[SMT.pat x]] (x < a \<longrightarrow> 2 * x
 subsection {* Non-linear arithmetic over integers and reals *}
 
 lemma "a > (0::int) \<Longrightarrow> a*b > 0 \<Longrightarrow> b > 0"
-  using [[smt_oracle=true]]  -- {* Isabelle's arithmetic decision procedures
-    are too weak to automatically prove @{thm zero_less_mult_pos}. *}
-  by smt (* FIXME: use z3_rule *)
+  using zero_less_mult_pos
+  by smt
 
+lemma  "(a::int) * (x + 1 + y) = a * x + a * (y + 1)"
+  using right_distrib
+  by smt
 
-
-lemma  "(a::int) * (x + 1 + y) = a * x + a * (y + 1)" by smt
-
-lemma "((x::real) * (1 + y) - x * (1 - y)) = (2 * x * y)" by smt
+lemma "((x::real) * (1 + y) - x * (1 - y)) = (2 * x * y)"
+  sorry (* FIXME: Z3 could solve this directly *)
 
 lemma
   "(U::int) + (1 + p) * (b + e) + p * d =
    U + (2 * (1 + p) * (b + e) + (1 + p) * d + d * p) - (1 + p) * (b + d + e)"
-  by smt
+  sorry (* FIXME: Z3 could solve this directly *)
 
 
 subsection {* Linear arithmetic for natural numbers *}

@@ -66,11 +66,11 @@ lemma "ucast (0b1010 :: 4 word) = (0b1010 :: 10 word)" by smt
 
 lemma "scast (0b1010 :: 4 word) = (0b111010 :: 6 word)" by smt
 
-lemma "0b10011 << 2 = (0b1001100::8 word)" sorry (* FIXME *)
+lemma "0b10011 << 2 = (0b1001100::8 word)" by smt
 
-lemma "0b11001 >> 2 = (0b110::8 word)" sorry (* FIXME *)
+lemma "0b11001 >> 2 = (0b110::8 word)" by smt
 
-lemma "0b10011 >>> 2 = (0b100::8 word)" sorry (* FIXME *)
+lemma "0b10011 >>> 2 = (0b100::8 word)" by smt
 
 lemma "word_rotr 2 0b0110 = (0b1001::4 word)" by smt
 
