@@ -103,8 +103,8 @@ lemma typedef_liftdomain_class:
   assumes emb: "emb \<equiv> (\<Lambda> x. Rep x)"
   assumes prj: "prj \<equiv> (\<Lambda> x. Abs (cast\<cdot>t\<cdot>x))"
   assumes defl: "defl \<equiv> (\<lambda> a::'a itself. t)"
-  assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom) \<equiv> udom_emb u_approx oo u_map\<cdot>emb"
-  assumes liftprj: "(liftprj :: udom \<rightarrow> 'a u) \<equiv> u_map\<cdot>prj oo udom_prj u_approx"
+  assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom) \<equiv> u_emb oo u_map\<cdot>emb"
+  assumes liftprj: "(liftprj :: udom \<rightarrow> 'a u) \<equiv> u_map\<cdot>prj oo u_prj"
   assumes liftdefl: "(liftdefl :: 'a itself \<Rightarrow> _) \<equiv> (\<lambda>t. u_defl\<cdot>DEFL('a))"
   shows "OFCLASS('a, liftdomain_class)"
 using liftemb [THEN meta_eq_to_obj_eq]

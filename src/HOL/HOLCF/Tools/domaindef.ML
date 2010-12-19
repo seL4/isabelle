@@ -130,10 +130,10 @@ fun gen_add_domaindef
       Abs ("x", Term.itselfT newT, defl))
     val liftemb_eqn =
       Logic.mk_equals (liftemb_const newT,
-      mk_cfcomp (@{term "udom_emb u_approx"}, mk_u_map (emb_const newT)))
+      mk_cfcomp (@{const u_emb}, mk_u_map (emb_const newT)))
     val liftprj_eqn =
       Logic.mk_equals (liftprj_const newT,
-      mk_cfcomp (mk_u_map (prj_const newT), @{term "udom_prj u_approx"}))
+      mk_cfcomp (mk_u_map (prj_const newT), @{const u_prj}))
     val liftdefl_eqn =
       Logic.mk_equals (liftdefl_const newT,
         Abs ("t", Term.itselfT newT,

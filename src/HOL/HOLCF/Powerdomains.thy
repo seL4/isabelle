@@ -10,54 +10,51 @@ begin
 
 subsection {* Universal domain embeddings *}
 
-definition upper_approx :: "nat \<Rightarrow> udom upper_pd \<rightarrow> udom upper_pd"
-  where "upper_approx = (\<lambda>i. upper_map\<cdot>(udom_approx i))"
+definition "upper_emb = udom_emb (\<lambda>i. upper_map\<cdot>(udom_approx i))"
+definition "upper_prj = udom_prj (\<lambda>i. upper_map\<cdot>(udom_approx i))"
 
-definition lower_approx :: "nat \<Rightarrow> udom lower_pd \<rightarrow> udom lower_pd"
-  where "lower_approx = (\<lambda>i. lower_map\<cdot>(udom_approx i))"
+definition "lower_emb = udom_emb (\<lambda>i. lower_map\<cdot>(udom_approx i))"
+definition "lower_prj = udom_prj (\<lambda>i. lower_map\<cdot>(udom_approx i))"
 
-definition convex_approx :: "nat \<Rightarrow> udom convex_pd \<rightarrow> udom convex_pd"
-  where "convex_approx = (\<lambda>i. convex_map\<cdot>(udom_approx i))"
+definition "convex_emb = udom_emb (\<lambda>i. convex_map\<cdot>(udom_approx i))"
+definition "convex_prj = udom_prj (\<lambda>i. convex_map\<cdot>(udom_approx i))"
 
-lemma upper_approx: "approx_chain upper_approx"
-  using upper_map_ID finite_deflation_upper_map
-  unfolding upper_approx_def by (rule approx_chain_lemma1)
+lemma ep_pair_upper: "ep_pair upper_emb upper_prj"
+  unfolding upper_emb_def upper_prj_def
+  by (simp add: ep_pair_udom approx_chain_upper_map)
 
-lemma lower_approx: "approx_chain lower_approx"
-  using lower_map_ID finite_deflation_lower_map
-  unfolding lower_approx_def by (rule approx_chain_lemma1)
+lemma ep_pair_lower: "ep_pair lower_emb lower_prj"
+  unfolding lower_emb_def lower_prj_def
+  by (simp add: ep_pair_udom approx_chain_lower_map)
 
-lemma convex_approx: "approx_chain convex_approx"
-  using convex_map_ID finite_deflation_convex_map
-  unfolding convex_approx_def by (rule approx_chain_lemma1)
+lemma ep_pair_convex: "ep_pair convex_emb convex_prj"
+  unfolding convex_emb_def convex_prj_def
+  by (simp add: ep_pair_udom approx_chain_convex_map)
 
 subsection {* Deflation combinators *}
 
 definition upper_defl :: "udom defl \<rightarrow> udom defl"
-  where "upper_defl = defl_fun1 upper_approx upper_map"
+  where "upper_defl = defl_fun1 upper_emb upper_prj upper_map"
 
 definition lower_defl :: "udom defl \<rightarrow> udom defl"
-  where "lower_defl = defl_fun1 lower_approx lower_map"
+  where "lower_defl = defl_fun1 lower_emb lower_prj lower_map"
 
 definition convex_defl :: "udom defl \<rightarrow> udom defl"
-  where "convex_defl = defl_fun1 convex_approx convex_map"
+  where "convex_defl = defl_fun1 convex_emb convex_prj convex_map"
 
 lemma cast_upper_defl:
-  "cast\<cdot>(upper_defl\<cdot>A) =
-    udom_emb upper_approx oo upper_map\<cdot>(cast\<cdot>A) oo udom_prj upper_approx"
-using upper_approx finite_deflation_upper_map
+  "cast\<cdot>(upper_defl\<cdot>A) = upper_emb oo upper_map\<cdot>(cast\<cdot>A) oo upper_prj"
+using ep_pair_upper finite_deflation_upper_map
 unfolding upper_defl_def by (rule cast_defl_fun1)
 
 lemma cast_lower_defl:
-  "cast\<cdot>(lower_defl\<cdot>A) =
-    udom_emb lower_approx oo lower_map\<cdot>(cast\<cdot>A) oo udom_prj lower_approx"
-using lower_approx finite_deflation_lower_map
+  "cast\<cdot>(lower_defl\<cdot>A) = lower_emb oo lower_map\<cdot>(cast\<cdot>A) oo lower_prj"
+using ep_pair_lower finite_deflation_lower_map
 unfolding lower_defl_def by (rule cast_defl_fun1)
 
 lemma cast_convex_defl:
-  "cast\<cdot>(convex_defl\<cdot>A) =
-    udom_emb convex_approx oo convex_map\<cdot>(cast\<cdot>A) oo udom_prj convex_approx"
-using convex_approx finite_deflation_convex_map
+  "cast\<cdot>(convex_defl\<cdot>A) = convex_emb oo convex_map\<cdot>(cast\<cdot>A) oo convex_prj"
+using ep_pair_convex finite_deflation_convex_map
 unfolding convex_defl_def by (rule cast_defl_fun1)
 
 subsection {* Domain class instances *}
@@ -66,19 +63,19 @@ instantiation upper_pd :: ("domain") liftdomain
 begin
 
 definition
-  "emb = udom_emb upper_approx oo upper_map\<cdot>emb"
+  "emb = upper_emb oo upper_map\<cdot>emb"
 
 definition
-  "prj = upper_map\<cdot>prj oo udom_prj upper_approx"
+  "prj = upper_map\<cdot>prj oo upper_prj"
 
 definition
   "defl (t::'a upper_pd itself) = upper_defl\<cdot>DEFL('a)"
 
 definition
-  "(liftemb :: 'a upper_pd u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a upper_pd u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a upper_pd u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a upper_pd u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::'a upper_pd itself) = u_defl\<cdot>DEFL('a upper_pd)"
@@ -88,8 +85,7 @@ using liftemb_upper_pd_def liftprj_upper_pd_def liftdefl_upper_pd_def
 proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a upper_pd)"
     unfolding emb_upper_pd_def prj_upper_pd_def
-    using ep_pair_udom [OF upper_approx]
-    by (intro ep_pair_comp ep_pair_upper_map ep_pair_emb_prj)
+    by (intro ep_pair_comp ep_pair_upper ep_pair_upper_map ep_pair_emb_prj)
 next
   show "cast\<cdot>DEFL('a upper_pd) = emb oo (prj :: udom \<rightarrow> 'a upper_pd)"
     unfolding emb_upper_pd_def prj_upper_pd_def defl_upper_pd_def cast_upper_defl
@@ -102,19 +98,19 @@ instantiation lower_pd :: ("domain") liftdomain
 begin
 
 definition
-  "emb = udom_emb lower_approx oo lower_map\<cdot>emb"
+  "emb = lower_emb oo lower_map\<cdot>emb"
 
 definition
-  "prj = lower_map\<cdot>prj oo udom_prj lower_approx"
+  "prj = lower_map\<cdot>prj oo lower_prj"
 
 definition
   "defl (t::'a lower_pd itself) = lower_defl\<cdot>DEFL('a)"
 
 definition
-  "(liftemb :: 'a lower_pd u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a lower_pd u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a lower_pd u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a lower_pd u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::'a lower_pd itself) = u_defl\<cdot>DEFL('a lower_pd)"
@@ -124,8 +120,7 @@ using liftemb_lower_pd_def liftprj_lower_pd_def liftdefl_lower_pd_def
 proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a lower_pd)"
     unfolding emb_lower_pd_def prj_lower_pd_def
-    using ep_pair_udom [OF lower_approx]
-    by (intro ep_pair_comp ep_pair_lower_map ep_pair_emb_prj)
+    by (intro ep_pair_comp ep_pair_lower ep_pair_lower_map ep_pair_emb_prj)
 next
   show "cast\<cdot>DEFL('a lower_pd) = emb oo (prj :: udom \<rightarrow> 'a lower_pd)"
     unfolding emb_lower_pd_def prj_lower_pd_def defl_lower_pd_def cast_lower_defl
@@ -138,19 +133,19 @@ instantiation convex_pd :: ("domain") liftdomain
 begin
 
 definition
-  "emb = udom_emb convex_approx oo convex_map\<cdot>emb"
+  "emb = convex_emb oo convex_map\<cdot>emb"
 
 definition
-  "prj = convex_map\<cdot>prj oo udom_prj convex_approx"
+  "prj = convex_map\<cdot>prj oo convex_prj"
 
 definition
   "defl (t::'a convex_pd itself) = convex_defl\<cdot>DEFL('a)"
 
 definition
-  "(liftemb :: 'a convex_pd u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a convex_pd u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a convex_pd u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a convex_pd u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::'a convex_pd itself) = u_defl\<cdot>DEFL('a convex_pd)"
@@ -160,8 +155,7 @@ using liftemb_convex_pd_def liftprj_convex_pd_def liftdefl_convex_pd_def
 proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a convex_pd)"
     unfolding emb_convex_pd_def prj_convex_pd_def
-    using ep_pair_udom [OF convex_approx]
-    by (intro ep_pair_comp ep_pair_convex_map ep_pair_emb_prj)
+    by (intro ep_pair_comp ep_pair_convex ep_pair_convex_map ep_pair_emb_prj)
 next
   show "cast\<cdot>DEFL('a convex_pd) = emb oo (prj :: udom \<rightarrow> 'a convex_pd)"
     unfolding emb_convex_pd_def prj_convex_pd_def defl_convex_pd_def cast_convex_defl

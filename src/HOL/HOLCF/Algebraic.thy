@@ -215,4 +215,66 @@ done
 lemma cast_strict2 [simp]: "cast\<cdot>A\<cdot>\<bottom> = \<bottom>"
 by (rule cast.below [THEN UU_I])
 
+subsection {* Deflation combinators *}
+
+definition
+  "defl_fun1 e p f =
+    defl.basis_fun (\<lambda>a.
+      defl_principal (Abs_fin_defl
+        (e oo f\<cdot>(Rep_fin_defl a) oo p)))"
+
+definition
+  "defl_fun2 e p f =
+    defl.basis_fun (\<lambda>a.
+      defl.basis_fun (\<lambda>b.
+        defl_principal (Abs_fin_defl
+          (e oo f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo p))))"
+
+lemma cast_defl_fun1:
+  assumes ep: "ep_pair e p"
+  assumes f: "\<And>a. finite_deflation a \<Longrightarrow> finite_deflation (f\<cdot>a)"
+  shows "cast\<cdot>(defl_fun1 e p f\<cdot>A) = e oo f\<cdot>(cast\<cdot>A) oo p"
+proof -
+  have 1: "\<And>a. finite_deflation (e oo f\<cdot>(Rep_fin_defl a) oo p)"
+    apply (rule ep_pair.finite_deflation_e_d_p [OF ep])
+    apply (rule f, rule finite_deflation_Rep_fin_defl)
+    done
+  show ?thesis
+    by (induct A rule: defl.principal_induct, simp)
+       (simp only: defl_fun1_def
+                   defl.basis_fun_principal
+                   defl.basis_fun_mono
+                   defl.principal_mono
+                   Abs_fin_defl_mono [OF 1 1]
+                   monofun_cfun below_refl
+                   Rep_fin_defl_mono
+                   cast_defl_principal
+                   Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
+qed
+
+lemma cast_defl_fun2:
+  assumes ep: "ep_pair e p"
+  assumes f: "\<And>a b. finite_deflation a \<Longrightarrow> finite_deflation b \<Longrightarrow>
+                finite_deflation (f\<cdot>a\<cdot>b)"
+  shows "cast\<cdot>(defl_fun2 e p f\<cdot>A\<cdot>B) = e oo f\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo p"
+proof -
+  have 1: "\<And>a b. finite_deflation
+      (e oo f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo p)"
+    apply (rule ep_pair.finite_deflation_e_d_p [OF ep])
+    apply (rule f, (rule finite_deflation_Rep_fin_defl)+)
+    done
+  show ?thesis
+    apply (induct A rule: defl.principal_induct, simp)
+    apply (induct B rule: defl.principal_induct, simp)
+    by (simp only: defl_fun2_def
+                   defl.basis_fun_principal
+                   defl.basis_fun_mono
+                   defl.principal_mono
+                   Abs_fin_defl_mono [OF 1 1]
+                   monofun_cfun below_refl
+                   Rep_fin_defl_mono
+                   cast_defl_principal
+                   Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
+qed
+
 end

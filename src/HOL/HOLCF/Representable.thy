@@ -86,179 +86,88 @@ by default (rule approx_chain_ep_cast [OF ep_pair_emb_prj cast_DEFL])
 instance predomain \<subseteq> profinite
 by default (rule approx_chain_ep_cast [OF predomain_ep cast_liftdefl])
 
-subsection {* Chains of approx functions *}
+subsection {* Universal domain ep-pairs *}
 
-definition u_approx :: "nat \<Rightarrow> udom\<^sub>\<bottom> \<rightarrow> udom\<^sub>\<bottom>"
-  where "u_approx = (\<lambda>i. u_map\<cdot>(udom_approx i))"
+definition "u_emb = udom_emb (\<lambda>i. u_map\<cdot>(udom_approx i))"
+definition "u_prj = udom_prj (\<lambda>i. u_map\<cdot>(udom_approx i))"
 
-definition sfun_approx :: "nat \<Rightarrow> (udom \<rightarrow>! udom) \<rightarrow> (udom \<rightarrow>! udom)"
-  where "sfun_approx = (\<lambda>i. sfun_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "prod_emb = udom_emb (\<lambda>i. cprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "prod_prj = udom_prj (\<lambda>i. cprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
 
-definition prod_approx :: "nat \<Rightarrow> udom \<times> udom \<rightarrow> udom \<times> udom"
-  where "prod_approx = (\<lambda>i. cprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "sprod_emb = udom_emb (\<lambda>i. sprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "sprod_prj = udom_prj (\<lambda>i. sprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
 
-definition sprod_approx :: "nat \<Rightarrow> udom \<otimes> udom \<rightarrow> udom \<otimes> udom"
-  where "sprod_approx = (\<lambda>i. sprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "ssum_emb = udom_emb (\<lambda>i. ssum_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "ssum_prj = udom_prj (\<lambda>i. ssum_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
 
-definition ssum_approx :: "nat \<Rightarrow> udom \<oplus> udom \<rightarrow> udom \<oplus> udom"
-  where "ssum_approx = (\<lambda>i. ssum_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "sfun_emb = udom_emb (\<lambda>i. sfun_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "sfun_prj = udom_prj (\<lambda>i. sfun_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
 
-lemma approx_chain_lemma1:
-  assumes "m\<cdot>ID = ID"
-  assumes "\<And>d. finite_deflation d \<Longrightarrow> finite_deflation (m\<cdot>d)"
-  shows "approx_chain (\<lambda>i. m\<cdot>(udom_approx i))"
-by (rule approx_chain.intro)
-   (simp_all add: lub_distribs finite_deflation_udom_approx assms)
+lemma ep_pair_u: "ep_pair u_emb u_prj"
+  unfolding u_emb_def u_prj_def
+  by (simp add: ep_pair_udom approx_chain_u_map)
 
-lemma approx_chain_lemma2:
-  assumes "m\<cdot>ID\<cdot>ID = ID"
-  assumes "\<And>a b. \<lbrakk>finite_deflation a; finite_deflation b\<rbrakk>
-    \<Longrightarrow> finite_deflation (m\<cdot>a\<cdot>b)"
-  shows "approx_chain (\<lambda>i. m\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
-by (rule approx_chain.intro)
-   (simp_all add: lub_distribs finite_deflation_udom_approx assms)
+lemma ep_pair_prod: "ep_pair prod_emb prod_prj"
+  unfolding prod_emb_def prod_prj_def
+  by (simp add: ep_pair_udom approx_chain_cprod_map)
 
-lemma u_approx: "approx_chain u_approx"
-using u_map_ID finite_deflation_u_map
-unfolding u_approx_def by (rule approx_chain_lemma1)
+lemma ep_pair_sprod: "ep_pair sprod_emb sprod_prj"
+  unfolding sprod_emb_def sprod_prj_def
+  by (simp add: ep_pair_udom approx_chain_sprod_map)
 
-lemma sfun_approx: "approx_chain sfun_approx"
-using sfun_map_ID finite_deflation_sfun_map
-unfolding sfun_approx_def by (rule approx_chain_lemma2)
+lemma ep_pair_ssum: "ep_pair ssum_emb ssum_prj"
+  unfolding ssum_emb_def ssum_prj_def
+  by (simp add: ep_pair_udom approx_chain_ssum_map)
 
-lemma prod_approx: "approx_chain prod_approx"
-using cprod_map_ID finite_deflation_cprod_map
-unfolding prod_approx_def by (rule approx_chain_lemma2)
-
-lemma sprod_approx: "approx_chain sprod_approx"
-using sprod_map_ID finite_deflation_sprod_map
-unfolding sprod_approx_def by (rule approx_chain_lemma2)
-
-lemma ssum_approx: "approx_chain ssum_approx"
-using ssum_map_ID finite_deflation_ssum_map
-unfolding ssum_approx_def by (rule approx_chain_lemma2)
+lemma ep_pair_sfun: "ep_pair sfun_emb sfun_prj"
+  unfolding sfun_emb_def sfun_prj_def
+  by (simp add: ep_pair_udom approx_chain_sfun_map)
 
 subsection {* Type combinators *}
 
-default_sort bifinite
-
-definition
-  defl_fun1 ::
-    "(nat \<Rightarrow> 'a \<rightarrow> 'a) \<Rightarrow> ((udom \<rightarrow> udom) \<rightarrow> ('a \<rightarrow> 'a)) \<Rightarrow> (udom defl \<rightarrow> udom defl)"
-where
-  "defl_fun1 approx f =
-    defl.basis_fun (\<lambda>a.
-      defl_principal (Abs_fin_defl
-        (udom_emb approx oo f\<cdot>(Rep_fin_defl a) oo udom_prj approx)))"
-
-definition
-  defl_fun2 ::
-    "(nat \<Rightarrow> 'a \<rightarrow> 'a) \<Rightarrow> ((udom \<rightarrow> udom) \<rightarrow> (udom \<rightarrow> udom) \<rightarrow> ('a \<rightarrow> 'a))
-      \<Rightarrow> (udom defl \<rightarrow> udom defl \<rightarrow> udom defl)"
-where
-  "defl_fun2 approx f =
-    defl.basis_fun (\<lambda>a.
-      defl.basis_fun (\<lambda>b.
-        defl_principal (Abs_fin_defl
-          (udom_emb approx oo
-            f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo udom_prj approx))))"
-
-lemma cast_defl_fun1:
-  assumes approx: "approx_chain approx"
-  assumes f: "\<And>a. finite_deflation a \<Longrightarrow> finite_deflation (f\<cdot>a)"
-  shows "cast\<cdot>(defl_fun1 approx f\<cdot>A) = udom_emb approx oo f\<cdot>(cast\<cdot>A) oo udom_prj approx"
-proof -
-  have 1: "\<And>a. finite_deflation
-        (udom_emb approx oo f\<cdot>(Rep_fin_defl a) oo udom_prj approx)"
-    apply (rule ep_pair.finite_deflation_e_d_p)
-    apply (rule ep_pair_udom [OF approx])
-    apply (rule f, rule finite_deflation_Rep_fin_defl)
-    done
-  show ?thesis
-    by (induct A rule: defl.principal_induct, simp)
-       (simp only: defl_fun1_def
-                   defl.basis_fun_principal
-                   defl.basis_fun_mono
-                   defl.principal_mono
-                   Abs_fin_defl_mono [OF 1 1]
-                   monofun_cfun below_refl
-                   Rep_fin_defl_mono
-                   cast_defl_principal
-                   Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
-qed
-
-lemma cast_defl_fun2:
-  assumes approx: "approx_chain approx"
-  assumes f: "\<And>a b. finite_deflation a \<Longrightarrow> finite_deflation b \<Longrightarrow>
-                finite_deflation (f\<cdot>a\<cdot>b)"
-  shows "cast\<cdot>(defl_fun2 approx f\<cdot>A\<cdot>B) =
-    udom_emb approx oo f\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj approx"
-proof -
-  have 1: "\<And>a b. finite_deflation (udom_emb approx oo
-      f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo udom_prj approx)"
-    apply (rule ep_pair.finite_deflation_e_d_p)
-    apply (rule ep_pair_udom [OF approx])
-    apply (rule f, (rule finite_deflation_Rep_fin_defl)+)
-    done
-  show ?thesis
-    by (induct A B rule: defl.principal_induct2, simp, simp)
-       (simp only: defl_fun2_def
-                   defl.basis_fun_principal
-                   defl.basis_fun_mono
-                   defl.principal_mono
-                   Abs_fin_defl_mono [OF 1 1]
-                   monofun_cfun below_refl
-                   Rep_fin_defl_mono
-                   cast_defl_principal
-                   Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
-qed
-
 definition u_defl :: "udom defl \<rightarrow> udom defl"
-  where "u_defl = defl_fun1 u_approx u_map"
-
-definition sfun_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
-  where "sfun_defl = defl_fun2 sfun_approx sfun_map"
+  where "u_defl = defl_fun1 u_emb u_prj u_map"
 
 definition prod_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
-  where "prod_defl = defl_fun2 prod_approx cprod_map"
+  where "prod_defl = defl_fun2 prod_emb prod_prj cprod_map"
 
 definition sprod_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
-  where "sprod_defl = defl_fun2 sprod_approx sprod_map"
+  where "sprod_defl = defl_fun2 sprod_emb sprod_prj sprod_map"
 
 definition ssum_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
-where "ssum_defl = defl_fun2 ssum_approx ssum_map"
+where "ssum_defl = defl_fun2 ssum_emb ssum_prj ssum_map"
+
+definition sfun_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
+  where "sfun_defl = defl_fun2 sfun_emb sfun_prj sfun_map"
 
 lemma cast_u_defl:
-  "cast\<cdot>(u_defl\<cdot>A) =
-    udom_emb u_approx oo u_map\<cdot>(cast\<cdot>A) oo udom_prj u_approx"
-using u_approx finite_deflation_u_map
+  "cast\<cdot>(u_defl\<cdot>A) = u_emb oo u_map\<cdot>(cast\<cdot>A) oo u_prj"
+using ep_pair_u finite_deflation_u_map
 unfolding u_defl_def by (rule cast_defl_fun1)
 
-lemma cast_sfun_defl:
-  "cast\<cdot>(sfun_defl\<cdot>A\<cdot>B) =
-    udom_emb sfun_approx oo sfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj sfun_approx"
-using sfun_approx finite_deflation_sfun_map
-unfolding sfun_defl_def by (rule cast_defl_fun2)
-
 lemma cast_prod_defl:
-  "cast\<cdot>(prod_defl\<cdot>A\<cdot>B) = udom_emb prod_approx oo
-    cprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj prod_approx"
-using prod_approx finite_deflation_cprod_map
+  "cast\<cdot>(prod_defl\<cdot>A\<cdot>B) =
+    prod_emb oo cprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo prod_prj"
+using ep_pair_prod finite_deflation_cprod_map
 unfolding prod_defl_def by (rule cast_defl_fun2)
 
 lemma cast_sprod_defl:
   "cast\<cdot>(sprod_defl\<cdot>A\<cdot>B) =
-    udom_emb sprod_approx oo
-      sprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo
-        udom_prj sprod_approx"
-using sprod_approx finite_deflation_sprod_map
+    sprod_emb oo sprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo sprod_prj"
+using ep_pair_sprod finite_deflation_sprod_map
 unfolding sprod_defl_def by (rule cast_defl_fun2)
 
 lemma cast_ssum_defl:
   "cast\<cdot>(ssum_defl\<cdot>A\<cdot>B) =
-    udom_emb ssum_approx oo ssum_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo udom_prj ssum_approx"
-using ssum_approx finite_deflation_ssum_map
+    ssum_emb oo ssum_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo ssum_prj"
+using ep_pair_ssum finite_deflation_ssum_map
 unfolding ssum_defl_def by (rule cast_defl_fun2)
+
+lemma cast_sfun_defl:
+  "cast\<cdot>(sfun_defl\<cdot>A\<cdot>B) =
+    sfun_emb oo sfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo sfun_prj"
+using ep_pair_sfun finite_deflation_sfun_map
+unfolding sfun_defl_def by (rule cast_defl_fun2)
 
 subsection {* Lemma for proving domain instances *}
 
@@ -268,8 +177,8 @@ text {*
 *}
 
 class liftdomain = "domain" +
-  assumes liftemb_eq: "liftemb = udom_emb u_approx oo u_map\<cdot>emb"
-  assumes liftprj_eq: "liftprj = u_map\<cdot>prj oo udom_prj u_approx"
+  assumes liftemb_eq: "liftemb = u_emb oo u_map\<cdot>emb"
+  assumes liftprj_eq: "liftprj = u_map\<cdot>prj oo u_prj"
   assumes liftdefl_eq: "liftdefl TYPE('a::cpo) = u_defl\<cdot>DEFL('a)"
 
 text {* Temporarily relax type constraints. *}
@@ -287,8 +196,8 @@ setup {*
 default_sort pcpo
 
 lemma liftdomain_class_intro:
-  assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
-  assumes liftprj: "(liftprj :: udom \<rightarrow> 'a u) = u_map\<cdot>prj oo udom_prj u_approx"
+  assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
+  assumes liftprj: "(liftprj :: udom \<rightarrow> 'a u) = u_map\<cdot>prj oo u_prj"
   assumes liftdefl: "liftdefl TYPE('a) = u_defl\<cdot>DEFL('a)"
   assumes ep_pair: "ep_pair emb (prj :: udom \<rightarrow> 'a)"
   assumes cast_defl: "cast\<cdot>DEFL('a) = emb oo (prj :: udom \<rightarrow> 'a)"
@@ -296,7 +205,7 @@ lemma liftdomain_class_intro:
 proof
   show "ep_pair liftemb (liftprj :: udom \<rightarrow> 'a u)"
     unfolding liftemb liftprj
-    by (intro ep_pair_comp ep_pair_u_map ep_pair ep_pair_udom u_approx)
+    by (intro ep_pair_comp ep_pair_u_map ep_pair ep_pair_u)
   show "cast\<cdot>LIFTDEFL('a) = liftemb oo (liftprj :: udom \<rightarrow> 'a u)"
     unfolding liftemb liftprj liftdefl
     by (simp add: cfcomp1 cast_u_defl cast_defl u_map_map)
@@ -332,10 +241,10 @@ definition
   "defl (t::udom itself) = (\<Squnion>i. defl_principal (Abs_fin_defl (udom_approx i)))"
 
 definition
-  "(liftemb :: udom u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: udom u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> udom u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> udom u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::udom itself) = u_defl\<cdot>DEFL(udom)"
@@ -376,10 +285,10 @@ definition
   "defl (t::'a u itself) = LIFTDEFL('a)"
 
 definition
-  "(liftemb :: 'a u u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a u u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a u u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a u u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::'a u itself) = u_defl\<cdot>DEFL('a u)"
@@ -406,19 +315,19 @@ instantiation sfun :: ("domain", "domain") liftdomain
 begin
 
 definition
-  "emb = udom_emb sfun_approx oo sfun_map\<cdot>prj\<cdot>emb"
+  "emb = sfun_emb oo sfun_map\<cdot>prj\<cdot>emb"
 
 definition
-  "prj = sfun_map\<cdot>emb\<cdot>prj oo udom_prj sfun_approx"
+  "prj = sfun_map\<cdot>emb\<cdot>prj oo sfun_prj"
 
 definition
   "defl (t::('a \<rightarrow>! 'b) itself) = sfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
 definition
-  "(liftemb :: ('a \<rightarrow>! 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: ('a \<rightarrow>! 'b) u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> ('a \<rightarrow>! 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> ('a \<rightarrow>! 'b) u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::('a \<rightarrow>! 'b) itself) = u_defl\<cdot>DEFL('a \<rightarrow>! 'b)"
@@ -428,8 +337,7 @@ using liftemb_sfun_def liftprj_sfun_def liftdefl_sfun_def
 proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
     unfolding emb_sfun_def prj_sfun_def
-    using ep_pair_udom [OF sfun_approx]
-    by (intro ep_pair_comp ep_pair_sfun_map ep_pair_emb_prj)
+    by (intro ep_pair_comp ep_pair_sfun ep_pair_sfun_map ep_pair_emb_prj)
   show "cast\<cdot>DEFL('a \<rightarrow>! 'b) = emb oo (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
     unfolding emb_sfun_def prj_sfun_def defl_sfun_def cast_sfun_defl
     by (simp add: cast_DEFL oo_def sfun_eq_iff sfun_map_map)
@@ -456,10 +364,10 @@ definition
   "defl (t::('a \<rightarrow> 'b) itself) = DEFL('a u \<rightarrow>! 'b)"
 
 definition
-  "(liftemb :: ('a \<rightarrow> 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: ('a \<rightarrow> 'b) u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> ('a \<rightarrow> 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> ('a \<rightarrow> 'b) u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::('a \<rightarrow> 'b) itself) = u_defl\<cdot>DEFL('a \<rightarrow> 'b)"
@@ -489,19 +397,19 @@ instantiation sprod :: ("domain", "domain") liftdomain
 begin
 
 definition
-  "emb = udom_emb sprod_approx oo sprod_map\<cdot>emb\<cdot>emb"
+  "emb = sprod_emb oo sprod_map\<cdot>emb\<cdot>emb"
 
 definition
-  "prj = sprod_map\<cdot>prj\<cdot>prj oo udom_prj sprod_approx"
+  "prj = sprod_map\<cdot>prj\<cdot>prj oo sprod_prj"
 
 definition
   "defl (t::('a \<otimes> 'b) itself) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
 definition
-  "(liftemb :: ('a \<otimes> 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: ('a \<otimes> 'b) u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> ('a \<otimes> 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> ('a \<otimes> 'b) u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::('a \<otimes> 'b) itself) = u_defl\<cdot>DEFL('a \<otimes> 'b)"
@@ -511,8 +419,7 @@ using liftemb_sprod_def liftprj_sprod_def liftdefl_sprod_def
 proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<otimes> 'b)"
     unfolding emb_sprod_def prj_sprod_def
-    using ep_pair_udom [OF sprod_approx]
-    by (intro ep_pair_comp ep_pair_sprod_map ep_pair_emb_prj)
+    by (intro ep_pair_comp ep_pair_sprod ep_pair_sprod_map ep_pair_emb_prj)
 next
   show "cast\<cdot>DEFL('a \<otimes> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<otimes> 'b)"
     unfolding emb_sprod_def prj_sprod_def defl_sprod_def cast_sprod_defl
@@ -556,10 +463,10 @@ instantiation prod :: ("domain", "domain") "domain"
 begin
 
 definition
-  "emb = udom_emb prod_approx oo cprod_map\<cdot>emb\<cdot>emb"
+  "emb = prod_emb oo cprod_map\<cdot>emb\<cdot>emb"
 
 definition
-  "prj = cprod_map\<cdot>prj\<cdot>prj oo udom_prj prod_approx"
+  "prj = cprod_map\<cdot>prj\<cdot>prj oo prod_prj"
 
 definition
   "defl (t::('a \<times> 'b) itself) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
@@ -567,8 +474,7 @@ definition
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<times> 'b)"
     unfolding emb_prod_def prj_prod_def
-    using ep_pair_udom [OF prod_approx]
-    by (intro ep_pair_comp ep_pair_cprod_map ep_pair_emb_prj)
+    by (intro ep_pair_comp ep_pair_prod ep_pair_cprod_map ep_pair_emb_prj)
 next
   show "cast\<cdot>DEFL('a \<times> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<times> 'b)"
     unfolding emb_prod_def prj_prod_def defl_prod_def cast_prod_defl
@@ -600,10 +506,10 @@ definition
   "defl (t::unit itself) = \<bottom>"
 
 definition
-  "(liftemb :: unit u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: unit u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> unit u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> unit u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::unit itself) = u_defl\<cdot>DEFL(unit)"
@@ -668,19 +574,19 @@ instantiation ssum :: ("domain", "domain") liftdomain
 begin
 
 definition
-  "emb = udom_emb ssum_approx oo ssum_map\<cdot>emb\<cdot>emb"
+  "emb = ssum_emb oo ssum_map\<cdot>emb\<cdot>emb"
 
 definition
-  "prj = ssum_map\<cdot>prj\<cdot>prj oo udom_prj ssum_approx"
+  "prj = ssum_map\<cdot>prj\<cdot>prj oo ssum_prj"
 
 definition
   "defl (t::('a \<oplus> 'b) itself) = ssum_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 
 definition
-  "(liftemb :: ('a \<oplus> 'b) u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: ('a \<oplus> 'b) u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> ('a \<oplus> 'b) u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> ('a \<oplus> 'b) u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::('a \<oplus> 'b) itself) = u_defl\<cdot>DEFL('a \<oplus> 'b)"
@@ -690,8 +596,7 @@ using liftemb_ssum_def liftprj_ssum_def liftdefl_ssum_def
 proof (rule liftdomain_class_intro)
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<oplus> 'b)"
     unfolding emb_ssum_def prj_ssum_def
-    using ep_pair_udom [OF ssum_approx]
-    by (intro ep_pair_comp ep_pair_ssum_map ep_pair_emb_prj)
+    by (intro ep_pair_comp ep_pair_ssum ep_pair_ssum_map ep_pair_emb_prj)
   show "cast\<cdot>DEFL('a \<oplus> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<oplus> 'b)"
     unfolding emb_ssum_def prj_ssum_def defl_ssum_def cast_ssum_defl
     by (simp add: cast_DEFL oo_def cfun_eq_iff ssum_map_map)
@@ -718,10 +623,10 @@ definition
   "defl (t::'a lift itself) = DEFL('a discr u)"
 
 definition
-  "(liftemb :: 'a lift u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a lift u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a lift u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a lift u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::'a lift itself) = u_defl\<cdot>DEFL('a lift)"

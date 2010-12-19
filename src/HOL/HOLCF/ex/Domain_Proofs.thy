@@ -107,10 +107,10 @@ definition defl_foo :: "'a foo itself \<Rightarrow> udom defl"
 where "defl_foo \<equiv> \<lambda>a. foo_defl\<cdot>LIFTDEFL('a)"
 
 definition
-  "(liftemb :: 'a foo u \<rightarrow> udom) \<equiv> udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a foo u \<rightarrow> udom) \<equiv> u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a foo u) \<equiv> u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a foo u) \<equiv> u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl \<equiv> \<lambda>(t::'a foo itself). u_defl\<cdot>DEFL('a foo)"
@@ -142,10 +142,10 @@ definition defl_bar :: "'a bar itself \<Rightarrow> udom defl"
 where "defl_bar \<equiv> \<lambda>a. bar_defl\<cdot>LIFTDEFL('a)"
 
 definition
-  "(liftemb :: 'a bar u \<rightarrow> udom) \<equiv> udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a bar u \<rightarrow> udom) \<equiv> u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a bar u) \<equiv> u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a bar u) \<equiv> u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl \<equiv> \<lambda>(t::'a bar itself). u_defl\<cdot>DEFL('a bar)"
@@ -177,10 +177,10 @@ definition defl_baz :: "'a baz itself \<Rightarrow> udom defl"
 where "defl_baz \<equiv> \<lambda>a. baz_defl\<cdot>LIFTDEFL('a)"
 
 definition
-  "(liftemb :: 'a baz u \<rightarrow> udom) \<equiv> udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a baz u \<rightarrow> udom) \<equiv> u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a baz u) \<equiv> u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a baz u) \<equiv> u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl \<equiv> \<lambda>(t::'a baz itself). u_defl\<cdot>DEFL('a baz)"

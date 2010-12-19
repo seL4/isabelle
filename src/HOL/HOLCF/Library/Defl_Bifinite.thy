@@ -651,10 +651,10 @@ definition
     (\<Squnion>i. defl_principal (Abs_fin_defl (emb oo defl_approx i oo prj)))"
 
 definition
-  "(liftemb :: 'a defl u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a defl u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a defl u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a defl u) = u_map\<cdot>prj oo u_prj"
 
 definition
   "liftdefl (t::'a defl itself) = u_defl\<cdot>DEFL('a defl)"
