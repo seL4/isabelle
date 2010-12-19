@@ -48,40 +48,43 @@ lemmas emb_eq_iff = domain.e_eq_iff
 lemmas emb_strict = domain.e_strict
 lemmas prj_strict = domain.p_strict
 
-subsection {* Domains have a countable compact basis *}
+subsection {* Domains are bifinite *}
 
-text {*
-  Eventually it should be possible to generalize this to an unpointed
-  variant of the domain class.
-*}
-
-interpretation compact_basis:
-  ideal_completion below Rep_compact_basis "approximants::'a::domain \<Rightarrow> _"
+lemma approx_chain_ep_cast:
+  assumes ep: "ep_pair (e::'a \<rightarrow> udom) (p::udom \<rightarrow> 'a)"
+  assumes cast_t: "cast\<cdot>t = e oo p"
+  shows "\<exists>(a::nat \<Rightarrow> 'a \<rightarrow> 'a). approx_chain a"
 proof -
+  interpret ep_pair e p by fact
   obtain Y where Y: "\<forall>i. Y i \<sqsubseteq> Y (Suc i)"
-  and DEFL: "DEFL('a) = (\<Squnion>i. defl_principal (Y i))"
+  and t: "t = (\<Squnion>i. defl_principal (Y i))"
     by (rule defl.obtain_principal_chain)
-  def approx \<equiv> "\<lambda>i. (prj oo cast\<cdot>(defl_principal (Y i)) oo emb) :: 'a \<rightarrow> 'a"
-  interpret defl_approx: approx_chain approx
+  def approx \<equiv> "\<lambda>i. (p oo cast\<cdot>(defl_principal (Y i)) oo e) :: 'a \<rightarrow> 'a"
+  have "approx_chain approx"
   proof (rule approx_chain.intro)
     show "chain (\<lambda>i. approx i)"
       unfolding approx_def by (simp add: Y)
     show "(\<Squnion>i. approx i) = ID"
       unfolding approx_def
-      by (simp add: lub_distribs Y DEFL [symmetric] cast_DEFL cfun_eq_iff)
+      by (simp add: lub_distribs Y t [symmetric] cast_t cfun_eq_iff)
     show "\<And>i. finite_deflation (approx i)"
       unfolding approx_def
-      apply (rule domain.finite_deflation_p_d_e)
+      apply (rule finite_deflation_p_d_e)
       apply (rule finite_deflation_cast)
       apply (rule defl.compact_principal)
       apply (rule below_trans [OF monofun_cfun_fun])
       apply (rule is_ub_thelub, simp add: Y)
-      apply (simp add: lub_distribs Y DEFL [symmetric] cast_DEFL)
+      apply (simp add: lub_distribs Y t [symmetric] cast_t)
       done
   qed
-  (* FIXME: why does show ?thesis fail here? *)
-  show "ideal_completion below Rep_compact_basis (approximants::'a \<Rightarrow> _)" ..
+  thus "\<exists>(a::nat \<Rightarrow> 'a \<rightarrow> 'a). approx_chain a" by - (rule exI)
 qed
+
+instance "domain" \<subseteq> bifinite
+by default (rule approx_chain_ep_cast [OF ep_pair_emb_prj cast_DEFL])
+
+instance predomain \<subseteq> profinite
+by default (rule approx_chain_ep_cast [OF predomain_ep cast_liftdefl])
 
 subsection {* Chains of approx functions *}
 
@@ -137,6 +140,8 @@ unfolding ssum_approx_def by (rule approx_chain_lemma2)
 
 subsection {* Type combinators *}
 
+default_sort bifinite
+
 definition
   defl_fun1 ::
     "(nat \<Rightarrow> 'a \<rightarrow> 'a) \<Rightarrow> ((udom \<rightarrow> udom) \<rightarrow> ('a \<rightarrow> 'a)) \<Rightarrow> (defl \<rightarrow> defl)"
@@ -166,7 +171,7 @@ proof -
   have 1: "\<And>a. finite_deflation
         (udom_emb approx oo f\<cdot>(Rep_fin_defl a) oo udom_prj approx)"
     apply (rule ep_pair.finite_deflation_e_d_p)
-    apply (rule approx_chain.ep_pair_udom [OF approx])
+    apply (rule ep_pair_udom [OF approx])
     apply (rule f, rule finite_deflation_Rep_fin_defl)
     done
   show ?thesis
@@ -278,6 +283,8 @@ setup {*
   , (@{const_name liftemb}, SOME @{typ "'a::pcpo u \<rightarrow> udom"})
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::pcpo u"}) ]
 *}
+
+default_sort pcpo
 
 lemma liftdomain_class_intro:
   assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
@@ -436,26 +443,6 @@ by (rule defl_sfun_def)
 
 subsubsection {* Continuous function space *}
 
-text {*
-  Types @{typ "'a \<rightarrow> 'b"} and @{typ "'a u \<rightarrow>! 'b"} are isomorphic.
-*}
-
-definition
-  "encode_cfun = (\<Lambda> f. sfun_abs\<cdot>(fup\<cdot>f))"
-
-definition
-  "decode_cfun = (\<Lambda> g x. sfun_rep\<cdot>g\<cdot>(up\<cdot>x))"
-
-lemma decode_encode_cfun [simp]: "decode_cfun\<cdot>(encode_cfun\<cdot>x) = x"
-unfolding encode_cfun_def decode_cfun_def
-by (simp add: eta_cfun)
-
-lemma encode_decode_cfun [simp]: "encode_cfun\<cdot>(decode_cfun\<cdot>y) = y"
-unfolding encode_cfun_def decode_cfun_def
-apply (simp add: sfun_eq_iff strictify_cancel)
-apply (rule cfun_eqI, case_tac x, simp_all)
-done
-
 instantiation cfun :: (predomain, "domain") liftdomain
 begin
 
@@ -539,26 +526,6 @@ lemma DEFL_sprod:
 by (rule defl_sprod_def)
 
 subsubsection {* Cartesian product *}
-
-text {*
-  Types @{typ "('a * 'b) u"} and @{typ "'a u \<otimes> 'b u"} are isomorphic.
-*}
-
-definition
-  "encode_prod_u = (\<Lambda>(up\<cdot>(x, y)). (:up\<cdot>x, up\<cdot>y:))"
-
-definition
-  "decode_prod_u = (\<Lambda>(:up\<cdot>x, up\<cdot>y:). up\<cdot>(x, y))"
-
-lemma decode_encode_prod_u [simp]: "decode_prod_u\<cdot>(encode_prod_u\<cdot>x) = x"
-unfolding encode_prod_u_def decode_prod_u_def
-by (case_tac x, simp, rename_tac y, case_tac y, simp)
-
-lemma encode_decode_prod_u [simp]: "encode_prod_u\<cdot>(decode_prod_u\<cdot>y) = y"
-unfolding encode_prod_u_def decode_prod_u_def
-apply (case_tac y, simp, rename_tac a b)
-apply (case_tac a, simp, case_tac b, simp, simp)
-done
 
 instantiation prod :: (predomain, predomain) predomain
 begin
@@ -656,66 +623,18 @@ end
 
 subsubsection {* Discrete cpo *}
 
-definition discr_approx :: "nat \<Rightarrow> 'a::countable discr u \<rightarrow> 'a discr u"
-  where "discr_approx = (\<lambda>i. \<Lambda>(up\<cdot>x). if to_nat (undiscr x) < i then up\<cdot>x else \<bottom>)"
-
-lemma chain_discr_approx [simp]: "chain discr_approx"
-unfolding discr_approx_def
-by (rule chainI, simp add: monofun_cfun monofun_LAM)
-
-lemma lub_discr_approx [simp]: "(\<Squnion>i. discr_approx i) = ID"
-apply (rule cfun_eqI)
-apply (simp add: contlub_cfun_fun)
-apply (simp add: discr_approx_def)
-apply (case_tac x, simp)
-apply (rule lub_eqI)
-apply (rule is_lubI)
-apply (rule ub_rangeI, simp)
-apply (drule ub_rangeD)
-apply (erule rev_below_trans)
-apply simp
-apply (rule lessI)
-done
-
-lemma inj_on_undiscr [simp]: "inj_on undiscr A"
-using Discr_undiscr by (rule inj_on_inverseI)
-
-lemma finite_deflation_discr_approx: "finite_deflation (discr_approx i)"
-proof
-  fix x :: "'a discr u"
-  show "discr_approx i\<cdot>x \<sqsubseteq> x"
-    unfolding discr_approx_def
-    by (cases x, simp, simp)
-  show "discr_approx i\<cdot>(discr_approx i\<cdot>x) = discr_approx i\<cdot>x"
-    unfolding discr_approx_def
-    by (cases x, simp, simp)
-  show "finite {x::'a discr u. discr_approx i\<cdot>x = x}"
-  proof (rule finite_subset)
-    let ?S = "insert (\<bottom>::'a discr u) ((\<lambda>x. up\<cdot>x) ` undiscr -` to_nat -` {..<i})"
-    show "{x::'a discr u. discr_approx i\<cdot>x = x} \<subseteq> ?S"
-      unfolding discr_approx_def
-      by (rule subsetI, case_tac x, simp, simp split: split_if_asm)
-    show "finite ?S"
-      by (simp add: finite_vimageI)
-  qed
-qed
-
-lemma discr_approx: "approx_chain discr_approx"
-using chain_discr_approx lub_discr_approx finite_deflation_discr_approx
-by (rule approx_chain.intro)
-
 instantiation discr :: (countable) predomain
 begin
 
 definition
-  "liftemb = udom_emb discr_approx"
+  "(liftemb :: 'a discr u \<rightarrow> udom) = udom_emb discr_approx"
 
 definition
-  "liftprj = udom_prj discr_approx"
+  "(liftprj :: udom \<rightarrow> 'a discr u) = udom_prj discr_approx"
 
 definition
   "liftdefl (t::'a discr itself) =
-    (\<Squnion>i. defl_principal (Abs_fin_defl (liftemb oo discr_approx i oo liftprj)))"
+    (\<Squnion>i. defl_principal (Abs_fin_defl (liftemb oo discr_approx i oo (liftprj::udom \<rightarrow> 'a discr u))))"
 
 instance proof
   show "ep_pair liftemb (liftprj :: udom \<rightarrow> 'a discr u)"

@@ -455,6 +455,19 @@ qed
 
 subsection {* Upper powerdomain is a domain *}
 
+lemma approx_chain_upper_map:
+  assumes "approx_chain a"
+  shows "approx_chain (\<lambda>i. upper_map\<cdot>(a i))"
+  using assms unfolding approx_chain_def
+  by (simp add: lub_APP upper_map_ID finite_deflation_upper_map)
+
+instance upper_pd :: ("domain") bifinite
+proof
+  show "\<exists>(a::nat \<Rightarrow> 'a upper_pd \<rightarrow> 'a upper_pd). approx_chain a"
+    using bifinite [where 'a='a]
+    by (fast intro!: approx_chain_upper_map)
+qed
+
 definition
   upper_approx :: "nat \<Rightarrow> udom upper_pd \<rightarrow> udom upper_pd"
 where

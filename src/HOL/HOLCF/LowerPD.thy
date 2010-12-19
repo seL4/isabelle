@@ -460,6 +460,19 @@ qed
 
 subsection {* Lower powerdomain is a domain *}
 
+lemma approx_chain_lower_map:
+  assumes "approx_chain a"
+  shows "approx_chain (\<lambda>i. lower_map\<cdot>(a i))"
+  using assms unfolding approx_chain_def
+  by (simp add: lub_APP lower_map_ID finite_deflation_lower_map)
+
+instance lower_pd :: ("domain") bifinite
+proof
+  show "\<exists>(a::nat \<Rightarrow> 'a lower_pd \<rightarrow> 'a lower_pd). approx_chain a"
+    using bifinite [where 'a='a]
+    by (fast intro!: approx_chain_lower_map)
+qed
+
 definition
   lower_approx :: "nat \<Rightarrow> udom lower_pd \<rightarrow> udom lower_pd"
 where

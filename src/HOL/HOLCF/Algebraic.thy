@@ -97,9 +97,10 @@ definition
   "defl_principal t = Abs_defl {u. u \<sqsubseteq> t}"
 
 lemma fin_defl_countable: "\<exists>f::fin_defl \<Rightarrow> nat. inj f"
-proof
-  have *: "\<And>d. finite (approx_chain.place udom_approx `
-               Rep_compact_basis -` {x. Rep_fin_defl d\<cdot>x = x})"
+proof -
+  obtain f :: "udom compact_basis \<Rightarrow> nat" where inj_f: "inj f"
+    using compact_basis.countable ..
+  have *: "\<And>d. finite (f ` Rep_compact_basis -` {x. Rep_fin_defl d\<cdot>x = x})"
     apply (rule finite_imageI)
     apply (rule finite_vimageI)
     apply (rule Rep_fin_defl.finite_fixes)
@@ -107,11 +108,11 @@ proof
     done
   have range_eq: "range Rep_compact_basis = {x. compact x}"
     using type_definition_compact_basis by (rule type_definition.Rep_range)
-  show "inj (\<lambda>d. set_encode
-    (approx_chain.place udom_approx ` Rep_compact_basis -` {x. Rep_fin_defl d\<cdot>x = x}))"
+  have "inj (\<lambda>d. set_encode
+    (f ` Rep_compact_basis -` {x. Rep_fin_defl d\<cdot>x = x}))"
     apply (rule inj_onI)
     apply (simp only: set_encode_eq *)
-    apply (simp only: inj_image_eq_iff approx_chain.inj_place [OF udom_approx])
+    apply (simp only: inj_image_eq_iff inj_f)
     apply (drule_tac f="image Rep_compact_basis" in arg_cong)
     apply (simp del: vimage_Collect_eq add: range_eq set_eq_iff)
     apply (rule Rep_fin_defl_inject [THEN iffD1])
@@ -121,6 +122,7 @@ proof
     apply (rule Rep_fin_defl.compact_belowI, rename_tac z)
     apply (drule_tac x=z in spec, simp)
     done
+  thus ?thesis by - (rule exI)
 qed
 
 interpretation defl: ideal_completion below defl_principal Rep_defl

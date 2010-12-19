@@ -468,6 +468,19 @@ qed
 
 subsection {* Convex powerdomain is a domain *}
 
+lemma approx_chain_convex_map:
+  assumes "approx_chain a"
+  shows "approx_chain (\<lambda>i. convex_map\<cdot>(a i))"
+  using assms unfolding approx_chain_def
+  by (simp add: lub_APP convex_map_ID finite_deflation_convex_map)
+
+instance convex_pd :: ("domain") bifinite
+proof
+  show "\<exists>(a::nat \<Rightarrow> 'a convex_pd \<rightarrow> 'a convex_pd). approx_chain a"
+    using bifinite [where 'a='a]
+    by (fast intro!: approx_chain_convex_map)
+qed
+
 definition
   convex_approx :: "nat \<Rightarrow> udom convex_pd \<rightarrow> udom convex_pd"
 where

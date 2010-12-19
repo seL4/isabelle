@@ -37,6 +37,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   ROOT.ML \
   Adm.thy \
   Algebraic.thy \
+  Bifinite.thy \
   Cfun.thy \
   Compact_Basis.thy \
   Completion.thy \

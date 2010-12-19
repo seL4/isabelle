@@ -609,6 +609,9 @@ qed
 
 subsection {* Algebraic deflations are a bifinite domain *}
 
+instance defl :: bifinite
+  by default (fast intro!: defl_approx)
+
 instantiation defl :: liftdomain
 begin
 

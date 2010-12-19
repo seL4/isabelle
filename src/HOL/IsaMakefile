@@ -1404,6 +1404,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   HOLCF/ROOT.ML \
   HOLCF/Adm.thy \
   HOLCF/Algebraic.thy \
+  HOLCF/Bifinite.thy \
   HOLCF/Cfun.thy \
   HOLCF/Compact_Basis.thy \
   HOLCF/Completion.thy \
