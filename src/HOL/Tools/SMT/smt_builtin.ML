@@ -188,17 +188,8 @@ fun is_builtin_fun_ext ctxt (c as (_, T)) ts =
   | SOME (_, Ext f) => f ctxt T ts
   | NONE => false)
 
-(* FIXME: move this information to the interfaces *)
-val only_partially_supported = [
-  @{const_name times},
-  @{const_name div_class.div},
-  @{const_name div_class.mod},
-  @{const_name inverse_class.divide} ]
-
-fun is_builtin_ext ctxt (c as (n, _)) ts =
-  if member (op =) only_partially_supported n then false
-  else
-    is_builtin_num_ext ctxt (Term.list_comb (Const c, ts)) orelse 
-    is_builtin_fun_ext ctxt c ts
+fun is_builtin_ext ctxt c ts =
+  is_builtin_num_ext ctxt (Term.list_comb (Const c, ts)) orelse 
+  is_builtin_fun_ext ctxt c ts
 
 end

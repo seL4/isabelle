@@ -130,21 +130,6 @@ definition z3div :: "int \<Rightarrow> int \<Rightarrow> int" where
 definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
   "z3mod k l = (if 0 \<le> l then k mod l else k mod (-l))"
 
-lemma div_by_z3div:
-  "\<forall>k l. k div l = (
-    if k = 0 \<or> l = 0 then 0
-    else if (0 < k \<and> 0 < l) \<or> (k < 0 \<and> 0 < l) then z3div k l
-    else z3div (-k) (-l))"
-  by (auto simp add: z3div_def trigger_def)
-
-lemma mod_by_z3mod:
-  "\<forall>k l. k mod l = (
-    if l = 0 then k
-    else if k = 0 then 0
-    else if (0 < k \<and> 0 < l) \<or> (k < 0 \<and> 0 < l) then z3mod k l
-    else - z3mod (-k) (-l))"
-  by (auto simp add: z3mod_def trigger_def)
-
 
 
 subsection {* Setup *}
@@ -391,8 +376,8 @@ lemma [z3_rule]:
 
 hide_type term_bool
 hide_type (open) pattern
-hide_const Pattern fun_app
-hide_const (open) trigger pat nopat weight z3div z3mod
+hide_const Pattern fun_app z3div z3mod
+hide_const (open) trigger pat nopat weight
 
 
 

@@ -12,6 +12,7 @@ end
 structure SMT_Real: SMT_REAL =
 struct
 
+structure U = SMT_Utils
 structure B = SMT_Builtin
 
 
@@ -29,18 +30,31 @@ local
   val smtlibC = SMTLIB_Interface.smtlibC
 
   fun real_num _ i = SOME (string_of_int i ^ ".0")
+
+  fun is_linear [t] = U.is_number t
+    | is_linear [t, u] = U.is_number t orelse U.is_number u
+    | is_linear _ = false
+
+  fun times _ T ts = if is_linear ts then SOME ((("*", 2), T), ts, T) else NONE
+    | times _ _ _  = NONE
+
+  fun divide _ T (ts as [_, t]) =
+        if U.is_number t then SOME ((("/", 2), T), ts, T) else NONE
+    | divide _ _ _ = NONE
 in
 
 val setup_builtins =
   B.add_builtin_typ smtlibC (@{typ real}, K (SOME "Real"), real_num) #>
   fold (B.add_builtin_fun' smtlibC) [
+    (@{const less (real)}, "<"),
+    (@{const less_eq (real)}, "<="),
     (@{const uminus (real)}, "~"),
     (@{const plus (real)}, "+"),
-    (@{const minus (real)}, "-"),
-    (@{const times (real)}, "*"),
-    (@{const less (real)}, "<"),
-    (@{const less_eq (real)}, "<=") ] #>
-  B.add_builtin_fun' Z3_Interface.smtlib_z3C (@{const divide (real)}, "/")
+    (@{const minus (real)}, "-") ] #>
+  B.add_builtin_fun SMTLIB_Interface.smtlibC
+    (Term.dest_Const @{const times (real)}, times) #>
+  B.add_builtin_fun Z3_Interface.smtlib_z3C
+    (Term.dest_Const @{const divide (real)}, divide)
 
 end
 

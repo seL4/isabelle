@@ -28,6 +28,7 @@ sig
   val dest_conj: term -> term * term
   val dest_disj: term -> term * term
   val under_quant: (term -> 'a) -> term -> 'a
+  val is_number: term -> bool
 
   (*patterns and instantiations*)
   val mk_const_pat: theory -> string -> (ctyp -> 'a) -> 'a * cterm
@@ -131,6 +132,19 @@ fun under_quant f t =
     Const (@{const_name All}, _) $ Abs (_, _, u) => under_quant f u
   | Const (@{const_name Ex}, _) $ Abs (_, _, u) => under_quant f u
   | _ => f t)
+
+val is_number =
+  let
+    fun is_num env (Const (@{const_name If}, _) $ _ $ t $ u) =
+          is_num env t andalso is_num env u
+      | is_num env (Const (@{const_name Let}, _) $ t $ Abs (_, _, u)) =
+          is_num (t :: env) u
+      | is_num env (Const (@{const_name uminus}, _) $ t) = is_num env t
+      | is_num env (Const (@{const_name divide}, _) $ t $ u) =
+          is_num env t andalso is_num env u
+      | is_num env (Bound i) = i < length env andalso is_num env (nth env i)
+      | is_num _ t = can HOLogic.dest_number t
+  in is_num [] end
 
 
 (* patterns and instantiations *)
