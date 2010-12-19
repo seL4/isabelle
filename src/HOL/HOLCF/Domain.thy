@@ -5,7 +5,7 @@
 header {* Domain package *}
 
 theory Domain
-imports Bifinite Domain_Aux
+imports Representable Domain_Aux
 uses
   ("Tools/domaindef.ML")
   ("Tools/Domain/domain_isomorphism.ML")

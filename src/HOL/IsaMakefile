@@ -1404,7 +1404,6 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   HOLCF/ROOT.ML \
   HOLCF/Adm.thy \
   HOLCF/Algebraic.thy \
-  HOLCF/Bifinite.thy \
   HOLCF/Cfun.thy \
   HOLCF/Compact_Basis.thy \
   HOLCF/Completion.thy \
@@ -1429,6 +1428,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   HOLCF/Porder.thy \
   HOLCF/Powerdomains.thy \
   HOLCF/Product_Cpo.thy \
+  HOLCF/Representable.thy \
   HOLCF/Sfun.thy \
   HOLCF/Sprod.thy \
   HOLCF/Ssum.thy \

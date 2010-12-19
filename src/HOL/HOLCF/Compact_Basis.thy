@@ -5,7 +5,7 @@
 header {* A compact basis for powerdomains *}
 
 theory Compact_Basis
-imports Bifinite
+imports Representable
 begin
 
 default_sort "domain"

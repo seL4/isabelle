@@ -1,14 +1,14 @@
-(*  Title:      HOLCF/Bifinite.thy
+(*  Title:      HOLCF/Representable.thy
     Author:     Brian Huffman
 *)
 
-header {* Bifinite domains *}
+header {* Representable domains *}
 
-theory Bifinite
+theory Representable
 imports Algebraic Map_Functions Countable
 begin
 
-subsection {* Class of bifinite domains *}
+subsection {* Class of representable domains *}
 
 text {*
   We define a ``domain'' as a pcpo that is isomorphic to some
