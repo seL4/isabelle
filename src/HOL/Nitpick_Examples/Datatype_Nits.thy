@@ -11,7 +11,7 @@ theory Datatype_Nits
 imports Main
 begin
 
-nitpick_params [card = 1\<midarrow>8, max_potential = 0,
+nitpick_params [verbose, card = 1\<midarrow>8, max_potential = 0,
                 sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60]
 
 primrec rot where

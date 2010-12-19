@@ -101,6 +101,8 @@ fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
   | explode_interval max (Facts.From i) = i upto i + max - 1
   | explode_interval _ (Facts.Single i) = [i]
 
+val backquote =
+  raw_explode #> map (fn "`" => "\\`" | s => s) #> implode #> enclose "`" "`"
 fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
@@ -109,7 +111,7 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
                                ^ "]") args)
     fun nth_name j =
       case xref of
-        Facts.Fact s => "`" ^ s ^ "`" ^ bracket
+        Facts.Fact s => backquote s ^ bracket
       | Facts.Named (("", _), _) => "[" ^ bracket ^ "]"
       | Facts.Named ((name, _), NONE) =>
         make_name reserved (length ths > 1) (j + 1) name ^ bracket
@@ -804,8 +806,8 @@ fun all_facts ctxt reserved no_dangerous_types
         else
           let
             val multi = length ths > 1
-            val backquotify =
-              enclose "`" "`" o string_for_term ctxt o close_form o prop_of
+            val backquote_thm =
+              backquote o string_for_term ctxt o close_form o prop_of
             fun check_thms a =
               case try (ProofContext.get_thms ctxt) a of
                 NONE => false
@@ -820,7 +822,7 @@ fun all_facts ctxt reserved no_dangerous_types
                   else
                     (((fn () =>
                           if name0 = "" then
-                            th |> backquotify
+                            th |> backquote_thm
                           else
                             let
                               val name1 = Facts.extern facts name0
