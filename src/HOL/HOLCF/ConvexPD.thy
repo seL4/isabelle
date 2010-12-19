@@ -125,7 +125,7 @@ by (rule convex_le.ex_ideal)
 
 type_notation (xsymbols) convex_pd ("('(_')\<natural>)")
 
-instantiation convex_pd :: ("domain") below
+instantiation convex_pd :: (bifinite) below
 begin
 
 definition
@@ -134,11 +134,11 @@ definition
 instance ..
 end
 
-instance convex_pd :: ("domain") po
+instance convex_pd :: (bifinite) po
 using type_definition_convex_pd below_convex_pd_def
 by (rule convex_le.typedef_ideal_po)
 
-instance convex_pd :: ("domain") cpo
+instance convex_pd :: (bifinite) cpo
 using type_definition_convex_pd below_convex_pd_def
 by (rule convex_le.typedef_ideal_cpo)
 
@@ -157,7 +157,7 @@ text {* Convex powerdomain is pointed *}
 lemma convex_pd_minimal: "convex_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: convex_pd.principal_induct, simp, simp)
 
-instance convex_pd :: ("domain") pcpo
+instance convex_pd :: (bifinite) pcpo
 by intro_classes (fast intro: convex_pd_minimal)
 
 lemma inst_convex_pd_pcpo: "\<bottom> = convex_principal (PDUnit compact_bot)"
@@ -474,7 +474,7 @@ lemma approx_chain_convex_map:
   using assms unfolding approx_chain_def
   by (simp add: lub_APP convex_map_ID finite_deflation_convex_map)
 
-instance convex_pd :: ("domain") bifinite
+instance convex_pd :: (bifinite) bifinite
 proof
   show "\<exists>(a::nat \<Rightarrow> 'a convex_pd \<rightarrow> 'a convex_pd). approx_chain a"
     using bifinite [where 'a='a]
@@ -537,7 +537,7 @@ end
 
 text {* DEFL of type constructor = type combinator *}
 
-lemma DEFL_convex: "DEFL('a convex_pd) = convex_defl\<cdot>DEFL('a)"
+lemma DEFL_convex: "DEFL('a::domain convex_pd) = convex_defl\<cdot>DEFL('a)"
 by (rule defl_convex_pd_def)
 
 

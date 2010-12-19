@@ -78,7 +78,7 @@ by (rule upper_le.ex_ideal)
 
 type_notation (xsymbols) upper_pd ("('(_')\<sharp>)")
 
-instantiation upper_pd :: ("domain") below
+instantiation upper_pd :: (bifinite) below
 begin
 
 definition
@@ -87,11 +87,11 @@ definition
 instance ..
 end
 
-instance upper_pd :: ("domain") po
+instance upper_pd :: (bifinite) po
 using type_definition_upper_pd below_upper_pd_def
 by (rule upper_le.typedef_ideal_po)
 
-instance upper_pd :: ("domain") cpo
+instance upper_pd :: (bifinite) cpo
 using type_definition_upper_pd below_upper_pd_def
 by (rule upper_le.typedef_ideal_cpo)
 
@@ -110,7 +110,7 @@ text {* Upper powerdomain is pointed *}
 lemma upper_pd_minimal: "upper_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: upper_pd.principal_induct, simp, simp)
 
-instance upper_pd :: ("domain") pcpo
+instance upper_pd :: (bifinite) pcpo
 by intro_classes (fast intro: upper_pd_minimal)
 
 lemma inst_upper_pd_pcpo: "\<bottom> = upper_principal (PDUnit compact_bot)"
@@ -461,7 +461,7 @@ lemma approx_chain_upper_map:
   using assms unfolding approx_chain_def
   by (simp add: lub_APP upper_map_ID finite_deflation_upper_map)
 
-instance upper_pd :: ("domain") bifinite
+instance upper_pd :: (bifinite) bifinite
 proof
   show "\<exists>(a::nat \<Rightarrow> 'a upper_pd \<rightarrow> 'a upper_pd). approx_chain a"
     using bifinite [where 'a='a]
@@ -522,7 +522,7 @@ qed
 
 end
 
-lemma DEFL_upper: "DEFL('a upper_pd) = upper_defl\<cdot>DEFL('a)"
+lemma DEFL_upper: "DEFL('a::domain upper_pd) = upper_defl\<cdot>DEFL('a)"
 by (rule defl_upper_pd_def)
 
 

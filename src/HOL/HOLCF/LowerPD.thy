@@ -80,7 +80,7 @@ by (rule lower_le.ex_ideal)
 
 type_notation (xsymbols) lower_pd ("('(_')\<flat>)")
 
-instantiation lower_pd :: ("domain") below
+instantiation lower_pd :: (bifinite) below
 begin
 
 definition
@@ -89,11 +89,11 @@ definition
 instance ..
 end
 
-instance lower_pd :: ("domain") po
+instance lower_pd :: (bifinite) po
 using type_definition_lower_pd below_lower_pd_def
 by (rule lower_le.typedef_ideal_po)
 
-instance lower_pd :: ("domain") cpo
+instance lower_pd :: (bifinite) cpo
 using type_definition_lower_pd below_lower_pd_def
 by (rule lower_le.typedef_ideal_cpo)
 
@@ -112,7 +112,7 @@ text {* Lower powerdomain is pointed *}
 lemma lower_pd_minimal: "lower_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: lower_pd.principal_induct, simp, simp)
 
-instance lower_pd :: ("domain") pcpo
+instance lower_pd :: (bifinite) pcpo
 by intro_classes (fast intro: lower_pd_minimal)
 
 lemma inst_lower_pd_pcpo: "\<bottom> = lower_principal (PDUnit compact_bot)"
@@ -466,7 +466,7 @@ lemma approx_chain_lower_map:
   using assms unfolding approx_chain_def
   by (simp add: lub_APP lower_map_ID finite_deflation_lower_map)
 
-instance lower_pd :: ("domain") bifinite
+instance lower_pd :: (bifinite) bifinite
 proof
   show "\<exists>(a::nat \<Rightarrow> 'a lower_pd \<rightarrow> 'a lower_pd). approx_chain a"
     using bifinite [where 'a='a]
@@ -527,7 +527,7 @@ qed
 
 end
 
-lemma DEFL_lower: "DEFL('a lower_pd) = lower_defl\<cdot>DEFL('a)"
+lemma DEFL_lower: "DEFL('a::domain lower_pd) = lower_defl\<cdot>DEFL('a)"
 by (rule defl_lower_pd_def)
 
 

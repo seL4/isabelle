@@ -8,7 +8,7 @@ theory Compact_Basis
 imports Representable
 begin
 
-default_sort "domain"
+default_sort bifinite
 
 subsection {* A compact basis for powerdomains *}
 
