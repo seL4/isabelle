@@ -438,17 +438,20 @@ qed
 
 subsection {* Take function for finite deflations *}
 
+context bifinite_approx_chain
+begin
+
 definition
-  defl_take :: "nat \<Rightarrow> (udom \<rightarrow> udom) \<Rightarrow> (udom \<rightarrow> udom)"
+  defl_take :: "nat \<Rightarrow> ('a \<rightarrow> 'a) \<Rightarrow> ('a \<rightarrow> 'a)"
 where
-  "defl_take i d = eventual_iterate (udom_approx i oo d)"
+  "defl_take i d = eventual_iterate (approx i oo d)"
 
 lemma finite_deflation_defl_take:
   "deflation d \<Longrightarrow> finite_deflation (defl_take i d)"
 unfolding defl_take_def
 apply (rule pre_deflation.finite_deflation_d)
 apply (rule pre_deflation_oo)
-apply (rule finite_deflation_udom_approx)
+apply (rule finite_deflation_approx)
 apply (erule deflation.below)
 done
 
@@ -459,10 +462,10 @@ apply (erule finite_deflation_defl_take)
 done
 
 lemma defl_take_fixed_iff:
-  "deflation d \<Longrightarrow> defl_take i d\<cdot>x = x \<longleftrightarrow> udom_approx i\<cdot>x = x \<and> d\<cdot>x = x"
+  "deflation d \<Longrightarrow> defl_take i d\<cdot>x = x \<longleftrightarrow> approx i\<cdot>x = x \<and> d\<cdot>x = x"
 unfolding defl_take_def
 apply (rule eventual_iterate_oo_fixed_iff)
-apply (rule finite_deflation_udom_approx)
+apply (rule finite_deflation_approx)
 apply (erule deflation.below)
 done
 
@@ -479,11 +482,11 @@ lemma cont2cont_defl_take:
   assumes cont: "cont f" and below: "\<And>x y. f x\<cdot>y \<sqsubseteq> y"
   shows "cont (\<lambda>x. defl_take i (f x))"
 unfolding defl_take_def
-using finite_deflation_udom_approx assms
+using finite_deflation_approx assms
 by (rule cont2cont_eventual_iterate_oo)
 
 definition
-  fd_take :: "nat \<Rightarrow> fin_defl \<Rightarrow> fin_defl"
+  fd_take :: "nat \<Rightarrow> 'a fin_defl \<Rightarrow> 'a fin_defl"
 where
   "fd_take i d = Abs_fin_defl (defl_take i (Rep_fin_defl d))"
 
@@ -497,7 +500,7 @@ done
 
 lemma fd_take_fixed_iff:
   "Rep_fin_defl (fd_take i d)\<cdot>x = x \<longleftrightarrow>
-    udom_approx i\<cdot>x = x \<and> Rep_fin_defl d\<cdot>x = x"
+    approx i\<cdot>x = x \<and> Rep_fin_defl d\<cdot>x = x"
 unfolding Rep_fin_defl_fd_take
 apply (rule defl_take_fixed_iff)
 apply (rule deflation_Rep_fin_defl)
@@ -519,11 +522,11 @@ apply (simp add: fd_take_fixed_iff)
 apply (simp add: fin_defl_belowD)
 done
 
-lemma approx_fixed_le_lemma: "\<lbrakk>i \<le> j; udom_approx i\<cdot>x = x\<rbrakk> \<Longrightarrow> udom_approx j\<cdot>x = x"
+lemma approx_fixed_le_lemma: "\<lbrakk>i \<le> j; approx i\<cdot>x = x\<rbrakk> \<Longrightarrow> approx j\<cdot>x = x"
 apply (rule deflation.belowD)
 apply (rule finite_deflation_imp_deflation)
-apply (rule finite_deflation_udom_approx)
-apply (erule chain_mono [OF chain_udom_approx])
+apply (rule finite_deflation_approx)
+apply (erule chain_mono [OF chain_approx])
 apply assumption
 done
 
@@ -535,16 +538,16 @@ done
 
 lemma finite_range_fd_take: "finite (range (fd_take n))"
 apply (rule finite_imageD [where f="\<lambda>a. {x. Rep_fin_defl a\<cdot>x = x}"])
-apply (rule finite_subset [where B="Pow {x. udom_approx n\<cdot>x = x}"])
+apply (rule finite_subset [where B="Pow {x. approx n\<cdot>x = x}"])
 apply (clarify, simp add: fd_take_fixed_iff)
-apply (simp add: finite_deflation.finite_fixes [OF finite_deflation_udom_approx])
+apply (simp add: finite_deflation.finite_fixes [OF finite_deflation_approx])
 apply (rule inj_onI, clarify)
 apply (simp add: set_eq_iff fin_defl_eqI)
 done
 
 lemma fd_take_covers: "\<exists>n. fd_take n a = a"
 apply (rule_tac x=
-  "Max ((\<lambda>x. LEAST n. udom_approx n\<cdot>x = x) ` {x. Rep_fin_defl a\<cdot>x = x})" in exI)
+  "Max ((\<lambda>x. LEAST n. approx n\<cdot>x = x) ` {x. Rep_fin_defl a\<cdot>x = x})" in exI)
 apply (rule below_antisym)
 apply (rule fd_take_below)
 apply (rule fin_defl_belowI)
@@ -556,7 +559,7 @@ apply (rule Rep_fin_defl.finite_fixes)
 apply (rule imageI)
 apply (erule CollectI)
 apply (rule LeastI_ex)
-apply (rule approx_chain.compact_eq_approx [OF udom_approx])
+apply (rule compact_eq_approx)
 apply (erule subst)
 apply (rule Rep_fin_defl.compact)
 done
@@ -564,7 +567,7 @@ done
 subsection {* Chain of approx functions on algebraic deflations *}
 
 definition
-  defl_approx :: "nat \<Rightarrow> defl \<rightarrow> defl"
+  defl_approx :: "nat \<Rightarrow> 'a defl \<rightarrow> 'a defl"
 where
   "defl_approx = (\<lambda>i. defl.basis_fun (\<lambda>d. defl_principal (fd_take i d)))"
 
@@ -607,12 +610,34 @@ proof
     done
 qed
 
+end
+
 subsection {* Algebraic deflations are a bifinite domain *}
 
-instance defl :: bifinite
-  by default (fast intro!: defl_approx)
+instance defl :: (bifinite) bifinite
+proof
+  obtain a :: "nat \<Rightarrow> 'a \<rightarrow> 'a" where "approx_chain a"
+    using bifinite ..
+  hence "bifinite_approx_chain a"
+    unfolding bifinite_approx_chain_def .
+  thus "\<exists>(a::nat \<Rightarrow> 'a defl \<rightarrow> 'a defl). approx_chain a"
+    by (fast intro: bifinite_approx_chain.defl_approx)
+qed
 
-instantiation defl :: liftdomain
+subsection {* Algebraic deflations are representable *}
+
+definition defl_approx :: "nat \<Rightarrow> 'a::bifinite defl \<rightarrow> 'a defl"
+  where "defl_approx = bifinite_approx_chain.defl_approx
+    (SOME a. approx_chain a)"
+
+lemma defl_approx: "approx_chain defl_approx"
+unfolding defl_approx_def
+apply (rule bifinite_approx_chain.defl_approx)
+apply (unfold bifinite_approx_chain_def)
+apply (rule someI_ex [OF bifinite])
+done
+
+instantiation defl :: (bifinite) liftdomain
 begin
 
 definition
@@ -622,25 +647,25 @@ definition
   "prj = udom_prj defl_approx"
 
 definition
-  "defl (t::defl itself) =
+  "defl (t::'a defl itself) =
     (\<Squnion>i. defl_principal (Abs_fin_defl (emb oo defl_approx i oo prj)))"
 
 definition
-  "(liftemb :: defl u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
+  "(liftemb :: 'a defl u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> defl u) = u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftprj :: udom \<rightarrow> 'a defl u) = u_map\<cdot>prj oo udom_prj u_approx"
 
 definition
-  "liftdefl (t::defl itself) = u_defl\<cdot>DEFL(defl)"
+  "liftdefl (t::'a defl itself) = u_defl\<cdot>DEFL('a defl)"
 
 instance
 using liftemb_defl_def liftprj_defl_def liftdefl_defl_def
 proof (rule liftdomain_class_intro)
-  show ep: "ep_pair emb (prj :: udom \<rightarrow> defl)"
+  show ep: "ep_pair emb (prj :: udom \<rightarrow> 'a defl)"
     unfolding emb_defl_def prj_defl_def
     by (rule ep_pair_udom [OF defl_approx])
-  show "cast\<cdot>DEFL(defl) = emb oo (prj :: udom \<rightarrow> defl)"
+  show "cast\<cdot>DEFL('a defl) = emb oo (prj :: udom \<rightarrow> 'a defl)"
     unfolding defl_defl_def
     apply (subst contlub_cfun_arg)
     apply (rule chainI)

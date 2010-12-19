@@ -49,7 +49,7 @@ type rep_info =
 (* building types and terms *)
 
 val udomT = @{typ udom}
-val deflT = @{typ defl}
+val deflT = @{typ "udom defl"}
 fun emb_const T = Const (@{const_name emb}, T ->> udomT)
 fun prj_const T = Const (@{const_name prj}, udomT ->> T)
 fun defl_const T = Const (@{const_name defl}, Term.itselfT T --> deflT)
@@ -68,7 +68,7 @@ fun mk_u_map t =
 
 fun mk_cast (t, x) =
   capply_const (udomT, udomT)
-  $ (capply_const (deflT, udomT ->> udomT) $ @{const cast} $ t)
+  $ (capply_const (deflT, udomT ->> udomT) $ @{term "cast :: udom defl -> udom -> udom"} $ t)
   $ x
 
 (* manipulating theorems *)
@@ -98,7 +98,7 @@ fun gen_add_domaindef
     val tmp_ctxt = tmp_ctxt |> Variable.declare_constraints defl
 
     val deflT = Term.fastype_of defl
-    val _ = if deflT = @{typ "defl"} then ()
+    val _ = if deflT = @{typ "udom defl"} then ()
             else error ("Not type defl: " ^ quote (Syntax.string_of_typ tmp_ctxt deflT))
 
     (*lhs*)
@@ -112,7 +112,7 @@ fun gen_add_domaindef
       |> the_default (Binding.prefix_name "Rep_" name, Binding.prefix_name "Abs_" name)
 
     (*set*)
-    val set = @{const defl_set} $ defl
+    val set = @{term "defl_set :: udom defl => udom => bool"} $ defl
 
     (*pcpodef*)
     val tac1 = rtac @{thm defl_set_bottom} 1

@@ -490,7 +490,7 @@ lemma convex_approx: "approx_chain convex_approx"
 using convex_map_ID finite_deflation_convex_map
 unfolding convex_approx_def by (rule approx_chain_lemma1)
 
-definition convex_defl :: "defl \<rightarrow> defl"
+definition convex_defl :: "udom defl \<rightarrow> udom defl"
 where "convex_defl = defl_fun1 convex_approx convex_map"
 
 lemma cast_convex_defl:

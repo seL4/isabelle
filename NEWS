@@ -490,9 +490,9 @@ Accordingly, users of the definitional package must remove any
 * The 'bifinite' class no longer fixes a constant 'approx'; the class
 now just asserts that such a function exists. INCOMPATIBILITY.
 
-* The type 'udom alg_defl' has been replaced by the non-parameterized
-type 'defl'. HOLCF no longer defines an embedding of type defl into
-udom by default; the instance proof defl :: domain is now available in
+* The type 'alg_defl' has been renamed to 'defl'. HOLCF no longer
+defines an embedding of type 'a defl into udom by default; instances
+of 'bifinite' and 'domain' classes are available in
 HOLCF/Library/Defl_Bifinite.thy.
 
 * The syntax 'REP('a)' has been replaced with 'DEFL('a)'.

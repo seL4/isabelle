@@ -68,7 +68,7 @@ infixr 6 ->>
 infixr -->>
 
 val udomT = @{typ udom}
-val deflT = @{typ "defl"}
+val deflT = @{typ "udom defl"}
 
 fun mk_DEFL T =
   Const (@{const_name defl}, Term.itselfT T --> deflT) $ Logic.mk_type T

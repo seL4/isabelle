@@ -19,7 +19,7 @@ text {*
 *}
 
 class predomain = cpo +
-  fixes liftdefl :: "('a::cpo) itself \<Rightarrow> defl"
+  fixes liftdefl :: "('a::cpo) itself \<Rightarrow> udom defl"
   fixes liftemb :: "'a\<^sub>\<bottom> \<rightarrow> udom"
   fixes liftprj :: "udom \<rightarrow> 'a\<^sub>\<bottom>"
   assumes predomain_ep: "ep_pair liftemb liftprj"
@@ -31,11 +31,11 @@ translations "LIFTDEFL('t)" \<rightleftharpoons> "CONST liftdefl TYPE('t)"
 class "domain" = predomain + pcpo +
   fixes emb :: "'a::cpo \<rightarrow> udom"
   fixes prj :: "udom \<rightarrow> 'a::cpo"
-  fixes defl :: "'a itself \<Rightarrow> defl"
+  fixes defl :: "'a itself \<Rightarrow> udom defl"
   assumes ep_pair_emb_prj: "ep_pair emb prj"
   assumes cast_DEFL: "cast\<cdot>(defl TYPE('a)) = emb oo prj"
 
-syntax "_DEFL" :: "type \<Rightarrow> defl"  ("(1DEFL/(1'(_')))")
+syntax "_DEFL" :: "type \<Rightarrow> logic"  ("(1DEFL/(1'(_')))")
 translations "DEFL('t)" \<rightleftharpoons> "CONST defl TYPE('t)"
 
 interpretation "domain": pcpo_ep_pair emb prj
@@ -51,9 +51,9 @@ lemmas prj_strict = domain.p_strict
 subsection {* Domains are bifinite *}
 
 lemma approx_chain_ep_cast:
-  assumes ep: "ep_pair (e::'a \<rightarrow> udom) (p::udom \<rightarrow> 'a)"
+  assumes ep: "ep_pair (e::'a::pcpo \<rightarrow> udom) (p::udom \<rightarrow> 'a)"
   assumes cast_t: "cast\<cdot>t = e oo p"
-  shows "\<exists>(a::nat \<Rightarrow> 'a \<rightarrow> 'a). approx_chain a"
+  shows "\<exists>(a::nat \<Rightarrow> 'a::pcpo \<rightarrow> 'a). approx_chain a"
 proof -
   interpret ep_pair e p by fact
   obtain Y where Y: "\<forall>i. Y i \<sqsubseteq> Y (Suc i)"
@@ -144,7 +144,7 @@ default_sort bifinite
 
 definition
   defl_fun1 ::
-    "(nat \<Rightarrow> 'a \<rightarrow> 'a) \<Rightarrow> ((udom \<rightarrow> udom) \<rightarrow> ('a \<rightarrow> 'a)) \<Rightarrow> (defl \<rightarrow> defl)"
+    "(nat \<Rightarrow> 'a \<rightarrow> 'a) \<Rightarrow> ((udom \<rightarrow> udom) \<rightarrow> ('a \<rightarrow> 'a)) \<Rightarrow> (udom defl \<rightarrow> udom defl)"
 where
   "defl_fun1 approx f =
     defl.basis_fun (\<lambda>a.
@@ -154,7 +154,7 @@ where
 definition
   defl_fun2 ::
     "(nat \<Rightarrow> 'a \<rightarrow> 'a) \<Rightarrow> ((udom \<rightarrow> udom) \<rightarrow> (udom \<rightarrow> udom) \<rightarrow> ('a \<rightarrow> 'a))
-      \<Rightarrow> (defl \<rightarrow> defl \<rightarrow> defl)"
+      \<Rightarrow> (udom defl \<rightarrow> udom defl \<rightarrow> udom defl)"
 where
   "defl_fun2 approx f =
     defl.basis_fun (\<lambda>a.
@@ -213,19 +213,19 @@ proof -
                    Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
 qed
 
-definition u_defl :: "defl \<rightarrow> defl"
+definition u_defl :: "udom defl \<rightarrow> udom defl"
   where "u_defl = defl_fun1 u_approx u_map"
 
-definition sfun_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
+definition sfun_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
   where "sfun_defl = defl_fun2 sfun_approx sfun_map"
 
-definition prod_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
+definition prod_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
   where "prod_defl = defl_fun2 prod_approx cprod_map"
 
-definition sprod_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
+definition sprod_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
   where "sprod_defl = defl_fun2 sprod_approx sprod_map"
 
-definition ssum_defl :: "defl \<rightarrow> defl \<rightarrow> defl"
+definition ssum_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
 where "ssum_defl = defl_fun2 ssum_approx ssum_map"
 
 lemma cast_u_defl:
@@ -276,10 +276,10 @@ text {* Temporarily relax type constraints. *}
 
 setup {*
   fold Sign.add_const_constraint
-  [ (@{const_name defl}, SOME @{typ "'a::pcpo itself \<Rightarrow> defl"})
+  [ (@{const_name defl}, SOME @{typ "'a::pcpo itself \<Rightarrow> udom defl"})
   , (@{const_name emb}, SOME @{typ "'a::pcpo \<rightarrow> udom"})
   , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::pcpo"})
-  , (@{const_name liftdefl}, SOME @{typ "'a::pcpo itself \<Rightarrow> defl"})
+  , (@{const_name liftdefl}, SOME @{typ "'a::pcpo itself \<Rightarrow> udom defl"})
   , (@{const_name liftemb}, SOME @{typ "'a::pcpo u \<rightarrow> udom"})
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::pcpo u"}) ]
 *}
@@ -307,10 +307,10 @@ text {* Restore original type constraints. *}
 
 setup {*
   fold Sign.add_const_constraint
-  [ (@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> defl"})
+  [ (@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> udom defl"})
   , (@{const_name emb}, SOME @{typ "'a::domain \<rightarrow> udom"})
   , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::domain"})
-  , (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> defl"})
+  , (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> udom defl"})
   , (@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom"})
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::predomain u"}) ]
 *}

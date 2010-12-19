@@ -30,7 +30,7 @@ text {* Start with the one-step non-recursive version *}
 
 definition
   foo_bar_baz_deflF ::
-    "defl \<rightarrow> defl \<times> defl \<times> defl \<rightarrow> defl \<times> defl \<times> defl"
+    "udom defl \<rightarrow> udom defl \<times> udom defl \<times> udom defl \<rightarrow> udom defl \<times> udom defl \<times> udom defl"
 where
   "foo_bar_baz_deflF = (\<Lambda> a. Abs_cfun (\<lambda>(t1, t2, t3). 
     ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>a\<cdot>(u_defl\<cdot>t2))
@@ -47,13 +47,13 @@ by (simp add: split_def)
 
 text {* Individual type combinators are projected from the fixed point. *}
 
-definition foo_defl :: "defl \<rightarrow> defl"
+definition foo_defl :: "udom defl \<rightarrow> udom defl"
 where "foo_defl = (\<Lambda> a. fst (fix\<cdot>(foo_bar_baz_deflF\<cdot>a)))"
 
-definition bar_defl :: "defl \<rightarrow> defl"
+definition bar_defl :: "udom defl \<rightarrow> udom defl"
 where "bar_defl = (\<Lambda> a. fst (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))))"
 
-definition baz_defl :: "defl \<rightarrow> defl"
+definition baz_defl :: "udom defl \<rightarrow> udom defl"
 where "baz_defl = (\<Lambda> a. snd (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))))"
 
 lemma defl_apply_thms:
@@ -103,7 +103,7 @@ where "emb_foo \<equiv> (\<Lambda> x. Rep_foo x)"
 definition prj_foo :: "udom \<rightarrow> 'a foo"
 where "prj_foo \<equiv> (\<Lambda> y. Abs_foo (cast\<cdot>(foo_defl\<cdot>LIFTDEFL('a))\<cdot>y))"
 
-definition defl_foo :: "'a foo itself \<Rightarrow> defl"
+definition defl_foo :: "'a foo itself \<Rightarrow> udom defl"
 where "defl_foo \<equiv> \<lambda>a. foo_defl\<cdot>LIFTDEFL('a)"
 
 definition
@@ -138,7 +138,7 @@ where "emb_bar \<equiv> (\<Lambda> x. Rep_bar x)"
 definition prj_bar :: "udom \<rightarrow> 'a bar"
 where "prj_bar \<equiv> (\<Lambda> y. Abs_bar (cast\<cdot>(bar_defl\<cdot>LIFTDEFL('a))\<cdot>y))"
 
-definition defl_bar :: "'a bar itself \<Rightarrow> defl"
+definition defl_bar :: "'a bar itself \<Rightarrow> udom defl"
 where "defl_bar \<equiv> \<lambda>a. bar_defl\<cdot>LIFTDEFL('a)"
 
 definition
@@ -173,7 +173,7 @@ where "emb_baz \<equiv> (\<Lambda> x. Rep_baz x)"
 definition prj_baz :: "udom \<rightarrow> 'a baz"
 where "prj_baz \<equiv> (\<Lambda> y. Abs_baz (cast\<cdot>(baz_defl\<cdot>LIFTDEFL('a))\<cdot>y))"
 
-definition defl_baz :: "'a baz itself \<Rightarrow> defl"
+definition defl_baz :: "'a baz itself \<Rightarrow> udom defl"
 where "defl_baz \<equiv> \<lambda>a. baz_defl\<cdot>LIFTDEFL('a)"
 
 definition

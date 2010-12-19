@@ -477,7 +477,7 @@ lemma upper_approx: "approx_chain upper_approx"
 using upper_map_ID finite_deflation_upper_map
 unfolding upper_approx_def by (rule approx_chain_lemma1)
 
-definition upper_defl :: "defl \<rightarrow> defl"
+definition upper_defl :: "udom defl \<rightarrow> udom defl"
 where "upper_defl = defl_fun1 upper_approx upper_map"
 
 lemma cast_upper_defl:

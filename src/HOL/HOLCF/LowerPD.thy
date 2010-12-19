@@ -482,7 +482,7 @@ lemma lower_approx: "approx_chain lower_approx"
 using lower_map_ID finite_deflation_lower_map
 unfolding lower_approx_def by (rule approx_chain_lemma1)
 
-definition lower_defl :: "defl \<rightarrow> defl"
+definition lower_defl :: "udom defl \<rightarrow> udom defl"
 where "lower_defl = defl_fun1 lower_approx lower_map"
 
 lemma cast_lower_defl:

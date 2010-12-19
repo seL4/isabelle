@@ -63,7 +63,7 @@ by (simp add: emb_prj_emb DEFL)
 
 subsection {* Deflations as sets *}
 
-definition defl_set :: "defl \<Rightarrow> udom set"
+definition defl_set :: "'a::bifinite defl \<Rightarrow> 'a set"
 where "defl_set A = {x. cast\<cdot>A\<cdot>x = x}"
 
 lemma adm_defl_set: "adm (\<lambda>x. x \<in> defl_set A)"
@@ -86,10 +86,10 @@ text {* Temporarily relax type constraints. *}
 
 setup {*
   fold Sign.add_const_constraint
-  [ (@{const_name defl}, SOME @{typ "'a::pcpo itself \<Rightarrow> defl"})
+  [ (@{const_name defl}, SOME @{typ "'a::pcpo itself \<Rightarrow> udom defl"})
   , (@{const_name emb}, SOME @{typ "'a::pcpo \<rightarrow> udom"})
   , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::pcpo"})
-  , (@{const_name liftdefl}, SOME @{typ "'a::pcpo itself \<Rightarrow> defl"})
+  , (@{const_name liftdefl}, SOME @{typ "'a::pcpo itself \<Rightarrow> udom defl"})
   , (@{const_name liftemb}, SOME @{typ "'a::pcpo u \<rightarrow> udom"})
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::pcpo u"}) ]
 *}
@@ -97,7 +97,7 @@ setup {*
 lemma typedef_liftdomain_class:
   fixes Rep :: "'a::pcpo \<Rightarrow> udom"
   fixes Abs :: "udom \<Rightarrow> 'a::pcpo"
-  fixes t :: defl
+  fixes t :: "udom defl"
   assumes type: "type_definition Rep Abs (defl_set t)"
   assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
   assumes emb: "emb \<equiv> (\<Lambda> x. Rep x)"
@@ -105,7 +105,7 @@ lemma typedef_liftdomain_class:
   assumes defl: "defl \<equiv> (\<lambda> a::'a itself. t)"
   assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom) \<equiv> udom_emb u_approx oo u_map\<cdot>emb"
   assumes liftprj: "(liftprj :: udom \<rightarrow> 'a u) \<equiv> u_map\<cdot>prj oo udom_prj u_approx"
-  assumes liftdefl: "(liftdefl :: 'a itself \<Rightarrow> defl) \<equiv> (\<lambda>t. u_defl\<cdot>DEFL('a))"
+  assumes liftdefl: "(liftdefl :: 'a itself \<Rightarrow> _) \<equiv> (\<lambda>t. u_defl\<cdot>DEFL('a))"
   shows "OFCLASS('a, liftdomain_class)"
 using liftemb [THEN meta_eq_to_obj_eq]
 using liftprj [THEN meta_eq_to_obj_eq]
@@ -148,10 +148,10 @@ text {* Restore original typing constraints. *}
 
 setup {*
   fold Sign.add_const_constraint
-  [ (@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> defl"})
+  [ (@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> udom defl"})
   , (@{const_name emb}, SOME @{typ "'a::domain \<rightarrow> udom"})
   , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::domain"})
-  , (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> defl"})
+  , (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> udom defl"})
   , (@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom"})
   , (@{const_name liftprj}, SOME @{typ "udom \<rightarrow> 'a::predomain u"}) ]
 *}
@@ -161,7 +161,7 @@ use "Tools/domaindef.ML"
 subsection {* Isomorphic deflations *}
 
 definition
-  isodefl :: "('a \<rightarrow> 'a) \<Rightarrow> defl \<Rightarrow> bool"
+  isodefl :: "('a \<rightarrow> 'a) \<Rightarrow> udom defl \<Rightarrow> bool"
 where
   "isodefl d t \<longleftrightarrow> cast\<cdot>t = emb oo d oo prj"
 

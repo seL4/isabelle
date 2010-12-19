@@ -8,21 +8,23 @@ theory Algebraic
 imports Universal Map_Functions
 begin
 
+default_sort bifinite
+
 subsection {* Type constructor for finite deflations *}
 
-typedef (open) fin_defl = "{d::udom \<rightarrow> udom. finite_deflation d}"
+typedef (open) 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
 by (fast intro: finite_deflation_UU)
 
-instantiation fin_defl :: below
+instantiation fin_defl :: (bifinite) below
 begin
 
 definition below_fin_defl_def:
-    "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep_fin_defl x \<sqsubseteq> Rep_fin_defl y"
+  "below \<equiv> \<lambda>x y. Rep_fin_defl x \<sqsubseteq> Rep_fin_defl y"
 
 instance ..
 end
 
-instance fin_defl :: po
+instance fin_defl :: (bifinite) po
 using type_definition_fin_defl below_fin_defl_def
 by (rule typedef_po)
 
@@ -72,10 +74,10 @@ by (rule finite_deflation_imp_compact)
 
 subsection {* Defining algebraic deflations by ideal completion *}
 
-typedef (open) defl = "{S::fin_defl set. below.ideal S}"
+typedef (open) 'a defl = "{S::'a fin_defl set. below.ideal S}"
 by (rule below.ex_ideal)
 
-instantiation defl :: below
+instantiation defl :: (bifinite) below
 begin
 
 definition
@@ -84,21 +86,21 @@ definition
 instance ..
 end
 
-instance defl :: po
+instance defl :: (bifinite) po
 using type_definition_defl below_defl_def
 by (rule below.typedef_ideal_po)
 
-instance defl :: cpo
+instance defl :: (bifinite) cpo
 using type_definition_defl below_defl_def
 by (rule below.typedef_ideal_cpo)
 
 definition
-  defl_principal :: "fin_defl \<Rightarrow> defl" where
+  defl_principal :: "'a fin_defl \<Rightarrow> 'a defl" where
   "defl_principal t = Abs_defl {u. u \<sqsubseteq> t}"
 
-lemma fin_defl_countable: "\<exists>f::fin_defl \<Rightarrow> nat. inj f"
+lemma fin_defl_countable: "\<exists>f::'a fin_defl \<Rightarrow> nat. inj f"
 proof -
-  obtain f :: "udom compact_basis \<Rightarrow> nat" where inj_f: "inj f"
+  obtain f :: "'a compact_basis \<Rightarrow> nat" where inj_f: "inj f"
     using compact_basis.countable ..
   have *: "\<And>d. finite (f ` Rep_compact_basis -` {x. Rep_fin_defl d\<cdot>x = x})"
     apply (rule finite_imageI)
@@ -139,7 +141,7 @@ apply (simp add: below_fin_defl_def)
 apply (simp add: Abs_fin_defl_inverse finite_deflation_UU)
 done
 
-instance defl :: pcpo
+instance defl :: (bifinite) pcpo
 by intro_classes (fast intro: defl_minimal)
 
 lemma inst_defl_pcpo: "\<bottom> = defl_principal (Abs_fin_defl \<bottom>)"
@@ -148,7 +150,7 @@ by (rule defl_minimal [THEN UU_I, symmetric])
 subsection {* Applying algebraic deflations *}
 
 definition
-  cast :: "defl \<rightarrow> udom \<rightarrow> udom"
+  cast :: "'a defl \<rightarrow> 'a \<rightarrow> 'a"
 where
   "cast = defl.basis_fun Rep_fin_defl"
 
