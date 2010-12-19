@@ -246,6 +246,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                    "subgoal " ^ string_of_int i ^ " of " ^ string_of_int n
                  else
                    "goal")) [Logic.list_implies (assm_ts, orig_t)]))
+    val _ = print_v (enclose "Timestamp: " "." o Date.fmt "%H:%M:%S"
+                     o Date.fromTimeLocal o Time.now)
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
                 else orig_t
     val tfree_table =
