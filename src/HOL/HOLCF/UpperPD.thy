@@ -453,7 +453,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Upper powerdomain is a domain *}
+subsection {* Upper powerdomain is bifinite *}
 
 lemma approx_chain_upper_map:
   assumes "approx_chain a"
@@ -467,64 +467,6 @@ proof
     using bifinite [where 'a='a]
     by (fast intro!: approx_chain_upper_map)
 qed
-
-definition
-  upper_approx :: "nat \<Rightarrow> udom upper_pd \<rightarrow> udom upper_pd"
-where
-  "upper_approx = (\<lambda>i. upper_map\<cdot>(udom_approx i))"
-
-lemma upper_approx: "approx_chain upper_approx"
-using upper_map_ID finite_deflation_upper_map
-unfolding upper_approx_def by (rule approx_chain_lemma1)
-
-definition upper_defl :: "udom defl \<rightarrow> udom defl"
-where "upper_defl = defl_fun1 upper_approx upper_map"
-
-lemma cast_upper_defl:
-  "cast\<cdot>(upper_defl\<cdot>A) =
-    udom_emb upper_approx oo upper_map\<cdot>(cast\<cdot>A) oo udom_prj upper_approx"
-using upper_approx finite_deflation_upper_map
-unfolding upper_defl_def by (rule cast_defl_fun1)
-
-instantiation upper_pd :: ("domain") liftdomain
-begin
-
-definition
-  "emb = udom_emb upper_approx oo upper_map\<cdot>emb"
-
-definition
-  "prj = upper_map\<cdot>prj oo udom_prj upper_approx"
-
-definition
-  "defl (t::'a upper_pd itself) = upper_defl\<cdot>DEFL('a)"
-
-definition
-  "(liftemb :: 'a upper_pd u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
-
-definition
-  "(liftprj :: udom \<rightarrow> 'a upper_pd u) = u_map\<cdot>prj oo udom_prj u_approx"
-
-definition
-  "liftdefl (t::'a upper_pd itself) = u_defl\<cdot>DEFL('a upper_pd)"
-
-instance
-using liftemb_upper_pd_def liftprj_upper_pd_def liftdefl_upper_pd_def
-proof (rule liftdomain_class_intro)
-  show "ep_pair emb (prj :: udom \<rightarrow> 'a upper_pd)"
-    unfolding emb_upper_pd_def prj_upper_pd_def
-    using ep_pair_udom [OF upper_approx]
-    by (intro ep_pair_comp ep_pair_upper_map ep_pair_emb_prj)
-next
-  show "cast\<cdot>DEFL('a upper_pd) = emb oo (prj :: udom \<rightarrow> 'a upper_pd)"
-    unfolding emb_upper_pd_def prj_upper_pd_def defl_upper_pd_def cast_upper_defl
-    by (simp add: cast_DEFL oo_def cfun_eq_iff upper_map_map)
-qed
-
-end
-
-lemma DEFL_upper: "DEFL('a::domain upper_pd) = upper_defl\<cdot>DEFL('a)"
-by (rule defl_upper_pd_def)
-
 
 subsection {* Join *}
 

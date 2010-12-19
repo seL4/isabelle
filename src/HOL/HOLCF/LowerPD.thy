@@ -458,7 +458,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Lower powerdomain is a domain *}
+subsection {* Lower powerdomain is bifinite *}
 
 lemma approx_chain_lower_map:
   assumes "approx_chain a"
@@ -472,64 +472,6 @@ proof
     using bifinite [where 'a='a]
     by (fast intro!: approx_chain_lower_map)
 qed
-
-definition
-  lower_approx :: "nat \<Rightarrow> udom lower_pd \<rightarrow> udom lower_pd"
-where
-  "lower_approx = (\<lambda>i. lower_map\<cdot>(udom_approx i))"
-
-lemma lower_approx: "approx_chain lower_approx"
-using lower_map_ID finite_deflation_lower_map
-unfolding lower_approx_def by (rule approx_chain_lemma1)
-
-definition lower_defl :: "udom defl \<rightarrow> udom defl"
-where "lower_defl = defl_fun1 lower_approx lower_map"
-
-lemma cast_lower_defl:
-  "cast\<cdot>(lower_defl\<cdot>A) =
-    udom_emb lower_approx oo lower_map\<cdot>(cast\<cdot>A) oo udom_prj lower_approx"
-using lower_approx finite_deflation_lower_map
-unfolding lower_defl_def by (rule cast_defl_fun1)
-
-instantiation lower_pd :: ("domain") liftdomain
-begin
-
-definition
-  "emb = udom_emb lower_approx oo lower_map\<cdot>emb"
-
-definition
-  "prj = lower_map\<cdot>prj oo udom_prj lower_approx"
-
-definition
-  "defl (t::'a lower_pd itself) = lower_defl\<cdot>DEFL('a)"
-
-definition
-  "(liftemb :: 'a lower_pd u \<rightarrow> udom) = udom_emb u_approx oo u_map\<cdot>emb"
-
-definition
-  "(liftprj :: udom \<rightarrow> 'a lower_pd u) = u_map\<cdot>prj oo udom_prj u_approx"
-
-definition
-  "liftdefl (t::'a lower_pd itself) = u_defl\<cdot>DEFL('a lower_pd)"
-
-instance
-using liftemb_lower_pd_def liftprj_lower_pd_def liftdefl_lower_pd_def
-proof (rule liftdomain_class_intro)
-  show "ep_pair emb (prj :: udom \<rightarrow> 'a lower_pd)"
-    unfolding emb_lower_pd_def prj_lower_pd_def
-    using ep_pair_udom [OF lower_approx]
-    by (intro ep_pair_comp ep_pair_lower_map ep_pair_emb_prj)
-next
-  show "cast\<cdot>DEFL('a lower_pd) = emb oo (prj :: udom \<rightarrow> 'a lower_pd)"
-    unfolding emb_lower_pd_def prj_lower_pd_def defl_lower_pd_def cast_lower_defl
-    by (simp add: cast_DEFL oo_def cfun_eq_iff lower_map_map)
-qed
-
-end
-
-lemma DEFL_lower: "DEFL('a::domain lower_pd) = lower_defl\<cdot>DEFL('a)"
-by (rule defl_lower_pd_def)
-
 
 subsection {* Join *}
 
