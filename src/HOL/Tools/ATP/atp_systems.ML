@@ -99,7 +99,7 @@ fun e_bonus () =
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
-val e_generate_weights = Unsynchronized.ref true
+val e_generate_weights = Unsynchronized.ref false
 val e_weight_factor = Unsynchronized.ref 60.0
 val e_default_weight = Unsynchronized.ref 0.5
 
