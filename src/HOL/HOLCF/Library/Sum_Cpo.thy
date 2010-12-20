@@ -175,6 +175,18 @@ lemma cont2cont_sum_case' [simp, cont2cont]:
   shows "cont (\<lambda>x. case h x of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
 using assms by (simp add: cont2cont_sum_case prod_cont_iff)
 
+text {* Continuity of map function. *}
+
+lemma sum_map_eq: "sum_map f g = sum_case (\<lambda>a. Inl (f a)) (\<lambda>b. Inr (g b))"
+by (rule ext, case_tac x, simp_all)
+
+lemma cont2cont_sum_map [simp, cont2cont]:
+  assumes f: "cont (\<lambda>(x, y). f x y)"
+  assumes g: "cont (\<lambda>(x, y). g x y)"
+  assumes h: "cont (\<lambda>x. h x)"
+  shows "cont (\<lambda>x. sum_map (\<lambda>y. f x y) (\<lambda>y. g x y) (h x))"
+using assms by (simp add: sum_map_eq prod_cont_iff)
+
 subsection {* Compactness and chain-finiteness *}
 
 lemma compact_Inl: "compact a \<Longrightarrow> compact (Inl a)"
@@ -260,6 +272,11 @@ apply (rename_tac a, case_tac a, simp, simp)
 apply (rename_tac b, case_tac b, simp, simp)
 done
 
+text {* A deflation combinator for making unpointed types *}
+
+definition udefl :: "udom defl \<rightarrow> udom u defl"
+  where "udefl = defl_fun1 (strictify\<cdot>up) (fup\<cdot>ID) ID"
+
 lemma ep_pair_strictify_up:
   "ep_pair (strictify\<cdot>up) (fup\<cdot>ID)"
 apply (rule ep_pair.intro)
@@ -267,20 +284,32 @@ apply (simp add: strictify_conv_if)
 apply (case_tac y, simp, simp add: strictify_conv_if)
 done
 
+lemma cast_udefl:
+  "cast\<cdot>(udefl\<cdot>t) = strictify\<cdot>up oo cast\<cdot>t oo fup\<cdot>ID"
+unfolding udefl_def by (simp add: cast_defl_fun1 ep_pair_strictify_up)
+
+definition sum_liftdefl :: "udom u defl \<rightarrow> udom u defl \<rightarrow> udom u defl"
+  where "sum_liftdefl = (\<Lambda> a b. udefl\<cdot>(ssum_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>b)))"
+
+lemma u_emb_bottom: "u_emb\<cdot>\<bottom> = \<bottom>"
+by (rule pcpo_ep_pair.e_strict [unfolded pcpo_ep_pair_def, OF ep_pair_u])
+
+(*
 definition sum_liftdefl :: "udom u defl \<rightarrow> udom u defl \<rightarrow> udom u defl"
   where "sum_liftdefl = defl_fun2 (u_map\<cdot>emb oo strictify\<cdot>up)
     (fup\<cdot>ID oo u_map\<cdot>prj) ssum_map"
+*)
 
 instantiation sum :: (predomain, predomain) predomain
 begin
 
 definition
-  "liftemb = (u_map\<cdot>emb oo strictify\<cdot>up) oo
-    (ssum_map\<cdot>liftemb\<cdot>liftemb oo encode_sum_u)"
+  "liftemb = (strictify\<cdot>up oo ssum_emb) oo
+    (ssum_map\<cdot>(u_emb oo liftemb)\<cdot>(u_emb oo liftemb) oo encode_sum_u)"
 
 definition
-  "liftprj = (decode_sum_u oo ssum_map\<cdot>liftprj\<cdot>liftprj) oo
-    (fup\<cdot>ID oo u_map\<cdot>prj)"
+  "liftprj = (decode_sum_u oo ssum_map\<cdot>(liftprj oo u_prj)\<cdot>(liftprj oo u_prj))
+    oo (ssum_prj oo fup\<cdot>ID)"
 
 definition
   "liftdefl (t::('a + 'b) itself) = sum_liftdefl\<cdot>LIFTDEFL('a)\<cdot>LIFTDEFL('b)"
@@ -288,17 +317,56 @@ definition
 instance proof
   show "ep_pair liftemb (liftprj :: udom u \<rightarrow> ('a + 'b) u)"
     unfolding liftemb_sum_def liftprj_sum_def
-    by (intro ep_pair_comp ep_pair_ssum_map ep_pair_u_map ep_pair_emb_prj
-       ep_pair_strictify_up predomain_ep, simp add: ep_pair.intro)
+    by (intro ep_pair_comp ep_pair_ssum_map ep_pair_u predomain_ep
+      ep_pair_ssum ep_pair_strictify_up, simp add: ep_pair.intro)
   show "cast\<cdot>LIFTDEFL('a + 'b) = liftemb oo (liftprj :: udom u \<rightarrow> ('a + 'b) u)"
     unfolding liftemb_sum_def liftprj_sum_def liftdefl_sum_def
-    apply (subst sum_liftdefl_def, subst cast_defl_fun2)
-    apply (intro ep_pair_comp ep_pair_u_map ep_pair_emb_prj
-        ep_pair_strictify_up)
-    apply (erule (1) finite_deflation_ssum_map)
-    by (simp add: cast_liftdefl cfcomp1 ssum_map_map)
+    by (simp add: sum_liftdefl_def cast_udefl cast_ssum_defl cast_u_defl
+      cast_liftdefl cfcomp1 ssum_map_map u_emb_bottom)
 qed
 
 end
+
+subsection {* Configuring domain package to work with sum type *}
+
+lemma liftdefl_sum [domain_defl_simps]:
+  "LIFTDEFL('a::predomain + 'b::predomain) =
+    sum_liftdefl\<cdot>LIFTDEFL('a)\<cdot>LIFTDEFL('b)"
+by (rule liftdefl_sum_def)
+
+abbreviation sum_map'
+  where "sum_map' f g \<equiv> Abs_cfun (sum_map (Rep_cfun f) (Rep_cfun g))"
+
+lemma sum_map_ID [domain_map_ID]: "sum_map' ID ID = ID"
+by (simp add: ID_def cfun_eq_iff sum_map.identity)
+
+lemma deflation_sum_map [domain_deflation]:
+  "\<lbrakk>deflation d1; deflation d2\<rbrakk> \<Longrightarrow> deflation (sum_map' d1 d2)"
+apply default
+apply (induct_tac x, simp_all add: deflation.idem)
+apply (induct_tac x, simp_all add: deflation.below)
+done
+
+lemma encode_sum_u_sum_map:
+  "encode_sum_u\<cdot>(u_map\<cdot>(sum_map' f g)\<cdot>(decode_sum_u\<cdot>x))
+    = ssum_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>g)\<cdot>x"
+apply (induct x, simp add: decode_sum_u_def encode_sum_u_def)
+apply (case_tac x, simp, simp add: decode_sum_u_def encode_sum_u_def)
+apply (case_tac y, simp, simp add: decode_sum_u_def encode_sum_u_def)
+done
+
+lemma isodefl_sum [domain_isodefl]:
+  fixes d :: "'a::predomain \<rightarrow> 'a"
+  assumes "isodefl' d1 t1" and "isodefl' d2 t2"
+  shows "isodefl' (sum_map' d1 d2) (sum_liftdefl\<cdot>t1\<cdot>t2)"
+using assms unfolding isodefl'_def liftemb_sum_def liftprj_sum_def
+apply (simp add: sum_liftdefl_def cast_udefl cast_ssum_defl cast_u_defl)
+apply (simp add: cfcomp1 encode_sum_u_sum_map)
+apply (simp add: ssum_map_map u_emb_bottom)
+done
+
+setup {*
+  Domain_Take_Proofs.add_rec_type (@{type_name "sum"}, [true, true])
+*}
 
 end

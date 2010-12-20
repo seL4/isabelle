@@ -148,6 +148,10 @@ apply (rule chain_iterate)
 apply (rule nat_induct, simp_all)
 done
 
+lemma cont_fix_ind:
+  "\<lbrakk>cont F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F x)\<rbrakk> \<Longrightarrow> P (fix\<cdot>(Abs_cfun F))"
+by (simp add: fix_ind)
+
 lemma def_fix_ind:
   "\<lbrakk>f \<equiv> fix\<cdot>F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P f"
 by (simp add: fix_ind)
@@ -189,6 +193,14 @@ proof -
   thus "P (fix\<cdot>F) (fix\<cdot>G)"
     by (simp add: fix_def2)
 qed
+
+lemma cont_parallel_fix_ind:
+  assumes "cont F" and "cont G"
+  assumes "adm (\<lambda>x. P (fst x) (snd x))"
+  assumes "P \<bottom> \<bottom>"
+  assumes "\<And>x y. P x y \<Longrightarrow> P (F x) (G y)"
+  shows "P (fix\<cdot>(Abs_cfun F)) (fix\<cdot>(Abs_cfun G))"
+by (rule parallel_fix_ind, simp_all add: assms)
 
 subsection {* Fixed-points on product types *}
 

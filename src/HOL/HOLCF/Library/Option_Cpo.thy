@@ -149,6 +149,14 @@ lemma cont2cont_option_case_simple [simp, cont2cont]:
   shows "cont (\<lambda>x. case z of None \<Rightarrow> f x | Some a \<Rightarrow> g x a)"
 using assms by (cases z) auto
 
+text {* Continuity rule for map. *}
+
+lemma cont2cont_option_map [simp, cont2cont]:
+  assumes f: "cont (\<lambda>(x, y). f x y)"
+  assumes g: "cont (\<lambda>x. g x)"
+  shows "cont (\<lambda>x. Option.map (\<lambda>y. f x y) (g x))"
+using assms by (simp add: prod_cont_iff Option.map_def)
+
 subsection {* Compactness and chain-finiteness *}
 
 lemma compact_None [simp]: "compact None"
@@ -182,7 +190,7 @@ done
 instance option :: (discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_option_def split: option.split)
 
-subsection {* Using option types with fixrec *}
+subsection {* Using option types with Fixrec *}
 
 definition
   "match_None = (\<Lambda> x k. case x of None \<Rightarrow> k | Some a \<Rightarrow> Fixrec.fail)"
@@ -246,5 +254,39 @@ instance proof
 qed
 
 end
+
+subsection {* Configuring domain package to work with option type *}
+
+lemma liftdefl_option [domain_defl_simps]:
+  "LIFTDEFL('a::predomain option) = LIFTDEFL(unit + 'a)"
+by (rule liftdefl_option_def)
+
+abbreviation option_map
+  where "option_map f \<equiv> Abs_cfun (Option.map (Rep_cfun f))"
+
+lemma option_map_ID [domain_map_ID]: "option_map ID = ID"
+by (simp add: ID_def cfun_eq_iff Option.map.identity)
+
+lemma deflation_option_map [domain_deflation]:
+  "deflation d \<Longrightarrow> deflation (option_map d)"
+apply default
+apply (induct_tac x, simp_all add: deflation.idem)
+apply (induct_tac x, simp_all add: deflation.below)
+done
+
+lemma encode_option_option_map:
+  "encode_option\<cdot>(Option.map (\<lambda>x. f\<cdot>x) (decode_option\<cdot>x)) = sum_map' ID f\<cdot>x"
+by (induct x, simp_all add: decode_option_def encode_option_def)
+
+lemma isodefl_option [domain_isodefl]:
+  assumes "isodefl' d t"
+  shows "isodefl' (option_map d) (sum_liftdefl\<cdot>(pdefl\<cdot>DEFL(unit))\<cdot>t)"
+using isodefl_sum [OF isodefl_LIFTDEFL [where 'a=unit] assms]
+unfolding isodefl'_def liftemb_option_def liftprj_option_def liftdefl_eq
+by (simp add: cfcomp1 u_map_map encode_option_option_map)
+
+setup {*
+  Domain_Take_Proofs.add_rec_type (@{type_name "option"}, [true])
+*}
 
 end

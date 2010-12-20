@@ -96,22 +96,12 @@ done
 
 subsection {* Lists are a predomain *}
 
-definition udefl :: "udom defl \<rightarrow> udom u defl"
-  where "udefl = defl_fun1 (strictify\<cdot>up) (fup\<cdot>ID) ID"
-
-lemma cast_udefl:
-  "cast\<cdot>(udefl\<cdot>t) = strictify\<cdot>up oo cast\<cdot>t oo fup\<cdot>ID"
-unfolding udefl_def by (simp add: cast_defl_fun1 ep_pair_strictify_up)
-
 definition list_liftdefl :: "udom u defl \<rightarrow> udom u defl"
   where "list_liftdefl = (\<Lambda> a. udefl\<cdot>(slist_defl\<cdot>(u_defl\<cdot>a)))"
 
 lemma cast_slist_defl: "cast\<cdot>(slist_defl\<cdot>a) = emb oo slist_map\<cdot>(cast\<cdot>a) oo prj"
 using isodefl_slist [where fa="cast\<cdot>a" and da="a"]
 unfolding isodefl_def by simp
-
-lemma u_emb_bottom: "u_emb\<cdot>\<bottom> = \<bottom>"
-by (rule pcpo_ep_pair.e_strict [unfolded pcpo_ep_pair_def, OF ep_pair_u])
 
 instantiation list :: (predomain) predomain
 begin
@@ -139,37 +129,27 @@ qed
 
 end
 
+subsection {* Configuring domain package to work with list type *}
+
 lemma liftdefl_list [domain_defl_simps]:
   "LIFTDEFL('a::predomain list) = list_liftdefl\<cdot>LIFTDEFL('a)"
 by (rule liftdefl_list_def)
 
-subsection {* Continuous map operation for lists *}
+abbreviation list_map :: "('a::cpo \<rightarrow> 'b::cpo) \<Rightarrow> 'a list \<rightarrow> 'b list"
+  where "list_map f \<equiv> Abs_cfun (map (Rep_cfun f))"
 
-definition
-  list_map :: "('a::predomain \<rightarrow> 'b::predomain) \<rightarrow> 'a list \<rightarrow> 'b list"
-where
-  "list_map = (\<Lambda> f xs. map (\<lambda>x. f\<cdot>x) xs)"
-
-lemma list_map_simps [simp]:
-  "list_map\<cdot>f\<cdot>[] = []"
-  "list_map\<cdot>f\<cdot>(x # xs) = f\<cdot>x # list_map\<cdot>f\<cdot>xs"
-unfolding list_map_def by simp_all
-
-lemma list_map_ID [domain_map_ID]: "list_map\<cdot>ID = ID"
-unfolding list_map_def ID_def
-by (simp add: Abs_cfun_inverse cfun_def)
+lemma list_map_ID [domain_map_ID]: "list_map ID = ID"
+by (simp add: ID_def)
 
 lemma deflation_list_map [domain_deflation]:
-  "deflation d \<Longrightarrow> deflation (list_map\<cdot>d)"
+  "deflation d \<Longrightarrow> deflation (list_map d)"
 apply default
 apply (induct_tac x, simp_all add: deflation.idem)
 apply (induct_tac x, simp_all add: deflation.below)
 done
 
-subsection {* Configuring list type to work with domain package *}
-
 lemma encode_list_u_map:
-  "encode_list_u\<cdot>(u_map\<cdot>(list_map\<cdot>f)\<cdot>(decode_list_u\<cdot>xs))
+  "encode_list_u\<cdot>(u_map\<cdot>(list_map f)\<cdot>(decode_list_u\<cdot>xs))
     = slist_map\<cdot>(u_map\<cdot>f)\<cdot>xs"
 apply (induct xs, simp, simp)
 apply (case_tac a, simp, rename_tac b)
@@ -180,7 +160,7 @@ done
 lemma isodefl_list_u [domain_isodefl]:
   fixes d :: "'a::predomain \<rightarrow> 'a"
   assumes "isodefl' d t"
-  shows "isodefl' (list_map\<cdot>d) (list_liftdefl\<cdot>t)"
+  shows "isodefl' (list_map d) (list_liftdefl\<cdot>t)"
 using assms unfolding isodefl'_def liftemb_list_def liftprj_list_def
 apply (simp add: list_liftdefl_def cast_udefl cast_slist_defl cast_u_defl)
 apply (simp add: cfcomp1 encode_list_u_map)
