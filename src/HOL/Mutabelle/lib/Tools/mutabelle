@@ -2,7 +2,7 @@
 #
 # Author: Lukas Bulwahn
 #
-# DESCRIPTION: mutant-testing tool for counterexample generators and automated proof tools
+# DESCRIPTION: mutant-testing for counterexample generators and automated tools
 
 
 PRG="$(basename "$0")"
@@ -16,7 +16,8 @@ function usage() {
   echo "    -T THEORY    parent theory to use (default $DEFAULT_MUTABELLE_IMPORT_THEORY)"
   echo "    -O DIR       output directory for test data (default $DEFAULT_MUTABELLE_OUTPUT_PATH)"
   echo
-  echo "  THEORY is the name of the theory of which all theorems should be mutated and tested"
+  echo "  THEORY is the name of the theory of which all theorems should be"
+  echo "  mutated and tested."
   echo
   exit 1
 }
