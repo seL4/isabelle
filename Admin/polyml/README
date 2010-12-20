@@ -1,15 +1,46 @@
 Poly/ML for Isabelle
 ====================
 
-This distribution of Poly/ML 5.4 has been compiled from the original
-sources using the included build script.  For example:
+This compilation is based on the official Poly/ML 5.4 sources from
+http://www.polyml.org with the following change in the SVN (which is
+also part of the fixes-5.4 source tree):
 
-  ./build polyml.5.4 x86-linux --with-gmp
+------------------------------------------------------------------------
+r1214 | dcjm | 2010-09-14 20:03:52 +0200 (Tue, 14 Sep 2010) | 1 line
 
-The resulting executables and shared libraries are moved to
-x86-linux/.  This directory layout accomodates the standard ML_HOME
-settings for Isabelle.
+Fix to arbitrary precision emulation for X86.  A GC during emulating
+an operation could cause the stack to move resulting in the result of
+the operation not being stored into the result register.
+------------------------------------------------------------------------
+diff libpolyml/x86_dep.cpp libpolyml/x86_dep.cpp.orig
+1308,1311c1308
+<                     if (! inConsts) {
+<                         destReg = get_reg(taskData, rrr); // May have moved because of a GC.
+<                         *destReg = PolyWord::FromUnsigned(destReg->AsUnsigned()+1);
+<                     }
+---
+>                     if (! inConsts) *destReg = PolyWord::FromUnsigned(destReg->AsUnsigned()+1);
+1344,1347c1341
+<                     if (! inConsts) {
+<                         destReg = get_reg(taskData, rrr); // May have moved because of a GC.
+<                         *destReg = PolyWord::FromUnsigned(destReg->AsUnsigned()-1);
+<                     }
+---
+>                     if (! inConsts) *destReg = PolyWord::FromUnsigned(destReg->AsUnsigned()-1);
+
+------------------------------------------------------------------------
+
+The included build script is used like this:
+
+  ./build src x86-linux --with-gmp
+  ./build src x86_64-linux --with-gmp
+  ./build src x86-darwin --without-gmp
+  ./build src x86_64-darwin --without-gmp
+  ./build src x86-cygwin --with-gmp
+
+The multi-platform directory layout for executables and shared
+libraries accommodates the standard ML_HOME settings for Isabelle.
 
 
 	Makarius
-	17-Aug-2010
+	20-Dec-2010
