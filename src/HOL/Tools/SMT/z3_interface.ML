@@ -44,43 +44,42 @@ local
         has_datatypes=true}
     end
 
-  fun is_div_mod (@{const div (int)} $ _ $ t) = U.is_number t
-    | is_div_mod (@{const mod (int)} $ _ $ t) = U.is_number t
+  fun is_div_mod @{const div (int)} = true
+    | is_div_mod @{const mod (int)} = true
     | is_div_mod _ = false
 
-  val div_by_z3div = mk_meta_eq @{lemma
-    "k div l = (
+  val div_by_z3div = @{lemma
+    "ALL k l. k div l = (
       if k = 0 | l = 0 then 0
       else if (0 < k & 0 < l) | (k < 0 & 0 < l) then z3div k l
       else z3div (-k) (-l))"
     by (simp add: SMT.z3div_def)}
 
-  val mod_by_z3mod = mk_meta_eq @{lemma
-    "k mod l = (
+  val mod_by_z3mod = @{lemma
+    "ALL k l. k mod l = (
       if l = 0 then k
       else if k = 0 then 0
       else if (0 < k & 0 < l) | (k < 0 & 0 < l) then z3mod k l
       else - z3mod (-k) (-l))"
     by (simp add: z3mod_def)}
 
-  fun div_mod_conv _ =
-    U.if_true_conv is_div_mod (Conv.rewrs_conv [div_by_z3div, mod_by_z3mod])
+  val have_int_div_mod =
+    exists (Term.exists_subterm is_div_mod o Thm.prop_of)
 
-  fun rewrite_div_mod ctxt thm =
-    if Term.exists_subterm is_div_mod (Thm.prop_of thm) then
-      Conv.fconv_rule (Conv.top_conv div_mod_conv ctxt) thm
-    else thm
-
-  fun norm_div_mod ctxt = pairself (map (rewrite_div_mod ctxt))
+  fun add_div_mod _ (thms, extra_thms) =
+    if have_int_div_mod thms orelse have_int_div_mod extra_thms then
+      (thms, div_by_z3div :: mod_by_z3mod :: extra_thms)
+    else (thms, extra_thms)
 
   val setup_builtins =
+    B.add_builtin_fun' smtlib_z3C (@{const times (int)}, "*") #>
     B.add_builtin_fun' smtlib_z3C (@{const z3div}, "div") #>
     B.add_builtin_fun' smtlib_z3C (@{const z3mod}, "mod")
 in
 
 val setup = Context.theory_map (
   setup_builtins #>
-  SMT_Normalize.add_extra_norm (smtlib_z3C, norm_div_mod) #>
+  SMT_Normalize.add_extra_norm (smtlib_z3C, add_div_mod) #>
   SMT_Translate.add_config (smtlib_z3C, translate_config))
 
 end

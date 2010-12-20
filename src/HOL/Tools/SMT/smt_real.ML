@@ -39,12 +39,6 @@ local
 
   fun times _ T ts = if is_linear ts then SOME ("*", 2, ts, mk_times) else NONE
     | times _ _ _  = NONE
-
-  fun mk_divide ts = Term.list_comb (@{const divide (real)}, ts)
-
-  fun divide _ T (ts as [_, t]) =
-        if U.is_number t then SOME ("/", 2, ts, mk_divide) else NONE
-    | divide _ _ _ = NONE
 in
 
 val setup_builtins =
@@ -57,8 +51,8 @@ val setup_builtins =
     (@{const minus (real)}, "-") ] #>
   B.add_builtin_fun SMTLIB_Interface.smtlibC
     (Term.dest_Const @{const times (real)}, times) #>
-  B.add_builtin_fun Z3_Interface.smtlib_z3C
-    (Term.dest_Const @{const divide (real)}, divide)
+  B.add_builtin_fun' Z3_Interface.smtlib_z3C (@{const times (real)}, "*") #>
+  B.add_builtin_fun' Z3_Interface.smtlib_z3C (@{const divide (real)}, "/")
 
 end
 
