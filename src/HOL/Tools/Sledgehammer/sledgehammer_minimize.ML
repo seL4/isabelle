@@ -10,9 +10,10 @@ sig
   type locality = Sledgehammer_Filter.locality
   type params = Sledgehammer_Provers.params
 
+  val binary_threshold : int Unsynchronized.ref
   val filter_used_facts : ''a list -> (''a * 'b) list -> (''a * 'b) list
   val minimize_facts :
-    params -> bool -> int -> int -> Proof.state
+    string -> params -> bool -> int -> int -> Proof.state
     -> ((string * locality) * thm list) list
     -> ((string * locality) * thm list) list option * string
   val run_minimize :
@@ -29,10 +30,10 @@ open Sledgehammer_Provers
 
 (* wrapper for calling external prover *)
 
-fun string_for_failure ATP_Proof.Unprovable = "Unprovable."
-  | string_for_failure ATP_Proof.TimedOut = "Timed out."
-  | string_for_failure ATP_Proof.Interrupted = "Interrupted."
-  | string_for_failure _ = "Error."
+fun short_string_for_failure ATP_Proof.Unprovable = "Unprovable."
+  | short_string_for_failure ATP_Proof.TimedOut = "Timed out."
+  | short_string_for_failure ATP_Proof.Interrupted = "Interrupted."
+  | short_string_for_failure _ = "Error."
 
 fun n_facts names =
   let val n = length names in
@@ -46,11 +47,15 @@ fun n_facts names =
 
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
-fun test_facts ({debug, overlord, provers, type_sys, isar_proof,
+fun test_facts ({debug, verbose, overlord, provers, type_sys, isar_proof,
                  isar_shrink_factor, ...} : params) silent (prover : prover)
                explicit_apply timeout i n state facts =
   let
-    val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^ "...")
+    val _ =
+      print silent (fn () =>
+          "Testing " ^ n_facts (map fst facts) ^
+          (if verbose then " (timeout: " ^ string_from_time timeout ^ ")"
+          else "") ^ "...")
     val params =
       {debug = debug, verbose = false, overlord = overlord, blocking = true,
        provers = provers, type_sys = type_sys, explicit_apply = explicit_apply,
@@ -65,12 +70,12 @@ fun test_facts ({debug, overlord, provers, type_sys, isar_proof,
        facts = facts, smt_head = NONE}
     val result as {outcome, used_facts, ...} = prover params (K "") problem
   in
-    print silent
-        (fn () => case outcome of
-                    SOME failure => string_for_failure failure
-                  | NONE =>
-                    if length used_facts = length facts then "Found proof."
-                    else "Found proof with " ^ n_facts used_facts ^ ".");
+    print silent (fn () =>
+        case outcome of
+          SOME failure => short_string_for_failure failure
+        | NONE =>
+          if length used_facts = length facts then "Found proof."
+          else "Found proof with " ^ n_facts used_facts ^ ".");
     result
   end
 
@@ -78,10 +83,10 @@ fun test_facts ({debug, overlord, provers, type_sys, isar_proof,
 
 (* The sublinear algorithm works well in almost all situations, except when the
    external prover cannot return the list of used facts and hence returns all
-   facts as used. In that case, the binary algorithm is much more
-   appropriate. We can usually detect that situation just by looking at the
-   number of used facts reported by the prover. *)
-val binary_threshold = 50
+   facts as used. In that case, the binary algorithm is much more appropriate.
+   We can usually detect the situation by looking at the number of used facts
+   reported by the prover. *)
+val binary_threshold = Unsynchronized.ref 20
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
@@ -122,11 +127,10 @@ fun binary_minimize test xs =
 (* Give the external prover some slack. The ATP gets further slack because the
    Sledgehammer preprocessing time is included in the estimate below but isn't
    part of the timeout. *)
-val fudge_msecs = 1000
+val slack_msecs = 200
 
-fun minimize_facts {provers = [], ...} _ _ _ _ _ = error "No prover is set."
-  | minimize_facts (params as {provers = prover_name :: _, timeout, ...}) silent
-                   i n state facts =
+fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
+                   facts =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -148,11 +152,11 @@ fun minimize_facts {provers = [], ...} _ _ _ _ _ = error "No prover is set."
        let
          val time = Timer.checkRealTimer timer
          val new_timeout =
-           Int.min (msecs, Time.toMilliseconds time + fudge_msecs)
+           Int.min (msecs, Time.toMilliseconds time + slack_msecs)
            |> Time.fromMilliseconds
          val facts = filter_used_facts used_facts facts
          val (min_thms, {message, ...}) =
-           if length facts >= binary_threshold then
+           if length facts >= !binary_threshold then
              binary_minimize (do_test new_timeout) facts
            else
              sublinear_minimize (do_test new_timeout) facts ([], result)
@@ -177,7 +181,7 @@ fun minimize_facts {provers = [], ...} _ _ _ _ _ = error "No prover is set."
     handle ERROR msg => (NONE, "Error: " ^ msg)
   end
 
-fun run_minimize params i refs state =
+fun run_minimize (params as {provers, ...}) i refs state =
   let
     val ctxt = Proof.context_of state
     val reserved = reserved_isar_keyword_table ()
@@ -188,9 +192,12 @@ fun run_minimize params i refs state =
   in
     case subgoal_count state of
       0 => Output.urgent_message "No subgoal!"
-    | n =>
-      (kill_provers ();
-       Output.urgent_message (#2 (minimize_facts params false i n state facts)))
+    | n => case provers of
+             [] => error "No prover is set."
+           | prover :: _ =>
+             (kill_provers ();
+              minimize_facts prover params false i n state facts
+              |> #2 |> Output.urgent_message)
   end
 
 end;

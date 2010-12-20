@@ -145,7 +145,7 @@ val get_silent = #silent o NameSpaceData.get;
 
 fun prove_interpretation_in ctxt_tac (name, expr) thy =
    thy
-   |> Expression.sublocale_cmd name expr
+   |> Expression.sublocale_cmd name expr []
    |> Proof.global_terminal_proof
          (Method.Basic (fn ctxt => SIMPLE_METHOD (ctxt_tac ctxt)), NONE)
    |> ProofContext.theory_of

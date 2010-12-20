@@ -12,28 +12,33 @@ sig
     Context.generic -> Context.generic
   val add_builtin_typ_ext: typ * (typ -> bool) -> Context.generic ->
     Context.generic
-  val builtin_typ: Proof.context -> typ -> string option
-  val is_builtin_typ: Proof.context -> typ -> bool
+  val dest_builtin_typ: Proof.context -> typ -> string option
   val is_builtin_typ_ext: Proof.context -> typ -> bool
 
   (*built-in numbers*)
-  val builtin_num: Proof.context -> term -> (string * typ) option
+  val dest_builtin_num: Proof.context -> term -> (string * typ) option
   val is_builtin_num: Proof.context -> term -> bool
   val is_builtin_num_ext: Proof.context -> term -> bool
 
   (*built-in functions*)
   type 'a bfun = Proof.context -> typ -> term list -> 'a
+  type bfunr = string * int * term list * (term list -> term)
   val add_builtin_fun: SMT_Utils.class ->
-    (string * typ) * (((string * int) * typ) * term list * typ) option bfun ->
-    Context.generic -> Context.generic
+    (string * typ) * bfunr option bfun -> Context.generic -> Context.generic
   val add_builtin_fun': SMT_Utils.class -> term * string -> Context.generic ->
     Context.generic
   val add_builtin_fun_ext: (string * typ) * bool bfun -> Context.generic ->
     Context.generic
   val add_builtin_fun_ext': string * typ -> Context.generic -> Context.generic
   val add_builtin_fun_ext'': string -> Context.generic -> Context.generic
-  val builtin_fun: Proof.context -> string * typ -> term list ->
-    (((string * int) * typ) * term list * typ) option
+  val dest_builtin_fun: Proof.context -> string * typ -> term list ->
+    bfunr option
+  val dest_builtin_eq: Proof.context -> term -> term -> bfunr option
+  val dest_builtin_pred: Proof.context -> string * typ -> term list ->
+    bfunr option
+  val dest_builtin_conn: Proof.context -> string * typ -> term list ->
+    bfunr option
+  val dest_builtin: Proof.context -> string * typ -> term list -> bfunr option
   val is_builtin_fun: Proof.context -> string * typ -> term list -> bool
   val is_builtin_fun_ext: Proof.context -> string * typ -> term list -> bool
   val is_builtin_ext: Proof.context -> string * typ -> term list -> bool
@@ -108,12 +113,10 @@ fun add_builtin_typ_ext (T, f) =
 fun lookup_builtin_typ ctxt =
   lookup_ttab ctxt (Builtin_Types.get (Context.Proof ctxt))
 
-fun builtin_typ ctxt T =
+fun dest_builtin_typ ctxt T =
   (case lookup_builtin_typ ctxt T of
     SOME (_, Int (f, _)) => f T
   | _ => NONE) 
-
-fun is_builtin_typ ctxt T = is_some (builtin_typ ctxt T)
 
 fun is_builtin_typ_ext ctxt T =
   (case lookup_builtin_typ ctxt T of
@@ -124,7 +127,7 @@ fun is_builtin_typ_ext ctxt T =
 
 (* built-in numbers *)
 
-fun builtin_num ctxt t =
+fun dest_builtin_num ctxt t =
   (case try HOLogic.dest_number t of
     NONE => NONE
   | SOME (T, i) =>
@@ -132,7 +135,7 @@ fun builtin_num ctxt t =
         SOME (_, Int (_, g)) => g T i |> Option.map (rpair T)
       | _ => NONE))
 
-val is_builtin_num = is_some oo builtin_num
+val is_builtin_num = is_some oo dest_builtin_num
 
 fun is_builtin_num_ext ctxt t =
   (case try HOLogic.dest_number t of
@@ -144,10 +147,11 @@ fun is_builtin_num_ext ctxt t =
 
 type 'a bfun = Proof.context -> typ -> term list -> 'a
 
+type bfunr = string * int * term list * (term list -> term)
+
 structure Builtin_Funcs = Generic_Data
 (
-  type T =
-    (bool bfun, (((string * int) * typ) * term list * typ) option bfun) btab
+  type T = (bool bfun, bfunr option bfun) btab
   val empty = Symtab.empty
   val extend = I
   val merge = merge_btab
@@ -158,9 +162,10 @@ fun add_builtin_fun cs ((n, T), f) =
 
 fun add_builtin_fun' cs (t, n) =
   let
-    val T = Term.fastype_of t
-    fun bfun _ U ts = SOME (((n, length (Term.binder_types T)), U), ts, T)
-  in add_builtin_fun cs (Term.dest_Const t, bfun) end
+    val c as (m, T) = Term.dest_Const t
+    fun app U ts = Term.list_comb (Const (m, U), ts)
+    fun bfun _ U ts = SOME (n, length (Term.binder_types T), ts, app U)
+  in add_builtin_fun cs (c, bfun) end
 
 fun add_builtin_fun_ext ((n, T), f) =
   Builtin_Funcs.map (insert_btab U.basicC n T (Ext f))
@@ -175,12 +180,40 @@ fun add_builtin_fun_ext'' n context =
 fun lookup_builtin_fun ctxt =
   lookup_btab ctxt (Builtin_Funcs.get (Context.Proof ctxt))
 
-fun builtin_fun ctxt (c as (_, T)) ts =
+fun dest_builtin_fun ctxt (c as (_, T)) ts =
   (case lookup_builtin_fun ctxt c of
     SOME (_, Int f) => f ctxt T ts
   | _ => NONE)
 
-fun is_builtin_fun ctxt c ts = is_some (builtin_fun ctxt c ts)
+fun dest_builtin_eq ctxt t u =
+  let
+    val aT = TFree (Name.aT, @{sort type})
+    val c = (@{const_name HOL.eq}, aT --> aT --> @{typ bool})
+    fun mk ts = Term.list_comb (HOLogic.eq_const (Term.fastype_of (hd ts)), ts)
+  in
+    dest_builtin_fun ctxt c []
+    |> Option.map (fn (n, i, _, _) => (n, i, [t, u], mk))
+  end
+
+fun special_builtin_fun pred ctxt (c as (_, T)) ts =
+  if pred (Term.body_type T, Term.binder_types T) then
+    dest_builtin_fun ctxt c ts
+  else NONE
+
+fun dest_builtin_pred ctxt = special_builtin_fun (equal @{typ bool} o fst) ctxt
+
+fun dest_builtin_conn ctxt =
+  special_builtin_fun (forall (equal @{typ bool}) o (op ::)) ctxt
+
+fun dest_builtin ctxt c ts =
+  let val t =Term.list_comb (Const c, ts)
+  in
+    (case dest_builtin_num ctxt t of
+      SOME (n, _) => SOME (n, 0, [], K t)
+    | NONE => dest_builtin_fun ctxt c ts)
+  end
+
+fun is_builtin_fun ctxt c ts = is_some (dest_builtin_fun ctxt c ts)
 
 fun is_builtin_fun_ext ctxt (c as (_, T)) ts =
   (case lookup_builtin_fun ctxt c of
@@ -188,17 +221,8 @@ fun is_builtin_fun_ext ctxt (c as (_, T)) ts =
   | SOME (_, Ext f) => f ctxt T ts
   | NONE => false)
 
-(* FIXME: move this information to the interfaces *)
-val only_partially_supported = [
-  @{const_name times},
-  @{const_name div_class.div},
-  @{const_name div_class.mod},
-  @{const_name inverse_class.divide} ]
-
-fun is_builtin_ext ctxt (c as (n, _)) ts =
-  if member (op =) only_partially_supported n then false
-  else
-    is_builtin_num_ext ctxt (Term.list_comb (Const c, ts)) orelse 
-    is_builtin_fun_ext ctxt c ts
+fun is_builtin_ext ctxt c ts =
+  is_builtin_num_ext ctxt (Term.list_comb (Const c, ts)) orelse 
+  is_builtin_fun_ext ctxt c ts
 
 end

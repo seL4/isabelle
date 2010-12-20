@@ -431,19 +431,26 @@ local
     "ALL i. i < 0 --> int (nat i) = 0"
     by simp_all}
 
-  val nat_ops = [
+  val simple_nat_ops = [
     @{const less (nat)}, @{const less_eq (nat)},
-    @{const Suc}, @{const plus (nat)}, @{const minus (nat)},
-    @{const times (nat)}, @{const div (nat)}, @{const mod (nat)}]
+    @{const Suc}, @{const plus (nat)}, @{const minus (nat)}]
+
+  val mult_nat_ops =
+    [@{const times (nat)}, @{const div (nat)}, @{const mod (nat)}]
+
+  val nat_ops = simple_nat_ops @ mult_nat_ops
 
   val nat_consts = nat_ops @ [@{const number_of (nat)},
     @{const zero_class.zero (nat)}, @{const one_class.one (nat)}]
 
   val nat_int_coercions = [@{const of_nat (int)}, @{const nat}]
 
-  val nat_ops' = nat_int_coercions @ nat_ops
+  val builtin_nat_ops = nat_int_coercions @ simple_nat_ops
 
   val is_nat_const = member (op aconv) nat_consts
+
+  fun is_nat_const' @{const of_nat (int)} = true
+    | is_nat_const' t = is_nat_const t
 
   val expands = map mk_meta_eq @{lemma
     "0 = nat 0"
@@ -494,16 +501,17 @@ local
         Conv.rewr_conv (mk_number_eq ctxt (snd (HOLogic.dest_number n)) ct)
     | @{const of_nat (int)} $ _ =>
         (Conv.rewrs_conv ints then_conv Conv.sub_conv ints_conv ctxt) else_conv
-        Conv.top_sweep_conv nat_conv ctxt        
+        Conv.sub_conv (Conv.top_sweep_conv nat_conv) ctxt        
     | _ => Conv.no_conv) ct
 
   and ints_conv ctxt = Conv.top_sweep_conv int_conv ctxt
 
   and expand_conv ctxt =
-    U.if_conv (not o is_nat_const o Term.head_of) Conv.no_conv
+    U.if_conv (is_nat_const o Term.head_of)
       (expand_head_conv (Conv.rewrs_conv expands) then_conv ints_conv ctxt)
+      (int_conv ctxt)
 
-  and nat_conv ctxt = U.if_exists_conv is_nat_const
+  and nat_conv ctxt = U.if_exists_conv is_nat_const'
     (Conv.top_sweep_conv expand_conv ctxt)
 
   val uses_nat_int = Term.exists_subterm (member (op aconv) nat_int_coercions)
@@ -517,7 +525,7 @@ fun add_nat_embedding thms =
 
 val setup_nat_as_int =
   B.add_builtin_typ_ext (@{typ nat}, K true) #>
-  fold (B.add_builtin_fun_ext' o Term.dest_Const) nat_ops'
+  fold (B.add_builtin_fun_ext' o Term.dest_Const) builtin_nat_ops
 
 end
 

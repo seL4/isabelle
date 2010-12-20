@@ -16,6 +16,7 @@ end
 structure SMTLIB_Interface: SMTLIB_INTERFACE =
 struct
 
+structure U = SMT_Utils
 structure B = SMT_Builtin
 structure N = SMT_Normalize
 structure T = SMT_Translate
@@ -28,13 +29,21 @@ val smtlibC = ["smtlib"]
 local
   fun int_num _ i = SOME (string_of_int i)
 
-  fun distinct _ (Type (_, [Type (_, [T]), _])) [t] =
+  fun is_linear [t] = U.is_number t
+    | is_linear [t, u] = U.is_number t orelse U.is_number u
+    | is_linear _ = false
+
+  fun times _ _ ts =
+    let val mk = Term.list_comb o pair @{const times (int)}
+    in if is_linear ts then SOME ("*", 2, ts, mk) else NONE end
+
+  fun distinct _ T [t] =
         (case try HOLogic.dest_list t of
           SOME (ts as _ :: _) =>
             let
-              fun mkT U = replicate (length ts) U ---> @{typ bool}
-              val U = mkT T and U' = mkT (TVar (("'a", 0), @{sort type}))
-            in SOME ((("distinct", length ts), U), ts, U') end
+              val c = Const (@{const_name distinct}, T)
+              fun mk us = c $ HOLogic.mk_list T us
+            in SOME ("distinct", length ts, ts, mk) end
         | _ => NONE)
     | distinct _ _ _ = NONE
 in
@@ -56,8 +65,8 @@ val setup_builtins =
     (@{const less_eq (int)}, "<="),
     (@{const uminus (int)}, "~"),
     (@{const plus (int)}, "+"),
-    (@{const minus (int)}, "-"),
-    (@{const times (int)}, "*") ] #>
+    (@{const minus (int)}, "-") ] #>
+  B.add_builtin_fun smtlibC (Term.dest_Const @{const times (int)}, times) #>
   B.add_builtin_fun smtlibC (Term.dest_Const @{const distinct ('a)}, distinct)
 
 end

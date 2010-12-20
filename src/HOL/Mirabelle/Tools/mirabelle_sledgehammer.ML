@@ -321,7 +321,7 @@ fun get_prover ctxt args =
       hd (#provers (Sledgehammer_Isar.default_params ctxt []))
       handle Empty => error "No ATP available."
     fun get_prover name =
-      (name, Sledgehammer_Provers.get_prover ctxt false name)
+      (name, Sledgehammer_Run.get_minimizing_prover ctxt false name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
@@ -368,24 +368,28 @@ fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val no_dangerous_types =
       Sledgehammer_ATP_Translate.types_dangerous_types type_sys
-    val facts =
-      Sledgehammer_Filter.relevant_facts ctxt no_dangerous_types
-          relevance_thresholds
-          (the_default default_max_relevant max_relevant) is_built_in_const
-          relevance_fudge relevance_override chained_ths hyp_ts concl_t
-    val problem =
-      {state = st', goal = goal, subgoal = i,
-       subgoal_count = Sledgehammer_Util.subgoal_count st,
-       facts = facts |> map Sledgehammer_Provers.Untranslated_Fact,
-       smt_head = NONE}
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
-    val ({outcome, message, used_facts, run_time_in_msecs, ...}
+    val ({outcome, message, used_facts, run_time_in_msecs}
          : Sledgehammer_Provers.prover_result,
-        time_isa) = time_limit (Mirabelle.cpu_time
-                      (prover params (K ""))) problem
+        time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
+      let
+        val facts =
+          Sledgehammer_Filter.relevant_facts ctxt no_dangerous_types
+              relevance_thresholds
+              (the_default default_max_relevant max_relevant) is_built_in_const
+              relevance_fudge relevance_override chained_ths hyp_ts concl_t
+        val problem =
+          {state = st', goal = goal, subgoal = i,
+           subgoal_count = Sledgehammer_Util.subgoal_count st,
+           facts = facts |> map Sledgehammer_Provers.Untranslated_Fact,
+           smt_head = NONE}
+      in prover params (K "") problem end)) ()
+      handle TimeLimit.TimeOut =>
+             ({outcome = SOME ATP_Proof.TimedOut, message = "", used_facts = [],
+               run_time_in_msecs = NONE}, ~1)
     val time_prover = run_time_in_msecs |> the_default ~1
   in
     case outcome of
@@ -393,7 +397,6 @@ fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
     | SOME _ => (message, SH_FAIL (time_isa, time_prover))
   end
   handle ERROR msg => ("error: " ^ msg, SH_ERROR)
-       | TimeLimit.TimeOut => ("timeout", SH_ERROR)
 
 fun thms_of_name ctxt name =
   let
@@ -419,7 +422,9 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
     val type_sys = AList.lookup (op =) args type_sysK |> the_default "smart"
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
-    val hard_timeout = SOME timeout (* always use a hard timeout *)
+    (* always use a hard timeout, but give some slack so that the automatic
+       minimizer has a chance to do its magic *)
+    val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
       run_sh prover_name prover type_sys hard_timeout timeout dir st
   in
@@ -468,7 +473,7 @@ fun run_minimize args reconstructor named_thms id
        ("type_sys", type_sys),
        ("timeout", Int.toString timeout)]
     val minimize =
-      Sledgehammer_Minimize.minimize_facts params true 1
+      Sledgehammer_Minimize.minimize_facts prover_name params true 1
                                            (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
   in
@@ -526,8 +531,7 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
     |> snd
   end
 
-val try_inner_timeout = seconds 5.0
-val try_outer_timeout = seconds 30.0
+val try_timeout = seconds 5.0
 
 fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
   let val goal = Thm.major_prem_of (#goal (Proof.goal pre)) in
@@ -539,10 +543,8 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
         Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
-      val trivial =
-       TimeLimit.timeLimit try_outer_timeout
-                                   (Try.invoke_try (SOME try_inner_timeout)) pre
-                    handle TimeLimit.TimeOut => false
+      val trivial = Try.invoke_try (SOME try_timeout) pre
+        handle TimeLimit.TimeOut => false
       fun apply_reconstructor m1 m2 =
         if metis_ft
         then

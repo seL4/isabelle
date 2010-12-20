@@ -110,7 +110,7 @@ fun string_for_failure prover Unprovable =
   | string_for_failure prover NoPerl = "Perl" ^ missing_message_tail prover
   | string_for_failure prover NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail prover
-  | string_for_failure prover NoRealZ3 =
+  | string_for_failure _ NoRealZ3 =
     "The environment variable \"Z3_REAL_SOLVER\" must be set to Z3's full path."
   | string_for_failure prover MalformedInput =
     "The " ^ prover ^ " problem is malformed. Please report this to the \

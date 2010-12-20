@@ -113,12 +113,14 @@ translating higher-order into first-order problems, all
 uninterpreted constants (those not built-in in the target solver)
 are treated as function symbols in the first-order sense.  Their
 occurrences as head symbols in atoms (i.e., as predicate symbols) are
-turned into terms by equating such atoms with @{term True}.
-Whenever the boolean type occurs in first-order terms, it is replaced
-by the following type.
+turned into terms by logically equating such atoms with @{term True}.
+For technical reasons, @{term True} and @{term False} occurring inside
+terms are replaced by the following constants.
 *}
 
-typedecl term_bool
+definition term_true where "term_true = True"
+definition term_false where "term_false = False"
+
 
 
 
@@ -129,21 +131,6 @@ definition z3div :: "int \<Rightarrow> int \<Rightarrow> int" where
 
 definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
   "z3mod k l = (if 0 \<le> l then k mod l else k mod (-l))"
-
-lemma div_by_z3div:
-  "\<forall>k l. k div l = (
-    if k = 0 \<or> l = 0 then 0
-    else if (0 < k \<and> 0 < l) \<or> (k < 0 \<and> 0 < l) then z3div k l
-    else z3div (-k) (-l))"
-  by (auto simp add: z3div_def trigger_def)
-
-lemma mod_by_z3mod:
-  "\<forall>k l. k mod l = (
-    if l = 0 then k
-    else if k = 0 then 0
-    else if (0 < k \<and> 0 < l) \<or> (k < 0 \<and> 0 < l) then z3mod k l
-    else - z3mod (-k) (-l))"
-  by (auto simp add: z3mod_def trigger_def)
 
 
 
@@ -389,10 +376,9 @@ lemma [z3_rule]:
 
 
 
-hide_type term_bool
 hide_type (open) pattern
-hide_const Pattern fun_app
-hide_const (open) trigger pat nopat weight z3div z3mod
+hide_const Pattern fun_app term_true term_false z3div z3mod
+hide_const (open) trigger pat nopat weight
 
 
 

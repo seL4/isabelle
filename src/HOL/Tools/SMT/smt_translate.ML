@@ -120,12 +120,12 @@ fun sign_of header dtyps (_, _, typs, _, _, terms) = {
   dtyps = dtyps,
   funcs = Termtab.fold (fn (_, (n, SOME ss)) => cons (n,ss) | _ => I) terms []}
 
-fun recon_of ctxt rules thms ithms revertT revert (_, _, typs, _, _, terms) =
+fun recon_of ctxt rules thms ithms (_, _, typs, _, _, terms) =
   let
-    fun add_typ (T, (n, _)) = Symtab.update (n, revertT T)
+    fun add_typ (T, (n, _)) = Symtab.update (n, T)
     val typs' = Typtab.fold add_typ typs Symtab.empty
 
-    fun add_fun (t, (n, _)) = Symtab.update (n, revert t)
+    fun add_fun (t, (n, _)) = Symtab.update (n, t)
     val terms' = Termtab.fold add_fun terms Symtab.empty
 
     val assms = map (pair ~1) thms @ ithms
@@ -137,43 +137,11 @@ fun recon_of ctxt rules thms ithms revertT revert (_, _, typs, _, _, terms) =
 
 (* preprocessing *)
 
-(** mark built-in constants as Var **)
-
-fun mark_builtins ctxt =
-  let
-    (*
-      Note: schematic terms cannot occur anymore in terms at this stage.
-    *)
-    fun mark t =
-      (case Term.strip_comb t of
-        (u as Const (@{const_name If}, _), ts) => marks u ts
-      | (u as @{const SMT.weight}, [t1, t2]) =>
-          mark t2 #>> (fn t2' => u $ t1 $ t2')
-      | (u as Const c, ts) =>
-          (case B.builtin_num ctxt t of
-            SOME (n, T) =>
-              let val v = ((n, 0), T)
-              in Vartab.update v #> pair (Var v) end
-          | NONE =>
-              (case B.builtin_fun ctxt c ts of
-                SOME ((ni, T), us, U) =>
-                  Vartab.update (ni, U) #> marks (Var (ni, T)) us
-              | NONE => marks u ts))
-      | (Abs (n, T, u), ts) => mark u #-> (fn u' => marks (Abs (n, T, u')) ts)
-      | (u, ts) => marks u ts)
- 
-    and marks t ts = fold_map mark ts #>> Term.list_comb o pair t
-
-  in (fn ts => swap (fold_map mark ts Vartab.empty)) end
-
-fun mark_builtins' ctxt t = hd (snd (mark_builtins ctxt [t]))
-
-
 (** FIXME **)
 
 local
   (*
-    mark constructors and selectors as Vars (forcing eta-expansion),
+    force eta-expansion for constructors and selectors,
     add missing datatype selectors via hypothetical definitions,
     also return necessary datatype and record theorems
   *)
@@ -200,38 +168,44 @@ local
     let val (U1, U2) = Term.dest_funT T ||> Term.domain_type
     in Abs (Name.uu, U1, eta U2 (l $ Bound 0)) end
 
-  fun expf t i T ts =
-    let val Ts = U.dest_funT i T |> fst |> drop (length ts)
+  fun expf k i T t =
+    let val Ts = drop i (fst (U.dest_funT k T))
     in
-      Term.list_comb (t, ts)
-      |> Term.incr_boundvars (length Ts)
+      Term.incr_boundvars (length Ts) t
       |> fold_index (fn (i, _) => fn u => u $ Bound i) Ts
       |> fold_rev (fn T => fn u => Abs (Name.uu, T, u)) Ts
     end
-
-  fun expand ((q as Const (@{const_name All}, _)) $ Abs a) = q $ abs_expand a
-    | expand ((q as Const (@{const_name All}, T)) $ t) = q $ exp T t
-    | expand (q as Const (@{const_name All}, T)) = exp2 T q
-    | expand ((q as Const (@{const_name Ex}, _)) $ Abs a) = q $ abs_expand a
-    | expand ((q as Const (@{const_name Ex}, T)) $ t) = q $ exp T t
-    | expand (q as Const (@{const_name Ex}, T)) = exp2 T q
-    | expand ((l as Const (@{const_name Let}, _)) $ t $ Abs a) =
-        l $ expand t $ abs_expand a
-    | expand ((l as Const (@{const_name Let}, T)) $ t $ u) =
-        l $ expand t $ exp (Term.range_type T) u
-    | expand ((l as Const (@{const_name Let}, T)) $ t) = exp2 T (l $ expand t)
-    | expand (l as Const (@{const_name Let}, T)) = exp2' T l
-    | expand (Abs a) = abs_expand a
-    | expand t =
-        (case Term.strip_comb t of
-          (u as Const (@{const_name If}, T), ts) => expf u 3 T (map expand ts)
-        | (u as Var ((_, i), T), ts) => expf u i T (map expand ts)
-        | (u, ts) => Term.list_comb (u, map expand ts))
-
-  and abs_expand (n, T, t) = Abs (n, T, expand t)
 in
 
-val eta_expand = map expand
+fun eta_expand ctxt =
+  let
+    fun expand ((q as Const (@{const_name All}, _)) $ Abs a) = q $ abs_expand a
+      | expand ((q as Const (@{const_name All}, T)) $ t) = q $ exp T t
+      | expand (q as Const (@{const_name All}, T)) = exp2 T q
+      | expand ((q as Const (@{const_name Ex}, _)) $ Abs a) = q $ abs_expand a
+      | expand ((q as Const (@{const_name Ex}, T)) $ t) = q $ exp T t
+      | expand (q as Const (@{const_name Ex}, T)) = exp2 T q
+      | expand ((l as Const (@{const_name Let}, _)) $ t $ Abs a) =
+          l $ expand t $ abs_expand a
+      | expand ((l as Const (@{const_name Let}, T)) $ t $ u) =
+          l $ expand t $ exp (Term.range_type T) u
+      | expand ((l as Const (@{const_name Let}, T)) $ t) =
+          exp2 T (l $ expand t)
+      | expand (l as Const (@{const_name Let}, T)) = exp2' T l
+      | expand t =
+          (case Term.strip_comb t of
+            (u as Const (c as (_, T)), ts) =>
+              (case B.dest_builtin ctxt c ts of
+                SOME (_, k, us, mk) =>
+                  if k = length us then mk (map expand us)
+                  else expf k (length ts) T (mk (map expand us))
+              | NONE => Term.list_comb (u, map expand ts))
+          | (Abs a, ts) => Term.list_comb (abs_expand a, map expand ts)
+          | (u, ts) => Term.list_comb (u, map expand ts))
+
+    and abs_expand (n, T, t) = Abs (n, T, expand t)
+  
+  in map expand end
 
 end
 
@@ -354,118 +328,92 @@ end
 
 (** map HOL formulas to FOL formulas (i.e., separate formulas froms terms) **)
 
-val tboolT = @{typ SMT.term_bool}
-val term_true = Const (@{const_name True}, tboolT)
-val term_false = Const (@{const_name False}, tboolT)
+local
+  val term_bool = @{lemma "SMT.term_true ~= SMT.term_false"
+    by (simp add: SMT.term_true_def SMT.term_false_def)}
 
-val term_bool = @{lemma "True ~= False" by simp}
-val term_bool_prop =
+  val fol_rules = [
+    Let_def,
+    mk_meta_eq @{thm SMT.term_true_def},
+    mk_meta_eq @{thm SMT.term_false_def},
+    @{lemma "P = True == P" by (rule eq_reflection) simp},
+    @{lemma "if P then True else False == P" by (rule eq_reflection) simp}]
+
+  fun reduce_let (Const (@{const_name Let}, _) $ t $ u) =
+        reduce_let (Term.betapply (u, t))
+    | reduce_let (t $ u) = reduce_let t $ reduce_let u
+    | reduce_let (Abs (n, T, t)) = Abs (n, T, reduce_let t)
+    | reduce_let t = t
+
+  fun as_term t = @{const HOL.eq (bool)} $ t $ @{const SMT.term_true}
+
+  fun wrap_in_if t =
+    @{const If (bool)} $ t $ @{const SMT.term_true} $ @{const SMT.term_false}
+
+  fun is_builtin_conn_or_pred ctxt c ts =
+    is_some (B.dest_builtin_conn ctxt c ts) orelse
+    is_some (B.dest_builtin_pred ctxt c ts)
+
+  fun builtin b ctxt c ts =
+    (case (Const c, ts) of
+      (@{const HOL.eq (bool)}, [t, u]) =>
+        if t = @{const SMT.term_true} orelse u = @{const SMT.term_true} then
+          B.dest_builtin_eq ctxt t u
+        else b ctxt c ts
+    | _ => b ctxt c ts)
+in
+
+fun folify ctxt =
   let
-    fun replace @{const HOL.eq (bool)} = @{const HOL.eq (SMT.term_bool)}
-      | replace @{const True} = term_true
-      | replace @{const False} = term_false
-      | replace t = t
-  in Term.map_aterms replace (U.prop_of term_bool) end
-
-val fol_rules = [
-  Let_def,
-  @{lemma "P = True == P" by (rule eq_reflection) simp},
-  @{lemma "if P then True else False == P" by (rule eq_reflection) simp}]
-
-fun reduce_let (Const (@{const_name Let}, _) $ t $ u) =
-      reduce_let (Term.betapply (u, t))
-  | reduce_let (t $ u) = reduce_let t $ reduce_let u
-  | reduce_let (Abs (n, T, t)) = Abs (n, T, reduce_let t)
-  | reduce_let t = t
-
-fun is_pred_type NONE = false
-  | is_pred_type (SOME T) = (Term.body_type T = @{typ bool})
-
-fun is_conn_type NONE = false
-  | is_conn_type (SOME T) =
-      forall (equal @{typ bool}) (Term.body_type T :: Term.binder_types T)
-
-fun revert_typ @{typ SMT.term_bool} = @{typ bool}
-  | revert_typ (Type (n, Ts)) = Type (n, map revert_typ Ts)
-  | revert_typ T = T
-
-val revert_types = Term.map_types revert_typ
-
-fun folify ctxt builtins =
-  let
-    fun as_term t = @{const HOL.eq (SMT.term_bool)} $ t $ term_true
-
-    fun as_tbool @{typ bool} = tboolT
-      | as_tbool (Type (n, Ts)) = Type (n, map as_tbool Ts)
-      | as_tbool T = T
-    fun mapTs f g i = U.dest_funT i #> (fn (Ts, T) => map f Ts ---> g T)
-    fun predT i = mapTs as_tbool I i
-    fun funcT i = mapTs as_tbool as_tbool i
-    fun func i (n, T) = (n, funcT i T)
-
-    fun map_ifT T = T |> Term.dest_funT ||> funcT 2 |> (op -->)
-    val if_term = @{const If (bool)} |> Term.dest_Const ||> map_ifT |> Const
-    fun wrap_in_if t = if_term $ t $ term_true $ term_false
-
     fun in_list T f t = HOLogic.mk_list T (map f (HOLogic.dest_list t))
 
     fun in_term t =
       (case Term.strip_comb t of
-        (Const (n as @{const_name If}, T), [t1, t2, t3]) =>
-          Const (n, map_ifT T) $ in_form t1 $ in_term t2 $ in_term t3
-      | (Const (@{const_name HOL.eq}, _), _) => wrap_in_if (in_form t)
-      | (Var (ni as (_, i), T), ts) =>
-          let val U = Vartab.lookup builtins ni
-          in
-            if is_conn_type U orelse is_pred_type U then wrap_in_if (in_form t)
-            else Term.list_comb (Var (ni, funcT i T), map in_term ts)
-          end
+        (@{const True}, []) => @{const SMT.term_true}
+      | (@{const False}, []) => @{const SMT.term_false}
+      | (u as Const (@{const_name If}, _), [t1, t2, t3]) =>
+          u $ in_form t1 $ in_term t2 $ in_term t3
       | (Const c, ts) =>
-          Term.list_comb (Const (func (length ts) c), map in_term ts)
-      | (Free c, ts) =>
-          Term.list_comb (Free (func (length ts) c), map in_term ts)
+          if is_builtin_conn_or_pred ctxt c ts then wrap_in_if (in_form t)
+          else Term.list_comb (Const c, map in_term ts)
+      | (Free c, ts) => Term.list_comb (Free c, map in_term ts)
       | _ => t)
 
     and in_weight ((c as @{const SMT.weight}) $ w $ t) = c $ w $ in_form t
       | in_weight t = in_form t 
 
-    and in_pat (Const (c as (@{const_name SMT.pat}, _)) $ t) =
-          Const (func 1 c) $ in_term t
-      | in_pat (Const (c as (@{const_name SMT.nopat}, _)) $ t) =
-          Const (func 1 c) $ in_term t
+    and in_pat ((p as Const (@{const_name SMT.pat}, _)) $ t) = p $ in_term t
+      | in_pat ((p as Const (@{const_name SMT.nopat}, _)) $ t) = p $ in_term t
       | in_pat t = raise TERM ("bad pattern", [t])
 
     and in_pats ps =
       in_list @{typ "SMT.pattern list"} (in_list @{typ SMT.pattern} in_pat) ps
 
-    and in_trig ((c as @{const SMT.trigger}) $ p $ t) =
+    and in_trigger ((c as @{const SMT.trigger}) $ p $ t) =
           c $ in_pats p $ in_weight t
-      | in_trig t = in_weight t
+      | in_trigger t = in_weight t
 
     and in_form t =
       (case Term.strip_comb t of
         (q as Const (qn, _), [Abs (n, T, u)]) =>
           if member (op =) [@{const_name All}, @{const_name Ex}] qn then
-            q $ Abs (n, as_tbool T, in_trig u)
+            q $ Abs (n, T, in_trigger u)
           else as_term (in_term t)
-      | (u as Const (@{const_name If}, _), ts) =>
-          Term.list_comb (u, map in_form ts)
-      | (b as @{const HOL.eq (bool)}, ts) => Term.list_comb (b, map in_form ts)
-      | (Const (n as @{const_name HOL.eq}, T), ts) =>
-          Term.list_comb (Const (n, predT 2 T), map in_term ts)
-      | (b as Var (ni as (_, i), T), ts) =>
-          if is_conn_type (Vartab.lookup builtins ni) then
-            Term.list_comb (b, map in_form ts)
-          else if is_pred_type (Vartab.lookup builtins ni) then
-            Term.list_comb (Var (ni, predT i T), map in_term ts)
-          else as_term (in_term t)
+      | (Const c, ts) =>
+          (case B.dest_builtin_conn ctxt c ts of
+            SOME (_, _, us, mk) => mk (map in_form us)
+          | NONE =>
+              (case B.dest_builtin_pred ctxt c ts of
+                SOME (_, _, us, mk) => mk (map in_term us)
+              | NONE => as_term (in_term t)))
       | _ => as_term (in_term t))
   in
     map (reduce_let #> in_form) #>
-    cons (mark_builtins' ctxt term_bool_prop) #>
-    pair (fol_rules, [term_bool])
+    cons (U.prop_of term_bool) #>
+    pair (fol_rules, [term_bool], builtin)
   end
 
+end
 
 
 (* translation into intermediate format *)
@@ -513,16 +461,14 @@ fun fold_map_pat f (SPat ts) = fold_map f ts #>> SPat
 
 (** translation from Isabelle terms into SMT intermediate terms **)
 
-fun intermediate header dtyps ctxt ts trx =
+fun intermediate header dtyps builtin ctxt ts trx =
   let
     fun transT (T as TFree _) = add_typ T true
       | transT (T as TVar _) = (fn _ => raise TYPE ("bad SMT type", [T], []))
       | transT (T as Type _) =
-          (case B.builtin_typ ctxt T of
+          (case B.dest_builtin_typ ctxt T of
             SOME n => pair n
           | NONE => add_typ T true)
-
-    val unmarked_builtins = [@{const_name If}, @{const_name HOL.eq}]
 
     fun app n ts = SApp (n, ts)
 
@@ -537,13 +483,10 @@ fun intermediate header dtyps ctxt ts trx =
       | (Const (@{const_name Let}, _), [t1, Abs (_, T, t2)]) =>
           transT T ##>> trans t1 ##>> trans t2 #>>
           (fn ((U, u1), u2) => SLet (U, u1, u2))
-      | (Var ((n, _), _), ts) => fold_map trans ts #>> app n
-      | (u as Const (c as (n, T)), ts) =>
-          if member (op =) unmarked_builtins n then
-            (case B.builtin_fun ctxt c ts of
-              SOME (((m, _), _), us, _) => fold_map trans us #>> app m
-            | NONE => raise TERM ("not a built-in symbol", [t]))
-          else transs u T ts
+      | (u as Const (c as (_, T)), ts) =>
+          (case builtin ctxt c ts of
+            SOME (n, _, us, _) => fold_map trans us #>> app n
+          | NONE => transs u T ts)
       | (u as Free (_, T), ts) => transs u T ts
       | (Bound i, []) => pair (SVar i)
       | _ => raise TERM ("bad SMT term", [t]))
@@ -590,10 +533,7 @@ fun translate ctxt comments ithms =
 
     fun no_dtyps (tr_context, ctxt) ts = (([], tr_context, ctxt), ts)
 
-    val (builtins, ts1) =
-      ithms
-      |> map (Envir.beta_eta_contract o U.prop_of o snd)
-      |> mark_builtins ctxt
+    val ts1 = map (Envir.beta_eta_contract o U.prop_of o snd) ithms
 
     val ((dtyps, tr_context, ctxt1), ts2) =
       ((make_tr_context prefixes, ctxt), ts1)
@@ -601,19 +541,19 @@ fun translate ctxt comments ithms =
 
     val (ctxt2, ts3) =
       ts2
-      |> eta_expand
+      |> eta_expand ctxt1
       |> lift_lambdas ctxt1
       ||> intro_explicit_application
 
-    val ((rewrite_rules, extra_thms), ts4) =
-      (if is_fol then folify ctxt2 builtins else pair ([], [])) ts3
+    val ((rewrite_rules, extra_thms, builtin), ts4) =
+      (if is_fol then folify ctxt2 else pair ([], [], I)) ts3
 
     val rewrite_rules' = fun_app_eq :: rewrite_rules
   in
     (ts4, tr_context)
-    |-> intermediate header dtyps ctxt2
+    |-> intermediate header dtyps (builtin B.dest_builtin) ctxt2
     |>> uncurry (serialize comments)
-    ||> recon_of ctxt2 rewrite_rules' extra_thms ithms revert_typ revert_types
+    ||> recon_of ctxt2 rewrite_rules' extra_thms ithms
   end
 
 end

@@ -58,70 +58,77 @@ local
         Option.map (index1 ("bv" ^ string_of_int i)) (try dest_binT T)
     | word_num _ _ = NONE
 
-  fun if_fixed n T ts =
+  fun if_fixed pred m n T ts =
     let val (Us, U) = Term.strip_type T
     in
-      if forall (can dest_wordT) (U :: Us) then
-        SOME (((n, length Us), T), ts, T)
+      if pred (U, Us) then
+        SOME (n, length Us, ts, Term.list_comb o pair (Const (m, T)))
       else NONE
     end
 
-  fun if_fixed' n T ts =
-    let val Ts = Term.binder_types T
-    in
-      if forall (can dest_wordT) Ts then SOME (((n, length Ts), T), ts, T)
-      else NONE
-    end
+  fun if_fixed_all m = if_fixed (forall (can dest_wordT) o (op ::)) m
+  fun if_fixed_args m = if_fixed (forall (can dest_wordT) o snd) m
 
   fun add_word_fun f (t, n) =
-    B.add_builtin_fun smtlibC (Term.dest_Const t, K (f n))
+    let val c as (m, _) = Term.dest_Const t
+    in B.add_builtin_fun smtlibC (Term.dest_Const t, K (f m n)) end
 
-  fun add_word_fun' f (t, n) = add_word_fun f (t, n)
+  fun hd2 xs = hd (tl xs)
 
-  fun dest_word_funT (Type ("fun", [T, U])) = (dest_wordT T, dest_wordT U)
-    | dest_word_funT T = raise TYPE ("dest_word_funT", [T], [])
-  fun dest_nat (@{const nat} $ n :: ts) = (snd (HOLogic.dest_number n), ts)
-    | dest_nat ts = raise TERM ("dest_nat", ts)
-  fun dest_nat_word_funT (T, ts) =
-    (dest_word_funT (Term.range_type T), dest_nat ts)
+  fun mk_nat i = @{const nat} $ HOLogic.mk_number @{typ nat} i
 
-  fun shift n T ts =
-    let
-      val U = Term.domain_type T
-      val T' = [U, U] ---> U
+  fun dest_nat (@{const nat} $ n) = snd (HOLogic.dest_number n)
+    | dest_nat t = raise TERM ("not a natural number", [t])
+
+  fun mk_shift c [t, u] = Const c $ t $ mk_nat (snd (HOLogic.dest_number u))
+    | mk_shift c ts = raise TERM ("bad arguments", Const c :: ts)
+
+  fun shift m n T ts =
+    let val U = Term.domain_type T
     in
-      (case (can dest_wordT T', ts) of
-        (true, [t, u]) =>
-          (case try HOLogic.dest_number u of
-            SOME (_, i) => SOME (((n, 2), T'), [t, HOLogic.mk_number T' i], T')
-          | NONE => NONE)  (* FIXME: also support non-numerical shifts *)
+      (case (can dest_wordT U, try (dest_nat o hd2) ts) of
+        (true, SOME i) =>
+          SOME (n, 2, [hd ts, HOLogic.mk_number U i], mk_shift (m, T))
+      | _ => NONE)   (* FIXME: also support non-numerical shifts *)
+    end
+
+  fun mk_extract c i ts = Term.list_comb (Const c, mk_nat i :: ts)
+
+  fun extract m n T ts =
+    let val U = Term.range_type (Term.range_type T)
+    in
+      (case (try (dest_nat o hd) ts, try dest_wordT U) of
+        (SOME lb, SOME i) =>
+          SOME (index2 n (i + lb - 1) lb, 1, tl ts, mk_extract (m, T) lb)
       | _ => NONE)
     end
 
-  fun extract n T ts =
-    try dest_nat_word_funT (T, ts)
-    |> Option.map (fn ((_, i), (lb, ts')) =>
-         let val T' = Term.range_type T
-         in (((index2 n (i + lb - 1) lb, 1), T'), ts', T') end)
+  fun mk_extend c ts = Term.list_comb (Const c, ts)
 
-  fun extend n T ts =
-    (case try dest_word_funT T of
-      SOME (i, j) =>
-        if j-i >= 0 then SOME (((index1 n (j-i), 1), T), ts, T)
-        else NONE
-    | _ => NONE)
-
-  fun rotate n T ts =
-    let val T' = Term.range_type T
+  fun extend m n T ts =
+    let val (U1, U2) = Term.dest_funT T
     in
-      try dest_nat ts
-      |> Option.map (fn (i, ts') => (((index1 n i, 1), T'), ts', T'))
+      (case (try dest_wordT U1, try dest_wordT U2) of
+        (SOME i, SOME j) =>
+          if j-i >= 0 then SOME (index1 n (j-i), 1, ts, mk_extend (m, T))
+          else NONE
+      | _ => NONE)
+    end
+
+  fun mk_rotate c i ts = Term.list_comb (Const c, mk_nat i :: ts)
+
+  fun rotate m n T ts =
+    let val U = Term.domain_type (Term.range_type T)
+    in
+      (case (can dest_wordT U, try (dest_nat o hd) ts) of
+        (true, SOME i) => SOME (index1 n i, 1, tl ts, mk_rotate (m, T) i)
+      | _ => NONE)
     end
 in
 
 val setup_builtins =
   B.add_builtin_typ smtlibC (wordT, word_typ, word_num) #>
-  fold (add_word_fun' if_fixed) [
+  fold (add_word_fun if_fixed_all) [
     (@{term "uminus :: 'a::len word => _"}, "bvneg"),
     (@{term "plus :: 'a::len word => _"}, "bvadd"),
     (@{term "minus :: 'a::len word => _"}, "bvsub"),
@@ -143,7 +150,7 @@ val setup_builtins =
   fold (add_word_fun rotate) [
     (@{term word_rotl}, "rotate_left"),
     (@{term word_rotr}, "rotate_right") ] #>
-  fold (add_word_fun' if_fixed') [
+  fold (add_word_fun if_fixed_args) [
     (@{term "less :: 'a::len word => _"}, "bvult"),
     (@{term "less_eq :: 'a::len word => _"}, "bvule"),
     (@{term word_sless}, "bvslt"),
