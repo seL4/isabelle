@@ -360,7 +360,6 @@ fun run_atp auto name
         error ("No such directory: " ^ quote dest_dir ^ ".")
     val measure_run_time = verbose orelse Config.get ctxt measure_run_time
     val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
-val command = Path.explode ("/Users/blanchet/misc/E-weights/PROVER/" ^ snd exec) (*###*)
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n");
