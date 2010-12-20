@@ -96,11 +96,11 @@ lemma approx_chain_cfun_map:
   using assms unfolding approx_chain_def
   by (simp add: lub_APP cfun_map_ID finite_deflation_cfun_map)
 
-lemma approx_chain_cprod_map:
+lemma approx_chain_prod_map:
   assumes "approx_chain a" and "approx_chain b"
-  shows "approx_chain (\<lambda>i. cprod_map\<cdot>(a i)\<cdot>(b i))"
+  shows "approx_chain (\<lambda>i. prod_map\<cdot>(a i)\<cdot>(b i))"
   using assms unfolding approx_chain_def
-  by (simp add: lub_APP cprod_map_ID finite_deflation_cprod_map)
+  by (simp add: lub_APP prod_map_ID finite_deflation_prod_map)
 
 text {* Approx chains for countable discrete types. *}
 
@@ -228,7 +228,7 @@ instance prod :: (bifinite, bifinite) bifinite
 proof
   show "\<exists>(a::nat \<Rightarrow> ('a \<times> 'b) \<rightarrow> ('a \<times> 'b)). approx_chain a"
     using bifinite [where 'a='a] and bifinite [where 'a='b]
-    by (fast intro!: approx_chain_cprod_map)
+    by (fast intro!: approx_chain_prod_map)
 qed
 
 instance sfun :: (bifinite, bifinite) bifinite

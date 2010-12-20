@@ -129,8 +129,8 @@ subsection {* Universal domain ep-pairs *}
 definition "u_emb = udom_emb (\<lambda>i. u_map\<cdot>(udom_approx i))"
 definition "u_prj = udom_prj (\<lambda>i. u_map\<cdot>(udom_approx i))"
 
-definition "prod_emb = udom_emb (\<lambda>i. cprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
-definition "prod_prj = udom_prj (\<lambda>i. cprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "prod_emb = udom_emb (\<lambda>i. prod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
+definition "prod_prj = udom_prj (\<lambda>i. prod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
 
 definition "sprod_emb = udom_emb (\<lambda>i. sprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
 definition "sprod_prj = udom_prj (\<lambda>i. sprod_map\<cdot>(udom_approx i)\<cdot>(udom_approx i))"
@@ -147,7 +147,7 @@ lemma ep_pair_u: "ep_pair u_emb u_prj"
 
 lemma ep_pair_prod: "ep_pair prod_emb prod_prj"
   unfolding prod_emb_def prod_prj_def
-  by (simp add: ep_pair_udom approx_chain_cprod_map)
+  by (simp add: ep_pair_udom approx_chain_prod_map)
 
 lemma ep_pair_sprod: "ep_pair sprod_emb sprod_prj"
   unfolding sprod_emb_def sprod_prj_def
@@ -167,7 +167,7 @@ definition u_defl :: "udom u defl \<rightarrow> udom defl"
   where "u_defl = defl_fun1 u_emb u_prj ID"
 
 definition prod_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
-  where "prod_defl = defl_fun2 prod_emb prod_prj cprod_map"
+  where "prod_defl = defl_fun2 prod_emb prod_prj prod_map"
 
 definition sprod_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
   where "sprod_defl = defl_fun2 sprod_emb sprod_prj sprod_map"
@@ -184,8 +184,8 @@ unfolding u_defl_def by (simp add: cast_defl_fun1 ep_pair_u)
 
 lemma cast_prod_defl:
   "cast\<cdot>(prod_defl\<cdot>A\<cdot>B) =
-    prod_emb oo cprod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo prod_prj"
-using ep_pair_prod finite_deflation_cprod_map
+    prod_emb oo prod_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo prod_prj"
+using ep_pair_prod finite_deflation_prod_map
 unfolding prod_defl_def by (rule cast_defl_fun2)
 
 lemma cast_sprod_defl:
@@ -450,10 +450,10 @@ instantiation prod :: ("domain", "domain") "domain"
 begin
 
 definition
-  "emb = prod_emb oo cprod_map\<cdot>emb\<cdot>emb"
+  "emb = prod_emb oo prod_map\<cdot>emb\<cdot>emb"
 
 definition
-  "prj = cprod_map\<cdot>prj\<cdot>prj oo prod_prj"
+  "prj = prod_map\<cdot>prj\<cdot>prj oo prod_prj"
 
 definition
   "defl (t::('a \<times> 'b) itself) = prod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
@@ -461,10 +461,10 @@ definition
 instance proof
   show 1: "ep_pair emb (prj :: udom \<rightarrow> 'a \<times> 'b)"
     unfolding emb_prod_def prj_prod_def
-    by (intro ep_pair_comp ep_pair_prod ep_pair_cprod_map ep_pair_emb_prj)
+    by (intro ep_pair_comp ep_pair_prod ep_pair_prod_map ep_pair_emb_prj)
   show 2: "cast\<cdot>DEFL('a \<times> 'b) = emb oo (prj :: udom \<rightarrow> 'a \<times> 'b)"
     unfolding emb_prod_def prj_prod_def defl_prod_def cast_prod_defl
-    by (simp add: cast_DEFL oo_def cfun_eq_iff cprod_map_map)
+    by (simp add: cast_DEFL oo_def cfun_eq_iff prod_map_map)
   show 3: "liftemb = u_map\<cdot>(emb :: 'a \<times> 'b \<rightarrow> udom)"
     unfolding emb_prod_def liftemb_prod_def liftemb_eq
     unfolding encode_prod_u_def decode_prod_u_def

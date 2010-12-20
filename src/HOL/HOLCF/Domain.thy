@@ -264,13 +264,13 @@ apply (simp add: emb_sprod_def prj_sprod_def)
 apply (simp add: sprod_map_map isodefl_strict)
 done
 
-lemma isodefl_cprod:
+lemma isodefl_prod:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
-    isodefl (cprod_map\<cdot>d1\<cdot>d2) (prod_defl\<cdot>t1\<cdot>t2)"
+    isodefl (prod_map\<cdot>d1\<cdot>d2) (prod_defl\<cdot>t1\<cdot>t2)"
 apply (rule isodeflI)
 apply (simp add: cast_prod_defl cast_isodefl)
 apply (simp add: emb_prod_def prj_prod_def)
-apply (simp add: cprod_map_map cfcomp1)
+apply (simp add: prod_map_map cfcomp1)
 done
 
 lemma isodefl_u:
@@ -281,16 +281,16 @@ apply (simp add: emb_u_def prj_u_def liftemb_eq liftprj_eq)
 done
 
 lemma encode_prod_u_map:
-  "encode_prod_u\<cdot>(u_map\<cdot>(cprod_map\<cdot>f\<cdot>g)\<cdot>(decode_prod_u\<cdot>x))
+  "encode_prod_u\<cdot>(u_map\<cdot>(prod_map\<cdot>f\<cdot>g)\<cdot>(decode_prod_u\<cdot>x))
     = sprod_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>g)\<cdot>x"
 unfolding encode_prod_u_def decode_prod_u_def
 apply (case_tac x, simp, rename_tac a b)
 apply (case_tac a, simp, case_tac b, simp, simp)
 done
 
-lemma isodefl_cprod_u:
+lemma isodefl_prod_u:
   assumes "isodefl' d1 t1" and "isodefl' d2 t2"
-  shows "isodefl' (cprod_map\<cdot>d1\<cdot>d2) (prod_liftdefl\<cdot>t1\<cdot>t2)"
+  shows "isodefl' (prod_map\<cdot>d1\<cdot>d2) (prod_liftdefl\<cdot>t1\<cdot>t2)"
 using assms unfolding isodefl'_def
 unfolding liftemb_prod_def liftprj_prod_def
 by (simp add: cast_prod_liftdefl cfcomp1 encode_prod_u_map sprod_map_map)
@@ -322,15 +322,15 @@ lemmas [domain_defl_simps] =
   liftdefl_eq LIFTDEFL_prod
 
 lemmas [domain_map_ID] =
-  cfun_map_ID sfun_map_ID ssum_map_ID sprod_map_ID cprod_map_ID u_map_ID
+  cfun_map_ID sfun_map_ID ssum_map_ID sprod_map_ID prod_map_ID u_map_ID
 
 lemmas [domain_isodefl] =
   isodefl_u isodefl_sfun isodefl_ssum isodefl_sprod
-  isodefl_cfun isodefl_cprod isodefl_cprod_u isodefl'_pdefl
+  isodefl_cfun isodefl_prod isodefl_prod_u isodefl'_pdefl
 
 lemmas [domain_deflation] =
   deflation_cfun_map deflation_sfun_map deflation_ssum_map
-  deflation_sprod_map deflation_cprod_map deflation_u_map
+  deflation_sprod_map deflation_prod_map deflation_u_map
 
 setup {*
   fold Domain_Take_Proofs.add_rec_type
