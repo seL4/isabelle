@@ -788,6 +788,17 @@ lemma is_empty_holds:
 unfolding is_empty_def holds_eq
 by (rule unit_pred_cases) (auto elim: botE intro: singleI)
 
+definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b pred" where
+  "map f P = P \<guillemotright>= (single o f)"
+
+lemma eval_map [simp]:
+  "eval (map f P) = image f (eval P)"
+  by (auto simp add: map_def)
+
+type_lifting map
+  by (auto intro!: pred_eqI simp add: image_image)
+
+
 subsubsection {* Implementation *}
 
 datatype 'a seq = Empty | Insert "'a" "'a pred" | Join "'a pred" "'a seq"
@@ -924,9 +935,6 @@ inductive eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where "eq x x"
 
 lemma eq_is_eq: "eq x y \<equiv> (x = y)"
   by (rule eq_reflection) (auto intro: eq.intros elim: eq.cases)
-
-definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b pred" where
-  "map f P = P \<guillemotright>= (single o f)"
 
 primrec null :: "'a seq \<Rightarrow> bool" where
     "null Empty \<longleftrightarrow> True"
