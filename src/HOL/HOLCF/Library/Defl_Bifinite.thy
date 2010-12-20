@@ -637,7 +637,7 @@ apply (unfold bifinite_approx_chain_def)
 apply (rule someI_ex [OF bifinite])
 done
 
-instantiation defl :: (bifinite) liftdomain
+instantiation defl :: (bifinite) "domain"
 begin
 
 definition
@@ -651,17 +651,15 @@ definition
     (\<Squnion>i. defl_principal (Abs_fin_defl (emb oo defl_approx i oo prj)))"
 
 definition
-  "(liftemb :: 'a defl u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
+  "(liftemb :: 'a defl u \<rightarrow> udom u) = u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a defl u) = u_map\<cdot>prj oo u_prj"
+  "(liftprj :: udom u \<rightarrow> 'a defl u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a defl itself) = u_defl\<cdot>DEFL('a defl)"
+  "liftdefl (t::'a defl itself) = pdefl\<cdot>DEFL('a defl)"
 
-instance
-using liftemb_defl_def liftprj_defl_def liftdefl_defl_def
-proof (rule liftdomain_class_intro)
+instance proof
   show ep: "ep_pair emb (prj :: udom \<rightarrow> 'a defl)"
     unfolding emb_defl_def prj_defl_def
     by (rule ep_pair_udom [OF defl_approx])
@@ -682,7 +680,7 @@ proof (rule liftdomain_class_intro)
     apply (simp add: lub_distribs approx_chain.chain_approx [OF defl_approx]
                      approx_chain.lub_approx [OF defl_approx])
     done
-qed
+qed (fact liftemb_defl_def liftprj_defl_def liftdefl_defl_def)+
 
 end
 

@@ -50,12 +50,13 @@ type rep_info =
 
 val udomT = @{typ udom}
 val deflT = @{typ "udom defl"}
+val udeflT = @{typ "udom u defl"}
 fun emb_const T = Const (@{const_name emb}, T ->> udomT)
 fun prj_const T = Const (@{const_name prj}, udomT ->> T)
 fun defl_const T = Const (@{const_name defl}, Term.itselfT T --> deflT)
-fun liftemb_const T = Const (@{const_name liftemb}, mk_upT T ->> udomT)
-fun liftprj_const T = Const (@{const_name liftprj}, udomT ->> mk_upT T)
-fun liftdefl_const T = Const (@{const_name liftdefl}, Term.itselfT T --> deflT)
+fun liftemb_const T = Const (@{const_name liftemb}, mk_upT T ->> mk_upT udomT)
+fun liftprj_const T = Const (@{const_name liftprj}, mk_upT udomT ->> mk_upT T)
+fun liftdefl_const T = Const (@{const_name liftdefl}, Term.itselfT T --> udeflT)
 
 fun mk_u_map t =
   let
@@ -129,15 +130,13 @@ fun gen_add_domaindef
     val defl_eqn = Logic.mk_equals (defl_const newT,
       Abs ("x", Term.itselfT newT, defl))
     val liftemb_eqn =
-      Logic.mk_equals (liftemb_const newT,
-      mk_cfcomp (@{const u_emb}, mk_u_map (emb_const newT)))
+      Logic.mk_equals (liftemb_const newT, mk_u_map (emb_const newT))
     val liftprj_eqn =
-      Logic.mk_equals (liftprj_const newT,
-      mk_cfcomp (mk_u_map (prj_const newT), @{const u_prj}))
+      Logic.mk_equals (liftprj_const newT, mk_u_map (prj_const newT))
     val liftdefl_eqn =
       Logic.mk_equals (liftdefl_const newT,
         Abs ("t", Term.itselfT newT,
-          mk_capply (@{const u_defl}, defl_const newT $ Logic.mk_type newT)))
+          mk_capply (@{const pdefl}, defl_const newT $ Logic.mk_type newT)))
 
     val name_def = Binding.suffix_name "_def" name
     val emb_bind = (Binding.prefix_name "emb_" name_def, [])
@@ -149,7 +148,7 @@ fun gen_add_domaindef
 
     (*instantiate class rep*)
     val lthy = thy
-      |> Class.instantiation ([full_tname], lhs_tfrees, @{sort liftdomain})
+      |> Class.instantiation ([full_tname], lhs_tfrees, @{sort domain})
     val ((_, (_, emb_ldef)), lthy) =
         Specification.definition (NONE, (emb_bind, emb_eqn)) lthy
     val ((_, (_, prj_ldef)), lthy) =
@@ -178,7 +177,7 @@ fun gen_add_domaindef
       liftemb_def, liftprj_def, liftdefl_def]
     val thy = lthy
       |> Class.prove_instantiation_instance
-          (K (Tactic.rtac (@{thm typedef_liftdomain_class} OF typedef_thms) 1))
+          (K (Tactic.rtac (@{thm typedef_domain_class} OF typedef_thms) 1))
       |> Local_Theory.exit_global
 
     (*other theorems*)

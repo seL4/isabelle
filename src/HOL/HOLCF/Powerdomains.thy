@@ -59,7 +59,7 @@ unfolding convex_defl_def by (rule cast_defl_fun1)
 
 subsection {* Domain class instances *}
 
-instantiation upper_pd :: ("domain") liftdomain
+instantiation upper_pd :: ("domain") "domain"
 begin
 
 definition
@@ -72,17 +72,15 @@ definition
   "defl (t::'a upper_pd itself) = upper_defl\<cdot>DEFL('a)"
 
 definition
-  "(liftemb :: 'a upper_pd u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
+  "(liftemb :: 'a upper_pd u \<rightarrow> udom u) = u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a upper_pd u) = u_map\<cdot>prj oo u_prj"
+  "(liftprj :: udom u \<rightarrow> 'a upper_pd u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a upper_pd itself) = u_defl\<cdot>DEFL('a upper_pd)"
+  "liftdefl (t::'a upper_pd itself) = pdefl\<cdot>DEFL('a upper_pd)"
 
-instance
-using liftemb_upper_pd_def liftprj_upper_pd_def liftdefl_upper_pd_def
-proof (rule liftdomain_class_intro)
+instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a upper_pd)"
     unfolding emb_upper_pd_def prj_upper_pd_def
     by (intro ep_pair_comp ep_pair_upper ep_pair_upper_map ep_pair_emb_prj)
@@ -90,11 +88,11 @@ next
   show "cast\<cdot>DEFL('a upper_pd) = emb oo (prj :: udom \<rightarrow> 'a upper_pd)"
     unfolding emb_upper_pd_def prj_upper_pd_def defl_upper_pd_def cast_upper_defl
     by (simp add: cast_DEFL oo_def cfun_eq_iff upper_map_map)
-qed
+qed (fact liftemb_upper_pd_def liftprj_upper_pd_def liftdefl_upper_pd_def)+
 
 end
 
-instantiation lower_pd :: ("domain") liftdomain
+instantiation lower_pd :: ("domain") "domain"
 begin
 
 definition
@@ -107,17 +105,15 @@ definition
   "defl (t::'a lower_pd itself) = lower_defl\<cdot>DEFL('a)"
 
 definition
-  "(liftemb :: 'a lower_pd u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
+  "(liftemb :: 'a lower_pd u \<rightarrow> udom u) = u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a lower_pd u) = u_map\<cdot>prj oo u_prj"
+  "(liftprj :: udom u \<rightarrow> 'a lower_pd u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a lower_pd itself) = u_defl\<cdot>DEFL('a lower_pd)"
+  "liftdefl (t::'a lower_pd itself) = pdefl\<cdot>DEFL('a lower_pd)"
 
-instance
-using liftemb_lower_pd_def liftprj_lower_pd_def liftdefl_lower_pd_def
-proof (rule liftdomain_class_intro)
+instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a lower_pd)"
     unfolding emb_lower_pd_def prj_lower_pd_def
     by (intro ep_pair_comp ep_pair_lower ep_pair_lower_map ep_pair_emb_prj)
@@ -125,11 +121,11 @@ next
   show "cast\<cdot>DEFL('a lower_pd) = emb oo (prj :: udom \<rightarrow> 'a lower_pd)"
     unfolding emb_lower_pd_def prj_lower_pd_def defl_lower_pd_def cast_lower_defl
     by (simp add: cast_DEFL oo_def cfun_eq_iff lower_map_map)
-qed
+qed (fact liftemb_lower_pd_def liftprj_lower_pd_def liftdefl_lower_pd_def)+
 
 end
 
-instantiation convex_pd :: ("domain") liftdomain
+instantiation convex_pd :: ("domain") "domain"
 begin
 
 definition
@@ -142,17 +138,15 @@ definition
   "defl (t::'a convex_pd itself) = convex_defl\<cdot>DEFL('a)"
 
 definition
-  "(liftemb :: 'a convex_pd u \<rightarrow> udom) = u_emb oo u_map\<cdot>emb"
+  "(liftemb :: 'a convex_pd u \<rightarrow> udom u) = u_map\<cdot>emb"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a convex_pd u) = u_map\<cdot>prj oo u_prj"
+  "(liftprj :: udom u \<rightarrow> 'a convex_pd u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a convex_pd itself) = u_defl\<cdot>DEFL('a convex_pd)"
+  "liftdefl (t::'a convex_pd itself) = pdefl\<cdot>DEFL('a convex_pd)"
 
-instance
-using liftemb_convex_pd_def liftprj_convex_pd_def liftdefl_convex_pd_def
-proof (rule liftdomain_class_intro)
+instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a convex_pd)"
     unfolding emb_convex_pd_def prj_convex_pd_def
     by (intro ep_pair_comp ep_pair_convex ep_pair_convex_map ep_pair_emb_prj)
@@ -160,7 +154,7 @@ next
   show "cast\<cdot>DEFL('a convex_pd) = emb oo (prj :: udom \<rightarrow> 'a convex_pd)"
     unfolding emb_convex_pd_def prj_convex_pd_def defl_convex_pd_def cast_convex_defl
     by (simp add: cast_DEFL oo_def cfun_eq_iff convex_map_map)
-qed
+qed (fact liftemb_convex_pd_def liftprj_convex_pd_def liftdefl_convex_pd_def)+
 
 end
 

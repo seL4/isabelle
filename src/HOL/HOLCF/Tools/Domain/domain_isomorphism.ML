@@ -69,6 +69,7 @@ infixr -->>
 
 val udomT = @{typ udom}
 val deflT = @{typ "udom defl"}
+val udeflT = @{typ "udom u defl"}
 
 fun mk_DEFL T =
   Const (@{const_name defl}, Term.itselfT T --> deflT) $ Logic.mk_type T
@@ -77,7 +78,7 @@ fun dest_DEFL (Const (@{const_name defl}, _) $ t) = Logic.dest_type t
   | dest_DEFL t = raise TERM ("dest_DEFL", [t])
 
 fun mk_LIFTDEFL T =
-  Const (@{const_name liftdefl}, Term.itselfT T --> deflT) $ Logic.mk_type T
+  Const (@{const_name liftdefl}, Term.itselfT T --> udeflT) $ Logic.mk_type T
 
 fun dest_LIFTDEFL (Const (@{const_name liftdefl}, _) $ t) = Logic.dest_type t
   | dest_LIFTDEFL t = raise TERM ("dest_LIFTDEFL", [t])
@@ -99,6 +100,9 @@ fun coerce_const (T, U) = mk_cfcomp (prj_const U, emb_const T)
 
 fun isodefl_const T =
   Const (@{const_name isodefl}, (T ->> T) --> deflT --> HOLogic.boolT)
+
+fun isodefl'_const T =
+  Const (@{const_name isodefl'}, (T ->> T) --> udeflT --> HOLogic.boolT)
 
 fun mk_deflation t =
   Const (@{const_name deflation}, Term.fastype_of t --> boolT) $ t
@@ -218,7 +222,7 @@ fun defl_of_typ
       | _ => NONE) handle TERM _ => NONE
     fun proc2 t =
       (case dest_LIFTDEFL t of
-        TFree (a, _) => SOME (Free ("p" ^ Library.unprefix "'" a, deflT))
+        TFree (a, _) => SOME (Free ("p" ^ Library.unprefix "'" a, udeflT))
       | _ => NONE) handle TERM _ => NONE
   in
     Pattern.rewrite_term thy (rules @ rules') [proc1, proc2] (mk_DEFL T)
@@ -492,7 +496,7 @@ fun gen_domain_isomorphism
       let
         val defl_bind = Binding.suffix_name "_defl" tbind
         val defl_type =
-          map Term.itselfT typeTs ---> map (K deflT) defl_args -->> deflT
+          map Term.itselfT typeTs ---> map fastype_of defl_args -->> deflT
       in
         Sign.declare_const ((defl_bind, defl_type), NoSyn) thy
       end
@@ -614,11 +618,11 @@ fun gen_domain_isomorphism
       let
         fun unprime a = Library.unprefix "'" a
         fun mk_d T = Free ("d" ^ unprime (fst (dest_TFree T)), deflT)
-        fun mk_p T = Free ("p" ^ unprime (fst (dest_TFree T)), deflT)
+        fun mk_p T = Free ("p" ^ unprime (fst (dest_TFree T)), udeflT)
         fun mk_f T = Free ("f" ^ unprime (fst (dest_TFree T)), T ->> T)
         fun mk_assm t =
           case try dest_LIFTDEFL t of
-            SOME T => mk_trp (isodefl_const (mk_upT T) $ mk_u_map (mk_f T) $ mk_p T)
+            SOME T => mk_trp (isodefl'_const T $ mk_f T $ mk_p T)
           | NONE =>
             let val T = dest_DEFL t
             in mk_trp (isodefl_const T $ mk_f T $ mk_d T) end

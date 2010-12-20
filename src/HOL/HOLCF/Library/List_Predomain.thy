@@ -5,12 +5,60 @@
 header {* Predomain class instance for HOL list type *}
 
 theory List_Predomain
-imports List_Cpo
+imports List_Cpo Sum_Cpo
 begin
 
 subsection {* Strict list type *}
 
 domain 'a slist = SNil | SCons "'a" "'a slist"
+
+text {* Polymorphic map function for strict lists. *}
+
+text {* FIXME: The domain package should generate this! *}
+
+fixrec slist_map' :: "('a \<rightarrow> 'b) \<rightarrow> 'a slist \<rightarrow> 'b slist"
+  where "slist_map'\<cdot>f\<cdot>SNil = SNil"
+  | "\<lbrakk>x \<noteq> \<bottom>; xs \<noteq> \<bottom>\<rbrakk> \<Longrightarrow>
+      slist_map'\<cdot>f\<cdot>(SCons\<cdot>x\<cdot>xs) = SCons\<cdot>(f\<cdot>x)\<cdot>(slist_map'\<cdot>f\<cdot>xs)"
+
+lemma slist_map'_strict [simp]: "slist_map'\<cdot>f\<cdot>\<bottom> = \<bottom>"
+by fixrec_simp
+
+lemma slist_map_conv [simp]: "slist_map = slist_map'"
+apply (rule cfun_eqI, rule cfun_eqI, rename_tac f xs)
+apply (induct_tac xs, simp_all)
+apply (subst slist_map_unfold, simp)
+apply (subst slist_map_unfold, simp add: SNil_def)
+apply (subst slist_map_unfold, simp add: SCons_def)
+done
+
+lemma slist_map'_slist_map':
+  "f\<cdot>\<bottom> = \<bottom> \<Longrightarrow> slist_map'\<cdot>f\<cdot>(slist_map'\<cdot>g\<cdot>xs) = slist_map'\<cdot>(\<Lambda> x. f\<cdot>(g\<cdot>x))\<cdot>xs"
+apply (induct xs, simp, simp)
+apply (case_tac "g\<cdot>a = \<bottom>", simp, simp)
+apply (case_tac "slist_map'\<cdot>g\<cdot>xs = \<bottom>", simp, simp)
+done
+
+lemma slist_map'_oo:
+  "f\<cdot>\<bottom> = \<bottom> \<Longrightarrow> slist_map'\<cdot>(f oo g) = slist_map'\<cdot>f oo slist_map'\<cdot>g"
+by (simp add: cfcomp1 slist_map'_slist_map' eta_cfun)
+
+lemma slist_map'_ID: "slist_map'\<cdot>ID = ID"
+by (rule cfun_eqI, induct_tac x, simp_all)
+
+lemma ep_pair_slist_map':
+  "ep_pair e p \<Longrightarrow> ep_pair (slist_map'\<cdot>e) (slist_map'\<cdot>p)"
+apply (rule ep_pair.intro)
+apply (subst slist_map'_slist_map')
+apply (erule pcpo_ep_pair.p_strict [unfolded pcpo_ep_pair_def])
+apply (simp add: ep_pair.e_inverse ID_def [symmetric] slist_map'_ID)
+apply (subst slist_map'_slist_map')
+apply (erule pcpo_ep_pair.e_strict [unfolded pcpo_ep_pair_def])
+apply (rule below_eq_trans [OF _ ID1])
+apply (subst slist_map'_ID [symmetric])
+apply (intro monofun_cfun below_refl)
+apply (simp add: cfun_below_iff ep_pair.e_p_below)
+done
 
 text {*
   Types @{typ "'a list u"}. and @{typ "'a u slist"} are isomorphic.
@@ -48,34 +96,52 @@ done
 
 subsection {* Lists are a predomain *}
 
+definition udefl :: "udom defl \<rightarrow> udom u defl"
+  where "udefl = defl_fun1 (strictify\<cdot>up) (fup\<cdot>ID) ID"
+
+lemma cast_udefl:
+  "cast\<cdot>(udefl\<cdot>t) = strictify\<cdot>up oo cast\<cdot>t oo fup\<cdot>ID"
+unfolding udefl_def by (simp add: cast_defl_fun1 ep_pair_strictify_up)
+
+definition list_liftdefl :: "udom u defl \<rightarrow> udom u defl"
+  where "list_liftdefl = (\<Lambda> a. udefl\<cdot>(slist_defl\<cdot>(u_defl\<cdot>a)))"
+
+lemma cast_slist_defl: "cast\<cdot>(slist_defl\<cdot>a) = emb oo slist_map\<cdot>(cast\<cdot>a) oo prj"
+using isodefl_slist [where fa="cast\<cdot>a" and da="a"]
+unfolding isodefl_def by simp
+
+lemma u_emb_bottom: "u_emb\<cdot>\<bottom> = \<bottom>"
+by (rule pcpo_ep_pair.e_strict [unfolded pcpo_ep_pair_def, OF ep_pair_u])
+
 instantiation list :: (predomain) predomain
 begin
 
 definition
-  "liftemb = emb oo encode_list_u"
+  "liftemb = (strictify\<cdot>up oo emb oo slist_map'\<cdot>u_emb) oo slist_map'\<cdot>liftemb oo encode_list_u"
 
 definition
-  "liftprj = decode_list_u oo prj"
+  "liftprj = (decode_list_u oo slist_map'\<cdot>liftprj) oo (slist_map'\<cdot>u_prj oo prj) oo fup\<cdot>ID"
 
 definition
-  "liftdefl (t::('a list) itself) = DEFL(('a\<^sub>\<bottom>) slist)"
+  "liftdefl (t::('a list) itself) = list_liftdefl\<cdot>LIFTDEFL('a)"
 
 instance proof
-  have "ep_pair encode_list_u decode_list_u"
-    by (rule ep_pair.intro, simp_all)
-  thus "ep_pair liftemb (liftprj :: udom \<rightarrow> ('a list) u)"
+  show "ep_pair liftemb (liftprj :: udom u \<rightarrow> ('a list) u)"
     unfolding liftemb_list_def liftprj_list_def
-    using ep_pair_emb_prj by (rule ep_pair_comp)
-  show "cast\<cdot>LIFTDEFL('a list) = liftemb oo (liftprj :: udom \<rightarrow> ('a list) u)"
+    by (intro ep_pair_comp ep_pair_slist_map' ep_pair_strictify_up
+      ep_pair_emb_prj predomain_ep ep_pair_u, simp add: ep_pair.intro)
+  show "cast\<cdot>LIFTDEFL('a list) = liftemb oo (liftprj :: udom u \<rightarrow> ('a list) u)"
     unfolding liftemb_list_def liftprj_list_def liftdefl_list_def
-    by (simp add: cfcomp1 cast_DEFL)
+    apply (simp add: list_liftdefl_def cast_udefl cast_slist_defl cast_u_defl cast_liftdefl)
+    apply (simp add: slist_map'_oo u_emb_bottom cfun_eq_iff)
+    done
 qed
 
 end
 
 lemma liftdefl_list [domain_defl_simps]:
-  "LIFTDEFL('a::predomain list) = slist_defl\<cdot>LIFTDEFL('a)"
-unfolding liftdefl_list_def by (simp add: domain_defl_simps)
+  "LIFTDEFL('a::predomain list) = list_liftdefl\<cdot>LIFTDEFL('a)"
+by (rule liftdefl_list_def)
 
 subsection {* Continuous map operation for lists *}
 
@@ -105,21 +171,21 @@ subsection {* Configuring list type to work with domain package *}
 lemma encode_list_u_map:
   "encode_list_u\<cdot>(u_map\<cdot>(list_map\<cdot>f)\<cdot>(decode_list_u\<cdot>xs))
     = slist_map\<cdot>(u_map\<cdot>f)\<cdot>xs"
-apply (induct xs)
-apply (simp, subst slist_map_unfold, simp)
-apply (simp, subst slist_map_unfold, simp add: SNil_def)
+apply (induct xs, simp, simp)
 apply (case_tac a, simp, rename_tac b)
 apply (case_tac "decode_list_u\<cdot>xs")
-apply (drule_tac f="encode_list_u" in cfun_arg_cong, simp)
-by (simp, subst slist_map_unfold, simp add: SCons_def)
+apply (drule_tac f="encode_list_u" in cfun_arg_cong, simp, simp)
+done
 
 lemma isodefl_list_u [domain_isodefl]:
   fixes d :: "'a::predomain \<rightarrow> 'a"
-  assumes "isodefl (u_map\<cdot>d) t"
-  shows "isodefl (u_map\<cdot>(list_map\<cdot>d)) (slist_defl\<cdot>t)"
-using assms [THEN isodefl_slist] unfolding isodefl_def
-unfolding emb_u_def prj_u_def liftemb_list_def liftprj_list_def
-by (simp add: cfcomp1 encode_list_u_map)
+  assumes "isodefl' d t"
+  shows "isodefl' (list_map\<cdot>d) (list_liftdefl\<cdot>t)"
+using assms unfolding isodefl'_def liftemb_list_def liftprj_list_def
+apply (simp add: list_liftdefl_def cast_udefl cast_slist_defl cast_u_defl)
+apply (simp add: cfcomp1 encode_list_u_map)
+apply (simp add: slist_map'_slist_map' u_emb_bottom)
+done
 
 setup {*
   Domain_Take_Proofs.add_rec_type (@{type_name "list"}, [true])

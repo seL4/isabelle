@@ -29,23 +29,23 @@ instantiation nibble :: predomain
 begin
 
 definition
-  "(liftemb :: nibble u \<rightarrow> udom) \<equiv> liftemb oo u_map\<cdot>(\<Lambda> x. Discr x)"
+  "(liftemb :: nibble u \<rightarrow> udom u) \<equiv> liftemb oo u_map\<cdot>(\<Lambda> x. Discr x)"
 
 definition
-  "(liftprj :: udom \<rightarrow> nibble u) \<equiv> u_map\<cdot>(\<Lambda> y. undiscr y) oo liftprj"
+  "(liftprj :: udom u \<rightarrow> nibble u) \<equiv> u_map\<cdot>(\<Lambda> y. undiscr y) oo liftprj"
 
 definition
   "liftdefl \<equiv> (\<lambda>(t::nibble itself). LIFTDEFL(nibble discr))"
 
 instance proof
-  show "ep_pair liftemb (liftprj :: udom \<rightarrow> nibble u)"
+  show "ep_pair liftemb (liftprj :: udom u \<rightarrow> nibble u)"
     unfolding liftemb_nibble_def liftprj_nibble_def
     apply (rule ep_pair_comp)
     apply (rule ep_pair_u_map)
     apply (simp add: ep_pair.intro)
     apply (rule predomain_ep)
     done
-  show "cast\<cdot>LIFTDEFL(nibble) = liftemb oo (liftprj :: udom \<rightarrow> nibble u)"
+  show "cast\<cdot>LIFTDEFL(nibble) = liftemb oo (liftprj :: udom u \<rightarrow> nibble u)"
     unfolding liftemb_nibble_def liftprj_nibble_def liftdefl_nibble_def
     apply (simp add: cast_liftdefl cfcomp1 u_map_map)
     apply (simp add: ID_def [symmetric] u_map_ID)
@@ -75,23 +75,23 @@ instantiation char :: predomain
 begin
 
 definition
-  "(liftemb :: char u \<rightarrow> udom) \<equiv> liftemb oo u_map\<cdot>(\<Lambda> x. Discr x)"
+  "(liftemb :: char u \<rightarrow> udom u) \<equiv> liftemb oo u_map\<cdot>(\<Lambda> x. Discr x)"
 
 definition
-  "(liftprj :: udom \<rightarrow> char u) \<equiv> u_map\<cdot>(\<Lambda> y. undiscr y) oo liftprj"
+  "(liftprj :: udom u \<rightarrow> char u) \<equiv> u_map\<cdot>(\<Lambda> y. undiscr y) oo liftprj"
 
 definition
   "liftdefl \<equiv> (\<lambda>(t::char itself). LIFTDEFL(char discr))"
 
 instance proof
-  show "ep_pair liftemb (liftprj :: udom \<rightarrow> char u)"
+  show "ep_pair liftemb (liftprj :: udom u \<rightarrow> char u)"
     unfolding liftemb_char_def liftprj_char_def
     apply (rule ep_pair_comp)
     apply (rule ep_pair_u_map)
     apply (simp add: ep_pair.intro)
     apply (rule predomain_ep)
     done
-  show "cast\<cdot>LIFTDEFL(char) = liftemb oo (liftprj :: udom \<rightarrow> char u)"
+  show "cast\<cdot>LIFTDEFL(char) = liftemb oo (liftprj :: udom u \<rightarrow> char u)"
     unfolding liftemb_char_def liftprj_char_def liftdefl_char_def
     apply (simp add: cast_liftdefl cfcomp1 u_map_map)
     apply (simp add: ID_def [symmetric] u_map_ID)
