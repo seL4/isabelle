@@ -399,20 +399,19 @@ lemma "\<forall>x::int. SMT.trigger [[SMT.pat x]] (x < a \<longrightarrow> 2 * x
 subsection {* Non-linear arithmetic over integers and reals *}
 
 lemma "a > (0::int) \<Longrightarrow> a*b > 0 \<Longrightarrow> b > 0"
-  using zero_less_mult_pos
+  using [[smt_oracle=true]]
   by smt
 
 lemma  "(a::int) * (x + 1 + y) = a * x + a * (y + 1)"
-  using right_distrib
   by smt
 
 lemma "((x::real) * (1 + y) - x * (1 - y)) = (2 * x * y)"
-  sorry (* FIXME: Z3 could solve this directly *)
+  by smt
 
 lemma
   "(U::int) + (1 + p) * (b + e) + p * d =
    U + (2 * (1 + p) * (b + e) + (1 + p) * d + d * p) - (1 + p) * (b + d + e)"
-  sorry (* FIXME: Z3 could solve this directly *)
+  by smt
 
 
 subsection {* Linear arithmetic for natural numbers *}
