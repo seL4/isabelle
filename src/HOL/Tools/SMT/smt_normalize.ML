@@ -310,6 +310,7 @@ end
 fun gen_normalize1_conv ctxt weight =
   atomize_conv ctxt then_conv
   unfold_special_quants_conv ctxt then_conv
+  Thm.beta_conversion true then_conv
   trigger_conv ctxt then_conv
   weight_conv weight ctxt
 
