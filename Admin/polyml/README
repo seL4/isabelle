@@ -1,8 +1,8 @@
 Poly/ML for Isabelle
 ====================
 
-This compilation is based on the official Poly/ML 5.4 sources from
-http://www.polyml.org with the following change in the SVN (which is
+This compilation of Poly/ML 5.4 is based on the official sources from
+http://www.polyml.org with the following patch from the SVN (which is
 also part of the fixes-5.4 source tree):
 
 ------------------------------------------------------------------------
@@ -30,6 +30,7 @@ diff libpolyml/x86_dep.cpp libpolyml/x86_dep.cpp.orig
 
 ------------------------------------------------------------------------
 
+
 The included build script is used like this:
 
   ./build src x86-linux --with-gmp
@@ -40,6 +41,10 @@ The included build script is used like this:
 
 The multi-platform directory layout for executables and shared
 libraries accommodates the standard ML_HOME settings for Isabelle.
+
+
+Also note that the separate "sha1" library module is required for
+efficient digesting of strings according to SHA-1.
 
 
 	Makarius
