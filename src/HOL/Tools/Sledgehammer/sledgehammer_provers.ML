@@ -53,6 +53,7 @@ sig
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
   (* for experimentation purposes -- do not use in production code *)
+  val atp_run_twice_threshold : int Unsynchronized.ref
   val atp_first_iter_time_frac : real Unsynchronized.ref
   val smt_weights : bool Unsynchronized.ref
   val smt_weight_min_facts : int Unsynchronized.ref
@@ -328,6 +329,7 @@ fun overlord_file_location_for_prover prover =
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
 
+val atp_run_twice_threshold = Unsynchronized.ref 50
 val atp_first_iter_time_frac = Unsynchronized.ref 0.67
 
 (* Important messages are important but not so important that users want to see
@@ -411,10 +413,12 @@ fun run_atp auto name
                   extract_tstplike_proof_and_outcome verbose complete res_code
                       proof_delims known_failures output
               in (output, msecs, tstplike_proof, outcome) end
-            val run_twice = has_incomplete_mode andalso not auto
+            val run_twice =
+              has_incomplete_mode andalso not auto andalso
+              length facts >= !atp_run_twice_threshold
             val timer = Timer.startRealTimer ()
             val result =
-              run false
+              run (not run_twice)
                  (if run_twice then
                     seconds (0.001 * !atp_first_iter_time_frac
                              * Real.fromInt (Time.toMilliseconds timeout))
