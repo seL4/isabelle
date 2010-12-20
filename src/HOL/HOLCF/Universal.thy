@@ -12,7 +12,7 @@ subsection {* Basis for universal domain *}
 
 subsubsection {* Basis datatype *}
 
-types ubasis = nat
+type_synonym ubasis = nat
 
 definition
   node :: "nat \<Rightarrow> ubasis \<Rightarrow> ubasis set \<Rightarrow> ubasis"

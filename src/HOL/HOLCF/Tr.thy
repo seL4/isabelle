@@ -10,7 +10,7 @@ begin
 
 subsection {* Type definition and constructors *}
 
-types
+type_synonym
   tr = "bool lift"
 
 translations
