@@ -1,3 +1,5 @@
+# -*- shell-script -*- :mode=shellscript:
+
 ISABELLE_SMT="$COMPONENT"
 
 REMOTE_SMT="$ISABELLE_SMT/lib/scripts/remote_smt"

@@ -1,5 +1,8 @@
 # -*- shell-script -*- :mode=shellscript:
 
+# FIXME contrib_devel not official
+# FIXME $(type -p swipl) etc. does not allow spaces in file name
+
 EXEC_SWIPL="$(choosefrom \
   "$ISABELLE_HOME/contrib/swipl/$ISABELLE_PLATFORM/bin/swipl" \
   "$ISABELLE_HOME/contrib_devel/swipl/$ISABELLE_PLATFORM/bin/swipl" \
