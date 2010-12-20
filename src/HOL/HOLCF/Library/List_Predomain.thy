@@ -96,22 +96,12 @@ done
 
 subsection {* Lists are a predomain *}
 
-definition udefl :: "udom defl \<rightarrow> udom u defl"
-  where "udefl = defl_fun1 (strictify\<cdot>up) (fup\<cdot>ID) ID"
-
-lemma cast_udefl:
-  "cast\<cdot>(udefl\<cdot>t) = strictify\<cdot>up oo cast\<cdot>t oo fup\<cdot>ID"
-unfolding udefl_def by (simp add: cast_defl_fun1 ep_pair_strictify_up)
-
 definition list_liftdefl :: "udom u defl \<rightarrow> udom u defl"
   where "list_liftdefl = (\<Lambda> a. udefl\<cdot>(slist_defl\<cdot>(u_defl\<cdot>a)))"
 
 lemma cast_slist_defl: "cast\<cdot>(slist_defl\<cdot>a) = emb oo slist_map\<cdot>(cast\<cdot>a) oo prj"
 using isodefl_slist [where fa="cast\<cdot>a" and da="a"]
 unfolding isodefl_def by simp
-
-lemma u_emb_bottom: "u_emb\<cdot>\<bottom> = \<bottom>"
-by (rule pcpo_ep_pair.e_strict [unfolded pcpo_ep_pair_def, OF ep_pair_u])
 
 instantiation list :: (predomain) predomain
 begin
@@ -139,11 +129,11 @@ qed
 
 end
 
+subsection {* Configuring domain package to work with list type *}
+
 lemma liftdefl_list [domain_defl_simps]:
   "LIFTDEFL('a::predomain list) = list_liftdefl\<cdot>LIFTDEFL('a)"
 by (rule liftdefl_list_def)
-
-subsection {* Configuring list type to work with domain package *}
 
 abbreviation list_map :: "('a::cpo \<rightarrow> 'b::cpo) \<Rightarrow> 'a list \<rightarrow> 'b list"
   where "list_map f \<equiv> Abs_cfun (map (Rep_cfun f))"
