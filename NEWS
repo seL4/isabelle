@@ -71,7 +71,7 @@ The option "show_abbrevs" supersedes the former print mode
 "no_abbrevs" with inverted meaning.
 
 * More systematic naming of some configuration options.
-INCOMPATIBILTY.
+INCOMPATIBILITY.
 
   trace_simp  ~>  simp_trace
   debug_simp  ~>  simp_debug
