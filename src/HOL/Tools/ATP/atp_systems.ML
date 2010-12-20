@@ -99,27 +99,34 @@ fun e_bonus () =
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
-val e_generate_weights = Unsynchronized.ref false
-val e_weight_factor = Unsynchronized.ref 4.0
+val e_generate_weights = Unsynchronized.ref true
+val e_weight_factor = Unsynchronized.ref 60.0
 val e_default_weight = Unsynchronized.ref 0.5
 
 fun e_weights weights =
   if !e_generate_weights then
-    "(1*FunWeight(ConstPrio," ^
+    "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
+    \--destructive-er-aggressive --destructive-er --presat-simplify \
+    \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
+    \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred \
+    \-H'(4*FunWeight(SimulateSOS, " ^
     string_of_int (Real.ceil (!e_default_weight * !e_weight_factor)) ^
-    ",1,1.5,1.5,1.5" ^
+    ",20,1.5,1.5,1" ^
     (weights ()
      |> map (fn (s, w) => "," ^ s ^ ":" ^
                           string_of_int (Real.ceil (w * !e_weight_factor)))
-     |> implode) ^ ")+5*AutoDev)"
+     |> implode) ^
+    "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
+    \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
+    \FIFOWeight(PreferProcessed))'"
   else
-    "AutoDev"
+    "-xAutoDev"
 
 val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
    arguments = fn _ => fn timeout => fn weights =>
-     "--tstp-in --tstp-out -l5 -x'" ^ e_weights weights ^ "' -tAutoDev \
+     "--tstp-in --tstp-out -l5 " ^ e_weights weights ^ " -tAutoDev \
      \--silent --cpu-limit=" ^ string_of_int (to_secs (e_bonus ()) timeout),
    has_incomplete_mode = false,
    proof_delims = [tstp_proof_delims],
