@@ -86,7 +86,8 @@ fun string_of_class [] = "basic"
 
 type 'a dict = (class * 'a) Ord_List.T
 
-fun class_ord ((cs1, _), (cs2, _)) = list_ord fast_string_ord (cs1, cs2)
+fun class_ord ((cs1, _), (cs2, _)) =
+  rev_order (list_ord fast_string_ord (cs1, cs2))
 
 fun dict_insert (cs, x) d =
   if AList.defined (op =) d cs then d
