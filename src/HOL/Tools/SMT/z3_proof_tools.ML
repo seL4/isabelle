@@ -44,14 +44,12 @@ end
 structure Z3_Proof_Tools: Z3_PROOF_TOOLS =
 struct
 
-structure U = SMT_Utils
-structure I = Z3_Interface
-
 
 
 (* modifying terms *)
 
-fun as_meta_eq ct = uncurry U.mk_cequals (Thm.dest_binop (U.dest_cprop ct))
+fun as_meta_eq ct =
+  uncurry SMT_Utils.mk_cequals (Thm.dest_binop (SMT_Utils.dest_cprop ct))
 
 
 
@@ -80,7 +78,7 @@ val net_instance = net_instance' I
 (* proof combinators *)
 
 fun under_assumption f ct =
-  let val ct' = U.mk_cprop ct
+  let val ct' = SMT_Utils.mk_cprop ct
   in Thm.implies_intr ct' (f (Thm.assume ct')) end
 
 fun with_conv conv prove ct =
@@ -109,7 +107,7 @@ fun make_hyp_def thm ctxt =
   let
     val (lhs, rhs) = Thm.dest_binop (Thm.cprem_of thm 1)
     val (cf, cvs) = Drule.strip_comb lhs
-    val eq = U.mk_cequals cf (fold_rev Thm.cabs cvs rhs)
+    val eq = SMT_Utils.mk_cequals cf (fold_rev Thm.cabs cvs rhs)
     fun apply cv th =
       Thm.combination th (Thm.reflexive cv)
       |> Conv.fconv_rule (Conv.arg_conv (Thm.beta_conversion false))
@@ -149,8 +147,8 @@ fun fresh_abstraction cvs ct (cx as (ctxt, tab, idx, beta_norm)) =
     | NONE =>
         let
           val (n, ctxt') = yield_singleton Variable.variant_fixes "x" ctxt
-          val cv = U.certify ctxt'
-            (Free (n, map U.typ_of cvs' ---> U.typ_of ct))
+          val cv = SMT_Utils.certify ctxt'
+            (Free (n, map SMT_Utils.typ_of cvs' ---> SMT_Utils.typ_of ct))
           val cu = Drule.list_comb (cv, cvs')
           val e = (t, (cv, fold_rev Thm.cabs cvs' ct))
           val beta_norm' = beta_norm orelse not (null cvs')
@@ -211,7 +209,7 @@ fun abstract (ext_logic, with_theories) =
       | t => (fn cx =>
           if is_atomic t orelse can HOLogic.dest_number t then (ct, cx)
           else if with_theories andalso
-            I.is_builtin_theory_term (context_of cx) t
+            Z3_Interface.is_builtin_theory_term (context_of cx) t
           then abs_args abstr cvs ct cx
           else fresh_abstraction cvs ct cx))
   in abstr [] end

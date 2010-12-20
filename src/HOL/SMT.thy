@@ -17,13 +17,13 @@ uses
   ("Tools/SMT/smt_translate.ML")
   ("Tools/SMT/smt_solver.ML")
   ("Tools/SMT/smtlib_interface.ML")
+  ("Tools/SMT/z3_interface.ML")
   ("Tools/SMT/z3_proof_parser.ML")
   ("Tools/SMT/z3_proof_tools.ML")
   ("Tools/SMT/z3_proof_literals.ML")
   ("Tools/SMT/z3_proof_methods.ML")
   ("Tools/SMT/z3_proof_reconstruction.ML")
   ("Tools/SMT/z3_model.ML")
-  ("Tools/SMT/z3_interface.ML")
   ("Tools/SMT/smt_setup_solvers.ML")
 begin
 

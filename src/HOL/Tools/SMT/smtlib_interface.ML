@@ -16,10 +16,6 @@ end
 structure SMTLIB_Interface: SMTLIB_INTERFACE =
 struct
 
-structure U = SMT_Utils
-structure B = SMT_Builtin
-structure N = SMT_Normalize
-structure T = SMT_Translate
 
 val smtlibC = ["smtlib"]
 
@@ -29,8 +25,8 @@ val smtlibC = ["smtlib"]
 local
   fun int_num _ i = SOME (string_of_int i)
 
-  fun is_linear [t] = U.is_number t
-    | is_linear [t, u] = U.is_number t orelse U.is_number u
+  fun is_linear [t] = SMT_Utils.is_number t
+    | is_linear [t, u] = SMT_Utils.is_number t orelse SMT_Utils.is_number u
     | is_linear _ = false
 
   fun times _ _ ts =
@@ -49,8 +45,8 @@ local
 in
 
 val setup_builtins =
-  B.add_builtin_typ smtlibC (@{typ int}, K (SOME "Int"), int_num) #>
-  fold (B.add_builtin_fun' smtlibC) [
+  SMT_Builtin.add_builtin_typ smtlibC (@{typ int}, K (SOME "Int"), int_num) #>
+  fold (SMT_Builtin.add_builtin_fun' smtlibC) [
     (@{const True}, "true"),
     (@{const False}, "false"),
     (@{const Not}, "not"),
@@ -66,8 +62,10 @@ val setup_builtins =
     (@{const uminus (int)}, "~"),
     (@{const plus (int)}, "+"),
     (@{const minus (int)}, "-") ] #>
-  B.add_builtin_fun smtlibC (Term.dest_Const @{const times (int)}, times) #>
-  B.add_builtin_fun smtlibC (Term.dest_Const @{const distinct ('a)}, distinct)
+  SMT_Builtin.add_builtin_fun smtlibC
+    (Term.dest_Const @{const times (int)}, times) #>
+  SMT_Builtin.add_builtin_fun smtlibC
+    (Term.dest_Const @{const distinct ('a)}, distinct)
 
 end
 
@@ -106,18 +104,20 @@ fun line f = f #> add "\n"
 
 fun var i = add "?v" #> add (string_of_int i)
 
-fun sterm l (T.SVar i) = sep (var (l - i - 1))
-  | sterm l (T.SApp (n, ts)) = app n (sterm l) ts
-  | sterm _ (T.SLet _) = raise Fail "SMT-LIB: unsupported let expression"
-  | sterm l (T.SQua (q, ss, ps, w, t)) =
+fun sterm l (SMT_Translate.SVar i) = sep (var (l - i - 1))
+  | sterm l (SMT_Translate.SApp (n, ts)) = app n (sterm l) ts
+  | sterm _ (SMT_Translate.SLet _) =
+      raise Fail "SMT-LIB: unsupported let expression"
+  | sterm l (SMT_Translate.SQua (q, ss, ps, w, t)) =
       let
-        val quant = add o (fn T.SForall => "forall" | T.SExists => "exists")
+        fun quant SMT_Translate.SForall = add "forall"
+          | quant SMT_Translate.SExists = add "exists"
         val vs = map_index (apfst (Integer.add l)) ss
         fun var_decl (i, s) = par (var i #> sep (add s))
         val sub = sterm (l + length ss)
         fun pat kind ts = sep (add kind #> enclose "{" " }" (fold sub ts))
-        fun pats (T.SPat ts) = pat ":pat" ts
-          | pats (T.SNoPat ts) = pat ":nopat" ts
+        fun pats (SMT_Translate.SPat ts) = pat ":pat" ts
+          | pats (SMT_Translate.SNoPat ts) = pat ":nopat" ts
         fun weight NONE = I
           | weight (SOME i) =
               sep (add ":weight { " #> add (string_of_int i) #> add " }")
@@ -168,6 +168,6 @@ fun translate_config ctxt = {
 
 val setup = Context.theory_map (
   setup_builtins #>
-  T.add_config (smtlibC, translate_config))
+  SMT_Translate.add_config (smtlibC, translate_config))
 
 end

@@ -51,8 +51,6 @@ end
 structure SMT_Solver: SMT_SOLVER =
 struct
 
-structure C = SMT_Config
-
 
 (* configuration *)
 
@@ -109,13 +107,13 @@ fun make_cmd solver args problem_path proof_path = space_implode " " (
   [File.shell_path problem_path, "2>&1", ">", File.shell_path proof_path])
 
 fun run ctxt cmd args input =
-  (case C.certificates_of ctxt of
+  (case SMT_Config.certificates_of ctxt of
     NONE =>
-      if Config.get ctxt C.debug_files = "" then
+      if Config.get ctxt SMT_Config.debug_files = "" then
         Cache_IO.run (make_cmd (choose cmd) args) input
       else
         let
-          val base_path = Path.explode (Config.get ctxt C.debug_files)
+          val base_path = Path.explode (Config.get ctxt SMT_Config.debug_files)
           val in_path = Path.ext "smt_in" base_path
           val out_path = Path.ext "smt_out" base_path
         in
@@ -124,7 +122,7 @@ fun run ctxt cmd args input =
   | SOME certs =>
       (case Cache_IO.lookup certs input of
         (NONE, key) =>
-          if Config.get ctxt C.fixed then
+          if Config.get ctxt SMT_Config.fixed then
             error ("Bad certificates cache: missing certificate")
           else
             Cache_IO.run_and_cache certs key (make_cmd (choose cmd) args) input
@@ -140,14 +138,14 @@ fun run_solver ctxt cmd args input =
     fun pretty tag ls = Pretty.string_of (Pretty.big_list tag
       (map Pretty.str ls))
 
-    val _ = C.trace_msg ctxt (pretty "Problem:" o split_lines) input
+    val _ = SMT_Config.trace_msg ctxt (pretty "Problem:" o split_lines) input
 
     val {redirected_output=res, output=err, return_code} =
-      C.with_timeout ctxt (run ctxt cmd args) input
-    val _ = C.trace_msg ctxt (pretty "Solver:") err
+      SMT_Config.with_timeout ctxt (run ctxt cmd args) input
+    val _ = SMT_Config.trace_msg ctxt (pretty "Solver:") err
 
     val ls = rev (snd (chop_while (equal "") (rev res)))
-    val _ = C.trace_msg ctxt (pretty "Result:") ls
+    val _ = SMT_Config.trace_msg ctxt (pretty "Result:") ls
 
     val _ = null ls andalso return_code <> 0 andalso
       raise SMT_Failure.SMT (SMT_Failure.Abnormal_Termination return_code)
@@ -155,8 +153,9 @@ fun run_solver ctxt cmd args input =
 
 end
 
-fun trace_assms ctxt = C.trace_msg ctxt (Pretty.string_of o
-  Pretty.big_list "Assertions:" o map (Display.pretty_thm ctxt o snd))
+fun trace_assms ctxt =
+  SMT_Config.trace_msg ctxt (Pretty.string_of o
+    Pretty.big_list "Assertions:" o map (Display.pretty_thm ctxt o snd))
 
 fun trace_recon_data ({context=ctxt, typs, terms, ...} : SMT_Translate.recon) =
   let
@@ -164,7 +163,7 @@ fun trace_recon_data ({context=ctxt, typs, terms, ...} : SMT_Translate.recon) =
     fun p_typ (n, T) = pretty_eq n (Syntax.pretty_typ ctxt T)
     fun p_term (n, t) = pretty_eq n (Syntax.pretty_term ctxt t)
   in
-    C.trace_msg ctxt (fn () =>
+    SMT_Config.trace_msg ctxt (fn () =>
       Pretty.string_of (Pretty.big_list "Names:" [
         Pretty.big_list "sorts:" (map p_typ (Symtab.dest typs)),
         Pretty.big_list "functions:" (map p_term (Symtab.dest terms))])) ()
@@ -172,10 +171,11 @@ fun trace_recon_data ({context=ctxt, typs, terms, ...} : SMT_Translate.recon) =
 
 fun invoke name cmd options ithms ctxt =
   let
-    val args = C.solver_options_of ctxt @ options ctxt
+    val args = SMT_Config.solver_options_of ctxt @ options ctxt
     val comments = ("solver: " ^ name) ::
-      ("timeout: " ^ string_of_real (Config.get ctxt C.timeout)) ::
-      ("random seed: " ^ string_of_int (Config.get ctxt C.random_seed)) ::
+      ("timeout: " ^ string_of_real (Config.get ctxt SMT_Config.timeout)) ::
+      ("random seed: " ^
+        string_of_int (Config.get ctxt SMT_Config.random_seed)) ::
       "arguments:" :: args
 
     val (str, recon as {context=ctxt', ...}) =
@@ -192,7 +192,7 @@ fun trace_assumptions ctxt iwthms idxs =
       |> filter (fn i => i >= 0)
       |> map_filter (AList.lookup (op =) iwthms)
   in
-    if Config.get ctxt C.trace_used_facts andalso length wthms > 0
+    if Config.get ctxt SMT_Config.trace_used_facts andalso length wthms > 0
     then
       tracing (Pretty.string_of (Pretty.big_list "SMT used facts:"
         (map (Display.pretty_thm ctxt o snd) wthms)))
@@ -243,7 +243,7 @@ local
       (output, (recon as {context=ctxt, ...} : SMT_Translate.recon)) =
     (case outcome output of
       (Unsat, ls) =>
-        if not (Config.get ctxt C.oracle) andalso is_some reconstruct
+        if not (Config.get ctxt SMT_Config.oracle) andalso is_some reconstruct
         then the reconstruct outer_ctxt recon ls
         else ([], ocl ())
     | (result, ls) =>
@@ -273,7 +273,7 @@ fun add_solver cfg =
   in
     Thm.add_oracle (Binding.name name, core_oracle) #-> (fn (_, ocl) =>
     Context.theory_map (Solvers.map (Symtab.update_new (name, solver ocl)))) #>
-    Context.theory_map (C.add_solver (name, class))
+    Context.theory_map (SMT_Config.add_solver (name, class))
   end
 
 end
@@ -282,7 +282,7 @@ fun get_info ctxt name =
   the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name)
 
 fun name_and_solver_of ctxt =
-  let val name = C.solver_of ctxt
+  let val name = SMT_Config.solver_of ctxt
   in (name, get_info ctxt name) end
 
 val solver_name_of = fst o name_and_solver_of
@@ -326,9 +326,9 @@ fun smt_filter_head st xwrules i =
   let
     val ctxt =
       Proof.context_of st
-      |> Config.put C.oracle false
-      |> Config.put C.drop_bad_facts true
-      |> Config.put C.filter_only_facts true
+      |> Config.put SMT_Config.oracle false
+      |> Config.put SMT_Config.drop_bad_facts true
+      |> Config.put SMT_Config.filter_only_facts true
 
     val {facts, goal, ...} = Proof.goal st
     val ({context=ctxt', prems, concl, ...}, _) = Subgoal.focus ctxt i goal
@@ -348,7 +348,7 @@ fun smt_filter_head st xwrules i =
 fun smt_filter_tail time_limit run_remote
     ((xs, wthms), ((iwthms', ctxt), iwthms)) =
   let
-    val ctxt = ctxt |> Config.put C.timeout (Time.toReal time_limit)
+    val ctxt = ctxt |> Config.put SMT_Config.timeout (Time.toReal time_limit)
     val xrules = xs ~~ map snd wthms
   in
     ((iwthms', ctxt), iwthms)
@@ -369,15 +369,16 @@ fun smt_tac' pass_exns ctxt rules =
   THEN' SUBPROOF (fn {context=ctxt', prems, ...} =>
     let
       val solve = snd o solver_of ctxt' NONE ctxt' o tap check_topsort
-      val tag = "Solver " ^ C.solver_of ctxt' ^ ": "
+      val tag = "Solver " ^ SMT_Config.solver_of ctxt' ^ ": "
       val str_of = prefix tag o SMT_Failure.string_of_failure ctxt'
       fun safe_solve iwthms =
         if pass_exns then SOME (solve iwthms)
         else (SOME (solve iwthms)
           handle
             SMT_Failure.SMT (fail as SMT_Failure.Counterexample _) =>
-              (C.verbose_msg ctxt' str_of fail; NONE)
-          | SMT_Failure.SMT fail => (C.trace_msg ctxt' str_of fail; NONE))
+              (SMT_Config.verbose_msg ctxt' str_of fail; NONE)
+          | SMT_Failure.SMT fail =>
+              (SMT_Config.trace_msg ctxt' str_of fail; NONE))
     in
       safe_solve (map (pair ~1 o pair NONE) (rules @ prems))
       |> (fn SOME thm => Tactic.rtac thm 1 | _ => Tactical.no_tac)

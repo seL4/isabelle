@@ -47,15 +47,12 @@ end
 structure SMT_Builtin: SMT_BUILTIN =
 struct
 
-structure U = SMT_Utils
-structure C = SMT_Config
-
 
 (* built-in tables *)
 
 datatype ('a, 'b) kind = Ext of 'a | Int of 'b
 
-type ('a, 'b) ttab = ((typ * ('a, 'b) kind) Ord_List.T) U.dict 
+type ('a, 'b) ttab = ((typ * ('a, 'b) kind) Ord_List.T) SMT_Utils.dict 
 
 fun typ_ord ((T, _), (U, _)) =
   let
@@ -68,16 +65,17 @@ fun typ_ord ((T, _), (U, _)) =
   in tord (T, U) end
 
 fun insert_ttab cs T f =
-  U.dict_map_default (cs, [])
+  SMT_Utils.dict_map_default (cs, [])
     (Ord_List.insert typ_ord (perhaps (try Logic.varifyT_global) T, f))
 
 fun merge_ttab ttabp =
-  U.dict_merge (uncurry (Ord_List.union typ_ord) o swap) ttabp
+  SMT_Utils.dict_merge (uncurry (Ord_List.union typ_ord) o swap) ttabp
 
 fun lookup_ttab ctxt ttab T =
   let fun match (U, _) = Sign.typ_instance (ProofContext.theory_of ctxt) (T, U)
   in
-    get_first (find_first match) (U.dict_lookup ttab (C.solver_class_of ctxt))
+    get_first (find_first match)
+      (SMT_Utils.dict_lookup ttab (SMT_Config.solver_class_of ctxt))
   end
 
 type ('a, 'b) btab = ('a, 'b) ttab Symtab.table
@@ -108,7 +106,7 @@ fun add_builtin_typ cs (T, f, g) =
   Builtin_Types.map (insert_ttab cs T (Int (f, g)))
 
 fun add_builtin_typ_ext (T, f) =
-  Builtin_Types.map (insert_ttab U.basicC T (Ext f))
+  Builtin_Types.map (insert_ttab SMT_Utils.basicC T (Ext f))
 
 fun lookup_builtin_typ ctxt =
   lookup_ttab ctxt (Builtin_Types.get (Context.Proof ctxt))
@@ -168,7 +166,7 @@ fun add_builtin_fun' cs (t, n) =
   in add_builtin_fun cs (c, bfun) end
 
 fun add_builtin_fun_ext ((n, T), f) =
-  Builtin_Funcs.map (insert_btab U.basicC n T (Ext f))
+  Builtin_Funcs.map (insert_btab SMT_Utils.basicC n T (Ext f))
 
 fun add_builtin_fun_ext' c =
   add_builtin_fun_ext (c, fn _ => fn _ => fn _ => true)

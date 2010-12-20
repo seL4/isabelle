@@ -45,9 +45,6 @@ end
 structure SMT_Translate: SMT_TRANSLATE =
 struct
 
-structure U = SMT_Utils
-structure B = SMT_Builtin
-
 
 (* intermediate term structure *)
 
@@ -169,7 +166,7 @@ local
     in Abs (Name.uu, U1, eta U2 (l $ Bound 0)) end
 
   fun expf k i T t =
-    let val Ts = drop i (fst (U.dest_funT k T))
+    let val Ts = drop i (fst (SMT_Utils.dest_funT k T))
     in
       Term.incr_boundvars (length Ts) t
       |> fold_index (fn (i, _) => fn u => u $ Bound i) Ts
@@ -195,7 +192,7 @@ fun eta_expand ctxt =
       | expand t =
           (case Term.strip_comb t of
             (u as Const (c as (_, T)), ts) =>
-              (case B.dest_builtin ctxt c ts of
+              (case SMT_Builtin.dest_builtin ctxt c ts of
                 SOME (_, k, us, mk) =>
                   if k = length us then mk (map expand us)
                   else expf k (length ts) T (mk (map expand us))
@@ -302,8 +299,10 @@ local
     (Const (@{const_name SMT.fun_app}, T --> T) $ t $ u, Term.range_type T)
 
   fun apply i t T ts =
-    let val (ts1, ts2) = chop i ts
-    in fst (fold app ts2 (Term.list_comb (t, ts1), snd (U.dest_funT i T))) end
+    let
+      val (ts1, ts2) = chop i ts
+      val (_, U) = SMT_Utils.dest_funT i T
+    in fst (fold app ts2 (Term.list_comb (t, ts1), U)) end
 in
 
 fun intro_explicit_application ts =
@@ -351,14 +350,14 @@ local
     @{const If (bool)} $ t $ @{const SMT.term_true} $ @{const SMT.term_false}
 
   fun is_builtin_conn_or_pred ctxt c ts =
-    is_some (B.dest_builtin_conn ctxt c ts) orelse
-    is_some (B.dest_builtin_pred ctxt c ts)
+    is_some (SMT_Builtin.dest_builtin_conn ctxt c ts) orelse
+    is_some (SMT_Builtin.dest_builtin_pred ctxt c ts)
 
   fun builtin b ctxt c ts =
     (case (Const c, ts) of
       (@{const HOL.eq (bool)}, [t, u]) =>
         if t = @{const SMT.term_true} orelse u = @{const SMT.term_true} then
-          B.dest_builtin_eq ctxt t u
+          SMT_Builtin.dest_builtin_eq ctxt t u
         else b ctxt c ts
     | _ => b ctxt c ts)
 in
@@ -400,16 +399,16 @@ fun folify ctxt =
             q $ Abs (n, T, in_trigger u)
           else as_term (in_term t)
       | (Const c, ts) =>
-          (case B.dest_builtin_conn ctxt c ts of
+          (case SMT_Builtin.dest_builtin_conn ctxt c ts of
             SOME (_, _, us, mk) => mk (map in_form us)
           | NONE =>
-              (case B.dest_builtin_pred ctxt c ts of
+              (case SMT_Builtin.dest_builtin_pred ctxt c ts of
                 SOME (_, _, us, mk) => mk (map in_term us)
               | NONE => as_term (in_term t)))
       | _ => as_term (in_term t))
   in
     map (reduce_let #> in_form) #>
-    cons (U.prop_of term_bool) #>
+    cons (SMT_Utils.prop_of term_bool) #>
     pair (fol_rules, [term_bool], builtin)
   end
 
@@ -466,7 +465,7 @@ fun intermediate header dtyps builtin ctxt ts trx =
     fun transT (T as TFree _) = add_typ T true
       | transT (T as TVar _) = (fn _ => raise TYPE ("bad SMT type", [T], []))
       | transT (T as Type _) =
-          (case B.dest_builtin_typ ctxt T of
+          (case SMT_Builtin.dest_builtin_typ ctxt T of
             SOME n => pair n
           | NONE => add_typ T true)
 
@@ -492,7 +491,7 @@ fun intermediate header dtyps builtin ctxt ts trx =
       | _ => raise TERM ("bad SMT term", [t]))
  
     and transs t T ts =
-      let val (Us, U) = U.dest_funT (length ts) T
+      let val (Us, U) = SMT_Utils.dest_funT (length ts) T
       in
         fold_map transT Us ##>> transT U #-> (fn Up =>
         add_fun t (SOME Up) ##>> fold_map trans ts #>> SApp)
@@ -507,21 +506,21 @@ fun intermediate header dtyps builtin ctxt ts trx =
 
 structure Configs = Generic_Data
 (
-  type T = (Proof.context -> config) U.dict
+  type T = (Proof.context -> config) SMT_Utils.dict
   val empty = []
   val extend = I
-  fun merge data = U.dict_merge fst data
+  fun merge data = SMT_Utils.dict_merge fst data
 )
 
-fun add_config (cs, cfg) = Configs.map (U.dict_update (cs, cfg))
+fun add_config (cs, cfg) = Configs.map (SMT_Utils.dict_update (cs, cfg))
 
 fun get_config ctxt = 
   let val cs = SMT_Config.solver_class_of ctxt
   in
-    (case U.dict_get (Configs.get (Context.Proof ctxt)) cs of
+    (case SMT_Utils.dict_get (Configs.get (Context.Proof ctxt)) cs of
       SOME cfg => cfg ctxt
     | NONE => error ("SMT: no translation configuration found " ^
-        "for solver class " ^ quote (U.string_of_class cs)))
+        "for solver class " ^ quote (SMT_Utils.string_of_class cs)))
   end
 
 fun translate ctxt comments ithms =
@@ -533,7 +532,7 @@ fun translate ctxt comments ithms =
 
     fun no_dtyps (tr_context, ctxt) ts = (([], tr_context, ctxt), ts)
 
-    val ts1 = map (Envir.beta_eta_contract o U.prop_of o snd) ithms
+    val ts1 = map (Envir.beta_eta_contract o SMT_Utils.prop_of o snd) ithms
 
     val ((dtyps, tr_context, ctxt1), ts2) =
       ((make_tr_context prefixes, ctxt), ts1)
@@ -551,7 +550,7 @@ fun translate ctxt comments ithms =
     val rewrite_rules' = fun_app_eq :: rewrite_rules
   in
     (ts4, tr_context)
-    |-> intermediate header dtyps (builtin B.dest_builtin) ctxt2
+    |-> intermediate header dtyps (builtin SMT_Builtin.dest_builtin) ctxt2
     |>> uncurry (serialize comments)
     ||> recon_of ctxt2 rewrite_rules' extra_thms ithms
   end

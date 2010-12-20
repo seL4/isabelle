@@ -15,11 +15,6 @@ end
 structure Z3_Proof_Reconstruction: Z3_PROOF_RECONSTRUCTION =
 struct
 
-structure U = SMT_Utils
-structure P = Z3_Proof_Parser
-structure T = Z3_Proof_Tools
-structure L = Z3_Proof_Literals
-structure M = Z3_Proof_Methods
 
 fun z3_exn msg = raise SMT_Failure.SMT (SMT_Failure.Other_Failure
   ("Z3 proof reconstruction: " ^ msg))
@@ -43,7 +38,8 @@ local
     val merge = Net.merge eq
   )
 
-  val prep = `Thm.prop_of o Simplifier.rewrite_rule [L.rewrite_true]
+  val prep =
+    `Thm.prop_of o Simplifier.rewrite_rule [Z3_Proof_Literals.rewrite_true]
 
   fun ins thm net = Net.insert_term eq (prep thm) net handle Net.INSERT => net
   fun del thm net = Net.delete_term eq (prep thm) net handle Net.DELETE => net
@@ -55,7 +51,7 @@ in
 val add_z3_rule = Z3_Rules.map o ins
 
 fun by_schematic_rule ctxt ct =
-  the (T.net_instance (Z3_Rules.get (Context.Proof ctxt)) ct)
+  the (Z3_Proof_Tools.net_instance (Z3_Rules.get (Context.Proof ctxt)) ct)
 
 val z3_rules_setup =
   Attrib.setup (Binding.name z3_ruleN) (Attrib.add_del add del) description #>
@@ -115,7 +111,7 @@ end
 datatype theorem =
   Thm of thm | (* theorem without special features *)
   MetaEq of thm | (* meta equality "t == s" *)
-  Literals of thm * L.littab
+  Literals of thm * Z3_Proof_Literals.littab
     (* "P1 & ... & Pn" and table of all literals P1, ..., Pn *)
 
 fun thm_of (Thm thm) = thm
@@ -126,7 +122,7 @@ fun meta_eq_of (MetaEq thm) = thm
   | meta_eq_of p = mk_meta_eq (thm_of p)
 
 fun literals_of (Literals (_, lits)) = lits
-  | literals_of p = L.make_littab [thm_of p]
+  | literals_of p = Z3_Proof_Literals.make_littab [thm_of p]
 
 
 
@@ -143,27 +139,27 @@ local
     (Simplifier.context ctxt Simplifier.empty_ss addsimps eqs)
 
   val prep_rules = [@{thm Let_def}, remove_trigger, remove_weight,
-    remove_fun_app, L.rewrite_true]
+    remove_fun_app, Z3_Proof_Literals.rewrite_true]
 
   fun rewrite ctxt eqs = Conv.fconv_rule (rewrite_conv ctxt eqs)
 
   fun burrow_snd_option f (i, thm) = Option.map (pair i) (f thm)
 
   fun lookup_assm assms_net ct =
-    T.net_instance' burrow_snd_option assms_net ct
+    Z3_Proof_Tools.net_instance' burrow_snd_option assms_net ct
     |> Option.map (fn ithm as (_, thm) => (ithm, Thm.cprop_of thm aconvc ct))
 in
 
 fun add_asserted outer_ctxt rewrite_rules assms asserted ctxt =
   let
-    val eqs = map (rewrite ctxt [L.rewrite_true]) rewrite_rules
+    val eqs = map (rewrite ctxt [Z3_Proof_Literals.rewrite_true]) rewrite_rules
     val eqs' = union Thm.eq_thm eqs prep_rules
 
     val assms_net =
       assms
       |> map (apsnd (rewrite ctxt eqs'))
       |> map (apsnd (Conv.fconv_rule Thm.eta_conversion))
-      |> T.thm_net_of snd 
+      |> Z3_Proof_Tools.thm_net_of snd 
 
     fun revert_conv ctxt = rewrite_conv ctxt eqs' then_conv Thm.eta_conversion
 
@@ -202,17 +198,20 @@ end
 
 (* P = Q ==> P ==> Q   or   P --> Q ==> P ==> Q *)
 local
-  val meta_iffD1 = @{lemma "P == Q ==> P ==> (Q::bool)" by simp}
-  val meta_iffD1_c = T.precompose2 Thm.dest_binop meta_iffD1
+  val precomp = Z3_Proof_Tools.precompose2
+  val comp = Z3_Proof_Tools.compose
 
-  val iffD1_c = T.precompose2 (Thm.dest_binop o Thm.dest_arg) @{thm iffD1}
-  val mp_c = T.precompose2 (Thm.dest_binop o Thm.dest_arg) @{thm mp}
+  val meta_iffD1 = @{lemma "P == Q ==> P ==> (Q::bool)" by simp}
+  val meta_iffD1_c = precomp Thm.dest_binop meta_iffD1
+
+  val iffD1_c = precomp (Thm.dest_binop o Thm.dest_arg) @{thm iffD1}
+  val mp_c = precomp (Thm.dest_binop o Thm.dest_arg) @{thm mp}
 in
-fun mp (MetaEq thm) p = Thm (Thm.implies_elim (T.compose meta_iffD1_c thm) p)
+fun mp (MetaEq thm) p = Thm (Thm.implies_elim (comp meta_iffD1_c thm) p)
   | mp p_q p = 
       let
         val pq = thm_of p_q
-        val thm = T.compose iffD1_c pq handle THM _ => T.compose mp_c pq
+        val thm = comp iffD1_c pq handle THM _ => comp mp_c pq
       in Thm (Thm.implies_elim thm p) end
 end
 
@@ -220,23 +219,25 @@ end
 (* and_elim:     P1 & ... & Pn ==> Pi *)
 (* not_or_elim:  ~(P1 | ... | Pn) ==> ~Pi *)
 local
-  fun is_sublit conj t = L.exists_lit conj (fn u => u aconv t)
+  fun is_sublit conj t = Z3_Proof_Literals.exists_lit conj (fn u => u aconv t)
 
   fun derive conj t lits idx ptab =
     let
-      val lit = the (L.get_first_lit (is_sublit conj t) lits)
-      val ls = L.explode conj false false [t] lit
-      val lits' = fold L.insert_lit ls (L.delete_lit lit lits)
+      val lit = the (Z3_Proof_Literals.get_first_lit (is_sublit conj t) lits)
+      val ls = Z3_Proof_Literals.explode conj false false [t] lit
+      val lits' = fold Z3_Proof_Literals.insert_lit ls
+        (Z3_Proof_Literals.delete_lit lit lits)
 
       fun upd thm = Literals (thm_of thm, lits')
-    in (the (L.lookup_lit lits' t), Inttab.map_entry idx upd ptab) end
+      val ptab' = Inttab.map_entry idx upd ptab
+    in (the (Z3_Proof_Literals.lookup_lit lits' t), ptab') end
 
   fun lit_elim conj (p, idx) ct ptab =
     let val lits = literals_of p
     in
-      (case L.lookup_lit lits (U.term_of ct) of
+      (case Z3_Proof_Literals.lookup_lit lits (SMT_Utils.term_of ct) of
         SOME lit => (Thm lit, ptab)
-      | NONE => apfst Thm (derive conj (U.term_of ct) lits idx ptab))
+      | NONE => apfst Thm (derive conj (SMT_Utils.term_of ct) lits idx ptab))
     end
 in
 val and_elim = lit_elim true
@@ -248,36 +249,42 @@ end
 local
   fun step lit thm =
     Thm.implies_elim (Thm.implies_intr (Thm.cprop_of lit) thm) lit
-  val explode_disj = L.explode false false false
+  val explode_disj = Z3_Proof_Literals.explode false false false
   fun intro hyps thm th = fold step (explode_disj hyps th) thm
 
   fun dest_ccontr ct = [Thm.dest_arg (Thm.dest_arg (Thm.dest_arg1 ct))]
-  val ccontr = T.precompose dest_ccontr @{thm ccontr}
+  val ccontr = Z3_Proof_Tools.precompose dest_ccontr @{thm ccontr}
 in
 fun lemma thm ct =
   let
-    val cu = L.negate (Thm.dest_arg ct)
+    val cu = Z3_Proof_Literals.negate (Thm.dest_arg ct)
     val hyps = map_filter (try HOLogic.dest_Trueprop) (#hyps (Thm.rep_thm thm))
-  in Thm (T.compose ccontr (T.under_assumption (intro hyps thm) cu)) end
+    val th = Z3_Proof_Tools.under_assumption (intro hyps thm) cu
+  in Thm (Z3_Proof_Tools.compose ccontr th) end
 end
 
 
 (* \/{P1, ..., Pn, Q1, ..., Qn}, ~P1, ..., ~Pn ==> \/{Q1, ..., Qn} *)
 local
-  val explode_disj = L.explode false true false
-  val join_disj = L.join false
+  val explode_disj = Z3_Proof_Literals.explode false true false
+  val join_disj = Z3_Proof_Literals.join false
   fun unit thm thms th =
-    let val t = @{const Not} $ U.prop_of thm and ts = map U.prop_of thms
-    in join_disj (L.make_littab (thms @ explode_disj ts th)) t end
+    let
+      val t = @{const Not} $ SMT_Utils.prop_of thm
+      val ts = map SMT_Utils.prop_of thms
+    in
+      join_disj (Z3_Proof_Literals.make_littab (thms @ explode_disj ts th)) t
+    end
 
   fun dest_arg2 ct = Thm.dest_arg (Thm.dest_arg ct)
   fun dest ct = pairself dest_arg2 (Thm.dest_binop ct)
-  val contrapos = T.precompose2 dest @{lemma "(~P ==> ~Q) ==> Q ==> P" by fast}
+  val contrapos =
+    Z3_Proof_Tools.precompose2 dest @{lemma "(~P ==> ~Q) ==> Q ==> P" by fast}
 in
 fun unit_resolution thm thms ct =
-  L.negate (Thm.dest_arg ct)
-  |> T.under_assumption (unit thm thms)
-  |> Thm o T.discharge thm o T.compose contrapos
+  Z3_Proof_Literals.negate (Thm.dest_arg ct)
+  |> Z3_Proof_Tools.under_assumption (unit thm thms)
+  |> Thm o Z3_Proof_Tools.discharge thm o Z3_Proof_Tools.compose contrapos
 end
 
 
@@ -293,7 +300,7 @@ end
 
 (* distributivity of | over & *)
 fun distributivity ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (T.by_tac (Classical.fast_tac HOL_cs))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac (Classical.fast_tac HOL_cs))]
     (* FIXME: not very well tested *)
 
 
@@ -305,11 +312,15 @@ local
   val disjI4 = @{lemma "(Q ==> P) ==> P | ~Q" by fast}
 
   fun prove' conj1 conj2 ct2 thm =
-    let val lits = L.true_thm :: L.explode conj1 true (conj1 <> conj2) [] thm
-    in L.join conj2 (L.make_littab lits) (Thm.term_of ct2) end
+    let
+      val littab =
+        Z3_Proof_Literals.explode conj1 true (conj1 <> conj2) [] thm
+        |> cons Z3_Proof_Literals.true_thm
+        |> Z3_Proof_Literals.make_littab
+    in Z3_Proof_Literals.join conj2 littab (Thm.term_of ct2) end
 
   fun prove rule (ct1, conj1) (ct2, conj2) =
-    T.under_assumption (prove' conj1 conj2 ct2) ct1 COMP rule
+    Z3_Proof_Tools.under_assumption (prove' conj1 conj2 ct2) ct1 COMP rule
 
   fun prove_def_axiom ct =
     let val (ct1, ct2) = Thm.dest_binop (Thm.dest_arg ct)
@@ -318,32 +329,34 @@ local
         @{const Not} $ (@{const HOL.conj} $ _ $ _) =>
           prove disjI1 (Thm.dest_arg ct1, true) (ct2, true)
       | @{const HOL.conj} $ _ $ _ =>
-          prove disjI3 (L.negate ct2, false) (ct1, true)
+          prove disjI3 (Z3_Proof_Literals.negate ct2, false) (ct1, true)
       | @{const Not} $ (@{const HOL.disj} $ _ $ _) =>
-          prove disjI3 (L.negate ct2, false) (ct1, false)
+          prove disjI3 (Z3_Proof_Literals.negate ct2, false) (ct1, false)
       | @{const HOL.disj} $ _ $ _ =>
-          prove disjI2 (L.negate ct1, false) (ct2, true)
+          prove disjI2 (Z3_Proof_Literals.negate ct1, false) (ct2, true)
       | Const (@{const_name distinct}, _) $ _ =>
           let
             fun dis_conv cv = Conv.arg_conv (Conv.arg1_conv cv)
+            val unfold_dis_conv = dis_conv Z3_Proof_Tools.unfold_distinct_conv
             fun prv cu =
               let val (cu1, cu2) = Thm.dest_binop (Thm.dest_arg cu)
               in prove disjI4 (Thm.dest_arg cu2, true) (cu1, true) end
-          in T.with_conv (dis_conv T.unfold_distinct_conv) prv ct end
+          in Z3_Proof_Tools.with_conv unfold_dis_conv prv ct end
       | @{const Not} $ (Const (@{const_name distinct}, _) $ _) =>
           let
             fun dis_conv cv = Conv.arg_conv (Conv.arg1_conv (Conv.arg_conv cv))
+            val unfold_dis_conv = dis_conv Z3_Proof_Tools.unfold_distinct_conv
             fun prv cu =
               let val (cu1, cu2) = Thm.dest_binop (Thm.dest_arg cu)
               in prove disjI1 (Thm.dest_arg cu1, true) (cu2, true) end
-          in T.with_conv (dis_conv T.unfold_distinct_conv) prv ct end
+          in Z3_Proof_Tools.with_conv unfold_dis_conv prv ct end
       | _ => raise CTERM ("prove_def_axiom", [ct]))
     end
 in
 fun def_axiom ctxt = Thm o try_apply ctxt [] [
   named ctxt "conj/disj/distinct" prove_def_axiom,
-  T.by_abstraction (true, false) ctxt [] (fn ctxt' =>
-    named ctxt' "simp+fast" (T.by_tac simp_fast_tac))]
+  Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
+    named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac simp_fast_tac))]
 end
 
 
@@ -360,14 +373,14 @@ local
     @{lemma "(~P | n = s) & (P | n = t) ==> (if P then s else t) == n"
       by (atomize(full)) fastsimp} ]
 
-  val inst_rule = T.match_instantiate Thm.dest_arg
+  val inst_rule = Z3_Proof_Tools.match_instantiate Thm.dest_arg
 
   fun apply_rule ct =
     (case get_first (try (inst_rule ct)) intro_rules of
       SOME thm => thm
     | NONE => raise CTERM ("intro_def", [ct]))
 in
-fun intro_def ct = T.make_hyp_def (apply_rule ct) #>> Thm
+fun intro_def ct = Z3_Proof_Tools.make_hyp_def (apply_rule ct) #>> Thm
 
 fun apply_def thm =
   get_first (try (fn rule => MetaEq (thm COMP rule))) apply_rules
@@ -394,17 +407,20 @@ local
     (Tactic.match_tac qs1 THEN' nnf_quant_tac thm qs) ORELSE'
     (Tactic.match_tac qs2 THEN' nnf_quant_tac thm qs)) i st
 
+  fun nnf_quant_tac_varified vars eq =
+    nnf_quant_tac (Z3_Proof_Tools.varify vars eq)
+
   fun nnf_quant vars qs p ct =
-    T.as_meta_eq ct
-    |> T.by_tac (nnf_quant_tac (T.varify vars (meta_eq_of p)) qs)
+    Z3_Proof_Tools.as_meta_eq ct
+    |> Z3_Proof_Tools.by_tac (nnf_quant_tac_varified vars (meta_eq_of p) qs)
 
   fun prove_nnf ctxt = try_apply ctxt [] [
-    named ctxt "conj/disj" L.prove_conj_disj_eq,
-    T.by_abstraction (true, false) ctxt [] (fn ctxt' =>
-      named ctxt' "simp+fast" (T.by_tac simp_fast_tac))]
+    named ctxt "conj/disj" Z3_Proof_Literals.prove_conj_disj_eq,
+    Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
+      named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac simp_fast_tac))]
 in
 fun nnf ctxt vars ps ct =
-  (case U.term_of ct of
+  (case SMT_Utils.term_of ct of
     _ $ (l as Const _ $ Abs _) $ (r as Const _ $ Abs _) =>
       if l aconv r
       then MetaEq (Thm.reflexive (Thm.dest_arg (Thm.dest_arg ct)))
@@ -414,8 +430,9 @@ fun nnf ctxt vars ps ct =
   | _ =>
       let
         val nnf_rewr_conv = Conv.arg_conv (Conv.arg_conv
-          (T.unfold_eqs ctxt (map (Thm.symmetric o meta_eq_of) ps)))
-      in Thm (T.with_conv nnf_rewr_conv (prove_nnf ctxt) ct) end)
+          (Z3_Proof_Tools.unfold_eqs ctxt
+            (map (Thm.symmetric o meta_eq_of) ps)))
+      in Thm (Z3_Proof_Tools.with_conv nnf_rewr_conv (prove_nnf ctxt) ct) end)
 end
 
 
@@ -483,15 +500,15 @@ local
       SOME eq => eq
     | NONE => if exn then raise MONO else prove_refl cp)
   
-  val prove_eq_exn = prove_eq true
-  and prove_eq_safe = prove_eq false
+  val prove_exn = prove_eq true
+  and prove_safe = prove_eq false
 
   fun mono f (cp as (cl, _)) =
     (case Term.head_of (Thm.term_of cl) of
-      @{const HOL.conj} => prove_nary L.is_conj (prove_eq_exn f)
-    | @{const HOL.disj} => prove_nary L.is_disj (prove_eq_exn f)
-    | Const (@{const_name distinct}, _) => prove_distinct (prove_eq_safe f)
-    | _ => prove (prove_eq_safe f)) cp
+      @{const HOL.conj} => prove_nary Z3_Proof_Literals.is_conj (prove_exn f)
+    | @{const HOL.disj} => prove_nary Z3_Proof_Literals.is_disj (prove_exn f)
+    | Const (@{const_name distinct}, _) => prove_distinct (prove_safe f)
+    | _ => prove (prove_safe f)) cp
 in
 fun monotonicity eqs ct =
   let
@@ -499,7 +516,7 @@ fun monotonicity eqs ct =
     val teqs = maps (and_symmetric o `Thm.prop_of o meta_eq_of) eqs
     val lookup = AList.lookup (op aconv) teqs
     val cp = Thm.dest_binop (Thm.dest_arg ct)
-  in MetaEq (prove_eq_exn lookup cp handle MONO => mono lookup cp) end
+  in MetaEq (prove_exn lookup cp handle MONO => mono lookup cp) end
 end
 
 
@@ -507,7 +524,9 @@ end
 local
   val rule = @{lemma "a = b == b = a" by (atomize(full)) (rule eq_commute)}
 in
-fun commutativity ct = MetaEq (T.match_instantiate I (T.as_meta_eq ct) rule)
+fun commutativity ct =
+  MetaEq (Z3_Proof_Tools.match_instantiate I
+    (Z3_Proof_Tools.as_meta_eq ct) rule)
 end
 
 
@@ -524,21 +543,22 @@ in
 fun quant_intro vars p ct =
   let
     val thm = meta_eq_of p
-    val rules' = T.varify vars thm :: rules
-    val cu = T.as_meta_eq ct
-  in MetaEq (T.by_tac (REPEAT_ALL_NEW (Tactic.match_tac rules')) cu) end
+    val rules' = Z3_Proof_Tools.varify vars thm :: rules
+    val cu = Z3_Proof_Tools.as_meta_eq ct
+    val tac = REPEAT_ALL_NEW (Tactic.match_tac rules')
+  in MetaEq (Z3_Proof_Tools.by_tac tac cu) end
 end
 
 
 (* |- ((ALL x. P x) | Q) = (ALL x. P x | Q) *)
 fun pull_quant ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (T.by_tac (Classical.fast_tac HOL_cs))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac (Classical.fast_tac HOL_cs))]
     (* FIXME: not very well tested *)
 
 
 (* |- (ALL x. P x & Q x) = ((ALL x. P x) & (ALL x. Q x)) *)
 fun push_quant ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (T.by_tac (Classical.fast_tac HOL_cs))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac (Classical.fast_tac HOL_cs))]
     (* FIXME: not very well tested *)
 
 
@@ -556,13 +576,13 @@ local
       Tactic.match_tac [@{thm refl}, @{thm iff_allI}, @{thm iff_exI}]
       ORELSE' CONVERSION (elim_unused_conv ctxt))
 in
-fun elim_unused_vars ctxt = Thm o T.by_tac (elim_unused_tac ctxt)
+fun elim_unused_vars ctxt = Thm o Z3_Proof_Tools.by_tac (elim_unused_tac ctxt)
 end
 
 
 (* |- (ALL x1 ... xn. ~(x1 = t1 & ... xn = tn) | P x1 ... xn) = P t1 ... tn *)
 fun dest_eq_res ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (T.by_tac (Classical.fast_tac HOL_cs))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac (Classical.fast_tac HOL_cs))]
     (* FIXME: not very well tested *)
 
 
@@ -570,7 +590,7 @@ fun dest_eq_res ctxt = Thm o try_apply ctxt [] [
 local
   val rule = @{lemma "~ P x | Q ==> ~(ALL x. P x) | Q" by fast}
 in
-val quant_inst = Thm o T.by_tac (
+val quant_inst = Thm o Z3_Proof_Tools.by_tac (
   REPEAT_ALL_NEW (Tactic.match_tac [rule])
   THEN' Tactic.rtac @{thm excluded_middle})
 end
@@ -599,7 +619,7 @@ local
 
   fun kind (Const (@{const_name Ex}, _) $ _) = (sk_ex_rule, I, I)
     | kind (@{const Not} $ (Const (@{const_name All}, _) $ _)) =
-        (sk_all_rule, Thm.dest_arg, L.negate)
+        (sk_all_rule, Thm.dest_arg, Z3_Proof_Literals.negate)
     | kind t = raise TERM ("skolemize", [t])
 
   fun dest_abs_type (Abs (_, T, _)) = T
@@ -628,7 +648,8 @@ local
     (case mct of
       SOME ct =>
         ctxt
-        |> T.make_hyp_def (inst_sk rule (Thm.instantiate_cterm ([], is) cb) ct)
+        |> Z3_Proof_Tools.make_hyp_def
+             (inst_sk rule (Thm.instantiate_cterm ([], is) cb) ct)
         |>> pair ((cv, ct) :: is) o Thm.transitive thm
     | NONE => ((is, transitive (Conv.rewr_conv elim) thm), ctxt))
 in
@@ -649,10 +670,12 @@ end
 
 (* theory lemmas: linear arithmetic, arrays *)
 fun th_lemma ctxt simpset thms = Thm o try_apply ctxt thms [
-  T.by_abstraction (false, true) ctxt thms (fn ctxt' => T.by_tac (
-    NAMED ctxt' "arith" (Arith_Data.arith_tac ctxt')
-    ORELSE' NAMED ctxt' "simp+arith" (Simplifier.simp_tac simpset THEN_ALL_NEW
-      Arith_Data.arith_tac ctxt')))]
+  Z3_Proof_Tools.by_abstraction (false, true) ctxt thms (fn ctxt' =>
+    Z3_Proof_Tools.by_tac (
+      NAMED ctxt' "arith" (Arith_Data.arith_tac ctxt')
+      ORELSE' NAMED ctxt' "simp+arith" (
+        Simplifier.simp_tac simpset
+        THEN_ALL_NEW Arith_Data.arith_tac ctxt')))]
 
 
 (* rewriting: prove equalities:
@@ -680,14 +703,18 @@ local
     | prep (Literals (thm, _)) = spec_meta_eq_of thm
 
   fun unfold_conv ctxt ths =
-    Conv.arg_conv (Conv.binop_conv (T.unfold_eqs ctxt (map prep ths)))
+    Conv.arg_conv (Conv.binop_conv (Z3_Proof_Tools.unfold_eqs ctxt
+      (map prep ths)))
 
   fun with_conv _ [] prv = prv
-    | with_conv ctxt ths prv = T.with_conv (unfold_conv ctxt ths) prv
+    | with_conv ctxt ths prv =
+        Z3_Proof_Tools.with_conv (unfold_conv ctxt ths) prv
 
   val unfold_conv =
-    Conv.arg_conv (Conv.binop_conv (Conv.try_conv T.unfold_distinct_conv))
-  val prove_conj_disj_eq = T.with_conv unfold_conv L.prove_conj_disj_eq
+    Conv.arg_conv (Conv.binop_conv
+      (Conv.try_conv Z3_Proof_Tools.unfold_distinct_conv))
+  val prove_conj_disj_eq =
+    Z3_Proof_Tools.with_conv unfold_conv Z3_Proof_Literals.prove_conj_disj_eq
 
   fun assume_prems ctxt thm =
     Assumption.add_assumes (Drule.cprems_of thm) ctxt
@@ -697,20 +724,23 @@ in
 fun rewrite simpset ths ct ctxt =
   apfst Thm (assume_prems ctxt (with_conv ctxt ths (try_apply ctxt [] [
     named ctxt "conj/disj/distinct" prove_conj_disj_eq,
-    T.by_abstraction (true, false) ctxt [] (fn ctxt' => T.by_tac (
-      NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
-      THEN_ALL_NEW NAMED ctxt' "fast (logic)" (Classical.fast_tac HOL_cs))),
-    T.by_abstraction (false, true) ctxt [] (fn ctxt' => T.by_tac (
-      NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
-      THEN_ALL_NEW (
-        NAMED ctxt' "fast (theory)" (Classical.fast_tac HOL_cs)
-        ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
-    T.by_abstraction (true, true) ctxt [] (fn ctxt' => T.by_tac (
-      NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
-      THEN_ALL_NEW (
-        NAMED ctxt' "fast (full)" (Classical.fast_tac HOL_cs)
-        ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt')))),
-    named ctxt "injectivity" (M.prove_injectivity ctxt)]) ct))
+    Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
+      Z3_Proof_Tools.by_tac (
+        NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
+        THEN_ALL_NEW NAMED ctxt' "fast (logic)" (Classical.fast_tac HOL_cs))),
+    Z3_Proof_Tools.by_abstraction (false, true) ctxt [] (fn ctxt' =>
+      Z3_Proof_Tools.by_tac (
+        NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
+        THEN_ALL_NEW (
+          NAMED ctxt' "fast (theory)" (Classical.fast_tac HOL_cs)
+          ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
+    Z3_Proof_Tools.by_abstraction (true, true) ctxt [] (fn ctxt' =>
+      Z3_Proof_Tools.by_tac (
+        NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
+        THEN_ALL_NEW (
+          NAMED ctxt' "fast (full)" (Classical.fast_tac HOL_cs)
+          ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt')))),
+    named ctxt "injectivity" (Z3_Proof_Methods.prove_injectivity ctxt)]) ct))
 
 end
 
@@ -721,7 +751,7 @@ end
 (** tracing and checking **)
 
 fun trace_before ctxt idx = SMT_Config.trace_msg ctxt (fn r =>
-  "Z3: #" ^ string_of_int idx ^ ": " ^ P.string_of_rule r)
+  "Z3: #" ^ string_of_int idx ^ ": " ^ Z3_Proof_Parser.string_of_rule r)
 
 fun check_after idx r ps ct (p, (ctxt, _)) =
   if not (Config.get ctxt SMT_Config.trace) then ()
@@ -729,11 +759,13 @@ fun check_after idx r ps ct (p, (ctxt, _)) =
     let val thm = thm_of p |> tap (Thm.join_proofs o single)
     in
       if (Thm.cprop_of thm) aconvc ct then ()
-      else z3_exn (Pretty.string_of (Pretty.big_list ("proof step failed: " ^
-        quote (P.string_of_rule r) ^ " (#" ^ string_of_int idx ^ ")")
+      else
+        z3_exn (Pretty.string_of (Pretty.big_list
+          ("proof step failed: " ^ quote (Z3_Proof_Parser.string_of_rule r) ^
+            " (#" ^ string_of_int idx ^ ")")
           (pretty_goal ctxt (map (thm_of o fst) ps) (Thm.prop_of thm) @
-           [Pretty.block [Pretty.str "expected: ",
-            Syntax.pretty_term ctxt (Thm.term_of ct)]])))
+            [Pretty.block [Pretty.str "expected: ",
+              Syntax.pretty_term ctxt (Thm.term_of ct)]])))
     end
 
 
@@ -741,61 +773,67 @@ fun check_after idx r ps ct (p, (ctxt, _)) =
 
 local
   fun not_supported r = raise Fail ("Z3: proof rule not implemented: " ^
-    quote (P.string_of_rule r))
+    quote (Z3_Proof_Parser.string_of_rule r))
 
   fun prove_step simpset vars r ps ct (cxp as (cx, ptab)) =
     (case (r, ps) of
       (* core rules *)
-      (P.True_Axiom, _) => (Thm L.true_thm, cxp)
-    | (P.Asserted, _) => raise Fail "bad assertion"
-    | (P.Goal, _) => raise Fail "bad assertion"
-    | (P.Modus_Ponens, [(p, _), (q, _)]) => (mp q (thm_of p), cxp)
-    | (P.Modus_Ponens_Oeq, [(p, _), (q, _)]) => (mp q (thm_of p), cxp)
-    | (P.And_Elim, [(p, i)]) => and_elim (p, i) ct ptab ||> pair cx
-    | (P.Not_Or_Elim, [(p, i)]) => not_or_elim (p, i) ct ptab ||> pair cx
-    | (P.Hypothesis, _) => (Thm (Thm.assume ct), cxp)
-    | (P.Lemma, [(p, _)]) => (lemma (thm_of p) ct, cxp)
-    | (P.Unit_Resolution, (p, _) :: ps) =>
+      (Z3_Proof_Parser.True_Axiom, _) => (Thm Z3_Proof_Literals.true_thm, cxp)
+    | (Z3_Proof_Parser.Asserted, _) => raise Fail "bad assertion"
+    | (Z3_Proof_Parser.Goal, _) => raise Fail "bad assertion"
+    | (Z3_Proof_Parser.Modus_Ponens, [(p, _), (q, _)]) =>
+        (mp q (thm_of p), cxp)
+    | (Z3_Proof_Parser.Modus_Ponens_Oeq, [(p, _), (q, _)]) =>
+        (mp q (thm_of p), cxp)
+    | (Z3_Proof_Parser.And_Elim, [(p, i)]) =>
+        and_elim (p, i) ct ptab ||> pair cx
+    | (Z3_Proof_Parser.Not_Or_Elim, [(p, i)]) =>
+        not_or_elim (p, i) ct ptab ||> pair cx
+    | (Z3_Proof_Parser.Hypothesis, _) => (Thm (Thm.assume ct), cxp)
+    | (Z3_Proof_Parser.Lemma, [(p, _)]) => (lemma (thm_of p) ct, cxp)
+    | (Z3_Proof_Parser.Unit_Resolution, (p, _) :: ps) =>
         (unit_resolution (thm_of p) (map (thm_of o fst) ps) ct, cxp)
-    | (P.Iff_True, [(p, _)]) => (iff_true (thm_of p), cxp)
-    | (P.Iff_False, [(p, _)]) => (iff_false (thm_of p), cxp)
-    | (P.Distributivity, _) => (distributivity cx ct, cxp)
-    | (P.Def_Axiom, _) => (def_axiom cx ct, cxp)
-    | (P.Intro_Def, _) => intro_def ct cx ||> rpair ptab
-    | (P.Apply_Def, [(p, _)]) => (apply_def (thm_of p), cxp)
-    | (P.Iff_Oeq, [(p, _)]) => (p, cxp)
-    | (P.Nnf_Pos, _) => (nnf cx vars (map fst ps) ct, cxp)
-    | (P.Nnf_Neg, _) => (nnf cx vars (map fst ps) ct, cxp)
+    | (Z3_Proof_Parser.Iff_True, [(p, _)]) => (iff_true (thm_of p), cxp)
+    | (Z3_Proof_Parser.Iff_False, [(p, _)]) => (iff_false (thm_of p), cxp)
+    | (Z3_Proof_Parser.Distributivity, _) => (distributivity cx ct, cxp)
+    | (Z3_Proof_Parser.Def_Axiom, _) => (def_axiom cx ct, cxp)
+    | (Z3_Proof_Parser.Intro_Def, _) => intro_def ct cx ||> rpair ptab
+    | (Z3_Proof_Parser.Apply_Def, [(p, _)]) => (apply_def (thm_of p), cxp)
+    | (Z3_Proof_Parser.Iff_Oeq, [(p, _)]) => (p, cxp)
+    | (Z3_Proof_Parser.Nnf_Pos, _) => (nnf cx vars (map fst ps) ct, cxp)
+    | (Z3_Proof_Parser.Nnf_Neg, _) => (nnf cx vars (map fst ps) ct, cxp)
 
       (* equality rules *)
-    | (P.Reflexivity, _) => (refl ct, cxp)
-    | (P.Symmetry, [(p, _)]) => (symm p, cxp)
-    | (P.Transitivity, [(p, _), (q, _)]) => (trans p q, cxp)
-    | (P.Monotonicity, _) => (monotonicity (map fst ps) ct, cxp)
-    | (P.Commutativity, _) => (commutativity ct, cxp)
+    | (Z3_Proof_Parser.Reflexivity, _) => (refl ct, cxp)
+    | (Z3_Proof_Parser.Symmetry, [(p, _)]) => (symm p, cxp)
+    | (Z3_Proof_Parser.Transitivity, [(p, _), (q, _)]) => (trans p q, cxp)
+    | (Z3_Proof_Parser.Monotonicity, _) => (monotonicity (map fst ps) ct, cxp)
+    | (Z3_Proof_Parser.Commutativity, _) => (commutativity ct, cxp)
 
       (* quantifier rules *)
-    | (P.Quant_Intro, [(p, _)]) => (quant_intro vars p ct, cxp)
-    | (P.Pull_Quant, _) => (pull_quant cx ct, cxp)
-    | (P.Push_Quant, _) => (push_quant cx ct, cxp)
-    | (P.Elim_Unused_Vars, _) => (elim_unused_vars cx ct, cxp)
-    | (P.Dest_Eq_Res, _) => (dest_eq_res cx ct, cxp)
-    | (P.Quant_Inst, _) => (quant_inst ct, cxp)
-    | (P.Skolemize, _) => skolemize ct cx ||> rpair ptab
+    | (Z3_Proof_Parser.Quant_Intro, [(p, _)]) => (quant_intro vars p ct, cxp)
+    | (Z3_Proof_Parser.Pull_Quant, _) => (pull_quant cx ct, cxp)
+    | (Z3_Proof_Parser.Push_Quant, _) => (push_quant cx ct, cxp)
+    | (Z3_Proof_Parser.Elim_Unused_Vars, _) => (elim_unused_vars cx ct, cxp)
+    | (Z3_Proof_Parser.Dest_Eq_Res, _) => (dest_eq_res cx ct, cxp)
+    | (Z3_Proof_Parser.Quant_Inst, _) => (quant_inst ct, cxp)
+    | (Z3_Proof_Parser.Skolemize, _) => skolemize ct cx ||> rpair ptab
 
       (* theory rules *)
-    | (P.Th_Lemma _, _) =>  (* FIXME: use arguments *)
+    | (Z3_Proof_Parser.Th_Lemma _, _) =>  (* FIXME: use arguments *)
         (th_lemma cx simpset (map (thm_of o fst) ps) ct, cxp)
-    | (P.Rewrite, _) => rewrite simpset [] ct cx ||> rpair ptab
-    | (P.Rewrite_Star, ps) => rewrite simpset (map fst ps) ct cx ||> rpair ptab
+    | (Z3_Proof_Parser.Rewrite, _) => rewrite simpset [] ct cx ||> rpair ptab
+    | (Z3_Proof_Parser.Rewrite_Star, ps) =>
+        rewrite simpset (map fst ps) ct cx ||> rpair ptab
 
-    | (P.Nnf_Star, _) => not_supported r
-    | (P.Cnf_Star, _) => not_supported r
-    | (P.Transitivity_Star, _) => not_supported r
-    | (P.Pull_Quant_Star, _) => not_supported r
+    | (Z3_Proof_Parser.Nnf_Star, _) => not_supported r
+    | (Z3_Proof_Parser.Cnf_Star, _) => not_supported r
+    | (Z3_Proof_Parser.Transitivity_Star, _) => not_supported r
+    | (Z3_Proof_Parser.Pull_Quant_Star, _) => not_supported r
 
-    | _ => raise Fail ("Z3: proof rule " ^ quote (P.string_of_rule r) ^
-       " has an unexpected number of arguments."))
+    | _ => raise Fail ("Z3: proof rule " ^
+        quote (Z3_Proof_Parser.string_of_rule r) ^
+        " has an unexpected number of arguments."))
 
   fun lookup_proof ptab idx =
     (case Inttab.lookup ptab idx of
@@ -804,7 +842,7 @@ local
 
   fun prove simpset vars (idx, step) (_, cxp as (ctxt, ptab)) =
     let
-      val P.Proof_Step {rule=r, prems, prop, ...} = step
+      val Z3_Proof_Parser.Proof_Step {rule=r, prems, prop, ...} = step
       val ps = map (lookup_proof ptab) prems
       val _ = trace_before ctxt idx r
       val (thm, (ctxt', ptab')) =
@@ -832,9 +870,10 @@ in
 fun reconstruct outer_ctxt recon output =
   let
     val {context=ctxt, typs, terms, rewrite_rules, assms} = recon
-    val (asserted, steps, vars, ctxt1) = P.parse ctxt typs terms output
+    val (asserted, steps, vars, ctxt1) =
+      Z3_Proof_Parser.parse ctxt typs terms output
 
-    val simpset = T.make_simpset ctxt1 (Z3_Simps.get ctxt1)
+    val simpset = Z3_Proof_Tools.make_simpset ctxt1 (Z3_Simps.get ctxt1)
 
     val ((is, rules), cxp as (ctxt2, _)) =
       add_asserted outer_ctxt rewrite_rules assms asserted ctxt1
