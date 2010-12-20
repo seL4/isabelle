@@ -214,10 +214,7 @@ type solver_info = {
     int list * thm,
   default_max_relevant: int }
 
-fun gen_solver_head ctxt iwthms =
-  SMT_Normalize.normalize ctxt iwthms
-  |> rpair ctxt
-  |-> SMT_Monomorph.monomorph
+fun gen_solver_head ctxt iwthms = SMT_Normalize.normalize iwthms ctxt
 
 fun gen_solver_tail (name, info : solver_info) rm (iwthms', ctxt) iwthms =
   let

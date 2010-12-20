@@ -10,8 +10,8 @@ sig
   type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
   val add_extra_norm: SMT_Utils.class * extra_norm -> Context.generic ->
     Context.generic
-  val normalize: Proof.context -> (int * (int option * thm)) list ->
-    (int * thm) list
+  val normalize: (int * (int option * thm)) list -> Proof.context ->
+    (int * thm) list * Proof.context
   val setup: theory -> theory
 end
 
@@ -574,8 +574,9 @@ fun unfold_conv ctxt =
   rewrite_bool_case_conv ctxt then_conv
   unfold_abs_min_max_conv ctxt then_conv
   nat_as_int_conv ctxt then_conv
-  normalize_numerals_conv ctxt then_conv
   Thm.beta_conversion true
+
+fun unfold1 ctxt = map (apsnd (Conv.fconv_rule (unfold_conv ctxt)))
 
 fun burrow_ids f ithms =
   let
@@ -583,8 +584,11 @@ fun burrow_ids f ithms =
     val (thms', extra_thms) = f thms
   in (is ~~ thms') @ map (pair ~1) extra_thms end
 
-fun unfold ctxt =
-  burrow_ids (map (Conv.fconv_rule (unfold_conv ctxt)) #> add_nat_embedding)
+fun unfold2 ithms ctxt =
+  ithms
+  |> map (apsnd (Conv.fconv_rule (normalize_numerals_conv ctxt)))
+  |> burrow_ids add_nat_embedding
+  |> rpair ctxt
 
 
 
@@ -602,17 +606,20 @@ structure Extra_Norms = Generic_Data
 
 fun add_extra_norm (cs, norm) = Extra_Norms.map (U.dict_update (cs, norm))
 
-fun apply_extra_norms ctxt =
+fun apply_extra_norms ithms ctxt =
   let
     val cs = SMT_Config.solver_class_of ctxt
     val es = U.dict_lookup (Extra_Norms.get (Context.Proof ctxt)) cs
-  in burrow_ids (fold (fn e => e ctxt) es o rpair []) end
+  in (burrow_ids (fold (fn e => e ctxt) es o rpair []) ithms, ctxt) end
 
-fun normalize ctxt iwthms =
+fun normalize iwthms ctxt =
   iwthms
   |> gen_normalize ctxt
-  |> unfold ctxt
-  |> apply_extra_norms ctxt
+  |> unfold1 ctxt
+  |> rpair ctxt
+  |-> SMT_Monomorph.monomorph
+  |-> unfold2
+  |-> apply_extra_norms
 
 val setup = Context.theory_map (
   setup_atomize #>
