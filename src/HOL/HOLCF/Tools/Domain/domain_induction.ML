@@ -17,7 +17,7 @@ sig
   val trace_domain: bool Unsynchronized.ref
 end
 
-structure Domain_Induction :> DOMAIN_INDUCTION =
+structure Domain_Induction : DOMAIN_INDUCTION =
 struct
 
 val quiet_mode = Unsynchronized.ref false

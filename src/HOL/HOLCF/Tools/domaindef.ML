@@ -25,7 +25,7 @@ sig
     * (binding * binding) option -> theory -> theory
 end
 
-structure Domaindef :> DOMAINDEF =
+structure Domaindef : DOMAINDEF =
 struct
 
 open HOLCF_Library
