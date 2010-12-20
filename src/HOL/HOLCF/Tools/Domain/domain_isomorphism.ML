@@ -20,6 +20,7 @@ sig
         map_consts : term list,
         map_apply_thms : thm list,
         map_unfold_thms : thm list,
+        map_cont_thm : thm,
         deflation_map_thms : thm list
       }
       * theory
@@ -135,7 +136,7 @@ fun mk_projs []      t = []
 
 fun add_fixdefs
     (spec : (binding * term) list)
-    (thy : theory) : (thm list * thm list) * theory =
+    (thy : theory) : (thm list * thm list * thm) * theory =
   let
     val binds = map fst spec
     val (lhss, rhss) = ListPair.unzip (map (dest_eqs o snd) spec)
@@ -199,7 +200,7 @@ fun add_fixdefs
       (Global_Theory.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (mk_unfold_thms unfold_binds tuple_unfold_thm) thy
   in
-    ((proj_thms, unfold_thms), thy)
+    ((proj_thms, unfold_thms, cont_thm), thy)
   end
 
 
@@ -302,7 +303,7 @@ fun define_map_functions
 
     (* register recursive definition of map functions *)
     val map_binds = map (Binding.suffix_name "_map") dbinds
-    val ((map_apply_thms, map_unfold_thms), thy) =
+    val ((map_apply_thms, map_unfold_thms, map_cont_thm), thy) =
       add_fixdefs (map_binds ~~ map_specs) thy
 
     (* prove deflation theorems for map functions *)
@@ -320,13 +321,13 @@ fun define_map_functions
         val assms = (map mk_assm o filter (is_cpo thy) o snd o dest_Type o fst o hd) dom_eqns
         val goals = map mk_goal (map_consts ~~ dom_eqns)
         val goal = mk_trp (foldr1 HOLogic.mk_conj goals)
-        val start_thms =
-          @{thm split_def} :: map_apply_thms
         val adm_rules =
           @{thms adm_conj adm_subst [OF _ adm_deflation]
                  cont2cont_fst cont2cont_snd cont_id}
         val bottom_rules =
           @{thms fst_strict snd_strict deflation_UU simp_thms}
+        val tuple_rules =
+          @{thms split_def fst_conv snd_conv}
         val deflation_rules =
           @{thms conjI deflation_ID}
           @ deflation_abs_rep_thms
@@ -334,12 +335,11 @@ fun define_map_functions
       in
         Goal.prove_global thy [] assms goal (fn {prems, ...} =>
          EVERY
-          [simp_tac (HOL_basic_ss addsimps start_thms) 1,
-           rtac @{thm fix_ind} 1,
+          [rewrite_goals_tac map_apply_thms,
+           rtac (map_cont_thm RS @{thm cont_fix_ind}) 1,
            REPEAT (resolve_tac adm_rules 1),
            simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
-           simp_tac beta_ss 1,
-           simp_tac (HOL_basic_ss addsimps @{thms fst_conv snd_conv}) 1,
+           simp_tac (HOL_basic_ss addsimps tuple_rules) 1,
            REPEAT (etac @{thm conjE} 1),
            REPEAT (resolve_tac (deflation_rules @ prems) 1 ORELSE atac 1)])
       end
@@ -376,6 +376,7 @@ fun define_map_functions
         map_consts = map_consts,
         map_apply_thms = map_apply_thms,
         map_unfold_thms = map_unfold_thms,
+        map_cont_thm = map_cont_thm,
         deflation_map_thms = deflation_map_thms
       }
   in
@@ -520,7 +521,7 @@ fun gen_domain_isomorphism
 
     (* register recursive definition of deflation combinators *)
     val defl_binds = map (Binding.suffix_name "_defl") dbinds
-    val ((defl_apply_thms, defl_unfold_thms), thy) =
+    val ((defl_apply_thms, defl_unfold_thms, defl_cont_thm), thy) =
       add_fixdefs (defl_binds ~~ defl_specs) thy
 
     (* define types using deflation combinators *)
@@ -611,7 +612,7 @@ fun gen_domain_isomorphism
     val (map_info, thy) =
         define_map_functions (dbinds ~~ iso_infos) thy
     val { map_consts, map_apply_thms, map_unfold_thms,
-          deflation_map_thms } = map_info
+          map_cont_thm, deflation_map_thms } = map_info
 
     (* prove isodefl rules for map functions *)
     val isodefl_thm =
@@ -635,12 +636,12 @@ fun gen_domain_isomorphism
         val assms = (map mk_assm o snd o hd) defl_flagss
         val goals = map mk_goal (map_consts ~~ dom_eqns)
         val goal = mk_trp (foldr1 HOLogic.mk_conj goals)
-        val start_thms =
-          @{thm split_def} :: defl_apply_thms @ map_apply_thms
         val adm_rules =
           @{thms adm_conj adm_isodefl cont2cont_fst cont2cont_snd cont_id}
         val bottom_rules =
           @{thms fst_strict snd_strict isodefl_bottom simp_thms}
+        val tuple_rules =
+          @{thms split_def fst_conv snd_conv}
         val map_ID_thms = Domain_Take_Proofs.get_map_ID_thms thy
         val map_ID_simps = map (fn th => th RS sym) map_ID_thms
         val isodefl_rules =
@@ -650,14 +651,12 @@ fun gen_domain_isomorphism
       in
         Goal.prove_global thy [] assms goal (fn {prems, ...} =>
          EVERY
-          [simp_tac (HOL_basic_ss addsimps start_thms) 1,
-           (* FIXME: how reliable is unification here? *)
-           (* Maybe I should instantiate the rule. *)
-           rtac @{thm parallel_fix_ind} 1,
+          [rewrite_goals_tac (defl_apply_thms @ map_apply_thms),
+           rtac (@{thm cont_parallel_fix_ind}
+             OF [defl_cont_thm, map_cont_thm]) 1,
            REPEAT (resolve_tac adm_rules 1),
            simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
-           simp_tac beta_ss 1,
-           simp_tac (HOL_basic_ss addsimps @{thms fst_conv snd_conv}) 1,
+           simp_tac (HOL_basic_ss addsimps tuple_rules) 1,
            simp_tac (HOL_basic_ss addsimps map_ID_simps) 1,
            REPEAT (etac @{thm conjE} 1),
            REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)])
