@@ -29,7 +29,7 @@ fun mk_all_imp (A,P) =
 fun mk_Collect (a, D, t) = @{const Collect} $ D $ absfree (a, iT, t);
 
 (*simple error-checking in the premises of an inductive definition*)
-fun chk_prem rec_hd (Const (@{const_name "op &"}, _) $ _ $ _) =
+fun chk_prem rec_hd (Const (@{const_name conj}, _) $ _ $ _) =
         error"Premises may not be conjuctive"
   | chk_prem rec_hd (Const (@{const_name mem}, _) $ t $ X) =
         (Logic.occs(rec_hd,t) andalso error "Recursion term on left of member symbol"; ())
@@ -96,7 +96,7 @@ fun union_params (rec_tm, cs) =
   let val (_,args) = strip_comb rec_tm
       fun is_ind arg = (type_of arg = iT)
   in  case filter is_ind (args @ cs) of
-         [] => @{const 0}
+         [] => @{const zero}
        | u_args => Balanced_Tree.make mk_Un u_args
   end;
 

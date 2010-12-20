@@ -32,8 +32,8 @@ fun atomize (conn_pairs, mem_pairs) th =
 val ZF_conn_pairs =
   [(@{const_name Ball}, [@{thm bspec}]),
    (@{const_name All}, [@{thm spec}]),
-   (@{const_name "op -->"}, [@{thm mp}]),
-   (@{const_name "op &"}, [@{thm conjunct1}, @{thm conjunct2}])];
+   (@{const_name imp}, [@{thm mp}]),
+   (@{const_name conj}, [@{thm conjunct1}, @{thm conjunct2}])];
 
 (*Analyse a:b, where b is rigid*)
 val ZF_mem_pairs =

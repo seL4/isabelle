@@ -18,13 +18,13 @@ default_sort cpo
 
 typedecl tr
 typedecl void
-typedecl ('a,'b) "*"    (infixl "*" 6)
-typedecl ('a,'b) "+"    (infixl "+" 5)
+typedecl ('a,'b) prod  (infixl "*" 6)
+typedecl ('a,'b) sum  (infixl "+" 5)
 
 arities
   "fun" :: (cpo, cpo) cpo
-  "*" :: (cpo, cpo) cpo
-  "+" :: (cpo, cpo) cpo
+  prod :: (cpo, cpo) cpo
+  sum :: (cpo, cpo) cpo
   tr :: cpo
   void :: cpo
 

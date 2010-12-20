@@ -13,7 +13,7 @@ typedecl nat
 arities nat :: "term"
 
 consts
-  0 :: nat    ("0")
+  Zero :: nat    ("0")
   Suc :: "nat => nat"
   rec :: "[nat, 'a, [nat, 'a] => 'a] => 'a"
   add :: "[nat, nat] => nat"    (infixl "+" 60)

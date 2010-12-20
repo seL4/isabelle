@@ -603,7 +603,9 @@ names of constants and types involved. INCOMPATIBILITY.
 
 *** FOL and ZF ***
 
-* All constant names are now qualified.  INCOMPATIBILITY.
+* All constant names are now qualified internally and use proper
+identifiers, e.g. "IFOL.eq" instead of "op =".  INCOMPATIBILITY.
+
 
 
 *** ML ***

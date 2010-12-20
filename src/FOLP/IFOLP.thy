@@ -24,14 +24,14 @@ consts
  EqProof        ::   "[p,p,o]=>prop"    ("(3_ /= _ :/ _)" [10,10,10] 5)
 
       (*** Logical Connectives -- Type Formers ***)
- "op ="         ::      "['a,'a] => o"  (infixl "=" 50)
+ eq             ::      "['a,'a] => o"  (infixl "=" 50)
  True           ::      "o"
  False          ::      "o"
  Not            ::      "o => o"        ("~ _" [40] 40)
- "op &"         ::      "[o,o] => o"    (infixr "&" 35)
- "op |"         ::      "[o,o] => o"    (infixr "|" 30)
- "op -->"       ::      "[o,o] => o"    (infixr "-->" 25)
- "op <->"       ::      "[o,o] => o"    (infixr "<->" 25)
+ conj           ::      "[o,o] => o"    (infixr "&" 35)
+ disj           ::      "[o,o] => o"    (infixr "|" 30)
+ imp            ::      "[o,o] => o"    (infixr "-->" 25)
+ iff            ::      "[o,o] => o"    (infixr "<->" 25)
       (*Quantifiers*)
  All            ::      "('a => o) => o"        (binder "ALL " 10)
  Ex             ::      "('a => o) => o"        (binder "EX " 10)
@@ -51,9 +51,9 @@ consts
  inr            :: "p=>p"
  when           :: "[p, p=>p, p=>p]=>p"
  lambda         :: "(p => p) => p"      (binder "lam " 55)
- "op `"         :: "[p,p]=>p"           (infixl "`" 60)
+ App            :: "[p,p]=>p"           (infixl "`" 60)
  alll           :: "['a=>p]=>p"         (binder "all " 55)
- "op ^"         :: "[p,'a]=>p"          (infixl "^" 55)
+ app            :: "[p,'a]=>p"          (infixl "^" 55)
  exists         :: "['a,p]=>p"          ("(1[_,/_])")
  xsplit         :: "[p,['a,p]=>p]=>p"
  ideq           :: "'a=>p"
@@ -595,7 +595,7 @@ structure Hypsubst_Data =
 struct
   (*Take apart an equality judgement; otherwise raise Match!*)
   fun dest_eq (Const (@{const_name Proof}, _) $
-    (Const (@{const_name "op ="}, _)  $ t $ u) $ _) = (t, u);
+    (Const (@{const_name eq}, _)  $ t $ u) $ _) = (t, u);
 
   val imp_intr = @{thm impI}
 

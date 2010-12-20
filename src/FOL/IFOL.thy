@@ -42,13 +42,13 @@ consts
 
   (* Connectives *)
 
-  "op ="        :: "['a, 'a] => o"              (infixl "=" 50)
+  eq            :: "['a, 'a] => o"              (infixl "=" 50)
 
   Not           :: "o => o"                     ("~ _" [40] 40)
-  "op &"        :: "[o, o] => o"                (infixr "&" 35)
-  "op |"        :: "[o, o] => o"                (infixr "|" 30)
-  "op -->"      :: "[o, o] => o"                (infixr "-->" 25)
-  "op <->"      :: "[o, o] => o"                (infixr "<->" 25)
+  conj          :: "[o, o] => o"                (infixr "&" 35)
+  disj          :: "[o, o] => o"                (infixr "|" 30)
+  imp           :: "[o, o] => o"                (infixr "-->" 25)
+  iff           :: "[o, o] => o"                (infixr "<->" 25)
 
   (* Quantifiers *)
 
@@ -69,28 +69,24 @@ notation (HTML output)
 
 notation (xsymbols)
   Not       ("\<not> _" [40] 40) and
-  "op &"    (infixr "\<and>" 35) and
-  "op |"    (infixr "\<or>" 30) and
+  conj      (infixr "\<and>" 35) and
+  disj      (infixr "\<or>" 30) and
   All       (binder "\<forall>" 10) and
   Ex        (binder "\<exists>" 10) and
   Ex1       (binder "\<exists>!" 10) and
-  "op -->"  (infixr "\<longrightarrow>" 25) and
-  "op <->"  (infixr "\<longleftrightarrow>" 25)
+  imp       (infixr "\<longrightarrow>" 25) and
+  iff       (infixr "\<longleftrightarrow>" 25)
 
 notation (HTML output)
   Not       ("\<not> _" [40] 40) and
-  "op &"    (infixr "\<and>" 35) and
-  "op |"    (infixr "\<or>" 30) and
+  conj      (infixr "\<and>" 35) and
+  disj      (infixr "\<or>" 30) and
   All       (binder "\<forall>" 10) and
   Ex        (binder "\<exists>" 10) and
   Ex1       (binder "\<exists>!" 10)
 
 finalconsts
-  False All Ex
-  "op ="
-  "op &"
-  "op |"
-  "op -->"
+  False All Ex eq conj disj imp
 
 axioms
 

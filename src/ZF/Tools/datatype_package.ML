@@ -91,7 +91,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (** Define the constructors **)
 
   (*The empty tuple is 0*)
-  fun mk_tuple [] = @{const "0"}
+  fun mk_tuple [] = @{const zero}
     | mk_tuple args = foldr1 (fn (t1, t2) => Pr.pair $ t1 $ t2) args;
 
   fun mk_inject n k u = Balanced_Tree.access
