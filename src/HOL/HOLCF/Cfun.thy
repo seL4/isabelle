@@ -142,16 +142,19 @@ text {*
   using @{text beta_cfun} as a simp rule.  The advantage of the
   simproc is that it can avoid deeply-nested calls to the simplifier
   that would otherwise be caused by large continuity side conditions.
+
+  Update: The simproc now uses rule @{text Abs_cfun_inverse2} instead
+  of @{text beta_cfun}, to avoid problems with eta-contraction.
 *}
 
-simproc_setup beta_cfun_proc ("Abs_cfun f\<cdot>x") = {*
+simproc_setup beta_cfun_proc ("Rep_cfun (Abs_cfun f)") = {*
   fn phi => fn ss => fn ct =>
     let
       val dest = Thm.dest_comb;
-      val (f, x) = (apfst (snd o dest o snd o dest) o dest) ct;
+      val f = (snd o dest o snd o dest) ct;
       val [T, U] = Thm.dest_ctyp (ctyp_of_term f);
-      val tr = instantiate' [SOME T, SOME U] [SOME f, SOME x]
-          (mk_meta_eq @{thm beta_cfun});
+      val tr = instantiate' [SOME T, SOME U] [SOME f]
+          (mk_meta_eq @{thm Abs_cfun_inverse2});
       val rules = Cont2ContData.get (Simplifier.the_context ss);
       val tac = SOLVED' (REPEAT_ALL_NEW (match_tac rules));
     in SOME (perhaps (SINGLE (tac 1)) tr) end
@@ -251,10 +254,7 @@ by (simp add: contlub_cfun_fun contlub_cfun_arg diag_lub)
 lemma lub_LAM:
   "\<lbrakk>\<And>x. chain (\<lambda>i. F i x); \<And>i. cont (\<lambda>x. F i x)\<rbrakk>
     \<Longrightarrow> (\<Squnion>i. \<Lambda> x. F i x) = (\<Lambda> x. \<Squnion>i. F i x)"
-apply (simp add: lub_cfun)
-apply (simp add: Abs_cfun_inverse2)
-apply (simp add: lub_fun ch2ch_lambda)
-done
+by (simp add: lub_cfun lub_fun ch2ch_lambda)
 
 lemmas lub_distribs = lub_APP lub_LAM
 
