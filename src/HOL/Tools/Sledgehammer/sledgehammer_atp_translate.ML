@@ -29,6 +29,7 @@ sig
     Proof.context -> bool -> bool -> type_system -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * (string * 'a) list vector
+  val atp_problem_weights : string problem -> (string * real) list
 end;
 
 structure Sledgehammer_ATP_Translate : SLEDGEHAMMER_ATP_TRANSLATE =
@@ -253,13 +254,15 @@ fun make_conjecture ctxt ts =
 
 (** Helper facts **)
 
+fun fold_formula f (AQuant (_, _, phi)) = fold_formula f phi
+  | fold_formula f (AConn (_, phis)) = fold (fold_formula f) phis
+  | fold_formula f (AAtom tm) = f tm
+
 fun count_term (ATerm ((s, _), tms)) =
   (if is_atp_variable s then I
    else Symtab.map_entry s (Integer.add 1))
   #> fold count_term tms
-fun count_formula (AQuant (_, _, phi)) = count_formula phi
-  | count_formula (AConn (_, phis)) = fold count_formula phis
-  | count_formula (AAtom tm) = count_term tm
+val count_formula = fold_formula count_term
 
 val init_counters =
   metis_helpers |> map fst |> sort_distinct string_ord |> map (rpair 0)
@@ -316,14 +319,13 @@ fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
     val supers = tvar_classes_of_terms fact_ts
     val tycons = type_consts_of_terms thy (goal_t :: fact_ts)
     (* TFrees in the conjecture; TVars in the facts *)
-    val conjectures = make_conjecture ctxt (hyp_ts @ [concl_t])
+    val conjs = make_conjecture ctxt (hyp_ts @ [concl_t])
     val (supers', arity_clauses) =
       if type_sys = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
-    (fact_names |> map single,
-     (conjectures, facts, class_rel_clauses, arity_clauses))
+    (fact_names |> map single, (conjs, facts, class_rel_clauses, arity_clauses))
   end
 
 fun tag_with_type ty t = ATerm (`I type_tag_name, [ty, t])
@@ -473,9 +475,9 @@ fun free_type_literals_for_conjecture type_sys
 
 fun problem_line_for_free_type j lit =
   Fof (tfree_prefix ^ string_of_int j, Hypothesis, formula_for_fo_literal lit)
-fun problem_lines_for_free_types type_sys conjectures =
+fun problem_lines_for_free_types type_sys conjs =
   let
-    val litss = map (free_type_literals_for_conjecture type_sys) conjectures
+    val litss = map (free_type_literals_for_conjecture type_sys) conjs
     val lits = fold (union (op =)) litss []
   in map2 problem_line_for_free_type (0 upto length lits - 1) lits end
 
@@ -602,7 +604,7 @@ val class_relsN = "Class relationships"
 val aritiesN = "Arity declarations"
 val helpersN = "Helper facts"
 val conjsN = "Conjectures"
-val tfreesN = "Type variables"
+val free_typesN = "Type variables"
 
 fun offset_of_heading_in_problem _ [] j = j
   | offset_of_heading_in_problem needle ((heading, lines) :: problem) j =
@@ -613,7 +615,7 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
                         explicit_apply hyp_ts concl_t facts =
   let
     val thy = ProofContext.theory_of ctxt
-    val (fact_names, (conjectures, facts, class_rel_clauses, arity_clauses)) =
+    val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt type_sys hyp_ts concl_t facts
     (* Reordering these might or might not confuse the proof reconstruction
        code or the SPASS Flotter hack. *)
@@ -622,8 +624,8 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
        (class_relsN, map problem_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map problem_line_for_arity_clause arity_clauses),
        (helpersN, []),
-       (conjsN, map (problem_line_for_conjecture ctxt type_sys) conjectures),
-       (tfreesN, problem_lines_for_free_types type_sys conjectures)]
+       (conjsN, map (problem_line_for_conjecture ctxt type_sys) conjs),
+       (free_typesN, problem_lines_for_free_types type_sys conjs)]
     val const_tab = const_table_for_problem explicit_apply problem
     val problem =
       problem |> repair_problem thy explicit_forall type_sys const_tab
@@ -642,5 +644,43 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
      offset_of_heading_in_problem conjsN problem 0,
      fact_names |> Vector.fromList)
   end
+
+(* FUDGE *)
+val conj_weight = 0.0
+val hyp_weight = 0.05
+val fact_min_weight = 0.1
+val fact_max_weight = 1.0
+
+fun add_term_weights weight (ATerm (s, tms)) =
+  (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
+  #> fold (add_term_weights weight) tms
+val add_formula_weights = fold_formula o add_term_weights
+fun add_problem_line_weights weight (Fof (_, _, phi)) =
+  add_formula_weights weight phi
+
+fun add_conjectures_weights [] = I
+  | add_conjectures_weights conjs =
+    let val (hyps, conj) = split_last conjs in
+      add_problem_line_weights conj_weight conj
+      #> fold (add_problem_line_weights hyp_weight) hyps
+    end
+
+fun add_facts_weights facts =
+  let
+    val num_facts = length facts
+    fun weight_of j =
+      fact_min_weight + (fact_max_weight - fact_min_weight) * Real.fromInt j
+                        / Real.fromInt num_facts
+  in
+    map weight_of (0 upto num_facts - 1) ~~ facts
+    |> fold (uncurry add_problem_line_weights)
+  end
+
+(* Weights are from 0.0 (most important) to 1.0 (least important). *)
+fun atp_problem_weights problem =
+  Symtab.empty
+  |> add_conjectures_weights (these (AList.lookup (op =) problem conjsN))
+  |> add_facts_weights (these (AList.lookup (op =) problem factsN))
+  |> Symtab.dest
 
 end;

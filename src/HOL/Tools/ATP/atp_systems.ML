@@ -12,13 +12,18 @@ sig
   type atp_config =
     {exec: string * string,
      required_execs: (string * string) list,
-     arguments: bool -> Time.time -> string,
+     arguments: bool -> Time.time -> (unit -> (string * real) list) -> string,
      has_incomplete_mode: bool,
      proof_delims: (string * string) list,
      known_failures: (failure * string) list,
      default_max_relevant: int,
      explicit_forall: bool,
      use_conjecture_for_hypotheses: bool}
+
+  (* for experimentation purposes -- do not use in production code *)
+  val e_generate_weights : bool Unsynchronized.ref
+  val e_weight_factor : real Unsynchronized.ref
+  val e_default_weight : real Unsynchronized.ref
 
   val eN : string
   val spassN : string
@@ -44,7 +49,7 @@ open ATP_Proof
 type atp_config =
   {exec: string * string,
    required_execs: (string * string) list,
-   arguments: bool -> Time.time -> string,
+   arguments: bool -> Time.time -> (unit -> (string * real) list) -> string,
    has_incomplete_mode: bool,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
@@ -94,12 +99,35 @@ fun e_bonus () =
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
+val e_generate_weights = Unsynchronized.ref false
+val e_weight_factor = Unsynchronized.ref 60.0
+val e_default_weight = Unsynchronized.ref 0.5
+
+fun e_weights weights =
+  if !e_generate_weights then
+    "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
+    \--destructive-er-aggressive --destructive-er --presat-simplify \
+    \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
+    \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred \
+    \-H'(4*FunWeight(SimulateSOS, " ^
+    string_of_int (Real.ceil (!e_default_weight * !e_weight_factor)) ^
+    ",20,1.5,1.5,1" ^
+    (weights ()
+     |> map (fn (s, w) => "," ^ s ^ ":" ^
+                          string_of_int (Real.ceil (w * !e_weight_factor)))
+     |> implode) ^
+    "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
+    \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
+    \FIFOWeight(PreferProcessed))'"
+  else
+    "-xAutoDev"
+
 val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
-   arguments = fn _ => fn timeout =>
-     "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent \
-     \--cpu-limit=" ^ string_of_int (to_secs (e_bonus ()) timeout),
+   arguments = fn _ => fn timeout => fn weights =>
+     "--tstp-in --tstp-out -l5 " ^ e_weights weights ^ " -tAutoDev \
+     \--silent --cpu-limit=" ^ string_of_int (to_secs (e_bonus ()) timeout),
    has_incomplete_mode = false,
    proof_delims = [tstp_proof_delims],
    known_failures =
@@ -125,7 +153,7 @@ val e = (eN, e_config)
 val spass_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
-   arguments = fn complete => fn timeout =>
+   arguments = fn complete => fn timeout => fn _ =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 0 timeout))
      |> not complete ? prefix "-SOS=1 ",
@@ -152,7 +180,7 @@ val spass = (spassN, spass_config)
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
-   arguments = fn complete => fn timeout =>
+   arguments = fn complete => fn timeout => fn _ =>
      (* This would work too but it's less tested: "--proof tptp " ^ *)
      "--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
      " --thanks \"Andrei and Krystof\" --input_file"
@@ -214,7 +242,7 @@ fun remote_config system_name system_versions proof_delims known_failures
                   : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
-   arguments = fn _ => fn timeout =>
+   arguments = fn _ => fn timeout => fn _ =>
      " -t " ^ string_of_int (Int.min (max_remote_secs, (to_secs 0 timeout)))
      ^ " -s " ^ the_system system_name system_versions,
    has_incomplete_mode = false,
