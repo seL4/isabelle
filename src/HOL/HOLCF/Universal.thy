@@ -5,14 +5,14 @@
 header {* A universal bifinite domain *}
 
 theory Universal
-imports Completion Deflation Nat_Bijection
+imports Bifinite Completion Nat_Bijection
 begin
 
 subsection {* Basis for universal domain *}
 
 subsubsection {* Basis datatype *}
 
-types ubasis = nat
+type_synonym ubasis = nat
 
 definition
   node :: "nat \<Rightarrow> ubasis \<Rightarrow> ubasis set \<Rightarrow> ubasis"
@@ -287,11 +287,8 @@ subsection {* Universality of \emph{udom} *}
 text {* We use a locale to parameterize the construction over a chain
 of approx functions on the type to be embedded. *}
 
-locale approx_chain =
-  fixes approx :: "nat \<Rightarrow> 'a::pcpo \<rightarrow> 'a"
-  assumes chain_approx [simp]: "chain (\<lambda>i. approx i)"
-  assumes lub_approx [simp]: "(\<Squnion>i. approx i) = ID"
-  assumes finite_deflation_approx: "\<And>i. finite_deflation (approx i)"
+locale bifinite_approx_chain = approx_chain +
+  constrains approx :: "nat \<Rightarrow> 'a::bifinite \<rightarrow> 'a"
 begin
 
 subsubsection {* Choosing a maximal element from a finite set *}
@@ -407,30 +404,6 @@ lemma choose_pos_lessD:
  apply (erule meta_mp)
  apply (simp add: choose_pos.simps)
 done
-
-subsubsection {* Properties of approx function *}
-
-lemma deflation_approx: "deflation (approx i)"
-using finite_deflation_approx by (rule finite_deflation_imp_deflation)
-
-lemma approx_idem: "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-using deflation_approx by (rule deflation.idem)
-
-lemma approx_below: "approx i\<cdot>x \<sqsubseteq> x"
-using deflation_approx by (rule deflation.below)
-
-lemma finite_range_approx: "finite (range (\<lambda>x. approx i\<cdot>x))"
-apply (rule finite_deflation.finite_range)
-apply (rule finite_deflation_approx)
-done
-
-lemma compact_approx: "compact (approx n\<cdot>x)"
-apply (rule finite_deflation.compact)
-apply (rule finite_deflation_approx)
-done
-
-lemma compact_eq_approx: "compact x \<Longrightarrow> \<exists>i. approx i\<cdot>x = x"
-by (rule admD2, simp_all)
 
 subsubsection {* Compact basis take function *}
 
@@ -804,11 +777,8 @@ unfolding basis_prj_def
  apply (rule ubasis_until_less)
 done
 
-end
-
-sublocale approx_chain \<subseteq> compact_basis!:
-  ideal_completion below Rep_compact_basis
-    "approximants :: 'a \<Rightarrow> 'a compact_basis set"
+lemma ideal_completion:
+  "ideal_completion below Rep_compact_basis (approximants :: 'a \<Rightarrow> _)"
 proof
   fix w :: "'a"
   show "below.ideal (approximants w)"
@@ -873,9 +843,23 @@ next
     by (rule exI, rule inj_place)
 qed
 
+end
+
+interpretation compact_basis!:
+  ideal_completion below Rep_compact_basis
+    "approximants :: 'a::bifinite \<Rightarrow> 'a compact_basis set"
+proof -
+  obtain a :: "nat \<Rightarrow> 'a \<rightarrow> 'a" where "approx_chain a"
+    using bifinite ..
+  hence "bifinite_approx_chain a"
+    unfolding bifinite_approx_chain_def .
+  thus "ideal_completion below Rep_compact_basis (approximants :: 'a \<Rightarrow> _)"
+    by (rule bifinite_approx_chain.ideal_completion)
+qed
+
 subsubsection {* EP-pair from any bifinite domain into \emph{udom} *}
 
-context approx_chain begin
+context bifinite_approx_chain begin
 
 definition
   udom_emb :: "'a \<rightarrow> udom"
@@ -915,10 +899,11 @@ done
 
 end
 
-abbreviation "udom_emb \<equiv> approx_chain.udom_emb"
-abbreviation "udom_prj \<equiv> approx_chain.udom_prj"
+abbreviation "udom_emb \<equiv> bifinite_approx_chain.udom_emb"
+abbreviation "udom_prj \<equiv> bifinite_approx_chain.udom_prj"
 
-lemmas ep_pair_udom = approx_chain.ep_pair_udom
+lemmas ep_pair_udom =
+  bifinite_approx_chain.ep_pair_udom [unfolded bifinite_approx_chain_def]
 
 subsection {* Chain of approx functions for type \emph{udom} *}
 
@@ -1001,13 +986,16 @@ apply (simp add: udom_approx_principal)
 apply (simp add: ubasis_until_same ubasis_le_refl)
 done
  
-lemma udom_approx: "approx_chain udom_approx"
+lemma udom_approx [simp]: "approx_chain udom_approx"
 proof
   show "chain (\<lambda>i. udom_approx i)"
     by (rule chain_udom_approx)
   show "(\<Squnion>i. udom_approx i) = ID"
     by (rule lub_udom_approx)
 qed
+
+instance udom :: bifinite
+  by default (fast intro: udom_approx)
 
 hide_const (open) node
 

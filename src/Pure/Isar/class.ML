@@ -232,7 +232,7 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
       |> filter (is_class thy);
     val add_dependency = case some_dep_morph
      of SOME dep_morph => Locale.add_dependency sub
-          (sup, dep_morph $> Element.satisfy_morphism (the_list some_wit)) export
+          (sup, dep_morph $> Element.satisfy_morphism (the_list some_wit)) NONE export
       | NONE => I
   in
     thy

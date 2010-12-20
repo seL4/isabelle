@@ -34,7 +34,7 @@ sig
 end
 
 
-structure Domain_Constructors :> DOMAIN_CONSTRUCTORS =
+structure Domain_Constructors : DOMAIN_CONSTRUCTORS =
 struct
 
 open HOLCF_Library

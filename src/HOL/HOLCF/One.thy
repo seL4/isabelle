@@ -8,14 +8,14 @@ theory One
 imports Lift
 begin
 
-types one = "unit lift"
-translations
-  (type) "one" <= (type) "unit lift" 
+type_synonym
+  one = "unit lift"
 
-definition
-  ONE :: "one"
-where
-  "ONE == Def ()"
+translations
+  (type) "one" <= (type) "unit lift"
+
+definition ONE :: "one"
+  where "ONE == Def ()"
 
 text {* Exhaustion and Elimination for type @{typ one} *}
 

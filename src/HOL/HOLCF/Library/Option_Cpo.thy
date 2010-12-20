@@ -5,7 +5,7 @@
 header {* Cpo class instance for HOL option type *}
 
 theory Option_Cpo
-imports HOLCF
+imports HOLCF Sum_Cpo
 begin
 
 subsection {* Ordering on option type *}
@@ -209,45 +209,40 @@ setup {*
 subsection {* Option type is a predomain *}
 
 definition
-  "encode_option_u =
-    (\<Lambda>(up\<cdot>x). case x of None \<Rightarrow> sinl\<cdot>ONE | Some a \<Rightarrow> sinr\<cdot>(up\<cdot>a))"
+  "encode_option = (\<Lambda> x. case x of None \<Rightarrow> Inl () | Some a \<Rightarrow> Inr a)"
 
 definition
-  "decode_option_u = sscase\<cdot>(\<Lambda> ONE. up\<cdot>None)\<cdot>(\<Lambda>(up\<cdot>a). up\<cdot>(Some a))"
+  "decode_option = (\<Lambda> x. case x of Inl (u::unit) \<Rightarrow> None | Inr a \<Rightarrow> Some a)"
 
-lemma decode_encode_option_u [simp]: "decode_option_u\<cdot>(encode_option_u\<cdot>x) = x"
-unfolding decode_option_u_def encode_option_u_def
-by (case_tac x, simp, rename_tac y, case_tac y, simp_all)
+lemma decode_encode_option [simp]: "decode_option\<cdot>(encode_option\<cdot>x) = x"
+unfolding decode_option_def encode_option_def
+by (cases x, simp_all)
 
-lemma encode_decode_option_u [simp]: "encode_option_u\<cdot>(decode_option_u\<cdot>x) = x"
-unfolding decode_option_u_def encode_option_u_def
-apply (case_tac x, simp)
-apply (rename_tac a, case_tac a rule: oneE, simp, simp)
-apply (rename_tac b, case_tac b, simp, simp)
-done
+lemma encode_decode_option [simp]: "encode_option\<cdot>(decode_option\<cdot>x) = x"
+unfolding decode_option_def encode_option_def
+by (cases x, simp_all)
 
 instantiation option :: (predomain) predomain
 begin
 
 definition
-  "liftemb = emb oo encode_option_u"
+  "liftemb = liftemb oo u_map\<cdot>encode_option"
 
 definition
-  "liftprj = decode_option_u oo prj"
+  "liftprj = u_map\<cdot>decode_option oo liftprj"
 
 definition
-  "liftdefl (t::('a option) itself) = DEFL(one \<oplus> 'a u)"
+  "liftdefl (t::('a option) itself) = LIFTDEFL(unit + 'a)"
 
 instance proof
-  show "ep_pair liftemb (liftprj :: udom \<rightarrow> ('a option) u)"
+  show "ep_pair liftemb (liftprj :: udom u \<rightarrow> ('a option) u)"
     unfolding liftemb_option_def liftprj_option_def
-    apply (rule ep_pair_comp)
+    apply (intro ep_pair_comp ep_pair_u_map predomain_ep)
     apply (rule ep_pair.intro, simp, simp)
-    apply (rule ep_pair_emb_prj)
     done
-  show "cast\<cdot>LIFTDEFL('a option) = liftemb oo (liftprj :: udom \<rightarrow> ('a option) u)"
+  show "cast\<cdot>LIFTDEFL('a option) = liftemb oo (liftprj :: udom u \<rightarrow> ('a option) u)"
     unfolding liftemb_option_def liftprj_option_def liftdefl_option_def
-    by (simp add: cast_DEFL cfcomp1)
+    by (simp add: cast_liftdefl cfcomp1 u_map_map ID_def [symmetric] u_map_ID)
 qed
 
 end

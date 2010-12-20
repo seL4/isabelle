@@ -156,6 +156,8 @@ ML {*
     end;
 *}
 
+local_setup {* Config.put show_hyps true *}
+
 ML {*
   check_syntax @{context} @{thm d1_def} "d1(?x) <-> ~ p2(p1(?x))";
   check_syntax @{context} @{thm d2_def} "d2(?x) <-> ~ p2(?x)";
@@ -695,7 +697,69 @@ text {* This locale will be interpreted in later theories. *}
 locale mixin_thy_merge = le: reflexive le + le': reflexive le' for le le'
 
 
-subsection {* Interpretation in proofs *}
+subsection {* Mixins in sublocale *}
+
+text {* Simulate a specification of left groups where unit and inverse are defined
+  rather than specified.  This is possible, but not in FOL, due to the lack of a
+  selection operator. *}
+
+axiomatization glob_one and glob_inv
+  where glob_lone: "prod(glob_one(prod), x) = x"
+    and glob_linv: "prod(glob_inv(prod, x), x) = glob_one(prod)"
+
+locale dgrp = semi
+begin
+
+definition one where "one = glob_one(prod)"
+
+lemma lone: "one ** x = x"
+  unfolding one_def by (rule glob_lone)
+
+definition inv where "inv(x) = glob_inv(prod, x)"
+
+lemma linv: "inv(x) ** x = one"
+  unfolding one_def inv_def by (rule glob_linv)
+
+end
+
+sublocale lgrp < "def": dgrp
+  where one_equation: "dgrp.one(prod) = one" and inv_equation: "dgrp.inv(prod, x) = inv(x)"
+proof -
+  show "dgrp(prod)" by unfold_locales
+  from this interpret d: dgrp .
+  -- Unit
+  have "dgrp.one(prod) = glob_one(prod)" by (rule d.one_def)
+  also have "... = glob_one(prod) ** one" by (simp add: rone)
+  also have "... = one" by (simp add: glob_lone)
+  finally show "dgrp.one(prod) = one" .
+  -- Inverse
+  then have "dgrp.inv(prod, x) ** x = inv(x) ** x" by (simp add: glob_linv d.linv linv)
+  then show "dgrp.inv(prod, x) = inv(x)" by (simp add: rcancel)
+qed
+
+print_locale! lgrp
+
+context lgrp begin
+
+text {* Equations stored in target *}
+
+lemma "dgrp.one(prod) = one" by (rule one_equation)
+lemma "dgrp.inv(prod, x) = inv(x)" by (rule inv_equation)
+
+text {* Mixins applied *}
+
+lemma "one = glob_one(prod)" by (rule one_def)
+lemma "inv(x) = glob_inv(prod, x)" by (rule inv_def)
+
+end
+
+text {* Interpreted versions *}
+
+lemma "0 = glob_one (op +)" by (rule int.def.one_def)
+lemma "- x = glob_inv(op +, x)" by (rule int.def.inv_def)
+
+
+section {* Interpretation in proofs *}
 
 lemma True
 proof

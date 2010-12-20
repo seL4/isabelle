@@ -15,7 +15,7 @@ sig
   val setup: theory -> theory
 end
 
-structure Fixrec :> FIXREC =
+structure Fixrec : FIXREC =
 struct
 
 open HOLCF_Library

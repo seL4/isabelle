@@ -8,21 +8,23 @@ theory Algebraic
 imports Universal Map_Functions
 begin
 
+default_sort bifinite
+
 subsection {* Type constructor for finite deflations *}
 
-typedef (open) fin_defl = "{d::udom \<rightarrow> udom. finite_deflation d}"
+typedef (open) 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
 by (fast intro: finite_deflation_UU)
 
-instantiation fin_defl :: below
+instantiation fin_defl :: (bifinite) below
 begin
 
 definition below_fin_defl_def:
-    "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep_fin_defl x \<sqsubseteq> Rep_fin_defl y"
+  "below \<equiv> \<lambda>x y. Rep_fin_defl x \<sqsubseteq> Rep_fin_defl y"
 
 instance ..
 end
 
-instance fin_defl :: po
+instance fin_defl :: (bifinite) po
 using type_definition_fin_defl below_fin_defl_def
 by (rule typedef_po)
 
@@ -72,10 +74,10 @@ by (rule finite_deflation_imp_compact)
 
 subsection {* Defining algebraic deflations by ideal completion *}
 
-typedef (open) defl = "{S::fin_defl set. below.ideal S}"
+typedef (open) 'a defl = "{S::'a fin_defl set. below.ideal S}"
 by (rule below.ex_ideal)
 
-instantiation defl :: below
+instantiation defl :: (bifinite) below
 begin
 
 definition
@@ -84,22 +86,23 @@ definition
 instance ..
 end
 
-instance defl :: po
+instance defl :: (bifinite) po
 using type_definition_defl below_defl_def
 by (rule below.typedef_ideal_po)
 
-instance defl :: cpo
+instance defl :: (bifinite) cpo
 using type_definition_defl below_defl_def
 by (rule below.typedef_ideal_cpo)
 
 definition
-  defl_principal :: "fin_defl \<Rightarrow> defl" where
+  defl_principal :: "'a fin_defl \<Rightarrow> 'a defl" where
   "defl_principal t = Abs_defl {u. u \<sqsubseteq> t}"
 
-lemma fin_defl_countable: "\<exists>f::fin_defl \<Rightarrow> nat. inj f"
-proof
-  have *: "\<And>d. finite (approx_chain.place udom_approx `
-               Rep_compact_basis -` {x. Rep_fin_defl d\<cdot>x = x})"
+lemma fin_defl_countable: "\<exists>f::'a fin_defl \<Rightarrow> nat. inj f"
+proof -
+  obtain f :: "'a compact_basis \<Rightarrow> nat" where inj_f: "inj f"
+    using compact_basis.countable ..
+  have *: "\<And>d. finite (f ` Rep_compact_basis -` {x. Rep_fin_defl d\<cdot>x = x})"
     apply (rule finite_imageI)
     apply (rule finite_vimageI)
     apply (rule Rep_fin_defl.finite_fixes)
@@ -107,11 +110,11 @@ proof
     done
   have range_eq: "range Rep_compact_basis = {x. compact x}"
     using type_definition_compact_basis by (rule type_definition.Rep_range)
-  show "inj (\<lambda>d. set_encode
-    (approx_chain.place udom_approx ` Rep_compact_basis -` {x. Rep_fin_defl d\<cdot>x = x}))"
+  have "inj (\<lambda>d. set_encode
+    (f ` Rep_compact_basis -` {x. Rep_fin_defl d\<cdot>x = x}))"
     apply (rule inj_onI)
     apply (simp only: set_encode_eq *)
-    apply (simp only: inj_image_eq_iff approx_chain.inj_place [OF udom_approx])
+    apply (simp only: inj_image_eq_iff inj_f)
     apply (drule_tac f="image Rep_compact_basis" in arg_cong)
     apply (simp del: vimage_Collect_eq add: range_eq set_eq_iff)
     apply (rule Rep_fin_defl_inject [THEN iffD1])
@@ -121,6 +124,7 @@ proof
     apply (rule Rep_fin_defl.compact_belowI, rename_tac z)
     apply (drule_tac x=z in spec, simp)
     done
+  thus ?thesis by - (rule exI)
 qed
 
 interpretation defl: ideal_completion below defl_principal Rep_defl
@@ -137,7 +141,7 @@ apply (simp add: below_fin_defl_def)
 apply (simp add: Abs_fin_defl_inverse finite_deflation_UU)
 done
 
-instance defl :: pcpo
+instance defl :: (bifinite) pcpo
 by intro_classes (fast intro: defl_minimal)
 
 lemma inst_defl_pcpo: "\<bottom> = defl_principal (Abs_fin_defl \<bottom>)"
@@ -146,7 +150,7 @@ by (rule defl_minimal [THEN UU_I, symmetric])
 subsection {* Applying algebraic deflations *}
 
 definition
-  cast :: "defl \<rightarrow> udom \<rightarrow> udom"
+  cast :: "'a defl \<rightarrow> 'a \<rightarrow> 'a"
 where
   "cast = defl.basis_fun Rep_fin_defl"
 
@@ -210,5 +214,67 @@ done
 
 lemma cast_strict2 [simp]: "cast\<cdot>A\<cdot>\<bottom> = \<bottom>"
 by (rule cast.below [THEN UU_I])
+
+subsection {* Deflation combinators *}
+
+definition
+  "defl_fun1 e p f =
+    defl.basis_fun (\<lambda>a.
+      defl_principal (Abs_fin_defl
+        (e oo f\<cdot>(Rep_fin_defl a) oo p)))"
+
+definition
+  "defl_fun2 e p f =
+    defl.basis_fun (\<lambda>a.
+      defl.basis_fun (\<lambda>b.
+        defl_principal (Abs_fin_defl
+          (e oo f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo p))))"
+
+lemma cast_defl_fun1:
+  assumes ep: "ep_pair e p"
+  assumes f: "\<And>a. finite_deflation a \<Longrightarrow> finite_deflation (f\<cdot>a)"
+  shows "cast\<cdot>(defl_fun1 e p f\<cdot>A) = e oo f\<cdot>(cast\<cdot>A) oo p"
+proof -
+  have 1: "\<And>a. finite_deflation (e oo f\<cdot>(Rep_fin_defl a) oo p)"
+    apply (rule ep_pair.finite_deflation_e_d_p [OF ep])
+    apply (rule f, rule finite_deflation_Rep_fin_defl)
+    done
+  show ?thesis
+    by (induct A rule: defl.principal_induct, simp)
+       (simp only: defl_fun1_def
+                   defl.basis_fun_principal
+                   defl.basis_fun_mono
+                   defl.principal_mono
+                   Abs_fin_defl_mono [OF 1 1]
+                   monofun_cfun below_refl
+                   Rep_fin_defl_mono
+                   cast_defl_principal
+                   Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
+qed
+
+lemma cast_defl_fun2:
+  assumes ep: "ep_pair e p"
+  assumes f: "\<And>a b. finite_deflation a \<Longrightarrow> finite_deflation b \<Longrightarrow>
+                finite_deflation (f\<cdot>a\<cdot>b)"
+  shows "cast\<cdot>(defl_fun2 e p f\<cdot>A\<cdot>B) = e oo f\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo p"
+proof -
+  have 1: "\<And>a b. finite_deflation
+      (e oo f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo p)"
+    apply (rule ep_pair.finite_deflation_e_d_p [OF ep])
+    apply (rule f, (rule finite_deflation_Rep_fin_defl)+)
+    done
+  show ?thesis
+    apply (induct A rule: defl.principal_induct, simp)
+    apply (induct B rule: defl.principal_induct, simp)
+    by (simp only: defl_fun2_def
+                   defl.basis_fun_principal
+                   defl.basis_fun_mono
+                   defl.principal_mono
+                   Abs_fin_defl_mono [OF 1 1]
+                   monofun_cfun below_refl
+                   Rep_fin_defl_mono
+                   cast_defl_principal
+                   Abs_fin_defl_inverse [unfolded mem_Collect_eq, OF 1])
+qed
 
 end

@@ -30,6 +30,8 @@ sig
   val prefix: bool -> string -> binding -> binding
   val conceal: binding -> binding
   val str_of: binding -> string
+  val bad: binding -> string
+  val check: binding -> unit
 end;
 
 structure Binding: BINDING =
@@ -126,6 +128,16 @@ val conceal =
 fun str_of binding =
   qualified_name_of binding
   |> Markup.markup (Position.markup (pos_of binding) (Markup.binding (name_of binding)));
+
+
+(* check *)
+
+fun bad binding =
+  "Bad name binding: " ^ quote (str_of binding) ^ Position.str_of (pos_of binding);
+
+fun check binding =
+  if Symbol.is_ident (Symbol.explode (name_of binding)) then ()
+  else legacy_feature (bad binding);
 
 end;
 end;

@@ -39,7 +39,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Algebraic.thy \
   Bifinite.thy \
   Cfun.thy \
-  CompactBasis.thy \
+  Compact_Basis.thy \
   Completion.thy \
   Cont.thy \
   ConvexPD.thy \
@@ -62,6 +62,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Porder.thy \
   Powerdomains.thy \
   Product_Cpo.thy \
+  Representable.thy \
   Sfun.thy \
   Sprod.thy \
   Ssum.thy \

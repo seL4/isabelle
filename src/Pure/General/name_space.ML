@@ -266,10 +266,10 @@ fun qualified_path mandatory binding = map_path (fn path =>
 
 (* full name *)
 
+fun err_bad binding = error (Binding.bad binding);
+
 fun transform_binding (Naming {conceal = true, ...}) = Binding.conceal
   | transform_binding _ = I;
-
-fun err_bad binding = error ("Bad name binding " ^ quote (Binding.str_of binding));
 
 fun name_spec (naming as Naming {path, ...}) raw_binding =
   let

@@ -38,7 +38,7 @@ sig
     * (binding * binding) option -> theory -> Proof.state
 end
 
-structure Cpodef :> CPODEF =
+structure Cpodef : CPODEF =
 struct
 
 (** type definitions **)

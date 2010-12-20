@@ -28,7 +28,7 @@ sig
       -> theory -> theory
 end
 
-structure Domain :> DOMAIN =
+structure Domain : DOMAIN =
 struct
 
 open HOLCF_Library

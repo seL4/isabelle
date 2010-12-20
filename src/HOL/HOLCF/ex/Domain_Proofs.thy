@@ -17,9 +17,6 @@ domain 'a foo = Foo1 | Foo2 (lazy 'a) (lazy "'a bar")
    and 'a bar = Bar (lazy "'a baz \<rightarrow> tr")
    and 'a baz = Baz (lazy "'a foo convex_pd \<rightarrow> tr")
 
-TODO: add another type parameter that is strict,
-to show the different handling of LIFTDEFL vs. DEFL.
-
 *)
 
 (********************************************************************)
@@ -30,30 +27,30 @@ text {* Start with the one-step non-recursive version *}
 
 definition
   foo_bar_baz_deflF ::
-    "defl \<rightarrow> defl \<times> defl \<times> defl \<rightarrow> defl \<times> defl \<times> defl"
+    "udom defl \<rightarrow> udom defl \<times> udom defl \<times> udom defl \<rightarrow> udom defl \<times> udom defl \<times> udom defl"
 where
   "foo_bar_baz_deflF = (\<Lambda> a. Abs_cfun (\<lambda>(t1, t2, t3). 
-    ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>a\<cdot>(u_defl\<cdot>t2))
-    , u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>t3)\<cdot>DEFL(tr))
-    , u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(convex_defl\<cdot>t1))\<cdot>DEFL(tr)))))"
+    ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>(pdefl\<cdot>a))\<cdot>(u_defl\<cdot>(pdefl\<cdot>t2)))
+    , u_defl\<cdot>(pdefl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(pdefl\<cdot>t3))\<cdot>DEFL(tr)))
+    , u_defl\<cdot>(pdefl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(pdefl\<cdot>(convex_defl\<cdot>t1)))\<cdot>DEFL(tr))))))"
 
 lemma foo_bar_baz_deflF_beta:
   "foo_bar_baz_deflF\<cdot>a\<cdot>t =
-    ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>a\<cdot>(u_defl\<cdot>(fst (snd t))))
-    , u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(snd (snd t)))\<cdot>DEFL(tr))
-    , u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(convex_defl\<cdot>(fst t)))\<cdot>DEFL(tr)))"
+    ( ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>(pdefl\<cdot>a))\<cdot>(u_defl\<cdot>(pdefl\<cdot>(fst (snd t)))))
+    , u_defl\<cdot>(pdefl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(pdefl\<cdot>(snd (snd t))))\<cdot>DEFL(tr)))
+    , u_defl\<cdot>(pdefl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(pdefl\<cdot>(convex_defl\<cdot>(fst t))))\<cdot>DEFL(tr))))"
 unfolding foo_bar_baz_deflF_def
 by (simp add: split_def)
 
 text {* Individual type combinators are projected from the fixed point. *}
 
-definition foo_defl :: "defl \<rightarrow> defl"
+definition foo_defl :: "udom defl \<rightarrow> udom defl"
 where "foo_defl = (\<Lambda> a. fst (fix\<cdot>(foo_bar_baz_deflF\<cdot>a)))"
 
-definition bar_defl :: "defl \<rightarrow> defl"
+definition bar_defl :: "udom defl \<rightarrow> udom defl"
 where "bar_defl = (\<Lambda> a. fst (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))))"
 
-definition baz_defl :: "defl \<rightarrow> defl"
+definition baz_defl :: "udom defl \<rightarrow> udom defl"
 where "baz_defl = (\<Lambda> a. snd (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a))))"
 
 lemma defl_apply_thms:
@@ -65,13 +62,13 @@ unfolding foo_defl_def bar_defl_def baz_defl_def by simp_all
 text {* Unfold rules for each combinator. *}
 
 lemma foo_defl_unfold:
-  "foo_defl\<cdot>a = ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>a\<cdot>(u_defl\<cdot>(bar_defl\<cdot>a)))"
+  "foo_defl\<cdot>a = ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>(pdefl\<cdot>a))\<cdot>(u_defl\<cdot>(pdefl\<cdot>(bar_defl\<cdot>a))))"
 unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
-lemma bar_defl_unfold: "bar_defl\<cdot>a = u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(baz_defl\<cdot>a))\<cdot>DEFL(tr))"
+lemma bar_defl_unfold: "bar_defl\<cdot>a = u_defl\<cdot>(pdefl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(pdefl\<cdot>(baz_defl\<cdot>a)))\<cdot>DEFL(tr)))"
 unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
-lemma baz_defl_unfold: "baz_defl\<cdot>a = u_defl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(convex_defl\<cdot>(foo_defl\<cdot>a)))\<cdot>DEFL(tr))"
+lemma baz_defl_unfold: "baz_defl\<cdot>a = u_defl\<cdot>(pdefl\<cdot>(sfun_defl\<cdot>(u_defl\<cdot>(pdefl\<cdot>(convex_defl\<cdot>(foo_defl\<cdot>a))))\<cdot>DEFL(tr)))"
 unfolding defl_apply_thms by (subst fix_eq, simp add: foo_bar_baz_deflF_beta)
 
 text "The automation for the previous steps will be quite similar to
@@ -83,40 +80,40 @@ subsection {* Step 2: Define types, prove class instances *}
 
 text {* Use @{text pcpodef} with the appropriate type combinator. *}
 
-pcpodef (open) 'a foo = "defl_set (foo_defl\<cdot>LIFTDEFL('a))"
+pcpodef (open) 'a foo = "defl_set (foo_defl\<cdot>DEFL('a))"
 by (rule defl_set_bottom, rule adm_defl_set)
 
-pcpodef (open) 'a bar = "defl_set (bar_defl\<cdot>LIFTDEFL('a))"
+pcpodef (open) 'a bar = "defl_set (bar_defl\<cdot>DEFL('a))"
 by (rule defl_set_bottom, rule adm_defl_set)
 
-pcpodef (open) 'a baz = "defl_set (baz_defl\<cdot>LIFTDEFL('a))"
+pcpodef (open) 'a baz = "defl_set (baz_defl\<cdot>DEFL('a))"
 by (rule defl_set_bottom, rule adm_defl_set)
 
 text {* Prove rep instance using lemma @{text typedef_rep_class}. *}
 
-instantiation foo :: ("domain") liftdomain
+instantiation foo :: ("domain") "domain"
 begin
 
 definition emb_foo :: "'a foo \<rightarrow> udom"
 where "emb_foo \<equiv> (\<Lambda> x. Rep_foo x)"
 
 definition prj_foo :: "udom \<rightarrow> 'a foo"
-where "prj_foo \<equiv> (\<Lambda> y. Abs_foo (cast\<cdot>(foo_defl\<cdot>LIFTDEFL('a))\<cdot>y))"
+where "prj_foo \<equiv> (\<Lambda> y. Abs_foo (cast\<cdot>(foo_defl\<cdot>DEFL('a))\<cdot>y))"
 
-definition defl_foo :: "'a foo itself \<Rightarrow> defl"
-where "defl_foo \<equiv> \<lambda>a. foo_defl\<cdot>LIFTDEFL('a)"
-
-definition
-  "(liftemb :: 'a foo u \<rightarrow> udom) \<equiv> udom_emb u_approx oo u_map\<cdot>emb"
+definition defl_foo :: "'a foo itself \<Rightarrow> udom defl"
+where "defl_foo \<equiv> \<lambda>a. foo_defl\<cdot>DEFL('a)"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a foo u) \<equiv> u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftemb :: 'a foo u \<rightarrow> udom u) \<equiv> u_map\<cdot>emb"
 
 definition
-  "liftdefl \<equiv> \<lambda>(t::'a foo itself). u_defl\<cdot>DEFL('a foo)"
+  "(liftprj :: udom u \<rightarrow> 'a foo u) \<equiv> u_map\<cdot>prj"
+
+definition
+  "liftdefl \<equiv> \<lambda>(t::'a foo itself). pdefl\<cdot>DEFL('a foo)"
 
 instance
-apply (rule typedef_liftdomain_class)
+apply (rule typedef_domain_class)
 apply (rule type_definition_foo)
 apply (rule below_foo_def)
 apply (rule emb_foo_def)
@@ -129,29 +126,29 @@ done
 
 end
 
-instantiation bar :: ("domain") liftdomain
+instantiation bar :: ("domain") "domain"
 begin
 
 definition emb_bar :: "'a bar \<rightarrow> udom"
 where "emb_bar \<equiv> (\<Lambda> x. Rep_bar x)"
 
 definition prj_bar :: "udom \<rightarrow> 'a bar"
-where "prj_bar \<equiv> (\<Lambda> y. Abs_bar (cast\<cdot>(bar_defl\<cdot>LIFTDEFL('a))\<cdot>y))"
+where "prj_bar \<equiv> (\<Lambda> y. Abs_bar (cast\<cdot>(bar_defl\<cdot>DEFL('a))\<cdot>y))"
 
-definition defl_bar :: "'a bar itself \<Rightarrow> defl"
-where "defl_bar \<equiv> \<lambda>a. bar_defl\<cdot>LIFTDEFL('a)"
-
-definition
-  "(liftemb :: 'a bar u \<rightarrow> udom) \<equiv> udom_emb u_approx oo u_map\<cdot>emb"
+definition defl_bar :: "'a bar itself \<Rightarrow> udom defl"
+where "defl_bar \<equiv> \<lambda>a. bar_defl\<cdot>DEFL('a)"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a bar u) \<equiv> u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftemb :: 'a bar u \<rightarrow> udom u) \<equiv> u_map\<cdot>emb"
 
 definition
-  "liftdefl \<equiv> \<lambda>(t::'a bar itself). u_defl\<cdot>DEFL('a bar)"
+  "(liftprj :: udom u \<rightarrow> 'a bar u) \<equiv> u_map\<cdot>prj"
+
+definition
+  "liftdefl \<equiv> \<lambda>(t::'a bar itself). pdefl\<cdot>DEFL('a bar)"
 
 instance
-apply (rule typedef_liftdomain_class)
+apply (rule typedef_domain_class)
 apply (rule type_definition_bar)
 apply (rule below_bar_def)
 apply (rule emb_bar_def)
@@ -164,29 +161,29 @@ done
 
 end
 
-instantiation baz :: ("domain") liftdomain
+instantiation baz :: ("domain") "domain"
 begin
 
 definition emb_baz :: "'a baz \<rightarrow> udom"
 where "emb_baz \<equiv> (\<Lambda> x. Rep_baz x)"
 
 definition prj_baz :: "udom \<rightarrow> 'a baz"
-where "prj_baz \<equiv> (\<Lambda> y. Abs_baz (cast\<cdot>(baz_defl\<cdot>LIFTDEFL('a))\<cdot>y))"
+where "prj_baz \<equiv> (\<Lambda> y. Abs_baz (cast\<cdot>(baz_defl\<cdot>DEFL('a))\<cdot>y))"
 
-definition defl_baz :: "'a baz itself \<Rightarrow> defl"
-where "defl_baz \<equiv> \<lambda>a. baz_defl\<cdot>LIFTDEFL('a)"
-
-definition
-  "(liftemb :: 'a baz u \<rightarrow> udom) \<equiv> udom_emb u_approx oo u_map\<cdot>emb"
+definition defl_baz :: "'a baz itself \<Rightarrow> udom defl"
+where "defl_baz \<equiv> \<lambda>a. baz_defl\<cdot>DEFL('a)"
 
 definition
-  "(liftprj :: udom \<rightarrow> 'a baz u) \<equiv> u_map\<cdot>prj oo udom_prj u_approx"
+  "(liftemb :: 'a baz u \<rightarrow> udom u) \<equiv> u_map\<cdot>emb"
 
 definition
-  "liftdefl \<equiv> \<lambda>(t::'a baz itself). u_defl\<cdot>DEFL('a baz)"
+  "(liftprj :: udom u \<rightarrow> 'a baz u) \<equiv> u_map\<cdot>prj"
+
+definition
+  "liftdefl \<equiv> \<lambda>(t::'a baz itself). pdefl\<cdot>DEFL('a baz)"
 
 instance
-apply (rule typedef_liftdomain_class)
+apply (rule typedef_domain_class)
 apply (rule type_definition_baz)
 apply (rule below_baz_def)
 apply (rule emb_baz_def)
@@ -201,17 +198,17 @@ end
 
 text {* Prove DEFL rules using lemma @{text typedef_DEFL}. *}
 
-lemma DEFL_foo: "DEFL('a foo) = foo_defl\<cdot>LIFTDEFL('a)"
+lemma DEFL_foo: "DEFL('a foo) = foo_defl\<cdot>DEFL('a)"
 apply (rule typedef_DEFL)
 apply (rule defl_foo_def)
 done
 
-lemma DEFL_bar: "DEFL('a bar) = bar_defl\<cdot>LIFTDEFL('a)"
+lemma DEFL_bar: "DEFL('a bar) = bar_defl\<cdot>DEFL('a)"
 apply (rule typedef_DEFL)
 apply (rule defl_bar_def)
 done
 
-lemma DEFL_baz: "DEFL('a baz) = baz_defl\<cdot>LIFTDEFL('a)"
+lemma DEFL_baz: "DEFL('a baz) = baz_defl\<cdot>DEFL('a)"
 apply (rule typedef_DEFL)
 apply (rule defl_baz_def)
 done
@@ -348,7 +345,7 @@ unfolding foo_map_def bar_map_def baz_map_def by simp_all
 text {* Prove isodefl rules for all map functions simultaneously. *}
 
 lemma isodefl_foo_bar_baz:
-  assumes isodefl_d: "isodefl (u_map\<cdot>d) t"
+  assumes isodefl_d: "isodefl d t"
   shows
   "isodefl (foo_map\<cdot>d) (foo_defl\<cdot>t) \<and>
   isodefl (bar_map\<cdot>d) (bar_defl\<cdot>t) \<and>
@@ -383,21 +380,21 @@ lemma foo_map_ID: "foo_map\<cdot>ID = ID"
 apply (rule isodefl_DEFL_imp_ID)
 apply (subst DEFL_foo)
 apply (rule isodefl_foo)
-apply (rule isodefl_LIFTDEFL)
+apply (rule isodefl_ID_DEFL)
 done
 
 lemma bar_map_ID: "bar_map\<cdot>ID = ID"
 apply (rule isodefl_DEFL_imp_ID)
 apply (subst DEFL_bar)
 apply (rule isodefl_bar)
-apply (rule isodefl_LIFTDEFL)
+apply (rule isodefl_ID_DEFL)
 done
 
 lemma baz_map_ID: "baz_map\<cdot>ID = ID"
 apply (rule isodefl_DEFL_imp_ID)
 apply (subst DEFL_baz)
 apply (rule isodefl_baz)
-apply (rule isodefl_LIFTDEFL)
+apply (rule isodefl_ID_DEFL)
 done
 
 (********************************************************************)

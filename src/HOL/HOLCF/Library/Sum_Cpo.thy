@@ -260,28 +260,43 @@ apply (rename_tac a, case_tac a, simp, simp)
 apply (rename_tac b, case_tac b, simp, simp)
 done
 
+lemma ep_pair_strictify_up:
+  "ep_pair (strictify\<cdot>up) (fup\<cdot>ID)"
+apply (rule ep_pair.intro)
+apply (simp add: strictify_conv_if)
+apply (case_tac y, simp, simp add: strictify_conv_if)
+done
+
+definition sum_liftdefl :: "udom u defl \<rightarrow> udom u defl \<rightarrow> udom u defl"
+  where "sum_liftdefl = defl_fun2 (u_map\<cdot>emb oo strictify\<cdot>up)
+    (fup\<cdot>ID oo u_map\<cdot>prj) ssum_map"
+
 instantiation sum :: (predomain, predomain) predomain
 begin
 
 definition
-  "liftemb = emb oo encode_sum_u"
+  "liftemb = (u_map\<cdot>emb oo strictify\<cdot>up) oo
+    (ssum_map\<cdot>liftemb\<cdot>liftemb oo encode_sum_u)"
 
 definition
-  "liftprj = decode_sum_u oo prj"
+  "liftprj = (decode_sum_u oo ssum_map\<cdot>liftprj\<cdot>liftprj) oo
+    (fup\<cdot>ID oo u_map\<cdot>prj)"
 
 definition
-  "liftdefl (t::('a + 'b) itself) = DEFL('a u \<oplus> 'b u)"
+  "liftdefl (t::('a + 'b) itself) = sum_liftdefl\<cdot>LIFTDEFL('a)\<cdot>LIFTDEFL('b)"
 
 instance proof
-  show "ep_pair liftemb (liftprj :: udom \<rightarrow> ('a + 'b) u)"
+  show "ep_pair liftemb (liftprj :: udom u \<rightarrow> ('a + 'b) u)"
     unfolding liftemb_sum_def liftprj_sum_def
-    apply (rule ep_pair_comp)
-    apply (rule ep_pair.intro, simp, simp)
-    apply (rule ep_pair_emb_prj)
-    done
-  show "cast\<cdot>LIFTDEFL('a + 'b) = liftemb oo (liftprj :: udom \<rightarrow> ('a + 'b) u)"
+    by (intro ep_pair_comp ep_pair_ssum_map ep_pair_u_map ep_pair_emb_prj
+       ep_pair_strictify_up predomain_ep, simp add: ep_pair.intro)
+  show "cast\<cdot>LIFTDEFL('a + 'b) = liftemb oo (liftprj :: udom u \<rightarrow> ('a + 'b) u)"
     unfolding liftemb_sum_def liftprj_sum_def liftdefl_sum_def
-    by (simp add: cast_DEFL cfcomp1)
+    apply (subst sum_liftdefl_def, subst cast_defl_fun2)
+    apply (intro ep_pair_comp ep_pair_u_map ep_pair_emb_prj
+        ep_pair_strictify_up)
+    apply (erule (1) finite_deflation_ssum_map)
+    by (simp add: cast_liftdefl cfcomp1 ssum_map_map)
 qed
 
 end

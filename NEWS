@@ -71,7 +71,7 @@ The option "show_abbrevs" supersedes the former print mode
 "no_abbrevs" with inverted meaning.
 
 * More systematic naming of some configuration options.
-INCOMPATIBILTY.
+INCOMPATIBILITY.
 
   trace_simp  ~>  simp_trace
   debug_simp  ~>  simp_debug
@@ -275,7 +275,7 @@ instead.  INCOMPATIBILITY.
     mem_iff ~> member_def
     null_empty ~> null_def
 
-INCOMPATIBILITY.  Note that these were not suppossed to be used
+INCOMPATIBILITY.  Note that these were not supposed to be used
 regularly unless for striking reasons; their main purpose was code
 generation.
 
@@ -487,12 +487,12 @@ INCOMPATIBILITY.
 Accordingly, users of the definitional package must remove any
 'default_sort rep' declarations. INCOMPATIBILITY.
 
-* The old type classes 'profinite' and 'bifinite', along with the
-overloaded constant 'approx' have been removed. INCOMPATIBILITY.
+* The 'bifinite' class no longer fixes a constant 'approx'; the class
+now just asserts that such a function exists. INCOMPATIBILITY.
 
-* The type 'udom alg_defl' has been replaced by the non-parameterized
-type 'defl'. HOLCF no longer defines an embedding of type defl into
-udom by default; the instance proof defl :: domain is now available in
+* The type 'alg_defl' has been renamed to 'defl'. HOLCF no longer
+defines an embedding of type 'a defl into udom by default; instances
+of 'bifinite' and 'domain' classes are available in
 HOLCF/Library/Defl_Bifinite.thy.
 
 * The syntax 'REP('a)' has been replaced with 'DEFL('a)'.
@@ -500,6 +500,8 @@ HOLCF/Library/Defl_Bifinite.thy.
 * The predicate 'directed' has been removed. INCOMPATIBILITY.
 
 * The type class 'finite_po' has been removed. INCOMPATIBILITY.
+
+* The function 'cprod_map' has been renamed to 'prod_map'.
 
 * Renamed some theorems (the original names are also still available).
   expand_fun_below   ~> fun_below_iff

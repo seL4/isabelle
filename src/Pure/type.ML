@@ -418,10 +418,10 @@ exception TYPE_MATCH;
 
 fun typ_match tsig =
   let
-    fun match (T0 as TVar (v, S), T) subs = 
+    fun match (T0 as TVar (v, S), T) subs =
           (case lookup subs (v, S) of
             NONE =>
-              if of_sort tsig (T, S) 
+              if of_sort tsig (T, S)
               then if T0 = T then subs (*types already identical; don't create cycle!*)
                    else Vartab.update_new (v, (S, T)) subs
               else raise TYPE_MATCH
@@ -582,6 +582,7 @@ fun add_class pp naming (c, cs) tsig =
     let
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
+      val _ = Binding.check c;
       val (c', space') = space |> Name_Space.declare true naming c;
       val classes' = classes |> Sorts.add_class pp (c', cs');
     in ((space', classes'), default, types) end);
@@ -627,7 +628,7 @@ fun set_defsort S tsig = tsig |> map_tsig (fn (classes, _, types) =>
 local
 
 fun new_decl naming (c, decl) types =
-  #2 (Name_Space.define true naming (c, decl) types);
+  (Binding.check c; #2 (Name_Space.define true naming (c, decl) types));
 
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let

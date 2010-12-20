@@ -29,23 +29,23 @@ instantiation int :: predomain
 begin
 
 definition
-  "(liftemb :: int u \<rightarrow> udom) \<equiv> liftemb oo u_map\<cdot>(\<Lambda> x. Discr x)"
+  "(liftemb :: int u \<rightarrow> udom u) \<equiv> liftemb oo u_map\<cdot>(\<Lambda> x. Discr x)"
 
 definition
-  "(liftprj :: udom \<rightarrow> int u) \<equiv> u_map\<cdot>(\<Lambda> y. undiscr y) oo liftprj"
+  "(liftprj :: udom u \<rightarrow> int u) \<equiv> u_map\<cdot>(\<Lambda> y. undiscr y) oo liftprj"
 
 definition
   "liftdefl \<equiv> (\<lambda>(t::int itself). LIFTDEFL(int discr))"
 
 instance proof
-  show "ep_pair liftemb (liftprj :: udom \<rightarrow> int u)"
+  show "ep_pair liftemb (liftprj :: udom u \<rightarrow> int u)"
     unfolding liftemb_int_def liftprj_int_def
     apply (rule ep_pair_comp)
     apply (rule ep_pair_u_map)
     apply (simp add: ep_pair.intro)
     apply (rule predomain_ep)
     done
-  show "cast\<cdot>LIFTDEFL(int) = liftemb oo (liftprj :: udom \<rightarrow> int u)"
+  show "cast\<cdot>LIFTDEFL(int) = liftemb oo (liftprj :: udom u \<rightarrow> int u)"
     unfolding liftemb_int_def liftprj_int_def liftdefl_int_def
     apply (simp add: cast_liftdefl cfcomp1 u_map_map)
     apply (simp add: ID_def [symmetric] u_map_ID)

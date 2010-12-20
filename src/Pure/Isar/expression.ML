@@ -39,12 +39,18 @@ sig
     (term list list * (string * morphism) list * morphism) * Proof.context
   val read_goal_expression: expression -> Proof.context ->
     (term list list * (string * morphism) list * morphism) * Proof.context
-  val sublocale: string -> expression_i -> theory -> Proof.state
-  val sublocale_cmd: string -> expression -> theory -> Proof.state
-  val interpretation: expression_i -> (Attrib.binding * term) list -> theory -> Proof.state
-  val interpretation_cmd: expression -> (Attrib.binding * string) list -> theory -> Proof.state
-  val interpret: expression_i -> (Attrib.binding * term) list -> bool -> Proof.state -> Proof.state
-  val interpret_cmd: expression -> (Attrib.binding * string) list -> bool -> Proof.state -> Proof.state
+  val sublocale: string -> expression_i -> (Attrib.binding * term) list ->
+    theory -> Proof.state
+  val sublocale_cmd: string -> expression -> (Attrib.binding * string) list ->
+    theory -> Proof.state
+  val interpretation: expression_i -> (Attrib.binding * term) list ->
+    theory -> Proof.state
+  val interpretation_cmd: expression -> (Attrib.binding * string) list ->
+    theory -> Proof.state
+  val interpret: expression_i -> (Attrib.binding * term) list ->
+    bool -> Proof.state -> Proof.state
+  val interpret_cmd: expression -> (Attrib.binding * string) list ->
+    bool -> Proof.state -> Proof.state
 end;
 
 structure Expression : EXPRESSION =
@@ -802,7 +808,7 @@ fun note_eqns_register deps witss attrss eqns export export' context =
   in
     context
     |> Element.generic_note_thmss Thm.lemmaK
-      (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn],[])]) eqns)
+      (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns)
     |-> (fn facts => `(fn context => meta_rewrite context facts))
     |-> (fn eqns => fold (fn ((dep, morph), wits) =>
       fn context =>
@@ -868,20 +874,56 @@ end;
 
 local
 
-fun gen_sublocale prep_expr intern raw_target expression thy =
+fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
+  let
+    fun meta_rewrite ctxt =
+      map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def) o maps snd;
+    val facts =
+      (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns);
+    val eqns' = ctxt |> Context.Proof
+      |> Element.generic_note_thmss Thm.lemmaK facts
+      |> apsnd Context.the_proof  (* FIXME Context.proof_map_result *)
+      |-> (fn facts => `(fn ctxt => meta_rewrite ctxt facts))
+      |> fst;  (* FIXME duplication to add_thmss *)
+  in
+    ctxt
+    |> Locale.add_thmss target Thm.lemmaK facts
+    |> ProofContext.background_theory (fold (fn ((dep, morph), wits) =>
+      fn theory =>
+        Locale.add_dependency target
+          (dep, morph $> Element.satisfy_morphism
+            (map (Element.morph_witness export') wits))
+          (Element.eq_morphism theory eqns' |> Option.map (rpair true))
+          export theory) (deps ~~ witss))
+  end;
+
+fun gen_sublocale prep_expr intern parse_prop prep_attr raw_target
+    expression equations thy =
   let
     val target = intern thy raw_target;
     val target_ctxt = Named_Target.init target thy;
-    val ((propss, deps, export), goal_ctxt) = prep_expr expression target_ctxt;
+    val ((propss, deps, export), expr_ctxt) = prep_expr expression target_ctxt;
+
+    val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
+    val attrss = map ((apsnd o map) (prep_attr thy) o fst) equations;
+    val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
+    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
+
+    fun after_qed witss eqns =
+      note_eqns_dependency target deps witss attrss eqns export export';
+
+  in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
+(*
     fun after_qed witss = ProofContext.background_theory
       (fold (fn ((dep, morph), wits) => Locale.add_dependency
         target (dep, morph $> Element.satisfy_morphism wits) export) (deps ~~ witss));
   in Element.witness_proof after_qed propss goal_ctxt end;
-
+*)
 in
 
-fun sublocale x = gen_sublocale cert_goal_expression (K I) x;
-fun sublocale_cmd x = gen_sublocale read_goal_expression Locale.intern x;
+fun sublocale x = gen_sublocale cert_goal_expression (K I) (K I) (K I) x;
+fun sublocale_cmd x = gen_sublocale read_goal_expression Locale.intern
+  Syntax.parse_prop Attrib.intern_src x;
 
 end;
 
