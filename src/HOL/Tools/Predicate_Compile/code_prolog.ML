@@ -857,8 +857,9 @@ fun run (timeout, system) p (query_rel, args) vnames nsols =
     val args' = map (rename_vars_term renaming) args
     val prog = prelude system ^ query system nsols (query_rel, args') vnames' ^ write_program p
     val _ = tracing ("Generated prolog program:\n" ^ prog)
-    val solution = TimeLimit.timeLimit timeout (fn prog => Cache_IO.with_tmp_file "prolog_file" (fn prolog_file =>
-      (File.write prolog_file prog; invoke system (Path.implode prolog_file)))) prog
+    val solution = TimeLimit.timeLimit timeout (fn prog =>
+      Isabelle_System.with_tmp_file "prolog_file" (fn prolog_file =>
+        (File.write prolog_file prog; invoke system (Path.implode prolog_file)))) prog
     val _ = tracing ("Prolog returned solution(s):\n" ^ solution)
     val tss = parse_solutions solution
   in

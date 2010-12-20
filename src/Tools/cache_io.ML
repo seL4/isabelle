@@ -7,8 +7,6 @@ Cache for output of external processes.
 signature CACHE_IO =
 sig
   (*IO wrapper*)
-  val with_tmp_file: string -> (Path.T -> 'a) -> 'a
-  val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
   type result = {
     output: string list,
     redirected_output: string list,
@@ -34,21 +32,6 @@ struct
 
 val cache_io_prefix = "cache-io-"
 
-fun with_tmp_file name f =
-  let
-    val path = File.tmp_path (Path.explode (name ^ serial_string ()))
-    val x = Exn.capture f path
-    val _ = try File.rm path
-  in Exn.release x end
-
-fun with_tmp_dir name f =
-  let
-    val path = File.tmp_path (Path.explode (name ^ serial_string ()))
-    val _ = Isabelle_System.mkdirs path
-    val x = Exn.capture f path
-    val _ = try Isabelle_System.rm_tree path
-  in Exn.release x end
-
 type result = {
   output: string list,
   redirected_output: string list,
@@ -62,8 +45,9 @@ fun raw_run make_cmd str in_path out_path =
   in {output=split_lines out2, redirected_output=out1, return_code=rc} end
 
 fun run make_cmd str =
-  with_tmp_file cache_io_prefix (fn in_path =>
-  with_tmp_file cache_io_prefix (raw_run make_cmd str in_path))
+  Isabelle_System.with_tmp_file cache_io_prefix (fn in_path =>
+    Isabelle_System.with_tmp_file cache_io_prefix (fn out_path =>
+      raw_run make_cmd str in_path out_path))
 
 
 (* cache *)
