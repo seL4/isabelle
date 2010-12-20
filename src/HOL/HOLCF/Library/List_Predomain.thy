@@ -139,7 +139,7 @@ abbreviation list_map :: "('a::cpo \<rightarrow> 'b::cpo) \<Rightarrow> 'a list 
   where "list_map f \<equiv> Abs_cfun (map (Rep_cfun f))"
 
 lemma list_map_ID [domain_map_ID]: "list_map ID = ID"
-by (simp add: ID_def cfun_eq_iff Abs_cfun_inverse2)
+by (simp add: ID_def)
 
 lemma deflation_list_map [domain_deflation]:
   "deflation d \<Longrightarrow> deflation (list_map d)"

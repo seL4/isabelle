@@ -338,7 +338,7 @@ abbreviation sum_map'
   where "sum_map' f g \<equiv> Abs_cfun (sum_map (Rep_cfun f) (Rep_cfun g))"
 
 lemma sum_map_ID [domain_map_ID]: "sum_map' ID ID = ID"
-by (simp add: ID_def cfun_eq_iff Abs_cfun_inverse2 sum_map.identity)
+by (simp add: ID_def cfun_eq_iff sum_map.identity)
 
 lemma deflation_sum_map [domain_deflation]:
   "\<lbrakk>deflation d1; deflation d2\<rbrakk> \<Longrightarrow> deflation (sum_map' d1 d2)"
