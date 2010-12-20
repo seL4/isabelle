@@ -1,8 +1,3 @@
-(*  Title:      FOL/ex/ROOT.ML
-
-Examples for First-Order Logic. 
-*)
-
 use_thys [
   "First_Order_Logic",
   "Natural_Numbers",
@@ -21,5 +16,4 @@ use_thys [
   "If"
 ];
 
-(*regression test for locales -- sets several global flags!*)
 no_document use_thy "Locale_Test/Locale_Test";
