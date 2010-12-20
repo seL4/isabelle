@@ -175,7 +175,7 @@ ML {*
   (
     val thy = @{theory}
     type claset = Cla.claset
-    val equality_name = @{const_name "op ="}
+    val equality_name = @{const_name eq}
     val not_name = @{const_name Not}
     val notE = @{thm notE}
     val ccontr = @{thm ccontr}
@@ -390,5 +390,8 @@ ML {*
 
 setup Induct.setup
 declare case_split [cases type: o]
+
+
+hide_const (open) eq
 
 end

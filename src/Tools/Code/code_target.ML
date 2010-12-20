@@ -397,7 +397,7 @@ fun check_code_for thy target strict args naming program names_cs =
     then if strict
       then error (env_var ^ " not set; cannot check code for " ^ target)
       else warning (env_var ^ " not set; skipped checking code for " ^ target)
-    else Cache_IO.with_tmp_dir "Code_Test" (ext_check env_param)
+    else Isabelle_System.with_tmp_dir "Code_Test" (ext_check env_param)
   end;
 
 end; (* local *)

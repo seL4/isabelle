@@ -8,15 +8,15 @@ Simplification data for FOL.
 (*Make meta-equalities.  The operator below is Trueprop*)
 
 fun mk_meta_eq th = case concl_of th of
-    _ $ (Const(@{const_name "op ="},_)$_$_)   => th RS @{thm eq_reflection}
-  | _ $ (Const(@{const_name "op <->"},_)$_$_) => th RS @{thm iff_reflection}
+    _ $ (Const(@{const_name eq},_)$_$_)   => th RS @{thm eq_reflection}
+  | _ $ (Const(@{const_name iff},_)$_$_) => th RS @{thm iff_reflection}
   | _                           =>
   error("conclusion must be a =-equality or <->");;
 
 fun mk_eq th = case concl_of th of
     Const("==",_)$_$_           => th
-  | _ $ (Const(@{const_name "op ="},_)$_$_)   => mk_meta_eq th
-  | _ $ (Const(@{const_name "op <->"},_)$_$_) => mk_meta_eq th
+  | _ $ (Const(@{const_name eq},_)$_$_)   => mk_meta_eq th
+  | _ $ (Const(@{const_name iff},_)$_$_) => mk_meta_eq th
   | _ $ (Const(@{const_name Not},_)$_)      => th RS @{thm iff_reflection_F}
   | _                           => th RS @{thm iff_reflection_T};
 
@@ -32,7 +32,7 @@ fun mk_meta_cong ss rl =
       error("Premises and conclusion of congruence rules must use =-equality or <->");
 
 val mksimps_pairs =
-  [(@{const_name "op -->"}, [@{thm mp}]), (@{const_name "op &"}, [@{thm conjunct1}, @{thm conjunct2}]),
+  [(@{const_name imp}, [@{thm mp}]), (@{const_name conj}, [@{thm conjunct1}, @{thm conjunct2}]),
    (@{const_name All}, [@{thm spec}]), (@{const_name True}, []), (@{const_name False}, [])];
 
 fun mk_atomize pairs =
@@ -55,11 +55,11 @@ fun mksimps pairs (_: simpset) = map mk_eq o mk_atomize pairs o gen_all;
 structure Quantifier1 = Quantifier1Fun(
 struct
   (*abstract syntax*)
-  fun dest_eq((c as Const(@{const_name "op ="},_)) $ s $ t) = SOME(c,s,t)
+  fun dest_eq((c as Const(@{const_name eq},_)) $ s $ t) = SOME(c,s,t)
     | dest_eq _ = NONE;
-  fun dest_conj((c as Const(@{const_name "op &"},_)) $ s $ t) = SOME(c,s,t)
+  fun dest_conj((c as Const(@{const_name conj},_)) $ s $ t) = SOME(c,s,t)
     | dest_conj _ = NONE;
-  fun dest_imp((c as Const(@{const_name "op -->"},_)) $ s $ t) = SOME(c,s,t)
+  fun dest_imp((c as Const(@{const_name imp},_)) $ s $ t) = SOME(c,s,t)
     | dest_imp _ = NONE;
   val conj = FOLogic.conj
   val imp  = FOLogic.imp

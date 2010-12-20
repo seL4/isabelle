@@ -1,1 +1,3 @@
+# -*- shell-script -*- :mode=shellscript:
+
 ISABELLE_ATP="$COMPONENT"

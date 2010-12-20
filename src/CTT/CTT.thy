@@ -54,7 +54,7 @@ consts
   lambda    :: "(i => i) => i"      (binder "lam " 10)
   app       :: "[i,i]=>i"           (infixl "`" 60)
   (*Natural numbers*)
-  "0"       :: "i"                  ("0")
+  Zero      :: "i"                  ("0")
   (*Pairing*)
   pair      :: "[i,i]=>i"           ("(1<_,/_>)")
 

@@ -53,6 +53,8 @@ sig
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
   (* for experimentation purposes -- do not use in production code *)
+  val atp_run_twice_threshold : int Unsynchronized.ref
+  val atp_first_iter_time_frac : real Unsynchronized.ref
   val smt_weights : bool Unsynchronized.ref
   val smt_weight_min_facts : int Unsynchronized.ref
   val smt_min_weight : int Unsynchronized.ref
@@ -318,15 +320,17 @@ fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
   | smt_weighted_fact thy num_facts (fact, j) =
     (untranslated_fact fact, j) |> weight_smt_fact thy num_facts
 
+fun overlord_file_location_for_prover prover =
+  (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
+
+
 (* generic TPTP-based ATPs *)
 
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
 
-fun overlord_file_location_for_prover prover =
-  (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
-
-val atp_first_iter_time_frac = 0.67
+val atp_run_twice_threshold = Unsynchronized.ref 50
+val atp_first_iter_time_frac = Unsynchronized.ref 0.67
 
 (* Important messages are important but not so important that users want to see
    them each time. *)
@@ -358,15 +362,6 @@ fun run_atp auto name
         error ("No such directory: " ^ quote dest_dir ^ ".")
     val measure_run_time = verbose orelse Config.get ctxt measure_run_time
     val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
-    (* write out problem file and call ATP *)
-    fun command_line complete timeout probfile =
-      let
-        val core = File.shell_path command ^ " " ^ arguments complete timeout ^
-                   " " ^ File.shell_path probfile
-      in
-        (if measure_run_time then "TIMEFORMAT='%3R'; { time " ^ core ^ " ; }"
-         else "exec " ^ core) ^ " 2>&1"
-      end
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n");
@@ -378,16 +373,35 @@ fun run_atp auto name
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
         val as_time = Scan.read Symbol.stopper time o raw_explode
       in (output, as_time t) end;
-    fun run_on probfile =
+    fun run_on prob_file =
       case filter (curry (op =) "" o getenv o fst) (exec :: required_execs) of
         (home_var, _) :: _ =>
         error ("The environment variable " ^ quote home_var ^ " is not set.")
       | [] =>
         if File.exists command then
           let
+            val readable_names = debug andalso overlord
+            val (atp_problem, pool, conjecture_offset, fact_names) =
+              prepare_atp_problem ctxt readable_names explicit_forall type_sys
+                                  explicit_apply hyp_ts concl_t facts
+            val ss = tptp_strings_for_atp_problem use_conjecture_for_hypotheses
+                                                  atp_problem
+            val _ = File.write_list prob_file ss
+            val conjecture_shape =
+              conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
+              |> map single
             fun run complete timeout =
               let
-                val command = command_line complete timeout probfile
+                fun weights () = atp_problem_weights atp_problem
+                val core =
+                  File.shell_path command ^ " " ^
+                  arguments complete timeout weights ^ " " ^
+                  File.shell_path prob_file
+                val command =
+                  (if measure_run_time then
+                     "TIMEFORMAT='%3R'; { time " ^ core ^ " ; }"
+                   else
+                     "exec " ^ core) ^ " 2>&1"
                 val ((output, msecs), res_code) =
                   bash_output command
                   |>> (if overlord then
@@ -399,22 +413,14 @@ fun run_atp auto name
                   extract_tstplike_proof_and_outcome verbose complete res_code
                       proof_delims known_failures output
               in (output, msecs, tstplike_proof, outcome) end
-            val readable_names = debug andalso overlord
-            val (atp_problem, pool, conjecture_offset, fact_names) =
-              prepare_atp_problem ctxt readable_names explicit_forall type_sys
-                                  explicit_apply hyp_ts concl_t facts
-            val ss = tptp_strings_for_atp_problem use_conjecture_for_hypotheses
-                                                  atp_problem
-            val _ = File.write_list probfile ss
-            val conjecture_shape =
-              conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
-              |> map single
-            val run_twice = has_incomplete_mode andalso not auto
+            val run_twice =
+              has_incomplete_mode andalso not auto andalso
+              length facts >= !atp_run_twice_threshold
             val timer = Timer.startRealTimer ()
             val result =
-              run false
+              run (not run_twice)
                  (if run_twice then
-                    seconds (0.001 * atp_first_iter_time_frac
+                    seconds (0.001 * !atp_first_iter_time_frac
                              * Real.fromInt (Time.toMilliseconds timeout))
                   else
                     timeout)
@@ -431,13 +437,13 @@ fun run_atp auto name
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
-    fun cleanup probfile =
-      if dest_dir = "" then try File.rm probfile else NONE
-    fun export probfile (_, (output, _, _, _)) =
+    fun cleanup prob_file =
+      if dest_dir = "" then try File.rm prob_file else NONE
+    fun export prob_file (_, (output, _, _, _)) =
       if dest_dir = "" then
         ()
       else
-        File.write (Path.explode (Path.implode probfile ^ "_proof")) output
+        File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
     val ((pool, conjecture_shape, fact_names),
          (output, msecs, tstplike_proof, outcome)) =
       with_path cleanup export run_on problem_path_name

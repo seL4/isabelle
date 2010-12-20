@@ -17,7 +17,7 @@ arities  i :: "term"
 
 consts
 
-  "0"         :: "i"                  ("0")   --{*the empty set*}
+  zero        :: "i"                  ("0")   --{*the empty set*}
   Pow         :: "i => i"                     --{*power sets*}
   Inf         :: "i"                          --{*infinite set*}
 

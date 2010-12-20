@@ -1,7 +1,8 @@
-# the path to lighttpd
-LIGHTTPD="/usr/sbin/lighttpd"
+# -*- shell-script -*- :mode=shellscript:
 
-ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
+LIGHTTPD="/usr/sbin/lighttpd"
 
 WWWFINDDIR="$COMPONENT"
 WWWCONFIG="$WWWFINDDIR/lighttpd.conf"
+
+ISABELLE_TOOLS="$ISABELLE_TOOLS:$WWWFINDDIR/lib/Tools"

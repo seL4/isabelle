@@ -37,9 +37,9 @@ consts
   sue     :: person
   ned     :: person
 
-  "23"    :: nat          ("23")
-  "24"    :: nat          ("24")
-  "25"    :: nat          ("25")
+  nat23   :: nat          ("23")
+  nat24   :: nat          ("24")
+  nat25   :: nat          ("25")
 
   age     :: "[person, nat]                          => bool"
 
