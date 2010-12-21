@@ -912,31 +912,37 @@ fun dynamic_conv thy evaluator =
 fun dynamic_value thy postproc evaluator =
   Code_Preproc.dynamic_value thy postproc (dynamic_evaluator thy evaluator);
 
-fun provide_program thy consts f algebra eqngr =
-  let
-    fun generate_consts thy algebra eqngr =
-      fold_map (ensure_const thy algebra eqngr false);
-    val (consts', (naming, program)) = invoke_generation true thy (algebra, eqngr)
-      generate_consts consts;
-  in f algebra eqngr naming program consts' end;
-
-fun static_evaluation thy evaluator algebra eqngr naming program consts' vs t =
+fun lift_evaluation thy evaluation' algebra eqngr naming program vs t =
   let
     val (((_, program'), (((vs', ty'), t'), deps)), _) =
       ensure_value thy algebra eqngr t (NONE, (naming, program));
-  in evaluator naming program' consts' ((original_sorts vs vs', (vs', ty')), t') deps end;
+  in evaluation' ((original_sorts vs vs', (vs', ty')), t') deps end;
+
+fun lift_evaluator thy evaluator' consts algebra eqngr =
+  let
+    fun generate_consts thy algebra eqngr =
+      fold_map (ensure_const thy algebra eqngr false);
+    val (consts', (naming, program)) =
+      invoke_generation true thy (algebra, eqngr) generate_consts consts;
+    val evaluation' = evaluator' naming program consts';
+  in lift_evaluation thy evaluation' algebra eqngr naming program end;
+
+fun lift_evaluator_simple thy evaluator' consts algebra eqngr =
+  let
+    fun generate_consts thy algebra eqngr =
+      fold_map (ensure_const thy algebra eqngr false);
+    val (consts', (naming, program)) =
+      invoke_generation true thy (algebra, eqngr) generate_consts consts;
+  in evaluator' program end;
 
 fun static_conv thy consts conv =
-  Code_Preproc.static_conv thy consts
-    (provide_program thy consts (static_evaluation thy conv));
+  Code_Preproc.static_conv thy consts (lift_evaluator thy conv consts);
 
 fun static_conv_simple thy consts conv =
-  Code_Preproc.static_conv thy consts
-    (provide_program thy consts (fn _ => fn _ => fn _ => fn program => fn _ => conv program));
+  Code_Preproc.static_conv thy consts (lift_evaluator_simple thy conv consts);
 
 fun static_value thy postproc consts evaluator =
-  Code_Preproc.static_value thy postproc consts
-    (provide_program thy consts (static_evaluation thy evaluator));
+  Code_Preproc.static_value thy postproc consts (lift_evaluator thy evaluator consts);
 
 
 (** diagnostic commands **)

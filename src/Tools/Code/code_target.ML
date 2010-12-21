@@ -410,7 +410,7 @@ fun check_code_for thy target strict args naming program names_cs =
     else Isabelle_System.with_tmp_dir "Code_Test" (ext_check env_param)
   end;
 
-fun evaluation mounted_serializer prepared_program deps ((vs, ty), t) =
+fun evaluation mounted_serializer prepared_program consts ((vs, ty), t) =
   let
     val _ = if Code_Thingol.contains_dict_var t then
       error "Term to be evaluated contains free dictionaries" else ();
@@ -421,16 +421,16 @@ fun evaluation mounted_serializer prepared_program deps ((vs, ty), t) =
     val program = prepared_program
       |> Graph.new_node (value_name,
           Code_Thingol.Fun (Term.dummy_patternN, (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE)))
-      |> fold (curry (perhaps o try o Graph.add_edge) value_name) deps;
+      |> fold (curry (perhaps o try o Graph.add_edge) value_name) consts;
     val (program_code, deresolve) = produce (mounted_serializer program);
     val value_name' = the (deresolve value_name);
   in (program_code, value_name') end;
 
-fun evaluator thy target naming program deps =
+fun evaluator thy target naming program consts =
   let
     val (mounted_serializer, prepared_program) = mount_serializer thy
-      target NONE "Code" [] naming program deps;
-  in evaluation mounted_serializer prepared_program deps end;
+      target NONE "Code" [] naming program consts;
+  in evaluation mounted_serializer prepared_program consts end;
 
 end; (* local *)
 
