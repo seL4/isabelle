@@ -250,8 +250,12 @@ subsection {* Compact bases of domains *}
 typedef (open) 'a compact_basis = "{x::'a::pcpo. compact x}"
 by auto
 
-lemma compact_Rep_compact_basis: "compact (Rep_compact_basis a)"
+lemma Rep_compact_basis' [simp]: "compact (Rep_compact_basis a)"
 by (rule Rep_compact_basis [unfolded mem_Collect_eq])
+
+lemma Abs_compact_basis_inverse' [simp]:
+   "compact x \<Longrightarrow> Rep_compact_basis (Abs_compact_basis x) = x"
+by (rule Abs_compact_basis_inverse [unfolded mem_Collect_eq])
 
 instantiation compact_basis :: (pcpo) below
 begin
@@ -276,7 +280,7 @@ definition
   "compact_bot = Abs_compact_basis \<bottom>"
 
 lemma Rep_compact_bot [simp]: "Rep_compact_basis compact_bot = \<bottom>"
-unfolding compact_bot_def by (simp add: Abs_compact_basis_inverse)
+unfolding compact_bot_def by simp
 
 lemma compact_bot_minimal [simp]: "compact_bot \<sqsubseteq> a"
 unfolding compact_le_def Rep_compact_bot by simp
@@ -419,7 +423,7 @@ by (simp only: cb_take.simps)
 
 lemma Rep_cb_take:
   "Rep_compact_basis (cb_take (Suc n) a) = approx n\<cdot>(Rep_compact_basis a)"
-by (simp add: Abs_compact_basis_inverse cb_take.simps(2) compact_approx)
+by (simp add: cb_take.simps(2))
 
 lemmas approx_Rep_compact_basis = Rep_cb_take [symmetric]
 
@@ -428,7 +432,7 @@ apply (subgoal_tac "\<exists>n. cb_take (Suc n) x = x", fast)
 apply (simp add: Rep_compact_basis_inject [symmetric])
 apply (simp add: Rep_cb_take)
 apply (rule compact_eq_approx)
-apply (rule compact_Rep_compact_basis)
+apply (rule Rep_compact_basis')
 done
 
 lemma cb_take_less: "cb_take n x \<sqsubseteq> x"
@@ -783,61 +787,49 @@ proof
   fix w :: "'a"
   show "below.ideal (approximants w)"
   proof (rule below.idealI)
-    show "\<exists>x. x \<in> approximants w"
-      unfolding approximants_def
-      apply (rule_tac x="Abs_compact_basis (approx 0\<cdot>w)" in exI)
-      apply (simp add: Abs_compact_basis_inverse approx_below compact_approx)
-      done
+    have "Abs_compact_basis (approx 0\<cdot>w) \<in> approximants w"
+      by (simp add: approximants_def approx_below)
+    thus "\<exists>x. x \<in> approximants w" ..
   next
     fix x y :: "'a compact_basis"
-    assume "x \<in> approximants w" "y \<in> approximants w"
-    thus "\<exists>z \<in> approximants w. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
-      unfolding approximants_def
-      apply simp
-      apply (cut_tac a=x in compact_Rep_compact_basis)
-      apply (cut_tac a=y in compact_Rep_compact_basis)
-      apply (drule compact_eq_approx)
-      apply (drule compact_eq_approx)
-      apply (clarify, rename_tac i j)
-      apply (rule_tac x="Abs_compact_basis (approx (max i j)\<cdot>w)" in exI)
-      apply (simp add: compact_le_def)
-      apply (simp add: Abs_compact_basis_inverse approx_below compact_approx)
-      apply (erule subst, erule subst)
-      apply (simp add: monofun_cfun chain_mono [OF chain_approx])
-      done
+    assume x: "x \<in> approximants w" and y: "y \<in> approximants w"
+    obtain i where i: "approx i\<cdot>(Rep_compact_basis x) = Rep_compact_basis x"
+      using compact_eq_approx Rep_compact_basis' by fast
+    obtain j where j: "approx j\<cdot>(Rep_compact_basis y) = Rep_compact_basis y"
+      using compact_eq_approx Rep_compact_basis' by fast
+    let ?z = "Abs_compact_basis (approx (max i j)\<cdot>w)"
+    have "?z \<in> approximants w"
+      by (simp add: approximants_def approx_below)
+    moreover from x y have "x \<sqsubseteq> ?z \<and> y \<sqsubseteq> ?z"
+      by (simp add: approximants_def compact_le_def)
+         (metis i j monofun_cfun chain_mono chain_approx le_maxI1 le_maxI2)
+    ultimately show "\<exists>z \<in> approximants w. x \<sqsubseteq> z \<and> y \<sqsubseteq> z" ..
   next
     fix x y :: "'a compact_basis"
     assume "x \<sqsubseteq> y" "y \<in> approximants w" thus "x \<in> approximants w"
-      unfolding approximants_def
-      apply simp
-      apply (simp add: compact_le_def)
-      apply (erule (1) below_trans)
-      done
+      unfolding approximants_def compact_le_def
+      by (auto elim: below_trans)
   qed
 next
   fix Y :: "nat \<Rightarrow> 'a"
-  assume Y: "chain Y"
-  show "approximants (\<Squnion>i. Y i) = (\<Union>i. approximants (Y i))"
+  assume "chain Y"
+  thus "approximants (\<Squnion>i. Y i) = (\<Union>i. approximants (Y i))"
     unfolding approximants_def
-    apply safe
-    apply (simp add: compactD2 [OF compact_Rep_compact_basis Y])
-    apply (erule below_lub [OF Y])
-    done
+    by (auto simp add: compact_below_lub_iff)
 next
   fix a :: "'a compact_basis"
   show "approximants (Rep_compact_basis a) = {b. b \<sqsubseteq> a}"
     unfolding approximants_def compact_le_def ..
 next
   fix x y :: "'a"
-  assume "approximants x \<subseteq> approximants y" thus "x \<sqsubseteq> y"
-    apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> y")
-    apply (simp add: lub_distribs)
-    apply (rule admD, simp, simp)
-    apply (drule_tac c="Abs_compact_basis (approx i\<cdot>x)" in subsetD)
-    apply (simp add: approximants_def Abs_compact_basis_inverse
-                     approx_below compact_approx)
-    apply (simp add: approximants_def Abs_compact_basis_inverse compact_approx)
-    done
+  assume "approximants x \<subseteq> approximants y"
+  hence "\<forall>z. compact z \<longrightarrow> z \<sqsubseteq> x \<longrightarrow> z \<sqsubseteq> y"
+    by (simp add: approximants_def subset_eq)
+       (metis Abs_compact_basis_inverse')
+  hence "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> y"
+    by (simp add: lub_below approx_below)
+  thus "x \<sqsubseteq> y"
+    by (simp add: lub_distribs)
 next
   show "\<exists>f::'a compact_basis \<Rightarrow> nat. inj f"
     by (rule exI, rule inj_place)

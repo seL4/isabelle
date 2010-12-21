@@ -33,7 +33,7 @@ apply (rule finite_deflation.finite_range)
 apply (rule finite_deflation_approx)
 done
 
-lemma compact_approx: "compact (approx n\<cdot>x)"
+lemma compact_approx [simp]: "compact (approx n\<cdot>x)"
 apply (rule finite_deflation.compact)
 apply (rule finite_deflation_approx)
 done
