@@ -61,10 +61,10 @@ lemma sum_quotient [quot_thm]:
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "Quotient (sum_rel R1 R2) (sum_map Abs1 Abs2) (sum_map Rep1 Rep2)"
   apply (rule QuotientI)
-  apply (simp_all add: sum_map.compositionality sum_map.identity sum_rel_eq sum_rel_map1 sum_rel_map2
+  apply (simp_all add: sum_map.compositionality comp_def sum_map.identity sum_rel_eq sum_rel_map1 sum_rel_map2
     Quotient_abs_rep [OF q1] Quotient_rel_rep [OF q1] Quotient_abs_rep [OF q2] Quotient_rel_rep [OF q2])
   using Quotient_rel [OF q1] Quotient_rel [OF q2]
-  apply (simp add: sum_rel_unfold split: sum.split)
+  apply (simp add: sum_rel_unfold comp_def split: sum.split)
   done
 
 lemma sum_Inl_rsp [quot_respect]:

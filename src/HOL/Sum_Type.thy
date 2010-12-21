@@ -95,14 +95,22 @@ primrec sum_map :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<
   "sum_map f1 f2 (Inl a) = Inl (f1 a)"
 | "sum_map f1 f2 (Inr a) = Inr (f2 a)"
 
-type_lifting sum_map proof -
-  fix f g h i s
-  show "sum_map f g (sum_map h i s) = sum_map (\<lambda>x. f (h x)) (\<lambda>x. g (i x)) s"
-    by (cases s) simp_all
+type_lifting sum_map: sum_map proof -
+  fix f g h i
+  show "sum_map f g \<circ> sum_map h i = sum_map (f \<circ> h) (g \<circ> i)"
+  proof
+    fix s
+    show "(sum_map f g \<circ> sum_map h i) s = sum_map (f \<circ> h) (g \<circ> i) s"
+      by (cases s) simp_all
+  qed
 next
   fix s
-  show "sum_map (\<lambda>x. x) (\<lambda>x. x) s = s"
-    by (cases s) simp_all
+  show "sum_map id id = id"
+  proof
+    fix s
+    show "sum_map id id s = id s" 
+      by (cases s) simp_all
+  qed
 qed
 
 

@@ -60,7 +60,7 @@ lemma option_quotient [quot_thm]:
   assumes "Quotient R Abs Rep"
   shows "Quotient (option_rel R) (Option.map Abs) (Option.map Rep)"
   apply (rule QuotientI)
-  apply (simp_all add: Option.map.compositionality Option.map.identity option_rel_eq option_rel_map1 option_rel_map2 Quotient_abs_rep [OF assms] Quotient_rel_rep [OF assms])
+  apply (simp_all add: Option.map.compositionality comp_def Option.map.identity option_rel_eq option_rel_map1 option_rel_map2 Quotient_abs_rep [OF assms] Quotient_rel_rep [OF assms])
   using Quotient_rel [OF assms]
   apply (simp add: option_rel_unfold split: option.split)
   done

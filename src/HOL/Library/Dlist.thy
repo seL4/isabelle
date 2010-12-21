@@ -175,8 +175,8 @@ qed
 
 section {* Functorial structure *}
 
-type_lifting map
-  by (auto intro: dlist_eqI simp add: remdups_map_remdups comp_def)
+type_lifting map: map
+  by (simp_all add: List.map.id remdups_map_remdups fun_eq_iff dlist_eq_iff)
 
 
 section {* Implementation of sets by distinct lists -- canonical! *}
