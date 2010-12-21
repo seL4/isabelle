@@ -40,7 +40,7 @@ sig
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val relevant_facts :
     Proof.context -> bool -> real * real -> int
-    -> (string * typ -> term list -> bool) -> relevance_fudge
+    -> (string * typ -> term list -> bool * term list) -> relevance_fudge
     -> relevance_override -> thm list -> term list -> term
     -> ((string * locality) * thm) list
 end;
@@ -267,9 +267,11 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
        prover, we introduce a fresh constant to simulate the effect of
        Skolemization. *)
     fun do_const const x ts =
-      (not (is_built_in_const x ts)
-       ? add_pconst_to_table also_skolems (rich_pconst thy const x))
-      #> fold do_term ts
+      let val (built_in, ts) = is_built_in_const x ts in
+        (not built_in
+         ? add_pconst_to_table also_skolems (rich_pconst thy const x))
+        #> fold do_term ts
+      end
     and do_term t =
       case strip_comb t of
         (Const x, ts) => do_const true x ts
@@ -503,7 +505,7 @@ fun add_arities is_built_in_const th =
         case t of
           t1 $ t2 => SOME tab |> aux t1 (t2 :: args) |> aux t2 []
         | Const (x as (s, _)) =>
-          (if is_built_in_const x args then
+          (if is_built_in_const x args |> fst then
              SOME tab
            else case Symtab.lookup tab s of
              NONE => SOME (Symtab.update (s, length args) tab)

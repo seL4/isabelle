@@ -41,7 +41,6 @@ sig
   val dest_builtin: Proof.context -> string * typ -> term list -> bfunr option
   val is_builtin_fun: Proof.context -> string * typ -> term list -> bool
   val is_builtin_fun_ext: Proof.context -> string * typ -> term list -> bool
-  val is_builtin_ext: Proof.context -> string * typ -> term list -> bool
 end
 
 structure SMT_Builtin: SMT_BUILTIN =
@@ -218,9 +217,5 @@ fun is_builtin_fun_ext ctxt (c as (_, T)) ts =
     SOME (_, Int f) => is_some (f ctxt T ts)
   | SOME (_, Ext f) => f ctxt T ts
   | NONE => false)
-
-fun is_builtin_ext ctxt c ts =
-  is_builtin_num_ext ctxt (Term.list_comb (Const c, ts)) orelse 
-  is_builtin_fun_ext ctxt c ts
 
 end

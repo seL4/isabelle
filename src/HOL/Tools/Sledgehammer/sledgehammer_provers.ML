@@ -75,7 +75,7 @@ sig
   val is_prover_installed : Proof.context -> string -> bool
   val default_max_relevant_for_prover : Proof.context -> string -> int
   val is_built_in_const_for_prover :
-    Proof.context -> string -> string * typ -> term list -> bool
+    Proof.context -> string -> string * typ -> term list -> bool * term list
   val atp_relevance_fudge : relevance_fudge
   val smt_relevance_fudge : relevance_fudge
   val relevance_fudge_for_prover : Proof.context -> string -> relevance_fudge
@@ -165,9 +165,17 @@ val atp_irrelevant_consts =
 
 fun is_built_in_const_for_prover ctxt name =
   if is_smt_prover ctxt name then
-    ctxt |> select_smt_solver name |> SMT_Builtin.is_builtin_ext
+    let val ctxt = ctxt |> select_smt_solver name in
+      fn x => fn ts =>
+         if SMT_Builtin.is_builtin_num_ext ctxt (list_comb (Const x, ts)) then
+           (true, [])
+         else if SMT_Builtin.is_builtin_fun_ext ctxt x ts then
+           (true, ts)
+         else
+           (false, ts)
+    end
   else
-    K o member (op =) atp_irrelevant_consts o fst
+    fn (s, _) => fn ts => (member (op =) atp_irrelevant_consts s, ts)
 
 (* FUDGE *)
 val atp_relevance_fudge =
