@@ -8,7 +8,7 @@ signature HOLOGIC =
 sig
   val typeS: sort
   val typeT: typ
-  val mk_id: typ -> term
+  val id_const: typ -> term
   val mk_comp: term * term -> term
   val boolN: string
   val boolT: typ
@@ -146,7 +146,7 @@ val typeT = Type_Infer.anyT typeS;
 
 (* functions *)
 
-fun mk_id T = Const ("Fun.id", T --> T);
+fun id_const T = Const ("Fun.id", T --> T);
 
 fun mk_comp (f, g) =
   let
