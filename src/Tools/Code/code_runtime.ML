@@ -86,25 +86,15 @@ fun reject_vars thy t =
     val ctxt = ProofContext.init_global thy;
   in ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t) end;
 
-fun obtain_serializer thy some_target = Code_Target.produce_code_for thy
-  (the_default target some_target) NONE "Code" [];
+fun obtain_evaluator thy some_target naming program deps =
+  Code_Target.evaluator thy (the_default target some_target) naming program deps;
 
-fun base_evaluator cookie serializer (naming : Code_Thingol.naming) thy program ((vs, ty), t) deps args =
+fun evaluation cookie thy evaluator vs_t args =
   let
     val ctxt = ProofContext.init_global thy;
-    val _ = if Code_Thingol.contains_dict_var t then
-      error "Term to be evaluated contains free dictionaries" else ();
-    val v' = Name.variant (map fst vs) "a";
-    val vs' = (v', []) :: vs;
-    val ty' = Code_Thingol.fun_tyco `%% [ITyVar v', ty];
-    val value_name = "Value.value.value"
-    val program' = program
-      |> Graph.new_node (value_name,
-          Code_Thingol.Fun (Term.dummy_patternN, (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE)))
-      |> fold (curry Graph.add_edge value_name) deps;
-    val (program_code, [SOME value_name']) = serializer naming program' [value_name];
+    val (program_code, value_name) = evaluator vs_t;
     val value_code = space_implode " "
-      (value_name' :: "()" :: map (enclose "(" ")") args);
+      (value_name :: "()" :: map (enclose "(" ")") args);
   in Exn.interruptible_capture (value ctxt cookie) (program_code, value_code) end;
 
 fun partiality_as_none e = SOME (Exn.release e)
@@ -119,7 +109,7 @@ fun dynamic_value_exn cookie thy some_target postproc t args =
       then tracing ("Evaluation of term " ^ quote (Syntax.string_of_term_global thy t))
       else ()
     fun evaluator naming program ((_, vs_ty), t) deps =
-      base_evaluator cookie (obtain_serializer thy some_target) naming thy program (vs_ty, t) deps args;
+      evaluation cookie thy (obtain_evaluator thy some_target naming program deps) (vs_ty, t) args;
   in Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t end;
 
 fun dynamic_value_strict cookie thy some_target postproc t args =
@@ -128,18 +118,20 @@ fun dynamic_value_strict cookie thy some_target postproc t args =
 fun dynamic_value cookie thy some_target postproc t args =
   partiality_as_none (dynamic_value_exn cookie thy some_target postproc t args);
 
-fun static_value_exn cookie thy some_target postproc consts =
+fun static_evaluator cookie thy some_target naming program consts' =
   let
-    val serializer = obtain_serializer thy some_target;
-    fun evaluator naming program thy ((_, vs_ty), t) deps =
-      base_evaluator cookie serializer naming thy program (vs_ty, t) deps [];
-  in Code_Thingol.static_value thy (Exn.map_result o postproc) consts evaluator o reject_vars thy end;
+    val evaluator = obtain_evaluator thy some_target naming program consts'
+  in fn ((_, vs_ty), t) => fn _ => evaluation cookie thy evaluator (vs_ty, t) [] end;
 
-fun static_value_strict cookie thy some_target postproc consts t =
-  Exn.release (static_value_exn cookie thy some_target postproc consts t);
+fun static_value_exn cookie thy some_target postproc consts =
+  Code_Thingol.static_value thy (Exn.map_result o postproc) consts
+    (static_evaluator cookie thy some_target) o reject_vars thy;
 
-fun static_value cookie thy some_target postproc consts t =
-  partiality_as_none (static_value_exn cookie thy some_target postproc consts t);
+fun static_value_strict cookie thy some_target postproc consts =
+  Exn.release o static_value_exn cookie thy some_target postproc consts;
+
+fun static_value cookie thy some_target postproc consts =
+  partiality_as_none o static_value_exn cookie thy some_target postproc consts;
 
 
 (* evaluation for truth or nothing *)
@@ -154,14 +146,15 @@ val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append this "put_trut
 
 val reject_vars = fn thy => tap (reject_vars thy o Thm.term_of);
 
-fun check_holds serializer naming thy program vs_t deps ct =
+fun check_holds some_target naming thy program vs_t deps ct =
   let
     val t = Thm.term_of ct;
     val _ = if fastype_of t <> propT
       then error ("Not a proposition: " ^ Syntax.string_of_term_global thy t)
       else ();
     val iff = Thm.cterm_of thy (Term.Const ("==", propT --> propT --> propT));
-    val result = case partiality_as_none (base_evaluator truth_cookie serializer naming thy program vs_t deps [])
+    val result = case partiality_as_none
+      (evaluation truth_cookie thy (obtain_evaluator thy some_target naming program deps) vs_t [])
      of SOME Holds => true
       | _ => false;
   in
@@ -176,17 +169,13 @@ fun check_holds_oracle serializer naming thy program ((_, vs_ty), t) deps ct =
   raw_check_holds_oracle (serializer, naming, thy, program, (vs_ty, t), deps, ct);
 
 fun dynamic_holds_conv thy = Code_Thingol.dynamic_conv thy
-    (fn naming => check_holds_oracle (obtain_serializer thy NONE) naming thy)
+    (fn naming => check_holds_oracle NONE naming thy)
   o reject_vars thy;
 
 fun static_holds_conv thy consts =
-  let
-    val serializer = obtain_serializer thy NONE;
-  in
-    Code_Thingol.static_conv thy consts
-      (fn naming => fn program => fn thy => check_holds_oracle serializer naming thy program)
-    o reject_vars thy
-  end;
+  Code_Thingol.static_conv thy consts
+    (fn naming => fn program => fn consts' => check_holds_oracle NONE naming thy program)
+    o reject_vars thy;
 
 
 (** instrumentalization **)
