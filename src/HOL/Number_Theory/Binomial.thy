@@ -294,80 +294,69 @@ next
   finally show "?P (n + 1)" by simp
 qed
 
-lemma set_explicit: "{S. S = T \<and> P S} = (if P T then {T} else {})"
-  by auto
-
-lemma card_subsets_nat [rule_format]:
+lemma card_subsets_nat:
   fixes S :: "'a set"
-  assumes "finite S"
-  shows "ALL k. card {T. T \<le> S \<and> card T = k} = card S choose k" 
-      (is "?P S")
-using `finite S`
-proof (induct set: finite)
-  show "?P {}" by (auto simp add: set_explicit)
-  next fix x :: "'a" and F
-  assume iassms: "finite F" "x ~: F"
-  assume ih: "?P F"
-  show "?P (insert x F)" (is "ALL k. ?Q k")
-  proof
-    fix k
-    show "card {T. T \<subseteq> (insert x F) \<and> card T = k} = 
-        card (insert x F) choose k" (is "?Q k")
-    proof (induct k rule: induct'_nat)
-      from iassms have "{T. T \<le> (insert x F) \<and> card T = 0} = {{}}"
-        apply auto
-        apply (subst (asm) card_0_eq)
-        apply (auto elim: finite_subset)
-        done
-      thus "?Q 0" 
-        by auto
-      next fix k
-      show "?Q (k + 1)"
-      proof -
-        from iassms have fin: "finite (insert x F)" by auto
-        hence "{ T. T \<subseteq> insert x F \<and> card T = k + 1} =
-          {T. T \<le> F & card T = k + 1} Un 
-          {T. T \<le> insert x F & x : T & card T = k + 1}"
-          by (auto intro!: subsetI)
-        with iassms fin have "card ({T. T \<le> insert x F \<and> card T = k + 1}) = 
-          card ({T. T \<subseteq> F \<and> card T = k + 1}) + 
-          card ({T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1})"
-          apply (subst card_Un_disjoint [symmetric])
-          apply auto
-          (* note: nice! Didn't have to say anything here *)
-          done
-        also from ih have "card ({T. T \<subseteq> F \<and> card T = k + 1}) = 
-          card F choose (k+1)" by auto
-        also have "card ({T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1}) =
-          card ({T. T <= F & card T = k})"
-        proof -
-          let ?f = "%T. T Un {x}"
-          from iassms have "inj_on ?f {T. T <= F & card T = k}"
-            unfolding inj_on_def by (auto intro!: subsetI)
-          hence "card ({T. T <= F & card T = k}) = 
-            card(?f ` {T. T <= F & card T = k})"
-            by (rule card_image [symmetric])
-          also from iassms fin have "?f ` {T. T <= F & card T = k} = 
-            {T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1}"
-            unfolding image_def 
-            (* I can't figure out why this next line takes so long *)
-            apply auto
-            apply (frule (1) finite_subset, force)
-            apply (rule_tac x = "xa - {x}" in exI)
-            apply (subst card_Diff_singleton)
-            apply (auto elim: finite_subset)
-            done
-          finally show ?thesis by (rule sym)
-        qed
-        also from ih have "card ({T. T <= F & card T = k}) = card F choose k"
-          by auto
-        finally have "card ({T. T \<le> insert x F \<and> card T = k + 1}) = 
-          card F choose (k + 1) + (card F choose k)".
-        with iassms choose_plus_one_nat show ?thesis
-          by (auto simp del: card.insert)
+  shows "finite S \<Longrightarrow> card {T. T \<le> S \<and> card T = k} = card S choose k"
+proof (induct arbitrary: k set: finite)
+  case empty show ?case by (auto simp add: Collect_conv_if)
+next
+  case (insert x F)
+  note iassms = insert(1,2)
+  note ih = insert(3)
+  show ?case
+  proof (induct k rule: induct'_nat)
+    case zero
+    from iassms have "{T. T \<le> (insert x F) \<and> card T = 0} = {{}}"
+      by (auto simp: finite_subset)
+    thus ?case by auto
+  next
+    case (plus1 k)
+    from iassms have fin: "finite (insert x F)" by auto
+    hence "{ T. T \<subseteq> insert x F \<and> card T = k + 1} =
+      {T. T \<le> F & card T = k + 1} Un 
+      {T. T \<le> insert x F & x : T & card T = k + 1}"
+      by (auto intro!: subsetI)
+    with iassms fin have "card ({T. T \<le> insert x F \<and> card T = k + 1}) = 
+      card ({T. T \<subseteq> F \<and> card T = k + 1}) + 
+      card ({T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1})"
+      apply (subst card_Un_disjoint [symmetric])
+      apply auto
+        (* note: nice! Didn't have to say anything here *)
+      done
+    also from ih have "card ({T. T \<subseteq> F \<and> card T = k + 1}) = 
+      card F choose (k+1)" by auto
+    also have "card ({T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1}) =
+      card ({T. T <= F & card T = k})"
+    proof -
+      let ?f = "%T. T Un {x}"
+      from iassms have "inj_on ?f {T. T <= F & card T = k}"
+        unfolding inj_on_def by (auto intro!: subsetI)
+      hence "card ({T. T <= F & card T = k}) = 
+        card(?f ` {T. T <= F & card T = k})"
+        by (rule card_image [symmetric])
+      also have "?f ` {T. T <= F & card T = k} = 
+        {T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1}" (is "?L=?R")
+      proof-
+        { fix S assume "S \<subseteq> F"
+          hence "card(insert x S) = card S +1"
+            using iassms by (auto simp: finite_subset) }
+        moreover
+        { fix T assume 1: "T \<subseteq> insert x F" "x : T" "card T = k+1"
+          let ?S = "T - {x}"
+          have "?S <= F & card ?S = k \<and> T = insert x ?S"
+            using 1 fin by (auto simp: finite_subset) }
+        ultimately show ?thesis by(auto simp: image_def)
       qed
+      finally show ?thesis by (rule sym)
     qed
+    also from ih have "card ({T. T <= F & card T = k}) = card F choose k"
+      by auto
+    finally have "card ({T. T \<le> insert x F \<and> card T = k + 1}) = 
+      card F choose (k + 1) + (card F choose k)".
+    with iassms choose_plus_one_nat show ?case
+      by (auto simp del: card.insert)
   qed
 qed
+
 
 end
