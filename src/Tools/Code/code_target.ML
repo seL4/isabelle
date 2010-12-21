@@ -421,7 +421,7 @@ fun evaluation mounted_serializer prepared_program deps ((vs, ty), t) =
     val program = prepared_program
       |> Graph.new_node (value_name,
           Code_Thingol.Fun (Term.dummy_patternN, (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE)))
-      |> fold (curry Graph.add_edge value_name) deps;
+      |> fold (curry (perhaps o try o Graph.add_edge) value_name) deps;
     val (program_code, deresolve) = produce (mounted_serializer program);
     val value_name' = the (deresolve value_name);
   in (program_code, value_name') end;

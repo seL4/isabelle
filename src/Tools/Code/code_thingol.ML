@@ -100,14 +100,14 @@ sig
   val dynamic_value: theory -> ((term -> term) -> 'a -> 'a) -> (naming -> program
     -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
     -> term -> 'a
-  val static_conv: theory -> string list -> (naming -> program
-    -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
+  val static_conv: theory -> string list -> (naming -> program -> string list
+    -> ((string * sort) list * typscheme) * iterm -> string list -> conv)
     -> conv
   val static_conv_simple: theory -> string list
-    -> (program -> theory -> (string * sort) list -> term -> conv) -> conv
+    -> (program -> (string * sort) list -> term -> conv) -> conv
   val static_value: theory -> ((term -> term) -> 'a -> 'a) -> string list ->
-    (naming -> program
-      -> theory -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
+    (naming -> program -> string list
+      -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
     -> term -> 'a
 end;
 
@@ -916,27 +916,27 @@ fun provide_program thy consts f algebra eqngr =
   let
     fun generate_consts thy algebra eqngr =
       fold_map (ensure_const thy algebra eqngr false);
-    val (_, (naming, program)) = invoke_generation true thy (algebra, eqngr)
+    val (consts', (naming, program)) = invoke_generation true thy (algebra, eqngr)
       generate_consts consts;
-  in f algebra eqngr naming program end;
+  in f algebra eqngr naming program consts' end;
 
-fun static_evaluator evaluator algebra eqngr naming program thy vs t =
+fun static_evaluation thy evaluator algebra eqngr naming program consts' vs t =
   let
     val (((_, program'), (((vs', ty'), t'), deps)), _) =
       ensure_value thy algebra eqngr t (NONE, (naming, program));
-  in evaluator naming program' thy ((original_sorts vs vs', (vs', ty')), t') deps end;
+  in evaluator naming program' consts' ((original_sorts vs vs', (vs', ty')), t') deps end;
 
 fun static_conv thy consts conv =
   Code_Preproc.static_conv thy consts
-    (provide_program thy consts (static_evaluator conv));
+    (provide_program thy consts (static_evaluation thy conv));
 
 fun static_conv_simple thy consts conv =
   Code_Preproc.static_conv thy consts
-    (provide_program thy consts ((K o K o K) conv));
+    (provide_program thy consts (fn _ => fn _ => fn _ => fn program => fn _ => conv program));
 
 fun static_value thy postproc consts evaluator =
   Code_Preproc.static_value thy postproc consts
-    (provide_program thy consts (static_evaluator evaluator));
+    (provide_program thy consts (static_evaluation thy evaluator));
 
 
 (** diagnostic commands **)

@@ -602,13 +602,13 @@ fun dynamic_value thy = lift_triv_classes_rew thy
 
 fun static_conv thy consts =
   lift_triv_classes_conv thy (Code_Thingol.static_conv thy consts
-    (K (fn program => let val nbe_program = compile true thy program
-      in fn thy => oracle thy program nbe_program end)));
+    (K (fn program => fn _ => let val nbe_program = compile true thy program
+      in oracle thy program nbe_program end)));
 
 fun static_value thy consts = lift_triv_classes_rew thy
   (Code_Thingol.static_value thy I consts
-    (K (fn program => let val nbe_program = compile true thy program
-      in fn thy => eval_term thy program (compile false thy program) end)));
+    (K (fn program => fn _ => let val nbe_program = compile true thy program
+      in eval_term thy program (compile false thy program) end)));
 
 
 (** setup **)
