@@ -17,7 +17,7 @@ sig
     Tip of Lexicon.token
   val parse: Proof.context -> gram -> string -> Lexicon.token list -> parsetree list
   val guess_infix_lr: gram -> string -> (string * bool * bool * int) option
-  val branching_level: int Unsynchronized.ref
+  val branching_level: int Config.T
 end;
 
 structure Parser: PARSER =
@@ -715,7 +715,8 @@ fun movedot_lambda _ [] = []
       else movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ts;
 
 
-val branching_level = Unsynchronized.ref 600;   (*trigger value for warnings*)
+(*trigger value for warnings*)
+val branching_level = Config.int (Config.declare "syntax_branching_level" (fn _ => Config.Int 600));
 
 (*get all productions of a NT and NTs chained to it which can
   be started by specified token*)
@@ -771,7 +772,7 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
 
                 val dummy =
                   if not (! warned) andalso
-                     length (new_states @ States) > ! branching_level then
+                     length (new_states @ States) > Config.get ctxt branching_level then
                     (Context_Position.if_visible ctxt warning
                       "Currently parsed expression could be extremely ambiguous";
                      warned := true)
