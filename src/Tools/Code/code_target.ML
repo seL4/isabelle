@@ -118,8 +118,8 @@ type serializer = Token.T list
     module_alias: string -> string option,
     class_syntax: string -> string option,
     tyco_syntax: string -> Code_Printer.tyco_syntax option,
-    const_syntax: string -> Code_Printer.activated_const_syntax option,
-    program: Code_Thingol.program }
+    const_syntax: string -> Code_Printer.activated_const_syntax option }
+  -> Code_Thingol.program
   -> serialization;
 
 datatype description = Fundamental of { serializer: serializer,
@@ -313,7 +313,7 @@ fun project_program thy abortable names_hidden names1 program2 =
     val program4 = Graph.subgraph (member (op =) names4) program3;
   in (names4, program4) end;
 
-fun invoke_serializer thy abortable serializer literals reserved all_includes
+fun prepare_serializer thy abortable serializer literals reserved all_includes
     module_alias proto_class_syntax proto_instance_syntax proto_tyco_syntax proto_const_syntax
     module_name args naming proto_program names =
   let
@@ -328,18 +328,18 @@ fun invoke_serializer thy abortable serializer literals reserved all_includes
       then SOME (name, content) else NONE;
     val includes = map_filter select_include (Symtab.dest all_includes);
   in
-    serializer args {
+    (serializer args {
       labelled_name = Code_Thingol.labelled_name thy proto_program,
       reserved_syms = reserved,
       includes = includes,
       module_alias = if module_name = "" then Symtab.lookup module_alias else K (SOME module_name),
       class_syntax = Symtab.lookup class_syntax,
       tyco_syntax = Symtab.lookup tyco_syntax,
-      const_syntax = Symtab.lookup const_syntax,
-      program = program }
+      const_syntax = Symtab.lookup const_syntax },
+      program)
   end;
 
-fun mount_serializer thy target some_width module_name args =
+fun mount_serializer thy target some_width module_name args naming program names =
   let
     val (default_width, abortable, data, modify) = activate_target thy target;
     val serializer = case the_description data
@@ -348,12 +348,12 @@ fun mount_serializer thy target some_width module_name args =
     val module_alias = the_module_alias data 
     val { class, instance, tyco, const } = the_symbol_syntax data;
     val literals = the_literals thy target;
+    val (prepared_serializer, prepared_program) = prepare_serializer thy
+      abortable serializer literals reserved (the_includes data) module_alias
+        class instance tyco const module_name args
+          naming (modify naming program) names
     val width = the_default default_width some_width;
-  in fn naming => fn program => fn names =>
-    invoke_serializer thy abortable serializer literals reserved
-      (the_includes data) module_alias class instance tyco const module_name args
-        naming (modify naming program) names width
-  end;
+  in prepared_serializer prepared_program width end;
 
 fun assert_module_name "" = error ("Empty module name not allowed.")
   | assert_module_name module_name = module_name;
