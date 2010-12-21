@@ -95,7 +95,7 @@ fun base_evaluator cookie serializer (naming : Code_Thingol.naming) thy program 
     val _ = if Code_Thingol.contains_dict_var t then
       error "Term to be evaluated contains free dictionaries" else ();
     val v' = Name.variant (map fst vs) "a";
-    val vs' = (v', []) :: vs
+    val vs' = (v', []) :: vs;
     val ty' = Code_Thingol.fun_tyco `%% [ITyVar v', ty];
     val value_name = "Value.value.value"
     val program' = program

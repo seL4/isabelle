@@ -296,7 +296,7 @@ fun haskell_program_of_program labelled_name module_alias module_prefix reserved
   end;
 
 fun serialize_haskell module_prefix string_classes { labelled_name, reserved_syms,
-    includes, module_alias, class_syntax, tyco_syntax, const_syntax, program } =
+    includes, module_alias, class_syntax, tyco_syntax, const_syntax } program =
   let
 
     (* build program *)
