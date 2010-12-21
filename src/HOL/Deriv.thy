@@ -879,14 +879,14 @@ lemma DERIV_pos_inc_left:
   fixes f :: "real => real"
   shows "DERIV f x :> l \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>d > 0. \<forall>h > 0. h < d --> f(x - h) < f(x)"
   apply (rule DERIV_neg_dec_left [of "%x. - f x" x "-l", simplified])
-  apply (auto simp add: DERIV_minus) 
+  apply (auto simp add: DERIV_minus)
   done
 
 lemma DERIV_neg_dec_right:
   fixes f :: "real => real"
   shows "DERIV f x :> l \<Longrightarrow> l < 0 \<Longrightarrow> \<exists>d > 0. \<forall>h > 0. h < d --> f(x) > f(x + h)"
   apply (rule DERIV_pos_inc_right [of "%x. - f x" x "-l", simplified])
-  apply (auto simp add: DERIV_minus) 
+  apply (auto simp add: DERIV_minus)
   done
 
 lemma DERIV_local_max:
@@ -1554,21 +1554,8 @@ proof -
   then obtain f'c where f'cdef: "DERIV f c :> f'c" ..
 
   from cdef have "DERIV ?h c :> l" by auto
-  moreover
-  {
-    have "DERIV (\<lambda>x. (f b - f a) * g x) c :> g'c * (f b - f a)"
-      apply (insert DERIV_const [where k="f b - f a"])
-      apply (drule meta_spec [of _ c])
-      apply (drule DERIV_mult [OF _ g'cdef])
-      by simp
-    moreover have "DERIV (\<lambda>x. (g b - g a) * f x) c :> f'c * (g b - g a)"
-      apply (insert DERIV_const [where k="g b - g a"])
-      apply (drule meta_spec [of _ c])
-      apply (drule DERIV_mult [OF _ f'cdef])
-      by simp
-    ultimately have "DERIV ?h c :>  g'c * (f b - f a) - f'c * (g b - g a)"
-      by (simp add: DERIV_diff)
-  }
+  moreover have "DERIV ?h c :>  g'c * (f b - f a) - f'c * (g b - g a)"
+    using g'cdef f'cdef by (auto intro!: DERIV_intros)
   ultimately have leq: "l =  g'c * (f b - f a) - f'c * (g b - g a)" by (rule DERIV_unique)
 
   {
