@@ -34,27 +34,27 @@ definition
   "Bseq X = (\<exists>K>0.\<forall>n. norm (X n) \<le> K)"
 
 definition
-  monoseq :: "(nat=>real)=>bool" where
-    --{*Definition of monotonicity. 
-        The use of disjunction here complicates proofs considerably. 
-        One alternative is to add a Boolean argument to indicate the direction. 
+  monoseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
+    --{*Definition of monotonicity.
+        The use of disjunction here complicates proofs considerably.
+        One alternative is to add a Boolean argument to indicate the direction.
         Another is to develop the notions of increasing and decreasing first.*}
   "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
 
 definition
-  incseq :: "(nat=>real)=>bool" where
+  incseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
     --{*Increasing sequence*}
-  "incseq X = (\<forall>m. \<forall>n\<ge>m. X m \<le> X n)"
+  "incseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m. X m \<le> X n)"
 
 definition
-  decseq :: "(nat=>real)=>bool" where
-    --{*Increasing sequence*}
-  "decseq X = (\<forall>m. \<forall>n\<ge>m. X n \<le> X m)"
+  decseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
+    --{*Decreasing sequence*}
+  "decseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m. X n \<le> X m)"
 
 definition
-  subseq :: "(nat => nat) => bool" where
+  subseq :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
     --{*Definition of subsequence*}
-  "subseq f = (\<forall>m. \<forall>n>m. (f m) < (f n))"
+  "subseq f \<longleftrightarrow> (\<forall>m. \<forall>n>m. f m < f n)"
 
 definition
   Cauchy :: "(nat \<Rightarrow> 'a::metric_space) \<Rightarrow> bool" where
@@ -502,22 +502,6 @@ proof (rule classical)
     qed
 qed
 
-text{* Given a binary function @{text "f:: nat \<Rightarrow> 'a \<Rightarrow> 'a"}, its values are uniquely determined by a function g *}
-
-lemma nat_function_unique: "EX! g. g 0 = e \<and> (\<forall>n. g (Suc n) = f n (g n))"
-  unfolding Ex1_def
-  apply (rule_tac x="nat_rec e f" in exI)
-  apply (rule conjI)+
-apply (rule def_nat_rec_0, simp)
-apply (rule allI, rule def_nat_rec_Suc, simp)
-apply (rule allI, rule impI, rule ext)
-apply (erule conjE)
-apply (induct_tac x)
-apply simp
-apply (erule_tac x="n" in allE)
-apply (simp)
-done
-
 text{*Subsequence (alternative definition, (e.g. Hoskins)*}
 
 lemma subseq_Suc_iff: "subseq f = (\<forall>n. (f n) < (f (Suc n)))"
@@ -528,8 +512,7 @@ apply (auto intro: less_trans)
 done
 
 lemma monoseq_Suc:
-   "monoseq X = ((\<forall>n. X n \<le> X (Suc n))
-                 | (\<forall>n. X (Suc n) \<le> X n))"
+  "monoseq X \<longleftrightarrow> (\<forall>n. X n \<le> X (Suc n)) \<or> (\<forall>n. X (Suc n) \<le> X n)"
 apply (simp add: monoseq_def)
 apply (auto dest!: le_imp_less_or_eq)
 apply (auto intro!: lessI [THEN less_imp_le] dest!: less_imp_Suc_add)
@@ -552,7 +535,9 @@ by (simp add: monoseq_Suc)
 lemma mono_SucI2: "\<forall>n. X (Suc n) \<le> X n ==> monoseq X"
 by (simp add: monoseq_Suc)
 
-lemma monoseq_minus: assumes "monoseq a"
+lemma monoseq_minus:
+  fixes a :: "nat \<Rightarrow> 'a::ordered_ab_group_add"
+  assumes "monoseq a"
   shows "monoseq (\<lambda> n. - a n)"
 proof (cases "\<forall> m. \<forall> n \<ge> m. a m \<le> a n")
   case True
@@ -564,7 +549,9 @@ next
   thus ?thesis by (rule monoI1)
 qed
 
-lemma monoseq_le: assumes "monoseq a" and "a ----> x"
+lemma monoseq_le:
+  fixes a :: "nat \<Rightarrow> real"
+  assumes "monoseq a" and "a ----> x"
   shows "((\<forall> n. a n \<le> x) \<and> (\<forall>m. \<forall>n\<ge>m. a m \<le> a n)) \<or> 
          ((\<forall> n. x \<le> a n) \<and> (\<forall>m. \<forall>n\<ge>m. a n \<le> a m))"
 proof -
@@ -615,121 +602,48 @@ proof -
   qed auto
 qed
 
-text{* for any sequence, there is a mootonic subsequence *}
-lemma seq_monosub: "\<exists>f. subseq f \<and> monoseq (\<lambda> n. (s (f n)))"
-proof-
-  {assume H: "\<forall>n. \<exists>p >n. \<forall> m\<ge>p. s m \<le> s p"
-    let ?P = "\<lambda> p n. p > n \<and> (\<forall>m \<ge> p. s m \<le> s p)"
-    from nat_function_unique[of "SOME p. ?P p 0" "\<lambda>p n. SOME p. ?P p n"]
-    obtain f where f: "f 0 = (SOME p. ?P p 0)" "\<forall>n. f (Suc n) = (SOME p. ?P p (f n))" by blast
-    have "?P (f 0) 0"  unfolding f(1) some_eq_ex[of "\<lambda>p. ?P p 0"]
-      using H apply - 
-      apply (erule allE[where x=0], erule exE, rule_tac x="p" in exI) 
-      unfolding order_le_less by blast 
-    hence f0: "f 0 > 0" "\<forall>m \<ge> f 0. s m \<le> s (f 0)" by blast+
-    {fix n
-      have "?P (f (Suc n)) (f n)" 
-        unfolding f(2)[rule_format, of n] some_eq_ex[of "\<lambda>p. ?P p (f n)"]
-        using H apply - 
-      apply (erule allE[where x="f n"], erule exE, rule_tac x="p" in exI) 
-      unfolding order_le_less by blast 
-    hence "f (Suc n) > f n" "\<forall>m \<ge> f (Suc n). s m \<le> s (f (Suc n))" by blast+}
-  note fSuc = this
-    {fix p q assume pq: "p \<ge> f q"
-      have "s p \<le> s(f(q))"  using f0(2)[rule_format, of p] pq fSuc
-        by (cases q, simp_all) }
-    note pqth = this
-    {fix q
-      have "f (Suc q) > f q" apply (induct q) 
-        using f0(1) fSuc(1)[of 0] apply simp by (rule fSuc(1))}
-    note fss = this
-    from fss have th1: "subseq f" unfolding subseq_Suc_iff ..
-    {fix a b 
-      have "f a \<le> f (a + b)"
-      proof(induct b)
-        case 0 thus ?case by simp
-      next
-        case (Suc b)
-        from fSuc(1)[of "a + b"] Suc.hyps show ?case by simp
-      qed}
-    note fmon0 = this
-    have "monoseq (\<lambda>n. s (f n))" 
-    proof-
-      {fix n
-        have "s (f n) \<ge> s (f (Suc n))" 
-        proof(cases n)
-          case 0
-          assume n0: "n = 0"
-          from fSuc(1)[of 0] have th0: "f 0 \<le> f (Suc 0)" by simp
-          from f0(2)[rule_format, OF th0] show ?thesis  using n0 by simp
-        next
-          case (Suc m)
-          assume m: "n = Suc m"
-          from fSuc(1)[of n] m have th0: "f (Suc m) \<le> f (Suc (Suc m))" by simp
-          from m fSuc(2)[rule_format, OF th0] show ?thesis by simp 
-        qed}
-      thus "monoseq (\<lambda>n. s (f n))" unfolding monoseq_Suc by blast 
+text{* for any sequence, there is a monotonic subsequence *}
+lemma seq_monosub:
+  fixes s :: "nat => 'a::linorder"
+  shows "\<exists>f. subseq f \<and> monoseq (\<lambda> n. (s (f n)))"
+proof cases
+  let "?P p n" = "p > n \<and> (\<forall>m\<ge>p. s m \<le> s p)"
+  assume *: "\<forall>n. \<exists>p. ?P p n"
+  def f \<equiv> "nat_rec (SOME p. ?P p 0) (\<lambda>_ n. SOME p. ?P p n)"
+  have f_0: "f 0 = (SOME p. ?P p 0)" unfolding f_def by simp
+  have f_Suc: "\<And>i. f (Suc i) = (SOME p. ?P p (f i))" unfolding f_def nat_rec_Suc ..
+  have P_0: "?P (f 0) 0" unfolding f_0 using *[rule_format] by (rule someI2_ex) auto
+  have P_Suc: "\<And>i. ?P (f (Suc i)) (f i)" unfolding f_Suc using *[rule_format] by (rule someI2_ex) auto
+  then have "subseq f" unfolding subseq_Suc_iff by auto
+  moreover have "monoseq (\<lambda>n. s (f n))" unfolding monoseq_Suc
+  proof (intro disjI2 allI)
+    fix n show "s (f (Suc n)) \<le> s (f n)"
+    proof (cases n)
+      case 0 with P_Suc[of 0] P_0 show ?thesis by auto
+    next
+      case (Suc m)
+      from P_Suc[of n] Suc have "f (Suc m) \<le> f (Suc (Suc m))" by simp
+      with P_Suc Suc show ?thesis by simp
     qed
-    with th1 have ?thesis by blast}
-  moreover
-  {fix N assume N: "\<forall>p >N. \<exists> m\<ge>p. s m > s p"
-    {fix p assume p: "p \<ge> Suc N" 
-      hence pN: "p > N" by arith with N obtain m where m: "m \<ge> p" "s m > s p" by blast
-      have "m \<noteq> p" using m(2) by auto 
-      with m have "\<exists>m>p. s p < s m" by - (rule exI[where x=m], auto)}
-    note th0 = this
-    let ?P = "\<lambda>m x. m > x \<and> s x < s m"
-    from nat_function_unique[of "SOME x. ?P x (Suc N)" "\<lambda>m x. SOME y. ?P y x"]
-    obtain f where f: "f 0 = (SOME x. ?P x (Suc N))" 
-      "\<forall>n. f (Suc n) = (SOME m. ?P m (f n))" by blast
-    have "?P (f 0) (Suc N)"  unfolding f(1) some_eq_ex[of "\<lambda>p. ?P p (Suc N)"]
-      using N apply - 
-      apply (erule allE[where x="Suc N"], clarsimp)
-      apply (rule_tac x="m" in exI)
-      apply auto
-      apply (subgoal_tac "Suc N \<noteq> m")
-      apply simp
-      apply (rule ccontr, simp)
-      done
-    hence f0: "f 0 > Suc N" "s (Suc N) < s (f 0)" by blast+
-    {fix n
-      have "f n > N \<and> ?P (f (Suc n)) (f n)"
-        unfolding f(2)[rule_format, of n] some_eq_ex[of "\<lambda>p. ?P p (f n)"]
-      proof (induct n)
-        case 0 thus ?case
-          using f0 N apply auto 
-          apply (erule allE[where x="f 0"], clarsimp) 
-          apply (rule_tac x="m" in exI, simp)
-          by (subgoal_tac "f 0 \<noteq> m", auto)
-      next
-        case (Suc n)
-        from Suc.hyps have Nfn: "N < f n" by blast
-        from Suc.hyps obtain m where m: "m > f n" "s (f n) < s m" by blast
-        with Nfn have mN: "m > N" by arith
-        note key = Suc.hyps[unfolded some_eq_ex[of "\<lambda>p. ?P p (f n)", symmetric] f(2)[rule_format, of n, symmetric]]
-        
-        from key have th0: "f (Suc n) > N" by simp
-        from N[rule_format, OF th0]
-        obtain m' where m': "m' \<ge> f (Suc n)" "s (f (Suc n)) < s m'" by blast
-        have "m' \<noteq> f (Suc (n))" apply (rule ccontr) using m'(2) by auto
-        hence "m' > f (Suc n)" using m'(1) by simp
-        with key m'(2) show ?case by auto
-      qed}
-    note fSuc = this
-    {fix n
-      have "f n \<ge> Suc N \<and> f(Suc n) > f n \<and> s(f n) < s(f(Suc n))" using fSuc[of n] by auto 
-      hence "f n \<ge> Suc N" "f(Suc n) > f n" "s(f n) < s(f(Suc n))" by blast+}
-    note thf = this
-    have sqf: "subseq f" unfolding subseq_Suc_iff using thf by simp
-    have "monoseq (\<lambda>n. s (f n))"  unfolding monoseq_Suc using thf
-      apply -
-      apply (rule disjI1)
-      apply auto
-      apply (rule order_less_imp_le)
-      apply blast
-      done
-    then have ?thesis  using sqf by blast}
-  ultimately show ?thesis unfolding linorder_not_less[symmetric] by blast
+  qed
+  ultimately show ?thesis by auto
+next
+  let "?P p m" = "m < p \<and> s m < s p"
+  assume "\<not> (\<forall>n. \<exists>p>n. (\<forall>m\<ge>p. s m \<le> s p))"
+  then obtain N where N: "\<And>p. p > N \<Longrightarrow> \<exists>m>p. s p < s m" by (force simp: not_le le_less)
+  def f \<equiv> "nat_rec (SOME p. ?P p (Suc N)) (\<lambda>_ n. SOME p. ?P p n)"
+  have f_0: "f 0 = (SOME p. ?P p (Suc N))" unfolding f_def by simp
+  have f_Suc: "\<And>i. f (Suc i) = (SOME p. ?P p (f i))" unfolding f_def nat_rec_Suc ..
+  have P_0: "?P (f 0) (Suc N)"
+    unfolding f_0 some_eq_ex[of "\<lambda>p. ?P p (Suc N)"] using N[of "Suc N"] by auto
+  { fix i have "N < f i \<Longrightarrow> ?P (f (Suc i)) (f i)"
+      unfolding f_Suc some_eq_ex[of "\<lambda>p. ?P p (f i)"] using N[of "f i"] . }
+  note P' = this
+  { fix i have "N < f i \<and> ?P (f (Suc i)) (f i)"
+      by (induct i) (insert P_0 P', auto) }
+  then have "subseq f" "monoseq (\<lambda>x. s (f x))"
+    unfolding subseq_Suc_iff monoseq_Suc by (auto simp: not_le intro: less_imp_le)
+  then show ?thesis by auto
 qed
 
 lemma seq_suble: assumes sf: "subseq f" shows "n \<le> f n"
@@ -738,7 +652,7 @@ proof(induct n)
 next
   case (Suc n)
   from sf[unfolded subseq_Suc_iff, rule_format, of n] Suc.hyps
-  have "n < f (Suc n)" by arith 
+  have "n < f (Suc n)" by arith
   thus ?case by arith
 qed
 
@@ -887,7 +801,7 @@ lemma Bseq_minus_iff: "Bseq (%n. -(X n)) = Bseq X"
 by (simp add: Bseq_def)
 
 text{*Main monotonicity theorem*}
-lemma Bseq_monoseq_convergent: "[| Bseq X; monoseq X |] ==> convergent X"
+lemma Bseq_monoseq_convergent: "[| Bseq X; monoseq X |] ==> convergent (X::nat\<Rightarrow>real)"
 apply (simp add: monoseq_def, safe)
 apply (rule_tac [2] convergent_minus_iff [THEN ssubst])
 apply (drule_tac [2] Bseq_minus_iff [THEN ssubst])
@@ -897,9 +811,11 @@ done
 subsubsection{*Increasing and Decreasing Series*}
 
 lemma incseq_imp_monoseq:  "incseq X \<Longrightarrow> monoseq X"
-  by (simp add: incseq_def monoseq_def) 
+  by (simp add: incseq_def monoseq_def)
 
-lemma incseq_le: assumes inc: "incseq X" and lim: "X ----> L" shows "X n \<le> L"
+lemma incseq_le:
+  fixes X :: "nat \<Rightarrow> real"
+  assumes inc: "incseq X" and lim: "X ----> L" shows "X n \<le> L"
   using monoseq_le [OF incseq_imp_monoseq [OF inc] lim]
 proof
   assume "(\<forall>n. X n \<le> L) \<and> (\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n)"
@@ -939,11 +855,13 @@ qed
 lemma decseq_imp_monoseq:  "decseq X \<Longrightarrow> monoseq X"
   by (simp add: decseq_def monoseq_def)
 
-lemma decseq_eq_incseq: "decseq X = incseq (\<lambda>n. - X n)" 
+lemma decseq_eq_incseq:
+  fixes X :: "nat \<Rightarrow> 'a::ordered_ab_group_add" shows "decseq X = incseq (\<lambda>n. - X n)" 
   by (simp add: decseq_def incseq_def)
 
 
-lemma decseq_le: assumes dec: "decseq X" and lim: "X ----> L" shows "L \<le> X n"
+lemma decseq_le:
+  fixes X :: "nat \<Rightarrow> real" assumes dec: "decseq X" and lim: "X ----> L" shows "L \<le> X n"
 proof -
   have inc: "incseq (\<lambda>n. - X n)" using dec
     by (simp add: decseq_eq_incseq)
@@ -1220,7 +1138,7 @@ apply (simp add: power_abs)
 apply (auto dest: power_mono)
 done
 
-lemma monoseq_realpow: "[| 0 \<le> x; x \<le> 1 |] ==> monoseq (%n. x ^ n)"
+lemma monoseq_realpow: fixes x :: real shows "[| 0 \<le> x; x \<le> 1 |] ==> monoseq (%n. x ^ n)"
 apply (clarify intro!: mono_SucI2)
 apply (cut_tac n = n and N = "Suc n" and a = x in power_decreasing, auto)
 done
