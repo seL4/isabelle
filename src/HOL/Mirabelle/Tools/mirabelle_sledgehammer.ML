@@ -350,7 +350,8 @@ fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
     fun change_dir (SOME dir) =
         Config.put Sledgehammer_Provers.dest_dir dir
         #> Config.put SMT_Config.debug_files
-          (dir ^ "/" ^ ATP_Problem.timestamp () ^ "_" ^ serial_string ())
+          (dir ^ "/" ^ Name.desymbolize false (ATP_Problem.timestamp ()) ^ "_"
+          ^ serial_string ())
       | change_dir NONE = I
     val st' =
       st |> Proof.map_context
