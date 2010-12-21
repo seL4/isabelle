@@ -124,8 +124,8 @@ fun make_id_prop ctxt variances (tyco, mapper) =
     val Ts' = maps mk_argT (Ts ~~ variances)
     val T = Type (tyco, Ts);
     val lhs = list_comb (Const (mapper, Ts' ---> T --> T),
-      map (HOLogic.mk_id o domain_type) Ts');
-  in (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, HOLogic.mk_id T) end;
+      map (HOLogic.id_const o domain_type) Ts');
+  in (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, HOLogic.id_const T) end;
 
 val comp_apply = Simpdata.mk_eq @{thm o_apply};
 val id_def = Simpdata.mk_eq @{thm id_def};
