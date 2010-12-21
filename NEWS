@@ -54,6 +54,8 @@ entities and Isar declaration attributes to access these.
   show_consts                   show_consts
   show_abbrevs                  show_abbrevs
 
+  Syntax.trace_ast              syntax_ast_trace
+  Syntax.stat_ast               syntax_ast_stat
   Syntax.ambiguity_level        syntax_ambiguity_level
 
   Goal_Display.goals_limit      goals_limit

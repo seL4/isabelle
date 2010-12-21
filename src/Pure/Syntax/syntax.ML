@@ -736,7 +736,7 @@ fun read ctxt (syn as Syntax (tabs, _)) root inp =
     val asts = read_asts ctxt syn false root inp;
   in
     Syn_Trans.asts_to_terms ctxt (lookup_tr parse_trtab)
-      (map (Ast.normalize_ast (Symtab.lookup_list parse_ruletab)) asts)
+      (map (Ast.normalize ctxt (Symtab.lookup_list parse_ruletab)) asts)
   end;
 
 
@@ -871,7 +871,7 @@ fun unparse_t t_to_ast prt_t markup ctxt (Syntax (tabs, _)) curried t =
   in
     Pretty.markup markup (prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
       (lookup_tokentr tokentrtab (print_mode_value ()))
-      (Ast.normalize_ast (Symtab.lookup_list print_ruletab) ast))
+      (Ast.normalize ctxt (Symtab.lookup_list print_ruletab) ast))
   end;
 
 in
