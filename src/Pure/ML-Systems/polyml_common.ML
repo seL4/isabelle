@@ -3,6 +3,8 @@
 Compatibility file for Poly/ML -- common part for 5.x.
 *)
 
+fun op before (a, _: unit) = a;
+
 exception Interrupt = SML90.Interrupt;
 
 use "General/exn.ML";

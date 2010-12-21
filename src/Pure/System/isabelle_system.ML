@@ -65,13 +65,13 @@ in
 
 fun with_tmp_file name f =
   let val path = fresh_path name
-  in Exn.release (Exn.capture f path before try File.rm path) end;
+  in Exn.release (Exn.capture f path before ignore (try File.rm path)) end;
 
 fun with_tmp_dir name f =
   let
     val path = fresh_path name;
     val _ = mkdirs path;
-  in Exn.release (Exn.capture f path before try rm_tree path) end;
+  in Exn.release (Exn.capture f path before ignore (try rm_tree path)) end;
 
 end;
 
