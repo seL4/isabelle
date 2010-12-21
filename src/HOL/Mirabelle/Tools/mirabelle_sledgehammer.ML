@@ -13,6 +13,7 @@ val type_sysK = "type_sys"
 val minimizeK = "minimize"
 val minimize_timeoutK = "minimize_timeout"
 val metis_ftK = "metis_ft"
+val reconstructorK = "reconstructor"
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
 fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
@@ -331,10 +332,13 @@ fun get_prover ctxt args =
 type locality = Sledgehammer_Filter.locality
 
 (* hack *)
-fun reconstructor_from_msg msg =
-  if String.isSubstring "metisFT" msg then "metisFT"
-  else if String.isSubstring "metis" msg then "metis"
-  else "smt"
+fun reconstructor_from_msg args msg =
+  (case AList.lookup (op =) args reconstructorK of
+    SOME name => name
+  | NONE =>
+    if String.isSubstring "metisFT" msg then "metisFT"
+    else if String.isSubstring "metis" msg then "metis"
+    else "smt")
 
 local
 
@@ -445,7 +449,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
           change_data id (inc_sh_max_lems (length names));
           change_data id (inc_sh_time_isa time_isa);
           change_data id (inc_sh_time_prover time_prover);
-          reconstructor := reconstructor_from_msg msg;
+          reconstructor := reconstructor_from_msg args msg;
           named_thms := SOME (map_filter get_thms names);
           log (sh_tag id ^ triv_str ^ "succeeded (" ^ string_of_int time_isa ^ "+" ^
             string_of_int time_prover ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
@@ -487,7 +491,7 @@ fun run_minimize args reconstructor named_thms id
          change_data id (inc_min_ab_ratios ((100 * length named_thms') div n0));
          if length named_thms' = n0
          then log (minimize_tag id ^ "already minimal")
-         else (reconstructor := reconstructor_from_msg msg;
+         else (reconstructor := reconstructor_from_msg args msg;
                named_thms := SOME named_thms';
                log (minimize_tag id ^ "succeeded:\n" ^ msg))
         )
@@ -499,7 +503,11 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
     fun do_reconstructor thms ctxt =
-      (if !reconstructor = "smt" then
+      (if !reconstructor = "sledgehammer_tac" then
+         (fn ctxt => fn thms =>
+            Method.insert_tac thms THEN'
+            Sledgehammer_Tactics.sledgehammer_as_unsound_oracle_tac ctxt)
+       else if !reconstructor = "smt" then
          SMT_Solver.smt_tac
        else if full orelse !reconstructor = "metisFT" then
          Metis_Tactics.metisFT_tac

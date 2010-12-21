@@ -13,7 +13,6 @@ uses
   "Tools/mirabelle_refute.ML"
   "Tools/mirabelle_sledgehammer.ML"
   "Tools/mirabelle_sledgehammer_filter.ML"
-  "Tools/sledgehammer_tactic.ML"
 begin
 
 text {*

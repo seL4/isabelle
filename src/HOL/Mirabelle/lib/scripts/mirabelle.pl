@@ -82,7 +82,7 @@ foreach (reverse(split(/:/, $actions))) {
     print SETUP_FILE "setup {* Mirabelle_$name.invoke [";
     my $sep = "";
     foreach (split(/,/, $settings_str)) {
-      if (m/\s*(.*)\s*=\s*(.*)\s*/) {
+      if (m/\s*([^=]*)\s*=\s*(.*)\s*/) {
         print SETUP_FILE "$sep(\"$1\", \"$2\")";
         $sep = ", ";
       }

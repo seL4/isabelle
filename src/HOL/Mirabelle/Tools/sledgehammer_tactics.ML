@@ -8,6 +8,7 @@ Sledgehammer as a tactic.
 signature SLEDGEHAMMER_TACTICS =
 sig
   val sledgehammer_with_metis_tac : Proof.context -> int -> tactic
+  val sledgehammer_as_unsound_oracle_tac : Proof.context -> int -> tactic
   val sledgehammer_as_oracle_tac : Proof.context -> int -> tactic
 end;
 
@@ -20,7 +21,7 @@ fun run_atp force_full_types timeout i n ctxt goal name =
     val params as {type_sys, relevance_thresholds, max_relevant, ...} =
       ((if force_full_types then [("full_types", "true")] else [])
        @ [("timeout", Int.toString (Time.toSeconds timeout))])
-       @ [("overlord", "true")]
+       (* @ [("overlord", "true")] *)
       |> Sledgehammer_Isar.default_params ctxt
     val prover = Sledgehammer_Provers.get_prover ctxt false name
     val default_max_relevant =
@@ -61,7 +62,7 @@ fun to_period ("." :: _) = []
   | to_period (s :: ss) = s :: to_period ss
   | to_period [] = []
 
-val atp = "e" (* or "vampire" *)
+val atp = "vampire" (* or "e" or "spass" etc. *)
 
 fun thms_of_name ctxt name =
   let
@@ -81,18 +82,20 @@ fun sledgehammer_with_metis_tac ctxt i th =
     val timeout = Time.fromSeconds 30
   in
     case run_atp false timeout i i ctxt th atp of
-      SOME facts => Metis_Tactics.metis_tac ctxt (maps (thms_of_name ctxt) facts) i th
+      SOME facts =>
+      Metis_Tactics.metis_tac ctxt (maps (thms_of_name ctxt) facts) i th
     | NONE => Seq.empty
   end
 
-fun sledgehammer_as_oracle_tac ctxt i th =
+fun generic_sledgehammer_as_oracle_tac force_full_types ctxt i th =
   let
     val thy = ProofContext.theory_of ctxt
     val timeout = Time.fromSeconds 30
-    val xs = run_atp true timeout i i ctxt th atp
-  in
-    if is_some xs then Skip_Proof.cheat_tac thy th
-    else Seq.empty
-  end
+    val xs = run_atp force_full_types timeout i i ctxt th atp
+  in if is_some xs then Skip_Proof.cheat_tac thy th else Seq.empty end
+
+val sledgehammer_as_unsound_oracle_tac =
+  generic_sledgehammer_as_oracle_tac false
+val sledgehammer_as_oracle_tac = generic_sledgehammer_as_oracle_tac true
 
 end;
