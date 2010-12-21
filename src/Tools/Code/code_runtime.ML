@@ -163,10 +163,10 @@ fun check_holds some_target naming thy program vs_t deps ct =
 
 val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (Binding.name "holds_by_evaluation",
-  fn (serializer, naming, thy, program, vs_t, deps, ct) => check_holds serializer naming thy program vs_t deps ct)));
+  fn (some_target, naming, thy, program, vs_t, deps, ct) => check_holds some_target naming thy program vs_t deps ct)));
 
-fun check_holds_oracle serializer naming thy program ((_, vs_ty), t) deps ct =
-  raw_check_holds_oracle (serializer, naming, thy, program, (vs_ty, t), deps, ct);
+fun check_holds_oracle some_target naming thy program ((_, vs_ty), t) deps ct =
+  raw_check_holds_oracle (some_target, naming, thy, program, (vs_ty, t), deps, ct);
 
 fun dynamic_holds_conv thy = Code_Thingol.dynamic_conv thy
     (fn naming => check_holds_oracle NONE naming thy)
