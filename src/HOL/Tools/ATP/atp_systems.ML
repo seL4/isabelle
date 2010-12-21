@@ -90,21 +90,18 @@ fun to_secs bonus time = (Time.toMilliseconds time + bonus + 999) div 1000
    account for the overhead of the script itself, which is in fact much
    lower. *)
 fun e_bonus () =
-  case getenv "E_VERSION" of
-    "" => 2000
-  | version =>
-    if exists (fn s => String.isPrefix s version) ["0.9", "1.0"] then 2000
-    else 1000
+  if string_ord (getenv "E_VERSION", "1.1") = LESS then 2000 else 1000
 
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
-val e_generate_weights = Unsynchronized.ref false
-val e_weight_factor = Unsynchronized.ref 60.0
+val e_generate_weights = Unsynchronized.ref true
+val e_weight_factor = Unsynchronized.ref 40.0
 val e_default_weight = Unsynchronized.ref 0.5
 
 fun e_weights weights =
-  if !e_generate_weights then
+  if !e_generate_weights andalso
+     string_ord (getenv "E_VERSION", "1.2B") <> LESS then
     "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
     \--destructive-er-aggressive --destructive-er --presat-simplify \
     \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \

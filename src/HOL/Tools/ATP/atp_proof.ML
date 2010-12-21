@@ -125,7 +125,8 @@ fun string_for_failure prover Unprovable =
   | string_for_failure prover (UnknownError string) =
     (* "An" is correct for "ATP" and "SMT". *)
     "An " ^ prover ^ " error occurred" ^
-    (if string = "" then "." else ":\n" ^ string)
+    (if string = "" then ". (Pass the \"verbose\" option for details.)"
+     else ":\n" ^ string)
 
 fun extract_delimited (begin_delim, end_delim) output =
   output |> first_field begin_delim |> the |> snd
