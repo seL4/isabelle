@@ -27,8 +27,8 @@ sig
     (string * typ) * bfunr option bfun -> Context.generic -> Context.generic
   val add_builtin_fun': SMT_Utils.class -> term * string -> Context.generic ->
     Context.generic
-  val add_builtin_fun_ext: (string * typ) * bool bfun -> Context.generic ->
-    Context.generic
+  val add_builtin_fun_ext: (string * typ) * term list bfun ->
+    Context.generic -> Context.generic
   val add_builtin_fun_ext': string * typ -> Context.generic -> Context.generic
   val add_builtin_fun_ext'': string -> Context.generic -> Context.generic
   val dest_builtin_fun: Proof.context -> string * typ -> term list ->
@@ -39,6 +39,8 @@ sig
   val dest_builtin_conn: Proof.context -> string * typ -> term list ->
     bfunr option
   val dest_builtin: Proof.context -> string * typ -> term list -> bfunr option
+  val dest_builtin_ext: Proof.context -> string * typ -> term list ->
+    term list option
   val is_builtin_fun: Proof.context -> string * typ -> term list -> bool
   val is_builtin_fun_ext: Proof.context -> string * typ -> term list -> bool
 end
@@ -148,7 +150,7 @@ type bfunr = string * int * term list * (term list -> term)
 
 structure Builtin_Funcs = Generic_Data
 (
-  type T = (bool bfun, bfunr option bfun) btab
+  type T = (term list bfun, bfunr option bfun) btab
   val empty = Symtab.empty
   val extend = I
   val merge = merge_btab
@@ -167,8 +169,7 @@ fun add_builtin_fun' cs (t, n) =
 fun add_builtin_fun_ext ((n, T), f) =
   Builtin_Funcs.map (insert_btab SMT_Utils.basicC n T (Ext f))
 
-fun add_builtin_fun_ext' c =
-  add_builtin_fun_ext (c, fn _ => fn _ => fn _ => true)
+fun add_builtin_fun_ext' c = add_builtin_fun_ext (c, fn _ => fn _ => I)
 
 fun add_builtin_fun_ext'' n context =
   let val thy = Context.theory_of context
@@ -210,12 +211,18 @@ fun dest_builtin ctxt c ts =
     | NONE => dest_builtin_fun ctxt c ts)
   end
 
+fun dest_builtin_fun_ext ctxt (c as (_, T)) ts =    
+  (case lookup_builtin_fun ctxt c of
+    SOME (_, Int f) => f ctxt T ts |> Option.map (fn (_, _, us, _) => us)
+  | SOME (_, Ext f) => SOME (f ctxt T ts)
+  | NONE => NONE)
+
+fun dest_builtin_ext ctxt c ts =
+  if is_builtin_num_ext ctxt (Term.list_comb (Const c, ts)) then SOME []
+  else dest_builtin_fun_ext ctxt c ts
+
 fun is_builtin_fun ctxt c ts = is_some (dest_builtin_fun ctxt c ts)
 
-fun is_builtin_fun_ext ctxt (c as (_, T)) ts =
-  (case lookup_builtin_fun ctxt c of
-    SOME (_, Int f) => is_some (f ctxt T ts)
-  | SOME (_, Ext f) => f ctxt T ts
-  | NONE => false)
+fun is_builtin_fun_ext ctxt c ts = is_some (dest_builtin_fun_ext ctxt c ts)
 
 end
