@@ -68,7 +68,7 @@ val setup = Method.setup (Binding.name "code_simp")
 
 fun static_conv thy some_ss consts =
   Code_Thingol.static_conv_simple thy consts
-    (fn program => fn thy => fn _ => fn _ => rewrite_modulo thy some_ss program);
+    (fn program => fn _ => fn _ => rewrite_modulo thy some_ss program);
 
 fun static_tac thy some_ss consts = CONVERSION (static_conv thy some_ss consts)
   THEN' conclude_tac thy some_ss;

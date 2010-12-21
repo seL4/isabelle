@@ -29,9 +29,9 @@ sig
   val dynamic_value: theory -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
   val static_conv: theory -> string list
-    -> (code_algebra -> code_graph -> theory -> (string * sort) list -> term -> conv) -> conv
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
   val static_value: theory -> ((term -> term) -> 'a -> 'a) -> string list
-    -> (code_algebra -> code_graph -> theory -> (string * sort) list -> term -> 'a) -> term -> 'a
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
 
   val setup: theory -> theory
 end
@@ -490,7 +490,7 @@ fun dynamic_value thy postproc evaluator t =
 fun static_conv thy consts conv =
   let
     val (algebra, eqngr) = obtain true thy consts [];
-    val conv' = conv algebra eqngr thy;
+    val conv' = conv algebra eqngr;
   in
     no_variables_conv ((preprocess_conv thy)
       then_conv (fn ct => uncurry conv' (dest_cterm ct) ct)
@@ -504,7 +504,7 @@ fun static_value thy postproc consts evaluator =
   in 
     preprocess_term thy
     #-> (fn resubst => fn t => t
-      |> evaluator' thy (Term.add_tfrees t [])
+      |> evaluator' (Term.add_tfrees t [])
       |> postproc (postprocess_term thy o resubst))
   end;
 
