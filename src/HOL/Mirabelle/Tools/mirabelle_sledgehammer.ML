@@ -347,7 +347,10 @@ fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
-    fun change_dir (SOME dir) = Config.put Sledgehammer_Provers.dest_dir dir
+    fun change_dir (SOME dir) =
+        Config.put Sledgehammer_Provers.dest_dir dir
+        #> Config.put SMT_Config.debug_files
+          (dir ^ "/" ^ ATP_Problem.timestamp () ^ "_" ^ serial_string ())
       | change_dir NONE = I
     val st' =
       st |> Proof.map_context
