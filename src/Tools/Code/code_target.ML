@@ -28,6 +28,10 @@ sig
   val check_code: theory -> string list
     -> ((string * bool) * Token.T list) list -> unit
 
+  val evaluator: theory -> string -> Code_Thingol.naming -> Code_Thingol.program
+    -> string list -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
+    -> string * string
+
   type serializer
   type literals = Code_Printer.literals
   val add_target: string * { serializer: serializer, literals: literals,
@@ -118,8 +122,8 @@ type serializer = Token.T list
     module_alias: string -> string option,
     class_syntax: string -> string option,
     tyco_syntax: string -> Code_Printer.tyco_syntax option,
-    const_syntax: string -> Code_Printer.activated_const_syntax option,
-    program: Code_Thingol.program }
+    const_syntax: string -> Code_Printer.activated_const_syntax option }
+  -> Code_Thingol.program
   -> serialization;
 
 datatype description = Fundamental of { serializer: serializer,
@@ -313,7 +317,7 @@ fun project_program thy abortable names_hidden names1 program2 =
     val program4 = Graph.subgraph (member (op =) names4) program3;
   in (names4, program4) end;
 
-fun invoke_serializer thy abortable serializer literals reserved all_includes
+fun prepare_serializer thy abortable serializer literals reserved all_includes
     module_alias proto_class_syntax proto_instance_syntax proto_tyco_syntax proto_const_syntax
     module_name args naming proto_program names =
   let
@@ -328,18 +332,18 @@ fun invoke_serializer thy abortable serializer literals reserved all_includes
       then SOME (name, content) else NONE;
     val includes = map_filter select_include (Symtab.dest all_includes);
   in
-    serializer args {
+    (serializer args {
       labelled_name = Code_Thingol.labelled_name thy proto_program,
       reserved_syms = reserved,
       includes = includes,
       module_alias = if module_name = "" then Symtab.lookup module_alias else K (SOME module_name),
       class_syntax = Symtab.lookup class_syntax,
       tyco_syntax = Symtab.lookup tyco_syntax,
-      const_syntax = Symtab.lookup const_syntax,
-      program = program }
+      const_syntax = Symtab.lookup const_syntax },
+      program)
   end;
 
-fun mount_serializer thy target some_width module_name args =
+fun mount_serializer thy target some_width module_name args naming program names =
   let
     val (default_width, abortable, data, modify) = activate_target thy target;
     val serializer = case the_description data
@@ -348,12 +352,18 @@ fun mount_serializer thy target some_width module_name args =
     val module_alias = the_module_alias data 
     val { class, instance, tyco, const } = the_symbol_syntax data;
     val literals = the_literals thy target;
+    val (prepared_serializer, prepared_program) = prepare_serializer thy
+      abortable serializer literals reserved (the_includes data) module_alias
+        class instance tyco const module_name args
+          naming (modify naming program) names
     val width = the_default default_width some_width;
-  in fn naming => fn program => fn names =>
-    invoke_serializer thy abortable serializer literals reserved
-      (the_includes data) module_alias class instance tyco const module_name args
-        naming (modify naming program) names width
-  end;
+  in (fn program => prepared_serializer program width, prepared_program) end;
+
+fun invoke_serializer thy target some_width module_name args naming program names =
+  let
+    val (mounted_serializer, prepared_program) = mount_serializer thy
+      target some_width module_name args naming program names;
+  in mounted_serializer prepared_program end;
 
 fun assert_module_name "" = error ("Empty module name not allowed.")
   | assert_module_name module_name = module_name;
@@ -361,18 +371,18 @@ fun assert_module_name "" = error ("Empty module name not allowed.")
 in
 
 fun export_code_for thy some_path target some_width module_name args =
-  export some_path ooo mount_serializer thy target some_width module_name args;
+  export some_path ooo invoke_serializer thy target some_width module_name args;
 
 fun produce_code_for thy target some_width module_name args =
   let
-    val serializer = mount_serializer thy target some_width (assert_module_name module_name) args;
+    val serializer = invoke_serializer thy target some_width (assert_module_name module_name) args;
   in fn naming => fn program => fn names =>
     produce (serializer naming program names) |> apsnd (fn deresolve => map deresolve names)
   end;
 
 fun present_code_for thy target some_width module_name args =
   let
-    val serializer = mount_serializer thy target some_width (assert_module_name module_name) args;
+    val serializer = invoke_serializer thy target some_width (assert_module_name module_name) args;
   in fn naming => fn program => fn (names, selects) =>
     present selects (serializer naming program names)
   end;
@@ -386,7 +396,7 @@ fun check_code_for thy target strict args naming program names_cs =
     fun ext_check env_param p =
       let 
         val destination = make_destination p;
-        val _ = export (SOME destination) (mount_serializer thy target (SOME 80)
+        val _ = export (SOME destination) (invoke_serializer thy target (SOME 80)
           module_name args naming program names_cs);
         val cmd = make_command env_param module_name;
       in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
@@ -399,6 +409,28 @@ fun check_code_for thy target strict args naming program names_cs =
       else warning (env_var ^ " not set; skipped checking code for " ^ target)
     else Isabelle_System.with_tmp_dir "Code_Test" (ext_check env_param)
   end;
+
+fun evaluation mounted_serializer prepared_program deps ((vs, ty), t) =
+  let
+    val _ = if Code_Thingol.contains_dict_var t then
+      error "Term to be evaluated contains free dictionaries" else ();
+    val v' = Name.variant (map fst vs) "a";
+    val vs' = (v', []) :: vs;
+    val ty' = Code_Thingol.fun_tyco `%% [ITyVar v', ty];
+    val value_name = "Value.value.value"
+    val program = prepared_program
+      |> Graph.new_node (value_name,
+          Code_Thingol.Fun (Term.dummy_patternN, (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE)))
+      |> fold (curry Graph.add_edge value_name) deps;
+    val (program_code, deresolve) = produce (mounted_serializer program);
+    val value_name' = the (deresolve value_name);
+  in (program_code, value_name') end;
+
+fun evaluator thy target naming program deps =
+  let
+    val (mounted_serializer, prepared_program) = mount_serializer thy
+      target NONE "Code" [] naming program deps;
+  in evaluation mounted_serializer prepared_program deps end;
 
 end; (* local *)
 
