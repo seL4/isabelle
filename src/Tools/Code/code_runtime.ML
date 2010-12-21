@@ -86,8 +86,7 @@ fun reject_vars thy t =
     val ctxt = ProofContext.init_global thy;
   in ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t) end;
 
-fun obtain_evaluator thy some_target naming program deps =
-  Code_Target.evaluator thy (the_default target some_target) naming program deps;
+fun obtain_evaluator thy some_target = Code_Target.evaluator thy (the_default target some_target);
 
 fun evaluation cookie thy evaluator vs_t args =
   let
@@ -146,15 +145,16 @@ val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append this "put_trut
 
 val reject_vars = fn thy => tap (reject_vars thy o Thm.term_of);
 
-fun check_holds some_target naming thy program vs_t deps ct =
+local
+
+fun check_holds thy evaluator vs_t deps ct =
   let
     val t = Thm.term_of ct;
     val _ = if fastype_of t <> propT
       then error ("Not a proposition: " ^ Syntax.string_of_term_global thy t)
       else ();
     val iff = Thm.cterm_of thy (Term.Const ("==", propT --> propT --> propT));
-    val result = case partiality_as_none
-      (evaluation truth_cookie thy (obtain_evaluator thy some_target naming program deps) vs_t [])
+    val result = case partiality_as_none (evaluation truth_cookie thy evaluator vs_t [])
      of SOME Holds => true
       | _ => false;
   in
@@ -163,19 +163,24 @@ fun check_holds some_target naming thy program vs_t deps ct =
 
 val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (Binding.name "holds_by_evaluation",
-  fn (some_target, naming, thy, program, vs_t, deps, ct) => check_holds some_target naming thy program vs_t deps ct)));
+  fn (thy, evaluator, vs_t, deps, ct) => check_holds thy evaluator vs_t deps ct)));
 
-fun check_holds_oracle some_target naming thy program ((_, vs_ty), t) deps ct =
-  raw_check_holds_oracle (some_target, naming, thy, program, (vs_ty, t), deps, ct);
+fun check_holds_oracle thy evaluator ((_, vs_ty), t) deps ct =
+  raw_check_holds_oracle (thy, evaluator, (vs_ty, t), deps, ct);
+
+in
 
 fun dynamic_holds_conv thy = Code_Thingol.dynamic_conv thy
-    (fn naming => check_holds_oracle NONE naming thy)
-  o reject_vars thy;
+  (fn naming => fn program => fn vs_t => fn deps =>
+    check_holds_oracle thy (obtain_evaluator thy NONE naming program deps) vs_t deps)
+      o reject_vars thy;
 
-fun static_holds_conv thy consts =
-  Code_Thingol.static_conv thy consts
-    (fn naming => fn program => fn consts' => check_holds_oracle NONE naming thy program)
-    o reject_vars thy;
+fun static_holds_conv thy consts = Code_Thingol.static_conv thy consts
+  (fn naming => fn program => fn consts' =>
+    check_holds_oracle thy (obtain_evaluator thy NONE naming program consts'))
+      o reject_vars thy;
+
+end; (*local*)
 
 
 (** instrumentalization **)
