@@ -1643,12 +1643,21 @@ text {*
   @{term "{#x+x|x:#M. x<c#}"}.
 *}
 
-type_lifting image_mset proof -
-  fix f g A show "image_mset f (image_mset g A) = image_mset (\<lambda>x. f (g x)) A"
-    by (induct A) simp_all
+type_lifting image_mset: image_mset proof -
+  fix f g 
+  show "image_mset f \<circ> image_mset g = image_mset (f \<circ> g)"
+  proof
+    fix A
+    show "(image_mset f \<circ> image_mset g) A = image_mset (f \<circ> g) A"
+      by (induct A) simp_all
+  qed
 next
-  fix A show "image_mset (\<lambda>x. x) A = A"
-    by (induct A) simp_all
+  show "image_mset id = id"
+  proof
+    fix A
+    show "image_mset id A = id A"
+      by (induct A) simp_all
+  qed
 qed
 
 

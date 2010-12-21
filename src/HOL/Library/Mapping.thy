@@ -50,8 +50,8 @@ lemma lookup_map [simp]:
   "lookup (map f g m) = Option.map g \<circ> lookup m \<circ> f"
   by (simp add: map_def)
 
-type_lifting map
-  by (auto intro!: mapping_eqI ext simp add: Option.map.compositionality Option.map.identity)
+type_lifting map: map
+  by (simp_all add: mapping_eq_iff fun_eq_iff Option.map.compositionality Option.map.id)
 
 
 subsection {* Derived operations *}

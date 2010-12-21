@@ -38,7 +38,7 @@ lemma prod_quotient [quot_thm]:
   assumes "Quotient R2 Abs2 Rep2"
   shows "Quotient (prod_rel R1 R2) (map_pair Abs1 Abs2) (map_pair Rep1 Rep2)"
   apply (rule QuotientI)
-  apply (simp add: map_pair.compositionality map_pair.identity
+  apply (simp add: map_pair.compositionality comp_def map_pair.identity
      Quotient_abs_rep [OF assms(1)] Quotient_abs_rep [OF assms(2)])
   apply (simp add: split_paired_all Quotient_rel_rep [OF assms(1)] Quotient_rel_rep [OF assms(2)])
   using Quotient_rel [OF assms(1)] Quotient_rel [OF assms(2)]
