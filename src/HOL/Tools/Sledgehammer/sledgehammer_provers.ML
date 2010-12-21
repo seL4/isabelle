@@ -55,6 +55,7 @@ sig
   (* for experimentation purposes -- do not use in production code *)
   val atp_run_twice_threshold : int Unsynchronized.ref
   val atp_first_iter_time_frac : real Unsynchronized.ref
+  val smt_triggers : bool Unsynchronized.ref
   val smt_weights : bool Unsynchronized.ref
   val smt_weight_min_facts : int Unsynchronized.ref
   val smt_min_weight : int Unsynchronized.ref
@@ -65,7 +66,7 @@ sig
   val smt_iter_fact_frac : real Unsynchronized.ref
   val smt_iter_time_frac : real Unsynchronized.ref
   val smt_iter_min_msecs : int Unsynchronized.ref
-  val smt_monomorph_limit : int Unsynchronized.ref
+  val smt_monomorphize_limit : int Unsynchronized.ref
 
   val das_Tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
@@ -289,7 +290,8 @@ fun with_path cleanup after f path =
 fun proof_banner auto =
   if auto then "Auto Sledgehammer found a proof" else "Try this command"
 
-val smt_weights = Unsynchronized.ref true
+val smt_triggers = Unsynchronized.ref false
+val smt_weights = Unsynchronized.ref false
 val smt_weight_min_facts = Unsynchronized.ref 20
 
 (* FUDGE *)
@@ -521,7 +523,7 @@ val smt_max_iters = Unsynchronized.ref 8
 val smt_iter_fact_frac = Unsynchronized.ref 0.5
 val smt_iter_time_frac = Unsynchronized.ref 0.5
 val smt_iter_min_msecs = Unsynchronized.ref 5000
-val smt_monomorph_limit = Unsynchronized.ref 4
+val smt_monomorphize_limit = Unsynchronized.ref 4
 
 fun smt_filter_loop name ({debug, verbose, overlord, timeout, ...} : params)
                     state i smt_head =
@@ -540,7 +542,8 @@ fun smt_filter_loop name ({debug, verbose, overlord, timeout, ...} : params)
                         |> (fn (path, base) => path ^ "/" ^ base))
           else
             I)
-      #> Config.put SMT_Config.monomorph_limit (!smt_monomorph_limit)
+      #> Config.put SMT_Config.infer_triggers (!smt_triggers)
+      #> Config.put SMT_Config.monomorph_limit (!smt_monomorphize_limit)
     val state = state |> Proof.map_context repair_context
 
     fun iter timeout iter_num outcome0 time_so_far facts =

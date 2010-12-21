@@ -13,7 +13,7 @@ sig
   type params = Sledgehammer_Provers.params
   type prover = Sledgehammer_Provers.prover
 
-  val auto_minimize_threshold : int Unsynchronized.ref
+  val auto_minimize_min_facts : int Unsynchronized.ref
   val get_minimizing_prover : Proof.context -> bool -> string -> prover
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
@@ -42,7 +42,7 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    else
      "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
 
-val auto_minimize_threshold = Unsynchronized.ref (!binary_threshold)
+val auto_minimize_min_facts = Unsynchronized.ref (!binary_min_facts)
 
 fun get_minimizing_prover ctxt auto name (params as {debug, verbose, ...})
         minimize_command
@@ -54,7 +54,7 @@ fun get_minimizing_prover ctxt auto name (params as {debug, verbose, ...})
          else
            let
              val (used_facts, message) =
-               if length used_facts >= !auto_minimize_threshold then
+               if length used_facts >= !auto_minimize_min_facts then
                  minimize_facts name params (not verbose) subgoal subgoal_count
                      state
                      (filter_used_facts used_facts

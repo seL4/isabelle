@@ -21,7 +21,7 @@ sig
      use_conjecture_for_hypotheses: bool}
 
   (* for experimentation purposes -- do not use in production code *)
-  val e_generate_weights : bool Unsynchronized.ref
+  val e_weights : bool Unsynchronized.ref
   val e_weight_factor : real Unsynchronized.ref
   val e_default_weight : real Unsynchronized.ref
 
@@ -95,13 +95,12 @@ fun e_bonus () =
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
-val e_generate_weights = Unsynchronized.ref true
+val e_weights = Unsynchronized.ref true
 val e_weight_factor = Unsynchronized.ref 40.0
 val e_default_weight = Unsynchronized.ref 0.5
 
-fun e_weights weights =
-  if !e_generate_weights andalso
-     string_ord (getenv "E_VERSION", "1.2B") <> LESS then
+fun e_weight_arguments weights =
+  if !e_weights andalso string_ord (getenv "E_VERSION", "1.2w") <> LESS then
     "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
     \--destructive-er-aggressive --destructive-er --presat-simplify \
     \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
@@ -123,7 +122,7 @@ val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
    arguments = fn _ => fn timeout => fn weights =>
-     "--tstp-in --tstp-out -l5 " ^ e_weights weights ^ " -tAutoDev \
+     "--tstp-in --tstp-out -l5 " ^ e_weight_arguments weights ^ " -tAutoDev \
      \--silent --cpu-limit=" ^ string_of_int (to_secs (e_bonus ()) timeout),
    has_incomplete_mode = false,
    proof_delims = [tstp_proof_delims],
