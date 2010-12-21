@@ -153,9 +153,6 @@ val tracing_preferences =
   nat_pref Raw_Simplifier.simp_trace_depth_limit_default
     "trace-simplifier-depth"
     "Trace simplifier depth limit.",
-  bool_pref trace_rules
-    "trace-rules"
-    "Trace application of the standard rules",
   bool_pref Pattern.trace_unify_fail
     "trace-unification"
     "Output error diagnostics during unification",
