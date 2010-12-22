@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Generic simplifier, suitable for most logics (see also
-meta_simplifier.ML for the actual meta-level rewriting engine).
+raw_simplifier.ML for the actual meta-level rewriting engine).
 *)
 
 signature BASIC_SIMPLIFIER =
