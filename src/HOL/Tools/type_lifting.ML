@@ -6,12 +6,12 @@ Functorial structure of types.
 
 signature TYPE_LIFTING =
 sig
-  val find_atomic: theory -> typ -> (typ * (bool * bool)) list
-  val construct_mapper: theory -> (string * bool -> term)
+  val find_atomic: Proof.context -> typ -> (typ * (bool * bool)) list
+  val construct_mapper: Proof.context -> (string * bool -> term)
     -> bool -> typ -> typ -> term
   val type_lifting: string option -> term -> theory -> Proof.state
   type entry
-  val entries: theory -> entry Symtab.table
+  val entries: Proof.context -> entry Symtab.table
 end;
 
 structure Type_Lifting : TYPE_LIFTING =
@@ -32,21 +32,21 @@ fun term_with_typ ctxt T t = Envir.subst_term_types
 type entry = { mapper: term, variances: (sort * (bool * bool)) list,
   comp: thm, id: thm };
 
-structure Data = Theory_Data(
+structure Data = Generic_Data(
   type T = entry Symtab.table
   val empty = Symtab.empty
   fun merge (xy : T * T) = Symtab.merge (K true) xy
   val extend = I
 );
 
-val entries = Data.get;
+val entries = Data.get o Context.Proof;
 
 
 (* type analysis *)
 
-fun find_atomic thy T =
+fun find_atomic ctxt T =
   let
-    val variances_of = Option.map #variances o Symtab.lookup (Data.get thy);
+    val variances_of = Option.map #variances o Symtab.lookup (entries ctxt);
     fun add_variance is_contra T =
       AList.map_default (op =) (T, (false, false))
         ((if is_contra then apsnd else apfst) (K true));
@@ -59,20 +59,21 @@ fun find_atomic thy T =
       | analyze is_contra T = add_variance is_contra T;
   in analyze false T [] end;
 
-fun construct_mapper thy atomic =
+fun construct_mapper ctxt atomic =
   let
-    val lookup = the o Symtab.lookup (Data.get thy);
+    val lookup = the o Symtab.lookup (entries ctxt);
     fun constructs is_contra (_, (co, contra)) T T' =
       (if co then [construct is_contra T T'] else [])
       @ (if contra then [construct (not is_contra) T T'] else [])
     and construct is_contra (T as Type (tyco, Ts)) (T' as Type (_, Ts')) =
           let
-            val { mapper, variances, ... } = lookup tyco;
+            val { mapper = raw_mapper, variances, ... } = lookup tyco;
             val args = maps (fn (arg_pattern, (T, T')) =>
               constructs is_contra arg_pattern T T')
                 (variances ~~ (Ts ~~ Ts'));
             val (U, U') = if is_contra then (T', T) else (T, T');
-          in list_comb (term_with_typ (ProofContext.init_global thy) (map fastype_of args ---> U --> U') mapper, args) end
+            val mapper = term_with_typ ctxt (map fastype_of args ---> U --> U') raw_mapper;
+          in list_comb (mapper, args) end
       | construct is_contra (TFree (v, _)) (TFree _) = atomic (v, is_contra);
   in construct end;
 
@@ -218,13 +219,15 @@ fun gen_type_lifting prep_term some_prfx raw_t thy =
       ||>> Local_Theory.note ((qualify idN, []), single_id_thm)
       |-> (fn ((_, [comp_thm]), (_, [id_thm])) => fn lthy =>
         lthy
-        |> Local_Theory.note ((qualify compositionalityN, []), [prove_compositionality lthy comp_thm])
+        |> Local_Theory.note ((qualify compositionalityN, []),
+            [prove_compositionality lthy comp_thm])
         |> snd
-        |> Local_Theory.note ((qualify identityN, []), [prove_identity lthy id_thm])
+        |> Local_Theory.note ((qualify identityN, []),
+            [prove_identity lthy id_thm])
         |> snd
-        |> (Local_Theory.background_theory o Data.map)
-            (Symtab.update (tyco, { mapper = mapper, variances = variances,
-              comp = comp_thm, id = id_thm })));
+        |> Local_Theory.declaration false (fn phi => Data.map
+            (Symtab.update (tyco, { mapper = Morphism.term phi mapper, variances = variances,
+              comp = Morphism.thm phi comp_thm, id = Morphism.thm phi id_thm }))))
   in
     thy
     |> Named_Target.theory_init
