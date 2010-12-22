@@ -9,9 +9,9 @@ sig
   val find_atomic: Proof.context -> typ -> (typ * (bool * bool)) list
   val construct_mapper: Proof.context -> (string * bool -> term)
     -> bool -> typ -> typ -> term
-  val type_lifting: string option -> term -> theory -> Proof.state
+  val type_lifting: string option -> term -> local_theory -> Proof.state
   type entry
-  val entries: Proof.context -> entry Symtab.table
+  val entries: Proof.context -> entry list Symtab.table
 end;
 
 structure Type_Lifting : TYPE_LIFTING =
@@ -30,7 +30,7 @@ type entry = { mapper: term, variances: (sort * (bool * bool)) list,
   comp: thm, id: thm };
 
 structure Data = Generic_Data(
-  type T = entry Symtab.table
+  type T = entry list Symtab.table
   val empty = Symtab.empty
   fun merge (xy : T * T) = Symtab.merge (K true) xy
   val extend = I
@@ -46,7 +46,7 @@ fun term_with_typ ctxt T t = Envir.subst_term_types
 
 fun find_atomic ctxt T =
   let
-    val variances_of = Option.map #variances o Symtab.lookup (entries ctxt);
+    val variances_of = Option.map #variances o try hd o Symtab.lookup_list (entries ctxt);
     fun add_variance is_contra T =
       AList.map_default (op =) (T, (false, false))
         ((if is_contra then apsnd else apfst) (K true));
@@ -61,7 +61,7 @@ fun find_atomic ctxt T =
 
 fun construct_mapper ctxt atomic =
   let
-    val lookup = the o Symtab.lookup (entries ctxt);
+    val lookup = hd o Symtab.lookup_list (entries ctxt);
     fun constructs is_contra (_, (co, contra)) T T' =
       (if co then [construct is_contra T T'] else [])
       @ (if contra then [construct (not is_contra) T T'] else [])
@@ -167,9 +167,9 @@ fun split_mapper_typ "fun" T =
         val (Ts'', T'') = split_last Ts';
       in (Ts'', T'', T') end;
 
-fun analyze_variances thy tyco T =
+fun analyze_variances ctxt tyco T =
   let
-    fun bad_typ () = error ("Bad mapper type: " ^ Syntax.string_of_typ_global thy T);
+    fun bad_typ () = error ("Bad mapper type: " ^ Syntax.string_of_typ ctxt T);
     val (Ts, T1, T2) = split_mapper_typ tyco T
       handle List.Empty => bad_typ ();
     val _ = pairself
@@ -183,7 +183,7 @@ fun analyze_variances thy tyco T =
       let
         val coT = TFree var1 --> TFree var2;
         val contraT = TFree var2 --> TFree var1;
-        val sort = Sign.inter_sort thy (sort1, sort2);
+        val sort = Sign.inter_sort (ProofContext.theory_of ctxt) (sort1, sort2);
       in
         consume (op =) coT
         ##>> consume (op =) contraT
@@ -193,24 +193,25 @@ fun analyze_variances thy tyco T =
     val _ = if null left_variances then () else bad_typ ();
   in variances end;
 
-fun gen_type_lifting prep_term some_prfx raw_mapper thy =
+fun gen_type_lifting prep_term some_prfx raw_mapper lthy =
   let
-    val input_mapper = prep_term thy raw_mapper;
+    val input_mapper = prep_term lthy raw_mapper;
     val T = fastype_of input_mapper;
     val _ = Type.no_tvars T;
-    val mapper = singleton (Variable.polymorphic (ProofContext.init_global thy)) input_mapper;
+    val mapper = singleton (Variable.polymorphic lthy) input_mapper;
+    val _ = if null (Term.add_tfreesT (fastype_of mapper) []) then ()
+      else error ("Illegal locally fixed variables in type: " ^ Syntax.string_of_typ lthy T);
     fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
       | add_tycos _ = I;
     val tycos = add_tycos T [];
     val tyco = if tycos = ["fun"] then "fun"
       else case remove (op =) "fun" tycos
        of [tyco] => tyco
-        | _ => error ("Bad number of type constructors: " ^ Syntax.string_of_typ_global thy T);
+        | _ => error ("Bad number of type constructors: " ^ Syntax.string_of_typ lthy T);
     val prfx = the_default (Long_Name.base_name tyco) some_prfx;
-    val variances = analyze_variances thy tyco T;
-    val ctxt = ProofContext.init_global thy;
-    val (comp_prop, prove_compositionality) = make_comp_prop ctxt variances (tyco, mapper);
-    val (id_prop, prove_identity) = make_id_prop ctxt variances (tyco, mapper);
+    val variances = analyze_variances lthy tyco T;
+    val (comp_prop, prove_compositionality) = make_comp_prop lthy variances (tyco, mapper);
+    val (id_prop, prove_identity) = make_id_prop lthy variances (tyco, mapper);
     val qualify = Binding.qualify true prfx o Binding.name;
     fun mapper_declaration comp_thm id_thm phi context =
       let
@@ -218,9 +219,9 @@ fun gen_type_lifting prep_term some_prfx raw_mapper thy =
         val mapper' = Morphism.term phi mapper;
         val T_T' = pairself fastype_of (mapper, mapper');
       in if typ_instance T_T' andalso typ_instance (swap T_T')
-        then Data.map (Symtab.update (tyco,
+        then (Data.map o Symtab.cons_list) (tyco,
           { mapper = mapper', variances = variances,
-            comp = Morphism.thm phi comp_thm, id = Morphism.thm phi id_thm })) context
+            comp = Morphism.thm phi comp_thm, id = Morphism.thm phi id_thm }) context
         else context
       end;
     fun after_qed [single_comp_thm, single_id_thm] lthy =
@@ -237,17 +238,16 @@ fun gen_type_lifting prep_term some_prfx raw_mapper thy =
         |> snd
         |> Local_Theory.declaration false (mapper_declaration comp_thm id_thm))
   in
-    thy
-    |> Named_Target.theory_init
+    lthy
     |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [comp_prop, id_prop])
   end
 
-val type_lifting = gen_type_lifting Sign.cert_term;
-val type_lifting_cmd = gen_type_lifting Syntax.read_term_global;
+val type_lifting = gen_type_lifting Syntax.check_term;
+val type_lifting_cmd = gen_type_lifting Syntax.read_term;
 
-val _ =
-  Outer_Syntax.command "type_lifting" "register operations managing the functorial structure of a type" Keyword.thy_goal
-    (Scan.option (Parse.name --| Parse.$$$ ":") -- Parse.term
-      >> (fn (prfx, t) => Toplevel.print o (Toplevel.theory_to_proof (type_lifting_cmd prfx t))));
+val _ = Outer_Syntax.local_theory_to_proof "type_lifting"
+  "register operations managing the functorial structure of a type"
+  Keyword.thy_goal (Scan.option (Parse.name --| Parse.$$$ ":") -- Parse.term
+    >> (fn (prfx, t) => type_lifting_cmd prfx t));
 
 end;
