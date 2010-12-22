@@ -143,6 +143,18 @@ object Isabelle
   }
 
 
+  /* check JVM */
+
+  def check_jvm()
+  {
+    if (!Platform.is_hotspot) {
+      Library.warning_dialog(jEdit.getActiveView, "Bad Java Virtual Machine",
+        "This is " + Platform.jvm_name,
+        "Isabelle/jEdit requires Java Hotspot from Sun/Oracle/Apple!")
+    }
+  }
+
+
   /* main jEdit components */
 
   def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator
@@ -373,6 +385,7 @@ class Plugin extends EBPlugin
 
   override def start()
   {
+    Isabelle.check_jvm()
     Isabelle.setup_tooltips()
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
