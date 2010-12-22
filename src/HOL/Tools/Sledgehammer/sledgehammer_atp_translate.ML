@@ -654,9 +654,8 @@ val fact_max_weight = 1.0
 fun add_term_weights weight (ATerm (s, tms)) =
   (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
-val add_formula_weights = fold_formula o add_term_weights
 fun add_problem_line_weights weight (Fof (_, _, phi)) =
-  add_formula_weights weight phi
+  fold_formula (add_term_weights weight) phi
 
 fun add_conjectures_weights [] = I
   | add_conjectures_weights conjs =
