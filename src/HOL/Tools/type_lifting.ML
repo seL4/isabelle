@@ -26,7 +26,10 @@ val identityN = "identity";
 
 (* bookkeeping *)
 
-type entry = { mapper: string, variances: (sort * (bool * bool)) list,
+fun term_with_typ ctxt T t = Envir.subst_term_types
+  (Type.typ_match (ProofContext.tsig_of ctxt) (fastype_of t, T) Vartab.empty) t;
+
+type entry = { mapper: term, variances: (sort * (bool * bool)) list,
   comp: thm, id: thm };
 
 structure Data = Theory_Data(
@@ -69,12 +72,14 @@ fun construct_mapper thy atomic =
               constructs is_contra arg_pattern T T')
                 (variances ~~ (Ts ~~ Ts'));
             val (U, U') = if is_contra then (T', T) else (T, T');
-          in list_comb (Const (mapper, map fastype_of args ---> U --> U'), args) end
+          in list_comb (term_with_typ (ProofContext.init_global thy) (map fastype_of args ---> U --> U') mapper, args) end
       | construct is_contra (TFree (v, _)) (TFree _) = atomic (v, is_contra);
   in construct end;
 
 
 (* mapper properties *)
+
+val compositionality_ss = Simplifier.add_simp (Simpdata.mk_eq @{thm comp_def}) HOL_basic_ss;
 
 fun make_comp_prop ctxt variances (tyco, mapper) =
   let
@@ -108,11 +113,22 @@ fun make_comp_prop ctxt variances (tyco, mapper) =
       else
         HOLogic.mk_comp (Free (f32, T32), Free (f21, T21))
       ) contras (args21 ~~ args32)
-    fun mk_mapper T T' args = list_comb (Const (mapper,
-      map fastype_of args ---> T --> T'), args);
-    val lhs = HOLogic.mk_comp (mk_mapper T2 T1 (map Free args21), mk_mapper T3 T2 (map Free args32));
-    val rhs = mk_mapper T3 T1 args31;
-  in fold_rev Logic.all (map Free (args21 @ args32)) ((HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, rhs)) end;
+    fun mk_mapper T T' args = list_comb (term_with_typ ctxt (map fastype_of args ---> T --> T') mapper, args);
+    val mapper21 = mk_mapper T2 T1 (map Free args21);
+    val mapper32 = mk_mapper T3 T2 (map Free args32);
+    val mapper31 = mk_mapper T3 T1 args31;
+    val eq1 = (HOLogic.mk_Trueprop o HOLogic.mk_eq) (HOLogic.mk_comp (mapper21, mapper32), mapper31);
+    val x = Free (the_single (Name.invents nctxt (Long_Name.base_name tyco) 1), T3)
+    val eq2 = (HOLogic.mk_Trueprop o HOLogic.mk_eq) (mapper21 $ (mapper32 $ x), mapper31 $ x);
+    val comp_prop = fold_rev Logic.all (map Free (args21 @ args32)) eq1;
+    val compositionality_prop = fold_rev Logic.all (map Free (args21 @ args32) @ [x]) eq2;
+    fun prove_compositionality ctxt comp_thm = Skip_Proof.prove ctxt [] [] compositionality_prop
+      (K (ALLGOALS (Method.insert_tac [@{thm fun_cong} OF [comp_thm]]
+        THEN' Simplifier.asm_lr_simp_tac compositionality_ss
+        THEN_ALL_NEW (Goal.assume_rule_tac ctxt))));
+  in (comp_prop, prove_compositionality) end;
+
+val identity_ss = Simplifier.add_simp (Simpdata.mk_eq @{thm id_def}) HOL_basic_ss;
 
 fun make_id_prop ctxt variances (tyco, mapper) =
   let
@@ -120,37 +136,17 @@ fun make_id_prop ctxt variances (tyco, mapper) =
     val Ts = map TFree vs;
     fun bool_num b = if b then 1 else 0;
     fun mk_argT (T, (_, (co, contra))) =
-      replicate (bool_num co + bool_num contra) (T --> T)
-    val Ts' = maps mk_argT (Ts ~~ variances)
+      replicate (bool_num co + bool_num contra) T
+    val arg_Ts = maps mk_argT (Ts ~~ variances)
     val T = Type (tyco, Ts);
-    val lhs = list_comb (Const (mapper, Ts' ---> T --> T),
-      map (HOLogic.id_const o domain_type) Ts');
-  in (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhs, HOLogic.id_const T) end;
-
-val comp_apply = Simpdata.mk_eq @{thm o_apply};
-val id_def = Simpdata.mk_eq @{thm id_def};
-
-fun make_compositionality ctxt thm =
-  let
-    val ((_, [thm']), ctxt') = Variable.import false [thm] ctxt;
-    val thm'' = @{thm fun_cong} OF [thm'];
-    val thm''' =
-      (Conv.fconv_rule o Conv.arg_conv o Conv.arg1_conv o Conv.rewr_conv) comp_apply thm'';
-  in singleton (Variable.export ctxt' ctxt) thm''' end;
-
-fun args_conv k conv =
-  if k <= 0 then Conv.all_conv
-  else Conv.combination_conv (args_conv (k - 1) conv) conv;
-
-fun make_identity ctxt variances thm =
-  let
-    val ((_, [thm']), ctxt') = Variable.import false [thm] ctxt;
-    fun bool_num b = if b then 1 else 0;
-    val num_args = Integer.sum
-      (map (fn (_, (co, contra)) => bool_num co + bool_num contra) variances);
-    val thm'' =
-      (Conv.fconv_rule o Conv.arg_conv o Conv.arg1_conv o args_conv num_args o Conv.rewr_conv) id_def thm';
-  in singleton (Variable.export ctxt' ctxt) thm'' end;
+    val head = term_with_typ ctxt (map (fn T => T --> T) arg_Ts ---> T --> T) mapper;
+    val lhs1 = list_comb (head, map (HOLogic.id_const) arg_Ts);
+    val lhs2 = list_comb (head, map (fn arg_T => Abs ("x", arg_T, Bound 0)) arg_Ts);
+    val rhs = HOLogic.id_const T;
+    val (id_prop, identity_prop) = pairself (HOLogic.mk_Trueprop o HOLogic.mk_eq o rpair rhs) (lhs1, lhs2);
+    fun prove_identity ctxt id_thm = Skip_Proof.prove ctxt [] [] identity_prop
+      (K (ALLGOALS (Method.insert_tac [id_thm] THEN' Simplifier.asm_lr_simp_tac identity_ss)));
+  in (id_prop, prove_identity) end;
 
 
 (* analyzing and registering mappers *)
@@ -177,6 +173,7 @@ fun analyze_variances thy tyco T =
       handle List.Empty => bad_typ ();
     val _ = pairself
       ((fn tyco' => if tyco' = tyco then () else bad_typ ()) o fst o dest_Type) (T1, T2)
+      handle TYPE _ => bad_typ ();
     val (vs1, vs2) = pairself (map dest_TFree o snd o dest_Type) (T1, T2)
       handle TYPE _ => bad_typ ();
     val _ = if has_duplicates (eq_fst (op =)) (vs1 @ vs2)
@@ -197,10 +194,10 @@ fun analyze_variances thy tyco T =
 
 fun gen_type_lifting prep_term some_prfx raw_t thy =
   let
-    val (mapper, T) = case prep_term thy raw_t
-     of Const cT => cT
-      | t => error ("No constant: " ^ Syntax.string_of_term_global thy t);
+    val mapper_fixT = prep_term thy raw_t;
+    val T = fastype_of mapper_fixT;
     val _ = Type.no_tvars T;
+    val mapper = singleton (Variable.polymorphic (ProofContext.init_global thy)) mapper_fixT;
     fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
       | add_tycos _ = I;
     val tycos = add_tycos T [];
@@ -211,22 +208,23 @@ fun gen_type_lifting prep_term some_prfx raw_t thy =
     val prfx = the_default (Long_Name.base_name tyco) some_prfx;
     val variances = analyze_variances thy tyco T;
     val ctxt = ProofContext.init_global thy;
-    val comp_prop = make_comp_prop ctxt variances (tyco, mapper);
-    val id_prop = make_id_prop ctxt variances (tyco, mapper);
+    val (comp_prop, prove_compositionality) = make_comp_prop ctxt variances (tyco, mapper);
+    val (id_prop, prove_identity) = make_id_prop ctxt variances (tyco, mapper);
+    val _ = Thm.cterm_of thy id_prop;
     val qualify = Binding.qualify true prfx o Binding.name;
-    fun after_qed [single_comp, single_id] lthy =
+    fun after_qed [single_comp_thm, single_id_thm] lthy =
       lthy
-      |> Local_Theory.note ((qualify compN, []), single_comp)
-      ||>> Local_Theory.note ((qualify idN, []), single_id)
-      |-> (fn ((_, [comp]), (_, [id])) => fn lthy =>
+      |> Local_Theory.note ((qualify compN, []), single_comp_thm)
+      ||>> Local_Theory.note ((qualify idN, []), single_id_thm)
+      |-> (fn ((_, [comp_thm]), (_, [id_thm])) => fn lthy =>
         lthy
-        |> Local_Theory.note ((qualify compositionalityN, []), [make_compositionality lthy comp])
+        |> Local_Theory.note ((qualify compositionalityN, []), [prove_compositionality lthy comp_thm])
         |> snd
-        |> Local_Theory.note ((qualify identityN, []), [make_identity lthy variances id])
+        |> Local_Theory.note ((qualify identityN, []), [prove_identity lthy id_thm])
         |> snd
         |> (Local_Theory.background_theory o Data.map)
             (Symtab.update (tyco, { mapper = mapper, variances = variances,
-              comp = comp, id = id })));
+              comp = comp_thm, id = id_thm })));
   in
     thy
     |> Named_Target.theory_init
