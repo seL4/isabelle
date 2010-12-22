@@ -26,9 +26,6 @@ val identityN = "identity";
 
 (* bookkeeping *)
 
-fun term_with_typ ctxt T t = Envir.subst_term_types
-  (Type.typ_match (ProofContext.tsig_of ctxt) (fastype_of t, T) Vartab.empty) t;
-
 type entry = { mapper: term, variances: (sort * (bool * bool)) list,
   comp: thm, id: thm };
 
@@ -43,6 +40,9 @@ val entries = Data.get o Context.Proof;
 
 
 (* type analysis *)
+
+fun term_with_typ ctxt T t = Envir.subst_term_types
+  (Type.typ_match (ProofContext.tsig_of ctxt) (fastype_of t, T) Vartab.empty) t;
 
 fun find_atomic ctxt T =
   let
@@ -193,12 +193,12 @@ fun analyze_variances thy tyco T =
     val _ = if null left_variances then () else bad_typ ();
   in variances end;
 
-fun gen_type_lifting prep_term some_prfx raw_t thy =
+fun gen_type_lifting prep_term some_prfx raw_mapper thy =
   let
-    val mapper_fixT = prep_term thy raw_t;
-    val T = fastype_of mapper_fixT;
+    val input_mapper = prep_term thy raw_mapper;
+    val T = fastype_of input_mapper;
     val _ = Type.no_tvars T;
-    val mapper = singleton (Variable.polymorphic (ProofContext.init_global thy)) mapper_fixT;
+    val mapper = singleton (Variable.polymorphic (ProofContext.init_global thy)) input_mapper;
     fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
       | add_tycos _ = I;
     val tycos = add_tycos T [];
@@ -211,8 +211,18 @@ fun gen_type_lifting prep_term some_prfx raw_t thy =
     val ctxt = ProofContext.init_global thy;
     val (comp_prop, prove_compositionality) = make_comp_prop ctxt variances (tyco, mapper);
     val (id_prop, prove_identity) = make_id_prop ctxt variances (tyco, mapper);
-    val _ = Thm.cterm_of thy id_prop;
     val qualify = Binding.qualify true prfx o Binding.name;
+    fun mapper_declaration comp_thm id_thm phi context =
+      let
+        val typ_instance = Type.typ_instance (ProofContext.tsig_of (Context.proof_of context));
+        val mapper' = Morphism.term phi mapper;
+        val T_T' = pairself fastype_of (mapper, mapper');
+      in if typ_instance T_T' andalso typ_instance (swap T_T')
+        then Data.map (Symtab.update (tyco,
+          { mapper = mapper', variances = variances,
+            comp = Morphism.thm phi comp_thm, id = Morphism.thm phi id_thm })) context
+        else context
+      end;
     fun after_qed [single_comp_thm, single_id_thm] lthy =
       lthy
       |> Local_Theory.note ((qualify compN, []), single_comp_thm)
@@ -225,9 +235,7 @@ fun gen_type_lifting prep_term some_prfx raw_t thy =
         |> Local_Theory.note ((qualify identityN, []),
             [prove_identity lthy id_thm])
         |> snd
-        |> Local_Theory.declaration false (fn phi => Data.map
-            (Symtab.update (tyco, { mapper = Morphism.term phi mapper, variances = variances,
-              comp = Morphism.thm phi comp_thm, id = Morphism.thm phi id_thm }))))
+        |> Local_Theory.declaration false (mapper_declaration comp_thm id_thm))
   in
     thy
     |> Named_Target.theory_init
