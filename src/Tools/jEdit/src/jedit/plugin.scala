@@ -344,8 +344,9 @@ class Plugin extends EBPlugin
   override def handleMessage(message: EBMessage)
   {
     message match {
-      case msg: EditorStarted
-      if Isabelle.Boolean_Property("auto-start") => Isabelle.start_session()
+      case msg: EditorStarted =>
+      Isabelle.check_jvm()
+      if (Isabelle.Boolean_Property("auto-start")) Isabelle.start_session()
 
       case msg: BufferUpdate
       if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
@@ -385,7 +386,6 @@ class Plugin extends EBPlugin
 
   override def start()
   {
-    Isabelle.check_jvm()
     Isabelle.setup_tooltips()
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
