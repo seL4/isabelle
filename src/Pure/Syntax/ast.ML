@@ -24,8 +24,10 @@ sig
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
   val unfold_ast_p: string -> ast -> ast list * ast
-  val trace_ast: bool Unsynchronized.ref
-  val stat_ast: bool Unsynchronized.ref
+  val ast_trace_raw: Config.raw
+  val ast_trace: bool Config.T
+  val ast_stat_raw: Config.raw
+  val ast_stat: bool Config.T
 end;
 
 signature AST =
@@ -33,8 +35,7 @@ sig
   include AST1
   val head_of_rule: ast * ast -> string
   val rule_error: ast * ast -> string option
-  val normalize: bool -> bool -> (string -> (ast * ast) list) -> ast -> ast
-  val normalize_ast: (string -> (ast * ast) list) -> ast -> ast
+  val normalize: Proof.context -> (string -> (ast * ast) list) -> ast -> ast
 end;
 
 structure Ast : AST =
@@ -168,10 +169,18 @@ fun match ast pat =
 
 (* normalize *)
 
-(*the normalizer works yoyo-like: top-down, bottom-up, top-down, ...*)
+val ast_trace_raw = Config.declare "syntax_ast_trace" (fn _ => Config.Bool false);
+val ast_trace = Config.bool ast_trace_raw;
 
-fun normalize trace stat get_rules pre_ast =
+val ast_stat_raw = Config.declare "syntax_ast_stat" (fn _ => Config.Bool false);
+val ast_stat = Config.bool ast_stat_raw;
+
+(*the normalizer works yoyo-like: top-down, bottom-up, top-down, ...*)
+fun normalize ctxt get_rules pre_ast =
   let
+    val trace = Config.get ctxt ast_trace;
+    val stat = Config.get ctxt ast_stat;
+
     val passes = Unsynchronized.ref 0;
     val failed_matches = Unsynchronized.ref 0;
     val changes = Unsynchronized.ref 0;
@@ -240,14 +249,5 @@ fun normalize trace stat get_rules pre_ast =
           string_of_int (! failed_matches) ^ " matches failed")
       else ();
   in post_ast end;
-
-
-(* normalize_ast *)
-
-val trace_ast = Unsynchronized.ref false;
-val stat_ast = Unsynchronized.ref false;
-
-fun normalize_ast get_rules ast =
-  normalize (! trace_ast) (! stat_ast) get_rules ast;
 
 end;

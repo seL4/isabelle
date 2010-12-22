@@ -25,7 +25,8 @@ sig
   val ml_store_thm: string * thm -> unit
   type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context
   val add_antiq: string -> (Position.T -> antiq context_parser) -> unit
-  val trace: bool Unsynchronized.ref
+  val trace_raw: Config.raw
+  val trace: bool Config.T
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
   val eval: bool -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
@@ -172,7 +173,8 @@ fun eval_antiquotes (ants, pos) opt_context =
         in (ml, SOME (Context.Proof ctxt')) end;
   in ((begin_env @ ml_env @ end_env, ml_body), opt_ctxt') end;
 
-val trace = Unsynchronized.ref false;
+val trace_raw = Config.declare "ML_trace" (fn _ => Config.Bool false);
+val trace = Config.bool trace_raw;
 
 fun eval verbose pos ants =
   let
@@ -181,8 +183,12 @@ fun eval verbose pos ants =
       eval_antiquotes (ants, pos) (Context.thread_data ())
       ||> Option.map (Context.mapping I (Context_Position.set_visible false));
     val _ =
-      if ! trace then tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
-      else ();
+      (case env_ctxt of
+        SOME context =>
+          if Config.get (Context.proof_of context) trace then
+            tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
+          else ()
+      | NONE => ());
 
     (*prepare static ML environment*)
     val _ = Context.setmp_thread_data env_ctxt

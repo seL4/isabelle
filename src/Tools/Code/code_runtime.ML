@@ -228,16 +228,13 @@ fun register_code new_tycos new_consts ctxt =
 
 fun register_const const = register_code [] [const];
 
-fun print_const const all_struct_name consts_map =
-  (Long_Name.append all_struct_name o the o AList.lookup (op =) consts_map) const;
-
 fun print_code is_first const ctxt =
   let
     val (_, (_, acc_code)) = Code_Antiq_Data.get ctxt;
     val (ml_code, consts_map) = Lazy.force acc_code;
     val ml_code = if is_first then ml_code else "";
-    val all_struct_name = "Isabelle";
-  in (ml_code, print_const const all_struct_name consts_map) end;
+    val body = " Isabelle." ^ the (AList.lookup (op =) consts_map const) ^ " ";
+  in (ml_code, body) end;
 
 in
 

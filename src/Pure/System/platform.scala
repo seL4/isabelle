@@ -53,6 +53,12 @@ object Platform
   }
 
 
+  /* JVM name */
+
+  val jvm_name: String = java.lang.System.getProperty("java.vm.name")
+  val is_hotspot: Boolean = jvm_name.startsWith("Java HotSpot")
+
+
   /* Swing look-and-feel */
 
   private def find_laf(name: String): Option[String] =

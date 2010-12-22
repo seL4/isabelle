@@ -5,4 +5,12 @@
 # DESCRIPTION: invoke Java within the Isabelle environment
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
-exec "${THIS_JAVA:-$ISABELLE_JAVA}" "$@"
+
+JAVA_EXE="${THIS_JAVA:-$ISABELLE_JAVA}"
+if "$JAVA_EXE" -server >/dev/null 2>/dev/null
+then
+  exec "$JAVA_EXE" -server "$@"
+else
+  exec "$JAVA_EXE" "$@"
+fi
+

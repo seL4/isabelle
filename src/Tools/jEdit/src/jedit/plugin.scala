@@ -143,6 +143,18 @@ object Isabelle
   }
 
 
+  /* check JVM */
+
+  def check_jvm()
+  {
+    if (!Platform.is_hotspot) {
+      Library.warning_dialog(jEdit.getActiveView, "Bad Java Virtual Machine",
+        "This is " + Platform.jvm_name,
+        "Isabelle/jEdit requires Java Hotspot from Sun/Oracle/Apple!")
+    }
+  }
+
+
   /* main jEdit components */
 
   def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator
@@ -332,8 +344,9 @@ class Plugin extends EBPlugin
   override def handleMessage(message: EBMessage)
   {
     message match {
-      case msg: EditorStarted
-      if Isabelle.Boolean_Property("auto-start") => Isabelle.start_session()
+      case msg: EditorStarted =>
+      Isabelle.check_jvm()
+      if (Isabelle.Boolean_Property("auto-start")) Isabelle.start_session()
 
       case msg: BufferUpdate
       if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>

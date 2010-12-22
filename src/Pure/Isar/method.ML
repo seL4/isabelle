@@ -8,7 +8,7 @@ signature BASIC_METHOD =
 sig
   val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
   val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
-  val trace_rules: bool Unsynchronized.ref
+  val rule_trace: bool Config.T
 end;
 
 signature METHOD =
@@ -218,10 +218,10 @@ end;
 
 (* rule etc. -- single-step refinements *)
 
-val trace_rules = Unsynchronized.ref false;
+val (rule_trace, rule_trace_setup) = Attrib.config_bool "rule_trace" (fn _ => false);
 
 fun trace ctxt rules =
-  if ! trace_rules andalso not (null rules) then
+  if Config.get ctxt rule_trace andalso not (null rules) then
     Pretty.big_list "rules:" (map (Display.pretty_thm ctxt) rules)
     |> Pretty.string_of |> tracing
   else ();
@@ -438,7 +438,8 @@ in val parse = meth3 end;
 (* theory setup *)
 
 val _ = Context.>> (Context.map_theory
- (setup (Binding.name "fail") (Scan.succeed (K fail)) "force failure" #>
+ (rule_trace_setup #>
+  setup (Binding.name "fail") (Scan.succeed (K fail)) "force failure" #>
   setup (Binding.name "succeed") (Scan.succeed (K succeed)) "succeed" #>
   setup (Binding.name "-") (Scan.succeed (K insert_facts))
     "do nothing (insert current facts only)" #>
