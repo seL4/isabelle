@@ -265,7 +265,7 @@ abbreviation option_map
   where "option_map f \<equiv> Abs_cfun (Option.map (Rep_cfun f))"
 
 lemma option_map_ID [domain_map_ID]: "option_map ID = ID"
-by (simp add: ID_def cfun_eq_iff Option.map.identity)
+by (simp add: ID_def cfun_eq_iff Option.map.identity id_def)
 
 lemma deflation_option_map [domain_deflation]:
   "deflation d \<Longrightarrow> deflation (option_map d)"
