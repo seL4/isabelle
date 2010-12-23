@@ -345,7 +345,7 @@ section {* Datatypes \label{sec:hol-datatype} *}
 text {*
   \begin{matharray}{rcl}
     @{command_def (HOL) "datatype"} & : & @{text "theory \<rightarrow> theory"} \\
-  @{command_def (HOL) "rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   \begin{rail}
@@ -381,6 +381,49 @@ text {*
   induct_tac} available, see \secref{sec:hol-induct-tac}; these admit
   to refer directly to the internal structure of subgoals (including
   internally bound parameters).
+*}
+
+
+section {* Functorial structure of types *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "type_lifting"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  \end{matharray}
+
+  \begin{rail}
+    'type_lifting' (prefix ':')? term
+    ;
+  \end{rail}
+
+  \begin{description}
+
+  \item @{command (HOL) "type_lifting"} allows to prove and register
+  properties about type constructors which refer to their functorial
+  structure; these properties then can be used by other packages to
+  deal with those type constructors in certain type constructions.
+  Characteristic theorems are noted in the current local theory; by
+  default, they are prefixed with base name of the type constructor,
+  an explicit prefix can be given alternatively.
+
+  The given term @{text "m"} is considered as \emph{mapper} for the
+  corresponding type constructor and must conform to the following
+  type pattern:
+
+  \begin{matharray}{lll}
+    @{text "m"} & @{text "::"} &
+      @{text "\<sigma>\<^isub>1 \<Rightarrow> \<dots> \<sigma>\<^isub>k \<Rightarrow> (\<^vec>\<alpha>\<^isub>n) t \<Rightarrow> (\<^vec>\<beta>\<^isub>n) t"} \\
+  \end{matharray}
+
+  \noindent where @{text t} is the type constructor, @{text
+  "\<^vec>\<alpha>\<^isub>n"} and @{text "\<^vec>\<beta>\<^isub>n"} are distinct
+  type variables free in the local theory and @{text "\<sigma>\<^isub>1"},
+  \ldots, @{text "\<sigma>\<^isub>k"} is a subsequence of @{text "\<alpha>\<^isub>1 \<Rightarrow>
+  \<beta>\<^isub>1"}, @{text "\<beta>\<^isub>1 \<Rightarrow> \<alpha>\<^isub>1"}, \ldots,
+  @{text "\<alpha>\<^isub>n \<Rightarrow> \<beta>\<^isub>n"}, @{text "\<beta>\<^isub>n \<Rightarrow>
+  \<alpha>\<^isub>n"}.
+
+  \end{description}
 *}
 
 
