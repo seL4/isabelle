@@ -485,11 +485,9 @@ former command 'new_domain' is now called 'domain'. To use the domain
 package in its original axiomatic mode, use 'domain (unsafe)'.
 INCOMPATIBILITY.
 
-* The new class 'domain' is now the default sort; the definitional
-domain package and the powerdomain theories both require this class.
-The new class 'predomain' is an unpointed version of 'domain'.
-Theories can be updated by replacing sort annotations as shown below.
-INCOMPATIBILITY.
+* The new class 'domain' is now the default sort. Class 'predomain' is
+an unpointed version of 'domain'. Theories can be updated by replacing
+sort annotations as shown below. INCOMPATIBILITY.
 
   'a::type ~> 'a::countable
   'a::cpo  ~> 'a::predomain
@@ -498,6 +496,27 @@ INCOMPATIBILITY.
 * The old type class 'rep' has been superseded by class 'domain'.
 Accordingly, users of the definitional package must remove any
 'default_sort rep' declarations. INCOMPATIBILITY.
+
+* The domain package (definitional mode) now supports unpointed
+predomain argument types, as long as they are marked 'lazy'. (Strict
+arguments must be in class 'domain'.) For example, the following
+domain definition now works:
+
+  domain natlist = nil | cons (lazy "nat discr") (lazy "natlist")
+
+* Theory HOLCF/Library/HOL_Cpo provides cpo and predomain class
+instances for types from Isabelle/HOL: bool, nat, int, char, 'a + 'b,
+'a option, and 'a list. Additionally, it configures fixrec and the
+domain package to work with these types. For example:
+
+  fixrec isInl :: "('a + 'b) u -> tr"
+    where "isInl$(up$(Inl x)) = TT" | "isInl$(up$(Inr y)) = FF"
+
+  domain V = VFun (lazy "V -> V") | VCon (lazy "nat") (lazy "V list")
+
+* The '(permissive)' option of fixrec has been replaced with a
+per-equation '(unchecked)' option. See HOLCF/Tutorial/Fixrec_ex.thy
+for examples. INCOMPATIBILITY.
 
 * The 'bifinite' class no longer fixes a constant 'approx'; the class
 now just asserts that such a function exists. INCOMPATIBILITY.
@@ -514,6 +533,15 @@ HOLCF/Library/Defl_Bifinite.thy.
 * The type class 'finite_po' has been removed. INCOMPATIBILITY.
 
 * The function 'cprod_map' has been renamed to 'prod_map'.
+INCOMPATIBILITY.
+
+* The monadic bind operator on each powerdomain has new binder syntax
+similar to sets, e.g. '\<Union>\<sharp>x\<in>xs. t' represents
+'upper_bind\<cdot>xs\<cdot>(\<Lambda> x. t)'.
+
+* The infix syntax for binary union on each powerdomain has changed
+from e.g. '+\<sharp>' to '\<union>\<sharp>', for consistency with set
+syntax. INCOMPATIBILITY.
 
 * Renamed some theorems (the original names are also still available).
   expand_fun_below   ~> fun_below_iff
