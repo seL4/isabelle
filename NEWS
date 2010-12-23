@@ -197,9 +197,12 @@ types, and iii) the heap monad of Imperative_HOL. See
 HOL/ex/Fundefs.thy and HOL/Imperative_HOL/ex/Linked_Lists.thy for
 examples.
 
-* Predicates "distinct" and "sorted" now defined inductively, with
-nice induction rules.  INCOMPATIBILITY: former distinct.simps and
-sorted.simps now named distinct_simps and sorted_simps.
+* New command 'type_lifting' allows to register properties on
+the functorial structure of types.
+
+* Predicate "sorted" now defined inductively, with
+nice induction rules.  INCOMPATIBILITY: former sorted.simps now
+named sorted_simps.
 
 * Constant "contents" renamed to "the_elem", to free the generic name
 contents for other uses.  INCOMPATIBILITY.
