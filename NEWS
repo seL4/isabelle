@@ -122,25 +122,6 @@ the local file system.
 
 *** HOL ***
 
-* More canonical naming convention for some fundamental definitions:
-
-    bot_bool_eq ~> bot_bool_def
-    top_bool_eq ~> top_bool_def
-    inf_bool_eq ~> inf_bool_def
-    sup_bool_eq ~> sup_bool_def
-    bot_fun_eq ~> bot_fun_def
-    top_fun_eq ~> top_fun_def
-    inf_fun_eq ~> inf_fun_def
-    sup_fun_eq ~> sup_fun_def
-
-* Quickcheck now by default uses exhaustive testing instead of random
-testing.  Random testing can be invoked by quickcheck[random],
-exhaustive testing by quickcheck[exhaustive].
-
-* Quickcheck instantiates polymorphic types with small finite
-datatypes by default. This enables a simple execution mechanism to
-handle quantifiers and function equality over the finite datatypes.
-
 * Functions can be declared as coercions and type inference will add
 them as necessary upon input of a term. In theory Complex_Main,
 real :: nat => real and real :: int => real are declared as
@@ -160,36 +141,6 @@ other theories like this:
 
   declare [[coercion_enabled]]
 
-* Abandoned locales equiv, congruent and congruent2 for equivalence
-relations.  INCOMPATIBILITY: use equivI rather than equiv_intro (same
-for congruent(2)).
-
-* Code generator: globbing constant expressions "*" and "Theory.*"
-have been replaced by the more idiomatic "_" and "Theory._".
-INCOMPATIBILITY.
-
-* Theory Enum (for explicit enumerations of finite types) is now part
-of the HOL-Main image. INCOMPATIBILITY: all constants of the Enum
-theory now have to be referred to by its qualified name.
-
-  enum    ~>  Enum.enum
-  nlists  ~>  Enum.nlists
-  product ~>  Enum.product
-
-* Renamed theory Fset to Cset, type Fset.fset to Cset.set, in order to
-avoid confusion with finite sets.  INCOMPATIBILITY.
-
-* Quickcheck's generator for random generation is renamed from "code"
-to "random".  INCOMPATIBILITY.
-
-* Quickcheck now has a configurable time limit which is set to 30
-seconds by default. This can be changed by adding [timeout = n] to the
-quickcheck command. The time limit for Auto Quickcheck is still set
-independently.
-
-* Theory Multiset provides stable quicksort implementation of
-sort_key.
-
 * New command 'partial_function' provides basic support for recursive
 function definitions over complete partial orders. Concrete instances
 are provided for i) the option type, ii) tail recursion on arbitrary
@@ -197,45 +148,44 @@ types, and iii) the heap monad of Imperative_HOL. See
 HOL/ex/Fundefs.thy and HOL/Imperative_HOL/ex/Linked_Lists.thy for
 examples.
 
+* Scala (2.8 or higher) has been added to the target languages of the
+code generator.
+
+* Inductive package: offers new command 'inductive_simps' to
+automatically derive instantiated and simplified equations for
+inductive predicates, similar to 'inductive_cases'.
+
+* Function package: .psimps rules are no longer implicitly declared
+[simp].  INCOMPATIBILITY.
+
+* Datatype package: theorems generated for executable equality (class
+eq) carry proper names and are treated as default code equations.
+
 * New command 'type_lifting' allows to register properties on
 the functorial structure of types.
 
-* Predicate "sorted" now defined inductively, with
-nice induction rules.  INCOMPATIBILITY: former sorted.simps now
-named sorted_simps.
-
-* Constant "contents" renamed to "the_elem", to free the generic name
-contents for other uses.  INCOMPATIBILITY.
-
-* Dropped syntax for old primrec package.  INCOMPATIBILITY.
+* Weaker versions of the "meson" and "metis" proof methods are now
+available in "HOL-Plain", without dependency on "Hilbert_Choice". The
+proof methods become more powerful after "Hilbert_Choice" is loaded in
+"HOL-Main".
 
 * Improved infrastructure for term evaluation using code generator
 techniques, in particular static evaluation conversions.
 
-* String.literal is a type, but not a datatype.  INCOMPATIBILITY.
+* Code generator: globbing constant expressions "*" and "Theory.*"
+have been replaced by the more idiomatic "_" and "Theory._".
+INCOMPATIBILITY.
 
-* Renamed facts:
-  expand_fun_eq  ~>  fun_eq_iff
-  expand_set_eq  ~>  set_eq_iff
-  set_ext        ~>  set_eqI
-  nat_number     ~>  eval_nat_numeral
+* Code generator: export_code without explicit file declaration prints
+to standard output.  INCOMPATIBILITY.
 
-* Renamed class eq and constant eq (for code generation) to class
-equal and constant equal, plus renaming of related facts and various
-tuning.  INCOMPATIBILITY.
+* Code generator: do not print function definitions for case
+combinators any longer.
 
-* Scala (2.8 or higher) has been added to the target languages of the
-code generator.
+* Simplification with rules determined by code generator
+with code_simp.ML and method code_simp.
 
-* Dropped type classes mult_mono and mult_mono1.  INCOMPATIBILITY.
-
-* Removed output syntax "'a ~=> 'b" for "'a => 'b option".  INCOMPATIBILITY.
-
-* Theory SetsAndFunctions has been split into Function_Algebras and
-Set_Algebras; canonical names for instance definitions for functions;
-various improvements.  INCOMPATIBILITY.
-
-* Records: logical foundation type for records do not carry a '_type'
+* Records: logical foundation type for records does not carry a '_type'
 suffix any longer.  INCOMPATIBILITY.
 
 * Code generation for records: more idiomatic representation of record
@@ -247,164 +197,24 @@ rep_datatype declaration helps to succeed then:
   ...
   rep_datatype foo_ext ...
 
-* Session Imperative_HOL: revamped, corrected dozens of inadequacies.
-INCOMPATIBILITY.
+* Quickcheck now by default uses exhaustive testing instead of random
+testing.  Random testing can be invoked by quickcheck[random],
+exhaustive testing by quickcheck[exhaustive].
+
+* Quickcheck instantiates polymorphic types with small finite
+datatypes by default. This enables a simple execution mechanism to
+handle quantifiers and function equality over the finite datatypes.
+
+* Quickcheck's generator for random generation is renamed from "code"
+to "random".  INCOMPATIBILITY.
+
+* Quickcheck now has a configurable time limit which is set to 30
+seconds by default. This can be changed by adding [timeout = n] to the
+quickcheck command. The time limit for Auto Quickcheck is still set
+independently.
 
 * Quickcheck in locales considers interpretations of that locale for
 counter example search.
-
-* Theory Library/Monad_Syntax provides do-syntax for monad types.
-Syntax in Library/State_Monad has been changed to avoid ambiguities.
-INCOMPATIBILITY.
-
-* Code generator: export_code without explicit file declaration prints
-to standard output.  INCOMPATIBILITY.
-
-* Abolished some non-alphabetic type names: "prod" and "sum" replace
-"*" and "+" respectively.  INCOMPATIBILITY.
-
-* Name "Plus" of disjoint sum operator "<+>" is now hidden.  Write
-Sum_Type.Plus.
-
-* Constant "split" has been merged with constant "prod_case"; names of
-ML functions, facts etc. involving split have been retained so far,
-though.  INCOMPATIBILITY.
-
-* Dropped old infix syntax "mem" for List.member; use "in set"
-instead.  INCOMPATIBILITY.
-
-* Refactoring of code-generation specific operations in List.thy
-
-  constants
-    null ~> List.null
-
-  facts
-    mem_iff ~> member_def
-    null_empty ~> null_def
-
-INCOMPATIBILITY.  Note that these were not supposed to be used
-regularly unless for striking reasons; their main purpose was code
-generation.
-
-* Some previously unqualified names have been qualified:
-
-  types
-    bool ~> HOL.bool
-    nat ~> Nat.nat
-
-  constants
-    Trueprop ~> HOL.Trueprop
-    True ~> HOL.True
-    False ~> HOL.False
-    op & ~> HOL.conj
-    op | ~> HOL.disj
-    op --> ~> HOL.implies
-    op = ~> HOL.eq
-    Not ~> HOL.Not
-    The ~> HOL.The
-    All ~> HOL.All
-    Ex ~> HOL.Ex
-    Ex1 ~> HOL.Ex1
-    Let ~> HOL.Let
-    If ~> HOL.If
-    Ball ~> Set.Ball
-    Bex ~> Set.Bex
-    Suc ~> Nat.Suc
-    Pair ~> Product_Type.Pair
-    fst ~> Product_Type.fst
-    snd ~> Product_Type.snd
-    curry ~> Product_Type.curry
-    op : ~> Set.member
-    Collect ~> Set.Collect
-
-INCOMPATIBILITY.
-
-* Removed simplifier congruence rule of "prod_case", as has for long
-been the case with "split".  INCOMPATIBILITY.
-
-* Datatype package: theorems generated for executable equality (class
-eq) carry proper names and are treated as default code equations.
-
-* Removed lemma Option.is_none_none (Duplicate of is_none_def).
-INCOMPATIBILITY.
-
-* List.thy: use various operations from the Haskell prelude when
-generating Haskell code.
-
-* Multiset.thy: renamed empty_idemp -> empty_neutral
-
-* code_simp.ML and method code_simp: simplification with rules
-determined by code generator.
-
-* code generator: do not print function definitions for case
-combinators any longer.
-
-* Multivariate Analysis: Introduced a type class for euclidean
-space. Most theorems are now stated in terms of euclidean spaces
-instead of finite cartesian products.
-
-  types
-    real ^ 'n ~>  'a::real_vector
-              ~>  'a::euclidean_space
-              ~>  'a::ordered_euclidean_space
-        (depends on your needs)
-
-  constants
-     _ $ _        ~> _ $$ _
-     \<chi> x. _  ~> \<chi>\<chi> x. _
-     CARD('n)     ~> DIM('a)
-
-Also note that the indices are now natural numbers and not from some
-finite type. Finite cartesian products of euclidean spaces, products
-of euclidean spaces the real and complex numbers are instantiated to
-be euclidean_spaces.  INCOMPATIBILITY.
-
-* Probability: Introduced pextreal as positive extended real numbers.
-Use pextreal as value for measures. Introduce the Radon-Nikodym
-derivative, product spaces and Fubini's theorem for arbitrary sigma
-finite measures. Introduces Lebesgue measure based on the integral in
-Multivariate Analysis.  INCOMPATIBILITY.
-
-* Inductive package: offers new command 'inductive_simps' to
-automatically derive instantiated and simplified equations for
-inductive predicates, similar to 'inductive_cases'.
-
-* "bij f" is now an abbreviation of "bij_betw f UNIV UNIV". "surj f"
-is now an abbreviation of "range f = UNIV". The theorems bij_def and
-surj_def are unchanged.  INCOMPATIBILITY.
-
-* Function package: .psimps rules are no longer implicitly declared
-[simp].  INCOMPATIBILITY.
-
-* Weaker versions of the "meson" and "metis" proof methods are now
-available in "HOL-Plain", without dependency on "Hilbert_Choice". The
-proof methods become more powerful after "Hilbert_Choice" is loaded in
-"HOL-Main".
-
-* MESON: Renamed lemmas:
-  meson_not_conjD ~> Meson.not_conjD
-  meson_not_disjD ~> Meson.not_disjD
-  meson_not_notD ~> Meson.not_notD
-  meson_not_allD ~> Meson.not_allD
-  meson_not_exD ~> Meson.not_exD
-  meson_imp_to_disjD ~> Meson.imp_to_disjD
-  meson_not_impD ~> Meson.not_impD
-  meson_iff_to_disjD ~> Meson.iff_to_disjD
-  meson_not_iffD ~> Meson.not_iffD
-  meson_not_refl_disj_D ~> Meson.not_refl_disj_D
-  meson_conj_exD1 ~> Meson.conj_exD1
-  meson_conj_exD2 ~> Meson.conj_exD2
-  meson_disj_exD ~> Meson.disj_exD
-  meson_disj_exD1 ~> Meson.disj_exD1
-  meson_disj_exD2 ~> Meson.disj_exD2
-  meson_disj_assoc ~> Meson.disj_assoc
-  meson_disj_comm ~> Meson.disj_comm
-  meson_disj_FalseD1 ~> Meson.disj_FalseD1
-  meson_disj_FalseD2 ~> Meson.disj_FalseD2
-INCOMPATIBILITY.
-
-* Auto Solve: Renamed "Auto Solve Direct".  The tool is now available
-manually as command 'solve_direct'.
 
 * Sledgehammer:
   - Added "smt" and "remote_smt" provers based on the "smt" proof method. See
@@ -455,6 +265,9 @@ these tools. E.g.
     higher cardinalities.
   - Prevent the expansion of too large definitions.
 
+* Auto Solve: Renamed "Auto Solve Direct".  The tool is now available
+manually as command 'solve_direct'.
+
 * Changed SMT configuration options:
   - Renamed:
     z3_proofs ~> smt_oracle (with swapped semantics)
@@ -469,8 +282,200 @@ these tools. E.g.
 * Boogie output files (.b2i files) need to be declared in the theory
 header.
 
+* Dropped syntax for old primrec package.  INCOMPATIBILITY.
+
+* Multivariate Analysis: Introduced a type class for euclidean
+space. Most theorems are now stated in terms of euclidean spaces
+instead of finite cartesian products.
+
+  types
+    real ^ 'n ~>  'a::real_vector
+              ~>  'a::euclidean_space
+              ~>  'a::ordered_euclidean_space
+        (depends on your needs)
+
+  constants
+     _ $ _        ~> _ $$ _
+     \<chi> x. _  ~> \<chi>\<chi> x. _
+     CARD('n)     ~> DIM('a)
+
+Also note that the indices are now natural numbers and not from some
+finite type. Finite cartesian products of euclidean spaces, products
+of euclidean spaces the real and complex numbers are instantiated to
+be euclidean_spaces.  INCOMPATIBILITY.
+
+* Probability: Introduced pextreal as positive extended real numbers.
+Use pextreal as value for measures. Introduce the Radon-Nikodym
+derivative, product spaces and Fubini's theorem for arbitrary sigma
+finite measures. Introduces Lebesgue measure based on the integral in
+Multivariate Analysis.  INCOMPATIBILITY.
+
+* Session Imperative_HOL: revamped, corrected dozens of inadequacies.
+INCOMPATIBILITY.
+
+* Theory Library/Monad_Syntax provides do-syntax for monad types.
+Syntax in Library/State_Monad has been changed to avoid ambiguities.
+INCOMPATIBILITY.
+
+* Theory SetsAndFunctions has been split into Function_Algebras and
+Set_Algebras; canonical names for instance definitions for functions;
+various improvements.  INCOMPATIBILITY.
+
+* Theory Multiset provides stable quicksort implementation of
+sort_key.
+
+* Theory Enum (for explicit enumerations of finite types) is now part
+of the HOL-Main image. INCOMPATIBILITY: all constants of the Enum
+theory now have to be referred to by its qualified name.
+
+  enum    ~>  Enum.enum
+  nlists  ~>  Enum.nlists
+  product ~>  Enum.product
+
+* Removed simplifier congruence rule of "prod_case", as has for long
+been the case with "split".  INCOMPATIBILITY.
+
+* String.literal is a type, but not a datatype.  INCOMPATIBILITY.
+
 * Removed [split_format ... and ... and ...] version of
 [split_format].  Potential INCOMPATIBILITY.
+
+* Predicate "sorted" now defined inductively, with
+nice induction rules.  INCOMPATIBILITY: former sorted.simps now
+named sorted_simps.
+
+* Constant "contents" renamed to "the_elem", to free the generic name
+contents for other uses.  INCOMPATIBILITY.
+
+* Renamed class eq and constant eq (for code generation) to class
+equal and constant equal, plus renaming of related facts and various
+tuning.  INCOMPATIBILITY.
+
+* Dropped type classes mult_mono and mult_mono1.  INCOMPATIBILITY.
+
+* Removed output syntax "'a ~=> 'b" for "'a => 'b option".  INCOMPATIBILITY.
+
+* Renamed theory Fset to Cset, type Fset.fset to Cset.set, in order to
+avoid confusion with finite sets.  INCOMPATIBILITY.
+
+* Multiset.thy: renamed empty_idemp ~> empty_neutral.  INCOMPATIBILITY.
+
+* Abandoned locales equiv, congruent and congruent2 for equivalence
+relations.  INCOMPATIBILITY: use equivI rather than equiv_intro (same
+for congruent(2)).
+
+* Some previously unqualified names have been qualified:
+
+  types
+    bool ~> HOL.bool
+    nat ~> Nat.nat
+
+  constants
+    Trueprop ~> HOL.Trueprop
+    True ~> HOL.True
+    False ~> HOL.False
+    op & ~> HOL.conj
+    op | ~> HOL.disj
+    op --> ~> HOL.implies
+    op = ~> HOL.eq
+    Not ~> HOL.Not
+    The ~> HOL.The
+    All ~> HOL.All
+    Ex ~> HOL.Ex
+    Ex1 ~> HOL.Ex1
+    Let ~> HOL.Let
+    If ~> HOL.If
+    Ball ~> Set.Ball
+    Bex ~> Set.Bex
+    Suc ~> Nat.Suc
+    Pair ~> Product_Type.Pair
+    fst ~> Product_Type.fst
+    snd ~> Product_Type.snd
+    curry ~> Product_Type.curry
+    op : ~> Set.member
+    Collect ~> Set.Collect
+
+INCOMPATIBILITY.
+
+* More canonical naming convention for some fundamental definitions:
+
+    bot_bool_eq ~> bot_bool_def
+    top_bool_eq ~> top_bool_def
+    inf_bool_eq ~> inf_bool_def
+    sup_bool_eq ~> sup_bool_def
+    bot_fun_eq  ~> bot_fun_def
+    top_fun_eq  ~> top_fun_def
+    inf_fun_eq  ~> inf_fun_def
+    sup_fun_eq  ~> sup_fun_def
+
+INCOMPATIBILITY.
+
+* More stylized fact names:
+
+  expand_fun_eq ~> fun_eq_iff
+  expand_set_eq ~> set_eq_iff
+  set_ext       ~> set_eqI
+  nat_number    ~> eval_nat_numeral
+
+INCOMPATIBILITY.
+
+* Refactoring of code-generation specific operations in List.thy
+
+  constants
+    null ~> List.null
+
+  facts
+    mem_iff ~> member_def
+    null_empty ~> null_def
+
+INCOMPATIBILITY.  Note that these were not supposed to be used
+regularly unless for striking reasons; their main purpose was code
+generation.
+
+Various operations from the Haskell prelude are used for generating
+Haskell code.
+
+* MESON: Renamed lemmas:
+  meson_not_conjD ~> Meson.not_conjD
+  meson_not_disjD ~> Meson.not_disjD
+  meson_not_notD ~> Meson.not_notD
+  meson_not_allD ~> Meson.not_allD
+  meson_not_exD ~> Meson.not_exD
+  meson_imp_to_disjD ~> Meson.imp_to_disjD
+  meson_not_impD ~> Meson.not_impD
+  meson_iff_to_disjD ~> Meson.iff_to_disjD
+  meson_not_iffD ~> Meson.not_iffD
+  meson_not_refl_disj_D ~> Meson.not_refl_disj_D
+  meson_conj_exD1 ~> Meson.conj_exD1
+  meson_conj_exD2 ~> Meson.conj_exD2
+  meson_disj_exD ~> Meson.disj_exD
+  meson_disj_exD1 ~> Meson.disj_exD1
+  meson_disj_exD2 ~> Meson.disj_exD2
+  meson_disj_assoc ~> Meson.disj_assoc
+  meson_disj_comm ~> Meson.disj_comm
+  meson_disj_FalseD1 ~> Meson.disj_FalseD1
+  meson_disj_FalseD2 ~> Meson.disj_FalseD2
+INCOMPATIBILITY.
+
+* "bij f" is now an abbreviation of "bij_betw f UNIV UNIV". "surj f"
+is now an abbreviation of "range f = UNIV". The theorems bij_def and
+surj_def are unchanged.  INCOMPATIBILITY.
+
+* Abolished some non-alphabetic type names: "prod" and "sum" replace
+"*" and "+" respectively.  INCOMPATIBILITY.
+
+* Name "Plus" of disjoint sum operator "<+>" is now hidden.  Write
+Sum_Type.Plus.
+
+* Constant "split" has been merged with constant "prod_case"; names of
+ML functions, facts etc. involving split have been retained so far,
+though.  INCOMPATIBILITY.
+
+* Dropped old infix syntax "_ mem _" for List.member; use "_ : set _"
+instead.  INCOMPATIBILITY.
+
+* Removed lemma Option.is_none_none (Duplicate of is_none_def).
+INCOMPATIBILITY.
 
 
 *** HOLCF ***
