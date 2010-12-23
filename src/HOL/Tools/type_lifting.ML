@@ -17,14 +17,12 @@ end;
 structure Type_Lifting : TYPE_LIFTING =
 struct
 
+(* bookkeeping *)
+
 val compN = "comp";
 val idN = "id";
 val compositionalityN = "compositionality";
 val identityN = "identity";
-
-(** functorial mappers and their properties **)
-
-(* bookkeeping *)
 
 type entry = { mapper: term, variances: (sort * (bool * bool)) list,
   comp: thm, id: thm };
@@ -114,13 +112,16 @@ fun make_comp_prop ctxt variances (tyco, mapper) =
       else
         HOLogic.mk_comp (Free (f32, T32), Free (f21, T21))
       ) contras (args21 ~~ args32)
-    fun mk_mapper T T' args = list_comb (term_with_typ ctxt (map fastype_of args ---> T --> T') mapper, args);
+    fun mk_mapper T T' args = list_comb
+      (term_with_typ ctxt (map fastype_of args ---> T --> T') mapper, args);
     val mapper21 = mk_mapper T2 T1 (map Free args21);
     val mapper32 = mk_mapper T3 T2 (map Free args32);
     val mapper31 = mk_mapper T3 T1 args31;
-    val eq1 = (HOLogic.mk_Trueprop o HOLogic.mk_eq) (HOLogic.mk_comp (mapper21, mapper32), mapper31);
+    val eq1 = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
+      (HOLogic.mk_comp (mapper21, mapper32), mapper31);
     val x = Free (the_single (Name.invents nctxt (Long_Name.base_name tyco) 1), T3)
-    val eq2 = (HOLogic.mk_Trueprop o HOLogic.mk_eq) (mapper21 $ (mapper32 $ x), mapper31 $ x);
+    val eq2 = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
+      (mapper21 $ (mapper32 $ x), mapper31 $ x);
     val comp_prop = fold_rev Logic.all (map Free (args21 @ args32)) eq1;
     val compositionality_prop = fold_rev Logic.all (map Free (args21 @ args32) @ [x]) eq2;
     fun prove_compositionality ctxt comp_thm = Skip_Proof.prove ctxt [] [] compositionality_prop
@@ -144,7 +145,8 @@ fun make_id_prop ctxt variances (tyco, mapper) =
     val lhs1 = list_comb (head, map (HOLogic.id_const) arg_Ts);
     val lhs2 = list_comb (head, map (fn arg_T => Abs ("x", arg_T, Bound 0)) arg_Ts);
     val rhs = HOLogic.id_const T;
-    val (id_prop, identity_prop) = pairself (HOLogic.mk_Trueprop o HOLogic.mk_eq o rpair rhs) (lhs1, lhs2);
+    val (id_prop, identity_prop) = pairself
+      (HOLogic.mk_Trueprop o HOLogic.mk_eq o rpair rhs) (lhs1, lhs2);
     fun prove_identity ctxt id_thm = Skip_Proof.prove ctxt [] [] identity_prop
       (K (ALLGOALS (Method.insert_tac [id_thm] THEN' Simplifier.asm_lr_simp_tac identity_ss)));
   in (id_prop, prove_identity) end;
