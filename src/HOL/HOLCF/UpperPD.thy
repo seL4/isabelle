@@ -130,14 +130,14 @@ definition
 
 abbreviation
   upper_add :: "'a upper_pd \<Rightarrow> 'a upper_pd \<Rightarrow> 'a upper_pd"
-    (infixl "+\<sharp>" 65) where
-  "xs +\<sharp> ys == upper_plus\<cdot>xs\<cdot>ys"
+    (infixl "\<union>\<sharp>" 65) where
+  "xs \<union>\<sharp> ys == upper_plus\<cdot>xs\<cdot>ys"
 
 syntax
   "_upper_pd" :: "args \<Rightarrow> 'a upper_pd" ("{_}\<sharp>")
 
 translations
-  "{x,xs}\<sharp>" == "{x}\<sharp> +\<sharp> {xs}\<sharp>"
+  "{x,xs}\<sharp>" == "{x}\<sharp> \<union>\<sharp> {xs}\<sharp>"
   "{x}\<sharp>" == "CONST upper_unit\<cdot>x"
 
 lemma upper_unit_Rep_compact_basis [simp]:
@@ -146,23 +146,23 @@ unfolding upper_unit_def
 by (simp add: compact_basis.extension_principal PDUnit_upper_mono)
 
 lemma upper_plus_principal [simp]:
-  "upper_principal t +\<sharp> upper_principal u = upper_principal (PDPlus t u)"
+  "upper_principal t \<union>\<sharp> upper_principal u = upper_principal (PDPlus t u)"
 unfolding upper_plus_def
 by (simp add: upper_pd.extension_principal
     upper_pd.extension_mono PDPlus_upper_mono)
 
 interpretation upper_add: semilattice upper_add proof
   fix xs ys zs :: "'a upper_pd"
-  show "(xs +\<sharp> ys) +\<sharp> zs = xs +\<sharp> (ys +\<sharp> zs)"
+  show "(xs \<union>\<sharp> ys) \<union>\<sharp> zs = xs \<union>\<sharp> (ys \<union>\<sharp> zs)"
     apply (induct xs ys arbitrary: zs rule: upper_pd.principal_induct2, simp, simp)
     apply (rule_tac x=zs in upper_pd.principal_induct, simp)
     apply (simp add: PDPlus_assoc)
     done
-  show "xs +\<sharp> ys = ys +\<sharp> xs"
+  show "xs \<union>\<sharp> ys = ys \<union>\<sharp> xs"
     apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
     apply (simp add: PDPlus_commute)
     done
-  show "xs +\<sharp> xs = xs"
+  show "xs \<union>\<sharp> xs = xs"
     apply (induct xs rule: upper_pd.principal_induct, simp)
     apply (simp add: PDPlus_absorb)
     done
@@ -182,21 +182,21 @@ text {* Useful for @{text "simp only: upper_plus_aci"} *}
 lemmas upper_plus_aci =
   upper_plus_ac upper_plus_absorb upper_plus_left_absorb
 
-lemma upper_plus_below1: "xs +\<sharp> ys \<sqsubseteq> xs"
+lemma upper_plus_below1: "xs \<union>\<sharp> ys \<sqsubseteq> xs"
 apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_upper_le)
 done
 
-lemma upper_plus_below2: "xs +\<sharp> ys \<sqsubseteq> ys"
+lemma upper_plus_below2: "xs \<union>\<sharp> ys \<sqsubseteq> ys"
 by (subst upper_plus_commute, rule upper_plus_below1)
 
-lemma upper_plus_greatest: "\<lbrakk>xs \<sqsubseteq> ys; xs \<sqsubseteq> zs\<rbrakk> \<Longrightarrow> xs \<sqsubseteq> ys +\<sharp> zs"
+lemma upper_plus_greatest: "\<lbrakk>xs \<sqsubseteq> ys; xs \<sqsubseteq> zs\<rbrakk> \<Longrightarrow> xs \<sqsubseteq> ys \<union>\<sharp> zs"
 apply (subst upper_plus_absorb [of xs, symmetric])
 apply (erule (1) monofun_cfun [OF monofun_cfun_arg])
 done
 
 lemma upper_below_plus_iff [simp]:
-  "xs \<sqsubseteq> ys +\<sharp> zs \<longleftrightarrow> xs \<sqsubseteq> ys \<and> xs \<sqsubseteq> zs"
+  "xs \<sqsubseteq> ys \<union>\<sharp> zs \<longleftrightarrow> xs \<sqsubseteq> ys \<and> xs \<sqsubseteq> zs"
 apply safe
 apply (erule below_trans [OF _ upper_plus_below1])
 apply (erule below_trans [OF _ upper_plus_below2])
@@ -204,7 +204,7 @@ apply (erule (1) upper_plus_greatest)
 done
 
 lemma upper_plus_below_unit_iff [simp]:
-  "xs +\<sharp> ys \<sqsubseteq> {z}\<sharp> \<longleftrightarrow> xs \<sqsubseteq> {z}\<sharp> \<or> ys \<sqsubseteq> {z}\<sharp>"
+  "xs \<union>\<sharp> ys \<sqsubseteq> {z}\<sharp> \<longleftrightarrow> xs \<sqsubseteq> {z}\<sharp> \<or> ys \<sqsubseteq> {z}\<sharp>"
 apply (induct xs rule: upper_pd.principal_induct, simp)
 apply (induct ys rule: upper_pd.principal_induct, simp)
 apply (induct z rule: compact_basis.principal_induct, simp)
@@ -229,17 +229,17 @@ lemma upper_unit_strict [simp]: "{\<bottom>}\<sharp> = \<bottom>"
 using upper_unit_Rep_compact_basis [of compact_bot]
 by (simp add: inst_upper_pd_pcpo)
 
-lemma upper_plus_strict1 [simp]: "\<bottom> +\<sharp> ys = \<bottom>"
+lemma upper_plus_strict1 [simp]: "\<bottom> \<union>\<sharp> ys = \<bottom>"
 by (rule UU_I, rule upper_plus_below1)
 
-lemma upper_plus_strict2 [simp]: "xs +\<sharp> \<bottom> = \<bottom>"
+lemma upper_plus_strict2 [simp]: "xs \<union>\<sharp> \<bottom> = \<bottom>"
 by (rule UU_I, rule upper_plus_below2)
 
 lemma upper_unit_bottom_iff [simp]: "{x}\<sharp> = \<bottom> \<longleftrightarrow> x = \<bottom>"
 unfolding upper_unit_strict [symmetric] by (rule upper_unit_eq_iff)
 
 lemma upper_plus_bottom_iff [simp]:
-  "xs +\<sharp> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<or> ys = \<bottom>"
+  "xs \<union>\<sharp> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<or> ys = \<bottom>"
 apply (rule iffI)
 apply (erule rev_mp)
 apply (rule upper_pd.principal_induct2 [where x=xs and y=ys], simp, simp)
@@ -258,7 +258,7 @@ apply (erule adm_subst [OF cont_Rep_cfun2])
 done
 
 lemma compact_upper_plus [simp]:
-  "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs +\<sharp> ys)"
+  "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs \<union>\<sharp> ys)"
 by (auto dest!: upper_pd.compact_imp_principal)
 
 
@@ -267,7 +267,7 @@ subsection {* Induction rules *}
 lemma upper_pd_induct1:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<sharp>"
-  assumes insert: "\<And>x ys. \<lbrakk>P {x}\<sharp>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<sharp> +\<sharp> ys)"
+  assumes insert: "\<And>x ys. \<lbrakk>P {x}\<sharp>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<sharp> \<union>\<sharp> ys)"
   shows "P (xs::'a upper_pd)"
 apply (induct xs rule: upper_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct1)
@@ -282,7 +282,7 @@ lemma upper_pd_induct
   [case_names adm upper_unit upper_plus, induct type: upper_pd]:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<sharp>"
-  assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs +\<sharp> ys)"
+  assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs \<union>\<sharp> ys)"
   shows "P (xs::'a upper_pd)"
 apply (induct xs rule: upper_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct)
@@ -298,10 +298,10 @@ definition
   "'a pd_basis \<Rightarrow> ('a \<rightarrow> 'b upper_pd) \<rightarrow> 'b upper_pd" where
   "upper_bind_basis = fold_pd
     (\<lambda>a. \<Lambda> f. f\<cdot>(Rep_compact_basis a))
-    (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<sharp> y\<cdot>f)"
+    (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<sharp> y\<cdot>f)"
 
 lemma ACI_upper_bind:
-  "class.ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<sharp> y\<cdot>f)"
+  "class.ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<sharp> y\<cdot>f)"
 apply unfold_locales
 apply (simp add: upper_plus_assoc)
 apply (simp add: upper_plus_commute)
@@ -312,7 +312,7 @@ lemma upper_bind_basis_simps [simp]:
   "upper_bind_basis (PDUnit a) =
     (\<Lambda> f. f\<cdot>(Rep_compact_basis a))"
   "upper_bind_basis (PDPlus t u) =
-    (\<Lambda> f. upper_bind_basis t\<cdot>f +\<sharp> upper_bind_basis u\<cdot>f)"
+    (\<Lambda> f. upper_bind_basis t\<cdot>f \<union>\<sharp> upper_bind_basis u\<cdot>f)"
 unfolding upper_bind_basis_def
 apply -
 apply (rule fold_pd_PDUnit [OF ACI_upper_bind])
@@ -351,7 +351,7 @@ lemma upper_bind_unit [simp]:
 by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma upper_bind_plus [simp]:
-  "upper_bind\<cdot>(xs +\<sharp> ys)\<cdot>f = upper_bind\<cdot>xs\<cdot>f +\<sharp> upper_bind\<cdot>ys\<cdot>f"
+  "upper_bind\<cdot>(xs \<union>\<sharp> ys)\<cdot>f = upper_bind\<cdot>xs\<cdot>f \<union>\<sharp> upper_bind\<cdot>ys\<cdot>f"
 by (induct xs ys rule: upper_pd.principal_induct2, simp, simp, simp)
 
 lemma upper_bind_strict [simp]: "upper_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
@@ -373,7 +373,7 @@ lemma upper_map_unit [simp]:
 unfolding upper_map_def by simp
 
 lemma upper_map_plus [simp]:
-  "upper_map\<cdot>f\<cdot>(xs +\<sharp> ys) = upper_map\<cdot>f\<cdot>xs +\<sharp> upper_map\<cdot>f\<cdot>ys"
+  "upper_map\<cdot>f\<cdot>(xs \<union>\<sharp> ys) = upper_map\<cdot>f\<cdot>xs \<union>\<sharp> upper_map\<cdot>f\<cdot>ys"
 unfolding upper_map_def by simp
 
 lemma upper_map_bottom [simp]: "upper_map\<cdot>f\<cdot>\<bottom> = {f\<cdot>\<bottom>}\<sharp>"
@@ -479,7 +479,7 @@ lemma upper_join_unit [simp]:
 unfolding upper_join_def by simp
 
 lemma upper_join_plus [simp]:
-  "upper_join\<cdot>(xss +\<sharp> yss) = upper_join\<cdot>xss +\<sharp> upper_join\<cdot>yss"
+  "upper_join\<cdot>(xss \<union>\<sharp> yss) = upper_join\<cdot>xss \<union>\<sharp> upper_join\<cdot>yss"
 unfolding upper_join_def by simp
 
 lemma upper_join_bottom [simp]: "upper_join\<cdot>\<bottom> = \<bottom>"

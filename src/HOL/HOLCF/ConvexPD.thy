@@ -177,14 +177,14 @@ definition
 
 abbreviation
   convex_add :: "'a convex_pd \<Rightarrow> 'a convex_pd \<Rightarrow> 'a convex_pd"
-    (infixl "+\<natural>" 65) where
-  "xs +\<natural> ys == convex_plus\<cdot>xs\<cdot>ys"
+    (infixl "\<union>\<natural>" 65) where
+  "xs \<union>\<natural> ys == convex_plus\<cdot>xs\<cdot>ys"
 
 syntax
   "_convex_pd" :: "args \<Rightarrow> 'a convex_pd" ("{_}\<natural>")
 
 translations
-  "{x,xs}\<natural>" == "{x}\<natural> +\<natural> {xs}\<natural>"
+  "{x,xs}\<natural>" == "{x}\<natural> \<union>\<natural> {xs}\<natural>"
   "{x}\<natural>" == "CONST convex_unit\<cdot>x"
 
 lemma convex_unit_Rep_compact_basis [simp]:
@@ -193,23 +193,23 @@ unfolding convex_unit_def
 by (simp add: compact_basis.extension_principal PDUnit_convex_mono)
 
 lemma convex_plus_principal [simp]:
-  "convex_principal t +\<natural> convex_principal u = convex_principal (PDPlus t u)"
+  "convex_principal t \<union>\<natural> convex_principal u = convex_principal (PDPlus t u)"
 unfolding convex_plus_def
 by (simp add: convex_pd.extension_principal
     convex_pd.extension_mono PDPlus_convex_mono)
 
 interpretation convex_add: semilattice convex_add proof
   fix xs ys zs :: "'a convex_pd"
-  show "(xs +\<natural> ys) +\<natural> zs = xs +\<natural> (ys +\<natural> zs)"
+  show "(xs \<union>\<natural> ys) \<union>\<natural> zs = xs \<union>\<natural> (ys \<union>\<natural> zs)"
     apply (induct xs ys arbitrary: zs rule: convex_pd.principal_induct2, simp, simp)
     apply (rule_tac x=zs in convex_pd.principal_induct, simp)
     apply (simp add: PDPlus_assoc)
     done
-  show "xs +\<natural> ys = ys +\<natural> xs"
+  show "xs \<union>\<natural> ys = ys \<union>\<natural> xs"
     apply (induct xs ys rule: convex_pd.principal_induct2, simp, simp)
     apply (simp add: PDPlus_commute)
     done
-  show "xs +\<natural> xs = xs"
+  show "xs \<union>\<natural> xs = xs"
     apply (induct xs rule: convex_pd.principal_induct, simp)
     apply (simp add: PDPlus_absorb)
     done
@@ -230,7 +230,7 @@ lemmas convex_plus_aci =
   convex_plus_ac convex_plus_absorb convex_plus_left_absorb
 
 lemma convex_unit_below_plus_iff [simp]:
-  "{x}\<natural> \<sqsubseteq> ys +\<natural> zs \<longleftrightarrow> {x}\<natural> \<sqsubseteq> ys \<and> {x}\<natural> \<sqsubseteq> zs"
+  "{x}\<natural> \<sqsubseteq> ys \<union>\<natural> zs \<longleftrightarrow> {x}\<natural> \<sqsubseteq> ys \<and> {x}\<natural> \<sqsubseteq> zs"
 apply (induct x rule: compact_basis.principal_induct, simp)
 apply (induct ys rule: convex_pd.principal_induct, simp)
 apply (induct zs rule: convex_pd.principal_induct, simp)
@@ -238,7 +238,7 @@ apply simp
 done
 
 lemma convex_plus_below_unit_iff [simp]:
-  "xs +\<natural> ys \<sqsubseteq> {z}\<natural> \<longleftrightarrow> xs \<sqsubseteq> {z}\<natural> \<and> ys \<sqsubseteq> {z}\<natural>"
+  "xs \<union>\<natural> ys \<sqsubseteq> {z}\<natural> \<longleftrightarrow> xs \<sqsubseteq> {z}\<natural> \<and> ys \<sqsubseteq> {z}\<natural>"
 apply (induct xs rule: convex_pd.principal_induct, simp)
 apply (induct ys rule: convex_pd.principal_induct, simp)
 apply (induct z rule: compact_basis.principal_induct, simp)
@@ -271,7 +271,7 @@ apply (erule adm_subst [OF cont_Rep_cfun2])
 done
 
 lemma compact_convex_plus [simp]:
-  "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs +\<natural> ys)"
+  "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs \<union>\<natural> ys)"
 by (auto dest!: convex_pd.compact_imp_principal)
 
 
@@ -280,7 +280,7 @@ subsection {* Induction rules *}
 lemma convex_pd_induct1:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<natural>"
-  assumes insert: "\<And>x ys. \<lbrakk>P {x}\<natural>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<natural> +\<natural> ys)"
+  assumes insert: "\<And>x ys. \<lbrakk>P {x}\<natural>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<natural> \<union>\<natural> ys)"
   shows "P (xs::'a convex_pd)"
 apply (induct xs rule: convex_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct1)
@@ -295,7 +295,7 @@ lemma convex_pd_induct
   [case_names adm convex_unit convex_plus, induct type: convex_pd]:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<natural>"
-  assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs +\<natural> ys)"
+  assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs \<union>\<natural> ys)"
   shows "P (xs::'a convex_pd)"
 apply (induct xs rule: convex_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct)
@@ -311,10 +311,10 @@ definition
   "'a pd_basis \<Rightarrow> ('a \<rightarrow> 'b convex_pd) \<rightarrow> 'b convex_pd" where
   "convex_bind_basis = fold_pd
     (\<lambda>a. \<Lambda> f. f\<cdot>(Rep_compact_basis a))
-    (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<natural> y\<cdot>f)"
+    (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<natural> y\<cdot>f)"
 
 lemma ACI_convex_bind:
-  "class.ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<natural> y\<cdot>f)"
+  "class.ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<natural> y\<cdot>f)"
 apply unfold_locales
 apply (simp add: convex_plus_assoc)
 apply (simp add: convex_plus_commute)
@@ -325,7 +325,7 @@ lemma convex_bind_basis_simps [simp]:
   "convex_bind_basis (PDUnit a) =
     (\<Lambda> f. f\<cdot>(Rep_compact_basis a))"
   "convex_bind_basis (PDPlus t u) =
-    (\<Lambda> f. convex_bind_basis t\<cdot>f +\<natural> convex_bind_basis u\<cdot>f)"
+    (\<Lambda> f. convex_bind_basis t\<cdot>f \<union>\<natural> convex_bind_basis u\<cdot>f)"
 unfolding convex_bind_basis_def
 apply -
 apply (rule fold_pd_PDUnit [OF ACI_convex_bind])
@@ -363,7 +363,7 @@ lemma convex_bind_unit [simp]:
 by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma convex_bind_plus [simp]:
-  "convex_bind\<cdot>(xs +\<natural> ys)\<cdot>f = convex_bind\<cdot>xs\<cdot>f +\<natural> convex_bind\<cdot>ys\<cdot>f"
+  "convex_bind\<cdot>(xs \<union>\<natural> ys)\<cdot>f = convex_bind\<cdot>xs\<cdot>f \<union>\<natural> convex_bind\<cdot>ys\<cdot>f"
 by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 
 lemma convex_bind_strict [simp]: "convex_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
@@ -386,7 +386,7 @@ lemma convex_map_unit [simp]:
 unfolding convex_map_def by simp
 
 lemma convex_map_plus [simp]:
-  "convex_map\<cdot>f\<cdot>(xs +\<natural> ys) = convex_map\<cdot>f\<cdot>xs +\<natural> convex_map\<cdot>f\<cdot>ys"
+  "convex_map\<cdot>f\<cdot>(xs \<union>\<natural> ys) = convex_map\<cdot>f\<cdot>xs \<union>\<natural> convex_map\<cdot>f\<cdot>ys"
 unfolding convex_map_def by simp
 
 lemma convex_map_bottom [simp]: "convex_map\<cdot>f\<cdot>\<bottom> = {f\<cdot>\<bottom>}\<natural>"
@@ -492,7 +492,7 @@ lemma convex_join_unit [simp]:
 unfolding convex_join_def by simp
 
 lemma convex_join_plus [simp]:
-  "convex_join\<cdot>(xss +\<natural> yss) = convex_join\<cdot>xss +\<natural> convex_join\<cdot>yss"
+  "convex_join\<cdot>(xss \<union>\<natural> yss) = convex_join\<cdot>xss \<union>\<natural> convex_join\<cdot>yss"
 unfolding convex_join_def by simp
 
 lemma convex_join_bottom [simp]: "convex_join\<cdot>\<bottom> = \<bottom>"
@@ -536,7 +536,7 @@ lemma convex_to_upper_unit [simp]:
 by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma convex_to_upper_plus [simp]:
-  "convex_to_upper\<cdot>(xs +\<natural> ys) = convex_to_upper\<cdot>xs +\<sharp> convex_to_upper\<cdot>ys"
+  "convex_to_upper\<cdot>(xs \<union>\<natural> ys) = convex_to_upper\<cdot>xs \<union>\<sharp> convex_to_upper\<cdot>ys"
 by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 
 lemma convex_to_upper_bind [simp]:
@@ -575,7 +575,7 @@ lemma convex_to_lower_unit [simp]:
 by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma convex_to_lower_plus [simp]:
-  "convex_to_lower\<cdot>(xs +\<natural> ys) = convex_to_lower\<cdot>xs +\<flat> convex_to_lower\<cdot>ys"
+  "convex_to_lower\<cdot>(xs \<union>\<natural> ys) = convex_to_lower\<cdot>xs \<union>\<flat> convex_to_lower\<cdot>ys"
 by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 
 lemma convex_to_lower_bind [simp]:
@@ -604,7 +604,7 @@ apply (simp add: convex_le_def)
 done
 
 lemmas convex_plus_below_plus_iff =
-  convex_pd_below_iff [where xs="xs +\<natural> ys" and ys="zs +\<natural> ws", standard]
+  convex_pd_below_iff [where xs="xs \<union>\<natural> ys" and ys="zs \<union>\<natural> ws", standard]
 
 lemmas convex_pd_below_simps =
   convex_unit_below_plus_iff

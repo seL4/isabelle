@@ -62,7 +62,7 @@ fixrec
   pick :: "'a tree \<rightarrow> 'a convex_pd"
 where
   pick_Leaf: "pick\<cdot>(Leaf\<cdot>a) = {a}\<natural>"
-| pick_Node: "pick\<cdot>(Node\<cdot>l\<cdot>r) = pick\<cdot>l +\<natural> pick\<cdot>r"
+| pick_Node: "pick\<cdot>(Node\<cdot>l\<cdot>r) = pick\<cdot>l \<union>\<natural> pick\<cdot>r"
 
 lemma pick_strict [simp]: "pick\<cdot>\<bottom> = \<bottom>"
 by fixrec_simp

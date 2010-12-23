@@ -132,14 +132,14 @@ definition
 
 abbreviation
   lower_add :: "'a lower_pd \<Rightarrow> 'a lower_pd \<Rightarrow> 'a lower_pd"
-    (infixl "+\<flat>" 65) where
-  "xs +\<flat> ys == lower_plus\<cdot>xs\<cdot>ys"
+    (infixl "\<union>\<flat>" 65) where
+  "xs \<union>\<flat> ys == lower_plus\<cdot>xs\<cdot>ys"
 
 syntax
   "_lower_pd" :: "args \<Rightarrow> 'a lower_pd" ("{_}\<flat>")
 
 translations
-  "{x,xs}\<flat>" == "{x}\<flat> +\<flat> {xs}\<flat>"
+  "{x,xs}\<flat>" == "{x}\<flat> \<union>\<flat> {xs}\<flat>"
   "{x}\<flat>" == "CONST lower_unit\<cdot>x"
 
 lemma lower_unit_Rep_compact_basis [simp]:
@@ -148,23 +148,23 @@ unfolding lower_unit_def
 by (simp add: compact_basis.extension_principal PDUnit_lower_mono)
 
 lemma lower_plus_principal [simp]:
-  "lower_principal t +\<flat> lower_principal u = lower_principal (PDPlus t u)"
+  "lower_principal t \<union>\<flat> lower_principal u = lower_principal (PDPlus t u)"
 unfolding lower_plus_def
 by (simp add: lower_pd.extension_principal
     lower_pd.extension_mono PDPlus_lower_mono)
 
 interpretation lower_add: semilattice lower_add proof
   fix xs ys zs :: "'a lower_pd"
-  show "(xs +\<flat> ys) +\<flat> zs = xs +\<flat> (ys +\<flat> zs)"
+  show "(xs \<union>\<flat> ys) \<union>\<flat> zs = xs \<union>\<flat> (ys \<union>\<flat> zs)"
     apply (induct xs ys arbitrary: zs rule: lower_pd.principal_induct2, simp, simp)
     apply (rule_tac x=zs in lower_pd.principal_induct, simp)
     apply (simp add: PDPlus_assoc)
     done
-  show "xs +\<flat> ys = ys +\<flat> xs"
+  show "xs \<union>\<flat> ys = ys \<union>\<flat> xs"
     apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
     apply (simp add: PDPlus_commute)
     done
-  show "xs +\<flat> xs = xs"
+  show "xs \<union>\<flat> xs = xs"
     apply (induct xs rule: lower_pd.principal_induct, simp)
     apply (simp add: PDPlus_absorb)
     done
@@ -184,21 +184,21 @@ text {* Useful for @{text "simp only: lower_plus_aci"} *}
 lemmas lower_plus_aci =
   lower_plus_ac lower_plus_absorb lower_plus_left_absorb
 
-lemma lower_plus_below1: "xs \<sqsubseteq> xs +\<flat> ys"
+lemma lower_plus_below1: "xs \<sqsubseteq> xs \<union>\<flat> ys"
 apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_lower_le)
 done
 
-lemma lower_plus_below2: "ys \<sqsubseteq> xs +\<flat> ys"
+lemma lower_plus_below2: "ys \<sqsubseteq> xs \<union>\<flat> ys"
 by (subst lower_plus_commute, rule lower_plus_below1)
 
-lemma lower_plus_least: "\<lbrakk>xs \<sqsubseteq> zs; ys \<sqsubseteq> zs\<rbrakk> \<Longrightarrow> xs +\<flat> ys \<sqsubseteq> zs"
+lemma lower_plus_least: "\<lbrakk>xs \<sqsubseteq> zs; ys \<sqsubseteq> zs\<rbrakk> \<Longrightarrow> xs \<union>\<flat> ys \<sqsubseteq> zs"
 apply (subst lower_plus_absorb [of zs, symmetric])
 apply (erule (1) monofun_cfun [OF monofun_cfun_arg])
 done
 
 lemma lower_plus_below_iff [simp]:
-  "xs +\<flat> ys \<sqsubseteq> zs \<longleftrightarrow> xs \<sqsubseteq> zs \<and> ys \<sqsubseteq> zs"
+  "xs \<union>\<flat> ys \<sqsubseteq> zs \<longleftrightarrow> xs \<sqsubseteq> zs \<and> ys \<sqsubseteq> zs"
 apply safe
 apply (erule below_trans [OF lower_plus_below1])
 apply (erule below_trans [OF lower_plus_below2])
@@ -206,7 +206,7 @@ apply (erule (1) lower_plus_least)
 done
 
 lemma lower_unit_below_plus_iff [simp]:
-  "{x}\<flat> \<sqsubseteq> ys +\<flat> zs \<longleftrightarrow> {x}\<flat> \<sqsubseteq> ys \<or> {x}\<flat> \<sqsubseteq> zs"
+  "{x}\<flat> \<sqsubseteq> ys \<union>\<flat> zs \<longleftrightarrow> {x}\<flat> \<sqsubseteq> ys \<or> {x}\<flat> \<sqsubseteq> zs"
 apply (induct x rule: compact_basis.principal_induct, simp)
 apply (induct ys rule: lower_pd.principal_induct, simp)
 apply (induct zs rule: lower_pd.principal_induct, simp)
@@ -235,19 +235,19 @@ lemma lower_unit_bottom_iff [simp]: "{x}\<flat> = \<bottom> \<longleftrightarrow
 unfolding lower_unit_strict [symmetric] by (rule lower_unit_eq_iff)
 
 lemma lower_plus_bottom_iff [simp]:
-  "xs +\<flat> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<and> ys = \<bottom>"
+  "xs \<union>\<flat> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<and> ys = \<bottom>"
 apply safe
 apply (rule UU_I, erule subst, rule lower_plus_below1)
 apply (rule UU_I, erule subst, rule lower_plus_below2)
 apply (rule lower_plus_absorb)
 done
 
-lemma lower_plus_strict1 [simp]: "\<bottom> +\<flat> ys = ys"
+lemma lower_plus_strict1 [simp]: "\<bottom> \<union>\<flat> ys = ys"
 apply (rule below_antisym [OF _ lower_plus_below2])
 apply (simp add: lower_plus_least)
 done
 
-lemma lower_plus_strict2 [simp]: "xs +\<flat> \<bottom> = xs"
+lemma lower_plus_strict2 [simp]: "xs \<union>\<flat> \<bottom> = xs"
 apply (rule below_antisym [OF _ lower_plus_below1])
 apply (simp add: lower_plus_least)
 done
@@ -262,7 +262,7 @@ apply (erule adm_subst [OF cont_Rep_cfun2])
 done
 
 lemma compact_lower_plus [simp]:
-  "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs +\<flat> ys)"
+  "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs \<union>\<flat> ys)"
 by (auto dest!: lower_pd.compact_imp_principal)
 
 
@@ -272,7 +272,7 @@ lemma lower_pd_induct1:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<flat>"
   assumes insert:
-    "\<And>x ys. \<lbrakk>P {x}\<flat>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<flat> +\<flat> ys)"
+    "\<And>x ys. \<lbrakk>P {x}\<flat>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<flat> \<union>\<flat> ys)"
   shows "P (xs::'a lower_pd)"
 apply (induct xs rule: lower_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct1)
@@ -287,7 +287,7 @@ lemma lower_pd_induct
   [case_names adm lower_unit lower_plus, induct type: lower_pd]:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<flat>"
-  assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs +\<flat> ys)"
+  assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs \<union>\<flat> ys)"
   shows "P (xs::'a lower_pd)"
 apply (induct xs rule: lower_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct)
@@ -303,10 +303,10 @@ definition
   "'a pd_basis \<Rightarrow> ('a \<rightarrow> 'b lower_pd) \<rightarrow> 'b lower_pd" where
   "lower_bind_basis = fold_pd
     (\<lambda>a. \<Lambda> f. f\<cdot>(Rep_compact_basis a))
-    (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<flat> y\<cdot>f)"
+    (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<flat> y\<cdot>f)"
 
 lemma ACI_lower_bind:
-  "class.ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<flat> y\<cdot>f)"
+  "class.ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<flat> y\<cdot>f)"
 apply unfold_locales
 apply (simp add: lower_plus_assoc)
 apply (simp add: lower_plus_commute)
@@ -317,7 +317,7 @@ lemma lower_bind_basis_simps [simp]:
   "lower_bind_basis (PDUnit a) =
     (\<Lambda> f. f\<cdot>(Rep_compact_basis a))"
   "lower_bind_basis (PDPlus t u) =
-    (\<Lambda> f. lower_bind_basis t\<cdot>f +\<flat> lower_bind_basis u\<cdot>f)"
+    (\<Lambda> f. lower_bind_basis t\<cdot>f \<union>\<flat> lower_bind_basis u\<cdot>f)"
 unfolding lower_bind_basis_def
 apply -
 apply (rule fold_pd_PDUnit [OF ACI_lower_bind])
@@ -356,7 +356,7 @@ lemma lower_bind_unit [simp]:
 by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma lower_bind_plus [simp]:
-  "lower_bind\<cdot>(xs +\<flat> ys)\<cdot>f = lower_bind\<cdot>xs\<cdot>f +\<flat> lower_bind\<cdot>ys\<cdot>f"
+  "lower_bind\<cdot>(xs \<union>\<flat> ys)\<cdot>f = lower_bind\<cdot>xs\<cdot>f \<union>\<flat> lower_bind\<cdot>ys\<cdot>f"
 by (induct xs ys rule: lower_pd.principal_induct2, simp, simp, simp)
 
 lemma lower_bind_strict [simp]: "lower_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
@@ -378,7 +378,7 @@ lemma lower_map_unit [simp]:
 unfolding lower_map_def by simp
 
 lemma lower_map_plus [simp]:
-  "lower_map\<cdot>f\<cdot>(xs +\<flat> ys) = lower_map\<cdot>f\<cdot>xs +\<flat> lower_map\<cdot>f\<cdot>ys"
+  "lower_map\<cdot>f\<cdot>(xs \<union>\<flat> ys) = lower_map\<cdot>f\<cdot>xs \<union>\<flat> lower_map\<cdot>f\<cdot>ys"
 unfolding lower_map_def by simp
 
 lemma lower_map_bottom [simp]: "lower_map\<cdot>f\<cdot>\<bottom> = {f\<cdot>\<bottom>}\<flat>"
@@ -484,7 +484,7 @@ lemma lower_join_unit [simp]:
 unfolding lower_join_def by simp
 
 lemma lower_join_plus [simp]:
-  "lower_join\<cdot>(xss +\<flat> yss) = lower_join\<cdot>xss +\<flat> lower_join\<cdot>yss"
+  "lower_join\<cdot>(xss \<union>\<flat> yss) = lower_join\<cdot>xss \<union>\<flat> lower_join\<cdot>yss"
 unfolding lower_join_def by simp
 
 lemma lower_join_bottom [simp]: "lower_join\<cdot>\<bottom> = \<bottom>"
