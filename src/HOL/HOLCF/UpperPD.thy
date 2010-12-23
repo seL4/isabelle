@@ -121,11 +121,11 @@ subsection {* Monadic unit and plus *}
 
 definition
   upper_unit :: "'a \<rightarrow> 'a upper_pd" where
-  "upper_unit = compact_basis.basis_fun (\<lambda>a. upper_principal (PDUnit a))"
+  "upper_unit = compact_basis.extension (\<lambda>a. upper_principal (PDUnit a))"
 
 definition
   upper_plus :: "'a upper_pd \<rightarrow> 'a upper_pd \<rightarrow> 'a upper_pd" where
-  "upper_plus = upper_pd.basis_fun (\<lambda>t. upper_pd.basis_fun (\<lambda>u.
+  "upper_plus = upper_pd.extension (\<lambda>t. upper_pd.extension (\<lambda>u.
       upper_principal (PDPlus t u)))"
 
 abbreviation
@@ -143,13 +143,13 @@ translations
 lemma upper_unit_Rep_compact_basis [simp]:
   "{Rep_compact_basis a}\<sharp> = upper_principal (PDUnit a)"
 unfolding upper_unit_def
-by (simp add: compact_basis.basis_fun_principal PDUnit_upper_mono)
+by (simp add: compact_basis.extension_principal PDUnit_upper_mono)
 
 lemma upper_plus_principal [simp]:
   "upper_principal t +\<sharp> upper_principal u = upper_principal (PDPlus t u)"
 unfolding upper_plus_def
-by (simp add: upper_pd.basis_fun_principal
-    upper_pd.basis_fun_mono PDPlus_upper_mono)
+by (simp add: upper_pd.extension_principal
+    upper_pd.extension_mono PDPlus_upper_mono)
 
 interpretation upper_add: semilattice upper_add proof
   fix xs ys zs :: "'a upper_pd"
@@ -330,7 +330,7 @@ done
 
 definition
   upper_bind :: "'a upper_pd \<rightarrow> ('a \<rightarrow> 'b upper_pd) \<rightarrow> 'b upper_pd" where
-  "upper_bind = upper_pd.basis_fun upper_bind_basis"
+  "upper_bind = upper_pd.extension upper_bind_basis"
 
 syntax
   "_upper_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
@@ -342,7 +342,7 @@ translations
 lemma upper_bind_principal [simp]:
   "upper_bind\<cdot>(upper_principal t) = upper_bind_basis t"
 unfolding upper_bind_def
-apply (rule upper_pd.basis_fun_principal)
+apply (rule upper_pd.extension_principal)
 apply (erule upper_bind_basis_mono)
 done
 

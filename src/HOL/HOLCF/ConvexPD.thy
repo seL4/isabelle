@@ -168,11 +168,11 @@ subsection {* Monadic unit and plus *}
 
 definition
   convex_unit :: "'a \<rightarrow> 'a convex_pd" where
-  "convex_unit = compact_basis.basis_fun (\<lambda>a. convex_principal (PDUnit a))"
+  "convex_unit = compact_basis.extension (\<lambda>a. convex_principal (PDUnit a))"
 
 definition
   convex_plus :: "'a convex_pd \<rightarrow> 'a convex_pd \<rightarrow> 'a convex_pd" where
-  "convex_plus = convex_pd.basis_fun (\<lambda>t. convex_pd.basis_fun (\<lambda>u.
+  "convex_plus = convex_pd.extension (\<lambda>t. convex_pd.extension (\<lambda>u.
       convex_principal (PDPlus t u)))"
 
 abbreviation
@@ -190,13 +190,13 @@ translations
 lemma convex_unit_Rep_compact_basis [simp]:
   "{Rep_compact_basis a}\<natural> = convex_principal (PDUnit a)"
 unfolding convex_unit_def
-by (simp add: compact_basis.basis_fun_principal PDUnit_convex_mono)
+by (simp add: compact_basis.extension_principal PDUnit_convex_mono)
 
 lemma convex_plus_principal [simp]:
   "convex_principal t +\<natural> convex_principal u = convex_principal (PDPlus t u)"
 unfolding convex_plus_def
-by (simp add: convex_pd.basis_fun_principal
-    convex_pd.basis_fun_mono PDPlus_convex_mono)
+by (simp add: convex_pd.extension_principal
+    convex_pd.extension_mono PDPlus_convex_mono)
 
 interpretation convex_add: semilattice convex_add proof
   fix xs ys zs :: "'a convex_pd"
@@ -342,7 +342,7 @@ done
 
 definition
   convex_bind :: "'a convex_pd \<rightarrow> ('a \<rightarrow> 'b convex_pd) \<rightarrow> 'b convex_pd" where
-  "convex_bind = convex_pd.basis_fun convex_bind_basis"
+  "convex_bind = convex_pd.extension convex_bind_basis"
 
 syntax
   "_convex_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
@@ -354,7 +354,7 @@ translations
 lemma convex_bind_principal [simp]:
   "convex_bind\<cdot>(convex_principal t) = convex_bind_basis t"
 unfolding convex_bind_def
-apply (rule convex_pd.basis_fun_principal)
+apply (rule convex_pd.extension_principal)
 apply (erule convex_bind_basis_mono)
 done
 
@@ -521,12 +521,12 @@ unfolding convex_le_def by simp
 
 definition
   convex_to_upper :: "'a convex_pd \<rightarrow> 'a upper_pd" where
-  "convex_to_upper = convex_pd.basis_fun upper_principal"
+  "convex_to_upper = convex_pd.extension upper_principal"
 
 lemma convex_to_upper_principal [simp]:
   "convex_to_upper\<cdot>(convex_principal t) = upper_principal t"
 unfolding convex_to_upper_def
-apply (rule convex_pd.basis_fun_principal)
+apply (rule convex_pd.extension_principal)
 apply (rule upper_pd.principal_mono)
 apply (erule convex_le_imp_upper_le)
 done
@@ -560,12 +560,12 @@ unfolding convex_le_def by simp
 
 definition
   convex_to_lower :: "'a convex_pd \<rightarrow> 'a lower_pd" where
-  "convex_to_lower = convex_pd.basis_fun lower_principal"
+  "convex_to_lower = convex_pd.extension lower_principal"
 
 lemma convex_to_lower_principal [simp]:
   "convex_to_lower\<cdot>(convex_principal t) = lower_principal t"
 unfolding convex_to_lower_def
-apply (rule convex_pd.basis_fun_principal)
+apply (rule convex_pd.extension_principal)
 apply (rule lower_pd.principal_mono)
 apply (erule convex_le_imp_lower_le)
 done

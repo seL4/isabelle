@@ -569,18 +569,18 @@ subsection {* Chain of approx functions on algebraic deflations *}
 definition
   defl_approx :: "nat \<Rightarrow> 'a defl \<rightarrow> 'a defl"
 where
-  "defl_approx = (\<lambda>i. defl.basis_fun (\<lambda>d. defl_principal (fd_take i d)))"
+  "defl_approx = (\<lambda>i. defl.extension (\<lambda>d. defl_principal (fd_take i d)))"
 
 lemma defl_approx_principal:
   "defl_approx i\<cdot>(defl_principal d) = defl_principal (fd_take i d)"
 unfolding defl_approx_def
-by (simp add: defl.basis_fun_principal fd_take_mono)
+by (simp add: defl.extension_principal fd_take_mono)
 
 lemma defl_approx: "approx_chain defl_approx"
 proof
   show chain: "chain defl_approx"
     unfolding defl_approx_def
-    by (simp add: chainI defl.basis_fun_mono fd_take_mono fd_take_chain)
+    by (simp add: chainI defl.extension_mono fd_take_mono fd_take_chain)
   show idem: "\<And>i x. defl_approx i\<cdot>(defl_approx i\<cdot>x) = defl_approx i\<cdot>x"
     apply (induct_tac x rule: defl.principal_induct, simp)
     apply (simp add: defl_approx_principal fd_take_idem)
@@ -594,7 +594,7 @@ proof
     apply (simp add: contlub_cfun_fun chain lub_below_iff chain below)
     apply (induct_tac x rule: defl.principal_induct, simp)
     apply (simp add: contlub_cfun_fun chain)
-    apply (simp add: compact_below_lub_iff defl.compact_principal chain)
+    apply (simp add: compact_below_lub_iff chain)
     apply (simp add: defl_approx_principal)
     apply (subgoal_tac "\<exists>i. fd_take i a = a", metis below_refl)
     apply (rule fd_take_covers)

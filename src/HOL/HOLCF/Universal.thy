@@ -856,17 +856,17 @@ context bifinite_approx_chain begin
 definition
   udom_emb :: "'a \<rightarrow> udom"
 where
-  "udom_emb = compact_basis.basis_fun (\<lambda>x. udom_principal (basis_emb x))"
+  "udom_emb = compact_basis.extension (\<lambda>x. udom_principal (basis_emb x))"
 
 definition
   udom_prj :: "udom \<rightarrow> 'a"
 where
-  "udom_prj = udom.basis_fun (\<lambda>x. Rep_compact_basis (basis_prj x))"
+  "udom_prj = udom.extension (\<lambda>x. Rep_compact_basis (basis_prj x))"
 
 lemma udom_emb_principal:
   "udom_emb\<cdot>(Rep_compact_basis x) = udom_principal (basis_emb x)"
 unfolding udom_emb_def
-apply (rule compact_basis.basis_fun_principal)
+apply (rule compact_basis.extension_principal)
 apply (rule udom.principal_mono)
 apply (erule basis_emb_mono)
 done
@@ -874,7 +874,7 @@ done
 lemma udom_prj_principal:
   "udom_prj\<cdot>(udom_principal x) = Rep_compact_basis (basis_prj x)"
 unfolding udom_prj_def
-apply (rule udom.basis_fun_principal)
+apply (rule udom.extension_principal)
 apply (rule compact_basis.principal_mono)
 apply (erule basis_prj_mono)
 done
@@ -903,7 +903,7 @@ definition
   udom_approx :: "nat \<Rightarrow> udom \<rightarrow> udom"
 where
   "udom_approx i =
-    udom.basis_fun (\<lambda>x. udom_principal (ubasis_until (\<lambda>y. y \<le> i) x))"
+    udom.extension (\<lambda>x. udom_principal (ubasis_until (\<lambda>y. y \<le> i) x))"
 
 lemma udom_approx_mono:
   "ubasis_le a b \<Longrightarrow>
@@ -923,7 +923,7 @@ lemma udom_approx_principal:
   "udom_approx i\<cdot>(udom_principal x) =
     udom_principal (ubasis_until (\<lambda>y. y \<le> i) x)"
 unfolding udom_approx_def
-apply (rule udom.basis_fun_principal)
+apply (rule udom.extension_principal)
 apply (erule udom_approx_mono)
 done
 
@@ -957,7 +957,7 @@ by (rule finite_deflation_udom_approx)
 lemma chain_udom_approx [simp]: "chain (\<lambda>i. udom_approx i)"
 unfolding udom_approx_def
 apply (rule chainI)
-apply (rule udom.basis_fun_mono)
+apply (rule udom.extension_mono)
 apply (erule udom_approx_mono)
 apply (erule udom_approx_mono)
 apply (rule udom.principal_mono)

@@ -123,11 +123,11 @@ subsection {* Monadic unit and plus *}
 
 definition
   lower_unit :: "'a \<rightarrow> 'a lower_pd" where
-  "lower_unit = compact_basis.basis_fun (\<lambda>a. lower_principal (PDUnit a))"
+  "lower_unit = compact_basis.extension (\<lambda>a. lower_principal (PDUnit a))"
 
 definition
   lower_plus :: "'a lower_pd \<rightarrow> 'a lower_pd \<rightarrow> 'a lower_pd" where
-  "lower_plus = lower_pd.basis_fun (\<lambda>t. lower_pd.basis_fun (\<lambda>u.
+  "lower_plus = lower_pd.extension (\<lambda>t. lower_pd.extension (\<lambda>u.
       lower_principal (PDPlus t u)))"
 
 abbreviation
@@ -145,13 +145,13 @@ translations
 lemma lower_unit_Rep_compact_basis [simp]:
   "{Rep_compact_basis a}\<flat> = lower_principal (PDUnit a)"
 unfolding lower_unit_def
-by (simp add: compact_basis.basis_fun_principal PDUnit_lower_mono)
+by (simp add: compact_basis.extension_principal PDUnit_lower_mono)
 
 lemma lower_plus_principal [simp]:
   "lower_principal t +\<flat> lower_principal u = lower_principal (PDPlus t u)"
 unfolding lower_plus_def
-by (simp add: lower_pd.basis_fun_principal
-    lower_pd.basis_fun_mono PDPlus_lower_mono)
+by (simp add: lower_pd.extension_principal
+    lower_pd.extension_mono PDPlus_lower_mono)
 
 interpretation lower_add: semilattice lower_add proof
   fix xs ys zs :: "'a lower_pd"
@@ -335,7 +335,7 @@ done
 
 definition
   lower_bind :: "'a lower_pd \<rightarrow> ('a \<rightarrow> 'b lower_pd) \<rightarrow> 'b lower_pd" where
-  "lower_bind = lower_pd.basis_fun lower_bind_basis"
+  "lower_bind = lower_pd.extension lower_bind_basis"
 
 syntax
   "_lower_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
@@ -347,7 +347,7 @@ translations
 lemma lower_bind_principal [simp]:
   "lower_bind\<cdot>(lower_principal t) = lower_bind_basis t"
 unfolding lower_bind_def
-apply (rule lower_pd.basis_fun_principal)
+apply (rule lower_pd.extension_principal)
 apply (erule lower_bind_basis_mono)
 done
 

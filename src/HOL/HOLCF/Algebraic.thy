@@ -152,12 +152,12 @@ subsection {* Applying algebraic deflations *}
 definition
   cast :: "'a defl \<rightarrow> 'a \<rightarrow> 'a"
 where
-  "cast = defl.basis_fun Rep_fin_defl"
+  "cast = defl.extension Rep_fin_defl"
 
 lemma cast_defl_principal:
   "cast\<cdot>(defl_principal a) = Rep_fin_defl a"
 unfolding cast_def
-apply (rule defl.basis_fun_principal)
+apply (rule defl.extension_principal)
 apply (simp only: below_fin_defl_def)
 done
 
@@ -219,14 +219,14 @@ subsection {* Deflation combinators *}
 
 definition
   "defl_fun1 e p f =
-    defl.basis_fun (\<lambda>a.
+    defl.extension (\<lambda>a.
       defl_principal (Abs_fin_defl
         (e oo f\<cdot>(Rep_fin_defl a) oo p)))"
 
 definition
   "defl_fun2 e p f =
-    defl.basis_fun (\<lambda>a.
-      defl.basis_fun (\<lambda>b.
+    defl.extension (\<lambda>a.
+      defl.extension (\<lambda>b.
         defl_principal (Abs_fin_defl
           (e oo f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo p))))"
 
@@ -242,8 +242,8 @@ proof -
   show ?thesis
     by (induct A rule: defl.principal_induct, simp)
        (simp only: defl_fun1_def
-                   defl.basis_fun_principal
-                   defl.basis_fun_mono
+                   defl.extension_principal
+                   defl.extension_mono
                    defl.principal_mono
                    Abs_fin_defl_mono [OF 1 1]
                    monofun_cfun below_refl
@@ -267,8 +267,8 @@ proof -
     apply (induct A rule: defl.principal_induct, simp)
     apply (induct B rule: defl.principal_induct, simp)
     by (simp only: defl_fun2_def
-                   defl.basis_fun_principal
-                   defl.basis_fun_mono
+                   defl.extension_principal
+                   defl.extension_mono
                    defl.principal_mono
                    Abs_fin_defl_mono [OF 1 1]
                    monofun_cfun below_refl

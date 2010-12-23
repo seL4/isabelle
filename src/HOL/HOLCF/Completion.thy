@@ -291,10 +291,10 @@ done
 subsection {* Defining functions in terms of basis elements *}
 
 definition
-  basis_fun :: "('a::type \<Rightarrow> 'c::cpo) \<Rightarrow> 'b \<rightarrow> 'c" where
-  "basis_fun = (\<lambda>f. (\<Lambda> x. lub (f ` rep x)))"
+  extension :: "('a::type \<Rightarrow> 'c::cpo) \<Rightarrow> 'b \<rightarrow> 'c" where
+  "extension = (\<lambda>f. (\<Lambda> x. lub (f ` rep x)))"
 
-lemma basis_fun_lemma:
+lemma extension_lemma:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   shows "\<exists>u. f ` rep x <<| u"
@@ -320,14 +320,14 @@ proof -
   thus ?thesis ..
 qed
 
-lemma basis_fun_beta:
+lemma extension_beta:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "basis_fun f\<cdot>x = lub (f ` rep x)"
-unfolding basis_fun_def
+  shows "extension f\<cdot>x = lub (f ` rep x)"
+unfolding extension_def
 proof (rule beta_cfun)
   have lub: "\<And>x. \<exists>u. f ` rep x <<| u"
-    using f_mono by (rule basis_fun_lemma)
+    using f_mono by (rule extension_lemma)
   show cont: "cont (\<lambda>x. lub (f ` rep x))"
     apply (rule contI2)
      apply (rule monofunI)
@@ -341,11 +341,11 @@ proof (rule beta_cfun)
     done
 qed
 
-lemma basis_fun_principal:
+lemma extension_principal:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "basis_fun f\<cdot>(principal a) = f a"
-apply (subst basis_fun_beta, erule f_mono)
+  shows "extension f\<cdot>(principal a) = f a"
+apply (subst extension_beta, erule f_mono)
 apply (subst rep_principal)
 apply (rule lub_eqI)
 apply (rule is_lub_maximal)
@@ -355,34 +355,34 @@ apply (rule imageI)
 apply (simp add: r_refl)
 done
 
-lemma basis_fun_mono:
+lemma extension_mono:
   assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   assumes g_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> g a \<sqsubseteq> g b"
   assumes below: "\<And>a. f a \<sqsubseteq> g a"
-  shows "basis_fun f \<sqsubseteq> basis_fun g"
+  shows "extension f \<sqsubseteq> extension g"
  apply (rule cfun_belowI)
- apply (simp only: basis_fun_beta f_mono g_mono)
+ apply (simp only: extension_beta f_mono g_mono)
  apply (rule is_lub_thelub_ex)
-  apply (rule basis_fun_lemma, erule f_mono)
+  apply (rule extension_lemma, erule f_mono)
  apply (rule ub_imageI, rename_tac a)
  apply (rule below_trans [OF below])
  apply (rule is_ub_thelub_ex)
-  apply (rule basis_fun_lemma, erule g_mono)
+  apply (rule extension_lemma, erule g_mono)
  apply (erule imageI)
 done
 
-lemma cont_basis_fun:
+lemma cont_extension:
   assumes f_mono: "\<And>a b x. a \<preceq> b \<Longrightarrow> f x a \<sqsubseteq> f x b"
   assumes f_cont: "\<And>a. cont (\<lambda>x. f x a)"
-  shows "cont (\<lambda>x. basis_fun (\<lambda>a. f x a))"
+  shows "cont (\<lambda>x. extension (\<lambda>a. f x a))"
  apply (rule contI2)
   apply (rule monofunI)
-  apply (rule basis_fun_mono, erule f_mono, erule f_mono)
+  apply (rule extension_mono, erule f_mono, erule f_mono)
   apply (erule cont2monofunE [OF f_cont])
  apply (rule cfun_belowI)
  apply (rule principal_induct, simp)
  apply (simp only: contlub_cfun_fun)
- apply (simp only: basis_fun_principal f_mono)
+ apply (simp only: extension_principal f_mono)
  apply (simp add: cont2contlubE [OF f_cont])
 done
 
