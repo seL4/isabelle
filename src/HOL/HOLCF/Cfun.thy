@@ -483,14 +483,11 @@ qed
 lemma seq_conv_if: "seq\<cdot>x = (if x = \<bottom> then \<bottom> else ID)"
 unfolding seq_def by simp
 
-lemma seq1 [simp]: "seq\<cdot>\<bottom> = \<bottom>"
-by (simp add: seq_conv_if)
-
-lemma seq2 [simp]: "x \<noteq> \<bottom> \<Longrightarrow> seq\<cdot>x = ID"
-by (simp add: seq_conv_if)
-
-lemma seq3 [simp]: "seq\<cdot>x\<cdot>\<bottom> = \<bottom>"
-by (simp add: seq_conv_if)
+lemma seq_simps [simp]:
+  "seq\<cdot>\<bottom> = \<bottom>"
+  "seq\<cdot>x\<cdot>\<bottom> = \<bottom>"
+  "x \<noteq> \<bottom> \<Longrightarrow> seq\<cdot>x = ID"
+by (simp_all add: seq_conv_if)
 
 definition
   strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b" where
